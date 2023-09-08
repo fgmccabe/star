@@ -17,17 +17,26 @@ test.ac5{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f(10)));
+    logM(disp(f(10)));
     try{
       F10 = f(10);
-      _logmsg(disp(F10));
+      logM(disp(F10));
       F = f(-10);
-      _logmsg(disp(F))
+      logM(disp(F))
     } catch string in {
       E => {
-	_logmsg(E)
+	logM(E)
       }
     };
     valis ()
   }
+
+  logM:(string)=>().
+  logM(M) => valof{
+    try{
+      _logmsg(M)
+    } catch errorCode in {_ => {}};
+    valis ()
+  }
+  
 }

@@ -21,7 +21,7 @@ star.skew{
 
   tl:all a ~~ (rlist[a]) => rlist[a].
   tl(.cons((1,_),ts)) => ts.
-  tl(.cons((w,.node(_,t1,t2)),ts)) => .cons((w/2,t1),.cons((w/2,t2),ts)).
+  tl(.cons((w,.node(_,t1,t2)),ts)) => .cons((w.>>.1,t1),.cons((w.>>.1,t2),ts)).
 
   lookup:all a ~~ (integer,rlist[a]) => option[a].
   lookup(_,.nil) => .none.
@@ -30,7 +30,7 @@ star.skew{
 
   lookupTree:all a ~~ (integer,integer,tree[a]) => option[a].
   lookupTree(0,w,.node(x,_,_)) => .some(x).
-  lookupTree(Ix,w,.node(_,t1,t2)) where w2 .= w/2 =>
+  lookupTree(Ix,w,.node(_,t1,t2)) where w2 .= w.>>.1 =>
     (Ix=<w2 ??
 	lookupTree(Ix-1,w2,t1) ||
 	lookupTree(Ix-1-w2,w2,t2)).
@@ -45,7 +45,7 @@ star.skew{
 
   updateTree:all a ~~ (integer,integer,a,tree[a]) => tree[a].
   updateTree(0,w,v,.node(_,t1,t2)) => .node(v,t1,t2).
-  updateTree(Ix,w,v,.node(x,t1,t2)) where w2 .= w/2 =>
+  updateTree(Ix,w,v,.node(x,t1,t2)) where w2 .= w.>>.1 =>
     (Ix=<w2 ??
 	.node(x,updateTree(Ix-1,w2,v,t1),t2) ||
 	.node(x,t1,updateTree(Ix-1-w2,w2,v,t2))).
@@ -59,7 +59,7 @@ star.skew{
 
   removeTree:all a ~~ (integer,integer,tree[a]) => (integer,tree[a]).
   removeTree(0,w,.node(_,t1,t2)) => (w-1,mergeTree(t1,t2)).
-  removeTree(Ix,w,.node(x,t1,t2)) where w2 .= w/2 =>
+  removeTree(Ix,w,.node(x,t1,t2)) where w2 .= w.>>.1 =>
     (Ix=<w2 ?? valof{
 	(_,NL) = removeTree(Ix-1,w2,t1);
 	valis (w-1,.node(x,NL,t2))

@@ -14,6 +14,7 @@
 #include "option.h"
 #include "charP.h"
 #include "stringops.h"
+#include "errorCodes.h"
 
 ReturnStatus g__chr_eq(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=(charVal(a1) == charVal(a2) ? trueEnum : falseEnum)};
@@ -47,7 +48,7 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
   integer fLen;
   const char *fmt = strVal(a2, &fLen);
   strBufferPo strb = newStringBuffer();
-  retCode ret = Error;
+  retCode ret;
 
   // Allowed formats are q, c, x, 0, 9
   if (fLen == 1) {
@@ -74,7 +75,7 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
     closeFile(O_IO(strb));
     return result;
   } else {
-    ReturnStatus result = {.ret=Error, .result=a1};
+    ReturnStatus result = {.ret=Error, .result=eINVAL};
     return result;
   }
 }

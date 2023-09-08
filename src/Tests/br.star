@@ -16,7 +16,7 @@ test.br{
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).
     times(X,Y) => _int_times(X,Y).
-    div(X,Y) => _int_div(X,Y).
+    div(X,Y) => (try _int_div(X,Y) catch errorCode in {_ => 0}).
     zer = 0.
     unum = 1.
   }.
@@ -25,7 +25,11 @@ test.br{
     plus(X,Y) => _big_plus(X,Y).
     minus(X,Y) => _big_minus(X,Y).
     times(X,Y) => _big_times(X,Y).
-    div(X,Y) where (q,_) .= _big_div(X,Y) => q.
+    div(X,Y) => (try
+      _big_div(X,Y).0
+      catch errorCode in {
+	_ => 0b0
+      }).
     zer = 0b0.
     unum = 0b1.
   }
@@ -36,7 +40,7 @@ test.br{
 
   sample = times(plus(2,3),unum).
 
-  gcd(A,B) => _big_gcd(A,B).
+  gcd(A,B) => (try _big_gcd(A,B) catch errorCode in {_ => A}).
 
   public main:()=>().
   main()=>valof{

@@ -25,7 +25,7 @@ test.ac8{
 	    }
 	  }
 	} in {
-	  _logmsg("p1");
+	  logMsg("p1");
 	  if X>5 then
 	    _throw(10)
 	  else
@@ -34,7 +34,7 @@ test.ac8{
 	});
     case TT resume () in {
       .err(E) => {
-	_logmsg(disp(E));
+	logMsg(disp(E));
 	valis -E
       }.
       .ok(V) =>
@@ -44,8 +44,8 @@ test.ac8{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f(1)));
-    _logmsg(disp(f(10)));
+    logMsg(disp(f(1)));
+    logMsg(disp(f(10)));
     valis ()
   }
 }

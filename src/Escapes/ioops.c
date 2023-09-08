@@ -16,16 +16,15 @@
 #include "consP.h"
 #include "future.h"
 
-ReturnStatus g__close(heapPo h, termPo a1) {
-  ioChnnlPo chnl = C_IO(a1);
-
-  return rtnStatus(h, closeFile(ioChannel(chnl)), "_close");
+ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
+  if (closeFile(ioChannel(C_IO(a1))) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__end_of_file(heapPo h, termPo a1) {
-  ioChnnlPo chnl = C_IO(a1);
-
-  termPo Rs = (isFileAtEof(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
+  termPo Rs = (isFileAtEof(ioChannel(C_IO(a1))) == Eof ? trueEnum : falseEnum);
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
@@ -272,7 +271,7 @@ ReturnStatus g__inline_async(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__get_file(heapPo h, termPo a1) {
+ReturnStatus g__get_file(heapPo h, termPo xc, termPo a1) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(a1), fn, NumberOf(fn));
@@ -305,18 +304,24 @@ ReturnStatus g__get_file(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__outchar(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__outchar(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   codePoint cp = (codePoint) integerVal(a2);
 
-  return rtnStatus(h, outChar(io, cp), "outchar");
+  if (outChar(io, cp) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
-ReturnStatus g__outbyte(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__outbyte(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer cp = integerVal(a2);
 
-  return rtnStatus(h, outByte(io, (byte) cp), "outbyte");
+  if (outByte(io, cp) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
@@ -329,10 +334,13 @@ ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
     a2 = consTail(C_NORMAL(a2));
   }
 
-  return rtnStatus(h, ret, "outbytes");
+  if (ret == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
-ReturnStatus g__outtext(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer length;
   const char *text = strVal(a2, &length);
@@ -346,15 +354,17 @@ ReturnStatus g__outtext(heapPo h, termPo a1, termPo a2) {
     pos += actual;
   }
 
-  return rtnStatus(h, ret, "outtext");
+  if (ret == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__show(heapPo h, termPo a1) {
   integer length;
   const char *text = strVal(a1, &length);
-  retCode ret = outMsg(logFile, "%S\n%_", text, length);
-
-  return rtnStatus(h, ret, "_show");
+  outMsg(logFile, "%S\n%_", text, length);
+  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 
 ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
@@ -377,12 +387,14 @@ ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__logmsg(heapPo h, termPo a1) {
+ReturnStatus g__logmsg(heapPo h, termPo xc, termPo a1) {
   integer length;
   const char *text = strVal(a1, &length);
-  retCode ret = logMsg(logFile, "%S", (char *) text, length);
 
-  return rtnStatus(h, ret, "logmsg");
+  if (logMsg(logFile, "%S", (char *) text, length) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__display_depth(heapPo h) {
@@ -427,28 +439,31 @@ ReturnStatus g__fposition(heapPo h, termPo a1) {
   return rt;
 }
 
-ReturnStatus g__fseek(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__fseek(heapPo h, termPo xc, termPo a1, termPo a2) {
   filePo io = O_FILE(ioChannel(C_IO(a1)));
   integer pos = integerVal(a2);
 
-  return rtnStatus(h, fileSeek(io, pos), "_fseek");
+  if (fileSeek(io, pos) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__setfileencoding(heapPo h, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer enc = integerVal(a2);
   setEncoding(io, (ioEncoding) enc);
-
-  return rtnStatus(h, Ok, "_setfileencoding");
+  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 
-ReturnStatus g__flush(heapPo h, termPo a1) {
-  ioChnnlPo chnl = C_IO(a1);
-
-  return rtnStatus(h, flushFile(ioChannel(chnl)), "flushing problem");
+ReturnStatus g__flush(heapPo h, termPo xc, termPo a1) {
+  if (flushFile(ioChannel(C_IO(a1))) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
 }
 
 ReturnStatus g__flushall(heapPo h, termPo a1) {
   flushOut();
-  return (ReturnStatus) {.ret=Ok, .result=voidEnum};
+  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }

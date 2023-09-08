@@ -7,8 +7,11 @@ test.coe{
 
   logMsg:(string)=>().
   logMsg(M) => valof{
-    _logmsg(M);
-    valis ()}
+    try{
+      _logmsg(M)
+    } catch errorCode in {_ => {}};
+    valis ()
+  }
 
   logStrs(.nil) => ().
   logStrs(.cons(H,T)) =>

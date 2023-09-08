@@ -37,7 +37,7 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo p, termPo a1) {
+ReturnStatus g__delay(processPo p, termPo xc, termPo a1) {
   double dx = floatVal(a1);
 
   struct timespec tm;
@@ -53,19 +53,19 @@ ReturnStatus g__delay(processPo p, termPo a1) {
     setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return liberror(processHeap(p), "delay", eINTRUPT);
+        return (ReturnStatus) {.ret = Error, .result = eINTRUPT};
       case EINVAL:
       case ENOSYS:
       default:
-        return liberror(processHeap(p), "delay", eINVAL);
+        return (ReturnStatus) {.ret = Error, .result = eINVAL};
     }
   } else {
     setProcessRunnable(p);
-    return (ReturnStatus) {.ret = Ok, .result = voidEnum};
+    return (ReturnStatus) {.ret = Ok, .result = unitEnum};
   }
 }
 
-ReturnStatus g__sleep(processPo p, termPo a1) {
+ReturnStatus g__sleep(processPo p, termPo xc, termPo a1) {
   double f = floatVal(a1);
 
   struct timeval now;
@@ -76,7 +76,7 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 
   if (seconds < now.tv_sec ||
       (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
-    return (ReturnStatus) {.ret = Ok, .result = voidEnum};
+    return (ReturnStatus) {.ret = Ok, .result = unitEnum};
   } else {
     struct timespec tm;
 
@@ -98,15 +98,15 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
       setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return liberror(processHeap(p), "sleep", eINTRUPT);
+          return (ReturnStatus) {.ret = Error, .result = eINTRUPT};
         case EINVAL:
         case ENOSYS:
         default:
-          return liberror(processHeap(p), "sleep", eINVAL);
+          return (ReturnStatus) {.ret = Error, .result = eINVAL};
       }
     } else {
       setProcessRunnable(p);
-      return (ReturnStatus) {.ret = Ok, .result = voidEnum};
+      return (ReturnStatus) {.ret = Ok, .result = unitEnum};
     }
   }
 }
@@ -115,20 +115,20 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 ReturnStatus g__now(heapPo h) {
   termPo now = makeFloat(get_time());
 
-  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
+  return (ReturnStatus) {.ret=Ok, .result=now};
 }
 
 /* Return the time at midnight */
 ReturnStatus g__today(heapPo h) {
   termPo now = makeFloat(get_date());
 
-  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
+  return (ReturnStatus) {.ret=Ok, .result=now};
 }
 
 ReturnStatus g__ticks(heapPo h) {
   termPo now = makeInteger((integer) clock());
 
-  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
+  return (ReturnStatus) {.ret=Ok, .result=now};
 }
 
 /*

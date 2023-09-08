@@ -91,7 +91,7 @@ ReturnStatus g__ins_debug(heapPo h) {
   currentProcess->traceCount = 0;
   currentProcess->waterMark = currentProcess->stk->fp;
 
-  return rtnStatus(h, Ok, "_ins_debug");
+  return (ReturnStatus) {.ret=Ok, .result = unitEnum};
 }
 
 static integer cmdCount(char *cmdLine, integer deflt) {

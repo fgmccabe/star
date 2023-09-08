@@ -26,14 +26,19 @@ ReturnStatus g__cwd(heapPo h) {
   return (ReturnStatus) {.result = cwd, .ret=Ok};
 }
 
-ReturnStatus g__cd(processPo p, termPo a1) {
+ReturnStatus g__cd(processPo p, termPo xc, termPo a1) {
   integer len;
   const char *cd = strVal(a1, &len);
 
-  return rtnStatus(processHeap(p), setProcessWd(p, (char *) cd, len), "cd problem");
+  switch (setProcessWd(p, (char *) cd, len)) {
+    case Ok:
+      return (ReturnStatus) {.ret=Ok, .result = unitEnum};
+    default:
+      return (ReturnStatus) {.ret=Error, .result = eRANGE};
+  }
 }
 
-ReturnStatus g__rm(processPo p, termPo a1) {
+ReturnStatus g__rm(processPo p, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -45,7 +50,7 @@ ReturnStatus g__rm(processPo p, termPo a1) {
 
   if (unlink(acFn) != -1) {
     setProcessRunnable(p);
-    return rtnStatus(processHeap(p), Ok, "");
+    return (ReturnStatus) {.ret=Ok, .result = unitEnum};
   } else {
     setProcessRunnable(p);
     switch (errno) {
@@ -53,19 +58,19 @@ ReturnStatus g__rm(processPo p, termPo a1) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return liberror(processHeap(p), "__rm", eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result = eNOPERM};
       case EBUSY:
-        return liberror(processHeap(p), "__rm", eFAIL);
+        return (ReturnStatus) {.ret=Error, .result = eFAIL};
       case ENOENT:
       default:
-        return liberror(processHeap(p), "__rm", eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result = eIOERROR};
     }
   }
 }
 
 static char *const RMDIR = "__rmdir";
 
-ReturnStatus g__rmdir(heapPo h, termPo a1) {
+ReturnStatus g__rmdir(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -77,7 +82,7 @@ ReturnStatus g__rmdir(heapPo h, termPo a1) {
 
   if (rmdir(acFn) == 0) {
     setProcessRunnable(currentProcess);
-    return rtnStatus(h, Ok, "");
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   } else {
     setProcessRunnable(currentProcess);
     switch (errno) {
@@ -85,19 +90,19 @@ ReturnStatus g__rmdir(heapPo h, termPo a1) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return liberror(h, RMDIR, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result = eNOPERM};
       case EBUSY:
-        return liberror(h, RMDIR, eFAIL);
+        return (ReturnStatus) {.ret=Error, .result = eFAIL};
       case ENOENT:
       default:
-        return liberror(h, RMDIR, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result = eIOERROR};
     }
   }
 }
 
 static char *const MKDIR = "__mkdir";
 
-ReturnStatus g__mkdir(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__mkdir(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -111,7 +116,7 @@ ReturnStatus g__mkdir(heapPo h, termPo a1, termPo a2) {
 
   if (mkdir(acFn, mode) != -1) {
     setProcessRunnable(currentProcess);
-    return rtnStatus(h, Ok, "");
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   } else {
     setProcessRunnable(currentProcess);
     switch (errno) {
@@ -119,19 +124,19 @@ ReturnStatus g__mkdir(heapPo h, termPo a1, termPo a2) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return liberror(h, MKDIR, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result = eNOPERM};
       case EBUSY:
-        return liberror(h, MKDIR, eFAIL);
+        return (ReturnStatus) {.ret=Error, .result = eFAIL};
       case ENOENT:
       default:
-        return liberror(h, MKDIR, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result = eIOERROR};
     }
   }
 }
 
 static char *const MV = "__mv";
 
-ReturnStatus g__mv(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__mv(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer sLen;
   const char *fn = strVal(a1, &sLen);
   char srcBuff[MAXFILELEN];
@@ -148,7 +153,7 @@ ReturnStatus g__mv(heapPo h, termPo a1, termPo a2) {
 
   if (rename(srcFn, dstFn) != -1) {
     setProcessRunnable(currentProcess);
-    return rtnStatus(h, Ok, "");
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   } else {
     setProcessRunnable(currentProcess);
     switch (errno) {
@@ -156,17 +161,17 @@ ReturnStatus g__mv(heapPo h, termPo a1, termPo a2) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return liberror(h, MV, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result = eNOPERM};
       case EBUSY:
-        return liberror(h, MV, eFAIL);
+        return (ReturnStatus) {.ret=Error, .result = eFAIL};
       case ENOENT:
       default:
-        return liberror(h, MV, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result = eIOERROR};
     }
   }
 }
 
-ReturnStatus g__ls(heapPo h, termPo a1) {
+ReturnStatus g__ls(heapPo h, termPo xc, termPo a1) {
   integer sLen;
   const char *fn = strVal(a1, &sLen);
   char srcBuff[MAXFILELEN];
@@ -183,14 +188,14 @@ ReturnStatus g__ls(heapPo h, termPo a1) {
       case EACCES:
       case EMFILE:
       case ENFILE:
-        return liberror(h, "__ls", eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ENOENT:
-        return liberror(h, "__ls", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case ENAMETOOLONG:
       case ENOTDIR:
-        return liberror(h, "__ls", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, "__ls", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   } else {
     termPo list = (termPo) nilEnum;
@@ -212,14 +217,11 @@ ReturnStatus g__ls(heapPo h, termPo a1) {
     gcReleaseRoot(h, root);
     setProcessRunnable(currentProcess);
 
-    ReturnStatus ret = {.ret=Ok, .result = (termPo) list};
-    return ret;
+    return (ReturnStatus) {.ret=Ok, .result = (termPo) list};
   }
 }
 
-static char *const FILE_MODE = "_file_mode";
-
-ReturnStatus g__file_mode(heapPo h, termPo a1) {
+ReturnStatus g__file_mode(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -238,31 +240,30 @@ ReturnStatus g__file_mode(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(h, FILE_MODE, eNOFILE);
+        return (ReturnStatus) {.ret=Error, .result =eNOFILE};
       case ENAMETOOLONG:
-        return liberror(h, FILE_MODE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case ENOENT:
-        return liberror(h, FILE_MODE, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case EACCES:
-        return liberror(h, FILE_MODE, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ELOOP:
-        return liberror(h, FILE_MODE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case EIO:
-        return liberror(h, FILE_MODE, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result =eIOERROR};
       case EFAULT:
-        return liberror(h, FILE_MODE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, FILE_MODE, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   } else {
-    ReturnStatus ret = {.ret=Ok, .result = makeInteger(buf.st_mode)};
-
     setProcessRunnable(currentProcess);
-    return ret;
+
+    return (ReturnStatus) {.ret=Ok, .result = makeInteger(buf.st_mode)};
   }
 }
 
-ReturnStatus g__file_chmod(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__file_chmod(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -282,12 +283,12 @@ ReturnStatus g__file_chmod(heapPo h, termPo a1, termPo a2) {
       case EACCES:
       case EPERM:
       default:
-        return liberror(h, "__file_chmod", eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result = eNOPERM};
     }
   }
   setProcessRunnable(currentProcess);
 
-  return rtnStatus(h, Ok, "");
+  return (ReturnStatus) {.ret=Ok, .result = unitEnum};
 }
 
 ReturnStatus g__file_present(heapPo h, termPo a1) {
@@ -301,9 +302,7 @@ ReturnStatus g__file_present(heapPo h, termPo a1) {
   termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
   setProcessRunnable(currentProcess);
 
-  ReturnStatus ret = {.ret=Ok, .result = present};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result = present};
 }
 
 ReturnStatus g__isdir(heapPo h, termPo a1) {
@@ -337,7 +336,7 @@ typedef enum {
 static char *const FILE_DATE = "__file_date";
 static char *const FILE_MODIFIED = "__file_modified";
 
-ReturnStatus g__file_type(heapPo h, termPo a1) {
+ReturnStatus g__file_type(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -356,21 +355,21 @@ ReturnStatus g__file_type(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(h, "__file_type", eNOFILE);
+        return (ReturnStatus) {.ret=Error, .result =eNOFILE};
       case ENAMETOOLONG:
-        return liberror(h, "__file_type", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case ENOENT:
-        return liberror(h, "__file_type", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case EACCES:
-        return liberror(h, "__file_type", eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ELOOP:
-        return liberror(h, "__file_type", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case EIO:
-        return liberror(h, "__file_type", eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result =eIOERROR};
       case EFAULT:
-        return liberror(h, "__file_type", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, "__file_type", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   }
 
@@ -393,12 +392,12 @@ ReturnStatus g__file_type(heapPo h, termPo a1) {
   else if (S_ISSOCK(buf.st_mode))
     type = makeInteger(fileSocket);
   else
-    return liberror(h, "__file_type", eINVAL);
+    return (ReturnStatus) {.ret=Error, .result =eINVAL};
 
   return (ReturnStatus) {.ret=Ok, .result =type};
 }
 
-ReturnStatus g__file_size(heapPo h, termPo a1) {
+ReturnStatus g__file_size(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -417,21 +416,21 @@ ReturnStatus g__file_size(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(h, "__file_size", eNOTDIR);
+        return (ReturnStatus) {.ret=Error, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return liberror(h, "__file_size", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case ENOENT:
-        return liberror(h, "__file_size", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case EACCES:
-        return liberror(h, "__file_size", eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ELOOP:
-        return liberror(h, "__file_size", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case EIO:
-        return liberror(h, "__file_size", eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result =eIOERROR};
       case EFAULT:
-        return liberror(h, "__file_size", eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, "__file_size", eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   } else {
     termPo details = makeInteger(buf.st_size);
@@ -442,7 +441,7 @@ ReturnStatus g__file_size(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__file_date(heapPo h, termPo a1) {
+ReturnStatus g__file_date(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -461,21 +460,21 @@ ReturnStatus g__file_date(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(h, FILE_DATE, eNOTDIR);
+        return (ReturnStatus) {.ret=Error, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return liberror(h, FILE_DATE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case ENOENT:
-        return liberror(h, FILE_DATE, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case EACCES:
-        return liberror(h, FILE_DATE, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ELOOP:
-        return liberror(h, FILE_DATE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case EIO:
-        return liberror(h, FILE_DATE, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result =eIOERROR};
       case EFAULT:
-        return liberror(h, FILE_DATE, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, FILE_DATE, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   } else {
     termPo atime = makeInteger(buf.st_atime);
@@ -497,7 +496,7 @@ ReturnStatus g__file_date(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__file_modified(heapPo h, termPo a1) {
+ReturnStatus g__file_modified(heapPo h, termPo xc, termPo a1) {
   integer fnLen;
   const char *fn = strVal(a1, &fnLen);
   char buff[MAXFILELEN];
@@ -516,21 +515,21 @@ ReturnStatus g__file_modified(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(h, FILE_MODIFIED, eNOTDIR);
+        return (ReturnStatus) {.ret=Error, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return liberror(h, FILE_MODIFIED, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case ENOENT:
-        return liberror(h, FILE_MODIFIED, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
       case EACCES:
-        return liberror(h, FILE_MODIFIED, eNOPERM);
+        return (ReturnStatus) {.ret=Error, .result =eNOPERM};
       case ELOOP:
-        return liberror(h, FILE_MODIFIED, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       case EIO:
-        return liberror(h, FILE_MODIFIED, eIOERROR);
+        return (ReturnStatus) {.ret=Error, .result =eIOERROR};
       case EFAULT:
-        return liberror(h, FILE_MODIFIED, eINVAL);
+        return (ReturnStatus) {.ret=Error, .result =eINVAL};
       default:
-        return liberror(h, FILE_MODIFIED, eNOTFND);
+        return (ReturnStatus) {.ret=Error, .result =eNOTFND};
     }
   } else {
     termPo mtime = makeInteger(buf.st_mtime);
@@ -541,7 +540,7 @@ ReturnStatus g__file_modified(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__openInFile(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__openInFile(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioEncoding enc = pickEncoding(integerVal(a2));
 
   integer fnLen;
@@ -556,10 +555,10 @@ ReturnStatus g__openInFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return liberror(h, "_openInFile", eNOTFND);
+    return(ReturnStatus) {.ret=Error, .result = eNOTFND};
 }
 
-ReturnStatus g__openOutFile(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__openOutFile(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioEncoding enc = pickEncoding(integerVal(a2));
 
   integer fnLen;
@@ -574,10 +573,10 @@ ReturnStatus g__openOutFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return liberror(h, "_openOutFile", eNOTFND);
+    return (ReturnStatus) {.ret=Error, .result = eNOTFND};
 }
 
-ReturnStatus g__openAppendFile(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__openAppendFile(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioEncoding enc = pickEncoding(integerVal(a2));
 
   integer fnLen;
@@ -592,10 +591,10 @@ ReturnStatus g__openAppendFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return liberror(h, "_openAppendFile", eNOTFND);
+    return (ReturnStatus) {.ret=Error, .result = eNOTFND};
 }
 
-ReturnStatus g__openAppendIOFile(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__openAppendIOFile(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioEncoding enc = pickEncoding(integerVal(a2));
 
   integer fnLen;
@@ -610,7 +609,7 @@ ReturnStatus g__openAppendIOFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return liberror(h, "_openAppendIOFile", eNOTFND);
+    return (ReturnStatus) {.ret=Error, .result =eNOTFND};
 }
 
 ioEncoding pickEncoding(integer k) {

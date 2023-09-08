@@ -17,7 +17,7 @@ enum {
   genProlog, genStar
 } genMode = genProlog;
 
-typedef enum{
+typedef enum {
   Last,
   NotLast
 } TailEsc;
@@ -50,7 +50,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt);
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode,char *cmt);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -126,16 +126,18 @@ static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char 
 
 static char *dumpStarSig(char *sig, ioPo out);
 
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc,TailEsc tailMode,char *cmt) {
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode, char *cmt) {
   outMsg(out, "    \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
-  outMsg(out, ",.i%s, %s, %s)).  -- %s\n", capitalize(op), (Alloc?".true":".false"), (tailMode==Last?".noMore":".notLast"), cmt);
+  outMsg(out, ",.i%s, %s, %s)).  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"),
+         (tailMode == Last ? ".noMore" : ".notLast"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);
 static char *dInt(char *sig, int *len);
 static char *dStarSequence(char *sig, ioPo out);
 static char *dStarFields(char *sig, ioPo out);
+static char *dumpStarConstraint(char *sig, ioPo out);
 
 static char *dumpStarSig(char *sig, ioPo out) {
   assert(sig != NULL && *sig != '\0');
@@ -185,7 +187,6 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dName(sig, out);
       outMsg(out, ")");
       break;
-
     case refSig: {
       outStr(out, ".tpExp(.tpFun(\"ref\",1),");
       sig = dumpStarSig(sig, out);
@@ -260,10 +261,10 @@ static char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       break;
     case constrainedSig:
-      outStr(out, ".constrained(");
+      outStr(out, ".constrainedType(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
-      sig = dumpStarSig(sig, out);
+      sig = dumpStarConstraint(sig, out);
       outStr(out, ")");
       break;
     default:
@@ -271,6 +272,55 @@ static char *dumpStarSig(char *sig, ioPo out) {
       exit(99);
   }
   return sig;
+}
+
+char *dumpStarConstraint(char *sig, ioPo out) {
+  assert(sig != NULL && *sig != '\0');
+
+  switch (*sig++) {
+    case contractCon: {
+      outStr(out, ".conTract(");
+      sig = dName(sig, out);
+      outStr(out, ",[");
+      sig = dStarSequence(sig, out);
+      outStr(out, "],[");
+      sig = dStarSequence(sig, out);
+      outStr(out, "])");
+      return sig;
+    }
+    case hasFieldCon: {
+      outStr(out, ".hasField(");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ", ");
+      int ln;
+      sig = dInt(sig, &ln);
+      assert(ln == 1);
+      sig = dName(sig, out);
+      outStr(out, ",");
+      sig = dumpStarSig(sig, out);
+      sig = dInt(sig, &ln);
+      assert(ln == 0);
+      outStr(out, ")");
+      return sig;
+    }
+    case implicitCon: {
+      outStr(out, ".implicit(");
+      sig = dName(sig, out);
+      outStr(out, ",");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case raisesCon: {
+      outStr(out, ".raisEs(");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    default:
+      fprintf(stderr, "illegal constraint signature %s\n", sig);
+      exit(99);
+  }
 }
 
 static char *dStarSequence(char *sig, ioPo out) {
@@ -309,6 +359,8 @@ static char *dPrologTple(char *sig, ioPo out);
 static char *dPrologSequence(char *sig, ioPo out);
 static char *dPrologFields(char *sig, ioPo out);
 static void dumpStr(char *str, ioPo out);
+
+static char *dumpPrologConstraint(char *sig, ioPo out);
 
 static char *dumpPrologSig(char *sig, ioPo out) {
   assert(sig != NULL && *sig != '\0');
@@ -439,7 +491,7 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       outStr(out, "constrained(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ",");
-      sig = dumpPrologSig(sig, out);
+      sig = dumpPrologConstraint(sig, out);
       outStr(out, ")");
       break;
     default:
@@ -447,6 +499,48 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       exit(99);
   }
   return sig;
+}
+
+char *dumpPrologConstraint(char *sig, ioPo out) {
+  assert(sig != NULL && *sig != '\0');
+
+  switch (*sig++) {
+    case contractCon: {
+      outStr(out, "conTract(");
+      sig = dName(sig, out);
+      outStr(out, ",[");
+      sig = dPrologSequence(sig, out);
+      outStr(out, "],[");
+      sig = dPrologSequence(sig, out);
+      outStr(out, "])");
+      return sig;
+    }
+    case hasFieldCon: {
+      outStr(out, "implementsFace(");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ", ");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case implicitCon: {
+      outStr(out, "implicit(");
+      sig = dName(sig, out);
+      outStr(out, ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case raisesCon: {
+      outStr(out, "raises(");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    default:
+      fprintf(stderr, "illegal constraint signature %s\n", sig);
+      exit(99);
+  }
 }
 
 static void dumpPrologStdType(char *name, ioPo out) {

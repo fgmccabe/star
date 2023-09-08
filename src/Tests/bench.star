@@ -10,10 +10,14 @@ test.bench{
 
   timer_finish : ((integer, integer, string)) => ().
   timer_finish((start, count, msg)) => valof {
-    stop = _ticks();
-    elapsed = ((stop - start)::float)/1.0e6;
-    ops_per_sec = ((count::float) / elapsed)::integer;
-    logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
+    try{
+      stop = _ticks();
+      elapsed = ((stop - start)::float)/1.0e6;
+      ops_per_sec = ((count::float) / elapsed)::integer;
+      logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
+    } catch exception in {
+      .exception(M) => logMsg("exception: $(M)")
+    };
     valis ()
   }
 

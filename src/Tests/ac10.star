@@ -17,6 +17,7 @@ test.ac10{
     valis -1
   }
 
+  firstMultiple:raises exception |:(integer,integer)=>string.
   firstMultiple(X,M) => valof{
     L:{
       for ix in .range(1,X,1) do{
@@ -37,11 +38,15 @@ test.ac10{
     assert labeled(-1) == -1;
     assert labeled(0) == 0;
 
-    show firstMultiple(10,3);
-    show firstMultiple(3,10);
+    try{
+      show firstMultiple(10,3);
+      show firstMultiple(3,10);
 
-    assert firstMultiple(10,3) == "found";
-    assert firstMultiple(3,10) == "not found";
+      assert firstMultiple(10,3) == "found";
+      assert firstMultiple(3,10) == "not found";
+    } catch exception in {
+      .exception(M) => logMsg("we got an exception: $(M)")
+    };
     valis ()
   }
 }  

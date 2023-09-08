@@ -13,42 +13,52 @@
 #include "errorCodes.h"
 #include "arithmetic.h"
 
-ReturnStatus g__int_plus(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_plus(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeInteger(integerVal(a1) + integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_minus(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_minus(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeInteger(integerVal(a1) - integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_times(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_times(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeInteger(integerVal(a1) * integerVal(a2));
 
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__int_div(processPo p, heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeInteger(integerVal(a1) / integerVal(a2));
-
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
-}
-
-ReturnStatus g__int_mod(processPo p, heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_div(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer denom = integerVal(a1);
   integer numerator = integerVal(a2);
 
-  integer reslt = denom % numerator;
-
-  termPo Rs = makeInteger(reslt);
-
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  if (numerator == 0) {
+    return (ReturnStatus) {.ret=Error, .result=divZero};
+  } else {
+    termPo Rs = makeInteger(denom / numerator);
+    return (ReturnStatus) {.ret=Ok, .result=Rs};
+  }
 }
 
-ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
+  integer denom = integerVal(a1);
+  integer numerator = integerVal(a2);
+
+  if (numerator == 0) {
+    return (ReturnStatus) {.ret=Error, .result=divZero};
+  } else {
+    integer reslt = denom % numerator;
+
+    termPo Rs = makeInteger(reslt);
+
+    return (ReturnStatus) {.ret=Ok, .result=Rs};
+  }
+}
+
+ReturnStatus g__int_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer gC = intGCD(integerVal(a1), integerVal(a2));
 
   if (gC > 0) {
@@ -56,7 +66,7 @@ ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Ok, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+    return (ReturnStatus) {.ret=Error, .result=divZero};
   }
 }
 
@@ -178,7 +188,7 @@ ReturnStatus g__int2str(heapPo h, termPo arg1) {
   return (ReturnStatus) {.result = str, .ret=Ok};
 }
 
-ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__int_format(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer ix = integerVal(a1);
   integer length;
   const char *fmt = strVal(a2, &length);
@@ -190,7 +200,7 @@ ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
   if (ret == Ok) {
     return (ReturnStatus) {.result = (termPo) allocateString(h, buff, pos), .ret=Ok};
   } else
-    return liberror(h, "_int_format", eINVAL);
+    return (ReturnStatus) {.ret=Error, .result=eINVAL};
 }
 
 ReturnStatus g__int2flt(heapPo h, termPo arg1) {

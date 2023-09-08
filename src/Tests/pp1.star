@@ -4,9 +4,15 @@ test.pp1{
 
   readFromPipe:(string,cons[string])=>cons[string].
   readFromPipe(Cmd,Args) => valof{
-    (StdIn,StdOut,StdErr) = _popen(Cmd,Args,[]);
+    try{
+      (StdIn,StdOut,StdErr) = _popen(Cmd,Args,[]);
 
-    valis readLines(StdOut)
+      valis readLines(StdOut)
+    } catch errorCode in { C => {
+	logMsg("Error in popen: $(C)");
+	valis []
+    }
+    }
   }
 
   readLines(Fl) => valof{

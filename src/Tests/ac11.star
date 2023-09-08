@@ -17,9 +17,15 @@ test.ac11{
     .} in { valis ff(X) }
   }
 
+  isEven(X) => (try
+      X%2==0
+    catch exception in {
+      _ => .false
+    }).
+
   -- A super complicated way of multiplying odd numbers
   ff:dynamic[integer] |: (integer)=>integer.
-  ff(U) where U%2==0 => f(U-1).
+  ff(U) where isEven(U) => f(U-1).
   ff(U) where U>1 => valof{
     logMsg("dynamic = $(_dynamic:integer)");
     valis ff(U-1)*_dynamic
@@ -28,8 +34,8 @@ test.ac11{
 
   main:()=>().
   main() => valof{
-    _logmsg(disp(f(1)));
-    _logmsg(disp(f(10)));
+    logMsg(disp(f(1)));
+    logMsg(disp(f(10)));
 
     assert f(10)==945;
     valis ()

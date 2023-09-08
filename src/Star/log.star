@@ -15,7 +15,10 @@ star.log{
 
   public logMsg:(string)=>().
   logMsg(Msg) => valof{
-    valis _logmsg(Msg);
+    try{
+      valis _logmsg(Msg);
+    } catch errorCode in { _ => {}};
+    valis ()
   }
 
   public showMsg:(string)=>().

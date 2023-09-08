@@ -126,17 +126,14 @@ logical validSig(char *sig, integer *start, integer end) {
 
 logical validConstraint(char *sig, integer *start, integer end) {
   switch (sig[(*start)++]) {
-    case univCon:
-      return (logical) (validSig(sig, start, end) && validConstraint(sig, start, end));
     case contractCon:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end) && validSig(sig, start, end));
-    case implementsCon:
+    case hasFieldCon:
+      return (logical) validSig(sig, start, end) && validSig(sig, start, end);
+    case implicitCon:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
-    case constrainedCon:
-      if (validConstraint(sig, start, end))
-        return validConstraint(sig, start, end);
-      else
-        return False;
+    case raisesCon:
+      return validSig(sig, start, end);
     default:
       return False;
   }
@@ -165,6 +162,10 @@ static retCode funArity(char *sig, integer *arity, integer *start, integer end) 
     case allSig:        /* Universal quantifier */
       tryRet(skipSig(sig, start, end));
       return funArity(sig, arity, start, end);
+    case constrainedSig: // Constrained signature, add 1 to arity
+      tryRet(funArity(sig, arity, start, end));
+      (*arity)++;
+      return Ok;
     default:
       return Error;      /* Not a valid signature */
   }
@@ -290,23 +291,22 @@ retCode skipSig(char *sig, integer *start, integer end) {
 retCode skipConstrnt(char *sig, integer *start, integer end) {
   if (*start < end) {
     switch (sig[(*start)++]) {
-      case univCon:
-        tryRet(skipSig(sig, start, end));
-        return skipConstrnt(sig, start, end);
       case contractCon:
         if (skipId(sig, start, end)) {
           tryRet(skipSig(sig, start, end));
           return skipSig(sig, start, end);
         } else
           return Error;
-      case implementsCon:
+      case hasFieldCon:
+        tryRet(skipSig(sig, start, end));
+        return skipSig(sig, start, end);
+      case implicitCon:
         if (skipId(sig, start, end)) {
           return skipSig(sig, start, end);
         } else
           return Error;
-      case constrainedCon:
-        tryRet(skipConstrnt(sig, start, end));
-        return skipConstrnt(sig, start, end);
+      case raisesCon:
+        return skipSig(sig, start, end);
       default:
         return Error;
     }
@@ -361,23 +361,20 @@ static retCode skipConstraint(ioPo in) {
 
   if (ret == Ok) {
     switch (ch) {
-      case univCon:
-        ret = skipSignature(in);
-        if (ret == Ok)
-          ret = skipConstraint(in);
-        return ret;
       case contractCon:
+        tryRet(skipIdentifier(in));
+        tryRet(skipSignature(in));
         return skipSignature(in);
-      case implementsCon:
+      case hasFieldCon:
         ret = skipSignature(in);
         if (ret == Ok)
           ret = skipSignature(in);
         return ret;
-      case constrainedCon:
-        ret = skipConstraint(in);
-        if (ret == Ok)
-          ret = skipConstraint(in);
-        return ret;
+      case implicitCon:
+        tryRet(skipIdentifier(in));
+        return skipSignature(in);
+      case raisesCon:
+        return skipSignature(in);
       default:
         return Error;
     }
@@ -637,11 +634,7 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
 retCode showConstraint(ioPo out, char *sig, integer *start, integer end) {
   if (*start < end) {
     switch (sig[(*start)++]) {
-      case univCon:
-        tryRet(outStr(out, "all "));
-        tryRet(showSignature(out, sig, start, end));
-        tryRet(outStr(out, " ~~ "));
-        return showConstraint(out, sig, start, end);
+
       case contractCon:
         tryRet(showSigId(out, sig, start, end));
         if (sig[(*start)++] != '(')
@@ -660,14 +653,18 @@ retCode showConstraint(ioPo out, char *sig, integer *start, integer end) {
           }
           return outStr(out, "]");
         }
-      case implementsCon:
-        tryRet(showSigId(out, sig, start, end));
+      case hasFieldCon:
+        tryRet(showSignature(out, sig, start, end));
         tryRet(outStr(out, "<~"));
         return showSignature(out, sig, start, end);
-      case constrainedCon:
-        tryRet(showConstraint(out, sig, start, end));
-        tryRet(outStr(out, ", "));
-        return showConstraint(out, sig, start, end);
+      case implicitCon:
+        tryRet(outStr(out, "implicit "));
+        tryRet(showSigId(out, sig, start, end));
+        tryRet(outStr(out, " : "));
+        return showSignature(out, sig, start, end);
+      case raisesCon:
+        tryRet(outStr(out, "raises "));
+        return showSignature(out, sig, start, end);
       default:
         return Error;
     }

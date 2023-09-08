@@ -4,6 +4,8 @@
 
 #include <arith.h>
 #include "locks.h"
+#include "errorCodes.h"
+#include "globals.h"
 
 ReturnStatus g__newLock(heapPo h) {
   lockPo lck = allocateLock(h);
@@ -11,22 +13,31 @@ ReturnStatus g__newLock(heapPo h) {
   return (ReturnStatus) {.ret=Ok, .result=(termPo) lck};
 }
 
-ReturnStatus g__acquireLock(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__acquireLock(heapPo h, termPo xc, termPo a1, termPo a2) {
   lockPo lck = C_LOCK(a1);
   double tmout = floatVal(a2);
 
-  return rtnStatus(h, acquireLock(lck, tmout), "lock problem");
+  if (acquireLock(lck, tmout) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eINVAL};
 }
 
-ReturnStatus g__waitLock(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__waitLock(heapPo h, termPo xc, termPo a1, termPo a2) {
   lockPo lck = C_LOCK(a1);
   double tmout = floatVal(a2);
 
-  return rtnStatus(h, waitLock(lck, tmout), "lock problem");
+  if (waitLock(lck, tmout) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eINVAL};
 }
 
-ReturnStatus g__releaseLock(heapPo h, termPo a1) {
+ReturnStatus g__releaseLock(heapPo h, termPo xc, termPo a1) {
   lockPo lck = C_LOCK(a1);
 
-  return rtnStatus(h, releaseLock(lck), "lock problem");
+  if (releaseLock(lck) == Ok)
+    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  else
+    return (ReturnStatus) {.ret=Error, .result=eINVAL};
 }

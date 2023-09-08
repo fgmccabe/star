@@ -49,7 +49,7 @@ star.core {
     '[||]':(a)=>b.
   }
 
-  -- The head'n tail contract
+  -- The head/tail contract
   public contract all c,e ~~ head[c->>e] ::= {
     head:(c)=>option[e].
     tail:(c)=>option[c].
@@ -129,7 +129,23 @@ star.core {
   .eFAIL |
   .eIOERROR |
   .eCONNECT |
-  .eDEAD.
+  .eDEAD |
+  .divZero.
+
+  public implementation display[errorCode] => {
+    disp(.eINTRUPT) => "eINTRUPT".
+    disp(.eNOFILE) => "eNOFIL".
+    disp(.eNOTDIR) => "eNOTDIR".
+    disp(.eNOTFND) => "eNOTFND".
+    disp(.eINVAL) => "eINVAL".
+    disp(.eRANGE) => "eRANGE".
+    disp(.eNOPERM) => "eNOPERM".
+    disp(.eFAIL) => "eFAIL".
+    disp(.eIOERROR) => "eIOERROR".
+    disp(.eCONNECT) => "eCONNECT".
+    disp(.eDEAD) => "eDEAD".
+    disp(.divZero) => "divZero".
+  }
 
   public error ::= .error(string,errorCode).
 }

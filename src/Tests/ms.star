@@ -22,13 +22,10 @@ test.ms{
   LL = [1,2,3,0,5].
 
   sq:(float)=>option[float].
-  sq(X) where X>0.0 => .some(sqrt(X)).
-  sq(_) default => .none.
+  sq(X) => (try .some(sqrt(X)) catch errorCode in {_ => .none}).
 
   sqr:(float)=>either[string,float].
-  sqr(X) where X>0.0 => .either(sqrt(X)).
-  sqr(_) default => .other("negative").
-  
+  sqr(X) => (try .either(sqrt(X)) catch errorCode in {_ => .other("negative")}).
 
   main:() => ().
   main() => valof{

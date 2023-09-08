@@ -93,7 +93,7 @@ ReturnStatus g__big_times(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__big_div(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_div(heapPo h, termPo xc, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   uint32 qS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -114,11 +114,11 @@ ReturnStatus g__big_div(heapPo h, termPo a1, termPo a2) {
     gcReleaseRoot(h, root);
     return (ReturnStatus) {.ret=Ok, .result=Rs};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+    return (ReturnStatus) {.ret=Error, .result=divZero};
   }
 }
 
-ReturnStatus g__big_gcd(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
   bignumPo lhs = C_BIGNUM(a1);
   bignumPo rhs = C_BIGNUM(a2);
   integer qS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
@@ -132,11 +132,11 @@ ReturnStatus g__big_gcd(heapPo h, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Ok, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=voidEnum};
+    return (ReturnStatus) {.ret=Error, .result=divZero};
   }
 }
 
-ReturnStatus g__big_format(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__big_format(heapPo h, termPo xc, termPo a1, termPo a2) {
   bignumPo bg = C_BIGNUM(a1);
   uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
@@ -152,7 +152,7 @@ ReturnStatus g__big_format(heapPo h, termPo a1, termPo a2) {
   if (resLen >= 0) {
     return (ReturnStatus) {.result = (termPo) allocateString(h, buff, resLen), .ret=Ok};
   } else
-    return liberror(h, "_big_format", eINVAL);
+    return (ReturnStatus) {.ret=Error, .result =eINVAL};
 }
 
 ReturnStatus g__big2str(heapPo h, termPo a1) {
@@ -164,10 +164,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
 
-  if (actual >= 0) {
-    return (ReturnStatus) {.result = (termPo) allocateString(h, buff, actual), .ret=Ok};
-  } else
-    return liberror(h, "_big2str", eINVAL);
+  return (ReturnStatus) {.result = (termPo) allocateString(h, buff, actual), .ret=Ok};
 }
 
 ReturnStatus g__str2big(heapPo h, termPo a1) {

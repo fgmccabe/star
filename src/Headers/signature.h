@@ -50,10 +50,10 @@ typedef enum {
 } starTypeSig;
 
 typedef enum {
-  univCon = ':',
   contractCon = 'c',
-  implementsCon = 'a',
-  constrainedCon = '|'
+  hasFieldCon = 'a',
+  implicitCon = 'd',
+  raisesCon = 'r'
 } constraintSig;
 
 // Data value signatures
