@@ -387,14 +387,14 @@ ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__logmsg(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__logmsg(heapPo h, termPo a1) {
   integer length;
   const char *text = strVal(a1, &length);
 
   if (logMsg(logFile, "%S", (char *) text, length) == Ok)
     return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Fail, .result=eIOERROR};
 }
 
 ReturnStatus g__display_depth(heapPo h) {

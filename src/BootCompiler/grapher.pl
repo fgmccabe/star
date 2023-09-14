@@ -5,7 +5,7 @@
 :- use_module(uri).
 :- use_module(resource).
 :- use_module(lexer).
-:- use_module(grammar).
+:- use_module(opg).
 :- use_module(repository).
 :- use_module(manifest).
 :- use_module(misc).

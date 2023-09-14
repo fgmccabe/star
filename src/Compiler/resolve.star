@@ -191,6 +191,10 @@ star.compiler.resolve{
     reportError(Msg,Lc);
     valis T
   }
+  resolveAgain(_,_,(T,.fatal(Lc,Msg)),_) => valof{
+    reportError(Msg,Lc);
+    valis T
+  }
   resolveAgain(_,O,(_,.active(Lc,Msg)),D) =>
     resolveAgain(.active(Lc,Msg),O,resolve(O,D,.inactive),D).
 
@@ -496,7 +500,7 @@ star.compiler.resolve{
 	valis (Var,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),
-	  .active(Lc,"implicit $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)"))
+	  .fatal(Lc,"implicit $(Id)\:$(typeOf(Var)) not consistent with expected type: $(Tp)"))
       }
     }
     else{
@@ -509,7 +513,7 @@ star.compiler.resolve{
 	valis (.vr(Lc,TrNm,Tp),markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),
-	  .active(Lc,"raises $(ETp) not consistent with expected type: $(Tp)"))
+	  .fatal(Lc,"raises $(ETp) not consistent with expected type: $(Tp)"))
       }
     }
     else{
@@ -531,7 +535,7 @@ star.compiler.resolve{
       if sameType(typeOf(Impl),Tp,Dict) then {
 	valis overloadTerm(Impl,Dict,markResolved(St))
       } else{
-	valis (.anon(Lc,Tp),.active(Lc,"implementation $(typeOf(Impl)) not consistent with $(Tp)"))
+	valis (.anon(Lc,Tp),.fatal(Lc,"implementation $(typeOf(Impl)) not consistent with $(Con)"))
       }
     } else{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find an implementation for $(Tp)"))
@@ -577,11 +581,11 @@ star.compiler.resolve{
 	  valis (manageConstraints(FrFt,Lc,(TT)=>.apply(Lc,AccFn,[Rc],FldT)),markResolved(St))
 	} else {
 	  valis (.dot(Lc,Rc,Fld,Tp),
-	    .active(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
+	    .fatal(Lc,"field $(Rc).$(Fld)\:$(Ft) not consistent with required type $(Tp)")).
 	}
       } else {
 	valis (.dot(Lc,Rc,Fld,Tp),
-	  .active(Lc,"accessor for field $(Rc).$(Fld)\:$(typeOf(AccFn)) for $(RcTp) not consistent with required type $(Tp)"))
+	  .fatal(Lc,"accessor for field $(Rc).$(Fld)\:$(typeOf(AccFn)) for $(RcTp) not consistent with required type $(Tp)"))
       }
     } else{
       if traceCanon! then
@@ -600,12 +604,12 @@ star.compiler.resolve{
 	  valis overloadTerm(.apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
 	} else{
 	  valis (.update(Lc,Rc,Fld,Vl),
-	    .active(Lc,"field $(Fld)\:$(Ft) not consistent with required type $(typeOf(Vl))"))
+	    .fatal(Lc,"field $(Fld)\:$(Ft) not consistent with required type $(typeOf(Vl))"))
 	}
       }
       else {
 	valis (.update(Lc,Rc,Fld,Vl),
-	  .active(Lc,"updater for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))"))
+	  .fatal(Lc,"updater for field $(Fld) for $(RcTp) not consistent with required type $(typeOf(Vl))"))
       }
     } else {
       valis (.update(Lc,Rc,Fld,Vl),
@@ -621,7 +625,7 @@ star.compiler.resolve{
 	  valis (.tdot(Lc,Rc,Ix,Tp),St)
 	} else{
 	  valis (.tdot(Lc,Rc,Ix,Tp),
-	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
+	    .fatal(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
     } else if .faceType(Els,_) .= deRef(typeOf(Rc)) then{
@@ -630,7 +634,7 @@ star.compiler.resolve{
 	  valis (.tdot(Lc,Rc,Ix,Tp),St)
 	} else{
 	  valis (.tdot(Lc,Rc,Ix,Tp),
-	    .active(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
+	    .fatal(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
     }
@@ -640,10 +644,12 @@ star.compiler.resolve{
     }
   }
 
-  resolveState ::= .inactive |
+  resolveState ::=
+    .inactive |
     .resolved |
-    .active(option[locn],string).
-
+    .active(option[locn],string) |
+    .fatal(option[locn],string).
+  
   markResolved(.inactive) => .resolved.
   markResolved(St) => St.
 
@@ -651,5 +657,6 @@ star.compiler.resolve{
     disp(.inactive) => "inactive".
     disp(.resolved) => "resolved".
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
+    disp(.fatal(Lc,Msg)) => "error $(Lc)\:#(Msg)".
   }
 }

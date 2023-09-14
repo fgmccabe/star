@@ -4,7 +4,7 @@
 
 :- use_module(resource).
 :- use_module(lexer).
-:- use_module(grammar).
+:- use_module(opg).
 :- use_module(astdisp).
 :- use_module(canon).
 :- use_module(checker).

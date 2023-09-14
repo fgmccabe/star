@@ -3,6 +3,7 @@
 
 :- use_module(abstract).
 :- use_module(display).
+:- use_module(grammar).
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
@@ -46,6 +47,7 @@ macroRl("show",action,macroRules:showMacro).
 macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
+macroRl("-->",statement,macroRules:grammarMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -557,6 +559,3 @@ caseRuleMacro(T,_,Tx) :-
   isBinary(R,LLc,"=>",A,B),!,
   binary(Lc,":",L,A,Ptn),
   binary(LLc,"=>",Ptn,B,Tx).
-
-
-  

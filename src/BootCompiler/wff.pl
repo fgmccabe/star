@@ -22,8 +22,9 @@
 	      isIntegrity/3,isShow/3,isTrace/3,
 	      isOpen/3,mkOpen/3,
 	      isConditional/5,conditional/5,
+	      mergeCond/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
-	      buildEquation/6,
+	      buildEquation/7,
 	      isContRule/5,mkContRule/5,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
@@ -540,9 +541,18 @@ mkEquation(Lc,Args,some(G),Rhs,Eqn) :-
 isEquation(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=>",Lhs,Rhs).
 
-buildEquation(Lc,Nm,Args,Cond,Exp,Eqn) :-
+buildEquation(Lc,Nm,Args,Cond,false,Exp,Eqn) :-!,
   roundTerm(Lc,Nm,Args,T),
   mkEquation(Lc,T,Cond,Exp,Eqn).
+buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
+  roundTerm(Lc,Nm,Args,T),
+  mkDefault(Lc,T,H),
+  mkEquation(Lc,H,Cond,Exp,Eqn).
+
+mergeCond(_,none,C,C) :-!.
+mergeCond(_,C,none,C) :-!.
+mergeCond(Lc,some(C1),some(C2),some(Cx)) :-
+  conjunct(Lc,C1,C2,Cx).
   
 eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),

@@ -1,236 +1,353 @@
-:- module(grammar,[parse/3]).
+:- module(grammar,[grammarMacro/3,makeGrammar/2]).
 
+:- use_module(astdisp).
 :- use_module(operators).
 :- use_module(abstract).
 :- use_module(location).
 :- use_module(errors).
-:- use_module(lexer).
 :- use_module(misc).
 :- use_module(wff).
 
-parse(Tks,T,RTks) :-
-    term(Tks,2000,T,Tks1,Lst),!,
-    checkTerminator(Lst,Tks1,RTks).
+/*
+  * implement grammar notation, using rules of the form:
 
-term(Tks,Pr,T,Toks,Lst) :-
-    termLeft(Tks,Pr,Left,LftPr,Tks1,LLst),!,
-    termRight(Tks1,Pr,LftPr,Left,T,Toks,LLst,Lst).
+  NT(Ptns) >> Val --> [Term], NT(Exp)>>Ptn, {Test}, || ... || [] ||...
 
-termLeft([idTok(Id,Lc),rgtTok("()",Lcy)|Toks],_,name(Lc,Id),0,[rgtTok("()",Lcy)|Toks],id).
-termLeft([idTok(Id,Lcx)|Tks],Pr,Left,LftPr,Toks,Lst) :-
-    prefixOp(Id,LftPr,OpRightPr),
-    \+ lookAhead(rgtTok("()",_),Tks),
-    LftPr =< Pr, !,
-    term(Tks,OpRightPr,Arg,Toks,Lst),
-    locOfAst(Arg,Lcy),
-    mergeLoc(Lcx,Lcy,Lc),
-    unary(Lc,Id,Arg,Left).
-termLeft(Tks,_,T,0,Toks,Lst) :- term0(Tks,T,Toks,Lst).
+  The type of such a rule looks like:
 
-termRight([idTok(Id,_)|Tks],Pr,LPr,Left,T,Toks,_,Lst) :-
-  infixOp(Id,InfOpL,InfOpPr,InfOpR), InfOpPr =< Pr, LPr =< InfOpL,
-  postfixOp(Id,PostOpL,PostOpPr), PostOpPr =< Pr, LPr =< PostOpL,
-  legalNextRight(Tks,InfOpR), !,
-  term(Tks,InfOpR, Right, Tks1,LLst),
-  locOfAst(Left,Lcx),
-  locOfAst(Right,Lcy),
-  mergeLoc(Lcx,Lcy,Lc),
-  binary(Lc,Id,Left,Right,NewLeft),
-  termRight(Tks1,Pr,InfOpPr,NewLeft,T,Toks,LLst,Lst).
-termRight([idTok(Id,Lcy)|Tks],Pr,LPr,Left,T,Toks,_,Lst) :-
-  postfixOp(Id,PostOpL,PostOpPr), PostOpPr =< Pr, LPr =< PostOpL,
-  \+legalNextRight(Tks,PostOpPr),!,
-  locOfAst(Left,Lcx),
-  mergeLoc(Lcx,Lcy,Lc),
-  unary(Lc,Id,Left,NewLeft),
-  termRight(Tks,Pr,PostOpPr,NewLeft,T,Toks,id,Lst).
-termRight([idTok(Id,_)|Tks],Pr,LPr,Left,T,Toks,_,Lst) :-
-  infixOp(Id,InfOpL,InfOpPr,InfOpR), InfOpPr =< Pr, LPr =< InfOpL,
-  term(Tks,InfOpR, Right, Tks1,LLst),
-  locOfAst(Left,Lcx),
-  locOfAst(Right,Lcy),
-  mergeLoc(Lcx,Lcy,Lc),
-  binary(Lc,Id,Left,Right,NewLeft),
-  termRight(Tks1,Pr,InfOpPr,NewLeft,T,Toks,LLst,Lst).
-termRight(Toks,_,_,Left,Left,Toks,Lst,Lst).
+  all s,t ~~ stream[s->>t],hasLoc[t] |: (s,Ptypes) => (s,option[Valtype])
+  */
 
-legalNextRight([idTok(I,_)|_],Pr) :- ( prefixOp(I,PPr,_), PPr=<Pr ; \+ isOperator(I)) , !.
-legalNextRight([idQTok(_,_)|_],_).
-legalNextRight([lftTok(_,_)|_],_).
-legalNextRight([stringTok(_,_)|_],_).
-legalNextRight([charTok(_,_)|_],_).
-legalNextRight([integerTok(_,_)|_],_).
-legalNextRight([bigintTok(_,_)|_],_).
-legalNextRight([floatTok(_,_)|_],_).
 
-term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
-  interpolateString(St,Lc,Str).
-term0([charTok(Cp,Lc)|Toks],char(Lc,Cp),Toks,id).
-term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
-term0([bigintTok(In,Lc)|Toks],bigint(Lc,In),Toks,id).
-term0([floatTok(Fl,Lc)|Toks],float(Lc,Fl),Toks,id).
-term0([lftTok("{}",Lc0),rgtTok("{}",Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :- !,
-  mergeLoc(Lc0,Lc2,Lc).
-term0([lftTok("{}",Lcx)|Tks],tuple(Lc,"{}",Seq),Toks,rbrce) :- 
-  terms(Tks,rgtTok("{}",_),Tks2,Seq),!,
-  checkToken(Tks2,Toks,rgtTok("{}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc).
-term0([lftTok("{..}",Lc0),rgtTok("{..}",Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-!,
-  mergeLoc(Lc0,Lc2,Lc).
-term0([lftTok("{..}",Lcx)|Tks],tuple(Lc,"{..}",Seq),Toks,rbrce) :-!,
-  terms(Tks,rgtTok("{..}",_),Tks2,Seq),!,
-  checkToken(Tks2,Toks,rgtTok("{..}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc).
-term0([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc2)|Toks],Term,Toks,rbrce) :-
-  mergeLoc(Lc0,Lc2,Lc),!,
-  emptyBkt(Lc,Bkt,Term).
-term0(Tks,T,Toks,Lst) :- term00(Tks,Op,RTks,LLst), termArgs(RTks,Op,T,Toks,LLst,Lst).
+parseRule(A,grRule(Lc,Nm,Args,Cond,Deflt,Val,Body)) :-
+  isBinary(A,Lc,"-->",L,R),
+  parseHead(L,Nm,Args,Cond,Val,Deflt),
+  parseBody(R,Body),!.
 
-emptyBkt(Lc,"[]",tuple(Lc,"[]",[])).
-emptyBkt(Lc,"()",tuple(Lc,"()",[])).
+parseHead(A,Nm,Args,R,Val,Deflt) :-
+  isWhere(A,_,L,R),!,
+  parseHead(L,Nm,Args,_,Val,Deflt).
+parseHead(A,Nm,Args,Cond,R,Deflt) :-
+  isBinary(A,_,">>",L,R),!,
+  parseHead(L,Nm,Args,Cond,_,Deflt).
+parseHead(A,Nm,Args,Cond,Val,true) :-
+  isDefault(A,_,L),!,
+  parseHead(L,Nm,Args,Cond,Val,_Deflt).
+parseHead(A,Nm,Args,none,Unit,false) :-
+  isRoundTerm(A,Op,Args),
+  isIden(Op,Nm),!,
+  locOfAst(A,Lc),
+  unitTpl(Lc,Unit).
+parseHead(A,Nm,[],none,Unit,false) :-
+  isIden(A,Nm),!,
+  locOfAst(A,Lc),
+  unitTpl(Lc,Unit).
 
-term00([idTok(I,Lc)|Toks],name(Lc,I),Toks,id) :-
-      (isOperator(I), \+lookAhead(rgtTok("()",_),Toks), !, reportError("unexpected operator: '%s'",[I],Lc);
-      true).
-term00([idQTok(I,Lc)|Toks],qnme(Lc,I),Toks,id).
-term00([lftTok("()",Lc0),rgtTok("()",Lc2)|Toks],tuple(Lc,"()",[]),Toks,rpar) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok("()",Lcx)|Tks],T,Toks,rpar) :-
-  term(Tks,2000,Seq,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok("()",Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  tupleize(Seq,Lc,"()",T).
-term00([lftTok("[]",Lc0),rgtTok("[]",Lc2)|Toks],tuple(Lc,"[]",[]),Toks,rbra) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok("[]",Lcx)|Tks],T,Toks,rbra) :-
-  term(Tks,2000,Seq,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok("[]",Lcy),Lcy,"missing close bracket, got %s, left bracket at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  tupleize(Seq,Lc,"[]",T).
-term00([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc2)|Toks],name(Lc,Bkt),Toks,rbra) :-
-  mergeLoc(Lc0,Lc2,Lc).
-term00([lftTok(Bkt,Lcx)|Tks],T,Toks,rbra) :- % all other brackets go here
-  term(Tks,2000,Cont,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok(Bkt,Lcy),Lcy,"missing close bracket, got %s, left bracket at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  unary(Lc,Bkt,Cont,T).
+parseBody(A,dis(Lc,Lft,Rgt)) :-
+  isBinary(A,Lc,"|",L,R),!,
+  parseBody(L,Lft),
+  parseBody(R,Rgt).
+parseBody(A,seq(Lc,Lft,Rgt)) :-
+  isComma(A,Lc,L,R),!,
+  parseBody(L,Lft),
+  parseBody(R,Rgt).
+parseBody(A,neg(Lc,Rgt)) :-
+  isNegation(A,Lc,R),!,
+  parseBody(R,Rgt).
+parseBody(A,epsilon(Lc)) :-
+  isSquareTuple(A,Lc,[]),!.
+parseBody(A,Ts) :-
+  isSquareTuple(A,_Lc,Els),!,
+  parseTerminals(Els,Ts).
+parseBody(A,B) :-
+  isTuple(A,_Lc,[El]),!,
+  parseBody(El,B).
+parseBody(A,test(Lc,El)) :-
+  isBraceTuple(A,Lc,[El]),!.
+parseBody(A,rep(Lc,B)) :-
+  isUnary(A,Lc,"*",L),!,
+  parseBody(L,B).
+parseBody(A,sep(Lc,Lft,Rgt)) :-
+  isBinary(A,Lc,"*",L,R),!,
+  parseBody(L,Lft),
+  parseBody(R,Rgt).
+parseBody(A,prod(Lc,NT,B)) :-
+  isBinary(A,Lc,">>",L,B),!,
+  parseBody(L,NT).
+parseBody(A,fail(Lc)) :-
+  isName(A,Lc,"fail"),!.
+parseBody(A,eof(Lc)) :-
+  isName(A,Lc,"end"),!.
+parseBody(A,B) :-
+  parseNonTerminal(A,B).
 
-termArgs([],T,T,[],Lst,Lst).
-termArgs([lftTok("()",_),rgtTok("()",Lcy)|Tks],Op,T,Toks,_,Lst) :-
-    locOfAst(Op,Lcx),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"()",[]),NOP),
-    termArgs(Tks,NOP,T,Toks,rpar,Lst).
-termArgs([lftTok("()",_)|Tks],Op,T,Toks,_,Lst) :-
-    locOfAst(Op,Lcx),
-    term(Tks,2000,Seq,Tks2,LLst),
-    checkToken(Tks2,Tks3,rgtTok("()",Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]),
-    mergeLoc(Lcx,Lcy,Lc),
-    tupleize(Seq,Lc,"()",Args),
-    apply(Lc,Op,Args,NOP),
-    termArgs(Tks3,NOP,T,Toks,LLst,Lst).
-termArgs([lftTok("[]",_),rgtTok("[]",Lcy)|Tks],Op,T,Toks,_,Lst) :-
-    locOfAst(Op,Lcx),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"[]",[]),NOP),
-    termArgs(Tks,NOP,T,Toks,rbra,Lst).
-termArgs([lftTok("[]",_)|Tks],Op,T,Toks,_,Lst) :-
-    locOfAst(Op,Lcx),
-    term(Tks,2000,Seq,Tks2,_),
-    checkToken(Tks2,Tks3,rgtTok("[]",Lcy),Lcy,"missing close bracket, got %s, left bracket at %s",[Lcx]),
-    mergeLoc(Lcx,Lcy,Lc),
-    tupleize(Seq,Lc,"[]",Args),
-    apply(Lc,Op,Args,NOP),
-    termArgs(Tks3,NOP,T,Toks,rbra,Lst).
-termArgs([lftTok("{}",_),rgtTok("{}",Lcy)|Tks],Op,T,Tks,_,rbrce) :-
-    locOfAst(Op,Lcx),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"{}",[]),T).
-termArgs([lftTok("{}",Lcl)|Tks],Op,T,Toks,_,rbrce) :-
-    locOfAst(Op,Lcx),
-    terms(Tks,rgtTok("{}",_),Tks2,Seq),
-    checkToken(Tks2,Toks,rgtTok("{}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcl]),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"{}",Seq),T).
-termArgs([lftTok("{..}",_),rgtTok("{..}",Lcy)|Tks],Op,T,Tks,_,rbrce) :-
-    locOfAst(Op,Lcx),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"{..}",[]),T).
-termArgs([lftTok("{..}",_)|Tks],Op,T,Toks,_,rbrce) :-
-    locOfAst(Op,Lcx),
-    terms(Tks,rgtTok("{..}",_),Tks2,Seq),
-    checkToken(Tks2,Toks,rgtTok("{..}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
-    mergeLoc(Lcx,Lcy,Lc),
-    apply(Lc,Op,tuple(Lc,"{..}",Seq),T).
-termArgs([idTok(".",_),idTok(Fld,LcF)|Tks],Op,T,Toks,_,Lst) :-
-    locOfAst(Op,Lcx),
-    mergeLoc(Lcx,LcF,Lc),
-    binary(Lc,".",Op,name(LcF,Fld),NOP),
-    termArgs(Tks,NOP,T,Toks,id,Lst).
-termArgs(Toks,T,T,Toks,Lst,Lst).
+parseNonTerminal(A,nonterm(Lc,Nm,Args)) :-
+  isRoundTerm(A,Lc,Op,Args),!,
+  isName(Op,Nm),!.
+parseNonTerminal(A,nonterm(Lc,Nm,[])) :-
+  isName(A,Lc,Nm),!.
+parseNonTerminal(A,epsilon(Lc)) :-
+  locOfAst(A,Lc),!,
+  reportError("invalid grammar symbol %s",[ast(A)],Lc).
 
-terms([],_,[],[]).
-terms([Match|Toks],Match,[Match|Toks],[]) :- !.
-terms(Tks,Match,Toks,[T|R]) :-
-    parse(Tks,T,Tks2),
-    terms(Tks2,Match,Toks,R).
+parseTerminals([A],term(Lc,A)) :-
+  locOfAst(A,Lc),!.
+parseTerminals([A|As],seq(Lc,A,B)) :-
+  locOfAst(A,Lc),
+  parseTerminals(As,B).
 
-tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
-  deComma(T,Els).
+dispRules([]) :- !.
+dispRules([Rl|Rls]) :-
+  dispRule(Rl),!,
+  dispRules(Rls).
 
-lookAhead(Tk,[Tk|_]).
+dispRule(Rl) :- dispRule(Rl,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
 
-/* an interpolated string becomes
-   _multicat(cons(S1,cons(S2,....nil)))
-   if it has multiple segments
-*/
+dispRule(grRule(Lc,Nm,Args,Cond,Deflt,Val,Body),O,Ox) :-
+  dispNonTerm(Lc,Nm,Args,O,O2),
+  (Deflt=true -> appStr(" default ",O2,O3) ; O2=O3),
+  appStr(">>",O3,O4),
+  dispAst(Val,1200,O4,O5),
+  (Cond=none -> O5=O6 ;
+   Cond=some(C),
+   appStr(" where ",O5,O7),
+   dispAst(C,1100,O7,O6)),
+  appStr(" --> ",O6,O8),
+  dispBody(Body,O8,Ox).
 
-interpolateString(Els,Lc,Term) :-
-  length(Els,Ln),Ln>1,
-  handleInterpolations(Els,Lc,Cons),
-  unary(Lc,"_str_multicat",Cons,Term).
-interpolateString([],Lc,string(Lc,"")).
-interpolateString([El],Lc,Term) :-
-  handleInterpolation(El,Lc,Term).
+dispBody(dis(_,Lft,Rgt),O,Ox) :-
+  appStr("(",O,O1),
+  dispBody(Lft,O1,O2),
+  appStr(" | ",O2,O3),
+  dispBody(Rgt,O3,O4),
+  appStr(")",O4,Ox).
+dispBody(seq(_,Lft,Rgt),O,Ox) :-
+  dispBody(Lft,O,O2),
+  appStr(" , ",O2,O3),
+  dispBody(Rgt,O3,Ox).
+dispBody(neg(_,Rgt),O,Ox) :-
+  appStr(" ~ ",O,O1),
+  dispBody(Rgt,O1,Ox).
+dispBody(epsilon(_),O,Ox) :-
+  appStr(" [] ",O,Ox).
+dispBody(fail(_),O,Ox) :-
+  appStr(" fail ",O,Ox).
+dispBody(eof(_),O,Ox) :-
+  appStr(" end ",O,Ox).
+dispBody(test(_,T),O,Ox) :-
+  appStr("{",O,O1),
+  dispAst(T,2000,O1,O2),
+  appStr("}",O2,Ox).
+dispBody(prod(_,N,T),O,Ox) :-
+  dispBody(N,O,O1),
+  appStr(">>",O1,O2),
+  dispAst(T,2000,O2,Ox).
+dispBody(rep(_,Lft),O,Ox) :-
+  dispBody(Lft,O,O2),
+  appStr(" * ",O2,Ox).
+dispBody(sep(_,Lft,Rgt),O,Ox) :-
+  dispBody(Lft,O,O2),
+  appStr(" * ",O2,O3),
+  dispBody(Rgt,O3,Ox).
+dispBody(nonterm(Lc,Nm,Args),O,Ox) :-
+  dispNonTerm(Lc,Nm,Args,O,Ox).
+dispBody(term(_,T),O,Ox) :-
+  appStr("[",O,O1),
+  dispAst(T,1000,O1,O2),
+  appStr("]",O2,Ox).
 
-handleInterpolations([],Lc,Nil) :-
-  mkEnum(Lc,"nil",Nil).
-handleInterpolations([El|Els],Lc,Cons) :-
-  handleInterpolation(El,Lc,H),
-  handleInterpolations(Els,Lc,T),
-  mkConApply(Lc,name(Lc,"cons"),[H,T],Cons).
+dispNonTerm(_,Nm,[],O,Ox) :-!,
+  appStr(Nm,O,Ox).
+dispNonTerm(Lc,Nm,Args,O,Ox) :-
+  appStr(Nm,O,O1),
+  dispAst(tuple(Lc,"()",Args),2000,O1,Ox).
 
-handleInterpolation(segment(Str,Lc),_,string(Lc,Str)) :-!.
-handleInterpolation(interpolate(Text,"",Lc),_,Disp) :-
-  subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Term,TksX,_),
-  unary(Lc,"disp",Term,Disp),
-  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-handleInterpolation(interpolate(Text,Fmt,Lc),_,Disp) :-
-  subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Term,TksX,_),
-  binary(Lc,"_format",Term,string(Lc,Fmt),Disp),
-  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-handleInterpolation(coerce(Text,Lc),_,Disp) :-
-  subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Disp,TksX,_),
-  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
+makeRule(grRule(Lc,Nm,Args,Cond,Deflt,_,fail(_)),Rl) :-
+  genIden(Lc,"Str",Str),
+  mkEnum(Lc,"none",Fl),
+  buildEquation(Lc,name(Lc,Nm),[Str|Args],Cond,Deflt,Fl,Rl).
+makeRule(grRule(Lc,Nm,Args,Cond,Deflt,Val,Body),Rl) :-
+  genIden(Lc,"Nxt",Nxt),
+  genIden(Lc,"Str",Str),
+  makeBody(Body,Str,Nxt,none,Test),
+  mergeCond(Lc,Cond,some(Test),Cnd),
+  roundTuple(Lc,[Val,Nxt],A),
+  mkConApply(Lc,name(Lc,"some"),[A],Rs),
+  buildEquation(Lc,name(Lc,Nm),[Str|Args],Cnd,Deflt,Rs,Rl).
+
+makeBody(epsilon(Lc),Str,Nxt,none,B) :-!,
+  match(Lc,Nxt,Str,B).
+makeBody(epsilon(Lc),Str,Nxt,some(V),B) :-!,
+  reportError("Not permitted to produce %s here",[ast(V)],Lc),
+  match(Lc,Nxt,Str,B).
+makeBody(term(Lc,T),Str,Nxt,none,B) :- !,
+  hdtl(Lc,T,Nxt,Str,B).
+makeBody(term(Lc,T),Str,Nxt,some(V),B) :- !,
+  hdtl(Lc,T,Nxt,Str,B1),
+  unary(Lc,"_value",T,TV),
+  match(Lc,V,TV,B2),
+  conjunct(Lc,B1,B2,B).
+makeBody(nonterm(Lc,Nm,Args),Str,Nxt,none,B) :- !,
+  mkAnon(Lc,Anon),
+  roundTerm(Lc,name(Lc,Nm),[Str|Args],NT),
+  resultOf(Lc,Anon,Nxt,NT,B).
+makeBody(nonterm(Lc,Nm,Args),Str,Nxt,some(V),B) :- !,
+  roundTerm(Lc,name(Lc,Nm),[Str|Args],NT),
+  resultOf(Lc,V,Nxt,NT,B).
+makeBody(prod(_,I,P),Str,Nxt,none,B) :-!,
+  makeBody(I,Str,Nxt,some(P),B).
+makeBody(prod(Lc,B,P),Str,Nxt,some(V),B) :-!,
+  reportError("conflicting production: %s cannot override %s",[ast(P),ast(V)],Lc),
+  makeBody(B,Str,Nxt,some(V),B).
+makeBody(test(Lc,T),Str,Nxt,none,B) :-!,
+  match(Lc,Nxt,Str,B1),
+  conjunct(Lc,T,B1,B).
+makeBody(test(Lc,T),Str,Nxt,some(V),B) :-!,
+  reportError("cannot produce %s from %s",[ast(V),ast(T)],Lc),
+  match(Lc,Nxt,Str,B1),
+  conjunct(Lc,T,B1,B).
+makeBody(fail(Lc),_Str,_Nxt,_,B) :-
+  mkEnum(Lc,"false",B).
+makeBody(eof(Lc),Str,Nxt,_,B) :-
+  unary(Lc,"_eof",Str,B1),
+  match(Lc,Nxt,Str,B2),
+  conjunct(Lc,B1,B2,B).
+makeBody(seq(Lc,L,R),Str,Nxt,V,B) :-!,
+  genIden(Lc,"I",I),
+  makeBody(L,Str,I,none,B1),
+  makeBody(R,I,Nxt,V,B2),
+  conjunct(Lc,B1,B2,B).
+makeBody(dis(Lc,L,R),Str,Nxt,V,B) :-!,
+  makeBody(L,Str,Nxt,V,B1),
+  makeBody(R,Str,Nxt,V,B2),
+  disjunct(Lc,B1,B2,B).
+makeBody(neg(Lc,R),Str,Nxt,none,B) :-!,
+  genIden(Lc,"I",I),
+  makeBody(R,Str,I,none,Ng),
+  negation(Lc,Ng,B1),
+  match(Lc,Nxt,Str,B2),
+  conjunct(Lc,B1,B2,B).
+makeBody(neg(Lc,N),Str,Nxt,some(V),B) :-!,
+  reportError("cannot produce %s from negate %s",[ast(V),ast(N)],Lc), 
+  makeBody(neg(Lc,N),Str,Nxt,none,B).
+makeBody(rep(Lc,L),Str,Nxt,V,B) :-!,
+  /*
+    let{.
+    s(S0,SoF) where (X,S1)?=lft(S0) => s(S1,[X,..SoF]).
+    s(S0,SoF) => .some((reverse(SoF),S0))
+    .} in (V,Nxt) ?= s(S0,[]))
+  */
+  genIden(Lc,"s",S),
+  genIden(Lc,"S0",S0),
+  genIden(Lc,"S1",S1),
+  genIden(Lc,"SoF",SoF),
+  genIden(Lc,"X",X),
+  makeBody(L,S0,S1,some(X),Lft),
+  mkConApply(Lc,name(Lc,"cons"),[X,SoF],SoF1),
+  roundTerm(Lc,S,[S1,SoF1],Val),
+  buildEquation(Lc,S,[S0,SoF],some(Lft),false,Val,Eq1),
+  unary(Lc,"reverse",SoF,Rslt),
+  roundTuple(Lc,[Rslt,S0],T1),
+  mkConApply(Lc,name(Lc,"some"),[T1],Val2),
+  buildEquation(Lc,S,[S0,SoF],none,true,Val2,Eq2),
+  mkEnum(Lc,"nil",Nil),
+  roundTerm(Lc,S,[Str,Nil],BB),
+  (some(VV) = V ; mkAnon(Lc,VV)),
+  mkLetRec(Lc,[Eq1,Eq2],BB,Rh),
+  roundTuple(Lc,[VV,Nxt],T2),
+  optionMatch(Lc,T2,Rh,B).
+makeBody(sep(Lc,L,R),Str,Nxt,V,B) :-
+  /*
+    let{.
+    s(S0,SoF) where (_,S1) ?= right(S0) && (X,S2)?=lft(S1) => s(S2,[X,..SoF]).
+    s(S0,SoF) => .some((reverse(SoF),S0))
+    .} in ((S0,F)?=lft(Str) && (V,Nxt) ?= s(S0,[F]))
+
+  */
+  genIden(Lc,"s",S),
+  genIden(Lc,"S0",S0),
+  genIden(Lc,"S1",S1),
+  genIden(Lc,"S2",S2),
+  genIden(Lc,"Si",Si),
+  genIden(Lc,"SoF",SoF),
+  genIden(Lc,"X",X),
+  genIden(Lc,"Fs",Fs),
+  makeBody(R,S0,S1,none,Rgt),
+  makeBody(L,S1,S2,some(X),Lft),
+  mkConApply(Lc,name(Lc,"cons"),[X,SoF],SoF1),
+  roundTerm(Lc,S,[S2,SoF1],Val),
+  conjunct(Lc,Rgt,Lft,Tst),
+  buildEquation(Lc,S,[S0,SoF],some(Tst),false,Val,Eq1),
+  unary(Lc,"reverse",SoF,Rslt),
+  roundTuple(Lc,[Rslt,S0],T1),
+  mkConApply(Lc,name(Lc,"some"),[T1],Val2),
+  buildEquation(Lc,S,[S0,SoF],none,true,Val2,Eq2),
+  makeBody(L,Str,Si,some(Fs),AA),
+  mkEnum(Lc,"nil",Nil),
+  mkConApply(Lc,name(Lc,"cons"),[Fs,Nil],Frst),
+  roundTerm(Lc,S,[Si,Frst],BB),
+  mkLetRec(Lc,[Eq1,Eq2],BB,B1),
+  (some(VV) = V ; mkAnon(Lc,VV)),
+  roundTuple(Lc,[VV,Nxt],Vl),
+  optionMatch(Lc,Vl,B1,B2),
+  conjunct(Lc,AA,B2,B).
+
+resultOf(Lc,T,Nxt,S,B) :-
+  roundTuple(Lc,[T,Nxt],A),
+  optionMatch(Lc,A,S,B).
   
-checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
-checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
-checkToken([],[],Tk,_,Msg,Extra) :- reportError(Msg,[Tk|Extra],missing).
+hdtl(Lc,T,Nxt,Str,B) :-
+  unary(Lc,"_hdtl",Str,S),
+  resultOf(Lc,T,Nxt,S,B).
 
-checkTerminator(_,[],[]).
-checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{}",_)|_].
-checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{..}",_)|_].
-checkTerminator(_,[termTok(_)|Toks],Toks) .
-checkTerminator(rbrce,Toks,Toks).
-checkTerminator(_,[Tk|Tks],RTks) :-
-  locOfToken(Tk,Lc),
-  reportError("missing terminator, got %s",[Tk],Lc),
-  scanForTerminator(Tks,RTks).
+grammarMacro(A,statement,Ax) :-
+  parseRule(A,Rl),!,
+  dispRule(Rl),
+  makeRule(Rl,Ax),
+  dispAst(Ax).
 
-scanForTerminator([termTok(_)|Tks],Tks).
-scanForTerminator([],[]).
-scanForTerminator([_|Tk],Tks) :-
-  scanForTerminator(Tk,Tks).
+makeGrammar(Sts,Sx) :-
+  collectGrRules(Sts,Oth,rls{},Mp),
+  dict_pairs(Mp,_,Prs),
+  makeGrs(Prs,Grs,[]),
+  concat(Oth,Grs,Sx).
+
+collectGrRules([],[],Mp,Mp) :-!.
+collectGrRules([St|Ss],Rls,Mp,Mpx) :-
+  isBinary(St,_,"-->",_,_),!,
+  parseRule(St,Rl),
+  addRule(Rl,Mp,Mp1),
+  collectGrRules(Ss,Rls,Mp1,Mpx).
+collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-
+  collectGrRules(Ss,Rls,Mp,Mpx).
+
+addRule(Rl,Mp,Mp1) :-
+  ruleName(Rl,Nm),
+  makeKey(Nm,Ky),
+  (get_dict(Ky,Mp,Rls) ->
+   put_dict(Ky,Mp,[Rl|Rls],Mp1);
+   put_dict(Ky,Mp,[Rl],Mp1)).
+
+ruleName(grRule(_,Nm,_,_,_,_,_),Nm).
+
+makeGrs([],Sx,Sx) :-!.
+makeGrs([_-Rs|Prs],S,Sx) :-
+  (hasDefault(Rs) ->
+   reverse(Rs,RRs) ;
+   defaultRl(Rs,Def),
+   reverse([Def|Rs],RRs)),
+%  dispRules(RRs),
+  makeGrRls(RRs,S,S0),
+  makeGrs(Prs,S0,Sx).
+
+hasDefault(Rls) :-
+  member(grRule(_Lc,_Nm,_Args,_Cond,true,_Val,_Body),Rls),!.
+
+defaultRl([grRule(Lc,Nm,Args,_,_,_,_)|_],
+	  grRule(Lc,Nm,Args,none,true,Unit,fail(Lc))) :-
+  unitTpl(Lc,Unit).
+
+makeGrRls([],Sx,Sx) :-!.
+makeGrRls([Rl|Rs],[Ax|S],Sx) :-
+  makeRule(Rl,Ax),
+  makeGrRls(Rs,S,Sx).

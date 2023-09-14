@@ -12,6 +12,28 @@ develop parsers using a high level notation.
 @node Grammar rule notation
 @section Grammar rule notation
 
+A grammar rule denotes a way of parsing a stream of elements. For example, the grammar rule:
+
+@example
+sumExp >> .sum(L,R) --> prodExp >> L, [`+`], sumExp >> R.
+@end example
+
+is a classic fragment from an expression parser. It states that a
+@code{sumExp} can be formed by a @code{prodExp}, a @code{+} character
+and a @code{sumExp}.
+
+The expressions following the chevrons denote output: the output of the rule as a whole is the expression
+
+@example
+.sum(L,R)
+@end example
+
+assuming that the @code{prodExp} returns the value @code{L} and the
+right hand side @code{sumExp} returns @code{R.}
+
+The language is quite expressive, including support for many common
+patterns -- such as repeated sequences and interleaved sequences.
+
 @float BNF,grammarRuleFig
 @caption{Grammar Rule Notation}
 @display
@@ -31,10 +53,32 @@ develop parsers using a high level notation.
   @refer{RuleBody} @code{*} @refer{RuleBody} |
   @code{~} @refer{RuleBody} |
   @refer{RuleBody} @code{>>} @refer{Pattern} |
-  @code{@{} @refer{Condition} @code{@}}
-
-
+  @code{@{} @refer{Condition} @code{@}} |
+  @code{fail} |
+  @code{end}
 @end display
 @end float
+
+@node Grammar Rule Type
+@subsection{Grammar Rule Type}
+
+The type of a grammar non-terminal is a function type:
+
+@example
+stream[s->>t] |: (s) => option[(r,s)]
+@end example
+
+where @code{s} is the type of the stream of tokens (@code{t}) being
+parsed. The result of a successful parse is a pair: a value (@code{r})
+and the remaining part of the stream (@code{s}).
+
+Where a grammar symbol has arguments, they follow the stream type.
+
+@node Terminal Symbols
+@subsection{Terminal Symbols}
+
+Terminal symbols are denoted by patterns, enclosed in square brackets,
+that are used to match successive tokens from the input stream.
+
 
 

@@ -7,17 +7,11 @@ star.compiler.macro.rules{
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.meta.
+  import star.compiler.macro.grammar.
   import star.compiler.macro.infra.
   import star.compiler.wff.
 
   public macroRule ~> (ast,macroContext) => macroState.
-
-  public macroState ::= .inactive | .active(ast) .
-
-  public implementation display[macroState] => {
-    disp(.inactive) => "inactive".
-    disp(.active(A)) => "active $(A)".
-  }
 
   public applyRules:(ast,macroContext,macroState) => macroState.
   applyRules(A,Cxt,St) where Rules?=macros[macroKey(A)] =>
@@ -65,7 +59,8 @@ star.compiler.macro.rules{
     "trace" -> [(.expression,traceMacro)],
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
-    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)]
+    "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
+    "-->" -> [(.statement,grammarMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
@@ -112,7 +107,7 @@ star.compiler.macro.rules{
   optionMatchMacro(_,_) default => .inactive.
 
   mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)?=Lc =>
-    mkEnumCon(Lc,.nme(Lc,"locn"),
+    mkCon(Lc,"locn",
       [.str(Lc,P),.int(Lc,Line),.int(Lc,Col),.int(Lc,Off),.int(Lc,Ln)]).
 
   -- Handle __loc__ macro symbol
@@ -363,10 +358,10 @@ star.compiler.macro.rules{
     End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
     /* build _yld(P) => B */
-    Yld = mkLambda(Lc,.false,mkEnumCon(Lc,.nme(Lc,"_yld"),[P]),.none,B);
+    Yld = mkLambda(Lc,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
     /* build _yld(_) default => {} */
-    Deflt = mkEquation(Lc,.none,.true,mkEnumCon(Lc,.nme(Lc,"_yld"),[mkAnon(Lc)]),.none,brTuple(Lc,[]));
+    Deflt = mkEquation(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case I resume ._next in .. */
     Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
@@ -418,7 +413,7 @@ star.compiler.macro.rules{
     Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkEnumCon(Lc,.nme(Lc,"_yld"),[E])),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
   }
 
   implementationMacro(A,.statement) where
@@ -441,12 +436,11 @@ star.compiler.macro.rules{
   labelImplExp(T,_) default => .none.
 
   arrowMacro(E,_) where (Lc,Lhs,Rhs) ?= isBinary(E,"->") =>
-    .active(mkEnumCon(Lc,.nme(Lc,"kv"),[Lhs,Rhs])).
+    .active(mkCon(Lc,"kv",[Lhs,Rhs])).
   arrowMacro(_,_) default => .inactive.
 
   caseRuleMacro(A,_) where
       (Lc,P,R) ?= isBinary(A,":") && (LLc,T,E) ?= isBinary(R,"=>") =>
     .active(binary(Lc,"=>",binary(Lc,":",P,T),E)).
   caseRuleMacro(A,_) default => .inactive.
-
 }
