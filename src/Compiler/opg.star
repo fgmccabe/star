@@ -32,7 +32,6 @@ star.compiler.opg{
     reportError("end of file on input",.some(Lc));
     valis (.nme(.some(Lc),"_eof"),0,[.endTok(Lc),..Toks],.noNeed)
   }
-  
   termLeft(Toks,_) => term0(Toks).
 
   termRight:((ast,integer,cons[token],needsTerm),integer) => (ast,integer,cons[token],needsTerm).
@@ -172,7 +171,7 @@ star.compiler.opg{
   handleInterpolations(.cons(H,T),Lc) where
       HH .= handleInterpolation(H) &&
       TT .= handleInterpolations(T,Lc) =>
-    mkEnumCon(Lc,.nme(Lc,"cons"),[HH,TT]).
+    mkCon(Lc,"cons",[HH,TT]).
 
   handleInterpolation:(stringSegment) => ast.
   handleInterpolation(.segment(Lc,Str)) => .str(.some(Lc),Str).

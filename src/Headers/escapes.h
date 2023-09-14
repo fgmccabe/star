@@ -180,7 +180,7 @@ escape(_pkg_is_present, "F(ss)l", "True if an identified package is available")
 escape(_in_manifest, "F(sss)l", "True if pkg/version/kind is present in manifest")
 escape(_locate_in_manifest, "|F(sss)sr"ERRCODE, "Access manifest resource")
 
-escape(_logmsg, "|F(s)()r"ERRCODE, "log a message in logfile or console")
+escape(_logmsg, "F(s)()", "log a message in logfile or console")
 escape(_display_depth,"F()i", "Current standard display depth")
 
 // Socket handling functions

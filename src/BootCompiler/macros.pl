@@ -1,6 +1,7 @@
 :- module(macros,[macroPkg/2]).
 
 :- use_module(abstract).
+:- use_module(grammar).
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
@@ -27,7 +28,8 @@ macroPkg(P,Rp) :- macroAst(P,package,macros:examinePkg,Rp).
 examinePkg(A,Rp) :-
   isBraceTerm(A,Lc,Nm,Els),!,
   build_main(Els,Els0),
-  map(Els0,macros:examineStmt,Elx),
+  makeGrammar(Els0,Sts),
+  map(Sts,macros:macroStmt,Elx),
   braceTerm(Lc,Nm,Elx,Rp).
 
 macroStmt(S,Rp) :- macroAst(S,statement,macros:examineStmt,Rp).

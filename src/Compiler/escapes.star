@@ -140,7 +140,7 @@ star.compiler.escapes{
     "_pkg_is_present" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean"))).
     "_in_manifest" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean"))).
     "_locate_in_manifest" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_logmsg" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_logmsg" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([]))).
     "_display_depth" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*integer"))).
     "_connect" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.file*fileHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
     "_listen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).

@@ -8,7 +8,14 @@ star.compiler.macro.infra{
   import star.compiler.location.
 
   -- infrastructure for macro processing
-  
+
+  public macroState ::= .inactive | .active(ast) .
+
+  public implementation display[macroState] => {
+    disp(.inactive) => "inactive".
+    disp(.active(A)) => "active $(A)".
+  }
+
   public macroContext ::= .package
   | .statement
   | .expression

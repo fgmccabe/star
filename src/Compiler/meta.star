@@ -199,6 +199,7 @@ star.compiler.meta{
   public traceInline = ref .false.
   public showCode = ref .false.
   public genCode = ref .true.
+  public genDebug = ref .false.
 
   public compilerOptions ::=
     compilerOptions{
@@ -456,6 +457,18 @@ star.compiler.meta{
 	graph=.some(NR).
 	doStdin=Opts.doStdin
       }.
+  }
+
+  public genDebugOption:cmdOption[compilerOptions].
+  genDebugOption = cmdOption{
+    shortForm = "-g".
+    alternatives = ["--debug"].
+    usage = "-g -- generate debug info".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      genDebug := .true;
+      valis Opts
+    }
   }
 
   public metaTrace:all e ~~ display[e] |: (e,string,ref boolean) => e.

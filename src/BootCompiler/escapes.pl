@@ -136,7 +136,7 @@ escapeType("_install_pkg",funType(tplType([type("star.core*string")]),tpExp(tpFu
 escapeType("_pkg_is_present",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_in_manifest",funType(tplType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_locate_in_manifest",constrained(funType(tplType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
-escapeType("_logmsg",constrained(funType(tplType([type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
+escapeType("_logmsg",funType(tplType([type("star.core*string")]),tplType([]))).
 escapeType("_display_depth",funType(tplType([]),type("star.core*integer"))).
 escapeType("_connect",constrained(funType(tplType([type("star.core*string"),type("star.core*integer"),type("star.core*integer")]),tplType([type("star.file*fileHandle"),type("star.file*fileHandle")])),raises(type("star.core*errorCode")))).
 escapeType("_listen",constrained(funType(tplType([type("star.core*integer")]),type("star.file*fileHandle")),raises(type("star.core*errorCode")))).

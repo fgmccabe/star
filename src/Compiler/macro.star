@@ -7,6 +7,7 @@ star.compiler.macro{
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.meta.
+  import star.compiler.macro.grammar.
   import star.compiler.macro.infra.
   import star.compiler.macro.rules.
   import star.compiler.wff.
@@ -26,7 +27,7 @@ star.compiler.macro{
     mkLabeledTheta(Lc,O,macroStmts(buildMain(Els))).
 
   macroStmts:(cons[ast])=>cons[ast].
-  macroStmts(Ss) => reverse(flattenStmts(Ss//macroStmt,[])).
+  macroStmts(Ss) => reverse(flattenStmts(makeGrammar(Ss)//macroStmt,[])).
 
   flattenStmts([],So) => So.
   flattenStmts([A,..As],So) where (_,Els) ?= isBrTuple(A) =>
@@ -442,9 +443,14 @@ star.compiler.macro{
 --    logMsg("main action $(Action)");
     Valof = mkValof(Lc,brTuple(Lc,[Action]));
     Main = equation(Lc,MLhs,Valof);
+    XX = genName(Lc,"XX");
+    FallBack = equation(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),
+      mkValof(Lc,brTuple(Lc,[
+	    actionSeq(Lc,unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
+	      mkValis(Lc,unit(Lc)))])));
     Annot = mkTypeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
-    valis [unary(Lc,"public",Annot),Main,..Defs].
+    valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }
 
 /*
@@ -470,7 +476,7 @@ star.compiler.macro{
 
   mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").
-  mkConsPtn(Lc,[E,..Es]) => mkEnumCon(Lc,.nme(Lc,"cons"),[E,mkConsPtn(Lc,Es)]).
+  mkConsPtn(Lc,[E,..Es]) => mkCon(Lc,"cons",[E,mkConsPtn(Lc,Es)]).
 
   synthesizeCoercions:(cons[ast],option[locn])=> (ast,cons[ast]).
   synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).

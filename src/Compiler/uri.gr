@@ -1,4 +1,7 @@
 uri.grammar{
+  import star.
+  import star.script.
+  
   uri >> U --> absUri >> U | relUri >> U.
 
   absUri >> .absUri(S,H,Q) --> scheme >> S , hierPart >> H , query >> Q.
@@ -34,3 +37,4 @@ uri.grammar{
     `;` => .true. -- This is a hack to merge parameters with the segment
     _ default => isUnreserved(Ch).
   }
+}

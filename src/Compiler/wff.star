@@ -363,7 +363,7 @@ star.compiler.wff{
 
   public isOption(A) => isUnary(A,"?").
 
-  public mkOption(Lc,A) => mkEnumCon(Lc,.nme(Lc,"some"),[A]).
+  public mkOption(Lc,A) => mkCon(Lc,"some",[A]).
 
   public isOptionMatch(A) => isBinary(A,"?=").
 
@@ -640,7 +640,7 @@ star.compiler.wff{
   splitLHead(A,C1,D) where (Lc,L,C2) ?= isWhere(A) => splitLHead(L,mergeCond(.some(C2),C1),D).
   splitLHead(A,C,D) => .some((A,C,D)).
 
-  mergeCond(.none,G) => G.
+  public mergeCond(.none,G) => G.
   mergeCond(G,.none) => G.
   mergeCond(.some(L),.some(R)) => .some(mkConjunct(locOf(L),L,R)).
 

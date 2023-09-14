@@ -1,4 +1,4 @@
-star.compiler.grammar{
+star.compiler.macro.grammar{
   import star.
   import star.location.
   import star.pkg.
@@ -6,6 +6,8 @@ star.compiler.grammar{
 
   import star.compiler.ast.
   import star.compiler.errors.
+  import star.compiler.macro.grtypes.
+  import star.compiler.macro.infra.
   import star.compiler.operators.
   import star.compiler.parser.
   import star.compiler.wff.
@@ -20,41 +22,8 @@ star.compiler.grammar{
   all s,t ~~ stream[s->>t],hasLoc[t] |: (s,Ptypes) => (s,option[Valtype])
   */
 
-  public grRule ::= grRule{
-    lc : option[locn].
-    name:ast.
-    args:cons[ast].
-    cond:option[ast].
-    isDefault:boolean.
-    value:ast.
-    body:grBody}.
 
-  public grSymbol ::=
-    .term(ast) |
-    .nonTerm(option[locn],ast,cons[ast]).
-
-  public grBody ::=
-    .seq(option[locn],grBody,grBody) |
-    .rep(option[locn],grBody) |
-    .sep(option[locn],grBody,grBody) |
-    .dis(option[locn],grBody,grBody) |
-    .neg(option[locn],grBody) |
-    .single(option[locn],grSymbol) |
-    .test(option[locn],ast) |
-    .prod(option[locn],grBody,ast) |
-    .epsilon(option[locn]).
-
-  implementation equality[grSymbol] => {
-    .term(A1) == .term(A2) => A1==A2.
-    .nonTerm(_,S1,A1) == .nonTerm(_,S2,A2) => S1==S2 && A1==A2.
-  }
-
-  implementation hashable[grSymbol] => {
-    hash(.term(S)) => hash(S).
-    hash(.nonTerm(_,S,A)) => hash(S)*37+hash(A)
-  }
-
-  parseHead:(ast) => option[(option[locn],ast,cons[ast],option[ast],ast,boolean)].
+  parseHead:(ast) => option[(option[locn],string,cons[ast],option[ast],ast,boolean)].
   parseHead(A) => parseHd(A,.none,unit(locOf(A)),.false).
 
   parseHd(A,Cond,_Val,Deflt) where (Lc,L,R) ?= isBinary(A,">>") =>
@@ -63,21 +32,21 @@ star.compiler.grammar{
     parseHd(L,.some(R),Val,Deflt).
   parseHd(A,Cond,Val,_Deflt) where (_,L) ?= isDefault(A) =>
     parseHd(L,Cond,Val,.true).
-  parseHd(A,Cond,Val,Deflt) where (Lc,Op,Args) ?= isRoundTerm(A) =>
-    .some((Lc,Op,Args,Cond,Val,Deflt)).
-  parseHd(A,Cond,Val,Deflt) where (Lc,_) ?= isName(A) =>
-    .some((Lc,A,[],Cond,Val,Deflt)).
+  parseHd(A,Cond,Val,Deflt) where (Lc,Op,Args) ?= isRoundTerm(A) && (_,Id)?=isName(Op)=>
+    .some((Lc,Id,Args,Cond,Val,Deflt)).
+  parseHd(A,Cond,Val,Deflt) where (Lc,Id) ?= isName(A) =>
+    .some((Lc,Id,[],Cond,Val,Deflt)).
   parseHd(A,_,_,_) => valof{
     reportError("cannot parse $(A) as a head of a grammar rule",locOf(A));
     valis .none
   }
   
-  parseTerminal(A) => .some(.single(locOf(A),.term(A))).
+  parseTerminal(A) => .some(.term(locOf(A),A)).
 
   parseNonTerminal(A) where (Lc,Nm,Args) ?= isRoundTerm(A) =>
-    .some(.single(Lc,.nonTerm(Lc,Nm,Args))).
+    .some(.nonTerm(Lc,Nm,Args)).
   parseNonTerminal(A) where (Lc,_) ?= isName(A) =>
-    .some(.single(Lc,.nonTerm(Lc,A,[]))).
+    .some(.nonTerm(Lc,A,[])).
   parseNonTerminal(A) default => valof{
     reportError("invalid non-terminal $(A)",locOf(A));
     valis .none
@@ -136,20 +105,14 @@ star.compiler.grammar{
     }
   }
   parseBody(A) where (Lc,[El]) ?= isBrTuple(A) => .some(.test(Lc,El)).
+  parseBody(A) where (Lc,"fail") ?= isName(A) => .some(.block(Lc)).
+  parseBody(A) where (Lc,"end") ?= isName(A) => .some(.end(Lc)).
   parseBody(A) => parseNonTerminal(A).
 
   pairUp:(option[grBody],option[grBody],option[locn]) => option[grBody].
   pairUp(B,.none,_) => B.
   pairUp(.none,B,_) => B.
   pairUp(.some(L),.some(R),Lc) => .some(.seq(Lc,L,R)).
-
-  implementation iter[grBody->>grSymbol] => {.
-    _iter(.epsilon(_),St,_) => St.
-    _iter(.seq(_,L,R),St,Fn) => _iter(L,_iter(R,St,Fn),Fn).
-    _iter(.dis(_,L,R),St,Fn) => _iter(L,_iter(R,St,Fn),Fn).
-    _iter(.single(_,S),St,Fn) => Fn(S,St).
-    _iter(.test(_,_),St,_) => St.
-  .}
 
   parseRule(A) where (Lc,L,R) ?= isBinary(A,"-->") => valof{
     if (_,Nm,Args,Cond,Val,Deflt) ?= parseHead(L) then{
@@ -162,100 +125,169 @@ star.compiler.grammar{
     };
     valis .none
   }
+  parseRule(_) default => .none.
 
-  public implementation display[grRule] => {
-    disp(Rl) => "$(Rl.name)$(Rl.args) #(C?=Rl.cond??" where $(C)"||"") >> $(Rl.value) --> $(Rl.body)".
-  }
-
-  public implementation display[grBody] => let{.
-    dB(.seq(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp(",") =>
-      "#(leftPar(P,Pr))#(dB(L,Lp)) , #(dB(R,Rp))#(rightPar(P,Pr))".
-    dB(.dis(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp("|") =>
-      "#(leftPar(P,Pr))#(dB(L,Lp)) | #(dB(R,Rp))#(rightPar(P,Pr))".
-    dB(.neg(_,R),Pr) where (P,Rp) ?= isPrefixOp("~") =>
-      "#(leftPar(P,Pr)) ~ #(dB(R,Rp))#(rightPar(P,Pr))".
-    dB(.rep(_,L),Pr) where (Lp,P) ?= isPostfixOp("*") =>
-      "#(leftPar(P,Pr)) #(dB(L,Lp)) * #(rightPar(P,Pr))".
-    dB(.sep(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp("*") =>
-      "#(leftPar(P,Pr)) #(dB(L,Lp)) * #(dB(R,Rp)) #(rightPar(P,Pr))".
-    dB(.single(_,L),Pr) =>dispSymbol(L,Pr).
-    dB(.prod(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp(">>") =>
-      "#(leftPar(P,Pr)) #(dB(L,Lp)) >> #(dispAst(R,Rp,"")) #(rightPar(P,Pr))".
-    dB(.test(_,T),_) => "{ #(dispAst(T,2000,"")) }".
-    dB(.epsilon(_),_) => "[]".
-  .} in {
-    disp(B) => dB(B,1259)
-  }
-
-  dispSymbol(.term(T),Pr) => "[#(dispAst(T,1000,""))]".
-  dispSymbol(.nonTerm(_,N,A),Pr) => "$(N)$(A)".
-  
-  public implementation display[grSymbol] => {
-    disp(S) => dispSymbol(S,0)
-  }
-
-  compBody:(grBody,ast,ast,option[ast]) => ast.
-  compBody(.epsilon(Lc),Str,Nxt,.none) => mkMatch(Lc,Nxt,Str). -- Nxt.=Str
-  compBody(.epsilon(Lc),Str,Nxt,.some(V)) => valof{
+  makeBody:(grBody,ast,ast,option[ast]) => ast.
+  makeBody(.epsilon(Lc),Str,Nxt,.none) => mkMatch(Lc,Nxt,Str). -- Nxt.=Str
+  makeBody(.epsilon(Lc),Str,Nxt,.some(V)) => valof{
     reportError("cannot produce $(V) from []",Lc);
     valis mkMatch(Lc,Nxt,Str)
   }
-  compBody(.single(Lc,T),Str,Nxt,V) => compSymbol(Lc,T,Str,Nxt,V).
-  compBody(.prod(_,B,P),Str,Nxt,.none) =>
-    compBody(B,Str,Nxt,.some(P)).
-  compBody(.prod(Lc,B,P),Str,Nxt,.some(V)) => valof{
+  makeBody(.term(Lc,T),Str,Nxt,.none) => hdtl(Lc,T,Nxt,Str).
+  makeBody(.term(Lc,T),Str,Nxt,.some(V)) =>
+    mkConjunct(Lc,
+      hdtl(Lc,T,Nxt,Str),
+      mkMatch(Lc,V,unary(Lc,"_value",T))).
+  makeBody(.nonTerm(Lc,N,Args),Str,Nxt,.none) =>
+    mkOptionMatch(Lc,rndTuple(Lc,[mkAnon(Lc),Nxt]),roundTerm(Lc,N,[Str,..Args])).
+  makeBody(.nonTerm(Lc,N,Args),Str,Nxt,.some(V)) =>
+    mkOptionMatch(Lc,rndTuple(Lc,[V,Nxt]),roundTerm(Lc,N,[Str,..Args])).
+  makeBody(.prod(_,B,P),Str,Nxt,.none) =>
+    makeBody(B,Str,Nxt,.some(P)).
+  makeBody(.prod(Lc,B,P),Str,Nxt,.some(V)) => valof{
     reportError("conflicting production: $(P) cannot override $(V)",Lc);
-    valis compBody(B,Str,Nxt,.some(V))
+    valis makeBody(B,Str,Nxt,.some(V))
   }
-  compBody(.test(Lc,T),Str,Nxt,.none) =>
+  makeBody(.test(Lc,T),Str,Nxt,.none) =>
     mkConjunct(Lc,T,mkMatch(Lc,Nxt,Str)). --  Test && Nxt.=Str
-  compBody(.test(Lc,T),Str,Nxt,.some(V)) => valof{
+  makeBody(.test(Lc,T),Str,Nxt,.some(V)) => valof{
     reportError("cannot produce $(V) from $(T)",Lc);
     valis mkConjunct(Lc,T,mkMatch(Lc,Nxt,Str)).
   }
-  compBody(.seq(Lc,L,R),Str,Nxt,V) => valof{
+  makeBody(.seq(Lc,L,R),Str,Nxt,V) => valof{
     Vr = genName(Lc,"V");
-    valis mkConjunct(Lc,compBody(L,Str,Vr,.none),compBody(R,Vr,Nxt,V))
+    valis mkConjunct(Lc,makeBody(L,Str,Vr,.none),makeBody(R,Vr,Nxt,V))
   }
-  compBody(.dis(Lc,L,R),Str,Nxt,V) => 
-    mkDisjunct(Lc,compBody(L,Str,Nxt,V), compBody(R,Str,Nxt,V)).
-  compBody(.neg(Lc,R),Str,Nxt,.none) => valof{
+  makeBody(.dis(Lc,L,R),Str,Nxt,V) => 
+    mkDisjunct(Lc,makeBody(L,Str,Nxt,V), makeBody(R,Str,Nxt,V)).
+  makeBody(.rep(Lc,L),Str,Nxt,V) => valof{
+    /*
+    let{.
+    s(S0,SoF) where (X,S2)?=lft(S0) => s(S2,[X,..SoF]).
+    s(S0,SoF) => .some((reverse(SoF),S0))
+    .} in (V,Nxt) ?= s(S0,[]))
+    */
+    s = genName(Lc,"s");
+    S0 = genName(Lc,"S0");
+    S1 = genName(Lc,"S1");
+    S2 = genName(Lc,"S2");
+    F = genName(Lc,"F");
+    SoF = genName(Lc,"SoF");
+    Hd = roundTerm(Lc,s,[S0,SoF]);
+    X = genName(Lc,"X");
+    Eq1 = mkEquation(Lc,.some(s),.false,rndTuple(Lc,[S0,SoF]),
+      .some(makeBody(L,S0,S1,.some(X))),
+      roundTerm(Lc,s,[S1,mkEnumCon(Lc,.nme(Lc,"cons"),[X,SoF])]));
+    Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
+      mkOption(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
+    Val = (VV ?= V ?? VV || mkAnon(Lc));
+    valis mkOptionMatch(Lc,rndTuple(Lc,[Val,Nxt]),
+      mkLetRecDef(Lc,[Eq1,Eq2],roundTerm(Lc,s,[Str,sqTuple(Lc,[])])))
+  }
+  makeBody(.sep(Lc,L,R),Str,Nxt,V) => valof{
+    /*
+    let{.
+    s(S0,SoF) where (_,S1) ?= right(S0) && (X,S2)?=lft(S1) => s(S2,[X,..SoF]).
+    s(S0,SoF) => .some((reverse(SoF),S0))
+    .} in ((S0,F)?=lft(Str) && (V,Nxt) ?= s(S0,[F]))
+    */
+    s = genName(Lc,"s");
+    S0 = genName(Lc,"S0");
+    S1 = genName(Lc,"S1");
+    S2 = genName(Lc,"S2");
+    Si = genName(Lc,"Si");
+    F = genName(Lc,"F");
+    SoF = genName(Lc,"SoF");
+    Hd = roundTerm(Lc,s,[S0,SoF]);
+    X = genName(Lc,"X");
+    Eq1 = mkEquation(Lc,.some(s),.false,rndTuple(Lc,[S0,SoF]),
+      .some(mkConjunct(Lc,makeBody(R,S0,S1,.none),makeBody(L,S1,S2,.some(X)))),
+      roundTerm(Lc,s,[S2,mkEnumCon(Lc,.nme(Lc,"cons"),[X,SoF])]));
+    Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
+      mkOption(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
+    Val = (VV ?= V ?? VV || mkAnon(Lc));
+    
+    valis mkConjunct(Lc,makeBody(L,Str,Si,.some(F)),
+      mkOptionMatch(Lc,rndTuple(Lc,[Val,Nxt]),
+	mkLetRecDef(Lc,[Eq1,Eq2],roundTerm(Lc,s,[Si,sqTuple(Lc,[F])]))))
+  }
+  makeBody(.neg(Lc,R),Str,Nxt,.none) => valof{
     Vr = genName(Lc,"V");
-    valis mkConditional(Lc,mkMatch(Lc,enum(Lc,"none"),compBody(R,Str,Vr,.none)),
-      mkMatch(Lc,Nxt,Str),
-      enum(Lc,"false"))
+    valis mkConjunct(Lc,negated(Lc,makeBody(R,Str,Vr,.none)),
+      mkMatch(Lc,Nxt,Str))
   }
+  makeBody(.block(Lc),Str,_,_) => enum(Lc,"false"). -- should not ever use this
+  makeBody(.end(Lc),Str,Nxt,.none) =>               -- end of the stream
+    mkConjunct(Lc,unary(Lc,"_eof",Str),mkMatch(Lc,Nxt,Str)).
 
-  compSymbol(Lc,.term(T),Str,Nxt,.none) =>
+  hdtl(Lc,T,Nxt,Str) =>
     mkOptionMatch(Lc,rndTuple(Lc,[T,Nxt]),unary(Lc,"_hdtl",Str)).
-  compSymbol(Lc,.term(T),Str,Nxt,.some(V)) =>
-    mkConjunct(Lc,
-      mkOptionMatch(Lc,rndTuple(Lc,[T,Nxt]),unary(Lc,"_hdtl",Str)),
-      mkMatch(Lc,V,T)).
-  compSymbol(Lc,.nonTerm(Lc,N,Args),Str,Nxt,.none) =>
-    mkOptionMatch(Lc,rndTuple(Lc,[mkAnon(Lc),Nxt]),roundTerm(Lc,N,[Str,..Args])).
-  compSymbol(Lc,.nonTerm(Lc,N,Args),Str,Nxt,.some(V)) =>
-    mkOptionMatch(Lc,rndTuple(Lc,[V,Nxt]),roundTerm(Lc,N,[Str,..Args])).
 
-  compRule:(grRule) => ast.
-  compRule(Rl) => valof{
+  makeRule:(grRule) => ast.
+  makeRule(Rl) => valof{
     Lc = Rl.lc;
     Rst = genName(Lc,"R");
     Str = genName(Lc,"S");
-    B = compBody(Rl.body,Str,Rst,.none);
-    valis mkEquation(Lc,.some(Rl.name),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),Rl.cond,
-      mkOption(Lc,rndTuple(Lc,[Rl.value,Rst])))
+    
+    if ~.block(_).=Rl.body then{
+      B = makeBody(Rl.body,Str,Rst,.none);
+      valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),
+	mergeCond(Rl.cond,.some(B)),
+	mkOption(Lc,rndTuple(Lc,[Rl.value,Rst])))
+    } else
+    valis mkEquation(Lc,.some(.nme(Lc,Rl.name)),Rl.isDefault,rndTuple(Lc,[Str,..Rl.args]),.none,enum(Lc,"none")).
   }
 
-  public main:(uri,pkg)=>().
-  main(U,P) => valof{
-    WD=_optval(parseUri("file:"++_cwd()));
-    if R ?= resolveUri(WD,U) then{
-      Src = parseSrc(R,P);
+  public makeGrammar:(cons[ast]) => cons[ast].
+  makeGrammar(Ss) where (NonRl,Mp) .= collectRules(Ss) =>
+    NonRl++ixLeft((Nm,Rs,SoF) => makeGr(Rs)++SoF,[],Mp).
 
-      logMsg("source text $(Src)");
-    };
+  collectRules:(cons[ast]) => (cons[ast],map[string,cons[grRule]]).
+  collectRules(Rls) => let{.
+    coll([],SoF,Mp) => (reverse(SoF),Mp).
+    coll([S,..Ss],SoF,Mp) where _ ?= isBinary(S,"-->") =>
+      coll(Ss,SoF,addRule(parseRule(S),Mp)).
+    coll([S,..Ss],SoF,Mp) => coll(Ss,[S,..SoF],Mp)
+  .} in coll(Rls,[],{}).
 
-    valis ()
-  }
+  parseRules:(cons[ast]) => map[string,cons[grRule]].
+  parseRules(Ss) => foldLeft((A,M) => addRule(parseRule(A),M),{},Ss).
+
+  addRule(.none,M) => M.
+  addRule(.some(Rl),M) => valof{
+    if Rs?=M[Rl.name] then
+      valis M[Rl.name->Rs++[Rl]]
+    else
+    valis M[Rl.name->[Rl]]
+  }.
+
+  makeGr:(cons[grRule]) => cons[ast].
+  makeGr(Gs) where D?=defaultGr(Gs) => makeGrRules(Gs).
+  makeGr(Gs) => makeGrRules(Gs++defaultRl(head(Gs))).
+
+  makeGrRules:(cons[grRule]) => cons[ast].
+  makeGrRules([G,..Gs]) =>
+    [makeRule(G),..makeGrRules(Gs)].
+  makeGrRules([]) => [].
+
+  defaultGr:(cons[grRule]) => option[grRule].
+  defaultGr([]) => .none.
+  defaultGr([G,.._]) where G.isDefault => .some(G).
+  defaultGr([_,..Gs]) => defaultGr(Gs).
+
+  defaultRl:(option[grRule])=>cons[grRule].
+  defaultRl(.none) => [].
+  defaultRl(.some(Rl)) => [grRule{lc=Rl.lc.
+      name=Rl.name.
+      args=(Rl.args//(A)=>mkAnon(locOf(A))).
+      cond = .none.
+      isDefault = .true.
+      value = enum(Rl.lc,"none").
+      body = .block(Rl.lc)
+    }].
+
+  public grammarMacro:(ast,macroContext) => macroState.
+  grammarMacro(A,.statement) where Rl ?= parseRule(A) =>
+    .active(makeRule(Rl)).
+  grammarMacro(_,_) default => .inactive.
 }	
