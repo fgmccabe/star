@@ -18,7 +18,7 @@ add_custom_command(TARGET compiler DEPENDS sbc star.escapes
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}" "star.compiler"
   )
 
-set(STAR ${CMAKE_BINARY_DIR}/src/engine/star)
+set(STAR ${CMAKE_BINARY_DIR}/src/Engine/star)
 set(COMPILER_REPOSITORY ${REPO_DIR})
 set(STAR_COMPILER_FLAGS "-h1g -s16m -p5")
 
