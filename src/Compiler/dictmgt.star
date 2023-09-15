@@ -78,8 +78,13 @@ star.compiler.dict.mgt{
   varType(_,_) default => .none.
 
   public declareVar:(string,string,option[locn],tipe,option[tipe],dict) => dict.
-  declareVar(Nm,FullNm,Lc,Tp,Fc,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,FullNm,Tp,E),Fc,Dict).
+  declareVar(Nm,FullNm,Lc,Tp,Fc,Dict) => valof{
+    if _?=isEscape(Nm) then{
+      reportError("Cannot redeclare an escape: $(Nm)",Lc);
+      valis Dict
+    } else
+    valis declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,FullNm,Tp,E),Fc,Dict)
+  }
 
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
   refreshVr(Lc,Tp,Env,Mkr) => valof{
