@@ -41,10 +41,6 @@ patterns -- such as repeated sequences and interleaved sequences.
 
 @anchored{GrammarRuleHead} ::= @refer{NonTerminal} @code{>>} @refer{Expression}
 
-@anchored{Terminal} ::= @code{[} @refer{Pattern} @code{,}@dots{}@code{,} @refer{Pattern} @code{]}
-
-@anchored{NonTerminal} ::= @refer{Identifier} | @refer{RuleHead}
-
 @anchored{RuleBody} ::= @refer{NonTerminal} |
   @refer{Terminal} |
   @refer{RuleBody} @code{,} @refer{RuleBody} |
@@ -60,7 +56,7 @@ patterns -- such as repeated sequences and interleaved sequences.
 @end float
 
 @node Grammar Rule Type
-@subsection{Grammar Rule Type}
+@subsection Grammar Rule Type
 
 The type of a grammar non-terminal is a function type:
 
@@ -75,10 +71,54 @@ and the remaining part of the stream (@code{s}).
 Where a grammar symbol has arguments, they follow the stream type.
 
 @node Terminal Symbols
-@subsection{Terminal Symbols}
+@subsection Terminal Symbols
 
 Terminal symbols are denoted by patterns, enclosed in square brackets,
 that are used to match successive tokens from the input stream.
+
+@float BNF,terminalSymbolFig
+@caption{Terminal Symbols}
+@display
+@anchored{Terminal} ::= @code{[} @refer{Pattern} @code{,} @dots{} @code{,} @refer{Pattern} @code{]}
+@end display
+@end float
+
+The @refer{Pattern} is used to match against a single token in the input.
+
+Sequences of terminals can be written enclosed within a common set of
+square brackets.
+
+@node Non Terminal Symbols
+@subsection Non Terminal Symbols
+
+Non terminal symbols refer to the application of a grammar rule. Non
+terminals are denoted by either by an identifier -- the name of the
+grammar being referred to -- or by an applicative expression.
+
+The latter are a useful means of introducing context sensitivity to a
+grammar. For example, in the rule:
+
+@example
+termLeft(Pr) >> (.app(Op,[A]),OPr) --> [O],
+  @{(OPr,RP,Op)?=prefix(O) && OPr=<Pr @}, term(RP)>>(A,_).
+@end example
+
+The argument @code{Pr} to the @code{termLeft} non-terminal is used to
+indicate the desired operator priority in a prefix operator
+combination.
+
+Non-terminals can produce values, as can be seen here, and within a
+rule, the value returned by a non-terminal can be matched against.
+  
+@float BNF,nonTerminalSymbolFig
+@caption{Non Terminal Symbols}
+@display
+@anchored{NonTerminal} ::= @refer{Identifier} | @refer{ApplicativeExpression}
+@end display
+@end float
+
+
+
 
 
 
