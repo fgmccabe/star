@@ -78,6 +78,10 @@ parseBody(A,fail(Lc)) :-
   isName(A,Lc,"fail"),!.
 parseBody(A,eof(Lc)) :-
   isName(A,Lc,"end"),!.
+parseBody(A,P) :-
+  isRoundTuple(A,_Lc,Els),!,
+  reComma(Els,I),
+  parseBody(I,P).
 parseBody(A,B) :-
   parseNonTerminal(A,B).
 
@@ -92,7 +96,7 @@ parseNonTerminal(A,epsilon(Lc)) :-
 
 parseTerminals([A],term(Lc,A)) :-
   locOfAst(A,Lc),!.
-parseTerminals([A|As],seq(Lc,A,B)) :-
+parseTerminals([A|As],seq(Lc,term(Lc,A),B)) :-
   locOfAst(A,Lc),
   parseTerminals(As,B).
 
@@ -113,7 +117,7 @@ dispRule(grRule(Lc,Nm,Args,Cond,Deflt,Val,Body),O,Ox) :-
    appStr(" where ",O5,O7),
    dispAst(C,1100,O7,O6)),
   appStr(" --> ",O6,O8),
-  dispBody(Body,O8,Ox).
+  dispSeq(Body,O8,Ox).
 
 dispBody(dis(_,Lft,Rgt),O,Ox) :-
   appStr("(",O,O1),
@@ -121,10 +125,10 @@ dispBody(dis(_,Lft,Rgt),O,Ox) :-
   appStr(" | ",O2,O3),
   dispBody(Rgt,O3,O4),
   appStr(")",O4,Ox).
-dispBody(seq(_,Lft,Rgt),O,Ox) :-
-  dispBody(Lft,O,O2),
-  appStr(" , ",O2,O3),
-  dispBody(Rgt,O3,Ox).
+dispBody(seq(Lc,Lft,Rgt),O,Ox) :-
+  appStr("(",O,O1),
+  dispSeq(seq(Lc,Lft,Rgt),O1,O2),
+  appStr(")",O2,Ox).
 dispBody(neg(_,Rgt),O,Ox) :-
   appStr(" ~ ",O,O1),
   dispBody(Rgt,O1,Ox).
@@ -155,6 +159,14 @@ dispBody(term(_,T),O,Ox) :-
   appStr("[",O,O1),
   dispAst(T,1000,O1,O2),
   appStr("]",O2,Ox).
+
+dispSeq(seq(_,Lft,Rgt),O,Ox) :-!,
+  dispBody(Lft,O,O2),
+  appStr(" , ",O2,O3),
+  dispSeq(Rgt,O3,Ox).
+dispSeq(B,O,Ox) :-
+  dispBody(B,O,Ox).
+
 
 dispNonTerm(_,Nm,[],O,Ox) :-!,
   appStr(Nm,O,Ox).
@@ -302,7 +314,7 @@ hdtl(Lc,T,Nxt,Str,B) :-
 
 grammarMacro(A,statement,Ax) :-
   parseRule(A,Rl),!,
-  dispRule(Rl),
+%  dispRule(Rl),
   makeRule(Rl,Ax),
   dispAst(Ax).
 
@@ -316,6 +328,7 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
+  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-

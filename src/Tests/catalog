@@ -147,6 +147,7 @@
     "test.ts2": "ts2.star",
     "test.tsort": "tsort.star",
     "test.u": "u.star",
+    "test.u2": "u2.star",
     "test.y": "y.star"
   },
   "version": "1.0.0",

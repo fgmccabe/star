@@ -65,6 +65,7 @@
     "star.tuples": "tuples.star",
     "star.unit": "unit.star",
     "star.uri": "uri.star",
+    "star.uri.grammar": "urigr.star",
     "star.windowed": "windowed.star"
   },
   "version": "1.0.0"
