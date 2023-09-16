@@ -117,8 +117,48 @@ rule, the value returned by a non-terminal can be matched against.
 @end display
 @end float
 
+@node Grammar Sequence
+@subsection Grammar Sequence
 
+@node Grammar Disjunction
+@subsection Grammar Disjunction
 
+@node Kleene Star
+@subsection Kleene Star
 
+@node Interleaved Grammar
+@subsection Interleaved Grammar
 
+@node Negated Grammar
+@subsection Negated Grammar
+
+@node Extract Value
+@subsection Extract Value
+
+Non terminals can @emph{produce} a value that can be used within a
+rule to help produce an overall value of the rule itself. This is
+marked using the chevron form:
+
+@example
+@emph{NT} >> @emph{Ptn}
+@end example
+
+The pattern @emph{Ptn} is matched against the value produced by the
+non terminal @emph{NT}.
+
+@node Grammar Condition
+@subsection Grammar Condition
+
+Occasionally, it is useful, in a grammar, to include @emph{semantic}
+guards. This can be done in a grammar rule by enclosing a
+@refer{Condition} within braces.
+
+A grammar condition does not consume any input: it is used to verify a
+condition based on the input consumed so far.
+
+@node Grammar Reject
+@subsection Grammar Reject
+
+@node Grammar End
+@subsection Grammar End
 
