@@ -3,7 +3,6 @@ star.uri{
   -- This code is an attempt to directly implement the specification in RFC 2396
 
   import star.
-  import star.parse.
 
   public uri ::= .absUri(string,rsrcName,query) | .relUri(rsrcName,query).
   public rsrcName ::= .netRsrc(authority,resourcePath) | .localRsrc(resourcePath).
@@ -18,110 +17,70 @@ star.uri{
   public query ::= .qry(string) | .noQ.
 
   public parseUri:(string) => option[uri].
-  parseUri(S) => first(parse(uriParse,S::cons[char])).
+  parseUri(S) where (U,[]) ?= parseU(S::cons[char]) => .some(U).
+  parseUri(_) default => .none.
 
-  first([])=>.none.
-  first([(E,_),.._])=>.some(E).
+  public parseU:(cons[char]) => option[(uri,cons[char])].
+  parseU >> U --> absoluteUri >> U.
+  parseU >> U --> relativeUri >> U.
 
-  public uriParse:parser[cons[char],uri].
-  uriParse = absoluteUri +++ relativeUri.
+  absoluteUri >> .absUri(Scheme,Hier,Q) --> scheme >> Scheme, hierPart >> Hier, query >> Q.
 
-  absoluteUri:parser[cons[char],uri].
-  absoluteUri = scheme >>= (Scheme) =>
-    hierPart >>= (Hier) =>
-      query >>= (Query) => return .absUri(Scheme,Hier,Query).
+  scheme >> [F,..R]::string --> alphaNum >> F, alphaStar* >> R, [`:`].
+
+  relativeUri >> .relUri(Pth,Q) --> (netPath | absoluteRsrc | relativeRsrc) >> Pth, query >> Q.
+
+  hierPart >> P --> netPath >> P.
+  hierPart >> P --> absoluteRsrc >> P.
+
+  netPath >> .netRsrc(A,P) --> [`/`, `/`], authority>>A, path>>P.
+
+  absoluteRsrc >> .localRsrc(P) --> absolutePath >> P.
+  relativeRsrc >> .localRsrc(P) --> relativePath >> P.
+
+  path >> P --> absolutePath >> P.
+  path >> P --> relativePath >> P.
+
+  absolutePath >> .absPath(P) --> [`/`], segment * [`/`] >> P.
+
+  relativePath >> .relPath(P) --> segment * [`/`] >> P.
+
+  authority >> .server(.some(U),H) --> userInfo>>U, [`@`], hostNamePort >> H.
+  authority >> .server(.none,H) --> hostNamePort >> H.
+
+  userInfo >> .user(U::string) --> userChar* >>U.
+
+  userChar >> C --> [C], {userCh(C)}.
+
+  hostNamePort >> .hostPort(H,P) --> hostName>>H, [`:`], port>>P.
+  hostNamePort >> .host(H) --> hostName>>H.
+
+  hostName >> H::string --> alphaDash* >> H.
+
+  port >> P::string --> digit* >> P.
+
+  segment >> S::string --> segChar * >> S.
+
+  query >> .qry(Q::string) --> [`?`], uriChar* >> Q.
+  query default >> .noQ --> [].
+
+  segChar >> C --> [C], {isSegChr(C)}.
+
+  alphaNum >> A --> [A], {isAlphaNum(A)}.
+
+  alphaStar >> A --> [A], {isAlphaStar(A)}.
+
+  alphaDash >> A --> [A], {isAlphaDash(A)}.
+
+  uriChar >> Q --> [Q], {isUric(Q)}.
+
+  digit >> D --> [D], {isDigit(D)}.
   
-  scheme:parser[cons[char],string].
-  scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(`:`) >>= (_) => return ([A,..Rest]::string).
-
-  hierPart:parser[cons[char],rsrcName].
-  hierPart = netPath +++ absoluteRsrc.
-
-  netPath:parser[cons[char],rsrcName].
-  netPath = _str("//") >>= (_) =>
-    authority >>= (A) =>
-      (absolutePath +++ relativePath) >>= (P) => return .netRsrc(A,P).
-
-  authority:parser[cons[char],authority].
-  authority = (userInfo >>= (U) => _tk(`@`) >>= (_) => hostNamePort >>= (H) => return .server(.some(U),H)) +++
-  (hostNamePort >>= (H) => return .server(.none,H)).
-
-  userInfo:parser[cons[char],userInfo].
-  userInfo = _star(userStar) >>= (U) => return .user(U::string).
-
-  relativeUri:parser[cons[char],uri].
-  relativeUri = (netPath+++absoluteRsrc+++relativeRsrc) >>= (P) => query >>= (Q)=>return .relUri(P,Q).
-
-  absoluteRsrc:parser[cons[char],rsrcName].
-  absoluteRsrc = absolutePath >>= (P)=> return .localRsrc(P).
-
-  absolutePath:parser[cons[char],resourcePath].
-  absolutePath = _tk(`/`) >>= (_) => sepby(segment,_tk(`/`)) >>= (S) => return .absPath(S).
-
-  relativeRsrc:parser[cons[char],rsrcName].
-  relativeRsrc = relativePath >>= (P) => return .localRsrc(P).
-
-  relativePath:parser[cons[char],resourcePath].
-  relativePath = sepby(segment,_tk(`/`)) >>= (S) => return .relPath(S).
-
-  segment:parser[cons[char],string].
-  segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
-
-  segChr:parser[cons[char],char].
-  segChr = _sat(isSegChr).
-
-  isSegChr:(char)=>boolean.
-  isSegChr(Ch) => case Ch in {
-    `:` => .true.
-    `@` => .true.
-    `&` => .true.
-    `=` => .true.
-    `+` => .true.
-    `$` => .true.
-    `<` => .true.
-    `;` => .true. -- This is a hack to merge parameters with the segment
-    _ default => isUnreserved(Ch).
-  }
-
-  query:parser[cons[char],query].
-  query = (_tk(`?`) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return .qry(QQ::string)) +++ (return .noQ).
-
-  userStar:parser[cons[char],char].
-  userStar = _sat(userCh).
-
-  userCh:(char) => boolean.
-  userCh(Ch) => case Ch in {
-    `$` => .true.
-    `,` => .true.
-    `;` => .true.
-    `:` => .true.
-    `&` => .true.
-    `=` => .true.
-    `+` => .true.
-    _ default => isUnreserved(Ch).
-  }
-
-  hostNamePort:parser[cons[char],host].
-  hostNamePort = hostName >>= (H) =>
-    ((_tk(`:`) >>= (_) => port >>= (P) => return .hostPort(H,P)) +++ (return .host(H))).
-
-  hostName:parser[cons[char],string].
-  hostName = _star(alphaDash) >>= (H)=> return (H::string).
-
-  alphaStar:parser[cons[char],char].
-  alphaStar = _sat(isAlphaStar).
-
   isAlphaStar:(char)=>boolean.
   isAlphaStar(Ch) => (isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  alphaDash:parser[cons[char],char].
-  alphaDash = _sat(isAlphaDash).
-
   isAlphaDash:(char)=>boolean.
   isAlphaDash(Ch) => (isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch)).
-
-  port:parser[cons[char],string].
-  port = _plus(_sat(isDigit)) >>= (P)=>return (P::string).
 
   isMinus:(char)=>boolean.
   isMinus(Ch) => Ch==`-`.
@@ -175,6 +134,31 @@ star.uri{
     `%` => .true.
     `\"` => .true.
     _ default => .false.
+  }
+
+  isSegChr:(char)=>boolean.
+  isSegChr(Ch) => case Ch in {
+    `:` => .true.
+    `@` => .true.
+    `&` => .true.
+    `=` => .true.
+    `+` => .true.
+    `$` => .true.
+    `<` => .true.
+    `;` => .true. -- This is a hack to merge parameters with the segment
+    _ default => isUnreserved(Ch).
+  }
+
+  userCh:(char) => boolean.
+  userCh(Ch) => case Ch in {
+    `$` => .true.
+    `,` => .true.
+    `;` => .true.
+    `:` => .true.
+    `&` => .true.
+    `=` => .true.
+    `+` => .true.
+    _ default => isUnreserved(Ch).
   }
 
   -- Implement equality for URIs

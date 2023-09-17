@@ -2,11 +2,17 @@ test.u2{
   import star.
   import star.script.
   import star.uri.
-  import star.uri.grammar.
 
   main:()=>().
   main()=>valof{
-    show _stringOf(parseU("https://fred@foo.bar.com:9090/local/path?query"::cons[char]),10);
+--    show parseUri("https://fred@foo.bar.com:9090/local/path?query");
+
+    show parseUri("file:/Users/fgm/Compiler");
+    show parseUri("file:/Users/fgm/Projects/star/src/Compiler/");
+
+    assert .absUri("https",.netRsrc(.server(.some(.user("fred")),
+	  .hostPort("foo.bar.com","9090")),
+     	.absPath(["local","path"])),.qry("query")) ?= parseUri("https://fred@foo.bar.com:9090/local/path?query");
     valis ()
   }
 }
