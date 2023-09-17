@@ -1,7 +1,6 @@
 star.repo.manifest{
   import star.
   import star.json.
-  import star.parse.
   import star.pkg.
   import star.repo.
   import star.resources.
