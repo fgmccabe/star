@@ -328,7 +328,7 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
-  dispRule(Rl),
+%  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-
