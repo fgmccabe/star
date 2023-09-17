@@ -135,7 +135,7 @@ is interpreted as being the equivalent of:
 
 @example
 A, L, R>>P, B
-@example
+@end example
 
 @node Grammar Disjunction
 @subsection Grammar Disjunction
