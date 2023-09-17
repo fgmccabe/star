@@ -1,14 +1,13 @@
 star.repo.file{
   import star.
   import star.json.
-  import star.parse.
   import star.pkg.
   import star.repo.
   import star.repo.manifest.
   import star.uri.
   import star.resources.
 
-  public fileRepo ::= repo(uri,manifest).
+  public fileRepo ::= .repo(uri,manifest).
 
   public openRepository:(uri) => fileRepo.
   openRepository(Root) where
@@ -18,9 +17,9 @@ star.repo.file{
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
-    hasSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
+    hasSignature(.repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
 
-    hasCode(repo(Root,Man),Pkg) where
+    hasCode(.repo(Root,Man),Pkg) where
 	U ?= locateInManifest(Man,Pkg,"code") &&
 	Uri ?= parseUri(U) &&
 	RU ?= resolveUri(Root,Uri)  => getResource(RU).
@@ -28,7 +27,7 @@ star.repo.file{
   }
   
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
-  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof{
+  addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
     Fn = Pk++(hash(Pk)::string)++Ext;
     FUri ?= parseUri(Fn);

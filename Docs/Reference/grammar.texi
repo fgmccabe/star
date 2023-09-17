@@ -120,8 +120,78 @@ rule, the value returned by a non-terminal can be matched against.
 @node Grammar Sequence
 @subsection Grammar Sequence
 
+A sequence of grammar terms is written using a @code{,} comma. A
+sequence @code{L,R} is satisfied if @code{L} followed by @code{R} is
+satsified.
+
+Note that if a @code{>>} is applied to a sequence, it is interpreted
+as having been applied to the last entry in the sequence. I.e.,
+
+@example
+A, (L,R)>>P, B
+@end example
+
+is interpreted as being the equivalent of:
+
+@example
+A, L, R>>P, B
+@example
+
 @node Grammar Disjunction
 @subsection Grammar Disjunction
+
+A disjunction of grammar terms is written using the @code{||}
+operator. A disjunctive grammar is satisfied if either arms are
+satisfied.
+
+@quotation Note
+A disjunction is equivalent to introducing a new non-terminal with two
+(or more) rules -- each corresponding to an arm of the disjunction.
+
+I.e.,
+
+@example
+A, (L | R), B
+@end example
+
+is equivalent to:
+
+@example
+A, N, B
+@end example
+where @code{N} is defined:
+
+@example
+N --> L.
+N --> R.
+@end example
+@end quotation
+
+If a disjunction has an output @code{>>} applied, then it is applied
+to each of the arms:
+
+@example
+A, (L | R)>>P, B
+@end example
+
+is equivalent to:
+
+@example
+A, (L>>P | R>>P), B
+@end example
+
+which, in turn, is equivalent to:
+
+@example
+A, N >> P, B
+@end example
+
+with:
+
+@example
+N >> P --> L >> P.
+N >> P --> R >> P.
+@end example
 
 @node Kleene Star
 @subsection Kleene Star
@@ -131,6 +201,29 @@ rule, the value returned by a non-terminal can be matched against.
 
 @node Negated Grammar
 @subsection Negated Grammar
+
+A negated grammar is satisfied if the negated grammar is not. In
+addition, a negated grammar does not consume any of the input --
+although it does look ahead.
+
+For example, the grammar body:
+
+@example
+A, ~B, C
+@end example
+
+is satisfied if @code{A} is satisfied, with @code{C} being satisfied
+immediately after @code{A}. In addition, @code{B} must not be
+satisfiable following @code{A}.
+
+For example,
+
+@example
+integral --> digit*, ~ [`.`]
+@end example
+
+is a rule for parsing an integral number as a sequence of digits,
+providing that they are not followed by a period.
 
 @node Extract Value
 @subsection Extract Value
