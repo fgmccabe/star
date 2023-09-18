@@ -8,6 +8,7 @@
 #include "libEscapes.h"
 #include "signature.h"
 #include "timerTests.h"
+#include "quick.h"
 
 static EscapeRec escapes[256];
 
@@ -75,10 +76,42 @@ static void dumpEsc(escapePo esc, ioPo out, integer escNo) {
     outMsg(out, "%s:%d\n", esc->name, escCount[escNo]);
 }
 
+static comparison cmpCount(integer i, integer j, void *cl) {
+  integer *indices = (integer *) cl;
+
+  integer iCount = escCount[indices[i]];
+  integer jCount = escCount[indices[j]];
+
+  if (iCount < jCount)
+    return smaller;
+  else if (iCount == jCount)
+    return same;
+  else
+    return bigger;
+}
+
+static retCode swapIndex(integer i, integer j, void *cl) {
+  integer *indices = (integer *) cl;
+  integer w = indices[i];
+  indices[i] = indices[j];
+  indices[j] = w;
+  return Ok;
+}
+
 void dumpEscapes(ioPo out) {
   outMsg(out, "escapes executed\n");
-  for (integer ix = 0; ix < NumberOf(escCount); ix++)
-    dumpEsc(&escapes[ix], out, ix);
+
+  integer indices[NumberOf(escCount)];
+  for (int ix = 0; ix < NumberOf(escCount); ix++)
+    indices[ix] = ix;
+
+  // Sort them by frequency
+  quick(0, NumberOf(escCount) - 1, cmpCount, swapIndex, (void *) indices);
+
+  for (integer ix = 0; ix < NumberOf(escCount); ix++) {
+    integer escNo = indices[ix];
+    dumpEsc(&escapes[escNo], out, escNo);
+  }
 }
 
 char *escapeName(escapePo esc) {

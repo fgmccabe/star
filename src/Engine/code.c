@@ -285,17 +285,3 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   return mtd;
 }
-
-static retCode showMtdCount(labelPo lbl, void *cl) {
-  ioPo out = (ioPo) cl;
-  methodPo mtd = labelCode(lbl);
-  if (mtd != 0 && callCount(mtd) > 0) {
-    return outMsg(out, "%L %ld\n", lbl, callCount(mtd));
-  } else
-    return Ok;
-}
-
-void showMtdCounts(ioPo out) {
-  outMsg(out, "Unsorted method counts\n");
-  iterateLabels(showMtdCount, out);
-}

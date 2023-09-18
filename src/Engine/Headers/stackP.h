@@ -44,7 +44,7 @@ extern integer minStackSize;       /* How big is a stack */
 extern integer defaultStackSize;
 extern integer stackRegionSize;    // How much space for stacks
 
-void dumpStackStats();
+void dumpStackStats(ioPo out);
 
 static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;

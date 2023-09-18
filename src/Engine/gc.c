@@ -278,12 +278,12 @@ void verifyProc(processPo P, heapPo H) {
   verifyStack(P->stk, H);
 }
 
-void dumpGcStats() {
+void dumpGcStats(ioPo out) {
 #ifdef TRACEMEM
   if (traceAllocs)
-    logMsg(logFile, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
+    logMsg(out, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
   if (traceMemory)
-    logMsg(logFile, "%d gc collections, %d heap grows, %d stack extensions", gcCount, gcGrow, stkGrow);
+    logMsg(out, "%d gc collections, %d heap grows, %d stack extensions", gcCount, gcGrow, stkGrow);
 #endif
 }
 
