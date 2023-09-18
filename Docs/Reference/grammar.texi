@@ -196,8 +196,61 @@ N >> P --> R >> P.
 @node Kleene Star
 @subsection Kleene Star
 
+A starred grammar represents a repeated sequence of expressions.
+
+For example,
+
+@example
+A, B*, C
+@end example
+
+denotes zero or more occurrences of @code{B}, sandwhiched between
+@code{A} and @code{C}.
+
+If the starred term has an output -- designated by @code{>>} -- then
+the output is a @code{cons} list. Specifically, if @code{B} produced a
+value of type @code{t}, then @code{B} produces @code{cons[t]}.
+
+For example, the following rule corresponds to a traditional
+definition of an identifier:
+
+@example
+ident >> [F,..S]::string --> letter >> F, alphaNum * >> S.
+@end example
+
+where @code{letter} and @code{alphaNum} have their expected definitions.
+
+Note that the value returned by @code{ident} above takes the
+@code{cons} list of @code{char}acters and creates a @code{string} from
+it using coercion.
+
+@quotation Note
+The term @emph{Kleene Star} is a reference to regular expression
+grammars. However, the grammar notation is strictly more powerful than
+regular expressions.
+@end quotation
+
+
 @node Interleaved Grammar
 @subsection Interleaved Grammar
+
+An interleaved grammar is a variation of the Kleene star, where the
+intention is to parse a repeated sequence; but with a fragment
+separating each item.
+
+For example, the rule:
+
+@example
+args >> Args --> exp * [`,`] >> Args
+@end example
+
+is intended to capture the common case of a sequence of expression
+separated by commas.
+
+As with Kleene star, the produced value is a @code{cons} list;
+however, only the left hand side is used. For example, in the rule
+above, @code{Args} is a @code{cons} list of the values returned by
+@code{exp}.
 
 @node Negated Grammar
 @subsection Negated Grammar
@@ -252,6 +305,21 @@ condition based on the input consumed so far.
 @node Grammar Reject
 @subsection Grammar Reject
 
+The @code{fail} grammar symbol is used to signal a non-parse. It will
+cause the current rule to fail to parse.
+
+This symbol is most often used implicitly: every rule set that does
+not have a @code{default} rule has a rule of the form:
+
+@example
+NT --> fail
+@end example
+
+added automatically.
+
 @node Grammar End
 @subsection Grammar End
+
+The @code{end} grammar symbol only matches the end of the input. It is
+useful for cases where a grammar must parse the entire input.
 
