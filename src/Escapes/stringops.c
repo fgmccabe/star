@@ -81,7 +81,10 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
 }
 
 ReturnStatus g__str_eq(heapPo h, termPo a1, termPo a2) {
-  logical eq = sameString(C_STR(a1), C_STR(a2));
+  stringPo s1 = C_STR(a1);
+  stringPo s2 = C_STR(a2);
+
+  logical eq = stringHash(s1) == stringHash(s2) && sameString(s1, s2);
 
   return (ReturnStatus) {.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
 }
@@ -381,7 +384,7 @@ void dS(termPo w) {
 
   while (isCons(s)) {
     integer cp = integerVal(consHead(C_NORMAL(s)));
-    outChar(logFile, (codePoint)cp);
+    outChar(logFile, (codePoint) cp);
     s = consTail(C_NORMAL(s));
   }
   outStr(logFile, "\n");
@@ -392,9 +395,9 @@ ReturnStatus g__implode(heapPo h, termPo a1) {
   termPo list = a1;
 
   integer size = 1;
-  for(termPo lst = a1; isCons(lst); lst = consTail(C_NORMAL(lst))){
+  for (termPo lst = a1; isCons(lst); lst = consTail(C_NORMAL(lst))) {
     normalPo en = C_NORMAL(lst);
-    size+= codePointSize(charVal(consHead(en)));
+    size += codePointSize(charVal(consHead(en)));
   }
 
   char buff[MAXLINE];
@@ -433,7 +436,7 @@ ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer start = integerVal(a2);
   integer count = integerVal(a3);
 
-  count = minimum(count,len-start);
+  count = minimum(count, len - start);
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
