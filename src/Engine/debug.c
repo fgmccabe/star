@@ -9,6 +9,7 @@
 #include "debugP.h"
 #include "arith.h"
 #include "editline.h"
+#include "quick.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;
@@ -1144,33 +1145,64 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
 }
 
 #undef instruction
-#define instruction(Op, A,B, C, Cmt) #Op,
+#define instruction(Op, A, B, C, Cmt) #Op,
 
 char *insNames[] = {
 #include "instructions.h"
+
 #undef instruction
 };
 
-static void dumpInsCounts(){
-  if(collectStats){
+static comparison cmpCount(integer i, integer j, void *cl) {
+  integer *indices = (integer *) cl;
+
+  integer iCount = insCounts[indices[i]];
+  integer jCount = insCounts[indices[j]];
+
+  if (iCount < jCount)
+    return smaller;
+  else if (iCount == jCount)
+    return same;
+  else
+    return bigger;
+}
+
+static retCode swapIndex(integer i, integer j, void *cl) {
+  integer *indices = (integer *) cl;
+  integer w = indices[i];
+  indices[i] = indices[j];
+  indices[j] = w;
+  return Ok;
+}
+
+static void dumpInsCounts(ioPo out) {
+  if (collectStats) {
+    integer indices[illegalOp];
+    for (int ix = 0; ix < illegalOp; ix++)
+      indices[ix] = ix;
+
+    // Sort them by frequency
+    quick(0, illegalOp - 1, cmpCount, swapIndex, (void *) indices);
+
     integer total = 0;
-    for(int ax=0;ax<illegalOp;ax++){
-      if(insCounts[ax]!=0){
-        outMsg(logFile," %s: %ld\n",insNames[ax],insCounts[ax]);
-        total+=insCounts[ax];
+    for (int ax = 0; ax < illegalOp; ax++) {
+      integer ix = indices[ax];
+      if (insCounts[ix] != 0) {
+        outMsg(out, " %s: %ld\n", insNames[ix], insCounts[ix]);
+        total += insCounts[ix];
       }
     }
-    assert(total==pcCount);
+    assert(total == pcCount);
   }
 }
 
 void dumpStats() {
-  dumpInsCounts();
+  dumpInsCounts(debugOutChnnl);
   logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
   showMtdCounts(debugOutChnnl);
-  dumpStackStats();
-  dumpGcStats();
+  dumpStackStats(debugOutChnnl);
+  dumpGcStats(debugOutChnnl);
 }
 
 void dumpStack() {

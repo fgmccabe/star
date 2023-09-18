@@ -105,7 +105,8 @@ set(HEADER_FILES
         Headers/formatted.h
         Headers/multiP.h
         Headers/match.h
-        Headers/microTaskP.h)
+        Headers/microTaskP.h
+        Headers/quick.h)
 
 set(SOURCE_FILES
         arrays.c
@@ -128,12 +129,14 @@ set(SOURCE_FILES
         formexts.c
         locked.c
         managed.c
+        match.c
         multi.c
         object.c
         pair.c
         pipe.c
         pool.c
         promise.c
+        quick.c
         signal.c
         sockets.c
         byteBuffer.c
@@ -158,7 +161,7 @@ set(SOURCE_FILES
         ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES} match.c)
+        ${HEADER_FILES})
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}

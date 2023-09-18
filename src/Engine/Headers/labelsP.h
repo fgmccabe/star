@@ -35,4 +35,6 @@ extern void initLbls();
 void markLabels(gcSupportPo G);
 void showAllLabels();
 
+void showMtdCounts(ioPo out);
+
 #endif //STAR_LABELSP_H

@@ -32,6 +32,4 @@ integer mtdCodeSize(methodPo mtd);
 integer callCount(methodPo mtd);
 
 logical normalCode(methodPo mtd);
-
-void showMtdCounts(ioPo out);
 #endif

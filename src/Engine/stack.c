@@ -583,9 +583,9 @@ logical isAttachedStack(stackPo base, stackPo tgt) {
   return base == tgt;
 }
 
-void dumpStackStats() {
+void dumpStackStats(ioPo out) {
 #ifdef TRACESTACK
-  outMsg(logFile, "%d stacks allocated\n", stackCount);
-  outMsg(logFile, "%d stacks dropped\n", stackReleases);
+  outMsg(out, "%d stacks allocated\n", stackCount);
+  outMsg(out, "%d stacks dropped\n", stackReleases);
 #endif
 }
