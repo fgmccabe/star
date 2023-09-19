@@ -3,9 +3,13 @@ star.kdl{
   -- In progress ..
   -- Inspired by the KDL language from kdl.dev
 
-  public kdl ::= kTxt(string) |
-    kNode(string,cons[kdl]) |
-    kLbled(string,kdl).
+  public kdl ::= .kTxt(string) |
+  .kNumber(float) |
+  .kTrue |
+  .kFalse |
+  .kNull |
+  .kNode(string,cons[kdl]) |
+  .kLbled(string,kdl) .
 
   public implementation display[kdl] => {
     disp(j) => dispKdl(j,0).
@@ -36,61 +40,58 @@ star.kdl{
   }
 
   public parseKdl:(string)=>option[kdl].
+
+
+  
   parseKdl(T) where (J,_)?=pK(skpBlnks(T::cons[char])) => some(J).
   parseKdl(_) default => .none.
 
   pK:(cons[char]) => option[(kdl,cons[char])].
-  pK([Ch,..L]) => ppK(Ch,L).
+  pK >> K --> skipBlanks, ppK >> K.
 
-  ppK:(integer,cons[char]) => option[(kdl,cons[char])].
-  ppK(`t`,[`r`,`u`,`e`,..L]) => some((.jTrue,L)).
-  ppK(`f`,[`a`,`a`,`l`,`s`,`e`,..L]) => some((.jFalse,L)).
-  ppK(`n`,[`u`,`l`,`l`,..L]) => some((.jNull,L)).
-  ppK(`-`,L) where (Dx,LL) .= psNum(L) => some((jNum(-Dx),LL)).
-  ppK(D,L) where isDigit(D) && (Dx,LL).=psNum([D,..L]) => some((jNum(Dx),LL)).
+  ppK >> .kTrue --> "true".
+  ppK >> .kFalse --> "false".
+  ppK >> .kNull --> "null".
+  ppK >> .kNumber(-N) --> [`-`], psNum>>N.
+  ppK >> .kNumber(N) --> psNum>>N.
+
+
   ppK(`\"`,L) where (Txt,LL) .= psStrng(L,[]) => some((kTxt(Txt),LL)).
   ppK(`[`,L) => psSeq(skpBlnks(L)).
   ppK(`{`,L) => psColl(skpBlnks(L)).
 
-  skpBlnks:(cons[char]) => cons[char].
-  skpBlnks([]) => [].
-  skpBlnks([` `,..L]) => skpBlnks(L).
-  skpBlnks([`\n`,..L]) => skpBlnks(L).
-  skpBlnks([`\t`,..L]) => skpBlnks(L).
-  skpBlnks([`-`,`-`,` `,..L]) => skpBlnks(skipToEol(L)).
-  skpBlnks([`/`,`*`,..L]) => skpBlnks(skipComment(L)).
-  skpBlnks(L) default => L.
+  skpBlnks --> [` `], skpBlnks.
+  skpBlnks --> [`\n`], skpBlnks.
+  skpBlnks --> [`t`], skpBlnks.
+  skpBlnks --> [`-`,`-`], ([` `]||[`\t`]), skipToEol, skpBlnks.
+  skpBlnks --> [`/`,`*`], skipComment, skpBlnks.
+  skpBlnks --> [].
 
-  skipToEol([]) => [].
-  skipToEol([`\n`,..L]) => L.
-  skipToEol([_,..L]) => skipToEol(L).
+  skipToEol --> end.
+  skipToEol --> [`\n`].
+  skipToEol --> [_], skipToEol.
 
-  skipComment([]) => [].
-  skipComment([`*`,`/`,..L]) => L.
-  skipComment([_,..L]) => skipComment(L).
+  skipComment --> [`*`,`/`].
+  skipComment --> [].
+  skipComment --> [_], skipComment.
 
-  psNum:(cons[char]) => (float,cons[char]).
-  psNum(L) where (First,R) .= psNat(L,0) &&
-    (Val,Rest) .= psMoreNum(First::float,R) => (Val,Rest).
+  psNum:(cons[char]) => option[(float,cons[char])].
+  psNum >> Nm --> [D], {isDigit(D)}, psNat(digitVal(D))>>F, psMoreNum(F::float)>>Nm.
 
-  psNat:(cons[char],integer) => (integer,cons[char]).
-  psNat([Dx,..L],Sf) where isDigit(Dx) => psNat(L,Sf*10+digitVal(Dx)).
-  psNat(L,Sf) default => (Sf,L).
+  psNat(Ix) >> Nt --> [D], {isDigit(D)}, psNat(Ix*10+digitVal(D)).
+  psNat(Ix) default >> Ix --> [].
 
-  psDec:(cons[char]) => (integer,cons[char]).
-  psDec([`-`,..L]) where (Ps,R) .= psNat(L,0) => (-Ps,R).
-  psDec(L) => psNat(L,0).
+  psMoreNum:(float,cons[char]) => option[(float,cons[char])].
+  psMoreNum(F) >> Nm --> [`.`], psFrac(0.1,F)>>Mn, psExp(Mn)>>Nm.
+  psMoreNum(F) default >> F --> [].
+  
+  psFrac(Scale,Fr) >> Mn --> [D], {isDigit(D)}, psFrac(Scale*0.1,digitVal(D)::float*Scale+Fr).
+  psFrac(_,Fr) default >> Fr --> [].
 
-  psFrac:(float,float,cons[char]) => (float,cons[char]).
-  psFrac(Scale,Fr,[D,..L]) where isDigit(D) => psFrac(Scale*0.1,digitVal(D)::float*Scale+Fr,L).
-  psFrac(_,Fr,L) default => (Fr,L).
+  psExp(Mn) >> Mn*(10.0**Exp::float) --> ([`e`]||[`E`]), psDec>>Exp.
+  psExp(Mn) default >> Mn --> [].
 
-  psMoreNum:(float,cons[char]) => (float,cons[char]).
-  psMoreNum(F,[`.`,..L]) where (Mn,LL).=psFrac(0.1,F,L) => psExp(Mn,LL).
-  psMoreNum(F,L) default => (F,L).
 
-  psExp:(float,cons[char]) => (float,cons[char]).
-  psExp(Mn,[`e`,..L]) where (Exp,R).= psDec(L) => (Mn*(10.0**Exp::float),R).
 
   psString:(cons[char]) => (string,cons[char]).
   psString(L) where [`\"`,..LL].=skpBlnks(L) => psStrng(LL,[]).
