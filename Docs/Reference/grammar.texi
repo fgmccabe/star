@@ -80,6 +80,7 @@ that are used to match successive tokens from the input stream.
 @caption{Terminal Symbols}
 @display
 @anchored{Terminal} ::= @code{[} @refer{Pattern} @code{,} @dots{} @code{,} @refer{Pattern} @code{]}
+     |  @refer{StringLiteral}
 @end display
 @end float
 
@@ -87,6 +88,30 @@ The @refer{Pattern} is used to match against a single token in the input.
 
 Sequences of terminals can be written enclosed within a common set of
 square brackets.
+
+In addition, a literal string -- without any interpolation -- may be
+used. A string literal is equivalent to an expanded sequence of
+character terminal symbols.
+
+For example, in the rule:
+
+@example
+isMine --> "mine".
+@end example
+
+is equivalent to the rule:
+
+@example
+isMine --> [`m`,`i`,`n`,`e`].
+@end example
+
+@quotation Note
+The literal string form of terminal is useful when parsing text one
+character at a time. However, the grammar notation is actually neutral
+to parsing text: it can equally be used for parsing any finite
+sequence of items.
+@end quotation
+
 
 @node Non Terminal Symbols
 @subsection Non Terminal Symbols

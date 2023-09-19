@@ -82,6 +82,10 @@ parseBody(A,P) :-
   isRoundTuple(A,_Lc,Els),!,
   reComma(Els,I),
   parseBody(I,P).
+parseBody(A,P) :-
+  isString(A,Lc,Txt),
+  string_chars(Txt,Cs),
+  makeTextTerminals(Cs,Lc,P).
 parseBody(A,B) :-
   parseNonTerminal(A,B).
 
@@ -99,6 +103,11 @@ parseTerminals([A],term(Lc,A)) :-
 parseTerminals([A|As],seq(Lc,term(Lc,A),B)) :-
   locOfAst(A,Lc),
   parseTerminals(As,B).
+
+makeTextTerminals([],Lc,epsilon(Lc)) :-!.
+makeTextTerminals([C],Lc,term(Lc,Ch)) :- mkChar(Lc,C,Ch),!.
+makeTextTerminals([C|Cs],Lc,seq(Lc,term(Lc,C),Cx)) :-
+  makeTextTerminals(Cs,Lc,Cx).
 
 dispRules([]) :- !.
 dispRules([Rl|Rls]) :-
@@ -328,7 +337,7 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
-%  dispRule(Rl),
+  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-

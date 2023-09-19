@@ -84,6 +84,10 @@ star.compiler.macro.grammar{
       valis foldLeft((G,X)=>pairUp(parseTerminal(G),X,Lc),.none,Els)
     }
   }
+  parseBody(A) where (Lc,Txt) ?= isStr(A) => valof{
+    Els = Txt::cons[char];
+    valis .some(foldLeft((C,X)=>.seq(Lc,.term(Lc,.chr(Lc,C)),X),.epsilon(Lc),Els))
+  }
   parseBody(A) where (_,[E]) ?= isTuple(A) => parseBody(E).
   parseBody(A) where (Lc,L) ?= isUnary(A,"*") => valof{
     if LL?=parseBody(L) then
