@@ -12,7 +12,7 @@ test.gr2{
   letterDigit >> L --> [L], {isLetter(L)||isDigit(L)}.
 
   path:(cons[char]) => option[(cons[string],cons[char])].
-  path >> P --> ident*[`/`]>>P.
+  path >> P --> ident*"/">>P.
 
   main:()=>().
   main()=>valof{
