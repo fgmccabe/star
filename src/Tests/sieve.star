@@ -1,6 +1,6 @@
 test.sieve{
   import star.
-  import star.script.
+  import star.assert.
   import star.mbox.
 
   gen:(channel[integer]) => taskFun[integer].

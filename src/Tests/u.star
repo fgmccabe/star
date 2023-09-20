@@ -1,6 +1,6 @@
 test.u{
   import star.
-  import star.script.
+  import star.assert.
   import star.uri.
 
   loop:(()=>(),integer)=>().

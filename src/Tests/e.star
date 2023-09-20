@@ -1,6 +1,6 @@
 test.e{
   import star.
-  import star.script.
+  import star.assert.
 
   xx = open xc{
     get(.false) => 0.

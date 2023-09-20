@@ -1,6 +1,6 @@
 test.u2{
   import star.
-  import star.script.
+  import star.assert.
   import star.uri.
 
   main:()=>().

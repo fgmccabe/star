@@ -1,6 +1,6 @@
 test.q4{
   import star.
-  import star.script.
+  import star.assert.
 
   looking:(string,cons[(string,integer)]) => integer.
   looking(Nm,Vrs) where X ?= {! X| (Nm,X) in Vrs !} => X.

@@ -1,6 +1,6 @@
 test.al{
   import star.
-  import star.script.
+  import star.assert.
 
   person[a] ::= someOne{
     friend:a.

@@ -1,6 +1,6 @@
 test.dq{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test simple query expressions
 

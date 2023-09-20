@@ -1,6 +1,6 @@
 test.dis{
   import star.
-  import star.script.
+  import star.assert.
 
   check:(option[(integer,integer)]) => option[integer].
   check(S) =>

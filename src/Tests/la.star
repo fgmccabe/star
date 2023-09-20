@@ -1,6 +1,6 @@
 test.la{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test let actions
 

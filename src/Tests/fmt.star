@@ -1,6 +1,6 @@
 test.fmt{
   import star.
-  import star.script.
+  import star.assert.
 
   TstStr = "theBeginningTheMiddleTheEnd".
   Middle = "theMiddle".

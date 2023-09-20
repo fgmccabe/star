@@ -1,6 +1,6 @@
 test.fg{
   import star.
-  import star.script.
+  import star.assert.
   import test.lib.fact.
 
   public _main:(cons[string])=>().

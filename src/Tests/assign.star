@@ -1,6 +1,6 @@
 test.assign{
   import star.
-  import star.script.
+  import star.assert.
 
   person ::= someone{name:ref string. age:integer} | .student(string,integer).
 

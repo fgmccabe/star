@@ -1,6 +1,6 @@
 test.cons{
   import star.
-  import star.script.
+  import star.assert.
 
 
   main:()=>().

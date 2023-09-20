@@ -1,6 +1,6 @@
 test.lx{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Text lexical features
 

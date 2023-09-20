@@ -1,7 +1,7 @@
 test.cc{
   -- Test multiple getConstraints
   import star.
-  import star.script.
+  import star.assert.
 
   foo:all x ~~ equality[x],comp[x] |: (x,x)=>boolean.
   foo(X,Y) where X<Y => .true.

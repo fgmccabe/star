@@ -1,6 +1,6 @@
 test.h{
   import star.
-  import star.script.
+  import star.assert.
   import star.heap.
 
   iota:(integer) => heap[integer].

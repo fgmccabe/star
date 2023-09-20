@@ -1,6 +1,6 @@
 test.as2{
   import star.
-  import star.script.
+  import star.assert.
 
   checkLists() => let{.
     foo : ref integer.

@@ -1,6 +1,6 @@
 test.lt1{
   import star.
-  import star.script.
+  import star.assert.
 
   l1[integer] ::= .l1(integer).
 

@@ -1,6 +1,6 @@
 test.ac2{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Another test of for loops
   parent:cons[(string,string)].

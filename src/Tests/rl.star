@@ -1,7 +1,7 @@
 test.rl{
   import star.
   import star.skew.
-  import star.script.
+  import star.assert.
 
   T:sk[string].
   T = ["zero","one","two","three","four","five","six","seven","eight","nine","ten"].

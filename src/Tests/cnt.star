@@ -1,6 +1,6 @@
 test.cnt{
   import star.
-  import star.script.
+  import star.assert.
 
   add34() => prompt((T)=>34+control(T,(K)=>continue(K,8))).
 

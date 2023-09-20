@@ -1,6 +1,6 @@
 test.sl{
   import star.
-  import star.script.
+  import star.assert.
 
   -- test slice and splice operators
   F = "foobar".

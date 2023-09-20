@@ -1,6 +1,6 @@
 test.cnx{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test growing stacks
 

@@ -1,7 +1,7 @@
 test.fi{
   import star.
   import test.lib.fact.
-  import star.script.
+  import star.assert.
 
   main:()=>().
   main()=>valof{

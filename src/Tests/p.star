@@ -1,7 +1,7 @@
 test.p{
   -- Test ? ^ style expressions
   import star.
-  import star.script.
+  import star.assert.
 
   isOk:(string)=>integer.
   isOk("0") => 0.

@@ -1,6 +1,6 @@
 test.l{
   import star.
-  import star.script.
+  import star.assert.
 
   fact:(integer)=>integer.
   fact(N) => let{

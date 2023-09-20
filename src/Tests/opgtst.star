@@ -1,6 +1,6 @@
 test.opg{
   import star.
-  import star.script.
+  import star.assert.
 
   ast ::= ._name(string) |
     ._qnme(string) |    

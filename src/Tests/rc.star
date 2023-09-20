@@ -1,6 +1,6 @@
 test.rc{
   import star.
-  import star.script.
+  import star.assert.
 
   public pp[a] ::= pp{C:integer} |
     pq{C:integer. A:a}.

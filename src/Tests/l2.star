@@ -1,6 +1,6 @@
 test.l2{
   import star.
-  import star.script.
+  import star.assert.
 
   tree[a] ::= .empty | .node(tree[a],a,tree[a]).
 

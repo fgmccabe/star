@@ -1,6 +1,6 @@
 test.rn{
   import star.
-  import star.script.
+  import star.assert.
 
   nameOf:all r,n ~~ r <~ {name:n} |: (r)=>n.
   nameOf(R) => R.name.

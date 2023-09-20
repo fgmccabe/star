@@ -1,6 +1,6 @@
 test.lt4{
   import star.
-  import star.script.
+  import star.assert.
 
   defn ::= .defn(string,string).
 

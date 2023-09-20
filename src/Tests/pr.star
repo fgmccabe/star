@@ -1,6 +1,6 @@
 test.pr{
   import star.
-  import star.script.
+  import star.assert.
 
   pr ::= pr{
     name : ref string.

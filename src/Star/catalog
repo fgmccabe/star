@@ -3,6 +3,7 @@
     "star": "star.star",
     "star.actor": "actor.star",
     "star.arith": "arith.star",
+    "star.assert": "assert.star",
     "star.bintree": "bintree.star",
     "star.capabilities" : "capabilities.star",
     "star.cmdOpts": "cmdOpts.star",

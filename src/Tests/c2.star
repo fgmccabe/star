@@ -1,6 +1,6 @@
 test.c2{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test conditional expressions
 

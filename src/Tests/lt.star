@@ -1,6 +1,6 @@
 test.lt{
   import star.
-  import star.script.
+  import star.assert.
 
   genInt:(integer)=>integer.
   genInt(X) => X+10.

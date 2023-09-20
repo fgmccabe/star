@@ -1,6 +1,6 @@
 test.lb{
   import star.
-  import star.script.
+  import star.assert.
 
   count(A,B) => let{.
     R : ref integer.

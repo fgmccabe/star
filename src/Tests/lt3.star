@@ -1,6 +1,6 @@
 test.lt3{
   import star.
-  import star.script.
+  import star.assert.
 
   foo() => let{.
     X = genSym("x").

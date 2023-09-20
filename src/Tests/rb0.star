@@ -1,6 +1,6 @@
 test.rb0{
   import star.
-  import star.script.
+  import star.assert.
   import star.redblack.
 
   -- Basic test of redblack trees.

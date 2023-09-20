@@ -1,6 +1,6 @@
 test.fm{
   import star.
-  import star.script.
+  import star.assert.
 
   main:()=>().
   main()=>valof{

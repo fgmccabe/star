@@ -1,7 +1,7 @@
 test.gp{
   import star.
   import star.iterable.
-  import star.script.
+  import star.assert.
 
   -- Various ways of doing grandparents
 

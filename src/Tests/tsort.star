@@ -1,7 +1,7 @@
 test.tsort{
   import star.
   import star.topsort.
-  import star.script.
+  import star.assert.
 
   -- Test the topsort implementation
 

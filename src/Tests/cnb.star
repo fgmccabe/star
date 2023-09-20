@@ -1,6 +1,6 @@
 test.cnb{
   import star.
-  import star.script.
+  import star.assert.
 
   public factW:(integer)=>integer.
   factW(N) => valof{

@@ -1,6 +1,6 @@
 test.dt{
   import star.
-  import star.script.
+  import star.assert.
 
   tree[e] ::= .eT | nd(integer,tree[e],e,tree[e]).
 

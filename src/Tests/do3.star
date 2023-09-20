@@ -1,6 +1,6 @@
 test.do3{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test action notation (iteration)
 

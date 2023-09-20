@@ -1,6 +1,6 @@
 test.idx0{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Basic test of ideal hash trees.
 

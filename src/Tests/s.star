@@ -1,7 +1,7 @@
 test.s{
   import star.
   import star.sort.
-  import star.script.
+  import star.assert.
 
   main:() => ().
   main() => valof{

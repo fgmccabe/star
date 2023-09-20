@@ -1,6 +1,6 @@
 test.cse{
   import star.
-  import star.script.
+  import star.assert.
 
   foo ::= .foo(string) | .bar(integer).
 

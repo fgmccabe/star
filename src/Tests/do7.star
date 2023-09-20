@@ -1,6 +1,6 @@
 test.do7{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test abstraction notation
 

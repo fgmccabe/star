@@ -1,7 +1,7 @@
 test.do14{
   -- Test raises
   import star.
-  import star.script.
+  import star.assert.
 
   isEven: raises string |: (integer) => boolean.
   isEven(X) where (try X%2==0 catch exception in {_ => .false}) => .true.

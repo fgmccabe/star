@@ -1,7 +1,7 @@
 test.fn{
   import star.
   import star.finger.
-  import star.script.
+  import star.assert.
 
   S : fingerTree[string].
   S = ["one","two","three","four","five","six","seven","eight","nine","ten"].

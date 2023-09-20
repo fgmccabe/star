@@ -1,6 +1,6 @@
 test.dfr{
   import star.
-  import star.script.
+  import star.assert.
 
   CX : raises string |: (cons[integer],integer) => integer.
   CX(Is,Lm) => valof{

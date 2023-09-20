@@ -1,6 +1,6 @@
 test.cstream{
   import star.
-  import star.script.
+  import star.assert.
 
   aa = ([0]:cons[_]).
 

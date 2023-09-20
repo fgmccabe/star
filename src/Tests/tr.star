@@ -2,7 +2,7 @@ test.tr{
   -- Test try-catch expressions
 
   import star.
-  import star.script.
+  import star.assert.
 
   isOdd:raises string |: (integer) => boolean.
   isOdd(X) => (X.&.1==0 ?? (raise "not odd") || .true).

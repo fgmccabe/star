@@ -3,7 +3,7 @@ test.bench{
   import star.finger.
   import star.redblack.
   import star.skew.
-  import star.script.
+  import star.assert.
   
   timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).

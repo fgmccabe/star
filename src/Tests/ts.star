@@ -1,6 +1,6 @@
 test.ts{
   import star.
-  import star.script.
+  import star.assert.
   import star.pkg.
   import star.location.
   

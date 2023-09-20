@@ -1,7 +1,7 @@
 test.nm{
   import star.
   import star.parse.
-  import star.script.
+  import star.assert.
 
   first:all e,k ~~ (cons[(e,k)])=>option[e].
   first([])=>.none.

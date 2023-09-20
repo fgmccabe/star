@@ -1,6 +1,6 @@
 test.qi{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test query conditions
 

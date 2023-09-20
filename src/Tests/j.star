@@ -2,7 +2,7 @@ test.j{
   import star.
   import star.json.
   import star.parse.
-  import star.script.
+  import star.assert.
 
   main:()=>().
   main()=>valof{

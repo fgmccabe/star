@@ -1,6 +1,6 @@
 test.trec{
   import star.
-  import star.script.
+  import star.assert.
 
   codeCtx ::= codeCtx{
     lbls : ref integer.  

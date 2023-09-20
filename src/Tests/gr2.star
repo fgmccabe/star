@@ -1,6 +1,6 @@
 test.gr2{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test grammar sequences
 

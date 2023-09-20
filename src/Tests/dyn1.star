@@ -1,6 +1,6 @@
 test.dyn1{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Experiments in throwing
 

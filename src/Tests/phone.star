@@ -1,7 +1,7 @@
 test.phone{
   import star.
   import star.trie.
-  import star.script.
+  import star.assert.
 
   -- Implement phone encoding algorithm
 
