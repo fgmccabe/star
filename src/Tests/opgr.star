@@ -1,6 +1,6 @@
 test.opgr{
   import star.
-  import star.script.
+  import star.assert.
 
   infix(`+`) => .some((720,720,719,.plus)).
   infix(`-`) => .some((720,720,719,.sub)).

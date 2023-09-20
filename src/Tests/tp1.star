@@ -1,6 +1,6 @@
 test.tp1{
   import star.
-  import star.script.
+  import star.assert.
 
   triple ~> (string,integer,float).
 

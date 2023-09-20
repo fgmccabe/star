@@ -1,6 +1,6 @@
 test.a{
   import star.
-  import star.script.
+  import star.assert.
 
   o : integer.
   o = valof{

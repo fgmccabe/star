@@ -1,6 +1,6 @@
 test.di{
   import star.
-  import star.script.
+  import star.assert.
 
   Is = .cons(1,.cons(2,.cons(3,.cons(4,.nil)))).
 

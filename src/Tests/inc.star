@@ -1,6 +1,6 @@
 test.inc{
   import star.
-  import star.script.
+  import star.assert.
 
   double : all s ~~ (((s)=>s))=>((s)=>s).
   double(F) => (X) => F(F(X)).

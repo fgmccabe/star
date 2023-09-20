@@ -1,6 +1,6 @@
 test.ac8a{
   import star.
-  import star.script.
+  import star.assert.
 
   import test.throwing.
   

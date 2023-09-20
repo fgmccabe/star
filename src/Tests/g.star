@@ -1,6 +1,6 @@
 test.g{
   import star.
-  import star.script.
+  import star.assert.
 
   all c ~~ parseState[c] ::= .parseState(cons[c],option[()=>parseState[c]]).
 

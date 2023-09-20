@@ -1,6 +1,6 @@
 test.y{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test out some try catch handling
 

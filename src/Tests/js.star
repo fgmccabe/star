@@ -1,6 +1,6 @@
 test.js{
   import star.
-  import star.script.
+  import star.assert.
 
   public json ::=
     .jSeq(cons[json]).

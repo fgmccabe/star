@@ -1,6 +1,6 @@
 test.ac9{
   import star.
-  import star.script.
+  import star.assert.
 
   large:(cons[integer])=>integer.
   large(idxes) => valof {

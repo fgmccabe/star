@@ -1,6 +1,6 @@
 test.do9{
   import star.
-  import star.script.
+  import star.assert.
 
   qName:(string) => integer.
   qName(N) => size(N).

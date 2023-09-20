@@ -1,6 +1,6 @@
 test.ac11{
   import star.
-  import star.script.
+  import star.assert.
   
   -- Experiments in dynamic scope
 

@@ -1,6 +1,6 @@
 test.df{
   import star.
-  import star.script.
+  import star.assert.
   
   CX : (cons[integer],integer) => integer.
   CX(Is,Lm) => valof{

@@ -1,6 +1,6 @@
 test.sy{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test of syntax of star
 

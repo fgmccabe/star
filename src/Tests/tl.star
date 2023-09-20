@@ -1,7 +1,7 @@
 test.tl{
   import star.
   import star.range.
-  import star.script.
+  import star.assert.
 --  import star.treelist.
 
   -- Test the treelist implementation

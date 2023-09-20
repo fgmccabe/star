@@ -1,6 +1,6 @@
 test.c {
   import star.
-  import star.script.
+  import star.assert.
 
   all t ~~ person[t] ::= someOne{
     name : t.

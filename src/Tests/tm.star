@@ -1,6 +1,6 @@
 test.tm{
   import star.
-  import star.script.
+  import star.assert.
   import star.date.
 
   -- Test some date & time operations

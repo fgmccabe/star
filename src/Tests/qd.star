@@ -1,6 +1,6 @@
 test.qd{
   import star.
-  import star.script.
+  import star.assert.
 
   ast ::= .nme(integer,string).
   

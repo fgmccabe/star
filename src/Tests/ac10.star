@@ -1,6 +1,6 @@
 test.ac10{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test labeled statements
 

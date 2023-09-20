@@ -1,6 +1,6 @@
 test.rc3{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test anonymous brace tuples
 

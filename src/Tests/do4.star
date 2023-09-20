@@ -1,7 +1,7 @@
 test.do4{
   import star.
   import star.range.
-  import star.script.
+  import star.assert.
 
     -- Test action notation (for loop)
 

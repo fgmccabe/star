@@ -1,6 +1,6 @@
 test.gr{
   import star.
-  import star.script.
+  import star.assert.
 
   expr ::= .sum(expr,expr) |
   .sub(expr,expr) |

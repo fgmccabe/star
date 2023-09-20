@@ -1,6 +1,6 @@
 test.p0{
   import star.
-  import star.script.
+  import star.assert.
 
   public all el,st ~~ parser[st,el] ::= .parser((st)=>cons[(el,st)]).
 

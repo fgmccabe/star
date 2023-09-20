@@ -1,6 +1,6 @@
 test.dfmt{
   import star.
-  import star.script.
+  import star.assert.
   import star.date.
 
   main:()=>().

@@ -1,6 +1,6 @@
 test.dyn2{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Experiments in throwing, using spawn/retire
 

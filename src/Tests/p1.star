@@ -1,7 +1,7 @@
 test.p1{
   import star.
   import star.parse.
-  import star.script.
+  import star.assert.
 
   a:parser[cons[char],char].
   -- a = _item.

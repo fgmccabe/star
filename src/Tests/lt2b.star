@@ -1,6 +1,6 @@
 test.lt2b{
   import star.
-  import star.script.
+  import star.assert.
 
   js ::=
     .jT | .jF  | jS(js).

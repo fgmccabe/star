@@ -1,6 +1,6 @@
 test.f{
   import star.
-  import star.script.
+  import star.assert.
   
   public fact:(integer)=>integer.
   fact(0)=>1.

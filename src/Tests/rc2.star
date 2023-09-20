@@ -1,6 +1,6 @@
 test.rc2{
   import star.
-  import star.script.
+  import star.assert.
 
   import star.location.
 

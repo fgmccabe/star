@@ -1,7 +1,7 @@
 test.fil{
   import star.
   import star.file.
-  import star.script.
+  import star.assert.
 
   -- Test getting a file
 

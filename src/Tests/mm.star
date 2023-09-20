@@ -1,6 +1,6 @@
 test.mm{
   import star.
-  import star.script.
+  import star.assert.
 
   conc:all e ~~ (cons[e],cons[e])=>cons[e].
   conc(x,y) => let{.

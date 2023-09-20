@@ -1,6 +1,6 @@
 test.q1{
   import star.
-  import star.script.
+  import star.assert.
 
   visibility ::= .priVate | .pUblic.
 

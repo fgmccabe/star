@@ -1,4 +1,4 @@
-star.script{
+star.assert{
   import star.
   public import star.location.
 

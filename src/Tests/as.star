@@ -1,6 +1,6 @@
 test.as{
   import star.
-  import star.script.
+  import star.assert.
 
   pTrm[a,b] ::= pTrm{name:a. age:b}.
 

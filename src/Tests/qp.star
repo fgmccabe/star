@@ -1,6 +1,6 @@
 test.qp{
   import star.
-  import star.script.
+  import star.assert.
 
   parent:cons[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),

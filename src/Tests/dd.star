@@ -1,7 +1,7 @@
 test.dd{
   import star.
   import test.lib.fact.
-  import star.script.
+  import star.assert.
 
   ff:(integer)=>integer.
   ff(X) => fact(X).

@@ -1,7 +1,7 @@
 test.ac6{
   import star.
   import star.redblack.
-  import star.script.
+  import star.assert.
   -- test large stacks
 
   rbiota:(integer,integer)=>rbtree[integer,integer].

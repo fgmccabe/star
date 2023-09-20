@@ -1,6 +1,6 @@
 test.br{
   import star.
-  import star.script.
+  import star.assert.
 
   -- implement standard contracts for integers
   contract all a ~~ four[a] ::= {

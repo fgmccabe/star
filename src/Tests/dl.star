@@ -1,6 +1,6 @@
 test.dl{
   import star.
-  import star.script.
+  import star.assert.
   import test.lib.fact.
 
   -- Test iteration constructs

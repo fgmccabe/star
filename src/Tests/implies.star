@@ -1,6 +1,6 @@
 test.implies{
   import star.
-  import star.script.
+  import star.assert.
 
   pars : cons[(string,string)].
   pars = [("a","b"),("c","b"),("b","d"),("e","d"),("f","e")].

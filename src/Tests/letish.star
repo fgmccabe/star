@@ -1,6 +1,6 @@
 test.letish{
   import star.
-  import star.script.
+  import star.assert.
 
   kk:all x ~~ (x)=> (()=>x).
   kk(X) => let{

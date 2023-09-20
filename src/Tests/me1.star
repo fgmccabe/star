@@ -1,6 +1,6 @@
 test.me1{
   import star.
-  import star.script.
+  import star.assert.
 
   -- simple test of memo expressions
 

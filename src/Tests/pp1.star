@@ -1,6 +1,6 @@
 test.pp1{
   import star.
-  import star.script.
+  import star.assert.
 
   readFromPipe:(string,cons[string])=>cons[string].
   readFromPipe(Cmd,Args) => valof{

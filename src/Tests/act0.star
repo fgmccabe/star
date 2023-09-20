@@ -2,7 +2,7 @@ test.act0{
   import star.
   import star.actor.
   import star.mbox.
-  import star.script.
+  import star.assert.
 
   -- First test of actors
 

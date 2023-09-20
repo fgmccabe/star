@@ -2,7 +2,7 @@ test.ct0{
   -- Some simple nursery tests
 
   import star.
-  import star.script.
+  import star.assert.
   import star.mbox.
 
   tt:(integer)=>(task[()])=>().

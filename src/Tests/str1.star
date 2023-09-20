@@ -1,7 +1,7 @@
 test.str1{
   import star.
   import star.file.
-  import star.script.
+  import star.assert.
 
   pkgFileName:(string) => option[(string,string)].
   pkgFileName(Fl) => valof{

@@ -1,6 +1,6 @@
 test.ts2{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Zero-tuples
   public implementation display[()] => {

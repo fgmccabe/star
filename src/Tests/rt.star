@@ -1,6 +1,6 @@
 test.rt{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test indexed tuple access
 

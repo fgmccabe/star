@@ -1,7 +1,7 @@
 test.ra{
   import star.
   import test.ralist.
-  import star.script.
+  import star.assert.
 
   T:ra[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].

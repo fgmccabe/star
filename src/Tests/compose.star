@@ -1,7 +1,7 @@
 test.compose{
   import star.
   import star.combo.
-  import star.script.
+  import star.assert.
 
   digit:(cons[char]) => option[(cons[char],integer)].
   digit([(Z where D?=digitVal(Z)),..L]) => .some((L,D)).

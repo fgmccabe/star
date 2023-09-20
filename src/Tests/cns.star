@@ -1,6 +1,6 @@
 test.cns{
   import star.
-  import star.script.
+  import star.assert.
 
   remove:all e ~~ equality[e] |:(cons[e],e)=>cons[e].
   remove(.nil,_) => .nil.

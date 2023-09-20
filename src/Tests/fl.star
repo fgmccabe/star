@@ -1,6 +1,6 @@
 test.fl{
   import star.
-  import star.script.
+  import star.assert.
 
   count:(cons[cons[integer]])=>integer.
 --  count(L) => foldRight(acc,0,L).

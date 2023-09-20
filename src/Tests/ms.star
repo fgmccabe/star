@@ -1,6 +1,6 @@
 test.ms{
   import star.
-  import star.script.
+  import star.assert.
   
   mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m],reversible[s[b]] |:
     ((a)=>m[b],s[a])=>m[s[b]].

@@ -1,6 +1,6 @@
 test.do12{
   import star.
-  import star.script.
+  import star.assert.
 
   -- test case actions
 

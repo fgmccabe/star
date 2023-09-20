@@ -1,7 +1,7 @@
 test.qs{
   import star.
   import star.iterable.
-  import star.script.
+  import star.assert.
 
   -- Test simple query rules
 

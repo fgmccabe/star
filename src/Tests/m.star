@@ -1,6 +1,6 @@
 test.m{
   import star.
-  import star.script.
+  import star.assert.
 
   i:all x ~~ (x)=>x.
   i(x) => x.

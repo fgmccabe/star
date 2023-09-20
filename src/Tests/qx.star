@@ -1,6 +1,6 @@
 test.qx{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Test indexed query conditions
 

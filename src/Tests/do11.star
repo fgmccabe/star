@@ -1,6 +1,6 @@
 test.do11{
   import star.
-  import star.script.
+  import star.assert.
 
   foo ::= .foo(integer,string).
 

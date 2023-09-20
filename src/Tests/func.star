@@ -1,6 +1,6 @@
 test.func{
   import star.
-  import star.script.
+  import star.assert.
 
   import test.fog.
 

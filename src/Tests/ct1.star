@@ -2,7 +2,7 @@ test.ct1{
   -- Some simple nursery tests
 
   import star.
-  import star.script.
+  import star.assert.
   import star.mbox.
 
   ping:(integer,channel[boolean]) => (task[()])=>().

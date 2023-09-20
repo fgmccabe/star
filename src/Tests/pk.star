@@ -2,7 +2,7 @@ test.pk{
   import star.
   import star.pkg.
   import star.location.
-  import star.script.
+  import star.assert.
 
   main:() => ().
   main() => valof{

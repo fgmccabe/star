@@ -1,6 +1,6 @@
 test.ts1{
   import star.
-  import star.script.
+  import star.assert.
   
   -- Another test of generator pattern
 

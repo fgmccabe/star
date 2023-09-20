@@ -1,6 +1,6 @@
 test.st{
   import star.
-  import star.script.
+  import star.assert.
 
   hs:(string) => option[char].
   hs([H,..T]) => .some(H).

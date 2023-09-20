@@ -1,6 +1,6 @@
 test.i{
   import star.
-  import star.script.
+  import star.assert.
 
   kk:map[string,integer].
   kk = {"alpha"->1, "beta"->2, "gamma"->3}.

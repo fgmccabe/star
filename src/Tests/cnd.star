@@ -1,6 +1,6 @@
 test.cnd{
   import star.
-  import star.script.
+  import star.assert.
 
   T = tag().
 

@@ -1,6 +1,6 @@
 test.co{
   import star.
-  import star.script.
+  import star.assert.
   
   cns[x] ::= .nl | .cns(x,cns[x]).
 

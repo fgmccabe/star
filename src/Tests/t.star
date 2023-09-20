@@ -1,6 +1,6 @@
 test.t{
   import star.
-  import star.script.
+  import star.assert.
 
   all k,v ~~ kv[k,v] ::= .pair(k,v).
 

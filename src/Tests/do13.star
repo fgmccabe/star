@@ -1,6 +1,6 @@
 test.do13{
   import star.
-  import star.script.
+  import star.assert.
 
   maybeFail: raises integer |: (integer)=>integer.
   maybeFail(X) => valof{

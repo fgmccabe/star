@@ -1,6 +1,6 @@
 test.cns{
   import star.
-  import star.script.
+  import star.assert.
 
   -- Public zip: all e,f ~~ (cons[e],cons[f])=>cons[(e,f)].
   -- zip([],[]) => [].

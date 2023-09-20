@@ -1,6 +1,6 @@
 test.chr{
   import star.
-  import star.script.
+  import star.assert.
 
   C1 = `a`.
   C2 = `\n`.
