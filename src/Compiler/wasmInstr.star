@@ -13,11 +13,12 @@ star.compiler.wasm.instr{
 
   public wasmDefn ::=
     .wasmGlobal(string,value_type) |
-    .wasmFunction(string,block_type).
+    .wasmFunction(string,block_type) |
+    .wasmType(string,value_type).
 
   public block_type ::=
-      .VarBlockType(var) |
-      .ValBlockType(option[value_type]) |
+    .VarBlockType(var) |
+    .ValBlockType(option[value_type]) |
     .FunBlockType(cons[value_type],cons[value_type]).
 
   public wasmLbl ::= .lbl(string).
@@ -222,8 +223,8 @@ star.compiler.wasm.instr{
     | .WrapI64 => "i32.wrap_i64"
   }
 
-  disp_ins:(multi[wOp],string)=>string.
-  disp_ins(Ins,Off) => interleave((Ins::cons[wOp])//(I)=>d_instr(I,Off),"\n")*.
+  disp_ins:(cons[wOp],string)=>string.
+  disp_ins(Ins,Off) => interleave(Ins//(I)=>d_instr(I,Off),"\n")*.
 
   public implementation display[wasmLbl] => {
     disp(.lbl(Lb)) => Lb.

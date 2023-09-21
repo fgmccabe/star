@@ -27,7 +27,7 @@ star.compiler.wasm.gen{
   declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp)].
   declGlobal(_,Vrs) => Vrs.
 
-  localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
+  localFuns:(cons[cDefn],srcMap)=>srcMap.
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(Def,Vrs) => case Def in {
@@ -36,20 +36,20 @@ star.compiler.wasm.gen{
     _ default => Vrs
   }
   
-  compDefs:(cons[cDefn],map[string,srcLoc])=> cons[codeSegment].
+  compDefs:(cons[cDefn],srcMap)=> cons[wasmDefn].
   compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
 
-  genDef:(cDefn,map[string,srcLoc]) => codeSegment.
+  genDef:(cDefn,srcMap) => wasmDefn.
   genDef(Defn,Glbs) => case Defn in {
     .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
 	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
-      Ctx = emptyCtx(argVars(Args,Glbs,0));
+      Ctx = emptyCtx(collectLocals(argVars(Args,Glbs));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
-      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
+      Peeped = wasmPeep(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then{
 	logMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
       };
@@ -196,7 +196,7 @@ star.compiler.wasm.gen{
     }
     | .aBreak(Lc,Lb) => valof{
       if XCont?=Ctx.brks[Lb] then{
-	(_,Cde) = XCont.C(Ctx,Stk,[]); -- Special handling for breaks, we can't relate their stack
+	(_,Cde) = XCont.C(Ctx,Stk,[]); -- Special handling for breaks, we cannot relate their stack
 	valis (.none,Cde)
       }
       else{
@@ -797,11 +797,11 @@ star.compiler.wasm.gen{
     valis snd(defineLclVar(Nm,Tp,Ctx))
   }
 
-  argVars:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
-  argVars([],Mp,_)=>Mp.
-  argVars([.cId(Nm,Tp),..As],Vars,Ix) =>
-    argVars(As,Vars[Nm->.argVar(Ix,Tp)],Ix+1).
-  argVars([_,..As],Map,Ix) => argVars(As,Map,Ix+1).
+  argVars:(cons[cId],srcMap) => srcMap.
+  argVars([],Mp)=>Mp.
+  argVars([.cId(Nm,Tp),..As],Vars) =>
+    argVars(As,Vars[Nm->.lclVar(Ix,Tp)]).
+  argVars([_,..As],Map) => argVars(As,Map).
 
   glCtx:(codeCtx,cExp) => codeCtx.
   glCtx(Ctx,Exp) => valof{
@@ -828,7 +828,7 @@ star.compiler.wasm.gen{
     .glbFun(termLbl,tipe).
 
   codeCtx ::= codeCtx{
-    vars : map[string,srcLoc].
+    vars : srcMap.
     end : wasmLbl.
     escape : wasmLbl.
     lbls : ref integer.  
@@ -840,7 +840,7 @@ star.compiler.wasm.gen{
 
   stack ~> option[cons[tipe]].
 
-  emptyCtx:(map[string,srcLoc])=>codeCtx.
+  emptyCtx:(srcMap)=>codeCtx.
   emptyCtx(Glbs) => codeCtx{
     vars = Glbs.
     end = .al("$$").
@@ -883,6 +883,8 @@ star.compiler.wasm.gen{
     disp(C) => "<C hwm:$(C.hwm!)\:$(C.vars)>C>".
   }
 
+  srcMap ~> map[string,srcLoc].
+
   implementation display[srcLoc] => {
     disp(L) => case L in {
       .lclVar(Off,Tpe) => "lcl $(Off)\:$(Tpe)".
@@ -895,4 +897,73 @@ star.compiler.wasm.gen{
   chLine(.none,_) => [].
   chLine(.some(Lc),.some(Lc)) => [].
   chLine(_,.some(Lc)) => [.iLine(Lc::data)].
+
+  collectExpLcls:(cExp,srcMap) => srcMap.
+  collectExpLcls(Exp,Mp) => case Exp in {
+    .cVoid(_,_) => Mp.
+    .cAnon(_,_) => Mp.
+    .cVar(_,.cId(Nm,Tp)) => (_?=Mp[Nm] ?? Mp || Mp[Nm->.lclVar(Nm,Tp)]).
+    .cInt(_,_) => Mp.
+    .cChar(_,_) => Mp.
+    .cBig(_,_) => Mp.
+    .cFloat(_,_) => Mp.
+    .cString(_,_) => Mp.
+    .cTerm(_,_,Args,_) => collectArgs(Args,Mp).
+    .cNth(_,Rc,_,_) => collectExpLcls(Rc,Mp).
+    .cSetNth(_,Rc,_,Vl) => collectExpLcls(Rc,collectExpLcls(Vl,Mp)).
+    .cClos(_,_,_,Cl,_) => collectExpLcls(Cl,Mp).
+    .cCall(_,_,Args,_) => collectArgs(Args,Mp).
+    .cECall(_,_,Args,_) => collectArgs(Args,Mp).
+    .cOCall(_,Op,Args,_) => collectArgs(Args,collectExpLcls(Op,Mp)).
+    .cRaise(_,Vr,Ex,_) => collectExpLcls(Vr,collectExpLcls(Ex,Mp)).
+    .cSpawn(_,F,_) => collectExpLcls(F,Mp).
+    .cPaus(_,F,_) => collectExpLcls(F,Mp).
+    .cSusp(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp)).
+    .cResume(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp)).
+    .cRetire(_,F,M) => collectExpLcls(F,collectExpLcls(M,Mp)).
+    .cSeq(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
+    .cCnj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
+    .cDsj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
+    .cNeg(_,R) => collectExpLcls(R,Mp).
+    .cCnd(_,T,L,R) => collectExpLcls(L,collectExpLcls(R,collectExpLcls(T,Mp))).
+    .cLtt(Lc,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp))).
+    .cCont(_,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp))).
+    .cCase(_,G,Cses,Dflt,_) => collectExlLcls(Dflt,collectCses(Cses,collectExpLcls,collectExpLcls(G,Mp))).
+    .cMatch(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
+    .cVarNmes(_,_,X) => collectExpLcls(X,Mp).
+    .cAbort(_,_,_) => Mp.
+    .cTry(_,B,T,E,H,_) => collectExpLcls(B,collectExpLcls(T,collectExpLcls(E,collectExpLcls(H,Mp)))).
+    .cValof(_,A,_) => collectActLcls(A,Mp).
+  }
+
+  collectArgs(Args,Mp) => foldLeft((E,MM) => collectExpLcls(E,MM),Mp,Args).
+
+  collectCses:all e ~~ (cons[cCase[e]],(e,srcMap)=>srcMap,srcMap)=>srcMap.
+  collectCses([],_,Mp) => Mp.
+  collectCses([(_,Ptn,Vl),..Cs],F,Mp) =>
+    collectSes(Cs,F,collectExpLcls(Ptn,F(Vl,Mp))).
+  
+  collectActLcls(A,Mp) => case A in {
+    .aNop(_) => Mp.
+    .aSeq(_,L,R) => collectActLcls(L,collectActLcls(R,Mp)).
+    .aLbld(_,_,B) => collectActLcls(B,Mp).
+    .aBreak(_,_) => Mp.
+    .aValis(_,X) => collectExpLcls(X,Mp).
+    .aRetire(_,F,X) => collectExpLcls(X,collectExpLcls(F,Mp)).
+    .aPerf(_,X) => collectExpLcls(X,Mp).
+    .aSetNth(_,R,_,V) => collectExpLcls(R,collectExpLcls(V,Mp)).
+    .aDefn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
+    .aAsgn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
+    .aCase(_,G,Cs,D) => collectCses(Cs,collectExpLcls(G,collectActLcls(D,Mp))).
+    .aIftte(_,T,L,R) => collectExpLcls(T,collectActLcls(L,collectActLcls(R,Mp))).
+    .aWhile(_,T,B) => collectActLcls(B,collectExpLcls(T,Mp)).
+    .aTry(_,B,V,E,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(E,collectActLcls(H,Mp)))).
+    .aWith(_,B,V,X,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(X,collectActLcls(H,Mp)))).
+    .aLtt(Lc,V,X,B) =>
+      collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).
+    .aCont(_,V,X,B) => collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).
+    .aVarNmes(_,_,B) => collectActLcls(B,Mp).
+    .aAbort(_,_) => Mp
+  }
+  
 }
