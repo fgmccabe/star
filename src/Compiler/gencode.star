@@ -215,7 +215,7 @@ star.compiler.gencode{
     }
     | .aValis(Lc,E) => compExp(E,Lc,TM,Cont,Ctx,Stk)
     | .aRetire(Lc,T,E) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,retireCont),Ctx,Stk)
-    | .aPerf(Lc,E) => compExp(E,Lc,TM,resetCont(Stk,ACont),Ctx,Stk)
+    | .aDo(Lc,E) => compExp(E,Lc,TM,resetCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,Lc,.notLast,ptnCont(P,Lc,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,Lc,.notLast,expCont(P,Lc,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
     | .aSetNth(Lc,T,Ix,E) => compExp(T,Lc,.notLast,expCont(E,Lc,.notLast,setNthCont(Ix,ACont,Stk)),Ctx,Stk)

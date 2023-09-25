@@ -206,7 +206,7 @@ star.compiler.wasm.gen{
     }
     | .aValis(Lc,E) => compExp(E,TM,Cont,Ctx,Stk)
     | .aRaise(Lc,T,E) => compExp(E,.notLast,expCont(T,.notLast,raiseCont),Ctx,Stk)
-    | .aPerf(Lc,E) => compExp(E,TM,resetCont(Stk,ACont),Ctx,Stk)
+    | .aDo(Lc,E) => compExp(E,TM,resetCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,.notLast,ptnCont(P,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,.notLast,expCont(P,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
     | .aSetNth(Lc,T,Ix,E) => compExp(T,.notLast,expCont(E,.notLast,setNthCont(Ix,ACont,Stk)),Ctx,Stk)
@@ -950,7 +950,7 @@ star.compiler.wasm.gen{
     .aBreak(_,_) => Mp.
     .aValis(_,X) => collectExpLcls(X,Mp).
     .aRetire(_,F,X) => collectExpLcls(X,collectExpLcls(F,Mp)).
-    .aPerf(_,X) => collectExpLcls(X,Mp).
+    .aDo(_,X) => collectExpLcls(X,Mp).
     .aSetNth(_,R,_,V) => collectExpLcls(R,collectExpLcls(V,Mp)).
     .aDefn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
     .aAsgn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
@@ -958,7 +958,6 @@ star.compiler.wasm.gen{
     .aIftte(_,T,L,R) => collectExpLcls(T,collectActLcls(L,collectActLcls(R,Mp))).
     .aWhile(_,T,B) => collectActLcls(B,collectExpLcls(T,Mp)).
     .aTry(_,B,V,E,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(E,collectActLcls(H,Mp)))).
-    .aWith(_,B,V,X,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(X,collectActLcls(H,Mp)))).
     .aLtt(Lc,V,X,B) =>
       collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).
     .aCont(_,V,X,B) => collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).

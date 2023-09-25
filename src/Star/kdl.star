@@ -3,7 +3,9 @@ star.kdl{
   -- In progress ..
   -- Inspired by the KDL language from kdl.dev
 
-  public kdl ::= .kTxt(string) |
+  public kDocument ::= .kDoc(cons[kNode]).
+
+  public kNode ::= .kTxt(string) |
   .kNumber(float) |
   .kTrue |
   .kFalse |

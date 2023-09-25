@@ -146,7 +146,7 @@ star.compiler.inline{
   }
   simAct(.aBreak(Lc,Lb),_,_) => .aBreak(Lc,Lb).
   simAct(.aValis(Lc,E),Map,Depth) => getValis(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aPerf(Lc,E),Map,Depth) => .aPerf(Lc,simplifyExp(E,Map,Depth)).
+  simAct(.aDo(Lc,E),Map,Depth) => .aDo(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDefn(Lc,V,E),Map,Depth) =>
     .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aAsgn(Lc,V,E),Map,Depth) =>
@@ -164,9 +164,6 @@ star.compiler.inline{
       simplifyAct(A,Map,Depth)).
   simAct(.aTry(Lc,B,T,E,H),Map,Depth) =>
     .aTry(Lc,simplifyAct(B,Map,Depth),
-      simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
-  simAct(.aWith(Lc,B,T,E,H),Map,Depth) =>
-    .aWith(Lc,simplifyAct(B,Map,Depth),
       simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).

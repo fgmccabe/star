@@ -1,15 +1,11 @@
 star.compiler.wasm.instr{
   import star.
   import star.multi.
-
-  public int_type ::= .I32Type | .I64Type.
-  public flt_type ::= .F32Type | .F64Type.
-  public ref_type ::= .FuncRefType | .ExternRefType.
-
-  public num_type ::= .IntTp(int_type) | .FltTp(flt_type).
-  public value_type ::= .NumTp(num_type) | .RefTp(ref_type).
+  import star.compiler.wasm.types.
 
   var ~> string.
+
+  public wasmLbl ::= .lbl(string).
 
   public wasmDefn ::=
     .wasmGlobal(string,value_type) |
@@ -17,11 +13,16 @@ star.compiler.wasm.instr{
     .wasmType(string,value_type).
 
   public block_type ::=
-    .VarBlockType(var) |
+    .VarBlockType(string) |
     .ValBlockType(option[value_type]) |
     .FunBlockType(cons[value_type],cons[value_type]).
 
-  public wasmLbl ::= .lbl(string).
+  public implementation display[block_type] => {
+    disp(.VarBlockType(Nm)) => "(type \$#(Nm))".
+    disp(.ValBlockType(.none)) => "".
+    disp(.ValBlockType(.some(Tp))) => disp(Tp).
+    disp(.FunBlockType(Args,Res)) => "(param #((Args//(A)=>disp(A))*)) (result #((Res//(A)=>disp(A))*))".
+  }
 
   all t,p ~~ memop[t,p] ::= memop{ty : t. align : integer. offset : integer. pack : p}
 
@@ -232,38 +233,6 @@ star.compiler.wasm.instr{
 
   disp_lbl(.none) => "".
   disp_lbl(.some(Lb)) => "$(Lb)\: ".
-
-  public implementation display[int_type] => {
-    disp(.I32Type) => "i32".
-    disp(.I64Type) => "i64".
-  }
-
-  public implementation display[flt_type] => {
-    disp(.F32Type) => "f32".
-    disp(.F64Type) => "f64".
-  }
-
-  public implementation display[ref_type] => {
-    disp(.FuncRefType) => "funcref".
-    disp(.ExternRefType) => "externref".
-  }
-
-  public implementation display[num_type] => {
-    disp(.IntTp(IT)) => disp(IT).
-    disp(.FltTp(FT)) => disp(FT).
-  }
-
-  public implementation display[value_type] => {
-    disp(.NumTp(IT)) => disp(IT).
-    disp(.RefTp(RT)) => disp(RT).
-  }
-
-  public implementation display[block_type] => {
-    disp(.VarBlockType(V)) => "\$$(V)".
-    disp(.ValBlockType(.none)) => "".
-    disp(.ValBlockType(.some(T))) => disp(T)
-  }.
-
 
   public implementation display[pack_size] => {
     disp(.Pack8) => "p8".
