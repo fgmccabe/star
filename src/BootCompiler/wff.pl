@@ -52,6 +52,7 @@
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
+	      isTryWith/5,mkTryWith/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
 	      isDynamic/4,mkDynamic/4,
@@ -901,6 +902,18 @@ mkTryCatch(Lc,B,E,H,A) :-
   braceTuple(Lc,H,Hs),
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
+  unary(Lc,"try",A0,A).
+
+isTryWith(A,Lc,B,E,Hs) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"with",B,R),
+  isBinary(R,_,"in",E,H),
+  isBraceTuple(H,_,Hs).
+
+mkTryWith(Lc,B,E,H,A) :-
+  braceTuple(Lc,H,Hs),
+  binary(Lc,"in",E,Hs,R),
+  binary(Lc,"with",B,R,A0),
   unary(Lc,"try",A0,A).
 
 isBreak(A,Lc,L) :-

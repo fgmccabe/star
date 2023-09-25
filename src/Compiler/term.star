@@ -55,7 +55,7 @@ star.compiler.term{
     | .aBreak(option[locn],string)
     | .aValis(option[locn],cExp)
     | .aRetire(option[locn],cExp,cExp)
-    | .aPerf(option[locn],cExp)
+    | .aDo(option[locn],cExp)
     | .aSetNth(option[locn],cExp,integer,cExp)
     | .aDefn(option[locn],cExp,cExp)
     | .aAsgn(option[locn],cExp,cExp)
@@ -63,7 +63,6 @@ star.compiler.term{
     | .aIftte(option[locn],cExp,aAction,aAction)
     | .aWhile(option[locn],cExp,aAction)
     | .aTry(option[locn],aAction,cExp,cExp,aAction)
-    | .aWith(option[locn],aAction,cExp,cExp,aAction)
     | .aLtt(option[locn],cId,cExp,aAction)
     | .aCont(option[locn],cId,cExp,aAction)
     | .aVarNmes(option[locn],cons[(string,cId)],aAction)
@@ -156,7 +155,7 @@ star.compiler.term{
     .aBreak(_,Lb) => "break #(Lb)".
     .aValis(_,E) => "valis #(dspExp(E,Off))".
     .aRetire(_,T,E) => "#(dspExp(T,Off)) retire #(dspExp(E,Off))".
-    .aPerf(_,E) => "perform #(dspExp(E,Off))".
+    .aDo(_,E) => "call #(dspExp(E,Off))".
     .aSetNth(_,T,Ix,V) => "update #(dspExp(T,Off))[$(Ix)] <- #(dspExp(V,Off))".
     .aDefn(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))".
     .aAsgn(_,P,E) => "#(dspExp(P,Off)) := #(dspExp(E,Off))".
@@ -174,8 +173,6 @@ star.compiler.term{
     }.
     .aTry(_,B,T,V,H) => 
       "{ try #(dspExp(T,Off)) in #(dspAct(B,Off)) catch $(V) in #(dspAct(H,Off))}".
-    .aWith(_,B,T,V,H) => 
-      "{ try #(dspExp(T,Off)) in #(dspAct(B,Off)) with $(V) in #(dspAct(H,Off))}".
     .aLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspAct(I,Off2))"
@@ -295,7 +292,7 @@ star.compiler.term{
     .aBreak(_,L1) => .aBreak(_,L2).=A2 && L1==L2.
     .aValis(_,E1) => .aValis(_,E2).=A2 && eqTerm(E1,E2).
     .aRetire(_,T1,E1) => .aRetire(_,T2,E2).=A2 && eqTerm(T1,T2) && eqTerm(E1,E2).
-    .aPerf(_,E1) => .aPerf(_,E2).=A2 && eqTerm(E1,E2).
+    .aDo(_,E1) => .aDo(_,E2).=A2 && eqTerm(E1,E2).
     .aSetNth(_,V1,Ix1,T1) => .aSetNth(_,V2,Ix2,T2).=A2 && eqTerm(V1,V2) && Ix1==Ix2 && eqTerm(T1,T2).
     .aDefn(_,E1,V1) => .aDefn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
     .aAsgn(_,E1,V1) => .aAsgn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2).
@@ -306,8 +303,6 @@ star.compiler.term{
     .aWhile(_,C1,L1) => .aWhile(_,C2,L2).=A2 &&
 	eqTerm(C1,C2) && eqAct(L1,L2).
     .aTry(_,M1,T1,E1,H1) => .aTry(_,M2,T2,E2,H2).=A2 && eqAct(M1,M2) &&
-	eqTerm(T1,T2) && eqTerm(E1,E2) && eqAct(H1,H2).
-    .aWith(_,M1,T1,E1,H1) => .aWith(_,M2,T2,E2,H2).=A2 && eqAct(M1,M2) &&
 	eqTerm(T1,T2) && eqTerm(E1,E2) && eqAct(H1,H2).
     .aLtt(_,V1,D1,Ac1) => .aLtt(_,V2,D2,Ac2).=A2 &&
 	V1==V2 && eqTerm(D1,D2) && eqAct(Ac1,Ac2).
@@ -426,7 +421,7 @@ star.compiler.term{
       .aBreak(Lc,_) => Lc.
       .aValis(Lc,_) => Lc.
       .aRetire(Lc,_,_) => Lc.
-      .aPerf(Lc,_) => Lc.
+      .aDo(Lc,_) => Lc.
       .aSetNth(Lc,_,_,_) => Lc.
       .aDefn(Lc,_,_) => Lc.
       .aAsgn(Lc,_,_) => Lc.
@@ -434,7 +429,6 @@ star.compiler.term{
       .aIftte(Lc,_,_,_) => Lc.
       .aWhile(Lc,_,_) => Lc.
       .aTry(Lc,_,_,_,_) => Lc.
-      .aWith(Lc,_,_,_,_) => Lc.
       .aLtt(Lc,_,_,_) => Lc.
       .aCont(Lc,_,_,_) => Lc.
       .aVarNmes(Lc,_,_) => Lc.
@@ -521,7 +515,7 @@ star.compiler.term{
     .aBreak(Lc,L) => .aBreak(Lc,L).
     .aValis(Lc,E) => .aValis(Lc,rwTerm(E,Tst)).
     .aRetire(Lc,T,E) => .aRetire(Lc,rwTerm(T,Tst),rwTerm(E,Tst)).
-    .aPerf(Lc,E) => .aPerf(Lc,rwTerm(E,Tst)).
+    .aDo(Lc,E) => .aDo(Lc,rwTerm(E,Tst)).
     .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,rwTerm(V,Tst),Ix,rwTerm(E,Tst)).
     .aDefn(Lc,V,E) => .aDefn(Lc,rwTerm(V,Tst),rwTerm(E,Tst)).
     .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Tst),rwTerm(E,Tst)).
@@ -529,7 +523,6 @@ star.compiler.term{
     .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst)).
     .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst)).
     .aTry(Lc,B,T,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
-    .aWith(Lc,B,T,E,Hs) => .aWith(Lc,rwAct(B,Tst),rwTerm(T,Tst),rwTerm(E,Tst),rwAct(Hs,Tst)).
     .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
     .aCont(Lc,V,D,A) =>.aCont(Lc,V,rwTerm(D,Tst),rwAct(A,dropVar(cName(V),Tst))).
     .aVarNmes(Lc,Vs,E) => .aVarNmes(Lc,Vs,rwAct(E,Tst)).
@@ -650,7 +643,7 @@ star.compiler.term{
     | .aBreak(Lc,L) => .aBreak(Lc,L)
     | .aValis(Lc,E) => .aValis(Lc,frshnE(E,Sc))
     | .aRetire(Lc,T,E) => .aRetire(Lc,frshnE(T,Sc),frshnE(E,Sc))
-    | .aPerf(Lc,E) => .aPerf(Lc,frshnE(E,Sc))
+    | .aDo(Lc,E) => .aDo(Lc,frshnE(E,Sc))
     | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,frshnE(V,Sc),Ix,frshnE(E,Sc))
     | .aDefn(Lc,V,E) => .aDefn(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
@@ -664,12 +657,6 @@ star.compiler.term{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(glVars(C,[]),Sc0);
       valis .aWhile(Lc,frshnE(C,Sc1),frshnA(B,Sc1))
-    }
-    | .aWith(Lc,B,T,E,Hs) => valof{
-      Sc0 = pushScope(Sc);
-      Sc1 = newVars(ptnVrs(E,[]),Sc0);
-      Sc2 = newVars(ptnVrs(T,[]),Sc0);
-      valis .aWith(Lc,frshnA(B,Sc2),frshnE(T,Sc2), frshnE(E,Sc1),frshnA(Hs,Sc1))
     }
     | .aLtt(Lc,V,D,A) =>.aLtt(Lc,V,frshnE(D,Sc),frshnA(A,pushScope(Sc)))
     | .aCont(Lc,V,D,A) =>.aCont(Lc,V,frshnE(D,Sc),frshnA(A,pushScope(Sc)))
@@ -928,7 +915,7 @@ star.compiler.term{
     .aBreak(_,L) => .true.
     .aValis(_,E) => validE(E,Vrs).
     .aRetire(_,T,E) => validE(T,Vrs) && validE(E,Vrs).
-    .aPerf(_,E) => validE(E,Vrs).
+    .aDo(_,E) => validE(E,Vrs).
     .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs).
     .aDefn(_,P,E) => 
       validP(P,ptnVrs(P,Vrs)) && validE(E,Vrs).
@@ -944,11 +931,6 @@ star.compiler.term{
       valis validE(G,D1) && validA(A,D1)
     }.
     .aTry(_,B,Th,E,Hs) => valof{
-      V1 = ptnVrs(Th,Vrs);
-      V2 = ptnVrs(E,Vrs);
-      valis validA(B,V1) && validE(Th,V1) && validE(E,V2) && validA(Hs,V2)
-    }.
-    .aWith(_,B,Th,E,Hs) => valof{
       V1 = ptnVrs(Th,Vrs);
       V2 = ptnVrs(E,Vrs);
       valis validA(B,V1) && validE(Th,V1) && validE(E,V2) && validA(Hs,V2)
@@ -1018,7 +1000,7 @@ star.compiler.term{
     .aBreak(_,L) => .false.
     .aValis(_,E) => presentInE(E,C,T).
     .aRetire(_,Th,E) => presentInE(Th,C,T) || presentInE(E,C,T).
-    .aPerf(_,E) => presentInE(E,C,T).
+    .aDo(_,E) => presentInE(E,C,T).
     .aSetNth(_,V,_,E) => presentInE(V,C,T) || presentInE(E,C,T).
     .aDefn(_,_,E) => presentInE(E,C,T).
     .aAsgn(_,L,V) => presentInE(L,C,T) || presentInE(V,C,T).
@@ -1029,8 +1011,6 @@ star.compiler.term{
     .aWhile(_,G,B) =>
       presentInE(G,C,T) || presentInA(B,C,T).
     .aTry(_,B,Th,E,H) => presentInA(B,C,T) || presentInE(Th,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
-    .aWith(_,B,Th,E,H) =>
-      presentInA(B,C,T) || presentInE(Th,C,T) || presentInE(E,C,T) || presentInA(H,C,T).
     .aLtt(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
     .aCont(_,_,V,B) => presentInE(V,C,T) || presentInA(B,C,T).
     .aVarNmes(_,_,B) => presentInA(B,C,T).
@@ -1169,7 +1149,7 @@ star.compiler.term{
     .aBreak(Lc,L) => mkCons("brek",[Lc::data,.strg(L)]).
     .aValis(Lc,V) => mkCons("vls",[Lc::data,frzeExp(V)]).
     .aRetire(Lc,T,V) => mkCons("retire",[Lc::data,frzeExp(T),frzeExp(V)]).
-    .aPerf(Lc,V) => mkCons("perf",[Lc::data,frzeExp(V)]).
+    .aDo(Lc,V) => mkCons("do",[Lc::data,frzeExp(V)]).
     .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),.intgr(Ix),frzeExp(E)]).
     .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,frzeExp(P),frzeExp(V)]).
     .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)]).
@@ -1178,7 +1158,6 @@ star.compiler.term{
     .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)]).
     .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)]).
     .aTry(Lc,B,T,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(T),frzeExp(E),frzeAct(H)]).
-    .aWith(Lc,B,T,E,H) => mkCons("hndl",[Lc::data,frzeAct(B),frzeExp(T),frzeExp(E),frzeAct(H)]).
     .aLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeAct(X)]).
     .aCont(Lc,.cId(V,Tp),B,X) => mkCons("cont",[Lc::data,.strg(V),encodeSig(Tp),
@@ -1281,7 +1260,7 @@ star.compiler.term{
     .term("brek",[Lc,.strg(L)]) => .aBreak(thawLoc(Lc),L).
     .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thawTerm(V)).
     .term("retire",[Lc,T,V]) => .aRetire(thawLoc(Lc),thawTerm(T),thawTerm(V)).
-    .term("perf",[Lc,V]) => .aPerf(thawLoc(Lc),thawTerm(V)).
+    .term("do",[Lc,V]) => .aDo(thawLoc(Lc),thawTerm(V)).
     .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thawTerm(V),Ix,thawTerm(E)).
     .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
     .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
@@ -1290,7 +1269,6 @@ star.compiler.term{
     .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
     .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
     .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(T),thawTerm(E),thawAct(H)).
-    .term("hndl",[Lc,B,T,E,H]) => .aWith(thawLoc(Lc),thawAct(B),thawTerm(T),thawTerm(E),thawAct(H)).
     .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B)).
     .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
       .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).

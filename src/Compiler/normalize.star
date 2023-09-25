@@ -690,7 +690,7 @@ star.compiler.normalize{
   }
   liftAction(.doExp(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
-    valis (.aPerf(Lc,EE),Ex1)
+    valis (.aDo(Lc,EE),Ex1)
   }
   liftAction(.doLet(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.doLet(Lc,Grp,Dcs,Bnd),Q);
