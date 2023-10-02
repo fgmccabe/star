@@ -5,7 +5,7 @@ add_custom_target(compiler)
 add_dependencies(compiler sbc star.operators star.escapes sc)
 
 set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
-set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo")
+set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo/")
 
 file(MAKE_DIRECTORY ${TEMP_REPO})
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}")
@@ -19,8 +19,10 @@ add_custom_command(TARGET compiler DEPENDS sbc star.escapes
   )
 
 set(STAR ${CMAKE_BINARY_DIR}/src/Engine/star)
+set(INSTALLED_STAR ${CMAKE_INSTALL_PREFIX}/bin/star)
+set(INSTALLED_STAR_REPO ${CMAKE_INSTALL_PREFIX}/share/star/.star-repo/)
 set(COMPILER_REPOSITORY ${REPO_DIR})
-set(STAR_COMPILER_FLAGS "-h1g -s16m -p5")
+set(STAR_COMPILER_FLAGS "-h2g -s16m -p5")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sc.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc)
 file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc
