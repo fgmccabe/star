@@ -58,17 +58,25 @@ patterns -- such as repeated sequences and interleaved sequences.
 @node Grammar Rule Type
 @subsection Grammar Rule Type
 
-The type of a grammar non-terminal is a function type:
+The type of a grammar non-terminal written:
 
 @example
-stream[s->>t] |: (s) => option[(r,s)]
+(a..a) >> p --> s
 @end example
 
-where @code{s} is the type of the stream of tokens (@code{t}) being
-parsed. The result of a successful parse is a pair: a value (@code{r})
-and the remaining part of the stream (@code{s}).
+where the tuple of types @code{(a..a)} represents the argument types
+to the non-terminal, @code{p} is the produced type of the non-terminal
+and @code{s} is the sequence of items that is parsed by the
+non-terminal.
 
-Where a grammar symbol has arguments, they follow the stream type.
+@quotation Note
+This type is actually macro of the function type:
+
+@example
+(s,a,..a) => option[(p,s)]
+@end example
+@end quotation
+
 
 @node Terminal Symbols
 @subsection Terminal Symbols
