@@ -1,4 +1,4 @@
-:- module(grammar,[grammarMacro/3,makeGrammar/2]).
+:- module(grammar,[grammarMacro/3,makeGrammar/2,grammarTypeMacro/3]).
 
 :- use_module(astdisp).
 :- use_module(operators).
@@ -373,3 +373,17 @@ makeGrRls([],Sx,Sx) :-!.
 makeGrRls([Rl|Rs],[Ax|S],Sx) :-
   makeRule(Rl,Ax),
   makeGrRls(Rs,S,Sx).
+
+% (Args)>>P --> S, as a type, becomes
+% (S,..Args) => option[(P,S)]
+
+grammarTypeMacro(A,type,Tx) :-
+  isBinary(A,Lc,"-->",L,S),
+  isBinary(L,_,">>",G,P),
+  isTuple(G,_Lc,Els),!,
+  roundTuple(Lc,[S|Els],Arg),
+  roundTuple(Lc,[P,S],Rs),
+  squareTerm(Lc,name(Lc,"option"),[Rs],Rt),
+  funcType(Lc,Arg,Rt,Tx).
+  
+  

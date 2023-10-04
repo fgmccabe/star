@@ -29,7 +29,7 @@ test.gr{
   eval(.int(Ix),_) => Ix.
   eval(E,D) => raise .exception("Cant evaluate $(E) in $(D)").
 
-  parseExp:(cons[char]) => option[(expr,cons[char])].
+  parseExp:() >> expr --> cons[char].
   parseExp >> E --> exp0 >> E, end.
 --  parseExp --> fail.
 
@@ -40,7 +40,8 @@ test.gr{
   sumExp >> E --> prodExp >> E.
 --  sumExp --> fail.
 
-  prodExp:(cons[char]) => option[(expr,cons[char])].
+--  prodExp:(cons[char]) => option[(expr,cons[char])].
+  prodExp:()>>expr --> cons[char].
   prodExp >> .prod(L,R) --> unitExp >> L, [`*`], prodExp >> R.
   prodExp >> .div(L,R) --> unitExp >> L, [`/`], prodExp >> R.
   prodExp >> E --> unitExp >> E.

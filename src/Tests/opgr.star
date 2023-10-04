@@ -66,7 +66,7 @@ test.opgr{
     disp(A) => dAst(A,1000)
   }
 
-  term:(cons[char],integer) => option[((ast,integer),cons[char])].
+  term:(integer) >> (ast,integer) --> cons[char].
   term(Pr) >> T --> termLeft(Pr) >> (L,LPr), termRight(L,LPr,Pr)>>T.
 
   termLeft(Pr) >> (.app(Op,[A]),OPr) --> [O], {(OPr,RP,Op)?=prefix(O) && OPr=<Pr}, term(RP)>>(A,_).
@@ -84,7 +84,7 @@ test.opgr{
 
   letter >> L --> [L], {isLetter(L)}.
 
-  letterDigit:(cons[char]) => option[(char,cons[char])].
+  letterDigit:() >> char --> cons[char].
   letterDigit >> L --> [L], {isLetter(L)||isDigit(L)}.
 
   digit >> D --> [D],{isDigit(D)}.

@@ -294,4 +294,16 @@ star.compiler.macro.grammar{
   grammarMacro(A,.statement) where Rl ?= parseRule(A) =>
     .active(makeRule(Rl)).
   grammarMacro(_,_) default => .inactive.
+
+ -- (Args)>>P --> S, as a type, becomes
+ -- (S,..Args) => option[(P,S)]
+
+  public grammarTypeMacro:(ast,macroContext) => macroState.
+  grammarTypeMacro(A,.typeterm) where (Lc,L,R) ?= isBinary(A,"-->") && (_,G,P) ?= isBinary(L,">>") && (_,Els) ?= isTuple(G) => valof{
+    Ft = mkFunctionType(Lc,rndTuple(Lc,[R,..Els]),
+      squareApply(Lc,"option",[rndTuple(Lc,[P,R])]));
+
+    valis .active(Ft)
+  }
+  grammarTypeMacro(_,_) default => .inactive.
 }	

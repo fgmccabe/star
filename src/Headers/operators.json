@@ -91,9 +91,9 @@
   {
     "infixOp": "-->",
     "priorities": [
-      1599,
-      1600,
-      1599
+      1248,
+      1249,
+      1248
     ],
     "desc": "grammar rule arrow",
     "keyword": true

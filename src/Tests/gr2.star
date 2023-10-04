@@ -11,7 +11,7 @@ test.gr2{
   letterDigit:(cons[char]) => option[(char,cons[char])].
   letterDigit >> L --> [L], {isLetter(L)||isDigit(L)}.
 
-  path:(cons[char]) => option[(cons[string],cons[char])].
+  path:() >> cons[string] --> cons[char].
   path >> P --> ident*"/">>P.
 
   main:()=>().
