@@ -248,7 +248,7 @@
 @tab sequencing operator
 @item @code{-->}
 @tab non-associative infix
-@tab 1600
+@tab 1249
 @tab grammar rule arrow
 @item @code{<}
 @tab non-associative infix

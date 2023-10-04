@@ -48,6 +48,7 @@ macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
+macroRl("-->",type,macroRules:grammarTypeMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),

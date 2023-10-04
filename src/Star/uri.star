@@ -20,7 +20,7 @@ star.uri{
   parseUri(S) where (U,[]) ?= parseU(S::cons[char]) => .some(U).
   parseUri(_) default => .none.
 
-  public parseU:(cons[char]) => option[(uri,cons[char])].
+  public parseU:() >> uri --> cons[char].
   parseU >> U --> absoluteUri >> U.
   parseU >> U --> relativeUri >> U.
 
