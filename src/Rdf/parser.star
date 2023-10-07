@@ -8,22 +8,39 @@ rdf.parser{
   import rdf.token.
   import rdf.triple.
 
-  public rdfStmt:(cons[token]) => option[(set[stmt],cons[token])].
-  rdfStmt >> {M} --> macro >> M.
-  rdfStmt >> Ss --> sent >> Ss.
+  public rdfTriple:() >> set[triple] --> cons[token].
+  rdfTriple >> Ss --> triple >> Ss.
 
-  macro >> .macro(Id,Rep) --> [.tok(_,.pncTok("@")),.tok(Lc,.idTok(Id)),.tok(_,.pncTok(":")),
-    .tok(_,.strTok([.segment(_,Rep)])),.tok(_,.pncTok(". "))].
+  concept >> C --> symbolic >> C.
+  concept >> L --> literal >> L.
 
-  concept >> .named(Pre,Id) --> [.tok(_,.idTok(Pre)),.tok(_,.pncTok(":")),.tok(_,.idTok(Id))].
-  concept >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
-  concept >> .uri(U) --> [.tok(_,.uriTok(U))].
-  concept >> .int(Ix) --> [.tok(_,intTok(Ix))].
-  concept >> .flt(Fx) --> [.tok(_.fltTok(Fx))].
-  concept >> .text(Mkup) --> [.tok(Lc,.strTok(Sgs))], { Mkup ?= parseMarkup(Lc,Sgs) }.
+  symbolic >> .named(Pre,Id) --> [.tok(_,.idTok(Pre)),.tok(_,.pncTok(":")),.tok(_,.idTok(Id))].
+  symbolic >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
+  symbolic >> .uri(U) --> [.tok(_,.uriTok(U))].
+  
+  literal >> .int(Ix) --> [.tok(_,.intTok(Ix))].
+  literal >> .flt(Fx) --> [.tok(_,.fltTok(Fx))].
+  literal >> .text(Mkup) --> [.tok(Lc,.strTok(Sgs))], { Mkup ?= parseMarkup(Lc,Sgs) }.
 
+  triple >> S --> symbolic >> Su, verb_phrase(Su) >> S, [.tok(_,.pncTok(". "))].
 
+  verb_phrase(Su) >> S --> symbolic >> Pr, noun_phrase(Su,Pr) >> S.
 
+  noun_phrase:(concept,concept) >> set[triple] --> cons[token].
+  noun_phrase(Su,Pr) >> { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
+
+  parseMarkup(Lc,Sgs) =>
+    ((Mkup,[]) ?= markups(Sgs) ??
+      .some(Mkup) ||
+      .none).
+
+  markups >> Ms --> markup* >> Ms.
+
+  markup() >> .str(Str) --> [.segment(_,Str)].
+  markup() >> .link(C,S) --> [.interpolate(_,Tks,S)], {C ?= parseTks(concept,Tks)}.
+
+  parseTks:all t,r ~~ stream[t->>_] |: ((()>>r-->t),t) => option[r].
+  parseTks(P,T) => ( (R,[]) ?= P(T) ?? .some(R) || .none).
 
 
 }

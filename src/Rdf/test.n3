@@ -1,19 +1,3894 @@
-@prefix location: <http://www.scalableknowledge.com/location.>.
-@prefix genie: <http://www.scalableknowledge.com/genie.>.
-@prefix trade: <http://www.scalableknowledge.com/trade.>.
-@prefix verb: <http://www.scalableknowledge.com/verb.>.
-@prefix ext: <http://www.scalableknowledge.com/rdf-extension#>.
-@prefix feature: <http://www.scalableknowledge.com/feature.>.
-@prefix technique: <http://www.scalableknowledge.com/technique.>.
-@prefix property: <http://www.scalableknowledge.com/property.>.
-@prefix brand: <http://www.scalableknowledge.com/brand.>.
-@prefix datatype: <http://www.scalableknowledge.com/datatype.>.
-@prefix material: <http://www.scalableknowledge.com/material.>.
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-@prefix category: <http://www.scalableknowledge.com/category.>.
-@prefix action: <http://www.scalableknowledge.com/action.>.
-@prefix reason: <http://www.scalableknowledge.com/reason.>.
-@prefix community: <http://www.scalableknowledge.com/community.>.
-@prefix dc: <http://purl.org/dc/elements/1.1/>.
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
-@prefix service: <http://www.scalableknowledge.com/service.>.
+
+feature:Yurt a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "yurt".
+
+service:OrganizingRooms rdfs:comment "Organizing rooms and other interior spaces to make more effective use of the space. May involve some minor elements of purchasing furniture and other items.";
+       a service:Service;
+       rdfs:label "organizing rooms".
+
+action:DesignBathroom a action:ServiceAction;
+       rdfs:label "design bathroom";
+       service:Actionof service:Architecture, service:BathroomRemodeling, service:InteriorDesign;
+       action:Action verb:Design;
+       action:Target location:Bathroom.
+
+action:RepairFireplace a action:ServiceAction;
+       rdfs:label "repair fireplace";
+       service:Actionof service:Fireplace;
+       action:Action verb:Repair;
+       action:Target location:Fireplace.
+
+service:RePiping a service:Service;
+       rdfs:label "repiping";
+       service:Feature feature:Pipework;
+       service:Action action:FixPlumbing, action:InstallPipes, action:ThawPipes;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+action:InstallAirPurifier a action:ServiceAction;
+       rdfs:label "install airpurifier";
+       service:Actionof service:AirPurification;
+       action:Action verb:Install;
+       action:Target feature:AirPurifier.
+
+material:Laminate a material:Material, service:Feature;
+       rdfs:label "laminate".
+
+service:HVACMaintenance a service:Service;
+       rdfs:label "HVAC maintenance";
+       service:Feature feature:Furnace, feature:AirConditioning, feature:Ducting, feature:AirPurifier;
+       service:Action action:RepairCentralheating, action:RepairAirConditioning, action:ServiceAirPurifier, action:RepairAirPurifier, action:CleanDucts, action:ServiceFurnace, action:RepairFurnace;
+       service:Category service:HomeImprovementService.
+
+action:RepairPlasterAction action:Property property:SquareFeet;
+       a action:ServiceAction;
+       rdfs:label "repair plasterwork";
+       service:Actionof service:Plastering, service:HandyManService;
+       action:Action verb:Repair;
+       action:Instrument material:Plaster;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target location:Interior, location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom.
+
+service:VinylSiding a service:Service;
+       rdfs:label "vinyl siding";
+       service:Feature feature:Siding;
+       service:Action action:SidingInstallAction, action:SidingRepairAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:RoofingService.
+
+action:InteriorDecorate a action:ServiceAction;
+       rdfs:label "interior decorate";
+       service:Actionof service:InteriorDecorating;
+       action:Action verb:InteriorDecorate;
+       action:Target location:Home.
+
+action:SidingInstallAction a action:ServiceAction;
+       rdfs:label "install siding";
+       action:Location location:Exterior;
+       service:Actionof service:VinylSiding, service:Siding, service:WoodSiding;
+       action:Action verb:Install;
+       action:Target feature:Siding.
+
+service:Siding a service:Service;
+       rdfs:label "siding";
+       service:Action action:SidingInstallAction, action:SidingRepairAction;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:VinylSiding, service:WoodSiding;
+       service:Related service:RoofingService.
+
+feature:Patio a feature:HomeFeature, feature:ExteriorFeature;
+       feature:ConstructionMaterial material:Wood, material:Brick;
+       rdfs:label "patio".
+
+property:PlasterProblem property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "plaster problem".
+
+action:RoofReplaceAction a action:ServiceAction;
+       rdfs:label "replace roof";
+       service:Actionof service:RoofingService, service:SheetMetal;
+       action:Action verb:Replace;
+       action:Target feature:Roof.
+
+action:GutterProtectorInstallAction a action:ServiceAction;
+       rdfs:label "install gutter protectors";
+       service:Actionof service:GutterProtection;
+       action:Action verb:Install;
+       action:Target feature:GutterProtector.
+
+feature:Railing a feature:HomeFeature;
+       rdfs:label "railing".
+
+action:ExteriorCleanAction action:Property property:SquareFeet, property:TypeOfCleaning;
+       a action:ServiceAction;
+       rdfs:label "exterior cleaning";
+       service:Actionof service:Cleaning;
+       action:Action verb:PowerWash, verb:Clean;
+       action:Target feature:ExteriorFeature.
+
+action:RemovePlasterAction a action:ServiceAction;
+       rdfs:label "remove plaster";
+       service:Actionof service:Plastering;
+       action:Action verb:Remove;
+       action:Target feature:Plaster.
+
+location:Exterior a location:HomeLocation, feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "exterior".
+
+verb:Clean a action:ActionVerb;
+       rdfs:label "clean".
+
+action:RoofInstallAction a action:ServiceAction;
+       rdfs:label "install roof";
+       service:Actionof service:RoofingService, service:SheetMetal;
+       action:Action verb:Install;
+       action:Instrument material:Asphalt, material:Shingle, material:Slate, material:Wood, material:Metal;
+       action:Agent trade:Roofer;
+       action:Target feature:Roof.
+
+service:Catering rdfs:comment "Providing catering to events such as parties, business functions and weddings.";
+       a service:Service;
+       rdfs:label "catering".
+
+service:Carport a service:Service;
+       rdfs:label "carport";
+       service:Feature feature:Carport;
+       service:Action action:RepairCarportAction, action:BuildCarportAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Carpentry.
+
+material:CeramicTile rdfs:comment "A type of tile used in flooring and walls";
+       a material:Material;
+       rdfs:label "ceramic tile".
+
+service:CustomHomeBuilding a service:Service;
+       rdfs:label "custom home building";
+       service:Action action:DesignHouse, action:SitePreparationTask, action:BuildHomeAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Architecture.
+
+material:Asphalt a material:BuildingMaterial, service:Feature, material:Material;
+       rdfs:label "ashphalt".
+
+service:DecorativePaintFinish a service:Service;
+       rdfs:label "decorative paint finishing";
+       service:Action action:TexturePaintAction, action:FauxFinishAction, action:PaintMuralAction, action:StainAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+brand:ShermanWilliams rdfs:comment "A famous brand of paint";
+       a brand:Brand;
+       rdfs:label "Sherman WIlliams".
+
+location:FurnaceRoom a location:HomeLocation, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "furnace room".
+
+feature:Countertop a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "countertop";
+       feature:ConstructionMaterial material:Ceramic, material:Laminate, material:Stone, material:Wood, material:Metal;
+       feature:FeatureLocation location:Kitchen, location:Bathroom.
+
+action:DesignDeckAction a action:ServiceAction;
+       rdfs:label "design deck";
+       service:Actionof service:Deck;
+       action:Action verb:Design;
+       action:Target feature:Deck.
+
+service:Engineer a service:Service;
+       rdfs:label "engineer";
+       service:Action action:SiteGrading.
+
+service:PetSitting a service:Service;
+       rdfs:comment "Looking after dogs, cats and other houshold pets in their owners' home while the latter are away. ";
+       rdfs:label "pet sitting".
+
+action:GutterRepairAction a action:ServiceAction;
+       rdfs:label "repair guttering";
+       action:Location location:Exterior;
+       service:Actionof service:Carpentry, service:GutterService;
+       action:Action verb:Repair;
+       action:Instrument material:Copper, material:Galvanized, material:Wood, material:Vinyl;
+       action:Target feature:Gutter.
+
+feature:Spa a feature:HomeFeature, feature:InteriorFeature, feature:ExteriorFeature;
+       rdfs:label "spa".
+
+action:PressureWash action:Property property:SquareFeet;
+       a action:ServiceAction;
+       rdfs:label "pressure wash";
+       service:Actionof service:PressureWash.
+
+feature:Vents a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "vents".
+
+action:RepairSepticTank a action:ServiceAction;
+       rdfs:label "repair septic tank";
+       service:Actionof service:RoughPlumbing, service:Sewers, service:Plumbing, service:Septic;
+       action:Action verb:Repair;
+       action:Target feature:SepticTank.
+
+property:CeilingHeight a property:Property.
+
+action:RepairFramingAction a action:ServiceAction;
+       rdfs:label "repair house framing";
+       action:Target feature:HouseFrame.
+
+feature:WalkWays a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "walkways";
+       feature:Location location:Garden, location:Home.
+
+action:StencilAction action:Property property:SquareFeet, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "stencil";
+       service:Actionof service:Stenciling;
+       action:Action verb:Stencil;
+       action:Target feature:HomeFeature.
+
+verb:Service a action:ActionVerb;
+       rdfs:label "service".
+
+action:TrimTreeAction a action:ServiceAction;
+       rdfs:label "trim tree";
+       action:Location location:Garden;
+       service:Actionof service:TreeCare;
+       action:Action verb:Trim;
+       action:Target feature:Tree.
+
+trade:Contractor a rdfs:Class, trade:Contractor, trade:Actor;
+       rdfs:subClassOf trade:Actor.
+
+service:Fireplace a service:Service;
+       rdfs:label "fireplace";
+       service:Feature location:Fireplace;
+       service:Action action:RepairFireplace, action:BuildFireplace, action:InstallFireplace;
+       service:Category service:HomeImprovementService;
+       service:Related service:Carpentry.
+
+action:RepairCabinet a action:ServiceAction;
+       rdfs:label "repair cabinet";
+       service:Actionof service:RemodelingService, service:Cabinets, service:HandyManService, service:Carpentry, service:KitchenRemodeling;
+       action:Action verb:Repair;
+       action:Target feature:Cabinet.
+
+action:BuildWall a action:ServiceAction;
+       rdfs:label "build wall";
+       service:Actionof service:Masonry;
+       action:Action verb:Construct;
+       action:Target feature:Wall.
+
+trade:HeatingEngineer a trade:Contractor, trade:Actor;
+       rdfs:label "heating engineer";
+       trade:OffersService service:HeatingAndCooling, service:CentralHeating.
+
+service:Masonry a service:Service;
+       rdfs:label "masonry";
+       service:Feature feature:Bricks;
+       service:Action action:BuildWall;
+       service:Category service:HomeImprovementService.
+
+service:GutterCleaning a service:Service;
+       rdfs:comment "Cleaning gutters";
+       rdfs:label "gutter cleaning".
+
+action:PopcornPaintAction action:Property property:SquareFeet, property:NoOfRooms;
+       a action:ServiceAction;
+       rdfs:label "apply popcorn";
+       service:Actionof service:PopcornFinishing;
+       action:Instrument material:PopcornTreatment.
+
+action:ServiceAplianceAction a action:ServiceAction;
+       rdfs:label "service appliance";
+       action:Location location:HomeLocation;
+       action:Action verb:Service;
+       action:Target feature:Appliance.
+
+action:InstallInsulation a action:ServiceAction;
+       rdfs:label "install insulation";
+       service:Actionof service:Insulation;
+       action:Agent trade:InsulationContractor;
+       action:Action verb:Install;
+       action:Target feature:Insulation.
+
+service:PartyPlanning rdfs:comment "Planning for parties, wedding receptions, business functions";
+       a service:Service;
+       rdfs:label "party planning".
+
+service:Stairs a service:Service;
+       rdfs:label "stairs";
+       service:Feature feature:Stair;
+       service:Action action:StairRepairAction, action:StairInstallAction, action:InstallFloorAction, action:RepairFloorAction, action:CleanFloorAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Flooring.
+
+feature:DisabilityElevator a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "disability elevator".
+
+feature:Brick a feature:HomeFeature;
+       rdfs:label "bricks".
+
+feature:Insulation rdfs:comment "Used to keep heat in or out of building";
+       a feature:HomeFeature;
+       rdfs:label "insulation".
+
+action:InstallWaterPurification a action:ServiceAction;
+       rdfs:label "install water treatment system";
+       service:Actionof service:Plumbing, service:HandyManService, service:WaterPurification, service:FinishedPlumbing;
+       action:Action verb:Install;
+       action:Target feature:WaterPurificationSystem.
+
+trade:ConcreteContractor a trade:Contractor, trade:Actor;
+       rdfs:label "concrete contractor";
+       trade:OffersService service:Concrete.
+
+service:GreenRemodeling rdfs:comment "Green remodeling is remodeling with a green tint";
+       a service:Service;
+       rdfs:label "green remodeling";
+       service:Feature feature:SolarPanel;
+       service:Category service:RemodelingService.
+
+action:DesignLandscape a action:ServiceAction;
+       rdfs:label "design landscape";
+       service:Actionof service:LandscapeArchitect, service:Landscape, service:LandscapeDesign;
+       action:Action verb:Design;
+       action:Target location:Garden.
+
+reason:Storm a reason:HomeImprovementReason;
+       rdfs:label "storm damage".
+
+action:RepairRetainingWall a action:ServiceAction;
+       rdfs:label "repait retaining wall";
+       service:Actionof service:RetainingWall;
+       action:Action verb:Repair;
+       action:Target feature:RetainingWall.
+
+action:DoSomething a action:ServiceAction;
+       action:Action verb:DoSomething.
+
+service:Inspection a service:Service;
+       rdfs:label "inspection";
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+action:InstallCarpetAction a action:ServiceAction;
+       rdfs:label "install carpet";
+       service:Actionof service:Carpet;
+       action:Action verb:Install;
+       action:Target feature:Carpet.
+
+service:PersonalTrainer a service:Service;
+       rdfs:comment "Personal advice and guidance to assist a client in achieving superior fitness and athleticism.";
+       rdfs:label "personal trainer".
+
+service:Sprinkler a service:Service;
+       rdfs:label "sprinkler";
+       service:Feature feature:GardenSprinkler;
+       service:Action action:InstallGardenSprinkler, action:MaintainGardenSprinkler;
+       service:Category service:HomeImprovementService;
+       service:Related service:Irrigation, service:Landscape.
+
+action:BuildOutbuildingAction a action:ServiceAction;
+       rdfs:label "build outbuilding";
+       service:Actionof service:RoughCarpentry;
+       action:Action verb:Construct;
+       action:Target location:OutBuilding.
+
+feature:GardenMister a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "garden mister";
+       feature:FeatureLocation location:Garden.
+
+service:SaunaService a service:Service;
+       rdfs:label "sauna";
+       service:Feature feature:Sauna;
+       service:Action action:InstallSaunaAction, action:RepairSaunaAction, action:CleanSaunaAction;
+       service:Category service:HomeImprovementService.
+
+action:RemodelBasementAction a action:ServiceAction;
+       rdfs:label "remodel basement";
+       action:Target location:Basement.
+
+action:GutterProtectorRepairAction a action:ServiceAction;
+       rdfs:label "repair gutter protectors";
+       action:Location location:Exterior;
+       service:Actionof service:GutterProtection;
+       action:Action verb:Repair;
+       action:Target feature:GutterProtector.
+
+service:Performers rdfs:comment "offer entertainment n the form of performances for events. Includes specific performers such as clowns, power rangers, magicians.";
+       a service:Service;
+       rdfs:label "performers".
+
+material:Mortar a material:BuildingMaterial;
+       rdfs:label "mortar".
+
+action:PaintPatioAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint patio";
+       service:Actionof service:PaintService, service:Patio;
+       action:Action verb:Paint;
+       action:Instrument material:Paint, material:Stain;
+       action:Target feature:Patio.
+
+service:RoofingService a service:Service;
+       rdfs:label "roofing";
+       service:Action action:RoofRepairAction, action:RoofReplaceAction, action:RoofInstallAction, action:InstallSkylightAction, action:RepairSkylightAction, action:WaterProof;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:GutterService;
+       service:Specialty service:GutterService, service:GutterProtection, service:SkyLight;
+       service:Related service:PaintService, service:Siding.
+
+service:RemodelingService a service:Service;
+       rdfs:label "remodeling";
+       service:Action action:AddRoomAction, action:InstallCabinet, action:RefaceCabinet, action:RepairCabinet, action:InstallCounterTop, action:RepairCounterTop;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:KitchenRemodeling;
+       service:HasCategory service:GreenRemodeling, service:Closets;
+       service:Related service:PaintService, service:Architecture.
+
+location:Garage a feature:HomeFeature, location:HomeLocation, feature:ExteriorFeature;
+       rdfs:label "garage".
+
+location:UtilityRoom a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "utility room".
+
+feature:Trim a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "trim".
+
+action:InstallDoorAction a action:ServiceAction;
+       rdfs:label "install door";
+       service:Actionof service:HandyManService, service:Carpentry, service:Doors;
+       action:Action verb:Install;
+       action:Target feature:Door.
+
+action:InstallKitchenAppliance a action:ServiceAction;
+       rdfs:label "install kitchen feature";
+       action:Location location:Kitchen;
+       service:Actionof service:Plumbing, service:ApplianceService, service:FinishedPlumbing;
+       action:Action verb:Install;
+       action:Target feature:KitchenAppliance.
+
+action:BuildFireplace a action:ServiceAction;
+       rdfs:label "build place";
+       service:Actionof service:Fireplace;
+       action:Action verb:Construct;
+       action:Target location:Fireplace.
+
+service:MaidServices a service:Service;
+       rdfs:label "maid services";
+       service:Action action:CleanCarpetAction, action:InteriorCleanAction;
+       service:Category service:HomeImprovementService.
+
+trade:HVACEngineer a trade:Contractor, trade:Actor;
+       rdfs:label "HVAC engineer";
+       trade:OffersService service:HeatingAndCooling.
+
+action:ServiceAirPurifier a action:ServiceAction;
+       rdfs:label "service airpurifier";
+       service:Actionof service:HVACMaintenance, service:AirPurification;
+       action:Action verb:Service;
+       action:Target feature:AirPurifier.
+
+action:RemodelBasement a action:ServiceAction;
+       rdfs:label "remodel basement";
+       service:Actionof service:BasementRemodeling;
+       action:Action verb:Remodel;
+       action:Target location:Basement.
+
+material:Galvanized a material:Material, service:Feature.
+
+action:PaintPorchAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint porch";
+       service:Actionof service:PorchService;
+       action:Action verb:Paint;
+       action:Instrument material:Paint, material:Stain;
+       action:Target feature:Porch.
+
+action:BuildSunroomAction a action:ServiceAction;
+       rdfs:label "build sunroom";
+       action:Action verb:Construct;
+       action:Target location:Sunroom.
+
+feature:HomeFeature a rdfs:Class, feature:HomeFeature;
+       rdfs:label "home feature".
+
+service:RoughPlumbing a service:Service;
+       rdfs:label "rough plumbing";
+       service:Action action:FixPlumbing, action:InstallPipes, action:InstallSumpPumpFeature, action:InstallWellPump, action:InstallSepticTank, action:RepairSepticTank;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+feature:WellPump a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "well pump".
+
+feature:Carport a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "carport".
+
+service:WalkWays a service:Service;
+       rdfs:label "walkways";
+       service:Feature feature:WalkWays;
+       service:Action action:InstallWalkWays, action:RepairWalkWays;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape.
+
+action:BuildGateAction action:Property property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "build gate";
+       service:Actionof service:Gates;
+       action:Action verb:Construct;
+       action:Target feature:Gate.
+
+trade:CarpetLayer a trade:Contractor, trade:Actor;
+       rdfs:label "carpet layer";
+       trade:OffersService service:Carpet.
+
+category:ServiceCategory a rdfs:Class;
+       rdfs:comment "A grouping of services into a related collection";
+       rdfs:label "service category".
+
+service:Drains a service:Service;
+       rdfs:label "drain cleaning";
+       service:Feature feature:Drains;
+       service:Action action:CleanDrainsAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+material:Paint a service:Feature, material:Material;
+       rdfs:label "paint".
+
+property:NoOfRooms property:Type [datatype:Min "0";
+       a rdfs:Class, datatype:Type;
+       rdfs:subClassOf datatype:Integer;
+       datatype:Max "12"];
+       a property:Property;
+       rdfs:label "number of rooms".
+
+service:PetWalking a service:Service;
+       rdfs:comment "A pet walker takes owners' pets for walks and other exercise. Typically involves walking dogs.";
+       rdfs:label "pet walking".
+
+action:BuildPoolEnclosureAction a action:ServiceAction;
+       rdfs:label "build pool enclosure";
+       service:Actionof service:SportsEquipment, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:PoolEnclosure, location:SwimmingPool.
+
+service:FurnitureAssembly a service:Service;
+       rdfs:label "furniture assembly".
+
+service:Tutor a service:Service;
+       rdfs:comment "Individualized education, often for children. May be used to help a child improve his grades. It is also associated with specialized training such as piano tuition.";
+       rdfs:label "tutor".
+
+material:Marble a material:Stone;
+       rdfs:label "marble".
+
+location:FrontYard a feature:HomeFeature, location:HomeLocation, feature:ExteriorFeature;
+       rdfs:label "frontyard".
+
+feature:Cabinet a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "cabinets";
+       feature:FeatureLocation location:Kitchen, location:Bathroom, location:Bedroom.
+
+action:InstallLandscape a action:ServiceAction;
+       rdfs:label "install landscaping";
+       service:Actionof service:LandscapeArchitect, service:PlantInstallation, service:Landscape;
+       action:Target location:Garden.
+
+feature:PoolEnclosure a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "pool enclosure".
+
+action:ConstructShelf rdfs:comment "Build and install a shelf unit somewhere";
+       a action:ServiceAction;
+       rdfs:label "construct shelf";
+       service:Actionof service:Shelving;
+       action:Target feature:Shelves.
+
+feature:OutdoorLighting a feature:HomeFeature;
+       rdfs:label "outdoor lighting".
+
+material:FloorTile a material:Material, service:Feature.
+
+service:ElectricalService a service:Service;
+       rdfs:label "electrical";
+       service:Action action:RepairElectrics, action:InstallElectrics;
+       service:Category service:HomeImprovementService.
+
+feature:OutdoorKitchen rdfs:comment "BBQ without the smoke in the house";
+       a feature:ExteriorFeature, feature:HomeFeature;
+       rdfs:label "Outdoor Kitchen".
+
+action:DesignBasement a action:ServiceAction;
+       rdfs:label "design basement";
+       service:Actionof service:InteriorDesign, service:BasementRemodeling;
+       action:Action verb:Design;
+       action:Target location:Basement.
+
+service:LandscapeArchitect a service:Service;
+       rdfs:label "landscape architecture";
+       service:Action action:DesignLandscape, action:InstallLandscape;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape.
+
+action:PaintBathroom a action:ServiceAction;
+       rdfs:label "paint bathroom";
+       service:Actionof service:BathroomRemodeling;
+       action:Action verb:Paint;
+       action:Target location:Bathroom.
+
+feature:SolarPanel rdfs:comment "Solar panels give electricity from the sun";
+       a feature:HomeFeature;
+       rdfs:label "solar panel".
+
+action:ConstructSteps a action:ServiceAction;
+       rdfs:label "construct steps";
+       service:Actionof service:Steps, service:Landscape;
+       action:Action verb:Construct;
+       action:Target feature:Steps.
+
+service:BedroomRemodeling a service:Service;
+       rdfs:label "bedroom remodeling";
+       service:Feature location:Bedroom;
+       service:Action action:DesignBedroom, action:RemodelBedroom, action:PaintBedroom;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+feature:Wallpaper a feature:HomeFeature.
+
+material:PopcornTreatment a material:Material, service:Feature.
+
+verb:InteriorDecorate a action:ActionVerb;
+       rdfs:label "decorate".
+
+action:BuildClosetAction a action:ServiceAction;
+       rdfs:label "build closet";
+       action:Action verb:Construct;
+       action:Target feature:Closet.
+
+action:DesignKitchen a action:ServiceAction;
+       rdfs:label "design kitchen";
+       service:Actionof service:Architecture, service:OutdoorKitchenRemodeling, service:InteriorDesign, service:Countertop, service:KitchenRemodeling;
+       action:Action verb:Design;
+       action:Target location:Kitchen.
+
+service:AirConditioning a service:Service;
+       rdfs:label "Air conditioning";
+       service:Feature feature:AirConditioning;
+       service:Action action:InstallAirConditioning, action:RepairAirConditioning;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:ZoneControl;
+       service:Related service:HeatingAndCooling.
+
+action:InstallPlasterAction action:Property property:SquareFeet;
+       a action:ServiceAction;
+       rdfs:label "plastering";
+       service:Actionof service:Plastering;
+       action:Action verb:Plaster;
+       action:Instrument material:Plaster;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target location:Interior, location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom.
+
+action:InstallPipes a action:ServiceAction;
+       rdfs:label "install pipes";
+       service:Actionof service:RePiping, service:RoughPlumbing, service:Plumbing, service:Septic;
+       action:Action verb:Install;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target feature:Pipework.
+
+feature:Furnace a feature:HomeFeature;
+       rdfs:label "furnace".
+
+verb:Demolish a action:ActionVerb;
+       rdfs:label "demolish".
+
+property:Property a rdfs:Class, property:Property;
+       rdfs:label "property".
+
+feature:Awning rdfs:comment "A roof-like shelter of canvas or other material extending over a doorway, from the top of a window, over a deck etc. Provides protection from the sun.";
+       a feature:HomeFeature;
+       rdfs:label "Awning".
+
+action:RepairWindowAction a action:ServiceAction;
+       rdfs:label "repair window";
+       service:Actionof service:Windows, service:Glazing;
+       action:Action verb:Repair;
+       action:Target feature:Window.
+
+feature:HomeElectrics a feature:HomeFeature;
+       rdfs:label "electricals".
+
+feature:Tree a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "tree";
+       feature:Location location:Garden, location:Home.
+
+service:Feature rdfs:domain service:Service;
+       a rdf:Property, rdfs:Class, service:Feature;
+       rdfs:range feature:HomeFeature;
+       rdfs:label "feature".
+
+action:InstallGarageOrganizerAction a action:ServiceAction;
+       rdfs:label "install garage organizer";
+       service:Actionof service:HandyManService, service:Carpentry;
+       action:Action verb:Install;
+       action:Target feature:GarageOrganizer.
+
+service:Service a rdfs:Class, service:Service;
+       rdfs:label "service".
+
+verb:Install a action:ActionVerb;
+       rdfs:label "install".
+
+property:TypeOfCleaning property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "type of cleaning".
+
+feature:DishWasher a feature:Appliance, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "dishwasher";
+       feature:FeatureLocation location:Kitchen.
+
+feature:Window a feature:HomeFeature;
+       rdfs:label "window";
+       feature:FeatureLocation location:Exterior.
+
+action:InstallVent a action:ServiceAction;
+       rdfs:label "install vent";
+       service:Actionof service:VentService;
+       action:Action verb:Install;
+       action:Target feature:Vents.
+
+reason:Pest a reason:HomeImprovementReason;
+       rdfs:label "pest damage".
+
+verb:Fix a action:ActionVerb, action:actionVerb;
+       rdfs:label "fix".
+
+trade:Builder a trade:Actor, trade:Contractor;
+       rdfs:label "builder";
+       trade:CanPerformTask action:Demolition;
+       trade:OffersService service:Construction, service:SitePreparation.
+
+reason:Disability a reason:HomeImprovementReason;
+       rdfs:label "disability".
+
+datatype:Choice a datatype:Type.
+
+action:PaintObjectAction action:Property property:TypeOfObject, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "paint object";
+       service:Actionof service:PaintService, service:HandyManService;
+       action:Action verb:Paint;
+       action:Target feature:Cabinet, feature:Chair, feature:Closet, feature:Deck, feature:Door, feature:Fence, feature:Floor, feature:Furniture, feature:Gazebo, feature:Patio, feature:PoolEnclosure, feature:Porch, feature:Railing, feature:Shed, feature:Spa, feature:Table, feature:Window.
+
+feature:AirConditioning a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "air conditioning".
+
+material:FiberGlass a material:Material;
+       rdfs:label "fiberglass".
+
+action:InstallIrrigation a action:ServiceAction;
+       rdfs:label "install irrigation";
+       service:Actionof service:Irrigation;
+       action:Action verb:Install;
+       action:Target feature:Irrigation.
+
+trade:Asphalter a trade:Contractor, trade:Actor;
+       rdfs:label "asphalter";
+       trade:OffersService service:Paving.
+
+action:FixPlumbing action:Property property:PlumbingProblem;
+       a action:ServiceAction;
+       rdfs:label "fix plumbing";
+       service:Actionof service:RePiping, service:RoughPlumbing, service:Plumbing, service:HandyManService;
+       action:Action verb:Repair;
+       action:Reason reason:Water, reason:Storm, reason:Earthquake, reason:Fire, reason:AFlood;
+       action:Target feature:Pipework, feature:Faucet, feature:Bath, feature:SumpPump.
+
+feature:Irrigation a feature:HomeFeature.
+
+action:RoofRepairAction a action:ServiceAction;
+       rdfs:label "repair roof";
+       service:Actionof service:RoofingService, service:SheetMetal;
+       action:Action verb:Repair;
+       action:Agent trade:Roofer;
+       action:Target feature:Roof.
+
+feature:PavingStone a feature:HomeFeature;
+       rdfs:label "paving stone".
+
+service:DryWalling a service:Service;
+       rdfs:label "drywall";
+       service:Action action:HangDryWallAction, action:RepairDryWallAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:Plastering.
+
+service:Tile rdfs:comment "Involves preparing floors and walls for applying tiles and laying the tiles, typically with a concrete-based adhesive";
+       a service:Service;
+       rdfs:label "tile service";
+       service:Action action:InstallFloorAction, action:RepairFloorAction;
+       service:Category service:HomeImprovementService;
+       service:feature feature:FloorTile;
+       service:Related service:Flooring.
+
+action:InstallHardwoordFloorAction a action:ServiceAction;
+       rdfs:label "install hardwood flooring";
+       action:Action verb:Install;
+       action:Instrument feature:HardwoodFlooring;
+       action:Target feature:Floor.
+
+action:InstallDisabilityFeature a action:ServiceAction;
+       rdfs:label "install disability feature";
+       action:RelatedConcept reason:Disability;
+       action:Action verb:Install;
+       action:Target feature:DisabilityElevator, feature:ChairLift, feature:Ramp.
+
+trade:InsulationContractor rdfs:comment "The guy who does insulation.";
+       a trade:Contractor, trade:Actor;
+       rdfs:label "Insulation Contractor";
+       trade:CanPerformTask action:InstallInsulation;
+       trade:OffersService service:Insulation.
+
+action:InstallCounterTop a action:ServiceAction;
+       rdfs:label "install countertop";
+       service:Actionof service:RemodelingService, service:Carpentry, service:Countertop, service:KitchenRemodeling;
+       action:Action verb:Install;
+       action:Target feature:Countertop.
+
+service:WallPaper rdfs:comment """Stripping off old wallpaper, paint from surfaces. 
+Preparing wall and hanging new paper. """;
+       a service:Service;
+       rdfs:label "wallpapering";
+       service:Feature feature:WallPaper;
+       service:Action action:InstallWallpaperAction, action:RemoveWallpaperAction, action:RepairWallpaperAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:DryWalling, service:Plastering.
+
+location:Somewhere a location:HomeLocation, feature:HomeFeature;
+       rdfs:label "somewhere".
+
+service:OffersFeature rdfs:domain trade:Genie;
+       rdfs:comment "A genie can focus on certain features as well as perform certain actions";
+       a rdf:Property;
+       rdfs:range feature:HomeFeature;
+       rdfs:label "features".
+
+feature:Stair a feature:HomeFeature;
+       rdfs:label "stair".
+
+action:RepairSaunaAction a action:ServiceAction;
+       rdfs:label "repair sauna";
+       service:Actionof service:SaunaService;
+       action:Action verb:Repair;
+       action:Target feature:Sauna.
+
+action:TreatLawnAction a action:ServiceAction;
+       rdfs:label "treat lawn";
+       service:Actionof service:LawnCare, service:Landscape;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+service:WaitingStaff rdfs:comment "Providing waiting staff to parties, events and business functions. Involves hiring and managing individual waiters and related staff.";
+       a service:Service;
+       rdfs:label "waiting staff".
+
+trade:SportsEquipmentBuilder a trade:Contractor, trade:Actor;
+       rdfs:label "sports equipment builder";
+       trade:OffersService service:SportsEquipment.
+
+feature:Pipework a feature:HomeFeature;
+       rdfs:label "pipes".
+
+action:EarthquakeRetrofitAction a action:ServiceAction;
+       rdfs:label "earthquake retrofit";
+       action:Location location:Home;
+       action:Action verb:Retrofit;
+       action:Reason reason:Earthquake.
+
+location:SwimmingPool a feature:HomeFeature, location:HomeLocation, feature:ExteriorFeature;
+       rdfs:label "swimming pool".
+
+material:Insulation a material:BuildingMaterial;
+       rdfs:label "insulation".
+
+action:RepairShedAction a action:ServiceAction;
+       rdfs:label "repair shed";
+       service:Actionof service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Shed.
+
+action:RepairSteps a action:ServiceAction;
+       rdfs:label "repair steps";
+       service:Actionof service:Steps, service:Landscape;
+       action:Action verb:Repair;
+       action:Target feature:Steps.
+
+action:InstallCloset a action:ServiceAction;
+       service:Actionof service:Closets.
+
+material:WroughtIron a material:BuildingMaterial;
+       rdfs:label "wrought iron".
+
+service:Foundations a service:Service;
+       rdfs:label "foundations";
+       service:Feature feature:Foundation;
+       service:Action action:BuildFoundation;
+       service:Category service:HomeImprovementService.
+
+service:Sewers a service:Service;
+       rdfs:label "sewers";
+       service:Feature feature:Sewer;
+       service:Action action:InstallDrains, action:CleanDrainsAction, action:InstallSumpPumpFeature, action:RepairSumpPumpFeature, action:InstallSepticTank, action:CleanSepticTank, action:RepairSepticTank;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+material:Gravel a service:Feature, material:Material;
+       rdfs:label "gravel".
+
+trade:SwimmingPoolSpecialist a trade:Contractor, trade:Actor;
+       rdfs:label "swimming pool specialist";
+       trade:OffersService service:SwimmingPool.
+
+action:WaterProof action:Property property:SquareFeet, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "waterproof";
+       service:Actionof service:RoofingService, service:SheetMetal, service:Waterproofing;
+       action:Action verb:Waterproof;
+       action:Target feature:HomeFeature, feature:Roof.
+
+feature:PlayEquipment a feature:ExteriorFeature, feature:HomeFeature;
+       location:HomeLocation location:FrontYard, location:BackYard;
+       rdfs:label "play equipment".
+
+action:BuildDeckAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "build deck";
+       service:Actionof service:Deck, service:RoughCarpentry, service:Carpentry, service:Construction;
+       action:Action verb:Construct;
+       action:Target feature:Deck.
+
+feature:ClosetOrganizer a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "clost organizer";
+       feature:FeatureLocation location:Closet.
+
+action:StainAction action:Property property:SquareFeet, property:TypeOfStain, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "staining";
+       service:Actionof service:DecorativePaintFinish, service:PaintService, service:Staining;
+       action:Action verb:Stain;
+       action:Instrument material:Stain.
+
+service:HomeInsurance rdfs:comment "Arranging for various kinds of insurance based on properties. May incluce earthquake insurance, flood insurance, theft insurance and third-party liability insurance.";
+       a service:Service;
+       rdfs:label "home insurance".
+
+action:Reason rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range reason:HomeImprovementReason;
+       rdfs:label "reason".
+
+action:EarthquakeInspection rdfs:comment "Inspect a building for the purposes of estimating the earthquake preparedness of the building.";
+       a action:ServiceAction;
+       rdfs:label "Earthquake building inspection";
+       service:Actionof service:Seismic.
+
+service:TexturePaint a service:Service;
+       rdfs:label "texture painting";
+       service:Action action:TexturePaintAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+service:TreeCare a service:Service;
+       rdfs:label "tree care";
+       service:Action action:RemoveTreeStumpAction, action:TreatTreeAction, action:PlantTreeAction, action:TrimTreeAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape.
+
+location:Garden a feature:HomeFeature, location:HomeLocation;
+       rdfs:label "garden".
+
+action:InstallRetainingWall a action:ServiceAction;
+       rdfs:label "install retaining wall";
+       service:Actionof service:RetainingWall;
+       action:Action verb:Install;
+       action:Target feature:RetainingWall.
+
+service:ElderlyCare a service:Service;
+       rdfs:label "elderly care";
+       service:Category service:HomeImprovementService.
+
+action:CleanSpaAction a action:ServiceAction;
+       rdfs:label "clean spa";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SpaService;
+       action:Action verb:Clean;
+       action:Target feature:Spa.
+
+action:BuildHomeAction a action:ServiceAction;
+       rdfs:label "build home";
+       service:Actionof service:CustomHomeBuilding, service:Construction;
+       action:Action verb:Construct;
+       action:Target location:Home.
+
+service:Plumbing a service:Service;
+       rdfs:label "plumbing";
+       service:Action action:FixPlumbing, action:FixFaucetAction, action:InstallPipes, action:ThawPipes, action:CleanDrainsAction, action:InstallBathFeature, action:InstallKitchenAppliance, action:InstallSumpPumpFeature, action:RepairSumpPumpFeature, action:InstallWellPump, action:RepairWellPump, action:InstallSepticTank, action:CleanSepticTank, action:RepairSepticTank, action:InstallWaterPurification, action:CleanWaterPurification, action:RepairWaterPurification, action:InstallWaterHeater, action:RepairWaterHeater, action:InstallCentralheating, action:RepairCentralheating;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Drains, service:RoughPlumbing, service:FinishedPlumbing, service:Inspection, service:RePiping, service:Septic, service:Sewers, service:WaterPurification;
+       service:Related service:HeatingAndCooling, service:CentralHeating.
+
+action:InstallDrains a action:ServiceAction;
+       rdfs:label "install drains";
+       service:Actionof service:Sewers;
+       action:Action verb:Install;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Water;
+       action:Target feature:Drains.
+
+action:RepairInsulation a action:ServiceAction;
+       rdfs:label "repair insulation";
+       action:Action verb:Repair;
+       action:Target feature:Insulation.
+
+service:VentService a service:Service;
+       rdfs:label "vents";
+       service:Feature feature:Vents;
+       service:Action action:InstallVent, action:RepairVent, action:CleanVent;
+       service:Category service:HomeImprovementService;
+       service:Related service:HeatingAndCooling.
+
+action:InteriorCleanAction action:Property property:SquareFeet, property:TypeOfCleaning;
+       a action:ServiceAction;
+       rdfs:label "clean interior";
+       service:Actionof service:MaidServices, service:Cleaning;
+       action:Action verb:PowerWash, verb:Clean;
+       action:Target location:Home.
+
+service:SportsEquipment a service:Service;
+       rdfs:label "sports equipment";
+       service:Action action:BuildTennisCourtAction, action:RepairTennisCourtAction, action:RepairPoolEnclosureAction, action:BuildPoolEnclosureAction;
+       service:Category service:HomeImprovementService.
+
+service:SandBlasting a service:Service;
+       rdfs:label "sandblasting";
+       service:Action action:ExteriorSandBlastAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:Cleaning.
+
+feature:InteriorFeature a feature:HomeFeature, rdfs:Class, feature:InteriorFeature;
+       rdfs:label "interior feature";
+       rdfs:subClassOf feature:HomeFeature;
+       feature:FeatureLocation location:Interior.
+
+datatype:Text a datatype:Type.
+
+service:Architecture a service:Service;
+       rdfs:label "architect";
+       service:Action action:DesignHouse, action:DesignKitchen, action:DesignBathroom, action:DesignLighting;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape, service:RemodelingService.
+
+verb:Build a action:ActionVerb;
+       rdfs:label "build".
+
+action:RepairFloorAction a action:ServiceAction;
+       rdfs:label "repair floor";
+       service:Actionof service:Stairs, service:Tile, service:Stone, service:HardwoodFloors, service:Laminates, service:Flooring;
+       action:Action verb:Repair;
+       action:Instrument feature:Carpet, feature:FloorTile, feature:HardwoodFlooring, feature:Laminate, feature:Stone, feature:Vinyl, feature:Paving;
+       action:Target feature:Floor.
+
+rdfs:domain rdfs:domain rdf:Property;
+       a rdf:Property;
+       rdfs:range rdfs:Class.
+
+material:Shingle a service:Feature, material:Material.
+
+service:RoomAdditions a service:Service;
+       rdfs:label "room addition";
+       service:Action action:AddRoomAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:Architecture.
+
+service:HeatingAndCooling a service:Service;
+       rdfs:label "HVAC";
+       service:Action action:InstallCentralheating, action:RepairCentralheating, action:InstallAirConditioning, action:RepairAirConditioning;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:AirConditioning, service:AirDucts, service:CentralHeating, service:AirPurification, service:ZoneControl, service:Furnace, service:Heating.
+
+action:BuildFenceAction a action:ServiceAction;
+       rdfs:label "build fence";
+       service:Actionof service:Fence, service:HandyManService, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Fence.
+
+service:Cleaning a service:Service;
+       rdfs:label "cleaning service";
+       service:Action action:ExteriorCleanAction, action:InteriorCleanAction, action:CleanFloorAction, action:CleanCarpetAction;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:SandBlasting.
+
+feature:ZoneSystem a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "zone system".
+
+datatype:Logical a datatype:Type.
+
+property:Type rdfs:domain property:Property;
+       a rdf:Property;
+       rdfs:range datatype:Type.
+
+verb:Prepare a action:ActionVerb;
+       rdfs:label "prepare".
+
+service:Moving a service:Service;
+       rdfs:label "moving";
+       service:Category service:HomeImprovementService.
+
+action:RepairCentralheating a action:ServiceAction;
+       rdfs:label "repair central heating";
+       service:Actionof service:HVACMaintenance, service:Plumbing, service:HeatingAndCooling, service:Heating, service:CentralHeating, service:HandyManService;
+       action:Action verb:Repair;
+       action:Target feature:CentralHeating.
+
+action:RepairDoorAction a action:ServiceAction;
+       rdfs:label "repair door";
+       service:Actionof service:HandyManService, service:Carpentry, service:Doors;
+       action:Action verb:Repair;
+       action:Target feature:Door.
+
+location:Bathroom a feature:HomeFeature, location:HomeLocation, location:Interior, feature:InteriorFeature;
+       rdfs:label "bathroom".
+
+action:Agent rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range trade:Actor;
+       rdfs:label "agent";
+       rdfs:HasInverse trade:CanPerformTask.
+
+service:Drainage rdfs:comment "Install and manage drainage pipes in landscape to control the flow of water.";
+       a service:Service;
+       rdfs:label "Drainage";
+       service:Category service:Landscape;
+       service:Action action:InstallSoilDrainage.
+
+action:RepairPaving a action:ServiceAction;
+       rdfs:label "repair paving";
+       service:Actionof service:StonePaving, service:Paving;
+       action:Action verb:Repair;
+       action:Instrument material:Stone, material:Asphalt, material:Brick, material:Concrete, material:Gravel;
+       action:Target feature:DriveWay, location:BackYard.
+
+action:CleanWaterPurification a action:ServiceAction;
+       rdfs:label "clean water treatment system";
+       service:Actionof service:Plumbing, service:WaterPurification;
+       action:Action verb:Clean;
+       action:Target feature:WaterPurificationSystem.
+
+material:ParticleBoard a material:WoodMaterial;
+       rdfs:label "particle board".
+
+trade:GlazingContractor a trade:Contractor, trade:Actor;
+       rdfs:label "glzing contractor";
+       trade:OffersService service:Windows, service:Doors.
+
+trade:SpaSpecialist a trade:Contractor, trade:Actor;
+       rdfs:label "spa specialist";
+       trade:OffersService service:SpaService.
+
+location:OutBuilding a feature:HomeFeature, location:HomeLocation, feature:ExteriorFeature;
+       rdfs:label "outbuilding".
+
+service:Vinyl a service:Service;
+       rdfs:label "vinyl";
+       service:Action action:InstallVinylFloor, action:RepairVinylFloor;
+       service:Category service:HomeImprovementService;
+       service:Related service:Flooring.
+
+trade:Gardener a trade:Actor, trade:Contractor;
+       rdfs:label "gardener";
+       trade:CanPerformTask action:TrimGardenAction;
+       trade:OffersService service:Landscape.
+
+service:HomeAdditions a service:Service;
+       rdfs:label "home addition";
+       service:Action action:AddRoomAction, action:HomeAdditionAction, action:BuildStructureAction, action:RepairStructureAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:Architecture.
+
+service:WindowCleaning a service:Service;
+       rdfs:comment "Cleaning the windows, normally externally, of a home or building.";
+       rdfs:label "window cleaning";
+       service:Action action:CleanWindowAction;
+       service:Category service:HomeImprovementService.
+
+service:PressureWash a service:Service;
+       rdfs:label "pressure washing";
+       service:Action action:PressureWash;
+       service:Category service:HomeImprovementService, service:PaintService;
+       service:Related service:PaintService.
+
+action:DisabilityServiceAction a action:ServiceAction.
+
+action:RailingRepairAction a action:ServiceAction;
+       rdfs:label "repair railing";
+       service:Actionof service:HandyManService, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Railing.
+
+verb:Construct a action:ActionVerb;
+       rdfs:label "construct".
+
+feature:Toilet a feature:HomeFeature;
+       rdfs:label "toilet".
+
+action:PaintBasement a action:ServiceAction;
+       rdfs:label "paint basement";
+       service:Actionof service:BasementRemodeling;
+       action:Action verb:Paint;
+       action:Target location:Basement.
+
+service:PestControl a service:Service;
+       rdfs:label "pest control";
+       service:Category service:HomeImprovementService.
+
+feature:Plant a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "plant";
+       feature:Location location:Garden, location:Home.
+
+action:ThawPipes a action:ServiceAction;
+       rdfs:label "thaw pipework";
+       action:Location location:Home;
+       service:Actionof service:RePiping, service:Plumbing;
+       action:Action verb:Thaw;
+       action:Target feature:Pipework.
+
+service:AccessibilityRemodeling a service:Service;
+       rdfs:label "accessibility remodeling";
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+action:InstallSodAction a action:ServiceAction;
+       rdfs:label "install sod";
+       service:Actionof service:PlantInstallation, service:LawnCare, service:Landscape;
+       action:Action verb:Install;
+       action:Instrument material:Sod;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+action:InstallFireplace a action:ServiceAction;
+       rdfs:label "install fireplace";
+       service:Actionof service:Fireplace;
+       action:Action verb:Install;
+       action:Target location:Fireplace.
+
+feature:Skylight a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "skylight".
+
+service:MovingFurniture rdfs:comment "Moving furniture from one location to another. May be part of an overall home moving service or for specific purposes";
+       a service:Service;
+       rdfs:label "moving furniture".
+
+property:TypeOfObject property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "type".
+
+service:NetworkingServices a service:Service;
+       rdfs:label "networking services";
+       service:Category service:HomeImprovementService.
+
+service:FeaturedBrand rdfs:domain trade:Genie;
+       rdfs:comment "A genie may feature brands";
+       a rdf:Property;
+       rdfs:range brand:Brand;
+       rdfs:label "featured brand".
+
+action:InstallSkylightAction a action:ServiceAction;
+       rdfs:label "install skylight";
+       action:Location feature:Roof;
+       service:Actionof service:RoofingService, service:Carpentry, service:SkyLight;
+       action:Action verb:Install;
+       action:Target feature:Skylight.
+
+feature:Bricks rdfs:comment "Walls are made of bricks; except that in some earthquake prone areas, bricks are not encouraged";
+       a feature:HomeFeature;
+       rdfs:label "bricks".
+
+feature:Vinyl a material:Material, feature:HomeFeature, service:Feature;
+       rdfs:label "vinyl".
+
+action:BuildFoundation action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "build foundation";
+       service:Actionof service:Foundations;
+       action:Action verb:Construct;
+       action:Target feature:Foundation.
+
+material:Concrete a feature:HomeFeature, material:BuildingMaterial, service:Feature, material:Material;
+       rdfs:label "concrete".
+
+feature:GarageOrganizer a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "garage organizer";
+       feature:FeatureLocation location:Garage.
+
+action:PourConcrete a action:ServiceAction;
+       rdfs:label "pour concrete";
+       service:Actionof service:Concrete.
+
+material:BuildingMaterial a material:Material;
+       rdfs:label "building material".
+
+trade:Handyman a trade:Actor, trade:Contractor;
+       rdfs:label "handyman";
+       trade:CanPerformTask action:InstallOutdoorLighting, action:RepairOutdoorLighting;
+       trade:OffersService service:HandyManService.
+
+service:HomeElectronics a service:Service;
+       rdfs:label "home electronics";
+       service:Category service:HomeImprovementService.
+
+material:Glass a material:Material;
+       rdfs:label "glass".
+
+feature:Furniture a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "furniture";
+       feature:FeatureLocation location:Interior, location:Exterior.
+
+service:Heating a service:Service;
+       rdfs:label "Heating";
+       service:Action action:InstallCentralheating, action:RepairCentralheating;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:CentralHeating, service:Furnace;
+       service:Related service:HeatingAndCooling.
+
+service:GutterProtection a service:Service;
+       rdfs:label "gutter protection";
+       service:Action action:GutterProtectorInstallAction, action:GutterProtectorRepairAction;
+       service:Category service:GutterService;
+       service:Related service:GutterService, service:RoofingService.
+
+material:Plywood a material:WoodMaterial;
+       rdfs:label "plywood".
+
+service:Realtor a service:Service;
+       rdfs:label "realtor";
+       service:Category service:HomeImprovementService.
+
+action:PaintSidingAction action:Property property:SquareFeet, property:MaterialsProvided, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint siding";
+       service:Actionof service:PaintService;
+       action:Action verb:Paint;
+       action:Instrument material:Paint;
+       action:Target feature:Siding.
+
+verb:Garden a action:ActionVerb;
+       rdfs:label "garden".
+
+material:WoodStain a material:Paint;
+       rdfs:label "wood stain".
+
+material:Paving a material:Material, service:Feature;
+       rdfs:label "paving".
+
+verb:Repair a action:ActionVerb;
+       rdfs:label "repair".
+
+service:Stone a service:Service;
+       rdfs:label "stone service";
+       service:Action action:InstallFloorAction, action:RepairFloorAction;
+       service:Category service:HomeImprovementService;
+       service:feature material:Stone.
+
+feature:Paving a feature:HomeFeature, service:Feature, material:Material;
+       rdfs:label "paving".
+
+service:PorchService a service:Service;
+       rdfs:label "porch";
+       service:Action action:BuildPorchAction, action:RepairPorchAction, action:PaintPorchAction;
+       service:Category service:HomeImprovementService.
+
+service:StonePaving a service:Service;
+       rdfs:label "stone paving";
+       service:Feature feature:PavingStone;
+       service:Action action:InstallPaving, action:RepairPaving;
+       service:Category service:Landscape;
+       service:Related service:Landscape, service:Paving.
+
+verb:Remodel a action:ActionVerb;
+       rdfs:label "remodel".
+
+feature:Sauna a feature:HomeFeature, feature:InteriorFeature, feature:ExteriorFeature;
+       rdfs:label "spa".
+
+feature:Stone a feature:HomeFeature, material:Material, service:Feature;
+       rdfs:label "stone".
+
+service:MetalStudFraming rdfs:comment "A type of stud framing where the studs are made of metal rather than wood";
+       a service:Service;
+       rdfs:label "metal stud framing".
+
+service:HouseholdHelp rdfs:comment "General help around the house. Often used to support elderly or infirm people who need some support but does not involve nursing or other medically related service. Includes going shopping for the client, minor cleaning duties and so on";
+       a service:Service;
+       rdfs:label "household help".
+
+trade:CanPerformTask a rdf:Property.
+
+service:WaterHeater a service:Service;
+       rdfs:label "water heater";
+       service:Feature feature:WaterHeater;
+       service:Action action:InstallWaterHeater, action:RepairWaterHeater;
+       service:Category service:HomeImprovementService;
+       service:Related service:HeatingAndCooling, service:CentralHeating, service:Plumbing.
+
+feature:Door a feature:HomeFeature, feature:InteriorFeature, feature:ExteriorFeature;
+       rdfs:label "door";
+       feature:ConstructionMaterial material:Wood, material:Metal, material:Glass.
+
+action:RemoveTreeStumpAction a action:ServiceAction;
+       rdfs:label "remove tree stump";
+       service:Actionof service:TreeCare, service:Landscape;
+       action:Action verb:Remove;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+material:Plastic a material:Material;
+       rdfs:label "plastic".
+
+verb:Paint a action:ActionVerb;
+       rdfs:label "paint".
+
+material:Wood a material:Material, service:Feature;
+       rdfs:label "wood".
+
+feature:Shower a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "shower";
+       feature:FeatureLocation location:Bathroom.
+
+action:BuildMobileHomeAction a action:ServiceAction;
+       rdfs:label "build mobile home";
+       action:Action verb:Construct;
+       action:Target feature:MobileHome.
+
+service:Surveillance a service:Service;
+       rdfs:label "surveillance";
+       service:Category service:HomeImprovementService.
+
+reason:Water a reason:HomeImprovementReason;
+       rdfs:label "water damage".
+
+action:RepairIrrigation a action:ServiceAction;
+       rdfs:label "repair irrigation";
+       service:Actionof service:Irrigation;
+       action:Action verb:Repair;
+       action:Target feature:Irrigation.
+
+feature:Chair a feature:HomeFeature, feature:Furniture, feature:InteriorFeature;
+       rdfs:label "chair".
+
+trade:Painter a trade:Contractor, trade:Actor;
+       rdfs:label "painter";
+       trade:OffersService service:PaintService.
+
+action:RepairWaterPurification a action:ServiceAction;
+       rdfs:label "repair water treatment system";
+       service:Actionof service:Plumbing, service:WaterPurification;
+       action:Action verb:Repair;
+       action:Target feature:WaterPurificationSystem.
+
+service:Windows a service:Service;
+       rdfs:label "windows";
+       service:Action action:InstallWindowAction, action:RepairWindowAction, action:Caulking;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:Awnings.
+
+action:PestDamageRecoveryAction a action:ServiceAction;
+       rdfs:label "pest damage recovery";
+       action:Location location:Home;
+       action:Action verb:Repair;
+       action:Reason reason:DryRot, reason:Water, reason:Pest.
+
+verb:Thaw a action:ActionVerb;
+       rdfs:label "thaw".
+
+service:Hauling rdfs:comment "Removing goods from a property for disposal or recycling or for donation.";
+       a service:Service;
+       rdfs:label "hauling".
+
+action:RepairSpaAction a action:ServiceAction;
+       rdfs:label "repair spa";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SpaService;
+       action:Action verb:Repair;
+       action:Target feature:Spa.
+
+action:RemodelBedroom a action:ServiceAction;
+       rdfs:label "remodel bedroom";
+       service:Actionof service:BedroomRemodeling;
+       action:Action verb:Remodel;
+       action:Target location:Bedroom.
+
+service:Hardscape rdfs:comment "Hard (typically stone and concrete) work in the garden";
+       a service:Service;
+       rdfs:label "hardscape";
+       service:Category service:HomeImprovementService;
+       service:Action action:BuildRetainingWall, action:BuildSteps;
+       service:HasCategory service:Paving, service:RetainingWall.
+
+action:SteelFrameConstructionAction a action:ServiceAction;
+       rdfs:label "construct steel frame";
+       service:Actionof service:SteelFraming;
+       action:Action verb:Construct;
+       action:Target location:Home.
+
+service:CleanOut rdfs:comment "Cleaning out the contents of a property such as a garage or home.";
+       a service:Service;
+       rdfs:label "clean out".
+
+action:RepairCounterTop a action:ServiceAction;
+       rdfs:label "repair countertop";
+       service:Actionof service:RemodelingService, service:HandyManService, service:Carpentry, service:Countertop, service:KitchenRemodeling;
+       action:Action verb:Repair;
+       action:Target feature:Countertop.
+
+action:RemodelGarage a action:ServiceAction;
+       rdfs:label "remodel garage";
+       service:Actionof service:GarageRemodeling;
+       action:Action verb:Remodel;
+       action:Target location:Garage.
+
+service:Plastering a service:Service;
+       rdfs:label "plastering";
+       service:Feature feature:Plaster;
+       service:Action action:RemovePlasterAction, action:RepairPlasterAction, action:InstallPlasterAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService.
+
+feature:Laminate a feature:HomeFeature, service:Feature, material:Material;
+       rdfs:label "laminates".
+
+service:MuralService a service:Service;
+       rdfs:label "mural painting";
+       service:Action action:PaintMuralAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+feature:GardenSprinkler a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "garden sprinkler";
+       feature:FeatureLocation location:Garden.
+
+service:HomeImprovementService rdfs:comment "top level category of home improvement services";
+       a service:Service, rdfs:Class;
+       rdfs:label "home improvement service";
+       service:Action action:HomeImprovementAction;
+       service:HasCategory service:ElectricalService, service:Appraisal, service:ApplianceService, service:Fence, service:Gates, service:SportsEquipment, service:WallPaper, service:Plastering, service:Renovation, service:Restoration, service:KitchenRemodeling, service:Countertop, service:OutdoorKitchenRemodeling, service:AccessibilityRemodeling, service:BedroomRemodeling, service:BasementRemodeling, service:BathroomRemodeling, service:GarageRemodeling, service:Sunroom, service:Windows, service:Glazing, service:WindowCleaning, service:Deck, service:Patio, service:PorchService, service:Carpet, service:SkyLight, service:HeatingAndCooling, service:HVACMaintenance, service:Heating, service:AirConditioning, service:VentService, service:ZoneControl, service:AirPurification, service:AirDucts, service:Furnace, service:Demolition, service:InteriorDecorating, service:Cleaning, service:InHomeNursing, service:BabySitting, service:ElderlyCare, service:HomeAudio, service:HomeAutomation, service:HomeElectronics, service:HomeInspection, service:HomeStaging, service:HomeSecurity, service:HomeTheater, service:Locksmith, service:MaidServices, service:Moving, service:Nanny, service:NetworkingServices, service:PestControl, service:Realtor, service:Surveillance, service:Flooring, service:HardwoodFloors, service:Laminates, service:Stairs, service:Stone, service:Tile, service:Vinyl, service:Stucco, service:Concrete, service:CustomHomeBuilding, service:Foundations, service:CentralHeating, service:Plumbing, service:WaterPurification, service:Drains, service:Inspection, service:FinishedPlumbing, service:RePiping, service:RoughPlumbing, service:Septic, service:Sewers, service:WaterHeater, service:Insulation, service:Doors, service:GarageDoors, service:SandBlasting, service:Siding, service:VinylSiding, service:WoodSiding, service:Solar, service:Bricks, service:Masonry, service:PressureWash, service:SwimmingPool, service:SwimmingPoolMaintenance, service:Landscape, service:LandscapeDesign, service:PlantInstallation, service:LawnCare, service:Irrigation, service:Sprinkler, service:RetainingWall, service:WalkWays, service:DryWalling, service:TreeCare, service:RoofingService, service:SheetMetal, service:Cabinets, service:Construction, service:PaintService, service:SitePreparation, service:SpaService, service:SaunaService, service:HandyManService, service:LowVoltageLighting, service:RemodelingService, service:HomeAdditions, service:RoomAdditions, service:Waterproofing, service:SteelFraming, service:Carpentry, service:Carport, service:Chimney, service:Fireplace, service:LandscapeArchitect, service:Architecture, service:Steps, service:Hardscape, service:CustomGlass, service:OutdoorKitchenConstruction.
+
+material:Brick a material:BuildingMaterial, service:Feature, material:Material;
+       rdfs:label "brick".
+
+action:RepairElectrics a action:ServiceAction;
+       rdfs:label "repair electrical";
+       action:Location location:HomeLocation;
+       service:Actionof service:ElectricalService, service:HandyManService;
+       action:Action verb:Repair;
+       action:Target feature:HomeElectrics.
+
+trade:LandscapeArchitect a trade:Actor, trade:Contractor;
+       rdfs:label "landscape architect";
+       trade:OffersService service:LandscapeArchitect.
+
+service:PaintService a service:Service;
+       rdfs:label "paint";
+       service:Action action:PaintHomeAction, action:PaintDeckAction, action:PaintPatioAction, action:PaintSidingAction, action:ExteriorPaintingAction, action:PaintInteriorAction, action:PaintObjectAction, action:RemoveWallpaperAction, action:StainAction, action:RefinishCabinet;
+       service:Category service:HomeImprovementService;
+       service:Brand brand:KellyMoore;
+       service:Specialty service:GlazePaint, service:FauxFinish, service:MuralService, service:TexturePaint, service:PopcornFinishing, service:Staining, service:DecorativePaintFinish, service:PressureWash, service:Stenciling;
+       service:HasCategory service:MuralService, service:TexturePaint, service:PopcornFinishing, service:FauxFinish, service:DecorativePaintFinish, service:Staining, service:Stenciling, service:GlazePaint, service:PressureWash;
+       service:Related service:WallPaper, service:Cleaning, service:Plastering, service:DryWalling, service:SandBlasting.
+
+action:RemodelSunroom a action:ServiceAction;
+       rdfs:label "remodel sunroom";
+       service:Actionof service:Sunroom;
+       action:Action verb:Remodel;
+       action:Target location:Sunroom.
+
+service:Deck a service:Service;
+       rdfs:label "decks";
+       service:Action action:DesignDeckAction, action:BuildDeckAction, action:RepairDeckAction, action:PaintDeckAction;
+       service:Category service:HomeImprovementService.
+
+action:InstallPavingAction a action:ServiceAction;
+       rdfs:label "install paving";
+       service:Actionof service:HandyManService;
+       action:Action verb:Install;
+       action:Target feature:Paving.
+
+verb:Hang a action:ActionVerb;
+       rdfs:label "hang".
+
+action:InstallSteps a action:ServiceAction;
+       rdfs:label "install steps";
+       service:Actionof service:Landscape;
+       action:Action verb:Install;
+       action:Target feature:Steps.
+
+action:BuildChimney a action:ServiceAction;
+       rdfs:label "build chimney";
+       service:Actionof service:Chimney;
+       action:Action verb:Construct;
+       action:Target feature:Chimney.
+
+location:EarthQuakeLocation a location:HomeLocation, feature:HomeFeature.
+
+rdf:Property a rdfs:Class, rdf:Property.
+
+trade:Landscaper a trade:Contractor, trade:Actor;
+       rdfs:label "landscaper";
+       trade:OffersService service:Landscape.
+
+action:CleanSaunaAction a action:ServiceAction;
+       rdfs:label "clean sauna";
+       service:Actionof service:SaunaService;
+       action:Action verb:Clean;
+       action:Target feature:Sauna.
+
+action:MaintainGardenSprinkler a action:ServiceAction;
+       rdfs:label "maintain garden sprinkler";
+       action:Location location:Garden, location:BackYard, location:FrontYard;
+       service:Actionof service:Sprinkler, service:LawnCare, service:Landscape, service:Irrigation;
+       action:Action verb:Fix;
+       action:Target feature:GardenSprinkler, feature:GardenMister.
+
+action:TreeTalkAction a action:ServiceAction;
+       rdfs:label "talk to tree";
+       action:Location location:Garden;
+       action:Action verb:Talk;
+       action:Target feature:Tree.
+
+action:Location rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range location:HomeLocation;
+       rdfs:label "location".
+
+verb:PlantATree a action:ActionVerb;
+       rdfs:label "plant".
+
+service:ShowerEnclosure rdfs:comment "Shower enclosure";
+       a service:Feature;
+       rdfs:label "shower enclosure".
+
+feature:Lighting a feature:HomeFeature;
+       rdfs:label "lighting".
+
+action:RepairCarpetAction a action:ServiceAction;
+       rdfs:label "repair carpet";
+       service:Actionof service:Carpet;
+       action:Action verb:Repair;
+       action:Target feature:Carpet.
+
+action:TreatTreeAction a action:ServiceAction;
+       rdfs:label "treat tree";
+       service:Actionof service:TreeCare, service:Landscape;
+       action:Action verb:Treat;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+verb:Add a action:ActionVerb;
+       rdfs:label "add".
+
+action:PaintRoofAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint roof";
+       action:Action verb:Paint;
+       action:Instrument material:Paint;
+       action:Agent trade:Roofer;
+       action:Target feature:Roof.
+
+property:SquareFeet property:Type datatype:Integer;
+       a property:Property;
+       rdfs:label "square feet".
+
+service:Actionof rdfs:domain action:ServiceAction;
+       rdfs:comment "Inverse of service:Action property";
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "action of".
+
+feature:Microwave a feature:Appliance, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "microwave";
+       feature:FeatureLocation location:Kitchen.
+
+location:Basement a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "basement".
+
+action:DesignBedroom a action:ServiceAction;
+       rdfs:label "design bedroom";
+       service:Actionof service:BedroomRemodeling, service:InteriorDesign;
+       action:Action verb:Design;
+       action:Target location:Bedroom.
+
+property:WallpaperProblem property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "wallpaper problem".
+
+material:Plaster a material:BuildingMaterial, service:Feature, material:Material;
+       rdfs:label "plaster".
+
+action:RepairSwimmingPoolAction a action:ServiceAction;
+       rdfs:label "repair swimmingpool";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SwimmingPool;
+       action:Action verb:Repair;
+       action:Target location:SwimmingPool.
+
+feature:patio a feature:HomeFeature.
+
+service:BathroomRemodeling a service:Service;
+       rdfs:label "bathroom remodeling";
+       service:Feature location:Bathroom;
+       service:Action action:DesignBathroom, action:PaintBathroom, action:RemodelBathroom, action:RenewBathOrShower;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:ShowerDoor;
+       service:Related service:RemodelingService.
+
+verb:Grade a action:ActionVerb;
+       rdfs:label "grade".
+
+action:RepairWalkWays a action:ServiceAction;
+       rdfs:label "repair walkways";
+       service:Actionof service:WalkWays;
+       action:Action verb:Repair;
+       action:Target feature:WalkWays.
+
+service:MortgageServices rdfs:comment "Arrange for a mortgage on the purchase of a home. May involve second mortgages and other forms of refinancing.";
+       a service:Service;
+       rdfs:label "mortgage services".
+
+trade:GeneralContractor a trade:Actor, trade:Contractor;
+       rdfs:comment "A general contractor organizes remodeling, home addition work";
+       rdfs:label "general contractor";
+       trade:CanPerformTask action:InstallCentralheating;
+       trade:OffersService service:RemodelingService.
+
+verb:Glaze a action:ActionVerb;
+       rdfs:label "glaze".
+
+service:GlazePaint a service:Service;
+       rdfs:label "glazed finishing";
+       service:Action action:PaintGlaze;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+feature:Wall a feature:HomeFeature.
+
+material:Copper a material:Material, service:Feature;
+       rdfs:label "copper".
+
+action:InstallVinylFloor a action:ServiceAction;
+       rdfs:label "install vinyl flooring";
+       service:Actionof service:Vinyl;
+       action:Action verb:Install;
+       action:Instrument material:Vinyl;
+       action:Target feature:Floor.
+
+verb:Move a action:ActionVerb;
+       rdfs:label "move".
+
+trade:ElectricContractor a trade:Actor, trade:Contractor;
+       rdfs:label "electric contractor";
+       trade:CanPerformTask action:InstallAplianceAction, action:InstallOutdoorLighting, action:RepairOutdoorLighting;
+       trade:OffersService service:ElectricalService.
+
+feature:BathAppliance a feature:HomeFeature, feature:Appliance, feature:InteriorFeature;
+       rdfs:label "bath appliance";
+       feature:FeatureLocation location:Bathroom, location:Home.
+
+action:Instrument rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range service:Feature, material:Material;
+       rdfs:label "instrument".
+
+action:BuildYurtAction a action:ServiceAction;
+       rdfs:label "build yurt";
+       service:Actionof service:RoughCarpentry;
+       action:Action verb:Construct;
+       action:Target feature:Yurt.
+
+verb:Plaster a action:ActionVerb;
+       rdfs:label "plaster".
+
+feature:DecorativeMolding a feature:InteriorFeature, feature:HomeFeature;
+       rdfs:label "molding".
+
+action:InstallSaunaAction a action:ServiceAction;
+       rdfs:label "install sauna";
+       service:Actionof service:SaunaService;
+       action:Action verb:Install, verb:Construct;
+       action:Target feature:Sauna.
+
+material:Oak a material:Wood;
+       rdfs:label "oak".
+
+service:Specialty rdfs:domain service:Service;
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "specialty".
+
+service:SwimmingPoolMaintenance a service:Service;
+       rdfs:label "swimmingpool maintenance";
+       service:Action action:CleanSwimmingPoolAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:SpaService.
+
+feature:Ramp a feature:HomeFeature, feature:InteriorFeature, feature:ExteriorFeature;
+       rdfs:label "ramp".
+
+verb:Waterproof a action:ActionVerb;
+       rdfs:label "waterproof".
+
+action:RepairGreenhouseAction a action:ServiceAction;
+       rdfs:label "repair gazebo";
+       service:Actionof service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Greenhouse.
+
+property:TypeOfStain property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "type of stain".
+
+action:CleanFloorAction a action:ServiceAction;
+       rdfs:label "clean floors";
+       service:Actionof service:Stairs, service:Cleaning, service:Laminates, service:Flooring;
+       action:Action verb:Clean;
+       action:Instrument material:Carpet, material:FloorTile, material:HardwoodFlooring, material:Laminate, material:Stone, material:Vinyl, material:Paving;
+       action:Target feature:Floor.
+
+action:LandscapingAction a action:ServiceAction;
+       rdfs:label "landscaping";
+       service:Actionof service:Landscape;
+       action:Action verb:Landscape;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+action:InstallBathFeature a action:ServiceAction;
+       rdfs:label "install bath fixture";
+       action:Location location:Bathroom;
+       service:Actionof service:Plumbing, service:FinishedPlumbing;
+       action:Action verb:Install;
+       action:Target feature:BathAppliance.
+
+trade:InteriorDecorator a trade:Contractor, trade:Actor;
+       rdfs:label "interior decorator";
+       trade:OffersService service:InteriorDecorating.
+
+feature:HardwoodFlooring a service:Feature, material:Material, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "hardwood flooring";
+       feature:ConstructionMaterial material:Hardwood.
+
+action:SiteGrading rdfs:comment "Preparing and leveling a site to enable construction";
+       a service:ServiceAction, action:ServiceAction;
+       rdfs:label "site grading";
+       service:Actionof service:Engineer, service:SitePreparation.
+
+feature:HotTub a feature:HomeFeature, feature:InteriorFeature, feature:ExteriorFeature;
+       rdfs:label "hot tub".
+
+trade:Architect a trade:Contractor, trade:Actor;
+       rdfs:label "architect";
+       trade:OffersService service:Architecture.
+
+verb:Landscape a action:ActionVerb;
+       rdfs:label "landscape".
+
+service:SitePreparation a service:Service;
+       rdfs:label "site preparation";
+       service:Action action:SiteGrading, action:SitePreparationTask;
+       service:Category service:HomeImprovementService.
+
+material:ChainLink a material:BuildingMaterial;
+       rdfs:label "chain link".
+
+service:Musicians rdfs:comment "Offer musical accompaniment to events.";
+       a service:Service;
+       rdfs:label "musicians".
+
+material:Ceramic a material:Material;
+       rdfs:label "ceramic".
+
+action:PlantTreeAction a action:ServiceAction;
+       rdfs:label "plant a tree";
+       service:Actionof service:TreeCare, service:PlantInstallation, service:Landscape;
+       action:Action verb:PlantATree;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+action:RefaceCabinet a action:ServiceAction;
+       rdfs:label "reface cabinet";
+       service:Actionof service:RemodelingService, service:Cabinets, service:Carpentry, service:KitchenRemodeling;
+       action:Action verb:Reface;
+       action:Target feature:Cabinet.
+
+service:HomeSecurity a service:Service;
+       rdfs:label "home security";
+       service:Category service:HomeImprovementService.
+
+location:Interior a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "interior".
+
+action:RepairWellPump a action:ServiceAction;
+       rdfs:label "repair well pump";
+       service:Actionof service:Plumbing;
+       action:Action verb:Repair;
+       action:Target feature:WellPump.
+
+action:DesignHouse a action:ServiceAction;
+       rdfs:label "design home";
+       service:Actionof service:CustomHomeBuilding, service:Architecture, service:InteriorDesign;
+       action:Action verb:Design;
+       action:Target location:Home.
+
+service:Bricks a service:Service;
+       rdfs:label "bricks";
+       service:Feature feature:Bricks;
+       service:Category service:HomeImprovementService.
+
+verb:Recover a action:ActionVerb;
+       rdfs:label "recover".
+
+trade:SteelFramer a trade:Contractor, trade:Actor;
+       rdfs:label "steel framer";
+       trade:OffersService service:SteelFraming.
+
+action:EarthquakeDamageRecovery a action:ServiceAction;
+       rdfs:label "earthquake recovery";
+       action:Location location:EarthQuakeLocation;
+       action:Action verb:Recover;
+       action:Reason reason:Earthquake.
+
+action:HomeAdditionAction a action:ServiceAction;
+       rdfs:label "build addition to home";
+       action:Location location:HomeLocation;
+       service:Actionof service:HomeAdditions, service:Construction;
+       action:Action verb:Extend;
+       action:Target feature:ExteriorFeature.
+
+technique:FauxFinish a service:Technique;
+       rdfs:label "faux finish".
+
+action:CleanWindowAction a action:ServiceAction;
+       rdfs:label "clean window";
+       service:Actionof service:WindowCleaning;
+       action:Action verb:Clean;
+       action:Target feature:Window.
+
+action:RepairFenceAction a action:ServiceAction;
+       rdfs:label "repair fence";
+       service:Actionof service:Fence, service:Carpentry;
+       action:Target feature:Fence.
+
+action:InstallApplianceAction a action:ServiceAction;
+       rdfs:label "install appliance";
+       service:Actionof service:ApplianceService;
+       action:Action verb:Install;
+       action:Target feature:Appliance.
+
+verb:DoSomething a action:ActionVerb;
+       rdfs:label "do something".
+
+action:InstallOutdoorLighting a action:ServiceAction;
+       rdfs:label "install outdoor lighting";
+       action:Location location:Garden, location:BackYard, location:FrontYard;
+       service:Actionof service:LowVoltageLighting, service:HandyManService, service:Landscape;
+       action:Action verb:Install;
+       action:Agent trade:Handyman, trade:ElectricContractor;
+       action:Target feature:OutdoorLighting.
+
+action:BuildFurnitureAction a action:ServiceAction;
+       rdfs:label "build furniture";
+       service:Actionof service:Cabinetry;
+       action:Action verb:Construct;
+       action:Target feature:Furniture.
+
+trade:PlumbingContractor a trade:Contractor, trade:Actor;
+       rdfs:label "plumber";
+       trade:OffersService service:Plumbing.
+
+action:InstallFloorAction a action:ServiceAction;
+       rdfs:label "install flooring";
+       service:Actionof service:Stairs, service:Tile, service:Stone, service:HardwoodFloors, service:Laminates, service:Flooring;
+       action:Action verb:Install;
+       action:Target feature:Floor.
+
+action:RemodelKitchenAction a action:ServiceAction;
+       rdfs:label "remodel kitchen";
+       action:Target location:Kitchen.
+
+material:DryWall a material:BuildingMaterial, service:Feature, material:Material;
+       rdfs:label "drywall".
+
+service:Solar a service:Service;
+       rdfs:label "solar";
+       service:Feature feature:SolarPanel;
+       service:Category service:HomeImprovementService.
+
+service:Demolition a service:Service;
+       rdfs:label "demolition";
+       service:Action action:Demolition;
+       service:Category service:HomeImprovementService.
+
+action:RepairVent a action:ServiceAction;
+       rdfs:label "repair vent";
+       service:Actionof service:VentService;
+       action:Action verb:Repair;
+       action:Target feature:Vents.
+
+service:CentralHeating a service:Service;
+       rdfs:label "central heating";
+       service:Action action:RepairCentralheating, action:InstallWaterHeater, action:RepairWaterHeater, action:InstallCentralheating;
+       service:Category service:HomeImprovementService;
+       service:Related service:HeatingAndCooling.
+
+service:HomeFinancing a service:Service;
+       rdfs:comment "Arranging for mortgages and other lending instruments that allow a potential buyer to afford the purchase of a new home. May involve refinancing the loan on a home; which is essentially a new loan that takes over an existing loan.";
+       rdfs:label "home financing".
+
+service:Chimney a service:Service;
+       rdfs:label "chimney";
+       service:Feature feature:Chimney;
+       service:Action action:BuildChimney, action:RepairChimney;
+       service:Category service:HomeImprovementService;
+       service:Related service:Carpentry.
+
+community:Service a rdfs:Class;
+       rdfs:comment "Class of service concepts defined by users as they register their own services";
+       rdfs:label "community service";
+       rdfs:subClassOf service:Service.
+
+action:StuccoInstallAction a action:ServiceAction;
+       rdfs:label "apply stucco";
+       action:Location location:Exterior;
+       service:Actionof service:Stucco;
+       action:Action verb:Install;
+       action:Target feature:Stucco.
+
+verb:Plan a action:ActionVerb;
+       rdfs:label "plan".
+
+reason:DryRot a reason:HomeImprovementReason;
+       rdfs:label "dryrot damage".
+
+trade:TreeSurgeon a trade:Contractor, trade:Actor;
+       rdfs:label "tree surgeon";
+       trade:OffersService service:TreeCare.
+
+location:HomeLocation a rdfs:Class, location:HomeLocation, feature:HomeFeature;
+       rdfs:label "location in the home";
+       rdfs:subClassOf feature:HomeFeature.
+
+action:BuildTennisCourtAction a action:ServiceAction;
+       rdfs:label "build tennis court";
+       service:Actionof service:SportsEquipment;
+       action:Action verb:Construct, verb:Install;
+       action:Target feature:TennisCourt.
+
+material:Mural a material:Material, service:Feature;
+       rdfs:label "mural".
+
+service:SwimmingPool rdfs:comment "Pool services, such as cleaning and maintenance";
+       a service:Service;
+       rdfs:label "swimmingpool";
+       service:Action action:RepairSwimmingPoolAction, action:InstallSwimmingPoolAction, action:CleanSwimmingPoolAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:SpaService.
+
+service:BabySitting a service:Service;
+       rdfs:label "baby sitting";
+       service:Category service:HomeImprovementService.
+
+location:Kitchen a location:HomeLocation, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "kitchen".
+
+action:ExteriorPaintingAction action:Property property:SquareFeet, property:MaterialsProvided, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "exterior painting";
+       service:Actionof service:PaintService;
+       action:Action verb:Paint;
+       action:Instrument material:Paint;
+       action:Target feature:ExteriorFeature.
+
+service:Paving a service:Service;
+       rdfs:label "paving";
+       service:Feature feature:Paving;
+       service:Action action:RepairPaving, action:InstallPaving;
+       service:Category service:Landscape, service:Hardscape;
+       service:Specialty service:StonePaving;
+       service:Related service:Landscape, service:Flooring.
+
+action:RefinishCabinet rdfs:comment "Refinish cabinets, cleaning and repainting or otherwise cleaning up";
+       a action:ServiceAction;
+       rdfs:label "refinish cabinet";
+       service:Actionof service:PaintService, service:Cabinets;
+       action:Action verb:Stain, verb:Refinish;
+       action:Target feature:Cabinet.
+
+action:TrimRepairAction a action:ServiceAction;
+       rdfs:label "repair trim";
+       action:Location location:Exterior;
+       service:Actionof service:HandyManService, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Trim.
+
+service:InteriorDecorating a service:Service;
+       rdfs:label "interior decoration";
+       service:Action action:InteriorDecorate;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService, service:PaintService.
+
+service:OutdoorKitchenConstruction rdfs:comment "Building new outdoor kitchens.";
+       a service:Service;
+       rdfs:label "Outdoor Kitchen Construction";
+       service:Feature feature:OutdoorKitchen;
+       service:Action action:BuildOutdoorKitchen;
+       service:Category service:HomeImprovementService;
+       service:Related service:OutdoorKitchenRemodeling.
+
+service:Shelving rdfs:comment "Installing shelves";
+       a service:Service;
+       rdfs:label "Shelving";
+       service:Action action:ConstructShelf.
+
+action:RepairChimney a action:ServiceAction;
+       rdfs:label "repair chimney";
+       service:Actionof service:Chimney;
+       action:Action verb:Repair;
+       action:Target feature:Chimney.
+
+feature:CentralHeating a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "central heating".
+
+rdfs:Class a rdfs:Class.
+
+action:ExteriorSandBlastAction action:Property property:SquareFeet;
+       a action:ServiceAction;
+       rdfs:label "exterior sandblasting";
+       service:Actionof service:SandBlasting;
+       action:Action verb:SandBlast;
+       action:Target feature:ExteriorFeature.
+
+verb:Remove a action:ActionVerb;
+       rdfs:label "remove".
+
+service:PersonalAssistant rdfs:comment "Offer personal services to a client which usually involves doing simpler and more mundane tasks on behalf of the client so that they can use their time more effectively.";
+       a service:Service;
+       rdfs:label "personal assistant".
+
+feature:HouseFrame a feature:HomeFeature;
+       rdfs:label "house frame";
+       feature:ConstructionMaterial material:Wood, material:Concrete, material:Metal.
+
+rdfs:HasInverse rdfs:domain rdf:Property;
+       a rdf:Property;
+       rdfs:range rdf:Property.
+
+verb:Reface a action:ActionVerb;
+       rdfs:label "reface".
+
+action:InstallSwimmingPoolAction a action:ServiceAction;
+       rdfs:label "install swimming pool";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SwimmingPool;
+       action:Action verb:Install, verb:Construct;
+       action:Target location:SwimmingPool.
+
+service:Steps rdfs:comment "A sub-category of hardscape. Refers to the construction and maintenance of steps (concrete, brick) etc in the garden.";
+       a service:Service;
+       rdfs:label "steps";
+       service:Feature feature:Steps, location:Garden;
+       service:Action action:ConstructSteps, action:RepairSteps;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape.
+
+action:TrimInstallAction a action:ServiceAction;
+       rdfs:label "install trim";
+       action:Location location:Exterior;
+       service:Actionof service:Carpentry;
+       action:Action verb:Install;
+       action:Target feature:Trim.
+
+service:HomeAutomation a service:Service;
+       rdfs:label "home automation";
+       service:Category service:HomeImprovementService.
+
+action:GutterInstallAction a action:ServiceAction;
+       rdfs:label "install gutter";
+       action:Location location:Exterior;
+       service:Actionof service:Carpentry, service:GutterService;
+       action:Action verb:Install;
+       action:Instrument material:Copper, material:Galvanized, material:Wood, material:Vinyl;
+       action:Target feature:Gutter.
+
+action:Action rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range action:ActionVerb;
+       rdfs:label "verb".
+
+action:RenewBathOrShower a action:ServiceAction;
+       rdfs:label "installBathAction";
+       service:Actionof service:BathroomRemodeling, service:HandyManService;
+       action:Action verb:Install;
+       action:Target feature:Bath, feature:Shower.
+
+action:HomeImprovementAction a action:ServiceAction;
+       rdfs:label "home improvement action";
+       service:Actionof service:HomeImprovementService;
+       action:Agent trade:Someone.
+
+action:TrimGardenAction a action:ServiceAction;
+       rdfs:label "trim garden";
+       service:Actionof service:Landscape;
+       action:Action verb:Garden;
+       action:Agent trade:Gardener;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+service:OfferedBy rdfs:domain service:Service;
+       rdfs:comment "The inverse of Offered Services property";
+       a rdf:Property;
+       rdfs:range trade:Contractor;
+       rdfs:label "Offered By".
+
+property:MaterialsProvided property:Type datatype:Logical;
+       a property:Property;
+       rdfs:label "materials provided".
+
+trade:StuccoContractor a trade:Contractor, trade:Actor;
+       rdfs:label "stucco contractor";
+       trade:OffersService service:Stucco.
+
+service:Seismic rdfs:comment "Seismic planning and retrofitting service.";
+       a service:Service;
+       rdfs:label "Seismic";
+       service:Action action:EarthquakeInspection, action:EarthquakeRetrofit.
+
+verb:Talk a action:ActionVerb;
+       rdfs:label "talk".
+
+action:SitePreparationAction a action:ServiceAction;
+       rdfs:label "prepare building site";
+       action:Action verb:Prepare;
+       action:Target feature:ExteriorFeature.
+
+material:Stain a service:Feature, material:Material;
+       rdfs:label "stain".
+
+service:PlantInstallation a service:Service;
+       rdfs:label "plant installation";
+       service:Feature feature:Plant, feature:Tree;
+       service:Action action:InstallLandscape, action:InstallSodAction, action:PlantTreeAction, action:SoilGradingAction, action:PlantPlant;
+       service:Category service:HomeImprovementService;
+       service:Related service:Landscape.
+
+feature:Ducting a feature:HomeFeature;
+       rdfs:label "air ducting".
+
+feature:LowVoltageLighting a feature:HomeFeature;
+       rdfs:label "low voltage lighting".
+
+action:BuildCarportAction a action:ServiceAction;
+       rdfs:label "build carport";
+       service:Actionof service:Carport, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Carport.
+
+action:InstallAirConditioning a action:ServiceAction;
+       rdfs:label "install airconditioning";
+       service:Actionof service:AirConditioning, service:HeatingAndCooling;
+       action:Action verb:Install;
+       action:Target feature:AirConditioning.
+
+action:BuildPatioAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "build patio";
+       service:Actionof service:Patio;
+       action:Action verb:Construct;
+       action:Target feature:Patio.
+
+feature:Steps a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "steps";
+       feature:Location location:Garden, location:Home.
+
+verb:Replace a action:ActionVerb;
+       rdfs:label "replace".
+
+material:SheetRock a material:BuildingMaterial;
+       rdfs:label "sheetrock".
+
+feature:WaterPurificationSystem a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "water purification system";
+       feature:Location location:Home.
+
+location:LivingRoom a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "livingroom".
+
+action:BuildTerrace rdfs:comment "Excavate a slope to ensure level grade, resulting in a stepped or terraced appearance";
+       a action:ServiceAction;
+       rdfs:label "build terrace";
+       service:Actionof service:SoilStabilization.
+
+action:CleanDucts a action:ServiceAction;
+       rdfs:label "clean ducts";
+       service:Actionof service:HVACMaintenance, service:AirDucts;
+       action:Action verb:Clean;
+       action:Target feature:Ducting.
+
+action:PaintGarage a action:ServiceAction;
+       rdfs:label "paint garage";
+       service:Actionof service:GarageRemodeling;
+       action:Action verb:Paint;
+       action:Target location:Garage.
+
+action:PaintBedroom a action:ServiceAction;
+       rdfs:label "paint bedroom";
+       service:Actionof service:BedroomRemodeling;
+       action:Action verb:Paint;
+       action:Target location:Bedroom.
+
+action:PlanDisabilityExtension a action:ServiceAction;
+       action:Action verb:Plan.
+
+action:BuildPorchAction a action:ServiceAction;
+       rdfs:label "build porch";
+       service:Actionof service:PorchService, service:RoughCarpentry;
+       action:Action verb:Construct;
+       action:Target feature:Porch.
+
+service:Driveways a service:Service;
+       rdfs:label "driveways";
+       service:Action action:InstallPaving, action:RepairPavingAction;
+       service:feature feature:DriveWay.
+
+service:Staining a service:Service;
+       rdfs:label "staining";
+       service:Action action:StainAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+property:ConstructionMaterial property:Type [datatype:Class material:Material;
+       a datatype:Type];
+       a property:Property;
+       rdfs:label "construction material".
+
+action:RemodelAction a action:ServiceAction;
+       rdfs:label "remodel";
+       action:Action verb:Remodel;
+       action:Target location:Home.
+
+action:MowLawnAction a action:ServiceAction;
+       rdfs:label "mow lawn";
+       service:Actionof service:LawnCare, service:Landscape;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+action:MaintainHotTubAction a action:ServiceAction;
+       rdfs:label "maintain hot tub";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SpaService;
+       action:Action verb:Fix;
+       action:Target feature:HotTub, feature:Spa.
+
+action:InstallAplianceAction a action:ServiceAction;
+       rdfs:label "install an appliance";
+       action:Location location:HomeLocation;
+       service:Actionof service:HandyManService;
+       action:Action verb:Install;
+       action:Agent trade:ElectricContractor;
+       action:Target feature:Appliance.
+
+action:RepairOutdoorLighting a action:ServiceAction;
+       rdfs:label "repair outdoor lighting";
+       action:Location location:Garden, location:BackYard, location:FrontYard;
+       service:Actionof service:LowVoltageLighting;
+       action:Action verb:Repair;
+       action:Agent trade:Handyman, trade:ElectricContractor;
+       action:Target feature:OutdoorLighting.
+
+action:BuildShedAction a action:ServiceAction;
+       rdfs:label "build shed";
+       service:Actionof service:RoughCarpentry, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Shed.
+
+action:StormRecoveryAction a action:ServiceAction;
+       rdfs:label "storm damage recovery";
+       action:Location location:Home;
+       action:Action verb:Recover;
+       action:Reason reason:Storm.
+
+action:DesignSunroom a action:ServiceAction;
+       rdfs:label "design sunroom";
+       service:Actionof service:InteriorDesign, service:Sunroom;
+       action:Action verb:Design;
+       action:Target location:Sunroom.
+
+material:Slate a service:Feature, material:Material, material:Stone;
+       rdfs:label "slate".
+
+verb:Stencil a action:ActionVerb;
+       rdfs:label "stencil".
+
+service:HomeInspection a service:Service;
+       rdfs:label "home inspection";
+       service:Category service:HomeImprovementService.
+
+trade:SidingSpecialist a trade:Contractor, trade:Actor;
+       rdfs:label "siding specialist";
+       trade:OffersService service:RoofingService.
+
+datatype:Integer a rdfs:Class, datatype:Type.
+
+action:BuildGazeboAction a action:ServiceAction;
+       rdfs:label "build gazebo";
+       service:Actionof service:RoughCarpentry, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Gazebo.
+
+trade:WallpaperHanger a trade:Contractor, trade:Actor;
+       rdfs:label "wallpaper hanger";
+       trade:OffersService service:WallPaper.
+
+action:SoilGradingAction a action:ServiceAction;
+       rdfs:label "grade soil";
+       service:Actionof service:PlantInstallation, service:Landscape;
+       action:Action verb:Grade;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+trade:Roofer a trade:Actor, trade:Contractor;
+       rdfs:label "roofer";
+       trade:CanPerformTask action:RoofInstallAction, action:RoofRepairAction, action:PaintRoofAction.
+
+action:ServiceAction a rdfs:Class, action:ServiceAction;
+       rdfs:label "service action";
+       action:Agent trade:Someone.
+
+action:RepairFurnitureAction a action:ServiceAction;
+       rdfs:label "repair furniture";
+       service:Actionof service:Cabinetry;
+       action:Action verb:Repair;
+       action:Target feature:Furniture.
+
+material:Carpet a service:Feature, material:Material.
+
+material:LatexPaint a material:Material;
+       rdfs:label "latex paint".
+
+service:RetainingWall a service:Service;
+       rdfs:label "retaining wall";
+       service:Feature feature:RetainingWall;
+       service:Action action:RepairRetainingWall, action:InstallRetainingWall;
+       service:Category service:HomeImprovementService, service:Hardscape;
+       service:Related service:Landscape.
+
+action:RepairDucts a action:ServiceAction;
+       rdfs:label "repair ducts";
+       service:Actionof service:AirDucts;
+       action:Action verb:Repair;
+       action:Target feature:Ducting.
+
+service:ZoneControl a service:Service;
+       rdfs:label "zone control";
+       service:Feature feature:ZoneSystem;
+       service:Category service:HomeImprovementService;
+       service:Related service:AirConditioning, service:HeatingAndCooling.
+
+action:BuildingSitePrepare a action:ServiceAction;
+       rdfs:label "prepare site";
+       service:Actionof service:GreenConstruction;
+       action:Action verb:Prepare.
+
+location:Fireplace a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "fireplace".
+
+action:ReplaceDoorAction a action:ServiceAction;
+       rdfs:label "replace door";
+       service:Actionof service:HandyManService, service:Carpentry;
+       action:Action verb:Replace;
+       action:Target feature:Door.
+
+location:BackYard a location:HomeLocation, feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "backyard".
+
+action:StuccoRepairAction a action:ServiceAction;
+       rdfs:label "repair stucco";
+       action:Location location:Exterior;
+       service:Actionof service:Stucco;
+       action:Action verb:Repair;
+       action:Target feature:Stucco.
+
+service:Renovation a service:Service;
+       rdfs:label "renovation";
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+action:RepairVinylFloor a action:ServiceAction;
+       rdfs:label "repair vinyl flooring";
+       service:Actionof service:Vinyl;
+       action:Action verb:Repair;
+       action:Instrument material:Vinyl;
+       action:Target feature:Floor.
+
+feature:Carpet a service:Feature, material:Material, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "carpet".
+
+action:BuildGreenhouseAction a action:ServiceAction;
+       rdfs:label "build greenhouse";
+       service:Actionof service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Greenhouse.
+
+feature:GutterProtector a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "gutter protector".
+
+service:Appraisal a service:Service;
+       rdfs:label "appraisal";
+       service:Category service:HomeImprovementService.
+
+verb:Treat a action:ActionVerb;
+       rdfs:label "treat".
+
+feature:Sewer a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "sewer".
+
+service:RoughCarpentry a service:Service;
+       rdfs:label "rough carpentry";
+       service:Action action:BuildOutbuildingAction, action:BuildDeckAction, action:BuildYurtAction, action:BuildPorchAction, action:BuildShedAction, action:BuildGazeboAction, action:BuildFramingAction, action:BuildGarage, action:BuildStructureAction;
+       service:Category service:Carpentry.
+
+feature:Table a feature:HomeFeature, feature:Furniture;
+       rdfs:label "table".
+
+feature:StainedGlassWindow a feature:InteriorFeature, feature:HomeFeature;
+       rdfs:label "stained glass window".
+
+reason:Earthquake a reason:HomeImprovementReason;
+       rdfs:label "earthquake".
+
+feature:Something a feature:HomeFeature;
+       rdfs:label "something".
+
+material:Granite a material:Stone;
+       rdfs:label "granite".
+
+service:Awnings rdfs:comment "Providing, installing and repairing awnings";
+       a service:Service;
+       rdfs:label "Awning";
+       service:Feature feature:Awning;
+       service:Category service:Windows, service:Doors.
+
+trade:Plasterer a trade:Contractor, trade:Actor;
+       rdfs:label "plasterer";
+       trade:OffersService service:Plastering.
+
+trade:Actor a rdfs:Class, trade:Actor.
+
+action:AddRoomAction a action:ServiceAction;
+       rdfs:label "add room";
+       service:Actionof service:RemodelingService, service:RoomAdditions, service:HomeAdditions;
+       action:Action verb:Add;
+       action:Target location:Attic, location:Basement, location:Bathroom, location:Bedroom, location:FamilyRoom, location:Kitchen, location:LivingRoom, location:Sunroom, location:UtilityRoom.
+
+action:TexturePaintAction action:Property property:SquareFeet, property:NoOfRooms, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "apply texture paint finish";
+       service:Actionof service:DecorativePaintFinish, service:TexturePaint;
+       action:Instrument material:Texture.
+
+service:Category rdfs:domain service:Service;
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "service category of".
+
+service:Fence a service:Service;
+       rdfs:label "fences";
+       service:Action action:BuildFenceAction, action:RepairFenceAction, action:PaintFenceAction;
+       service:Category service:HomeImprovementService.
+
+location:Closet a location:HomeLocation, feature:HomeFeature.
+
+material:Vinyl a service:Feature, material:Material;
+       rdfs:label "vinyl".
+
+service:PopcornFinishing a service:Service;
+       rdfs:label "popcorn finishing";
+       service:Action action:PopcornPaintAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+service:Stenciling a service:Service;
+       rdfs:label "stencilling";
+       service:Action action:StencilAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+action:RepairDryWallAction action:Property property:SquareFeet, property:CeilingHeight;
+       a action:ServiceAction;
+       rdfs:label "repair drywalling";
+       service:Actionof service:DryWalling;
+       action:Action verb:Repair;
+       action:Instrument material:DryWall;
+       action:Target location:Interior, location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom.
+
+feature:Roof a location:HomeLocation, feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "roof".
+
+feature:Porch a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "porch";
+       feature:ConstructionMaterial material:Wood.
+
+action:BuildOutdoorKitchen a action:ServiceAction;
+       rdfs:label "build outdoor kitchen";
+       service:Actionof service:OutdoorKitchenConstruction, service:OutdoorKitchenRemodeling;
+       action:Action verb:Construct;
+       action:Target location:Garage.
+
+service:SoilStabilization rdfs:comment "Service to support soil stability, for example in sloped or unstable terrain. Involves techniques such as terracing, building retaining walls.";
+       a service:Service;
+       rdfs:label "Soil Stabilization";
+       service:Action action:BuildTerrace, action:BuildRetainingWall;
+       service:Category service:Landscape.
+
+feature:Gazebo a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "gazebo".
+
+action:InstallSumpPumpFeature a action:ServiceAction;
+       rdfs:label "install sump pump";
+       service:Actionof service:RoughPlumbing, service:Sewers, service:Plumbing, service:Septic;
+       action:Action verb:Install;
+       action:Target feature:SumpPump.
+
+feature:Fence a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "fence";
+       feature:ConstructionMaterial material:Wood, material:Metal, material:BarbedWire, material:ChainLink.
+
+rdf:type rdfs:label "a".
+
+action:EarthquakeRetrofit rdfs:comment "Retrofit a building to prepare it for earthquakes";
+       a action:ServiceAction;
+       rdfs:label "earthquake retrofit";
+       service:Actionof service:Seismic.
+
+action:PaintGateAction action:Property property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint gate";
+       service:Actionof service:Gates;
+       action:Action verb:Paint;
+       action:Instrument material:Paint, material:Stain;
+       action:Target feature:Gate.
+
+action:FauxFinishAction action:Technique technique:FauxFinish;
+       action:Property property:SquareFeet, property:MaterialsProvided;
+       a action:ServiceAction, rdfs:Class;
+       rdfs:label "faux finishing";
+       service:Actionof service:DecorativePaintFinish, service:FauxFinish.
+
+feature:SumpPump a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "sump pump".
+
+material:Sod a service:Feature, material:Material;
+       rdfs:label "sod".
+
+service:HomeTheater a service:Service;
+       rdfs:label "home theater";
+       service:Category service:HomeImprovementService.
+
+reason:AFlood a reason:HomeImprovementReason;
+       rdfs:label "a flood".
+
+verb:PowerWash a action:ActionVerb;
+       rdfs:label "power wash".
+
+service:AirPurification a service:Service;
+       rdfs:label "air purification";
+       service:Action action:InstallAirPurifier, action:ServiceAirPurifier, action:RepairAirPurifier;
+       service:Category service:HomeImprovementService;
+       service:Related service:AirConditioning.
+
+action:RepairPorchAction a action:ServiceAction;
+       rdfs:label "repair porch";
+       service:Actionof service:PorchService;
+       action:Action verb:Repair;
+       action:Target feature:Porch.
+
+service:HasCategory rdfs:domain service:Service;
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "has category";
+       rdfs:HasInverse service:Category.
+
+action:RepairPoolEnclosureAction a action:ServiceAction;
+       rdfs:label "repair pool enclosure";
+       service:Actionof service:SportsEquipment, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:PoolEnclosure, location:SwimmingPool.
+
+service:GarageRemodeling a service:Service;
+       rdfs:label "garage remodeling";
+       service:Feature location:Garage;
+       service:Action action:RemodelGarage, action:PaintGarage, action:DesignGarage;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+location:FamilyRoom a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "family room".
+
+service:DiskJockey rdfs:comment "A DJ service provides music entertainment at parties and other events";
+       a service:Service;
+       rdfs:label "disk jockey".
+
+action:ServiceFurnace a action:ServiceAction;
+       rdfs:label "service furnace";
+       service:Actionof service:HVACMaintenance, service:Furnace;
+       action:Action verb:Service;
+       action:Target feature:Furnace.
+
+reason:IWantTo a reason:HomeImprovementReason;
+       rdfs:label "i want to".
+
+service:Restoration a service:Service;
+       rdfs:label "restoration";
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+service:LawnCare a service:Service;
+       rdfs:label "lawn care";
+       service:Feature feature:Lawn;
+       service:Action action:TreatLawnAction, action:InstallSodAction, action:MaintainGardenSprinkler, action:MowLawnAction, action:InstallGardenSprinkler;
+       service:Category service:HomeImprovementService.
+
+material:Stone a service:Feature, material:Material, material:BuildingMaterial;
+       rdfs:label "stone".
+
+action:CleanDrainsAction a action:ServiceAction;
+       rdfs:label "clean drains";
+       action:Location location:Home;
+       service:Actionof service:Drains, service:Sewers, service:Plumbing, service:Septic;
+       action:Action verb:Clean;
+       action:Target feature:Drains, feature:Sewer.
+
+action:RemodelGarageAction a action:ServiceAction;
+       rdfs:label "remodel garage";
+       action:Target location:Garage.
+
+feature:Lawn a feature:HomeFeature, location:HomeLocation;
+       rdfs:label "lawn".
+
+action:InstallSoilDrainage rdfs:comment "Install pipework and outflows in a landscape";
+       a action:ServiceAction;
+       rdfs:label "Install soil drainage";
+       service:Actionof service:Drainage.
+
+action:InstallSpaAction a action:ServiceAction;
+       rdfs:label "install spa";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SpaService;
+       action:Action verb:Install, verb:Construct;
+       action:Target feature:Spa.
+
+feature:WallPaper a feature:HomeFeature;
+       rdfs:label "wallpaper".
+
+service:LowVoltageLighting a service:Service;
+       rdfs:label "low voltage lighting";
+       service:Feature feature:LowVoltageLighting;
+       service:Action action:InstallOutdoorLighting, action:RepairOutdoorLighting;
+       service:Category service:HomeImprovementService.
+
+action:RepairCarportAction a action:ServiceAction;
+       rdfs:label "repair carport";
+       service:Actionof service:Carport, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Carport.
+
+service:Cabinetry a service:Service;
+       rdfs:label "cabinetry";
+       service:Action action:BuildFurnitureAction, action:RepairFurnitureAction;
+       service:Category service:Carpentry;
+       service:Related service:RemodelingService.
+
+action:SitePreparationTask a action:ServiceAction;
+       rdfs:label "prepare site";
+       service:Actionof service:CustomHomeBuilding, service:SitePreparation, service:Construction;
+       action:Action verb:Prepare.
+
+action:InstallWallpaperAction action:Property property:SquareFeet, property:NoOfRooms, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "install wallpaper";
+       action:Location location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom;
+       service:Actionof service:WallPaper, service:HandyManService;
+       action:Action verb:Install;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target feature:WallPaper.
+
+property:DesignStyle property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "design style".
+
+service:SheetMetal a service:Service;
+       rdfs:label "sheet metal";
+       service:Action action:RoofReplaceAction, action:RoofInstallAction, action:RoofRepairAction, action:WaterProof;
+       service:Category service:HomeImprovementService;
+       service:Related service:RoofingService.
+
+service:Action rdfs:domain service:Service;
+       a rdf:Property;
+       rdfs:range action:ServiceAction;
+       rdfs:label "service action";
+       rdfs:HasInverse service:Actionof.
+
+action:InstallDuct a action:ServiceAction;
+       rdfs:label "install ducting";
+       service:Actionof service:AirDucts;
+       action:Action verb:Install;
+       action:Target feature:Ducting.
+
+service:Cabinets a service:Service;
+       rdfs:label "cabinets";
+       service:Feature feature:Cabinet;
+       service:Action action:RepairCabinet, action:RefaceCabinet, action:RefinishCabinet, action:BuildCabinet, action:InstallCabinet;
+       service:Category service:HomeImprovementService.
+
+action:RemodelBathroomAction a action:ServiceAction;
+       rdfs:label "remodel bathroom";
+       action:Target location:Bathroom.
+
+action:PaintGlaze action:Property property:SquareFeet, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "glaze painting";
+       service:Actionof service:GlazePaint;
+       action:Action verb:Glaze, verb:Paint;
+       action:Target feature:Furniture.
+
+material:Material a rdfs:Class, material:Material;
+       rdfs:label "material".
+
+service:Technique a rdfs:Class, service:Technique;
+       rdfs:label "technique".
+
+action:DeliverConcrete a action:ServiceAction;
+       rdfs:label "concrete delivery";
+       service:Actionof service:Concrete.
+
+service:Waterproofing a service:Service;
+       rdfs:label "waterproofing";
+       service:Action action:WaterProof;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService, service:RoofingService.
+
+action:RailingInstallAction a action:ServiceAction;
+       rdfs:label "paint railing";
+       service:Actionof service:Carpentry;
+       action:Action verb:Install;
+       action:Target feature:Railing.
+
+service:WoodSiding a service:Service;
+       rdfs:label "wood siding";
+       service:Feature feature:Siding;
+       service:Action action:SidingInstallAction, action:SidingRepairAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:RoofingService.
+
+action:StairRepairAction a action:ServiceAction;
+       rdfs:label "repair staircase";
+       service:Actionof service:Stairs, service:HandyManService, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Stair.
+
+service:HandyManService a service:Service;
+       rdfs:label "handyman";
+       service:Action action:RepairPlasterAction, action:RepairCabinet, action:InstallWaterPurification, action:InstallDoorAction, action:InstallGarageOrganizerAction, action:PaintObjectAction, action:FixPlumbing, action:BuildFenceAction, action:RepairCentralheating, action:RepairDoorAction, action:RailingRepairAction, action:RepairCounterTop, action:RepairElectrics, action:InstallPavingAction, action:InstallOutdoorLighting, action:TrimRepairAction, action:RenewBathOrShower, action:InstallAplianceAction, action:ReplaceDoorAction, action:InstallWallpaperAction, action:StairRepairAction, action:PaintInteriorAction, action:InstallWindowAction, action:RepairPavingAction, action:InstallClosetOrganizerAction, action:InstallGarageDoor, action:RepairGarageDoor, action:InstallCabinet, action:FixFaucetAction, action:RepairSumpPumpFeature, action:RepairWallpaperAction, action:RepairSkylightAction;
+       service:Category service:HomeImprovementService.
+
+action:RepairGateAction action:Property property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "repair gate";
+       service:Actionof service:Gates;
+       action:Action verb:Repair;
+       action:Target feature:Gate.
+
+feature:Greenhouse a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "greenhouse".
+
+material:Texture a service:Feature, material:Material;
+       rdfs:label "texture".
+
+action:DesignGarage a action:ServiceAction;
+       rdfs:label "design garage";
+       service:Actionof service:GarageRemodeling, service:InteriorDesign;
+       action:Action verb:Design;
+       action:Target location:Garage.
+
+action:RepairAirPurifier a action:ServiceAction;
+       rdfs:label "repair airpurifier";
+       service:Actionof service:HVACMaintenance, service:AirPurification;
+       action:Action verb:Repair;
+       action:Target feature:AirPurifier.
+
+service:SpaService a service:Service;
+       rdfs:label "spa";
+       service:Action action:CleanSpaAction, action:RepairSpaAction, action:MaintainHotTubAction, action:InstallSpaAction, action:InstallHotTubAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:SwimmingPool.
+
+action:FireRecoveryAction a action:ServiceAction;
+       rdfs:label "fire damage recovery";
+       action:Location location:Home;
+       action:Action verb:Recover;
+       action:Reason reason:Fire.
+
+service:Popcorn a service:Technique.
+
+action:PaintSunroom a action:ServiceAction;
+       rdfs:label "paint sunroom";
+       service:Actionof service:Sunroom;
+       action:Action verb:Paint;
+       action:Target location:Sunroom.
+
+service:CustomGlass rdfs:comment "Custom made mirrors and shower";
+       a service:Service;
+       rdfs:label "Custom Glass";
+       service:Feature feature:StainedGlassWindow, feature:Mirror;
+       service:Category service:HomeImprovementService.
+
+service:HomeIt a service:Service;
+       rdfs:comment "Designing and installing home information technology systems";
+       rdfs:label "home IT".
+
+action:BuildFramingAction a action:ServiceAction;
+       rdfs:label "build framing";
+       service:Actionof service:RoughCarpentry;
+       action:Action verb:Construct;
+       action:Target feature:HouseFrame.
+
+feature:AirPurifier a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "air purifier".
+
+material:Asbestos a material:BuildingMaterial;
+       rdfs:label "asbestos".
+
+service:Events rdfs:comment "A ";
+       a rdfs:Class, category:ServiceCategory;
+       rdfs:label "events".
+
+action:RemoveWallpaperAction action:Property property:SquareFeet, property:NoOfRooms;
+       a action:ServiceAction;
+       rdfs:label "remove wallpaper";
+       action:Location location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom;
+       service:Actionof service:WallPaper, service:PaintService;
+       action:Action verb:Remove;
+       action:Target feature:WallPaper.
+
+reason:HomeImprovementReason a rdfs:Class, reason:HomeImprovementReason.
+
+feature:Foundation a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "foundation";
+       feature:Location location:Home.
+
+action:Target rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range feature:HomeFeature;
+       rdfs:label "target".
+
+feature:Chimney a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "chimney".
+
+service:HomeAudio a service:Service;
+       rdfs:label "home audio";
+       service:Category service:HomeImprovementService.
+
+action:InstallToilet a action:ServiceAction;
+       rdfs:label "install toilet";
+       service:Actionof service:Septic;
+       action:Action verb:Install;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target feature:Toilet.
+
+feature:DriveWay a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "driveway";
+       feature:ConstructionMaterial material:Brick, material:Asphalt.
+
+action:CleanCarpetAction a action:ServiceAction;
+       rdfs:label "clean carpet";
+       service:Actionof service:MaidServices, service:Cleaning, service:Carpet;
+       action:Action verb:Clean;
+       action:Target feature:Carpet.
+
+action:RepairSumpPumpFeature a action:ServiceAction;
+       rdfs:label "repair sump pump";
+       service:Actionof service:Sewers, service:Plumbing, service:HandyManService, service:Septic;
+       action:Action verb:Repair;
+       action:Target feature:SumpPump.
+
+verb:Extend a action:ActionVerb;
+       rdfs:label "extend".
+
+action:Property rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range property:Property;
+       rdfs:label "property".
+
+action:RepairPavingAction a action:ServiceAction;
+       rdfs:label "repair paving";
+       service:Actionof service:Driveways, service:HandyManService;
+       action:Action verb:Repair;
+       action:Instrument material:Stone, material:Asphalt, material:Brick, material:Concrete;
+       action:Target feature:DriveWay, location:BackYard.
+
+action:ActionVerb a rdfs:Class, action:ActionVerb.
+
+service:FengShui a service:Service;
+       rdfs:comment "A system of laws considered to govern spatial arrangements and orientation in relation to the flow of energy. The service involves advising clients on siting and designing buildings to maximize favorable effects.";
+       rdfs:label "feng shui".
+
+material:Stucco a material:BuildingMaterial;
+       rdfs:label "stucco".
+
+action:BuildRetainingWall rdfs:comment "Build a retaining wall";
+       a action:ServiceAction;
+       rdfs:label "build retaining wall";
+       action:Location location:Exterior;
+       service:Actionof service:Hardscape, service:SoilStabilization;
+       action:Action verb:Build;
+       action:Target feature:RetainingWall.
+
+service:Carpentry a service:Service;
+       rdfs:label "carpentry";
+       service:Action action:GutterRepairAction, action:RepairCabinet, action:InstallDoorAction, action:BuildPoolEnclosureAction, action:InstallGarageOrganizerAction, action:InstallCounterTop, action:RepairShedAction, action:BuildDeckAction, action:BuildFenceAction, action:RepairDoorAction, action:RailingRepairAction, action:InstallSkylightAction, action:RepairCounterTop, action:RepairGreenhouseAction, action:RefaceCabinet, action:RepairFenceAction, action:TrimRepairAction, action:TrimInstallAction, action:GutterInstallAction, action:BuildCarportAction, action:BuildShedAction, action:BuildGazeboAction, action:ReplaceDoorAction, action:BuildGreenhouseAction, action:RepairPoolEnclosureAction, action:RepairCarportAction, action:RailingInstallAction, action:StairRepairAction, action:BuildStructureAction, action:RepairStructureAction, action:InstallWindowAction, action:StairInstallAction, action:InstallClosetOrganizerAction, action:InstallCabinet, action:BuildCabinet, action:RepairDeckAction, action:RepairGazeboAction, action:RepairSkylightAction;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:RoughCarpentry, service:Cabinetry;
+       service:Related service:RoughCarpentry, service:Cabinetry.
+
+material:ConstructionMaterial rdfs:domain feature:HomeFeature;
+       a rdf:Property;
+       rdfs:range material:Material;
+       rdfs:label "construction material".
+
+action:InstallGardenSprinkler a action:ServiceAction;
+       rdfs:label "install garden sprinkler";
+       action:Location location:Garden, location:BackYard, location:FrontYard;
+       service:Actionof service:Sprinkler, service:LawnCare, service:Landscape, service:Irrigation;
+       action:Action verb:Install;
+       action:Target feature:GardenSprinkler.
+
+action:RepairGazeboAction a action:ServiceAction;
+       rdfs:label "repair gazebo";
+       service:Actionof service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Gazebo.
+
+feature:GasAppliance a feature:Appliance, feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "gas appliance";
+       feature:FeatureLocation location:Kitchen.
+
+action:PaintFenceAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint fence";
+       service:Actionof service:Fence;
+       action:Action verb:Paint;
+       action:Instrument material:Paint, material:Stain;
+       action:Target feature:Fence.
+
+service:ShowerDoor rdfs:comment "Shower door service";
+       a service:Service;
+       rdfs:label "shower door";
+       service:Category service:BathroomRemodeling.
+
+material:GlossPaint a material:Material;
+       rdfs:comment "gloss paint is a kind of paint";
+       rdfs:label "gloss paint".
+
+service:Glazing a service:Service;
+       rdfs:label "glazing";
+       service:Action action:RepairWindowAction, action:InstallWindowAction;
+       service:Category service:HomeImprovementService.
+
+action:InstallGarageDoor a action:ServiceAction;
+       rdfs:label "install garage door";
+       service:Actionof service:HandyManService, service:GarageDoors;
+       action:Action verb:Install;
+       action:Target feature:GarageDoor.
+
+feature:Stucco a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "stucco".
+
+action:RepairSkylightAction a action:ServiceAction;
+       rdfs:label "repair skylight";
+       action:Location feature:Roof;
+       service:Actionof service:RoofingService, service:HandyManService, service:Carpentry, service:SkyLight;
+       action:Action verb:Repair;
+       action:Target feature:Skylight.
+
+feature:GarageDoor a feature:HomeFeature, feature:UtilityFeature, feature:ExteriorFeature;
+       rdfs:label "garage door";
+       feature:FeatureLocation location:Garage.
+
+service:HardwoodFloors a service:Service;
+       rdfs:label "hardwood floors";
+       service:Action action:RepairFloorAction, action:InstallFloorAction;
+       service:Category service:HomeImprovementService;
+       service:feature feature:HardwoodFlooring;
+       service:Related service:Flooring.
+
+service:Concrete a service:Service;
+       rdfs:label "concrete";
+       service:Feature material:Concrete;
+       service:Action action:PourConcrete, action:DeliverConcrete;
+       service:Category service:HomeImprovementService.
+
+reason:Fire a reason:HomeImprovementReason;
+       rdfs:label "a fire".
+
+action:SteelFrameInstallAction a action:ServiceAction;
+       rdfs:label "install steel frame";
+       action:Location location:Home;
+       service:Actionof service:SteelFraming;
+       action:Action verb:Install;
+       action:Target feature:SteelFrame.
+
+action:PaintMuralAction action:Property property:SquareFeet;
+       a action:ServiceAction, action:PaintInteriorAction;
+       rdfs:label "paint mural";
+       service:Actionof service:DecorativePaintFinish, service:MuralService;
+       action:Instrument material:Mural.
+
+category:ServiceDomain a category:ServiceCategory;
+       rdfs:comment "A major grouping of service categories into a related collection. Major service domains include home improvement, events, home services";
+       rdfs:label "service domain".
+
+brand:KellyMoore rdfs:comment "Kelly Moore is a famous brand of paint";
+       a brand:Brand;
+       rdfs:label "Kelly Moore".
+
+feature:KitchenAppliance a feature:HomeFeature, feature:Appliance, feature:InteriorFeature;
+       rdfs:label "kitchen appliance";
+       feature:FeatureLocation location:Kitchen.
+
+service:Insulation a service:Service;
+       rdfs:label "insulation";
+       service:Feature feature:Insulation;
+       service:Action action:InstallInsulation;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+material:Cement a material:BuildingMaterial;
+       rdfs:label "cement".
+
+action:CleanSwimmingPoolAction a action:ServiceAction;
+       rdfs:label "clean swimmingpool";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SwimmingPoolMaintenance, service:SwimmingPool;
+       action:Action verb:Clean;
+       action:Target location:SwimmingPool.
+
+material:Metal a service:Feature, material:Material;
+       rdfs:label "metal".
+
+service:OutdoorKitchenRemodeling a service:Service;
+       rdfs:label "outdoor kitchen remodeling";
+       service:Action action:DesignKitchen, action:BuildOutdoorKitchen;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+action:RepairPatioAction a action:ServiceAction;
+       rdfs:label "repair patio";
+       service:Actionof service:Patio;
+       action:Action verb:Repair;
+       action:Target feature:patio.
+
+action:FixFaucetAction action:Property property:FaucetProblem;
+       a action:ServiceAction;
+       rdfs:label "fix faucet";
+       action:Location location:Home;
+       service:Actionof service:Plumbing, service:HandyManService, service:FinishedPlumbing;
+       action:Action verb:Repair;
+       action:Target feature:Faucet.
+
+action:PaintHomeAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint home";
+       service:Actionof service:PaintService;
+       action:Action verb:Paint;
+       action:Instrument material:Paint;
+       action:Target location:Home.
+
+action:InstallCentralheating a action:ServiceAction;
+       rdfs:label "install central heating";
+       service:Actionof service:Plumbing, service:HeatingAndCooling, service:Heating, service:CentralHeating;
+       action:Action verb:Install;
+       action:Agent trade:GeneralContractor;
+       action:Target feature:CentralHeating.
+
+action:InstallPaving a action:ServiceAction;
+       rdfs:label "install paving";
+       service:Actionof service:StonePaving, service:Paving, service:Driveways;
+       action:Action verb:Install;
+       action:Instrument material:Stone, material:Asphalt, material:Brick, material:Concrete, material:Gravel;
+       action:Target feature:DriveWay, location:BackYard.
+
+action:InstallWellPump a action:ServiceAction;
+       rdfs:label "install wellpump";
+       service:Actionof service:RoughPlumbing, service:Plumbing;
+       action:Action verb:Install;
+       action:Target feature:WellPump.
+
+location:Bedroom a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "bedroom".
+
+action:RepairAirConditioning a action:ServiceAction;
+       rdfs:label "repair airconditioning";
+       service:Actionof service:HVACMaintenance, service:AirConditioning, service:HeatingAndCooling;
+       action:Action verb:Repair;
+       action:Target feature:AirConditioning.
+
+feature:Siding a feature:HomeFeature, feature:ExteriorFeature;
+       feature:ConstructionMaterial material:Wood, material:Vinyl, material:Cement, material:Stucco;
+       rdfs:label "siding".
+
+feature:Faucet a feature:HomeFeature;
+       rdfs:label "faucet".
+
+service:Laminates a service:Service;
+       rdfs:label "laminates";
+       service:Feature feature:Laminate;
+       service:Action action:RepairFloorAction, action:CleanFloorAction, action:InstallFloorAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Flooring.
+
+action:InstallWindowAction a action:ServiceAction;
+       rdfs:label "install window";
+       service:Actionof service:Windows, service:HandyManService, service:Carpentry, service:Glazing;
+       action:Action verb:Install;
+       action:Target feature:Window.
+
+feature:ExteriorFeature a feature:HomeFeature, rdfs:Class, feature:ExteriorFeature;
+       rdfs:label "exterior feature";
+       rdfs:subClassOf feature:HomeFeature;
+       feature:FeatureLocation location:Exterior.
+
+verb:Stain a action:ActionVerb;
+       rdfs:label "stain".
+
+feature:Gate a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "gate";
+       feature:ConstructionMaterial material:Wood, material:Metal, material:BarbedWire, material:ChainLink.
+
+verb:Refinish rdfs:comment "The action of refinishing something";
+       a action:ActionVerb;
+       rdfs:label "refinish".
+
+feature:Gutter a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "gutter";
+       feature:ConstructionMaterial material:Wood, material:Metal, material:Cement.
+
+action:BuildSteps rdfs:comment "Build a set of steps in the garden (typically)";
+       a action:ServiceAction;
+       rdfs:label "build steps";
+       service:Actionof service:Hardscape;
+       action:Action verb:Build;
+       action:Target feature:Steps.
+
+service:GreenConstruction rdfs:comment "Building with environment-friendly materials and processes.";
+       a service:Service;
+       rdfs:label "Green Construction";
+       service:Category service:Construction;
+       service:Action action:BuildingSitePrepare.
+
+service:Carpet a service:Service;
+       rdfs:label "carpet service";
+       service:Feature feature:Carpet;
+       service:Action action:InstallCarpetAction, action:RepairCarpetAction, action:CleanCarpetAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Cleaning, service:Flooring.
+
+feature:UtilityFeature a feature:HomeFeature;
+       rdfs:label "utility".
+
+action:PlantPlant a action:ServiceAction;
+       rdfs:label "plant a plant";
+       service:Actionof service:PlantInstallation;
+       action:Action verb:Plant;
+       action:Target location:Garden, location:BackYard, location:FrontYard.
+
+action:Demolition a action:ServiceAction;
+       rdfs:label "demolish";
+       service:Actionof service:Demolition;
+       action:Action verb:Demolish;
+       action:Agent trade:Builder.
+
+trade:OffersService rdfs:domain trade:Actor;
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "offers service".
+
+service:GarageDoors a service:Service;
+       rdfs:label "garage door";
+       service:Feature feature:GarageDoor;
+       service:Action action:InstallGarageDoor, action:RepairGarageDoor;
+       service:Category service:HomeImprovementService;
+       service:Related service:PaintService.
+
+verb:SandBlast a action:ActionVerb;
+       rdfs:label "sandblast".
+
+service:InteriorDesign a service:Service;
+       rdfs:label "interior design";
+       service:Action action:DesignBathroom, action:DesignBasement, action:DesignKitchen, action:DesignBedroom, action:DesignHouse, action:DesignSunroom, action:DesignGarage.
+
+action:InstallClosetOrganizerAction a action:ServiceAction;
+       rdfs:label "install closet organizer";
+       service:Actionof service:HandyManService, service:Carpentry, service:Closets;
+       action:Action verb:Install;
+       action:Target feature:ClosetOrganizer.
+
+action:SidingRepairAction a action:ServiceAction;
+       rdfs:label "repair siding";
+       action:Location location:Exterior;
+       service:Actionof service:VinylSiding, service:Siding, service:WoodSiding;
+       action:Action verb:Repair;
+       action:Target feature:Siding.
+
+action:InstallFurnace a action:ServiceAction;
+       rdfs:label "install furnace";
+       service:Actionof service:Furnace;
+       action:Action verb:Install;
+       action:Target feature:Furnace.
+
+feature:Appliance a feature:HomeFeature, rdfs:Class, feature:Appliance;
+       rdfs:label "appliance".
+
+feature:SteelFrame a feature:HomeFeature;
+       rdfs:label "steel frame".
+
+service:Gates a service:Service;
+       rdfs:label "gates";
+       service:Action action:BuildGateAction, action:PaintGateAction, action:RepairGateAction;
+       service:Category service:HomeImprovementService.
+
+service:Flooring a service:Service;
+       rdfs:label "flooring";
+       service:Feature feature:Carpet, feature:FloorTile, feature:HardwoodFlooring, feature:Laminate, feature:Stone, feature:Vinyl, feature:Paving;
+       service:Action action:RepairFloorAction, action:CleanFloorAction, action:InstallFloorAction;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Carpet, service:Paving, service:Vinyl, service:HardwoodFloors, service:Laminates, service:Stairs.
+
+service:Brand rdfs:domain service:Service;
+       rdfs:comment "A service may have brands associated with them";
+       a rdf:Property;
+       rdfs:range brand:Brand;
+       rdfs:label "service brand".
+
+service:FauxFinish a service:Service;
+       rdfs:label "faux finishing";
+       service:Action action:FauxFinishAction;
+       service:Category service:PaintService;
+       service:Related service:PaintService.
+
+action:DisasterRecoveryAction a action:ServiceAction;
+       reason:RelatedConcept reason:Disaster.
+
+action:ServiceApplianceAction a action:ServiceAction;
+       rdfs:label "service appliance";
+       service:Actionof service:ApplianceService;
+       action:Action verb:Repair;
+       action:Target feature:Appliance.
+
+action:BuildGarageAction a action:ServiceAction;
+       rdfs:label "build garage";
+       action:Action verb:Construct;
+       action:Target location:Garage.
+
+feature:Shed a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "shed".
+
+action:DesignLighting a action:ServiceAction;
+       rdfs:label "design lighting";
+       service:Actionof service:Architecture;
+       action:Action verb:Design;
+       action:Target location:Home.
+
+service:ValetParking rdfs:comment "full service parking where an attendant performs the actual parking operation. Used in situations where self-parking is difficult or inconvenient";
+       a service:Service;
+       rdfs:label "valet parking".
+
+action:HangDryWallAction action:Property property:SquareFeet, property:CeilingHeight;
+       a action:ServiceAction;
+       rdfs:label "hang drywall";
+       service:Actionof service:DryWalling;
+       action:Action verb:Hang;
+       action:Instrument material:DryWall;
+       action:Target location:Interior, location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom.
+
+feature:Bath a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "bath";
+       feature:FeatureLocation location:Bathroom, location:Home.
+
+action:RepairStructureAction a action:ServiceAction;
+       rdfs:label "repair structure";
+       service:Actionof service:HomeAdditions, service:Carpentry, service:Construction;
+       action:Action verb:Repair;
+       action:Target feature:ExteriorFeature.
+
+service:HomeStaging a service:Service;
+       rdfs:label "home staging";
+       service:Category service:HomeImprovementService.
+
+action:InstallSepticTank a action:ServiceAction;
+       rdfs:label "install septic tank";
+       service:Actionof service:RoughPlumbing, service:Sewers, service:Plumbing, service:Septic;
+       action:Action verb:Install;
+       action:Target feature:SepticTank.
+
+action:BuildGarage a action:ServiceAction;
+       rdfs:label "build garage";
+       service:Actionof service:RoughCarpentry;
+       action:Action verb:Construct;
+       action:Target location:Garage.
+
+action:RepairDeckAction a action:ServiceAction;
+       rdfs:label "repair deck";
+       service:Actionof service:Deck, service:Carpentry;
+       action:Action verb:Repair;
+       action:Target feature:Deck.
+
+feature:SepticTank a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "septic tank".
+
+trade:Genie a rdfs:Class.
+
+action:CleanSepticTank a action:ServiceAction;
+       rdfs:label "clean septic tank";
+       service:Actionof service:Sewers, service:Plumbing, service:Septic;
+       action:Action verb:Clean;
+       action:Target feature:SepticTank.
+
+action:RepairTennisCourtAction a action:ServiceAction;
+       rdfs:label "repair tennis court";
+       service:Actionof service:SportsEquipment;
+       action:Action verb:Repair;
+       action:Target feature:TennisCourt.
+
+feature:Deck a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "deck";
+       feature:ConstructionMaterial material:Wood.
+
+action:Technique rdfs:domain action:ServiceAction;
+       a rdf:Property;
+       rdfs:range service:Technique;
+       rdfs:label "technique".
+
+feature:ChairLift a feature:HomeFeature;
+       rdfs:label "chair lift".
+
+action:InstallElectrics a action:ServiceAction;
+       rdfs:label "install electrics";
+       action:Location location:HomeLocation;
+       service:Actionof service:ElectricalService;
+       action:Action verb:Install;
+       action:Target feature:HomeElectrics.
+
+service:WeddingPlanning rdfs:comment "Planning weddings, designing ceremonies, receptions, organizing invitation lists, bridal registries and so on.";
+       a service:Service;
+       rdfs:label "wedding planning".
+
+material:HardwoodFlooring a service:Feature, material:Material;
+       rdfs:label "hardwood flooring".
+
+service:Construction a service:Service;
+       rdfs:label "construction";
+       service:Action action:BuildDeckAction, action:BuildHomeAction, action:HomeAdditionAction, action:SitePreparationTask, action:RepairStructureAction, action:BuildStructureAction;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:GreenConstruction.
+
+service:Wastu a service:Service;
+       rdfs:label "Wastu".
+
+action:RepairWaterHeater a action:ServiceAction;
+       rdfs:label "repair water heater";
+       service:Actionof service:Plumbing, service:WaterHeater, service:CentralHeating;
+       action:Action verb:Repair;
+       action:Target feature:WaterHeater.
+
+service:Landscape a service:Service;
+       rdfs:label "landscaping";
+       service:Action action:DesignLandscape, action:InstallLandscape, action:ConstructSteps, action:TreatLawnAction, action:RepairSteps, action:InstallSodAction, action:RemoveTreeStumpAction, action:InstallSteps, action:MaintainGardenSprinkler, action:TreatTreeAction, action:LandscapingAction, action:PlantTreeAction, action:InstallOutdoorLighting, action:TrimGardenAction, action:MowLawnAction, action:SoilGradingAction, action:InstallGardenSprinkler;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Paving, service:TreeCare, service:LawnCare, service:PlantInstallation, service:RetainingWall, service:WalkWays, service:Steps;
+       service:HasCategory service:Drainage, service:StonePaving, service:Paving, service:SoilStabilization.
+
+action:BuildStructureAction a action:ServiceAction;
+       rdfs:label "build structure";
+       service:Actionof service:HomeAdditions, service:RoughCarpentry, service:Carpentry, service:Construction;
+       action:Action verb:Construct;
+       action:Target feature:ExteriorFeature.
+
+action:Caulking rdfs:comment "Seal joints with a flexible sealant material";
+       a action:ServiceAction;
+       rdfs:label "Caulking";
+       service:Actionof service:Windows, service:Doors.
+
+service:Locksmith a service:Service;
+       rdfs:label "locksmith";
+       service:Category service:HomeImprovementService.
+
+service:Septic a service:Service;
+       rdfs:label "septic";
+       service:Feature feature:Toilet;
+       service:Action action:RepairSepticTank, action:InstallPipes, action:InstallSumpPumpFeature, action:CleanDrainsAction, action:InstallToilet, action:RepairSumpPumpFeature, action:InstallSepticTank, action:CleanSepticTank;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+service:AirDucts a service:Service;
+       rdfs:label "ducting";
+       service:Feature feature:Ducting;
+       service:Action action:CleanDucts, action:RepairDucts, action:InstallDuct;
+       service:Category service:HomeImprovementService;
+       service:Related service:AirConditioning.
+
+feature:WaterHeater a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "water heater";
+       feature:Location location:Home.
+
+verb:Plant a action:ActionVerb;
+       rdfs:label "plant".
+
+property:PlumbingProblem property:Type datatype:Text;
+       a property:Property;
+       rdfs:label "plumbing problem".
+
+feature:MobileHome a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "mobile home".
+
+service:Closets rdfs:comment "Installing closet";
+       a service:Service;
+       rdfs:label "Closets";
+       service:Action action:InstallCloset, action:InstallClosetOrganizerAction;
+       service:Category service:RemodelingService.
+
+action:InstallWalkWays a action:ServiceAction;
+       rdfs:label "install walkways";
+       service:Actionof service:WalkWays;
+       action:Action verb:Install;
+       action:Target feature:WalkWays.
+
+service:BasementRemodeling a service:Service;
+       rdfs:label "basement remodeling";
+       service:Feature location:Basement;
+       service:Action action:RemodelBasement, action:DesignBasement, action:PaintBasement;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+service:Driver rdfs:comment "Drive a car or limousine on behalf of a client.";
+       a service:Service;
+       rdfs:label "driver".
+
+trade:Cleaner a trade:Contractor, trade:Actor;
+       rdfs:label "cleaner";
+       trade:OffersService service:Cleaning.
+
+feature:TennisCourt a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "tennis court".
+
+action:MoveMobileHomeAction a action:ServiceAction;
+       rdfs:label "move mobile home";
+       action:Action verb:Move;
+       action:Target feature:MobileHome.
+
+location:Attic a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "attic".
+
+feature:ShowerDoor a feature:HomeFeature;
+       rdfs:label "shower door".
+
+service:Countertop a service:Service;
+       rdfs:label "countertop";
+       service:Action action:DesignKitchen, action:InstallCounterTop, action:RepairCounterTop;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Cabinets;
+       service:Related service:RemodelingService, service:KitchenRemodeling.
+
+service:Nanny a service:Service;
+       rdfs:label "nanny";
+       service:Category service:HomeImprovementService.
+
+datatype:Type a rdfs:Class, datatype:Type.
+
+rdfs:subClassOf rdfs:domain rdfs:Class;
+       a rdf:Property;
+       rdfs:range rdfs:Class.
+
+feature:Closet a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "closet".
+
+feature:Mirror rdfs:comment "Mirror, mirror, on the wall ...";
+       a feature:HomeFeature;
+       rdfs:label "mirror".
+
+service:WaterPurification a service:Service;
+       rdfs:label "water purification";
+       service:Feature feature:WaterPurificationSystem;
+       service:Action action:InstallWaterPurification, action:CleanWaterPurification, action:RepairWaterPurification;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+action:CleanVent a action:ServiceAction;
+       rdfs:label "clean vent";
+       service:Actionof service:VentService;
+       action:Action verb:Clean;
+       action:Target feature:Vents.
+
+service:Miscellaneous rdfs:comment "A miscellaneous category of services which is used when someone signs up with a service that is not currently recorded in the ontology.";
+       a service:Service;
+       rdfs:label "miscellaneous".
+
+service:Sunroom a service:Service;
+       rdfs:label "sunroom";
+       service:Feature location:Sunroom;
+       service:Action action:RemodelSunroom, action:DesignSunroom, action:PaintSunroom;
+       service:Category service:HomeImprovementService;
+       service:Related service:RemodelingService.
+
+service:SkyLight a service:Service;
+       rdfs:label "skylight";
+       service:Action action:InstallSkylightAction, action:RepairSkylightAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:RoofingService.
+
+service:Furnace a service:Service;
+       rdfs:label "furnaces";
+       service:Feature feature:Furnace;
+       service:Action action:ServiceFurnace, action:InstallFurnace, action:RepairFurnace;
+       service:Category service:HomeImprovementService;
+       service:Related service:HeatingAndCooling.
+
+verb:Retrofit a action:ActionVerb;
+       rdfs:label "retrofit".
+
+action:StairInstallAction a action:ServiceAction;
+       rdfs:label "install stair";
+       service:Actionof service:Stairs, service:Carpentry;
+       action:Action verb:Install;
+       action:Target feature:Stair.
+
+service:Doors a service:Service;
+       rdfs:label "door";
+       service:Action action:InstallDoorAction, action:RepairDoorAction, action:Caulking;
+       service:Category service:HomeImprovementService;
+       service:HasCategory service:Awnings;
+       service:Related service:PaintService.
+
+feature:Shelves rdfs:comment "Things people put stuff on";
+       a feature:HomeFeature;
+       rdfs:label "shelves".
+
+service:SteelFraming a service:Service;
+       rdfs:label "steel framing";
+       service:Action action:SteelFrameConstructionAction, action:SteelFrameInstallAction;
+       service:Category service:HomeImprovementService;
+       service:Related service:Construction.
+
+verb:Design a action:ActionVerb;
+       rdfs:label "design".
+
+service:Irrigation a service:Service;
+       rdfs:label "irrigation";
+       service:Feature feature:GardenSprinkler, feature:IrrigationSystem;
+       service:Action action:InstallIrrigation, action:RepairIrrigation, action:MaintainGardenSprinkler, action:InstallGardenSprinkler;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Sprinkler.
+
+service:KitchenRemodeling a service:Service;
+       rdfs:label "kitchen remodeling";
+       service:Action action:RepairCabinet, action:DesignKitchen, action:InstallCounterTop, action:RepairCounterTop, action:RefaceCabinet, action:InstallCabinet;
+       service:Category service:HomeImprovementService;
+       service:Specialty service:Cabinets;
+       service:Related service:RemodelingService.
+
+trade:Someone a trade:Actor;
+       rdfs:label "someone";
+       trade:CanPerformTask action:HomeImprovementAction, action:ServiceAction.
+
+service:ApplianceService a service:Service;
+       rdfs:label "appliances";
+       service:Action action:InstallKitchenAppliance, action:InstallApplianceAction, action:ServiceApplianceAction;
+       service:Category service:HomeImprovementService.
+
+feature:Drains a feature:HomeFeature, feature:UtilityFeature;
+       rdfs:label "drains".
+
+feature:FeatureLocation rdfs:domain feature:HomeFeature;
+       a rdf:Property;
+       rdfs:range location:HomeLocation;
+       rdfs:label "feature's location".
+
+action:BuildCabinet a action:ServiceAction;
+       rdfs:label "build cabinet";
+       service:Actionof service:Cabinets, service:Carpentry;
+       action:Action verb:Construct;
+       action:Target feature:Cabinet.
+
+material:BarbedWire a material:BuildingMaterial;
+       rdfs:label "barbed wire".
+
+property:FaucetProblem property:Type [datatype:Choice "leaking", "blocked", "pressure";
+       a datatype:Type];
+       a property:Property;
+       rdfs:label "faucet problem".
+
+trade:Carpenter a trade:Contractor, trade:Actor;
+       rdfs:label "carpenter";
+       trade:OffersService service:Carpentry.
+
+feature:FloorTile rdfs:comment "A type of tile designed for flooring";
+       a service:Feature, material:Material, feature:HomeFeature;
+       rdfs:label "floor tiles".
+
+feature:Floor a feature:HomeFeature, feature:InteriorFeature;
+       rdfs:label "floor";
+       feature:ConstructionMaterial material:Hardwood, material:Vinyl, material:Carpet, material:FloorTile, material:Stone, material:Laminate, material:Paving.
+
+feature:Well a feature:ExteriorFeature, feature:HomeFeature;
+       rdfs:label "well".
+
+action:RepairFurnace a action:ServiceAction;
+       rdfs:label "repair furnace";
+       service:Actionof service:HVACMaintenance, service:Furnace;
+       action:Action verb:Repair;
+       action:Target feature:Furnace.
+
+action:PaintDeckAction action:Property property:SquareFeet, property:ConstructionMaterial;
+       a action:ServiceAction;
+       rdfs:label "paint deck";
+       service:Actionof service:PaintService, service:Deck;
+       action:Action verb:Paint;
+       action:Instrument material:Paint, material:Stain;
+       action:Target feature:Deck.
+
+action:InstallCabinet a action:ServiceAction;
+       rdfs:label "install cabinet";
+       service:Actionof service:RemodelingService, service:Cabinets, service:HandyManService, service:Carpentry, service:KitchenRemodeling;
+       action:Action verb:Install;
+       action:Target feature:Cabinet.
+
+brand:Brand rdfs:comment "The master class of all known brands";
+       a rdfs:Class, brand:Brand;
+       rdfs:label "Brand".
+
+feature:IrrigationSystem a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "irrigation system";
+       feature:FeatureLocation location:Garden.
+
+action:GutterCleanAction a action:ServiceAction;
+       rdfs:label "clean guttering";
+       action:Location location:Exterior;
+       service:Actionof service:GutterService;
+       action:Action verb:Clean;
+       action:Target feature:Gutter.
+
+service:GutterService a service:Service;
+       rdfs:label "gutter";
+       service:Action action:GutterRepairAction, action:GutterInstallAction, action:GutterCleanAction;
+       service:Category service:RoofingService;
+       service:Specialty service:GutterProtection;
+       service:HasCategory service:GutterProtection;
+       service:Related service:RoofingService.
+
+rdfs:range rdfs:domain rdf:Property;
+       a rdf:Property;
+       rdfs:range rdfs:Class.
+
+service:GardenCare a service:Service;
+       rdfs:label "garden care".
+
+feature:StormWindow a feature:ExteriorFeature, feature:HomeFeature;
+       rdfs:label "storm window".
+
+service:FinishedPlumbing a service:Service;
+       rdfs:label "finished plumbing";
+       service:Action action:InstallWaterPurification, action:InstallKitchenAppliance, action:InstallBathFeature, action:FixFaucetAction, action:InstallWaterHeater;
+       service:Category service:HomeImprovementService;
+       service:Related service:Plumbing.
+
+action:RemodelBathroom a action:ServiceAction;
+       rdfs:label "remodel bathroom";
+       service:Actionof service:BathroomRemodeling;
+       action:Action verb:Remodel;
+       action:Target location:Bathroom.
+
+action:PaintInteriorAction action:Property property:NoOfRooms, property:SquareFeet, property:MaterialsProvided;
+       a action:ServiceAction;
+       rdfs:label "paint interior";
+       service:Actionof service:PaintService, service:HandyManService;
+       action:Action verb:Paint;
+       action:Target feature:InteriorFeature.
+
+service:LandscapeDesign a service:Service;
+       rdfs:label "landscape design";
+       service:Action action:DesignLandscape;
+       service:Category service:HomeImprovementService.
+
+service:Related rdfs:domain service:Service;
+       a rdf:Property;
+       rdfs:range service:Service;
+       rdfs:label "related service".
+
+action:RepairWallpaperAction action:Property property:SquareFeet;
+       a action:ServiceAction;
+       rdfs:label "repair wallpaper";
+       action:Location location:Bedroom, location:LivingRoom, location:Kitchen, location:UtilityRoom;
+       service:Actionof service:WallPaper, service:HandyManService;
+       action:Action verb:Repair;
+       action:Reason reason:IWantTo, reason:AFlood, reason:Fire, reason:Pest, reason:DryRot, reason:Water;
+       action:Target feature:WallPaper.
+
+feature:RetainingWall a feature:HomeFeature, feature:ExteriorFeature;
+       rdfs:label "retaining wall";
+       feature:Location location:Garden, location:Home.
+
+action:InstallHotTubAction a action:ServiceAction;
+       rdfs:label "install hot tub";
+       action:Location location:Garden, location:BackYard;
+       service:Actionof service:SpaService;
+       action:Action verb:Install;
+       action:Target feature:HotTub, feature:Spa.
+
+action:DesignPatioAction a action:ServiceAction;
+       rdfs:label "design patio";
+       service:Actionof service:Patio;
+       action:Action verb:Design;
+       action:Target feature:Patio.
+
+service:HouseCleaning rdfs:comment "Cleaning an entire house; may be used as part of a moving service.";
+       a service:Service;
+       rdfs:label "house cleaning".
+
+location:Home a location:HomeLocation, feature:HomeFeature;
+       rdfs:label "home".
+
+action:RepairGarageDoor a action:ServiceAction;
+       rdfs:label "repair garage door";
+       service:Actionof service:HandyManService, service:GarageDoors;
+       action:Action verb:Repair;
+       action:Target feature:GarageDoor.
+
+service:Stucco a service:Service;
+       rdfs:label "stucco";
+       service:Action action:StuccoInstallAction, action:StuccoRepairAction;
+       service:Category service:HomeImprovementService.
+
+feature:Plaster a feature:HomeFeature;
+       rdfs:label "plaster".
+
+trade:FlooringContractor a trade:Contractor, trade:Actor;
+       rdfs:label "flooring contractor";
+       trade:OffersService service:Flooring.
+
+verb:Trim a action:ActionVerb;
+       rdfs:label "trim".
+
+trade:KitchenRemodeler a trade:Contractor, trade:Actor;
+       rdfs:label "remodeler";
+       trade:OffersService service:KitchenRemodeling, service:Cabinets.
+
+location:Sunroom a feature:HomeFeature, location:HomeLocation, feature:InteriorFeature;
+       rdfs:label "sunroom".
+
+service:Patio a service:Service;
+       rdfs:label "patios";
+       service:Action action:PaintPatioAction, action:BuildPatioAction, action:RepairPatioAction, action:DesignPatioAction;
+       service:Category service:HomeImprovementService.
+
+service:HouseSitting a service:Service;
+       rdfs:comment "Looking after an owner's home while they are absent. May be for an extended period of several months or years; but is typically for a shorter time. Often involves actually living in the home.";
+       rdfs:label "house sitting".
+
+service:ChimneyCleaning rdfs:comment "Cleaning chimmneys.";
+       a service:Service;
+       rdfs:label "chimney cleaning";
+       service:Related service:Chimney.
+
+action:InstallWaterHeater a action:ServiceAction;
+       rdfs:label "install water heater";
+       service:Actionof service:Plumbing, service:WaterHeater, service:CentralHeating, service:FinishedPlumbing;
+       action:Action verb:Install;
+       action:Target feature:WaterHeater.
+
+service:InHomeNursing a service:Service;
+       rdfs:label "in home nursing";
+       service:Category service:HomeImprovementService.
+
+<> dc:title "Home Improvement Ontology".

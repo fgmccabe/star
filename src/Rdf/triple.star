@@ -65,6 +65,10 @@ rdf.triple{
     disp(.tr(S,P,O)) => "$(S) $(P) $(O)"
   }
 
+  public implementation hashable[triple] => {
+    hash(.tr(S,P,O)) => (hash(S)*37+hash(P))*37+hash(O)
+  }
+
   public stmt ::= .macro(string,string) | .sent(triple).
 }
   
