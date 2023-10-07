@@ -47,7 +47,7 @@ rdf.driver{
 	  if showLex! then
 	    logMsg("tokens from $(O)\: $(Toks)");
 
-	  Concepts = allConcepts(Toks,({}:map[string,string]));
+	  Triples = allTriples(Toks,({}:map[string,string]));
 
 	  if showParse! then
 	    logMsg("concepts: $(Concepts)");
