@@ -47,10 +47,10 @@ rdf.driver{
 	  if showLex! then
 	    logMsg("tokens from $(O)\: $(Toks)");
 
-	  Triples = allTriples(Toks,({}:map[string,string]));
+	  Graph = (parseGraph() --> Toks);
 
 	  if showParse! then
-	    logMsg("concepts: $(Concepts)");
+	    logMsg("Graph: $(Graph)");
 	} else
 	logMsg("cant find ontology source text at $(SrcUri)");
       } else

@@ -31,7 +31,7 @@ rdf.triple{
     disp(.named("",S)) => S.
     disp(.named(P,S)) => "#(P)\:#(S)".
     disp(.uri(U)) => "<$(U)>".
-    disp(.text(S)) => interleave(S//disp,";")*.
+    disp(.text(S)) => "\"#(interleave(S//disp,";")*)\"".
     disp(.int(N)) => disp(N).
     disp(.flt(N)) => disp(N).
   }

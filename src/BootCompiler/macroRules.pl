@@ -48,6 +48,7 @@ macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
+macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
 
 build_main(As,Bs) :-

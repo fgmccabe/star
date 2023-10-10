@@ -22,12 +22,7 @@ rdf.lexer{
   .} in allToks(St,[]).
   
   nextToken:(tokenState) => (tokenState,option[token]).
-  nextToken(St) => valof{
-    Tok = nxTok(skipToNx(St));
-    if traceLex! then
-      logMsg("next token: $(Tok)");
-    valis Tok
-  }
+  nextToken(St) => nxTok(skipToNx(St)).
 
   nxTok:(tokenState) => (tokenState,option[token]).
   nxTok(St) where (Nx,.some(Chr)) .= nextChr(St) =>
@@ -68,9 +63,9 @@ rdf.lexer{
       Stx ?= lookingAt(St1,[`\``]) =>
     (Stx,.some(.tok(makeLoc(St0,Stx),.chrTok(ChC)))).
   nxxTok(`.`,St,St0) where (Nx,.some(`\n`)) .= nextChr(St) =>
-    (Nx,.some(.tok(makeLoc(St0,Nx),.idTok(". ")))).
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok(". ")))).
   nxxTok(`.`,St,St0) where (Nx,.some(`\t`)) .= nextChr(St) =>
-    (Nx,.some(.tok(makeLoc(St0,Nx),.idTok(". ")))).
+    (Nx,.some(.tok(makeLoc(St0,Nx),.pncTok(". ")))).
   nxxTok(Chr,St,St0) where Pnc ?= punc(Chr) =>
     (St,.some(.tok(makeLoc(St0,St),.pncTok(Pnc)))).
   nxxTok(`<`,St,St0) where (Nxt,.some(Txt)) .= readQuoted(St,`>`,[]) =>
