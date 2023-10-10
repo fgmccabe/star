@@ -1,4 +1,7 @@
-:- module(grammar,[grammarMacro/3,makeGrammar/2,grammarTypeMacro/3]).
+:- module(grammar,[grammarMacro/3,
+		   makeGrammar/2,
+		   grammarCallMacro/3,
+		   grammarTypeMacro/3]).
 
 :- use_module(astdisp).
 :- use_module(operators).
@@ -385,5 +388,18 @@ grammarTypeMacro(A,type,Tx) :-
   roundTuple(Lc,[P,S],Rs),
   squareTerm(Lc,name(Lc,"option"),[Rs],Rt),
   funcType(Lc,Arg,Rt,Tx).
-  
-  
+
+% NT --> Tks, as an expression, becomes
+% ( (Rslt,[]) ?= NT(Tks) ?? .some(Rslt) || .none)
+grammarCallMacro(A,expression,Ax) :-
+    isParseCall(A,Lc,L,Str),!,
+    parseBody(L,Body),
+    genIden(Lc,"Nxt",Nxt),
+    genIden(Lc,"Rslt",Rslt),
+    makeBody(Body,Str,Nxt,some(Rslt),Cond),
+    unary(Lc,"_eof",Nxt,End),
+    conjunct(Lc,Cond,End,Test),
+    mkConApply(Lc,name(Lc,"some"),[Rslt],Rs),
+    mkEnum(Lc,"none",El),
+    conditional(Lc,Test,Rs,El,Ax).
+%    dispAst(Ax).
