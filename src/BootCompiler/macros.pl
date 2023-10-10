@@ -511,6 +511,11 @@ examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
+examineTerm(T,Tx) :-
+  isParseCall(T,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  mkParseCall(Lc,Lx,Rx,Tx).
 examineTerm(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out expression %s",[ast(T)],Lc).

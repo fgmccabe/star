@@ -8,11 +8,14 @@ rdf.parser{
   import rdf.token.
   import rdf.triple.
 
+  public parseGraph:() >> set[triple] --> cons[token].
+  parseGraph >> Gr* --> rdfTriple * >> Gr, [.endTok(_)], {trP("grs $(Gr)")}.
+
   public rdfTriple:() >> set[triple] --> cons[token].
   rdfTriple >> Ss --> triple >> Ss.
 
-  concept >> C --> symbolic >> C.
-  concept >> L --> literal >> L.
+  concept >> C --> symbolic >> C, {trP("Symbolic $(C)") }.
+  concept >> L --> literal >> L, {trP("Literal $(L)") }.
 
   symbolic >> .named(Pre,Id) --> [.tok(_,.idTok(Pre)),.tok(_,.pncTok(":")),.tok(_,.idTok(Id))].
   symbolic >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
@@ -22,12 +25,12 @@ rdf.parser{
   literal >> .flt(Fx) --> [.tok(_,.fltTok(Fx))].
   literal >> .text(Mkup) --> [.tok(Lc,.strTok(Sgs))], { Mkup ?= parseMarkup(Lc,Sgs) }.
 
-  triple >> S --> symbolic >> Su, verb_phrase(Su) >> S, [.tok(_,.pncTok(". "))].
+  triple >> S --> symbolic >> Su, verb_phrase(Su) >> S, [.tok(_,.pncTok(". "))], {trP("triples $(S)")}.
 
-  verb_phrase(Su) >> S --> symbolic >> Pr, noun_phrase(Su,Pr) >> S.
+  verb_phrase(Su) >> S* --> ({trP("look for verb for $(Su)")},symbolic >> Pr, {trP("predicate: $(Pr)")},noun_phrase(Su,Pr))*([.tok(_,.pncTok(";"))],{trP("found semi")}) >> S.
 
   noun_phrase:(concept,concept) >> set[triple] --> cons[token].
-  noun_phrase(Su,Pr) >> { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
+  noun_phrase(Su,Pr) >> trace { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
 
   parseMarkup(Lc,Sgs) =>
     ((Mkup,[]) ?= markups(Sgs) ??
@@ -42,7 +45,20 @@ rdf.parser{
   parseTks:all t,r ~~ stream[t->>_] |: ((()>>r-->t),t) => option[r].
   parseTks(P,T) => ( (R,[]) ?= P(T) ?? .some(R) || .none).
 
+  trP(Msg) => valof{
+    if traceParse! then{
+      showMsg(Msg)
+      };
+      valis .true
+  }
 
+  implementation all x ~~ display[x] |: stream[cons[x] ->> x] => {
+    _eof(.nil) => .true.
+    _eof(.cons(_,_)) => .false.
+
+    _hdtl(.cons(H,T)) => .some((trace H,T)).
+    _hdtl(.nil) => .none.
+  }
 }
 
 

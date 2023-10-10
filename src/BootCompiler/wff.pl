@@ -23,6 +23,7 @@
 	      isOpen/3,mkOpen/3,
 	      isConditional/5,conditional/5,
 	      mergeCond/4,
+	      isParseCall/4,mkParseCall/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
 	      isContRule/5,mkContRule/5,
@@ -501,9 +502,15 @@ isConditional(Term,Lc,Tst,Th,El) :-
   isBinary(Rhs,_,"||",Th,El).
 
 conditional(Lc,Tst,Th,El,Cond) :-
-  binary(Lc,"||",Th,El,Rhs),
-  binary(Lc,"??",Tst,Rhs,Cond).
+    binary(Lc,"||",Th,El,Rhs),
+    binary(Lc,"??",Tst,Rhs,Cond).
 
+isParseCall(T,Lc,L,R) :-
+    isBinary(T,Lc,"-->",L,R).
+
+mkParseCall(Lc,L,R,T) :-
+    binary(Lc,"-->",L,R,T).
+    
 ruleName(St,var(Nm),value) :-
   headOfRule(St,Hd),
   headName(Hd,Nm).

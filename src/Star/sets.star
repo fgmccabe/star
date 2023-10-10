@@ -29,6 +29,15 @@ star.sets{
     .set(m1)\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]??mm||mm[k->()]),[],m1)).
   }
 
+  public implementation all e ~~ equality[e], hashable[e] |: concat[set[e]] => {
+    S1 ++ S2 => S1\/S2.
+    _multicat(Sin) => let{.
+      _multi([],Ss) => Ss.
+      _multi([.set(S1),..Ss],Si) =>
+        _multi(Ss,ixLeft(((k,_,mm) => mm[k->()]),Si,S1)).
+    .} in .set(_multi(Sin,[]))
+  }
+
   public implementation all e ~~ display[e] |: display[set[e]] => let{
     dispEntry:(e,(),cons[string])=>cons[string].
     dispEntry(K,_,[]) => [disp(K)].
