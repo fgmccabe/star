@@ -27,7 +27,7 @@ rdf.parser{
 
   triple >> S --> symbolic >> Su, verb_phrase(Su) >> S, [.tok(_,.pncTok(". "))], {trP("triples $(S)")}.
 
-  verb_phrase(Su) >> S* --> ({trP("look for verb for $(Su)")},symbolic >> Pr, {trP("predicate: $(Pr)")},noun_phrase(Su,Pr))*([.tok(_,.pncTok(";"))],{trP("found semi")}) >> S.
+  verb_phrase(Su) >> S* --> (symbolic >> Pr, noun_phrase(Su,Pr))*[.tok(_,.pncTok(";"))] >> S.
 
   noun_phrase:(concept,concept) >> set[triple] --> cons[token].
   noun_phrase(Su,Pr) >> trace { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
