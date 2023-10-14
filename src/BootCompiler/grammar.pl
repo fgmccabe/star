@@ -179,7 +179,6 @@ dispSeq(seq(_,Lft,Rgt),O,Ox) :-!,
 dispSeq(B,O,Ox) :-
   dispBody(B,O,Ox).
 
-
 dispNonTerm(_,Nm,[],O,Ox) :-!,
   appStr(Nm,O,Ox).
 dispNonTerm(Lc,Nm,Args,O,Ox) :-
@@ -281,44 +280,101 @@ makeBody(rep(Lc,L),Str,Nxt,V,B) :-!,
   roundTuple(Lc,[VV,Nxt],T2),
   optionMatch(Lc,T2,Rh,B).
 makeBody(sep(Lc,L,R),Str,Nxt,V,B) :-
-  /*
-    let{.
-    s(S0,SoF) where (_,S1) ?= right(S0) && (X,S2)?=lft(S1) => s(S2,[X,..SoF]).
-    s(S0,SoF) => .some((reverse(SoF),S0))
-    .} in ((S0,F)?=lft(Str) && (V,Nxt) ?= s(S0,[F]))
+    makeSepBody(Lc,L,R,Str,Nxt,V,B).
 
+makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
+    /*
+    let{.
+    f(S0) => <lft>(S0).
+    f(S0) default => .none.
+    s(S0,SoF) where (_,S1) ?= <right>(S0) && (X,S2)?=f(S1) => s(S2,[X,..SoF]).
+    s(S0,SoF) => .some((reverse(SoF),S0))
+    p(S0) where (Si,F)?=f(S0) => s(Si,[F])
+    p(_) default => .none
+    .} in && (V,Ntx) ?= p(Str)
   */
   genIden(Lc,"s",S),
+  genIden(Lc,"f",F),
+  genIden(Lc,"c",C),
   genIden(Lc,"S0",S0),
   genIden(Lc,"S1",S1),
   genIden(Lc,"S2",S2),
   genIden(Lc,"Si",Si),
   genIden(Lc,"SoF",SoF),
   genIden(Lc,"X",X),
-  genIden(Lc,"Fs",Fs),
+  genIden(Lc,"Fr",Frst),
+
+  % Build equations that implement left hand side of L*R
+  makeEqnFromBody(Lc,F,L,false,Eqf1),
+  makeEqnFromBody(Lc,F,fail(Lc),true,Eqf2),
+
+  % Build equations for combined lhs&rhs of L*R)
+  
   makeBody(R,S0,S1,none,Rgt),
-  makeBody(L,S1,S2,some(X),Lft),
+  roundTerm(Lc,F,[S1],FNT),
+  resultOf(Lc,X,S2,FNT,Lft),
   mkConApply(Lc,name(Lc,"cons"),[X,SoF],SoF1),
   roundTerm(Lc,S,[S2,SoF1],Val),
   conjunct(Lc,Rgt,Lft,Tst),
   buildEquation(Lc,S,[S0,SoF],some(Tst),false,Val,Eq1),
+  dispAst(Eq1),
   unary(Lc,"reverse",SoF,Rslt),
   roundTuple(Lc,[Rslt,S0],T1),
   mkConApply(Lc,name(Lc,"some"),[T1],Val2),
   buildEquation(Lc,S,[S0,SoF],none,true,Val2,Eq2),
-  makeBody(L,Str,Si,some(Fs),AA),
-  mkEnum(Lc,"nil",Nil),
-  mkConApply(Lc,name(Lc,"cons"),[Fs,Nil],Frst),
-  roundTerm(Lc,S,[Si,Frst],BB),
-  mkLetRec(Lc,[Eq1,Eq2],BB,B1),
-  (some(VV) = V ; mkAnon(Lc,VV)),
-  roundTuple(Lc,[VV,Nxt],Vl),
-  optionMatch(Lc,Vl,B1,B2),
-  conjunct(Lc,AA,B2,B).
+  dispAst(Eq2),
 
+  % build equations for overall production
+  roundTerm(Lc,F,[S0],GNT),
+  resultOf(Lc,Frst,Si,GNT,AA),
+
+  mkEnum(Lc,"nil",Nil),
+  mkConApply(Lc,name(Lc,"cons"),[Frst,Nil],Seed),
+  roundTerm(Lc,S,[Si,Seed],Scnd),
+  
+  buildEquation(Lc,C,[S0],some(AA),false,Scnd,Eqb1),
+  dispAst(Eqb1),
+
+  mkEnum(Lc,"none",None),
+  buildEquation(Lc,C,[S0],none,true,None,Eqb2),
+  dispAst(Eqb2),
+
+  roundTerm(Lc,C,[Str],CC),
+
+  mkLetRec(Lc,[Eq1,Eq2,Eqf1,Eqf2,Eqb1,Eqb2],CC,BB),
+  (some(VV) = V ; mkAnon(Lc,VV)),
+  resultOf(Lc,VV,Nxt,BB,B),
+  dispAst(B).
+
+makeEqnFromBody(Lc,Nm,B,Dflt,Eqn) :-
+  genIden(Lc,"S0",S0),
+  genIden(Lc,"S1",S1),
+
+  % Build equations that implement a grammar body
+  makeBody(B,S0,S1,none,Cnd),
+  splitCond(Lc,Cnd,Cond,Val),
+  buildEquation(Lc,Nm,[S0],Cond,Dflt,Val,Eqn),
+  dispAst(Eqn).
+
+splitCond(_Lc,C,Cond,Val) :-
+    findOptionMatch(C,Cond,_Ptn,Val).
+splitCond(Lc,_,none,None) :-
+    mkEnum(Lc,"none",None).
+
+findOptionMatch(Cond,C,P,V) :-
+    isConjunct(Cond,Lc,L,R),
+    findOptionMatch(R,Lft,P,V),
+    mergeCond(Lc,some(L),Lft,C).
+findOptionMatch(Cond,none,P,V) :-
+    isOptionMatch(Cond,_,P,V).
+    
 resultOf(Lc,T,Nxt,S,B) :-
   roundTuple(Lc,[T,Nxt],A),
   optionMatch(Lc,A,S,B).
+
+result(Lc,T,Nxt,V) :-
+    roundTuple(Lc,[T,Nxt],A),
+    mkConApply(Lc,name(Lc,"some"),[A],V).
   
 hdtl(Lc,T,Nxt,Str,B) :-
   unary(Lc,"_hdtl",Str,S),
@@ -340,7 +396,7 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
-%  dispRule(Rl),
+  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-
