@@ -94,7 +94,7 @@ rdf.lexer{
   readString(St,SoFar) where (Nx,.some(`\"`)) .= nextChr(St) => (Nx,.some(reverse(SoFar))).
   readString(St,SoFar) where
     (Nx,.some(`$`)) .= nextChr(St) &&
-    (_,.some(`(`)) .= nextChr(Nx) &&
+    (_,.some(`[`)) .= nextChr(Nx) &&
     (St1,.some(Inter)) .= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
   readString(St,SoFar) where (St1,.some(Seg)) .= readStr(St,[]) =>
     readString(St1,[.segment(makeLoc(St,St1),Seg),..SoFar]).
@@ -102,7 +102,6 @@ rdf.lexer{
   readStr:(tokenState,cons[char]) => (tokenState,option[string]).
   readStr(St,Chrs) where  `\"` ?= hedChar(St) => (St,.some(reverse(Chrs)::string)).
   readStr(St,Chrs) where Nx ?= lookingAt(St,[`$`,`(`]) => (St,.some(reverse(Chrs)::string)).
-  readStr(St,Chrs) where Nx ?= lookingAt(St,[`#`,`(`]) => (St,.some(reverse(Chrs)::string)).
   readStr(St,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readStr(Nx,[Ch,..Chrs]).
   readStr(St,_) => (St,.none).
 

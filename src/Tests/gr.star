@@ -31,26 +31,22 @@ test.gr{
 
   parseExp:() >> expr --> cons[char].
   parseExp >> E --> exp0 >> E, end.
---  parseExp --> fail.
 
   exp0 >> E --> sumExp >> E.
 
   sumExp >> .sum(L,R) --> prodExp >> L, [`+`], sumExp >> R.
   sumExp >> .sub(L,R) --> prodExp >> L, [`-`], sumExp >> R.
   sumExp >> E --> prodExp >> E.
---  sumExp --> fail.
 
 --  prodExp:(cons[char]) => option[(expr,cons[char])].
   prodExp:()>>expr --> cons[char].
   prodExp >> .prod(L,R) --> unitExp >> L, [`*`], prodExp >> R.
   prodExp >> .div(L,R) --> unitExp >> L, [`/`], prodExp >> R.
   prodExp >> E --> unitExp >> E.
---  prodExp --> fail.
 
-  unitExp >> E --> [`(`], exp0 >> E, [`)`].
+  unitExp >> E --> [`(`], exp0 >> E, ([`)`] | {valof{logMsg("missing )");valis .true}}, skip(end)).
   unitExp >> .int(digitVal(I)) --> [I], {isDigit(I)}.
   unitExp >> .var(A) --> [A], {isLetter(A)}.
---  unitExp --> fail.
 
   evalStr:raises exception |: (string,map[char,integer]) => integer.
   evalStr(T,D) => valof{
