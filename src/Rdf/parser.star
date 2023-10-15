@@ -30,7 +30,7 @@ rdf.parser{
   verb_phrase(Su) >> S* --> (symbolic >> Pr, noun_phrase(Su,Pr))*[.tok(_,.pncTok(";"))] >> S.
 
   noun_phrase:(concept,concept) >> set[triple] --> cons[token].
-  noun_phrase(Su,Pr) >> trace { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
+  noun_phrase(Su,Pr) >> { .tr(Su,Pr,O) | O in Os } --> concept * [.tok(_,.pncTok(","))] >> Os.
 
   parseMarkup(Lc,Sgs) =>
     ((Mkup,[]) ?= markups(Sgs) ??
@@ -50,14 +50,6 @@ rdf.parser{
       showMsg(Msg)
       };
       valis .true
-  }
-
-  implementation all x ~~ display[x] |: stream[cons[x] ->> x] => {
-    _eof(.nil) => .true.
-    _eof(.cons(_,_)) => .false.
-
-    _hdtl(.cons(H,T)) => .some((trace H,T)).
-    _hdtl(.nil) => .none.
   }
 }
 
