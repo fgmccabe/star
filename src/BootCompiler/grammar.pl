@@ -19,7 +19,7 @@
   The type of such a rule looks like:
 
   all s,t ~~ stream[s->>t],hasLoc[t] |: (s,Ptypes) => (s,option[Valtype])
-  */
+*/
 
 
 parseRule(A,grRule(Lc,Nm,Args,Cond,Deflt,Val,Body)) :-
@@ -80,10 +80,10 @@ parseBody(A,prod(Lc,NT,B)) :-
 parseBody(A,fail(Lc)) :-
   isName(A,Lc,"fail"),!.
 parseBody(A,eof(Lc)) :-
-    isName(A,Lc,"end"),!.
+  isName(A,Lc,"end"),!.
 parseBody(A,skip(Lc,T)) :-
-    isUnary(A,Lc,"skip",L),
-    parseBody(L,T).
+  isUnary(A,Lc,"skip",L),
+  parseBody(L,T).
 parseBody(A,P) :-
   isRoundTuple(A,_Lc,Els),!,
   reComma(Els,I),
@@ -286,36 +286,37 @@ makeBody(rep(Lc,L),Str,Nxt,V,B) :-!,
   roundTuple(Lc,[VV,Nxt],T2),
   optionMatch(Lc,T2,Rh,B).
 makeBody(sep(Lc,L,R),Str,Nxt,V,B) :-
-    makeSepBody(Lc,L,R,Str,Nxt,V,B).
+  makeSepBody(Lc,L,R,Str,Nxt,V,B).
 makeBody(skip(Lc,L),Str,Nxt,none,B) :-!,
   /*
     let{.
-    sk(S0) where (_,_)?=lft(S0) => .some((()_,S0)).
+    sk(S0) where (_,_)?=lft(S0) => .some(((),S0)).
     sk(S0) where (_,S1) ?= hdtl(S0) => sk(S1)
     .} in (_,Nxt) ?= s(S0)
   */
   genIden(Lc,"sk",Sk),
   genIden(Lc,"S0",S0),
   genIden(Lc,"S1",S1),
-  makeBody(L,S0,S1,none,Lft),
-
+  mkAnon(Lc,An),
   unitTpl(Lc,Unit),
+
+  makeBody(L,S0,An,none,Lft),
+
   roundTuple(Lc,[Unit,S0],T1),
   mkConApply(Lc,name(Lc,"some"),[T1],Val1),
-  buildEquation(Lc,Sk,[S0],none,false,Val1,Eq1),
-
-  mkAnon(Lc,An),
+  buildEquation(Lc,Sk,[S0],some(Lft),false,Val1,Eq1),
 
   hdtl(Lc,An,S1,S0,H),
   roundTerm(Lc,Sk,[S1],V1),
-  buildEquation(Lc,S,[S0],some(H),false,V1,Eq2),
+  buildEquation(Lc,Sk,[S0],some(H),false,V1,Eq2),
 
   roundTerm(Lc,Sk,[Str],Cl),
   mkLetRec(Lc,[Eq1,Eq2],Cl,Rh),
-  resultOf(Lc,An,Nxt,Rm,B).
+  resultOf(Lc,An,Nxt,Rh,B),
+  dispAst(B).
 
 makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
-    /*
+  /*
     let{.
     f(S0) => <lft>(S0).
     f(S0) default => .none.
@@ -336,12 +337,11 @@ makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
   genIden(Lc,"X",X),
   genIden(Lc,"Fr",Frst),
 
-  % Build equations that implement left hand side of L*R
+  /* Build equations that implement left hand side of L*R */
   makeEqnFromBody(Lc,F,L,false,Eqf1),
   makeEqnFromBody(Lc,F,fail(Lc),true,Eqf2),
 
-  % Build equations for combined lhs&rhs of L*R)
-  
+  /* Build equations for combined lhs&rhs of L*R) */
   makeBody(R,S0,S1,none,Rgt),
   roundTerm(Lc,F,[S1],FNT),
   resultOf(Lc,X,S2,FNT,Lft),
@@ -349,14 +349,14 @@ makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
   roundTerm(Lc,S,[S2,SoF1],Val),
   conjunct(Lc,Rgt,Lft,Tst),
   buildEquation(Lc,S,[S0,SoF],some(Tst),false,Val,Eq1),
-%  dispAst(Eq1),
+					%  dispAst(Eq1),
   unary(Lc,"reverse",SoF,Rslt),
   roundTuple(Lc,[Rslt,S0],T1),
   mkConApply(Lc,name(Lc,"some"),[T1],Val2),
   buildEquation(Lc,S,[S0,SoF],none,true,Val2,Eq2),
-%  dispAst(Eq2),
+					%  dispAst(Eq2),
 
-  % build equations for overall production
+  /* build equations for overall production */
   roundTerm(Lc,F,[S0],GNT),
   resultOf(Lc,Frst,Si,GNT,AA),
 
@@ -365,56 +365,56 @@ makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
   roundTerm(Lc,S,[Si,Seed],Scnd),
   
   buildEquation(Lc,C,[S0],some(AA),false,Scnd,Eqb1),
-%  dispAst(Eqb1),
+					%  dispAst(Eqb1),
 
   mkEnum(Lc,"none",None),
   buildEquation(Lc,C,[S0],none,true,None,Eqb2),
-%  dispAst(Eqb2),
+					%  dispAst(Eqb2),
 
   roundTerm(Lc,C,[Str],CC),
 
   mkLetRec(Lc,[Eq1,Eq2,Eqf1,Eqf2,Eqb1,Eqb2],CC,BB),
   (some(VV) = V ; mkAnon(Lc,VV)),
   resultOf(Lc,VV,Nxt,BB,B).
-%  dispAst(B).
+					%  dispAst(B).
 
 makeEqnFromBody(Lc,Nm,B,Dflt,Eqn) :-
   genIden(Lc,"S0",S0),
   genIden(Lc,"S1",S1),
 
-  % Build equations that implement a grammar body
+  /* Build equations that implement a grammar body */
   makeBody(B,S0,S1,none,Cnd),
   splitCond(Lc,Cnd,Cond,Val),
   buildEquation(Lc,Nm,[S0],Cond,Dflt,Val,Eqn).
-%  dispAst(Eqn).
+					%  dispAst(Eqn).
 
 splitCond(_Lc,C,Cond,Val) :-
-    findOptionMatch(C,Cond,_Ptn,Val).
+  findOptionMatch(C,Cond,_Ptn,Val).
 splitCond(Lc,_,none,None) :-
-    mkEnum(Lc,"none",None).
+  mkEnum(Lc,"none",None).
 
 findOptionMatch(Cond,C,P,V) :-
-    isConjunct(Cond,Lc,L,R),
-    findOptionMatch(R,Lft,P,V),
-    mergeCond(Lc,some(L),Lft,C).
+  isConjunct(Cond,Lc,L,R),
+  findOptionMatch(R,Lft,P,V),
+  mergeCond(Lc,some(L),Lft,C).
 findOptionMatch(Cond,none,P,V) :-
-    isOptionMatch(Cond,_,P,V).
-    
+  isOptionMatch(Cond,_,P,V).
+
 resultOf(Lc,T,Nxt,S,B) :-
   roundTuple(Lc,[T,Nxt],A),
   optionMatch(Lc,A,S,B).
 
 result(Lc,T,Nxt,V) :-
-    roundTuple(Lc,[T,Nxt],A),
-    mkConApply(Lc,name(Lc,"some"),[A],V).
-  
+  roundTuple(Lc,[T,Nxt],A),
+  mkConApply(Lc,name(Lc,"some"),[A],V).
+
 hdtl(Lc,T,Nxt,Str,B) :-
   unary(Lc,"_hdtl",Str,S),
   resultOf(Lc,T,Nxt,S,B).
 
 grammarMacro(A,statement,Ax) :-
   parseRule(A,Rl),!,
-%  dispRule(Rl),
+					%  dispRule(Rl),
   makeRule(Rl,Ax),
   dispAst(Ax).
 
@@ -428,7 +428,7 @@ collectGrRules([],[],Mp,Mp) :-!.
 collectGrRules([St|Ss],Rls,Mp,Mpx) :-
   isBinary(St,_,"-->",_,_),!,
   parseRule(St,Rl),
-%  dispRule(Rl),
+					%  dispRule(Rl),
   addRule(Rl,Mp,Mp1),
   collectGrRules(Ss,Rls,Mp1,Mpx).
 collectGrRules([St|Ss],[St|Rls],Mp,Mpx) :-
@@ -449,7 +449,7 @@ makeGrs([_-Rs|Prs],S,Sx) :-
    reverse(Rs,RRs) ;
    defaultRl(Rs,Def),
    reverse([Def|Rs],RRs)),
-%  dispRules(RRs),
+					%  dispRules(RRs),
   makeGrRls(RRs,S,S0),
   makeGrs(Prs,S0,Sx).
 
@@ -465,8 +465,10 @@ makeGrRls([Rl|Rs],[Ax|S],Sx) :-
   makeRule(Rl,Ax),
   makeGrRls(Rs,S,Sx).
 
-% (Args)>>P --> S, as a type, becomes
-% (S,..Args) => option[(P,S)]
+/*
+  (Args)>>P --> S, as a type, becomes
+  (S,..Args) => option[(P,S)]
+  */
 
 grammarTypeMacro(A,type,Tx) :-
   isBinary(A,Lc,"-->",L,S),
@@ -477,17 +479,19 @@ grammarTypeMacro(A,type,Tx) :-
   squareTerm(Lc,name(Lc,"option"),[Rs],Rt),
   funcType(Lc,Arg,Rt,Tx).
 
-% NT --> Tks, as an expression, becomes
-% ( (Rslt,[]) ?= NT(Tks) ?? .some(Rslt) || .none)
+/*
+  NT --> Tks, as an expression, becomes
+  ( (Rslt,[]) ?= NT(Tks) ?? .some(Rslt) || .none)
+  */
 grammarCallMacro(A,expression,Ax) :-
-    isParseCall(A,Lc,L,Str),!,
-    parseBody(L,Body),
-    genIden(Lc,"Nxt",Nxt),
-    genIden(Lc,"Rslt",Rslt),
-    makeBody(Body,Str,Nxt,some(Rslt),Cond),
-    unary(Lc,"_eof",Nxt,End),
-    conjunct(Lc,Cond,End,Test),
-    mkConApply(Lc,name(Lc,"some"),[Rslt],Rs),
-    mkEnum(Lc,"none",El),
-    conditional(Lc,Test,Rs,El,Ax).
-%    dispAst(Ax).
+  isParseCall(A,Lc,L,Str),!,
+  parseBody(L,Body),
+  genIden(Lc,"Nxt",Nxt),
+  genIden(Lc,"Rslt",Rslt),
+  makeBody(Body,Str,Nxt,some(Rslt),Cond),
+  unary(Lc,"_eof",Nxt,End),
+  conjunct(Lc,Cond,End,Test),
+  mkConApply(Lc,name(Lc,"some"),[Rslt],Rs),
+  mkEnum(Lc,"none",El),
+  conditional(Lc,Test,Rs,El,Ax).
+					%    dispAst(Ax).
