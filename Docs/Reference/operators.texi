@@ -499,9 +499,13 @@
 @tab 900
 @tab greater than or equal
 @item @code{>>}
+@tab non-associative prefix
+@tab 950
+@tab grammar skip
+@item @code{>>}
 @tab right associative infix
 @tab 950
-@tab monadic bind
+@tab grammar produce value
 
 @end multitable
 @end float

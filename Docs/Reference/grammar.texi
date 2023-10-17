@@ -52,7 +52,7 @@ patterns -- such as repeated sequences and interleaved sequences.
   @code{@{} @refer{Condition} @code{@}} |
   @code{fail} |
   @code{end} |
-  @code{skip} @refer{Terminal}
+  @code{>>} @refer{Terminal}
 @end display
 @end float
 
@@ -360,7 +360,7 @@ useful for cases where a grammar must parse the entire input.
 @node Skip
 @subsection Skip
 
-The skip production is primarily used in aiding error recovery. It
+The @code{>>} production is primarily used in aiding error recovery. It
 succeeds if there is a terminal that matches the argument in the
 input. In addition, it discards the input -- not including the target
 terminal itself.
@@ -368,15 +368,23 @@ terminal itself.
 The form of a @code{skip} is:
 
 @example
-skip @emph{P}
+>> @emph{P}
 @end example
 
 For example, to skip input up to (but not including) a semi-colon, one might use:
 @example
-skip [`;`']
+>> [`;`']
 @end example
 
-Note that, like a negation condition, @code{skip} conditions cannot produce any values.
+@quotation Note
+Like a negation condition, @code{skip} conditions cannot produce any values.
+@end quotation
+
+@quotation Note
+Although the @code{>>} production can take any grammar form as its
+argument, oneis recommend to restrict this to simple grammars -- such
+as terminals and/or the end of the input stream.
+@end quotation
 
 
 @node Reporting Errors
@@ -390,7 +398,7 @@ addition, to facilitate recovery, the error production also includes a
 For example, to report a missing bracket in an arithetic expression, one might use
 
 @example
-exp0 >> E --> [`(`], exp >> E, ([`@)`] | { reportError("missing right paren")}).
+exp0 >> E --> [`(`], exp >> E, ([`)`] | @{ reportError("missing right paren")@}).
 @end example
 
 However, this can lead to an unfortunate cascade of errors: for
@@ -401,7 +409,7 @@ error by ignoring the input until some well known marker.
 
 
 @example
-exp0 >> E --> [`(`], exp >> E, ([`@)`] | { reportError("missing right paren")}, skip [`;`]).
+exp0 >> E --> [`(`], exp >> E, ([`)`] | @{ reportError("missing right paren")@}, >> [`;`]).
 @end example
 
 

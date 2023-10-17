@@ -44,7 +44,7 @@ test.gr{
   prodExp >> .div(L,R) --> unitExp >> L, [`/`], prodExp >> R.
   prodExp >> E --> unitExp >> E.
 
-  unitExp >> E --> [`(`], exp0 >> E, ([`)`] | {valof{logMsg("missing )");valis .true}}, skip(end)).
+  unitExp >> E --> [`(`], exp0 >> E, ([`)`] | {valof{logMsg("missing )");valis .true}}, >>end).
   unitExp >> .int(digitVal(I)) --> [I], {isDigit(I)}.
   unitExp >> .var(A) --> [A], {isLetter(A)}.
 

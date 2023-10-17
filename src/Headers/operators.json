@@ -326,8 +326,17 @@
       950,
       950
     ],
-    "desc": "monadic bind",
-    "keyword": false
+    "desc": "grammar produce value",
+    "keyword": true
+  },
+  {
+    "prefixOp": ">>",
+    "priorities": [
+      950,
+      949
+    ],
+    "desc": "grammar skip",
+    "keyword": true
   },
   {
     "infixOp": "<=>",

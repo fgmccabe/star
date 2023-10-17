@@ -135,7 +135,7 @@
   operator("::=", [infixOp(1549, 1550, 1549)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
-  operator(">>", [infixOp(949, 950, 950)]).
+  operator(">>", [prefixOp(950, 949), infixOp(949, 950, 950)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).
@@ -342,7 +342,7 @@
   final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
-  final('>>',">>").	 /* monadic bind */
+  final('>>',">>").	 /* grammar skip */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* mark expression as optionally there */
   final('??',"??").	 /* conditional operator */
@@ -442,6 +442,7 @@
   keyword("||").
   keyword("else").
   keyword("::=").
+  keyword(">>").
   keyword("{!").
 
   isKeyword(X):- keyword(X), !.
