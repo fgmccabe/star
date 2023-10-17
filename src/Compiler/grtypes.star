@@ -25,6 +25,7 @@ star.compiler.macro.grtypes{
     .test(option[locn],ast) |
     .prod(option[locn],grBody,ast) |
     .epsilon(option[locn]) |
+    .skip(option[locn],grBody) |
     .block(option[locn]) |
     .end(option[locn]).
 
@@ -47,6 +48,8 @@ star.compiler.macro.grtypes{
     dB(.nonTerm(_,N,A),Pr) => "$(N)$(A)".
     dB(.prod(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp(">>") =>
       "#(leftPar(P,Pr)) #(dB(L,Lp)) >> #(dispAst(R,Rp,"")) #(rightPar(P,Pr))".
+    dB(.skip(_,R),Pr) where (P,Rp) ?= isPrefixOp(">>") =>
+      "#(leftPar(P,Pr)) >> #(dB(R,Rp))#(rightPar(P,Pr))".
     dB(.block(_),_) => "fail".
     dB(.end(_),_) => "end".
     dB(.test(_,T),_) => "{ #(dispAst(T,2000,"")) }".

@@ -152,7 +152,7 @@ star.compiler.operators{
     "::=" => [.infixOp(1549,1550,1549)].
     "/\\" => [.infixOp(700,700,699)].
     ">=" => [.infixOp(899,900,899)].
-    ">>" => [.infixOp(949,950,950)].
+    ">>" => [.prefixOp(950,949), .infixOp(949,950,950)].
     _ default => [].
   }
 
@@ -400,7 +400,7 @@ star.compiler.operators{
     "=>>" => .true.  /* continuation arrow */
     ">" => .true.  /* greater than */
     ">=" => .true.  /* greater than or equal */
-    ">>" => .true.  /* monadic bind */
+    ">>" => .true.  /* grammar skip */
     ">>=" => .true.  /* monadic bind */
     "?" => .true.  /* mark expression as optionally there */
     "??" => .true.  /* conditional operator */
@@ -504,6 +504,7 @@ star.compiler.operators{
     "||" => .true.
     "else" => .true.
     "::=" => .true.
+    ">>" => .true.
     "{!" => .true.
     _ default => .false.
   }

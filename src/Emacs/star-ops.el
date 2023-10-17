@@ -117,7 +117,7 @@
   ("::=" ( (infix 1549 1550 1549)))
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
-  (">>" ( (infix 949 950 950)))
+  (">>" ( (prefix 950 949) (infix 949 950 950)))
 )
   "Table of standard star operators"
 )

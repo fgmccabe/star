@@ -82,7 +82,7 @@ parseBody(A,fail(Lc)) :-
 parseBody(A,eof(Lc)) :-
   isName(A,Lc,"end"),!.
 parseBody(A,skip(Lc,T)) :-
-  isUnary(A,Lc,"skip",L),
+  isUnary(A,Lc,">>",L),
   parseBody(L,T).
 parseBody(A,P) :-
   isRoundTuple(A,_Lc,Els),!,
@@ -148,7 +148,7 @@ dispBody(neg(_,Rgt),O,Ox) :-
   appStr(" ~ ",O,O1),
   dispBody(Rgt,O1,Ox).
 dispBody(skip(_,Rgt),O,Ox) :-
-  appStr(" skip ",O,O1),
+  appStr(" >> ",O,O1),
   dispBody(Rgt,O1,Ox).
 dispBody(epsilon(_),O,Ox) :-
   appStr(" [] ",O,Ox).
@@ -312,8 +312,8 @@ makeBody(skip(Lc,L),Str,Nxt,none,B) :-!,
 
   roundTerm(Lc,Sk,[Str],Cl),
   mkLetRec(Lc,[Eq1,Eq2],Cl,Rh),
-  resultOf(Lc,An,Nxt,Rh,B),
-  dispAst(B).
+  resultOf(Lc,An,Nxt,Rh,B).
+%  dispAst(B).
 
 makeSepBody(Lc,L,R,Str,Nxt,V,B) :-
   /*

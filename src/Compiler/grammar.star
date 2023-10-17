@@ -108,6 +108,13 @@ star.compiler.macro.grammar{
       valis .none
     }
   }
+  parseBody(A) where (Lc,R) ?= isUnary(A,">>") => valof{
+    if Rhs?=parseBody(R) then
+      valis .some(.skip(Lc,Rhs))
+    else{
+      valis .none
+    }
+  }
   parseBody(A) where (Lc,[El]) ?= isBrTuple(A) => .some(.test(Lc,El)).
   parseBody(A) where (Lc,"fail") ?= isName(A) => .some(.block(Lc)).
   parseBody(A) where (Lc,"end") ?= isName(A) => .some(.end(Lc)).
@@ -191,29 +198,70 @@ star.compiler.macro.grammar{
   makeBody(.sep(Lc,L,R),Str,Nxt,V) => valof{
     /*
     let{.
-    s(S0,SoF) where (_,S1) ?= right(S0) && (X,S2)?=lft(S1) => s(S2,[X,..SoF]).
-    s(S0,SoF) => .some((reverse(SoF),S0))
-    .} in ((S0,F)?=lft(Str) && (V,Nxt) ?= s(S0,[F]))
+      f(S0) => <lft>(S0).
+      f(S0) default => .none.
+      s(S0,SoF) where (_,S1) ?= <right>(S0) && (X,S2)?=f(S1) => s(S2,[X,..SoF]).
+      s(S0,SoF) => .some((reverse(SoF),S0))
+      p(S0) where (Si,F)?=f(S0) => s(Si,[F])
+      p(_) default => .none
+    .} in && (V,Ntx) ?= p(Str)
     */
     s = genName(Lc,"s");
+    f = genName(Lc,"f");
+    c = genName(Lc,"c");
     S0 = genName(Lc,"S0");
     S1 = genName(Lc,"S1");
     S2 = genName(Lc,"S2");
     Si = genName(Lc,"Si");
-    F = genName(Lc,"F");
     SoF = genName(Lc,"SoF");
-    Hd = roundTerm(Lc,s,[S0,SoF]);
     X = genName(Lc,"X");
-    Eq1 = mkEquation(Lc,.some(s),.false,rndTuple(Lc,[S0,SoF]),
-      .some(mkConjunct(Lc,makeBody(R,S0,S1,.none),makeBody(L,S1,S2,.some(X)))),
-      roundTerm(Lc,s,[S2,mkEnumCon(Lc,.nme(Lc,"cons"),[X,SoF])]));
+    Fr = genName(Lc,"Frst");
+
+    /* Build equations that implement left hand side of L*R */
+    Eqf1 = makeEqnFromBody(Lc,f,L,false);
+    Eqf2 = makeEqnFromBody(Lc,f,.block(Lc),true);
+
+
+    /* Build equations for combined lhs&rhs of L*R) */
+    Rgt = makeBody(R,S0,S1,.none);
+    Lft = mkOptionMatch(Lc,rndTuple(Lc,[X,S2]),roundTerm(Lc,F,[S1]));
+    Val = roundTerm(Lc,S,[S2,mkEnumCon(Lc,.nme(Lc,"cons"),[X,SoF])]);
+    
+    Tst = mkConjunct(Lc,Rgt,Lft);
+    Eq1 = mkEquation(Lc,.some(S),.false,[S0,SoF],.some(Tst),Val);
     Eq2 = mkEquation(Lc,.some(s),.true,rndTuple(Lc,[S0,SoF]),.none,
       mkOption(Lc,rndTuple(Lc,[unary(Lc,"reverse",SoF),S0])));
+
+    /* build equations for overall production */
+    AA = mkOptionMatch(Lc,rndTuple(Lc,[Frst,Si]),roundTerm(Lc,F,[S0]));
+    Eqb1 = mkEquation(Lc,.some(C),.false,[S0],.some(AA),roundTerm(Lc,S,[Si,mkEnumCon(Lc,.name(Lc,"cons"),[Frst,mkEnum(Lc,"nil")])]));
+    Eqb2 = mkEquation(Lc,.some(C),.true,[S0],.none,mkEnum(Lc,.name(Lc,"none")));
+
+    BB = mkLetRecDef(Lc,[Eqf1,Eqf2,Eq1,Eq2,Eqb1,Eqb2],roundTerm(Lc,S,[Str]));
     Val = (VV ?= V ?? VV || mkAnon(Lc));
-    
-    valis mkConjunct(Lc,makeBody(L,Str,Si,.some(F)),
-      mkOptionMatch(Lc,rndTuple(Lc,[Val,Nxt]),
-	mkLetRecDef(Lc,[Eq1,Eq2],roundTerm(Lc,s,[Si,sqTuple(Lc,[F])]))))
+    valis mkOption(Lc,rndTuple(Lc,[Val,Nxt]),BB);
+  }
+  makeBody(.skip(Lc,R),Str,Nxt,V) => valof{
+    /*
+    (_,Nxt) ?= let{.
+      sk(S0) where (_,_)?=lft(S0) => .some(((),S0)).
+      sk(S0) where (_,S1) ?= hdtl(S0) => sk(S1)
+    .} in s(S0)
+    */
+    sk = genName(Lc,"sk");
+    S0 = genName(Lc,"S0");
+    S1 = genName(Lc,"S1");
+    An = mkAnon(Lc);
+
+    Rgt = makeBody(R,S0,An,.none);
+    Eq1 = mkEquation(Lc,.some(sk),false,rndTuple(Lc,[S0]),
+      .some(Rgt),
+      mkOption(Lc,rndTuple(Lc,[unit(Lc),S0])));
+    Eq2 = mkEquation(Lc,.some(sk),false,rndTuple(Lc,[S0]),
+      .some(hdtl(Lc,An,S1,S0)),
+      roundTerm(Lc,sk,[S1]));
+    Rh = mkLetRecDef(Lc,[Eq1,Eq2],roundTerm(Lc,sk,[Str]));
+    valis mkOptionMatch(Lc,rndTuple(Lc,[An,Nxt]),Rh)
   }
   makeBody(.neg(Lc,R),Str,Nxt,.none) => valof{
     Vr = genName(Lc,"V");
@@ -223,6 +271,21 @@ star.compiler.macro.grammar{
   makeBody(.block(Lc),Str,_,_) => enum(Lc,"false"). -- should not ever use this
   makeBody(.end(Lc),Str,Nxt,.none) =>               -- end of the stream
     mkConjunct(Lc,unary(Lc,"_eof",Str),mkMatch(Lc,Nxt,Str)).
+
+  /* Build equations that implement a grammar body */
+  makeEqnFromBody(Lc,Nm,B,Dflt) => valof{
+    S0 = genName(Lc,"S0");
+    S1 = genName(Lc,"S1");
+
+    (Cond,Val) = splitCond(makeBody(B,S0,S1,.none));
+    valis mkEquation(Lc,.some(Nm),Dflt,rndTuple(Lc,[S0]),Cond,Val);
+  }
+
+  splitCond(Lc,C) => Cond ?= findOptionMatch(C) ?? Cond || (.none,enum(Lc,"none")).
+
+  findOptionMatch(C) where (Lc,L,R) ?= isConjunct(C) && (Rgt,V) ?= findOptionMatch(R) =>
+    .some((mergeCond(.some(L),Rgt),V)).
+  findOptionMatch(C) default => (_,L,R) ?= isOptionMatch(C) ?? .some((.none,L,R)) || .none.
 
   hdtl(Lc,T,Nxt,Str) =>
     mkOptionMatch(Lc,rndTuple(Lc,[T,Nxt]),unary(Lc,"_hdtl",Str)).

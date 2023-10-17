@@ -365,7 +365,11 @@ star.compiler.wff{
 
   public mkOption(Lc,A) => mkCon(Lc,"some",[A]).
 
-  public isOptionMatch(A) => isBinary(A,"?=").
+  public isOptionMatch(A) where R ?=isBinary(A,"?=") => .some(R).
+  isOptionMatch(A) where (Lc,L,R) ?= isBinary(A,".=") &&
+      (_,Op,[LL])?=isEnumCon(L) &&
+	  (_,"some") ?= isName(Op) => .some((Lc,LL,R)).
+  isOptionMatch(_) default => .none.
 
   public mkOptionMatch(Lc,L,R) => mkMatch(Lc,mkOption(Lc,L),R).
 
