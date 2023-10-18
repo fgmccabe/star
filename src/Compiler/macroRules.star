@@ -361,7 +361,7 @@ star.compiler.macro.rules{
     Yld = mkLambda(Lc,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
     /* build _yld(_) default => {} */
-    Deflt = mkEquation(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
+    Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case I resume ._next in .. */
     Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);

@@ -3,19 +3,12 @@ project(OOIO)
 
 include(./findAIO.cmake)
 
-
 find_package(BISON 3.2)
 find_package(FLEX)
 
 BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
 FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
 ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
-
-#if (NOT DEFINED JIT_ARCH)
-#    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
-#endif ()
-#
-#add_subdirectory(${JIT_ARCH})
 
 add_subdirectory("UnicodeStuff")
 add_subdirectory("UnitTests")
@@ -28,24 +21,18 @@ set(UNITABLE.C ${CMAKE_CURRENT_BINARY_DIR}/unitable.c)
 set(UNICODE ${CMAKE_CURRENT_SOURCE_DIR}/UnicodeStuff/UnicodeData.txt)
 
 set(PUBLIC_HEADERS
-        Headers/bcd.h
         Headers/io.h
-        Headers/microTask.h
         Headers/file.h
         Headers/formio.h
         Headers/hash.h
         Headers/hosts.h
         Headers/integer.h
         Headers/ioTcp.h
-        Headers/iterate.h
-        Headers/ixTree.h
         Headers/jsonEvent.h
-        Headers/list.h
         Headers/lockable.h
         Headers/logical.h
         Headers/managed.h
         Headers/object.h
-        Headers/pair.h
         Headers/pool.h
         Headers/retcode.h
         Headers/pipe.h
@@ -56,61 +43,46 @@ set(PUBLIC_HEADERS
         Headers/unistr.h
         Headers/utils.h
         Headers/jsonEvent.h
-        Headers/udp.h
         Headers/ooio.h
         Headers/cmdOptions.h
         Headers/template.h
-        Headers/pp.h
-        Headers/ppP.h
         Headers/strng.h
         Headers/editline.h
-        Headers/array.h
-        Headers/async.h
         Headers/promise.h
         Headers/buddy.h
         Headers/base64.h
         Headers/multi.h
-        Headers/signals.h Headers/fiber.h)
+        Headers/signals.h)
 
 set(HEADER_FILES
-        Headers/bcdP.h
         Headers/ioP.h
         Headers/fileP.h
         Headers/formioP.h
         Headers/hostsP.h
         Headers/iosockP.h
-        Headers/ixTreeP.h
-        Headers/listP.h
         Headers/lockableP.h
         Headers/managedP.h
         Headers/objectP.h
-        Headers/pairP.h
         Headers/pipeP.h
         Headers/byteBufferP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
         Headers/topSort.h
         Headers/unistrP.h
-        Headers/pp.h
         Headers/vector.h
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
         Headers/topSortP.h
-        Headers/arrayP.h
-        Headers/asyncP.h
         Headers/promiseP.h
         Headers/buddyP.h
         Headers/multi.h
         Headers/formatted.h
         Headers/multiP.h
         Headers/match.h
-        Headers/microTaskP.h
         Headers/quick.h)
 
 set(SOURCE_FILES
-        arrays.c
-        bcd.c
         buddy.c
         base64.c
         class.c
@@ -124,15 +96,12 @@ set(SOURCE_FILES
         hosts.c
         integer.c
         io.c
-        ixTree.c
-        list.c
         formexts.c
         locked.c
         managed.c
         match.c
         multi.c
         object.c
-        pair.c
         pipe.c
         pool.c
         promise.c
@@ -146,7 +115,6 @@ set(SOURCE_FILES
         template.c
         timer.c
         topSort.c
-        udp.c
         unichar.c
         unistr.c
         utils.c

@@ -182,6 +182,10 @@
 @tab non-associative infix
 @tab 905
 @tab for all
+@item @code{*>}
+@tab non-associative prefix
+@tab 905
+@tab grammar skip
 @item @code{,}
 @tab right associative infix
 @tab 1000
@@ -498,10 +502,6 @@
 @tab non-associative infix
 @tab 900
 @tab greater than or equal
-@item @code{>>}
-@tab non-associative prefix
-@tab 950
-@tab grammar skip
 @item @code{>>}
 @tab right associative infix
 @tab 950

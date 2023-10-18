@@ -108,7 +108,7 @@ star.compiler.macro.grammar{
       valis .none
     }
   }
-  parseBody(A) where (Lc,R) ?= isUnary(A,">>") => valof{
+  parseBody(A) where (Lc,R) ?= isUnary(A,"*>") => valof{
     if Rhs?=parseBody(R) then
       valis .some(.skip(Lc,Rhs))
     else{
