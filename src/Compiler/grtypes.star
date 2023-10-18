@@ -49,7 +49,7 @@ star.compiler.macro.grtypes{
     dB(.prod(_,L,R),Pr) where (Lp,P,Rp) ?= isInfixOp(">>") =>
       "#(leftPar(P,Pr)) #(dB(L,Lp)) >> #(dispAst(R,Rp,"")) #(rightPar(P,Pr))".
     dB(.skip(_,R),Pr) where (P,Rp) ?= isPrefixOp(">>") =>
-      "#(leftPar(P,Pr)) >> #(dB(R,Rp))#(rightPar(P,Pr))".
+      "#(leftPar(P,Pr)) *> #(dB(R,Rp))#(rightPar(P,Pr))".
     dB(.block(_),_) => "fail".
     dB(.end(_),_) => "end".
     dB(.test(_,T),_) => "{ #(dispAst(T,2000,"")) }".

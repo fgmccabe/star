@@ -10,7 +10,6 @@
  */
 
 #include "object.h"
-#include "iterate.h"
 
 typedef struct _vector_record_ *vectorPo;
 

@@ -60,7 +60,7 @@
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator("resume", [infixOp(829, 830, 829)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
-  operator("*>", [infixOp(904, 905, 904)]).
+  operator("*>", [infixOp(904, 905, 904), prefixOp(905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1560, 1559)]).
   operator("\\/", [infixOp(720, 720, 719)]).
@@ -135,7 +135,7 @@
   operator("::=", [infixOp(1549, 1550, 1549)]).
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
-  operator(">>", [prefixOp(950, 949), infixOp(949, 950, 950)]).
+  operator(">>", [infixOp(949, 950, 950)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).
@@ -342,7 +342,7 @@
   final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
-  final('>>',">>").	 /* grammar skip */
+  final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* mark expression as optionally there */
   final('??',"??").	 /* conditional operator */

@@ -82,7 +82,7 @@ parseBody(A,fail(Lc)) :-
 parseBody(A,eof(Lc)) :-
   isName(A,Lc,"end"),!.
 parseBody(A,skip(Lc,T)) :-
-  isUnary(A,Lc,">>",L),
+  isUnary(A,Lc,"*>",L),
   parseBody(L,T).
 parseBody(A,P) :-
   isRoundTuple(A,_Lc,Els),!,
@@ -148,7 +148,7 @@ dispBody(neg(_,Rgt),O,Ox) :-
   appStr(" ~ ",O,O1),
   dispBody(Rgt,O1,Ox).
 dispBody(skip(_,Rgt),O,Ox) :-
-  appStr(" >> ",O,O1),
+  appStr(" *> ",O,O1),
   dispBody(Rgt,O1,Ox).
 dispBody(epsilon(_),O,Ox) :-
   appStr(" [] ",O,Ox).

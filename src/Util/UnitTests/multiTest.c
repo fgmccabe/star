@@ -5,7 +5,6 @@
 #include <formioP.h>
 #include <assert.h>
 #include "multiTests.h"
-#include "bcd.h"
 #include "multiP.h"
 
 static multiPo zeroM, oneM;

@@ -650,7 +650,7 @@ star.compiler.wff{
 
   public mkLambda:(option[locn],boolean,ast,option[ast],ast) => ast.
   mkLambda(Lc,Deflt,Arg,Cond,Rep) =>
-    binary(Lc,"=>",mkLambdaHead(Lc,Arg,Deflt,Cond),Rep).
+    equation(Lc,mkLambdaHead(Lc,Arg,Deflt,Cond),Rep).
 
   mkLambdaHead(Lc,Arg,.true,.none) => unary(Lc,"default",Arg).
   mkLambdaHead(Lc,Arg,.false,.some(C)) => binary(Lc,"where",Arg,C).
