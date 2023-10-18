@@ -11,7 +11,6 @@
 #include "formexts.h"
 
 #include "genoperators.h"
-#include "parseOperators.h"
 
 static retCode procOperator(void *n, void *r, void *c);
 static retCode procToken(void *n, void *r, void *c);
@@ -53,7 +52,6 @@ typedef struct {
 } TokenRecord, *tokenPo;
 
 char *templateFn = "starops.py.plate";
-char *opers = "operators.json";
 char date[MAXLINE] = "";
 
 typedef struct {
@@ -82,7 +80,7 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "psiet:o:d:D")) >= 0) {
+  while ((opt = getopt(argc, argv, "psiet:d:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
@@ -96,17 +94,11 @@ int getOptions(int argc, char **argv) {
       case 'e':
         genMode = genEmacs;
         break;
-      case 'o':
-        opers = optarg;
-        break;
       case 't':
         templateFn = optarg;
         break;
       case 'd':
         uniCpy(date, NumberOf(date), optarg);
-        break;
-      case 'D':
-        traceParse = True;
         break;
       default:;
     }
@@ -190,7 +182,21 @@ int main(int argc, char **argv) {
   if (narg < 0) {
     fprintf(stdout, "bad args");
     exit(1);
-  } else if (parseOperators(opers) == Ok) {
+  } else {
+
+#define infixOp(Op,LPr,Pr,RPr,Desc,IsKw)  genInfix(Op, LPr, Pr, RPr, IsKw,Desc);
+#define prefixOp(Op,Pr,RPr,Desc,IsKw)  genPrefix(Op, Pr, RPr, IsKw,Desc);
+#define postfixOp(Op,LPr,Pr,Desc,IsKw)  genPostfix(Op, LPr, Pr, IsKw,Desc);
+#define token(Tk,Desc,IsKw)   genToken(Tk, Desc, IsKw);
+#define bracket(Op,Lft,Rgt,Sep,Pr,Desc)  genBracket(Op,Pr, Lft, Rgt, Sep, Desc);
+
+#include "operators.h"
+#undef infixOp
+#undef prefixOp
+#undef postfixOp
+#undef token
+#undef bracket
+
     if (uniStrLen(date) == 0) {
       time_t rawtime;
       time(&rawtime);
@@ -263,13 +269,11 @@ int main(int argc, char **argv) {
     flushOut();
     closeFile(out);
     exit(0);
-  } else
-    exit(1);
+  }
 }
 
 typedef struct operator_ {
   char name[MAXLINE];
-  char ast[MAXLINE];
   char cmt[MAXLINE];
   OperatorStyle style;
   int left, prior, right;
@@ -294,11 +298,9 @@ void genToken(char *op, char *cmt, logical isKeyword) {
     addToStringTrie(op, tk, tokenTrie);
 }
 
-static opPo
-genOper(char *op, char *ast, char *cmt, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
+static opPo genOper(char *op, char *cmt, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
-  strcpy(oper->ast, ast);
   strcpy(oper->cmt, cmt);
   oper->style = style;
   oper->left = left;
@@ -316,18 +318,18 @@ genOper(char *op, char *ast, char *cmt, OperatorStyle style, int left, int prior
   return oper;
 }
 
-void genInfix(char *op, char *ast, int left, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, cmt, infixOp, left, prior, right, isKeyword);
+void genInfix(char *op, int left, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, cmt, infixOp, left, prior, right, isKeyword);
   genToken(oper->name, cmt, isKeyword);
 }
 
-void genPrefix(char *op, char *ast, int prior, int right, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, cmt, prefixOp, 0, prior, right, isKeyword);
+void genPrefix(char *op, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, cmt, prefixOp, 0, prior, right, isKeyword);
   genToken(oper->name, cmt, isKeyword);
 }
 
-void genPostfix(char *op, char *ast, int left, int prior, logical isKeyword, char *cmt) {
-  opPo oper = genOper(op, ast, cmt, postfixOp, left, prior, 0, isKeyword);
+void genPostfix(char *op, int left, int prior, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, cmt, postfixOp, left, prior, 0, isKeyword);
   genToken(oper->name, cmt, isKeyword);
 }
 

@@ -164,9 +164,9 @@ star.compiler.operators{
     "<|" => .some(.bkt("<|","<||>","|>","",2000)).
     "|>" => .some(.bkt("<|","<||>","|>","",2000)).
     "<||>" => .some(.bkt("<|","<||>","|>","",2000)).
-    "/." => .some(.bkt("/.","/../","./",",",2000)).
-    "./" => .some(.bkt("/.","/../","./",",",2000)).
-    "/../" => .some(.bkt("/.","/../","./",",",2000)).
+    "/." => .some(.bkt("/.","/../","./","",2000)).
+    "./" => .some(.bkt("/.","/../","./","",2000)).
+    "/../" => .some(.bkt("/.","/../","./","",2000)).
     "{." => .some(.bkt("{.","{..}",".}",".\n",2000)).
     ".}" => .some(.bkt("{.","{..}",".}",".\n",2000)).
     "{..}" => .some(.bkt("{.","{..}",".}",".\n",2000)).
@@ -357,7 +357,7 @@ star.compiler.operators{
     "{?" => .true.  /* test comprehension */
     "{." => .true.  /* recursive braces */
     "{!" => .true.  /* iota comprehension */
-    "|" => .true.  /* type union and abstraction */
+    "|" => .true.  /* type union, abstraction */
     "|]" => .true.  /* measure brackets */
     "|:" => .true.  /* constrained type */
     "||" => .true.  /* disjunction */
