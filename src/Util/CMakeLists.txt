@@ -6,9 +6,9 @@ include(./findAIO.cmake)
 find_package(BISON 3.2)
 find_package(FLEX)
 
-BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
-FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
-ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
+#BISON_TARGET(JsonParser json.y ${CMAKE_CURRENT_BINARY_DIR}/jsonParser.c)
+#FLEX_TARGET(JsonTokeniser jtoken.l ${CMAKE_CURRENT_BINARY_DIR}/jsontoken.c)
+#ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 
 add_subdirectory("UnicodeStuff")
 add_subdirectory("UnitTests")
@@ -120,13 +120,10 @@ set(SOURCE_FILES
         utils.c
         vector.c
 
-        json.y
-        jtoken.l
-
         ${UNITABLE.C}
 
-        ${BISON_JsonParser_OUTPUTS}
-        ${FLEX_JsonTokeniser_OUTPUTS}
+#        ${BISON_JsonParser_OUTPUTS}
+#        ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES})

@@ -4,7 +4,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers" "../Infra/Headers")
 
-add_executable(ops genoperators.c stringTrie.c stringTrie.h stringTrieP.h parseOperators.c parseOperators.h genoperators.h)
+set(OPERATORS ../Headers/operators.h)
+
+add_executable(ops genoperators.c stringTrie.c stringTrie.h stringTrieP.h genoperators.h)
 target_link_libraries(ops ooio infra)
 
 set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h ../Headers/signature.h)
@@ -38,19 +40,19 @@ set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
-add_custom_command(OUTPUT operators DEPENDS ${OPERATORS_JSON}
-        COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
-        COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_TEXI}
-        COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_EL}
+add_custom_command(OUTPUT operators DEPENDS ${OPERATORS}
+        COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate  ${OPERATORS_PL}
+        COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate  ${OPERATORS_TEXI}
+        COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate  ${OPERATORS_EL}
         )
 
-add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS_JSON}
-        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
+add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS}
+        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate  ${OPERATORS_ST}
         COMMENT "Creating star operators in  ${OPERATORS_ST}"
         )
 
-add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON}
-        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST})
+add_custom_target(star.operators DEPENDS ops ${OPERATORS}
+        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate  ${OPERATORS_ST})
 
 add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
 

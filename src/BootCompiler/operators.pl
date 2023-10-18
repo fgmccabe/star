@@ -139,7 +139,7 @@
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).
-  bracket("/../", "/.", "./", ",", 2000).
+  bracket("/../", "/.", "./", "", 2000).
   bracket("{..}", "{.", ".}", ".\n", 2000).
   bracket("[]", "[", "]", ",", 2000).
   bracket("()", "(", ")", ",", 2000).
@@ -299,7 +299,7 @@
   final('{?',"{?").	 /* test comprehension */
   final('{.',"{.").	 /* recursive braces */
   final('{!',"{!").	 /* iota comprehension */
-  final('|',"|").	 /* type union and abstraction */
+  final('|',"|").	 /* type union, abstraction */
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
