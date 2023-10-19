@@ -25,7 +25,6 @@ set(INTRINSIC_SOURCE_FILES plateinstrinsic.c)
 add_executable(intrinsic ${INTRINSIC_SOURCE_FILES})
 target_link_libraries(intrinsic ooio infra)
 
-set(OPERATORS_JSON "${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json")
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
 set(ESCAPES_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/escapes.star)
 set(INTRINSIC_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/intrinsics.star)
