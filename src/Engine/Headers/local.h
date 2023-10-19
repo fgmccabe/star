@@ -109,14 +109,4 @@
 #define NULL ((void*)0)			/* The NULL pointer */
 #endif
 
-#ifdef LOCALDIR
-#include <libintl.h>
-#define _(String) gettext(String)
-#else
-#define _(String) (String)
-#define N_(String) (String)
-#define textdomain(Domain)
-#define bindtextdomain(Package, Directory)
-#endif
-
 #endif
