@@ -1,6 +1,6 @@
 star.pkg{
   import star.
-  import star.parse.
+  import star.peg.
 
   public pkg ::= .pkg(string,version).
 

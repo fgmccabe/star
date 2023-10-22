@@ -1,6 +1,6 @@
 test.nm{
   import star.
-  import star.parse.
+  import star.peg.
   import star.assert.
 
   first:all e,k ~~ (cons[(e,k)])=>option[e].

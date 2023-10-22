@@ -1,6 +1,6 @@
 test.p1a{
   import star.
-  import star.parse.
+  import star.peg.
   import star.assert.
 
   a:parser[cons[char],char].

@@ -1,7 +1,7 @@
 test.comp.cat{
   import star.
   import star.json.
-  import star.parse.
+  import star.peg.
   import star.pkg.
   import star.resources.
 

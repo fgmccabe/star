@@ -1,5 +1,7 @@
-star.parse{
+star.peg{
   import star.
+
+  -- Parser expression grammar (PEG)
 
   public all e,s ~~ parser[s,e] ::= .parser((s)=>cons[(e,s)]).
 
