@@ -1,6 +1,6 @@
 test.p1{
   import star.
-  import star.parse.
+  import star.peg.
   import star.assert.
 
   a:parser[cons[char],char].
@@ -23,19 +23,19 @@ test.p1{
   symb(S) => _str(S).
 
   -- Simple expression parser
-  expr : ()=>parser[cons[char],integer].
+  expr:()=>parser[cons[char],integer].
   expr() => chainl1(term(),addop()).
 
-  term: ()=>parser[cons[char],integer].
+  term:()=>parser[cons[char],integer].
   term() => chainl1(factor(),mulop()).
 
-  factor: ()=>parser[cons[char],integer].
+  factor:()=>parser[cons[char],integer].
   factor() => decimal() +++ (symb("(") >>= (_) => expr() >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: ()=>parser[cons[char],(integer,integer)=>integer].
+  addop:()=>parser[cons[char],(integer,integer)=>integer].
   addop() => (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop: ()=>parser[cons[char],(integer,integer)=>integer].
+  mulop:()=>parser[cons[char],(integer,integer)=>integer].
   mulop() => (symb("*") >>= (_) => return (*)).
 
   decimal:()=>parser[cons[char],integer].

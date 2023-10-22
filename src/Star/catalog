@@ -35,7 +35,7 @@
     "star.monad": "monad.star",
     "star.multi": "multi.star",
     "star.option": "option.star",
-    "star.parse": "parse.star",
+    "star.peg": "peg.star",
     "star.pkg": "pkg.star",
     "star.promise": "promise.star",
     "star.q": "q.star",

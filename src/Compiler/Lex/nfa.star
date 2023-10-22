@@ -2,7 +2,6 @@ star.lex.nfa{
   import star.
   import star.location.
   import star.compiler.errors.
-  import star.parse.
 
   public nfa[c] ::=
     .epsilon |

@@ -1,7 +1,7 @@
 test.j{
   import star.
   import star.json.
-  import star.parse.
+--  import star.peg.
   import star.assert.
 
   main:()=>().
@@ -10,7 +10,7 @@ test.j{
 
     assert "[1]"::json == .jSeq([.jNum(1.0)]);
 
-    show "[1, 2]" :: json;
+    show "[1, 2]" :: json;eg
     assert "[1,2]"::json == .jSeq([.jNum(1.0),.jNum(2.0)]);
 
     assert "\"alpha\""::json == .jTxt("alpha");
