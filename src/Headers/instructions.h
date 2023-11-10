@@ -59,11 +59,6 @@ instruction(LdG, glb, nOp, 1, "load a global variable")
 instruction(StG, glb, tOs, -1, "store into a global variable")
 instruction(TG, glb, tOs, 0, "copy into a global variable")
 
-instruction(Thunk,tOs,nOp,0,"create a thunk from a lambda")
-instruction(LdTh,tOs,off,0,"derefence a thunk, potentially running its lambda")
-instruction(StTh,tOs,tOs,-2,"store a value into a thunk variable")
-instruction(TTh,tOs,tOs,-1,"update thunk and leave on stack")
-
 instruction(Cell, tOs, nOp, 0, "create R/W cell")
 instruction(Get, tOs, nOp, 0, "access a R/W cell")
 instruction(Assign, tOs, tO1, -2, "assign to a R/W cell")
