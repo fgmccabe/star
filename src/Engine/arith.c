@@ -45,6 +45,9 @@ clssPo floatClass = (clssPo) &FloatClass;
 void initArith() {
   IntegerClass.clss = specialClass;
   FloatClass.clss = specialClass;
+  initSpecial(integerLbl, &IntegerClass);
+  initSpecial(floatLbl, &FloatClass);
+
   initBignum();
 }
 

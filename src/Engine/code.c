@@ -40,6 +40,7 @@ static comparison compPk(packagePo p1, packagePo p2);
 
 void initCode() {
   MethodClass.clss = specialClass;
+  initSpecial(codeLbl, &MethodClass);
 
   pkgPool = newPool(sizeof(PackageRec), 16);
   packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);

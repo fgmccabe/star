@@ -29,6 +29,7 @@ clssPo bignumClass = (clssPo) &BignumClass;
 
 void initBignum() {
   BignumClass.clss = specialClass;
+  initSpecial(bigNumLbl, &BignumClass);
 }
 
 logical isBignum(termPo t) {
