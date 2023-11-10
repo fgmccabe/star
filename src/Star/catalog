@@ -66,6 +66,7 @@
     "star.tuples": "tuples.star",
     "star.unit": "unit.star",
     "star.uri": "uri.star",
+    "star.vector": "vector.star",
     "star.windowed": "windowed.star"
   },
   "version": "1.0.0"
