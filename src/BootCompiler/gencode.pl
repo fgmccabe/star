@@ -86,7 +86,7 @@ retCont(Opts,Lx,Lx,D,D,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
 rtgCont(Opts,Lx,Lx,D,D,C,Cx,_Stk,none) :-
-  genDbg(Opts,C,[iRtG|Cx]).
+  genDbg(Opts,C,[iRet|Cx]).
 
 dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
@@ -768,8 +768,9 @@ compCase(T,Lc,Cases,Deflt,Cont,Hndlr,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genCaseTable(Cases,Mx,Table),
   stkLvl(Stk,Lvl),
   compCases(Table,0,Mx,OC,contCont(Dflt),Dflt,Hndlr,
-	    Brks,Opts,L3,L4,D2,D4,T0,Tx,Tx,[iLbl(Dflt),iRst(Lvl)|C1],Stk0),
-  call(Hndlr,Deflt,Lc,OC,End,Brks,Opts,L4,Lx,D4,Dx,C1,Cx,Stk,Stkx).
+	    Brks,Opts,L3,L4,D2,D4,T0,Tx,Tx,[iLbl(Dflt),iRst(Lvl)|C1],Stk0,Stk1),
+  call(Hndlr,Deflt,Lc,OC,End,Brks,Opts,L4,Lx,D4,Dx,C1,Cx,Stk,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"case exp").
 
 genCaseTable(Cases,P,Table) :-
   length(Cases,L),
@@ -809,21 +810,22 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Ix,Mx,_Succ,_,_,_,_Brks,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk) :-
+compCases([],Ix,Mx,_Succ,_,_,_,_Brks,_Opts,Lx,Lx,D,D,Tc,Tc,C,C,_Stk,none) :-
   Ix>=Mx.
 compCases([],Ix,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,
-	  [iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
+	  [iJmp(Dflt)|Tc],Tx,C,Cx,Stk,Stkx) :-
   Ix1 is Ix+1,
-  compCases([],Ix1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,Tc,Tx,C,Cx,Stk).
+  compCases([],Ix1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,Tc,Tx,C,Cx,Stk,Stkx).
 compCases([(Ix,Case)|Cs],Ix,Mx,Succ,Fail,Dflt,Hndlr,
-	  Brks,Opts,L,Lx,D,Dx,[iJmp(Lbl)|Tc],Tx,C,Cx,Stk) :-!,
+	  Brks,Opts,L,Lx,D,Dx,[iJmp(Lbl)|Tc],Tx,C,Cx,Stk,Stkx) :-!,
   genLbl(L,Lbl,L0),
-  compCaseBranch(Case,Lbl,Succ,Fail,Hndlr,Brks,Opts,L0,L1,D,D1,C,C1,Stk,_),
+  compCaseBranch(Case,Lbl,Succ,Fail,Hndlr,Brks,Opts,L0,L1,D,D1,C,C1,Stk,Stk1),
   H1 is Ix+1,
-  compCases(Cs,H1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L1,Lx,D1,Dx,Tc,Tx,C1,Cx,Stk).
-compCases(Cs,Ix,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
+  compCases(Cs,H1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L1,Lx,D1,Dx,Tc,Tx,C1,Cx,Stk,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"case branch").
+compCases(Cs,Ix,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk,Stkx) :-
   H1 is Ix+1,
-  compCases(Cs,H1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,Tc,Tx,C,Cx,Stk).
+  compCases(Cs,H1,Mx,Succ,Fail,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,Tc,Tx,C,Cx,Stk,Stkx).
 
 % two cases to consider: hash collision or no hash collision
 compCaseBranch([(P,E,Lc)],Lbl,Succ,Fail,Hndlr,Brks,Opts,L,Lx,D,Dx,[iLbl(Lbl)|C],Cx,Stk,Stkx) :-!,

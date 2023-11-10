@@ -79,7 +79,7 @@ star.compiler.dict.mgt{
 
   public declareVar:(string,string,option[locn],tipe,option[tipe],dict) => dict.
   declareVar(Nm,FullNm,Lc,Tp,Fc,Dict) => valof{
-    if _?=isEscape(Nm) then{
+    if isEscape(Nm) then{
       reportError("Cannot redeclare an escape: $(Nm)",Lc);
       valis Dict
     } else

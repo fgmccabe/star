@@ -33,7 +33,6 @@ star.compiler.peephole{
   uncondJmp(Op) => case Op in {
     .iJmp(_) => .true.
     .iRet => .true.
-    .iRtG => .true.
     .iAbort => .true.
     .iRetire => .true.
     .iTCall(_) => .true.
@@ -137,8 +136,7 @@ star.compiler.peephole{
   pullOps([],_) => [].
   pullOps([O,..Code],Map) => [pullTgt(O,Map),..pullOps(Code,Map)].
 
-  pullTgt(.iJmp(Tg),Map) where .segment(_,_,[Op,.._],_) ?= Map[Tg] &&
-      (.iRet.=Op||.iRtG.=Op) => Op.
+  pullTgt(.iJmp(Tg),Map) where .segment(_,_,[.iRet,.._],_) ?= Map[Tg] => .iRet.
   pullTgt(O,Map) => valof{
     if Tg?=opTgt(O) then{
       if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then

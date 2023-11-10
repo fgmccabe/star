@@ -12,20 +12,11 @@
 /* Define to 1 if you have the `getrlimit' function. */
 #define HAVE_GETRLIMIT 1
 
-/* Define to 1 if you have the `timegm' function. */
-#define HAVE_TIMEGM 1
-
-/* Turn off assertion testing when enabled */
-/* #undef NDEBUG */
-
 /* Name of package */
 #define PACKAGE "star"
 
 /* Version number of package */
 #define VERSION "0.0"
-
-/* The size of `int', as computed by sizeof. */
-#define SIZEOF_INT 4
 
 /* How to specify a zero array size */
 #define ZEROARRAYSIZE /**/

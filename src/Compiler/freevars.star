@@ -23,7 +23,7 @@ star.compiler.freevars{
   freeVarsInExp(Exp,Q,Fv) => case Exp in {
     .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
-    .vr(_,Nm,_) where _ ?= isEscape(Nm) => Fv.
+    .vr(_,Nm,_) where isEscape(Nm) => Fv.
     .vr(_,Nm,_) where _ ?= intrinsic(Nm) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ?? Fv\+.cId(Nm,Tp) || Fv).
     .intr(_,_) => Fv.

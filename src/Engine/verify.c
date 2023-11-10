@@ -314,7 +314,6 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Halt:
       case Abort:
       case Ret:
-      case RtG:
       case Underflow:
       case Spawn:
       case Suspend:
@@ -406,7 +405,6 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
       case TCall:
       case TOCall:
       case Ret:
-      case RtG:
       case Abort:
       case Halt:
       case Retire:
@@ -543,7 +541,6 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Retire:
         case Throw:
         case Ret:
-        case RtG:
           break;
         default:
           updateEntryPoint(current, next);
@@ -867,7 +864,6 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     if (ret == Ok && vectIsEmpty(seg->seg.exits)) {
       switch (lastOp) {
         case Ret:
-        case RtG:
         case Halt:
         case Abort:
         case TCall:

@@ -44,10 +44,10 @@ star.compiler.gencode{
 
   genDef:(cDefn,map[string,srcLoc]) => codeSegment.
   genDef(Defn,Glbs) => case Defn in {
-    .fnDef(Lc,Nm,Tp,Args,Val) => valof{
+    .fnDef(Lc,Nm,Tp,Args,Val) => valof {
       if traceCodegen! then
 	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
-      Ctx = emptyCtx(argVars(Args,Glbs,0));
+      Ctx = emptyCtx(argSrcLocs(Args,Glbs,0));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.some([]),[]);
       (_Stk,Code) = compExp(Val,Lc,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
@@ -522,7 +522,7 @@ star.compiler.gencode{
 
   glbRetCont:(string)=>Cont.
   glbRetCont(Nm) => cont{
-    C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRtG])
+    C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRet])
   }
 
   jmpCont:(assemLbl,stack)=>Cont.
@@ -818,11 +818,14 @@ star.compiler.gencode{
     valis snd(defineLclVar(Nm,Tp,Ctx))
   }
 
-  argVars:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
-  argVars([],Mp,_)=>Mp.
-  argVars([.cId(Nm,Tp),..As],Vars,Ix) =>
-    argVars(As,Vars[Nm->.argVar(Ix,Tp::ltipe)],Ix+1).
-  argVars([_,..As],Map,Ix) => argVars(As,Map,Ix+1).
+  argSrcLocs:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
+  argSrcLocs([],Mp,_)=>Mp.
+  argSrcLocs([.cId(Nm,Tp),..As],Vars,Ix) =>
+    argSrcLocs(As,Vars[Nm->.argVar(Ix,Tp::ltipe)],Ix+1).
+  argSrcLocs([_,..As],Map,Ix) => argSrcLocs(As,Map,Ix+1).
+
+  argSrcLoc:(cId,integer) => srcLoc.
+  argSrcLoc(.cId(_,Tp),Ix) => .argVar(Ix,Tp::ltipe).
 
   glCtx:(codeCtx,cExp) => codeCtx.
   glCtx(Ctx,Exp) => valof{

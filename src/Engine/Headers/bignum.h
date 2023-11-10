@@ -6,10 +6,10 @@
 #define STAR_BIGNUM_H
 
 #include "term.h"
+
 #include "multiP.h"
 
-// A bcd structure can store an arbitrarily large decimal number
-// Stored as a sequence of decimal nibbles
+// A bignum is stored as a sequence of 32bit 'digits'
 
 typedef struct bignum_term_ *bignumPo;
 

@@ -305,19 +305,17 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
           check(False, "Cannot generate instruction code");
       }
 
-    case Es: {                              // escape code (0..65535)
-      char *cond = "where Cd?=isEscape(U)";
-
+    case Es: {                              // escape name
       switch (B) {
         case nOp:
         case tOs:
         case tO1:
-          outMsg(out, "%s => mnem(Ins,Code++[.intgr(%d),.intgr(Cd)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", cond, op);
+          outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.strg(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
           break;
         case off:
           outMsg(out,
-                 "%s && Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.intgr(Cd),.intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
-                 cond, op);
+                 "&& Tgt ?= Lbls[V] => mnem(Ins,Code++[.intgr(%d),.strg(U),.intgr(Tgt-Pc-5)],Lbls,Lts,Lns,Lcs,Pc+5,MxLcl,Ends).\n",
+                 op);
           return;
         default:
           check(False, "Cannot generate instruction code");

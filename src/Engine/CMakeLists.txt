@@ -41,11 +41,12 @@ set(HEADER_FILES
         Headers/arithP.h Headers/stringsP.h
         Headers/thr.h Headers/thrP.h
         Headers/verify.h Headers/verifyP.h
-        Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/asm.h
+        Headers/debugP.h Headers/capability.h Headers/capabilityP.h
         Headers/codegen.h Headers/consP.h Headers/option.h Headers/optionP.h
         Headers/starP.h Headers/stackP.h
         Headers/stack.h Headers/futureP.h Headers/future.h
         Headers/char.h Headers/charP.h Headers/bignumP.h Headers/continuationP.h Headers/closure.h Headers/closureP.h
+        Headers/specials.h
 )
 
 set(SOURCE_FILES
@@ -53,6 +54,7 @@ set(SOURCE_FILES
         ${HEADER_FILES} code.c term.c labels.c arith.c thunk.c
         strings.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c capability.c cons.c option.c ltype.c Headers/ltype.h stack.c
         future.c char.c bignum.c ideal.c Headers/ideal.h continuation.c Headers/continuation.h closure.c
+        specials.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
