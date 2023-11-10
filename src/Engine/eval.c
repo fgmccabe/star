@@ -410,11 +410,6 @@ retCode run(processPo P) {
         continue;
       };
 
-      case RtG: {
-        H = processHeap(P);
-        // Fall through
-      }
-
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 

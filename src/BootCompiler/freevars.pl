@@ -8,7 +8,7 @@
 
 %! freeVars(++,++,++,++,--) is det.
 freeVars(v(_,Nm,_),Ex,Q,F,Fv) :-
-  \+isEscape(Nm,_),!,
+  \+isEscape(Nm),!,
   call(Q,Ex,Nm,F,Fv).
 freeVars(v(_,_,_),_Ex,_Q,Fv,Fv).
 freeVars(anon(_,_),_,_,F,F).

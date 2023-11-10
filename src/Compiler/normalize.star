@@ -396,7 +396,7 @@ star.compiler.normalize{
 
   liftExpCallOp:(option[locn],canon,cons[cExp],tipe,nameMap,set[cId],cons[cDefn]) =>
     crFlow[cExp].
-  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where _ ?= isEscape(Nm) =>
+  liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where isEscape(Nm) =>
     (.cECall(Lc,Nm,Args,Tp),Ex).
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).

@@ -27,7 +27,6 @@ instruction(TOCall, art, tOs, 0, "TOCall")
 instruction(Locals, i32, nOp, 0, "locals definition")
 
 instruction(Ret, tOs, nOp, 0, "return")
-instruction(RtG, tOs, nOp, 0, "return rom global")
 
 instruction(Jmp, off, nOp, 0, "jump lbl")
 

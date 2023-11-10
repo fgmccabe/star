@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <strings.h>
-#include <string.h>
 #include "buddyP.h"
 #include "ooio.h"
 
@@ -174,9 +173,9 @@ retCode release(buddyRegionPo region, voidPtr *block) {
 #endif
 
   region->freeLists[freeIx] = insertBlock(region->freeLists[freeIx], entry);
-//  assert(validBlockList(region->freeLists[freeIx]));
 
 #ifdef TRACE_BUDDY_MEMORY
+  assert(validBlockList(region->freeLists[freeIx]));
   memset(entry + 1, 0x5a, (1 << entry->buddy.lgSize) - sizeof(FreeEntry));
 #endif
 

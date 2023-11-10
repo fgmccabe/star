@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 
     switch (genMode) {
       case genProlog:
-        fprintf(out, ":-module(escapes,[isEscape/2,escapeType/2]).\n\n");
+        fprintf(out, ":-module(escapes,[isEscape/1,escapeType/2]).\n\n");
         prologEscapeTypes(out);
         prologIsEscape(out);
         break;
@@ -622,12 +622,12 @@ static void starEscapeTypes(FILE *out) {
 }
 
 #undef escape
-#define escape(name, type, cmt) genPrIsEsc(out,buffer,#name,Esc##name);
+#define escape(name, type, cmt) genPrIsEsc(out,buffer,#name);
 
-static void genPrIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
+static void genPrIsEsc(FILE *out, strBufferPo buffer, char *name) {
   outStr(O_IO(buffer), "isEscape(");
   dumpStr(name, buffer);
-  outMsg(O_IO(buffer), ",%d).\n", code);
+  outMsg(O_IO(buffer), ").\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -644,12 +644,12 @@ static void prologIsEscape(FILE *out) {
 }
 
 #undef escape
-#define escape(name, type, cmt) genStarIsEsc(out,buffer,#name,Esc##name);
+#define escape(name, type, cmt) genStarIsEsc(out,buffer,#name);
 
-static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode code) {
+static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name) {
   outStr(O_IO(buffer), "    ");
   dumpStr(name, buffer);
-  outMsg(O_IO(buffer), " => .some(%d).\n", code);
+  outMsg(O_IO(buffer), " => .true.\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -660,12 +660,12 @@ static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name, EscapeCode c
 static void starIsEscape(FILE *out) {
   strBufferPo buffer = newStringBuffer();
 
-  fprintf(out, "\n  public isEscape:(string)=>option[integer].\n");
+  fprintf(out, "\n  public isEscape:(string)=>boolean.\n");
   fprintf(out, "  isEscape(Es) => case Es in {\n");
 
 #include "escapes.h"
 
-  fprintf(out, "    _ default => .none.\n");
+  fprintf(out, "    _ default => .false.\n");
   fprintf(out, "  }\n");
 
   closeFile(O_IO(buffer));

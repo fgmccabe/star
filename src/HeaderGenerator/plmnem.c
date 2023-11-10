@@ -313,8 +313,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case nOp:
         case tOs:
         case tO1:
-          outMsg(out, ",Cd|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
-          outMsg(out, "      isEscape(V,Cd),!,\n");
+          outMsg(out, ",V|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         case i32:
@@ -323,8 +322,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case lcl:
         case lcs:
         case glb:
-          outMsg(out, ",Cd,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
-          outMsg(out, "      isEscape(V,Cd),!,\n");
+          outMsg(out, ",V,W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
         case off:

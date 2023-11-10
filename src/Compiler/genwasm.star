@@ -4,13 +4,15 @@ star.compiler.wasm.gen{
   import star.pkg.
   import star.sort.
 
-  import star.compiler.wasm.instr.
   import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
+  import star.compiler.wasm.instr.
+  import star.compiler.wasm.module.
+  import star.compiler.wasm.types.
 
   import star.compiler.location.
   import star.compiler.data.
@@ -51,9 +53,9 @@ star.compiler.wasm.gen{
 	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       Peeped = wasmPeep(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then{
-	logMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
+	logMsg("code is $(.func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped))");
       };
-      valis .func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
+      valis .func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped)
     }
   | .vrDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then

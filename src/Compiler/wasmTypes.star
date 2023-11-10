@@ -28,7 +28,7 @@ star.compiler.wasm.types{
 
   public packed_type ::= .i8 | .i16.
 
-  public mutability ::= .fixed | .mutable.
+  public mutability ::= .const | .mutable.
 
   public num_type ::= .I32Type | .I64Type | .F32Type | .F64Type.
 
@@ -63,8 +63,8 @@ star.compiler.wasm.types{
   }
 
   public implementation display[field_type] => {
-    disp(.fldTp(M,T)) => "(field #(M==.fixed??""||"mutable") $(T))".
-    disp(.pkdFld(M,T)) => "(field #(M==.fixed??""||"mutable") $(T))".
+    disp(.fldTp(M,T)) => "(field #(M==.const??""||"mutable") $(T))".
+    disp(.pkdFld(M,T)) => "(field #(M==.const??""||"mutable") $(T))".
   }
   
   public implementation display[packed_type] => {
@@ -116,7 +116,7 @@ star.compiler.wasm.types{
   }
 
   public implementation equality[mutability] => {
-    .fixed == .fixed => .true.
+    .const == .const => .true.
     .mutable == .mutable => .true.
     _ == _ default => .false
   }
@@ -128,7 +128,7 @@ star.compiler.wasm.types{
   }    
   
   public implementation equality[mutability] => {
-    .fixed == .fixed => .true.
+    .const == .const => .true.
     .mutable == .mutable => .true.
     _ == _ default => .false
   }

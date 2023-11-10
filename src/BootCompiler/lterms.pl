@@ -742,7 +742,7 @@ validTerm(voke(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
 validTerm(ecll(Lc,Es,Args),_,D) :-
-  isEscape(Es,_),
+  isEscape(Es),!,
   validTerms(Args,Lc,D).
 validTerm(intrinsic(Lc,Is,Args),_,D) :-
   isIntrinsic(_,_,Is),

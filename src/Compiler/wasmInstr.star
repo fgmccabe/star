@@ -7,11 +7,6 @@ star.compiler.wasm.instr{
 
   public wasmLbl ::= .lbl(string).
 
-  public wasmDefn ::=
-    .wasmGlobal(string,value_type) |
-    .wasmFunction(string,block_type) |
-    .wasmType(string,value_type).
-
   public block_type ::=
     .VarBlockType(string) |
     .ValBlockType(option[value_type]) |
