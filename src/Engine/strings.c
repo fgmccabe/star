@@ -28,6 +28,7 @@ clssPo strClass = (clssPo) &StrClass;
 
 void initStrings() {
   StrClass.clss = specialClass;
+  initSpecial(stringLbl, &StrClass);
 }
 
 stringPo C_STR(termPo t) {

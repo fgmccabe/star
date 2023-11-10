@@ -7,8 +7,7 @@
 
 #include "config.h"
 #include "ooio.h"
-
-typedef struct special_class *specialClassPo;
+#include "specials.h"
 
 typedef struct program_label_ *labelPo;
 

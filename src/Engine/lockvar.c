@@ -44,6 +44,7 @@ clssPo lckClass = (clssPo) &LockClass;
 
 void initLocks() {
   LockClass.clss = specialClass;
+  initSpecial(lockLbl, &LockClass);
 }
 
 lockPo allocateLock(heapPo H) {

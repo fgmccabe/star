@@ -71,6 +71,7 @@ retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
 }
 
 void initTerm() {
+  initSpecial(specialLbl, &SpecialClss);
 }
 
 static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {

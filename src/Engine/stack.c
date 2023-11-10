@@ -75,6 +75,7 @@ void initStacks() {
   underFlowMethod.clss = methodClass;
   newTaskMethod.clss = methodClass;
   spawnMethod.clss = methodClass;
+  initSpecial(stackLbl, &StackClass);
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK

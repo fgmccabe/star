@@ -31,6 +31,7 @@ SpecialClass CapabilityClass = {
 
 void initCapability() {
   CapabilityClass.clss = specialClass;
+  initSpecial(capabilityLbl, &CapabilityClass);
 }
 
 clssPo capabilityClass = (clssPo) &CapabilityClass;

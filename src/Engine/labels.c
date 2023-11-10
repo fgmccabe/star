@@ -53,6 +53,7 @@ static comparison LabelCmp(labelRecordPo l1, labelRecordPo l2) {
 
 void initLbls() {
   LabelClass.clss = specialClass;
+  initSpecial(labelLbl, &LabelClass);
   labelHashTable = newHash(1024, (hashFun) LabelHash, (compFun) LabelCmp, (destFun) Null);
 
   labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
