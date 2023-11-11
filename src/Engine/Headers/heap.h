@@ -5,6 +5,8 @@
 #include "engineOptions.h"
 #include "ooio.h"
 #include "term.h"
+#include "labels.h"
+#include "normal.h"
 
 typedef struct heap_ *heapPo;
 

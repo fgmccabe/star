@@ -16,7 +16,6 @@ set(HEADER_FILES
         ../Engine/Headers/iochnnl.h ../Engine/Headers/iochnnlP.h
         Headers/assigns.h
         Headers/ioops.h
-        Headers/locks.h
         Headers/fileops.h
         Headers/netfile.h
         Headers/stringops.h
@@ -41,7 +40,6 @@ set(SOURCE_FILES
         ioops.c
         lblops.c
         libEscapes.c
-        locks.c
         system.c
         netfile.c
         pkgops.c

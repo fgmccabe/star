@@ -3,7 +3,7 @@
 //
 
 #include "ideal.h"
-#include <labels.h>
+#include "labelsP.h"
 #include <assert.h>
 #include "cons.h"
 
@@ -22,8 +22,8 @@ logical isIdealEmpty(termPo t) {
 
 logical isIdealTree(termPo t) {
   if (isNormalPo(t)) {
-    normalPo c = C_NORMAL(t);
-    return (logical) (c->lbl == hLeafLbl || c->lbl == hNodeLbl);
+    labelPo lbl = termLbl(C_NORMAL(t));
+    return (logical) (lbl == hLeafLbl || lbl == hNodeLbl);
   } else
     return isIdealEmpty(t);
 }

@@ -7,10 +7,12 @@
 
 #include "labels.h"
 #include "heapP.h"
+#include "code.h"
 
 /*
  * A program label structure
  */
+
 
 extern integer maxLabels;
 
@@ -31,10 +33,17 @@ typedef struct program_label_ {
 
 #define LabelCellCount CellCount(sizeof(LblRecord))
 
+extern clssPo labelClass;
+
 extern void initLbls();
 void markLabels(gcSupportPo G);
 void showAllLabels();
 
 void showMtdCounts(ioPo out);
+
+methodPo labelCode(labelPo lbl);
+logical labelDefined(labelPo lbl);
+
+termPo declareEnum(const char *name, integer index, heapPo H);
 
 #endif //STAR_LABELSP_H

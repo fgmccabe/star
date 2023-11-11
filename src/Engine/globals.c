@@ -8,7 +8,7 @@
 #include <cons.h>
 #include <option.h>
 #include "ideal.h"
-#include "labels.h"
+#include "labelsP.h"
 #include "globalsP.h"
 
 termPo eINTRUPT;

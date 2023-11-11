@@ -6,7 +6,7 @@
 #define STAR_OPTIONP_H
 
 #include "option.h"
-
+#include "termP.h"
 
 void initOption();
 

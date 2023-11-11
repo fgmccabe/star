@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 10/30/23.
 //
 #include <assert.h>
-#include "specials.h"
+#include "specialP.h"
 #include "termP.h"
 
 static specialClassPo builtinClasses[specialCount];

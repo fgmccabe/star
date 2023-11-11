@@ -4,7 +4,7 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
-#include "heap.h"
+#include "normal.h"
 #include "opcodes.h"
 
 typedef uint16 insWord;

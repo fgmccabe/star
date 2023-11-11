@@ -3,7 +3,6 @@
 
 #include <turm.h>
 #include "heap.h"
-#include "lockvarP.h"
 #include "timerTests.h"
 
 // Are we allocating from the lower or upper half?
@@ -24,7 +23,6 @@ typedef struct heap_ {
   termPo outerLimit;      /* The real */
   termPo old;
   allocMode allocMode;
-  LockRecord heapLock;
   ptrPo roots[MAX_ROOT];
   int topRoot;
   processPo owner;

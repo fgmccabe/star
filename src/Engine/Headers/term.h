@@ -7,49 +7,13 @@
 
 #include "config.h"
 #include "ooio.h"
-#include "specials.h"
-
-typedef struct program_label_ *labelPo;
-
-typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
-
-typedef struct normal_term {
-  labelPo lbl;                // Overlays clss - because it is the term's class
-  termPo args[ZEROARRAYSIZE];
-} Normal, *normalPo;
+#include "special.h"
 
 typedef struct class_record *clssPo;
-
-extern clssPo labelClass;
-
-typedef struct term_record {
-  clssPo clss;
-} TermRecord;
-
-typedef struct class_record {
-  clssPo clss; // == classClass
-} ClassRecord;
-
-normalPo C_NORMAL(termPo t);
-
-logical isNormalPo(termPo t);
-
-labelPo termLbl(normalPo t);
+typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
 
 integer termHash(termPo t);
 integer hashTerm(termPo t);
-
-integer termSize(normalPo t);
-
-integer termArity(normalPo term);
-
-termPo nthArg(normalPo term, integer ix);
-
-static inline termPo nthElem(normalPo term, integer ix) {
-  return term->args[ix];
-}
-
-void setArg(normalPo term, integer ix, termPo arg);
 
 extern termPo falseEnum;
 extern termPo trueEnum;
@@ -84,6 +48,10 @@ static inline integer ptrPayload(termPo t) {
       return (integer) (((uint64) t) & (((uint64) -1) << 2ul));
   }
 }
+
+typedef struct term_record {
+  clssPo clss;
+} TermRecord;
 
 static inline clssPo classOf(termPo obj) {
   switch (pointerTag(obj)) {

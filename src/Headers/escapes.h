@@ -8,7 +8,6 @@
 
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
-#define lockType "t'star.thread*lock'"
 #define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
@@ -308,14 +307,6 @@ escape(_thread_state, "F("threadType ")" processState, "state of process")
 escape(_waitfor, "|F("threadType")()r"ERRCODE, "wait for other thread to terminate")
 
 escape(_shell, "|F(sLsL(ss))ir"ERRCODE, "Run a shell cmd")
-
-
-
-// Lock management
-escape(_newLock, "F()"lockType, "create a new lock")
-escape(_acquireLock, "|F("lockType"f)()r"ERRCODE, "acquire lock")
-escape(_waitLock, "|F("lockType"f)()r"ERRCODE, "release and wait on a lock")
-escape(_releaseLock, "|F("lockType")()r"ERRCODE, "release a lock")
 
 escape(_ins_debug, "F()()", "set instruction-level")
 escape(_stackTrace, "F()s", "Print a stack trace")

@@ -66,7 +66,6 @@ int main(int argc, char **argv) {
   initClosure();
   initCell();
   initCode();
-  initLocks();
   initTerm();
   initCapability();
   initIoChnnl();

@@ -3,7 +3,6 @@
 //
 #include <assert.h>
 #include "closureP.h"
-#include "labels.h"
 
 static long closureSize(specialClassPo cl, termPo o);
 static termPo closureCopy(specialClassPo cl, termPo dst, termPo src);

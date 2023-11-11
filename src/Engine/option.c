@@ -4,6 +4,7 @@
 
 #include <labels.h>
 #include "optionP.h"
+#include "normal.h"
 #include "assert.h"
 
 termPo noneEnum;

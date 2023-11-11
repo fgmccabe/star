@@ -14,6 +14,7 @@
 #include "signals.h"
 #include "heapP.h"
 #include "labelsP.h"
+#include "normalP.h"
 #include "thr.h"
 #include "capability.h"
 

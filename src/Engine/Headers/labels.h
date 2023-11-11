@@ -8,14 +8,13 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
-#include "heap.h"
-#include "code.h"
+
+typedef struct program_label_ *labelPo;
 
 labelPo findLbl(const char *name, integer arity);
 integer labelHash(labelPo lbl);
 
 labelPo declareLbl(const char *name, integer arity, integer index);
-termPo declareEnum(const char *name, integer index, heapPo H);
 labelPo tplLabel(integer arity);
 logical isTplLabel(const char *nm) ;
 logical isALabel(termPo t);
@@ -39,9 +38,6 @@ retCode iterateLabels(labelProc proc,void *cl);
 
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
 retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
-
-methodPo labelCode(labelPo lbl);
-logical labelDefined(labelPo lbl);
 
 labelPo C_LBL(termPo t);
 

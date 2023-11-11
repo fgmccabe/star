@@ -9,7 +9,10 @@
 #include "term.h"
 #include "code.h"
 
-#define NormalCellCount(arity) CellCount(sizeof(Normal)+(arity)*sizeof(termPo))
+
+typedef struct class_record {
+  clssPo clss;
+} ClassRecord;
 
 // Some typedefs to help with working with classes
 

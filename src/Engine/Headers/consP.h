@@ -7,7 +7,7 @@
 
 #include "cons.h"
 #include "heap.h"
-#include "termP.h"
+#include "normalP.h"
 
 normalPo allocateCons(heapPo H, termPo lhs, termPo rhs);
 

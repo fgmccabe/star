@@ -6,6 +6,7 @@
 #define STAR_CLOSURE_H
 
 #include "term.h"
+#include "labels.h"
 
 typedef struct closure_record_ *closurePo;
 
