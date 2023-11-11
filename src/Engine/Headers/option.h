@@ -6,6 +6,8 @@
 #define STAR_OPTION_H
 
 #include "term.h"
+#include "heap.h"
+#include "labelsP.h"
 
 normalPo wrapSome(heapPo H, termPo lhs);
 termPo unwrapSome(normalPo p);

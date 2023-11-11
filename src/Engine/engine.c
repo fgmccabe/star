@@ -23,7 +23,6 @@ static comparison sameProcess(void *, void *);
 
 static integer newProcessNumber();
 
-static LockRecord processLock;
 __thread processPo currentProcess = Null;
 
 MethodRec haltMethod = {
@@ -39,7 +38,6 @@ MethodRec haltMethod = {
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
-  initLock(&processLock);
   haltMethod.clss = methodClass;
   runTimer = newTimer("running");
 }
@@ -166,9 +164,7 @@ retCode setProcessWd(processPo p, char *wd, integer len) {
 static integer prCount = 0;
 
 integer newProcessNumber() {
-  acquireLock(&processLock, 0);
   integer nextPrNo = prCount++;
-  releaseLock(&processLock);
   return nextPrNo;
 }
 

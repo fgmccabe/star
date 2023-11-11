@@ -20,8 +20,6 @@ heapPo globalHeap = Null;
 integer numAllocated = 0;
 integer totalAllocated = 0;
 
-static void initHeapLck(heapPo heap);
-
 void initHeap(long heapSize) {
   if (globalHeap == NULL) {
     heap.curr = heap.old = heap.base = heap.start =
@@ -29,7 +27,6 @@ void initHeap(long heapSize) {
     heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
     heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
-    initHeapLck(&heap);
     globalHeap = &heap;
 
     gcTimer = newTimer("gc");
@@ -91,18 +88,6 @@ normalPo allocateStruct(heapPo H, labelPo lbl) {
 
 retCode enoughRoom(heapPo H, labelPo lbl) {
   return reserveSpace(H, NormalCellCount(labelArity(lbl)));
-}
-
-void initHeapLck(heapPo H) {
-  initLock(&H->heapLock);
-}
-
-extern void lockHeap(heapPo H) {
-  acquireLock(&H->heapLock, 0.0);
-}
-
-extern void releaseHeapLock(heapPo H) {
-  releaseLock(&H->heapLock);
 }
 
 void validPtr(heapPo H, termPo t) {

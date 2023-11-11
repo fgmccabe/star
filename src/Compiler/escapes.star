@@ -241,10 +241,6 @@ star.compiler.escapes{
     "_thread_state" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*thread")])),.nomnal("star.thread*threadState"))).
     "_waitfor" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*thread")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_shell" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_newLock" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.thread*lock"))).
-    "_acquireLock" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*lock"),.nomnal("star.core*float")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_waitLock" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*lock"),.nomnal("star.core*float")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_releaseLock" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*lock")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_ins_debug" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([]))).
     "_stackTrace" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string"))).
     _ default => .none.
@@ -487,10 +483,6 @@ star.compiler.escapes{
     "_thread_state" => .true.
     "_waitfor" => .true.
     "_shell" => .true.
-    "_newLock" => .true.
-    "_acquireLock" => .true.
-    "_waitLock" => .true.
-    "_releaseLock" => .true.
     "_ins_debug" => .true.
     "_stackTrace" => .true.
     _ default => .false.

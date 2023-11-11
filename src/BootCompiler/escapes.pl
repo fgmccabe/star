@@ -237,10 +237,6 @@ escapeType("_kill",constrained(funType(tplType([type("star.thread*thread")]),tpl
 escapeType("_thread_state",funType(tplType([type("star.thread*thread")]),type("star.thread*threadState"))).
 escapeType("_waitfor",constrained(funType(tplType([type("star.thread*thread")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_shell",constrained(funType(tplType([type("star.core*string"),tpExp(tpFun("star.core*cons",1),type("star.core*string")),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")]))]),type("star.core*integer")),raises(type("star.core*errorCode")))).
-escapeType("_newLock",funType(tplType([]),type("star.thread*lock"))).
-escapeType("_acquireLock",constrained(funType(tplType([type("star.thread*lock"),type("star.core*float")]),tplType([])),raises(type("star.core*errorCode")))).
-escapeType("_waitLock",constrained(funType(tplType([type("star.thread*lock"),type("star.core*float")]),tplType([])),raises(type("star.core*errorCode")))).
-escapeType("_releaseLock",constrained(funType(tplType([type("star.thread*lock")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),type("star.core*string"))).
 isEscape("_exit").
@@ -478,9 +474,5 @@ isEscape("_kill").
 isEscape("_thread_state").
 isEscape("_waitfor").
 isEscape("_shell").
-isEscape("_newLock").
-isEscape("_acquireLock").
-isEscape("_waitLock").
-isEscape("_releaseLock").
 isEscape("_ins_debug").
 isEscape("_stackTrace").

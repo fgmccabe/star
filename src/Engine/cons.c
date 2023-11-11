@@ -8,6 +8,7 @@
 #include "assert.h"
 #include "debug.h"
 #include "termP.h"
+#include "labelsP.h"
 
 termPo nilEnum;
 labelPo consCons;

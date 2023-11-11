@@ -7,7 +7,6 @@
 
 #include "heap.h"
 #include "char.h"
-#include "termP.h"
 
 termPo allocateCharacter(codePoint cp);
 
