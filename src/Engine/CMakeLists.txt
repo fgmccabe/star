@@ -34,7 +34,6 @@ set(HEADER_FILES
         Headers/term.h Headers/termP.h Headers/strings.h Headers/arith.h
         Headers/debug.h
         Headers/tpl.h Headers/engineP.h
-        Headers/thunk.h Headers/thunkP.h
         Headers/local.h Headers/engineOptions.h
         Headers/labels.h Headers/labelsP.h
         Headers/arithP.h Headers/stringsP.h
@@ -53,7 +52,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c labels.c arith.c thunk.c
+        ${HEADER_FILES} code.c term.c labels.c arith.c
         strings.c cell.c iochnl.c thr.c bkpoint.c verify.c capability.c cons.c option.c ltype.c Headers/ltype.h stack.c
         future.c char.c bignum.c ideal.c Headers/ideal.h continuation.c Headers/continuation.h closure.c
         special.c
