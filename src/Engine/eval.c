@@ -17,7 +17,6 @@
 #include "cellP.h"
 #include "continuationP.h"
 #include "closureP.h"
-#include "thunkP.h"
 #include "errorCodes.h"
 
 #ifdef TRACEEXEC
