@@ -14,7 +14,6 @@
 #include "manifestP.h"
 #include "verifyP.h"
 #include "debugP.h"
-#include "capabilityP.h"
 #include "buddyP.h"
 #include "labelsP.h"
 #include "continuationP.h"

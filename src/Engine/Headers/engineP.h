@@ -16,14 +16,12 @@
 #include "labelsP.h"
 #include "normalP.h"
 #include "thr.h"
-#include "capability.h"
 
 typedef struct processRec_ {
   stackPo stk;        // Current stack
   heapPo heap;        // Local heap for this process
   pthread_t threadID;      /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
-  capabilityPo processCap;      // What is the root capability for this thread
   ProcessState state;                 /* What is the status of this process? */
   logical pauseRequest;         /* Has a pause of this process been requested? */
   ProcessState savedState;    /* Saved state of this process? */

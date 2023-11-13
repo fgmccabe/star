@@ -48,7 +48,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
 
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
-    processPo p = newProcess(h, mainMtd, rootWd, rootCap, cmdLine);
+    processPo p = newProcess(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
     integer ret = run(p);
     pauseTimer(runTimer);
@@ -61,7 +61,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
   }
 }
 
-processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg) {
+processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
   stackPo stk = P->stk = allocateStack(h, stackSize, &haltMethod, active, Null);
@@ -72,7 +72,6 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processC
   P->heap = h;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  P->processCap = processCap;
   if (insDebugging || lineDebugging) {
     if (interactive)
       P->waitFor = stepInto;
@@ -127,10 +126,6 @@ ProcessState processState(processPo p) {
 
 integer processNo(processPo p) {
   return p->processNo;
-}
-
-capabilityPo processCap(processPo p) {
-  return p->processCap;
 }
 
 typedef struct {
