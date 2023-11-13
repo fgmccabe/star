@@ -33,7 +33,7 @@ void *forkThread(void *arg) {
 
 ReturnStatus g__fork(heapPo h, termPo a1) {
   labelPo fn = C_LBL(a1);
-  processPo np = newProcess(h, labelCode(fn), currentProcess->wd, processCap(currentProcess), unitEnum);
+  processPo np = newProcess(h, labelCode(fn), currentProcess->wd, unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 

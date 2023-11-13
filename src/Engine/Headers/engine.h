@@ -8,7 +8,6 @@
 #include "engineOptions.h"
 #include "code.h"
 #include "heap.h"
-#include "capability.h"
 
 typedef struct processRec_ *processPo;
 
@@ -34,12 +33,11 @@ typedef struct return_code_ {
   termPo result;
 } ReturnStatus;
 
-processPo newProcess(heapPo h, methodPo mtd, char *rootWd, capabilityPo processCap, termPo rootArg);
+processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
 void switchProcessState(processPo p, ProcessState state);
 void setProcessRunnable(processPo p);
 ProcessState processState(processPo p);
 integer processNo(processPo p);
-capabilityPo processCap(processPo p);
 
 typedef retCode (*procProc)(processPo p, void *cl);
 retCode processProcesses(procProc p, void *cl);

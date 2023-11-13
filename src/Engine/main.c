@@ -11,7 +11,6 @@
 #include "ideal.h"
 #include <formexts.h>
 #include <optionP.h>
-#include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
@@ -65,7 +64,6 @@ int main(int argc, char **argv) {
   initCell();
   initCode();
   initTerm();
-  initCapability();
   initIoChnnl();
   initThr();
   initTime();
