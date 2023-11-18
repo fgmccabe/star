@@ -65,7 +65,9 @@ star.compiler.wasm.instr{
     | .RefNull(ref_type)	       --  null reference 
     | .RefFunc(var)                    --  function reference 
     | .RefIsNull		       --  null test 
-    | .Const(num_type)		       --  constant 
+    | .IConst(num_type,integer)        --  integer constant
+    | .FConst(num_type,float)          --  floating point constant
+    | .i31Ref                          --  Convert i32 to i31Ref
     | .IClz                            --  Clear to zero
     | .ICtz                            --  Count trailing zeroes
     | .Popcnt    
@@ -128,6 +130,9 @@ star.compiler.wasm.instr{
     | .PromoteF32
     | .DemoteF64
     | .ReinterpretInt
+    | .StructNew(integer)
+    | .StructGet(integer,integer)
+    | .StructSet(integer,integer)
   .
 
   public implementation display[wOp] => {
@@ -171,7 +176,8 @@ star.compiler.wasm.instr{
     | .RefNull(T) => "ref.null $(T)"
     | .RefFunc(F) => "ref.func $(F)"
     | .RefIsNull => "ref.isnull"
-    | .Const(N) => "$(N).const"
+    | .IConst(_,N) => "$(N).const"
+    | .FConst(_,N) => "$(N).const"
     | .IClz => "clz"
     | .ICtz => "ctz"
     | .Popcnt => "popcnt"
@@ -217,6 +223,7 @@ star.compiler.wasm.instr{
     | .ExtendSI32 => "extendsi32"
     | .ExtendUI32 => "extendui32"
     | .WrapI64 => "i32.wrap_i64"
+    | .i31Ref => "ref.i31"
   }
 
   disp_ins:(cons[wOp],string)=>string.
