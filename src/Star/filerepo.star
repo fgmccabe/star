@@ -29,7 +29,7 @@ star.repo.file{
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
-    Fn = Pk++(hash(Pk)::string)++Ext;
+    Fn = "#(Pk)$(hash(Pk))#(Ext)";
     FUri ?= parseUri(Fn);
     FU ?= resolveUri(Root,FUri);
     putResource(FU,Text);

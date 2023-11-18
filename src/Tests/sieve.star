@@ -35,12 +35,8 @@ test.sieve{
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	NChnl = newChannel();
-	try{
-	  this suspend .fork((T)=>sieve(T,Cnt+1,Mx,NChnl));
-	  filter(Nxt,Chnnl,NChnl)
-	} catch mboxException in { .canceled => {
-	    this retire .retired_ }
-	}
+	this suspend .fork((T)=>sieve(T,Cnt+1,Mx,NChnl));
+	filter(Nxt,Chnnl,NChnl)
       } else{
 	logMsg("collected $(Mx) primes");
 	this retire .result(Nxt)
