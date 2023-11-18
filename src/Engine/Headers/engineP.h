@@ -39,7 +39,7 @@ extern MethodRec haltMethod;
 extern void initEngine();
 extern retCode run(processPo P);
 
-retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap);
+retCode bootstrap(heapPo h, char *entry, char *rootWd);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

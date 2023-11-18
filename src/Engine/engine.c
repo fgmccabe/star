@@ -42,7 +42,7 @@ void initEngine() {
   runTimer = newTimer("running");
 }
 
-retCode bootstrap(heapPo h, char *entry, char *rootWd, capabilityPo rootCap) {
+retCode bootstrap(heapPo h, char *entry, char *rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelCode(umain);
 

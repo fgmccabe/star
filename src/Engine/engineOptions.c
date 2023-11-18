@@ -232,11 +232,6 @@ static retCode debugOption(char *option, logical enable) {
         logMsg(logFile, "Show colors %s\n", (showColors ? "enabled" : "disabled"));
         continue;
 
-      case 'c': // enable tracing of capability mgt
-        traceCapability = True;
-        logMsg(logFile, "Capability tracing enabled\n");
-        continue;
-
       default:;
     }
   }

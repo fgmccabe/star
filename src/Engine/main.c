@@ -106,10 +106,8 @@ int main(int argc, char **argv) {
 
   setupSignals();
   atexit(dumpStack);
-
-  capabilityPo rootCap = allocateCapability(globalHeap, rootWd, uniStrLen(rootWd), stdPerms);
-
-  switch (bootstrap(globalHeap, mainEntry, rootWd, rootCap)) {
+  
+  switch (bootstrap(globalHeap, mainEntry, rootWd)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

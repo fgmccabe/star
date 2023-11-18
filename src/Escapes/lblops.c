@@ -3,7 +3,6 @@
 //
 
 
-#include <assert.h>
 #include <globals.h>
 #include <cons.h>
 #include "lblops.h"
