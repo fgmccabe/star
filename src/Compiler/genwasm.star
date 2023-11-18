@@ -79,7 +79,11 @@ star.compiler.wasm.gen{
 
   compExp:(cExp,tailMode,codeCtx,stack) => (stack,multi[wOp],codeCtx).
   compExp(Exp,TM,Ctx,Stk) => case Exp in {
-    E where isGround(E) => wasmConstant(Exp::data,Stk,Ctx)
+    | .cInt(Lc,Ix) => wasmInt(Ix,Stk,Ctx)
+    | .cChar(Lc,Cx) => wasmInt(Cx::integer,Stk,Ctx)
+    | .cBig(Lc,Bx) => wasmBigInt(Bx,Stk,Ctx)
+    | .cFloat(Lc,Dx) => wasmFloat(Dx,Stk,Ctx)
+    | .cString(Lc,Sx) => wasmString(Sx,Stk,Ctx)
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
 	valis compVar(Lc,Loc,Ctx,Stk)
@@ -966,5 +970,10 @@ star.compiler.wasm.gen{
     .aVarNmes(_,_,B) => collectActLcls(B,Mp).
     .aAbort(_,_) => Mp
   }
+
+  wasmInt(Ix,Stk,Ctx) where isSMI(Ix) =>
+    (pushStack(intType,Stk),[.IConst(.I32Type,Ix),.i31Ref]).
+  wasmInt(Ix,Stk,Ctx) =>
+    (pushStack(intType,Stk),[.IConst(.I64Type,Ix),.StructNew(boxedIntType).
   
 }
