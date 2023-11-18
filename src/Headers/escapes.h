@@ -9,7 +9,6 @@
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define fileType "t'star.file*fileHandle'"
-#define udpType "t'star.io*udpHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define futureType(T) "Uz1'star.core*future'" T
 #define ERRCODE "t'star.core*errorCode"
@@ -314,5 +313,6 @@ escape(_stackTrace, "F()s", "Print a stack trace")
 #undef processState
 #undef threadType
 #undef fileType
-#undef lockType
-#undef udpType
+#undef optionType
+#undef futureType
+#undef ERRCODE
