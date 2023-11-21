@@ -86,7 +86,6 @@ retCode closureDisp(ioPo out, termPo t, integer precision, integer depth, logica
 
 void initClosure() {
   ClosureClass.clss = specialClass;
-  initSpecial(closureLbl, &ClosureClass);
 }
 
 closurePo C_CLOSURE(termPo t) {

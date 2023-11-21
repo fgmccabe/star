@@ -61,6 +61,10 @@ integer lg2(integer ix) {
   return (integer) r;
 }
 
+integer lg2Ceiling(integer ix) {
+  return lg2(ix * 2 - 1);
+}
+
 integer countBits(integer ix) {
   uinteger ux = (unsigned) ix;
 

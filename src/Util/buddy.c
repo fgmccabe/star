@@ -162,7 +162,7 @@ voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
   return Null;
 }
 
-retCode release(buddyRegionPo region, voidPtr *block) {
+retCode releaseBlock(buddyRegionPo region, voidPtr *block) {
   freePo entry = (freePo) (((buddyPo) block) - 1);
   integer freeIx = entry->buddy.lgSize - region->minLg;
 

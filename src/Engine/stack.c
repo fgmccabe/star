@@ -75,7 +75,6 @@ void initStacks() {
   underFlowMethod.clss = methodClass;
   newTaskMethod.clss = methodClass;
   spawnMethod.clss = methodClass;
-  initSpecial(stackLbl, &StackClass);
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
@@ -95,7 +94,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
-  sze = (1 << lg2(2 * sze - 1)) - 1; // Adjust stack size to be just under a power of two
+  sze = (1 << lg2Ceiling(sze )) - 1; // Adjust stack size to be just under a power of two
 
   int root = gcAddRoot(H, (ptrPo) &attachment);
 
@@ -333,7 +332,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 termPo stkFinalizer(specialClassPo class, termPo o) {
   stackPo tsk = C_STACK(o);
   if (tsk->stkMem != Null) {
-    release(stackRegion, (voidPtr) tsk->stkMem);
+    releaseBlock(stackRegion, (voidPtr) tsk->stkMem);
     tsk->stkMem = Null;
   }
   return o + StackCellCount;
@@ -566,7 +565,7 @@ stackPo dropStack(stackPo tsk) {
   tsk->attachment = Null;
   tsk->bottom = Null;
   tsk->state = moribund;
-  release(stackRegion, (voidPtr) tsk->stkMem);
+  releaseBlock(stackRegion, (voidPtr) tsk->stkMem);
   tsk->stkMem = Null;
   tsk->sze = -1;
   return previous;

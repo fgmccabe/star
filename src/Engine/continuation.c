@@ -38,7 +38,6 @@ clssPo contClass = ((clssPo) &ContinuationClass);
 
 void initContinuations() {
   ContinuationClass.clss = specialClass;
-  initSpecial(continuationLbl, &ContinuationClass);
 }
 
 long cntSize(specialClassPo cl, termPo o) {

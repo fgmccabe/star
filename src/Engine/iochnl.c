@@ -28,7 +28,6 @@ clssPo ioChnnlClass = (clssPo) &IOChnnlClass;
 
 void initIoChnnl() {
   IOChnnlClass.clss = specialClass;
-  initSpecial(ioChannelLbl, &IOChnnlClass);
 }
 
 ioChnnlPo allocateIOChnnl(heapPo H, ioPo io) {

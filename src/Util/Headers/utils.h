@@ -68,6 +68,7 @@ static logical inline isOdd(integer x) {
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
 integer lg2(integer ix);
+integer lg2Ceiling(integer ix);
 integer countBits(integer ix);
 integer intGCD(integer a, integer b);
 

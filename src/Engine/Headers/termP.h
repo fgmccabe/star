@@ -15,6 +15,7 @@ typedef struct class_record {
 } ClassRecord;
 
 // Some typedefs to help with working with classes
+typedef struct special_class *specialClassPo;
 
 typedef long (*classSizeFun)(specialClassPo class, termPo o);
 

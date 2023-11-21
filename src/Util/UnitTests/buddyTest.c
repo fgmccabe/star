@@ -25,10 +25,10 @@ retCode test_buddy() {
   assert(available(region, 31));
   assert(!available(region, 63));
 
-  release(region, blk2);
-  release(region, blk4);
-  release(region, blk1);
-  release(region, blk3);
+  releaseBlock(region, blk2);
+  releaseBlock(region, blk4);
+  releaseBlock(region, blk1);
+  releaseBlock(region, blk3);
 
   assert(available(region, 127));
 
@@ -55,7 +55,7 @@ retCode test_many_blocks() {
   assert(!available(region, 15));
 
   for(integer ix=0;ix<testBlockCount;ix++)
-    release(region,blocks[ix]);
+    releaseBlock(region, blocks[ix]);
 
   assert(available(region, regionSize-1));
 
