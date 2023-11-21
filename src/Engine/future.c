@@ -32,7 +32,6 @@ clssPo futureClass = (clssPo) &FutureClass;
 
 void initFuture() {
   FutureClass.clss = specialClass;
-  initSpecial(futureLbl, &FutureClass);
 }
 
 futurePo C_FUTURE(termPo t) {

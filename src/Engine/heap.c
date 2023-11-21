@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <threds.h>
 
-#include "heapP.h"
-#include "codeP.h"
-#include "labels.h"
-
 long initHeapSize = 4*1024 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 

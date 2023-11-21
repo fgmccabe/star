@@ -14,7 +14,7 @@ buddyRegionPo createRegion(integer size, integer minSize);
 
 typedef void* voidPtr;
 voidPtr *allocateBuddy(buddyRegionPo region, integer size);
-retCode release(buddyRegionPo region, voidPtr *block);
+retCode releaseBlock(buddyRegionPo region, voidPtr *block);
 
 logical available(buddyRegionPo region, integer size);
 logical inFreeBlock(buddyRegionPo region, voidPtr from);

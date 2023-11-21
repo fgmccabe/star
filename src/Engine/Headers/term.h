@@ -7,7 +7,6 @@
 
 #include "config.h"
 #include "ooio.h"
-#include "special.h"
 
 typedef struct class_record *clssPo;
 typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */

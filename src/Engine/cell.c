@@ -80,7 +80,6 @@ retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical a
 
 void initCell() {
   CellClass.clss = specialClass;
-  initSpecial(cellLbl, &CellClass);
 }
 
 cellPo C_CELL(termPo t) {
