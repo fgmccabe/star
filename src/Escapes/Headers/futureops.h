@@ -6,7 +6,7 @@
 #define STAR_FUTUREOPS_H
 
 #include "term.h"
-#include "future.h"
+#include "single.h"
 
 
 #endif //STAR_FUTUREOPS_H

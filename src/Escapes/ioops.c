@@ -14,7 +14,7 @@
 #include "stack.h"
 #include "globals.h"
 #include "consP.h"
-#include "future.h"
+#include "single.h"
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeFile(ioChannel(C_IO(a1))) == Ok)
@@ -30,7 +30,7 @@ ReturnStatus g__end_of_file(heapPo h, termPo a1) {
 }
 
 static retCode fillFuture(ioPo f, void *cl) {
-  futurePo fut = C_FUTURE((termPo) cl);
+  singlePo fut = C_SINGLE((termPo) cl);
   integer count = enqueuedCount(f);
   heapPo currentHeap;
 
@@ -48,7 +48,7 @@ static retCode fillFuture(ioPo f, void *cl) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ret = setFuture(currentHeap, fut, allocateString(currentHeap, text, length));
+    ret = setSingle(currentHeap, fut, allocateString(currentHeap, text, length));
 
     closeFile(O_IO(buffer));
     return ret;
@@ -62,7 +62,7 @@ ReturnStatus g__enqueue_read(heapPo h, termPo a1, termPo a2) {
   ioChnnlPo chnl = C_IO(a1);
   integer count = integerVal(a2);
 
-  futurePo ft = makeFuture(h, Null);
+  singlePo ft = makeSingle(h);
 
   retCode ret = enqueueRead(ioChannel(chnl), count, fillFuture, ft);
   return (ReturnStatus) {.ret=ret, .result=(termPo) ft};

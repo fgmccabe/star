@@ -10,7 +10,7 @@
 #define threadType "t'star.thread*thread'"
 #define fileType "t'star.file*fileHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define futureType(T) "Uz1'star.core*future'" T
+#define singleType(T) "Uz1'star.core*single'" T
 #define ERRCODE "t'star.core*errorCode"
 
 /* Define the standard escapes */
@@ -119,6 +119,11 @@ escape(_cell, ":k't'F(k't')rk't'", "create a reference cell")
 escape(_get, ":k't'F(rk't')k't'", "access contents of reference cell")
 escape(_assign, ":k't'F(rk't'k't')()", "update contents of reference cell")
 
+escape(_single, ":k't'F()"singleType("k't'"), "create a single cell")
+escape(_singleIsSet, ":k't'F("singleType("k't'")")l", "test to see if single has a value")
+escape(_singleVal, "|:k't'F("singleType("k't'")")lr"ERRCODE, "test to see if single has a value")
+escape(_singleSet, "|:k't'F("singleType("k't'")"k't')()r"ERRCODE, "assign value to single")
+
 escape(_tuple_nth, ":k't':k'e'F(k't'i)k'e'", "Access tuple element")
 escape(_tuple_set_nth, ":k't':k'e'F(k't'ik'e')k't'", "Update tuple element")
 
@@ -153,11 +158,11 @@ escape(_ready_to_read, "F("fileType")l", "file ready test")
 escape(_ready_to_write, "F("fileType")l", "file ready test")
 escape(_inchars, "F("fileType"i)s", "read block string")
 escape(_inbytes,"F("fileType"i)Li","read block of bytes")
-escape(_enqueue_read,"F("fileType"i)"futureType("Li"),"start reading a block of bytes")
+escape(_enqueue_read,"F("fileType"i)"singleType("Li"),"start reading a block of bytes")
 escape(_inchar, "F("fileType")i", "read single character")
 escape(_inbyte, "F("fileType")i", "read single byte")
 escape(_inline, "F("fileType")s", "read a line")
-escape(_inline_async, "F("fileType")"futureType("s"), "async read of a line")
+escape(_inline_async, "F("fileType")"singleType("s"), "async read of a line")
 escape(_intext, "F("fileType"s)s", "read until matching character")
 escape(_outchar, "|F("fileType"i)()r"ERRCODE, "write a single character")
 escape(_outbyte, "|F("fileType"i)()r"ERRCODE, "write a single byte")
@@ -314,5 +319,5 @@ escape(_stackTrace, "F()s", "Print a stack trace")
 #undef threadType
 #undef fileType
 #undef optionType
-#undef futureType
+#undef singleType
 #undef ERRCODE

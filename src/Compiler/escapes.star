@@ -88,6 +88,10 @@ star.compiler.escapes{
     "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t"))))).
     "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t")))).
     "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
+    "_single" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tpExp(.tpFun("star.core*single",1),.nomnal("t"))))).
+    "_singleIsSet" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean")))).
+    "_singleVal" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean"))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_singleSet" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t")),.nomnal("t")])),.tupleType([]))),.raisEs(.nomnal("star.core*errorCode")))).
     "_tuple_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer")])),.nomnal("e"))))).
     "_tuple_set_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer"),.nomnal("e")])),.nomnal("t"))))).
     "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string"))).
@@ -117,11 +121,11 @@ star.compiler.escapes{
     "_ready_to_write" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
     "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
     "_inbytes" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer")))).
-    "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*future",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
+    "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
     "_inchar" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer"))).
     "_inbyte" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer"))).
     "_inline" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*string"))).
-    "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tpExp(.tpFun("star.core*future",1),.nomnal("star.core*string")))).
+    "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tpExp(.tpFun("star.core*single",1),.nomnal("star.core*string")))).
     "_intext" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
     "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
@@ -330,6 +334,10 @@ star.compiler.escapes{
     "_cell" => .true.
     "_get" => .true.
     "_assign" => .true.
+    "_single" => .true.
+    "_singleIsSet" => .true.
+    "_singleVal" => .true.
+    "_singleSet" => .true.
     "_tuple_nth" => .true.
     "_tuple_set_nth" => .true.
     "_cwd" => .true.

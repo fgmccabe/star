@@ -6,7 +6,7 @@
 
 #include "ooio.h"
 #include "engine.h"
-#include "future.h"
+#include "single.h"
 #include "arith.h"
 #include "timer.h"
 #include "globals.h"
@@ -15,12 +15,12 @@ static void reportTimeout(void *cl);
 
 ReturnStatus g__settimeout(heapPo h, termPo a1, termPo a2) {
   double delta = floatVal(a1);
-  futurePo future = makeFuture(h, Null);
-  setTimer(delta, reportTimeout, (void *) future);
+  singlePo single = makeSingle(h);
+  setTimer(delta, reportTimeout, (void *) single);
   return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 
 void reportTimeout(void *cl) {
-  futurePo fut = (futurePo) cl;
-  setFuture(globalHeap, fut, trueEnum);
+  singlePo fut = (singlePo) cl;
+  setSingle(globalHeap, fut, trueEnum);
 }
