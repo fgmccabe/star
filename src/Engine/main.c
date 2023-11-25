@@ -22,7 +22,7 @@
 #include "debug.h"
 #include "editline.h"
 #include "starP.h"
-#include "futureP.h"
+#include "singleP.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   initCons();
   initIdeal();
   initOption();
-  initFuture();
+  initSingle();
   initClosure();
   initCell();
   initCode();

@@ -23,6 +23,8 @@ termPo eCONNECT;
 termPo eFAIL;
 termPo eDEAD;
 termPo divZero;
+termPo noValue;
+termPo hasValue;
 
 termPo falseEnum;
 termPo trueEnum;
@@ -96,6 +98,10 @@ void initGlobals() {
   errorLbl = declareLbl("star.core#error", 2, -1);
 
   divZero = declareEnum("star.core#divZero", -1, globalHeap);
+
+  noValue = declareEnum("star.core#noValue", -1, globalHeap);
+  hasValue = declareEnum("star.core#hasValue", -1, globalHeap);
+
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
 }
@@ -217,6 +223,9 @@ void markGlobals(gcSupportPo G) {
   noneEnum = markPtr(G, &noneEnum);
 
   divZero = markPtr(G,&divZero);
+
+  noValue = markPtr(G, &noValue);
+  hasValue = markPtr(G, &hasValue);
 
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 

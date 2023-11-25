@@ -84,6 +84,10 @@ escapeType("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*
 escapeType("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t"))))).
 escapeType("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t")))).
 escapeType("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([])))).
+escapeType("_single",allType(kVar("t"),funType(tplType([]),tpExp(tpFun("star.core*single",1),kVar("t"))))).
+escapeType("_singleIsSet",allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t"))]),type("star.core*boolean")))).
+escapeType("_singleVal",constrained(allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t"))]),type("star.core*boolean"))),raises(type("star.core*errorCode")))).
+escapeType("_singleSet",constrained(allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t")),kVar("t")]),tplType([]))),raises(type("star.core*errorCode")))).
 escapeType("_tuple_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer")]),kVar("e"))))).
 escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer"),kVar("e")]),kVar("t"))))).
 escapeType("_cwd",funType(tplType([]),type("star.core*string"))).
@@ -113,11 +117,11 @@ escapeType("_ready_to_read",funType(tplType([type("star.file*fileHandle")]),type
 escapeType("_ready_to_write",funType(tplType([type("star.file*fileHandle")]),type("star.core*boolean"))).
 escapeType("_inchars",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_inbytes",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*cons",1),type("star.core*integer")))).
-escapeType("_enqueue_read",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*future",1),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))))).
+escapeType("_enqueue_read",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*single",1),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))))).
 escapeType("_inchar",funType(tplType([type("star.file*fileHandle")]),type("star.core*integer"))).
 escapeType("_inbyte",funType(tplType([type("star.file*fileHandle")]),type("star.core*integer"))).
 escapeType("_inline",funType(tplType([type("star.file*fileHandle")]),type("star.core*string"))).
-escapeType("_inline_async",funType(tplType([type("star.file*fileHandle")]),tpExp(tpFun("star.core*future",1),type("star.core*string")))).
+escapeType("_inline_async",funType(tplType([type("star.file*fileHandle")]),tpExp(tpFun("star.core*single",1),type("star.core*string")))).
 escapeType("_intext",funType(tplType([type("star.file*fileHandle"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_outchar",constrained(funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_outbyte",constrained(funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
@@ -321,6 +325,10 @@ isEscape("_bnot").
 isEscape("_cell").
 isEscape("_get").
 isEscape("_assign").
+isEscape("_single").
+isEscape("_singleIsSet").
+isEscape("_singleVal").
+isEscape("_singleSet").
 isEscape("_tuple_nth").
 isEscape("_tuple_set_nth").
 isEscape("_cwd").
