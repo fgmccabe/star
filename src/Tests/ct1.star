@@ -5,7 +5,7 @@ test.ct1{
   import star.assert.
   import star.mbox.
 
-  ping:(integer,channel[boolean]) => (task[()])=>().
+  ping:(integer,receiver[boolean]) => (task[()])=>().
   ping(Cnt,Chnnl) => (this) => valof{
     logMsg("starting $(Cnt) pings");
     Count := Cnt;
@@ -20,7 +20,7 @@ test.ct1{
     this retire .retired_
   }
 
-  pong:(channel[boolean]) => (task[()])=>().
+  pong:(emitter[boolean]) => (task[()])=>().
   pong(Chnnl) => (this) => valof{
     Count := 0;
 
@@ -37,15 +37,15 @@ test.ct1{
   
   main:()=>().
   main() => valof{
-    Chnnl = newChannel();
-    T1 = ping(10,Chnnl);
-    T2 = pong(Chnnl);
+    (E,R) = newSlot();
+    T1 = ping(10,R);
+    T2 = pong(E);
 
     try{
       Rs = nursery([T1,T2]);
       logMsg("final result $(Rs)");
     } catch mboxException in {
-      E => logMsg(disp(E))
+      Ex => logMsg(disp(Ex))
     };
     valis ()
   }

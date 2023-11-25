@@ -3,7 +3,7 @@ test.sieve{
   import star.assert.
   import star.mbox.
 
-  gen:(channel[integer]) => taskFun[integer].
+  gen:(receiver[integer]) => taskFun[integer].
   gen(Chnnl) => (this)=>valof{
     Ix := 1;
     try{
@@ -19,7 +19,7 @@ test.sieve{
 
   divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
 
-  filter:(this : task[integer]), raises mboxException |: (integer,channel[integer],channel[integer]) => ().
+  filter:(this : task[integer]), raises mboxException |: (integer,emitter[integer],receiver[integer]) => ().
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collect(Chnl) do{
       if ~divides(Nxt,Prm) then
@@ -28,14 +28,14 @@ test.sieve{
     valis ()
   }
 
-  sieve:(task[integer],integer,integer,channel[integer]) => integer.
+  sieve:(task[integer],integer,integer,emitter[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
     try{
       Nxt = collect(Chnnl);
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
-	NChnl = newChannel();
-	this suspend .fork((T)=>sieve(T,Cnt+1,Mx,NChnl));
+	(PChnl,NChnl) = newSlot();
+	this suspend .fork((T)=>sieve(T,Cnt+1,Mx,PChnl));
 	filter(Nxt,Chnnl,NChnl)
       } else{
 	logMsg("collected $(Mx) primes");
@@ -51,8 +51,8 @@ test.sieve{
 
   main:(integer)=>().
   main(Cnt) => valof{
-    FstCh = newChannel();
-    Gn = gen(FstCh);
+    (FstCh,IChnnl) = newSlot();
+    Gn = gen(IChnnl);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
       Tsk retire .retired_
