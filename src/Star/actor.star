@@ -8,10 +8,10 @@ star.actor{
   }
 
   public actorProtocol[i] ::=
-    exists r ~~ query{ q:(i)=>r. resp:channel[r]}
+    exists r ~~ query{ q:(i)=>r. resp:receiver[r]}
     | .tell((i)=>()).
 
-  public actorHead:all i ~~ (channel[actorProtocol[i]],i) => taskFun[()].
+  public actorHead:all i ~~ (emitter[actorProtocol[i]],i) => taskFun[()].
   actorHead(mBox,body) => (this) => valof{
     while .true do{
       try{
@@ -27,13 +27,13 @@ star.actor{
     }
   }
 
-  public actor[i] ::= .actor(task[()],channel[actorProtocol[i]]).
+  public actor[i] ::= .actor(task[()],receiver[actorProtocol[i]]).
 
   public implementation all i ~~ sa[actor[i]->>i] => {
     _query(.actor(this,Ch),Q) => valof{
-      R = newChannel();
+      (P,R) = newSlot();
       post(query{q=Q. resp=R},Ch);
-      valis collect(R)
+      valis collect(P)
     }
     _tell(.actor(this,Ch),A) => valof{
       post(.tell(A),Ch);

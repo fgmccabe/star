@@ -130,7 +130,9 @@ star.core {
   .eIOERROR |
   .eCONNECT |
   .eDEAD |
-  .divZero.
+  .divZero |
+  .noValue |
+  .hasValue.
 
   public implementation display[errorCode] => {
     disp(.eINTRUPT) => "eINTRUPT".
@@ -145,6 +147,8 @@ star.core {
     disp(.eCONNECT) => "eCONNECT".
     disp(.eDEAD) => "eDEAD".
     disp(.divZero) => "divZero".
+    disp(.noValue) => "noValue".
+    disp(.hasValue) => "hasValue".
   }
 
   public error ::= .error(string,errorCode).

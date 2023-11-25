@@ -6,14 +6,61 @@ star.mbox{
 
   public all e ~~ taskFun[e] ~> ((task[e])=>e).
 
-  public all d ~~ channel[d] ::=
-    .channel(ref channelState[d]).
-
   channelState[d] ::= .quiescent
   | .hasData(d).
 
-  public newChannel:all d ~~ () => channel[d].
-  newChannel() => .channel(ref .quiescent).
+  public all d ~~ emitter[d] ::=
+    .emitter(ref channelState[d]).
+
+  public all d ~~ receiver[d] ::=
+    .receiver(ref channelState[d]).
+
+  public all d ~~ slot[d] ~> (emitter[d],receiver[d]).
+
+  public newSlot:all d ~~ ()=>slot[d].
+  newSlot() => valof{
+    Ch := .quiescent;
+    valis (.emitter(Ch),.receiver(Ch))
+  }
+
+  public post:all e,d ~~ (this:task[e]), raises mboxException |:
+    (d,receiver[d])=>().
+  post(D,Ch where .receiver(St).=Ch) => valof{
+    case St! in {
+      .hasData(_) => {
+	case this suspend .blocked(()=>.hasData(_).=St!) in {
+	  .go_ahead => valis post(D,Ch)
+	  | .shut_down_ => raise .canceled
+	}
+      }
+      | .quiescent => {
+	St := .hasData(D);
+	case this suspend .yield_ in {
+	  .go_ahead => valis ()
+	  | .shut_down_ => raise .canceled
+	}
+      }
+    }
+  }
+
+  public collect:all d,e ~~ (this:task[e]), raises mboxException |:(emitter[d]) => d.
+  collect(Ch where .emitter(St).=Ch) => valof{
+    case St! in {
+      .hasData(D) => {
+	St := .quiescent;
+	case this suspend .yield_ in {
+	  .go_ahead => valis D
+	  | .shut_down_ => raise .canceled
+	}
+      }
+      | .quiescent => {
+	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
+	  .go_ahead => valis collect(Ch)
+	  | .shut_down_ => raise .canceled
+	}
+      }
+    }
+  }
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
@@ -32,44 +79,6 @@ star.mbox{
     disp(.deadlock) => "deadlocked"
   }
 
-  public post:all e,d ~~ (this:task[e]), raises mboxException |: (d,channel[d])=>().
-  post(D,Ch where .channel(St).=Ch) => valof{
-    case St! in {
-      .hasData(_) => {
-	case this suspend .blocked(()=>.hasData(_).=St!) in {
-	  .go_ahead => valis post(D,Ch)
-	  | .shut_down_ => raise .canceled
-	}
-      }
-      | .quiescent => {
-	St := .hasData(D);
-	case this suspend .yield_ in {
-	  .go_ahead => valis ()
-	  | .shut_down_ => raise .canceled
-	}
-      }
-    }
-  }
-
-  public collect:all d,e ~~ (this:task[e]), raises mboxException |:(channel[d]) => d.
-  collect(Ch where .channel(St).=Ch) => valof{
-    case St! in {
-      .hasData(D) => {
-	St := .quiescent;
-	case this suspend .yield_ in {
-	  .go_ahead => valis D
-	  | .shut_down_ => raise .canceled
-	}
-      }
-      | .quiescent => {
-	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
-	  .go_ahead => valis collect(Ch)
-	  | .shut_down_ => raise .canceled
-	}
-      }
-    }
-  }
-  
   spawnTask:all e ~~ (taskFun[e]) => task[e].
   spawnTask(F) => case (Tsk spawn valof{
     case Tsk suspend .identify(Tsk) in {
