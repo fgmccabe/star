@@ -17,6 +17,7 @@ star.compiler.escapes{
     "_int_mod" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
     "_int_hash" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
     "_int_gcd" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_int_lg2" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
     "_flt_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*float"))).
     "_flt_minus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*float"))).
     "_flt_times" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*float"))).
@@ -263,6 +264,7 @@ star.compiler.escapes{
     "_int_mod" => .true.
     "_int_hash" => .true.
     "_int_gcd" => .true.
+    "_int_lg2" => .true.
     "_flt_plus" => .true.
     "_flt_minus" => .true.
     "_flt_times" => .true.

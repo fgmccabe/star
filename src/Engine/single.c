@@ -9,23 +9,23 @@
 #include "option.h"
 #include "globals.h"
 
-static long futSize(specialClassPo cl, termPo o);
-static termPo futCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo futScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical futCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer futHash(specialClassPo cl, termPo o);
-static retCode futDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo futFinalizer(specialClassPo class, termPo o);
+static long sngSize(specialClassPo cl, termPo o);
+static termPo sngCopy(specialClassPo cl, termPo dst, termPo src);
+static termPo sngScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical sngCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer sngHash(specialClassPo cl, termPo o);
+static retCode sngDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo sngFinalizer(specialClassPo class, termPo o);
 
 SpecialClass SingleClass = {
   .clss = Null,
-  .sizeFun = futSize,
-  .copyFun = futCopy,
-  .scanFun = futScan,
-  .finalizer = futFinalizer,
-  .compFun = futCmp,
-  .hashFun = futHash,
-  .dispFun = futDisp
+  .sizeFun = sngSize,
+  .copyFun = sngCopy,
+  .scanFun = sngScan,
+  .finalizer = sngFinalizer,
+  .compFun = sngCmp,
+  .hashFun = sngHash,
+  .dispFun = sngDisp
 };
 
 clssPo singleClass = (clssPo) &SingleClass;
@@ -48,25 +48,25 @@ singlePo makeSingle(heapPo H) {
   return ft;
 }
 
-long futSize(specialClassPo cl, termPo o) {
+long sngSize(specialClassPo cl, termPo o) {
   return SingleCellCount;
 }
 
-termPo futCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo sngCopy(specialClassPo cl, termPo dst, termPo src) {
   singlePo si = C_SINGLE(src);
   singlePo di = (singlePo) (dst);
   *di = *si;
   return (termPo) di + SingleCellCount;
 }
 
-termPo futScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo sngScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   singlePo ft = C_SINGLE(o);
 
   helper(&ft->val, c);
   return (termPo) (o + SingleCellCount);
 }
 
-termPo futFinalizer(specialClassPo class, termPo o) {
+termPo sngFinalizer(specialClassPo class, termPo o) {
   singlePo ft = C_SINGLE(o);
 
   ft->val = voidEnum;
@@ -74,16 +74,16 @@ termPo futFinalizer(specialClassPo class, termPo o) {
   return (termPo) (o + SingleCellCount);
 }
 
-logical futCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical sngCmp(specialClassPo cl, termPo o1, termPo o2) {
   return (logical) (o1 == o2);
 }
 
-integer futHash(specialClassPo cl, termPo o) {
+integer sngHash(specialClassPo cl, termPo o) {
   singlePo ft = C_SINGLE(o);
   return (integer) ft->hash;
 }
 
-static retCode futDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
+static retCode sngDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   singlePo ft = C_SINGLE(t);
   return outMsg(out, "<<single:0x%x>>", ft->hash);
 }
