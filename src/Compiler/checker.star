@@ -91,7 +91,7 @@ star.compiler.checker{
     Dcls = getFullNms([(XDcs,Decls)]);
     
     valis .letExp(Lc,Defs,Decls,.apply(Lc,Lbl,
-	(sortedFlds//((FNm,FTp)) where FullNm ?=Dcls[FNm] =>.vr(.none,FullNm,FTp)),Tp))
+	(sortedFlds//((FNm,FTp)) => FullNm ?=Dcls[FNm] ?? .vr(Lc,FullNm,FTp) || .vr(Lc,FNm,FTp)),Tp))
   }
 
   genLetRec:all e,g,d ~~ (cons[g],cons[(cons[d],cons[d])],(g,cons[d],e)=>e,e) => e.
@@ -105,7 +105,7 @@ star.compiler.checker{
     Dcls = getFullNms(Decls);
     
     valis genLetRec(Defs,Decls,(G,D,E) => .letRec(Lc,G,D,E),
-      .apply(Lc,Lbl,(sortedFlds//(((Nm,FTp)) where FullNm ?=Dcls[Nm] =>.vr(Lc,FullNm,FTp))),Tp))
+      .apply(Lc,Lbl,(sortedFlds//(((Nm,FTp)) => (FullNm ?=Dcls[Nm] ?? .vr(Lc,FullNm,FTp) || .vr(Lc,Nm,FTp)))),Tp))
   }
 
   getFullNms:(cons[(cons[decl],cons[decl])]) => map[string,string].
