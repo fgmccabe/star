@@ -14,7 +14,7 @@ star.redblack{
 
   -- red/black trees
 
-  -- Based on Okasaki's book, with deletions by Matt Might
+  -- Based on Okasaki book, with deletions by Matt Might
 
   color ::= .Red | .Black | .BBlack | .NBlack .
 

@@ -79,7 +79,16 @@ star.collection{
 
     foldLeft(F,U,.nil) => U.
     foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
- .}
+  .}
+
+  public implementation all x ~~ folding[option[x]->>x] => let{
+    fold:all a ~~ ((x,a)=>a,a,option[x])=>a.
+    fold(F,A,.some(X)) => F(X,A).
+    fold(F,A,.none) => A.
+  } in {
+    foldRight = fold.
+    foldLeft = fold
+  }
 
   public implementation all e ~~ ixfold[cons[e] ->> integer,e] => {
     ixRight(F,Z,L) => let{.

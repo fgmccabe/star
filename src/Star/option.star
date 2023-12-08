@@ -48,7 +48,7 @@ star.option{
     fmap(_,.none) => .none.
     fmap(F,.some(A)) => .some(F(A)).
     C <$ L => fmap((_)=>C,L).
- .}
+  .}
 
   public _optval:all a~~(option[a])=>a.
   _optval(.some(X)) => X.
