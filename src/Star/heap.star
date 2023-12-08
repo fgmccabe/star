@@ -2,7 +2,7 @@ star.heap{
   import star.
 
   -- implementation of a binomial heap, otherwise known as a priority queue
-  -- From Okasaki's book
+  -- From Okasakis book
 
   public all x ~~ tree[x] ::= .eNode(x,integer,cons[tree[x]]).
   public all x ~~ heap[x] ::= .h(cons[tree[x]]).

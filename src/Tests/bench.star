@@ -3,6 +3,7 @@ test.bench{
   import star.finger.
   import star.redblack.
   import star.skew.
+  import star.vector.
   import star.assert.
   
   timer_start : (integer, string) => (integer, integer, string).
@@ -80,7 +81,15 @@ test.bench{
     };
     timer_finish(timer!);
 
-    logMsg("measure $([|id_list!|])");
+    timer := timer_start(Count, "Accessing all elements in ideal");
+    for i in idxes do {
+      El = id_list![i];
+--      logMsg(" element: $(i) = $(El)")
+      empty(.some(i))
+    };
+    timer_finish(timer!);
+
+--    logMsg("measure $([|id_list!|])");
 
     if Count =< 100000 then {
       timer := timer_start(Count, "Changing elements in ideal map");
@@ -103,7 +112,11 @@ test.bench{
     };
     timer_finish(timer!);
 
-    logMsg("measure $([|fn_list!|])");
+--     timer := timer_start(Count, "Accessing all elements in finger list");
+--     for i in idxes do {
+--       El = fn_list![i]
+--     };
+--     timer_finish(timer!);
 
 /*
     if Count =< 100000 then {
@@ -171,6 +184,34 @@ test.bench{
       };
       timer_finish(timer!)
     };
+
+    logMsg("******* vectors ******");
+    timer := timer_start(Count, "Creating vector");
+    v = ref idxes::vect[integer];
+
+    timer_finish(timer!);
+--    logMsg("vector: $(v!)");
+
+    timer := timer_start(Count, "Iterating over all elements in vector");
+    for i in v! do {
+      empty(.some(i));
+--      logMsg("vector element: $(i)")
+    };
+    timer_finish(timer!);
+
+    timer := timer_start(Count, "Accessing all elements in vector");
+    for i in idxes do {
+      El = vindex(v!,i)
+--      logMsg(" element: $(i) = $(El)")
+    };
+    timer_finish(timer!);
+
+    timer := timer_start(Count, "Changing elements in vector");
+    for ix in idxes do {
+      v := vupdate(v!,ix,ix+4);
+    };
+    timer_finish(timer!);
+    
     valis ()
   }
 

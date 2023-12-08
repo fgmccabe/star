@@ -148,6 +148,7 @@
     "test.tsort": "tsort.star",
     "test.u": "u.star",
     "test.u2": "u2.star",
+    "test.v0": "v0.star",
     "test.y": "y.star"
   },
   "version": "1.0.0",
