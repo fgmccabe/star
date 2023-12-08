@@ -28,6 +28,8 @@ escape(_int_mod, "|F(ii)ir"ERRCODE, "modulo remainder")
 escape(_int_hash, "F(i)i", "compute hash of integer")
 escape(_int_gcd, "|F(ii)ir"ERRCODE, "gcd of two integers")
 
+escape(_int_lg2,"|F(i)ir"ERRCODE,"integer log2")
+
 escape(_flt_plus, "F(ff)f", "add two floats")
 escape(_flt_minus, "F(ff)f", "subtract two floats")
 escape(_flt_times, "F(ff)f", "multiply two floats")

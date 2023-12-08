@@ -13,6 +13,7 @@ escapeType("_int_div",constrained(funType(tplType([type("star.core*integer"),typ
 escapeType("_int_mod",constrained(funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_int_hash",funType(tplType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_gcd",constrained(funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
+escapeType("_int_lg2",constrained(funType(tplType([type("star.core*integer")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_flt_plus",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_flt_minus",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_flt_times",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
@@ -254,6 +255,7 @@ isEscape("_int_div").
 isEscape("_int_mod").
 isEscape("_int_hash").
 isEscape("_int_gcd").
+isEscape("_int_lg2").
 isEscape("_flt_plus").
 isEscape("_flt_minus").
 isEscape("_flt_times").

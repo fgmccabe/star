@@ -171,6 +171,15 @@ ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
+ReturnStatus g__int_lg2(heapPo h, termPo xc, termPo Lhs) {
+  integer Arg = integerVal(Lhs);
+  if (Arg <= 0) {
+    return (ReturnStatus) {.ret=Error, .result=eRANGE};
+  } else {
+    return (ReturnStatus) {.ret=Ok, .result=makeInteger(lg2(Arg))};
+  }
+}
+
 ReturnStatus g__bcount(heapPo h, termPo arg1) {
   integer Arg = integerVal(arg1);
 

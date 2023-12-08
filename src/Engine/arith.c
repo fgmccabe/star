@@ -105,6 +105,3 @@ logical nearlyEqual(double dx1, double dx2, double eps) {
   }
   return False;
 }
-
-
-
