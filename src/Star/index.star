@@ -3,13 +3,6 @@ star.index{
   import star.arith.
   import star.cons.
 
-  public contract all m,k,v ~~ indexed[m ->> k,v] ::= {
-    _index:(m,k) => option[v].
-    _put:(m,k,v) => m.
-    _remove:(m,k) => m.
-    _empty:m.
-  }.
-
   -- Implement indexed access
   public implementation all t ~~ indexed[cons[t]->>integer,t] => let{.
     indexCons:(cons[t],integer)=>option[t].

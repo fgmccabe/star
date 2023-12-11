@@ -39,12 +39,6 @@ star.collection{
     visit:all a ~~ (c,(t,a)=>a,a) => a
   }
 
-  public contract all k,e ~~ membership[k->>e] ::= {
-    (\+):(k,e)=>k.
-    (\-):(k,e)=>k.
-    (.<.):(e,k)=>boolean.
-  }
-
   public contract all k ~~ setops[k] ::= {
     (\/) : (k,k)=>k.
     (/\) : (k,k)=>k.
