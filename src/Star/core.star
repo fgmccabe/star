@@ -60,6 +60,19 @@ star.core {
     lead:(c) => option[c].
   }
 
+  public contract all c,e ~~ membership[c->>e] ::= {
+    (\+):(c,e)=>c.
+    (\-):(c,e)=>c.
+    (.<.):(e,c)=>boolean.
+  }
+
+  public contract all m,k,v ~~ indexed[m ->> k,v] ::= {
+    _index:(m,k) => option[v].
+    _put:(m,k,v) => m.
+    _remove:(m,k) => m.
+    _empty:m.
+  }.
+
   -- stream contract
   public contract all S,E ~~ stream[S ->> E] ::= {
     _eof:(S) => boolean.
