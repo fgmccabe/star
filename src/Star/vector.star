@@ -181,6 +181,51 @@ star.vector{
   apnd(.vct4(L0,L1,L2,L3),Dp,X) where Dp>0 => .vct4(L0,L1,L2,apnd(L3,Dp-2,X)).
   apnd(.e,Dp,X) where Dp>2 => .vct1(apnd(.e,Dp-2,X)).
 
+  shLft:all x ~~ (vct[x],option[x]) => (option[x],vct[x]).
+  shLft(.e,x) => (x,.e).
+  shLft(.lf1(N1),.some(X)) => (.some(N1),.lf1(X)).
+  shLft(.lf1(N1),.none) => (.some(N1),.e).
+  shLft(.lf2(N1,N2),.some(X)) => (.some(N1),.lf2(N2,X)).
+  shLft(.lf2(N1,N2),.none) => (.some(N1),.lf1(N2)).
+  shLft(.lf3(N1,N2,N3),.some(X)) => (.some(N1),.lf3(N2,N3,X)).
+  shLft(.lf3(N1,N2,N3),.none) => (.some(N1),.lf2(N2,N3)).
+  shLft(.lf4(N1,N2,N3,N4),.some(X)) => (.some(N1),.lf4(N2,N3,N4,X)).
+  shLft(.lf4(N1,N2,N3,N4),.none) => (.some(N1),.lf3(N2,N3,N4)).
+  shLft(.vct1(T0),X) => valof{
+    (L,R0) = shLft(T0,X);
+    if .e .= R0 then
+      valis (L,.e)
+    else
+    valis (L,.vct1(R0))
+  }
+  shLft(.vct2(T0,T1),X) => valof{
+    (L1,R1) = shLft(T1,X);
+    (L0,R0) = shLft(T0,L1);
+    if .e .= R1 then
+      valis (L0,.vct1(R0))
+    else
+    valis (L0,.vct2(R0,R1))
+  }
+  shLft(.vct3(T0,T1,T2),X) => valof{
+    (L2,R2) = shLft(T2,X);
+    (L1,R1) = shLft(T1,L2);
+    (L0,R0) = shLft(T0,L1);
+    if .e .= R2 then
+      valis (L0,.vct2(R0,R1))
+    else
+    valis (L0,.vct3(R0,R1,R2))
+  }
+  shLft(.vct4(T0,T1,T2,T3),X) => valof{
+    (L3,R3) = shLft(T3,X);
+    (L2,R2) = shLft(T2,L3);
+    (L1,R1) = shLft(T1,L2);
+    (L0,R0) = shLft(T0,L1);
+    if .e .= R3 then
+      valis (L0,.vct3(R0,R1,R2))
+    else
+    valis (L0,.vct4(R0,R1,R2,R3))
+  }
+
   public implementation all x ~~ iter[vect[x]->>x] => let{.
     walk(.e,A,_) => A.
     walk(.vct1(T0),A,F) => walk(T0,A,F).
