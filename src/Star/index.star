@@ -22,11 +22,8 @@ star.index{
     
  .} in {
     _index(C,Ix) => indexCons(C,Ix).
-
     _put(C,Ix,V) => putCons(C,Ix,V).
-
     _remove(C,Ix) => remCons(C,Ix).
-
     _empty = .nil.
   }
 

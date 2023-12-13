@@ -112,9 +112,6 @@ putGen(Lc,Pr,R,Trm) :-
   isPair(Pr,_,F,V),
   ternary(Lc,"_put",R,F,V,Trm).
 
-concGen(Lc,L,(F,V),Trm) :-
-  ternary(Lc,"put",L,F,V,Trm).
-
 squarePtnMacro(A,pattern,Ptn) :-
   isSquareTuple(A,Lc,Els),!,
   macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest).
