@@ -226,6 +226,170 @@ star.vector{
     valis (L0,.vct4(R0,R1,R2,R3))
   }
 
+  public vdelete:all x ~~ (vect[x],integer) => vect[x].
+  vdelete(.vector(Dp,V),Ix) => .vector(Dp,delete(V,Ix,Dp,.none)).
+
+  delete:all x ~~ (vct[x],integer,integer,option[x]) => vct[x].
+  delete(.e,_,_,.none) => .e.
+  delete(.e,_,_,.some(X)) => .lf1(X).
+  delete(V,Ky,Sx,X) where Sx>0 => valof{
+    (Fst,RKy) = splitKey(Ky,Sx);
+    valis delte(V,Fst,RKy,Sx-2,X)
+  }.
+  delete(V,Ky,0,X) => delte(V,Ky.&.3,Ky,0,X).
+  
+  delte:all x ~~ (vct[x],integer,integer,integer,option[x])=>vct[x].
+  delte(V,Ix,K,Dp,X) => case Ix in {
+    0 => case V in {
+      .vct1(T0) => valof{
+	Tx0 = delete(T0,K,Dp,X);
+	valis bldVct(Tx0,.e,.e,.e)
+      }.
+      .vct2(T0,T1) => valof{
+	(Xs,Tx1) = shLft(T1,X); -- Shift the right tree left by one
+	Tx0 = delete(T0,K,Dp,Xs); -- Delete from the left tree
+	valis bldVct(Tx0,Tx1,.e,.e)
+      }.
+      .vct3(T0,T1,T2) => valof{
+	(Xs,Tx2) = shLft(T2,X); -- Shift the right tree left by one
+	(Xs0,Tx1) = shLft(T1,Xs); -- Shift the middle tree left by one
+	Tx0 = delete(T0,K,Dp,Xs0); -- Delete from the left tree
+	valis bldVct(Tx0,Tx1,Tx2,.e)
+      }.
+      .vct4(T0,T1,T2,T3) => valof {
+	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
+	(Xs0,Tx2) = shLft(T2,Xs); 
+	(Xs1,Tx1) = shLft(T1,Xs0); 
+	Tx0 = delete(T0,K,Dp,Xs1); -- Delete from the left tree
+	valis bldVct(Tx0,Tx1,Tx2,Tx3)
+      }.
+      .lf1(_) => bldLf(X,.none,.none,.none).
+      .lf2(_,L1) => bldLf(.some(L1),X,.none,.none).
+      .lf3(_,L1,L2) => bldLf(.some(L1),.some(L2),X,.none).
+      .lf4(_,L1,L2,L3) => bldLf(.some(L1),.some(L2),.some(L3),X).
+    }.
+    1 => case V in {
+      .vct1(T0) => V.      -- trying to delete beyond edge
+      .vct2(T0,T1) => valof {
+	Tx1 = delete(T1,K,Dp,X); -- Delete from the right tree
+	valis bldVct(T0,Tx1,.e,.e)
+      }.
+      .vct3(T0,T1,T2) => valof {
+	(Xs,Tx2) = shLft(T2,X); -- Shift the right tree left by one
+	Tx1 = delete(T1,K,Dp,Xs); -- Delete from the middle tree
+	valis bldVct(T0,Tx1,Tx2,.e)
+      }.
+      .vct4(T0,T1,T2,T3) => valof{
+	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
+	(Xs0,Tx2) = shLft(T2,Xs); 
+	Tx1 = delete(T1,K,Dp,Xs0); 
+	valis bldVct(T0,Tx1,Tx2,Tx3)
+      }.
+      .lf1(_) => V.
+      .lf2(L0,L1) => bldLf(.some(L0),X,.none,.none).
+      .lf3(L0,_,L2) => bldLf(.some(L0),.some(L2),X,.none).
+      .lf4(L0,_,L2,L3) => bldLf(.some(L0),.some(L2),.some(L3),X).
+    }.
+    2 => case V in {
+      .vct1(_) => V.      -- trying to delete beyond edge
+      .vct2(_,_) => V.    -- Also.
+      .vct3(T0,T1,T2) => valof {
+	Tx2 = delete(T2,K,Dp,X); -- Delete from the middle tree
+	valis bldVct(T0,T1,Tx2,.e)
+      }.
+      .vct4(T0,T1,T2,T3) => valof {
+	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
+	Tx2 = delete(T2,K,Dp,Xs); 
+	valis bldVct(T0,T1,Tx2,Tx3)
+      }.
+      .lf1(_) => V.
+      .lf2(_,_) => V.
+      .lf3(L0,L1,_) => bldLf(.some(L0),.some(L1),X,.none).
+      .lf4(L0,L1,_,L3) => bldLf(.some(L0),.some(L1),.some(L3),X).
+    }.
+    3 => case V in {
+      .vct1(_) => V.      -- trying to delete beyond edge
+      .vct2(_,_) => V.    -- Also.
+      .vct3(_,_,_) => V.  -- Also.
+      .vct4(T0,T1,T2,T3) => valof {
+	Tx3 = delete(T3,K,Dp,X); 
+	valis bldVct(T0,T1,T2,Tx3)
+      }.
+      .lf1(_) => V.
+      .lf2(_,_) => V.
+      .lf3(_,_,_) => V.
+      .lf4(L0,L1,L2,_) => bldLf(.some(L0),.some(L1),.some(L2),X).
+    }.
+  }.
+
+  bldLf:all x ~~ (option[x],option[x],option[x],option[x])=>vct[x].
+  bldLf(.some(X0),.some(X1),.some(X2),.some(X3)) => .lf4(X0,X1,X2,X3).
+  bldLf(.some(X0),.some(X1),.some(X2),.none) => .lf3(X0,X1,X2).
+  bldLf(.some(X0),.some(X1),.none,.none) => .lf2(X0,X1).
+  bldLf(.some(X0),.none,.none,.none) => .lf1(X0).
+  bldLf(.none,.none,.none,.none) => .e.
+	
+  bldVct:all x ~~ (vct[x],vct[x],vct[x],vct[x]) => vct[x].
+  bldVct(Tx0,Tx1,Tx2,Tx3) => valof{
+    if isEmptyVct(Tx3) then{
+      if isEmptyVct(Tx2) then{
+	if isEmptyVct(Tx1) then{
+	  if isEmptyVct(Tx0) then
+	    valis .e
+	  else{
+	    valis .vct1(Tx0)
+	  }
+	} else if isEmptyVct(Tx0) then{
+	  valis .vct1(Tx1)
+	} else {
+	  valis .vct2(Tx0,Tx1)
+	}
+      } else{				-- Tx2 not empty
+	if isEmptyVct(Tx1) then{
+	  if isEmptyVct(Tx0) then {
+	    valis .vct1(Tx2)
+	  } else{
+	    valis .vct2(Tx0,Tx2)
+	  }
+	} else if isEmptyVct(Tx0) then{
+	  valis .vct2(Tx1,Tx2)
+	} else{
+	  valis .vct3(Tx0,Tx1,Tx2)
+	}
+      }
+    } else { -- Tx3 not empty
+      if isEmptyVct(Tx2) then{
+	if isEmptyVct(Tx1) then{
+	  if isEmptyVct(Tx0) then
+	    valis .vct1(Tx3)
+	  else{
+	    valis .vct2(Tx0,Tx3)
+	  }
+	} else if isEmptyVct(Tx0) then{
+	  valis .vct2(Tx1,Tx3)
+	} else {
+	  valis .vct3(Tx0,Tx1,Tx3)
+	}
+      } else{				-- Tx2,Tx3 not empty
+	if isEmptyVct(Tx1) then{
+	  if isEmptyVct(Tx0) then {
+	    valis .vct2(Tx2,Tx3)
+	  } else{
+	    valis .vct3(Tx0,Tx2,Tx3)
+	  }
+	} else if isEmptyVct(Tx0) then{
+	  valis .vct3(Tx1,Tx2,Tx3)
+	} else{
+	  valis .vct4(Tx0,Tx1,Tx2,Tx3)
+	}
+      }
+    }
+  }
+
+  isEmptyVct:all x ~~ (vct[x]) => boolean.
+  isEmptyVct(.e) => .true.
+  isEmptyVct(_) default => .false.
+
   public implementation all x ~~ iter[vect[x]->>x] => let{.
     walk(.e,A,_) => A.
     walk(.vct1(T0),A,F) => walk(T0,A,F).
@@ -379,5 +543,12 @@ star.vector{
   .} in {
     (++) = conc.
     _multicat = _cat
+  }
+
+  public implementation all e ~~ indexed[vect[e]->>integer,e] => {
+    _index = vindex.
+    _put = vupdate.
+    _remove = vdelete.
+    _empty = .vector(0,.e).
   }
 }
