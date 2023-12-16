@@ -237,7 +237,7 @@ star.vector{
     valis delte(V,Fst,RKy,Sx-2,X)
   }.
   delete(V,Ky,0,X) => delte(V,Ky.&.3,Ky,0,X).
-  
+
   delte:all x ~~ (vct[x],integer,integer,integer,option[x])=>vct[x].
   delte(V,Ix,K,Dp,X) => case Ix in {
     0 => case V in {
