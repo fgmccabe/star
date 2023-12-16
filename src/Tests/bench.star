@@ -201,14 +201,15 @@ test.bench{
 
     timer := timer_start(Count, "Accessing all elements in vector");
     for i in idxes do {
-      El = vindex(v!,i)
+      El = v![i]
 --      logMsg(" element: $(i) = $(El)")
     };
     timer_finish(timer!);
 
     timer := timer_start(Count, "Changing elements in vector");
     for ix in idxes do {
-      v := vupdate(v!,ix,ix+4);
+      v[ix] := ix+4;
+--      v := vupdate(v!,ix,ix+4);
     };
     timer_finish(timer!);
     

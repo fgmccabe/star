@@ -63,7 +63,16 @@ test.v0{
     };
 
     show VV!;
-    
+
+    for ix in .range(0,size(VV!),1) do{
+      show vdelete(VV!,ix)
+    };
+
+    for ix in .range(0,size(VV!),1) do{
+      VV := vdelete(VV!,0);
+      show VV!
+    };
+
     valis ()
   }
 }
