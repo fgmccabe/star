@@ -1,6 +1,7 @@
 rdf.driver{
   import star.
 
+  import star.assert.
   import star.file.
   import star.location.
   import star.pkg.
@@ -14,6 +15,7 @@ rdf.driver{
   import rdf.token.
   import rdf.parser.
   import rdf.triple.
+  import rdf.graph.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
@@ -47,10 +49,18 @@ rdf.driver{
 	  if showLex! then
 	    logMsg("tokens from $(O)\: $(Toks)");
 
-	  Graph = (parseGraph() --> Toks);
+	  if Trpls ?= (parseGraph() --> Toks) then{
+	    if showParse! then
+	      logMsg("Triples: $(Trpls)");
 
-	  if showParse! then
-	    logMsg("Graph: $(Graph)");
+	    Graph = foldRight((Tr,Gx)=>addTriple(Gx,Tr),nullGraph,Trpls);
+
+	    logMsg("Graph is $(Graph)");
+
+	    assert validGraph(Graph);
+	  } else{
+	    logMsg("something went wrong with parsing triples")
+	  }
 	} else
 	logMsg("cant find ontology source text at $(SrcUri)");
       } else
