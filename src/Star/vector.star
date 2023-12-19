@@ -531,6 +531,33 @@ star.vector{
     foldLeft(F,A,.vector(_,V)) => foldL(F,A,V).
   }
 
+  public implementation all e ~~ ixfold[vect[e]->>integer,e] => let{.
+    fold:all x,a ~~ ((integer,x,a)=>a,integer,a,vct[x])=>(integer,a).
+    fold(_,Ix,A,.e) => (Ix,A).
+    fold(F,Ix,A,.lf1(L0)) => (Ix+1,F(Ix,L0,A)).
+    fold(F,Ix,A,.lf2(L0,L1)) => (Ix+2,F(Ix+1,L1,F(Ix,L0,A))).
+    fold(F,Ix,A,.lf3(L0,L1,L2)) => (Ix+3,F(Ix+2,L2,F(Ix+1,L1,F(Ix,L0,A)))).
+    fold(F,Ix,A,.lf4(L0,L1,L2,L3)) => (Ix+4,F(Ix+3,L3,F(Ix+2,L2,F(Ix+1,L1,F(Ix,L0,A))))).
+    fold(F,Ix,A,.vct1(L0)) => fold(F,Ix,A,L0).
+    fold(F,Ix,A,.vct2(L0,L1)) => valof{
+      (Ix1,A1) = fold(F,Ix,A,L0);
+      valis fold(F,Ix1,A1,L1)
+    }
+    fold(F,Ix,A,.vct3(L0,L1,L2)) => valof{
+      (Ix1,A1) = fold(F,Ix,A,L0);
+      (Ix2,A2) = fold(F,Ix1,A1,L1);
+      valis fold(F,Ix2,A2,L2)
+    }
+    fold(F,Ix,A,.vct4(L0,L1,L2,L3)) => valof{
+      (Ix1,A1) = fold(F,Ix,A,L0);
+      (Ix2,A2) = fold(F,Ix1,A1,L1);
+      (Ix3,A3) = fold(F,Ix2,A2,L2);
+      valis fold(F,Ix3,A3,L3)
+    }
+  .} in {
+    ixLeft(F,A,.vector(_,V)) => fold(F,0,A,V).1.
+    ixRight(F,A,.vector(_,V)) => fold(F,0,A,V).1.
+  }
 
   public implementation all e ~~ concat[vect[e]] => let{.
     conc:all b ~~ (vect[b],vect[b])=>vect[b].
