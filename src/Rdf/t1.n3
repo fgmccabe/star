@@ -6,4 +6,12 @@ alpha:con1 has gamma, delta, eta.
 beta:con2 a gamma:con.
 beta:con2 a gammer:con; has eta:con, zigot, "name".
 
-gamma:action text "This is an $[gamma:action]:action; and has a $[alpha:name]:name;"
+gamma:action text "This is an $[gamma:action]:action; and has a $[alpha:name]:name;".
+
+property:NoOfRooms property:Type [datatype:Min "0";
+       a rdfs:Class, datatype:Type;
+       rdfs:subClassOf datatype:Integer;
+       datatype:Max "12"];
+       a property:Property;
+       rdfs:label "number of rooms".
+

@@ -16,6 +16,11 @@ rdf.parser{
 
   concept >> C --> symbolic >> C, {trP("Symbolic $(C)") }.
   concept >> L --> literal >> L, {trP("Literal $(L)") }.
+  concept >> .existential(Anon,A) -->
+    [.tok(_,.pncTok("["))], { Anon.=genAnon() },
+    verb_phrase(Anon) >> A, [.tok(_,.pncTok("]"))],
+    {trP("Anonymous $(Anon), defining triples $(A)")}.
+  
 
   symbolic >> .named(Pre,Id) --> [.tok(_,.idTok(Pre)),.tok(_,.pncTok(":")),.tok(_,.idTok(Id))].
   symbolic >> .named("",Id) --> [.tok(_,.idTok(Id))], ~[.tok(_,.pncTok(":"))].
