@@ -60,7 +60,9 @@ star.compiler.macro.rules{
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
-    "-->" -> [(.statement,grammarMacro),(.typeterm,grammarTypeMacro)]
+    "-->" -> [(.statement,grammarMacro),
+      (.typeterm,grammarTypeMacro),
+      (.expression,grammarCallMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
