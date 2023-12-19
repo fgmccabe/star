@@ -81,14 +81,14 @@ star.compiler.macro.grammar{
     if isEmpty(Els) then
       valis .some(.epsilon(Lc))
     else{
-      valis foldLeft((G,X)=>pairUp(parseTerminal(G),X,Lc),.none,Els)
+      valis foldRight((G,X)=>pairUp(parseTerminal(G),X,Lc),.none,Els)
     }
   }
   parseBody(A) where (Lc,Txt) ?= isStr(A) => valof{
     Els = Txt::cons[char];
-    valis .some(foldLeft((C,X)=>.seq(Lc,.term(Lc,.chr(Lc,C)),X),.epsilon(Lc),Els))
+    valis .some(foldRight((C,X)=>.seq(Lc,.term(Lc,.chr(Lc,C)),X),.epsilon(Lc),Els))
   }
-  parseBody(A) where (_,[E]) ?= isTuple(A) => parseBody(E).
+  parseBody(A) where (_,Els) ?= isTuple(A) => parseBody(reComma(Els)).
   parseBody(A) where (Lc,L) ?= isUnary(A,"*") => valof{
     if LL?=parseBody(L) then
       valis .some(.rep(Lc,LL))
@@ -319,6 +319,7 @@ star.compiler.macro.grammar{
   parseRules:(cons[ast]) => map[string,cons[grRule]].
   parseRules(Ss) => foldLeft((A,M) => addRule(parseRule(A),M),{},Ss).
 
+  addRule:(option[grRule],map[string,cons[grRule]]) => map[string,cons[grRule]].
   addRule(.none,M) => M.
   addRule(.some(Rl),M) => valof{
     if Rs?=M[Rl.name] then
@@ -368,4 +369,22 @@ star.compiler.macro.grammar{
     valis .active(Ft)
   }
   grammarTypeMacro(_,_) default => .inactive.
+
+  public grammarCallMacro:(ast,macroContext) => macroState.
+  grammarCallMacro(A,.expression) where (Lc,L,Str) ?= isBinary(A,"-->") => valof{
+    if Body?=parseBody(L) then{
+      Nxt = genName(Lc,"Nxt");
+      Rslt = genName(Lc,"Rslt");
+      Cond = makeBody(Body,Str,Nxt,.some(Rslt));
+      valis .active(
+	mkConditional(Lc,mkConjunct(Lc,Cond,unary(Lc,"_eof",Nxt)),
+	  mkOption(Lc,Rslt),
+	  enum(Lc,"none")))
+    }
+    else {
+      reportError("cannot parse $(L) as a grammar condition",locOf(L));
+      valis .inactive
+    }
+  }
+  grammarCallMacro(_,_) default => .inactive.
 }	
