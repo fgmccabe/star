@@ -24,6 +24,17 @@ all e ~~ cons[e] ::= .nil | .cons(e,cons[e]).
 @end example
 @end float
 
+The standard contracts @code{equality}, @code{hashable}, @code{comp},
+@code{stream}, @code{sequence}, @code{sizeable}, @code{measured},
+@code{concat}, @code{head}, @code{iter}, @code{generate},
+@code{display}, @code{format}, @code{functor}, @code{monad},
+@code{mapping}, @code{folding}, @code{ixfold}, @code{searchable},
+@code{filter} and @code{membership} are implemented for the
+@code{cons} type.
+
+In addition, the @code{coercion} contract is implemented from
+@code{cons} lists to @code{map}s, @code{string}s and @code{vect}ors.
+
 @node The Map Type
 @subsection The Map Type
 
@@ -47,6 +58,12 @@ Trees'; which offer effectively constant time performance for
 accessing and modifying the @code{map}.
 @end quotation
 
+The standard contracts @code{equality}, @code{sizeable},
+@code{measured}, @code{display}, @code{indexed}, @code{ixfilter},
+@code{ixfold}, @code{iter}, @code{generate}, @code{sequemce},
+@code{stream} and @code{functor} are implemented for the @code{map}
+type.
+
 @node The Set Type
 @subsection The Set Type
 
@@ -63,7 +80,33 @@ all e ~~ equality[e], hash[e] |: set[e] <~ @{@}
 Like the @code{map} type, using the @code{set} requires that element
 type supports @code{equality} and @code{hash}.
 
-@node Implemented Collection Contracts
+The standard contracts @code{sequence}, @code{display},
+@code{membership}, @code{setops}, @code{concat}, @code{sizeable},
+@code{iter}, @code{folding} and @code{generate} are implemented for
+the @code{set} type.
+
+@node The Vector Type
+@subsection The Vector Type
+
+The @code{vect} type denotes a vector type, a list type that is
+oriented to random access.
+
+@float Program,vectorType
+@caption{The @code{vect} Type}
+@example
+all k ~~ vect[k] <~ @{@}
+@end example
+@end float
+
+@quotation Note
+The underlying implementation of @code{vect} is based on a similar
+strategy to the implementation of vectors in Clojure. Vectors are
+represented as a multi-way branching tree; which offer effectively
+constant time performance for accessing and modifying vectors up to a
+significant size.
+@end quotation
+
+}@node Implemented Collection Contracts
 @section Implemented Collection Contracts
 
 For the vast majority of cases, the built-in functions that
