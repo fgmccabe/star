@@ -100,6 +100,7 @@
     "test.lx": "lx.star",
     "test.m": "m.star",
     "test.mm": "mm.star",
+    "test.mp": "mp.star",
     "test.ms" : "ms.star",
     "test.nm": "nm.star",
     "test.opg" : "opgtst.star",

@@ -73,6 +73,8 @@ test.v0{
       show VV!
     };
 
+    show TT//((X)=>X++X);
+
     valis ()
   }
 }
