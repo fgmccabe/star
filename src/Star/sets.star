@@ -69,6 +69,11 @@ star.sets{
     _generate(S) => iterGenerator(S)
   }
 
+  public implementation all e,f ~~ equality[e],equality[f],
+  hashable[e],hashable[f] |: mapping[set->>e,f] => {
+    (.set(C)//F) => .set(ixRight((E,_,X)=>X[F(E)->()],[],C))
+  }
+
   public implementation all e ~~ equality[e] |: membership[cons[e] ->> e] => let{.
     add_mem([],X) => [X].
     add_mem([X,..Xs],X) => [X,..Xs].

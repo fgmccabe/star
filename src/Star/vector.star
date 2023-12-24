@@ -578,4 +578,19 @@ star.vector{
     _remove = vdelete.
     _empty = .vector(0,.e).
   }
+
+  public implementation all e,f ~~ mapping[vect->>e,f] => let{.
+    mpVct:(vct[e],(e)=>f)=>vct[f].
+    mpVct(.e,_) => .e.
+    mpVct(.lf1(x),F) => .lf1(F(x)).
+    mpVct(.lf2(x1,x2),F) => .lf2(F(x1),F(x2)).
+    mpVct(.lf3(x1,x2,x3),F) => .lf3(F(x1),F(x2),F(x3)).
+    mpVct(.lf4(x1,x2,x3,x4),F) => .lf4(F(x1),F(x2),F(x3),F(x4)).
+    mpVct(.vct1(V),F) => .vct1(mpVct(V,F)).
+    mpVct(.vct2(V1,V2),F) => .vct2(mpVct(V1,F),mpVct(V2,F)).
+    mpVct(.vct3(V1,V2,V3),F) => .vct3(mpVct(V1,F),mpVct(V2,F),mpVct(V3,F)).
+    mpVct(.vct4(V1,V2,V3,V4),F) => .vct4(mpVct(V1,F),mpVct(V2,F),mpVct(V3,F),mpVct(V4,F)).
+  .} in {
+    (.vector(Dp,V) // F) => .vector(Dp,mpVct(V,F))
+  }
 }

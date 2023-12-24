@@ -56,7 +56,7 @@ star.multi{
     disp(M) => disp(M::cons[e])
   }
 
-  public implementation mapping[multi] => let{.
+  public implementation all e,f ~~ mapping[multi->>e,f] => let{.
     mapOver(.null,F) => .null.
     mapOver(.single(X),F) => .single(F(X)).
     mapOver(.multi(L),F) => .multi(multiMapOver(L,F)).

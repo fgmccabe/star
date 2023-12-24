@@ -18,8 +18,8 @@ star.collection{
     replace:(c,(e)=>boolean,e) => c.
   }
 
-  public contract all m/1 ~~ mapping[m] ::= {
-    (//):all e,f ~~ (m[e],(e)=>f) => m[f].
+  public contract all m/1,e,f ~~ mapping[m->>e,f] ::= {
+    (//):(m[e],(e)=>f) => m[f].
   }
 
   public contract all m/2 ~~ ixmap[m] ::= {
@@ -59,10 +59,9 @@ star.collection{
     inter([E,..L]) => [I,E,..inter(L)].
  .} in [F,..inter(R)].
 
-  public implementation mapping[cons] => {.
+  public implementation all e,f ~~ mapping[cons->>e,f] => {.
     (L//F) => mapOverList(L,F).
 
-    private mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
     mapOverList(.nil,_) => .nil.
     mapOverList(.cons(H,T),F) => .cons(F(H),mapOverList(T,F)).
  .}
