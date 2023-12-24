@@ -648,10 +648,79 @@ The @code{_empty} value is often used as the starting point for
 building up a key-value collection.
 @end quotation
 
+@node The @code{mapping} Contract
+@section The @code{mapping} Contract
+
+The @code{mapping} contract represents a map over collections:
+
+@float Program,mappingContractProg
+@caption{The Standard @code{mapping} Contract}
+@example
+public contract all m/1,e,f ~~ mapping[m->>e,f] ::= @{
+  (//):(m[e],(e)=>f)=>m[f]
+@}
+@end example
+@end float
+
+@node The @code{//} Map Function
+@subsection The @code{//} Map Function
+@findex @code{mapping} contract function
+
+The @code{//} function specifies a map over a collection: it creates a
+new collection based on a function being applied to each element.
+
+
+@node The @code{folding} Contract
+@section The @code{folding} Contract
+
+The @code{folding} contract represents left and/or right associative
+fold over collections:
+
+@float Program,foldingContractProg
+@caption{The Standard @code{folding} Contract}
+@example
+public contract all c,e ~~ folding[c->>e] ::= @{
+  foldRight:all x ~~ (((e,x)=>x),x,c) => x.
+  foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
+@}
+@end example
+@end float
+
+As the name suggests, the @code{foldRight} function is intended to
+denote a right-associative fold, and the @code{foldLeft} is intended
+to denote a left-associative fold.
+
+@node The @code{foldLeft} Map Function
+@subsection The @code{foldLeft} Map Function
+@findex @code{folding} contract function
+
+The @code{foldLeft} function specifies a left-associative fold over a
+collection. When implemented for @code{cons} lists, this uses the
+definition:
+
+@example
+foldLeft(F,U,.nil) => U.
+foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
+@end example
+
+@node The @code{foldRight} Map Function
+@subsection The @code{foldRight} Map Function
+@findex @code{folding} contract function
+
+The @code{foldRight} function specifies a right-associative fold over a
+collection. When implemented for @code{cons} lists, this uses the
+definition:
+
+@example
+foldRight(F,U,.nil) => U.
+foldRight(F,U,.cons(H,T)) => F(H,foldRight(F,U,T)).
+@end example
+
 @node The @code{iter} Contract
 @section The @code{iter} Contract
 
-The @code{iter} contract is an abstraction that represents iteration over collections.
+The @code{iter} contract is an abstraction that represents iteration
+over collections.
 
 @float Program,iterContractProg
 @caption{The Standard @code{iter} Contract}
