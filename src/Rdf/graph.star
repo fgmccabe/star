@@ -16,6 +16,13 @@ rdf.graph{
     disp(G) => "{$(G.triples)}".
   }
 
+  showGraph:(graph) => string.
+  showGraph(G) => ixRight((C,Sx,Txt)=>Txt++showSubject(C,Sx,G),"",G.subjects).
+
+  showSubject:(concept,set[integer],graph)=>string.
+  showSubject(C,Sx,G) =>
+    foldRight((Ix,Txt)=>(Tr?=G.triples[Ix] ?? "#(Txt)\n$(Tr)"||Txt),"",Sx).
+
   public addTriple:(graph,triple)=>graph.
   addTriple(G,Tr where .tr(S,P,O).=Tr) => valof{
     (G1,Sx) = resolveExistentials(G,S);
@@ -70,7 +77,7 @@ rdf.graph{
     presentInIndex:(concept,integer,map[concept,set[integer]])=>boolean.
     presentInIndex(C,Ix,Ind) => (isSymbolicConcept(C) ?? Ixs ?= Ind[C] && Ix .<. Ixs || .true).
   .} in ixRight((Ix,.tr(S,P,O),B) => B && presentInIndex(S,Ix,G.subjects) &&
-	presentInIndex(P,Ix,G.predicates) &&presentInIndex(O,Ix,G.objects),.true,
+	presentInIndex(P,Ix,G.predicates) && presentInIndex(O,Ix,G.objects),.true,
     G.triples).
 
   public validGraph:(graph) => boolean.
@@ -79,4 +86,8 @@ rdf.graph{
 	validPredicates(G.predicates,G.triples) &&
 	    validObjects(G.objects,G.triples) &&
 		validTriples(G).
+
+  subjectTriples:(graph,concept)=>set[option[triple]].
+  subjectTriples(G,C) where Sx?=G.subjects[C] => (Sx//(Ix)=> G.triples[Ix]).
+  subjectTriples(_,_) default => [].
 }
