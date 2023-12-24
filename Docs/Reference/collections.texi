@@ -106,7 +106,7 @@ constant time performance for accessing and modifying vectors up to a
 significant size.
 @end quotation
 
-}@node Implemented Collection Contracts
+@node Implemented Collection Contracts
 @section Implemented Collection Contracts
 
 For the vast majority of cases, the built-in functions that
@@ -118,6 +118,3 @@ are implemented for collections are mediated through contracts.
 The @code{equality} contract (@refer{equalityContract}) is defined for
 all the collection types; usually with requirement that the element
 types also implement @code{equality}.
-
-
-
