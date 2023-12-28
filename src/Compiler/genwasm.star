@@ -34,7 +34,7 @@ star.compiler.wasm.gen{
 
   defFun(Def,Vrs) => case Def in {
     .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp)].
-    .vrDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp)].
+    .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp)].
     _ default => Vrs
   }
   
@@ -57,7 +57,7 @@ star.compiler.wasm.gen{
       };
       valis .func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped)
     }
-  | .vrDef(Lc,Nm,Tp,Val) => valof{
+  | .glDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
 	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);

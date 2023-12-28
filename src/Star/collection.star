@@ -74,6 +74,11 @@ star.collection{
     foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
   .}
 
+  public implementation all e,f ~~ mapping[option->>e,f] => {
+    (.none // _) => .none.
+    (.some(X) // F) => .some(F(X))
+  }
+
   public implementation all x ~~ folding[option[x]->>x] => let{
     fold:all a ~~ ((x,a)=>a,a,option[x])=>a.
     fold(F,A,.some(X)) => F(X,A).

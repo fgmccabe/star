@@ -46,6 +46,8 @@ set(HEADER_FILES
         Headers/char.h Headers/charP.h Headers/bignumP.h Headers/continuationP.h Headers/closure.h Headers/closureP.h
         Headers/normal.h
         Headers/normalP.h
+        Headers/thunkP.h
+        Headers/thunk.h
 )
 
 set(SOURCE_FILES
@@ -53,6 +55,7 @@ set(SOURCE_FILES
         ${HEADER_FILES} code.c term.c labels.c arith.c
         strings.c cell.c iochnl.c thr.c bkpoint.c verify.c cons.c option.c ltype.c Headers/ltype.h stack.c
         single.c char.c bignum.c ideal.c Headers/ideal.h continuation.c Headers/continuation.h closure.c
+        thunk.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

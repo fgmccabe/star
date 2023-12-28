@@ -17,6 +17,7 @@
 #include "cellP.h"
 #include "continuationP.h"
 #include "closureP.h"
+#include "thunkP.h"
 #include "errorCodes.h"
 
 #ifdef TRACEEXEC
@@ -716,6 +717,104 @@ retCode run(processPo P) {
         setGlobalVar(glb, val);      // Update the global variable
         continue;
       }
+
+      case Thunk: {  // Create a new thunk
+        closurePo thLam = C_CLOSURE(pop());
+
+        if (reserveSpace(H, ThunkCellCount) != Ok) {
+          saveRegisters();
+          retCode ret = gcCollect(H, ThunkCellCount);
+          if (ret != Ok)
+            return ret;
+          restoreRegisters();
+        }
+        thunkPo thnk = thunkVar(H, thLam);
+        push(thnk);       /* put the structure back on the stack */
+        continue;
+      }
+
+      case LdTh: {
+        thunkPo thVr = C_THUNK(pop());
+        insPo exit = collectOff(PC);
+        assert(validPC(FP->prog, exit));
+
+        if (thunkIsSet(thVr)) {
+          termPo vr = thunkVal(thVr);
+
+          check(vr != Null, "undefined thunk value");
+
+          push(vr);     /* load thunk variable */
+          PC = exit;    // Jump past call
+        } else {
+          closurePo thLambda = thunkLam(thVr);
+
+          labelPo lb = closureLabel(thLambda);
+
+          if (lb == Null) {
+            logMsg(logFile, "label %T not defined", thLambda);
+            bail();
+          } else if (labelArity(lb) != 2) {
+            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 2);
+            bail();
+          }
+
+          methodPo mtd = labelCode(lb);       /* set up for object call */
+
+          if (mtd == Null) {
+            logMsg(logFile, "no definition for %T", lb);
+            bail();
+          }
+
+          push(closureFree(thLambda));                     // Put the free term back on the stack
+          push(thVr);
+
+          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+            int root = gcAddRoot(H, (ptrPo) &mtd);
+            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+            gcReleaseRoot(H, root);
+
+#ifdef TRACESTACK
+            if (traceStack)
+              verifyStack(STK, H);
+#endif
+          }
+
+          assert(isPcOfMtd(FP->prog, PC));
+          FP->pc = PC;
+          pushFrme(mtd);
+          LITS = codeLits(mtd);
+          incEntryCount(mtd);              // Increment program count
+        }
+        continue;
+      }
+
+      case StTh: {                           // Store into thunk
+        thunkPo thnk = C_THUNK(pop());
+        termPo val = pop();
+
+        if (thunkIsSet(thnk)) {
+          logMsg(logFile, "thunk %T already set", thnk);
+          bail();
+        }
+
+        setThunk(thnk, val);      // Update the thunk variable
+        continue;
+      }
+
+      case TTh: {                        // Set thunk and carry on
+        thunkPo thnk = C_THUNK(pop());
+        termPo val = top();
+
+        if (thunkIsSet(thnk)) {
+          logMsg(logFile, "thunk %T already set", thnk);
+          bail();
+        }
+
+        setThunk(thnk, val);      // Update the thunk variable
+        continue;
+      }
+
+
 
       case Cell: {
         checkAlloc(CellCellCount);

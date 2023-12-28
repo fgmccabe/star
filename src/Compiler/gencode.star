@@ -35,7 +35,7 @@ star.compiler.gencode{
 
   defFun(Def,Vrs) => case Def in {
     .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp::ltipe)].
-    .vrDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
+    .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
     _ default => Vrs
   }
   
@@ -58,7 +58,7 @@ star.compiler.gencode{
       };
       valis .func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
     }
-  | .vrDef(Lc,Nm,Tp,Val) => valof{
+    | .glDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
 	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);
@@ -525,6 +525,11 @@ star.compiler.gencode{
     C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRet])
   }
 
+  thunkCont:Cont.
+  thunkCont = cont{
+    C(_,_,Cde) => (.none,Cde++[.iTTh,.iRet])
+  }
+
   jmpCont:(assemLbl,stack)=>Cont.
   jmpCont(Lbl,Stk) => cont{
     C(Ctx,_Stk1,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
@@ -851,9 +856,10 @@ star.compiler.gencode{
   dropStack(.some([_,..Stk])) => .some(Stk).
 
   srcLoc ::= .lclVar(integer,ltipe) |
-    .argVar(integer,ltipe) |
-    .glbVar(string,ltipe) |
-    .glbFun(termLbl,ltipe).
+  .argVar(integer,ltipe) |
+  .glbVar(string,ltipe) |
+  .glbFun(termLbl,ltipe) |
+  .thnkFn(termLbl,ltipe).
 
   codeCtx ::= codeCtx{
     vars : map[string,srcLoc].
@@ -916,6 +922,7 @@ star.compiler.gencode{
       .argVar(Off,Tpe) => "arg $(Off)\:$(Tpe)".
       .glbVar(Off,Tpe) => "glb $(Off)\:$(Tpe)".
       .glbFun(Off,Tpe) => "fun $(Off)\:$(Tpe)".
+      .thnkFn(Off,Tpe) => "thk $(Off)\:$(Tpe)".
     }
   }
 
