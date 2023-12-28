@@ -18,15 +18,15 @@ star.compiler.inline{
   pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
   pickupDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) =>
     Map[.tLbl(Nm,arity(Tp))->.fnDef(Lc,Nm,Tp,Args,Val)].
-  pickupDefn(.vrDef(Lc,Nm,Tp,Val),Map) => Map[.tLbl(Nm,arity(Tp))->.vrDef(Lc,Nm,Tp,Val)].
+  pickupDefn(.glDef(Lc,Nm,Tp,Val),Map) => Map[.tLbl(Nm,arity(Tp))->.glDef(Lc,Nm,Tp,Val)].
   pickupDefn(.tpDef(_,_,_,_),Map) => Map.
   pickupDefn(.lblDef(_,_,_,_),Map) => Map.
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
     .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],4)).
-  simplifyDefn(.vrDef(Lc,Nm,Tp,Val),Map) => 
-    .vrDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
+  simplifyDefn(.glDef(Lc,Nm,Tp,Val),Map) =>
+    .glDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -182,7 +182,7 @@ star.compiler.inline{
   
   inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .vrDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth).
+      .glDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth).
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.

@@ -69,9 +69,9 @@ star.compiler.term{
     | .aAbort(option[locn],string).
 
   public cDefn ::= .fnDef(option[locn],string,tipe,cons[cId],cExp) |
-    .vrDef(option[locn],string,tipe,cExp)|
-    .tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
-    .lblDef(option[locn],termLbl,tipe,integer).
+  .glDef(option[locn],string,tipe,cExp) |
+  .tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
+  .lblDef(option[locn],termLbl,tipe,integer).
 
   public dispCrProg:(cons[cDefn])=>string.
   dispCrProg(Defs) => interleave(Defs//disp,".\n")*.
@@ -84,7 +84,7 @@ star.compiler.term{
   dspDef(Df,Off) => case Df in {
     .fnDef(_Lc,Nm,Tp,Args,Rep) =>
       "fun: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))".
-    .vrDef(_Lc,Nm,Tp,Rep) =>
+    .glDef(_Lc,Nm,Tp,Rep) =>
       "var: #(Nm)=#(dspExp(Rep,Off))".
     .tpDef(_Lc,Tp,TpRl,Map) =>
       "tpe: $(TpRl) with $(Map)".
@@ -676,16 +676,11 @@ star.compiler.term{
   public implementation hasLoc[cDefn] => {
     locOf(Df) => case Df in {
       .fnDef(Lc,_,_,_,_) => Lc.
-      .vrDef(Lc,_,_,_) => Lc.
+      .glDef(Lc,_,_,_) => Lc.
       .tpDef(Lc,_,_,_) => Lc.
       .lblDef(Lc,_,_,_) => Lc.
     }
   }
-
-  public dfLbl:(cDefn)=>option[termLbl].
-  dfLbl(.fnDef(_,Nm,_,Args,_)) => .some(.tLbl(Nm,[|Args|])).
-  dfLbl(.vrDef(_,Nm,Tp,_)) => .some(.tLbl(Nm,arity(Tp))).
-  dfLbl(_) default => .none.
 
   public cName:(cId) => string.
   cName(.cId(Nm,_))=>Nm.
@@ -775,10 +770,8 @@ star.compiler.term{
   }
 
   dfVars:(cons[cDefn],set[cId])=>set[cId].
-  dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) =>
-    dfVars(Ds,D\+.cId(Nm,Tp)).
-  dfVars([.vrDef(_,Nm,Tp,_),..Ds],D) =>
-    dfVars(Ds,D\+.cId(Nm,Tp)).
+  dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cId(Nm,Tp)).
+  dfVars([.glDef(_,Nm,Tp,_),..Ds],D) => dfVars(Ds,D\+.cId(Nm,Tp)).
   dfVars([_,..Ds],D) => dfVars(Ds,D).
   dfVars([],D) => D.
 
@@ -807,13 +800,13 @@ star.compiler.term{
 	  if ~validE(Val,D1) then{
 	    reportError("$(.fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
 	  }
-	}.
-	.vrDef(Lc,Nm,Tp,Val) => {
+	}
+	| .glDef(Lc,Nm,Tp,Val) => {
 	  if ~validE(Val,D) then{
-	    reportError("$(.vrDef(Lc,Nm,Tp,Val)) not valid",Lc)
+	    reportError("$(.glDef(Lc,Nm,Tp,Val)) not valid",Lc)
 	  }
 	}
-	_ default => {}
+	| _ default => {}
       }
     };
     valis ()
@@ -1072,15 +1065,17 @@ star.compiler.term{
   public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {
     .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
-	mkTpl(Vrs//(.cId(Vn,VTp))=>mkTpl([.strg(Vn),encodeSig(VTp)])),
-	frzeExp(Vl)]).
-    .vrDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
-	frzeExp(Vl)]).
-    .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
+	mkTpl(Vrs//frzeVar),
+	frzeExp(Vl)])
+    | .glDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
+	frzeExp(Vl)])
+    | .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
 	.strg(encodeTpRlSignature(TpRl)),
-	mkTpl(Map//((Lbl,CTp,Ix))=>mkTpl([.symb(Lbl),encodeSig(CTp),.intgr(Ix)]))]).
-    .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)]).
+	mkTpl(Map//((Lbl,CTp,Ix))=>mkTpl([.symb(Lbl),encodeSig(CTp),.intgr(Ix)]))])
+    | .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)])
   }
+
+  frzeVar(.cId(Nm,Tp)) => mkTpl([.strg(Nm),encodeSig(Tp)]).
 
   frzeExp:(cExp)=>data.
   frzeExp(Ex) => case Ex in {
@@ -1169,85 +1164,85 @@ star.compiler.term{
   public thawDefn:(data) => cDefn.
   thawDefn(D) => case D in {
     .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
-      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),
-	Vrs//(.term(_,[.strg(Vn),VSig]))=>.cId(Vn,decodeSig(VSig)),thawTerm(Vl)).
-    .term("glb",[Lc,.strg(V),Sig,Vl]) =>
-      .vrDef(thawLoc(Lc),V,decodeSig(Sig),thawTerm(Vl)).
-    .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
+      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thawVr,thwTrm(Vl))
+    | .term("glb",[Lc,.strg(V),Sig,Vl]) =>
+      .glDef(thawLoc(Lc),V,decodeSig(Sig),thwTrm(Vl))
+    | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
       .tpDef(thawLoc(Lc),decodeSig(Sig),decodeTypeRuleSignature(RlSig),
-	Map//(.term(_,[.symb(Lbl),LSig,.intgr(Ix)]))=>(Lbl,decodeSig(LSig),Ix)).
-    .term("cns",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
-      .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix).
+	Map//(.term(_,[.symb(Lbl),LSig,.intgr(Ix)]))=>(Lbl,decodeSig(LSig),Ix))
+    | .term("cns",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
+      .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix)
   }
 
-  thawTerm:(data) => cExp.
-  thawTerm(D) => case D in {
+  thawVr(.term(_,[.strg(Vn),VSig]))=>.cId(Vn,decodeSig(VSig)).
+
+  thwTrm:(data) => cExp.
+  thwTrm(D) => case D in {
     .term("void",[Lc,Sig]) =>
-      .cVoid(thawLoc(Lc),decodeSig(Sig)).
-    .term("anon",[Lc,Sig]) =>
-      .cAnon(thawLoc(Lc),decodeSig(Sig)).
-    .term("var",[Lc,.strg(V),Sig]) =>
-      .cVar(thawLoc(Lc),.cId(V,decodeSig(Sig))).
-    .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix).
-    .term("chr",[Lc,.chr(Ix)]) => .cChar(thawLoc(Lc),Ix).
-    .term("flt",[Lc,.flot(Dx)]) => .cFloat(thawLoc(Lc),Dx).
-    .term("big",[Lc,.strg(Bx)]) => .cBig(thawLoc(Lc),Bx::bigint).
-    .term("str",[Lc,.strg(Sx)]) => .cString(thawLoc(Lc),Sx).
-    .term("term",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
-      .cTerm(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
-    .term("nth",[Lc,E,.intgr(Ix),Sig]) =>
-      .cNth(thawLoc(Lc),thawTerm(E),Ix,decodeSig(Sig)).
-    .term("setnth",[Lc,E,.intgr(Ix),R]) =>
-      .cSetNth(thawLoc(Lc),thawTerm(E),Ix,thawTerm(R)).
-    .term("clos",[Lc,.strg(N),.intgr(A),F,Sig]) =>
-      .cClos(thawLoc(Lc),N,A,thawTerm(F),decodeSig(Sig)).
-    .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
-      .cCall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
-    .term("ecll",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
-      .cECall(thawLoc(Lc),Nm,Args//thawTerm,decodeSig(Sig)).
-    .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
-      .cOCall(thawLoc(Lc),thawTerm(Op),Args//thawTerm,decodeSig(Sig)).
-    .term("rais",[Lc,Th,Op,Sig]) =>
-      .cRaise(thawLoc(Lc),thawTerm(Th),thawTerm(Op),decodeSig(Sig)).
-    .term("spawn",[Lc,Lm,Sig]) =>
-      .cSpawn(thawLoc(Lc),thawTerm(Lm),decodeSig(Sig)).
-    .term("pause",[Lc,Lm,Sig]) =>
-      .cPaus(thawLoc(Lc),thawTerm(Lm),decodeSig(Sig)).
-    .term("susp",[Lc,Th,Op,Sig]) =>
-      .cSusp(thawLoc(Lc),thawTerm(Th),thawTerm(Op),decodeSig(Sig)).
-    .term("rsume",[Lc,Th,Op,Sig]) =>
-      .cResume(thawLoc(Lc),thawTerm(Th),thawTerm(Op),decodeSig(Sig)).
-    .term("retire",[Lc,Th,Op]) =>
-      .cRetire(thawLoc(Lc),thawTerm(Th),thawTerm(Op)).
-    .term("seq",[Lc,L,R]) =>
-      .cSeq(thawLoc(Lc),thawTerm(L),thawTerm(R)).
-    .term("cnj",[Lc,L,R]) =>
-      .cCnj(thawLoc(Lc),thawTerm(L),thawTerm(R)).
-    .term("dsj",[Lc,L,R]) =>
-      .cDsj(thawLoc(Lc),thawTerm(L),thawTerm(R)).
-    .term("neg",[Lc,R]) =>
-      .cNeg(thawLoc(Lc),thawTerm(R)).
-    .term("cnd",[Lc,T,L,R]) =>
-      .cCnd(thawLoc(Lc),thawTerm(T),thawTerm(L),thawTerm(R)).
-    .term("mtch",[Lc,L,R]) =>
-      .cMatch(thawLoc(Lc),thawTerm(L),thawTerm(R)).
-    .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
-      .cLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
-    .term("cont",[Lc,.strg(V),Sig,B,X]) =>
-      .cCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawTerm(X)).
-    .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thawTerm(G),
-      thawCases(Cs,thawTerm),thawTerm(Df),decodeSig(Sig)).
-    .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig)).
-    .term("try",[Lc,B,Th,E,H,Sig]) => .cTry(thawLoc(Lc),thawTerm(B),thawTerm(Th),thawTerm(E),thawTerm(H),decodeSig(Sig)).
-    .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thawTerm(B)).
-    .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T)).
+      .cVoid(thawLoc(Lc),decodeSig(Sig))
+    | .term("anon",[Lc,Sig]) => .cAnon(thawLoc(Lc),decodeSig(Sig))
+    | .term("var",[Lc,.strg(V),Sig]) => .cVar(thawLoc(Lc),.cId(V,decodeSig(Sig)))
+    | .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix)
+    | .term("chr",[Lc,.chr(Ix)]) => .cChar(thawLoc(Lc),Ix)
+    | .term("flt",[Lc,.flot(Dx)]) => .cFloat(thawLoc(Lc),Dx)
+    | .term("big",[Lc,.strg(Bx)]) => .cBig(thawLoc(Lc),Bx::bigint)
+    | .term("str",[Lc,.strg(Sx)]) => .cString(thawLoc(Lc),Sx)
+    | .term("term",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cTerm(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
+    | .term("nth",[Lc,E,.intgr(Ix),Sig]) =>
+      .cNth(thawLoc(Lc),thwTrm(E),Ix,decodeSig(Sig))
+    | .term("setnth",[Lc,E,.intgr(Ix),R]) =>
+      .cSetNth(thawLoc(Lc),thwTrm(E),Ix,thwTrm(R))
+    | .term("clos",[Lc,.strg(N),.intgr(A),F,Sig]) =>
+      .cClos(thawLoc(Lc),N,A,thwTrm(F),decodeSig(Sig))
+    | .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
+    | .term("ecll",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
+      .cECall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
+    | .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
+      .cOCall(thawLoc(Lc),thwTrm(Op),Args//thwTrm,decodeSig(Sig))
+    | .term("rais",[Lc,Th,Op,Sig]) =>
+      .cRaise(thawLoc(Lc),thwTrm(Th),thwTrm(Op),decodeSig(Sig))
+    | .term("spawn",[Lc,Lm,Sig]) =>
+      .cSpawn(thawLoc(Lc),thwTrm(Lm),decodeSig(Sig))
+    | .term("pause",[Lc,Lm,Sig]) =>
+      .cPaus(thawLoc(Lc),thwTrm(Lm),decodeSig(Sig))
+    | .term("susp",[Lc,Th,Op,Sig]) =>
+      .cSusp(thawLoc(Lc),thwTrm(Th),thwTrm(Op),decodeSig(Sig))
+    | .term("rsume",[Lc,Th,Op,Sig]) =>
+      .cResume(thawLoc(Lc),thwTrm(Th),thwTrm(Op),decodeSig(Sig))
+    | .term("retire",[Lc,Th,Op]) =>
+      .cRetire(thawLoc(Lc),thwTrm(Th),thwTrm(Op))
+    | .term("seq",[Lc,L,R]) =>
+      .cSeq(thawLoc(Lc),thwTrm(L),thwTrm(R))
+    | .term("cnj",[Lc,L,R]) =>
+      .cCnj(thawLoc(Lc),thwTrm(L),thwTrm(R))
+    | .term("dsj",[Lc,L,R]) =>
+      .cDsj(thawLoc(Lc),thwTrm(L),thwTrm(R))
+    | .term("neg",[Lc,R]) =>
+      .cNeg(thawLoc(Lc),thwTrm(R))
+    | .term("cnd",[Lc,T,L,R]) =>
+      .cCnd(thawLoc(Lc),thwTrm(T),thwTrm(L),thwTrm(R))
+    | .term("mtch",[Lc,L,R]) =>
+      .cMatch(thawLoc(Lc),thwTrm(L),thwTrm(R))
+    | .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
+      .cLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thwTrm(X))
+    | .term("cont",[Lc,.strg(V),Sig,B,X]) =>
+      .cCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thwTrm(X))
+    | .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thwTrm(G),
+      thawCases(Cs,thwTrm),thwTrm(Df),decodeSig(Sig))
+    | .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig))
+    | .term("try",[Lc,B,Th,E,H,Sig]) =>
+      .cTry(thawLoc(Lc),thwTrm(B),thwTrm(Th),thwTrm(E),thwTrm(H),decodeSig(Sig))
+    | .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thwTrm(B))
+    | .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T))
   }
 
   thawLoc(L:data) => L::option[locn].
 
   thawCases:all e ~~ (data,(data)=>e) => cons[cCase[e]].
   thawCases(.term(_,Args),T) => (Args//(.term(_,[Lc,P,E]))=>
-      (thawLoc(Lc),thawTerm(P),T(E))).
+      (thawLoc(Lc),thwTrm(P),T(E))).
 
   thawVars(.term(_,Vs)) => (Vs//(.term(_,[.strg(Nm),.strg(Vn),Sig]))=>
       (Nm,.cId(Vn,decodeSig(Sig)))).
@@ -1258,22 +1253,22 @@ star.compiler.term{
     .term("seq",[Lc,L,R]) => .aSeq(thawLoc(Lc),thawAct(L),thawAct(R)).
     .term("lbld",[Lc,.strg(L),I]) => .aLbld(thawLoc(Lc),L,thawAct(I)).
     .term("brek",[Lc,.strg(L)]) => .aBreak(thawLoc(Lc),L).
-    .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thawTerm(V)).
-    .term("retire",[Lc,T,V]) => .aRetire(thawLoc(Lc),thawTerm(T),thawTerm(V)).
-    .term("do",[Lc,V]) => .aDo(thawLoc(Lc),thawTerm(V)).
-    .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thawTerm(V),Ix,thawTerm(E)).
-    .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
-    .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thawTerm(P),thawTerm(V)).
-    .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thawTerm(G),thawCases(C,thawAct),
+    .term("vls",[Lc,V]) => .aValis(thawLoc(Lc),thwTrm(V)).
+    .term("retire",[Lc,T,V]) => .aRetire(thawLoc(Lc),thwTrm(T),thwTrm(V)).
+    .term("do",[Lc,V]) => .aDo(thawLoc(Lc),thwTrm(V)).
+    .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thwTrm(V),Ix,thwTrm(E)).
+    .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thwTrm(P),thwTrm(V)).
+    .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thwTrm(P),thwTrm(V)).
+    .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thwTrm(G),thawCases(C,thawAct),
       thawAct(D)).
-    .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thawTerm(T),thawAct(L),thawAct(R)).
-    .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thawTerm(T),thawAct(I)).
-    .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thawTerm(T),thawTerm(E),thawAct(H)).
+    .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thwTrm(T),thawAct(L),thawAct(R)).
+    .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thwTrm(T),thawAct(I)).
+    .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thwTrm(T),thwTrm(E),thawAct(H)).
     .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B)).
     .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
-      .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).
+      .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thawAct(X)).
     .term("cont",[Lc,.strg(V),Sig,B,X]) =>
-      .aCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thawTerm(B),thawAct(X)).
+      .aCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thawAct(X)).
     .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M).
   }
 }

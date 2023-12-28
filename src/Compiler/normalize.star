@@ -40,7 +40,7 @@ star.compiler.normalize{
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis [.vrDef(Lc,FullNm,Tp,Vl),..Defs]
+    valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
@@ -443,7 +443,7 @@ star.compiler.normalize{
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
 
-    (lVars,vrDefs) = unzip(varDefs(Defs));
+    (lVars,glDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
 
@@ -479,7 +479,7 @@ star.compiler.normalize{
       Ex1 = transformGroup(GrpFns,M,M,GrpQ,.some(ThVr),Ex);
       
       freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
-      (cellArgs,Ex2) = liftExps(vrDefs,GrpQ,Outer,Ex1);
+      (cellArgs,Ex2) = liftExps(glDefs,GrpQ,Outer,Ex1);
 
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
 
@@ -505,7 +505,7 @@ star.compiler.normalize{
     GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
     GrpVars = (Grp^/(D)=>_?=isVarDef(D));
 
-    (lVars,vrDefs) = unzip(varDefs(GrpVars));
+    (lVars,glDefs) = unzip(varDefs(GrpVars));
 
     rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
     varParents = freeParents(rawGrpFree \ lVars,Outer);
@@ -527,12 +527,12 @@ star.compiler.normalize{
     freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
     GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
 
-    cellVoids = (vrDefs//(E)=>.cVoid(Lc,typeOf(E)));
+    cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
     GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
     if traceNormalize! then{
       logMsg("lVars = $(lVars)");
-      logMsg("vrDefs = $(vrDefs)");
+      logMsg("glDefs = $(glDefs)");
       logMsg("GrpVars = $(GrpVars)");
       logMsg("GrpFree = $(GrpFree)");
     };
@@ -590,7 +590,7 @@ star.compiler.normalize{
   }
   transformLetDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-    valis (Fx,[.vrDef(Lc,FullNm,Tp,Vl),..Defs])
+    valis (Fx,[.glDef(Lc,FullNm,Tp,Vl),..Defs])
   }
   transformLetDef(.varDef(Lc,Nm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
     if traceNormalize! then
