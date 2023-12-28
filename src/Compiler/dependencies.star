@@ -128,6 +128,8 @@ star.compiler.dependencies{
     (D1,Pb1) = collectConstructors(L,H,Defs,Pb,Vz);
     valis collectConstructors(R,H,D1,Pb1,Vz)
   }
+  collectConstructors(T,H,Defs,Pb,Vz) where (_,R) ?= isUnary(T,"|") => 
+    collectConstructors(R,H,Defs,Pb,Vz).
   collectConstructors(T,H,Defs,Pb,Vz) where
       (Lc,Op,Els) ?= isBrTerm(T) && (_,Id) ?=isName(Op) => valof{
 	Sp = .cnsSp(Id);

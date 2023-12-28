@@ -467,9 +467,13 @@
 @tab 1251
 @tab type marker
 @item @code{|}
+@tab non-associative prefix
+@tab 1548
+@tab type union, case union
+@item @code{|}
 @tab left associative infix
 @tab 1548
-@tab type union, abstraction
+@tab type union, case union, abstraction
 @item @code{.#.}
 @tab left associative infix
 @tab 600

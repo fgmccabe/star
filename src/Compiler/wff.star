@@ -674,8 +674,8 @@ star.compiler.wff{
 
   public deBar:(ast) => cons[ast].
   deBar(Trm) => let{.
-    deC(T) where (_,Lh,Rh)?=isBinary(T,"|") =>
-      deC(Lh)++deC(Rh).
+    deC(T) where (_,Lh,Rh)?=isBinary(T,"|") => deC(Lh)++deC(Rh).
+    deC(T) where (_,Rh) ?= isUnary(T,"|") => [Rh].
     deC(T) => [T].
   .} in deC(Trm).
 

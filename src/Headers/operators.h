@@ -6,7 +6,8 @@
 /* Declare standard operators */
 
 infixOp("::=",1549,1550,1549,"algebraic type definition",True)
-infixOp("|",1548,1548,1547,"type union, abstraction",True)
+infixOp("|",1548,1548,1547,"type union, case union, abstraction",True)
+prefixOp("|",1548,1547,"type union, case union",True)
 infixOp(":",1249,1250,1249,"type annotation",True)
 infixOp("~~",1239,1240,1240,"quantifier",True)
 infixOp("|:",1234,1235,1234,"constrained type",True)
