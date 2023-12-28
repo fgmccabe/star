@@ -71,6 +71,8 @@ star.compiler.macro{
 
   examineConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
     binary(Lc,"|",macroAlgebraic(L),macroAlgebraic(R)).
+  examineConstructor(A) where (Lc,R)?=isUnary(A,"|") =>
+    unary(Lc,"|",macroAlgebraic(R)).
   examineConstructor(A) where _ ?= isEnumSymb(A) => A.
   examineConstructor(A) where (Lc,O,Els) ?= isRoundTerm(A) =>
     roundTerm(Lc,macroTerm(O),Els//macroType).

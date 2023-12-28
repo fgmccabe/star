@@ -126,7 +126,7 @@
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
   operator("type", [prefixOp(1251, 1250)]).
-  operator("|", [infixOp(1548, 1548, 1547)]).
+  operator("|", [prefixOp(1548, 1547), infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
@@ -299,7 +299,7 @@
   final('{?',"{?").	 /* test comprehension */
   final('{.',"{.").	 /* recursive braces */
   final('{!',"{!").	 /* iota comprehension */
-  final('|',"|").	 /* type union, abstraction */
+  final('|',"|").	 /* type union, case union */
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
