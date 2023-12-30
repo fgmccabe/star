@@ -280,6 +280,14 @@ star.compiler.resolve{
     (RRhs,St3) = overloadTerm(Rhs,Dict,St2);
     valis (.cond(Lc,RTst,RLhs,RRhs),St3)
   }
+  overloadTerm(.thunk(Lc,Rhs,Tp),Dict,St) => valof{
+    (RRhs,St1) = overloadTerm(Rhs,Dict,St);
+    valis (.thunk(Lc,RRhs,Tp),St1)
+  }
+  overloadTerm(.thRef(Lc,Rhs,Tp),Dict,St) => valof{
+    (RRhs,St1) = overloadTerm(Rhs,Dict,St);
+    valis (.thRef(Lc,RRhs,Tp),St1)
+  }
   overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
     if traceCanon! then
       logMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp))");

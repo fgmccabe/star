@@ -31,6 +31,8 @@ star.compiler.canon{
   .apply(option[locn],canon,cons[canon],tipe) |
   .tple(option[locn],cons[canon]) |
   .lambda(option[locn],string,rule[canon],cons[constraint],tipe) |
+  .thunk(option[locn],canon,tipe) |
+  .thRef(option[locn],canon,tipe) |
   .spwn(option[locn],canon,tipe) |
   .paus(option[locn],canon,tipe) |
   .susp(option[locn],canon,canon,tipe) |
@@ -89,6 +91,8 @@ star.compiler.canon{
       .rsme(_,_,_,Tp) => Tp.
       .rtire(_,_,_) => unitTp.
       .lambda(_,_,_,_,Tp) => Tp.
+      .thunk(_,_,Tp) => Tp.
+      .thRef(_,_,Tp) => Tp.
       .letExp(_,_,_,E) => typeOf(E).
       .letRec(_,_,_,E) => typeOf(E).
       .apply(_,_,_,Tp) => Tp.
@@ -119,6 +123,8 @@ star.compiler.canon{
       .dot(Lc,_,_,_) => Lc.
       .update(Lc,_,_,_) => Lc.
       .tdot(Lc,_,_,_) => Lc.
+      .thunk(Lc,_,_) => Lc.
+      .thRef(Lc,_,_) => Lc.
       .csexp(Lc,_,_,_) => Lc.
       .trycatch(Lc,_,_,_,_) => Lc.
       .rais(Lc,_,_,_) => Lc.
@@ -221,6 +227,8 @@ star.compiler.canon{
     .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
     .tple(_,Els) => "(#(showTuple(Els,Sp)))".
     .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))".
+    .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))".
+    .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!".
     .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
     .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>

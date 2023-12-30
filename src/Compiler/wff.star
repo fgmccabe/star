@@ -474,6 +474,18 @@ star.compiler.wff{
   public refCell:(option[locn],ast) => ast.
   refCell(Lc,I) => unary(Lc,"!",I).
 
+  public isThunk:(ast) => option[(option[locn],ast)].
+  isThunk(Th) => isUnary(Th,"$$").
+
+  public mkThunk:(option[locn],ast)=>ast.
+  mkThunk(Lc,E) => unary(Lc,"$$",E).
+
+  public isThunkRef:(ast) => option[(option[locn],ast)].
+  isThunkRef(Th) => isUnary(Th,"!!").
+
+  public mkThunkRef:(option[locn],ast)=>ast.
+  mkThunkRef(Lc,E) => unary(Lc,"!!",E).
+
   public isIndexTerm:(ast) => option[(option[locn],ast,ast)].
   isIndexTerm(A) where (Lc,Op,[Ix]) ?= isSquareTerm(A) &&
       ~ _?=isBinary(Ix,":") => .some((Lc,Op,Ix)).

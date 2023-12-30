@@ -238,6 +238,10 @@
 @tab non-associative prefix
 @tab 1175
 @tab if ... then ... else
+@item @code{$$}
+@tab non-associative prefix
+@tab 305
+@tab thunk expression
 @item @code{:}
 @tab non-associative infix
 @tab 1250
@@ -334,6 +338,10 @@
 @tab non-associative prefix
 @tab 1240
 @tab assert condition
+@item @code{!!}
+@tab non-associative postfix
+@tab 100
+@tab pick up value from a thunk
 @item @code{⊕}
 @tab left associative infix
 @tab 720
@@ -592,49 +600,51 @@
   @item @code{-}
   @tab @code{.}
   @tab @code{/}
+  @tab @code{$$}
   @tab @code{:}
-  @tab @code{;}
-  @item @code{-->}
+  @item @code{;}
+  @tab @code{-->}
   @tab @code{<}
   @tab @code{.=}
   @tab @code{=>>}
-  @tab @code{=}
-  @item @code{|:}
+  @item @code{=}
+  @tab @code{|:}
   @tab @code{++}
   @tab @code{>}
   @tab @code{?}
-  @tab @code{@@}
-  @item @code{|=}
+  @item @code{@@}
+  @tab @code{|=}
   @tab @code{~~}
+  @tab @code{!!}
   @tab @code{⊕}
-  @tab @code{.^.}
+  @item @code{.^.}
   @tab @code{//}
-  @item @code{.~.}
+  @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
-  @tab @code{\\}
+  @item @code{\\}
   @tab @code{=>}
-  @item @code{^}
+  @tab @code{^}
   @tab @code{<=>}
   @tab @code{•}
-  @tab @code{.&.}
+  @item @code{.&.}
   @tab @code{///}
-  @item @code{::}
+  @tab @code{::}
   @tab @code{+++}
   @tab @code{:=}
-  @tab @code{:?}
+  @item @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
+  @tab @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
-  @tab @code{|}
+  @item @code{|}
   @tab @code{.#.}
-  @item @code{~}
+  @tab @code{~}
   @tab @code{^//}
   @tab @code{||}
-  @tab @code{::=}
+  @item @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
+  @tab @code{>=}
   @tab @code{>>}
 
 @end multitable

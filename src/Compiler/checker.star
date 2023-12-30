@@ -699,6 +699,27 @@ star.compiler.checker{
       valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp)
     }
   }
+  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) => valof{
+    Et = newTypeVar("_E");
+
+    checkType(A,thunkType(Et),Tp,Env);
+
+    ThExp = typeOfExp(E,Et,Env,Path);
+
+    if traceCanon! then
+      logMsg("thunk $(E)\:$(Et)");
+
+    LName = genId(Path++"λ");
+    valis .thunk(Lc,.lambda(Lc,LName,.rule(Lc,.tple(Lc,[]),.none,ThExp),[],funType([],Et)),Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunkRef(A) => valof{
+    ThExp = typeOfExp(E,thunkType(Tp),Env,Path);
+
+    if traceCanon! then
+      logMsg("thunk ref $(ThExp)\:$(Tp)");
+
+    valis .thRef(Lc,ThExp,Tp)
+  }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);

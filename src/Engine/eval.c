@@ -753,8 +753,8 @@ retCode run(processPo P) {
           if (lb == Null) {
             logMsg(logFile, "label %T not defined", thLambda);
             bail();
-          } else if (labelArity(lb) != 2) {
-            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 2);
+          } else if (labelArity(lb) != 1) {
+            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 1);
             bail();
           }
 
@@ -764,9 +764,8 @@ retCode run(processPo P) {
             logMsg(logFile, "no definition for %T", lb);
             bail();
           }
-
+          push(thVr);                                         // Keep the thunk var
           push(closureFree(thLambda));                     // Put the free term back on the stack
-          push(thVr);
 
           if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
             int root = gcAddRoot(H, (ptrPo) &mtd);

@@ -189,6 +189,10 @@ star.compiler.macro{
     refCell(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isRef(A) => 
     mkRef(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isThunk(A) =>
+    mkThunk(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isThunkRef(A) =>
+    mkThunkRef(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isOpen(A) => 
     mkOpen(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 
