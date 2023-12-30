@@ -72,6 +72,7 @@
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("if", [prefixOp(1175, 1174)]).
+  operator("$$", [prefixOp(305, 304)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [postfixOp(1250, 1251), infixOp(1250, 1251, 1251)]).
   operator("-->", [infixOp(1248, 1249, 1248)]).
@@ -94,6 +95,7 @@
   operator("trace", [prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
+  operator("!!", [postfixOp(99, 100)]).
   operator("⊕", [infixOp(720, 720, 719)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
@@ -176,6 +178,7 @@
   follows('','⊕','⊕').
   follows('','•','•').
   follows('','#','#').
+  follows('','$','$').
   follows('&','&','&&').
   follows('*','*','**').
   follows('*','>','*>').
@@ -256,8 +259,10 @@
   follows('?','?','??').
   follows('?','=','?=').
   follows('?','}','?}').
+  follows('!','!','!!').
   follows('!','}','!}').
   follows('•','•','••').
+  follows('$','$','$$').
 
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
@@ -350,11 +355,13 @@
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up value from a ref cell */
+  final('!!',"!!").	 /* pick up value from a thunk */
   final('!}',"!}").	 /* iota comprehension */
   final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
   final('••',"••").	 /* binary function composition */
   final('#',"#").	 /* Macro statement marker */
+  final('$$',"$$").	 /* thunk expression */
 
   keyword("retire").
   keyword("all").
@@ -394,6 +401,7 @@
   keyword("try").
   keyword("exists").
   keyword("if").
+  keyword("$$").
   keyword(":").
   keyword(";").
   keyword("-->").
@@ -410,6 +418,7 @@
   keyword("suspend").
   keyword("open").
   keyword("~~").
+  keyword("!!").
   keyword("/.").
   keyword("public").
   keyword("[|").

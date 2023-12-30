@@ -89,6 +89,7 @@ star.compiler.operators{
     "try" => [.prefixOp(1200,1199)].
     "exists" => [.prefixOp(1010,1009)].
     "if" => [.prefixOp(1175,1174)].
+    "$$" => [.prefixOp(305,304)].
     ":" => [.infixOp(1249,1250,1249)].
     ";" => [.postfixOp(1250,1251), .infixOp(1250,1251,1251)].
     "-->" => [.infixOp(1248,1249,1248)].
@@ -111,6 +112,7 @@ star.compiler.operators{
     "trace" => [.prefixOp(140,139)].
     "~~" => [.infixOp(1239,1240,1240)].
     "assert" => [.prefixOp(1240,1239)].
+    "!!" => [.postfixOp(99,100)].
     "⊕" => [.infixOp(720,720,719)].
     ".^." => [.infixOp(720,720,719)].
     "//" => [.infixOp(960,960,959)].
@@ -225,6 +227,7 @@ star.compiler.operators{
     `⊕` => .some("⊕").
     `•` => .some("•").
     `#` => .some("#").
+    `$` => .some("$").
     _ default => .none.
   }
 
@@ -310,8 +313,10 @@ star.compiler.operators{
     ("?",`?`) => .some("??").
     ("?",`=`) => .some("?=").
     ("?",`}`) => .some("?}").
+    ("!",`!`) => .some("!!").
     ("!",`}`) => .some("!}").
     ("•",`•`) => .some("••").
+    ("$",`$`) => .some("$$").
     (_,_) default => .none.
   }
 
@@ -408,11 +413,13 @@ star.compiler.operators{
     "?}" => .true.  /* test comprehension */
     "@" => .true.  /* meta annotation */
     "!" => .true.  /* pick up value from a ref cell */
+    "!!" => .true.  /* pick up value from a thunk */
     "!}" => .true.  /* iota comprehension */
     "⊕" => .true.  /* addition */
     "•" => .true.  /* function composition */
     "••" => .true.  /* binary function composition */
     "#" => .true.  /* Macro statement marker */
+    "$$" => .true.  /* thunk expression */
     _ default => .false.
   }
 
@@ -456,6 +463,7 @@ star.compiler.operators{
     "try" => .true.
     "exists" => .true.
     "if" => .true.
+    "$$" => .true.
     ":" => .true.
     ";" => .true.
     "-->" => .true.
@@ -472,6 +480,7 @@ star.compiler.operators{
     "suspend" => .true.
     "open" => .true.
     "~~" => .true.
+    "!!" => .true.
     "/." => .true.
     "public" => .true.
     "[|" => .true.

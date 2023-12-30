@@ -305,6 +305,18 @@ star.compiler.normalize{
 	[.funDec(Lc,FullNm,FullNm,Tp)],
 	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
   }
+  liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      logMsg("lift thunk $(.thunk(Lc,Lm,Tp))\:$(Tp)");
+    (NLm,Ex1) = liftExp(Lm,Map,Q,Ex);
+    valis (.cThnk(Lc,NLm,Tp),Ex1)
+  }
+  liftExp(.thRef(Lc,Th,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      logMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
+    (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
+    valis (.cThDrf(Lc,NTh,Tp),Ex1)
+  }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
     (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);

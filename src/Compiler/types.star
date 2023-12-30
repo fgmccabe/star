@@ -535,6 +535,10 @@ star.compiler.types{
   public strType = .nomnal("star.core*string").
   public boolType = .nomnal("star.core*boolean").
   public contType(T) => continType(T,unitTp).
+  public thunkType(T) => makeTpExp("thunk",[T]).
+
+  public isThunkType(Tp) =>
+    (.tpExp(Op,E) .= deRef(Tp) && .tpFun("thunk",1).=deRef(Op) ?? .some(E) || .none).
 
   public isRefType(Tp) => .tpExp(Op,_) .= deRef(Tp) &&
       .tpFun("ref",1).=deRef(Op).

@@ -107,6 +107,12 @@ star.compiler.gencode{
       compExp(E,Lc,.notLast,nthCont(Ix,Cont,pushStack(Tp::ltipe,Stk)),Ctx,Stk)
     | .cSetNth(Lc,R,Ix,V) => compExp(R,Lc,.notLast,expCont(V,Lc,.notLast,setNthCont(Ix,Cont,Stk)),Ctx,Stk)
     | .cClos(Lc,L,A,F,Tp) => compExp(F,Lc,TM,closCont(pushStack(Tp::ltipe,Stk),.tLbl(L,A),Cont),Ctx,Stk)
+    | .cThnk(Lc,Th,Tp) => compExp(Th,Lc,.notLast,
+      thunkCont(pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
+    | .cThDrf(Lc,Th,Tp) => valof{
+      Lb = defineLbl("Th",Ctx);
+      valis compExp(Th,Lc,.notLast,thunkRefCont(Lb,pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
+    }
     | .cSeq(Lc,L,R) =>
       compExp(L,Lc,.notLast,resetCont(Stk,expCont(R,Lc,TM,Cont)),Ctx,Stk)
     | .cCnd(Lc,G,L,R) => valof{
@@ -525,9 +531,14 @@ star.compiler.gencode{
     C(_,_,Cde) => (.none,Cde++[.iTG(Nm),.iRet])
   }
 
-  thunkCont:Cont.
-  thunkCont = cont{
-    C(_,_,Cde) => (.none,Cde++[.iTTh,.iRet])
+  thunkCont:(stack,Cont)=>Cont.
+  thunkCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iThunk])
+  }
+
+  thunkRefCont:(assemLbl,stack,Cont) => Cont.
+  thunkRefCont(Lbl,Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iLdTh(Lbl),.iRot(1),.iTTh,.iLbl(Lbl)])
   }
 
   jmpCont:(assemLbl,stack)=>Cont.
