@@ -2,15 +2,17 @@ test.cnx{
   import star.
   import star.assert.
 
+  import test.lib.fib.
+
   -- Test growing stacks
-
-  fib(0) => 0.
-  fib(1) => 1.
-  fib(N) => fib(N-1)+fib(N-2).
-
-  main:()=>().
-  main()=>valof{
-    show fib(10);
+  main:(integer)=>().
+  main(Ix)=>valof{
+    show fib(Ix);
     valis ()
   }
+
+  public _main:(cons[string])=>().
+  _main([]) => main(10).
+  _main([Count]) => main(Count::integer).
+  
 }

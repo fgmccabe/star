@@ -198,10 +198,13 @@ star.compiler.dict{
 		declareType("cons",.none,.tpFun("star.core*cons",1),
 		  .allRule(.nomnal("e"),
 		    .typeExists(lstType(.nomnal("e")),emptyFace)),
-		  declareType("fiber",.none,.tpFun("star.core*fiber",2),
-		    .allRule(.nomnal("a"),
-		      .allRule(.nomnal("e"),
-			.typeExists(makeTpExp("star.core*fiber",
-			    [.nomnal("a"),.nomnal("e")]),emptyFace))),
-		    emptyDict)))))))).
+		  declareType("thunk",.none,.tpFun("thunk",1),
+		    .allRule(.nomnal("e"),
+		      .typeExists(thunkType(.nomnal("e")),emptyFace)),
+		    declareType("fiber",.none,.tpFun("star.core*fiber",2),
+		      .allRule(.nomnal("a"),
+			.allRule(.nomnal("e"),
+			  .typeExists(makeTpExp("star.core*fiber",
+			      [.nomnal("a"),.nomnal("e")]),emptyFace))),
+		      emptyDict))))))))).
 }

@@ -51,7 +51,6 @@
     "star.repo.file": "filerepo.star",
     "star.repo.manifest": "manifest.star",
     "star.resources": "resources.star",
-    "star.rrb": "rrb.star",
     "star.script": "script.star",
     "star.sets": "sets.star",
     "star.skew" : "skew.star",

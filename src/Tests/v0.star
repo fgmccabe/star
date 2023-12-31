@@ -75,6 +75,8 @@ test.v0{
 
     show TT//((X)=>X++X);
 
+    show ({ Ix | Ix in .range(0,100,1) }:vect[integer]);
+
     valis ()
   }
 }
