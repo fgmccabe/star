@@ -158,7 +158,7 @@ comprehensionMacro(T,expression,Rp) :-
    makeComprehension(Lc,Bnd,Body,Rp)).
 
 makeComprehension(Lc,Bnd,Body,Rp) :-
-  makeCondition(Body,macroRules:passThru,macroRules:consResult(Lc,Bnd),grounded(name(Lc,"_nil")),Rp).
+  makeCondition(Body,macroRules:passThru,macroRules:push(Lc,Bnd),grounded(name(Lc,"_null")),Rp).
 
 totalizerMacro(T,expression,Rp) :-
   isTotalizerComprehension(T,Lc,Fun,El,Zr,Body),!,
@@ -192,9 +192,9 @@ rtn(_,lyfted(St),St).
 passThru(grounded(X),X).
 passThru(lyfted(X),X).
 
-consResult(Lc,Bnd,grounded(St),Res) :-
-  binary(Lc,"_cons",Bnd,St,Res).
-consResult(_,_,lyfted(St),St).
+push(Lc,Bnd,grounded(St),Res) :-
+  binary(Lc,"_push",Bnd,St,Res).
+push(_,_,lyfted(St),St).
 
 foldResult(Lc,F,E,grounded(St),Res) :-
   roundTerm(Lc,F,[E,St],Res).

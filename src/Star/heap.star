@@ -77,6 +77,11 @@ star.heap{
     disp(.h(H)) => "[#(interleave(sh(H),", ")*)]".
   }
 
+  public implementation all x ~~ (leq:(x,x)=>boolean) |: build[heap[x]->>x] => {
+    _null = .h([]).
+    _push(E,.h(C)) => .h(insert(E,C))
+  }
+
   public implementation all x ~~ (leq:(x,x)=>boolean) |: sequence[heap[x]->>x] => {
     _nil = .h([]).
     _cons(E,.h(C)) => .h(insert(E,C))

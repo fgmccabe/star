@@ -559,6 +559,11 @@ star.vector{
     ixRight(F,A,.vector(_,V)) => fold(F,0,A,V).1.
   }
 
+  public implementation all e ~~ build[vect[e]->>e] => {
+    _push(E,V) => appnd(V,E).
+    _null = .vector(0,.e)
+  }
+
   public implementation all e ~~ concat[vect[e]] => let{.
     conc:all b ~~ (vect[b],vect[b])=>vect[b].
     conc(V1,V2) =>

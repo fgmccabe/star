@@ -82,6 +82,11 @@ star.skew{
     tail(.rl(ts)) => .some(.rl(tl(ts))).
   }
 
+  public implementation all e ~~ build[sk[e]->>e] => {
+    _null = .rl(.nil).
+    _push(E,.rl(L)) => .rl(cns(E,L)).
+  }
+
   public implementation all e ~~ sequence[sk[e]->>e] => {
     _nil = .rl(.nil).
     _cons(E,.rl(L)) => .rl(cns(E,L)).

@@ -21,7 +21,12 @@ star.q{
     .qc(F1,B1) == .qc(F2,B2) => smQ(F1,B1,F2,B2).
   }
 
-  -- stream & sequence contracts
+  -- build, stream & sequence contracts
+  public implementation all x ~~ build[qc[x] ->> x] => {
+    _push(E,.qc(F,B)) => .qc(.cons(E,F),B).
+    _null = .qc(.nil,.nil).
+  }
+
   public implementation all x ~~ stream[qc[x] ->> x] => {
     _eof(.qc(.nil,.nil)) => .true.
     _eof(_) default => .false.
