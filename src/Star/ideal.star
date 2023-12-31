@@ -246,6 +246,11 @@ star.ideal{
     _generate(T) => iterGenerator(T)
   }
 
+  public implementation all k,v ~~ hashable[k], equality[k] |: build[map[k,v] ->> keyval[k,v]] => {
+    _null = .ihNil.
+    _push(K->V,Tr) => insertIdeal(Tr,K,V).
+  }
+
   public implementation all k,v ~~ hashable[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
     _nil = .ihNil.
     _cons(K->V,Tr) => insertIdeal(Tr,K,V).

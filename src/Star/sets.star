@@ -11,6 +11,12 @@ star.sets{
 
   public all e ~~ set[e] ::= .set(map[e,()]).
 
+  public implementation all e ~~ equality[e],hashable[e] |: build[set[e]->>e] => {
+    _null = .set([]).
+
+    _push(E,.set(M)) => .set(M[E->()]).
+  }
+
   public implementation all e ~~ equality[e],hashable[e] |: sequence[set[e]->>e] => {
     _nil = .set([]).
 

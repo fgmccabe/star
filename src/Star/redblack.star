@@ -192,6 +192,12 @@ star.redblack{
     }.
 
   public implementation all k,v ~~ comp[k], equality[k] |:
+    build[rbtree[k,v] ->> keyval[k,v]] => {
+      _null = .rbLeaf.
+      _push(K->V,Tr) => add(Tr,K,V).
+    }.
+
+  public implementation all k,v ~~ comp[k], equality[k] |:
     sequence[rbtree[k,v] ->> keyval[k,v]] => {
       _nil = .rbLeaf.
       _cons(K->V,Tr) => add(Tr,K,V).

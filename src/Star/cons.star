@@ -35,7 +35,12 @@ star.cons{
     (>=) = consGe
   }
 
-  -- stream & sequence contracts
+  -- build, stream & sequence contracts
+  public implementation all x ~~ build[cons[x] ->> x] => {
+    _push(E,S) => .cons(E,S).
+    _null = .nil.
+  }
+
   public implementation all x ~~ stream[cons[x] ->> x] => {
     _eof(.nil) => .true.
     _eof(.cons(_,_)) => .false.

@@ -213,8 +213,7 @@ star.compiler.macro.rules{
 	
   makeComprehension:(option[locn],ast,ast) => ast.
   makeComprehension(Lc,Bnd,Cond) => 
-    makeCondition(Cond,passThru,(St)=>consResult(Lc,Bnd,St),
-      .grounded(.nme(Lc,"_nil"))).
+    makeCondition(Cond,passThru,(St)=>push(Lc,Bnd,St),null(Lc)).
 
   -- Condition processing
 
@@ -228,8 +227,10 @@ star.compiler.macro.rules{
   passThru(.grounded(X)) => X.
   passThru(.lyfted(X)) => X.
 
-  consResult(Lc,Bnd,.grounded(St)) => binary(Lc,"_cons",Bnd,St).
-  consResult(_,_,.lyfted(St)) => St.
+  push(Lc,Bnd,.grounded(St)) => binary(Lc,"_push",Bnd,St).
+  push(_,_,.lyfted(St)) => St.
+
+  null(Lc) => .grounded(.nme(Lc,"_null")).
 
   genResult(T) => let{
     chk(.grounded(_))=> T.

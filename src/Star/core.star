@@ -85,6 +85,12 @@ star.core {
     _nil:S.
   }
 
+  -- The comprehension building contract
+  public contract all S,E ~~ build[S->>E] ::= {
+    _push:(E,S) => S.
+    _null:S
+  }
+
   public all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
 
   -- Displayable contract

@@ -53,6 +53,11 @@ star.treelist{
     disp(L) => ssSeq([ss("["),dispTl(L),ss("]")]).
   }
 
+  public implementation all e ~~ build[tl[e]->>e] => {
+    _push(E,S) => rebalance(tlLeaf(E),S).
+    _null = tlEmpty
+  }
+
   public implementation all e ~~ sequence[tl[e]->>e] => {
     _cons(E,S) => rebalance(tlLeaf(E),S).
     _nil = tlEmpty

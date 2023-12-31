@@ -5,6 +5,14 @@ star.multi{
   
   public multi[e] ::= .single(e) | .multi(cons[multi[e]]) | .null.
 
+  public implementation all e ~~ build[multi[e]->>e] => {
+    _push(E,.null) => .single(E).
+    _push(E,.single(X)) => .multi(.cons(.single(E),.cons(.single(X),.nil))).
+    _push(E,.multi(L)) => .multi(.cons(.single(E),L)).
+
+    _null = .null
+  }
+
   public implementation all e ~~ sequence[multi[e]->>e] => {
     _cons(E,.null) => .single(E).
     _cons(E,.single(X)) => .multi(.cons(.single(E),.cons(.single(X),.nil))).
