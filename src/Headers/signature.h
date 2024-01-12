@@ -28,6 +28,7 @@ typedef enum {
   tpfnSig = 'z', /* A type function */
 
   lstSig = 'L', // Cons list
+  vctSig = 'V', // Vector
   tpeExpSig = 'U',                       /* polymorphic user type */
 
   tplSig = '(', /* Tuple - followed by element types followed by ) */

@@ -246,6 +246,11 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
+    case vctSig:
+      outStr(out, ".tpExp(.tpFun(\"star.vector*vect\",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
     case allSig:
       outStr(out, ".allType(");
       sig = dumpStarSig(sig, out);
@@ -469,6 +474,14 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       outStr(out, "tpExp(");
       outStr(out, "tpFun(");
       dumpStr("star.core*cons", out);
+      outStr(out, ",1),");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      break;
+    case vctSig:
+      outStr(out, "tpExp(");
+      outStr(out, "tpFun(");
+      dumpStr("star.vector*vect", out);
       outStr(out, ",1),");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
