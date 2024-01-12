@@ -1004,7 +1004,7 @@ on the value of the condition.
 @caption{Thunk Expression}
 @display
 @anchored{ThunkExpression} ::= @code{$$} @refer{Expression}
-  | @refer{Expression{ @code{!!}
+  | @refer{Expression} @code{!!}
 @end display
 @end float
 
@@ -1048,12 +1048,12 @@ fib(N) => fib(N-1)+fib(N-2)
 
 to use thunks:
 @example
-memFib(N) => let{
-  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }:vector[thunk[integer]].
+memFib(N) => let@{
+  fibs = @{ $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) @}:vector[thunk[integer]].
   fb(0) => 1.
   fb(1) => 1.
   fb(ix) where F?=fibs[ix] => F!!
-} in fb(N-1)
+@} in fb(N-1)
 @end example
 
 This version of fibonacci is linear in @code{N}, whereas the
