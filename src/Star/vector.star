@@ -49,38 +49,52 @@ star.vector{
   bitcnt(X) => ((lg2(X)+1).>>.1)*2. -- Round up the log to the next even number
 
   pick:all x ~~ (vct[x],integer,integer,integer)=>option[x].
-  pick(.vct1(X),0,K,Dp) => lookup(X,K,Dp).
-  pick(.vct2(X,_),0,K,Dp) => lookup(X,K,Dp).
-  pick(.vct3(X,_,_),0,K,Dp) => lookup(X,K,Dp).
-  pick(.vct4(X,_,_,_),0,K,Dp) => lookup(X,K,Dp).
-  pick(.vct1(_),1,K,Dp) => .none.
-  pick(.vct2(_,X),1,K,Dp) => lookup(X,K,Dp).
-  pick(.vct3(_,X,_),1,K,Dp) => lookup(X,K,Dp).
-  pick(.vct4(_,X,_,_),1,K,Dp) => lookup(X,K,Dp).
-  pick(.vct1(_),2,K,Dp) => .none.
-  pick(.vct2(_,_),2,K,Dp) => .none.
-  pick(.vct3(_,_,X),2,K,Dp) => lookup(X,K,Dp).
-  pick(.vct4(_,_,X,_),2,K,Dp) => lookup(X,K,Dp).
-  pick(.vct1(_),3,K,Dp) => .none.
-  pick(.vct2(_,_),3,K,Dp) => .none.
-  pick(.vct3(_,_,X),3,K,Dp) => .none.
-  pick(.vct4(_,_,_,X),3,K,Dp) => lookup(X,K,Dp).
-  pick(.lf1(X),0,_,0) => .some(X).
-  pick(.lf2(X,_),0,_,0) => .some(X).
-  pick(.lf3(X,_,_),0,_,0) => .some(X).
-  pick(.lf4(X,_,_,_),0,_,0) => .some(X).
-  pick(.lf1(_),1,_,0) => .none.
-  pick(.lf2(_,X),1,_,0) => .some(X).
-  pick(.lf3(_,X,_),1,_,0) => .some(X).
-  pick(.lf4(_,X,_,_),1,_,0) => .some(X).
-  pick(.lf1(_),2,_,0) => .none.
-  pick(.lf2(_,_),2,_,0) => .none.
-  pick(.lf3(_,_,X),2,_,0) => .some(X).
-  pick(.lf4(_,_,X,_),2,_,0) => .some(X).
-  pick(.lf1(_),3,_,0) => .none.
-  pick(.lf2(_,_),3,_,0) => .none.
-  pick(.lf3(_,_,_),3,_,0) => .none.
-  pick(.lf4(_,_,_,X),3,_,0) => .some(X).
+  pick(T,Ix,K,Dp) => case Ix in {
+    0 => case T in {
+      | .e => .none
+      | .vct1(X) => lookup(X,K,Dp)
+      | .vct2(X,_) => lookup(X,K,Dp)
+      | .vct3(X,_,_) => lookup(X,K,Dp)
+      | .vct4(X,_,_,_) => lookup(X,K,Dp)
+      | .lf1(X) => .some(X)
+      | .lf2(X,_) => .some(X)
+      | .lf3(X,_,_) => .some(X)
+      | .lf4(X,_,_,_) => .some(X)
+    }
+    | 1 => case T in {
+      .e => .none
+      | .vct1(_) => .none
+      | .vct2(_,X) => lookup(X,K,Dp)
+      | .vct3(_,X,_) => lookup(X,K,Dp)
+      | .vct4(_,X,_,_) => lookup(X,K,Dp)
+      | .lf1(_) => .none
+      | .lf2(_,X) => .some(X)
+      | .lf3(_,X,_) => .some(X)
+      | .lf4(_,X,_,_) => .some(X)
+    }
+    | 2 => case T in {
+      .e => .none
+      | .vct1(_) => .none
+      | .vct2(_,_) => .none
+      | .vct3(_,_,X) => lookup(X,K,Dp)
+      | .vct4(_,_,X,_) => lookup(X,K,Dp)
+      | .lf1(_) => .none
+      | .lf2(_,_) => .none
+      | .lf3(_,_,X) => .some(X)
+      | .lf4(_,_,X,_) => .some(X)
+    }
+    | 3 => case T in {
+      .e => .none
+      | .vct1(_) => .none
+      | .vct2(_,_) => .none
+      | .vct3(_,_,_) => .none
+      | .vct4(_,_,_,X) => lookup(X,K,Dp)
+      | .lf1(_) => .none
+      | .lf2(_,_) => .none
+      | .lf3(_,_,_) => .none
+      | .lf4(_,_,_,X) => .some(X)
+    }
+  }
 
   public vupdate:all x~~(vect[x],integer,x)=>vect[x].
   vupdate(.vector(Dp,V),Ix,X) => .vector(Dp,update(V,Ix,Dp,X)).

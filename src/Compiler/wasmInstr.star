@@ -86,8 +86,8 @@ star.compiler.wasm.instr{
     | .IShrU(int_type)
     | .IRotl(int_type)
     | .IRotr(int_type)
-    | .IEqz(int_type)                            -- equal to zero
-    | .IEq(int_type)                             -- Integer comparisons
+    | .IEqz(int_type)                  -- equal to zero
+    | .IEq(int_type)                   -- Integer comparisons
     | .INe(int_type)
     | .ILtS(int_type)
     | .ILtU(int_type)
@@ -97,14 +97,14 @@ star.compiler.wasm.instr{
     | .ILeU(int_type)
     | .IGeS(int_type)
     | .IGeU(int_type)
-    | .FNeg(flt_type)                            -- Unary floating point
+    | .FNeg(flt_type)                  -- Unary floating point
     | .FAbs(flt_type)
     | .FCeil(flt_type)
     | .Floor(flt_type)
     | .FTrunc(flt_type)
     | .FNearest(flt_type)
     | .FSqrt(flt_type)
-    | .FEq(flt_type)                              -- Binary floating point
+    | .FEq(flt_type)                   -- Binary floating point
     | .FNe(flt_type)
     | .FLt(flt_type)
     | .FGt(flt_type)
