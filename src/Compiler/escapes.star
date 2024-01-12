@@ -10,6 +10,7 @@ star.compiler.escapes{
     "_abort" => .some(.allType(.nomnal("a"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),.nomnal("star.core*string")])),.tupleType([])))).
     "_definedLbl" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("star.core*boolean"))).
     "_callLbl" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer"),.tpExp(.tpFun("star.core*cons",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")))])),.tupleType([]))).
+    "_globalIsSet" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*boolean"))).
     "_int_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
     "_int_minus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
     "_int_times" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer"))).
@@ -93,6 +94,8 @@ star.compiler.escapes{
     "_singleIsSet" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean")))).
     "_singleVal" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_singleSet" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t")),.nomnal("t")])),.tupleType([]))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_futureIsResolved" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*future",2),.nomnal("f")),.nomnal("e")])),.nomnal("star.core*boolean"))))).
+    "_futureIsRejected" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*future",2),.nomnal("f")),.nomnal("e")])),.nomnal("star.core*boolean"))))).
     "_tuple_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer")])),.nomnal("e"))))).
     "_tuple_set_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer"),.nomnal("e")])),.nomnal("t"))))).
     "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string"))).
@@ -123,7 +126,8 @@ star.compiler.escapes{
     "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
     "_inbytes" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer")))).
     "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
-    "_inchar" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer"))).
+    "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inchar_async" => .some(.allType(.nomnal("q"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("ref",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("q")))])),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char"))))).
     "_inbyte" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer"))).
     "_inline" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*string"))).
     "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tpExp(.tpFun("star.core*single",1),.nomnal("star.core*string")))).
@@ -257,6 +261,7 @@ star.compiler.escapes{
     "_abort" => .true.
     "_definedLbl" => .true.
     "_callLbl" => .true.
+    "_globalIsSet" => .true.
     "_int_plus" => .true.
     "_int_minus" => .true.
     "_int_times" => .true.
@@ -340,6 +345,8 @@ star.compiler.escapes{
     "_singleIsSet" => .true.
     "_singleVal" => .true.
     "_singleSet" => .true.
+    "_futureIsResolved" => .true.
+    "_futureIsRejected" => .true.
     "_tuple_nth" => .true.
     "_tuple_set_nth" => .true.
     "_cwd" => .true.
@@ -371,6 +378,7 @@ star.compiler.escapes{
     "_inbytes" => .true.
     "_enqueue_read" => .true.
     "_inchar" => .true.
+    "_inchar_async" => .true.
     "_inbyte" => .true.
     "_inline" => .true.
     "_inline_async" => .true.

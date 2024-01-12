@@ -73,9 +73,10 @@ integer ioHash(specialClassPo cl, termPo o) {
 }
 
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  ioChnnlPo io = C_IO(t);
-  return outMsg(out, "<<io:0x%x>>", io->io);
+  ioChnnlPo ch = C_IO(t);
+  return outMsg(out, "<<io:%s>>", fileName(ch->io));
 }
+
 
 ioChnnlPo C_IO(termPo t) {
   assert(hasClass(t, ioChnnlClass));

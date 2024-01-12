@@ -6,6 +6,7 @@ escapeType("_exit",funType(tplType([type("star.core*integer")]),tplType([]))).
 escapeType("_abort",allType(kVar("a"),funType(tplType([kVar("a"),type("star.core*string")]),tplType([])))).
 escapeType("_definedLbl",funType(tplType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_callLbl",funType(tplType([type("star.core*string"),type("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),type("star.core*string")))]),tplType([]))).
+escapeType("_globalIsSet",funType(tplType([type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_int_plus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_minus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_times",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -89,6 +90,8 @@ escapeType("_single",allType(kVar("t"),funType(tplType([]),tpExp(tpFun("star.cor
 escapeType("_singleIsSet",allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t"))]),type("star.core*boolean")))).
 escapeType("_singleVal",constrained(allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t"))]),type("star.core*boolean"))),raises(type("star.core*errorCode")))).
 escapeType("_singleSet",constrained(allType(kVar("t"),funType(tplType([tpExp(tpFun("star.core*single",1),kVar("t")),kVar("t")]),tplType([]))),raises(type("star.core*errorCode")))).
+escapeType("_futureIsResolved",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpFun("star.core*future",2),kVar("f")),kVar("e")]),type("star.core*boolean"))))).
+escapeType("_futureIsRejected",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpFun("star.core*future",2),kVar("f")),kVar("e")]),type("star.core*boolean"))))).
 escapeType("_tuple_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer")]),kVar("e"))))).
 escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("star.core*integer"),kVar("e")]),kVar("t"))))).
 escapeType("_cwd",funType(tplType([]),type("star.core*string"))).
@@ -119,7 +122,8 @@ escapeType("_ready_to_write",funType(tplType([type("star.file*fileHandle")]),typ
 escapeType("_inchars",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_inbytes",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*cons",1),type("star.core*integer")))).
 escapeType("_enqueue_read",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*single",1),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))))).
-escapeType("_inchar",funType(tplType([type("star.file*fileHandle")]),type("star.core*integer"))).
+escapeType("_inchar",constrained(funType(tplType([type("star.file*fileHandle")]),type("star.core*char")),raises(type("star.core*errorCode")))).
+escapeType("_inchar_async",allType(kVar("q"),funType(tplType([type("star.file*fileHandle"),tpExp(tpFun("ref",1),tpExp(tpFun("star.core*cons",1),kVar("q")))]),tpExp(tpFun("star.core*future",2),type("star.core*char"))))).
 escapeType("_inbyte",funType(tplType([type("star.file*fileHandle")]),type("star.core*integer"))).
 escapeType("_inline",funType(tplType([type("star.file*fileHandle")]),type("star.core*string"))).
 escapeType("_inline_async",funType(tplType([type("star.file*fileHandle")]),tpExp(tpFun("star.core*single",1),type("star.core*string")))).
@@ -248,6 +252,7 @@ isEscape("_exit").
 isEscape("_abort").
 isEscape("_definedLbl").
 isEscape("_callLbl").
+isEscape("_globalIsSet").
 isEscape("_int_plus").
 isEscape("_int_minus").
 isEscape("_int_times").
@@ -331,6 +336,8 @@ isEscape("_single").
 isEscape("_singleIsSet").
 isEscape("_singleVal").
 isEscape("_singleSet").
+isEscape("_futureIsResolved").
+isEscape("_futureIsRejected").
 isEscape("_tuple_nth").
 isEscape("_tuple_set_nth").
 isEscape("_cwd").
@@ -362,6 +369,7 @@ isEscape("_inchars").
 isEscape("_inbytes").
 isEscape("_enqueue_read").
 isEscape("_inchar").
+isEscape("_inchar_async").
 isEscape("_inbyte").
 isEscape("_inline").
 isEscape("_inline_async").

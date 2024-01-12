@@ -92,7 +92,7 @@ logical singleHasValue(singlePo t) {
   return t->val != voidEnum;
 }
 
-retCode setSingle(heapPo H, singlePo ft, termPo val) {
+retCode setSingle(singlePo ft, termPo val) {
   if(singleHasValue(ft))
     return Error;
   else {

@@ -82,6 +82,10 @@ void initCell() {
   CellClass.clss = specialClass;
 }
 
+logical isCell(termPo t){
+  return hasClass(t,cellClass);
+}
+
 cellPo C_CELL(termPo t) {
   assert(hasClass(t, cellClass));
   return (cellPo) t;

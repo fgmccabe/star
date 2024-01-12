@@ -48,7 +48,6 @@ set(PUBLIC_HEADERS
         Headers/template.h
         Headers/strng.h
         Headers/editline.h
-        Headers/promise.h
         Headers/buddy.h
         Headers/base64.h
         Headers/multi.h
@@ -74,7 +73,6 @@ set(HEADER_FILES
         Headers/integerP.h
         Headers/strngP.h
         Headers/topSortP.h
-        Headers/promiseP.h
         Headers/buddyP.h
         Headers/multi.h
         Headers/formatted.h
@@ -104,7 +102,6 @@ set(SOURCE_FILES
         object.c
         pipe.c
         pool.c
-        promise.c
         quick.c
         signal.c
         sockets.c

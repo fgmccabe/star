@@ -22,5 +22,5 @@ ReturnStatus g__settimeout(heapPo h, termPo a1, termPo a2) {
 
 void reportTimeout(void *cl) {
   singlePo fut = (singlePo) cl;
-  setSingle(globalHeap, fut, trueEnum);
+  setSingle(fut, trueEnum);
 }

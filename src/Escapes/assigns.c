@@ -48,7 +48,7 @@ ReturnStatus g__singleVal(heapPo h, termPo a1) {
 
 ReturnStatus g__singleSet(heapPo h, termPo a1, termPo a2) {
   singlePo ft = C_SINGLE(a1);
-  if (setSingle(h, ft, a2) == Ok) {
+  if (setSingle(ft, a2) == Ok) {
     return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   } else {
     return (ReturnStatus) {.ret=Error, .result=hasValue};
