@@ -93,6 +93,7 @@ logical validSig(char *sig, integer *start, integer end) {
         return False;
     }
     case lstSig:
+    case vctSig:
       return validSig(sig, start, end);
     case faceSig: {
       if (sig[(*start)++] != '{')
@@ -243,6 +244,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
         tryRet(skipSig(sig, start, end));
         return skipSig(sig, start, end);
       case lstSig:
+      case vctSig:
         return skipSig(sig, start, end);
       case tplSig: {
         while (*start < end && sig[*start] != ')')
@@ -437,6 +439,7 @@ retCode skipSignature(ioPo in) {
       }
 
       case lstSig:
+      case vctSig:
         return skipSignature(in);
       case tplSig: {
         while (ret == Ok && isLookingAt(in, ")") != Ok)
@@ -567,6 +570,10 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       return outStr(out, "]");
     case lstSig:
       tryRet(outStr(out, "cons["));
+      tryRet(showSignature(out, sig, start, end));
+      return outStr(out, "]");
+    case vctSig:
+      tryRet(outStr(out, "vect["));
       tryRet(showSignature(out, sig, start, end));
       return outStr(out, "]");
     case tplSig: {
