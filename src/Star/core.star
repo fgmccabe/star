@@ -150,6 +150,7 @@ star.core {
   .eCONNECT |
   .eDEAD |
   .divZero |
+  .eof |
   .noValue |
   .hasValue.
 
@@ -168,6 +169,7 @@ star.core {
     disp(.divZero) => "divZero".
     disp(.noValue) => "noValue".
     disp(.hasValue) => "hasValue".
+    disp(.eof) => "eof".
   }
 
   public error ::= .error(string,errorCode).

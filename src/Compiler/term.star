@@ -1,5 +1,6 @@
 star.compiler.term{
   import star.
+  import star.topsort.
 
   import star.compiler.data.
   import star.compiler.errors.
@@ -1296,4 +1297,98 @@ star.compiler.term{
       .aCont(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thawAct(X)).
     .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M).
   }
+
+  glSpec ~> (string,option[locn],cExp,cons[string]).
+
+  public sortGlobals:(cons[cDefn]) => cons[cons[(string,option[locn],cExp)]].
+  sortGlobals(Defs) => valof{
+    Globals = ({ (Nm,Lc,Vl) | .glDef(Lc,Nm,_,Vl) in Defs }:cons[_]);
+    AllRefs = foldRight(((Nm,Lc,Vl),A)=>[(Nm,Lc,Vl,findRefs(Vl,Globals)),..A],([]:cons[_]),Globals);
+    valis (topsort(AllRefs) // ((G) => (G//(((Nm,Lc,Vl,Rfs))=>(Nm,Lc,Vl)))));
+  }
+
+  implementation depends[glSpec->>string] => {
+    references((_,_,_,Refs)) => Refs.
+    defined((Nm,_,_,_),Rf) => Nm==Rf.
+  }
+
+  findRefs:(cExp,cons[(string,option[locn],cExp)]) => cons[string].
+  findRefs(Exp,Gls) => let{
+    findVRef(.cVar(_,.cId(V,_)),.inExp,SoF) =>
+      ({? (V,_,_) in Gls && ~ V in SoF ?} ?? [V,..SoF] || SoF).
+    findVRef(_,_,SoF) default => SoF.
+  } in foldV(Exp,.inExp,findVRef,[]).
+
+  public vMode ::= .inExp | .inPtn.
+
+  public foldV:all a ~~ (cExp,vMode,(cExp,vMode,a)=>a,a) => a.
+  foldV(Ex,Mode,Fn,SoF) => case Ex in {
+    .cVoid(_,_) => SoF
+    | .cAnon(_,_) => SoF
+    | .cVar(_,_) => Fn(Ex,Mode,SoF)
+    | .cInt(_,Ix) => SoF
+    | .cChar(_,Cx) => SoF
+    | .cFloat(_,Dx) => SoF
+    | .cBig(_,Bx) => SoF
+    | .cString(_,Sx) => SoF
+    | .cTerm(_,_,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),SoF,Args)
+    | .cNth(_,T,_,_) => foldV(T,Mode,Fn,SoF)
+    | .cSetNth(_,T,_,R) => foldV(T,Mode,Fn,foldV(R,Mode,Fn,SoF))
+    | .cClos(_,_,_,Fr,_) => foldV(Fr,Mode,Fn,SoF)
+    | .cThnk(_,Fr,_) =>foldV(Fr,Mode,Fn,SoF)
+    | .cThDrf(_,E,_) => foldV(E,Mode,Fn,SoF)
+    | .cCall(_,_,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),SoF,Args)
+    | .cECall(_,Nm,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),SoF,Args)
+    | .cOCall(_,Op,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),foldV(Op,Mode,Fn,SoF),Args)
+    | .cRaise(_,_,X,_) => foldV(X,Mode,Fn,SoF)
+    | .cSpawn(_,Lm,_) => foldV(Lm,Mode,Fn,SoF)
+    | .cPaus(_,Lm,_) => foldV(Lm,Mode,Fn,SoF)
+    | .cSusp(_,F,E,_) => foldV(F,Mode,Fn,foldV(E,Mode,Fn,SoF))
+    | .cResume(_,F,E,_) => foldV(F,Mode,Fn,foldV(E,Mode,Fn,SoF))
+    | .cRetire(_,F,E) => foldV(F,Mode,Fn,foldV(E,Mode,Fn,SoF))
+    | .cSeq(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
+    | .cCnj(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
+    | .cDsj(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
+    | .cNeg(_,R) => foldV(R,Mode,Fn,SoF)
+    | .cCnd(_,T,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,foldV(T,Mode,Fn,SoF)))
+    | .cMatch(_,L,R) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
+    | .cLtt(_,_,B,X) => foldV(X,Mode,Fn,foldV(B,.inExp,Fn,SoF))
+    | .cCont(_,_,B,X) => foldV(X,Mode,Fn,foldV(B,.inExp,Fn,SoF))
+    | .cCase(_,G,Cs,Df,_) =>
+      foldV(Df,.inExp,Fn,foldECases(Cs,Mode,Fn,foldV(G,.inExp,Fn,SoF)))
+    | .cAbort(_,_,_) => SoF
+    | .cTry(_,B,_,E,H,_) => foldV(H,.inExp,Fn,foldV(B,.inExp,Fn,foldV(E,.inExp,Fn,SoF)))
+    | .cVarNmes(_,Vs,B) => foldV(B,Mode,Fn,SoF)
+    | .cValof(_,A,_) => foldA(A,Fn,SoF)
+  }
+
+  foldECases:all a ~~ (cons[cCase[cExp]],vMode,(cExp,vMode,a)=>a,a)=>a.
+  foldECases(Cs,Mode,Fn,SoF) =>
+    foldRight(((_,Pt,E),SF)=>foldV(E,Mode,Fn,foldV(Pt,.inPtn,Fn,SF)),SoF,Cs).
+
+
+  foldA:all a ~~ (aAction,(cExp,vMode,a)=>a,a) => a.
+  foldA(Ac,Fn,SoF) => case Ac in {
+    .aNop(_) => SoF
+    | .aSeq(_,L,R) => foldA(R,Fn,foldA(L,Fn,SoF))
+    | .aLbld(_,L,I) => foldA(I,Fn,SoF)
+    | .aBreak(_,L) => SoF
+    | .aValis(_,V) => foldV(V,.inExp,Fn,SoF)
+    | .aRetire(_,T,V) => foldV(V,.inExp,Fn,foldV(T,.inExp,Fn,SoF))
+    | .aDo(_,V) => foldV(V,.inExp,Fn,SoF)
+    | .aSetNth(_,V,Ix,E) => foldV(E,.inExp,Fn,foldV(V,.inExp,Fn,SoF))
+    | .aDefn(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inPtn,Fn,SoF))
+    | .aAsgn(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inExp,Fn,SoF))
+    | .aCase(_,G,C,D) => foldA(D,Fn,foldACases(C,Fn,foldV(G,.inExp,Fn,SoF)))
+    | .aIftte(_,T,L,R) => foldA(R,Fn,foldA(L,Fn,foldV(T,.inExp,Fn,SoF)))
+    | .aWhile(_,T,I) => foldA(I,Fn,foldV(T,.inExp,Fn,SoF))
+    | .aTry(_,B,_,E,H) => foldA(B,Fn,foldA(H,Fn,SoF))
+    | .aCont(Lc,V,B,X) => foldA(X,Fn,foldV(B,.inExp,Fn,foldV(.cVar(Lc,V),.inPtn,Fn,SoF)))
+    | .aVarNmes(_,_,B) => foldA(B,Fn,SoF)
+    | .aAbort(_,_) => SoF
+  }
+
+  foldACases:all a ~~ (cons[cCase[aAction]],(cExp,vMode,a)=>a,a)=>a.
+  foldACases(Cs,Fn,SoF) =>
+    foldRight(((_,Pt,A),SF)=>foldA(A,Fn,foldV(Pt,.inPtn,Fn,SF)),SoF,Cs).
 }

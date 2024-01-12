@@ -974,6 +974,9 @@ star.compiler.wasm.gen{
   wasmInt(Ix,Stk,Ctx) where isSMI(Ix) =>
     (pushStack(intType,Stk),[.IConst(.I32Type,Ix),.i31Ref]).
   wasmInt(Ix,Stk,Ctx) =>
-    (pushStack(intType,Stk),[.IConst(.I64Type,Ix),.StructNew(boxedIntType).
+    (pushStack(intType,Stk),[.IConst(.I64Type,Ix),.StructNew(boxedIntType)]).
+
+  wasmFloat(Dx,Stk,Ctx) =>
+    (pushStack(fltType,Stk),[.FConst(.F64Type,Dx),.StructNew(boxedFltType)]).
   
 }
