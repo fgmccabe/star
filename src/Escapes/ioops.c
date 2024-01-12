@@ -89,7 +89,7 @@ ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
 
   codePoint cp;
   retCode ret = inChar(io, &cp);
-  switch(ret){
+  switch (ret) {
     case Ok:
       return (ReturnStatus) {.ret=Ok, .result=allocateCharacter(cp)};
     case Eof:
@@ -146,15 +146,18 @@ ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__inbyte(heapPo h, termPo a1) {
+ReturnStatus g__inbyte(heapPo h, termPo xc, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
 
   byte b;
   retCode ret = inByte(io, &b);
-  if (ret == Ok) {
-    return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
-  } else {
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+  switch (ret) {
+    case Ok:
+      return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
+    case Eof:
+      return (ReturnStatus) {.ret=Error, .result=eofEnum};
+    default:
+      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
   }
 }
 

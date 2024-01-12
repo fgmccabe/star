@@ -3,16 +3,20 @@ test.io0{
   import star.assert.
   import star.io.
 
-  main:()=>().
-  main() => valof{
-    StdIn = _stdfile(0);
+  _main:(cons[string])=>().
+  _main([Fl,.._]) => main(Fl).
+  _main([]) => main("io0.star").
 
+  main:(string)=>().
+  main(Fl) => valof{
     try{
-      while Ch.=_inchar(StdIn) && Ch~=`z` do{
+      In = _openInFile(Fl,3);
+      while Ch.=_inchar(In) do{
 	logMsg("char: $(Ch)");
       }
     } catch errorCode in {
-      Cde => logMsg("error code $(Cde)")
+      | .eof => logMsg("end of file")
+      | Cde => logMsg("error code $(Cde)")
     };
 
     valis ()
