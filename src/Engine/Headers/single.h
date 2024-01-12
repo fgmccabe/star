@@ -16,6 +16,6 @@ singlePo makeSingle(heapPo H);
 
 logical singleHasValue(singlePo t);
 
-retCode setSingle(heapPo H, singlePo ft, termPo val);
+retCode setSingle(singlePo ft, termPo val);
 termPo getSingle(singlePo f);
 #endif //STAR_SINGLE_H

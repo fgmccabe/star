@@ -13,8 +13,10 @@ extern clssPo cellClass;
 
 extern cellPo C_CELL(termPo t);
 
+logical isCell(termPo t);
+
 extern termPo getCell(cellPo cell);
 
-extern termPo setCell(cellPo cell,termPo e);
+extern termPo setCell(cellPo cell, termPo e);
 
 #endif //STAR_CELL_H

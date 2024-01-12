@@ -11,6 +11,7 @@
 #define fileType "t'star.file*fileHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define singleType(T) "Uz1'star.core*single'" T
+#define futureType(F,E) "Uz2'star.core*future'" F E
 #define ERRCODE "t'star.core*errorCode"
 
 /* Define the standard escapes */
@@ -19,6 +20,7 @@ escape(_abort, ":k'a'F(k'a's)()", "abort process")
 
 escape(_definedLbl, "F(si)l", "test for defined name")
 escape(_callLbl, "F(siLLs)()", "invoke defined name")
+escape(_globalIsSet,"F(s)l","test if a global var is set")
 
 escape(_int_plus, "F(ii)i", "add two integers")
 escape(_int_minus, "F(ii)i", "subtract two integers")
@@ -126,6 +128,9 @@ escape(_singleIsSet, ":k't'F("singleType("k't'")")l", "test to see if single has
 escape(_singleVal, "|:k't'F("singleType("k't'")")lr"ERRCODE, "test to see if single has a value")
 escape(_singleSet, "|:k't'F("singleType("k't'")"k't')()r"ERRCODE, "assign value to single")
 
+escape(_futureIsResolved, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been set")
+escape(_futureIsRejected, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been set")
+
 escape(_tuple_nth, ":k't':k'e'F(k't'i)k'e'", "Access tuple element")
 escape(_tuple_set_nth, ":k't':k'e'F(k't'ik'e')k't'", "Update tuple element")
 
@@ -161,7 +166,8 @@ escape(_ready_to_write, "F("fileType")l", "file ready test")
 escape(_inchars, "F("fileType"i)s", "read block string")
 escape(_inbytes,"F("fileType"i)Li","read block of bytes")
 escape(_enqueue_read,"F("fileType"i)"singleType("Li"),"start reading a block of bytes")
-escape(_inchar, "F("fileType")i", "read single character")
+escape(_inchar, "|F("fileType")cr"ERRCODE, "read single character")
+escape(_inchar_async, ":k'q'F("fileType"rLk'q')"futureType("c",ERRCODE), "read single character")
 escape(_inbyte, "F("fileType")i", "read single byte")
 escape(_inline, "F("fileType")s", "read a line")
 escape(_inline_async, "F("fileType")"singleType("s"), "async read of a line")

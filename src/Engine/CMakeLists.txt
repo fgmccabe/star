@@ -48,6 +48,8 @@ set(HEADER_FILES
         Headers/normalP.h
         Headers/thunkP.h
         Headers/thunk.h
+        Headers/future.h
+        Headers/futureP.h
 )
 
 set(SOURCE_FILES
@@ -56,6 +58,7 @@ set(SOURCE_FILES
         strings.c cell.c iochnl.c thr.c bkpoint.c verify.c cons.c option.c ltype.c Headers/ltype.h stack.c
         single.c char.c bignum.c ideal.c Headers/ideal.h continuation.c Headers/continuation.h closure.c
         thunk.c
+        future.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

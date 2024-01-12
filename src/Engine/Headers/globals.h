@@ -28,8 +28,6 @@ extern termPo setGlobalVar(globalPo v, termPo e);
 extern logical glbIsSet(globalPo glb);
 
 extern termPo voidEnum;
-extern termPo okEnum;
-extern termPo failEnum;
 extern termPo eofEnum;
 extern labelPo errorLbl;
 extern termPo unitEnum;

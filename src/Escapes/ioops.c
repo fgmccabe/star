@@ -6,15 +6,15 @@
 #include <strings.h>
 #include <assigns.h>
 #include <arith.h>
-#include <stringBuffer.h>
 #include <arithP.h>
 #include <errorCodes.h>
 #include <cons.h>
 #include "ioops.h"
-#include "stack.h"
 #include "globals.h"
 #include "consP.h"
 #include "single.h"
+#include "charP.h"
+#include "cell.h"
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeFile(ioChannel(C_IO(a1))) == Ok)
@@ -48,7 +48,7 @@ static retCode fillFuture(ioPo f, void *cl) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    ret = setSingle(currentHeap, fut, allocateString(currentHeap, text, length));
+    ret = setSingle(fut, allocateString(currentHeap, text, length));
 
     closeFile(O_IO(buffer));
     return ret;
@@ -84,16 +84,39 @@ ReturnStatus g__ready_to_write(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
-ReturnStatus g__inchar(heapPo h, termPo a1) {
+ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
 
   codePoint cp;
   retCode ret = inChar(io, &cp);
-  if (ret == Ok) {
-    return (ReturnStatus) {.ret=Ok, .result=makeInteger(cp)};
-  } else {
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+  switch(ret){
+    case Ok:
+      return (ReturnStatus) {.ret=Ok, .result=allocateCharacter(cp)};
+    case Eof:
+      return (ReturnStatus) {.ret=Error, .result=eofEnum};
+    default:
+      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
   }
+}
+
+static retCode futureChar(ioPo f, void *cl) {
+  singlePo fut = C_SINGLE((termPo) cl);
+
+  codePoint cp;
+  retCode ret = inChar(f, &cp);
+
+  if (ret == Ok) {
+    return setSingle(fut, allocateCharacter(cp));
+  }
+  return ret;
+}
+
+ReturnStatus g__inchar_async(heapPo h, termPo a1) {
+  ioChnnlPo chnl = C_IO(a1);
+  singlePo ft = makeSingle(h);
+
+  retCode ret = enqueueRead(ioChannel(chnl), 1, futureChar, ft);
+  return (ReturnStatus) {.ret=ret, .result=(termPo) ft};
 }
 
 ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {

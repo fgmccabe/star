@@ -23,6 +23,7 @@
 #include "editline.h"
 #include "starP.h"
 #include "singleP.h"
+#include "futureP.h"
 #include "thunkP.h"
 
 #include "stringBufferP.h"
@@ -62,6 +63,7 @@ int main(int argc, char **argv) {
   initIdeal();
   initOption();
   initSingle();
+  initFuture();
   initClosure();
   initCell();
   initCode();

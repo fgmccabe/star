@@ -137,3 +137,17 @@ ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, te
     return (ReturnStatus) {.ret=ret, .result= eNOTFND};
   }
 }
+
+ReturnStatus g__globalIsSet(heapPo h, termPo a1) {
+  integer llen;
+  const char *lhs = strVal(a1, &llen);
+
+  integer len = llen + 1;
+  char buff[len];
+  uniMove(buff, len, lhs, llen);
+  buff[llen] = '\0';
+
+  globalPo global = globalVar(buff);
+
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) (global!=Null && glbIsSet(global) ? trueEnum : falseEnum)};
+}
