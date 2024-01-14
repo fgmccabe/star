@@ -39,11 +39,12 @@ extern void initLbls();
 void markLabels(gcSupportPo G);
 void showAllLabels();
 
-void showMtdCounts(ioPo out);
-
 methodPo labelCode(labelPo lbl);
 logical labelDefined(labelPo lbl);
 
 termPo declareEnum(const char *name, integer index, heapPo H);
+
+extern integer lblTableTop;
+extern LblRecord *labelTable;
 
 #endif //STAR_LABELSP_H

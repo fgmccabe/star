@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <threds.h>
 
-long initHeapSize = 4*1024 * 1024;   /* How much memory to give the heap */
+long initHeapSize = 4 * 1024 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
 logical traceMemory = False;      /* memory tracing */
@@ -24,8 +24,6 @@ void initHeap(long heapSize) {
     heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
     globalHeap = &heap;
-
-    gcTimer = newTimer("gc");
 
 #ifdef TRACEMEM
     if (traceMemory) {
@@ -66,7 +64,7 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
     h->curr = h->curr + amnt;
     t->clss = clss;
 #ifdef TRACEMEM
-    if(traceAllocs) {
+    if (traceAllocs) {
       numAllocated++;
       totalAllocated += amnt;
     }

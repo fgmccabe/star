@@ -7,7 +7,7 @@
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
-#include "timerTests.h"
+#include "timers.h"
 #include "quick.h"
 
 static EscapeRec escapes[256];

@@ -3,7 +3,7 @@
 
 #include <turm.h>
 #include "heap.h"
-#include "timerTests.h"
+#include "timers.h"
 
 // Are we allocating from the lower or upper half?
 typedef enum {

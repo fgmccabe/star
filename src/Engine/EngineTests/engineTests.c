@@ -3,6 +3,7 @@
 //
 
 #include "engineTests.h"
+#include "vectorTests.h"
 
 static retCode emptyTest() {
   return Ok;
@@ -10,6 +11,7 @@ static retCode emptyTest() {
 
 retCode all_tests() {
   tryRet(run_test(emptyTest));
+  tryRet(vector_tests());
   return Ok;
 }
 

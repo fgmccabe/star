@@ -12,7 +12,7 @@ set(HEADER_FILES
         ../Util/Headers/signals.h
         ../Engine/Headers/engineOptions.h
         Headers/streamDecode.h
-        Headers/streamDecodeP.h timers.c Headers/timerTests.h)
+        Headers/streamDecodeP.h timers.c Headers/timers.h)
 
 set(SOURCE_FILES ${HEADER_FILES} manifest.c
         pkg.c

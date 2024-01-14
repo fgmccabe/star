@@ -17,6 +17,7 @@
 #include "closureP.h"
 #include "formioP.h"
 #include "arithP.h"
+#include "bignumP.h"
 #include "charP.h"
 #include "stringsP.h"
 #include "debug.h"
@@ -25,6 +26,7 @@
 #include "singleP.h"
 #include "futureP.h"
 #include "thunkP.h"
+#include "vectP.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -54,12 +56,14 @@ int main(int argc, char **argv) {
   initStacks();
   initContinuations();
   initArith();
+  initBignum();
   initChars();
   initStrings();
   initLbls();
   initThunk();
   initGlobals();
   initCons();
+  initVect();
   initIdeal();
   initOption();
   initSingle();

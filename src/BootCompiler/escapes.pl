@@ -124,7 +124,7 @@ escapeType("_inbytes",funType(tplType([type("star.file*fileHandle"),type("star.c
 escapeType("_enqueue_read",funType(tplType([type("star.file*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*single",1),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))))).
 escapeType("_inchar",constrained(funType(tplType([type("star.file*fileHandle")]),type("star.core*char")),raises(type("star.core*errorCode")))).
 escapeType("_inchar_async",allType(kVar("q"),funType(tplType([type("star.file*fileHandle"),tpExp(tpFun("ref",1),tpExp(tpFun("star.core*cons",1),kVar("q")))]),tpExp(tpFun("star.core*future",2),type("star.core*char"))))).
-escapeType("_inbyte",funType(tplType([type("star.file*fileHandle")]),type("star.core*integer"))).
+escapeType("_inbyte",constrained(funType(tplType([type("star.file*fileHandle")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_inline",funType(tplType([type("star.file*fileHandle")]),type("star.core*string"))).
 escapeType("_inline_async",funType(tplType([type("star.file*fileHandle")]),tpExp(tpFun("star.core*single",1),type("star.core*string")))).
 escapeType("_intext",funType(tplType([type("star.file*fileHandle"),type("star.core*string")]),type("star.core*string"))).

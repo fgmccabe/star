@@ -17,7 +17,7 @@ set(TEST_SOURCE_FILES
         utilTests.c
         ../unitTests.c
         multiTest.c miscTest.c Headers/miscTest.h matchTests.c
-        timerTests.c)
+        timers.c)
 
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio m)

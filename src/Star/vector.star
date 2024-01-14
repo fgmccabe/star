@@ -151,10 +151,6 @@ star.vector{
     }
   }.
 
-  isSome:all x ~~ (option[x])=>boolean.
-  isSome(.some(_)) => .true.
-  isSome(.none) => .false.
-
   public isFullVect:all x ~~ (vect[x])=>boolean.
   isFullVect(.vector(_,V)) => isFull(V).
   

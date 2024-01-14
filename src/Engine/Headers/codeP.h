@@ -76,4 +76,6 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
 extern methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
           normalPo locals, normalPo lines);
+
+void showMtdCounts(ioPo out);
 #endif

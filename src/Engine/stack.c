@@ -94,7 +94,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
-  sze = (1 << lg2Ceiling(sze )) - 1; // Adjust stack size to be just under a power of two
+  sze = (1 << lg2Ceiling(sze)) - 1; // Adjust stack size to be just under a power of two
 
   int root = gcAddRoot(H, (ptrPo) &attachment);
 
@@ -357,7 +357,7 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   return outMsg(out, "(.stack %d:[%s] %T.)",
                 stk->hash,
                 stackStateName(stk->state),
-                stackState(stk) == moribund ? voidEnum : (termPo)(stk->fp->prog));
+                stackState(stk) == moribund ? voidEnum : (termPo) (stk->fp->prog));
 }
 
 void
@@ -587,5 +587,6 @@ void dumpStackStats(ioPo out) {
 #ifdef TRACESTACK
   outMsg(out, "%d stacks allocated\n", stackCount);
   outMsg(out, "%d stacks dropped\n", stackReleases);
+  outMsg(out, "%d stack extensions\n", stkGrow);
 #endif
 }
