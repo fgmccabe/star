@@ -3,7 +3,7 @@
 //
 
 #include "integer.h"
-#include "timerTests.h"
+#include "timers.h"
 #include "pool.h"
 #include <clock.h>
 #include <assert.h>

@@ -173,3 +173,31 @@ comparison sameProcess(void *a, void *b) {
   else
     return incomparible;
 }
+
+retCode markProcess(processPo P, gcSupportPo G) {
+#ifdef TRACEMEM
+  if (traceMemory)
+    outMsg(logFile, "Mark process %d\n%_", P->processNo);
+#endif
+  P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
+
+  return Ok;
+}
+
+void markProcesses(processPo owner, gcSupportPo G) {
+  if (owner != Null)
+    markProcess(owner, G);
+  else
+    processProcesses((procProc) markProcess, G);
+}
+
+void verifyProc(processPo P, heapPo H) {
+  verifyStack(P->stk, H);
+}
+
+void verifyProcesses(heapPo H) {
+  if (H->owner != Null)
+    verifyProc(H->owner, H);
+  else
+    processProcesses((procProc) verifyProc, H);
+}

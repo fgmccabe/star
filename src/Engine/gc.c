@@ -10,8 +10,7 @@
 
 #include <memory.h>
 #include <globalsP.h>
-#include <debug.h>
-#include "timerTests.h"
+#include "timers.h"
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
@@ -22,7 +21,6 @@ long gcGrow = 0;
 #define MAX_TABLE 2048
 #endif
 
-static retCode markProcess(processPo P, gcSupportPo G);
 static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
@@ -82,6 +80,10 @@ retCode gcCollect(heapPo H, long amount) {
 
   if (rT)
     pauseTimer(runTimer);
+
+  if(gcTimer==Null)
+    gcTimer = newTimer("gc");
+
   resumeTimer(gcTimer);
 
 #ifdef TRACEMEM
@@ -95,16 +97,12 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   gcCount++;
   if (traceMemory)
-    outMsg(logFile, "starting gc: %d (%ld instructions)\n%_", gcCount, pcCount);
+    outMsg(logFile, "starting gc: %d\n%_", gcCount);
 #endif
 
 #ifdef TRACEMEM
-  if (traceMemory) {
-    if (H->owner != Null)
-      verifyProc(H->owner, H);
-    else
-      processProcesses((procProc) verifyProc, H);
-  }
+  if (traceMemory)
+    verifyProcesses(H);
 #endif
 
   swapHeap(G, H);
@@ -114,11 +112,7 @@ retCode gcCollect(heapPo H, long amount) {
 
   markLabels(G);
   markGlobals(G);
-
-  if (H->owner != Null)
-    markProcess(H->owner, G);
-  else
-    processProcesses((procProc) markProcess, G);
+  markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
   if (traceMemory) {
@@ -139,12 +133,8 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
-  if (traceMemory) {
-    if (H->owner != Null)
-      verifyProc(H->owner, H);
-    else
-      processProcesses((procProc) verifyProc, H);
-  }
+  if (traceMemory)
+    verifyProcesses(H);
 #endif
 
   if (H->limit - H->curr <= amount + 100) {
@@ -169,7 +159,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
   pauseTimer(gcTimer);
-  if(rT)
+  if (rT)
     resumeTimer(runTimer);
   return Ok;
 }
@@ -264,26 +254,12 @@ termPo finalizeTerm(gcSupportPo G, termPo x) {
   }
 }
 
-static retCode markProcess(processPo P, gcSupportPo G) {
-#ifdef TRACEMEM
-  if (traceMemory)
-    outMsg(logFile, "Mark process %d\n%_", P->processNo);
-#endif
-  P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
-
-  return Ok;
-}
-
-void verifyProc(processPo P, heapPo H) {
-  verifyStack(P->stk, H);
-}
-
 void dumpGcStats(ioPo out) {
 #ifdef TRACEMEM
   if (traceAllocs)
     logMsg(out, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
   if (traceMemory)
-    logMsg(out, "%d gc collections, %d heap grows, %d stack extensions", gcCount, gcGrow, stkGrow);
+    logMsg(out, "%d gc collections, %d heap grows", gcCount, gcGrow);
 #endif
 }
 
@@ -313,12 +289,8 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   H->allocMode = lowerHalf;
 
 #ifdef TRACEMEM
-  if (traceMemory) {
-    if (H->owner != Null)
-      verifyProc(H->owner, H);
-    else
-      processProcesses((procProc) verifyProc, H);
-  }
+  if (traceMemory)
+    verifyProcesses(H);
 #endif
 
   for (int i = 0; i < H->topRoot; i++)    /* mark the external roots */
@@ -326,11 +298,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
 
   markLabels(G);
   markGlobals(G);
-
-  if (H->owner != Null)
-    markProcess(H->owner, G);
-  else
-    processProcesses((procProc) markProcess, G);
+  markProcesses(H->owner,G);
 
 #ifdef TRACEMEM
   if (traceMemory) {
@@ -343,12 +311,8 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory) {
-    if (H->owner != Null)
-      verifyProc(H->owner, H);
-    else
-      processProcesses((procProc) verifyProc, H);
-  }
+  if (traceMemory)
+    verifyProcesses(H);
 #endif
 
   free(oldHeap);

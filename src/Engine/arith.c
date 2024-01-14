@@ -5,8 +5,6 @@
 #include <math.h>
 #include "arithP.h"
 #include "assert.h"
-#include "bignumP.h"
-#include "heapP.h"
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
@@ -45,8 +43,6 @@ clssPo floatClass = (clssPo) &FloatClass;
 void initArith() {
   IntegerClass.clss = specialClass;
   FloatClass.clss = specialClass;
-
-  initBignum();
 }
 
 logical intCmp(specialClassPo cl, termPo t1, termPo t2) {

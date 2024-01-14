@@ -61,6 +61,9 @@ void displayProcesses(void);
 void displayProcess(processPo p);
 
 void verifyProc(processPo P, heapPo H);
+void verifyProcesses(heapPo H);
+retCode markProcess(processPo P, gcSupportPo G);
+void markProcesses(processPo owner, gcSupportPo G);
 
 #ifdef TRACEMEM
 extern long stkGrow;
@@ -70,6 +73,5 @@ extern long stkGrow;
 extern logical collectStats;
 extern integer insCounts[];
 #endif
-
 
 #endif //STAR_ENGINEP_H

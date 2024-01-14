@@ -8,6 +8,7 @@
 #include <assert.h>
 #include "consP.h"
 #include "ideal.h"
+#include "vectP.h"
 
 static termPo termFinalizer(specialClassPo class, termPo o);
 
@@ -107,6 +108,8 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
       return outMsg(out, ".%Q", labelName(lbl));
     } else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
+    else if (isVector(t))
+      return dispVect(out, t, precision, depth, alt);
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {

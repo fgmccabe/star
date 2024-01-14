@@ -5,7 +5,6 @@
 #include "labelsP.h"
 #include "codeP.h"
 #include "match.h"
-#include "quick.h"
 #include <stdlib.h>
 
 static hashPo labelHashTable;
@@ -33,8 +32,8 @@ SpecialClass LabelClass = {
 
 clssPo labelClass = (clssPo) &LabelClass;
 
-static LblRecord *labelTable;
-static integer lblTableTop = 0;
+LblRecord *labelTable;
+ integer lblTableTop = 0;
 
 static integer LabelHash(labelRecordPo lbl) {
   return hash61(lbl->arity * 37 + uniHash(lbl->name));
@@ -310,48 +309,3 @@ retCode showLabelBreakPoints(ioPo out) {
   return iterateLabels(showBkPt, out);
 }
 
-static retCode showMtdCount(labelPo lbl, void *cl) {
-  ioPo out = (ioPo) cl;
-  methodPo mtd = labelCode(lbl);
-  if (mtd != Null && callCount(mtd) > 0) {
-    return outMsg(out, "%L %ld\n", lbl, callCount(mtd));
-  } else
-    return Ok;
-}
-
-static comparison cmpCount(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-  methodPo mi = labelCode(&labelTable[indices[i]]);
-  methodPo mj = labelCode(&labelTable[indices[j]]);
-
-  integer iCount = (mi == Null ? 0 : callCount(mi));
-  integer jCount = (mj == Null ? 0 : callCount(mj));
-
-  if (iCount < jCount)
-    return smaller;
-  else if (iCount == jCount)
-    return same;
-  else
-    return bigger;
-}
-
-static retCode swapIndex(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-  integer w = indices[i];
-  indices[i] = indices[j];
-  indices[j] = w;
-  return Ok;
-}
-
-void showMtdCounts(ioPo out) {
-  outMsg(out, "sorted method counts\n");
-
-  integer indices[lblTableTop];
-  for (int ix = 0; ix < lblTableTop; ix++)
-    indices[ix] = ix;
-
-  quick(0, lblTableTop-1, cmpCount, swapIndex, (void *) indices);
-  for (integer ix = 0; ix < lblTableTop; ix++) {
-    showMtdCount(&labelTable[indices[ix]], out);
-  }
-}

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 4/16/23.
 //
 
-#ifndef STAR_TIMERTESTS_H
-#define STAR_TIMERTESTS_H
+#ifndef STAR_TIMERS_H
+#define STAR_TIMERS_H
 
 typedef struct timer_record *timerPo;
 
@@ -22,4 +22,4 @@ logical isTimerRunning(timerPo timer);
 void initTimers();
 void reportTimers();
 
-#endif //STAR_TIMERTESTS_H
+#endif //STAR_TIMERS_H

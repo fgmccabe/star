@@ -10,6 +10,7 @@
 #include "ideal.h"
 #include "labelsP.h"
 #include "globalsP.h"
+#include "vectP.h"
 
 termPo eINTRUPT;
 termPo eINVAL;
@@ -97,7 +98,6 @@ void initGlobals() {
 
   noValue = declareEnum("star.core#noValue", -1, globalHeap);
   hasValue = declareEnum("star.core#hasValue", -1, globalHeap);
-
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
 }
@@ -215,7 +215,7 @@ void markGlobals(gcSupportPo G) {
   nilEnum = markPtr(G, &nilEnum);
   noneEnum = markPtr(G, &noneEnum);
 
-  divZero = markPtr(G,&divZero);
+  divZero = markPtr(G, &divZero);
 
   noValue = markPtr(G, &noValue);
   hasValue = markPtr(G, &hasValue);
@@ -223,6 +223,7 @@ void markGlobals(gcSupportPo G) {
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 
   hNilEnum = markPtr(G, &hNilEnum);
+  scanVect(G);
 }
 
 retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
