@@ -124,14 +124,14 @@ star.compiler.escapes{
     "_ready_to_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
     "_ready_to_write" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
     "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
-    "_inbytes" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer")))).
+    "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
     "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inchar_async" => .some(.allType(.nomnal("q"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("ref",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("q")))])),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char"))))).
+    "_inchar_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("ref",1),.tpExp(.tpFun("star.core*cons",1),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char")))),.nomnal("star.core*errorCode")])),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char")))).
     "_inbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inline" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*string"))).
+    "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tpExp(.tpFun("star.core*single",1),.nomnal("star.core*string")))).
-    "_intext" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
+    "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).

@@ -15,6 +15,8 @@
 #include "single.h"
 #include "charP.h"
 #include "cell.h"
+#include "vect.h"
+#include "vectP.h"
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeFile(ioChannel(C_IO(a1))) == Ok)
@@ -161,6 +163,12 @@ ReturnStatus g__inbyte(heapPo h, termPo xc, termPo a1) {
   }
 }
 
+termPo makeByte(heapPo h, integer ix, void *cl) {
+  char *str = (char *) cl;
+  integer ch = (byte) str[ix];
+  return makeInteger(ch);
+}
+
 ReturnStatus g__inbytes(heapPo h, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer limit = integerVal(a2);
@@ -182,25 +190,16 @@ ReturnStatus g__inbytes(heapPo h, termPo a1, termPo a2) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    termPo lst = nilEnum;
-    int root = gcAddRoot(h, (ptrPo) &lst);
+    termPo vect = makeVector(h, length, makeByte, (void *) text);
 
-    for (integer ix = length - 1; ix >= 0; ix--) {
-      termPo b = makeInteger((byte) text[ix]);
-      lst = (termPo) allocateCons(h, b, lst);
-    }
-
-    closeFile(O_IO(buffer));
-    gcReleaseRoot(h, root);
-
-    return (ReturnStatus) {.ret=Ok, .result=lst};
+    return (ReturnStatus) {.ret=Ok, .result=vect};
   } else {
     closeFile(O_IO(buffer));
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+    return (ReturnStatus) {.ret=ret, .result=eIOERROR};
   }
 }
 
-ReturnStatus g__intext(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__intext(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer mlen;
   const char *match = strVal(a2, &mlen);
@@ -219,20 +218,27 @@ ReturnStatus g__intext(heapPo h, termPo a1, termPo a2) {
     }
   }
 
-  if (ret == Ok) {
-    integer length;
-    char *text = getTextFromBuffer(buffer, &length);
+  switch (ret) {
+    case Ok: {
+      integer length;
+      char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
-    closeFile(O_IO(buffer));
-    return rt;
-  } else {
-    closeFile(O_IO(buffer));
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
+      closeFile(O_IO(buffer));
+      return rt;
+    }
+    case Eof: {
+      closeFile(O_IO(buffer));
+      return (ReturnStatus) {.ret=Eof, .result=eofEnum};
+    }
+    default: {
+      closeFile(O_IO(buffer));
+      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    }
   }
 }
 
-ReturnStatus g__inline(heapPo h, termPo a1) {
+ReturnStatus g__inline(heapPo h, termPo xc, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
   const char *match = "\n\r";
   integer mlen = uniStrLen(match);
@@ -251,16 +257,23 @@ ReturnStatus g__inline(heapPo h, termPo a1) {
     }
   }
 
-  if (ret == Ok) {
-    integer length;
-    char *text = getTextFromBuffer(buffer, &length);
+  switch (ret) {
+    case Ok: {
+      integer length;
+      char *text = getTextFromBuffer(buffer, &length);
 
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
-    closeFile(O_IO(buffer));
-    return rt;
-  } else {
-    closeFile(O_IO(buffer));
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(h, text, length)};
+      closeFile(O_IO(buffer));
+      return rt;
+    }
+    case Eof: {
+      closeFile(O_IO(buffer));
+      return (ReturnStatus) {.ret=Eof, .result=eofEnum};
+    }
+    default: {
+      closeFile(O_IO(buffer));
+      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    }
   }
 }
 
