@@ -12,7 +12,7 @@
 #define optionType(T) "Uz1'star.core*option'" T
 #define singleType(T) "Uz1'star.core*single'" T
 #define futureType(F,E) "Uz2'star.core*future'" F E
-#define ERRCODE "t'star.core*errorCode"
+#define ERRCODE "t'star.core*errorCode'"
 
 /* Define the standard escapes */
 escape(_exit, "F(i)()", "terminate engine")
@@ -164,14 +164,14 @@ escape(_end_of_file, "F("fileType")l", "end of file test")
 escape(_ready_to_read, "F("fileType")l", "file ready test")
 escape(_ready_to_write, "F("fileType")l", "file ready test")
 escape(_inchars, "F("fileType"i)s", "read block string")
-escape(_inbytes,"F("fileType"i)Li","read block of bytes")
+escape(_inbytes,"|F("fileType"i)Vir"ERRCODE,"read block of bytes")
 escape(_enqueue_read,"F("fileType"i)"singleType("Li"),"start reading a block of bytes")
 escape(_inchar, "|F("fileType")cr"ERRCODE, "read single character")
-escape(_inchar_async, ":k'q'F("fileType"rLk'q')"futureType("c",ERRCODE), "read single character")
+escape(_inchar_async, "F("fileType"rL"futureType("c",ERRCODE)")"futureType("c",ERRCODE), "read single character")
 escape(_inbyte, "|F("fileType")ir"ERRCODE, "read single byte")
-escape(_inline, "F("fileType")s", "read a line")
+escape(_inline, "|F("fileType")sr"ERRCODE, "read a line")
 escape(_inline_async, "F("fileType")"singleType("s"), "async read of a line")
-escape(_intext, "F("fileType"s)s", "read until matching character")
+escape(_intext, "|F("fileType"s)sr"ERRCODE, "read until matching character")
 escape(_outchar, "|F("fileType"i)()r"ERRCODE, "write a single character")
 escape(_outbyte, "|F("fileType"i)()r"ERRCODE, "write a single byte")
 escape(_outbytes, "|F("fileType"Li)()r"ERRCODE, "write a list of bytes")

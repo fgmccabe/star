@@ -85,6 +85,7 @@
     "test.implies": "implies.star",
     "test.inc": "inc.star",
     "test.io0": "io0.star",
+    "test.io1": "io1.star",
     "test.j": "j.star",
     "test.js": "js.star",
     "test.l": "l.star",
