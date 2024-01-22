@@ -9,6 +9,7 @@
 #include <arithP.h>
 #include <errorCodes.h>
 #include <cons.h>
+#include "future.h"
 #include "ioops.h"
 #include "globals.h"
 #include "consP.h"
@@ -17,6 +18,8 @@
 #include "cell.h"
 #include "vect.h"
 #include "vectP.h"
+
+static termPo ioErrorCode(retCode ret);
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeFile(ioChannel(C_IO(a1))) == Ok)
@@ -102,20 +105,21 @@ ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
 }
 
 static retCode futureChar(ioPo f, void *cl) {
-  singlePo fut = C_SINGLE((termPo) cl);
+  futurePo fut = C_FUTURE((termPo) cl);
 
   codePoint cp;
   retCode ret = inChar(f, &cp);
 
   if (ret == Ok) {
-    return setSingle(fut, allocateCharacter(cp));
+    return resolveFuture(fut, allocateCharacter(cp));
   }
-  return ret;
+  else
+    return rejectFuture(fut, ioErrorCode(ret));
 }
 
 ReturnStatus g__inchar_async(heapPo h, termPo a1) {
   ioChnnlPo chnl = C_IO(a1);
-  singlePo ft = makeSingle(h);
+  futurePo ft = makeFuture(h,voidEnum);
 
   retCode ret = enqueueRead(ioChannel(chnl), 1, futureChar, ft);
   return (ReturnStatus) {.ret=ret, .result=(termPo) ft};
@@ -505,4 +509,17 @@ ReturnStatus g__flush(heapPo h, termPo xc, termPo a1) {
 ReturnStatus g__flushall(heapPo h, termPo a1) {
   flushOut();
   return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+}
+
+termPo ioErrorCode(retCode ret){
+  switch(ret){
+    case Ok:
+      return voidEnum;
+    case Error:
+      return eIOERROR;
+    case Eof:
+      return eofEnum;
+    default:
+      return eIOERROR;
+  }
 }

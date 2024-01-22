@@ -20,7 +20,6 @@ typedef struct future_record {
   clssPo clss;                  // == promiseClass
   integer hash;
   termPo val;
-  termPo queue;
   futureState state;
 } FutureRecord;
 

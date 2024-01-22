@@ -23,13 +23,6 @@ ReturnStatus g__resolveFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
   futurePo ft = C_FUTURE(a1);
   switch (resolveFuture(ft, a2)) {
     case Ok:{
-      int root = gcAddRoot(h, &a1);
-      cellPo cell = C_CELL(futureQueue(ft));
-      gcAddRoot(h, (ptrPo) &cell);
-
-      termPo pair = (termPo) allocateCons(h, a1, getCell(cell));
-      setCell(cell, pair);
-      gcReleaseRoot(h,root);
       return (ReturnStatus) {.ret=Ok, .result=unitEnum};
     }
     default:
@@ -41,13 +34,6 @@ ReturnStatus g__rejectFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
   futurePo ft = C_FUTURE(a1);
   switch (rejectFuture(ft, a2)) {
     case Ok: {
-      int root = gcAddRoot(h, &a1);
-      cellPo cell = C_CELL(futureQueue(ft));
-      gcAddRoot(h, (ptrPo) &cell);
-
-      termPo pair = (termPo)allocateCons(h, a1, getCell(cell));
-      setCell(cell, pair);
-      gcReleaseRoot(h,root);
       return (ReturnStatus) {.ret=Ok, .result=unitEnum};
     }
     default:

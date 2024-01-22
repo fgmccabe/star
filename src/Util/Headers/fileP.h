@@ -44,6 +44,7 @@ typedef struct file_part_ {
   byte in_line[MAXLINE + 32];           // The input buffer */
   int16 in_pos;
   int16 in_len;
+  integer file_pos;                     // Where are we in reading the file
 
   long bufferPos;                       // Mark at beginning of this buffer
 
@@ -74,7 +75,7 @@ logical fileInReady(filePo f);
 logical fileOutReady(filePo f);
 
 retCode fileFlusher(ioPo f, long count);
-retCode flSeek(filePo f, integer count);
+retCode flSeek(filePo f, integer pos);
 retCode fileClose(ioPo f);
 retCode refillBuffer(filePo f);
 retCode fileFill(filePo f);

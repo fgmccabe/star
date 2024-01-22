@@ -283,10 +283,9 @@ logical fileOutReady(filePo io) {
   }
 }
 
-void ioSignalHandler(int signal, siginfo_t *si, void *cl) {
-  filePo f = O_FILE(cl);
-
+void ioSignalHandler(int signal, siginfo_t *si, void *) {
   if (si->si_code == SI_ASYNCIO) {
+    filePo f = O_FILE(si->si_value.sival_ptr);
     logMsg(logFile, "I/O Completion signal received for %s\n", fileName(O_IO(f)));
     if (f->file.completionSignaler != Null) {
       f->file.completionSignaler(O_IO(f), f->file.ioReadClientData);
@@ -299,15 +298,17 @@ retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *c
 
   if (f->file.ioReadClientData != Null)
     return Error;         // Already trying to read from this file
-  else if (f->file.in_pos + count > f->file.in_len)
+  else if (f->file.in_pos + count > (size_t) MAXLINE)
     return Space;
+//  fileConfigure(f, enableAsynch);
   f->file.ioReadClientData = cl;
   f->file.completionSignaler = signaler;
   memset(&f->file.aio, 0, sizeof(struct aiocb));
   f->file.aio.aio_fildes = f->file.fno;
   f->file.aio.aio_nbytes = count;
+  f->file.aio.aio_buf = &f->file.in_line[f->file.in_pos];
   f->file.aio.aio_reqprio = 0;
-  f->file.aio.aio_offset = 0;
+  f->file.aio.aio_offset = f->file.file_pos;
   f->file.aio.aio_sigevent.sigev_notify = SIGEV_SIGNAL;
   f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
   f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
@@ -318,7 +319,7 @@ retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *c
   return Ok;
 }
 
-integer enqueuedCount(ioPo io){
+integer enqueuedCount(ioPo io) {
   filePo f = O_FILE(io);
   return f->file.aio.aio_nbytes;
 }
@@ -333,23 +334,24 @@ retCode fileFlusher(ioPo io, long count) {
   return fileFlush(f, count);
 }
 
-retCode flSeek(filePo f, integer count) {
+retCode flSeek(filePo f, integer pos) {
   ioPo io = O_IO(f);
   flushFile(io);
 
-  if (lseek(f->file.fno, count, SEEK_SET) == -1)
+  if (lseek(f->file.fno, pos, SEEK_SET) == -1)
     return ioErrorMsg(io, "problem %s (%d) in positioning %s", strerror(errno), errno,
                       fileName(O_IO(f)));
   else {
     f->file.in_pos = f->file.out_pos = 0;
     f->file.in_len = 0;                 // ensure that we will be refilling
+    f->file.file_pos = pos;
 
     if (isReadingFile(io)) {
-      f->io.inCpos = count;
-      f->io.inBpos = count;
+      f->io.inCpos = pos;
+      f->io.inBpos = pos;
     }
     if (isWritingFile(io)) {
-      f->io.outBpos = count;
+      f->io.outBpos = pos;
     }
     f->io.status = Ok;
     return Ok;
@@ -449,6 +451,7 @@ retCode fileFill(filePo f) {
       f->file.in_pos = 0;
       f->file.in_len = (int16) len;
       f->file.bufferPos = f->io.inBpos;
+      f->file.file_pos+=len;
 
       if (len == 0) {
         return f->io.status = Eof;

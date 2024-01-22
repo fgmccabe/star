@@ -441,6 +441,8 @@ star.compiler.types{
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
+  public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
+  public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
 
   public funTypeArg:(tipe) => option[tipe].
   funTypeArg(Tp) => let{.
@@ -536,6 +538,7 @@ star.compiler.types{
   public boolType = .nomnal("star.core*boolean").
   public contType(T) => continType(T,unitTp).
   public thunkType(T) => makeTpExp("thunk",[T]).
+  public ioType = .nomnal("ioHandle").
 
   public isThunkType(Tp) =>
     (.tpExp(Op,E) .= deRef(Tp) && .tpFun("thunk",1).=deRef(Op) ?? .some(E) || .none).

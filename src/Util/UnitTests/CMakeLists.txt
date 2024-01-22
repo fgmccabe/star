@@ -22,5 +22,8 @@ set(TEST_SOURCE_FILES
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio m)
 
+add_executable(aioTest
+        aioTest.c)
+
 #add_custom_target(testUtils ALL DEPENDS utilTest
 #        COMMAND utilTest)

@@ -90,12 +90,13 @@ star.compiler.escapes{
     "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t"))))).
     "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t")))).
     "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
-    "_single" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tpExp(.tpFun("star.core*single",1),.nomnal("t"))))).
-    "_singleIsSet" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean")))).
-    "_singleVal" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t"))])),.nomnal("star.core*boolean"))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_singleSet" => .some(.constrainedType(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*single",1),.nomnal("t")),.nomnal("t")])),.tupleType([]))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_futureIsResolved" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*future",2),.nomnal("f")),.nomnal("e")])),.nomnal("star.core*boolean"))))).
-    "_futureIsRejected" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*future",2),.nomnal("f")),.nomnal("e")])),.nomnal("star.core*boolean"))))).
+    "_single" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tpExp(.tpFun("single",1),.nomnal("t"))))).
+    "_singleIsSet" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t"))])),.nomnal("star.core*boolean")))).
+    "_singleVal" => .some(.allType(.nomnal("t"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t"))])),.nomnal("star.core*boolean")),.raisEs(.nomnal("star.core*errorCode"))))).
+    "_singleSet" => .some(.allType(.nomnal("t"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t")),.nomnal("t")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode"))))).
+    "_futureIsResolved" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
+    "_futureIsRejected" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
+    "_futureVal" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("f")),.raisEs(.nomnal("e")))))).
     "_tuple_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer")])),.nomnal("e"))))).
     "_tuple_set_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer"),.nomnal("e")])),.nomnal("t"))))).
     "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string"))).
@@ -114,34 +115,34 @@ star.compiler.escapes{
     "_file_size" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
     "_file_modified" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
     "_file_date" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_openInFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_openOutFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_openAppendFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_openAppendIOFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_popen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.file*fileHandle"),.nomnal("star.file*fileHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_close" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_end_of_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
-    "_ready_to_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
-    "_ready_to_write" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*boolean"))).
-    "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
-    "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
-    "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inchar_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("ref",1),.tpExp(.tpFun("star.core*cons",1),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char")))),.nomnal("star.core*errorCode")])),.tpExp(.tpFun("star.core*future",2),.nomnal("star.core*char")))).
-    "_inbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tpExp(.tpFun("star.core*single",1),.nomnal("star.core*string")))).
-    "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_outbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_outtext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_stdfile" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle"))).
-    "_fposition" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.nomnal("star.core*integer"))).
-    "_fseek" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_flush" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_openInFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("ioHandle")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_openOutFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("ioHandle")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_openAppendFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("ioHandle")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_openAppendIOFile" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.nomnal("ioHandle")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_popen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle"),.nomnal("ioHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_close" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_end_of_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
+    "_ready_to_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
+    "_ready_to_write" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
+    "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
+    "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
+    "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inchar_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*char")),.nomnal("star.core*errorCode")))).
+    "_inbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpFun("single",1),.nomnal("star.core*string")))).
+    "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outtext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_stdfile" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("ioHandle"))).
+    "_fposition" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*integer"))).
+    "_fseek" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_flush" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_flushall" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([]))).
-    "_setfileencoding" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.core*integer")])),.tupleType([]))).
+    "_setfileencoding" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([]))).
     "_get_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_put_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tupleType([]))).
     "_show" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([]))).
@@ -151,9 +152,9 @@ star.compiler.escapes{
     "_locate_in_manifest" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_logmsg" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([]))).
     "_display_depth" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*integer"))).
-    "_connect" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.file*fileHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_listen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("star.file*fileHandle")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_accept" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.file*fileHandle")])),.tupleType([.nomnal("star.file*fileHandle"),.nomnal("star.file*fileHandle"),.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*string")])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_connect" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_listen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("ioHandle")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_accept" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle"),.nomnal("star.core*string"),.nomnal("star.core*integer"),.nomnal("star.core*string")])),.raisEs(.nomnal("star.core*errorCode")))).
     "_hosttoip" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")))).
     "_iptohost" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_delay" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
@@ -347,6 +348,7 @@ star.compiler.escapes{
     "_singleSet" => .true.
     "_futureIsResolved" => .true.
     "_futureIsRejected" => .true.
+    "_futureVal" => .true.
     "_tuple_nth" => .true.
     "_tuple_set_nth" => .true.
     "_cwd" => .true.

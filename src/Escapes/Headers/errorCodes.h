@@ -7,6 +7,7 @@
 
 #include "term.h"
 
+extern termPo eOk;
 extern termPo eINTRUPT;
 extern termPo eINVAL;
 extern termPo eRANGE;

@@ -12,6 +12,7 @@
 #include "globalsP.h"
 #include "vectP.h"
 
+termPo eOk;
 termPo eINTRUPT;
 termPo eINVAL;
 termPo eRANGE;
@@ -73,6 +74,7 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
+  eOk = declareEnum("star.core#Ok", -1, globalHeap);
   eINTRUPT = declareEnum("star.core#eINTRUPT", -1, globalHeap);
   eNOTDIR = declareEnum("star.core#eNOTDIR", -1, globalHeap);
   eNOFILE = declareEnum("star.core#eNOFILE", -1, globalHeap);
@@ -194,6 +196,7 @@ void markGlobals(gcSupportPo G) {
   for (int32 ix = 0; ix < numGlbVars; ix++)
     markGlobal(&glbVars[ix], G);
 
+  eOk = markPtr(G, &eOk);
   eINTRUPT = markPtr(G, &eINTRUPT);
   eNOTDIR = markPtr(G, &eNOTDIR);
   eNOFILE = markPtr(G, &eNOFILE);

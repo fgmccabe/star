@@ -206,5 +206,15 @@ star.compiler.dict{
 			.allRule(.nomnal("e"),
 			  .typeExists(makeTpExp("star.core*fiber",
 			      [.nomnal("a"),.nomnal("e")]),emptyFace))),
-		      emptyDict))))))))).
+		      declareType("ioHandle",.none,ioType,
+			.typeExists(ioType,emptyFace),
+			declareType("single",.none,.tpFun("single",1),
+			  .allRule(.nomnal("e"),
+			    .typeExists(singleType(.nomnal("e")),emptyFace)),
+			  declareType("future",.none,.tpFun("future",2),
+			    .allRule(.nomnal("v"),
+			      .allRule(.nomnal("e"),
+				.typeExists(futureType(.nomnal("v"),.nomnal("e")),
+				  emptyFace))),
+			    emptyDict)))))))))))).
 }
