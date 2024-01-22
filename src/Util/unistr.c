@@ -287,7 +287,7 @@ retCode uniCpy(char *dest, integer len, const char *src) {
   int pos = 0;
   char *s = (char *) src;
 
-  while (pos < len - 1 && *src != 0)
+  while (pos < len - 1 && *s != '\0')
     dest[pos++] = *s++;
   dest[pos] = 0;
   return pos < len ? Ok : Eof;
@@ -298,7 +298,7 @@ retCode uniNCpy(char *dest, integer len, const char *src, integer sLen) {
   integer max = (sLen < len - 1 ? sLen : len - 1);
   char *s = (char *) src;
 
-  while (pos < max && *src != 0)
+  while (pos < max && *s != '\0')
     dest[pos++] = *s++;
   dest[pos] = 0;
   return pos < len ? Ok : Eof;
