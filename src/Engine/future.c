@@ -38,13 +38,10 @@ futurePo C_FUTURE(termPo t) {
 
 static integer prHash = 0;
 
-futurePo makeFuture(heapPo H, termPo vl, termPo queue) {
+futurePo makeFuture(heapPo H, termPo vl) {
   futurePo pr = (futurePo) allocateObject(H, futureClass, FutureCellCount);
   pr->val = vl;
-  pr->queue = queue;
   pr->state = notResolved;
-
-  assert(isCell(queue));
 
   pr->hash = hash61(prHash++);
   return pr;
@@ -65,7 +62,6 @@ termPo futureScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o)
   futurePo ft = C_FUTURE(o);
 
   helper(&ft->val, c);
-  helper(&ft->queue, c);
   return (termPo) (o + FutureCellCount);
 }
 
@@ -73,7 +69,6 @@ termPo futureFinalizer(specialClassPo class, termPo o) {
   futurePo ft = C_FUTURE(o);
 
   ft->val = voidEnum;
-  ft->queue = voidEnum;
 
   return (termPo) (o + FutureCellCount);
 }
@@ -100,7 +95,7 @@ static char *stateName(futureState st) {
 
 static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   futurePo ft = C_FUTURE(t);
-  return outMsg(out, "<<future:0x% %s>>", ft->hash, stateName(ft->state));
+  return outMsg(out, "<<future:0x%x%s>>", ft->hash, stateName(ft->state));
 }
 
 logical futureIsResolved(futurePo t) {
@@ -135,8 +130,4 @@ retCode rejectFuture(futurePo p, termPo ex) {
 
 termPo futureValue(futurePo p) {
   return p->val;
-}
-
-termPo futureQueue(futurePo p) {
-  return p->queue;
 }

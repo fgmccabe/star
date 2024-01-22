@@ -14,7 +14,7 @@ extern clssPo futureClass;
 
 extern futurePo C_FUTURE(termPo t);
 
-futurePo makeFuture(heapPo H, termPo vl, termPo queue);
+futurePo makeFuture(heapPo H, termPo vl);
 
 logical futureIsResolved(futurePo t);
 logical futureIsAccepted(futurePo t);
@@ -24,6 +24,5 @@ retCode resolveFuture(futurePo p, termPo vl);
 retCode rejectFuture(futurePo p, termPo ex);
 
 termPo futureValue(futurePo p);
-termPo futureQueue(futurePo p);
 
 #endif //STAR_FUTURE_H

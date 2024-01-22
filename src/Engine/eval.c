@@ -275,6 +275,9 @@ retCode run(processPo P) {
             bail();
           case Switch:
             continue;
+          case Space:
+            logMsg(logFile,"space exhausted");
+            bail();
           default:
             continue;
         }

@@ -1,6 +1,5 @@
 star.mbox{
   import star.
-  import star.promise.
 
   public all e ~~ task[e] ~> resumeProtocol=>>suspendProtocol[e].
 
@@ -66,7 +65,7 @@ star.mbox{
   .blocked(()=>boolean) |
   .result(e) |
   .fork(taskFun[e]) |
-  .requestIO((exists d ~~ ()=>promise[e])) |
+  .requestIO(()=>boolean) |
   .identify(task[e]) |
   .retired_.
 
@@ -118,6 +117,9 @@ star.mbox{
 	    }
 	    | .blocked(P) => {
 	      BlockQ := [(P,T),..BlockQ!]
+	    }
+	    | .requestIO(Rdy) => {
+	      BlockQ := [(Rdy,T),..BlockQ!];
 	    }
 	  }
 	};

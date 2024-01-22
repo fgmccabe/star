@@ -2,65 +2,42 @@ test.io1{
   import star.
   import star.assert.
   import star.io.
+  import star.mbox.
 
-  all t ~~ ioFuture[t] ::= .ft(ref option[t]).
-
-  ioEvt ::=
-    exists e ~~ ioEvt{
-      ee ~> e.
-      set:(e)=>().
-      get:()=>option[e].
-    }
-
-
-
-  xx = open xc{
-    get(.false) => 0.
-    get(_) default => 1.
-
-    test = .true.
-
-    check(0)=>.false.
-    check(_) default => .true.
-
-    ee ~> integer.
-  }
-
-  all t ~~ index[t] ::= exists e 
-
-  yy : xx.ee.
-  yy = xx.get(.false).
-
-  main:()=>().
-  main()=>valof{
-    assert xx.test;
-
-    assert yy==0; -- should report a syntax error
-
-    assert ~ xx.check(yy);
-    
-    valis ()
-  }
-
-  
-
-  pak ::= exists x ~~ pak{
-    ready:()=>boolean.
-    store:(x)=>().
-    pick:()=>x
+  readAll:(task[()],ioHandle) => ().
+  readAll(this,IO) => valof{
+    try{
+      while Ch.=rdCharAsync(IO) do{
+	logMsg("char: $(Ch)");
+      }
+    } catch ioException in {
+      .badIo => logMsg("bad io")
+      | .pastEof => logMsg("all done")
+    };
+    this retire .result(())
   }
 
   _main:(cons[string])=>().
   _main([Fl,.._]) => main(Fl).
-  _main([]) => main("io0.star").
+  _main([]) => main("io1.star").
 
   main:(string)=>().
   main(Fl) => valof{
     try{
       In = _openInFile(Fl,3);
-      while Ch.=_inchar(In) do{
-	logMsg("char: $(Ch)");
-      }
+
+      try{
+	Rd = (Tsk) => valof{
+	  readAll(Tsk,In);
+	  Tsk retire .retired_
+	};
+	  
+	Eras = nursery([Rd]);
+	logMsg("reader done");
+      } catch mboxException in {
+	.deadlock => logMsg("Reader got deadlocked")
+      };
+      valis ()
     } catch errorCode in {
       | .eof => logMsg("end of file")
       | Cde => logMsg("error code $(Cde)")
