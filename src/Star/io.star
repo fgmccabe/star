@@ -5,6 +5,16 @@ star.io{
 
   public ioException ::= .badIo | .pastEof.
 
+  public rdChar:raises ioException |: (ioHandle) => char.
+  rdChar(H) => valof{
+    try{
+      valis _inchar(H)
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .badIo
+    }
+  }
+
   public rdCharAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle)=> char.
   rdCharAsync(IO) => valof{
     Fut = _inchar_async(IO);
