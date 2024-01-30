@@ -24,7 +24,7 @@ typedef struct {
 
 typedef struct _vector_class_ {
   ObjectClassRec objectPart;
-  VectorClassPart pairPart;
+  VectorClassPart vectorPart;
 } VectorClassRec;
 
 extern VectorClassRec VectorClass;

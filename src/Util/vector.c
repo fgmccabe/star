@@ -4,7 +4,6 @@
 // Vector structures
 
 #include "vectorP.h"
-#include "utils.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -17,7 +16,7 @@ static void vectorInit(objectPo o, va_list *args);
 static void vectorDestroy(objectPo o);
 
 VectorClassRec VectorClass = {
-  {
+  .objectPart = {
     (classPo) &ObjectClass,
     "vector",
     O_INHERIT_DEF,
@@ -33,7 +32,7 @@ VectorClassRec VectorClass = {
     PTHREAD_ONCE_INIT,                      /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
-  {}
+  .vectorPart = {}
 };
 
 classPo vectorClass = (classPo) &VectorClass;
