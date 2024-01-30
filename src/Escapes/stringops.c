@@ -38,7 +38,7 @@ ReturnStatus g__chr_quote(heapPo h, termPo a1) {
 
   ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(strb, h)};
 
-  closeFile(O_IO(strb));
+  closeIo(O_IO(strb));
   return result;
 }
 
@@ -72,7 +72,7 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
     }
 
     ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(strb, h)};
-    closeFile(O_IO(strb));
+    closeIo(O_IO(strb));
     return result;
   } else {
     ReturnStatus result = {.ret=Error, .result=eINVAL};
@@ -213,7 +213,7 @@ ReturnStatus g__stringOf(heapPo h, termPo a1, termPo a2) {
   ReturnStatus result = {.ret=ret,
     .result=(termPo) allocateString(h, buff, oLen)};
 
-  closeFile(O_IO(strb));
+  closeIo(O_IO(strb));
   return result;
 }
 
@@ -227,7 +227,7 @@ ReturnStatus g__str_quote(heapPo h, termPo a1) {
   ReturnStatus result = {.ret=ret,
     .result=(termPo) allocateString(h, buff, oLen)};
 
-  closeFile(O_IO(strb));
+  closeIo(O_IO(strb));
   return result;
 }
 
@@ -342,7 +342,7 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
   ReturnStatus result = {.ret=Ok,
     .result= allocateFromStrBuffer(strb, h)};
 
-  closeFile(O_IO(strb));
+  closeIo(O_IO(strb));
   return result;
 }
 
@@ -637,7 +637,7 @@ ReturnStatus g__str_multicat(heapPo h, termPo t) {
 
   ReturnStatus rt = {.ret=ret,
     .result=(termPo) allocateString(h, buff, oLen)};
-  closeFile(O_IO(strb));
+  closeIo(O_IO(strb));
   return rt;
 }
 

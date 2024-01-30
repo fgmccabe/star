@@ -23,7 +23,7 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
       if (ret == Ok) {
         strBufferPo replBuffer = newReadStringBuffer(repl, (long) uniStrLen(repl));
         ret = processTemplate(out, O_IO(replBuffer), vars, defltPrc, cl);
-        closeFile(O_IO(replBuffer));
+        closeIo(O_IO(replBuffer));
       }
     } else if(isLookingAt(plate,"\\#")==Ok){
       ret = outStr(out,"#");
@@ -36,7 +36,7 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
     }
   }
 
-  closeFile(O_IO(str));
+  closeIo(O_IO(str));
   return ret;
 }
 

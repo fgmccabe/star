@@ -634,7 +634,7 @@ static void starEscapeTypes(FILE *out) {
   fprintf(out, "    _ default => .none.\n");
   fprintf(out, "  }\n");
 
-  closeFile(O_IO(buffer));
+  closeIo(O_IO(buffer));
 }
 
 #undef escape
@@ -656,7 +656,7 @@ static void prologIsEscape(FILE *out) {
 
 #include "escapes.h"
 
-  closeFile(O_IO(buffer));
+  closeIo(O_IO(buffer));
 }
 
 #undef escape
@@ -684,7 +684,7 @@ static void starIsEscape(FILE *out) {
   fprintf(out, "    _ default => .false.\n");
   fprintf(out, "  }\n");
 
-  closeFile(O_IO(buffer));
+  closeIo(O_IO(buffer));
 }
 
 #undef escape
@@ -708,5 +708,5 @@ static void prologEscapeTypes(FILE *out) {
 
 #include "escapes.h"
 
-  closeFile(O_IO(buffer));
+  closeIo(O_IO(buffer));
 }

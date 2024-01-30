@@ -263,7 +263,8 @@ retCode endManifest(void *cl) {
   if (traceManifest >= detailedTracing) {
     logMsg(logFile, "Ending parse of manifest");
     dispManifest(logFile);
-    flushFile(logFile);
+    if (isAFile(O_OBJECT(logFile)))
+      flushFile(O_FILE(logFile));
   }
   return Ok;
 }
@@ -673,7 +674,7 @@ retCode flushManifest() {
     retCode ret = encodeManifest(outFile);
 
     if (ret == Ok)
-      ret = closeFile(outFile);
+      ret = closeIo(outFile);
     return ret;
   } else
     return Fail;

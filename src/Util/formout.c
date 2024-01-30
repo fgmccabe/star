@@ -869,7 +869,7 @@ char *strMsg(char *buffer, long len, char *fmt, ...) {
   va_end(args);
   outByte(O_IO(f), 0);                /* Terminate the string */
 
-  closeFile(O_IO(f));
+  closeIo(O_IO(f));
   return buffer;
 }
 

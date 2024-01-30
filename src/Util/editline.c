@@ -497,8 +497,8 @@ retCode initHistory(char *filename) {
             addLineToHistory(lineBuffer);
         }
       }
-      closeFile(historyFile);
-      closeFile(O_IO(lineBuffer));
+      closeIo(historyFile);
+      closeIo(O_IO(lineBuffer));
       return ret;
     }
   }
@@ -514,7 +514,7 @@ void saveHistory() {
       outMsg(historyFile, "%U\n", line);
     }
 
-    closeFile(historyFile);
+    closeIo(historyFile);
     decReference(O_OBJECT(history));
   }
 }

@@ -69,7 +69,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           ret = Error;
 
         if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
-          closeFile(O_IO(sigBuffer));
+          closeIo(O_IO(sigBuffer));
           strMsg(errorMsg, msgSize, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
           return Error;
         }
@@ -88,10 +88,10 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
             ret = loadDefs(O_IO(sigBuffer), globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
                            msgSize);
         }
-        closeFile(O_IO(sigBuffer));
+        closeIo(O_IO(sigBuffer));
       }
 
-      closeFile(file);
+      closeIo(file);
 
       if (ret != Ok)
         logMsg(logFile, "problem in loading %P: %s", pkg, errorMsg);
@@ -156,8 +156,8 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
 #endif
   }
 
-  closeFile(O_IO(inBuff));
-  closeFile(O_IO(sigBuffer));
+  closeIo(O_IO(inBuff));
+  closeIo(O_IO(sigBuffer));
 
 #ifdef TRACEPKG
   if (tracePkg >= generalTracing)
@@ -230,8 +230,8 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
     outByte(O_IO(pkgB), 0);
     outByte(O_IO(vrB), 0);
 
-    closeFile(O_IO(pkgB));
-    closeFile(O_IO(vrB));
+    closeIo(O_IO(pkgB));
+    closeIo(O_IO(vrB));
     return ret;
   } else {
     strMsg(errorMsg, msgLen, "invalid package name encoding");
@@ -568,7 +568,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             }
           }
         }
-        closeFile(O_IO(tmpBuffer));
+        closeIo(O_IO(tmpBuffer));
         gcReleaseRoot(H, root);
       }
       free((void *) ins);
@@ -654,7 +654,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
             }
           }
         }
-        closeFile(O_IO(tmpBuffer));
+        closeIo(O_IO(tmpBuffer));
         gcReleaseRoot(H, root);
       }
       free((void *) ins);

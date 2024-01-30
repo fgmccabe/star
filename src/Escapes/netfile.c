@@ -58,8 +58,8 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
         char *peerI = peerIP(O_SOCK(inC), &port, &pBuff[0], NumberOf(pBuff));
 
         if (peerN == NULL || peerI == NULL) {
-          closeFile(inC);
-          closeFile(outC);
+          closeIo(inC);
+          closeIo(outC);
           return (ReturnStatus) {.ret=Error, .result=eNOTFND};
         }
 

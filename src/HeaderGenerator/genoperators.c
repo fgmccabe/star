@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
     processTemplate(out, plate, vars, NULL, NULL);
 
     flushOut();
-    closeFile(out);
+    closeIo(out);
     exit(0);
   }
 }

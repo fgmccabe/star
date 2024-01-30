@@ -198,7 +198,7 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
       integer lineLen;
       const char *line = getTextFromBuffer(lineBf, &lineLen);
       envp[ix] = strndup(line, (size_t) lineLen);
-      closeFile(O_IO(lineBf));
+      closeIo(O_IO(lineBf));
     }
 
     envp[envCnt] = NULL;
@@ -296,7 +296,7 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
       const char *line = getTextFromBuffer(lineBf, &lineLen);
       envp[ix] = strndup(line, (size_t) lineLen);
     }
-    closeFile(O_IO(lineBf));
+    closeIo(O_IO(lineBf));
 
     envp[envCnt] = NULL;
 
