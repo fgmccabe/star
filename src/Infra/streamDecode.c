@@ -95,7 +95,7 @@ retCode decodeString(ioPo in, char *buffer, integer buffLen) {
     retCode ret = decodeText(in, b);
     if (ret == Ok)
       ret = outByte(O_IO(b), 0);
-    closeFile(O_IO(b));
+    closeIo(O_IO(b));
     return ret;
   } else
     return Fail;
@@ -106,7 +106,7 @@ retCode decodeName(ioPo in, char *buffer, integer buffLen, integer *length) {
     strBufferPo b = fixedStringBuffer(buffer, buffLen);
     retCode ret = decodeText(in, b);
     *length = strBufferLength(b);
-    closeFile(O_IO(b));
+    closeIo(O_IO(b));
     return ret;
   } else
     return Fail;
@@ -122,7 +122,7 @@ retCode decFlt(ioPo in, double *dx) {
     *dx = parseNumber(s, len);
   }
 
-  closeFile(O_IO(tmpBuffer));
+  closeIo(O_IO(tmpBuffer));
   return ret;
 }
 
@@ -138,7 +138,7 @@ retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, int
   if (ret == Ok)
     cb->endDecoding(cl);
 
-  closeFile(O_IO(strBuffer));
+  closeIo(O_IO(strBuffer));
   return ret;
 }
 
@@ -523,14 +523,14 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
       strBufferPo pkgB = fixedStringBuffer(nm, nmLen);
       ret = decodeText(O_IO(in), pkgB);
       outByte(O_IO(pkgB), 0);
-      closeFile(O_IO(pkgB));
+      closeIo(O_IO(pkgB));
       return ret;
     }
   } else if (isLookingAt(in, "e") == Ok) {
     strBufferPo pkgB = fixedStringBuffer(nm, nmLen);
     retCode ret = decodeText(O_IO(in), pkgB);
     outByte(O_IO(pkgB), 0);
-    closeFile(O_IO(pkgB));
+    closeIo(O_IO(pkgB));
     *arity = 0;
     return ret;
   } else {

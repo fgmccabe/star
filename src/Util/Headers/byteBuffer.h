@@ -10,7 +10,7 @@
 
 /*
   Byte Buffer (private header)
-  Copyright (c) 2016, 2017, 2020. Francis G. McCabe
+  Copyright (c) 2016, 2017, 2020 and beyond. Francis G. McCabe
 */
 
 #include "object.h"

@@ -160,11 +160,11 @@ ReturnStatus g__formattime(heapPo h, termPo xc, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     termPo result = allocateFromStrBuffer(buff, h);
-    closeFile(O_IO(buff));
+    closeIo(O_IO(buff));
 
     return (ReturnStatus) {.ret=Ok, .result=result};
   } else {
-    closeFile(O_IO(buff));
+    closeIo(O_IO(buff));
     return (ReturnStatus) {.ret=Error, .result=eINVAL};
   }
 }

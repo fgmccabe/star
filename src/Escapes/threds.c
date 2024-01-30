@@ -127,7 +127,7 @@ ReturnStatus g__stackTrace(heapPo h) {
   stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showPrognames);
 
   ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(str, h)};
-  closeFile(O_IO(str));
+  closeIo(O_IO(str));
 
   return rt;
 }

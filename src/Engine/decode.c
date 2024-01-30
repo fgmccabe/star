@@ -86,8 +86,8 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
 
                       res = decode(O_IO(buffer), &support, H, tgt, tmpBuffer);
 
-                      closeFile(O_IO(buffer));
-                      closeFile(O_IO(tmpBuffer));
+                      closeIo(O_IO(buffer));
+                      closeIo(O_IO(tmpBuffer));
                     }
 
                     if (objectHasClass(O_OBJECT(in), fileClass)) {

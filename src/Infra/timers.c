@@ -63,10 +63,10 @@ void reportTimers() {
 
   for (timerPo tmr = timers; tmr != Null; tmr = tmr->prev) {
     if (tmr->total > 0) {
-      outMsg(logFile, "Timer %s: %ld %g\n", tmr->name, tmr->total, ((double) tmr->total / total) * 100.0);
+      outMsg(O_IO(logFile), "Timer %s: %ld %g\n", tmr->name, tmr->total, ((double) tmr->total / total) * 100.0);
     }
   }
 
   if (total > 0)
-    outMsg(logFile, "Total time: %ld\n", total);
+    outMsg(O_IO(logFile), "Total time: %ld\n", total);
 }
