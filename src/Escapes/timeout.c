@@ -6,21 +6,29 @@
 
 #include "ooio.h"
 #include "engine.h"
-#include "single.h"
+#include "future.h"
 #include "arith.h"
 #include "timer.h"
 #include "globals.h"
 
 static void reportTimeout(void *cl);
+static retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2);
 
 ReturnStatus g__settimeout(heapPo h, termPo a1, termPo a2) {
   double delta = floatVal(a1);
-  singlePo single = makeSingle(h);
-  setTimer(delta, reportTimeout, (void *) single);
+
+  futurePo ft = makeFuture(h, voidEnum, checkTimeOut, Null, Null);
+
+  setTimer(delta, reportTimeout, (void *) ft);
   return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 
 void reportTimeout(void *cl) {
-  singlePo fut = (singlePo) cl;
-  setSingle(fut, trueEnum);
+  futurePo fut = C_FUTURE(cl);
+  resolveFuture(fut,unitEnum);
+}
+
+retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2){
+  // Polling a timeout does nothing
+  return Ok;
 }

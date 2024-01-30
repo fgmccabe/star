@@ -8,7 +8,7 @@
 #include "consP.h"
 
 ReturnStatus g__futureIsResolved(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) (futureIsResolved(C_FUTURE(a1)) ? trueEnum : falseEnum)};
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) (futureIsResolved(C_FUTURE(a1), h) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__futureIsAccepted(heapPo h, termPo a1) {
@@ -44,8 +44,8 @@ ReturnStatus g__rejectFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
 ReturnStatus g__futureVal(heapPo h, termPo xc, termPo a1) {
   futurePo ft = C_FUTURE(a1);
 
-  if (futureIsResolved(ft))
+  if (futureIsAccepted(ft))
     return (ReturnStatus) {.ret=Ok, .result=futureValue(ft)};
   else
-    return (ReturnStatus) {.ret=Error, .result=noValue};
+    return (ReturnStatus) {.ret=Error, .result=futureValue(ft)};
 }

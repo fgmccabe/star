@@ -38,10 +38,13 @@ futurePo C_FUTURE(termPo t) {
 
 static integer prHash = 0;
 
-futurePo makeFuture(heapPo H, termPo vl) {
+futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
   futurePo pr = (futurePo) allocateObject(H, futureClass, FutureCellCount);
   pr->val = vl;
   pr->state = notResolved;
+  pr->poller = poll;
+  pr->cl = cl;
+  pr->cl2 = cl2;
 
   pr->hash = hash61(prHash++);
   return pr;
@@ -95,10 +98,12 @@ static char *stateName(futureState st) {
 
 static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   futurePo ft = C_FUTURE(t);
-  return outMsg(out, "<<future:0x%x%s>>", ft->hash, stateName(ft->state));
+  return outMsg(out, "<<future:0x%x[%s]%T>>", ft->hash, stateName(ft->state), ft->val);
 }
 
-logical futureIsResolved(futurePo t) {
+logical futureIsResolved(futurePo t, heapPo h) {
+  if (t->state == notResolved && t->poller != Null)
+    t->poller(t, h, t->cl, t->cl2);
   return t->state != notResolved;
 }
 

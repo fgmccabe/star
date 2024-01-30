@@ -32,6 +32,7 @@ termPo falseEnum;
 termPo trueEnum;
 termPo voidEnum;
 termPo eofEnum;
+termPo canceledEnum;
 termPo unitEnum;
 labelPo errorLbl;
 
@@ -93,6 +94,7 @@ void initGlobals() {
   voidEnum = declareEnum("star.core#void", -1, globalHeap);
 
   eofEnum = declareEnum("star.core#eof", -1, globalHeap);
+  canceledEnum = declareEnum("star.core#canceled", -1, globalHeap);
 
   errorLbl = declareLbl("star.core#error", 2, -1);
 
@@ -214,6 +216,7 @@ void markGlobals(gcSupportPo G) {
 
   voidEnum = markPtr(G, &voidEnum);
   eofEnum = markPtr(G, &eofEnum);
+  canceledEnum = markPtr(G, &canceledEnum);
 
   nilEnum = markPtr(G, &nilEnum);
   noneEnum = markPtr(G, &noneEnum);
