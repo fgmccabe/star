@@ -8,9 +8,8 @@
 
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
-#define ioType "t'ioHandle'"
+#define ioHandle "t'ioHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
-#define singleType(T) "Uz1'single'" T
 #define futureType(F,E) "UUz2'future'" F E
 #define ERRCODE "t'star.core*errorCode'"
 
@@ -123,12 +122,8 @@ escape(_cell, ":k't'F(k't')rk't'", "create a reference cell")
 escape(_get, ":k't'F(rk't')k't'", "access contents of reference cell")
 escape(_assign, ":k't'F(rk't'k't')()", "update contents of reference cell")
 
-escape(_single, ":k't'F()"singleType("k't'"), "create a single cell")
-escape(_singleIsSet, ":k't'F("singleType("k't'")")l", "test to see if single has a value")
-escape(_singleVal, ":k't'|F("singleType("k't'")")lr"ERRCODE, "test to see if single has a value")
-escape(_singleSet, ":k't'|F("singleType("k't'")"k't')()r"ERRCODE, "assign value to single")
-
 escape(_futureIsResolved, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been set")
+escape(_futureIsAccepted, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been accepted")
 escape(_futureIsRejected, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been rejected")
 escape(_futureVal, ":k'f':k'e'|F("futureType("k'f'","k'e'")")k'f'rk'e'", "get the value of the future")
 
@@ -153,36 +148,33 @@ escape(_file_size, "|F(s)ir"ERRCODE, "report on the size of a file")
 escape(_file_modified, "|F(s)ir"ERRCODE, "report on when a file was last modified")
 escape(_file_date, "|F(s)(iii)r"ERRCODE, "report on file access time and modification times")
 
-escape(_openInFile, "|F(si)"ioType"r"ERRCODE, "open input file")
-escape(_openOutFile, "|F(si)"ioType"r"ERRCODE, "open output file")
-escape(_openAppendFile, "|F(si)"ioType"r"ERRCODE, "open output file")
-escape(_openAppendIOFile, "|F(si)"ioType"r"ERRCODE, "open output file")
+escape(_openInFile, "|F(si)"ioHandle"r"ERRCODE, "open input file")
+escape(_openOutFile, "|F(si)"ioHandle"r"ERRCODE, "open output file")
+escape(_openAppendFile, "|F(si)"ioHandle"r"ERRCODE, "open output file")
+escape(_openAppendIOFile, "|F(si)"ioHandle"r"ERRCODE, "open output file")
 
-escape(_popen, "|F(sLsL(ss))("ioType ioType ioType")r"ERRCODE, "open a pipe")
+escape(_popen, "|F(sLsL(ss))("ioHandle ioHandle ioHandle")r"ERRCODE, "open a pipe")
 
-escape(_close, "|F("ioType")()r"ERRCODE, "close file")
-escape(_end_of_file, "F("ioType")l", "end of file test")
-escape(_ready_to_read, "F("ioType")l", "file ready test")
-escape(_ready_to_write, "F("ioType")l", "file ready test")
-escape(_inchars, "F("ioType"i)s", "read block string")
-escape(_inbytes,"|F("ioType"i)Vir"ERRCODE,"read block of bytes")
-escape(_enqueue_read,"F("ioType"i)"singleType("Li"),"start reading a block of bytes")
-escape(_inchar, "|F("ioType")cr"ERRCODE, "read single character")
-escape(_inchar_async, "F("ioType")"futureType("c",ERRCODE), "read single character")
-escape(_inbyte, "|F("ioType")ir"ERRCODE, "read single byte")
-escape(_inline, "|F("ioType")sr"ERRCODE, "read a line")
-escape(_inline_async, "F("ioType")"singleType("s"), "async read of a line")
-escape(_intext, "|F("ioType"s)sr"ERRCODE, "read until matching character")
-escape(_outchar, "|F("ioType"i)()r"ERRCODE, "write a single character")
-escape(_outbyte, "|F("ioType"i)()r"ERRCODE, "write a single byte")
-escape(_outbytes, "|F("ioType"Li)()r"ERRCODE, "write a list of bytes")
-escape(_outtext, "|F("ioType"s)()r"ERRCODE, "write a string as a block")
-escape(_stdfile, "F(i)"ioType, "standard file descriptor")
-escape(_fposition, "F("ioType")i", "report current file position")
-escape(_fseek, "|F("ioType"i)()r"ERRCODE, "seek to new file position")
-escape(_flush, "|F("ioType")()r"ERRCODE, "flush the I/O buffer")
+escape(_close, "|F("ioHandle")()r"ERRCODE, "close file")
+escape(_end_of_file, "F("ioHandle")l", "end of file test")
+escape(_inchars, "F("ioHandle"i)s", "read block string")
+escape(_inbytes,"|F("ioHandle"i)Vir"ERRCODE,"read block of bytes")
+escape(_inchar, "|F("ioHandle")cr"ERRCODE, "read single character")
+escape(_inchar_async, "|F("ioHandle")"futureType("c",ERRCODE)"r"ERRCODE, "read single character")
+escape(_inbyte, "|F("ioHandle")ir"ERRCODE, "read single byte")
+escape(_inline, "|F("ioHandle")sr"ERRCODE, "read a line")
+escape(_inline_async, "|F("ioHandle")"futureType("s",ERRCODE)"r"ERRCODE, "async read of a line")
+escape(_intext, "|F("ioHandle"s)sr"ERRCODE, "read until matching character")
+escape(_outchar, "|F("ioHandle"i)()r"ERRCODE, "write a single character")
+escape(_outbyte, "|F("ioHandle"i)()r"ERRCODE, "write a single byte")
+escape(_outbytes, "|F("ioHandle"Li)()r"ERRCODE, "write a list of bytes")
+escape(_outtext, "|F("ioHandle"s)()r"ERRCODE, "write a string as a block")
+escape(_stdfile, "F(i)"ioHandle, "standard file descriptor")
+escape(_fposition, "F("ioHandle")i", "report current file position")
+escape(_fseek, "|F("ioHandle"i)()r"ERRCODE, "seek to new file position")
+escape(_flush, "|F("ioHandle")()r"ERRCODE, "flush the I/O buffer")
 escape(_flushall, "F()()", "flush all files")
-escape(_setfileencoding, "F("ioType"i)()", "set file encoding on file")
+escape(_setfileencoding, "F("ioHandle"i)()", "set file encoding on file")
 escape(_get_file, "|F(s)sr"ERRCODE, "file into a char sequence")
 escape(_put_file, "F(ss)()", "write string into file")
 escape(_show, "F(s)()", "show something on console")
@@ -196,9 +188,9 @@ escape(_logmsg, "F(s)()", "log a message in logfile or console")
 escape(_display_depth,"F()i", "Current standard display depth")
 
 // Socket handling functions
-escape(_connect, "|F(sii)("ioType ioType")r"ERRCODE, "connect to remote host")
-escape(_listen, "|F(i)"ioType"r"ERRCODE, "listen on a port")
-escape(_accept, "|F("ioType")("ioType ioType "sis)r"ERRCODE, "accept connection")
+escape(_connect, "|F(sii)("ioHandle ioHandle")r"ERRCODE, "connect to remote host")
+escape(_listen, "|F(i)"ioHandle"r"ERRCODE, "listen on a port")
+escape(_accept, "|F("ioHandle")("ioHandle ioHandle "sis)r"ERRCODE, "accept connection")
 
 escape(_hosttoip, "F(s)Ls", "IP address of host")
 escape(_iptohost, "|F(s)sr"ERRCODE, "host name from IP")
@@ -326,8 +318,7 @@ escape(_stackTrace, "F()s", "Print a stack trace")
 
 #undef processState
 #undef threadType
-#undef ioType
+#undef ioHandle
 #undef optionType
-#undef singleType
 #undef futureType
 #undef ERRCODE

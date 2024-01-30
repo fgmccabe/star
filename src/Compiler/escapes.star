@@ -90,11 +90,8 @@ star.compiler.escapes{
     "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t"))))).
     "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t")))).
     "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
-    "_single" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tpExp(.tpFun("single",1),.nomnal("t"))))).
-    "_singleIsSet" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t"))])),.nomnal("star.core*boolean")))).
-    "_singleVal" => .some(.allType(.nomnal("t"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t"))])),.nomnal("star.core*boolean")),.raisEs(.nomnal("star.core*errorCode"))))).
-    "_singleSet" => .some(.allType(.nomnal("t"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("single",1),.nomnal("t")),.nomnal("t")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode"))))).
     "_futureIsResolved" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
+    "_futureIsAccepted" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
     "_futureIsRejected" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
     "_futureVal" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("f")),.raisEs(.nomnal("e")))))).
     "_tuple_nth" => .some(.allType(.nomnal("t"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t"),.nomnal("star.core*integer")])),.nomnal("e"))))).
@@ -122,16 +119,13 @@ star.compiler.escapes{
     "_popen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle"),.nomnal("ioHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
     "_close" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_end_of_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
-    "_ready_to_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
-    "_ready_to_write" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
     "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
     "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_enqueue_read" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("single",1),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))))).
     "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inchar_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*char")),.nomnal("star.core*errorCode")))).
+    "_inchar_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*char")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_inbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_inline_async" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpFun("single",1),.nomnal("star.core*string")))).
+    "_inline_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
@@ -342,11 +336,8 @@ star.compiler.escapes{
     "_cell" => .true.
     "_get" => .true.
     "_assign" => .true.
-    "_single" => .true.
-    "_singleIsSet" => .true.
-    "_singleVal" => .true.
-    "_singleSet" => .true.
     "_futureIsResolved" => .true.
+    "_futureIsAccepted" => .true.
     "_futureIsRejected" => .true.
     "_futureVal" => .true.
     "_tuple_nth" => .true.
@@ -374,11 +365,8 @@ star.compiler.escapes{
     "_popen" => .true.
     "_close" => .true.
     "_end_of_file" => .true.
-    "_ready_to_read" => .true.
-    "_ready_to_write" => .true.
     "_inchars" => .true.
     "_inbytes" => .true.
-    "_enqueue_read" => .true.
     "_inchar" => .true.
     "_inchar_async" => .true.
     "_inbyte" => .true.

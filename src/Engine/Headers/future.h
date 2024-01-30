@@ -14,9 +14,11 @@ extern clssPo futureClass;
 
 extern futurePo C_FUTURE(termPo t);
 
-futurePo makeFuture(heapPo H, termPo vl);
+typedef retCode (*futurePoll)(futurePo ft, heapPo h, void *cl, void *cl2);
 
-logical futureIsResolved(futurePo t);
+futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2);
+
+logical futureIsResolved(futurePo t, heapPo h);
 logical futureIsAccepted(futurePo t);
 logical futureIsRejected(futurePo t);
 

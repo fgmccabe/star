@@ -21,6 +21,9 @@ typedef struct future_record {
   integer hash;
   termPo val;
   futureState state;
+  futurePoll poller;
+  void *cl;
+  void *cl2;
 } FutureRecord;
 
 #define FutureCellCount CellCount(sizeof(FutureRecord))
