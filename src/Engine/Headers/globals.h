@@ -29,6 +29,7 @@ extern logical glbIsSet(globalPo glb);
 
 extern termPo voidEnum;
 extern termPo eofEnum;
+extern termPo canceledEnum;
 extern labelPo errorLbl;
 extern termPo unitEnum;
 
