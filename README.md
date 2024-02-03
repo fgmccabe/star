@@ -23,8 +23,8 @@ book on the language to help you learn it and a reference manual that details
 the language and the standard functions and types.
 
 The VM is effectively an interpreter for the Star byte code. The roadmap for
-this includes support for JITting byte code -- to x64 and ARM code -- and better
-support for debugging.
+this includes a WebAssembly backend to the main compiler and better support for
+debugging.
 
 
 
