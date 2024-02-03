@@ -23,4 +23,11 @@ typedef enum {
 
 #define tryRet(Exp) STMT_WRAP({ retCode ret=(Exp); if(ret!=Ok)return ret; })
 
+typedef enum {
+  inProgress,
+  completed,
+  canceled,
+  failed
+} progress;
+
 #endif

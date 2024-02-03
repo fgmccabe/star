@@ -5,7 +5,6 @@
 #include "streamDecode.h"
 #include <hash.h>
 #include <unistd.h>
-#include <byteBuffer.h>
 #include <base64.h>
 #include "verifyP.h"
 #include "manifest.h"

@@ -36,7 +36,6 @@ set(PUBLIC_HEADERS
         Headers/pool.h
         Headers/retcode.h
         Headers/pipe.h
-        Headers/byteBuffer.h
         Headers/wordBuffer.h
         Headers/stringBuffer.h
         Headers/timer.h
@@ -63,7 +62,6 @@ set(HEADER_FILES
         Headers/managedP.h
         Headers/objectP.h
         Headers/pipeP.h
-        Headers/byteBufferP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
         Headers/topSort.h
@@ -105,7 +103,6 @@ set(SOURCE_FILES
         quick.c
         signal.c
         sockets.c
-        byteBuffer.c
         wordBuffer.c
         stringBuffer.c
         strng.c

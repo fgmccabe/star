@@ -16,41 +16,35 @@ static void inheritIOClass(classPo class, classPo request, classPo orig);
 static void ioClose(objectPo o);
 static void IoInit(objectPo o, va_list *args);
 static retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual);
-static retCode nullEnqueueRead(ioPo f, integer count, ioCallBackProc cb, void *cl);
 static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual);
 static retCode nullOutByte(ioPo f, byte b);
-static retCode nullEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl);
 static retCode nullEof(ioPo f);
-static retCode nullFlusher(ioPo f, long count);
 static retCode nullClose(ioPo f);
 
 IoClassRec IoClass = {
   .objectPart={
-    (classPo) &LockedClass,                /* parent class is object */
-    "io",                                 /* this is the io class */
-    initIoClass,                          /* IO class initializer */
-    inheritIOClass,                     // Inherit from IO class
-    O_INHERIT_DEF,                        /* IO object element creation */
-    ioClose,                              /* IO objectdestruction */
-    O_INHERIT_DEF,                        /* erasure */
-    IoInit,                               /* initialization of an Io buffer */
-    sizeof(IoObject),                     /* min size of an io record -- should never use */
-    NULL,                                  /* pool of values for this class */
-    O_INHERIT_DEF,                        // No special hash function
-    O_INHERIT_DEF,                        // No special equality
-    PTHREAD_ONCE_INIT,          /* not yet initialized */
-    PTHREAD_MUTEX_INITIALIZER
+    .parent = (classPo) &LockedClass,                /* parent class is object */
+    .className = "io",                                 /* this is the io class */
+    .classInit = initIoClass,                          /* IO class initializer */
+    .classInherit = inheritIOClass,                     // Inherit from IO class
+    .create = O_INHERIT_DEF,                        /* IO object element creation */
+    .destroy = ioClose,                              /* IO objectdestruction */
+    .erase = O_INHERIT_DEF,                        /* erasure */
+    .init = IoInit,                               /* initialization of an Io buffer */
+    .size = sizeof(IoObject),                     /* min size of an io record -- should never use */
+    .pool = NULL,                                  /* pool of values for this class */
+    .hashCode =  O_INHERIT_DEF,                        // No special hash function
+    .equality = O_INHERIT_DEF,                        // No special equality
+    .inited = PTHREAD_ONCE_INIT,          /* not yet initialized */
+    .mutex = PTHREAD_MUTEX_INITIALIZER
   },
   .lockPart={},
   .ioPart={
-    nullInBytes,              /* inByte, abstract for the io class  */
-    nullEnqueueRead,     // Asynchronous read
-    nullOutBytes,             /* outByte, abstract for the io class  */
-    nullEnqueueWrite,    // Asynchronous write
-    nullOutByte,           /* putbackByte, abstract for the io class  */
-    nullEof,                 /* are we at end of file? */
-    nullFlusher,              /* flush, abstract for the io class  */
-    nullClose                 /* close, abstract for the io class  */
+    .read =nullInBytes,              /* inByte, abstract for the io class  */
+    .write =nullOutBytes,             /* outByte, abstract for the io class  */
+    .backByte = nullOutByte,           /* putbackByte, abstract for the io class  */
+    .isAtEof =nullEof,                 /* are we at end of file? */
+    .close = nullClose                 /* close, abstract for the io class  */
   }
 };
 
@@ -59,7 +53,7 @@ classPo ioClass = (classPo) &IoClass;
 static pthread_once_t ioOnce = PTHREAD_ONCE_INIT;
 
 static void initIoEtc(void) {
-  atexit(closeIo);                      /* set up general closer for exit */
+  atexit(closeAllFiles);                      /* set up general closer for exit */
   initRecursiveMutex(&ioClass->mutex);
 }
 
@@ -75,10 +69,6 @@ void inheritIOClass(classPo class, classPo request, classPo orig) {
     req->ioPart.read = template->ioPart.read;
   }
 
-  if (req->ioPart.async_read == O_INHERIT_DEF) {
-    req->ioPart.async_read = template->ioPart.async_read;
-  }
-
   if (req->ioPart.backByte == O_INHERIT_DEF) {
     req->ioPart.backByte = template->ioPart.backByte;
   }
@@ -87,15 +77,8 @@ void inheritIOClass(classPo class, classPo request, classPo orig) {
     req->ioPart.write = template->ioPart.write;
   }
 
-  if (req->ioPart.async_write == O_INHERIT_DEF) {
-    req->ioPart.async_write = template->ioPart.async_write;
-  }
   if (req->ioPart.isAtEof == O_INHERIT_DEF) {
     req->ioPart.isAtEof = template->ioPart.isAtEof;
-  }
-
-  if (req->ioPart.flush == O_INHERIT_DEF) {
-    req->ioPart.flush = template->ioPart.flush;
   }
 
   if (req->ioPart.close == O_INHERIT_DEF) {
@@ -103,26 +86,13 @@ void inheritIOClass(classPo class, classPo request, classPo orig) {
   }
 }
 
-static ioPo activeSet = NULL;
-
 static void IoInit(objectPo o, va_list *args) {
   ioPo f = O_IO(o);
   char *name = va_arg(*args, char *);
 
   lockClass(f->object.class);
 
-  if (activeSet == NULL)
-    activeSet = f->io.next = f->io.prev = f;
-  else {
-    f->io.next = activeSet;
-    f->io.prev = activeSet->io.prev;
-    activeSet->io.prev->io.next = f;
-    activeSet->io.prev = f;
-    activeSet = f;
-  }
-
   uniCpy(f->io.filename, NumberOf(f->io.filename), name);
-  f->io.status = Ok;
   f->io.inBpos = 0;
   f->io.inCpos = 0;
   f->io.outBpos = 0;
@@ -135,14 +105,12 @@ static void IoInit(objectPo o, va_list *args) {
 static void ioClose(objectPo o) {
 }
 
-void closeIo(void) {
-  flushOut();
+retCode isInputReady(ioPo io, integer count) {
+  return ((IoClassRec *) io->object.class)->ioPart.inputReady(io, count);
+}
 
-  lockClass(ioClass);
-  while (activeSet != NULL) {
-    closeFile(activeSet);
-  }
-  unlockClass(ioClass);
+retCode isOutputReady(ioPo io, integer count) {
+  return ((IoClassRec *) io->object.class)->ioPart.outputReady(io, count);
 }
 
 /* Byte level input on Io buffers */
@@ -168,14 +136,6 @@ retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
   f->io.inBpos += *actual;
 
   return ret;
-}
-
-retCode enqueueRead(ioPo io, integer count, ioCallBackProc cb, void *cl) {
-  return ((IoClassRec *) io->object.class)->ioPart.async_read(io, count, cb, cl);
-}
-
-retCode enqueueWrite(ioPo io, byte *buffer, integer count, void *cl) {
-  return ((IoClassRec *) io->object.class)->ioPart.async_write(io, buffer, count, cl);
 }
 
 retCode putBackByte(ioPo f, byte b) {
@@ -417,101 +377,15 @@ retCode outStrg(ioPo f, strgPo str) {
   return outText(f, strgVal(str), strgLen(str));
 }
 
-retCode flushFile(ioPo f)               /* generic file flush */
-{
-  objectPo o = O_OBJECT(f);
-  retCode ret = Ok;
-
-  lock(O_LOCKED(o));
-
-  if (isWritingFile(f))
-    ret = ((IoClassRec *) f->object.class)->ioPart.flush(f, 0);
-
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
-void flushOut(void)                     /* flush all files */
-{
-  lockClass(ioClass);
-
-  if (activeSet != NULL) {
-    ioPo f = activeSet;
-
-    do {
-      f = f->io.next;
-      if ((f->io.mode & ioWRITE) != 0) {
-
-        objectPo o = O_OBJECT(f);
-        lock(O_LOCKED(o));
-
-        while (flushFile(f) == Fail);
-        unlock(O_LOCKED(o));
-      }
-    } while (f != activeSet);
-  }
-  unlockClass(ioClass);
-}
-
 /* File opening is specific to the type of file being opened, 
  * but all files can be closed using the same function
  */
 
-retCode closeFile(ioPo f) {
-  objectPo o = O_OBJECT(f);
-
-  lock(O_LOCKED(o));
-
-  if (--(f->object.refCount) <= 0) {
-    while (flushFile(f) == Fail);
-    //    clearFileProperties(f);     // clear out any attached properties
-
-    lockClass(ioClass);
-
-    if (f == activeSet) {
-      if (f->io.next == f && f->io.prev == f)
-        activeSet = NULL;    /* no more active files */
-      else {
-        activeSet->io.prev->io.next = activeSet->io.next;
-        activeSet->io.next->io.prev = activeSet->io.prev;
-        activeSet = f->io.next;  /* move the base pointer along */
-      }
-    }
-
-    f->io.next->io.prev = f->io.prev;
-    f->io.prev->io.next = f->io.next;
-
-    unlockClass(ioClass);
-    unlock(O_LOCKED(o));
-
-    return ((IoClassRec *) f->object.class)->ioPart.close(f);
-  }
-
-  unlock(O_LOCKED(o));
-  return Ok;
-}
-
-void triggerIo(filterProc filter, void *cl) {
-  lockClass(ioClass);
-
-  if (activeSet != NULL) {
-    ioPo f = activeSet;
-
-    do {
-      f = f->io.next;
-
-      filter(f, cl);
-    } while (f != activeSet);
-  }
-
-  unlockClass(ioClass);
+retCode closeIo(ioPo f) {
+  return ((IoClassRec *) f->object.class)->ioPart.close(f);
 }
 
 retCode nullInBytes(ioPo f, byte *ch, integer count, integer *actual) {
-  return Error;
-}
-
-retCode nullEnqueueRead(ioPo f, integer count, ioCallBackProc cb, void *cl) {
   return Error;
 }
 
@@ -521,14 +395,6 @@ retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual) {
 
 retCode nullOutByte(ioPo f, byte b) {
   return Error;
-}
-
-retCode nullEnqueueWrite(ioPo f, byte *buffer, integer count, void *cl) {
-  return Error;
-}
-
-retCode nullFlusher(ioPo f, long count) {
-  return Ok;
 }
 
 retCode nullClose(ioPo f) {
@@ -616,6 +482,10 @@ retCode isFileOpen(ioPo f) {
 
 void setEncoding(ioPo f, ioEncoding encoding) {
   f->io.encoding = encoding;
+}
+
+ioEncoding getEncoding(ioPo io) {
+  return io->io.encoding;
 }
 
 logical isReadingFile(ioPo f) {

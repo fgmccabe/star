@@ -145,7 +145,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
           }
         }
       }
-      outMsg(stdErr, "unknown option: %s\n", opt);
+      outMsg(Stderr(), "unknown option: %s\n", opt);
       goto failOptions;
     } else
       break;

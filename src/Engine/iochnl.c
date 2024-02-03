@@ -93,21 +93,21 @@ static ioChnnlPo errChnl = Null;
 
 ioChnnlPo stdInChnl(heapPo h) {
   if (inChnl == Null) {
-    inChnl = allocateIOChnnl(h, stdIn);
+    inChnl = allocateIOChnnl(h, Stdin());
   }
   return inChnl;
 }
 
 ioChnnlPo stdOutChnl(heapPo h) {
   if (outChnl == Null) {
-    outChnl = allocateIOChnnl(h, stdOut);
+    outChnl = allocateIOChnnl(h, Stdout());
   }
   return inChnl;
 }
 
 ioChnnlPo stdErrChnl(heapPo h) {
   if (errChnl == Null) {
-    errChnl = allocateIOChnnl(h, stdErr);
+    errChnl = allocateIOChnnl(h, Stderr());
   }
   return inChnl;
 }
