@@ -57,7 +57,7 @@ termPo allocateCString(heapPo H, const char *txt) {
   return allocateString(H, txt, uniStrLen(txt));
 }
 
-termPo allocateFromStrBuffer(strBufferPo bffr, heapPo H) {
+termPo allocateFromStrBuffer(heapPo H, strBufferPo bffr) {
   integer oLen;
   const char *buff = getTextFromBuffer(bffr, &oLen);
 
