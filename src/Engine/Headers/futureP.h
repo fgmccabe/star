@@ -28,4 +28,6 @@ typedef struct future_record {
 
 #define FutureCellCount CellCount(sizeof(FutureRecord))
 
+futurePo makeResolvedFuture(heapPo h, termPo val, futureState state);
+
 #endif //STAR_FUTUREP_H
