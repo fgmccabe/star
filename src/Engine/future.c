@@ -39,6 +39,7 @@ futurePo C_FUTURE(termPo t) {
 static integer prHash = 0;
 
 futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
+  int root = gcAddRoot(H, &vl);
   futurePo pr = (futurePo) allocateObject(H, futureClass, FutureCellCount);
   pr->val = vl;
   pr->state = notResolved;
@@ -47,7 +48,19 @@ futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
   pr->cl2 = cl2;
 
   pr->hash = hash61(prHash++);
+  gcReleaseRoot(H, root);
   return pr;
+}
+
+futurePo makeResolvedFuture(heapPo h, termPo val, futureState state) {
+  int root = gcAddRoot(h, &val);
+  futurePo ft = (futurePo) allocateObject(h, futureClass, FutureCellCount);
+  ft->state = state;
+  ft->val = val;
+  ft->poller = Null;
+  ft->cl = ft->cl2 = Null;
+  gcReleaseRoot(h, root);
+  return ft;
 }
 
 long futureSize(specialClassPo cl, termPo o) {
