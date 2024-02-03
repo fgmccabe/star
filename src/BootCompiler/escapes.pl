@@ -134,6 +134,7 @@ escapeType("_flush",constrained(funType(tplType([type("ioHandle")]),tplType([]))
 escapeType("_flushall",funType(tplType([]),tplType([]))).
 escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([]))).
 escapeType("_get_file",constrained(funType(tplType([type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
+escapeType("_getfile_async",constrained(funType(tplType([type("star.core*string")]),tpExp(tpExp(tpFun("future",2),type("star.core*string")),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_put_file",funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([]))).
 escapeType("_show",funType(tplType([type("star.core*string")]),tplType([]))).
 escapeType("_install_pkg",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")])))).
@@ -375,6 +376,7 @@ isEscape("_flush").
 isEscape("_flushall").
 isEscape("_setfileencoding").
 isEscape("_get_file").
+isEscape("_getfile_async").
 isEscape("_put_file").
 isEscape("_show").
 isEscape("_install_pkg").

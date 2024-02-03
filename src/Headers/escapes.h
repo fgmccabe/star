@@ -176,6 +176,7 @@ escape(_flush, "|F("ioHandle")()r"ERRCODE, "flush the I/O buffer")
 escape(_flushall, "F()()", "flush all files")
 escape(_setfileencoding, "F("ioHandle"i)()", "set file encoding on file")
 escape(_get_file, "|F(s)sr"ERRCODE, "file into a char sequence")
+escape(_getfile_async, "|F(s)"futureType("s",ERRCODE)"r"ERRCODE, "file into a string")
 escape(_put_file, "F(ss)()", "write string into file")
 escape(_show, "F(s)()", "show something on console")
 

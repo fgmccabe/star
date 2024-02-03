@@ -1,4 +1,4 @@
-test.io1{
+test.io3{
   import star.
   import star.assert.
   import star.io.
@@ -7,8 +7,8 @@ test.io1{
   readAll:(task[()],ioHandle) => ().
   readAll(this,IO) => valof{
     try{
-      while Ch.=rdCharAsync(IO) do{
-	logMsg("char: $(Ch)");
+      while Ln.=rdLineAsync(IO) do{
+	logMsg("line: $(Ln)");
       }
     } catch ioException in {
       | .ioError => logMsg("bad io")
