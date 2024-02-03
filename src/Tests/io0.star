@@ -5,7 +5,7 @@ test.io0{
 
   _main:(cons[string])=>().
   _main([Fl,.._]) => main(Fl).
-  _main([]) => main("io0.star").
+  _main([]) => main("test.txt").
 
   main:(string)=>().
   main(Fl) => valof{

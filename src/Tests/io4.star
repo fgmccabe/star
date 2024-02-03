@@ -1,14 +1,14 @@
-test.io1{
+test.io4{
   import star.
   import star.assert.
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
-  readAll(this,IO) => valof{
+  readAll:(task[()],string) => ().
+  readAll(this,Fl) => valof{
     try{
-      while Ch.=rdCharAsync(IO) do{
-	logMsg("char: $(Ch)");
+      if Txt.=rdFileAsync(Fl) then{
+	logMsg("file text: $(Txt)");
       }
     } catch ioException in {
       | .ioError => logMsg("bad io")
@@ -24,11 +24,9 @@ test.io1{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
-
       try{
 	Rd = (Tsk) => valof{
-	  readAll(Tsk,In);
+	  readAll(Tsk,Fl);
 	  Tsk retire .retired_
 	};
 	  
