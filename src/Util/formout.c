@@ -687,7 +687,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
       } else
         switch (fcp) {
           case '_':
-            ret = flushFile(f);
+            ret = (isAFile(O_OBJECT(f)) ? flushFile(O_FILE(f)) : Ok);
             break;
           case 'c': {    /* Display an integer value as a char */
             codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
@@ -854,7 +854,8 @@ retCode logMsg(ioPo out, char *fmt, ...) {
 
     unlock(O_LOCKED(out));
   }
-  flushFile(out);
+  if (isAFile(O_OBJECT(out)))
+    flushFile(O_FILE(out));
   return ret;
 }
 

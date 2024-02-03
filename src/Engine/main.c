@@ -23,7 +23,6 @@
 #include "debug.h"
 #include "editline.h"
 #include "starP.h"
-#include "singleP.h"
 #include "futureP.h"
 #include "thunkP.h"
 #include "vectP.h"
@@ -66,7 +65,6 @@ int main(int argc, char **argv) {
   initVect();
   initIdeal();
   initOption();
-  initSingle();
   initFuture();
   initClosure();
   initCell();

@@ -25,6 +25,7 @@ extern BufferClassRec StrBufferClass;  /* the standard pointer to an buffer clas
 
 typedef struct strBuffer_part_{
   char *buffer;                         /* The data buffer */
+  char line[MAXLINE];                   // Temporary buffer space
   integer bufferSize;
   integer in_pos;                       // Position of next read
   integer out_pos;                      // position of next write

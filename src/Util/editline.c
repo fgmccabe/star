@@ -124,12 +124,12 @@ static void disableRawMode() {
 
 /* Clear the screen. Used to handle ctrl+l */
 static void clearScreen(LineState *ls) {
-  outMsg(stdOut, "\033[H\033[2J%_");
+  outMsg(O_IO(Stdout()), "\033[H\033[2J%_");
   ls->firstPos = getTerminalCol();
 }
 
 static void beep(void) {
-  outMsg(stdOut, "\07%_");
+  outMsg(O_IO(Stdout()), "\07%_");
 }
 
 static void resetBuffer(strBufferPo b, strgPo old, integer pos) {
@@ -197,8 +197,8 @@ void clearEditLineCompletionCallback() {
 }
 
 static void refreshFromText(integer firstPos, integer pos, char *content, integer size) {
-  outMsg(stdOut, "\r\033[%dC%S\033[0K", firstPos - 1, content, size);
-  outMsg(stdOut, "\r\033[%dC%_", pos + firstPos - 1);
+  outMsg(O_IO(Stdout()), "\r\033[%dC%S\033[0K", firstPos - 1, content, size);
+  outMsg(O_IO(Stdout()), "\r\033[%dC%_", pos + firstPos - 1);
 }
 
 static void refreshLine(integer firstPos, strBufferPo lineBuf) {
@@ -427,14 +427,14 @@ static retCode editLine(strBufferPo lineBuff) {
 
 retCode consoleInput(strBufferPo lineBuff) {
   if (!isatty(STDIN_FILENO) || isUnsupportedTerm()) {
-    return inLine(stdIn, lineBuff, "\n");
+    return inLine(O_IO(Stdin()), lineBuff, "\n");
   } else if (enableRawMode() != Ok) {
     disableRawMode();
-    return inLine(stdIn, lineBuff, "\n");
+    return inLine(O_IO(Stdin()), lineBuff, "\n");
   } else {
     retCode ret = editLine(lineBuff);
     disableRawMode();
-    outMsg(stdOut, "\n%_");
+    outMsg(O_IO(Stdout()), "\n%_");
 
     return ret;
   }
@@ -525,7 +525,7 @@ static int getTerminalCol() {
   int cols, rows;
 
   /* Report cursor location */
-  outMsg(stdOut, "\033[6n%_");
+  outMsg(O_IO(Stdout()), "\033[6n%_");
 
   /* Read the response: ESC [ rows ; cols R */
   int ix = 0;

@@ -446,8 +446,6 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer displayDepth, StackT
 
     stk = stk->attachment;
   } while (stk != Null);
-
-  flushFile(out);
 }
 
 stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {

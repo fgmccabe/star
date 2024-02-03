@@ -29,17 +29,13 @@ static retCode estimate(ioPo in, integer *amnt);
 
 retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize) {
   EncodeSupport support = {errorMsg, msgSize, H};
-  logical isBlocked = False;
   logical isAsynched = False;
 
-  if (objectHasClass(O_OBJECT(in), fileClass)) {
-    if (!isFileBlocking(O_FILE(in))) {
-      isBlocked = True;
-      configureIo(O_FILE(in), turnOnBlocking);
-    }
-    if (isFileAsynch(O_FILE(in))) {
+  if (isAFile(O_OBJECT(in))) {
+    filePo f = O_FILE(in);
+    if (isFileAsynch(f)) {
       isAsynched = True;
-      configureIo(O_FILE(in), disableAsynch);
+      resetAccessMode(f,blocking);
     }
   }
 
@@ -90,11 +86,9 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
                       closeIo(O_IO(tmpBuffer));
                     }
 
-                    if (objectHasClass(O_OBJECT(in), fileClass)) {
-                      if (isBlocked)
-                        configureIo(O_FILE(in), turnOffBlocking);
+                    if (isAFile(O_OBJECT(in))) {
                       if (isAsynched)
-                        configureIo(O_FILE(in), enableAsynch);
+                        resetAccessMode(O_FILE(in),asynch);
                     }
                     return res;
                   } else {
@@ -119,11 +113,9 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
     }
   }
   error_exit:
-  if (objectHasClass(O_OBJECT(in), fileClass)) {
-    if (isBlocked)
-      configureIo(O_FILE(in), turnOffBlocking);
+  if (isAFile(O_OBJECT(in))) {
     if (isAsynched)
-      configureIo(O_FILE(in), enableAsynch);
+      resetAccessMode(O_FILE(in), asynch);
   }
   return Error;
 }

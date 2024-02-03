@@ -26,22 +26,23 @@ static retCode wordBufferBackWord(ioPo io, byte b);
 static retCode wordBufferAtEof(ioPo io);
 
 WordBufferClassRec WordBufferClass = {
-  {(classPo) &ObjectClass,                    /* parent class is object */
-    "words",                         /* this is the word buffer class */
-    initWordBufferClass,                      /* Buffer class initializer */
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,                        /* Buffer object element creation */
-    wordBufferDestroy,                        /* Buffer objectdestruction */
-    O_INHERIT_DEF,                        /* erasure */
-    wordBufferInit,                           /* initialization of a buffer object */
-    sizeof(WordBufferObject),                 /* size of a buffer object */
-    NULL,                                 /* pool of buffer values */
-    O_INHERIT_DEF,                        // No special hash function
-    O_INHERIT_DEF,                        // No special equality
-    PTHREAD_ONCE_INIT,                    /* not yet initialized */
-    PTHREAD_MUTEX_INITIALIZER
+  .objectPart = {
+    .parent = (classPo) &ObjectClass,                    /* parent class is object */
+    .className = "words",                         /* this is the word buffer class */
+    .classInit = initWordBufferClass,                      /* Buffer class initializer */
+    .classInherit = O_INHERIT_DEF,
+    .create = O_INHERIT_DEF,                        /* Buffer object element creation */
+    .destroy = wordBufferDestroy,                        /* Buffer objectdestruction */
+    .erase = O_INHERIT_DEF,                        /* erasure */
+    .init = wordBufferInit,                           /* initialization of a buffer object */
+    .size = sizeof(WordBufferObject),                 /* size of a buffer object */
+    .pool = NULL,                                 /* pool of buffer values */
+    .hashCode = O_INHERIT_DEF,                        // No special hash function
+    .equality = O_INHERIT_DEF,                        // No special equality
+    .inited = PTHREAD_ONCE_INIT,                    /* not yet initialized */
+    .mutex = PTHREAD_MUTEX_INITIALIZER
   },
-  {}
+  .bufferPart = {}
 };
 
 classPo wordBufferClass = (classPo) &WordBufferClass;

@@ -42,43 +42,43 @@
 
 static retCode sockSeek(filePo io, integer count);
 static retCode sockFill(filePo f);
-static retCode sockFlush(ioPo io, long count);
-static retCode sockConfigure(filePo, ioConfigOpt mode);
+static retCode sockFlush(filePo io);
+static retCode asyncSockFill(filePo f);
+static retCode asyncSockFlush(filePo io);
 
 FileClassRec SocketClass = {
   .objectPart={
-    (classPo) &IoClass,                   /* parent class is io object */
-    "socket",                  /* this is the socket class */
-    initFileClass,                        /* File class initializer, phase I */
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,                        /* File object element creation */
-    NULL,                                 /* File objectdestruction */
-    O_INHERIT_DEF,                        /* erasure */
-    FileInit,                             /* initialization of a file object */
-    sizeof(FileObject),                   /* size of a file object */
-    O_INHERIT_DEF,                        // Hashcode for files
-    O_INHERIT_DEF,                        // Equality for files
-    NULL,                                 /* pool of file values */
-    PTHREAD_ONCE_INIT,                    /* not yet initialized */
-    PTHREAD_MUTEX_INITIALIZER
+    .parent = (classPo) &IoClass,                   /* parent class is io object */
+    .className = "socket",                  /* this is the socket class */
+    .classInit = initFileClass,                        /* File class initializer, phase I */
+    .classInherit = O_INHERIT_DEF,
+    .create = O_INHERIT_DEF,                        /* File object element creation */
+    .destroy = NULL,                                 /* File objectdestruction */
+    .erase = O_INHERIT_DEF,                        /* erasure */
+    .init = fileInit,                             /* initialization of a file object */
+    .size = sizeof(FileObject),                   /* size of a file object */
+    .hashCode = O_INHERIT_DEF,                        // Hashcode for files
+    .equality = O_INHERIT_DEF,                        // Equality for files
+    .pool = NULL,                                 /* pool of file values */
+    .inited = PTHREAD_ONCE_INIT,                    /* not yet initialized */
+    .mutex = PTHREAD_MUTEX_INITIALIZER
   },
   .lockPart={},
   .ioPart={
-    fileInBytes,                        /* inByte  */
-    fileEnqueueRead,
-    fileOutBytes,                       /* outBytes  */
-    fileEnqueueWrite,
-    fileBackByte,                       //  put a byte back in the buffer
-    fileAtEof,                          //  Are we at end of file?
-    sockFlush,                          //  flush
-    fileClose                           //  close
+    .read = fileInBytes,                        /* inByte  */
+    .write = fileOutBytes,                       /* outBytes  */
+    .backByte = fileBackByte,                       //  put a byte back in the buffer
+    .inputReady = fileInputReady,
+    .outputReady = fileOutputReady,
+    .isAtEof = fileAtEof,                          //  Are we at end of file?
+    .close = fileClose                           //  close
   },
   .filePart={
-    sockConfigure,                      //  configure a file
-    sockSeek,                           //  seek
-    fileInReady,                        //  readyIn
-    fileOutReady,                       //  readyOut
-    sockFill                            //  refill the buffer if needed
+    .seek = sockSeek,
+    .filler = sockFill,
+    .asyncFill = asyncSockFill,
+    .flush = sockFlush,
+    .asyncFlush = asyncSockFlush       //  refill the buffer if needed
   }
 };
 
@@ -175,41 +175,39 @@ retCode connectRemote(const char *where, int port,
     } else {
       ioPo conn = O_IO(newObject(sockClass, host, sock, encoding, ioREAD | ioWRITE));
 
-      configureIo(O_FILE(conn), (waitForMe ? turnOnBlocking : turnOffBlocking));
-
       while (connect(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) != 0) {
         switch (errno) {    //  Unix version
           case EACCES:
           case EADDRNOTAVAIL:
             outMsg(logFile, "Address %s not available", host);
             markHostUnavail(host);
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Error;
           case ECONNREFUSED:
             outMsg(logFile, "Connection to %s refused", host);
             markHostUnavail(host);
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Error;
           case ETIMEDOUT:
             outMsg(logFile, "Connection to %s timed out", host);
             markHostUnavail(host);
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Error;
           case ENETUNREACH:
             outMsg(logFile, "Network down or %s unreachable", host);
             markHostUnavail(host);
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Error;
           case EALREADY:
           case EINTR:
           case EWOULDBLOCK:
           case EINPROGRESS:
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Fail;
           default:
             outMsg(logFile, "Connection to %s refused", host);
             markHostUnavail(host);
-            closeFile(O_IO(conn));
+            closeIo(O_IO(conn));
             return Error;
         }
       }
@@ -262,10 +260,12 @@ static retCode sockFill(filePo f) {
     return Ok;
 }
 
-static retCode sockFlush(ioPo io, long count) {
-  filePo f = O_FILE(io);
+retCode asyncSockFill(filePo f) {
+  return Error;
+}
 
-  if (count > 0 && f->file.out_pos + count < NumberOf(f->file.out_line))
+static retCode sockFlush(filePo f) {
+  if (f->file.out_pos < NumberOf(f->file.out_line))
     return Ok; // Nothing to do, we have at least count bytes left in the buffer
 
   if (f->file.out_pos > 0) {
@@ -282,19 +282,15 @@ static retCode sockFlush(ioPo io, long count) {
           case ENOBUFS:
           case EINTR: {
             if (cp != buffer) {                     //  we were able to write something out ...
-              sockConfigure(f, turnOnBlocking);     //  so we have to finish
-
               while (actual > 0 && (nBytes = send(sock, cp, actual, 0)) != actual) {
                 if (nBytes == SOCKET_ERROR) {
                   // logMsg(logFile,"Problem %s (%d) in sending %d bytes to %U[%d]\n",
                   //        strerror(errno),errno,actual,f->filename,f->client);
-                  sockConfigure(f, turnOffBlocking);
                   return Error;
                 }
                 cp += nBytes;
                 actual -= nBytes;
               }
-              sockConfigure(f, turnOffBlocking);
               f->file.out_pos = 0;
               return Ok;
             } else
@@ -315,83 +311,13 @@ static retCode sockFlush(ioPo io, long count) {
   return Ok;
 }
 
-static retCode sockSeek(filePo io, integer count) {
-  outMsg(logFile, "seek not implemented on sockets");
+retCode asyncSockFlush(filePo io) {
   return Error;
 }
 
-static retCode sockConfigure(filePo conn, ioConfigOpt mode) {
-  int sock = conn->file.fno;
-
-  switch (mode) {
-    case turnOffBlocking: {
-      int SokOpt = True;
-      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
-
-      if (fd_flags == -1)
-        return Error;
-
-      fd_flags |= (unsigned) O_NONBLOCK;
-      if (fcntl(sock, F_SETFL, fd_flags) == -1)
-        return Error;
-      /* Set the socket to non-delay mode to avoid buffering problems */
-      setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &SokOpt, sizeof(SokOpt));
-      return Ok;
-    }
-
-    case turnOnBlocking: {
-      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
-
-      if (fd_flags == -1)
-        return Error;
-
-      fd_flags &= ~(unsigned) O_NONBLOCK;
-      if (fcntl(sock, F_SETFL, fd_flags) == -1)
-        return Error;
-      return Ok;
-    }
-
-    case enableAsynch: {    /* Enable interrupt driven I/O */
-#ifdef SYSV
-      if(ioctl(sock,I_SETSIG,S_INPUT|S_OUTPUT)>=0)
-      return Ok;
-    else
-      return Error;
-#else
-      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
-
-      if (fd_flags == -1)
-        return Error;
-
-      if (fcntl(sock, F_SETOWN, getpid()) < 0 || fcntl(sock, F_SETFL, fd_flags | (unsigned) O_ASYNC) < 0)
-        return Error;
-      else
-        return Ok;
-#endif
-    }
-
-    case disableAsynch: {    /* We no longer want to receive interrupts */
-#ifdef SYSV
-      if(ioctl(sock,I_SETSIG,0)>=0)
-      return Ok;
-    else
-      return Error;
-#else
-      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
-
-      if (fd_flags == -1)
-        return Error;
-
-      if (fcntl(sock, F_SETFL, fd_flags & ~(unsigned) O_ASYNC) < 0)
-        return Error;
-      else
-        return Ok;
-#endif
-    }
-
-    default:
-      return Error;      /* Unknown option */
-  }
+static retCode sockSeek(filePo io, integer count) {
+  outMsg(logFile, "seek not implemented on sockets");
+  return Error;
 }
 
 /* return the peername of a connection */

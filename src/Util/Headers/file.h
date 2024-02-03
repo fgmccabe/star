@@ -1,16 +1,6 @@
 /* 
   File level access to I/O
-  Copyright (c) 2016, 2017. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
+  Copyright (c) 2016, 2017, 2024 and beyond Francis G. McCabe
 */
 
 #ifndef _IO_FILE_H_
@@ -19,22 +9,19 @@
 #include <aio.h>
 #include <stdarg.h>
 #include "config.h"
-#include "io.h"
 #include "unistr.h"
 #include "ioP.h"
 #include "signals.h"
 
-extern ioPo stdIn;    /* Standard input  */
-extern ioPo stdOut;    /* Standard output */
-extern ioPo stdErr;    /* Standard error */
-
 typedef enum {
-  turnOffBlocking, turnOnBlocking, enableAsynch, disableAsynch
-} ioConfigOpt;
+  blocking, asynch
+} accessMode;
 
 typedef struct file_object_ *filePo;
 
 extern classPo fileClass;
+
+void closeAllFiles(void);                     /* Close down the file system */
 
 ioPo openInFile(char *file, ioEncoding encoding);
 ioPo openOutFile(char *file, ioEncoding encoding);
@@ -50,18 +37,29 @@ logical isExecutableFile(char *file);
 
 integer inText(filePo f, char *buffer, integer len);
 
+retCode flushFile(filePo f);            /* file flush */
+retCode flushIo(ioPo io);               // Version for io channels
+void flushOut(void);                    /* flush all files */
+
 ioPo Stdin(void);
 ioPo Stdout(void);
 ioPo Stderr(void);
 
 int fileNumber(filePo f);
-ioEncoding fileEncoding(filePo f);
 
-retCode configureIo(filePo f, ioConfigOpt mode);
 logical isFileBlocking(filePo f);
 logical isFileAsynch(filePo f);
 
-retCode configureForAsynch(filePo fl, ioCallBackProc cb, void *cl);
+accessMode fileAccessMode(filePo f);
+void resetAccessMode(filePo f, accessMode mode);
+
+retCode enableASynch(filePo f);
+retCode disableASynch(filePo f);
+
+typedef void (*completionSignaler)(filePo f, void *cl);
+
+retCode enqueueRead(filePo f, completionSignaler signaler, void *cl);
+progress asyncStatus(filePo f);
 
 retCode fileSeek(filePo f, integer pos);
 
@@ -69,23 +67,17 @@ void setup_stdin(void);
 void reset_stdin(void);
 retCode initLogfile(char *name);
 
-logical isInReady(filePo f);
-logical isOutReady(filePo f);
-
 retCode skipShellPreamble(filePo f);
-extern ioPo logFile;    /* The standard place to write logging msgs */
 
 char *resolveFileName(char *base, const char *path, integer pathLen, char *buff, integer buffLen);
 retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen);
 
-retCode fileEnqueueRead(ioPo io, integer count, ioCallBackProc signaler, void *cl);
-retCode fileEnqueueWrite(ioPo io, byte *buffer, integer count, void *cl);
-integer enqueuedCount(ioPo io);
-
 #ifdef VERIFY_OBJECT
-#define O_FILE(c) ((filePo)(checkCast((c),ioClass)))
+#define O_FILE(c) ((filePo)(checkCast((c),fileClass)))
 #else
 #define O_FILE(c) ((filePo)(c))
 #endif
+
+logical isAFile(objectPo o);
 
 #endif

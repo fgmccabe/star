@@ -59,7 +59,7 @@ static void initHostClass(classPo class, classPo request) {
 }
 
 static void retireHost(hostPo h) {
-  destroyObject(O_OBJECT(h));
+  decReference(O_OBJECT(h));
 }
 
 static void hostObject(objectPo o, va_list *args) {

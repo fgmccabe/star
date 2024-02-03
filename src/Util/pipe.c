@@ -31,42 +31,41 @@ static void PipeDestroy(objectPo o);
 static void PipeInit(objectPo list, va_list *args);
 
 PipeClassRec PipeClass = {
-  {
-    (classPo) &FileClass,                  // parent class is file object
-    "pipe",                               // this is the pipe class
-    initPipeClass,                        // Pipe class initializer, phase I
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,                        // Pipe object element creation
-    PipeDestroy,                          // Pipe object destruction
-    O_INHERIT_DEF,                        // erasure
-    PipeInit,                             // initialization of a file object
-    sizeof(PipeObject),                   // size of a pipe object
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,
-    NULL,                                  // pool of file values
-    PTHREAD_ONCE_INIT,                    // not yet initialized
-    PTHREAD_MUTEX_INITIALIZER
+  .objectPart = {
+    .parent = (classPo) &FileClass,                  // parent class is file object
+    .className = "pipe",                               // this is the pipe class
+    .classInit = initPipeClass,                        // Pipe class initializer, phase I
+    .classInherit = O_INHERIT_DEF,
+    .create = O_INHERIT_DEF,                        // Pipe object element creation
+    .destroy = PipeDestroy,                          // Pipe object destruction
+    .erase = O_INHERIT_DEF,                        // erasure
+    .init = PipeInit,                             // initialization of a file object
+    .size = sizeof(PipeObject),                   // size of a pipe object
+    .hashCode = O_INHERIT_DEF,
+    .equality = O_INHERIT_DEF,
+    .pool = NULL,                                  // pool of file values
+    .inited = PTHREAD_ONCE_INIT,                    // not yet initialized
+    .mutex = PTHREAD_MUTEX_INITIALIZER
   },
-  {
+  .lockPart = {
   },
-  {
-    O_INHERIT_DEF,                        // inBytes
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,                        // outBytes
-    O_INHERIT_DEF,
-    O_INHERIT_DEF,                        // backByte
-    O_INHERIT_DEF,                        // atEof
-    O_INHERIT_DEF,                        // flush
-    O_INHERIT_DEF                         // close
+  .ioPart = {
+    .read = O_INHERIT_DEF,                        // inBytes
+    .write = O_INHERIT_DEF,                       // outBytes
+    .backByte =  O_INHERIT_DEF,                        // backByte
+    .inputReady = O_INHERIT_DEF,
+    .outputReady = O_INHERIT_DEF,
+    .isAtEof = O_INHERIT_DEF,                        // atEof
+    .close = O_INHERIT_DEF,                         // close
   },
-  {
-    O_INHERIT_DEF,                        // configure a pipe
-    O_INHERIT_DEF,                        // seek
-    O_INHERIT_DEF,                        // readyIn
-    O_INHERIT_DEF,                        // readyOut
-    O_INHERIT_DEF                         // refill a pipe
+  .filePart = {
+    .seek = O_INHERIT_DEF,                        // seek
+    .filler = O_INHERIT_DEF,                      // Refill the pip
+    .asyncFill = O_INHERIT_DEF,                   // Asynchronous fill
+    .flush = O_INHERIT_DEF,                     // Flush the pipe
+    .asyncFlush = O_INHERIT_DEF
   },
-  {
+  .pipePart = {
   }
 };
 
@@ -88,8 +87,7 @@ static void PipeInit(objectPo o, va_list *args) {
     p->pipe.next->pipe.prev = p;
     sibling->pipe.next = p;
     p->pipe.prev = sibling;
-  }
-  else
+  } else
     p->pipe.next = p->pipe.prev = p;
 }
 
@@ -102,8 +100,7 @@ static void PipeDestroy(objectPo o) {
 
       p->pipe.next = p->pipe.prev = NULL;
       p->pipe.child = -1;        // we won't be the ones to kill the child off
-    }
-    else {
+    } else {
       int stat;
 
       if (waitpid(p->pipe.child, &stat, 0) != p->pipe.child)
@@ -129,17 +126,15 @@ static int _maxOpenFds() {
 retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpipe, ioPo *errpipe,
                  ioEncoding encoding) {
   int child, pipe1[2], pipe2[2], pipe3[2];
-  char * name = exec;
+  char *name = exec;
 
   if (pipe(pipe1) < 0 || pipe(pipe2) < 0 || pipe(pipe3) < 0 || exec == NULL) {
     logMsg(logFile, "problem %s (%d) in opening pipe %s", strerror(errno), errno, exec);
     return Error;
-  }
-  else if ((child = fork()) < 0) {
+  } else if ((child = fork()) < 0) {
     logMsg(logFile, "problem %s (%d) in forking %s", strerror(errno), errno, exec);
     return Error;
-  }
-  else if (child > 0) {    // We are the parent ...
+  } else if (child > 0) {    // We are the parent ...
     pipePo in = O_PIPE(newObject(thisClass, name, pipe1[1], encoding, ioWRITE, child, NULL));
     pipePo out = O_PIPE(newObject(thisClass, name, pipe2[0], encoding, ioREAD, child, in));
     pipePo err = O_PIPE(newObject(thisClass, name, pipe3[0], encoding, ioREAD, child, out));
@@ -153,8 +148,7 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
     close(pipe3[1]);
 
     return Ok;
-  }
-  else {        /* We are the child */
+  } else {        /* We are the child */
     close(pipe1[1]);
     close(pipe2[0]);    // Close the unused portions
     close(pipe3[0]);
@@ -162,8 +156,7 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
     if (dup2(pipe2[1], 1) < 0 || dup2(pipe2[1], 2) < 0 ||
         dup2(pipe1[0], 0) < 0 || dup2(pipe3[1], 2) < 0) {
       exit(-29);
-    }
-    else {
+    } else {
       int i, maxFds = _maxOpenFds();
 
       for (i = 3; i < maxFds; i++)

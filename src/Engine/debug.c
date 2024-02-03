@@ -274,7 +274,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc
       default:
         for (int ix = 0; ix < opts->count; ix++)
           outMsg(debugOutChnnl, "%s\n", opts->opts[ix].usage);
-        flushFile(debugOutChnnl);
+        flushIo(debugOutChnnl);
         return moreDebug;
     }
   }
@@ -498,7 +498,7 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, void *cl) {
     outStr(debugOutChnnl, "\n");
   }
 
-  flushFile(debugOutChnnl);
+  flushIo(debugOutChnnl);
   resetDeflt("n");
 
   return moreDebug;
@@ -520,7 +520,7 @@ void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
 static DebugWaitFor dbgDebug(char *line, processPo p, termPo loc, void *cl) {
   debugDebugging = !debugDebugging;
 
-  logMsg(stdErr, "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
+  logMsg(Stderr(), "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
   resetDeflt("n");
   return moreDebug;
 }
@@ -706,7 +706,7 @@ DebugWaitFor insDebug(processPo p) {
           outStr(debugOutChnnl, "\n");
         }
 
-        flushFile(debugOutChnnl);
+        flushIo(debugOutChnnl);
         stackSanityCheck(p->stk);
 
         switch (p->waitFor) {
@@ -724,7 +724,7 @@ DebugWaitFor insDebug(processPo p) {
       }
     } else {
       outStr(debugOutChnnl, "\n");
-      flushFile(debugOutChnnl);
+      flushIo(debugOutChnnl);
     }
   }
   return p->waitFor;
@@ -929,7 +929,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
           p->waitFor = cmder(&opts, p, currFrame(stk)->prog, loc);
         } else {
           outStr(debugOutChnnl, "\n");
-          flushFile(debugOutChnnl);
+          flushIo(debugOutChnnl);
         }
 
         switch (p->waitFor) {
@@ -947,7 +947,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
       }
     } else {
       outStr(debugOutChnnl, "\n");
-      flushFile(debugOutChnnl);
+      flushIo(debugOutChnnl);
     }
   }
   return p->waitFor;
