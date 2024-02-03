@@ -159,7 +159,7 @@ ReturnStatus g__formattime(heapPo h, termPo xc, termPo a1, termPo a2) {
   retCode ret = formatDate(O_IO(buff), fmt, fmtLen, now);
 
   if (ret == Ok) {
-    termPo result = allocateFromStrBuffer(buff, h);
+    termPo result = allocateFromStrBuffer(h, buff);
     closeIo(O_IO(buff));
 
     return (ReturnStatus) {.ret=Ok, .result=result};

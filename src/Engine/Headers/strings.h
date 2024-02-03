@@ -27,7 +27,7 @@ integer stringHash(stringPo str);
 
 termPo allocateString(heapPo H, const char *txt, long length);
 
-termPo allocateFromStrBuffer(strBufferPo bffr, heapPo H);
+termPo allocateFromStrBuffer(heapPo H, strBufferPo bffr);
 
 termPo allocateCString(heapPo H, const char *txt);
 

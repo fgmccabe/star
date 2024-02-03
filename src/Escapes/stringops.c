@@ -36,7 +36,7 @@ ReturnStatus g__chr_quote(heapPo h, termPo a1) {
   strBufferPo strb = newStringBuffer();
   retCode ret = qtChar(O_IO(strb), charVal(a1));
 
-  ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(strb, h)};
+  ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(h, strb)};
 
   closeIo(O_IO(strb));
   return result;
@@ -71,7 +71,7 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
       }
     }
 
-    ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(strb, h)};
+    ReturnStatus result = {.ret=ret, .result= allocateFromStrBuffer(h, strb)};
     closeIo(O_IO(strb));
     return result;
   } else {
@@ -340,7 +340,7 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
   }
 
   ReturnStatus result = {.ret=Ok,
-    .result= allocateFromStrBuffer(strb, h)};
+    .result= allocateFromStrBuffer(h, strb)};
 
   closeIo(O_IO(strb));
   return result;
