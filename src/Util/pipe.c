@@ -69,10 +69,13 @@ PipeClassRec PipeClass = {
   }
 };
 
-static classPo thisClass = (classPo) &PipeClass;
+static classPo pipeClass = (classPo) &PipeClass;
+
+logical isAPipe(objectPo p){
+  return objectHasClass(p,pipeClass);
+}
 
 static void initPipeClass(classPo class, classPo req) {
-  //  class->pool = newPool(sizeof(PipeObject),32);
 }
 
 static void PipeInit(objectPo o, va_list *args) {
@@ -80,7 +83,7 @@ static void PipeInit(objectPo o, va_list *args) {
   int child = va_arg(*args, int);
   pipePo sibling = va_arg(*args, pipePo);
 
-  p->pipe.child = child;
+  p->pipe.childProcess = child;
 
   if (sibling != NULL) {
     p->pipe.next = sibling->pipe.next;
@@ -93,25 +96,25 @@ static void PipeInit(objectPo o, va_list *args) {
 
 static void PipeDestroy(objectPo o) {
   pipePo p = O_PIPE(o);
-  if (p->pipe.child >= 0) {
+  if (p->pipe.childProcess >= 0) {
     if (p->pipe.next != p || p->pipe.prev != p) {
       p->pipe.next->pipe.prev = p->pipe.prev; // unlink the pipe object
       p->pipe.prev->pipe.next = p->pipe.next;
 
       p->pipe.next = p->pipe.prev = NULL;
-      p->pipe.child = -1;        // we won't be the ones to kill the child off
+      p->pipe.childProcess = -1;        // we won't be the ones to kill the child off
     } else {
       int stat;
 
-      if (waitpid(p->pipe.child, &stat, 0) != p->pipe.child)
-        outMsg(logFile, "Problem when waiting for sub-process %d", p->pipe.child);
+      if (waitpid(p->pipe.childProcess, &stat, 0) != p->pipe.childProcess)
+        outMsg(logFile, "Problem when waiting for sub-process %d", p->pipe.childProcess);
     }
   }
 }
 
 /* Open a pipe */
 
-static int _maxOpenFds() {
+static int maxOpenFds() {
 #if HAVE_GETDTABLESIZE
   return getdtablesize();
 #elif HAVE_GETRLIMIT
@@ -135,9 +138,9 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
     logMsg(logFile, "problem %s (%d) in forking %s", strerror(errno), errno, exec);
     return Error;
   } else if (child > 0) {    // We are the parent ...
-    pipePo in = O_PIPE(newObject(thisClass, name, pipe1[1], encoding, ioWRITE, child, NULL));
-    pipePo out = O_PIPE(newObject(thisClass, name, pipe2[0], encoding, ioREAD, child, in));
-    pipePo err = O_PIPE(newObject(thisClass, name, pipe3[0], encoding, ioREAD, child, out));
+    pipePo in = O_PIPE(newObject(pipeClass, name, pipe1[1], encoding, ioWRITE, child, NULL));
+    pipePo out = O_PIPE(newObject(pipeClass, name, pipe2[0], encoding, ioREAD, child, in));
+    pipePo err = O_PIPE(newObject(pipeClass, name, pipe3[0], encoding, ioREAD, child, out));
 
     *inpipe = O_IO(in);
     *outpipe = O_IO(out);
@@ -157,7 +160,7 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
         dup2(pipe1[0], 0) < 0 || dup2(pipe3[1], 2) < 0) {
       exit(-29);
     } else {
-      int i, maxFds = _maxOpenFds();
+      int i, maxFds = maxOpenFds();
 
       for (i = 3; i < maxFds; i++)
         close(i);    // Close all other files ...

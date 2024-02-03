@@ -13,16 +13,18 @@
   permissions and limitations under the License.
 */ 
 
-#ifndef _IO_PIPE_LIB_H_
-#define _IO_PIPE_LIB_H_
+#ifndef IO_PIPE_LIB_H_
+#define IO_PIPE_LIB_H_
 
 #include "config.h"
 #include "file.h"
 
-typedef struct _pipe_object_ *pipePo;
+typedef struct pipe_object_ *pipePo;
 
 retCode openPipe(char *exec,char **argv,char **envv,ioPo *inpipe,ioPo *outpipe,ioPo *errpipe,
                  ioEncoding encoding);
+
+logical isAPipe(objectPo p);
 
 #endif
 

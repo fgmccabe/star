@@ -13,8 +13,8 @@
   permissions and limitations under the License.
 */ 
 
-#ifndef _IO_PIPE_P_H_
-#define _IO_PIPE_P_H_
+#ifndef IO_PIPE_P_H_
+#define IO_PIPE_P_H_
 
 #include "config.h"
 #include "fileP.h"
@@ -24,7 +24,7 @@
 typedef struct {
 } PipeClassPartRec;
 
-typedef struct _pipe_class_ {
+typedef struct pipe_class_ {
   ObjectClassRec objectPart;
   LockClassPart lockPart;
   IoClassPartRec ioPart;              /* the io part of the class information */
@@ -34,12 +34,12 @@ typedef struct _pipe_class_ {
 
 extern PipeClassRec PipeClass; /* the standard pointer to a pipe class record */
 
-typedef struct _pipe_part_{
-  int child;
+typedef struct pipe_part_{
+  int childProcess;
   pipePo next,prev;                     /* pipes are connected to each other */
 } PipePart;
 
-typedef struct _pipe_object_ {
+typedef struct pipe_object_ {
   ObjectRec object;                     /* object level of the io structure */
   LockObjectRec lock;                   // Lock part of object
   IoPart io;                            /* Io level of io object */
