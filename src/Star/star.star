@@ -20,4 +20,5 @@ star{
   public import star.sets.
   public import star.strings.
   public import star.tuples.
+  public import star.vector.
 }

@@ -89,6 +89,8 @@
     "test.io2": "io2.star",
     "test.io3": "io3.star",
     "test.io4": "io4.star",
+    "test.iobytes": "iobytes.star",
+    "test.iochars": "iochars.star",
     "test.j": "j.star",
     "test.js": "js.star",
     "test.l": "l.star",

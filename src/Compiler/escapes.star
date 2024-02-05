@@ -119,11 +119,14 @@ star.compiler.escapes{
     "_popen" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle"),.nomnal("ioHandle")])),.raisEs(.nomnal("star.core*errorCode")))).
     "_close" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_end_of_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*boolean"))).
-    "_inchars" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string"))).
-    "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inchars" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inchars_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_inchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*char")),.raisEs(.nomnal("star.core*errorCode")))).
     "_inchar_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*char")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_inbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inbyte_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*integer")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.raisEs(.nomnal("star.core*errorCode")))).
+    "_inbytes_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpExp(.tpFun("future",2),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
@@ -367,10 +370,13 @@ star.compiler.escapes{
     "_close" => .true.
     "_end_of_file" => .true.
     "_inchars" => .true.
-    "_inbytes" => .true.
+    "_inchars_async" => .true.
     "_inchar" => .true.
     "_inchar_async" => .true.
     "_inbyte" => .true.
+    "_inbyte_async" => .true.
+    "_inbytes" => .true.
+    "_inbytes_async" => .true.
     "_inline" => .true.
     "_inline_async" => .true.
     "_intext" => .true.

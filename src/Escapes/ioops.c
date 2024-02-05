@@ -15,15 +15,36 @@
 #include "charP.h"
 #include "vectP.h"
 #include "futureP.h"
+#include "byteBuffer.h"
+
+static poolPo asyncPool = Null;
 
 static termPo ioErrorCode(retCode ret);
 
-typedef retCode (*nextProc)(ioPo in, ioPo out, void *cl);
+static retCode checkAsync(futurePo ft, heapPo h, void *cl, void *cl2);
 
-typedef struct {
+typedef struct asyncStruct_ *asyncPo;
+typedef retCode (*nextProc)(ioPo in, asyncPo async);
+typedef termPo (*asyncAlloc)(heapPo h, asyncPo async);
+typedef void (*asyncClose)(asyncPo async);
+typedef retCode (*asyncCleanup)(asyncPo async, retCode ret);
+
+typedef struct asyncStruct_ {
   nextProc next;
-  void *cl;
+  asyncAlloc alloc;
+  asyncClose close;
+  asyncCleanup cleanup;
+  integer data;
+  ioPo out;
 } AsyncStruct;
+
+static retCode lineCleanup(asyncPo async, retCode ret);
+
+void initIoOps() {
+  if (asyncPool == Null) {
+    asyncPool = newPool(sizeof(AsyncStruct), 16);
+  }
+}
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeIo(ioChannel(C_IO(a1))) == Ok)
@@ -53,27 +74,27 @@ ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
   }
 }
 
-static retCode checkInChar(futurePo ft, heapPo h, void *cl, void *cl2) {
-  filePo f = O_FILE(cl);
-  switch (asyncStatus(f)) {
-    case inProgress:
-      return Fail;
-    case completed: {
-      codePoint cp;
-      retCode ret = inChar(O_IO(f), &cp);
+static void asyncCloser(asyncPo async) {
+  freePool(asyncPool, async);
+}
 
-      if (ret == Ok) {
-        return resolveFuture(ft, allocateCharacter(cp));
-      } else
-        return rejectFuture(ft, ioErrorCode(ret));
-    }
-    case canceled: {
-      return rejectFuture(ft, canceledEnum);
-    }
-    case failed: {
-      return rejectFuture(ft, eIOERROR);
-    }
-  }
+static retCode oneChar(ioPo in, asyncPo async) {
+  codePoint cp;
+  retCode ret = inChar(in, &cp);
+  if (ret == Ok) {
+    async->data = cp;
+    return Switch;
+  } else
+    return ret;
+}
+
+static termPo allocChar(heapPo h, asyncPo sync) {
+  codePoint cp = (codePoint) (sync->data);
+  return allocateCharacter(cp);
+}
+
+static retCode oneCleanup(asyncPo sync, retCode ret) {
+  return Eof;
 }
 
 ReturnStatus g__inchar_async(heapPo h, termPo xc, termPo a1) {
@@ -84,8 +105,16 @@ ReturnStatus g__inchar_async(heapPo h, termPo xc, termPo a1) {
 
     retCode ret = enableASynch(f);
 
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = oneChar;
+    async->out = Null;
+    async->data = -1;
+    async->close = asyncCloser;
+    async->alloc = allocChar;
+    async->cleanup = oneCleanup;
+
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, checkInChar, io, Null);
+      futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
         return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
@@ -102,7 +131,7 @@ ReturnStatus g__inchar_async(heapPo h, termPo xc, termPo a1) {
   }
 }
 
-ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__inchars(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer limit = integerVal(a2);
 
@@ -117,15 +146,82 @@ ReturnStatus g__inchars(heapPo h, termPo a1, termPo a2) {
   }
 
   if (ret == Ok) {
-    integer length;
-    char *text = getTextFromBuffer(buffer, &length);
-
-    ReturnStatus rt = {.ret=Ok, .result=allocateString(h, text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(h, buffer)};
     closeIo(O_IO(buffer));
     return rt;
   } else {
     closeIo(O_IO(buffer));
-    return (ReturnStatus) {.ret=ret, .result=voidEnum};
+    return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+  }
+}
+
+static retCode nextChars(ioPo in, asyncPo async) {
+  if (async->data > 0) {
+    codePoint cp;
+    retCode ret = inChar(in, &cp);
+    if (ret == Ok) {
+      ret = outChar(async->out, cp);
+      async->data--;
+    }
+    return ret;
+  } else {
+    return Switch; // Signal that we are done
+  }
+}
+
+static void asyncStrCloser(asyncPo async) {
+  closeIo(async->out);
+  freePool(asyncPool, async);
+}
+
+static termPo allocStr(heapPo h, asyncPo async) {
+  return allocateFromStrBuffer(h, O_BUFFER(async->out));
+}
+
+ReturnStatus g__inchars_async(heapPo h, termPo xc, termPo a1, termPo a2) {
+  ioChnnlPo chnl = C_IO(a1);
+  integer limit = integerVal(a2);
+
+  ioPo io = ioChannel(chnl);
+  strBufferPo buffer = newStringBuffer();
+
+  if (isAFile(O_OBJECT(io))) {
+    filePo f = O_FILE(io);
+
+    retCode ret = enableASynch(f);
+
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = nextChars;
+    async->out = O_IO(buffer);
+    async->data = limit;
+    async->close = asyncStrCloser;
+    async->alloc = allocStr;
+    async->cleanup = lineCleanup;
+
+    if (ret == Ok) {
+      futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
+
+      if ((ret = enqueueRead(f, Null, Null)) == Ok)
+        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+    }
+    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+  } else {
+    retCode ret = Ok;
+    while (limit-- > 0 && ret == Ok) {
+      codePoint cp;
+      ret = inChar(io, &cp);
+      if (ret == Ok)
+        ret = outChar(O_IO(buffer), cp);
+    }
+
+    if (ret == Ok) {
+      ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(h, buffer)};
+      closeIo(O_IO(buffer));
+      return rt;
+    } else {
+      closeIo(O_IO(buffer));
+      return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+    }
   }
 }
 
@@ -144,13 +240,61 @@ ReturnStatus g__inbyte(heapPo h, termPo xc, termPo a1) {
   }
 }
 
+static termPo allocByte(heapPo h, asyncPo sync) {
+  codePoint cp = (codePoint) (sync->data);
+  return makeInteger((integer) cp);
+}
+
+static retCode oneByte(ioPo in, asyncPo async) {
+  byte b;
+  retCode ret = inByte(in, &b);
+  async->data = b;
+  return ret;
+}
+
+ReturnStatus g__inbyte_async(heapPo h, termPo xc, termPo a1) {
+  ioChnnlPo chnl = C_IO(a1);
+  ioPo io = ioChannel(chnl);
+  if (isAFile(O_OBJECT(io))) {
+    filePo f = O_FILE(io);
+
+    retCode ret = enableASynch(f);
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = oneByte;
+    async->out = Null;
+    async->data = -1;
+    async->close = asyncCloser;
+    async->alloc = allocByte;
+    async->cleanup = oneCleanup;
+
+    if (ret == Ok) {
+      futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
+
+      if ((ret = enqueueRead(f, Null, Null)) == Ok)
+        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+    }
+    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+  } else {
+    byte b;
+    retCode ret = inByte(io, &b);
+    switch (ret) {
+      case Ok:
+        return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
+      case Eof:
+        return (ReturnStatus) {.ret=Error, .result=eofEnum};
+      default:
+        return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+    }
+  }
+}
+
 termPo makeByte(heapPo h, integer ix, void *cl) {
   char *str = (char *) cl;
   integer ch = (byte) str[ix];
   return makeInteger(ch);
 }
 
-ReturnStatus g__inbytes(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__inbytes(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer limit = integerVal(a2);
 
@@ -176,8 +320,72 @@ ReturnStatus g__inbytes(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok, .result=vect};
   } else {
     closeIo(O_IO(buffer));
-    return (ReturnStatus) {.ret=ret, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
   }
+}
+
+static retCode nextBytes(ioPo in, asyncPo async) {
+  if (async->data > 0) {
+    byte by;
+    retCode ret = inByte(in, &by);
+    if (ret == Ok) {
+      ret = appendByteToBuffer(O_BYTEBUFFER(async->out), by);
+      async->data--;
+    }
+    return ret;
+  } else {
+    return Switch; // Signal that we are done
+  }
+}
+
+static termPo allocBytes(heapPo h, asyncPo async) {
+  integer length;
+  byte *bts = getBytesFromBuffer(O_BYTEBUFFER(async->out), &length);
+
+  return makeVector(h, length, makeByte, (void *) bts);
+}
+
+static retCode bytesCleanup(asyncPo async, retCode ret) {
+  switch (ret) {
+    case Eof:
+      if (byteBufferLength(O_BYTEBUFFER(async->out)) > 0)
+        return Ok;
+      else
+        return Eof;
+    default:
+      return ret;
+  }
+}
+
+ReturnStatus g__inbytes_async(heapPo h, termPo xc, termPo a1, termPo a2) {
+  ioChnnlPo chnl = C_IO(a1);
+  integer limit = integerVal(a2);
+
+  ioPo io = ioChannel(chnl);
+  byteBufferPo buffer = newByteBuffer();
+
+  if (isAFile(O_OBJECT(io))) {
+    filePo f = O_FILE(io);
+
+    retCode ret = enableASynch(f);
+
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = nextBytes;
+    async->out = O_IO(buffer);
+    async->data = limit;
+    async->close = asyncStrCloser;
+    async->alloc = allocBytes;
+    async->cleanup = bytesCleanup;
+
+    if (ret == Ok) {
+      futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
+
+      if ((ret = enqueueRead(f, Null, Null)) == Ok)
+        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+    }
+    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+  } else
+    return g__inbytes(h, xc, a1, a2);
 }
 
 ReturnStatus g__intext(heapPo h, termPo xc, termPo a1, termPo a2) {
@@ -265,71 +473,32 @@ ReturnStatus g__inline(heapPo h, termPo xc, termPo a1) {
   }
 }
 
-static retCode grabLineAsync(ioPo io, strBufferPo buffer) {
-  const char *match = "\n\r";
-  integer mlen = uniStrLen(match);
-
-  retCode ret = Ok;
-  while (ret == Ok) {
-    switch ((ret = isInputReady(io, 1))) {
-      case Ok: {
-        codePoint cp;
-        ret = inChar(io, &cp);
-        if (ret == Ok) {
-          if (uniIndexOf(match, mlen, 0, cp) >= 0) {
-            return Ok;
-          } else {
-            ret = outChar(O_IO(buffer), cp);
-            continue;
-          }
-        }
-      }
-      case Fail: {
-        // We have to re-enqueue the input
-        enqueueRead(O_FILE(io), Null, Null);
-        return Fail;
-      }
-      default:
-        return ret;
+static retCode lineChar(ioPo in, asyncPo async) {
+  codePoint cp;
+  retCode ret = inChar(in, &cp);
+  if (ret == Ok) {
+    if (ret == Ok) {
+      const char *match = "\n\r";
+      if (uniIndexOf(match, 2, 0, cp) >= 0)
+        return Switch; // We have a whole line
+      else
+        ret = outChar(async->out, cp);
     }
+    return ret;
+  } else {
+    return Switch; // Signal that we are done
   }
-  return ret;
 }
 
-static retCode checkInLine(futurePo ft, heapPo h, void *cl, void *cl2) {
-  filePo f = O_FILE(cl);
-  strBufferPo buffer = O_BUFFER(cl2);
-  switch (asyncStatus(f)) {
-    case inProgress:
-      return Fail;
-    case completed: {
-      retCode ret = grabLineAsync(O_IO(f), buffer);
-
-      switch (ret) {
-        case Ok: {
-          int root = gcAddRoot(h, (ptrPo) &ft);
-
-          termPo line = allocateFromStrBuffer(h, buffer);
-          gcReleaseRoot(h, root);
-
-          closeIo(O_IO(buffer));
-          return resolveFuture(ft, line);
-        }
-        default:
-          closeIo(O_IO(buffer));
-          return rejectFuture(ft, ioErrorCode(ret));
-        case Fail:
-          return Ok;
-      }
-    }
-    case canceled: {
-      closeIo(O_IO(buffer));
-      return rejectFuture(ft, canceledEnum);
-    }
-    case failed: {
-      closeIo(O_IO(buffer));
-      return rejectFuture(ft, eIOERROR);
-    }
+static retCode lineCleanup(asyncPo async, retCode ret) {
+  switch (ret) {
+    case Eof:
+      if (strBufferLength(O_BUFFER(async->out)) > 0)
+        return Ok;
+      else
+        return Eof;
+    default:
+      return ret;
   }
 }
 
@@ -343,25 +512,23 @@ ReturnStatus g__inline_async(heapPo h, termPo xc, termPo a1) {
 
     retCode ret = enableASynch(f);
 
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = lineChar;
+    async->out = O_IO(newStringBuffer());
+    async->data = -1;
+    async->close = asyncStrCloser;
+    async->alloc = allocStr;
+    async->cleanup = lineCleanup;
+
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, checkInLine, f, buffer);
+      futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
         return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
     }
     return (ReturnStatus) {.ret=ret, .result=eNOPERM};
-  } else {
-    retCode ret = grabLine(io, buffer);
-
-    if (ret == Ok) {
-      termPo line = allocateFromStrBuffer(h, buffer);
-      closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, line, isAccepted)};
-    } else {
-      closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
-    }
-  }
+  } else
+    return g__inline(h, xc, a1);
 }
 
 static retCode grabText(ioPo in, ioPo out) {
@@ -402,67 +569,15 @@ ReturnStatus g__get_file(heapPo h, termPo xc, termPo a1) {
   }
 }
 
-static retCode grabTextAsync(ioPo io, strBufferPo buffer) {
-  retCode ret = Ok;
-  while (ret == Ok) {
-    switch ((ret = isInputReady(io, 1))) {
-      case Ok: {
-        codePoint cp;
-        ret = inChar(io, &cp);
-        if (ret == Ok) {
-          ret = outChar(O_IO(buffer), cp);
-          continue;
-        }
-      }
-      case Fail: {
-        // We have to re-enqueue the input
-        enqueueRead(O_FILE(io), Null, Null);
-        return Fail;
-      }
-      case Eof:
-        return Ok;
-      default:
-        return ret;
-    }
-  }
-  return ret;
-}
-
-static retCode checkFileText(futurePo ft, heapPo h, void *cl, void *cl2) {
-  filePo f = O_FILE(cl);
-  strBufferPo buffer = O_BUFFER(cl2);
-  switch (asyncStatus(f)) {
-    case inProgress:
-      return Fail;
-    case completed: {
-      retCode ret = grabTextAsync(O_IO(f), buffer);
-
-      switch (ret) {
-        case Ok: {
-          int root = gcAddRoot(h, (ptrPo) &ft);
-
-          termPo line = allocateFromStrBuffer(h, buffer);
-          gcReleaseRoot(h, root);
-
-          closeIo(O_IO(buffer));
-          return resolveFuture(ft, line);
-        }
-        default:
-          closeIo(O_IO(buffer));
-          return rejectFuture(ft, ioErrorCode(ret));
-        case Fail:
-          return Ok;
-      }
-    }
-    case canceled: {
-      closeIo(O_IO(buffer));
-      return rejectFuture(ft, canceledEnum);
-    }
-    case failed: {
-      closeIo(O_IO(buffer));
-      return rejectFuture(ft, eIOERROR);
-    }
-  }
+static retCode fileChar(ioPo in, asyncPo async) {
+  codePoint cp;
+  retCode ret = inChar(in, &cp);
+  if (ret == Ok)
+    return outChar(async->out, cp);
+  else if (ret == Eof)
+    return Switch; // Signal that we are done
+  else
+    return ret;
 }
 
 ReturnStatus g__getfile_async(heapPo h, termPo xc, termPo a1) {
@@ -478,8 +593,16 @@ ReturnStatus g__getfile_async(heapPo h, termPo xc, termPo a1) {
 
       retCode ret = enableASynch(f);
 
+      asyncPo async = (asyncPo) allocPool(asyncPool);
+      async->next = fileChar;
+      async->out = O_IO(newStringBuffer());
+      async->data = -1;
+      async->close = asyncStrCloser;
+      async->alloc = allocStr;
+      async->cleanup = lineCleanup;
+
       if (ret == Ok) {
-        futurePo ft = makeFuture(h, voidEnum, checkFileText, f, newStringBuffer());
+        futurePo ft = makeFuture(h, voidEnum, checkAsync, io, async);
 
         if ((ret = enqueueRead(f, Null, Null)) == Ok)
           return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
@@ -678,5 +801,73 @@ termPo ioErrorCode(retCode ret) {
       return eofEnum;
     default:
       return eIOERROR;
+  }
+}
+
+static retCode grabAsync(ioPo io, AsyncStruct *async) {
+  retCode ret = Ok;
+  while (ret == Ok) {
+    switch ((ret = isInputReady(io, 1))) {
+      case Ok: {
+        switch ((ret = async->next(io, async))) {
+          case Ok:
+            continue;
+          case Fail:
+            enqueueRead(O_FILE(io), Null, Null);
+            return Fail;
+          case Switch:
+            return Ok;
+          case Eof:
+            return async->cleanup(async, ret);
+          default:
+            return ret;
+        }
+      }
+      case Fail: {
+        // We have to re-enqueue the input
+        enqueueRead(O_FILE(io), Null, Null);
+        return Fail;
+      }
+      default:
+        return async->cleanup(async, ret);
+    }
+  }
+  return ret;
+}
+
+retCode checkAsync(futurePo ft, heapPo h, void *cl, void *cl2) {
+  filePo f = O_FILE(cl);
+  asyncPo async = (asyncPo) cl2;
+  switch (asyncStatus(f)) {
+    case inProgress:
+      return Fail;
+    case completed: {
+      retCode ret = grabAsync(O_IO(f), async);
+
+      switch (ret) {
+        case Ok: {
+          int root = gcAddRoot(h, (ptrPo) &ft);
+
+          termPo line = async->alloc(h, async);
+          gcReleaseRoot(h, root);
+
+          async->close(async);
+          return resolveFuture(ft, line);
+        }
+        default:
+          async->close(async);
+          return rejectFuture(ft, ioErrorCode(ret));
+        case Fail:
+          return Ok;
+      }
+    }
+    case canceled: {
+      async->close(async);
+      return rejectFuture(ft, canceledEnum);
+    }
+    case failed: {
+      async->close(async);
+      return rejectFuture(ft, eIOERROR);
+    }
   }
 }
