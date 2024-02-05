@@ -10,7 +10,7 @@
 
 extern termPo eVect;
 extern labelPo lf1,lf2,lf3,lf4;
-extern labelPo vct1,vct2,vct3,vct4,vect;
+extern labelPo vct1,vct2,vct3,vct4,vectorLbl;
 
 void initVect();
 void scanVect(gcSupportPo G);

@@ -52,6 +52,8 @@ static void initWordBufferClass(classPo class, classPo req) {
 
 size_t grainSize(bufferGrain grain) {
   switch (grain) {
+    case byteGrain:
+      return sizeof(byte);
     case shortGrain:
       return sizeof(int16);
     case wordGrain:
@@ -98,6 +100,10 @@ static retCode wordBufferInWords(wordBufferPo buffer, byte *ch, integer count, i
       break;
     } else {
       switch (buffer->buffer.grain) {
+        case byteGrain: {
+          *ch = buffer->buffer.buffer[buffer->buffer.in_pos++];
+          break;
+        }
         case shortGrain: {
           int16 *inter = (int16 *) ch;
           *inter++ = ((int16 *) buffer->buffer.buffer)[buffer->buffer.in_pos++];
@@ -190,6 +196,9 @@ retCode reserveBufferSpace(wordBufferPo b, integer len, integer *pos) {
 retCode appendWordToBuffer(wordBufferPo b, integer word) {
   ensureSpace(b, 1);
   switch (b->buffer.grain) {
+    case byteGrain:
+      b->buffer.buffer[b->buffer.out_pos++] = (byte) word;
+      return Ok;
     case shortGrain:
       ((int16 *) b->buffer.buffer)[b->buffer.out_pos++] = (int16) word;
       return Ok;
@@ -207,6 +216,9 @@ retCode writeIntoBuffer(wordBufferPo b, integer pos, integer data) {
   assert(pos >= 0 && pos < b->buffer.out_pos);
 
   switch (b->buffer.grain) {
+    case byteGrain:
+      b->buffer.buffer[b->buffer.out_pos++] = (byte) data;
+      return Ok;
     case shortGrain:
       ((int16 *) b->buffer.buffer)[pos] = (int16) data;
       return Ok;
