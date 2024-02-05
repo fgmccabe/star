@@ -9,7 +9,7 @@
 
 termPo eVect;
 labelPo lf1, lf2, lf3, lf4;
-labelPo vct1, vct2, vct3, vct4, vect;
+labelPo vct1, vct2, vct3, vct4, vectorLbl;
 
 void initVect() {
   eVect = declareEnum("star.vector#e", 0, globalHeap);
@@ -21,7 +21,7 @@ void initVect() {
   vct2 = declareLbl("star.vector#vct2", 2, 6);
   vct3 = declareLbl("star.vector#vct3", 3, 7);
   vct4 = declareLbl("star.vector#vct4", 4, 8);
-  vect = declareLbl("star.vector#vect", 2, 0);
+  vectorLbl = declareLbl("star.vector#vector", 2, 0);
 }
 
 void scanVect(gcSupportPo G) {
@@ -73,13 +73,13 @@ static logical isVct4(termPo t) {
 }
 
 logical isVector(termPo t) {
-  return isVLbl(t, vect);
+  return isVLbl(t, vectorLbl);
 }
 
 static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, logical alt, char **sep) {
   if (isEVect(t))
     return Ok;
-  else if (depth <= 1)
+  else if (depth <= 0)
     return outMsg(out, " ... ");
   else if (isLf1(t)) {
     retCode ret = outStr(out, *sep);
@@ -370,5 +370,5 @@ termPo makeVector(heapPo h, integer ln, makeCB cb, void *cl) {
   termPo v = grab(h, &ix, ln, dp, cb, cl);
 
   assert(ix == ln);
-  return allocateV2(h, vect, makeInteger(dp), (termPo) v);
+  return allocateV2(h, vectorLbl, makeInteger(dp), (termPo) v);
 }

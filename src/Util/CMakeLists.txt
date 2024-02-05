@@ -36,6 +36,7 @@ set(PUBLIC_HEADERS
         Headers/pool.h
         Headers/retcode.h
         Headers/pipe.h
+        Headers/byteBuffer.h
         Headers/wordBuffer.h
         Headers/stringBuffer.h
         Headers/timer.h
@@ -62,6 +63,7 @@ set(HEADER_FILES
         Headers/managedP.h
         Headers/objectP.h
         Headers/pipeP.h
+        Headers/byteBufferP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
         Headers/topSort.h
@@ -76,7 +78,8 @@ set(HEADER_FILES
         Headers/formatted.h
         Headers/multiP.h
         Headers/match.h
-        Headers/quick.h)
+        Headers/quick.h
+        Headers/byteBufferP.h)
 
 set(SOURCE_FILES
         buddy.c
@@ -120,7 +123,8 @@ set(SOURCE_FILES
 #        ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES})
+        ${HEADER_FILES}
+        byteBuffer.c)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}

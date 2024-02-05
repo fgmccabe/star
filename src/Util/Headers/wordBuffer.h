@@ -19,6 +19,7 @@ typedef struct wordBuffer_ *wordBufferPo;
 extern classPo wordBufferClass;
 
 typedef enum{
+  byteGrain,
   shortGrain,
   wordGrain,
   longGrain
