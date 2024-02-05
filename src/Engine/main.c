@@ -26,6 +26,7 @@
 #include "futureP.h"
 #include "thunkP.h"
 #include "vectP.h"
+#include "ioops.h"
 
 #include "stringBufferP.h"
 #include "continuationP.h"
@@ -73,6 +74,7 @@ int main(int argc, char **argv) {
   initIoChnnl();
   initThr();
   initTime();
+  initIoOps();
 
   char *rootWd = defltCWD();
   defltRepoDir();

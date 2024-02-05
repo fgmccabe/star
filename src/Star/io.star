@@ -39,6 +39,40 @@ star.io{
     }
   }
 
+  public rdChars:raises ioException |: (ioHandle,integer) => string.
+  rdChars(H,Cx) => valof{
+    try{
+      valis _inchars(H,Cx)
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
+    }
+  }
+
+  public rdCharsAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,integer)=> string.
+  rdCharsAsync(IO,Cx) => valof{
+    try{
+      Fut = _inchars_async(IO,Cx);
+      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+	.go_ahead => {
+	  if _futureIsResolved(Fut) then{
+	    try{
+	      valis _futureVal(Fut)
+	    } catch errorCode in {
+	      | .eof => raise .pastEof
+	      | _ default => raise .ioError
+	    }
+	  }
+	  else
+	  this retire .retired_
+	}
+      }
+    }
+    catch errorCode in {
+      | .eNOPERM => raise .ioError
+    }
+  }
+
   public rdLine:raises ioException |: (ioHandle) => string.
   rdLine(H) => valof{
     try{
@@ -73,6 +107,44 @@ star.io{
     }
   }
 
+  public rdBytes:raises ioException |: (ioHandle,integer) => vect[integer].
+  rdBytes(H,Cx) => valof{
+    try{
+      valis _inbytes(H,Cx)
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
+    }
+  }
+
+  public rdBytesAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,integer)=> vect[integer].
+  rdBytesAsync(IO,Cx) => valof{
+    try{
+      Fut = _inbytes_async(IO,Cx);
+      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+	.go_ahead => {
+	  if _futureIsResolved(Fut) then{
+	    try{
+	      valis _futureVal(Fut)
+	    } catch errorCode in {
+	      | .eof => raise .pastEof
+	      | _ default => raise .ioError
+	    }
+	  }
+	  else
+	  this retire .retired_
+	}
+      }
+    }
+    catch errorCode in {
+      | .eNOPERM => raise .ioError
+    }
+  }
+
+
+
+  
+
   public rdFileAsync:all e ~~ (this:task[e]), raises ioException|:(string)=> string.
   rdFileAsync(F) => valof{
     try{
@@ -96,8 +168,4 @@ star.io{
       | .eNOPERM => raise .ioError
     }
   }
-  
-
-  
-
 }

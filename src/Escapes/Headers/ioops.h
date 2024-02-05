@@ -7,4 +7,6 @@
 
 #include "iochnnl.h"
 
+void initIoOps();
+
 #endif //STAR_IOOPS_H

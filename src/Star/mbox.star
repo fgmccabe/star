@@ -94,7 +94,7 @@ star.mbox{
     Q := (Ts//spawnTask)::qc[task[e]];
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
 
-    while .true do{
+    while ~isEmpty(Q!) || ~isEmpty(BlockQ!) do{
       while ~isEmpty(Q!) do{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
@@ -130,7 +130,8 @@ star.mbox{
 	BlockQ := BQ;
 	Q := Wts
       };
-    }
+    };
+    raise .canceled
   }
 
   testBlocked:all y ~~ (cons[(()=>boolean,y)],cons[(()=>boolean,y)],qc[y])=>
