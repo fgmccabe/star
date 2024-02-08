@@ -8,8 +8,7 @@
 #include <memory.h>
 #include "unistrP.h"
 
-
-char* retCodeNames[MaxRetCode] = {"Ok", "Fail", "Switch", "Interrupt", "Error", "Eof", "Space"};
+char *retCodeNames[MaxRetCode] = {"Ok", "Fail", "Switch", "Interrupt", "Error", "Eof", "Space"};
 
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) {
   integer pos = *start;
@@ -124,7 +123,7 @@ int codePointSize(codePoint ch) {
     return 4;
 }
 
-integer advanceCodePoint(char *src, integer start, integer end, integer count) {
+integer advanceCodePoint(const char *src, integer start, integer end, integer count) {
   while (count-- > 0 && start < end) {
     codePoint ch;
     if (nxtPoint(src, &start, end, &ch) == Ok)
@@ -439,6 +438,11 @@ integer uniIndexOf(const char *s, integer len, integer from, codePoint c) {
   return -1;
 }
 
+retCode uniCharAt(const char *src, integer len, integer index, codePoint *cp) {
+  integer pos = advanceCodePoint(src, 0, len, index);
+  return nxtPoint(src,&pos,len,cp);
+}
+
 integer uniLastIndexOf(const char *s, integer len, codePoint c) {
   integer lx = -1;
   integer pos = 0;
@@ -569,7 +573,7 @@ logical uniIsSuffix(const char *s1, integer len1, const char *s2, integer len2) 
   integer pos1 = len1;
   integer pos2 = len2;
 
-  while(pos1>0 && pos2>0) {
+  while (pos1 > 0 && pos2 > 0) {
     codePoint ch1 = prevCodePoint(s1, &pos1);
     codePoint ch2 = prevCodePoint(s2, &pos2);
 
@@ -577,7 +581,7 @@ logical uniIsSuffix(const char *s1, integer len1, const char *s2, integer len2) 
       return False;
   }
 
-  return (logical)pos2>=pos1;
+  return (logical) pos2 >= pos1;
 }
 
 integer uniHash(const char *name) {
@@ -619,7 +623,7 @@ integer wordHash(const uint32 *data, long len) {
 }
 
 // Ensures that hash codes are always positive
-integer hash61(integer ix){
+integer hash61(integer ix) {
   return (integer) ((uint64) ix & ((uint64) LARGE_INT61));
 }
 

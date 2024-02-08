@@ -30,4 +30,12 @@ typedef enum {
   failed
 } progress;
 
+typedef enum{
+  notStarted,
+  running,
+  waiting,
+  succeeded,
+  failure
+} taskState;
+
 #endif

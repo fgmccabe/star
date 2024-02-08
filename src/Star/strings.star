@@ -2,6 +2,7 @@ star.strings{
   import star.core.
   import star.arith.
   import star.coerce.
+  import star.iterable.
 
   -- Chars --
   public implementation equality[char] => {
@@ -108,6 +109,19 @@ star.strings{
   public implementation sequence[string->>char] => {
     _cons(C,S) => _str_cons(C,S).
     _nil = "".
+  }
+
+  public implementation iter[string->>char] => let{.
+    strIter(S,P,P,X,F) => X.
+    strIter(S,P,L,X,F) where P<L && Ch?=_str_charat(S,P) =>
+      strIter(S,P+1,L,F(Ch,X),F).
+    strIter(_,_,_,X,_) => X.
+  .} in {
+    _iter(Txt,X,F) => strIter(Txt,0,size(Txt),X,F)
+  }
+
+  public implementation generate[string->>char] => {
+    _generate(S) => iterGenerator(S)
   }
 
   public isDigit:(char)=>boolean.

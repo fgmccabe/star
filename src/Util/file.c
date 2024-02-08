@@ -1,6 +1,6 @@
 /*
   File I/O class
-  Copyright (c) 2016, 2017. Francis G. McCabe
+  Copyright (c) 2016, 2017, 2024 and beyond. Francis G. McCabe
 */
 
 #include "config.h"    // Invoke configuration header
@@ -147,6 +147,7 @@ void fileInit(objectPo o, va_list *args) {
   // Set up the buffer pointers
   f->file.in_pos = 0;
   f->file.out_pos = 0;
+  f->file.wr_pos = 0;
   f->file.in_len = 0;
   f->file.fno = va_arg(*args, int);             // set up the file number
   f->file.file_pos = 0;
@@ -285,7 +286,7 @@ retCode flSeek(filePo f, integer pos) {
     return ioErrorMsg(io, "problem %s (%d) in positioning %s", strerror(errno), errno,
                       fileName(O_IO(f)));
   else {
-    f->file.in_pos = f->file.out_pos = 0;
+    f->file.in_pos = 0;
     f->file.in_len = 0;                 // ensure that we will be refilling
     f->file.file_pos = pos;
 
@@ -379,7 +380,7 @@ static void startAlarm(void)                   // enable the virtual timer again
    closing the file */
 
 retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
-  if (f->file.aio.aio_fildes >= 0)
+  if (f->file.aio.aio_fildes >= 0 || !isReadingFile(O_IO(f)))
     return Error;         // Already trying to read from this file
   else if (f->file.in_pos < f->file.in_len)
     return Ok;            // Already data in the input buffer
@@ -400,7 +401,7 @@ retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
   return Ok;
 }
 
-progress asyncStatus(filePo f) {
+progress asyncRdStatus(filePo f) {
   if (f->file.aio.aio_fildes >= 0) {
     switch (aio_error(&f->file.aio)) {
       case EINPROGRESS:
@@ -409,14 +410,52 @@ progress asyncStatus(filePo f) {
         return canceled;
       case 0: {
         ssize_t count = aio_return(&f->file.aio);
-        if (count > 0) {
-          f->file.in_len += (int16) count;
+        if (isReadingFile(O_IO(f))) {
+          if (count > 0) {
+            f->file.in_len += (int16) count;
+            f->file.file_pos += count;
+            f->file.aio.aio_fildes = -1;
+            return completed;
+          } else if (count == 0) {
+            f->file.in_pos = f->file.in_len = 0;
+            f->io.status = Eof;  // we have reach end of file
+            f->file.aio.aio_fildes = -1;
+            return completed;
+          } else
+            return failed;
+        } else
+          return failed;
+      }
+      default:
+        return failed;
+    }
+  } else
+    return completed;
+}
+
+progress asyncWrStatus(filePo f) {
+  if (f->file.aio.aio_fildes >= 0) {
+    switch (aio_error(&f->file.aio)) {
+      case EINPROGRESS:
+        return inProgress;
+      case ECANCELED:
+        return canceled;
+      case 0: {
+        ssize_t count = aio_return(&f->file.aio);
+        if (isWritingFile(O_IO(f))) {
+          if (count == f->file.wr_pos) { // We wrote everything
+            assert(f->file.out_pos >= f->file.wr_pos);
+            // Preserve output buffer written since last write
+            byteMove(f->file.out_line, NumberOf(f->file.out_line), &f->file.out_line[f->file.wr_pos],
+                     f->file.out_pos - f->file.wr_pos);
+            f->file.out_pos -= f->file.wr_pos;
+            f->file.wr_pos = 0;
+          } else { // We did not write everything in the buffer
+            byteMove(f->file.out_line, NumberOf(f->file.out_line), &f->file.out_line[count], f->file.out_pos - count);
+            f->file.out_pos = f->file.out_pos - count;
+            f->file.wr_pos -= count;
+          }
           f->file.file_pos += count;
-          f->file.aio.aio_fildes = -1;
-          return completed;
-        } else if (count == 0) {
-          f->file.in_pos = f->file.in_len = 0;
-          f->io.status = Eof;  // we have reach end of file
           f->file.aio.aio_fildes = -1;
           return completed;
         } else
@@ -500,10 +539,33 @@ retCode asyncFileFill(filePo f) {
   return Ok;
 }
 
+retCode enqueueWrite(filePo f, completionSignaler signaler, void *cl) {
+  if (f->file.aio.aio_fildes >= 0 || !isWritingFile(O_IO(f)))
+    return Error;         // Already trying to read from this file
+  else if (f->file.out_pos == 0)
+    return Ok;            // Output buffer is empty
+  assert(f->file.wr_pos == 0);
+  f->file.signaler = signaler;
+  memset(&f->file.aio, 0, sizeof(struct aiocb));
+  f->file.aio.aio_fildes = f->file.fno;
+  f->file.aio.aio_nbytes = f->file.wr_pos = f->file.out_pos;
+  f->file.aio.aio_buf = f->file.out_line;
+  f->file.aio.aio_reqprio = 0;
+  f->file.aio.aio_offset = f->file.file_pos;
+  f->file.aio.aio_sigevent.sigev_notify = (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
+  f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
+  f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
+
+  int s = aio_write(&f->file.aio);
+  if (s == -1)
+    return Error;
+  return Ok;
+}
+
 retCode fileFlush(filePo f) {
   int fno = f->file.fno;
   long written;
-  long remaining = f->file.out_pos;
+  long remaining = f->file.out_pos - f->file.wr_pos;
   byte *cp = f->file.out_line;
   long writeGap = 0;
 
@@ -535,7 +597,7 @@ retCode fileFlush(filePo f) {
       remaining -= written;
     }
   }
-  f->file.out_pos = 0;
+  f->file.out_pos = f->file.wr_pos;
   return f->io.status = Ok;
 }
 
@@ -863,7 +925,7 @@ retCode rewindFile(filePo f) {
     return ioErrorMsg(O_IO(f), "problem %s (%d) in rewinding %s", strerror(errno), errno,
                       fileName(O_IO(f)));
   else {
-    f->file.in_pos = f->file.out_pos = 0;
+    f->file.in_pos = f->file.out_pos = f->file.wr_pos = 0;
     f->file.in_len = 0;
     return f->io.status = Ok;
   }

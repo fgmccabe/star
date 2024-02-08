@@ -59,7 +59,9 @@ retCode disableASynch(filePo f);
 typedef void (*completionSignaler)(filePo f, void *cl);
 
 retCode enqueueRead(filePo f, completionSignaler signaler, void *cl);
-progress asyncStatus(filePo f);
+retCode enqueueWrite(filePo f, completionSignaler signaler, void *cl);
+progress asyncRdStatus(filePo f);
+progress asyncWrStatus(filePo f);
 
 retCode fileSeek(filePo f, integer pos);
 

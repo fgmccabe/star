@@ -190,6 +190,23 @@ ReturnStatus g__str2int(heapPo h, termPo a1) {
   }
 }
 
+ReturnStatus g__str_charat(heapPo h, termPo a1, termPo a2) {
+  integer len;
+  const char *str = strVal(a1, &len);
+  integer ix = integerVal(a2);
+
+  if (ix >= len)
+    return (ReturnStatus) {.ret=Ok, .result = noneEnum};
+  else {
+    codePoint cp;
+    retCode ret = uniCharAt(str, len, ix, &cp);
+    if (ret == Ok) {
+      return (ReturnStatus) {.ret=Ok, .result = (termPo) wrapSome(h, allocateCharacter(cp))};
+    } else
+      return (ReturnStatus) {.ret=Ok, .result = noneEnum};
+  }
+}
+
 ReturnStatus g__str_gen(heapPo h, termPo a1) {
   integer len;
   const char *str = strVal(a1, &len);
