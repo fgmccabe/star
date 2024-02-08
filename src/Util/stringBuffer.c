@@ -188,7 +188,7 @@ static retCode bufferBackByte(ioPo io, byte b) {
 static retCode bufferAtEof(ioPo io) {
   strBufferPo f = O_BUFFER(io);
 
-  if (f->buffer.out_pos < f->buffer.size)
+  if (f->buffer.in_pos < f->buffer.size)
     return Ok;
   else
     return Eof;

@@ -141,10 +141,6 @@ star.io{
     }
   }
 
-
-
-  
-
   public rdFileAsync:all e ~~ (this:task[e]), raises ioException|:(string)=> string.
   rdFileAsync(F) => valof{
     try{
@@ -182,6 +178,39 @@ star.io{
   wrCharAsync(IO,C) => valof{
     try{
       Fut = _outchar_async(IO,C);
+      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+	.go_ahead => {
+	  if _futureIsResolved(Fut) then{
+	    try{
+	      valis _futureVal(Fut)
+	    } catch errorCode in {
+	      | _ default => raise .ioError
+	    }
+	  }
+	  else
+	  this retire .retired_
+	}
+      }
+    }
+    catch errorCode in {
+      | .eNOPERM => raise .ioError
+    }
+  }
+
+  public wrText:raises ioException |: (ioHandle,string) => ().
+  wrText(H,S) => valof{
+    try{
+      valis _outtext(H,S)
+    } catch errorCode in {
+      | _ default => raise .ioError
+    }
+  }
+
+  public wrTextAsync:all e ~~ (this:task[e]), raises ioException|:
+    (ioHandle,string)=> ().
+  wrTextAsync(IO,S) => valof{
+    try{
+      Fut = _outtext_async(IO,S);
       case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{

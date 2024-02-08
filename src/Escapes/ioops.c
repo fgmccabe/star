@@ -8,6 +8,7 @@
 #include <arithP.h>
 #include <errorCodes.h>
 #include <cons.h>
+#include <stdlib.h>
 #include "future.h"
 #include "ioops.h"
 #include "globals.h"
@@ -661,7 +662,7 @@ ReturnStatus g__outchar_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     asyncPo async = (asyncPo) allocPool(asyncPool);
     async->next = wrChar;
     async->buffer = Null;
-    async->data = charVal(a2);;
+    async->data = charVal(a2);
     async->close = asyncCloser;
     async->alloc = allocUnit;
     async->cleanup = wrCleanup;
@@ -685,6 +686,47 @@ ReturnStatus g__outbyte(heapPo h, termPo xc, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   else
     return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+}
+
+static taskState wrByte(ioPo out, asyncPo async) {
+  byte by = (byte) async->data;
+  assert(async->state == notStarted);
+  retCode ret = outByte(out, by);
+  async->state = succeeded;
+
+  if (ret == Ok)
+    return waiting;
+  else {
+    async->ret = ret;
+    return failure;
+  }
+}
+
+ReturnStatus g__outbyte_async(heapPo h, termPo xc, termPo a1, termPo a2) {
+  ioChnnlPo chnl = C_IO(a1);
+  ioPo io = ioChannel(chnl);
+  if (isAFile(O_OBJECT(io))) {
+    filePo f = O_FILE(io);
+
+    retCode ret = enableASynch(f);
+
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = wrByte;
+    async->buffer = Null;
+    async->data = integerVal(a2);
+    async->close = asyncCloser;
+    async->alloc = allocUnit;
+    async->cleanup = wrCleanup;
+    async->state = notStarted;
+
+    if (ret == Ok) {
+      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
+
+      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+    }
+    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+  } else
+    return g__outchar(h, xc, a1, a2);
 }
 
 ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
@@ -721,6 +763,67 @@ ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Ok, .result=unitEnum};
   else
     return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+}
+
+static taskState wrText(ioPo out, asyncPo async) {
+  strBufferPo buffer = O_BUFFER(async->buffer);
+  if (isFileAtEof(O_IO(buffer)) == Eof) {
+    async->state = succeeded;
+    return waiting;
+  } else {
+    codePoint cp;
+    retCode ret = inChar(O_IO(buffer), &cp);
+    if (ret == Ok) {
+      ret = outChar(out, cp);
+    }
+
+    if (ret == Ok)
+      return running;
+
+    else {
+      async->ret = ret;
+      return failure;
+    }
+  }
+}
+
+static void textCloser(asyncPo async) {
+  free((void*)async->data);
+  closeIo(async->buffer);
+  freePool(asyncPool, async);
+}
+
+ReturnStatus g__outtext_async(heapPo h, termPo xc, termPo a1, termPo a2) {
+  ioChnnlPo chnl = C_IO(a1);
+  ioPo io = ioChannel(chnl);
+  if (isAFile(O_OBJECT(io))) {
+    filePo f = O_FILE(io);
+
+    retCode ret = enableASynch(f);
+
+    integer len;
+    const char *text = strVal(a2, &len);
+    char *copy = malloc(len + 1);
+    uniNCpy(copy, len+1, text, len);
+    strBufferPo buffer = newReadStringBuffer(copy, len);
+
+    asyncPo async = (asyncPo) allocPool(asyncPool);
+    async->next = wrText;
+    async->buffer = O_IO(buffer);
+    async->data = (integer)copy;
+    async->close = textCloser;
+    async->alloc = allocUnit;
+    async->cleanup = wrCleanup;
+    async->state = notStarted;
+
+    if (ret == Ok) {
+      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
+
+      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+    }
+    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+  } else
+    return g__outchar(h, xc, a1, a2);
 }
 
 ReturnStatus g__show(heapPo h, termPo a1) {
@@ -938,8 +1041,8 @@ static taskState pushAsync(ioPo io, AsyncStruct *async) {
         return running;
       }
       default:
-        async->ret = async->cleanup(async,ret);
-        return (async->ret==Ok?succeeded:failure);
+        async->ret = async->cleanup(async, ret);
+        return (async->ret == Ok ? succeeded : failure);
     }
   }
   return failure;
