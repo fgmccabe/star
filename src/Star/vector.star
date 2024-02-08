@@ -51,7 +51,7 @@ star.vector{
   pick:all x ~~ (vct[x],integer,integer,integer)=>option[x].
   pick(T,Ix,K,Dp) => case Ix in {
     0 => case T in {
-      | .e => .none
+      .e => .none
       | .vct1(X) => lookup(X,K,Dp)
       | .vct2(X,_) => lookup(X,K,Dp)
       | .vct3(X,_,_) => lookup(X,K,Dp)

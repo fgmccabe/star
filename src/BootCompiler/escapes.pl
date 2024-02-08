@@ -125,8 +125,8 @@ escapeType("_inbytes",constrained(funType(tplType([type("ioHandle"),type("star.c
 escapeType("_inbytes_async",constrained(funType(tplType([type("ioHandle"),type("star.core*integer")]),tpExp(tpExp(tpFun("future",2),tpExp(tpFun("star.vector*vect",1),type("star.core*integer"))),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_inline",constrained(funType(tplType([type("ioHandle")]),type("star.core*string")),raises(type("star.core*errorCode")))).
 escapeType("_inline_async",constrained(funType(tplType([type("ioHandle")]),tpExp(tpExp(tpFun("future",2),type("star.core*string")),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
-escapeType("_intext",constrained(funType(tplType([type("ioHandle"),type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
-escapeType("_outchar",constrained(funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
+escapeType("_outchar",constrained(funType(tplType([type("ioHandle"),type("star.core*char")]),tplType([])),raises(type("star.core*errorCode")))).
+escapeType("_outchar_async",constrained(funType(tplType([type("ioHandle"),type("star.core*char")]),tpExp(tpExp(tpFun("future",2),tplType([])),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_outbyte",constrained(funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_outbytes",constrained(funType(tplType([type("ioHandle"),tpExp(tpFun("star.core*cons",1),type("star.core*integer"))]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_outtext",constrained(funType(tplType([type("ioHandle"),type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
@@ -234,6 +234,7 @@ escapeType("_str_back",funType(tplType([type("star.core*string")]),tplType([type
 escapeType("_str_cons",funType(tplType([type("star.core*char"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_code2str",funType(tplType([type("star.core*char")]),type("star.core*string"))).
 escapeType("_str_apnd",funType(tplType([type("star.core*string"),type("star.core*char")]),type("star.core*string"))).
+escapeType("_str_charat",funType(tplType([type("star.core*string"),type("star.core*integer")]),tpExp(tpFun("star.core*option",1),type("star.core*char")))).
 escapeType("_str_quote",funType(tplType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_format",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_getenv",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
@@ -370,8 +371,8 @@ isEscape("_inbytes").
 isEscape("_inbytes_async").
 isEscape("_inline").
 isEscape("_inline_async").
-isEscape("_intext").
 isEscape("_outchar").
+isEscape("_outchar_async").
 isEscape("_outbyte").
 isEscape("_outbytes").
 isEscape("_outtext").
@@ -479,6 +480,7 @@ isEscape("_str_back").
 isEscape("_str_cons").
 isEscape("_code2str").
 isEscape("_str_apnd").
+isEscape("_str_charat").
 isEscape("_str_quote").
 isEscape("_str_format").
 isEscape("_getenv").

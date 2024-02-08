@@ -9,6 +9,9 @@ test.chr{
   main()=>valof{
     show C1;
     assert C2==`\n`;
+    for Ch in "てすと test" do{
+      show Ch
+    };
     valis ()
   }
 }

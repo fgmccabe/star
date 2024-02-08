@@ -48,6 +48,7 @@ typedef struct file_part_ {
 
   byte out_line[MAXLINE];               // The output buffer
   int16 out_pos;                        // Current position within the output buffer
+  int16 wr_pos;                         // Where the last write call went to
   accessMode mode;                      // How is the file set up for reading/writing?
   completionSignaler signaler;
   void *signalerData;                   // Used as part of the callback

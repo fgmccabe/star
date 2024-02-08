@@ -168,4 +168,36 @@ star.io{
       | .eNOPERM => raise .ioError
     }
   }
+
+  public wrChar:raises ioException |: (ioHandle,char) => ().
+  wrChar(H,C) => valof{
+    try{
+      valis _outchar(H,C)
+    } catch errorCode in {
+      | _ default => raise .ioError
+    }
+  }
+
+  public wrCharAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,char)=> ().
+  wrCharAsync(IO,C) => valof{
+    try{
+      Fut = _outchar_async(IO,C);
+      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+	.go_ahead => {
+	  if _futureIsResolved(Fut) then{
+	    try{
+	      valis _futureVal(Fut)
+	    } catch errorCode in {
+	      | _ default => raise .ioError
+	    }
+	  }
+	  else
+	  this retire .retired_
+	}
+      }
+    }
+    catch errorCode in {
+      | .eNOPERM => raise .ioError
+    }
+  }
 }

@@ -129,8 +129,8 @@ star.compiler.escapes{
     "_inbytes_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpExp(.tpFun("future",2),.tpExp(.tpFun("star.vector*vect",1),.nomnal("star.core*integer"))),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_inline_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_intext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*char")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outchar_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*char")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outtext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
@@ -238,6 +238,7 @@ star.compiler.escapes{
     "_str_cons" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*char"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
     "_code2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*char")])),.nomnal("star.core*string"))).
     "_str_apnd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*char")])),.nomnal("star.core*string"))).
+    "_str_charat" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*option",1),.nomnal("star.core*char")))).
     "_str_quote" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string"))).
     "_str_format" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
     "_getenv" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
@@ -379,8 +380,8 @@ star.compiler.escapes{
     "_inbytes_async" => .true.
     "_inline" => .true.
     "_inline_async" => .true.
-    "_intext" => .true.
     "_outchar" => .true.
+    "_outchar_async" => .true.
     "_outbyte" => .true.
     "_outbytes" => .true.
     "_outtext" => .true.
@@ -488,6 +489,7 @@ star.compiler.escapes{
     "_str_cons" => .true.
     "_code2str" => .true.
     "_str_apnd" => .true.
+    "_str_charat" => .true.
     "_str_quote" => .true.
     "_str_format" => .true.
     "_getenv" => .true.

@@ -85,7 +85,7 @@ codePoint lowerOf(codePoint ch);
 
 integer countCodePoints(const char *src, integer start, integer end);
 
-integer advanceCodePoint(char *src, integer start, integer end, integer count);
+integer advanceCodePoint(const char *src, integer start, integer end, integer count);
 codePoint codePointAt(const char *src, integer pt, integer end);
 codePoint nextCodePoint(const char *src, integer *start, integer end);
 codePoint prevCodePoint(const char *src, integer *start);
@@ -112,6 +112,8 @@ char *uniDupl(char *str, integer len);
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c);
 integer uniLastIndexOf(const char *s, integer len, codePoint c);
+
+retCode uniCharAt(const char *src, integer len, integer index, codePoint *cp);
 
 long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen);
 codePoint uniSearchDelims(char *s, integer len, char *t);
