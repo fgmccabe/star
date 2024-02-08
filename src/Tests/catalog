@@ -92,6 +92,7 @@
     "test.iobytes": "iobytes.star",
     "test.iochars": "iochars.star",
     "test.iowchar": "iowchar.star",
+    "test.iowtext": "iowtext.star",
     "test.j": "j.star",
     "test.js": "js.star",
     "test.l": "l.star",

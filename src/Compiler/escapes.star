@@ -132,8 +132,10 @@ star.compiler.escapes{
     "_outchar" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*char")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outchar_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*char")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbyte" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outbyte_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_outbytes" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*integer"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_outtext" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_outtext_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*string")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_stdfile" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer")])),.nomnal("ioHandle"))).
     "_fposition" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*integer"))).
     "_fseek" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
@@ -383,8 +385,10 @@ star.compiler.escapes{
     "_outchar" => .true.
     "_outchar_async" => .true.
     "_outbyte" => .true.
+    "_outbyte_async" => .true.
     "_outbytes" => .true.
     "_outtext" => .true.
+    "_outtext_async" => .true.
     "_stdfile" => .true.
     "_fposition" => .true.
     "_fseek" => .true.
