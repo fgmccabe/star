@@ -140,7 +140,8 @@ escapeType("_flushall",funType(tplType([]),tplType([]))).
 escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([]))).
 escapeType("_get_file",constrained(funType(tplType([type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
 escapeType("_getfile_async",constrained(funType(tplType([type("star.core*string")]),tpExp(tpExp(tpFun("future",2),type("star.core*string")),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
-escapeType("_put_file",funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([]))).
+escapeType("_put_file",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
+escapeType("_put_file_async",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tpExp(tpExp(tpFun("future",2),tplType([])),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_show",funType(tplType([type("star.core*string")]),tplType([]))).
 escapeType("_install_pkg",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")])))).
 escapeType("_pkg_is_present",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
@@ -389,6 +390,7 @@ isEscape("_setfileencoding").
 isEscape("_get_file").
 isEscape("_getfile_async").
 isEscape("_put_file").
+isEscape("_put_file_async").
 isEscape("_show").
 isEscape("_install_pkg").
 isEscape("_pkg_is_present").

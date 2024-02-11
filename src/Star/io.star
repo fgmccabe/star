@@ -141,6 +141,16 @@ star.io{
     }
   }
 
+  public rdFile:raises ioException|:(string)=> string.
+  rdFile(F) => valof{
+    try{
+      valis _get_file(F);
+    } catch errorCode in {
+      .eof => raise .pastEof
+      | _ default => raise .ioError
+    }
+  }
+
   public rdFileAsync:all e ~~ (this:task[e]), raises ioException|:(string)=> string.
   rdFileAsync(F) => valof{
     try{
@@ -229,4 +239,38 @@ star.io{
       | .eNOPERM => raise .ioError
     }
   }
+
+  public wrFile:raises ioException |: (string,string) => ().
+  wrFile(F,S) => valof{
+    try{
+      valis _put_file(F,S)
+    } catch errorCode in {
+      | _ default => raise .ioError
+    }
+  }
+
+  public wrFileAsync:all e ~~ (this:task[e]), raises ioException|:
+    (string,string)=> ().
+  wrFileAsync(F,S) => valof{
+    try{
+      Fut = _put_file_async(F,S);
+      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+	.go_ahead => {
+	  if _futureIsResolved(Fut) then{
+	    try{
+	      valis _futureVal(Fut)
+	    } catch errorCode in {
+	      | _ default => raise .ioError
+	    }
+	  }
+	  else
+	  this retire .retired_
+	}
+      }
+    }
+    catch errorCode in {
+      | .eNOPERM => raise .ioError
+    }
+  }
+  
 }

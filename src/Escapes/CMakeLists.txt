@@ -49,6 +49,7 @@ set(SOURCE_FILES
         turm.c
         unicode.c fiberops.c
         timeout.c
-        futops.c)
+        futops.c
+        outops.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

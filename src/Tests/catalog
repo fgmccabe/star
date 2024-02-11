@@ -91,6 +91,7 @@
     "test.io4": "io4.star",
     "test.iobytes": "iobytes.star",
     "test.iochars": "iochars.star",
+    "test.iocopy": "iocopy.star",
     "test.iowchar": "iowchar.star",
     "test.iowtext": "iowtext.star",
     "test.j": "j.star",
