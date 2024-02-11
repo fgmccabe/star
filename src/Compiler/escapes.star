@@ -144,7 +144,8 @@ star.compiler.escapes{
     "_setfileencoding" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([]))).
     "_get_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
     "_getfile_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
-    "_put_file" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tupleType([]))).
+    "_put_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
+    "_put_file_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_show" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([]))).
     "_install_pkg" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])))).
     "_pkg_is_present" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean"))).
@@ -398,6 +399,7 @@ star.compiler.escapes{
     "_get_file" => .true.
     "_getfile_async" => .true.
     "_put_file" => .true.
+    "_put_file_async" => .true.
     "_show" => .true.
     "_install_pkg" => .true.
     "_pkg_is_present" => .true.

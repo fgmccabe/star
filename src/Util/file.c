@@ -340,10 +340,10 @@ retCode fileClose(ioPo io) {
       activeSet->file.next->file.prev = activeSet->file.prev;
       activeSet = f->file.next;  /* move the base pointer along */
     }
+  } else {
+    f->file.next->file.prev = f->file.prev;
+    f->file.prev->file.next = f->file.next;
   }
-
-  f->file.next->file.prev = f->file.prev;
-  f->file.prev->file.next = f->file.next;
 
   unlockClass(fileClass);
 
@@ -385,6 +385,8 @@ retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
   else if (f->file.in_pos < f->file.in_len)
     return Ok;            // Already data in the input buffer
   f->file.signaler = signaler;
+  f->file.in_pos = 0;
+
   memset(&f->file.aio, 0, sizeof(struct aiocb));
   f->file.aio.aio_fildes = f->file.fno;
   f->file.aio.aio_nbytes = MAXLINE;
@@ -412,7 +414,7 @@ progress asyncRdStatus(filePo f) {
         ssize_t count = aio_return(&f->file.aio);
         if (isReadingFile(O_IO(f))) {
           if (count > 0) {
-            f->file.in_len += (int16) count;
+            f->file.in_len = (int16) count;
             f->file.file_pos += count;
             f->file.aio.aio_fildes = -1;
             return completed;
@@ -523,10 +525,11 @@ retCode asyncFileFill(filePo f) {
 //  f->file.signalerData = cl;
 //  f->file.signaler = signaler;
 
+  f->file.in_pos = 0;
   memset(&f->file.aio, 0, sizeof(struct aiocb));
   f->file.aio.aio_fildes = f->file.fno;
   f->file.aio.aio_nbytes = (size_t) MAXLINE; // We try to fill the buffer
-  f->file.aio.aio_buf = &f->file.in_line[f->file.in_pos];
+  f->file.aio.aio_buf = f->file.in_line;
   f->file.aio.aio_reqprio = 0;
   f->file.aio.aio_offset = f->file.file_pos;
   f->file.aio.aio_sigevent.sigev_notify = (f->file.signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);

@@ -13,7 +13,8 @@ star.file{
   getFile(_) default => .none.
 
   public putFile:(string,string)=>().
-  putFile(Fn,Content) => _put_file(Fn,Content).
+  putFile(Fn,Content) =>
+    (try _put_file(Fn,Content) catch errorCode in {_ => ()}).
 
   public filePresent:(string) => boolean.
   filePresent(Fn) => _file_present(Fn).

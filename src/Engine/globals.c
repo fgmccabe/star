@@ -275,3 +275,16 @@ termPo setGlobalVar(globalPo v, termPo e) {
   v->content = e;
   return prev;
 }
+
+termPo ioErrorCode(retCode ret) {
+  switch (ret) {
+    case Ok:
+      return voidEnum;
+    case Error:
+      return eIOERROR;
+    case Eof:
+      return eofEnum;
+    default:
+      return eIOERROR;
+  }
+}
