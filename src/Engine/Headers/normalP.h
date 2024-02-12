@@ -13,7 +13,6 @@ typedef struct normal_term {
   termPo args[ZEROARRAYSIZE];
 } NormalTerm;
 
-
 static inline termPo nthElem(normalPo term, integer ix) {
   return term->args[ix];
 }
