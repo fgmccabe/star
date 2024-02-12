@@ -13,7 +13,7 @@ ReturnStatus g__tuple_nth(heapPo h, termPo a1, termPo a2) {
 
   termPo el = nthArg(tpl, ix);
 
-  return (ReturnStatus) {.ret=Ok, .result=el};
+  return (ReturnStatus) {.ret=Normal, .result=el};
 }
 
 ReturnStatus g__tuple_set_nth(heapPo h, termPo a1, termPo a2, termPo a3) {
@@ -24,5 +24,5 @@ ReturnStatus g__tuple_set_nth(heapPo h, termPo a1, termPo a2, termPo a3) {
 
   setArg(tpl, ix, a3);
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) tpl};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) tpl};
 }

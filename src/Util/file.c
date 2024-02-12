@@ -393,7 +393,7 @@ retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
   f->file.aio.aio_buf = &f->file.in_line[f->file.in_pos];
   f->file.aio.aio_reqprio = 0;
   f->file.aio.aio_offset = f->file.file_pos;
-  f->file.aio.aio_sigevent.sigev_notify = (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
+  f->file.aio.aio_sigevent.sigev_notify = SIGEV_SIGNAL; // (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
   f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
   f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
 

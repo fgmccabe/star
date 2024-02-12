@@ -52,6 +52,7 @@ set(HEADER_FILES
         Headers/futureP.h
         Headers/vect.h
         Headers/vectP.h
+        Headers/escape.h
 )
 
 set(SOURCE_FILES

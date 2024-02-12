@@ -16,7 +16,7 @@
 #include <consP.h>
 #include "pkgops.h"
 
-ReturnStatus g__pkg_is_present(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__pkg_is_present(heapPo h, termPo xc, termPo a1, termPo a2) {
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
@@ -29,13 +29,13 @@ ReturnStatus g__pkg_is_present(heapPo h, termPo a1, termPo a2) {
 
     if (version != NULL) {
       if (compatiblVersion(vers, version)) {
-        return (ReturnStatus) {.ret=Ok, .result= trueEnum};
+        return (ReturnStatus) {.ret=Normal, .result= trueEnum};
       }
     }
 
-    return (ReturnStatus) {.ret=Ok, .result= falseEnum};
+    return (ReturnStatus) {.ret=Normal, .result= falseEnum};
   } else {
-    return (ReturnStatus) {.ret=ret, .result= voidEnum};
+    return (ReturnStatus) {.ret=Abnormal, .result= eNOTFND};
   }
 }
 
@@ -61,7 +61,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   return Ok;
 }
 
-ReturnStatus g__install_pkg(heapPo h, termPo a1) {
+ReturnStatus g__install_pkg(heapPo h, termPo xc, termPo a1) {
   integer len;
   const char *text = strVal(a1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
@@ -80,12 +80,12 @@ ReturnStatus g__install_pkg(heapPo h, termPo a1) {
   gcReleaseRoot(h, root);
 
   if (ret == Ok) {
-    return (ReturnStatus) {.ret=ret, .result= (termPo) imports};
+    return (ReturnStatus) {.ret=Normal, .result= (termPo) imports};
   } else
-    return (ReturnStatus) {.ret=Fail, .result=eFAIL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eFAIL};
 }
 
-ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
@@ -102,12 +102,12 @@ ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
     if (ret != Ok) {
-      return (ReturnStatus) {.ret=Ok, .result= falseEnum};
+      return (ReturnStatus) {.ret=Normal, .result= falseEnum};
     } else {
-      return (ReturnStatus) {.ret=Ok, .result= trueEnum};
+      return (ReturnStatus) {.ret=Normal, .result= trueEnum};
     }
   } else {
-    return (ReturnStatus) {.ret=ret, .result= voidEnum};
+    return (ReturnStatus) {.ret=Abnormal, .result= eIOERROR};
   }
 }
 
@@ -128,13 +128,13 @@ ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, te
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
     if (ret != Ok) {
-      return (ReturnStatus) {.ret=Error, .result= eNOTFND};
+      return (ReturnStatus) {.ret=Abnormal, .result= eNOTFND};
     } else {
-      return (ReturnStatus) {.ret=Ok,
+      return (ReturnStatus) {.ret=Normal,
         .result=(termPo) allocateString(h, rsrc, uniStrLen(rsrc))};
     }
   } else {
-    return (ReturnStatus) {.ret=ret, .result= eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result= ioErrorCode(ret)};
   }
 }
 
@@ -149,5 +149,5 @@ ReturnStatus g__globalIsSet(heapPo h, termPo a1) {
 
   globalPo global = globalVar(buff);
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) (global!=Null && glbIsSet(global) ? trueEnum : falseEnum)};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) (global != Null && glbIsSet(global) ? trueEnum : falseEnum)};
 }

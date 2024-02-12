@@ -25,7 +25,7 @@ ReturnStatus g__big_plus(heapPo h, termPo a1, termPo a2) {
   integer cC = longAdd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_minus(heapPo h, termPo a1, termPo a2) {
@@ -36,7 +36,7 @@ ReturnStatus g__big_minus(heapPo h, termPo a1, termPo a2) {
   integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_bitand(heapPo h, termPo a1, termPo a2) {
@@ -47,7 +47,7 @@ ReturnStatus g__big_bitand(heapPo h, termPo a1, termPo a2) {
   integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_bitor(heapPo h, termPo a1, termPo a2) {
@@ -58,7 +58,7 @@ ReturnStatus g__big_bitor(heapPo h, termPo a1, termPo a2) {
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_bitxor(heapPo h, termPo a1, termPo a2) {
@@ -69,7 +69,7 @@ ReturnStatus g__big_bitxor(heapPo h, termPo a1, termPo a2) {
   integer cC = longBitXor(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_bitnot(heapPo h, termPo a1) {
@@ -79,7 +79,7 @@ ReturnStatus g__big_bitnot(heapPo h, termPo a1) {
   integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
   termPo Rs = (termPo) allocateBignum(h, cC, sum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_times(heapPo h, termPo a1, termPo a2) {
@@ -90,7 +90,7 @@ ReturnStatus g__big_times(heapPo h, termPo a1, termPo a2) {
   integer cC = longMultiply(prod, pS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   termPo Rs = (termPo) allocateBignum(h, cC, prod);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_div(heapPo h, termPo xc, termPo a1, termPo a2) {
@@ -112,9 +112,9 @@ ReturnStatus g__big_div(heapPo h, termPo xc, termPo a1, termPo a2) {
     gcAddRoot(h, &Rt);
     termPo Rs = (termPo) allocatePair(h, Qt, Rt);
     gcReleaseRoot(h, root);
-    return (ReturnStatus) {.ret=Ok, .result=Rs};
+    return (ReturnStatus) {.ret=Normal, .result=Rs};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   }
 }
 
@@ -130,9 +130,9 @@ ReturnStatus g__big_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (gC > 0) {
     termPo g = (termPo) allocateBignum(h, (uint32) gC, gcd);
 
-    return (ReturnStatus) {.ret=Ok, .result=g};
+    return (ReturnStatus) {.ret=Normal, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   }
 }
 
@@ -150,9 +150,9 @@ ReturnStatus g__big_format(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer resLen = longFormat(bgData, bgCount, fmt, fmtLen, buff, bufLen);
 
   if (resLen >= 0) {
-    return (ReturnStatus) {.result = (termPo) allocateString(h, buff, resLen), .ret=Ok};
+    return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, resLen)};
   } else
-    return (ReturnStatus) {.ret=Error, .result =eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
 }
 
 ReturnStatus g__big2str(heapPo h, termPo a1) {
@@ -164,7 +164,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
 
-  return (ReturnStatus) {.result = (termPo) allocateString(h, buff, actual), .ret=Ok};
+  return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, actual) };
 }
 
 ReturnStatus g__str2big(heapPo h, termPo a1) {
@@ -176,17 +176,17 @@ ReturnStatus g__str2big(heapPo h, termPo a1) {
   integer bgSize = longFromText(str, len, digits, gSize);
 
   if (bgSize > 0)
-    return (ReturnStatus) {.ret=Ok,
+    return (ReturnStatus) {.ret=Normal,
       .result=(termPo) wrapSome(h, (termPo) allocateBignum(h, bgSize, digits))};
   else
-    return (ReturnStatus) {.ret=Ok, .result=noneEnum};
+    return (ReturnStatus) {.ret=Normal, .result=noneEnum};
 }
 
 ReturnStatus g__big_hash(heapPo h, termPo a1) {
   bignumPo bg = C_BIGNUM(a1);
   termPo Rs = makeInteger(bignumHash(bg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_eq(heapPo h, termPo a1, termPo a2) {
@@ -195,7 +195,7 @@ ReturnStatus g__big_eq(heapPo h, termPo a1, termPo a2) {
 
   termPo Rs = (longEqual(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs)) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__big_lt(heapPo h, termPo a1, termPo a2) {
@@ -204,9 +204,9 @@ ReturnStatus g__big_lt(heapPo h, termPo a1, termPo a2) {
 
   switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
     case smaller:
-      return (ReturnStatus) {.ret=Ok, .result=trueEnum};
+      return (ReturnStatus) {.ret=Normal, .result=trueEnum};
     default:
-      return (ReturnStatus) {.ret=Ok, .result=falseEnum};
+      return (ReturnStatus) {.ret=Normal, .result=falseEnum};
   }
 }
 
@@ -216,9 +216,9 @@ ReturnStatus g__big_ge(heapPo h, termPo a1, termPo a2) {
 
   switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
     case smaller:
-      return (ReturnStatus) {.ret=Ok, .result=falseEnum};
+      return (ReturnStatus) {.ret=Normal, .result=falseEnum};
     default:
-      return (ReturnStatus) {.ret=Ok, .result=trueEnum};
+      return (ReturnStatus) {.ret=Normal, .result=trueEnum};
   }
 }
 
@@ -226,7 +226,7 @@ ReturnStatus g__int2big(heapPo h, termPo a1) {
   uint64 U = (uint64) integerVal(a1);
 
   uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
-  return (ReturnStatus) {.ret=Ok, .result=allocateBignum(h, NumberOf(uu), uu)};
+  return (ReturnStatus) {.ret=Normal, .result=allocateBignum(h, NumberOf(uu), uu)};
 }
 
 ReturnStatus g__big2ints(heapPo h, termPo a1) {
@@ -250,7 +250,7 @@ ReturnStatus g__big2ints(heapPo h, termPo a1) {
 
   gcReleaseRoot(h, root);
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) list};
 }
 
 ReturnStatus g__ints2big(heapPo h, termPo a1) {
@@ -264,7 +264,7 @@ ReturnStatus g__ints2big(heapPo h, termPo a1) {
     list = consTail(pr);
   }
 
-  return (ReturnStatus) {.ret=Ok, .result=allocateBignum(h, count, digits)};
+  return (ReturnStatus) {.ret=Normal, .result=allocateBignum(h, count, digits)};
 }
 
 ReturnStatus g__big2int(heapPo h, termPo a1) {
@@ -274,17 +274,17 @@ ReturnStatus g__big2int(heapPo h, termPo a1) {
 
   switch (count) {
     case 0:
-      return (ReturnStatus) {.ret=Ok,
+      return (ReturnStatus) {.ret=Normal,
         .result=(termPo) wrapSome(h, makeInteger(0))};
     case 1:
-      return (ReturnStatus) {.ret=Ok,
+      return (ReturnStatus) {.ret=Normal,
         .result=(termPo) wrapSome(h, makeInteger((integer) digits[0]))};
     case 2: {
       uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
-      return (ReturnStatus) {.ret=Ok,
+      return (ReturnStatus) {.ret=Normal,
         .result=(termPo) wrapSome(h, makeInteger((integer) lge))};
     }
     default:
-      return (ReturnStatus) {.ret=Ok, .result=noneEnum};
+      return (ReturnStatus) {.ret=Normal, .result=noneEnum};
   }
 }

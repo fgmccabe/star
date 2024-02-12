@@ -20,7 +20,7 @@ ReturnStatus g__settimeout(heapPo h, termPo a1, termPo a2) {
   futurePo ft = makeFuture(h, voidEnum, checkTimeOut, Null, Null);
 
   setTimer(delta, reportTimeout, (void *) ft);
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }
 
 void reportTimeout(void *cl) {

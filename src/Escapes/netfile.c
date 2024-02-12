@@ -26,9 +26,9 @@ ReturnStatus g__listen(heapPo h, termPo xc, termPo a1) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   else {
-    return (ReturnStatus) {.ret=Ok,
+    return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, listen)};
   }
 }
@@ -47,7 +47,7 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   else {
 
     switch (ret) {
@@ -60,7 +60,7 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
         if (peerN == NULL || peerI == NULL) {
           closeIo(inC);
           closeIo(outC);
-          return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+          return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
         }
 
         termPo inChnl = (termPo) allocateIOChnnl(h, inC);
@@ -88,10 +88,10 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
 
         gcReleaseRoot(h, root);
 
-        return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
+        return (ReturnStatus) {.ret=Normal, .result =(termPo) reslt};
       }
       default:
-        return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
     }
   }
 }
@@ -124,11 +124,11 @@ ReturnStatus g__connect(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
       gcReleaseRoot(H, root);
 
-      return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
+      return (ReturnStatus) {.ret=Normal, .result =(termPo) reslt};
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      return (ReturnStatus) {.ret=Error, .result=eCONNECT};
+      return (ReturnStatus) {.ret=Abnormal, .result=eCONNECT};
   }
 }
 
@@ -151,7 +151,7 @@ ReturnStatus g__hosttoip(heapPo h, termPo a1) {
   }
 
   gcReleaseRoot(h, root);
-  return (ReturnStatus) {.ret=Ok, .result =(termPo) ipList};
+  return (ReturnStatus) {.ret=Normal, .result =(termPo) ipList};
 }
 
 /* Access host name from IP address */
@@ -164,9 +164,9 @@ ReturnStatus g__iptohost(heapPo h, termPo xc, termPo a1) {
 
   if (host != NULL) {
     termPo Host = allocateCString(h, host);
-    return (ReturnStatus) {.ret=Ok, .result =Host};
+    return (ReturnStatus) {.ret=Normal, .result =Host};
   } else
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
 }
 
 

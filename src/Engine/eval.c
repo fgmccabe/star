@@ -246,40 +246,29 @@ retCode run(processPo P) {
         restoreRegisters();
         assert(H->topRoot == 0);
 
-        switch (ret.ret) {
-          case Ok:
-            SP += esc->arity;
-            if (ret.result != Null)
-              push(ret.result);
-            continue;
-          case Error: {
-            continuationPo cont = C_CONTINUATION(pop()); // Exception handler is first argument
-            assert(continIsValid(cont));
-            assert(ret.result != Null);
-
-            stackPo stk = contStack(cont);
-
-            assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
-
-            saveRegisters();
-            STK = P->stk = dropUntil(STK, stk);
-            STK->fp = contFP(cont);
-            STK->fp->pc = contPC(cont);
-            STK->sp = contSP(cont);
-            invalidateCont(cont);
-            restoreRegisters();
+        if (ret.ret == Normal) {
+          SP += esc->arity;
+          if (ret.result != Null)
             push(ret.result);
-            continue;
-          }
-          case Fail:
-            bail();
-          case Switch:
-            continue;
-          case Space:
-            logMsg(logFile,"space exhausted");
-            bail();
-          default:
-            continue;
+          continue;
+        } else {
+          continuationPo cont = C_CONTINUATION(pop()); // Exception handler is first argument
+          assert(continIsValid(cont));
+          assert(ret.result != Null);
+
+          stackPo stk = contStack(cont);
+
+          assert(isAttachedStack(STK, stk) && validFP(stk, contFP(cont)));
+
+          saveRegisters();
+          STK = P->stk = dropUntil(STK, stk);
+          STK->fp = contFP(cont);
+          STK->fp->pc = contPC(cont);
+          STK->sp = contSP(cont);
+          invalidateCont(cont);
+          restoreRegisters();
+          push(ret.result);
+          continue;
         }
       }
 
@@ -815,8 +804,6 @@ retCode run(processPo P) {
         setThunk(thnk, val);      // Update the thunk variable
         continue;
       }
-
-
 
       case Cell: {
         checkAlloc(CellCellCount);

@@ -4,17 +4,19 @@ test.io2{
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
+  readAll:(task[cons[string]],ioHandle) => ().
   readAll(this,IO) => valof{
+    out := [];
     try{
       while Ln.=rdLine(IO) do{
-	logMsg("line: $(Ln)");
+	logMsg("Ln: $(Ln)");
+	out := [Ln,..out!]
       }
     } catch ioException in {
       | .ioError => logMsg("bad io")
       | .pastEof => logMsg("all done")
     };
-    this retire .result(())
+    this retire .result(reverse(out!))
   }
 
   _main:(cons[string])=>().
@@ -28,7 +30,7 @@ test.io2{
 
       try{
 	Rd = (Tsk) => valof{
-	  readAll(Tsk,In);
+	  Out = readAll(Tsk,In);
 	  Tsk retire .retired_
 	};
 	  
