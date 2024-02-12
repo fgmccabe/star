@@ -102,8 +102,7 @@ star.strings{
 
   public implementation stream[string->>char] => {
     _eof(S) => S=="".
-    _hdtl(Cs) where (H,T).=_str_hdtl(Cs) => .some((H,T)).
-    _hdtl("") => .none.
+    _hdtl(Cs) => _str_hdtl(Cs).
   }
 
   public implementation sequence[string->>char] => {
@@ -128,7 +127,16 @@ star.strings{
   isDigit(D) => _isNdChar(D).
 
   public digitVal:(char)=>integer.
-  digitVal(D) => _digitCode(D).
+  digitVal(`0`) => 0.
+  digitVal(`1`) => 1.
+  digitVal(`2`) => 2.
+  digitVal(`3`) => 3.
+  digitVal(`4`) => 4.
+  digitVal(`5`) => 5.
+  digitVal(`6`) => 6.
+  digitVal(`7`) => 7.
+  digitVal(`8`) => 8.
+  digitVal(`9`) => 9.
 
   public digitChar:(integer)=>char.
   digitChar(Ch) => case Ch in {

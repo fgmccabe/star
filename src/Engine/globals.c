@@ -13,6 +13,9 @@
 #include "vectP.h"
 
 termPo eOk;
+termPo eSWITCH;
+termPo eERROR;
+termPo eEOF;
 termPo eINTRUPT;
 termPo eINVAL;
 termPo eRANGE;
@@ -76,7 +79,10 @@ void initGlobals() {
   numGlbVars = 0;
 
   eOk = declareEnum("star.core#Ok", -1, globalHeap);
+  eSWITCH = declareEnum("star.core#eSWITCH", -1, globalHeap);
+  eERROR = declareEnum("star.core#eERROR", -1, globalHeap);
   eINTRUPT = declareEnum("star.core#eINTRUPT", -1, globalHeap);
+  eEOF = declareEnum("star.core#eEOF", -1, globalHeap);
   eNOTDIR = declareEnum("star.core#eNOTDIR", -1, globalHeap);
   eNOFILE = declareEnum("star.core#eNOFILE", -1, globalHeap);
   eNOTFND = declareEnum("star.core#eNOTFND", -1, globalHeap);
@@ -199,7 +205,11 @@ void markGlobals(gcSupportPo G) {
     markGlobal(&glbVars[ix], G);
 
   eOk = markPtr(G, &eOk);
+  eSWITCH = markPtr(G, &eSWITCH);
+  eERROR = markPtr(G, &eERROR);
   eINTRUPT = markPtr(G, &eINTRUPT);
+  eEOF = markPtr(G, &eEOF);
+
   eNOTDIR = markPtr(G, &eNOTDIR);
   eNOFILE = markPtr(G, &eNOFILE);
   eNOTFND = markPtr(G, &eNOTFND);
@@ -288,3 +298,4 @@ termPo ioErrorCode(retCode ret) {
       return eIOERROR;
   }
 }
+

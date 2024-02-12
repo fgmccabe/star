@@ -15,48 +15,48 @@ ReturnStatus g__flt_eq(heapPo h, termPo a1, termPo a2) {
   double fuzz = floatVal(a2) / 1.0e20;
   termPo Rs = (nearlyEqual(floatVal(a1), floatVal(a2), fuzz) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_ge(heapPo h, termPo a1, termPo a2) {
   termPo Rs = (floatVal(a1) >= floatVal(a2) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_lt(heapPo h, termPo a1, termPo a2) {
   termPo Rs = (floatVal(a1) < floatVal(a2) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_plus(heapPo h, termPo a1, termPo a2) {
   termPo Rs = (termPo) makeFloat(floatVal(a1) + floatVal(a2));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_minus(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeFloat(floatVal(a1) - floatVal(a2));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_times(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeFloat(floatVal(a1) * floatVal(a2));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_div(heapPo h, termPo xc, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Error, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     termPo Rs = makeFloat(floatVal(a1) / denom);
 
-    return (ReturnStatus) {.ret=Ok, .result=Rs};
+    return (ReturnStatus) {.ret=Normal, .result=Rs};
   }
 }
 
@@ -64,25 +64,25 @@ ReturnStatus g__flt_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Error, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
 
-    return (ReturnStatus) {.ret=Ok, .result=Rs};
+    return (ReturnStatus) {.ret=Normal, .result=Rs};
   }
 }
 
 ReturnStatus g__flt_pwr(heapPo h, termPo a1, termPo a2) {
   termPo Rs = makeFloat(pow(floatVal(a1), floatVal(a2)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt_abs(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
   termPo Rs = (Arg < 0 ? makeFloat(-Arg) : arg1);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
@@ -93,11 +93,11 @@ ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Error, .result=eRANGE};
+      return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
     else
-      return (ReturnStatus) {.ret=Error, .result=eINVAL};
+      return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
   } else {
-    return (ReturnStatus) {.ret=Ok, .result=makeFloat(ans)};
+    return (ReturnStatus) {.ret=Normal, .result=makeFloat(ans)};
   }
 }
 
@@ -105,7 +105,7 @@ ReturnStatus g__ldexp(heapPo h, termPo a1, termPo a2) {
   double x = floatVal(a1);
   integer e = integerVal(a2);
 
-  return (ReturnStatus) {.ret=Ok,
+  return (ReturnStatus) {.ret=Normal,
     .result=makeFloat(ldexp(x, (int) e))};
 }
 
@@ -122,7 +122,7 @@ ReturnStatus g__frexp(heapPo h, termPo arg1) {
   termPo Rs = (termPo) allocatePair(H, man, ex);
   gcReleaseRoot(H, root);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__modf(heapPo h, termPo arg1) {
@@ -138,13 +138,13 @@ ReturnStatus g__modf(heapPo h, termPo arg1) {
   termPo Rs = (termPo) allocatePair(H, man, ex);
   gcReleaseRoot(H, root);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt2int(heapPo h, termPo arg1) {
   termPo Rs = makeInteger((integer) floatVal(arg1));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__bits_float(heapPo h, termPo arg1) {
@@ -155,7 +155,7 @@ ReturnStatus g__bits_float(heapPo h, termPo arg1) {
   Arg.Ix = integerVal(arg1);
   termPo Rs = makeFloat(Arg.Dx);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__float_bits(heapPo h, termPo arg1) {
@@ -166,7 +166,7 @@ ReturnStatus g__float_bits(heapPo h, termPo arg1) {
   Arg.Dx = floatVal(arg1);
   termPo Rs = makeInteger(Arg.Ix);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p, termPo m, termPo s) {
@@ -178,7 +178,7 @@ ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p, termPo m, termPo s) {
 
   formatDouble(buff, NumberOf(buff), Arg, mode, precision, s == trueEnum ? True : False);
 
-  return (ReturnStatus) {.ret=Ok,
+  return (ReturnStatus) {.ret=Normal,
     .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
 }
 
@@ -190,7 +190,7 @@ ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
 
   formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length);
 
-  return (ReturnStatus) {.result = (termPo) allocateString(h, buff, uniStrLen(buff)), .ret=Ok};
+  return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
 }
 
 ReturnStatus g__flt_hash(heapPo h, termPo arg1) {
@@ -198,68 +198,68 @@ ReturnStatus g__flt_hash(heapPo h, termPo arg1) {
 
   termPo Rs = makeInteger(floatHash(Arg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_cos(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
   termPo Rs = makeFloat(cos(Arg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_sin(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(sin(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_tan(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(tan(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_acos(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(acos(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_asin(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(asin(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_atan(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(atan(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_floor(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(floor(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_ceil(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(ceil(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_trunc(heapPo h, termPo arg1) {
   termPo Rs = makeFloat(trunc(floatVal(arg1)));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_integral(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
 
-  return (ReturnStatus) {.ret=Ok,
+  return (ReturnStatus) {.ret=Normal,
     .result=(floor(Arg) == Arg ? trueEnum : falseEnum)};
 }
 
@@ -267,28 +267,28 @@ ReturnStatus g_log(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
   termPo Rs = makeFloat(log(Arg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_log10(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
   termPo Rs = makeFloat(log10(Arg));
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g_sqrt(heapPo h, termPo xc, termPo arg1) {
   double Arg = floatVal(arg1);
 
   if (Arg < 0.0)
-    return (ReturnStatus) {.ret=Error, .result=eRANGE};
+    return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
   else {
-    return (ReturnStatus) {.ret=Ok, .result=makeFloat(sqrt(Arg))};
+    return (ReturnStatus) {.ret=Normal, .result=makeFloat(sqrt(Arg))};
   }
 }
 
 ReturnStatus g_pi(heapPo h) {
   termPo Rs = makeFloat(M_PI);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }

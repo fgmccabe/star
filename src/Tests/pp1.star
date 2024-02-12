@@ -19,9 +19,17 @@ test.pp1{
     if _end_of_file(Fl) then
       valis []
     else{
-      Ln = _inline(Fl);
-      Rst = readLines(Fl);
-      valis [Ln,..Rst]
+      try{
+	Ln = _inline(Fl);
+	Rst = readLines(Fl);
+	valis [Ln,..Rst]
+      } catch errorCode in {
+	.eof => valis []
+	| Other => {
+	  logMsg("io error: $(Other)");
+	  _abort(Other,"error")
+	}
+      }
     }
   }
 

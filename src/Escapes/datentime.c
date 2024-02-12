@@ -41,7 +41,7 @@ g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo hour, termPo mi
 
   time_t when = mktime(&now);
 
-  return (ReturnStatus) {.ret=Ok,
+  return (ReturnStatus) {.ret=Normal,
     .result=makeFloat((double) when + fraction)};
 }
 
@@ -64,7 +64,7 @@ ReturnStatus g__utc2time(heapPo h, termPo a1) {
 
   time_t when = timegm(&now);
 
-  return (ReturnStatus) {.ret=Ok,
+  return (ReturnStatus) {.ret=Normal,
     .result=makeFloat((double) when + fraction)};
 }
 
@@ -103,7 +103,7 @@ ReturnStatus g__time2date(heapPo h, termPo a1) {
   setArg(dte, DATE_UTC, off);
 
   gcReleaseRoot(h, root);
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) dte};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) dte};
 }
 
 ReturnStatus g__time2utc(heapPo h, termPo a1) {
@@ -142,7 +142,7 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   setArg(dte, DATE_UTC, off);
 
   gcReleaseRoot(h, root);
-  return (ReturnStatus) {.ret=Ok, .result= (termPo) dte};
+  return (ReturnStatus) {.ret=Normal, .result= (termPo) dte};
 }
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
@@ -162,10 +162,10 @@ ReturnStatus g__formattime(heapPo h, termPo xc, termPo a1, termPo a2) {
     termPo result = allocateFromStrBuffer(h, buff);
     closeIo(O_IO(buff));
 
-    return (ReturnStatus) {.ret=Ok, .result=result};
+    return (ReturnStatus) {.ret=Normal, .result=result};
   } else {
     closeIo(O_IO(buff));
-    return (ReturnStatus) {.ret=Error, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
   }
 }
 
@@ -573,8 +573,8 @@ ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return (ReturnStatus) {.ret=Ok, .result=(termPo) wrapSome(h, makeFloat((double) tm))};
+    return (ReturnStatus) {.ret=Normal, .result=(termPo) wrapSome(h, makeFloat((double) tm))};
   } else {
-    return (ReturnStatus) {.ret=Ok, .result=noneEnum};
+    return (ReturnStatus) {.ret=Normal, .result=noneEnum};
   }
 }

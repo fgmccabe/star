@@ -45,15 +45,15 @@ newAsyncTask(nextProc next, asyncAlloc alloc, asyncClose close, asyncCleanup cle
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
   if (closeIo(ioChannel(C_IO(a1))) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 ReturnStatus g__end_of_file(heapPo h, termPo a1) {
   termPo Rs = (isFileAtEof(ioChannel(C_IO(a1))) == Eof ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Ok, .result=Rs};
+  return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
 ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
@@ -63,11 +63,11 @@ ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
   retCode ret = inChar(io, &cp);
   switch (ret) {
     case Ok:
-      return (ReturnStatus) {.ret=Ok, .result=allocateCharacter(cp)};
+      return (ReturnStatus) {.ret=Normal, .result=allocateCharacter(cp)};
     case Eof:
-      return (ReturnStatus) {.ret=Error, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
     default:
-      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+      return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
   }
 }
 
@@ -110,16 +110,16 @@ ReturnStatus g__inchar_async(heapPo h, termPo xc, termPo a1) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else {
     codePoint cp;
     retCode ret = inChar(io, &cp);
     if (ret == Ok) {
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, allocateCharacter(cp), isAccepted)};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, allocateCharacter(cp), isAccepted)};
     } else {
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
     }
   }
 }
@@ -139,12 +139,12 @@ ReturnStatus g__inchars(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(h, buffer)};
+    ReturnStatus rt = {.ret=Normal, .result=allocateFromStrBuffer(h, buffer)};
     closeIo(O_IO(buffer));
     return rt;
   } else {
     closeIo(O_IO(buffer));
-    return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   }
 }
 
@@ -194,9 +194,9 @@ ReturnStatus g__inchars_async(heapPo h, termPo xc, termPo a1, termPo a2) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   } else {
     retCode ret = Ok;
     while (limit-- > 0 && ret == Ok) {
@@ -207,12 +207,12 @@ ReturnStatus g__inchars_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     }
 
     if (ret == Ok) {
-      ReturnStatus rt = {.ret=Ok, .result=allocateFromStrBuffer(h, buffer)};
+      ReturnStatus rt = {.ret=Normal, .result=allocateFromStrBuffer(h, buffer)};
       closeIo(O_IO(buffer));
       return rt;
     } else {
       closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+      return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
     }
   }
 }
@@ -224,11 +224,11 @@ ReturnStatus g__inbyte(heapPo h, termPo xc, termPo a1) {
   retCode ret = inByte(io, &b);
   switch (ret) {
     case Ok:
-      return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
+      return (ReturnStatus) {.ret=Normal, .result=makeInteger(b)};
     case Eof:
-      return (ReturnStatus) {.ret=Error, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
     default:
-      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+      return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
   }
 }
 
@@ -262,19 +262,19 @@ ReturnStatus g__inbyte_async(heapPo h, termPo xc, termPo a1) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   } else {
     byte b;
     retCode ret = inByte(io, &b);
     switch (ret) {
       case Ok:
-        return (ReturnStatus) {.ret=Ok, .result=makeInteger(b)};
+        return (ReturnStatus) {.ret=Normal, .result=makeInteger(b)};
       case Eof:
-        return (ReturnStatus) {.ret=Error, .result=eofEnum};
+        return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
       default:
-        return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+        return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
     }
   }
 }
@@ -308,10 +308,10 @@ ReturnStatus g__inbytes(heapPo h, termPo xc, termPo a1, termPo a2) {
 
     termPo vect = makeVector(h, length, makeByte, (void *) text);
 
-    return (ReturnStatus) {.ret=Ok, .result=vect};
+    return (ReturnStatus) {.ret=Normal, .result=vect};
   } else {
     closeIo(O_IO(buffer));
-    return (ReturnStatus) {.ret=Error, .result=ioErrorCode(ret)};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   }
 }
 
@@ -371,9 +371,9 @@ ReturnStatus g__inbytes_async(heapPo h, termPo xc, termPo a1, termPo a2) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else
     return g__inbytes(h, xc, a1, a2);
 }
@@ -409,17 +409,17 @@ ReturnStatus g__inline(heapPo h, termPo xc, termPo a1) {
       integer length;
       char *text = getTextFromBuffer(buffer, &length);
 
-      ReturnStatus rt = {.ret=Ok, .result=allocateString(h, text, length)};
+      ReturnStatus rt = {.ret=Normal, .result=allocateString(h, text, length)};
       closeIo(O_IO(buffer));
       return rt;
     }
     case Eof: {
       closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Eof, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
     }
     default: {
       closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+      return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
     }
   }
 }
@@ -471,9 +471,9 @@ ReturnStatus g__inline_async(heapPo h, termPo xc, termPo a1) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok)
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   } else
     return g__inline(h, xc, a1);
 }
@@ -505,14 +505,14 @@ ReturnStatus g__get_file(heapPo h, termPo xc, termPo a1) {
       termPo text = allocateFromStrBuffer(h, buffer);
       closeIo(O_IO(buffer));
 
-      ReturnStatus rt = {.ret=Ok, .result=text};
+      ReturnStatus rt = {.ret=Normal, .result=text};
       return rt;
     } else {
       closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=ret, .result=voidEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
     }
   } else {
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
   }
 }
 
@@ -555,9 +555,9 @@ ReturnStatus g__getfile_async(heapPo h, termPo xc, termPo a1) {
         futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
         if ((ret = enqueueRead(f, Null, Null)) == Ok)
-          return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+          return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
       }
-      return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+      return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
     } else {
       retCode ret = grabText(io, O_IO(buffer));
 
@@ -565,15 +565,15 @@ ReturnStatus g__getfile_async(heapPo h, termPo xc, termPo a1) {
         termPo line = allocateFromStrBuffer(h, buffer);
         closeIo(O_IO(buffer));
         closeIo(io);
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, line, isAccepted)};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, line, isAccepted)};
       } else {
         closeIo(O_IO(buffer));
         closeIo(io);
-        return (ReturnStatus) {.ret=Ok, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
+        return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
       }
     }
   } else
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
 }
 
 ReturnStatus g__logmsg(heapPo h, termPo a1) {
@@ -581,19 +581,19 @@ ReturnStatus g__logmsg(heapPo h, termPo a1) {
   const char *text = strVal(a1, &length);
 
   if (logMsg(logFile, "%S", (char *) text, length) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Fail, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 ReturnStatus g__display_depth(heapPo h) {
-  return (ReturnStatus) {.ret=Ok, .result=makeInteger(displayDepth)};
+  return (ReturnStatus) {.ret=Normal, .result=makeInteger(displayDepth)};
 }
 
 ReturnStatus g__stdfile(heapPo h, termPo a1) {
   integer fNo = integerVal(a1);
 
-  ReturnStatus rt = {.ret=Ok};
+  ReturnStatus rt = {.ret=Normal};
 
   switch (fNo) {
     case 0:
@@ -624,7 +624,7 @@ ReturnStatus g__fposition(heapPo h, termPo a1) {
       break;
   }
 
-  ReturnStatus rt = {.ret=Ok, .result=makeInteger(pos)};
+  ReturnStatus rt = {.ret=Normal, .result=makeInteger(pos)};
   return rt;
 }
 
@@ -633,29 +633,29 @@ ReturnStatus g__fseek(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer pos = integerVal(a2);
 
   if (fileSeek(io, pos) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 ReturnStatus g__setfileencoding(heapPo h, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   integer enc = integerVal(a2);
   setEncoding(io, (ioEncoding) enc);
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }
 
 ReturnStatus g__flush(heapPo h, termPo xc, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
   if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 ReturnStatus g__flushall(heapPo h, termPo a1) {
   flushOut();
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }
 
 static retCode grabAsync(ioPo io, AsyncStruct *async) {

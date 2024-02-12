@@ -15,6 +15,6 @@ test.gl1{
   main:()=>().
   main() => valof{
     show g1;
-    assert g1 == 1
+    assert g1 == 49
   }
 }

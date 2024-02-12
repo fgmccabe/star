@@ -20,9 +20,9 @@ ReturnStatus g__outchar(heapPo h, termPo xc, termPo a1, termPo a2) {
   codePoint cp = charVal(a2);
 
   if (outChar(io, cp) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 static taskState nullWrite(ioPo out, asyncPo async) {
@@ -64,9 +64,9 @@ ReturnStatus g__outchar_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     if (ret == Ok) {
       futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
 
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
@@ -76,9 +76,9 @@ ReturnStatus g__outbyte(heapPo h, termPo xc, termPo a1, termPo a2) {
   integer cp = integerVal(a2);
 
   if (outByte(io, cp) == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
@@ -108,9 +108,9 @@ ReturnStatus g__outbyte_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     if (ret == Ok) {
       futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
 
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
@@ -126,9 +126,9 @@ ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
   }
 
   if (ret == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
@@ -146,9 +146,9 @@ ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 
   if (ret == Ok)
-    return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
 static taskState wrText(ioPo out, asyncPo async) {
@@ -198,9 +198,9 @@ ReturnStatus g__outtext_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     if (ret == Ok) {
       futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
 
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
@@ -209,7 +209,7 @@ ReturnStatus g__show(heapPo h, termPo a1) {
   integer length;
   const char *text = strVal(a1, &length);
   outMsg(logFile, "%S\n%_", text, length);
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }
 
 ReturnStatus g__put_file(heapPo h, termPo xc, termPo a1, termPo a2) {
@@ -225,10 +225,10 @@ ReturnStatus g__put_file(heapPo h, termPo xc, termPo a1, termPo a2) {
     retCode ret = outText(io, txt, tLen);
     closeIo(O_IO(io));
 
-    ReturnStatus rt = {.ret=ret, .result=unitEnum};
+    ReturnStatus rt = {.ret=Abnormal, .result=eIOERROR};
     return rt;
   } else {
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
   }
 }
 
@@ -261,11 +261,11 @@ ReturnStatus g__put_file_async(heapPo h, termPo xc, termPo a1, termPo a2) {
     if (ret == Ok) {
       futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
 
-      return (ReturnStatus) {.ret=Ok, .result=(termPo) ft};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=ret, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
   } else {
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
   }
 }
 

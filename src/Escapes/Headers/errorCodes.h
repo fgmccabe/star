@@ -8,7 +8,10 @@
 #include "term.h"
 
 extern termPo eOk;
+extern termPo eSWITCH;
 extern termPo eINTRUPT;
+extern termPo eERROR;
+extern termPo eEOF;
 extern termPo eINVAL;
 extern termPo eRANGE;
 extern termPo eNOFILE;

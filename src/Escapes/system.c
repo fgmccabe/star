@@ -110,7 +110,7 @@ ReturnStatus g__envir(heapPo h) {
   }
   gcReleaseRoot(NULL, root);
   setProcessRunnable(currentProcess);
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) list};
 }
 
 ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
@@ -121,10 +121,10 @@ ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
   char *val = getenv((char *) key);
 
   if (val != NULL) {
-    return (ReturnStatus) {.ret=Ok,
+    return (ReturnStatus) {.ret=Normal,
       .result=(termPo) allocateCString(h, val)};
   } else {
-    return (ReturnStatus) {.ret=Ok, .result=a2};
+    return (ReturnStatus) {.ret=Normal, .result=a2};
   }
 }
 
@@ -136,9 +136,9 @@ ReturnStatus g__setenv(heapPo h, termPo xc, termPo a1, termPo a2) {
   copyChars2Buff(C_STR(a2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
-    return (ReturnStatus) {.ret=Ok, .result=voidEnum};
+    return (ReturnStatus) {.ret=Normal, .result=voidEnum};
   } else
-    return (ReturnStatus) {.ret=Error, .result=eFAIL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eFAIL};
 }
 
 ReturnStatus g__repo(heapPo h) {
@@ -146,7 +146,7 @@ ReturnStatus g__repo(heapPo h) {
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(h, repoBuffer, uniStrLen(repoBuffer));
 
-  return (ReturnStatus) {.result = repo, .ret=Ok};
+  return (ReturnStatus) {.result = repo, .ret=Normal};
 }
 
 ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
@@ -164,10 +164,10 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Error,.result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal,.result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Error,.result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal,.result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -230,18 +230,18 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              return (ReturnStatus) {.ret=Error,.result=eNOTFND};
+              return (ReturnStatus) {.ret=Abnormal,.result=eNOTFND};
             case EFAULT:
-              return (ReturnStatus) {.ret=Error,.result=eINVAL};
+              return (ReturnStatus) {.ret=Abnormal,.result=eINVAL};
             case EINTR:
             default:
               continue;
           }
         } else if (WIFEXITED(childStatus)) { /* exited normally */
-          return (ReturnStatus) {.ret=Ok,
+          return (ReturnStatus) {.ret=Normal,
             .result = makeInteger(WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
-          return (ReturnStatus) {.ret=Error,.result=eINTRUPT};
+          return (ReturnStatus) {.ret=Abnormal,.result=eINTRUPT};
       } while (True);
     }
   }
@@ -260,10 +260,10 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Error, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Error, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -322,7 +322,7 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
         gcReleaseRoot(h, root);
 
-        return (ReturnStatus) {.ret=Ok, .result = (termPo) triple};
+        return (ReturnStatus) {.ret=Normal, .result = (termPo) triple};
       }
       default: {
         for (integer ix = 0; ix < argCnt; ix++)
@@ -331,7 +331,7 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
           free(envp[ix]);    /* release the strings we allocated */
 
         setProcessRunnable(currentProcess);
-        return (ReturnStatus) {.ret=Error, .result=eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
       }
     }
   }

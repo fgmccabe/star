@@ -11,12 +11,12 @@
 ReturnStatus g__cell(heapPo h, termPo a1) {
   cellPo cell = newCell(h, a1);
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) cell};
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) cell};
 }
 
 ReturnStatus g__get(heapPo h, termPo a1) {
   cellPo cell = C_CELL(a1);
-  return (ReturnStatus) {.ret=Ok, .result=getCell(cell)};
+  return (ReturnStatus) {.ret=Normal, .result=getCell(cell)};
 }
 
 ReturnStatus g__assign(heapPo h, termPo a1, termPo a2) {
@@ -24,5 +24,5 @@ ReturnStatus g__assign(heapPo h, termPo a1, termPo a2) {
 
   setCell(Cell, a2);
 
-  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
+  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }

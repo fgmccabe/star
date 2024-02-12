@@ -1,13 +1,14 @@
 /*
  * Header for the engine
  */
-#ifndef _ENGINE_H_
-#define _ENGINE_H_
+#ifndef ENGINE_H_
+#define ENGINE_H_
 
 #include "star.h"
 #include "engineOptions.h"
 #include "code.h"
 #include "heap.h"
+#include "escape.h"
 
 typedef struct processRec_ *processPo;
 
@@ -27,11 +28,6 @@ typedef enum {
   in_exclusion,
   dead
 } ProcessState;
-
-typedef struct return_code_ {
-  retCode ret;
-  termPo result;
-} ReturnStatus;
 
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
 void switchProcessState(processPo p, ProcessState state);

@@ -11,7 +11,7 @@
 typedef struct normal_term {
   labelPo lbl;                // Overlays clss - because it is the term's class
   termPo args[ZEROARRAYSIZE];
-} Normal;
+} NormalTerm;
 
 
 static inline termPo nthElem(normalPo term, integer ix) {
