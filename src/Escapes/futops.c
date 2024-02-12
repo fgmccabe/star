@@ -22,7 +22,7 @@ ReturnStatus g__futureIsRejected(heapPo h, termPo a1) {
 ReturnStatus g__resolveFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
   futurePo ft = C_FUTURE(a1);
   switch (resolveFuture(ft, a2)) {
-    case Ok:{
+    case Ok: {
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
     }
     default:

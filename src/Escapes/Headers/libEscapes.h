@@ -12,8 +12,10 @@ typedef ReturnStatus (*escFun3)(heapPo h, termPo arg1, termPo arg2, termPo arg3)
 typedef ReturnStatus (*escFun4)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4);
 typedef ReturnStatus (*escFun5)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5);
 typedef ReturnStatus (*escFun6)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5, termPo arg6);
-typedef ReturnStatus (*escFun7)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5, termPo arg6, termPo arg7);
-typedef ReturnStatus (*escFun8)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5, termPo arg6, termPo arg7, termPo arg8);
+typedef ReturnStatus (*escFun7)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5, termPo arg6,
+                                termPo arg7);
+typedef ReturnStatus (*escFun8)(heapPo h, termPo arg1, termPo arg2, termPo arg3, termPo arg4, termPo arg5, termPo arg6,
+                                termPo arg7, termPo arg8);
 
 #define MAX_ESCAPE_ARITY (8)
 

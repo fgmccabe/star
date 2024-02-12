@@ -280,7 +280,7 @@ ReturnStatus g__isIDContinue(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__digitCode(heapPo h, termPo xc,termPo a1) {
+ReturnStatus g__digitCode(heapPo h, termPo xc, termPo a1) {
   codePoint ch = charVal(a1);
 
   if (isNdChar(ch)) {
@@ -298,7 +298,7 @@ ReturnStatus g__codePoint(heapPo h, termPo a1) {
 }
 
 ReturnStatus g__char(heapPo h, termPo a1) {
-  codePoint ch = (codePoint)integerVal(a1);
+  codePoint ch = (codePoint) integerVal(a1);
 
   return (ReturnStatus) {.ret=Normal,
     .result=allocateCharacter(ch)};

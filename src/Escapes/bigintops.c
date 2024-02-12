@@ -164,7 +164,7 @@ ReturnStatus g__big2str(heapPo h, termPo a1) {
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
 
-  return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, actual) };
+  return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, actual)};
 }
 
 ReturnStatus g__str2big(heapPo h, termPo a1) {

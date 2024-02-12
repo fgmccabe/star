@@ -269,7 +269,6 @@ ReturnStatus g__put_file_async(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 }
 
-
 static taskState pushAsync(ioPo io, AsyncStruct *async) {
   retCode ret = Ok;
   while (ret == Ok) {

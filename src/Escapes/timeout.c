@@ -25,10 +25,10 @@ ReturnStatus g__settimeout(heapPo h, termPo a1, termPo a2) {
 
 void reportTimeout(void *cl) {
   futurePo fut = C_FUTURE(cl);
-  resolveFuture(fut,unitEnum);
+  resolveFuture(fut, unitEnum);
 }
 
-retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2){
+retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2) {
   // Polling a timeout does nothing
   return Ok;
 }
