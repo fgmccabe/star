@@ -5,7 +5,6 @@
 escapeType("_exit",funType(tplType([type("star.core*integer")]),tplType([]))).
 escapeType("_abort",allType(kVar("a"),funType(tplType([kVar("a"),type("star.core*string")]),tplType([])))).
 escapeType("_definedLbl",funType(tplType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
-escapeType("_callLbl",funType(tplType([type("star.core*string"),type("star.core*integer"),tpExp(tpFun("star.core*cons",1),tpExp(tpFun("star.core*cons",1),type("star.core*string")))]),tplType([]))).
 escapeType("_globalIsSet",funType(tplType([type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_int_plus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_minus",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -143,9 +142,9 @@ escapeType("_getfile_async",constrained(funType(tplType([type("star.core*string"
 escapeType("_put_file",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_put_file_async",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tpExp(tpExp(tpFun("future",2),tplType([])),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_show",funType(tplType([type("star.core*string")]),tplType([]))).
-escapeType("_install_pkg",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")])))).
-escapeType("_pkg_is_present",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
-escapeType("_in_manifest",funType(tplType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
+escapeType("_install_pkg",constrained(funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")]))),raises(type("star.core*errorCode")))).
+escapeType("_pkg_is_present",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean")),raises(type("star.core*errorCode")))).
+escapeType("_in_manifest",constrained(funType(tplType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*boolean")),raises(type("star.core*errorCode")))).
 escapeType("_locate_in_manifest",constrained(funType(tplType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
 escapeType("_logmsg",funType(tplType([type("star.core*string")]),tplType([]))).
 escapeType("_display_depth",funType(tplType([]),type("star.core*integer"))).
@@ -197,7 +196,7 @@ escapeType("_isZlChar",funType(tplType([type("star.core*char")]),type("star.core
 escapeType("_isZpChar",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
 escapeType("_isZsChar",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
 escapeType("_isLetterChar",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
-escapeType("_digitCode",funType(tplType([type("star.core*char")]),type("star.core*integer"))).
+escapeType("_digitCode",constrained(funType(tplType([type("star.core*char")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_codePoint",funType(tplType([type("star.core*char")]),type("star.core*integer"))).
 escapeType("_char",funType(tplType([type("star.core*integer")]),type("star.core*char"))).
 escapeType("_isIDStart",funType(tplType([type("star.core*char")]),type("star.core*boolean"))).
@@ -232,8 +231,8 @@ escapeType("_str_start",funType(tplType([type("star.core*string"),type("star.cor
 escapeType("_str_end",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_splice",funType(tplType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_multicat",funType(tplType([tpExp(tpFun("star.core*cons",1),type("star.core*string"))]),type("star.core*string"))).
-escapeType("_str_hdtl",funType(tplType([type("star.core*string")]),tplType([type("star.core*char"),type("star.core*string")]))).
-escapeType("_str_back",funType(tplType([type("star.core*string")]),tplType([type("star.core*string"),type("star.core*char")]))).
+escapeType("_str_hdtl",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),tplType([type("star.core*char"),type("star.core*string")])))).
+escapeType("_str_back",constrained(funType(tplType([type("star.core*string")]),tplType([type("star.core*string"),type("star.core*char")])),raises(type("star.core*errorCode")))).
 escapeType("_str_cons",funType(tplType([type("star.core*char"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_code2str",funType(tplType([type("star.core*char")]),type("star.core*string"))).
 escapeType("_str_apnd",funType(tplType([type("star.core*string"),type("star.core*char")]),type("star.core*string"))).
@@ -254,7 +253,6 @@ escapeType("_stackTrace",funType(tplType([]),type("star.core*string"))).
 isEscape("_exit").
 isEscape("_abort").
 isEscape("_definedLbl").
-isEscape("_callLbl").
 isEscape("_globalIsSet").
 isEscape("_int_plus").
 isEscape("_int_minus").
