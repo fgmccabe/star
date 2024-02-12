@@ -164,10 +164,10 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal,.result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal,.result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -230,9 +230,9 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              return (ReturnStatus) {.ret=Abnormal,.result=eNOTFND};
+              return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
             case EFAULT:
-              return (ReturnStatus) {.ret=Abnormal,.result=eINVAL};
+              return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
             case EINTR:
             default:
               continue;
@@ -241,7 +241,7 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
           return (ReturnStatus) {.ret=Normal,
             .result = makeInteger(WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
-          return (ReturnStatus) {.ret=Abnormal,.result=eINTRUPT};
+          return (ReturnStatus) {.ret=Abnormal, .result=eINTRUPT};
       } while (True);
     }
   }
