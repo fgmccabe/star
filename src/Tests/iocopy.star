@@ -8,6 +8,7 @@ test.iocopy{
   copyFl(this,src,dest) => valof{
     try{
       Text = rdFileAsync(src);
+--      logMsg("File text: #(Text)");
       wrFileAsync(dest,Text);
     } catch ioException in {
       | .ioError => logMsg("bad io")

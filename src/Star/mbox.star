@@ -65,7 +65,7 @@ star.mbox{
   .blocked(()=>boolean) |
   .result(e) |
   .fork(taskFun[e]) |
-  .requestIO(()=>boolean) |
+  .requestIO(ioHandle,()=>boolean) |
   .identify(task[e]) |
   .retired_.
 
@@ -93,8 +93,9 @@ star.mbox{
   nursery(Ts) => valof{
     Q := (Ts//spawnTask)::qc[task[e]];
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
+    IoQ := ([]:cons[(ioHandle,()=>boolean,task[e])]);
 
-    while ~isEmpty(Q!) || ~isEmpty(BlockQ!) do{
+    while ~isEmpty(Q!) || ~isEmpty(BlockQ!) || ~isEmpty(IoQ!) do{
       while ~isEmpty(Q!) do{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
@@ -118,18 +119,24 @@ star.mbox{
 	    | .blocked(P) => {
 	      BlockQ := [(P,T),..BlockQ!]
 	    }
-	    | .requestIO(Rdy) => {
-	      BlockQ := [(Rdy,T),..BlockQ!];
+	    | .requestIO(Io,Rdy) => {
+	      IoQ := [(Io,Rdy,T),..IoQ!];
 	    }
 	  }
-	};
+	}
       };
-	
-      if ~isEmpty(BlockQ!) then{
+
+      if _waitIo(IoQ!,-1) then{
+	(IQ,Wts) = testIoQ(IoQ!,[],[]);
+	IoQ := IQ;
+	Q := Wts++Q!
+      };
+
+      if ~isEmpty(BlockQ!) then{ -- Poll the blocked queue
 	(BQ,Wts) = testBlocked(BlockQ!,[],[]);
 	BlockQ := BQ;
 	Q := Wts
-      };
+      }
     };
     raise .canceled
   }
@@ -142,6 +149,14 @@ star.mbox{
   testBlocked([(P,T),..Q],BQ,Ws) =>
     testBlocked(Q,[(P,T),..BQ],Ws).
 
+  testIoQ:all y ~~ (cons[(ioHandle,()=>boolean,y)],cons[(ioHandle,()=>boolean,y)],qc[y])=>
+    (cons[(ioHandle,(()=>boolean),y)],qc[y]).
+  testIoQ([],BQ,Ws) => (BQ,Ws).
+  testIoQ([(Io,P,T),..Q],BQ,Ws) where ~P() =>
+    testIoQ(Q,BQ,[T,..Ws]).
+  testIoQ([(Io,P,T),..Q],BQ,Ws) =>
+    testIoQ(Q,[(Io,P,T),..BQ],Ws).
+  
   public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
   pause() => valof{
     case this suspend .yield_ in {

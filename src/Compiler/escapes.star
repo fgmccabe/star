@@ -140,11 +140,10 @@ star.compiler.escapes{
     "_fseek" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_flush" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_flushall" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([]))).
+    "_waitIo" => .some(.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("ioHandle"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*boolean")),.nomnal("e")])),.nomnal("star.core*integer")])),.nomnal("star.core*boolean")))).
     "_setfileencoding" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([]))).
     "_get_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_getfile_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("star.core*string")),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_put_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
-    "_put_file_async" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tpExp(.tpExp(.tpFun("future",2),.tupleType([])),.nomnal("star.core*errorCode"))),.raisEs(.nomnal("star.core*errorCode")))).
     "_show" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tupleType([]))).
     "_install_pkg" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))),.raisEs(.nomnal("star.core*errorCode")))).
     "_pkg_is_present" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*boolean")),.raisEs(.nomnal("star.core*errorCode")))).
@@ -393,11 +392,10 @@ star.compiler.escapes{
     "_fseek" => .true.
     "_flush" => .true.
     "_flushall" => .true.
+    "_waitIo" => .true.
     "_setfileencoding" => .true.
     "_get_file" => .true.
-    "_getfile_async" => .true.
     "_put_file" => .true.
-    "_put_file_async" => .true.
     "_show" => .true.
     "_install_pkg" => .true.
     "_pkg_is_present" => .true.

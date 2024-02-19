@@ -31,6 +31,10 @@
 #define STD_PERMISSIONS (S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR)
 #endif
 
+#ifndef NANOS
+#define NANOS 1000000000   // Number of nano seconds
+#endif
+
 /* Set up the file class */
 
 static void ioSignalHandler(int signal, siginfo_t *si, void *ignore);
@@ -393,7 +397,7 @@ retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
   f->file.aio.aio_buf = &f->file.in_line[f->file.in_pos];
   f->file.aio.aio_reqprio = 0;
   f->file.aio.aio_offset = f->file.file_pos;
-  f->file.aio.aio_sigevent.sigev_notify = SIGEV_SIGNAL; // (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
+  f->file.aio.aio_sigevent.sigev_notify = (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
   f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
   f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
 
@@ -468,6 +472,22 @@ progress asyncWrStatus(filePo f) {
     }
   } else
     return completed;
+}
+
+logical isInAsync(filePo f){
+  return f->file.aio.aio_fildes>=0;
+}
+
+retCode waitForAsync(filePo files[], integer len, integer timeout) {
+  const struct aiocb *aios[len];
+  for (integer ix = 0; ix < len; ix++) {
+    aios[ix] = &files[ix]->file.aio;
+  }
+  struct timespec time = {.tv_sec = timeout / NANOS, .tv_nsec=timeout % NANOS};
+  if (aio_suspend(aios, len, (timeout > 0 ? &time : Null)) == 0)
+    return Ok;
+  else
+    return Fail;
 }
 
 retCode refillBuffer(filePo f) {

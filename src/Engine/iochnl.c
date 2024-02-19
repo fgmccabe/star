@@ -77,7 +77,6 @@ static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logi
   return outMsg(out, "<<io:%s>>", fileName(ch->io));
 }
 
-
 ioChnnlPo C_IO(termPo t) {
   assert(hasClass(t, ioChnnlClass));
   return (ioChnnlPo) t;
@@ -85,6 +84,10 @@ ioChnnlPo C_IO(termPo t) {
 
 ioPo ioChannel(ioChnnlPo chnnl) {
   return chnnl->io;
+}
+
+logical isIoChannel(termPo t) {
+  return hasClass(t, ioChnnlClass);
 }
 
 static ioChnnlPo inChnl = Null;

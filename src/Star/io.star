@@ -19,7 +19,7 @@ star.io{
   rdCharAsync(IO) => valof{
     try{
       Fut = _inchar_async(IO);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -53,7 +53,7 @@ star.io{
   rdCharsAsync(IO,Cx) => valof{
     try{
       Fut = _inchars_async(IO,Cx);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -87,7 +87,7 @@ star.io{
   rdLineAsync(IO) => valof{
     try{
       Fut = _inline_async(IO);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -97,8 +97,10 @@ star.io{
 	      | _ default => raise .ioError
 	    }
 	  }
-	  else
-	  this retire .retired_
+	  else{
+	    logMsg("future wasnt resolved");
+	    raise .ioError
+	  }
 	}
       }
     }
@@ -121,7 +123,7 @@ star.io{
   rdBytesAsync(IO,Cx) => valof{
     try{
       Fut = _inbytes_async(IO,Cx);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -152,26 +154,36 @@ star.io{
   }
 
   public rdFileAsync:all e ~~ (this:task[e]), raises ioException|:(string)=> string.
-  rdFileAsync(F) => valof{
+  rdFileAsync(Fl) => valof{
     try{
-      Fut = _getfile_async(F);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | .eof => this retire .retired_
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
+      In = _openInFile(Fl,3);
+      Txt := [];
+      try{
+	while Ln.=rdCharsAsync(In,1024) do{
+	  Txt := [Ln,..Txt!];
 	}
+      } catch ioException in {
+	.pastEof => {
+	  logMsg("At eof");
+	}
+	_ => {
+	  logMsg("??");
+	  _close(In);
+	  raise .ioError
+	}
+      };
+
+      _close(In);
+      valis reverse(Txt!)*
+    } catch errorCode in {
+      .eof => {
+	logMsg("outer eof");
+	raise .pastEof
       }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      | _ => {
+	logMsg("outer error");
+	raise .ioError
+      }
     }
   }
 
@@ -188,7 +200,7 @@ star.io{
   wrCharAsync(IO,C) => valof{
     try{
       Fut = _outchar_async(IO,C);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -221,7 +233,7 @@ star.io{
   wrTextAsync(IO,S) => valof{
     try{
       Fut = _outtext_async(IO,S);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
+      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
 	.go_ahead => {
 	  if _futureIsResolved(Fut) then{
 	    try{
@@ -253,24 +265,12 @@ star.io{
     (string,string)=> ().
   wrFileAsync(F,S) => valof{
     try{
-      Fut = _put_file_async(F,S);
-      case this suspend .requestIO(()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      Ot = _openOutFile(F,3);
+      wrTextAsync(Ot,S);
+      _close(Ot);
+      valis ()
+    } catch errorCode in {
+      _ default => raise .ioError
     }
   }
-  
 }
