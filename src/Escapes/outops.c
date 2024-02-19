@@ -239,36 +239,6 @@ static void putFileCloser(ioPo io, asyncPo async) {
   asyncCloser(io, async);
 }
 
-ReturnStatus g__put_file_async(heapPo h, termPo xc, termPo a1, termPo a2) {
-  char fn[MAXFILELEN];
-
-  copyChars2Buff(C_STR(a1), fn, NumberOf(fn));
-
-  ioPo io = openOutFile(fn, utf8Encoding);
-  if (io != Null) {
-    filePo f = O_FILE(io);
-
-    integer tLen;
-    const char *txt = strVal(a2, &tLen);
-    retCode ret = enableASynch(f);
-
-    char *copy = malloc(tLen + 1);
-    uniNCpy(copy, tLen + 1, txt, tLen);
-    strBufferPo buffer = newReadStringBuffer(copy, tLen);
-
-    asyncPo async = newAsyncTask(wrText, allocUnit, putFileCloser, wrCleanup, (integer) copy, O_IO(buffer));
-
-    if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
-
-      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
-    }
-    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
-  } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
-  }
-}
-
 static taskState pushAsync(ioPo io, AsyncStruct *async) {
   retCode ret = Ok;
   while (ret == Ok) {

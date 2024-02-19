@@ -24,6 +24,7 @@
     "star.ideal": "ideal.star",
     "star.index": "index.star",
     "star.io": "io.star",
+    "star.iostream": "iostream.star",
     "star.index": "index.star",
     "star.iterable": "iterable.star",
     "star.json": "json.star",

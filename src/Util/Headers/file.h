@@ -37,6 +37,10 @@ logical isExecutableFile(char *file);
 
 integer inText(filePo f, char *buffer, integer len);
 
+retCode waitForAsync(filePo files[],integer len, integer timeout);
+
+logical isInAsync(filePo f);
+
 retCode flushFile(filePo f);            /* file flush */
 retCode flushIo(ioPo io);               // Version for io channels
 void flushOut(void);                    /* flush all files */

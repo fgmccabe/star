@@ -24,4 +24,8 @@ termPo nthArg(normalPo term, integer ix);
 
 void setArg(normalPo term, integer ix, termPo arg);
 
+typedef retCode (*normalProc)(termPo term,void *cl);
+
+retCode walkNormal(termPo t,normalProc proc,void *cl);
+
 #endif //STAR_NORMAL_H

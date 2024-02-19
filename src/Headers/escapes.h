@@ -11,6 +11,8 @@
 #define ioHandle "t'ioHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define futureType(F,E) "UUz2'future'" F E
+#define taskType(T) "Uz1'star.mbox*task'" T
+
 #define ERRCODE "t'star.core*errorCode'"
 
 /* Define the standard escapes */
@@ -178,12 +180,12 @@ escape(_fposition, "F("ioHandle")i", "report current file position")
 escape(_fseek, "|F("ioHandle"i)()r"ERRCODE, "seek to new file position")
 escape(_flush, "|F("ioHandle")()r"ERRCODE, "flush the I/O buffer")
 escape(_flushall, "F()()", "flush all files")
+
+escape(_waitIo,":k'e'F(L("ioHandle"F()lk'e')i)l", "Poll for IO ready")
 escape(_setfileencoding, "F("ioHandle"i)()", "set file encoding on file")
 
 escape(_get_file, "|F(s)sr"ERRCODE, "file into a char sequence")
-escape(_getfile_async, "|F(s)"futureType("s",ERRCODE)"r"ERRCODE, "file into a string")
 escape(_put_file, "|F(ss)()r"ERRCODE, "write string into file")
-escape(_put_file_async, "|F(ss)"futureType("()",ERRCODE)"r"ERRCODE, "async write string into file")
 escape(_show, "F(s)()", "show something on console")
 
 escape(_install_pkg, "|F(s)L(ss)r"ERRCODE, "define package from string contents")

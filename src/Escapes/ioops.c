@@ -14,6 +14,8 @@
 #include "vectP.h"
 #include "futureP.h"
 #include "byteBuffer.h"
+#include "cons.h"
+#include "option.h"
 
 static poolPo asyncPool = Null;
 
@@ -536,46 +538,6 @@ static void asyncFileCloser(ioPo io, asyncPo async) {
   freePool(asyncPool, async);
 }
 
-ReturnStatus g__getfile_async(heapPo h, termPo xc, termPo a1) {
-  char fn[MAXFILELEN];
-
-  copyChars2Buff(C_STR(a1), fn, NumberOf(fn));
-
-  ioPo io = openInFile(fn, utf8Encoding);
-  if (io != Null) {
-    strBufferPo buffer = newStringBuffer();
-    if (isAFile(O_OBJECT(io))) {
-      filePo f = O_FILE(io);
-
-      retCode ret = enableASynch(f);
-
-      asyncPo async = newAsyncTask(fileChar, allocStr, asyncFileCloser, lineCleanup, -1, O_IO(newStringBuffer()));
-
-      if (ret == Ok) {
-        futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
-
-        if ((ret = enqueueRead(f, Null, Null)) == Ok)
-          return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
-      }
-      return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
-    } else {
-      retCode ret = grabText(io, O_IO(buffer));
-
-      if (ret == Eof) {
-        termPo line = allocateFromStrBuffer(h, buffer);
-        closeIo(O_IO(buffer));
-        closeIo(io);
-        return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, line, isAccepted)};
-      } else {
-        closeIo(O_IO(buffer));
-        closeIo(io);
-        return (ReturnStatus) {.ret=Normal, .result=(termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected)};
-      }
-    }
-  } else
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
-}
-
 ReturnStatus g__logmsg(heapPo h, termPo a1) {
   integer length;
   const char *text = strVal(a1, &length);
@@ -656,6 +618,56 @@ ReturnStatus g__flush(heapPo h, termPo xc, termPo a1) {
 ReturnStatus g__flushall(heapPo h, termPo a1) {
   flushOut();
   return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+}
+
+static retCode countIoChnnls(termPo t, void *cl) {
+  if (isIoChannel(t)) {
+    filePo f = O_FILE(ioChannel(C_IO(t)));
+    if (isInAsync(f)) {
+      integer *ix = (integer *) cl;
+      (*ix)++;
+    }
+  }
+  return Ok;
+}
+
+typedef struct {
+  integer ix;
+  filePo *files;
+} FileData;
+
+static retCode populateFiles(termPo t, void *cl) {
+  if (isIoChannel(t)) {
+    filePo f = O_FILE(ioChannel(C_IO(t)));
+    if (isInAsync(f)) {
+      FileData *data = (FileData *) cl;
+      data->files[data->ix++] = f;
+    }
+  }
+  return Ok;
+}
+
+ReturnStatus g__waitIo(heapPo h, termPo a1, termPo a2) {
+  // First count the length of the list
+  integer count = 0;
+  walkNormal(a1, countIoChnnls, (void *) &count);
+
+  if(count>0) {
+    filePo files[count];
+
+    FileData fd = {.ix = 0, .files = files};
+    walkNormal(a1, populateFiles, &fd);
+
+    assert(count==fd.ix);
+
+    retCode ret = waitForAsync(files, fd.ix, integerVal(a2));
+
+    if (ret == Ok)
+      return (ReturnStatus) {.ret=Normal, .result=trueEnum};
+    else
+      return (ReturnStatus) {.ret=Normal, .result=falseEnum};
+  } else
+    return (ReturnStatus) {.ret=Normal, .result=trueEnum};
 }
 
 static retCode grabAsync(ioPo io, AsyncStruct *async) {

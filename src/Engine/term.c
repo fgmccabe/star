@@ -225,3 +225,17 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
   return tpl;
 }
 
+retCode walkNormal(termPo t, normalProc proc, void *cl) {
+  if (isNormalPo(t)) {
+    normalPo nml = C_NORMAL(t);
+    labelPo lbl = nml->lbl;
+    integer arity = labelArity(lbl);
+
+    retCode ret = Ok;
+    for (integer ix = 0; ix < arity && ret == Ok; ix++) {
+      ret = walkNormal(nthArg(nml, ix), proc, cl);
+    }
+    return ret;
+  } else
+    return proc(t, cl);
+}

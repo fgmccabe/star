@@ -136,11 +136,10 @@ escapeType("_fposition",funType(tplType([type("ioHandle")]),type("star.core*inte
 escapeType("_fseek",constrained(funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_flush",constrained(funType(tplType([type("ioHandle")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_flushall",funType(tplType([]),tplType([]))).
+escapeType("_waitIo",allType(kVar("e"),funType(tplType([tpExp(tpFun("star.core*cons",1),tplType([type("ioHandle"),funType(tplType([]),type("star.core*boolean")),kVar("e")])),type("star.core*integer")]),type("star.core*boolean")))).
 escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([]))).
 escapeType("_get_file",constrained(funType(tplType([type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
-escapeType("_getfile_async",constrained(funType(tplType([type("star.core*string")]),tpExp(tpExp(tpFun("future",2),type("star.core*string")),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_put_file",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
-escapeType("_put_file_async",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tpExp(tpExp(tpFun("future",2),tplType([])),type("star.core*errorCode"))),raises(type("star.core*errorCode")))).
 escapeType("_show",funType(tplType([type("star.core*string")]),tplType([]))).
 escapeType("_install_pkg",constrained(funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")]))),raises(type("star.core*errorCode")))).
 escapeType("_pkg_is_present",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean")),raises(type("star.core*errorCode")))).
@@ -384,11 +383,10 @@ isEscape("_fposition").
 isEscape("_fseek").
 isEscape("_flush").
 isEscape("_flushall").
+isEscape("_waitIo").
 isEscape("_setfileencoding").
 isEscape("_get_file").
-isEscape("_getfile_async").
 isEscape("_put_file").
-isEscape("_put_file_async").
 isEscape("_show").
 isEscape("_install_pkg").
 isEscape("_pkg_is_present").
