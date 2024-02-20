@@ -30,17 +30,37 @@ star.iostream{
     disp(L) => _str_multicat(.cons("[",strmDisp(L,.cons("]",.nil))))
   }
 
-  public inStream:(ioHandle)=>ioStream[char].
-  inStream(Io) => let{.
-    nextChar() => valof{
-      try{
-	Nxt = rdChar(Io);
-	valis .streamPair(Nxt,.streamThunk($$nextChar()))
-      } catch ioException in {
-	_ => valis .endStream
+  public inStream:all t ~~ display[t], raises ioException |:
+    (string,(raises ioException|:(ioHandle)=>t))=>ioStream[t].
+  inStream(Fl,Fn) => valof{
+    try{
+      Io = _openInFile(Fl,3);
+
+      let{.
+	next() => valof{
+	  try{
+	    Nxt = Fn(Io);
+	    valis .streamPair(Nxt,.streamThunk($$next()))
+	  } catch ioException in {
+	    _ => {
+	      _close(Io);
+	      valis .endStream
+	    }
+	  }
+	}
+      .} in {
+	valis .streamThunk($$next())
       }
+    } catch errorCode in {
+      _ => raise .ioError
     }
-  .} in .streamThunk($$nextChar()).
+  }
+
+  public inCharStream:raises ioException |: (string) => ioStream[char].
+  inCharStream(Fl) => inStream(Fl,(Io)=>rdChar(Io)).
+
+  public inLineStream:raises ioException |: (string) => ioStream[string].
+  inLineStream(Fl) => inStream(Fl,(Io)=>rdLine(Io)).
 
   public forceStream:all e ~~ (ioStream[e]) => cons[e].
   forceStream(.endStream) => .nil.

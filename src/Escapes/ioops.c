@@ -46,10 +46,11 @@ newAsyncTask(nextProc next, asyncAlloc alloc, asyncClose close, asyncCleanup cle
 }
 
 ReturnStatus g__close(heapPo h, termPo xc, termPo a1) {
-  if (closeIo(ioChannel(C_IO(a1))) == Ok)
+  retCode ret = closeChannel(C_IO(a1));
+  if (ret == Ok) {
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+  } else
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
 }
 
 ReturnStatus g__end_of_file(heapPo h, termPo a1) {
@@ -59,10 +60,8 @@ ReturnStatus g__end_of_file(heapPo h, termPo a1) {
 }
 
 ReturnStatus g__inchar(heapPo h, termPo xc, termPo a1) {
-  ioPo io = ioChannel(C_IO(a1));
-
   codePoint cp;
-  retCode ret = inChar(io, &cp);
+  retCode ret = inChar(ioChannel(C_IO(a1)), &cp);
   switch (ret) {
     case Ok:
       return (ReturnStatus) {.ret=Normal, .result=allocateCharacter(cp)};
@@ -652,13 +651,13 @@ ReturnStatus g__waitIo(heapPo h, termPo a1, termPo a2) {
   integer count = 0;
   walkNormal(a1, countIoChnnls, (void *) &count);
 
-  if(count>0) {
+  if (count > 0) {
     filePo files[count];
 
     FileData fd = {.ix = 0, .files = files};
     walkNormal(a1, populateFiles, &fd);
 
-    assert(count==fd.ix);
+    assert(count == fd.ix);
 
     retCode ret = waitForAsync(files, fd.ix, integerVal(a2));
 

@@ -10,15 +10,15 @@ test.iostrm{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
-      Strm = inStream(In);
+      Strm = inCharStream(Fl);
 
       logMsg("unforced stream: $(Strm)");
       Forced = forceStream(Strm);
 
       logMsg("forced stream: #(_implode(Forced))");
-    } catch errorCode in {
-      | .eof => logMsg("end of file")
+
+      logMsg("forced line stream $(forceStream(inLineStream(Fl)))");
+    } catch ioException in {
       | Cde => logMsg("error code $(Cde)")
     };
     valis ()

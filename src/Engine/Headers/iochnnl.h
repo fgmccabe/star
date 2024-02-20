@@ -16,6 +16,7 @@ extern ioChnnlPo C_IO(termPo t);
 extern logical isIoChannel(termPo t);
 
 extern ioPo ioChannel(ioChnnlPo chnnl);
+extern retCode closeChannel(ioChnnlPo chnnl);
 
 extern ioChnnlPo stdInChnl(heapPo h);
 extern ioChnnlPo stdOutChnl(heapPo h);

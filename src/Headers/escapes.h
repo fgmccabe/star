@@ -9,9 +9,10 @@
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define ioHandle "t'ioHandle'"
+#define inHandle "t'inHandle'"
+#define outHandle "t'outHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
 #define futureType(F,E) "UUz2'future'" F E
-#define taskType(T) "Uz1'star.mbox*task'" T
 
 #define ERRCODE "t'star.core*errorCode'"
 
@@ -329,6 +330,8 @@ escape(_stackTrace, "F()s", "Print a stack trace")
 #undef processState
 #undef threadType
 #undef ioHandle
+#undef inHandle
+#undef outHandle
 #undef optionType
 #undef futureType
 #undef ERRCODE
