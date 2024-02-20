@@ -86,6 +86,15 @@ ioPo ioChannel(ioChnnlPo chnnl) {
   return chnnl->io;
 }
 
+retCode closeChannel(ioChnnlPo chnnl) {
+  if (chnnl->io != Null) {
+    retCode ret = closeIo(chnnl->io);
+    chnnl->io = Null;
+    return ret;
+  } else
+    return Ok;
+}
+
 logical isIoChannel(termPo t) {
   return hasClass(t, ioChnnlClass);
 }

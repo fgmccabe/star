@@ -66,6 +66,7 @@ F.G. McCabe).
 * Strings::
 * Date and Time::
 * Collections::
+* Input and Output::
 * Concepts and Ontologies::
 * Source Catalogs::
 * Concept index::
@@ -106,13 +107,13 @@ F.G. McCabe).
 
 @include strings.texi
 
-@include date.texi
-
 @include collections.texi
 
-@include rdf.texi
+@include io.texi
 
-@c @include io.texi
+@include date.texi
+
+@include rdf.texi
 
 @c @include system.texi
 

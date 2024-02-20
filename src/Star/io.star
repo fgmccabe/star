@@ -5,6 +5,11 @@ star.io{
 
   public ioException ::= .ioError | .pastEof .
 
+  public implementation display[ioException] => {
+    disp(.ioError) => "ioError".
+    disp(.pastEof) => "pastEof"
+  }
+
   public rdChar:raises ioException |: (ioHandle) => char.
   rdChar(H) => valof{
     try{
