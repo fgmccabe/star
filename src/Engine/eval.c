@@ -19,6 +19,7 @@
 #include "closureP.h"
 #include "thunkP.h"
 #include "errorCodes.h"
+#include "ltype.h"
 
 #ifdef TRACEEXEC
 logical collectStats = False;
@@ -597,7 +598,7 @@ retCode run(processPo P) {
           termPo vr = getGlobal(glb);
 
           check(vr != Null, "undefined global");
-          check(SP > (ptrPo) (FP + 1), "not enough room");
+          check(stackRoom(1), "unexpected stack overflow");
 
           push(vr);     /* load a global variable */
         } else {
@@ -1114,6 +1115,7 @@ retCode run(processPo P) {
 
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
+
         termPo tos = top();
         integer hx = hashTerm(tos) % mx;
 
@@ -1220,7 +1222,21 @@ retCode run(processPo P) {
       }
 
       case Frame: {
+#ifdef TRACESTACK
+        termPo frame = nthElem(LITS, collectI32(PC));
+        if(stackVerify){
+          integer frameDepth;
+          if (isString(frame)) {
+            integer sigLen;
+            const char *sig = strVal(frame, &sigLen);
+            tryRet(typeSigArity(sig, sigLen, &frameDepth));
+          } else
+            frameDepth = integerVal(frame);
+          check(frameDepth==FP->csp - SP - lclCount(FP->prog),"stack not properly language");
+        }
+#else
         PC += 2; // ignore frame entity for now
+#endif
         continue;
       }
 

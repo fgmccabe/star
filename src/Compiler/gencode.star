@@ -138,7 +138,7 @@ star.compiler.gencode{
       if ~reconcileable(Stk1,Stk2) then
 	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
 
-      valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++HCde)
+      valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++HCde)
     }
     | .cRaise(Lc,T,E,_) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,raiseCont),Ctx,Stk)
     | .cSpawn(Lc,L,_) => compExp(L,Lc,.notLast,spawnCont(pushStack(.ptr,Stk),Cont),Ctx,Stk)
@@ -260,7 +260,7 @@ star.compiler.gencode{
       if ~reconcileable(Stk1,Stk2) then
 	reportError("cannot reconcile try body $(B) with handler $(H)",Lc);
       
-      valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iTL(EOff)]++CCde)
+      valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++CCde)
     }
     | .aAbort(Lc,Msg) => abortCont(Lc,Msg).C(Ctx,Stk,[])
     | _ default => valof{
@@ -325,7 +325,7 @@ star.compiler.gencode{
       (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
 
       (Stkb,RlCde) = compPttrn(Ptn,Lc,Comp(Exp,Succ),jmpCont(Fl,Stkc),Ctx1,Stk);
-      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl),.iLdL(Off)]++AltCde)
+      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
     }
   }
 

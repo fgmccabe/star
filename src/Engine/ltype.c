@@ -69,3 +69,16 @@ retCode decNat(const char *text, integer len, integer *pos, integer *ii) {
   *ii = result;
   return Ok;
 }
+
+retCode typeSigArity(const char *sig, integer len, integer *arity){
+  if(*sig==tplTp){
+    integer pos = 1;
+    *arity = 0;
+    while(sig[pos]!=')'){
+      (*arity)++;
+      tryRet(skipTypeSig(sig,len,&pos));
+    }
+    return Ok;
+  } else
+    return Error;
+}

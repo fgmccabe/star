@@ -36,6 +36,7 @@ extern integer debuggerPort;
 extern logical showPkgFile;       // True if we show file instead of package during debugging
 extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */
+extern logical stackVerify;      // Are we dynamically verifying the stack
 
 DebugWaitFor insDebug(processPo p);
 DebugWaitFor enterDebug(processPo p);
