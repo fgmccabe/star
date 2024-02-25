@@ -1,21 +1,11 @@
 /*
-  SSL interface library for Go
-  Copyright (c) 2016, 2017. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
+  TCP Socket  library
+  Copyright (c) 2016, 2017 and beyond Francis G. McCabe
 */
 
 #include "fileP.h"
 #include "hosts.h"
-#include "iosockP.h"
+#include "sockP.h"
 #include "formio.h"
 #include <string.h>
 
@@ -40,7 +30,7 @@
 #define INVALID_SOCKET -1
 #endif
 
-static retCode sockSeek(filePo io, integer count);
+static retCode sockSeek(ioPo io, integer count);
 static retCode sockFill(filePo f);
 static retCode sockFlush(filePo io);
 static retCode asyncSockFill(filePo f);
@@ -65,16 +55,17 @@ FileClassRec SocketClass = {
   },
   .lockPart={},
   .ioPart={
-    .read = fileInBytes,                        /* inByte  */
-    .write = fileOutBytes,                       /* outBytes  */
-    .backByte = fileBackByte,                       //  put a byte back in the buffer
-    .inputReady = fileInputReady,
-    .outputReady = fileOutputReady,
-    .isAtEof = fileAtEof,                          //  Are we at end of file?
-    .close = fileClose                           //  close
+    .read = O_INHERIT_DEF,                        /* inByte  */
+    .write = O_INHERIT_DEF,                       /* outBytes  */
+    .backByte = O_INHERIT_DEF,                       //  put a byte back in the buffer
+    .inputReady = O_INHERIT_DEF,
+    .outputReady = O_INHERIT_DEF,
+    .isAtEof = O_INHERIT_DEF,                          //  Are we at end of file?
+    .close = O_INHERIT_DEF,                          //  close
+    .position = O_INHERIT_DEF,
+    .seek = sockSeek
   },
   .filePart={
-    .seek = sockSeek,
     .filler = sockFill,
     .asyncFill = asyncSockFill,
     .flush = sockFlush,
@@ -225,17 +216,18 @@ retCode connectRemote(const char *where, int port,
 /* Socket reading and writing functions */
 static retCode sockFill(filePo f) {
   again:
-  if (f->file.in_pos >= f->file.in_len) {
-    ssize_t nBytes = recv(f->file.fno, f->file.in_line, NumberOf(f->file.in_line), 0);
+  if (f->file.line_pos >= f->file.line_len) {
+    ssize_t nBytes = recv(f->file.fno, f->file.line, NumberOf(f->file.line), 0);
     int locErr = errno;
 
     if (nBytes > 0) {
-      f->file.in_pos = 0;
-      f->file.in_len = (int16) nBytes;
+      f->file.line_pos = 0;
+      f->file.line_len = (int16) nBytes;
+      f->file.file_pos += nBytes;
       return Ok;
     } else if (nBytes == 0) {    //  End of file
-      f->file.in_pos = 0;
-      f->file.in_len = 0;
+      f->file.line_pos = 0;
+      f->file.line_len = 0;
       f->io.status = Eof;
       return Eof;
     } else {
@@ -245,13 +237,13 @@ static retCode sockFill(filePo f) {
 
         case 0:      //  this shouldnt happen ... but it does
         case EWOULDBLOCK:    //  Would have blocked
-          f->file.in_pos = 0;
-          f->file.in_len = 0;
+          f->file.line_pos = 0;
+          f->file.line_len = 0;
           setBufferStatus(O_IO(f), Ok);
           return Fail;
         default:
-          f->file.in_pos = 0;
-          f->file.in_len = 0;
+          f->file.line_pos = 0;
+          f->file.line_len = 0;
           setBufferStatus(O_IO(f), Ok);
           return Error;  //  Something unspecific
       }
@@ -265,14 +257,13 @@ retCode asyncSockFill(filePo f) {
 }
 
 static retCode sockFlush(filePo f) {
-  if (f->file.out_pos < NumberOf(f->file.out_line))
-    return Ok; // Nothing to do, we have at least count bytes left in the buffer
-
-  if (f->file.out_pos > 0) {
-    size_t actual = (size_t) f->file.out_pos;
+  if (f->file.line_pos == 0)
+    return Ok; // Nothing to do
+  else{
+    size_t actual = (size_t) f->file.line_pos;
     int sock = f->file.fno;
     long nBytes;
-    byte *buffer = f->file.out_line;
+    byte *buffer = f->file.line;
     byte *cp = buffer;
 
     while (actual > 0 && (nBytes = send(sock, cp, actual, 0)) != actual) {
@@ -291,7 +282,8 @@ static retCode sockFlush(filePo f) {
                 cp += nBytes;
                 actual -= nBytes;
               }
-              f->file.out_pos = 0;
+              f->file.file_pos+=f->file.line_pos;
+              f->file.line_pos = 0;
               return Ok;
             } else
               return Fail;
@@ -307,7 +299,8 @@ static retCode sockFlush(filePo f) {
       }
     }
   }
-  f->file.out_pos = 0;
+  f->file.file_pos+=f->file.line_pos;
+  f->file.line_pos = 0;
   return Ok;
 }
 
@@ -315,7 +308,7 @@ retCode asyncSockFlush(filePo io) {
   return Error;
 }
 
-static retCode sockSeek(filePo io, integer count) {
+static retCode sockSeek(ioPo io, integer count) {
   outMsg(logFile, "seek not implemented on sockets");
   return Error;
 }

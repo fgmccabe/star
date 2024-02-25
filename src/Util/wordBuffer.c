@@ -19,12 +19,6 @@ static void wordBufferDestroy(objectPo o);
 
 static void wordBufferInit(objectPo o, va_list *args);
 
-static retCode wordBufferInWords(wordBufferPo buffer, byte *ch, integer count, integer *actual);
-
-static retCode wordBufferBackWord(ioPo io, byte b);
-
-static retCode wordBufferAtEof(ioPo io);
-
 WordBufferClassRec WordBufferClass = {
   .objectPart = {
     .parent = (classPo) &ObjectClass,                    /* parent class is object */
@@ -68,8 +62,7 @@ static void wordBufferInit(objectPo o, va_list *args) {
   wordBufferPo f = O_WORDBUFFER(o);
 
   // Set up the buffer pointers
-  f->buffer.in_pos = 0;
-  f->buffer.out_pos = 0;
+  f->buffer.pos = 0;
   f->buffer.buffer = va_arg(*args, byte *);
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
   f->buffer.grain = va_arg(*args, bufferGrain);   // Grain of the buffer
@@ -89,50 +82,8 @@ static void wordBufferDestroy(objectPo o) {
 
 // Implement class buffer functions
 
-static retCode wordBufferInWords(wordBufferPo buffer, byte *ch, integer count, integer *actual) {
-  retCode ret = Ok;
-  integer remaining = count;
-
-  while (remaining > 0) {
-    if (buffer->buffer.in_pos >= buffer->buffer.size) {
-      if (remaining == count)
-        ret = Eof;
-      break;
-    } else {
-      switch (buffer->buffer.grain) {
-        case byteGrain: {
-          *ch = buffer->buffer.buffer[buffer->buffer.in_pos++];
-          break;
-        }
-        case shortGrain: {
-          int16 *inter = (int16 *) ch;
-          *inter++ = ((int16 *) buffer->buffer.buffer)[buffer->buffer.in_pos++];
-          ch = (byte *) inter;
-          break;
-        }
-        case wordGrain: {
-          int32 *inter = (int32 *) ch;
-          *inter++ = ((int32 *) buffer->buffer.buffer)[buffer->buffer.in_pos++];
-          ch = (byte *) inter;
-        }
-        case longGrain: {
-          int64 *inter = (int64 *) ch;
-          *inter++ = ((int64 *) buffer->buffer.buffer)[buffer->buffer.in_pos++];
-          ch = (byte *) inter;
-        }
-        default:
-          return Error;
-      }
-      remaining--;
-    }
-  }
-  *actual = count - remaining;
-
-  return ret;
-}
-
 static retCode ensureSpace(wordBufferPo f, integer count) {
-  if (f->buffer.out_pos + count >= f->buffer.bufferSize) {
+  if (f->buffer.pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1u) + count; /* allow for some growth */
       byte *nbuff = realloc(f->buffer.buffer, grainSize(f->buffer.grain) * nlen);
@@ -148,15 +99,6 @@ static retCode ensureSpace(wordBufferPo f, integer count) {
   return Ok;
 }
 
-static retCode wordBufferAtEof(ioPo io) {
-  wordBufferPo f = O_WORDBUFFER(io);
-
-  if (f->buffer.out_pos < f->buffer.size)
-    return Ok;
-  else
-    return Eof;
-}
-
 retCode closeWordBuffer(wordBufferPo buffer) {
   decReference(O_OBJECT(buffer)); /* this will get rid of all the buffer objects attributes */
   return Ok;
@@ -170,63 +112,33 @@ wordBufferPo newWordBuffer(bufferGrain grain) {
   return O_WORDBUFFER(newObject(wordBufferClass, buffer, 128, grain, ioWRITE, True));
 }
 
-wordBufferPo fixedWordBuffer(char *buffer, long len, bufferGrain grain) {
-  return O_WORDBUFFER(newObject(wordBufferClass, buffer, len, grain, ioWRITE, False));
-}
-
 byte *getCurrentBufferData(wordBufferPo s, integer *len) {
-  *len = s->buffer.out_pos;
+  *len = s->buffer.pos;
   return s->buffer.buffer;
 }
 
 byte *getBufferData(wordBufferPo b, integer *len) {
   byte *current = getCurrentBufferData(b, len);
-  byte *data = malloc(grainSize(b->buffer.grain) * b->buffer.out_pos);
+  byte *data = malloc(grainSize(b->buffer.grain) * b->buffer.pos);
   memmove(data, current, grainSize(b->buffer.grain) * (*len));
   return data;
-}
-
-retCode reserveBufferSpace(wordBufferPo b, integer len, integer *pos) {
-  ensureSpace(b, len);
-  *pos = b->buffer.out_pos;
-  b->buffer.out_pos += len;
-  return Ok;
 }
 
 retCode appendWordToBuffer(wordBufferPo b, integer word) {
   ensureSpace(b, 1);
   switch (b->buffer.grain) {
     case byteGrain:
-      b->buffer.buffer[b->buffer.out_pos++] = (byte) word;
+      b->buffer.buffer[b->buffer.pos++] = (byte) word;
       return Ok;
     case shortGrain:
-      ((int16 *) b->buffer.buffer)[b->buffer.out_pos++] = (int16) word;
+      ((int16 *) b->buffer.buffer)[b->buffer.pos++] = (int16) word;
       return Ok;
     case wordGrain:
-      ((int32 *) b->buffer.buffer)[b->buffer.out_pos++] = (int32) word;
+      ((int32 *) b->buffer.buffer)[b->buffer.pos++] = (int32) word;
       return Ok;
     case longGrain:
-      ((int64 *) b->buffer.buffer)[b->buffer.out_pos++] = (int64) word;
+      ((int64 *) b->buffer.buffer)[b->buffer.pos++] = (int64) word;
       return Ok;
   }
   return Error;
-}
-
-retCode writeIntoBuffer(wordBufferPo b, integer pos, integer data) {
-  assert(pos >= 0 && pos < b->buffer.out_pos);
-
-  switch (b->buffer.grain) {
-    case byteGrain:
-      b->buffer.buffer[b->buffer.out_pos++] = (byte) data;
-      return Ok;
-    case shortGrain:
-      ((int16 *) b->buffer.buffer)[pos] = (int16) data;
-      return Ok;
-    case wordGrain:
-      ((int32 *) b->buffer.buffer)[pos] = (int32) data;
-      return Ok;
-    case longGrain:
-      ((int64 *) b->buffer.buffer)[pos] = (int64) data;
-      return Ok;
-  }
 }

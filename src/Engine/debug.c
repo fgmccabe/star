@@ -3,13 +3,14 @@
 #include "engineP.h"
 #include <stdlib.h>
 #include <globals.h>
-#include <ioTcp.h>
+#include <sock.h>
 #include <manifest.h>
 
 #include "debugP.h"
 #include "arith.h"
 #include "editline.h"
 #include "quick.h"
+#include "ltype.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;

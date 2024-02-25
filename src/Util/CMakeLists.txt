@@ -27,7 +27,7 @@ set(PUBLIC_HEADERS
         Headers/hash.h
         Headers/hosts.h
         Headers/integer.h
-        Headers/ioTcp.h
+        Headers/sock.h
         Headers/jsonEvent.h
         Headers/lockable.h
         Headers/logical.h
@@ -58,7 +58,7 @@ set(HEADER_FILES
         Headers/fileP.h
         Headers/formioP.h
         Headers/hostsP.h
-        Headers/iosockP.h
+        Headers/sockP.h
         Headers/lockableP.h
         Headers/managedP.h
         Headers/objectP.h

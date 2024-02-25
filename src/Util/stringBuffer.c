@@ -22,6 +22,8 @@ static retCode bufferInputReady(ioPo io, integer count);
 static retCode bufferOutputReady(ioPo io, integer count);
 static retCode bufferAtEof(ioPo io);
 static retCode bufferClose(ioPo io);
+static integer bufferPos(ioPo io);
+static retCode bufferSeek(ioPo io, integer pos);
 
 BufferClassRec StrBufferClass = {
   .objectPart = {
@@ -42,13 +44,15 @@ BufferClassRec StrBufferClass = {
   },
   .lockPart = {},
   .ioPart = {
-    .read =bufferInBytes,                         /* inByte  */
-    .write = bufferOutBytes,                       /* outBytes  */
-    .backByte = bufferBackByte,                       /* backByte */
+    .read =bufferInBytes,                           /* inByte  */
+    .write = bufferOutBytes,                        /* outBytes  */
+    .backByte = bufferBackByte,                      /* backByte */
     .inputReady = bufferInputReady,
     .outputReady = bufferOutputReady,
     .isAtEof = bufferAtEof,                          /* at end of file? */
-    .close = bufferClose                           /* close  */
+    .close = bufferClose,                           /* close  */
+    .position = bufferPos,                          // Report position in buffer
+    .seek = bufferSeek,                             // Move buffer position
   }};
 
 classPo strBufferClass = (classPo) &StrBufferClass;
@@ -65,8 +69,7 @@ static void BufferInit(objectPo o, va_list *args) {
   strBufferPo f = O_BUFFER(o);
 
   // Set up the buffer pointers
-  f->buffer.in_pos = 0;
-  f->buffer.out_pos = 0;
+  f->buffer.pos = 0;
   setEncoding(O_IO(f), va_arg(*args, ioEncoding)); /* set up the encoding */
   f->buffer.buffer = va_arg(*args, char *);
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
@@ -96,7 +99,7 @@ retCode bufferInputReady(ioPo io, integer count) {
   if (isReadingFile(io) && isAStringBuffer(O_OBJECT(io))) {
     strBufferPo str = O_BUFFER(io);
 
-    if (str->buffer.in_pos + count <= str->buffer.size)
+    if (str->buffer.pos + count <= str->buffer.size)
       return Ok;
     else
       return Fail;
@@ -110,7 +113,7 @@ retCode bufferOutputReady(ioPo io, integer count) {
 
     if (str->buffer.resizeable)
       return Ok;
-    else if (str->buffer.out_pos + count <= str->buffer.bufferSize)
+    else if (str->buffer.pos + count <= str->buffer.bufferSize)
       return Ok;
     else
       return Fail;
@@ -124,12 +127,12 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
   strBufferPo f = O_BUFFER(io);
 
   while (remaining > 0) {
-    if (f->buffer.in_pos >= f->buffer.size) {
+    if (f->buffer.pos >= f->buffer.size) {
       if (remaining == count)
         ret = Eof;
       break;
     } else {
-      *ch++ = (byte) f->buffer.buffer[f->buffer.in_pos++];
+      *ch++ = (byte) f->buffer.buffer[f->buffer.pos++];
       remaining--;
     }
   }
@@ -139,7 +142,7 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
 }
 
 static retCode ensureSpace(strBufferPo f, integer count) {
-  if (f->buffer.out_pos + count >= f->buffer.bufferSize) {
+  if (f->buffer.pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */
 
@@ -169,8 +172,8 @@ static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) 
   retCode ret = ensureSpace(f, count);
 
   for (int ix = 0; ret == Ok && ix < count; ix++)
-    f->buffer.buffer[f->buffer.out_pos++] = b[ix];
-  f->buffer.size = f->buffer.out_pos;
+    f->buffer.buffer[f->buffer.pos++] = b[ix];
+  f->buffer.size = f->buffer.pos;
   *actual = count;
   return ret;
 }
@@ -178,8 +181,8 @@ static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) 
 static retCode bufferBackByte(ioPo io, byte b) {
   strBufferPo f = O_BUFFER(io);
 
-  if (f->buffer.in_pos > 0) {
-    f->buffer.buffer[--f->buffer.in_pos] = b;
+  if (f->buffer.pos > 0) {
+    f->buffer.buffer[--f->buffer.pos] = b;
     return Ok;
   } else
     return Error;
@@ -188,7 +191,7 @@ static retCode bufferBackByte(ioPo io, byte b) {
 static retCode bufferAtEof(ioPo io) {
   strBufferPo f = O_BUFFER(io);
 
-  if (f->buffer.in_pos < f->buffer.size)
+  if (f->buffer.pos < f->buffer.size)
     return Ok;
   else
     return Eof;
@@ -199,10 +202,26 @@ static retCode bufferClose(ioPo io) {
   return Ok;
 }
 
+static integer bufferPos(ioPo io) {
+  strBufferPo f = O_BUFFER(io);
+  f = O_BUFFER(io);
+  return f->buffer.pos;
+}
+
+static retCode bufferSeek(ioPo io, integer pos) {
+  strBufferPo f = O_BUFFER(io);
+  if (pos < 0 || pos > f->buffer.size)
+    return Error;
+  else {
+    f->buffer.pos = pos;
+    if (isWritingFile(io))
+      f->buffer.size = pos;
+    return Ok;
+  }
+}
+
 retCode clearStrBuffer(strBufferPo b) {
-  b->buffer.in_pos = 0;
-  b->buffer.out_pos = 0;
-  b->io.inBpos = b->io.inCpos = 0;
+  b->buffer.pos = 0;
   b->buffer.size = 0;
   return Ok;
 }
@@ -219,16 +238,6 @@ strBufferPo newReadStringBuffer(char *text, integer textLen) {
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
 
   return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, text, textLen, ioREAD, False));
-}
-
-strBufferPo newIoStringBuffer() {
-  char name[MAX_SYMB_LEN];
-
-  strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
-
-  byte *buffer = (byte *) malloc(sizeof(byte) * 128);
-
-  return O_BUFFER(newObject(strBufferClass, name, utf8Encoding, buffer, 128, ioWRITE | ioREAD, True));
 }
 
 strBufferPo fixedStringBuffer(char *buffer, long len) {
@@ -253,32 +262,19 @@ integer strBufferLength(strBufferPo b) {
   return b->buffer.size;
 }
 
-integer strBufferOutPos(strBufferPo b) {
-  return b->buffer.out_pos;
-}
-
 integer strBufferBumpOutPos(strBufferPo b, integer incr) {
-  b->buffer.out_pos = clamp(0, b->buffer.out_pos + incr, b->buffer.size);
-  return b->buffer.out_pos;
+  b->buffer.pos = clamp(0, b->buffer.pos + incr, b->buffer.size);
+  return b->buffer.pos;
 }
 
 retCode rewindStrBuffer(strBufferPo b) {
-  b->buffer.in_pos = 0;
-  b->io.inBpos = b->io.inCpos = 0;
-
-  b->buffer.out_pos = 0;
-  return Ok;
-}
-
-retCode seekStrBuffer(strBufferPo b, integer pos) {
-  pos = clamp(0, pos, b->buffer.size);
-  b->buffer.in_pos = b->buffer.out_pos = pos;
+  b->buffer.pos = 0;
   return Ok;
 }
 
 retCode insertIntoStringBuffer(strBufferPo b, codePoint ch) {
   integer chSize = codePointSize(ch);
-  integer insertPos = b->buffer.out_pos;
+  integer insertPos = b->buffer.pos;
 
   ensureSpace(b, chSize);
 
@@ -286,7 +282,7 @@ retCode insertIntoStringBuffer(strBufferPo b, codePoint ch) {
     b->buffer.buffer[ix] = b->buffer.buffer[ix - chSize];
   }
   appendCodePoint(b->buffer.buffer, &insertPos, b->buffer.bufferSize, ch);
-  b->buffer.out_pos += chSize;
+  b->buffer.pos += chSize;
   b->buffer.size += chSize;
   return Ok;
 }
@@ -294,7 +290,7 @@ retCode insertIntoStringBuffer(strBufferPo b, codePoint ch) {
 retCode appendIntoStrBuffer(strBufferPo b, const char *text, integer txtLen) {
   ensureSpace(b, txtLen);
   for (integer ix = 0; ix < txtLen; ix++)
-    b->buffer.buffer[b->buffer.out_pos++] = text[ix];
+    b->buffer.buffer[b->buffer.pos++] = text[ix];
   b->buffer.size += txtLen;
 
   return Ok;
@@ -320,7 +316,7 @@ retCode twizzleStrBuffer(strBufferPo b, integer pos) {
     char ch = b->buffer.buffer[pos];
     b->buffer.buffer[pos] = b->buffer.buffer[pos + 1];
     b->buffer.buffer[pos + 1] = ch;
-    b->buffer.out_pos++;
+    b->buffer.pos++;
     return Ok;
   }
 }
@@ -330,8 +326,8 @@ retCode stringIntoStrBuffer(strBufferPo b, strgPo str) {
 }
 
 retCode deleteFromStrBuffer(strBufferPo b, integer len) {
-  integer endPt = strBufferOutPos(b);
-  integer from = strBufferOutPos(b);
+  integer endPt = b->buffer.size;
+  integer from = b->buffer.pos;
 
   if (len > 0) {
     endPt = advanceCodePoint(b->buffer.buffer, endPt, strBufferLength(b), len);
@@ -350,10 +346,10 @@ retCode deleteFromStrBuffer(strBufferPo b, integer len) {
       b->buffer.buffer[tgtPt + px] = b->buffer.buffer[from + px];
     const integer delta = from - tgtPt;
     b->buffer.size -= delta;
-    b->buffer.out_pos -= delta;
+    b->buffer.pos -= delta;
   }
 
-  b->buffer.out_pos = clamp(0, b->buffer.out_pos, b->buffer.size);
+  b->buffer.pos = clamp(0, b->buffer.pos, b->buffer.size);
   return Ok;
 }
 

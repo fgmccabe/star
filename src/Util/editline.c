@@ -135,13 +135,13 @@ static void beep(void) {
 static void resetBuffer(strBufferPo b, strgPo old, integer pos) {
   clearStrBuffer(b);
   stringIntoStrBuffer(b, old);
-  seekStrBuffer(b, pos);
+  ioSeek(O_IO(b), pos);
 }
 
 static retCode completeLine(LineState *ls) {
   integer cx = 0;
   strgPo snapShot = stringFromBuffer(ls->lineBuff);
-  integer snapPos = strBufferOutPos(ls->lineBuff);
+  integer snapPos = ioPos(O_IO(ls->lineBuff));
 
   do {
     retCode ret = completionCallback(ls->lineBuff, completionCl, cx++);
@@ -204,7 +204,7 @@ static void refreshFromText(integer firstPos, integer pos, char *content, intege
 static void refreshLine(integer firstPos, strBufferPo lineBuf) {
   integer buffLen;
   char *content = getTextFromBuffer(lineBuf, &buffLen);
-  refreshFromText(firstPos, strBufferOutPos(lineBuf), content, buffLen);
+  refreshFromText(firstPos, ioPos(O_IO(lineBuf)), content, buffLen);
 }
 
 retCode insertChar(LineState *l, char c) {
@@ -213,7 +213,7 @@ retCode insertChar(LineState *l, char c) {
 
 /* Move cursor to the left. */
 void moveLeft(LineState *l) {
-  if (strBufferOutPos(l->lineBuff) > 0) {
+  if (ioPos(O_IO(l->lineBuff)) > 0) {
     strBufferBumpOutPos(l->lineBuff, prev);
     refreshLine(l->firstPos, l->lineBuff);
   }
@@ -233,7 +233,7 @@ void moveHome(LineState *l) {
 
 /* Move cursor to the end of the line. */
 void moveEnd(LineState *l) {
-  seekStrBuffer(l->lineBuff, strBufferLength(l->lineBuff));
+  ioSeek(O_IO(l->lineBuff), strBufferLength(l->lineBuff));
   refreshLine(l->firstPos, l->lineBuff);
 }
 
@@ -324,7 +324,7 @@ static retCode editLine(strBufferPo lineBuff) {
         }
         break;
       case CTRL_T:    /* ctrl-t, swaps current character with previous. */
-        twizzleStrBuffer(lineBuff, strBufferOutPos(lineBuff));
+        twizzleStrBuffer(lineBuff, ioPos(O_IO(lineBuff)));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_B:     /* ctrl-b */
@@ -408,7 +408,7 @@ static retCode editLine(strBufferPo lineBuff) {
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_K: /* Ctrl+k, delete from current to end of line. */
-        deleteFromStrBuffer(l.lineBuff, strBufferLength(lineBuff) - strBufferOutPos(lineBuff));
+        deleteFromStrBuffer(l.lineBuff, strBufferLength(lineBuff) - ioPos(O_IO(lineBuff)));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_A: /* Ctrl+a, go to the start of the line */

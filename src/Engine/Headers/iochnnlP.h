@@ -11,7 +11,7 @@
 #include "heap.h"
 
 typedef struct io_record_ {
-  clssPo clss;                  // == integerClass
+  clssPo clss;                  // == ioChnnlClass
   ioPo io;
 } ChnnlRecord;
 

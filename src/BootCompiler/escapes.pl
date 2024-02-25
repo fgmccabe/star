@@ -136,6 +136,7 @@ escapeType("_fposition",funType(tplType([type("ioHandle")]),type("star.core*inte
 escapeType("_fseek",constrained(funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_flush",constrained(funType(tplType([type("ioHandle")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_flushall",funType(tplType([]),tplType([]))).
+escapeType("_fname",funType(tplType([type("ioHandle")]),type("star.core*string"))).
 escapeType("_waitIo",allType(kVar("e"),funType(tplType([tpExp(tpFun("star.core*cons",1),tplType([type("ioHandle"),funType(tplType([]),type("star.core*boolean")),kVar("e")])),type("star.core*integer")]),type("star.core*boolean")))).
 escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("star.core*integer")]),tplType([]))).
 escapeType("_get_file",constrained(funType(tplType([type("star.core*string")]),type("star.core*string")),raises(type("star.core*errorCode")))).
@@ -383,6 +384,7 @@ isEscape("_fposition").
 isEscape("_fseek").
 isEscape("_flush").
 isEscape("_flushall").
+isEscape("_fname").
 isEscape("_waitIo").
 isEscape("_setfileencoding").
 isEscape("_get_file").

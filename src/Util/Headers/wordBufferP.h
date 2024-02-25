@@ -25,8 +25,7 @@ typedef struct wordBuffer_part_{
   byte *buffer;                         /* The data buffer */
   integer bufferSize;
   integer size;                         // How many elements in the buffer
-  integer in_pos;                       // Position of next read
-  integer out_pos;                      // position of next write
+  integer pos;                          // Position of next operation
   logical resizeable;                   /* Is this buffer object resizeable? */
   bufferGrain grain;                    // How big is each grain
   ioDirection mode;                     // reading or writing

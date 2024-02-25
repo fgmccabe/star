@@ -7,6 +7,48 @@ streams of characters, mechanisms for accessing and navigating file
 directories and mechanisms for the appropriate formatting and parsing
 of data.
 
+@node Streaming Input
+@section Streaming Input
+
+The file input streaming primitives represent input as a stream of
+entities. Such input streams are parseable by @refer{The stream
+Contract}. Each stream presents a stream of a particular type;
+currently, this is one of @code{char}, @code{string} or
+@code{vect[integer]} -- depending on which function is used to access
+it.
+
+
+@node inCharStream
+@subsection @code{inCharStream}
+
+The @code{inCharStream} function returns an @code{inputStream} of
+@code{char}acters:
+
+@example
+public inCharStream:raises ioException |: (string) => inputStream[char].
+@end example
+
+Each character in the stream is accessed via the @code{stream}
+contract. For example, a function that counts the length of a file (in
+unicode code points) might look like:
+
+@example
+countCPs:raises ioException:(string)=>integer.
+countCPs(Fl) => let@{.
+   count([],Cx) => Cx.
+   count([_,..Rst],Cx) => count(Rst,Cx+1)
+   .@} in count(inCharStream(Fl),0)
+@end example
+
+However, since the @code{folding} contract is also implemented for
+@code{inputStream}s, a more succinct implementation of @code{countCPs}
+would be:
+
+@example
+countCPs(Fl) => foldLeft((_,Cx)=>Cx+1,0,inCharStream(Fl)).
+@end example
+
+
 @node The ioHandle Type
 @section The @code{ioHandle} Type
 

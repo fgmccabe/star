@@ -23,6 +23,7 @@
     "star.heap": "heap.star",
     "star.ideal": "ideal.star",
     "star.index": "index.star",
+    "star.inchnnl": "inchnnl.star",
     "star.io": "io.star",
     "star.iostream": "iostream.star",
     "star.index": "index.star",

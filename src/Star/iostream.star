@@ -3,12 +3,12 @@ star.iostream{
   import star.io.
   import star.file.
 
-  public all x ~~ ioStream[x] ::=
+  public all x ~~ inputStream[x] ::=
     .endStream |
-    .streamThunk(thunk[ioStream[x]]) |
-    .streamPair(x,ioStream[x]).
+    .streamThunk(thunk[inputStream[x]]) |
+    .streamPair(x,inputStream[x]).
 
-  public implementation all x ~~ stream[ioStream[x]->>x] => let{.
+  public implementation all x ~~ stream[inputStream[x]->>x] => let{.
     eof_(.endStream) => .true.
     eof_(.streamThunk(Th)) => eof_(Th!!).
     eof_(_) default => .false.
@@ -21,7 +21,7 @@ star.iostream{
     _hdtl = hdtl_
   }
 
-  public implementation all e ~~ display[e] |: display[ioStream[e]] => let{.
+  public implementation all e ~~ display[e] |: display[inputStream[e]] => let{.
     strmDisp(.endStream,L) => L.
     strmDisp(.streamPair(X,.endStream),L) => .cons(disp(X), L).
     strmDisp(.streamThunk(_),L) => .cons("thunk", L).
@@ -30,8 +30,17 @@ star.iostream{
     disp(L) => _str_multicat(.cons("[",strmDisp(L,.cons("]",.nil))))
   }
 
+  public implementation all e ~~ folding[inputStream[e]->>e] => let{.
+    fold(F,U,.endStream) => U.
+    fold(F,U,.streamThunk(Th)) => fold(F,U,Th!!).
+    fold(F,U,.streamPair(x,Rst)) => fold(F,F(x,U),Rst).
+  .} in {
+    foldLeft = fold.
+    foldRight = fold.
+  }
+
   public inStream:all t ~~ display[t], raises ioException |:
-    (string,(raises ioException|:(ioHandle)=>t))=>ioStream[t].
+    (string,(raises ioException|:(ioHandle)=>t))=>inputStream[t].
   inStream(Fl,Fn) => valof{
     try{
       Io = _openInFile(Fl,3);
@@ -56,13 +65,17 @@ star.iostream{
     }
   }
 
-  public inCharStream:raises ioException |: (string) => ioStream[char].
+  public inCharStream:raises ioException |: (string) => inputStream[char].
   inCharStream(Fl) => inStream(Fl,(Io)=>rdChar(Io)).
 
-  public inLineStream:raises ioException |: (string) => ioStream[string].
+  public inLineStream:raises ioException |: (string) => inputStream[string].
   inLineStream(Fl) => inStream(Fl,(Io)=>rdLine(Io)).
 
-  public forceStream:all e ~~ (ioStream[e]) => cons[e].
+  public inBytesStream:raises ioException |: (string,integer) =>
+    inputStream[vect[integer]].
+  inBytesStream(Fl,BfSze) => inStream(Fl,(Io)=>rdBytes(Io,BfSze)).
+
+  public forceStream:all e ~~ (inputStream[e]) => cons[e].
   forceStream(.endStream) => .nil.
   forceStream(.streamPair(H,T)) => .cons(H,forceStream(T)).
   forceStream(.streamThunk(Th)) => forceStream(Th!!).

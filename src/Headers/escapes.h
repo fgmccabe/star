@@ -181,6 +181,7 @@ escape(_fposition, "F("ioHandle")i", "report current file position")
 escape(_fseek, "|F("ioHandle"i)()r"ERRCODE, "seek to new file position")
 escape(_flush, "|F("ioHandle")()r"ERRCODE, "flush the I/O buffer")
 escape(_flushall, "F()()", "flush all files")
+escape(_fname,"F("ioHandle")s","the channel file name")
 
 escape(_waitIo,":k'e'F(L("ioHandle"F()lk'e')i)l", "Poll for IO ready")
 escape(_setfileencoding, "F("ioHandle"i)()", "set file encoding on file")

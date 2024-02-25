@@ -23,16 +23,12 @@
 #include <sys/resource.h>
 #endif
 
-#ifdef SYSV
-#include <stropts.h>
-#endif
-
 #ifndef STD_PERMISSIONS
 #define STD_PERMISSIONS (S_IRUSR|S_IRGRP|S_IROTH|S_IWUSR)
 #endif
 
 #ifndef NANOS
-#define NANOS 1000000000   // Number of nano seconds
+#define NANOS 1000000000   // Number of nanos in a second
 #endif
 
 /* Set up the file class */
@@ -66,11 +62,12 @@ FileClassRec FileClass = {
     .backByte = fileBackByte,                     // put a byte back in the buffer
     .inputReady = fileInputReady,                 // Is the file ready to read
     .outputReady = fileOutputReady,               // Is the file ready to write xx bytes
-    .isAtEof = fileAtEof,                          // Are we at end of file?
-    .close = fileClose                            // close
+    .isAtEof = fileAtEof,                         // Are we at end of file?
+    .close = fileClose,                           // close
+    .position = flPos,
+    .seek = flSeek,                               /* seek to a point in the file */
   },
   .filePart={
-    .seek = flSeek,                               /* seek to a point in the file */
     .filler = fileFill,                           // fill the file buffer
     .asyncFill = asyncFileFill,
     .flush = fileFlush,                          // flush
@@ -94,9 +91,6 @@ void initFileClass(classPo class, classPo request) {
 void inheritFileClass(classPo class, classPo request, classPo orig) {
   FileClassRec *req = (FileClassRec *) request;
   FileClassRec *template = (FileClassRec *) class;
-
-  if (req->filePart.seek == O_INHERIT_DEF)
-    req->filePart.seek = template->filePart.seek;
 
   if (req->filePart.filler == O_INHERIT_DEF) {
     req->filePart.filler = template->filePart.filler;
@@ -149,10 +143,8 @@ void fileInit(objectPo o, va_list *args) {
   filePo f = (filePo) o;
 
   // Set up the buffer pointers
-  f->file.in_pos = 0;
-  f->file.out_pos = 0;
-  f->file.wr_pos = 0;
-  f->file.in_len = 0;
+  f->file.line_pos = 0;
+  f->file.line_len = 0;
   f->file.fno = va_arg(*args, int);             // set up the file number
   f->file.file_pos = 0;
   f->file.mode = blocking;
@@ -182,7 +174,7 @@ retCode fileInputReady(ioPo io, integer count) {
     filePo f = O_FILE(io);
 
     if (f->io.status == Ok) {
-      if (f->file.in_pos + count <= f->file.in_len)
+      if (f->file.line_pos + count <= f->file.line_len)
         return Ok;
       else
         return Fail;
@@ -196,7 +188,7 @@ retCode fileOutputReady(ioPo io, integer count) {
   if (isWritingFile(io) && isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
-    if (f->file.out_pos + count <= NumberOf(f->file.out_line))
+    if (f->file.line_pos + count <= NumberOf(f->file.line))
       return Ok;
     else
       return Fail;
@@ -207,19 +199,19 @@ retCode fileOutputReady(ioPo io, integer count) {
 retCode fileBackByte(ioPo io, byte b) {
   filePo f = O_FILE(io);
 
-  if (f->file.in_pos < 1) {
-    if (f->file.in_len - f->file.in_pos < NumberOf(f->file.in_line)) {
-      memmove(&f->file.in_line[1], &f->file.in_line[f->file.in_pos],
-              sizeof(byte) * (f->file.in_len - f->file.in_pos));
-      f->file.in_line[0] = b;
-      f->file.in_len = (int16) (f->file.in_len - f->file.in_pos + 1);
-      f->file.in_pos = 0;
+  if (f->file.line_pos < 1) {
+    if (f->file.line_len - f->file.line_pos < NumberOf(f->file.line)) {
+      memmove(&f->file.line[1], &f->file.line[f->file.line_pos],
+              sizeof(byte) * (f->file.line_len - f->file.line_pos));
+      f->file.line[0] = b;
+      f->file.line_len = (int16) (f->file.line_len - f->file.line_pos + 1);
+      f->file.line_pos = 0;
       f->io.status = Ok;
     } else
       return Error;
   } else {
-    f->file.in_pos--;
-    f->file.in_line[f->file.in_pos] = b;
+    f->file.line_pos--;
+    f->file.line[f->file.line_pos] = b;
     f->io.status = Ok;
   }
 
@@ -232,14 +224,15 @@ retCode fileInBytes(ioPo io, byte *ch, integer count, integer *actual) {
   filePo f = O_FILE(io);
 
   while (ret == Ok && remaining > 0) {
-    if (f->file.in_pos >= f->file.in_len)
+    if (f->file.line_pos >= f->file.line_len)
       ret = refillBuffer(f);
     if (ret == Ok) {
-      *ch++ = f->file.in_line[f->file.in_pos++];
+      *ch++ = f->file.line[f->file.line_pos++];
       remaining--;
     }
   }
   *actual = count - remaining;
+
   if (*actual > 0 && ret != Error)
     return Ok;
   else
@@ -252,10 +245,10 @@ retCode fileOutBytes(ioPo io, byte *b, integer count, integer *actual) {
   filePo f = O_FILE(io);
 
   while (ret == Ok && remaining > 0) {
-    if (f->file.out_pos >= NumberOf(f->file.out_line))
+    if (f->file.line_pos >= NumberOf(f->file.line))
       ret = fileFlush(f);
-    if (ret == Ok && f->file.out_pos < NumberOf(f->file.out_line)) {
-      f->file.out_line[f->file.out_pos++] = *b++;
+    if (ret == Ok && f->file.line_pos < NumberOf(f->file.line)) {
+      f->file.line[f->file.line_pos++] = *b++;
       remaining--;
     }
   }
@@ -266,7 +259,7 @@ retCode fileOutBytes(ioPo io, byte *b, integer count, integer *actual) {
 retCode fileAtEof(ioPo io) {
   filePo f = O_FILE(io);
 
-  if (f->file.in_pos < f->file.in_len)
+  if (f->file.line_pos < f->file.line_len)
     return Ok;
   else
     return refillBuffer(f);
@@ -282,26 +275,32 @@ void ioSignalHandler(int signal, siginfo_t *si, void *ignore) {
   }
 }
 
-retCode flSeek(filePo f, integer pos) {
-  ioPo io = O_IO(f);
-  flushFile(f);
+integer flPos(ioPo io) {
+  filePo f = O_FILE(io);
 
-  if (lseek(f->file.fno, pos, SEEK_SET) == -1)
-    return ioErrorMsg(io, "problem %s (%d) in positioning %s", strerror(errno), errno,
-                      fileName(O_IO(f)));
-  else {
-    f->file.in_pos = 0;
-    f->file.in_len = 0;                 // ensure that we will be refilling
-    f->file.file_pos = pos;
+  return f->file.file_pos + f->file.line_pos;
+}
 
-    if (isReadingFile(io)) {
-      f->io.inCpos = pos;
-      f->io.inBpos = pos;
-    }
-    if (isWritingFile(io)) {
-      f->io.outBpos = pos;
-    }
+retCode flSeek(ioPo io, integer pos) {
+  filePo f = O_FILE(io);
+
+  if (pos - f->file.file_pos < f->file.line_pos) {
+    f->file.line_pos = pos - f->file.file_pos; // Adjust to within the line buffer
     return Ok;
+  } else {
+    if (isWritingFile(io))
+      flushFile(f);
+
+    if (lseek(f->file.fno, pos, SEEK_SET) == -1)
+      return ioErrorMsg(io, "problem %s (%d) in positioning %s", strerror(errno), errno,
+                        fileName(O_IO(io)));
+    else {
+      f->file.line_pos = 0;
+      f->file.line_len = 0;                 // ensure that we will be refilling
+      f->file.file_pos = pos;
+
+      return Ok;
+    }
   }
 }
 
@@ -386,17 +385,19 @@ static void startAlarm(void)                   // enable the virtual timer again
 retCode enqueueRead(filePo f, completionSignaler signaler, void *cl) {
   if (f->file.aio.aio_fildes >= 0 || !isReadingFile(O_IO(f)))
     return Error;         // Already trying to read from this file
-  else if (f->file.in_pos < f->file.in_len)
+  else if (f->file.line_pos < f->file.line_len)
     return Ok;            // Already data in the input buffer
   f->file.signaler = signaler;
-  f->file.in_pos = 0;
+  f->file.line_pos = 0;
 
   memset(&f->file.aio, 0, sizeof(struct aiocb));
   f->file.aio.aio_fildes = f->file.fno;
   f->file.aio.aio_nbytes = MAXLINE;
-  f->file.aio.aio_buf = &f->file.in_line[f->file.in_pos];
+  f->file.aio.aio_buf = &f->file.line[f->file.line_pos];
   f->file.aio.aio_reqprio = 0;
+  f->file.file_pos += f->file.line_len; // maintain invariant wrt file_pos.
   f->file.aio.aio_offset = f->file.file_pos;
+  f->file.line_len = 0;
   f->file.aio.aio_sigevent.sigev_notify = (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
   f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
   f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
@@ -418,12 +419,11 @@ progress asyncRdStatus(filePo f) {
         ssize_t count = aio_return(&f->file.aio);
         if (isReadingFile(O_IO(f))) {
           if (count > 0) {
-            f->file.in_len = (int16) count;
-            f->file.file_pos += count;
+            f->file.line_len = (int16) count;
             f->file.aio.aio_fildes = -1;
             return completed;
           } else if (count == 0) {
-            f->file.in_pos = f->file.in_len = 0;
+            f->file.line_pos = f->file.line_len = 0;
             f->io.status = Eof;  // we have reach end of file
             f->file.aio.aio_fildes = -1;
             return completed;
@@ -449,19 +449,13 @@ progress asyncWrStatus(filePo f) {
       case 0: {
         ssize_t count = aio_return(&f->file.aio);
         if (isWritingFile(O_IO(f))) {
-          if (count == f->file.wr_pos) { // We wrote everything
-            assert(f->file.out_pos >= f->file.wr_pos);
+          if (count <= f->file.aio.aio_nbytes) {
             // Preserve output buffer written since last write
-            byteMove(f->file.out_line, NumberOf(f->file.out_line), &f->file.out_line[f->file.wr_pos],
-                     f->file.out_pos - f->file.wr_pos);
-            f->file.out_pos -= f->file.wr_pos;
-            f->file.wr_pos = 0;
-          } else { // We did not write everything in the buffer
-            byteMove(f->file.out_line, NumberOf(f->file.out_line), &f->file.out_line[count], f->file.out_pos - count);
-            f->file.out_pos = f->file.out_pos - count;
-            f->file.wr_pos -= count;
+            byteMove(f->file.line, NumberOf(f->file.line), &f->file.line[f->file.line_pos],
+                     f->file.line_pos - count);
+            f->file.line_pos -= count;
           }
-          f->file.file_pos += count;
+          f->file.file_pos += count; // Account for new file position
           f->file.aio.aio_fildes = -1;
           return completed;
         } else
@@ -474,8 +468,8 @@ progress asyncWrStatus(filePo f) {
     return completed;
 }
 
-logical isInAsync(filePo f){
-  return f->file.aio.aio_fildes>=0;
+logical isInAsync(filePo f) {
+  return f->file.aio.aio_fildes >= 0;
 }
 
 retCode waitForAsync(filePo files[], integer len, integer timeout) {
@@ -495,7 +489,7 @@ retCode refillBuffer(filePo f) {
 }
 
 retCode fileFill(filePo f) {
-  if (f->file.in_pos >= f->file.in_len && f->io.status == Ok) {  // nead to read more input?
+  if (f->file.line_pos >= f->file.line_len && f->io.status == Ok) {  // nead to read more input?
     ssize_t len;
     int lerrno;                         // local copy of errno
 
@@ -505,8 +499,8 @@ retCode fileFill(filePo f) {
 //      return ioErrorMsg(f, "problem %s (%d) in positioning %s", strerror(errno), errno,
 //                        fileName(O_IO(f)));
 
-    len = read(f->file.fno, f->file.in_line, (size_t) MAXLINE);
-    f->file.file_pos += len;
+    f->file.file_pos += f->file.line_len;
+    len = read(f->file.fno, f->file.line, (size_t) MAXLINE);
     lerrno = errno;
 
     startAlarm();      // Restart the timer interrupt
@@ -518,13 +512,12 @@ retCode fileFill(filePo f) {
         case EAGAIN:      // Not ready
           return f->io.status = Fail;
         default:        // Pretend its uniEOF
-          f->file.in_pos = f->file.in_len = 0;
+          f->file.line_pos = f->file.line_len = 0;
           return f->io.status = Eof;  // we have reach end of file
       }
     } else {
-      f->file.in_pos = 0;
-      f->file.in_len = (int16) len;
-      f->file.file_pos += len;
+      f->file.line_pos = 0;
+      f->file.line_len = (int16) len;
 
       if (len == 0) {
         return f->io.status = Eof;
@@ -537,42 +530,19 @@ retCode fileFill(filePo f) {
 }
 
 retCode asyncFileFill(filePo f) {
-  if (f->file.aio.aio_fildes != -1 || !isReadingFile(O_IO(f)))
-    return Error;         // Not allowed to read from this file
-  else if (f->file.in_pos < f->file.in_len)
-    return Ok;          // Already stuff in the read buffer
-
-//  f->file.signalerData = cl;
-//  f->file.signaler = signaler;
-
-  f->file.in_pos = 0;
-  memset(&f->file.aio, 0, sizeof(struct aiocb));
-  f->file.aio.aio_fildes = f->file.fno;
-  f->file.aio.aio_nbytes = (size_t) MAXLINE; // We try to fill the buffer
-  f->file.aio.aio_buf = f->file.in_line;
-  f->file.aio.aio_reqprio = 0;
-  f->file.aio.aio_offset = f->file.file_pos;
-  f->file.aio.aio_sigevent.sigev_notify = (f->file.signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
-  f->file.aio.aio_sigevent.sigev_signo = IO_SIGNAL;
-  f->file.aio.aio_sigevent.sigev_value.sival_ptr = f;
-
-  int s = aio_read(&f->file.aio);
-  if (s == -1)
-    return Error;
-  return Ok;
+  return enqueueRead(f, Null, Null);
 }
 
 retCode enqueueWrite(filePo f, completionSignaler signaler, void *cl) {
   if (f->file.aio.aio_fildes >= 0 || !isWritingFile(O_IO(f)))
     return Error;         // Already trying to read from this file
-  else if (f->file.out_pos == 0)
+  else if (f->file.line_pos == 0)
     return Ok;            // Output buffer is empty
-  assert(f->file.wr_pos == 0);
   f->file.signaler = signaler;
   memset(&f->file.aio, 0, sizeof(struct aiocb));
   f->file.aio.aio_fildes = f->file.fno;
-  f->file.aio.aio_nbytes = f->file.wr_pos = f->file.out_pos;
-  f->file.aio.aio_buf = f->file.out_line;
+  f->file.aio.aio_nbytes = f->file.line_pos;
+  f->file.aio.aio_buf = f->file.line;
   f->file.aio.aio_reqprio = 0;
   f->file.aio.aio_offset = f->file.file_pos;
   f->file.aio.aio_sigevent.sigev_notify = (signaler != Null ? SIGEV_SIGNAL : SIGEV_NONE);
@@ -588,8 +558,8 @@ retCode enqueueWrite(filePo f, completionSignaler signaler, void *cl) {
 retCode fileFlush(filePo f) {
   int fno = f->file.fno;
   long written;
-  long remaining = f->file.out_pos - f->file.wr_pos;
-  byte *cp = f->file.out_line;
+  long remaining = f->file.line_pos;
+  byte *cp = f->file.line;
   long writeGap = 0;
 
   while (remaining > 0 && (written = write(fno, cp, (size_t) remaining)) != remaining) {
@@ -599,14 +569,14 @@ retCode fileFlush(filePo f) {
           continue;
         case EINTR:
           if (writeGap > 0) {
-            memmove(&f->file.out_line[0], cp, sizeof(byte) * remaining);
-            f->file.out_pos = (int16) remaining;
+            memmove(&f->file.line[0], cp, sizeof(byte) * remaining);
+            f->file.line_pos = (int16) remaining;
           }
           return Interrupt;    // report an interrupt
         case EAGAIN:        // we shuffle the remaining buffer to the front
           if (writeGap > 0) {
-            memmove(&f->file.out_line[0], cp, sizeof(byte) * remaining);
-            f->file.out_pos = (int16) remaining;
+            memmove(&f->file.line[0], cp, sizeof(byte) * remaining);
+            f->file.line_pos = (int16) remaining;
           }
           return Fail;
         default:
@@ -620,7 +590,8 @@ retCode fileFlush(filePo f) {
       remaining -= written;
     }
   }
-  f->file.out_pos = f->file.wr_pos;
+  f->file.file_pos += f->file.line_pos; // Adjust position in file
+  f->file.line_pos = 0;
   return f->io.status = Ok;
 }
 
@@ -681,23 +652,6 @@ ioPo openOutFile(char *name, ioEncoding encoding) {
         return NULL;
       else
         return O_IO(newObject(fileClass, name, outFileRefNum, encoding, ioWRITE));
-    }
-    default:
-      return NULL;
-  }
-}
-
-/* Open a file for input and output */
-ioPo openInOutFile(char *name, ioEncoding encoding) {
-  switch (isRegularFile(name)) {
-    case Ok:
-    case Fail: {      // File not previously found
-      int outFileRefNum = open((const char *) name, O_RDWR | O_CREAT, STD_PERMISSIONS);
-
-      if (outFileRefNum == -1)
-        return NULL;
-      else
-        return O_IO(newObject(fileClass, name, outFileRefNum, encoding, ioREAD | ioWRITE));
     }
     default:
       return NULL;
@@ -938,32 +892,6 @@ void reset_stdin(void) {
   }
 }
 
-retCode rewindFile(filePo f) {
-  if (!isSubClass(classOfObject(O_OBJECT(f)), fileClass))
-    return ioErrorMsg(O_IO(f), "%s is not a regular file", fileName(O_IO(f)));
-
-  flushFile(f);
-
-  if (lseek(f->file.fno, 0, 0) == -1)
-    return ioErrorMsg(O_IO(f), "problem %s (%d) in rewinding %s", strerror(errno), errno,
-                      fileName(O_IO(f)));
-  else {
-    f->file.in_pos = f->file.out_pos = f->file.wr_pos = 0;
-    f->file.in_len = 0;
-    return f->io.status = Ok;
-  }
-}
-
-retCode fileSeek(filePo f, integer count) {
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((FileClassRec *) f->object.class)->filePart.seek(f, count);
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
 void pU(char *p) {
   retCode ret = Ok;
   while (ret == Ok && *p != 0)
@@ -1046,45 +974,6 @@ char *resolveFileName(char *base, const char *path, integer pathLen, char *buff,
   }
   strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
   return buff;
-}
-
-retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen) {
-  char wd[MAXFILELEN];
-  char *fileNm = (char *) fn;
-
-  if (fn[0] == '/') {
-    return uniNCpy(buff, buffLen, fn, fnLen);
-  } else if (fn[0] == '~')
-    return Error;
-  else {
-    uniTrim(root, rootLen, "", "/", wd, NumberOf(wd));
-  }
-
-  char fname[MAXFILELEN];
-  uniTrim(fileNm, fnLen, "", "/", fname, NumberOf(fname));
-  fnLen = uniStrLen(fname);
-
-  integer wdLen = uniStrLen(wd);
-  integer pos = 0;
-
-  while (pos < fnLen && fname[pos] == '.') {
-    if (pos < fnLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
-      integer last = uniLastIndexOf(wd, wdLen, '/');
-      if (last >= 0) {
-        wdLen = last;
-        wd[last] = '\0';
-        pos += 3;
-      } else
-        return Error;
-    } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
-      pos += 2;
-    } else if (pos == fnLen - 1)
-      pos++;
-    else
-      break;
-  }
-  strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
-  return Ok;
 }
 
 retCode flushFile(filePo f)               /* generic file flush */

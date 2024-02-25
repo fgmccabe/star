@@ -84,6 +84,7 @@
     "test.idx0": "idx0.star",
     "test.implies": "implies.star",
     "test.inc": "inc.star",
+    "test.incopy": "incopy.star",
     "test.io0": "io0.star",
     "test.io1": "io1.star",
     "test.io2": "io2.star",

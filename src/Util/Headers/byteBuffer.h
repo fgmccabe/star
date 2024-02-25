@@ -21,10 +21,8 @@ byteBufferPo fixedByteBuffer(byte *buffer, long len);
 
 byte *getBytesFromBuffer(byteBufferPo s, integer *len);
 integer byteBufferLength(byteBufferPo b);
-integer byteBufferOutPos(byteBufferPo b);
 retCode appendByteToBuffer(byteBufferPo b, byte by);
 retCode clearByteBuffer(byteBufferPo b);
-retCode rewindByteBuffer(byteBufferPo b);
 
 #ifdef VERIFY_OBJECT
 #define O_BYTEBUFFER(c) ((byteBufferPo)(checkCast((c),byteBufferClass)))

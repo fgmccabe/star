@@ -57,9 +57,10 @@ PipeClassRec PipeClass = {
     .outputReady = O_INHERIT_DEF,
     .isAtEof = O_INHERIT_DEF,                        // atEof
     .close = O_INHERIT_DEF,                         // close
+    .position = O_INHERIT_DEF,
+    .seek = O_INHERIT_DEF
   },
   .filePart = {
-    .seek = O_INHERIT_DEF,                        // seek
     .filler = O_INHERIT_DEF,                      // Refill the pip
     .asyncFill = O_INHERIT_DEF,                   // Asynchronous fill
     .flush = O_INHERIT_DEF,                     // Flush the pipe

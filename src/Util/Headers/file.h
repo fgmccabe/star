@@ -25,7 +25,6 @@ void closeAllFiles(void);                     /* Close down the file system */
 
 ioPo openInFile(char *file, ioEncoding encoding);
 ioPo openOutFile(char *file, ioEncoding encoding);
-ioPo openInOutFile(char *file, ioEncoding encoding);
 ioPo openAppendFile(char *file, ioEncoding encoding);
 ioPo openInOutAppendFile(char *file, ioEncoding encoding);
 ioPo newOutFile(char *file, ioEncoding encoding);
@@ -67,8 +66,6 @@ retCode enqueueWrite(filePo f, completionSignaler signaler, void *cl);
 progress asyncRdStatus(filePo f);
 progress asyncWrStatus(filePo f);
 
-retCode fileSeek(filePo f, integer pos);
-
 void setup_stdin(void);
 void reset_stdin(void);
 retCode initLogfile(char *name);
@@ -76,7 +73,6 @@ retCode initLogfile(char *name);
 retCode skipShellPreamble(filePo f);
 
 char *resolveFileName(char *base, const char *path, integer pathLen, char *buff, integer buffLen);
-retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen);
 
 #ifdef VERIFY_OBJECT
 #define O_FILE(c) ((filePo)(checkCast((c),fileClass)))

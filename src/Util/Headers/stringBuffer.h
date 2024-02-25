@@ -19,13 +19,11 @@ extern classPo strBufferClass;
 logical isAStringBuffer(objectPo o);
 
 strBufferPo newStringBuffer();
-strBufferPo newIoStringBuffer();
 strBufferPo newReadStringBuffer(char *text, integer textLen);
 strBufferPo fixedStringBuffer(char *buffer, long len);
 
 char *getTextFromBuffer(strBufferPo s, integer *len);
 integer strBufferLength(strBufferPo b);
-integer strBufferOutPos(strBufferPo b);
 integer strBufferBumpOutPos(strBufferPo b, integer incr);
 retCode insertIntoStringBuffer(strBufferPo b, codePoint ch);
 retCode deleteFromStrBuffer(strBufferPo b, integer len);
@@ -35,7 +33,6 @@ retCode stringIntoStrBuffer(strBufferPo b, strgPo str);
 retCode appendCodePointToStrBuffer(strBufferPo b, codePoint ch);
 retCode clearStrBuffer(strBufferPo b);
 retCode rewindStrBuffer(strBufferPo b);
-retCode seekStrBuffer(strBufferPo b, integer pos);
 retCode twizzleStrBuffer(strBufferPo b, integer pos);
 
 strgPo stringFromBuffer(strBufferPo b);
