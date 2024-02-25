@@ -10,7 +10,7 @@
 
 #include "config.h"
 #include "fileP.h"
-#include "ioTcp.h"
+#include "sock.h"
 #include <stdarg.h>
 
 typedef struct {

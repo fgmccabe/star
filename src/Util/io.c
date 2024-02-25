@@ -20,6 +20,9 @@ static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual);
 static retCode nullOutByte(ioPo f, byte b);
 static retCode nullEof(ioPo f);
 static retCode nullClose(ioPo f);
+static integer nullPos(ioPo f);
+static retCode nullSeek(ioPo f, integer px);
+static retCode nullIsReady(ioPo f, integer cs);
 
 IoClassRec IoClass = {
   .objectPart={
@@ -40,11 +43,15 @@ IoClassRec IoClass = {
   },
   .lockPart={},
   .ioPart={
-    .read =nullInBytes,              /* inByte, abstract for the io class  */
-    .write =nullOutBytes,             /* outByte, abstract for the io class  */
+    .read =nullInBytes,                /* inByte, abstract for the io class  */
+    .write =nullOutBytes,              /* outByte, abstract for the io class  */
     .backByte = nullOutByte,           /* putbackByte, abstract for the io class  */
     .isAtEof =nullEof,                 /* are we at end of file? */
-    .close = nullClose                 /* close, abstract for the io class  */
+    .inputReady = nullIsReady,         // Are we immediately able to read XX bytes?
+    .outputReady = nullIsReady,
+    .close = nullClose,                /* close, abstract for the io class  */
+    .position = nullPos,               // Report io position
+    .seek = nullSeek                   // Move io position
   }
 };
 
@@ -84,6 +91,13 @@ void inheritIOClass(classPo class, classPo request, classPo orig) {
   if (req->ioPart.close == O_INHERIT_DEF) {
     req->ioPart.close = template->ioPart.close;
   }
+
+  if (req->ioPart.position == O_INHERIT_DEF) {
+    req->ioPart.position = template->ioPart.position;
+  }
+  if (req->ioPart.seek == O_INHERIT_DEF) {
+    req->ioPart.seek = template->ioPart.seek;
+  }
 }
 
 static void IoInit(objectPo o, va_list *args) {
@@ -93,9 +107,6 @@ static void IoInit(objectPo o, va_list *args) {
   lockClass(f->object.class);
 
   uniCpy(f->io.filename, NumberOf(f->io.filename), name);
-  f->io.inBpos = 0;
-  f->io.inCpos = 0;
-  f->io.outBpos = 0;
   f->io.currColumn = 0;
   f->io.encoding = unknownEncoding;
 
@@ -130,12 +141,7 @@ retCode inByte(ioPo f, byte *b) {
 }
 
 retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
-  retCode ret;
-
-  ret = ((IoClassRec *) f->object.class)->ioPart.read(f, ch, count, actual);
-  f->io.inBpos += *actual;
-
-  return ret;
+  return ((IoClassRec *) f->object.class)->ioPart.read(f, ch, count, actual);
 }
 
 retCode putBackByte(ioPo f, byte b) {
@@ -144,9 +150,6 @@ retCode putBackByte(ioPo f, byte b) {
 
   lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.backByte(f, b);
-
-  if (ret == Ok)
-    f->io.inBpos--;
 
   unlock(O_LOCKED(o));
   return ret;
@@ -160,8 +163,6 @@ retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
 
   lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.write(f, data, len, actual);
-  f->io.outBpos += *actual;
-
   unlock(O_LOCKED(o));
   return ret;
 }
@@ -261,7 +262,7 @@ retCode unGetChar(ioPo io, codePoint ch)   /* put a single character back */
         break;
       case rawEncoding:
       default:
-        chbuff[0] = (byte) ch;
+        chbuff[0] = (char) ch;
         len = 1;
         break;
     }
@@ -339,15 +340,13 @@ retCode outChar(ioPo io, codePoint ch) {
       ret = appendCodePoint(&chbuff[0], &len, NumberOf(chbuff), ch);
       break;
     default:
-      chbuff[0] = (byte) ch;
+      chbuff[0] = (char) ch;
       len = 1;
       break;
   }
 
   if (ret == Ok) {
-    ret = ((IoClassRec *) io->object.class)->ioPart.write(io, (byte *) chbuff, len, &actual);
-    io->io.outBpos += actual;
-    return ret;
+    return ((IoClassRec *) io->object.class)->ioPart.write(io, (byte *) chbuff, len, &actual);
   } else
     return ret;
 }
@@ -362,7 +361,6 @@ retCode outText(ioPo f, const char *text, integer len) {
     ret = ((IoClassRec *) f->object.class)->ioPart.write(f, (byte *) &text[pos], remaining, &count);
     remaining -= count;
     pos += count;
-    f->io.outBpos += count;
   }
 
   return ret;
@@ -402,6 +400,18 @@ retCode nullClose(ioPo f) {
 }
 
 retCode nullEof(ioPo f) {
+  return Error;
+}
+
+integer nullPos(ioPo f) {
+  return -1;
+}
+
+retCode nullSeek(ioPo f, integer px) {
+  return Error;
+}
+
+retCode nullIsReady(ioPo f, integer cs) {
   return Error;
 }
 
@@ -451,33 +461,12 @@ char *fileName(ioPo f) {
   return f->io.filename;
 }
 
-integer inCPos(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  integer cPos;
-
-  lock(O_LOCKED(o));
-  cPos = f->io.inCpos;
-  unlock(O_LOCKED(o));
-  return cPos;
+integer ioPos(ioPo io) {
+  return ((IoClassRec *) io->object.class)->ioPart.position(io);
 }
 
-integer outBPos(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  integer bPos;
-
-  lock(O_LOCKED(o));
-  bPos = f->io.outBpos;
-  unlock(O_LOCKED(o));
-  return bPos;
-}
-
-retCode isFileOpen(ioPo f) {
-  ioDirection mode = fileMode(f);
-
-  if (mode != ioNULL)
-    return Ok;
-  else
-    return Fail;
+retCode ioSeek(ioPo io, integer pos) {
+  return ((IoClassRec *) io->object.class)->ioPart.seek(io, pos);
 }
 
 void setEncoding(ioPo f, ioEncoding encoding) {

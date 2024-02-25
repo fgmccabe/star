@@ -24,9 +24,8 @@ typedef struct byteBuffer_part_{
   byte *buffer;                         /* The data buffer */
   byte line[MAXLINE];                   // Temporary buffer space
   integer bufferSize;
-  integer in_pos;                       // Position of next read
-  integer out_pos;                      // position of next write
-  integer size;                         // in_pos <= size <= out_pos
+  integer pos;                          // Position of next io operation
+  integer size;                         // pos <= size
   logical resizeable;                   /* Is this string object resizeable? */
 } ByteBufferPart;
 

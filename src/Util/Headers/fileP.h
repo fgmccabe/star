@@ -14,11 +14,8 @@
 #include "io.h"
 
 typedef retCode (*fileProc)(filePo f);
-typedef retCode (*seekProc)(filePo f, integer count);
 
 typedef struct {
-  seekProc seek;                        /* called when seeking */
-
   fileProc filler;                      // We use this to refill the buffer
   fileProc asyncFill;                   // We use this to refall asynchronously
   fileProc flush;                       // We use this to flush out the buffer
@@ -38,17 +35,14 @@ extern FileClassRec FileClass;
 typedef struct file_part_ {
   /* The file specific part of a file object */
   int fno;                              // The file number
-  byte in_line[MAXLINE + 32];           // The input buffer */
-  int16 in_pos;
-  int16 in_len;
-  integer file_pos;                     // Where are we in reading the file
+  byte line[MAXLINE];                   // The line buffer */
+  int16 line_pos;
+  int16 line_len;                       // Used length in the line buffer
+  integer file_pos;                     // Where the line buffer is in the file
 
-  filePo prev;                            /* Previous file in open set */
-  filePo next;                            /* Next file in open set */
+  filePo prev;                          /* Previous file in open set */
+  filePo next;                          /* Next file in open set */
 
-  byte out_line[MAXLINE];               // The output buffer
-  int16 out_pos;                        // Current position within the output buffer
-  int16 wr_pos;                         // Where the last write call went to
   accessMode mode;                      // How is the file set up for reading/writing?
   completionSignaler signaler;
   void *signalerData;                   // Used as part of the callback
@@ -73,7 +67,8 @@ retCode fileOutBytes(ioPo f, byte *b, integer count, integer *actual);
 retCode fileBackByte(ioPo f, byte b);
 retCode fileAtEof(ioPo f);
 
-retCode flSeek(filePo f, integer pos);
+retCode flSeek(ioPo io, integer pos);
+integer flPos(ioPo io);
 retCode fileClose(ioPo io);
 retCode refillBuffer(filePo f);
 retCode fileFill(filePo f);

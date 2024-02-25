@@ -26,15 +26,12 @@ typedef enum{
 } bufferGrain;
 
 wordBufferPo newWordBuffer(bufferGrain grain);
-wordBufferPo fixedWordBuffer(char *buffer, long len, bufferGrain grain);
 retCode closeWordBuffer(wordBufferPo buffer);
 size_t grainSize(bufferGrain grain);
 
 byte * getCurrentBufferData(wordBufferPo s, integer *len);
 retCode appendWordToBuffer(wordBufferPo b, integer data);
 byte* getBufferData(wordBufferPo b,integer *len);
-retCode reserveBufferSpace(wordBufferPo b,integer len,integer *pos);
-retCode writeIntoBuffer(wordBufferPo b,integer pos,integer data);
 
 #ifdef VERIFY_OBJECT
 #define O_WORDBUFFER(c) ((wordBufferPo)(checkCast((c),wordBufferClass)))

@@ -22,6 +22,8 @@ static retCode bufferInputReady(ioPo io, integer count);
 static retCode bufferOutputReady(ioPo io, integer count);
 static retCode bufferAtEof(ioPo io);
 static retCode bufferClose(ioPo io);
+static integer bufferPos(ioPo io);
+static retCode bufferSeek(ioPo io, integer pos);
 
 ByteBufferClassRec ByteBufferClass = {
   .objectPart = {
@@ -42,13 +44,15 @@ ByteBufferClassRec ByteBufferClass = {
   },
   .lockPart = {},
   .ioPart = {
-    .read =bufferInBytes,                         /* inByte  */
-    .write = bufferOutBytes,                       /* outBytes  */
-    .backByte = bufferBackByte,                       /* backByte */
+    .read =bufferInBytes,                           /* inByte  */
+    .write = bufferOutBytes,                        /* outBytes  */
+    .backByte = bufferBackByte,                     /* backByte */
     .inputReady = bufferInputReady,
     .outputReady = bufferOutputReady,
-    .isAtEof = bufferAtEof,                          /* at end of file? */
-    .close = bufferClose                           /* close  */
+    .isAtEof = bufferAtEof,                         /* at end of file? */
+    .close = bufferClose,                           /* close  */
+    .position = bufferPos,                          // Report position in buffer
+    .seek = bufferSeek,                             // Move buffer position
   }};
 
 classPo byteBufferClass = (classPo) &ByteBufferClass;
@@ -65,8 +69,7 @@ static void BufferInit(objectPo o, va_list *args) {
   byteBufferPo f = O_BYTEBUFFER(o);
 
   // Set up the buffer pointers
-  f->buffer.in_pos = 0;
-  f->buffer.out_pos = 0;
+  f->buffer.pos = 0;
   f->buffer.buffer = va_arg(*args, byte *);
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
   f->io.mode = va_arg(*args, ioDirection); /* set up the access mode */
@@ -95,7 +98,7 @@ retCode bufferInputReady(ioPo io, integer count) {
   if (isReadingFile(io) && isAStringBuffer(O_OBJECT(io))) {
     byteBufferPo str = O_BYTEBUFFER(io);
 
-    if (str->buffer.in_pos + count <= str->buffer.size)
+    if (str->buffer.pos + count <= str->buffer.size)
       return Ok;
     else
       return Fail;
@@ -109,7 +112,7 @@ retCode bufferOutputReady(ioPo io, integer count) {
 
     if (str->buffer.resizeable)
       return Ok;
-    else if (str->buffer.out_pos + count <= str->buffer.bufferSize)
+    else if (str->buffer.pos + count <= str->buffer.bufferSize)
       return Ok;
     else
       return Fail;
@@ -123,12 +126,12 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
   byteBufferPo f = O_BYTEBUFFER(io);
 
   while (remaining > 0) {
-    if (f->buffer.in_pos >= f->buffer.size) {
+    if (f->buffer.pos >= f->buffer.size) {
       if (remaining == count)
         ret = Eof;
       break;
     } else {
-      *ch++ = (byte) f->buffer.buffer[f->buffer.in_pos++];
+      *ch++ = (byte) f->buffer.buffer[f->buffer.pos++];
       remaining--;
     }
   }
@@ -138,7 +141,7 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
 }
 
 static retCode ensureSpace(byteBufferPo f, integer count) {
-  if (f->buffer.out_pos + count >= f->buffer.bufferSize) {
+  if (f->buffer.pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */
 
@@ -168,8 +171,8 @@ static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) 
   retCode ret = ensureSpace(f, count);
 
   for (int ix = 0; ret == Ok && ix < count; ix++)
-    f->buffer.buffer[f->buffer.out_pos++] = b[ix];
-  f->buffer.size = f->buffer.out_pos;
+    f->buffer.buffer[f->buffer.pos++] = b[ix];
+  f->buffer.size = f->buffer.pos;
   *actual = count;
   return ret;
 }
@@ -177,8 +180,8 @@ static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual) 
 static retCode bufferBackByte(ioPo io, byte b) {
   byteBufferPo f = O_BYTEBUFFER(io);
 
-  if (f->buffer.in_pos > 0) {
-    f->buffer.buffer[--f->buffer.in_pos] = b;
+  if (f->buffer.pos > 0) {
+    f->buffer.buffer[--f->buffer.pos] = b;
     return Ok;
   } else
     return Error;
@@ -187,7 +190,7 @@ static retCode bufferBackByte(ioPo io, byte b) {
 static retCode bufferAtEof(ioPo io) {
   byteBufferPo f = O_BYTEBUFFER(io);
 
-  if (f->buffer.out_pos < f->buffer.size)
+  if (f->buffer.pos < f->buffer.size)
     return Ok;
   else
     return Eof;
@@ -198,10 +201,25 @@ static retCode bufferClose(ioPo io) {
   return Ok;
 }
 
+static integer bufferPos(ioPo io) {
+  byteBufferPo f = O_BYTEBUFFER(io);
+  return f->buffer.pos;
+}
+
+static retCode bufferSeek(ioPo io, integer pos){
+  byteBufferPo f = O_BYTEBUFFER(io);
+  if(pos<0 || pos>f->buffer.size)
+    return Error;
+  else{
+    f->buffer.pos = pos;
+    if(isWritingFile(io))
+      f->buffer.size = pos;
+    return Ok;
+  }
+}
+
 retCode clearByteBuffer(byteBufferPo b) {
-  b->buffer.in_pos = 0;
-  b->buffer.out_pos = 0;
-  b->io.inBpos = b->io.inCpos = 0;
+  b->buffer.pos = 0;
   b->buffer.size = 0;
   return Ok;
 }
@@ -248,22 +266,10 @@ integer byteBufferLength(byteBufferPo b) {
   return b->buffer.size;
 }
 
-integer byteBufferOutPos(byteBufferPo b) {
-  return b->buffer.out_pos;
-}
-
-retCode rewindByteBuffer(byteBufferPo b) {
-  b->buffer.in_pos = 0;
-  b->io.inBpos = b->io.inCpos = 0;
-
-  b->buffer.out_pos = 0;
-  return Ok;
-}
-
 retCode appendByteToBuffer(byteBufferPo b, byte by) {
   ensureSpace(b, 1);
 
-  b->buffer.buffer[b->buffer.out_pos++] = by;
+  b->buffer.buffer[b->buffer.pos++] = by;
   b->buffer.size++;
   return Ok;
 }
@@ -271,5 +277,5 @@ retCode appendByteToBuffer(byteBufferPo b, byte by) {
 retCode showByteBuffer(ioPo f, void *data, long depth, long precision, logical alt) {
   byteBufferPo b = O_BYTEBUFFER(data);
 
-  return outMsg(f, "«%S»", b->buffer.buffer, b->buffer.out_pos);
+  return outMsg(f, "«%S»", b->buffer.buffer, b->buffer.pos);
 }

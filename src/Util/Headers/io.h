@@ -52,12 +52,14 @@ retCode outText(ioPo f, const char *text, integer len);
 retCode outStr(ioPo f, char *str);
 retCode outStrg(ioPo f, strgPo str);
 
+integer ioPos(ioPo io);
+retCode ioSeek(ioPo io,integer pos);
+
 retCode closeIo(ioPo f);            /* generic file closer */
 
 void setEncoding(ioPo f, ioEncoding encoding);
 ioEncoding getEncoding(ioPo io);
 
-retCode isFileOpen(ioPo f);
 logical isReadingFile(ioPo f);
 logical isWritingFile(ioPo f);
 retCode isFileAtEof(ioPo f);
@@ -65,8 +67,6 @@ retCode fileStatus(ioPo f);
 
 char *fileName(ioPo f);
 ioDirection fileMode(ioPo f);
-integer inCPos(ioPo f);
-integer outBPos(ioPo f);
 
 retCode ioErrorMsg(ioPo io, char *fmt, ...);
 

@@ -27,8 +27,7 @@ typedef struct strBuffer_part_{
   char *buffer;                         /* The data buffer */
   char line[MAXLINE];                   // Temporary buffer space
   integer bufferSize;
-  integer in_pos;                       // Position of next read
-  integer out_pos;                      // position of next write
+  integer pos;                          // Position of next operation
   integer size;                         // in_pos <= size <= out_pos
   logical resizeable;                   /* Is this string object resizeable? */
 } BufferPart;

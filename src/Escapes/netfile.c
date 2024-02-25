@@ -3,11 +3,10 @@
 //
 
 #include <arith.h>
-#include <ioTcp.h>
+#include <sock.h>
 #include <errorCodes.h>
 #include <iochnnlP.h>
 #include <strings.h>
-#include <arithP.h>
 #include <tpl.h>
 #include <hosts.h>
 #include <cons.h>

@@ -14,8 +14,6 @@
 #include "vectP.h"
 #include "futureP.h"
 #include "byteBuffer.h"
-#include "cons.h"
-#include "option.h"
 
 static poolPo asyncPool = Null;
 
@@ -572,31 +570,26 @@ ReturnStatus g__stdfile(heapPo h, termPo a1) {
 
 ReturnStatus g__fposition(heapPo h, termPo a1) {
   ioPo io = ioChannel(C_IO(a1));
-  integer pos = 0;
 
-  switch (fileMode(io)) {
-    case ioNULL:
-      break;
-    case ioREAD:
-      pos = inCPos(io);
-      break;
-    case ioWRITE:
-      pos = outBPos(io);
-      break;
-  }
-
-  ReturnStatus rt = {.ret=Normal, .result=makeInteger(pos)};
-  return rt;
+  return (ReturnStatus){.ret=Normal, .result=makeInteger(ioPos(io))};
 }
 
 ReturnStatus g__fseek(heapPo h, termPo xc, termPo a1, termPo a2) {
-  filePo io = O_FILE(ioChannel(C_IO(a1)));
+  ioPo io = ioChannel(C_IO(a1));
   integer pos = integerVal(a2);
 
-  if (fileSeek(io, pos) == Ok)
+  retCode ret = ioSeek(io,pos);
+
+  if (ret == Ok)
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
+}
+
+ReturnStatus g__fname(heapPo h, termPo a1) {
+  ioPo io = ioChannel(C_IO(a1));
+
+  return (ReturnStatus) {.ret=Normal, .result=allocateCString(h, fileName(io))};
 }
 
 ReturnStatus g__setfileencoding(heapPo h, termPo a1, termPo a2) {
