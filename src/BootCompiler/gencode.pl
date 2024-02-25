@@ -184,7 +184,7 @@ compExp(idnt(Nm),Lc,Cont,End,_Brks,_Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
    reportError("cannot locate variable %s",[id(Nm)],Lc),
    abort).
 compExp(ctpl(St,A),Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2) :-!,
-  compExps(A,Lc,allocCont(St,Cont),End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2).
+  compExps(A,Lc,allocCont(St,Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk2).
 compExp(intrinsic(Lc,Op,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   bumpStk(Stk,Stk1),
@@ -194,8 +194,7 @@ compExp(ecll(Lc,Nm,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExps(A,Lc,bothCont(escCont(Nm,Stk),Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(cll(Lc,Nm,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  length(A,Ar),
-  compExps(A,Lc,cllCont(Nm,Ar,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+  compExps(A,Lc,cllCont(Nm,Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(ocall(Lc,Fn,A),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   length(A,Ar),
@@ -482,9 +481,9 @@ frameIns(some(Stk),[iFrame(Sig)|Cx],Cx) :-
   frameSig(Stk,Sig).
 frameIns(none,Cx,Cx).
 
-allocCont(Str,Cont,L,Lx,D,Dx,[iAlloc(Str)|C],Cx,Stk,Stkx) :-
-  frameIns(Stk,C,C1),
-  popStack(Str,Stk,Stk1),
+allocCont(Str,Stk,Cont,L,Lx,D,Dx,[iAlloc(Str)|C],Cx,_Stk,Stkx) :-
+  bumpStk(Stk,Stk1),
+  frameIns(Stk1,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 popStack(lbl(_,Ar),St,Stx) :-
@@ -520,18 +519,17 @@ escCont(Nm,Stk0,Lx,Lx,D,D,[iEscape(Nm)|C],Cx,_Stk,Stkx) :-
   bumpStk(Stk0,Stkx),
   frameIns(Stkx,C,Cx).
 
-cllCont(Nm,_Ar,retCont(_),Lx,Lx,Dx,Dx,[iTCall(Nm)|Cx],Cx,_Stk,none) :-!.
-cllCont(Nm,Ar,Cont,L,Lx,D,Dx,[iCall(Nm)|C],Cx,Stk,Stkx) :-
-  dropStk(Stk,Ar,Stk0),
+cllCont(Nm,_,retCont(_),Lx,Lx,Dx,Dx,[iTCall(Nm)|Cx],Cx,_Stk,none) :-!.
+cllCont(Nm,Stk0,Cont,L,Lx,D,Dx,[iCall(Nm)|C],Cx,_Stk,Stkx) :-
   bumpStk(Stk0,Stk1),
-  frameIns(Stk,C,C1),
+  frameIns(Stk1,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 oclCont(Arity,retCont(_),Lx,Lx,Dx,Dx,[iTOCall(Arity)|C],C,_,none) :-!.
 oclCont(Arity,Cont,L,Lx,D,Dx,[iOCall(Arity)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Arity,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk,C,C1),
+  frameIns(Stk1,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 tskCont(Cont,L,Lx,D,Dx,[iFiber|C],Cx,Stk,Stkx) :-
@@ -540,13 +538,13 @@ tskCont(Cont,L,Lx,D,Dx,[iFiber|C],Cx,Stk,Stkx) :-
 invokeCont(Arity,Cont,L,Lx,D,Dx,[iInvoke(Arity)|C],Cx,Stk,Stkx) :-
   dropStk(Stk,Arity,Stk0),
   bumpStk(Stk0,Stk1),
-  frameIns(Stk,C,C1),
+  frameIns(Stk1,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 closureCont(Lb,Ar,Cont,L,Lx,D,Dx,[iClosure(lbl(Lb,Ar))|C],Cx,Stk,Stkx) :-
-  frameIns(Stk,C,C1),
   dropStk(Stk,1,Stk0),
   bumpStk(Stk0,Stk1),
+  frameIns(Stk1,C,C1),
   call(Cont,L,Lx,D,Dx,C1,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,Stk,Lx,Lx,D,D,[iJmp(Lbl)|Cx],Cx,_,Stk).

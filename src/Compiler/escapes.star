@@ -140,6 +140,7 @@ star.compiler.escapes{
     "_fseek" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_flush" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_flushall" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([]))).
+    "_fname" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle")])),.nomnal("star.core*string"))).
     "_waitIo" => .some(.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("ioHandle"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*boolean")),.nomnal("e")])),.nomnal("star.core*integer")])),.nomnal("star.core*boolean")))).
     "_setfileencoding" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("ioHandle"),.nomnal("star.core*integer")])),.tupleType([]))).
     "_get_file" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
@@ -392,6 +393,7 @@ star.compiler.escapes{
     "_fseek" => .true.
     "_flush" => .true.
     "_flushall" => .true.
+    "_fname" => .true.
     "_waitIo" => .true.
     "_setfileencoding" => .true.
     "_get_file" => .true.

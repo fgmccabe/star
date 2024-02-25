@@ -43,7 +43,7 @@ logical showPkgFile = False;      // True if we show file names instead of packa
 logical showColors = True;        // True if we want to show colored output
 
 logical interactive = False;      /* interaction instruction tracing */
-
+logical stackVerify = False;
 
 /* Handle suspension reasonably ... */
 static void sig_suspend(int sig) {
@@ -117,8 +117,20 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
   return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
 }
 
-static retCode showLTipe(ioPo out, methodPo mtd, integer off) {
-  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
+static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer off) {
+  termPo frameLit = nthArg(mtd->pool, off);
+  integer stackDepth = 0;
+  if (isString(frameLit)) {
+    integer sigLen;
+    const char *sig = strVal(frameLit, &sigLen);
+    tryRet(typeSigArity(sig, sigLen, &stackDepth));
+  } else if (isInteger(frameLit))
+    stackDepth = integerVal(frameLit);
+  if (stk != Null)
+    return outMsg(out, " (%d vs %d) %,*T", stackDepth, stk->fp->csp - stk->sp - lclCount(stk->fp->prog), displayDepth,
+                  frameLit);
+  else
+    return outMsg(out, " %,*T", displayDepth, frameLit);
 }
 
 // Figuring out if we should stop is surprisingly complicated
@@ -128,8 +140,8 @@ static logical shouldWeStop(processPo p, termPo arg) {
     framePo frame = currFrame(stk);
 
     if (debugDebugging) {
-      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark, p->stk->fp,
-             p->traceCount, (p->tracing ? "yes" : "no"));
+      outMsg(logFile, "debug: waterMark=0x%x, sp=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark,
+             p->stk->sp, p->stk->fp, p->traceCount, (p->tracing ? "yes" : "no"));
       disass(logFile, stk, frame->prog, frame->pc);
       outMsg(logFile, "\n%_");
     }
@@ -1001,9 +1013,9 @@ retCode showGlb(ioPo out, globalPo glb) {
 void showTos(ioPo out, stackPo stk, integer offset) {
   if (stk != Null) {
     if (offset == 0)
-      outMsg(out, " tos = %#,*T", displayDepth, peekStack(stk, offset));
+      outMsg(out, " tos{0x%x} = %#,*T", stk->sp, displayDepth, peekStack(stk, offset));
     else
-      outMsg(out, " tos[%d] = %#,*T", offset, displayDepth, peekStack(stk, offset));
+      outMsg(out, " tos{0x%x}[%d] = %#,*T", stk->sp, offset, displayDepth, peekStack(stk, offset));
   } else
     outMsg(out, " tos");
 }
@@ -1074,7 +1086,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_lit showConstant(out,mtd,collectI32(pc))
 #define show_lne showConstant(out,mtd,collectI32(pc))
 #define show_glb showGlb(out, findGlobalVar(collectI32(pc)))
-#define show_tPe showLTipe(out,mtd,collectI32(pc))
+#define show_tPe showFrame(out,stk,mtd,collectI32(pc))
 
 #define instruction(Op, A1, A2, Dl, Cmt)    \
     case Op:                                \

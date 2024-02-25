@@ -18,5 +18,6 @@ typedef enum{
 
 retCode validTypeSig(const char *text, integer len);
 retCode skipTypeSig(const char *text, integer len, integer *pos);
+retCode typeSigArity(const char *sig, integer len, integer *arity);
 
 #endif //STAR_LTYPE_H

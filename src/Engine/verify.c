@@ -673,21 +673,32 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
     case tPe: {                          /* type literal */
       int32 litNo = collect32(base, pc);
       if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, *pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
         return Error;
       }
       termPo lit = getMtdLit(seg->seg.mtd, litNo);
       if (isString(lit)) {
         integer len;
-        const char *text = strVal(lit, &len);
-        if (validTypeSig(text, len) == Ok)
+        const char *sig = strVal(lit, &len);
+        if (validTypeSig(sig, len) == Ok) {
+          integer frameDepth;
+          if (typeSigArity(sig, len, &frameDepth) != Ok) {
+            strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, oPc);
+            return Error;
+          }
+          if (frameDepth != seg->seg.stackDepth) {
+            strMsg(errorMsg, msgLen, RED_ESC_ON "inconsistent stack depth, got %d, expecting %d @ %d" RED_ESC_OFF,
+                   seg->seg.stackDepth, frameDepth, oPc);
+            return Error;
+          }
+
           return Ok;
-        else {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
+        } else {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, oPc);
           return Error;
         }
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, *pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid type signature literal: %d @ %d" RED_ESC_OFF, litNo, oPc);
         return Error;
       }
     }
@@ -752,7 +763,18 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         }
         break;
       }
+      case OCall: {
+        int arity = collect32(base, &iPc);
+        if (seg->seg.stackDepth < arity) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, oPc);
+          return Error;
+        }
+        seg->seg.stackDepth -= arity;
+        return Ok;
+      }
+      case Ret:
       case TCall:
+      case TOCall:
         seg->seg.stackDepth = 0;
         break;
       case Escape: {
@@ -775,6 +797,26 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
           return Error;
         }
         seg->seg.stackDepth = depth;
+        break;
+      }
+      case Alloc: {
+        int32 litNo = collect32(base, &iPc);
+        if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
+          return Error;
+        }
+        termPo lit = getMtdLit(seg->seg.mtd, litNo);
+
+        if (!isALabel(lit)) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal, expecting a label not %t @ %d" RED_ESC_OFF, lit, oPc);
+          return Error;
+        }
+        integer arity = labelArity(C_LBL(lit));
+
+        if (arity > seg->seg.stackDepth) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "not enough (%d) elements to allocate @ %d" RED_ESC_OFF, arity, oPc);
+        }
+        seg->seg.stackDepth -= arity;
         break;
       }
       case Unpack: {
@@ -878,7 +920,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
 #ifdef TRACEVERIFY
     if (traceVerify) {
       if (ret != Ok)
-        outMsg(logFile, "Error: block: %d, %s\n", seg->seg.segNo, errorMsg);
+        outMsg(logFile, "Error: segment: %d, %s\n", seg->seg.segNo, errorMsg);
       outMsg(logFile, "On exit:  ");
       showSeg(seg);
     }
@@ -933,7 +975,6 @@ void showSeg(segPo seg) {
 }
 
 void showGroup(vectorPo group, integer groupNo) {
-  outMsg(logFile, "group %d\n", groupNo);
   for (integer sx = 0; sx < vectLength(group); sx++) {
     segPo seg = O_SEG(getVectEl(group, sx));
     showSeg(seg);

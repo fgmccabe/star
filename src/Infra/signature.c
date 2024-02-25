@@ -204,11 +204,9 @@ static retCode tplArity(char *sig, integer *arity, integer *start, integer end) 
   }
 }
 
-retCode tupleArity(char *sig, integer *arity) {
+retCode tupleArity(const char *sig, integer sigLen, integer *arity) {
   integer pos = 0;
-  integer end = uniStrLen(sig);
-
-  return tplArity(sig, arity, &pos, end);
+  return tplArity((char *) sig, arity, &pos, sigLen);
 }
 
 static retCode skipConstrnt(char *sig, integer *start, integer end);

@@ -124,6 +124,7 @@ static retCode debugOption(char *option, logical enable) {
       case 'S':    /* trace stack operations  */
 #ifdef TRACESTACK
         traceStack = True;
+        stackVerify = True;
         logMsg(logFile, "Stack tracing enabled\n");
         continue;
 #else

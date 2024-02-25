@@ -74,7 +74,7 @@ typedef enum {
 
 logical validSignature(char *s);
 retCode funSigArity(char *sig, integer *arity);
-retCode tupleArity(char *sig, integer *arity);
+retCode tupleArity(const char *sig, integer sigLen, integer *arity);
 retCode skipSig(char *sig, integer *start, integer end);
 retCode showSignature(ioPo out, char *sig, integer *start, integer end);
 retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
