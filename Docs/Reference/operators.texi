@@ -215,6 +215,10 @@
 @tab 100
 @tab object access
 @item @code{raises}
+@tab right associative infix
+@tab 951
+@tab can raise an exception
+@item @code{raises}
 @tab non-associative prefix
 @tab 999
 @tab can raise an exception

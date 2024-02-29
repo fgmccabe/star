@@ -66,7 +66,7 @@
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
-  operator("raises", [prefixOp(999, 998)]).
+  operator("raises", [infixOp(950, 951, 951), prefixOp(999, 998)]).
   operator("spawn", [infixOp(929, 930, 929)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("try", [prefixOp(1200, 1199)]).

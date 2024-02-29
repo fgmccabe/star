@@ -59,6 +59,7 @@ star.compiler.macro.rules{
     "trace" -> [(.expression,traceMacro)],
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
+    "raises" -> [(.typeterm,raisesMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
       (.typeterm,grammarTypeMacro),
@@ -446,4 +447,10 @@ star.compiler.macro.rules{
       (Lc,P,R) ?= isBinary(A,":") && (LLc,T,E) ?= isBinary(R,"=>") =>
     .active(binary(Lc,"=>",binary(Lc,":",P,T),E)).
   caseRuleMacro(A,_) default => .inactive.
+
+  -- Convert T raises E to raises E |: T
+  raisesMacro(A,.typeterm) where
+      (Lc,L,R) ?= isBinary(A,"raises") =>
+    .active(binary(Lc,"|:",unary(Lc,"raises",R),L)).
+  raisesMacro(_,_) default => .inactive.
 }

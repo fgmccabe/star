@@ -17,7 +17,7 @@ test.ac10{
     valis -1
   }
 
-  firstMultiple:raises exception |:(integer,integer)=>string.
+  firstMultiple:(integer,integer)=>string raises exception.
   firstMultiple(X,M) => valof{
     L:{
       for ix in .range(1,X,1) do{

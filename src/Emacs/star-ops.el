@@ -48,7 +48,7 @@
   ("\\/" ( (infix 720 720 719)))
   ("-" ( (prefix 300 299) (infix 720 720 719)))
   ("." ( (prefix 10 9) (infix 100 100 99)))
-  ("raises" ( (prefix 999 998)))
+  ("raises" ( (infix 950 951 951) (prefix 999 998)))
   ("spawn" ( (infix 929 930 929)))
   ("/" ( (infix 700 700 699)))
   ("try" ( (prefix 1200 1199)))

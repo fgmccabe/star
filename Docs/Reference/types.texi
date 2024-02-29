@@ -1347,6 +1347,8 @@ raise an exception.
 @caption{Raises Constraint}
 @display
 @anchored{RaisesConstraint} ::= @code{raises} @refer{Type}
+
+@var{Type} +::= @refer{Type} @code{raises} @refer{Type}
 @end display
 @end float
 
@@ -1356,14 +1358,22 @@ exception; this would be signaled using a type of the form:
 raises string |: (integer) => integer
 @end example
 
+Note that the second form of this:
+@example
+(integer) => integer raises string
+@end example
+
+is semantically equivalent to the first.
+
 If such a function is used in an expression, then it must either be in
-the lexical context of a @refer{TryCatchAction}, @refer{TryCatchExpression}
-expression, or it must be within the definition of a function that is
-also declared to raise @code{string} exceptions.
+the lexical context of an appropriate @refer{TryCatchAction},
+@refer{TryCatchExpression} expression, or it must be within the
+definition of a function that is also declared to raise @code{string}
+exceptions.
 
 It is possible that a function may raise more than one type of
 exception. In which case, the type of the function must reflect all
-the different @code{raises} constraints.
+the different exceptions it can @code{raise}.
 
 Functions that do not have explicit type annotations have their types
 inferred. Automatically inferred types never include type
@@ -1384,7 +1394,20 @@ innerRaise(X) => (try
     Msg => Msg
   @}).
 @end example
-    
+
+Here the exception thrown by @code{inner} is caught in an outer
+@refer{TypeCatchExpression}, even though @code{inner} is not declared
+to throw any exceptions. In effect, the handler is a kind of
+@emph{free variable} of the @code{inner} function.
+
+@quotation NOTE
+Some care should be taken using the second -- convenience -- notation
+for a function type that @code{raises} exceptions.
+
+In particular, the order of constraints declared on a type is
+important, and, as a result, one is advised to use this notation when
+it is the only constraint on a function type.
+@end quotation
 
 @node Field Constraints
 @subsection Field Constraints
