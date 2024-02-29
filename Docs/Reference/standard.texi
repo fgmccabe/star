@@ -201,10 +201,10 @@ then the following implementation of @code{display} would ensure that
 such trees were displayed more conveniently:
 @example
 implementation all t ~~ display[t] |: display[tree[t]] => let@{
-  treeDisplay(empty) => " ".
-  treeDisplay(node(L,Lb,R)) => "#(treeDisplay(L)) $(Lb) #(treeDisplay(R))".
+  treeDisp(empty) => " ".
+  treeDisp(node(L,Lb,R)) => "#(treeDisp(L)) $(Lb) #(treeDisp(R))".
 @} in @{
-  disp(T) => "@{#(treeDisplay(T))@}"
+  disp(T) => "@{#(treeDisp(T))@}"
 @}
 @end example
 
@@ -225,7 +225,7 @@ subtrees.
 @anchor{formatContract}
 
 The standard contract @code{format}, shown in
-Program~@ref{formatContractProg} is used when displaying values in a
+@ref{formatContractProg} is used when displaying values in a
 formatted manner -- especially within @refer{Interpolation}
 expressions.
 

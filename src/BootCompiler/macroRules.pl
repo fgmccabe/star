@@ -50,6 +50,7 @@ macroRl("yield",action,macroRules:yieldMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
+macroRl("raises",type,macroRules:raisesMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -558,3 +559,8 @@ caseRuleMacro(T,_,Tx) :-
   isBinary(R,LLc,"=>",A,B),!,
   binary(Lc,":",L,A,Ptn),
   binary(LLc,"=>",Ptn,B,Tx).
+
+raisesMacro(T,type,Tx) :-
+  isBinary(T,Lc,"raises",L,R),!,
+  unary(Lc,"raises",R,E),
+  binary(Lc,"|:",E,L,Tx).

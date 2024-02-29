@@ -83,7 +83,7 @@ star.compiler.operators{
     "\\/" => [.infixOp(720,720,719)].
     "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
     "." => [.prefixOp(10,9), .infixOp(100,100,99)].
-    "raises" => [.prefixOp(999,998)].
+    "raises" => [.infixOp(950,951,951), .prefixOp(999,998)].
     "spawn" => [.infixOp(929,930,929)].
     "/" => [.infixOp(700,700,699)].
     "try" => [.prefixOp(1200,1199)].
