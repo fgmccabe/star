@@ -1396,7 +1396,7 @@ innerRaise(X) => (try
 @end example
 
 Here the exception thrown by @code{inner} is caught in an outer
-@refer{TypeCatchExpression}, even though @code{inner} is not declared
+@refer{TryCatchExpression}, even though @code{inner} is not declared
 to throw any exceptions. In effect, the handler is a kind of
 @emph{free variable} of the @code{inner} function.
 
