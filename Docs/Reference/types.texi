@@ -1400,15 +1400,6 @@ Here the exception thrown by @code{inner} is caught in an outer
 to throw any exceptions. In effect, the handler is a kind of
 @emph{free variable} of the @code{inner} function.
 
-@quotation NOTE
-Some care should be taken using the second -- convenience -- notation
-for a function type that @code{raises} exceptions.
-
-In particular, the order of constraints declared on a type is
-important, and, as a result, one is advised to use this notation when
-it is the only constraint on a function type.
-@end quotation
-
 @node Field Constraints
 @subsection Field Constraints
 @cindex type,field
