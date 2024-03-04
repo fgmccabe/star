@@ -183,4 +183,18 @@ star.mbox{
     disp(.quiescent) => "quiescent".
     disp(.hasData(D)) => "hasData($(D))".
   }
+
+  public waitfor:all k,e,t ~~ (this:task[t]), raises e |: (future[k,e])=>k.
+  waitfor(Ft) => valof{
+    case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
+      .go_ahead => {
+	if _futureIsResolved(Ft) then{
+	  valis _futureVal(Ft)
+	} else
+	this retire .retired_
+      }
+      _ =>
+	this retire .retired_
+    }
+  }
 }

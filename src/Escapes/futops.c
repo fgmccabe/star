@@ -1,11 +1,31 @@
 //
 // Created by Francis McCabe on 1/9/24.
 //
+#include <assert.h>
 #include "futureP.h"
 #include "globals.h"
 #include "errorCodes.h"
 #include "cell.h"
-#include "consP.h"
+#include "either.h"
+
+static retCode pollCellFuture(futurePo ft, heapPo h, void *cl, void *cl2) {
+  termPo f = futureValue(ft);
+
+  assert(isCell(f));
+
+  termPo fv = getCell(C_CELL(f));
+  if (isNeither(fv))
+    return Fail;
+  else if (isEither(fv))
+    return resolveFuture(ft, eitherValue(fv));
+  else
+    return rejectFuture(ft, orValue(fv));
+}
+
+ReturnStatus g__cell_future(heapPo h, termPo a1) {
+  assert(isCell(a1));
+  return (ReturnStatus) {.ret=Normal, .result=(termPo) makeFuture(h, a1, pollCellFuture, Null, Null)};
+}
 
 ReturnStatus g__futureIsResolved(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=(termPo) (futureIsResolved(C_FUTURE(a1), h) ? trueEnum : falseEnum)};

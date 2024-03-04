@@ -85,6 +85,7 @@ escapeType("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*
 escapeType("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t"))))).
 escapeType("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t")))).
 escapeType("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([])))).
+escapeType("_cell_future",allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpFun("ref",1),tpExp(tpExp(tpFun("star.either*either",2),kVar("s")),kVar("e")))]),tpExp(tpExp(tpFun("future",2),kVar("s")),kVar("e")))))).
 escapeType("_futureIsResolved",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("star.core*boolean"))))).
 escapeType("_futureIsAccepted",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("star.core*boolean"))))).
 escapeType("_futureIsRejected",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("star.core*boolean"))))).
@@ -333,6 +334,7 @@ isEscape("_bnot").
 isEscape("_cell").
 isEscape("_get").
 isEscape("_assign").
+isEscape("_cell_future").
 isEscape("_futureIsResolved").
 isEscape("_futureIsAccepted").
 isEscape("_futureIsRejected").

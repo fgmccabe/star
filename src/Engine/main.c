@@ -8,6 +8,7 @@
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <consP.h>
+#include "eitherP.h"
 #include "ideal.h"
 #include <formexts.h>
 #include <optionP.h>
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
   initThunk();
   initGlobals();
   initCons();
+  initEither();
   initVect();
   initIdeal();
   initOption();
