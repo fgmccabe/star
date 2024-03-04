@@ -53,6 +53,8 @@ set(HEADER_FILES
         Headers/vect.h
         Headers/vectP.h
         Headers/escape.h
+        Headers/either.h
+        Headers/eitherP.h
 )
 
 set(SOURCE_FILES
@@ -63,6 +65,7 @@ set(SOURCE_FILES
         thunk.c
         future.c
         vect.c
+        either.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

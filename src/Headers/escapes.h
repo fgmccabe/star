@@ -12,6 +12,7 @@
 #define inHandle "t'inHandle'"
 #define outHandle "t'outHandle'"
 #define optionType(T) "Uz1'star.core*option'" T
+#define eitherType(E,O) "UUz2'star.either*either'" E O
 #define futureType(F,E) "UUz2'future'" F E
 
 #define ERRCODE "t'star.core*errorCode'"
@@ -123,6 +124,8 @@ escape(_bnot, "F(i)i", "bitwise negate number")
 escape(_cell, ":k't'F(k't')rk't'", "create a reference cell")
 escape(_get, ":k't'F(rk't')k't'", "access contents of reference cell")
 escape(_assign, ":k't'F(rk't'k't')()", "update contents of reference cell")
+
+escape(_cell_future,":k's':k'e'F(r"eitherType("k's'","k'e'")")"futureType("k's'","k'e'"),"create a user-programmable future")
 
 escape(_futureIsResolved, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been set")
 escape(_futureIsAccepted, ":k'f':k'e'F("futureType("k'f'","k'e'")")l", "test to see if a future has been accepted")

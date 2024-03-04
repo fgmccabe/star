@@ -8,9 +8,9 @@
 #include <cons.h>
 #include <option.h>
 #include "ideal.h"
-#include "labelsP.h"
 #include "globalsP.h"
 #include "vectP.h"
+#include "eitherP.h"
 
 termPo eOk;
 termPo eSWITCH;
@@ -230,6 +230,7 @@ void markGlobals(gcSupportPo G) {
 
   nilEnum = markPtr(G, &nilEnum);
   noneEnum = markPtr(G, &noneEnum);
+  neitherEnum = markPtr(G, &neitherEnum);
 
   divZero = markPtr(G, &divZero);
 

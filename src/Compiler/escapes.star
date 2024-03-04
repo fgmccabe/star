@@ -89,6 +89,7 @@ star.compiler.escapes{
     "_cell" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t"))))).
     "_get" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t")))).
     "_assign" => .some(.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([])))).
+    "_cell_future" => .some(.allType(.nomnal("s"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.tpExp(.tpExp(.tpFun("star.either*either",2),.nomnal("s")),.nomnal("e")))])),.tpExp(.tpExp(.tpFun("future",2),.nomnal("s")),.nomnal("e")))))).
     "_futureIsResolved" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
     "_futureIsAccepted" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
     "_futureIsRejected" => .some(.allType(.nomnal("f"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.nomnal("f")),.nomnal("e"))])),.nomnal("star.core*boolean"))))).
@@ -342,6 +343,7 @@ star.compiler.escapes{
     "_cell" => .true.
     "_get" => .true.
     "_assign" => .true.
+    "_cell_future" => .true.
     "_futureIsResolved" => .true.
     "_futureIsAccepted" => .true.
     "_futureIsRejected" => .true.
