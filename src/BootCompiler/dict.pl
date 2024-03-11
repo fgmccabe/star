@@ -2,7 +2,7 @@
 		declareTypeVars/4,isTypeVar/3,
 		declareVr/6,declareField/6,declareMtd/5,declareDyn/6,
 		declareEnum/6,declareCns/6,
-		getVar/5,getVarTypeFace/4,varLoc/4,
+		getVar/5,getNRVar/5,getVarTypeFace/4,varLoc/4,
 		currentVar/3,
 		declareContract/4,getContract/3,
 		declareImplementation/5,
@@ -78,12 +78,14 @@ varLoc(Nm,Env,Tp,Lc) :-
 
 getVar(Lc,Nm,Env,Vr,ViTp) :-
   isVar(Nm,Env,vrEntry(_,MkTrm,_,VTp)),
-%  reportMsg("type of %s is %s",[id(Nm),tpe(VTp)],Lc),
   freshen:freshen(VTp,Env,_Q,VrTp),
-%  reportMsg("freshened type of %s is %s",[id(Nm),tpe(VrTp)],Lc),
   getConstraints(VrTp,Cx,ViTp),
   call(MkTrm,Lc,ViTp,VExp),
   manageConstraints(Cx,Lc,VExp,Vr).
+
+getNRVar(Lc,Nm,Env,Vr,VTp) :-!,
+  isVar(Nm,Env,vrEntry(_,MkTrm,_,VTp)),
+  call(MkTrm,Lc,VTp,Vr).
 
 getVarTypeFace(_Lc,Nm,Env,ViTp) :-
   isVar(Nm,Env,vrEntry(_,_,some(Fce),_)),

@@ -16,7 +16,7 @@ star.compiler.dict.mgt{
   isVar:(string,dict) => option[vrEntry].
   isVar(Nm,Env) => valof{
     if Tp ?= escapeType(Nm) then
-      valis .some(.vrEntry(.none,(L,E)=>refreshVar(L,Nm,Tp,E),Tp,.none))
+      valis .some(.vrEntry(.none,(L,R,E)=>refreshVar(L,Nm,R,Tp,E),Tp,.none))
     else
     valis dictVar(Nm,Env)
   }
@@ -32,15 +32,15 @@ star.compiler.dict.mgt{
   showVar(Nm,Dict) where .vrEntry(_,_,Tp,_)?=isVar(Nm,Dict) => "$(Nm)\:$(Tp)".
   showVar(Nm,_) => "$(Nm) not defined".
 
-  public findVar:(option[locn],string,dict) => option[canon].
-  findVar(Lc,Nm,Dict) where .vrEntry(_,Mk,_,_) ?= isVar(Nm,Dict) =>
-    .some(Mk(Lc,Dict)).
-  findVar(_,_,_) default => .none.
+  public findVar:(option[locn],string,boolean,dict) => option[canon].
+  findVar(Lc,Nm,Refresh,Dict) where .vrEntry(_,Mk,Tp,_) ?= isVar(Nm,Dict) =>
+    .some(Mk(Lc,Refresh,Dict)).
+  findVar(_,_,_,_) default => .none.
 
   public findImplementation:(dict,string) => option[canon].
   findImplementation(.dict(Scs,Br),Nm) => let{.
     findImpl([Sc,.._]) where .implEntry(Lc,Vr,Tp) ?= Sc.impls[Nm] =>
-      .some(refreshVar(Lc,Vr,Tp,.dict(Scs,Br))).
+      .some(refreshVar(Lc,Vr,.true,Tp,.dict(Scs,Br))).
     findImpl([_,..Rest]) => findImpl(Rest).
     findImpl([]) => .none.
   .} in findImpl(Scs).
@@ -49,7 +49,7 @@ star.compiler.dict.mgt{
   public findAccess:(option[locn],tipe,string,dict) => option[canon].
   findAccess(Lc,Tp,Fld,Env) => valof{
     if .accEntry(_,Nm,T) ?= getFieldAccess(Tp,Fld,Env) then{
-      valis .some(refreshVar(Lc,Nm,T,Env))
+      valis .some(refreshVar(Lc,Nm,.true,T,Env))
     }
     else
       valis .none
@@ -58,7 +58,7 @@ star.compiler.dict.mgt{
   public findUpdate:(option[locn],tipe,string,dict) => option[canon].
   findUpdate(Lc,Tp,Fld,Env) => valof{
     if .accEntry(_,Nm,T) ?= getFieldUpdate(Tp,Fld,Env) then{
-      valis .some(refreshVar(Lc,Nm,T,Env))
+      valis .some(refreshVar(Lc,Nm,.true,T,Env))
     }
     else
       valis .none
@@ -83,7 +83,7 @@ star.compiler.dict.mgt{
       reportError("Cannot redeclare an escape: $(Nm)",Lc);
       valis Dict
     } else
-    valis declareVr(Nm,Lc,Tp,(L,E)=>refreshVar(L,FullNm,Tp,E),Fc,Dict)
+    valis declareVr(Nm,Lc,Tp,(L,R,E)=>refreshVar(L,FullNm,R,Tp,E),Fc,Dict)
   }
 
   refreshVr:(option[locn],tipe,dict,(option[locn],tipe)=>canon) => canon.
@@ -92,12 +92,13 @@ star.compiler.dict.mgt{
     valis manageConstraints(VrTp,Lc,(VTp) => Mkr(Lc,VTp))
   }    
 
-  refreshVar(Lc,Nm,Tp,Env) =>
+  refreshVar(Lc,Nm,.true,Tp,Env) =>
     refreshVr(Lc,Tp,Env,(LLc,T)=>.vr(LLc,Nm,T)).
+  refreshVar(Lc,Nm,.false,Tp,Env) => .vr(Lc,Nm,Tp).
 
   public declareFldAccess:(canon,string,option[locn],tipe,dict) => dict.
   declareFldAccess(Rc,Nm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E) => refreshVr(L,Tp,E,(LLc,T)=>.dot(LLc,Rc,Nm,T)),.none,Env).
+    declareVr(Nm,Lc,Tp,(L,_,E) => refreshVr(L,Tp,E,(LLc,T)=>.dot(LLc,Rc,Nm,T)),.none,Env).
 
   public undeclareVar:(string,dict) => dict.
   undeclareVar(Nm,.dict(Scs,Br)) => let{.
@@ -112,7 +113,7 @@ star.compiler.dict.mgt{
   declareConstructor(Nm,FullNm,Lc,Tp,Env) => valof{
     AbtTpNm = localName(tpName(funTypeRes(Tp)),.typeMark);
     valis declareCns(Lc,FullNm,Tp,AbtTpNm,
-      declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,Nm,Tp,E),.none,Env)).
+      declareVr(Nm,Lc,Tp,(L,R,E)=>pickupEnum(L,Nm,R,Tp,E),.none,Env)).
   }
 
   declareCns(CLc,Nm,Tp,TpNm,.dict(Scs,Br)) => let{.
@@ -130,16 +131,17 @@ star.compiler.dict.mgt{
     findType(Dict,localName(tpName(Tp),.typeMark)) => .some(Mp).
   findConstructors(_,_) default => .none.
 
-  pickupEnum(Lc,Nm,Tp,Env) => valof{
+  pickupEnum(Lc,Nm,.true,Tp,Env) => valof{
     (_,VrTp) = freshen(Tp,Env);
     valis manageConstraints(VrTp,Lc,(ETp)=>.enm(Lc,Nm,ETp))
   }
+  pickupEnum(Lc,Nm,.false,Tp,Env) => .enm(Lc,Nm,Tp).
 
   public declareEnum:(string,string,option[locn],tipe,dict) => dict.
   declareEnum(Nm,FullNm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>pickupEnum(L,FullNm,Tp,E),.none,Env).
+    declareVr(Nm,Lc,Tp,(L,R,E)=>pickupEnum(L,FullNm,R,Tp,E),.none,Env).
 
-  public declareVr:(string,option[locn],tipe,(option[locn],dict)=>canon,option[tipe],dict) => dict.
+  public declareVr:(string,option[locn],tipe,(option[locn],boolean,dict)=>canon,option[tipe],dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,Fc,.dict([Sc,..Ev],Br)) => valof{
     valis .dict([Sc.vars=Sc.vars[Nm->.vrEntry(Lc,MkVr,Tp,Fc)],..Ev],Br)
   }.
@@ -171,12 +173,13 @@ star.compiler.dict.mgt{
 
   declareMethod:(string,option[locn],tipe,dict) => dict.
   declareMethod(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,E)=>pickupMtd(L,Nm,Tp,E),.none,Dict).
+    declareVr(Nm,Lc,Tp,(L,R,E)=>pickupMtd(L,Nm,R,Tp,E),.none,Dict).
 
-  pickupMtd(Lc,Nm,Tp,Env) => valof{
+  pickupMtd(Lc,Nm,.true,Tp,Env) => valof{
     (Q,VrTp) = freshen(Tp,Env);
     valis manageConstraints(VrTp,Lc,(MTp)=>.mtd(Lc,Nm,MTp))
   }
+  pickupMtd(Lc,Nm,.false,Tp,_) => .mtd(Lc,Nm,Tp).
 
   public mergeDict:(dict,dict,dict) => dict.
   mergeDict(.dict(D1,Br),D2,Env) => let{.

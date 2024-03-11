@@ -138,6 +138,10 @@
 @tab left associative infix
 @tab 700
 @tab modulo
+@item @code{λ}
+@tab non-associative prefix
+@tab 1
+@tab interpret a symbol without dereferencing constraints
 @item @code{<-}
 @tab non-associative infix
 @tab 905
@@ -541,29 +545,30 @@
 @tab @code{raise}
 @item @code{then}
 @tab @code{default}
-@tab @code{resume}
-@item @code{contract}
+@tab @code{λ}
+@item @code{resume}
+@tab @code{contract}
 @tab @code{raises}
-@tab @code{spawn}
-@item @code{try}
+@item @code{spawn}
+@tab @code{try}
 @tab @code{exists}
-@tab @code{if}
-@item @code{in}
+@item @code{if}
+@tab @code{in}
 @tab @code{break}
-@tab @code{suspend}
-@item @code{open}
+@item @code{suspend}
+@tab @code{open}
 @tab @code{public}
-@tab @code{ref}
-@item @code{where}
+@item @code{ref}
+@tab @code{where}
 @tab @code{case}
-@tab @code{generator}
-@item @code{valof}
+@item @code{generator}
+@tab @code{valof}
 @tab @code{yield}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{implementation}
-@tab @code{type}
-@item @code{else}
+@item @code{type}
+@tab @code{else}
 
 @end multitable
 @end float
@@ -591,62 +596,63 @@
   @tab @code{#}
   @tab @code{??}
   @tab @code{%}
-  @item @code{<-}
+  @item @code{λ}
+  @tab @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
-  @tab @code{\\-}
-  @item @code{+}
+  @item @code{\\-}
+  @tab @code{+}
   @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
-  @tab @code{\\/}
-  @item @code{-}
+  @item @code{\\/}
+  @tab @code{-}
   @tab @code{.}
   @tab @code{/}
   @tab @code{$$}
-  @tab @code{:}
-  @item @code{;}
+  @item @code{:}
+  @tab @code{;}
   @tab @code{-->}
   @tab @code{<}
   @tab @code{.=}
-  @tab @code{=>>}
-  @item @code{=}
+  @item @code{=>>}
+  @tab @code{=}
   @tab @code{|:}
   @tab @code{++}
   @tab @code{>}
-  @tab @code{?}
-  @item @code{@@}
+  @item @code{?}
+  @tab @code{@@}
   @tab @code{|=}
   @tab @code{~~}
   @tab @code{!!}
-  @tab @code{⊕}
-  @item @code{.^.}
+  @item @code{⊕}
+  @tab @code{.^.}
   @tab @code{//}
   @tab @code{.~.}
   @tab @code{=<}
-  @tab @code{==}
-  @item @code{\\}
+  @item @code{==}
+  @tab @code{\\}
   @tab @code{=>}
   @tab @code{^}
   @tab @code{<=>}
-  @tab @code{•}
-  @item @code{.&.}
+  @item @code{•}
+  @tab @code{.&.}
   @tab @code{///}
   @tab @code{::}
   @tab @code{+++}
-  @tab @code{:=}
-  @item @code{:?}
+  @item @code{:=}
+  @tab @code{:?}
   @tab @code{.<<.}
   @tab @code{>>=}
   @tab @code{^/}
-  @tab @code{<~}
-  @item @code{|}
+  @item @code{<~}
+  @tab @code{|}
   @tab @code{.#.}
   @tab @code{~}
   @tab @code{^//}
-  @tab @code{||}
-  @item @code{::=}
+  @item @code{||}
+  @tab @code{::=}
   @tab @code{/\\}
   @tab @code{>=}
   @tab @code{>>}

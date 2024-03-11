@@ -5,6 +5,7 @@
 	      isAnonBrace/3,mkAnonBrace/3,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
+	      isSuppress/3,mkSuppress/3,
 	      isContractStmt/6,contractStmt/6,
 	      isImplementationStmt/6,implementationStmt/6,
 	      implementedContractName/2,
@@ -412,6 +413,12 @@ reConstrain(Cx,T,CT) :-
   reComma(Cx,C),
   locOfAst(T,Lc),
   binary(Lc,"|:",C,T,CT).
+
+isSuppress(A,Lc,I) :-
+  isUnary(A,Lc,"λ",I).
+
+mkSuppress(Lc,I,A) :-
+  unary(Lc,"λ",I,A).
 
 isUnaryMinus(T,Lc,A) :-
   isUnary(T,Lc,"-",A).

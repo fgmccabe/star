@@ -69,6 +69,7 @@ star.compiler.operators{
     "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)].
     "??" => [.infixOp(919,920,920)].
     "%" => [.infixOp(700,700,699)].
+    "λ" => [.prefixOp(1,0)].
     "<-" => [.infixOp(904,905,904)].
     ".>>>." => [.infixOp(600,600,599)].
     "\\+" => [.infixOp(700,700,699)].
@@ -223,6 +224,7 @@ star.compiler.operators{
     `>` => .some(">").
     `?` => .some("?").
     `@` => .some("@").
+    `λ` => .some("λ").
     `!` => .some("!").
     `⊕` => .some("⊕").
     `•` => .some("•").
@@ -412,6 +414,7 @@ star.compiler.operators{
     "?=" => .true.  /* optional decomposition match */
     "?}" => .true.  /* test comprehension */
     "@" => .true.  /* meta annotation */
+    "λ" => .true.  /* interpret a symbol without dereferencing constraints */
     "!" => .true.  /* pick up value from a ref cell */
     "!!" => .true.  /* pick up value from a thunk */
     "!}" => .true.  /* iota comprehension */
@@ -449,6 +452,7 @@ star.compiler.operators{
     "#" => .true.
     "!}" => .true.
     "??" => .true.
+    "λ" => .true.
     "<-" => .true.
     "(" => .true.
     ")" => .true.

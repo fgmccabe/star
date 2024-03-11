@@ -193,6 +193,8 @@ star.compiler.macro{
     mkThunk(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isThunkRef(A) =>
     mkThunkRef(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isSuppress(A) =>
+    mkSuppress(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isOpen(A) => 
     mkOpen(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 

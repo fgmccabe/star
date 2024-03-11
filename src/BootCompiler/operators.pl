@@ -52,6 +52,7 @@
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920)]).
   operator("%", [infixOp(700, 700, 699)]).
+  operator("λ", [prefixOp(1, 0)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
@@ -174,6 +175,7 @@
   follows('','>','>').
   follows('','?','?').
   follows('','@','@').
+  follows('','λ','λ').
   follows('','!','!').
   follows('','⊕','⊕').
   follows('','•','•').
@@ -354,6 +356,7 @@
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
+  final('λ',"λ").	 /* interpret a symbol without dereferencing constraints */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a thunk */
   final('!}',"!}").	 /* iota comprehension */
@@ -387,6 +390,7 @@
   keyword("#").
   keyword("!}").
   keyword("??").
+  keyword("λ").
   keyword("<-").
   keyword("(").
   keyword(")").

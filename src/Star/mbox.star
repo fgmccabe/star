@@ -197,4 +197,24 @@ star.mbox{
 	this retire .retired_
     }
   }
+
+  -- Create a future from a user defined function
+  public tsk:all k,e ~~
+  (task[()],((this:task[()]), raises e|:()=>k)) => future[k,e].
+  tsk(sched,TFn) => valof{
+    C = ref .neither;
+    sched suspend .fork((this)=>valof{
+	try{
+	  C := .either(TFn()); -- this marks the future as resolved
+	  this retire .retired_
+	} catch e in {
+	  Ex => {
+	    C := .other(Ex);
+	    this retire .retired_
+	  }
+	};
+	this retire .retired_
+      });
+    valis _cell_future(C)
+  }
 }

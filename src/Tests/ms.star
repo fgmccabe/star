@@ -24,7 +24,7 @@ test.ms{
   sq:(float)=>option[float].
   sq(X) => (try .some(sqrt(X)) catch errorCode in {_ => .none}).
 
-  sqr:(float)=>either[string,float].
+  sqr:(float)=>either[float,string].
   sqr(X) => (try .either(sqrt(X)) catch errorCode in {_ => .other("negative")}).
 
   main:() => ().

@@ -9,7 +9,7 @@ star.compiler.dict{
 
   public tpDef ::= .tpDefn(option[locn],string,tipe,typeRule,map[string,tipe]).
 
-  public vrEntry ::= .vrEntry(option[locn],(option[locn],dict)=>canon,tipe,option[tipe]).
+  public vrEntry ::= .vrEntry(option[locn],(option[locn],boolean,dict)=>canon,tipe,option[tipe]).
 
   public implEntry ::= .implEntry(option[locn],string,tipe).
 

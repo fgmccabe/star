@@ -53,9 +53,9 @@ star.compiler.misc{
   public packageName:(pkg)=>string.
   packageName(.pkg(P,_))=>P.
 
-  public pickFailures:all e,x ~~ (cons[either[e,x]])=>either[e,cons[x]].
+  public pickFailures:all e,x ~~ (cons[either[x,e]])=>either[cons[x],e].
   pickFailures(Ls) => let{.
-    pick:all e,x ~~ (cons[either[e,x]],cons[x])=>either[e,cons[x]].
+    pick:all e,x ~~ (cons[either[x,e]],cons[x])=>either[cons[x],e].
     pick([],L) => .either(reverse(L)).
     pick([.either(X),..Els],L) => pick(Els,[X,..L]).
     pick([.other(E),.._],_) => .other(E).
