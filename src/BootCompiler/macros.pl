@@ -437,6 +437,10 @@ examineTerm(T,Tx) :-
   macroTerm(E,Ex),
   mkOpen(Lc,Ex,Tx).
 examineTerm(T,Tx) :-
+  isSuppress(T,Lc,I),
+  macroTerm(I,Ix),
+  mkSuppress(Lc,Ix,Tx).
+examineTerm(T,Tx) :-
   isRecordUpdate(T,Lc,R,F,V),!,
   macroTerm(R,Rx),
   macroTerm(V,Vx),

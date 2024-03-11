@@ -297,6 +297,8 @@ star.compiler.dependencies{
     collectTermRefs(I,All,Rf).
   collectTermRefs(T,All,Rf) where (_,I) ?= isThunkRef(T) =>
     collectTermRefs(I,All,Rf).
+  collectTermRefs(T,All,Rf) where (_,I) ?= isSuppress(T) =>
+    collectTermRefs(I,All,Rf).
   collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isRoundTerm(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) => 

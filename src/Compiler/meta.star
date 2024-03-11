@@ -192,6 +192,7 @@ star.compiler.meta{
   public showCanon = ref .false.
   public traceCanon = ref .false.
   public typeCheckOnly = ref .false.
+  public traceResolve = ref .false.
   public showNormalize = ref .false.
   public traceNormalize = ref .false.
   public optimization = ref .base.
@@ -310,6 +311,18 @@ star.compiler.meta{
     setOption(_,Opts) => valof{
       showCanon := .true;
       
+      valis Opts
+    }
+  }
+
+  public traceResolveOption:cmdOption[compilerOptions].
+  traceResolveOption = cmdOption{
+    shortForm = "-tr".
+    alternatives = [].
+    usage = "-tr -- trace resolving".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceResolve := .true;
       valis Opts
     }
   }

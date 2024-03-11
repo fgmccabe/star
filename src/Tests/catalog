@@ -152,6 +152,7 @@
     "test.t": "t.star",
     "test.th0": "th0.star",
     "test.thfib": "thfib.star",
+    "test.tk0" : "tk0.star",
     "test.tl" : "tl.star",
     "test.tm" : "tm.star",
     "test.tp1": "tp1.star",

@@ -709,6 +709,16 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   parseType(R,Env,PTp),
   verifyType(Lc,ast(Term),PTp,Tp,Env),
   typeOfExp(L,PTp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isSuppress(Term,Lc,V),
+  (isIden(V,VLc,N) ->
+   Env=Ev,
+   (getNRVar(Lc,N,Env,Term,VTp) ->
+    verifyType(Lc,ast(V),VTp,Tp,Env);
+    reportError("variable '%s' not defined, expecting a %s",[V,Tp],VLc),
+    Term=void);
+   reportError("expecting an identifier, not '%s'",[V],Lc),
+   typeOfExp(V,Tp,Env,Ev,Exp,Path)).
 typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),!,
   typeOfExp(L,Tp,Env,E0,Ptn,Path),

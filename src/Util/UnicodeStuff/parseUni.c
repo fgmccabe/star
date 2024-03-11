@@ -7,15 +7,11 @@
  */
 
 #include <assert.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <dirent.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <pwd.h>
 
-#define MAXCODE (1u<<16u)
+#define MAXCODE (1u<<20u)
 
 typedef enum{
   Cc,  Cf,  Cn,  Co,  Cs,
@@ -129,6 +125,3 @@ int main(int argc,char **argv)
 
   return 0;
 }
-
-
-

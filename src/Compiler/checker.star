@@ -426,7 +426,7 @@ star.compiler.checker{
       logMsg("type  $(ETp), expected type $(Tp)");
 
     checkType(E,Tp,ETp,Env);
-    Ev = declareVr(Id,Lc,Tp,(OLc,D) => .vr(OLc,Id,Tp),.none,Env);
+    Ev = declareVr(Id,Lc,Tp,(OLc,_,D) => .vr(OLc,Id,Tp),.none,Env);
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
@@ -558,7 +558,7 @@ star.compiler.checker{
     valis .anon(Lc,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) =>
-    typeOfVar(Lc,Id,Tp,Env,Path).
+    typeOfVar(Lc,Id,Tp,.true,Env,Path).
   typeOfExp(A,Tp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
     Fun = typeOfExp(.nme(Lc,Nm),consType(.tupleType([]),Tp),Env,Path);
     valis .apply(Lc,Fun,[],Tp)
@@ -675,7 +675,7 @@ star.compiler.checker{
     Rt = newTypeVar("_R");
 
     if traceCanon! then
-      logMsg("check lambda $(A)\:$(Tp)");
+      logMsg("check lambda $(A), expected type $(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
@@ -685,18 +685,25 @@ star.compiler.checker{
     
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
 
-    if traceCanon! then
-      logMsg("lambda args $(As)\:$(typeOf(As))");
-
     LName = genId(Path++"λ");
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,E0,Path);
       Rep = typeOfExp(R,Rt,E1,Path);
-      valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Cx,Tp)
+
+      Lam = .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Cx,Tp);
+
+      if traceCanon! then
+	logMsg("lambda: $(Lam)\:$(Tp)");
+
+      valis Lam
     } else{
       Rep = typeOfExp(R,Rt,E0,Path);
-      valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp)
+      Lam = .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp);
+      if traceCanon! then
+	logMsg("lambda: $(Lam) computed type $(Tp)");
+
+      valis Lam
     }
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) => valof{
@@ -719,6 +726,15 @@ star.compiler.checker{
       logMsg("thunk ref $(ThExp)\:$(Tp)");
 
     valis .thRef(Lc,ThExp,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isSuppress(A) => valof{
+    if (ILc,Id)?=isName(E) then {
+      valis typeOfVar(ILc,Id,Tp,.false,Env,Path)
+    }
+    else{
+      reportError("expecting an identifier, not $(E)",Lc);
+      valis typeOfExp(E,Tp,Env,Path)
+    }
   }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
@@ -918,8 +934,8 @@ star.compiler.checker{
     valis .anon(locOf(A),Tp)
   }.
 
-  typeOfVar(Lc,Id,Tp,Env,Path) => valof{
-    if Var ?= findVar(Lc,Id,Env) then{
+  typeOfVar(Lc,Id,Tp,Refresh,Env,Path) => valof{
+    if Var ?= findVar(Lc,Id,Refresh,Env) then{
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{

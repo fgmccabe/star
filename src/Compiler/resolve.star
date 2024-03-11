@@ -290,7 +290,7 @@ star.compiler.resolve{
   }
   overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
     if traceCanon! then
-      logMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp))");
+      logMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp)) @ $(Lc)");
     
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
     (RRl,St1) = overloadRule(Extra,Rl,CDict,St);
@@ -503,7 +503,7 @@ star.compiler.resolve{
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
-    if Var ?= findVar(Lc,Id,Dict) then{
+    if Var ?= findVar(Lc,Id,.true,Dict) then{
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))
       } else{
