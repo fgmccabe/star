@@ -1271,12 +1271,13 @@ appropriately implementing the @code{coercion} contract.
 @cindex type lambda expression
 @cindex suppression of type refreshing
 
-The standard type semantics imply a process called @emph{refreshing}
-or @emph{standardizing}. Each occurrance of an identifier in the
-program @emph{gets its own type}.
+The standard semantics of types, particularly a generic type system
+like that of @Star{}, imply a process called @emph{refreshing} or
+@emph{standardizing apart}. Each occurrance of an identifier in the program
+@emph{gets its own type}.
 
-Each identifier -- as recorded in the appropriate scope -- has a type
-that may be quantified and/or constrained. However, @emph{occurrances}
+Every variable has its type recorded in the appropriate scope. This
+type may be quantified and/or constrained. However, @emph{occurrances}
 of the identifier are assigned a type that depends on
 @emph{refreshing} its recorded type.
 
@@ -1300,18 +1301,25 @@ gets an initial type that is computed from its recorded type:
 
 where @code{%x} is a new type variable not occurring anywhere else in the program.
 
+A similar process is used to move aside any constraints that are
+implied by the recorded type of the variable. (The constraints are
+subsequently applied to determine what runtime information to supply.)
+
 This is the process that allows different occurrances of @code{id} to
-have different types of arguments:
+have different types of arguments. For example, even though we might
+have a use of @code{id} with a @code{string}, as above, this does not
+prevent other uses with other argument types:
 
 @example
 id(45.3)
 @end example
 
-In nearly all situations, this is very convenient and exactly mirrors
-the intuition of what it means to use generic functions.
+In nearly all situations, this process of refreshing the types of
+variables is very convenient and exactly mirrors the intuition of what
+it means to use generic functions.
 
-However, in some situations, this automatic refreshing process can
-cause problems. For example, in this function, the argument is
+However, in some situations, automatically refreshing types can
+cause problems. For example, in the following function, the argument is
 intended to be a generic function:
 
 @example
