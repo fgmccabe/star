@@ -1266,6 +1266,102 @@ There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by
 appropriately implementing the @code{coercion} contract.
 
+@node Type Lambda Expression
+@subsection Type Lambda Expression
+@cindex type lambda expression
+@cindex suppression of type refreshing
+
+The standard type semantics imply a process called @emph{refreshing}
+or @emph{standardizing}. Each occurrance of an identifier in the
+program @emph{gets its own type}.
+
+Each identifier -- as recorded in the appropriate scope -- has a type
+that may be quantified and/or constrained. However, @emph{occurrances}
+of the identifier are assigned a type that depends on
+@emph{refreshing} its recorded type.
+
+For example, given the definition:
+
+@example
+id:all x ~~ (x)=>x
+@end example
+
+the recorded type for @code{id} is @code{all x ~~ (x)=>x}. However, an occurrance of @code{id}, as in:
+
+@example
+id("hello")
+@end example
+
+gets an initial type that is computed from its recorded type:
+
+@example
+(%x)=>%x
+@end example
+
+where @code{%x} is a new type variable not occurring anywhere else in the program.
+
+This is the process that allows different occurrances of @code{id} to
+have different types of arguments:
+
+@example
+id(45.3)
+@end example
+
+In nearly all situations, this is very convenient and exactly mirrors
+the intuition of what it means to use generic functions.
+
+However, in some situations, this automatic refreshing process can
+cause problems. For example, in this function, the argument is
+intended to be a generic function:
+
+@example
+foo:(all a~~(a)=>a,integer)=>integer
+@end example
+
+The first argument to @code{foo} is supposed to be generic, not
+specialized to any particular type. The type of this argument is
+actually the same as that for @code{id}, and so, a call to @code{foo}
+along the lines of:
+
+@example
+foo(id,34)
+@end example
+
+should be expected to type correctly. However, the rule referred to
+above about refreshing types of occurrances will lead the type checker
+to try to match the types:
+
+@example
+(%x)=>%x
+@end example
+and
+@example
+all a ~~ (a)=>a
+@end example
+
+These two types are @emph{not} equivalent, they are not @emph{unifiable}.
+
+The @code{λ} operator -- as applied to an identifier -- allows us to
+resolve this by suppressing the normal type refresh. In particular, the call:
+
+@example
+foo(λid,42)
+@end example
+
+@emph{will} be accepted by the type checker. This is because the type
+of the expression @code{λid} is
+
+@example
+all x ~~ (x)=>x
+@end example
+
+and this does unify with @code{all a ~~ (a)=>a}.
+
+@quotation Note
+We do not anticipate many uses of this operator; however, when needed,
+it can be a life saver!
+@end quotation
+
 @node Sequence Expressions
 @section Sequence Expressions
 @cindex sequence expressions
