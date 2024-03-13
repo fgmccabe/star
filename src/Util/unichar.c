@@ -209,69 +209,8 @@ codePoint lowerOf(codePoint ch)             /* <<<<< Fix me <<<<< */
 
 /* Compute the digit value associated with a unicode digit character */
 int digitValue(codePoint ch) {
-  if (isNdChar(ch)) {
-    if (0x30 <= ch && ch <= 0x39)  /* ASCII digits */
-      return (int) (ch - 0x30u);
-    else if (0x660 <= ch && ch <= 0x669) /* Arabic indic digits */
-      return (int) (ch - 0x660u);
-    else if (0x6F0 <= ch && ch <= 0x6F9) /* extended arabic */
-      return (int) (ch - 0x6f0u);
-    else if (0x7c0 <= ch && ch <= 0x7c9) /* ??? */
-      return (int) (ch - 0x7c0u);
-    else if (0x966 <= ch && ch <= 0x96f) /* devanagari digits */
-      return (int) (ch - 0x966u);
-    else if (0x9e6 <= ch && ch <= 0x9ef) /* Bengali digits */
-      return (int) (ch - 0x9e6u);
-    else if (0xa66 <= ch && ch <= 0xa6f) /* Gurmukhi digits */
-      return (int) (ch - 0xa66u);
-    else if (0xae6 <= ch && ch <= 0xaef) /* Gujurati digits */
-      return (int) (ch - 0xae6u);
-    else if (0xb66 <= ch && ch <= 0xb6f) /* Oriya digits */
-      return (int) (ch - 0xb66u);
-    else if (0xbe6 <= ch && ch <= 0xbef) /* Tamil digits */
-      return (int) (ch - 0xbe6u);
-    else if (0xc66 <= ch && ch <= 0xc6f) /* Telegu digits */
-      return (int) (ch - 0xc66u);
-    else if (0xce6 <= ch && ch <= 0xcef) /* Kannada digits */
-      return (int) (ch - 0xce6u);
-    else if (0xd66 <= ch && ch <= 0xd6f) /* Malayam digits */
-      return (int) (ch - 0xd66u);
-    else if (0xe50 <= ch && ch <= 0xe59) /* Thai digits */
-      return (int) (ch - 0xe50u);
-    else if (0xed0 <= ch && ch <= 0xed9) /* Lao digits */
-      return (int) (ch - 0xed0u);
-    else if (0xf20 <= ch && ch <= 0xf29) /* Tibetan digits */
-      return (int) (ch - 0xf20u);
-    else if (0x1040 <= ch && ch <= 0x1049) /* Myanmar digits */
-      return (int) (ch - 0x1040u);
-    else if (0x1369 <= ch && ch <= 0x1371) /* Ethiopic digits */
-      return (int) (ch - 0x1369u);
-    else if (0x17e0 <= ch && ch <= 0x17e9) /* Khmer digits */
-      return (int) (ch - 0x17e0u);
-    else if (0x1810 <= ch && ch <= 0x1819) /* Mongolian digits */
-      return (int) (ch - 0x1810u);
-    else if (ch == 0x3007)    /* CJK digit 0 */
-      return 0;
-    else if (ch == 0x4e00)    /* CJK digit 1 */
-      return 1;
-    else if (ch == 0x4e8c)    /* CJK digit 2 */
-      return 2;
-    else if (ch == 0x4e09)    /* CJK digit 3 */
-      return 3;
-    else if (ch == 0x56db)    /* CJK digit 4 */
-      return 4;
-    else if (ch == 0x4e94)    /* CJK digit 5 */
-      return 5;
-    else if (ch == 0x516d)    /* CJK digit 6 */
-      return 6;
-    else if (ch == 0x4e03)    /* CJK digit 7 */
-      return 7;
-    else if (ch == 0x516b)    /* CJK digit 8 */
-      return 8;
-    else if (ch == 0x4e5d)    /* CJK digit 9 */
-      return 9;
-    else
-      return -1;
-  } else
+  if (isNdChar(ch))
+    return digitValTbl[ch];
+  else
     return -1;
 }
