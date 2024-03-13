@@ -63,6 +63,7 @@
 
 
 extern UniCharCategory genCatTbl[];
+extern short digitValTbl[];
 
 extern integer uniByteLen(const char *s);
 
