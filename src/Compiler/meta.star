@@ -208,12 +208,14 @@ star.compiler.meta{
       cwd:uri.
       graph:option[uri].
       doStdin:boolean.
+      wasm:option[uri].
     }.
 
   public defltOptions(WI,RI) =>compilerOptions{repo=RI.
     cwd=WI.
     graph = .none.
     doStdin=.false.
+    wasm = .none.
   }
 
   public traceAstOption:cmdOption[compilerOptions].
@@ -423,11 +425,7 @@ star.compiler.meta{
     usage = "-R dir -- directory of repository".
     validator = .some(isDir).
     setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
-      compilerOptions{repo=NR.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	doStdin=Opts.doStdin
-      }.
+      (Opts.repo=NR).
   }
 
   public wdOption:cmdOption[compilerOptions].
@@ -437,11 +435,17 @@ star.compiler.meta{
     usage = "-W dir -- working directory".
     validator = .some(isDir).
     setOption(W,Opts) where RW ?= parseUri(W) && NW?=resolveUri(Opts.cwd,RW)=>
-      compilerOptions{repo=Opts.repo.
-	cwd=NW.
-	graph=Opts.graph.
-	doStdin=Opts.doStdin
-      }.
+      (Opts.cwd=NW).
+  }
+
+  public wasmOption:cmdOption[compilerOptions].
+  wasmOption = cmdOption{
+    shortForm = "-w".
+    alternatives = [].
+    usage = "-w file -- generate wasm in file".
+    validator = .none.
+    setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
+      (Opts.wasm=.some(NR)).
   }
 
   public stdinOption:cmdOption[compilerOptions].
@@ -450,12 +454,7 @@ star.compiler.meta{
     alternatives = ["--stdin"].
     usage = "--stdin -- compile standard input".
     validator = .none.
-    setOption(_,Opts) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=Opts.graph.
-	doStdin=.true.
-      }.
+    setOption(_,Opts) => (Opts.doStdin=.true).
   }
 
   public graphOption:cmdOption[compilerOptions].
@@ -465,11 +464,7 @@ star.compiler.meta{
     usage = "-G uri -- generate dependency graph".
     validator = .some((_)=>.true).
     setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
-      compilerOptions{repo=Opts.repo.
-	cwd=Opts.cwd.
-	graph=.some(NR).
-	doStdin=Opts.doStdin
-      }.
+      (Opts.graph=.some(NR)).
   }
 
   public genDebugOption:cmdOption[compilerOptions].
