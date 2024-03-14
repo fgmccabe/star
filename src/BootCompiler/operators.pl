@@ -52,13 +52,13 @@
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920)]).
   operator("%", [infixOp(700, 700, 699)]).
-  operator("λ", [prefixOp(1, 0)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
+  operator("ρ", [prefixOp(1, 0)]).
   operator("resume", [infixOp(829, 830, 829)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator("*>", [infixOp(904, 905, 904), prefixOp(905, 904)]).
@@ -173,9 +173,9 @@
   follows('','<','<').
   follows('','=','=').
   follows('','>','>').
+  follows('','ρ','ρ').
   follows('','?','?').
   follows('','@','@').
-  follows('','λ','λ').
   follows('','!','!').
   follows('','⊕','⊕').
   follows('','•','•').
@@ -351,12 +351,12 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
+  final('ρ',"ρ").	 /* interpret a symbol without dereferencing constraints */
   final('?',"?").	 /* mark expression as optionally there */
   final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */
-  final('λ',"λ").	 /* interpret a symbol without dereferencing constraints */
   final('!',"!").	 /* pick up value from a ref cell */
   final('!!',"!!").	 /* pick up value from a thunk */
   final('!}',"!}").	 /* iota comprehension */
@@ -390,10 +390,10 @@
   keyword("#").
   keyword("!}").
   keyword("??").
-  keyword("λ").
   keyword("<-").
   keyword("(").
   keyword(")").
+  keyword("ρ").
   keyword("resume").
   keyword("*>").
   keyword(",").

@@ -1266,9 +1266,9 @@ There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by
 appropriately implementing the @code{coercion} contract.
 
-@node Type Lambda Expression
-@subsection Type Lambda Expression
-@cindex type lambda expression
+@node Type Rho Expression
+@subsection Type RhoLambda Expression
+@cindex type rho expression
 @cindex suppression of type refreshing
 
 The standard semantics of types, particularly a generic type system
@@ -1349,15 +1349,15 @@ all a ~~ (a)=>a
 
 These two types are @emph{not} equivalent, they are not @emph{unifiable}.
 
-The @code{λ} operator -- as applied to an identifier -- allows us to
+The @code{ρ} operator -- as applied to an identifier -- allows us to
 resolve this by suppressing the normal type refresh. In particular, the call:
 
 @example
-foo(λid,42)
+foo(ρid,42)
 @end example
 
 @emph{will} be accepted by the type checker. This is because the type
-of the expression @code{λid} is
+of the expression @code{ρid} is
 
 @example
 all x ~~ (x)=>x

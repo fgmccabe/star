@@ -69,13 +69,13 @@ star.compiler.operators{
     "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)].
     "??" => [.infixOp(919,920,920)].
     "%" => [.infixOp(700,700,699)].
-    "λ" => [.prefixOp(1,0)].
     "<-" => [.infixOp(904,905,904)].
     ".>>>." => [.infixOp(600,600,599)].
     "\\+" => [.infixOp(700,700,699)].
     "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
+    "ρ" => [.prefixOp(1,0)].
     "resume" => [.infixOp(829,830,829)].
     ".>>." => [.infixOp(600,600,599)].
     "*>" => [.infixOp(904,905,904), .prefixOp(905,904)].
@@ -222,9 +222,9 @@ star.compiler.operators{
     `<` => .some("<").
     `=` => .some("=").
     `>` => .some(">").
+    `ρ` => .some("ρ").
     `?` => .some("?").
     `@` => .some("@").
-    `λ` => .some("λ").
     `!` => .some("!").
     `⊕` => .some("⊕").
     `•` => .some("•").
@@ -409,12 +409,12 @@ star.compiler.operators{
     ">=" => .true.  /* greater than or equal */
     ">>" => .true.  /* grammar produce value */
     ">>=" => .true.  /* monadic bind */
+    "ρ" => .true.  /* interpret a symbol without dereferencing constraints */
     "?" => .true.  /* mark expression as optionally there */
     "??" => .true.  /* conditional operator */
     "?=" => .true.  /* optional decomposition match */
     "?}" => .true.  /* test comprehension */
     "@" => .true.  /* meta annotation */
-    "λ" => .true.  /* interpret a symbol without dereferencing constraints */
     "!" => .true.  /* pick up value from a ref cell */
     "!!" => .true.  /* pick up value from a thunk */
     "!}" => .true.  /* iota comprehension */
@@ -452,10 +452,10 @@ star.compiler.operators{
     "#" => .true.
     "!}" => .true.
     "??" => .true.
-    "λ" => .true.
     "<-" => .true.
     "(" => .true.
     ")" => .true.
+    "ρ" => .true.
     "resume" => .true.
     "*>" => .true.
     "," => .true.

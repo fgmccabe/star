@@ -415,10 +415,10 @@ reConstrain(Cx,T,CT) :-
   binary(Lc,"|:",C,T,CT).
 
 isSuppress(A,Lc,I) :-
-  isUnary(A,Lc,"λ",I).
+  isUnary(A,Lc,"ρ",I).
 
 mkSuppress(Lc,I,A) :-
-  unary(Lc,"λ",I,A).
+  unary(Lc,"ρ",I,A).
 
 isUnaryMinus(T,Lc,A) :-
   isUnary(T,Lc,"-",A).
