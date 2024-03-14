@@ -138,10 +138,6 @@
 @tab left associative infix
 @tab 700
 @tab modulo
-@item @code{λ}
-@tab non-associative prefix
-@tab 1
-@tab interpret a symbol without dereferencing constraints
 @item @code{<-}
 @tab non-associative infix
 @tab 905
@@ -174,6 +170,10 @@
 @tab left associative infix
 @tab 720
 @tab addition
+@item @code{ρ}
+@tab non-associative prefix
+@tab 1
+@tab interpret a symbol without dereferencing constraints
 @item @code{resume}
 @tab non-associative infix
 @tab 830
@@ -545,7 +545,7 @@
 @tab @code{raise}
 @item @code{then}
 @tab @code{default}
-@tab @code{λ}
+@tab @code{ρ}
 @item @code{resume}
 @tab @code{contract}
 @tab @code{raises}
@@ -596,13 +596,13 @@
   @tab @code{#}
   @tab @code{??}
   @tab @code{%}
-  @item @code{λ}
-  @tab @code{<-}
+  @item @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
-  @item @code{\\-}
-  @tab @code{+}
+  @tab @code{\\-}
+  @item @code{+}
+  @tab @code{ρ}
   @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}

@@ -135,10 +135,10 @@ star.compiler.wff{
   reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma([C,..Cs]),T).
 
   public isSuppress:(ast)=>option[(option[locn],ast)].
-  isSuppress(A) => isUnary(A,"λ").
+  isSuppress(A) => isUnary(A,"ρ").
 
   public mkSuppress:(option[locn],ast)=>ast.
-  mkSuppress(Lc,A) => unary(Lc,"λ",A).
+  mkSuppress(Lc,A) => unary(Lc,"ρ",A).
 
   public isConstructorType:(ast) => option[(option[locn],ast,ast)].
   isConstructorType(A) => isBinary(A,"<=>").

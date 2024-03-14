@@ -16,7 +16,7 @@ test.tk0{
     try{
       Tsk = (this) => valof{
 	try{
-	  T = tsk(this,λtk0);
+	  T = tsk(this,ρtk0);
 	  Fv = waitfor(T);
 	  logMsg("final result $(Fv)");
 	  this retire .result(())
