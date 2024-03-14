@@ -54,7 +54,9 @@ star.compiler{
 	    traceCodegenOption,	    
 	    optimizeLvlOption,
 	    traceInlineOption,
-	    genDebugOption],
+	    genDebugOption,
+	    genWasmOption
+	  ],
 	  defltOptions(WI,RI)
 	))
     } catch string in {

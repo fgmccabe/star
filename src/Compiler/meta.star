@@ -438,12 +438,12 @@ star.compiler.meta{
       (Opts.cwd=NW).
   }
 
-  public wasmOption:cmdOption[compilerOptions].
-  wasmOption = cmdOption{
+  public genWasmOption:cmdOption[compilerOptions].
+  genWasmOption = cmdOption{
     shortForm = "-w".
     alternatives = [].
     usage = "-w file -- generate wasm in file".
-    validator = .none.
+    validator = .some((_)=>.true).
     setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
       (Opts.wasm=.some(NR)).
   }
