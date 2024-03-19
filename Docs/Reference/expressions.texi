@@ -1266,9 +1266,9 @@ There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by
 appropriately implementing the @code{coercion} contract.
 
-@node Type Rho Expression
-@subsection Type RhoLambda Expression
-@cindex type rho expression
+@node Type Zeta Expression
+@subsection Type Zeta Expression
+@cindex type zeta expression
 @cindex suppression of type refreshing
 
 The standard semantics of types, particularly a generic type system
@@ -1353,7 +1353,7 @@ The @code{ρ} operator -- as applied to an identifier -- allows us to
 resolve this by suppressing the normal type refresh. In particular, the call:
 
 @example
-foo(ρid,42)
+foo(ζid,42)
 @end example
 
 @emph{will} be accepted by the type checker. This is because the type
@@ -1366,8 +1366,9 @@ all x ~~ (x)=>x
 and this does unify with @code{all a ~~ (a)=>a}.
 
 @quotation Note
-We do not anticipate many uses of this operator; however, when needed,
-it can be a life saver!
+We do not anticipate many uses of this operator; in addition, it's
+meaning is quite subtle, hence the use of a non-ascii operator for
+it. However, when needed, @code{ζ} can be a life saver!
 @end quotation
 
 @node Sequence Expressions

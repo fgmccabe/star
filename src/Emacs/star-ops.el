@@ -26,6 +26,7 @@
   ("<$" ( (infix 719 720 720)))
   ("raise" ( (prefix 930 929)))
   ("then" ( (infix 1179 1180 1179)))
+  ("ζ" ( (prefix 1 0)))
   ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("->>" ( (infix 1199 1200 1199)))
   ("?=" ( (infix 899 900 899)))
@@ -40,7 +41,6 @@
   ("*" ( (postfix 699 700) (infix 700 700 699)))
   ("\\-" ( (infix 700 700 699)))
   ("+" ( (postfix 699 700) (infix 720 720 719)))
-  ("ρ" ( (prefix 1 0)))
   ("resume" ( (infix 829 830 829)))
   (".>>." ( (infix 600 600 599)))
   ("*>" ( (infix 904 905 904) (prefix 905 904)))
@@ -150,8 +150,8 @@
 "for"
 "raise"
 "then"
+"ζ"
 "default"
-"ρ"
 "resume"
 "contract"
 "raises"

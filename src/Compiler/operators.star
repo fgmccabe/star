@@ -61,6 +61,7 @@ star.compiler.operators{
     "<$" => [.infixOp(719,720,720)].
     "raise" => [.prefixOp(930,929)].
     "then" => [.infixOp(1179,1180,1179)].
+    "ζ" => [.prefixOp(1,0)].
     "!" => [.postfixOp(99,100), .infixOp(99,100,99)].
     "->>" => [.infixOp(1199,1200,1199)].
     "?=" => [.infixOp(899,900,899)].
@@ -75,7 +76,6 @@ star.compiler.operators{
     "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
-    "ρ" => [.prefixOp(1,0)].
     "resume" => [.infixOp(829,830,829)].
     ".>>." => [.infixOp(600,600,599)].
     "*>" => [.infixOp(904,905,904), .prefixOp(905,904)].
@@ -199,6 +199,7 @@ star.compiler.operators{
 
   public first:(char) => option[string].
   first(Op) => case Op in {
+    `ζ` => .some("ζ").
     `%` => .some("%").
     `&` => .some("&").
     `(` => .some("(").
@@ -222,7 +223,6 @@ star.compiler.operators{
     `<` => .some("<").
     `=` => .some("=").
     `>` => .some(">").
-    `ρ` => .some("ρ").
     `?` => .some("?").
     `@` => .some("@").
     `!` => .some("!").
@@ -324,6 +324,7 @@ star.compiler.operators{
 
   public final:(string) => boolean.
   final(Op) => case Op in {
+    "ζ" => .true.  /* interpret a symbol without dereferencing constraints */
     "%" => .true.  /* modulo */
     "&&" => .true.  /* conjunction */
     "(" => .true.  /* parentheses */
@@ -409,7 +410,6 @@ star.compiler.operators{
     ">=" => .true.  /* greater than or equal */
     ">>" => .true.  /* grammar produce value */
     ">>=" => .true.  /* monadic bind */
-    "ρ" => .true.  /* interpret a symbol without dereferencing constraints */
     "?" => .true.  /* mark expression as optionally there */
     "??" => .true.  /* conditional operator */
     "?=" => .true.  /* optional decomposition match */
@@ -445,6 +445,7 @@ star.compiler.operators{
     "raise" => .true.
     ". " => .true.
     "then" => .true.
+    "ζ" => .true.
     "!" => .true.
     "->>" => .true.
     "?=" => .true.
@@ -455,7 +456,6 @@ star.compiler.operators{
     "<-" => .true.
     "(" => .true.
     ")" => .true.
-    "ρ" => .true.
     "resume" => .true.
     "*>" => .true.
     "," => .true.
