@@ -14,7 +14,7 @@ test.iobytes{
       | .ioError => logMsg("bad io")
       | .pastEof => logMsg("all done")
     };
-    this retire .result(())
+    valis ()
   }
 
   _main:(cons[string])=>().
@@ -27,10 +27,7 @@ test.iobytes{
       In = _openInFile(Fl,3);
       
       try{
-	Rd = (Tsk) => valof{
-	  readAll(Tsk,In);
-	  Tsk retire .retired_
-	};
+	Rd = (Tsk) => readAll(Tsk,In);
 	  
 	Eras = nursery([Rd]);
 	logMsg("reader done");

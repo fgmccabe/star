@@ -39,7 +39,7 @@ test.sieve{
 	filter(Nxt,Chnnl,NChnl)
       } else{
 	logMsg("collected $(Mx) primes");
-	this retire .result(Nxt)
+	valis Nxt
       }
     } catch mboxException in { .canceled => {}};
     this retire .retired_

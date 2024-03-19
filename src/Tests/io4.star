@@ -26,9 +26,7 @@ test.io4{
   main(Fl) => valof{
     try{
       try{
-	Rd = (Tsk) => valof{
-	  Tsk retire .result(readFile(Tsk,Fl))
-	};
+	Rd = (Tsk) => readFile(Tsk,Fl);
 	  
 	Eras = nursery([Rd]);
 	logMsg("reader done: $(Eras)");
