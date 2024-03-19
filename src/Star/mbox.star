@@ -1,6 +1,18 @@
 star.mbox{
   import star.
 
+  public all e ~~ suspendProtocol[e] ::= .yield_ |
+  .blocked(()=>boolean) |
+  .result(e) |
+  .fork(taskFun[e]) |
+  .requestIO(ioHandle,()=>boolean) |
+  .identify(task[e]) |
+  .retired_.
+
+  public resumeProtocol ::= .go_ahead | .shut_down_.
+
+  public mboxException ::= .deadlock | .canceled.
+
   public all e ~~ task[e] ~> resumeProtocol=>>suspendProtocol[e].
 
   public all e ~~ taskFun[e] ~> ((task[e])=>e).
@@ -60,18 +72,6 @@ star.mbox{
       }
     }
   }
-
-  public all e ~~ suspendProtocol[e] ::= .yield_ |
-  .blocked(()=>boolean) |
-  .result(e) |
-  .fork(taskFun[e]) |
-  .requestIO(ioHandle,()=>boolean) |
-  .identify(task[e]) |
-  .retired_.
-
-  public resumeProtocol ::= .go_ahead | .shut_down_.
-
-  public mboxException ::= .deadlock | .canceled.
 
   public implementation display[mboxException] => {
     disp(.canceled) => "canceled".
@@ -199,8 +199,8 @@ star.mbox{
   }
 
   -- Create a future from a user defined function
-  public tsk:all k,e ~~
-  (task[()],((this:task[()]), raises e|:()=>k)) => future[k,e].
+  public tsk:all k,e,t ~~
+  (task[t],((this:task[t]), raises e|:()=>k)) => future[k,e].
   tsk(sched,TFn) => valof{
     C = ref .neither;
     sched suspend .fork((this)=>valof{
