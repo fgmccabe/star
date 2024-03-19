@@ -15,7 +15,7 @@ test.iowchar{
       | .ioError => logMsg("bad io")
       | .pastEof => logMsg("all done")
     };
-    this retire .result(())
+    valis ()
   }
 
   _main:(cons[string])=>().
@@ -30,7 +30,7 @@ test.iowchar{
       try{
 	Rd = (Tsk) => valof{
 	  writeAll(Tsk,In,"This is a test");
-	  Tsk retire .retired_
+	  valis ()
 	};
 	  
 	Eras = nursery([Rd]);

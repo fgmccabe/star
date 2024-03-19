@@ -4,7 +4,7 @@ test.io2{
   import star.io.
   import star.mbox.
 
-  readAll:(task[cons[string]],ioHandle) => ().
+  readAll:(task[cons[string]],ioHandle) => cons[string].
   readAll(this,IO) => valof{
     out := [];
     try{
@@ -16,7 +16,7 @@ test.io2{
       | .ioError => logMsg("bad io")
       | .pastEof => logMsg("all done")
     };
-    this retire .result(reverse(out!))
+    valis reverse(out!)
   }
 
   _main:(cons[string])=>().
@@ -29,13 +29,10 @@ test.io2{
       In = _openInFile(Fl,3);
 
       try{
-	Rd = (Tsk) => valof{
-	  Out = readAll(Tsk,In);
-	  Tsk retire .retired_
-	};
+	Rd = (Tsk) => readAll(Tsk,In);
 	  
 	Eras = nursery([Rd]);
-	logMsg("reader done");
+	logMsg("output: $(Eras)");
       } catch mboxException in {
 	.deadlock => logMsg("Reader got deadlocked")
       };

@@ -14,7 +14,7 @@ test.iocopy{
       | .ioError => logMsg("bad io")
       | .pastEof => logMsg("all done")
     };
-    this retire .result(())
+    valis ()
   }
 
   _main:(cons[string])=>().
@@ -25,10 +25,7 @@ test.iocopy{
   main(S,D) => valof{
     try{
       try{
-	Rd = (Tsk) => valof{
-	  copyFl(Tsk,S,D);
-	  Tsk retire .retired_
-	};
+	Rd = (Tsk) => copyFl(Tsk,S,D);
 	
 	Eras = nursery([Rd]);
 	logMsg("file copy done");
