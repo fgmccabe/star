@@ -16,10 +16,10 @@ test.tk0{
     try{
       Tsk = (this) => valof{
 	try{
-	  T = tsk(this,ρtk0);
+	  T = tsk(this,ζtk0);
 	  Fv = waitfor(T);
 	  logMsg("final result $(Fv)");
-	  this retire .result(())
+	  valis ()
 	} catch () in {
 	  _ => this retire .retired_
 	}

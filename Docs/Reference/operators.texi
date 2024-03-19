@@ -98,6 +98,10 @@
 @tab non-associative infix
 @tab 1180
 @tab if ... then ... else
+@item @code{ζ}
+@tab non-associative prefix
+@tab 1
+@tab interpret a symbol without dereferencing constraints
 @item @code{!}
 @tab non-associative postfix
 @tab 100
@@ -170,10 +174,6 @@
 @tab left associative infix
 @tab 720
 @tab addition
-@item @code{ρ}
-@tab non-associative prefix
-@tab 1
-@tab interpret a symbol without dereferencing constraints
 @item @code{resume}
 @tab non-associative infix
 @tab 830
@@ -544,8 +544,8 @@
 @tab @code{for}
 @tab @code{raise}
 @item @code{then}
+@tab @code{ζ}
 @tab @code{default}
-@tab @code{ρ}
 @item @code{resume}
 @tab @code{contract}
 @tab @code{raises}
@@ -589,20 +589,20 @@
   @item @code{->}
   @tab @code{.+.}
   @tab @code{<$}
+  @tab @code{ζ}
   @tab @code{!}
-  @tab @code{->>}
-  @item @code{?=}
+  @item @code{->>}
+  @tab @code{?=}
   @tab @code{<*}
   @tab @code{#}
   @tab @code{??}
-  @tab @code{%}
-  @item @code{<-}
+  @item @code{%}
+  @tab @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
-  @tab @code{\\-}
-  @item @code{+}
-  @tab @code{ρ}
+  @item @code{\\-}
+  @tab @code{+}
   @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}

@@ -44,6 +44,7 @@
   operator("<$", [infixOp(719, 720, 720)]).
   operator("raise", [prefixOp(930, 929)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
+  operator("ζ", [prefixOp(1, 0)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("?=", [infixOp(899, 900, 899)]).
@@ -58,7 +59,6 @@
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
-  operator("ρ", [prefixOp(1, 0)]).
   operator("resume", [infixOp(829, 830, 829)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator("*>", [infixOp(904, 905, 904), prefixOp(905, 904)]).
@@ -150,6 +150,7 @@
   bracket("{??}", "{?", "?}", "", 2000).
   bracket("{!!}", "{!", "!}", "", 2000).
 
+  follows('','ζ','ζ').
   follows('','%','%').
   follows('','&','&').
   follows('','(','(').
@@ -173,7 +174,6 @@
   follows('','<','<').
   follows('','=','=').
   follows('','>','>').
-  follows('','ρ','ρ').
   follows('','?','?').
   follows('','@','@').
   follows('','!','!').
@@ -266,6 +266,7 @@
   follows('•','•','••').
   follows('$','$','$$').
 
+  final('ζ',"ζ").	 /* interpret a symbol without dereferencing constraints */
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
@@ -351,7 +352,6 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
-  final('ρ',"ρ").	 /* interpret a symbol without dereferencing constraints */
   final('?',"?").	 /* mark expression as optionally there */
   final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
@@ -383,6 +383,7 @@
   keyword("raise").
   keyword(". ").
   keyword("then").
+  keyword("ζ").
   keyword("!").
   keyword("->>").
   keyword("?=").
@@ -393,7 +394,6 @@
   keyword("<-").
   keyword("(").
   keyword(")").
-  keyword("ρ").
   keyword("resume").
   keyword("*>").
   keyword(",").
