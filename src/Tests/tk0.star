@@ -5,7 +5,7 @@ test.tk0{
 
   -- Test tasks & futures
 
-  tk0:(this:task[()]),raises () |: ()=>string.
+  tk0:async ()=>string raises ().
   tk0() => valof{
     logMsg("starting tk0");
     valis "hello"
@@ -18,14 +18,28 @@ test.tk0{
 	try{
 	  T = tsk(this,ζtk0);
 	  Fv = waitfor(T);
-	  logMsg("final result $(Fv)");
+	  logMsg("result $(Fv)");
+
+	  T2 = tsk(this,let{
+	      tk2:async () =>_ raises ().
+	      tk2() => valof{
+		logMsg("starting tk2");
+		if 3>2 then
+		  valis "there"
+		else
+		raise ()
+	      }
+	    } in ζtk2);
+	  F2 = waitfor(T2/*:future[string,()]*/);
+	  logMsg("final result $(F2)");
+	  
 	  valis ()
 	} catch () in {
 	  _ => this retire .retired_
 	}
       };
 	
-      Rs = nursery([Tsk]);
+      nursery([Tsk]);
 
     } catch mboxException in {
       E => logMsg(disp(E))

@@ -21,6 +21,8 @@ star.compiler.macro.rules{
   applyRls:(ast,macroContext,macroState,cons[(macroContext,macroRule)]) => macroState.
   applyRls(A,_,St,[]) => St.
   applyRls(A,Cxt,St,[(Cxt,R),..Rls]) => valof{
+    if macroTracing! then
+      logMsg("try $(A)\:$(Cxt)");
     Rslt = R(A,Cxt);
     if .inactive.=Rslt then
       valis applyRls(A,Cxt,St,Rls)
@@ -38,6 +40,7 @@ star.compiler.macro.rules{
     "<||>" -> [(.expression,quoteMacro)],
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
+    ":" -> [(.actn,forLoopMacro)],
     "*" -> [(.expression,multicatMacro)],
     ":" -> [(.rule,caseRuleMacro)],
     "{}" -> [(.expression,comprehensionMacro),
@@ -52,7 +55,7 @@ star.compiler.macro.rules{
     "?" -> [(.expression, optionMacro), (.pattern, optionMacro)],
     "^" -> [(.expression,unwrapMacro),(.expression,optvalMacro)],
     "!" -> [(.expression,binRefMacro)],
-    "do" -> [(.actn,forLoopMacro)],
+    "do" -> [(.actn,forInLoopMacro)],
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
@@ -60,6 +63,8 @@ star.compiler.macro.rules{
     "generator" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
+    "async" -> [(.typeterm,asyncMacro)],
+    "${}" -> [(.expression,futureMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
       (.typeterm,grammarTypeMacro),
@@ -338,6 +343,46 @@ star.compiler.macro.rules{
   quoteAst(.tpl(Lc,Nm,Els)) => mkCon(Lc,"_tuple",[.str(Lc,Nm),
       macroListEntries(Lc,Els//quoteAst,genNil,genCons)]).
   quoteAst(.app(Lc,Op,Arg)) => mkCon(Lc,"_apply",[quoteAst(Op),quoteAst(Arg)]).
+
+
+  /*
+  for P : G do B
+  becomes
+  {
+    lb:while .true do{
+       case G resume ._next in {
+        _yld(P) => B.
+        _yld(_) default => {}.
+        ._all => break lb
+      }
+    }
+  }
+  */
+
+  forLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForDo(A) => valof{
+    Lb = genId("Lb");
+
+    /* Build ._all => break Lb */
+    End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
+
+    /* build _yld(P) => B */
+    Yld = mkLambda(Lc,.false,mkCon(Lc,"_yld",[P]),.none,B);
+
+    /* build _yld(_) default => {} */
+    Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
+
+    /* build case G resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,G,enum(Lc,"_next")),[Yld,Deflt,End]);
+
+    /* Build while .true loop */
+    Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
+
+   /* Build Lb:while .true do .. */
+    Lbld = mkLbldAction(Lc,Lb,Loop);
+
+    valis .active(Lbld)
+  }
+  forLoopMacro(_,.actn) default => .inactive.
   
   /*
   for P in C do B
@@ -354,7 +399,7 @@ star.compiler.macro.rules{
   }
   */
 
-  forLoopMacro(A,.actn) where (Lc,P,C,B) ?= isForDo(A) => valof{
+  forInLoopMacro(A,.actn) where (Lc,P,C,B) ?= isForIn(A) => valof{
     I = genName(Lc,"I");
     Lb = genId("Lb");
 
@@ -382,7 +427,7 @@ star.compiler.macro.rules{
 
     valis .active(mkSequence(Lc,S1,Lbld))
   }
-  forLoopMacro(_,.actn) default => .inactive.
+  forInLoopMacro(_,.actn) default => .inactive.
 
   /* generator{A}
   becomes
