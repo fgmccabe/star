@@ -259,7 +259,7 @@ star.compiler.typeparse{
     valis .none
   }
   
-  parseTypeName(_,_,"_",_) => (newTypeVar("_"),.none).
+  parseTypeName(_,_,"_",_) => (.anonType,.none).
   parseTypeName(Q,_,Nm,_) where Tp?={! T | (Nm,T) in Q !} => (Tp,.none).
   parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
 --    logMsg("type $(Nm) has type rule $(TpRl)");

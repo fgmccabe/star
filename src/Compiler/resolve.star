@@ -245,9 +245,16 @@ star.compiler.resolve{
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
+    if traceCanon! then
+      logMsg("$(lc)\: overload $(.over(OLc,T,Cx)) in call");
+
     (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
+
+    if traceCanon! then
+      logMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
+
     valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
   }
   overloadTerm(.apply(lc,Op,Args,Tp),Dict,St) => valof{

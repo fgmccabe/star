@@ -7,6 +7,7 @@ star.compiler.types{
   import star.compiler.misc.
 
   public tipe ::= .voidType |
+    .anonType |
     .kFun(string,integer) |
     .tVar(tv,string) |
     .tFun(tv,integer,string) |
@@ -36,6 +37,7 @@ star.compiler.types{
 
   hasKind:(tipe)=>integer.
   hasKind(Tp) => case Tp in {
+    .anonType => 0.
     .voidType => 0.
     .kFun(_,Ar) => Ar.
     .tVar(_,_) => 0.
@@ -134,6 +136,7 @@ star.compiler.types{
 
   identType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   identType(.voidType,.voidType,_) => .true.
+  identType(.anonType,.anonType,_) => .true.
   identType(.kFun(N1,A1),.kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(.tVar(_,N1),.tVar(_,N2),_) => N1==N2.
   identType(.tFun(_,A1,N1),.tFun(_,A2,N2),_) => N1==N2 && A1==A2.
@@ -213,6 +216,7 @@ star.compiler.types{
 
   shTipe:(tipe,integer) => string.
   shTipe(Tp,Dp) => case Tp in {
+    .anonType => "_".
     .voidType => "void".
     .kFun(Nm,Ar) => "#(Nm)/$(Ar)".
     .tVar(V,Nm) => "%#(Nm)".
@@ -347,6 +351,7 @@ star.compiler.types{
 
   public tpName:(tipe)=>string.
   tpName(Tp) => let{.
+    tName(.anonType) => "_".
     tName(.voidType) => "void".
     tName(.nomnal(Nm)) => Nm.
     tName(.tpExp(O,A)) => tName(deRef(O)).
@@ -372,6 +377,7 @@ star.compiler.types{
 
   public typeSurfaceNm:(tipe)=>string.
   typeSurfaceNm(Tp) => let{.
+    tpSfNm(.anonType) => "_".
     tpSfNm(.voidType) => "void".
     tpSfNm(.nomnal(Nm)) => Nm.
     tpSfNm(.tpExp(O,A)) => tpSfNm(deRef(O)).

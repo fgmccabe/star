@@ -896,9 +896,7 @@ example, in:
 try@{
   raise 10
 @} catch integer in @{
-  (E) => @{
-    E+10
-  @}
+  (E) => E+10
 @}
 @end example
 the type of @code{E} is @code{integer}; which is consistent with the expression
@@ -911,6 +909,57 @@ Exception handler expressions may be nested within one another; and
 their exception types may be different. However, when an exception is
 raised, only a single exception handler will be applied: there is no
 automatic cascading of exceptions from one handler to another.
+
+@quotation Note
+Exception handling exposes a -- somewhat annoying -- limitation on
+type inference.  This affects functions that do not themselves raise
+any exceptions, but which must work in situations where exceptions may
+occur.
+
+Consider the example:
+@example
+tester:all e ~~ (()=>integer raises e)=>integer raises e.
+tester(F) => F().
+
+...
+
+try@{
+  if tester(ζmyFoo) then ...
+@} catch () in @{ ... @}
+@end example
+
+If the @code{myFoo} function does raise an exception, then, clearly,
+the only exception that can be handled in the call to @code{tester} is
+the unit exception -- @code{()}.
+
+However, suppose that @code{myFoo} does not actually raise an
+exception. In order for the call to @code{tester} to type check, we
+are required to declare @code{myFoo} with a @code{raises} qualifier.
+
+Given that @code{myFoo} doesn't actually raise an exception, this
+definition should suffice:
+
+@example
+myFoo:()=>integer raises _
+@end example
+
+I.e., we should be able to use @code{myFoo} in the context of any
+exception handler -- because it does not actually throw an exception.
+
+Unfortunately, this does not work. In particular, the call to
+@code{tester} will fail to type check.
+
+The reason is that, although there is an exception handler for
+@code{()} in scope, the compiler cannot assume that all exceptions in
+the scope will be of type @code{()}. That, in turn, results in an
+error of the form:
+
+@example
+cannot find a exception context for %_e at ..
+@end example
+
+A good rule of thumb to avoid this kind of problem is to avoid the use of generic 
+@end quotation
 
 @node Raise
 @subsection Raise

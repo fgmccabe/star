@@ -40,6 +40,8 @@ star.compiler.unify{
     sm(T1,T2,Env) where .tFun(_,_,_) .= T2 => varBinding(T2,T1,Env).
     sm(T1,T2,Env) default => smT(T1,T2,Env).
 
+    smT(.anonType,_,_) => .true.
+    smT(_,.anonType,_) => .true.
     smT(.nomnal(Nm),.nomnal(Nm),_) => .true.
     smT(.tpFun(Nm,Ar),.tpFun(Nm,Ar),_) => .true.
     smT(.tpExp(O1,A1),.tpExp(O2,A2),Env) =>
@@ -91,6 +93,7 @@ star.compiler.unify{
 	sameTypeRule(B1,B2,Env).
     sameTypeRule(.allRule(V1,B1),.allRule(V2,B2),Env) =>
 	sameTypeRule(B1,rewriteTypeRule(B2,[V2->V1]),Env).
+    sameTypeRule(_,_,_) default => .false.
 
     sameConstraint(.conTract(N1,T1,D1),.conTract(N2,T2,D2),Env) =>
       N1==N2 && smTypes(T1,T2,Env) && smTypes(D1,D2,Env).
@@ -99,6 +102,7 @@ star.compiler.unify{
     sameConstraint(.implicit(N1,T1),.implicit(N2,T2),Env) =>
       N1==N2 && same(T1,T2,Env).
     sameConstraint(.raisEs(T1),.raisEs(T2),Env) => same(T1,T2,Env).
+    sameConstraint(_,_,_) default => .false.
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
     varBinding(T1,T2,Env) where ~ occursIn(T1,T2) => 
@@ -136,6 +140,7 @@ star.compiler.unify{
   rewriteType:(tipe,map[tipe,tipe])=>tipe.
   rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
   
+  rewr(.anonType,_) => .anonType.
   rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.
   rewr(.nomnal(Nm),Env) where T?=Env[.nomnal(Nm)] => T.
   rewr(V,_) where isUnbound(V) => V.
