@@ -15,7 +15,11 @@ star.compiler.macro{
   macroAst:(ast,macroContext,(ast)=>ast) => ast.
   macroAst(A,Cxt,Examine) => 
     case applyRules(A,Cxt,.inactive) in {
-      .active(T) => macroAst(T,Cxt,Examine).
+      .active(T) => valof{
+	if macroTracing! then
+	  logMsg("$(A) macro replaced with $(T)");
+	valis macroAst(T,Cxt,Examine)
+      }.
       .inactive => Examine(A)
     }.
 
@@ -134,6 +138,8 @@ star.compiler.macro{
     mkTryCatch(Lc,macroAction(B),macroType(E),Hs//macroCaseAction).
   examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
+  examineAction(A) where (Lc,El,C,B) ?= isForIn(A) =>
+    mkForIn(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForDo(A) => 
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,T) ?= isValis(A) =>
