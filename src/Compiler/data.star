@@ -258,7 +258,7 @@ star.compiler.data{
     `c` => (.nomnal("star.core*char"),Ts).
     `s` => (.nomnal("star.core*string"),Ts).
     `l` => (.nomnal("star.core*boolean"),Ts).
-    `_` => (newTypeVar("_"),Ts).
+    `_` => (.anonType,Ts).
     `k` => valof{
       (Nm,T1) = decodeText(Ts);
       valis (.nomnal(Nm),T1)
@@ -420,8 +420,9 @@ star.compiler.data{
 
   encodeType:(tipe,cons[char]) => cons[char].
   encodeType(Tp,Chs) => isUnbound(Tp) ?? [`_`,..Chs] ||
-  case Tp in {
+  case deRef(Tp) in {
     .voidType => [`v`,..Chs].
+    .anonType => [`_`,..Chs].
     .nomnal("star.core*integer") => [`i`,..Chs].
     .nomnal("star.core*bigint") => [`b`,..Chs].
     .nomnal("star.core*float") => [`f`,..Chs].
@@ -431,24 +432,24 @@ star.compiler.data{
     .kFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs])).
     .tpFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs])).
     .tpExp(.tpFun("star.core*cons",1),El) =>
-      encodeType(deRef(El),[`L`,..Chs]).
+      encodeType(El,[`L`,..Chs]).
     .tpExp(.tpFun("ref",1),El) =>
-      encodeType(deRef(El),[`r`,..Chs]).
+      encodeType(El,[`r`,..Chs]).
     .tpExp(.tpExp(.tpFun("=>",2),A),R) =>
-      encodeType(deRef(R),encodeType(deRef(A),[`F`,..Chs])).
+      encodeType(R,encodeType(A,[`F`,..Chs])).
     .tpExp(.tpExp(.tpFun("<=>",2),A),R) =>
-      encodeType(deRef(R),encodeType(deRef(A),[`C`,..Chs])).
+      encodeType(R,encodeType(A,[`C`,..Chs])).
     .tpExp(.tpExp(.tpFun("=>>",2),A),R) =>
-      encodeType(deRef(R),encodeType(deRef(A),[`x`,..Chs])).
+      encodeType(R,encodeType(A,[`x`,..Chs])).
     .tpExp(Op,A) =>
-      encodeType(deRef(A),encodeType(deRef(Op),[`U`,..Chs])).
+      encodeType(A,encodeType(Op,[`U`,..Chs])).
     .tupleType(Els) => encodeTypes(Els,[`(`,..Chs]).
     .allType(V,T) =>
-      encodeType(deRef(T),encodeType(deRef(V),[`:`,..Chs])).
+      encodeType(T,encodeType(V,[`:`,..Chs])).
     .existType(V,T) =>
-      encodeType(deRef(T),encodeType(deRef(V),[`e`,..Chs])).
+      encodeType(T,encodeType(V,[`e`,..Chs])).
     .constrainedType(T,C) =>
-      encodeConstraint(C,encodeType(deRef(T),[`|`,..Chs])).
+      encodeConstraint(C,encodeType(T,[`|`,..Chs])).
     .faceType(Flds,Tps) =>
       encodeTypeRules(Tps,encodeFldTypes(Flds,[`I`,..Chs])).
   }.
@@ -456,7 +457,7 @@ star.compiler.data{
   encodeTypes:(cons[tipe],cons[char])=>cons[char].
   encodeTypes([],Chs) => [`)`,..Chs].
   encodeTypes([T,..Tps],Chs) =>
-    encodeTypes(Tps,encodeType(deRef(T),Chs)).
+    encodeTypes(Tps,encodeType(T,Chs)).
 
   encodeFldTypes:(cons[(string,tipe)],cons[char])=>cons[char].
   encodeFldTypes(Flds,Chs) =>
@@ -465,14 +466,14 @@ star.compiler.data{
   encodeFlds:(cons[(string,tipe)],cons[char])=>cons[char].
   encodeFlds([],Chs) => [`}`,..Chs].
   encodeFlds([(Nm,T),..Tps],Chs) =>
-    encodeFlds(Tps,encodeType(deRef(T),encodeText(Nm,Chs))).
+    encodeFlds(Tps,encodeType(T,encodeText(Nm,Chs))).
 
   encodeConstraint(.conTract(Nm,Ts,Ds),Chs) =>
     encodeType(.tupleType(Ds),
       encodeType(.tupleType(Ts),
 	encodeText(Nm,[`c`,..Chs]))).
   encodeConstraint(.hasField(V,F,T),Chs) =>
-    encodeType(.faceType([(F,deRef(T))],[]),encodeType(deRef(V),[`a`,..Chs])).
+    encodeType(.faceType([(F,deRef(T))],[]),encodeType(V,[`a`,..Chs])).
   encodeConstraint(.implicit(Nm,T),Chs) =>
     encodeType(T,encodeText(Nm,[`d`,..Chs])).
   encodeConstraint(.raisEs(T),Chs) =>
@@ -480,13 +481,13 @@ star.compiler.data{
 
   encodeTypeRule:(typeRule,cons[char])=>cons[char].
   encodeTypeRule(.allRule(V,R),Chs) =>
-    encodeTypeRule(R,encodeType(deRef(V),[`:`,..Chs])).
+    encodeTypeRule(R,encodeType(V,[`:`,..Chs])).
   encodeTypeRule(.typeExists(H,I),Chs) =>
-    encodeType(deRef(I),encodeType(deRef(H),[`Y`,..Chs])).
+    encodeType(I,encodeType(H,[`Y`,..Chs])).
   encodeTypeRule(.contractExists(N,T,D,I),Chs) =>
-    encodeType(deRef(I),encodeConstraint(.conTract(N,T,D),[`Z`,..Chs])).
+    encodeType(I,encodeConstraint(.conTract(N,T,D),[`Z`,..Chs])).
   encodeTypeRule(.typeLambda(Hd,I),Chs) =>
-    encodeType(deRef(I),encodeType(deRef(Hd),[`y`,..Chs])).
+    encodeType(I,encodeType(Hd,[`y`,..Chs])).
 
   encodeTypeRules(Rls,Chs) => encodeRls(Rls,[`[`,..Chs]).
 

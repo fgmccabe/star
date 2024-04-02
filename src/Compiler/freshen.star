@@ -108,6 +108,7 @@ star.compiler.freshen{
   genTypeFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
   frshn:(tipe,dict)=>tipe.
+  frshn(.anonType,_) => newTypeVar("_").
   frshn(.voidType,_) => .voidType.
   frshn(.nomnal("_"),_) => newTypeVar("_").
   frshn(.nomnal(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.

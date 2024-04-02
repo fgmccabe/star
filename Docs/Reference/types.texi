@@ -987,6 +987,12 @@ _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
 The type variable @code{m} is specified with the arity @code{1} --
 making it a higher-kinded type that expects one type argument.
 
+@subsubsection Anonymous Type
+
+The @emph{anonymous} type -- written with a simple @code{_} -- denotes
+a type variable where every occurrance is unique. The anonymous
+variable is used in situations where we don't care what the type is.
+
 @subsubsection Scope of Type Variables
 @cindex type,variable!scope
 
@@ -1343,7 +1349,7 @@ let@{
 The @code{raises} constraint is used to indicate a type that may
 raise an exception.
 
-@float BNT,raisesTypeFig
+@float BNT,raisesConstraintFig
 @caption{Raises Constraint}
 @display
 @anchored{RaisesConstraint} ::= @code{raises} @refer{Type}
