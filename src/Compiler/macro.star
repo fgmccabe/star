@@ -370,6 +370,8 @@ star.compiler.macro{
     brTuple(Lc,Els//macroTypeDef).
   examineType(A) where (Lc,R,F) ?= isFieldAcc(A) =>
     mkFieldAcc(Lc,macroTerm(R),F).
+  examineType(A) where (Lc,I) ?= isAsync(A) =>
+    mkAsync(Lc,macroType(I)).
   examineType(A) default => valof{
     reportError("cannot figure out type expression\n$(A)",locOf(A));
     valis A

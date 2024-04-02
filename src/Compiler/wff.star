@@ -794,6 +794,10 @@ star.compiler.wff{
 
   public mkPerform(Lc,A) => unary(Lc,"perform",A).
 
+  public isAsync(A) => isUnary(A,"async").
+
+  public mkAsync(Lc,I) => unary(Lc,"async",I).
+
   public isTryCatch:(ast) => option[(option[locn],ast,ast,cons[ast])].
   isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
       (_,B,R) ?= isBinary(I,"catch") &&
@@ -845,13 +849,22 @@ star.compiler.wff{
 
   public isForDo:(ast) => option[(option[locn],ast,ast,ast)].
   isForDo(A) where
+      (Lc,LL,RR) ?= isBinary(A,":") &&
+	  (_,El) ?= isUnary(LL,"for") &&
+	      (_,G,Bd) ?= isBinary(RR,"do") => .some((Lc,El,G,Bd)).
+  isForDo(_) default => .none.
+
+  public mkForDo(Lc,El,G,B) => binary(Lc,":",unary(Lc,"for",El),binary(Lc,"do",G,B)).
+
+  public isForIn:(ast) => option[(option[locn],ast,ast,ast)].
+  isForIn(A) where
       (Lc,LL,Bd) ?= isBinary(A,"do") &&
       (_, Ts) ?= isUnary(LL,"for") &&
       (_,El,It) ?= isBinary(Ts,"in") =>
     .some((Lc,El,It,Bd)).
-  isForDo(_) default => .none.
+  isForIn(_) default => .none.
 
-  public mkForDo(Lc,El,It,B) => binary(Lc,"do",unary(Lc,"for",binary(Lc,"in",El,It)),B).
+  public mkForIn(Lc,El,It,B) => binary(Lc,"do",unary(Lc,"for",binary(Lc,"in",El,It)),B).
 
   public isCons:(ast) => option[(option[locn],ast,ast)].
   isCons(A) => isBinary(A,",..").

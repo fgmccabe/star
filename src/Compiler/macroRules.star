@@ -453,4 +453,22 @@ star.compiler.macro.rules{
       (Lc,L,R) ?= isBinary(A,"raises") =>
     .active(binary(Lc,"|:",unary(Lc,"raises",R),L)).
   raisesMacro(_,_) default => .inactive.
+
+  -- Convert async T to (this:task[_]) |: T.
+  asyncMacro(A,.typeterm) where
+      (Lc,R) ?= isAsync(A) =>
+    .active(binary(Lc,"|:",
+	mkTypeAnnotation(Lc,.nme(Lc,"this"),
+	  squareTerm(Lc,.nme(Lc,"task"),[.nme(Lc,"_")])),
+	R)).
+  asyncMacro(_,_) default => .inactive.
+
+  -- convert future{E} to tsk(()=>valof{E})
+  futureMacro(A,.expression) where
+      (Lc,Op,[B]) ?= isBrTerm(A) &&
+	  (_,"future") ?= isName(Op) => valof{
+	    Eq = equation(Lc,rndTuple(Lc,[]),mkValof(Lc,brTuple(Lc,[B])));
+	    valis .active(unary(Lc,"tsk",Eq))
+	  }.
+  futureMacro(_,_) default => .inactive.
 }

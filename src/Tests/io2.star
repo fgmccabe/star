@@ -31,8 +31,8 @@ test.io2{
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
-	Eras = nursery([Rd]);
-	logMsg("output: $(Eras)");
+	Text = nursery([Rd]);
+	logMsg("output: $(Text)");
       } catch mboxException in {
 	.deadlock => logMsg("Reader got deadlocked")
       };

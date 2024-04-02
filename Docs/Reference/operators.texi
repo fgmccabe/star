@@ -94,6 +94,10 @@
 @tab non-associative prefix
 @tab 930
 @tab raise an exception
+@item @code{async}
+@tab non-associative prefix
+@tab 1234
+@tab async function type
 @item @code{then}
 @tab non-associative infix
 @tab 1180
@@ -543,31 +547,32 @@
 @item @code{valis}
 @tab @code{for}
 @tab @code{raise}
-@item @code{then}
+@item @code{async}
+@tab @code{then}
 @tab @code{ζ}
-@tab @code{default}
-@item @code{resume}
+@item @code{default}
+@tab @code{resume}
 @tab @code{contract}
-@tab @code{raises}
-@item @code{spawn}
+@item @code{raises}
+@tab @code{spawn}
 @tab @code{try}
-@tab @code{exists}
-@item @code{if}
+@item @code{exists}
+@tab @code{if}
 @tab @code{in}
-@tab @code{break}
-@item @code{suspend}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{open}
-@tab @code{public}
-@item @code{ref}
+@item @code{public}
+@tab @code{ref}
 @tab @code{where}
-@tab @code{case}
-@item @code{generator}
+@item @code{case}
+@tab @code{generator}
 @tab @code{valof}
-@tab @code{yield}
-@item @code{while}
+@item @code{yield}
+@tab @code{while}
 @tab @code{private}
-@tab @code{implementation}
-@item @code{type}
+@item @code{implementation}
+@tab @code{type}
 @tab @code{else}
 
 @end multitable

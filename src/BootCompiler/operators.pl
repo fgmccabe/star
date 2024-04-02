@@ -43,6 +43,7 @@
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("raise", [prefixOp(930, 929)]).
+  operator("async", [prefixOp(1234, 1233)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("ζ", [prefixOp(1, 0)]).
   operator("!", [postfixOp(99, 100), infixOp(99, 100, 99)]).
@@ -381,6 +382,7 @@
   keyword("for").
   keyword("{?").
   keyword("raise").
+  keyword("async").
   keyword(". ").
   keyword("then").
   keyword("ζ").

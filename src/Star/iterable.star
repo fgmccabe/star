@@ -15,11 +15,13 @@ star.iterable{
   public sus_generator[e] ::= ._yld(e) | ._all.
   public res_generator ::= ._next | ._cancel.
 
+  public all e ~~ generater[e] ~> res_generator=>>sus_generator[e].
+
   public contract all c,e ~~ generate[c->>e] ::= {
-    _generate:(c)=>res_generator=>>sus_generator[e]
+    _generate:(c)=> generater[e]
   }
 
-  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => res_generator=>>sus_generator[e].
+  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generater[e].
   iterGenerator(L) => (this spawn first =>> valof{
     let{
       yieldFn:(e,())=>().
