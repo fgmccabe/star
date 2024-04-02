@@ -28,8 +28,8 @@ test.io4{
       try{
 	Rd = (Tsk) => readFile(Tsk,Fl);
 	  
-	Eras = nursery([Rd]);
-	logMsg("reader done: $(Eras)");
+	Text = nursery([Rd]);
+	logMsg("reader done: $(Text)");
       } catch mboxException in {
 	| .deadlock => logMsg("Reader got deadlocked")
 	| .canceled => logMsg("Everything got canceled")

@@ -34,8 +34,7 @@ star.mbox{
     valis (.emitter(Ch),.receiver(Ch))
   }
 
-  public post:all e,d ~~ (this:task[e]), raises mboxException |:
-    (d,receiver[d])=>().
+  public post:all d ~~ async (d,receiver[d])=>() raises mboxException.
   post(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
@@ -54,7 +53,7 @@ star.mbox{
     }
   }
 
-  public collect:all d,e ~~ (this:task[e]), raises mboxException |:(emitter[d]) => d.
+  public collect:all d ~~ async (emitter[d]) => d raises mboxException.
   collect(Ch where .emitter(St).=Ch) => valof{
     case St! in {
       .hasData(D) => {
@@ -184,7 +183,7 @@ star.mbox{
     disp(.hasData(D)) => "hasData($(D))".
   }
 
-  public waitfor:all k,e,t ~~ (this:task[t]), raises e |: (future[k,e])=>k.
+  public waitfor:all k,e ~~ async (future[k,e])=>k raises e.
   waitfor(Ft) => valof{
     case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
       .go_ahead => {
@@ -199,8 +198,7 @@ star.mbox{
   }
 
   -- Create a future from a user defined function
-  public tsk:all k,e,t ~~
-  (task[t],((this:task[t]), raises e|:()=>k)) => future[k,e].
+  public tsk:all k,e,t ~~ (task[t],(async ()=>k raises e)) => future[k,e].
   tsk(sched,TFn) => valof{
     C = ref .neither;
     sched suspend .fork((this)=>valof{
@@ -212,8 +210,7 @@ star.mbox{
 	    C := .other(Ex);
 	    this retire .retired_
 	  }
-	};
-	this retire .retired_
+	}
       });
     valis _cell_future(C)
   }

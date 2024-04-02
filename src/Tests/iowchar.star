@@ -33,7 +33,7 @@ test.iowchar{
 	  valis ()
 	};
 	  
-	Eras = nursery([Rd]);
+	nursery([Rd]);
 	logMsg("writer done");
       } catch mboxException in {
 	.deadlock => logMsg("Writer got deadlocked")

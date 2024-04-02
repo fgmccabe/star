@@ -29,7 +29,7 @@ test.iochars{
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
-	Eras = nursery([Rd]);
+	nursery([Rd]);
 	logMsg("reader done");
       } catch mboxException in {
 	| .deadlock => logMsg("Reader got deadlocked")

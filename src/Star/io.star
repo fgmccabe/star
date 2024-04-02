@@ -10,7 +10,7 @@ star.io{
     disp(.pastEof) => "pastEof"
   }
 
-  public rdChar:raises ioException |: (ioHandle) => char.
+  public rdChar:(ioHandle) => char raises ioException.
   rdChar(H) => valof{
     try{
       valis _inchar(H)
@@ -20,31 +20,17 @@ star.io{
     }
   }
 
-  public rdCharAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle)=> char.
+  public rdCharAsync:async (ioHandle)=>char raises ioException.
   rdCharAsync(IO) => valof{
     try{
-      Fut = _inchar_async(IO);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | .eof => raise .pastEof
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_inchar_async(IO))
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
     }
   }
 
-  public rdChars:raises ioException |: (ioHandle,integer) => string.
+  public rdChars:(ioHandle,integer) => string raises ioException.
   rdChars(H,Cx) => valof{
     try{
       valis _inchars(H,Cx)
@@ -54,31 +40,17 @@ star.io{
     }
   }
 
-  public rdCharsAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,integer)=> string.
+  public rdCharsAsync:async (ioHandle,integer)=>string raises ioException.
   rdCharsAsync(IO,Cx) => valof{
     try{
-      Fut = _inchars_async(IO,Cx);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | .eof => raise .pastEof
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_inchars_async(IO,Cx))
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
     }
   }
 
-  public rdLine:raises ioException |: (ioHandle) => string.
+  public rdLine:(ioHandle) => string raises ioException.
   rdLine(H) => valof{
     try{
       valis _inline(H)
@@ -88,33 +60,17 @@ star.io{
     }
   }
 
-  public rdLineAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle)=> string.
+  public rdLineAsync:async (ioHandle)=> string raises ioException.
   rdLineAsync(IO) => valof{
     try{
-      Fut = _inline_async(IO);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | .eof => raise .pastEof
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else{
-	    logMsg("future wasnt resolved");
-	    raise .ioError
-	  }
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_inline_async(IO))
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
     }
   }
 
-  public rdBytes:raises ioException |: (ioHandle,integer) => vect[integer].
+  public rdBytes:(ioHandle,integer) => vect[integer] raises ioException.
   rdBytes(H,Cx) => valof{
     try{
       valis _inbytes(H,Cx)
@@ -124,31 +80,17 @@ star.io{
     }
   }
 
-  public rdBytesAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,integer)=> vect[integer].
+  public rdBytesAsync:async (ioHandle,integer)=> vect[integer] raises ioException.
   rdBytesAsync(IO,Cx) => valof{
     try{
-      Fut = _inbytes_async(IO,Cx);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | .eof => raise .pastEof
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_inbytes_async(IO,Cx))
+    } catch errorCode in {
+      | .eof => raise .pastEof
+      | _ default => raise .ioError
     }
   }
 
-  public rdFile:raises ioException|:(string)=> string.
+  public rdFile:(string)=> string raises ioException.
   rdFile(F) => valof{
     try{
       valis _get_file(F);
@@ -158,7 +100,7 @@ star.io{
     }
   }
 
-  public rdFileAsync:all e ~~ (this:task[e]), raises ioException|:(string)=> string.
+  public rdFileAsync:async (string)=> string raises ioException.
   rdFileAsync(Fl) => valof{
     try{
       In = _openInFile(Fl,3);
@@ -192,7 +134,7 @@ star.io{
     }
   }
 
-  public wrChar:raises ioException |: (ioHandle,char) => ().
+  public wrChar:(ioHandle,char) => () raises ioException.
   wrChar(H,C) => valof{
     try{
       valis _outchar(H,C)
@@ -201,30 +143,16 @@ star.io{
     }
   }
 
-  public wrCharAsync:all e ~~ (this:task[e]), raises ioException|:(ioHandle,char)=> ().
+  public wrCharAsync:async (ioHandle,char)=> () raises ioException.
   wrCharAsync(IO,C) => valof{
     try{
-      Fut = _outchar_async(IO,C);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_outchar_async(IO,C))
+    } catch errorCode in {
+      | _ default => raise .ioError
     }
   }
 
-  public wrText:raises ioException |: (ioHandle,string) => ().
+  public wrText:(ioHandle,string) => () raises ioException.
   wrText(H,S) => valof{
     try{
       valis _outtext(H,S)
@@ -233,31 +161,16 @@ star.io{
     }
   }
 
-  public wrTextAsync:all e ~~ (this:task[e]), raises ioException|:
-    (ioHandle,string)=> ().
+  public wrTextAsync:async (ioHandle,string)=>() raises ioException.
   wrTextAsync(IO,S) => valof{
     try{
-      Fut = _outtext_async(IO,S);
-      case this suspend .requestIO(IO,()=>~_futureIsResolved(Fut)) in {
-	.go_ahead => {
-	  if _futureIsResolved(Fut) then{
-	    try{
-	      valis _futureVal(Fut)
-	    } catch errorCode in {
-	      | _ default => raise .ioError
-	    }
-	  }
-	  else
-	  this retire .retired_
-	}
-      }
-    }
-    catch errorCode in {
-      | .eNOPERM => raise .ioError
+      valis waitforIO(IO,_outtext_async(IO,S))
+    } catch errorCode in {
+      | _ default => raise .ioError
     }
   }
 
-  public wrFile:raises ioException |: (string,string) => ().
+  public wrFile:(string,string) => () raises ioException.
   wrFile(F,S) => valof{
     try{
       valis _put_file(F,S)
@@ -266,8 +179,7 @@ star.io{
     }
   }
 
-  public wrFileAsync:all e ~~ (this:task[e]), raises ioException|:
-    (string,string)=> ().
+  public wrFileAsync:async (string,string)=> () raises ioException.
   wrFileAsync(F,S) => valof{
     try{
       Ot = _openOutFile(F,3);
@@ -278,4 +190,19 @@ star.io{
       _ default => raise .ioError
     }
   }
+
+  waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k raises e.
+  waitforIO(IO,Ft) => valof{
+    case this suspend .requestIO(IO,()=>~_futureIsResolved(Ft)) in {
+      .go_ahead => {
+	if _futureIsResolved(Ft) then{
+	  valis _futureVal(Ft)
+	} else
+	this retire .retired_
+      }
+      _ =>
+	this retire .retired_
+    }
+  }
+  
 }

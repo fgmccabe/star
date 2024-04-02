@@ -60,6 +60,7 @@ star.compiler.operators{
     ".+." => [.prefixOp(700,699)].
     "<$" => [.infixOp(719,720,720)].
     "raise" => [.prefixOp(930,929)].
+    "async" => [.prefixOp(1234,1233)].
     "then" => [.infixOp(1179,1180,1179)].
     "ζ" => [.prefixOp(1,0)].
     "!" => [.postfixOp(99,100), .infixOp(99,100,99)].
@@ -443,6 +444,7 @@ star.compiler.operators{
     "for" => .true.
     "{?" => .true.
     "raise" => .true.
+    "async" => .true.
     ". " => .true.
     "then" => .true.
     "ζ" => .true.

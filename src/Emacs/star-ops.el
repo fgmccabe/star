@@ -25,6 +25,7 @@
   (".+." ( (prefix 700 699)))
   ("<$" ( (infix 719 720 720)))
   ("raise" ( (prefix 930 929)))
+  ("async" ( (prefix 1234 1233)))
   ("then" ( (infix 1179 1180 1179)))
   ("ζ" ( (prefix 1 0)))
   ("!" ( (postfix 99 100) (infix 99 100 99)))
@@ -149,6 +150,7 @@
 "valis"
 "for"
 "raise"
+"async"
 "then"
 "ζ"
 "default"
