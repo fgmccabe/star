@@ -30,7 +30,7 @@ test.tk0{
 		raise ()
 	      }
 	    } in ζtk2);
-	  F2 = waitfor(T2/*:future[string,()]*/);
+	  F2 = waitfor(T2);
 	  logMsg("final result $(F2)");
 	  
 	  valis ()
