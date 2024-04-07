@@ -5,25 +5,23 @@ test.ts0{
   
   -- Simple test of generator pattern
 
-  scomm ::= .yild(integer) | .end | .identify(rcomm=>>scomm).
+  scomm ::= .yild(integer) | .end.
   rcomm ::= .next | .cancel.
 
-  genr:(integer,integer)=> (rcomm=>>scomm).
-  genr(F,T) => case (Gen spawn valof{
-    Gen suspend .identify(Gen);
-    Ix = ref F;
-    while Ix! < T do{
-      case (Gen suspend .yild(Ix!)) in {
-	.next => {}.
-	.cancel => Gen retire.end
-      };
+  genr:(integer,integer)=> fiber[rcomm,scomm].
+  genr(F,T) => _fiber(
+    (Gen,_) => valof{
+      Ix = ref F;
+      while Ix! < T do{
+	case _suspend(Gen,.yild(Ix!)) in {
+	  .next => {}.
+	  .cancel => _retire(Gen,.end)
+	};
       
-      Ix := Ix! + 1;
-    };
-    Gen retire .end
-    }) in {
-    .identify(G) => G
-    }
+	Ix := Ix! + 1;
+      };
+      _retire(Gen,.end)
+    }).
 
   adder:(integer,integer) => integer.
   adder(F,T) => valof{
@@ -31,7 +29,7 @@ test.ts0{
     Tl = ref 0;
 
     while .true do {
-      case (TT resume .next) in {
+      case _resume(TT,.next) in {
 	.yild(X) => {
 --	  _logmsg("add $(X) to $(Tl!)");
 	  Tl := Tl! + X

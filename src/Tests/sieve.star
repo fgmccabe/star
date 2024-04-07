@@ -12,7 +12,7 @@ test.sieve{
 	post(Ix!,Chnnl)
       }
     } catch mboxException in { .canceled => {
-	this retire .retired_
+	_retire(this,.retired_)
     }
     }
   }
@@ -35,14 +35,14 @@ test.sieve{
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	(PChnl,NChnl) = newSlot();
-	this suspend .fork((T)=>sieve(T,Cnt+1,Mx,PChnl));
+	_suspend(this,.fork((T)=>sieve(T,Cnt+1,Mx,PChnl)));
 	filter(Nxt,Chnnl,NChnl)
       } else{
 	logMsg("collected $(Mx) primes");
 	valis Nxt
       }
     } catch mboxException in { .canceled => {}};
-    this retire .retired_
+    _retire(this,.retired_)
   }
 
   _main:(cons[string]) => ().
@@ -55,7 +55,7 @@ test.sieve{
     Gn = gen(IChnnl);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      Tsk retire .retired_
+      _retire(Tsk,.retired_)
     };
 
     try{

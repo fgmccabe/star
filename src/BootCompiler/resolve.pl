@@ -228,19 +228,6 @@ overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(spawn(Lc,L,Tp),Dict,St,Stx,spawn(Lc,LL,Tp)) :-
-  overloadTerm(L,Dict,St,Stx,LL).
-overloadTerm(pause(Lc,L,Tp),Dict,St,Stx,pause(Lc,LL,Tp)) :-
-  overloadTerm(L,Dict,St,Stx,LL).
-overloadTerm(susp(Lc,K,E,Tp),Dict,St,Stx,susp(Lc,KK,EE,Tp)) :-
-  overloadTerm(K,Dict,St,St0,KK),
-  overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(resme(Lc,K,E,Tp),Dict,St,Stx,resme(Lc,KK,EE,Tp)) :-
-  overloadTerm(K,Dict,St,St0,KK),
-  overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(rtire(Lc,K,E,Tp),Dict,St,Stx,rtire(Lc,KK,EE,Tp)) :-
-  overloadTerm(K,Dict,St,St0,KK),
-  overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
@@ -306,9 +293,6 @@ overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,St,Stx,doLetRec(Lc,Decls,RDefs
 overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).
-overloadAction(doRetire(Lc,T,E),Dict,St,Stx,doRetire(Lc,TT,EE)) :-
-  overloadTerm(T,Dict,St,St1,TT),
-  overloadTerm(E,Dict,St1,Stx,EE).
 overloadAction(doCall(Lc,T),Dict,St,Stx,doCall(Lc,TT)) :-
   overloadTerm(T,Dict,St,Stx,TT).
 overloadAction(A,_,St,St,A) :-

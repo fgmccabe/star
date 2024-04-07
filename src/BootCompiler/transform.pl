@@ -383,19 +383,6 @@ liftExp(tryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(raise(Lc,T,E,_),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(spawn(Lc,L,_),spwn(Lc,LL),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(L,LL,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(pause(Lc,L,_),paus(Lc,LL),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(L,LL,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(susp(Lc,K,E,_),sosp(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(resme(Lc,K,E,_),rsm(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(rtire(Lc,K,E,_),rtre(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -439,9 +426,6 @@ liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doRaise(Lc,T,E),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
-liftAction(doRetire(Lc,K,E),rtre(Lc,KK,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(K,KK,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftAction(doDefn(Lc,P,E),defn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0), % simplified pattern
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
@@ -478,9 +462,6 @@ liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
   actionCaseMatcher(Lc,BB,Cases,Map,Reslt).
-liftAction(doRetire(Lc,T,E),rtire(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
 liftAction(doTryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),

@@ -63,19 +63,6 @@ freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
 freeVars(raise(_,A,T,_),Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,Fv).
-freeVars(spawn(_,L,_),Ex,Q,F,Fv) :-!,
-  freeVars(L,Ex,Q,F,Fv).
-freeVars(pause(_,L,_),Ex,Q,F,Fv) :-!,
-  freeVars(L,Ex,Q,F,Fv).
-freeVars(susp(_,A,T,_),Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(A,Ex,Q,F0,Fv).
-freeVars(resme(_,A,T,_),Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(A,Ex,Q,F0,Fv).
-freeVars(rtire(_,A,T,_),Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(A,Ex,Q,F0,Fv).
 freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   ptnVars(T,Ex,Ex1),  
   freeVars(B,Ex1,Q,F,F0),
@@ -100,9 +87,6 @@ freeVarsInAction(doBrk(_,_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doRaise(_,T,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
-freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(T,Ex,Q,F,F0),
   freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doDefn(_,V,E),Ex,Ex1,Q,F,Fv) :-!,
@@ -141,9 +125,6 @@ freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doCase(_,G,Cs,_),Ex,Ex,Q,F,Fv) :-!,
   freeVars(G,Ex,Q,F,F0),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F0,Fv).
-freeVarsInAction(doRetire(_,T,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doCall(_,C),Ex,Ex,Q,F,Fv) :-!,
   freeVars(C,Ex,Q,F,Fv).
 freeVarsInAction(A,Ex,Ex,_,F,F) :-

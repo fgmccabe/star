@@ -6,18 +6,29 @@ created, suspended and resumed. Fibers also have identity which allows
 correlation of fibers when managing sets of fibers.
 
 @quotation Note
-The @code{fiber} concept is a relatively low-level feature of
-@Star{}. Other, higher-level, features are constructed as a layer on
-top of fibers; including:
+Fibers represent the @emph{foundational} concept denoting concurrent
+computations in @Star{} -- they play a similar role as other
+comparable concepts siuch as shift/reset, prompt/control and effects:
+they are the basis of higher level concurrency features that
+programmers will more typically use.
 
+Some of these features include:
 @itemize @bullet
 @item
-A @code{task} expression denotes a computation that can be scheduled
-independently of other actions.
+@code{task} expressions -- which denote computations that can be scheduled
+independently of other actions,
 
-This is analogous to coroutining in other programming languages.
 @item
-A @code{generator} expression is used to define so-called yield-style generators.
+@code{generator} expressions which are used to define so-called yield-style generators,
+
+@item
+futures and async functions,
+
+@item
+message channels, and
+
+@item
+streams.
 @end itemize
 @end quotation
 

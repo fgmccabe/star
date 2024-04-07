@@ -16,29 +16,28 @@ test.ct0{
 	if dividesBy(Count!,3) then{
 	  Cnt = Count!;
 	  logMsg("spawning sub-task");
-	  case (Tsk spawn valof{
-	    try{
-	      logMsg("We were spawned $(Cnt)");
-	      case Tsk suspend .yield_ in {
-		.go_ahead => {}
-		| .shut_down_ => raise .canceled
-	      };
-	      logMsg("After 1 pause $(Cnt)");
-	      case Tsk suspend .yield_ in {
-		.go_ahead => {}
-		| .shut_down_ => raise .canceled
-	      };
-	      logMsg("After 2 pauses $(Cnt)");
-	      Tsk retire .blocked(()=>.false)
-	    } catch mboxException in {
-	      _ => {
-		logMsg("we were canceled");
-		Tsk retire .retired_
-	      }
-	    }
-	    }) in {
-	    .yield_ => {}
-	    };
+	  _suspend(this,.fork(
+	      (Tsk)=>valof{
+		try{
+		  logMsg("We were spawned $(Cnt)");
+		  case _suspend(Tsk,.yield_) in {
+		    .go_ahead => {}
+		    | .shut_down_ => raise .canceled
+		  };
+		  logMsg("After 1 pause $(Cnt)");
+		  case _suspend(Tsk,.yield_) in {
+		    .go_ahead => {}
+		    | .shut_down_ => raise .canceled
+		  };
+		  logMsg("After 2 pauses $(Cnt)");
+		  _retire(Tsk,.blocked(()=>.false))
+		} catch mboxException in {
+		  _ => {
+		    logMsg("we were canceled");
+		    _retire(Tsk,.retired_)
+		  }
+		}
+	      }));
 	};
 	logMsg("moving along, $(Count!) rounds left ");
       };

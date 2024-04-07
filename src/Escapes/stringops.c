@@ -545,7 +545,7 @@ ReturnStatus g__str_back(heapPo h, termPo xc, termPo a1) {
     gcReleaseRoot(H, mark);
     return (ReturnStatus) {.ret=Normal, .result=(termPo) pair};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
   }
 }
 

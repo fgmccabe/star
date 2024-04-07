@@ -21,7 +21,6 @@
   is_in(X,[X|_]).
   is_in(X,[_|Y]) :- is_in(X,Y).
 
-  operator("retire", [infixOp(829, 830, 829)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("^=", [infixOp(899, 900, 899)]).
@@ -60,7 +59,6 @@
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
-  operator("resume", [infixOp(829, 830, 829)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator("*>", [infixOp(904, 905, 904), prefixOp(905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
@@ -69,7 +67,6 @@
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("raises", [infixOp(950, 951, 951), prefixOp(999, 998)]).
-  operator("spawn", [infixOp(929, 930, 929)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
@@ -92,7 +89,6 @@
   operator("|=", [infixOp(998, 999, 998)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
-  operator("suspend", [infixOp(829, 830, 829)]).
   operator("open", [prefixOp(900, 899)]).
   operator("trace", [prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
@@ -367,7 +363,6 @@
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* thunk expression */
 
-  keyword("retire").
   keyword("all").
   keyword("^=").
   keyword("&&").
@@ -396,14 +391,12 @@
   keyword("<-").
   keyword("(").
   keyword(")").
-  keyword("resume").
   keyword("*>").
   keyword(",").
   keyword("contract").
   keyword("./").
   keyword(".").
   keyword("raises").
-  keyword("spawn").
   keyword("try").
   keyword("exists").
   keyword("if").
@@ -421,7 +414,6 @@
   keyword("|>").
   keyword("in").
   keyword("break").
-  keyword("suspend").
   keyword("open").
   keyword("~~").
   keyword("!!").

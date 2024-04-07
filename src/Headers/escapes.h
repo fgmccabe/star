@@ -14,6 +14,7 @@
 #define optionType(T) "Uz1'star.core*option'" T
 #define eitherType(E,O) "UUz2'star.either*either'" E O
 #define futureType(F,E) "UUz2'future'" F E
+#define fiberType(R,S) "UUz2'fiber'" R S
 
 #define ERRCODE "t'star.core*errorCode'"
 
@@ -86,7 +87,12 @@ escape(_big2str, "F(b)s", "convert bigint to string")
 
 escape(_big_format, "|F(bs)sr"ERRCODE, "format a big integer")
 
-escape(_fiber_eq,":k's':k'r'F(x(k's')k'r'x(k's')k'r')l","compare two fiber identifiers")
+escape(_fiber_eq,":k'r':k's'F("fiberType("k'r'","k's'")fiberType("k'r'","k's'")")l","compare two fiber identifiers")
+escape(_fiber,":k'r':k's'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"create a new fiber")
+escape(_suspend,":k'r':k's'F("fiberType("k'r'","k's'")"k's')k'r'","suspend fiber")
+escape(_retire,":k'r':k's'F("fiberType("k'r'","k's'")"k's')()","retire fiber")
+escape(_resume,":k'r':k's'F("fiberType("k'r'","k's'")"k'r')k's'","resume fiber")
+
 
 escape(sqrt, "|F(f)fr"ERRCODE, "square root")
 escape(exp, "|F(f)fr"ERRCODE, "exponential")

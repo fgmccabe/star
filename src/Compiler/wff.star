@@ -735,6 +735,12 @@ star.compiler.wff{
 
   public mkFiberTerm(Lc,As) => brApply(Lc,"fiber",[As]).
 
+  public isFiberType:(ast) => option[(option[locn],ast,ast)].
+  isFiberType(A) where (Lc,.nme(_,"fiber"),[R,S]) ?= isSquareTerm(A) => .some((Lc,R,S)).
+  isFiberType(_) default => .none.
+
+  public mkFiberType(Lc,R,S) => squareApply(Lc,"fiber",[R,S]).
+
   public isFiber(A) => isUnary(A,"fiber").
 
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
@@ -760,35 +766,10 @@ star.compiler.wff{
 
   public mkRaise(Lc,E) => unary(Lc,"raise",E).
 
-  public isSpawn:(ast) => option[(option[locn],ast,ast)].
-  isSpawn(A) where (Lc,L,R) ?= isBinary(A,"spawn") && ~_?=isBinary(R,"=>>") => .some((Lc,L,R)).
-  isSpawn(_) default => .none.
-
-  public mkSpawn(Lc,L,R) => binary(Lc,"spawn",L,R).
-
-  public isPaused:(ast) => option[(option[locn],ast,ast,ast)].
-  isPaused(A) where (Lc,L,E) ?= isBinary(A,"=>>") &&
-      (_,T,F) ?= isBinary(L,"spawn") => .some((Lc,T,F,E)).
-  isPaused(_) default => .none.
-
-  public mkPaused(Lc,T,F,E) => binary(Lc,"=>>",binary(Lc,"spawn",T,F),E).
-
   public isInvoke:(ast) => option[(option[locn],ast,cons[ast])].
   isInvoke(A) where (Lc,Op,A) ?= isBinary(A,".") && (_,As) ?= isTuple(A) => .some((Lc,Op,As)).
   isInvoke(_) default => .none.
   
-  public isSuspend(A) => isBinary(A,"suspend").
-
-  public mkSuspend(Lc,L,R) => binary(Lc,"suspend",L,R).
-
-  public isResume(A) => isBinary(A,"resume").
-
-  public mkResume(Lc,L,R) => binary(Lc,"resume",L,R).
-
-  public isRetire(A) => isBinary(A,"retire").
-
-  public mkRetire(Lc,L,R) => binary(Lc,"retire",L,R).
-
   public isPerform:(ast) => option[(option[locn],ast)].
   isPerform(A) => isUnary(A,"perform").
 

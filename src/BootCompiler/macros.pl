@@ -451,42 +451,10 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isContRule(T,Lc,L,G,R),!,
-  macroHead(L,Lx),
-  macroTerm(R,Rx),
-  macroOpt(G,macros:macroTerm,Gx),
-  mkContRule(Lc,Lx,Gx,Rx,Tx).
-examineTerm(T,Tx) :-
-  isSpawn(T,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkSpawn(Lc,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
-  isPaused(T,Lc,S,F,V),!,
-  macroTerm(S,Sx),
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkPaused(Lc,Sx,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
-  isSuspend(T,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkSuspend(Lc,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
-  isResume(T,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkResume(Lc,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
   isInvoke(T,Lc,F,V),!,
   macroTerm(F,Fx),
   map(V,macros:macroTerm,Vx),
   mkInvoke(Lc,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
-  isRetire(T,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkRetire(Lc,Fx,Vx,Tx).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),
@@ -718,26 +686,6 @@ examineAction(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isSpawn(A,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkSpawn(Lc,Fx,Vx,Ax).
-examineAction(A,Ax) :-
-  isSuspend(A,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkSuspend(Lc,Fx,Vx,Ax).
-examineAction(A,Ax) :-
-  isResume(A,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkResume(Lc,Fx,Vx,Ax).
-examineAction(A,Ax) :-
-  isRetire(A,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkRetire(Lc,Fx,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

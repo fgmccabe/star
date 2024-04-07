@@ -99,7 +99,7 @@ F.G. McCabe).
 
 @include concurrent.texi
 
-@c @include fibers.texi
+@include fibers.texi
 
 @include standard.texi
 

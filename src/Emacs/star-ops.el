@@ -3,8 +3,7 @@
 (require 'star-util)
 
 (defconst star-ops
-  '(  ("retire" ( (infix 829 830 829)))
-  ("all" ( (prefix 1010 1009)))
+  '(  ("all" ( (prefix 1010 1009)))
   (".<." ( (infix 699 700 699)))
   ("^=" ( (infix 899 900 899)))
   ("&&" ( (infix 909 910 910)))
@@ -42,7 +41,6 @@
   ("*" ( (postfix 699 700) (infix 700 700 699)))
   ("\\-" ( (infix 700 700 699)))
   ("+" ( (postfix 699 700) (infix 720 720 719)))
-  ("resume" ( (infix 829 830 829)))
   (".>>." ( (infix 600 600 599)))
   ("*>" ( (infix 904 905 904) (prefix 905 904)))
   ("," ( (infix 999 1000 1000)))
@@ -51,7 +49,6 @@
   ("-" ( (prefix 300 299) (infix 720 720 719)))
   ("." ( (prefix 10 9) (infix 100 100 99)))
   ("raises" ( (infix 950 951 951) (prefix 999 998)))
-  ("spawn" ( (infix 929 930 929)))
   ("/" ( (infix 700 700 699)))
   ("try" ( (prefix 1200 1199)))
   ("exists" ( (prefix 1010 1009)))
@@ -74,7 +71,6 @@
   ("|=" ( (infix 998 999 998)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
-  ("suspend" ( (infix 829 830 829)))
   ("open" ( (prefix 900 899)))
   ("trace" ( (prefix 140 139)))
   ("~~" ( (infix 1239 1240 1240)))
@@ -141,8 +137,7 @@
 )
 
 (defconst star-keywords
-  '("retire"
-"all"
+  '("all"
 "let"
 "do"
 "import"
@@ -154,16 +149,13 @@
 "then"
 "ζ"
 "default"
-"resume"
 "contract"
 "raises"
-"spawn"
 "try"
 "exists"
 "if"
 "in"
 "break"
-"suspend"
 "open"
 "public"
 "ref"

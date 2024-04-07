@@ -345,29 +345,6 @@ star.compiler.normalize{
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.cRaise(Lc,LT,LE,Tp),Ex1)
   }
-  liftExp(.spwn(Lc,F,Tp),Map,Q,Ex) => valof{
-    (LF,Ex1) = liftExp(F,Map,Q,Ex);
-    valis (.cSpawn(Lc,LF,Tp),Ex1)
-  }
-  liftExp(.paus(Lc,F,Tp),Map,Q,Ex) => valof{
-    (LF,Ex1) = liftExp(F,Map,Q,Ex);
-    valis (.cPaus(Lc,LF,Tp),Ex1)
-  }
-  liftExp(.susp(Lc,K,V,Tp),Map,Q,Ex) => valof{
-    (LK,Ex1) = liftExp(K,Map,Q,Ex);
-    (LV,Ex2) = liftExp(V,Map,Q,Ex1);
-    valis (.cSusp(Lc,LK,LV,Tp),Ex2)
-  }
-  liftExp(.rsme(Lc,K,V,Tp),Map,Q,Ex) => valof{
-    (LK,Ex1) = liftExp(K,Map,Q,Ex);
-    (LV,Ex2) = liftExp(V,Map,Q,Ex1);
-    valis (.cResume(Lc,LK,LV,Tp),Ex2)
-  }
-  liftExp(.rtire(Lc,K,V),Map,Q,Ex) => valof{
-    (LK,Ex1) = liftExp(K,Map,Q,Ex);
-    (LV,Ex2) = liftExp(V,Map,Q,Ex1);
-    valis (.cRetire(Lc,LK,LV),Ex2)
-  }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);
     valis (.cValof(Lc,Acts,Tp),Ex1)
@@ -643,11 +620,6 @@ star.compiler.normalize{
   liftAction(.doValis(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);
     valis (.aValis(Lc,EE),Ex1)
-  }
-  liftAction(.doRetire(Lc,T,E),Map,Q,Ex) => valof{
-    (TT,Ex1) = liftExp(T,Map,Q,Ex);
-    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
-    valis (.aRetire(Lc,TT,EE),Ex1)
   }
   liftAction(.doDefn(Lc,P,E),Map,Q,Ex) => valof{
     (PP,Ex1) = liftPtn(P,Map,Q,Ex);

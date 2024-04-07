@@ -215,30 +215,74 @@ retCode run(processPo P) {
           case 0:
             ret = ((escFun0) (esc->fun))(H);
             break;
-          case 1:
-            ret = ((escFun1) (esc->fun))(H, top());
+          case 1: {
+            termPo a1 = popStack(STK);
+            ret = ((escFun1) (esc->fun))(H, a1);
             break;
-          case 2:
-            ret = ((escFun2) (esc->fun))(H, top(), peek(1));
+          }
+          case 2: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            ret = ((escFun2) (esc->fun))(H, a1, a2);
             break;
-          case 3:
-            ret = ((escFun3) (esc->fun))(H, top(), peek(1), peek(2));
+          }
+          case 3: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
             break;
-          case 4:
-            ret = ((escFun4) (esc->fun))(H, top(), peek(1), peek(2), peek(3));
+          }
+          case 4: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
             break;
-          case 5:
-            ret = ((escFun5) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4));
+          }
+          case 5: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            ret = ((escFun5) (esc->fun))(H, a1, a2, a3, a4, a5);
             break;
-          case 6:
-            ret = ((escFun6) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5));
+          }
+          case 6: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            ret = ((escFun6) (esc->fun))(H, a1, a2, a3, a4, a5, a6);
             break;
-          case 7:
-            ret = ((escFun7) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5), peek(6));
+          }
+          case 7: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            termPo a7 = popStack(STK);
+            ret = ((escFun7) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7);
             break;
-          case 8:
-            ret = ((escFun8) (esc->fun))(H, top(), peek(1), peek(2), peek(3), peek(4), peek(5), peek(6), peek(7));
+          }
+          case 8: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            termPo a7 = popStack(STK);
+            termPo a8 = popStack(STK);
+            ret = ((escFun8) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7, a8);
             break;
+          }
           default:
             logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
             bail();
@@ -248,12 +292,11 @@ retCode run(processPo P) {
         assert(H->topRoot == 0);
 
         if (ret.ret == Normal) {
-          SP += esc->arity;
           if (ret.result != Null)
             push(ret.result);
           continue;
         } else {
-          continuationPo cont = C_CONTINUATION(pop()); // Exception handler is first argument
+          continuationPo cont = C_CONTINUATION(ret.cont); // Exception handler is first argument
           assert(continIsValid(cont));
           assert(ret.result != Null);
 
@@ -450,7 +493,7 @@ retCode run(processPo P) {
         // The top of a stack should be a binary lambda
         termPo fiberLambda = pop();
         saveRegisters();
-        stackPo child = newStack(P, fiberLambda);
+        stackPo child = newStack(H, fiberLambda);
         restoreRegisters();
         push(child);                                                 // We return the new stack
         continue;
@@ -1224,7 +1267,7 @@ retCode run(processPo P) {
       case Frame: {
 #ifdef TRACESTACK
         termPo frame = nthElem(LITS, collectI32(PC));
-        if(stackVerify){
+        if (stackVerify) {
           integer frameDepth;
           if (isString(frame)) {
             integer sigLen;
@@ -1232,7 +1275,7 @@ retCode run(processPo P) {
             tryRet(typeSigArity(sig, sigLen, &frameDepth));
           } else
             frameDepth = integerVal(frame);
-          check(frameDepth==FP->csp - SP - lclCount(FP->prog),"stack not properly language");
+          check(frameDepth == FP->csp - SP - lclCount(FP->prog), "stack not properly language");
         }
 #else
         PC += 2; // ignore frame entity for now

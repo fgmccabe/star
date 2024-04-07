@@ -38,7 +38,6 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
-    "retire" => [.infixOp(829,830,829)].
     "all" => [.prefixOp(1010,1009)].
     ".<." => [.infixOp(699,700,699)].
     "^=" => [.infixOp(899,900,899)].
@@ -77,7 +76,6 @@ star.compiler.operators{
     "*" => [.postfixOp(699,700), .infixOp(700,700,699)].
     "\\-" => [.infixOp(700,700,699)].
     "+" => [.postfixOp(699,700), .infixOp(720,720,719)].
-    "resume" => [.infixOp(829,830,829)].
     ".>>." => [.infixOp(600,600,599)].
     "*>" => [.infixOp(904,905,904), .prefixOp(905,904)].
     "," => [.infixOp(999,1000,1000)].
@@ -86,7 +84,6 @@ star.compiler.operators{
     "-" => [.prefixOp(300,299), .infixOp(720,720,719)].
     "." => [.prefixOp(10,9), .infixOp(100,100,99)].
     "raises" => [.infixOp(950,951,951), .prefixOp(999,998)].
-    "spawn" => [.infixOp(929,930,929)].
     "/" => [.infixOp(700,700,699)].
     "try" => [.prefixOp(1200,1199)].
     "exists" => [.prefixOp(1010,1009)].
@@ -109,7 +106,6 @@ star.compiler.operators{
     "|=" => [.infixOp(998,999,998)].
     "in" => [.infixOp(899,900,900)].
     "break" => [.prefixOp(10,9)].
-    "suspend" => [.infixOp(829,830,829)].
     "open" => [.prefixOp(900,899)].
     "trace" => [.prefixOp(140,139)].
     "~~" => [.infixOp(1239,1240,1240)].
@@ -429,7 +425,6 @@ star.compiler.operators{
 
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
-    "retire" => .true.
     "all" => .true.
     "^=" => .true.
     "&&" => .true.
@@ -458,14 +453,12 @@ star.compiler.operators{
     "<-" => .true.
     "(" => .true.
     ")" => .true.
-    "resume" => .true.
     "*>" => .true.
     "," => .true.
     "contract" => .true.
     "./" => .true.
     "." => .true.
     "raises" => .true.
-    "spawn" => .true.
     "try" => .true.
     "exists" => .true.
     "if" => .true.
@@ -483,7 +476,6 @@ star.compiler.operators{
     "|>" => .true.
     "in" => .true.
     "break" => .true.
-    "suspend" => .true.
     "open" => .true.
     "~~" => .true.
     "!!" => .true.

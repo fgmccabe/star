@@ -30,19 +30,21 @@ test.ac8a{
   
   f:(integer) => integer.
   f(X) => valof{
-    case (TryTsk spawn valof{
+    Tsk = _fiber((TryTsk,_)=> valof{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      logMsg("retiring...");
-	      TryTsk retire .err(E)
+	      _retire(TryTsk,.err(E))
 	    }
 	  }
 	} in {
 	  logMsg("starting f($(X))");
-	  TryTsk retire .ok(ff(X))
+	  _retire(TryTsk,.ok(ff(X)))
 	}
-      }) in {
+      });
+
+    case _resume(Tsk,())in {
       .err(E) => {
 	logMsg("We got exception $(E)");
 	valis -E

@@ -35,7 +35,7 @@ test.tk0{
 	  
 	  valis ()
 	} catch () in {
-	  _ => this retire .retired_
+	  _ => _retire(this,.retired_)
 	}
       };
 	

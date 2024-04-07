@@ -29,7 +29,8 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
 StackState stackState(stackPo tsk);
 retCode setTaskState(stackPo stk, StackState state);
 
-stackPo newStack(processPo P, termPo lam);
+stackPo newFiber(heapPo H, termPo lam);
+stackPo newStack(heapPo H, termPo lam);
 stackPo splitStack(processPo P, termPo lam);
 stackPo attachStack(stackPo tsk, stackPo top);
 stackPo detachStack(stackPo base, stackPo top);
