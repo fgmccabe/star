@@ -22,7 +22,7 @@ ReturnStatus g__outchar(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (outChar(io, cp) == Ok)
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
 }
 
 static taskState nullWrite(ioPo out, asyncPo async) {
@@ -66,7 +66,7 @@ ReturnStatus g__outchar_async(heapPo h, termPo xc, termPo a1, termPo a2) {
 
       return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
@@ -78,7 +78,7 @@ ReturnStatus g__outbyte(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (outByte(io, cp) == Ok)
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
@@ -110,12 +110,12 @@ ReturnStatus g__outbyte_async(heapPo h, termPo xc, termPo a1, termPo a2) {
 
       return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
 
-ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__outbytes(heapPo h, termPo xc, termPo a1, termPo a2) {
   ioPo io = ioChannel(C_IO(a1));
   retCode ret = Ok;
 
@@ -128,7 +128,7 @@ ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
   if (ret == Ok)
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
 }
 
 ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
@@ -148,7 +148,7 @@ ReturnStatus g__outtext(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (ret == Ok)
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
 }
 
 static taskState wrText(ioPo out, asyncPo async) {
@@ -200,7 +200,7 @@ ReturnStatus g__outtext_async(heapPo h, termPo xc, termPo a1, termPo a2) {
 
       return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
   } else
     return g__outchar(h, xc, a1, a2);
 }
@@ -225,10 +225,12 @@ ReturnStatus g__put_file(heapPo h, termPo xc, termPo a1, termPo a2) {
     retCode ret = outText(io, txt, tLen);
     closeIo(O_IO(io));
 
-    ReturnStatus rt = {.ret=Abnormal, .result=eIOERROR};
-    return rt;
+    if (ret == Ok)
+      return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+    else
+      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
   }
 }
 

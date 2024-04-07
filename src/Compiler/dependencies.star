@@ -345,16 +345,6 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,L,E,H) ?= isTryCatch(A) =>
     collectCasesRefs(H,collectTermRefs,All,collectTypeRefs(E,All,collectTermRefs(L,All,Rf))).
-  collectTermRefs(A,All,Rf) where (_,L,R) ?= isSpawn(A) => 
-    collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,T,F,E) ?= isPaused(A) => 
-    collectTermRefs(T,All,collectTermRefs(F,All,collectTermRefs(E,All,Rf))).
-  collectTermRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) => 
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,L,R) ?= isResume(A) => 
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,L,R) ?= isRetire(A) => 
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,R,_,V) ?= isRecordUpdate(T) => 
@@ -422,12 +412,6 @@ star.compiler.dependencies{
   }
   collectDoRefs(A,All,Rf) where (_,[S]) ?= isBrTuple(A) =>
     collectDoRefs(S,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,L,R) ?= isRetire(A) =>
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) =>
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,L,R) ?= isResume(A) =>
-    collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) => collectTermRefs(A,All,Rf).
 
   collectCasesRefs([],_,_,Rf) => Rf.

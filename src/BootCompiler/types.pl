@@ -497,24 +497,17 @@ stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType(
 stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
 stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
 stdType("fiber",
-	tpFun("star.core*fiber",2),
+	tpFun("fiber",2),
 	allType(kVar("a"),
 		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("star.core*fiber",2),kVar("a")),
+			typeExists(tpExp(tpExp(tpFun("fiber",2),kVar("a")),
 					 kVar("e")),
 				   faceType([],[]))))).
-stdType("cont",
-	tpFun("star.core*cont",1),
+stdType("thunk",
+	tpFun("thunk",1),
 	allType(kVar("e"),
-		typeExists(tpExp(tpFun("star.core*cont",1),kVar("e")),
+		typeExists(tpExp(tpFun("thunk",1),kVar("e")),
 			   faceType([],[])))).
-stdType("tag",
-	tpFun("tag",2),
-	allType(kVar("a"),
-		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("tag",2),kVar("a")),
-					 kVar("e")),
-				   faceType([],[]))))).
 
 toLtipe(Tp,LTp) :-
   deRef(Tp,DTp),

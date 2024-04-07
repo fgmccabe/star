@@ -335,29 +335,6 @@ star.compiler.resolve{
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,TT,EE,Tp),St2)
   }
-  overloadTerm(.spwn(Lc,Lm,Tp),Dict,St) => valof{
-    (RLm,St1) = overloadTerm(Lm,Dict,St);
-    valis (.spwn(Lc,RLm,Tp),St1)
-  }
-  overloadTerm(.paus(Lc,Lm,Tp),Dict,St) => valof{
-    (RLm,St1) = overloadTerm(Lm,Dict,St);
-    valis (.paus(Lc,RLm,Tp),St1)
-  }
-  overloadTerm(.susp(Lc,Fb,Ex,Tp),Dict,St) => valof{
-    (RFb,St1) = overloadTerm(Fb,Dict,St);
-    (REx,St2) = overloadTerm(Ex,Dict,St1);
-    valis (.susp(Lc,RFb,REx,Tp),St2)
-  }
-  overloadTerm(.rsme(Lc,Fb,Ex,Tp),Dict,St) => valof{
-    (RFb,St1) = overloadTerm(Fb,Dict,St);
-    (REx,St2) = overloadTerm(Ex,Dict,St1);
-    valis (.rsme(Lc,RFb,REx,Tp),St2)
-  }
-  overloadTerm(.rtire(Lc,Fb,Ex),Dict,St) => valof{
-    (RFb,St1) = overloadTerm(Fb,Dict,St);
-    (REx,St2) = overloadTerm(Ex,Dict,St1);
-    valis (.rtire(Lc,RFb,REx),St2)
-  }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
     valis (.vlof(Lc,Ac,Tp),St1)
@@ -407,11 +384,6 @@ star.compiler.resolve{
   overloadAction(.doValis(Lc,E),Dict,St) => valof{
     (EE,St1) = overloadTerm(E,Dict,St);
     valis (.doValis(Lc,EE),St1)
-  }
-  overloadAction(.doRetire(Lc,T,E),Dict,St) => valof{
-    (TT,St1) = overloadTerm(T,Dict,St);
-    (EE,St2) = overloadTerm(E,Dict,St1);
-    valis (.doRetire(Lc,TT,EE),St1)
   }
   overloadAction(.doDefn(Lc,P,V),Dict,St) => valof{
     (PP,St1) = overloadTerm(P,Dict,St);

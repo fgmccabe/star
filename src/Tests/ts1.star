@@ -4,54 +4,43 @@ test.ts1{
   
   -- Another test of generator pattern
 
-  scomm[e] ::= .yild(e) | .end | .identify(rcomm=>>scomm[e]).
+  scomm[e] ::= .yild(e) | .end.
   rcomm ::= .next | .cancel.
 
   consIter:all e,x ~~ (cons[e],x,(x,e)=>x)=>x.
   consIter(.nil,X,_) => X.
   consIter(.cons(H,T),X,F) => consIter(T,F(X,H),F).
 
-  iterFn:all e ~~ (rcomm=>>scomm[e],cons[e]) => scomm[e].
+  iterFn:all e ~~ (fiber[rcomm,scomm[e]],cons[e]) => scomm[e].
   iterFn(this,L) => let{
     yildFn:((),e)=>().
     yildFn(_,E) => valof{
-      case this suspend .yild(E) in {
+      case _suspend(this,.yild(E)) in {
 	.next => valis ().
-	.cancel => this retire .end
+	.cancel => _retire(this,.end)
       }
     }
   } in valof{
     consIter(L,(),yildFn);
-    this retire .end
+    valis .end
   }
 
-  iterGen:all e ~~ (cons[e]) => rcomm=>>scomm[e].
-  iterGen(L) => case (this spawn valof{
-      case (this suspend .identify(this)) in {
-	.next => {
-	  iterFn(this,L)
+  iterGen:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
+  iterGen(L) => _fiber((Th,_) => iterFn(Th,L)).
+
+  itrFn:all e ~~ (cons[e]) => fiber[rcomm,scomm[e]].
+  itrFn(L) => _fiber((this,_) => let{
+      yildFn:((),e)=>().
+      yildFn(_,E) => valof{
+	case _suspend(this,.yild(E)) in {
+	  .next => valis ().
+	  .cancel => _retire(this,.end)
 	}
       }
-    }) in {
-    .identify(G) => G
-    }.
-
-  itrFn:all e ~~ (cons[e]) => (rcomm=>>scomm[e]).
-  itrFn(L) => this spawn first =>> let{
-    yildFn:((),e)=>().
-    yildFn(_,E) => valof{
-      case this suspend .yild(E) in {
-	.next => valis ().
-	.cancel => this retire .end
-      }
-    }
-  } in valof{
-    case first in {
-      .next => 
-	consIter(L,(),yildFn)
-    };
-    this retire .end
-  }
+    } in valof{
+      consIter(L,(),yildFn);
+      valis .end
+    }).
 
   isEven(X) => X.&.1==0.
 
@@ -61,7 +50,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case TT resume .next in {
+      case _resume(TT,.next) in {
 	.yild(X) where isEven(X) => {
 	  Tl := Tl! + X;
 	}.
@@ -79,7 +68,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case TT resume .next in {
+      case _resume(TT,.next) in {
 	.yild(X) where ~isEven(X) => {
 	  Tl := Tl! + X;
 	}.

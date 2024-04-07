@@ -31,7 +31,7 @@ isIntrinsic("_blsl",funType(tplType([type("star.core*integer"),type("star.core*i
 isIntrinsic("_blsr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBLsr).  % logical right shift
 isIntrinsic("_basr",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iBAsr).  % arithmetic right shift
 isIntrinsic("_bnot",funType(tplType([type("star.core*integer")]),type("star.core*integer")),iBNot).  % bitwise negate number
-isIntrinsic("_fiber_eq",allType(kVar("s"),allType(kVar("r"),funType(tplType([continType(tplType([kVar("r")]),kVar("s")),continType(tplType([kVar("r")]),kVar("s"))]),type("star.core*boolean")))),iTEq).  % compare two fiber identifiers
+isIntrinsic("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("star.core*boolean")))),iTEq).  % compare two fiber identifiers
 isIntrinsic("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t")))),iCell).  % create a reference cell
 isIntrinsic("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t"))),iGet).  % access contents of reference cell
 isIntrinsic("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([]))),iAssign).  % update contents of reference cell

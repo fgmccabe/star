@@ -15,24 +15,28 @@ star.iterable{
   public sus_generator[e] ::= ._yld(e) | ._all.
   public res_generator ::= ._next | ._cancel.
 
-  public all e ~~ generater[e] ~> res_generator=>>sus_generator[e].
+  public all e ~~ generater[e] ~> fiber[res_generator,sus_generator[e]].
 
   public contract all c,e ~~ generate[c->>e] ::= {
     _generate:(c)=> generater[e]
   }
 
   public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generater[e].
-  iterGenerator(L) => (this spawn first =>> valof{
-    let{
-      yieldFn:(e,())=>().
-      yieldFn(E,_) => valof{
-	case this suspend ._yld(E) in {
+  iterGenerator(L) => _fiber((this,first) => 
+      let{
+	yieldFn:(e,())=>().
+	yieldFn(E,_) => valof{
+	  case _suspend(this,._yld(E)) in {
 	  ._next => {}.
-	  ._cancel => this retire ._all
-	};
-	valis ()
-      }
-    } in {_ = _iter(L,(),yieldFn)};
-    this retire ._all
-    }).
+	    ._cancel => _retire(this,._all)
+	  };
+	  valis ()
+	}
+      } in (case first in {
+	  ._next => valof{
+	    _iter(L,(),yieldFn);
+	    valis ._all
+	  }
+	  | ._cancel => ._all
+      })).
 }

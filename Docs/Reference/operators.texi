@@ -2,10 +2,6 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
-@item @code{retire}
-@tab non-associative infix
-@tab 830
-@tab retire a coroutine
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -178,10 +174,6 @@
 @tab left associative infix
 @tab 720
 @tab addition
-@item @code{resume}
-@tab non-associative infix
-@tab 830
-@tab resume coroutine
 @item @code{.>>.}
 @tab left associative infix
 @tab 600
@@ -230,10 +222,6 @@
 @tab non-associative prefix
 @tab 999
 @tab can raise an exception
-@item @code{spawn}
-@tab non-associative infix
-@tab 930
-@tab spawn a coroutine
 @item @code{/}
 @tab left associative infix
 @tab 700
@@ -330,10 +318,6 @@
 @tab non-associative prefix
 @tab 10
 @tab break out of an action (loop or block)
-@item @code{suspend}
-@tab non-associative infix
-@tab 830
-@tab suspend coroutine
 @item @code{open}
 @tab non-associative prefix
 @tab 900
@@ -538,41 +522,37 @@
 @caption{Keywords}
 @multitable {implementation}{implementation}{implementation}
 @headitem Keyword @tab Keyword @tab Keyword
-@item @code{retire}
-@tab @code{all}
+@item @code{all}
 @tab @code{let}
-@item @code{do}
-@tab @code{import}
+@tab @code{do}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
+@tab @code{valis}
+@item @code{for}
 @tab @code{raise}
-@item @code{async}
-@tab @code{then}
+@tab @code{async}
+@item @code{then}
 @tab @code{ζ}
-@item @code{default}
-@tab @code{resume}
-@tab @code{contract}
-@item @code{raises}
-@tab @code{spawn}
+@tab @code{default}
+@item @code{contract}
+@tab @code{raises}
 @tab @code{try}
 @item @code{exists}
 @tab @code{if}
 @tab @code{in}
 @item @code{break}
-@tab @code{suspend}
 @tab @code{open}
-@item @code{public}
-@tab @code{ref}
+@tab @code{public}
+@item @code{ref}
 @tab @code{where}
-@item @code{case}
-@tab @code{generator}
+@tab @code{case}
+@item @code{generator}
 @tab @code{valof}
-@item @code{yield}
-@tab @code{while}
+@tab @code{yield}
+@item @code{while}
 @tab @code{private}
-@item @code{implementation}
-@tab @code{type}
+@tab @code{implementation}
+@item @code{type}
 @tab @code{else}
 
 @end multitable

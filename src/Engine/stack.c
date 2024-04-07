@@ -42,6 +42,15 @@ static MethodRec underFlowMethod = {
   .code = {Underflow, 0}
 };
 
+static MethodRec newFiberMethod = {
+  .clss = Null,
+  .codeSize = 6,
+  .arity = 0,
+  .lclcnt = 0,
+  .pool = Null,
+  .locals = Null,
+  .code = { Rot, 0, 1, TOCall, 0, 3}
+};
 static MethodRec newTaskMethod = {
   .clss = Null,
   .codeSize = 9,
@@ -73,6 +82,7 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
   underFlowMethod.clss = methodClass;
+  newFiberMethod.clss = methodClass;
   newTaskMethod.clss = methodClass;
   spawnMethod.clss = methodClass;
   integer regionSize = (1 << lg2(stackRegionSize));
@@ -466,8 +476,20 @@ stackPo spinupStack(heapPo H, integer size) {
   return allocateStack(H, size, &underFlowMethod, suspended, Null);
 }
 
-stackPo newStack(processPo P, termPo lam) {
-  heapPo H = P->heap;
+stackPo newFiber(heapPo H, termPo lam) {
+  int root = gcAddRoot(H, (ptrPo) &lam);
+  stackPo child = spinupStack(H, minStackSize);
+  gcReleaseRoot(H, root);
+
+  child->fp = pushFrame(child, &newTaskMethod, child->fp);
+
+  pushStack(child, lam);
+  pushStack(child, (termPo) child);
+
+  return child;                                                 // We return the new stack
+}
+
+stackPo newStack(heapPo H, termPo lam) {
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);

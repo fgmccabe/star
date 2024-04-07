@@ -426,7 +426,7 @@ binRefMacro(T,expression,Rp) :-
   {
     I .= _generate(C);
     lb:while .true do{
-      case I resume ._next in {
+      case _resume(I,._next) in {
         _yld(P) => B.
         _yld(_) default => {}.
         ._all => break lb
@@ -457,9 +457,9 @@ binRefMacro(T,expression,Rp) :-
    mkDefault(Lc,DYld,Dflt),
    mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
-   /* build case I resume ._next in .. */
+   /* build case _resume(I,._next) in .. */
    mkEnum(Lc,"_next",Next),
-   mkResume(Lc,I,Next,G),
+   binary(Lc,"_resume",I,Next,G),
    caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
    braceTuple(Lc,[Rsme],Resume),
 
@@ -477,10 +477,10 @@ binRefMacro(T,expression,Rp) :-
 
 /* generator{A}
    becomes
-   this spawn _ =>> valof{
+   _fiber((this,_) => valof{
      A*;
-     this retire .all
-   }
+   valis .all
+   })
 */
    
 generatorMacro(E,expression,Ex) :-
@@ -488,20 +488,22 @@ generatorMacro(E,expression,Ex) :-
   isBraceTuple(A,_,[B]),!,
 
   mkEnum(Lc,"_all",All),
-  mkRetire(Lc,name(Lc,"this"),All,Rt),
+  mkValis(Lc,All,Rt),
 
   mkSequence(Lc,B,Rt,TB),
   braceTuple(Lc,[TB],VB),
   mkValof(Lc,VB,GVl),
 
-  mkPaused(Lc,name(Lc,"this"),name(Lc,"_"),GVl,Ex).
+  roundTuple(Lc,[name(Lc,"this"),name(Lc,"_")],LmLhs),
+  mkEquation(Lc,LmLhs,none,GVl,Eqn),
+  unary(Lc,"_fiber",Eqn,Ex).
 %  dispAst(Ex).
 
 /* yield E
    becomes
-   case this suspend ._yld(E) in {
+   case _suspend(this,._yld(E)) in {
      ._next => {}.
-     ._cancel => this retire ._all
+     ._cancel => _retire(this,._all)
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -514,14 +516,14 @@ yieldMacro(E,action,Ax) :-
   mkEnum(Lc,"_next",Nxt),
   mkEquation(Lc,Nxt,none,Nop,NxtRl),
 
-  /* build ._cancel => this retire ._all */
+  /* build ._cancel => _retire(this,._all) */
   mkEnum(Lc,"_cancel",Can),
   mkEnum(Lc,"_all",All),
-  mkRetire(Lc,name(Lc,"this"),All,Rs),
+  binary(Lc,"_retire",name(Lc,"this"),All,Rs),
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
-  mkSuspend(Lc,name(Lc,"this"),Yld,SS),
+  binary(Lc,"_suspend",name(Lc,"this"),Yld,SS),
   caseExp(Lc,SS,[NxtRl,Cancel],Ax).
 
 /*

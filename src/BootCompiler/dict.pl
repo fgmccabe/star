@@ -308,7 +308,7 @@ declareStdTypes([T|Ts],D,Dx) :-
 stdDict(Base) :-
   pushScope([],B),
   declareStdTypes(["integer","bigint","char","string","float",
-		   "cons","file","fiber","cont","tag"],B,Base).
+		   "cons","file","fiber"],B,Base).
 
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts,Trs),Cx,
 	    sq([ix(Cx),ss("-"),

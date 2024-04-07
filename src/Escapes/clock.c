@@ -53,11 +53,11 @@ ReturnStatus g__delay(processPo p, termPo xc, termPo a1) {
     setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
+        return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINTRUPT};
       case EINVAL:
       case ENOSYS:
       default:
-        return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
+        return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINVAL};
     }
   } else {
     setProcessRunnable(p);
@@ -98,11 +98,11 @@ ReturnStatus g__sleep(processPo p, termPo xc, termPo a1) {
       setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
+          return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINTRUPT};
         case EINVAL:
         case ENOSYS:
         default:
-          return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
+          return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINVAL};
       }
     } else {
       setProcessRunnable(p);

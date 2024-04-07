@@ -35,7 +35,7 @@ ReturnStatus g__pkg_is_present(heapPo h, termPo xc, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Normal, .result= falseEnum};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result= eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eNOTFND};
   }
 }
 
@@ -82,7 +82,7 @@ ReturnStatus g__install_pkg(heapPo h, termPo xc, termPo a1) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Normal, .result= (termPo) imports};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .result=eFAIL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eFAIL};
 }
 
 ReturnStatus g__in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
@@ -107,7 +107,7 @@ ReturnStatus g__in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3
       return (ReturnStatus) {.ret=Normal, .result= trueEnum};
     }
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result= eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eIOERROR};
   }
 }
 
@@ -128,13 +128,13 @@ ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, te
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
     if (ret != Ok) {
-      return (ReturnStatus) {.ret=Abnormal, .result= eNOTFND};
+      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eNOTFND};
     } else {
       return (ReturnStatus) {.ret=Normal,
         .result=(termPo) allocateString(h, rsrc, uniStrLen(rsrc))};
     }
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result= ioErrorCode(ret)};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= ioErrorCode(ret)};
   }
 }
 

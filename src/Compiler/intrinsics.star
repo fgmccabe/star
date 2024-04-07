@@ -38,7 +38,7 @@ star.compiler.intrinsics{
     "_blsr" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iBLsr, .true, .notLast)).  -- logical right shift
     "_basr" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iBAsr, .true, .notLast)).  -- arithmetic right shift
     "_bnot" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType])),intType),.iBNot, .true, .notLast)).  -- bitwise negate number
-    "_fiber_eq" => .some((.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>>",2),.tupleType([.nomnal("r")])),.nomnal("s")),.tpExp(.tpExp(.tpFun("=>>",2),.tupleType([.nomnal("r")])),.nomnal("s"))])),boolType))),.iTEq, .true, .notLast)).  -- compare two fiber identifiers
+    "_fiber_eq" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))])),boolType))),.iTEq, .true, .notLast)).  -- compare two fiber identifiers
     "_cell" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t")))),.iCell, .true, .notLast)).  -- create a reference cell
     "_get" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t"))),.iGet, .false, .notLast)).  -- access contents of reference cell
     "_assign" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([]))),.iAssign, .false, .notLast)).  -- update contents of reference cell

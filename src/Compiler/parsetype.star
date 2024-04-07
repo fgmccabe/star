@@ -89,6 +89,12 @@ star.compiler.typeparse{
     R = parseType(Q,Rhs,Env);
     valis continType(A,R)
   }
+  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
+    R = parseType(Q,Lhs,Env);
+    S = parseType(Q,Rhs,Env);
+    valis fiberType(R,S)
+  }
+  
   parseType(Q,T,Env) where (Lc,Rhs) ?= isRef(T) =>
     refType(parseType(Q,Rhs,Env)).
   parseType(Q,T,Env) where (Lc,[A]) ?= isTuple(T) => valof{

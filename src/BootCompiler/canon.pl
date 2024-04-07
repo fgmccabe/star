@@ -54,11 +54,6 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_,_)).
 isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
-isCanon(spawn(_,_,_)).
-isCanon(pause(_,_,_)).
-isCanon(susp(_,_,_,_)).
-isCanon(resme(_,_,_,_)).
-isCanon(rtire(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -118,11 +113,6 @@ typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
-typeOfCanon(spawn(_,_,Tp),Tp) :-!.
-typeOfCanon(pause(_,_,Tp),Tp) :-!.
-typeOfCanon(susp(_,_,_,Tp),Tp) :-!.
-typeOfCanon(resme(_,_,_,Tp),Tp) :-!.
-typeOfCanon(rtire(_,_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
@@ -161,11 +151,6 @@ locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
-locOfCanon(spawn(Lc,_,_),Lc) :-!.
-locOfCanon(pause(Lc,_,_),Lc) :-!.
-locOfCanon(susp(Lc,_,_,_),Lc) :-!.
-locOfCanon(resme(Lc,_,_,_),Lc) :-!.
-locOfCanon(rtire(Lc,_,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
@@ -291,19 +276,6 @@ ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
 ssTerm(raise(_,_,E,_),Dp,sq([ss(" raise "),EE])) :-!,
   ssTerm(E,Dp,EE).
-ssTerm(spawn(_,L,_),Dp,sq([ss("spawn "),LL])) :-!,
-  ssTerm(L,Dp,LL).
-ssTerm(pause(_,L,_),Dp,sq([ss("pause "),LL])) :-!,
-  ssTerm(L,Dp,LL).
-ssTerm(susp(_,K,E,_),Dp,sq([KK,ss(" suspend "),EE])) :-!,
-  ssTerm(K,Dp,KK),
-  ssTerm(E,Dp,EE).
-ssTerm(resme(_,K,E,_),Dp,sq([KK,ss(" resume "),EE])) :-!,
-  ssTerm(K,Dp,KK),
-  ssTerm(E,Dp,EE).
-ssTerm(rtire(_,K,E,_),Dp,sq([KK,ss(" retire "),EE])) :-!,
-  ssTerm(K,Dp,KK),
-  ssTerm(E,Dp,EE).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
@@ -332,10 +304,6 @@ ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doRaise(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
-  typeOfCanon(T,ETp),
-  ssType(ETp,true,Dp,TT),
-  ssTerm(E,Dp,EE).
-ssAction(doRetire(_,T,E),Dp,sq([TT,ss(" retire "),EE])) :-!,
   typeOfCanon(T,ETp),
   ssType(ETp,true,Dp,TT),
   ssTerm(E,Dp,EE).

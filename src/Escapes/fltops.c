@@ -52,7 +52,7 @@ ReturnStatus g__flt_div(heapPo h, termPo xc, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
   } else {
     termPo Rs = makeFloat(floatVal(a1) / denom);
 
@@ -64,7 +64,7 @@ ReturnStatus g__flt_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
   } else {
     termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
 
@@ -93,9 +93,9 @@ ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
+      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eRANGE};
     else
-      return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
   } else {
     return (ReturnStatus) {.ret=Normal, .result=makeFloat(ans)};
   }
@@ -281,7 +281,7 @@ ReturnStatus g_sqrt(heapPo h, termPo xc, termPo arg1) {
   double Arg = floatVal(arg1);
 
   if (Arg < 0.0)
-    return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eRANGE};
   else {
     return (ReturnStatus) {.ret=Normal, .result=makeFloat(sqrt(Arg))};
   }

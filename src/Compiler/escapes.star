@@ -57,7 +57,11 @@ star.compiler.escapes{
     "_str2big" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpFun("star.core*option",1),.nomnal("star.core*bigint")))).
     "_big2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*bigint")])),.nomnal("star.core*string"))).
     "_big_format" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*bigint"),.nomnal("star.core*string")])),.nomnal("star.core*string")),.raisEs(.nomnal("star.core*errorCode")))).
-    "_fiber_eq" => .some(.allType(.nomnal("s"),.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>>",2),.tupleType([.nomnal("s")])),.nomnal("r")),.tpExp(.tpExp(.tpFun("=>>",2),.tupleType([.nomnal("s")])),.nomnal("r"))])),.nomnal("star.core*boolean"))))).
+    "_fiber_eq" => .some(.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("star.core*boolean"))))).
+    "_fiber" => .some(.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))])),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")))))).
+    "_suspend" => .some(.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r"))))).
+    "_retire" => .some(.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.tupleType([]))))).
+    "_resume" => .some(.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))))).
     "sqrt" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float")),.raisEs(.nomnal("star.core*errorCode")))).
     "exp" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float")),.raisEs(.nomnal("star.core*errorCode")))).
     "log" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float")])),.nomnal("star.core*float"))).
@@ -312,6 +316,10 @@ star.compiler.escapes{
     "_big2str" => .true.
     "_big_format" => .true.
     "_fiber_eq" => .true.
+    "_fiber" => .true.
+    "_suspend" => .true.
+    "_retire" => .true.
+    "_resume" => .true.
     "sqrt" => .true.
     "exp" => .true.
     "log" => .true.

@@ -350,11 +350,11 @@ star.compiler.macro.rules{
   becomes
   {
     lb:while .true do{
-       case G resume ._next in {
-        _yld(P) => B.
-        _yld(_) default => {}.
-        ._all => break lb
-      }
+  case _resume(G,._next) in {
+    _yld(P) => B.
+    _yld(_) default => {}.
+    ._all => break lb
+  }
     }
   }
   */
@@ -371,8 +371,8 @@ star.compiler.macro.rules{
     /* build _yld(_) default => {} */
     Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build case G resume ._next in .. */
-    Resume = mkCaseExp(Lc,mkResume(Lc,G,enum(Lc,"_next")),[Yld,Deflt,End]);
+    /* build case _resume(G,._next) in .. */
+  Resume = mkCaseExp(Lc,binary(Lc,"_resume",G,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -412,8 +412,8 @@ star.compiler.macro.rules{
     /* build _yld(_) default => {} */
     Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build case I resume ._next in .. */
-    Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
+    /* build case _resume(I,._next) in .. */
+    Resume = mkCaseExp(Lc,binary(Lc,"_resume",I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -431,26 +431,28 @@ star.compiler.macro.rules{
 
   /* generator{A}
   becomes
-   this spawn _ =>> valof{
-    A*;
-    valis .all
+  _fiber((this,_)=>valof{
+      A*;
+      valis .all
     })
-
   */
    
   generatorMacro(E,.expression) where
     (Lc,A) ?= isUnary(E,"generator") && (_,[B]) ?= isBrTuple(A) => valof{
 	All = mkValis(Lc,enum(Lc,"_all"));
-	valis .active(mkPaused(Lc,.nme(Lc,"this"),.nme(Lc,"_"),
-	    mkValof(Lc,brTuple(Lc,[mkSequence(Lc,B,All)]))))
+	valis .active(unary(Lc,"_fiber",
+	    mkLambda(Lc,.false,
+	      rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"_")]),
+	      .none,
+	      mkValof(Lc,brTuple(Lc,[mkSequence(Lc,B,All)])))))
       }.
   generatorMacro(_,_) default => .inactive.
 
   /* yield E
   becomes
-  case this suspend ._yld(E) in {
+  case _suspend(this,._yld(E)) in {
     ._next => {}.
-  ._cancel => this retire ._all
+    ._cancel => _retire(this,._all)
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
@@ -458,11 +460,11 @@ star.compiler.macro.rules{
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => this retire ._all */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
+    /* build ._cancel => _retire(this,._all) */
+    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire",This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,binary(Lc,"_suspend",This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
   }
 
   implementationMacro(A,.statement) where

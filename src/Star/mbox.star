@@ -13,7 +13,7 @@ star.mbox{
 
   public mboxException ::= .deadlock | .canceled.
 
-  public all e ~~ task[e] ~> resumeProtocol=>>suspendProtocol[e].
+  public all e ~~ task[e] ~> fiber[resumeProtocol,suspendProtocol[e]].
 
   public all e ~~ taskFun[e] ~> ((task[e])=>e).
 
@@ -38,14 +38,14 @@ star.mbox{
   post(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
       .hasData(_) => {
-	case this suspend .blocked(()=>.hasData(_).=St!) in {
+	case _suspend(this,.blocked(()=>.hasData(_).=St!)) in {
 	  .go_ahead => valis post(D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case this suspend .yield_ in {
+	case _suspend(this,.yield_) in {
 	  .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -58,13 +58,13 @@ star.mbox{
     case St! in {
       .hasData(D) => {
 	St := .quiescent;
-	case this suspend .yield_ in {
+	case _suspend(this,.yield_) in {
 	  .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
+	case _suspend(this,.blocked(()=> ~.hasData(_).=St!)) in {
 	  .go_ahead => valis collect(Ch)
 	  | .shut_down_ => raise .canceled
 	}
@@ -78,15 +78,7 @@ star.mbox{
   }
 
   spawnTask:all e ~~ (taskFun[e]) => task[e].
-  spawnTask(F) => case (Tsk spawn valof{
-    case Tsk suspend .identify(Tsk) in {
-	.go_ahead => { Tsk suspend .result(F(Tsk))}
-	| .shut_down_ => {}
-      };
-      Tsk retire .retired_
-    }) in {
-    .identify(Tsk) => Tsk
-    }.
+  spawnTask(F) => _fiber((Tsk,_)=> .result(F(Tsk))).
 
   public nursery:all e ~~ raises mboxException |: (cons[taskFun[e]]) => e.
   nursery(Ts) => valof{
@@ -98,14 +90,14 @@ star.mbox{
       while ~isEmpty(Q!) do{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
-	  case T resume .go_ahead in {
+	  case _resume(T,.go_ahead) in {
 	    .yield_ => {
 	      Q:=Q!++[T];
 	    }
 	    | .result(Rslt) => {
 	      while [C,..Cs] .= Q! do{
 		Q := Cs;
-		C resume .shut_down_;
+		_resume(C,.shut_down_);
 	      };
 		
 	      valis Rslt
@@ -158,7 +150,7 @@ star.mbox{
   
   public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
   pause() => valof{
-    case this suspend .yield_ in {
+    case _suspend(this,.yield_) in {
       .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -185,15 +177,15 @@ star.mbox{
 
   public waitfor:all k,e ~~ async (future[k,e])=>k raises e.
   waitfor(Ft) => valof{
-    case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
+    case _suspend(this,.blocked(()=>~_futureIsResolved(Ft))) in {
       .go_ahead => {
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
 	} else
-	this retire .retired_
+	_retire(this,.retired_)
       }
       _ =>
-	this retire .retired_
+	_retire(this,.retired_)
     }
   }
 
@@ -201,17 +193,17 @@ star.mbox{
   public tsk:all k,e,t ~~ (task[t],(async ()=>k raises e)) => future[k,e].
   tsk(sched,TFn) => valof{
     C = ref .neither;
-    sched suspend .fork((this)=>valof{
+    _suspend(sched,.fork((this)=>valof{
 	try{
 	  C := .either(TFn()); -- this marks the future as resolved
-	  this retire .retired_
+	    _retire(this,.retired_)
 	} catch e in {
 	  Ex => {
 	    C := .other(Ex);
-	    this retire .retired_
+	      _retire(this,.retired_)
 	  }
 	}
-      });
+	}));
     valis _cell_future(C)
   }
 }

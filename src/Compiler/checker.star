@@ -896,39 +896,6 @@ star.compiler.checker{
     V = typeOfExp(E,ErTp,Env,Path);
     valis .over(Lc,.rais(Lc,.anon(Lc,ErTp),V,Tp),.raisEs(ErTp))
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
-    CTp = newTypeVar("_C");
-    F = typeOfExp(equation(Lc,rndTuple(Lc,[L]),R),
-      funType([continType(CTp,Tp)],Tp),Env,Path);
-    valis .spwn(Lc,F,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,F,E) ?= isPaused(A) => valof{
-    RTp = newTypeVar("_R");
-    STp = newTypeVar("_S");
-    
-    checkType(A,continType(RTp,STp),Tp,Env);
-    
-    Fs = typeOfExp(equation(Lc,rndTuple(Lc,[T,F]),E),funType([Tp,RTp],STp),Env,Path);
-    valis .paus(Lc,Fs,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,F,E) ?= isSuspend(A) => valof{
-    CTp = newTypeVar("_C");
-    Fb = typeOfExp(F,continType(Tp,CTp),Env,Path);
-    Ms = typeOfExp(E,CTp,Env,Path);
-    valis .susp(Lc,Fb,Ms,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,F,E) ?= isResume(A) => valof{
-    CTp = newTypeVar("_C");
-    Fb = typeOfExp(F,continType(CTp,Tp),Env,Path);
-    Ms = typeOfExp(E,CTp,Env,Path);
-    valis .rsme(Lc,Fb,Ms,Tp)
-  }
-  typeOfExp(A,_Tp,Env,Path) where (Lc,F,E) ?= isRetire(A) => valof{
-    CTp = newTypeVar("_C");
-    Fb = typeOfExp(F,continType(newTypeVar("_"),CTp),Env,Path);
-    Ms = typeOfExp(E,CTp,Env,Path);
-    valis .rtire(Lc,Fb,Ms)
-  }
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
     valis .anon(locOf(A),Tp)
@@ -1005,27 +972,6 @@ star.compiler.checker{
   checkAction(A,Tp,Env,Path) where (Lc,E) ?= isRaise(A) => valof{
     Thrw = typeOfExp(A,newTypeVar("E"),Env,Path);
     valis (.doExp(Lc,Thrw),Env)
-  }
-  checkAction(A,_Tp,Env,Path) where (Lc,L,R) ?= isSpawn(A) => valof{
-    CTp = newTypeVar("_C");
-    RTp = newTypeVar("R");
-    Tp = funType([continType(CTp,RTp)],RTp);
-    F = typeOfExp(equation(Lc,rndTuple(Lc,[L]),R),Tp,Env,Path);
-    valis (.doExp(Lc,.spwn(Lc,F,RTp)),Env)
-  }
-  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isRetire(A) => valof{
-    CTp = newTypeVar("_C");
-    Fb = typeOfExp(F,continType(newTypeVar("_"),CTp),Env,Path);
-    Ms = typeOfExp(E,CTp,Env,Path);
-    valis (.doRetire(Lc,Fb,Ms),Env)
-  }
-  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isSuspend(A) => valof{
-    SS = typeOfExp(A,newTypeVar("_"),Env,Path);
-    valis (.doExp(Lc,SS),Env)
-  }
-  checkAction(A,_Tp,Env,Path) where (Lc,F,E) ?= isResume(A) => valof{
-    SS = typeOfExp(A,newTypeVar("_"),Env,Path);
-    valis (.doExp(Lc,SS),Env)
   }
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     if (ILc,Id) ?= isName(Lhs) then{

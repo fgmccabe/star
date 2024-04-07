@@ -142,20 +142,8 @@ star.compiler.macro{
     mkForIn(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForDo(A) => 
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
-  examineAction(A) where (Lc,T) ?= isValis(A) =>
-    mkValis(Lc,macroTerm(T)).
-  examineAction(A) where (Lc,T) ?= isRaise(A) =>
-    mkRaise(Lc,macroTerm(T)).
-  examineAction(A) where (Lc,L,R) ?= isSpawn(A) => 
-    mkSpawn(Lc,macroTerm(L),macroTerm(R)).
-  examineAction(A) where (Lc,T,F,E) ?= isPaused(A) => 
-    mkPaused(Lc,macroTerm(T),macroTerm(F),macroTerm(E)).
-  examineAction(A) where (Lc,F,E) ?= isSuspend(A) =>
-    mkSuspend(Lc,macroTerm(F),macroTerm(E)).
-  examineAction(A) where (Lc,F,E) ?= isResume(A) =>
-    mkResume(Lc,macroTerm(F),macroTerm(E)).
-  examineAction(A) where (Lc,F,E) ?= isRetire(A) =>
-    mkRetire(Lc,macroTerm(F),macroTerm(E)).
+  examineAction(A) where (Lc,T) ?= isValis(A) => mkValis(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,T) ?= isRaise(A) => mkRaise(Lc,macroTerm(T)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroAction(B)).
   examineAction(A) where (Lc,D,B) ?= isLetRecDef(A) => 
@@ -259,16 +247,6 @@ star.compiler.macro{
     mkRaise(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
-  examineTerm(A) where (Lc,L,R) ?= isSpawn(A) => 
-    mkSpawn(Lc,macroTerm(L),macroTerm(R)).
-  examineTerm(A) where (Lc,T,F,E) ?= isPaused(A) => 
-    mkPaused(Lc,macroTerm(T),macroTerm(F),macroTerm(E)).
-  examineTerm(A) where (Lc,L,R) ?= isSuspend(A) => 
-    mkSuspend(Lc,macroTerm(L),macroTerm(R)).
-  examineTerm(A) where (Lc,L,R) ?= isResume(A) => 
-    mkResume(Lc,macroTerm(L),macroTerm(R)).
-  examineTerm(A) where (Lc,L,R) ?= isRetire(A) => 
-    mkRetire(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isBrTerm(A) =>

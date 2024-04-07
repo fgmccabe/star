@@ -260,21 +260,6 @@ compExp(error(Lc,Msg),_OLc,_Cont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(rais(Lc,T,E),_,_,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
-compExp(spwn(Lc,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Lm,Lc,spawnCont(Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(paus(Lc,Lm),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Lm,Lc,pauseCont(Stk,Cont),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(sosp(Lc,K,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(E,Lc,compExp(K,Lc,suspCont(Stk,Cont),End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(rsm(Lc,K,E),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(E,Lc,compExp(K,Lc,resumeCont(Stk,Cont),End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(rtre(Lc,K,E),OLc,_Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(E,Lc,compExp(K,Lc,retireCont,End,Brks,Opts),End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,_).
 compExp(cnd(Lc,T,A,B),OLc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCondExp(Lc,T,A,B,Cont,End,Brks,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
@@ -350,10 +335,6 @@ compAction(vls(Lc,E),OLc,Cont,_ACont,_End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- 
 compAction(rais(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,compExp(T,Lc,throwCont,End,Brks,Opts),
-	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
-compAction(rtre(Lc,T,E),OLc,_Cont,_ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(E,Lc,compExp(T,Lc,retireCont,End,Brks,Opts),
 	  End,Brks,Opts,L,Lx,D,Dx,C0,[iLbl(End)|Cx],Stk,_Stkx).
 compAction(perf(Lc,Cll),OLc,_Cont,ACont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,

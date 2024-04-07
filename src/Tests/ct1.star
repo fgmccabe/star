@@ -17,7 +17,7 @@ test.ct1{
 	Count := Count!-1
       }
     } catch mboxException in { _ => logMsg("something went wrong") };
-    this retire .retired_
+    _retire(this,.retired_)
   }
 
   pong:(emitter[boolean]) => (task[()])=>().

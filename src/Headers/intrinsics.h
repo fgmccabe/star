@@ -4,6 +4,8 @@
  */
 
 #define continType(R,S) "x" R S
+#define fiberType(R,S) "UUz2'fiber'" R S
+
 #define ERRCODE "t'star.core*errorCode"
 
 
@@ -44,7 +46,7 @@ intrinsic(_blsr,"F(ii)i","BLsr",True,NotLast,"logical right shift")
 intrinsic(_basr,"F(ii)i","BAsr",True,NotLast,"arithmetic right shift")
 intrinsic(_bnot,"F(i)i","BNot",True,NotLast,"bitwise negate number")
 
-intrinsic(_fiber_eq,":k's':k'r'F(x(k'r')k's'x(k'r')k's')l","TEq",True,NotLast,"compare two fiber identifiers")
+intrinsic(_fiber_eq,":k'r':k's'F("fiberType("k'r'","k's'")fiberType("k'r'","k's'")")l","TEq",True,NotLast,"compare two fiber identifiers")
 
 intrinsic(_cell, ":k't'F(k't')rk't'", "Cell", True, NotLast,"create a reference cell")
 intrinsic(_get, ":k't'F(rk't')k't'", "Get", False,NotLast,"access contents of reference cell")

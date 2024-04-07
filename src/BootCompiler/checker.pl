@@ -840,49 +840,6 @@ typeOfExp(A,Tp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Path) :-
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
   typeOfExp(E,ErTp,Env,_,ErExp,Path).
-typeOfExp(A,Tp,Env,Env,spawn(Lc,Lam,Tp),Path) :-
-  isSpawn(A,Lc,L,R),!,
-  newTypeVar("_C",CTp),
-  mkEquation(Lc,tuple(Lc,"()",[L]),none,R,Eqn),
-  unitTp(UnitTp),
-%  reportMsg("spawn lambda %s:%s",[ast(Eqn),tpe(funType(tplType([continType(CTp,Tp)]),UnitTp))]),
-  typeOfLambda(Eqn,funType(tplType([continType(CTp,Tp)]),UnitTp),Env,Lam,Path).
-typeOfExp(A,Tp,Env,Env,pause(Lc,Lam,Tp),Path) :-
-  isContRule(A,Lc,F,C,E),!,
-  newTypeVar("_R",RTp),
-  newTypeVar("_S",STp),
-  unitTp(UnitTp),
-  verifyType(Lc,ast(A),continType(RTp,STp),Tp,Env),
-  mkEquation(Lc,tuple(Lc,"()",[name(Lc,"this"),F]),C,E,Eqn),
-  typeOfLambda(Eqn,funType(tplType([Tp,RTp]),UnitTp),Env,Lam,Path).
-typeOfExp(A,Tp,Env,Env,pause(Lc,Lam,Tp),Path) :-
-  isPaused(A,Lc,T,F,E),!,
-  newTypeVar("_R",RTp),
-  newTypeVar("_S",STp),
-  unitTp(UnitTp),
-  verifyType(Lc,ast(A),continType(RTp,STp),Tp,Env),
-  mkEquation(Lc,tuple(Lc,"()",[T,F]),none,E,Eqn),
-  typeOfLambda(Eqn,funType(tplType([Tp,RTp]),UnitTp),Env,Lam,Path).
-typeOfExp(A,Tp,Env,Env,susp(Lc,Kt,Evt,Tp),Path) :-
-  isSuspend(A,Lc,T,E),!,
-  newTypeVar("_R",RTp),
-  typeOfExp(T,continType(Tp,RTp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Evt,Path).
-typeOfExp(A,Tp,Env,Env,resme(Lc,Kt,Evt,Tp),Path) :-
-  isResume(A,Lc,T,E),!,
-  newTypeVar("_R",RTp),
-  typeOfExp(T,continType(RTp,Tp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Evt,Path).
-typeOfExp(A,Tp,Env,Env,resme(Lc,Kt,Evt,Tp),Path) :-
-  isInvoke(A,Lc,T,[E]),!,
-  newTypeVar("_R",RTp),
-  typeOfExp(T,continType(RTp,Tp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Evt,Path).
-typeOfExp(A,Tp,Env,Env,rtire(Lc,Kt,Evt,Tp),Path) :-
-  isRetire(A,Lc,T,E),!,
-  newTypeVar("_R",RTp),
-  typeOfExp(T,continType(Tp,RTp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Evt,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Exp,Path).
@@ -969,32 +926,6 @@ checkAction(A,_Tp,Env,Ev,doCall(Lc,Thrw),Path) :-
   isRaise(A,Lc,_E),!,
   newTypeVar("E",ErTp),
   typeOfExp(A,ErTp,Env,Ev,Thrw,Path).
-checkAction(A,_Tp,Env,Env,doCall(Lc,spawn(Lc,Lam,CTp)),Path) :-
-  isSpawn(A,Lc,L,R),!,
-  newTypeVar("_C",CTp),
-  newTypeVar("_R",RTp),
-  mkEquation(Lc,tuple(Lc,"()",[L]),none,R,Eqn),
-  unitTp(UnitTp),
-%  reportMsg("spawn lambda %s:%s",[ast(Eqn),tpe(funType(tplType([continType(CTp,RTp)]),UnitTp))]),
-  typeOfLambda(Eqn,funType(tplType([continType(CTp,RTp)]),UnitTp),Env,Lam,Path).
-checkAction(A,_,Env,Env,doCall(Lc,susp(Lc,Kt,Ev,ATp)),Path) :-
-  isSuspend(A,Lc,K,E),!,
-  newTypeVar("_R",RTp),
-  newTypeVar("_A",ATp),
-  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Ev,Path).
-checkAction(A,_,Env,Env,doCall(Lc,resme(Lc,Kt,Ev,RTp)),Path) :-
-  isResume(A,Lc,K,E),!,
-  newTypeVar("_R",RTp),
-  newTypeVar("_",ATp),
-  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Ev,Path).
-checkAction(A,_,Env,Env,doRetire(Lc,Kt,Ev),Path) :-
-  isRetire(A,Lc,K,E),!,
-  newTypeVar("_R",RTp),
-  newTypeVar("_",ATp),
-  typeOfExp(K,continType(ATp,RTp),Env,_,Kt,Path),
-  typeOfExp(E,RTp,Env,_,Ev,Path).
 checkAction(A,_Tp,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,

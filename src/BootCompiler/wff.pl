@@ -49,8 +49,7 @@
 	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
 	      isTestComprehension/3,mkTestComprehension/3,
 	      isCaseExp/4,caseExp/4,
-	      isSpawn/4,mkSpawn/4,isSuspend/4,mkSuspend/4,isResume/4,mkResume/4,isRetire/4,mkRetire/4,
-	      isPaused/5, mkPaused/5,isInvoke/4,mkInvoke/4,
+	      isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
@@ -991,38 +990,6 @@ isActionSeq(A,Lc,S) :-
 
 mkActionSeq(Lc,S1,S2,T) :-
   binary(Lc,";",S1,S2,T).
-
-isSpawn(A,Lc,T,V) :-
-  isBinary(A,Lc,"spawn",T,V).
-
-mkSpawn(Lc,T,V,A) :-
-  binary(Lc,"spawn",T,V,A).
-
-isPaused(A,Lc,T,F,V) :-
-  isBinary(A,Lc,"=>>",L,V),
-  isBinary(L,_,"spawn",T,F).
-
-mkPaused(Lc,T,F,V,A) :-
-  binary(Lc,"spawn",T,F,L),
-  binary(Lc,"=>>",L,V,A).
-
-isSuspend(A,Lc,T,E) :-
-  isBinary(A,Lc,"suspend",T,E).
-
-mkSuspend(Lc,T,E,A) :-
-  binary(Lc,"suspend",T,E,A).
-
-isResume(A,Lc,T,E) :-
-  isBinary(A,Lc,"resume",T,E).
-
-mkResume(Lc,T,E,A) :-
-  binary(Lc,"resume",T,E,A).
-
-isRetire(A,Lc,T,E) :-
-  isBinary(A,Lc,"retire",T,E).
-
-mkRetire(Lc,T,E,A) :-
-  binary(Lc,"retire",T,E,A).
 
 mkLoc(Lc,T) :-
   Lc=loc(Pk,Line,Col,Off,Ln),

@@ -447,6 +447,7 @@ star.compiler.types{
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
+  public fiberType(R,S) => .tpExp(.tpExp(.tpFun("fiber",2),R),S).
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
 

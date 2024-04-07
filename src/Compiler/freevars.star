@@ -54,11 +54,6 @@ star.compiler.freevars{
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
 	  foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H))).
     .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
-    .spwn(_,E,_) => freeVarsInExp(E,Q,Fv).
-    .paus(_,E,_) => freeVarsInExp(E,Q,Fv).
-    .susp(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
-    .rsme(_,F,E,_) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
-    .rtire(_,F,E) => freeVarsInExp(F,Q,freeVarsInExp(E,Q,Fv)).
     .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv).
     .thunk(_,E,_) => freeVarsInExp(E,Q,Fv).
     .thRef(_,E,_) => freeVarsInExp(E,Q,Fv).
@@ -86,7 +81,6 @@ star.compiler.freevars{
     .doLbld(_,_,A) => freeVarsInAct(A,Q,Fv).
     .doBrk(_,_) => Fv.
     .doValis(_,E) => freeVarsInExp(E,Q,Fv).
-    .doRetire(_,T,E) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
     .doDefn(_,P,E) where Q1 .= dropVars(P,Q) =>
       freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv)).
     .doMatch(_,P,E) where Q1 .= dropVars(P,Q) =>

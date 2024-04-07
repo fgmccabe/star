@@ -141,11 +141,6 @@ star.compiler.gencode{
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++HCde)
     }
     | .cRaise(Lc,T,E,_) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,raiseCont),Ctx,Stk)
-    | .cSpawn(Lc,L,_) => compExp(L,Lc,.notLast,spawnCont(pushStack(.ptr,Stk),Cont),Ctx,Stk)
-    | .cPaus(Lc,L,_) => compExp(L,Lc,.notLast,pauseCont(pushStack(.ptr,Stk),Cont),Ctx,Stk)
-    | .cSusp(Lc,K,E,Tp) => compExp(E,Lc,.notLast,expCont(K,Lc,.notLast,suspendCont(pushStack(.ptr,Stk),Cont)),Ctx,Stk)
-    | .cResume(Lc,K,E,Tp) => compExp(E,Lc,.notLast,expCont(K,Lc,.notLast,resumeCont(pushStack(.ptr,Stk),Cont)),Ctx,Stk)
-    | .cRetire(Lc,K,E) => compExp(E,Lc,.notLast,expCont(K,Lc,.notLast,retireCont),Ctx,Stk)
     | .cValof(Lc,A,Tp) =>
       compAction(A,Lc,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
     |  C where isCond(C) => valof{
@@ -220,7 +215,6 @@ star.compiler.gencode{
       }
     }
     | .aValis(Lc,E) => compExp(E,Lc,TM,Cont,Ctx,Stk)
-    | .aRetire(Lc,T,E) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,retireCont),Ctx,Stk)
     | .aDo(Lc,E) => compExp(E,Lc,TM,resetCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,Lc,.notLast,ptnCont(P,Lc,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,Lc,.notLast,expCont(P,Lc,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
@@ -549,21 +543,6 @@ star.compiler.gencode{
   raiseCont:Cont.
   raiseCont = cont{
     C(_,_,Cde) => (.none,Cde++[.iThrow])
-  }
-
-  spawnCont:(stack,Cont) => Cont.
-  spawnCont(Stk,Cont) => cont{
-    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iSpawn])
-  }
-
-  pauseCont:(stack,Cont) => Cont.
-  pauseCont(Stk,Cont) => cont{
-    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iFiber])
-  }
-
-  retireCont:Cont.
-  retireCont = cont{
-    C(_,_,Cde) => (.none,Cde++[.iRetire])
   }
 
   stoCont:(string,ltipe,stack,Cont) => Cont.

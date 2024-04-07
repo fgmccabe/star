@@ -126,10 +126,10 @@ static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer off) {
     tryRet(typeSigArity(sig, sigLen, &stackDepth));
   } else if (isInteger(frameLit))
     stackDepth = integerVal(frameLit);
-  if (stk != Null)
-    return outMsg(out, " (%d vs %d) %,*T", stackDepth, stk->fp->csp - stk->sp - lclCount(stk->fp->prog), displayDepth,
-                  frameLit);
-  else
+  if (stk != Null) {
+    assert(stackDepth == stk->fp->csp - stk->sp - lclCount(stk->fp->prog));
+    return outMsg(out, " %d %,*T", stackDepth, displayDepth, frameLit);
+  } else
     return outMsg(out, " %,*T", displayDepth, frameLit);
 }
 
