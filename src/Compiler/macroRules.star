@@ -68,7 +68,9 @@ star.compiler.macro.rules{
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
       (.typeterm,grammarTypeMacro),
-      (.expression,grammarCallMacro)]
+      (.expression,grammarCallMacro)],
+    "..<" -> [(.expression,incRangeMacro)],
+    "..>" -> [(.expression,decRangeMacro)]
   }.
 
   -- Convert assert C to assrt(C,"failed C",Loc)
@@ -383,7 +385,23 @@ star.compiler.macro.rules{
     valis .active(Lbld)
   }
   forLoopMacro(_,.actn) default => .inactive.
+
+/*
+   Lb..<Up
+   becomes
+   .range(Lc,Up,one)
+*/
+  incRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..<") =>
+    .active(mkCon(Lc,"range",[Lb,Up,.nme(Lc,"one")])).
   
+/*
+   Lb..>Up
+   becomes
+   .range(Lc,Up,-one)
+*/
+  decRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..<") =>
+    .active(mkCon(Lc,"range",[Lb,Up,unary(Lc,"-",.nme(Lc,"one"))])).
+
   /*
   for P in C do B
   becomes

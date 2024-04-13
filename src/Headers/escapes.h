@@ -93,7 +93,6 @@ escape(_suspend,":k'r':k's'F("fiberType("k'r'","k's'")"k's')k'r'","suspend fiber
 escape(_retire,":k'r':k's'F("fiberType("k'r'","k's'")"k's')()","retire fiber")
 escape(_resume,":k'r':k's'F("fiberType("k'r'","k's'")"k'r')k's'","resume fiber")
 
-
 escape(sqrt, "|F(f)fr"ERRCODE, "square root")
 escape(exp, "|F(f)fr"ERRCODE, "exponential")
 escape(log, "F(f)f", "logarithm")

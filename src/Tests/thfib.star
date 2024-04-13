@@ -6,7 +6,7 @@ test.thfib{
   import test.lib.fib.
 
   memoFib(N) => let{.
-    fibs = ({ $$(fb(ix-1)+fb(ix-2)) | ix in .range(0,N,1) }:vect[thunk[integer]]).
+    fibs = ({ $$(fb(ix-1)+fb(ix-2)) | ix in 0..<N }:vect[thunk[integer]]).
     fb(0) => 1.
     fb(1) => 1.
     fb(ix) where F?=fibs[ix] => F!!

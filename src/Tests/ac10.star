@@ -20,7 +20,7 @@ test.ac10{
   firstMultiple:(integer,integer)=>string raises exception.
   firstMultiple(X,M) => valof{
     L:{
-      for ix in .range(1,X,1) do{
+      for ix in 1..<X do{
 	if ix%M==0 then
 	  break L
       };
