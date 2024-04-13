@@ -219,18 +219,21 @@ star.compiler.checker{
       valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs,declareDecls(Dcs,Ev))
     }.
 
-    redoTypeLambdas = valof{
-      for S in Specs do{
-	if .defnSpec(.tpSp(_),_,[St]) .= S && _ ?= isTypeFunStmt(St) then{
-	  valis [|Specs|]>1
-	}
-      };
-      valis .false
-    }
+    typeLambdas = ({ Lc | S in Specs &&
+	    .defnSpec(.tpSp(_),Lc,[St]) .= S && _ ?= isTypeFunStmt(St)}:cons[_]).
   .} in valof{
-    if redoTypeLambdas then{
-      (_,Xpts,Dcs) = checkDefs(Specs,[],[],[],Env);
-      valis checkDefs(Specs,[],[],[],declareDecls(Xpts,declareDecls(Dcs,Env)))
+    if [|typeLambdas|] > 0 then{
+      -- A poor man fixed point. Will not happen often.
+      Ev := Env;
+      for ix in 0..<[|typeLambdas|] do{
+	(_,Xpts,Dcs) = checkDefs(Specs,[],[],[],Ev!);
+	if traceCanon! then{
+	  logMsg("extra declarations $(Dcs)");
+	};
+	Ev := declareDecls(Xpts,declareDecls(Dcs,Ev!));
+      };
+
+      valis checkDefs(Specs,[],[],[],Ev!)
     } else{
       valis checkDefs(Specs,[],[],[],Env)
     }

@@ -255,6 +255,9 @@ star.compiler.typeparse{
 
     if Tp ?= parseTypeFun(B,QQ++Q,Env) then{
       TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),Tp,QQ);
+      if traceCanon! then{
+	logMsg("parsed type fun $(TpRl)")
+      };
       valis .some(TpRl)
     } else
     valis .none
@@ -395,7 +398,8 @@ star.compiler.typeparse{
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
---    logMsg("parse type exists $(St)");
+    if traceCanon! then
+      logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
     (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
@@ -405,7 +409,8 @@ star.compiler.typeparse{
     valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
---    logMsg("parse type fun $(St)");
+    if traceCanon! then
+      logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
     (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);

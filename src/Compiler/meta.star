@@ -64,6 +64,10 @@ star.compiler.meta{
 
   public defnSpec ::= .defnSpec(defnSp,option[locn],cons[ast]).
 
+  public implementation hasLoc[defnSpec] => {
+    locOf(.defnSpec(_,Lc,_)) => Lc
+  }
+
   public defnSp ::= .varSp(string)
     | .cnsSp(string)
     | .tpSp(string)
