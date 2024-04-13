@@ -7,6 +7,15 @@ streams of characters, mechanisms for accessing and navigating file
 directories and mechanisms for the appropriate formatting and parsing
 of data.
 
+There are several 'flavors' of i/o features:
+
+@itemize
+@item streaming,
+@item regular,
+@item async
+@end itemize
+
+
 @node Streaming Input
 @section Streaming Input
 
@@ -25,7 +34,7 @@ The @code{inCharStream} function returns an @code{inputStream} of
 @code{char}acters:
 
 @example
-public inCharStream:raises ioException |: (string) => inputStream[char].
+public inCharStream:(string) => inputStream[char] raises ioException.
 @end example
 
 Each character in the stream is accessed via the @code{stream}
@@ -33,7 +42,7 @@ contract. For example, a function that counts the length of a file (in
 unicode code points) might look like:
 
 @example
-countCPs:raises ioException:(string)=>integer.
+countCPs:(string)=>integer raises ioException.
 countCPs(Fl) => let@{.
    count([],Cx) => Cx.
    count([_,..Rst],Cx) => count(Rst,Cx+1)
@@ -48,9 +57,44 @@ would be:
 countCPs(Fl) => foldLeft((_,Cx)=>Cx+1,0,inCharStream(Fl)).
 @end example
 
+@node inLineStream
+@subsection @code{inLineStream}
+
+The @code{inLineStream} function creates a stream of lines. Each
+element of the stream is a @code{string} representing a line of the
+input stream.
+
+@example
+public inLineStream:(string) => inputStream[string] raises ioException.
+@end example
+
+Lines in the input are delineated as per the locale of the operating
+system: separated by newline characters in Unix & Mac OS, and crlf in
+Windows.
+
+For example, a function that counts the length of a file (in
+unicode code points) might look like:
+
+@example
+countLns:(string)=>integer raises ioException.
+countLns(Fl) => let@{.
+   count([],Cx) => Cx.
+   count([_,..Rst],Cx) => count(Rst,Cx+1)
+   .@} in count(inLineStream(Fl),0)
+@end example
+
+@quotation Note
+The @code{inLineStream} is typically more efficient than
+@code{inCharStream} since each access to I/O is for a line rather than
+simply a single character.
+@end quotation
+
+
 
 @node The ioHandle Type
 @section The @code{ioHandle} Type
+
+
 
 Reading from and writing to files is mediated through the opaque
 @code{ioHandle}; which is a resource that represents an open file.

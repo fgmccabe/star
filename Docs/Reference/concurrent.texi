@@ -9,12 +9,23 @@ the @code{task} and the @code{nursery}. A @code{task} is a form of
 @code{nursery} is a dynamic structure in which @code{task}s may be
 performed.
 
+In addition, there are two mechanisms that allow tasks to communicate
+with each other: message channels and futures.
+
+@quotation Note
+@Star{}'s concurrency features are based on the more primitive
+concepts around fibers.
+@end quotation
+
+@node Task Nursery
+@section Task Nursery
+
+A nursery is a group of tasks that are scheduled together.
 
 @node Tasks
 @section Tasks
-The foundation for concurrency is the @refer{TaskExpression}. A
-@code{task} is a @refer{Expression} that denotes a
-computation that may be performed in parallel with other computations.
+A @code{task} is a @refer{Expression} that denotes a computation that
+may be performed in parallel with other computations.
 
 @node Task Expressions
 @subsection Task Expressions
@@ -121,11 +132,11 @@ use @code{recvRv} to wait for the message and the sender would use
 @subsection The @code{channel} Type
 
 @example
-channel[
+channel[t]
 @end example
 
 
-Like the @code{rendezvous} and @code{task} types, the @code{channel} type is _opaque_.
+Like the @code{task} type, the @code{channel} type is _opaque_.
 
 @node The @code{channel} Function
 @subsection The @code{channel} Function
@@ -155,3 +166,4 @@ An immediate implication of synchronous communication is that there is
 no buffer of messages associated with @code{channel}s.
 
 
+@include fibers.texi
