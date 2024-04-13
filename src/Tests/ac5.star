@@ -9,7 +9,7 @@ test.ac5{
   f:(integer) => integer.
   f(X) => valof{
     F = ref 1;
-    for Ix in .range(1,X,1) do{
+    for Ix in 1..<X do{
       F := F!*Ix
     };
     valis F!

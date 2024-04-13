@@ -1,6 +1,5 @@
 test.do4{
   import star.
-  import star.range.
   import star.assert.
 
     -- Test action notation (for loop)
@@ -8,7 +7,7 @@ test.do4{
   doFact:(integer) => integer.
   doFact(X) => valof{
     Fx = ref 1;
-    for Ix in .range(1,X+1,1) do{
+    for Ix in 1..<X+1 do{
       Fx := Fx!*Ix
     };
     valis Fx!

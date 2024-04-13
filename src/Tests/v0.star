@@ -53,29 +53,29 @@ test.v0{
 
     assert VV!==TT;
 
-    for ix in .range(0,size(VV!),1) do{
+    for ix in 0..<size(VV!) do{
       show vindex(VV!,ix)
     };
     
-    for ix in .range(0,size(VV!),1) do{
+    for ix in 0..<size(VV!) do{
       if Ex ?= vindex(VV!,ix) then
 	VV := vupdate(VV!,ix,Ex++"*");
     };
 
     show VV!;
 
-    for ix in .range(0,size(VV!),1) do{
+    for ix in 0..<size(VV!) do{
       show vdelete(VV!,ix)
     };
 
-    for ix in .range(0,size(VV!),1) do{
+    for ix in 0..<size(VV!) do{
       VV := vdelete(VV!,0);
       show VV!
     };
 
     show TT//((X)=>X++X);
 
-    show ({ Ix | Ix in .range(0,100,1) }:vect[integer]);
+    show ({ Ix | Ix in 0..<100 }:vect[integer]);
 
     valis ()
   }

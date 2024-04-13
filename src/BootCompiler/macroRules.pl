@@ -42,6 +42,8 @@ macroRl("=>",expression,macroRules:curryMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
+macroRl("..<",expression,macroRules:incRangeMacro).
+macroRl("..>",expression,macroRules:decRangeMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 macroRl("trace",expression,macroRules:traceMacro).
@@ -419,7 +421,25 @@ binRefMacro(T,expression,Rp) :-
   isSquareTuple(B,_,[A]),!,
   cellRef(Lc,L,LR),
   squareTerm(Lc,LR,[A],Rp).
-  
+
+/*
+   Lb..<Up
+   becomes
+   .range(Lc,Up,one)
+*/
+incRangeMacro(T,expression,Rp) :-
+  isBinary(T,Lc,"..<",Lb,Up),!,
+  mkConApply(Lc,name(Lc,"range"),[Lb,Up,name(Lc,"one")],Rp).
+
+/*
+   Lb..>Up
+   becomes
+   .range(Lc,Up,-one)
+*/
+decRangeMacro(T,expression,Rp) :-
+  isBinary(T,Lc,"..>",Lb,Up),!,
+  mkConApply(Lc,name(Lc,"range"),[Lb,Up,unary(Lc,"-",name(Lc,"one"))],Rp).
+
 /*
   for P in C do B
   becomes
