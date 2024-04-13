@@ -35,7 +35,7 @@ test.sieve{
       if Cnt<Mx then{
 	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	(PChnl,NChnl) = newSlot();
-	_suspend(this,.fork((T)=>sieve(T,Cnt+1,Mx,PChnl)));
+	subTask(this,(T)=>sieve(T,Cnt+1,Mx,PChnl));
 	filter(Nxt,Chnnl,NChnl)
       } else{
 	logMsg("collected $(Mx) primes");

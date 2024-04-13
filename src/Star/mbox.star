@@ -6,7 +6,6 @@ star.mbox{
   .result(e) |
   .fork(taskFun[e]) |
   .requestIO(ioHandle,()=>boolean) |
-  .identify(task[e]) |
   .retired_.
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
@@ -79,6 +78,14 @@ star.mbox{
 
   spawnTask:all e ~~ (taskFun[e]) => task[e].
   spawnTask(F) => _fiber((Tsk,_)=> .result(F(Tsk))).
+
+  public subTask:all e ~~ (task[e],taskFun[e])=>() raises mboxException.
+  subTask(Schd,Fn) => valof{
+    case _suspend(Schd,.fork(Fn)) in {
+      .go_ahead => valis ().
+      .shut_down_ => raise .canceled
+    }
+  }
 
   public nursery:all e ~~ raises mboxException |: (cons[taskFun[e]]) => e.
   nursery(Ts) => valof{
@@ -161,7 +168,6 @@ star.mbox{
     disp(.blocked(B)) => "blocked $(B())".
     disp(.result(e)) => "result #(_stringOf(e,2))".
     disp(.fork(F)) => "fork #(_stringOf(F,2))".
-    disp(.identify(T)) => "identify #(_stringOf(T,2))".
     disp(.retired_) => "retired"
   }
 

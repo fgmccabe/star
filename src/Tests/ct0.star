@@ -16,7 +16,7 @@ test.ct0{
 	if dividesBy(Count!,3) then{
 	  Cnt = Count!;
 	  logMsg("spawning sub-task");
-	  _suspend(this,.fork(
+	  subTask(this,
 	      (Tsk)=>valof{
 		try{
 		  logMsg("We were spawned $(Cnt)");
@@ -37,7 +37,7 @@ test.ct0{
 		    _retire(Tsk,.retired_)
 		  }
 		}
-	      }));
+	      });
 	};
 	logMsg("moving along, $(Count!) rounds left ");
       };
