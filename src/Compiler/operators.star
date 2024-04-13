@@ -40,9 +40,7 @@ star.compiler.operators{
   oper(Op) => case Op in {
     "all" => [.prefixOp(1010,1009)].
     ".<." => [.infixOp(699,700,699)].
-    "^=" => [.infixOp(899,900,899)].
     "&&" => [.infixOp(909,910,910)].
-    "^?" => [.infixOp(800,800,799)].
     "let" => [.prefixOp(899,898)].
     "~=" => [.infixOp(899,900,899)].
     "~>" => [.infixOp(1230,1231,1230)].
@@ -54,7 +52,9 @@ star.compiler.operators{
     ",.." => [.infixOp(999,1000,999)].
     "for" => [.prefixOp(1175,1174)].
     "••" => [.infixOp(450,450,449)].
+    "..<" => [.infixOp(749,750,749)].
     "**" => [.infixOp(600,600,599)].
+    "..>" => [.infixOp(749,750,749)].
     "->" => [.infixOp(889,890,889)].
     ".+." => [.prefixOp(700,699)].
     "<$" => [.infixOp(719,720,720)].
@@ -101,7 +101,6 @@ star.compiler.operators{
     "++" => [.infixOp(719,720,720)].
     ">" => [.infixOp(899,900,899)].
     "return" => [.prefixOp(930,929)].
-    "?" => [.prefixOp(820,819)].
     "@" => [.prefixOp(400,399), .infixOp(399,400,400)].
     "|=" => [.infixOp(998,999,998)].
     "in" => [.infixOp(899,900,900)].
@@ -123,7 +122,6 @@ star.compiler.operators{
     "==" => [.infixOp(899,900,899)].
     "\\" => [.infixOp(700,700,699)].
     "=>" => [.infixOp(949,950,950)].
-    "^" => [.prefixOp(100,99), .infixOp(99,100,99)].
     "<=>" => [.infixOp(949,950,949)].
     "generator" => [.prefixOp(300,299)].
     "valof" => [.prefixOp(300,299)].
@@ -253,6 +251,7 @@ star.compiler.operators{
     (".",`+`) => .some(".+").
     (".",`=`) => .some(".=").
     (".",`>`) => .some(".>").
+    (".",`.`) => .some("..").
     (".",`/`) => .some("./").
     (".",` `) => .some(". ").
     (".#",`.`) => .some(".#.").
@@ -268,6 +267,8 @@ star.compiler.operators{
     (".>>",`.`) => .some(".>>.").
     (".>>",`>`) => .some(".>>>").
     (".>>>",`.`) => .some(".>>>.").
+    ("..",`<`) => .some("..<").
+    ("..",`>`) => .some("..>").
     ("/",`\\`) => .some("/\\").
     ("/",`.`) => .some("/.").
     ("/",`/`) => .some("//").
@@ -287,9 +288,7 @@ star.compiler.operators{
     ("\\",`+`) => .some("\\+").
     ("\\",`-`) => .some("\\-").
     ("\\",`/`) => .some("\\/").
-    ("^",`?`) => .some("^?").
     ("^",`/`) => .some("^/").
-    ("^",`=`) => .some("^=").
     ("^/",`/`) => .some("^//").
     (":",`?`) => .some(":?").
     (":",`:`) => .some("::").
@@ -351,6 +350,8 @@ star.compiler.operators{
     ".=" => .true.  /* pattern match */
     ".>>." => .true.  /* logical shift right */
     ".>>>." => .true.  /* arithmetic shift right */
+    "..<" => .true.  /* range increasing iterator expression */
+    "..>" => .true.  /* range decreasing iterator expression */
     "./" => .true.  /* dfa expression */
     ". " => .true.  /* statement terminator */
     "/" => .true.  /* division */
@@ -380,11 +381,8 @@ star.compiler.operators{
     "\\-" => .true.  /* remove element from set */
     "\\/" => .true.  /* union */
     "]" => .true.  /* square brackets */
-    "^" => .true.  /* Optional propagation */
-    "^?" => .true.  /* option propagate */
     "^/" => .true.  /* filter */
     "^//" => .true.  /* filter map */
-    "^=" => .true.  /* optional decomposition match */
     ":" => .true.  /* type annotation */
     ":?" => .true.  /* fallable type coercion */
     "::" => .true.  /* type coercion */
@@ -407,7 +405,6 @@ star.compiler.operators{
     ">=" => .true.  /* greater than or equal */
     ">>" => .true.  /* grammar produce value */
     ">>=" => .true.  /* monadic bind */
-    "?" => .true.  /* mark expression as optionally there */
     "??" => .true.  /* conditional operator */
     "?=" => .true.  /* optional decomposition match */
     "?}" => .true.  /* test comprehension */
@@ -426,7 +423,6 @@ star.compiler.operators{
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
     "all" => .true.
-    "^=" => .true.
     "&&" => .true.
     "let" => .true.
     "~>" => .true.
@@ -437,6 +433,8 @@ star.compiler.operators{
     "valis" => .true.
     ",.." => .true.
     "for" => .true.
+    "..<" => .true.
+    "..>" => .true.
     "{?" => .true.
     "raise" => .true.
     "async" => .true.
@@ -470,7 +468,6 @@ star.compiler.operators{
     "=>>" => .true.
     "=" => .true.
     "|:" => .true.
-    "?" => .true.
     "@" => .true.
     "|=" => .true.
     "|>" => .true.
@@ -488,7 +485,6 @@ star.compiler.operators{
     "[" => .true.
     "=>" => .true.
     "]" => .true.
-    "^" => .true.
     "<=>" => .true.
     "|]" => .true.
     "generator" => .true.

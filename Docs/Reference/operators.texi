@@ -10,18 +10,10 @@
 @tab non-associative infix
 @tab 700
 @tab set membership
-@item @code{^=}
-@tab non-associative infix
-@tab 900
-@tab optional decomposition match
 @item @code{&&}
 @tab right associative infix
 @tab 910
 @tab conjunction
-@item @code{^?}
-@tab left associative infix
-@tab 800
-@tab option propagate
 @item @code{let}
 @tab non-associative prefix
 @tab 899
@@ -70,10 +62,18 @@
 @tab left associative infix
 @tab 450
 @tab binary function composition
+@item @code{..<}
+@tab non-associative infix
+@tab 750
+@tab range increasing iterator expression
 @item @code{**}
 @tab left associative infix
 @tab 600
 @tab exponentiation
+@item @code{..>}
+@tab non-associative infix
+@tab 750
+@tab range decreasing iterator expression
 @item @code{->}
 @tab non-associative infix
 @tab 890
@@ -294,10 +294,6 @@
 @tab non-associative prefix
 @tab 930
 @tab wrap value in monad
-@item @code{?}
-@tab non-associative prefix
-@tab 820
-@tab mark expression as optionally there
 @item @code{@@}
 @tab non-associative prefix
 @tab 400
@@ -313,7 +309,7 @@
 @item @code{in}
 @tab right associative infix
 @tab 900
-@tab list membership
+@tab membership
 @item @code{break}
 @tab non-associative prefix
 @tab 10
@@ -386,14 +382,6 @@
 @tab right associative infix
 @tab 950
 @tab function arrow
-@item @code{^}
-@tab non-associative prefix
-@tab 100
-@tab Optional propagation
-@item @code{^}
-@tab non-associative infix
-@tab 100
-@tab Apply optional function and match result
 @item @code{<=>}
 @tab non-associative infix
 @tab 950
@@ -562,15 +550,15 @@
 @caption{Standard Graphical Tokens}
 @multitable |{Graphic}|{Graphic}|{Graphic}|{Graphic}|{Graphic}|
   @item @code{.<.}
-  @tab @code{^=}
   @tab @code{&&}
-  @tab @code{^?}
   @tab @code{~=}
-  @item @code{~>}
+  @tab @code{~>}
   @tab @code{.|.}
-  @tab @code{,..}
+  @item @code{,..}
   @tab @code{••}
+  @tab @code{..<}
   @tab @code{**}
+  @tab @code{..>}
   @item @code{->}
   @tab @code{.+.}
   @tab @code{<$}
@@ -606,39 +594,37 @@
   @tab @code{|:}
   @tab @code{++}
   @tab @code{>}
-  @item @code{?}
-  @tab @code{@@}
+  @item @code{@@}
   @tab @code{|=}
   @tab @code{~~}
   @tab @code{!!}
-  @item @code{⊕}
-  @tab @code{.^.}
+  @tab @code{⊕}
+  @item @code{.^.}
   @tab @code{//}
   @tab @code{.~.}
   @tab @code{=<}
-  @item @code{==}
-  @tab @code{\\}
+  @tab @code{==}
+  @item @code{\\}
   @tab @code{=>}
-  @tab @code{^}
   @tab @code{<=>}
-  @item @code{•}
+  @tab @code{•}
   @tab @code{.&.}
-  @tab @code{///}
+  @item @code{///}
   @tab @code{::}
   @tab @code{+++}
-  @item @code{:=}
+  @tab @code{:=}
   @tab @code{:?}
-  @tab @code{.<<.}
+  @item @code{.<<.}
   @tab @code{>>=}
   @tab @code{^/}
-  @item @code{<~}
+  @tab @code{<~}
   @tab @code{|}
-  @tab @code{.#.}
+  @item @code{.#.}
   @tab @code{~}
   @tab @code{^//}
-  @item @code{||}
+  @tab @code{||}
   @tab @code{::=}
-  @tab @code{/\\}
+  @item @code{/\\}
   @tab @code{>=}
   @tab @code{>>}
 

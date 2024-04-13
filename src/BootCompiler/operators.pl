@@ -23,9 +23,7 @@
 
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
-  operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(909, 910, 910)]).
-  operator("^?", [infixOp(800, 800, 799)]).
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
@@ -37,7 +35,9 @@
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
   operator("••", [infixOp(450, 450, 449)]).
+  operator("..<", [infixOp(749, 750, 749)]).
   operator("**", [infixOp(600, 600, 599)]).
+  operator("..>", [infixOp(749, 750, 749)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
@@ -84,7 +84,6 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
-  operator("?", [prefixOp(820, 819)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("|=", [infixOp(998, 999, 998)]).
   operator("in", [infixOp(899, 900, 900)]).
@@ -106,7 +105,6 @@
   operator("==", [infixOp(899, 900, 899)]).
   operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).
-  operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("generator", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
@@ -199,6 +197,7 @@
   follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
+  follows('.','.','..').
   follows('.','/','./').
   follows('.',' ','. ').
   follows('.#','.','.#.').
@@ -214,6 +213,8 @@
   follows('.>>','.','.>>.').
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
+  follows('..','<','..<').
+  follows('..','>','..>').
   follows('/','\\','/\\').
   follows('/','.','/.').
   follows('/','/','//').
@@ -233,9 +234,7 @@
   follows('\\','+','\\+').
   follows('\\','-','\\-').
   follows('\\','/','\\/').
-  follows('^','?','^?').
   follows('^','/','^/').
-  follows('^','=','^=').
   follows('^/','/','^//').
   follows(':','?',':?').
   follows(':',':','::').
@@ -293,6 +292,8 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
+  final('..<',"..<").	 /* range increasing iterator expression */
+  final('..>',"..>").	 /* range decreasing iterator expression */
   final('./',"./").	 /* dfa expression */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
@@ -322,11 +323,8 @@
   final('\\-',"\\-").	 /* remove element from set */
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
-  final('^',"^").	 /* Optional propagation */
-  final('^?',"^?").	 /* option propagate */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
-  final('^=',"^=").	 /* optional decomposition match */
   final(':',":").	 /* type annotation */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
@@ -349,7 +347,6 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
-  final('?',"?").	 /* mark expression as optionally there */
   final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
@@ -364,7 +361,6 @@
   final('$$',"$$").	 /* thunk expression */
 
   keyword("all").
-  keyword("^=").
   keyword("&&").
   keyword("let").
   keyword("~>").
@@ -375,6 +371,8 @@
   keyword("valis").
   keyword(",..").
   keyword("for").
+  keyword("..<").
+  keyword("..>").
   keyword("{?").
   keyword("raise").
   keyword("async").
@@ -408,7 +406,6 @@
   keyword("=>>").
   keyword("=").
   keyword("|:").
-  keyword("?").
   keyword("@").
   keyword("|=").
   keyword("|>").
@@ -426,7 +423,6 @@
   keyword("[").
   keyword("=>").
   keyword("]").
-  keyword("^").
   keyword("<=>").
   keyword("|]").
   keyword("generator").
