@@ -1,9 +1,9 @@
-@chapter Fibers
+@section Fibers
 @node Fibers
 
 A fiber is a computation whose execution can be managed. Fibers can be
 created, suspended and resumed. Fibers also have identity which allows
-correlation of fibers when managing sets of fibers.
+data structures to be created that contain fiber references.
 
 @quotation Note
 Fibers represent the @emph{foundational} concept denoting concurrent
@@ -32,11 +32,12 @@ streams.
 @end itemize
 @end quotation
 
-@section Fiber Type
+@subsection Fiber Type
 @cindex type, fiber
 @cindex fiber type
 
-The @code{fiber} type is used to characterize the type of fiber expressions. It takes the form:
+The @code{fiber} type is used to characterize the type of fiber
+expressions. It takes the form:
 @float BNF,fiberTypeFig
 @caption{Fiber Type Syntax}
 @display
@@ -46,47 +47,44 @@ The @code{fiber} type is used to characterize the type of fiber expressions. It 
 @end display
 @end float
 
-The second type argument refers to values that the fiber may suspend
-with (see below) and the first type argument refers to values that the
-fiber may be resumed with.
+The first type refers to values that can be sent to the fiber --
+typically when it is resumed --; and the second type argument refers
+to values that the fiber may suspend with (see below) -- i.e., may
+return to the external computation.
 
-@section Creating Fibers
+@subsection Creating Fibers
 
-A @code{fiber} is created using one of two escape functions:
-@code{_new_fiber} or @code{_spawn}. They both take a so-called
-@emph{fiber function} as argument.
+A @code{fiber} is created using the escape function:
+@code{_fiber}. Its main argument is a @emph{fiber function}.
 
-@subsection Fiber functions
+@subsubsection Fiber functions
 
-A fiber function is a function that is executed in a separate
-fiber. The type of a fiber function has a strong effect on the fiber:
-it specifies the legal ways that the fiber can be suspended, resumed
-and what values it may return. In addition, a fiber function takes a
-@code{_fiber} argument -- the identity of the fiber that the fiber
-function is running on.
-
+A fiber function is a function that denotes the computation that a fiber performs.
 The general form of the type of a fiber function is:
 
 @example
-all r,s ~~ (fiber[r,s]) => s
+all r,s ~~ (fiber[r,s],r) => s
 @end example
 
 The @code{r} type indicates the type of the value given to the fiber
 whenever it is resumed, and the @code{s} type indicates the type that
 the fiber will return and what it will yield should it suspend.
 
-@subsection Using @code{_spawn}
+Note the second occurrance of @code{r}: when a fiber is resumed for
+the first time, the value given during the corresponding
+@code{_resume} operation is modeled as the second argument to the
+fiber function.
 
-The @code{_spawn} function takes a fiber function and enters that
-function on a new fiber.
+The @code{_fiber} function takes a fiber function and returns a new
+fiber that will execute that function.
 
-The type of @code{_spawn} is:
+The type of @code{_fiber} is:
 
 @example
-_spawn: all r,s ~~ ((fiber[r,s])=>s)=>s
+_fiber: all r,s ~~ ((fiber[r,s],r)=>s)=>fiber[r,s]
 @end example
 
-I.e., it returns whatever its fiber function returns.
+I.e., it returns a new fiber.
 
 @subsection Suspend using @code{_suspend}
 
