@@ -454,10 +454,6 @@ collectTypeRefs(T,All,SoFar,Rx) :-
   isBinary(T,_,"<=>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
-collectTypeRefs(T,All,SoFar,Rx) :-
-  isContinType(T,_,L,R),
-  collectTypeRefs(L,All,SoFar,R0),
-  collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rest) :-
   isBinary(T,_,"|:",L,R),
   collConstraint(L,All,SoFar,R0),

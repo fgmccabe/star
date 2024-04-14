@@ -146,14 +146,6 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
-  public isContinType:(ast) => option[(option[locn],ast,ast)].
-  isContinType(A) => isBinary(A,"=>>").
-
-  public mkContinType(Lc,A,B) => binary(Lc,"=>>",A,B).
-
-  public mkContType:(option[locn],ast) => ast.
-  mkContType(Lc,Lhs) => mkContinType(Lc,Lhs,unit(Lc)).
-
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
   isConstructorStmt(A) where (_,_,I) ?= isXQuantified(A) =>
@@ -571,7 +563,6 @@ star.compiler.wff{
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
   surfaceName(T) where _ ?= isFunctionType(T) => "=>".
-  surfaceName(T) where _ ?= isContinType(T) => "=>>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.

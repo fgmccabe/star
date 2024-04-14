@@ -685,14 +685,6 @@ star.compiler.normalize{
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   
-  getContTypeArg:(tipe) => option[tipe].
-  getContTypeArg(T) => valof{
-    if (.tpFun("=>>",2),[A,_])?= getTypeArgs(T) then
-      valis .some(A)
-    else
-    valis .none
-  }
-
   varDefs:(cons[canonDef]) => cons[(cId,canon)].
   varDefs(Defs) =>
     foldLeft((D,FF) => (V?=isVarDef(D) ?? [V,..FF] || FF),
