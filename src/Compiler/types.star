@@ -266,7 +266,6 @@ star.compiler.types{
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
-  showTpExp(.tpFun("=>>",2),[A,R],Dp) => "#(showType(A,Dp-1)) =>> #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
   showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
@@ -446,7 +445,6 @@ star.compiler.types{
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
-  public continType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
   public fiberType(R,S) => .tpExp(.tpExp(.tpFun("fiber",2),R),S).
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
@@ -543,7 +541,6 @@ star.compiler.types{
   public fltType = .nomnal("star.core*float").
   public strType = .nomnal("star.core*string").
   public boolType = .nomnal("star.core*boolean").
-  public contType(T) => continType(T,unitTp).
   public thunkType(T) => makeTpExp("thunk",[T]).
   public ioType = .nomnal("ioHandle").
 

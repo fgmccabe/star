@@ -84,11 +84,6 @@ star.compiler.typeparse{
     R = parseType(Q,Rhs,Env);
     valis consType(A,R)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isContinType(T) => valof{
-    A = parseArgType(Q,Lhs,Env);
-    R = parseType(Q,Rhs,Env);
-    valis continType(A,R)
-  }
   parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
     R = parseType(Q,Lhs,Env);
     S = parseType(Q,Rhs,Env);

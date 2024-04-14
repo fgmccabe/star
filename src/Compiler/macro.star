@@ -336,8 +336,6 @@ star.compiler.macro{
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
     mkFunctionType(Lc,macroType(L),macroType(R)).
-  examineType(A) where (Lc,L,R) ?= isContinType(A) =>
-    mkContinType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>

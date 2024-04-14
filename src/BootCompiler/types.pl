@@ -31,7 +31,6 @@ isType(tpExp(_,_)).
 isType(tplType(_)).
 isType(funType(_,_)).
 isType(consType(_,_)).
-isType(continType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
 isType(faceType(_,_)).
@@ -177,9 +176,6 @@ ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
-ssType(continType(A,R),ShCon,Dp,sq([AA,ss("=>>"),RR])) :-
-  ssType(A,ShCon,Dp,AA),
-  ssType(R,ShCon,Dp,RR).
 ssType(valType(R),ShCon,Dp,sq([ss("val "),RR])) :- ssType(R,ShCon,Dp,RR).
 ssType(allType(V,T),ShCon,Dp,sq([ss("all "),iv(ss(","),[types:tvr(V)|VV]),ss("~"),TT])) :-
   deRef(T,T0),
@@ -292,8 +288,6 @@ tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
-tpArity(continType(A,_),Ar) :- !,
-  progTypeArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
@@ -304,7 +298,6 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(continType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -313,7 +306,6 @@ resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
-resType(continType(_,R),R) :- !.
 resType(R,R) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
@@ -456,7 +448,6 @@ tpNm(tplType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
 tpNm(funType(_,_),"=>").
-tpNm(continType(_,_),"=>>").
 tpNm(faceType(Flds,_),Nm) :-
   sort(Flds,types:cmpFld,SFlds),
   project0(SFlds,Fns),
@@ -521,9 +512,6 @@ toLtp(funType(Args,Res),fnTipe(As,R)) :-
   toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-
   map(Args,types:toLtipe,As).
-toLtp(continType(Args,Res),cnTipe(As,R)) :-
-  toLtipe(Args,As),
-  toLtipe(Res,R).
 toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-
@@ -559,8 +547,6 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
-occIn(V,continType(A,_)) :- deRef(A,AA),occIn(V,AA).
-occIn(V,continType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

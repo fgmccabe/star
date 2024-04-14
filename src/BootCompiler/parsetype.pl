@@ -52,10 +52,6 @@ parseType(F,Env,Q,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,Q,AT),!,
   parseType(R,Env,Q,RT).
-parseType(F,Env,Q,continType(AT,RT)) :-
-  isContinType(F,_,L,R),
-  parseArgType(L,Env,Q,AT),
-  parseType(R,Env,Q,RT).
 parseType(F,Env,Q,Tp) :-
   isRef(F,_,L),
   parseType(L,Env,Q,A),
