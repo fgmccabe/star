@@ -77,7 +77,6 @@
   operator("-->", [infixOp(1248, 1249, 1248)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
-  operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1240, 1239)]).
@@ -250,7 +249,6 @@
   follows('=','<','=<').
   follows('=','=','==').
   follows('=','>','=>').
-  follows('=>','>','=>>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
@@ -342,7 +340,6 @@
   final('=<',"=<").	 /* less than or equal */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */
-  final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
@@ -403,7 +400,6 @@
   keyword(";").
   keyword("-->").
   keyword(".=").
-  keyword("=>>").
   keyword("=").
   keyword("|:").
   keyword("@").

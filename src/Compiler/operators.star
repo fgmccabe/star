@@ -94,7 +94,6 @@ star.compiler.operators{
     "-->" => [.infixOp(1248,1249,1248)].
     "<" => [.infixOp(899,900,899)].
     ".=" => [.infixOp(899,900,899)].
-    "=>>" => [.infixOp(949,950,950)].
     "=" => [.infixOp(974,975,974)].
     "|:" => [.infixOp(1234,1235,1234)].
     "show" => [.prefixOp(1240,1239)].
@@ -304,7 +303,6 @@ star.compiler.operators{
     ("=",`<`) => .some("=<").
     ("=",`=`) => .some("==").
     ("=",`>`) => .some("=>").
-    ("=>",`>`) => .some("=>>").
     (">",`=`) => .some(">=").
     (">",`>`) => .some(">>").
     (">>",`=`) => .some(">>=").
@@ -400,7 +398,6 @@ star.compiler.operators{
     "=<" => .true.  /* less than or equal */
     "==" => .true.  /* equality predicate */
     "=>" => .true.  /* function arrow */
-    "=>>" => .true.  /* continuation arrow */
     ">" => .true.  /* greater than */
     ">=" => .true.  /* greater than or equal */
     ">>" => .true.  /* grammar produce value */
@@ -465,7 +462,6 @@ star.compiler.operators{
     ";" => .true.
     "-->" => .true.
     ".=" => .true.
-    "=>>" => .true.
     "=" => .true.
     "|:" => .true.
     "@" => .true.
