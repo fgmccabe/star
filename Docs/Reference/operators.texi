@@ -266,10 +266,6 @@
 @tab non-associative infix
 @tab 900
 @tab pattern match
-@item @code{=>>}
-@tab right associative infix
-@tab 950
-@tab continuation arrow
 @item @code{=}
 @tab non-associative infix
 @tab 975
@@ -589,43 +585,42 @@
   @tab @code{-->}
   @tab @code{<}
   @tab @code{.=}
-  @item @code{=>>}
-  @tab @code{=}
+  @item @code{=}
   @tab @code{|:}
   @tab @code{++}
   @tab @code{>}
-  @item @code{@@}
-  @tab @code{|=}
+  @tab @code{@@}
+  @item @code{|=}
   @tab @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
-  @item @code{.^.}
-  @tab @code{//}
+  @tab @code{.^.}
+  @item @code{//}
   @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
-  @item @code{\\}
-  @tab @code{=>}
+  @tab @code{\\}
+  @item @code{=>}
   @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
-  @item @code{///}
-  @tab @code{::}
+  @tab @code{///}
+  @item @code{::}
   @tab @code{+++}
   @tab @code{:=}
   @tab @code{:?}
-  @item @code{.<<.}
-  @tab @code{>>=}
+  @tab @code{.<<.}
+  @item @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
-  @item @code{.#.}
-  @tab @code{~}
+  @tab @code{.#.}
+  @item @code{~}
   @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
-  @item @code{/\\}
-  @tab @code{>=}
+  @tab @code{/\\}
+  @item @code{>=}
   @tab @code{>>}
 
 @end multitable
