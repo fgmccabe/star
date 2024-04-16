@@ -27,6 +27,7 @@ expressions and actions that the expression itself may be part of.
   | @refer{LambdaExpression}
   | @refer{TypedExpression}
   | @refer{SequenceExpression}
+  | @refer{RangeExpression}
   | @refer{IndexExpression}
   | @refer{SliceExpression}
 @end display
@@ -134,7 +135,7 @@ is valid.
 Note that one may change a suitably declared field of a record even
 when the variable 'holding' the record it not itself re-assignable.
 @example
-P is someone@{ name="fred". age := 23 @}
+P = someone@{ name="fred". age := 23 @}
 @end example
 
 I.e., re-assignability depends only on whether the target is re-assignable.
@@ -589,7 +590,7 @@ respectively.
 @findex = operator
 
 A record cannot be updated in the normal sense -- unless one or more
-of the fields of teh record is marked as being a reference
+of the fields of the record is marked as being a reference
 variable. However, there is a notation for constructing a new literal
 from an existing record, replacing one or more of the fields with new
 values.
@@ -786,6 +787,31 @@ denotes a singleton tuple with the integer @code{34} in it.
 @quotation Note
 Fortunately, singleton tuples are not often required in programs.
 @end quotation
+
+@node Accessing Tuples
+@subsection Accessing Tuples
+We can access the elements of a tuple by pattern matching, as in:
+
+@example
+(A,B) .= @var{Ex}
+@end example
+
+We can also access a tuple by index:
+
+@example
+T.3
+@end example
+
+This type will access the fourth element of @code{T} (elements of a
+tuple start at index 0). The type of this element depends on the the
+type of @code{T}: which is constrained to be a tuple of at least four
+elements.
+
+@quotation Note
+The element being indexed must be identified by a literal
+integer. @Star{} does not support dynamic access to tuple elements.
+@end quotation
+
 
 @node Function Application Expressions
 @section Function Application Expressions
@@ -1106,7 +1132,7 @@ memFib(N) => let@{
 @end example
 
 This version of fibonacci is linear in @code{N}, whereas the
-traditional version is exponential in @code{N}.
+recursive version is exponential in @code{N}.
 
 @node Let Expressions
 @subsection Let Expressions
@@ -1468,6 +1494,76 @@ There is a corresponding contract for sequence terms as @refer{SequencePattern}s
 which uses the @code{stream} contract to signal the underlying
 semantics.
 @end quotation
+
+
+@node Range Expression Notation
+@subsection Range Expression Notation
+
+@float BNF,rangeExpressionFig
+@caption{Range Expressions}
+@display
+@anchored{RangeExpression} ::= @refer{Expression}@code{..<} @refer{Expression}
+  | @refer{Expression}@code{..>} @refer{Expression}
+@end display
+@end float
+
+I.e., a range expression denotes a range of numbers. The range expression
+
+@example
+0..<100
+@end example
+
+denotes the integers in the range 0 .. 99 inclusive. The range expression
+
+@example
+100..>0
+@end example
+
+denotes a decreasing range of integers in the range 100 down to 1.
+
+Range expressions are most useful when used in @code{for} loops. For
+example, the traditional-looking action:
+
+@example
+for Ix in 0..<Mx do @{
+  ...
+@}
+@end example
+will repeat the body of the loop @code{Mx} times.
+
+@subsubsection The @code{range} term
+
+Range expressions are syntactic sugar for terms involving the
+@code{range} constructor function. The @code{range} type is defined as though by:
+
+@example
+all i ~~ range[i] ::= .range(i,i,i).
+@end example
+
+An ascending range expression like that above is equivalent to
+
+@example
+.range(0,100,one)
+@end example
+
+and the descending range is:
+
+@example
+.range(100,0,-one)
+@end example
+
+What makes the @code{range} type interesting is the contracts that are implemented
+for it: the @code{stream} contract, the @code{sequence} contract, the
+@code{folding} contract, the @code{iter} contract, the @code{display}
+contract, and the @code{generate} contract.
+
+The last of these is what enables the use of range expressions in
+@code{for} loops.
+
+Range expressions work with @code{integer} values, but also with
+@code{float} and @code{bignum} values. In fact, range expressions can
+work with any type for which the @code{arith} contract is implemented
+-- including user-defined types.
 
 @node Index Expression
 @subsection Index Expression

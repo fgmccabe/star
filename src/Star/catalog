@@ -59,6 +59,7 @@
     "star.sort": "sort.star",
     "star.statistics": "statistics.star",
     "star.strings": "strings.star",
+    "star.system": "system.star",
     "star.thread": "threads.star",
     "star.topsort": "topsort.star",
     "star.log": "log.star",

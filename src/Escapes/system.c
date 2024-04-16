@@ -10,13 +10,13 @@
 #include <tpl.h>
 #include <errorCodes.h>
 #include <unistd.h>
-#include <stringBuffer.h>
 #include <arithP.h>
 #include <pipe.h>
 #include <ioops.h>
 #include <iochnnlP.h>
 #include <sys/wait.h>
 #include "consP.h"
+#include "option.h"
 
 
 // Number of nano seconds
@@ -101,19 +101,16 @@ ReturnStatus g__envir(heapPo h) {
     if (pt != NULL) {
       ky = (termPo) allocateString(h, envPair, pt - envPair);
       vl = (termPo) allocateString(h, pt + 1, uniStrLen(pt + 1));
-    } else {
-      ky = (termPo) allocateCString(h, envPair);
-      vl = voidEnum;
+      pair = (termPo) allocatePair(h, ky, vl);
+      list = (termPo) allocateCons(h, pair, list);
     }
-    pair = (termPo) allocatePair(h, ky, vl);
-    list = (termPo) allocateCons(h, pair, list);
   }
-  gcReleaseRoot(NULL, root);
+  gcReleaseRoot(h, root);
   setProcessRunnable(currentProcess);
   return (ReturnStatus) {.ret=Normal, .result=(termPo) list};
 }
 
-ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__getenv(heapPo h, termPo a1) {
   char key[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(a1), key, NumberOf(key));
@@ -122,9 +119,9 @@ ReturnStatus g__getenv(heapPo h, termPo a1, termPo a2) {
 
   if (val != NULL) {
     return (ReturnStatus) {.ret=Normal,
-      .result=(termPo) allocateCString(h, val)};
+      .result=(termPo) wrapSome(h, allocateCString(h, val))};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=a2};
+    return (ReturnStatus) {.ret=Normal, .result=noneEnum};
   }
 }
 
@@ -136,7 +133,7 @@ ReturnStatus g__setenv(heapPo h, termPo xc, termPo a1, termPo a2) {
   copyChars2Buff(C_STR(a2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
-    return (ReturnStatus) {.ret=Normal, .result=voidEnum};
+    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   } else
     return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eFAIL};
 }

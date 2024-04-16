@@ -1,0 +1,94 @@
+@node System Access
+@chapter System Access
+
+These functions allow the @Star{} application to access the Posix
+environment that the application is running in; for example,
+@code{getenv} accesses an environment variable.
+
+@section Environment Variables
+
+These functions allow the programmer to access and set environment variables.
+
+@quotation Note
+In order to use these functions, it is necessary to import the
+@code{star.system} package:
+
+@example
+import star.system.
+@end example
+@end quotation
+
+
+@subsection @code{getenv}
+
+The @code{getenv} function retrieves the value of an environment
+variable, as an optional string:
+
+@example
+getenv:(string) => option[string]
+@end example
+
+
+If the environment variable is not set, then @code{.none} is returned.
+
+@subsection @code{setenv}
+
+The @code{setenv} function sets an environment variable:
+
+@example
+setenv:(string,string)=>().
+@end example
+
+The @code{setenv} function takes the name of an evironment variable,
+and a @code{string} value, and sets the environment variable to the
+new value.
+
+@subsection @code{envir()}
+
+The @code{envir} function returns a list of tuple pairs consisting of
+all the environment variables defined.
+
+@example
+envir:()=>cons[(string,string)].
+@end example
+
+@section Process
+
+@subsection @code{_exit}
+
+The @code{_exit} function terminates the @Star{} application with a numeric code:
+
+@example
+_exit:(integer) => @emph{unreachable}
+@end example
+
+The @code{_exit} procedure does not return. Instead, it results in the
+termination. The argument of @code{_exit} is used as the value of the
+process itself. An exit value of zero implies that the process
+terminated successfully.
+
+@subsection Execute @code{shell}
+
+The @code{shell} function executes a sub-process and returns the
+integer return code from running the command.
+
+@example
+shell:(string,cons[string],cons[(string,string)]) => integer raises errorCode
+@end example
+
+The first argument is the file path of the command file to execute;
+the second is a list of arguments to the command and the third
+argument is the environment variables to pass to the command.
+
+The return value from executing the command is returned by
+@code{shell}. By convention, a return value of zero means that the
+command succeeded.
+
+@quotation Note:
+The @code{shell}'ed command is executed to completion @emph{before}
+the @code{shell} call returns. If it is desired to execute a
+sub-process concurrently then use the @code{pipe} function.
+@end quotation
+
+
+
