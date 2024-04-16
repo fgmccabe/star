@@ -248,7 +248,7 @@ star.compiler.escapes{
     "_str_charat" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*integer")])),.tpExp(.tpFun("star.core*option",1),.nomnal("star.core*char")))).
     "_str_quote" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.nomnal("star.core*string"))).
     "_str_format" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
-    "_getenv" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.nomnal("star.core*string"))).
+    "_getenv" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string")])),.tpExp(.tpFun("star.core*option",1),.nomnal("star.core*string")))).
     "_setenv" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode")))).
     "_envir" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")])))).
     "_fork" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([]))])),.nomnal("star.thread*thread"))).

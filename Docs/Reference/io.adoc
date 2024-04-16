@@ -2,8 +2,6 @@
 = Input and Output
 [[io]]
 
-Input and output features include mechanisms for reading and writing streams of characters, mechanisms for accessing and navigating file directories and mechanisms for the appropriate formatting and parsing of data.
-
 The I/O streaming features are organized into a number of layers:
 \begin{itemize}
 \item At the `block' layer, an I/O operation is represented as a `task` -- see <<concurrent>> and <<computation>>. The value of an input task is typically some fragment of data from the input. An output task always has `()` as its value.

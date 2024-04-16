@@ -244,7 +244,7 @@ escapeType("_str_apnd",funType(tplType([type("star.core*string"),type("star.core
 escapeType("_str_charat",funType(tplType([type("star.core*string"),type("star.core*integer")]),tpExp(tpFun("star.core*option",1),type("star.core*char")))).
 escapeType("_str_quote",funType(tplType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_format",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
-escapeType("_getenv",funType(tplType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
+escapeType("_getenv",funType(tplType([type("star.core*string")]),tpExp(tpFun("star.core*option",1),type("star.core*string")))).
 escapeType("_setenv",constrained(funType(tplType([type("star.core*string"),type("star.core*string")]),tplType([])),raises(type("star.core*errorCode")))).
 escapeType("_envir",funType(tplType([]),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")])))).
 escapeType("_fork",funType(tplType([funType(tplType([]),tplType([]))]),type("star.thread*thread"))).

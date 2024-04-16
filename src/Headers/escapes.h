@@ -320,7 +320,7 @@ escape(_str_charat, "F(si)"optionType("c"), "index into string")
 escape(_str_quote, "F(s)s", "construct a quoted version of a string")
 escape(_str_format, "F(ss)s", "apply formatting to a char sequence")
 
-escape(_getenv, "F(ss)s", "get an environment variable")
+escape(_getenv, "F(s)"optionType("s"), "get an environment variable")
 escape(_setenv, "|F(ss)()r"ERRCODE, "set an environment variable")
 escape(_envir, "F()L(ss)", "return entire environment")
 

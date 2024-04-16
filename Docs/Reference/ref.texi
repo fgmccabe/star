@@ -113,7 +113,7 @@ F.G. McCabe).
 
 @include rdf.texi
 
-@c @include system.texi
+@include system.texi
 
 @include catalog.texi
 
