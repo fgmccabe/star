@@ -109,20 +109,20 @@ star.compiler.typeparse{
   }
   parseType(Q,T,Env) where (Lc,Lhs,Fld) ?= isFieldAcc(T) => valof{
     if traceCanon! then
-      logMsg("field access: $(T)");
+      showMsg("field access: $(T)");
     if (_,Id) ?= isName(Lhs) then{
       if traceCanon! then
-	logMsg("record id : $(Id)");
+	showMsg("record id : $(Id)");
       if RcType ?= findVarFace(Id,Env) && .faceType(_,Tps).=deRef(RcType) then{
 	if traceCanon! then
-	  logMsg("record type: $(RcType)");
+	  showMsg("record type: $(RcType)");
 	if Rl ?= {! Rl | (Fld,Rl) in Tps !} then{
 	  if traceCanon! then
-	    logMsg("record type rulw: $(Rl)");
+	    showMsg("record type rulw: $(Rl)");
 
 	  if (_,FrshRl) .= freshen(Rl,Env) then{
 	    if traceCanon! then
-	      logMsg("freshened rule: $(FrshRl)");
+	      showMsg("freshened rule: $(FrshRl)");
 
 	    valis applyTypeRule(Lc,FrshRl,.nomnal(Fld),Env)
 	  } else{
@@ -216,13 +216,13 @@ star.compiler.typeparse{
 
   parseTypeFun(St,Q,Env) where (Lc,H,B) ?= isTypeLambda(St) => valof{
     if traceCanon! then{
-      logMsg("parse type fun $(St)")
+      showMsg("parse type fun $(St)")
     };
     
     (Tp,_) = parseTypeHead(Q,H,Env,id);
 
     if traceCanon! then{
-      logMsg("parse type $(B) in $(Q)")
+      showMsg("parse type $(B) in $(Q)")
     };
     
     RTp = parseType(Q,B,Env);
@@ -231,7 +231,7 @@ star.compiler.typeparse{
   }
   parseTypeFun(St,Q,Env) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
     if traceCanon! then{
-      logMsg("parse type exists $(St)")
+      showMsg("parse type exists $(St)")
     };
 
     Q = parseBoundTpVars(V);
@@ -242,31 +242,23 @@ star.compiler.typeparse{
     valis .some(TpRl)
   }
   parseTypeFun(St,Q,Env) where (Lc,V,B) ?= isQuantified(St) => valof{
-    if traceCanon! then{
-      logMsg("parse type fun $(St)")
-    };
-    
     QQ = parseBoundTpVars(V);
 
     if Tp ?= parseTypeFun(B,QQ++Q,Env) then{
       TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),Tp,QQ);
-      if traceCanon! then{
-	logMsg("parsed type fun $(TpRl)")
-      };
       valis .some(TpRl)
     } else
     valis .none
   }
   
   parseTypeFun(St,_,_) default => valof{
-    logMsg("cant parse $(St)");
+    reportError("cant parse $(St)",locOf(St));
     valis .none
   }
   
   parseTypeName(_,_,"_",_) => (.anonType,.none).
   parseTypeName(Q,_,Nm,_) where Tp?={! T | (Nm,T) in Q !} => (Tp,.none).
   parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
---    logMsg("type $(Nm) has type rule $(TpRl)");
     if isLambdaRule(TpRl) then 
       valis (T,.some(TpRl))
     else
@@ -348,7 +340,6 @@ star.compiler.typeparse{
   parseContractConstraint(Q,A,Env) where
       (Lc,O,As) ?= isSquareTerm(A) && (OLc,Nm) ?= isName(O) => valof{
 	Cn = parseContractName(OLc,Nm,Env);
---	logMsg("contract name $(typeKey(Cn))");
 	if [AAs].=As && (_,L,R) ?= isBinary(AAs,"->>") then{
 	  Tps = parseTypes(Q,deComma(L),Env);
 	  Dps = parseTypes(Q,deComma(R),Env);
@@ -393,8 +384,6 @@ star.compiler.typeparse{
 
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
-    if traceCanon! then
-      logMsg("parse type exists $(St)");
     Q = parseBoundTpVars(V);
     (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
@@ -404,8 +393,6 @@ star.compiler.typeparse{
     valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
-    if traceCanon! then
-      logMsg("parse type fun $(St)");
     Q = parseBoundTpVars(V);
     (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
     Cx = parseConstraints(C,Q,Env);
@@ -467,7 +454,6 @@ star.compiler.typeparse{
       
   public parseConstructor:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseConstructor(Nm,St,Env,Path) => valof{
-    -- logMsg("parse constructor $(St)");
     Tp = parseType([],St,Env);
     Lc = locOf(St);
     FullNm = qualifiedName(Path,.conMark,Nm);
@@ -504,9 +490,6 @@ star.compiler.typeparse{
 	ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
 	ConDec = .conDec(Lc,Id,FullNm,ConRl);
 
-	if traceCanon! then
-	  logMsg("Contract decl $(ConDec)");
-
 	DlId = dlrName(Id);
 	DlTp = makeTpExp(FullNm,ArgTps++DepTps);
 	
@@ -514,12 +497,6 @@ star.compiler.typeparse{
 	TpeDec = .tpeDec(Lc,Id,.tpFun(FullNm,[|ArgTps|]+[|DepTps|]),TypeRl);
 
 	ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
-
-	if traceCanon! then
-	  logMsg("Contract vars $(Qv)");
-	
-	if traceCanon! then
-	  logMsg("Contract type $(ConConTp)");
 
 	ConFullNm = qualifiedName(Path,.typeMark,DlId);
 	ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
@@ -544,16 +521,11 @@ star.compiler.typeparse{
     Tmplte = pickTypeTemplate(Tp);
 
     (Fs,Ts,Cs) = parseAlgebraicFace(B,Q,Env,Path);
-    if traceCanon! then
-      logMsg("Algebraic face $(Fs) $(Ts)");
     
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType(Fs,Ts)),Q);
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
-
-    if traceCanon! then
-      logMsg("Constructor map $(CMap)");
 
     (CDefs,CDecs) = buildConstructors(B,CMap,Q,Cx,Tp,Env,Path);
     (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Env,Path);
@@ -561,9 +533,6 @@ star.compiler.typeparse{
 
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
     TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
-
-    if traceCanon! then
-      logMsg("Type dec $(TDec)");
 
     valis ([TDef,..CDefs]++ADefs++UDefs,[TDec,..CDecs]++ADecs++UDecs)
   }
@@ -603,10 +572,6 @@ star.compiler.typeparse{
   algebraicFace(A,Qs,Fs,Ts,Env,Path) where (_,V,B) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(V);
 
-    if traceCanon! then{
-      logMsg("existential quantifiers of $(A) is $(BV)")
-    };
-    
     (F,T,Cs) = algebraicFace(B,BV++Qs,Fs,Ts,Env,Path);
     if [(Id,_)].=Cs then
       valis (F//(((Fld,Ftp))=>(Fld,reQX(BV,Ftp))),T,[(Id,A)])
@@ -672,8 +637,6 @@ star.compiler.typeparse{
 	ConNm = qualifiedName(Path,.conMark,Nm);
 
 	ConTp = reQ(Qs,wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp)));
-	if traceCanon! then
-	  logMsg("constructor: $(A)\:$(ConTp)");
 	if Ix?=Mp[Nm] then
 	  valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
 	else{
@@ -730,9 +693,6 @@ star.compiler.typeparse{
       Lc = locOf(B);
 --      DefltEqn = .rule(Lc,.tple(Lc,[.anon(Lc,RcTp)]),.none,.enm(Lc,"none",optType(FldTp)));
       AcEqs = accessorEqns(B,Fld,FTp,[/*DefltEqn*/]);
-
-      if traceCanon! then
-	logMsg("accessor equations $(AcEqs)");
 
       if isEmpty(AcEqs) then
 	reportWarning("no accessor for $(Fld)",locOf(B));

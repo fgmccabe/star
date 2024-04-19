@@ -22,7 +22,7 @@ star.compiler.macro.rules{
   applyRls(A,_,St,[]) => St.
   applyRls(A,Cxt,St,[(Cxt,R),..Rls]) => valof{
     if macroTracing! then
-      logMsg("try $(A)\:$(Cxt)");
+      showMsg("try $(A)\:$(Cxt)");
     Rslt = R(A,Cxt);
     if .inactive.=Rslt then
       valis applyRls(A,Cxt,St,Rls)

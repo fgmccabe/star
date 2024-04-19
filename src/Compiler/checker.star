@@ -34,7 +34,7 @@ star.compiler.checker{
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
 
 	-- if traceCanon! then
-	--   logMsg("Import declarations $(IDecls)");
+	--   showMsg("Import declarations $(IDecls)");
 
 	PkgEnv = declareDecls(IDecls,stdDict);
 	PkgPth = packageName(Pkg);
@@ -53,7 +53,7 @@ star.compiler.checker{
 	  overloadProgram([BrDfs,..Defs],declareDecls(All++BrDcs,PkgEnv))* || []);
 
 	if traceCanon! then{
-	  logMsg("pkg definitions: $(RDefs),\nexports: $(AllX)");
+	  showMsg("pkg definitions: $(RDefs),\nexports: $(AllX)");
 	};
 
 	valis (pkgSpec{pkg=Pkge. imports=Imports. exports=AllX},
@@ -127,7 +127,7 @@ star.compiler.checker{
       reportError("open statements $(Opens) not supported",Lc);
 
     if traceCanon! then{
-      logMsg("visibility of $(Stmts) is $(Vis)")
+      showMsg("visibility of $(Stmts) is $(Vis)")
     };
     
     valis checkGroups(Gps,letExport(Vis),Face,Annots,pushFace(Face,Lc,Env,Pth),Pth)
@@ -144,7 +144,7 @@ star.compiler.checker{
     };
 
     if traceCanon! then{
-      logMsg("visibility of $(Stmts) is $(Vis)")
+      showMsg("visibility of $(Stmts) is $(Vis)")
     };
     
     G = Gps*; -- Flatten the result
@@ -228,7 +228,7 @@ star.compiler.checker{
       for ix in 0..<[|typeLambdas|] do{
 	(_,Xpts,Dcs) = checkDefs(Specs,[],[],[],Ev!);
 	if traceCanon! then{
-	  logMsg("extra declarations $(Dcs)");
+	  showMsg("extra declarations $(Dcs)");
 	};
 	Ev := declareDecls(Xpts,declareDecls(Dcs,Ev!));
       };
@@ -251,11 +251,11 @@ star.compiler.checker{
     }.
     .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
       if traceCanon! then
-	logMsg("parse type defn $(St)");
+	showMsg("parse type defn $(St)");
 
       (Df,Dcs) = parseTypeDef(Nm,St,Env,Path);
       if traceCanon! then
-	logMsg("declarations from $(St)\:$(Dcs)");
+	showMsg("declarations from $(St)\:$(Dcs)");
       valis (Df,Publish(.tpSp(Nm),Dcs),Dcs)
     }.
     .defnSpec(.cnsSp(_),_,_) => ([],[],[]).
@@ -279,7 +279,7 @@ star.compiler.checker{
     (cons[canonDef],cons[decl]).
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check function $(Stmts)\:$(Tp)");
+      showMsg("check function $(Stmts)\:$(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgramType) = deConstrain(ETp);
@@ -289,7 +289,7 @@ star.compiler.checker{
     FullNm = qualifiedName(Path,.valMark,Nm);
 
     if traceCanon! then
-      logMsg("function $(.funDef(Lc,FullNm,Rls,Cx,Tp))");
+      showMsg("function $(.funDef(Lc,FullNm,Rls,Cx,Tp))");
     
     valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
@@ -297,7 +297,7 @@ star.compiler.checker{
   checkVar:(string,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
   checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path) => valof{
     if traceCanon! then
-      logMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
+      showMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,VarTp) = deConstrain(ETp);
@@ -306,7 +306,7 @@ star.compiler.checker{
       Val = typeOfExp(R,VarTp,Es,Path);
       FullNm = qualifiedName(Path,.valMark,Nm);
       if traceCanon! then
-	logMsg("definition $(.varDef(Lc,FullNm,Val,Cx,Tp))");
+	showMsg("definition $(.varDef(Lc,FullNm,Val,Cx,Tp))");
 
       if .lambda(_,_,Rl,_,_).=Val then
 	valis ([.funDef(Lc,FullNm,[Rl],Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
@@ -361,7 +361,7 @@ star.compiler.checker{
     (cons[canonDef],cons[decl]).
   checkImplementation(Lc,Q,C,H,B,Env,Outer,Path) => valof{
     if traceCanon! then{
-      logMsg("checking implementation for $(H) = $(B) at $(Lc)");
+      showMsg("checking implementation for $(H) = $(B) at $(Lc)");
     };
     
     BV = parseBoundTpVars(Q);
@@ -379,7 +379,7 @@ star.compiler.checker{
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
 	if traceCanon! then
-	  logMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
+	  showMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
 	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
@@ -421,12 +421,12 @@ star.compiler.checker{
 
   typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
     if traceCanon! then
-      logMsg("type annotated var $(Id)\:$(T)");
+      showMsg("type annotated var $(Id)\:$(T)");
 
     ETp = parseType([],T,Env);
 
     if traceCanon! then
-      logMsg("type  $(ETp), expected type $(Tp)");
+      showMsg("type  $(ETp), expected type $(Tp)");
 
     checkType(E,Tp,ETp,Env);
     Ev = declareVr(Id,Lc,Tp,(OLc,_,D) => .vr(OLc,Id,Tp),.none,Env);
@@ -434,16 +434,16 @@ star.compiler.checker{
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
-      logMsg("type annotated pattern $(E)\:$(T)");
+      showMsg("type annotated pattern $(E)\:$(T)");
 
     ETp = parseType([],T,Env);
 
     if traceCanon! then
-      logMsg("type  $(ETp), expected type $(Tp)");
+      showMsg("type  $(ETp), expected type $(Tp)");
 
     checkType(E,Tp,ETp,Env);
     if traceCanon! then
-      logMsg("type annotated ptn $(E), check against $(ETp)");
+      showMsg("type annotated ptn $(E), check against $(ETp)");
     valis typeOfPtn(E,ETp,Env,Path)
   }.
   typeOfPtn(A,Tp,Env,Path) where 
@@ -479,7 +479,7 @@ star.compiler.checker{
   }
   typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isBrTerm(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
-      logMsg("labeled record ptn: $(A)");
+      showMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
 
@@ -588,11 +588,11 @@ star.compiler.checker{
   }.
   typeOfExp(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
-      logMsg("type annotated expression $(E)\:$(T)");
+      showMsg("type annotated expression $(E)\:$(T)");
     ETp = parseType([],T,Env);
 
     if traceCanon! then
-      logMsg("type  $(ETp)");
+      showMsg("type  $(ETp)");
 
     checkType(E,Tp,ETp,Env);
 
@@ -678,7 +678,7 @@ star.compiler.checker{
     Rt = newTypeVar("_R");
 
     if traceCanon! then
-      logMsg("check lambda $(A), expected type $(Tp)");
+      showMsg("check lambda $(A), expected type $(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
@@ -694,19 +694,10 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Cnd,E0,Path);
       Rep = typeOfExp(R,Rt,E1,Path);
 
-      Lam = .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Cx,Tp);
-
-      if traceCanon! then
-	logMsg("lambda: $(Lam)\:$(Tp)");
-
-      valis Lam
+      valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Cx,Tp);
     } else{
       Rep = typeOfExp(R,Rt,E0,Path);
-      Lam = .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp);
-      if traceCanon! then
-	logMsg("lambda: $(Lam) computed type $(Tp)");
-
-      valis Lam
+      valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp);
     }
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) => valof{
@@ -717,7 +708,7 @@ star.compiler.checker{
     ThExp = typeOfExp(E,Et,Env,Path);
 
     if traceCanon! then
-      logMsg("thunk $(E)\:$(Et)");
+      showMsg("thunk $(E)\:$(Et)");
 
     LName = genId(Path++"λ");
     valis .thunk(Lc,.lambda(Lc,LName,.rule(Lc,.tple(Lc,[]),.none,ThExp),[],funType([],Et)),Tp)
@@ -726,7 +717,7 @@ star.compiler.checker{
     ThExp = typeOfExp(E,thunkType(Tp),Env,Path);
 
     if traceCanon! then
-      logMsg("thunk ref $(ThExp)\:$(Tp)");
+      showMsg("thunk ref $(ThExp)\:$(Tp)");
 
     valis .thRef(Lc,ThExp,Tp)
   }
@@ -782,7 +773,7 @@ star.compiler.checker{
     face = .faceType(sortedFlds//((Nm,(_,FTp)))=>(Nm,FTp),[]);
 
     if traceCanon! then{
-      logMsg("anon record type: $(face)");
+      showMsg("anon record type: $(face)");
     };
 
     if sameType(face,Tp,Env) then{
@@ -791,7 +782,7 @@ star.compiler.checker{
       Tps = sortedFlds//((Nm,_))=>(Nm,.nomnal(Nm));
 
       if traceCanon! then
-	logMsg("types $(Tps)");
+	showMsg("types $(Tps)");
 
       Tmplte = .tpFun(brTplNm,size(Tps));
       AnTp = mkTypeExp(Tmplte,Tps//snd);
@@ -799,7 +790,7 @@ star.compiler.checker{
       AnRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(AnTp,ArTp),Tps);
 
       if traceCanon! then
-	logMsg("generated rule $(AnRl)");
+	showMsg("generated rule $(AnRl)");
 
       CnsTp = reQ(Tps,consType(ArTp,AnTp));
       CnsDf = .cnsDef(Lc,brTplNm,0,CnsTp);
@@ -809,7 +800,7 @@ star.compiler.checker{
       AnTpDec = .tpeDec(Lc,brTplNm,Tmplte,AnRl);
 
       if traceCanon! then
-	logMsg("generated type $(AnTpDef), constructor $(CnsDf)");
+	showMsg("generated type $(AnTpDef), constructor $(CnsDf)");
 
       Accessors = foldLeft( ((Fld,(VNm,FTp)),(Ix,ADfs,ADcs)) => valof{
 	  AccNm = qualifiedName(brTplNm,.fldMark,Fld);
@@ -825,12 +816,12 @@ star.compiler.checker{
 	sortedFlds);
 
       if traceCanon! then
-	logMsg("Generated accessors $(Accessors)");
+	showMsg("Generated accessors $(Accessors)");
 
       declareBrType(brTplNm,[AnTpDef,CnsDf,..Accessors.1],[AnTpDec,CnsDc,..Accessors.2],Env);
 
       if traceCanon! then
-	logMsg("generated type $(AnTp), actual type $(Tp)");
+	showMsg("generated type $(AnTp), actual type $(Tp)");
 
       BrArgs = (sortedFlds//((_,(FNm,FTp))) =>.vr(.none,FNm,FTp));
       BrArgTps = (sortedFlds//((_,(FNm,FTp))) =>FTp);
@@ -845,7 +836,7 @@ star.compiler.checker{
     (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env);
 
     if traceCanon! then
-      logMsg("theta decls: $(Decls)");
+      showMsg("theta decls: $(Decls)");
     
     El = typeOfExp(Bnd,Tp,ThEnv,Path);
 
@@ -855,8 +846,8 @@ star.compiler.checker{
     (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Els,.faceType([],[]),Env,Env);
 
     if traceCanon! then{
-      logMsg("record decls: $(Decls)");
-      logMsg("exported decls: $(XDecls)");
+      showMsg("record decls: $(Decls)");
+      showMsg("exported decls: $(XDecls)");
     };
 
 
@@ -1028,8 +1019,8 @@ star.compiler.checker{
     (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env,Env);
 
     if traceCanon! then{
-      logMsg("record decls: $(Decls)");
-      logMsg("exported decls: $(XDecls)");
+      showMsg("record decls: $(Decls)");
+      showMsg("exported decls: $(XDecls)");
     };
 
     (Ac,_) = checkAction(B,Tp,declareDecls(XDecls,Env),Path);

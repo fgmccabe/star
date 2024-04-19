@@ -22,7 +22,7 @@ star.compiler.matcher{
       Trpls = makeTriples(Eqns);
 
       if traceNormalize! then
-	logMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
       Error = genRaise(Lc,Nm,funTypeRes(Tp));
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
@@ -38,7 +38,7 @@ star.compiler.matcher{
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
     -- if traceNormalize! then
-    --   logMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
+    --   showMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
     Trpls = makeTriples(Cs);
     valis matchTriples(Lc,[Gov],Trpls,Deflt,0,Map)
   }
@@ -62,7 +62,7 @@ star.compiler.matcher{
   matchTriples(Lc,Vrs,Triples,Deflt,Depth,Map) => valof{
     Parts = partitionTriples(Triples);
     if traceNormalize! then
-      logMsg("partition triples into $(Parts)");
+      showMsg("partition triples into $(Parts)");
     valis matchSegments(Parts,Vrs,Lc,Deflt,Depth,Map)
   }.
 
@@ -123,7 +123,7 @@ star.compiler.matcher{
     (argMode,cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   compileMatch(_,Seg,Vrs,Lc,Deflt,Depth,_Map) where tooDeep(Depth) => valof{
     if traceNormalize! then
-      logMsg("generate condition from $(Seg)");
+      showMsg("generate condition from $(Seg)");
     valis conditionMatch(Seg,Vrs,Deflt)
   }.
   compileMatch(.inScalars,Seg,Vrs,Lc,Deflt,Depth,Map) =>
@@ -144,10 +144,10 @@ star.compiler.matcher{
     (Vl,Cnd) = pullWhere(Val);
 
     if traceNormalize! then
-      logMsg("generate condition match $(Args) .= $(Vrs)");
+      showMsg("generate condition match $(Args) .= $(Vrs)");
     (Tst,Res) = mkMatchCond(Args,Vrs,mergeGoal(Lc,Cnd,Test),Lc,Vl);
     if traceNormalize! then
-      logMsg("match cond $(Tst) ?? $(Res)");
+      showMsg("match cond $(Tst) ?? $(Res)");
     Other = conditionMatch(M,Vrs,Deflt);
 
     if Cond?=Tst then
@@ -163,20 +163,20 @@ star.compiler.matcher{
     mkMatchCond(Args,Vars,Test,Lc,Val).
   mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
     if traceNormalize! then
-      logMsg("match $(Vr) with $(V)");
+      showMsg("match $(Vr) with $(V)");
 
     Mp = rwVar({Vr->V});
     NArgs = rewriteTerms(Args,Mp);
     if traceNormalize! then
-      logMsg("rewritten args $(NArgs)");
+      showMsg("rewritten args $(NArgs)");
 
     NTst = fmap((T)=>rewrite(T,Mp),Test);
     if traceNormalize! then
-      logMsg("rewritten test $(NTst)");
+      showMsg("rewritten test $(NTst)");
 
     NVal = rewrite(Val,Mp);
     if traceNormalize! then
-      logMsg("rewritten val $(NVal)");
+      showMsg("rewritten val $(NVal)");
 
     valis mkMatchCond(NArgs,Vars,NTst,Lc,NVal)
   }
@@ -187,9 +187,9 @@ star.compiler.matcher{
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
---    logMsg("Sorted triples: $(ST)");
+--    showMsg("Sorted triples: $(ST)");
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt,Depth+1,Map);
---    logMsg("Scalar cases: $(Cases)");
+--    showMsg("Scalar cases: $(Cases)");
     valis mkCase(Lc,V,Cases,Deflt)
   }
 
@@ -235,7 +235,7 @@ star.compiler.matcher{
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     if traceNormalize! then
-      logMsg("var match, subsititute for $(V) in $(Triples)");
+      showMsg("var match, subsititute for $(V) in $(Triples)");
 
     valis matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map)
   }
@@ -250,14 +250,14 @@ star.compiler.matcher{
       Mp = rwVar({Vr->V});
 
       if traceNormalize! then
-	logMsg("replace #(Vr)\:$(VTp) with $(V)");
+	showMsg("replace #(Vr)\:$(VTp) with $(V)");
 
       NArgs = rewriteTerms(Args,Mp);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
 
       if traceNormalize! then
-	logMsg("result $(NExp)");
+	showMsg("result $(NExp)");
 
       valis (NArgs, (CLc,B,NGl,NExp),Ix)
     }
@@ -269,7 +269,7 @@ star.compiler.matcher{
   formCases([],_,_,_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Depth,Map) => valof{
     (Tx,More) = pickMoreCases(Tr,Triples,Eq,[],[]);
---    logMsg("More cases for $(Tr)\:$(Tx)");
+--    showMsg("More cases for $(Tr)\:$(Tx)");
     Case = formCase(Tr,sort([Tr,..Tx],compareTriple),Lc,Vrs,Deflt,Depth,Map);
     valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt,Depth,Map)].
   }

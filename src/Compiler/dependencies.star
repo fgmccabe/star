@@ -15,16 +15,13 @@ star.compiler.dependencies{
     (visMap,cons[ast],map[string,ast],cons[cons[defnSpec]]).
   dependencies(Dfs) => valof{
     if traceDependencies! then
-      logMsg("look for dependencies in $(Dfs)");
+      showMsg("look for dependencies in $(Dfs)");
     (Defs,Pb,As,Opn) = collectDefinitions(Dfs);
---    logMsg("Defs found: $(Defs)");
     AllRefs = foldLeft((D,M)=>collectRef(D,M),[],Defs);
---    logMsg("All refs found: $(AllRefs)");
     InitDefs = collectThetaRefs(Defs,AllRefs,As,[]);
---    logMsg("initDefs $(InitDefs)");
     Groups = (topsort(InitDefs) // (Gp)=>(Gp//((.definition(Sp,Lc,_,Els))=>.defnSpec(Sp,Lc,Els))));
     if traceDependencies! then
-      logMsg("groups $(Groups)");
+      showMsg("groups $(Groups)");
     valis (Pb,Opn,As,Groups)
   }
 

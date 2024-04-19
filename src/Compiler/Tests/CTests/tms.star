@@ -7,7 +7,7 @@ test.tms{
 
   main:()=>action[(),()].
   main()=> do{
-    logMsg("start");
+    showMsg("start");
     show term("foo",[intgr(0),intgr(1)]) == intgr(2)
   }
 

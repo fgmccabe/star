@@ -247,8 +247,8 @@ star.compiler.meta{
     }
   }
 
-  public traceMacroOption:cmdOption[compilerOptions].
-  traceMacroOption = cmdOption{
+  public macroTraceOption:cmdOption[compilerOptions].
+  macroTraceOption = cmdOption{
     shortForm = "-tm".
     alternatives = [].
     usage = "-tm -- trace macro".
@@ -482,11 +482,4 @@ star.compiler.meta{
       valis Opts
     }
   }
-
-  public metaTrace:all e ~~ display[e] |: (e,string,ref boolean) => e.
-  metaTrace(X,Msg,Flg) where Flg! => valof{
-    logMsg("#(Msg): $(X)");
-    valis X
-  }
-  metaTrace(X,_,_) default => X.
 }

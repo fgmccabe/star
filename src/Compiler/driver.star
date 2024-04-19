@@ -42,7 +42,7 @@ star.compiler{
 	    traceDependencyOption,
 	    traceAstOption,
 	    showMacroOption,
-	    traceMacroOption,
+	    macroTraceOption,
 	    checkOnlyOption,
 	    showCheckOption,
 	    traceCheckOption,
@@ -60,7 +60,7 @@ star.compiler{
 	  defltOptions(WI,RI)
 	))
     } catch string in {
-      Msg => { logMsg(Msg);
+      Msg => { logMsg(.severe,Msg);
 	valis ()
       }
     };
@@ -77,7 +77,7 @@ star.compiler{
 	    Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
 
 	    if traceDependencies! then
-	      logMsg("Process packages in $(Sorted)");
+	      showMsg("Process packages in $(Sorted)");
 
 	    if Grph ?= Opts.graph then {
 	      putResource(Grph,makeDotGraph(P,Sorted))
@@ -87,7 +87,7 @@ star.compiler{
 	  }
 	}
     else{
-      logMsg("could not access catalog")
+      logMsg(.severe,"could not access catalog")
     };
     valis ()
   }
@@ -97,22 +97,21 @@ star.compiler{
 
   processPkg:(pkg,termRepo,catalog) => termRepo.
   processPkg(P,Repo,Cat) => valof{
-    logMsg("Compiling $(P)");
+    logMsg(.info,"Compiling $(P)");
     if (SrcUri,CPkg) ?= resolveInCatalog(Cat,pkgName(P)) then{
       if Ast ?=parseSrc(SrcUri,CPkg) then{
 	if traceAst! then{
-	  logMsg("Ast of $(P) is $(Ast)")
+	  showMsg("Ast of $(P) is $(Ast)")
 	};
 	M = macroPkg(Ast);
 	if showMacrod! then{
-	  logMsg("Macroed package $(M)")
+	  showMsg("Macroed package $(M)")
 	};
 	
 	if errorFree() && ~ macroOnly! then{
 	  (PkgSpec,Defs,IDecls,Decls) = checkPkg(Repo,CPkg,M);
 	  if showCanon! then {
-	    logMsg("$(PkgSpec)");
-	    logMsg("type checked definitions #(displayDefs(Defs))");
+	    showMsg("type checked definitions #(displayDefs(Defs))");
 	  };
 	  
 	  if errorFree() && ~ typeCheckOnly! then {
@@ -122,19 +121,19 @@ star.compiler{
 	    
 	    Inlined = ( optimization! ==.inlining ?? valof{
 		if traceNormalize! then{
-		  logMsg("pre-inlined code $(N)");
+		  showMsg("pre-inlined code $(N)");
 		};
 		valis simplifyDefs(N);
 	      } || N);
 	    if showNormalize! then{
-	      logMsg("normalized code #(dispCrProg(Inlined))");
+	      showMsg("normalized code #(dispCrProg(Inlined))");
 	    };
 	    validProg(Inlined,AllDecls);
 	    if errorFree() && genCode! then{
 	      Segs = compProg(P,Inlined,AllDecls);
 	      
 	      if showCode! then{
-		logMsg("Generated code:");
+		showMsg("Generated code:");
 		for Sg in Segs do{
 		  showMsg("$(Sg)");
 		}
@@ -158,14 +157,14 @@ star.compiler{
 		      addPackage(Repo,CPkg,Bytes),CPkg,InlineBytes),CPkg,SrcUri::string))
 	      }
 	    } else
-	    logMsg("no code generated");
+	    showMsg("no code generated");
 	  }
 	};
 	if ~errorFree() then{
-	  logMsg("$(countErrors()+countTraps()) errors found");
+	  showMsg("$(countErrors()+countTraps()) errors found");
 	};
 	if ~warningFree() then
-	  logMsg("$(countWarnings()) warnings found");
+	  showMsg("$(countWarnings()) warnings found");
 	valis Repo
       }
       else{
@@ -191,7 +190,7 @@ star.compiler{
 
     pkgLoop: for (P,Imps) in Pks do{
       if traceDependencies! then
-	logMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
+	showMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
       if ~pkgOkInRepo(Repo,P,Imps) then{
 	Repp := processPkg(P,Repp!,Cat);
 	if ~errorFree() then{

@@ -45,31 +45,31 @@ star.compiler.wasm.gen{
   genDef(Defn,Glbs) => case Defn in {
     .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
-	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
+	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(collectLocals(argVars(Args,Glbs));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
+	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       Peeped = wasmPeep(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then{
-	logMsg("code is $(.func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped))");
+	showMsg("code is $(.func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped))");
       };
       valis .func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped)
     }
   | .glDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
-	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
+	showMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);
       (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
       (_Stk,Code) = compExp(Val,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
+	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then
-	logMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
+	showMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
     
       valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
     }
@@ -264,7 +264,7 @@ star.compiler.wasm.gen{
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
-      logMsg("compiling case @$(Lc), Gov=$(Gv)");
+      showMsg("compiling case @$(Lc), Gov=$(Gv)");
     Nxt = defineLbl("CN",Ctx);
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv),Stk)),Ctx,Stk);
@@ -757,7 +757,7 @@ star.compiler.wasm.gen{
   resetCont:(stack,Cont) => Cont.
   resetCont(Stk,Cont) => cont{
     C(Ctx,XStk,Cde) => valof{
---      logMsg("reset stack $(XStk) to $(Stk)");
+--      showMsg("reset stack $(XStk) to $(Stk)");
       (NStk,SCde) = resetStack([|Stk|],XStk);
       valis Cont.C(Ctx,NStk,Cde++SCde)
     }
