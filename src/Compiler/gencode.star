@@ -46,31 +46,31 @@ star.compiler.gencode{
   genDef(Defn,Glbs) => case Defn in {
     .fnDef(Lc,Nm,Tp,Args,Val) => valof {
       if traceCodegen! then
-	logMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
+	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argSrcLocs(Args,Glbs,0));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.some([]),[]);
       (_Stk,Code) = compExp(Val,Lc,.noMore,retCont,Ctx,.some([]));
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
+	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
       if traceCodegen! then{
-	logMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
+	showMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
       };
       valis .func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
     }
     | .glDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
-	logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
+	showMsg("compile global $(Nm)\:$(Tp) = $(Val))");
       Ctx = emptyCtx(Glbs);
       (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
       (_Stk,Code) = compExp(Val,Lc,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
       if traceCodegen! then
-	logMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
+	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
       if traceCodegen! then
-	logMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
+	showMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
     
       valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
     }
@@ -267,7 +267,7 @@ star.compiler.gencode{
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
-      logMsg("compiling case @$(Lc), Gov=$(Gv)");
+      showMsg("compiling case @$(Lc), Gov=$(Gv)");
     Nxt = defineLbl("CN",Ctx);
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,Lc,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv)::ltipe,Stk)),Ctx,Stk);
@@ -767,7 +767,6 @@ star.compiler.gencode{
   resetCont:(stack,Cont) => Cont.
   resetCont(Stk,Cont) => cont{
     C(Ctx,XStk,Cde) => valof{
---      logMsg("reset stack $(XStk) to $(Stk)");
       (NStk,SCde) = resetStack([|Stk|],XStk);
       valis Cont.C(Ctx,NStk,Cde++SCde)
     }
@@ -831,9 +830,6 @@ star.compiler.gencode{
   dsjCtx:(codeCtx,cExp,cExp) => codeCtx.
   dsjCtx(Ctx,L,R) => valof{
     CommonVrs = glVars(L,[]) /\ glVars(R,[]);
-
-    if traceCodegen! then
-      logMsg("common vars of $(L) & $(R) are $(CommonVrs)");
 
     valis foldLeft((.cId(Nm,Tp),Cx)=>ensureLclVar(Nm,Tp::ltipe,Cx),Ctx,CommonVrs)
   }

@@ -46,7 +46,7 @@ star.compiler.errors{
 
   public reportError:(string,option[locn]) => ().
   reportError(Msg,Lc) => valof{
-    logMsg("\e[31merror $(countErrors()+1)\e[0m - #(Msg) #(showLc(Lc))");
+    showMsg("\e[31merror $(countErrors()+1)\e[0m - #(Msg) #(showLc(Lc))");
     reports := [.errorMsg(Lc,Msg),..reports!];
     valis ()
   }
@@ -56,7 +56,7 @@ star.compiler.errors{
 
   public reportWarning:(string,option[locn]) => ().
   reportWarning(Msg,Lc) => valof{
-    logMsg(disp(.warnMsg(Lc,Msg)));
+    showMsg(disp(.warnMsg(Lc,Msg)));
     reports := [.warnMsg(Lc,Msg),..reports!];
     valis ()
   }
@@ -67,7 +67,7 @@ star.compiler.errors{
   public reportTrap:(string) => ().
   reportTrap(Msg) => valof{ 
     trapCount := trapCount!+1;
-    logMsg("internal trap: #(Msg)");
+    logMsg(.severe,"internal trap: #(Msg)");
     valis ()
   }
     

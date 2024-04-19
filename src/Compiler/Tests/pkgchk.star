@@ -58,7 +58,7 @@ star.core{
   SR1 = valof{
     RP0 = strRepo([]);
     (Sp,_,_) = checkPkg(RP0,A0,stdDict,R0);
-  logMsg("spec = $(Sp::term)");
+  showMsg("spec = $(Sp::term)");
     valis addSpec(Sp,RP0)
   }
 

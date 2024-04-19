@@ -22,10 +22,10 @@ star.compiler.peephole{
   peepOptimize(Ins) => valof{
     Map = splitSegments([.iLbl(.al("")),..Ins],[]);
     if traceCodegen! then
-      logMsg(makeDotGraph("segs",Map));
+      showMsg(makeDotGraph("segs",Map));
     PMap = pullTgts(Map);
     if traceCodegen! then
-      logMsg(makeDotGraph("psegs",PMap));
+      showMsg(makeDotGraph("psegs",PMap));
     PC = sequentialize([.al("")],PMap);
     valis _optval(tail(PC))
   }

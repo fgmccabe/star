@@ -51,18 +51,18 @@ star.compiler.normalize{
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      logMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
-      logMsg("extended function function type $(ATp)");
+      showMsg("extended function function type $(ATp)");
     
     (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
-      logMsg("transformed equations: $(Eqs)");
+      showMsg("transformed equations: $(Eqs)");
     Func = _optval(functionMatcher(Lc,FullNm,ATp,Map,Eqs));
     if traceNormalize! then
-      logMsg("transformed function $(Func)");
+      showMsg("transformed function $(Func)");
 
     ClosureNm = closureNm(FullNm);
     ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cId("_",unitTp));
@@ -137,11 +137,11 @@ star.compiler.normalize{
   transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnVars(Arg,Q,[]);
     if traceNormalize! then
-      logMsg("Pattern vars $(EQ)");
+      showMsg("Pattern vars $(EQ)");
     (APtn,Ex1) = liftPtn(Arg,Outer,EQ,Ex);
 
     if traceNormalize! then
-      logMsg("lifted pattern $(APtn)");
+      showMsg("lifted pattern $(APtn)");
 
     (TPtn, WC) = pullWhere(APtn);
 
@@ -149,7 +149,7 @@ star.compiler.normalize{
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
     if traceNormalize! then
-      logMsg("Val $(Val) lifted to $(Rep)");
+      showMsg("Val $(Val) lifted to $(Rep)");
     
     if .cTerm(_,_,Ptns,_).=TPtn then
       valis ((Lc,addExtra(Extra,Ptns),mergeGoal(Lc,WC,NG),Rep),Exx)
@@ -288,18 +288,18 @@ star.compiler.normalize{
   liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letExp(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      logMsg("lift let exp $(.letExp(Lc,Grp,Decs,Bnd)), Q=$(Q), Free=$(Free)");
+      showMsg("lift let exp $(.letExp(Lc,Grp,Decs,Bnd)), Q=$(Q), Free=$(Free)");
     valis liftLet(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex)
   }
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      logMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
+      showMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
   liftExp(.lambda(Lc,FullNm,Eqn,Cx,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Cx,Tp))\:$(Tp)");
+      showMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Cx,Tp))\:$(Tp)");
 
     valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
@@ -307,13 +307,13 @@ star.compiler.normalize{
   }
   liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("lift thunk $(.thunk(Lc,Lm,Tp))\:$(Tp)");
+      showMsg("lift thunk $(.thunk(Lc,Lm,Tp))\:$(Tp)");
     (NLm,Ex1) = liftExp(Lm,Map,Q,Ex);
     valis (.cThnk(Lc,NLm,Tp),Ex1)
   }
   liftExp(.thRef(Lc,Th,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
+      showMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
     (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
     valis (.cThDrf(Lc,NTh,Tp),Ex1)
   }
@@ -331,7 +331,7 @@ star.compiler.normalize{
   }
   liftExp(.trycatch(Lc,B,Th,Hndlr,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("type of $(Th)\:$(typeOf(Th))");
+      showMsg("type of $(Th)\:$(typeOf(Th))");
     ErTp = typeOf(Th);
     (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
     (BB,Ex2) = liftExp(B,Map,ptnVars(Th,Q,[]),Ex1);
@@ -473,13 +473,13 @@ star.compiler.normalize{
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
 
       if traceNormalize! then{
-	logMsg("free term is $(GrpFree)");
+	showMsg("free term is $(GrpFree)");
       };
 
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
 
       if traceNormalize! then{
-	logMsg("definitions are $(Exx)");
+	showMsg("definitions are $(Exx)");
       };
 
       valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
@@ -508,7 +508,7 @@ star.compiler.normalize{
     L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
     if traceNormalize! then{
-      logMsg("L = $(L)")
+      showMsg("L = $(L)")
     };
 
     M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
@@ -520,18 +520,18 @@ star.compiler.normalize{
     GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
     if traceNormalize! then{
-      logMsg("lVars = $(lVars)");
-      logMsg("glDefs = $(glDefs)");
-      logMsg("GrpVars = $(GrpVars)");
-      logMsg("GrpFree = $(GrpFree)");
+      showMsg("lVars = $(lVars)");
+      showMsg("glDefs = $(glDefs)");
+      showMsg("GrpVars = $(GrpVars)");
+      showMsg("GrpFree = $(GrpFree)");
     };
 
     if traceNormalize! then{
-      logMsg("free term = $(GrpFree)")
+      showMsg("free term = $(GrpFree)")
     };
     (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,.some(ThVr),[],Ex);
     if traceNormalize! then{
-      logMsg("fixups $(Fx)");
+      showMsg("fixups $(Fx)");
     };
 
     (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
@@ -544,15 +544,15 @@ star.compiler.normalize{
   computeFixups([],Lc,Vr,Fr,Bnd) => letify(Lc,Vr,Fr,Bnd).
   computeFixups([(Nm,Ix,Up),..Fx],Lc,Vr,Fr,Bnd) => valof{
     if traceNormalize! then{
-      logMsg("compute fixup for $(Nm) at $(Ix) = $(Up)");
-      logMsg("present: $(Vr) in $(Up) $(present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)))");
+      showMsg("compute fixup for $(Nm) at $(Ix) = $(Up)");
+      showMsg("present: $(Vr) in $(Up) $(present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)))");
     };
 
     if ~present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)) &&
 	.cTerm(FLc,FOp,FArgs,FTp) .= Fr then{
 	  Fr1 = .cTerm(FLc,FOp,FArgs[Ix->Up],FTp);
 	  if traceNormalize! then
-	    logMsg("fixed up free term $(Fr1)");
+	    showMsg("fixed up free term $(Fr1)");
 	  valis computeFixups(Fx,Lc,Vr,Fr1,Bnd)
 	}
     else{
@@ -583,7 +583,7 @@ star.compiler.normalize{
   }
   transformLetDef(.varDef(Lc,Nm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
     if traceNormalize! then
-      logMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
+      showMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
 
     if (_,Ix) ?= labelIndex(Nm,Map) then{
       (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
@@ -662,7 +662,7 @@ star.compiler.normalize{
   }
   liftAction(.doTryCatch(Lc,B,Th,H),Map,Q,Ex) => valof{
     if traceNormalize! then
-      logMsg("type of $(Th)\:$(typeOf(Th))");
+      showMsg("type of $(Th)\:$(typeOf(Th))");
     ErTp = typeOf(Th);
     (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
     (BB,Ex2) = liftAction(B,Map,ptnVars(Th,Q,[]),Ex1);

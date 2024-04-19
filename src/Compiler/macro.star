@@ -17,7 +17,7 @@ star.compiler.macro{
     case applyRules(A,Cxt,.inactive) in {
       .active(T) => valof{
 	if macroTracing! then
-	  logMsg("$(A) macro replaced with $(T)");
+	  showMsg("$(A) macro replaced with $(T)");
 	valis macroAst(T,Cxt,Examine)
       }.
       .inactive => Examine(A)
@@ -419,9 +419,9 @@ star.compiler.macro{
         ...
         valis main(X1,..,Xn)
       } else
-      logMsg("cannot coerce $(A2) to T2")
+      showMsg("cannot coerce $(A2) to T2")
     } else{
-      logMsg("Cannot coerce $(A1) to T1")
+      showMsg("Cannot coerce $(A1) to T1")
     }
   }
 */
@@ -432,7 +432,7 @@ star.compiler.macro{
     
     MLhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
---    logMsg("main action $(Action)");
+--    showMsg("main action $(Action)");
     Valof = mkValof(Lc,brTuple(Lc,[Action]));
     Main = equation(Lc,MLhs,Valof);
     XX = genName(Lc,"XX");
@@ -449,7 +449,7 @@ star.compiler.macro{
   if X?=A:?T then {
   valis main(X1,..,Xn)
   } else
-  logMsg("cannot coerce $(A) to T")
+  showMsg("cannot coerce $(A) to T")
 
 */  
   synthCoercion:(option[locn],cons[ast],cons[ast])=>(ast,cons[ast]).
@@ -459,7 +459,7 @@ star.compiler.macro{
     A = genName(Lc,"A");    
     PRhs = binary(Lc,":?",A,Tp);
     Tst = binary(Lc,"?=",X,PRhs); -- .some(X).=_coerce(A):T
-    Emsg = unary(Lc,"logMsg",.str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
+    Emsg = unary(Lc,"showMsg",.str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
     (Inner,As) = synthCoercion(Lc,Ts,[X,..Xs]);
     valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
   }

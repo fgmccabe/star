@@ -15,12 +15,12 @@ star.compiler.coverage{
   public checkPtnCoverage:(cons[canon],dict,tipe) => ().
   checkPtnCoverage(Ptns,Map,Tp) => valof{
     if CnsMap ?= findConstructors(Tp,Map) then{
---      logMsg("Check $(Ptns) against constructors $(CnsMap) for $(Tp)");
+--      showMsg("Check $(Ptns) against constructors $(CnsMap) for $(Tp)");
       for CnNm->CnTp in CnsMap do{
---	logMsg("Look for covereage of $(CnNm)->$(CnTp)");
+--	showMsg("Look for covereage of $(CnNm)->$(CnTp)");
 
 	ArgSet = { Args | Ptn in Ptns && .apply(_,.enm(_,CnNm,_),Args,_) .= Ptn };
---	logMsg("$(ArgSet)");
+--	showMsg("$(ArgSet)");
 	checkPtnsCoverage(ArgSet,Map);
       }
     };
