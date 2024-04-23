@@ -6,7 +6,7 @@ test.th0{
 
   thunk = $$ valof{
     assert vv!;
-    logMsg("make a thunk");
+    showMsg("make a thunk");
     vv := .false;
     valis 2
   }

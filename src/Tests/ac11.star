@@ -27,15 +27,15 @@ test.ac11{
   ff:dynamic[integer] |: (integer)=>integer.
   ff(U) where isEven(U) => f(U-1).
   ff(U) where U>1 => valof{
-    logMsg("dynamic = $(_dynamic:integer)");
+    showMsg("dynamic = $(_dynamic:integer)");
     valis ff(U-1)*_dynamic
   }
   ff(_) default => _dynamic.
 
   main:()=>().
   main() => valof{
-    logMsg(disp(f(1)));
-    logMsg(disp(f(10)));
+    show f(1);
+    show f(10);
 
     assert f(10)==945;
     valis ()

@@ -9,8 +9,8 @@ test.iowtext{
     try{
       wrTextAsync(IO,txt);
     } catch ioException in {
-      | .ioError => logMsg("bad io")
-      | .pastEof => logMsg("all done")
+      | .ioError => showMsg("bad io")
+      | .pastEof => showMsg("all done")
     };
     valis ()
   }
@@ -31,14 +31,14 @@ test.iowtext{
 	};
 	  
 	nursery([Rd]);
-	logMsg("writer done");
+	showMsg("writer done");
       } catch mboxException in {
-	.deadlock => logMsg("Writer got deadlocked")
+	.deadlock => showMsg("Writer got deadlocked")
       };
       valis ()
     } catch errorCode in {
-      | .eof => logMsg("end of file")
-      | Cde => logMsg("error code $(Cde)")
+      | .eof => showMsg("end of file")
+      | Cde => showMsg("error code $(Cde)")
     };
 
     valis ()

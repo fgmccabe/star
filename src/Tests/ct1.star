@@ -7,16 +7,16 @@ test.ct1{
 
   ping:(integer,receiver[boolean]) => (task[()])=>().
   ping(Cnt,Chnnl) => (this) => valof{
-    logMsg("starting $(Cnt) pings");
+    showMsg("starting $(Cnt) pings");
     Count := Cnt;
 
     try{
       while Count!>=0 do{
-	logMsg("posting $(Count!)");
+	showMsg("posting $(Count!)");
 	post(Count!>0,Chnnl);
 	Count := Count!-1
       }
-    } catch mboxException in { _ => logMsg("something went wrong") };
+    } catch mboxException in { _ => showMsg("something went wrong") };
     _retire(this,.retired_)
   }
 
@@ -26,12 +26,12 @@ test.ct1{
 
     try{
       while collect(Chnnl) do{
-	logMsg("received ping");
+	showMsg("received ping");
 	Count := Count!+1
       }
-    } catch mboxException in { _ => logMsg("something went wrong") };
+    } catch mboxException in { _ => showMsg("something went wrong") };
 
-    logMsg("received $(Count!) pings");
+    showMsg("received $(Count!) pings");
     valis ()
   }
   
@@ -43,9 +43,9 @@ test.ct1{
 
     try{
       Rs = nursery([T1,T2]);
-      logMsg("final result $(Rs)");
+      showMsg("final result $(Rs)");
     } catch mboxException in {
-      Ex => logMsg(disp(Ex))
+      Ex => showMsg(disp(Ex))
     };
     valis ()
   }

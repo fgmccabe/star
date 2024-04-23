@@ -23,7 +23,7 @@ star.actor{
 	    A(body);
 	  }
 	}
-      } catch mboxException in { (_) => { logMsg("Problem in actor"); valis () }}
+      } catch mboxException in { (_) => { showMsg("Problem in actor"); valis () }}
     }
   }
 

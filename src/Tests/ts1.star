@@ -87,7 +87,7 @@ test.ts1{
   main:() => ().
   main() => valof{
     LL = iota(1,12);
-    logMsg(disp(odds(LL)));
-    valis logMsg(disp(evens(LL)));
+    showMsg(disp(odds(LL)));
+    valis showMsg(disp(evens(LL)));
   }
 }

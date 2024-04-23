@@ -9,7 +9,7 @@ test.ac10{
     a:if X>=0 then {
       a:if X>0 then{
 	break a;
-	logMsg("should not be here");
+	logMsg(.severe,"should not be here");
       } else
         valis 0;
       valis 1
@@ -45,7 +45,7 @@ test.ac10{
       assert firstMultiple(10,3) == "found";
       assert firstMultiple(3,10) == "not found";
     } catch exception in {
-      .exception(M) => logMsg("we got an exception: $(M)")
+      .exception(M) => logMsg(.warning,"we got an exception: $(M)")
     };
     valis ()
   }

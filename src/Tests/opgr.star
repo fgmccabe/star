@@ -93,7 +93,7 @@ test.opgr{
   int(X) >> X --> ~ digit.
 
   msg(M) => valof{
-    logMsg(M);
+    showMsg(M);
     valis .true
   }
 

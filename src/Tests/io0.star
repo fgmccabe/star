@@ -12,11 +12,11 @@ test.io0{
     try{
       In = _openInFile(Fl,3);
       while Ch.=_inchar(In) do{
-	logMsg("char: $(Ch)");
+	showMsg("char: $(Ch)");
       }
     } catch errorCode in {
-      | .eof => logMsg("end of file")
-      | Cde => logMsg("error code $(Cde)")
+      | .eof => showMsg("end of file")
+      | Cde => showMsg("error code $(Cde)")
     };
 
     valis ()

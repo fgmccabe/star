@@ -19,12 +19,12 @@ test.a{
       show o;
       assert o==1;
 
-      logMsg("\e[33m#("yellow")\e[0m");
-      logMsg("\e[31mred\e[0m");
+      showMsg("\e[33m#("yellow")\e[0m");
+      showMsg("\e[31mred\e[0m");
       
       raise .exception("bong");
     } catch exception in {
-      .exception(Msg) => { logMsg("out with a #(Msg)"); valis () }
+      .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
     };
   }
 }

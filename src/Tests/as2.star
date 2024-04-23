@@ -33,7 +33,7 @@ test.as2{
 
   notMuch:raises () |: ()=>().
   notMuch()=>valof{
-    logMsg("hello there");
+    showMsg("hello there");
     raise ()
   }
 
@@ -44,7 +44,7 @@ test.as2{
       assert ~checkLists()([],[1]);
       show notMuch();
     } catch  () in {
-      _ => logMsg("as expected")
+      _ => showMsg("as expected")
     };
     valis ()
   }

@@ -1,5 +1,6 @@
 test.ac7{
   import star.
+  import star.assert.
 
   f: raises string |: (integer) => integer.
   f(X) => valof{
@@ -16,10 +17,10 @@ test.ac7{
   main() => valof{
     try{
       F10 = f(10);
-      logMsg(disp(F10));
+      show F10;
     } catch string in {
       E => {
-	logMsg(E)
+	logMsg(.warning,E)
       }
     };
     valis ()

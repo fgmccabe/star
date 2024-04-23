@@ -17,7 +17,7 @@ test.trec{
 
   main:()=>().
   main()=>valof{
-    logMsg("Just for show");
+    showMsg("Just for show");
     valis ()
   }
 }

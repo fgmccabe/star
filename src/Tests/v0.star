@@ -9,7 +9,7 @@ test.v0{
     AA = (["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"]:cons[string]);
     for A in AA do{
       VV := appnd(VV!,A);
-      logMsg("After adding #(A), VV=$(VV!) $(isFullVect(VV!))")
+      showMsg("After adding #(A), VV=$(VV!) $(isFullVect(VV!))")
     };
 
     show vindex(VV!,0);

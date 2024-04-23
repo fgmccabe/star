@@ -35,13 +35,13 @@ test.ts2{
   odds(L) => valof{
     try{
       for (X where ~isEven(X)) in L do{
-	logMsg(disp(X));
+	showMsg(disp(X));
 	if X>6 then
 	  raise ()
       }
     } catch () in {
       _ => {
-	logMsg("caught")
+	showMsg("caught")
       }
     };
     valis ()
@@ -50,7 +50,7 @@ test.ts2{
   main:() => ().
   main() => valof{
     LL = iota(1,12);
-    logMsg(disp(LL));
-    valis logMsg(disp(odds(LL)));
+    showMsg(disp(LL));
+    valis showMsg(disp(odds(LL)));
   }
 }

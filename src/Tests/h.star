@@ -14,7 +14,7 @@ test.h{
   main() => valof{
     HH = ([10,20,5]:heap[integer]);
 
-    logMsg(showHeap(HH));
+    showMsg(showHeap(HH));
 
     show iota(20);
 

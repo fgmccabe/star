@@ -42,10 +42,10 @@ test.act0{
     try{
       Rs = _query(png,(P:pingBody)=>P.ping());
     
-      logMsg("$(Rs)");
+      showMsg("$(Rs)");
 
       assert Rs==.pong;
-    } catch mboxException in { _ => logMsg("huh?")
+    } catch mboxException in { _ => showMsg("huh?")
     };
     valis ()
   }

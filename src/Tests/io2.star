@@ -9,12 +9,12 @@ test.io2{
     out := [];
     try{
       while Ln.=rdLine(IO) do{
-	logMsg("Ln: $(Ln)");
+	showMsg("Ln: $(Ln)");
 	out := [Ln,..out!]
       }
     } catch ioException in {
-      | .ioError => logMsg("bad io")
-      | .pastEof => logMsg("all done")
+      | .ioError => showMsg("bad io")
+      | .pastEof => showMsg("all done")
     };
     valis reverse(out!)
   }
@@ -32,14 +32,14 @@ test.io2{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
 	Text = nursery([Rd]);
-	logMsg("output: $(Text)");
+	showMsg("output: $(Text)");
       } catch mboxException in {
-	.deadlock => logMsg("Reader got deadlocked")
+	.deadlock => showMsg("Reader got deadlocked")
       };
       valis ()
     } catch errorCode in {
-      | .eof => logMsg("end of file")
-      | Cde => logMsg("error code $(Cde)")
+      | .eof => showMsg("end of file")
+      | Cde => showMsg("error code $(Cde)")
     };
 
     valis ()

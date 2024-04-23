@@ -27,7 +27,7 @@ test.incopy{
   main(S) => valof{
     Text = readFl(S);
 
-    logMsg("read of #(S) is $(Text)");
+    showMsg("read of #(S) is $(Text)");
     valis ()
   }
 }

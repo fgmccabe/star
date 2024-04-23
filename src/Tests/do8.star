@@ -7,9 +7,9 @@ test.do8{
     B = "beta";
 
     if A<B then
-      logMsg("A wins")
+      showMsg("A wins")
     else
-    logMsg("B wins");
+    showMsg("B wins");
     valis ()
   }
 }

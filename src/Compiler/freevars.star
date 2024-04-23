@@ -6,7 +6,6 @@ star.compiler.freevars{
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.escapes.
-  import star.compiler.intrinsics.
   import star.compiler.misc.
   import star.compiler.term.
   import star.compiler.types.
@@ -24,7 +23,6 @@ star.compiler.freevars{
     .anon(_,_) => Fv.
     .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
     .vr(_,Nm,_) where isEscape(Nm) => Fv.
-    .vr(_,Nm,_) where _ ?= intrinsic(Nm) => Fv.
     .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ?? Fv\+.cId(Nm,Tp) || Fv).
     .intr(_,_) => Fv.
     .bintr(_,_) => Fv.

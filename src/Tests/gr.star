@@ -44,7 +44,7 @@ test.gr{
   prodExp >> .div(L,R) --> unitExp >> L, [`/`], prodExp >> R.
   prodExp >> E --> unitExp >> E.
 
-  unitExp >> E --> [`(`], exp0 >> E, ([`)`] | {valof{logMsg("missing )");valis .true}}, *> end).
+  unitExp >> E --> [`(`], exp0 >> E, ([`)`] | {valof{showMsg("missing )");valis .true}}, *> end).
   unitExp >> .int(digitVal(I)) --> [I], {isDigit(I)}.
   unitExp >> .var(A) --> [A], {isLetter(A)}.
 
@@ -68,14 +68,14 @@ test.gr{
 
     } catch exception in {
       .exception(M) => {
-	logMsg("arithmetic went wrong: #(M)");
+	showMsg("arithmetic went wrong: #(M)");
       }
     };
     try{
       show evalStr("(1+a)/(1-a",{`a`->1});
     } catch exception in {
       .exception(M) => {
-	logMsg("arithmetic went wrong: #(M)");
+	showMsg("arithmetic went wrong: #(M)");
       }
     };
     valis ()

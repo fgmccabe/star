@@ -5,7 +5,6 @@ star.compiler.dict.mgt{
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.escapes.
-  import star.compiler.intrinsics.
   import star.compiler.freshen.
   import star.compiler.location.
   import star.compiler.meta.

@@ -27,8 +27,8 @@ test.cnc{
 
   main:()=>().
   main() => valof{
-    logMsg("parent=$(parent)");
-    logMsg("gps=$(gp0("abc"))");
+    showMsg("parent=$(parent)");
+    showMsg("gps=$(gp0("abc"))");
     valis ()
   }
 }

@@ -35,7 +35,7 @@ test.rrb{
     XX = ref SS;
 
     XX[5] := "alpha";
-    logMsg("XX=$(XX!)");
+    showMsg("XX=$(XX!)");
     valis ()
   }
 

@@ -6,11 +6,11 @@ test.str1{
   pkgFileName:(string) => option[(string,string)].
   pkgFileName(Fl) => valof{
     if Ix?= strFind(Fl,".star",0) then{
-      logMsg("Ix=$(Ix)");
+      showMsg("Ix=$(Ix)");
       Pkg = subString(Fl,0,Ix);
-      logMsg("Pk=$(Pkg)");
+      showMsg("Pk=$(Pkg)");
       Tl = subString(Fl,Ix+5,[|Fl|]);
-      logMsg("Tl=$(Tl), $(Tl=="")");
+      showMsg("Tl=$(Tl), $(Tl=="")");
       
       if Tl=="" then
 	valis .some((Pkg,""))

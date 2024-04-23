@@ -10,6 +10,6 @@ test.me1{
   main()=>do{
     XX = $$ ff!;
 
-    logMsg("XX = $(XX!!)")
+    showMsg("XX = $(XX!!)")
   }
 }

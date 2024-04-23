@@ -30,7 +30,7 @@ test.sy{
   }
 
   bind(X) where X>0 => valof{
-    logMsg("trying");
+    showMsg("trying");
     valis .true
   }
 
@@ -38,7 +38,7 @@ test.sy{
       X>0 =>
     (MM ?= .some(X) ??
 	valof{
-	  logMsg("trying");
+	  showMsg("trying");
 	  valis .true
 	}
 	|| .false).
@@ -77,7 +77,7 @@ string\n
       assert o == 1;		-- End comment
     } catch () in {
       _ => {
-	logMsg("valof raised exception")
+	showMsg("valof raised exception")
       }
     };
 

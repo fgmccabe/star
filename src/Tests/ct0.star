@@ -7,7 +7,7 @@ test.ct0{
 
   tt:(integer)=>(task[()])=>().
   tt(K) => (this) => valof{
-    logMsg("starting $(K)");
+    showMsg("starting $(K)");
     Count := K;
     try{
       while Count!>0 do{
@@ -15,38 +15,38 @@ test.ct0{
 	Count := Count! -1;
 	if dividesBy(Count!,3) then{
 	  Cnt = Count!;
-	  logMsg("spawning sub-task");
+	  showMsg("spawning sub-task");
 	  subTask(this,
 	      (Tsk)=>valof{
 		try{
-		  logMsg("We were spawned $(Cnt)");
+		  showMsg("We were spawned $(Cnt)");
 		  case _suspend(Tsk,.yield_) in {
 		    .go_ahead => {}
 		    | .shut_down_ => raise .canceled
 		  };
-		  logMsg("After 1 pause $(Cnt)");
+		  showMsg("After 1 pause $(Cnt)");
 		  case _suspend(Tsk,.yield_) in {
 		    .go_ahead => {}
 		    | .shut_down_ => raise .canceled
 		  };
-		  logMsg("After 2 pauses $(Cnt)");
+		  showMsg("After 2 pauses $(Cnt)");
 		  _retire(Tsk,.blocked(()=>.false))
 		} catch mboxException in {
 		  _ => {
-		    logMsg("we were canceled");
+		    showMsg("we were canceled");
 		    _retire(Tsk,.retired_)
 		  }
 		}
 	      });
 	};
-	logMsg("moving along, $(Count!) rounds left ");
+	showMsg("moving along, $(Count!) rounds left ");
       };
-      logMsg("end of try");
+      showMsg("end of try");
     } catch mboxException in { .canceled => {
-	logMsg("$(K) shutting down");
+	showMsg("$(K) shutting down");
       }
     };
-    logMsg("terminating");
+    showMsg("terminating");
     valis ()
   }.
 
@@ -56,9 +56,9 @@ test.ct0{
   main() => valof{
     try{
       Rs = nursery([tt(10),tt(20)]);
-      logMsg("final result $(Rs)");
+      showMsg("final result $(Rs)");
     } catch mboxException in {
-      E => logMsg(disp(E))
+      E => showMsg(disp(E))
     };
     valis ()
   }

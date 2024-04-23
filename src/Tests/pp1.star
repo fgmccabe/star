@@ -9,7 +9,7 @@ test.pp1{
 
       valis readLines(StdOut)
     } catch errorCode in { C => {
-	logMsg("Error in popen: $(C)");
+	showMsg("Error in popen: $(C)");
 	valis []
     }
     }
@@ -26,7 +26,7 @@ test.pp1{
       } catch errorCode in {
 	.eof => valis []
 	| Other => {
-	  logMsg("io error: $(Other)");
+	  showMsg("io error: $(Other)");
 	  _abort(Other,"error")
 	}
       }
@@ -36,7 +36,7 @@ test.pp1{
   readSomething()=>valof{
     Text = readFromPipe("/bin/ls", ["-l"]);
     for Line in Text do{
-      logMsg("We have $(Line)");
+      showMsg("We have $(Line)");
     };
     valis ()
   }

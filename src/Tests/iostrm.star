@@ -19,19 +19,19 @@ test.iostrm{
     try{
       Strm = inCharStream(Fl);
 
-      logMsg("unforced stream: $(Strm)");
+      showMsg("unforced stream: $(Strm)");
       Forced = forceStream(Strm);
 
-      logMsg("forced stream: #(_implode(Forced))");
+      showMsg("forced stream: #(_implode(Forced))");
 
-      logMsg("forced line stream $(forceStream(inLineStream(Fl)))");
+      showMsg("forced line stream $(forceStream(inLineStream(Fl)))");
 
-      logMsg("Char count $(foldLeft((_,Ix)=>Ix+1,0,inCharStream(Fl)))");
+      showMsg("Char count $(foldLeft((_,Ix)=>Ix+1,0,inCharStream(Fl)))");
 
       assert countCPs(Fl)==foldLeft((_,Ix)=>Ix+1,0,inCharStream(Fl));
 
     } catch ioException in {
-      | Cde => logMsg("error code $(Cde)")
+      | Cde => showMsg("error code $(Cde)")
     };
     valis ()
   }

@@ -8,11 +8,11 @@ test.iobytes{
   readAll(this,Io) => valof{
     try{
       while Data.=rdBytesAsync(Io,25) do{
-	logMsg("file data: $(Data)");
+	showMsg("file data: $(Data)");
       }
     } catch ioException in {
-      | .ioError => logMsg("bad io")
-      | .pastEof => logMsg("all done")
+      | .ioError => showMsg("bad io")
+      | .pastEof => showMsg("all done")
     };
     valis ()
   }
@@ -30,15 +30,15 @@ test.iobytes{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
 	nursery([Rd]);
-	logMsg("reader done");
+	showMsg("reader done");
       } catch mboxException in {
-	| .deadlock => logMsg("Reader got deadlocked")
-	| .canceled => logMsg("Everything got canceled")
+	| .deadlock => showMsg("Reader got deadlocked")
+	| .canceled => showMsg("Everything got canceled")
       };
       valis ()
     } catch errorCode in {
-      | .eof => logMsg("end of file")
-      | Cde => logMsg("error code $(Cde)")
+      | .eof => showMsg("end of file")
+      | Cde => showMsg("error code $(Cde)")
     };
 
     valis ()
