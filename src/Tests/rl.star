@@ -52,7 +52,7 @@ test.rl{
     show XX!;
 
     for El in (XX!::cons[string]) do{
-      logMsg("El: $(El)")
+      showMsg("El: $(El)")
     };
     valis ()
   }

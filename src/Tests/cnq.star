@@ -25,10 +25,10 @@ test.cnq{
 
   main:()=>().
   main() => valof{
-    logMsg("gp(abc)=$(gp("abc"))");
-    logMsg("sibs = $(sibs())");
-    logMsg("father(ab) = $(fatherOf("ab"))");
-    logMsg("hasD(a) = $(hasD("a"))");
+    showMsg("gp(abc)=$(gp("abc"))");
+    showMsg("sibs = $(sibs())");
+    showMsg("father(ab) = $(fatherOf("ab"))");
+    showMsg("hasD(a) = $(hasD("a"))");
     valis ()
   }
 }  

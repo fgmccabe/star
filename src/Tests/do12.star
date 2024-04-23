@@ -31,7 +31,7 @@ test.do12{
       assert seqCase(.foo(23))==23;
       assert seqCase(.bar(""))==0;
     } catch () in {
-      _ => logMsg("bad valof")
+      _ => showMsg("bad valof")
     };
     valis ()
   }

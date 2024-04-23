@@ -17,10 +17,10 @@ test.ac6{
       stop = _ticks();
       elapsed = ((stop - start)::float)/1.0e6;
       ops_per_sec = ((count::float) / elapsed)::integer;
-      logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
+      showMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     } catch exception in {
       .exception(Msg) => {
-	logMsg("we got exception $(Msg)");
+	logMsg(.severe,"we got exception $(Msg)");
       }
     };
     valis ()
@@ -32,13 +32,13 @@ test.ac6{
   large(Count) => valof {
     timer = ref timer_start(Count, "");
     idxes = (iota(0, Count):cons[integer]);
---    logMsg("Indices: $(idxes)");
+--    showMsg("Indices: $(idxes)");
 
-    logMsg("******* red/black trees ******");
+    showMsg("******* red/black trees ******");
     timer := timer_start(Count, "Creating red/black tree");
     rb_list = ref rbiota(0,Count);
     timer_finish(timer!);
-    logMsg("red/black tree: $(rb_list!)");
+    showMsg("red/black tree: $(rb_list!)");
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {
@@ -49,7 +49,7 @@ test.ac6{
     timer := timer_start(Count, "Accessing all elements in red/black list");
     for i in idxes do {
       El = (rb_list!)[i];
---      logMsg("next element: $(El)");
+--      showMsg("next element: $(El)");
     };
 
     timer_finish(timer!);
@@ -57,9 +57,9 @@ test.ac6{
     if Count =< 100000 then {
       timer := timer_start(Count, "Changing elements in rb list");
       for ix in idxes do {
---	logMsg("update $((rb_list!)[ix])");
+--	showMsg("update $((rb_list!)[ix])");
         rb_list[ix] := ix + 4;
---	logMsg("updated to $((rb_list!)[ix])");
+--	showMsg("updated to $((rb_list!)[ix])");
       };
       timer_finish(timer!)
     };
@@ -69,7 +69,7 @@ test.ac6{
 
   main : (integer,string) => ().
   main(Count,Msg) => valof {
-    logMsg("Do #(Msg) for $(Count) times");
+    showMsg("Do #(Msg) for $(Count) times");
     valis large(Count);
   }
 

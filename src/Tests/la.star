@@ -10,7 +10,7 @@ test.la{
       VV = V.
 
       UU(U) => valof{
-	logMsg("We UU'd $(U)");
+	showMsg("We UU'd $(U)");
 	valis ()
       }.
     } in UU(V);

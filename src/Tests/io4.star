@@ -8,12 +8,12 @@ test.io4{
   readFile(this,Fl) => valof{
     try{
       if Txt.=rdFileAsync(Fl) then{
-	logMsg("file text: $(Txt)");
+	showMsg("file text: $(Txt)");
 	valis Txt
       }
     } catch ioException in {
-      | .ioError => logMsg("bad io")
-      | .pastEof => logMsg("all done")
+      | .ioError => showMsg("bad io")
+      | .pastEof => showMsg("all done")
     };
     valis ""
   }
@@ -29,15 +29,15 @@ test.io4{
 	Rd = (Tsk) => readFile(Tsk,Fl);
 	  
 	Text = nursery([Rd]);
-	logMsg("reader done: $(Text)");
+	showMsg("reader done: $(Text)");
       } catch mboxException in {
-	| .deadlock => logMsg("Reader got deadlocked")
-	| .canceled => logMsg("Everything got canceled")
+	| .deadlock => showMsg("Reader got deadlocked")
+	| .canceled => showMsg("Everything got canceled")
       };
       valis ()
     } catch errorCode in {
-      | .eof => logMsg("end of file")
-      | Cde => logMsg("error code $(Cde)")
+      | .eof => showMsg("end of file")
+      | Cde => showMsg("error code $(Cde)")
     };
 
     valis ()

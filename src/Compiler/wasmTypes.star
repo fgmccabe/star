@@ -12,8 +12,8 @@ star.compiler.wasm.types{
   public heap_type ::=
     .FuncTp(cons[value_type],cons[value_type]) |
     .NoFuncTp |
-    .ContTp(cons[value_type],cons[value_type]) |
-    .NoContTp |
+    .StackTp(cons[value_type],value_type) |
+    .NoStackTp |
     .StructTp(cons[(string,field_type)]) |
     .ArrayTp(field_type) |
     .ExternTp |
@@ -54,7 +54,7 @@ star.compiler.wasm.types{
 
   public implementation display[heap_type] => {
     disp(.FuncTp(Args,Res)) => "(func (param #((Args//(A)=>disp(A))*)) (result #((Res//(A)=>disp(A))*)))".
-    disp(.ContTp(Args,Res)) => "(cont (param #((Args//(A)=>disp(A))*)) (result #((Res//(A)=>disp(A))*)))".
+    disp(.StackTp(Args,Res)) => "(stack (param #((Args//(A)=>disp(A))*)) $(Res))".
     disp(.StructTp(Flds)) => "(struct #((Flds//((Nm,Tp))=> "(field \$#(Nm) $(Tp))")*))".
     disp(.ArrayTp(ATp)) => "(array $(ATp))".
     disp(.ExternTp) => "extern".
@@ -75,8 +75,8 @@ star.compiler.wasm.types{
   public implementation equality[heap_type] => {
     .FuncTp(A1,R1) == .FuncTp(A2,R2) => A1==A2 && R1==R2.
     .NoFuncTp == .NoFuncTp => .true.
-    .ContTp(A1,R1) == .ContTp(A2,R2) => A1==A2 && R1==R2.
-    .NoContTp == .NoContTp => .true.
+    .StackTp(A1,R1) == .StackTp(A2,R2) => A1==A2 && R1==R2.
+    .NoStackTp == .NoStackTp => .true.
     .StructTp(F1) == .StructTp(F2) => F1==F2.
     .ArrayTp(A1) == .ArrayTp(A2) => A1==A2.
     .ExternTp == .ExternTp => .true.

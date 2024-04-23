@@ -28,7 +28,7 @@ test.eras{
     case _resume(Gen,._next) in {
       ._yld(Nxt) => {
 	if Cnt<Mx then{
-	  logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
+	  showMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	  valis sieve(Cnt+1,Mx,Nxt,filter(Nxt,Gen))
 	}
       }
@@ -43,7 +43,7 @@ test.eras{
   main:(integer)=>().
   main(Cnt) => valof{
     MxPrime = sieve(0,Cnt,1,intGen);
-    logMsg("final result $(MxPrime)");
+    showMsg("final result $(MxPrime)");
     valis ()
   }
 }

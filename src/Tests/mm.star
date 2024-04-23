@@ -12,7 +12,7 @@ test.mm{
   
   main:() => ().
   main() => valof{
-    logMsg(disp(conc([1,2,3],[4,5]))::string);
+    showMsg(disp(conc([1,2,3],[4,5]))::string);
 
     assert conc([1,2,3],[4,5])==([1,2,3,4,5]:cons[integer]);
     

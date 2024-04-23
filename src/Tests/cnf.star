@@ -18,7 +18,7 @@ test.cnf{
   main:()=>().
   main() => valof{
     for (P,C) in parent do{
-      logMsg("Parent is $(P), child is $(C)")
+      showMsg("Parent is $(P), child is $(C)")
     };
     valis ()
   }

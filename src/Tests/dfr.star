@@ -7,7 +7,7 @@ test.dfr{
     Cx = ref 0;
 
     try{
-      logMsg("Cx=$(Cx!), Is=$(Is)");
+      showMsg("Cx=$(Cx!), Is=$(Is)");
       for Ix in Is do{
 	if Ix<Lm then
 	  Cx := Cx!+Ix
@@ -15,7 +15,7 @@ test.dfr{
       valis Cx!
     } catch string in {
       (E) => {
-	logMsg(E);
+	showMsg(E);
 	raise E
       }
     }
@@ -28,7 +28,7 @@ test.dfr{
     try{
       show CX(IS,2);
     } catch string in {
-      _ => logMsg("something went bad")
+      _ => showMsg("something went bad")
     };
     valis ()
   }

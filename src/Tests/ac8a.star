@@ -21,7 +21,7 @@ test.ac8a{
       valis ff(X)
     } catch {
       E => {
-	logMsg("we got an exception $(E)");
+	showMsg("we got an exception $(E)");
 	valis -E
       }
     }
@@ -34,19 +34,19 @@ test.ac8a{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
-	      logMsg("retiring...");
+	      showMsg("retiring...");
 	      _retire(TryTsk,.err(E))
 	    }
 	  }
 	} in {
-	  logMsg("starting f($(X))");
+	  showMsg("starting f($(X))");
 	  _retire(TryTsk,.ok(ff(X)))
 	}
       });
 
     case _resume(Tsk,())in {
       .err(E) => {
-	logMsg("We got exception $(E)");
+	showMsg("We got exception $(E)");
 	valis -E
       }
       | .ok(V) =>
@@ -56,8 +56,8 @@ test.ac8a{
 
   main:()=>().
   main() => valof{
-    logMsg(disp(f(1)));
-    logMsg(disp(f(10)));
+    show f(1);
+    show f(10);
     valis ()
   }
 }

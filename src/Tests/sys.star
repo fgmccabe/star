@@ -5,7 +5,7 @@ test.sys{
 
   main:()=>().
   main() => valof{
-    logMsg("$(envir())");
+    show envir();
 
     assert ~ ("$$","$$") .<. envir();
     assert getenv("$$")==.none;

@@ -19,14 +19,14 @@ test.dyn2{
 	let{
 	  implementation raising[string] => {
 	    raiz(M) => valof{
-	      logMsg("error message: #(M)");
+	      showMsg("error message: #(M)");
 	      _retire(K,-1);
 	    }
 	  }
 
 	  implementation raising[integer] => {
 	    raiz(I) => valof{
-	      logMsg("error value: $(I)");
+	      showMsg("error value: $(I)");
 	      _retire(K,I);
 	    }
 	  }
@@ -34,9 +34,9 @@ test.dyn2{
 
   main:()=>().
   main() => valof{
-    logMsg(disp(f(-1)));
-    logMsg(disp(f(10)));
-    logMsg(disp(f(210)));
+    show f(-1);
+    show f(10);
+    show f(210);
 
     assert f(-1) == -1;
     assert f(10) == 40;

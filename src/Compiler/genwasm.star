@@ -46,11 +46,9 @@ star.compiler.wasm.gen{
     .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
 	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
-      Ctx = emptyCtx(collectLocals(argVars(Args,Glbs));
+      Ctx = emptyCtx(collectLocals(Val,argVars(Args,Glbs)));
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
-      if traceCodegen! then
-	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       Peeped = wasmPeep(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then{
 	showMsg("code is $(.func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped))");
@@ -97,8 +95,6 @@ star.compiler.wasm.gen{
       (_Sa,AC) = compExps(Args,Ctx,Stk);
       valis (pushStack(Tp,Stk),AC++allocateWasmTerm(Nm,Tp,Ctx))
     }
-    | .cECall(Lc,Op,Args,Tp) where (_,Ins,Frm,Tail)?=intrinsic(Op) =>
-      compExps(Args,intrinsicCont(Ins,Frm,Tail,pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cECall(Lc,Es,Args,Tp) =>
       compExps(Args,escapeCont(Es,pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>
@@ -479,14 +475,6 @@ star.compiler.wasm.gen{
   escapeCont:(string,stack,Cont) => Cont.
   escapeCont(Es,Stk,Cont) => cont{
     C(Ctx,_Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iEscape(Es),frameIns(Stk)]).
-  }
-
-  intrinsicCont:(wOp,boolean,tailMode,stack,Cont) => Cont.
-  intrinsicCont(I,Frm,.noMore,Stk,Cont) => cont{
-    C(Ctx,AStk,Cde) => (.none,Cde++[I]).
-  }
-  intrinsicCont(I,Frm,.notLast,Stk,Cont) => cont{
-    C(Ctx,AStk,Cde) => Cont.C(Ctx,Stk,Cde++[I]++(Frm??[frameIns(Stk)]||[])).
   }
 
   callCont:(termLbl,tailMode,stack,Cont) => Cont.
@@ -899,10 +887,8 @@ star.compiler.wasm.gen{
     }
   }
 
-  chLine:(option[locn],option[locn]) => multi[wOp].
-  chLine(.none,_) => [].
-  chLine(.some(Lc),.some(Lc)) => [].
-  chLine(_,.some(Lc)) => [.iLine(Lc::data)].
+  collectLocals:(cExp,srcMap) => srcMap.
+  collectLocals(Exp,Mp) => collectExpLcls(Exp,Mp).
 
   collectExpLcls:(cExp,srcMap) => srcMap.
   collectExpLcls(Exp,Mp) => case Exp in {

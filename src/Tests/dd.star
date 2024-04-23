@@ -60,13 +60,13 @@ test.dd{
         raise "fred"
       } catch string in {
 	(F) => {
-	  logMsg("we got an exception $(F)");
+	  showMsg("we got an exception $(F)");
 	  raise ()
 	}
       }
     } catch () in {
       (E) => {
-	logMsg("we got exception $(E), returning $(R)");
+	showMsg("we got exception $(E), returning $(R)");
 	valis R
       }
     }
@@ -98,7 +98,7 @@ test.dd{
       assert TT(1)==1;
       show TT(-1)			-- never finish this
     } catch string in {
-      M => logMsg("Huh: #(M)")
+      M => showMsg("Huh: #(M)")
     };
     valis ()
   }

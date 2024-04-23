@@ -7,7 +7,7 @@ test.tk0{
 
   tk0:async ()=>string raises ().
   tk0() => valof{
-    logMsg("starting tk0");
+    showMsg("starting tk0");
     valis "hello"
   }
 
@@ -18,12 +18,12 @@ test.tk0{
 	try{
 	  T = tsk(this,ζtk0);
 	  Fv = waitfor(T);
-	  logMsg("result $(Fv)");
+	  showMsg("result $(Fv)");
 
 	  T2 = tsk(this,let{
 	      tk2:async () =>_ raises ().
 	      tk2() => valof{
-		logMsg("starting tk2");
+		showMsg("starting tk2");
 		if 3>2 then
 		  valis "there"
 		else
@@ -31,7 +31,7 @@ test.tk0{
 	      }
 	    } in ζtk2);
 	  F2 = waitfor(T2);
-	  logMsg("final result $(F2)");
+	  showMsg("final result $(F2)");
 	  
 	  valis ()
 	} catch () in {
@@ -42,11 +42,8 @@ test.tk0{
       nursery([Tsk]);
 
     } catch mboxException in {
-      E => logMsg(disp(E))
+      E => showMsg("$(E)")
     };
     valis ()
   }
 }
-  
-
-  

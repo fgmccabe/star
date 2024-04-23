@@ -25,7 +25,7 @@ test.ac8{
 	    }
 	  }
 	} in {
-	  logMsg("p1");
+	  showMsg("p1");
 	  if X>5 then
 	    _throw(10)
 	  else
@@ -34,7 +34,7 @@ test.ac8{
 	});
     case _resume(TT,()) in {
       .err(E) => {
-	logMsg("err $(E)");
+	showMsg("err $(E)");
 	valis -E
       }.
       .ok(V) =>
@@ -44,8 +44,8 @@ test.ac8{
 
   main:()=>().
   main() => valof{
-    logMsg("f(1) = $(f(1))");
-    logMsg("f(10) = $(f(10))");
+    showMsg("f(1) = $(f(1))");
+    showMsg("f(10) = $(f(10))");
     valis ()
   }
 }

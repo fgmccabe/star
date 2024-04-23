@@ -7,7 +7,7 @@ test.y{
   -- A function that throws an exception
   fooE:raises exception |: () => string.
   fooE() => valof{
-    logMsg("raising from fooE");
+    showMsg("raising from fooE");
     raise .exception("fooE")
   }
 
@@ -22,7 +22,7 @@ test.y{
       F()
       catch e in {
 	_ => valof{
-	  logMsg("we got an exception");
+	  showMsg("we got an exception");
 	  valis "we got an exception"
 	}
       }).
@@ -37,12 +37,12 @@ test.y{
 	else
 	raise "$(T) not bigger than 1"
       } catch exception in {
-	.exception(M) => { logMsg("we got exception $(M)");
+	.exception(M) => { showMsg("we got exception $(M)");
 	  valis M
 	}
       }
     } catch string in {
-      S => { logMsg("we got string #(S)");
+      S => { showMsg("we got string #(S)");
 	valis S
       }
     }
@@ -76,14 +76,14 @@ test.y{
       show fooE()
     } catch exception in {
       .exception(M) => {
-	logMsg("fooE threw #(M)")
+	showMsg("fooE threw #(M)")
       }
     };
 
     try{
       show fooG(()=>"test string")
     } catch string in {
-      M => logMsg("fooG throws $(M)")
+      M => showMsg("fooG throws $(M)")
     };
 
     show fooC(()=>"world");
@@ -94,7 +94,7 @@ test.y{
     try{
       show fooG(()=>42)
     } catch integer in {
-      M => logMsg("fooG throws $(M)")
+      M => showMsg("fooG throws $(M)")
     };
 
     -- Try a function with two kinds of exception
@@ -102,11 +102,11 @@ test.y{
       try{
 	fooX(2)
       } catch exception in {
-	.exception(M) => { logMsg("we got exception $(M)");
+	.exception(M) => { showMsg("we got exception $(M)");
 	}
       }
     } catch string in {
-      S => { logMsg("we got string #(S)");
+      S => { showMsg("we got string #(S)");
       }
     };
 
@@ -114,11 +114,11 @@ test.y{
       try{
 	fooX(0)
       } catch exception in {
-	.exception(M) => { logMsg("we got exception $(M)");
+	.exception(M) => { showMsg("we got exception $(M)");
 	}
       }
     } catch string in {
-      S => { logMsg("we got string #(S)");
+      S => { showMsg("we got string #(S)");
       }
     };
 

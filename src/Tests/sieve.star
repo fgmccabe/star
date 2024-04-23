@@ -33,12 +33,12 @@ test.sieve{
     try{
       Nxt = collect(Chnnl);
       if Cnt<Mx then{
-	logMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
+	showMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	(PChnl,NChnl) = newSlot();
 	subTask(this,(T)=>sieve(T,Cnt+1,Mx,PChnl));
 	filter(Nxt,Chnnl,NChnl)
       } else{
-	logMsg("collected $(Mx) primes");
+	showMsg("collected $(Mx) primes");
 	valis Nxt
       }
     } catch mboxException in { .canceled => {}};
@@ -60,9 +60,9 @@ test.sieve{
 
     try{
       Eras = nursery([Gn,Sv]);
-      logMsg("final result $(Eras)");
+      showMsg("final result $(Eras)");
     } catch mboxException in {
-      .deadlock => logMsg("Sieve got deadlocked")
+      .deadlock => showMsg("Sieve got deadlocked")
     };
     valis ()
   }

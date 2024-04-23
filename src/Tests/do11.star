@@ -8,7 +8,7 @@ test.do11{
 
   multiWhr:(foo)=>integer.
   multiWhr(X where .foo(_,_).=X) where V .= lcOf(X) => valof{
-    logMsg("$(V)");
+    show V;
     valis V
   }
 

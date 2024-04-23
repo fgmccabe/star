@@ -6,7 +6,7 @@ test.df{
   CX(Is,Lm) => valof{
     Cx = ref 0;
 
-    logMsg("Cx=$(Cx!), Is=$(Is)");
+    showMsg("Cx=$(Cx!), Is=$(Is)");
     for Ix in Is do{
       if Ix<Lm then
   	Cx := Cx!+Ix

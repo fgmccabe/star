@@ -21,7 +21,7 @@ test.dyn1{
       valis ff(X)
     } catch {
       E => {
-	logMsg("we got an exception $(E)");
+	showMsg("we got an exception $(E)");
 	valis -E
       }
     }
@@ -40,16 +40,16 @@ test.dyn1{
     case _resume(_fiber((TryTsk,_) =>valof{
 	  let{
 	    _throw(E) => valof{
-	      logMsg("retiring...");
+	      showMsg("retiring...");
 	      _retire(TryTsk,.err(E))
 	    }
 	  } in {
-	    logMsg("starting f($(X))");
+	    showMsg("starting f($(X))");
 	    _retire(TryTsk,.ok(fe(X)))
 	  }
 	}),()) in {
       .err(E) => {
-	logMsg("We got exception $(E)");
+	showMsg("We got exception $(E)");
 	valis -E
       }.
       .ok(V) =>
@@ -59,8 +59,8 @@ test.dyn1{
 
   main:()=>().
   main() => valof{
-    logMsg(disp(f(1)));
-    logMsg(disp(f(10)));
+    show f(1);
+    show f(10);
     valis ()
   }
 }

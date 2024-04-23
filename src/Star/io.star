@@ -111,10 +111,10 @@ star.io{
 	}
       } catch ioException in {
 	.pastEof => {
-	  logMsg("At eof");
+	  showMsg("At eof");
 	}
 	_ => {
-	  logMsg("??");
+	  showMsg("??");
 	  _close(In);
 	  raise .ioError
 	}
@@ -124,11 +124,11 @@ star.io{
       valis reverse(Txt!)*
     } catch errorCode in {
       .eof => {
-	logMsg("outer eof");
+	showMsg("outer eof");
 	raise .pastEof
       }
       | _ => {
-	logMsg("outer error");
+	showMsg("outer error");
 	raise .ioError
       }
     }
