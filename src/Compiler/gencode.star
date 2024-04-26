@@ -26,8 +26,6 @@ star.compiler.gencode{
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
   declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
   declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
