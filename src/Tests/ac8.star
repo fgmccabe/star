@@ -33,11 +33,11 @@ test.ac8{
 	}
 	});
     case _resume(TT,()) in {
-      .err(E) => {
+      | .err(E) => {
 	showMsg("err $(E)");
 	valis -E
-      }.
-      .ok(V) =>
+      }
+      | .ok(V) =>
 	valis 5*V
     }
   }

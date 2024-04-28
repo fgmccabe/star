@@ -10,19 +10,19 @@ star.bintree{
 
   findInTree:all k,v ~~ equality[k], comp[k] |: (bin[k,v],k)=>option[v].
   findInTree(T,Ky) => case T in {
-    .n(_,Ky,V,_,_) => .some(V).
-    .n(L,K,_,_,_) where Ky<K => findInTree(L,Ky).
-    .n(_,K,_,_,R) where Ky>K => findInTree(R,Ky).
-    .e => .none.
+    | .n(_,Ky,V,_,_) => .some(V)
+    | .n(L,K,_,_,_) where Ky<K => findInTree(L,Ky)
+    | .n(_,K,_,_,R) where Ky>K => findInTree(R,Ky)
+    | .e => .none
   }
 
   depth(.e) => 0.
-  depth(n(_,_,_,D,_)) => D.
+  depth(.n(_,_,_,D,_)) => D.
 
   rotateRight:all k,v ~~ equality[k],comp[k] |: (bin[k,v])=>bin[k,v].
-  rotateRight(n(n(L1,Kx,Vx,_,R1),Ky,Vy,_,R2)) where
+  rotateRight(.n(.n(L1,Kx,Vx,_,R1),Ky,Vy,_,R2)) where
       Dr .= max(depth(R1),depth(R2))+1 =>
-    n(L1,Kx,Vx,max(depth(L1),Dr)+1,n(L2,Ky,Vy,Dr,R2)).
+    .n(L1,Kx,Vx,max(depth(L1),Dr)+1,.n(L2,Ky,Vy,Dr,R2)).
 
   rotateLeft:all k,v ~~ equality[k],comp[k] |: (bin[k,v])=>bin[k,v].
   rotateLeft(n(L1,Kx,Ky,_,n(L2,Ky,Vy,_,R2))) where
@@ -46,17 +46,17 @@ star.bintree{
   balanced:all k,v ~~ (bin[k,v]) => balanced.
   balanced(.e) => .even.
   balanced(n(L,_,_,R)) where Dl.=depth(L) && Dr.=depth(R) =>
-    (Dl>Dr+1 ?
+    (Dl>Dr+1 ??
       .leftHeavy ||
-      (Dr>Dl+1 ?
+      (Dr>Dl+1 ??
 	.rightHeavy ||
 	.even)).
 
   balance(.e) => .e.
   balance(T) => case balanced(T) in {
-    .even => T.
-    .leftHeavy => shiftRight(T).
-    .rightHeavy => shiftLeft(T).
+    | .even => T
+    | .leftHeavy => shiftRight(T)
+    | .rightHeavy => shiftLeft(T)
   }
 }  
   

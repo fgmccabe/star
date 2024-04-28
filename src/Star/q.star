@@ -105,15 +105,15 @@ star.q{
 
   public implementation all e ~~ equality[e] |: membership[qc[e]->>e] => let{.
     _mem(K,Ls) => case Ls in {
-      .cons(K,_) => .true.
-      .cons(_,L) => _mem(K,L).
-      .nil => .false
+      | .cons(K,_) => .true
+      | .cons(_,L) => _mem(K,L)
+      | .nil => .false
     }
 
     _rem(K,Ls) => case Ls in {
-      .nil => .nil.
-      .cons(K,L) => L.
-      .cons(E,L) => .cons(E,_rem(K,L)).
+      | .nil => .nil
+      | .cons(K,L) => L
+      | .cons(E,L) => .cons(E,_rem(K,L))
     }
   .} in {
     .qc(F,B)\+E where (_mem(E,F) || _mem(E,B)) => .qc(F,B).

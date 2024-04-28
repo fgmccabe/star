@@ -42,15 +42,15 @@ star.compiler.lexer{
   } in numericTok(Ch,Nx).
   nxxTok(`0`,St,St0) where (Nx,.some(Ch)).=nextChr(St) =>
     case Ch in {
-      `x` => valof{
+    | `x` => valof{
 	(Nxt,.some(Hx)) = hexChars(Nx,0);
 	valis (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(Hx))))
-      }.
-      `c` => valof{
+      }
+    | `c` => valof{
 	(Nxt,.some(ChC)) = charRef(Nx);
 	valis (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(ChC::integer))))
-      }.
-      `b` => valof{
+      }
+    | `b` => valof{
 	(Nxt,.some(Bg)) = readNatural(Nx,[]);
 	valis (Nxt,.some(.tok(makeLoc(St0,Nx),.bigTok(Bg::bigint))))
       }

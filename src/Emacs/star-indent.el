@@ -160,7 +160,7 @@
 	   ("-->"    nil     star-arrow-indent)
 	   ("|:"     nil     star-arrow-indent)
 	   ("where"  nil     (* star-arrow-indent 2))
-	   ("|"      t       0)
+	   ("|"      t       star-query-indent)
 	   ("||"     t	     0)
 	   ("?"      nil     star-query-indent)
 	   (","      nil     0)
@@ -189,16 +189,21 @@
 	(eval (1st op))
       0)))
 
-(defun star-operator-hanging (op)
+(defun star-is-hanging (op)
   "Does this operator hang to left"
   (let ((op (gethash op star-indentation)))
     (if op
 	(eval (2nd op))
       nil)))
 
-(defun star-operator-indent (state op)
+(defun star-operator-indent (deflt op)
   (let ((delta (star-operator-delta op)))
-    (+ (star-state-indent state) delta)))
+    (+ deflt delta)))
+
+(defun star-operator-hanging-indent (deflt op)
+  deflt)
+  ;; (let ((delta (star-operator-delta op)))
+  ;;   (- deflt delta)))
 
 (defun star-state-type (state)
   (1st state))
@@ -206,17 +211,20 @@
 (defun star-state-indent (state)
   (2nd state))
 
-(defun state-priority (state)
+(defun star-state-bkt-indent (state)
   (3rd state))
 
-(defun star-state-matching (state op)
-  (equal (4th state) op))
+(defun state-priority (state)
+  (4th state))
 
-(defun star-create-state (type indent priority match)
-  (list type indent priority match))
+(defun star-state-matching (state op)
+  (equal (5th state) op))
+
+(defun star-create-state (type indent bkt-indent priority match)
+  (list type indent bkt-indent priority match))
 
 (defun star-deflt-state ()
-  (list (list 'outer 0 3000 nil)))
+  (list (list 'outer 0 0 3000 nil)))
 
 (defun star-is-at-eol (pos)
   (save-excursion
@@ -237,8 +245,8 @@
 
 (defun star-scan-until (pos)
   (star-clear-debug)
-;;  (star-debug "parse until %s" pos)
-;;  (star-debug "indent-cache: %s\n" star-indent-cache)
+  ;;  (star-debug "parse until %s" pos)
+  ;;  (star-debug "indent-cache: %s\n" star-indent-cache)
 
   (let ((parse-state (star-deflt-state)) ; The parse-state just before POS
 	(parse-pos   1)			; The position of the above parse-state
@@ -261,13 +269,13 @@
       ;; just return 0
       (condition-case nil
 	  (let ((new-parse-state (star-term parse-pos pos parse-state)))
-;;	    (star-debug "state from parse: %s" new-parse-state)
+	    ;;	    (star-debug "state from parse: %s" new-parse-state)
 	    ;; Insert the new-parse-state into the indent-cache
 	    ;; Cache is sorted, largest first.
 	    ;; cache = (reverse after) <> [new-parse-state,parse-state,..before]
 
-;;	    (star-debug "indent-cache (before): %s\n" star-indent-cache)
-		
+	    ;;	    (star-debug "indent-cache (before): %s\n" star-indent-cache)
+	    
 	    (setq star-indent-cache
 		  (cons (cons parse-pos parse-state) 
 			before))
@@ -278,46 +286,46 @@
 	      (setq star-indent-cache (cons (car after) star-indent-cache)
 		    after (cdr after)))
 
-;;	    (star-debug "indent-cache (after): %s\n" star-indent-cache)
-			  
+	    ;;	    (star-debug "indent-cache (after): %s\n" star-indent-cache)
+	    
 	    new-parse-state)
 	(t ;; Some error occurred
 	 parse-state)))
     )
   )
 
-;; 
-;; state is a tuple consisting of
-;; (type indent  priority match-bracket)
-;; where type is 'operator or 'bracket
-;; stack is stack of same
+ ;; 
+ ;; state is a tuple consisting of
+ ;; (type indent bkt-indent priority match-bracket)
+ ;; where type is 'operator or 'bracket
+ ;; stack is stack of same
 
 (defun star-term (pos limit parse-state)
-  "An abstracted form of opg parser that is used to compute indentation"
-  (save-excursion
-    (goto-char limit)
-    (skip-chars-forward " \t")
-    (if (looking-at star-op-regexp) ;; parse past operator if first on line
-	(let* ((op (match-string 0))
-	       (end (+ (point) (length op))))
-	  (setq limit end)))
-    
-    (goto-char pos)
+   "An abstracted form of opg parser that is used to compute indentation"
+   (save-excursion
+     (goto-char limit)
+     (skip-chars-forward " \t")
+     (if (looking-at star-op-regexp) ;; parse past operator if first on line
+	 (let* ((op (match-string 0))
+		(end (+ (point) (length op))))
+	   (setq limit end)))
+     
+     (goto-char pos)
 
-    (let ((state (car parse-state))
-	  (stack (cdr parse-state)))
-      (while (< (point) limit)
-;;	(star-debug "state: %s" state)
-;;	(star-debug "stack: %s" stack)
-	(let ((nxtok (star-next-tok limit)))
-	  (if nxtok
-	      (let ((tktype (1st nxtok))
-		    (op (2nd nxtok))
-		    (start (3rd nxtok))
-		    (end (4th nxtok)))
-;;		(star-debug "token: %s %s %s %s" tktype op start end)
-		(cond ((eq tktype 'term)
-		       (while (and stack
+     (let ((state (car parse-state))
+	   (stack (cdr parse-state)))
+       (while (< (point) limit)
+	 ;;	(star-debug "state: %s" state)
+	 ;;	(star-debug "stack: %s" stack)
+	 (let ((nxtok (star-next-tok limit)))
+	   (if nxtok
+	       (let ((tktype (1st nxtok))
+		     (op (2nd nxtok))
+		     (start (3rd nxtok))
+		     (end (4th nxtok)))
+		 ;;		(star-debug "token: %s %s %s %s" tktype op start end)
+		 (cond ((eq tktype 'term)
+			(while (and stack
 				   (not (and
 					 (eq (star-state-type state) 'bracket)
 					 (or (star-state-matching state "}")
@@ -328,13 +336,22 @@
 		       (cond ((star-is-prefixop op)
 			      (if (star-is-at-bol start)
 				  (let* ((spec (star-is-prefixop op))
-					 (rprior (2nd spec)))
-				    (setq stack (cons state stack)
-					  state (star-create-state
-						 'operator
-						 (star-operator-indent state op)
-						 rprior nil)
-					  ))))
+					 (rprior (2nd spec))
+					 (bkt-indent (star-state-bkt-indent state)))
+				    (if (star-is-hanging op)
+					(setq stack (cons state stack)
+					      state (star-create-state
+						     'operator
+						     (star-operator-hanging-indent bkt-indent op)
+						     bkt-indent
+						     rprior nil))
+				      (setq stack (cons state stack)
+					    state (star-create-state
+						   'operator
+						   (star-operator-indent (star-state-indent state) op)
+						   bkt-indent
+						   rprior nil)
+					    )))))
 			     ((star-is-infixop op)
 			      (if (or (star-is-at-bol start) (star-is-at-eol end))
 				  (let* ((spec (star-is-infixop op))
@@ -347,8 +364,8 @@
 				    (setq stack (cons state stack)
 					  state (star-create-state
 						 'operator
-						 (star-operator-indent state op)
-						 rprior nil)
+						 (star-operator-indent (star-state-indent state) op)
+						 (star-state-bkt-indent state)							 rprior nil)
 					  ))))
 			     ((star-is-postfixop op)
 			      (if (star-is-at-eol end)
@@ -369,7 +386,9 @@
 				    (inner (2nd spec)))
 			       (setq stack (cons state stack)
 				     state (star-create-state
-					    'bracket (+ (star-state-indent state) 2)
+					    'bracket
+					    (+ (star-state-bkt-indent state) 2)
+					    (+ (star-state-bkt-indent state) 2)
 					    inner
 					    right))))
 			 (progn
@@ -421,6 +440,10 @@
 
 (defun star-parse-state-indent (parse-state)
   (star-state-indent (car parse-state)))
+
+  ;; (let ((state (car parse-state)))
+  ;;   (min (star-state-indent state)
+  ;; 	 (star-state-bkt-indent state))))
 
 (defun star-calculate-brace-indent (pos)
   (star-parse-state-indent (star-scan-until pos)))

@@ -96,31 +96,31 @@ star.uri{
 
   isReserved:(char)=>boolean.
   isReserved(Ch) => case Ch in {
-    `;` => .true.
-    `/` => .true.
-    `?` => .true.
-    `:` => .true.
-    `@` => .true.
-    `&` => .true.
-    `=` => .true.
-    `+` => .true.
-    `$` => .true.
-    `,` => .true.
-    _ default => .false.
+    | `;` => .true
+    | `/` => .true
+    | `?` => .true
+    | `:` => .true
+    | `@` => .true
+    | `&` => .true
+    | `=` => .true
+    | `+` => .true
+    | `$` => .true
+    | `,` => .true
+    | _ default => .false
   }
   
   isMark:(char)=>boolean.
   isMark(Ch) => case Ch in {
-    `-` => .true.
-    `_` => .true.
-    `.` => .true.
-    `!` => .true.
-    `~` => .true.
-    `*` => .true.
-    `\'` => .true.
-    `\(` => .true.
-    `\)` => .true.
-    _ default => .false.
+    | `-` => .true
+    | `_` => .true
+    | `.` => .true
+    | `!` => .true
+    | `~` => .true
+    | `*` => .true
+    | `\'` => .true
+    | `\(` => .true
+    | `\)` => .true
+    | _ default => .false
   }
 
   isUnreserved:(char) => boolean.
@@ -128,37 +128,37 @@ star.uri{
 
   isDelim:(char)=>boolean.
   isDelim(Ch) => case Ch in {
-    `<` => .true.
-    `>` => .true.
-    `#` => .true.
-    `%` => .true.
-    `\"` => .true.
-    _ default => .false.
+    | `<` => .true
+    | `>` => .true
+    | `#` => .true
+    | `%` => .true
+    | `\"` => .true
+    | _ default => .false
   }
 
   isSegChr:(char)=>boolean.
   isSegChr(Ch) => case Ch in {
-    `:` => .true.
-    `@` => .true.
-    `&` => .true.
-    `=` => .true.
-    `+` => .true.
-    `$` => .true.
-    `<` => .true.
-    `;` => .true. -- This is a hack to merge parameters with the segment
-    _ default => isUnreserved(Ch).
+    | `:` => .true
+    | `@` => .true
+    | `&` => .true
+    | `=` => .true
+    | `+` => .true
+    | `$` => .true
+    | `<` => .true
+    | `;` => .true  -- This is a hack to merge parameters with the segment
+    | _ default => isUnreserved(Ch)
   }
 
   userCh:(char) => boolean.
   userCh(Ch) => case Ch in {
-    `$` => .true.
-    `,` => .true.
-    `;` => .true.
-    `:` => .true.
-    `&` => .true.
-    `=` => .true.
-    `+` => .true.
-    _ default => isUnreserved(Ch).
+    | `$` => .true
+    | `,` => .true
+    | `;` => .true
+    | `:` => .true
+    | `&` => .true
+    | `=` => .true
+    | `+` => .true
+    | _ default => isUnreserved(Ch)
   }
 
   -- Implement equality for URIs

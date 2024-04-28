@@ -45,7 +45,7 @@ test.ac8a{
       });
 
     case _resume(Tsk,())in {
-      .err(E) => {
+      | .err(E) => {
 	showMsg("We got exception $(E)");
 	valis -E
       }

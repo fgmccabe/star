@@ -21,15 +21,15 @@ star.compiler.token{
 
   public implementation display[tk] => {
     disp(Tk) => case Tk in {
-      .idQTok(Id) => "''#(Id)''".
-      .idTok(Id) => "'#(Id)'".
-      .intTok(Ix) => disp(Ix).
-      .bigTok(Bx) => disp(Bx).
-      .fltTok(Dx) => disp(Dx).
-      .chrTok(Ch) => disp(Ch).
-      .strTok(S) => "\"#(dispSegments(S)*)\"".
-      .lftTok(Id) where .bkt(LId,_,_,_,_) ?= isBracket(Id) => "#(LId)".
-      .rgtTok(Id) where .bkt(_,_,RId,_,_) ?= isBracket(Id) => "#(RId)".
+      | .idQTok(Id) => "''#(Id)''"
+      | .idTok(Id) => "'#(Id)'"
+      | .intTok(Ix) => disp(Ix)
+      | .bigTok(Bx) => disp(Bx)
+      | .fltTok(Dx) => disp(Dx)
+      | .chrTok(Ch) => disp(Ch)
+      | .strTok(S) => "\"#(dispSegments(S)*)\""
+      | .lftTok(Id) where .bkt(LId,_,_,_,_) ?= isBracket(Id) => "#(LId)"
+      | .rgtTok(Id) where .bkt(_,_,RId,_,_) ?= isBracket(Id) => "#(RId)"
     }
   }
 
@@ -38,10 +38,10 @@ star.compiler.token{
 
   public implementation display[stringSegment] => {
     disp(Sg) => case Sg in {
-      .segment(_,S) => S.
-      .interpolate(_,S,"") => "\$($(S))".
-      .interpolate(_,S,F) => "\$($(S)):#(F);".
-      .evaluate(_,S) => "\#($(S))".
+      | .segment(_,S) => S
+      | .interpolate(_,S,"") => "\$($(S))"
+      | .interpolate(_,S,F) => "\$($(S)):#(F);"
+      | .evaluate(_,S) => "\#($(S))"
     }
   }
 
@@ -54,15 +54,15 @@ star.compiler.token{
 
   public implementation equality[tk] => {
     Tk1 == Tk2 => case Tk1 in {
-      .idQTok(Id1) => .idQTok(Id2).=Tk2 && Id1==Id2.
-      .idTok(Id1) => .idTok(Id2).=Tk2 && Id1==Id2.
-      .intTok(Ix1) => .intTok(Ix2).=Tk2 && Ix1==Ix2.
-      .bigTok(Ix1) => .bigTok(Ix2).=Tk2 && Ix1==Ix2.
-      .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2.
-      .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2.
-      .strTok(S1) => .strTok(S2).=Tk2 && S1==S2.
-      .lftTok(S1) => .lftTok(S2).=Tk2 && S1==S2.
-      .rgtTok(S1) => .rgtTok(S2).=Tk2 && S1==S2.
+      | .idQTok(Id1) => .idQTok(Id2).=Tk2 && Id1==Id2
+      | .idTok(Id1) => .idTok(Id2).=Tk2 && Id1==Id2
+      | .intTok(Ix1) => .intTok(Ix2).=Tk2 && Ix1==Ix2
+      | .bigTok(Ix1) => .bigTok(Ix2).=Tk2 && Ix1==Ix2
+      | .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2
+      | .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2
+      | .strTok(S1) => .strTok(S2).=Tk2 && S1==S2
+      | .lftTok(S1) => .lftTok(S2).=Tk2 && S1==S2
+      | .rgtTok(S1) => .rgtTok(S2).=Tk2 && S1==S2
     }
   }
 

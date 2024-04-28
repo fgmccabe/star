@@ -27,16 +27,16 @@ star.iterable{
 	yieldFn:(e,())=>().
 	yieldFn(E,_) => valof{
 	  case _suspend(this,._yld(E)) in {
-	  ._next => {}.
-	    ._cancel => _retire(this,._all)
+	  | ._next => {}
+	  | ._cancel => _retire(this,._all)
 	  };
 	  valis ()
 	}
       } in (case first in {
-	  ._next => valof{
+	| ._next => valof{
 	    _iter(L,(),yieldFn);
 	    valis ._all
 	  }
-	  | ._cancel => ._all
+	| ._cancel => ._all
       })).
 }

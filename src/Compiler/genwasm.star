@@ -25,17 +25,15 @@ star.compiler.wasm.gen{
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp)].
   declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp)].
-  declGlobal(.accDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp)].
-  declGlobal(.updDec(_,_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp)].
   declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],srcMap)=>srcMap.
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(Def,Vrs) => case Def in {
-    .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp)].
-    .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp)].
-    _ default => Vrs
+    | .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp)]
+    | .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp)]
+    | _ default => Vrs
   }
   
   compDefs:(cons[cDefn],srcMap)=> cons[wasmDefn].
@@ -43,7 +41,7 @@ star.compiler.wasm.gen{
 
   genDef:(cDefn,srcMap) => wasmDefn.
   genDef(Defn,Glbs) => case Defn in {
-    .fnDef(Lc,Nm,Tp,Args,Val) => valof{
+    | .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
 	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(collectLocals(Val,argVars(Args,Glbs)));
@@ -158,13 +156,13 @@ star.compiler.wasm.gen{
 
   compVar:(option[locn],srcLoc,codeCtx,stack) => (stack,multi[wOp]).
   compVar(Lc,Loc,Ctx,Stk) => case Loc in {
-    .lclVar(Nm,Tp) => (pushStack(Tp,Stk),[.LocalGet(Nm)]).
-    .glbVar(Nm,Tp) => (pushStack(Tp,Stk),[.GlobalGet(Nm)]).
+    | .lclVar(Nm,Tp) => (pushStack(Tp,Stk),[.LocalGet(Nm)])
+    | .glbVar(Nm,Tp) => (pushStack(Tp,Stk),[.GlobalGet(Nm)])
   }
     
   compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCond(C,TM,Succ,Fail,Ctx,Stk) => case C in {
-    .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
+    | .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
     | .cTerm(_,"star.core#false",[],_) => Fail.C(Ctx,Stk,[])
     | .cCnj(Lc,L,R) => valof{
       FC = splitCont(Lc,Ctx,ctxCont(Ctx,Fail));
@@ -190,7 +188,7 @@ star.compiler.wasm.gen{
 
   compAction:(aAction,tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[wOp]).
   compAction(A,TM,ACont,Cont,Ctx,Stk) => case A in {
-    .aNop(Lc) => ACont.C(Ctx,Stk,[])
+    | .aNop(Lc) => ACont.C(Ctx,Stk,[])
     | .aSeq(Lc,L,R) => compAction(L,.notLast,resetCont(Stk,actionCont(R,TM,ACont,Cont)),Cont,Ctx,Stk)
     | .aLbld(Lc,Lb,LbldA) => valof{
       Ctxl = (Ctx.brks=Ctx.brks[Lb->ctxCont(Ctx,resetCont(Stk,ACont))]);
@@ -278,7 +276,7 @@ star.compiler.wasm.gen{
   compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
     (e,Cont)=>Cont,Cont,Cont,wasmLbl,codeCtx,stack) =>(stack,multi[wOp],multi[wOp]).
   compCases(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
-    [] => valof{
+    | [] => valof{
       if Ix==Mx then
 	valis (.none,[],[])
       else{
@@ -303,7 +301,7 @@ star.compiler.wasm.gen{
     (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
 
   compCaseBranch(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    [(Lc,Ptn,Exp)] => compPttrn(Ptn,Comp(Exp,Succ),Fail,Ctx,Stk)
+    | [(Lc,Ptn,Exp)] => compPttrn(Ptn,Comp(Exp,Succ),Fail,Ctx,Stk)
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CF",Ctx);
       VLb = defineLbl("CN",Ctx);
@@ -319,7 +317,7 @@ star.compiler.wasm.gen{
   compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
     Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    [] => Fail.C(Ctx,.none,[])
+    | [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CM",Ctx);
       
@@ -332,7 +330,7 @@ star.compiler.wasm.gen{
   compCnsCase:all e ~~ display[e] |: (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
     Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
-    [(_,Ptn,Exp)] => compExp(Gv,.notLast, ptnCont(Ptn,Comp(Exp,Cont),
+    | [(_,Ptn,Exp)] => compExp(Gv,.notLast, ptnCont(Ptn,Comp(Exp,Cont),
 	abortCont(Lc,"match error")),Ctx,Stk)
     | Cases default => valof{
       CC = splitCont(Lc,Ctx,Cont);
@@ -352,7 +350,7 @@ star.compiler.wasm.gen{
   compCnsCases:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
     (stack,multi[wOp],multi[wOp]).
   compCnsCases(Cs,Comp,Succ,Ctx,Stk) => case Cs in {
-    [] => (.none,[],[])
+    | [] => (.none,[],[])
     | [(Lc,Ptn,Exp),..Cases] => valof{
       Lb = cseLbl(Ptn,Ctx);
       (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,Ctx,Stk);
@@ -376,13 +374,13 @@ star.compiler.wasm.gen{
 
   caseHash:(cExp)=>integer.
   caseHash(E) => case E in {
-    .cVar(_,_) => 0.
-    .cInt(_,Ix) => Ix.
-    .cBig(_,Bx) => hash(Bx).
-    .cFloat(_,Dx) => hash(Dx).
-    .cChar(_,Cx) => hash(Cx).
-    .cString(_,Sx) => hash(Sx).
-    .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm).
+    | .cVar(_,_) => 0
+    | .cInt(_,Ix) => Ix
+    | .cBig(_,Bx) => hash(Bx)
+    | .cFloat(_,Dx) => hash(Dx)
+    | .cChar(_,Cx) => hash(Cx)
+    | .cString(_,Sx) => hash(Sx)
+    | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
   }.
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
@@ -402,7 +400,7 @@ star.compiler.wasm.gen{
   
   compPtn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtn(Ptn,Succ,Fail,Ctx,Stk) => case Ptn in {
-    .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
+    | .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc ?= locateVar(Vr,Ctx) then 
 	valis compPtnVar(Lc,Vr,Loc,Succ,Ctx,dropStack(Stk))
@@ -439,10 +437,10 @@ star.compiler.wasm.gen{
   }
 
   ptnCmp(Ptn,Lb) => case Ptn in {
-    .cInt(_,Ix) => .iICmp(Lb).
-    .cChar(_,Cx) => .iCCmp(Lb).
-    .cFloat(_,Dx) => .iFCmp(Lb).
-    _ => .iCmp(Lb)
+    | .cInt(_,Ix) => .iICmp(Lb)
+    | .cChar(_,Cx) => .iCCmp(Lb)
+    | .cFloat(_,Dx) => .iFCmp(Lb)
+    | _ => .iCmp(Lb)
   }.
 
   compPtnVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[wOp]).
@@ -450,7 +448,7 @@ star.compiler.wasm.gen{
 
   compPtnArgs:(cons[cExp],Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtnArgs(Es,Succ,Fail,Ctx,Stk) => case Es in {
-    [] => Succ.C(Ctx,Stk,[])
+    | [] => Succ.C(Ctx,Stk,[])
     | [A,..As] => compPtn(A,argsPtnCont(As,Succ,Fail),Fail,Ctx,Stk)
   }
 
@@ -700,10 +698,10 @@ star.compiler.wasm.gen{
 
   reconcileStack:(stack,stack)=>stack.
   reconcileStack(S1,S2) => case S1 in {
-    .none => S2.
-    .some(Sl) => case S2 in {
-      .none => S1.
-      .some(Sr) => valof{
+    | .none => S2
+    | .some(Sl) => case S2 in {
+      | .none => S1
+      | .some(Sr) => valof{
 	if Sl==Sr then
 	  valis .some(Sl)
 	else{
@@ -716,10 +714,10 @@ star.compiler.wasm.gen{
 
   reconcileable:(stack,stack)=>boolean.
   reconcileable(S1,S2) => case S1 in {
-    .none => .true.
-    .some(Sl) => case S2 in {
-      .none => .true.
-      .some(Sr) => valof{
+    | .none => .true
+    | .some(Sl) => case S2 in {
+      | .none => .true
+      | .some(Sr) => valof{
 	if Sl==Sr then
 	  valis .true
 	else{
@@ -732,10 +730,10 @@ star.compiler.wasm.gen{
   resetStack:(option[integer],stack) => (stack,multi[wOp]).
   resetStack(.some(Dp),.some(Stk)) =>
     case [|Stk|] in {
-      Dp => (.some(Stk),[]).
-      Dp1 where Dp == Dp1-1 => (tail(Stk),[.iDrop]).
-      Dp1 where Dp1>Dp => (.some(popTo(Stk,Dp)),[.iRst(Dp)]).
-      Dp1 default => valof{	
+    | Dp => (.some(Stk),[])
+    | Dp1 where Dp == Dp1-1 => (tail(Stk),[.iDrop])
+    | Dp1 where Dp1>Dp => (.some(popTo(Stk,Dp)),[.iRst(Dp)])
+    | Dp1 default => valof{	
 	reportTrap("invalid stack height in $(Stk)\:$(Dp1)~$(Dp)");
 	valis (.some(Stk),[])
       }
@@ -867,9 +865,9 @@ star.compiler.wasm.gen{
   popTo:all e ~~ (cons[e],integer) => cons[e].
   popTo(LL,D) => let{.
     pop(Ls,Ix) => case Ls in {
-      [] => [].
-      [_,..L] where Ix>0 => pop(L,Ix-1).
-      _ where Ix==0 => Ls
+      | [] => []
+      | [_,..L] where Ix>0 => pop(L,Ix-1)
+      | _ where Ix==0 => Ls
     }
   .} in pop(LL,[|LL|]-D).
 
@@ -881,9 +879,9 @@ star.compiler.wasm.gen{
 
   implementation display[srcLoc] => {
     disp(L) => case L in {
-      .lclVar(Off,Tpe) => "lcl $(Off)\:$(Tpe)".
-      .glbVar(Off,Tpe) => "glb $(Off)\:$(Tpe)".
-      .glbFun(Off,Tpe) => "fun $(Off)\:$(Tpe)".
+      | .lclVar(Off,Tpe) => "lcl $(Off)\:$(Tpe)"
+      | .glbVar(Off,Tpe) => "glb $(Off)\:$(Tpe)"
+      | .glbFun(Off,Tpe) => "fun $(Off)\:$(Tpe)"
     }
   }
 
@@ -892,40 +890,40 @@ star.compiler.wasm.gen{
 
   collectExpLcls:(cExp,srcMap) => srcMap.
   collectExpLcls(Exp,Mp) => case Exp in {
-    .cVoid(_,_) => Mp.
-    .cAnon(_,_) => Mp.
-    .cVar(_,.cId(Nm,Tp)) => (_?=Mp[Nm] ?? Mp || Mp[Nm->.lclVar(Nm,Tp)]).
-    .cInt(_,_) => Mp.
-    .cChar(_,_) => Mp.
-    .cBig(_,_) => Mp.
-    .cFloat(_,_) => Mp.
-    .cString(_,_) => Mp.
-    .cTerm(_,_,Args,_) => collectArgs(Args,Mp).
-    .cNth(_,Rc,_,_) => collectExpLcls(Rc,Mp).
-    .cSetNth(_,Rc,_,Vl) => collectExpLcls(Rc,collectExpLcls(Vl,Mp)).
-    .cClos(_,_,_,Cl,_) => collectExpLcls(Cl,Mp).
-    .cCall(_,_,Args,_) => collectArgs(Args,Mp).
-    .cECall(_,_,Args,_) => collectArgs(Args,Mp).
-    .cOCall(_,Op,Args,_) => collectArgs(Args,collectExpLcls(Op,Mp)).
-    .cRaise(_,Vr,Ex,_) => collectExpLcls(Vr,collectExpLcls(Ex,Mp)).
-    .cSpawn(_,F,_) => collectExpLcls(F,Mp).
-    .cPaus(_,F,_) => collectExpLcls(F,Mp).
-    .cSusp(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp)).
-    .cResume(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp)).
-    .cRetire(_,F,M) => collectExpLcls(F,collectExpLcls(M,Mp)).
-    .cSeq(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
-    .cCnj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
-    .cDsj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
-    .cNeg(_,R) => collectExpLcls(R,Mp).
-    .cCnd(_,T,L,R) => collectExpLcls(L,collectExpLcls(R,collectExpLcls(T,Mp))).
-    .cLtt(Lc,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp))).
-    .cCont(_,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp))).
-    .cCase(_,G,Cses,Dflt,_) => collectExlLcls(Dflt,collectCses(Cses,collectExpLcls,collectExpLcls(G,Mp))).
-    .cMatch(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp)).
-    .cVarNmes(_,_,X) => collectExpLcls(X,Mp).
-    .cAbort(_,_,_) => Mp.
-    .cTry(_,B,T,E,H,_) => collectExpLcls(B,collectExpLcls(T,collectExpLcls(E,collectExpLcls(H,Mp)))).
-    .cValof(_,A,_) => collectActLcls(A,Mp).
+    | .cVoid(_,_) => Mp
+    | .cAnon(_,_) => Mp
+    | .cVar(_,.cId(Nm,Tp)) => (_?=Mp[Nm] ?? Mp || Mp[Nm->.lclVar(Nm,Tp)])
+    | .cInt(_,_) => Mp
+    | .cChar(_,_) => Mp
+    | .cBig(_,_) => Mp
+    | .cFloat(_,_) => Mp
+    | .cString(_,_) => Mp
+    | .cTerm(_,_,Args,_) => collectArgs(Args,Mp)
+    | .cNth(_,Rc,_,_) => collectExpLcls(Rc,Mp)
+    | .cSetNth(_,Rc,_,Vl) => collectExpLcls(Rc,collectExpLcls(Vl,Mp))
+    | .cClos(_,_,_,Cl,_) => collectExpLcls(Cl,Mp)
+    | .cCall(_,_,Args,_) => collectArgs(Args,Mp)
+    | .cECall(_,_,Args,_) => collectArgs(Args,Mp)
+    | .cOCall(_,Op,Args,_) => collectArgs(Args,collectExpLcls(Op,Mp))
+    | .cRaise(_,Vr,Ex,_) => collectExpLcls(Vr,collectExpLcls(Ex,Mp))
+    | .cSpawn(_,F,_) => collectExpLcls(F,Mp)
+    | .cPaus(_,F,_) => collectExpLcls(F,Mp)
+    | .cSusp(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp))
+    | .cResume(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp))
+    | .cRetire(_,F,M) => collectExpLcls(F,collectExpLcls(M,Mp))
+    | .cSeq(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
+    | .cCnj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
+    | .cDsj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
+    | .cNeg(_,R) => collectExpLcls(R,Mp)
+    | .cCnd(_,T,L,R) => collectExpLcls(L,collectExpLcls(R,collectExpLcls(T,Mp)))
+    | .cLtt(Lc,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp)))
+    | .cCont(_,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp)))
+    | .cCase(_,G,Cses,Dflt,_) => collectExlLcls(Dflt,collectCses(Cses,collectExpLcls,collectExpLcls(G,Mp)))
+    | .cMatch(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
+    | .cVarNmes(_,_,X) => collectExpLcls(X,Mp)
+    | .cAbort(_,_,_) => Mp
+    | .cTry(_,B,T,E,H,_) => collectExpLcls(B,collectExpLcls(T,collectExpLcls(E,collectExpLcls(H,Mp))))
+    | .cValof(_,A,_) => collectActLcls(A,Mp)
   }
 
   collectArgs(Args,Mp) => foldLeft((E,MM) => collectExpLcls(E,MM),Mp,Args).
@@ -936,25 +934,25 @@ star.compiler.wasm.gen{
     collectSes(Cs,F,collectExpLcls(Ptn,F(Vl,Mp))).
   
   collectActLcls(A,Mp) => case A in {
-    .aNop(_) => Mp.
-    .aSeq(_,L,R) => collectActLcls(L,collectActLcls(R,Mp)).
-    .aLbld(_,_,B) => collectActLcls(B,Mp).
-    .aBreak(_,_) => Mp.
-    .aValis(_,X) => collectExpLcls(X,Mp).
-    .aRetire(_,F,X) => collectExpLcls(X,collectExpLcls(F,Mp)).
-    .aDo(_,X) => collectExpLcls(X,Mp).
-    .aSetNth(_,R,_,V) => collectExpLcls(R,collectExpLcls(V,Mp)).
-    .aDefn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
-    .aAsgn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp)).
-    .aCase(_,G,Cs,D) => collectCses(Cs,collectExpLcls(G,collectActLcls(D,Mp))).
-    .aIftte(_,T,L,R) => collectExpLcls(T,collectActLcls(L,collectActLcls(R,Mp))).
-    .aWhile(_,T,B) => collectActLcls(B,collectExpLcls(T,Mp)).
-    .aTry(_,B,V,E,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(E,collectActLcls(H,Mp)))).
-    .aLtt(Lc,V,X,B) =>
-      collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).
-    .aCont(_,V,X,B) => collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp))).
-    .aVarNmes(_,_,B) => collectActLcls(B,Mp).
-    .aAbort(_,_) => Mp
+    | .aNop(_) => Mp
+    | .aSeq(_,L,R) => collectActLcls(L,collectActLcls(R,Mp))
+    | .aLbld(_,_,B) => collectActLcls(B,Mp)
+    | .aBreak(_,_) => Mp
+    | .aValis(_,X) => collectExpLcls(X,Mp)
+    | .aRetire(_,F,X) => collectExpLcls(X,collectExpLcls(F,Mp))
+    | .aDo(_,X) => collectExpLcls(X,Mp)
+    | .aSetNth(_,R,_,V) => collectExpLcls(R,collectExpLcls(V,Mp))
+    | .aDefn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp))
+    | .aAsgn(_,V,X) => collectExpLcls(X,collectExpLcls(V,Mp))
+    | .aCase(_,G,Cs,D) => collectCses(Cs,collectExpLcls(G,collectActLcls(D,Mp)))
+    | .aIftte(_,T,L,R) => collectExpLcls(T,collectActLcls(L,collectActLcls(R,Mp)))
+    | .aWhile(_,T,B) => collectActLcls(B,collectExpLcls(T,Mp))
+    | .aTry(_,B,V,E,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(E,collectActLcls(H,Mp))))
+    | .aLtt(Lc,V,X,B) =>
+      collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp)))
+    | .aCont(_,V,X,B) => collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp)))
+    | .aVarNmes(_,_,B) => collectActLcls(B,Mp)
+    | .aAbort(_,_) => Mp
   }
 
   wasmInt(Ix,Stk,Ctx) where isSMI(Ix) =>

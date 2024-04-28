@@ -141,7 +141,7 @@ star.compiler.wasm.instr{
 
   d_instr:(wOp,string)=>string.
   d_instr(In,Off) => case In in {
-    .Unreachable => "unreachable"
+    | .Unreachable => "unreachable"
     | .Nop => "nop"
     | .Drop => "drop"
     | .Select => "select"

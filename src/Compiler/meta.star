@@ -76,11 +76,11 @@ star.compiler.meta{
 
   public implementation display[defnSp] => let{
     dispSp(S) => case S in {
-      .varSp(Nm) => "var: $(Nm)".
-      .cnsSp(Nm) => "constructor: $(Nm)".
-      .tpSp(Nm) => "type: $(Nm)".
-      .conSp(Nm) => "contract: $(Nm)".
-      .implSp(Nm) => "implementation: $(Nm)".
+      | .varSp(Nm) => "var: $(Nm)"
+      | .cnsSp(Nm) => "constructor: $(Nm)"
+      | .tpSp(Nm) => "type: $(Nm)"
+      | .conSp(Nm) => "contract: $(Nm)"
+      | .implSp(Nm) => "implementation: $(Nm)"
     }
   } in {
     disp = dispSp
@@ -88,12 +88,12 @@ star.compiler.meta{
 
   public implementation equality[defnSp] => let{
     eql(Sp1,Sp2) => case Sp1 in {
-      .cnsSp(S1) => .cnsSp(S2).=Sp2 && S1==S2.
-      .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2.
-      .varSp(S1) => .varSp(S2).=Sp2 && S1==S2.
-      .implSp(S1) => .implSp(S2).=Sp2 && S1==S2.
-      .conSp(S1) => .conSp(S2).=Sp2 && S1==S2.
-      _ default => .false.
+      | .cnsSp(S1) => .cnsSp(S2).=Sp2 && S1==S2
+      | .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2
+      | .varSp(S1) => .varSp(S2).=Sp2 && S1==S2
+      | .implSp(S1) => .implSp(S2).=Sp2 && S1==S2
+      | .conSp(S1) => .conSp(S2).=Sp2 && S1==S2
+      | _ default => .false
     }
   } in {
     S1 == S2 => eql(S1,S2)
@@ -101,11 +101,11 @@ star.compiler.meta{
 
   public implementation hashable[defnSp] => {
     hash(Sp) => case Sp in {
-      .varSp(Nm) => hash(Nm)*37+hash("var").
-      .cnsSp(Nm) => hash(Nm)*37+hash("cns").
-      .tpSp(Nm) => hash(Nm)*37+hash("tp").
-      .conSp(Nm) => hash(Nm)*37+hash("con").
-      .implSp(Nm) => hash(Nm)*37+hash("impl").
+      | .varSp(Nm) => hash(Nm)*37+hash("var")
+      | .cnsSp(Nm) => hash(Nm)*37+hash("cns")
+      | .tpSp(Nm) => hash(Nm)*37+hash("tp")
+      | .conSp(Nm) => hash(Nm)*37+hash("con")
+      | .implSp(Nm) => hash(Nm)*37+hash("impl")
     }
   }
 
@@ -128,14 +128,14 @@ star.compiler.meta{
 
   public implementation display[decl] => {
     disp(Dc) => case Dc in {
-      .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)".
-      .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)".
-      .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-      .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)".
-      .tpeDec(_,Nm,_,TpRl) => "Type #(Nm)\::$(TpRl)".
-      .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)".
-      .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)".
-      .cnsDec(_,Nm,FullNm,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp)".
+      | .conDec(_,Nm,_,RlTp) => "Ctrct #(Nm)\:$(RlTp)"
+      | .implDec(_,Nm,ImplNm,ImplTp) => "Impl #(Nm)[#(ImplNm)]\:$(ImplTp)"
+      | .accDec(_,Tp,Fld,Fun,FunTp) => "Acc $(Tp).#(Fld) using #(Fun)\:$(FunTp)"
+      | .updDec(_,Tp,Fld,Fun,FunTp) => "Upd $(Tp).#(Fld) using #(Fun)\:$(FunTp)"
+      | .tpeDec(_,Nm,_,TpRl) => "Type #(Nm)\::$(TpRl)"
+      | .varDec(_,Nm,FullNm,Tp) => "Var #(Nm)[#(FullNm)]\:$(Tp)"
+      | .funDec(_,Nm,FullNm,Tp) => "Fun #(Nm)[#(FullNm)]\:$(Tp)"
+      | .cnsDec(_,Nm,FullNm,Tp) => "Con #(Nm)[#(FullNm)]\:$(Tp)"
     }
   }
 
@@ -146,22 +146,22 @@ star.compiler.meta{
 
   public implementation hasName[decl] => {
     lclName(D) => case D in {
-      .conDec(_,Nm,_,_) => .some(Nm).
-      .implDec(_,Nm,_,_) => .some(Nm).
-      .tpeDec(_,Nm,_,TpRl) => .some(Nm).
-      .varDec(_,Nm,FullNm,Tp) => .some(Nm).
-      .funDec(_,Nm,FullNm,Tp) => .some(Nm).
-      .cnsDec(_,Nm,FullNm,Tp) => .some(Nm).
-      _ default => .none
+      | .conDec(_,Nm,_,_) => .some(Nm)
+      | .implDec(_,Nm,_,_) => .some(Nm)
+      | .tpeDec(_,Nm,_,TpRl) => .some(Nm)
+      | .varDec(_,Nm,FullNm,Tp) => .some(Nm)
+      | .funDec(_,Nm,FullNm,Tp) => .some(Nm)
+      | .cnsDec(_,Nm,FullNm,Tp) => .some(Nm)
+      | _ default => .none
     }.
     fullName(D) => case D in {
-      .conDec(_,_,FullNm,_) => .some(FullNm).
-      .implDec(_,_,FullNm,_) => .some(FullNm).
-      .tpeDec(_,Nm,Tp,_) => .some(tpName(Tp)).
-      .varDec(_,Nm,FullNm,Tp) => .some(FullNm).
-      .funDec(_,Nm,FullNm,Tp) => .some(FullNm).
-      .cnsDec(_,Nm,FullNm,Tp) => .some(FullNm).
-      _ default => .none
+      | .conDec(_,_,FullNm,_) => .some(FullNm)
+      | .implDec(_,_,FullNm,_) => .some(FullNm)
+      | .tpeDec(_,Nm,Tp,_) => .some(tpName(Tp))
+      | .varDec(_,Nm,FullNm,Tp) => .some(FullNm)
+      | .funDec(_,Nm,FullNm,Tp) => .some(FullNm)
+      | .cnsDec(_,Nm,FullNm,Tp) => .some(FullNm)
+      | _ default => .none
     }.
   }
   
@@ -175,11 +175,11 @@ star.compiler.meta{
 
   public implementation coercion[string,optimizationLvl] => {
     _coerce(Lvl) => case Lvl in {
-      "base" => .some(.base).
-      "inline" => .some(.inlining).
-      "0" => .some(.base).
-      "1" => .some(.base).
-      _ default => .none.
+      | "base" => .some(.base)
+      | "inline" => .some(.inlining)
+      | "0" => .some(.base)
+      | "1" => .some(.base)
+      | _ default => .none
     }
   }
 

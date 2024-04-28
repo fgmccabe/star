@@ -66,68 +66,68 @@ star.compiler.canon{
 
   public implementation hasType[canon] => {.
     typeOf(Cn) => case Cn in {
-      .anon(_,T) => T.
-      .vr(_,_,T) => T.
-      .mtd(_,_,T) => T.
-      .over(_,T,_) => typeOf(T).
-      .intr(_,_) => intType.
-      .bintr(_,_) => bigintType.
-      .flt(_,_) => fltType.
-      .kar(_,_) => chrType.
-      .strng(_,_) => strType.
-      .enm(_,_,Tp) => Tp.
-      .csexp(_,_,_,Tp) => Tp.
-      .trycatch(_,_,_,_,Tp) => Tp.
-      .rais(_,_,_,Tp) => Tp.
-      .lambda(_,_,_,_,Tp) => Tp.
-      .thunk(_,_,Tp) => Tp.
-      .thRef(_,_,Tp) => Tp.
-      .letExp(_,_,_,E) => typeOf(E).
-      .letRec(_,_,_,E) => typeOf(E).
-      .apply(_,_,_,Tp) => Tp.
-      .tple(_,Els) => .tupleType(Els//typeOf).
-      .dot(_,_,_,Tp) => Tp.
-      .tdot(_,_,_,Tp) => Tp.
-      .update(_,R,_,_) => typeOf(R).
-      .match(_,_,_) => boolType.
-      .conj(_,_,_) => boolType.
-      .disj(_,_,_) => boolType.
-      .cond(_,_,L,_) => typeOf(L).
-      .vlof(_,_,Tp) => Tp.
+      | .anon(_,T) => T
+      | .vr(_,_,T) => T
+      | .mtd(_,_,T) => T
+      | .over(_,T,_) => typeOf(T)
+      | .intr(_,_) => intType
+      | .bintr(_,_) => bigintType
+      | .flt(_,_) => fltType
+      | .kar(_,_) => chrType
+      | .strng(_,_) => strType
+      | .enm(_,_,Tp) => Tp
+      | .csexp(_,_,_,Tp) => Tp
+      | .trycatch(_,_,_,_,Tp) => Tp
+      | .rais(_,_,_,Tp) => Tp
+      | .lambda(_,_,_,_,Tp) => Tp
+      | .thunk(_,_,Tp) => Tp
+      | .thRef(_,_,Tp) => Tp
+      | .letExp(_,_,_,E) => typeOf(E)
+      | .letRec(_,_,_,E) => typeOf(E)
+      | .apply(_,_,_,Tp) => Tp
+      | .tple(_,Els) => .tupleType(Els//typeOf)
+      | .dot(_,_,_,Tp) => Tp
+      | .tdot(_,_,_,Tp) => Tp
+      | .update(_,R,_,_) => typeOf(R)
+      | .match(_,_,_) => boolType
+      | .conj(_,_,_) => boolType
+      | .disj(_,_,_) => boolType
+      | .cond(_,_,L,_) => typeOf(L)
+      | .vlof(_,_,Tp) => Tp
     }
   .}
 
   public implementation hasLoc[canon] => {
     locOf(Cn) => case Cn in {
-      .anon(Lc,_) => Lc.
-      .vr(Lc,_,_) => Lc.
-      .mtd(Lc,_,_) => Lc.
-      .over(Lc,_,_) => Lc.
-      .intr(Lc,_) => Lc.
-      .bintr(Lc,_) => Lc.
-      .flt(Lc,_) => Lc.
-      .kar(Lc,_) => Lc.
-      .strng(Lc,_) => Lc.
-      .enm(Lc,_,_) => Lc.
-      .dot(Lc,_,_,_) => Lc.
-      .update(Lc,_,_,_) => Lc.
-      .tdot(Lc,_,_,_) => Lc.
-      .thunk(Lc,_,_) => Lc.
-      .thRef(Lc,_,_) => Lc.
-      .csexp(Lc,_,_,_) => Lc.
-      .trycatch(Lc,_,_,_,_) => Lc.
-      .rais(Lc,_,_,_) => Lc.
-      .match(Lc,_,_) => Lc.
-      .conj(Lc,_,_) => Lc.
-      .disj(Lc,_,_) => Lc.
-      .neg(Lc,_) => Lc.
-      .cond(Lc,_,_,_) => Lc.
-      .apply(Lc,_,_,_) => Lc.
-      .tple(Lc,_) => Lc.
-      .lambda(Lc,_,_,_,_) => Lc.
-      .letExp(Lc,_,_,_) => Lc.
-      .letRec(Lc,_,_,_) => Lc.
-      .vlof(Lc,_,_) => Lc.
+     | .anon(Lc,_) => Lc
+     | .vr(Lc,_,_) => Lc
+     | .mtd(Lc,_,_) => Lc
+     | .over(Lc,_,_) => Lc
+     | .intr(Lc,_) => Lc
+     | .bintr(Lc,_) => Lc
+     | .flt(Lc,_) => Lc
+     | .kar(Lc,_) => Lc
+     | .strng(Lc,_) => Lc
+     | .enm(Lc,_,_) => Lc
+     | .dot(Lc,_,_,_) => Lc
+     | .update(Lc,_,_,_) => Lc
+     | .tdot(Lc,_,_,_) => Lc
+     | .thunk(Lc,_,_) => Lc
+     | .thRef(Lc,_,_) => Lc
+     | .csexp(Lc,_,_,_) => Lc
+     | .trycatch(Lc,_,_,_,_) => Lc
+     | .rais(Lc,_,_,_) => Lc
+     | .match(Lc,_,_) => Lc
+     | .conj(Lc,_,_) => Lc
+     | .disj(Lc,_,_) => Lc
+     | .neg(Lc,_) => Lc
+     | .cond(Lc,_,_,_) => Lc
+     | .apply(Lc,_,_,_) => Lc
+     | .tple(Lc,_) => Lc
+     | .lambda(Lc,_,_,_,_) => Lc
+     | .letExp(Lc,_,_,_) => Lc
+     | .letRec(Lc,_,_,_) => Lc
+     | .vlof(Lc,_,_) => Lc
     }
   }
 
@@ -137,77 +137,77 @@ star.compiler.canon{
 
   public implementation hasLoc[canonAction] => {
     locOf(A) => case A in {
-      .doNop(Lc) => Lc.
-      .doSeq(Lc,_,_) => Lc.
-      .doLbld(Lc,_,_) => Lc.
-      .doBrk(Lc,_) => Lc.
-      .doValis(Lc,_) => Lc.
-      .doDefn(Lc,_,_) => Lc.
-      .doMatch(Lc,_,_) => Lc.
-      .doAssign(Lc,_,_) => Lc.
-      .doTryCatch(Lc,_,_,_) => Lc.
-      .doIfThen(Lc,_,_,_) => Lc.
-      .doCase(Lc,_,_) => Lc.
-      .doWhile(Lc,_,_) => Lc.
-      .doLet(Lc,_,_,_) => Lc.
-      .doLetRec(Lc,_,_,_) => Lc.
-      .doExp(Lc,_) => Lc.
+     | .doNop(Lc) => Lc
+     | .doSeq(Lc,_,_) => Lc
+     | .doLbld(Lc,_,_) => Lc
+     | .doBrk(Lc,_) => Lc
+     | .doValis(Lc,_) => Lc
+     | .doDefn(Lc,_,_) => Lc
+     | .doMatch(Lc,_,_) => Lc
+     | .doAssign(Lc,_,_) => Lc
+     | .doTryCatch(Lc,_,_,_) => Lc
+     | .doIfThen(Lc,_,_,_) => Lc
+     | .doCase(Lc,_,_) => Lc
+     | .doWhile(Lc,_,_) => Lc
+     | .doLet(Lc,_,_,_) => Lc
+     | .doLetRec(Lc,_,_,_) => Lc
+     | .doExp(Lc,_) => Lc
     }
   }
 
   public implementation hasLoc[canonDef] => {
     locOf(Df) => case Df in {
-      .varDef(Lc,_,_,_,_) => Lc.
-      .funDef(Lc,_,_,_,_) => Lc.
-      .typeDef(Lc,_,_,_) => Lc.
-      .cnsDef(Lc,_,_,_) => Lc.
-      .implDef(Lc,_,_,_,_,_) => Lc.
+     | .varDef(Lc,_,_,_,_) => Lc
+     | .funDef(Lc,_,_,_,_) => Lc
+     | .typeDef(Lc,_,_,_) => Lc
+     | .cnsDef(Lc,_,_,_) => Lc
+     | .implDef(Lc,_,_,_,_,_) => Lc
     }
   }
 
   showCanon:(canon,integer,string)=>string.
   showCanon(Cn,Pr,Sp) => case Cn in {
-    .anon(_,_) => "_".
-    .vr(_,Nm,Tp) => Nm.
-    .mtd(_,Fld,_) => "µ#(Fld)".
-    .over(_,V,Cx) => "$(Cx)|:#(showCanon(V,Pr,Sp))".
-    .intr(_,Lt) => disp(Lt).
-    .bintr(_,Lt) => disp(Lt).
-    .kar(_,Ch) => disp(Ch).
-    .flt(_,Lt) => disp(Lt).
-    .strng(_,Lt) => disp(Lt).
-    .enm(_,Nm,Tp) => "°#(Nm)".
-    .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)".
-    .tdot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°$(F)\:$(Tp)".
-    .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
-      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
-      "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))".
-    .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
-      "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCanon(T,Rp,Sp)) in #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))".
-    .rais(_,T,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
-      "#(leftParen(OPr,Pr)) #(showCanon(T,Rp,Sp)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
-      "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
-      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) && #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .disj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("||") =>
-      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) || #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .neg(_,R)  where (OPr,Rp) ?= isPrefixOp("~") =>
-      "#(leftParen(OPr,Pr))~ #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))".
-    .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
-      "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))".
-    .apply(_,L,R,_) => showApply(L,R,Pr,Sp).
-    .tple(_,Els) => "(#(showTuple(Els,Sp)))".
-    .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))".
-    .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))".
-    .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!".
-    .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
-    .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))".
-    .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
-      "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))".
+   | .anon(_,_) => "_"
+   | .vr(_,Nm,Tp) => Nm
+   | .mtd(_,Fld,_) => "µ#(Fld)"
+   | .over(_,V,Cx) => "$(Cx)|:#(showCanon(V,Pr,Sp))"
+   | .intr(_,Lt) => disp(Lt)
+   | .bintr(_,Lt) => disp(Lt)
+   | .kar(_,Ch) => disp(Ch)
+   | .flt(_,Lt) => disp(Lt)
+   | .strng(_,Lt) => disp(Lt)
+   | .enm(_,Nm,Tp) => "°#(Nm)"
+   | .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)"
+   | .tdot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°$(F)\:$(Tp)"
+   | .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
+      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
+      "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))"
+   | .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
+      "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCanon(T,Rp,Sp)) in #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))"
+   | .rais(_,T,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
+      "#(leftParen(OPr,Pr)) #(showCanon(T,Rp,Sp)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
+      "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
+      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) && #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .disj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("||") =>
+      "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)) || #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .neg(_,R)  where (OPr,Rp) ?= isPrefixOp("~") =>
+      "#(leftParen(OPr,Pr))~ #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
+   | .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
+      "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))"
+   | .apply(_,L,R,_) => showApply(L,R,Pr,Sp)
+   | .tple(_,Els) => "(#(showTuple(Els,Sp)))"
+   | .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
+   | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
+   | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
+   | .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
+      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
+   | .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
+      "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
+   | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
+      "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>
@@ -221,33 +221,33 @@ star.compiler.canon{
   showTuple(Els,Sp) => "(#(interleave(Els//(El)=>showCanon(El,0,Sp),",")*))".
 
   showAct(Ac,Pr,Sp) => case Ac in {
-    .doNop(_) => "{}".
-    .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
-      "{\n#(Sp++"  ")#(showActSeq(.doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}".
-    .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))".
-    .doBrk(_,Lb) => "break #(Lb)".
-    .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
-      "valis #(showCanon(E,Rp,Sp))".
-    .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
-      "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))".
-    .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
-      "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))".
-    .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
-      "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))".
-    .doTryCatch(_,A,T,H) =>
-      "try #(showAct(A,Pr,Sp)) catch #(showCanon(T,Pr,Sp)) in {\n#(showCases(H,showAct,Sp))\n}".
-    .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
-      "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))".
-    .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "case #(showCanon(G,Lp,Sp)) in #(showCases(C,showAct,Sp))".
-    .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
-      "while #(showCanon(G,Rp,Sp)) do #(showAct(B,0,Sp))".
-    .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showAct(B,Rp,Sp2))".
-    .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
+   | .doNop(_) => "{}"
+   | .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
+      "{\n#(Sp++"  ")#(showActSeq(.doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}"
+   | .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))"
+   | .doBrk(_,Lb) => "break #(Lb)"
+   | .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
+      "valis #(showCanon(E,Rp,Sp))"
+   | .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
+      "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))"
+   | .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
+      "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))"
+   | .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
+      "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))"
+   | .doTryCatch(_,A,T,H) =>
+      "try #(showAct(A,Pr,Sp)) catch #(showCanon(T,Pr,Sp)) in {\n#(showCases(H,showAct,Sp))\n}"
+   | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
+      "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))"
+   | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
+      "case #(showCanon(G,Lp,Sp)) in #(showCases(C,showAct,Sp))"
+   | .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
+      "while #(showCanon(G,Rp,Sp)) do #(showAct(B,0,Sp))"
+   | .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
+      "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showAct(B,Rp,Sp2))"
+   | .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))". 
-    .doExp(_,E) => "call #(showCanon(E,Pr,Sp))".
+      "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))"
+   | .doExp(_,E) => "call #(showCanon(E,Pr,Sp))"
   }
 
   showActSeq(.doSeq(_,L,R),Pr,Sp) => "#(showAct(L,Pr-1,Sp));\n#(Sp)#(showActSeq(R,Pr,Sp))".
@@ -269,12 +269,12 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-    .funDef(_,Nm,Rls,_,Tp) =>
-      "Fun: #(Nm)\:$(Tp) = #(showRls(Nm,Rls,showCanon,Sp))".
-    .varDef(_,Nm,V,_,Tp) => "Var: #(Nm)\:$(Tp) = #(showCanon(V,0,Sp))".
-    .typeDef(_,Nm,_,Rl) => "Type: $(Rl)".
-    .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)".
-    .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)".
+   | .funDef(_,Nm,Rls,_,Tp) =>
+      "Fun: #(Nm)\:$(Tp) = #(showRls(Nm,Rls,showCanon,Sp))"
+   | .varDef(_,Nm,V,_,Tp) => "Var: #(Nm)\:$(Tp) = #(showCanon(V,0,Sp))"
+   | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
+   | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
+   | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)"
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.
@@ -315,21 +315,21 @@ star.compiler.canon{
 
   public isGoal:(canon)=>boolean.
   isGoal(Cn) => case Cn in {
-    .enm(_,"star.core#true",.nomnal("star.core*boolean")) => .true.
-    .enm(_,"star.core#false",.nomnal("star.core*boolean")) => .true.
-    .match(_,_,_) => .true.
-    .conj(_,_,_) => .true.
-    .disj(_,_,_) => .true.
-    .neg(_,_) => .true.
-    .cond(_,_,L,R) => isGoal(L) && isGoal(R).
-    _ default => .false.
+   | .enm(_,"star.core#true",.nomnal("star.core*boolean")) => .true
+   | .enm(_,"star.core#false",.nomnal("star.core*boolean")) => .true
+   | .match(_,_,_) => .true
+   | .conj(_,_,_) => .true
+   | .disj(_,_,_) => .true
+   | .neg(_,_) => .true
+   | .cond(_,_,L,R) => isGoal(L) && isGoal(R)
+   | _ default => .false
   }
 
   public isFunDef:(canon)=>boolean.
   isFunDef(Df) => case Df in {
-    .lambda(_,_,_,_,_) => .true.
-    .letExp(_,_,_,Exp) => isFunDef(Exp).
-    .letRec(_,_,_,Exp) => isFunDef(Exp).
-    _ default => .false.
+   | .lambda(_,_,_,_,_) => .true
+   | .letExp(_,_,_,Exp) => isFunDef(Exp)
+   | .letRec(_,_,_,Exp) => isFunDef(Exp)
+   | _ default => .false
   }
 }

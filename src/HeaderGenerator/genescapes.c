@@ -611,11 +611,11 @@ static char *dName(char *sig, strBufferPo out) {
 #define escape(name, type, cmt) genStarEsc(out,buffer,#name,type,cmt);
 
 static void genStarEsc(FILE *out, strBufferPo buffer, char *name, char *sig, char *cmt) {
-  outStr(O_IO(buffer), "    ");
+  outStr(O_IO(buffer), "    | ");
   dumpStr(name, buffer);
   outStr(O_IO(buffer), " => .some(");
   dumpStarSig(sig, buffer);
-  outStr(O_IO(buffer), ").\n");
+  outStr(O_IO(buffer), ")\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -631,7 +631,7 @@ static void starEscapeTypes(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out, "    _ default => .none.\n");
+  fprintf(out, "    | _ default => .none\n");
   fprintf(out, "  }\n");
 
   closeIo(O_IO(buffer));
@@ -663,9 +663,9 @@ static void prologIsEscape(FILE *out) {
 #define escape(name, type, cmt) genStarIsEsc(out,buffer,#name);
 
 static void genStarIsEsc(FILE *out, strBufferPo buffer, char *name) {
-  outStr(O_IO(buffer), "    ");
+  outStr(O_IO(buffer), "    | ");
   dumpStr(name, buffer);
-  outMsg(O_IO(buffer), " => .true.\n");
+  outMsg(O_IO(buffer), " => .true\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -681,7 +681,7 @@ static void starIsEscape(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out, "    _ default => .false.\n");
+  fprintf(out, "    | _ default => .false.\n");
   fprintf(out, "  }\n");
 
   closeIo(O_IO(buffer));

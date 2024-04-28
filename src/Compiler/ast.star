@@ -5,26 +5,26 @@ star.compiler.ast{
   import star.compiler.operators.
 
   public ast ::= .nme(option[locn],string)
-    | .qnm(option[locn],string)
-    | .int(option[locn],integer)
-    | .big(option[locn],bigint)
-    | .num(option[locn],float)
-    | .chr(option[locn],char)
-    | .str(option[locn],string)
-    | .tpl(option[locn],string,cons[ast])
-    | .app(option[locn],ast,ast).
-
+  | .qnm(option[locn],string)
+  | .int(option[locn],integer)
+  | .big(option[locn],bigint)
+  | .num(option[locn],float)
+  | .chr(option[locn],char)
+  | .str(option[locn],string)
+  | .tpl(option[locn],string,cons[ast])
+  | .app(option[locn],ast,ast).
+  
   public implementation equality[ast] => let{.
     eq(A1,A2) => case A1 in {
-      .nme(_,I1) => .nme(_,I2).=A2 && I1==I2.
-      .qnm(_,I1) => .qnm(_,I2).=A2 && I1==I2.
-      .int(_,L1) => .int(_,L2).=A2 && L1==L2.
-      .big(_,I1) => .big(_,I2).=A2 && I1==I2.
-      .num(_,L1) => .num(_,L2).=A2 && L1==L2.
-      .str(_,L1) => .str(_,L2).=A2 && L1==L2.
-      .chr(_,L1) => .chr(_,L2).=A2 && L1==L2.
-      .tpl(_,K1,E1) => .tpl(_,K2,E2).=A2 && K1==K2 && eqList(E1,E2).
-      .app(_,O1,As1) => .app(_,O2,As2).=A2 && eq(O1,O2) && eq(As1,As2).
+      | .nme(_,I1) => .nme(_,I2).=A2 && I1==I2
+      | .qnm(_,I1) => .qnm(_,I2).=A2 && I1==I2
+      | .int(_,L1) => .int(_,L2).=A2 && L1==L2
+      | .big(_,I1) => .big(_,I2).=A2 && I1==I2
+      | .num(_,L1) => .num(_,L2).=A2 && L1==L2
+      | .str(_,L1) => .str(_,L2).=A2 && L1==L2
+      | .chr(_,L1) => .chr(_,L2).=A2 && L1==L2
+      | .tpl(_,K1,E1) => .tpl(_,K2,E2).=A2 && K1==K2 && eqList(E1,E2)
+      | .app(_,O1,As1) => .app(_,O2,As2).=A2 && eq(O1,O2) && eq(As1,As2)
     }
 
     eqList([],[]) => .true.
@@ -50,15 +50,15 @@ star.compiler.ast{
 
   public implementation hasLoc[ast] => {
     locOf(A) => case A in {
-      .nme(Lc,_) => Lc.
-      .qnm(Lc,_) => Lc.
-      .int(Lc,_) => Lc.
-      .big(Lc,_) => Lc.
-      .num(Lc,_) => Lc.
-      .chr(Lc,_) => Lc.
-      .str(Lc,_) => Lc.
-      .tpl(Lc,_,_) => Lc.
-      .app(Lc,_,_) => Lc.
+      | .nme(Lc,_) => Lc
+      | .qnm(Lc,_) => Lc
+      | .int(Lc,_) => Lc
+      | .big(Lc,_) => Lc
+      | .num(Lc,_) => Lc
+      | .chr(Lc,_) => Lc
+      | .str(Lc,_) => Lc
+      | .tpl(Lc,_,_) => Lc
+      | .app(Lc,_,_) => Lc
     }
   }
 
@@ -68,34 +68,27 @@ star.compiler.ast{
 
   public dispAst:(ast,integer,string) => string.
   dispAst(As,Pr,Sp) => case As in {
-    .int(_,Ix) => disp(Ix).
-    .big(_,Ix) => disp(Ix).
-    .num(_,Dx) => disp(Dx).
-    .chr(_,Ch) => disp(Ch).
-    .str(_,Sx) => disp(Sx).
-    .nme(_,Id) => dispId(Id).
-    .qnm(_,Id) => "'#(stringQuote(Id))'".
-    .tpl(_,"{}",[St]) where .app(_,.nme(_,";"),_).=St =>
-      "{#(dispActs(St,Sp++"  "))}".
-    .tpl(_,"{}",Els) =>
-      "{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*)}".
-    .tpl(_,"{..}",Els) =>
-      "{.#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*).}".
-    .tpl(_,Bk,Els) where .bkt(Lft,_,Rgt,Sep,Inn)?=isBracket(Bk) =>
-      "#(Lft)#(interleave(Els//((E)=>dispAst(E,Inn,Sp++"  ")),Sep)*)#(Rgt)".
-    .app(_,.nme(_,Op),.tpl(_,"()",[L,R])) where (Lf,P,Rg)?=isInfixOp(Op)=>
-      "#(leftPar(P,Pr))#(dispAst(L,Lf,Sp)) #(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
-    .app(_,.nme(_,Op),.tpl(_,"()",[R])) where (P,Rg)?=isPrefixOp(Op) =>
-      "#(leftPar(P,Pr))#(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))".
-    .app(_,.nme(_,Op),.tpl(_,"()",[L])) where (P,Rg)?=isPostfixOp(Op) =>
-      "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))".
-    .app(_,.nme(_,Op),.tpl(_,"()",[L])) where .bkt(Lft,_,Rgt,_,Inn)?=isBracket(Op)=>
-      "#(Lft)#(dispAst(L,Inn,Sp))#(Rgt)".
-    T where isInterpolated(T) => "\"#(deInterpolate(T))\"".
-    .app(_,.nme(_,Op),.tpl(_,"()",A)) where
-	.bkt(LB,Op,RB,Sep,Pr) ?= isBracket(Op) =>
-      "#(LB) #(interleave(A//((E)=>dispAst(E,2000,Sp++"  ")),Sep)*) #(RB)".
-    .app(_,Op,A) => "$(Op)#(dispAst(A,0,Sp++"  "))".
+  | .int(_,Ix) => disp(Ix)
+      | .big(_,Ix) => disp(Ix)
+      | .num(_,Dx) => disp(Dx)
+      | .chr(_,Ch) => disp(Ch)
+      | .str(_,Sx) => disp(Sx)
+      | .nme(_,Id) => dispId(Id)
+      | .qnm(_,Id) => "'#(stringQuote(Id))'"
+      | .tpl(_,"{}",[St]) where .app(_,.nme(_,";"),_).=St => "{#(dispActs(St,Sp++"  "))}"
+      | .tpl(_,"{}",Els) =>
+	"{#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*)}"
+      | .tpl(_,"{..}",Els) =>
+	"{.#(interleave(Els//((E)=>dispAst(E,2000,Sp++"  ")),".\n"++Sp)*).}"
+      | .tpl(_,Bk,Els) where .bkt(Lft,_,Rgt,Sep,Inn)?=isBracket(Bk) =>
+	"#(Lft)#(interleave(Els//((E)=>dispAst(E,Inn,Sp++"  ")),Sep)*)#(Rgt)"
+      | .app(_,.nme(_,Op),.tpl(_,"()",[L,R])) where (Lf,P,Rg)?=isInfixOp(Op)=> "#(leftPar(P,Pr))#(dispAst(L,Lf,Sp)) #(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))"
+      | .app(_,.nme(_,Op),.tpl(_,"()",[R])) where (P,Rg)?=isPrefixOp(Op) => "#(leftPar(P,Pr))#(Op) #(dispAst(R,Rg,Sp))#(rightPar(P,Pr))"
+      | .app(_,.nme(_,Op),.tpl(_,"()",[L])) where (P,Rg)?=isPostfixOp(Op) => "#(leftPar(P,Pr))#(dispAst(L,Rg,Sp)) #(Op)#(rightPar(P,Pr))"
+      | .app(_,.nme(_,Op),.tpl(_,"()",[L])) where .bkt(Lft,_,Rgt,_,Inn)?=isBracket(Op)=> "#(Lft)#(dispAst(L,Inn,Sp))#(Rgt)"
+      | T where isInterpolated(T) => "\"#(deInterpolate(T))\""
+      | .app(_,.nme(_,Op),.tpl(_,"()",A)) where .bkt(LB,Op,RB,Sep,Pr) ?= isBracket(Op) => "#(LB) #(interleave(A//((E)=>dispAst(E,2000,Sp++"  ")),Sep)*) #(RB)"
+      | .app(_,Op,A) => "$(Op)#(dispAst(A,0,Sp++"  "))"
   }
 
   dispActs(.app(_,.nme(_,";"),.tpl(_,"()",[L,R])),Sp) =>

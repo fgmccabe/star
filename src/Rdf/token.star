@@ -18,13 +18,13 @@ rdf.token{
 
   public implementation display[tk] => {
     disp(Tk) => case Tk in {
-      .idTok(Id) => "'#(Id)'".
-      .intTok(Ix) => disp(Ix).
-      .fltTok(Dx) => disp(Dx).
-      .chrTok(Ch) => disp(Ch).
-      .pncTok(S) => "%$(S)".
-      .uriTok(U) => "<$(U)>".
-      .strTok(S) => "\"#(dispSegments(S)*)\"".
+      | .idTok(Id) => "'#(Id)'"
+      | .intTok(Ix) => disp(Ix)
+      | .fltTok(Dx) => disp(Dx)
+      | .chrTok(Ch) => disp(Ch)
+      | .pncTok(S) => "%$(S)"
+      | .uriTok(U) => "<$(U)>"
+      | .strTok(S) => "\"#(dispSegments(S)*)\""
     }
   }
 
@@ -33,9 +33,9 @@ rdf.token{
 
   public implementation display[stringSegment] => {
     disp(Sg) => case Sg in {
-      .segment(_,S) => S.
-      .interpolate(_,S,"") => "\$($(S))".
-      .interpolate(_,S,F) => "\$($(S)):#(F);".
+      | .segment(_,S) => S
+      | .interpolate(_,S,"") => "\$($(S))"
+      | .interpolate(_,S,F) => "\$($(S)):#(F);"
     }
   }
 
@@ -47,13 +47,13 @@ rdf.token{
 
   public implementation equality[tk] => {
     Tk1 == Tk2 => case Tk1 in {
-      .idTok(Id1) => .idTok(Id2).=Tk2 && Id1==Id2.
-      .intTok(Ix1) => .intTok(Ix2).=Tk2 && Ix1==Ix2.
-      .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2.
-      .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2.
-      .pncTok(C1) => .pncTok(C2).=Tk2 && C1==C2.
-      .strTok(S1) => .strTok(S2).=Tk2 && S1==S2.
-      .uriTok(S1) => .uriTok(S2).=Tk2 && S1==S2.
+      | .idTok(Id1) => .idTok(Id2).=Tk2 && Id1==Id2
+      | .intTok(Ix1) => .intTok(Ix2).=Tk2 && Ix1==Ix2
+      | .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2
+      | .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2
+      | .pncTok(C1) => .pncTok(C2).=Tk2 && C1==C2
+      | .strTok(S1) => .strTok(S2).=Tk2 && S1==S2
+      | .uriTok(S1) => .uriTok(S2).=Tk2 && S1==S2
     }
   }
 
@@ -77,15 +77,15 @@ rdf.token{
 
   public isBracket:(string) => option[bracket].
   isBracket(Str) => case Str in {
-    "[" => .some(.bkt("[","[]","]",",")).
-    "]" => .some(.bkt("[","[]","]",",")).
-    "[]" => .some(.bkt("[","[]","]",",")).
-    "(" => .some(.bkt("(","()",")",",")).
-    ")" => .some(.bkt("(","()",")",",")).
-    "()" => .some(.bkt("(","()",")",",")).
-    "{" => .some(.bkt("{","{}","}",".\n")).
-    "}" => .some(.bkt("{","{}","}",".\n")).
-    "{}" => .some(.bkt("{","{}","}",".\n")).
-    _ default => .none.
+    | "[" => .some(.bkt("[","[]","]",","))
+    | "]" => .some(.bkt("[","[]","]",","))
+    | "[]" => .some(.bkt("[","[]","]",","))
+    | "(" => .some(.bkt("(","()",")",","))
+    | ")" => .some(.bkt("(","()",")",","))
+    | "()" => .some(.bkt("(","()",")",","))
+    | "{" => .some(.bkt("{","{}","}",".\n"))
+    | "}" => .some(.bkt("{","{}","}",".\n"))
+    | "{}" => .some(.bkt("{","{}","}",".\n"))
+    | _ default => .none
   }
  }

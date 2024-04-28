@@ -33,26 +33,26 @@ star.compiler.assem{
 
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
-    .func(Nm,H,Sig,Lx,Ins) => valof{
+    | .func(Nm,H,Sig,Lx,Ins) => valof{
       (Lt0,_) = findLit([],.symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
       valis mkCons("func",
           [.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
               mkTpl(sortLines(Lns))])
-    }.
-    .global(Nm,Sig,Lx,Ins) => valof{
+    }
+    | .global(Nm,Sig,Lx,Ins) => valof{
       (Lt0,_) = findLit([],.symb(Nm));
       (_,Lbls) = genLblTbl(Ins,0,[]);
       (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
       valis mkCons("global",
          [.symb(Nm),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
               mkTpl(sortLines(Lns))])
-    }.
-    .struct(Lbl,Tp,Ix) =>
-      mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)]).
-    .tipe(Tp,TpRl,Map) =>
-      mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)]).
+    }
+    | .struct(Lbl,Tp,Ix) =>
+      mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
+    | .tipe(Tp,TpRl,Map) =>
+      mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
   }.
 
   encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).

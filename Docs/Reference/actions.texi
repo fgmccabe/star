@@ -423,8 +423,8 @@ value of a governing expression. It is the analog of the
 
 @anchored{CaseActionHandler} ::=@code{@{} @refer{CaseActionRule} @code{.} @dots{} @code{.} @refer{CaseActionRule} @code{@}}
 
-@anchored{CaseActionRule} ::= @ref{Pattern} @code{=>} @ref{Action}
-  | @ref{Pattern} @code{default} @code{=>} @ref{Action}
+@anchored{CaseActionRule} ::= @code{|} @ref{Pattern} @code{=>} @ref{Action}
+  | @code{|} @ref{Pattern} @code{default} @code{=>} @ref{Action}
 @end display
 @end float
 
@@ -455,9 +455,9 @@ example, in:
 @example
 try@{
   raise 10
-@} catch @{
-  (E) => @{
-    logMsg("We got error $(E)")
+@} catch integer in @{
+  | E => @{
+     logMsg("We got error $(E)")
   @}
 @}
 @end example

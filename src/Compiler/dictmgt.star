@@ -197,22 +197,17 @@ star.compiler.dict.mgt{
     declareDecls(Ds,declareDecl(D,Dict)).
 
   declareDecl(Dc,Dict) => case Dc in {
-    .implDec(Lc,Nm,ImplNm,Tp) => 
-      declareImplementation(Lc,Nm,ImplNm,Tp,Dict).
-    .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict)).
-    .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
-      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict)).
-    .conDec(Lc,Nm,ConNm,ConRl) => 
-      declareContract(Lc,Nm,ConRl,Dict).
-    .tpeDec(Lc,Nm,Tp,TpRl) => 
-      declareType(Nm,Lc,Tp,TpRl,Dict).
-    .varDec(Lc,Nm,FullNm,Tp) =>
-      declareVar(Nm,FullNm,Lc,Tp,.none,Dict).
-    .funDec(Lc,Nm,FullNm,Tp) =>
-      declareVar(Nm,FullNm,Lc,Tp,.none,Dict).
-    .cnsDec(Lc,Nm,FullNm,Tp) =>
-      declareConstructor(Nm,FullNm,Lc,Tp,Dict).
+    | .implDec(Lc,Nm,ImplNm,Tp) => 
+      declareImplementation(Lc,Nm,ImplNm,Tp,Dict)
+    | .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict))
+    | .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
+      declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict))
+    | .conDec(Lc,Nm,ConNm,ConRl) => declareContract(Lc,Nm,ConRl,Dict)
+    | .tpeDec(Lc,Nm,Tp,TpRl) => declareType(Nm,Lc,Tp,TpRl,Dict)
+    | .varDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
+    | .funDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
+    | .cnsDec(Lc,Nm,FullNm,Tp) => declareConstructor(Nm,FullNm,Lc,Tp,Dict)
   }
 
   public pushFace:(tipe,option[locn],dict,string) => dict.

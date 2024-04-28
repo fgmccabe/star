@@ -14,8 +14,8 @@ test.ts0{
       Ix = ref F;
       while Ix! < T do{
 	case _suspend(Gen,.yild(Ix!)) in {
-	  .next => {}.
-	  .cancel => _retire(Gen,.end)
+	  | .next => {}.
+	  | .cancel => _retire(Gen,.end)
 	};
       
 	Ix := Ix! + 1;
@@ -30,11 +30,11 @@ test.ts0{
 
     while .true do {
       case _resume(TT,.next) in {
-	.yild(X) => {
+	| .yild(X) => {
 --	  _logmsg("add $(X) to $(Tl!)");
 	  Tl := Tl! + X
-	}.
-	.end => valis Tl!
+	}
+	| .end => valis Tl!
       }
     }
   }

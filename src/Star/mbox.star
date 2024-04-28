@@ -36,16 +36,16 @@ star.mbox{
   public post:all d ~~ async (d,receiver[d])=>() raises mboxException.
   post(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
-      .hasData(_) => {
+      | .hasData(_) => {
 	case _suspend(this,.blocked(()=>.hasData(_).=St!)) in {
-	  .go_ahead => valis post(D,Ch)
+	  | .go_ahead => valis post(D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
 	case _suspend(this,.yield_) in {
-	  .go_ahead => valis ()
+	  | .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
       }
@@ -55,16 +55,16 @@ star.mbox{
   public collect:all d ~~ async (emitter[d]) => d raises mboxException.
   collect(Ch where .emitter(St).=Ch) => valof{
     case St! in {
-      .hasData(D) => {
+      | .hasData(D) => {
 	St := .quiescent;
 	case _suspend(this,.yield_) in {
-	  .go_ahead => valis D
+	  | .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	case _suspend(this,.blocked(()=> ~.hasData(_).=St!)) in {
-	  .go_ahead => valis collect(Ch)
+	  | .go_ahead => valis collect(Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
@@ -82,8 +82,8 @@ star.mbox{
   public subTask:all e ~~ (task[e],taskFun[e])=>() raises mboxException.
   subTask(Schd,Fn) => valof{
     case _suspend(Schd,.fork(Fn)) in {
-      .go_ahead => valis ().
-      .shut_down_ => raise .canceled
+      | .go_ahead => valis ()
+      | .shut_down_ => raise .canceled
     }
   }
 
@@ -98,7 +98,7 @@ star.mbox{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
 	  case _resume(T,.go_ahead) in {
-	    .yield_ => {
+	    | .yield_ => {
 	      Q:=Q!++[T];
 	    }
 	    | .result(Rslt) => {
@@ -158,7 +158,7 @@ star.mbox{
   public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
   pause() => valof{
     case _suspend(this,.yield_) in {
-      .go_ahead => valis ()
+      | .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
   }
@@ -184,13 +184,13 @@ star.mbox{
   public waitfor:all k,e ~~ async (future[k,e])=>k raises e.
   waitfor(Ft) => valof{
     case _suspend(this,.blocked(()=>~_futureIsResolved(Ft))) in {
-      .go_ahead => {
+      | .go_ahead => {
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
 	} else
 	_retire(this,.retired_)
       }
-      _ =>
+      | _ =>
 	_retire(this,.retired_)
     }
   }

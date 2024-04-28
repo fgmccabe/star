@@ -140,34 +140,34 @@ star.strings{
 
   public digitChar:(integer)=>char.
   digitChar(Ch) => case Ch in {
-    0=>`0`.
-    1=>`1`.
-    2=>`2`.
-    3=>`3`.
-    4=>`4`.
-    5=>`5`.
-    6=>`6`.
-    7=>`7`.
-    8=>`8`.
-    9=>`9`.
+    | 0=>`0`
+    | 1=>`1`
+    | 2=>`2`
+    | 3=>`3`
+    | 4=>`4`
+    | 5=>`5`
+    | 6=>`6`
+    | 7=>`7`
+    | 8=>`8`
+    | 9=>`9`
   }
 
   public isHexDigit:(char) => option[integer].
   isHexDigit(Ch) => (isDigit(Ch) ?? .some(digitVal(Ch)) ||
     case Ch in {
-      `a` => .some(10).
-      `b` => .some(11).
-      `c` => .some(12).
-      `d` => .some(13).
-      `e` => .some(14).
-      `f` => .some(15).
-      `A` => .some(10).
-      `B` => .some(11).
-      `C` => .some(12).
-      `D` => .some(13).
-      `E` => .some(14).
-      `F` => .some(15).
-      _ default => .none.
+      | `a` => .some(10)
+      | `b` => .some(11)
+      | `c` => .some(12)
+      | `d` => .some(13)
+      | `e` => .some(14)
+      | `f` => .some(15)
+      | `A` => .some(10)
+      | `B` => .some(11)
+      | `C` => .some(12)
+      | `D` => .some(13)
+      | `E` => .some(14)
+      | `F` => .some(15)
+      | _ default => .none
     }).
 
   public isSpace:(char) => boolean.

@@ -5,9 +5,9 @@ test.sy{
   -- Test of syntax of star
 
   ZZ = case 3 in {
-    1 => valof { valis 2}
-    2 => valof { valis 0}
-    3 => 3
+    | 1 => valof { valis 2}
+    | 2 => valof { valis 0}
+    | 3 => 3
   }
 
   CX : (cons[integer],integer) => integer.

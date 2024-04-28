@@ -20,10 +20,10 @@ star.redblack{
 
   implementation display[color]=>{
     disp(C) => case C in {
-      .Red => "red".
-      .Black => "blk".
-      .BBlack => "bblk".
-      .NBlack => "nblk"
+      | .Red => "red"
+      | .Black => "blk"
+      | .BBlack => "bblk"
+      | .NBlack => "nblk"
     }
   }
 
@@ -41,8 +41,8 @@ star.redblack{
 
   insert:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].
   insert(T,K,V) => case add(T,K,V) in {
-    .rbNode(_,Ky,Vy,A,B) => .rbNode(.Black,Ky,Vy,A,B).
-    N => N
+    | .rbNode(_,Ky,Vy,A,B) => .rbNode(.Black,Ky,Vy,A,B)
+    | N default => N
   }
 
   add:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].

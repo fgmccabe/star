@@ -56,19 +56,19 @@ star.compiler.macro.infra{
 
   public macroKey:(ast)=>string.
   macroKey(A) => case A in {
-    .nme(_,Id) => Id.
-    .qnm(_,Id) => Id.
-    .int(_,_) => "$integer".
-    .big(_,_) => "$bigint".
-    .num(_,_) => "$number".
-    .str(_,_) => "$string".
-    .chr(_,_) => "$char".
-    .tpl(_,"()",[.tpl(Lc,Lb,I)]) => macroKey(.tpl(Lc,Lb,I)).
-    .tpl(_,Op,_) => Op.
-    .app(_,O,.tpl(_,"()",_)) => macroKey(O).
-    .app(_,O,.tpl(_,"[]",_)) => "\$[]".
-    .app(_,O,.tpl(_,"{}",_)) => macroKey(O)++"\${}".
-    .app(_,O,.tpl(_,"{..}",_)) => macroKey(O)++"\${}".
+    | .nme(_,Id) => Id
+    | .qnm(_,Id) => Id
+    | .int(_,_) => "$integer"
+    | .big(_,_) => "$bigint"
+    | .num(_,_) => "$number"
+    | .str(_,_) => "$string"
+    | .chr(_,_) => "$char"
+    | .tpl(_,"()",[.tpl(Lc,Lb,I)]) => macroKey(.tpl(Lc,Lb,I))
+    | .tpl(_,Op,_) => Op
+    | .app(_,O,.tpl(_,"()",_)) => macroKey(O)
+    | .app(_,O,.tpl(_,"[]",_)) => "\$[]"
+    | .app(_,O,.tpl(_,"{}",_)) => macroKey(O)++"\${}"
+    | .app(_,O,.tpl(_,"{..}",_)) => macroKey(O)++"\${}"
   }
 
   public reveal:(ast,visibility) => ast.
