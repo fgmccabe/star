@@ -48,11 +48,11 @@ test.dyn1{
 	    _retire(TryTsk,.ok(fe(X)))
 	  }
 	}),()) in {
-      .err(E) => {
+      | .err(E) => {
 	showMsg("We got exception $(E)");
 	valis -E
-      }.
-      .ok(V) =>
+      }
+      | .ok(V) =>
 	valis 5*V
 	}
   }

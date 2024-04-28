@@ -16,8 +16,8 @@ test.ts1{
     yildFn:((),e)=>().
     yildFn(_,E) => valof{
       case _suspend(this,.yild(E)) in {
-	.next => valis ().
-	.cancel => _retire(this,.end)
+	| .next => valis ()
+	| .cancel => _retire(this,.end)
       }
     }
   } in valof{
@@ -33,8 +33,8 @@ test.ts1{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
 	case _suspend(this,.yild(E)) in {
-	  .next => valis ().
-	  .cancel => _retire(this,.end)
+	  | .next => valis ()
+	  | .cancel => _retire(this,.end)
 	}
       }
     } in valof{
@@ -51,13 +51,13 @@ test.ts1{
 
     while .true do {
       case _resume(TT,.next) in {
-	.yild(X) where isEven(X) => {
+	| .yild(X) where isEven(X) => {
 	  Tl := Tl! + X;
-	}.
-	.yild(X) default => {
+	}
+	| .yild(X) default => {
 	  Tl := Tl! * X
-	}.
-	.end => valis Tl!
+	}
+	| .end => valis Tl!
       }
     };
   }
@@ -69,13 +69,13 @@ test.ts1{
 
     while .true do {
       case _resume(TT,.next) in {
-	.yild(X) where ~isEven(X) => {
+	| .yild(X) where ~isEven(X) => {
 	  Tl := Tl! + X;
-	}.
-	.yild(X) default => {
+	}
+	| .yild(X) default => {
 	  Tl := Tl! * X
-	}.
-	.end => valis Tl!
+	}
+	| .end => valis Tl!
       }
     };
   }

@@ -31,15 +31,15 @@ star.compiler.peephole{
   }
 
   uncondJmp(Op) => case Op in {
-    .iJmp(_) => .true.
-    .iRet => .true.
-    .iAbort => .true.
-    .iRetire => .true.
-    .iTCall(_) => .true.
-    .iTOCall(_) => .true.
-    .iCase(_) => .true.
-    .iIndxJmp(_) => .true.
-    _ default => .false.
+    | .iJmp(_) => .true
+    | .iRet => .true
+    | .iAbort => .true
+    | .iRetire => .true
+    | .iTCall(_) => .true
+    | .iTOCall(_) => .true
+    | .iCase(_) => .true
+    | .iIndxJmp(_) => .true
+    | _ default => .false
   }
 
   -- Low-level optimizations.

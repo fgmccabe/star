@@ -12,13 +12,13 @@ star.json{
 
   private dispJson:(json,integer) => string.
   dispJson(J,Sp) => case J in {
-    .jTrue => "true".
-    .jFalse => "false".
-    .jNull => "null".
-    .jTxt(T) => disp(T).
-    .jNum(D) => disp(D).
-    .jColl(M) => "{#(dispColl(M::cons[(string,json)],Sp+2,""))}".
-    .jSeq(L) => "[#(interleave(dispSeq(L,Sp),", ")*)]".
+    | .jTrue => "true"
+    | .jFalse => "false"
+    | .jNull => "null"
+    | .jTxt(T) => disp(T)
+    | .jNum(D) => disp(D)
+    | .jColl(M) => "{#(dispColl(M::cons[(string,json)],Sp+2,""))}"
+    | .jSeq(L) => "[#(interleave(dispSeq(L,Sp),", ")*)]"
   }
 
   dispColl:(cons[(string,json)],integer,string) => string.
@@ -39,13 +39,13 @@ star.json{
 
   equalJson:(json,json)=>boolean.
   equalJson(J1,J2) => case J1 in {
-    .jTrue => .jTrue.=J2.
-    .jFalse => .jFalse.=J2.
-    .jNull => .jNull.=J2.
-    .jTxt(S1) => .jTxt(S2).=J2 && S1==S2.
-    .jNum(D1) => .jNum(D2).=J2 && D1==D2.
-    .jColl(C1) => .jColl(C2).=J2 && C1==C2.
-    .jSeq(L1) => .jSeq(L2).=J2 && {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}.
+    | .jTrue => .jTrue.=J2
+    | .jFalse => .jFalse.=J2
+    | .jNull => .jNull.=J2
+    | .jTxt(S1) => .jTxt(S2).=J2 && S1==S2
+    | .jNum(D1) => .jNum(D2).=J2 && D1==D2
+    | .jColl(C1) => .jColl(C2).=J2 && C1==C2
+    | .jSeq(L1) => .jSeq(L2).=J2 && {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}
   }
 
   public implementation coercion[string,json] => {

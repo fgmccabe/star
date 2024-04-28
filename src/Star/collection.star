@@ -115,9 +115,9 @@ star.collection{
 
   public implementation all t ~~ filter[cons[t]->>t] => let{.
     filter(L,F) => case L in {
-      [] => [].
-      [E,..Es] where F(E) => [E,..filter(Es,F)].
-      [_,..Es] => filter(Es,F)
+      | [] => []
+      | [E,..Es] where F(E) => [E,..filter(Es,F)]
+      | [_,..Es] => filter(Es,F)
     }
  .} in {
     (LL ^/ F) => filter(LL,F)
@@ -125,15 +125,15 @@ star.collection{
 
   public implementation all e ~~ equality[e] |: membership[cons[e]->>e] => let{.
     _mem(K,Ls) => case Ls in {
-      .cons(K,_) => .true.
-      .cons(_,L) => _mem(K,L).
-      .nil => .false
+      | .cons(K,_) => .true
+      | .cons(_,L) => _mem(K,L)
+      | .nil => .false
     }
 
     _rem(K,Ls) => case Ls in {
-      .nil => .nil.
-      .cons(K,L) => L.
-      .cons(E,L) => .cons(E,_rem(K,L)).
+      | .nil => .nil
+      | .cons(K,L) => L
+      | .cons(E,L) => .cons(E,_rem(K,L))
     }
   .} in {
     L\+E where _mem(E,L) => L.
@@ -144,21 +144,21 @@ star.collection{
 
   public implementation all e ~~ equality[e] |: setops[cons[e]] => let{.
     merge(L,R) => case L in {
-      .nil => R.
-      .cons(H,T) where H.<.R => merge(T,R).
-      .cons(H,T) default => [H,..merge(T,R)].
+      | .nil => R
+      | .cons(H,T) where H.<.R => merge(T,R)
+      | .cons(H,T) default => [H,..merge(T,R)]
     }
 
     intersect(L,C) => case L in {
-      .nil => .nil.
-      .cons(H,T) where H.<.C => [H,..intersect(T,C)].
-      .cons(H,T) default => intersect(T,C).
+      | .nil => .nil
+      | .cons(H,T) where H.<.C => [H,..intersect(T,C)]
+      | .cons(H,T) default => intersect(T,C)
     }
 
     diff(L,C) => case L in {
-      .nil => .nil.
-      .cons(H,T) where H.<.C => diff(T,C).
-      .cons(H,T) default => [H,..diff(T,C)].
+      | .nil => .nil
+      | .cons(H,T) where H.<.C => diff(T,C)
+      | .cons(H,T) default => [H,..diff(T,C)]
     }
   .} in {
     L1 \/ L2 => merge(L1,L2).

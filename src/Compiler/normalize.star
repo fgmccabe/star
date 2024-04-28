@@ -750,9 +750,9 @@ star.compiler.normalize{
   labelVar:(cId,nameMap,set[cId])=>set[cId].
   labelVar(.cId(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
     case Entry in {
-      .labelArg(ThVr,_) => So\+ThVr.
-      .localFun(_,_,_,ThVr) => So\+ThVr.
-      _ => So
+    | .labelArg(ThVr,_) => So\+ThVr
+    | .localFun(_,_,_,ThVr) => So\+ThVr
+    | _ => So
     }.
   labelVar(_,_,So) default => So.
 
@@ -760,8 +760,8 @@ star.compiler.normalize{
   labelIndex(Nm,Map) => valof{
     if E?=lookupVarName(Map,Nm) then{
       case E in {
-	.labelArg(Thv,Ix) => valis .some((Thv,Ix)).
-	_ default => valis .none
+	| .labelArg(Thv,Ix) => valis .some((Thv,Ix))
+	| _ default => valis .none
       }
     } else
     valis .none

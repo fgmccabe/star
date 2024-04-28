@@ -16,7 +16,7 @@ star.actor{
     while .true do{
       try{
 	case collect(mBox) in {
-	  query{q=Q. resp=Reply. } => {
+	  | query{q=Q. resp=Reply. } => {
 	    post(Q(body),Reply);
 	  }
 	  | .tell(A) => {

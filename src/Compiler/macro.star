@@ -15,12 +15,12 @@ star.compiler.macro{
   macroAst:(ast,macroContext,(ast)=>ast) => ast.
   macroAst(A,Cxt,Examine) => 
     case applyRules(A,Cxt,.inactive) in {
-      .active(T) => valof{
+    | .active(T) => valof{
 	if macroTracing! then
 	  showMsg("$(A) macro replaced with $(T)");
 	valis macroAst(T,Cxt,Examine)
-      }.
-      .inactive => Examine(A)
+      }
+    | .inactive => Examine(A)
     }.
 
   public macroPkg:(ast) => ast.

@@ -17,32 +17,33 @@ test.ct0{
 	  Cnt = Count!;
 	  showMsg("spawning sub-task");
 	  subTask(this,
-	      (Tsk)=>valof{
-		try{
-		  showMsg("We were spawned $(Cnt)");
-		  case _suspend(Tsk,.yield_) in {
-		    .go_ahead => {}
-		    | .shut_down_ => raise .canceled
-		  };
-		  showMsg("After 1 pause $(Cnt)");
-		  case _suspend(Tsk,.yield_) in {
-		    .go_ahead => {}
-		    | .shut_down_ => raise .canceled
-		  };
-		  showMsg("After 2 pauses $(Cnt)");
-		  _retire(Tsk,.blocked(()=>.false))
-		} catch mboxException in {
-		  _ => {
-		    showMsg("we were canceled");
-		    _retire(Tsk,.retired_)
-		  }
+	    (Tsk)=>valof{
+	      try{
+		showMsg("We were spawned $(Cnt)");
+		case _suspend(Tsk,.yield_) in {
+		  | .go_ahead => {}
+		  | .shut_down_ => raise .canceled
+		};
+		showMsg("After 1 pause $(Cnt)");
+		case _suspend(Tsk,.yield_) in {
+		  | .go_ahead => {}
+		  | .shut_down_ => raise .canceled
+		};
+		showMsg("After 2 pauses $(Cnt)");
+		_retire(Tsk,.blocked(()=>.false))
+	      } catch mboxException in {
+		| _ => {
+		  showMsg("we were canceled");
+		  _retire(Tsk,.retired_)
 		}
-	      });
+	      }
+	    });
 	};
 	showMsg("moving along, $(Count!) rounds left ");
       };
       showMsg("end of try");
-    } catch mboxException in { .canceled => {
+    } catch mboxException in {
+      | .canceled => {
 	showMsg("$(K) shutting down");
       }
     };

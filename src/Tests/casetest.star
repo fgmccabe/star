@@ -6,19 +6,19 @@ test.cse{
 
   strVal:(foo)=>option[string].
   strVal(F) => case F in {
-    .foo("alpha")=>.some("aleph")
-      | .foo("beta") => .some("two")
-      | .bar(0) => .none
-      | .foo(X) => .some(X)
+    | .foo("alpha")=>.some("aleph")
+    | .foo("beta") => .some("two")
+    | .bar(0) => .none
+    | .foo(X) => .some(X)
   }
 
   sVal:(foo) => option[string].
   sVal(X) => case X in {
-    .foo("alpha")=>.some("aleph")
-      | .foo("beta") => .some("two")
-      | .bar(0) => .none
-      | .foo(U) => .some(U)
-      | _ default => .none
+    | .foo("alpha")=>.some("aleph")
+    | .foo("beta") => .some("two")
+    | .bar(0) => .none
+    | .foo(U) => .some(U)
+    | _ default => .none
   }
 
   main:()=>().

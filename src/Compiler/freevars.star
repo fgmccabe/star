@@ -20,50 +20,49 @@ star.compiler.freevars{
 
   public freeVarsInExp:(canon,set[cId],set[cId]) => set[cId].
   freeVarsInExp(Exp,Q,Fv) => case Exp in {
-    .anon(_,_) => Fv.
-    .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv.
-    .vr(_,Nm,_) where isEscape(Nm) => Fv.
-    .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ?? Fv\+.cId(Nm,Tp) || Fv).
-    .intr(_,_) => Fv.
-    .bintr(_,_) => Fv.
-    .kar(_,_) => Fv.
-    .flt(_,_) => Fv.
-    .strng(_,_) => Fv.
-    .enm(_,_,_) => Fv.
-    .dot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv).
-    .tdot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv).
-    .mtd(_,_,_) => Fv.
-    .over(_,V,_) => freeVarsInExp(V,Q,Fv).
-    .csexp(_,G,Cs,_) =>
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs).
-    .cond(_,T,L,R) => valof{
+    | .anon(_,_) => Fv
+    | .vr(Lc,Nm,Tp) where {? .cId(Nm,_) in Fv ?} => Fv
+    | .vr(_,Nm,_) where isEscape(Nm) => Fv
+    | .vr(Lc,Nm,Tp) => ({? .cId(Nm,_) in Q ?} ?? Fv\+.cId(Nm,Tp) || Fv)
+    | .intr(_,_) => Fv
+    | .bintr(_,_) => Fv
+    | .kar(_,_) => Fv
+    | .flt(_,_) => Fv
+    | .strng(_,_) => Fv
+    | .enm(_,_,_) => Fv
+    | .dot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv)
+    | .tdot(_,Rc,_,_) => freeVarsInExp(Rc,Q,Fv)
+    | .mtd(_,_,_) => Fv
+    | .over(_,V,_) => freeVarsInExp(V,Q,Fv)
+    | .csexp(_,G,Cs,_) =>
+      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs)
+    | .cond(_,T,L,R) => valof{
       Q1 = Q\condVars(T,[]);
       valis freeVarsInExp(L,Q1,freeVarsInExp(R,Q,freeVarsInCond(T,Q1,Fv)))
-    }.
-    .apply(_,O,A,_) =>
-      freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv)).
-    .tple(_,Els) => freeVarsInTuple(Els,Q,Fv).
-    .match(_,P,S) where Q1 .= dropVars(P,Q) =>
-      freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv)).
-    .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv).
-    .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv).
-    .neg(_,R) => freeVarsInCond(Exp,Q,Fv).
-    .trycatch(_,E,T,H,_) where Q1 .= dropVars(T,Q) =>
+    }
+    | .apply(_,O,A,_) =>
+      freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
+    | .tple(_,Els) => freeVarsInTuple(Els,Q,Fv)
+    | .match(_,P,S) where Q1 .= dropVars(P,Q) => freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
+    | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
+    | .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
+    | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
+    | .trycatch(_,E,T,H,_) where Q1 .= dropVars(T,Q) =>
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
-	  foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H))).
-    .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv)).
-    .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv).
-    .thunk(_,E,_) => freeVarsInExp(E,Q,Fv).
-    .thRef(_,E,_) => freeVarsInExp(E,Q,Fv).
-    .letExp(_,D,_,E) => let{
+	  foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
+    | .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
+    | .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv)
+    | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
+    | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
+    | .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
-    } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv)).
-    .letRec(Lc,D,_,E) => valof{
+    } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv))
+    | .letRec(Lc,D,_,E) => valof{
       QD = dropDefs(D,Q);
       valis freeVarsInExp(E,QD,freeVarsInDefs(D,QD,Fv))
-    }.
-    .vlof(_,A,_) => freeVarsInAct(A,Q,Fv).
-    _ default => valof{
+    }
+    | .vlof(_,A,_) => freeVarsInAct(A,Q,Fv)
+    | _ default => valof{
       reportError("cant find free vars in $(Exp)",locOf(Exp));
       valis Fv
     }
@@ -74,36 +73,35 @@ star.compiler.freevars{
   }
 
   freeVarsInAct(Ac,Q,Fv) => case Ac in {
-    .doNop(_) => Fv.
-    .doSeq(_,L,R) => freeVarsInAct(R,Q,freeVarsInAct(L,Q,Fv)).
-    .doLbld(_,_,A) => freeVarsInAct(A,Q,Fv).
-    .doBrk(_,_) => Fv.
-    .doValis(_,E) => freeVarsInExp(E,Q,Fv).
-    .doDefn(_,P,E) where Q1 .= dropVars(P,Q) =>
-      freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv)).
-    .doMatch(_,P,E) where Q1 .= dropVars(P,Q) =>
-      freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv)).
-    .doAssign(_,L,R) => freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv)).
-    .doTryCatch(_,L,T,H) where Q1 .= dropVars(T,Q) =>
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F),freeVarsInAct(L,Q1,Fv), H).
-    .doIfThen(Lc,T,L,R) => valof{
+    | .doNop(_) => Fv
+    | .doSeq(_,L,R) => freeVarsInAct(R,Q,freeVarsInAct(L,Q,Fv))
+    | .doLbld(_,_,A) => freeVarsInAct(A,Q,Fv)
+    | .doBrk(_,_) => Fv
+    | .doValis(_,E) => freeVarsInExp(E,Q,Fv)
+    | .doDefn(_,P,E) where Q1 .= dropVars(P,Q) => freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv))
+    | .doMatch(_,P,E) where Q1 .= dropVars(P,Q) =>
+      freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv))
+    | .doAssign(_,L,R) => freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv))
+    | .doTryCatch(_,L,T,H) where Q1 .= dropVars(T,Q) =>
+      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F),freeVarsInAct(L,Q1,Fv), H)
+    | .doIfThen(Lc,T,L,R) => valof{
       Q1 = Q\condVars(T,[]);
       valis freeVarsInAct(L,Q1,freeVarsInAct(R,Q,freeVarsInCond(T,Q1,Fv)))
-    }.
-    .doCase(_,G,Cs) =>
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs).
-    .doWhile(_,C,B) where Q1 .= Q\condVars(C,[]) =>
-      freeVarsInAct(B,Q1,freeVarsInCond(C,Q1,Fv)).
-    .doLet(_,Dfs,_,A) => valof{
+    }
+    | .doCase(_,G,Cs) =>
+      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs)
+    | .doWhile(_,C,B) where Q1 .= Q\condVars(C,[]) =>
+      freeVarsInAct(B,Q1,freeVarsInCond(C,Q1,Fv))
+    | .doLet(_,Dfs,_,A) => valof{
       QD = dropDefs(Dfs,Q);
       valis freeVarsInAct(A,QD,freeVarsInDefs(Dfs,Q,Fv))
-    }.
-    .doLetRec(_,Dfs,_,A) => valof{
+    }
+    | .doLetRec(_,Dfs,_,A) => valof{
       QD = dropDefs(Dfs,Q);
       valis freeVarsInAct(A,QD,freeVarsInDefs(Dfs,QD,Fv))
-    }.
-    .doExp(_,C) => freeVarsInExp(C,Q,Fv).
-    _ default => valof{
+    }
+    | .doExp(_,C) => freeVarsInExp(C,Q,Fv)
+    | _ default => valof{
       reportError("cant find free vars in $(Ac)",locOf(Ac));
       valis Fv
     }
@@ -184,26 +182,26 @@ star.compiler.freevars{
   
   public ptnVars:(canon,set[cId],set[cId]) => set[cId].
   ptnVars(Exp,Q,Fv) => case Exp in {
-    .anon(_,_) => Q.
-    .vr(Lc,Nm,Tp) => 
-      {? .cId(Nm,Tp) in Q || .cId(Nm,_) in Fv ?} ?? Q || Q\+.cId(Nm,Tp).
-    .intr(_,_) => Q.
-    .flt(_,_) => Q.
-    .kar(_,_) => Q.
-    .strng(_,_) => Q.
-    .enm(_,_,_) => Q.
-    .mtd(_,_,_) => Q.
-    .over(_,V,_) => ptnVars(V,Q,Fv).
-    .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv).
-    .apply(_,O,A,_) => ptnTplVars(A,Q,Fv).
-    .tple(_,Els) => ptnTplVars(Els,Q,Fv).
-    .match(_,P,S) => ptnVars(P,Q,Fv).
-    .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv).
-    .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv).
-    .neg(Lc,R) => Q.
-    .lambda(_,_,_,_,_) => Q.
-    .letExp(_,B,_,E) => Q.
-    .letRec(_,B,_,E) => Q.
+    | .anon(_,_) => Q
+    | .vr(Lc,Nm,Tp) => 
+      {? .cId(Nm,Tp) in Q || .cId(Nm,_) in Fv ?} ?? Q || Q\+.cId(Nm,Tp)
+    | .intr(_,_) => Q
+    | .flt(_,_) => Q
+    | .kar(_,_) => Q
+    | .strng(_,_) => Q
+    | .enm(_,_,_) => Q
+    | .mtd(_,_,_) => Q
+    | .over(_,V,_) => ptnVars(V,Q,Fv)
+    | .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv)
+    | .apply(_,O,A,_) => ptnTplVars(A,Q,Fv)
+    | .tple(_,Els) => ptnTplVars(Els,Q,Fv)
+    | .match(_,P,S) => ptnVars(P,Q,Fv)
+    | .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv)
+    | .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv)
+    | .neg(Lc,R) => Q
+    | .lambda(_,_,_,_,_) => Q
+    | .letExp(_,B,_,E) => Q
+    | .letRec(_,B,_,E) => Q
   }
 
   ptnTplVars:(cons[canon],set[cId],set[cId])=>set[cId].
@@ -212,9 +210,9 @@ star.compiler.freevars{
   -- Variables that might be introduced in an action
   public actnVars:(canonAction,set[cId]) => set[cId].
   actnVars(Ac,Q) => case Ac in {
-    .doDefn(_,P,_) => ptnVars(P,Q,[]).
-    .doMatch(_,P,_) => ptnVars(P,Q,[]).
-    .doSeq(_,L,R) => actnVars(R,actnVars(L,Q)).
-    _ default => Q.
+    | .doDefn(_,P,_) => ptnVars(P,Q,[])
+    | .doMatch(_,P,_) => ptnVars(P,Q,[])
+    | .doSeq(_,L,R) => actnVars(R,actnVars(L,Q))
+    | _ default => Q
   }
 }

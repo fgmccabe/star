@@ -53,9 +53,9 @@ star.compiler.inline{
 
   ptnMatchArgs([],[],Map) => .matching(Map).
   ptnMatchArgs([E1,..L1],[E2,..L2],Map) => case ptnMatch(E1,E2,Map) in {
-    .noMatch => .noMatch.
-    .insufficient => .insufficient.
-    .matching(Ev) => ptnMatchArgs(L1,L2,Ev)
+    | .noMatch => .noMatch
+    | .insufficient => .insufficient
+    | .matching(Ev) => ptnMatchArgs(L1,L2,Ev)
   }
   ptnMatchArgs(_,_,_) default => .noMatch.
 
@@ -230,16 +230,16 @@ star.compiler.inline{
     (cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => match[e].
   matchingCase(_,[],_,_) => .noMatch.
   matchingCase(Gov,[C,..Cs],Map,Depth) => case candidate(Gov,C) in {
-    .insufficient => .insufficient.
-    .noMatch => matchingCase(Gov,Cs,Map,Depth).
-    .matching(Rep) => .matching(simplify(Rep,Map,Depth))
+    | .insufficient => .insufficient
+    | .noMatch => matchingCase(Gov,Cs,Map,Depth)
+    | .matching(Rep) => .matching(simplify(Rep,Map,Depth))
   }.
 
   candidate:all e ~~ rewrite[e] |: (cExp,cCase[e]) => match[e].
   candidate(E,(_,Ptn,Rep)) => case ptnMatch(Ptn,E,[]) in {
-    .matching(Theta) => .matching(rewrite(Rep,rwVar(Theta))).
-    .noMatch => .noMatch.
-    .insufficient => .insufficient
+    | .matching(Theta) => .matching(rewrite(Rep,rwVar(Theta)))
+    | .noMatch => .noMatch
+    | .insufficient => .insufficient
   }
 
   inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:

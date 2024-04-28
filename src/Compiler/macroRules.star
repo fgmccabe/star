@@ -353,9 +353,9 @@ star.compiler.macro.rules{
   {
     lb:while .true do{
   case _resume(G,._next) in {
-    _yld(P) => B.
-    _yld(_) default => {}.
-    ._all => break lb
+    | _yld(P) => B
+    | _yld(_) default => {}
+    | ._all => break lb
   }
     }
   }
@@ -409,9 +409,9 @@ star.compiler.macro.rules{
     I .= _generate(C);
     lb:while .true do{
        case I resume ._next in {
-        _yld(P) => B.
-        _yld(_) default => {}.
-        ._all => break lb
+       | _yld(P) => B
+       | _yld(_) default => {}
+       | ._all => break lb
       }
     }
   }
@@ -469,8 +469,8 @@ star.compiler.macro.rules{
   /* yield E
   becomes
   case _suspend(this,._yld(E)) in {
-    ._next => {}.
-    ._cancel => _retire(this,._all)
+    | ._next => {}
+    | ._cancel => _retire(this,._all)
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{

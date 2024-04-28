@@ -872,8 +872,8 @@ other expressions and actions.
 
 @anchored{CaseHandler} ::= @code{@{} @refer{CaseRule}@code{.} @dots{} @code{.} @refer{CaseRule}  @code{@}}
 
-@anchored{CaseRule} ::= @refer{Pattern} @code{=>} @refer{Expression} |
-  @refer{Pattern} @code{default} @code{=>} @refer{Expression}
+@anchored{CaseRule} ::= @code{|} @refer{Pattern} @code{=>} @refer{Expression} |
+  @code{|} @refer{Pattern} @code{default} @code{=>} @refer{Expression}
 @end display
 @end float
 
@@ -883,9 +883,9 @@ governing expression.
 For example, the expression: 
 @example
 case D in @{
-  monday => 0.
-  tuesday => 1.
-  _ => 10
+  | monday => 0
+  | tuesday => 1
+  | _ => 10
 @}
 @end example
 
@@ -922,7 +922,7 @@ example, in:
 try@{
   raise 10
 @} catch integer in @{
-  (E) => E+10
+  | (E) => E+10
 @}
 @end example
 the type of @code{E} is @code{integer}; which is consistent with the expression

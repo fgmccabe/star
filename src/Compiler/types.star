@@ -37,19 +37,19 @@ star.compiler.types{
 
   hasKind:(tipe)=>integer.
   hasKind(Tp) => case Tp in {
-    .anonType => 0.
-    .voidType => 0.
-    .kFun(_,Ar) => Ar.
-    .tVar(_,_) => 0.
-    .tFun(_,Ar,_) => Ar.
-    .nomnal(_) => 0.
-    .tpFun(_,Ar) => Ar.
-    .tpExp(Op,_) => hasKind(Op)-1.
-    .tupleType(_) => 0.
-    .allType(_,T) => hasKind(T).
-    .existType(_,T) => hasKind(T).
-    .faceType(_,_) => 0.
-    .constrainedType(T,_) => hasKind(T).
+    | .anonType => 0
+    | .voidType => 0
+    | .kFun(_,Ar) => Ar
+    | .tVar(_,_) => 0
+    | .tFun(_,Ar,_) => Ar
+    | .nomnal(_) => 0
+    | .tpFun(_,Ar) => Ar
+    | .tpExp(Op,_) => hasKind(Op)-1
+    | .tupleType(_) => 0
+    | .allType(_,T) => hasKind(T)
+    | .existType(_,T) => hasKind(T)
+    | .faceType(_,_) => 0
+    | .constrainedType(T,_) => hasKind(T)
   }
   
   public isIdenticalVar:(tipe,tipe) => boolean.
@@ -112,8 +112,8 @@ star.compiler.types{
 
   public getTypeArgs:(tipe) => option[(tipe,cons[tipe])].
   getTypeArgs(T) => case deRef(T) in {
-    .tpExp(O,A) where [F,..As] .= unravelTArgs(deRef(O),[A]) => .some((F,As)).
-    _ default => .none
+    | .tpExp(O,A) where [F,..As] .= unravelTArgs(deRef(O),[A]) => .some((F,As))
+    | _ default => .none
   }
 
   unravelTArgs:(tipe,cons[tipe]) => cons[tipe].
@@ -216,22 +216,19 @@ star.compiler.types{
 
   shTipe:(tipe,integer) => string.
   shTipe(Tp,Dp) => case Tp in {
-    .anonType => "_".
-    .voidType => "void".
-    .kFun(Nm,Ar) => "#(Nm)/$(Ar)".
-    .tVar(V,Nm) => "%#(Nm)".
-    .tFun(_,Ar,Nm) => "%#(Nm)/$(Ar)".
-    .nomnal(Nm) => Nm.
-    .tpFun(Nm,Ar) => "#(Nm)/$(Ar)".
-    .tpExp(O,A) => showTpExp(deRef(O),[A],Dp).
-    .tupleType(A) => "(#(showTypes(A,Dp)*))".
-    .allType(A,T) =>
-      "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))".
-    .existType(A,T) =>
-      "exists #(showBound(A,Dp))#(showMoreQuantified(T,Dp))".
-    .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}".
-    .constrainedType(T,C) =>
-      "#(showConstraint(C,Dp)) |: #(showType(T,Dp))".
+    | .anonType => "_"
+    | .voidType => "void"
+    | .kFun(Nm,Ar) => "#(Nm)/$(Ar)"
+    | .tVar(V,Nm) => "%#(Nm)"
+    | .tFun(_,Ar,Nm) => "%#(Nm)/$(Ar)"
+    | .nomnal(Nm) => Nm
+    | .tpFun(Nm,Ar) => "#(Nm)/$(Ar)"
+    | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
+    | .tupleType(A) => "(#(showTypes(A,Dp)*))"
+    | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
+    | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
+    | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
+    | .constrainedType(T,C) => "#(showConstraint(C,Dp)) |: #(showType(T,Dp))"
   }
 
   shContract(Nm,Tps,[],Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)]".
@@ -301,18 +298,18 @@ star.compiler.types{
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
     hsh(Tp) => case Tp in {
-      .kFun(Nm,Ar) => Ar*37+hash(Nm).
-      .tVar(_,Nm) => hash("V")+hash(Nm).
-      .tFun(_,Ar,Nm) => (hash("F")+Ar)*37+hash(Nm).
-      .nomnal(Nm) => hash(Nm).
-      .tpFun(Nm,Ar) => Ar*37+hash(Nm).
-      .tpExp(O,A) => hsh(deRef(O))*37+hsh(deRef(A)).
-      .tupleType(Els) => hshEls((hash("()")*37+size(Els))*37,Els).
-      .faceType(Els,Tps) =>
-	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
-      .allType(V,T) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
-      .existType(V,T) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
-      .constrainedType(T,C) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
+      | .kFun(Nm,Ar) => Ar*37+hash(Nm)
+      | .tVar(_,Nm) => hash("V")+hash(Nm)
+      | .tFun(_,Ar,Nm) => (hash("F")+Ar)*37+hash(Nm)
+      | .nomnal(Nm) => hash(Nm)
+      | .tpFun(Nm,Ar) => Ar*37+hash(Nm)
+      | .tpExp(O,A) => hsh(deRef(O))*37+hsh(deRef(A))
+      | .tupleType(Els) => hshEls((hash("()")*37+size(Els))*37,Els)
+      | .faceType(Els,Tps) =>
+	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps)
+      | .allType(V,T) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T))
+      | .existType(V,T) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T))
+      | .constrainedType(T,C) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C)
     }
 
     hshCon(.conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
@@ -333,12 +330,12 @@ star.compiler.types{
     hashEls(Els) => foldLeft((El,Hx)=>Hx*37+hash(deRef(El)),0,Els).
     
     hshRl(Rle) => case Rle in {
-      .typeExists(L,R) => (hash("<~")*37+hash(deRef(L)))*37+hash(deRef(R)).
-      .contractExists(N,Ts,Ds,R) =>
+      | .typeExists(L,R) => (hash("<~")*37+hash(deRef(L)))*37+hash(deRef(R))
+      | .contractExists(N,Ts,Ds,R) =>
 	(((hash("contract")*37+hash(N))*37+hashEls(Ts))*37+hashEls(Ds))*37+
-	hash(deRef(R)).
-      .typeLambda(L,R) => (hash("~>")*37+hash(deRef(L)))*37+hash(deRef(R)).
-      .allRule(V,Rl) => (hash("all")*37+hash(deRef(V)))*37+hshRl(Rl).
+	hash(deRef(R))
+      | .typeLambda(L,R) => (hash("~>")*37+hash(deRef(L)))*37+hash(deRef(R))
+      | .allRule(V,Rl) => (hash("all")*37+hash(deRef(V)))*37+hshRl(Rl)
     }.
   .} in {
     hash(Rl) => hshRl(Rl)
@@ -473,7 +470,7 @@ star.compiler.types{
   extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendArgType(Tp,.none) => Tp.
   extendArgType(Tp,.some(C)) => case deRef(Tp) in {
-    .tupleType(Els) => .tupleType([typeOf(C),..Els]).
+    | .tupleType(Els) => .tupleType([typeOf(C),..Els])
   }.
 
   public extendTplType:all x ~~ hasType[x] |:
@@ -595,11 +592,11 @@ star.compiler.types{
 
   public typeKey:(tipe) => tipe.
   typeKey(Tp) => case Tp in {
-    .allType(_K,T) => typeKey(T).
-    .existType(_K,T) => typeKey(T).
-    .constrainedType(T,_C) => typeKey(T).
-    .tpExp(O,_) => typeKey(deRef(O)).
-    T default => T.
+    | .allType(_K,T) => typeKey(T)
+    | .existType(_K,T) => typeKey(T)
+    | .constrainedType(T,_C) => typeKey(T)
+    | .tpExp(O,_) => typeKey(deRef(O))
+    | T default => T
   }
 
   public ruleType:(typeRule) => tipe.

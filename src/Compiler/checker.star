@@ -241,15 +241,15 @@ star.compiler.checker{
 
   checkDefn:(defnSpec,publishFn,dict,dict,string) => (cons[canonDef],cons[decl],cons[decl]).
   checkDefn(Defn,Publish,Env,Outer,Path) => case Defn in {
-    .defnSpec(.varSp(Nm),Lc,Stmts) where Tp ?= varType(Nm,Env) && areEquations(Stmts) => valof{
+    | .defnSpec(.varSp(Nm),Lc,Stmts) where Tp ?= varType(Nm,Env) && areEquations(Stmts) => valof{
       (Defs,Decls) = checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
-    }.
-    .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
+    }
+    | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
       (Defs,Decls) = checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
-    }.
-    .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
+    }
+    | .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
       if traceCanon! then
 	showMsg("parse type defn $(St)");
 
@@ -257,13 +257,13 @@ star.compiler.checker{
       if traceCanon! then
 	showMsg("declarations from $(St)\:$(Dcs)");
       valis (Df,Publish(.tpSp(Nm),Dcs),Dcs)
-    }.
-    .defnSpec(.cnsSp(_),_,_) => ([],[],[]).
-    .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
+    }
+    | .defnSpec(.cnsSp(_),_,_) => ([],[],[])
+    | .defnSpec(.conSp(ConNm),Lc,[St]) => valof{
       (Defs,Decls) = parseContract(St,Env,Path);
       valis (Defs,Publish(.conSp(ConNm),Decls),Decls)
-    }.
-    .defnSpec(.implSp(Nm),Lc,[St]) => valof {
+    }
+    | .defnSpec(.implSp(Nm),Lc,[St]) => valof {
       if (_,Q,C,H,B) ?= isImplementationStmt(St) then{
 	(Defs,Decls) = checkImplementation(Lc,Q,C,H,B,Env,Outer,Path);
 	valis (Defs,Publish(.implSp(Nm),Decls),Decls)
@@ -272,7 +272,7 @@ star.compiler.checker{
 	reportError("not a valid implementation statement",Lc);
 	valis ([],[],[])
       }
-    }.
+    }
   }
 
   checkFunction:(string,tipe,option[locn],cons[ast],dict,dict,string) =>

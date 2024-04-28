@@ -38,12 +38,12 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
-#(Operators)    _ default => [].
+#(Operators)    | _ default => []
   }
 
   public isBracket:(string) => option[bracket].
   isBracket(Str) => case Str in {
-#(Brackets)    _ default => .none.
+#(Brackets)    | _ default => .none
   }
 
   public isLeftBracket:(string) => boolean.
@@ -54,21 +54,21 @@ star.compiler.operators{
 
   public first:(char) => option[string].
   first(Op) => case Op in {
-#(First)    _ default => .none.
+#(First)    | _ default => .none
   }
 
   public follows:(string,char) => option[string].
   follows(Op,Ch) => case (Op,Ch) in {
-#(Follows)    (_,_) default => .none.
+#(Follows)    | (_,_) default => .none
   }
 
   public final:(string) => boolean.
   final(Op) => case Op in {
-#(Final)    _ default => .false.
+#(Final)    | _ default => .false
   }
 
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
-#(Keywords)    _ default => .false.
+#(Keywords)    | _ default => .false
   }
 }

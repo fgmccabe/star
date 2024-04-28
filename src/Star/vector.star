@@ -50,8 +50,8 @@ star.vector{
 
   pick:all x ~~ (vct[x],integer,integer,integer)=>option[x].
   pick(T,Ix,K,Dp) => case Ix in {
-    0 => case T in {
-      .e => .none
+    | 0 => case T in {
+      | .e => .none
       | .vct1(X) => lookup(X,K,Dp)
       | .vct2(X,_) => lookup(X,K,Dp)
       | .vct3(X,_,_) => lookup(X,K,Dp)
@@ -62,7 +62,7 @@ star.vector{
       | .lf4(X,_,_,_) => .some(X)
     }
     | 1 => case T in {
-      .e => .none
+      | .e => .none
       | .vct1(_) => .none
       | .vct2(_,X) => lookup(X,K,Dp)
       | .vct3(_,X,_) => lookup(X,K,Dp)
@@ -73,7 +73,7 @@ star.vector{
       | .lf4(_,X,_,_) => .some(X)
     }
     | 2 => case T in {
-      .e => .none
+      | .e => .none
       | .vct1(_) => .none
       | .vct2(_,_) => .none
       | .vct3(_,_,X) => lookup(X,K,Dp)
@@ -84,7 +84,7 @@ star.vector{
       | .lf4(_,_,X,_) => .some(X)
     }
     | 3 => case T in {
-      .e => .none
+      | .e => .none
       | .vct1(_) => .none
       | .vct2(_,_) => .none
       | .vct3(_,_,_) => .none
@@ -109,45 +109,45 @@ star.vector{
 
   updte:all x ~~ (vct[x],integer,integer,integer,x)=>vct[x].
   updte(V,Ix,K,Dp,X) => case Ix in {
-    0 => case V in {
-      .vct1(T0) => .vct1(update(T0,K,Dp,X)).
-      .vct2(T0,T1) => .vct2(update(T0,K,Dp,X),T1).
-      .vct3(T0,T1,T2) => .vct3(update(T0,K,Dp,X),T1,T2).
-      .vct4(T0,T1,T2,T3) => .vct4(update(T0,K,Dp,X),T1,T2,T3).
-      .lf1(_) => .lf1(X).
-      .lf2(_,L1) => .lf2(X,L1).
-      .lf3(_,L1,L2) => .lf3(X,L1,L2).
-      .lf4(_,L1,L2,L3) => .lf4(X,L1,L2,L3).
-    }.
-    1 => case V in {
-      .vct1(T0) => V.
-      .vct2(T0,T1) => .vct2(T0,update(T1,K,Dp,X)).
-      .vct3(T0,T1,T2) => .vct3(T0,update(T1,K,Dp,X),T2).
-      .vct4(T0,T1,T2,T3) => .vct4(T0,update(T1,K,Dp,X),T2,T3).
-      .lf1(L0) => .lf2(L0,X).
-      .lf2(L0,_) => .lf2(L0,X).
-      .lf3(L0,_,L2) => .lf3(L0,X,L2).
-      .lf4(L0,_,L2,L3) => .lf4(L0,X,L2,L3).
+    | 0 => case V in {
+      | .vct1(T0) => .vct1(update(T0,K,Dp,X))
+      | .vct2(T0,T1) => .vct2(update(T0,K,Dp,X),T1)
+      | .vct3(T0,T1,T2) => .vct3(update(T0,K,Dp,X),T1,T2)
+      | .vct4(T0,T1,T2,T3) => .vct4(update(T0,K,Dp,X),T1,T2,T3)
+      | .lf1(_) => .lf1(X)
+      | .lf2(_,L1) => .lf2(X,L1)
+      | .lf3(_,L1,L2) => .lf3(X,L1,L2)
+      | .lf4(_,L1,L2,L3) => .lf4(X,L1,L2,L3)
     }
-    2 => case V in {
-      .vct1(_) => V.
-      .vct2(_,_) => V.
-      .vct3(T0,T1,T2) => .vct3(T0,T1,update(T2,K,Dp,X)).
-      .vct4(T0,T1,T2,T3) => .vct4(T0,T1,update(T2,K,Dp,X),T3).
-      .lf1(L0) => .lf2(L0,X).
-      .lf2(L0,L1) => .lf3(L0,L1,X).
-      .lf3(L0,L1,L2) => .lf3(L0,L1,X).
-      .lf4(L0,L1,L2,L3) => .lf4(L0,L1,X,L3).
+    | 1 => case V in {
+      | .vct1(T0) => V
+      | .vct2(T0,T1) => .vct2(T0,update(T1,K,Dp,X))
+      | .vct3(T0,T1,T2) => .vct3(T0,update(T1,K,Dp,X),T2)
+      | .vct4(T0,T1,T2,T3) => .vct4(T0,update(T1,K,Dp,X),T2,T3)
+      | .lf1(L0) => .lf2(L0,X)
+      | .lf2(L0,_) => .lf2(L0,X)
+      | .lf3(L0,_,L2) => .lf3(L0,X,L2)
+      | .lf4(L0,_,L2,L3) => .lf4(L0,X,L2,L3)
     }
-    3 => case V in {
-      .vct1(_) => V.
-      .vct2(_,_) => V.
-      .vct3(_,_,_) => V.
-      .vct4(T0,T1,T2,T3) => .vct4(T0,T1,T2,update(T3,K,Dp,X)).
-      .lf1(L0) => .lf2(L0,X).
-      .lf2(L0,L1) => .lf3(L0,L1,X).
-      .lf3(L0,L1,L2) => .lf4(L0,L1,L2,X).
-      .lf4(L0,L1,L2,_) => .lf4(L0,L1,L2,X).
+    | 2 => case V in {
+      | .vct1(_) => V
+      | .vct2(_,_) => V
+      | .vct3(T0,T1,T2) => .vct3(T0,T1,update(T2,K,Dp,X))
+      | .vct4(T0,T1,T2,T3) => .vct4(T0,T1,update(T2,K,Dp,X),T3)
+      | .lf1(L0) => .lf2(L0,X)
+      | .lf2(L0,L1) => .lf3(L0,L1,X)
+      | .lf3(L0,L1,L2) => .lf3(L0,L1,X)
+      | .lf4(L0,L1,L2,L3) => .lf4(L0,L1,X,L3)
+    }
+    | 3 => case V in {
+      | .vct1(_) => V
+      | .vct2(_,_) => V
+      | .vct3(_,_,_) => V
+      | .vct4(T0,T1,T2,T3) => .vct4(T0,T1,T2,update(T3,K,Dp,X))
+      | .lf1(L0) => .lf2(L0,X)
+      | .lf2(L0,L1) => .lf3(L0,L1,X)
+      | .lf3(L0,L1,L2) => .lf4(L0,L1,L2,X)
+      | .lf4(L0,L1,L2,_) => .lf4(L0,L1,L2,X)
     }
   }.
 
@@ -250,85 +250,85 @@ star.vector{
 
   delte:all x ~~ (vct[x],integer,integer,integer,option[x])=>vct[x].
   delte(V,Ix,K,Dp,X) => case Ix in {
-    0 => case V in {
-      .vct1(T0) => valof{
+    | 0 => case V in {
+      | .vct1(T0) => valof{
 	Tx0 = delete(T0,K,Dp,X);
 	valis bldVct(Tx0,.e,.e,.e)
-      }.
-      .vct2(T0,T1) => valof{
+      }
+      | .vct2(T0,T1) => valof{
 	(Xs,Tx1) = shLft(T1,X); -- Shift the right tree left by one
 	Tx0 = delete(T0,K,Dp,Xs); -- Delete from the left tree
 	valis bldVct(Tx0,Tx1,.e,.e)
-      }.
-      .vct3(T0,T1,T2) => valof{
+      }
+      | .vct3(T0,T1,T2) => valof{
 	(Xs,Tx2) = shLft(T2,X); -- Shift the right tree left by one
 	(Xs0,Tx1) = shLft(T1,Xs); -- Shift the middle tree left by one
 	Tx0 = delete(T0,K,Dp,Xs0); -- Delete from the left tree
 	valis bldVct(Tx0,Tx1,Tx2,.e)
-      }.
-      .vct4(T0,T1,T2,T3) => valof {
+      }
+      | .vct4(T0,T1,T2,T3) => valof {
 	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
 	(Xs0,Tx2) = shLft(T2,Xs); 
 	(Xs1,Tx1) = shLft(T1,Xs0); 
 	Tx0 = delete(T0,K,Dp,Xs1); -- Delete from the left tree
 	valis bldVct(Tx0,Tx1,Tx2,Tx3)
-      }.
-      .lf1(_) => bldLf(X,.none,.none,.none).
-      .lf2(_,L1) => bldLf(.some(L1),X,.none,.none).
-      .lf3(_,L1,L2) => bldLf(.some(L1),.some(L2),X,.none).
-      .lf4(_,L1,L2,L3) => bldLf(.some(L1),.some(L2),.some(L3),X).
-    }.
-    1 => case V in {
-      .vct1(T0) => V.      -- trying to delete beyond edge
-      .vct2(T0,T1) => valof {
+      }
+      | .lf1(_) => bldLf(X,.none,.none,.none)
+      | .lf2(_,L1) => bldLf(.some(L1),X,.none,.none)
+      | .lf3(_,L1,L2) => bldLf(.some(L1),.some(L2),X,.none)
+      | .lf4(_,L1,L2,L3) => bldLf(.some(L1),.some(L2),.some(L3),X)
+    }
+    | 1 => case V in {
+      | .vct1(T0) => V      -- trying to delete beyond edge
+      | .vct2(T0,T1) => valof {
 	Tx1 = delete(T1,K,Dp,X); -- Delete from the right tree
 	valis bldVct(T0,Tx1,.e,.e)
-      }.
-      .vct3(T0,T1,T2) => valof {
+      }
+      | .vct3(T0,T1,T2) => valof {
 	(Xs,Tx2) = shLft(T2,X); -- Shift the right tree left by one
 	Tx1 = delete(T1,K,Dp,Xs); -- Delete from the middle tree
 	valis bldVct(T0,Tx1,Tx2,.e)
-      }.
-      .vct4(T0,T1,T2,T3) => valof{
+      }
+      | .vct4(T0,T1,T2,T3) => valof{
 	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
 	(Xs0,Tx2) = shLft(T2,Xs); 
 	Tx1 = delete(T1,K,Dp,Xs0); 
 	valis bldVct(T0,Tx1,Tx2,Tx3)
-      }.
-      .lf1(_) => V.
-      .lf2(L0,L1) => bldLf(.some(L0),X,.none,.none).
-      .lf3(L0,_,L2) => bldLf(.some(L0),.some(L2),X,.none).
-      .lf4(L0,_,L2,L3) => bldLf(.some(L0),.some(L2),.some(L3),X).
-    }.
-    2 => case V in {
-      .vct1(_) => V.      -- trying to delete beyond edge
-      .vct2(_,_) => V.    -- Also.
-      .vct3(T0,T1,T2) => valof {
+      }
+      | .lf1(_) => V
+      | .lf2(L0,L1) => bldLf(.some(L0),X,.none,.none)
+      | .lf3(L0,_,L2) => bldLf(.some(L0),.some(L2),X,.none)
+      | .lf4(L0,_,L2,L3) => bldLf(.some(L0),.some(L2),.some(L3),X)
+    }
+    | 2 => case V in {
+      | .vct1(_) => V      -- trying to delete beyond edge
+      | .vct2(_,_) => V    -- Also.
+      | .vct3(T0,T1,T2) => valof {
 	Tx2 = delete(T2,K,Dp,X); -- Delete from the middle tree
 	valis bldVct(T0,T1,Tx2,.e)
-      }.
-      .vct4(T0,T1,T2,T3) => valof {
+      }
+      | .vct4(T0,T1,T2,T3) => valof {
 	(Xs,Tx3) = shLft(T3,X); -- Shift the right tree left by one
 	Tx2 = delete(T2,K,Dp,Xs); 
 	valis bldVct(T0,T1,Tx2,Tx3)
-      }.
-      .lf1(_) => V.
-      .lf2(_,_) => V.
-      .lf3(L0,L1,_) => bldLf(.some(L0),.some(L1),X,.none).
-      .lf4(L0,L1,_,L3) => bldLf(.some(L0),.some(L1),.some(L3),X).
-    }.
-    3 => case V in {
-      .vct1(_) => V.      -- trying to delete beyond edge
-      .vct2(_,_) => V.    -- Also.
-      .vct3(_,_,_) => V.  -- Also.
-      .vct4(T0,T1,T2,T3) => valof {
+      }
+      | .lf1(_) => V
+      | .lf2(_,_) => V
+      | .lf3(L0,L1,_) => bldLf(.some(L0),.some(L1),X,.none)
+      | .lf4(L0,L1,_,L3) => bldLf(.some(L0),.some(L1),.some(L3),X)
+    }
+    | 3 => case V in {
+      | .vct1(_) => V      -- trying to delete beyond edge
+      | .vct2(_,_) => V    -- Also.
+      | .vct3(_,_,_) => V  -- Also.
+      | .vct4(T0,T1,T2,T3) => valof {
 	Tx3 = delete(T3,K,Dp,X); 
 	valis bldVct(T0,T1,T2,Tx3)
-      }.
-      .lf1(_) => V.
-      .lf2(_,_) => V.
-      .lf3(_,_,_) => V.
-      .lf4(L0,L1,L2,_) => bldLf(.some(L0),.some(L1),.some(L2),X).
+      }
+      | .lf1(_) => V
+      | .lf2(_,_) => V
+      | .lf3(_,_,_) => V
+      | .lf4(L0,L1,L2,_) => bldLf(.some(L0),.some(L1),.some(L2),X)
     }.
   }.
 

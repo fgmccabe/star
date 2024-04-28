@@ -16,14 +16,14 @@ star.compiler.misc{
 
   public markerString:(markerType)=>string.
   markerString(M) => case M in {
-    .typeMark=>"*".
-    .closMark => "^".
-    .valMark=>"@".
-    .conMark=>"#".
-    .fldMark=>"°".
-    .overMark=>"!".
-    .pkgMark => "#".
-    .tractMark => "$".
+    | .typeMark=>"*"
+    | .closMark => "^"
+    | .valMark=>"@"
+    | .conMark=>"#"
+    | .fldMark=>"°"
+    | .overMark=>"!"
+    | .pkgMark => "#"
+    | .tractMark => "$"
   }
 
   public qualifiedName:(string,markerType,string) => string.

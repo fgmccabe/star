@@ -33,13 +33,13 @@ star.compiler.normalize.meta{
 
   public implementation display[nameMapEntry] => {
     disp(En) => case En in {
-      .moduleFun(C,V) => "module fun $(C)\:$(typeOf(C))".
-      .moduleCons(Nm,Tp) => "module cons $(Nm)".
-      .localCons(Nm,Tp,Vr) => "local cons #(Nm)[$(Vr)]".
-      .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)".
-      .localVar(Vr) => "local var $(Vr)".
-      .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]".
-      .globalVar(Nm,Tp) => "global #(Nm)".
+      | .moduleFun(C,V) => "module fun $(C)\:$(typeOf(C))"
+      | .moduleCons(Nm,Tp) => "module cons $(Nm)"
+      | .localCons(Nm,Tp,Vr) => "local cons #(Nm)[$(Vr)]"
+      | .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)"
+      | .localVar(Vr) => "local var $(Vr)"
+      | .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]"
+      | .globalVar(Nm,Tp) => "global #(Nm)"
     }
   }
 
@@ -55,9 +55,9 @@ star.compiler.normalize.meta{
   public lookupThetaVar:(nameMap,string)=>option[cId].
   lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
-      .labelArg(ThV,_) => .some(ThV).
-      .localFun(_,_,_,ThV) => .some(ThV).
-      _ default => .none
+    | .labelArg(ThV,_) => .some(ThV)
+    | .localFun(_,_,_,ThV) => .some(ThV)
+    | _ default => .none
     }.
   lookupThetaVar(_,_) default => .none.
 

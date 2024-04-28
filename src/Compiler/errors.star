@@ -7,10 +7,10 @@ star.compiler.errors{
 
   implementation display[reportMsg] => {
     disp(E) => case E in {
-      .errorMsg(.none,Msg) => "\e[31merror\e[0m #(Msg)".
-      .errorMsg(.some(Lc),Msg) => "\e[31error\e[0m #(Msg) at $(Lc)".
-      .warnMsg(.none,Msg) => "\e[33mwarning\e[0m #(Msg)".
-      .warnMsg(.some(Lc),Msg) => "\e[33mwarning\e[0m #(Msg) at $(Lc)".
+      | .errorMsg(.none,Msg) => "\e[31merror\e[0m #(Msg)"
+      | .errorMsg(.some(Lc),Msg) => "\e[31error\e[0m #(Msg) at $(Lc)"
+      | .warnMsg(.none,Msg) => "\e[33mwarning\e[0m #(Msg)"
+      | .warnMsg(.some(Lc),Msg) => "\e[33mwarning\e[0m #(Msg) at $(Lc)"
     }
   }
 

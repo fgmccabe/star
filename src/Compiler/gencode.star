@@ -32,9 +32,9 @@ star.compiler.gencode{
   localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
 
   defFun(Def,Vrs) => case Def in {
-    .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp::ltipe)].
-    .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
-    _ default => Vrs
+    | .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp::ltipe)]
+    | .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)]
+    | _ default => Vrs
   }
   
   compDefs:(cons[cDefn],map[string,srcLoc])=> cons[codeSegment].
@@ -42,7 +42,7 @@ star.compiler.gencode{
 
   genDef:(cDefn,map[string,srcLoc]) => codeSegment.
   genDef(Defn,Glbs) => case Defn in {
-    .fnDef(Lc,Nm,Tp,Args,Val) => valof {
+    | .fnDef(Lc,Nm,Tp,Args,Val) => valof {
       if traceCodegen! then
 	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
       Ctx = emptyCtx(argSrcLocs(Args,Glbs,0));
@@ -79,7 +79,7 @@ star.compiler.gencode{
   compExp:(cExp,option[locn],tailMode,Cont,codeCtx,stack) =>
     (stack,multi[assemOp]).
   compExp(Exp,OLc,TM,Cont,Ctx,Stk) => case Exp in {
-    E where isGround(E) =>
+    | E where isGround(E) =>
       Cont.C(Ctx,pushStack(typeOf(Exp)::ltipe,Stk),[.iLdC(Exp::data)])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
@@ -162,15 +162,15 @@ star.compiler.gencode{
 
   compVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compVar(Lc,_Nm,Loc,Cont,Ctx,Stk) => case Loc in {
-    .argVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdA(Off)]).
-    .lclVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdL(Off)]).
-    .glbVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdG(Nm)]).
-    .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(.symb(Nm))]).
+    | .argVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdA(Off)])
+    | .lclVar(Off,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdL(Off)])
+    | .glbVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdG(Nm)])
+    | .glbFun(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.iLdC(.symb(Nm))])
   }
     
   compCond:(cExp,option[locn],tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCond(C,OLc,TM,Succ,Fail,Ctx,Stk) => case C in {
-    .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
+    | .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
     | .cTerm(_,"star.core#false",[],_) => Fail.C(Ctx,Stk,[])
     | .cCnj(Lc,L,R) => valof{
       FC = splitCont(Lc,Ctx,ctxCont(Ctx,Fail));
@@ -196,7 +196,7 @@ star.compiler.gencode{
 
   compAction:(aAction,option[locn],tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[assemOp]).
   compAction(A,OLc,TM,ACont,Cont,Ctx,Stk) => case A in {
-    .aNop(_Lc) => ACont.C(Ctx,Stk,[])
+    | .aNop(_Lc) => ACont.C(Ctx,Stk,[])
     | .aSeq(Lc,L,R) => compAction(L,Lc,.notLast,resetCont(Stk,actionCont(R,Lc,TM,ACont,Cont)),Cont,Ctx,Stk)
     | .aLbld(Lc,Lb,LbldA) => valof{
       Ctxl = (Ctx.brks=Ctx.brks[Lb->ctxCont(Ctx,resetCont(Stk,ACont))]);
@@ -283,7 +283,7 @@ star.compiler.gencode{
   compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
     (e,Cont)=>Cont,Cont,Cont,assemLbl,codeCtx,stack) =>(stack,multi[assemOp],multi[assemOp]).
   compCases(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
-    [] => valof{
+    | [] => valof{
       if Ix==Mx then
 	valis (.none,[],[])
       else{
@@ -308,7 +308,7 @@ star.compiler.gencode{
     (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
 
   compCaseBranch(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    [(Lc,Ptn,Exp)] => compPttrn(Ptn,Lc,Comp(Exp,Succ),Fail,Ctx,Stk)
+    | [(Lc,Ptn,Exp)] => compPttrn(Ptn,Lc,Comp(Exp,Succ),Fail,Ctx,Stk)
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CF",Ctx);
       VLb = defineLbl("CN",Ctx);
@@ -324,7 +324,7 @@ star.compiler.gencode{
   compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
     Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    [] => Fail.C(Ctx,.none,[])
+    | [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CM",Ctx);
       
@@ -337,7 +337,7 @@ star.compiler.gencode{
   compCnsCase:all e ~~ display[e] |: (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
     Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
-    [(_,Ptn,Exp)] => compExp(Gv,Lc,.notLast, ptnCont(Ptn,Lc,Comp(Exp,Cont),
+    | [(_,Ptn,Exp)] => compExp(Gv,Lc,.notLast, ptnCont(Ptn,Lc,Comp(Exp,Cont),
 	abortCont(Lc,"match error")),Ctx,Stk)
     | Cases default => valof{
       CC = splitCont(Lc,Ctx,Cont);
@@ -357,7 +357,7 @@ star.compiler.gencode{
   compCnsCases:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
     (stack,multi[assemOp],multi[assemOp]).
   compCnsCases(Cs,Comp,Succ,Ctx,Stk) => case Cs in {
-    [] => (.none,[],[])
+    | [] => (.none,[],[])
     | [(Lc,Ptn,Exp),..Cases] => valof{
       Lb = cseLbl(Ptn,Ctx);
       (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,Ctx,Stk);
@@ -382,13 +382,13 @@ star.compiler.gencode{
 
   caseHash:(cExp)=>integer.
   caseHash(E) => case E in {
-    .cVar(_,_) => 0.
-    .cInt(_,Ix) => Ix.
-    .cBig(_,Bx) => hash(Bx).
-    .cFloat(_,Dx) => hash(Dx).
-    .cChar(_,Cx) => hash(Cx).
-    .cString(_,Sx) => hash(Sx).
-    .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm).
+    | .cVar(_,_) => 0
+    | .cInt(_,Ix) => Ix
+    | .cBig(_,Bx) => hash(Bx)
+    | .cFloat(_,Dx) => hash(Dx)
+    | .cChar(_,Cx) => hash(Cx)
+    | .cString(_,Sx) => hash(Sx)
+    | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
   }.
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
@@ -408,7 +408,7 @@ star.compiler.gencode{
   
   compPtn:(cExp,option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compPtn(Ptn,OLc,Succ,Fail,Ctx,Stk) => case Ptn in {
-    .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
+    | .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc ?= locateVar(Vr,Ctx) then 
 	valis compPtnVar(Lc,Vr,Loc,Succ,Ctx,dropStack(Stk))
@@ -445,10 +445,10 @@ star.compiler.gencode{
   }
 
   ptnCmp(Ptn,Lb) => case Ptn in {
-    .cInt(_,Ix) => .iICmp(Lb).
-    .cChar(_,Cx) => .iCCmp(Lb).
-    .cFloat(_,Dx) => .iFCmp(Lb).
-    _ => .iCmp(Lb)
+    | .cInt(_,Ix) => .iICmp(Lb)
+    | .cChar(_,Cx) => .iCCmp(Lb)
+    | .cFloat(_,Dx) => .iFCmp(Lb)
+    | _ => .iCmp(Lb)
   }.
 
   compPtnVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[assemOp]).
@@ -457,7 +457,7 @@ star.compiler.gencode{
 
   compPtnArgs:(cons[cExp],option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compPtnArgs(Es,Lc,Succ,Fail,Ctx,Stk) => case Es in {
-    [] => Succ.C(Ctx,Stk,[])
+    | [] => Succ.C(Ctx,Stk,[])
     | [A,..As] => compPtn(A,Lc,argsPtnCont(As,locOf(A),Succ,Fail),Fail,Ctx,Stk)
   }
 
@@ -720,10 +720,10 @@ star.compiler.gencode{
 
   reconcileStack:(stack,stack)=>stack.
   reconcileStack(S1,S2) => case S1 in {
-    .none => S2.
-    .some(Sl) => case S2 in {
-      .none => S1.
-      .some(Sr) => valof{
+    | .none => S2
+    | .some(Sl) => case S2 in {
+      | .none => S1
+      | .some(Sr) => valof{
 	if Sl==Sr then
 	  valis .some(Sl)
 	else{
@@ -736,10 +736,10 @@ star.compiler.gencode{
 
   reconcileable:(stack,stack)=>boolean.
   reconcileable(S1,S2) => case S1 in {
-    .none => .true.
-    .some(Sl) => case S2 in {
-      .none => .true.
-      .some(Sr) => valof{
+    | .none => .true
+    | .some(Sl) => case S2 in {
+      | .none => .true
+      | .some(Sr) => valof{
 	if Sl==Sr then
 	  valis .true
 	else{
@@ -750,12 +750,11 @@ star.compiler.gencode{
   }
 
   resetStack:(option[integer],stack) => (stack,multi[assemOp]).
-  resetStack(.some(Dp),.some(Stk)) =>
-    case [|Stk|] in {
-      Dp => (.some(Stk),[]).
-      Dp1 where Dp == Dp1-1 => (tail(Stk),[.iDrop]).
-      Dp1 where Dp1>Dp => (.some(popTo(Stk,Dp)),[.iRst(Dp)]).
-      Dp1 default => valof{	
+  resetStack(.some(Dp),.some(Stk)) => case [|Stk|] in {
+    | Dp => (.some(Stk),[])
+    | Dp1 where Dp == Dp1-1 => (tail(Stk),[.iDrop])
+    | Dp1 where Dp1>Dp => (.some(popTo(Stk,Dp)),[.iRst(Dp)])
+    | Dp1 default => valof{	
 	reportTrap("invalid stack height in $(Stk)\:$(Dp1)~$(Dp)");
 	valis (.some(Stk),[])
       }
@@ -890,9 +889,9 @@ star.compiler.gencode{
   popTo:all e ~~ (cons[e],integer) => cons[e].
   popTo(LL,D) => let{.
     pop(Ls,Ix) => case Ls in {
-      [] => [].
-      [_,..L] where Ix>0 => pop(L,Ix-1).
-      _ where Ix==0 => Ls
+      | [] => []
+      | [_,..L] where Ix>0 => pop(L,Ix-1)
+      | _ where Ix==0 => Ls
     }
   .} in pop(LL,[|LL|]-D).
 
@@ -902,11 +901,11 @@ star.compiler.gencode{
 
   implementation display[srcLoc] => {
     disp(L) => case L in {
-      .lclVar(Off,Tpe) => "lcl $(Off)\:$(Tpe)".
-      .argVar(Off,Tpe) => "arg $(Off)\:$(Tpe)".
-      .glbVar(Off,Tpe) => "glb $(Off)\:$(Tpe)".
-      .glbFun(Off,Tpe) => "fun $(Off)\:$(Tpe)".
-      .thnkFn(Off,Tpe) => "thk $(Off)\:$(Tpe)".
+      | .lclVar(Off,Tpe) => "lcl $(Off)\:$(Tpe)"
+      | .argVar(Off,Tpe) => "arg $(Off)\:$(Tpe)"
+      | .glbVar(Off,Tpe) => "glb $(Off)\:$(Tpe)"
+      | .glbFun(Off,Tpe) => "fun $(Off)\:$(Tpe)"
+      | .thnkFn(Off,Tpe) => "thk $(Off)\:$(Tpe)"
     }
   }
 

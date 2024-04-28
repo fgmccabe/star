@@ -37,14 +37,14 @@ rdf.lexer{
   } in numericTok(Ch,Nx).
   nxxTok(`0`,St,St0) where (Nx,.some(Ch)).=nextChr(St) =>
     case Ch in {
-      `x` => valof{
+    | `x` => valof{
 	(Nxt,.some(Hx)) = hexChars(Nx,0);
 	valis (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(Hx))))
-      }.
-      `c` => valof{
+      }
+    | `c` => valof{
 	(Nxt,.some(ChC)) = charRef(Nx);
 	valis (Nxt,.some(.tok(makeLoc(St0,Nxt),.intTok(ChC::integer))))
-      }.
+      }
     }.
   nxxTok(`1`,_,St0) => readNumber(St0).
   nxxTok(`2`,_,St0) => readNumber(St0).
@@ -241,27 +241,27 @@ rdf.lexer{
   isNonPrint(Ch) => (_isZlChar(Ch) || _isZsChar(Ch) || _isZpChar(Ch) || _isCcChar(Ch)).
 
   punc(Op) => case Op in {
-    `%` => .some("%").
-    `&` => .some("&").
-    `(` => .some("(").
-    `)` => .some(")").
-    `,` => .some(",").
-    `.` => .some(".").
-    `/` => .some("/").
-    `{` => .some("{").
-    `|` => .some("|").
-    `}` => .some("}").
-    `[` => .some("[").
-    `]` => .some("]").
-    `^` => .some("^").
-    `:` => .some(":").
-    `;` => .some(";").
-    `=` => .some("=").
-    `?` => .some("?").
-    `@` => .some("@").
-    `!` => .some("!").
-    `#` => .some("#").
-    _ default => .none.
+    | `%` => .some("%")
+    | `&` => .some("&")
+    | `(` => .some("(")
+    | `)` => .some(")")
+    | `,` => .some(",")
+    | `.` => .some(".")
+    | `/` => .some("/")
+    | `{` => .some("{")
+    | `|` => .some("|")
+    | `}` => .some("}")
+    | `[` => .some("[")
+    | `]` => .some("]")
+    | `^` => .some("^")
+    | `:` => .some(":")
+    | `;` => .some(";")
+    | `=` => .some("=")
+    | `?` => .some("?")
+    | `@` => .some("@")
+    | `!` => .some("!")
+    | `#` => .some("#")
+    | _ default => .none
   }
 
   implementation display[tokenState] => {

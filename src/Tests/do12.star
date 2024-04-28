@@ -9,7 +9,7 @@ test.do12{
   multiWhr:(foo)=>integer.
   multiWhr(X) => valof{
     case X in {
-      .foo(Ix) => valis Ix
+      | .foo(Ix) => valis Ix
       | .bar(_) => valis 0
     }
   }
@@ -18,8 +18,8 @@ test.do12{
   seqCase(X) => valof{
     res = ref 0;
     case X in {
-      .foo(Ix) => {res:= Ix}.
-      .bar(_) => {}
+      | .foo(Ix) => {res:= Ix}
+      | .bar(_) => {}
     };
     valis res!
   }
@@ -31,7 +31,7 @@ test.do12{
       assert seqCase(.foo(23))==23;
       assert seqCase(.bar(""))==0;
     } catch () in {
-      _ => showMsg("bad valof")
+      | _ => showMsg("bad valof")
     };
     valis ()
   }

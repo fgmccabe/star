@@ -10,6 +10,6 @@ star.compiler.intrinsics{
   public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {
 #(Intrinsics)
-    _ default => .none.
+    | _ default => .none
   }
 }

@@ -364,10 +364,14 @@ reComma([F|M],T) :-
   binary(Lc,",",F,T1,T).
 
 deBar(T,LL) :-
-  isBinary(T,_,"|",L,R),
+  isBinary(T,_,"|",L,R),!,
   deBar(L,Lf),
   deBar(R,Rf),
   concat(Lf,Rf,LL).
+deBar(T,LL) :-
+  isUnary(T,_,"|",R),!,
+  deBar(R,LL).
+
 deBar(T,[T]).
 
 reBar([T],T).

@@ -66,13 +66,13 @@ star.ideal{
 
   reformTree:all k,v ~~ (map[k,v]) => map[k,v].
   reformTree(T) => case T in {
-    .ihNil => .ihNil.
-    .ihLeaf(_,.nil) => .ihNil.
-    .ihNode(Tr,.ihNil,.ihNil,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr.
-    .ihNode(.ihNil,Tr,.ihNil,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr.
-    .ihNode(.ihNil,.ihNil,Tr,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr.
-    .ihNode(.ihNil,.ihNil,.ihNil,Tr) where ~.ihNode(_,_,_,_).=Tr => Tr.
-    Tr default => Tr
+    | .ihNil => .ihNil
+    | .ihLeaf(_,.nil) => .ihNil
+    | .ihNode(Tr,.ihNil,.ihNil,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr
+    | .ihNode(.ihNil,Tr,.ihNil,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr
+    | .ihNode(.ihNil,.ihNil,Tr,.ihNil) where ~.ihNode(_,_,_,_).=Tr => Tr
+    | .ihNode(.ihNil,.ihNil,.ihNil,Tr) where ~.ihNode(_,_,_,_).=Tr => Tr
+    | _ default => T
   }
 
   replaceIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v) => map[k,v].
