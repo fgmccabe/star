@@ -371,7 +371,6 @@ deBar(T,LL) :-
 deBar(T,LL) :-
   isUnary(T,_,"|",R),!,
   deBar(R,LL).
-
 deBar(T,[T]).
 
 reBar([T],T).
@@ -603,8 +602,8 @@ mkLetRec(Lc,Els,Bnd,Let) :-
 isCaseExp(Trm,Lc,Exp,Cases) :-
   isUnary(Trm,Lc,"case",L),
   isBinary(L,_,"in",Exp,R),
-  isBraceTuple(R,_,Cs),
-  (Cs=[C] -> deBar(C,Cases); Cases=Cs).
+  isBraceTuple(R,_,[C]),
+  deBar(C,Cases).
 
 caseExp(Lc,Exp,Cases,Trm) :-
   reBar(Cases,Cs),
