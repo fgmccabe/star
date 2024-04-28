@@ -674,8 +674,8 @@ star.compiler.wff{
   public isCase:(ast) => option[(option[locn],ast,cons[ast])].
   isCase(A) where (Lc,L) ?= isUnary(A,"case") &&
       (_,Lhs,Rhs) ?= isBinary(L,"in") &&
-	  (_,Els) ?= isBrTuple(Rhs) =>
-    ([El].=Els ?? .some((Lc,Lhs,deBar(El))) || .some((Lc,Lhs,Els))).
+	  (_,[El]) ?= isBrTuple(Rhs) =>
+    .some((Lc,Lhs,deBar(El))).
   isCase(_) => .none.
 
   public mkCaseExp(Lc,E,C) =>
