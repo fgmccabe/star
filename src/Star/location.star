@@ -11,6 +11,10 @@ star.location{
     disp(.locn(P,Line,Col,_,Ln)) => "#(P)\:$(Line)\:$(Col)($(Ln))".
   }
 
+  public showLocn:(option[locn])=>string.
+  showLocn(.none) => "unknown".
+  showLocn(.some(Lc)) => disp(Lc).
+
   public implementation coercion[locn,string] => {
     _coerce(Lc) => disp(Lc):?string
   }

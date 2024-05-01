@@ -315,6 +315,10 @@
 @tab 900
 @tab import object
 @item @code{trace}
+@tab non-associative infix
+@tab 140
+@tab display tracing message
+@item @code{trace}
 @tab non-associative prefix
 @tab 140
 @tab display tracing message

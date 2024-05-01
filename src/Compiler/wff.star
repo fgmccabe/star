@@ -904,6 +904,7 @@ star.compiler.wff{
 	    .int(.none,Line), .int(.none,Col), .int(.none,Off), .int(.none,Ln)])).
   }
 
-  public isTrace:(ast) => option[(option[locn],ast)].
-  isTrace(A) => isUnary(A,"trace").
+  public isTrace:(ast) => option[(option[locn],ast,ast)].
+  isTrace(A) where (Lc,R)?=isUnary(A,"trace") => .some((Lc,enum(Lc,"true"),R)).
+  isTrace(A) => isBinary(A,"trace").
 }

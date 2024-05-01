@@ -2,9 +2,10 @@ star.log{
   import star.core.
   import star.coerce.
 
-  public traceCall:all x ~~ display[x] |: (string,x) => x.
-  traceCall(M,X) => valof{
-    _show("\e[34m#(M)\e[0m - $(X)");
+  public traceCall:all x ~~ display[x] |: (string,boolean,x) => x.
+  traceCall(M,Flg,X) => valof{
+    if Flg then
+      _show("\e[34m#(M)\e[0m - $(X)");
     valis X
   }
 

@@ -105,7 +105,7 @@ star.compiler.operators{
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
     | "open" => [.prefixOp(900,899)]
-    | "trace" => [.prefixOp(140,139)]
+    | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
     | "~~" => [.infixOp(1239,1240,1240)]
     | "assert" => [.prefixOp(1240,1239)]
     | "!!" => [.postfixOp(99,100)]

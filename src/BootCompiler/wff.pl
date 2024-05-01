@@ -20,7 +20,7 @@
 	      isImport/3, isPrivate/3,isPublic/3,mkPrivate/3,mkPublic/3,
 	      isDefault/3,isDefault/4,mkDefault/3,
 	      isLiteralInteger/3,isLiteralFloat/3,isLiteralBigInt/3,
-	      isIntegrity/3,isShow/3,isTrace/3,
+	      isIntegrity/3,isShow/3,isTrace/4,
 	      isOpen/3,mkOpen/3,
 	      isConditional/5,conditional/5,
 	      mergeCond/4,
@@ -482,8 +482,11 @@ mkDefault(Lc,I,T) :-
 isShow(St,Lc,Ex) :-
   isUnary(St,Lc,"show",Ex).
 
-isTrace(St,Lc,Ex) :-
-  isUnary(St,Lc,"trace",Ex).
+isTrace(St,Lc,Grd,Ex) :-
+  isUnary(St,Lc,"trace",Ex),!,
+  mkEnum(Lc,"true",Grd).
+isTrace(St,Lc,Grd,Ex) :-
+  isBinary(St,Lc,"trace",Grd,Ex),!.
 
 isOpen(St,Lc,Ex) :-
   isUnary(St,Lc,"open",Ex).

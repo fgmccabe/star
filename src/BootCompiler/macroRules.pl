@@ -342,12 +342,12 @@ becomes
   */
 
 traceMacro(T,expression,Exp) :-
-  isTrace(T,Lc,E),!,
+  isTrace(T,Lc,Grd,E),!,
   ast2String(Lc,E,string(_,Txt)),
   locOfAst(E,ELc),
   dispLocation(ELc,Loc),
   ss_to_str(sq([ss(Loc),ss(":"),ss(Txt)]),Msg),
-  roundTerm(Lc,name(Lc,"traceCall"),[string(Lc,Msg),E],Exp).
+  roundTerm(Lc,name(Lc,"traceCall"),[string(Lc,Msg),Grd,E],Exp).
 
 mkConses([],Lc,Nl) :-
   mkEnum(Lc,"nil",Nl).

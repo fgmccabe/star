@@ -88,7 +88,7 @@
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("open", [prefixOp(900, 899)]).
-  operator("trace", [prefixOp(140, 139)]).
+  operator("trace", [infixOp(139, 140, 139), prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
