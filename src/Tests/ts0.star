@@ -14,7 +14,7 @@ test.ts0{
       Ix = ref F;
       while Ix! < T do{
 	case _suspend(Gen,.yild(Ix!)) in {
-	  | .next => {}.
+	  | .next => {}
 	  | .cancel => _retire(Gen,.end)
 	};
       

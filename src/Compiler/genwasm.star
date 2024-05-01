@@ -917,7 +917,6 @@ star.compiler.wasm.gen{
     | .cNeg(_,R) => collectExpLcls(R,Mp)
     | .cCnd(_,T,L,R) => collectExpLcls(L,collectExpLcls(R,collectExpLcls(T,Mp)))
     | .cLtt(Lc,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp)))
-    | .cCont(_,V,F,B) => collectExpLcls(F,collectExpLcls(B,collectExpLcls(.cVar(Lc,V),Mp)))
     | .cCase(_,G,Cses,Dflt,_) => collectExlLcls(Dflt,collectCses(Cses,collectExpLcls,collectExpLcls(G,Mp)))
     | .cMatch(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
     | .cVarNmes(_,_,X) => collectExpLcls(X,Mp)
@@ -950,7 +949,6 @@ star.compiler.wasm.gen{
     | .aTry(_,B,V,E,H) => collectActLcls(B,collectExpLcls(V,collectExpLcls(E,collectActLcls(H,Mp))))
     | .aLtt(Lc,V,X,B) =>
       collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp)))
-    | .aCont(_,V,X,B) => collectActLcls(B,collectExpLcls(.cVar(Lc,V),collectExpLcls(X,Mp)))
     | .aVarNmes(_,_,B) => collectActLcls(B,Mp)
     | .aAbort(_,_) => Mp
   }

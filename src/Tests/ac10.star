@@ -34,8 +34,8 @@ test.ac10{
     show labeled(1);
     show labeled(-1);
     show labeled(0);
-    assert labeled(1) == 1;
-    assert labeled(-1) == -1;
+    assert trace labeled(1) == 1;
+    assert .false trace labeled(-1) == -1;
     assert labeled(0) == 0;
 
     try{

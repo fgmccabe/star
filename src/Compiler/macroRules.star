@@ -87,9 +87,9 @@ star.compiler.macro.rules{
   }
   showMacro(_,.actn) default => .inactive.
 
-  -- Convert trace E to traceCall("value of "E" is ",E)
-  traceMacro(T,.expression) where (Lc,Exp) ?= isTrace(T) => valof{
-    Tr = binary(Lc,"traceCall",.str(Lc,"$(Lc)\: #(Exp::string)"),Exp);
+  -- Convert trace E to traceCall("value of "E" is ",.true,E)
+  traceMacro(T,.expression) where (Lc,Grd,Exp) ?= isTrace(T) => valof{
+    Tr = ternary(Lc,"traceCall",.str(Lc,"#(showLocn(Lc))\: #(Exp::string)"),Grd,Exp);
     valis .active(Tr)
   }
   traceMacro(_,_) default => .inactive.

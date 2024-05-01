@@ -70,7 +70,7 @@
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
   ("open" ( (prefix 900 899)))
-  ("trace" ( (prefix 140 139)))
+  ("trace" ( (infix 139 140 139) (prefix 140 139)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("!!" ( (postfix 99 100)))

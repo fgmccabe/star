@@ -24,9 +24,9 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],4)).
+    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],4)).
   simplifyDefn(.glDef(Lc,Nm,Tp,Val),Map) =>
-    .glDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
+    traceInline! trace .glDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -106,8 +106,6 @@ star.compiler.inline{
       simplifyExp(L,Map,Depth-1),simplifyExp(R,Map,Depth-1)).
   simExp(.cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
-  simExp(.cCont(Lc,Vr,Bnd,Exp),Map,Depth) =>
-    inlineCont(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
   simExp(.cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
       simplifyExp(Deflt,Map,Depth),Map,Depth).
@@ -167,8 +165,6 @@ star.compiler.inline{
       simplifyExp(T,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
   simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
     inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
-  simAct(.aCont(Lc,Vr,Bnd,A),Map,Depth) =>
-    inlineCont(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
   simAct(.aVarNmes(Lc,Vrs,X),Map,Depth) =>
     .aVarNmes(Lc,Vrs,simplifyAct(X,Map,Depth)).
   simAct(.aAbort(Lc,Txt),_,_) => .aAbort(Lc,Txt).
@@ -182,7 +178,12 @@ star.compiler.inline{
   
   inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .glDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => simplify(Vl,Map,Depth).
+      .glDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => valof{
+    Sim = simplify(Vl,Map,Depth);
+    if traceInline! then
+      showMsg("Replace var #(Id)\:$(Tp) with $(Sim)");
+    valis Sim
+      }
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
   applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
@@ -212,7 +213,9 @@ star.compiler.inline{
     .cSetNth(Lc,T,Ix,E).
 
   applyMatch(Lc,Ptn,Exp) where isGround(Ptn) && isGround(Exp) =>
-    (Ptn==Exp ?? .cTerm(Lc,"star.core#true",[],boolType) || .cTerm(Lc,"star.core#false",[],boolType)).
+    (Ptn==Exp ??
+    .cTerm(Lc,"star.core#true",[],boolType) ||
+    .cTerm(Lc,"star.core#false",[],boolType)).
   applyMatch(Lc,Ptn,Exp) => .cMatch(Lc,Ptn,Exp).
 
   simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
@@ -249,19 +252,13 @@ star.compiler.inline{
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
-  inlineCont:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
-    (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
-  inlineCont(Lc,Vr,Bnd,Exp,Map,Depth) where present(Exp,varFound(Vr)) =>
-    mkCont(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
-  inlineCont(Lc,Vr,Bnd,Exp,Map,Depth) => simplify(Exp,Map,Depth).
-
   varFound(Vr) => (T)=>(.cVar(_,VV).=T ?? VV==Vr || .false).
   
   inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
-	RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-	valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth-1)
+    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
+    valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth-1)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
 
