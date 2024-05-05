@@ -137,6 +137,7 @@
     "test.qx": "qx.star",
     "test.ra" : "ra.star",
     "test.rb0" : "rb0.star",
+    "test.rbiota" : "rbiota.star",
     "test.rc" : "rc.star",
     "test.rc2" : "rc2.star",
     "test.rc3": "rc3.star",

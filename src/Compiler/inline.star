@@ -24,7 +24,7 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(Val,Map[~.tLbl(Nm,[|Args|])],4)).
+    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(traceInline! trace Val,Map[~.tLbl(Nm,[|Args|])],4)).
   simplifyDefn(.glDef(Lc,Nm,Tp,Val),Map) =>
     traceInline! trace .glDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
   simplifyDefn(D,_) default => D.
@@ -267,8 +267,8 @@ star.compiler.inline{
     rewriteECall(Lc,Nm,Args,Tp).
   inlineECall(Lc,Nm,Args,Tp,_) default => .cECall(Lc,Nm,Args,Tp).
 
-  inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,_),Args,Tp,Map,Depth) =>
-    simplifyExp(.cCall(Lc,Nm,OArgs++Args,Tp),Map,Depth).
+  inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,Map,Depth) =>
+    simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp),Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args,Tp).
   
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
