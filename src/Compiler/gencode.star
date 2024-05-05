@@ -265,11 +265,14 @@ star.compiler.gencode{
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
-      showMsg("compiling case @$(Lc), Gov=$(Gv)");
+      showMsg("compiling case @$(Lc), Gov=$(Gv), Cases=$(Cases)");
     Nxt = defineLbl("CN",Ctx);
     DLbl = defineLbl("CD",Ctx);
     (Stk1,GCode) = compExp(Gv,Lc,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv)::ltipe,Stk)),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
+
+    if traceCodegen! then
+      showMsg("case table: $(Table)");
     
     OC = splitCont(Lc,Ctx,Cont);
     (Stkc,DCode) = Comp(Deflt,OC).C(Ctx,Stk,[]);
