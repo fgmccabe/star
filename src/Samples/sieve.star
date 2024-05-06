@@ -14,7 +14,7 @@ sample.sieve{
     sieve(R) => fst(foldRight(step,([],(K)=>true),R)).
   } in sieve(range(3,Max,2)).
 
-  show disp(foldRight((+),0,range(3,1001,2)))::string.
+  show foldRight((+),0,range(3,1001,2)).
 
   show disp(range(3,1000,2))::string.
 

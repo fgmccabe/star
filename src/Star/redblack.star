@@ -4,11 +4,8 @@ star.redblack{
   import star.arith.
   import star.collection.
   import star.cons.
-  import star.ideal.
   import star.index.
   import star.iterable.
-  import star.monad.
-  import star.option.
   import star.strings.
   import star.tuples.
 
