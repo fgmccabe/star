@@ -156,7 +156,6 @@ star.redblack{
 
   validReds:all k,v ~~ (rbtree[k,v])=>boolean.
   validReds(.lf)=>.true.
-  validReds(.blf)=>.true.
   validReds(.nd(.Red,L,_,_,R)) =>
     validReds(L) && validReds(R) && ~isRedNode(L) && ~isRedNode(R).
   validReds(.nd(.Blk,L,_,_,R)) => validReds(L) && validReds(R).
