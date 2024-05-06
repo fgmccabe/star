@@ -32,9 +32,16 @@ test.rbiota{
     };
     
     showMsg("deleted tree: #(_stringOf(del_list!,1000))");
-
     assert isEmpty(del_list!);
     assert validRb(del_list!);
+
+    del_list := rb_list!;
+    for ix in 0..<Count do{
+      del_list := del_list![~_irand(Count)]
+    };
+    showMsg("$(size(del_list!)) elements in random deleted tree: $(del_list!)");
+    assert validRb(del_list!);
+
     valis ()
   }
 
