@@ -52,6 +52,7 @@
     "star.compiler.types": "types.star",
     "star.compiler.unify": "unify.star",
     "star.compiler.wasm.instr": "wasmInstr.star",
+    "star.compiler.wasm.module": "wasmModule.star",
     "star.compiler.wasm.types": "wasmTypes.star",
     "star.compiler.wff": "wff.star"
   },

@@ -5,7 +5,9 @@ star.compiler.wasm.module{
 
   public wasmDefn ::=
     .wasmGlobal(string,value_type) |
-    .wasmFunction(string,block_type) |
+    .wasmFunction(string,heap_type,map[string,value_type],wOp) |
     .wasmType(string,value_type).
+
+  public typeIndex ~> integer.
 
 }  
