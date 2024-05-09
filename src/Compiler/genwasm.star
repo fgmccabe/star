@@ -18,22 +18,25 @@ star.compiler.wasm.gen{
   import star.compiler.data.
 
   public genWasm:(pkg,cons[cDefn],cons[decl])=>cons[wasmDefn].
-  genWasm(Pkg,Defs,Globals) => valof{
-    Vars = foldLeft(declGlobal,[],Globals);
-    valis compDefs(Defs,localFuns(Defs,Vars))
+  genWasm(Pkg,Defs,Decls) => valof{
+    Vars = foldLeft(declareDecl,emptyMap,Decls);
+    valis compDefs(Defs,localDecls(Defs,Vars))
   }
 
-  declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp)].
-  declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbFun(Nm,Tp)].
-  declGlobal(_,Vrs) => Vrs.
+  declareDecl:(decl,srcMap)=>srcMap.
+  declareDecl(Def,Map) => case Def in {
+    | .funDec(_,_,Nm,Tp) => declareGlobal(Nm,.glbFun(.tLbl(Nm,arity(Tp)),Tp),Map)
+    | .varDec(_,_,Nm,Tp) => declareGlobal(Nm,.glbVar(.tLbl(Nm,arity(Tp)),Tp),Map)
+    | _ default => Map
+  }
 
-  localFuns:(cons[cDefn],srcMap)=>srcMap.
-  localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
+  localDecls:(cons[cDefn],srcMap)=>srcMap.
+  localDecls(Defs,Vars) => foldRight(declareFun,Vars,Defs).
 
-  defFun(Def,Vrs) => case Def in {
-    | .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp)]
-    | .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp)]
-    | _ default => Vrs
+  declareFun(Def,Map) => case Def in {
+    | .fnDef(Lc,Nm,Tp,_,_) => declareGlobal(Nm,.glbFun(.tLbl(Nm,arity(Tp)),Tp),Map)
+    | .glDef(Lc,Nm,Tp,_) => declareGlobal(Nm,.glbVar(Nm,Tp),Map)
+    | _ default => Map
   }
   
   compDefs:(cons[cDefn],srcMap)=> cons[wasmDefn].
@@ -43,15 +46,15 @@ star.compiler.wasm.gen{
   genDef(Defn,Glbs) => case Defn in {
     | .fnDef(Lc,Nm,Tp,Args,Val) => valof{
       if traceCodegen! then
-	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
+	showMsg("compile $(Defn)");
       Ctx = emptyCtx(collectLocals(Val,argVars(Args,Glbs)));
-      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,?[],[]);
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
-      Peeped = wasmPeep(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
+      Compiled = .wasmFunction(Nm,wasmFunctionType(Tp,Glbs),functionLocals(Ctx),Code);
+
       if traceCodegen! then{
-	showMsg("code is $(.func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped))");
+	showMsg("code is $(Compiled)");
       };
-      valis .func(.tLbl(Nm,size(Args)),Tp,Ctx.hwm!,Peeped)
+      valis Compiled
     }
   | .glDef(Lc,Nm,Tp,Val) => valof{
       if traceCodegen! then
@@ -60,8 +63,6 @@ star.compiler.wasm.gen{
       (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
       (_Stk,Code) = compExp(Val,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
-      if traceCodegen! then
-	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp])");
       
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
       if traceCodegen! then
@@ -93,8 +94,6 @@ star.compiler.wasm.gen{
       (_Sa,AC) = compExps(Args,Ctx,Stk);
       valis (pushStack(Tp,Stk),AC++allocateWasmTerm(Nm,Tp,Ctx))
     }
-    | .cECall(Lc,Es,Args,Tp) =>
-      compExps(Args,escapeCont(Es,pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>
       compExps(Args,callCont(.tLbl(Nm,[|Args|]),TM,pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cOCall(Lc,Op,Args,Tp) => 
@@ -875,7 +874,17 @@ star.compiler.wasm.gen{
     disp(C) => "<C hwm:$(C.hwm!)\:$(C.vars)>C>".
   }
 
-  srcMap ~> map[string,srcLoc].
+  srcMap ::= srcMap{
+    globals:map[string,srcLoc].
+    locals:map[string,srcLoc].
+    types:map[string,(tipe,integer)]
+  }
+
+  declareGlobal:(string,srcLoc,srcMap)=>srcMap.
+  declareGlobal(Nm,Loc,Mp) => Mp.globals=Mp.globals[Nm->Loc].
+
+  declareLocal:(string,srcLoc,srcMap)=>srcMap.
+  declareLocal(Nm,Loc,Mp) =>  Mp.locals=Mp.locals[Nm->Loc].
 
   implementation display[srcLoc] => {
     disp(L) => case L in {
@@ -892,7 +901,7 @@ star.compiler.wasm.gen{
   collectExpLcls(Exp,Mp) => case Exp in {
     | .cVoid(_,_) => Mp
     | .cAnon(_,_) => Mp
-    | .cVar(_,.cId(Nm,Tp)) => (_?=Mp[Nm] ?? Mp || Mp[Nm->.lclVar(Nm,Tp)])
+    | .cVar(_,.cId(Nm,Tp)) => declareLocal(Nm,.lclVar(Nm,Tp),Mp)
     | .cInt(_,_) => Mp
     | .cChar(_,_) => Mp
     | .cBig(_,_) => Mp
@@ -902,15 +911,11 @@ star.compiler.wasm.gen{
     | .cNth(_,Rc,_,_) => collectExpLcls(Rc,Mp)
     | .cSetNth(_,Rc,_,Vl) => collectExpLcls(Rc,collectExpLcls(Vl,Mp))
     | .cClos(_,_,_,Cl,_) => collectExpLcls(Cl,Mp)
+    | .cThnk(_,Exp,_) => collectExpLcls(Exp,Mp)
+    | .cThDrf(_,Exp,_) => collectExpLcls(Exp,Mp)
     | .cCall(_,_,Args,_) => collectArgs(Args,Mp)
-    | .cECall(_,_,Args,_) => collectArgs(Args,Mp)
     | .cOCall(_,Op,Args,_) => collectArgs(Args,collectExpLcls(Op,Mp))
     | .cRaise(_,Vr,Ex,_) => collectExpLcls(Vr,collectExpLcls(Ex,Mp))
-    | .cSpawn(_,F,_) => collectExpLcls(F,Mp)
-    | .cPaus(_,F,_) => collectExpLcls(F,Mp)
-    | .cSusp(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp))
-    | .cResume(_,F,M,_) => collectExpLcls(F,collectExpLcls(M,Mp))
-    | .cRetire(_,F,M) => collectExpLcls(F,collectExpLcls(M,Mp))
     | .cSeq(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
     | .cCnj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))
     | .cDsj(_,L,R) => collectExpLcls(L,collectExpLcls(R,Mp))

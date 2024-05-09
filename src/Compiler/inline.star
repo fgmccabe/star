@@ -4,6 +4,7 @@ star.compiler.inline{
 
   import star.compiler.data.
   import star.compiler.term.
+  import star.compiler.escapes.
   import star.compiler.freevars.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -81,10 +82,10 @@ star.compiler.inline{
   simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
   simExp(.cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
     .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp).
+  simExp(.cCall(Lc,Nm,Args,Tp),Map,Depth) where isEscape(Nm) =>
+    inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
   simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) =>
-    inlineCall(Lc,Fn,Args,Tp,Map,Depth).
-  simExp(.cECall(Lc,Fn,Args,Tp),Map,Depth) =>
-    inlineECall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
+    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
   simExp(.cOCall(Lc,Op,Args,Tp),Map,Depth) => 
     inlineOCall(Lc,simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,Map,Depth).
   simExp(.cNth(Lc,T,Ix,Tp),Map,Depth) =>
@@ -260,12 +261,12 @@ star.compiler.inline{
     RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
     valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth-1)
       }.
-  inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp).
+  inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args,Tp).
 
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
     rewriteECall(Lc,Nm,Args,Tp).
-  inlineECall(Lc,Nm,Args,Tp,_) default => .cECall(Lc,Nm,Args,Tp).
+  inlineECall(Lc,Nm,Args,Tp,_) default => .cCall(Lc,Nm,Args,Tp).
 
   inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,Map,Depth) =>
     simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp),Map,Depth).
@@ -282,7 +283,7 @@ star.compiler.inline{
     .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,"_str_multicat",[As],_) where isGround(As) =>
     .cString(Lc,pullStrings(As)*).
-  rewriteECall(Lc,Op,Args,Tp) default => .cECall(Lc,Op,Args,Tp).
+  rewriteECall(Lc,Op,Args,Tp) default => .cCall(Lc,Op,Args,Tp).
 
   pullStrings(.cTerm(_,"star.core#nil",[],_)) => [].
   pullStrings(.cTerm(_,"star.core#cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
