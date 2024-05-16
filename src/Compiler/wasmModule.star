@@ -8,6 +8,5 @@ star.compiler.wasm.module{
     .wasmFunction(string,heap_type,map[string,value_type],wOp) |
     .wasmType(string,value_type).
 
-  public typeIndex ~> integer.
 
 }  
