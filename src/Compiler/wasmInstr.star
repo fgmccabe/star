@@ -5,7 +5,7 @@ star.compiler.wasm.instr{
 
   var ~> string.
 
-  public wasmLbl ::= .lbl(string).
+  public idx ~> integer.
 
   public block_type ::=
     .VarBlockType(string) |
@@ -24,115 +24,168 @@ star.compiler.wasm.instr{
   loadop ~> memop[num_type, option[(pack_size, extension)]].
   storeop ~> memop[num_type, option[pack_size]].
 
+  vec_loadop ~> memop[vec_type,option[(pack_size,extension)]].
+  vec_storeop ~> memop[vec_type,()].
+  vec_laneop ~> (memop[vec_type,pack_size],integer).
+
   public pack_size ::= .Pack8 | .Pack16 | .Pack32 | .Pack64.
   public extension ::= .SX | .ZX.
 
+  public initop ::= .Explicit | .Implicit.
+  public externop ::= .Internalize | .Externalize.
+
   public wOp ::= 
     .Unreachable                       --  trap unconditionally
-    | .Nop			       --  do nothing 
-    | .Drop			       --  forget a value 
-    | .Select                          --  branchless conditional 
-    | .Block(option[wasmLbl],block_type, cons[wOp])  --  execute in sequence 
-    | .Loop(option[wasmLbl],block_type, cons[wOp])   --  loop header 
-    | .If(option[wasmLbl],block_type, cons[wOp], cons[wOp]) --  conditional 
-    | .Br(wasmLbl)		       --  break to n-th surrounding label 
-    | .BrIf(wasmLbl)		       --  conditional break 
-    | .BrTable(cons[wasmLbl], wasmLbl) --  indexed break 
-    | .Return			       --  break from function body 
-    | .Call(var)		       --  call function 
-    | .CallIndirect(var, var)	       --  call function through table 
-    | .LocalGet(var)		       --  read local variable 
-    | .LocalSet(var)		       --  write local variable 
-    | .LocalTee(var)		       --  write local variable and keep value 
-    | .GlobalGet(var)		       --  read global variable 
-    | .GlobalSet(var)                  --  write global variable 
-    | .TableGet(var)                   --  read table element 
-    | .TableSet(var)                   --  write table element 
-    | .TableSize(var)                  --  size of table 
-    | .TableGrow(var)                  --  grow table 
-    | .TableFill(var)                  --  fill table range with value 
-    | .TableCopy(var, var)	       --  copy table range 
-    | .TableInit(var, var)	       --  initialize table range from segment 
-    | .ElemDrop(var)                   --  drop passive element segment 
-    | .Load(loadop)		       --  read memory at address 
-    | .Store(storeop)		       --  write memory at address 
-    | .MemorySize		       --  size of memory 
-    | .MemoryGrow		       --  grow memory 
-    | .MemoryFill		       --  fill memory range with value 
-    | .MemoryCopy		       --  copy memory ranges 
-    | .MemoryInit(var)                 --  initialize memory range from segment 
-    | .DataDrop(var)                   --  drop passive data segment 
-    | .RefNull(ref_type)	       --  null reference 
-    | .RefFunc(var)                    --  function reference 
-    | .RefIsNull		       --  null test 
-    | .IConst(num_type,integer)        --  integer constant
-    | .FConst(num_type,float)          --  floating point constant
-    | .i31Ref                          --  Convert i32 to i31Ref
-    | .IClz                            --  Clear to zero
-    | .ICtz                            --  Count trailing zeroes
-    | .Popcnt    
-    | .IAdd(int_type)
-    | .ISub(int_type)
-    | .IMul(int_type)
-    | .IDivS(int_type)
-    | .IDivU(int_type)
-    | .IRemS(int_type)
-    | .IRemU(int_type)
-    | .IAnd(int_type)
-    | .IOr(int_type)
-    | .IXor(int_type)
-    | .IShl(int_type)
-    | .IShrS(int_type)
-    | .IShrU(int_type)
-    | .IRotl(int_type)
-    | .IRotr(int_type)
-    | .IEqz(int_type)                  -- equal to zero
-    | .IEq(int_type)                   -- Integer comparisons
-    | .INe(int_type)
-    | .ILtS(int_type)
-    | .ILtU(int_type)
-    | .IGtS(int_type)
-    | .IGtU(int_type)
-    | .ILeS(int_type)
-    | .ILeU(int_type)
-    | .IGeS(int_type)
-    | .IGeU(int_type)
-    | .FNeg(flt_type)                  -- Unary floating point
-    | .FAbs(flt_type)
-    | .FCeil(flt_type)
-    | .Floor(flt_type)
-    | .FTrunc(flt_type)
-    | .FNearest(flt_type)
-    | .FSqrt(flt_type)
-    | .FEq(flt_type)                   -- Binary floating point
-    | .FNe(flt_type)
-    | .FLt(flt_type)
-    | .FGt(flt_type)
-    | .FLe(flt_type)
-    | .FGe(flt_type)
-    | .ExtendSI32
-    | .ExtendUI32
-    | .WrapI64
-    | .TruncSF32
-    | .TruncUF32
-    | .TruncSF64
-    | .TruncUF64
-    | .TruncSatSF32
-    | .TruncSatUF32
-    | .TruncSatSF64
-    | .TruncSatUF64
-    | .ReinterpretFloat
-    | .ReinterpretInt
-    | .ConvertSI32
-    | .ConvertUI32
-    | .ConvertSI64
-    | .ConvertUI64
-    | .PromoteF32
-    | .DemoteF64
-    | .ReinterpretInt
-    | .StructNew(integer)
-    | .StructGet(integer,integer)
-    | .StructSet(integer,integer)
+  | .Nop			       --  do nothing
+  | .Drop			       --  forget a value
+  | .Select(option[cons[value_type]])  --  branchless conditional
+  | .Block(block_type, cons[wOp])      --  execute in sequence
+  | .Loop(block_type, cons[wOp])	    --  loop header
+  | .If(block_type, cons[wOp], cons[wOp]) --  conditional
+  | .Br(idx)			       --  break to n-th surrounding label
+  | .BrIf(idx)		               --  conditional break
+  | .BrTable(cons[idx], idx)           --  indexed break
+  | .BrOnNull(idx)                     --  break on type
+  | .BrOnNonNull(idx)                  --  inverted break on type
+  | .BrOnCast(idx,ref_type,ref_type)   --  break on type
+  | .BrOnCastFail(idx,ref_type,ref_type)   --  break on type
+  | .Return			       --  break from function body
+  | .Call(idx)		               --  call function
+  | .CallRef(idx)		       --  call function reference
+  | .CallIndirect(idx, idx)	       --  call function through table
+  | .ReturnCall(idx)		       --  tail call function
+  | .ReturnCallRef(idx)		       --  tail call function
+  | .ReturnCallIndirect(idx,idx)       --  tail call function through table
+  | .LocalGet(idx)		       --  read local variable
+  | .LocalSet(idx)		       --  write local variable
+  | .LocalTee(idx)		       --  write local variable and keep value
+  | .GlobalGet(idx)		       --  read global variable
+  | .GlobalSet(idx)		       --  write global variable
+  | .TableGet(idx)		       --  read table element
+  | .TableSet(idx)		       --  write table element
+  | .TableSize(idx)		       --  size of table
+  | .TableGrow(idx)		       --  grow table
+  | .TableFill(idx)		       --  fill table range with value
+  | .TableCopy(idx, idx)	       --  copy table range
+  | .TableInit(idx, idx)	       --  initialize table range from segment
+  | .ElemDrop(idx)		       --  drop passive element segment
+  | .Load(loadop)		       --  read memory at address
+  | .Store(storeop)		       --  write memory at address
+  | .VecLoad(vec_loadop)               --  read memory at address
+  | .VecStore(vec_storeop)             --  write memory at address
+  | .VecLoadLane(vec_laneop)           --  read single line at address
+  | .VecStoreLane(vec_laneop)          --  write single line to address
+  | .MemorySize			       --  size of memory
+  | .MemoryGrow			       --  grow memory
+  | .MemoryFill			       --  fill memory range with value
+  | .MemoryCopy			       --  copy memory ranges
+  | .MemoryInit(idx)		       --  initialize memory range from segment
+  | .DataDrop(idx)		       --  drop passive data segment
+  | .IConst(int_type,integer)	       --  integer constant
+  | .FConst(flt_type,float)	       --  floating point constant
+  | .RefNull(ref_type)		       --  null reference
+  | .RefFunc(idx)		       --  function reference
+  | .RefIsNull			       --  null test
+  | .RefAsNotNull		       --  null test
+  | .RefAsNotNull		       --  null test
+  | .RefTest(ref_type)                 --  type test
+  | .RefCast(ref_type)                 --  type cast
+  | .RefEq                             --  reference equality
+  | .RefI31                            --  scalar reference
+  | .I31Get(extension)                 --  read scalar
+  | .StructNew(idx,initop)             --  allocate structure
+  | .StructGet(idx,idx,option[extension]) -- Access element of structure
+  | .StructSet(idx,idx)
+  | .ArrayNew(idx,initop)              --  allocate array
+  | .ArrayNewFixed(idx,integer)        --  allocate fixed array
+  | .ArrayNewElem(idx,idx)             --  allocate array from elem segment
+  | .ArrayNewData(idx,idx)             --  allocate array from data segment
+  | .ArrayGet(idx,option[extension])   --  access array slot
+  | .ArraySet(idx)                     --  store array slot
+  | .ArrayLen                          --  length of array
+  | .ArrayCopy(idx,idx)                --  copy between two arrays
+  | .ArrayFill(idx)                    --  fill array with value
+  | .ArrayInitData(idx,idx)            --  initialize array from data segment
+  | .ArrayInitElem(idx,idx)            --  initialize array from elem segment
+  | .ExternConvert(externop)
+--  | .VecConst(vec)                     --  contant
+--  | .VecTest(vec_testop)               --  vector test
+--  | .VecCompare(vec_relop)             --  vector compare
+--  | .VecUnary(vec_unop)                --  vector unary operator
+--  | .VecBinary(vec_binop)              --  vector binary operator
+--  | .VecConvert(vec_cvtop)             --  vector conversion
+--  | .VecShift(vec_shiftop)             --  vector shift
+--  | .VecBitmask(vec_bitmaskop)         --  vector masking
+--  | .VecTestBits(vec_vtestop)          --  vector bit test
+--  | .VecUnaryBits(vec_vunop)           --  unary bit vector operator
+--  | .VecBinaryBits(vec_vbinop)         --  binary bit vector
+--  | .VecTernaryBits(vec_vternop)       --  ternary bit vector operator
+--  | .VecSplat(vec_splatop)             --  number to vector conversion
+--  | .VecExtract(vec_extractop)         --  extract lane from vector
+--  | .VecReplace(vec_replaceop)         --  replace lane in vector
+  | .i31Ref			       --  Convert i32 to i31Ref
+  | .IEqz(int_type)		       -- equal to zero
+  | .IEq(int_type)		       -- Integer comparisons
+  | .INe(int_type)
+  | .ILtS(int_type)
+  | .ILtU(int_type)
+  | .IGtS(int_type)
+  | .IGtU(int_type)
+  | .ILeS(int_type)
+  | .ILeU(int_type)
+  | .IGeS(int_type)
+  | .IGeU(int_type)
+  | .IClz(int_type)                     -- unary integer operations
+  | .ICtz(int_type)
+  | .IPopcnt(int_type)
+  | .IAdd(int_type)                     -- binary arithmetic operations
+  | .ISub(int_type)                     -- integer subtraction
+  | .IMul(int_type)                     -- integer multiplication
+  | .IDivS(int_type)                    -- integer signed division
+  | .IDivU(int_type)                    -- integer unsigned division
+  | .IRemS(int_type)                    -- integer signed remainder
+  | .IRemU(int_type)                    -- integer unsigned remainder
+  | .IAnd(int_type)                     -- integer bitwise and
+  | .IOr(int_type)                      -- integer bitwise or
+  | .IXor(int_type)                     -- integer bitwise exclusive or
+  | .IShl(int_type)                     -- integer bitwise shift left
+  | .IShrS(int_type)                    -- integer bitwise arithmetic shift right
+  | .IShrU(int_type)                    -- integer bitwise logical shift right
+  | .IRotl(int_type)                    -- integer bitwise rotate left
+  | .IRotr(int_type)                    -- integer bitwise rotate right
+  | .FNeg(flt_type)			-- Unary floating point
+  | .FAbs(flt_type)
+  | .FCeil(flt_type)
+  | .Floor(flt_type)
+  | .FTrunc(flt_type)
+  | .FNearest(flt_type)
+  | .FSqrt(flt_type)
+  | .FEq(flt_type)			-- Binary floating point
+  | .FNe(flt_type)
+  | .FLt(flt_type)
+  | .FGt(flt_type)
+  | .FLe(flt_type)
+  | .FGe(flt_type)
+  | .ExtendSI32
+  | .ExtendUI32
+  | .WrapI64
+  | .TruncSF32
+  | .TruncUF32
+  | .TruncSF64
+  | .TruncUF64
+  | .TruncSatSF32
+  | .TruncSatUF32
+  | .TruncSatSF64
+  | .TruncSatUF64
+  | .ReinterpretFloat
+  | .ReinterpretInt
+  | .ConvertSI32
+  | .ConvertUI32
+  | .ConvertSI64
+  | .ConvertUI64
+  | .PromoteF32
+  | .DemoteF64
+  | .ReinterpretInt
   .
 
   public implementation display[wOp] => {
@@ -144,10 +197,11 @@ star.compiler.wasm.instr{
     | .Unreachable => "unreachable"
     | .Nop => "nop"
     | .Drop => "drop"
-    | .Select => "select"
-    | .Block(Lbl,Tp,Ins) => "#(disp_lbl(Lbl))block $(Tp) #(disp_ins(Ins,Off++"  ")) end"
-    | .Loop(Lbl,Tp, Ins) => "#(disp_lbl(Lbl))loop $(Tp) #(disp_ins(Ins,Off++"  ")) end"
-    | .If(Lbl,Tp,I,E) => "#(disp_lbl(Lbl))if $(Tp) #(disp_ins(I,Off++"  ")) else #(disp_ins(E,Off++"  ")) end"
+    | .Select(.none) => "select"
+    | .Select(.some(Tps)) => "select $(Tps)"
+    | .Block(Tp,Ins) => "block $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .Loop(Tp, Ins) => "loop $(Tp) #(disp_ins(Ins,Off++"  ")) end"
+    | .If(Tp,I,E) => "if $(Tp) #(disp_ins(I,Off++"  ")) else #(disp_ins(E,Off++"  ")) end"
     | .Br(Lbl) => "br $(Lbl)"
     | .BrIf(Lbl) => "br_if $(Lbl)"
     | .BrTable(Lbs,Dflt) => "br_table $(Lbs) $(Dflt)"
@@ -178,9 +232,9 @@ star.compiler.wasm.instr{
     | .RefIsNull => "ref.isnull"
     | .IConst(_,N) => "$(N).const"
     | .FConst(_,N) => "$(N).const"
-    | .IClz => "clz"
-    | .ICtz => "ctz"
-    | .Popcnt => "popcnt"
+    | .IClz(Tp) => "$(Tp).clz"
+    | .ICtz(Tp) => "$(Tp).ctz"
+    | .IPopcnt(Tp) => "$(Tp).popcnt"
     | .IAdd(Tp) => "$(Tp).add"
     | .ISub(Tp) => "$(Tp).sub"
     | .IMul(Tp) => "$(Tp).mul"
@@ -228,13 +282,6 @@ star.compiler.wasm.instr{
 
   disp_ins:(cons[wOp],string)=>string.
   disp_ins(Ins,Off) => interleave(Ins//(I)=>d_instr(I,Off),"\n")*.
-
-  public implementation display[wasmLbl] => {
-    disp(.lbl(Lb)) => Lb.
-  }
-
-  disp_lbl(.none) => "".
-  disp_lbl(.some(Lb)) => "$(Lb)\: ".
 
   public implementation display[pack_size] => {
     disp(.Pack8) => "p8".

@@ -1,13 +1,15 @@
 star.compiler.wasm.types{
   import star.
 
+  public typeIndex ~> string.
+
   public wasmTypeDefn ::= .subTp(integer,boolean,cons[string],heap_type).
 
   public value_type ::=
     .NumType(num_type)
     | .VecType(vec_type)
-    | .RefType(string)
-    | .RefNulType(string).
+    | .RefType(typeIndex)
+    | .RefNulType(typeIndex).
 
   public heap_type ::=
     .FuncTp(cons[value_type],cons[value_type]) |
@@ -23,6 +25,8 @@ star.compiler.wasm.types{
     .AnyTp |
     .NoneTp.
 
+  public ref_type ~> (nullability,heap_type).
+
   public field_type ::= .fldTp(mutability,value_type) |
   .pkdFld(mutability,packed_type).
 
@@ -30,7 +34,12 @@ star.compiler.wasm.types{
 
   public mutability ::= .const | .mutable.
 
-  public num_type ::= .I32Type | .I64Type | .F32Type | .F64Type.
+  public nullability ::= .nullable | .nonnull.
+
+  public num_type ::= .IntType(int_type) | .FltType(flt_type).
+
+  public int_type ::= .I32Type | .I64Type.
+  public flt_type ::= .F32Type | .F64Type.
 
   public vec_type ::= .V128Type.
 
@@ -42,8 +51,16 @@ star.compiler.wasm.types{
   }
 
   public implementation display[num_type] => {
+    disp(.IntType(Tp)) => disp(Tp).
+    disp(.FltType(Tp)) => disp(Tp).
+  }
+
+  public implementation display[int_type] => {
     disp(.I32Type) => "i32".
     disp(.I64Type) => "i64".
+  }
+
+  public implementation display[flt_type] => {
     disp(.F32Type) => "f32".
     disp(.F64Type) => "f64".
   }
@@ -72,6 +89,11 @@ star.compiler.wasm.types{
     disp(.i16) => "i16".
   }
 
+  public implementation display[nullability] => {
+    disp(.nullable) => "null?".
+    disp(.nonnull) => "".
+  }
+
   public implementation equality[heap_type] => {
     .FuncTp(A1,R1) == .FuncTp(A2,R2) => A1==A2 && R1==R2.
     .NoFuncTp == .NoFuncTp => .true.
@@ -97,8 +119,18 @@ star.compiler.wasm.types{
   }
 
   public implementation equality[num_type] => {
+    .IntType(T1) == .IntType(T2) => T1==T2.
+    .FltType(T1) == .FltType(T2) => T1==T2.
+    _ == _ default => .false.
+  }
+
+  public implementation equality[int_type] => {
     .I32Type == .I32Type => .true.
     .I64Type == .I64Type => .true.
+    _ == _ default => .false.
+  }
+
+  public implementation equality[flt_type] => {
     .F32Type == .F32Type => .true.
     .F64Type == .F64Type => .true.
     _ == _ default => .false.
