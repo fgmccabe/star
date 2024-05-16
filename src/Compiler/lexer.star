@@ -67,7 +67,7 @@ star.compiler.lexer{
   nxxTok(`'`,St,St0) where (Nxt,.some(Id)) .= readQuoted(St,`'`,[]) =>
     (Nxt,.some(.tok(makeLoc(St0,Nxt),.idQTok(Id)))).
   nxxTok(`\"`,St,St0) where Nx ?= lookingAt(St,[`\"`,`\"`]) => stringBlob(Nx,St0,[]).
-  nxxTok(`\"`,St,St0) where (Nxt,.some(Str)) .= readString(St,[]) =>
+  nxxTok(`\"`,St,St0) where (Nxt,.some(Str)) .= readString(St,St0,[]) =>
     (Nxt,.some(.tok(makeLoc(St0,Nxt),.strTok(Str)))).
   nxxTok(`\``,St,St0) where
       (St1,.some(ChC)) .= charRef(St) &&
@@ -107,25 +107,33 @@ star.compiler.lexer{
   readQuoted(St,Qt,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readQuoted(Nx,Qt,[Ch,..Chrs]).
   readQuoted(Nx,_,_) => (Nx,.none).
 
-  readString:(tokenState,cons[stringSegment]) => (tokenState,option[cons[stringSegment]]).
-  readString(St,SoFar) where (Nx,.some(`\"`)) .= nextChr(St) => (Nx,.some(reverse(SoFar))).
-  readString(St,SoFar) where
-    (Nx,.some(`$`)) .= nextChr(St) &&
-    (_,.some(`(`)) .= nextChr(Nx) &&
-    (St1,.some(Inter)) .= interpolation(Nx) => readString(St1,[Inter,..SoFar]).
-  readString(St,SoFar) where
-    (Nx,.some(`#`)) .= nextChr(St) &&
-    (_,.some(`\(`)) .= nextChr(Nx) &&
-	  (St1,.some(Inter)) .= evaluation(Nx) => readString(St1,[Inter,..SoFar]).
-  readString(St,SoFar) where (St1,.some(Seg)) .= readStr(St,[]) =>
-    readString(St1,[.segment(makeLoc(St,St1),Seg),..SoFar]).
+  readString:(tokenState,tokenState,cons[stringSegment]) => (tokenState,option[cons[stringSegment]]).
+  readString(St,_,SoFar) where (Nx,.some(`\"`)) .= nextChr(St) => (Nx,.some(reverse(SoFar))).
+  readString(St,St0,SoFar) where
+      (Nx,.some(`$`)) .= nextChr(St) &&
+	  (_,.some(`(`)) .= nextChr(Nx) &&
+	      (St1,.some(Inter)) .= interpolation(Nx) => readString(St1,St0,[Inter,..SoFar]).
+  readString(St,St0,SoFar) where
+      (Nx,.some(`#`)) .= nextChr(St) &&
+	  (_,.some(`\(`)) .= nextChr(Nx) &&
+	      (St1,.some(Inter)) .= evaluation(Nx) => readString(St1,St0,[Inter,..SoFar]).
+  readString(St,St0,SoFar) where (St1,.some(Seg)) .= readStr(St,St0,[]) =>
+    readString(St1,St0,[.segment(makeLoc(St,St1),Seg),..SoFar]).
+  readString(St,St0,SoFar) where atEof(St) => valof{
+    reportError("unterminated string",.some(makeLoc(St0,St)));
+    valis (St,.some(reverse(SoFar)))
+  }
 
-  readStr:(tokenState,cons[char]) => (tokenState,option[string]).
-  readStr(St,Chrs) where  `\"` ?= hedChar(St) => (St,.some(reverse(Chrs)::string)).
-  readStr(St,Chrs) where Nx ?= lookingAt(St,[`$`,`(`]) => (St,.some(reverse(Chrs)::string)).
-  readStr(St,Chrs) where Nx ?= lookingAt(St,[`#`,`(`]) => (St,.some(reverse(Chrs)::string)).
-  readStr(St,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readStr(Nx,[Ch,..Chrs]).
-  readStr(St,_) => (St,.none).
+  readStr:(tokenState,tokenState,cons[char]) => (tokenState,option[string]).
+  readStr(St,_,Chrs) where  `\"` ?= hedChar(St) => (St,.some(reverse(Chrs)::string)).
+  readStr(St,_,Chrs) where _ ?= lookingAt(St,[`$`,`(`]) => (St,.some(reverse(Chrs)::string)).
+  readStr(St,_,Chrs) where _ ?= lookingAt(St,[`#`,`(`]) => (St,.some(reverse(Chrs)::string)).
+  readStr(St,St0,Chrs) where Nx ?= lookingAt(St,[`\n`]) => valof{
+    reportError("unexpected new-line character",.some(makeLoc(St0,Nx)));
+    valis (Nx,.some(reverse(Chrs)::string))
+  }
+  readStr(St,St0,Chrs) where (Nx,.some(Ch)) .= charRef(St) => readStr(Nx,St0,[Ch,..Chrs]).
+  readStr(St,_,_) => (St,.none).
 
   interpolation:(tokenState) => (tokenState,option[stringSegment]).
   interpolation(St) where
@@ -153,8 +161,12 @@ star.compiler.lexer{
   bracketCount(_,St1,`[`,Stk,Chrs) where (St2,.some(Ch)).=nextChr(St1) =>
     bracketCount(St1,St2,Ch,[`]`,..Stk],[`\[`,..Chrs]).
   bracketCount(St,_,_,[],Chrs) => (St,.some(reverse(Chrs)::string)).
-  bracketCount(_,St1,C,Stk,Chrs) where (St2,.some(Ch)) .= nextChr(St1) =>
-    bracketCount(St1,St2,Ch,Stk,[C,..Chrs]).
+  bracketCount(St,St1,C,Stk,Chrs) where (St2,.some(Ch)) .= nextChr(St1) =>
+    bracketCount(St,St2,Ch,Stk,[C,..Chrs]). 
+  bracketCount(St,St1,_,Bkts,Chrs) where atEof(St1) => valof{
+    reportError("missing closing brackets: $(Bkts)",.some(makeLoc(St,St1)));
+    valis (St1,.some(reverse(Chrs)::string))
+  }
 
   readFormat(St) where (St1,.some(`:`)) .= nextChr(St) => readUntil(St1,`;`,[]).
   readFormat(St) => (St,.some("")).

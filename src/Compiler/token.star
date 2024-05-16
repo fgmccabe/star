@@ -85,7 +85,7 @@ star.compiler.token{
   -- We define a tracking state to allow us to collect locations
   public tokenState ::= .tokenState(string,integer,integer,integer,cons[char]).
 
-  atEof:(tokenState) => boolean.
+  public atEof:(tokenState) => boolean.
   atEof(.tokenState(_,_,_,_,Str)) => _eof(Str).
 
   public nextChr:(tokenState) => (tokenState,option[char]).
