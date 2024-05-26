@@ -70,7 +70,6 @@ star.compiler.operators{
     | "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)]
     | "??" => [.infixOp(919,920,920)]
     | "%" => [.infixOp(700,700,699)]
-    | "<-" => [.infixOp(904,905,904)]
     | ".>>>." => [.infixOp(600,600,599)]
     | "\\+" => [.infixOp(700,700,699)]
     | "*" => [.postfixOp(699,700), .infixOp(700,700,699)]
@@ -296,7 +295,6 @@ star.compiler.operators{
     | ("<",`*`) => .some("<*")
     | ("<",`~`) => .some("<~")
     | ("<",`$`) => .some("<$")
-    | ("<",`-`) => .some("<-")
     | ("<",`|`) => .some("<|")
     | ("<",`=`) => .some("<=")
     | ("<=",`>`) => .some("<=>")
@@ -391,7 +389,6 @@ star.compiler.operators{
     | "<*" => .true  /* left fold */
     | "<~" => .true  /* type interface rule */
     | "<$" => .true  /* constant replace */
-    | "<-" => .true  /* variable bind */
     | "<|" => .true  /* meta quote */
     | "<=>" => .true  /* constructor arrow */
     | "=" => .true  /* definition */
@@ -445,7 +442,6 @@ star.compiler.operators{
     | "#" => .true
     | "!}" => .true
     | "??" => .true
-    | "<-" => .true
     | "(" => .true
     | ")" => .true
     | "*>" => .true

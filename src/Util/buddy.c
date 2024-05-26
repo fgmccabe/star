@@ -126,7 +126,11 @@ static void coalesceBlocks(buddyRegionPo region, integer freeIx) {
 voidPtr *allocateBuddy(buddyRegionPo region, integer size) {
   // include space for the block header
   integer roundDiff = lg2(size * 2) - region->minLg;
-  assert(roundDiff >= 0);
+
+  if(roundDiff<0){
+    logMsg(logFile,"unable to allocate stack region of %ld words",size);
+    syserr("not a valid stack size");
+  }
 
   for (integer ix = roundDiff; ix < region->freeListSize; ix++) {
     if (region->freeLists[ix] != Null) {

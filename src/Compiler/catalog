@@ -51,6 +51,8 @@
     "star.compiler.typeparse": "parsetype.star",
     "star.compiler.types": "types.star",
     "star.compiler.unify": "unify.star",
+    "star.compiler.wasm.gentypes": "genwasmtypes.star",
+    "star.compiler.wasm.gen" : "genwasm.star",
     "star.compiler.wasm.instr": "wasmInstr.star",
     "star.compiler.wasm.module": "wasmModule.star",
     "star.compiler.wasm.types": "wasmTypes.star",
