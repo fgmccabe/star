@@ -4,9 +4,9 @@ star.compiler.wasm.module{
   import star.compiler.wasm.instr.
 
   public wasmDefn ::=
-    .wasmGlobal(string,value_type) |
-    .wasmFunction(string,heap_type,map[string,value_type],wOp) |
-    .wasmType(string,value_type).
+    .wasmGlobDef(string,value_type) |
+    .wasmFuncDef(string,heap_type,map[string,value_type],wOp) |
+    .wasmTypeDef(string,value_type).
 
 
 }  

@@ -40,42 +40,42 @@ set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
-add_custom_command(OUTPUT operators DEPENDS ${OPERATORS}
-        COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate  ${OPERATORS_PL}
+add_custom_command(OUTPUT operators DEPENDS ops
         COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate  ${OPERATORS_TEXI}
         COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate  ${OPERATORS_EL}
         )
+
+add_custom_target(pl.operators DEPENDS ops
+        COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate ${OPERATORS_PL})
 
 add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS}
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate  ${OPERATORS_ST}
         COMMENT "Creating star operators in  ${OPERATORS_ST}"
         )
 
-add_custom_target(star.operators DEPENDS ops ${OPERATORS}
+add_custom_target(star.operators DEPENDS ops
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate  ${OPERATORS_ST})
 
 add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
 
-add_custom_command(OUTPUT ${ESCAPES_ST} DEPENDS genesc
-        COMMAND genesc -s star.compiler.escapes ${ESCAPES_ST}
-        COMMENT "Creating star escapes"
-        )
+add_custom_target(pl.escapes DEPENDS genesc -p ${ESCAPES_PL})
 
 add_custom_target(star.intrinsics DEPENDS intrinsic
         COMMAND intrinsic -s -t ${INTRINSIC_ST_PLATE} ${INTRINSIC_ST}
-        COMMAND intrinsic -p -t ${INTRINSIC_PL_PLATE} ${INTRINSIC_PL}
         )
 
-add_custom_target(pl.memnonics DEPENDS plmnem.c
+add_custom_target(pl.intrinsics DEPENDS intrinsic
+        COMMAND intrinsic -p -t ${INTRINSIC_PL_PLATE} ${INTRINSIC_PL}
+        )
+add_custom_target(pl.memnonics DEPENDS plmnem
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
         COMMENT "Creating star assembler in ${ASM_PL}"
         )
 
-add_custom_target(star.memnonics DEPENDS starmnem.c
+add_custom_target(star.memnonics DEPENDS starmnem
         COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
         COMMENT "Creating star assembler in ${ASM_ST}"
         )
 
-add_custom_target(generate ALL DEPENDS operators star.operators star.escapes star.intrinsics star.memnonics pl.memnonics
-        COMMAND genesc -p ${ESCAPES_PL}
-        )
+add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics pl.escapes pl.operators pl.intrinsics)
+

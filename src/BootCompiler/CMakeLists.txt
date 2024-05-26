@@ -10,6 +10,9 @@ file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sbc
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
   GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
+set(HDR ${CMAKE_CURRENT_SOURCE_DIR}/../HeaderGenerator)
+
 add_custom_target(sbc)
+add_dependencies(sbc pl.operators pl.escapes pl.intrinsics pl.memnonics)
 
 
