@@ -12,19 +12,17 @@
 enum {
   genProlog, genStar
 } genMode = genProlog;
-char *prefix = NULL;
 
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "ps:")) >= 0) {
+  while ((opt = getopt(argc, argv, "ps")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
         break;
       case 's':
         genMode = genStar;
-        prefix = optarg;
         break;
       default:;
     }
@@ -61,7 +59,7 @@ int main(int argc, char **argv) {
         prologIsEscape(out);
         break;
       case genStar:
-        fprintf(out, "%s{\n", prefix);
+        fprintf(out, "star.compiler.escapes{\n");
         fprintf(out, "  import star.\n");
         fprintf(out, "  import star.compiler.types.\n\n");
         starEscapeTypes(out);
