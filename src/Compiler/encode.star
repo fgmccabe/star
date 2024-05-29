@@ -1,4 +1,4 @@
-star.compiler.encode{
+star.compiler.types.encode{
   import star.
   import star.multi.
   import star.sort.

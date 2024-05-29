@@ -6,7 +6,6 @@ star.compiler.impawt{
 
   import star.compiler.term.repo.
   import star.compiler.canon.
-  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.misc.
@@ -14,6 +13,7 @@ star.compiler.impawt{
   import star.compiler.data.
   import star.compiler.term.
   import star.compiler.types.
+  import star.compiler.types.encode.
 
   public importAll:all r ~~ repo[r]|:
     (cons[importSpec],r,cons[importSpec], cons[decl]) => (cons[importSpec],cons[decl]).

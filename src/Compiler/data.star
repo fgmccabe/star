@@ -6,10 +6,10 @@ star.compiler.data{
   import star.sort.
 
   import star.compiler.location.
-  import star.compiler.encode.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
+  import star.compiler.types.encode.
   import star.compiler.ltipe.
 
   public termLbl ::= .tLbl(string,integer).
