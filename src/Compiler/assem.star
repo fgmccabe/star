@@ -5,6 +5,7 @@ star.compiler.assem{
   import star.sort.
 
   import star.compiler.errors.
+  import star.compiler.encode.
   import star.compiler.escapes.
   import star.compiler.location.
   import star.compiler.data.

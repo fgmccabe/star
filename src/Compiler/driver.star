@@ -25,6 +25,7 @@ star.compiler{
   import star.compiler.misc.
   import star.compiler.parser.
   import star.compiler.location.
+  import star.compiler.package.merge.
   import star.compiler.term.repo.
   import star.compiler.types.
   import star.compiler.normalize.
@@ -39,6 +40,7 @@ star.compiler{
 	    stdinOption,
 	    repoOption,
 	    graphOption,
+	    forceCompileOption,
 	    traceDependencyOption,
 	    traceAstOption,
 	    showMacroOption,
@@ -55,7 +57,8 @@ star.compiler{
 	    optimizeLvlOption,
 	    traceInlineOption,
 	    genDebugOption,
-	    genWasmOption
+	    genWasmOption,
+	    traceWasmOption
 	  ],
 	  defltOptions(WI,RI)
 	))
@@ -129,6 +132,14 @@ star.compiler{
 	      showMsg("normalized code #(dispCrProg(Inlined))");
 	    };
 	    validProg(Inlined,AllDecls);
+	    if errorFree() && genWasm! then{
+	      (Imported,Merged) = mergePkgs(
+		PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
+		,.some(pkgLoc(P)),Repo,[P],Inlined);
+	      if traceWasm! then{
+		showMsg("all type defs: $(Merged^/isTypeDef)");
+	      }
+	    };
 	    if errorFree() && genCode! then{
 	      Segs = compProg(P,Inlined,AllDecls);
 	      

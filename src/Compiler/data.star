@@ -6,6 +6,7 @@ star.compiler.data{
   import star.sort.
 
   import star.compiler.location.
+  import star.compiler.encode.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
@@ -409,78 +410,6 @@ star.compiler.data{
     (FT,T1) = decodeType(T);
     valis (.raisEs(FT),T1)
   }
-
-  public encodeSignature:(tipe) => string.
-  encodeSignature(Tp) => reverse(encodeType(deRef(Tp),[]))::string.
-
-  encodeType:(tipe,cons[char]) => cons[char].
-  encodeType(Tp,Chs) => isUnbound(Tp) ?? [`_`,..Chs] ||
-  case deRef(Tp) in {
-    | .voidType => [`v`,..Chs]
-    | .anonType => [`_`,..Chs]
-    | .nomnal("star.core*integer") => [`i`,..Chs]
-    | .nomnal("star.core*bigint") => [`b`,..Chs]
-    | .nomnal("star.core*float") => [`f`,..Chs]
-    | .nomnal("star.core*string") => [`s`,..Chs]
-    | .nomnal("star.core*boolean") => [`l`,..Chs]
-    | .nomnal(Nm) => encodeText(Nm,[`t`,..Chs])
-    | .kFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`K`,..Chs]))
-    | .tpFun(Nm,Ar) => encodeText(Nm,encodeNat(Ar,[`z`,..Chs]))
-    | .tpExp(.tpFun("star.core*cons",1),El) => encodeType(El,[`L`,..Chs])
-    | .tpExp(.tpFun("ref",1),El) => encodeType(El,[`r`,..Chs])
-    | .tpExp(.tpExp(.tpFun("=>",2),A),R) => encodeType(R,encodeType(A,[`F`,..Chs]))
-    | .tpExp(.tpExp(.tpFun("<=>",2),A),R) => encodeType(R,encodeType(A,[`C`,..Chs]))
-    | .tpExp(Op,A) => encodeType(A,encodeType(Op,[`U`,..Chs]))
-    | .tupleType(Els) => encodeTypes(Els,[`(`,..Chs])
-    | .allType(V,T) => encodeType(T,encodeType(V,[`:`,..Chs]))
-    | .existType(V,T) => encodeType(T,encodeType(V,[`e`,..Chs]))
-    | .constrainedType(T,C) => encodeConstraint(C,encodeType(T,[`|`,..Chs]))
-    | .faceType(Flds,Tps) => encodeTypeRules(Tps,encodeFldTypes(Flds,[`I`,..Chs]))
-  }.
-
-  encodeTypes:(cons[tipe],cons[char])=>cons[char].
-  encodeTypes([],Chs) => [`)`,..Chs].
-  encodeTypes([T,..Tps],Chs) =>
-    encodeTypes(Tps,encodeType(T,Chs)).
-
-  encodeFldTypes:(cons[(string,tipe)],cons[char])=>cons[char].
-  encodeFldTypes(Flds,Chs) =>
-    encodeFlds(sort(Flds,((N1,_),(N2,_))=>N1<N2),[`{`,..Chs]).
-  
-  encodeFlds:(cons[(string,tipe)],cons[char])=>cons[char].
-  encodeFlds([],Chs) => [`}`,..Chs].
-  encodeFlds([(Nm,T),..Tps],Chs) =>
-    encodeFlds(Tps,encodeType(T,encodeText(Nm,Chs))).
-
-  encodeConstraint(.conTract(Nm,Ts,Ds),Chs) =>
-    encodeType(.tupleType(Ds),
-      encodeType(.tupleType(Ts),
-	encodeText(Nm,[`c`,..Chs]))).
-  encodeConstraint(.hasField(V,F,T),Chs) =>
-    encodeType(.faceType([(F,deRef(T))],[]),encodeType(V,[`a`,..Chs])).
-  encodeConstraint(.implicit(Nm,T),Chs) =>
-    encodeType(T,encodeText(Nm,[`d`,..Chs])).
-  encodeConstraint(.raisEs(T),Chs) =>
-    encodeType(T,[`r`,..Chs]).
-
-  encodeTypeRule:(typeRule,cons[char])=>cons[char].
-  encodeTypeRule(.allRule(V,R),Chs) =>
-    encodeTypeRule(R,encodeType(V,[`:`,..Chs])).
-  encodeTypeRule(.typeExists(H,I),Chs) =>
-    encodeType(I,encodeType(H,[`Y`,..Chs])).
-  encodeTypeRule(.contractExists(N,T,D,I),Chs) =>
-    encodeType(I,encodeConstraint(.conTract(N,T,D),[`Z`,..Chs])).
-  encodeTypeRule(.typeLambda(Hd,I),Chs) =>
-    encodeType(I,encodeType(Hd,[`y`,..Chs])).
-
-  encodeTypeRules(Rls,Chs) => encodeRls(Rls,[`[`,..Chs]).
-
-  encodeRls([],Chs) => [`]`,..Chs].
-  encodeRls([(Id,Rl),..Rls],Chs) =>
-    encodeRls(Rls,encodeTypeRule(Rl,encodeText(Id,Chs))).
-
-  public encodeTpRlSignature:(typeRule) => string.
-  encodeTpRlSignature(Rl) => reverse(encodeTypeRule(Rl,[]))::string.
 
   encodeText:(string,cons[char]) => cons[char].
   encodeText(Txt,Chs) where Chrs .= Txt::cons[char] &&

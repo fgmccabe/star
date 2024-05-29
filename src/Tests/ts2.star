@@ -17,7 +17,7 @@ test.ts2{
   
   -- Test generator functions
 
-  iterTask(L) => generator {
+  iterTask(L) => generator{
     LL = ref L;
     while .cons(H,T) .= LL! do{
       yield H;

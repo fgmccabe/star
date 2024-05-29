@@ -19,15 +19,13 @@ test.wlk{
   walk(.node(L,E,R),F,X) => walk(R,F,F(E,walk(L,F,X))).
 
   walker:all e ~~ (tree[e]) => generater[e].
-  walker(T) => _fiber(
-    (this,_) => valof{
-      walk(T,(E,_) => valof{
+  walker(T) => generator{
+    walk(T,(E,_) => valof{
 	  yield E;
 	  valis ()
 	},());
-      _retire(this,._all);
-      valis ._all
-    }).
+    valis ._all
+  }
 
   driver:(tree[string])=>().
   driver(T) => valof{

@@ -188,6 +188,8 @@ star.compiler.meta{
     disp(.inlining) => "inlining"
   }
 
+  public forceCompile = ref .false.
+
   public traceAst = ref .false.
   public traceDependencies = ref .false.
   public macroTracing = ref .false.
@@ -204,6 +206,8 @@ star.compiler.meta{
   public traceInline = ref .false.
   public showCode = ref .false.
   public genCode = ref .true.
+  public genWasm = ref .false.
+  public traceWasm = ref .false.
   public genDebug = ref .false.
 
   public compilerOptions ::=
@@ -220,6 +224,19 @@ star.compiler.meta{
     graph = .none.
     doStdin=.false.
     wasm = .none.
+  }
+
+  public forceCompileOption:cmdOption[compilerOptions].
+  forceCompileOption = cmdOption{
+    shortForm = "-f".
+    alternatives = [].
+    usage = "-f -- force compilation".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      forceCompile := .true;
+      
+      valis Opts
+    }
   }
 
   public traceAstOption:cmdOption[compilerOptions].
@@ -448,8 +465,23 @@ star.compiler.meta{
     alternatives = [].
     usage = "-w file -- generate wasm in file".
     validator = .some((_)=>.true).
-    setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) =>
-      (Opts.wasm=.some(NR)).
+    setOption(R,Opts) where RU ?= parseUri(R) && NR?=resolveUri(Opts.cwd,RU) => valof{
+      genWasm := .true;
+      valis (Opts.wasm=.some(NR))
+    }.
+  }
+
+  public traceWasmOption:cmdOption[compilerOptions].
+  traceWasmOption = cmdOption{
+    shortForm = "-tw".
+    alternatives = [].
+    usage = "-tw -- trace wasm generation".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      traceWasm := .true;
+      
+      valis Opts
+    }
   }
 
   public stdinOption:cmdOption[compilerOptions].
