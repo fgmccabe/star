@@ -53,7 +53,6 @@
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920)]).
   operator("%", [infixOp(700, 700, 699)]).
-  operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
@@ -242,7 +241,6 @@
   follows('<','*','<*').
   follows('<','~','<~').
   follows('<','$','<$').
-  follows('<','-','<-').
   follows('<','|','<|').
   follows('<','=','<=').
   follows('<=','>','<=>').
@@ -333,7 +331,6 @@
   final('<*',"<*").	 /* left fold */
   final('<~',"<~").	 /* type interface rule */
   final('<$',"<$").	 /* constant replace */
-  final('<-',"<-").	 /* variable bind */
   final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
@@ -383,7 +380,6 @@
   keyword("#").
   keyword("!}").
   keyword("??").
-  keyword("<-").
   keyword("(").
   keyword(")").
   keyword("*>").
