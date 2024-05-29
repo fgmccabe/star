@@ -4,12 +4,12 @@ star.compiler.term{
   import star.multi.
 
   import star.compiler.data.
-  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
+  import star.compiler.types.encode.
   import star.pkg.
   
   public cExp ::= .cVoid(option[locn],tipe)
