@@ -6,6 +6,7 @@ star.compiler.impawt{
 
   import star.compiler.term.repo.
   import star.compiler.canon.
+  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.misc.

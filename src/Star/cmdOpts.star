@@ -1,5 +1,6 @@
 star.cmdOpts{
   import star.
+  import star.sort.
 
   -- Process command line list of strings to produce a set of Options
   public all o ~~ cmdOption[o] ::= cmdOption{
@@ -36,5 +37,8 @@ star.cmdOpts{
   checkOption(_,_,_,_,Specs,_) => raise collectUsage(Specs).
 
   collectUsage:all o ~~ (cons[cmdOption[o]]) => string.
-  collectUsage(Specs) => "Usage: \n#(interleave(Specs//((O)=>O.usage),"\n")*)".
+  collectUsage(Specs) => "Usage: \n#(interleave(sort(Specs,compareFlag)//((O)=>O.usage),"\n")*)".
+
+  compareFlag:all e ~~ (cmdOption[e],cmdOption[e])=>boolean.
+  compareFlag(O1,O2) => O1.shortForm<O2.shortForm.
 }
