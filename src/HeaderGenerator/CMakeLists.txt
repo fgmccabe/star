@@ -56,9 +56,12 @@ add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS}
 add_custom_target(star.operators DEPENDS ops
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate  ${OPERATORS_ST})
 
-add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
+add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST}
+        COMMAND genesc -s ${ESCAPES_ST})
 
-add_custom_target(pl.escapes DEPENDS genesc -p ${ESCAPES_PL})
+add_custom_target(pl.escapes DEPENDS genesc ${ESCAPES_PL}
+        COMMAND genesc -p ${ESCAPES_PL}
+        )
 
 add_custom_target(star.intrinsics DEPENDS intrinsic
         COMMAND intrinsic -s -t ${INTRINSIC_ST_PLATE} ${INTRINSIC_ST}
