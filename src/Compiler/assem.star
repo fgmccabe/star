@@ -5,11 +5,11 @@ star.compiler.assem{
   import star.sort.
 
   import star.compiler.errors.
-  import star.compiler.encode.
   import star.compiler.escapes.
   import star.compiler.location.
   import star.compiler.data.
   import star.compiler.types.
+  import star.compiler.types.encode.
   import star.compiler.ltipe.
 
   public codePolicy ::= .hardDefinition | .softDefinition.
