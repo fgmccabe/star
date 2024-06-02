@@ -5,7 +5,8 @@
 		    roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,
 		    isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
 		    isTpl/4,mkTpl/4,
-		    braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,
+		    braceTerm/4,isBrace/4,isBraceTerm/4,isBraceApply/4,braceApply/4,
+		    isBraceTuple/3,braceTuple/3,
 		    isEmptyBrace/1,
 		    qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,qbraceTuple/3,
 		    squareTerm/4,isSquare/3,isSquare/4,
@@ -75,6 +76,10 @@ isBrace(app(Lc,name(_,Op),tuple(_,"{}",L)),Lc,Op,L) :- \+ isKeyword(Op).
 
 isBraceTerm(app(Lc,Op,tuple(_,"{}",A)),Lc,Op,A) :- \+isKeyOp(Op).
 
+isBraceApply(app(Lc,name(_,Op),tuple(_,"{}",A)),Lc,Op,A).
+
+braceApply(Lc,Op,A,app(Lc,name(Lc,Op),tuple(Lc,"{}",A))).
+
 isBraceTuple(tuple(Lc,"{}",L),Lc,L).
 
 isEmptyBrace(tuple(_,"{}",[])).
@@ -118,7 +123,7 @@ isIden(N) :- isIden(N,_).
 isIden(A,Nm) :-
   isIden(A,_,Nm).
 
-isIden(name(Lc,Nm),Lc,Nm).
+isIden(name(Lc,Nm),Lc,Nm) :- \+isKeyOp(Nm).
 isIden(tuple(Lc,"()",[name(_,Nm)]),Lc,Nm).
 isIden(qnme(Lc,Nm),Lc,Nm).
 isIden(tuple(Lc,"()",[qnme(_,Nm)]),Lc,Nm).

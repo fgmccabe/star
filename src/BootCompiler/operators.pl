@@ -104,7 +104,6 @@
   operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).
   operator("<=>", [infixOp(949, 950, 949)]).
-  operator("generator", [prefixOp(300, 299)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
   operator("while", [prefixOp(1175, 1174)]).

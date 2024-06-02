@@ -137,6 +137,9 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
+examineType(T,Tx) :- isGeneratorType(T,Lc,Y),!,
+  macroType(Y,Yx),
+  mkGeneratorType(Lc,Yx,Tx).
 examineType(T,Tx) :-
   isQuantified(T,V,I),!,
   map(V,macros:macroTypeVar,Vx),
@@ -451,6 +454,15 @@ examineTerm(T,Tx) :-
   macroTerm(F,Fx),
   map(V,macros:macroTerm,Vx),
   mkInvoke(Lc,Fx,Vx,Tx).
+examineTerm(T,Tx) :-
+  isFiber(T,Lc,B),!,
+  macroAction(B,Bx),
+  mkFiber(Lc,Bx,Tx).
+examineTerm(T,Tx) :-
+  isGenerator(T,Lc,B),!,
+  macroAction(B,Bx),
+  mkGenerator(Lc,Bx,Tx),
+  reportMsg("we have generator %s",[ast(Tx)]).
 examineTerm(T,Tx) :-
   isBraceTuple(T,Lc,D),!,
   map(D,macros:macroStmt,Dx),

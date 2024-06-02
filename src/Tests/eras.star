@@ -15,7 +15,7 @@ test.eras{
 
   divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
 
-  filter:(integer,generater[integer]) => generater[integer].
+  filter:(integer,generator[integer]) => generator[integer].
   filter(Prm,Gen) => generator{
     for Nxt : Gen do{
       if ~divides(Nxt,Prm) then
@@ -23,7 +23,7 @@ test.eras{
     }
   }
 
-  sieve:(integer,integer,integer,generater[integer]) => integer.
+  sieve:(integer,integer,integer,generator[integer]) => integer.
   sieve(Cnt,Mx,Pr,Gen) => valof{
     case _resume(Gen,._next) in {
       | ._yld(Nxt) => {

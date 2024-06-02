@@ -3,10 +3,10 @@ star.compiler.wasm.types{
 
   public typeIndex ~> string.
 
-  public wasmTypeDefn ::= .subTp(integer,boolean,cons[string],heap_type).
+  public wasmTypeDefn ::= .subTp(string,boolean,cons[string],heap_type).
 
   public value_type ::=
-    .NumType(num_type)
+    | .NumType(num_type)
     | .VecType(vec_type)
     | .RefType(typeIndex)
     | .RefNulType(typeIndex).

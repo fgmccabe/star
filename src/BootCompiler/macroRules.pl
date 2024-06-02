@@ -47,7 +47,7 @@ macroRl("..>",expression,macroRules:decRangeMacro).
 macroRl("assert",action,macroRules:assertMacro).
 macroRl("show",action,macroRules:showMacro).
 macroRl("trace",expression,macroRules:traceMacro).
-macroRl("generator",expression,macroRules:generatorMacro).
+macroRl("generator{}",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
@@ -504,8 +504,7 @@ decRangeMacro(T,expression,Rp) :-
 */
    
 generatorMacro(E,expression,Ex) :-
-  isUnary(E,Lc,"generator",A),
-  isBraceTuple(A,_,[B]),!,
+  isGenerator(E,Lc,B),!,
 
   mkEnum(Lc,"_all",All),
   mkValis(Lc,All,Rt),

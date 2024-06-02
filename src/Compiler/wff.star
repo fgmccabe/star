@@ -732,7 +732,17 @@ star.compiler.wff{
 
   public mkFiberType(Lc,R,S) => squareApply(Lc,"fiber",[R,S]).
 
-  public isFiber(A) => isUnary(A,"fiber").
+  public isGenerator(A) where (Lc,.nme(_,"generator"),[Bd]) ?= isBrTerm(A)  =>
+    .some((Lc,Bd)).
+  isGenerator(_) default => .none.
+
+  public mkGenerator(Lc,Bd) => brApply(Lc,"generator",[Bd]).
+
+  public isGeneratorType:(ast) => option[(option[locn],ast)].
+  isGeneratorType(A) where (Lc,G,[Y]) ?= isSquareTerm(A) && (.nme(_,"generator").=G || .qnm(_,"generator").=G) => .some((Lc,Y)).
+  isGeneratorType(_) default => .none.
+
+  public mkGeneratorType(Lc,Y) => squareTerm(Lc,.qnm(Lc,"generator"),[Y]).
 
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").

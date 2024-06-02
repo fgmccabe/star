@@ -121,7 +121,6 @@ star.compiler.operators{
     | "\\" => [.infixOp(700,700,699)]
     | "=>" => [.infixOp(949,950,950)]
     | "<=>" => [.infixOp(949,950,949)]
-    | "generator" => [.prefixOp(300,299)]
     | "valof" => [.prefixOp(300,299)]
     | "yield" => [.prefixOp(300,299)]
     | "while" => [.prefixOp(1175,1174)]

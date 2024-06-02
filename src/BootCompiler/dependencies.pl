@@ -442,6 +442,9 @@ collectTypeRefs(T,All,SoFar,Rx) :-
   isSquareTerm(T,Op,A),
   collectTypeRefs(Op,All,SoFar,R0),
   collectTypeList(A,All,R0,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
+  isGeneratorType(T,_,A),
+  collectTypeRefs(A,All,SoFar,Rx).
 collectTypeRefs(St,_,SoFar,SoFar) :-
   isBinary(St,_,"@",_,_).
 collectTypeRefs(St,_,SoFar,SoFar) :-

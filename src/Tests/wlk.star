@@ -18,7 +18,7 @@ test.wlk{
   walk(.empty,_,X) => X.
   walk(.node(L,E,R),F,X) => walk(R,F,F(E,walk(L,F,X))).
 
-  walker:all e ~~ (tree[e]) => generater[e].
+  walker:all e ~~ (tree[e]) => generator[e].
   walker(T) => generator{
     walk(T,(E,_) => valof{
 	  yield E;

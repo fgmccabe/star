@@ -247,6 +247,8 @@ star.compiler.macro{
     mkRaise(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
+  examineTerm(A) where (Lc,S) ?= isGenerator(A) =>
+    mkGenerator(Lc,macroAction(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
     mkQBrTerm(Lc,Lb,macroStmts(S)).
   examineTerm(A) where (Lc,Lb,S) ?= isBrTerm(A) =>
@@ -354,6 +356,8 @@ star.compiler.macro{
     mkFieldAcc(Lc,macroTerm(R),F).
   examineType(A) where (Lc,I) ?= isAsync(A) =>
     mkAsync(Lc,macroType(I)).
+  examineType(A) where (Lc,Y) ?= isGeneratorType(A) =>
+    mkGeneratorType(Lc,macroType(Y)).
   examineType(A) default => valof{
     reportError("cannot figure out type expression\n$(A)",locOf(A));
     valis A

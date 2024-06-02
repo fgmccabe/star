@@ -15,13 +15,13 @@ star.iterable{
   public sus_generator[e] ::= ._yld(e) | ._all.
   public res_generator ::= ._next | ._cancel.
 
-  public all e ~~ generater[e] ~> fiber[res_generator,sus_generator[e]].
+  public all e ~~ generator[e] ~> fiber[res_generator,sus_generator[e]].
 
   public contract all c,e ~~ generate[c->>e] ::= {
-    _generate:(c)=> generater[e]
+    _generate:(c)=> generator[e]
   }
 
-  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generater[e].
+  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generator[e].
   iterGenerator(L) => _fiber((this,first) => 
       let{
 	yieldFn:(e,())=>().
