@@ -48,6 +48,8 @@
 	      isIotaComprehension/4,
 	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
 	      isTestComprehension/3,mkTestComprehension/3,
+	      isFiber/3,mkFiber/3,isGenerator/3,mkGenerator/3,
+	      isGeneratorType/3,mkGeneratorType/3,
 	      isCaseExp/4,caseExp/4,
 	      isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
@@ -452,8 +454,8 @@ mkTypeField(Lc,L,R,St) :-
 typeName(Tp,Nm) :-
   isBinary(Tp,_,"|:",_,R),
   typeName(R,Nm).
-typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
-typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
+typeName(Tp,Nm) :- isSquare(Tp,Nm,_).
+typeName(Tp,Nm) :- isName(Tp,Nm).
 typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).
 typeName(Tp,Nm) :- isTuple(Tp,_,A),
   length(A,Ar),
@@ -601,6 +603,18 @@ mkLetRec(Lc,Els,Bnd,Let) :-
   qbraceTuple(Lc,Els,Body),
   unary(Lc,"let",Body,L),
   binary(Lc,"in",L,Bnd,Let).
+
+isFiber(T,Lc,Bd) :- isBraceApply(T,Lc,"fiber",[Bd]).
+
+mkFiber(Lc,Bd,T) :- braceApply(Lc,"fiber",[Bd],T).
+
+isGenerator(T,Lc,Bd) :- isBraceApply(T,Lc,"generator",[Bd]).
+
+mkGenerator(Lc,Bd,T) :- braceApply(Lc,"generator",[Bd],T).
+
+isGeneratorType(app(Lc,Op,tuple(_,"[]",[L])),Lc,L) :- Op=name(_,"generator") ; Op=qnme(_,"generator").
+
+mkGeneratorType(Lc,Y,T) :- squareTerm(Lc,qnme(Lc,"generator"),[Y],T).
 
 isCaseExp(Trm,Lc,Exp,Cases) :-
   isUnary(Trm,Lc,"case",L),

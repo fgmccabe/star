@@ -436,6 +436,8 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
+  collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>
+    collectTypeRefs(R,All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"->>") =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isComma(T) =>
@@ -465,7 +467,7 @@ star.compiler.dependencies{
   collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isRoundTerm(T) =>
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
   collectTypeRefs(T,_,Rf) default => valof{
-    reportError("cannot fathom type $(T)",locOf(T));
+    reportError("cannot fathom type `$(T)`",locOf(T));
     valis Rf
   }.
   

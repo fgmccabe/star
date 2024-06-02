@@ -36,7 +36,7 @@ star.compiler.macro.rules{
   macros = {
     ":=" -> [(.actn,spliceAssignMacro), (.actn,indexAssignMacro)],
     "[]" -> [(.pattern,squarePtnMacro), (.expression,squareSequenceMacro)],
-    "$[]" -> [(.expression,indexMacro),(.expression,sliceMacro)],
+    "$[]" -> [(.expression,indexMacro),(.expression,sliceMacro),(.typeterm,generatorTypeMacro)],
     "<||>" -> [(.expression,quoteMacro)],
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
@@ -60,7 +60,7 @@ star.compiler.macro.rules{
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
-    "generator" -> [(.expression,generatorMacro)],
+    "generator\${}" -> [(.expression,generatorMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],
@@ -456,15 +456,21 @@ star.compiler.macro.rules{
   */
    
   generatorMacro(E,.expression) where
-    (Lc,A) ?= isUnary(E,"generator") && (_,[B]) ?= isBrTuple(A) => valof{
-	All = mkValis(Lc,enum(Lc,"_all"));
+      (Lc,A) ?= isGenerator(E) => valof{
+    All = mkValis(Lc,enum(Lc,"_all"));
 	valis .active(unary(Lc,"_fiber",
 	    mkLambda(Lc,.false,
 	      rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"_")]),
 	      .none,
-	      mkValof(Lc,brTuple(Lc,[mkSequence(Lc,B,All)])))))
+	  mkValof(Lc,brTuple(Lc,[mkSequence(Lc,A,All)])))))
       }.
   generatorMacro(_,_) default => .inactive.
+
+  /* map generator[t] to 'generator'[t] */
+  generatorTypeMacro(E,.typeterm) where
+      (Lc,.nme(_,"generator"),[Y]) ?= isSquareTerm(E) =>
+    .active(mkGeneratorType(Lc,Y)).
+  generatorTypeMacro(_,_) default => .inactive.
 
   /* yield E
   becomes

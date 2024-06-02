@@ -75,19 +75,24 @@ star.compiler{
     
     if CatUri ?= parseUri("catalog") && CatU ?= resolveUri(Opts.cwd,CatUri) &&
 	Cat ?= loadCatalog(CatU) then{
-	  for P in Args do{
-	    resetErrors();
-	    Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
+      if forceCompile! then{
+	forceProcessPkgs(Args//extractPkgSpec,Repo,Cat);
+      }
+      else{
+	for P in Args do{
+	  resetErrors();
+	  Sorted = makeGraph(extractPkgSpec(P),Repo,Cat);
 
-	    if traceDependencies! then
-	      showMsg("Process packages in $(Sorted)");
+	  if traceDependencies! then
+	    showMsg("Process packages in $(Sorted)");
 
-	    if Grph ?= Opts.graph then {
-	      putResource(Grph,makeDotGraph(P,Sorted))
-	    };
-	      
-	    processPkgs(Sorted,Repo,Cat)
-	  }
+	  if Grph ?= Opts.graph then {
+	    putResource(Grph,makeDotGraph(P,Sorted))
+	  };
+
+	  processPkgs(Sorted,Repo,Cat)
+	}
+      }
 	}
     else{
       logMsg(.severe,"could not access catalog")
@@ -207,6 +212,20 @@ star.compiler{
 	if ~errorFree() then{
 	  break pkgLoop
 	}
+      }
+    };
+    flushRepo(Repp!);
+    valis ()
+  }
+
+  forceProcessPkgs:(cons[pkg],termRepo,catalog) => ().
+  forceProcessPkgs(Pks,Repo,Cat) => valof{
+    Repp := Repo;
+    pkgLoop:for P in Pks do{
+      resetErrors();
+      Repp := processPkg(P,Repp!,Cat);
+      if ~errorFree() then{
+	break pkgLoop
       }
     };
     flushRepo(Repp!);
