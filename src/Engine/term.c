@@ -32,10 +32,7 @@ logical isSpecialClass(clssPo p) {
 }
 
 normalPo C_NORMAL(termPo t) {
-#ifdef TRACEEXEC
   assert(isNormalPo(t));
-#endif
-
   return (normalPo) t;
 }
 

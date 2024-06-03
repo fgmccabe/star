@@ -27,12 +27,10 @@ typedef struct processRec_ {
   ProcessState savedState;    /* Saved state of this process? */
   threadPo thread;    // What is the thread associated with this process
   integer processNo;  // What number process is this
-#ifdef TRACEEXEC
   DebugWaitFor waitFor;
   logical tracing;
   integer traceCount;     // How many are we waiting for?
   framePo waterMark;      // Used to devide when to start debugging again
-#endif
 } ProcessRec;
 
 extern MethodRec haltMethod;
@@ -65,13 +63,7 @@ void verifyProcesses(heapPo H);
 retCode markProcess(processPo P, gcSupportPo G);
 void markProcesses(processPo owner, gcSupportPo G);
 
-#ifdef TRACEMEM
-extern long stkGrow;
-#endif
-
-#ifdef TRACEEXEC
 extern logical collectStats;
 extern integer insCounts[];
-#endif
 
 #endif //STAR_ENGINEP_H

@@ -607,6 +607,5 @@ void dumpStackStats(ioPo out) {
 #ifdef TRACESTACK
   outMsg(out, "%d stacks allocated\n", stackCount);
   outMsg(out, "%d stacks dropped\n", stackReleases);
-  outMsg(out, "%d stack extensions\n", stkGrow);
 #endif
 }

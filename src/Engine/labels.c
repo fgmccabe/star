@@ -122,7 +122,6 @@ logical sameLabel(labelPo l1, labelPo l2) {
 
 labelPo C_LBL(termPo t) {
   assert(isLabelPo(t));
-
   return (labelPo) t;
 }
 

@@ -1,5 +1,6 @@
 star.compiler.wasm.gentypes{
   import star.
+  import star.topsort.
 
   import star.compiler.meta.
   import star.compiler.types.
@@ -20,6 +21,18 @@ star.compiler.wasm.gentypes{
 
     }
   }
+
+    Defined = foldRight((D,S)=>S\+definedName(D),[],Defs);
+    Q = foldRight(pickVar,[],Defined);
+    AllRefs = foldRight((D,A) => [findRefs(D,D,Q,Defined),..A],([]:cons[defSpec]),Defs);
+  
+
+  implementation depends[defSpec->>defnSp] => {
+    references(.defSpec(_,Refs,_)) => Refs.
+    defined(.defSpec(Sp,_,_),Rf) => Sp==Rf.
+  }
+
+  
 
 
 }

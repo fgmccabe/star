@@ -1120,7 +1120,7 @@ void showRegisters(processPo p, heapPo h) {
 
   showAllLocals(debugOutChnnl, stk, fp);
 
-#ifdef TRACEEXEC
+#ifdef TRACE_DBG
   if (debugDebugging) {
     stackSummary(debugOutChnnl, stk);
     heapSummary(debugOutChnnl, h);

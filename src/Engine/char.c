@@ -52,8 +52,6 @@ logical isChar(termPo t) {
 }
 
 codePoint charVal(termPo o) {
-#ifdef TRACEEXEC
   assert(isChar(o));
-#endif
   return (codePoint) ptrPayload(o);
 }
