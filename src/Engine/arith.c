@@ -62,13 +62,7 @@ static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, log
 
 typedef struct float_term *fltPo;
 
-extern fltPo C_FLT(termPo t) {
-  assert(hasClass(t, floatClass));
-  return (fltPo) t;
-}
-
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  fltPo dx = C_FLT(t);
   return outDouble(out, floatVal(t), 'g', 0, (int) precision, ' ', True, False);
 }
 

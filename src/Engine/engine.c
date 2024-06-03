@@ -104,10 +104,6 @@ void ps_kill(processPo p) {
   }
 }
 
-#ifdef TRACEMEM
-long stkGrow = 0;
-#endif
-
 heapPo processHeap(processPo P) {
   return P->heap;
 }

@@ -58,11 +58,6 @@ termPo cntScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   assert(cont != Null);
 
   if (cont->stack != Null) {
-#ifdef TRACEMEM
-    if (traceContinuations) {
-      outMsg(logFile, "scan continuation %d\n%_", cont);
-    }
-#endif
     helper((ptrPo) &cont->stack, c);
   }
   return o + ContinuationCellCount;

@@ -40,7 +40,6 @@ This is the
 on-line
 @end ifinfo 
 guide for the @Star{} language.  
-@refill
 
 @noindent
 This book gives an introduction into the form and usage of the @Star{}

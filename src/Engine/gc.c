@@ -10,12 +10,9 @@
 
 #include <memory.h>
 #include <globalsP.h>
-#include "timers.h"
 
-#ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
 long gcGrow = 0;
-#endif
 
 #ifndef MAX_TABLE
 #define MAX_TABLE 2048
@@ -38,20 +35,12 @@ static void swapHeap(gcSupportPo G, heapPo H) {
 
   switch (H->allocMode) {
     case lowerHalf:
-#ifdef TRACEMEM
-      if (traceMemory)
-        outMsg(logFile, "switching to upper half\n");
-#endif
       assert(H->outerLimit - H->split >= H->curr - H->start);
       H->start = H->curr = H->split;
       H->limit = H->outerLimit;  /* shift to the upper half */
       H->allocMode = upperHalf;    /* It is guaranteed to have enough room */
       break;
     case upperHalf:      /* Shift to the lower half */
-#ifdef TRACEMEM
-      if (traceMemory)
-        outMsg(logFile, "switching to lower half\n");
-#endif
       assert(H->split - H->base >= H->curr - H->start);
       H->limit = H->split;
       H->start = H->curr = H->base;
@@ -94,17 +83,7 @@ retCode gcCollect(heapPo H, long amount) {
 
   setupGCSupport(H, G);
 
-#ifdef TRACEMEM
   gcCount++;
-  if (traceMemory)
-    outMsg(logFile, "starting gc: %d\n%_", gcCount);
-#endif
-
-#ifdef TRACEMEM
-  if (traceMemory)
-    verifyProcesses(H);
-#endif
-
   swapHeap(G, H);
 
   for (int i = 0; i < H->topRoot; i++)    /* mark the external roots */
@@ -145,17 +124,17 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
-  if (validateMemory) {
-    verifyHeap(H);
-  }
+    if (validateMemory) {
+      verifyHeap(H);
+    }
 #endif
 
 #ifdef TRACEMEM
-  if (traceMemory) {
-    outMsg(logFile, "%d objects found\n", G->oCnt);
-    outMsg(logFile, "%d bytes used\n", H->curr - H->start);
-    outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
-  }
+    if (traceMemory) {
+      outMsg(logFile, "%d objects found\n", G->oCnt);
+      outMsg(logFile, "%d bytes used\n", H->curr - H->start);
+      outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
+    }
 #endif
 
   pauseTimer(gcTimer);
@@ -255,17 +234,14 @@ termPo finalizeTerm(gcSupportPo G, termPo x) {
 }
 
 void dumpGcStats(ioPo out) {
-#ifdef TRACEMEM
-  if (traceAllocs)
-    logMsg(out, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
-  if (traceMemory)
-    logMsg(out, "%d gc collections, %d heap grows", gcCount, gcGrow);
-#endif
+  logMsg(out, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
+  logMsg(out, "%d gc collections, %d heap grows", gcCount, gcGrow);
 }
 
 retCode extendHeap(heapPo H, integer factor, integer hmin) {
-  gcGrow++;
   integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
+
+  gcGrow++;
 
 #ifdef TRACEMEM
   if (traceMemory)
@@ -298,7 +274,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
 
   markLabels(G);
   markGlobals(G);
-  markProcesses(H->owner,G);
+  markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
   if (traceMemory) {

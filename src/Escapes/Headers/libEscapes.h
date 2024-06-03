@@ -34,10 +34,8 @@ escapePo getEscape(uint32 escNo);
 char *escapeName(escapePo esc);
 integer escapeArity(escapePo esc);
 
-#ifdef TRACESTATS
 void recordEscape(integer escNo);
 void dumpEscapes(ioPo out);
-#endif
 
 #undef escape
 #define escape(Nm, Tp, Cmt) Esc##Nm,

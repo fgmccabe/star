@@ -21,10 +21,8 @@
 #include "errorCodes.h"
 #include "ltype.h"
 
-#ifdef TRACEEXEC
 logical collectStats = False;
 integer insCounts[illegalOp];
-#endif
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -83,16 +81,9 @@ retCode run(processPo P) {
 
   currentProcess = P;
 
-#ifdef TRACEMEM
-  if (traceMemory)
-    verifyProc(P, H);
-#endif
-
   for (;;) {
-#ifdef TRACEEXEC
-    pcCount++;        /* increment total number of executed */
-
     if (collectStats) {
+      pcCount++;        /* increment total number of executed */
       insCounts[*PC]++;
     }
 
@@ -101,7 +92,8 @@ retCode run(processPo P) {
       insDebug(P);
       restoreRegisters();
     }
-#endif
+
+    evalLoop:
 
     switch ((OpCode) (*PC++)) {
       case Halt: {
@@ -203,9 +195,9 @@ retCode run(processPo P) {
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
 
-#ifdef TRACEEXEC
-        recordEscape(escNo);
-#endif
+        if (collectStats)
+          recordEscape(escNo);
+
         escapePo esc = getEscape(escNo);
         saveRegisters();
         assert(H->topRoot == 0);
@@ -346,11 +338,6 @@ retCode run(processPo P) {
           prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
           prevStack->fp--;
           gcReleaseRoot(H, root);
-
-#ifdef TRACEEXEC
-          saveRegisters();
-          verifyStack(STK, H);
-#endif
         } else {
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
@@ -411,11 +398,6 @@ retCode run(processPo P) {
           prevStack->fp--;
 
           gcReleaseRoot(H, root);
-
-#ifdef TRACEEXEC
-          saveRegisters();
-          verifyStack(STK, H);
-#endif
         } else {
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
@@ -438,10 +420,8 @@ retCode run(processPo P) {
         assert(height >= 0);
         CSP = FP->csp = SP;
         SP -= height;
-#ifdef TRACEEXEC
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;
-#endif
         assert(SP == CSP - lclCount(FP->prog));
         continue;
       };
@@ -1284,13 +1264,11 @@ retCode run(processPo P) {
       }
 
       case dBug: {
-#ifdef TRACEEXEC
         if (lineDebugging) {
           saveRegisters();
           enterDebug(P);
           restoreRegisters();
         }
-#endif
         continue;
       }
 

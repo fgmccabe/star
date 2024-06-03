@@ -63,8 +63,6 @@ escapePo getEscape(uint32 escNo) {
   return &escapes[escNo];
 }
 
-#ifdef TRACESTATS
-
 void recordEscape(integer escNo) {
   assert(escNo >= 0 && escNo < NumberOf(escCount));
 
@@ -122,4 +120,3 @@ integer escapeArity(escapePo esc) {
   return esc->arity;
 }
 
-#endif

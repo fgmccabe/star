@@ -14,9 +14,7 @@ static inline logical isInteger(termPo t) {
 }
 
 static inline integer integerVal(termPo o) {
-#ifdef TRACEEXEC
   assert(isInteger(o));
-#endif
   return ptrPayload(o);
 }
 
