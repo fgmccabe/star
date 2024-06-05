@@ -42,6 +42,7 @@ star.compiler.unify{
 
     smT(.anonType,_,_) => .true.
     smT(_,.anonType,_) => .true.
+    smT(.kVar(Nm),.kVar(Nm),_) => .true.
     smT(.nomnal(Nm),.nomnal(Nm),_) => .true.
     smT(.tpFun(Nm,Ar),.tpFun(Nm,Ar),_) => .true.
     smT(.tpExp(O1,A1),.tpExp(O2,A2),Env) =>
@@ -142,7 +143,7 @@ star.compiler.unify{
   
   rewr(.anonType,_) => .anonType.
   rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.
-  rewr(.nomnal(Nm),Env) where T?=Env[.nomnal(Nm)] => T.
+  rewr(.kVar(Nm),Env) where T?=Env[.kVar(Nm)] => T.
   rewr(V,_) where isUnbound(V) => V.
   rewr(.kFun(Nm,Ar),Env) => .kFun(Nm,Ar).
   rewr(.nomnal(Nm),Env) => .nomnal(Nm).

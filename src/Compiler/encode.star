@@ -24,6 +24,7 @@ star.compiler.types.encode{
     | .nomnal("star.core*string") => [`s`]
     | .nomnal("star.core*boolean") => [`l`]
     | .nomnal(Nm) => [`t`]++encodeText(Nm)
+    | .kVar(Nm) => [`k`]++encodeText(Nm)
     | .kFun(Nm,Ar) => [`K`]++encodeNat(Ar)++encodeText(Nm)
     | .tpFun(Nm,Ar) => [`z`]++encodeNat(Ar)++encodeText(Nm)
     | .tpExp(.tpFun("star.core*cons",1),El) => [`L`]++encodeType(El)
@@ -121,7 +122,7 @@ star.compiler.types.encode{
     | `_` => (.anonType,Ts)
     | `k` => valof{
       (Nm,T1) = decodeText(Ts);
-      valis (.nomnal(Nm),T1)
+      valis (.kVar(Nm),T1)
     }
     | `K` => valof{
       (Ar,T0) = decodeNat(Ts,0);

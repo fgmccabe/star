@@ -142,10 +142,6 @@
 @tab left associative infix
 @tab 700
 @tab modulo
-@item @code{<-}
-@tab non-associative infix
-@tab 905
-@tab variable bind
 @item @code{.>>>.}
 @tab left associative infix
 @tab 600
@@ -386,10 +382,6 @@
 @tab non-associative infix
 @tab 950
 @tab constructor arrow
-@item @code{generator}
-@tab non-associative prefix
-@tab 300
-@tab define a generator expression
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
@@ -570,62 +562,61 @@
   @tab @code{#}
   @tab @code{??}
   @item @code{%}
-  @tab @code{<-}
   @tab @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
-  @item @code{\\-}
-  @tab @code{+}
+  @tab @code{\\-}
+  @item @code{+}
   @tab @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
-  @item @code{\\/}
-  @tab @code{-}
+  @tab @code{\\/}
+  @item @code{-}
   @tab @code{.}
   @tab @code{/}
   @tab @code{$$}
-  @item @code{:}
-  @tab @code{;}
+  @tab @code{:}
+  @item @code{;}
   @tab @code{-->}
   @tab @code{<}
   @tab @code{.=}
-  @item @code{=}
-  @tab @code{|:}
+  @tab @code{=}
+  @item @code{|:}
   @tab @code{++}
   @tab @code{>}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @item @code{//}
-  @tab @code{.~.}
+  @tab @code{//}
+  @item @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @item @code{=>}
-  @tab @code{<=>}
+  @tab @code{=>}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float
