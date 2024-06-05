@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include <stringBuffer.h>
 #include "stringTrie.h"
-#include "ooio.h"
 #include "formioP.h"
 #include "template.h"
 #include "formexts.h"

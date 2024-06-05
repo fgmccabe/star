@@ -8,6 +8,7 @@ star.compiler.types{
 
   public tipe ::= .voidType |
     .anonType |
+    .kVar(string) |
     .kFun(string,integer) |
     .tVar(tv,string) |
     .tFun(tv,integer,string) |
@@ -39,6 +40,7 @@ star.compiler.types{
   hasKind(Tp) => case Tp in {
     | .anonType => 0
     | .voidType => 0
+    | .kVar(_) => 0
     | .kFun(_,Ar) => Ar
     | .tVar(_,_) => 0
     | .tFun(_,Ar,_) => Ar
@@ -137,6 +139,7 @@ star.compiler.types{
   identType:(tipe,tipe,cons[(tipe,tipe)]) => boolean.
   identType(.voidType,.voidType,_) => .true.
   identType(.anonType,.anonType,_) => .true.
+  identType(.kVar(N1),.kVar(N2),_) => N1==N2.
   identType(.kFun(N1,A1),.kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(.tVar(_,N1),.tVar(_,N2),_) => N1==N2.
   identType(.tFun(_,A1,N1),.tFun(_,A2,N2),_) => N1==N2 && A1==A2.
@@ -218,6 +221,7 @@ star.compiler.types{
   shTipe(Tp,Dp) => case Tp in {
     | .anonType => "_"
     | .voidType => "void"
+    | .kVar(Nm) => "%%#(Nm)"
     | .kFun(Nm,Ar) => "#(Nm)/$(Ar)"
     | .tVar(V,Nm) => "%#(Nm)"
     | .tFun(_,Ar,Nm) => "%#(Nm)/$(Ar)"
@@ -271,6 +275,7 @@ star.compiler.types{
   shTpExp:(tipe,string,string,integer) => string.
   shTpExp(.tpExp(T,A),Sep,R,Dp) => shTpExp(deRef(T),",","#(showType(A,Dp))#(Sep)#(R)",Dp).
   shTpExp(.tpFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
+  shTpExp(.kVar(Nm),Sep,R,Dp) => "#(Nm)[#(R)".
   shTpExp(.kFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
   shTpExp(.tFun(_,_,Nm),Sep,R,Dp) => "#(Nm)[#(R)".
   shTpExp(T,Sep,R,Dp) => "#(showType(T,Dp))[#(R)".
@@ -298,6 +303,7 @@ star.compiler.types{
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
     hsh(Tp) => case Tp in {
+      | .kVar(Nm) => hash(Nm)
       | .kFun(Nm,Ar) => Ar*37+hash(Nm)
       | .tVar(_,Nm) => hash("V")+hash(Nm)
       | .tFun(_,Ar,Nm) => (hash("F")+Ar)*37+hash(Nm)
@@ -351,6 +357,7 @@ star.compiler.types{
     tName(.voidType) => "void".
     tName(.nomnal(Nm)) => Nm.
     tName(.tpExp(O,A)) => tName(deRef(O)).
+    tName(.kVar(Nm)) => Nm.
     tName(.kFun(Nm,_)) => Nm.
     tName(.tpFun(Nm,_)) => Nm.
     tName(.tVar(_,_)) => "_".
@@ -377,6 +384,7 @@ star.compiler.types{
     tpSfNm(.voidType) => "void".
     tpSfNm(.nomnal(Nm)) => Nm.
     tpSfNm(.tpExp(O,A)) => tpSfNm(deRef(O)).
+    tpSfNm(.kVar(Nm)) => Nm.
     tpSfNm(.kFun(Nm,_)) => Nm.
     tpSfNm(.tpFun(Nm,_)) => Nm.
     tpSfNm(.tVar(_,_)) => "_".
@@ -622,6 +630,7 @@ star.compiler.types{
   occIn(Id,.tVar(_,Nm)) => Id==Nm.
   occIn(Id,.tFun(_,_,Nm)) => Id==Nm.
   occIn(Id,.nomnal(Nm)) => Id==Nm.
+  occIn(Id,.kVar(Nm)) => Id==Nm.
   occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
   occIn(Id,.tupleType(Els)) => occInTps(Id,Els).
@@ -653,6 +662,7 @@ star.compiler.types{
 
   vrNm(.tVar(_,Nm)) => Nm.
   vrNm(.tFun(_,_,Nm)) => Nm.
+  vrNm(.kVar(Nm)) => Nm.
   vrNm(.kFun(Nm,_)) => Nm.
   vrNm(.nomnal(Nm)) => Nm.
 }

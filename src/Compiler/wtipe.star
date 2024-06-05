@@ -9,6 +9,7 @@ star.compiler.wasm.type{
   projectTp(Tp,Mp) => case deRef(Tp) in {
     | .voidType => (.RefType("void"),Mp)
     | .kFun(_,_) => (.RefType("any"),Mp)
+    | .kVar(_) => (.RefType("any"),Mp)
     | .tVar(_,_) => (.RefType("any"),Mp)
     | .tFun(_,_,_) => (.RefType("any"),Mp)
     | .nomnal(Nm) => (.RefType(Nm),Mp)

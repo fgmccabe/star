@@ -779,7 +779,7 @@ star.compiler.checker{
     if sameType(face,Tp,Env) then{
       brTplNm = "{#(interleave(sortedFlds//fst,".")*)}";
 
-      Tps = sortedFlds//((Nm,_))=>(Nm,.nomnal(Nm));
+      Tps = sortedFlds//((Nm,_))=>(Nm,.kVar(Nm));
 
       if traceCanon! then
 	showMsg("types $(Tps)");

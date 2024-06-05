@@ -502,6 +502,8 @@ star.compiler.dependencies{
 
   collectConstructorRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"|") =>
     collectConstructorRefs(R,All,collectConstructorRefs(L,All,SoFar)).
+  collectConstructorRefs(T,All,SoFar) where (_,R) ?= isUnary(T,"|") =>
+    collectConstructorRefs(R,All,SoFar).
   collectConstructorRefs(T,All,SoFar) where (_,_,Els) ?= isBrTerm(T) =>
     collectFaceTypes(Els,All,SoFar).
   collectConstructorRefs(T,All,SoFar) where _ ?= isEnumSymb(T) => SoFar.

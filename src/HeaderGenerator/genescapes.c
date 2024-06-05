@@ -318,7 +318,7 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
       dumpStdType("star.core*boolean", out);
       break;
     case kvrSig: {
-      outStr(O_IO(out), ".nomnal(");
+      outStr(O_IO(out), ".kVar(");
       sig = dName(sig, out);
       outStr(O_IO(out), ")");
       return sig;

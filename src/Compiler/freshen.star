@@ -39,7 +39,7 @@ star.compiler.freshen{
   }
   
   genQuants:(typeRule,cons[(string,tipe)],dict)=>(cons[(string,tipe)],typeRule,dict).
-  genQuants(.allRule(.nomnal(V),R),Q,E) => valof{
+  genQuants(.allRule(.kVar(V),R),Q,E) => valof{
     NV = newTypeVar(V);
     valis genQuants(R,[(V,NV),..Q],declareType(V,.none,NV,.typeExists(NV,emptyFace),E))
   }
@@ -50,26 +50,26 @@ star.compiler.freshen{
   genQuants(R,Q,E) => (Q,R,E).
 
   freshQ:(tipe,dict) => (tipe,dict).
-  freshQ(.nomnal(V),Env) where NV.=newTypeVar(V) =>
+  freshQ(.kVar(V),Env) where NV.=newTypeVar(V) =>
     (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   freshQ(.kFun(V,Ar),Env) where NV.=newTypeFun(V,Ar) =>
     (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
 
   skolQ:(tipe,dict) => (tipe,dict).
-  skolQ(.nomnal(V),Env) where NV.=skolemFun(V,0) =>
+  skolQ(.kVar(V),Env) where NV.=skolemFun(V,0) =>
     (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   skolQ(.kFun(V,Ar),Env) where NV.=skolemFun(V,Ar) =>
     (NV,declareType(V,.none,NV,.typeExists(NV,emptyFace),Env)).
   skolQ(Tp,Env) => (Tp,Env).
 
   freshQuants:(tipe,cons[(string,tipe)],dict)=>(tipe,cons[(string,tipe)],dict).
-  freshQuants(.allType(.nomnal(V),T),B,Env) where NV.=newTypeVar(V) =>
+  freshQuants(.allType(.kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
-	.typeExists(NV,emptyFace),Env)).
+      .typeExists(NV,emptyFace),Env)).
   freshQuants(.allType(.kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
 	.typeExists(NV,emptyFace),Env)).
-  freshQuants(.existType(.nomnal(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
+  freshQuants(.existType(.kVar(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
 	.typeExists(NV,emptyFace),Env)).
   freshQuants(.existType(V,T),B,Env) =>
@@ -80,7 +80,7 @@ star.compiler.freshen{
   genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
   skolemFun:(string,integer) => tipe.
-  skolemFun(Nm,0) => .nomnal(genSym(Nm)).
+  skolemFun(Nm,0) => .kVar(genSym(Nm)).
   skolemFun(Nm,Ar) => .kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
@@ -88,9 +88,9 @@ star.compiler.freshen{
     (Q,frshn(deRef(T),Ev)).
   evidence(Tp,_) default => ([],Tp).
 
-  skolemQuants(.allType(.nomnal(V),T),B,Env) where .none.=findType(Env,V) =>
-    skolemQuants(deRef(T),[(V,.nomnal(V)),..B],Env).
-  skolemQuants(.allType(.nomnal(V),T),B,Env) where NV.=skolemFun(V,0) =>
+  skolemQuants(.allType(.kVar(V),T),B,Env) where .none.=findType(Env,V) =>
+    skolemQuants(deRef(T),[(V,.kVar(V)),..B],Env).
+  skolemQuants(.allType(.kVar(V),T),B,Env) where NV.=skolemFun(V,0) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
 	.typeExists(NV,emptyFace),Env)).
   skolemQuants(.allType(.kFun(V,Ar),T),B,Env)  where .none.=findType(Env,V) =>
@@ -99,7 +99,7 @@ star.compiler.freshen{
   skolemQuants(.allType(.kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
 	.typeExists(NV,emptyFace),Env)).
-  skolemQuants(.existType(.nomnal(V),T),B,Env) where NV.=genTypeFun(V,B) =>
+  skolemQuants(.existType(.kVar(V),T),B,Env) where NV.=genTypeFun(V,B) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,
 	.typeExists(NV,emptyFace),Env)).
   skolemQuants(T,B,Env) default => (T,B,Env).
@@ -111,11 +111,13 @@ star.compiler.freshen{
   frshn(.anonType,_) => newTypeVar("_").
   frshn(.voidType,_) => .voidType.
   frshn(.nomnal("_"),_) => newTypeVar("_").
-  frshn(.nomnal(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
-  frshn(.nomnal(Nm),_) => .nomnal(Nm).
+  frshn(.kVar(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
+  frshn(.kVar(Nm),_) => .kVar(Nm).
   frshn(.kFun(Nm,Ar),Env) where  (_,Tp,_,_)?=findType(Env,Nm) => Tp.
   frshn(.kFun(Nm,Ar),_) => .kFun(Nm,Ar).
   frshn(.tVar(T,N),_) => .tVar(T,N).
+  frshn(.nomnal(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
+  frshn(.nomnal(Nm),_) => .nomnal(Nm).
   frshn(.tFun(T,A,N),_) => .tFun(T,A,N).
   frshn(.tpFun(N,A),_) => .tpFun(N,A).
   frshn(.tpExp(O,A),Env) => .tpExp(frshnD(O,Env),frshnD(A,Env)).

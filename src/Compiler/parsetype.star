@@ -124,7 +124,7 @@ star.compiler.typeparse{
 	    if traceCanon! then
 	      showMsg("freshened rule: $(FrshRl)");
 
-	    valis applyTypeRule(Lc,FrshRl,.nomnal(Fld),Env)
+	    valis applyTypeRule(Lc,FrshRl,.kVar(Fld),Env)
 	  } else{
 	    reportError("Could not freshen type rule $(Rl)",Lc);
 	    valis .voidType
@@ -277,7 +277,7 @@ star.compiler.typeparse{
     valis [Vr,..L]
   }
     
-  parseBoundTpVar(Nm) where (_,Id) ?= isName(Nm) => (Id,.nomnal(Id)).
+  parseBoundTpVar(Nm) where (_,Id) ?= isName(Nm) => (Id,.kVar(Id)).
   parseBoundTpVar(FNm) where
       (_,Lhs,Rhs) ?= isBinary(FNm,"/") &&
       (_,Id) ?= isName(Lhs) &&
@@ -320,8 +320,8 @@ star.compiler.typeparse{
   rebind([(Nm,TV),..L],T,Env) where
       Ar ?= isUnboundFVar(TV) && sameType(TV,.kFun(Nm,Ar),Env) =>
     rebind(L,.allType(.kFun(Nm,Ar),T),Env).
-  rebind([(Nm,TV),..L],T,Env) where sameType(TV,.nomnal(Nm),Env) =>
-    rebind(L,.allType(.nomnal(Nm),T),Env).
+  rebind([(Nm,TV),..L],T,Env) where sameType(TV,.kVar(Nm),Env) =>
+    rebind(L,.allType(.kVar(Nm),T),Env).
 
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,.constrainedType(Tp,Cx)).
@@ -377,6 +377,7 @@ star.compiler.typeparse{
   pickTypeTemplate(.allType(_,Tp)) => pickTypeTemplate(Tp).
   pickTypeTemplate(.existType(_,Tp)) => pickTypeTemplate(Tp).
   pickTypeTemplate(.constrainedType(Hd,_)) => pickTypeTemplate(Hd).
+  pickTypeTemplate(.kVar(Nm)) => .kVar(Nm).
   pickTypeTemplate(.nomnal(Hd)) => .nomnal(Hd).
   pickTypeTemplate(.tpFun(Nm,Ar)) => .tpFun(Nm,Ar).
   pickTypeTemplate(.kFun(Nm,Ar)) => .kFun(Nm,Ar).
@@ -446,7 +447,7 @@ star.compiler.typeparse{
   parseHeadArgs:(tipes,cons[ast],cons[tipe],dict) => cons[tipe].
   parseHeadArgs(Q,[],ArgTps,_) => reverse(ArgTps).
   parseHeadArgs(Q,[A,..As],Args,Env) where (_,Nm) ?= isName(A) =>
-    parseHeadArgs(Q,As,[.nomnal(Nm),..Args],Env).
+    parseHeadArgs(Q,As,[.kVar(Nm),..Args],Env).
   parseHeadArgs(Q,[A,.._],_,_) => valof{
     reportError("invalid argument in type: $(A)",locOf(A));
     valis []
@@ -478,32 +479,31 @@ star.compiler.typeparse{
   public parseContract:(ast,dict,string) => (cons[canonDef],cons[decl]).
   parseContract(St,Env,Path) where (Lc,Lhs,Els) ?= isContractStmt(St) &&
       (_,Q,C,Id,As,Ds) ?= isContractSpec(Lhs) => valof{
-	Qv = parseBoundTpVars(Q);
+    Qv = parseBoundTpVars(Q);
 
-	Cx = parseConstraints(C,Qv,Env);
-	ArgTps = parseHeadArgs(Qv,As,[],Env);
-	DepTps = parseHeadArgs(Qv,Ds,[],Env);
-	(Flds,Tps) = parseTypeFields(Qv,Els,[],[],Env);
-	Face = .faceType(sort(Flds,cmpField),Tps);
-	FullNm = qualifiedName(Path,.typeMark,Id);
-
-	ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
-	ConDec = .conDec(Lc,Id,FullNm,ConRl);
-
-	DlId = dlrName(Id);
-	DlTp = makeTpExp(FullNm,ArgTps++DepTps);
-	
-	TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
-	TpeDec = .tpeDec(Lc,Id,.tpFun(FullNm,[|ArgTps|]+[|DepTps|]),TypeRl);
-
-	ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
-
-	ConFullNm = qualifiedName(Path,.typeMark,DlId);
-	ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
-	
-	(ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Env,Path);
-	valis ([.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs],
-	  [TpeDec,ConDec,ConCns,..AccDecs])
+    Cx = parseConstraints(C,Qv,Env);
+    ArgTps = parseHeadArgs(Qv,As,[],Env);
+    DepTps = parseHeadArgs(Qv,Ds,[],Env);
+    (Flds,Tps) = parseTypeFields(Qv,Els,[],[],Env);
+    Face = .faceType(sort(Flds,cmpField),Tps);
+    FullNm = qualifiedName(Path,.typeMark,Id);
+    
+    ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
+    ConDec = .conDec(Lc,Id,FullNm,ConRl);
+    
+    DlId = dlrName(Id);
+    DlTp = makeTpExp(FullNm,ArgTps++DepTps);
+    
+    TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
+    TpeDec = .tpeDec(Lc,Id,.tpFun(FullNm,[|ArgTps|]+[|DepTps|]),TypeRl);
+    
+    ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
+    
+    ConFullNm = qualifiedName(Path,.typeMark,DlId);
+    ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
+    
+    (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Env,Path);
+    valis ([.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs], [TpeDec,ConDec,ConCns,..AccDecs])
       }.
   parseContract(St,_,_) => valof{
     reportError("invalid contract definition $(St)",locOf(St));
@@ -551,6 +551,8 @@ star.compiler.typeparse{
     (F2,T2,C2) = algebraicFace(R,Qs,Fs,Ts,Env,Path);
     valis (combineTypes(F1,F2,Env,Lc),combineTypeRules(T1,T2,Env,Lc),C1++C2)
   }
+  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (Lc,R) ?= isUnary(A,"|") => 
+    algebraicFace(R,Qs,Fs,Ts,Env,Path).
   algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
     ([],[],[(Id,A)]).
   algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Id) ?= isEnumSymb(A) => ([],[],[(Id,A)]).
@@ -626,6 +628,8 @@ star.compiler.typeparse{
     (Dfr,Dcr) = buildConstructors(R,Mp,Qs,Cx,Tp,Env,Path);
     valis (Dfl++Dfr,Dcl++Dcr)
   }
+  buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,R) ?= isUnary(A,"|") =>
+    buildConstructors(R,Mp,Qs,Cx,Tp,Env,Path).
   buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) =>
     buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path).
 
@@ -709,6 +713,8 @@ star.compiler.typeparse{
     accessorEqns:(ast,string,tipe,cons[rule[canon]]) => cons[rule[canon]].
     accessorEqns(TB,Fld,FldTp,SoFar) where (_,L,R)?=isBinary(TB,"|") =>
       accessorEqns(R,Fld,FldTp,accessorEqns(L,Fld,FldTp,SoFar)).
+    accessorEqns(TB,Fld,FldTp,SoFar) where (_,R)?=isUnary(TB,"|") =>
+      accessorEqns(R,Fld,FldTp,SoFar).
     accessorEqns(TB,Fld,FldTp,SoFar) where (Lc,CN,Els)?=isBrTerm(TB) && (_,CnNm)?=isName(CN) && isFieldOfFc(Els,Fld) => valof{
       Sorted = sort(Els,compEls);
       XX = .vr(Lc,"X",FldTp);
@@ -749,6 +755,8 @@ star.compiler.typeparse{
     updaterEqns:(ast,string,tipe,cons[rule[canon]]) => cons[rule[canon]].
     updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,L,R)?=isBinary(TB,"|") =>
       updaterEqns(R,Fld,FldTp,updaterEqns(L,Fld,FldTp,SoFar)).
+    updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,R)?=isUnary(TB,"|") =>
+      updaterEqns(R,Fld,FldTp,SoFar).
     updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,CN,Els)?=isBrTerm(TB) && (_,CnNm)?=isName(CN) && isFieldOfFc(Els,Fld) => valof{
       Sorted = sort(Els,compEls);
       XX = .vr(Lc,"X",FldTp);
