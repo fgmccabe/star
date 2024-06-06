@@ -98,6 +98,10 @@ macroAlgebraic(B,Bx) :-
   macroAlgebraic(L,Lx),
   macroAlgebraic(R,Rx),
   binary(Lc,"|",Lx,Rx,Bx).
+macroAlgebraic(B,Bx) :-
+  isUnary(B,Lc,"|",R),!,
+  macroAlgebraic(R,Rx),
+  unary(Lc,"|",Rx,Bx).
 macroAlgebraic(B,B) :-
   isEnum(B,_,N),isIden(N,_,_),!.
 macroAlgebraic(B,Bx) :-
