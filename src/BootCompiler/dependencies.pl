@@ -99,6 +99,9 @@ collectConstructorRefs(Body,All,Rf,Refs) :-
   isBinary(Body,_,"|",L,R),!,
   collectConstructorRefs(L,All,Rf,Rf0),
   collectConstructorRefs(R,All,Rf0,Refs).
+collectConstructorRefs(Body,All,Rf,Refs) :-
+  isUnary(Body,_,"|",R),!,
+  collectConstructorRefs(R,All,Rf,Refs).
 collectConstructorRefs(Body,_,Refs,Refs) :-
   isIden(Body,_,_),!.
 collectConstructorRefs(Body,_,Refs,Refs) :-

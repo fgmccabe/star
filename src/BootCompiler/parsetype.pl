@@ -582,6 +582,9 @@ algebraicFace(C,Q,Qx,F) :-
   algebraicFace(L,Q,Q0,F0),
   algebraicFace(R,Q0,Qx,F1),
   combineFaces(F0,F1,F).
+algebraicFace(C,Q,Qx,F) :-
+  isUnary(C,_,"|",R),!,
+  algebraicFace(R,Q,Qx,F).
 algebraicFace(C,Q,Q,E) :-
   isIden(C,Lc,_),
   braceTuple(Lc,[],E).
@@ -605,7 +608,7 @@ algebraicFace(C,Q,Qx,Face) :-
   algebraicFace(I,Q,Qx,Face).
 algebraicFace(T,Q,Q,[]) :-
   locOfAst(T,Lc),
-  reportError("invalid form form of algebraic type definition, %s",[ast(T)],Lc).
+  reportError("invalid form of algebraic type definition, %s",[ast(T)],Lc).
 
 combineFaces(F0,F,F) :-
   isEmptyBrace(F0).

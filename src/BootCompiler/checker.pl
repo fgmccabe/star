@@ -138,6 +138,9 @@ collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
   isBinary(C,_,"|",L,R),!,
   collectConstructors(L,Quants,Constraints,Tp,Defs,Df0,P,P0,A,A0,Export),
   collectConstructors(R,Quants,Constraints,Tp,Df0,Dfx,P0,Px,A0,Ax,Export).
+collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
+  isUnary(C,_,"|",R),!,
+  collectConstructors(R,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export).
 collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
 		    P,Px,Ax,Ax,Export) :-
   isIden(C,Lc,Enm),!,
