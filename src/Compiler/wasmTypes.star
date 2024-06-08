@@ -3,36 +3,47 @@ star.compiler.wasm.types{
 
   public typeIndex ~> string.
 
-  public wasmTypeDefn ::= .subTp(string,boolean,cons[string],heap_type).
+  public recType ::= .recType(cons[wTypeDef]).
 
+  public wTypeDef ::= .wTypeDef(typeIndex,finality,cons[heap_type],compType).
+
+  public finality ::= .final | .notFinal.
+
+  public compType ::=
+  | .Func(cons[value_type],cons[value_type])
+  | .Stack(cons[value_type],value_type)
+  | .Struct(cons[field_type])
+  | .Array(field_type).
+  
   public value_type ::=
-    | .NumType(num_type)
-    | .VecType(vec_type)
-    | .RefType(typeIndex)
-    | .RefNulType(typeIndex).
+  | .NumType(num_type)
+  | .VecType(vec_type)
+  | .RefType(ref_type).
+
+  public field_type ::=
+  | .fldTp(mutability,value_type)
+  | .pkdFld(mutability,packed_type).
+
+  public mutability ::= .const | .mutable.
+  
+  public packed_type ::= .i8 | .i16.
+  
+  public ref_type ~> (nullability,heap_type).
 
   public heap_type ::=
-    .FuncTp(cons[value_type],cons[value_type]) |
+    .FuncTp |
     .NoFuncTp |
-    .StackTp(cons[value_type],value_type) |
+    .StackTp |
     .NoStackTp |
-    .StructTp(cons[(string,field_type)]) |
-    .ArrayTp(field_type) |
+    .StructTp |
+    .ArrayTp |
     .ExternTp |
     .NoExternTp |
     .i31RefTp |
     .EqTp |
     .AnyTp |
-    .NoneTp.
-
-  public ref_type ~> (nullability,heap_type).
-
-  public field_type ::= .fldTp(mutability,value_type) |
-  .pkdFld(mutability,packed_type).
-
-  public packed_type ::= .i8 | .i16.
-
-  public mutability ::= .const | .mutable.
+    .NoneTp |
+    .NamedTp(typeIndex).
 
   public nullability ::= .nullable | .nonnull.
 
@@ -43,11 +54,43 @@ star.compiler.wasm.types{
 
   public vec_type ::= .V128Type.
 
+  -- Standard abbreviations
+
+  public eqref = .RefType((.nullable,.EqTp)).
+  public neqref = .RefType((.nonnull,.EqTp)).
+  public i31ref = .RefType((.nullable,.i31RefTp)).
+  public nullref = .RefType((.nullable,.NoneTp)).
+  public funcref = .RefType((.nullable,.FuncTp)).
+  public stackref = .RefType((.nullable,.StackTp)).
+
+  public i32Type = .NumType(.IntType(.I32Type)).
+  public i64Type = .NumType(.IntType(.I64Type)).
+
+  public eqRefIndex = "eqref".
+
+  public implementation display[recType] => {
+    disp(.recType([])) => "".
+    disp(.recType([D])) => disp(D).
+    disp(.recType(L)) => "(rec #(interleave(L//disp,"\n  ")*) )".
+  }
+
+  public implementation display[wTypeDef] => {
+    disp(.wTypeDef(Nm,Fi,Sups,Def)) => "(type \$$(Nm) $(Fi) #(showSups(Sups)) $(Def))"
+  }
+
+  public implementation display[finality] => {
+    disp(.final) => "final".
+    disp(.notFinal) => ""
+  }
+
+  showSups([]) => "".
+  showSups(L) => "(sub #(interleave(L//disp," ")*))".
+
   public implementation display[value_type] => {
     disp(.NumType(IT)) => disp(IT).
     disp(.VecType(IT)) => disp(IT).
-    disp(.RefType(RT)) => "(ref $(RT))".
-    disp(.RefNulType(RT)) => "(ref null $(RT))".
+    disp(.RefType((.nullable,RT))) => "(ref null $(RT))".
+    disp(.RefType((.nonnull,RT))) => "(ref $(RT))".
   }
 
   public implementation display[num_type] => {
@@ -70,18 +113,31 @@ star.compiler.wasm.types{
   }
 
   public implementation display[heap_type] => {
-    disp(.FuncTp(Args,Res)) => "(func (param #((Args//(A)=>disp(A))*)) (result #((Res//(A)=>disp(A))*)))".
-    disp(.StackTp(Args,Res)) => "(stack (param #((Args//(A)=>disp(A))*)) $(Res))".
-    disp(.StructTp(Flds)) => "(struct #((Flds//((Nm,Tp))=> "(field \$#(Nm) $(Tp))")*))".
-    disp(.ArrayTp(ATp)) => "(array $(ATp))".
+    disp(.FuncTp) => "func".
+    disp(.NoFuncTp) => "nofunc".
+    disp(.StackTp) => "stack".
+    disp(.NoStackTp) => "nostack".
+    disp(.StructTp) => "struct".
+    disp(.ArrayTp) => "array".
     disp(.ExternTp) => "extern".
+    disp(.NoExternTp) => "noextern".
     disp(.i31RefTp) => "i31ref".
-    disp(.AnyTp) => "any"
+    disp(.EqTp) => "eq".
+    disp(.AnyTp) => "any".
+    disp(.NoneTp) => "none".
+    disp(.NamedTp(Nm)) => "\$$(Nm)".
+  }
+
+  public implementation display[compType] => {
+    disp(.Func(A,R)) => "(func #((A//(a)=>"(param $(a))")*) (result $(R)))".
+    disp(.Stack(A,R)) => "(stack #((A//(a)=>"(param $(a))")*) (result $(R)))".
+    disp(.Struct(A)) => "(struct #((A//disp)*))".
+    disp(.Array(A)) => "(array $(A))".
   }
 
   public implementation display[field_type] => {
     disp(.fldTp(M,T)) => "(field #(M==.const??""||"mutable") $(T))".
-    disp(.pkdFld(M,T)) => "(field #(M==.const??""||"mutable") $(T))".
+    disp(.pkdFld(M,T)) => "(packed field #(M==.const??""||"mutable") $(T))".
   }
   
   public implementation display[packed_type] => {
@@ -94,13 +150,19 @@ star.compiler.wasm.types{
     disp(.nonnull) => "".
   }
 
+  public implementation equality[nullability] => {
+    .nullable==.nullable => .true.
+    .nonnull==.nonnull => .true.
+    _ == _ default => .true
+  }
+
   public implementation equality[heap_type] => {
-    .FuncTp(A1,R1) == .FuncTp(A2,R2) => A1==A2 && R1==R2.
+    .FuncTp == .FuncTp => .true.
     .NoFuncTp == .NoFuncTp => .true.
-    .StackTp(A1,R1) == .StackTp(A2,R2) => A1==A2 && R1==R2.
+    .StackTp == .StackTp => .true.
     .NoStackTp == .NoStackTp => .true.
-    .StructTp(F1) == .StructTp(F2) => F1==F2.
-    .ArrayTp(A1) == .ArrayTp(A2) => A1==A2.
+    .StructTp == .StructTp => .true.
+    .ArrayTp == .ArrayTp => .true.
     .ExternTp == .ExternTp => .true.
     .NoExternTp == .NoExternTp => .true.
     .i31RefTp == .i31RefTp => .true.
@@ -114,7 +176,6 @@ star.compiler.wasm.types{
     .NumType(N1) == .NumType(N2) => N1==N2.
     .VecType(V1) == .VecType(V2) => V1==V2.
     .RefType(R1) == .RefType(R2) => R1==R2.
-    .RefNulType(R1) == .RefNulType(R2) => R1==R2.
     _ == _ default => .false.
   }
 
@@ -158,10 +219,4 @@ star.compiler.wasm.types{
     .pkdFld(M1,V1) == .pkdFld(M2,V2) => M1==M2 && V1==V2.
     _ == _ default => .false.
   }    
-  
-  public implementation equality[mutability] => {
-    .const == .const => .true.
-    .mutable == .mutable => .true.
-    _ == _ default => .false
-  }
 }

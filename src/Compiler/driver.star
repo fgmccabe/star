@@ -30,6 +30,8 @@ star.compiler{
   import star.compiler.types.
   import star.compiler.normalize.
   import star.compiler.data.
+  import star.compiler.wasm.types.
+  import star.compiler.wasm.gentypes.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
@@ -141,9 +143,10 @@ star.compiler{
 	      (Imported,Merged) = mergePkgs(
 		PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
 		,.some(pkgLoc(P)),Repo,[P],Inlined);
+	      tpMap = buildWasmTypeMap(Merged);
 	      if traceWasm! then{
-		showMsg("all type defs: $(Merged^/isTypeDef)");
-	      }
+		showMsg("wasm type map: $(tpMap)");
+	      };
 	    };
 	    if errorFree() && genCode! then{
 	      Segs = compProg(P,Inlined,AllDecls);

@@ -486,8 +486,6 @@ star.compiler.types{
   extendTplType(Es,.none) => Es.
   extendTplType(Es,.some(E)) => [typeOf(E),..Es].
 
-
-
   public funTypeRes(Tp) => funRes(deRef(Tp)).
 
   funRes(.tpExp(O,R)) where .tpExp(O2,_) .= deRef(O) &&
