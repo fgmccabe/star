@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(star)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers")
 add_subdirectory("EngineTests")
