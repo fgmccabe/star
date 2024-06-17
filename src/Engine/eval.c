@@ -93,15 +93,10 @@ retCode run(processPo P) {
       restoreRegisters();
     }
 
-    evalLoop:
-
     switch ((OpCode) (*PC++)) {
       case Halt: {
         int32 exitCode = collectI32(PC);
 
-        if (insDebugging || lineDebugging) {
-          logMsg(logFile, "Halt %d", exitCode);
-        }
         return (retCode) exitCode;
       }
       case Nop: {
