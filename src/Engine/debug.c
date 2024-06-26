@@ -1013,9 +1013,9 @@ retCode showGlb(ioPo out, globalPo glb) {
 void showTos(ioPo out, stackPo stk, integer offset) {
   if (stk != Null) {
     if (offset == 0)
-      outMsg(out, " tos{0x%x} = %#,*T", stk->sp, displayDepth, peekStack(stk, offset));
+      outMsg(out, " tos = %#,*T", displayDepth, peekStack(stk, 0));
     else
-      outMsg(out, " tos{0x%x}[%d] = %#,*T", stk->sp, offset, displayDepth, peekStack(stk, offset));
+      outMsg(out, " tos[%d] = %#,*T", offset, displayDepth, peekStack(stk, offset));
   } else
     outMsg(out, " tos");
 }
@@ -1070,8 +1070,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #undef instruction
 
 #define show_nOp
-#define show_tOs showTos(out,stk,0)
-#define show_tO1 showTos(out,stk,1)
+#define show_tOs showTos(out,stk,delta++)
 #define show_art showTopOfStack(out,stk,collectI32(pc))
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_lBs outMsg(out," #%d",collectI32(pc))
@@ -1089,12 +1088,13 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_tPe showFrame(out,stk,mtd,collectI32(pc))
 
 #define instruction(Op, A1, A2, Dl, Cmt)    \
-    case Op:                                \
+    case Op:{                               \
       outMsg(out," %s",#Op);                \
+      integer delta=0;                      \
       show_##A1;                            \
       show_##A2;                            \
-      return pc;
-
+      return pc;                            \
+    }
 #include "instructions.h"
 
     default:

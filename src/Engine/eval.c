@@ -40,7 +40,6 @@ integer insCounts[illegalOp];
 
 #define pop() (*SP++)
 #define top() (*SP)
-#define peek(Ix) (SP[Ix])
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
 #define local(off) (CSP[-off])
 #define arg(off) (CSP[off])
@@ -82,8 +81,9 @@ retCode run(processPo P) {
   currentProcess = P;
 
   for (;;) {
+    pcCount++;        /* increment total number of executed */
+
     if (collectStats) {
-      pcCount++;        /* increment total number of executed */
       insCounts[*PC]++;
     }
 

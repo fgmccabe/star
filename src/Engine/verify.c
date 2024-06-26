@@ -8,6 +8,7 @@
 #include "verifyP.h"
 #include "topSort.h"
 #include "ltype.h"
+#include "arith.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 logical traceVerify = False;      // true if tracing code verification
@@ -271,7 +272,6 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
-    case tO1:
       return Ok;
     case i32:          /* 32 bit literal operand */
     case art:          // Arity
@@ -468,7 +468,6 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
-    case tO1:
       return Ok;
     case i32:          /* 32 bit literal operand */
     case art:          // Arity
@@ -592,7 +591,6 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
   switch (A) {
     case nOp:                                   // No operand
     case tOs:
-    case tO1:
       return Ok;
     case art:
     case i32: {                     /* 32 bit literal operand */
@@ -787,6 +785,10 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         } else {
           seg->seg.stackDepth -= escapeArity(esc);
         }
+        if (base[iPc] != Frame) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a frame instruction after escape: %d" RED_ESC_OFF, iPc);
+          return Error;
+        }
         break;
       }
       case Rst: {
@@ -817,6 +819,11 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
           strMsg(errorMsg, msgLen, RED_ESC_ON "not enough (%d) elements to allocate @ %d" RED_ESC_OFF, arity, oPc);
         }
         seg->seg.stackDepth -= arity;
+
+        if (base[iPc] != Frame) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a frame instruction after alloc: %d" RED_ESC_OFF, iPc);
+          return Error;
+        }
         break;
       }
       case Unpack: {
@@ -840,6 +847,29 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
           return Error;
         } else
           return mergeSegVars(seg, alt);
+      }
+
+      case Frame: {
+        int litNo = collect32(base, &iPc);
+        if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
+          return Error;
+        }
+        termPo frameLit = getMtdLit(seg->seg.mtd, litNo);
+        integer stackDepth = 0;
+        if (isString(frameLit)) {
+          integer sigLen;
+          const char *sig = strVal(frameLit, &sigLen);
+          tryRet(typeSigArity(sig, sigLen, &stackDepth));
+        } else if (isInteger(frameLit))
+          stackDepth = integerVal(frameLit);
+
+        if (seg->seg.stackDepth != stackDepth) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "stack depth %d does not match Frame instruction %d: @ %d" RED_ESC_OFF,
+                 seg->seg.stackDepth, stackDepth, oPc);
+          return Error;
+        }
+        return Ok;
       }
 
       case Cmp:

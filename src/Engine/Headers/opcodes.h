@@ -22,7 +22,6 @@ typedef enum {
 typedef enum {
   nOp,                                   // No operand
   tOs,          // top of stack
-  tO1,          // Next entry in stack
   i32,         /* 32 bit literal operand */
   art,          /* Arity */
   arg,          /* argument variable offset */
