@@ -19,28 +19,27 @@ star.compiler.typeparse{
   tipes ~> cons[(string,tipe)].
   rules ~> cons[(string,typeRule)].
 
-  public parseType:(tipes,ast,dict) => tipe.
-
-  parseType(Q,Tp,Env) where (Lc,V,BT) ?= isQuantified(Tp) => valof{
+  public parseType:(ast,dict) => tipe.
+  parseType(Tp,Env) where (Lc,V,BT) ?= isQuantified(Tp) => valof{
     BV = parseBoundTpVars(V);
-    In = parseType(Q++BV,BT,Env);
+    QEnv = declareTypeVars(BV,Env);
+    In = parseType(BT,QEnv);
     valis reQ(BV,In)
   }
-  parseType(Q,Tp,Env) where (Lc,V,BT) ?= isXQuantified(Tp) => valof{
+  parseType(Tp,Env) where (Lc,V,BT) ?= isXQuantified(Tp) => valof{
     BV = parseBoundTpVars(V);
-    In = parseType(Q++BV,BT,Env);
+    QEnv = declareTypeVars(BV,Env);
+    In = parseType(BT,QEnv);
     valis reQX(BV,In)
   }
-  parseType(Q,Tp,Env) where (Lc,C,B) ?= isConstrained(Tp) => valof{
-    Cx = parseConstraints(C,Q,Env);
-    Inn = parseType(Q,B,Env);
+  parseType(Tp,Env) where (Lc,C,B) ?= isConstrained(Tp) => valof{
+    Cx = parseConstraints(C,Env);
+    Inn = parseType(B,Env);
     valis wrapConstraints(Cx,Inn)
   }
-  parseType(Q,Tp,Env) where (Lc,Nm) ?= isName(Tp) => valof{
+  parseType(Tp,Env) where (Lc,Nm) ?= isName(Tp) => valof{
     if Nm=="_" then
       valis newTypeVar("_")
-    else if VTp ?= {! VTp | (Nm,VTp) in Q !} then
-      valis VTp
     else if (_,T,TpRl,_) ?= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
 	(_,.typeLambda(_,Rhs)) = freshen(TpRl,Env);
@@ -54,9 +53,9 @@ star.compiler.typeparse{
       valis .voidType
     }
   }
-  parseType(Q,Tp,Env) where (Lc,O,Args) ?= isSquareTerm(Tp) && (OLc,Nm)?=isName(O) => valof{
-    ArgTps = parseTypes(Q,Args,Env);
-    (Op,Rl) = parseTypeName(Q,OLc,Nm,Env);
+  parseType(Tp,Env) where (Lc,O,Args) ?= isSquareTerm(Tp) && (OLc,Nm)?=isName(O) => valof{
+    ArgTps = parseTypes(Args,Env);
+    (Op,Rl) = parseTypeName(OLc,Nm,Env);
     if TpRl ?= Rl then{
       if (_,FrshRl) .= freshen(TpRl,Env) && (_,OOp) .= freshen(Op,Env) then{
 	valis applyTypeRule(Lc,FrshRl,doTypeFun(OOp,ArgTps),Env)
@@ -74,40 +73,39 @@ star.compiler.typeparse{
       }
     }
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isFunctionType(T) => valof{
-    A = parseArgType(Q,Lhs,Env);
-    R = parseType(Q,Rhs,Env);
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFunctionType(T) => valof{
+    A = parseArgType(Lhs,Env);
+    R = parseType(Rhs,Env);
     valis fnType(A,R)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
-    A = parseArgType(Q,Lhs,Env);
-    R = parseType(Q,Rhs,Env);
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
+    A = parseArgType(Lhs,Env);
+    R = parseType(Rhs,Env);
     valis consType(A,R)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
-    R = parseType(Q,Lhs,Env);
-    S = parseType(Q,Rhs,Env);
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
+    R = parseType(Lhs,Env);
+    S = parseType(Rhs,Env);
     valis fiberType(R,S)
   }
-  
-  parseType(Q,T,Env) where (Lc,Rhs) ?= isRef(T) =>
-    refType(parseType(Q,Rhs,Env)).
-  parseType(Q,T,Env) where (Lc,[A]) ?= isTuple(T) => valof{
+  parseType(T,Env) where (Lc,Rhs) ?= isRef(T) =>
+    refType(parseType(Rhs,Env)).
+  parseType(T,Env) where (Lc,[A]) ?= isTuple(T) => valof{
     if (_,As) ?= isTuple(A) then{
-      ArgTps = parseTypes(Q,As,Env);
+      ArgTps = parseTypes(As,Env);
       valis .tupleType(ArgTps)
     } else
-    valis parseType(Q,A,Env)
+    valis parseType(A,Env)
   }
-  parseType(Q,T,Env) where (_,As) ?= isTuple(T) => valof{
-    ArgTps = parseTypes(Q,As,Env);
+  parseType(T,Env) where (_,As) ?= isTuple(T) => valof{
+    ArgTps = parseTypes(As,Env);
     valis .tupleType(ArgTps)
   }
-  parseType(Q,T,Env) where (Lc,A) ?= isBrTuple(T) => valof{
-    (Flds,Tps) = parseTypeFields(Q,A,[],[],Env);
+  parseType(T,Env) where (Lc,A) ?= isBrTuple(T) => valof{
+    (Flds,Tps) = parseTypeFields(A,[],[],Env);
     valis .faceType(Flds,Tps)
   }
-  parseType(Q,T,Env) where (Lc,Lhs,Fld) ?= isFieldAcc(T) => valof{
+  parseType(T,Env) where (Lc,Lhs,Fld) ?= isFieldAcc(T) => valof{
     if traceCanon! then
       showMsg("field access: $(T)");
     if (_,Id) ?= isName(Lhs) then{
@@ -143,31 +141,31 @@ star.compiler.typeparse{
       valis .voidType
     }
   }
-  parseType(Q,T,Env) where (Lc,Op,[L,R]) ?= isRoundTerm(T) =>
-    parseType(Q,squareTerm(Lc,Op,[L,R]),Env).
-  parseType(Q,T,Env) default => valof{
+  parseType(T,Env) where (Lc,Op,[L,R]) ?= isRoundTerm(T) =>
+    parseType(squareTerm(Lc,Op,[L,R]),Env).
+  parseType(T,Env) default => valof{
     reportError("cannot understand type $(T)",locOf(T));
     valis .voidType
   }
 
-  parseArgType(Q,A,Env) where (_,As) ?= isTuple(A) => valof{
-    Args = parseTypes(Q,As,Env);
+  parseArgType(A,Env) where (_,As) ?= isTuple(A) => valof{
+    Args = parseTypes(As,Env);
     valis .tupleType(Args)
   }
-  parseArgType(Q,A,Env) =>
-    parseType(Q,A,Env).
+  parseArgType(A,Env) =>
+    parseType(A,Env).
     
-  parseTypeArgs:(option[locn],tipes,cons[ast],dict) => (cons[tipe],cons[tipe]).
-  parseTypeArgs(_,Q,[XX],Env) where (_,As,Ds)?=isDepends(XX) => valof{
-    Lhs = parseTypes(Q,As,Env);
-    Rhs = parseTypes(Q,Ds,Env);
+  parseTypeArgs:(option[locn],cons[ast],dict) => (cons[tipe],cons[tipe]).
+  parseTypeArgs(_,[XX],Env) where (_,As,Ds)?=isDepends(XX) => valof{
+    Lhs = parseTypes(As,Env);
+    Rhs = parseTypes(Ds,Env);
     valis (Lhs,Rhs)
   }.
-  parseTypeArgs(_,Q,As,Env) => valof{
-    ATps = parseTypes(Q,As,Env);
+  parseTypeArgs(_,As,Env) => valof{
+    ATps = parseTypes(As,Env);
     valis (ATps,[])
   }
-  parseTypeArgs(Lc,_,As,Env) => valof{
+  parseTypeArgs(Lc,As,Env) => valof{
     reportError("cannot parse argument types $(As)",Lc);
     valis ([],[])
   }.
@@ -188,83 +186,84 @@ star.compiler.typeparse{
     doTypeFun(.tpExp(Op,A),As).
   doTypeFun(Tp,[]) => Tp.
 
-  parseTypeFields:(tipes,cons[ast],tipes,rules,dict) => (tipes,rules).
-  parseTypeFields(Q,[],Flds,Tps,_) => (Flds,Tps).
-  parseTypeFields(Q,[A,..L],Flds,Tps,Env) where _ ?= isAnnotation(A) =>
-    parseTypeFields(Q,L,Flds,Tps,Env).
-  parseTypeFields(Q,[A,..L],Flds,Tps,Env) => valof{
-    (FF,TT) = parseTypeField(Q,A,Flds,Tps,Env);
-    valis parseTypeFields(Q,L,FF,TT,Env)
+  parseTypeFields:(cons[ast],tipes,rules,dict) => (tipes,rules).
+  parseTypeFields([],Flds,Tps,_) => (Flds,Tps).
+  parseTypeFields([A,..L],Flds,Tps,Env) where _ ?= isAnnotation(A) =>
+    parseTypeFields(L,Flds,Tps,Env).
+  parseTypeFields([A,..L],Flds,Tps,Env) => valof{
+    (FF,TT) = parseTypeField(A,Flds,Tps,Env);
+    valis parseTypeFields(L,FF,TT,Env)
   }
 
-  parseTypeField:(tipes,ast,tipes,rules,dict) => (tipes,rules).
-  parseTypeField(Q,F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeAnnotation(F) => valof{
+  parseTypeField:(ast,tipes,rules,dict) => (tipes,rules).
+  parseTypeField(F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeAnnotation(F) => valof{
     if (ILc,Nm) ?= isName(Lhs) then {
-      FTp=parseType(Q,Rhs,Env);
+      FTp=parseType(Rhs,Env);
       valis ([(Nm,FTp),..Flds],Tps)
     } else{
       reportError("invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs));
       valis ([],[])
     }
   }
-  parseTypeField(Q,F,Flds,Tps,Env) where Rl ?= parseTypeFun(F,Q,Env) =>
+  parseTypeField(F,Flds,Tps,Env) where Rl ?= parseTypeFun(F,Env) =>
     (Flds,[(tpRuleName(Rl),Rl),..Tps]).
-  parseTypeField(Q,F,Flds,Tps,Env) => valof{
+  parseTypeField(F,Flds,Tps,Env) => valof{
     reportError("invalid type declaration -- $(F)",locOf(F));
     valis ([],[])
   }.
 
-  parseTypeFun(St,Q,Env) where (Lc,H,B) ?= isTypeLambda(St) => valof{
+  parseTypeFun(St,Env) where (Lc,H,B) ?= isTypeLambda(St) => valof{
     if traceCanon! then{
       showMsg("parse type fun $(St)")
     };
     
-    (Tp,_) = parseTypeHead(Q,H,Env,id);
+    (Tp,_) = parseTypeHead(H,Env,id);
 
     if traceCanon! then{
-      showMsg("parse type $(B) in $(Q)")
+      showMsg("parse type $(B)")
     };
     
-    RTp = parseType(Q,B,Env);
+    RTp = parseType(B,Env);
     
     valis .some(.typeLambda(Tp,RTp))
   }
-  parseTypeFun(St,Q,Env) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
+  parseTypeFun(St,Env) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
     if traceCanon! then{
       showMsg("parse type exists $(St)")
     };
 
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,id);
-    Cx = parseConstraints(C,Q,Env);
-    Fce = parseType(Q,B,declareType(tpName(Tp),Lc,Tp,.typeExists(Tp,.faceType([],[])),Env));
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,_) = parseTypeHead(H,QEnv,id);
+    Cx = parseConstraints(C,Env);
+    Fce = parseType(B,declareType(tpName(Tp),Lc,Tp,.typeExists(Tp,.faceType([],[])),QEnv));
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),Fce),Q);
     valis .some(TpRl)
   }
-  parseTypeFun(St,Q,Env) where (Lc,V,B) ?= isQuantified(St) => valof{
-    QQ = parseBoundTpVars(V);
+  parseTypeFun(St,Env) where (Lc,V,B) ?= isQuantified(St) => valof{
+    Q = parseBoundTpVars(V);
+    QEnv = declareTypeVars(Q,Env);
 
-    if Tp ?= parseTypeFun(B,QQ++Q,Env) then{
-      TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),Tp,QQ);
+    if Tp ?= parseTypeFun(B,QEnv) then{
+      TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),Tp,Q);
       valis .some(TpRl)
     } else
     valis .none
   }
   
-  parseTypeFun(St,_,_) default => valof{
+  parseTypeFun(St,_) default => valof{
     reportError("cant parse $(St)",locOf(St));
     valis .none
   }
   
-  parseTypeName(_,_,"_",_) => (.anonType,.none).
-  parseTypeName(Q,_,Nm,_) where Tp?={! T | (Nm,T) in Q !} => (Tp,.none).
-  parseTypeName(Q,_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
+  parseTypeName(_,"_",_) => (.anonType,.none).
+  parseTypeName(_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
     if isLambdaRule(TpRl) then 
       valis (T,.some(TpRl))
     else
     valis (T,.none)
   }
-  parseTypeName(_,Lc,Nm,Env) => valof{
+  parseTypeName(Lc,Nm,Env) => valof{
     reportError("type $(Nm) not declared",Lc);
     valis (.voidType,.none)
   }
@@ -287,17 +286,17 @@ star.compiler.typeparse{
     valis ("",.voidType)
   }
 
-  public parseConstraints:(cons[ast],tipes,dict)=>cons[constraint].
-  parseConstraints([],_,_) => [].
-  parseConstraints([A,..As],Q,Env) => valof{
-    Cn = parseConstraint(A,Q,Env);
-    Cx = parseConstraints(As,Q,Env);
+  public parseConstraints:(cons[ast],dict)=>cons[constraint].
+  parseConstraints([],_) => [].
+  parseConstraints([A,..As],Env) => valof{
+    Cn = parseConstraint(A,Env);
+    Cx = parseConstraints(As,Env);
     valis [Cn,..Cx]
   }
 
-  parseConstraint(A,Q,Env) where (Lc,Lh,Rh) ?= isBinary(A,"<~") => valof{
-    Bnd = parseType(Q,Lh,Env);
-    Face = parseType(Q,Rh,Env);
+  parseConstraint(A,Env) where (Lc,Lh,Rh) ?= isBinary(A,"<~") => valof{
+    Bnd = parseType(Lh,Env);
+    Face = parseType(Rh,Env);
     if .faceType([(Fld,FTp)],_).=deRef(Face) then
       valis .hasField(Bnd,Fld,FTp)
     else{
@@ -305,15 +304,15 @@ star.compiler.typeparse{
       valis .hasField(.voidType,"",.voidType)
     }
   }
-  parseConstraint(A,Q,Env) where (Lc,Id,T) ?= isImplicit(A) => valof{
-    Tp = parseType(Q,T,Env);
+  parseConstraint(A,Env) where (Lc,Id,T) ?= isImplicit(A) => valof{
+    Tp = parseType(T,Env);
     valis .implicit(Id,Tp)
   }
-  parseConstraint(A,Q,Env) where (Lc,T) ?= isRaises(A) => valof{
-    Tp = parseType(Q,T,Env);
+  parseConstraint(A,Env) where (Lc,T) ?= isRaises(A) => valof{
+    Tp = parseType(T,Env);
     valis .raisEs(Tp)
   }
-  parseConstraint(A,Q,Env) => parseContractConstraint(Q,A,Env).
+  parseConstraint(A,Env) => parseContractConstraint(A,Env).
   
   public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
@@ -336,20 +335,20 @@ star.compiler.typeparse{
   reQX([(_,KV),..T],Tp) where occursIn(KV,Tp) => reQX(T,.existType(KV,Tp)).
   reQX([(_,KV),..T],Tp) => reQX(T,Tp).
 
-  public parseContractConstraint:(tipes,ast,dict) => constraint.
-  parseContractConstraint(Q,A,Env) where
+  public parseContractConstraint:(ast,dict) => constraint.
+  parseContractConstraint(A,Env) where
       (Lc,O,As) ?= isSquareTerm(A) && (OLc,Nm) ?= isName(O) => valof{
 	Cn = parseContractName(OLc,Nm,Env);
 	if [AAs].=As && (_,L,R) ?= isBinary(AAs,"->>") then{
-	  Tps = parseTypes(Q,deComma(L),Env);
-	  Dps = parseTypes(Q,deComma(R),Env);
+	  Tps = parseTypes(deComma(L),Env);
+	  Dps = parseTypes(deComma(R),Env);
 	  valis .conTract(Cn,Tps,Dps)
 	} else{
-	  Tps = parseTypes(Q,As,Env);
+	  Tps = parseTypes(As,Env);
 	  valis .conTract(Cn,Tps,[])
 	}
       }.
-  parseContractConstraint(_,A,Env) => valof{
+  parseContractConstraint(A,Env) => valof{
     reportError("$(A) is not a contract constraint",locOf(A));
     valis .conTract("",[],[])
   }.
@@ -365,11 +364,11 @@ star.compiler.typeparse{
     }
   }
 
-  parseTypes:(tipes,cons[ast],dict) => cons[tipe].
-  parseTypes(_,[],_) => [].
-  parseTypes(Q,[T,..L],Env) => valof{
-    Tl = parseType(Q,T,Env);
-    Tr = parseTypes(Q,L,Env);
+  parseTypes:(cons[ast],dict) => cons[tipe].
+  parseTypes([],_) => [].
+  parseTypes([T,..L],Env) => valof{
+    Tl = parseType(T,Env);
+    Tr = parseTypes(L,Env);
     valis [Tl,..Tr]
   }
 
@@ -386,18 +385,20 @@ star.compiler.typeparse{
   public parseTypeDef:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
-    Fce = parseType(Q,B,declareType(Nm,Lc,Tmplte,.typeExists(Tp,.faceType([],[])),Env));
+    Fce = parseType(B,declareType(Nm,Lc,Tmplte,.typeExists(Tp,.faceType([],[])),QEnv));
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),Fce),Q);
     valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl)])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
-    RTp = parseType(Q,B,Env);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
+    RTp = parseType(B,QEnv);
     
     Tmplte = pickTypeTemplate(Tp);
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeLambda(reConstrainType(Cx,Tp),RTp),Q);
@@ -414,77 +415,66 @@ star.compiler.typeparse{
   public parseTypeCore:(ast,dict,string) => option[(tipe,typeRule)].
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,TArgs) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,TArgs) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,_) ?= isAlgebraicTypeStmt(St) => valof{
     Q = parseBoundTpVars(V);
-    (Tp,TArgs) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,TArgs) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) default => .none.
 
-  parseTypeHead:(tipes,ast,dict,(string)=>string) => (tipe,cons[tipe]).
-  parseTypeHead(Q,Tp,Env,GenId) where (Lc,Nm) ?= isName(Tp) => 
+  parseTypeHead:(ast,dict,(string)=>string) => (tipe,cons[tipe]).
+  parseTypeHead(Tp,Env,GenId) where (Lc,Nm) ?= isName(Tp) => 
     (.nomnal(GenId(Nm)),[]).
-  parseTypeHead(Q,Tp,Env,GenId) where
+  parseTypeHead(Tp,Env,GenId) where
       (Lc,O,Args) ?= isSquareTerm(Tp) && (_,Nm) ?= isName(O) => valof{
-	ArgTps = parseHeadArgs(Q,Args,[],Env);
+	ArgTps = parseHeadArgs(Args,[],Env);
 	valis (mkTypeExp(.tpFun(GenId(Nm),size(ArgTps)),ArgTps),ArgTps)
       }.
 
-  parseHeadArgs:(tipes,cons[ast],cons[tipe],dict) => cons[tipe].
-  parseHeadArgs(Q,[],ArgTps,_) => reverse(ArgTps).
-  parseHeadArgs(Q,[A,..As],Args,Env) where (_,Nm) ?= isName(A) =>
-    parseHeadArgs(Q,As,[.kVar(Nm),..Args],Env).
-  parseHeadArgs(Q,[A,.._],_,_) => valof{
+  parseHeadArgs:(cons[ast],cons[tipe],dict) => cons[tipe].
+  parseHeadArgs([],ArgTps,_) => reverse(ArgTps).
+  parseHeadArgs([A,..As],Args,Env) where (_,Nm) ?= isName(A) =>
+    parseHeadArgs(As,[.kVar(Nm),..Args],Env).
+  parseHeadArgs([A,.._],_,_) => valof{
     reportError("invalid argument in type: $(A)",locOf(A));
     valis []
   }.
       
   public parseConstructor:(string,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseConstructor(Nm,St,Env,Path) => valof{
-    Tp = parseType([],St,Env);
+    Tp = parseType(St,Env);
     Lc = locOf(St);
     FullNm = qualifiedName(Path,.conMark,Nm);
     valis ([],[.cnsDec(Lc,Nm,FullNm,Tp)])
   }
 
-  parseContractHead:(tipes,ast,dict,string) => (string,cons[tipe],cons[tipe]).
-  parseContractHead(Q,Tp,Env,Path) where
-      (Lc,O,Args) ?= isSquareTerm(Tp) => valof{
-	ConTp = parseType(Q,hashName(O),Env);
-	if [A].=Args && (_,Lhs,Rhs)?=isBinary(A,"->>") then{
-	  ArgTps = parseHeadArgs(Q,deComma(Lhs),[],Env);
-	  DepTps = parseHeadArgs(Q,deComma(Rhs),[],Env);
-	  valis (tpName(ConTp),ArgTps,DepTps)
-	}
-	else{
-	  ArgTps = parseHeadArgs(Q,Args,[],Env);
-	  valis (tpName(ConTp),ArgTps,[])
-	}
-      }.
-
   public parseContract:(ast,dict,string) => (cons[canonDef],cons[decl]).
   parseContract(St,Env,Path) where (Lc,Lhs,Els) ?= isContractStmt(St) &&
       (_,Q,C,Id,As,Ds) ?= isContractSpec(Lhs) => valof{
     Qv = parseBoundTpVars(Q);
+    QEnv = declareTypeVars(Qv,Env);
 
-    Cx = parseConstraints(C,Qv,Env);
-    ArgTps = parseHeadArgs(Qv,As,[],Env);
-    DepTps = parseHeadArgs(Qv,Ds,[],Env);
-    (Flds,Tps) = parseTypeFields(Qv,Els,[],[],Env);
+    Cx = parseConstraints(C,QEnv);
+    ArgTps = parseHeadArgs(As,[],QEnv);
+    DepTps = parseHeadArgs(Ds,[],QEnv);
+    (Flds,Tps) = parseTypeFields(Els,[],[],QEnv);
     Face = .faceType(sort(Flds,cmpField),Tps);
     FullNm = qualifiedName(Path,.typeMark,Id);
     
@@ -502,7 +492,7 @@ star.compiler.typeparse{
     ConFullNm = qualifiedName(Path,.typeMark,DlId);
     ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
     
-    (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Env,Path);
+    (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Path);
     valis ([.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs], [TpeDec,ConDec,ConCns,..AccDecs])
       }.
   parseContract(St,_,_) => valof{
@@ -515,21 +505,32 @@ star.compiler.typeparse{
 
   public parseAlgebraicType:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseAlgebraicType(Lc,Nm,V,C,H,B,Env,Path) => valof{
+    if traceCanon! then
+      showMsg("parse algebraic type defn at $(Lc)");
+    
     Q = parseBoundTpVars(V);
-    (Tp,_) = parseTypeHead(Q,H,Env,(Nme)=>qualifiedName(Path,.typeMark,Nme));
-    Cx = parseConstraints(C,Q,Env);
+    if traceCanon! then
+      showMsg("bound vars $(Q)");
+    QEnv = declareTypeVars(Q,Env);
+
+    (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
 
-    (Fs,Ts,Cs) = parseAlgebraicFace(B,Q,Env,Path);
+    (Fs,Xs,Ts,Cs) = parseAlgebraicFace(B,QEnv,Path);
     
-    TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType(Fs,Ts)),Q);
+    TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),
+	foldLeft(((_,XV),F)=>.existType(XV,F),.faceType(Fs,Ts),Xs)),Q);
+
+    if traceCanon! then
+      showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
 
-    (CDefs,CDecs) = buildConstructors(B,CMap,Q,Cx,Tp,Env,Path);
-    (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Env,Path);
-    (UDefs,UDecs) = buildUpdaters(Fs,B,Q,Cx,Tp,Env,Path);
+    (CDefs,CDecs) = buildConstructors(B,CMap,Q,Cx,Tp,QEnv,Path);
+    (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Path);
+    (UDefs,UDecs) = buildUpdaters(Fs,B,Q,Cx,Tp,Path);
 
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
     TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
@@ -541,50 +542,52 @@ star.compiler.typeparse{
     valis ([],[])
   }
 
-  parseAlgebraicFace:(ast,tipes,dict,string)=>(tipes,rules,cons[(string,ast)]).
-  parseAlgebraicFace(A,Qs,Env,Path) => 
-    algebraicFace(A,Qs,[],[],Env,Path).
+  parseAlgebraicFace:(ast,dict,string)=>(tipes,tipes,rules,cons[(string,ast)]).
+  parseAlgebraicFace(A,Env,Path) => 
+    algebraicFace(A,[],[],Env,Path).
 
-  algebraicFace:(ast,tipes,tipes,rules,dict,string) => (tipes,rules,cons[(string,ast)]).
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
-    (F1,T1,C1) = algebraicFace(L,Qs,Fs,Ts,Env,Path);
-    (F2,T2,C2) = algebraicFace(R,Qs,Fs,Ts,Env,Path);
-    valis (combineTypes(F1,F2,Env,Lc),combineTypeRules(T1,T2,Env,Lc),C1++C2)
+  algebraicFace:(ast,tipes,rules,dict,string) => (tipes,tipes,rules,cons[(string,ast)]).
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
+    (F1,X1,T1,C1) = algebraicFace(L,Fs,Ts,Env,Path);
+    (F2,X2,T2,C2) = algebraicFace(R,Fs,Ts,Env,Path);
+    valis (combineTypes(F1,F2,Env,Lc),combineTypes(X1,X2,Env,Lc),combineTypeRules(T1,T2,Env,Lc),C1++C2)
   }
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (Lc,R) ?= isUnary(A,"|") => 
-    algebraicFace(R,Qs,Fs,Ts,Env,Path).
-  algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
-    ([],[],[(Id,A)]).
-  algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Id) ?= isEnumSymb(A) => ([],[],[(Id,A)]).
-  algebraicFace(A,_,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isEnumCon(A) && (_,Id) ?= isName(Op) => ([],[],[(Id,A)]).
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Id) ?= isName(Op) => valof{
-    (F,T) = parseTypeFields(Qs,Els,Fs,Ts,Env);
-    valis (F,T,[(Id,A)])
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,R) ?= isUnary(A,"|") => 
+    algebraicFace(R,Fs,Ts,Env,Path).
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
+    ([],[],[],[(Id,A)]).
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,Id) ?= isEnumSymb(A) => ([],[],[],[(Id,A)]).
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,Op,_) ?= isEnumCon(A) && (_,Id) ?= isName(Op) => ([],[],[],[(Id,A)]).
+  algebraicFace(A,Fs,Ts,Env,Path) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Id) ?= isName(Op) => valof{
+    (F,T) = parseTypeFields(Els,Fs,Ts,Env);
+    valis (F,[],T,[(Id,A)])
   }
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (_,V,B) ?= isQuantified(A) => valof{
+  algebraicFace(A,Fs,Ts,Env,Path) where (_,V,B) ?= isQuantified(A) => valof{
     BV = parseBoundTpVars(V);
-    (F,T,Cs) = algebraicFace(B,BV++Qs,Fs,Ts,Env,Path);
+    QEnv = declareTypeVars(BV,Env);
+    (F,Xs,T,Cs) = algebraicFace(B,Fs,Ts,QEnv,Path);
     if [(Id,_)].=Cs then
-      valis (F//(((Fld,Ftp))=>(Fld,reQ(BV,Ftp))),T,[(Id,A)])
+      valis (F//(((Fld,Ftp))=>(Fld,reQ(BV,Ftp))),Xs,T,[(Id,A)])
     else{
       reportError("invalid case in algebraic type (quantifier)",locOf(A));
-      valis ([],[],[])
+      valis ([],[],[],[])
     }      
   }
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) where (_,V,B) ?= isXQuantified(A) => valof{
+  algebraicFace(A,Fs,Ts,Env,Path) where (_,V,B) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(V);
+    QEnv = declareTypeVars(BV,Env);
 
-    (F,T,Cs) = algebraicFace(B,BV++Qs,Fs,Ts,Env,Path);
+    (F,_,T,Cs) = algebraicFace(B,Fs,Ts,QEnv,Path);
     if [(Id,_)].=Cs then
-      valis (F//(((Fld,Ftp))=>(Fld,reQX(BV,Ftp))),T,[(Id,A)])
+      valis (F//(((Fld,Ftp))=>(Fld,reQX(BV,Ftp))),BV,T,[(Id,A)])
     else{
       reportError("invalid case in algebraic type (quantifier)",locOf(A));
-      valis ([],[],[])
+      valis ([],[],[],[])
     }      
   }
-  algebraicFace(A,Qs,Fs,Ts,Env,Path) default => valof{
+  algebraicFace(A,Fs,Ts,Env,Path) default => valof{
     reportError("invalid case in algebraic type",locOf(A));
-    valis ([],[],[])
+    valis ([],[],[],[])
   }
 
   combineTypes([],F2,_,_) => F2.
@@ -637,7 +640,7 @@ star.compiler.typeparse{
   
   buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,O,Els) ?= isBrTerm(A) &&
       (_,Nm) ?= isName(O) => valof{
-	(Flds,Tps) = parseTypeFields(Qs,Els,[],[],Env);
+	(Flds,Tps) = parseTypeFields(Els,[],[],Env);
 	ConNm = qualifiedName(Path,.conMark,Nm);
 
 	ConTp = reQ(Qs,wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp)));
@@ -651,7 +654,7 @@ star.compiler.typeparse{
   buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,O,Args) ?= isEnumCon(A) && (_,Nm) ?= isName(O) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
     
-    ConTp = reQ(Qs,wrapConstraints(Cx,consType(.tupleType(parseTypes(Qs,Args,Env)),Tp)));
+    ConTp = reQ(Qs,wrapConstraints(Cx,consType(.tupleType(parseTypes(Args,Env)),Tp)));
     valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
   }.
   buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) && Ix?=Mp[Nm] => valof{
@@ -662,7 +665,8 @@ star.compiler.typeparse{
   }.
   buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,B,C) ?= isQuantified(A) => valof{
     BV = parseBoundTpVars(B);
-    (Df,Dc) = buildConstructor(C,Mp,BV++Qs,Cx,Tp,Env,Path);
+    QEnv = declareTypeVars(BV,Env);
+    (Df,Dc) = buildConstructor(C,Mp,Qs,Cx,Tp,QEnv,Path);
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
       valis ([.cnsDef(LLc,ConNm,Ix,reQ(BV,ConTp))],[.cnsDec(LLc2,Nm,ConNm,reQ(BV,CTp))])
     } else{
@@ -672,9 +676,17 @@ star.compiler.typeparse{
   }
   buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,B,C) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(B);
-    (Df,Dc) = buildConstructor(C,Mp,BV++Qs,Cx,Tp,Env,Path);
+    XEnv = declareTypeVars(BV,Env);
+    (Df,Dc) = buildConstructor(C,Mp,Qs,Cx,Tp,XEnv,Path);
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
+
+    if traceCanon! then
+      showMsg("X vars in constructor $(BV)");
+      
       CnTp = reQX(BV,ConTp);
+      if traceCanon! then
+	showMsg("reconstructed $(ConTp) is $(CnTp)");
+
       valis ([.cnsDef(LLc,ConNm,Ix,CnTp)],[.cnsDec(LLc2,Nm,ConNm,CnTp)])
     } else{
       reportError("invalid constructor case $(A)",locOf(A));
@@ -686,8 +698,8 @@ star.compiler.typeparse{
     valis ([],[])
   }
 
-  buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,dict,string)=>(cons[canonDef],cons[decl]).
-  buildAccessors(Fields,B,Q,Cx,RcTp,Env,Path) => let{.
+  buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).
+  buildAccessors(Fields,B,Q,Cx,RcTp,Path) => let{.
     -- TODO: make result optional
     
     makeAccessor:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
@@ -731,8 +743,8 @@ star.compiler.typeparse{
   .} in collapsePairs(Fields//((Fld,FTp))=>makeAccessor(Fld,FTp,B)).
 
 
-  buildUpdaters:(tipes,ast,tipes,cons[constraint],tipe,dict,string)=>(cons[canonDef],cons[decl]).
-  buildUpdaters(Fields,B,Q,Cx,RcTp,Env,Path) => let{.
+  buildUpdaters:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).
+  buildUpdaters(Fields,B,Q,Cx,RcTp,Path) => let{.
     makeUpdater:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeUpdater(Fld,FldTp,B) => valof{
       (XQ,ITp) = deQuantX(FldTp); -- special rule for existentials
