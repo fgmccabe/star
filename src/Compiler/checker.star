@@ -188,7 +188,7 @@ star.compiler.checker{
 
   parseAnnotation:(string,option[locn],cons[ast],tipe,map[string,ast],dict) => tipe.
   parseAnnotation(Nm,_,_,_,Annots,Env) where T ?= Annots[Nm] => 
-    parseType([],T,Env).
+    parseType(T,Env).
   parseAnnotation(Nm,_,_,.faceType(Vrs,_),_,_) where Tp?={!Tp|(Nm,Tp) in Vrs!} => Tp.
   parseAnnotation(Nm,_,_,_,_,Env) where Tp ?= varType(Nm,Env) => Tp.
   parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env) =>
@@ -365,8 +365,9 @@ star.compiler.checker{
     };
     
     BV = parseBoundTpVars(Q);
-    Cx = parseConstraints(C,BV,Env);
-    Cn = parseContractConstraint(BV,H,Env);
+    QEnv = declareTypeVars(BV,Env);
+    Cx = parseConstraints(C,QEnv);
+    Cn = parseContractConstraint(H,QEnv);
     ConName = localName(conTractName(Cn),.typeMark);
     
     if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
@@ -423,7 +424,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("type annotated var $(Id)\:$(T)");
 
-    ETp = parseType([],T,Env);
+    ETp = parseType(T,Env);
 
     if traceCanon! then
       showMsg("type  $(ETp), expected type $(Tp)");
@@ -436,7 +437,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("type annotated pattern $(E)\:$(T)");
 
-    ETp = parseType([],T,Env);
+    ETp = parseType(T,Env);
 
     if traceCanon! then
       showMsg("type  $(ETp), expected type $(Tp)");
@@ -589,7 +590,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
       showMsg("type annotated expression $(E)\:$(T)");
-    ETp = parseType([],T,Env);
+    ETp = parseType(T,Env);
 
     if traceCanon! then
       showMsg("type  $(ETp)");
@@ -744,11 +745,21 @@ star.compiler.checker{
     valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
   }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
+    if traceCanon! then{
+      showMsg("brace record: $(A)");
+    };
+    
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
 
     Fun = typeOfExp(Op,ConTp,Env,Pth);
+
     (Q,ETp) = evidence(FceTp,Env);
+
+    if traceCanon! then{
+      showMsg("type of $(Nm)\: $(Fun)\:$(FceTp) ~> $(ETp)");
+    };
+    
     if FaceTp ?= faceOfType(ETp,Env) then{
       (Cx,Face) = deConstrain(FaceTp);
       Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
@@ -878,7 +889,7 @@ star.compiler.checker{
     valis .vlof(Lc,Act,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,Body,E,Rls) ?= isTryCatch(A) => valof{
-    ErTp = parseType([],E,Env);
+    ErTp = parseType(E,Env);
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
     Ev0 = declareTryScope(Lc,ErTp,ErNm,Env);
     NB = typeOfExp(Body,Tp,Ev0,Path);
@@ -988,7 +999,7 @@ star.compiler.checker{
   checkAction(A,_,Env,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) =>
     checkAssignment(Lc,Lhs,Rhs,Env,Path).
   checkAction(A,Tp,Env,Path) where (Lc,Body,E,Rls) ?= isTryCatch(A) => valof{
-    ErTp = parseType([],E,Env);
+    ErTp = parseType(E,Env);
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
     Ev0 = declareTryScope(Lc,ErTp,ErNm,Env);
     (NB,_) = checkAction(Body,Tp,Ev0,Path);
