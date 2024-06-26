@@ -175,7 +175,6 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
-    case tO1:
       return sep;
     case lit:
     case tPe:
@@ -221,7 +220,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-    case tO1:
       switch (A2) {
         case i32: {
           outMsg(out, ",W|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
@@ -247,7 +245,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       switch (A2) {
         case nOp:
         case tOs:
-        case tO1:
           outMsg(out, ",LtNo|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
@@ -283,7 +280,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       switch (A2) {
         case nOp:
         case tOs:
-        case tO1:
           outMsg(out, ",V|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
@@ -312,7 +308,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       switch (A2) {
         case nOp:
         case tOs:
-        case tO1:
           outMsg(out, ",V|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
           break;
@@ -375,7 +370,6 @@ char *dot(opAndSpec A) {
   switch (A) {
     case nOp:
     case tOs:
-    case tO1:
       return ".";
     default:
       return "";
@@ -389,7 +383,6 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
-    case tO1:
     case lit:
     case sym:
     case tPe:
@@ -404,7 +397,6 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
       switch (A2) {
         case nOp:
         case tOs:
-        case tO1:
         case i32:
         case art:
         case arg:
@@ -440,7 +432,6 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
   switch (A) {
     case nOp:                             // No operand
     case tOs:
-    case tO1:
       break;
     case lit:
     case sym:
@@ -494,7 +485,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
     }
 
     if (A2 != nOp) {
-      if (A2 != tO1 && A2 != tOs) {
+      if (A2 != tOs) {
         sep2 = ", ss(\",\"), ";
         V2 = "VV";
       }
