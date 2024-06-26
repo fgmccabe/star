@@ -12,13 +12,14 @@ star.compiler.wasm.gen{
   import star.compiler.types.
   import star.compiler.wasm.instr.
   import star.compiler.wasm.module.
+  import star.compiler.wasm.gentypes.
   import star.compiler.wasm.types.
 
   import star.compiler.location.
   import star.compiler.data.
 
-  public genWasm:(pkg,cons[cDefn],cons[decl])=>cons[wasmDefn].
-  genWasm(Pkg,Defs,Decls) => valof{
+  public genWasm:(pkg,cons[cDefn],cons[decl],cons[recType])=>cons[wasmDefn].
+  genWasm(Pkg,Defs,Decls,TpMap) => valof{
     Vars = foldLeft(declareDecl,emptyMap,Decls);
     valis compDefs(Defs,localDecls(Defs,Vars))
   }
@@ -49,7 +50,7 @@ star.compiler.wasm.gen{
 	showMsg("compile $(Defn)");
       Ctx = emptyCtx(collectLocals(Val,argVars(Args,Glbs)));
       (_Stk,Code) = compExp(Val,.noMore,retCont,Ctx,.some([]));
-      Compiled = .wasmFunction(Nm,wasmFunctionType(Tp,Glbs),functionLocals(Ctx),Code);
+      Compiled = .wasmFunc(Nm,wasmFunctionType(Tp,Glbs),functionLocals(Ctx),Code::cons[wOp]);
 
       if traceCodegen! then{
 	showMsg("code is $(Compiled)");
@@ -63,37 +64,33 @@ star.compiler.wasm.gen{
       (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
       (_Stk,Code) = compExp(Val,.notLast,glbRetCont(Nm),Ctx,.some([]));
 
-      
-      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[wOp]);
-      if traceCodegen! then
-	showMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
-    
-      valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
+      valis .wasmGlob(.tLbl(Nm,0),Tp,Ctx.hwm!,Code::cons[wOp])
     }
   | .tpDef(Lc,Tp,TpRl,Index) => .tipe(Tp,TpRl,Index)
   | .lblDef(_Lc,Lbl,Tp,Ix) => .struct(Lbl,Tp,Ix)
   }
 
-  compExp:(cExp,tailMode,codeCtx,stack) => (stack,multi[wOp],codeCtx).
-  compExp(Exp,TM,Ctx,Stk) => case Exp in {
-    | .cInt(Lc,Ix) => wasmInt(Ix,Stk,Ctx)
-    | .cChar(Lc,Cx) => wasmInt(Cx::integer,Stk,Ctx)
-    | .cBig(Lc,Bx) => wasmBigInt(Bx,Stk,Ctx)
-    | .cFloat(Lc,Dx) => wasmFloat(Dx,Stk,Ctx)
+  compExp:(cExp,tailMode,Cont,codeCtx,stack) => (stack,multi[wOp],codeCtx).
+  compExp(Exp,TM,Cont,Ctx,Stk) => case Exp in {
+    | .cInt(Lc,Ix) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Ix))
+    | .cChar(Lc,Cx) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Cx::integer))
+--    | .cBig(Lc,Bx) => Cont.C(Ctx,pushStack(bigintType,Stk),wasmBigInt(Bx))
+    | .cFloat(Lc,Dx) => Cont.C(Ctx,pushStack(fltType,Stk),wasmFloat(Dx))
     | .cString(Lc,Sx) => wasmString(Sx,Stk,Ctx)
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
-	valis compVar(Lc,Loc,Ctx,Stk)
+	case Loc in {
+	  | .lclVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.LocalGet(Nm)])
+	  | .glbVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.GlobalGet(Nm)])
+	}
       } else {
 	reportError("cannot locate variable $(Vr)\:$(Tp)",Lc);
-	valis wasmConstant(voidSymbol,Stk,Ctx)
+	valis Cont.C(Ctx,pushStack(voidType,Stk),wasmConstant(voidSymbol))
       }
     }
-    | .cVoid(Lc,Tp) => wasmConstant(voidSymbol,Stk,Ctx)
-    | .cTerm(_,Nm,Args,Tp) => valof{
-      (_Sa,AC) = compExps(Args,Ctx,Stk);
-      valis (pushStack(Tp,Stk),AC++allocateWasmTerm(Nm,Tp,Ctx))
-    }
+    | .cVoid(Lc,Tp) => Cont.C(Ctx,pushStack(voidType,Stk),wasmConstant(voidSymbol))
+    | .cTerm(_,Nm,Args,Tp) =>
+      compExps(Args,Lc,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>
       compExps(Args,callCont(.tLbl(Nm,[|Args|]),TM,pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cOCall(Lc,Op,Args,Tp) => 
@@ -153,12 +150,6 @@ star.compiler.wasm.gen{
     valis (S2,C1++C2)
   }
 
-  compVar:(option[locn],srcLoc,codeCtx,stack) => (stack,multi[wOp]).
-  compVar(Lc,Loc,Ctx,Stk) => case Loc in {
-    | .lclVar(Nm,Tp) => (pushStack(Tp,Stk),[.LocalGet(Nm)])
-    | .glbVar(Nm,Tp) => (pushStack(Tp,Stk),[.GlobalGet(Nm)])
-  }
-    
   compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCond(C,TM,Succ,Fail,Ctx,Stk) => case C in {
     | .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
@@ -466,7 +457,7 @@ star.compiler.wasm.gen{
 
   allocCont:(termLbl,stack,Cont) => Cont.
   allocCont(Lbl,Stk,Cont) => cont{
-    C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iAlloc(Lbl),frameIns(Stk)])
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.StructNew(wasmId(Lbl),.Implicit)])
   }.
 
   escapeCont:(string,stack,Cont) => Cont.
@@ -492,7 +483,7 @@ star.compiler.wasm.gen{
 
   retCont:Cont.
   retCont = cont{
-    C(_,_,Cde) => (.none,Cde++[.iRet])
+    C(_,_,Cde) => (.none,Cde++[.Return])
   }
 
   glbRetCont:(string)=>Cont.
@@ -958,12 +949,11 @@ star.compiler.wasm.gen{
     | .aAbort(_,_) => Mp
   }
 
-  wasmInt(Ix,Stk,Ctx) where isSMI(Ix) =>
-    (pushStack(intType,Stk),[.IConst(.I32Type,Ix),.i31Ref]).
-  wasmInt(Ix,Stk,Ctx) =>
-    (pushStack(intType,Stk),[.IConst(.I64Type,Ix),.StructNew(boxedIntType)]).
+  wasmInt(Ix) where isSMI(Ix) => [.IConst(.I32Type,Ix),.i31Ref].
+  wasmInt(Ix) => [.IConst(.I64Type,Ix),.StructNew(boxedIntType)].
 
-  wasmFloat(Dx,Stk,Ctx) =>
-    (pushStack(fltType,Stk),[.FConst(.F64Type,Dx),.StructNew(boxedFltType)]).
+  wasmFloat(Dx) => [.FConst(.F64Type,Dx),.StructNew(boxedFltType)].
+
+  wasmId(.tLbl(Nm,_)) => Nm.
   
 }

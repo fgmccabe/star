@@ -38,7 +38,7 @@ star.compiler.wasm.gentypes{
 
   wFieldType(T) => .fldTp(.const,wValueType(T)).
 
-  wValueType:(tipe)=>value_type.
+  public wValueType:(tipe)=>value_type.
   wValueType(Tp) => case deRef(Tp) in {
     | .nomnal(Nm) => nominalType(Nm)
     | .tpExp(O,_) => wValueType(O) -- We ignore type arguments in the conversion
@@ -50,22 +50,6 @@ star.compiler.wasm.gentypes{
     | _ default => generalWType
   }
   
-
-  -- buildWasmTypeMap(Defs) => bildMap(Defs,[]).
-
-  -- bildMap([],Map) => Map.
-  -- bildMap([Def,..Defs],Map) =>
-  --   bildMap(Defs,bildEntry(Def,Map)).
-
-  -- bildEntry(.tpDef(Lc,Tp,Rl,Cons),Map) => valof{
-  --   tpNm = dlrName(tpName(Tp)); -- $tpName is the text format name of the type
-  --   if _ ?= Map[tpNm] && isEmpty(Cons) then
-  --     valis Map
-  --   else{
-
-  --   }
-  -- }
-
   sortTpDefs:(cons[cDefn]) => cons[cons[cDefn]].
   sortTpDefs(Defs) => valof{
     Tps = foldRight((D,S)=>defineSpec(D,S),[],Defs);
