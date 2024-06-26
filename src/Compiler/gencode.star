@@ -565,16 +565,6 @@ star.compiler.gencode{
     }
   }
 
-  suspendCont:(stack,Cont) => Cont.
-  suspendCont(Stk,Cont) => cont{
-    C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iSuspend,frameIns(Stk)]).
-  }
-
-  resumeCont:(stack,Cont) => Cont.
-  resumeCont(Stk,Cont) => cont{
-    C(Ctx,_AStk,Cde) => Cont.C(Ctx,Stk,Cde++[.iResume,frameIns(Stk)]).
-  }
-
   nullCont = cont{
     C(_,Stk,Cde) => (Stk,Cde).
   }

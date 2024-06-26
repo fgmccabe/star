@@ -32,6 +32,7 @@ star.compiler{
   import star.compiler.data.
   import star.compiler.wasm.types.
   import star.compiler.wasm.gentypes.
+--  import star.compiler.wasm.gen.
 
   public _main:(cons[string])=>().
   _main(Args) => valof{

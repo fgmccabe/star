@@ -230,7 +230,7 @@ star.compiler.types{
     | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
     | .tupleType(A) => "(#(showTypes(A,Dp)*))"
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
-    | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
+    | .existType(A,T) => "exists #(showBound(A,Dp))#(shTipe(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
     | .constrainedType(T,C) => "#(showConstraint(C,Dp)) |: #(showType(T,Dp))"
   }
