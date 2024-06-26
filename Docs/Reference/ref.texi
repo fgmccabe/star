@@ -59,7 +59,7 @@ F.G. McCabe).
 * Conditions::
 * Queries::
 * Actions::
-* Concurrent Execution::
+* Coroutines::
 * Standard Contracts::
 
 * Numbers::
@@ -97,7 +97,7 @@ F.G. McCabe).
 
 @include grammar.texi
 
-@include concurrent.texi
+@include coroutines.texi
 
 @include standard.texi
 
