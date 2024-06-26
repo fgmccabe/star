@@ -425,24 +425,6 @@ compTry(Lc,B,idnt(T),idnt(E),H,OLc,Cont,Hndlr,Brks,Opts,End,L,Lx,D,Dx,C,Cx,Stk) 
 
 throwCont(Lx,Lx,Dx,Dx,[iThrow|Cx],Cx,_Stk,none).
 
-spawnCont(Stk,Cont,L,Lx,D,Dx,[iSpawn|C],Cx,_Stk,Stkx) :-
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
-
-pauseCont(Stk,Cont,L,Lx,D,Dx,[iFiber|C],Cx,_Stk,Stkx) :-
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
-
-suspCont(Stk,Cont,L,Lx,D,Dx,[iSuspend|C],Cx,_,Stkx) :-
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
-
-resumeCont(Stk,Cont,L,Lx,D,Dx,[iResume|C],Cx,_,Stkx) :-
-  bumpStk(Stk,Stk1),
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk1,Stkx).
-
-retireCont(Lx,Lx,Dx,Dx,[iRetire|Cx],Cx,_,none).
-
 /* Compile actions as sequences with several possible continuations */
 
 contCont(Lbl,Lx,Lx,D,D,C,Cx,Stk,Stk) :-
