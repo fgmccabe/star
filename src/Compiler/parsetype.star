@@ -122,7 +122,7 @@ star.compiler.typeparse{
 	    if traceCanon! then
 	      showMsg("freshened rule: $(FrshRl)");
 
-	    valis applyTypeRule(Lc,FrshRl,.kVar(Fld),Env)
+	    valis applyTypeRule(Lc,FrshRl,.nomnal(Fld),Env)
 	  } else{
 	    reportError("Could not freshen type rule $(Rl)",Lc);
 	    valis .voidType
@@ -325,15 +325,11 @@ star.compiler.typeparse{
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,.constrainedType(Tp,Cx)).
     
-  public reQ:(tipes,tipe) => tipe.
-  reQ([],Tp) => Tp.
-  reQ([(_,KV),..T],Tp) where occursIn(deRef(KV),Tp) => reQ(T,.allType(KV,Tp)).
-  reQ([(_,KV),..T],Tp) => reQ(T,Tp).
+  public reQ:all t ~~ reQuant[t] |: (tipes,t) => t.
+  reQ(QV,X) => reQuant(QV//snd,X).
 
-  reQX:(tipes,tipe) => tipe.
-  reQX([],Tp) => Tp.
-  reQX([(_,KV),..T],Tp) where occursIn(KV,Tp) => reQX(T,.existType(KV,Tp)).
-  reQX([(_,KV),..T],Tp) => reQX(T,Tp).
+  public reQX:all t ~~ reQuant[t] |: (tipes,t) => t.
+  reQX(QV,X) => reQuantX(QV//snd,X).
 
   public parseContractConstraint:(ast,dict) => constraint.
   parseContractConstraint(A,Env) where
@@ -528,14 +524,17 @@ star.compiler.typeparse{
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
 
-    (CDefs,CDecs) = buildConstructors(B,CMap,Q,Cx,Tp,QEnv,Path);
+    (CDefs,CDecs) = buildConstructors(B,CMap,Cx,Tp,QEnv,Path);
     (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Path);
     (UDefs,UDecs) = buildUpdaters(Fs,B,Q,Cx,Tp,Path);
 
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
     TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
 
-    valis ([TDef,..CDefs]++ADefs++UDefs,[TDec,..CDecs]++ADecs++UDecs)
+    Qs = Q//snd;
+
+    valis ([TDef,..(CDefs//(D)=>reQuant(Qs,D))]++ADefs++UDefs,
+      [TDec,..(CDecs//(D)=>reQuant(Qs,D))]++ADecs++UDecs)
   }
   parseAlgebraicType(Lc,Nm,_,_,_,_,_,_) => valof{
     reportError("invalid type definition of $(Nm)",Lc);
@@ -624,26 +623,26 @@ star.compiler.typeparse{
     valis [(RNm,Rl2),..mergeType(Id,Rl,As,Env,Lc)]
   }
 
-  buildConstructors:(ast,map[string,integer],tipes,cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
+  buildConstructors:(ast,map[string,integer],cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
 
-  buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
-    (Dfl,Dcl) = buildConstructors(L,Mp,Qs,Cx,Tp,Env,Path);
-    (Dfr,Dcr) = buildConstructors(R,Mp,Qs,Cx,Tp,Env,Path);
+  buildConstructors(A,Mp,Cx,Tp,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
+    (Dfl,Dcl) = buildConstructors(L,Mp,Cx,Tp,Env,Path);
+    (Dfr,Dcr) = buildConstructors(R,Mp,Cx,Tp,Env,Path);
     valis (Dfl++Dfr,Dcl++Dcr)
   }
-  buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,R) ?= isUnary(A,"|") =>
-    buildConstructors(R,Mp,Qs,Cx,Tp,Env,Path).
-  buildConstructors(A,Mp,Qs,Cx,Tp,Env,Path) =>
-    buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path).
+  buildConstructors(A,Mp,Cx,Tp,Env,Path) where (Lc,R) ?= isUnary(A,"|") =>
+    buildConstructors(R,Mp,Cx,Tp,Env,Path).
+  buildConstructors(A,Mp,Cx,Tp,Env,Path) =>
+    buildConstructor(A,Mp,Cx,Tp,Env,Path).
 
-  buildConstructor:(ast,map[string,integer],tipes,cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
+  buildConstructor:(ast,map[string,integer],cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
   
-  buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,O,Els) ?= isBrTerm(A) &&
+  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,O,Els) ?= isBrTerm(A) &&
       (_,Nm) ?= isName(O) => valof{
 	(Flds,Tps) = parseTypeFields(Els,[],[],Env);
 	ConNm = qualifiedName(Path,.conMark,Nm);
 
-	ConTp = reQ(Qs,wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp)));
+	ConTp = wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp));
 	if Ix?=Mp[Nm] then
 	  valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
 	else{
@@ -651,22 +650,26 @@ star.compiler.typeparse{
 	  valis ([],[])
 	}
       }.
-  buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,O,Args) ?= isEnumCon(A) && (_,Nm) ?= isName(O) && Ix?=Mp[Nm] => valof{
+  buildConstructor(A,Mp,Cx,Tp,Env,Path)
+      where (Lc,O,Args) ?= isEnumCon(A) && (_,Nm) ?= isName(O) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
     
-    ConTp = reQ(Qs,wrapConstraints(Cx,consType(.tupleType(parseTypes(Args,Env)),Tp)));
+    ConTp = wrapConstraints(Cx,consType(.tupleType(parseTypes(Args,Env)),Tp));
     valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
   }.
-  buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) && Ix?=Mp[Nm] => valof{
+  buildConstructor(A,Mp,Cx,Tp,Env,Path)
+      where (Lc,Nm) ?= isEnumSymb(A) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
     
-    ConTp = reQ(Qs,wrapConstraints(Cx,enumType(Tp)));
+    ConTp = wrapConstraints(Cx,enumType(Tp));
     valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
   }.
-  buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,B,C) ?= isQuantified(A) => valof{
+  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,B,C) ?= isQuantified(A) => valof{
     BV = parseBoundTpVars(B);
     QEnv = declareTypeVars(BV,Env);
-    (Df,Dc) = buildConstructor(C,Mp,Qs,Cx,Tp,QEnv,Path);
+    (Df,Dc) = buildConstructor(C,Mp,Cx,Tp,QEnv,Path);
+
+    
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
       valis ([.cnsDef(LLc,ConNm,Ix,reQ(BV,ConTp))],[.cnsDec(LLc2,Nm,ConNm,reQ(BV,CTp))])
     } else{
@@ -674,10 +677,10 @@ star.compiler.typeparse{
       valis ([],[])
     }
   }
-  buildConstructor(A,Mp,Qs,Cx,Tp,Env,Path) where (Lc,B,C) ?= isXQuantified(A) => valof{
+  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,B,C) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(B);
     XEnv = declareTypeVars(BV,Env);
-    (Df,Dc) = buildConstructor(C,Mp,Qs,Cx,Tp,XEnv,Path);
+    (Df,Dc) = buildConstructor(C,Mp,Cx,Tp,XEnv,Path);
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
 
     if traceCanon! then
@@ -693,7 +696,7 @@ star.compiler.typeparse{
       valis ([],[])
     }
   }
-  buildConstructor(A,_,_,_,_,_,_) => valof{
+  buildConstructor(A,_,_,_,_,_) => valof{
     reportError("invalid constructor case $(A)",locOf(A));
     valis ([],[])
   }
@@ -805,4 +808,15 @@ star.compiler.typeparse{
   compEls:(ast,ast)=>boolean.
   compEls(E1,E2) where (_,K1) ?= isTypeAnnot(E1) && (_,K2) ?= isTypeAnnot(E2) => K1<K2.
   compEls(_,_) default => .false.
+
+  implementation all t ~~ reQuant[t] |: reQuant[cons[t]] => let{.
+    reQ:(cons[tipe],cons[t])=>cons[t].
+    reQ(Qs,[]) => [].
+    reQ(Qs,[X,..Xs]) => [reQuant(Qs,X),..reQ(Qs,Xs)].
+    reX(Qs,[]) => [].
+    reX(Qs,[X,..Xs]) => [reQuantX(Qs,X),..reX(Qs,Xs)].
+  .} in {
+  reQuant(Qs,L) => reQ(Qs,L).
+  reQuantX(Qs,L) => reX(Qs,L)
+  }
 }

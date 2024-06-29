@@ -230,7 +230,7 @@ star.compiler.types{
     | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
     | .tupleType(A) => "(#(showTypes(A,Dp)*))"
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
-    | .existType(A,T) => "exists #(showBound(A,Dp))#(shTipe(T,Dp))"
+    | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
     | .constrainedType(T,C) => "#(showConstraint(C,Dp)) |: #(showType(T,Dp))"
   }
@@ -289,6 +289,9 @@ star.compiler.types{
 
   showMoreQuantified(.allType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Dp))".
   showMoreQuantified(T,Dp) => " ~~ #(showType(T,Dp))".
+
+  showMoreXQuantified(.existType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreXQuantified(T,Dp))".
+  showMoreXQuantified(T,Dp) => " ~~ #(showType(T,Dp))".
 
   showBound(V,Dp) => showType(V,Dp).
 
@@ -569,19 +572,39 @@ star.compiler.types{
     deQ(R,Q) => (reverse(Q),R)
   .} in deQ(Rl,[]).
 
-  public reQuant:(cons[tipe],tipe) => tipe.
-  reQuant([],Tp) => Tp.
-  reQuant([Q,..Qs],Tp) => .allType(Q,reQuant(Qs,Tp)).
+  public contract all t ~~ reQuant[t] ::= {
+    reQuant:(cons[tipe],t)=>t.
+    reQuantX:(cons[tipe],t)=>t.
+  }
+
+  public implementation reQuant[tipe] => let{.
+    reQ([],Tp)=>Tp.
+    reQ([Q,..Qs],Tp) where occursIn(Q,Tp) => .allType(Q,reQ(Qs,Tp)).
+    reQ([Q,..Qs],Tp) => reQ(Qs,Tp).
+
+    reX([],Tp)=>Tp.
+    reX([Q,..Qs],Tp) where occursIn(Q,Tp) => .existType(Q,reX(Qs,Tp)).
+    reX([Q,..Qs],Tp) => reX(Qs,Tp).
+  .} in {
+    reQuant = reQ.
+    reQuantX(Qs,X) => ((L,R)?=isConsType(X) ?? consType(reX(Qs,L),R) || reX(Qs,X)).
+  }
+
+  public implementation reQuant[typeRule] => let {.
+    reQ([],Rl) => Rl.
+    reQ([Q,..Qs],Rl) => .allRule(Q,reQ(Qs,Rl)).
+    reX([],Rl) => Rl.
+    reX([Q,..Qs],Rl) => .allRule(Q,reX(Qs,Rl)). -- fix me
+  .} in {
+    reQuant(Qs,Rl) => reQ(Qs,Rl).
+    reQuantX(Qs,Rl) => reX(Qs,Rl)
+  }
 
   public deQuantX:(tipe) => (cons[tipe],tipe).
   deQuantX(T) => let{.
     deQ(.existType(V,I),Qs) => deQ(I,[V,..Qs]).
     deQ(Tp,Qs) => (reverse(Qs),Tp).
   .} in deQ(T,[]).
-
-  public reQuantX:(cons[tipe],tipe) => tipe.
-  reQuantX([],Tp) => Tp.
-  reQuantX([Q,..Qs],Tp) => .existType(Q,reQuantX(Qs,Tp)).
 
   public deConstrain:(tipe) => (cons[constraint],tipe).
   deConstrain(T) => let{.
@@ -622,8 +645,8 @@ star.compiler.types{
   contractTypeRule(.contractExists(Nm,Tps,Dps,Face)) =>
     .typeExists(mkTypeExp(.tpFun(Nm,size(Tps)+size(Dps)),Tps++Dps),Face).
 
-  public occursIn(TV,Tp) where ~isIdenticalVar(TV,Tp) =>
-    occIn(vrNm(TV),deRef(Tp)).
+  public occursIn(TV,Tp) where DV .= deRef(TV) =>
+    (~isIdenticalVar(DV,Tp) ?? occIn(vrNm(DV),deRef(Tp)) || .false).
 
   occIn(Id,.tVar(_,Nm)) => Id==Nm.
   occIn(Id,.tFun(_,_,Nm)) => Id==Nm.

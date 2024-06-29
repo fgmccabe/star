@@ -165,6 +165,46 @@ star.compiler.canon{
     }
   }
 
+  public implementation reQuant[canonDef] => {
+    reQuant(Qs,Df) => case Df in {
+      | .varDef(Lc,Nm,Vl,Cx,Tp) => .varDef(Lc,Nm,Vl,Cx,reQuant(Qs,Tp))
+      | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuant(Qs,Tp))
+      | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,Rl))
+      | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuant(Qs,Tp))
+      | .implDef(Lc,Nm,FlNm,Vl,Cx,Tp) => .implDef(Lc,Nm,FlNm,Vl,Cx,reQuant(Qs,Tp))
+    }
+    reQuantX(Qs,Df) => case Df in {
+      | .varDef(Lc,Nm,Vl,Cx,Tp) => .varDef(Lc,Nm,Vl,Cx,reQuantX(Qs,Tp))
+      | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuantX(Qs,Tp))
+      | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,Rl))
+      | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuantX(Qs,Tp))
+      | .implDef(Lc,Nm,FlNm,Vl,Cx,Tp) => .implDef(Lc,Nm,FlNm,Vl,Cx,reQuantX(Qs,Tp))
+    }
+  }
+
+  public implementation reQuant[decl] => {
+    reQuant(Qs,Dc) => case Dc in {
+      | .implDec(Lc,Nm,FlNm,Tp) => .implDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
+      | .accDec(Lc,Tp,Nm,FlNm,ATp) => .accDec(Lc,reQuant(Qs,Tp),Nm,FlNm,reQuant(Qs,ATp))
+      | .updDec(Lc,Tp,Nm,FlNm,ATp) => .updDec(Lc,reQuant(Qs,Tp),Nm,FlNm,reQuant(Qs,ATp))
+      | .conDec(Lc,Nm,FlNm,TpRl) => .conDec(Lc,Nm,FlNm,reQuant(Qs,TpRl))
+      | .tpeDec(Lc,Nm,Tp,TpRl) => .tpeDec(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,TpRl))
+      | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
+      | .funDec(Lc,Nm,FlNm,Tp) => .funDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
+      | .cnsDec(Lc,Nm,FlNm,Tp) => .cnsDec(Lc,Nm,FlNm,reQuant(Qs,Tp))
+    }
+    reQuantX(Qs,Dc) => case Dc in {
+      | .implDec(Lc,Nm,FlNm,Tp) => .implDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
+      | .accDec(Lc,Tp,Nm,FlNm,ATp) => .accDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,reQuantX(Qs,ATp))
+      | .updDec(Lc,Tp,Nm,FlNm,ATp) => .updDec(Lc,reQuantX(Qs,Tp),Nm,FlNm,reQuantX(Qs,ATp))
+      | .conDec(Lc,Nm,FlNm,TpRl) => .conDec(Lc,Nm,FlNm,reQuantX(Qs,TpRl))
+      | .tpeDec(Lc,Nm,Tp,TpRl) => .tpeDec(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,TpRl))
+      | .varDec(Lc,Nm,FlNm,Tp) => .varDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
+      | .funDec(Lc,Nm,FlNm,Tp) => .funDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
+      | .cnsDec(Lc,Nm,FlNm,Tp) => .cnsDec(Lc,Nm,FlNm,reQuantX(Qs,Tp))
+    }
+  }
+
   showCanon:(canon,integer,string)=>string.
   showCanon(Cn,Pr,Sp) => case Cn in {
    | .anon(_,_) => "_"
