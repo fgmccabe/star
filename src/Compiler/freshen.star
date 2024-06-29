@@ -76,12 +76,12 @@ star.compiler.freshen{
     freshQuants(deRef(T),B,Env).
   freshQuants(T,B,Env) default => (T,B,Env).
 
-  genSkolemFun(Nm,[]) => skolemFun(Nm,0).
-  genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),skolemFun(Nm,size(Q)),Q).
+  genSkolemFun(Nm,_) => skolemFun(Nm,0).
+--  genSkolemFun(Nm,Q) => foldLeft(((_,V),S)=>.tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
   skolemFun:(string,integer) => tipe.
-  skolemFun(Nm,0) => .kVar(genSym(Nm)).
-  skolemFun(Nm,Ar) => .kFun(genSym(Nm),Ar).
+  skolemFun(Nm,_) => .kVar(genSym(Nm)).
+--  skolemFun(Nm,Ar) => .kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
   evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) =>

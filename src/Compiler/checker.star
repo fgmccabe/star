@@ -126,10 +126,6 @@ star.compiler.checker{
     if ~isEmpty(Opens) then
       reportError("open statements $(Opens) not supported",Lc);
 
-    if traceCanon! then{
-      showMsg("visibility of $(Stmts) is $(Vis)")
-    };
-    
     valis checkGroups(Gps,letExport(Vis),Face,Annots,pushFace(Face,Lc,Env,Pth),Pth)
   }
 
@@ -143,11 +139,7 @@ star.compiler.checker{
       reportError("open statements not implemented",Lc)
     };
 
-    if traceCanon! then{
-      showMsg("visibility of $(Stmts) is $(Vis)")
-    };
-    
-    G = Gps*; -- Flatten the result
+    G = Gps*; -- Flatten the group
 
     TmpEnv = parseAnnotations(G,Face,Annots,Env,Path);
     valis checkGroup(G,letExport(Vis),TmpEnv,Outer,Path);
@@ -600,6 +592,9 @@ star.compiler.checker{
     valis typeOfExp(E,ETp,Env,Path)
   }.
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isOpen(A) => valof{
+    if traceCanon! then
+      showMsg("check open $(E), expected type $(Tp)");
+
     XTp = newTypeVar("X");
     EE = typeOfExp(E,XTp,Env,Path);
     (Q,VE) = evidence(XTp,Env);
@@ -907,7 +902,12 @@ star.compiler.checker{
   }.
 
   typeOfVar(Lc,Id,Tp,Refresh,Env,Path) => valof{
+    if traceCanon! then
+      showMsg("check var $(Id), expected type $(Tp)");
+
     if Var ?= findVar(Lc,Id,Refresh,Env) then{
+      if traceCanon! then
+	showMsg("var in dict with type $(typeOf(Var))");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{
