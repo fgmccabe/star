@@ -440,11 +440,6 @@ star.compiler.wff{
   dottedName(N) where (_,L,R) ?= isBinary(N,".") => "#(dottedName(L)).#(dottedName(R))".
   dottedName(A) default => disp(A).
 
-  public isOpen:(ast)=> option[(option[locn],ast)].
-  isOpen(A) => isUnary(A,"open").
-
-  public mkOpen(Lc,E) => unary(Lc,"open",E).
-
   public isIntegrity:(ast)=> option[(option[locn],ast)].
   isIntegrity(A) => isUnary(A,"assert").
 

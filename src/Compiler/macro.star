@@ -49,8 +49,6 @@ star.compiler.macro{
   examineStmt(A) where (Lc,R) ?= isPrivate(A) =>
     mkPrivate(Lc,macroStmt(R)).
   examineStmt(A) where _ ?= isImport(A) => A.
-  examineStmt(A) where (Lc,E) ?= isOpen(A) =>
-    mkOpen(Lc,macroTerm(E)).
   examineStmt(A) where (Lc,L,R) ?= isDefn(A) => 
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
@@ -189,8 +187,6 @@ star.compiler.macro{
     mkThunkRef(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isSuppress(A) =>
     mkSuppress(Lc,macroTerm(R)).
-  examineTerm(A) where (Lc,R) ?= isOpen(A) => 
-    mkOpen(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroTerm(B)).
   examineTerm(A) where (Lc,D,B) ?= isLetRecDef(A) =>

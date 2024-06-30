@@ -591,16 +591,6 @@ star.compiler.checker{
 
     valis typeOfExp(E,ETp,Env,Path)
   }.
-  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isOpen(A) => valof{
-    if traceCanon! then
-      showMsg("check open $(E), expected type $(Tp)");
-
-    XTp = newTypeVar("X");
-    EE = typeOfExp(E,XTp,Env,Path);
-    (Q,VE) = evidence(XTp,Env);
-    checkType(A,VE,Tp,Env);
-    valis EE
-  }
   typeOfExp(A,Tp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) => valof{
     RTp = newTypeVar("R");
     Rc = typeOfExp(R,RTp,Env,Path);
