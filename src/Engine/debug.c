@@ -1215,6 +1215,8 @@ void dumpStats() {
 
 void dumpStack() {
   if (controlC()) {
-    stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showArguments);
+    integer depth = displayDepth;
+    displayDepth = 0;
+    stackTrace(currentProcess, logFile, currentProcess->stk, depth, showArguments);
   }
 }
