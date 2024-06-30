@@ -3,4 +3,4 @@ project(Reference)
 
 include(../makeinfo.cmake)
 
-add_info(ref intro lexical grammar programs types patterns expressions conditions queries actions fibers standard numbers strings collections date catalog)
+add_info(ref intro lexical grammar programs types patterns expressions conditions queries actions standard numbers strings collections date catalog)

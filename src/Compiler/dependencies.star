@@ -66,8 +66,6 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
       (_,Ai) ?= isPrivate(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.priVate).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
-      Spec ?= isOpen(A) => (Stmts,Defs,Pb,As,[A,..Opn]).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where (Lc,V,T) ?= isTypeAnnotation(A) => valof{
     if(ILc,Id) ?= isName(V) then{
       valis (Stmts,Defs,[(.varSp(Id),Vz),..Pb],As[Id->T],Opn)
@@ -332,8 +330,6 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(A,All,Rf) where (_,R) ?= isOpen(A) => 
-    collectTermRefs(R,All,Rf).
   collectTermRefs(T,All,Rf) where (_,L) ?= isValof(T) =>
     ((_,[As]) ?= isBrTuple(L) ??
       collectDoRefs(As,All,Rf) ||

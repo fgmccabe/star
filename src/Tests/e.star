@@ -2,7 +2,7 @@ test.e{
   import star.
   import star.assert.
 
-  xx = open xc{
+  xx = xc{
     get(.false) => 0.
     get(_) default => 1.
 
