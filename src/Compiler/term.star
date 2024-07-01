@@ -1255,38 +1255,4 @@ star.compiler.term{
 
   encE:(cExp)=>multi[char].
 --  encE(.cVoid(Lc,Tp)) => [`v`]++
-
-
-  public cExp ::= .cVoid(option[locn],tipe)
-  | .cAnon(option[locn],tipe)
-  | .cVar(option[locn],cId)
-  | .cInt(option[locn],integer)
-  | .cChar(option[locn],char)
-  | .cBig(option[locn],bigint)
-  | .cFloat(option[locn],float)
-  | .cString(option[locn],string)
-  | .cTerm(option[locn],string,cons[cExp],tipe)
-  | .cNth(option[locn],cExp,integer,tipe)
-  | .cSetNth(option[locn],cExp,integer,cExp)
-  | .cClos(option[locn],string,integer,cExp,tipe)
-  | .cThnk(option[locn],cExp,tipe)
-  | .cThDrf(option[locn],cExp,tipe)
-  | .cCall(option[locn],string,cons[cExp],tipe)
-  | .cOCall(option[locn],cExp,cons[cExp],tipe)
-  | .cRaise(option[locn],cExp,cExp,tipe)
-  | .cSeq(option[locn],cExp,cExp)
-  | .cCnj(option[locn],cExp,cExp)
-  | .cDsj(option[locn],cExp,cExp)
-  | .cNeg(option[locn],cExp)
-  | .cCnd(option[locn],cExp,cExp,cExp)
-  | .cLtt(option[locn],cId,cExp,cExp)
-  | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
-  | .cMatch(option[locn],cExp,cExp)
-  | .cVarNmes(option[locn],cons[(string,cId)],cExp)
-  | .cAbort(option[locn],string,tipe)
-  | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
-  | .cValof(option[locn],aAction,tipe).
-  
-  public cId ::= .cId(string,tipe).
-  
 }
