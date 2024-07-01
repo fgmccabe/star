@@ -19,7 +19,7 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
-    Map = pkgMap(Decls);
+    Map = pkgMap(Decls,[]);
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -445,7 +445,11 @@ star.compiler.normalize{
     
     allFree = freeVars++lVars;
 
-    if [SFr] .= allFree && isEmpty(lVars) then {
+    if isEmpty(allFree) then{
+      MM = pkgMap(Decls,Outer);
+      Ex1 = transformGroup(Defs,Outer,Outer,[],.none,Ex);
+      valis transform(Bnd,MM,Q,Ex1)
+    } else if [SFr] .= allFree && isEmpty(lVars) then {
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
@@ -500,42 +504,44 @@ star.compiler.normalize{
     varParents = freeParents(rawGrpFree \ lVars,Outer);
     freeVars = reduceFreeArgs(varParents,Outer);
 
-    ThV = genVar("_ThVr",typeOf(freeVars++lVars));
-    ThVr = .cVar(Lc,ThV);
+    if isEmpty(freeVars) && isEmpty(glDefs) then {
+      MM = pkgMap(Decls,Outer);
+      Ex1 = transformGroup(Grp,MM,MM,[],.none,Ex);
+      valis transform(Bnd,MM,Q,Ex1)
+    } else{
+      ThV = genVar("_ThVr",typeOf(freeVars++lVars));
+      ThVr = .cVar(Lc,ThV);
 
-    CM = makeConsMap(Decls);
+      CM = makeConsMap(Decls);
 
-    L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+      L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+      
+      M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
 
-    if traceNormalize! then{
-      showMsg("L = $(L)")
-    };
+      freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+      GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
 
-    M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
+      cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
+      GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
-    freeArgs = (freeVars//(.cId(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
-    GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
+      if traceNormalize! then{
+	showMsg("lVars = $(lVars)");
+	showMsg("glDefs = $(glDefs)");
+	showMsg("GrpVars = $(GrpVars)");
+	showMsg("GrpFree = $(GrpFree)");
+      };
 
-    cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
-    GrpFree = crTpl(Lc,freeArgs++cellVoids);
+      if traceNormalize! then{
+	showMsg("free term = $(GrpFree)")
+      };
+      (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,.some(ThVr),[],Ex);
+      if traceNormalize! then{
+	showMsg("fixups $(Fx)");
+      };
 
-    if traceNormalize! then{
-      showMsg("lVars = $(lVars)");
-      showMsg("glDefs = $(glDefs)");
-      showMsg("GrpVars = $(GrpVars)");
-      showMsg("GrpFree = $(GrpFree)");
-    };
-
-    if traceNormalize! then{
-      showMsg("free term = $(GrpFree)")
-    };
-    (Fx,Ex2) = transformLetDefs(Grp,M,M,GrpQ,.some(ThVr),[],Ex);
-    if traceNormalize! then{
-      showMsg("fixups $(Fx)");
-    };
-
-    (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
-    valis (computeFixups(Fx,Lc,ThV,GrpFree,BndTrm),Exx)
+      (BndTrm,Exx) = transform(Bnd,M,GrpQ,Ex2);
+      valis (computeFixups(Fx,Lc,ThV,GrpFree,BndTrm),Exx)
+    }
   }
 
   fixUp ~> (string,integer,cExp).

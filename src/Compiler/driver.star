@@ -131,7 +131,7 @@ star.compiler{
 	    validProg(N,AllDecls);
 	    
 	    Inlined = ( optimization! ==.inlining ?? valof{
-		if traceNormalize! then{
+		if traceInline! then{
 		  showMsg("pre-inlined code $(N)");
 		};
 		valis simplifyDefs(N);

@@ -72,6 +72,7 @@ star.compiler.inline{
   simplifyExp(E,P,D) where D>=0 => simExp(E,P,D).
   simplifyExp(E,_,_) => E.
   
+  simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
   simExp(.cAnon(Lc,Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   simExp(.cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
   simExp(.cInt(Lc,Ix),_,_) => .cInt(Lc,Ix).
@@ -79,7 +80,6 @@ star.compiler.inline{
   simExp(.cChar(Lc,Ix),_,_) => .cChar(Lc,Ix).
   simExp(.cFloat(Lc,Dx),_,_) => .cFloat(Lc,Dx).
   simExp(.cString(Lc,Sx),_,_) => .cString(Lc,Sx).
-  simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
   simExp(.cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
     .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp).
   simExp(.cCall(Lc,Nm,Args,Tp),Map,Depth) where isEscape(Nm) =>
@@ -94,6 +94,10 @@ star.compiler.inline{
     applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth)).
   simExp(.cClos(Lc,Lb,Ar,Fr,Tp),Map,Depth) =>
     .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp).
+  simExp(.cThnk(Lc,Fn,Tp),Map,Depth) =>
+    .cThnk(Lc,simExp(Fn,Map,Depth),Tp).
+  simExp(.cThDrf(Lc,Th,Tp),Map,Depth) =>
+    .cThDrf(Lc,simExp(Th,Map,Depth),Tp).
   simExp(.cSeq(Lc,L,R),Map,Depth) =>
     .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
   simExp(.cCnj(Lc,L,R),Map,Depth) =>
