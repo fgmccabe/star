@@ -13,6 +13,8 @@
 
 #define MAXCODE (1u<<20u)
 
+static char *readLine(FILE *in,char *buffer,int len);
+
 typedef enum {
   Cc, Cf, Cn, Co, Cs,
   Ll, Lm, Lo, Lt, Lu,
@@ -49,9 +51,9 @@ int main(int argc, char **argv) {
     while (!feof(in)) {
       unsigned long code = -1;
       char name[1024];
+      char buffer[1024] = "hello";
 
-      size_t len = 0;
-      char *line = fgetln(in, &len);
+      char *line = readLine(in, &buffer[0], 1024);
 
       if (line != NULL) {
         char *p = line;
@@ -138,4 +140,29 @@ int main(int argc, char **argv) {
   }
 
   return 0;
+}
+
+char *readLine(FILE *in,char *buffer,int len){
+  for(int pos=0;pos<len;pos++){
+    int ch = fgetc(in);
+    if(ch==EOF){
+      if(pos>0){
+	buffer[pos]='\0';
+	return buffer;
+     } else
+	return NULL;
+    }
+    else if(ch=='\n'){
+	buffer[pos]='\0';
+	return buffer;
+    }
+    else if(ch=='\r')
+      continue;
+    else{
+      buffer[pos]=ch;
+      continue;
+    }
+  }
+
+  return buffer;
 }
