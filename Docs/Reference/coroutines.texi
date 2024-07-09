@@ -115,8 +115,6 @@ concepts around fibers.
 
 A nursery is a group of tasks that are scheduled together.
 
-@node Tasks
-@section Tasks
 A @code{task} is a @refer{Expression} that denotes a computation that
 may be performed in parallel with other computations.
 
