@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(Util_UnitTests)
 
+include(../findAIO.cmake)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 # SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
@@ -23,7 +25,7 @@ add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILE
 target_link_libraries(utilTest ooio m)
 
 add_executable(aioTest aioTest.c)
-target_link_libraries(aioTest rt)
+target_link_libraries(aioTest ${AIO_LIBRARIES})
       
 #add_custom_target(testUtils ALL DEPENDS utilTest
 #        COMMAND utilTest)
