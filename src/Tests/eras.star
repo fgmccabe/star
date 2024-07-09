@@ -3,7 +3,7 @@ test.eras{
   import star.assert.
   import star.mbox.
 
-  -- Sieve of Erastosthnese, using futures.
+  -- Sieve of Erastosthnese, using generators
 
   intGen = generator{
     Ix := 1;

@@ -6,6 +6,7 @@ star.mbox{
   .result(e) |
   .fork(taskFun[e]) |
   .requestIO(ioHandle,()=>boolean) |
+  .schedule(task[e]) |
   .retired_.
 
   public resumeProtocol ::= .go_ahead | .shut_down_.
@@ -114,6 +115,9 @@ star.mbox{
 	      Tsk = spawnTask(F);
 	      Q := Q! ++ [Tsk,T];
 	    }
+	    | .schedule(Fb) => {
+	      Q := Q! ++ [Fb,T]
+	    }
 	    | .blocked(P) => {
 	      BlockQ := [(P,T),..BlockQ!]
 	    }
@@ -168,6 +172,7 @@ star.mbox{
     disp(.blocked(B)) => "blocked $(B())".
     disp(.result(e)) => "result #(_stringOf(e,2))".
     disp(.fork(F)) => "fork #(_stringOf(F,2))".
+    disp(.schedule(F)) => "schedule #(_stringOf(F,2))".
     disp(.retired_) => "retired"
   }
 
