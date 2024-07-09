@@ -92,6 +92,10 @@ star.compiler.wff{
   public roundTerm:(option[locn],ast,cons[ast]) => ast.
   roundTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"()",Els)).
 
+  public isBraceTerm:(ast) => option[(option[locn],ast,cons[ast])].
+  isBraceTerm(E) where .app(Lc,Op,.tpl(Lc,"{}",Els)).=E => .some((Lc,Op,Els)).
+  isBraceTerm(_) default => .none.
+
   public braceTerm:(option[locn],ast,cons[ast]) => ast.
   braceTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"{}",Els)).
 
@@ -738,6 +742,9 @@ star.compiler.wff{
   isGeneratorType(_) default => .none.
 
   public mkGeneratorType(Lc,Y) => squareTerm(Lc,.qnm(Lc,"generator"),[Y]).
+
+  public isTaskExp(A) where (Lc,.nme(_,"task"),[El]) ?= isBraceTerm(A) => .some((Lc,El)).
+  isTaskExp(_) default => .none.
 
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").

@@ -61,10 +61,11 @@ star.compiler.macro.rules{
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
     "generator\${}" -> [(.expression,generatorMacro)],
+    "task\${}" -> [(.expression,taskMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],
-    "${}" -> [(.expression,futureMacro)],
+    "future\${}" -> [(.expression,futureMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
       (.typeterm,grammarTypeMacro),
@@ -374,7 +375,7 @@ star.compiler.macro.rules{
     Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case _resume(G,._next) in .. */
-  Resume = mkCaseExp(Lc,binary(Lc,"_resume",G,enum(Lc,"_next")),[Yld,Deflt,End]);
+    Resume = mkCaseExp(Lc,binary(Lc,"_resume",G,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -491,6 +492,34 @@ star.compiler.macro.rules{
     valis .active(mkCaseExp(Lc,binary(Lc,"_suspend",This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
   }
 
+  /* task { A }
+  becomes
+
+  _fiber((this,Frst)=> case Frst in {
+      | .go_ahead => .result(valof{A})
+      | .shut_down => raise .canceled
+    })
+
+  I.e., creates a suspended fiber
+  */
+
+  taskMacro(E,.expression) where (Lc,A) ?= isTaskExp(E) => valof{
+    Frst = genName(Lc,"Frst");
+
+    /* Build .shut_down_ => raise .canceled */
+    End = mkLambda(Lc,.false,enum(Lc,"shut_down_"),.none,mkRaise(Lc,enum(Lc,"camceled")));
+
+    /* build .go_ahead => .result(valof{A}) */
+    Go = mkLambda(Lc,.false,enum(Lc,"go_ahead"),.none,
+      mkCon(Lc,"result",[mkValof(Lc,brTuple(Lc,[A]))]));
+
+    /* build case Frst in .. */
+    Body = mkCaseExp(Lc,Frst,[Go,End]);
+
+    valis .active(mkLambda(Lc,.true,rndTuple(Lc,[.nme(Lc,"this"),Frst]),.none,Body))
+  }
+  taskMacro(_,_) default => .inactive.
+
   implementationMacro(A,.statement) where
       (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&
       (_,Nm,_) ?= isSquareTerm(H) &&
@@ -534,12 +563,12 @@ star.compiler.macro.rules{
 	R)).
   asyncMacro(_,_) default => .inactive.
 
-  -- convert future{E} to tsk(()=>valof{E})
+  -- convert future{E} to tsk(this,()=>valof{E})
   futureMacro(A,.expression) where
       (Lc,Op,[B]) ?= isBrTerm(A) &&
 	  (_,"future") ?= isName(Op) => valof{
-	    Eq = equation(Lc,rndTuple(Lc,[]),mkValof(Lc,brTuple(Lc,[B])));
-	    valis .active(unary(Lc,"tsk",Eq))
+    Eq = equation(Lc,rndTuple(Lc,[]),mkValof(Lc,brTuple(Lc,[B])));
+    valis .active(binary(Lc,"tsk",.nme(Lc,"this"),Eq))
 	  }.
   futureMacro(_,_) default => .inactive.
 }
