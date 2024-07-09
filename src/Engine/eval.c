@@ -22,7 +22,6 @@
 #include "ltype.h"
 
 logical collectStats = False;
-integer insCounts[illegalOp];
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -81,13 +80,8 @@ retCode run(processPo P) {
   currentProcess = P;
 
   for (;;) {
-    pcCount++;        /* increment total number of executed */
-
-    if (collectStats) {
-      insCounts[*PC]++;
-    }
-
     if (insDebugging) {
+      pcCount++;        /* increment total number of executed */
       saveRegisters();
       insDebug(P);
       restoreRegisters();

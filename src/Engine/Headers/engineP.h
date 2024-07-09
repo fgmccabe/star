@@ -64,6 +64,5 @@ retCode markProcess(processPo P, gcSupportPo G);
 void markProcesses(processPo owner, gcSupportPo G);
 
 extern logical collectStats;
-extern integer insCounts[];
 
 #endif //STAR_ENGINEP_H

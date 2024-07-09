@@ -9,7 +9,6 @@
 #include "debugP.h"
 #include "arith.h"
 #include "editline.h"
-#include "quick.h"
 #include "ltype.h"
 
 integer pcCount = 0;
@@ -75,12 +74,6 @@ retCode setupDebugChannels() {
     return Ok;
   }
   return Error;
-}
-
-static inline int32 collect32(insPo pc) {
-  uint32 hi = (uint32) pc[0];
-  uint32 lo = (uint32) pc[1];
-  return (int32) (hi << (uint32) 16 | lo);
 }
 
 #define collectI32(pc) (collI32(pc))
@@ -252,7 +245,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc
   if (cmdBuffer == Null)
     cmdBuffer = newStringBuffer();
 
-  while (interactive) {
+  if (interactive) {
     outMsg(debugOutChnnl, "\n[%d]>%s %_", processNo(p), (insDebugging ? "i" : lineDebugging ? "$" : ""));
     clearStrBuffer(cmdBuffer);
 
@@ -553,8 +546,6 @@ static DebugWaitFor dbgSymbolDebug(char *line, processPo p, termPo loc, void *cl
 }
 
 static DebugWaitFor dbgVerifyProcess(char *line, processPo p, termPo loc, void *cl) {
-  lineDebugging = True;
-  insDebugging = False;
   resetDeflt("n");
   verifyProc(p, processHeap(p));
   return moreDebug;
@@ -595,7 +586,6 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, void *cl) 
   stackPo stk = p->stk;
 
   integer frameNo = 0;
-  framePo limit = (framePo) stackLimit(stk);
 
   while (frameNo < count && stk->fp >= baseFrame(stk)) {
     stk->sp = ((ptrPo) (stk->fp + 1));
@@ -764,10 +754,10 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     return outMsg(f, "%,*T", displayDepth, ln);
 }
 
-static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer from, integer arity) {
+static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   char *sep = "";
   tryRet(outStr(out, "("));
-  for (integer ix = from; ix < arity; ix++) {
+  for (integer ix = 0; ix < arity; ix++) {
     tryRet(outMsg(out, "%s%#,*T", sep, depth, sp[ix]));
     sep = ", ";
   }
@@ -780,7 +770,7 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, stackPo st
   } else
     tryRet(outMsg(out, "%s %#.16T", msg, mtd));
 
-  return shArgs(out, displayDepth, stk->sp, 0, codeArity(mtd));
+  return shArgs(out, displayDepth, stk->sp, codeArity(mtd));
 }
 
 void showEntry(ioPo out, stackPo stk, termPo _call) {
@@ -873,7 +863,7 @@ DebugWaitFor enterDebug(processPo p) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
   insPo pc = f->pc;
-  insWord ins = *pc++;
+  insWord ins = *pc;
   lineCount++;
   switch (ins) {
     case Abort:
@@ -1152,29 +1142,6 @@ retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bu
   return Fail;
 }
 
-#undef instruction
-#define instruction(Op, A, B, C, Cmt) #Op,
-
-char *insNames[] = {
-#include "instructions.h"
-
-#undef instruction
-};
-
-static comparison cmpCount(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-
-  integer iCount = insCounts[indices[i]];
-  integer jCount = insCounts[indices[j]];
-
-  if (iCount < jCount)
-    return smaller;
-  else if (iCount == jCount)
-    return same;
-  else
-    return bigger;
-}
-
 static retCode swapIndex(integer i, integer j, void *cl) {
   integer *indices = (integer *) cl;
   integer w = indices[i];
@@ -1183,30 +1150,7 @@ static retCode swapIndex(integer i, integer j, void *cl) {
   return Ok;
 }
 
-static void dumpInsCounts(ioPo out) {
-  if (collectStats) {
-    integer indices[illegalOp];
-    for (int ix = 0; ix < illegalOp; ix++)
-      indices[ix] = ix;
-
-    // Sort them by frequency
-    quick(0, illegalOp - 1, cmpCount, swapIndex, (void *) indices);
-
-    integer total = 0;
-    for (int ax = 0; ax < illegalOp; ax++) {
-      integer ix = indices[ax];
-      if (insCounts[ix] != 0) {
-        outMsg(out, " %s: %ld\n", insNames[ix], insCounts[ix]);
-        total += insCounts[ix];
-      }
-    }
-    assert(total == pcCount);
-  }
-}
-
 void dumpStats() {
-  dumpInsCounts(debugOutChnnl);
-  logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
   dumpEscapes(debugOutChnnl);
   showMtdCounts(debugOutChnnl);
   dumpStackStats(debugOutChnnl);
