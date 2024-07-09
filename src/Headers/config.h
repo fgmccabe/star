@@ -2,7 +2,7 @@
 #define CONFIG_H_
 
 /* Enable tracing insDebugging code to be compiled */
-//#define ALLTRACE /**/
+#define ALLTRACE /**/
 
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
