@@ -4,7 +4,6 @@ star.mbox{
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
   .result(e) |
-  .fork(taskFun[e]) |
   .requestIO(ioHandle,()=>boolean) |
   .schedule(task[e]) |
   .retired_.
@@ -81,8 +80,10 @@ star.mbox{
   spawnTask(F) => _fiber((Tsk,_)=> .result(F(Tsk))).
 
   public subTask:all e ~~ (task[e],taskFun[e])=>() raises mboxException.
-  subTask(Schd,Fn) => valof{
-    case _suspend(Schd,.fork(Fn)) in {
+  subTask(Schd,F) => valof{
+    Fn = _fiber((Tsk,_)=>.result(F(Tsk)));
+
+    case _suspend(Schd,.schedule(Fn)) in {
       | .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -111,10 +112,6 @@ star.mbox{
 	      valis Rslt
 	    }
 	    | .retired_ => { }
-	    | .fork(F) => {
-	      Tsk = spawnTask(F);
-	      Q := Q! ++ [Tsk,T];
-	    }
 	    | .schedule(Fb) => {
 	      Q := Q! ++ [Fb,T]
 	    }
@@ -171,7 +168,6 @@ star.mbox{
     disp(.yield_) => "yield".
     disp(.blocked(B)) => "blocked $(B())".
     disp(.result(e)) => "result #(_stringOf(e,2))".
-    disp(.fork(F)) => "fork #(_stringOf(F,2))".
     disp(.schedule(F)) => "schedule #(_stringOf(F,2))".
     disp(.retired_) => "retired"
   }
@@ -204,17 +200,21 @@ star.mbox{
   public tsk:all k,e,t ~~ (task[t],(async ()=>k raises e)) => future[k,e].
   tsk(sched,TFn) => valof{
     C = ref .neither;
-    _suspend(sched,.fork((this)=>valof{
-	try{
-	  C := .either(TFn()); -- this marks the future as resolved
+
+    Fb = _fiber((this,_)=>.result(valof{
+	  try{
+	    C := .either(TFn());	-- this marks the future as resolved
 	    _retire(this,.retired_)
-	} catch e in {
-	  Ex => {
-	    C := .other(Ex);
+	  } catch e in {
+	    Ex => {
+	      C := .other(Ex);
 	      _retire(this,.retired_)
+	    }
 	  }
-	}
 	}));
+    
+    _suspend(sched,.schedule(Fb));
+
     valis _cell_future(C)
   }
 }
