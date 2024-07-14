@@ -3,7 +3,7 @@ project(infra)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
-include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Engine/Headers")
+include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Engine/Headers" "../Jit/Headers")
 
 set(HEADER_FILES
         Headers/manifest.h Headers/manifestP.h Headers/pkg.h Headers/pkgP.h Headers/encoding.h

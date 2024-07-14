@@ -9,12 +9,14 @@
 #include "termP.h"
 #include "pkgP.h"
 #include "heapP.h"
+#include "jit.h"
 
 #include <assert.h>
 
 typedef struct method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
+  jitCode jit;          /* Pointer to jit'ed code */
   integer entryCount;
 
   integer arity;        /* How many arguments in method */
@@ -58,8 +60,20 @@ static inline void incEntryCount(methodPo mtd) {
   mtd->entryCount++;
 }
 
-static inline logical isPcOfMtd(methodPo mtd, insPo pc) {
-  return pc >= entryPoint(mtd) && pc < entryPoint(mtd) + insCount(mtd);
+static inline logical hasJit(methodPo mtd){
+  assert(mtd != Null);
+  return mtd->jit!=Null;
+}
+
+static inline jitCode codeJit(methodPo mtd){
+  assert(mtd!=Null && mtd->jit!=Null);
+  return mtd->jit;
+}
+
+retCode setJitCode(methodPo mtd,jitCode code);
+
+static inline logical isPcOfMtd(methodPo mtd, insPo pc){
+  return pc>=entryPoint(mtd) && pc< entryPoint(mtd)+ insCount(mtd);
 }
 
 labelPo mtdLabel(methodPo mtd);

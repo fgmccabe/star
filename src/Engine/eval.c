@@ -131,10 +131,21 @@ retCode run(processPo P) {
         assert(isPcOfMtd(FP->prog, PC));
         FP->pc = PC;
 
-        pushFrme(mtd);
-        LITS = codeLits(mtd);
-        incEntryCount(mtd);              // Increment number of times program called
-
+        if (hasJit(mtd)) {
+#ifdef TRACEJIT
+          if (traceJit) {
+            logMsg(logFile, "entering jitted code %T", mtd);
+          }
+#endif
+          saveRegisters();
+          termPo res = invokeJitMethod(mtd, H, STK);
+          restoreRegisters();
+          push(res);
+        } else {
+          pushFrme(mtd);
+          LITS = codeLits(mtd);
+          incEntryCount(mtd);              // Increment number of times program called
+        }
         continue;
       }
 
