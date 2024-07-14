@@ -17,6 +17,7 @@ set(UNITABLE.C ${CMAKE_CURRENT_BINARY_DIR}/unitable.c)
 set(UNICODE ${CMAKE_CURRENT_SOURCE_DIR}/UnicodeStuff/UnicodeData.txt)
 
 set(PUBLIC_HEADERS
+        Headers/array.h
         Headers/io.h
         Headers/file.h
         Headers/formio.h
@@ -50,6 +51,7 @@ set(PUBLIC_HEADERS
         Headers/signals.h)
 
 set(HEADER_FILES
+        Headers/arrayP.h
         Headers/ioP.h
         Headers/fileP.h
         Headers/formioP.h
@@ -78,6 +80,7 @@ set(HEADER_FILES
         Headers/byteBufferP.h)
 
 set(SOURCE_FILES
+        arrays.c
         buddy.c
         base64.c
         class.c

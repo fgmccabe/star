@@ -273,6 +273,7 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
     mtd->code[ix] = ins[ix];
 
   mtd->codeSize = insCount;
+  mtd->jit = Null;
   mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
@@ -332,4 +333,10 @@ void showMtdCounts(ioPo out) {
   for (integer ix = 0; ix < lblTableTop; ix++) {
     showMtdCount(&labelTable[indices[ix]], out);
   }
+}
+
+retCode setJitCode(methodPo mtd,jitCode code){
+  assert(!hasJit(mtd));
+  mtd->jit = code;
+  return Ok;
 }

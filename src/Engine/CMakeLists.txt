@@ -3,7 +3,7 @@ project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
-include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers")
+include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers")
 add_subdirectory("EngineTests")
 
 set(HEADER_FILES
@@ -14,6 +14,7 @@ set(HEADER_FILES
         ../Util/Headers/cmdOptions.h
         ../Escapes/Headers/libEscapes.h
         ../Util/Headers/integer.h
+        ../Jit/Headers/jit.h
         Headers/args.h
         Headers/bignum.h Headers/bignumP.h
         Headers/bkpoint.h
@@ -70,6 +71,6 @@ set(SOURCE_FILES
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star escapes infra ooio m pthread)
+target_link_libraries(star escapes infra ooio m pthread jit)
 
 install(TARGETS star DESTINATION bin)
