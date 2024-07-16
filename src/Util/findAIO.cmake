@@ -17,8 +17,10 @@ message("AIO_INCLUDE = ${AIO_INCLUDE_DIR}")
 if(APPLE)
   set(RTLIB c)
 endif(APPLE)
-find_library(LIBAIO NAMES aio rt ${RTLIB})
-set(AIO_LIBRARIES ${LIBAIO})
+find_library(LIBAIO_LIBRARIES NAMES aio rt ${RTLIB} c)
+
+message("AIO_LIBRARIES = ${AIO_LIBRARIES}")
+
 # handle the QUIETLY and REQUIRED arguments and set AIO_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)

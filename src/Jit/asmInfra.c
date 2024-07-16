@@ -11,6 +11,7 @@
 #include "pool.h"
 #include <stdlib.h>
 #include <assert.h>
+#include "array.h"
 
 static poolPo lblPool = Null;
 static poolPo asmPool = Null;
