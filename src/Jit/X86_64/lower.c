@@ -104,6 +104,10 @@ retCode jit_Abort(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo j
   return Error;
 }
 
+retCode jit_Closure(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Alloc(insPo code, vOperand a1, vOperand a2,  integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -171,6 +175,22 @@ retCode jit_TL(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitC
 }
 
 retCode jit_TG(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Thunk(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_LdTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_StTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_TTh(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
@@ -354,6 +374,22 @@ retCode jit_IGe(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jit
 }
 
 retCode jit_ILt(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CCmp(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CEq(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CGe(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_CLt(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

@@ -97,7 +97,9 @@ void ps_kill(processPo p) {
 
     pthread_t thread = p->threadID;
 
-    pthread_cancel(thread);    /* cancel the thread */
+    if(thread){
+      pthread_cancel(thread);    /* cancel the thread */
+    }
 
     hashRemove(prTble, (void *) p->processNo);
     freePool(prPool, p);
