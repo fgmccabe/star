@@ -8,9 +8,11 @@
 
 /* Lower Star VM code to X64 code */
 /*
- *  First four arguments passed in registers:
- *  A0 = RCX
- *  A1 = RDX
+ *  First six arguments passed in registers:
+ *  A0 = RDI
+ *  A0 = RSI
+ *  A0 = RDX
+ *  A1 = RCX
  *  A2 = R8
  *  A3 = R9
  *
