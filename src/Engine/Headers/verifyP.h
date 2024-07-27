@@ -24,6 +24,7 @@ typedef struct segment_ {
   methodPo mtd;                     //  Pointer to the code structure itself
   integer pc;                       //  base intruction of this segment
   integer maxPc;                    //  Maximum instruction in this segment
+  integer entryDepth;               //  Stack depth on entry
   integer stackDepth;               //  What is the current stack depth?
   integer entryPoints;              //  how many unchecked entry points are there here?
   vectorPo entries;                 //  Which other segments enter this segment?

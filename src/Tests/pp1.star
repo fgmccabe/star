@@ -15,20 +15,25 @@ test.pp1{
     }
   }
 
-  readLines(Fl) => valof{
-    if _end_of_file(Fl) then
-      valis []
-    else{
-      try{
+  readLines(Fl) => let{.
+    rdLns:()=>cons[string] raises errorCode.
+    rdLns() => valof{
+      if _end_of_file(Fl) then
+	valis []
+      else{
 	Ln = _inline(Fl);
-	Rst = readLines(Fl);
-	valis [Ln,..Rst]
-      } catch errorCode in {
-	.eof => valis []
-	| Other => {
-	  showMsg("io error: $(Other)");
-	  _abort(Other,"error")
-	}
+	Rst = rdLns();
+	  valis [Ln,..Rst]
+      }
+    }
+  .} in valof{
+    try{
+      valis rdLns()
+    } catch errorCode in {
+      | .eof => valis []
+      | Other => {
+	showMsg("io error: $(Other)");
+	_abort(Other,"error")
       }
     }
   }

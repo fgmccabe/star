@@ -17,6 +17,8 @@
 instruction(Halt, i32, nOp, 0, "Stop execution")
 instruction(Nop, nOp, nOp, 0, "No operation")
 
+//instruction(Block, bLk, nOp, 0, "A block of instructions")
+
 instruction(Abort, tOs, tOs, -2, "abort with message")
 
 instruction(Call, sym, nOp, 1, "Call <prog>")
@@ -43,7 +45,8 @@ instruction(Retire, tOs, tOs, -2, "retire a fiber")
 instruction(Underflow, nOp, nOp, 0, "underflow from current stack")
 instruction(TEq, tOs, tOs, -1, "L R --> L==R, where L,R are tasks")
 
-instruction(Try, off, nOp, 1, "create a handler continuation")
+instruction(Try, off, nOp, 1, "start a try-catch block")
+instruction(EndTry, tOs, nOp, -1, "clear a try block")
 instruction(Throw, tOs, tOs, 0, "Invoke a continuation")
 
 instruction(LdV, nOp, nOp, 1, "Place a void value on stack")
@@ -59,10 +62,10 @@ instruction(LdG, glb, nOp, 1, "load a global variable")
 instruction(StG, glb, tOs, -1, "store into a global variable")
 instruction(TG, glb, tOs, 0, "copy into a global variable")
 
-instruction(Thunk,tOs,nOp,0,"create a thunk from a lambda")
-instruction(LdTh,tOs,off,0,"derefence a thunk, potentially running its lambda")
-instruction(StTh,tOs,tOs,-2,"store a value into a thunk variable")
-instruction(TTh,tOs,tOs,0,"update thunk and leave on stack")
+instruction(Thunk, tOs, nOp, 0, "create a thunk from a lambda")
+instruction(LdTh, tOs, off, 0, "derefence a thunk, potentially running its lambda")
+instruction(StTh, tOs, tOs, -2, "store a value into a thunk variable")
+instruction(TTh, tOs, tOs, 0, "update thunk and leave on stack")
 
 instruction(Cell, tOs, nOp, 0, "create R/W cell")
 instruction(Get, tOs, nOp, 0, "access a R/W cell")

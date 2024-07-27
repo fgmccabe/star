@@ -125,12 +125,16 @@ star.compiler.gencode{
     }
     | .cAbort(Lc,Msg,Tp) => abortCont(Lc,Msg).C(Ctx,Stk,[])
     | .cTry(Lc,B,.cVar(_,.cId(Th,ThTp)),.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
+
+      if traceCodegen! then
+	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
+      
       (CLb,Ctx0) = defineExitLbl("Tr",Ctx);
       Blk = defineLbl("H",Ctx);
       (TOff,CtxB) = defineLclVar(Th,ThTp::ltipe,Ctx0);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       
-      (Stk1,BCde) = compExp(B,Lc,.notLast,Cont,CtxB,Stk); -- critical: body of try is not tail rec
+      (Stk1,BCde) = compExp(B,Lc,.notLast,tryEndCont(TOff,Cont),CtxB,Stk); -- critical: body of try is not tail rec
       (Stk2,HCde) = compExp(H,Lc,TM,Cont,Ctx1,Stk);
 
       if ~reconcileable(Stk1,Stk2) then
@@ -240,13 +244,17 @@ star.compiler.gencode{
       valis compExp(Val,Lc,.notLast,stoCont(Vr,VTp::ltipe,Stk,actionCont(Bnd,Lc,TM,ACont,Cont)),Ctx,Stk)
     }
     | .aTry(Lc,B,.cVar(_,.cId(Th,ThTp)), .cVar(_,.cId(Er,ETp)),H) => valof{
+
+      if traceCodegen! then
+	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
+      
       Blk = defineLbl("H",Ctx);
       (TOff,Ctx0) = defineLclVar(Th,ETp::ltipe,Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
       
-      (Stk1,BCde) = compAction(B,Lc,.notLast,AC,CC,Ctx0,Stk);
+      (Stk1,BCde) = compAction(B,Lc,.notLast,tryEndCont(TOff,AC),tryEndCont(TOff,CC),Ctx0,Stk);
       (Stk2,CCde) = compAction(H,Lc,TM,AC,CC,Ctx1,Stk);
 
       if ~reconcileable(Stk1,Stk2) then
@@ -265,115 +273,135 @@ star.compiler.gencode{
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
-      showMsg("compiling case @$(Lc), Gov=$(Gv), Cases=$(Cases)");
+      showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Nxt = defineLbl("CN",Ctx);
     DLbl = defineLbl("CD",Ctx);
-    (Stk1,GCode) = compExp(Gv,Lc,.notLast,jmpCont(Nxt,pushStack(typeOf(Gv)::ltipe,Stk)),Ctx,Stk);
+
+    (Stk1,GCode) = compExp(Gv,Lc,.notLast,nxCont(Nxt),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
 
-    if traceCodegen! then
-      showMsg("case table: $(Table)");
+    if traceCodegen! then{
+      showMsg("$(Max) case table: $(Table)");
+      showMsg("stack going into cases: $(Stk1)");
+    };
     
     OC = splitCont(Lc,Ctx,Cont);
     (Stkc,DCode) = Comp(Deflt,OC).C(Ctx,Stk,[]);
 
-    (Stkb,TCode,CCode) = compCases(Table,0,Max,Comp,OC,resetCont(Stk,jmpCont(DLbl,Stkc)),DLbl,Ctx,Stk1);
+    if traceCodegen! then{
+      showMsg("stack after default: $(Stkc)");
+    };
+
+    (Stkb,TCode,CCode) = compArms(Table,0,Max,Comp,OC,jmpCont(DLbl,Stkc),DLbl,Ctx,Stk1);
+
+    if traceCodegen! then
+      showMsg("stack after case arms: $(Stkb)");
+
+    if ~reconcileable(Stkb,Stkc) then
+      reportError("cannot cases' stack $(Cases) with default $(Deflt)",Lc);
 
     valis (reconcileStack(Stkb,Stkc),
-      GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl)]++DCode)
+      GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl),.iRst(_optval([|Stk|]))]++DCode)
   }
 
-  compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
+  compArms:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
     (e,Cont)=>Cont,Cont,Cont,assemLbl,codeCtx,stack) =>(stack,multi[assemOp],multi[assemOp]).
-  compCases(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
+  compArms(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
     | [] => valof{
       if Ix==Mx then
 	valis (.none,[],[])
       else{
-	(Stk1,TCde,Cde) = compCases([],Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
+	(Stk1,TCde,Cde) = compArms([],Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
 	valis (Stk1,[.iJmp(Deflt)]++TCde,Cde)
       }
     }
     | [(Ix,Case),..Cases] => valof{
-      Lb = defineLbl("CC",Ctx);
-      (Stkb,TCde2,Cde2) = compCases(Cases,Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
-      (Stkc,CCde) = compCaseBranch(Case,Comp,Succ,Fail,Ctx,Stk);
+      if traceCodegen! then{
+	showMsg("compile case $(Ix) of $(Mx)\:$(Case)");
+	showMsg("incoming case stack $(Stk)");
+      };
+      (Stkc,CCde) = compArm(Case,Comp,Succ,Fail,Ctx,Stk);
 
+      if traceCodegen! then
+	showMsg("stack (c) after arg $(Stkc)");
+
+      (Stkb,TCde2,Cde2) = compArms(Cases,Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
+      if traceCodegen! then{
+	showMsg("stack after arms $(Stkb)");
+	showMsg("compile stack case $(Case)");
+      };
+
+
+      if ~reconcileable(Stkb,Stkc) then
+	reportError("cannot recon stack of first case $(Case)=$(Stkb) with other cases $(Cases)=$(Stkc)",.none);
+
+      Lb = defineLbl("CC",Ctx);
       valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }
     | [(Iy,Case),..Cases] => valof{
-      (Stk1,TCde,CCde) = compCases([(Iy,Case),..Cases],Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
+      (Stk1,TCde,CCde) = compArms([(Iy,Case),..Cases],Ix+1,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk);
       valis (Stk1,[.iJmp(Deflt)]++TCde,CCde)
     }
   }
 
-  compCaseBranch:all e ~~ display[e] |: (cons[cCase[e]],
+  compArm:all e ~~ display[e] |: (cons[cCase[e]],
     (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
 
-  compCaseBranch(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
-    | [(Lc,Ptn,Exp)] => compPttrn(Ptn,Lc,Comp(Exp,Succ),Fail,Ctx,Stk)
+  compArm(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
+    | [(Lc,Ptn,Exp)] => valof{
+      if traceCodegen! then
+	showMsg("short arm: $(Ptn) -> $(Exp)");
+      valis compPttrn(Ptn,Lc,Comp(Exp,Succ),Fail,Ctx,Stk)
+    }
     | [(Lc,Ptn,Exp),..More] => valof{
+      if traceCodegen! then
+	showMsg("stack going into this long arm $(Ptn) -> $(Exp) is $(Stk)\nMore\: $(More)");
+      
       Fl = defineLbl("CF",Ctx);
       VLb = defineLbl("CN",Ctx);
       Vr = genSym("__");
-      (Off,Ctx1) = defineLclVar(Vr,typeOf(Ptn)::ltipe,Ctx);
-      (Stkc,AltCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
+      Ptipe = typeOf(Ptn)::ltipe;
+      (Off,Ctx1) = defineLclVar(Vr,Ptipe,Ctx);
 
+      (Stkc,AltCde) = compMoreArm(More,Off,Comp,Succ,Fail,Ctx1,Stk);
+
+      if traceCodegen! then{
+	showMsg("$(Lc)\: stack after more arm (a): $(More) is $(Stkc)");
+      };
+      
       (Stkb,RlCde) = compPttrn(Ptn,Lc,Comp(Exp,Succ),jmpCont(Fl,Stkc),Ctx1,Stk);
-      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl)]++AltCde)
+
+      if traceCodegen! then
+	showMsg("$(Lc)\: stack after this arm: $(Ptn) -> $(Exp) is $(Stkb)");
+      
+      valis (reconcileStack(Stkb,Stkc),[.iTL(Off)]++RlCde++[.iLbl(Fl),.iLdL(Off)]++AltCde)
     }
   }
 
-  compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
+  compMoreArm:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
     Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
+  compMoreArm(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
     | [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
       Fl = defineLbl("CM",Ctx);
       
-      (Stk3,RstCde) = compMoreCase(More,Off,Comp,Succ,Fail,Ctx,Stk);
+      (Stk3,RstCde) = compMoreArm(More,Off,Comp,Succ,Fail,Ctx,Stk);
+
+      if traceCodegen! then
+	showMsg("$(Lc)\: stack after more arms: $(More) is $(Stk3)");
+      
       (Stk2,RlCde) = compPttrn(Ptn,Lc,Comp(Exp,Succ),jmpCont(Fl,Stk3),Ctx,Stk);
-      valis (reconcileStack(Stk2,Stk3),[.iLdL(Off)]++RlCde++[.iLbl(Fl)]++RstCde)
+
+      if traceCodegen! then
+	showMsg("$(Lc)\: stack after more arm (b) $(Ptn)->$(Exp) is $(Stk2)");
+
+      if ~reconcileable(Stk2,Stk3) then
+	reportError("cannot recon stack [$(Stk2)] of first arm $(Ptn) -> $(Exp) with more arms $(More) [$(Stk3)]",Lc);
+
+      valis (reconcileStack(Stk2,Stk3),RlCde++[.iLbl(Fl),.iLdL(Off)]++RstCde)
     }
   }
   
-  compCnsCase:all e ~~ display[e] |: (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
-    Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
-    | [(_,Ptn,Exp)] => compExp(Gv,Lc,.notLast, ptnCont(Ptn,Lc,Comp(Exp,Cont),
-	abortCont(Lc,"match error")),Ctx,Stk)
-    | Cases default => valof{
-      CC = splitCont(Lc,Ctx,Cont);
-      valis compExp(Gv,Lc,.notLast,cnsCaseCont(Cases,Comp,CC),Ctx,Stk)
-    }
-  }
-
-  cnsCaseCont:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont) => Cont.
-  cnsCaseCont(Cases,Comp,Cont) => cont{
-    C(Ctx,AStk,GCde) => valof{
-      (Stk2,JCde,CCde) = compCnsCases(Cases,Comp,Cont,Ctx,AStk);
-    
-      valis (Stk2,GCde++[.iIndxJmp([|Cases|])]++JCde++CCde)
-    }
-  }
-
-  compCnsCases:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
-    (stack,multi[assemOp],multi[assemOp]).
-  compCnsCases(Cs,Comp,Succ,Ctx,Stk) => case Cs in {
-    | [] => (.none,[],[])
-    | [(Lc,Ptn,Exp),..Cases] => valof{
-      Lb = cseLbl(Ptn,Ctx);
-      (Stk2a,TCde2,Cde2) = compCnsCases(Cases,Comp,Succ,Ctx,Stk);
-      (Stk3a,CCde) = compPtn(Ptn,Lc,Comp(Exp,Succ),abortCont(Lc,"match error"),Ctx,Stk);
-      if ~reconcileable(Stk2a,Stk3a) then
-	reportError("cannot reconcile case $(Ptn)=>$(Exp) with $(Cases)",Lc);
-      valis (reconcileStack(Stk2a,Stk3a),[.iJmp(Lb),..TCde2],Cde2++[.iLbl(Lb),..CCde])
-    }
-  }
-
-  cseLbl(.cTerm(_,Nm,_,_),Ctx) => defineLbl(Nm,Ctx).
-  cseLbl(_,Ctx) => defineLbl("L",Ctx).
-
   all e ~~ csEntry[e] ~> (integer,cons[cCase[e]]).
 
   genCaseTable(Cases) where Mx.=nextPrime(size(Cases)) =>
@@ -429,6 +457,9 @@ star.compiler.gencode{
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
       
       (Stk2,SCde) = compPtnArgs(Args,Lc,Succ,resetCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+
+      if traceCodegen! then
+	showMsg("Succ stack $(Stk2), Fail stack $(Stk1)");
 
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
     }
@@ -536,10 +567,20 @@ star.compiler.gencode{
     C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iLdTh(Lbl),.iRot(1),.iTTh,.iLbl(Lbl)])
   }
 
+  tryEndCont:(integer,Cont) => Cont.
+  tryEndCont(Off,Cont) => cont{
+    C(Ctx,Stk,Cde) => Cont.C(Ctx,Stk,Cde++[.iLdL(Off),.iEndTry])
+  }
+
   jmpCont:(assemLbl,stack)=>Cont.
   jmpCont(Lbl,Stk) => cont{
     C(Ctx,_Stk1,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
     }
+
+  nxCont:(assemLbl)=>Cont.
+  nxCont(Lbl) => cont{
+    C(Ctx,Stk,Cde) => (Stk,Cde++[.iJmp(Lbl)]).
+  }
 
   raiseCont:Cont.
   raiseCont = cont{
@@ -551,6 +592,13 @@ star.compiler.gencode{
     C(Ctx,_,Cde) => valof{
       (Off,Ctx1) = defineLclVar(Vr,Tp,Ctx);
       valis Cont.C(Ctx1,Stk,Cde++[.iStL(Off)])
+    }
+  }
+
+  lclCont:(integer,stack,Cont) => Cont.
+  lclCont(Off,Stk,Cont) => cont{
+    C(Ctx,_,Cde) => valof{
+      valis Cont.C(Ctx,Stk,Cde++[.iStL(Off)])
     }
   }
 
@@ -699,11 +747,12 @@ star.compiler.gencode{
     valis cont{
       C(_Ctx,Stk,Cde) => valof{
 	if triggered! then{
-	  triggered := .true;
 	  valis (tStk!,Cde++[.iJmp(Lb)])
 	} else{
 	  triggered := .true;
+	  
 	  (rStk,rCde) = Cnt.C(Ctx0,Stk,Cde++[.iLbl(Lb)]);
+	  
 	  tStk := rStk;
 	  valis (rStk,rCde);
 	}

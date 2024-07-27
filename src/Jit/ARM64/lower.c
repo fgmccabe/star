@@ -420,6 +420,10 @@ retCode jit_Try(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo
   return Error;
 }
 
+retCode jit_EndTry(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Throw(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

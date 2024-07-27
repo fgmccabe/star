@@ -17,7 +17,6 @@
 #include "debugP.h"
 #include "buddyP.h"
 #include "labelsP.h"
-#include "continuationP.h"
 #include "timers.h"
 #include "engineP.h"
 
@@ -120,16 +119,6 @@ static retCode debugOption(char *option, logical enable) {
         continue;
 #else
         logMsg(logFile,"stack operation tracing not enabled");
-        return -1;
-#endif
-
-      case 'O':    /* trace continuation operations  */
-#ifdef TRACESTACK
-        traceContinuations = True;
-        logMsg(logFile, "Continuation tracing enabled\n");
-        continue;
-#else
-        logMsg(logFile,"Continuation tracing not enabled");
         return -1;
 #endif
 

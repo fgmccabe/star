@@ -1253,6 +1253,6 @@ star.compiler.term{
   foldACases(Cs,Fn,SoF) =>
     foldRight(((_,Pt,A),SF)=>foldA(A,Fn,foldV(Pt,.inPtn,Fn,SF)),SoF,Cs).
 
-  encE:(cExp)=>multi[char].
---  encE(.cVoid(Lc,Tp)) => [`v`]++
+  public genVar:(string,tipe)=>cId.
+  genVar(Pr,Tp) => .cId(genId(Pr),Tp).
 }

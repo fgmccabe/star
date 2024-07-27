@@ -92,6 +92,9 @@ mkInsTpl(Is,Tpl) :-
 
 mkIns(O,intgr(O)) :- number(O).
 mkIns(S,strg(S)) :- string(S).
+mkIns(C,Tpl) :- length(C,_),
+  mkInsTpl(C,Args),
+  mkTpl(Args,Tpl).
 
 sortLines(Lns,Sorted) :-
  sort(Lns,assemble:compLine,Sorted).
@@ -104,18 +107,18 @@ dispIns(Prog) :-
 
 showIns(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
-  showMnem(Ins,0,[],II),
+  showMnem(Ins,0,_,[],II),
   ssPolicy(H,HH),!.
 
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
-showMnem([],_,_,[]).
-showMnem([iLbl(Lb)|Ins],Pc,Lbs,[sq([ss(Lb),ss(":")])|II]) :-
-  showMnem(Ins,Pc,[(Lb,Pc)|Lbs],II).
-showMnem([iLocal(Nm,Frm,End,Off)|Ins],Pc,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End),ss(":"),ix(Off)])|II]) :-
-  showMnem(Ins,Pc,Lbs,II).
-showMnem([iLine(Loc)|Ins],Pc,Lbs,[sq([ss("Line "),LL])|II]) :-
+showMnem([],Pc,Pc,_,[]).
+showMnem([iLbl(Lb)|Ins],Pc,PcX,Lbs,[sq([ss(Lb),ss(":")])|II]) :-
+  showMnem(Ins,Pc,PcX,[(Lb,Pc)|Lbs],II).
+showMnem([iLocal(Nm,Frm,End,Off)|Ins],Pc,PcX,Lbs,[sq([ss(Nm),ss("::"),ss(Frm),ss("-"),ss(End),ss(":"),ix(Off)])|II]) :-
+  showMnem(Ins,Pc,PcX,Lbs,II).
+showMnem([iLine(Loc)|Ins],Pc,PcX,Lbs,[sq([ss("Line "),LL])|II]) :-
   ssTrm(Loc,0,LL),
-  showMnem(Ins,Pc,Lbs,II).
+  showMnem(Ins,Pc,PcX,Lbs,II).
 #(Show)

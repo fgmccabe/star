@@ -106,12 +106,12 @@ void dC(termPo w) {
   flushOut();
 }
 
-static retCode showConstant(ioPo out, methodPo mtd, integer off) {
-  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
+static retCode showConstant(ioPo out, methodPo mtd, integer conIx) {
+  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, conIx));
 }
 
-static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer off) {
-  termPo frameLit = nthArg(mtd->pool, off);
+static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
+  termPo frameLit = nthArg(mtd->pool, conIx);
   integer stackDepth = 0;
   if (isString(frameLit)) {
     integer sigLen;

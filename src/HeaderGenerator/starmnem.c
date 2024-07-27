@@ -33,7 +33,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static char *dot(opAndSpec A);
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt);
+static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt);
 static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     strBufferPo mnemBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,A2,Dl,cmt);
+#define instruction(M, A1, A2, Dl, cmt) genStarMnem(O_IO(mnemBuff),#M,M,A1,A2,Dl,cmt);
 
 #include "instructions.h"
 
@@ -144,6 +144,8 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
     case lcl:
     case lcs:
     case tPe:
+    case bLk:
+    case lVl:
       outMsg(out, "%s%s", sep, V);
       return ",";
     case off:
@@ -175,7 +177,7 @@ char *dot(opAndSpec A) {
   }
 }
 
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
+static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
   char *sep = "(";
 
   outMsg(out, "  mnem([.i%s", mnem);
@@ -319,8 +321,14 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, i
              "where Tgt ?= Lbls[U] => mnem(Ins,Code++[.intgr(%d),.intgr(Tgt-Pc-3)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n",
              op);
       return;
+    case bLk: {                           // A nested block of instructions
+      outMsg(out,
+             "where (Blk,Lts1,Lns1,Lcs1,Pc1,MxLcl1) .= mnem(U,[],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends) => mnem(Ins,Code++[.intgr(%d),mkTpl(Blk::cons[data])],Lbls,Lts1,Lns1,Lcs1,Pc1,MxLcl1,Ends).\n",
+             op);
+      return;
+    }
     default:
-      check(False, "invalid second operand");
+      check(False, "invalid first operand");
   }
 }
 
@@ -341,6 +349,8 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
+    case bLk:
+    case lVl:
       sz += 2;
       break;
   }
@@ -358,6 +368,8 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
+    case bLk:
+    case lVl:
       sz += 2;
       break;
   }
@@ -394,6 +406,7 @@ static char *opAndTp(opAndSpec A) {
     case arg:
     case lcl:
     case lcs:
+    case lVl:
       return "integer";
     case off:
       return "assemLbl";
@@ -402,6 +415,8 @@ static char *opAndTp(opAndSpec A) {
       return "string";
     case tPe:
       return "ltipe";
+    case bLk:
+      return "cons[assemOp]";
     default:
       fprintf(stderr, "Unknown instruction type code\n");
       exit(1);

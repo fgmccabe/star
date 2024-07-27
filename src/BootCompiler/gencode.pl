@@ -416,7 +416,7 @@ compTry(Lc,B,idnt(T),idnt(E),H,OLc,Cont,Hndlr,Brks,Opts,End,L,Lx,D,Dx,C,Cx,Stk) 
   genLbl(L1,TLb,L2),
   C0 = [iTry(Blk),iStL(TOff),iLbl(TLb)|C1],
   defineLclVar(T,TLb,Blk,Opts,D,D1,TOff,C1,C2),
-  call(Hndlr,B,Lc,bothCont(nullCont,Cont),Blk,Brks,Opts,L2,L3,D1,D2,C2,[iLbl(Blk),iStL(EOff),iLbl(ELb)|C3],Stk,_Stk1),
+  call(Hndlr,B,Lc,endTryCont(TOff,Cont),Blk,Brks,Opts,L2,L3,D1,D2,C2,[iLbl(Blk),iStL(EOff),iLbl(ELb)|C3],Stk,_Stk1),
   genLine(Opts,Lc,C3,C4),
   genLbl(L3,ELb,L4),
   resetVars(D,D2,D3),
@@ -424,6 +424,9 @@ compTry(Lc,B,idnt(T),idnt(E),H,OLc,Cont,Hndlr,Brks,Opts,End,L,Lx,D,Dx,C,Cx,Stk) 
   call(Hndlr,H,Lc,Cont,End,Brks,Opts,L4,Lx,D4,Dx,C5,Cx,Stk,_Stk2).
 
 throwCont(Lx,Lx,Dx,Dx,[iThrow|Cx],Cx,_Stk,none).
+
+endTryCont(Off,Cont,L,Lx,D,Dx,[iLdL(Off),iEndTry|C],Cx,Stk,Stkx) :-
+  call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 /* Compile actions as sequences with several possible continuations */
 
@@ -737,7 +740,6 @@ genCaseTable(Cases,P,Table) :-
   length(Cases,L),
   nextPrime(L,P),
   caseHashes(Cases,P,Hs),
-%  reportMsg("case hashes %s",[Hs]),
   sortCases(Hs,Table).
 
 caseHashes([],_,[]).

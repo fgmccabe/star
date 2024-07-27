@@ -26,7 +26,7 @@ integer codeArity(methodPo mtd);
 
 termPo findPcLocation(methodPo mtd, integer pc);
 integer insOffset(methodPo m, insPo pc);
-insPo pcAddr(methodPo mtd, integer off);
+insPo pcAddr(methodPo mtd, integer pcOffset);
 integer mtdCodeSize(methodPo mtd);
 
 integer callCount(methodPo mtd);

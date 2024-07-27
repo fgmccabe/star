@@ -775,7 +775,4 @@ star.compiler.normalize{
 
   makeFunVars:(tipe)=>cons[cId].
   makeFunVars(Tp) where .tupleType(Es)?=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
-
-  genVar:(string,tipe)=>cId.
-  genVar(Pr,Tp) => .cId(genId(Pr),Tp).
 }

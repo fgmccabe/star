@@ -115,8 +115,8 @@ integer insOffset(methodPo m, insPo pc) {
   return (integer) (pc - &m->code[0]);
 }
 
-insPo pcAddr(methodPo mtd, integer off) {
-  return &mtd->code[off];
+insPo pcAddr(methodPo mtd, integer pcOffset) {
+  return &mtd->code[pcOffset];
 }
 
 logical validPC(methodPo mtd, insPo pc) {

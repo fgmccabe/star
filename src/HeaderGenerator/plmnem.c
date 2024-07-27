@@ -8,6 +8,7 @@
 #include "template.h"
 #include <stringBuffer.h>
 #include "formexts.h"
+#include <assert.h>
 
 /* Generate a Prolog module, that knows how to assemble a program */
 
@@ -148,6 +149,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case glb:
     case off:
     case tPe:
+    case bLk:
       sz += 2;
       break;
   }
@@ -164,6 +166,7 @@ static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2) {
     case Es:
     case glb:
     case off:
+    case bLk:
     case tPe:
       sz += 2;
       break;
@@ -187,6 +190,8 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
     case lcl:
     case lcs:
     case off:
+    case bLk:
+    case lVl:
       outMsg(out, "%s%s", sep, var);
       return ",";
     default:
@@ -338,7 +343,12 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
       outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pcx,Ends,M,Cdx).\n");
       break;
+    case bLk:
+      outMsg(out, ",B|M],Cdx) :- Pc1 is Pc+%d,\n", insSize(op, A1, A2));
+      outMsg(out, "      assemBlock(V,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,Pc2,Ends,B,[]),\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc2,Pcx,Ends,M,Cdx).\n");
     default:
+      break;
       check(False, "Cannot generate instruction");
       exit(1);
   }
@@ -418,7 +428,25 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
           default:
             check(False, "Cannot generate instruction");
         }
+        case bLk: {
+          check(False, "Illegal operand");
+        }
       }
+      break;
+    case bLk: {
+      check(A2 == nOp, "illegal second operand");
+      char *sep = genArg(out, "(", A1, "A");
+      sep = genArg(out, sep, A2, "_B");
+      if (strcmp(sep, ",") == 0)
+        outStr(out, ")");
+
+      outMsg(out, "|Ins],Pc,Pcx,Lbls,Lbx) :- !, ");
+      outMsg(out, "Pc1 is Pc+%d, ", insSize(op, A1, A2));
+      outMsg(out, "genLblTbl(A,Pc1,Pc2,Lbls,Lb1), ");
+      outMsg(out, " genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
+    }
+    case lVl:
+      check(False,"not yet implemented");
       break;
   }
 }
@@ -452,11 +480,17 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case i32:
     case art:
     case arg:
+    case lVl:
       outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
       break;
     case Es:
+      outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      resIn->pcV++;
+      break;
+    case bLk:
       outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
       outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
       resIn->pcV++;
@@ -478,21 +512,32 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   char *V1 = "";
   char *V2 = "";
 
-  if (A1 != nOp) {
-    if (A1 != tOs) {
+  switch (A1) {
+    case nOp:
+      break;
+    case bLk: {
+      sep1 = ", ss(\" \"), sq([UU]), ss(\"End\"),";
+      V1 = "UU";
+      break;
+    }
+    default:
       sep1 = ", ss(\" \"), ";
       V1 = "UU";
-    }
+    case tOs:
+      switch (A2) {
+        case nOp:
+        case tOs:
+          break;
+        default:
+          sep2 = ", ss(\",\"), ";
+          V2 = "VV";
+          break;
 
-    if (A2 != nOp) {
-      if (A2 != tOs) {
-        sep2 = ", ss(\",\"), ";
-        V2 = "VV";
+          break;
       }
-    }
   }
 
-  outMsg(out, "|Ins],Pc,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
+  outMsg(out, "|Ins],Pc,PcX,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
   outMsg(out, "  Pc0 is Pc+1,\n");
 
   OpRes res1 = {.pcV=0};
@@ -500,5 +545,5 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   showOperand(out, A1, "U", "UU", &res1);
   showOperand(out, A2, "V", "VV", &res1);
 
-  outMsg(out, "  showMnem(Ins,Pc%ld,Lbls,II).\n", res1.pcV);
+  outMsg(out, "  showMnem(Ins,Pc%ld,PcX,Lbls,II).\n", res1.pcV);
 }
