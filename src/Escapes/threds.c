@@ -124,7 +124,7 @@ ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
 ReturnStatus g__stackTrace(heapPo h) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showPrognames);
+  stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments);
 
   ReturnStatus rt = {.ret=Normal, .result=allocateFromStrBuffer(h, str)};
   closeIo(O_IO(str));

@@ -10,12 +10,22 @@
 #include "engine.h"
 #include "heap.h"
 
+#define MAX_TRY (128)
+
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;           // The current program counter
   methodPo prog;      // The returnee program
   ptrPo csp;          // Pointer to the arg/local split on value stack
 } StackFrame;
+
+typedef struct try_frame_ {
+  integer tryIndex;             // Special index incremented for each try
+  framePo fp;
+  methodPo prog;
+  insPo pc;
+  ptrPo sp;
+} TryFrame, *tryFramePo;
 
 #define STACKFRAME_SIZE 3
 
@@ -26,6 +36,8 @@ typedef struct StackStructure {
   integer hwm;                  // High watermark of stack sizes rooted off this stack
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
+  integer tryTop;
+  TryFrame tryStack[MAX_TRY];   // Local stack of try frames
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
   StackState state;              // is the stack attached, root, detached or moribund
@@ -45,6 +57,10 @@ extern integer defaultStackSize;
 extern integer stackRegionSize;    // How much space for stacks
 
 void dumpStackStats(ioPo out);
+
+integer pushTryFrame(processPo P, methodPo prog, insPo pc, framePo fp, ptrPo sp);
+stackPo dropTryFrame(processPo P, integer tryIndex, framePo *fp, ptrPo *sp, insPo *pc);
+integer tryStackSize(processPo P);
 
 static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;
@@ -90,8 +106,8 @@ typedef enum {
 } StackTraceLevel;
 
 void
-showStackCall(ioPo out, integer displayDepth, framePo fp, stackPo stk, ptrPo sp, integer frameNo,
+showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, ptrPo sp, integer frameNo,
               StackTraceLevel tracing);
-void stackTrace(processPo p, ioPo out, stackPo stk, integer displayDepth, StackTraceLevel tracing);
+void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing);
 
 #endif //STAR_STACKP_H

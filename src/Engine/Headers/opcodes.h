@@ -33,6 +33,8 @@ typedef enum {
   sym,          // Symbol
   glb,          // Global variable name
   tPe,          // Type signature
+  bLk,          // A block of instructions
+  lVl,          // How many blocks to break out of
 } opAndSpec;                    // Specification code for an operand
 
 #endif

@@ -99,8 +99,8 @@ ReturnStatus g__time2date(heapPo h, termPo a1) {
   termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
-  termPo off = makeInteger(now->tm_gmtoff);
-  setArg(dte, DATE_UTC, off);
+  termPo tmOffset = makeInteger(now->tm_gmtoff);
+  setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
   return (ReturnStatus) {.ret=Normal, .result=(termPo) dte};
@@ -138,8 +138,8 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   termPo sc = makeFloat(now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
-  termPo off = makeInteger(now->tm_gmtoff);
-  setArg(dte, DATE_UTC, off);
+  termPo tmOffset = makeInteger(now->tm_gmtoff);
+  setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
   return (ReturnStatus) {.ret=Normal, .result= (termPo) dte};

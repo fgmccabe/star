@@ -68,10 +68,10 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
 
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, mtd, stk->fp);
+  P->tryCounter = 0;
 
   P->heap = h;
-  P->state = P->savedState = quiescent;
-  P->pauseRequest = False;
+  P->state = quiescent;
   if (insDebugging || lineDebugging) {
     if (interactive)
       P->waitFor = stepInto;
@@ -97,7 +97,7 @@ void ps_kill(processPo p) {
 
     pthread_t thread = p->threadID;
 
-    if(thread){
+    if (thread) {
       pthread_cancel(thread);    /* cancel the thread */
     }
 
@@ -116,6 +116,10 @@ void switchProcessState(processPo p, ProcessState state) {
 
 void setProcessRunnable(processPo p) {
   switchProcessState(p, runnable);
+}
+
+integer nextTryCounter(processPo P){
+  return P->tryCounter++;
 }
 
 ProcessState processState(processPo p) {

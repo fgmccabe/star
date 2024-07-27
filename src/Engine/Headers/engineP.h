@@ -18,19 +18,18 @@
 #include "thr.h"
 
 typedef struct processRec_ {
-  stackPo stk;        // Current stack
-  heapPo heap;        // Local heap for this process
-  pthread_t threadID;      /* What is the posix thread ID? */
-  char wd[MAXFILELEN]; // Each thread may have its own working directory.
-  ProcessState state;                 /* What is the status of this process? */
-  logical pauseRequest;         /* Has a pause of this process been requested? */
-  ProcessState savedState;    /* Saved state of this process? */
-  threadPo thread;    // What is the thread associated with this process
-  integer processNo;  // What number process is this
+  stackPo stk;            // Current stack
+  heapPo heap;            // Local heap for this process
+  integer tryCounter;     // A counter of the number of try instructions executed
+  pthread_t threadID;     /* What is the posix thread ID? */
+  char wd[MAXFILELEN];    // Each thread may have its own working directory.
+  ProcessState state;     /* What is the status of this process? */
+  threadPo thread;        // What is the thread associated with this process
+  integer processNo;      // What number process is this
   DebugWaitFor waitFor;
   logical tracing;
   integer traceCount;     // How many are we waiting for?
-  framePo waterMark;      // Used to devide when to start debugging again
+  framePo waterMark;      // Used to decide when to start debugging again
 } ProcessRec;
 
 extern MethodRec haltMethod;
@@ -38,6 +37,8 @@ extern void initEngine();
 extern retCode run(processPo P);
 
 retCode bootstrap(heapPo h, char *entry, char *rootWd);
+
+integer nextTryCounter(processPo P);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

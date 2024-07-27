@@ -479,6 +479,10 @@ retCode jit_Try(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jit
   return Error;
 }
 
+retCode jit_EndTry(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Throw(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

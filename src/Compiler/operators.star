@@ -103,7 +103,6 @@ star.compiler.operators{
     | "|=" => [.infixOp(998,999,998)]
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
-    | "open" => [.prefixOp(900,899)]
     | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
     | "~~" => [.infixOp(1239,1240,1240)]
     | "assert" => [.prefixOp(1240,1239)]
@@ -464,7 +463,6 @@ star.compiler.operators{
     | "|>" => .true
     | "in" => .true
     | "break" => .true
-    | "open" => .true
     | "~~" => .true
     | "!!" => .true
     | "/." => .true

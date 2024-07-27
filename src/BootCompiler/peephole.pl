@@ -139,6 +139,7 @@ uncondJump(iRetX).
 uncondJump(iRtG).
 uncondJump(iRetire).
 uncondJump(iAbort).
+uncondJump(iThrow).
 uncondJump(iTCall(_)).
 uncondJump(iTOCall(_)).
 

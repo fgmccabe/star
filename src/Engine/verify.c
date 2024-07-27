@@ -16,7 +16,7 @@ logical traceVerify = False;      // true if tracing code verification
 static segPo findSeg(vectorPo blocks, integer pc);
 static segPo splitSeg(vectorPo blocks, integer tgt);
 static varPo copyVars(varPo src, integer count);
-static retCode mergeSegVars(segPo seg, segPo next);
+static retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen);
 static retCode checkSegment(segPo seg, char *errorMsg, long msgLen);
 static void showGroup(vectorPo group, integer groupNo);
 static void showGroups(vectorPo groups, char *name);
@@ -67,6 +67,7 @@ void segmentInit(objectPo o, va_list *args) {
   s->seg.entries = vector(0);
   s->seg.exits = vector(0);
   s->seg.stackDepth = va_arg(*args, integer);
+  s->seg.entryDepth = -1; // Initially, unknown depth
   s->seg.fallThru = Null;
 
   logical initVars = va_arg(*args, logical);
@@ -154,6 +155,8 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   vectorPo blocks = vector(0);
   segPo first = newSegment(0, mtd, 0, insCount(mtd), 0, True);
 
+  first->seg.entryDepth = 0;
+
   appendVectEl(blocks, O_OBJECT(first));
 
   integer pc = 0;
@@ -173,12 +176,6 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (ret == Ok) {
     for (integer gx = 0; ret == Ok && gx < vectLength(groups); gx++) {
       vectorPo group = O_VECT(getVectEl(groups, gx));
-
-#ifdef TRACEVERIFY
-      if (traceVerify) {
-        showGroup(group, gx);
-      }
-#endif
 
       // Find out if any elements of the group have been entered
       logical done = False;
@@ -281,6 +278,7 @@ static retCode splitOperand(opAndSpec A, vectorPo blocks, insPo code, integer *p
       collect32(code, pc);
       return Ok;
     }
+    case bLk:           // block instruction has a length
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -320,13 +318,14 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Resume:
       case Retire:
       case Throw:
-      case Cmp:
-      case CLbl:
-      case ICmp:
-      case FCmp:
-      case If:
-      case IfNot:
-      case Unpack: {
+//      case Cmp:
+//      case CLbl:
+//      case ICmp:
+//      case FCmp:
+//      case If:
+//      case IfNot:
+//      case Unpack:
+      {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -389,8 +388,11 @@ retCode findBlocksTgts(vectorPo blocks, methodPo mtd, insPo code, char *errorMsg
 
 retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
   retCode ret = Ok;
+  logical fallThrough = True;
+  integer oPc = *pc;
+
   while (ret == Ok && *pc < to) {
-    integer oPc = *pc;
+    oPc = *pc;
     insWord ins = code[(*pc)++];
     switch (ins) {
 #include "instructions.h"
@@ -408,13 +410,18 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
       case Abort:
       case Halt:
       case Retire:
+      case Throw:
+        fallThrough = False;
         break;
       default: {
-        ret = checkDest(blocks, oPc, *pc, True, errorMsg, msgLen);
+        fallThrough = True;
         break;
       }
     }
   }
+
+  if (fallThrough)
+    ret = checkDest(blocks, oPc, *pc, True, errorMsg, msgLen);
 
   return ret;
 }
@@ -449,7 +456,7 @@ retCode checkDest(vectorPo blocks, integer pc, integer tgt, logical fallingThru,
     if (srcSeg != Null) {
       updateEntryPoint(srcSeg, tgtSeg);
       updateExitPoint(srcSeg, tgtSeg);
-      if (fallingThru)
+      if (fallingThru && tgtSeg != srcSeg)
         srcSeg->seg.fallThru = tgtSeg;
 
       return Ok;
@@ -477,6 +484,7 @@ retCode checkOprndTgt(methodPo mtd, insPo code, vectorPo blocks, integer oPc, in
       collect32(code, pc);
       return Ok;
     }
+    case bLk:
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
@@ -551,11 +559,11 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
 
 // Phase 3: verify instructions are behaving
 
-retCode mergeSegVars(segPo seg, segPo next) {
+retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen) {
   if (next->seg.locals == Null) {
     next->seg.locals = copyVars(seg->seg.locals, seg->seg.lclCount);
     next->seg.args = copyVars(seg->seg.args, seg->seg.arity);
-    next->seg.stackDepth = seg->seg.stackDepth;
+    next->seg.stackDepth = next->seg.entryDepth = seg->seg.stackDepth;
   } else {
     assert(next->seg.locals != Null && seg->seg.locals != Null && next->seg.lclCount == seg->seg.lclCount);
     for (integer i = 0; i < next->seg.lclCount; i++) {
@@ -568,8 +576,26 @@ retCode mergeSegVars(segPo seg, segPo next) {
       next->seg.args[i].inited &= seg->seg.args[i].inited;
       next->seg.args[i].read |= seg->seg.args[i].read;
     }
+    if (next->seg.entryDepth < 0)
+      next->seg.entryDepth = next->seg.stackDepth = seg->seg.stackDepth;
+    if (next->seg.entryDepth != seg->seg.stackDepth) {
+      insPo base = entryPoint(next->seg.mtd);
+      OpCode op = base[next->seg.pc];
 
-    next->seg.stackDepth = minimum(next->seg.stackDepth, seg->seg.stackDepth);
+      switch (op) {
+        case Abort:
+        case Halt:
+          return Ok;
+        case Rst:
+          next->seg.entryDepth = minimum(seg->seg.stackDepth, next->seg.entryDepth);
+          return Ok;
+        default:
+          strMsg(errorMsg, msgLen, RED_ESC_ON "inconsistent stack depths %d vs %d at @ %d" RED_ESC_OFF,
+                 seg->seg.stackDepth,
+                 next->seg.entryDepth, next->seg.pc);
+          return Error;
+      }
+    }
   }
 
   return Ok;
@@ -585,7 +611,7 @@ static retCode
 checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, opAndSpec B, integer delta,
                  char *errorMsg, long msgLen);
 
-static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
+static retCode checkOperand(segPo seg, integer oPc, integer *pc, OpCode op, opAndSpec A, char *errorMsg, long msgLen) {
   insPo base = entryPoint(seg->seg.mtd);
 
   switch (A) {
@@ -638,6 +664,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         return Error;
       }
     }
+    case bLk:
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
@@ -647,7 +674,7 @@ static retCode checkOperand(segPo seg, integer oPc, integer *pc, opAndSpec A, ch
         strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, npc, *pc);
         return Error;
       } else
-        return mergeSegVars(seg, alt);
+        return mergeSegVars(seg, alt, errorMsg, msgLen);
     }
     case Es: {                          // escape code
       int32 escNo = collect32(base, pc);
@@ -721,10 +748,10 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
                  char *errorMsg, long msgLen) {
   seg->seg.stackDepth += delta;
 
-  retCode ret = checkOperand(seg, oPc, pc, A, errorMsg, msgLen);
+  retCode ret = checkOperand(seg, oPc, pc, op, A, errorMsg, msgLen);
 
   if (ret == Ok)
-    ret = checkOperand(seg, oPc, pc, B, errorMsg, msgLen);
+    ret = checkOperand(seg, oPc, pc, op, B, errorMsg, msgLen);
 
   if (ret == Ok) {
     integer iPc = oPc + 1;
@@ -773,6 +800,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
       case Ret:
       case TCall:
       case TOCall:
+      case Throw:
         seg->seg.stackDepth = 0;
         break;
       case Escape: {
@@ -827,6 +855,10 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         break;
       }
       case Unpack: {
+        if (seg->seg.stackDepth < 0) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient stack for Unpack instruction @ %d" RED_ESC_OFF, oPc);
+          return Error;
+        }
         int32 litNo = collect32(base, &iPc);
         if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, oPc);
@@ -840,13 +872,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid label: %t @ %d" RED_ESC_OFF, lit, oPc);
           return Error;
         }
-        segPo alt = findSeg(seg->seg.exits, *pc);
-
-        if (alt == Null || alt->seg.pc != *pc) {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, *pc, oPc);
-          return Error;
-        } else
-          return mergeSegVars(seg, alt);
+        break;
       }
 
       case Frame: {
@@ -872,20 +898,22 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         return Ok;
       }
 
-      case Cmp:
-      case CLbl:
-      case ICmp:
-      case FCmp:
-      case If:
-      case IfNot: {
-        segPo alt = findSeg(seg->seg.exits, *pc);
-
-        if (alt == Null || alt->seg.pc != *pc) {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, *pc, oPc);
-          return Error;
-        } else
-          return mergeSegVars(seg, alt);
-      }
+//      case Cmp:
+//      case CLbl:
+//      case ICmp:
+//      case FCmp:
+//      case If:
+//      case IfNot: {
+//        int32 tgt = collect32(base, &iPc);
+//        integer npc = iPc + delta;
+//        segPo alt = findSeg(seg->seg.exits, npc);
+//
+//        if (alt == Null || alt->seg.pc != *pc) {
+//          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, *pc, oPc);
+//          return Error;
+//        } else
+//          return mergeSegVars(seg, alt, errorMsg, msgLen);
+//      }
 
       default:;
     }
@@ -911,6 +939,13 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
     integer pc = seg->seg.pc;
     integer limit = seg->seg.maxPc;
     retCode ret = Ok;
+
+    if (seg->seg.entryDepth < 0) {
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid stack depth on entry: %d at %d" RED_ESC_OFF, seg->seg.entryDepth,
+             pc);
+      return Error;
+    } else
+      seg->seg.stackDepth = seg->seg.entryDepth;
 
     if (traceVerify) {
       outMsg(logFile, "On entry: ");
@@ -957,7 +992,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
 #endif
 
     if (ret == Ok && seg->seg.fallThru != Null)
-      ret = mergeSegVars(seg, seg->seg.fallThru);
+      ret = mergeSegVars(seg, seg->seg.fallThru, errorMsg, msgLen);
 
     return ret;
   } else
@@ -971,10 +1006,11 @@ static void showVar(char *nm, integer ix, varPo v) {
 void showSeg(segPo seg) {
   integer i;
 
-  outMsg(logFile, "segment:%s %d, (%d entrypoints) [%d-%d](%d) depth=%d",
+  outMsg(logFile, "segment:%s %d, (%d entrypoints) [%d-%d](%d) entrydepth=%d, depth=%d",
          seg->seg.checked ? "¶" : "",
          seg->seg.segNo,
          seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc,
+         seg->seg.entryDepth,
          seg->seg.stackDepth);
 
   for (integer ix = 0; ix < vectLength(seg->seg.entries); ix++) {

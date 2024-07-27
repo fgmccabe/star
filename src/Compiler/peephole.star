@@ -39,6 +39,7 @@ star.compiler.peephole{
     | .iTOCall(_) => .true
     | .iCase(_) => .true
     | .iIndxJmp(_) => .true
+    | .iThrow => .true
     | _ default => .false
   }
 
