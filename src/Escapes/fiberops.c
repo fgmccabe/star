@@ -3,7 +3,6 @@
 //
 #include "stack.h"
 #include "engineP.h"
-#include "errorCodes.h"
 
 ReturnStatus g__fiber_eq(heapPo h, termPo a1, termPo a2) {
   termPo Rs = (C_STACK(a1) == C_STACK(a2) ? trueEnum : falseEnum);
@@ -19,7 +18,6 @@ ReturnStatus g__fiber(heapPo h, termPo a1) {
 
 ReturnStatus g__resume(heapPo h, termPo a1, termPo a2) {
   stackPo fiber = C_STACK(a1);
-  termPo event = a2;
 
   assert(stackState(fiber) == suspended);
 
@@ -41,7 +39,6 @@ ReturnStatus g__suspend(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__retire(heapPo h, termPo a1, termPo a2) {
   stackPo fiber = C_STACK(a1);
-  termPo event = a2;
 
   assert(stackState(fiber) == active);
 
