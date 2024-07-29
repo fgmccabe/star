@@ -35,12 +35,10 @@ stackPo splitStack(processPo P, termPo lam);
 stackPo attachStack(stackPo tsk, stackPo top);
 stackPo detachStack(stackPo base, stackPo top);
 stackPo dropStack(stackPo tsk);
-stackPo dropUntil(stackPo base, stackPo tgt);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
 framePo pushFrame(stackPo stk, methodPo mtd, framePo fp);
-integer frameNo(stackPo stk, framePo fp);
 
 ptrPo stackSP(stackPo stk);
 

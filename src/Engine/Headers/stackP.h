@@ -16,16 +16,17 @@ typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;           // The current program counter
   methodPo prog;      // The returnee program
-  ptrPo csp;          // Pointer to the arg/local split on value stack
+  framePo fp;         // Previous frame
 } StackFrame;
 
+typedef struct try_frame_ *tryFramePo;
 typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
   framePo fp;
   methodPo prog;
   insPo pc;
   ptrPo sp;
-} TryFrame, *tryFramePo;
+} TryFrame;
 
 #define STACKFRAME_SIZE 3
 
@@ -42,7 +43,6 @@ typedef struct StackStructure {
   stackPo bottom;               // What is the actual innermost stack
   StackState state;              // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
-  integer counter;              // Incremented every time stack is suspended
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))
@@ -67,32 +67,34 @@ static inline ptrPo stackLimit(stackPo stk) {
 }
 
 static inline framePo baseFrame(stackPo stk) {
-  return (framePo) stk->stkMem;
+  return (framePo) stackLimit(stk);
 }
 
 static inline logical validFP(stackPo stk, framePo fp) {
-  return fp >= baseFrame(stk) && fp <= stk->fp;
+  return fp >= stk->fp && (ptrPo) fp >= stk->sp && fp <= baseFrame(stk);
 }
 
-static inline logical validStkValueLoc(stackPo stk, ptrPo p) {
-  return p >= ((ptrPo) (stk->fp + 1)) && p <= stackLimit(stk);
+static inline logical validStkPtr(stackPo stk, ptrPo p) {
+  return p >= stk->stkMem && p >= stk->sp && p <= stackLimit(stk) && p <= (ptrPo) stk->fp;
 }
 
 static inline logical stackHasSpace(stackPo stk, integer amount) {
   assert(amount >= 0);
-  return stk->sp - amount >= (ptrPo) (stk->fp + 1);
+  return stk->sp - amount >= (stk->stkMem);
 }
+
+framePo dropFrame(stackPo stk);
 
 void stackSanityCheck(stackPo stk);
 void verifyStack(stackPo stk, heapPo H);
 logical isAttachedStack(stackPo base, stackPo tgt);
 
 static inline ptrPo stackArg(stackPo stk, framePo frame, integer arg) {
-  return &frame->csp[arg];
+  return ((ptrPo) (frame + 1)) + arg;
 }
 
 static inline ptrPo stackLcl(stackPo stk, framePo frame, integer lcl) {
-  return &frame->csp[-lcl];
+  return ((ptrPo) frame) - lcl;
 }
 
 char *stackStateName(StackState ste);
