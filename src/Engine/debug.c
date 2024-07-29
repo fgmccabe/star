@@ -120,7 +120,7 @@ static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
   } else if (isInteger(frameLit))
     stackDepth = integerVal(frameLit);
   if (stk != Null) {
-    assert(stackDepth == stk->fp->csp - stk->sp - lclCount(stk->fp->prog));
+    assert(stackDepth == (ptrPo)stk->fp - stk->sp - lclCount(stk->fp->prog));
     return outMsg(out, " %d %,*T", stackDepth, displayDepth, frameLit);
   } else
     return outMsg(out, " %,*T", displayDepth, frameLit);
@@ -586,14 +586,14 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, void *cl) 
   stackPo stk = p->stk;
 
   integer frameNo = 0;
+  framePo fp = stk->fp;
 
-  while (frameNo < count && stk->fp >= baseFrame(stk)) {
-    stk->sp = ((ptrPo) (stk->fp + 1));
-    stk->fp--;
+  while (frameNo < count && validFP(stk, fp)) {
+    fp = dropFrame(stk);
     frameNo++;
   }
 
-  stk->fp->pc = entryPoint(stk->fp->prog);
+  fp->pc = entryPoint(fp->prog);
 
   outMsg(debugOutChnnl, "Dropped %d frames\n%_", frameNo);
   showStackCall(debugOutChnnl, displayDepth, stk->fp, stk, stk->sp, 0, showPrognames);
@@ -777,7 +777,6 @@ void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
   termPo locn = findPcLocation(f->prog, insOffset(f->prog, f->pc));
 
-  f->csp = stk->sp;
   if (showColors)
     shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, locn, f->prog, stk);
   else
@@ -1085,6 +1084,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
       show_##A2;                            \
       return pc;                            \
     }
+
 #include "instructions.h"
 
     default:

@@ -38,13 +38,12 @@ logical collectStats = False;
 #define pop() (*SP++)
 #define top() (*SP)
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(lcl) (CSP[-lcl])
-#define arg(aix) (CSP[aix])
-#define stackRoom(amnt) ((SP-(amnt)) > ((ptrPo)(FP+1)))
+#define local(lcl) (((ptrPo)FP)[-(lcl)])
+#define arg(aix) (((ptrPo)(FP+1))[(aix)])
+#define stackRoom(amnt) ((SP-(amnt)) > STK->stkMem)
 #define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
-#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  CSP=FP->csp; SP=STK->sp; LITS=codeLits(FP->prog);})
-#define pushFrme(mtd) STMT_WRAP({FP++; FP->prog=mtd; PC = FP->pc = entryPoint(mtd); FP->csp=CSP = SP;})
-#define prevFrme() STMT_WRAP({assert(FP >= baseFrame(STK) && ((ptrPo) FP + 1) < SP); FP--; CSP = FP->csp; PC = FP->pc; assert(SP <= CSP);LITS = codeLits(FP->prog);})
+#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=codeLits(FP->prog);})
+#define pushFrme(mtd) STMT_WRAP({framePo f = ((framePo)SP)-1; f->prog=mtd; f->fp=FP; PC = f->pc = entryPoint(mtd); FP = f; SP = (ptrPo)FP;})
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars);\
@@ -71,7 +70,6 @@ retCode run(processPo P) {
   register insPo PC = FP->pc;    /* Program counter */
   register normalPo LITS = codeLits(FP->prog); /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
-  register ptrPo CSP = FP->csp;
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
@@ -314,25 +312,26 @@ retCode run(processPo P) {
           saveRegisters();
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
 
-          SP = CSP = STK->sp;
+          SP = STK->sp;
           FP = STK->fp;
           pushFrme(mtd);
 
           // drop old frame on old stack
-          framePo prevFrame = prevStack->fp;
-          prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
-          prevStack->fp--;
+          dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
           ptrPo src = SP + arity;                  /* base of argument vector */
+          framePo Pfp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-          FP->csp = CSP = SP = tgt;
+          FP = ((framePo) tgt) - 1;      // Frame might have moved
+          FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
           FP->prog = mtd;
+          SP = (ptrPo)FP;
         }
 
         incEntryCount(mtd);              // Increment number of times program called
@@ -372,25 +371,23 @@ retCode run(processPo P) {
 
           saveRegisters();
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
-
-          SP = CSP = STK->sp;
+          SP = STK->sp;
           FP = STK->fp;
           pushFrme(mtd);
 
           // drop old frame on old stack
-          framePo prevFrame = prevStack->fp;
-          prevStack->sp = stackArg(prevStack, prevFrame, argCount(prevFrame->prog));
-          prevStack->fp--;
-
+          dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(FP->prog));
           ptrPo src = SP + arity;                  /* base of argument vector */
+          framePo Pfp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-          FP->csp = CSP = SP = tgt;
+          FP = ((framePo) tgt) - 1;      // Frame might have moved
+          FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
           FP->prog = mtd;
         }
@@ -403,19 +400,22 @@ retCode run(processPo P) {
       case Locals: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        CSP = FP->csp = SP;
-        SP -= height;
+        SP = ((ptrPo)FP)-height;
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;
-        assert(SP == CSP - lclCount(FP->prog));
+        assert(SP == ((ptrPo)FP) - lclCount(FP->prog));
         continue;
       };
 
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 
+        assert(FP < baseFrame(STK));
         SP = &arg(argCount(FP->prog)); // Just above arguments to current call
-        prevFrme();
+        FP = FP->fp;
+        PC = FP->pc;
+        LITS = codeLits(FP->prog);
+
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
       }
@@ -450,7 +450,8 @@ retCode run(processPo P) {
       case Rst: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = &FP->csp[-lclCount(FP->prog) - height];
+        SP = &local(lclCount(FP->prog) + height);
+        check(SP<=(ptrPo)FP,"inconsistent stack height");
         continue;
       }
 
@@ -1275,8 +1276,9 @@ retCode run(processPo P) {
               tryRet(typeSigArity(sig, sigLen, &frameDepth));
             } else
               frameDepth = integerVal(frame);
-            if(frameDepth != FP->csp - SP - lclCount(FP->prog)){
-              logMsg(logFile,"stack depth: %d does not match frame signature %T",FP->csp - SP - lclCount(FP->prog),frame);
+            if (frameDepth != ((ptrPo)FP) - SP - lclCount(FP->prog)) {
+              logMsg(logFile, "stack depth: %d does not match frame signature %T", (ptrPo)FP - SP - lclCount(FP->prog),
+                     frame);
               bail();
             }
           }
