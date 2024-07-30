@@ -1124,7 +1124,7 @@ static char *anonPrefix = "__";
 retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
   normalPo locals = mtd->locals;
   int64 numLocals = termArity(locals);
-  integer pcOffset = (integer) (pc - mtd->code);
+  integer pcOffset = insOffset(mtd,pc);
 
   for (int32 ix = 0; ix < numLocals; ix++) {
     normalPo vr = C_NORMAL(nthArg(locals, ix));

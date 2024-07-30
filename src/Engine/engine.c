@@ -25,6 +25,8 @@ static integer newProcessNumber();
 
 __thread processPo currentProcess = Null;
 
+static insWord haltCode[] = {Halt,0};
+
 MethodRec haltMethod = {
   .clss = Null,
   .codeSize = 2,
@@ -32,7 +34,7 @@ MethodRec haltMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {Halt, 0}
+  .instructions = haltCode,
 };
 
 void initEngine() {

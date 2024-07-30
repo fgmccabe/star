@@ -25,12 +25,12 @@ typedef struct method_ {
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
   normalPo lines;      // A tuple of line information
-  insWord code[ZEROARRAYSIZE];
+  insPo instructions;   // a block of instructions
 } MethodRec;
 
 extern clssPo methodClass;
 
-#define MtdCellCount(count) (CellCount(sizeof(MethodRec))+CellCount((count)*sizeof(insWord)))
+#define MtdCellCount CellCount(sizeof(MethodRec))
 
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
@@ -38,7 +38,7 @@ static inline logical isMethod(termPo m) {
 
 static inline insPo entryPoint(methodPo mtd) {
   assert(mtd != Null);
-  return &mtd->code[0];
+  return mtd->instructions;
 }
 
 static inline integer insCount(methodPo mtd) {
