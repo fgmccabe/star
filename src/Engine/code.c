@@ -9,6 +9,7 @@
 #include "labelsP.h"
 #include "debugP.h"
 #include <assert.h>
+#include <stdlib.h>
 #include "quick.h"
 
 static poolPo pkgPool;
@@ -54,15 +55,13 @@ extern methodPo C_MTD(termPo t) {
 long mtdSize(specialClassPo cl, termPo o) {
   methodPo mtd = C_MTD(o);
 
-  return MtdCellCount(mtd->codeSize);
+  return MtdCellCount;
 }
 
 termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
   methodPo si = C_MTD(src);
   methodPo di = (methodPo) dst;
   *di = *si;
-
-  memcpy(&di->code, &si->code, si->codeSize * sizeof(insWord));
 
   return ((termPo) di) + mtdSize(cl, src);
 }
@@ -78,6 +77,8 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
+  methodPo mtd = C_MTD(o);
+  free((void*)mtd->instructions);
   return ((termPo) o) + mtdSize(class, o);
 }
 
@@ -98,7 +99,7 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
     return showLbl(out, lbl, 0, precision, alt);
   } else {
     outMsg(out, "<unknown mtd: ");
-    disass(out, Null, mtd, mtd->code);
+    disass(out, Null, mtd, mtd->instructions);
     return outMsg(out, ">");
   }
 }
@@ -112,15 +113,15 @@ labelPo mtdLabel(methodPo mtd) {
 }
 
 integer insOffset(methodPo m, insPo pc) {
-  return (integer) (pc - &m->code[0]);
+  return (integer) (pc - m->instructions);
 }
 
 insPo pcAddr(methodPo mtd, integer pcOffset) {
-  return &mtd->code[pcOffset];
+  return &mtd->instructions[pcOffset];
 }
 
 logical validPC(methodPo mtd, insPo pc) {
-  return (logical) (pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
+  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->codeSize]);
 }
 
 integer mtdCodeSize(methodPo mtd) {
@@ -267,10 +268,11 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
   gcAddRoot(H, (ptrPo) &locals);
   gcAddRoot(H, (ptrPo) &lines);
 
-  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
+  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
-  for (integer ix = 0; ix < insCount; ix++)
-    mtd->code[ix] = ins[ix];
+  size_t codeSize = insCount*sizeof(insWord);
+  mtd->instructions = (insPo)malloc(codeSize);
+  memcpy((void*)mtd->instructions,ins,codeSize);
 
   mtd->codeSize = insCount;
   mtd->jit = Null;
@@ -287,7 +289,6 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   return mtd;
 }
-
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
@@ -329,13 +330,13 @@ void showMtdCounts(ioPo out) {
   for (int ix = 0; ix < lblTableTop; ix++)
     indices[ix] = ix;
 
-  quick(0, lblTableTop-1, cmpCount, swapIndex, (void *) indices);
+  quick(0, lblTableTop - 1, cmpCount, swapIndex, (void *) indices);
   for (integer ix = 0; ix < lblTableTop; ix++) {
     showMtdCount(&labelTable[indices[ix]], out);
   }
 }
 
-retCode setJitCode(methodPo mtd,jitCode code){
+retCode setJitCode(methodPo mtd, jitCode code) {
   assert(!hasJit(mtd));
   mtd->jit = code;
   return Ok;

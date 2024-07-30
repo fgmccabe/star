@@ -23,7 +23,6 @@ typedef struct try_frame_ *tryFramePo;
 typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
   framePo fp;
-  methodPo prog;
   insPo pc;
   ptrPo sp;
 } TryFrame;

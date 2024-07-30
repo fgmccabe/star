@@ -32,6 +32,7 @@ SpecialClass StackClass = {
   .dispFun = stkDisp
 };
 
+static insWord underflowCode[] = {Underflow, 0};
 static MethodRec underFlowMethod = {
   .clss = Null,
   .codeSize = 2,
@@ -39,9 +40,10 @@ static MethodRec underFlowMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {Underflow, 0}
+  .instructions = underflowCode
 };
 
+static insWord newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
 static MethodRec newFiberMethod = {
   .clss = Null,
   .codeSize = 6,
@@ -49,8 +51,10 @@ static MethodRec newFiberMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {Rot, 0, 1, TOCall, 0, 3}
+  .instructions = newFiberCode
 };
+static insWord newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
+
 static MethodRec newTaskMethod = {
   .clss = Null,
   .codeSize = 9,
@@ -58,9 +62,10 @@ static MethodRec newTaskMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3}
+  .instructions = newTaskCode
 };
 
+static insWord spawnCode[] = {TOCall, 0, 2};
 static MethodRec spawnMethod = {
   .clss = Null,
   .codeSize = 3,
@@ -68,7 +73,7 @@ static MethodRec spawnMethod = {
   .lclcnt = 0,
   .pool = Null,
   .locals = Null,
-  .code = {TOCall, 0, 2}
+  .instructions = spawnCode
 };
 
 clssPo stackClass = (clssPo) &StackClass;
@@ -166,10 +171,10 @@ framePo previousFrame(stackPo stk, framePo fp) {
   return fp->fp;
 }
 
-framePo dropFrame(stackPo stk){
+framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
-  assert(validFP(stk,fp));
-  stk->sp = (ptrPo)(fp+1)+argCount(fp->prog);
+  assert(validFP(stk, fp));
+  stk->sp = (ptrPo) (fp + 1) + argCount(fp->prog);
   stk->fp = fp->fp;
   return stk->fp;
 }
@@ -302,7 +307,6 @@ integer pushTryFrame(processPo P, methodPo prog, insPo pc, framePo fp, ptrPo sp)
   try->fp = fp;
   try->pc = pc;
   try->sp = sp;
-  try->prog = prog;
   return try->tryIndex = P->tryCounter++;
 }
 
@@ -367,18 +371,9 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
     while (fp < baseFp && sp < limit) {
       while (sp < (ptrPo) fp)
         helper(sp++, c);
-      integer pcOffset = insOffset(fp->prog, fp->pc);
       helper((ptrPo) &fp->prog, c);
-      fp->pc = pcAddr(fp->prog, pcOffset);
       sp = (ptrPo) (fp + 1);
       fp = fp->fp;
-    }
-
-    for (integer ix = 0; ix < stk->tryTop; ix++) {
-      tryFramePo f = (tryFramePo) &stk->tryStack[ix];
-      integer pcOffset = insOffset(f->prog, f->pc);
-      helper((ptrPo) &f->prog, c);
-      f->pc = pcAddr(f->prog, pcOffset);
     }
   }
 
@@ -431,7 +426,7 @@ showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, ptrPo sp, intege
   methodPo mtd = fp->prog;
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
-    integer pcOffset = (integer) (pc - mtd->code);
+    integer pcOffset = insOffset(mtd, pc);
 
     termPo locn = findPcLocation(mtd, pcOffset);
     if (locn != Null)
