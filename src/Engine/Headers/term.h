@@ -73,6 +73,8 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
 retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
 retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt);
 
-extern logical sameTerm(termPo t1, termPo t2);
+logical sameTerm(termPo t1, termPo t2);
+
+ptrPo minPtr(ptrPo p1,ptrPo p2);
 
 #endif //STAR_TERM_H

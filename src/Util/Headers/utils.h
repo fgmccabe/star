@@ -75,7 +75,13 @@ integer intGCD(integer a, integer b);
 integer nextPrime(integer min);
 
 extern void syserr(const char *msg);
+
+#ifndef NDEBUG
 #define check(Tst, Msg) STMT_WRAP(if(!(Tst)){check_(__func__, __FILE__, __LINE__,#Tst,(Msg));})
+#else
+#define check(Tst,Msg)
+#endif
+
 extern void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
 
 extern retCode homeDir(char *user, char *buffer, integer bufLen);

@@ -53,8 +53,6 @@ extern methodPo C_MTD(termPo t) {
 }
 
 long mtdSize(specialClassPo cl, termPo o) {
-  methodPo mtd = C_MTD(o);
-
   return MtdCellCount;
 }
 

@@ -113,32 +113,32 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
 
   int root = gcAddRoot(H, (ptrPo) &attachment);
 
-  stackPo tsk = (stackPo) allocateObject(H, stackClass, StackCellCount);
-  tsk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
+  stackPo stk = (stackPo) allocateObject(H, stackClass, StackCellCount);
+  stk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
 
-  if (tsk->stkMem == Null) {
+  if (stk->stkMem == Null) {
     syserr("Ran out of stack space");
   }
 
-  tsk->sze = sze;
-  tsk->hwm = sze;
-  tsk->sp = &tsk->stkMem[sze];
-  tsk->fp = (framePo) tsk->sp;
-  tsk->attachment = attachment;
-  tsk->bottom = (state == active ? Null : tsk);
-  tsk->state = state;
-  tsk->hash = stackCount++;
-  tsk->tryTop = 0;
+  stk->sze = sze;
+  stk->hwm = sze;
+  stk->sp = &stk->stkMem[sze];
+  stk->fp = (framePo) stk->sp;
+  stk->attachment = attachment;
+  stk->bottom = (state == active ? Null : stk);
+  stk->state = state;
+  stk->hash = stackCount++;
+  stk->try = (tryFramePo) stk->sp;
 
 #ifdef TRACESTACK
   if (traceStack)
     outMsg(logFile, "establish stack of %d words\n", sze);
 #endif
 
-  tsk->fp = pushFrame(tsk, underFlow, tsk->fp);
+  stk->fp = pushFrame(stk, underFlow, stk->fp);
   gcReleaseRoot(H, root);
 
-  return tsk;
+  return stk;
 }
 
 StackState stackState(stackPo tsk) {
@@ -174,6 +174,7 @@ framePo previousFrame(stackPo stk, framePo fp) {
 framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
+  assert((ptrPo) stk->try > (ptrPo) stk->fp);
   stk->sp = (ptrPo) (fp + 1) + argCount(fp->prog);
   stk->fp = fp->fp;
   return stk->fp;
@@ -229,6 +230,8 @@ void stackSanityCheck(stackPo stk) {
       return;
   }
   assert(validStkPtr(stk, stk->sp) && validFP(stk, stk->fp) && stk->sp <= (ptrPo) stk->fp);
+  assert(stk->try <= tryLimit(stk));
+  assert((ptrPo) stk->try >= stk->sp);
   assert(!inFreeBlock(stackRegion, stk->stkMem));
 }
 
@@ -239,21 +242,27 @@ void verifyStack(stackPo stk, heapPo H) {
     if (stk->stkMem != Null) {
       stackSanityCheck(stk);
       ptrPo sp = stk->sp;
+      ptrPo spLimit = stackLimit(stk);
       framePo fp = stk->fp;
+      framePo fpLimit = baseFrame(stk);
+      tryFramePo try = stk->try;
+      tryFramePo trLimit = tryLimit(stk);
 
-      while (fp < baseFrame(stk) && sp < stackLimit(stk)) {
-        while (sp < (ptrPo) fp)
+      while (fp < fpLimit || sp < spLimit || try < trLimit) {
+        ptrPo limit = minPtr((ptrPo) fp, (ptrPo) try);
+        while (sp < limit)
           validPtr(H, *sp++);
+        if (sp == (ptrPo) try) {
+          check(validFP(stk, try->fp), "invalid try frame pointer");
+          sp = (ptrPo) (try + 1);
+          try = try->try;
+          continue;
+        }
         check(validFP(stk, fp->fp), "invalid fp in frame");
         sp = (ptrPo) (fp + 1);
         fp = fp->fp;
       }
 
-      for (integer ix = 0; ix < stk->tryTop; ix++) {
-        tryFramePo t = (tryFramePo) &stk->tryStack[ix];
-        check(validFP(stk, t->fp), "invalid fp in try stack");
-        check(t->sp >= stk->sp && t->sp <= (ptrPo) t->fp, "invalid sp in try stack");
-      }
       stk = stk->attachment;
     }
   }
@@ -299,46 +308,74 @@ void pushStack(stackPo stk, termPo ptr) {
   assert(validStkPtr(stk, stk->sp));
 }
 
-integer pushTryFrame(processPo P, methodPo prog, insPo pc, framePo fp, ptrPo sp) {
-  stackPo stk = P->stk;
+integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp) {
+  tryFramePo try = ((tryFramePo) stk->sp) - 1;
 
-  check(stk->tryTop < MAX_TRY, "try catch is too deep");
-  tryFramePo try = &stk->tryStack[stk->tryTop++];
   try->fp = fp;
   try->pc = pc;
-  try->sp = sp;
+  stk->sp = (ptrPo) try;
+  try->try = stk->try;
+  stk->try = try;
   return try->tryIndex = P->tryCounter++;
 }
 
-stackPo dropTryFrame(processPo P, integer tryIndex, framePo *fp, ptrPo *sp, insPo *pc) {
+stackPo popTryFrame(processPo P, integer tryIndex) {
   stackPo stk = P->stk;
 
   while (stk != Null) {
-    while (stk->tryTop > 0) {
-      tryFramePo try = &stk->tryStack[--stk->tryTop];
+    tryFramePo try = stk->try;
+
+    while (try < tryLimit(stk)) {
       if (try->tryIndex == tryIndex) {
-        if (fp != Null)
-          *fp = try->fp;
-        if (sp != Null)
-          *sp = try->sp;
-        if (pc != Null)
-          *pc = try->pc;
+
+        stk->fp = try->fp;
+        stk->sp = (ptrPo) (try + 1);
+        stk->fp->pc = try->pc;
+        stk->try = try->try;
+        validPC(stk->fp->prog, stk->fp->pc);
         return stk;
-      }
+      } else
+        try = stk->try = try->try;
     }
     if (stk->attachment != Null) {
-      stk = dropStack(stk);
+      stk = P->stk = dropStack(stk);
     } else
       return Null;
   }
   return Null;
 }
 
+// Drop the try block without touching anything else
+retCode dropTryFrame(processPo P, integer tryIndex) {
+  stackPo stk = P->stk;
+
+  while (stk != Null) {
+    tryFramePo try = stk->try;
+
+    while (try < tryLimit(stk)) {
+      if (try->tryIndex == tryIndex) {
+        stk->try = try->try;
+        return Ok;
+      } else
+        try = stk->try = try->try;
+    }
+    if (stk->attachment != Null) {
+      stk = stk->attachment;
+    } else
+      return Error;
+  }
+  return Error;
+}
+
 integer tryStackSize(processPo P) {
   integer size = 0;
   stackPo stk = P->stk;
   while (stk != Null) {
-    size += stk->tryTop;
+    tryFramePo try = stk->try;
+    while (try < tryLimit(stk)) {
+      size++;
+      try = try->try;
+    }
     stk = stk->attachment;
   }
   return size;
@@ -364,17 +401,31 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   if (stk->stkMem != Null) {
     ptrPo sp = stk->sp;
+    ptrPo spLimit = stackLimit(stk);
     framePo fp = stk->fp;
-    ptrPo limit = stackLimit(stk);
-    framePo baseFp = baseFrame(stk);
+    framePo fpLimit = baseFrame(stk);
+    tryFramePo try = stk->try;
+    tryFramePo tryLimit = (tryFramePo) spLimit;
 
-    while (fp < baseFp && sp < limit) {
-      while (sp < (ptrPo) fp)
+    while (fp < fpLimit || sp < spLimit || try < tryLimit) {
+      if ((ptrPo) fp <= sp) {
+        if ((ptrPo) try < (ptrPo) fp) {
+          assert(False);
+        } else {
+          helper((ptrPo) &fp->prog, c);
+          sp = (ptrPo) (fp + 1);
+          fp = fp->fp;
+        }
+      } else if (sp < (ptrPo) try) {
         helper(sp++, c);
-      helper((ptrPo) &fp->prog, c);
-      sp = (ptrPo) (fp + 1);
-      fp = fp->fp;
+      } else {
+        assert(sp == (ptrPo) try);
+        sp = (ptrPo) (try + 1);
+        try = try->try;
+      }
     }
+
+    assert(fp == fpLimit && sp == spLimit && try == tryLimit);
   }
 
   if (stk->attachment != Null)
@@ -421,9 +472,9 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical al
                 stackState(stk) == moribund ? voidEnum : (termPo) (stk->fp->prog));
 }
 
-void
-showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, ptrPo sp, integer frameNo, StackTraceLevel tracing) {
+void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing) {
   methodPo mtd = fp->prog;
+  assert(isMethod((termPo) mtd));
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
     integer pcOffset = insOffset(mtd, pc);
@@ -496,16 +547,31 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
     outMsg(out, "\n");
 
     framePo fp = stk->fp;
-    ptrPo sp = stk->sp;
 
-    while (fp < baseFrame(stk) && sp < stackLimit(stk)) {
-      showStackCall(out, depth, fp, stk, sp, frameNo++, tracing);
-      sp = (ptrPo) (fp + 1);
+    while (fp < baseFrame(stk)) {
+      showStackCall(out, depth, fp, stk, frameNo++, tracing);
       fp = fp->fp;
     }
 
     stk = stk->attachment;
   } while (stk != Null);
+}
+
+integer stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
+  integer count = 0;
+  tryFramePo try = stk->try;
+  ptrPo limit = (ptrPo) fp - lclCount(mtd);
+  while (sp < limit) {
+    while (sp == (ptrPo) try) {
+      sp = (ptrPo) (try + 1);
+      try = try->try;
+    }
+    if (sp < limit) {
+      count++;
+      sp++;
+    }
+  }
+  return count;
 }
 
 stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {
