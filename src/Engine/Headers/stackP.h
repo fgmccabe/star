@@ -24,7 +24,7 @@ typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
   framePo fp;
   insPo pc;
-  ptrPo sp;
+  tryFramePo try;              // Previous try frame
 } TryFrame;
 
 #define STACKFRAME_SIZE 3
@@ -36,8 +36,7 @@ typedef struct StackStructure {
   integer hwm;                  // High watermark of stack sizes rooted off this stack
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
-  integer tryTop;
-  TryFrame tryStack[MAX_TRY];   // Local stack of try frames
+  tryFramePo try;
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
   StackState state;              // is the stack attached, root, detached or moribund
@@ -45,6 +44,7 @@ typedef struct StackStructure {
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))
+#define TryFrameCellCount CellCount(sizeof (TryFrame))
 
 extern void initStacks();
 extern logical traceStack;      // stack operation tracing
@@ -57,8 +57,9 @@ extern integer stackRegionSize;    // How much space for stacks
 
 void dumpStackStats(ioPo out);
 
-integer pushTryFrame(processPo P, methodPo prog, insPo pc, framePo fp, ptrPo sp);
-stackPo dropTryFrame(processPo P, integer tryIndex, framePo *fp, ptrPo *sp, insPo *pc);
+integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp);
+stackPo popTryFrame(processPo P, integer tryIndex);
+retCode dropTryFrame(processPo P, integer tryIndex);
 integer tryStackSize(processPo P);
 
 static inline ptrPo stackLimit(stackPo stk) {
@@ -67,6 +68,10 @@ static inline ptrPo stackLimit(stackPo stk) {
 
 static inline framePo baseFrame(stackPo stk) {
   return (framePo) stackLimit(stk);
+}
+
+static inline tryFramePo tryLimit(stackPo stk) {
+  return (tryFramePo) (stk->stkMem + stk->sze);
 }
 
 static inline logical validFP(stackPo stk, framePo fp) {
@@ -83,6 +88,7 @@ static inline logical stackHasSpace(stackPo stk, integer amount) {
 }
 
 framePo dropFrame(stackPo stk);
+integer stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp);
 
 void stackSanityCheck(stackPo stk);
 void verifyStack(stackPo stk, heapPo H);
@@ -106,9 +112,7 @@ typedef enum {
   showLocalVars
 } StackTraceLevel;
 
-void
-showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, ptrPo sp, integer frameNo,
-              StackTraceLevel tracing);
+void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing);
 void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing);
 
 #endif //STAR_STACKP_H

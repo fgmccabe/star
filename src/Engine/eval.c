@@ -331,7 +331,7 @@ retCode run(processPo P) {
           FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
           FP->prog = mtd;
-          SP = (ptrPo)FP;
+          SP = (ptrPo) FP;
         }
 
         incEntryCount(mtd);              // Increment number of times program called
@@ -400,10 +400,9 @@ retCode run(processPo P) {
       case Locals: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = ((ptrPo)FP)-height;
+        SP = ((ptrPo) FP) - height;
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;
-        assert(SP == ((ptrPo)FP) - lclCount(FP->prog));
         continue;
       };
 
@@ -451,7 +450,6 @@ retCode run(processPo P) {
         int32 height = collectI32(PC);
         assert(height >= 0);
         SP = &local(lclCount(FP->prog) + height);
-        check(SP<=(ptrPo)FP,"inconsistent stack height");
         continue;
       }
 
@@ -539,9 +537,10 @@ retCode run(processPo P) {
       case Try: {
         insPo exit = collectOff(PC);
         assert(validPC(FP->prog, exit));
+        check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
 
         saveRegisters();
-        integer tryIndex = pushTryFrame(P, FP->prog, exit, FP, SP);
+        integer tryIndex = pushTryFrame(STK, P, exit, SP, FP);
         restoreRegisters();
         push(makeInteger(tryIndex));
 #ifdef TRACESTACK
@@ -557,12 +556,17 @@ retCode run(processPo P) {
         if (traceStack)
           logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackSize(P));
 #endif
-        saveRegisters();
-        if (dropTryFrame(P, tryIndex, Null, Null, Null) == Null) {
-          logMsg(logFile, "cannot find catch handler");
-          bail();
+        check(STK->try->tryIndex==tryIndex,"misaligned try block");
+        tryFramePo try = STK->try;
+        check(try->fp==FP,"misaligned try block");
+        STK->try = try->try;
+
+        ptrPo tgt = (ptrPo)(try+1);
+        ptrPo src = (ptrPo)try;
+        while(src>SP){
+          *--tgt = *--src;
         }
-        restoreRegisters();
+        SP = STK->sp = tgt;
         continue;
       }
       case Throw: {
@@ -578,19 +582,11 @@ retCode run(processPo P) {
           termPo val = pop();
 
           saveRegisters();
-          framePo fp;
-          ptrPo sp;
-          insPo pc;
-
-          stackPo stk = dropTryFrame(P, tryIndex, &fp, &sp, &pc);
+          stackPo stk = popTryFrame(P, tryIndex);
           if (stk == Null) {
             logMsg(logFile, "cannot find catch handler");
             bail();
           } else {
-            STK = P->stk = stk;
-            STK->fp = fp;
-            STK->fp->pc = pc;
-            STK->sp = sp;
             restoreRegisters();
             push(val);
             continue;
@@ -1276,8 +1272,8 @@ retCode run(processPo P) {
               tryRet(typeSigArity(sig, sigLen, &frameDepth));
             } else
               frameDepth = integerVal(frame);
-            if (frameDepth != ((ptrPo)FP) - SP - lclCount(FP->prog)) {
-              logMsg(logFile, "stack depth: %d does not match frame signature %T", (ptrPo)FP - SP - lclCount(FP->prog),
+            if (frameDepth != stackDepth(STK, FP->prog, SP, FP)) {
+              logMsg(logFile, "stack depth: %d does not match frame signature %T", stackDepth(STK, FP->prog, SP, FP),
                      frame);
               bail();
             }
