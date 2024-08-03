@@ -124,11 +124,11 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
   stk->hwm = sze;
   stk->sp = &stk->stkMem[sze];
   stk->fp = (framePo) stk->sp;
+  stk->try = (tryFramePo) stk->sp;
   stk->attachment = attachment;
   stk->bottom = (state == active ? Null : stk);
   stk->state = state;
   stk->hash = stackCount++;
-  stk->try = (tryFramePo) stk->sp;
 
 #ifdef TRACESTACK
   if (traceStack)
@@ -178,10 +178,6 @@ framePo dropFrame(stackPo stk) {
   stk->sp = (ptrPo) (fp + 1) + argCount(fp->prog);
   stk->fp = fp->fp;
   return stk->fp;
-}
-
-ptrPo stackSP(stackPo stk) {
-  return stk->sp;
 }
 
 integer stackHwm(stackPo tsk) {
@@ -249,18 +245,20 @@ void verifyStack(stackPo stk, heapPo H) {
       tryFramePo trLimit = tryLimit(stk);
 
       while (fp < fpLimit || sp < spLimit || try < trLimit) {
-        ptrPo limit = minPtr((ptrPo) fp, (ptrPo) try);
-        while (sp < limit)
-          validPtr(H, *sp++);
-        if (sp == (ptrPo) try) {
+        if(sp<(ptrPo)try && sp<(ptrPo)fp)
+          validPtr(H,*sp++);
+        else if(sp==(ptrPo)try){
+          check((ptrPo)try<(ptrPo)fp,"out of balance frame");
           check(validFP(stk, try->fp), "invalid try frame pointer");
           sp = (ptrPo) (try + 1);
           try = try->try;
-          continue;
+        } else{
+          check(sp==(ptrPo)fp,"expecting a frame here");
+          check(isMethod(fp->prog),"expecting a code pointer in the frame");
+          check(validFP(stk, fp->fp), "invalid fp in frame");
+          sp = (ptrPo) (fp + 1);
+          fp = fp->fp;
         }
-        check(validFP(stk, fp->fp), "invalid fp in frame");
-        sp = (ptrPo) (fp + 1);
-        fp = fp->fp;
       }
 
       stk = stk->attachment;
