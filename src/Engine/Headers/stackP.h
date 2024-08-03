@@ -10,13 +10,11 @@
 #include "engine.h"
 #include "heap.h"
 
-#define MAX_TRY (128)
-
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
-  insPo pc;           // The current program counter
-  methodPo prog;      // The returnee program
-  framePo fp;         // Previous frame
+  insPo pc;                     // The current program counter
+  methodPo prog;                // The returnee program
+  framePo fp;                   // Previous frame
 } StackFrame;
 
 typedef struct try_frame_ *tryFramePo;
@@ -24,7 +22,7 @@ typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
   framePo fp;
   insPo pc;
-  tryFramePo try;              // Previous try frame
+  tryFramePo try;               // Previous try frame
 } TryFrame;
 
 #define STACKFRAME_SIZE 3
