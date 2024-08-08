@@ -493,6 +493,7 @@ star.compiler.macro.rules{
   }
 
   /* task { A }
+
   becomes
 
   _fiber((this,Frst)=> case Frst in {
@@ -500,7 +501,6 @@ star.compiler.macro.rules{
       | .shut_down => raise .canceled
     })
 
-  I.e., creates a suspended fiber
   */
 
   taskMacro(E,.expression) where (Lc,A) ?= isTaskExp(E) => valof{
