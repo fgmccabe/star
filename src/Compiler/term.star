@@ -1168,26 +1168,36 @@ star.compiler.term{
     | .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M)
   }
 
-  glSpec ~> (string,option[locn],cExp,cons[string]).
+  glSpec ~> (string,cDefn,cons[string]).
 
-  public sortGlobals:(cons[cDefn]) => cons[cons[(string,option[locn],cExp)]].
-  sortGlobals(Defs) => valof{
-    Globals = ({ (Nm,Lc,Vl) | .glDef(Lc,Nm,_,Vl) in Defs }:cons[_]);
-    AllRefs = foldRight(((Nm,Lc,Vl),A)=>[(Nm,Lc,Vl,findRefs(Vl,Globals)),..A],([]:cons[_]),Globals);
-    valis (topsort(AllRefs) // ((G) => (G//(((Nm,Lc,Vl,Rfs))=>(Nm,Lc,Vl)))));
+  nameOf(.fnDef(_,Nm,_,_,_)) => Nm.
+  nameOf(.glDef(_,Nm,_,_)) => Nm.
+  nameOf(.tpDef(_,Tp,_,_)) => tpName(Tp).
+  nameOf(.lblDef(_,.tLbl(Nm,Ar),_,_)) => "#(Nm)$(Ar)".
+
+  public sortDefs:(cons[cDefn]) => cons[cons[cDefn]].
+  sortDefs(Defs) => valof{
+    Globals = ({ nameOf(Df)->Df | Df in Defs }:map[string,cDefn]);
+    AllRefs = foldRight((Df,A)=>[(nameOf(Df),Df,findRefs(Df,Globals)),..A],([]:cons[glSpec]),Defs);
+    valis (topsort(AllRefs) // ((G) => (G//(((_,Df,_))=>Df))));
   }
 
   implementation depends[glSpec->>string] => {
-    references((_,_,_,Refs)) => Refs.
-    defined((Nm,_,_,_),Rf) => Nm==Rf.
+    references((_,_,Refs)) => Refs.
+    defined((Nm,_,_),Rf) => Nm==Rf.
   }
 
-  findRefs:(cExp,cons[(string,option[locn],cExp)]) => cons[string].
-  findRefs(Exp,Gls) => let{
+  findRefs:(cDefn,map[string,cDefn])=> cons[string].
+  findRefs(Df,Gls) => let{
     findVRef(.cVar(_,.cId(V,_)),.inExp,SoF) =>
-      ({? (V,_,_) in Gls && ~ V in SoF ?} ?? [V,..SoF] || SoF).
+      ({? _ ?= Gls[V] && ~ V in SoF ?} ?? [V,..SoF] || SoF).
     findVRef(_,_,SoF) default => SoF.
-  } in foldV(Exp,.inExp,findVRef,[]).
+  } in let{
+    findD:(cDefn)=> cons[string].
+    findD(.fnDef(_,_,_,_,Vl)) => foldV(Vl,.inExp,findVRef,[]).
+    findD(.glDef(_,_,_,Vl)) => foldV(Vl,.inExp,findVRef,[]).
+    findD(_) default => [].
+  } in findD(Df).
 
   public vMode ::= .inExp | .inPtn.
 

@@ -12,9 +12,16 @@ star.compiler.inline{
 
   import star.compiler.location.
 
+  -- Process definitions in a way that avoids recursion,
+  -- by first of all topogical sorting
+
   public simplifyDefs:(cons[cDefn]) => cons[cDefn].
-  simplifyDefs(Dfs) where Prog .= foldLeft(pickupDefn,[],Dfs) =>
-    (Dfs//(D)=>simplifyDefn(D,Prog)).
+  simplifyDefs(Dfs) => simplifyGroups(sortDefs(Dfs),[])*.
+
+  simplifyGroups:(cons[cons[cDefn]],map[termLbl,cDefn]) => cons[cons[cDefn]].
+  simplifyGroups([],_) => [].
+  simplifyGroups([Gp,..Gps],Map) =>
+    [Gp//(D)=>simplifyDefn(D,Map),..simplifyGroups(Gps,foldLeft(pickupDefn,Map,Gp))].
 
   pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
   pickupDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) =>
