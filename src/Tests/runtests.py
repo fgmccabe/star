@@ -26,7 +26,7 @@ def main(argv):
     compile_failures = []
     run_failures = []
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag="])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag=","inline"])
     except getopt.GetoptError as e:
         print (e.msg)
         sys.exit(2)
@@ -62,6 +62,8 @@ def main(argv):
             cflags = cflags+parseArgFlag(arg)
         elif opt=="-rflag":
             rflags = rflags+parseArgFlag(arg)
+        elif opt=="--inline":
+            cflags = cflags+["-O","inline"]
 
     print ("Run tests on ",pkgs)
     for pkg in pkgs:
