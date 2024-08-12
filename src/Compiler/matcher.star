@@ -107,7 +107,7 @@ star.compiler.matcher{
   argMode(.cVar(_,_)) => .inVars.
   argMode(.cInt(_,_)) => .inScalars.
   argMode(.cBig(_,_)) => .inScalars.
-  argMode(.cFloat(_,_)) => .inScalars.
+  argMode(.cFlt(_,_)) => .inScalars.
   argMode(.cChar(_,_)) => .inScalars.
   argMode(.cString(_,_)) => .inScalars.
   argMode(.cTerm(_,Op,_,_)) where isTplLbl(Op) => .inTuples.
@@ -277,8 +277,8 @@ star.compiler.matcher{
   formCase:all e ~~ reform[e],rewrite[e],display[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,integer,nameMap) => cCase[e].
   formCase(([.cInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
     (LLc,.cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
-  formCase(([.cFloat(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
-    (LLc,.cFloat(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
+  formCase(([.cFlt(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
+    (LLc,.cFlt(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
   formCase(([.cChar(LLc,Cx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
     (LLc,.cChar(LLc,Cx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
   formCase(([.cString(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
@@ -332,14 +332,14 @@ star.compiler.matcher{
 
   compareScalar(.cChar(_,A),.cChar(_,B)) => A=<B.
   compareScalar(.cInt(_,A),.cInt(_,B)) => A=<B.
-  compareScalar(.cFloat(_,A),.cFloat(_,B)) => A=<B.
+  compareScalar(.cFlt(_,A),.cFlt(_,B)) => A=<B.
   compareScalar(.cString(_,A),.cString(_,B)) => A=<B.
   compareScalar(_,_) default => .false.
 
   sameScalarTriple:all e ~~ (triple[e],triple[e]) => boolean.
   sameScalarTriple(([.cChar(_,A),.._],_,_),([.cChar(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([.cInt(_,A),.._],_,_),([.cInt(_,B),.._],_,_)) => A==B.
-  sameScalarTriple(([.cFloat(_,A),.._],_,_),([.cFloat(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([.cFlt(_,A),.._],_,_),([.cFlt(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([.cString(_,A),.._],_,_),([.cString(_,B),.._],_,_)) => A==B.
   sameScalarTriple(_,_) default => .false.
 

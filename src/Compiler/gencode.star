@@ -416,7 +416,7 @@ star.compiler.gencode{
     | .cVar(_,_) => 0
     | .cInt(_,Ix) => Ix
     | .cBig(_,Bx) => hash(Bx)
-    | .cFloat(_,Dx) => hash(Dx)
+    | .cFlt(_,Dx) => hash(Dx)
     | .cChar(_,Cx) => hash(Cx)
     | .cString(_,Sx) => hash(Sx)
     | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
@@ -481,7 +481,7 @@ star.compiler.gencode{
   ptnCmp(Ptn,Lb) => case Ptn in {
     | .cInt(_,Ix) => .iICmp(Lb)
     | .cChar(_,Cx) => .iCCmp(Lb)
-    | .cFloat(_,Dx) => .iFCmp(Lb)
+    | .cFlt(_,Dx) => .iFCmp(Lb)
     | _ => .iCmp(Lb)
   }.
 
