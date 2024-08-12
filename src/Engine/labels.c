@@ -64,7 +64,7 @@ labelPo declareLbl(const char *name, integer arity, integer index) {
 
   if (lbl == Null) {
     if (lblTableTop >= maxLabels)
-      syserr("label label exhausted");
+      syserr("label table exhausted");
 
     lbl = &labelTable[lblTableTop++];
     lbl->lbl.arity = (&Lbl)->arity;

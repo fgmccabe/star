@@ -114,7 +114,7 @@ instruction(FDiv, tOs, tOs, -2, "L R --> L/R")
 instruction(FMod, tOs, tOs, -2, "L R --> L%R")
 instruction(FAbs, tOs, nOp, 0, "L --> abs(L)")
 
-instruction(FEq, tOs, tOs, -2, "L R e --> L==R")
+instruction(FEq, tOs, tOs, -1, "L R e --> L==R")
 instruction(FLt, tOs, tOs, -1, "L R --> L<R")
 instruction(FGe, tOs, tOs, 1, "L R --> L>=R")
 instruction(FCmp, off, tOs, -2, "L R --> branch if not same floating point")
