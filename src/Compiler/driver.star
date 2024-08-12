@@ -130,12 +130,16 @@ star.compiler{
 	    N = normalize(PkgSpec,Defs,AllDecls);
 	    validProg(N,AllDecls);
 	    
-	    Inlined = ( optimization! ==.inlining ?? valof{
-		if traceInline! then{
-		  showMsg("pre-inlined code $(N)");
-		};
-		valis simplifyDefs(N);
-	      } || N);
+	    Inlined = valof{
+	      if optimization! ==.inlining then{
+		(Imported,Merged) = mergePkgs(
+		  PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
+		  ,.some(pkgLoc(P)),Repo,[P],[]);
+		if traceInline! then
+		  showMsg("Merged definitions $(Merged)");
+		valis simplifyDefs(Merged,N)
+	      } else
+	      valis N};
 	    if showNormalize! then{
 	      showMsg("normalized code #(dispCrProg(Inlined))");
 	    };

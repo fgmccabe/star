@@ -54,6 +54,10 @@ test.ar{
   fi(X) where eqq(X,zer) =>unum.
   fi(N) => times(N,fi(minus(N,unum))).
 
+  ft:(float)=>float.
+  ft(X) where eqq(X,zer) =>unum.
+  ft(N) => times(N,ft(minus(N,unum))).
+
 --  sample = times(plus(2,3),unum).
 
   public main:()=>().

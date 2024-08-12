@@ -1,7 +1,10 @@
 test.fi{
   import star.
-  import test.lib.fact.
   import star.assert.
+
+  fact:(integer)=>integer.
+  fact(0)=>1.
+  fact(N)=>N*fact(N-1).
 
   main:()=>().
   main()=>valof{

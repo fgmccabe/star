@@ -15,13 +15,15 @@ star.compiler.inline{
   -- Process definitions in a way that avoids recursion,
   -- by first of all topogical sorting
 
-  public simplifyDefs:(cons[cDefn]) => cons[cDefn].
-  simplifyDefs(Dfs) => simplifyGroups(sortDefs(Dfs),[])*.
+  public simplifyDefs:(cons[cDefn],cons[cDefn]) => cons[cDefn].
+  simplifyDefs(Imported,Dfs) => simplifyGroups(sortDefs(Dfs),foldLeft(pickupDefn,[],Imported))*.
 
   simplifyGroups:(cons[cons[cDefn]],map[termLbl,cDefn]) => cons[cons[cDefn]].
   simplifyGroups([],_) => [].
-  simplifyGroups([Gp,..Gps],Map) =>
-    [Gp//(D)=>simplifyDefn(D,Map),..simplifyGroups(Gps,foldLeft(pickupDefn,Map,Gp))].
+  simplifyGroups([Gp,..Gps],Map) => valof{
+    SGp = Gp//(D)=>simplifyDefn(D,Map);
+    valis [SGp,..simplifyGroups(Gps,foldLeft(pickupDefn,Map,SGp))]
+  }
 
   pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
   pickupDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) =>
@@ -31,10 +33,10 @@ star.compiler.inline{
   pickupDefn(.lblDef(_,_,_,_),Map) => Map.
 
   simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
-  simplifyDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) => 
-    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(traceInline! trace Val,Map[~.tLbl(Nm,[|Args|])],4)).
-  simplifyDefn(.glDef(Lc,Nm,Tp,Val),Map) =>
-    traceInline! trace .glDef(Lc,Nm,Tp,simplifyExp(Val,Map,4)).
+  simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
+    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(traceInline! trace FnBody,Map[~.tLbl(Nm,[|Args|])],4)).
+  simplifyDefn(.glDef(Lc,Nm,Tp,GVal),Map) =>
+    traceInline! trace .glDef(Lc,Nm,Tp,simplifyExp(traceInline! trace GVal,Map,4)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -51,7 +53,7 @@ star.compiler.inline{
   ptnMatch(.cVar(Lc1,.cId(V1,T1)),E,Map) => .matching(Map[V1->E]).
   ptnMatch(.cInt(_,Ix),.cInt(_,Ix),Map) => .matching(Map).
   ptnMatch(.cBig(_,Bx),.cBig(_,Bx),Map) => .matching(Map).
-  ptnMatch(.cFloat(_,Dx),.cFloat(_,Dx),Map) => .matching(Map).
+  ptnMatch(.cFlt(_,Dx),.cFlt(_,Dx),Map) => .matching(Map).
   ptnMatch(.cChar(_,Cx),.cChar(_,Cx),Map) => .matching(Map).
   ptnMatch(.cString(_,Sx),.cString(_,Sx),Map) => .matching(Map).
   ptnMatch(.cTerm(_,N,A1,_),.cTerm(_,N,A2,_),Map) => ptnMatchArgs(A1,A2,Map).
@@ -78,61 +80,57 @@ star.compiler.inline{
   simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
   simplifyExp(E,P,D) where D>=0 => simExp(E,P,D).
   simplifyExp(E,_,_) => E.
-  
-  simExp(.cVoid(Lc,Tp),_,_) => .cVoid(Lc,Tp).
-  simExp(.cAnon(Lc,Tp),_Map,_Depth) => .cAnon(Lc,Tp).
-  simExp(.cVar(Lc,V),Map,Depth) => inlineVar(Lc,V,Map,Depth).
-  simExp(.cInt(Lc,Ix),_,_) => .cInt(Lc,Ix).
-  simExp(.cBig(Lc,Bx),_,_) => .cBig(Lc,Bx).
-  simExp(.cChar(Lc,Ix),_,_) => .cChar(Lc,Ix).
-  simExp(.cFloat(Lc,Dx),_,_) => .cFloat(Lc,Dx).
-  simExp(.cString(Lc,Sx),_,_) => .cString(Lc,Sx).
-  simExp(.cTerm(Lc,Fn,Args,Tp),Map,Depth) =>
-    .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp).
-  simExp(.cCall(Lc,Nm,Args,Tp),Map,Depth) where isEscape(Nm) =>
-    inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth).
-  simExp(.cCall(Lc,Fn,Args,Tp),Map,Depth) =>
-    inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth).
-  simExp(.cOCall(Lc,Op,Args,Tp),Map,Depth) => 
-    inlineOCall(Lc,simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,Map,Depth).
-  simExp(.cNth(Lc,T,Ix,Tp),Map,Depth) =>
-    inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp).
-  simExp(.cSetNth(Lc,T,Ix,Vl),Map,Depth) =>
-    applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth)).
-  simExp(.cClos(Lc,Lb,Ar,Fr,Tp),Map,Depth) =>
-    .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp).
-  simExp(.cThnk(Lc,Fn,Tp),Map,Depth) =>
-    .cThnk(Lc,simExp(Fn,Map,Depth),Tp).
-  simExp(.cThDrf(Lc,Th,Tp),Map,Depth) =>
-    .cThDrf(Lc,simExp(Th,Map,Depth),Tp).
-  simExp(.cSeq(Lc,L,R),Map,Depth) =>
-    .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
-  simExp(.cCnj(Lc,L,R),Map,Depth) =>
-    applyCnj(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
-  simExp(.cDsj(Lc,L,R),Map,Depth) =>
-    applyDsj(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth)).
-  simExp(.cNeg(Lc,R),Map,Depth) =>
-    applyNeg(Lc,simExp(R,Map,Depth)).
-  simExp(.cCnd(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,simExp(T,Map,Depth),
-      simplifyExp(L,Map,Depth-1),simplifyExp(R,Map,Depth-1)).
-  simExp(.cLtt(Lc,Vr,Bnd,Exp),Map,Depth) =>
-    inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Exp,Map,Depth).
-  simExp(.cCase(Lc,Gov,Cases,Deflt,Tp),Map,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
-      simplifyExp(Deflt,Map,Depth),Map,Depth).
-  simExp(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
-    applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Exp,Map,Depth)).
-  simExp(.cVarNmes(Lc,Vrs,Exp),Map,Depth) =>
-    .cVarNmes(Lc,Vrs,simplifyExp(Exp,Map,Depth)).
-  simExp(.cAbort(Lc,Txt,Tp),_,_) => .cAbort(Lc,Txt,Tp).
-  simExp(.cRaise(Lc,Th,E,Tp),Map,Depth) =>
-    .cRaise(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp).
-  simExp(.cTry(Lc,Exp,Th,E,H,Tp),Map,Depth) =>
-    .cTry(Lc,simplifyExp(Exp,Map,Depth),simplifyExp(Th,Map,Depth),
-      simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp).
-  simExp(.cValof(Lc,Act,Tp),Map,Depth) =>
-    valofAct(Lc,simplifyAct(Act,Map,Depth),Tp).
+
+  simExp(Exp,Map,Depth) => case Exp in {
+    | .cVoid(Lc,Tp) => .cVoid(Lc,Tp)
+    | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
+    | .cVar(Lc,V) => inlineVar(Lc,V,Map,Depth)
+    | .cInt(Lc,Ix) => .cInt(Lc,Ix)
+    | .cBig(Lc,Bx) => .cBig(Lc,Bx)
+    | .cChar(Lc,Ix) => .cChar(Lc,Ix)
+    | .cFlt(Lc,Dx) => .cFlt(Lc,Dx)
+    | .cString(Lc,Sx) => .cString(Lc,Sx)
+    | .cTerm(Lc,Fn,Args,Tp) => .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp)
+    | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) =>
+      inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth)
+    | .cCall(Lc,Fn,Args,Tp) =>
+      inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth)
+    | .cOCall(Lc,Op,Args,Tp) =>
+      inlineOCall(Lc,traceInline! trace simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,Map,Depth)
+    | .cNth(Lc,T,Ix,Tp) => inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp)
+    | .cSetNth(Lc,T,Ix,Vl) => applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth))
+    | .cClos(Lc,Lb,Ar,Fr,Tp) => .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp)
+    | .cThnk(Lc,Fn,Tp) => .cThnk(Lc,simExp(Fn,Map,Depth),Tp)
+    | .cThDrf(Lc,Th,Tp) => .cThDrf(Lc,simExp(Th,Map,Depth),Tp)
+    | .cSeq(Lc,L,R) => .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth))
+    | .cCnj(_,_,_) => simCond(Exp,Map,Depth)
+    | .cDsj(_,_,_) => simCond(Exp,Map,Depth)
+    | .cNeg(_,_) => simCond(Exp,Map,Depth)
+    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth)
+    | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
+    | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
+      inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
+      simplifyExp(Deflt,Map,Depth),Map,Depth)
+    | .cMatch(Lc,Ptn,Val) =>
+      applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
+    | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
+    | .cRaise(Lc,Th,E,Tp) => .cRaise(Lc,simplifyExp(Th,Map,Depth),simplifyExp(E,Map,Depth),Tp)
+    | .cTry(Lc,Inn,Th,E,H,Tp) =>
+      .cTry(Lc,simplifyExp(Inn,Map,Depth),simplifyExp(Th,Map,Depth),
+      simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp)
+    | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
+  }
+
+  simCond:(cExp,map[termLbl,cDefn],integer) => cExp.
+  simCond(.cCnj(Lc,L,R),Map,Depth) =>
+    applyCnj(Lc,simCond(L,Map,Depth),simCond(R,Map,Depth)).
+  simCond(.cDsj(Lc,L,R),Map,Depth) => applyDsj(Lc,simCond(L,Map,Depth),simCond(R,Map,Depth)).
+  simCond(.cNeg(Lc,R),Map,Depth) => applyNeg(Lc,simExp(R,Map,Depth)).
+  simCond(.cCnd(Lc,T,L,R),Map,Depth) =>
+    applyCnd(Lc,simCond(T,Map,Depth),simCond(L,Map,Depth-1),simCond(R,Map,Depth-1),Map,Depth).
+  simCond(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
+    applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Exp,Map,Depth),Map,Depth).
+  simCond(C,Map,Depth) => simplifyExp(C,Map,Depth).
 
   valofAct(_,.aValis(_Lc,E),_) => E.
   valofAct(Lc,A,Tp) => .cValof(Lc,A,Tp).
@@ -168,7 +166,7 @@ star.compiler.inline{
       simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
-      simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1)).
+      simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1),Map,Depth).
   simAct(.aWhile(Lc,T,A),Map,Depth) =>
     .aWhile(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(A,Map,Depth)).
@@ -211,10 +209,15 @@ star.compiler.inline{
   applyNeg(_,.cTerm(Lc,"star.core#true",[],Tp)) => .cTerm(Lc,"star.core#false",[],Tp).
   applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
-  applyCnd:all e ~~ reform[e] |: (option[locn],cExp,e,e) => e.
-  applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R) => R.
-  applyCnd(_,.cTerm(_,"star.core#true",[],_),L,_R) => L.
-  applyCnd(Lc,T,L,R) => mkCond(Lc,T,L,R).
+  applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[termLbl,cDefn],integer) => e.
+  applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R,_,_) => R.
+  applyCnd(_,.cTerm(_,"star.core#true",[],_),L,_R,_,_) => L.
+  applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cId(Vr,_)) .= V =>
+    rewrite(L,rwVar({Vr->E})).
+  applyCnd(Lc,.cCnj(_,.cMatch(_,V,E),BB),L,R,Map,Dep) where .cVar(_,.cId(Vr,VTp)) .= V &&
+      ~ varUsed(BB,.cId(Vr,VTp)) =>
+    applyCnd(Lc,BB,rewrite(L,rwVar({Vr->E})),R,Map,Dep).
+  applyCnd(Lc,T,L,R,_,_) => mkCond(Lc,T,L,R).
 
   inlineTplOff(_,.cTerm(_,_,Els,_),Ix,Tp) where E?=Els[Ix] => E.
   inlineTplOff(Lc,T,Ix,Tp) default => .cNth(Lc,T,Ix,Tp).
@@ -224,11 +227,17 @@ star.compiler.inline{
   applyTplUpdate(Lc,T,Ix,E) =>
     .cSetNth(Lc,T,Ix,E).
 
-  applyMatch(Lc,Ptn,Exp) where isGround(Ptn) && isGround(Exp) =>
+  applyMatch(Lc,Ptn,Exp,_,_) where isGround(Ptn) && isGround(Exp) =>
     (Ptn==Exp ??
     .cTerm(Lc,"star.core#true",[],boolType) ||
     .cTerm(Lc,"star.core#false",[],boolType)).
-  applyMatch(Lc,Ptn,Exp) => .cMatch(Lc,Ptn,Exp).
+  applyMatch(Lc,.cTerm(_,Lb,A1,_),.cTerm(_,Lb,A2,_),Map,Depth) =>
+    makeSubMatches(Lc,A1,A2).
+  applyMatch(Lc,Ptn,Exp,_,_) => .cMatch(Lc,Ptn,Exp).
+
+  makeSubMatches(Lc,[],[]) => .cTerm(Lc,"star.core#true",[],boolType).
+  makeSubMatches(Lc,[T1],[T2]) => .cMatch(Lc,T1,T2).
+  makeSubMatches(Lc,[P1,..P1s],[T2,..T2s]) => .cCnj(Lc,.cMatch(Lc,P1,T2),makeSubMatches(Lc,P1s,T2s)).
 
   simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
     (cCase[e],map[termLbl,cDefn],integer) => cCase[e].
@@ -236,7 +245,8 @@ star.compiler.inline{
 
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
     (option[locn],cExp,cons[cCase[e]],e,map[termLbl,cDefn],integer) => e.
-  inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where 
+  inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where
+      ~ .cVar(_,_) .= Gov &&
       .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
@@ -281,6 +291,8 @@ star.compiler.inline{
 
   inlineOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,Map,Depth) =>
     simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp),Map,Depth).
+  inlineOCall(Lc,.cClos(OLc,Nm,_,Fr,_),Args,Tp,Map,Depth) =>
+    simplifyExp(.cCall(Lc,Nm,[Fr,..Args],Tp),Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args,Tp).
   
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
@@ -292,6 +304,17 @@ star.compiler.inline{
     .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
   rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
     .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+
+  rewriteECall(Lc,"_flt_plus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A+B).
+  rewriteECall(Lc,"_flt_minus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A-B).
+  rewriteECall(Lc,"_flt_times",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A*B).
+  rewriteECall(Lc,"_flt_eq",[.cFlt(_,A),.cFlt(_,B)],_) =>
+    .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
+  rewriteECall(Lc,"_flt_lt",[.cFlt(_,A),.cFlt(_,B)],_) =>
+    .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
+  rewriteECall(Lc,"_flt_ge",[.cFlt(_,A),.cFlt(_,B)],_) =>
+    .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+
   rewriteECall(Lc,"_str_multicat",[As],_) where isGround(As) =>
     .cString(Lc,pullStrings(As)*).
   rewriteECall(Lc,Op,Args,Tp) default => .cCall(Lc,Op,Args,Tp).
