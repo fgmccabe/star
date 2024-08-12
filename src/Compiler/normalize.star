@@ -174,7 +174,7 @@ star.compiler.normalize{
   liftPtn(.enm(Lc,Nm,Tp),Map,Q,Ex) => liftPtnCallOp(Lc,Nm,[],Tp,Map,Q,Ex).
   liftPtn(.intr(Lc,Ix),Map,_,Ex) =>  (.cInt(Lc,Ix),Ex).
   liftPtn(.bintr(Lc,Ix),Map,_,Ex) => (.cBig(Lc,Ix),Ex).
-  liftPtn(.flt(Lc,Dx),Map,_,Ex) => (.cFloat(Lc,Dx),Ex).
+  liftPtn(.flt(Lc,Dx),Map,_,Ex) => (.cFlt(Lc,Dx),Ex).
   liftPtn(.kar(Lc,Cx),Map,_,Ex) => (.cChar(Lc,Cx),Ex).
   liftPtn(.strng(Lc,Sx),Map,_,Ex) => (.cString(Lc,Sx),Ex).
   liftPtn(.tple(Lc,Els),Map,Q,Ex) => valof{
@@ -236,7 +236,7 @@ star.compiler.normalize{
   }
   liftExp(.intr(Lc,Ix),Map,_,Ex) => (.cInt(Lc,Ix),Ex).
   liftExp(.bintr(Lc,Ix),Map,_,Ex) => (.cBig(Lc,Ix),Ex).
-  liftExp(.flt(Lc,Dx),Map,_,Ex) => (.cFloat(Lc,Dx),Ex).
+  liftExp(.flt(Lc,Dx),Map,_,Ex) => (.cFlt(Lc,Dx),Ex).
   liftExp(.kar(Lc,Cx),Map,_,Ex) => (.cChar(Lc,Cx),Ex).
   liftExp(.strng(Lc,Sx),Map,_,Ex) => (.cString(Lc,Sx),Ex).
   liftExp(.enm(Lc,Nm,Tp),Map,_,Ex) => valof{

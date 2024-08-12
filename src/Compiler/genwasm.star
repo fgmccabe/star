@@ -75,7 +75,7 @@ star.compiler.wasm.gen{
     | .cInt(Lc,Ix) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Ix))
     | .cChar(Lc,Cx) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Cx::integer))
 --    | .cBig(Lc,Bx) => Cont.C(Ctx,pushStack(bigintType,Stk),wasmBigInt(Bx))
-    | .cFloat(Lc,Dx) => Cont.C(Ctx,pushStack(fltType,Stk),wasmFloat(Dx))
+    | .cFlt(Lc,Dx) => Cont.C(Ctx,pushStack(fltType,Stk),wasmFloat(Dx))
     | .cString(Lc,Sx) => wasmString(Sx,Stk,Ctx)
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
@@ -367,7 +367,7 @@ star.compiler.wasm.gen{
     | .cVar(_,_) => 0
     | .cInt(_,Ix) => Ix
     | .cBig(_,Bx) => hash(Bx)
-    | .cFloat(_,Dx) => hash(Dx)
+    | .cFlt(_,Dx) => hash(Dx)
     | .cChar(_,Cx) => hash(Cx)
     | .cString(_,Sx) => hash(Sx)
     | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
@@ -429,7 +429,7 @@ star.compiler.wasm.gen{
   ptnCmp(Ptn,Lb) => case Ptn in {
     | .cInt(_,Ix) => .iICmp(Lb)
     | .cChar(_,Cx) => .iCCmp(Lb)
-    | .cFloat(_,Dx) => .iFCmp(Lb)
+    | .cFlt(_,Dx) => .iFCmp(Lb)
     | _ => .iCmp(Lb)
   }.
 
@@ -896,7 +896,7 @@ star.compiler.wasm.gen{
     | .cInt(_,_) => Mp
     | .cChar(_,_) => Mp
     | .cBig(_,_) => Mp
-    | .cFloat(_,_) => Mp
+    | .cFlt(_,_) => Mp
     | .cString(_,_) => Mp
     | .cTerm(_,_,Args,_) => collectArgs(Args,Mp)
     | .cNth(_,Rc,_,_) => collectExpLcls(Rc,Mp)
