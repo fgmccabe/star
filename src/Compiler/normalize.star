@@ -508,6 +508,19 @@ star.compiler.normalize{
       MM = pkgMap(Decls,Outer);
       Ex1 = transformGroup(Grp,MM,MM,[],.none,Ex);
       valis transform(Bnd,MM,Q,Ex1)
+    } else if [SFr] .= freeVars && isEmpty(glDefs) then {
+      CM = makeConsMap(Decls);
+
+      MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
+      GrpQ = foldLeft(collectQ,Q\+SFr,Grp);
+      (Fx,Ex1) = transformLetDefs(Grp,MM,MM,GrpQ,.some(.cVar(Lc,SFr)),[],Ex);
+      if traceNormalize! then{
+	showMsg("fixups $(Fx)");
+      };
+      if ~isEmpty(Fx) then
+	reportError("expecting fixups to be empty, not $(Fx)",Lc);
+
+      valis transform(Bnd,MM,GrpQ,Ex1)
     } else{
       ThV = genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr = .cVar(Lc,ThV);
