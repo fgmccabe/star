@@ -530,20 +530,6 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
   integer frameNo = 0;
 
   do {
-    switch (stackState(stk)) {
-      case suspended:
-        outMsg(out, RED_ESC_ON"Suspended"RED_ESC_OFF);
-        break;
-      case active:
-        outMsg(out, GREEN_ESC_ON"Active"GREEN_ESC_OFF);
-        break;
-      case moribund:
-        outMsg(out, RED_ESC_ON"Moribund"RED_ESC_OFF);
-        break;
-    }
-
-    outMsg(out, "\n");
-
     framePo fp = stk->fp;
 
     while (fp < baseFrame(stk)) {
