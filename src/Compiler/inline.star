@@ -18,25 +18,26 @@ star.compiler.inline{
   public simplifyDefs:(cons[cDefn],cons[cDefn]) => cons[cDefn].
   simplifyDefs(Imported,Dfs) => simplifyGroups(sortDefs(Dfs),foldLeft(pickupDefn,[],Imported))*.
 
-  simplifyGroups:(cons[cons[cDefn]],map[termLbl,cDefn]) => cons[cons[cDefn]].
+  simplifyGroups:(cons[cons[cDefn]],map[defnSp,cDefn]) => cons[cons[cDefn]].
   simplifyGroups([],_) => [].
   simplifyGroups([Gp,..Gps],Map) => valof{
     SGp = Gp//(D)=>simplifyDefn(D,Map);
     valis [SGp,..simplifyGroups(Gps,foldLeft(pickupDefn,Map,SGp))]
   }
 
-  pickupDefn:(cDefn,map[termLbl,cDefn])=>map[termLbl,cDefn].
-  pickupDefn(.fnDef(Lc,Nm,Tp,Args,Val),Map) =>
-    Map[.tLbl(Nm,arity(Tp))->.fnDef(Lc,Nm,Tp,Args,Val)].
-  pickupDefn(.glDef(Lc,Nm,Tp,Val),Map) => Map[.tLbl(Nm,arity(Tp))->.glDef(Lc,Nm,Tp,Val)].
-  pickupDefn(.tpDef(_,_,_,_),Map) => Map.
-  pickupDefn(.lblDef(_,_,_,_),Map) => Map.
+  pickupDefn:(cDefn,map[defnSp,cDefn])=>map[defnSp,cDefn].
+  pickupDefn(Df,Map) => case Df in {
+    | .fnDef(_,Nm,_,_,_) => Map[.varSp(Nm)->Df]
+    | .glDef(_,Nm,_,_) => Map[.varSp(Nm)->Df]
+    | .tpDef(_,Tp,_,_) => Map[.tpSp(tpName(Tp))->Df]
+    | .lblDef(_,_,_,_) => Map
+  }
 
-  simplifyDefn:(cDefn,map[termLbl,cDefn])=>cDefn.
+  simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
-    traceInline! trace .fnDef(Lc,Nm,Tp,Args,simplifyExp(traceInline! trace FnBody,Map[~.tLbl(Nm,[|Args|])],4)).
+    .fnDef(Lc,Nm,Tp,Args,simplifyExp(FnBody,Map[~.varSp(Nm)],10)).
   simplifyDefn(.glDef(Lc,Nm,Tp,GVal),Map) =>
-    traceInline! trace .glDef(Lc,Nm,Tp,simplifyExp(traceInline! trace GVal,Map,4)).
+    .glDef(Lc,Nm,Tp,simplifyExp(GVal,Map,4)).
   simplifyDefn(D,_) default => D.
 
   -- There are three possibilities of a match ...
@@ -70,14 +71,14 @@ star.compiler.inline{
   ptnMatchArgs(_,_,_) default => .noMatch.
 
   contract all e ~~ simplify[e] ::= {
-    simplify:(e,map[termLbl,cDefn],integer) => e.
+    simplify:(e,map[defnSp,cDefn],integer) => e.
   }
 
   implementation simplify[cExp] => {
     simplify(E,Map,Dp) => simplifyExp(E,Map,Dp)
   }
 
-  simplifyExp:(cExp,map[termLbl,cDefn],integer) => cExp.
+  simplifyExp:(cExp,map[defnSp,cDefn],integer) => cExp.
   simplifyExp(E,P,D) where D>=0 => simExp(E,P,D).
   simplifyExp(E,_,_) => E.
 
@@ -110,7 +111,7 @@ star.compiler.inline{
     | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
-      simplifyExp(Deflt,Map,Depth),Map,Depth)
+	simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
     | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
@@ -121,7 +122,7 @@ star.compiler.inline{
     | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
   }
 
-  simCond:(cExp,map[termLbl,cDefn],integer) => cExp.
+  simCond:(cExp,map[defnSp,cDefn],integer) => cExp.
   simCond(.cCnj(Lc,L,R),Map,Depth) =>
     applyCnj(Lc,simCond(L,Map,Depth),simCond(R,Map,Depth)).
   simCond(.cDsj(Lc,L,R),Map,Depth) => applyDsj(Lc,simCond(L,Map,Depth),simCond(R,Map,Depth)).
@@ -139,7 +140,7 @@ star.compiler.inline{
     simplify(A,Map,Dp) => simplifyAct(A,Map,Dp)
   }
 
-  simplifyAct:(aAction,map[termLbl,cDefn],integer) => aAction.
+  simplifyAct:(aAction,map[defnSp,cDefn],integer) => aAction.
   simplifyAct(A,P,D) => simAct(A,P,D).
 
   simAct(.aNop(Lc),_,_) => .aNop(Lc).
@@ -188,7 +189,7 @@ star.compiler.inline{
   
   inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
   inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
-      .glDef(_,_,_,Vl) ?= Map[.tLbl(Id,arity(Tp))] && isGround(Vl) => valof{
+      .glDef(_,_,_,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
     Sim = simplify(Vl,Map,Depth);
     if traceInline! then
       showMsg("Replace var #(Id)\:$(Tp) with $(Sim)");
@@ -209,7 +210,7 @@ star.compiler.inline{
   applyNeg(_,.cTerm(Lc,"star.core#true",[],Tp)) => .cTerm(Lc,"star.core#false",[],Tp).
   applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
-  applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[termLbl,cDefn],integer) => e.
+  applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
   applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R,_,_) => R.
   applyCnd(_,.cTerm(_,"star.core#true",[],_),L,_R,_,_) => L.
   applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cId(Vr,_)) .= V =>
@@ -240,19 +241,22 @@ star.compiler.inline{
   makeSubMatches(Lc,[P1,..P1s],[T2,..T2s]) => .cCnj(Lc,.cMatch(Lc,P1,T2),makeSubMatches(Lc,P1s,T2s)).
 
   simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (cCase[e],map[termLbl,cDefn],integer) => cCase[e].
+    (cCase[e],map[defnSp,cDefn],integer) => cCase[e].
   simplifyCase((Lc,Ptn,Rep),Map,Dp) => (Lc,Ptn,simplify(Rep,Map,Dp)).
 
+  isSingletonType:(string,map[defnSp,cDefn])=>boolean.
+  isSingletonType(Nm,Map) where .tpDef(_,_,_,CMp)?=Map[.tpSp(Nm)] => [|CMp|]==1.
+  isSingletonType(_,_) default => .false.
+
   inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (option[locn],cExp,cons[cCase[e]],e,map[termLbl,cDefn],integer) => e.
+    (option[locn],cExp,cons[cCase[e]],e,map[defnSp,cDefn],integer) => e.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where
-      ~ .cVar(_,_) .= Gov &&
       .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
 
   matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
-    (cExp,cons[cCase[e]],map[termLbl,cDefn],integer) => match[e].
+    (cExp,cons[cCase[e]],map[defnSp,cDefn],integer) => match[e].
   matchingCase(_,[],_,_) => .noMatch.
   matchingCase(Gov,[C,..Cs],Map,Depth) => case candidate(Gov,C) in {
     | .insufficient => .insufficient
@@ -268,7 +272,7 @@ star.compiler.inline{
   }
 
   inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
-    (option[locn],cId,cExp,e,map[termLbl,cDefn],integer) => e.
+    (option[locn],cId,cExp,e,map[defnSp,cDefn],integer) => e.
   inlineLtt(Lc,.cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
     simplify(rewrite(Exp,rwVar({Vr->Bnd})),Map,Depth).
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
@@ -276,11 +280,11 @@ star.compiler.inline{
 
   varFound(Vr) => (T)=>(.cVar(_,VV).=T ?? VV==Vr || .false).
   
-  inlineCall:(option[locn],string,cons[cExp],tipe,map[termLbl,cDefn],integer) => cExp.
+  inlineCall:(option[locn],string,cons[cExp],tipe,map[defnSp,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
-      PrgLbl .= .tLbl(Nm,[|Args|]) && .fnDef(_,_,_,Vrs,Rep) ?= Map[PrgLbl] => valof{
-    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
-    valis simplifyExp(freshenE(Rep,RwMap),Map[~PrgLbl],Depth-1)
+      .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
+    RwMap = { lName(V)->A | (.cVar(_,V),A) in zip(Vrs,Args)};
+    valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args,Tp).
 
