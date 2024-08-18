@@ -131,7 +131,7 @@ star.compiler{
 	    validProg(N,AllDecls);
 	    
 	    Inlined = valof{
-	      if optimization! ==.inlining then{
+	      if optimization! ==.inlining && mainDefined(AllDecls) then{
 		(Imported,Merged) = mergePkgs(
 		  PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
 		  ,.some(pkgLoc(P)),Repo,[P],[]);
