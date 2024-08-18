@@ -94,24 +94,21 @@ star.compiler.inline{
     | .cTerm(Lc,Fn,Args,Tp) => .cTerm(Lc,Fn,Args//(A)=>simExp(A,Map,Depth),Tp)
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) =>
       inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth)
-    | .cCall(Lc,Fn,Args,Tp) =>
-      inlineCall(Lc,Fn,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Map,Depth)
-    | .cOCall(Lc,Op,Args,Tp) =>
-      inlineOCall(Lc,traceInline! trace simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,Map,Depth)
+    | .cCall(Lc,Fn,Args,Tp) => inlineCall(Lc,Fn,Args,Tp,Map,Depth)
+    | .cOCall(Lc,Op,Args,Tp) => inlineOCall(Lc,simExp(Op,Map,Depth),Args,Tp,Map,Depth)
     | .cNth(Lc,T,Ix,Tp) => inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp)
     | .cSetNth(Lc,T,Ix,Vl) => applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth))
     | .cClos(Lc,Lb,Ar,Fr,Tp) => .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp)
     | .cThnk(Lc,Fn,Tp) => .cThnk(Lc,simExp(Fn,Map,Depth),Tp)
     | .cThDrf(Lc,Th,Tp) => .cThDrf(Lc,simExp(Th,Map,Depth),Tp)
     | .cSeq(Lc,L,R) => .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth))
-    | .cCnj(_,_,_) => simCond(Exp,Map,Depth)
-    | .cDsj(_,_,_) => simCond(Exp,Map,Depth)
-    | .cNeg(_,_) => simCond(Exp,Map,Depth)
-    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth)
+    | .cCnj(_,_,_) => simCond(Exp,Map,Depth-1)
+    | .cDsj(_,_,_) => simCond(Exp,Map,Depth-1)
+    | .cNeg(_,_) => simCond(Exp,Map,Depth-1)
+    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth-1)
     | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
-      inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
-	simplifyExp(Deflt,Map,Depth),Map,Depth)
+      inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
     | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
@@ -128,7 +125,7 @@ star.compiler.inline{
   simCond(.cDsj(Lc,L,R),Map,Depth) => applyDsj(Lc,simCond(L,Map,Depth),simCond(R,Map,Depth)).
   simCond(.cNeg(Lc,R),Map,Depth) => applyNeg(Lc,simExp(R,Map,Depth)).
   simCond(.cCnd(Lc,T,L,R),Map,Depth) =>
-    applyCnd(Lc,simCond(T,Map,Depth),simCond(L,Map,Depth-1),simCond(R,Map,Depth-1),Map,Depth).
+    applyCnd(Lc,simCond(T,Map,Depth),simCond(L,Map,Depth),simCond(R,Map,Depth),Map,Depth).
   simCond(.cMatch(Lc,Ptn,Exp),Map,Depth) =>
     applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Exp,Map,Depth),Map,Depth).
   simCond(C,Map,Depth) => simplifyExp(C,Map,Depth).
@@ -163,8 +160,7 @@ star.compiler.inline{
   simAct(.aSetNth(Lc,T,Ix,E),Map,Depth) =>
     .aSetNth(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(E,Map,Depth)).
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
-    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases//(C)=>simplifyCase(C,Map,Depth-1),
-      simplifyAct(Deflt,Map,Depth),Map,Depth).
+    inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1),Map,Depth).
@@ -286,7 +282,7 @@ star.compiler.inline{
     RwMap = { lName(V)->A | (.cVar(_,V),A) in zip(Vrs,Args)};
     valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
-  inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args,Tp).
+  inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
 
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
