@@ -67,14 +67,13 @@ star.compiler.normalize{
     ClosureNm = closureNm(FullNm);
     ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cId("_",unitTp));
     ClVars = makeFunVars(Tp);
-    ClArgs = [ClVar,..ClVars];
+    ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
 
     ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
 
     if Exv?=Extra then {
       ClosEntry =
-	.fnDef(Lc,ClosureNm,ClosTp,ClArgs,
-	  .cCall(Lc,FullNm,ClArgs//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
+	.fnDef(Lc,ClosureNm,ClosTp,ClArgs,.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
       valis [Func,ClosEntry,..Ex1]
     } else {
       ClosEntry =

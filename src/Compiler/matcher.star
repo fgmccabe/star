@@ -26,7 +26,7 @@ star.compiler.matcher{
 
       Error = genRaise(Lc,Nm,funTypeRes(Tp));
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
-      valis .some(.fnDef(Lc,Nm,Tp,NVrs//(.cVar(_,V))=>V,Reslt))
+      valis .some(.fnDef(Lc,Nm,Tp,NVrs,Reslt))
     }
     else{
       reportError("Cant create a match for non function type $(Tp)",Lc);

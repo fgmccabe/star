@@ -63,7 +63,7 @@ star.compiler.term{
     | .aVarNmes(option[locn],cons[(string,cId)],aAction)
     | .aAbort(option[locn],string).
 
-  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cId],cExp) |
+  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp) |
   .glDef(option[locn],string,tipe,cExp) |
   .tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
   .lblDef(option[locn],termLbl,tipe,integer).
@@ -94,7 +94,7 @@ star.compiler.term{
     | .cBig(_,Ix) => disp(Ix)
     | .cFlt(_,Dx) => disp(Dx)
     | .cString(_,Sx) => disp(Sx)
-    | .cOCall(_,Op,As,_) => "#(dspExp(Op,Off))·(#(dsplyExps(As,Off)*))"
+    | .cOCall(_,Op,As,_) => "#(pDspExp(Op,Off))·(#(dsplyExps(As,Off)*))"
     | .cCall(_,Op,As,_) => "#(Op)(#(dsplyExps(As,Off)*))"
     | .cTerm(_,Op,As,_) where isTplLbl(Op) => "(#(dsplyExps(As,Off)*))"
     | .cTerm(_,Op,As,_) => ".#(Op)(#(dsplyExps(As,Off)*))"
@@ -125,8 +125,25 @@ star.compiler.term{
     | .cAbort(_,M,_) => "abort #(M)"
     | .cTry(_,B,T,E,H,_)=> 
       "(try #(dspExp(B,Off)) catch #(dspExp(T,Off)) in $(E) in #(dspExp(H,Off)))"
-    | .cValof(_,A,_) => "valof #(dspAct(A,Off))"
+    | .cValof(_,A,_) => "valof{#(dspAct(A,Off))}"
   }
+
+  pDspExp:(cExp,string) => string.
+  pDspExp(E,Off) where complex(E) => "(#(dspExp(E,Off)))".
+  pDspExp(E,Off) default => "#(dspExp(E,Off))".
+
+  complex(.cLtt(_,_,_,_)) => .true.
+  complex(.cOCall(_,_,_,_)) => .true.
+  complex(.cCnj(_,_,_)) => .true.
+  complex(.cCnj(_,_,_)) => .true.
+  complex(.cDsj(_,_,_)) => .true.
+  complex(.cNeg(_,_)) => .true.
+  complex(.cCnd(_,_,_,_)) => .true.
+  complex(.cVarNmes(_,_,_)) => .true.
+  complex(.cCase(_,_,_,_,_)) => .true.
+  complex(.cTry(_,_,_,_,_,_)) => .true.
+  complex(.cValof(_,_,_)) => .true.
+  complex(_) default => .false.
 
   dspAct:(aAction,string)=>string.
   dspAct(Act,Off) => case Act in {
@@ -689,7 +706,7 @@ star.compiler.term{
     pullWheres([A,..As]) where (NA,NG).=pullWhere(A) && (NAs,Gx) .= pullWheres(As) =>
       ([NA,..NAs],mergeGoal(locOf(A),NG,Gx)).
 
-    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
+--    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
     mkLtt(Lc,V,E,X) => .cLtt(Lc,V,E,X).
@@ -737,8 +754,8 @@ star.compiler.term{
     for Df in Defs do{
       case Df in {
 	| .fnDef(Lc,Nm,Tp,Args,Val) => {
-	  D1 = foldLeft((V,D1)=>D1\+V,D,Args);
-	  if ~validE(Val,D1) then{
+	  D1 = foldLeft(ptnVrs,D,Args);
+	  if ~{? E in Args *> validP(E,D1) ?} || ~validE(Val,D1) then{
 	    reportError("$(.fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
 	  }
 	}
@@ -986,7 +1003,7 @@ star.compiler.term{
   public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {
     | .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
-	mkTpl(Vrs//frzeVar),
+	mkTpl(Vrs//frzeExp),
 	frzeExp(Vl)])
     | .glDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
 	frzeExp(Vl)])
@@ -1073,7 +1090,7 @@ star.compiler.term{
   public thawDefn:(data) => cDefn.
   thawDefn(D) => case D in {
     | .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
-      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thawVr,thwTrm(Vl))
+      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thwTrm,thwTrm(Vl))
     | .term("glb",[Lc,.strg(V),Sig,Vl]) =>
       .glDef(thawLoc(Lc),V,decodeSig(Sig),thwTrm(Vl))
     | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
