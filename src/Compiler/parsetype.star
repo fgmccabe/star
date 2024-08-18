@@ -481,7 +481,9 @@ star.compiler.typeparse{
     DlTp = makeTpExp(FullNm,ArgTps++DepTps);
     
     TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
-    TpeDec = .tpeDec(Lc,Id,.tpFun(FullNm,[|ArgTps|]+[|DepTps|]),TypeRl);
+    Tmplte = .tpFun(FullNm,[|ArgTps|]+[|DepTps|]);
+    TpeDec = .tpeDec(Lc,Id,Tmplte,TypeRl);
+    TDef = .typeDef(Lc,Id,Tmplte,TypeRl);
     
     ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
     
@@ -489,7 +491,7 @@ star.compiler.typeparse{
     ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
     
     (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Path);
-    valis ([.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs], [TpeDec,ConDec,ConCns,..AccDecs])
+    valis ([TDef,.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs], [TpeDec,ConDec,ConCns,..AccDecs])
       }.
   parseContract(St,_,_) => valof{
     reportError("invalid contract definition $(St)",locOf(St));
