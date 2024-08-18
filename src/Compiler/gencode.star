@@ -45,9 +45,12 @@ star.compiler.gencode{
     | .fnDef(Lc,Nm,Tp,Args,Val) => valof {
       if traceCodegen! then
 	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
-      Ctx = emptyCtx(argSrcLocs(Args,Glbs,0));
+      Ctx = emptyCtx(Glbs);
       (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.some([]),[]);
-      (_Stk,Code) = compExp(Val,Lc,.noMore,retCont,Ctx,.some([]));
+
+      (_Stk,Code) = compArgPtns(Args,Lc,0,expCont(Val,Lc,.noMore,retCont),
+	jmpCont(Ctx.escape,.none),Ctx,.some([]));
+
       if traceCodegen! then
 	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
       Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
@@ -433,6 +436,27 @@ star.compiler.gencode{
   mergeDuplicate([(Lc,Pt,Hx,Ex),..M],Hx,SoFar) =>
     mergeDuplicate(M,Hx,SoFar++[(Lc,Pt,Ex)]).
   mergeDuplicate(M,_,SoFar) default => (SoFar,M).
+
+  compArgPtrn:(cExp,option[locn],integer,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compArgPtrn(Ptn,Lc,Ix,Succ,Fail,Ctx,Stk) where .cVar(_,.cId(Vr,Tp)) .= Ptn =>
+    Succ.C(defineArgVar(Vr,Tp,Ix,Ctx),Stk,[]).
+  compArgPtrn(Ptn,Lc,Ix,Succ,Fail,Ctx,Stk) => valof{
+    (Stk1,Code1) = compPttrn(Ptn,Lc,Succ,Fail,Ctx,pushStack(typeOf(Ptn)::ltipe,Stk));
+    valis (Stk1,[.iLdA(Ix)]++Code1)
+  }
+
+  compArgPtns:(cons[cExp],option[locn],integer,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
+  compArgPtns(Es,Lc,Ix,Succ,Fail,Ctx,Stk) => case Es in {
+    | [] => Succ.C(Ctx,Stk,[])
+    | [A,..As] => compArgPtrn(A,Lc,Ix,argPtnCont(As,locOf(A),Ix+1,Succ,Fail),Fail,Ctx,Stk)
+  }
+
+  argPtnCont(As,Lc,Ix,Succ,Fail) => cont{
+    C(Ctx,Stk,Cde) => valof{
+      (Stk2,Cde2) = compArgPtns(As,Lc,Ix,Succ,Fail,Ctx,Stk);
+      valis (Stk2,Cde++Cde2)
+    }
+  }
 
   compPttrn:(cExp,option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
   compPttrn(Ptn,Lc,Succ,Fail,Ctx,Stk) => compPtn(Ptn,Lc,Succ,Fail,Ctx,Stk).
@@ -859,6 +883,9 @@ star.compiler.gencode{
 
   argSrcLoc:(cId,integer) => srcLoc.
   argSrcLoc(.cId(_,Tp),Ix) => .argVar(Ix,Tp::ltipe).
+
+  defineArgVar:(string,tipe,integer,codeCtx) => codeCtx.
+  defineArgVar(Nm,Tp,Ix,Ctx) => (Ctx.vars=Ctx.vars[Nm->.argVar(Ix,Tp::ltipe)]).
 
   glCtx:(codeCtx,cExp) => codeCtx.
   glCtx(Ctx,Exp) => valof{

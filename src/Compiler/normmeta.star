@@ -80,20 +80,23 @@ star.compiler.normalize.meta{
   lookupTypeMap([_,..Map],Nm) => lookupTypeMap(Map,Nm).
 
   public pkgMap:(cons[decl],nameMap) => nameMap.
-  pkgMap(Decls,M) =>
-    [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),[],Decls),makeConsMap(Decls)),..M].
+  pkgMap(Decls,M) => valof{
+    CMap = makeConsMap(Decls);
+    valis [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),[],Decls),CMap),..M]
+  }
 
   public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
   makeConsMap(Decls) => let{.
     collectConstructors:(cons[decl],map[string,cons[(string,tipe)]]) =>
       map[string,cons[(string,tipe)]].
     collectConstructors([],Map) => Map.
-    collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) where
-	TpNm ?= collectibleConsType(Tp) =>
-      (E ?= Map[TpNm] ??
-	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]]) ||
-	collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
-      ).
+    collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) => valof{
+      TpNm = tpName(funTypeRes(Tp));
+      if E ?= Map[TpNm] then
+	valis collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]])
+      else
+      valis collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
+    }
     collectConstructors([_,..Ds],Map) => collectConstructors(Ds,Map).
 
     indexConstructors:(map[string,cons[(string,tipe)]]) => map[string,consMap].
