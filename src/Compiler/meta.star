@@ -514,4 +514,8 @@ star.compiler.meta{
       valis Opts
     }
   }
+
+
+  public mainDefined:(cons[decl])=>boolean.
+  mainDefined(Decs) => {? .funDec(_,"_main",_,_) in Decs ?}.
 }
