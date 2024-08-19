@@ -1178,11 +1178,3 @@ void dumpStats() {
   dumpStackStats(debugOutChnnl);
   dumpGcStats(debugOutChnnl);
 }
-
-void dumpStack() {
-  if (controlC()) {
-    integer depth = displayDepth;
-    displayDepth = 0;
-    stackTrace(currentProcess, logFile, currentProcess->stk, depth, showArguments);
-  }
-}

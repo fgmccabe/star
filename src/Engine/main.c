@@ -113,8 +113,7 @@ int main(int argc, char **argv) {
   init_args(argv, argc, narg);    /* Initialize the argument list */
 
   setupSignals();
-  atexit(dumpStack);
-  
+
   switch (bootstrap(globalHeap, mainEntry, rootWd)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
