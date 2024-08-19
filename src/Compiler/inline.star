@@ -102,10 +102,10 @@ star.compiler.inline{
     | .cThnk(Lc,Fn,Tp) => .cThnk(Lc,simExp(Fn,Map,Depth),Tp)
     | .cThDrf(Lc,Th,Tp) => .cThDrf(Lc,simExp(Th,Map,Depth),Tp)
     | .cSeq(Lc,L,R) => .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth))
-    | .cCnj(_,_,_) => simCond(Exp,Map,Depth-1)
-    | .cDsj(_,_,_) => simCond(Exp,Map,Depth-1)
-    | .cNeg(_,_) => simCond(Exp,Map,Depth-1)
-    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth-1)
+    | .cCnj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
+    | .cDsj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
+    | .cNeg(_,_) => simCond(Exp,Map,Depth)
+    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth.>>.1)
     | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
@@ -293,7 +293,7 @@ star.compiler.inline{
     simplifyExp(.cCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp),Map,Depth).
   inlineOCall(Lc,.cClos(OLc,Nm,_,Fr,_),Args,Tp,Map,Depth) =>
     simplifyExp(.cCall(Lc,Nm,[Fr,..Args],Tp),Map,Depth).
-  inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args,Tp).
+  inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args//(A)=>simExp(A,Map,Depth),Tp).
   
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
