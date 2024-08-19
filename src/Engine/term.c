@@ -54,6 +54,11 @@ termPo nthArg(normalPo term, int64 ix) {
   check(ix >= 0 && ix < termArity(term), "out of bounds");
   return term->args[ix];
 }
+
+termPo lastArg(normalPo term){
+  return term->args[labelArity(term->lbl)-1];
+}
+
 //
 //termPo nthElem(normalPo term, integer ix) {
 //  return term->args[ix];
@@ -166,11 +171,16 @@ logical sameTerm(termPo t1, termPo t2) {
     normalPo n1 = C_NORMAL(t1);
     normalPo n2 = C_NORMAL(t2);
     labelPo lbl = n1->lbl;
-    for (integer ix = 0; ix < labelArity(lbl); ix++) {
-      if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
-        return False;
+    integer arity = labelArity(lbl);
+    if(arity==0)
+      return True;
+    else{
+      for (integer ix = 0; ix < arity-1; ix++) {
+	if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
+	  return False;
+      }
+      __attribute__((musttail)) return sameTerm(lastArg(n1),lastArg(n2));
     }
-    return True;
   }
 }
 
