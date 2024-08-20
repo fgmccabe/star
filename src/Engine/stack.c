@@ -254,7 +254,7 @@ void verifyStack(stackPo stk, heapPo H) {
           try = try->try;
         } else{
           check(sp==(ptrPo)fp,"expecting a frame here");
-          check(isMethod(fp->prog),"expecting a code pointer in the frame");
+          check(isMethod((termPo)fp->prog),"expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
           sp = (ptrPo) (fp + 1);
           fp = fp->fp;

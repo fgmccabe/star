@@ -11,6 +11,12 @@ add_subdirectory("UnitTests")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
+if (NOT DEFINED JIT_ARCH)
+    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+endif ()
+
+add_subdirectory(${JIT_ARCH})
+
 include_directories("../Headers" "Headers")
 
 set(UNITABLE.C ${CMAKE_CURRENT_BINARY_DIR}/unitable.c)
@@ -48,7 +54,8 @@ set(PUBLIC_HEADERS
         Headers/buddy.h
         Headers/base64.h
         Headers/multi.h
-        Headers/signals.h)
+        Headers/signals.h
+        Headers/fiber.h)
 
 set(HEADER_FILES
         Headers/arrayP.h
@@ -77,7 +84,8 @@ set(HEADER_FILES
         Headers/multiP.h
         Headers/match.h
         Headers/quick.h
-        Headers/byteBufferP.h)
+        Headers/byteBufferP.h
+        Headers/fiberP.h)
 
 set(SOURCE_FILES
         arrays.c
@@ -123,7 +131,8 @@ set(SOURCE_FILES
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        byteBuffer.c)
+        byteBuffer.c
+        Headers/fiberP.h)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
