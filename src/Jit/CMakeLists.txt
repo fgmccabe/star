@@ -26,4 +26,4 @@ set(HEADER_FILES
 set(SOURCE_FILES jit.c jitInfra.c asmInfra.c)
 
 add_library(jit STATIC ${SOURCE_FILES})
-target_link_libraries(jit ooio ${JIT_ARCH})
+target_link_libraries(jit ${JIT_ARCH})
