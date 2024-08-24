@@ -335,6 +335,20 @@ star.compiler.resolve{
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,TT,EE,Tp),St2)
   }
+  overloadTerm(.rst(Lc,E,Tp),Dict,St) => valof{
+    (EE,St1) = overloadTerm(E,Dict,St);
+    valis (.rst(Lc,EE,Tp),St1)
+  }
+  overloadTerm(.shyft(Lc,T,E,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (EE,St2) = overloadTerm(E,Dict,St1);
+    valis (.shyft(Lc,TT,EE,Tp),St2)
+  }
+  overloadTerm(.invoke(Lc,T,E,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (EE,St2) = overloadTerm(E,Dict,St1);
+    valis (.invoke(Lc,TT,EE,Tp),St2)
+  }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);
     valis (.vlof(Lc,Ac,Tp),St1)

@@ -294,6 +294,12 @@ star.compiler.dependencies{
     collectTermRefs(I,All,Rf).
   collectTermRefs(T,All,Rf) where (_,I) ?= isSuppress(T) =>
     collectTermRefs(I,All,Rf).
+  collectTermRefs(T,All,Rf) where (_,A,B) ?= isReset(T) =>
+    collectTermRefs(B,All,collectTermRefs(A,All,Rf)).
+  collectTermRefs(T,All,Rf) where (_,G,A,B) ?= isShift(T) =>
+    collectTermRefs(B,All,collectTermRefs(A,All,collectTermRefs(G,All,Rf))).
+  collectTermRefs(T,All,Rf) where (_,A,B) ?= isInvoke(T) =>
+    collectTermListRefs(B,All,collectTermRefs(A,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isRoundTerm(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) => 
