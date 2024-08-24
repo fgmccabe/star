@@ -318,6 +318,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Resume:
       case Retire:
       case Throw:
+      case Shift:
 //      case Cmp:
 //      case CLbl:
 //      case ICmp:
@@ -411,6 +412,7 @@ retCode findTgts(vectorPo blocks, methodPo mtd, insPo code, integer *pc, integer
       case Halt:
       case Retire:
       case Throw:
+//      case Shift:
         fallThrough = False;
         break;
       default: {
@@ -546,6 +548,7 @@ checkTgt(vectorPo blocks, methodPo mtd, insPo code, integer oPc, integer *pc, Op
         case Abort:
         case Retire:
         case Throw:
+//        case Shift:
         case Ret:
           break;
         default:
@@ -801,6 +804,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
       case TCall:
       case TOCall:
       case Throw:
+//      case Shift:
         seg->seg.stackDepth = 0;
         break;
       case Escape: {
@@ -976,6 +980,7 @@ retCode checkSegment(segPo seg, char *errorMsg, long msgLen) {
         case TOCall:
         case Retire:
         case Throw:
+//        case Shift:
           break;
         default:
           strMsg(errorMsg, msgLen, RED_ESC_ON "expecting a return at %d" RED_ESC_OFF, pc);

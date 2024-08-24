@@ -7,6 +7,7 @@ include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers
 add_subdirectory("EngineTests")
 
 set(HEADER_FILES
+	Headers/ideal.h
         ../Headers/version.h
         ../Headers/config.h
         ../Headers/instructions.h
@@ -20,6 +21,7 @@ set(HEADER_FILES
         Headers/bkpoint.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
+	Headers/continuation.h Headers/continuationP.h
         Headers/cons.h
         Headers/engine.h
         Headers/decode.h
@@ -59,14 +61,39 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-        decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c labels.c arith.c
-        strings.c cell.c iochnl.c thr.c bkpoint.c verify.c cons.c option.c ltype.c Headers/ltype.h stack.c
-        char.c bignum.c ideal.c Headers/ideal.h closure.c
-        thunk.c
-        future.c
-        vect.c
+	arith.c
+	bignum.c
+	bkpoint.c
+	cell.c
+        char.c
+	closure.c
+	code.c
+	cons.c
+	continuation.c
+        decode.c
+	debug.c
         either.c
+	eval.c
+	engine.c
+	engineOptions.c
+        future.c
+	gc.c
+	globals.c
+	heap.c
+	ideal.c
+	iochnl.c
+	labels.c	
+	load.c
+	ltype.c
+	main.c
+	option.c
+	stack.c
+        strings.c
+	term.c
+        thunk.c
+	thr.c
+	verify.c
+        vect.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
