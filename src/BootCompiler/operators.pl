@@ -76,7 +76,6 @@
   operator("-->", [infixOp(1248, 1249, 1248)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
-  operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1240, 1239)]).
@@ -88,7 +87,6 @@
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("trace", [infixOp(139, 140, 139), prefixOp(140, 139)]).
-  operator("reset", [infixOp(998, 999, 998), prefixOp(999, 998)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
@@ -118,7 +116,6 @@
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("shift", [infixOp(997, 998, 997), prefixOp(998, 997)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
@@ -248,7 +245,6 @@
   follows('=','<','=<').
   follows('=','=','==').
   follows('=','>','=>').
-  follows('=>','>','=>>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
@@ -339,7 +335,6 @@
   final('=<',"=<").	 /* less than or equal */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */
-  final('=>>',"=>>").	 /* continuation arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
@@ -399,7 +394,6 @@
   keyword(";").
   keyword("-->").
   keyword(".=").
-  keyword("=>>").
   keyword("=").
   keyword("|:").
   keyword("@").
@@ -407,7 +401,6 @@
   keyword("|>").
   keyword("in").
   keyword("break").
-  keyword("reset").
   keyword("~~").
   keyword("!!").
   keyword("/.").
@@ -431,7 +424,6 @@
   keyword(":?").
   keyword("implementation").
   keyword("<|").
-  keyword("shift").
   keyword("<~").
   keyword("{").
   keyword("type").

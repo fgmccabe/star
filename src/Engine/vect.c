@@ -170,9 +170,7 @@ static retCode dispVct(ioPo out, termPo t, integer precision, integer depth, log
 }
 
 retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  assert(isVector(t));
-
-  if (depth > 0) {
+  if (depth > 1 && isVector(t)) {
     char *sep = "";
     retCode ret = outChar(out, '[');
     if (ret == Ok)
@@ -181,7 +179,7 @@ retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical a
       ret = outStr(out, "]");
     return ret;
   } else
-    return outMsg(out, "...");
+    return outMsg(out, "!%,*T!", displayDepth);
 }
 
 static void splitKey(integer key, integer dp, integer *fst, integer *rest) {

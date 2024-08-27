@@ -487,14 +487,6 @@ retCode jit_Throw(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo j
   return Error;
 }
 
-retCode jit_Reset(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Shift(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
 retCode jit_dBug(insPo code, vOperand a1, vOperand a2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

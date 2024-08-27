@@ -262,10 +262,6 @@
 @tab non-associative infix
 @tab 900
 @tab pattern match
-@item @code{=>>}
-@tab right associative infix
-@tab 950
-@tab continuation arrow
 @item @code{=}
 @tab non-associative infix
 @tab 975
@@ -310,6 +306,10 @@
 @tab non-associative prefix
 @tab 10
 @tab break out of an action (loop or block)
+@item @code{open}
+@tab non-associative prefix
+@tab 900
+@tab import object
 @item @code{trace}
 @tab non-associative infix
 @tab 140
@@ -318,14 +318,6 @@
 @tab non-associative prefix
 @tab 140
 @tab display tracing message
-@item @code{reset}
-@tab non-associative infix
-@tab 999
-@tab reset context
-@item @code{reset}
-@tab non-associative prefix
-@tab 999
-@tab reset context
 @item @code{~~}
 @tab right associative infix
 @tab 1240
@@ -442,14 +434,6 @@
 @tab non-associative prefix
 @tab 1260
 @tab contract implementation
-@item @code{shift}
-@tab non-associative infix
-@tab 998
-@tab capture continuation
-@item @code{shift}
-@tab non-associative prefix
-@tab 998
-@tab capture continuation
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -537,7 +521,7 @@
 @tab @code{if}
 @tab @code{in}
 @item @code{break}
-@tab @code{reset}
+@tab @code{open}
 @tab @code{public}
 @item @code{ref}
 @tab @code{where}
@@ -548,8 +532,7 @@
 @item @code{while}
 @tab @code{private}
 @tab @code{implementation}
-@item @code{shift}
-@tab @code{type}
+@item @code{type}
 @tab @code{else}
 
 @end multitable
@@ -597,44 +580,43 @@
   @tab @code{-->}
   @tab @code{<}
   @tab @code{.=}
-  @tab @code{=>>}
-  @item @code{=}
-  @tab @code{|:}
+  @tab @code{=}
+  @item @code{|:}
   @tab @code{++}
   @tab @code{>}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @item @code{//}
-  @tab @code{.~.}
+  @tab @code{//}
+  @item @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @item @code{=>}
-  @tab @code{<=>}
+  @tab @code{=>}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float

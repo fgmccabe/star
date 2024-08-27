@@ -50,8 +50,6 @@ void fiberInit(objectPo o, va_list *args) {
   integer size = va_arg(*args, integer);
   f->fiber.size = size = (1 << lg2Ceiling(size)) - 1; // Adjust stack size to be just under a power of two
   f->fiber.memory = allocateBuddy(stackRegion, size);
-
-  initJumpBuff(f,runner);
 }
 
 void fiberDestroy(objectPo o) {

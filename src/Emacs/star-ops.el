@@ -35,6 +35,7 @@
   ("#" ( (prefix 1750 1749) (infix 759 760 759)))
   ("??" ( (infix 919 920 920)))
   ("%" ( (infix 700 700 699)))
+  ("<-" ( (infix 904 905 904)))
   (".>>>." ( (infix 600 600 599)))
   ("\\+" ( (infix 700 700 699)))
   ("*" ( (postfix 699 700) (infix 700 700 699)))
@@ -58,7 +59,6 @@
   ("-->" ( (infix 1248 1249 1248)))
   ("<" ( (infix 899 900 899)))
   (".=" ( (infix 899 900 899)))
-  ("=>>" ( (infix 949 950 950)))
   ("=" ( (infix 974 975 974)))
   ("|:" ( (infix 1234 1235 1234)))
   ("show" ( (prefix 1240 1239)))
@@ -69,8 +69,8 @@
   ("|=" ( (infix 998 999 998)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
+  ("open" ( (prefix 900 899)))
   ("trace" ( (infix 139 140 139) (prefix 140 139)))
-  ("reset" ( (infix 998 999 998) (prefix 999 998)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("!!" ( (postfix 99 100)))
@@ -87,6 +87,7 @@
   ("\\" ( (infix 700 700 699)))
   ("=>" ( (infix 949 950 950)))
   ("<=>" ( (infix 949 950 949)))
+  ("generator" ( (prefix 300 299)))
   ("valof" ( (prefix 300 299)))
   ("yield" ( (prefix 300 299)))
   ("while" ( (prefix 1175 1174)))
@@ -100,7 +101,6 @@
   (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
-  ("shift" ( (infix 997 998 997) (prefix 998 997)))
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
@@ -153,7 +153,7 @@
 "if"
 "in"
 "break"
-"reset"
+"open"
 "public"
 "ref"
 "where"
@@ -164,7 +164,6 @@
 "while"
 "private"
 "implementation"
-"shift"
 "type"
 "else"
 )
