@@ -115,7 +115,7 @@ star.compiler.gencode{
       valis compExp(Th,Lc,.notLast,thunkRefCont(Lb,pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
     }
     | .cSeq(Lc,L,R) =>
-      compExp(L,Lc,.notLast,resetCont(Stk,expCont(R,Lc,TM,Cont)),Ctx,Stk)
+      compExp(L,Lc,.notLast,resetStkCont(Stk,expCont(R,Lc,TM,Cont)),Ctx,Stk)
     | .cCnd(Lc,G,L,R) => valof{
       CC = splitCont(Lc,Ctx,Cont);
       valis compCond(G,Lc,TM,expCont(L,Lc,TM,CC),ctxCont(Ctx,expCont(R,Lc,TM,CC)),Ctx,Stk)
@@ -145,6 +145,9 @@ star.compiler.gencode{
 
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++HCde)
     }
+    | .cReset(Lc,E,Tp) => compExp(E,Lc,.notLast,resetCont(pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
+    | .cInvoke(Lc,K,E,Tp) => compExp(K,Lc,.notLast,expCont(E,Lc,.notLast,invokeCont(TM,pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
+    | .cShift(Lc,T,E,Tp) => compExp(T,Lc,.notLast,expCont(E,Lc,.notLast,shiftCont(pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
     | .cRaise(Lc,T,E,_) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,raiseCont),Ctx,Stk)
     | .cValof(Lc,A,Tp) =>
       compAction(A,Lc,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
@@ -204,9 +207,9 @@ star.compiler.gencode{
   compAction:(aAction,option[locn],tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[assemOp]).
   compAction(A,OLc,TM,ACont,Cont,Ctx,Stk) => case A in {
     | .aNop(_Lc) => ACont.C(Ctx,Stk,[])
-    | .aSeq(Lc,L,R) => compAction(L,Lc,.notLast,resetCont(Stk,actionCont(R,Lc,TM,ACont,Cont)),Cont,Ctx,Stk)
+    | .aSeq(Lc,L,R) => compAction(L,Lc,.notLast,resetStkCont(Stk,actionCont(R,Lc,TM,ACont,Cont)),Cont,Ctx,Stk)
     | .aLbld(Lc,Lb,LbldA) => valof{
-      Ctxl = (Ctx.brks=Ctx.brks[Lb->ctxCont(Ctx,resetCont(Stk,ACont))]);
+      Ctxl = (Ctx.brks=Ctx.brks[Lb->ctxCont(Ctx,resetStkCont(Stk,ACont))]);
       valis compAction(LbldA,Lc,TM,ACont,Cont,Ctxl,Stk)
     }
     | .aBreak(Lc,Lb) => valof{
@@ -220,7 +223,7 @@ star.compiler.gencode{
       }
     }
     | .aValis(Lc,E) => compExp(E,Lc,TM,Cont,Ctx,Stk)
-    | .aDo(Lc,E) => compExp(E,Lc,TM,resetCont(Stk,ACont),Ctx,Stk)
+    | .aDo(Lc,E) => compExp(E,Lc,TM,resetStkCont(Stk,ACont),Ctx,Stk)
     | .aDefn(Lc,P,E) => compExp(E,Lc,.notLast,ptnCont(P,Lc,ACont,abortCont(Lc,"define error")),Ctx,Stk)
     | .aAsgn(Lc,P,E) => compExp(E,Lc,.notLast,expCont(P,Lc,.notLast,asgnCont(ACont,Ctx,Stk)),Ctx,Stk)
     | .aSetNth(Lc,T,Ix,E) => compExp(T,Lc,.notLast,expCont(E,Lc,.notLast,setNthCont(Ix,ACont,Stk)),Ctx,Stk)
@@ -229,7 +232,7 @@ star.compiler.gencode{
       AC = splitCont(Lc,Ctx,ACont);
       CC = splitCont(Lc,Ctx,Cont);
       valis compCond(G,Lc,.notLast,actionCont(L,Lc,TM,AC,CC),
-	resetCont(Stk,ctxCont(Ctx,actionCont(R,Lc,TM,AC,CC))),Ctx,Stk)
+	resetStkCont(Stk,ctxCont(Ctx,actionCont(R,Lc,TM,AC,CC))),Ctx,Stk)
     }
     | .aWhile(Lc,G,B) => valof{
       Lp = defineLbl("Lp",Ctx);
@@ -480,7 +483,7 @@ star.compiler.gencode{
       Flb = defineLbl("U",Ctx);
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
       
-      (Stk2,SCde) = compPtnArgs(Args,Lc,Succ,resetCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
+      (Stk2,SCde) = compPtnArgs(Args,Lc,Succ,resetStkCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
 
       if traceCodegen! then
 	showMsg("Succ stack $(Stk2), Fail stack $(Stk1)");
@@ -609,6 +612,21 @@ star.compiler.gencode{
   raiseCont:Cont.
   raiseCont = cont{
     C(_,_,Cde) => (.none,Cde++[.iThrow])
+  }
+
+  resetCont:(stack,Cont)=>Cont.
+  resetCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iReset,frameIns(Stk)]).
+  }
+  
+  shiftCont:(stack,Cont)=>Cont.
+  shiftCont(Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iShift,frameIns(Stk)])
+  }
+
+  invokeCont:(tailMode,stack,Cont)=>Cont.
+  invokeCont(_,Stk,Cont) => cont{
+    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iInvoke,frameIns(Stk)])
   }
 
   stoCont:(string,ltipe,stack,Cont) => Cont.
@@ -827,8 +845,8 @@ star.compiler.gencode{
     }.
   resetStack(_,.none) => (.none,[]).
 
-  resetCont:(stack,Cont) => Cont.
-  resetCont(Stk,Cont) => cont{
+  resetStkCont:(stack,Cont) => Cont.
+  resetStkCont(Stk,Cont) => cont{
     C(Ctx,XStk,Cde) => valof{
       (NStk,SCde) = resetStack([|Stk|],XStk);
       valis Cont.C(Ctx,NStk,Cde++SCde)

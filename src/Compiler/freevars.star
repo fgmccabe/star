@@ -49,7 +49,10 @@ star.compiler.freevars{
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
     | .trycatch(_,E,T,H,_) where Q1 .= dropVars(T,Q) =>
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
-	  foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
+	foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
+    | .rst(_,E,_) => freeVarsInExp(E,Q,Fv)
+    | .shyft(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
+    | .invoke(_,K,E,_) => freeVarsInExp(K,Q,freeVarsInExp(E,Q,Fv))
     | .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
     | .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
