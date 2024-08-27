@@ -40,10 +40,13 @@ set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
-add_custom_command(OUTPUT operators DEPENDS ops
+add_custom_target(texi.operators DEPENDS ops
         COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate  ${OPERATORS_TEXI}
-        COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate  ${OPERATORS_EL}
         )
+
+add_custom_target(el.operators DEPENDS ops
+        COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate  ${OPERATORS_EL}
+)
 
 add_custom_target(pl.operators DEPENDS ops
         COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate ${OPERATORS_PL})
@@ -72,7 +75,7 @@ add_custom_target(pl.intrinsics DEPENDS intrinsic
         )
 add_custom_target(pl.memnonics DEPENDS plmnem
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
-        COMMENT "Creating star assembler in ${ASM_PL}"
+        COMMENT "Creating boot assembler in ${ASM_PL}"
         )
 
 add_custom_target(star.memnonics DEPENDS starmnem
@@ -80,5 +83,7 @@ add_custom_target(star.memnonics DEPENDS starmnem
         COMMENT "Creating star assembler in ${ASM_ST}"
         )
 
-add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics pl.escapes pl.operators pl.intrinsics)
+add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics
+        pl.operators pl.escapes pl.intrinsics pl.memnonics
+        el.operators texi.operators)
 

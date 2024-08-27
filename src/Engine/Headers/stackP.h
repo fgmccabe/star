@@ -37,8 +37,9 @@ typedef struct StackStructure {
   tryFramePo try;
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
-  StackState state;              // is the stack attached, root, detached or moribund
+  StackState state;             // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
+  integer counter;              // Used to verify continuations
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))

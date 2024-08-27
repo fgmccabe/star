@@ -17,6 +17,7 @@
 #include "debugP.h"
 #include "buddyP.h"
 #include "labelsP.h"
+#include "continuationP.h"
 #include "timers.h"
 #include "engineP.h"
 
@@ -91,16 +92,27 @@ static retCode debugOption(char *option, logical enable) {
               return -1;
 #endif
 
-      case 'm':    /* trace memory activity  */
+    case 'm':{    /* trace memory activity  */
 #ifdef TRACEMEM
         traceMemory = True;
         logMsg(logFile, "GC tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
-              return -1;
+	return -1;
 #endif
+    }
 
+    case 'O':    /* trace continuation operations  */
+#ifdef TRACESTACK
+        traceContinuations = True;
+        logMsg(logFile, "Continuation tracing enabled\n");
+        continue;
+#else
+        logMsg(logFile,"Continuation tracing not enabled");
+        return -1;
+#endif
+      
       case 'H':    /* validate heap after allocations  */
 #ifdef TRACEMEM
         validateMemory = True;

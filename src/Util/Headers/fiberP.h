@@ -31,6 +31,8 @@ typedef struct fiber_class_ {
 
 extern FiberClassRec FiberClass;
 
+void initJumpBuff(fiberPo f,fiberFun fn);
+
 #ifdef VERIFY_OBJECT
 #define O_FIBER(c) ((fiberPo)(checkCast((c),fiberClass)))
 #else
