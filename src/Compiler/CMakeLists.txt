@@ -25,7 +25,7 @@ add_custom_target(compiler
   COMMAND ${STAR} "-r" "${TEMP_REPO}" "-h2g" "star.compiler" "-R" "${REPO_DIR}/" "-W" "${CMAKE_CURRENT_SOURCE_DIR}/" "star.compiler"
   )
 
-#add_dependencies(compiler star.memnonics star.operators star.escapes star.intrinsics)
+#add_dependencies(compiler star.operators star.escapes star.intrinsics)
 
 set(STAR ${CMAKE_BINARY_DIR}/src/Engine/star)
 set(INSTALLED_STAR ${CMAKE_INSTALL_PREFIX}/bin/star)

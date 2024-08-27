@@ -183,6 +183,10 @@ retCode jit_TOCall(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCom
   return Error;
 }
 
+retCode jit_Invoke(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
 retCode jit_Locals(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
@@ -424,17 +428,6 @@ retCode jit_Throw(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitComp
   return Error;
 }
 
-retCode jit_Reset(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Shift(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_Invoke(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
 retCode jit_dBug(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

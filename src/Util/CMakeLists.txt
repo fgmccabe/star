@@ -94,7 +94,6 @@ set(SOURCE_FILES
         class.c
         cmdOptions.c
         editline.c
-        fiber.c
         file.c
         formatted.c
         formin.c

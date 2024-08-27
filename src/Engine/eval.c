@@ -12,7 +12,6 @@
 #include "char.h"
 #include "engineP.h"
 #include "debugP.h"
-#include "continuationP.h"
 #include <math.h>
 #include "cellP.h"
 #include "closureP.h"
@@ -535,104 +534,6 @@ retCode run(processPo P) {
         push(val);
         continue;
       }
-
-      case Reset: {  // Start a new delimited computation
-        // The top of a stack should be a unary lambda
-        termPo lambda = pop();
-        if (!isClosure(lambda)) {
-          logMsg(logFile, "expecting a closure, not %T", lambda);
-          bail();
-        }
-        saveRegisters();
-        stackPo child = splitStack(P, lambda);
-
-        P->stk = attachStack(P->stk, child);
-        verifyStack(P->stk, P->heap);
-        restoreRegisters();
-        continue;
-      }
-
-      case Shift: { // Suspend current computation, invoke shift function with new continuation.
-        termPo cl = pop();
-        stackPo stack = C_STACK(pop());
-
-        if (stackState(stack) != active) {
-          logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
-          bail();
-        } else {
-          saveRegisters();
-          continuationPo cont = allocateContinuation(H, stack);
-          P->stk = detachStack(STK, stack);
-          restoreRegisters();
-
-          push((termPo) cont);
-
-          if (!isClosure(cl)) {
-            logMsg(logFile, "Calling non-closure %T", cl);
-            bail();
-          }
-          closurePo obj = C_CLOSURE(cl);
-          labelPo lb = closureLabel(obj);
-
-          if (labelArity(lb) != 2) {
-            logMsg(logFile, "closure %T does not have correct arity %d", obj, 2);
-            bail();
-          }
-
-          methodPo mtd = labelCode(lb);       /* set up for object call */
-
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", lb);
-            bail();
-          }
-
-          push(closureFree(obj));                     // Put the free term back on the stack
-
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
-
-#ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
-#endif
-          }
-
-          assert(isPcOfMtd(FP->prog, PC));
-          FP->pc = PC;
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment number of times program called
-          continue;
-        }
-      }
-
-      case Invoke:{                        // Invoke a continuation on current top of stack
-        termPo event = pop();
-        termPo k = pop();
-        if(!isContinuation(k)){
-          logMsg(logFile, "tried to invoke non-continuation %T", k);
-          bail();
-        }
-        else{
-          continuationPo cont = C_CONTINUATION(k);
-          if(continIsValid(cont)){
-            stackPo stack = contStack(cont);
-            invalidateCont(cont);
-
-            saveRegisters();
-            P->stk = attachStack(STK, stack);
-            restoreRegisters();
-            push(event);
-            continue;
-          } else{
-            logMsg(logFile, "continuation %T not in valid state", k);
-            bail();
-          }
-        }
-      }
-
       case Try: {
         insPo exit = collectOff(PC);
         assert(validPC(FP->prog, exit));
@@ -655,14 +556,14 @@ retCode run(processPo P) {
         if (traceStack)
           logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackSize(P));
 #endif
-        check(STK->try->tryIndex == tryIndex, "misaligned try block");
+        check(STK->try->tryIndex==tryIndex,"misaligned try block");
         tryFramePo try = STK->try;
-        check(try->fp == FP, "misaligned try block");
+        check(try->fp==FP,"misaligned try block");
         STK->try = try->try;
 
-        ptrPo tgt = (ptrPo) (try + 1);
-        ptrPo src = (ptrPo) try;
-        while (src > SP) {
+        ptrPo tgt = (ptrPo)(try+1);
+        ptrPo src = (ptrPo)try;
+        while(src>SP){
           *--tgt = *--src;
         }
         SP = STK->sp = tgt;
@@ -691,711 +592,711 @@ retCode run(processPo P) {
             continue;
           }
         }
-      }
 
-      case TEq: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
+        case TEq: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
 
-        termPo Rs = (C_STACK(Lhs) == C_STACK(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
+          termPo Rs = (C_STACK(Lhs) == C_STACK(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case LdV: {
+          push(voidEnum);     /* load void */
+          continue;
+        }
+
+        case LdC:     /* load literal value from pool */
+          push(nthElem(LITS, collectI32(PC)));
         continue;
-      }
-      case LdV: {
-        push(voidEnum);     /* load void */
-        continue;
-      }
 
-      case LdC:     /* load literal value from pool */
-        push(nthElem(LITS, collectI32(PC)));
-        continue;
+        case LdA: {
+          int32 offset = collectI32(PC);
+          push(arg(offset));    /* load argument */
+          continue;
+        }
 
-      case LdA: {
-        int32 offset = collectI32(PC);
-        push(arg(offset));    /* load argument */
-        continue;
-      }
+        case LdL: {
+          int32 offset = collectI32(PC);
+          push(local(offset));      /* load local */
+          continue;
+        }
 
-      case LdL: {
-        int32 offset = collectI32(PC);
-        push(local(offset));      /* load local */
-        continue;
-      }
+        case LdG: {
+          int32 glbNo = collectI32(PC);
 
-      case LdG: {
-        int32 glbNo = collectI32(PC);
+          globalPo glb = findGlobalVar(glbNo);
 
-        globalPo glb = findGlobalVar(glbNo);
+          if (glbIsSet(glb)) {
+            termPo vr = getGlobal(glb);
 
-        if (glbIsSet(glb)) {
-          termPo vr = getGlobal(glb);
+            check(vr != Null, "undefined global");
+            check(stackRoom(1), "unexpected stack overflow");
 
-          check(vr != Null, "undefined global");
-          check(stackRoom(1), "unexpected stack overflow");
+            push(vr);     /* load a global variable */
+          } else {
+            labelPo glbLbl = findLbl(globalVarName(glb), 0);
+            if (glbLbl == Null) {
+              logMsg(logFile, "no definition for global %s", globalVarName(glb));
+              bail();
+            }
+            methodPo glbThnk = labelCode(glbLbl);       /* set up for object call */
 
-          push(vr);     /* load a global variable */
-        } else {
-          labelPo glbLbl = findLbl(globalVarName(glb), 0);
-          if (glbLbl == Null) {
-            logMsg(logFile, "no definition for global %s", globalVarName(glb));
-            bail();
-          }
-          methodPo glbThnk = labelCode(glbLbl);       /* set up for object call */
+            if (glbThnk == Null) {
+              logMsg(logFile, "no definition for global %s", globalVarName(glb));
+              bail();
+            }
 
-          if (glbThnk == Null) {
-            logMsg(logFile, "no definition for global %s", globalVarName(glb));
-            bail();
-          }
-
-          if (!stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &glbThnk);
-            stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
-            gcReleaseRoot(H, root);
-            assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
+            if (!stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE)) {
+              int root = gcAddRoot(H, (ptrPo) &glbThnk);
+              stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
+              gcReleaseRoot(H, root);
+              assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
 
 #ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
+              if (traceStack)
+                verifyStack(STK, H);
 #endif
+            }
+            FP->pc = PC;
+            pushFrme(glbThnk);
+
+            LITS = codeLits(glbThnk);
+            H = globalHeap;
           }
-          FP->pc = PC;
-          pushFrme(glbThnk);
-
-          LITS = codeLits(glbThnk);
-          H = globalHeap;
+          continue;
         }
-        continue;
-      }
 
-      case CLbl: {
-        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
-        termPo t = top();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        case CLbl: {
+          labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
+          termPo t = top();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
 
-        if (isNormalPo(t)) {
-          normalPo cl = C_NORMAL(t);
-          if (sameLabel(l, termLbl(cl)))
+          if (isNormalPo(t)) {
+            normalPo cl = C_NORMAL(t);
+            if (sameLabel(l, termLbl(cl)))
+              continue;
+          }
+          PC = exit;
+          continue;
+        }
+
+        case Nth: {
+          int32 ix = collectI32(PC);  /* which element */
+          termPo t = pop();
+          check(isNormalPo(t), "tried to access non term");
+
+          normalPo cl = C_NORMAL(t);  /* which term? */
+          push(nthArg(cl, ix));
+
+          continue;
+        }
+
+        case StL: {
+          int32 offset = collectI32(PC);
+          ptrPo dest = &local(offset);
+          *dest = pop();
+          continue;
+        }
+
+        case StV: {
+          int32 offset = collectI32(PC);
+          ptrPo dest = &local(offset);
+          *dest = voidEnum;
+          continue;
+        }
+        case TL: {
+          int32 offset = collectI32(PC);
+          ptrPo dest = &local(offset);
+          *dest = top();
+          continue;
+        }
+
+        case StA: {
+          int32 offset = collectI32(PC);
+          ptrPo dest = &arg(offset);
+          *dest = pop();     /* store as argument */
+          continue;
+        }
+
+        case StNth: {      /* store into a closure */
+          int32 ix = collectI32(PC);
+          termPo tos = pop();
+          normalPo cl = C_NORMAL(pop());
+          cl->args[ix] = tos;
+          continue;
+        }
+
+        case StG: {
+          int32 glbNo = collectI32(PC);
+          termPo val = pop();
+          globalPo glb = findGlobalVar(glbNo);
+          setGlobalVar(glb, val);      // Update the global variable
+          continue;
+        }
+
+        case TG: {
+          int32 glbNo = collectI32(PC);
+          termPo val = top();
+          globalPo glb = findGlobalVar(glbNo);
+          setGlobalVar(glb, val);      // Update the global variable
+          continue;
+        }
+
+        case Thunk: {  // Create a new thunk
+          closurePo thLam = C_CLOSURE(pop());
+
+          if (reserveSpace(H, ThunkCellCount) != Ok) {
+            saveRegisters();
+            retCode ret = gcCollect(H, ThunkCellCount);
+            if (ret != Ok)
+              return ret;
+            restoreRegisters();
+          }
+          thunkPo thnk = thunkVar(H, thLam);
+          push(thnk);       /* put the structure back on the stack */
+          continue;
+        }
+
+        case LdTh: {
+          thunkPo thVr = C_THUNK(pop());
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
+
+          if (thunkIsSet(thVr)) {
+            termPo vr = thunkVal(thVr);
+
+            check(vr != Null, "undefined thunk value");
+
+            push(vr);     /* load thunk variable */
+            PC = exit;    // Jump past call
+          } else {
+            closurePo thLambda = thunkLam(thVr);
+
+            labelPo lb = closureLabel(thLambda);
+
+            if (lb == Null) {
+              logMsg(logFile, "label %T not defined", thLambda);
+              bail();
+            } else if (labelArity(lb) != 1) {
+              logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 1);
+              bail();
+            }
+
+            methodPo mtd = labelCode(lb);       /* set up for object call */
+
+            if (mtd == Null) {
+              logMsg(logFile, "no definition for %T", lb);
+              bail();
+            }
+            push(thVr);                                         // Keep the thunk var
+            push(closureFree(thLambda));                     // Put the free term back on the stack
+
+            if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+              int root = gcAddRoot(H, (ptrPo) &mtd);
+              stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+              gcReleaseRoot(H, root);
+
+#ifdef TRACESTACK
+              if (traceStack)
+                verifyStack(STK, H);
+#endif
+            }
+
+            assert(isPcOfMtd(FP->prog, PC));
+            FP->pc = PC;
+            pushFrme(mtd);
+            LITS = codeLits(mtd);
+            incEntryCount(mtd);              // Increment program count
+          }
+          continue;
+        }
+
+        case StTh: {                           // Store into thunk
+          thunkPo thnk = C_THUNK(pop());
+          termPo val = pop();
+
+          if (thunkIsSet(thnk)) {
+            logMsg(logFile, "thunk %T already set", thnk);
+            bail();
+          }
+
+          setThunk(thnk, val);      // Update the thunk variable
+          continue;
+        }
+
+        case TTh: {                        // Set thunk and carry on
+          thunkPo thnk = C_THUNK(pop());
+          termPo val = top();
+
+          if (thunkIsSet(thnk)) {
+            logMsg(logFile, "thunk %T already set", thnk);
+            bail();
+          }
+
+          setThunk(thnk, val);      // Update the thunk variable
+          continue;
+        }
+
+        case Cell: {
+          checkAlloc(CellCellCount);
+          cellPo cell = newCell(H, pop());
+          push(cell);
+          continue;
+        }
+
+        case Get: {
+          cellPo cell = C_CELL(pop());
+          push(getCell(cell));
+          continue;
+        }
+
+        case Assign: {
+          cellPo cell = C_CELL(pop());
+          termPo vl = pop();
+          setCell(cell, vl);
+          continue;
+        }
+
+        case IAdd: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = makeInteger(Lhs + Rhs);
+          push(Rs);
+          continue;
+        }
+
+        case ISub: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = makeInteger(Lhs - Rhs);
+          push(Rs);
+          continue;
+        }
+        case IMul: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = makeInteger(Lhs * Rhs);
+          push(Rs);
+          continue;
+        }
+        case IDiv: {
+          termPo tryIndex = pop();
+
+          assert(isInteger(tryIndex));
+
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+          if (Rhs == 0) {
+            push(divZero);
+            push(tryIndex);
+            goto Exception;
+          } else {
+            termPo Rs = makeInteger(Lhs / Rhs);
+            push(Rs);
             continue;
+          }
         }
-        PC = exit;
-        continue;
-      }
+        case IMod: {
+          termPo tryIndex = pop();
 
-      case Nth: {
-        int32 ix = collectI32(PC);  /* which element */
-        termPo t = pop();
-        check(isNormalPo(t), "tried to access non term");
+          assert(isInteger(tryIndex));
 
-        normalPo cl = C_NORMAL(t);  /* which term? */
-        push(nthArg(cl, ix));
+          integer denom = integerVal(pop());
+          integer numerator = integerVal(pop());
 
-        continue;
-      }
+          if (numerator == 0) {
+            push(divZero);
+            push(tryIndex);
+            goto Exception;
+          } else {
+            integer reslt = denom % numerator;
 
-      case StL: {
-        int32 offset = collectI32(PC);
-        ptrPo dest = &local(offset);
-        *dest = pop();
-        continue;
-      }
+            termPo Rs = (termPo) makeInteger(reslt);
 
-      case StV: {
-        int32 offset = collectI32(PC);
-        ptrPo dest = &local(offset);
-        *dest = voidEnum;
-        continue;
-      }
-      case TL: {
-        int32 offset = collectI32(PC);
-        ptrPo dest = &local(offset);
-        *dest = top();
-        continue;
-      }
-
-      case StA: {
-        int32 offset = collectI32(PC);
-        ptrPo dest = &arg(offset);
-        *dest = pop();     /* store as argument */
-        continue;
-      }
-
-      case StNth: {      /* store into a closure */
-        int32 ix = collectI32(PC);
-        termPo tos = pop();
-        normalPo cl = C_NORMAL(pop());
-        cl->args[ix] = tos;
-        continue;
-      }
-
-      case StG: {
-        int32 glbNo = collectI32(PC);
-        termPo val = pop();
-        globalPo glb = findGlobalVar(glbNo);
-        setGlobalVar(glb, val);      // Update the global variable
-        continue;
-      }
-
-      case TG: {
-        int32 glbNo = collectI32(PC);
-        termPo val = top();
-        globalPo glb = findGlobalVar(glbNo);
-        setGlobalVar(glb, val);      // Update the global variable
-        continue;
-      }
-
-      case Thunk: {  // Create a new thunk
-        closurePo thLam = C_CLOSURE(pop());
-
-        if (reserveSpace(H, ThunkCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, ThunkCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
+            push(Rs);
+            continue;
+          }
         }
-        thunkPo thnk = thunkVar(H, thLam);
-        push(thnk);       /* put the structure back on the stack */
-        continue;
-      }
+        case IAbs: {
+          termPo Trm = pop();
+          integer Arg = integerVal(Trm);
 
-      case LdTh: {
-        thunkPo thVr = C_THUNK(pop());
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+          termPo Rs = (Arg < 0 ? makeInteger(-Arg) : Trm);
+          push(Rs);
+          continue;
+        }
+        case IEq: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
 
-        if (thunkIsSet(thVr)) {
-          termPo vr = thunkVal(thVr);
+          termPo Rs = (integerVal(Lhs) == integerVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case ILt: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
 
-          check(vr != Null, "undefined thunk value");
+          termPo Rs = (integerVal(Lhs) < integerVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case IGe: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
 
-          push(vr);     /* load thunk variable */
-          PC = exit;    // Jump past call
-        } else {
-          closurePo thLambda = thunkLam(thVr);
+          termPo Rs = (integerVal(Lhs) >= integerVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case ICmp: {
+          termPo i = pop();
+          termPo j = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
 
-          labelPo lb = closureLabel(thLambda);
+          if (integerVal(i) != integerVal(j))
+            PC = exit;
+          continue;
+        }
+        case CEq: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
 
-          if (lb == Null) {
-            logMsg(logFile, "label %T not defined", thLambda);
-            bail();
-          } else if (labelArity(lb) != 1) {
-            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 1);
+          termPo Rs = (charVal(Lhs) == charVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case CLt: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
+
+          termPo Rs = (charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case CGe: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
+
+          termPo Rs = (charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case CCmp: {
+          termPo i = pop();
+          termPo j = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
+
+          if (charVal(i) != charVal(j))
+            PC = exit;
+          continue;
+        }
+        case BAnd: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs & (uinteger) Rhs));
+          push(Rs);
+          continue;
+        }
+        case BOr: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = makeInteger((integer) ((uinteger) Lhs | (uinteger) Rhs));
+          push(Rs);
+          continue;
+        }
+        case BXor: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
+          push(Rs);
+          continue;
+        }
+        case BNot: {
+          integer Lhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((integer) (~(uinteger) Lhs));
+          push(Rs);
+          continue;
+        }
+        case BLsl: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs << (uinteger) Rhs));
+          push(Rs);
+          continue;
+        }
+        case BLsr: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((integer) (((uinteger) Lhs) >> ((uinteger) Rhs)));
+          push(Rs);
+          continue;
+        }
+        case BAsr: {
+          integer Lhs = integerVal(pop());
+          integer Rhs = integerVal(pop());
+
+          termPo Rs = (termPo) makeInteger((Lhs) >> Rhs);
+          push(Rs);
+          continue;
+        }
+        case FAdd: {
+          double Lhs = floatVal(pop());
+          double Rhs = floatVal(pop());
+
+          termPo Rs = makeFloat(Lhs + Rhs);
+          push(Rs);
+          continue;
+        }
+        case FSub: {
+          double Lhs = floatVal(pop());
+          double Rhs = floatVal(pop());
+
+          termPo Rs = makeFloat(Lhs - Rhs);
+          push(Rs);
+          continue;
+        }
+        case FMul: {
+          double Lhs = floatVal(pop());
+          double Rhs = floatVal(pop());
+
+          termPo Rs = makeFloat(Lhs * Rhs);
+          push(Rs);
+          continue;
+        }
+        case FDiv: {
+          termPo tryIndex = pop();
+
+          assert(isInteger(tryIndex));
+
+          double Lhs = floatVal(pop());
+          double Rhs = floatVal(pop());
+
+          if (Rhs == 0.0) {
+            push(divZero);
+            push(tryIndex);
+            goto Exception;
+          } else {
+            termPo Rs = makeFloat(Lhs / Rhs);
+            push(Rs);
+            continue;
+          }
+        }
+        case FMod: {
+          termPo tryIndex = pop();
+          assert(isInteger(tryIndex));
+
+          double Lhs = floatVal(pop());
+          double Rhs = floatVal(pop());
+          if (Rhs == 0.0) {
+            push(divZero);
+            push(tryIndex);
+            goto Exception;
+          } else {
+            termPo Rs = makeFloat(fmod(Lhs, Rhs));
+            push(Rs);
+            continue;
+          }
+        }
+        case FAbs: {
+          double Lhs = floatVal(pop());
+
+          termPo Rs = makeFloat(fabs(Lhs));
+          push(Rs);
+          continue;
+        }
+        case FEq: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
+
+          termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Rhs) / 1.0e20) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case FLt: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
+
+          termPo Rs = (floatVal(Lhs) < floatVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case FGe: {
+          termPo Lhs = pop();
+          termPo Rhs = pop();
+
+          termPo Rs = (floatVal(Lhs) >= floatVal(Rhs) ? trueEnum : falseEnum);
+          push(Rs);
+          continue;
+        }
+        case FCmp: {
+          termPo x = pop();
+          termPo y = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
+
+          if (floatVal(x) != floatVal(y))
+            PC = exit;
+          continue;
+        }
+
+        case Case: {      /* case instruction */
+          int32 mx = collectI32(PC);
+
+          termPo tos = top();
+          integer hx = hashTerm(tos) % mx;
+
+          PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
+          continue;
+        }
+
+        case IndxJmp: {    // Branch based on index of constructor term
+          int32 mx = collectI32(PC);
+          normalPo top = C_NORMAL(top());
+          labelPo lbl = termLbl(top);
+          integer hx = labelIndex(lbl);
+
+          PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
+          continue;
+        }
+
+        case Unpack: {
+          labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
+          termPo t = pop();
+          insPo exit = collectOff(PC);
+
+          assert(validPC(FP->prog, exit));
+
+          normalPo n;
+          if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
+            integer arity = labelArity(l);
+            for (integer ix = arity - 1; ix >= 0; ix--)
+              push(nthElem(n, ix));
+          } else {
+            PC = exit;
+          }
+          continue;
+        }
+
+        case Closure: {      /* heap allocate closure */
+          if (reserveSpace(H, ClosureCellCount) != Ok) {
+            saveRegisters();
+            retCode ret = gcCollect(H, ClosureCellCount);
+            if (ret != Ok)
+              return ret;
+            restoreRegisters();
+          }
+          labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
+
+          if (!labelDefined(cd)) {
+            logMsg(logFile, "label %L not defined", cd);
             bail();
           }
 
-          methodPo mtd = labelCode(lb);       /* set up for object call */
+          closurePo cl = newClosure(H, cd, pop());
 
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", lb);
-            bail();
+          push(cl);       /* put the closure back on the stack */
+          continue;
+        }
+
+        case Alloc: {      /* heap allocate term */
+          labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
+          integer arity = labelArity(lbl);
+
+          if (enoughRoom(H, lbl) != Ok) {
+            saveRegisters();
+            retCode ret = gcCollect(H, NormalCellCount(arity));
+            if (ret != Ok)
+              return ret;
+            restoreRegisters();
           }
-          push(thVr);                                         // Keep the thunk var
-          push(closureFree(thLambda));                     // Put the free term back on the stack
+          normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
+          for (int ix = 0; ix < arity; ix++)
+            cl->args[ix] = pop();   /* fill in free variables by popping from stack */
+          push(cl);       /* put the structure back on the stack */
+          continue;
+        }
 
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
+        case Cmp: {
+          termPo i = pop();
+          termPo j = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
 
+          if (!sameTerm(i, j))
+            PC = exit;
+          continue;
+        }
+
+        case If: {
+          termPo i = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
+
+          if (sameTerm(i, trueEnum))
+            PC = exit;
+          continue;
+        }
+
+        case IfNot: {
+          termPo i = pop();
+          insPo exit = collectOff(PC);
+          assert(validPC(FP->prog, exit));
+
+          if (!sameTerm(i, trueEnum))
+            PC = exit;
+          continue;
+        }
+
+        case Frame: {
 #ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
-#endif
+          termPo frame = nthElem(LITS, collectI32(PC));
+          if (stackVerify) {
+            integer frameDepth;
+            if (isString(frame)) {
+              integer sigLen;
+              const char *sig = strVal(frame, &sigLen);
+              tryRet(typeSigArity(sig, sigLen, &frameDepth));
+            } else
+              frameDepth = integerVal(frame);
+            if (frameDepth != stackDepth(STK, FP->prog, SP, FP)) {
+              logMsg(logFile, "stack depth: %d does not match frame signature %T", stackDepth(STK, FP->prog, SP, FP),
+                     frame);
+              bail();
+            }
           }
-
-          assert(isPcOfMtd(FP->prog, PC));
-          FP->pc = PC;
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment program count
-        }
-        continue;
-      }
-
-      case StTh: {                           // Store into thunk
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = pop();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
-        continue;
-      }
-
-      case TTh: {                        // Set thunk and carry on
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = top();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
-        continue;
-      }
-
-      case Cell: {
-        checkAlloc(CellCellCount);
-        cellPo cell = newCell(H, pop());
-        push(cell);
-        continue;
-      }
-
-      case Get: {
-        cellPo cell = C_CELL(pop());
-        push(getCell(cell));
-        continue;
-      }
-
-      case Assign: {
-        cellPo cell = C_CELL(pop());
-        termPo vl = pop();
-        setCell(cell, vl);
-        continue;
-      }
-
-      case IAdd: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = makeInteger(Lhs + Rhs);
-        push(Rs);
-        continue;
-      }
-
-      case ISub: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = makeInteger(Lhs - Rhs);
-        push(Rs);
-        continue;
-      }
-      case IMul: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = makeInteger(Lhs * Rhs);
-        push(Rs);
-        continue;
-      }
-      case IDiv: {
-        termPo tryIndex = pop();
-
-        assert(isInteger(tryIndex));
-
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-        if (Rhs == 0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
-        } else {
-          termPo Rs = makeInteger(Lhs / Rhs);
-          push(Rs);
-          continue;
-        }
-      }
-      case IMod: {
-        termPo tryIndex = pop();
-
-        assert(isInteger(tryIndex));
-
-        integer denom = integerVal(pop());
-        integer numerator = integerVal(pop());
-
-        if (numerator == 0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
-        } else {
-          integer reslt = denom % numerator;
-
-          termPo Rs = (termPo) makeInteger(reslt);
-
-          push(Rs);
-          continue;
-        }
-      }
-      case IAbs: {
-        termPo Trm = pop();
-        integer Arg = integerVal(Trm);
-
-        termPo Rs = (Arg < 0 ? makeInteger(-Arg) : Trm);
-        push(Rs);
-        continue;
-      }
-      case IEq: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (integerVal(Lhs) == integerVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case ILt: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (integerVal(Lhs) < integerVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case IGe: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (integerVal(Lhs) >= integerVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case ICmp: {
-        termPo i = pop();
-        termPo j = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (integerVal(i) != integerVal(j))
-          PC = exit;
-        continue;
-      }
-      case CEq: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (charVal(Lhs) == charVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case CLt: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case CGe: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case CCmp: {
-        termPo i = pop();
-        termPo j = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (charVal(i) != charVal(j))
-          PC = exit;
-        continue;
-      }
-      case BAnd: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs & (uinteger) Rhs));
-        push(Rs);
-        continue;
-      }
-      case BOr: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = makeInteger((integer) ((uinteger) Lhs | (uinteger) Rhs));
-        push(Rs);
-        continue;
-      }
-      case BXor: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
-        push(Rs);
-        continue;
-      }
-      case BNot: {
-        integer Lhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((integer) (~(uinteger) Lhs));
-        push(Rs);
-        continue;
-      }
-      case BLsl: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs << (uinteger) Rhs));
-        push(Rs);
-        continue;
-      }
-      case BLsr: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((integer) (((uinteger) Lhs) >> ((uinteger) Rhs)));
-        push(Rs);
-        continue;
-      }
-      case BAsr: {
-        integer Lhs = integerVal(pop());
-        integer Rhs = integerVal(pop());
-
-        termPo Rs = (termPo) makeInteger((Lhs) >> Rhs);
-        push(Rs);
-        continue;
-      }
-      case FAdd: {
-        double Lhs = floatVal(pop());
-        double Rhs = floatVal(pop());
-
-        termPo Rs = makeFloat(Lhs + Rhs);
-        push(Rs);
-        continue;
-      }
-      case FSub: {
-        double Lhs = floatVal(pop());
-        double Rhs = floatVal(pop());
-
-        termPo Rs = makeFloat(Lhs - Rhs);
-        push(Rs);
-        continue;
-      }
-      case FMul: {
-        double Lhs = floatVal(pop());
-        double Rhs = floatVal(pop());
-
-        termPo Rs = makeFloat(Lhs * Rhs);
-        push(Rs);
-        continue;
-      }
-      case FDiv: {
-        termPo tryIndex = pop();
-
-        assert(isInteger(tryIndex));
-
-        double Lhs = floatVal(pop());
-        double Rhs = floatVal(pop());
-
-        if (Rhs == 0.0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
-        } else {
-          termPo Rs = makeFloat(Lhs / Rhs);
-          push(Rs);
-          continue;
-        }
-      }
-      case FMod: {
-        termPo tryIndex = pop();
-        assert(isInteger(tryIndex));
-
-        double Lhs = floatVal(pop());
-        double Rhs = floatVal(pop());
-        if (Rhs == 0.0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
-        } else {
-          termPo Rs = makeFloat(fmod(Lhs, Rhs));
-          push(Rs);
-          continue;
-        }
-      }
-      case FAbs: {
-        double Lhs = floatVal(pop());
-
-        termPo Rs = makeFloat(fabs(Lhs));
-        push(Rs);
-        continue;
-      }
-      case FEq: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Rhs) / 1.0e20) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case FLt: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (floatVal(Lhs) < floatVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case FGe: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (floatVal(Lhs) >= floatVal(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        continue;
-      }
-      case FCmp: {
-        termPo x = pop();
-        termPo y = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (floatVal(x) != floatVal(y))
-          PC = exit;
-        continue;
-      }
-
-      case Case: {      /* case instruction */
-        int32 mx = collectI32(PC);
-
-        termPo tos = top();
-        integer hx = hashTerm(tos) % mx;
-
-        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
-        continue;
-      }
-
-      case IndxJmp: {    // Branch based on index of constructor term
-        int32 mx = collectI32(PC);
-        normalPo top = C_NORMAL(top());
-        labelPo lbl = termLbl(top);
-        integer hx = labelIndex(lbl);
-
-        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
-        continue;
-      }
-
-      case Unpack: {
-        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
-        termPo t = pop();
-        insPo exit = collectOff(PC);
-
-        assert(validPC(FP->prog, exit));
-
-        normalPo n;
-        if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
-          integer arity = labelArity(l);
-          for (integer ix = arity - 1; ix >= 0; ix--)
-            push(nthElem(n, ix));
-        } else {
-          PC = exit;
-        }
-        continue;
-      }
-
-      case Closure: {      /* heap allocate closure */
-        if (reserveSpace(H, ClosureCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, ClosureCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
-        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
-
-        if (!labelDefined(cd)) {
-          logMsg(logFile, "label %L not defined", cd);
-          bail();
-        }
-
-        closurePo cl = newClosure(H, cd, pop());
-
-        push(cl);       /* put the closure back on the stack */
-        continue;
-      }
-
-      case Alloc: {      /* heap allocate term */
-        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
-        integer arity = labelArity(lbl);
-
-        if (enoughRoom(H, lbl) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, NormalCellCount(arity));
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
-        normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
-        for (int ix = 0; ix < arity; ix++)
-          cl->args[ix] = pop();   /* fill in free variables by popping from stack */
-        push(cl);       /* put the structure back on the stack */
-        continue;
-      }
-
-      case Cmp: {
-        termPo i = pop();
-        termPo j = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (!sameTerm(i, j))
-          PC = exit;
-        continue;
-      }
-
-      case If: {
-        termPo i = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (sameTerm(i, trueEnum))
-          PC = exit;
-        continue;
-      }
-
-      case IfNot: {
-        termPo i = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
-
-        if (!sameTerm(i, trueEnum))
-          PC = exit;
-        continue;
-      }
-
-      case Frame: {
-#ifdef TRACESTACK
-        termPo frame = nthElem(LITS, collectI32(PC));
-        if (stackVerify) {
-          integer frameDepth;
-          if (isString(frame)) {
-            integer sigLen;
-            const char *sig = strVal(frame, &sigLen);
-            tryRet(typeSigArity(sig, sigLen, &frameDepth));
-          } else
-            frameDepth = integerVal(frame);
-          if (frameDepth != stackDepth(STK, FP->prog, SP, FP)) {
-            logMsg(logFile, "stack depth: %d does not match frame signature %T", stackDepth(STK, FP->prog, SP, FP),
-                   frame);
-            bail();
-          }
-        }
 #else
-        PC += 2; // ignore frame entity for now
+          PC += 2; // ignore frame entity for now
 #endif
-        continue;
-      }
-
-      case dBug: {
-        if (lineDebugging) {
-          saveRegisters();
-          enterDebug(P);
-          restoreRegisters();
+          continue;
         }
-        continue;
-      }
 
-      default:
-      case illegalOp:
-        syserr("Illegal instruction");
+        case dBug: {
+          if (lineDebugging) {
+            saveRegisters();
+            enterDebug(P);
+            restoreRegisters();
+          }
+          continue;
+        }
+
+        default:
+        case illegalOp:
+          syserr("Illegal instruction");
+      }
     }
   }
 }
