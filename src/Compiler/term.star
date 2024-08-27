@@ -40,7 +40,10 @@ star.compiler.term{
   | .cVarNmes(option[locn],cons[(string,cId)],cExp)
   | .cAbort(option[locn],string,tipe)
   | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
-  | .cValof(option[locn],aAction,tipe).
+  | .cValof(option[locn],aAction,tipe)
+  | .cReset(option[locn],cExp,tipe)
+  | .cShift(option[locn],cExp,cExp,tipe)
+  | .cInvoke(option[locn],cExp,cExp,tipe).
   
   public cId ::= .cId(string,tipe).
 
@@ -125,6 +128,9 @@ star.compiler.term{
     | .cAbort(_,M,_) => "abort #(M)"
     | .cTry(_,B,T,E,H,_)=> 
       "(try #(dspExp(B,Off)) catch #(dspExp(T,Off)) in $(E) in #(dspExp(H,Off)))"
+    | .cReset(_,E,_) => "reset #(dspExp(E,Off))"
+    | .cShift(_,T,E,_) => "#(dspExp(T,Off)) shift #(dspExp(E,Off))"
+    | .cInvoke(_,Op,A,_) => "#(pDspExp(Op,Off)).(#(dspExp(A,Off)))"
     | .cValof(_,A,_) => "valof{#(dspAct(A,Off))}"
   }
 
@@ -252,6 +258,9 @@ star.compiler.term{
 	eqTerm(T1,T2) && eqTerm(M1,M2) && eqTerm(E1,E2) && eqTerm(H1,H2)
     | .cValof(_,A1,_) => .cValof(_,A2,_).=E2 && eqAct(A1,A2)
     | .cVarNmes(_,N1,V1) => .cVarNmes(_,N2,V2).=E2 && eqVs(N1,N2) && eqTerm(V1,V2)
+    | .cReset(_,V1,_) => .cReset(_,V2,_).=E2 && eqTerm(V1,V2)
+    | .cShift(_,P1,V1,_) => .cShift(_,P2,V2,_).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
+    | .cInvoke(_,P1,V1,_) => .cInvoke(_,P2,V2,_).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
     | _ default => .false
   }
 
@@ -338,6 +347,9 @@ star.compiler.term{
       | .cTry(Lc,_,_,_,_,_) => Lc
       | .cRaise(Lc,_,_,_) => Lc
       | .cValof(Lc,_,_) => Lc
+      | .cReset(Lc,_,_) => Lc
+      | .cShift(Lc,_,_,_) => Lc
+      | .cInvoke(Lc,_,_,_) => Lc
     }
   }
 
@@ -372,6 +384,9 @@ star.compiler.term{
       | .cValof(_,_,T) => T
       | .cAbort(_,_,T) => T
       | .cVarNmes(_,_,E) => tpOf(E)
+      | .cReset(_,_,T) => T
+      | .cShift(_,_,_,T) => T
+      | .cInvoke(_,_,_,T) => T
     }
   .} in {
     typeOf = tpOf
@@ -473,6 +488,9 @@ star.compiler.term{
     | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,rwTerm(E,Tst))
     | .cValof(Lc,A,Tp) => .cValof(Lc,rwAct(A,Tst),Tp)
     | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
+    | .cReset(Lc,E,Tp) => .cReset(Lc,rwTerm(E,Tst),Tp)
+    | .cShift(Lc,P,E,Tp) => .cShift(Lc,rwTerm(P,Tst),rwTerm(E,Tst),Tp)
+    | .cInvoke(Lc,P,E,Tp) => .cInvoke(Lc,rwTerm(P,Tst),rwTerm(E,Tst),Tp)
     }.
 
   rwAct:(aAction,(cExp)=>option[cExp])=>aAction.
@@ -568,6 +586,9 @@ star.compiler.term{
       Sc2 = newVars(ptnVrs(T,[]),Sc0);
       valis .cTry(Lc,frshnE(B,Sc2),frshnE(T,Sc2),frshnE(E,Sc1),frshnE(H,Sc1),Tp)
     }
+    | .cReset(Lc,E,Tp) => .cReset(Lc,frshnE(E,Sc),Tp)
+    | .cShift(Lc,P,E,Tp) => .cShift(Lc,frshnE(P,Sc),frshnE(E,Sc),Tp)
+    | .cInvoke(Lc,P,E,Tp) => .cInvoke(Lc,frshnE(P,Sc),frshnE(E,Sc),Tp)
     | .cVarNmes(Lc,Vs,E) => .cVarNmes(Lc,Vs,frshnE(E,Sc))
     | .cValof(Lc,A,Tp) => .cValof(Lc,frshnA(A,pushScope(Sc)),Tp)
     | .cAbort(Lc,Ms,Tp) => .cAbort(Lc,Ms,Tp)
@@ -819,6 +840,9 @@ star.compiler.term{
       V2 = ptnVrs(E,V1);
       valis validE(B,V1) && validE(T,V1) && validE(E,V2) && validE(H,V2)
     }
+    | .cReset(_,E,_) => validE(E,Vrs)
+    | .cShift(_,P,E,_) => validE(P,Vrs) && validE(E,Vrs)
+    | .cInvoke(_,P,E,_) => validE(P,Vrs) && validE(E,Vrs)
     | .cValof(_,A,_) => validA(A,Vrs)
   }
 
@@ -991,6 +1015,9 @@ star.compiler.term{
     | .cAbort(_,_,_) => .false
     | .cTry(_,B,Th,E,H,_) =>
       presentInE(B,A,C) || presentInE(Th,A,C) || presentInE(E,A,C) || presentInE(H,A,C)
+    | .cReset(_,E,_) => presentInE(E,A,C)
+    | .cShift(_,T,E,_) => presentInE(T,A,C) || presentInE(E,A,C)
+    | .cInvoke(_,T,E,_) => presentInE(T,A,C) || presentInE(E,A,C)
     | .cValof(_,Act,_) => presentInA(Act,A,C)
   }
 
@@ -1055,6 +1082,9 @@ star.compiler.term{
 	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)])
     | .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)])
     | .cTry(Lc,B,T,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(T),frzeExp(E),frzeExp(H),encodeSig(Tp)])
+    | .cReset(Lc,E,Tp) => mkCons("reset",[Lc::data,frzeExp(E),encodeSig(Tp)])
+    | .cShift(Lc,T,E,Tp) => mkCons("shift",[Lc::data,frzeExp(T),frzeExp(E),encodeSig(Tp)])
+    | .cInvoke(Lc,T,E,Tp) => mkCons("invoke",[Lc::data,frzeExp(T),frzeExp(E),encodeSig(Tp)])
     | .cVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeExp(B)])
     | .cValof(Lc,A,Tp) => mkCons("valof",[Lc::data,frzeAct(A),encodeSig(Tp)])
   }
@@ -1149,6 +1179,9 @@ star.compiler.term{
     | .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig))
     | .term("try",[Lc,B,Th,E,H,Sig]) =>
       .cTry(thawLoc(Lc),thwTrm(B),thwTrm(Th),thwTrm(E),thwTrm(H),decodeSig(Sig))
+    | .term("reset",[Lc,E,Sig]) => .cReset(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
+    | .term("shift",[Lc,T,E,Sig]) => .cShift(thawLoc(Lc),thwTrm(T),thwTrm(E),decodeSig(Sig))
+    | .term("invoke",[Lc,T,E,Sig]) => .cInvoke(thawLoc(Lc),thwTrm(T),thwTrm(E),decodeSig(Sig))
     | .term("vrs",[Lc,Vs,B]) => .cVarNmes(thawLoc(Lc),thawVars(Vs),thwTrm(B))
     | .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T))
   }
@@ -1247,6 +1280,9 @@ star.compiler.term{
       foldV(Df,.inExp,Fn,foldECases(Cs,Mode,Fn,foldV(G,.inExp,Fn,SoF)))
     | .cAbort(_,_,_) => SoF
     | .cTry(_,B,_,E,H,_) => foldV(H,.inExp,Fn,foldV(B,.inExp,Fn,foldV(E,.inExp,Fn,SoF)))
+    | .cReset(_,E,_) => foldV(E,.inExp,Fn,SoF)
+    | .cShift(_,T,E,_) => foldV(T,.inExp,Fn,foldV(E,.inExp,Fn,SoF))
+    | .cInvoke(_,T,E,_) => foldV(T,.inExp,Fn,foldV(E,.inExp,Fn,SoF))
     | .cVarNmes(_,Vs,B) => foldV(B,Mode,Fn,SoF)
     | .cValof(_,A,_) => foldA(A,Fn,SoF)
   }
