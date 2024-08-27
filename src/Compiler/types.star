@@ -232,7 +232,7 @@ star.compiler.types{
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
     | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
-    | .constrainedType(T,C) => "(#(showConstraint(C,Dp))) |: #(showType(T,Dp))"
+    | .constrainedType(T,C) => "#(showConstraint(C,Dp)) |: #(showType(T,Dp))"
   }
 
   shContract(Nm,Tps,[],Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)]".
@@ -267,8 +267,6 @@ star.compiler.types{
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
-  showTpExp(.tpFun("=>>",2),[A,R],Dp) => "#(showType(A,Dp-1)) =>> #(showType(R,Dp-1))".
-  showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
   showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
@@ -438,24 +436,22 @@ star.compiler.types{
 
   public arity:(tipe)=>integer.
   arity(Tp) => ar(deRef(Tp)).
-  ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(Tp) where (A,_) ?= isFunType(Tp) => arity(A).
   ar(Tp) where (A,_) ?= isConsType(Tp) => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
   ar(Tp) where .existType(_,I) .= Tp => arity(I).
+  ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(_) default => 0.
 
   public emptyFace = .faceType([],[]).
 
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
-  public contType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
-  public tagType(Tp) => .tpExp(.tpFun("tag",1),Tp).
   public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
   public fiberType(R,S) => .tpExp(.tpExp(.tpFun("fiber",2),R),S).
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
@@ -467,8 +463,6 @@ star.compiler.types{
 	.tpFun("=>",2).=deRef(O2) => .some(deRef(A)).
     funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
 	.tpFun("<=>",2).=deRef(O2) => .some(deRef(A)).
-    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
-	.tpFun("=>>",2).=deRef(O2) => .some(deRef(A)).
     funTpArg(.allType(_,T)) => funTpArg(deRef(T)).
     funTpArg(.constrainedType(T,C)) where FTp ?= funTpArg(deRef(T)) =>
       .some(extendArgType(FTp,.some(C))).
@@ -510,9 +504,6 @@ star.compiler.types{
       .tpExp(O,B).=deRef(Tp) &&
 	  .tpExp(O2,A) .= deRef(O) &&
 	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
-  isFunType(.allType(_,Tp)) => isFunType(deRef(Tp)).
-  isFunType(.existType(_,Tp)) => isFunType(deRef(Tp)).
-  isFunType(.constrainedType(T,_))=>isFunType(T).
   isFunType(_) default => .none.
 
   public isConsType:(tipe) => option[(tipe,tipe)].
@@ -524,25 +515,6 @@ star.compiler.types{
   isConsType(.allType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.existType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.constrainedType(T,_))=>isConsType(T).
-
-  public isContType:(tipe) => option[(tipe,tipe)].
-  isContType(Tp) where
-      .tpExp(O,B).=deRef(Tp) &&
-	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("=>>",2).=deRef(O2) => .some((A,B)).
-  isContType(.allType(_,Tp)) => isContType(deRef(Tp)).
-  isContType(.existType(_,Tp)) => isContType(deRef(Tp)).
-  isContType(.constrainedType(T,_))=>isContType(T).
-  isContType(_) default => .none.
-
-  public isTagType:(tipe) => option[tipe].
-  isTagType(Tp) where
-      .tpExp(O,A).=deRef(Tp) &&
-	  .tpFun("tag",1).=deRef(O) => .some(A).
-  isTagType(.allType(_,Tp)) => isTagType(deRef(Tp)).
-  isTagType(.existType(_,Tp)) => isTagType(deRef(Tp)).
-  isTagType(.constrainedType(T,_))=>isTagType(T).
-  isTagType(_) default => .none.
 
   public isConstrainedType:(tipe) => boolean.
   isConstrainedType(Tp) => isConstrained(deRef(Tp)).
