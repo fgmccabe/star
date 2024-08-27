@@ -8,11 +8,11 @@ star.compiler.unify{
   import star.compiler.misc.
   import star.compiler.types.
 
-  reset ::= .resetVar(tipe).
+  resetV ::= .resetVar(tipe).
 
   public sameType:(tipe,tipe,dict) => boolean.
   sameType(Tp1,Tp2,Envir) => let{.
-    resets : ref cons[reset].
+    resets : ref cons[resetV].
     resets = ref [].
 
     resetBindings() => valof{
