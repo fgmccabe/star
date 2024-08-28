@@ -439,8 +439,8 @@ star.compiler.types{
   public arity:(tipe)=>integer.
   arity(Tp) => ar(deRef(Tp)).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
-  ar(Tp) where (A,_) ?= isFunType(Tp) => arity(A).
-  ar(Tp) where (A,_) ?= isConsType(Tp) => arity(A).
+  ar(Tp) where (A,_) ?= isFnType(Tp) => arity(A).
+  ar(Tp) where (A,_) ?= isCnType(Tp) => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
   ar(Tp) where .existType(_,I) .= Tp => arity(I).
@@ -515,6 +515,14 @@ star.compiler.types{
   isFunType(.constrainedType(T,_))=>isFunType(T).
   isFunType(_) default => .none.
 
+  public isFnType:(tipe) => option[(tipe,tipe)].
+  isFnType(Tp) where
+      .tpExp(O,B).=deRef(Tp) &&
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
+  isFnType(_) default => .none.
+  
+
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
@@ -525,6 +533,13 @@ star.compiler.types{
   isConsType(.existType(_,Tp)) => isConsType(deRef(Tp)).
   isConsType(.constrainedType(T,_))=>isConsType(T).
 
+  public isCnType:(tipe) => option[(tipe,tipe)].
+  isCnType(Tp) where
+      .tpExp(O,B).=deRef(Tp) &&
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("<=>",2).=deRef(O2) => .some((A,B)).
+  isCnType(_) default => .none.
+
   public isContType:(tipe) => option[(tipe,tipe)].
   isContType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
@@ -534,6 +549,13 @@ star.compiler.types{
   isContType(.existType(_,Tp)) => isContType(deRef(Tp)).
   isContType(.constrainedType(T,_))=>isContType(T).
   isContType(_) default => .none.
+
+  public isCntType:(tipe) => option[(tipe,tipe)].
+  isCntType(Tp) where
+      .tpExp(O,B).=deRef(Tp) &&
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("=>>",2).=deRef(O2) => .some((A,B)).
+  isCntType(_) default => .none.
 
   public isTagType:(tipe) => option[tipe].
   isTagType(Tp) where

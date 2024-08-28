@@ -648,6 +648,7 @@ retCode run(processPo P) {
 #endif
         continue;
       }
+
       case EndTry: {
         integer tryIndex = integerVal(pop());
 
