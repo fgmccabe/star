@@ -46,7 +46,7 @@ retCode singleTimerTest() {
 
   logical done = False;
 
-  setTimer(0.0001, (timeFun) ping, &done);
+  tryRet(setTimer(0.0001, (timeFun) ping, &done));
 
   while (!done)
     outMsg(logFile, "%\r%_");
@@ -64,25 +64,20 @@ static void ascendCheck(struct timeval *last) {
   *last = now;
 }
 
-static void ascendChk(int ix) {
-  outMsg(logFile, "woke up %d\n%_", ix);
-}
-
 retCode ascendingTimerTest() {
-  if (debugUnitTests)
-    outMsg(logFile, "ascending sequence timer\n%_");
+  outMsg(logFile, "ascending sequence timer\n%_");
 
   struct timeval start, next;
   gettimeofday(&start, Null);
   next = start;
 
   for (integer ix = 0; ix < 100; ix++) {
-    setTimer((double)ix * 0.001, (timeFun) ascendChk, (void*)ix);
+    tryRet(setTimer((double)ix * 0.001, (timeFun) ascendCheck, &next));
   }
 
   logical done = False;
 
-  setTimer(1.0, (timeFun) ping, &done);
+  tryRet(setTimer(1.0, (timeFun) ping, &done));
 
   while (!done)
     outMsg(logFile, "&\r%_");
@@ -92,15 +87,14 @@ retCode ascendingTimerTest() {
 }
 
 retCode descendingTimerTest() {
-  if (debugUnitTests)
-    outMsg(logFile, "ascending sequence timer\n%_");
+  outMsg(logFile, "descending sequence timer\n%_");
 
   struct timeval start, next;
   gettimeofday(&start, Null);
   next = start;
 
   for (int ix = 100; ix > 0; ix--) {
-    setTimer(ix * 0.001, (timeFun) ascendCheck, &next);
+    tryRet(setTimer(ix * 0.001, (timeFun) ascendCheck, &next));
   }
 
   logical done = False;
@@ -121,4 +115,8 @@ retCode timerTests() {
   tryRet(run_test(descendingTimerTest));
   tearDownTests();
   return Ok;
+}
+
+retCode all_tests() {
+  return timerTests();
 }

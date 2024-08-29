@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 8/13/23.
 //
 
-#ifndef STAR_TIMERS_H
+#ifndef STAR_TIMERTESTS_H
 #define STAR_TIMERTESTS_H
 
 #include "ooio.h"
@@ -12,4 +12,4 @@
 
 retCode timerTests();
 
-#endif //STAR_TIMERS_H
+#endif //STAR_TIMERTESTS_H
