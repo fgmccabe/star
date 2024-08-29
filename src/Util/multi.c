@@ -83,7 +83,8 @@ integer longAdd(uint32 *tgt, integer tSize, const uint32 *lhs, integer lSize, co
   uint32 extendLhs = (longNegative(lhs, lSize) ? ONES_MASK : 0);
   uint32 extendRhs = (longNegative(rhs, rSize) ? ONES_MASK : 0);
   logical sameSign = longNegative(lhs, lSize) == longNegative(rhs, rSize);
-  while (ix < tSize && (ix < lSize || ix < rSize)) {
+  integer bigSize = minimum(tSize,maximum(lSize,rSize));
+  while (ix < bigSize) {
     uint64 partial = (uint64) (ix < lSize ? lhs[ix] : extendLhs) + (uint64) (ix < rSize ? rhs[ix] : extendRhs) + carry;
     carry = (partial >> WIDTH) & (ONES_MASK >> 1);
     tgt[ix++] = partial & ONES_MASK;
