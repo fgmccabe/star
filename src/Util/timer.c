@@ -55,8 +55,9 @@ retCode setInterrupt(){
 
  tryAgain:
   sigemptyset(&act.sa_mask);
-    
-  sigaction(SIGVTALRM, &act, Null);
+
+//  sigaction(SIGVTALRM, &act, Null);
+  sigaction(SIGALRM, &act, Null);
 
   switch(errno){
   case 0:
@@ -99,7 +100,8 @@ static retCode setupTimerInterrupt(struct timeval *when) {
   if(period.it_value.tv_sec<0 || period.it_value.tv_sec==0 && period.it_value.tv_usec<=0)
     return Interrupt;
 
-  setitimer(ITIMER_VIRTUAL, &period, Null);
+  //setitimer(ITIMER_VIRTUAL, &period, Null);
+  setitimer(ITIMER_REAL, &period, Null);
 
   switch(errno){
   case 0:

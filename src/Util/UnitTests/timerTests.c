@@ -64,6 +64,10 @@ static void ascendCheck(struct timeval *last) {
   *last = now;
 }
 
+static void tCheck(integer ix) {
+  outMsg(logFile, "woke up %ld\n%_", ix);
+}
+
 retCode ascendingTimerTest() {
   outMsg(logFile, "ascending sequence timer\n%_");
 
@@ -72,15 +76,16 @@ retCode ascendingTimerTest() {
   next = start;
 
   for (integer ix = 0; ix < 100; ix++) {
-    tryRet(setTimer((double)ix * 0.001, (timeFun) ascendCheck, &next));
+    // tryRet(setTimer((double)ix * 0.001, (timeFun) ascendCheck, &next));
+    tryRet(setTimer((double) ix * 0.001, (timeFun) tCheck, (void *) ix));
   }
 
   logical done = False;
 
   tryRet(setTimer(1.0, (timeFun) ping, &done));
 
-  while (!done)
-    outMsg(logFile, "&\r%_");
+  while (!done);
+//    outMsg(logFile, "&\r%_");
 
   gettimeofday(&next, Null);
   return boolRet(cmpTime(&next, &start));
@@ -93,16 +98,17 @@ retCode descendingTimerTest() {
   gettimeofday(&start, Null);
   next = start;
 
-  for (int ix = 100; ix > 0; ix--) {
-    tryRet(setTimer(ix * 0.001, (timeFun) ascendCheck, &next));
+  for (integer ix = 100; ix > 0; ix--) {
+//    tryRet(setTimer(ix * 0.001, (timeFun) ascendCheck, &next));
+    tryRet(setTimer((double)ix * 0.001, (timeFun) tCheck, (void*)ix));
   }
 
   logical done = False;
 
   setTimer(1.0, (timeFun) ping, &done);
 
-  while (!done)
-    outMsg(logFile, "*\r%_");
+  while (!done);
+//    outMsg(logFile, "*\r%_");
 
   gettimeofday(&next, Null);
   return boolRet(cmpTime(&next, &start));
