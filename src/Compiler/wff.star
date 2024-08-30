@@ -813,16 +813,25 @@ star.compiler.wff{
   public mkTryCatch(Lc,B,E,Hs) =>
     unary(Lc,"try",binary(Lc,"catch",B,binary(Lc,"in",E,brTuple(Lc,[reBar(Hs)])))).
 
-  public isTryWith:(ast) => option[(option[locn],ast,ast,cons[ast])].
-  isTryWith(A) where (Lc,I) ?= isUnary(A,"try") &&
-      (_,B,R) ?= isBinary(I,"with") &&
+  public isTryHandle:(ast) => option[(option[locn],ast,ast,cons[ast])].
+  isTryHandle(A) where (Lc,I) ?= isUnary(A,"try") &&
+      (_,B,R) ?= isBinary(I,"handle") &&
 	  (_,E,H) ?= isBinary(R,"in") &&
 	      (_,Hs) ?= isBrTuple(H) =>
     ([El].=Hs ?? .some((Lc,B,E,deBar(El))) || .some((Lc,B,E,Hs))).
-  isTryWith(_) default => .none.
+  isTryHandle(_) default => .none.
 
-  public mkTryWith(Lc,B,E,Hs) =>
-    unary(Lc,"try",binary(Lc,"with",B,binary(Lc,"in",E,brTuple(Lc,[reBar(Hs)])))).
+  public mkTryHandle(Lc,B,E,Hs) =>
+    unary(Lc,"try",binary(Lc,"handle",B,binary(Lc,"in",E,brTuple(Lc,[reBar(Hs)])))).
+
+  public isContinue:(ast) => option[(option[locn],ast)].
+  isContinue(A) => isUnary(A,"continue").
+
+  public mkContinue(Lc,I) => unary(Lc,"continue",I).
+
+  public isContinuation:(ast) => option[locn].
+  isContinuation(A) where .nme(Lc,"continuation") .= A => Lc.
+  isContinuation(_) default => .none.
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where

@@ -39,6 +39,7 @@
   operator("**", [infixOp(600, 600, 599)]).
   operator("..>", [infixOp(749, 750, 749)]).
   operator("->", [infixOp(889, 890, 889)]).
+  operator("continue", [prefixOp(930, 929)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("raise", [prefixOp(930, 929)]).
@@ -125,6 +126,7 @@
   operator("type", [prefixOp(1251, 1250)]).
   operator("|", [prefixOp(1548, 1547), infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
+  operator("handle", [infixOp(1198, 1199, 1198)]).
   operator("~", [prefixOp(905, 904)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
@@ -370,6 +372,7 @@
   keyword("for").
   keyword("..<").
   keyword("..>").
+  keyword("continue").
   keyword("{?").
   keyword("raise").
   keyword("async").
@@ -421,6 +424,7 @@
   keyword("]").
   keyword("<=>").
   keyword("|]").
+  keyword("continuation").
   keyword("generator").
   keyword("?}").
   keyword("valof").
@@ -438,6 +442,7 @@
   keyword(".}").
   keyword("|").
   keyword("}").
+  keyword("handle").
   keyword("~").
   keyword("||").
   keyword("else").

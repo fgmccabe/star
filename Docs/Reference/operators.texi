@@ -78,6 +78,10 @@
 @tab non-associative infix
 @tab 890
 @tab map entry
+@item @code{continue}
+@tab non-associative prefix
+@tab 930
+@tab continue after executing a handler
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
@@ -478,6 +482,10 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
+@item @code{handle}
+@tab non-associative infix
+@tab 1199
+@tab try @{...@} handle @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -525,31 +533,34 @@
 @tab @code{catch}
 @tab @code{valis}
 @item @code{for}
+@tab @code{continue}
 @tab @code{raise}
-@tab @code{async}
-@item @code{then}
+@item @code{async}
+@tab @code{then}
 @tab @code{ζ}
-@tab @code{default}
-@item @code{contract}
+@item @code{default}
+@tab @code{contract}
 @tab @code{raises}
-@tab @code{try}
-@item @code{exists}
+@item @code{try}
+@tab @code{exists}
 @tab @code{if}
-@tab @code{in}
-@item @code{break}
+@item @code{in}
+@tab @code{break}
 @tab @code{reset}
-@tab @code{public}
-@item @code{ref}
+@item @code{public}
+@tab @code{ref}
 @tab @code{where}
-@tab @code{case}
-@item @code{generator}
-@tab @code{valof}
+@item @code{case}
+@tab @code{continuation}
+@tab @code{generator}
+@item @code{valof}
 @tab @code{yield}
-@item @code{while}
-@tab @code{private}
+@tab @code{while}
+@item @code{private}
 @tab @code{implementation}
-@item @code{shift}
-@tab @code{type}
+@tab @code{shift}
+@item @code{type}
+@tab @code{handle}
 @tab @code{else}
 
 @end multitable
