@@ -21,6 +21,7 @@
   ("**" ( (infix 600 600 599)))
   ("..>" ( (infix 749 750 749)))
   ("->" ( (infix 889 890 889)))
+  ("continue" ( (prefix 930 929)))
   (".+." ( (prefix 700 699)))
   ("<$" ( (infix 719 720 720)))
   ("raise" ( (prefix 930 929)))
@@ -107,6 +108,7 @@
   ("type" ( (prefix 1251 1250)))
   ("|" ( (prefix 1548 1547) (infix 1548 1548 1547)))
   (".#." ( (infix 600 600 599)))
+  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -141,6 +143,7 @@
 "catch"
 "valis"
 "for"
+"continue"
 "raise"
 "async"
 "then"
@@ -158,6 +161,7 @@
 "ref"
 "where"
 "case"
+"continuation"
 "generator"
 "valof"
 "yield"
@@ -166,6 +170,7 @@
 "implementation"
 "shift"
 "type"
+"handle"
 "else"
 )
   "Table of standard keywords"

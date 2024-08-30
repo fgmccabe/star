@@ -134,6 +134,8 @@ star.compiler.macro{
     mkIfThen(Lc,macroCond(T),macroAction(L)).
   examineAction(A) where (Lc,B,E,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroAction(B),macroType(E),Hs//macroCaseAction).
+  examineAction(A) where (Lc,B,E,Hs) ?= isTryHandle(A) =>
+    mkTryHandle(Lc,macroAction(B),macroType(E),Hs//macroCaseAction).
   examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForIn(A) =>
@@ -142,6 +144,7 @@ star.compiler.macro{
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,T) ?= isValis(A) => mkValis(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ?= isRaise(A) => mkRaise(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,T) ?= isContinue(A) => mkContinue(Lc,macroTerm(T)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroAction(B)).
   examineAction(A) where (Lc,D,B) ?= isLetRecDef(A) => 
@@ -247,6 +250,10 @@ star.compiler.macro{
     mkTryCatch(Lc,macroTerm(B),macroType(E),Hs//macroLambda).
   examineTerm(A) where (Lc,T) ?= isRaise(A) =>
     mkRaise(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,T) ?= isContinue(A) =>
+    mkContinue(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,B,E,Hs) ?= isTryHandle(A) =>
+    mkTryHandle(Lc,macroTerm(B),macroType(E),Hs//macroLambda).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,S) ?= isGenerator(A) =>

@@ -342,7 +342,11 @@ star.compiler.dependencies{
 	collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
     collectTermRefs(R,All,Rf).
+  collectTermRefs(A,All,Rf) where (_,R) ?= isContinue(A) => 
+    collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,L,E,H) ?= isTryCatch(A) =>
+    collectCasesRefs(H,collectTermRefs,All,collectTypeRefs(E,All,collectTermRefs(L,All,Rf))).
+  collectTermRefs(A,All,Rf) where (_,L,E,H) ?= isTryHandle(A) =>
     collectCasesRefs(H,collectTermRefs,All,collectTypeRefs(E,All,collectTermRefs(L,All,Rf))).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
@@ -386,9 +390,13 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,R) ?= isValis(A) => 
     collectTermRefs(R,All,Rf).
+  collectDoRefs(A,All,Rf) where (_,R) ?= isContinue(A) => 
+    collectTermRefs(R,All,Rf).
   collectDoRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
     collectTermRefs(R,All,Rf).
   collectDoRefs(A,All,Rf) where (_,L,E,H) ?= isTryCatch(A) =>
+    collectCasesRefs(H,collectDoRefs,All,collectTypeRefs(E,All,collectDoRefs(L,All,Rf))).
+  collectDoRefs(A,All,Rf) where (_,L,E,H) ?= isTryHandle(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTypeRefs(E,All,collectDoRefs(L,All,Rf))).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
