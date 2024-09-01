@@ -56,7 +56,6 @@ retCode setInterrupt(){
  tryAgain:
   sigemptyset(&act.sa_mask);
 
-//  sigaction(SIGVTALRM, &act, Null);
   sigaction(SIGALRM, &act, Null);
 
   switch(errno){
@@ -100,7 +99,6 @@ static retCode setupTimerInterrupt(struct timeval *when) {
   if(period.it_value.tv_sec<0 || period.it_value.tv_sec==0 && period.it_value.tv_usec<=0)
     return Interrupt;
 
-  //setitimer(ITIMER_VIRTUAL, &period, Null);
   setitimer(ITIMER_REAL, &period, Null);
 
   switch(errno){
@@ -121,21 +119,6 @@ static retCode setupTimerInterrupt(struct timeval *when) {
 static void clearTimerInterrupt() {
   struct itimerval zero = {.it_value={.tv_usec=0, .tv_sec=0}, .it_interval={.tv_sec=0, .tv_usec=0}};
   setitimer(ITIMER_REAL, &zero, Null);
-}
-
-static char *timeQLen(timePo q){
-  static char buff[256];
-  
-  integer len = 0;
-  integer active = 0;
-  while(q!=Null){
-    if(q->onWakeup!=Null)
-      active++;
-    len++;
-    q = q->next;
-  }
-  strMsg(buff,NumberOf(buff),"%d active, %d total",active,len);
-  return buff;
 }
 
 static void processQ() {
