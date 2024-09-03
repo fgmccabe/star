@@ -11,7 +11,6 @@ sc = "/Users/fgm/bin/sc"
 repoDir = "/Users/fgm/Projects/star/Build/.star-repo/"
 usage = "runtests.py [-t <testpkg>|--all] --compile_only --tracing --repo <dir>"
 
-
 tracing = False
 
 def main(argv):
@@ -121,4 +120,3 @@ def runPkg(Pkg,Flgs):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
