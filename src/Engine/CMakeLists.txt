@@ -30,7 +30,6 @@ set(HEADER_FILES
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/star.h
         Headers/globalsP.h
-        Headers/opcodes.h
         ../Headers/starOptions.h
         Headers/globals.h
         Headers/heap.h Headers/heapP.h

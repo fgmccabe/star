@@ -7,8 +7,6 @@
 #ifndef _OPCODES_H_
 #define _OPCODES_H_
 
-// Auto generated at #(Date)
-
 typedef enum {
   #(OpCodes)
   label,
@@ -16,7 +14,9 @@ typedef enum {
   maxOpCode
 } OpCode;
 
-integer opcodeSignature = #(Hash);
+#ifndef OPCODE_SIGNATURE
+#define OPCODE_SIGNATURE #(Hash)
+#endif
 
 typedef enum {
   nOp,                                   // No operand

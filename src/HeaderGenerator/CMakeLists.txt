@@ -18,7 +18,14 @@ set(OPCODES_SOURCE_FILES opcodes.c)
 add_executable(opcodes ${OPCODES_SOURCE_FILES})
 target_link_libraries(opcodes ooio)
 
-set(ASM_SOURCE_FILES plmnem.c)
+set(OPCODES_H  ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/opcodes.h)
+set(OPCODES_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/opcodes.plate)
+
+add_custom_target(opcodes.h ALL DEPENDS opcodes
+        COMMAND opcodes  -t ${OPCODES_PLATE}  ${OPCODES_H}
+        COMMENT "Opcodes header in ${OPCODES_H}")
+
+set(ASM_SOURCE_FILES plmnem.c )
 add_executable(plmnem ${ASM_SOURCE_FILES})
 target_link_libraries(plmnem ooio infra)
 
