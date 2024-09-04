@@ -481,4 +481,6 @@ star.compiler.assem{
   showMnem([.iFrame(U),..Ins],Pc) => "$(Pc)\: Frame $(U)\n" ++ showMnem(Ins,Pc+3).
   showMnem([.idBug,..Ins],Pc) => "$(Pc)\: dBug\n" ++ showMnem(Ins,Pc+1).
 
+
+  public opcodeHash = 1521780726670279511.
 }

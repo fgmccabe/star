@@ -14,6 +14,10 @@ set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h .
 add_executable(genesc ${ESC_SOURCE_FILES})
 target_link_libraries(genesc ooio)
 
+set(OPCODES_SOURCE_FILES opcodes.c)
+add_executable(opcodes ${OPCODES_SOURCE_FILES})
+target_link_libraries(opcodes ooio)
+
 set(ASM_SOURCE_FILES plmnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})
 target_link_libraries(plmnem ooio infra)
