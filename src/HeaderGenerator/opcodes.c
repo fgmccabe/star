@@ -96,17 +96,8 @@ int main(int argc, char **argv) {
   }
 }
 
-static char *capitalize(char *str) {
-  static char buffer[128];
-  strcpy(buffer, str);
-  if (buffer[0] >= 'a' && buffer[0] <= 'z') {
-    buffer[0] = (char) ('A' + (buffer[0] - 'a'));
-  }
-  return buffer;
-}
-
 void insOp(ioPo out, char *mnem, int op, char *cmt) {
-  outMsg(out, "    %s = %d,            // %s\n", capitalize(mnem),op,cmt);
+  outMsg(out, "    %s = %d,            // %s\n", mnem,op,cmt);
 }
 
 static integer opHash(char *mnem,int op){
