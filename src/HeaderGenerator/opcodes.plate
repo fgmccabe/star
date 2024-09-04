@@ -10,7 +10,7 @@
 // Auto generated at #(Date)
 
 typedef enum {
-  #(Opcodes)
+  #(OpCodes)
   label,
   illegalOp,
   maxOpCode
