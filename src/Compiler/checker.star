@@ -716,47 +716,6 @@ star.compiler.checker{
       valis typeOfExp(E,Tp,Env,Path)
     }
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,B) ?= isReset(A) => valof{
-    if traceCanon! then{
-      showMsg("reset: $(A)");
-    };
-    
-    TgTp = tagType(Tp);
-    (TagPtn,TCond,Ev1) = typeOfPtn(T,TgTp,Env,Path);
-    RBdy = typeOfExp(B,Tp,Ev1,Path);
-
-    if traceCanon! then{
-      showMsg("reset: tag = $(TagPtn), body = $(RBdy)");
-    };
-
-    LName = genId(Path++"ρ");
-    RLam = .lambda(Lc,LName,.rule(Lc,.tple(Lc,[TagPtn]),TCond,RBdy),[],funType([TgTp],Tp));
-    
-    valis .rst(Lc,RLam,Tp)
-  }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,K,B) ?= isShift(A) => valof{
-    if traceCanon! then{
-      showMsg("shift: $(A)");
-    };
-
-    if (KLc,Kid) ?= isName(K) then {
-      AnsTp = newTypeVar("A");
-      Tag = typeOfExp(T,tagType(AnsTp),Env,Path);
-      KTp = contType(Tp,AnsTp);
-      (KPar,KCond,KEnv) = typeOfPtn(K,KTp,Env,Path);
-      Shft = typeOfExp(B,AnsTp,KEnv,Path);
-
-      if traceCanon! then{
-	showMsg("shift: tag = $(Tag), K=$(KPar), Shft = $(Shft)");
-      };
-
-      valis .shyft(Lc,Tag,.lambda(Lc,genId(Path++"σ"),.rule(Lc,.tple(KLc,[KPar]),KCond,Shft),[],funType([KTp],AnsTp)),Tp)
-    }
-    else{
-      reportError("expecting an identifier, not $(K)",locOf(K));
-      valis .anon(Lc,Tp)
-    }
-  }
   typeOfExp(A,Tp,Env,Path) where (Lc,K,As) ?= isInvoke(A) => valof{
     if [Arg].=As then{
       ATp = newTypeVar("ɑ");

@@ -45,7 +45,7 @@
 @item @code{catch}
 @tab non-associative infix
 @tab 1199
-@tab try @{...@} catch @{...@}
+@tab try @{...@} catch Tp in @{...@}
 @item @code{valis}
 @tab non-associative prefix
 @tab 930
@@ -322,14 +322,6 @@
 @tab non-associative prefix
 @tab 140
 @tab display tracing message
-@item @code{reset}
-@tab non-associative infix
-@tab 999
-@tab reset context
-@item @code{reset}
-@tab non-associative prefix
-@tab 999
-@tab reset context
 @item @code{~~}
 @tab right associative infix
 @tab 1240
@@ -446,14 +438,6 @@
 @tab non-associative prefix
 @tab 1260
 @tab contract implementation
-@item @code{shift}
-@tab non-associative infix
-@tab 998
-@tab capture continuation
-@item @code{shift}
-@tab non-associative prefix
-@tab 998
-@tab capture continuation
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -485,7 +469,7 @@
 @item @code{handle}
 @tab non-associative infix
 @tab 1199
-@tab try @{...@} handle @{...@}
+@tab try @{...@} handle Tp in @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -546,22 +530,20 @@
 @tab @code{if}
 @item @code{in}
 @tab @code{break}
-@tab @code{reset}
-@item @code{public}
-@tab @code{ref}
+@tab @code{public}
+@item @code{ref}
 @tab @code{where}
-@item @code{case}
-@tab @code{continuation}
+@tab @code{case}
+@item @code{continuation}
 @tab @code{generator}
-@item @code{valof}
-@tab @code{yield}
+@tab @code{valof}
+@item @code{yield}
 @tab @code{while}
-@item @code{private}
-@tab @code{implementation}
-@tab @code{shift}
-@item @code{type}
+@tab @code{private}
+@item @code{implementation}
+@tab @code{type}
 @tab @code{handle}
-@tab @code{else}
+@item @code{else}
 
 @end multitable
 @end float

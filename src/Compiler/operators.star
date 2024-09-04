@@ -106,7 +106,6 @@ star.compiler.operators{
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
     | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
-    | "reset" => [.infixOp(998,999,998), .prefixOp(999,998)]
     | "~~" => [.infixOp(1239,1240,1240)]
     | "assert" => [.prefixOp(1240,1239)]
     | "!!" => [.postfixOp(99,100)]
@@ -136,7 +135,6 @@ star.compiler.operators{
     | ":?" => [.infixOp(399,400,399)]
     | ".<<." => [.infixOp(600,600,599)]
     | "implementation" => [.prefixOp(1260,1259)]
-    | "shift" => [.infixOp(997,998,997), .prefixOp(998,997)]
     | ">>=" => [.infixOp(949,950,950)]
     | "^/" => [.infixOp(960,960,959)]
     | "<~" => [.infixOp(998,999,998)]
@@ -472,7 +470,6 @@ star.compiler.operators{
     | "|>" => .true
     | "in" => .true
     | "break" => .true
-    | "reset" => .true
     | "~~" => .true
     | "!!" => .true
     | "/." => .true
@@ -497,7 +494,6 @@ star.compiler.operators{
     | ":?" => .true
     | "implementation" => .true
     | "<|" => .true
-    | "shift" => .true
     | "<~" => .true
     | "{" => .true
     | "type" => .true

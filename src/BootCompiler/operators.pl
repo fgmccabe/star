@@ -89,7 +89,6 @@
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("trace", [infixOp(139, 140, 139), prefixOp(140, 139)]).
-  operator("reset", [infixOp(998, 999, 998), prefixOp(999, 998)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [postfixOp(99, 100)]).
@@ -119,7 +118,6 @@
   operator(":?", [infixOp(399, 400, 399)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("shift", [infixOp(997, 998, 997), prefixOp(998, 997)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
@@ -410,7 +408,6 @@
   keyword("|>").
   keyword("in").
   keyword("break").
-  keyword("reset").
   keyword("~~").
   keyword("!!").
   keyword("/.").
@@ -435,7 +432,6 @@
   keyword(":?").
   keyword("implementation").
   keyword("<|").
-  keyword("shift").
   keyword("<~").
   keyword("{").
   keyword("type").
