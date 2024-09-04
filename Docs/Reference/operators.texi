@@ -26,6 +26,10 @@
 @tab non-associative infix
 @tab 1231
 @tab type function
+@item @code{throw}
+@tab non-associative prefix
+@tab 930
+@tab perform an effect
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -78,10 +82,6 @@
 @tab non-associative infix
 @tab 890
 @tab map entry
-@item @code{continue}
-@tab non-associative prefix
-@tab 930
-@tab continue after executing a handler
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
@@ -512,12 +512,12 @@
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{all}
 @tab @code{let}
-@tab @code{do}
-@item @code{import}
+@tab @code{throw}
+@item @code{do}
+@tab @code{import}
 @tab @code{catch}
-@tab @code{valis}
-@item @code{for}
-@tab @code{continue}
+@item @code{valis}
+@tab @code{for}
 @tab @code{raise}
 @item @code{async}
 @tab @code{then}

@@ -27,6 +27,7 @@
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
+  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -39,7 +40,6 @@
   operator("**", [infixOp(600, 600, 599)]).
   operator("..>", [infixOp(749, 750, 749)]).
   operator("->", [infixOp(889, 890, 889)]).
-  operator("continue", [prefixOp(930, 929)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("raise", [prefixOp(930, 929)]).
@@ -361,6 +361,7 @@
   keyword("&&").
   keyword("let").
   keyword("~>").
+  keyword("throw").
   keyword("{.").
   keyword("do").
   keyword("import").
@@ -370,7 +371,6 @@
   keyword("for").
   keyword("..<").
   keyword("..>").
-  keyword("continue").
   keyword("{?").
   keyword("raise").
   keyword("async").

@@ -9,6 +9,7 @@
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
+  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -21,7 +22,6 @@
   ("**" ( (infix 600 600 599)))
   ("..>" ( (infix 749 750 749)))
   ("->" ( (infix 889 890 889)))
-  ("continue" ( (prefix 930 929)))
   (".+." ( (prefix 700 699)))
   ("<$" ( (infix 719 720 720)))
   ("raise" ( (prefix 930 929)))
@@ -136,12 +136,12 @@
 (defconst star-keywords
   '("all"
 "let"
+"throw"
 "do"
 "import"
 "catch"
 "valis"
 "for"
-"continue"
 "raise"
 "async"
 "then"
