@@ -21,7 +21,7 @@ function(add_info nm)
 	  DEPENDS ${info_deps}
 	  VERBATIM)
 
-        add_custom_target(${nm}.info ALL DEPENDS ${out_info})
+        add_custom_target(${nm}.info ALL DEPENDS ${info_deps})
 
         add_custom_command(OUTPUT ${out_pdf}
            COMMENT "Creating PDF file ${out_pdf}"
@@ -29,14 +29,14 @@ function(add_info nm)
 	   DEPENDS ${info_deps}
 	   VERBATIM)
 
-        add_custom_target(${nm}.pdf ALL DEPENDS ${out_pdf})
+        add_custom_target(${nm}.pdf ALL DEPENDS ${info_deps})
 
         add_custom_command(OUTPUT ${out_html}
            COMMENT "Creating HTML file ${out_html}"
-	   COMMAND ${MAKEINFO} --html --no-split -o ${out_html} ${info_texi}
+	   COMMAND ${MAKEINFO} --html --no-split -o ${out_html} ${info_deps}
 	   DEPENDS ${info_deps}
 	   VERBATIM)
 
-        add_custom_target(${nm}.html ALL DEPENDS ${out_html})
+        add_custom_target(${nm}.html ALL DEPENDS ${out_deps})
     endif (MAKEINFO)
 endfunction(add_info)
