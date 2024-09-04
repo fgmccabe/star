@@ -44,6 +44,7 @@ star.compiler.operators{
     | "let" => [.prefixOp(899,898)]
     | "~=" => [.infixOp(899,900,899)]
     | "~>" => [.infixOp(1230,1231,1230)]
+    | "throw" => [.prefixOp(930,929)]
     | ".|." => [.infixOp(720,720,719)]
     | "do" => [.prefixOp(200,199), .infixOp(1199,1200,1199)]
     | "import" => [.prefixOp(900,899)]
@@ -56,7 +57,6 @@ star.compiler.operators{
     | "**" => [.infixOp(600,600,599)]
     | "..>" => [.infixOp(749,750,749)]
     | "->" => [.infixOp(889,890,889)]
-    | "continue" => [.prefixOp(930,929)]
     | ".+." => [.prefixOp(700,699)]
     | "<$" => [.infixOp(719,720,720)]
     | "raise" => [.prefixOp(930,929)]
@@ -423,6 +423,7 @@ star.compiler.operators{
     | "&&" => .true
     | "let" => .true
     | "~>" => .true
+    | "throw" => .true
     | "{." => .true
     | "do" => .true
     | "import" => .true
@@ -432,7 +433,6 @@ star.compiler.operators{
     | "for" => .true
     | "..<" => .true
     | "..>" => .true
-    | "continue" => .true
     | "{?" => .true
     | "raise" => .true
     | "async" => .true
