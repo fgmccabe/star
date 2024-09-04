@@ -477,12 +477,14 @@ star.compiler.types{
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
-  extendFunTp(Tp,Vs) where (A,B)?=isFunType(Tp) &&
-      .tupleType(Es).=deRef(A) =>
-    funType(extendTplType(Es,Vs),B).
-  extendFunTp(.allType(V,B),Vs) => .allType(V,extendFunTp(B,Vs)).
-  extendFunTp(.existType(V,B),Vs) => .existType(V,extendFunTp(B,Vs)).
-  extendFunTp(.constrainedType(T,C),Vs) => .constrainedType(extendFunTp(T,Vs),C).
+  extendFunTp(Tp,Vs) => case deRef(Tp) in {
+    | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
+    | .existType(V,B) => .existType(V,extendFunTp(B,Vs))
+    | .constrainedType(T,C) => .constrainedType(extendFunTp(T,Vs),C)
+    | _ where (A,B)?=isFunType(Tp) &&
+	.tupleType(Es).=deRef(A) =>
+      funType(extendTplType(Es,Vs),B).
+  }
 
   extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendArgType(Tp,.none) => Tp.

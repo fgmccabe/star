@@ -51,7 +51,7 @@ star.compiler.normalize{
 
   transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex) => valof{
     if traceNormalize! then{
-      showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) Q=$(Q) Extra = $(Extra) @ $(Lc)");
+      showMsg("transform function $(.funDef(Lc,FullNm,Eqns,[],Tp)) @ $(Lc)");
     };
     ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
@@ -315,19 +315,6 @@ star.compiler.normalize{
       showMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
     (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
     valis (.cThDrf(Lc,NTh,Tp),Ex1)
-  }
-  liftExp(.rst(Lc,Lm,Tp),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("lift $(.rst(Lc,Lm,Tp))\:$(Tp)");
-    (RLm,Ex1) = liftExp(Lm,Map,Q,Ex);
-    valis (.cReset(Lc,RLm,Tp),Ex1)
-  }
-  liftExp(.shyft(Lc,T,S,Tp),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("lift $(.shyft(Lc,T,S,Tp))\:$(Tp)");
-    (RT,Ex1) = liftExp(T,Map,Q,Ex);
-    (RS,Ex2) = liftExp(S,Map,Q,Ex1);
-    valis (.cShift(Lc,RT,RS,Tp),Ex2)
   }
   liftExp(.invoke(Lc,K,I,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
@@ -766,7 +753,7 @@ star.compiler.normalize{
     valis LL[Nm->Entry][FullNm->Entry]
   }
   collectMtd(.funDec(Lc,Nm,FullNm,Tp),.none,LL) => valof{
-    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),trace arity(trace Tp)+1,crTpl(Lc,[]),Tp),Nm);
+    Entry = .moduleFun(.cClos(Lc,closureNm(FullNm),arity(Tp)+1,crTpl(Lc,[]),Tp),Nm);
     valis LL[Nm->Entry][FullNm->Entry]
   }
   collectMtd(.varDec(Lc,Nm,Val,Tp),.none,LL) => LL[Nm->.globalVar(Nm,Tp)].
