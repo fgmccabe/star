@@ -10,6 +10,7 @@
 #include "formio.h"
 #include "file.h"
 #include "pool.h"
+#include "hash.h"
 
 void syserr(const char *msg) {
   outMsg(logFile, "Fatal error: %s\n", msg);

@@ -106,10 +106,10 @@ def mainCompile(Pkg,Flgs):
 def runPkg(Pkg,Flgs):
     "Run a previously compiled package"
     if tracing:
-        print ("run:",starExec,"-r",repoDir, "-h","4m", Pkg,Flgs)
+        print ("run:",starExec,"-r",repoDir, Pkg,Flgs)
 
     try:
-        out = subprocess.check_output([starExec, "-r",repoDir,"-h","4m"]+Flgs+[Pkg],
+        out = subprocess.check_output([starExec, "-r",repoDir]+Flgs+[Pkg],
                                       stderr=subprocess.STDOUT)
         if tracing:
             print(out)

@@ -1,2 +1,2 @@
 #!/bin/bash
-swipl --stack-limit=2G $HOME/Projects/star/src/BootCompiler/sbc.pl $*
+swipl --stack-limit=2G $HOME/Sources/star/src/BootCompiler/sbc.pl $*

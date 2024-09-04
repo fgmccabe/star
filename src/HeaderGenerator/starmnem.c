@@ -3,6 +3,8 @@
 #include <string.h>
 #include <getopt.h>
 #include "opcodes.h"
+#include "hash.h"
+#include "unistr.h"
 #include "ooio.h"
 #include "formioP.h"
 #include "template.h"
@@ -14,6 +16,8 @@
 char *prefix = "star.comp.assem";
 char *templateFn = "assem.star.plate";
 char date[MAXLINE] = "";
+
+static integer staropHash();
 
 int getOptions(int argc, char **argv) {
   int opt;
@@ -120,6 +124,10 @@ int main(int argc, char **argv) {
     integer showLen;
     char *showCode = getTextFromBuffer(showBuff, &showLen);
     hashPut(vars, "Show", showCode);
+
+    static char hashBuff[64];
+    strMsg(hashBuff,NumberOf(hashBuff),"%ld",staropHash());
+    hashPut(vars, "Hash", hashBuff);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
@@ -502,3 +510,19 @@ static void starInsEffect(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   genDisp(out, A2, "V");
   outMsg(out, "\\n\" ++ showMnem(Ins,Pc+%d).\n", insSize(op, A1, A2));
 }
+
+static integer opHash(char *mnem,int op){
+  return hash61(strhash(mnem)*37+op);
+}
+
+integer staropHash(){
+  integer hash = 0;
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,M));
+
+#include "instructions.h"
+
+  return hash;
+}
+
