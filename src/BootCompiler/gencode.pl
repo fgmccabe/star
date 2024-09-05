@@ -23,7 +23,8 @@ genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   mkTpl(Ds,DTpl),
   map(LDecls,gensig:formatDecl,LDs),
   mkTpl(LDs,LDTpl),
-  mkTpl([PT,ImpTpl,DTpl,LDTpl,Cdes],Tp),
+  opcodeHash(OpSig),
+  mkTpl([PT,intgr(OpSig),ImpTpl,DTpl,LDTpl,Cdes],Tp),
   encode(Tp,Txt),
   encode(strg(Txt),Text).
 

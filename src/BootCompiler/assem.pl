@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispIns/1]).
+:- module(assemble,[assem/2, dispIns/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -758,3 +758,5 @@ showMnem([iDBug|Ins],Pc,PcX,Lbls,[sq([ix(Pc),ss(":"),ss("dBug")])|II]) :- !,
   Pc0 is Pc+1,
   showMnem(Ins,Pc0,PcX,Lbls,II).
 
+
+opcodeHash(762209321258706293).

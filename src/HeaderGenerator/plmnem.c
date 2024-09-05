@@ -39,6 +39,7 @@ static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, 
 static void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static integer insSize(OpCode op, opAndSpec A1, opAndSpec A2);
+static integer staropHash();
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -124,6 +125,10 @@ int main(int argc, char **argv) {
     integer showLen;
     char *showCode = getTextFromBuffer(showBuff, &showLen);
     hashPut(vars, "Show", showCode);
+
+    static char hashBuff[64];
+    strMsg(hashBuff,NumberOf(hashBuff),"%ld",staropHash());
+    hashPut(vars, "Hash", hashBuff);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
@@ -546,4 +551,19 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   showOperand(out, A2, "V", "VV", &res1);
 
   outMsg(out, "  showMnem(Ins,Pc%ld,PcX,Lbls,II).\n", res1.pcV);
+}
+
+static integer opHash(char *mnem,int op){
+  return hash61(strhash(mnem)*37+op);
+}
+
+integer staropHash(){
+  integer hash = 0;
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,M));
+
+#include "instructions.h"
+
+  return hash;
 }

@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispIns/1]).
+:- module(assemble,[assem/2, dispIns/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -122,3 +122,5 @@ showMnem([iLine(Loc)|Ins],Pc,PcX,Lbs,[sq([ss("Line "),LL])|II]) :-
   ssTrm(Loc,0,LL),
   showMnem(Ins,Pc,PcX,Lbs,II).
 #(Show)
+
+opcodeHash(#(Hash)).
