@@ -482,5 +482,5 @@ star.compiler.assem{
   showMnem([.idBug,..Ins],Pc) => "$(Pc)\: dBug\n" ++ showMnem(Ins,Pc+1).
 
 
-  public opcodeHash = 1521780726670279511.
+  public opcodeHash = 762209321258706293.
 }

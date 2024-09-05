@@ -29,7 +29,7 @@ static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msg
 static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
-static char *pkgSig = "n5o5\1()5\1";
+static char *pkgSig = "n6o6\1()6\1";
 
 static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   char codeName[MAXFILELEN];
@@ -75,6 +75,16 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         }
 
         if (ret == Ok) {
+          integer opSig = -1;
+
+          ret = decodeInteger(O_IO(sigBuffer), &opSig);
+
+          if (ret != Ok || opSig != OPCODE_SIGNATURE) {
+            closeIo(O_IO(sigBuffer));
+            strMsg(errorMsg, msgSize, "package: %P has invalid instruction signature\n", pkg);
+            return Error;
+          }
+
           if (pickup != Null)
             ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
@@ -176,6 +186,9 @@ static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgL
 
   if (isLookingAt(in, pkgSig) == Ok) {
     retCode ret = skipEncoded(in, errorMsg, msgLen); // The package name
+    if (ret != Ok)
+      return ret;
+    ret = skipEncoded(in, errorMsg, msgLen); // The opcode signature
     if (ret != Ok)
       return ret;
 
