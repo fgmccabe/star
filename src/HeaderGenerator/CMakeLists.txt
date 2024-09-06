@@ -21,7 +21,7 @@ target_link_libraries(opcodes ooio)
 set(OPCODES_H  ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/opcodes.h)
 set(OPCODES_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/opcodes.plate)
 
-add_custom_target(opcodes.h ALL DEPENDS opcodes
+add_custom_target(opcodes.h DEPENDS opcodes
         COMMAND opcodes  -t ${OPCODES_PLATE}  ${OPCODES_H}
         COMMENT "Opcodes header in ${OPCODES_H}")
 
@@ -47,7 +47,6 @@ set(INTRINSIC_ST_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.star.plate)
 set(INTRINSIC_PL_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.pl.plate)
 set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
 set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
-set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
