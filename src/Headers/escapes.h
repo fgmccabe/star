@@ -336,6 +336,8 @@ escape(_shell, "|F(sLsL(ss))ir"ERRCODE, "Run a shell cmd")
 escape(_ins_debug, "F()()", "set instruction-level")
 escape(_stackTrace, "F()s", "Print a stack trace")
 
+escape(_jit_compile,"|F(s)()r"ERRCODE,"Jit compile a single arg function")
+
 #undef processState
 #undef threadType
 #undef ioHandle
