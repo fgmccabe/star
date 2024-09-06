@@ -181,6 +181,10 @@ framePo dropFrame(stackPo stk) {
   return stk->fp;
 }
 
+ptrPo currSP(stackPo stk) {
+  return stk->sp;
+}
+
 integer stackHwm(stackPo tsk) {
   return tsk->hwm;
 }
@@ -246,16 +250,16 @@ void verifyStack(stackPo stk, heapPo H) {
       tryFramePo trLimit = tryLimit(stk);
 
       while (fp < fpLimit || sp < spLimit || try < trLimit) {
-        if(sp<(ptrPo)try && sp<(ptrPo)fp)
-          validPtr(H,*sp++);
-        else if(sp==(ptrPo)try){
-          check((ptrPo)try<(ptrPo)fp,"out of balance frame");
+        if (sp < (ptrPo) try && sp < (ptrPo) fp)
+          validPtr(H, *sp++);
+        else if (sp == (ptrPo) try) {
+          check((ptrPo) try < (ptrPo) fp, "out of balance frame");
           check(validFP(stk, try->fp), "invalid try frame pointer");
           sp = (ptrPo) (try + 1);
           try = try->try;
-        } else{
-          check(sp==(ptrPo)fp,"expecting a frame here");
-          check(isMethod((termPo)fp->prog),"expecting a code pointer in the frame");
+        } else {
+          check(sp == (ptrPo) fp, "expecting a frame here");
+          check(isMethod((termPo) fp->prog), "expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
           sp = (ptrPo) (fp + 1);
           fp = fp->fp;

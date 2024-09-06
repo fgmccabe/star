@@ -50,6 +50,7 @@ set(SOURCE_FILES
         unicode.c fiberops.c
         timeout.c
         futops.c
-        outops.c)
+        outops.c
+        jitcompile.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

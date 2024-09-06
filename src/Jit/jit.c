@@ -134,20 +134,20 @@ termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
     case 0:
       return codeJit(mtd)();
     case 1:
-      return ((jitCode1) codeJit(mtd))(topStack(stk));
+      return ((jitCode1) codeJit(mtd))(stk, topStack(stk));
     case 2:
-      return ((jitCode2) codeJit(mtd))(topStack(stk), peekStack(stk, 1));
+      return ((jitCode2) codeJit(mtd))(stk, topStack(stk), peekStack(stk, 1));
     case 3:
-      return ((jitCode3) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2));
+      return ((jitCode3) codeJit(mtd))(stk, topStack(stk), peekStack(stk, 1), peekStack(stk, 2));
     case 4:
-      return ((jitCode4) codeJit(mtd))(topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3));
+      return ((jitCode4) codeJit(mtd))(stk, topStack(stk), peekStack(stk, 1), peekStack(stk, 2), peekStack(stk, 3));
     default: {
       integer arity = codeArity(mtd);
       termPo args[arity];
       for (integer ix = 0; ix < arity; ix++) {
         args[ix] = peekStack(stk, ix);
       }
-      return ((jitCodeStar) codeJit(mtd))(args);
+      return ((jitCodeStar) codeJit(mtd))(stk, args);
     }
   }
 }
