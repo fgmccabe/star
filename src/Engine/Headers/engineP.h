@@ -16,6 +16,7 @@
 #include "labelsP.h"
 #include "normalP.h"
 #include "thr.h"
+#include "timers.h"
 
 typedef struct processRec_ {
   stackPo stk;            // Current stack

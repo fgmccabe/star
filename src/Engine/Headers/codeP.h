@@ -51,29 +51,24 @@ static inline int64 argCount(methodPo mtd) {
   return mtd->arity;
 }
 
-static inline integer stackDelta(methodPo mtd) {
-  assert(mtd != Null);
-  return mtd->stackDelta;
-}
-
 static inline void incEntryCount(methodPo mtd) {
   mtd->entryCount++;
 }
 
-static inline logical hasJit(methodPo mtd){
+static inline logical hasJit(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->jit!=Null;
+  return mtd->jit != Null;
 }
 
-static inline jitCode codeJit(methodPo mtd){
-  assert(mtd!=Null && mtd->jit!=Null);
+static inline jitCode codeJit(methodPo mtd) {
+  assert(mtd != Null && mtd->jit != Null);
   return mtd->jit;
 }
 
-retCode setJitCode(methodPo mtd,jitCode code);
+retCode setJitCode(methodPo mtd, jitCode code);
 
-static inline logical isPcOfMtd(methodPo mtd, insPo pc){
-  return pc>=entryPoint(mtd) && pc< entryPoint(mtd)+ insCount(mtd);
+static inline logical isPcOfMtd(methodPo mtd, insPo pc) {
+  return pc >= entryPoint(mtd) && pc < entryPoint(mtd) + insCount(mtd);
 }
 
 labelPo mtdLabel(methodPo mtd);

@@ -176,7 +176,7 @@ framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
   assert((ptrPo) stk->try > (ptrPo) stk->fp);
-  stk->sp = (ptrPo) (fp + 1) + argCount(fp->prog);
+  stk->sp = (ptrPo) (fp + 1) + argCount(frameMtd(fp));
   stk->fp = fp->fp;
   return stk->fp;
 }
@@ -203,7 +203,7 @@ framePo pushFrame(stackPo stk, methodPo mtd, framePo fp) {
   framePo f = ((framePo) stk->sp) - 1;
   assert(validFP(stk, fp));
 
-  f->prog = mtd;
+  f->pool = codeLits(mtd);
   f->pc = entryPoint(mtd);
   f->fp = fp;
 
@@ -259,7 +259,7 @@ void verifyStack(stackPo stk, heapPo H) {
           try = try->try;
         } else {
           check(sp == (ptrPo) fp, "expecting a frame here");
-          check(isMethod((termPo) fp->prog), "expecting a code pointer in the frame");
+          check(isMethod((termPo)frameMtd(fp)), "expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
           sp = (ptrPo) (fp + 1);
           fp = fp->fp;
@@ -335,7 +335,7 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
         stk->sp = (ptrPo) (try + 1);
         stk->fp->pc = try->pc;
         stk->try = try->try;
-        validPC(stk->fp->prog, stk->fp->pc);
+        validPC(frameMtd(stk->fp), stk->fp->pc);
         return stk;
       } else
         try = stk->try = try->try;
@@ -415,7 +415,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
         if ((ptrPo) try < (ptrPo) fp) {
           assert(False);
         } else {
-          helper((ptrPo) &fp->prog, c);
+          helper((ptrPo) &fp->pool, c);
           sp = (ptrPo) (fp + 1);
           fp = fp->fp;
         }
@@ -472,11 +472,11 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   return outMsg(out, "(.stack %d:[%s] %T.)",
                 stk->hash,
                 stackStateName(stk->state),
-                stackState(stk) == moribund ? voidEnum : (termPo) (stk->fp->prog));
+                stackState(stk) == moribund ? voidEnum : (termPo) frameMtd(stk->fp));
 }
 
 void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing) {
-  methodPo mtd = fp->prog;
+  methodPo mtd = frameMtd(fp);
   assert(isMethod((termPo) mtd));
   if (normalCode(mtd)) {
     insPo pc = fp->pc;

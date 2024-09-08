@@ -18,6 +18,7 @@ methodPo C_MTD(termPo t);
 
 normalPo codeLits(methodPo mtd);
 integer codeLitCount(methodPo mtd);
+integer stackDelta(methodPo mtd);
 
 termPo getMtdLit(methodPo mtd, integer litNo);
 

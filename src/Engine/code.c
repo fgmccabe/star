@@ -76,7 +76,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
-  free((void*)mtd->instructions);
+  free((void *) mtd->instructions);
   return ((termPo) o) + mtdSize(class, o);
 }
 
@@ -116,6 +116,11 @@ integer insOffset(methodPo m, insPo pc) {
 
 insPo pcAddr(methodPo mtd, integer pcOffset) {
   return &mtd->instructions[pcOffset];
+}
+
+integer stackDelta(methodPo mtd) {
+  assert(mtd != Null);
+  return mtd->stackDelta;
 }
 
 logical validPC(methodPo mtd, insPo pc) {
@@ -268,9 +273,9 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
-  size_t codeSize = insCount*sizeof(insWord);
-  mtd->instructions = (insPo)malloc(codeSize);
-  memcpy((void*)mtd->instructions,ins,codeSize);
+  size_t codeSize = insCount * sizeof(insWord);
+  mtd->instructions = (insPo) malloc(codeSize);
+  memcpy((void *) mtd->instructions, ins, codeSize);
 
   mtd->codeSize = insCount;
   mtd->jit = Null;

@@ -48,6 +48,8 @@ escape(_int_eq, "F(ii)l", "integer equality")
 escape(_int_lt, "F(ii)l", "integer less than")
 escape(_int_ge, "F(ii)l", "integer greater or equal")
 
+escape(_int_pow, "|F(ii)ir"ERRCODE, "integer exponentiation")
+
 escape(_flt_eq, "F(ff)l", "float equality")
 escape(_flt_lt, "F(ff)l", "float less than")
 escape(_flt_ge, "F(ff)l", "float greater or equal")
@@ -336,7 +338,7 @@ escape(_shell, "|F(sLsL(ss))ir"ERRCODE, "Run a shell cmd")
 escape(_ins_debug, "F()()", "set instruction-level")
 escape(_stackTrace, "F()s", "Print a stack trace")
 
-escape(_jit_compile,"|F(s)()r"ERRCODE,"Jit compile a single arg function")
+escape(_jit_compile,":k'a':k'b'|F(F(k'a')k'b')()r"ERRCODE,"Jit compile a single arg function")
 
 #undef processState
 #undef threadType

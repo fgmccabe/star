@@ -78,7 +78,8 @@ retCode cntDisp(ioPo out, termPo t, integer precision, integer depth, logical al
 
   if (continIsValid(cont)) {
     stackPo stk = contStack(cont);
-    termPo loc = findPcLocation(stk->fp->prog, insOffset(stk->fp->prog, stk->fp->pc));
+    methodPo mtd = frameMtd(stk->fp);
+    termPo loc = findPcLocation(mtd, insOffset(mtd, stk->fp->pc));
 
     if (loc == Null)
       return outMsg(out, "(.continuation %d:[unknown].)", cont->stack->hash, displayDepth);

@@ -9,12 +9,13 @@
 #include "stack.h"
 #include "engine.h"
 #include "heap.h"
+#include "labelsP.h"
 
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;                     // The current program counter
-  methodPo prog;                // The returnee program
   framePo fp;                   // Previous frame
+  normalPo pool;                // The constant pool
 } StackFrame;
 
 typedef struct try_frame_ *tryFramePo;
@@ -113,5 +114,17 @@ typedef enum {
 
 void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing);
 void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing);
+
+static inline methodPo frameMtd(framePo fp) {
+  if (fp->pool != Null) {
+    labelPo lbl = C_LBL(nthArg(fp->pool, 0));
+    return labelCode(lbl);
+  } else
+    return Null;
+}
+
+static inline labelPo frameLbl(framePo fp) {
+  return C_LBL(nthArg(fp->pool, 0));
+}
 
 #endif //STAR_STACKP_H
