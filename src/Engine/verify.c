@@ -9,6 +9,7 @@
 #include "topSort.h"
 #include "ltype.h"
 #include "arith.h"
+#include "libEscapes.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 logical traceVerify = False;      // true if tracing code verification

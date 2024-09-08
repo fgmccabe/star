@@ -43,8 +43,8 @@ logical collectStats = False;
 #define arg(aix) (((ptrPo)(FP+1))[(aix)])
 #define stackRoom(amnt) ((SP-(amnt)) > STK->stkMem)
 #define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
-#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=codeLits(FP->prog);})
-#define pushFrme(mtd) STMT_WRAP({framePo f = ((framePo)SP)-1; f->prog=mtd; f->fp=FP; PC = f->pc = entryPoint(mtd); FP = f; SP = (ptrPo)FP;})
+#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=FP->pool;})
+#define pushFrme(mtd) STMT_WRAP({framePo f = ((framePo)SP)-1; f->fp=FP; PC = f->pc = entryPoint(mtd); f->pool = codeLits(mtd); FP = f; SP = (ptrPo)FP;})
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars);\
@@ -69,7 +69,7 @@ retCode run(processPo P) {
   stackPo STK = P->stk;
   framePo FP = STK->fp;
   register insPo PC = FP->pc;    /* Program counter */
-  register normalPo LITS = codeLits(FP->prog); /* pool of literals */
+  register normalPo LITS = FP->pool; /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
 
   register uint32 hi32, lo32;    /* Temporary registers */
@@ -126,7 +126,7 @@ retCode run(processPo P) {
 #endif
         }
 
-        assert(isPcOfMtd(FP->prog, PC));
+        assert(isPcOfMtd(frameMtd(FP), PC));
         FP->pc = PC;
 
         if (hasJit(mtd)) {
@@ -182,7 +182,7 @@ retCode run(processPo P) {
 #endif
         }
 
-        assert(isPcOfMtd(FP->prog, PC));
+        assert(isPcOfMtd(frameMtd(FP), PC));
         FP->pc = PC;
         pushFrme(mtd);
         LITS = codeLits(mtd);
@@ -316,13 +316,14 @@ retCode run(processPo P) {
           SP = STK->sp;
           FP = STK->fp;
           pushFrme(mtd);
+          LITS = codeLits(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
           // Overwrite existing arguments and locals
-          ptrPo tgt = &arg(argCount(FP->prog));
+          ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
           framePo Pfp = FP->fp;
 
@@ -331,12 +332,11 @@ retCode run(processPo P) {
           FP = ((framePo) tgt) - 1;      // Frame might have moved
           FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
-          FP->prog = mtd;
+          FP->pool = LITS = codeLits(mtd);
           SP = (ptrPo) FP;
         }
 
         incEntryCount(mtd);              // Increment number of times program called
-        LITS = codeLits(mtd);
         continue;       /* Were done */
       }
 
@@ -375,13 +375,14 @@ retCode run(processPo P) {
           SP = STK->sp;
           FP = STK->fp;
           pushFrme(mtd);
+          LITS = codeLits(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
           // Overwrite existing arguments and locals
-          ptrPo tgt = &arg(argCount(FP->prog));
+          ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
           framePo Pfp = FP->fp;
 
@@ -390,10 +391,9 @@ retCode run(processPo P) {
           FP = ((framePo) tgt) - 1;      // Frame might have moved
           FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
-          FP->prog = mtd;
+          FP->pool = LITS = codeLits(mtd);
         }
 
-        LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called
         continue;       /* Were done */
       }
@@ -411,10 +411,10 @@ retCode run(processPo P) {
         termPo retVal = *SP;     /* return value */
 
         assert(FP < baseFrame(STK));
-        SP = &arg(argCount(FP->prog)); // Just above arguments to current call
+        SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
-        LITS = codeLits(FP->prog);
+        LITS =FP->pool;
 
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
@@ -422,7 +422,7 @@ retCode run(processPo P) {
 
       case Jmp:       /* jump to local offset */
         PC = collectOff(PC);
-        assert(validPC(FP->prog, PC));
+        assert(validPC(frameMtd(FP), PC));
         continue;
 
       case Drop: {
@@ -450,7 +450,7 @@ retCode run(processPo P) {
       case Rst: {
         int32 height = collectI32(PC);
         assert(height >= 0);
-        SP = &local(lclCount(FP->prog) + height);
+        SP = &local(lclCount(frameMtd(FP)) + height);
         continue;
       }
 
@@ -563,7 +563,7 @@ retCode run(processPo P) {
 
       case Try: {
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
 
         saveRegisters();
@@ -700,7 +700,7 @@ retCode run(processPo P) {
         labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
         termPo t = top();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
@@ -791,7 +791,7 @@ retCode run(processPo P) {
       case LdTh: {
         thunkPo thVr = C_THUNK(pop());
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (thunkIsSet(thVr)) {
           termPo vr = thunkVal(thVr);
@@ -833,7 +833,7 @@ retCode run(processPo P) {
 #endif
           }
 
-          assert(isPcOfMtd(FP->prog, PC));
+          assert(isPcOfMtd(frameMtd(FP), PC));
           FP->pc = PC;
           pushFrme(mtd);
           LITS = codeLits(mtd);
@@ -987,7 +987,7 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (integerVal(i) != integerVal(j))
           PC = exit;
@@ -1021,7 +1021,7 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (charVal(i) != charVal(j))
           PC = exit;
@@ -1175,7 +1175,7 @@ retCode run(processPo P) {
         termPo x = pop();
         termPo y = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (floatVal(x) != floatVal(y))
           PC = exit;
@@ -1207,7 +1207,7 @@ retCode run(processPo P) {
         termPo t = pop();
         insPo exit = collectOff(PC);
 
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         normalPo n;
         if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
@@ -1263,7 +1263,7 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, j))
           PC = exit;
@@ -1273,7 +1273,7 @@ retCode run(processPo P) {
       case If: {
         termPo i = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (sameTerm(i, trueEnum))
           PC = exit;
@@ -1283,7 +1283,7 @@ retCode run(processPo P) {
       case IfNot: {
         termPo i = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(FP->prog, exit));
+        assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, trueEnum))
           PC = exit;
@@ -1301,8 +1301,8 @@ retCode run(processPo P) {
             tryRet(typeSigArity(sig, sigLen, &frameDepth));
           } else
             frameDepth = integerVal(frame);
-          if (frameDepth != stackDepth(STK, FP->prog, SP, FP)) {
-            logMsg(logFile, "stack depth: %d does not match frame signature %T", stackDepth(STK, FP->prog, SP, FP),
+          if (frameDepth != stackDepth(STK, frameMtd(FP), SP, FP)) {
+            logMsg(logFile, "stack depth: %d does not match frame signature %T", stackDepth(STK, frameMtd(FP), SP, FP),
                    frame);
             bail();
           }

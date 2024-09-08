@@ -70,6 +70,30 @@ ReturnStatus g__int_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 }
 
+// Integer power: x^y
+static integer intPow(integer x, integer y) {
+  integer result = 1;
+  assert(y >= 0);
+
+  while (y > 0) {
+    if ((y & 1) == 1)
+      result *= x;
+    x = x * x;
+    y = y >> 1;
+  }
+  return result;
+}
+
+ReturnStatus g__int_pow(heapPo h, termPo xc, termPo a1, termPo a2) {
+  integer x = integerVal(a1);
+  integer y = integerVal(a2);
+
+  if (y < 0) {
+    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=noValue};
+  } else
+    return (ReturnStatus) {.ret=Normal, .result=makeInteger(intPow(x, y))};
+}
+
 ReturnStatus g__band(heapPo h, termPo a1, termPo a2) {
   uint64 Lhs = (uint64) integerVal(a1);
   uint64 Rhs = (uint64) integerVal(a2);

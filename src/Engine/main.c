@@ -29,6 +29,7 @@
 #include "thunkP.h"
 #include "vectP.h"
 #include "ioops.h"
+#include "libEscapes.h"
 
 #include "stringBufferP.h"
 
@@ -77,6 +78,7 @@ int main(int argc, char **argv) {
   initThr();
   initTime();
   initIoOps();
+  initJit();
 
   char *rootWd = defltCWD();
   defltRepoDir();

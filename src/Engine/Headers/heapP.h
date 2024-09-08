@@ -1,9 +1,10 @@
 #ifndef _HEAP_P_H_
 #define _HEAP_P_H_
 
-#include <turm.h>
+#include <term.h>
 #include "heap.h"
-#include "timers.h"
+#include "engine.h"
+#include "termP.h"
 
 // Are we allocating from the lower or upper half?
 typedef enum {
@@ -29,8 +30,6 @@ typedef struct heap_ {
 } HeapRecord;
 
 extern HeapRecord heap;
-extern timerPo gcTimer;
-
 
 typedef struct stack_frame_ *framePo;
 

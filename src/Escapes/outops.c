@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "ioops.h"
+#include "engine.h"
 #include "future.h"
 #include "globals.h"
 #include "consP.h"
