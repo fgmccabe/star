@@ -33,7 +33,7 @@ SpecialClass LabelClass = {
 clssPo labelClass = (clssPo) &LabelClass;
 
 LblRecord *labelTable;
- integer lblTableTop = 0;
+integer lblTableTop = 0;
 
 static integer LabelHash(labelRecordPo lbl) {
   return hash61(lbl->arity * 37 + uniHash(lbl->name));

@@ -32,6 +32,13 @@ extern clssPo methodClass;
 
 #define MtdCellCount CellCount(sizeof(MethodRec))
 
+// These are needed during GC
+extern methodPo haltMethod;
+methodPo underflowMethod;
+methodPo newFiberMethod;
+methodPo newTaskMethod;
+methodPo spawnMethod;
+
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
 }
@@ -82,9 +89,11 @@ typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *c
 extern retCode
 installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
 
-extern methodPo
+methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
           normalPo locals, normalPo lines);
+
+methodPo declareMethod(const char *name, integer arity, insPo ins, integer insCount);
 
 void showMtdCounts(ioPo out);
 #endif

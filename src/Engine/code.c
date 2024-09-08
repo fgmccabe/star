@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "quick.h"
+#include "tpl.h"
+#include "globals.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -292,6 +294,15 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   return mtd;
 }
+
+methodPo declareMethod(const char *name, integer arity, insPo ins, integer insCount) {
+  labelPo lbl = declareLbl(name, arity, 0);
+  normalPo pool = allocateTpl(globalHeap, 1);
+  setArg(pool, 0, (termPo) lbl);
+
+  return defineMtd(globalHeap, ins, insCount, 0, 0, lbl, pool, C_NORMAL(unitEnum), C_NORMAL(unitEnum));
+}
+
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
