@@ -11,6 +11,7 @@
 #include "globalsP.h"
 #include "vectP.h"
 #include "eitherP.h"
+#include "codeP.h"
 
 termPo eOk;
 termPo eSWITCH;
@@ -240,6 +241,13 @@ void markGlobals(gcSupportPo G) {
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 
   hNilEnum = markPtr(G, &hNilEnum);
+
+  haltMethod = C_MTD(markPtr(G,(ptrPo)&haltMethod));
+  underflowMethod = C_MTD(markPtr(G,(ptrPo)&underflowMethod));
+  newFiberMethod = C_MTD(markPtr(G,(ptrPo)&newFiberMethod));
+  newTaskMethod = C_MTD(markPtr(G,(ptrPo)&newTaskMethod));
+  spawnMethod = C_MTD(markPtr(G,(ptrPo)&spawnMethod));
+
   scanVect(G);
 }
 

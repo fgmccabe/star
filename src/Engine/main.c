@@ -49,13 +49,25 @@ int main(int argc, char **argv) {
 
   initLogfile("-");
 
+  setupDebugChannels();
+
+  installMsgProc('M', showMtdLbl);
+  installMsgProc('L', showLoc);
+  installMsgProc('T', showTerm);
+  installMsgProc('P', dispPkgNm);
+  installMsgProc('B', showStringBuffer);
+  installMsgProc('A', showLabel);
+  installMsgProc('I', showIdentifier);
+  installMsgProc('C', genQuotedChr);
+  installMsgProc('Q', genQuotedStr);
+
   if ((narg = getEngineOptions(argc, argv)) < 0) {
     exit(1);
-  }       /* Initialize time stuff */
-  initTimers();
+  }
+
+  initTimers();     /* Initialize time stuff */
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
-  initStacks();
   initArith();
   initBignum();
   initChars();
@@ -74,6 +86,7 @@ int main(int argc, char **argv) {
   initCell();
   initCode();
   initTerm();
+  initStacks();
   initIoChnnl();
   initThr();
   initTime();
@@ -83,17 +96,6 @@ int main(int argc, char **argv) {
   char *rootWd = defltCWD();
   defltRepoDir();
 
-  setupDebugChannels();
-
-  installMsgProc('M', showMtdLbl);
-  installMsgProc('L', showLoc);
-  installMsgProc('T', showTerm);
-  installMsgProc('P', dispPkgNm);
-  installMsgProc('B', showStringBuffer);
-  installMsgProc('A', showLabel);
-  installMsgProc('I', showIdentifier);
-  installMsgProc('C', genQuotedChr);
-  installMsgProc('Q', genQuotedStr);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 

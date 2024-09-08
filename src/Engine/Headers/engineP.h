@@ -33,7 +33,6 @@ typedef struct processRec_ {
   framePo waterMark;      // Used to decide when to start debugging again
 } ProcessRec;
 
-extern MethodRec haltMethod;
 extern void initEngine();
 extern retCode run(processPo P);
 

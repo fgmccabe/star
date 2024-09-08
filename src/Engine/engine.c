@@ -10,6 +10,7 @@
 #include "decode.h"
 #include "globals.h"
 #include "debugP.h"
+#include "tpl.h"
 
 // Count instructions etc.
 static poolPo prPool;     /* pool of processes */
@@ -25,22 +26,17 @@ static integer newProcessNumber();
 
 __thread processPo currentProcess = Null;
 
-static insWord haltCode[] = {Halt,0};
+static insWord haltCode[] = {Halt, 0};
 
-MethodRec haltMethod = {
-  .clss = Null,
-  .codeSize = 2,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .instructions = haltCode,
-};
+
+methodPo haltMethod;
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
-  haltMethod.clss = methodClass;
+
+  haltMethod = declareMethod("halt", 0, haltCode, NumberOf(haltCode));
+
   runTimer = newTimer("running");
 }
 
@@ -66,7 +62,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
-  stackPo stk = P->stk = allocateStack(h, stackSize, &haltMethod, active, Null);
+  stackPo stk = P->stk = allocateStack(h, stackSize, haltMethod, active, Null);
 
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, mtd, stk->fp);
@@ -120,7 +116,7 @@ void setProcessRunnable(processPo p) {
   switchProcessState(p, runnable);
 }
 
-integer nextTryCounter(processPo P){
+integer nextTryCounter(processPo P) {
   return P->tryCounter++;
 }
 

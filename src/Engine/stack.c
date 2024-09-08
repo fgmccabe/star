@@ -33,48 +33,14 @@ SpecialClass StackClass = {
 };
 
 static insWord underflowCode[] = {Underflow, 0};
-static MethodRec underFlowMethod = {
-  .clss = Null,
-  .codeSize = 2,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .instructions = underflowCode
-};
-
 static insWord newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
-static MethodRec newFiberMethod = {
-  .clss = Null,
-  .codeSize = 6,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .instructions = newFiberCode
-};
 static insWord newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
-
-static MethodRec newTaskMethod = {
-  .clss = Null,
-  .codeSize = 9,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .instructions = newTaskCode
-};
-
 static insWord spawnCode[] = {TOCall, 0, 2};
-static MethodRec spawnMethod = {
-  .clss = Null,
-  .codeSize = 3,
-  .arity = 0,
-  .lclcnt = 0,
-  .pool = Null,
-  .locals = Null,
-  .instructions = spawnCode
-};
+
+methodPo underflowMethod;
+methodPo newFiberMethod;
+methodPo newTaskMethod;
+methodPo spawnMethod;
 
 clssPo stackClass = (clssPo) &StackClass;
 
@@ -86,10 +52,13 @@ static buddyRegionPo stackRegion;
 
 void initStacks() {
   StackClass.clss = specialClass;
-  underFlowMethod.clss = methodClass;
-  newFiberMethod.clss = methodClass;
-  newTaskMethod.clss = methodClass;
-  spawnMethod.clss = methodClass;
+
+  underflowMethod = declareMethod("underflow", 0, underflowCode, NumberOf(underflowCode));
+
+  newFiberMethod = declareMethod("newFiber", 0, newFiberCode, NumberOf(newFiberCode));
+  newTaskMethod = declareMethod("newTask", 0, newTaskCode, NumberOf(newTaskCode));
+  spawnMethod = declareMethod("spawn", 0, spawnCode, NumberOf(spawnCode));
+
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
@@ -568,7 +537,7 @@ stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {
 
   assert(size >= minStackSize && stackState(tsk) != moribund);
 
-  stackPo newStack = allocateStack(H, size, &underFlowMethod, stackState(tsk), tsk);
+  stackPo newStack = allocateStack(H, size, underflowMethod, stackState(tsk), tsk);
   moveStack2Stack(newStack, tsk, saveArity);
   propagateHwm(newStack);
   gcReleaseRoot(H, root);
@@ -578,7 +547,7 @@ stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {
 stackPo spinupStack(heapPo H, integer size) {
   assert(size >= minStackSize);
 
-  return allocateStack(H, size, &underFlowMethod, suspended, Null);
+  return allocateStack(H, size, underflowMethod, suspended, Null);
 }
 
 stackPo newFiber(heapPo H, termPo lam) {
@@ -586,7 +555,7 @@ stackPo newFiber(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, &newTaskMethod, child->fp);
+  child->fp = pushFrame(child, newTaskMethod, child->fp);
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -599,7 +568,7 @@ stackPo newStack(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, &newTaskMethod, child->fp);
+  child->fp = pushFrame(child, newTaskMethod, child->fp);
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -613,7 +582,7 @@ stackPo splitStack(processPo P, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, &spawnMethod, child->fp);
+  child->fp = pushFrame(child, spawnMethod, child->fp);
 
   pushStack(child, (termPo) child);
   pushStack(child, lam);
