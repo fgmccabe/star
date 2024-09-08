@@ -6,12 +6,64 @@
 #include "jitOps.h"
 #include "arm64.h"
 #include <assert.h>
+#include "stackP.h"
+#include "code.h"
 
 /* Lower Star VM code to Arm64 code */
+/* Register allocation for arm64:
+ *
+ * SP = stack pointer
+ * FP = frame pointer
+ * LR = link register
+ * X0-X8 = integer parameters
+ * X0 = return register
+ * X9-X15 = caller saved scratch registers
+ * X16-X17 = intra procedure call scratch registers
+ * X18 = reserved
+ * X19-X26 = callee saved registers
+ * X27 = current stack structure pointer
+ * X28 = constant pool pointer
+ */
+
+static retCode stackCheck(jitCompPo jit, int32 delta);
+static const integer integerByteCount = (integer) sizeof(integer);
 
 
-retCode jit_preamble(methodPo mtd, jitCompPo jitCtx) {
-  return Error;
+retCode jit_preamble(methodPo mtd, jitCompPo jit) {
+  integer frameSize = lclCount(mtd) * integerByteCount + (integer)sizeof(StackFrame);
+  if (!isInt32(frameSize))
+    return Error;
+  integer stkDelta = stackDelta(mtd) * integerByteCount;
+  if (!isInt32(stkDelta))
+    return Error;
+
+  assemCtxPo ctx = assemCtx(jit);
+  codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
+  markEntry(jit,entry);
+  int32 stkAdjustment = ALIGNVALUE(frameSize, 16);
+
+  stp(FP, X30, PRX(SP, -sizeof(StackFrame)));
+  mov(FP, RG(SP));
+  str(X28,OF(FP, OffsetOf(StackFrame,pool)));
+  if (stkAdjustment != 0)
+    sub(SP, SP, IM(stkAdjustment));
+
+  stackCheck(jit, (int32) stkDelta);
+  return Ok;
+}
+
+retCode stackCheck(jitCompPo jit, int32 delta) {
+  int32 stkMemOffset = OffsetOf(StackRecord, stkMem);
+  assemCtxPo ctx = assemCtx(jit);
+  codeLblPo okLbl = defineLabel(ctx, "stackOk", undefinedPc);
+
+  sub(X16, SP, IM(delta));
+  ldr(X17, OF(X27, stkMemOffset));
+  cmp(X16, RG(X17));
+  bhi(okLbl);
+
+  setLabel(ctx, okLbl);
+  return Ok;
 }
 
 retCode jit_postamble(methodPo mtd, jitCompPo jitCtx) {
@@ -435,6 +487,7 @@ retCode jit_Shift(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitComp
 retCode jit_Invoke(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
+
 retCode jit_dBug(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

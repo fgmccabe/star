@@ -11,8 +11,8 @@
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
   codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
   int32 stkAdjustment = ALIGNVALUE(lclSize, 16);
-  stp(X29, X30, PRX(SP, -16));
-  mov(X29, RG(SP));
+  stp(FP, X30, PRX(SP, -16));
+  mov(FP, RG(SP));
   if (stkAdjustment != 0)
     sub(SP, SP, IM(stkAdjustment));
   return entry;

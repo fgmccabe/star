@@ -24,6 +24,7 @@ escapeType("_flt_abs",funType(tplType([type("star.core*float")]),type("star.core
 escapeType("_int_eq",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_lt",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_ge",funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
+escapeType("_int_pow",constrained(funType(tplType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_flt_eq",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean"))).
 escapeType("_flt_lt",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean"))).
 escapeType("_flt_ge",funType(tplType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean"))).
@@ -255,6 +256,7 @@ escapeType("_waitfor",constrained(funType(tplType([type("star.thread*thread")]),
 escapeType("_shell",constrained(funType(tplType([type("star.core*string"),tpExp(tpFun("star.core*cons",1),type("star.core*string")),tpExp(tpFun("star.core*cons",1),tplType([type("star.core*string"),type("star.core*string")]))]),type("star.core*integer")),raises(type("star.core*errorCode")))).
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),type("star.core*string"))).
+escapeType("_jit_compile",allType(kVar("a"),allType(kVar("b"),constrained(funType(tplType([funType(tplType([kVar("a")]),kVar("b"))]),tplType([])),raises(type("star.core*errorCode")))))).
 isEscape("_exit").
 isEscape("_abort").
 isEscape("_definedLbl").
@@ -277,6 +279,7 @@ isEscape("_flt_abs").
 isEscape("_int_eq").
 isEscape("_int_lt").
 isEscape("_int_ge").
+isEscape("_int_pow").
 isEscape("_flt_eq").
 isEscape("_flt_lt").
 isEscape("_flt_ge").
@@ -508,3 +511,4 @@ isEscape("_waitfor").
 isEscape("_shell").
 isEscape("_ins_debug").
 isEscape("_stackTrace").
+isEscape("_jit_compile").

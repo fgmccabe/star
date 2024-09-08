@@ -28,6 +28,7 @@ star.compiler.escapes{
     | "_int_eq" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*boolean")))
     | "_int_lt" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*boolean")))
     | "_int_ge" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*boolean")))
+    | "_int_pow" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*integer"),.nomnal("star.core*integer")])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode"))))
     | "_flt_eq" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*boolean")))
     | "_flt_lt" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*boolean")))
     | "_flt_ge" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*float"),.nomnal("star.core*float")])),.nomnal("star.core*boolean")))
@@ -259,6 +260,7 @@ star.compiler.escapes{
     | "_shell" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.core*string"),.tpExp(.tpFun("star.core*cons",1),.nomnal("star.core*string")),.tpExp(.tpFun("star.core*cons",1),.tupleType([.nomnal("star.core*string"),.nomnal("star.core*string")]))])),.nomnal("star.core*integer")),.raisEs(.nomnal("star.core*errorCode"))))
     | "_ins_debug" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([])))
     | "_stackTrace" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("star.core*string")))
+    | "_jit_compile" => .some(.allType(.kVar("a"),.allType(.kVar("b"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a")])),.kVar("b"))])),.tupleType([])),.raisEs(.nomnal("star.core*errorCode"))))))
     | _ default => .none
   }
 
@@ -286,6 +288,7 @@ star.compiler.escapes{
     | "_int_eq" => .true
     | "_int_lt" => .true
     | "_int_ge" => .true
+    | "_int_pow" => .true
     | "_flt_eq" => .true
     | "_flt_lt" => .true
     | "_flt_ge" => .true
@@ -517,6 +520,7 @@ star.compiler.escapes{
     | "_shell" => .true
     | "_ins_debug" => .true
     | "_stackTrace" => .true
+    | "_jit_compile" => .true
     | _ default => .false.
   }
 }.

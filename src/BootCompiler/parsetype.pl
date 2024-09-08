@@ -320,6 +320,9 @@ parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
 parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
   isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
   parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
+parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
+  isStructTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
+  parseStructTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
 
 parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
 		      Publish,Viz,Dc,Dcx,Path):-

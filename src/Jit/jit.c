@@ -16,8 +16,17 @@ logical jitOnLoad = False;
 logical traceJit = False;
 #endif
 
-assemCtxPo assemCtx(jitCompPo jitCtx){
+assemCtxPo assemCtx(jitCompPo jitCtx) {
   return jitCtx->assemCtx;
+}
+
+void markEntry(jitCompPo jit, codeLblPo entry) {
+  assert(jit->entry == Null);
+  jit->entry = entry;
+}
+
+codeLblPo jitEntry(jitCompPo jit) {
+  return jit->entry;
 }
 
 static int32 collectOperand(insPo base, integer *pc) {
@@ -113,6 +122,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   while (ret == Ok && pc < len) {
     switch (ins[pc++]) {
 #include "instructions.h"
+
 #undef instruction
 
       default:
@@ -126,6 +136,9 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   if (ret == Ok)
     return setJitCode(mtd, createCode(jitCtx->assemCtx));
   clearJitContext(jitCtx);
+
+  strMsg(errMsg, msgLen, "error in generating jit code");
+
   return ret;
 }
 
