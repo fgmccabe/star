@@ -19,8 +19,8 @@
 #define NumberOf(a) (sizeof(a)/sizeof((a)[0]))
 #endif
 
-#ifndef AddressOf
-#define AddressOf(tp, field) ((long)(void*)(&((tp*)0)->field))
+#ifndef OffsetOf
+#define OffsetOf(tp, field) ((long)(void*)(&((tp*)0)->field))
 #endif
 
 #ifndef STMT_WRAP

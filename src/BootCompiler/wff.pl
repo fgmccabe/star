@@ -1,5 +1,6 @@
 :-module(wff,[isAnnotation/4,isQuote/3,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
+	      isStructTypeStmt/7,mkStructTypeStmt/7,
 	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
 	      isAnonBrace/3,mkAnonBrace/3,
@@ -136,6 +137,17 @@ mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
   reConstrain(Cx,Head,H0),
   reUQuant(Q,H0,H1),
   binary(Lc,"::=",H1,Body,S).
+
+isStructTypeStmt(Stmt,Lc,Q,Cx,Head,Nm,Els) :-
+  isBinary(Stmt,Lc,"::=",Lhs,Body),
+  genQuantifiers(Lhs,Q,Head),
+  isBraceCon(Body,_,Cx,_,Nm,Els).
+
+mkStructTypeStmt(Lc,Q,Cx,Head,Nm,Els,Stmt) :-
+  reConstrain(Cx,Head,H0),
+  reUQant(Q,H0,H1),
+  braceTerm(Lc,Nm,Els,Br),
+  binary(Lc,"::=",H1,Br,Stmt).
 
 isConstructor(C,Lc,C,[]) :-
   isIden(C,Lc,_).

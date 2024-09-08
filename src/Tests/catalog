@@ -70,6 +70,7 @@
     "test.f": "f.star",
     "test.fg": "fg.star",
     "test.fi": "fi.star",
+    "test.fib": "fib.star",
     "test.fil": "fil.star",
     "test.fl": "fl.star",
     "test.fm": "fm.star",

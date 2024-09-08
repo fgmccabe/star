@@ -13,6 +13,7 @@
     "test.e": "e.star",
     "test.lib.fact": "fact.star",
     "test.lib.fib": "fib.star",
+    "test.lib.timer": "timer.star",
     "test.fng": "fng.star",
     "test.fog": "fog.star",
     "test.m": "m.star",

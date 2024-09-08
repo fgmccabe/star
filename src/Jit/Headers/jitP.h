@@ -57,6 +57,7 @@ typedef struct jit_compiler_ {
   registerMap usedRegs;
   registerMap freeRegs;
   assemCtxPo assemCtx;
+  codeLblPo entry;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
@@ -82,6 +83,9 @@ assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
 jitCode createCode(assemCtxPo ctx);
 
+void markEntry(jitCompPo jit,codeLblPo entry);
+codeLblPo jitEntry(jitCompPo jit);
+
 extern integer undefinedPc;
 
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
@@ -105,7 +109,7 @@ typedef struct lbl_ref {
 logical isByte(int64 x);
 logical isI32(int64 x);
 
-retCode jit_preamble(methodPo mtd, jitCompPo ctx);
+retCode jit_preamble(methodPo mtd, jitCompPo jit);
 
 retCode jit_postamble(methodPo mtd, jitCompPo ctx);
 

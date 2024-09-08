@@ -148,6 +148,11 @@ star.arith{
     _format(X,F) => (try _flt_format(X,F) catch errorCode in {_ => "bad format"}).
   }
 
-  public (**):(float,float)=>float.
-  X**Y => _flt_pwr(X,Y).
+  public contract all e ~~ pwr[e] ::= {
+    (**) : (e,e)=>e
+  }
+
+  public implementation pwr[float] => {
+    X**Y => _flt_pwr(X,Y)
+  }
 }

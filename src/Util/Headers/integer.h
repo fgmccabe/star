@@ -34,6 +34,10 @@ extern ixPo newInteger(integer ix);
 
 extern classPo ixClass;
 
+static inline logical isInt32(integer ix){
+  return (integer)((int32)ix) == ix;
+}
+
 #ifdef VERIFY_OBJECT
 #define O_IX(c) ((ixPo)(checkCast((c),ixClass)))
 #else
