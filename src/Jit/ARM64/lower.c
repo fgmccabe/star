@@ -4,33 +4,24 @@
 #include <config.h>
 #include "lowerP.h"
 #include "jitOps.h"
-#include "arm64.h"
 #include <assert.h>
 #include "stackP.h"
+#include "macros.h"
 #include "code.h"
 
 /* Lower Star VM code to Arm64 code */
-/* Register allocation for arm64:
- *
- * SP = stack pointer
- * FP = frame pointer
- * LR = link register
- * X0-X8 = integer parameters
- * X0 = return register
- * X9-X15 = caller saved scratch registers
- * X16-X17 = intra procedure call scratch registers
- * X18 = reserved
- * X19-X26 = callee saved registers
- * X27 = current stack structure pointer
- * X28 = constant pool pointer
- */
 
-static retCode stackCheck(jitCompPo jit, int32 delta);
+static retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta);
 static const integer integerByteCount = (integer) sizeof(integer);
 
+static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
+static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
+static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
+
+static registerMap nonSpillSet(methodPo mtd);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
-  integer frameSize = lclCount(mtd) * integerByteCount + (integer)sizeof(StackFrame);
+  integer frameSize = lclCount(mtd) * integerByteCount + (integer) sizeof(StackFrame);
   if (!isInt32(frameSize))
     return Error;
   integer stkDelta = stackDelta(mtd) * integerByteCount;
@@ -39,20 +30,20 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
 
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
-  markEntry(jit,entry);
+  markEntry(jit, entry);
   int32 stkAdjustment = ALIGNVALUE(frameSize, 16);
 
   stp(FP, X30, PRX(SP, -sizeof(StackFrame)));
   mov(FP, RG(SP));
-  str(X28,OF(FP, OffsetOf(StackFrame,pool)));
+  str(PL, OF(FP, OffsetOf(StackFrame, pool)));
   if (stkAdjustment != 0)
     sub(SP, SP, IM(stkAdjustment));
 
-  stackCheck(jit, (int32) stkDelta);
+  stackCheck(jit, mtd, (int32) stkDelta);
   return Ok;
 }
 
-retCode stackCheck(jitCompPo jit, int32 delta) {
+retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   int32 stkMemOffset = OffsetOf(StackRecord, stkMem);
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = defineLabel(ctx, "stackOk", undefinedPc);
@@ -62,12 +53,28 @@ retCode stackCheck(jitCompPo jit, int32 delta) {
   cmp(X16, RG(X17));
   bhi(okLbl);
 
+  saveRegisters(ctx, nonSpillSet(mtd));
+
+  mov(X0, RG(SB));
+  mov(X1, IM(delta));
+  mov(X2, IM((integer) mtd));
+  tryRet(invokeCFunc3(jit, (Cfunc3) handleStackOverflow));
+  mov(SB, RG(X0));
+
+  restoreRegisters(ctx, nonSpillSet(mtd));
+
   setLabel(ctx, okLbl);
   return Ok;
 }
 
-retCode jit_postamble(methodPo mtd, jitCompPo jitCtx) {
-  return Error;
+retCode jit_postamble(methodPo mtd, jitCompPo jit) {
+  assemCtxPo ctx = assemCtx(jit);
+
+  add(SP, FP, IM(sizeof(StackFrame)));
+  mov(PL, OF(FP, OffsetOf(StackFrame, pool)));
+  ldp(FP, LR, PSX(SP, 16));
+  ret(LR);
+  return Ok;
 }
 
 static vOperand popStkOp(jitCompPo jitCtx) {
@@ -219,7 +226,14 @@ retCode jit_Rot(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo
   return Ok;
 }
 
-retCode jit_Call(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+retCode jit_Call(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jit) {
+  assert(arg1.loc == literal);
+
+  labelPo lbl = C_LBL(getMtdLit(jit->mtd,arg1.ix));
+  integer arity = labelArity(lbl);
+
+  spillUntil(jit,arity);    // Spill all stack arguments up until arity
+
   return Error;
 }
 
@@ -492,25 +506,41 @@ retCode jit_dBug(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompP
   return Error;
 }
 
-registerMap defltAvailRegSet() {
-  return callerSaved() | calleeSaved() | stackRegs();
-}
-
-registerMap allocReg(registerMap from, armReg Rg) {
-  check((from & (1u << Rg)) != 0, "register not free");
-  return (from & (~(1u << Rg)));
-}
-
-registerMap freeReg(registerMap from, armReg Rg) {
-  check((from & (1u << Rg)) != 0, "register already free");
-  return (from | (1u << Rg));
-}
-
-armReg nxtAvailReg(registerMap from) {
-  for (uint32 ix = 0; ix < 64u; ix++) {
-    uint64 mask = 1u << ix;
-    if ((from & mask) != 0)
-      return ix;
+registerMap nonSpillSet(methodPo mtd) {
+  registerMap set = emptyRegSet();
+  switch (codeArity(mtd)) {
+    default:
+    case 9:
+      set = addReg(set, X8);
+    case 8:
+      set = addReg(set, X7);
+    case 7:
+      set = addReg(set, X6);
+    case 6:
+      set = addReg(set, X5);
+    case 5:
+      set = addReg(set, X4);
+    case 4:
+      set = addReg(set, X3);
+    case 3:
+      set = addReg(set, X2);
+    case 2:
+      set = addReg(set, X1);
+    case 1:
+      set = addReg(set, X0);
+    case 0:
+      return set;
   }
-  return XZR;
+}
+
+retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
+  return Error;
+}
+
+retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun) {
+  return Error;
+}
+
+retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
+  return Error;
 }

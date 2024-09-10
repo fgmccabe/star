@@ -10,12 +10,9 @@
 #include "ooio.h"
 #include "array.h"
 #include "lower.h"
+#include "macros.h"
 
 #define MAX_VSTACK 256
-
-typedef uint64 registerMap;
-
-registerMap defltAvailRegSet();
 
 typedef enum {
   int64Tp,
@@ -83,7 +80,7 @@ assemCtxPo createCtx();
 void discardCtx(assemCtxPo ctx);
 jitCode createCode(assemCtxPo ctx);
 
-void markEntry(jitCompPo jit,codeLblPo entry);
+void markEntry(jitCompPo jit, codeLblPo entry);
 codeLblPo jitEntry(jitCompPo jit);
 
 extern integer undefinedPc;

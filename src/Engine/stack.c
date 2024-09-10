@@ -105,7 +105,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
     outMsg(logFile, "establish stack of %d words\n", sze);
 #endif
 
-  stk->fp = pushFrame(stk, underFlow, stk->fp);
+  stk->fp = pushFrame(stk, underFlow);
   gcReleaseRoot(H, root);
 
   return stk;
@@ -168,13 +168,13 @@ void propagateHwm(stackPo tsk) {
   }
 }
 
-framePo pushFrame(stackPo stk, methodPo mtd, framePo fp) {
+framePo pushFrame(stackPo stk, methodPo mtd) {
   framePo f = ((framePo) stk->sp) - 1;
-  assert(validFP(stk, fp));
+  assert(validFP(stk, stk->fp));
 
   f->pool = codeLits(mtd);
   f->pc = entryPoint(mtd);
-  f->fp = fp;
+  f->fp = stk->fp;
 
   stk->fp = f;
   stk->sp = (ptrPo) f;
@@ -228,7 +228,7 @@ void verifyStack(stackPo stk, heapPo H) {
           try = try->try;
         } else {
           check(sp == (ptrPo) fp, "expecting a frame here");
-          check(isMethod((termPo)frameMtd(fp)), "expecting a code pointer in the frame");
+          check(isMethod((termPo) frameMtd(fp)), "expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
           sp = (ptrPo) (fp + 1);
           fp = fp->fp;
@@ -544,6 +544,22 @@ stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {
   return newStack;
 }
 
+stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd) {
+  int root = gcAddRoot(globalHeap, (ptrPo) &stk);
+
+  stackPo prevStack = stk;
+
+  gcAddRoot(globalHeap, (ptrPo) &prevStack);
+
+  stk = glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, codeArity(mtd));
+  pushFrame(stk, mtd);
+
+  // drop old frame on old stack
+  dropFrame(prevStack);
+  gcReleaseRoot(globalHeap, root);
+  return stk;
+}
+
 stackPo spinupStack(heapPo H, integer size) {
   assert(size >= minStackSize);
 
@@ -555,7 +571,7 @@ stackPo newFiber(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, newTaskMethod, child->fp);
+  child->fp = pushFrame(child, newTaskMethod);
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -568,7 +584,7 @@ stackPo newStack(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, newTaskMethod, child->fp);
+  child->fp = pushFrame(child, newTaskMethod);
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -582,7 +598,7 @@ stackPo splitStack(processPo P, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, spawnMethod, child->fp);
+  child->fp = pushFrame(child, spawnMethod);
 
   pushStack(child, (termPo) child);
   pushStack(child, lam);
