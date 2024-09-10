@@ -16,6 +16,10 @@ set(TEST_SOURCE_FILES ../../../Util/unitTests.c
         ../assem_encode.h
         arm64Tests.c
         ../../asminfra.c
+        test_infra.h
+        test_infra.c
+        regset.h
+        regset.c
         )
 set(TEST_HEADER_FILES ../Headers/arm64.h ../Headers/arm64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
 

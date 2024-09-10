@@ -3,8 +3,8 @@
 //
 #include "unitTests.h"
 #include "arm64P.h"
-
-static retCode checkCode(uint8 *src, integer srcLen, assemCtxPo ctx);
+#include "test_infra.h"
+#include "regset.h"
 
 static retCode test_adc() {
   assemCtxPo ctx = createCtx();
@@ -709,18 +709,6 @@ retCode test_factFun() {
   return Ok;
 }
 
-retCode checkCode(uint8 *src, integer srcLen, assemCtxPo ctx) {
-  retCode ret;
-  if (ctx->pc != srcLen) {
-    logMsg(logFile, "%d bytes expected, %d bytes generated", srcLen, ctx->pc);
-    logMsg(logFile, "actual bytes: %.*X", ctx->pc, ctx->bytes);
-    ret = Error;
-  } else
-    ret = cmpBytes(src, ctx->bytes, srcLen);
-  discardCtx(ctx);
-  return ret;
-}
-
 retCode all_tests() {
   tests_run = 0;
 
@@ -738,6 +726,7 @@ retCode all_tests() {
 
   tryRet(run_test(test_addFun));
   tryRet(run_test(test_factFun));
+  tryRet(regset_tests());
 
   return Ok;
 }
