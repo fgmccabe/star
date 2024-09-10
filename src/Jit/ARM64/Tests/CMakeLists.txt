@@ -16,6 +16,7 @@ set(TEST_SOURCE_FILES ../../../Util/unitTests.c
         ../assem_encode.h
         arm64Tests.c
         ../../asminfra.c
+	../macros.c
         test_infra.h
         test_infra.c
         regset.h
