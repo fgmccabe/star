@@ -38,13 +38,15 @@ stackPo dropStack(stackPo tsk);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
-framePo pushFrame(stackPo stk, methodPo mtd, framePo fp);
+framePo pushFrame(stackPo stk, methodPo mtd);
 
 ptrPo currSP(stackPo stk);
 
 termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
+
+stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd);
 
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
