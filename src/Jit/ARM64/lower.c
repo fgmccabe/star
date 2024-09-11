@@ -232,7 +232,7 @@ retCode jit_Call(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompP
   labelPo lbl = C_LBL(getMtdLit(jit->mtd,arg1.ix));
   integer arity = labelArity(lbl);
 
-  spillUntil(jit,arity);    // Spill all stack arguments up until arity
+//  spillUntil(jit,arity);    // Spill all stack arguments up until arity
 
   return Error;
 }
