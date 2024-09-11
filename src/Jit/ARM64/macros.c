@@ -22,6 +22,10 @@ registerMap freeReg(registerMap from, armReg Rg) {
   return (from | (1u << Rg));
 }
 
+registerMap dropReg(registerMap map, armReg Rg) {
+  return (map & (~(1u << Rg)));
+}
+
 registerMap addReg(registerMap from, armReg Rg) {
   return (from | (1u << Rg));
 }
@@ -59,15 +63,15 @@ static void svRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
     if (Rg != XZR)
       stp(Rg, XZR, PRX(SP, -16));
   } else if (Rg == XZR)
-    svRegisters(ctx, allocReg(regs, nxt), nxt);
+    svRegisters(ctx, dropReg(regs, nxt), nxt);
   else {
-    stp(nxt, Rg, PRX(SP, -16));
-    svRegisters(ctx, allocReg(regs, nxt), XZR);
+    stp(Rg, nxt, PRX(SP, -16));
+    svRegisters(ctx, dropReg(regs, nxt), XZR);
   }
 }
 
 void saveRegisters(assemCtxPo ctx, registerMap regs) {
-  svRegisters(ctx,reg,XZR);
+  svRegisters(ctx, regs, XZR);
 }
 
 static void restRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
@@ -77,13 +81,13 @@ static void restRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
     if (Rg != XZR)
       ldp(Rg, XZR, PSX(SP, 16));
   } else if (Rg == XZR)
-    restRegisters(ctx, allocReg(regs, nxt), nxt);
+    restRegisters(ctx, dropReg(regs, nxt), nxt);
   else {
-    restRegisters(ctx, allocReg(regs, nxt), XZR);
-    ldp(nxt, Rg, PSX(SP, 16));
+    restRegisters(ctx, dropReg(regs, nxt), XZR);
+    ldp(Rg, nxt, PSX(SP, 16));
   }
 }
 
 void restoreRegisters(assemCtxPo ctx, registerMap regs) {
-  restRegisters(ctx,regs,XZR);
+  restRegisters(ctx, regs, XZR);
 }
