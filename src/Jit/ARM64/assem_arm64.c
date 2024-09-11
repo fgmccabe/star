@@ -793,7 +793,7 @@ void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
         imm16 = S1.immediate >> 16;
         sh = 1;
       } else {
-        imm16 = S1.immediate != 0;
+        imm16 = S1.immediate;
         sh = 0;
       }
 

@@ -10,11 +10,17 @@ _start:	mov X0, #1     // 1 = StdOut
         mov X16, #4     // MacOS write system call
         svc 0
 
-	stp X0, X3, [SP, -16]!
-	stp X4, X5, [SP, -16]!
-	stp X10, X20, [SP, -16]!
-	stp X17, X0, [SP, -16]!
+        stp X20, XZR, [SP, #-16]!
+        stp X10, X17, [SP, #-16]!
+        stp X4, X5, [SP, #-16]!
+        stp X0, X3, [SP, #-16]!
 
+        ldp XZR, X20, [SP], #16
+        ldp X17, X10, [SP], #-16
+        ldp X5, X4, [SP], #-16
+        ldp X3, X0, [SP], #-16
+	
+	
 // Setup the parameters to exit the program
 // and then call Linux to do it.
 
