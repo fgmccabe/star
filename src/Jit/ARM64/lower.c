@@ -18,6 +18,8 @@ static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
 static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
+static retCode spillUpto(jitCompPo jit, integer depth);
+
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
   integer frameSize = lclCount(mtd) * integerByteCount + (integer) sizeof(StackFrame);
   if (!isInt32(frameSize))
@@ -230,7 +232,7 @@ retCode jit_Call(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompP
   labelPo lbl = C_LBL(getMtdLit(jit->mtd,arg1.ix));
   integer arity = labelArity(lbl);
 
-//  spillUntil(jit,arity);    // Spill all stack arguments up until arity
+  spillUpto(jit,arity);    // Spill all stack arguments up until arity
 
   return Error;
 }
@@ -514,4 +516,9 @@ retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun) {
 
 retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
   return Error;
+}
+
+static retCode spillUpto(jitCompPo jit, integer depth)
+{
+  
 }
