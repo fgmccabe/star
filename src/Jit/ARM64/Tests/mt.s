@@ -17,6 +17,12 @@ _start:	mov X0, #1     // 1 = StdOut
         mov     X16, #1     // Service command code 1 terminates this program
         svc     0           // Call MacOS to terminate the program
 
+
+	movz	X22, #0x4444
+	movk    X22, #0x3333, lsl 16
+	movk    X22, #0x2222, lsl 32
+	movk    X22, #0x1111, lsl 48
+
 	;; madd	X21, X29, X30, X1
 	;; mov	X21, SP
 	;; mov	X21, #0xff230000
