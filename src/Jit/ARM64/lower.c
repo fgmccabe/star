@@ -18,8 +18,6 @@ static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
 static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
-static registerMap nonSpillSet(methodPo mtd);
-
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
   integer frameSize = lclCount(mtd) * integerByteCount + (integer) sizeof(StackFrame);
   if (!isInt32(frameSize))
@@ -53,7 +51,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   cmp(X16, RG(X17));
   bhi(okLbl);
 
-  saveRegisters(ctx, nonSpillSet(mtd));
+  saveRegisters(ctx, nonSpillSet(codeArity(mtd)));
 
   mov(X0, RG(SB));
   mov(X1, IM(delta));
@@ -61,7 +59,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   tryRet(invokeCFunc3(jit, (Cfunc3) handleStackOverflow));
   mov(SB, RG(X0));
 
-  restoreRegisters(ctx, nonSpillSet(mtd));
+  restoreRegisters(ctx, nonSpillSet(codeArity(mtd)));
 
   setLabel(ctx, okLbl);
   return Ok;
@@ -504,33 +502,6 @@ retCode jit_Invoke(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCom
 
 retCode jit_dBug(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
-}
-
-registerMap nonSpillSet(methodPo mtd) {
-  registerMap set = emptyRegSet();
-  switch (codeArity(mtd)) {
-    default:
-    case 9:
-      set = addReg(set, X8);
-    case 8:
-      set = addReg(set, X7);
-    case 7:
-      set = addReg(set, X6);
-    case 6:
-      set = addReg(set, X5);
-    case 5:
-      set = addReg(set, X4);
-    case 4:
-      set = addReg(set, X3);
-    case 3:
-      set = addReg(set, X2);
-    case 2:
-      set = addReg(set, X1);
-    case 1:
-      set = addReg(set, X0);
-    case 0:
-      return set;
-  }
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {

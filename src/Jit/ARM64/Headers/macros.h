@@ -25,6 +25,7 @@ static inline registerMap stackRegs() {
   return 1u << X9 | 1u << X10 | 1u << X11 | 1u << X12;
 }
 
+registerMap nonSpillSet(integer arity);
 registerMap allocReg(registerMap from, armReg Rg);
 registerMap freeReg(registerMap from, armReg Rg);
 registerMap dropReg(registerMap map, armReg Rg);
