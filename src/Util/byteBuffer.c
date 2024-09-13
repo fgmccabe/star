@@ -218,6 +218,15 @@ static retCode bufferSeek(ioPo io, integer pos){
   }
 }
 
+retCode pokeByteBuffer(byteBufferPo s, byte *data, integer dataLen, integer offset){
+  if(offset+dataLen>s->buffer.size) // Must be within existing buffer data
+    return Eof;
+  else{
+    memcpy(&s->buffer.buffer[offset],data,dataLen);
+    return Ok;
+  }
+}
+
 retCode clearByteBuffer(byteBufferPo b) {
   b->buffer.pos = 0;
   b->buffer.size = 0;

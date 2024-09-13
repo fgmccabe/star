@@ -3,10 +3,7 @@
 //
 
 
-#include "regset.h"
-#include "unitTests.h"
-#include "arm64P.h"
-#include "macros.h"
+#include "armRegSetTest.h"
 #include "test_infra.h"
 
 static registerMap mapFromArray(armReg regs[], int count) {

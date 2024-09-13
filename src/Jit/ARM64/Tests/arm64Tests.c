@@ -4,7 +4,7 @@
 #include "unitTests.h"
 #include "arm64P.h"
 #include "test_infra.h"
-#include "regset.h"
+#include "armRegSetTest.h"
 
 static retCode test_adc() {
   assemCtxPo ctx = createCtx();
