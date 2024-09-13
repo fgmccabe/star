@@ -19,8 +19,8 @@ set(TEST_SOURCE_FILES ../../../Util/unitTests.c
 	../macros.c
         test_infra.h
         test_infra.c
-        regset.h
-        regset.c
+        armRegSetTest.h
+        armRegSetTest.c
         )
 set(TEST_HEADER_FILES ../Headers/arm64.h ../Headers/arm64P.h ../../../Util/Headers/unitTests.h ../../Headers/jitP.h)
 

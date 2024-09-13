@@ -23,6 +23,7 @@ byte *getBytesFromBuffer(byteBufferPo s, integer *len);
 integer byteBufferLength(byteBufferPo b);
 retCode appendByteToBuffer(byteBufferPo b, byte by);
 retCode clearByteBuffer(byteBufferPo b);
+retCode pokeByteBuffer(byteBufferPo s, byte *data, integer dataLen, integer offset);
 
 #ifdef VERIFY_OBJECT
 #define O_BYTEBUFFER(c) ((byteBufferPo)(checkCast((c),byteBufferClass)))
