@@ -22,10 +22,48 @@ jitCompPo jitContext(methodPo mtd) {
   jitComp->assemCtx = createCtx();
   jitComp->usedRegs = 0;
   jitComp->freeRegs = defltAvailRegSet();
+  jitComp->locals = allocArray(sizeof(LocalRecord), 0, True);
   return jitComp;
 }
 
-void clearJitContext(jitCompPo jit){
+void clearJitContext(jitCompPo jit) {
   discardCtx(jit->assemCtx);
-  freePool(contextPool,jit);
+  destroyObject(O_OBJECT(jit->locals));
+  freePool(contextPool, jit);
+}
+
+integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState state) {
+  for (integer ix = 0; ix < arrayCount(jit->locals); ix++) {
+    localPo lcl = (localPo) nthEntry(jit->locals, ix);
+    if (lcl->state == emptyVar && id!=-1) {
+      lcl->state = state;
+      if (offset != 0)
+        lcl->offset = offset;
+      lcl->id = id;
+      return lcl->offset;
+    }
+  }
+  LocalRecord lcl = {.offset=(offset>=0?offset:arrayCount(jit->locals) + 1), .state = state, .id=id};
+  appendEntry(jit->locals, &lcl);
+  return lcl.offset;
+}
+
+integer findLocalOffset(jitCompPo jit, integer id) {
+  for (integer ix = 0; ix < arrayCount(jit->locals); ix++) {
+    localPo lcl = (localPo) nthEntry(jit->locals, ix);
+    if (lcl->state == localVar && lcl->id == id)
+      return lcl->offset;
+  }
+  return -1;
+}
+
+integer cancelLocal(jitCompPo jit, integer id){
+  for (integer ix = 0; ix < arrayCount(jit->locals); ix++) {
+    localPo lcl = (localPo) nthEntry(jit->locals, ix);
+    if (lcl->state == localVar && lcl->id == id) {
+      lcl->state = emptyVar;
+      return lcl->offset;
+    }
+  }
+  return -1;
 }

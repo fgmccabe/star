@@ -104,12 +104,15 @@ classPo classOfObject(objectPo o) {
 }
 
 logical isSubClass(classPo class, classPo parent) {
-  if (class == parent)
-    return True;
-  else if (class->parent != NULL)
-    return isSubClass(class->parent, parent);
-  else
-    return False;
+  while(class!=Null){
+    if (class == parent)
+      return True;
+    else if(class->parent!=Null)
+      class = class->parent;
+    else
+      return False;
+  }
+  return False;
 }
 
 classPo parentClass(classPo class) {
@@ -118,10 +121,6 @@ classPo parentClass(classPo class) {
 
 logical objectHasClass(objectPo o, classPo parent) {
   return isSubClass(o->class, parent);
-}
-
-logical isObject(objectPo o) {
-  return isSubClass(o->class, objClass);
 }
 
 objectPo checkCast(void *c, classPo class) {

@@ -78,14 +78,14 @@ static logical vectorEquality(objectPo o1, objectPo o2) {
   }
 }
 
-vectorPo vector(int count, ...) {
+vectorPo vector(integer count, ...) {
   va_list args;
 
   va_start(args, count);
 
   vectorPo v = O_VECT(makeObject(vectorClass, &args));
 
-  for (int ix = 0; ix < count; ix++) {
+  for (integer ix = 0; ix < count; ix++) {
     objectPo arg = va_arg(args, objectPo);
     appendVectEl(v, arg);
   }

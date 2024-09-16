@@ -107,10 +107,6 @@ retCode jit_Alloc(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitComp
   return Error;
 }
 
-retCode jit_Assign(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
 retCode jit_LdA(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
   jitCtx->vStack[jitCtx->vTop++] = arg1;
@@ -229,10 +225,10 @@ retCode jit_Rot(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo
 retCode jit_Call(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jit) {
   assert(arg1.loc == literal);
 
-  labelPo lbl = C_LBL(getMtdLit(jit->mtd,arg1.ix));
+  labelPo lbl = C_LBL(getMtdLit(jit->mtd, arg1.ix));
   integer arity = labelArity(lbl);
 
-  spillUpto(jit,arity);    // Spill all stack arguments up until arity
+  spillUpto(jit, arity);    // Spill all stack arguments up until arity
 
   return Error;
 }
@@ -290,6 +286,10 @@ retCode jit_Cell(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompP
 }
 
 retCode jit_Get(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
+  return Error;
+}
+
+retCode jit_Assign(insPo code, vOperand arg1, vOperand arg2, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
@@ -518,7 +518,34 @@ retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
   return Error;
 }
 
-static retCode spillUpto(jitCompPo jit, integer depth)
-{
-  
+static retCode spillUpto(jitCompPo jit, integer depth) {
+  assemCtxPo ctx = assemCtx(jit);
+
+  for (integer ix = 0; ix < jit->vTop - depth; ix++) {
+    operandPo entry = &jit->vStack[ix];
+
+    switch (entry->loc) {
+      case argument:
+      case local:
+      case constant:
+      case global:
+        continue;
+      case stkOff: {
+
+        continue;
+      }
+      case mcReg: {
+        integer off = allocateLocal(jit, -1, -1, spilledVar);
+        armReg Rg = entry->mcLoc.reg;
+        str(Rg, OF(FP, off));
+        entry->loc = local;
+        entry->ix = off;
+        continue;
+      }
+      default:
+        check(False, "illegal source loc on stack");
+        return Error;
+    }
+  }
+  return Ok;
 }
