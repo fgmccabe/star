@@ -35,72 +35,85 @@ static int32 collectOperand(insPo base, integer *pc) {
   return (int32) (hi << (uint32) 16 | lo);
 }
 
+// No operand
 vOperand argnOp(insPo base, integer *pc, jitCompPo jitCtx) {
   return (vOperand) {.loc=noWhere};
 }
 
+// top of stack
 vOperand argtOs(insPo base, integer *pc, jitCompPo jitCtx) {
   return (vOperand) {.loc=stkOff, .ix=0};
 }
 
-vOperand argtO1(insPo base, integer *pc, jitCompPo jitCtx) {
-  return (vOperand) {.loc=stkOff, .ix=1};
-}
-
+/* 32 bit literal operand */
 vOperand argi32(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
   return (vOperand) {.loc=literal, .ix=lit};
 }
 
+/* Arity */
 vOperand argart(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
   return (vOperand) {.loc=literal, .ix=lit};
 }
 
+/* argument variable offset */
 vOperand argarg(insPo base, integer *pc, jitCompPo jitCtx) {
   integer arg = collectOperand(base, pc);
   return (vOperand) {.loc=argument, .ix=arg};
 }
 
+/* local variable offset */
 vOperand arglcl(insPo base, integer *pc, jitCompPo jitCtx) {
   integer off = collectOperand(base, pc);
   return (vOperand) {.loc=local, .ix=off};
 }
 
+// Store to local variable
 vOperand arglcs(insPo base, integer *pc, jitCompPo jitCtx) {
   integer off = collectOperand(base, pc);
   return (vOperand) {.loc=local, .ix=off};
 }
 
+/* offset within current code */
 vOperand argoff(insPo base, integer *pc, jitCompPo jitCtx) {
   integer off = collectOperand(base, pc);
   return (vOperand) {.loc=codeOff, .ix=*pc + off};
 }
 
+// escape code 0..65535
 vOperand argEs(insPo base, integer *pc, jitCompPo jitCtx) {
   integer esc = collectOperand(base, pc);
   return (vOperand) {.loc=escapeNo, .ix=esc};
 }
 
+/* constant literal */
 vOperand arglit(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
-  return (vOperand) {.loc=literal, .ix=lit};
+  return (vOperand) {.loc=constant, .ix=lit};
 }
 
+// Symbol
 vOperand argsym(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
   return (vOperand) {.loc=literal, .ix=lit};
 }
 
+// Global variable name
 vOperand argglb(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
   return (vOperand) {.loc=global, .ix=lit};
 }
 
+// Type signature
 vOperand argtPe(insPo base, integer *pc, jitCompPo jitCtx) {
   integer lit = collectOperand(base, pc);
   return (vOperand) {.loc=literal, .ix=lit};
 }
+
+// A block of instructions
+
+// How many blocks to break out of
 
 #undef instruction
 #define instruction(Op, A1, A2, Dl, Cmt)        \

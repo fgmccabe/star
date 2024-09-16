@@ -11,6 +11,7 @@
 #include "array.h"
 #include "lower.h"
 #include "macros.h"
+#include "array.h"
 
 #define MAX_VSTACK 256
 
@@ -26,6 +27,7 @@ typedef enum {
   literal,
   constant,
   mcReg,
+  spilled,
   stkOff,
   codeOff,
   escapeNo,
@@ -33,12 +35,20 @@ typedef enum {
   noWhere
 } srcLoc;
 
+
+typedef enum {
+  argVar,
+  lclVar,
+  poolVar,
+  glbVar,
+} valLoc;
+
 typedef struct {
   lType type;
   srcLoc loc;
   int64 ix;
   registerSpec mcLoc;
-} vOperand;
+} vOperand, *operandPo;
 
 typedef struct assem_ctx {
   unsigned char *bytes;
@@ -46,6 +56,18 @@ typedef struct assem_ctx {
   uint32 pc;
   arrayPo lbls;
 } AssemCtxRecord;
+
+typedef enum{
+  localVar,
+  spilledVar,
+  emptyVar
+} localVarState;
+
+typedef struct localSpec{
+  integer offset;
+  integer id;
+  localVarState state;
+} LocalRecord, *localPo;
 
 typedef struct jit_compiler_ {
   methodPo mtd;
@@ -55,6 +77,7 @@ typedef struct jit_compiler_ {
   registerMap freeRegs;
   assemCtxPo assemCtx;
   codeLblPo entry;
+  arrayPo locals;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
@@ -90,6 +113,10 @@ void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
 uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
+
+integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState state);
+integer findLocalOffset(jitCompPo jit, integer id);
+integer cancelLocal(jitCompPo jit, integer id);
 
 typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);

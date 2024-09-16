@@ -28,7 +28,7 @@ objectPo pullVectEl(vectorPo v);
 typedef retCode (*vectorProc)(objectPo entry, integer ix, void *cl);
 retCode procVector(vectorPo v, vectorProc proc, void *cl);
 
-vectorPo vector(int count, ...);
+vectorPo vector(integer count, ...);
 vectorPo duplicateVector(vectorPo src);
 
 vectorPo reverseVector(vectorPo vec);
