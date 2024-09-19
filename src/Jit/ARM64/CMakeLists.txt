@@ -9,6 +9,7 @@ include_directories("Headers"
         "../Headers"
         "../../Util/Headers"
         "../../Engine/Headers"
+        "../../Escapes/Headers"
         "../../Headers"
         "./Headers")
 
@@ -18,6 +19,7 @@ set(HEADER_FILES
         Headers/lower.h
         Headers/lowerP.h
         ../../Util/Headers/array.h
+        ../../Escapes/Headers/libEscapes.h
         assem_encode.h
         Headers/macros.h
 )

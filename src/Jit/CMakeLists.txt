@@ -18,8 +18,11 @@ include_directories("Headers"
         "${JIT_ARCH}/Headers")
 
 set(HEADER_FILES
-        Headers/jit.h Headers/jitP.h Headers/jitOps.h
+        Headers/jit.h
+        Headers/jitP.h
+        Headers/jitOps.h
         ../Util/Headers/array.h
+        ../Escapes/Headers/libEscapes.h
         ${JIT_ARCH}/Headers/lower.h
         )
 
