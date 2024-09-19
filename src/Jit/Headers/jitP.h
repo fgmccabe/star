@@ -12,6 +12,7 @@
 #include "lower.h"
 #include "macros.h"
 #include "array.h"
+#include "escape.h"
 
 #define MAX_VSTACK 256
 
@@ -24,30 +25,20 @@ typedef enum {
 typedef enum {
   argument,
   local,
-  literal,
   constant,
   mcReg,
-  spilled,
-  stkOff,
-  codeOff,
-  escapeNo,
   global,
+  engineSymbol,
   noWhere
 } srcLoc;
-
-
-typedef enum {
-  argVar,
-  lclVar,
-  poolVar,
-  glbVar,
-} valLoc;
 
 typedef struct {
   lType type;
   srcLoc loc;
   int64 ix;
   registerSpec mcLoc;
+  void *address;
+  escapePo escape;
 } vOperand, *operandPo;
 
 typedef struct assem_ctx {
@@ -57,13 +48,13 @@ typedef struct assem_ctx {
   arrayPo lbls;
 } AssemCtxRecord;
 
-typedef enum{
+typedef enum {
   localVar,
   spilledVar,
   emptyVar
 } localVarState;
 
-typedef struct localSpec{
+typedef struct localSpec {
   integer offset;
   integer id;
   localVarState state;
@@ -107,6 +98,8 @@ void markEntry(jitCompPo jit, codeLblPo entry);
 codeLblPo jitEntry(jitCompPo jit);
 
 extern integer undefinedPc;
+
+int32 collectOperand(insPo base, integer *pc);
 
 codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);

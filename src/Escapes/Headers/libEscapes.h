@@ -3,8 +3,8 @@
 
 #include "config.h"
 #include "heap.h"
+#include "escape.h"
 
-typedef ReturnStatus (*libFun)(heapPo h);
 typedef ReturnStatus (*escFun0)(heapPo h);
 typedef ReturnStatus (*escFun1)(heapPo h, termPo arg1);
 typedef ReturnStatus (*escFun2)(heapPo h, termPo arg1, termPo arg2);
@@ -19,20 +19,16 @@ typedef ReturnStatus (*escFun8)(heapPo h, termPo arg1, termPo arg2, termPo arg3,
 
 #define MAX_ESCAPE_ARITY (8)
 
-typedef struct {
+typedef struct escape_record_ {
   char *name;         /* Name of the escape */
   char *sig;          /* Signature of the escape */
   libFun fun;         /* The function itself */
   integer arity;      /* How many arguments */
-} EscapeRec, *escapePo;
+} EscapeRec;
 
 void installEscapes();
 
 uint32 lookupEscape(char *name);
-
-escapePo getEscape(uint32 escNo);
-char *escapeName(escapePo esc);
-integer escapeArity(escapePo esc);
 
 void recordEscape(integer escNo);
 void dumpEscapes(ioPo out);

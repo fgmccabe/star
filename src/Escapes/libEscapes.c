@@ -120,3 +120,7 @@ integer escapeArity(escapePo esc) {
   return esc->arity;
 }
 
+libFun escapeFun(escapePo esc) {
+  return esc->fun;
+}
+
