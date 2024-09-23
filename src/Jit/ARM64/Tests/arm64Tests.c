@@ -50,8 +50,8 @@ static retCode test_adc() {
 
 static retCode test_adr() {
   assemCtxPo ctx = createCtx();
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
 
   adr(X10, l0);
   adr(X12, l1);
@@ -125,11 +125,11 @@ static retCode test_and() {
 
 static retCode test_b() {
   assemCtxPo ctx = createCtx();
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
-  codeLblPo l2 = defineLabel(ctx, "l2", undefinedPc);
-  codeLblPo l3 = defineLabel(ctx, "l3", undefinedPc);
-  codeLblPo l4 = defineLabel(ctx, "l4", undefinedPc);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
+  codeLblPo l2 = defineLabel(ctx, undefinedPc);
+  codeLblPo l3 = defineLabel(ctx, undefinedPc);
+  codeLblPo l4 = defineLabel(ctx, undefinedPc);
 
   beq(l0);
   bnv(l0);
@@ -350,7 +350,7 @@ static retCode test_ld() {
   ldr(X10, PRX(X5, -8));
   ldr(X15, OF(X20, 16));
 
-  codeLblPo l0 = defineLabel(ctx, "l0", undefinedPc);
+  codeLblPo l0 = defineLabel(ctx, undefinedPc);
   ldr(X19, PC(l0));
   setLabel(ctx, l0);
   ldr(X21, EX2(X22, X7, S_XTX, 3));
@@ -378,7 +378,7 @@ static retCode test_ld() {
   ldrsw(X10, PSX(X3, 8));
   ldrsw(X10, PRX(X5, -8));
   ldrsw(X15, OF(X20, 16));
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
   ldrsw(X19, PC(l1));
   ldrsw(X21, EX2(X22, X7, S_XTX, 3));
   setLabel(ctx, l1);
@@ -696,8 +696,8 @@ retCode test_factFun() {
   int lclCount = 1;
 
   codeLblPo fct = preamble(ctx, lclCount * 8);
-  codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
-  codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
+  codeLblPo l0 = defineLabel(ctx, undefinedPc);
+  codeLblPo lx = defineLabel(ctx, undefinedPc);
   sttr(X0, X29, -8);
   cmp(X0, IM(1));
   bne(l0);
