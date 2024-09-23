@@ -319,13 +319,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Resume:
       case Retire:
       case Throw:
-//      case Cmp:
-//      case CLbl:
-//      case ICmp:
-//      case FCmp:
-//      case If:
-//      case IfNot:
-//      case Unpack:
+      case Shift:
       {
         splitSeg(blocks, *pc);
         return Ok;
