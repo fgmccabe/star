@@ -1,6 +1,6 @@
 :-module(wff,[isAnnotation/4,isQuote/3,
 	      isAlgebraicTypeStmt/6,mkAlgebraicTypeStmt/6,
-	      isStructTypeStmt/7,mkStructTypeStmt/7,
+	      isStructTypeStmt/8,mkStructTypeStmt/8,
 	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
 	      isAnonBrace/3,mkAnonBrace/3,
@@ -138,16 +138,17 @@ mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
   reUQuant(Q,H0,H1),
   binary(Lc,"::=",H1,Body,S).
 
-isStructTypeStmt(Stmt,Lc,Q,Cx,Head,Nm,Els) :-
+isStructTypeStmt(Stmt,Lc,Q,XQ,Cx,Head,Nm,Els) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
   genQuantifiers(Lhs,Q,Head),
-  isBraceCon(Body,_,Cx,_,Nm,Els).
+  isBraceCon(Body,XQ,Cx,_,Nm,Els).
 
-mkStructTypeStmt(Lc,Q,Cx,Head,Nm,Els,Stmt) :-
-  reConstrain(Cx,Head,H0),
-  reUQant(Q,H0,H1),
+mkStructTypeStmt(Lc,Q,X,Cx,H,Nm,Els,Stmt) :-
   braceTerm(Lc,Nm,Els,Br),
-  binary(Lc,"::=",H1,Br,Stmt).
+  binary(Lc,"::=",H,Br,S),
+  reConstrain(Cx,S,S0),
+  reXQuant(X,S0,S1),
+  reUQuant(Q,S1,Stmt).
 
 isConstructor(C,Lc,C,[]) :-
   isIden(C,Lc,_).

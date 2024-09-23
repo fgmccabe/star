@@ -321,8 +321,8 @@ parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
   isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
   parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
 parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
-  isStructTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
-  parseStructTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
+  isStructTypeStmt(St,Lc,Q,X,Cx,Hd,Nm,Els),
+  parseStructTypeDef(Lc,Q,X,Cx,Hd,Nm,Els,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
 
 parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
 		      Publish,Viz,Dc,Dcx,Path):-
@@ -332,6 +332,33 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
   concat(XQ,Q,QV),
   parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
   parseConstraints(Constraints,E,QV,Cx,[]),
+%  reportMsg("algebraic type head %s",[tpe(Tp)],Lc),
+  pickTypeTemplate(Tp,Type),
+  parseType(Face,E,QV,FceTp),
+  wrapType([],[],XQ,[],FceTp,FaceTp),
+%  reportMsg("face type %s",[tpe(FaceTp)],Lc),
+  wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
+%  buildConsMap(Body,ConsMap,Path),
+%  reportMsg("algebraic face rule %s",[tpe(FaceRule)],Lc),
+  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
+%  tpName(Type,TpNm),
+  Defn = typeDef(Lc,Nm,Type,FaceRule),
+  Decl = typeDec(Nm,Type,FaceRule),
+  call(Publish,Viz,tpe(Nm),Decl,Dc,Dc0),
+  buildAccessors(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D0,Dx,Acc0,[],Publish,Viz,Dc0,Dc1),
+  buildUpdaters(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D1,D0,Acc,Acc0,Publish,Viz,Dc1,Dcx),
+  declareAccessors(Acc,Ev0,Ev).
+
+
+parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,Nm,Entries,[Defn|D1],Dx,E,Ev,
+		      Publish,Viz,Dc,Dcx,Path):-
+  braceTuple(Lc,Entries,F),
+  reConstrain(Cs,F,Face),
+  parseBoundTpVars(Xs,X),
+  parseBoundTpVars(Qs,Q),
+  concat(X,Q,QV),
+  parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
+  parseConstraints(Cs,E,QV,Cx,[]),
 %  reportMsg("algebraic type head %s",[tpe(Tp)],Lc),
   pickTypeTemplate(Tp,Type),
   parseType(Face,E,QV,FceTp),

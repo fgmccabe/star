@@ -87,6 +87,12 @@ examineStmt(S,Sx) :-
   map(C,macros:macroType,Cx),
   macroAlgebraic(B,Bx),
   mkAlgebraicTypeStmt(Lc,Q,Cx,Hx,Bx,Sx).
+examineStmt(S,Sx) :-
+  isStructTypeStmt(S,Lc,Q,X,C,H,Nm,Els),!,
+  macroType(H,Hx),
+  map(C,macros:macroType,Cx),
+  map(Els,macros:braceTypeMacro,Elx),
+  mkStructTypeStmt(Lc,Q,X,Cx,Hx,Nm,Elx,Sx).
 examineStmt(S,S) :-
   isAnnotation(S,_,_,_),!.
 examineStmt(S,S) :-
