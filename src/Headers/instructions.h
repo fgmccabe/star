@@ -32,6 +32,9 @@ instruction(Ret, tOs, nOp, 0, "return")
 
 instruction(Jmp, off, nOp, 0, "jump lbl")
 
+instruction(Block, bLk, nOp, 0, "block of instructions")
+instruction(Break, lVl, nOp, 0, "leave block")
+
 instruction(Drop, tOs, nOp, -1, "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "duplicate top of stack")
 instruction(Rot, i32, nOp, 0, "Pull up nth element of stack")
@@ -48,6 +51,9 @@ instruction(TEq, tOs, tOs, -1, "L R --> L==R, where L,R are tasks")
 instruction(Try, off, nOp, 1, "start a try-catch block")
 instruction(EndTry, tOs, nOp, -1, "clear a try block")
 instruction(Throw, tOs, tOs, 0, "Invoke a continuation")
+instruction(Reset,tOs,nOp,0,"establish a delimited zone")
+instruction(Shift,tOs,tOs,-1,"capture continuation")
+
 instruction(Invoke, tOs, tOs, -1, "invoke continuation")
 
 instruction(LdV, nOp, nOp, 1, "Place a void value on stack")

@@ -71,6 +71,7 @@
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
   ("trace" ( (infix 139 140 139) (prefix 140 139)))
+  ("reset" ( (infix 998 999 998) (prefix 999 998)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("!!" ( (postfix 99 100)))
@@ -100,6 +101,7 @@
   (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
+  ("shift" ( (infix 997 998 997) (prefix 998 997)))
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
@@ -154,6 +156,7 @@
 "if"
 "in"
 "break"
+"reset"
 "public"
 "ref"
 "where"
@@ -165,6 +168,7 @@
 "while"
 "private"
 "implementation"
+"shift"
 "type"
 "handle"
 "else"

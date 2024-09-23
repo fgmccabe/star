@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Show", showCode);
 
     static char hashBuff[64];
-    strMsg(hashBuff,NumberOf(hashBuff),"%ld",staropHash());
+    strMsg(hashBuff, NumberOf(hashBuff), "%ld", staropHash());
     hashPut(vars, "Hash", hashBuff);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
@@ -287,6 +287,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
     case lcl:
     case lcs:
     case glb:
+    case lVl:
       switch (A2) {
         case nOp:
         case tOs:
@@ -409,6 +410,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
     case glb:
     case Es:
     case off:
+    case lVl:
       switch (A2) {
         case nOp:
         case tOs:
@@ -450,9 +452,6 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cm
       outMsg(out, "genLblTbl(A,Pc1,Pc2,Lbls,Lb1), ");
       outMsg(out, " genLblTbl(Ins,Pc2,Pcx,Lb1,Lbx).\n");
     }
-    case lVl:
-      check(False,"not yet implemented");
-      break;
   }
 }
 
@@ -470,7 +469,7 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case sym:
     case tPe:
       outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  bumpPc(Pc%ld,2,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;
       break;
     case lcl:
@@ -478,7 +477,7 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case glb:
     case off:
       outMsg(out, "  %s=ss(%s),\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  bumpPc(Pc%ld,2,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;
       break;
 
@@ -487,17 +486,22 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case arg:
     case lVl:
       outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  bumpPc(Pc%ld,2,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;
       break;
     case Es:
       outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  bumpPc(Pc%ld,2,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
+
+      outMsg(out, "  bumpPc(Pc%ld,2,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;
       break;
     case bLk:
-      outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
-      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV + 1, resIn->pcV);
+      outMsg(out, "  blockPc(Pc,SPc),\n", resIn->pcV);
+      outMsg(out, "  showMnem(%s, SPc, _, Lbls, Ms),\n", vn);
+      outMsg(out, "  %s = iv(ss(\"\\n\"), Ms),\n", Vtxt);
+//      outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
+      outMsg(out, "  Pc%ld is Pc%ld+2,\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;
       break;
   }
@@ -520,11 +524,6 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   switch (A1) {
     case nOp:
       break;
-    case bLk: {
-      sep1 = ", ss(\" \"), sq([UU]), ss(\"End\"),";
-      V1 = "UU";
-      break;
-    }
     default:
       sep1 = ", ss(\" \"), ";
       V1 = "UU";
@@ -542,8 +541,9 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
       }
   }
 
-  outMsg(out, "|Ins],Pc,PcX,Lbls,[sq([ix(Pc),ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
-  outMsg(out, "  Pc0 is Pc+1,\n");
+  outMsg(out, "|Ins],Pc,PcX,Lbls,[sq([PcDx,ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
+  outMsg(out, "  showPc(Pc,PcDx),\n");
+  outMsg(out, "  bumpPc(Pc,1,Pc0),\n");
 
   OpRes res1 = {.pcV=0};
 
@@ -553,11 +553,11 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
   outMsg(out, "  showMnem(Ins,Pc%ld,PcX,Lbls,II).\n", res1.pcV);
 }
 
-static integer opHash(char *mnem,int op){
-  return hash61(strhash(mnem)*37+op);
+static integer opHash(char *mnem, int op) {
+  return hash61(strhash(mnem) * 37 + op);
 }
 
-integer staropHash(){
+integer staropHash() {
   integer hash = 0;
 
 #undef instruction

@@ -316,6 +316,19 @@ star.compiler.normalize{
     (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
     valis (.cThDrf(Lc,NTh,Tp),Ex1)
   }
+  liftExp(.rst(Lc,Lm,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift $(.rst(Lc,Lm,Tp))\:$(Tp)");
+    (RLm,Ex1) = liftExp(Lm,Map,Q,Ex);
+    valis (.cReset(Lc,RLm,Tp),Ex1)
+  }
+  liftExp(.shyft(Lc,T,S,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift $(.shyft(Lc,T,S,Tp))\:$(Tp)");
+    (RT,Ex1) = liftExp(T,Map,Q,Ex);
+    (RS,Ex2) = liftExp(S,Map,Q,Ex1);
+    valis (.cShift(Lc,RT,RS,Tp),Ex2)
+  }
   liftExp(.invoke(Lc,K,I,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift $(.invoke(Lc,K,I,Tp))\:$(Tp)");

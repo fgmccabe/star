@@ -23,6 +23,8 @@ star.compiler.canon{
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
   .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
   .rais(option[locn],canon,canon,tipe) |
+  .rst(option[locn],canon,tipe) |
+  .shyft(option[locn],canon,canon,tipe) |
   .invoke(option[locn],canon,canon,tipe) |
   .match(option[locn],canon,canon) |
   .conj(option[locn],canon,canon) |
@@ -80,6 +82,8 @@ star.compiler.canon{
       | .csexp(_,_,_,Tp) => Tp
       | .trycatch(_,_,_,_,Tp) => Tp
       | .rais(_,_,_,Tp) => Tp
+      | .rst(_,_,Tp) => Tp
+      | .shyft(_,_,_,Tp) => Tp
       | .lambda(_,_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
@@ -243,6 +247,8 @@ star.compiler.canon{
     | .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
     | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
+    | .rst(_,E,_) => "reset #(showCanon(E,0,Sp))"
+    | .shyft(_,T,E,_) => "#(showCanon(T,0,Sp)) shift #(showCanon(E,0,Sp))"
     | .invoke(_,K,E,_) => "#(showCanon(K,0,Sp)) . (#(showCanon(E,0,Sp)))"
     | .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"

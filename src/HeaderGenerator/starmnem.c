@@ -334,6 +334,16 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
              "where (Blk,Lts1,Lns1,Lcs1,Pc1,MxLcl1) .= mnem(U,[],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends) => mnem(Ins,Code++[.intgr(%d),mkTpl(Blk::cons[data])],Lbls,Lts1,Lns1,Lcs1,Pc1,MxLcl1,Ends).\n",
              op);
       return;
+      case lVl:{                          // Break out of a nesting sequence of blocks
+        switch (B) {
+          case nOp:
+          case tOs:
+            outMsg(out, "=> mnem(Ins,Code++[.intgr(%d),.intgr(U)],Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,Ends).\n", op);
+            return;
+          default:
+            check(False, "Cannot generate instruction code");
+        }
+      }
     }
     default:
       check(False, "invalid first operand");
@@ -464,6 +474,8 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case lcs:
     case glb:
     case Es:
+    case bLk:
+    case lVl:
       outMsg(out, " $(%s)", Nm);
       return True;
     case off:

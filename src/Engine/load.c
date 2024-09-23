@@ -370,13 +370,13 @@ static retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, ch
 #define szlcs if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
 #define szoff if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szlVl if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szcDe if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szsym if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(bfr,lookupEscape(escNm)); (*ix)++;}
 #define szlit if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define sztPe if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szlne if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
 #define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(bfr,globalVarNo(escNm)); (*ix)++;}
+#define szbLk strMsg(errorMsg, msgSize, "invalid instruction encoding"); return Error;
 
 #define instruction(Op, A1, A2, Dl, Cmt)    \
       case Op:                              \
@@ -394,7 +394,7 @@ static retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, ch
 #undef szlcl
 #undef szlcs
 #undef szoff
-#undef szcDe
+#undef szbLk
 #undef szlVl
 #undef szsym
 #undef szEs
@@ -434,7 +434,7 @@ static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
 #define szlcs pc+=2;
 #define szoff pc+=2;
 #define szlVl pc+=2;
-#define szcDe pc+=2;
+#define szbLk pc+=2;
 #define szsym collectI32;
 #define szEs pc+=2;
 #define szlit collectI32;

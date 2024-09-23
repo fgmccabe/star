@@ -190,6 +190,10 @@ star.compiler.macro{
     mkThunkRef(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isSuppress(A) =>
     mkSuppress(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,T,E) ?= isReset(A) =>
+    mkReset(Lc,macroTerm(T),macroTerm(E)).
+  examineTerm(A) where (Lc,T,K,E) ?= isShift(A) =>
+    mkShift(Lc,macroTerm(T),macroTerm(K),macroTerm(E)).
   examineTerm(A) where (Lc,T,E) ?= isInvoke(A) =>
     mkInvoke(Lc,macroTerm(T),E//macroTerm).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 

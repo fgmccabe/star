@@ -107,7 +107,7 @@ dispIns(Prog) :-
 
 showIns(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
-  showMnem(Ins,0,_,[],II),
+  showMnem(Ins,[0],_,[],II),
   ssPolicy(H,HH),!.
 
 ssPolicy(soft,ss("soft")).
@@ -124,3 +124,13 @@ showMnem([iLine(Loc)|Ins],Pc,PcX,Lbs,[sq([ss("Line "),LL])|II]) :-
 #(Show)
 
 opcodeHash(#(Hash)).
+
+bumpPc([Pc|Rest],Dl,[Pc1|Rest]) :- Pc1 is Pc+Dl.
+
+blockPc(Pc,[0|Pc]).
+
+showPc(Pc,iv(ss(":"),Pcs)) :-
+  map(Pc,assemble:shPc,Pcs).
+
+shPc(I,ix(I)).
+
