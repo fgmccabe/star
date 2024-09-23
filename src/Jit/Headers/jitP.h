@@ -60,6 +60,11 @@ typedef struct localSpec {
   localVarState state;
 } LocalRecord, *localPo;
 
+typedef struct labelMarker {
+  insPo pc;
+  codeLblPo lbl;
+} LabelMarkerRecord, *labelMarkerPo;
+
 typedef struct jit_compiler_ {
   methodPo mtd;
   integer vTop;
@@ -69,6 +74,7 @@ typedef struct jit_compiler_ {
   assemCtxPo assemCtx;
   codeLblPo entry;
   arrayPo locals;
+  arrayPo labels;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
@@ -100,16 +106,30 @@ codeLblPo jitEntry(jitCompPo jit);
 extern integer undefinedPc;
 
 int32 collectOperand(insPo base, integer *pc);
+insPo collectTgt(insPo base, integer *pc);
 
-codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc);
+retCode sortLabels(jitCompPo jit);
+
+codeLblPo newLabel(assemCtxPo ctx);
+codeLblPo defineLabel(assemCtxPo ctx, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
 uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
 
+armReg findFreeReg(jitCompPo jit);
+void releaseReg(jitCompPo jit, armReg rg);
+
 integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState state);
 integer findLocalOffset(jitCompPo jit, integer id);
 integer cancelLocal(jitCompPo jit, integer id);
+
+void collectLblTgt(insPo pc, jitCompPo jit);
+retCode sortLabels(jitCompPo jit);
+retCode resolvePcLbl(insPo code, integer pc, jitCompPo jit, char *errMsg, integer msgLen);
+codeLblPo getLblByPc(insPo pc, jitCompPo jit);
+
+uint32 currentPc(assemCtxPo ctx);
 
 typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
@@ -131,5 +151,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit);
 retCode jit_postamble(methodPo mtd, jitCompPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
+
+retCode nextOperand(insPo code, integer *pc, opAndSpec spec, jitCompPo jit, char *errMsg, integer msgSize);
 
 #endif //STAR_JITP_H

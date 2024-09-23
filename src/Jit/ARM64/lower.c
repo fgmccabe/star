@@ -28,7 +28,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
     return Error;
 
   assemCtxPo ctx = assemCtx(jit);
-  codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
+  codeLblPo entry = defineLabel(ctx, ctx->pc);
   markEntry(jit, entry);
   int32 stkAdjustment = ALIGNVALUE(frameSize, 16);
 
@@ -45,7 +45,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
 retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   int32 stkMemOffset = OffsetOf(StackRecord, stkMem);
   assemCtxPo ctx = assemCtx(jit);
-  codeLblPo okLbl = defineLabel(ctx, "stackOk", undefinedPc);
+  codeLblPo okLbl = defineLabel(ctx, undefinedPc);
 
   sub(X16, SP, IM(delta));
   ldr(X17, OF(X27, stkMemOffset));
@@ -266,7 +266,7 @@ retCode jit_Escape(insPo code, integer *pc, jitCompPo jit) {
 
   spillUpto(jit, escapeArity(esc));    // Spill all stack arguments up until arity
   loadStackIntoArgRegisters(jit, escapeArity(esc));
-  codeLblPo escLbl = defineLabel(ctx, escapeName(esc), (integer) escapeFun(esc));
+  codeLblPo escLbl = defineLabel(ctx, (integer) escapeFun(esc));
   bl(escLbl);
 
   return Error;
@@ -280,6 +280,14 @@ retCode jit_Frame(insPo code, integer *pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Block(insPo code, integer *pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_Break(insPo code, integer *pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Case(insPo code, integer *pc, jitCompPo jit) {
   return Error;
 }
@@ -289,7 +297,13 @@ retCode jit_IndxJmp(insPo code, integer *pc, jitCompPo jit) {
 }
 
 retCode jit_Jmp(insPo code, integer *pc, jitCompPo jit) {
-  return Error;
+  assemCtxPo ctx = assemCtx(jit);
+  codeLblPo tgt = getLblByPc(collectTgt(code, pc), jit);
+
+  assert(tgt != Null);
+
+  b(tgt);
+  return Ok;
 }
 
 retCode jit_Cell(insPo code, integer *pc, jitCompPo jit) {
@@ -561,3 +575,37 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, integer arity) {
   return Error;
 }
 
+retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
+  uint32 currOff = OffsetOf(HeapRecord, curr);
+  uint32 limitOff = OffsetOf(HeapRecord, limit);
+  assemCtxPo ctx = assemCtx(jit);
+  armReg glbHeap = findFreeReg(jit);
+  armReg scratch = findFreeReg(jit);
+  armReg limit = findFreeReg(jit);
+
+  codeLblPo okLbl = newLabel(ctx);
+  codeLblPo endLbl = newLabel(ctx);
+
+  ldr(glbHeap, IM((uinteger) globalHeap));
+  ldr(dst, OF(glbHeap, currOff));           // pick up current heap top
+  add(scratch, dst, amnt);
+  ldr(limit, OF(glbHeap, limitOff));        // check against limit
+  cmp(limit, RG(scratch));
+  bgt(okLbl);
+
+  // Invoke out of line allocator
+
+
+  b(endLbl);
+
+  setLabel(ctx,okLbl);
+  str(scratch,OF(glbHeap,currOff));         // record new heap top
+  mov(scratch,IM((uinteger)clss));
+  str(scratch,OF(dst, OffsetOf(TermRecord,clss))); // record class of new structure
+
+  releaseReg(jit,glbHeap);
+  releaseReg(jit, scratch);
+  releaseReg(jit, limit);
+  setLabel(ctx,endLbl);
+  return Ok;
+}

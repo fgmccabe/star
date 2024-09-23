@@ -49,6 +49,10 @@ void discardCtx(assemCtxPo ctx) {
   freePool(asmPool, ctx);
 }
 
+uint32 currentPc(assemCtxPo ctx){
+  return ctx->pc;
+}
+
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
   check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
 }
@@ -86,10 +90,18 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-codeLblPo defineLabel(assemCtxPo ctx, char *lName, integer pc) {
+codeLblPo defineLabel(assemCtxPo ctx, integer pc) {
   codeLblPo lbl = (codeLblPo) allocPool(lblPool);
   lbl->refs = Null;
   lbl->pc = pc;
+
+  return lbl;
+}
+
+codeLblPo newLabel(assemCtxPo ctx){
+  codeLblPo lbl = (codeLblPo) allocPool(lblPool);
+  lbl->refs = Null;
+  lbl->pc = -1;
 
   return lbl;
 }

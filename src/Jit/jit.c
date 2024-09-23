@@ -35,23 +35,48 @@ int32 collectOperand(insPo base, integer *pc) {
   return (int32) (hi << (uint32) 16 | lo);
 }
 
-#undef instruction
-#define instruction(Op, A1, A2, Dl, Cmt)        \
-    case Op:{                                   \
-      ret = jit_##Op(ins,&pc,jitCtx); \
-      break;                                    \
-    }
+insPo collectTgt(insPo base, integer *pc){
+  int32 off = collectOperand(base,pc);
+  return base+off;
+}
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   insPo ins = entryPoint(mtd);
   integer len = insCount(mtd);
-  integer pc = 0;
   jitCompPo jitCtx = jitContext(mtd);
 
   retCode ret = jit_preamble(mtd, jitCtx);
 
-  while (ret == Ok && pc < len) {
+  for (integer pc = 0; ret == Ok && pc < len;) {
     switch (ins[pc++]) {
+#undef instruction
+#define instruction(Op, A1, A2, Dl, Cmt)                 \
+    case Op:{                                            \
+      tryRet(nextOperand(ins, &pc, A1, jitCtx,errMsg,msgLen)); \
+      ret = nextOperand(ins, &pc, A2, jitCtx,errMsg,msgLen);   \
+      break;                                             \
+    }
+#include "instructions.h"
+#undef instruction
+      default:
+        return Error;
+    }
+  }
+
+  // Sort the labels into order of occurrance
+  if(ret==Ok)
+    ret = sortLabels(jitCtx);
+
+  for (integer pc = 0; ret == Ok && pc < len;) {
+    switch (ins[pc++]) {
+
+#define instruction(Op, A1, A2, Dl, Cmt)        \
+    case Op:{                                   \
+      tryRet(resolvePcLbl(ins, pc-1,jitCtx,errMsg,msgLen));  \
+      ret = jit_##Op(ins,&pc,jitCtx);           \
+      break;                                    \
+    }
+
 #include "instructions.h"
 
 #undef instruction

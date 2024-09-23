@@ -9,7 +9,7 @@
 #include "assem_encode.h"
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
-  codeLblPo entry = defineLabel(ctx, "entry", ctx->pc);
+  codeLblPo entry = defineLabel(ctx, ctx->pc);
   int32 stkAdjustment = ALIGNVALUE(lclSize, 16);
   stp(FP, X30, PRX(SP, -16));
   mov(FP, RG(SP));
