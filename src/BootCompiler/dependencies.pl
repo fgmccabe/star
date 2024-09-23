@@ -70,6 +70,10 @@ collStmtRefs(C,All,_,R,Refs) :-
   collConstraints(Cx,All,R,Rf0),
   collectConstructorRefs(Body,All,Rf0,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
+  isStructTypeStmt(C,_,_,_,Cx,_,_,Els),
+  collConstraints(Cx,All,R,Rf0),
+  collectFaceTypes(Els,All,Rf0,Refs).
+collStmtRefs(C,All,_,R,Refs) :-
   isConstructorStmt(C),
   collectTypeRefs(C,All,R,Refs).
 collStmtRefs(St,All,_,R0,Refs) :-
