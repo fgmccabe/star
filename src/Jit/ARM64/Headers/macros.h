@@ -40,4 +40,13 @@ typedef void (*regProc)(armReg rg, void *cl);
 
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
+codeLblPo newLabel(assemCtxPo ctx);
+codeLblPo defineLabel(assemCtxPo ctx, integer pc);
+void setLabel(assemCtxPo ctx, codeLblPo lbl);
+logical isLabelDefined(codeLblPo lbl);
+uint64 labelTgt(codeLblPo lbl);
+retCode cleanupLabels(assemCtxPo ctx);
+
+retCode callIntrinsic(assemCtxPo ctx, libFun fn, integer arity,...);
+
 #endif //STAR_MACROS_H

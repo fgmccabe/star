@@ -4,6 +4,7 @@
 
 #include "macros.h"
 #include "code.h"
+#include "libEscapes.h"
 
 registerMap defltAvailRegSet() {
   return callerSaved() | calleeSaved() | stackRegs();
@@ -118,5 +119,41 @@ static void restRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
 
 void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
+}
+
+retCode callIntrinsic(assemCtxPo ctx, libFun fn, integer arity, ...) {
+  va_list args;
+  va_start(args, arity);    /* start the variable argument sequence */
+  FlexOp operands[arity];
+
+  for (integer ix = 0; ix < arity; ix++) {
+    operands[ix] = (FlexOp) va_arg(args, FlexOp);
+  }
+
+  switch (arity) {
+    case 8:
+      mov(X7, operands[7]);
+    case 7:
+      mov(X6, operands[6]);
+    case 6:
+      mov(X5, operands[5]);
+    case 5:
+      mov(X4, operands[4]);
+    case 4:
+      mov(X3, operands[3]);
+    case 3:
+      mov(X2, operands[2]);
+    case 2:
+      mov(X1, operands[1]);
+    case 1:
+      mov(X0, operands[0]);
+    case 0: {
+      codeLblPo tgtLbl = defineLabel(ctx, (integer) fn);
+      bl(tgtLbl);
+      return Ok;
+    }
+    default:
+      return Error;
+  }
 }
 
