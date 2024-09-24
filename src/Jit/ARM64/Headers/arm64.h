@@ -114,18 +114,18 @@ typedef FlexOp registerSpec;
 
 #define PLATFORM_PC_DELTA 0
 
-#define RG(Rg) {.mode=reg, .reg=(Rg)}
-#define IM(Vl) {.mode=imm, .immediate=(Vl)}
-#define LS(Rg, Amnt) {.mode=shft, .shift=LSL, .reg=Rg, .immediate=(Amnt)}
-#define RS(Rg, Amnt) {.mode=shft, .shift=LSR, .reg=Rg, .immediate=(Amnt)}
-#define AS(Rg, Amnt) {.mode=shft, .shift=ASR, .reg=Rg, .immediate=(Amnt)}
-#define RR(Rg, Amnt) {.mode=shft, .shift=ROR, .reg=Rg, .immediate=(Amnt)}
-#define EX(Rg, Md, Amnt) {.mode=extnd, .reg =Rg, .ext=Md, .immediate=(Amnt)}
-#define EX2(Rg, Rgm, Md, Amnt) {.mode=extnd, .reg =Rg, .rgm=Rgm, .ext=Md, .immediate=(Amnt)}
-#define PSX(Rg, Amnt) {.mode=postX, .reg=Rg, .immediate=(Amnt)}
-#define PRX(Rg, Amnt) {.mode=preX,  .reg=Rg, .immediate=(Amnt)}
-#define OF(Rg, Amnt) {.mode=sOff,  .reg=Rg, .immediate=(Amnt)}
-#define PC(Lbl) {.mode=pcRel, .lbl=Lbl}
+#define RG(Rg) ((FlexOp){.mode=reg, .reg=(Rg)})
+#define IM(Vl) ((FlexOp){.mode=imm, .immediate=(Vl)})
+#define LS(Rg, Amnt) ((FlexOp){.mode=shft, .shift=LSL, .reg=Rg, .immediate=(Amnt)})
+#define RS(Rg, Amnt) ((FlexOp){.mode=shft, .shift=LSR, .reg=Rg, .immediate=(Amnt)})
+#define AS(Rg, Amnt) ((FlexOp){.mode=shft, .shift=ASR, .reg=Rg, .immediate=(Amnt)})
+#define RR(Rg, Amnt) ((FlexOp){.mode=shft, .shift=ROR, .reg=Rg, .immediate=(Amnt)})
+#define EX(Rg, Md, Amnt) ((FlexOp){.mode=extnd, .reg =Rg, .ext=Md, .immediate=(Amnt)})
+#define EX2(Rg, Rgm, Md, Amnt) ((FlexOp){.mode=extnd, .reg =Rg, .rgm=Rgm, .ext=Md, .immediate=(Amnt)})
+#define PSX(Rg, Amnt) ((FlexOp){.mode=postX, .reg=Rg, .immediate=(Amnt)})
+#define PRX(Rg, Amnt) ((FlexOp){.mode=preX,  .reg=Rg, .immediate=(Amnt)})
+#define OF(Rg, Amnt) ((FlexOp){.mode=sOff,  .reg=Rg, .immediate=(Amnt)})
+#define PC(Lbl) ((FlexOp){.mode=pcRel, .lbl=Lbl})
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize);
 retCode postamble(assemCtxPo ctx);

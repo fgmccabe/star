@@ -6,6 +6,8 @@
 #include "jitOps.h"
 #include "stackP.h"
 #include "globals.h"
+#include "signals.h"
+#include "jitP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -91,7 +93,9 @@ retCode jit_Nop(insPo code, integer *pc, jitCompPo jit) {
 }
 
 retCode jit_Halt(insPo code, integer *pc, jitCompPo jit) {
-  return Error;
+  assemCtxPo ctx = assemCtx(jit);
+  integer errCode = collectOperand(code,pc);
+  return callIntrinsic(ctx, (libFun) star_exit, 1, IM(errCode));
 }
 
 retCode jit_Abort(insPo code, integer *pc, jitCompPo jit) {

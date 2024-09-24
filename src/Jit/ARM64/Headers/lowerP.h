@@ -30,5 +30,4 @@
 #define SB (X27)
 #define PL (X28)
 
-
 #endif //STAR_LOWERP_H

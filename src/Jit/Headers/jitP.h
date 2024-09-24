@@ -110,13 +110,6 @@ insPo collectTgt(insPo base, integer *pc);
 
 retCode sortLabels(jitCompPo jit);
 
-codeLblPo newLabel(assemCtxPo ctx);
-codeLblPo defineLabel(assemCtxPo ctx, integer pc);
-void setLabel(assemCtxPo ctx, codeLblPo lbl);
-logical isLabelDefined(codeLblPo lbl);
-uint64 labelTgt(codeLblPo lbl);
-retCode cleanupLabels(assemCtxPo ctx);
-
 armReg findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, armReg rg);
 
