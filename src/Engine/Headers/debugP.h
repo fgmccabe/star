@@ -43,4 +43,5 @@ DebugWaitFor enterDebug(processPo p);
 
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
+retCode dissassBlock(ioPo out, stackPo stk, normalPo pool, blockPo block, integer precision, integer depth, logical alt, char *prefix);
 #endif //STAR_DEBUGP_H

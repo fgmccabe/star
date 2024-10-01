@@ -4,8 +4,6 @@
 
 #include "ltype.h"
 
-static retCode decNat(const char *text, integer len, integer *pos, integer *ii);
-
 retCode validTypeSig(const char *text, integer len) {
   integer pos = 0;
   retCode ret = skipTypeSig(text, len, &pos);
@@ -23,7 +21,12 @@ retCode skipTypeSig(const char *text, integer len, integer *pos) {
       case flt64Tp:
       case boolTp:
       case ptrTp:
+      case vdTp:
         return Ok;
+      case parTp: {
+        nextCodePoint(text,pos,len);
+        return Ok;
+      }
       case funTp: {
         retCode ret = skipTypeSig(text, len, pos);
         if (ret == Ok)
@@ -57,19 +60,6 @@ static int digitVal(codePoint ch) {
   return (int) (ch - '0');
 }
 
-retCode decNat(const char *text, integer len, integer *pos, integer *ii) {
-  integer result = 0;
-  integer ps = *pos;
-  codePoint ch;
-
-  while (isDigit(ch = nextCodePoint(text, &ps, len))) {
-    result = result * 10 + digitVal(ch);
-    *pos = ps;
-  }
-  *ii = result;
-  return Ok;
-}
-
 retCode typeSigArity(const char *sig, integer len, integer *arity){
   if(*sig==tplTp){
     integer pos = 1;
@@ -80,5 +70,21 @@ retCode typeSigArity(const char *sig, integer len, integer *arity){
     }
     return Ok;
   } else
+    return Error;
+}
+
+retCode funArgSig(const char *text, integer len, integer *pos) {
+  codePoint ch = nextCodePoint(text, pos, len);
+  if (ch == funTp)
+    return Ok;
+  else
+    return Error;
+}
+
+retCode funResSig(const char *text, integer len, integer *pos) {
+  codePoint ch = nextCodePoint(text, pos, len);
+  if (ch == funTp)
+    return skipTypeSig(text,len,pos);
+  else
     return Error;
 }

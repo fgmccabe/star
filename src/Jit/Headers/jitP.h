@@ -13,6 +13,7 @@
 #include "macros.h"
 #include "array.h"
 #include "escape.h"
+#include "codeP.h"
 
 #define MAX_VSTACK 256
 
@@ -105,9 +106,6 @@ codeLblPo jitEntry(jitCompPo jit);
 
 extern integer undefinedPc;
 
-int32 collectOperand(insPo base, integer *pc);
-insPo collectTgt(insPo base, integer *pc);
-
 retCode sortLabels(jitCompPo jit);
 
 armReg findFreeReg(jitCompPo jit);
@@ -116,6 +114,7 @@ void releaseReg(jitCompPo jit, armReg rg);
 integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState state);
 integer findLocalOffset(jitCompPo jit, integer id);
 integer cancelLocal(jitCompPo jit, integer id);
+
 
 void collectLblTgt(insPo pc, jitCompPo jit);
 retCode sortLabels(jitCompPo jit);
@@ -140,11 +139,9 @@ logical isByte(int64 x);
 logical isI32(int64 x);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit);
-
 retCode jit_postamble(methodPo mtd, jitCompPo ctx);
+retCode jitBlock(jitCompPo jitCtx, blockPo block, char *errMsg, integer msgLen);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
-
-retCode nextOperand(insPo code, integer *pc, opAndSpec spec, jitCompPo jit, char *errMsg, integer msgSize);
 
 #endif //STAR_JITP_H

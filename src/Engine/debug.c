@@ -1098,7 +1098,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_glb showGlb(out, findGlobalVar(collectI32(pc)))
 #define show_tPe showFrame(out,stk,mtd,collectI32(pc))
 
-#define instruction(Op, A1, A2, Dl, Cmt)    \
+#define instruction(Op, A1, A2, Dl, Tp, Cmt)\
     case Op:{                               \
       outMsg(out," %s",#Op);                \
       integer delta=0;                      \

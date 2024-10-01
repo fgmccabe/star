@@ -27,10 +27,12 @@ add_custom_target(opcodes.h DEPENDS opcodes
 
 set(ASM_SOURCE_FILES plmnem.c )
 add_executable(plmnem ${ASM_SOURCE_FILES})
+add_dependencies(plmnem opcodes.h)
 target_link_libraries(plmnem ooio infra)
 
 set(STAR_ASM_SOURCE_FILES starmnem.c)
 add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
+add_dependencies(starmnem opcodes.h)
 target_link_libraries(starmnem ooio infra)
 
 set(INTRINSIC_SOURCE_FILES plateinstrinsic.c)

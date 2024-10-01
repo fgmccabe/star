@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "signals.h"
 #include "jitP.h"
+#include "codeP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -88,31 +89,31 @@ static void pushStkOp(jitCompPo jit, vOperand operand) {
   jit->vStack[jit->vTop++] = operand;
 }
 
-retCode jit_Nop(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Nop(insPo code, integer pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_Halt(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Halt(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  integer errCode = collectOperand(code,pc);
+  integer errCode = code[pc].fst;
   return callIntrinsic(ctx, (libFun) star_exit, 1, IM(errCode));
 }
 
-retCode jit_Abort(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Abort(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Closure(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Closure(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Alloc(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Alloc(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_LdA(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdA(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
-  int32 argNo = collectOperand(code, pc);
+  int32 argNo = code[pc].fst;
   vOperand argOp = {.loc=argument, .ix=argNo};
 
   jit->vStack[jit->vTop++] = argOp;
@@ -120,27 +121,27 @@ retCode jit_LdA(insPo code, integer *pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_LdL(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdL(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
-  int32 lclNo = collectOperand(code, pc);
+  int32 lclNo = code[pc].fst;
   vOperand lclOp = {.loc=local, .ix=lclNo};
   jit->vStack[jit->vTop++] = lclOp;
   return Ok;
 }
 
-retCode jit_LdC(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdC(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
-  int32 litNo = collectOperand(code, pc);
+  int32 litNo = code[pc].fst;
   vOperand lclOp = {.loc=constant, .ix=litNo};
   jit->vStack[jit->vTop++] = lclOp;
   return Ok;
 }
 
-retCode jit_LdG(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdG(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_LdV(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdV(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
 
   vOperand vdOp = {.loc=engineSymbol, .address=voidEnum};
@@ -148,69 +149,69 @@ retCode jit_LdV(insPo code, integer *pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_StV(insPo code, integer *pc, jitCompPo jit) {
-  int32 lclNo = collectOperand(code, pc);
+retCode jit_StV(insPo code, integer pc, jitCompPo jit) {
+  int32 lclNo = code[pc].fst;
   return Error;
 }
 
-retCode jit_Nth(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Nth(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_StNth(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_StNth(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_StA(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_StA(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_StG(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_StG(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_StL(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_StL(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TL(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TL(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TG(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TG(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Thunk(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Thunk(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_LdTh(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_LdTh(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_StTh(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_StTh(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TTh(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TTh(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Dup(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Dup(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 1);
   jit->vStack[jit->vTop] = jit->vStack[jit->vTop - 1];
   jit->vTop++;
   return Ok;
 }
 
-retCode jit_Drop(insPo code, integer *c, jitCompPo jit) {
+retCode jit_Drop(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
   jit->vTop--;
   return Ok;
 }
 
-retCode jit_Swap(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Swap(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
   vOperand entry = jit->vStack[jit->vTop];
   jit->vStack[jit->vTop] = jit->vStack[jit->vTop - 1];
@@ -218,15 +219,15 @@ retCode jit_Swap(insPo code, integer *pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_Rst(insPo code, integer *pc, jitCompPo jit) {
-  int32 height = collectOperand(code, pc);
+retCode jit_Rst(insPo code, integer pc, jitCompPo jit) {
+  int32 height = code[pc].fst;
   check(height >= 0 && height <= jit->vTop, "reset alignment");
   jit->vTop = height;
   return Ok;
 }
 
-retCode jit_Rot(insPo code, integer *pc, jitCompPo jit) {
-  int32 height = collectOperand(code, pc);
+retCode jit_Rot(insPo code, integer pc, jitCompPo jit) {
+  int32 height = code[pc].fst;
   check(height >= 0 && height <= jit->vTop, "rotation amount");
   vOperand top = jit->vStack[jit->vTop];
   for (int32 ix = 0; ix < height - 1; ix++) {
@@ -236,8 +237,8 @@ retCode jit_Rot(insPo code, integer *pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_Call(insPo code, integer *pc, jitCompPo jit) {
-  int32 litNo = collectOperand(code, pc);
+retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
+  int32 litNo = code[pc].fst;
 
   labelPo lbl = C_LBL(getMtdLit(jit->mtd, litNo));
   integer arity = labelArity(lbl);
@@ -247,25 +248,25 @@ retCode jit_Call(insPo code, integer *pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_OCall(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_OCall(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TCall(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TCall(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TOCall(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TOCall(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Locals(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Locals(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Escape(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Escape(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  int32 escNo = collectOperand(code, pc);
+  int32 escNo = code[pc].fst;
   escapePo esc = getEscape(escNo);
 
   spillUpto(jit, escapeArity(esc));    // Spill all stack arguments up until arity
@@ -276,33 +277,21 @@ retCode jit_Escape(insPo code, integer *pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Ret(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Ret(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Frame(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Frame(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Block(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Block(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Break(insPo code, integer *pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_Case(insPo code, integer *pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_IndxJmp(insPo code, integer *pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_Jmp(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Break(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  codeLblPo tgt = getLblByPc(collectTgt(code, pc), jit);
+  codeLblPo tgt = getLblByPc(code[pc].snd.exit, jit);
 
   assert(tgt != Null);
 
@@ -310,59 +299,67 @@ retCode jit_Jmp(insPo code, integer *pc, jitCompPo jit) {
   return Ok;
 }
 
-retCode jit_Cell(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Case(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Get(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IndxJmp(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Assign(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Cell(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FAdd(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Get(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FAbs(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Assign(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FSub(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FAdd(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FMul(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FAbs(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FDiv(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FSub(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FMod(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FMul(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FEq(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FDiv(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FGe(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FMod(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FCmp(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FEq(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_FLt(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FGe(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IAdd(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_FCmp(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_FLt(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_IAdd(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
   vOperand a1 = popStkOp(jit);
   vOperand a2 = popStkOp(jit);
@@ -375,163 +372,163 @@ retCode jit_IAdd(insPo code, integer *pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IAbs(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IAbs(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_ISub(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_ISub(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IMul(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IMul(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IDiv(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IDiv(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IMod(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IMod(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_ICmp(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_ICmp(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IEq(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IEq(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IGe(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IGe(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_ILt(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_ILt(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_CCmp(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_CCmp(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_CEq(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_CEq(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_CGe(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_CGe(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_CLt(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_CLt(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BAnd(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BAnd(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BOr(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BOr(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BNot(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BNot(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BXor(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BXor(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BAsr(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BAsr(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BLsl(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BLsl(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_BLsr(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_BLsr(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_CLbl(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_CLbl(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Unpack(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Unpack(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Cmp(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Cmp(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_If(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_If(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_IfNot(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_IfNot(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Fiber(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Fiber(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Spawn(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Spawn(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Suspend(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Suspend(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Resume(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Resume(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Retire(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Retire(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Release(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Release(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Underflow(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Underflow(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_TEq(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_TEq(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Try(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Try(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_EndTry(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_EndTry(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Throw(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Throw(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Reset(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Reset(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Shift(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Shift(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Invoke(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_Invoke(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_dBug(insPo code, integer *pc, jitCompPo jit) {
+retCode jit_dBug(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 

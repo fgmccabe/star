@@ -97,3 +97,12 @@ retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {
   }
   return ret;
 }
+
+retCode copyOutData(arrayPo ar, void *buffer, integer buffSize){
+  if(buffSize<ar->elSize*ar->count)
+    return Space;
+  else{
+    memcpy(buffer,ar->data,buffSize);
+    return Ok;
+  }
+}

@@ -304,7 +304,7 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
         stk->sp = (ptrPo) (try + 1);
         stk->fp->pc = try->pc;
         stk->try = try->try;
-        validPC(frameMtd(stk->fp), stk->fp->pc);
+        assert(validPC(frameMtd(stk->fp), stk->fp->pc));
         return stk;
       } else
         try = stk->try = try->try;

@@ -7,8 +7,9 @@
 #include "normal.h"
 #include "opcodes.h"
 
-typedef uint16 insWord;
-typedef const insWord *insPo;
+//typedef uint16 insWord;
+typedef struct instruction_ *insPo;
+typedef struct block_ *blockPo;
 
 typedef struct method_ *methodPo;
 
@@ -27,7 +28,6 @@ integer codeArity(methodPo mtd);
 
 termPo findPcLocation(methodPo mtd, integer pc);
 integer insOffset(methodPo m, insPo pc);
-insPo pcAddr(methodPo mtd, integer pcOffset);
 integer mtdCodeSize(methodPo mtd);
 
 integer callCount(methodPo mtd);

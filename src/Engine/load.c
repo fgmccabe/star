@@ -2,29 +2,23 @@
   Copyright (c) 2016, 2017, 2018. Francis G. McCabe
  */
 
-#include <stdlib.h>
 #include <string.h>
 #include "pkgP.h"
 
 #include "engine.h"
 #include <globals.h>
-#include <wordBuffer.h>
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
-#include "libEscapes.h"
 #include "codeP.h"
 #include "labelsP.h"
 #include "verifyP.h"
-#include "globalsP.h"
 
 tracingLevel tracePkg = noTracing;
 
 static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
 
 static retCode decodeImportsSig(strBufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
-
-static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
 
 static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
 
@@ -129,8 +123,7 @@ retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl) {
     return ldPackage(p, errorMsg, msgSize, loadPackage, cl);
 }
 
-retCode
-installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
+retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   strBufferPo inBuff = newReadStringBuffer(pkgText, pkgTxtLen);
 
   retCode ret;
@@ -158,7 +151,7 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
         ret = skipEncoded(pkgIn, errorMsg, msgSize); // Skip local declarations
 
       if (ret == Ok)
-        ret = loadDefs(pkgIn, H, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadDefs(pkgIn, globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
     else if (tracePkg >= generalTracing)
@@ -329,158 +322,8 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
 // Each variable specification consists of
 // a. The pool constant for the variable name
 // c. The variable number
-// d. The pc offset of the start of the validity range
-// e. The pc offset of the end of the validity range
+// d. The block which defines its range
 
-static void writeI16(wordBufferPo bfr, uint16 val) {
-  appendWordToBuffer(bfr, val);
-}
-
-static void writeOperand(wordBufferPo bfr, uint32 val) {
-  int32 upper = (val >> (unsigned) 16) & (unsigned) 0xffff;
-  int32 lower = (val & (unsigned) 0xffff);
-
-  writeI16(bfr, (uint16) upper);
-  writeI16(bfr, (uint16) lower);
-}
-
-static retCode writeIntOperand(ioPo in, wordBufferPo bfr, integer *ix) {
-  integer and;
-  retCode ret = decodeInteger(in, &and);
-  writeOperand(bfr, (uint32) and);
-  (*ix)++;
-  return ret;
-}
-
-static retCode decodeIns(ioPo in, wordBufferPo bfr, integer *ix, integer *si, char *errorMsg, long msgSize) {
-  integer op, and;
-  char escNm[MAX_SYMB_LEN];
-  retCode ret = decodeInteger(in, &op);
-
-  if (ret == Ok) {
-    writeI16(bfr, op);
-    (*ix)++;
-    switch (op) {
-#define sznOp
-#define sztOs
-#define szart if(ret==Ok){ret =  writeIntOperand(in,bfr,ix);}
-#define szi32 if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
-#define szarg if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szlcl if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szlcs if(ret==Ok){ret = writeIntOperand(in,bfr,ix);}
-#define szoff if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szlVl if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szsym if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(bfr,lookupEscape(escNm)); (*ix)++;}
-#define szlit if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define sztPe if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szlne if(ret==Ok){ret = writeIntOperand(in,bfr,ix); }
-#define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(bfr,globalVarNo(escNm)); (*ix)++;}
-#define szbLk strMsg(errorMsg, msgSize, "invalid instruction encoding"); return Error;
-
-#define instruction(Op, A1, A2, Dl, Cmt)    \
-      case Op:                              \
-        (*si)+=Dl;                          \
-        sz##A1                              \
-        sz##A2                              \
-        break;
-
-#include "instructions.h"
-
-#undef instruction
-#undef szi32
-#undef szart
-#undef szarg
-#undef szlcl
-#undef szlcs
-#undef szoff
-#undef szbLk
-#undef szlVl
-#undef szsym
-#undef szEs
-#undef szlit
-#undef sztPe
-#undef szlne
-#undef szglb
-#undef sznOp
-#undef sztOs
-      default: {
-        strMsg(errorMsg, msgSize, "invalid instruction encoding");
-        return Error;
-      }
-    }
-  }
-  return ret;
-}
-
-static integer maxDepth(insPo code, integer maxPc, normalPo constPool) {
-  integer stackDepth = 0;
-  integer maxDepth = 0;
-  for (integer pc = 0; pc < maxPc;) {
-    insWord op = code[pc++];
-    integer litNo = 0;
-
-    switch (op) {
-
-#define collectI32 { uint32 hi32 = (uint32)(code[pc++]); uint32 lo32 = (uint32)(code[pc++]); litNo = ((hi32<<(unsigned)16)|lo32);}
-
-#define sznOp
-#define sztOs
-#define szart pc+=2;
-#define szi32 pc+=2;
-#define szlBs pc+=2;
-#define szarg pc+=2;
-#define szlcl pc+=2;
-#define szlcs pc+=2;
-#define szoff pc+=2;
-#define szlVl pc+=2;
-#define szbLk pc+=2;
-#define szsym collectI32;
-#define szEs pc+=2;
-#define szlit collectI32;
-#define sztPe pc+=2;
-#define szlne pc+=2;
-#define szglb pc+=2;
-
-#define instruction(Op, A1, A2, Dl, Cmt) \
-case Op:                       \
-stackDepth+=Dl;              \
-sz##A1                       \
-sz##A2                       \
-if(stackDepth>maxDepth)      \
-maxDepth = stackDepth;     \
-break;
-
-#include "instructions.h"
-
-#undef instruction
-#undef szi32
-#undef szlBs
-#undef szart
-#undef szarg
-#undef szlcl
-#undef szlcs
-#undef szoff
-#undef szcDe
-#undef szlVl
-#undef szsym
-#undef szEs
-#undef szlit
-#undef sztPe
-#undef szlne
-#undef szglb
-#undef sznOp
-#undef sztOs
-    }
-    if (op == Unpack) {
-      labelPo lbl = C_LBL(nthArg(constPool, litNo));
-      stackDepth += labelArity(lbl);
-      if (stackDepth > maxDepth)
-        maxDepth = stackDepth;
-    }
-  }
-  return maxDepth;
-}
 
 retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
   integer policyCount;
@@ -499,11 +342,44 @@ retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorM
   return ret;
 }
 
+static integer maxDepth(blockPo block, normalPo constPool) {
+  integer currDepth = 0;
+  integer maxDepth = 0;
+
+  insPo ins = block->ins;
+
+  for (integer pc = 0; pc < block->insCount; pc++, ins++) {
+    switch (ins->op) {
+
+#define
+#define instruction(Op, A1, A2, Dl, Tp, Cmt) \
+      case Op:{                  \
+        currDepth+=(Dl);        \
+        if(currDepth>maxDepth)  \
+          maxDepth = currDepth; \
+        continue;                \
+      }
+
+#include "instructions.h"
+
+#undef instruction
+
+      default:;
+    }
+    if (ins->op == Unpack) {
+      labelPo lbl = C_LBL(nthArg(constPool, ins->fst));
+      currDepth += labelArity(lbl);
+      if (currDepth > maxDepth)
+        maxDepth = currDepth;
+    }
+  }
+  return maxDepth;
+}
+
 retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
-  integer maxStack = 0;
   DefinitionMode redefine = hardDef;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
@@ -523,67 +399,55 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    integer insCount;
-    ret = decodeTplCount(in, &insCount, errorMsg, msgSize);
+    blockPo block = Null;
+
+    ret = decodeInstructionBlock(in, &block, errorMsg, msgSize);
 
     if (ret == Ok) {
-      wordBufferPo bfr = newWordBuffer(shortGrain);
-      for (integer ix = 0; ret == Ok && ix < insCount;) {
-        integer stackInc = 0;
-        ret = decodeIns(in, bfr, &ix, &stackInc, errorMsg, msgSize);
-        maxStack += stackInc;
-      }
-      integer pcCount;
-      insPo ins = (insPo) getBufferData(bfr, &pcCount);
-      closeWordBuffer(bfr);
+      termPo pool = voidEnum;
+      int root = gcAddRoot(H, &pool);
+      EncodeSupport support = {errorMsg, msgSize, H};
+      strBufferPo tmpBuffer = newStringBuffer();
+
+      ret = decode(in, &support, H, &pool, tmpBuffer);
 
       if (ret == Ok) {
-        termPo pool = voidEnum;
-        int root = gcAddRoot(H, &pool);
-        EncodeSupport support = {errorMsg, msgSize, H};
-        strBufferPo tmpBuffer = newStringBuffer();
-
-        ret = decode(in, &support, H, &pool, tmpBuffer);
+        termPo locals = voidEnum;
+        gcAddRoot(H, &locals);
+        ret = decode(in, &support, H, &locals, tmpBuffer);
 
         if (ret == Ok) {
-          termPo locals = voidEnum;
-          gcAddRoot(H, &locals);
-          ret = decode(in, &support, H, &locals, tmpBuffer);
+          termPo lines = voidEnum;
+          gcAddRoot(H, &lines);
+          ret = decode(in, &support, H, &lines, tmpBuffer);
 
           if (ret == Ok) {
-            termPo lines = voidEnum;
-            gcAddRoot(H, &lines);
-            ret = decode(in, &support, H, &lines, tmpBuffer);
+            labelPo lbl = declareLbl(prgName, arity, -1);
 
-            if (ret == Ok) {
-              labelPo lbl = declareLbl(prgName, arity, -1);
+            if (labelCode(lbl) != Null) {
+              if (redefine != softDef) {
+                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+                ret = Error;
+              } // Otherwise don't redefine
+            } else {
+              gcAddRoot(H, (ptrPo) &lbl);
 
-              if (labelCode(lbl) != Null) {
-                if (redefine != softDef) {
-                  strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-                  ret = Error;
-                } // Otherwise don't redefine
-              } else {
-                gcAddRoot(H, (ptrPo) &lbl);
+              integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
 
-                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool)) + lclCount;
+              methodPo mtd = defineMtd(H, block, lclCount, stackDelta, lbl, C_NORMAL(pool),
+                                       C_NORMAL(locals),
+                                       C_NORMAL(lines));
+              if (enableVerify)
+                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
-                methodPo mtd = defineMtd(H, ins, pcCount, lclCount, stackDelta, lbl, C_NORMAL(pool),
-                                         C_NORMAL(locals),
-                                         C_NORMAL(lines));
-                if (enableVerify)
-                  ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-
-                if(ret==Ok && jitOnLoad)
-                  ret = jitMethod(mtd,errorMsg,msgSize);
-              }
+              if (ret == Ok && jitOnLoad)
+                ret = jitMethod(mtd, errorMsg, msgSize);
             }
           }
         }
-        closeIo(O_IO(tmpBuffer));
-        gcReleaseRoot(H, root);
       }
-      free((void *) ins);
+      closeIo(O_IO(tmpBuffer));
+      gcReleaseRoot(H, root);
     }
   }
 
@@ -597,8 +461,6 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
-  integer maxStack = 0;
-  DefinitionMode redefine = hardDef;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
 
@@ -614,62 +476,50 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    integer insCount;
-    ret = decodeTplCount(in, &insCount, errorMsg, msgSize);
+    blockPo block = Null;
+
+    ret = decodeInstructionBlock(in, &block, errorMsg, msgSize);
 
     if (ret == Ok) {
-      wordBufferPo bfr = newWordBuffer(shortGrain);
-      for (integer ix = 0; ret == Ok && ix < insCount;) {
-        integer stackInc = 0;
-        ret = decodeIns(in, bfr, &ix, &stackInc, errorMsg, msgSize);
-        maxStack += stackInc;
-      }
-      integer pcCount;
-      insPo ins = (insPo) getBufferData(bfr, &pcCount);
-      closeWordBuffer(bfr);
+      termPo pool = voidEnum;
+      int root = gcAddRoot(H, &pool);
+      EncodeSupport support = {errorMsg, msgSize, H};
+      strBufferPo tmpBuffer = newStringBuffer();
+
+      ret = decode(in, &support, H, &pool, tmpBuffer);
 
       if (ret == Ok) {
-        termPo pool = voidEnum;
-        int root = gcAddRoot(H, &pool);
-        EncodeSupport support = {errorMsg, msgSize, H};
-        strBufferPo tmpBuffer = newStringBuffer();
-
-        ret = decode(in, &support, H, &pool, tmpBuffer);
+        termPo locals = voidEnum;
+        gcAddRoot(H, &locals);
+        ret = decode(in, &support, H, &locals, tmpBuffer);
 
         if (ret == Ok) {
-          termPo locals = voidEnum;
-          gcAddRoot(H, &locals);
-          ret = decode(in, &support, H, &locals, tmpBuffer);
+          termPo lines = voidEnum;
+          gcAddRoot(H, &lines);
+          ret = decode(in, &support, H, &lines, tmpBuffer);
 
           if (ret == Ok) {
-            termPo lines = voidEnum;
-            gcAddRoot(H, &lines);
-            ret = decode(in, &support, H, &lines, tmpBuffer);
+            labelPo lbl = declareLbl(prgName, arity, -1);
 
-            if (ret == Ok) {
-              labelPo lbl = declareLbl(prgName, arity, -1);
+            if (labelCode(lbl) != Null) {
+              strMsg(errorMsg, msgSize, "attempt to redeclare global %A", lbl);
+              ret = Error;
+            } else {
+              gcAddRoot(H, (ptrPo) &lbl);
 
-              if (labelCode(lbl) != Null) {
-                strMsg(errorMsg, msgSize, "attempt to redeclare global %A", lbl);
-                ret = Error;
-              } else {
-                gcAddRoot(H, (ptrPo) &lbl);
+              integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
 
-                integer stackDelta = maxDepth(ins, pcCount, C_NORMAL(pool)) + lclCount;
-
-                methodPo mtd = defineMtd(H, ins, pcCount, lclCount, stackDelta, lbl, C_NORMAL(pool),
-                                         C_NORMAL(locals),
-                                         C_NORMAL(lines));
-                if (enableVerify)
-                  ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-              }
+              methodPo mtd = defineMtd(H, block, lclCount, stackDelta, lbl, C_NORMAL(pool),
+                                       C_NORMAL(locals),
+                                       C_NORMAL(lines));
+              if (enableVerify)
+                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
             }
           }
         }
-        closeIo(O_IO(tmpBuffer));
-        gcReleaseRoot(H, root);
       }
-      free((void *) ins);
+      closeIo(O_IO(tmpBuffer));
+      gcReleaseRoot(H, root);
     }
   }
 
@@ -701,7 +551,6 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
       for (integer ix = 0; ret == Ok && ix < count; ix++) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           char lblName[MAX_SYMB_LEN];
-          integer lblLen;
           integer arity;
 
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity, errorMsg, msgSize);
