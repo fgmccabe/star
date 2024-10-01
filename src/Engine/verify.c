@@ -10,6 +10,8 @@
 #include "ltype.h"
 #include "arith.h"
 #include "libEscapes.h"
+#include "codeP.h"
+#include "decodeP.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 logical traceVerify = False;      // true if tracing code verification
@@ -241,7 +243,7 @@ segPo findSeg(vectorPo blocks, integer pc) {
 // Phase 1: split code into basic blocks
 
 #undef instruction
-#define instruction(Op, A1, A2, Delta, Cmt)\
+#define instruction(Op, A1, A2, Delta, Tp, Cmt)\
     case Op:\
       ret=checkSplit(blocks,code,oPc,pc,Op,A1,A2,jmpSplit,errorMsg,msgLen);\
       continue;
@@ -319,8 +321,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Resume:
       case Retire:
       case Throw:
-      case Shift:
-      {
+      case Shift: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -358,7 +359,7 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
 // Phase 2: wire up basic block targets
 
 #undef instruction
-#define instruction(Op, A1, A2, Delta, Cmt)\
+#define instruction(Op, A1, A2, Delta, Tp, Cmt)\
     case Op:\
       ret=checkTgt(blocks,mtd,code,oPc,pc,Op,A1,A2,to,errorMsg,msgLen);\
       break;
@@ -893,23 +894,6 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
         return Ok;
       }
 
-//      case Cmp:
-//      case CLbl:
-//      case ICmp:
-//      case FCmp:
-//      case If:
-//      case IfNot: {
-//        int32 tgt = collect32(base, &iPc);
-//        integer npc = iPc + delta;
-//        segPo alt = findSeg(seg->seg.exits, npc);
-//
-//        if (alt == Null || alt->seg.pc != *pc) {
-//          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, *pc, oPc);
-//          return Error;
-//        } else
-//          return mergeSegVars(seg, alt, errorMsg, msgLen);
-//      }
-
       default:;
     }
     if (seg->seg.stackDepth < 0) {
@@ -922,7 +906,7 @@ checkInstruction(segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A, op
 }
 
 #undef instruction
-#define instruction(Mn, A1, A2, Dlta, Cmt)\
+#define instruction(Mn, A1, A2, Dlta, Tp, Cmt)\
   case Mn:\
     ret = checkInstruction(seg,Mn,oPc,&pc,A1,A2,Dlta,errorMsg,msgLen);\
     continue;
@@ -1047,5 +1031,264 @@ void showGroups(vectorPo groups, char *name) {
   for (integer gx = 0; gx < vectLength(groups); gx++) {
     vectorPo group = O_VECT(getVectEl(groups, gx));
     showGroup(group, gx);
+  }
+}
+
+typedef struct verify_context_ {
+  char *prefix;
+  char *errorMsg;
+  long msgLen;
+} VerifyContext, *verifyCtxPo;
+
+typedef struct break_ *breakPo;
+
+typedef struct break_ {
+  blockPo block;
+  char *blockSig;
+  int32 pc;
+  breakPo parent;
+} BreakBlockLevel;
+
+static retCode extractBlockSig(char *blockSig, integer *entryDepth, integer *exitDepth, verifyCtxPo ctx) {
+  integer sigLen = uniStrLen(blockSig);
+  if (validTypeSig(blockSig, sigLen) != Ok) {
+    strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature", ctx->prefix);
+    return Error;
+  } else {
+    integer argPos = 0;
+    if (funArgSig(blockSig, sigLen, &argPos) != Ok) {
+      strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+      return Error;
+    }
+    if (typeSigArity(&blockSig[argPos], sigLen - argPos, entryDepth) != Ok) {
+      strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+      return Error;
+    } else {
+      integer pos = argPos;
+      skipTypeSig(blockSig, sigLen, &pos);
+      if (typeSigArity(&blockSig[pos], sigLen - pos, exitDepth) != Ok) {
+        strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+        return Error;
+      }
+      return Ok;
+    }
+  }
+}
+
+retCode verifyBlock(blockPo block, const char *blockSig, breakPo parent, verifyCtxPo ctx) {
+  integer entryDepth, exitDepth;
+
+  if (extractBlockSig(blockSig, &entryDepth, &exitDepth, ctx) != Ok)
+    return Error;
+  else {
+    retCode ret = Ok;
+    for (integer pc = 0; ret == Ok && pc < block->insCount; pc++) {
+      insPo ins = &block->ins[pc];
+      switch (ins->op) {
+        case Halt: {
+          if (pc != block->insCount - 1) {
+            strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: Halt should be last instruction in block", ctx->prefix, pc);
+            return Error;
+          } else
+            return Ok;
+        }
+        case Nop:
+          break;
+        case Abort:{
+          if (pc != block->insCount - 1) {
+            strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: Abort should be last instruction in block", ctx->prefix, pc);
+            return Error;
+          } else
+            return Ok;
+        }
+        case Call:
+          break;
+        case OCall:
+          break;
+        case Escape:
+          break;
+        case TCall:
+          break;
+        case TOCall:
+          break;
+        case Locals:
+          break;
+        case Ret:
+          break;
+        case Block:
+          break;
+        case Break:
+          break;
+        case Drop:
+          break;
+        case Dup:
+          break;
+        case Rot:
+          break;
+        case Rst:
+          break;
+        case Fiber:
+          break;
+        case Spawn:
+          break;
+        case Suspend:
+          break;
+        case Resume:
+          break;
+        case Retire:
+          break;
+        case Underflow:
+          break;
+        case TEq:
+          break;
+        case Try:
+          break;
+        case EndTry:
+          break;
+        case Throw:
+          break;
+        case Reset:
+          break;
+        case Shift:
+          break;
+        case Invoke:
+          break;
+        case LdV:
+          break;
+        case LdC:
+          break;
+        case LdA:
+          break;
+        case LdL:
+          break;
+        case StL:
+          break;
+        case StV:
+          break;
+        case TL:
+          break;
+        case StA:
+          break;
+        case LdG:
+          break;
+        case StG:
+          break;
+        case TG:
+          break;
+        case Thunk:
+          break;
+        case LdTh:
+          break;
+        case StTh:
+          break;
+        case TTh:
+          break;
+        case Cell:
+          break;
+        case Get:
+          break;
+        case Assign:
+          break;
+        case CLbl:
+          break;
+        case Nth:
+          break;
+        case StNth:
+          break;
+        case If:
+          break;
+        case IfNot:
+          break;
+        case Case:
+          break;
+        case IndxJmp:
+          break;
+        case Unpack:
+          break;
+        case IAdd:
+          break;
+        case ISub:
+          break;
+        case IMul:
+          break;
+        case IDiv:
+          break;
+        case IMod:
+          break;
+        case IAbs:
+          break;
+        case IEq:
+          break;
+        case ILt:
+          break;
+        case IGe:
+          break;
+        case ICmp:
+          break;
+        case CEq:
+          break;
+        case CLt:
+          break;
+        case CGe:
+          break;
+        case CCmp:
+          break;
+        case BAnd:
+          break;
+        case BOr:
+          break;
+        case BXor:
+          break;
+        case BLsl:
+          break;
+        case BLsr:
+          break;
+        case BAsr:
+          break;
+        case BNot:
+          break;
+        case FAdd:
+          break;
+        case FSub:
+          break;
+        case FMul:
+          break;
+        case FDiv:
+          break;
+        case FMod:
+          break;
+        case FAbs:
+          break;
+        case FEq:
+          break;
+        case FLt:
+          break;
+        case FGe:
+          break;
+        case FCmp:
+          break;
+        case Alloc:
+          break;
+        case Closure:
+          break;
+        case Cmp:
+          break;
+        case Frame:
+          break;
+        case dBug:
+          break;
+        case Line:
+          break;
+        case Local:
+          break;
+        case illegalOp:
+        case maxOpCode:{
+          strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: illegal instruction in block", ctx->prefix, pc);
+          return Error;
+        }
+      }
+    }
+    strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: execution past last instruction in block", ctx->prefix, block->insCount);
+    return Error;
   }
 }

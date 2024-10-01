@@ -9,7 +9,6 @@
 
 typedef enum {
   #(OpCodes)
-  label,
   illegalOp,
   maxOpCode
 } OpCode;
@@ -26,7 +25,6 @@ typedef enum {
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
   lcs,          // Store to local variable
-  off,          /* offset within current code */
   Es,           // escape code 0..65535
   lit,          /* constant literal */
   sym,          // Symbol

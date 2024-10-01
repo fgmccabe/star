@@ -29,51 +29,38 @@ codeLblPo jitEntry(jitCompPo jit) {
   return jit->entry;
 }
 
-int32 collectOperand(insPo base, integer *pc) {
-  uint32 hi = (uint32) base[(*pc)++];
-  uint32 lo = (uint32) base[(*pc)++];
-  return (int32) (hi << (uint32) 16 | lo);
-}
-
-insPo collectTgt(insPo base, integer *pc){
-  int32 off = collectOperand(base,pc);
-  return base+off;
-}
-
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
-  insPo ins = entryPoint(mtd);
-  integer len = insCount(mtd);
-  jitCompPo jitCtx = jitContext(mtd);
+  jitCompPo jit = jitContext(mtd);
 
-  retCode ret = jit_preamble(mtd, jitCtx);
+  retCode ret = jit_preamble(mtd, jit);
 
-  for (integer pc = 0; ret == Ok && pc < len;) {
-    switch (ins[pc++]) {
-#undef instruction
-#define instruction(Op, A1, A2, Dl, Cmt)                 \
-    case Op:{                                            \
-      tryRet(nextOperand(ins, &pc, A1, jitCtx,errMsg,msgLen)); \
-      ret = nextOperand(ins, &pc, A2, jitCtx,errMsg,msgLen);   \
-      break;                                             \
-    }
-#include "instructions.h"
-#undef instruction
-      default:
-        return Error;
-    }
-  }
+  if (ret == Ok)
+    ret = jitBlock(jit, entryBlock(mtd), errMsg, msgLen);
 
-  // Sort the labels into order of occurrance
-  if(ret==Ok)
-    ret = sortLabels(jitCtx);
+  if (ret == Ok)
+    ret = jit_postamble(mtd, jit);
 
-  for (integer pc = 0; ret == Ok && pc < len;) {
-    switch (ins[pc++]) {
+  if (ret == Ok)
+    return setJitCode(mtd, createCode(jit->assemCtx));
+  clearJitContext(jit);
 
-#define instruction(Op, A1, A2, Dl, Cmt)        \
+  strMsg(errMsg, msgLen, "error in generating jit code");
+
+  return ret;
+}
+
+retCode jitBlock(jitCompPo jitCtx, blockPo block, char *errMsg, integer msgLen) {
+  insPo ins = block->ins;
+  integer len = block->insCount;
+
+  retCode ret = Ok;
+
+  for (integer pc = 0; ret == Ok && pc < len; pc++) {
+    switch (ins[pc].op) {
+
+#define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
     case Op:{                                   \
-      tryRet(resolvePcLbl(ins, pc-1,jitCtx,errMsg,msgLen));  \
-      ret = jit_##Op(ins,&pc,jitCtx);           \
+      ret = jit_##Op(ins,pc,jitCtx);            \
       break;                                    \
     }
 
@@ -85,15 +72,6 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
         return Error;
     }
   }
-
-  if (ret == Ok)
-    ret = jit_postamble(mtd, jitCtx);
-
-  if (ret == Ok)
-    return setJitCode(mtd, createCode(jitCtx->assemCtx));
-  clearJitContext(jitCtx);
-
-  strMsg(errMsg, msgLen, "error in generating jit code");
 
   return ret;
 }

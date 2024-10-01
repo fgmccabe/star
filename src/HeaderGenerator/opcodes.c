@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     int Op = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Cmt) insOp(O_IO(typeBuff),#M,Op, Cmt); Op++;
+#define instruction(M, A1, A2, Dl, Tp, Cmt) insOp(O_IO(typeBuff),#M,Op, Cmt); Op++;
 
 #include "instructions.h"
 
@@ -109,7 +109,7 @@ integer staropHash(){
   int Op = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,Op)); Op++;
+#define instruction(M, A1, A2, Dl, Tp, Cmt) hash = hash61(hash*39+opHash(#M,Op)); Op++;
 
 #include "instructions.h"
 

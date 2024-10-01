@@ -158,32 +158,3 @@ codeLblPo getLblByPc(insPo pc, jitCompPo jit) {
   }
   return Null;
 }
-
-// Define operand label & pc operators
-
-retCode nextOperand(insPo code, integer *pc, opAndSpec spec, jitCompPo jit, char *errMsg, integer msgSize){
-  switch(spec){
-    case nOp:
-    case tOs:
-      return Ok;
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-    case Es:
-    case lit:
-    case sym:
-    case glb:
-    case tPe:
-    case bLk:
-    case lVl:
-      collectOperand(code, pc);
-      return Ok;
-    case off: {
-      insPo tgt = collectTgt(code, pc);
-      collectLblTgt(tgt, jit);
-      return Ok;
-    }
-  }
-}

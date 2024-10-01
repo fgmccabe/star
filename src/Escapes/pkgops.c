@@ -74,7 +74,7 @@ ReturnStatus g__install_pkg(heapPo h, termPo xc, termPo a1) {
 
   pickupStruct Cl = {.list=&imports, .H=h};
 
-  retCode ret = installPackage(buffer, len, h, errMsg, NumberOf(errMsg), pickupImport, &Cl);
+  retCode ret = installPackage(buffer, len, errMsg, NumberOf(errMsg), pickupImport, &Cl);
 
   free(buffer);
   gcReleaseRoot(h, root);

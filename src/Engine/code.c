@@ -4,6 +4,7 @@
 
 #include <heapP.h>
 #include <memory.h>
+#include "array.h"
 #include <arith.h>
 #include "codeP.h"
 #include "labelsP.h"
@@ -13,6 +14,8 @@
 #include "quick.h"
 #include "tpl.h"
 #include "globals.h"
+#include "decodeP.h"
+#include "pkgP.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -78,7 +81,10 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
-  free((void *) mtd->instructions);
+  if (mtd->block != Null) {
+    freeBlock(mtd->block);
+    mtd->block = Null;
+  }
   return ((termPo) o) + mtdSize(class, o);
 }
 
@@ -99,7 +105,7 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
     return showLbl(out, lbl, 0, precision, alt);
   } else {
     outMsg(out, "<unknown mtd: ");
-    disass(out, Null, mtd, mtd->instructions);
+    dissassBlock(out, Null, codeLits(mtd), mtd->block, precision, depth, alt, "");
     return outMsg(out, ">");
   }
 }
@@ -116,17 +122,61 @@ integer insOffset(methodPo m, insPo pc) {
   return (integer) (pc - m->instructions);
 }
 
-insPo pcAddr(methodPo mtd, integer pcOffset) {
-  return &mtd->instructions[pcOffset];
-}
-
 integer stackDelta(methodPo mtd) {
   assert(mtd != Null);
   return mtd->stackDelta;
 }
 
+static logical validBlockPC(blockPo block, insPo pc) {
+  if (pc >= block->ins && pc < &block->ins[block->insCount])
+    return True;
+  else {
+    for (integer ix = 0; ix < block->insCount; ix++) {
+#define sznOp
+#define sztOs
+#define szart
+#define szi32
+#define szarg
+#define szlcl
+#define szlcs
+#define szsym
+#define szEs
+#define szlit
+#define sztPe
+#define szglb
+#define szbLk if(validBlockPC(block->ins[ix].snd.block,pc)) return True;
+#define szlVl
+
+#define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
+      case Op:                              \
+        sz##A1(Op)                          \
+        sz##A2(Op)                          \
+        break;
+
+#include "instructions.h"
+
+#undef instruction
+#undef szi32
+#undef szart
+#undef szarg
+#undef szlcl
+#undef szlcs
+#undef szbLk
+#undef szlVl
+#undef szsym
+#undef szEs
+#undef szlit
+#undef sztPe
+#undef szglb
+#undef sznOp
+#undef sztOs
+    }
+    return False;
+  }
+}
+
 logical validPC(methodPo mtd, insPo pc) {
-  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->codeSize]);
+  return validBlockPC(entryBlock(mtd), pc);
 }
 
 integer mtdCodeSize(methodPo mtd) {
@@ -265,9 +315,26 @@ integer codeArity(methodPo mtd) {
   return mtd->arity;
 }
 
-methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals, normalPo lines) {
+blockPo allocateBlock(integer insCount, blockPo parent, integer offset) {
+  blockPo block = (blockPo) malloc(sizeof(InstructionBlock) + insCount * sizeof(Instruction));
+
+  block->insCount = insCount;
+  block->parent = parent;
+  block->offset = offset;
+  return block;
+}
+
+void freeBlock(blockPo block) {
+  for (integer pc = 0; pc < block->insCount; pc++) {
+    insPo ins = &block->ins[pc];
+    if (ins->inner != Null)
+      freeBlock(ins->inner);
+  }
+  free((void *) block);
+}
+
+methodPo defineMtd(heapPo H, blockPo block, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
+                   normalPo locals, normalPo lines) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
   gcAddRoot(H, (ptrPo) &locals);
@@ -275,11 +342,7 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
-  size_t codeSize = insCount * sizeof(insWord);
-  mtd->instructions = (insPo) malloc(codeSize);
-  memcpy((void *) mtd->instructions, ins, codeSize);
-
-  mtd->codeSize = insCount;
+  mtd->block = block;
   mtd->jit = Null;
   mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
@@ -302,7 +365,6 @@ methodPo declareMethod(const char *name, integer arity, insPo ins, integer insCo
 
   return defineMtd(globalHeap, ins, insCount, 0, 0, lbl, pool, C_NORMAL(unitEnum), C_NORMAL(unitEnum));
 }
-
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
