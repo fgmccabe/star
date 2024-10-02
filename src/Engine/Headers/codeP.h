@@ -93,6 +93,8 @@ labelPo mtdLabel(methodPo mtd);
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 extern logical validPC(methodPo mtd, insPo pc);
 
+extern logical pcInBlock(blockPo block, insPo pc);
+
 methodPo defineMtd(heapPo H, blockPo block, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
                    normalPo locals, normalPo lines);
 

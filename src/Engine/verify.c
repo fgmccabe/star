@@ -1171,6 +1171,8 @@ retCode verifyBlock(blockPo block, verifyCtxPo ctx) {
           integer entryDepth, exitDepth;
           if (extractBlockSig(&entryDepth, &exitDepth, blockSig, sigLen) != Ok)
             return verifyError(ctx, ".%d: invalid signature string: %T ", pc, lit);
+          else if(entryDepth>stackDepth)
+            return verifyError(ctx,".d: block entry depth %d exceeds current stack depth %d",pc,entryDepth,stackDepth);
           else {
             char prefix[MAXLINE];
             strMsg(prefix, NumberOf(prefix), "%s.%d", ctx->prefix, pc);
@@ -1178,20 +1180,46 @@ retCode verifyBlock(blockPo block, verifyCtxPo ctx) {
               .mtd=ctx->mtd, .parent=ctx, .blockSig=blockSig, .sigLen=sigLen,
               .entryDepth=entryDepth, .exitDepth=exitDepth};
 
-            if (verifyBlock(block->ins[pc].snd.block, &blockCtx) == Ok)
+            if (verifyBlock(block->ins[pc].snd.block, &blockCtx) == Ok){
+              stackDepth = stackDepth-entryDepth+exitDepth;
               continue;
+            }
             else
               return Error;
           }
         } else
           return verifyError(ctx, ".%d: non-string literal : %d ", pc, litNo);
       }
-      case Break:
-        break;
-      case Drop:
-        break;
-      case Dup:
-        break;
+      case Break:{
+        insPo tgtIns = block->ins[pc].snd.exit;
+        verifyCtxPo tgtCtx = ctx;
+
+        while(tgtCtx!=Null && !pcOnBlock(tgtCtx->block,tgtIns)){
+          tgtCtx = tgtCtx->parent; 
+        }
+        if(tgtCtx!=Null){
+          if(stackDepth<tgtCtx->exitDepth)
+            return verifyError(ctx,".d: block exit depth %d exceeds current stack depth %d",pc,tgtCtx->exitDepth,stackDepth);
+        } else
+          return verifyError(ctx,".d: break target not found",pc);
+
+        continue;
+      }
+      
+      case Drop:{
+        if(stackDepth<1)
+          return verifyError(ctx,".d: stack depth %d does not permit a Drop",pc,stackDepth);
+        stackDepth--;
+        continue;
+      }
+
+      case Dup:{
+        if(stackDepth<1)
+          return verifyError(ctx,".d: stack depth %d does not permit a Dup",pc,stackDepth);
+        stackDepth++;
+        continue;
+      }
+
       case Rot:
         break;
       case Rst:
