@@ -127,7 +127,7 @@ integer stackDelta(methodPo mtd) {
   return mtd->stackDelta;
 }
 
-static logical validBlockPC(blockPo block, insPo pc) {
+logical pcInBlock(blockPo block, insPo pc) {
   if (pc >= block->ins && pc < &block->ins[block->insCount])
     return True;
   else {
@@ -144,7 +144,7 @@ static logical validBlockPC(blockPo block, insPo pc) {
 #define szlit
 #define sztPe
 #define szglb
-#define szbLk if(validBlockPC(block->ins[ix].snd.block,pc)) return True;
+#define szbLk if(pcInBlock(block->ins[ix].snd.block,pc)) return True;
 #define szlVl
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
@@ -176,7 +176,7 @@ static logical validBlockPC(blockPo block, insPo pc) {
 }
 
 logical validPC(methodPo mtd, insPo pc) {
-  return validBlockPC(entryBlock(mtd), pc);
+  return pcInBlock(entryBlock(mtd), pc);
 }
 
 integer mtdCodeSize(methodPo mtd) {
