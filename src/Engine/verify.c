@@ -1034,261 +1034,355 @@ void showGroups(vectorPo groups, char *name) {
   }
 }
 
+typedef struct verify_context_ *verifyCtxPo;
 typedef struct verify_context_ {
   char *prefix;
   char *errorMsg;
   long msgLen;
-} VerifyContext, *verifyCtxPo;
+  methodPo mtd;
+  verifyCtxPo parent;
+  const char *blockSig;
+  integer sigLen;
+  integer entryDepth;
+  integer exitDepth;
+} VerifyContext;
 
-typedef struct break_ *breakPo;
+static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
 
-typedef struct break_ {
-  blockPo block;
-  char *blockSig;
-  int32 pc;
-  breakPo parent;
-} BreakBlockLevel;
-
-static retCode extractBlockSig(char *blockSig, integer *entryDepth, integer *exitDepth, verifyCtxPo ctx) {
-  integer sigLen = uniStrLen(blockSig);
-  if (validTypeSig(blockSig, sigLen) != Ok) {
-    strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature", ctx->prefix);
+static retCode extractBlockSig(integer *entryDepth, integer *exitDepth, const char *blockSig, integer sigLen) {
+  if (validTypeSig(blockSig, sigLen) != Ok)
     return Error;
-  } else {
+  else {
     integer argPos = 0;
-    if (funArgSig(blockSig, sigLen, &argPos) != Ok) {
-      strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+    if (funArgSig(blockSig, sigLen, &argPos) != Ok)
       return Error;
-    }
-    if (typeSigArity(&blockSig[argPos], sigLen - argPos, entryDepth) != Ok) {
-      strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+    if (typeSigArity(&blockSig[argPos], sigLen - argPos, entryDepth) != Ok)
       return Error;
-    } else {
+    else {
       integer pos = argPos;
       skipTypeSig(blockSig, sigLen, &pos);
-      if (typeSigArity(&blockSig[pos], sigLen - pos, exitDepth) != Ok) {
-        strMsg(ctx->errorMsg, ctx->msgLen, "%s: invalid block signature, expecting a function block type", ctx->prefix);
+      if (typeSigArity(&blockSig[pos], sigLen - pos, exitDepth) != Ok)
         return Error;
-      }
-      return Ok;
     }
+    return Ok;
   }
 }
 
-retCode verifyBlock(blockPo block, const char *blockSig, breakPo parent, verifyCtxPo ctx) {
-  integer entryDepth, exitDepth;
+retCode verifyBlock(blockPo block, verifyCtxPo ctx) {
 
-  if (extractBlockSig(blockSig, &entryDepth, &exitDepth, ctx) != Ok)
-    return Error;
-  else {
-    retCode ret = Ok;
-    for (integer pc = 0; ret == Ok && pc < block->insCount; pc++) {
-      insPo ins = &block->ins[pc];
-      switch (ins->op) {
-        case Halt: {
-          if (pc != block->insCount - 1) {
-            strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: Halt should be last instruction in block", ctx->prefix, pc);
-            return Error;
-          } else
-            return Ok;
-        }
-        case Nop:
-          break;
-        case Abort:{
-          if (pc != block->insCount - 1) {
-            strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: Abort should be last instruction in block", ctx->prefix, pc);
-            return Error;
-          } else
-            return Ok;
-        }
-        case Call:
-          break;
-        case OCall:
-          break;
-        case Escape:
-          break;
-        case TCall:
-          break;
-        case TOCall:
-          break;
-        case Locals:
-          break;
-        case Ret:
-          break;
-        case Block:
-          break;
-        case Break:
-          break;
-        case Drop:
-          break;
-        case Dup:
-          break;
-        case Rot:
-          break;
-        case Rst:
-          break;
-        case Fiber:
-          break;
-        case Spawn:
-          break;
-        case Suspend:
-          break;
-        case Resume:
-          break;
-        case Retire:
-          break;
-        case Underflow:
-          break;
-        case TEq:
-          break;
-        case Try:
-          break;
-        case EndTry:
-          break;
-        case Throw:
-          break;
-        case Reset:
-          break;
-        case Shift:
-          break;
-        case Invoke:
-          break;
-        case LdV:
-          break;
-        case LdC:
-          break;
-        case LdA:
-          break;
-        case LdL:
-          break;
-        case StL:
-          break;
-        case StV:
-          break;
-        case TL:
-          break;
-        case StA:
-          break;
-        case LdG:
-          break;
-        case StG:
-          break;
-        case TG:
-          break;
-        case Thunk:
-          break;
-        case LdTh:
-          break;
-        case StTh:
-          break;
-        case TTh:
-          break;
-        case Cell:
-          break;
-        case Get:
-          break;
-        case Assign:
-          break;
-        case CLbl:
-          break;
-        case Nth:
-          break;
-        case StNth:
-          break;
-        case If:
-          break;
-        case IfNot:
-          break;
-        case Case:
-          break;
-        case IndxJmp:
-          break;
-        case Unpack:
-          break;
-        case IAdd:
-          break;
-        case ISub:
-          break;
-        case IMul:
-          break;
-        case IDiv:
-          break;
-        case IMod:
-          break;
-        case IAbs:
-          break;
-        case IEq:
-          break;
-        case ILt:
-          break;
-        case IGe:
-          break;
-        case ICmp:
-          break;
-        case CEq:
-          break;
-        case CLt:
-          break;
-        case CGe:
-          break;
-        case CCmp:
-          break;
-        case BAnd:
-          break;
-        case BOr:
-          break;
-        case BXor:
-          break;
-        case BLsl:
-          break;
-        case BLsr:
-          break;
-        case BAsr:
-          break;
-        case BNot:
-          break;
-        case FAdd:
-          break;
-        case FSub:
-          break;
-        case FMul:
-          break;
-        case FDiv:
-          break;
-        case FMod:
-          break;
-        case FAbs:
-          break;
-        case FEq:
-          break;
-        case FLt:
-          break;
-        case FGe:
-          break;
-        case FCmp:
-          break;
-        case Alloc:
-          break;
-        case Closure:
-          break;
-        case Cmp:
-          break;
-        case Frame:
-          break;
-        case dBug:
-          break;
-        case Line:
-          break;
-        case Local:
-          break;
-        case illegalOp:
-        case maxOpCode:{
-          strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: illegal instruction in block", ctx->prefix, pc);
-          return Error;
+  retCode ret = Ok;
+  integer stackDepth = ctx->entryDepth;
+
+  for (integer pc = 0; ret == Ok && pc < block->insCount; pc++) {
+    insPo ins = &block->ins[pc];
+    switch (ins->op) {
+      case Halt: {
+        if (pc != block->insCount - 1)
+          return verifyError(ctx, ".%d: Halt should be last instruction in block", pc);
+        else
+          return Ok;
+      }
+      case Nop:
+        break;
+      case Abort: {
+        if (pc != block->insCount - 1)
+          return verifyError(ctx, ".%d: Abort should be last instruction in block", pc);
+        else
+          return Ok;
+      }
+      case Call: {
+        int32 litNo = block->ins[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
+          return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        termPo lit = getMtdLit(ctx->mtd, litNo);
+        if (isALabel(lit)) {
+          integer arity = labelArity(C_LBL(lit));
+          if (stackDepth < arity)
+            return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+        } else
+          return verifyError(ctx, ".%d: invalid call label: %t", pc, lit);
+        if (block->ins[pc + 1].op != Frame)
+          return verifyError(ctx, ".%d: expecting a frame instruction after call", pc);
+        continue;
+      }
+      case TCall: {
+        int32 litNo = block->ins[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
+          return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        termPo lit = getMtdLit(ctx->mtd, litNo);
+        if (isALabel(lit)) {
+          integer arity = labelArity(C_LBL(lit));
+          if (stackDepth < arity)
+            return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+        } else
+          return verifyError(ctx, ".%d: invalid call label: %t", pc, lit);
+        if (pc != block->insCount - 1)
+          return verifyError(ctx, ".%d: TCall should be last instruction in block", pc);
+        return Ok;
+      }
+      case OCall: {
+        int arity = block->ins[pc].fst;
+        if (stackDepth < arity)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= arity - 1;
+        continue;
+      }
+      case TOCall: {
+        int arity = block->ins[pc].fst;
+        if (stackDepth < arity)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        if (pc != block->insCount - 1)
+          return verifyError(ctx, ".%d: TCall should be last instruction in block", pc);
+        return Ok;
+      }
+      case Escape: {
+        int32 escNo = block->ins[pc].fst;
+        escapePo esc = getEscape(escNo);
+
+        if (esc == Null)
+          return verifyError(ctx, ".%d: invalid escape code: %d", pc, escNo);
+        else {
+          integer arity = escapeArity(esc);
+          if (stackDepth < arity)
+            return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+          if (block->ins[pc + 1].op != Frame)
+            return verifyError(ctx, ".%d: expecting a frame instruction after escape", pc);
+          continue;
         }
       }
+      case Locals:
+        break;
+      case Ret:
+        if (pc != block->insCount - 1)
+          return verifyError(ctx, ".%d: Ret should be last instruction in block", pc);
+        return Ok;
+
+      case Block: {
+        int32 litNo = block->ins[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
+          return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        termPo lit = getMtdLit(ctx->mtd, litNo);
+        if (isString(lit)) {
+          integer sigLen;
+          const char *blockSig = strVal(lit, &sigLen);
+          integer entryDepth, exitDepth;
+          if (extractBlockSig(&entryDepth, &exitDepth, blockSig, sigLen) != Ok)
+            return verifyError(ctx, ".%d: invalid signature string: %T ", pc, lit);
+          else {
+            char prefix[MAXLINE];
+            strMsg(prefix, NumberOf(prefix), "%s.%d", ctx->prefix, pc);
+            VerifyContext blockCtx = {.prefix = prefix, .errorMsg=ctx->errorMsg, .msgLen=ctx->msgLen,
+              .mtd=ctx->mtd, .parent=ctx, .blockSig=blockSig, .sigLen=sigLen,
+              .entryDepth=entryDepth, .exitDepth=exitDepth};
+
+            if (verifyBlock(block->ins[pc].snd.block, &blockCtx) == Ok)
+              continue;
+            else
+              return Error;
+          }
+        } else
+          return verifyError(ctx, ".%d: non-string literal : %d ", pc, litNo);
+      }
+      case Break:
+        break;
+      case Drop:
+        break;
+      case Dup:
+        break;
+      case Rot:
+        break;
+      case Rst:
+        break;
+      case Fiber:
+        break;
+      case Spawn:
+        break;
+      case Suspend:
+        break;
+      case Resume:
+        break;
+      case Retire:
+        break;
+      case Underflow:
+        break;
+      case TEq:
+        break;
+      case Try:
+        break;
+      case EndTry:
+        break;
+      case Throw:
+        break;
+      case Reset:
+        break;
+      case Shift:
+        break;
+      case Invoke:
+        break;
+      case LdV:
+        break;
+      case LdC:
+        break;
+      case LdA:
+        break;
+      case LdL:
+        break;
+      case StL:
+        break;
+      case StV:
+        break;
+      case TL:
+        break;
+      case StA:
+        break;
+      case LdG:
+        break;
+      case StG:
+        break;
+      case TG:
+        break;
+      case Thunk:
+        break;
+      case LdTh:
+        break;
+      case StTh:
+        break;
+      case TTh:
+        break;
+      case Cell:
+        break;
+      case Get:
+        break;
+      case Assign:
+        break;
+      case CLbl:
+        break;
+      case Nth:
+        break;
+      case StNth:
+        break;
+      case If:
+        break;
+      case IfNot:
+        break;
+      case Case:
+        break;
+      case IndxJmp:
+        break;
+      case Unpack:
+        break;
+      case IAdd:
+      case ISub:
+      case IMul: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case IDiv:
+        break;
+      case IMod:
+        break;
+      case IAbs: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case IEq:
+      case ILt:
+      case IGe: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case ICmp:
+        break;
+      case CEq:
+        break;
+      case CLt:
+        break;
+      case CGe:
+        break;
+      case CCmp:
+        break;
+      case BAnd:
+      case BOr:
+      case BXor:
+      case BLsl:
+      case BLsr:
+      case BAsr: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case BNot:
+        break;
+      case FAdd:
+      case FSub:
+      case FMul:
+      case FDiv: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case FMod:
+        break;
+      case FAbs:
+        break;
+      case FEq:
+      case FLt:
+      case FGe: {
+        if (stackDepth < 2)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        continue;
+      }
+      case FCmp:
+        break;
+      case Alloc:
+        break;
+      case Closure:
+        break;
+      case Cmp:
+        break;
+      case Frame:
+        break;
+      case dBug:
+        break;
+      case Line:
+        break;
+      case Local:
+        break;
+      case illegalOp:
+      case maxOpCode:
+        return verifyError(ctx, ".%d: illegal instruction", pc);
     }
-    strMsg(ctx->errorMsg, ctx->msgLen, "%s.%d: execution past last instruction in block", ctx->prefix, block->insCount);
-    return Error;
   }
+  return verifyError(ctx, ".%d: execution past last instruction in block", block->insCount);
+}
+
+retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
+  char buff[MAXLINE];
+  strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
+
+  va_list args;      /* access the generic arguments */
+  va_start(args, msg);    /* start the variable argument sequence */
+
+
+  __voutMsg(O_IO(f), msg, args);  /* Display into the string buffer */
+
+  va_end(args);
+  outByte(O_IO(f), 0);                /* Terminate the string */
+
+  closeIo(O_IO(f));
+
+  strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "%s%s"RED_ESC_OFF, ctx->prefix, buff);
+  return Error;
 }
