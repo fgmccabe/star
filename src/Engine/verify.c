@@ -1220,10 +1220,19 @@ retCode verifyBlock(blockPo block, verifyCtxPo ctx) {
         continue;
       }
 
-      case Rot:
-        break;
-      case Rst:
-        break;
+      case Rot:{
+        int32 count = block->ins[pc].fst;
+        if(stackDepth<count)
+          return verifyError(ctx,".d: insufficient stack depth for rotate %d",pc,count);
+        continue;
+      }
+      case Rst:{
+        int32 count = block->ins[pc].fst;
+        if(stackDepth<count)
+          return verifyError(ctx,".d: insufficient stack depth for stack reset %d",pc,count);
+        continue;
+      }
+      
       case Fiber:
         break;
       case Spawn:
@@ -1297,9 +1306,22 @@ retCode verifyBlock(blockPo block, verifyCtxPo ctx) {
       case IfNot:
         break;
       case Case:
-        break;
-      case IndxJmp:
-        break;
+      case IndxJmp: {
+        int32 mx = PC->fst;
+        if(stackDepth<1)
+          return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        for(integer ix=0;ix<mx;ix++){
+          insPo caseIns = &block->ins[pc+ix];
+          switch(caseIns->op){
+            case Block:
+            case Break:
+              continue;
+            default:
+              return verifyError(ctx, ".%d: invalid case instruction", pc+ix);
+          }
+        }
+        continue;
+      }
       case Unpack:
         break;
       case IAdd:
