@@ -10,12 +10,13 @@
 
 assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
-    assemBlock(Ins,[],Ls0,Lts,[],Lcs,Cde,[]),
+    findLit(Ls0,Sig,SgIx,Ls1),
+    assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
     encPolicy(H,HP),
-    mkCons("func",[Nm,HP,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
+    mkCons("func",[Nm,HP,intgr(SgIx),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-

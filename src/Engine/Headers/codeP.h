@@ -33,13 +33,11 @@ typedef struct method_ {
   clssPo clss;          // == specialClass
   jitCode jit;          /* Pointer to jit'ed code */
   integer entryCount;
-
+  integer sigIx;        // Index of the function signature literal
   integer arity;        /* How many arguments in method */
   integer lclcnt;       // How many locals in the environment
   integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;        /* A pool tuple of constants */
-  normalPo locals;      /* A tuple of sorted locals */
-  normalPo lines;       // A tuple of line information
   blockPo block;        // a block of instructions
 } MethodRec;
 
@@ -63,7 +61,7 @@ static inline insPo entryPoint(methodPo mtd) {
   return mtd->block->ins;
 }
 
-static inline blockPo entryBlock(methodPo mtd){
+static inline blockPo entryBlock(methodPo mtd) {
   return mtd->block;
 }
 
@@ -95,10 +93,10 @@ extern logical validPC(methodPo mtd, insPo pc);
 
 extern logical pcInBlock(blockPo block, insPo pc);
 
-methodPo defineMtd(heapPo H, blockPo block, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-                   normalPo locals, normalPo lines);
+methodPo
+defineMtd(heapPo H, blockPo block, integer funSigIx, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool);
 
-methodPo declareMethod(const char *name, integer arity, insPo ins, integer insCount);
+methodPo declareMethod(const char *name, integer arity, blockPo block, termPo sigTerm, integer lclCount);
 
 void showMtdCounts(ioPo out);
 

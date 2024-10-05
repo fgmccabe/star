@@ -10,7 +10,7 @@
 #include "vector.h"
 #include "stack.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, void *cl);
 
 typedef retCode (*completeCb)(strBufferPo, integer cx);
 

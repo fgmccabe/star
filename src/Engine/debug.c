@@ -140,7 +140,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
       outMsg(logFile, "\n%_");
     }
 
-    switch (*p->stk->fp->pc) {
+    switch (p->stk->fp->pc->op) {
       case Abort:
         return True;
       case Ret: {
@@ -240,7 +240,7 @@ static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
   }
 }
 
-static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc) {
+static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd) {
   static strBufferPo cmdBuffer = Null;
 
   if (cmdBuffer == Null)
@@ -274,7 +274,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc
 
         for (int ix = 0; ix < opts->count; ix++) {
           if (opts->opts[ix].c == cmd)
-            return opts->opts[ix].cmd(&cmdLine[nxt], p, loc, opts->opts[ix].cl);
+            return opts->opts[ix].cmd(&cmdLine[nxt], p, opts->opts[ix].cl);
         }
         outMsg(debugOutChnnl, "invalid debugger command: %s\n", cmdLine);
       }
@@ -288,18 +288,18 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc
   return moreDebug;
 }
 
-static DebugWaitFor dbgSingle(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgSingle(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->waterMark = Null;
   p->tracing = (logical) (p->traceCount == 0);
   return stepInto;
 }
 
-static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgOver(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 0);
   stackPo stk = p->stk;
 
-  switch (*p->stk->fp->pc) {
+  switch (p->stk->fp->pc->op) {
     case Ret: {
       p->waterMark = previousFrame(stk, stk->fp);
       break;
@@ -315,11 +315,11 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, void *cl) {
   return stepOver;
 }
 
-static DebugWaitFor dbgQuit(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgQuit(char *line, processPo p, void *cl) {
   return quitDbg;
 }
 
-static DebugWaitFor dbgTrace(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgTrace(char *line, processPo p, void *cl) {
   p->tracing = True;
   p->traceCount = cmdCount(line, 0);
 
@@ -330,20 +330,20 @@ static DebugWaitFor dbgTrace(char *line, processPo p, termPo loc, void *cl) {
     return nextBreak;
 }
 
-static DebugWaitFor dbgCont(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgCont(char *line, processPo p, void *cl) {
   p->tracing = False;
 
   resetDeflt("n");
   return nextBreak;
 }
 
-static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgUntilRet(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->tracing = False;
   resetDeflt("n");
   stackPo stk = p->stk;
 
-  switch (*stk->fp->pc) {
+  switch (stk->fp->pc->op) {
     case Ret: {
       p->waterMark = previousFrame(stk, stk->fp);
       break;
@@ -356,7 +356,7 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, void *cl) {
   return stepOut;
 }
 
-static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgSetDepth(char *line, processPo p, void *cl) {
   integer depth = cmdCount(line, -1);
   if (depth >= 0)
     displayDepth = cmdCount(line, 0);
@@ -367,14 +367,14 @@ static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowRegisters(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowRegisters(char *line, processPo p, void *cl) {
   showRegisters(p, p->heap);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowCall(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
   showStackCall(debugOutChnnl, displayDepth, stk->fp, stk, 0, showLocalVars);
 
@@ -382,7 +382,7 @@ static DebugWaitFor dbgShowCall(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowArg(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowArg(char *line, processPo p, void *cl) {
   integer argNo = cmdCount(line, 0);
   stackPo stk = p->stk;
   framePo fp = stk->fp;
@@ -397,7 +397,7 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowLocal(char *line, processPo p, void *cl) {
   integer lclNo = cmdCount(line, 0);
   stackPo stk = p->stk;
   framePo fp = stk->fp;
@@ -414,7 +414,7 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowGlobal(char *line, processPo p, void *cl) {
   char buff[MAX_SYMB_LEN];
   integer pos = 0;
   integer ix = 0;
@@ -458,7 +458,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, void *cl)
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
   framePo fp = currFrame(stk);
   ptrPo limit = stackLcl(stk, fp, lclCount(frameMtd(fp)));
@@ -498,14 +498,14 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
   stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
   methodPo mtd = frameMtd(f);
@@ -539,7 +539,7 @@ void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
   flushOut();
 }
 
-static DebugWaitFor dbgDebug(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgDebug(char *line, processPo p, void *cl) {
   debugDebugging = !debugDebugging;
 
   logMsg(Stderr(), "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
@@ -547,27 +547,27 @@ static DebugWaitFor dbgDebug(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgInsDebug(char *line, processPo p, void *cl) {
   lineDebugging = False;
   insDebugging = True;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgSymbolDebug(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgSymbolDebug(char *line, processPo p, void *cl) {
   lineDebugging = True;
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgVerifyProcess(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgVerifyProcess(char *line, processPo p, void *cl) {
   resetDeflt("n");
   verifyProc(p, processHeap(p));
   return moreDebug;
 }
 
-static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
@@ -578,7 +578,7 @@ static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo loc, void *
   return moreDebug;
 }
 
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo loc, void *cl) {
+DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
@@ -589,7 +589,7 @@ DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo loc, void *cl) {
+DebugWaitFor dbgShowBreakPoints(char *line, processPo p, void *cl) {
   retCode ret = showAllBreakPoints(debugOutChnnl);
 
   if (ret != Ok)
@@ -597,7 +597,7 @@ DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo loc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, void *cl) {
+static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
   integer count = cmdCount(line, 0);
   stackPo stk = p->stk;
 
@@ -721,7 +721,7 @@ DebugWaitFor insDebug(processPo p) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(&opts, p, frameMtd(stk->fp), Null);
+          p->waitFor = cmder(&opts, p, frameMtd(stk->fp));
         else {
           outStr(debugOutChnnl, "\n");
         }
@@ -781,94 +781,95 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   return outMsg(out, ")");
 }
 
-static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, stackPo stk) {
-  if (locn != Null) {
-    tryRet(outMsg(out, "%s %#L %#.16T", msg, locn, mtd));
-  } else
-    tryRet(outMsg(out, "%s %#.16T", msg, mtd));
+static retCode shCall(ioPo out, char *msg, char *prefix, methodPo mtd, stackPo stk) {
+  tryRet(outMsg(out, "%s%s %#L %#.16T", msg, prefix, mtd));
 
   return shArgs(out, displayDepth, stk->sp, codeArity(mtd));
 }
 
 void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
-  termPo locn = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
+
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
 
   if (showColors)
-    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, locn, frameMtd(f), stk);
+    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, locBuffer, frameMtd(f), stk);
   else
-    shCall(out, "entry:", locn, frameMtd(f), stk);
+    shCall(out, "entry:", locBuffer, frameMtd(f), stk);
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {
   framePo f = currFrame(stk);
-  termPo locn = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
 
-  if (locn != Null) {
-    if (showColors)
-      outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T", locn, frameMtd(f), displayDepth, val);
-    else
-      outMsg(out, "return: %#L %T->%#,*T", locn, frameMtd(f), displayDepth, val);
-  } else
-    outMsg(out, "return: %T->%#,*T", frameMtd(f), displayDepth, val);
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+
+  if (showColors)
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, val);
+  else
+    outMsg(out, "return: %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo reason) {
   framePo f = currFrame(stk);
-  termPo loc = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
 
-  if (loc != Null) {
-    if (showColors)
-      outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %#L %T->%#,*T", loc, frameMtd(f), displayDepth, reason);
-    else
-      outMsg(out, "abort: %#L %T->%#,*T", loc, frameMtd(f), displayDepth, reason);
-  } else
-    outMsg(out, "abort: %T->%#,*T", frameMtd(f), displayDepth, reason);
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  if (showColors)
+    outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, reason);
+  else
+    outMsg(out, "abort: %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, reason);
 }
 
 void showAssign(ioPo out, stackPo stk, termPo vl) {
   framePo f = currFrame(stk);
-  termPo locn = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
-  termPo cell = topStack(stk);
+  char locBuffer[MAXLINE];
   termPo val = peekStack(stk, 1);
 
-  if (locn != Null) {
-    if (showColors)
-      outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %T->%#,*T", locn, cell, displayDepth, val);
-    else
-      outMsg(out, "assign: %#L %T->%#,*T", locn, cell, displayDepth, val);
-  } else
-    outMsg(out, "assign: %T->%#,*T", cell, displayDepth, val);
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  termPo cell = topStack(stk);
+
+  if (showColors)
+    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, cell, displayDepth, val);
+  else
+    outMsg(out, "assign: %s %T->%#,*T", locBuffer, cell, displayDepth, val);
 }
 
 void showSuspend(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  termPo loc = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
+
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
   else
-    outMsg(out, "suspend:", "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, "suspend:", "%s %#,*T", locBuffer, displayDepth, cont);
 }
 
 void showResume(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  termPo loc = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
+
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
   else
-    outMsg(out, "resume:", "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, "resume:", "%s %#,*T", locBuffer, displayDepth, cont);
 }
 
 void showRetire(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  termPo loc = findPcLocation(frameMtd(f), insOffset(frameMtd(f), f->pc));
+  char locBuffer[MAXLINE];
+
+  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
   else
-    outMsg(out, "retire:", "%#L %#,*T", loc, displayDepth, cont);
+    outMsg(out, "retire:", "%s %#,*T", locBuffer, displayDepth, cont);
 }
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
@@ -879,9 +880,9 @@ DebugWaitFor enterDebug(processPo p) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
   insPo pc = f->pc;
-  insWord ins = *pc;
+
   lineCount++;
-  switch (ins) {
+  switch (pc->op) {
     case Abort:
       return lnDebug(p, peekStack(stk, 1), showAbort);
     case Locals:
@@ -944,9 +945,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
         if (p->traceCount == 0) {
           framePo f = currFrame(stk);
           methodPo mtd = frameMtd(f);
-          termPo loc = findPcLocation(mtd, insOffset(mtd, f->pc));
-
-          p->waitFor = cmder(&opts, p, frameMtd(currFrame(stk)), loc);
+          p->waitFor = cmder(&opts, p, frameMtd(currFrame(stk)));
         } else {
           outStr(debugOutChnnl, "\n");
           flushIo(debugOutChnnl);

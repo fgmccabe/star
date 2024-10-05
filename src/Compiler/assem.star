@@ -19,8 +19,8 @@ star.compiler.assem{
     disp(.softDefinition) => "soft".
   }
 
-  public codeSegment ::= .func(termLbl,codePolicy,tipe,integer,cons[assemOp]) |
-    .global(termLbl,tipe,integer,cons[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,integer,cons[assemOp]) |
+    .global(termLbl,ltipe,integer,cons[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
@@ -126,16 +126,20 @@ star.compiler.assem{
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
     | .func(Nm,H,Sig,Lx,Ins) => valof{
+      funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
-      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt0,[]);
+      (Lt1,tpIx) = findLit(Lt0,funSig);
+      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
       valis mkCons("func",
-          [.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data])])
+          [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data])])
     }
     | .global(Nm,Sig,Lx,Ins) => valof{
+      funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
-      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt0,[]);
+      (Lt1,tpIx) = findLit(Lt0,funSig);
+      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
       valis mkCons("global",
-         [.symb(Nm),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs})])
+         [.symb(Nm),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs})])
     }
     | .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
