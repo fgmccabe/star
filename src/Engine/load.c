@@ -7,6 +7,7 @@
 
 #include "engine.h"
 #include <globals.h>
+#include <term.h>
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
@@ -380,6 +381,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
+  integer funIx = 1;
   DefinitionMode redefine = hardDef;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
@@ -393,7 +395,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
-    ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
+    ret = decodeInteger(in,&funIx);
 
   if (ret == Ok)
     ret = decodeInteger(in, &lclCount);
@@ -416,11 +418,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         gcAddRoot(H, &locals);
         ret = decode(in, &support, H, &locals, tmpBuffer);
 
-        if (ret == Ok) {
-          termPo lines = voidEnum;
-          gcAddRoot(H, &lines);
-          ret = decode(in, &support, H, &lines, tmpBuffer);
-
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity, -1);
 
@@ -434,9 +431,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
               integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
 
-              methodPo mtd = defineMtd(H, block, lclCount, stackDelta, lbl, C_NORMAL(pool),
-                                       C_NORMAL(locals),
-                                       C_NORMAL(lines));
+              methodPo mtd = defineMtd(H, block, 0, lclCount, stackDelta, lbl, C_NORMAL(pool));
               if (enableVerify)
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
@@ -509,9 +504,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
               integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
 
-              methodPo mtd = defineMtd(H, block, lclCount, stackDelta, lbl, C_NORMAL(pool),
-                                       C_NORMAL(locals),
-                                       C_NORMAL(lines));
+              methodPo mtd = defineMtd(H, block, 0, lclCount, stackDelta, lbl, C_NORMAL(pool));
               if (enableVerify)
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
             }

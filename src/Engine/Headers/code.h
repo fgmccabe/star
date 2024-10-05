@@ -26,9 +26,7 @@ termPo getMtdLit(methodPo mtd, integer litNo);
 integer lclCount(methodPo mtd);
 integer codeArity(methodPo mtd);
 
-termPo findPcLocation(methodPo mtd, integer pc);
-integer insOffset(methodPo m, insPo pc);
-integer mtdCodeSize(methodPo mtd);
+retCode findPcLocation(methodPo mtd, insPo pc, char *buffer, integer buffLen);
 
 integer callCount(methodPo mtd);
 

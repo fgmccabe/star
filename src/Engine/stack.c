@@ -32,10 +32,25 @@ SpecialClass StackClass = {
   .dispFun = stkDisp
 };
 
-static insWord underflowCode[] = {Underflow, 0};
-static insWord newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
-static insWord newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
-static insWord spawnCode[] = {TOCall, 0, 2};
+static InstructionBlock underflowBlock = {
+  .insCount = 2,
+  .ins = {Underflow, 0}
+};
+
+static InstructionBlock newFiberBlock = {
+  .insCount = 6,
+  .ins = {Rot, 0, 1, TOCall, 0, 3}
+};
+
+static InstructionBlock newTaskBlock = {
+  .insCount = 2,
+  .ins = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3}
+};
+
+static InstructionBlock spawnBlock = {
+  .insCount = 2,
+  .ins = {TOCall, 0, 2}
+};
 
 methodPo underflowMethod;
 methodPo newFiberMethod;
@@ -53,11 +68,11 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
 
-  underflowMethod = declareMethod("underflow", 0, underflowCode, NumberOf(underflowCode));
+  underflowMethod = declareMethod("underflow", 0, &underflowBlock, NULL, 0);
 
-  newFiberMethod = declareMethod("newFiber", 0, newFiberCode, NumberOf(newFiberCode));
-  newTaskMethod = declareMethod("newTask", 0, newTaskCode, NumberOf(newTaskCode));
-  spawnMethod = declareMethod("spawn", 0, spawnCode, NumberOf(spawnCode));
+  newFiberMethod = declareMethod("newFiber", 0, &newFiberBlock, NULL, 0);
+  newTaskMethod = declareMethod("newTask", 0, &newTaskBlock, NULL, 0);
+  spawnMethod = declareMethod("spawn", 0, &spawnBlock, NULL, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -449,13 +464,12 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
   assert(isMethod((termPo) mtd));
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
-    integer pcOffset = insOffset(mtd, pc);
+    char locBuffer[MAXLINE];
 
-    termPo locn = findPcLocation(mtd, pcOffset);
-    if (locn != Null)
-      outMsg(out, "[%d] %#L: %T", frameNo, locn, mtd);
+    if(findPcLocation( mtd,  pc, locBuffer, NumberOf(locBuffer))==Ok)
+      outMsg(out, "[%d] %s: %T", frameNo, locBuffer, mtd);
     else
-      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pcOffset);
+      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pc);
 
     integer count = argCount(mtd);
 
