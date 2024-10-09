@@ -68,11 +68,11 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
 
-  underflowMethod = declareMethod("underflow", 0, &underflowBlock, NULL, 0);
+  underflowMethod = specialMethod("underflow", 0, &underflowBlock, NULL, 0);
 
-  newFiberMethod = declareMethod("newFiber", 0, &newFiberBlock, NULL, 0);
-  newTaskMethod = declareMethod("newTask", 0, &newTaskBlock, NULL, 0);
-  spawnMethod = declareMethod("spawn", 0, &spawnBlock, NULL, 0);
+  newFiberMethod = specialMethod("newFiber", 0, &newFiberBlock, NULL, 0);
+  newTaskMethod = specialMethod("newTask", 0, &newTaskBlock, NULL, 0);
+  spawnMethod = specialMethod("spawn", 0, &spawnBlock, NULL, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 

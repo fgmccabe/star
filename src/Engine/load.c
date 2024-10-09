@@ -14,6 +14,7 @@
 #include "codeP.h"
 #include "labelsP.h"
 #include "verifyP.h"
+#include "array.h"
 
 tracingLevel tracePkg = noTracing;
 
@@ -395,15 +396,17 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
-    ret = decodeInteger(in,&funIx);
+    ret = decodeInteger(in, &funIx);
 
   if (ret == Ok)
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    blockPo block = Null;
-
-    ret = decodeInstructionBlock(in, &block, errorMsg, msgSize);
+    integer inscount = 0;
+    insPo code = Null;
+    HwmRec Hwm = {.max=0, .current=0};
+    arrayPo locs;
+    ret = decodeInstructionBlock(in, &inscount, &code, &locs, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
@@ -418,36 +421,32 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         gcAddRoot(H, &locals);
         ret = decode(in, &support, H, &locals, tmpBuffer);
 
-          if (ret == Ok) {
-            labelPo lbl = declareLbl(prgName, arity, -1);
+        if (ret == Ok) {
+          labelPo lbl = declareLbl(prgName, arity, -1);
 
-            if (labelCode(lbl) != Null) {
-              if (redefine != softDef) {
-                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-                ret = Error;
-              } // Otherwise don't redefine
-            } else {
-              gcAddRoot(H, (ptrPo) &lbl);
+          if (labelCode(lbl) != Null) {
+            if (redefine != softDef) {
+              strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+              ret = Error;
+            } // Otherwise don't redefine
+          } else {
+            gcAddRoot(H, (ptrPo) &lbl);
 
-              integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
+            methodPo mtd = defineMtd(H, inscount, code, lclCount, hwmOf(&Hwm), lbl, C_NORMAL(pool), NULL, locs);
+            if (enableVerify)
+              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
-              methodPo mtd = defineMtd(H, block, 0, lclCount, stackDelta, lbl, C_NORMAL(pool));
-              if (enableVerify)
-                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-
-              if (ret == Ok && jitOnLoad)
-                ret = jitMethod(mtd, errorMsg, msgSize);
-            }
+            if (ret == Ok && jitOnLoad)
+              ret = jitMethod(mtd, errorMsg, msgSize);
           }
         }
       }
-      closeIo(O_IO(tmpBuffer));
       gcReleaseRoot(H, root);
     }
   }
 
   if (ret == Error)
-    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
+    logMsg(logFile,"problem in loading %s/%d: %s", prgName, arity, errorMsg);
 
   return ret;
 }
@@ -471,9 +470,11 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    blockPo block = Null;
+    insPo instructions;
+    integer insCount;
+    arrayPo locs;
 
-    ret = decodeInstructionBlock(in, &block, errorMsg, msgSize);
+    ret = decodeInstructionBlock(in, &insCount, &instructions, &locs, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
@@ -502,9 +503,9 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
             } else {
               gcAddRoot(H, (ptrPo) &lbl);
 
-              integer stackDelta = maxDepth(block, C_NORMAL(pool)) + lclCount;
+              integer stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
 
-              methodPo mtd = defineMtd(H, block, 0, lclCount, stackDelta, lbl, C_NORMAL(pool));
+              methodPo mtd = defineMtd(H, insCount, instructions, 1, lclCount, stackDelta, lbl, C_NORMAL(pool), locs);
               if (enableVerify)
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
             }

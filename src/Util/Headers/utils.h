@@ -65,6 +65,15 @@ static logical inline isOdd(integer x) {
   return x % 2 == 1;
 }
 
+typedef struct hwm_ {
+  integer current;
+  integer max;
+} HwmRec, *hwmPo;
+
+integer hwmOf(hwmPo hwm);
+
+integer hwmBump(hwmPo hwm, integer delta);
+
 extern char *genSym(const char *prefix, char *buffer, integer buffLen);
 
 integer lg2(integer ix);

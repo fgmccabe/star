@@ -9,7 +9,6 @@
 
 //typedef uint16 insWord;
 typedef struct instruction_ *insPo;
-typedef struct block_ *blockPo;
 
 typedef struct method_ *methodPo;
 
@@ -26,7 +25,7 @@ termPo getMtdLit(methodPo mtd, integer litNo);
 integer lclCount(methodPo mtd);
 integer codeArity(methodPo mtd);
 
-retCode findPcLocation(methodPo mtd, insPo pc, char *buffer, integer buffLen);
+termPo findPcLocation(methodPo mtd, int32 pc);
 
 integer callCount(methodPo mtd);
 

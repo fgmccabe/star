@@ -79,10 +79,11 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
-  if (mtd->block != Null) {
-    freeBlock(mtd->block);
-    mtd->block = Null;
+  if (mtd->instructions != Null) {
+    free(mtd->instructions);
+    mtd->instructions = Null;
   }
+
   return ((termPo) o) + mtdSize(class, o);
 }
 
@@ -103,7 +104,7 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
     return showLbl(out, lbl, 0, precision, alt);
   } else {
     outMsg(out, "<unknown mtd: ");
-    dissassBlock(out, Null, codeLits(mtd), mtd->block, precision, depth, alt, "");
+    dissassMtd(out, Null, mtd, precision, depth, alt, "");
     return outMsg(out, ">");
   }
 }
@@ -121,113 +122,60 @@ integer stackDelta(methodPo mtd) {
   return mtd->stackDelta;
 }
 
-logical pcInBlock(blockPo block, insPo pc) {
-  if (pc >= block->ins && pc < &block->ins[block->insCount])
-    return True;
-  else {
-    for (integer ix = 0; ix < block->insCount; ix++) {
-#define sznOp
-#define sztOs
-#define szart
-#define szi32
-#define szarg
-#define szlcl
-#define szlcs
-#define szsym
-#define szEs
-#define szlit
-#define sztPe
-#define szglb
-#define szbLk if(pcInBlock(block->ins[ix].snd.block,pc)) return True;
-#define szlVl
-
-#define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
-      case Op:                              \
-        sz##A1(Op)                          \
-        sz##A2(Op)                          \
-        break;
-
-#include "instructions.h"
-
-#undef instruction
-#undef szi32
-#undef szart
-#undef szarg
-#undef szlcl
-#undef szlcs
-#undef szbLk
-#undef szlVl
-#undef szsym
-#undef szEs
-#undef szlit
-#undef sztPe
-#undef szglb
-#undef sznOp
-#undef sztOs
-    }
-    return False;
-  }
-}
-
 logical validPC(methodPo mtd, insPo pc) {
-  return pcInBlock(entryBlock(mtd), pc);
+  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
-static retCode findPcInBlock(blockPo block, insPo pc, char *prefix, char *buffer, integer buffLen) {
-  if (pc >= block->ins && pc < &block->ins[block->insCount]) {
-    strMsg(buffer, buffLen, "%s.%d", prefix, pc - &block->ins[0]);
-    return Ok;
-  } else {
-    for (integer ix = 0; ix < block->insCount; ix++) {
-#define sznOp
-#define sztOs
-#define szart
-#define szi32
-#define szarg
-#define szlcl
-#define szlcs
-#define szsym
-#define szEs
-#define szlit
-#define sztPe
-#define szglb
-#define szbLk { \
-   char blockPrefix[MAXLINE]; strMsg(blockPrefix,NumberOf(blockPrefix),"%s.%d",prefix,pc-&block->ins[0]); \
-   if(findPcInBlock(block->ins[ix].snd.block,pc,blockPrefix,NumberOf(blockPrefix))==Ok)                   \
-     return Ok;                                                                                           \
+integer mtdCodeSize(methodPo mtd) {
+  return mtd->insCount;
 }
-#define szlVl
 
-#define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
-      case Op:                              \
-        sz##A1(Op)                          \
-        sz##A2(Op)                          \
-        break;
+termPo findPcLocation(methodPo mtd, int32 pc) {
+  arrayPo locs = mtd->locs;
+  if (locs != Null) {
+    integer start = 0;
+    integer limit = arrayCount(locs) - 1;
 
-#include "instructions.h"
+    integer lowerPc = -1;
+    integer upperPc = mtdCodeSize(mtd);
 
-#undef instruction
-#undef szi32
-#undef szart
-#undef szarg
-#undef szlcl
-#undef szlcs
-#undef szbLk
-#undef szlVl
-#undef szsym
-#undef szEs
-#undef szlit
-#undef sztPe
-#undef szglb
-#undef sznOp
-#undef sztOs
+    int32 lowerLoc = -1;
+    int32 upperLoc = -1;
+
+    while (limit >= start) {
+      integer mid = start + (limit - start) / 2;
+      methodLocPo midEntry = (methodLocPo) nthEntry(locs, mid);
+      int32 testPc = midEntry->pc;
+      int32 testLit = midEntry->litNo;
+
+      if (testPc == pc) {
+        if (testLit > 0)
+          return getMtdLit(mtd, testLit);
+        else
+          return Null;
+      } else if (testPc < pc) {
+        start = mid + 1;
+        if (testPc > lowerPc) {
+          lowerPc = testPc;
+          lowerLoc = testLit;
+        }
+      } else {
+        limit = mid - 1;
+
+        if (testPc < upperPc) {
+          upperPc = testPc;
+          upperLoc = testLit;
+        }
+      }
     }
-    return Fail;
-  }
-}
-
-retCode findPcLocation(methodPo mtd, insPo pc, char *buffer, integer buffLen) {
-  return findPcInBlock(entryBlock(mtd), pc, "", buffer, buffLen);
+    if (lowerLoc >0)
+      return getMtdLit(mtd, lowerLoc);
+    else if(upperLoc>-1)
+      return getMtdLit(mtd, upperLoc);
+    else
+      return Null;
+  } else
+    return Null;
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -319,36 +267,23 @@ integer codeArity(methodPo mtd) {
   return mtd->arity;
 }
 
-blockPo allocateBlock(integer insCount, blockPo parent, integer offset) {
-  blockPo block = (blockPo) malloc(sizeof(InstructionBlock) + insCount * sizeof(Instruction));
-
-  block->insCount = insCount;
-  return block;
-}
-
-void freeBlock(blockPo block) {
-  for (integer pc = 0; pc < block->insCount; pc++) {
-    insPo ins = &block->ins[pc];
-    if (ins->snd.block != Null)
-      freeBlock(ins->snd.block);
-  }
-  free((void *) block);
-}
-
 methodPo
-defineMtd(heapPo H, blockPo block, integer funSigIx, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool) {
+defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,
+          labelPo lbl, normalPo pool, arrayPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
   mtd->entryCount = 0;
-  mtd->block = block;
+  mtd->insCount = insCount;
+  mtd->instructions = instructions;
   mtd->jit = Null;
   mtd->sigIx = funSigIx;
   mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
+  mtd->locs = locs;
   mtd->stackDelta = stackDelta;
 
   lbl->mtd = mtd;
@@ -358,13 +293,14 @@ defineMtd(heapPo H, blockPo block, integer funSigIx, integer lclCount, integer s
   return mtd;
 }
 
-methodPo declareMethod(const char *name, integer arity, blockPo block, termPo sigTerm, integer lclCount) {
+methodPo
+specialMethod(const char *name, integer arity, integer insCount, insPo instructions, termPo sigTerm, integer lclCount) {
   labelPo lbl = declareLbl(name, arity, 0);
   normalPo pool = allocateTpl(globalHeap, 2);
   setArg(pool, 0, (termPo) lbl);
   setArg(pool, 1, sigTerm);
 
-  return defineMtd(globalHeap, block, 1, lclCount, 0, 0, pool);
+  return defineMtd(globalHeap, insCount, instructions, 1, 0, 0, 0, pool, Null);
 }
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
