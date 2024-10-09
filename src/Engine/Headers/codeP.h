@@ -15,19 +15,13 @@
 typedef struct instruction_ {
   OpCode op;
   int32 fst;            // First integer operand
-  union {
-    int32 alt;          // but some may also have a second operand
-    insPo exit;
-    blockPo block;      // sub-block
-  } snd;                // second operand
+  int32 alt;            // but some may also have a second operand
 } Instruction;
 
-typedef struct block_ {
-  integer insCount;     // How many instructions in the block
-  Instruction ins[ZEROARRAYSIZE];
-} InstructionBlock;
-
-blockPo allocateCodeBlock(integer insCount);
+typedef struct methodLoc_ {
+  int32 pc;
+  int32 litNo;
+} MethodLoc, *methodLocPo;
 
 typedef struct method_ {
   clssPo clss;          // == specialClass
@@ -38,7 +32,9 @@ typedef struct method_ {
   integer lclcnt;       // How many locals in the environment
   integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;        /* A pool tuple of constants */
-  blockPo block;        // a block of instructions
+  arrayPo locs;         // Sorted array of location information
+  integer insCount;     // How many instructions are there in the code?
+  insPo instructions;   // The actual instructions
 } MethodRec;
 
 extern clssPo methodClass;
@@ -58,11 +54,7 @@ static inline logical isMethod(termPo m) {
 
 static inline insPo entryPoint(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->block->ins;
-}
-
-static inline blockPo entryBlock(methodPo mtd) {
-  return mtd->block;
+  return mtd->instructions;
 }
 
 static inline int64 argCount(methodPo mtd) {
@@ -91,16 +83,13 @@ labelPo mtdLabel(methodPo mtd);
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 extern logical validPC(methodPo mtd, insPo pc);
 
-extern logical pcInBlock(blockPo block, insPo pc);
+methodPo
+defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,
+          labelPo lbl, normalPo pool, arrayPo locs);
 
 methodPo
-defineMtd(heapPo H, blockPo block, integer funSigIx, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool);
-
-methodPo declareMethod(const char *name, integer arity, blockPo block, termPo sigTerm, integer lclCount);
+specialMethod(const char *name, integer arity, integer insCount, insPo instructions, termPo sigTerm, integer lclCount);
 
 void showMtdCounts(ioPo out);
 
-blockPo allocateBlock(integer insCount, blockPo parent, integer offset);
-
-void freeBlock(blockPo block);
 #endif

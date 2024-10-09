@@ -174,3 +174,16 @@ integer nextPrime(integer min) {
 
   return candidate;
 }
+
+// Manage hwms
+
+integer hwmOf(hwmPo hwm){
+  return hwm->max;
+}
+
+integer hwmBump(hwmPo hwm, integer delta){
+  hwm->current+=delta;
+  if(hwm->current>hwm->max)
+    hwm->max = hwm->current;
+  return hwm->current;
+}

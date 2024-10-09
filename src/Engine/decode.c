@@ -6,6 +6,7 @@
 #include <cons.h>
 #include <consP.h>
 #include <stdlib.h>
+#include <tkDecls.h>
 #include "bignumP.h"
 #include "arithP.h"
 #include "charP.h"
@@ -15,6 +16,7 @@
 #include "closureP.h"
 #include "array.h"
 #include "codeP.h"
+#include "../Jit/ARM64/Headers/arm64.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -428,54 +430,84 @@ retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize)
     return Fail;
 }
 
-// Used to support decoding of blocks
+// Used to support decoding
 typedef struct break_level_ *breakLevelPo;
 
 typedef struct break_level_ {
-  blockPo block;
-  int32 pc;
+  arrayPo locs;
+  integer pc;
   breakLevelPo parent;
 } BreakLevel;
 
-static retCode decodeBlock(ioPo in, blockPo *tgt, char *errorMsg, long msgSize);
-static retCode stitchBlocks(blockPo block, breakLevelPo brk, char *errorMsg, long msgSize);
+static void recordLoc(breakLevelPo brk, integer pc, int32 litNo){
+  arrayPo ar = brk->locs;
+  MethodLoc loc = {.pc=pc, .litNo=litNo};
+  appendEntry(ar,&loc);
+}
 
-retCode decodeInstructionBlock(ioPo in, blockPo *tgt, char *errorMsg, long msgSize) {
+static retCode
+decodeBlock(ioPo in, arrayPo ar, integer *next, breakLevelPo brk, char *errorMsg, long msgSize);
+static integer findBreak(breakLevelPo brk, int32 lvl);
+
+retCode
+decodeInstructionBlock(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
+  arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
+  BreakLevel brk = {.locs=lcs,.pc=-1,.parent=Null};
 
-  tryRet(decodeBlock(in, tgt, errorMsg, msgSize));
+  tryRet(decodeBlock(in, ar, insCount, &brk, errorMsg, msgSize));
+  tryRet(copyOutData(ar, (void *) code, sizeof(Instruction) * (size_t) insCount));
+  eraseArray(ar, Null, Null);
 
-  tryRet(stitchBlocks(*tgt, Null, errorMsg, msgSize));
-  eraseArray(ar, Null, 0);
+  if(arrayCount(lcs)>0){
+    *locs = lcs;
+  } else{
+    *locs = Null;
+    eraseArray(lcs,Null,Null);
+  }
+
   return Ok;
 }
 
-static retCode decodeIns(ioPo in, insPo ins, char *errorMsg, long msgSize) {
+static retCode decodeI32(ioPo in, int32 *rest) {
+  integer val;
+  retCode ret = decodeInteger(in, &val);
+  *rest = (int32)val;
+  return ret;
+}
+
+static retCode
+decodeIns(ioPo in, arrayPo ar, integer pc, integer *nextLoc, breakLevelPo brk, char *errorMsg, long msgSize) {
   integer and;
   char escNm[MAX_SYMB_LEN];
+  insPo ins = (insPo) nthEntry(ar, pc);
 
   if (decodeInteger(in, (integer *) &ins->op) == Ok) {
     switch (ins->op) {
-#define sznOp(Op)
-#define sztOs(Op)
-#define szart(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szi32(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szarg(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szlcl(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szlcs(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szsym(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szEs(Op) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->and = lookupEscape(escNm);}
-#define szlit(Op) tryRet(decodeInteger(in, &ins->fst))
-#define sztPe(Op) tryRet(decodeInteger(in, &ins->fst))
-#define szglb(Op) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->and = globalVarNo(escNm);}
-#define szbLk(Op) tryRet(decodeBlock(in, &ins->snd.block, errorMsg, msgsize))
-#define szlVl(Op) tryRet(decodeInteger(in, (integer*)&ins->fst))
+#define sznOp
+#define sztOs
+#define szart tryRet(decodeI32(in, &ins->fst))
+#define szi32 tryRet(decodeI32(in, &ins->fst))
+#define szarg tryRet(decodeI32(in, &ins->fst))
+#define szlcl tryRet(decodeI32(in, &ins->fst))
+#define szlcs tryRet(decodeI32(in, &ins->fst))
+#define szsym tryRet(decodeI32(in, &ins->fst))
+#define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = lookupEscape(escNm);}
+#define szlit tryRet(decodeI32(in, &ins->fst))
+#define sztPe tryRet(decodeI32(in, &ins->fst))
+#define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);}
+#define szbLk { ins->alt = *nextLoc; BreakLevel blkBrk = {.pc=pc,.parent=brk, .locs=parent->locs}; \
+                    tryRet(decodeBlock(in, *nextLoc, nextLock, blkBrk, errorMsg, msgsize)); \
+                    }
+#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk,lvl); }
+#define szlNe { tryRet(decodeI32(in, &ins->fst)); recordLoc(brk,pc,ins->fst);}
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
-      case Op:                              \
-        sz##A1(Op)                          \
-        sz##A2(Op)                          \
-        break;
+      case Op:{                             \
+        sz##A1                          \
+        sz##A2                          \
+        break;                              \
+      }
 
 #include "instructions.h"
 
@@ -494,91 +526,45 @@ static retCode decodeIns(ioPo in, insPo ins, char *errorMsg, long msgSize) {
 #undef szglb
 #undef sznOp
 #undef sztOs
+#undef szlNe
       default: {
         strMsg(errorMsg, msgSize, "invalid instruction encoding");
         return Error;
       }
     }
   }
+  setNth(ar, pc, (void *) &ins);
   return Ok;
 }
 
-retCode decodeBlock(ioPo in, blockPo *tgt, char *errorMsg, long msgSize) {
+retCode
+decodeBlock(ioPo in, arrayPo ar, integer *next, breakLevelPo brk, char *errorMsg, long msgSize) {
   integer insCount;
   retCode ret = decodeTplCount(in, &insCount, errorMsg, msgSize);
-  blockPo block = *tgt = allocateCodeBlock(insCount);
 
   if (ret == Ok) {
-    for (integer ix = 0; ret == Ok && ix < insCount;) {
-      ret = decodeIns(in, &block->ins[ix], errorMsg, msgSize);
+    ret = reserveRoom(ar, *next + insCount);
+    if (ret != Ok) {
+      strMsg(errorMsg, msgSize, "could not allocate space for %d instructions in code", insCount);
+      return Error;
+    } else {
+      integer nextLoc = *next;
+      *next += insCount;
+      for (integer ix = 0; ret == Ok && ix < insCount;) {
+        ret = decodeIns(in, ar, nextLoc++, next, brk, errorMsg, msgSize);
+      }
+      return ret;
     }
   }
   return ret;
 }
 
-static insPo findBreak(breakLevelPo brk, int32 lvl) {
-  int32 absLevel = abs(lvl);  // a lvl of -1 means go to the beginning of block
-  for (int l = 0; l < absLevel && brk != Null; l++)
+integer findBreak(breakLevelPo brk, int32 lvl) {
+  for (int l = 0; l < lvl && brk != Null; l++)
     brk = brk->parent;
   if (brk != Null) {
-    if (lvl < 0)
-      return brk->block->ins;
-    else
-      return &brk->block->ins[brk->pc];
+    return brk->pc;
   } else
     return 0;
 }
 
-retCode stitchBlocks(blockPo block, breakLevelPo brk, char *errorMsg, long msgSize) {
-  for (integer pc = 0; pc < block->insCount; pc++) {
-    switch (block->ins[pc].op) {
-
-#define sznOp
-#define sztOs
-#define szart
-#define szi32
-#define szarg
-#define szlcl
-#define szlcs
-#define szsym
-#define szEs
-#define szlit
-#define sztPe
-#define szglb
-#define szbLk {                     \
-  BreakLevel subLvl = {.block=block, .pc=pc+1, .parent=brk}; \
-  tryRet(stitchBlocks(pc+1,&subLvl,errorMsg,msgSize)); \
-  pc+=blkCount;                           \
-  }
-#define szlVl code[pc].snd.exit = findBreak(brk, code[pc].snd.alt);
-
-#define instruction(Op, A1, A2, Dl, Tp, Cmt) \
-      case Op:                           \
-        sz##A1                           \
-        sz##A2                           \
-        break;
-
-#include "instructions.h"
-
-#undef instruction
-#undef szi32
-#undef szart
-#undef szarg
-#undef szlcl
-#undef szlcs
-#undef szbLk
-#undef szlVl
-#undef szsym
-#undef szEs
-#undef szlit
-#undef sztPe
-#undef szglb
-#undef sznOp
-#undef sztOs
-
-      default:
-        continue;
-    }
-  }
-  return Ok;
-}

@@ -38,7 +38,7 @@ void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltMethod = declareMethod("halt", 0, &haltBlock, NULL, 0);
+  haltMethod = specialMethod("halt", 0, &haltBlock, NULL, 0);
 
   runTimer = newTimer("running");
 }

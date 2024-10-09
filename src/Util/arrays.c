@@ -39,6 +39,24 @@ arrayPo fixedArray(int elSize, integer initial, void *data) {
   return ar;
 }
 
+retCode reserveRoom(arrayPo ar, integer count) {
+  if (ar->dataLength < count * ar->elSize) {
+    if (ar->growable) {
+      integer newSize = ar->dataLength + count * ar->elSize;
+      void *newData = realloc(ar->data, newSize);
+      if (newData == Null)
+        return Space;
+      else {
+        ar->data = newData;
+        ar->dataLength = newSize;
+        return Ok;
+      }
+    } else
+      return Error;
+  } else // Already enough room
+    return Ok;
+}
+
 retCode appendEntry(arrayPo ar, void *el) {
   if (ar->elSize * (ar->count + 1) > ar->dataLength) {
     if (ar->growable) {
@@ -69,6 +87,11 @@ void *nthEntry(arrayPo ar, integer ix) {
   return ar->data + (ar->elSize * ix);
 }
 
+void setNth(arrayPo ar, integer ix, void *el) {
+  assert(ix >= 0 && ix < ar->count);
+  memcpy(&ar->data[ix], el, ar->elSize);
+}
+
 retCode dropEntry(arrayPo ar, integer ix) {
   assert(ix >= 0 && ix < ar->count);
   void *tgt = nthEntry(ar, ix);
@@ -78,7 +101,7 @@ retCode dropEntry(arrayPo ar, integer ix) {
 }
 
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
-  if (eraser != Null )
+  if (eraser != Null)
     processArrayElements(ar, eraser, cl);
 
   if (ar->growable)
@@ -98,11 +121,11 @@ retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {
   return ret;
 }
 
-retCode copyOutData(arrayPo ar, void *buffer, integer buffSize){
-  if(buffSize<ar->elSize*ar->count)
+retCode copyOutData(arrayPo ar, void *buffer, integer buffSize) {
+  if (buffSize < ar->elSize * ar->count)
     return Space;
-  else{
-    memcpy(buffer,ar->data,buffSize);
+  else {
+    memcpy(buffer, ar->data, buffSize);
     return Ok;
   }
 }
