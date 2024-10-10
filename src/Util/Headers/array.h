@@ -23,6 +23,9 @@ retCode dropEntry(arrayPo ar,integer ix);
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl);
 retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl);
 
+typedef comparison (*compareEls)(arrayPo ar, integer ix, integer iy, void *cl);
+retCode sortArray(arrayPo ar, compareEls compare, void *cl);
+
 retCode copyOutData(arrayPo ar, void *buffer, integer buffSize);
 
 #endif //STAR_ARRAY_H

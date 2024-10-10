@@ -449,8 +449,13 @@ static retCode
 decodeBlock(ioPo in, arrayPo ar, integer *next, breakLevelPo brk, char *errorMsg, long msgSize);
 static integer findBreak(breakLevelPo brk, int32 lvl);
 
-retCode
-decodeInstructionBlock(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
+static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
+  methodLocPo sx = (methodLocPo) nthEntry(ar, ix);
+  methodLocPo sy = (methodLocPo) nthEntry(ar, iy);
+  return ixCmp(sx->pc, sy->pc);
+}
+
+retCode decodeInstructions(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
   arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
   BreakLevel brk = {.locs=lcs,.pc=-1,.parent=Null};
@@ -460,6 +465,7 @@ decodeInstructionBlock(ioPo in, integer *insCount, insPo *code, arrayPo *locs, c
   eraseArray(ar, Null, Null);
 
   if(arrayCount(lcs)>0){
+    sortArray(lcs,byPc,Null); // sort by pc, to make searching for location easier
     *locs = lcs;
   } else{
     *locs = Null;

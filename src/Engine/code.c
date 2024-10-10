@@ -126,6 +126,11 @@ logical validPC(methodPo mtd, insPo pc) {
   return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
+int32 codeOffset(methodPo mtd, insPo pc){
+  assert(validPC(mtd,pc));
+  return pc-mtd->instructions;
+}
+
 integer mtdCodeSize(methodPo mtd) {
   return mtd->insCount;
 }
@@ -265,6 +270,15 @@ integer lclCount(methodPo mtd) {
 
 integer codeArity(methodPo mtd) {
   return mtd->arity;
+}
+
+integer methodSigLit(methodPo mtd)
+{
+  return mtd->sigIx;
+}
+
+integer codeSize(methodPo mtd){
+  return mtd->insCount;
 }
 
 methodPo

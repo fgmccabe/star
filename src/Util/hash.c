@@ -362,10 +362,7 @@ integer ixHash(void *r) {
   return (integer) r;
 }
 
-comparison ixCmp(void *i1, void *i2){
-  integer ix1 = (integer)i1;
-  integer ix2 = (integer)i2;
-
+comparison ixCmp(integer ix1, integer ix2){
   if(ix1<ix2)
     return smaller;
   else if(ix1>ix2)

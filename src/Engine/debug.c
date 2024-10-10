@@ -510,10 +510,10 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
   framePo f = currFrame(stk);
   methodPo mtd = frameMtd(f);
   insPo pc = f->pc;
-  integer remaining = insCount(mtd) - (pc - entryPoint(mtd));
+  integer remaining = codeSize(mtd) - (pc - entryPoint(mtd));
 
   integer count = cmdCount(line, remaining);
-  insPo last = entryPoint(mtd) + insCount(mtd);
+  insPo last = entryPoint(mtd) + codeSize(mtd);
 
   for (integer ix = 0; ix < count && pc < last; ix++) {
     pc = disass(debugOutChnnl, Null, mtd, pc);
@@ -528,7 +528,7 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
 
 void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
   insPo pc = entryPoint(mtd);
-  insPo last = entryPoint(mtd) + insCount(mtd);
+  insPo last = entryPoint(mtd) + codeSize(mtd);
 
   outMsg(out, msg, name);
 
@@ -643,7 +643,7 @@ static logical shouldWeStopIns(processPo p) {
         return False;
     }
 
-    switch (*f->pc) {
+    switch (f->pc->op) {
       case Ret: {
         switch (p->waitFor) {
           case stepOut:
@@ -753,22 +753,26 @@ DebugWaitFor insDebug(processPo p) {
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
   termPo ln = (termPo) data;
 
-  if (isNormalPo(ln)) {
-    normalPo line = C_NORMAL(ln);
-    char pkgNm[MAX_SYMB_LEN];
-    copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+  if (ln != Null) {
 
-    if (alt && showPkgFile) {
-      char srcName[MAXFILELEN];
-      packagePo pkg = loadedPackage(pkgNm);
-      retCode ret = manifestResource(pkg, "source", srcName, NumberOf(srcName));
-      if (ret == Ok)
-        return outMsg(f, "%s(%T:%T@%T,%T)%_", srcName, nthArg(line, 1), nthArg(line, 2), nthArg(line, 3),
-                      nthArg(line, 4));
-    }
-    return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    if (isNormalPo(ln)) {
+      normalPo line = C_NORMAL(ln);
+      char pkgNm[MAX_SYMB_LEN];
+      copyChars2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+
+      if (alt && showPkgFile) {
+        char srcName[MAXFILELEN];
+        packagePo pkg = loadedPackage(pkgNm);
+        retCode ret = manifestResource(pkg, "source", srcName, NumberOf(srcName));
+        if (ret == Ok)
+          return outMsg(f, "%s(%T:%T@%T,%T)%_", srcName, nthArg(line, 1), nthArg(line, 2), nthArg(line, 3),
+                        nthArg(line, 4));
+      }
+      return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    } else
+      return outMsg(f, "%,*T", displayDepth, ln);
   } else
-    return outMsg(f, "%,*T", displayDepth, ln);
+    return outStr(f, "?unknown loc?");
 }
 
 static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
@@ -781,95 +785,87 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   return outMsg(out, ")");
 }
 
-static retCode shCall(ioPo out, char *msg, char *prefix, methodPo mtd, stackPo stk) {
-  tryRet(outMsg(out, "%s%s %#L %#.16T", msg, prefix, mtd));
+static retCode shCall(ioPo out, char *msg, termPo loc, methodPo mtd, stackPo stk) {
+  tryRet(outMsg(out, "%s %#L %#.16T", msg, loc, mtd));
 
   return shArgs(out, displayDepth, stk->sp, codeArity(mtd));
 }
 
 void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
   if (showColors)
-    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, locBuffer, frameMtd(f), stk);
+    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, loc, mtd, stk);
   else
-    shCall(out, "entry:", locBuffer, frameMtd(f), stk);
+    shCall(out, "entry:", loc, mtd, stk);
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
 
   if (showColors)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %T->%#,*T", frameMtd(f), displayDepth, val);
   else
-    outMsg(out, "return: %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, val);
+    outMsg(out, "return: %T->%#,*T", frameMtd(f), displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo reason) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
   if (showColors)
-    outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, reason);
+    outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %L %T->%#,*T", loc, frameMtd(f), displayDepth, reason);
   else
-    outMsg(out, "abort: %s %T->%#,*T", locBuffer, frameMtd(f), displayDepth, reason);
+    outMsg(out, "abort: %L %T->%#,*T", loc, frameMtd(f), displayDepth, reason);
 }
 
 void showAssign(ioPo out, stackPo stk, termPo vl) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
   termPo val = peekStack(stk, 1);
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
   termPo cell = topStack(stk);
 
   if (showColors)
-    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %s %T->%#,*T", locBuffer, cell, displayDepth, val);
+    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %L %T->%#,*T", loc, cell, displayDepth, val);
   else
-    outMsg(out, "assign: %s %T->%#,*T", locBuffer, cell, displayDepth, val);
+    outMsg(out, "assign: %L %T->%#,*T", loc, cell, displayDepth, val);
 }
 
 void showSuspend(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T", loc, displayDepth, cont);
   else
-    outMsg(out, "suspend:", "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, "suspend:", "%L %#,*T", loc, displayDepth, cont);
 }
 
 void showResume(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T", loc, displayDepth, cont);
   else
-    outMsg(out, "resume:", "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, "resume:", "%L %#,*T", loc, displayDepth, cont);
 }
 
 void showRetire(ioPo out, stackPo stk, termPo cont) {
   framePo f = currFrame(stk);
-  char locBuffer[MAXLINE];
-
-  findPcLocation(frameMtd(f), f->pc, locBuffer, NumberOf(locBuffer));
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
   if (showColors)
-    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%l %#,*T", loc, displayDepth, cont);
   else
-    outMsg(out, "retire:", "%s %#,*T", locBuffer, displayDepth, cont);
+    outMsg(out, "retire:", "%L %#,*T", loc, displayDepth, cont);
 }
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
@@ -1042,21 +1038,12 @@ static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
     outStr(out, " <tos>");
 }
 
-static void showPcOffset(ioPo out, insPo *pc) {
-  uint32 hi32 = (uint32) (*pc)[0];
-  uint32 lo32 = (uint32) (*pc)[1];
-  (*pc) += 2;
-  uint32 delta = (hi32 << 16u) | lo32;
-
-  outMsg(out, " PC[%+d]", delta);
+static void showPcOffset(ioPo out, insPo pc) {
+  outMsg(out, " PC[%+d]", pc->alt);
 }
 
-static void showEscCall(ioPo out, insPo *pc) {
-  uint32 hi32 = (uint32) (*pc)[0];
-  uint32 lo32 = (uint32) (*pc)[1];
-  (*pc) += 2;
-  uint32 escNo = (hi32 << 16u) | lo32;
-  escapePo esc = getEscape(escNo);
+static void showEscCall(ioPo out, insPo pc) {
+  escapePo esc = getEscape(pc->fst);
   outMsg(out, " %s/%d", esc->name, esc->arity);
 }
 
@@ -1065,7 +1052,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
   if (mtd != Null) {
     insPo entry = entryPoint(mtd);
-    integer offset = (integer) (pc - entry);
+    integer offset = codeOffset(mtd,pc);
 
     normalPo lits = codeLits(mtd);
     if (lits != Null)
@@ -1076,12 +1063,12 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
     outMsg(out, "\?\?\? [%lx] ", pc);
   }
 
-  switch (*pc++) {
+  switch (pc->op) {
 #undef instruction
 
 #define show_nOp
 #define show_tOs showTos(out,stk,delta++)
-#define show_art showTopOfStack(out,stk,collectI32(pc))
+#define show_art showTopOfStack(out,stk,pc->fst)
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_lBs outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,stk,collectI32(pc))

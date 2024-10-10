@@ -344,16 +344,13 @@ retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorM
   return ret;
 }
 
-static integer maxDepth(blockPo block, normalPo constPool) {
+static integer maxDepth(insPo ins, integer count, normalPo constPool) {
   integer currDepth = 0;
   integer maxDepth = 0;
 
-  insPo ins = block->ins;
-
-  for (integer pc = 0; pc < block->insCount; pc++, ins++) {
+  for (integer pc = 0; pc < count; pc++, ins++) {
     switch (ins->op) {
 
-#define
 #define instruction(Op, A1, A2, Dl, Tp, Cmt) \
       case Op:{                  \
         currDepth+=(Dl);        \
@@ -406,7 +403,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     insPo code = Null;
     HwmRec Hwm = {.max=0, .current=0};
     arrayPo locs;
-    ret = decodeInstructionBlock(in, &inscount, &code, &locs, errorMsg, msgSize);
+    ret = decodeInstructions(in, &inscount, &code, &locs, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
@@ -474,7 +471,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
     integer insCount;
     arrayPo locs;
 
-    ret = decodeInstructionBlock(in, &insCount, &instructions, &locs, errorMsg, msgSize);
+    ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
