@@ -291,7 +291,7 @@ retCode jit_Block(insPo code, integer pc, jitCompPo jit) {
 
 retCode jit_Break(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  codeLblPo tgt = getLblByPc(code[pc].snd.exit, jit);
+  codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
 
   assert(tgt != Null);
 

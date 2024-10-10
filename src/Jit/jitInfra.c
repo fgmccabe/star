@@ -150,8 +150,9 @@ retCode resolvePcLbl(insPo code, integer off, jitCompPo jit, char *errMsg, integ
   return Ok;
 }
 
-codeLblPo getLblByPc(insPo pc, jitCompPo jit) {
-  labelMarkerPo lblMrk = lblMarker(pc, jit);
+codeLblPo getLblByPc(insPo pc, integer delta, jitCompPo jit) {
+  insPo tgt = pc+delta;
+  labelMarkerPo lblMrk = lblMarker(tgt, jit);
 
   if (lblMrk != Null) {
     return lblMrk->lbl;

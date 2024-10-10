@@ -32,6 +32,7 @@ typedef enum {
   tPe,          // Type signature
   bLk,          // A block of instructions
   lVl,          // How many blocks to break out of
+  lNe,          // Special marker for line numbers
 } opAndSpec;                    // Specification code for an operand
 
 #endif
