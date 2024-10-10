@@ -82,8 +82,6 @@ retCode setJitCode(methodPo mtd, jitCode code);
 labelPo mtdLabel(methodPo mtd);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
-logical validPC(methodPo mtd, insPo pc);
-int32 codeOffset(methodPo mtd, insPo pc);
 
 methodPo
 defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,

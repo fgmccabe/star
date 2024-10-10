@@ -79,13 +79,9 @@ retCode cntDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   if (continIsValid(cont)) {
     stackPo stk = contStack(cont);
     methodPo mtd = frameMtd(stk->fp);
-    char locBuff[MAXLINE];
-    retCode ret = findPcLocation(mtd, stk->fp->pc, locBuff, NumberOf(locBuff));
+    termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->fp->pc));
 
-    if (ret == Fail)
-      return outMsg(out, "(.continuation %d:[unknown].)", cont->stack->hash, displayDepth);
-    else
-      return outMsg(out, "(.continuation %d:%s.)", cont->stack->hash, locBuff);
+    return outMsg(out, "(.continuation %d:%L.)", cont->stack->hash, loc);
   } else
     return outMsg(out, "(.continuation %d:invalid.)", cont->hashCounter);
 }
