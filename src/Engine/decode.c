@@ -6,7 +6,6 @@
 #include <cons.h>
 #include <consP.h>
 #include <stdlib.h>
-#include <tkDecls.h>
 #include "bignumP.h"
 #include "arithP.h"
 #include "charP.h"
@@ -16,7 +15,6 @@
 #include "closureP.h"
 #include "array.h"
 #include "codeP.h"
-#include "../Jit/ARM64/Headers/arm64.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -487,21 +485,22 @@ decodeIns(ioPo in, arrayPo ar, integer pc, integer *nextLoc, breakLevelPo brk, c
   integer and;
   char escNm[MAX_SYMB_LEN];
   insPo ins = (insPo) nthEntry(ar, pc);
+  retCode ret = Ok;
 
   if (decodeInteger(in, (integer *) &ins->op) == Ok) {
     switch (ins->op) {
 #define sznOp
 #define sztOs
-#define szart tryRet(decodeI32(in, &ins->fst))
-#define szi32 tryRet(decodeI32(in, &ins->fst))
-#define szarg tryRet(decodeI32(in, &ins->fst))
-#define szlcl tryRet(decodeI32(in, &ins->fst))
-#define szlcs tryRet(decodeI32(in, &ins->fst))
-#define szsym tryRet(decodeI32(in, &ins->fst))
+#define szart tryRet(decodeI32(in, &ins->fst));
+#define szi32 tryRet(decodeI32(in, &ins->fst));
+#define szarg tryRet(decodeI32(in, &ins->fst));
+#define szlcl tryRet(decodeI32(in, &ins->fst));
+#define szlcs tryRet(decodeI32(in, &ins->fst));
+#define szsym tryRet(decodeI32(in, &ins->fst));
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = lookupEscape(escNm);}
-#define szlit tryRet(decodeI32(in, &ins->fst))
-#define sztPe tryRet(decodeI32(in, &ins->fst))
-#define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);}
+#define szlit tryRet(decodeI32(in, &ins->fst));
+#define sztPe tryRet(decodeI32(in, &ins->fst));
+#define szglb {retCode ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);}
 #define szbLk { ins->alt = *nextLoc; BreakLevel blkBrk = {.pc=pc,.parent=brk, .locs=parent->locs}; \
                     tryRet(decodeBlock(in, *nextLoc, nextLock, blkBrk, errorMsg, msgsize)); \
                     }

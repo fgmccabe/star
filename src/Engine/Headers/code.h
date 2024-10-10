@@ -28,6 +28,8 @@ integer methodSigLit(methodPo mtd);
 
 integer codeSize(methodPo mtd);
 termPo findPcLocation(methodPo mtd, int32 pc);
+logical validPC(methodPo mtd, insPo pc);
+int32 codeOffset(methodPo mtd, insPo pc);
 
 integer callCount(methodPo mtd);
 
