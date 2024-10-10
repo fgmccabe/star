@@ -139,6 +139,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *var) {
     case lcs:
     case bLk:
     case lVl:
+    case lNe:
       outMsg(out, "%s%s", sep, var);
       return ",";
     default:
@@ -199,6 +200,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
     case lit:
     case sym:
     case tPe:
+    case lNe:
       switch (A2) {
         case nOp:
         case tOs:
@@ -355,6 +357,7 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
     case lit:
     case sym:
     case tPe:
+    case lNe:
       outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
       outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
       resIn->pcV++;

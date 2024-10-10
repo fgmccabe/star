@@ -447,7 +447,7 @@ static void recordLoc(breakLevelPo brk, integer pc, int32 litNo){
 
 static retCode
 decodeBlock(ioPo in, arrayPo ar, integer *next, breakLevelPo brk, char *errorMsg, long msgSize);
-static integer findBreak(breakLevelPo brk, int32 lvl);
+static integer findBreak(breakLevelPo brk, integer pc, int32 lvl);
 
 static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
   methodLocPo sx = (methodLocPo) nthEntry(ar, ix);
@@ -458,7 +458,7 @@ static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
 retCode decodeInstructions(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
   arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
-  BreakLevel brk = {.locs=lcs,.pc=-1,.parent=Null};
+  BreakLevel brk = {.locs=lcs,.pc=0,.parent=Null};
 
   tryRet(decodeBlock(in, ar, insCount, &brk, errorMsg, msgSize));
   tryRet(copyOutData(ar, (void *) code, sizeof(Instruction) * (size_t) insCount));
@@ -505,7 +505,7 @@ decodeIns(ioPo in, arrayPo ar, integer pc, integer *nextLoc, breakLevelPo brk, c
 #define szbLk { ins->alt = *nextLoc; BreakLevel blkBrk = {.pc=pc,.parent=brk, .locs=parent->locs}; \
                     tryRet(decodeBlock(in, *nextLoc, nextLock, blkBrk, errorMsg, msgsize)); \
                     }
-#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk,lvl); }
+#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk,pc, lvl); }
 #define szlNe { tryRet(decodeI32(in, &ins->fst)); recordLoc(brk,pc,ins->fst);}
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
@@ -565,11 +565,11 @@ decodeBlock(ioPo in, arrayPo ar, integer *next, breakLevelPo brk, char *errorMsg
   return ret;
 }
 
-integer findBreak(breakLevelPo brk, int32 lvl) {
+integer findBreak(breakLevelPo brk, integer pc, int32 lvl) {
   for (int l = 0; l < lvl && brk != Null; l++)
     brk = brk->parent;
   if (brk != Null) {
-    return brk->pc;
+    return brk->pc-pc;
   } else
     return 0;
 }

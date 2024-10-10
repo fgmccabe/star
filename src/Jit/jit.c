@@ -35,7 +35,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   retCode ret = jit_preamble(mtd, jit);
 
   if (ret == Ok)
-    ret = jitBlock(jit, entryBlock(mtd), errMsg, msgLen);
+    ret = jitInstructions(jit, entryPoint(mtd), codeSize(mtd), errMsg, msgLen);
 
   if (ret == Ok)
     ret = jit_postamble(mtd, jit);
@@ -49,13 +49,10 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return ret;
 }
 
-retCode jitBlock(jitCompPo jitCtx, blockPo block, char *errMsg, integer msgLen) {
-  insPo ins = block->ins;
-  integer len = block->insCount;
-
+retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen) {
   retCode ret = Ok;
 
-  for (integer pc = 0; ret == Ok && pc < len; pc++) {
+  for (integer pc = 0; ret == Ok && pc < insCount; pc++) {
     switch (ins[pc].op) {
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)    \

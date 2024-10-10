@@ -7,6 +7,7 @@ include_directories("../Headers"
         "../../Headers"
         "../../../Util/Headers"
         "../../../Engine/Headers"
+        "../../Escapes/Headers"
         "../../../Headers"
         "../")
 

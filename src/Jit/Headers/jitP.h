@@ -119,7 +119,7 @@ integer cancelLocal(jitCompPo jit, integer id);
 void collectLblTgt(insPo pc, jitCompPo jit);
 retCode sortLabels(jitCompPo jit);
 retCode resolvePcLbl(insPo code, integer pc, jitCompPo jit, char *errMsg, integer msgLen);
-codeLblPo getLblByPc(insPo pc, jitCompPo jit);
+codeLblPo getLblByPc(insPo pc, integer delta, jitCompPo jit);
 
 uint32 currentPc(assemCtxPo ctx);
 
@@ -140,7 +140,7 @@ logical isI32(int64 x);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit);
 retCode jit_postamble(methodPo mtd, jitCompPo ctx);
-retCode jitBlock(jitCompPo jitCtx, blockPo block, char *errMsg, integer msgLen);
+retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 

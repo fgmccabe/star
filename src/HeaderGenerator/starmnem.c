@@ -140,6 +140,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
     case tPe:
     case bLk:
     case lVl:
+    case lNe:
       outMsg(out, "%s%s", sep, V);
       return ",";
     default:
@@ -210,6 +211,7 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
           check(False, "invalid second operand");
       }
     case lit:
+    case lNe:
       switch (B) {
         case nOp:
         case tOs:
@@ -353,6 +355,7 @@ static char *opAndTp(opAndSpec A) {
     case tOs:
       return Null;
     case lit:
+    case lNe:
       return "data";
     case sym:
       return "termLbl";
@@ -402,6 +405,7 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
       return False;
     case tPe:
     case lit:
+    case lNe:
     case sym:
     case i32:
     case art:

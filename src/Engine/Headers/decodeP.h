@@ -7,6 +7,7 @@
 
 #include "encoding.h"
 #include "decode.h"
+#include "array.h"
 #include "stringBuffer.h"
 #include "streamDecodeP.h"
 
