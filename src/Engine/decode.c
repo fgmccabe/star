@@ -15,6 +15,7 @@
 #include "closureP.h"
 #include "array.h"
 #include "codeP.h"
+#include "libEscapes.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -501,8 +502,8 @@ decodeIns(ioPo in, arrayPo ar, integer pc, integer *nextLoc, breakLevelPo brk, c
 #define szlit tryRet(decodeI32(in, &ins->fst));
 #define sztPe tryRet(decodeI32(in, &ins->fst));
 #define szglb {retCode ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);}
-#define szbLk { ins->alt = *nextLoc; BreakLevel blkBrk = {.pc=pc,.parent=brk, .locs=parent->locs}; \
-                    tryRet(decodeBlock(in, *nextLoc, nextLock, blkBrk, errorMsg, msgsize)); \
+#define szbLk { ins->alt = *nextLoc; BreakLevel blkBrk = {.pc=pc, .parent=brk, .locs=brk->locs}; \
+                    tryRet(decodeBlock(in, ar,  nextLoc, &blkBrk, errorMsg, msgSize)); \
                     }
 #define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk,pc, lvl); }
 #define szlNe { tryRet(decodeI32(in, &ins->fst)); recordLoc(brk,pc,ins->fst);}

@@ -131,4 +131,4 @@ instruction(Frame, tPe, nOp, 0, "F()()", "frame instruction")
 
 instruction(dBug, nOp, nOp, 0, "F()()", "debugging prefix")
 instruction(Line, lNe, nOp, 0, "F()()", "mark location in source")
-instruction(Local, lit, lcl, 0, "F()()", "introduce local variable")
+instruction(Local, lcl, lit, 0, "F()()", "introduce local variable")

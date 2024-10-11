@@ -532,6 +532,14 @@ retCode jit_dBug(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Line(insPo code, integer pc, jitCompPo jit) {
+  return Ok;
+}
+
+retCode jit_Local(insPo code, integer pc, jitCompPo jit) {
+  return Ok;
+}
+
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
   return Error;
 }
@@ -599,14 +607,14 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
 
   b(endLbl);
 
-  setLabel(ctx,okLbl);
-  str(scratch,OF(glbHeap,currOff));         // record new heap top
-  mov(scratch,IM((uinteger)clss));
-  str(scratch,OF(dst, OffsetOf(TermRecord,clss))); // record class of new structure
+  setLabel(ctx, okLbl);
+  str(scratch, OF(glbHeap, currOff));         // record new heap top
+  mov(scratch, IM((uinteger) clss));
+  str(scratch, OF(dst, OffsetOf(TermRecord, clss))); // record class of new structure
 
-  releaseReg(jit,glbHeap);
+  releaseReg(jit, glbHeap);
   releaseReg(jit, scratch);
   releaseReg(jit, limit);
-  setLabel(ctx,endLbl);
+  setLabel(ctx, endLbl);
   return Ok;
 }

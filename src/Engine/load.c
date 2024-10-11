@@ -247,25 +247,6 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
   }
 }
 
-retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
-  if (isLookingAt(in, "n") == Ok) {
-    char nm[MAXLINE];
-    integer ar;
-    retCode ret = decInt(in, count);
-    if (ret == Ok) {
-      ret = decodeLbl(in, nm, NumberOf(nm), &ar, errMsg, msgLen);
-      if (ret == Ok) {
-        if (ar != *count) {
-          strMsg(errMsg, msgLen, "invalid tuple arity encoding");
-          return Error;
-        }
-      }
-    }
-    return ret;
-  } else
-    return Fail;
-}
-
 static char *consPreamble = "n3o3\1cons\1";
 static char *structPreamble = "n3o3\1struct\1";
 static char *typePreamble = "n3o3\1type\1";
@@ -399,11 +380,11 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    integer inscount = 0;
-    insPo code = Null;
+    integer insCount = 0;
+    insPo instructions = Null;
     HwmRec Hwm = {.max=0, .current=0};
     arrayPo locs;
-    ret = decodeInstructions(in, &inscount, &code, &locs, errorMsg, msgSize);
+    ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
@@ -428,8 +409,10 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             } // Otherwise don't redefine
           } else {
             gcAddRoot(H, (ptrPo) &lbl);
+            integer stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
 
-            methodPo mtd = defineMtd(H, inscount, code, lclCount, hwmOf(&Hwm), lbl, C_NORMAL(pool), NULL, locs);
+
+            methodPo mtd = defineMtd(H, insCount, instructions, lclCount, hwmOf(&Hwm), stackDelta, lbl, C_NORMAL(pool), locs);
             if (enableVerify)
               ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 

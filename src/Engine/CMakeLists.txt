@@ -42,7 +42,7 @@ set(HEADER_FILES
         Headers/thr.h Headers/thrP.h
         Headers/verify.h Headers/verifyP.h
         Headers/debugP.h
-        Headers/codegen.h Headers/consP.h Headers/option.h Headers/optionP.h
+        Headers/consP.h Headers/option.h Headers/optionP.h
         Headers/starP.h Headers/stackP.h
         Headers/stack.h
         Headers/char.h Headers/charP.h Headers/bignumP.h Headers/closure.h Headers/closureP.h
@@ -81,7 +81,7 @@ set(SOURCE_FILES
 	heap.c
 	ideal.c
 	iochnl.c
-	labels.c	
+	labels.c
 	load.c
 	ltype.c
 	main.c

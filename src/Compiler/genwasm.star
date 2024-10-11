@@ -72,6 +72,7 @@ star.compiler.wasm.gen{
 
   compExp:(cExp,tailMode,Cont,codeCtx,stack) => (stack,multi[wOp],codeCtx).
   compExp(Exp,TM,Cont,Ctx,Stk) => case Exp in {
+    | .cVoid(Lc,Tp) => Cont.C(Ctx,pushStack(voidType,Stk),wasmConstant(voidSymbol))
     | .cInt(Lc,Ix) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Ix))
     | .cChar(Lc,Cx) => Cont.C(Ctx,pushStack(intType,Stk),wasmInt(Cx::integer))
 --    | .cBig(Lc,Bx) => Cont.C(Ctx,pushStack(bigintType,Stk),wasmBigInt(Bx))
@@ -88,7 +89,6 @@ star.compiler.wasm.gen{
 	valis Cont.C(Ctx,pushStack(voidType,Stk),wasmConstant(voidSymbol))
       }
     }
-    | .cVoid(Lc,Tp) => Cont.C(Ctx,pushStack(voidType,Stk),wasmConstant(voidSymbol))
     | .cTerm(_,Nm,Args,Tp) =>
       compExps(Args,Lc,allocCont(.tLbl(Nm,size(Args)),pushStack(Tp,Stk),Cont),Ctx,Stk)
     | .cCall(Lc,Nm,Args,Tp) =>

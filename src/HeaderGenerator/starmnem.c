@@ -292,9 +292,17 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
       }
     case lcl:
     case lcs:
-      check(B == nOp || B == tOs, "second operand not nOp");
-      outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lts,Lcs).\n", op);
-      return;
+      switch(B){
+        case nOp:
+        case tOs:
+          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lts,Lcs).\n", op);
+          return;
+        case lit:
+          outMsg(out, "where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(%d),.intgr(U),.intgr(LtNo)],Lt1,Lcs).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code: invalid second operand");
+      }
     case glb:
       switch (B) {
         case nOp:

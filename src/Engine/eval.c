@@ -417,12 +417,12 @@ retCode run(processPo P) {
       }
 
       case Block: {
-        PC = PC->snd.block->ins;
+        PC += PC->alt;
         continue;
       }
 
       case Break: {
-        PC = PC->snd.exit;
+        PC += PC->alt;
         continue;
       }
 
@@ -634,11 +634,11 @@ retCode run(processPo P) {
       }
 
       case Try: {
-        assert(validPC(frameMtd(FP), PC->snd.block->ins));
+        assert(validPC(frameMtd(FP), PC+PC->alt));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
 
         saveRegisters();
-        integer tryIndex = pushTryFrame(STK, P, PC->snd.block->ins, SP, FP);
+        integer tryIndex = pushTryFrame(STK, P, PC + PC->alt, SP, FP);
         restoreRegisters();
         push(makeInteger(tryIndex));
 #ifdef TRACESTACK
@@ -770,7 +770,7 @@ retCode run(processPo P) {
       case CLbl: {
         labelPo l = C_LBL(nthElem(LITS, PC->fst));
         termPo t = top();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (isNormalPo(t)) {
@@ -869,8 +869,8 @@ retCode run(processPo P) {
 
           push(vr);     /* load thunk variable */
 
-          assert(validPC(frameMtd(FP), PC->snd.block->ins));
-          PC = PC->snd.block->ins;    // Jump into thunk block
+          assert(validPC(frameMtd(FP), PC+PC->alt));
+          PC += PC->alt;    // Jump into thunk block
         } else {
           closurePo thLambda = thunkLam(thVr);
 
@@ -1057,7 +1057,7 @@ retCode run(processPo P) {
       case ICmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (integerVal(i) != integerVal(j))
@@ -1091,7 +1091,7 @@ retCode run(processPo P) {
       case CCmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (charVal(i) != charVal(j))
@@ -1245,7 +1245,7 @@ retCode run(processPo P) {
       case FCmp: {
         termPo x = pop();
         termPo y = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (floatVal(x) != floatVal(y))
@@ -1276,7 +1276,7 @@ retCode run(processPo P) {
       case Unpack: {
         labelPo l = C_LBL(nthElem(LITS, PC->fst));
         termPo t = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
 
         assert(validPC(frameMtd(FP), exit));
 
@@ -1333,7 +1333,7 @@ retCode run(processPo P) {
       case Cmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, j))
@@ -1343,7 +1343,7 @@ retCode run(processPo P) {
 
       case If: {
         termPo i = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (sameTerm(i, trueEnum))
@@ -1353,7 +1353,7 @@ retCode run(processPo P) {
 
       case IfNot: {
         termPo i = pop();
-        insPo exit = PC->snd.exit;
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, trueEnum))
