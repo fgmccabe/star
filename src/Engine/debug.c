@@ -1052,7 +1052,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 
   if (mtd != Null) {
     insPo entry = entryPoint(mtd);
-    integer offset = codeOffset(mtd,pc);
+    integer offset = codeOffset(mtd, pc);
 
     normalPo lits = codeLits(mtd);
     if (lits != Null)
@@ -1069,20 +1069,18 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_nOp
 #define show_tOs showTos(out,stk,delta++)
 #define show_art showTopOfStack(out,stk,pc->fst)
-#define show_i32 outMsg(out," #%d",collectI32(pc))
-#define show_lBs outMsg(out," #%d",collectI32(pc))
-#define show_arg showArg(out,stk,collectI32(pc))
-#define show_lcl showLcl(out,stk,collectI32(pc))
-#define show_lcs outMsg(out," l[%d]",collectI32(pc))
-#define show_off showPcOffset(out,&pc)
-#define show_bLk showPcOffset(out,&pc)
-#define show_lVl outMsg(out," #%d",collectI32(pc))
-#define show_sym showConstant(out,mtd,collectI32(pc))
-#define show_Es showEscCall(out, &pc)
-#define show_lit showConstant(out,mtd,collectI32(pc))
-#define show_lne showConstant(out,mtd,collectI32(pc))
-#define show_glb showGlb(out, findGlobalVar(collectI32(pc)))
-#define show_tPe showFrame(out,stk,mtd,collectI32(pc))
+#define show_i32 outMsg(out," #%d",pc->fst)
+#define show_arg showArg(out,stk,pc->fst)
+#define show_lcl showLcl(out,stk,pc->fst)
+#define show_lcs outMsg(out," l[%d]",pc->fst)
+#define show_bLk showPcOffset(out,pc)
+#define show_lVl outMsg(out," #%d",pc->alt)
+#define show_sym showConstant(out,mtd,pc->fst)
+#define show_Es showEscCall(out, pc)
+#define show_lit showConstant(out,mtd,pc->alt)
+#define show_lNe showConstant(out,mtd,pc->fst)
+#define show_glb showGlb(out, findGlobalVar(pc->fst))
+#define show_tPe showFrame(out,stk,mtd,pc->fst)
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
     case Op:{                               \
@@ -1090,14 +1088,22 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
       integer delta=0;                      \
       show_##A1;                            \
       show_##A2;                            \
-      return pc;                            \
+      return pc+1;                            \
     }
 
 #include "instructions.h"
 
     default:
-      return pc;
+      return pc + 1;
   }
+}
+
+retCode dissassMtd(ioPo out, stackPo stk, methodPo mtd, integer precision, integer depth, logical alt, char *prefix) {
+  insPo code = entryPoint(mtd);
+  insPo limit = code + codeSize(mtd);
+  for (insPo pc = code; pc < limit; pc++)
+    disass(out,stk,mtd,pc);
+  return Ok;
 }
 
 void showRegisters(processPo p, heapPo h) {
@@ -1137,23 +1143,23 @@ void showRegisters(processPo p, heapPo h) {
 static char *anonPrefix = "__";
 
 retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
-  normalPo locals = mtd->locals;
-  int64 numLocals = termArity(locals);
-  integer pcOffset = insOffset(mtd, pc);
-
-  for (int32 ix = 0; ix < numLocals; ix++) {
-    normalPo vr = C_NORMAL(nthArg(locals, ix));
-    integer from = integerVal(nthArg(vr, 1));
-    integer to = integerVal(nthArg(vr, 2));
-
-    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
-      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
-
-      if (uniIsLitPrefix(buffer, anonPrefix))
-        uniCpy(buffer, bufLen, "l");
-      return Ok;
-    }
-  }
+//  normalPo locals = mtd->locals;
+//  int64 numLocals = termArity(locals);
+//  integer pcOffset = codeOffset(mtd, pc);
+//
+//  for (int32 ix = 0; ix < numLocals; ix++) {
+//    normalPo vr = C_NORMAL(nthArg(locals, ix));
+//    integer from = integerVal(nthArg(vr, 1));
+//    integer to = integerVal(nthArg(vr, 2));
+//
+//    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
+//      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
+//
+//      if (uniIsLitPrefix(buffer, anonPrefix))
+//        uniCpy(buffer, bufLen, "l");
+//      return Ok;
+//    }
+//  }
   return Fail;
 }
 

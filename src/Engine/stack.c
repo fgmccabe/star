@@ -32,25 +32,13 @@ SpecialClass StackClass = {
   .dispFun = stkDisp
 };
 
-static InstructionBlock underflowBlock = {
-  .insCount = 2,
-  .ins = {Underflow, 0}
-};
+static Instruction underflowCode[] = {Underflow, 0};
 
-static InstructionBlock newFiberBlock = {
-  .insCount = 6,
-  .ins = {Rot, 0, 1, TOCall, 0, 3}
-};
+static Instruction newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
 
-static InstructionBlock newTaskBlock = {
-  .insCount = 2,
-  .ins = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3}
-};
+static Instruction newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
 
-static InstructionBlock spawnBlock = {
-  .insCount = 2,
-  .ins = {TOCall, 0, 2}
-};
+static Instruction spawnCode[] = {TOCall, 0, 2};
 
 methodPo underflowMethod;
 methodPo newFiberMethod;
@@ -68,11 +56,10 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
 
-  underflowMethod = specialMethod("underflow", 0, &underflowBlock, NULL, 0);
-
-  newFiberMethod = specialMethod("newFiber", 0, &newFiberBlock, NULL, 0);
-  newTaskMethod = specialMethod("newTask", 0, &newTaskBlock, NULL, 0);
-  spawnMethod = specialMethod("spawn", 0, &spawnBlock, NULL, 0);
+  underflowMethod = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
+  newFiberMethod = specialMethod("newFiber", 0, NumberOf(newFiberCode), newFiberCode, NULL, 0);
+  newTaskMethod = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);
+  spawnMethod = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -464,10 +451,10 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
   assert(isMethod((termPo) mtd));
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
-    char locBuffer[MAXLINE];
+    termPo loc = findPcLocation(mtd, codeOffset(mtd, fp->pc));
 
-    if(findPcLocation( mtd,  pc, locBuffer, NumberOf(locBuffer))==Ok)
-      outMsg(out, "[%d] %s: %T", frameNo, locBuffer, mtd);
+    if (loc != Null)
+      outMsg(out, "[%d] %L: %T", frameNo, loc, mtd);
     else
       outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pc);
 
