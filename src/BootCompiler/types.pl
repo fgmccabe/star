@@ -1,6 +1,6 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
-	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,
+	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,mkFnTipe/3,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
 	   progTypeArity/2,progArgTypes/2,funResType/2,
@@ -516,6 +516,8 @@ toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-
   mkPtrs(Cnt,As),!.
+
+mkFnTipe(Args,Res,fnTipe(tplTipe(Args),Res)).
 
 mkPtrs(0,[]) :-!.
 mkPtrs(I,[ptrTipe|As]) :-

@@ -255,7 +255,7 @@ star.compiler.assem{
   mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(89),.intgr(LtNo)],Lt1,Lcs).
   mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(90)],Lts,Lcs).
   mnem(.iLine(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(91),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iLocal(U,V),Lbls,Lts,Lcs) => ([.intgr(92),.intgr(U)],Lts,Lcs).
+  mnem(.iLocal(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(92),.intgr(U),.intgr(LtNo)],Lt1,Lcs).
 
   mnem(I,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
