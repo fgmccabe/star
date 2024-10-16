@@ -264,11 +264,11 @@ liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftPtns(More,Args,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
+liftPtn(v(Lc,Nm,Tp),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
+  trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts).
 liftPtn(anon(_,_),anon,Q,Q,_,_,Ex,Ex).
-liftPtn(enm(Lc,Nm,_),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarPtn(Lc,Nm,Ptn,Q,Qx,Map,Opts).
+liftPtn(enm(Lc,Nm,Tp),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
+  trVarPtn(Lc,Nm,Tp,Ptn,Q,Qx,Map,Opts).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
 liftPtn(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
@@ -292,21 +292,22 @@ liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("ϕ",Vr),
   liftExp(XX,Val,Q,Qx,Map,Opts,Ex,Exx).
 
-trVarPtn(_Lc,Nm,idnt(Nm),Q,Q,_Map,_Opts) :-
-  is_member(idnt(Nm),Q),!.
-trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts) :-
+trVarPtn(_Lc,Nm,_,idnt(Nm,T),Q,Q,_Map,_Opts) :-
+  is_member(idnt(Nm,T),Q),!.
+trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts) :-
   lookupVar(Map,Nm,V),!,
-  implementVarPtn(V,Nm,Lc,A,Map,Opts,Q,Qx).
+  implementVarPtn(V,Nm,Tp,Lc,A,Map,Opts,Q,Qx).
 
-implementVarPtn(moduleVar(Vn),_,Lc,cll(Lc,lbl(Vn,0),[]),_,_,Q,Q) :-
+implementVarPtn(moduleVar(Vn,T),_,_,Lc,cll(Lc,lbl(Vn,0),[],T),_,_,Q,Q) :-
   reportError("not allowed to have globals in patterns: %s",[id(Vn)],Lc). % module variable
-implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,
-		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix))),Map,Opts,Q,Qx) :- !, % argument from label
+implementVarPtn(labelArg(N,Ix,ThVr,T),_,_,Lc,
+		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix,T))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
-implementVarPtn(_,Nm,_,idnt(Nm),_,_,Q,Qx) :-                 % variable local to rule
-  merge([idnt(Nm)],Q,Qx).
+implementVarPtn(_,Nm,Tp,_,idnt(Nm,T),_,_,Q,Qx) :-                 % variable local to rule
+  toLtipe(Tp,T),
+  merge([idnt(Nm,T)],Q,Qx).
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),
 	    Q,Qx,_,_,Ex,Ex) :-
@@ -341,10 +342,11 @@ liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftExps(More,Args,Extra,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftExp(v(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
-  trVarExp(Lc,Nm,Vr,Map,Opts,Q,Qx).
+liftExp(v(Lc,Nm,Tp),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
+  toLtipe(Tp,T),
+  trVarExp(Lc,Nm,T,Vr,Map,Opts,Q,Qx).
 liftExp(enm(Lc,Nm,_),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx).
+  trVarExp(Lc,Nm,ptrTipe,Exp,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
@@ -369,7 +371,7 @@ liftExp(tdot(Lc,R,Ix,_),nth(Lc,Rc,Ix),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
-  (idnt(_)=Bound ->
+  (idnt(_,_)=Bound ->
    caseMatcher(Lc,Bound,Cases,Map,Result) ;
    genVar("_C",V),
    caseMatcher(Lc,V,Cases,Map,Res),
@@ -518,10 +520,10 @@ computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
   call(Update,Lc,Vr,Ix,Term,Exp,SoFar),
   computeFreeVect(Lc,Vr,Fr,Ups,Update,SoFar,Reslt).
   
-trVarExp(Lc,Nm,Exp,Map,Opts,Q,Qx) :-
+trVarExp(Lc,Nm,T,Exp,Map,Opts,Q,Qx) :-
   lookupVar(Map,Nm,V),!,
-  implementVarExp(V,Lc,Nm,Exp,Map,Opts,Q,Qx),!.
-trVarExp(Lc,Nm,idnt("_"),_,_,Q,Q) :-
+  implementVarExp(V,Lc,Nm,T,Exp,Map,Opts,Q,Qx),!.
+trVarExp(Lc,Nm,T,anon(T),_,_,Q,Q) :-
   reportError("%s not defined",[id(Nm)],Lc).
 
 liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
@@ -533,7 +535,7 @@ liftVar(Lc,idnt(Nm),Vr,Map,Opts,Q,Qx) :-
 implementVarExp(localVar(_,Val),_,_Nm,Exp,Map,Opts,Q,Qx) :-
   liftExp(Val,Exp,Q,Qx,Map,Opts,[],[]).
 implementVarExp(moduleVar(V),_Lc,_,idnt(V),_,_,Qx,Qx).
-implementVarExp(labelArg(_N,Ix,ThVr),Lc,_,nth(Lc,ThV,Ix),Map,Opts,Q,Qx) :-
+implementVarExp(labelArg(_N,Ix,ThVr,T),Lc,_,nth(Lc,ThV,Ix,T),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
 implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,_,Q,Q) :-

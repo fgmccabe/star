@@ -8,6 +8,7 @@
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
+	   ssTipe/2,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
@@ -507,11 +508,12 @@ toLtipe(Tp,LTp) :-
 toLtp(type("star.core*integer"),i64Tipe) :- !.
 toLtp(type("star.core*float"),f64Tipe) :- !.
 toLtp(type("star.core*boolean"),blTipe) :- !.
-toLtp(funType(Args,Res),fnTipe(As,R)) :-
+toLtp(funType(Args,Res),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(tplType(Args),tplTipe(As)) :-
+toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
+toLtp(voidType,vdTipe) :-!.
 toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-
@@ -523,6 +525,17 @@ mkPtrs(0,[]) :-!.
 mkPtrs(I,[ptrTipe|As]) :-
   I1 is I-1,
   mkPtrs(I1,As).
+
+
+ssTipe(ptrTipe,ss("p")).
+ssTipe(i64Tipe,ss("i")).
+ssTipe(f64Tipe,ss("f")).
+ssTipe(blTipe,ss("l")).
+ssTipe(tplTipe(Tps),sq([ss("("),iv(ss(","),SS),ss(")")])) :-
+  map(Tps,types:ssTipe,SS).
+ssTipe(fnTipe(A,R),sq([AA,ss(" => "),RR])) :-
+  ssTipe(A,AA),
+  ssTipe(R,RR).
 
 unitTp(tplType([])).
 

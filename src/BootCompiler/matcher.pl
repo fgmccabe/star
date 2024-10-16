@@ -109,9 +109,9 @@ applyBindings(Bnds,Lc,Val,DVal) :-
 
 filterBndVar(Val,(Nm,X)) :-
   \+ string_concat("_",_,Nm),
-  idInTerm(idnt(X),Val).
+  idInTerm(idnt(X,_),Val).
 
-argMode(idnt(_),inVars).
+argMode(idnt(_,_),inVars).
 argMode(anon,inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
@@ -252,13 +252,14 @@ formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,M
   matchTriples(Lc,Subber,Conder,NArgs,NTpls,Deflt,Map,Dp,Case).
 
 genTplVars([],[]).
-genTplVars([anon|Vrs],[anon|Rest]) :-
+genTplVars([anon(T)|Vrs],[anon(T)|Rest]) :-
   genTplVars(Vrs,Rest).
-genTplVars([idnt(Nm)|Vrs],[idnt(NNm)|Rest]) :-
+genTplVars([idnt(Nm,T)|Vrs],[idnt(NNm,T)|Rest]) :-
   genstr(Nm,NNm),
   genTplVars(Vrs,Rest).
-genTplVars([_|Vrs],[idnt(Nm)|Rest]) :-
+genTplVars([Trm|Vrs],[idnt(Nm,T)|Rest]) :-
   genstr("V",Nm),
+  tipeOf(Trm,T),
   genTplVars(Vrs,Rest).
 
 pickMoreCases(_,[],[],_,[]).
@@ -331,31 +332,31 @@ matchVars(Lc,Subber,Conder,[V|Vrs],Triples,Deflt,Map,Dp,Reslt) :-
   matchTriples(Lc,Subber,Conder,Vrs,NTriples,Deflt,Map,Dp,Reslt).
 
 applyVar(_,_,[],[]).
-applyVar(idnt(V),Subber,[([idnt(XV)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
-	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],NGuard,NCond,NVl),Ix)|NTpls]) :-
-  Vrs = [(XV,idnt(V))],
+applyVar(idnt(V,T),Subber,[([idnt(XV,_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V,T))|Bnd],NGuard,NCond,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,idnt(V,T))],
   call(Subber,Vrs,Vl,NVl),
   substTerms(Vrs,Args,NArgs),
   substGoal(Vrs,Cond,NCond),
   substGoal(Vrs,Guard,NGuard),
-  applyVar(idnt(V),Subber,Tpls,NTpls).
-applyVar(idnt(V),Subber,[([anon|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+  applyVar(idnt(V,T),Subber,Tpls,NTpls).
+applyVar(idnt(V,T),Subber,[([anon(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
 	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
-  applyVar(idnt(V),Subber,Tpls,NTpls).
-applyVar(idnt(V),Subber,
-	 [([whr(Lcw,idnt(XV),WCond)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
-	 [(NArgs,(Lc,[(XV,idnt(V))|Bnd],MGuard,NCond,NVl),Ix)|NTpls]) :-
-  Vrs = [(XV,idnt(V))],
+  applyVar(idnt(V,T),Subber,Tpls,NTpls).
+applyVar(idnt(V,T),Subber,
+	 [([whr(Lcw,idnt(XV,_),WCond)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+	 [(NArgs,(Lc,[(XV,idnt(V,T))|Bnd],MGuard,NCond,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,idnt(V,T))],
   call(Subber,Vrs,Vl,NVl),
   substTerm(Vrs,WCond,NWC),
   substGoal(Vrs,Guard,NGuard),
   substGoal(Vrs,Cond,NCond),
   mergeGl(NGuard,some(NWC),Lcw,MGuard),
   substTerms(Vrs,Args,NArgs),
-  applyVar(idnt(V),Subber,Tpls,NTpls).
-applyVar(anon,Subber,[([anon|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
+  applyVar(idnt(V,T),Subber,Tpls,NTpls).
+applyVar(anon(T),Subber,[([anon(_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],
 	 [(Args,(Lc,Bnd,Guard,Cond,Vl),Ix)|NTpls]) :-
-  applyVar(anon,Subber,Tpls,NTpls).
+  applyVar(anon(T),Subber,Tpls,NTpls).
 
 tooDeep(D) :-
   D > 0.

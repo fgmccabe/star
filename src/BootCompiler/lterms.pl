@@ -10,7 +10,8 @@
 		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,
 		  idInTerm/2, 
 		  mergeGl/4,
-		  validLProg/2]).
+		  validLProg/2,
+		 tipeOf/2]).
 
 :- use_module(display).
 :- use_module(misc).
@@ -81,8 +82,9 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
-ssTrm(idnt(Nm),_,id(Nm)) :-!.
-ssTrm(anon,_,ss("_")) :-!.
+ssTrm(idnt(Nm,T),_,sq([id(Nm),ss(":"),STp]) :-!,
+      ssTipe(T,STp).
+ssTrm(anon(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
@@ -304,7 +306,7 @@ substGoal(Q,some(In),some(Out)) :-
 substAction(Q,In,Out) :-
   rewriteAction(lterms:applyQ(Q),In,Out),!.
 
-applyQ(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
+applyQ(Q,idnt(Nm,_),Trm) :- is_member((Nm,Trm),Q),!.
 
 substTerms(Q,Els,NEls):-
   map(Els,lterms:substTerm(Q),NEls).
@@ -314,7 +316,7 @@ rewriteTerm(QTst,T,T1) :-
 rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,bigx(Ix),bigx(Ix)).
-rewriteTerm(_,idnt(Nm),idnt(Nm)).
+rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
 rewriteTerm(_,anon,anon).
 rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,chr(Cp),chr(Cp)).
@@ -520,10 +522,10 @@ termHash(lbl(Nm,Ar),Hx) :-
 locTerm(loc(Pk,Ln,Col,Pos,Len),Tpl) :-
   mkTpl([strg(Pk),intgr(Ln),intgr(Col),intgr(Pos),intgr(Len)],Tpl).
 
-idInTerm(idnt(Nm),Term) :-
+idInTerm(idnt(Nm,_),Term) :-
   inTerm(Term,Nm),!.
 
-inTerm(idnt(Nm),Nm).
+inTerm(idnt(Nm,_),Nm).
 inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
 inTerm(cll(_,_,Args),Nm) :-
@@ -639,6 +641,38 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
+
+tipeOf(idnt(Nm,T),T)..
+tipeOf(rais(_,T,E),vdTipe).
+tipeOf(cll(_,_,_,T),T).
+tipeOf(ocall(_,_,_,T),T).
+tipeOf(voke(_,_,_,T),T).
+tipeOf(ecll(_,_,_,T),T).
+tipeOf(intrinsic(_,_,_,T),T).
+tipeOf(nth(_,_,_,T),T).
+tipeOf(cel(_,_),ptrTipe).
+tipeOf(get(_,_),ptrTipe).
+tipeOf(set(_,_,_),ptrTipe).
+tipeOf(set(_,_,_),vdTipe).
+tipeOf(setix(_,_,_,_),vdTipe).
+tipeOf(ctpl(_,Args),tplTipe(AA)) :-
+  map(Args,lterms:tipeOf,AA).
+tipeOf(resme(_,_,_,T),T).
+tipeOf(whr(_,E,_),T) :-
+  tipeOf(E,Q).
+tipeOf(varNames(_,_,E),T) :-
+  tipeOf(E,T).
+tipeOf(case(_,_G,_C,_D,T),T).
+tipeOf(unpack(_,G,_C,_D,T),T).
+tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
+tipeOf(cnj(_,_,_),blTipe).
+tipeOf(dsj(_,_,_),blTipe).
+tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
+tipeOf(mtch(_,_,_),blTipe).
+tipeOf(ng(_,_),blTipe).
+tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
+tipeOf(vlof(_,_,T),T).
+
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
   declareNms(PkgDecls,[],Dct),
   validDfs(Defs,Dct),!.
@@ -676,10 +710,10 @@ declareDef(impDec(_,Nm,_),Dct,Dx) :-
 declareArgs(Args,Dct,Dx) :-
   rfold(Args,lterms:declareArg,Dct,Dx).
 
-declareArg(idnt(Nm),D,Dx) :-
+declareArg(idnt(Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
 
-validTerm(idnt(Nm),Lc,D) :-
+validTerm(idnt(Nm,_),Lc,D) :-
   (is_member(Nm,D) -> true ; 
    reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
 validTerm(anon,_,_).
@@ -791,7 +825,7 @@ validTerms([A|Args],Lc,D) :-
 
 validVr(Id,D,[Id|D]).
 
-validPtn(idnt(Nm),_,D,Dx) :-
+validPtn(idnt(Nm,_),_,D,Dx) :-
   add_mem(Nm,D,Dx).
 validPtn(anon,_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
@@ -899,7 +933,7 @@ validAction(try(Lc,B,T,E,H),_,D,D) :-
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 
-ptnVars(idnt(Nm),D,Dx) :-
+ptnVars(idnt(Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
 ptnVars(anon,Dx,Dx).
 ptnVars(voyd,Dx,Dx).
