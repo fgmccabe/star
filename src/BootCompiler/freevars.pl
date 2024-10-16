@@ -137,13 +137,13 @@ freeVarsInAct(A,Ex,Q,F,Fv) :-
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
 
-defVar(funDef(_,Nm,_,_,_,_,_),Q,[idnt(Nm)|Q]).
-defVar(varDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
+defVar(funDef(_,Nm,_,_,Tp,_,_),Q,[idnt(Nm,T)|Q]) :- toLtipe(Tp,T),!.
+defVar(varDef(_,Nm,_,_,Tp,_),Q,[idnt(Nm,T)|Q]) :- toLtipe(Tp,T),!.
 defVar(_,Q,Q).
 
-excluded(V,Ex) :- is_member(idnt(V),Ex).
+excluded(V,Ex) :- is_member(idnt(V,_),Ex).
 
-qualifed(V,Q) :- is_member(idnt(V),Q).
+qualifed(V,Q) :- is_member(idnt(V,_),Q).
 
 freeVarsInDefs(L,Ex,Q,F,Fv) :-
   rfold(L,freevars:freeVarsInDef(Ex,Q),F,Fv).
@@ -172,7 +172,7 @@ freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 
 frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
-ptnVars(v(_,Nm,_),Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
+ptnVars(v(_,Nm,Tp),Q,Qx) :- toLtipe(Tp,T),add_mem(idnt(Nm,T),Q,Qx).
 ptnVars(anon(_,_),Q,Q).
 ptnVars(intLit(_,_),Q,Q).
 ptnVars(bigLit(_,_),Q,Q).
