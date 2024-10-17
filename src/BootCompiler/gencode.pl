@@ -176,8 +176,8 @@ localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
 localMx(_,M,M).
 
 
-compExpCase(T,Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  compExp(T,Lc,Cont,End,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compExpCase(T,Lc,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  compExp(T,Lc,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 compVar(a(A),_End,Cont,L,Lx,D,Dx,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stk1),
