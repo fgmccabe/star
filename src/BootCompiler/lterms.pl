@@ -82,8 +82,8 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
-ssTrm(idnt(Nm,T),_,sq([id(Nm),ss(":"),STp]) :-!,
-      ssTipe(T,STp).
+ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp]) :-!,
+      ssType(T,False,Dp,STp).
 ssTrm(anon(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
@@ -93,22 +93,22 @@ ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
 ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
-ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
+ssTrm(cll(_,Op,Args,_),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ocall(_,Op,Args),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
+ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(voke(_,K,Args),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
+ssTrm(voke(_,K,Args,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
   ssTrm(K,Dp,KK),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ecll(_,Es,Args),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
+ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(intrinsic(_,Op,Args),Dp,sq([id(OpNm),ss("<"),AA,ss(">")])) :-!,
+ssTrm(intrinsic(_,Op,Args,_),Dp,sq([id(OpNm),ss("<"),AA,ss(">")])) :-!,
   atom_string(Op,OpNm),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
@@ -118,8 +118,8 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   showArgs(A,Dp1,AA).
 ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss(":"),FF])) :-
   ssTrm(Free,Dp,FF).
-ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
-ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
+ssTrm(enum(Nm,_Tp),_,sq([ss("."),id(Nm)])) :-!.
+ssTrm(nth(_,Rc,Off,_),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
 ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
@@ -641,21 +641,18 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
-
 tipeOf(idnt(Nm,T),T)..
-tipeOf(rais(_,T,E),vdTipe).
+tipeOf(rais(_,T,E),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
 tipeOf(voke(_,_,_,T),T).
 tipeOf(ecll(_,_,_,T),T).
 tipeOf(intrinsic(_,_,_,T),T).
 tipeOf(nth(_,_,_,T),T).
-tipeOf(cel(_,_),ptrTipe).
-tipeOf(get(_,_),ptrTipe).
-tipeOf(set(_,_,_),ptrTipe).
-tipeOf(set(_,_,_),vdTipe).
-tipeOf(setix(_,_,_,_),vdTipe).
-tipeOf(ctpl(_,Args),tplTipe(AA)) :-
+tipeOf(cel(_,_,T),T).
+tipeOf(get(_,_,T),T).
+tipeOf(setix(_,_,_,_),voidType).
+tipeOf(ctpl(_,Args),tplType(AA)) :-
   map(Args,lterms:tipeOf,AA).
 tipeOf(resme(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
@@ -665,11 +662,11 @@ tipeOf(varNames(_,_,E),T) :-
 tipeOf(case(_,_G,_C,_D,T),T).
 tipeOf(unpack(_,G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
-tipeOf(cnj(_,_,_),blTipe).
-tipeOf(dsj(_,_,_),blTipe).
+tipeOf(cnj(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(dsj(_,_,_),T) :- stdType("boolean",T,_),!.
 tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
-tipeOf(mtch(_,_,_),blTipe).
-tipeOf(ng(_,_),blTipe).
+tipeOf(mtch(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(ng(_,_),T) :- stdType("boolean",T,_),!.
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
 tipeOf(vlof(_,_,T),T).
 

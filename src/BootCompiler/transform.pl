@@ -71,8 +71,8 @@ declMdlGlobal(_Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
   mangleName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,moduleFun(LclName,some(ClosureName),Ar),VMp,VMx).
-declMdlGlobal(_Pkg,varDec(Nm,LclName,_),_,Mp,Mx,TMx,TMx) :-
-  declEntry(Nm,moduleVar(LclName),Mp,Mx).
+declMdlGlobal(_Pkg,varDec(Nm,LclName,Tp),_,Mp,Mx,TMx,TMx) :-
+  declEntry(Nm,moduleVar(LclName,Tp),Mp,Mx).
 declMdlGlobal(_Pkg,cnsDec(_Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   declEntry(FullNm,moduleCons(FullNm,Tp,Ar),Mp,Mx).
@@ -298,16 +298,15 @@ trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts) :-
   lookupVar(Map,Nm,V),!,
   implementVarPtn(V,Nm,Tp,Lc,A,Map,Opts,Q,Qx).
 
-implementVarPtn(moduleVar(Vn,T),_,_,Lc,cll(Lc,lbl(Vn,0),[],T),_,_,Q,Q) :-
+implementVarPtn(moduleVar(Vn,Tp),_,_,Lc,cll(Lc,lbl(Vn,0),[],Tp),_,_,Q,Q) :-
   reportError("not allowed to have globals in patterns: %s",[id(Vn)],Lc). % module variable
 implementVarPtn(labelArg(N,Ix,ThVr,T),_,_,Lc,
 		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix,T))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
-implementVarPtn(_,Nm,Tp,_,idnt(Nm,T),_,_,Q,Qx) :-                 % variable local to rule
-  toLtipe(Tp,T),
-  merge([idnt(Nm,T)],Q,Qx).
+implementVarPtn(_,Nm,Tp,_,idnt(Nm,Tp),_,_,Q,Qx) :-                 % variable local to rule
+  merge([idnt(Nm,Tp)],Q,Qx).
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),
 	    Q,Qx,_,_,Ex,Ex) :-
@@ -343,10 +342,9 @@ liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExps(More,Args,Extra,Q0,Qx,Map,Opts,Ex0,Exx).
 
 liftExp(v(Lc,Nm,Tp),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
-  toLtipe(Tp,T),
-  trVarExp(Lc,Nm,T,Vr,Map,Opts,Q,Qx).
-liftExp(enm(Lc,Nm,_),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarExp(Lc,Nm,ptrTipe,Exp,Map,Opts,Q,Qx).
+  trVarExp(Lc,Nm,Tp,Vr,Map,Opts,Q,Qx).
+liftExp(enm(Lc,Nm,Tp),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
+  trVarExp(Lc,Nm,Tp,Exp,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
@@ -357,12 +355,12 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkTpl(TA,TApl).
 liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(apply(Lc,Op,tple(_,A),_),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(apply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(capply(Lc,Op,tple(_,A),_),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  trExpCallOp(Lc,Op,Tp,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(capply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+  trExpCallOp(Lc,Op,Tp,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(invoke(Lc,K,tple(_,A),_),voke(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,AA,[],Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(K,KK,Q1,Qx,Map,Opts,Ex1,Exx).
@@ -520,10 +518,10 @@ computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
   call(Update,Lc,Vr,Ix,Term,Exp,SoFar),
   computeFreeVect(Lc,Vr,Fr,Ups,Update,SoFar,Reslt).
   
-trVarExp(Lc,Nm,T,Exp,Map,Opts,Q,Qx) :-
+trVarExp(Lc,Nm,Tp,Exp,Map,Opts,Q,Qx) :-
   lookupVar(Map,Nm,V),!,
-  implementVarExp(V,Lc,Nm,T,Exp,Map,Opts,Q,Qx),!.
-trVarExp(Lc,Nm,T,anon(T),_,_,Q,Q) :-
+  implementVarExp(V,Lc,Nm,Tp,Exp,Map,Opts,Q,Qx),!.
+trVarExp(Lc,Nm,Tp,anon(Tp),_,_,Q,Q) :-
   reportError("%s not defined",[id(Nm)],Lc).
 
 liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
@@ -534,7 +532,7 @@ liftVar(Lc,idnt(Nm),Vr,Map,Opts,Q,Qx) :-
 
 implementVarExp(localVar(_,Val),_,_Nm,Exp,Map,Opts,Q,Qx) :-
   liftExp(Val,Exp,Q,Qx,Map,Opts,[],[]).
-implementVarExp(moduleVar(V),_Lc,_,idnt(V),_,_,Qx,Qx).
+implementVarExp(moduleVar(V,Tp),_Lc,_,idnt(V,Tp),_,_,Qx,Qx).
 implementVarExp(labelArg(_N,Ix,ThVr,T),Lc,_,nth(Lc,ThV,Ix,T),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
@@ -552,17 +550,17 @@ implementVarExp(localFun(_Fn,Closure,Ar,ThVr),Lc,_,clos(Closure,Ar1,Vr),Map,Opts
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,_,Q,Q) :-
   reportError("cannot handle %s in expression",[id(Nm)],Lc).
 
-trExpCallOp(Lc,v(_,Nm,_),Args,intrinsic(Lc,Op,Args),Qx,Qx,_,_,Ex,Ex) :-
+trExpCallOp(Lc,v(_,Nm,_),Tp,Args,intrinsic(Lc,Op,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
   isIntrinsic(Nm,_,Op),!.
-trExpCallOp(Lc,v(_,Nm,_),Args,ecll(Lc,Nm,Args),Qx,Qx,_,_,Ex,Ex) :-
+trExpCallOp(Lc,v(_,Nm,_),Tp,Args,ecll(Lc,Nm,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
-trExpCallOp(Lc,v(_,Nm,_),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,v(_,Nm,_),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,
   implementFunCall(Lc,Reslt,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,enm(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,enm(Lc0,Nm,Tp),_,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,Op,Tp,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
 implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,Opts,Ex,Ex) :-
@@ -570,7 +568,7 @@ implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
 implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(Lc,moduleVar(Fn),_,Args,ocall(Lc,idnt(Fn),Args),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,ocall(Lc,idnt(Fn,Tp),Args),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
 implementFunCall(Lc,labelArg(_,Ix,ThVr),_,Args,ocall(Lc,nth(Lc,ThV,Ix),Args),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
@@ -710,7 +708,7 @@ freeLabelVars([V|Lv],Map,Fr,LmFr) :-
 
 isModuleVar(Map,Nm) :-
   lookupVar(Map,Nm,R),
-  (R=moduleFun(_,_,_) ; R=moduleVar(_)),!.
+  (R=moduleFun(_,_,_) ; R=moduleVar(_,_)),!.
 
 varDefs(Defs,Vars) :-
   rfold(Defs,transform:isVarDef,[],Vars).
