@@ -177,7 +177,7 @@ genVars(K,[V|Rest]) :-
   genVars(K1,Rest).
 
 genAnons(0,[]).
-genAnons(K,[anon|Rest]) :-
+genAnons(K,[anon(voidType)|Rest]) :-
   K>0,
   K1 is K-1,
   genAnons(K1,Rest).

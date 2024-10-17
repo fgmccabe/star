@@ -266,7 +266,7 @@ liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
 
 liftPtn(v(Lc,Nm,Tp),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Tp,A,Q,Qx,Map,Opts).
-liftPtn(anon(_,_),anon,Q,Q,_,_,Ex,Ex).
+liftPtn(anon(_,Tp),anon(Tp),Q,Q,_,_,Ex,Ex).
 liftPtn(enm(Lc,Nm,Tp),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,Tp,Ptn,Q,Qx,Map,Opts).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.

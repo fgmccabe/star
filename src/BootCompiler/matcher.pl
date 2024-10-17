@@ -94,7 +94,7 @@ conditionalize(Vrs,Conder,[(Args,(Lc,Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-
    call(Conder,Lc,TT,TVl,Other,Repl)
   ).
 
-mkMatchCond([_|Vrs],[anon|Args],Lc,Cnd) :-
+mkMatchCond([_|Vrs],[anon(_)|Args],Lc,Cnd) :-
   mkMatchCond(Vrs,Args,Lc,Cnd).
 mkMatchCond([],[],_,none).
 mkMatchCond([V|Vrs],[A|Args],Lc,Cond) :-
@@ -112,7 +112,7 @@ filterBndVar(Val,(Nm,X)) :-
   idInTerm(idnt(X,_),Val).
 
 argMode(idnt(_,_),inVars).
-argMode(anon,inVars).
+argMode(anon(_),inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(bigx(_),inScalars).
@@ -170,8 +170,6 @@ mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
 mkUnpack(_Lc,V,Conder,[(Ptn,Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
 mkUnpack(Lc,V,_,Cases,_Index,Deflt,_Map,case(Lc,V,Cases,Deflt)).
-% mkUnpack(Lc,V,_,Cases,Index,Deflt,Map,unpack(Lc,V,Arms)) :-
-%   populateArms(Index,Cases,Map,Lc,Deflt,Arms).
 
 populateArms([],_,_,_,_,[]).
 populateArms([(lbl(FullNm,_),_Ix)|Index],Cases,Map,DLc,Deflt,[Arm|Arms]) :-
