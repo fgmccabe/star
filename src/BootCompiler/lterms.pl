@@ -149,9 +149,6 @@ ssTrm(case(_,G,Cases,Deflt),Dp,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
-ssTrm(unpack(_,G,Cases),Dp, sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssTrm,CC).
 ssTrm(seqD(_,L,R),Dp,sq([LL,ss(";"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
@@ -216,10 +213,6 @@ ssAct(case(_,G,Cases,Deflt),Dp,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssAct(Deflt,Dp,DD).
-ssAct(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssAct,CC).
 ssAct(iftte(_,G,T,nop(_)),Dp,
       sq([ss("if "),GG,ss(" then "),nl(Dp2),TT])) :-!,
   Dp2 is Dp+2,
@@ -317,7 +310,7 @@ rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,bigx(Ix),bigx(Ix)).
 rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
-rewriteTerm(_,anon,anon).
+rewriteTerm(_,anon(T),anon(T)).
 rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,chr(Cp),chr(Cp)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
@@ -369,9 +362,6 @@ rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
-rewriteTerm(QTest,unpack(Lc,T,C),unpack(Lc,NT,NC)) :-
-  rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC).
 rewriteTerm(QTest,seqD(Lc,L,R),seqD(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -444,9 +434,6 @@ rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
 rewriteAction(QTest,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,D,ND),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
-rewriteAction(QTest,unpack(Lc,G,C),unpack(Lc,GG,CC)) :-
-  rewriteTerm(QTest,G,GG),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
 rewriteAction(QTest,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
   rewriteTerm(QTest,G,GG),
@@ -575,10 +562,6 @@ inTerm(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inTerm(case(_,_T,C),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
-inTerm(unpack(_,T,_C),Nm) :-
-  inTerm(T,Nm),!.
-inTerm(unpack(_,_T,C),Nm) :-
-  is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
 inTerm(seqD(_,L,R),Nm) :-
   inTerm(L,Nm) ; inTerm(R,Nm).
 inTerm(cnj(_,L,R),Nm) :-
@@ -621,10 +604,6 @@ inAction(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inAction(case(_,_T,C),Nm) :-
   is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
-inAction(unpack(_,T,_C),Nm) :-
-  inTerm(T,Nm),!.
-inAction(unpack(_,_T,C),Nm) :-
-  is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
 inAction(iftte(_,G,L,R),Nm) :-!,
   (inTerm(G,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm)).
 inAction(whle(_,G,L),Nm) :-!,
@@ -660,7 +639,6 @@ tipeOf(whr(_,E,_),T) :-
 tipeOf(varNames(_,_,E),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
-tipeOf(unpack(_,G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
 tipeOf(cnj(_,_,_),T) :- stdType("boolean",T,_),!.
 tipeOf(dsj(_,_,_),T) :- stdType("boolean",T,_),!.
@@ -713,7 +691,7 @@ declareArg(idnt(Nm,_),D,Dx) :-
 validTerm(idnt(Nm,_),Lc,D) :-
   (is_member(Nm,D) -> true ; 
    reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
-validTerm(anon,_,_).
+validTerm(anon(_),_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(bigx(_),_,_).
@@ -773,9 +751,6 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
-validTerm(unpack(Lc,G,Cases),_,D) :-
-  validTerm(G,Lc,D),
-  validCases(Cases,lterms:validTerm,D).
 validTerm(try(Lc,B,T,E,H),_,D) :-
   declareArg(T,D,D1),
   validTerm(B,Lc,D1),
@@ -824,7 +799,7 @@ validVr(Id,D,[Id|D]).
 
 validPtn(idnt(Nm,_),_,D,Dx) :-
   add_mem(Nm,D,Dx).
-validPtn(anon,_,Dx,Dx).
+validPtn(anon(_),_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
 validPtn(bigx(_),_,Dx,Dx).
@@ -897,9 +872,6 @@ validAction(case(Lc,G,C,Df),_,D,Dx) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D),
   validAction(Df,Lc,D,Dx).
-validAction(unpack(Lc,G,C),_,D,D) :-
-  validTerm(G,Lc,D),
-  validCases(C,lterms:validAct,D).
 validAction(iftte(Lc,G,L,R),_,D,Dx) :-!,
   glVars(G,D,D0),
   validTerm(G,Lc,D0),
@@ -932,7 +904,7 @@ validAction(T,Lc,D,D) :-
 
 ptnVars(idnt(Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
-ptnVars(anon,Dx,Dx).
+ptnVars(anon(_),Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(bigx(_),Dx,Dx).
