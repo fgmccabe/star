@@ -82,8 +82,8 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
-ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp]) :-!,
-      ssType(T,False,Dp,STp).
+ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp])) :-!,
+      ssType(T,false,Dp,STp).
 ssTrm(anon(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
@@ -620,8 +620,8 @@ isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
-tipeOf(idnt(Nm,T),T)..
-tipeOf(rais(_,T,E),voidType).
+tipeOf(idnt(_,T),T).
+tipeOf(rais(_,_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
 tipeOf(voke(_,_,_,T),T).
@@ -635,7 +635,7 @@ tipeOf(ctpl(_,Args),tplType(AA)) :-
   map(Args,lterms:tipeOf,AA).
 tipeOf(resme(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
-  tipeOf(E,Q).
+  tipeOf(E,T).
 tipeOf(varNames(_,_,E),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).

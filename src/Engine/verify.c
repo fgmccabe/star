@@ -44,7 +44,7 @@ typedef struct verify_context_ {
 } VerifyContext;
 
 static retCode segmentCode(methodPo mtd, arrayPo *segments, char *errorMsg, integer msgLen);
-static segmentPo findSegment(arrayPo segments,integer pc);
+static segmentPo findSegment(arrayPo segments, integer pc);
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
 static retCode verifyBlock(segmentPo block, verifyCtxPo ctx);
 static retCode extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, int32 sigLit);
@@ -311,6 +311,16 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         int32 count = code[pc].fst;
         if (stackDepth < count)
           return verifyError(ctx, ".%d: insufficient stack depth for stack reset %d", pc, count);
+        continue;
+      }
+      case Pick: {
+        int32 height = code[pc].fst;
+        int32 pick = code[pc].alt;
+
+        if (stackDepth < height)
+          return verifyError(ctx, ".%d: insufficient stack depth for stack reset %d", pc, height);
+        if (height < pick)
+          return verifyError(ctx, ".%d: pick count should not be greater than height %d", pc, pick, height);
         continue;
       }
 
@@ -763,10 +773,10 @@ comparison comparePcs(arrayPo ar, integer ix, integer iy, void *cl) {
   return ixCmp(sx->pc, sy->pc);
 }
 
-segmentPo findSegment(arrayPo segments,integer pc){
-  for(integer ix=0;ix< arrayCount(segments);ix++){
-    segmentPo seg = (segmentPo) nthEntry(segments,ix);
-    if(seg->pc==pc)
+segmentPo findSegment(arrayPo segments, integer pc) {
+  for (integer ix = 0; ix < arrayCount(segments); ix++) {
+    segmentPo seg = (segmentPo) nthEntry(segments, ix);
+    if (seg->pc == pc)
       return seg;
   }
   return Null;

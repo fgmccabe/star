@@ -29,12 +29,14 @@ instruction(Locals, i32, nOp, 0, "F()()", "locals definition")
 instruction(Ret, tOs, nOp, 0, "F()v", "return")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
-instruction(Break, lVl, nOp, 0, "F()()", "leave block, or jump back to start of loop")
+instruction(Break, lVl, nOp, 0, "F()()", "leave block")
+instruction(Loop, lVl, nOp, 0, "F()()", "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "F(p)(pp)", "duplicate top of stack")
 instruction(Rot, i32, nOp, 0, "F()()", "Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "F()()", "reset stack height to a fixed height")
+instruction(Pick, i32, i32, 0, "F()()", "pick n entries, reset stack height")
 
 instruction(Fiber, tOs, nOp, 0, "F(p)p", "Create new fiber")
 instruction(Spawn, tOs, nOp, 0, "F(p)p", "spawn a new task")
