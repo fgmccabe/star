@@ -305,7 +305,7 @@ implementVarPtn(labelArg(N,Ix,ThVr,T),_,_,Lc,
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,_,Q,Q).
-implementVarPtn(_,Nm,Tp,_,idnt(Nm,Tp),_,_,Q,Qx) :-                 % variable local to rule
+implementVarPtn(_,Nm,Tp,_,_,idnt(Nm,Tp),_,_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm,Tp)],Q,Qx).
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),
@@ -557,22 +557,22 @@ trExpCallOp(Lc,v(_,Nm,_),Tp,Args,ecll(Lc,Nm,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
 trExpCallOp(Lc,v(_,Nm,_),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,
-  implementFunCall(Lc,Reslt,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  implementFunCall(Lc,Reslt,Nm,Args,Tp,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,enm(Lc0,Nm,Tp),_,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,Op,Tp,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
-implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,Ar,ThVr),_,Args,Tp,cll(Lc,lbl(Fn,Ar2),XArgs,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
-implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,ocall(Lc,idnt(Fn,Tp),Args),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
-implementFunCall(Lc,labelArg(_,Ix,ThVr),_,Args,ocall(Lc,nth(Lc,ThV,Ix),Args),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,Tp,cll(Lc,lbl(Fn,Ar),Args,Tp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,Tp,ocall(Lc,idnt(Fn,Tp),Args,Tp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,Tp,ctpl(lbl(Mdl,Ar),Args,Tp),Q,Q,_,_,Ex,Ex).
+implementFunCall(Lc,labelArg(_,Ix,ThVr),_,Args,Tp,ocall(Lc,nth(Lc,ThV,Ix),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
-implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
+implementFunCall(Lc,notInMap,Nm,Args,Tp,ocall(Lc,idnt(Nm),Args,Tp),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[id(Nm)],Lc).
 
 liftCases([],[],Qx,Qx,_Map,_Opts,_,Exx,Exx) :- !.

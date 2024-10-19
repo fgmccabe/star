@@ -266,7 +266,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           break;
         case lit:
           outMsg(out, ",V,LtNo|M],Cdx) :-\n");
-          outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+          outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).\n");
           break;
         default:

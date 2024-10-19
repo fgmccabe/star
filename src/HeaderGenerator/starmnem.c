@@ -287,12 +287,15 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
                  "where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(%d),.intgr(U),.intgr(Lvl)],Lts,Lcs).\n",
                  op);
           return;
+        case i32:
+          outMsg(out, "=> ([.intgr(%d),.intgr(U),.intgr(V)],Lts,Lcs).\n", op);
+          return;
         default:
           check(False, "Cannot generate instruction code");
       }
     case lcl:
     case lcs:
-      switch(B){
+      switch (B) {
         case nOp:
         case tOs:
           outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lts,Lcs).\n", op);
