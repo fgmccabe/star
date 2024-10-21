@@ -55,7 +55,7 @@ parseFlags(['-dd'|More],CWD,Cx,[showGroups|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dc'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
+parseFlags(['-dt'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dA'|More],CWD,Cx,[showSetCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).

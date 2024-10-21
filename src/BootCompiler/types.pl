@@ -295,10 +295,10 @@ tpArity(_,0).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 
-tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
+tpArgTypes(allType(_,Tp),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
-tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
-tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(constrained(Tp,_),ArTps) :- progArgTypes(Tp,ArTps).
+tpArgTypes(funType(A,_),ArTps) :- progArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
