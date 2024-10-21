@@ -18,7 +18,6 @@
 :- use_module(types).
 :- use_module(dict).
 :- use_module(escapes).
-:- use_module(intrinsics).
 :- use_module(location).
 :- use_module(errors).
 :- use_module(unify).

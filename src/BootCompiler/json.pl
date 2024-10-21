@@ -58,7 +58,7 @@ parseMoreSeq([]) --> [].
 parseColl([(K,V)|L]) --> jString(K), skipBlanks(), [':'], skipBlanks(), jP(V), skipBlanks(),parseMoreColl(L).
 parseColl([]) --> [].
 
-parseMoreColl([(K,V)|L]) --> [','], skipBlanks(), jString(K), skipBlanks(), [':'], skipBlanks(), jP(V), skipBlanks(),parseMoreColl(L).
+parseMoreColl([(K,V)|L]) --> [','], !, skipBlanks(), jString(K), skipBlanks(), [':'], skipBlanks(), jP(V), skipBlanks(),parseMoreColl(L).
 parseMoreColl([]) --> [].
 
 skipBlanks() --> [' '], skipBlanks().

@@ -22,7 +22,6 @@
 :- use_module(misc).
 :- use_module(types).
 :- use_module(escapes).
-:- use_module(intrinsics).
 :- use_module(location).
 :- use_module(errors).
 
@@ -69,7 +68,6 @@ declareDyn(Lc,Nm,RlNm,Tp,Env,Ev) :-
 
 mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
 
-isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- isIntrinsic(Nm,Tp,_),!.
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),none,Tp)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 

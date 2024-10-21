@@ -7,9 +7,9 @@
 :- use_module(types).
 
 %! freeVars(++,++,++,++,--) is det.
-freeVars(v(_,Nm,_),Ex,Q,F,Fv) :-
-  \+isEscape(Nm),!,
-  call(Q,Ex,Nm,F,Fv).
+freeVars(v(_,Nm,Tp),Ex,Q,F,Fv) :-
+  \+isEscape(Nm),
+  call(Q,Ex,Nm,Tp,F,Fv),!.
 freeVars(v(_,_,_),_Ex,_Q,Fv,Fv).
 freeVars(anon(_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
