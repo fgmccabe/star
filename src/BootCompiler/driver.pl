@@ -40,7 +40,7 @@ parseFlags(['-c'|More],CWD,Cx,[typeCheckOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-m'|More],CWD,Cx,[macroOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-t'|More],CWD,Cx,[transformOnly|Opts],Files) :-!,
+parseFlags(['-n'|More],CWD,Cx,[transformOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   atom_string(V,Vers),
@@ -49,13 +49,17 @@ parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-ti'|More],CWD,Cx,[traceGenCode|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-da'|More],CWD,Cx,[showAst|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dd'|More],CWD,Cx,[showGroups|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dc'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-dt'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
+parseFlags(['-dn'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-tn'|More],CWD,Cx,[traceNormalize|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dA'|More],CWD,Cx,[showSetCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).

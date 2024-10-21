@@ -43,6 +43,14 @@ test.sy1{
     less(K,X) ?? find(R,K) ||
     .true.
 
+  fnd:all x~~cmp[x] |: (tree[x],x)=>boolean.
+  fnd(T,K) => case T in {
+    | .empty => .false
+    | .node(L,X,R) where less(X,K) => fnd(L,K)
+    | .node(L,X,R) where less(K,X) => fnd(R,K)
+    | _ default => .true
+  }
+
   mkSingle:all a ~~ (a)=>tr[a].
   mkSingle(A)=>nd{ left=.e. lbl=A. right=.e }.
 }
