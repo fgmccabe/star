@@ -43,7 +43,7 @@ genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
 genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
-  (is_member(showTrCode,Opts) -> dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)) ; true),
+  (is_member(traceGenCode,Opts) -> dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)) ; true),
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L1),
@@ -56,7 +56,7 @@ genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[CdTrm|O]) :-
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   findMaxLocal(Dx,Mx),
   genDbg(Opts,C,[iLocals(Mx)|C0]),
-  (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C));true ),
+  (is_member(traceGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(Nm,H,Sig,Mx,Cde));true ),
   assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
@@ -70,7 +70,7 @@ genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   genRet(Opts,FC1,[],Stk0,_),
   findMaxLocal(Dx,Mx),
   genDbg(Opts,C,[iLocals(Mx)|C0]),
-  (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C));true ),
+  (is_member(traceGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispIns(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
   assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
