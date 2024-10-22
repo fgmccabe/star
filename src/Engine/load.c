@@ -346,12 +346,6 @@ static integer maxDepth(insPo ins, integer count, normalPo constPool) {
 
       default:;
     }
-    if (ins->op == Unpack) {
-      labelPo lbl = C_LBL(nthArg(constPool, ins->fst));
-      currDepth += labelArity(lbl);
-      if (currDepth > maxDepth)
-        maxDepth = currDepth;
-    }
   }
   return maxDepth;
 }

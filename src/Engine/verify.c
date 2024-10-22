@@ -519,25 +519,6 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         }
         continue;
       }
-      case Unpack: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
-          return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx->mtd, litNo);
-        if (!isALabel(lit))
-          return verifyError(ctx, ".%d: invalid Unpack literal: %t", pc, lit);
-        else {
-          integer arity = labelArity(C_LBL(lit));
-          if (stackDepth < 1)
-            return verifyError(ctx, ".%d: insufficient stack args for Unpack instruction", pc);
-          else if (checkBreak(ctx, pc, stackDepth, code[pc].alt) != Ok)
-            return Error;
-          else {
-            stackDepth = stackDepth - 1 + arity;
-            continue;
-          }
-        }
-      }
       case IAdd:
       case ISub:
       case IMul: {
@@ -638,11 +619,11 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx->mtd, litNo);
         if (!isALabel(lit))
-          return verifyError(ctx, ".%d: invalid Unpack literal: %t", pc, lit);
+          return verifyError(ctx, ".%d: invalid symbol literal: %t", pc, lit);
         else {
           integer arity = labelArity(C_LBL(lit));
           if (stackDepth < arity)
-            return verifyError(ctx, ".%d: insufficient stack args for Unpack instruction", pc);
+            return verifyError(ctx, ".%d: insufficient stack args for Alloc instruction", pc);
           else if (code[pc + 1].op != Frame)
             return verifyError(ctx, ".%d: expecting Frame instruction after Alloc", pc);
           else {

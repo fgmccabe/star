@@ -85,7 +85,6 @@ instruction(IfNot, lVl, tOs, -1,"F(p)()",  "break if false")
 
 instruction(Case, i32, tOs, 0, "F(p)p", "T --> T, case <Max> ")
 instruction(IndxJmp, i32, tOs, 0, "F(p)p", "check and jump on index")
-instruction(Unpack, sym, lVl, -1,"F(p)()", "check against term & unpack")
 
 instruction(IAdd, tOs, tOs, -1, "F(ii)i", "L R --> L+R")
 instruction(ISub, tOs, tOs, -1, "F(ii)i", "L R --> L-R")

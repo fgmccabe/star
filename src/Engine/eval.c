@@ -1273,24 +1273,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Unpack: {
-        labelPo l = C_LBL(nthElem(LITS, PC->fst));
-        termPo t = pop();
-        insPo exit = PC+PC->alt;
-
-        assert(validPC(frameMtd(FP), exit));
-
-        normalPo n;
-        if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
-          integer arity = labelArity(l);
-          for (integer ix = arity - 1; ix >= 0; ix--)
-            push(nthElem(n, ix));
-        } else {
-          PC = exit;
-        }
-        continue;
-      }
-
       case Closure: {      /* heap allocate closure */
         if (reserveSpace(H, ClosureCellCount) != Ok) {
           saveRegisters();
