@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispIns/1, opcodeHash/1]).
+:- module(assemble,[assem/2, dispCode/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -76,35 +76,54 @@ mkIns(C,Tpl) :- length(C,_),
   mkInsTpl(C,Args),
   mkTpl(Args,Tpl).
 
-dispIns(Prog) :-
-  showMnem(Prog,O),
+dispCode(Prog) :-
+  showCode(Prog,O),
   displayln(O).
 
-showIns(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showCode(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
-  showMnem(Ins,[0],_,[],II),
+  showMnems(Ins,[0],II),
   ssPolicy(H,HH),!.
+showCode(struct(Lbl,Sig,Ix),sq([ss("symb "),LL,ss(":"),TT,ss(" @ "),ix(Ix)])) :-
+  ssTrm(Lbl,0,LL),
+  ssType(Sig,false,0,TT).
+showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
+  ssConsMap(Map,XX),
+  ssType(Tp,false,0,TT).
 
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
 showBlock(Ins,Prefix,iv(nl(K),II)) :-
   K is length(Prefix)*2,
-  showMnem(Ins,[0|Prefix],II).
+  showMnems(Ins,[0|Prefix],II).
 
-showMnem([],_,[ss("end")]).
-showMnem([iLbl(Lb)|Ins],Pc,[sq([ss(Lb),ss(":")])|II]) :-
-  showMnem(Ins,Pc,II).
-showMnem([iLocal(Nm,Scope,Off)|Ins],Pc,[sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])|II]) :-
-  showMnem(Ins,Pc,II).
+showMnems([],_,[ss("end")]).
+showMnems([iLbl(Lb,L)|Ins],Pc,[sq([ss(Lb),ss(":"),nl(Dp),LL])|II]) :-
+  pcSpace(Pc,Dp),
+  showMnem(L,Pc,LL),
+  showMnems(Ins,Pc,II).
+showMnems([M|Ins],Pc,[MM|II]) :-
+  showMnem(M,Pc,MM),
+  bumpPc(Pc,Pc1),
+  showMnems(Ins,Pc1,II).
+
+showMnem(iLocal(Nm,Scope,Off),_Pc,sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])).
 #(Show)
 
 opcodeHash(#(Hash)).
 
-bumpPc([Pc|Rest],Dl,[Pc1|Rest]) :- Pc1 is Pc+Dl.
+bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
+
+blockPc(Pc,[0|Pc]).
 
 showPc(Pc,iv(ss(":"),Pcs)) :-
-  map(Pc,assemble:shPc,Pcs).
+  reverse(Pc,RPc),
+  map(RPc,assemble:shPc,Pcs).
 
 shPc(I,ix(I)).
+
+pcSpace(Pc,Dp) :-
+  length(Pc,D),
+  Dp is D*2.
 

@@ -7,7 +7,7 @@
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
-		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,
+		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,ssConsMap/2,
 		  idInTerm/2, 
 		  mergeGl/4,
 		  validLProg/2,
@@ -616,6 +616,8 @@ isCnd(ng(_,_)).
 tipeOf(voyd,voidType).
 tipeOf(ann(Tp),Tp).
 tipeOf(idnt(_,T),T).
+tipeOf(intgr(_),Tp) :- stdType("integer",Tp,_),!.
+tipeOf(flot(_),Tp) :- stdType("float",Tp,_),!.
 tipeOf(rais(_,_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).

@@ -361,45 +361,36 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
       break;
     case lit:
     case sym:
-    case tPe:
     case lNe:
+    case tPe:
       outMsg(out, "  ssTrm(%s,0,%s),\n", vn, Vtxt);
-      outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
-      resIn->pcV++;
       break;
     case lcl:
     case lcs:
     case glb:
-      outMsg(out, "  %s=ss(%s),\n", Vtxt, vn);
-      outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
-      resIn->pcV++;
+      outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
       break;
 
     case i32:
     case art:
     case arg:
-    case lVl:
       outMsg(out, "  %s=ix(%s),\n", Vtxt, vn);
-      outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
-      resIn->pcV++;
       break;
+    case lVl:
     case Es:
       outMsg(out, "  %s=ss(%s),!,\n", Vtxt, vn);
-      outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
-      resIn->pcV++;
       break;
     case bLk:
       outMsg(out, "  blockPc(Pc,SPc),\n", resIn->pcV);
-      outMsg(out, "  showMnem(%s, SPc, Ms),\n", vn);
-      outMsg(out, "  %s = iv(ss(\"\\n\"), Ms),\n", Vtxt);
-      outMsg(out, "  bumpPc(Pc%ld,1,Pc%ld),\n", resIn->pcV, resIn->pcV + 1);
-      resIn->pcV++;
+      outMsg(out, "  showMnems(%s, SPc, Ms),\n", vn);
+      outMsg(out,"  pcSpace(SPc,Dp),\n");
+      outMsg(out, "  %s = iv(nl(Dp), Ms),\n", Vtxt);
       break;
   }
 }
 
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "showMnem([i%s", capitalize(mnem));
+  outMsg(out, "showMnem(i%s", capitalize(mnem));
 
   char *sep = genArg(out, "(", A1, "U");
   sep = genArg(out, sep, A2, "V");
@@ -432,16 +423,15 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
       }
   }
 
-  outMsg(out, "|Ins],Pc,[sq([PcDx,ss(\":\"),ss(\"%P\")%s%s%s%s])|II]) :- !,\n", mnem, sep1, V1, sep2, V2);
+  outMsg(out, ",Pc,sq([PcDx,ss(\":\"),ss(\"%P\")%s%s%s%s])) :- !,\n", mnem, sep1, V1, sep2, V2);
   outMsg(out, "  showPc(Pc,PcDx),\n");
-  outMsg(out, "  bumpPc(Pc,1,Pc0),\n");
 
   OpRes res1 = {.pcV=0};
 
   showOperand(out, A1, "U", "UU", &res1);
   showOperand(out, A2, "V", "VV", &res1);
 
-  outMsg(out, "  showMnem(Ins,Pc%ld,II).\n", res1.pcV);
+  outMsg(out, "  true.\n", res1.pcV);
 }
 
 static integer opHash(char *mnem, int op) {
