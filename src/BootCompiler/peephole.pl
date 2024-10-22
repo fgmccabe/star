@@ -11,6 +11,7 @@
 
 peepOptimize(Ins,Code) :-
   dropUnreachable(Ins,Is),
+  dispIns(Is),
   peep(Is,Code).
 
 dropUnreachable([],[]) :-!.
@@ -33,14 +34,15 @@ peep([iStL(Off),iLdL(Off),iRet|_], [iRet]) :-!.
 peep([iStL(Off),iLdL(Off)|Is], Ins) :-
   peep([iTL(Off)|Is],Ins).
 peep([iBlock(Tpe,IB)|Is],[iBlock(Tpe,IBs)|Ins]) :-
-  peep(IB,IBs),
+  peepOptimize(IB,IBs),
   peep(Is,Ins).
 peep([iLbl(Lb,iBlock(Tps,IB))|Is],Ins) :-
   peepOptimize(IB,IB0),
   peep(Is,Is0),
   (lblReferenced(Lb,IB0) ->
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
-   concat(IB0,Is0,Ins)).
+   concat(IB0,Is0,Is1),
+   dropUnreachable(Is1,Ins)).
 peep([I|Is],[I|Ins]) :- peep(Is,Ins).
 
 pullJumps(Ins,InsX) :-
@@ -62,7 +64,6 @@ lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
-copyN(Mx,I,I0,Is,Is0).
 copyN(0,I,I,X,X) :-!.
 copyN(N,[A|I],Ix,[A|X],Xx) :-
   N1 is N-1,

@@ -10,7 +10,7 @@
 
 assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
-    findLit(Ls0,Sig,SgIx,Ls1),
+    findLit(Ls0,strg(Sig),SgIx,Ls1),
     assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
@@ -44,7 +44,7 @@ mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
   mnem(Inner,[Lb|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
   mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 mnem([iLocal(Nm,Scope,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-    findLevel(0,Lbs,bp(Scope),Lvl),
+    findLevel(0,Lbs,Scope,Lvl),
     mkTpl([strg(Nm),intgr(Lvl),intgr(Off)],Entry),
     (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
     mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Code,Cdx).
@@ -117,7 +117,7 @@ bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 
 blockPc(Pc,[0|Pc]).
 
-showPc(Pc,iv(ss(":"),Pcs)) :-
+showPc(Pc,iv(ss("."),Pcs)) :-
   reverse(Pc,RPc),
   map(RPc,assemble:shPc,Pcs).
 

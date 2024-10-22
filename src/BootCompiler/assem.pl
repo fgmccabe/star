@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispCode/1, opcodeHash/1]).
+:- module(assemble,[assem/2, dispCode/1, opcodeHash/1, dispIns/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -10,7 +10,7 @@
 
 assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
-    findLit(Ls0,Sig,SgIx,Ls1),
+    findLit(Ls0,strg(Sig),SgIx,Ls1),
     assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
@@ -41,7 +41,7 @@ assemBlock(Ins,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
 
 mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-  mnem(Inner,[Lb|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
+  mnem([Inner],[Lb|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
   mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 mnem([iLocal(Nm,Scope,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
     findLevel(0,Lbs,bp(Scope),Lvl),
@@ -261,8 +261,8 @@ mnem([iLocal(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[93,V,LtNo|M],Cdx) :-
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).
 
 
-findLevel(Lvl,[Tgt|_],bo(Tgt),Lvl) :-!.
-findLevel(Lvl,[Tgt|_],bp(Tgt),MLvl) :-!, MLvl is -Lvl.
+findLevel(Lvl,[Tgt|_],Tgt,Lvl) :-!.
+findLevel(Lvl,[Tgt|_],Tgt,MLvl) :-!, MLvl is -Lvl.
 findLevel(L,[none|Ends],Tgt,Lo) :-
   L1 is L+1,
   findLevel(L1,Ends,Tgt,Lo).
@@ -305,8 +305,12 @@ showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
+dispIns(Ins) :-
+  showBlock(Ins,[],SS),
+  displayln(SS).
+
 showBlock(Ins,Prefix,iv(nl(K),II)) :-
-  K is length(Prefix)*2,
+  pcSpace(Prefix,K),
   showMnems(Ins,[0|Prefix],II).
 
 showMnems([],_,[ss("end")]).
@@ -662,7 +666,7 @@ bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 
 blockPc(Pc,[0|Pc]).
 
-showPc(Pc,iv(ss(":"),Pcs)) :-
+showPc(Pc,iv(ss("."),Pcs)) :-
   reverse(Pc,RPc),
   map(RPc,assemble:shPc,Pcs).
 
