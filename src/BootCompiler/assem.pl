@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispIns/1, opcodeHash/1]).
+:- module(assemble,[assem/2, dispCode/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -291,515 +291,393 @@ mkIns(C,Tpl) :- length(C,_),
   mkInsTpl(C,Args),
   mkTpl(Args,Tpl).
 
-dispIns(Prog) :-
-  showMnem(Prog,O),
+dispCode(Prog) :-
+  showCode(Prog,O),
   displayln(O).
 
-showIns(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showCode(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
-  showMnem(Ins,[0],_,[],II),
+  showMnems(Ins,[0],II),
   ssPolicy(H,HH),!.
+showCode(struct(Lbl,Sig,Ix),sq([ss("symb "),LL,ss(":"),TT,ss(" @ "),ix(Ix)])) :-
+  ssTrm(Lbl,0,LL),
+  ssType(Sig,false,0,TT).
+showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
+  ssConsMap(Map,XX),
+  ssType(Tp,false,0,TT).
 
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
 showBlock(Ins,Prefix,iv(nl(K),II)) :-
   K is length(Prefix)*2,
-  showMnem(Ins,[0|Prefix],II).
+  showMnems(Ins,[0|Prefix],II).
 
-showMnem([],_,[ss("end")]).
-showMnem([iLbl(Lb)|Ins],Pc,[sq([ss(Lb),ss(":")])|II]) :-
-  showMnem(Ins,Pc,II).
-showMnem([iLocal(Nm,Scope,Off)|Ins],Pc,[sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])|II]) :-
-  showMnem(Ins,Pc,II).
-showMnem([iHalt(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Halt"), ss(" "), UU])|II]) :- !,
+showMnems([],_,[ss("end")]).
+showMnems([iLbl(Lb,L)|Ins],Pc,[sq([ss(Lb),ss(":"),nl(Dp),LL])|II]) :-
+  pcSpace(Pc,Dp),
+  showMnem(L,Pc,LL),
+  showMnems(Ins,Pc,II).
+showMnems([M|Ins],Pc,[MM|II]) :-
+  showMnem(M,Pc,MM),
+  bumpPc(Pc,Pc1),
+  showMnems(Ins,Pc1,II).
+
+showMnem(iLocal(Nm,Scope,Off),_Pc,sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])).
+showMnem(iHalt(U),Pc,sq([PcDx,ss(":"),ss("Halt"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iNop|Ins],Pc,[sq([PcDx,ss(":"),ss("Nop")])|II]) :- !,
+  true.
+showMnem(iNop,Pc,sq([PcDx,ss(":"),ss("Nop")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iAbort|Ins],Pc,[sq([PcDx,ss(":"),ss("Abort")])|II]) :- !,
+  true.
+showMnem(iAbort,Pc,sq([PcDx,ss(":"),ss("Abort")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCall(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Call"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iCall(U),Pc,sq([PcDx,ss(":"),ss("Call"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iOCall(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("OCall"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iOCall(U),Pc,sq([PcDx,ss(":"),ss("OCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iEscape(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Escape"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iEscape(U),Pc,sq([PcDx,ss(":"),ss("Escape"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ss(U),!,
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iTCall(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("TCall"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iTCall(U),Pc,sq([PcDx,ss(":"),ss("TCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iTOCall(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("TOCall"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iTOCall(U),Pc,sq([PcDx,ss(":"),ss("TOCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLocals(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Locals"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iLocals(U),Pc,sq([PcDx,ss(":"),ss("Locals"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iRet|Ins],Pc,[sq([PcDx,ss(":"),ss("Ret")])|II]) :- !,
+  true.
+showMnem(iRet,Pc,sq([PcDx,ss(":"),ss("Ret")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBlock(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("Block"), ss(" "), UU, ss(","), VV])|II]) :- !,
+  true.
+showMnem(iBlock(U,V),Pc,sq([PcDx,ss(":"),ss("Block"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
   blockPc(Pc,SPc),
-  showMnem(V, SPc, Ms),
-  VV = iv(ss("\n"), Ms),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
-showMnem([iBreak(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Break"), ss(" "), UU])|II]) :- !,
+  showMnems(V, SPc, Ms),
+  pcSpace(SPc,Dp),
+  VV = iv(nl(Dp), Ms),
+  true.
+showMnem(iBreak(U),Pc,sq([PcDx,ss(":"),ss("Break"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
+  UU=ss(U),!,
+  true.
+showMnem(iLoop(U),Pc,sq([PcDx,ss(":"),ss("Loop"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ss(U),!,
+  true.
+showMnem(iDrop,Pc,sq([PcDx,ss(":"),ss("Drop")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iDup,Pc,sq([PcDx,ss(":"),ss("Dup")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iRot(U),Pc,sq([PcDx,ss(":"),ss("Rot"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLoop(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Loop"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iRst(U),Pc,sq([PcDx,ss(":"),ss("Rst"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iDrop|Ins],Pc,[sq([PcDx,ss(":"),ss("Drop")])|II]) :- !,
+  true.
+showMnem(iPick(U,V),Pc,sq([PcDx,ss(":"),ss("Pick"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iDup|Ins],Pc,[sq([PcDx,ss(":"),ss("Dup")])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iRot(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Rot"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iRst(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Rst"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iPick(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("Pick"), ss(" "), UU, ss(","), VV])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
   VV=ix(V),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
-showMnem([iFiber|Ins],Pc,[sq([PcDx,ss(":"),ss("Fiber")])|II]) :- !,
+  true.
+showMnem(iFiber,Pc,sq([PcDx,ss(":"),ss("Fiber")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iSpawn|Ins],Pc,[sq([PcDx,ss(":"),ss("Spawn")])|II]) :- !,
+  true.
+showMnem(iSpawn,Pc,sq([PcDx,ss(":"),ss("Spawn")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iSuspend|Ins],Pc,[sq([PcDx,ss(":"),ss("Suspend")])|II]) :- !,
+  true.
+showMnem(iSuspend,Pc,sq([PcDx,ss(":"),ss("Suspend")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iResume|Ins],Pc,[sq([PcDx,ss(":"),ss("Resume")])|II]) :- !,
+  true.
+showMnem(iResume,Pc,sq([PcDx,ss(":"),ss("Resume")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iRetire|Ins],Pc,[sq([PcDx,ss(":"),ss("Retire")])|II]) :- !,
+  true.
+showMnem(iRetire,Pc,sq([PcDx,ss(":"),ss("Retire")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iUnderflow|Ins],Pc,[sq([PcDx,ss(":"),ss("Underflow")])|II]) :- !,
+  true.
+showMnem(iUnderflow,Pc,sq([PcDx,ss(":"),ss("Underflow")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iTEq|Ins],Pc,[sq([PcDx,ss(":"),ss("TEq")])|II]) :- !,
+  true.
+showMnem(iTEq,Pc,sq([PcDx,ss(":"),ss("TEq")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iTry(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("Try"), ss(" "), UU, ss(","), VV])|II]) :- !,
+  true.
+showMnem(iTry(U,V),Pc,sq([PcDx,ss(":"),ss("Try"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
   blockPc(Pc,SPc),
-  showMnem(V, SPc, Ms),
-  VV = iv(ss("\n"), Ms),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
-showMnem([iEndTry(V)|Ins],Pc,[sq([PcDx,ss(":"),ss("EndTry"), ss(","), VV])|II]) :- !,
+  showMnems(V, SPc, Ms),
+  pcSpace(SPc,Dp),
+  VV = iv(nl(Dp), Ms),
+  true.
+showMnem(iEndTry(V),Pc,sq([PcDx,ss(":"),ss("EndTry"), ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  VV=ix(V),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iThrow|Ins],Pc,[sq([PcDx,ss(":"),ss("Throw")])|II]) :- !,
+  VV=ss(V),!,
+  true.
+showMnem(iThrow,Pc,sq([PcDx,ss(":"),ss("Throw")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iReset|Ins],Pc,[sq([PcDx,ss(":"),ss("Reset")])|II]) :- !,
+  true.
+showMnem(iReset,Pc,sq([PcDx,ss(":"),ss("Reset")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iShift|Ins],Pc,[sq([PcDx,ss(":"),ss("Shift")])|II]) :- !,
+  true.
+showMnem(iShift,Pc,sq([PcDx,ss(":"),ss("Shift")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iInvoke|Ins],Pc,[sq([PcDx,ss(":"),ss("Invoke")])|II]) :- !,
+  true.
+showMnem(iInvoke,Pc,sq([PcDx,ss(":"),ss("Invoke")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iLdV|Ins],Pc,[sq([PcDx,ss(":"),ss("LdV")])|II]) :- !,
+  true.
+showMnem(iLdV,Pc,sq([PcDx,ss(":"),ss("LdV")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iLdC(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("LdC"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iLdC(U),Pc,sq([PcDx,ss(":"),ss("LdC"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLdA(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("LdA"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iLdA(U),Pc,sq([PcDx,ss(":"),ss("LdA"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLdL(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("LdL"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iLdL(U),Pc,sq([PcDx,ss(":"),ss("LdL"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iStL(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("StL"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iStV(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("StV"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iTL(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("TL"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iStA(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("StA"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLdG(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("LdG"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iStL(U),Pc,sq([PcDx,ss(":"),ss("StL"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iStG(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("StG"), ss(" "), UU])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iStV(U),Pc,sq([PcDx,ss(":"),ss("StV"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iTG(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("TG"), ss(" "), UU])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iTL(U),Pc,sq([PcDx,ss(":"),ss("TL"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iThunk|Ins],Pc,[sq([PcDx,ss(":"),ss("Thunk")])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iStA(U),Pc,sq([PcDx,ss(":"),ss("StA"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iLdTh|Ins],Pc,[sq([PcDx,ss(":"),ss("LdTh")])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iLdG(U),Pc,sq([PcDx,ss(":"),ss("LdG"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iStTh|Ins],Pc,[sq([PcDx,ss(":"),ss("StTh")])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iStG(U),Pc,sq([PcDx,ss(":"),ss("StG"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iTTh|Ins],Pc,[sq([PcDx,ss(":"),ss("TTh")])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iTG(U),Pc,sq([PcDx,ss(":"),ss("TG"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCell|Ins],Pc,[sq([PcDx,ss(":"),ss("Cell")])|II]) :- !,
+  UU=ix(U),
+  true.
+showMnem(iThunk,Pc,sq([PcDx,ss(":"),ss("Thunk")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iGet|Ins],Pc,[sq([PcDx,ss(":"),ss("Get")])|II]) :- !,
+  true.
+showMnem(iLdTh,Pc,sq([PcDx,ss(":"),ss("LdTh")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iAssign|Ins],Pc,[sq([PcDx,ss(":"),ss("Assign")])|II]) :- !,
+  true.
+showMnem(iStTh,Pc,sq([PcDx,ss(":"),ss("StTh")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCLbl(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("CLbl"), ss(" "), UU, ss(","), VV])|II]) :- !,
+  true.
+showMnem(iTTh,Pc,sq([PcDx,ss(":"),ss("TTh")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
+  true.
+showMnem(iCell,Pc,sq([PcDx,ss(":"),ss("Cell")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iGet,Pc,sq([PcDx,ss(":"),ss("Get")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iAssign,Pc,sq([PcDx,ss(":"),ss("Assign")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iCLbl(U,V),Pc,sq([PcDx,ss(":"),ss("CLbl"), ss(" "), UU, ss(","), VV])) :- !,
+  showPc(Pc,PcDx),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  VV=ix(V),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
-showMnem([iNth(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Nth"), ss(" "), UU])|II]) :- !,
+  VV=ss(V),!,
+  true.
+showMnem(iNth(U),Pc,sq([PcDx,ss(":"),ss("Nth"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iStNth(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("StNth"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iStNth(U),Pc,sq([PcDx,ss(":"),ss("StNth"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iIf(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("If"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iIf(U),Pc,sq([PcDx,ss(":"),ss("If"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
+  UU=ss(U),!,
+  true.
+showMnem(iIfNot(U),Pc,sq([PcDx,ss(":"),ss("IfNot"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ss(U),!,
+  true.
+showMnem(iCase(U),Pc,sq([PcDx,ss(":"),ss("Case"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iIfNot(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("IfNot"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iIndxJmp(U),Pc,sq([PcDx,ss(":"),ss("IndxJmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iCase(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Case"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iUnpack(U,V),Pc,sq([PcDx,ss(":"),ss("Unpack"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iIndxJmp(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("IndxJmp"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iUnpack(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("Unpack"), ss(" "), UU, ss(","), VV])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  VV=ix(V),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
-showMnem([iIAdd|Ins],Pc,[sq([PcDx,ss(":"),ss("IAdd")])|II]) :- !,
+  VV=ss(V),!,
+  true.
+showMnem(iIAdd,Pc,sq([PcDx,ss(":"),ss("IAdd")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iISub|Ins],Pc,[sq([PcDx,ss(":"),ss("ISub")])|II]) :- !,
+  true.
+showMnem(iISub,Pc,sq([PcDx,ss(":"),ss("ISub")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIMul|Ins],Pc,[sq([PcDx,ss(":"),ss("IMul")])|II]) :- !,
+  true.
+showMnem(iIMul,Pc,sq([PcDx,ss(":"),ss("IMul")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIDiv|Ins],Pc,[sq([PcDx,ss(":"),ss("IDiv")])|II]) :- !,
+  true.
+showMnem(iIDiv,Pc,sq([PcDx,ss(":"),ss("IDiv")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIMod|Ins],Pc,[sq([PcDx,ss(":"),ss("IMod")])|II]) :- !,
+  true.
+showMnem(iIMod,Pc,sq([PcDx,ss(":"),ss("IMod")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIAbs|Ins],Pc,[sq([PcDx,ss(":"),ss("IAbs")])|II]) :- !,
+  true.
+showMnem(iIAbs,Pc,sq([PcDx,ss(":"),ss("IAbs")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIEq|Ins],Pc,[sq([PcDx,ss(":"),ss("IEq")])|II]) :- !,
+  true.
+showMnem(iIEq,Pc,sq([PcDx,ss(":"),ss("IEq")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iILt|Ins],Pc,[sq([PcDx,ss(":"),ss("ILt")])|II]) :- !,
+  true.
+showMnem(iILt,Pc,sq([PcDx,ss(":"),ss("ILt")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iIGe|Ins],Pc,[sq([PcDx,ss(":"),ss("IGe")])|II]) :- !,
+  true.
+showMnem(iIGe,Pc,sq([PcDx,ss(":"),ss("IGe")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iICmp(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("ICmp"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iICmp(U),Pc,sq([PcDx,ss(":"),ss("ICmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iCEq|Ins],Pc,[sq([PcDx,ss(":"),ss("CEq")])|II]) :- !,
+  UU=ss(U),!,
+  true.
+showMnem(iCEq,Pc,sq([PcDx,ss(":"),ss("CEq")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCLt|Ins],Pc,[sq([PcDx,ss(":"),ss("CLt")])|II]) :- !,
+  true.
+showMnem(iCLt,Pc,sq([PcDx,ss(":"),ss("CLt")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCGe|Ins],Pc,[sq([PcDx,ss(":"),ss("CGe")])|II]) :- !,
+  true.
+showMnem(iCGe,Pc,sq([PcDx,ss(":"),ss("CGe")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iCCmp(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("CCmp"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iCCmp(U),Pc,sq([PcDx,ss(":"),ss("CCmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iBAnd|Ins],Pc,[sq([PcDx,ss(":"),ss("BAnd")])|II]) :- !,
+  UU=ss(U),!,
+  true.
+showMnem(iBAnd,Pc,sq([PcDx,ss(":"),ss("BAnd")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBOr|Ins],Pc,[sq([PcDx,ss(":"),ss("BOr")])|II]) :- !,
+  true.
+showMnem(iBOr,Pc,sq([PcDx,ss(":"),ss("BOr")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBXor|Ins],Pc,[sq([PcDx,ss(":"),ss("BXor")])|II]) :- !,
+  true.
+showMnem(iBXor,Pc,sq([PcDx,ss(":"),ss("BXor")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBLsl|Ins],Pc,[sq([PcDx,ss(":"),ss("BLsl")])|II]) :- !,
+  true.
+showMnem(iBLsl,Pc,sq([PcDx,ss(":"),ss("BLsl")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBLsr|Ins],Pc,[sq([PcDx,ss(":"),ss("BLsr")])|II]) :- !,
+  true.
+showMnem(iBLsr,Pc,sq([PcDx,ss(":"),ss("BLsr")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBAsr|Ins],Pc,[sq([PcDx,ss(":"),ss("BAsr")])|II]) :- !,
+  true.
+showMnem(iBAsr,Pc,sq([PcDx,ss(":"),ss("BAsr")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iBNot|Ins],Pc,[sq([PcDx,ss(":"),ss("BNot")])|II]) :- !,
+  true.
+showMnem(iBNot,Pc,sq([PcDx,ss(":"),ss("BNot")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFAdd|Ins],Pc,[sq([PcDx,ss(":"),ss("FAdd")])|II]) :- !,
+  true.
+showMnem(iFAdd,Pc,sq([PcDx,ss(":"),ss("FAdd")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFSub|Ins],Pc,[sq([PcDx,ss(":"),ss("FSub")])|II]) :- !,
+  true.
+showMnem(iFSub,Pc,sq([PcDx,ss(":"),ss("FSub")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFMul|Ins],Pc,[sq([PcDx,ss(":"),ss("FMul")])|II]) :- !,
+  true.
+showMnem(iFMul,Pc,sq([PcDx,ss(":"),ss("FMul")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFDiv|Ins],Pc,[sq([PcDx,ss(":"),ss("FDiv")])|II]) :- !,
+  true.
+showMnem(iFDiv,Pc,sq([PcDx,ss(":"),ss("FDiv")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFMod|Ins],Pc,[sq([PcDx,ss(":"),ss("FMod")])|II]) :- !,
+  true.
+showMnem(iFMod,Pc,sq([PcDx,ss(":"),ss("FMod")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFAbs|Ins],Pc,[sq([PcDx,ss(":"),ss("FAbs")])|II]) :- !,
+  true.
+showMnem(iFAbs,Pc,sq([PcDx,ss(":"),ss("FAbs")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFEq|Ins],Pc,[sq([PcDx,ss(":"),ss("FEq")])|II]) :- !,
+  true.
+showMnem(iFEq,Pc,sq([PcDx,ss(":"),ss("FEq")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFLt|Ins],Pc,[sq([PcDx,ss(":"),ss("FLt")])|II]) :- !,
+  true.
+showMnem(iFLt,Pc,sq([PcDx,ss(":"),ss("FLt")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFGe|Ins],Pc,[sq([PcDx,ss(":"),ss("FGe")])|II]) :- !,
+  true.
+showMnem(iFGe,Pc,sq([PcDx,ss(":"),ss("FGe")])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iFCmp(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("FCmp"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iFCmp(U),Pc,sq([PcDx,ss(":"),ss("FCmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iAlloc(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Alloc"), ss(" "), UU])|II]) :- !,
+  UU=ss(U),!,
+  true.
+showMnem(iAlloc(U),Pc,sq([PcDx,ss(":"),ss("Alloc"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iClosure(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Closure"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iClosure(U),Pc,sq([PcDx,ss(":"),ss("Closure"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
   ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iCmp(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Cmp"), ss(" "), UU])|II]) :- !,
+  true.
+showMnem(iCmp(U),Pc,sq([PcDx,ss(":"),ss("Cmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
+  UU=ss(U),!,
+  true.
+showMnem(iFrame(U),Pc,sq([PcDx,ss(":"),ss("Frame"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  true.
+showMnem(iDBug,Pc,sq([PcDx,ss(":"),ss("dBug")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iLine(U),Pc,sq([PcDx,ss(":"),ss("Line"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  true.
+showMnem(iLocal(U,V),Pc,sq([PcDx,ss(":"),ss("Local"), ss(" "), UU, ss(","), VV])) :- !,
+  showPc(Pc,PcDx),
   UU=ix(U),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iFrame(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Frame"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iDBug|Ins],Pc,[sq([PcDx,ss(":"),ss("dBug")])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  showMnem(Ins,Pc0,II).
-showMnem([iLine(U)|Ins],Pc,[sq([PcDx,ss(":"),ss("Line"), ss(" "), UU])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  ssTrm(U,0,UU),
-  bumpPc(Pc0,1,Pc1),
-  showMnem(Ins,Pc1,II).
-showMnem([iLocal(U,V)|Ins],Pc,[sq([PcDx,ss(":"),ss("Local"), ss(" "), UU, ss(","), VV])|II]) :- !,
-  showPc(Pc,PcDx),
-  bumpPc(Pc,1,Pc0),
-  UU=ss(U),
-  bumpPc(Pc0,1,Pc1),
   ssTrm(V,0,VV),
-  bumpPc(Pc1,1,Pc2),
-  showMnem(Ins,Pc2,II).
+  true.
 
 
 opcodeHash(6127502828318624).
 
-bumpPc([Pc|Rest],Dl,[Pc1|Rest]) :- Pc1 is Pc+Dl.
+bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
+
+blockPc(Pc,[0|Pc]).
 
 showPc(Pc,iv(ss(":"),Pcs)) :-
-  map(Pc,assemble:shPc,Pcs).
+  reverse(Pc,RPc),
+  map(RPc,assemble:shPc,Pcs).
 
 shPc(I,ix(I)).
+
+pcSpace(Pc,Dp) :-
+  length(Pc,D),
+  Dp is D*2.
 

@@ -200,13 +200,13 @@ ssMap(Msg,Map,sq([ss(Msg),nl(0),iv(nl(0),MM)])) :-
   map(Map,transutils:ssLayer,MM).
 
 ssLayer(lyr(VarMap,TpMap,ConsMap,void),sq([ss("Top layer:"),nl(0),iv(nl(0),DD)])) :-
-  ssConsMap(ConsMap,MM),
+  ssMap(ConsMap,MM),
   ssDecMap(VarMap,VV),
   ssDecMap(TpMap,TT),
   flatten([MM,VV,TT],DD).
 ssLayer(lyr(VarMap,TpMap,ConsMap,ThVr),
 	  sq([ss("layer:"),ss("«"),TV,ss("»"),nl(0),iv(nl(0),DD)])) :-
-  ssConsMap(ConsMap,MM),
+  ssMap(ConsMap,MM),
   ssTrm(ThVr,0,TV),
   ssDecMap(VarMap,VV),
   ssDecMap(TpMap,TT),
@@ -216,7 +216,7 @@ ssDecMap(Map,XX) :-
   dict_pairs(Map,_,Pairs),
   map(Pairs,transutils:ssLyrDec,XX).
   
-ssConsMap(Map,S) :-
+ssMap(Map,S) :-
   dict_pairs(Map,_,Pairs),
   map(Pairs,transutils:ssPair,S).
 

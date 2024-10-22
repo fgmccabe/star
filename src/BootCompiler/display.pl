@@ -79,6 +79,8 @@ validSS(lp) :-!.
 validSS(rp) :-!.
 validSS(lb) :-!.
 validSS(rb) :-!.
+validSS([]) :- !,false.
+validSS([_|_]) :- !,false.
 validSS(X) :-
   call(X,Sq),!,
   validSS(Sq).
