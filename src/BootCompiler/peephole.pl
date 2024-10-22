@@ -16,10 +16,17 @@ peepOptimize(Ins,Code) :-
 dropUnreachable([],[]) :-!.
 dropUnreachable([iBreak(Lvl)|_],[iBreak(Lvl)]) :-!.
 dropUnreachable([iLoop(Lvl)|_],[iLoop(Lvl)]) :-!.
+dropUnreachable([iEndTry(Lvl)|_],[iEndTry(Lvl)]) :-!.
 dropUnreachable([iRet|_],[iRet]) :-!.
+dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
+dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
 dropUnreachable([iAbort|_],[iAbort]) :-!.
+dropUnreachable([iHalt(Ix)|_],[iHalt(Ix)]) :-!.
 dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
+dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
+  copyN(Mx,I,I0,Is,Is0),
+  dropUnreachable(I0,Is0).
 
 peep([],[]) :-!.
 peep([iStL(Off),iLdL(Off),iRet|_], [iRet]) :-!.
@@ -55,5 +62,9 @@ lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
-
+copyN(Mx,I,I0,Is,Is0).
+copyN(0,I,I,X,X) :-!.
+copyN(N,[A|I],Ix,[A|X],Xx) :-
+  N1 is N-1,
+  copyN(N1,I,Ix,X,Xx).
 
