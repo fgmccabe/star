@@ -384,7 +384,7 @@ static void showOperand(ioPo out, opAndSpec A, char *vn, char *Vtxt, OpRes *resI
       outMsg(out, "  blockPc(Pc,SPc),\n", resIn->pcV);
       outMsg(out, "  showMnems(%s, SPc, Ms),\n", vn);
       outMsg(out,"  pcSpace(SPc,Dp),\n");
-      outMsg(out, "  %s = iv(nl(Dp), Ms),\n", Vtxt);
+      outMsg(out, "  %s = sq([nl(Dp),iv(nl(Dp), Ms)]),\n", Vtxt);
       break;
   }
 }
@@ -423,7 +423,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
       }
   }
 
-  outMsg(out, ",Pc,sq([PcDx,ss(\":\"),ss(\"%P\")%s%s%s%s])) :- !,\n", mnem, sep1, V1, sep2, V2);
+  outMsg(out, ",Pc,sq([PcDx,ss(\": \"),ss(\"%P\")%s%s%s%s])) :- !,\n", mnem, sep1, V1, sep2, V2);
   outMsg(out, "  showPc(Pc,PcDx),\n");
 
   OpRes res1 = {.pcV=0};
