@@ -324,341 +324,341 @@ showMnems([M|Ins],Pc,[MM|II]) :-
   showMnems(Ins,Pc1,II).
 
 showMnem(iLocal(Nm,Scope,Off),_Pc,sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])).
-showMnem(iHalt(U),Pc,sq([PcDx,ss(":"),ss("Halt"), ss(" "), UU])) :- !,
+showMnem(iHalt(U),Pc,sq([PcDx,ss(": "),ss("Halt"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iNop,Pc,sq([PcDx,ss(":"),ss("Nop")])) :- !,
+showMnem(iNop,Pc,sq([PcDx,ss(": "),ss("Nop")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iAbort,Pc,sq([PcDx,ss(":"),ss("Abort")])) :- !,
+showMnem(iAbort,Pc,sq([PcDx,ss(": "),ss("Abort")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iCall(U),Pc,sq([PcDx,ss(":"),ss("Call"), ss(" "), UU])) :- !,
+showMnem(iCall(U),Pc,sq([PcDx,ss(": "),ss("Call"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
-showMnem(iOCall(U),Pc,sq([PcDx,ss(":"),ss("OCall"), ss(" "), UU])) :- !,
+showMnem(iOCall(U),Pc,sq([PcDx,ss(": "),ss("OCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iEscape(U),Pc,sq([PcDx,ss(":"),ss("Escape"), ss(" "), UU])) :- !,
+showMnem(iEscape(U),Pc,sq([PcDx,ss(": "),ss("Escape"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iTCall(U),Pc,sq([PcDx,ss(":"),ss("TCall"), ss(" "), UU])) :- !,
+showMnem(iTCall(U),Pc,sq([PcDx,ss(": "),ss("TCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
-showMnem(iTOCall(U),Pc,sq([PcDx,ss(":"),ss("TOCall"), ss(" "), UU])) :- !,
+showMnem(iTOCall(U),Pc,sq([PcDx,ss(": "),ss("TOCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iLocals(U),Pc,sq([PcDx,ss(":"),ss("Locals"), ss(" "), UU])) :- !,
+showMnem(iLocals(U),Pc,sq([PcDx,ss(": "),ss("Locals"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iRet,Pc,sq([PcDx,ss(":"),ss("Ret")])) :- !,
+showMnem(iRet,Pc,sq([PcDx,ss(": "),ss("Ret")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBlock(U,V),Pc,sq([PcDx,ss(":"),ss("Block"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iBlock(U,V),Pc,sq([PcDx,ss(": "),ss("Block"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   blockPc(Pc,SPc),
   showMnems(V, SPc, Ms),
   pcSpace(SPc,Dp),
-  VV = iv(nl(Dp), Ms),
+  VV = sq([nl(Dp),iv(nl(Dp), Ms)]),
   true.
-showMnem(iBreak(U),Pc,sq([PcDx,ss(":"),ss("Break"), ss(" "), UU])) :- !,
+showMnem(iBreak(U),Pc,sq([PcDx,ss(": "),ss("Break"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iLoop(U),Pc,sq([PcDx,ss(":"),ss("Loop"), ss(" "), UU])) :- !,
+showMnem(iLoop(U),Pc,sq([PcDx,ss(": "),ss("Loop"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iDrop,Pc,sq([PcDx,ss(":"),ss("Drop")])) :- !,
+showMnem(iDrop,Pc,sq([PcDx,ss(": "),ss("Drop")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iDup,Pc,sq([PcDx,ss(":"),ss("Dup")])) :- !,
+showMnem(iDup,Pc,sq([PcDx,ss(": "),ss("Dup")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iRot(U),Pc,sq([PcDx,ss(":"),ss("Rot"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iRst(U),Pc,sq([PcDx,ss(":"),ss("Rst"), ss(" "), UU])) :- !,
+showMnem(iRot(U),Pc,sq([PcDx,ss(": "),ss("Rot"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iPick(U,V),Pc,sq([PcDx,ss(":"),ss("Pick"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iRst(U),Pc,sq([PcDx,ss(": "),ss("Rst"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iPick(U,V),Pc,sq([PcDx,ss(": "),ss("Pick"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   VV=ix(V),
   true.
-showMnem(iFiber,Pc,sq([PcDx,ss(":"),ss("Fiber")])) :- !,
+showMnem(iFiber,Pc,sq([PcDx,ss(": "),ss("Fiber")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iSpawn,Pc,sq([PcDx,ss(":"),ss("Spawn")])) :- !,
+showMnem(iSpawn,Pc,sq([PcDx,ss(": "),ss("Spawn")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iSuspend,Pc,sq([PcDx,ss(":"),ss("Suspend")])) :- !,
+showMnem(iSuspend,Pc,sq([PcDx,ss(": "),ss("Suspend")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iResume,Pc,sq([PcDx,ss(":"),ss("Resume")])) :- !,
+showMnem(iResume,Pc,sq([PcDx,ss(": "),ss("Resume")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iRetire,Pc,sq([PcDx,ss(":"),ss("Retire")])) :- !,
+showMnem(iRetire,Pc,sq([PcDx,ss(": "),ss("Retire")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iUnderflow,Pc,sq([PcDx,ss(":"),ss("Underflow")])) :- !,
+showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iTEq,Pc,sq([PcDx,ss(":"),ss("TEq")])) :- !,
+showMnem(iTEq,Pc,sq([PcDx,ss(": "),ss("TEq")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iTry(U,V),Pc,sq([PcDx,ss(":"),ss("Try"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iTry(U,V),Pc,sq([PcDx,ss(": "),ss("Try"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   blockPc(Pc,SPc),
   showMnems(V, SPc, Ms),
   pcSpace(SPc,Dp),
-  VV = iv(nl(Dp), Ms),
+  VV = sq([nl(Dp),iv(nl(Dp), Ms)]),
   true.
-showMnem(iEndTry(V),Pc,sq([PcDx,ss(":"),ss("EndTry"), ss(","), VV])) :- !,
+showMnem(iEndTry(V),Pc,sq([PcDx,ss(": "),ss("EndTry"), ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   VV=ss(V),!,
   true.
-showMnem(iThrow,Pc,sq([PcDx,ss(":"),ss("Throw")])) :- !,
+showMnem(iThrow,Pc,sq([PcDx,ss(": "),ss("Throw")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iReset,Pc,sq([PcDx,ss(":"),ss("Reset")])) :- !,
+showMnem(iReset,Pc,sq([PcDx,ss(": "),ss("Reset")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iShift,Pc,sq([PcDx,ss(":"),ss("Shift")])) :- !,
+showMnem(iShift,Pc,sq([PcDx,ss(": "),ss("Shift")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iInvoke,Pc,sq([PcDx,ss(":"),ss("Invoke")])) :- !,
+showMnem(iInvoke,Pc,sq([PcDx,ss(": "),ss("Invoke")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iLdV,Pc,sq([PcDx,ss(":"),ss("LdV")])) :- !,
+showMnem(iLdV,Pc,sq([PcDx,ss(": "),ss("LdV")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iLdC(U),Pc,sq([PcDx,ss(":"),ss("LdC"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  ssTrm(U,0,UU),
-  true.
-showMnem(iLdA(U),Pc,sq([PcDx,ss(":"),ss("LdA"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iLdL(U),Pc,sq([PcDx,ss(":"),ss("LdL"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iStL(U),Pc,sq([PcDx,ss(":"),ss("StL"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iStV(U),Pc,sq([PcDx,ss(":"),ss("StV"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iTL(U),Pc,sq([PcDx,ss(":"),ss("TL"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iStA(U),Pc,sq([PcDx,ss(":"),ss("StA"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iLdG(U),Pc,sq([PcDx,ss(":"),ss("LdG"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iStG(U),Pc,sq([PcDx,ss(":"),ss("StG"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iTG(U),Pc,sq([PcDx,ss(":"),ss("TG"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ix(U),
-  true.
-showMnem(iThunk,Pc,sq([PcDx,ss(":"),ss("Thunk")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iLdTh,Pc,sq([PcDx,ss(":"),ss("LdTh")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iStTh,Pc,sq([PcDx,ss(":"),ss("StTh")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iTTh,Pc,sq([PcDx,ss(":"),ss("TTh")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iCell,Pc,sq([PcDx,ss(":"),ss("Cell")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iGet,Pc,sq([PcDx,ss(":"),ss("Get")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iAssign,Pc,sq([PcDx,ss(":"),ss("Assign")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iCLbl(U,V),Pc,sq([PcDx,ss(":"),ss("CLbl"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iLdC(U),Pc,sq([PcDx,ss(": "),ss("LdC"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
-  VV=ss(V),!,
   true.
-showMnem(iNth(U),Pc,sq([PcDx,ss(":"),ss("Nth"), ss(" "), UU])) :- !,
+showMnem(iLdA(U),Pc,sq([PcDx,ss(": "),ss("LdA"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iStNth(U),Pc,sq([PcDx,ss(":"),ss("StNth"), ss(" "), UU])) :- !,
+showMnem(iLdL(U),Pc,sq([PcDx,ss(": "),ss("LdL"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iIf(U),Pc,sq([PcDx,ss(":"),ss("If"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ss(U),!,
-  true.
-showMnem(iIfNot(U),Pc,sq([PcDx,ss(":"),ss("IfNot"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  UU=ss(U),!,
-  true.
-showMnem(iCase(U),Pc,sq([PcDx,ss(":"),ss("Case"), ss(" "), UU])) :- !,
+showMnem(iStL(U),Pc,sq([PcDx,ss(": "),ss("StL"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iIndxJmp(U),Pc,sq([PcDx,ss(":"),ss("IndxJmp"), ss(" "), UU])) :- !,
+showMnem(iStV(U),Pc,sq([PcDx,ss(": "),ss("StV"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iUnpack(U,V),Pc,sq([PcDx,ss(":"),ss("Unpack"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iTL(U),Pc,sq([PcDx,ss(": "),ss("TL"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iStA(U),Pc,sq([PcDx,ss(": "),ss("StA"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iLdG(U),Pc,sq([PcDx,ss(": "),ss("LdG"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iStG(U),Pc,sq([PcDx,ss(": "),ss("StG"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iTG(U),Pc,sq([PcDx,ss(": "),ss("TG"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iThunk,Pc,sq([PcDx,ss(": "),ss("Thunk")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iLdTh,Pc,sq([PcDx,ss(": "),ss("LdTh")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iStTh,Pc,sq([PcDx,ss(": "),ss("StTh")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iTTh,Pc,sq([PcDx,ss(": "),ss("TTh")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iCell,Pc,sq([PcDx,ss(": "),ss("Cell")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iGet,Pc,sq([PcDx,ss(": "),ss("Get")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iAssign,Pc,sq([PcDx,ss(": "),ss("Assign")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iCLbl(U,V),Pc,sq([PcDx,ss(": "),ss("CLbl"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   VV=ss(V),!,
   true.
-showMnem(iIAdd,Pc,sq([PcDx,ss(":"),ss("IAdd")])) :- !,
+showMnem(iNth(U),Pc,sq([PcDx,ss(": "),ss("Nth"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
+  UU=ix(U),
   true.
-showMnem(iISub,Pc,sq([PcDx,ss(":"),ss("ISub")])) :- !,
+showMnem(iStNth(U),Pc,sq([PcDx,ss(": "),ss("StNth"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
+  UU=ix(U),
   true.
-showMnem(iIMul,Pc,sq([PcDx,ss(":"),ss("IMul")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iIDiv,Pc,sq([PcDx,ss(":"),ss("IDiv")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iIMod,Pc,sq([PcDx,ss(":"),ss("IMod")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iIAbs,Pc,sq([PcDx,ss(":"),ss("IAbs")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iIEq,Pc,sq([PcDx,ss(":"),ss("IEq")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iILt,Pc,sq([PcDx,ss(":"),ss("ILt")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iIGe,Pc,sq([PcDx,ss(":"),ss("IGe")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iICmp(U),Pc,sq([PcDx,ss(":"),ss("ICmp"), ss(" "), UU])) :- !,
+showMnem(iIf(U),Pc,sq([PcDx,ss(": "),ss("If"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iCEq,Pc,sq([PcDx,ss(":"),ss("CEq")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iCLt,Pc,sq([PcDx,ss(":"),ss("CLt")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iCGe,Pc,sq([PcDx,ss(":"),ss("CGe")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iCCmp(U),Pc,sq([PcDx,ss(":"),ss("CCmp"), ss(" "), UU])) :- !,
+showMnem(iIfNot(U),Pc,sq([PcDx,ss(": "),ss("IfNot"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iBAnd,Pc,sq([PcDx,ss(":"),ss("BAnd")])) :- !,
+showMnem(iCase(U),Pc,sq([PcDx,ss(": "),ss("Case"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iIndxJmp(U),Pc,sq([PcDx,ss(": "),ss("IndxJmp"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ix(U),
+  true.
+showMnem(iUnpack(U,V),Pc,sq([PcDx,ss(": "),ss("Unpack"), ss(" "), UU, ss(","), VV])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  VV=ss(V),!,
+  true.
+showMnem(iIAdd,Pc,sq([PcDx,ss(": "),ss("IAdd")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBOr,Pc,sq([PcDx,ss(":"),ss("BOr")])) :- !,
+showMnem(iISub,Pc,sq([PcDx,ss(": "),ss("ISub")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBXor,Pc,sq([PcDx,ss(":"),ss("BXor")])) :- !,
+showMnem(iIMul,Pc,sq([PcDx,ss(": "),ss("IMul")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBLsl,Pc,sq([PcDx,ss(":"),ss("BLsl")])) :- !,
+showMnem(iIDiv,Pc,sq([PcDx,ss(": "),ss("IDiv")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBLsr,Pc,sq([PcDx,ss(":"),ss("BLsr")])) :- !,
+showMnem(iIMod,Pc,sq([PcDx,ss(": "),ss("IMod")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBAsr,Pc,sq([PcDx,ss(":"),ss("BAsr")])) :- !,
+showMnem(iIAbs,Pc,sq([PcDx,ss(": "),ss("IAbs")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iBNot,Pc,sq([PcDx,ss(":"),ss("BNot")])) :- !,
+showMnem(iIEq,Pc,sq([PcDx,ss(": "),ss("IEq")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iFAdd,Pc,sq([PcDx,ss(":"),ss("FAdd")])) :- !,
+showMnem(iILt,Pc,sq([PcDx,ss(": "),ss("ILt")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iFSub,Pc,sq([PcDx,ss(":"),ss("FSub")])) :- !,
+showMnem(iIGe,Pc,sq([PcDx,ss(": "),ss("IGe")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iFMul,Pc,sq([PcDx,ss(":"),ss("FMul")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFDiv,Pc,sq([PcDx,ss(":"),ss("FDiv")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFMod,Pc,sq([PcDx,ss(":"),ss("FMod")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFAbs,Pc,sq([PcDx,ss(":"),ss("FAbs")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFEq,Pc,sq([PcDx,ss(":"),ss("FEq")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFLt,Pc,sq([PcDx,ss(":"),ss("FLt")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFGe,Pc,sq([PcDx,ss(":"),ss("FGe")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iFCmp(U),Pc,sq([PcDx,ss(":"),ss("FCmp"), ss(" "), UU])) :- !,
+showMnem(iICmp(U),Pc,sq([PcDx,ss(": "),ss("ICmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iAlloc(U),Pc,sq([PcDx,ss(":"),ss("Alloc"), ss(" "), UU])) :- !,
+showMnem(iCEq,Pc,sq([PcDx,ss(": "),ss("CEq")])) :- !,
   showPc(Pc,PcDx),
-  ssTrm(U,0,UU),
   true.
-showMnem(iClosure(U),Pc,sq([PcDx,ss(":"),ss("Closure"), ss(" "), UU])) :- !,
+showMnem(iCLt,Pc,sq([PcDx,ss(": "),ss("CLt")])) :- !,
   showPc(Pc,PcDx),
-  ssTrm(U,0,UU),
   true.
-showMnem(iCmp(U),Pc,sq([PcDx,ss(":"),ss("Cmp"), ss(" "), UU])) :- !,
+showMnem(iCGe,Pc,sq([PcDx,ss(": "),ss("CGe")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iCCmp(U),Pc,sq([PcDx,ss(": "),ss("CCmp"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ss(U),!,
   true.
-showMnem(iFrame(U),Pc,sq([PcDx,ss(":"),ss("Frame"), ss(" "), UU])) :- !,
+showMnem(iBAnd,Pc,sq([PcDx,ss(": "),ss("BAnd")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBOr,Pc,sq([PcDx,ss(": "),ss("BOr")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBXor,Pc,sq([PcDx,ss(": "),ss("BXor")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBLsl,Pc,sq([PcDx,ss(": "),ss("BLsl")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBLsr,Pc,sq([PcDx,ss(": "),ss("BLsr")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBAsr,Pc,sq([PcDx,ss(": "),ss("BAsr")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iBNot,Pc,sq([PcDx,ss(": "),ss("BNot")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFAdd,Pc,sq([PcDx,ss(": "),ss("FAdd")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFSub,Pc,sq([PcDx,ss(": "),ss("FSub")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFMul,Pc,sq([PcDx,ss(": "),ss("FMul")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFDiv,Pc,sq([PcDx,ss(": "),ss("FDiv")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFMod,Pc,sq([PcDx,ss(": "),ss("FMod")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFAbs,Pc,sq([PcDx,ss(": "),ss("FAbs")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFEq,Pc,sq([PcDx,ss(": "),ss("FEq")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFLt,Pc,sq([PcDx,ss(": "),ss("FLt")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFGe,Pc,sq([PcDx,ss(": "),ss("FGe")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iFCmp(U),Pc,sq([PcDx,ss(": "),ss("FCmp"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ss(U),!,
+  true.
+showMnem(iAlloc(U),Pc,sq([PcDx,ss(": "),ss("Alloc"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
-showMnem(iDBug,Pc,sq([PcDx,ss(":"),ss("dBug")])) :- !,
-  showPc(Pc,PcDx),
-  true.
-showMnem(iLine(U),Pc,sq([PcDx,ss(":"),ss("Line"), ss(" "), UU])) :- !,
+showMnem(iClosure(U),Pc,sq([PcDx,ss(": "),ss("Closure"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
-showMnem(iLocal(U,V),Pc,sq([PcDx,ss(":"),ss("Local"), ss(" "), UU, ss(","), VV])) :- !,
+showMnem(iCmp(U),Pc,sq([PcDx,ss(": "),ss("Cmp"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  UU=ss(U),!,
+  true.
+showMnem(iFrame(U),Pc,sq([PcDx,ss(": "),ss("Frame"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  true.
+showMnem(iDBug,Pc,sq([PcDx,ss(": "),ss("dBug")])) :- !,
+  showPc(Pc,PcDx),
+  true.
+showMnem(iLine(U),Pc,sq([PcDx,ss(": "),ss("Line"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  true.
+showMnem(iLocal(U,V),Pc,sq([PcDx,ss(": "),ss("Local"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   ssTrm(V,0,VV),
