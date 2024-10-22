@@ -41,7 +41,7 @@ assemBlock(Ins,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
 
 mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-  mnem(Inner,[Lb|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
+  mnem(Inner,[(Lb,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
   mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 mnem([iLocal(Nm,Scope,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
     findLevel(0,Lbs,Scope,Lvl),
@@ -50,13 +50,17 @@ mnem([iLocal(Nm,Scope,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
     mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Code,Cdx).
 #(Mnem)
 
-findLevel(Lvl,[Tgt|_],bo(Tgt),Lvl) :-!.
-findLevel(Lvl,[Tgt|_],bp(Tgt),MLvl) :-!, MLvl is -Lvl.
+findLevel(Lvl,[(Tgt,_)|_],Tgt,Lvl) :-!.
 findLevel(L,[none|Ends],Tgt,Lo) :-
   L1 is L+1,
   findLevel(L1,Ends,Tgt,Lo).
 findLevel(L,[_|Ends],Tgt,Lo) :-
   findLevel(L,Ends,Tgt,Lo).
+
+findLocal(Nm,[(_,Lcls)|_],Off) :-
+  is_member((Nm,Off),Lcls),!.
+findLocal(Nm,[_|Lvls],Off) :-
+  findLocal(Nm,Lvls,Off).
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
