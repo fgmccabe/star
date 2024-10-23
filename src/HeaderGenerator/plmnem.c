@@ -33,7 +33,9 @@ int getOptions(int argc, char **argv) {
 
 static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 
-static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt);
+static void genStackHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt);
+
+static void genLocalHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt);
 
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 
@@ -78,13 +80,27 @@ int main(int argc, char **argv) {
             strBufferPo hwmBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Tp, cmt) genPrologHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, Tp, cmt) genStackHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
 
 #include "instructions.h"
 
             integer insLen;
             char *allCode = getTextFromBuffer(hwmBuff, &insLen);
-            hashPut(vars, "Hwm", allCode);
+            hashPut(vars, "stackHwm", allCode);
+        }
+
+        {
+            // Set up the localHwm calculator
+            strBufferPo hwmBuff = newStringBuffer();
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, Tp, cmt) genLocalHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
+
+#include "instructions.h"
+
+            integer insLen;
+            char *allCode = getTextFromBuffer(hwmBuff, &insLen);
+            hashPut(vars, "localHwm", allCode);
         }
 
 
@@ -377,7 +393,7 @@ static char *genHWmArg(ioPo out, char *sep, opAndSpec A, char *var) {
 }
 
 // Construct the HWM calculator
-static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt) {
+static void genStackHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt) {
     char *sep = "(";
 
     outMsg(out, "hwm([i%s", capitalize(mnem));
@@ -403,6 +419,57 @@ static void genPrologHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, 
 
     outMsg(out, "  hwm(Ins,CH%d,H%d,Hwm).\n", CVar, HVar);
 }
+
+static char *genLocalHwmOp(ioPo out, OpCode op, opAndSpec A, char *var) {
+    switch (A) {
+        case nOp:
+        case tOs:
+        case i32:
+        case art:
+        case arg:
+        case glb:
+        case Es:
+        case lVl:
+        case lit:
+            break;
+        case lcl:
+        case lcs:
+            outMsg(out, "      ");
+            break;
+        default:
+            check(False, "Cannot generate localHWM");
+            exit(1);
+    }
+}
+
+// Construct the localHWM calculator
+static void genLocalHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt) {
+    char *sep = "(";
+
+    outMsg(out, "localHwm([i%s", capitalize(mnem));
+
+    sep = genHWmArg(out, sep, A1, "V");
+    sep = genHWmArg(out, sep, A2, "W");
+
+    if (strcmp(sep, ",") == 0)
+        outStr(out, ")");
+
+    outMsg(out, "|Ins],CH0,H0,Hwm) :-\n");
+
+    integer HVar = 0;
+    integer CVar = 0;
+    if (delta != 0) {
+        outMsg(out, "  CH%d is CH%d%s%d,\n", CVar + 1, CVar, (delta > 0 ? "+" : ""), delta);
+        outMsg(out, "  (CH%d>H%d -> H%d = CH%d ; H%d = H%d),\n", CVar + 1, HVar, HVar + 1, CVar + 1, HVar + 1, HVar);
+        CVar++;
+        HVar++;
+    }
+    genHwmOp(out, A1, "V", &CVar, &HVar);
+    genHwmOp(out, A2, "W", &CVar, &HVar);
+
+    outMsg(out, "  localHwm(Ins,CH%d,H%d,Hwm).\n", CVar, HVar);
+}
+
 
 typedef struct {
     integer pcV;

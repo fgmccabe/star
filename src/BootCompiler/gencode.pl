@@ -63,13 +63,12 @@ genFun(D,Opts,Lc,Nm,H,Tp,Args,Value,CdTrm) :-
   compPtnArgs(Args,Lc,argGetter,0,Abrt,[],notLast,Opts,L1,L3,D1,D2,FC,FC0,some(0),Stk0),
   compExp(Value,Lc,[],last,Opts,L3,L4,D2,D3,FC0,FC1,Stk0,Stk1),
   genRet(Opts,FC1,[],Stk1,_),
-  compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
-  findMaxLocal(Dx,Mx),
+  compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,_Dx,CA,[iHalt(10)],Stk0,_),
   genDbg(Opts,C,[iEntry|C0]),
-  (is_member(traceGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,C));true ),
+  (is_member(traceGenCode,Opts) -> dispCode(func(Nm,H,Sig,C));true ),
   peepOptimize(C,Cde),
-  (is_member(showGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,Cde));true ),
-  assem(func(Nm,H,Sig,Mx,Cde),CdTrm).
+  (is_member(showGenCode,Opts) -> dispCode(func(Nm,H,Sig,Cde));true ),
+  assem(func(Nm,H,Sig,Cde),CdTrm).
 
 genGlb(D,Opts,Lc,Nm,Tp,Value,Cd) :-
   toLtipe(funType(tplType([]),Tp),LTp),
@@ -78,14 +77,13 @@ genGlb(D,Opts,Lc,Nm,Tp,Value,Cd) :-
   nearlyFlatSig(LTp,Sig),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(Sig,FC))|CA]),
   compExp(Value,Lc,[],last,Opts,L1,L2,D,D1,FC,[iTG(Nm)|FC1],some(0),Stk0),
-  compAbort(Lc,strg("def failed"),[],Opts,L2,_L3,D1,Dx,CA,[iHalt(10)],some(0),_),
+  compAbort(Lc,strg("def failed"),[],Opts,L2,_L3,D1,_Dx,CA,[iHalt(10)],some(0),_),
   genRet(Opts,FC1,[],Stk0,_),
-  findMaxLocal(Dx,Mx),
   genDbg(Opts,C,[iEntry|C0]),
-  (is_member(traceGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,Mx,C));true ),
+  (is_member(traceGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,C));true ),
   peepOptimize(C,Cde),
-  (is_member(showGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
-  assem(func(lbl(Nm,0),hard,Sig,Mx,Cde),Cd).
+  (is_member(showGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,Cde));true ),
+  assem(func(lbl(Nm,0),hard,Sig,Cde),Cd).
 
 genRet(Opts,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
@@ -96,9 +94,8 @@ dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
 resetVars(scope(Vrs,M0),scope(_,M1),scope(Vrs,Mx)) :-
   Mx is max(M0,M1).
 
-mergeVars(scope(V1,Fr1,M1),scope(V2,Fr2,M2),scope(Vx,Frx,Mx)) :-
+mergeVars(scope(V1,M1),scope(V2,M2),scope(Vx,Mx)) :-
   intersect(V1,V2,Vx),
-  intersect(Fr1,Fr2,Frx),
   Mx is max(M1,M2).
 
 initDict(scope([],0)).
@@ -113,12 +110,11 @@ buildArg(idnt(Nm,Tp),Ix,scope(D,Mx),scope([(Nm,T,a(Ix))|D],Mx)) :-!,
   toLtipe(Tp,T).
 buildArg(_,_,D,D).
 
-lclVar(Nm,T,Wh,scope(Vrs,_,_)) :-
+lclVar(Nm,T,Wh,scope(Vrs,_)) :-
   is_member((Nm,T,Wh),Vrs),!.
 
-defineLclVar(Nm,T,Opts,scope(Vrs,FreeRg,Mx),scope([(Nm,T,l(Off))|Vrs],NFreeRg,Mx1),Off,C,Cx) :-
-  nextFreeOff(FreeRg,Mx,Off,NFreeRg,Mx1),
-  genDebug(Opts,iLocal(Off,strng(Nm)),C,Cx).
+defineLclVar(Nm,T,Opts,scope(Vrs,Mx),scope([(Nm,T,l(Nm))|Vrs],Mx),Nm,C,Cx) :-
+  genDebug(Opts,iLocal(Nm,strng(Nm)),C,Cx).
 
 defineTmpVar(TmpNm,T,Opts,D,Dx,Off,C,Cx) :-
   genTmpVar(D,TmpNm),
@@ -148,9 +144,9 @@ populateVarNames([(Nw,idnt(Ex,T))|Vs],Lc,D,C,Cx) :-
   populateVarNm(Nw,T,Lc,Ex,D,C,C0),
   populateVarNames(Vs,Lc,D,C0,Cx).
 
-populateVarNm(Nw,_,_,Ex,scope(Vrs,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
+populateVarNm(Nw,_,_,Ex,scope(Vrs,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
   is_member((Ex,_,l(Off),Frm,End),Vrs),!.
-populateVarNm(_,T,_,Ex,scope(Vrs,_,_),Cx,Cx) :-
+populateVarNm(_,T,_,Ex,scope(Vrs,_),Cx,Cx) :-
   is_member((Ex,T,a(_),_,_),Vrs),!.
 populateVarNm(_,_,Lc,Ex,_,C,C) :-
   reportError("variable %s not known",[id(Ex)],Lc),
@@ -160,10 +156,10 @@ genLbl(Lbs,Lb,[Lb|Lbs]) :-
   length(Lbs,N),
   swritef(Lb,"_L%d",[N]).
 
-genTmpVar(scope(_,_,Mx),Nm) :-
+genTmpVar(scope(_,Mx),Nm) :-
   swritef(Nm,"_𝜏%d",[Mx]).
 
-findMaxLocal(scope(_,_,Mx),Mx).
+findMaxLocal(scope(_,Mx),Mx).
 
 localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
 localMx(_,M,M).

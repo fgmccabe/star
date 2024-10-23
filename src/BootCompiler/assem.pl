@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispCode/1, opcodeHash/1]).
+:- module(assemble,[assem/2, dispCode/1, dispIns/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -8,7 +8,7 @@
 :- use_module(display).
 :- use_module(escapes).
 
-assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
+assem(func(Nm,H,Sig,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
     assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
@@ -17,6 +17,7 @@ assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     mkTpl(Lcs,LcsTpl),
     encPolicy(H,HP),
     hwm(Ins,0,0,HWM),
+    localHwm(Ins,0,0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -37,6 +38,7 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   mkTpl([Lbl,intgr(Ix)],E),
   encMap(Map,MM).
 
+hwm([],_,H,H).
 hwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
   hwm(Ins,CH0,H0,Hwm).
 hwm([iNop|Ins],CH0,H0,Hwm) :-
@@ -345,6 +347,315 @@ hwm([iLocal(_,_)|Ins],CH0,H0,Hwm) :-
   hwm(Ins,CH0,H0,Hwm).
 
 
+localHwm([],_,H,H).
+localHwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iNop|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iAbort|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCall(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iOCall(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iEscape(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iTCall(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iTOCall(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iEntry|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iRet|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iBlock(_,W)|Ins],CH0,H0,Hwm) :-
+  hwm(W,CH0,H0,H1),
+  localHwm(Ins,CH0,H1,Hwm).
+localHwm([iBreak(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iLoop(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iDrop|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iDup|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iRot(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iRst(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iPick(_,_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iFiber|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iSpawn|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iSuspend|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iResume|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iRetire|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iUnderflow|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iTEq|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iTry(_,W)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  hwm(W,CH1,H1,H2),
+  localHwm(Ins,CH1,H2,Hwm).
+localHwm([iEndTry(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iThrow|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iReset|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iShift|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iInvoke|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iLdV|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iLdC(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iLdA(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iLdL(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iStL(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iStV(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iTL(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iStA(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iLdG(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iStG(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iTG(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iThunk|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iLdTh|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iStTh|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iTTh|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCell|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iGet|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iAssign|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCLbl(_,_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iNth(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iStNth(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIf(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIfNot(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCase(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iIndxJmp(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iIAdd|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iISub|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIMul|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIDiv|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIMod|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIAbs|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iIEq|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iILt|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iIGe|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iICmp(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCEq|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCLt|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCGe|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iCCmp(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBAnd|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBOr|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBXor|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBLsl|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBLsr|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBAsr|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iBNot|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iFAdd|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFSub|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFMul|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFDiv|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFMod|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFAbs|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iFEq|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFLt|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFGe|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFCmp(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iAlloc(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iClosure(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iCmp(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-2,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  localHwm(Ins,CH1,H1,Hwm).
+localHwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iDBug|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iLine(_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iLocal(_,_)|Ins],CH0,H0,Hwm) :-
+  localHwm(Ins,CH0,H0,Hwm).
+
+
 assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
     mnem(Ins,[Lb|Lbs],Lt,Lts,Lc,Lcx,Code,Cdx).
 
@@ -611,7 +922,7 @@ dispCode(Prog) :-
   showCode(Prog,O),
   displayln(O).
 
-showCode(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showCode(func(Nm,H,Sig,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
   showMnems(Ins,[0],II),
   ssPolicy(H,HH),!.
@@ -625,8 +936,12 @@ showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
+dispIns(Ins) :-
+  showBlock(Ins,[],O),
+  displayln(O).
+
 showBlock(Ins,Prefix,iv(nl(K),II)) :-
-  K is length(Prefix)*2,
+  pcSpace(Prefix,K),
   showMnems(Ins,[0|Prefix],II).
 
 showMnems([],_,[ss("end")]).
