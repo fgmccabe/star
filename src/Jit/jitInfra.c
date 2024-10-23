@@ -150,40 +150,12 @@ retCode resolvePcLbl(insPo code, integer off, jitCompPo jit, char *errMsg, integ
   return Ok;
 }
 
-codeLblPo getLblByPc(insPo pc, jitCompPo jit) {
-  labelMarkerPo lblMrk = lblMarker(pc, jit);
+codeLblPo getLblByPc(insPo pc, integer delta, jitCompPo jit) {
+  insPo tgt = pc+delta;
+  labelMarkerPo lblMrk = lblMarker(tgt, jit);
 
   if (lblMrk != Null) {
     return lblMrk->lbl;
   }
   return Null;
-}
-
-// Define operand label & pc operators
-
-retCode nextOperand(insPo code, integer *pc, opAndSpec spec, jitCompPo jit, char *errMsg, integer msgSize){
-  switch(spec){
-    case nOp:
-    case tOs:
-      return Ok;
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-    case Es:
-    case lit:
-    case sym:
-    case glb:
-    case tPe:
-    case bLk:
-    case lVl:
-      collectOperand(code, pc);
-      return Ok;
-    case off: {
-      insPo tgt = collectTgt(code, pc);
-      collectLblTgt(tgt, jit);
-      return Ok;
-    }
-  }
 }

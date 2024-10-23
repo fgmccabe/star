@@ -7,17 +7,22 @@
 
 #include "engine.h"
 
-typedef enum{
+typedef enum {
   int64Tp = 'i',
   flt64Tp = 'f',
   boolTp = 'l',
   ptrTp = 'p',
   funTp = 'F',
-  tplTp = '('
+  tplTp = '(',
+  vdTp = 'v',
+  parTp = '%'
 } LTipe;
 
 retCode validTypeSig(const char *text, integer len);
 retCode skipTypeSig(const char *text, integer len, integer *pos);
 retCode typeSigArity(const char *sig, integer len, integer *arity);
+
+retCode funArgSig(const char *text, integer len, integer *pos);
+retCode funResSig(const char *text, integer len, integer *pos);
 
 #endif //STAR_LTYPE_H

@@ -3,7 +3,7 @@
 	   lookupVar/3,lookupThetaVar/3,lookupTypeIndex/3,
 	   lookupType/3,findConsType/3,
 	   definedProgs/2,labelVars/2,
-	   genVar/2, genVars/2,
+	   genVar/3, genVars/2,
 	   genAnons/2,
 	   pushOpt/3, dispMap/3,
 	   pullWhere/4,pullWheres/4]).
@@ -87,9 +87,9 @@ findThetaVar(lyr(VrMap,_,_,_),Key,V) :-
   get_dict(Key,VrMap,Entry),
   getThetaVar(Entry,V),!.
 
-getThetaVar(localFun(_,_,_,ThVr),ThVr).
+getThetaVar(localFun(_,_,_,ThVr,_),ThVr).
 getThetaVar(localClass(_,_,_,_,ThVr),ThVr).
-getThetaVar(labelArg(_,_,ThVr),ThVr).
+getThetaVar(labelArg(_,_,ThVr,_),ThVr).
 
 lookupTypeIndex(Map,TpNm,Index) :-
   makeKey(TpNm,Key),
@@ -120,16 +120,16 @@ definedProgs([lyr(Defs,_,_,_)|Map],Pr,Prx) :-
 
 definedInDefs([],Pr,Pr).
 definedInDefs([Nm-Entry|Defs],Pr,Prx) :-
-  definedP(Nm,Entry),!,
-  (is_member(idnt(Nm),Pr) -> Pr0=Pr ; Pr0=[idnt(Nm)|Pr]),
+  definedP(Nm,Entry,Tp),!,
+  (is_member(idnt(Nm,_),Pr) -> Pr0=Pr ; Pr0=[idnt(Nm,Tp)|Pr]),
   definedInDefs(Defs,Pr0,Prx).
 definedInDefs([_|Defs],Pr,Prx) :-
   definedInDefs(Defs,Pr,Prx).
 
-definedP(_Nm,moduleFun(_,_,_)).
-definedP(_Nm,localFun(_,_,_,_)).
-definedP(_Nm,moduleVar(_)).
-definedP(_Nm,localVar(_,_,_)).
+definedP(_Nm,moduleFun(_,_,_,Tp),Tp).
+definedP(_Nm,localFun(_,_,_,_,Tp),Tp).
+definedP(_Nm,moduleVar(_,Tp),Tp).
+definedP(_Nm,localVar(_,_,Tp),Tp).
 
 labelVars(Map,Prgs) :-
   lblVars(Map,[],Prgs).
@@ -142,7 +142,7 @@ lblVars([lyr(Vrs,_,_,ThVr)|Map],Pr,Prx) :-
   lblVars(Map,Pr1,Prx).
 
 labelVarsInDefs([],Pr,Pr).
-labelVarsInDefs([_-labelArg(V,_,_ThVr)|Defs],Pr,Prx) :-
+labelVarsInDefs([_-labelArg(V,_,_ThVr,_)|Defs],Pr,Prx) :-
   (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
   labelVarsInDefs(Defs,Pr0,Prx).
 labelVarsInDefs([_|Defs],Pr,Prx) :-
@@ -166,18 +166,16 @@ mergeSeq(Lc,L,R,seq(Lc,L,R)).
 
 pushOpt(Opts,Opt,[Opt|Opts]).
 
-genVar(Prefix,idnt(V)) :-
+genVar(Prefix,Tp,idnt(V,Tp)) :-
   genstr(Prefix,V).
 
-genVars(0,[]).
-genVars(K,[V|Rest]) :-
-  K>0,
-  K1 is K-1,
-  genVar("_V",V),
-  genVars(K1,Rest).
+genVars([],[]).
+genVars([Tp|Tps],[V|Rest]) :-
+  genVar("_V",Tp,V),
+  genVars(Tps,Rest).
 
 genAnons(0,[]).
-genAnons(K,[anon|Rest]) :-
+genAnons(K,[ann(voidType)|Rest]) :-
   K>0,
   K1 is K-1,
   genAnons(K1,Rest).
@@ -202,13 +200,13 @@ ssMap(Msg,Map,sq([ss(Msg),nl(0),iv(nl(0),MM)])) :-
   map(Map,transutils:ssLayer,MM).
 
 ssLayer(lyr(VarMap,TpMap,ConsMap,void),sq([ss("Top layer:"),nl(0),iv(nl(0),DD)])) :-
-  ssConsMap(ConsMap,MM),
+  ssMap(ConsMap,MM),
   ssDecMap(VarMap,VV),
   ssDecMap(TpMap,TT),
   flatten([MM,VV,TT],DD).
 ssLayer(lyr(VarMap,TpMap,ConsMap,ThVr),
 	  sq([ss("layer:"),ss("«"),TV,ss("»"),nl(0),iv(nl(0),DD)])) :-
-  ssConsMap(ConsMap,MM),
+  ssMap(ConsMap,MM),
   ssTrm(ThVr,0,TV),
   ssDecMap(VarMap,VV),
   ssDecMap(TpMap,TT),
@@ -218,7 +216,7 @@ ssDecMap(Map,XX) :-
   dict_pairs(Map,_,Pairs),
   map(Pairs,transutils:ssLyrDec,XX).
   
-ssConsMap(Map,S) :-
+ssMap(Map,S) :-
   dict_pairs(Map,_,Pairs),
   map(Pairs,transutils:ssPair,S).
 
@@ -231,22 +229,23 @@ ssConsIndex(V,iv(ss(","),XX)) :-
 ssIxPr((Lbl,Ix),sq([LL,ss(":"),ix(Ix)])) :-
   ssTrm(Lbl,0,LL).
 
-ssLyrDec(Nm-moduleFun(LclName,_AccessName,Ar),
+ssLyrDec(Nm-moduleFun(LclName,_AccessName,Ar,_),
 	 sq([ss("Global Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar)])).
-ssLyrDec(Nm-localFun(LclName,_ClosureName,Ar,ThV),
+ssLyrDec(Nm-localFun(LclName,_ClosureName,Ar,ThV,_),
 	 sq([ss("Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar),ss("@"),TT])) :-
   ssTrm(ThV,0,TT).
-ssLyrDec(Nm-localVar(LclName,_AccessName,ThV),
+ssLyrDec(Nm-localVar(LclName,ThV,_),
 	 sq([ss("Var "),id(Nm),ss("="),ss(LclName),ss("@"),TT])) :-
   ssTrm(ThV,0,TT).
-ssLyrDec(Nm-localVar(_,Val),
+ssLyrDec(Nm-localVar(_,Val,_),
 	 sq([ss("Var "),id(Nm),ss("="),VV])) :-
   ssTerm(Val,0,VV).
-ssLyrDec(Nm-moduleVar(LclName),
+ssLyrDec(Nm-moduleVar(LclName,_Tp),
 	 sq([ss("Global Var "),id(Nm),ss("="),ss(LclName)])).
-ssLyrDec(Nm-labelArg(_Field,Ix,ThV),
-	 sq([ss("Free Var "),id(Nm),ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
-  ssTrm(ThV,0,TT).
+ssLyrDec(Nm-labelArg(_Field,Ix,ThV,Tp),
+	 sq([ss("Free Var "),id(Nm),ss(":"),TT,ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
+  ssTrm(ThV,0,TT),
+  ssType(Tp,false,0,TT).
 ssLyrDec(Nm-moduleType(TpNm,_Tp,IxMap),
 	 sq([ss("Module type "),id(Nm),ss("="),ss(TpNm),CC])) :-
   ssConsIndex(IxMap,CC).

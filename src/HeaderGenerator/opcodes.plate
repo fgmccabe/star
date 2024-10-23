@@ -4,12 +4,11 @@
  * all rights reserved
  **/
 
-#ifndef _OPCODES_H_
-#define _OPCODES_H_
+#ifndef OPCODES_H_
+#define OPCODES_H_
 
 typedef enum {
-  #(OpCodes)
-  label,
+#(OpCodes)
   illegalOp,
   maxOpCode
 } OpCode;
@@ -26,7 +25,6 @@ typedef enum {
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
   lcs,          // Store to local variable
-  off,          /* offset within current code */
   Es,           // escape code 0..65535
   lit,          /* constant literal */
   sym,          // Symbol
@@ -34,7 +32,7 @@ typedef enum {
   tPe,          // Type signature
   bLk,          // A block of instructions
   lVl,          // How many blocks to break out of
+  lNe,          // Special marker for line numbers
 } opAndSpec;                    // Specification code for an operand
 
 #endif
-

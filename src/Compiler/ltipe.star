@@ -5,11 +5,12 @@ star.compiler.ltipe{
   import star.compiler.types.
 
   public ltipe ::= .int64 |
-    .flt64 |
-    .bool |
-    .ptr |
-    .funTipe(cons[ltipe],ltipe) |
-    .tplTipe(cons[ltipe]).
+  .flt64 |
+  .bool |
+  .ptr |
+  .funTipe(cons[ltipe],ltipe) |
+  .tplTipe(cons[ltipe]) |
+  .voidTipe.
 
   public implementation display[ltipe] => let{.
     showTp:(ltipe) => string.
@@ -20,6 +21,7 @@ star.compiler.ltipe{
       | .ptr => "ptr"
       | .funTipe(As,R) => "(#(showTp(.tplTipe(As))))->#(showTp(R))"
       | .tplTipe(As) => "(#(interleave(As//showTp,",")*))"
+      | .voidTipe => "v"
     }
   .} in {
     disp = showTp
@@ -34,6 +36,7 @@ star.compiler.ltipe{
       | .funTipe(A1,R1) => .funTipe(A2,R2).=Tp2 &&
 	  eqs(A1,A2) && eq(R1,R2)
       | .tplTipe(A1) => .tplTipe(A2).=Tp2 &&eqs(A1,A2)
+      | .voidTipe => .voidTipe.=Tp2
     }
 
     eqs([],[])=>.true.
@@ -50,6 +53,7 @@ star.compiler.ltipe{
       | .ptr => hash("ptr")
       | .funTipe(A1,R1)=> hshs(A1,hash("=>"))*37+hsh(R1)
       | .tplTipe(A1)=>hshs(A1,hash("()"))
+      | .voidTipe => hash("v")
     }
 
     hshs([],H)=>H.
@@ -77,7 +81,8 @@ star.compiler.ltipe{
     | .bool => [`l`]
     | .ptr => [`p`]
     | .funTipe(As,R) => [`F`,..encTp(.tplTipe(As))]++encTp(R)
-    | .tplTipe(As) => [`(`]++.multi(As//encTp)++[`)`].
+    | .tplTipe(As) => [`(`]++.multi(As//encTp)++[`)`]
+    | .voidTipe => [`v`]
   }
 
 
@@ -94,6 +99,7 @@ star.compiler.ltipe{
     .} in decTps(Cs,[])
     | `F` where (.tplTipe(As),C0)?=decTp(Cs) && (Rt,Cx) ?= decTp(C0) =>
       .some((.funTipe(As,Rt),Cx))
+    | `v` => .some((.voidTipe,Cs))
   }
 
   reduceTp:(tipe)=>ltipe.
@@ -107,6 +113,7 @@ star.compiler.ltipe{
     | _ where (A,R) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
       .funTipe(As//reduceTp,reduceTp(R))
     | .tupleType(A) => .tplTipe(A//reduceTp)
+    | .voidType => .voidTipe
     | _ default => .ptr
   }
 }

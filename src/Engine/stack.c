@@ -32,10 +32,13 @@ SpecialClass StackClass = {
   .dispFun = stkDisp
 };
 
-static insWord underflowCode[] = {Underflow, 0};
-static insWord newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
-static insWord newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
-static insWord spawnCode[] = {TOCall, 0, 2};
+static Instruction underflowCode[] = {Underflow, 0};
+
+static Instruction newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
+
+static Instruction newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
+
+static Instruction spawnCode[] = {TOCall, 0, 2};
 
 methodPo underflowMethod;
 methodPo newFiberMethod;
@@ -53,11 +56,10 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
 
-  underflowMethod = declareMethod("underflow", 0, underflowCode, NumberOf(underflowCode));
-
-  newFiberMethod = declareMethod("newFiber", 0, newFiberCode, NumberOf(newFiberCode));
-  newTaskMethod = declareMethod("newTask", 0, newTaskCode, NumberOf(newTaskCode));
-  spawnMethod = declareMethod("spawn", 0, spawnCode, NumberOf(spawnCode));
+  underflowMethod = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
+  newFiberMethod = specialMethod("newFiber", 0, NumberOf(newFiberCode), newFiberCode, NULL, 0);
+  newTaskMethod = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);
+  spawnMethod = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -304,7 +306,7 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
         stk->sp = (ptrPo) (try + 1);
         stk->fp->pc = try->pc;
         stk->try = try->try;
-        validPC(frameMtd(stk->fp), stk->fp->pc);
+        assert(validPC(frameMtd(stk->fp), stk->fp->pc));
         return stk;
       } else
         try = stk->try = try->try;
@@ -449,13 +451,12 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
   assert(isMethod((termPo) mtd));
   if (normalCode(mtd)) {
     insPo pc = fp->pc;
-    integer pcOffset = insOffset(mtd, pc);
+    termPo loc = findPcLocation(mtd, codeOffset(mtd, fp->pc));
 
-    termPo locn = findPcLocation(mtd, pcOffset);
-    if (locn != Null)
-      outMsg(out, "[%d] %#L: %T", frameNo, locn, mtd);
+    if (loc != Null)
+      outMsg(out, "[%d] %L: %T", frameNo, loc, mtd);
     else
-      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pcOffset);
+      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pc);
 
     integer count = argCount(mtd);
 

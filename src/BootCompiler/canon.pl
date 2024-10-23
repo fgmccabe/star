@@ -1,7 +1,7 @@
 :- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispAction/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,ssRule/3,ssDecl/2,
 		 dispDecls/1,
-		 typeOfCanon/2,locOfCanon/2,
+		 typeOfCanon/2,typesOf/2,locOfCanon/2,
 		 constructorName/2,constructorType/2,
 		 isCanonDef/1,isCanon/1,isSimpleCanon/1,
 		 isPkg/1,isGoal/1,isIterableGoal/1,
@@ -117,6 +117,11 @@ typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
+
+typesOf([],[]).
+typesOf([C|Cs],[Tp|Tps]) :-
+  typeOfCanon(C,Tp),
+  typesOf(Cs,Tps).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.

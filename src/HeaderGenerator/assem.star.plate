@@ -19,36 +19,34 @@ star.compiler.assem{
     disp(.softDefinition) => "soft".
   }
 
-  public codeSegment ::= .func(termLbl,codePolicy,tipe,integer,cons[assemOp]) |
-    .global(termLbl,tipe,integer,cons[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,integer,cons[assemOp]) |
+    .global(termLbl,ltipe,integer,cons[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
   public assemOp ::=
 #(OpCodes)
-    .iLbl(assemLbl) |
-    .iLocal(string,assemLbl,assemLbl,integer) |
-    .iLine(data).
+    .iLbl(string, assemOp).
 
-  public assemLbl ::= .al(string).
+  public assemLbl ::= .bo(string) | .bp(string).
 
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
     | .func(Nm,H,Sig,Lx,Ins) => valof{
+      funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
-      (_,Lbls) = genLblTbl(Ins,0,[]);
-      (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
+      (Lt1,tpIx) = findLit(Lt0,funSig);
+      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
       valis mkCons("func",
-          [.symb(Nm),encPolicy(H),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data]),
-              mkTpl(sortLines(Lns))])
+          [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data])])
     }
     | .global(Nm,Sig,Lx,Ins) => valof{
+      funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
-      (_,Lbls) = genLblTbl(Ins,0,[]);
-      (Code,Lts,Lns,Lcs,_,_Max) = assemBlock(Ins,Lbls,Lt0,[],[],0,0,[]);
+      (Lt1,tpIx) = findLit(Lt0,funSig);
+      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
       valis mkCons("global",
-         [.symb(Nm),.strg(encodeSignature(Sig)),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs}),
-              mkTpl(sortLines(Lns))])
+         [.symb(Nm),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs})])
     }
     | .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
@@ -61,74 +59,73 @@ star.compiler.assem{
   encPolicy(.hardDefinition) => mkTpl([]).
   encPolicy(.softDefinition) => mkTpl([.strg("soft")]).
 
-  private assemBlock:(cons[assemOp],map[string,integer],map[data,integer],map[data,integer],
-                      set[data],integer,integer,cons[integer]) =>
-                                        (multi[data],map[data,integer],map[data,integer],set[data],integer,integer).
-  assemBlock(Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where (End,_).=genLblTbl(Code,Pc,[])
-    => mnem(Code,[],Lbls,Lts,Lns,Lcs,Pc,MxLcl,[End,..Ends]).
+  private assemBlock:(cons[assemOp],multi[data],cons[string],map[data,integer],set[data]) =>
+                                        (multi[data],map[data,integer],set[data]).
+  assemBlock([],Code,Lbls,Lts,Lcx) => (Code,Lts,Lcx).
+  assemBlock([I,..Ins],SoFar,Lbs,Lts,Lcx) => valof{
+    (Code,Lt0,Lc0) = mnem(I,Lbs,Lts,Lcx);
+    valis assemBlock(Ins,SoFar++Code,Lbs,Lt0,Lc0)
+  }
 
-  private mnem:(cons[assemOp],multi[data],map[string,integer],map[data,integer],map[data,integer],set[data],integer,integer,cons[integer]) =>
-    (multi[data],map[data,integer],map[data,integer],set[data],integer,integer).
-  mnem([],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,_) => (Code,Lts,Lns,Lcs,Pc,MxLcl).
-  mnem([.iLbl(_),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends).
-  mnem([.iLocal(Nm,.al(Frm),.al(End),Off),..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) where
-    F ?= Lbls[Frm] &&
-    T ?= Lbls[End] =>
-    mnem(Ins,Code,Lbls,Lts,Lns,Lcs\+mkTpl([.strg(Nm),.intgr(F),.intgr(T),.intgr(Off)]),Pc,MxLcl,Ends).
-  mnem([.iLine(Lc),..Ins],Code,Lbs,Lts,Lns,Lcs,Pc,MxLcl,Ends) =>
-        mnem(Ins,Code,Lbs,Lts,Lns[mkTpl([Lc,.intgr(Pc)])->Pc],Lcs,Pc,MxLcl,Ends).
+  private mnem:(assemOp,cons[string],map[data,integer],set[data]) =>
+    (multi[data],map[data,integer],set[data]).
+  mnem(.iLbl(Lb,I),Lbls,Lts,Lcs) => mnem(I,[Lb,..Lbls],Lts,Lcs).
 #(Mnem)
-  mnem([I,..Ins],Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends) => valof{
+  mnem(I,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
-    valis mnem(Ins,Code,Lbls,Lts,Lns,Lcs,Pc,MxLcl,Ends)
+    valis ([],Lts,Lcs)
   }.
-
-  genLblTbl:(cons[assemOp],integer,map[string,integer]) => (integer,map[string,integer]).
-  genLblTbl([],Pc,Lbls) => (Pc,Lbls).
-  genLblTbl([.iLbl(.al(Lbl)),..Ins],Pc,Lbls) =>
-    genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
-  genLblTbl([.iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
-    genLblTbl(Ins,Pc,Lbls).
-  genLblTbl([.iLine(T),..Ins],Pc,Lbs) => genLblTbl(Ins,Pc,Lbs).
-#(Lbls)
-
-  findEnd:(cons[integer],integer)=>integer.
-  findEnd([E,.._],0) => E.
-  findEnd([_,..Ends],Lvl) => findEnd(Ends,Lvl-1).
 
   findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
+  findLevel:(cons[string],assemLbl) => option[integer].
+  findLevel(Lbs,Lb) => let{.
+    findLvl([],_) => .none.
+    findLvl([LL,.._], Lvl) where .bo(LL) .= Lb => .some(Lvl).
+    findLvl([LL,.._], Lvl) where .bp(LL) .= Lb => .some(-Lvl).
+    findLvl(["",..Ls],Lvl) => findLvl(Ls,Lvl+1).
+    findLvl([_,..Ls],Lvl) => findLvl(Ls,Lvl).
+  .} in findLvl(Lbs,0).
+
   litTbl:(map[data,integer]) => data.
   litTbl(Lts) => mkTpl(sort(Lts::cons[(data,integer)],((T1,Ix1), (T2,Ix2)) => Ix1<Ix2)//fst).
 
-  sortLines:(map[data,integer]) => cons[data].
-  sortLines(Lns) => (sort(Lns::cons[(data,integer)],compLine)//fst).
-
-  compLine:((data,integer),(data,integer))=>boolean.
-  compLine((T1,P1),(T2,P2)) => P1<P2.
-
   public implementation display[assemLbl] => {
-    disp(.al(L)) => L
+    disp(.bo(L)) => "→\\#(L)".
+    disp(.bp(L)) => "←\\#(L)".
   }
 
   public implementation display[codeSegment] => {
-    disp(.func(Nm,_,Tp,_,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
-    disp(.global(Nm,Tp,_,Ins)) => "glb $(Nm)\:$(Tp)\n"++showMnem(Ins,0).
+    disp(.func(Nm,_,Tp,_,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins).
+    disp(.global(Nm,Tp,_,Ins)) => "glb $(Nm)\:$(Tp)\n"++showMnem(Ins).
     disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
     disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
   }
 
   public implementation display[assemOp] => {
-    disp(Op) => showMnem([Op],0).
+    disp(Op) => showIns(Op,[]).
   }
 
-  showMnem:(cons[assemOp],integer) => string.
-  showMnem([],_) => "".
-  showMnem([.iLbl(.al(Lb)),..Ins],Pc) => "\#(Lb):\n"++showMnem(Ins,Pc).
-  showMnem([.iLocal(Nm,.al(Frm),.al(End),Off),..Ins],Pc) => "\#(Nm)\::$(Frm)-$(End)\:$(Off)\n"++showMnem(Ins,Pc).
+  showMnem:(cons[assemOp]) => string.
+  showMnem(Ops) => showBlock(Ops,[0]).
+
+  showBlock:(cons[assemOp],cons[integer]) => string.
+  showBlock(Ins,Pc) => interleave(showCode(Ins,Pc),"\n")*.
+
+  showCode([],_) => [].
+  showCode([Ins,..Cde],Pc) => ["\\#(showPc(Pc)\: \\#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
+
+  showIns:(assemOp,cons[integer]) => string.
+  showIns(.iLbl(Lb,I),Pc) => "\#(Lb): \\#(showIns(I,Pc))".
 #(Show)
+
+  showPc:(cons[integer]) => string.
+  showPc(Pcs) => interleave(Pcs//disp,":")*.
+
+  bumpPc:(cons[integer]) => cons[integer].
+  bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
   public opcodeHash = #(Hash).
 }

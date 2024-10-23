@@ -26,8 +26,8 @@ static integer newProcessNumber();
 
 __thread processPo currentProcess = Null;
 
-static insWord haltCode[] = {Halt, 0};
 
+static Instruction haltCode[] =  {Halt, 0};
 
 methodPo haltMethod;
 
@@ -35,7 +35,7 @@ void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltMethod = declareMethod("halt", 0, haltCode, NumberOf(haltCode));
+  haltMethod = specialMethod("halt", 0, NumberOf(haltCode), haltCode, NULL, 0);
 
   runTimer = newTimer("running");
 }

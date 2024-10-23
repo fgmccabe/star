@@ -8,6 +8,7 @@
 #include <string.h>
 #include "config.h"
 #include "arrayP.h"
+#include "quick.h"
 
 poolPo arrayPool = Null;
 
@@ -37,6 +38,24 @@ arrayPo fixedArray(int elSize, integer initial, void *data) {
   ar->count = 0;
   ar->growable = False;
   return ar;
+}
+
+retCode reserveRoom(arrayPo ar, integer count) {
+  if (ar->dataLength < count * ar->elSize) {
+    if (ar->growable) {
+      integer newSize = ar->dataLength + count * ar->elSize;
+      void *newData = realloc(ar->data, newSize);
+      if (newData == Null)
+        return Space;
+      else {
+        ar->data = newData;
+        ar->dataLength = newSize;
+        return Ok;
+      }
+    } else
+      return Error;
+  } else // Already enough room
+    return Ok;
 }
 
 retCode appendEntry(arrayPo ar, void *el) {
@@ -69,6 +88,11 @@ void *nthEntry(arrayPo ar, integer ix) {
   return ar->data + (ar->elSize * ix);
 }
 
+void setNth(arrayPo ar, integer ix, void *el) {
+  assert(ix >= 0 && ix < ar->count);
+  memcpy(&ar->data[ix], el, ar->elSize);
+}
+
 retCode dropEntry(arrayPo ar, integer ix) {
   assert(ix >= 0 && ix < ar->count);
   void *tgt = nthEntry(ar, ix);
@@ -78,7 +102,7 @@ retCode dropEntry(arrayPo ar, integer ix) {
 }
 
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
-  if (eraser != Null )
+  if (eraser != Null)
     processArrayElements(ar, eraser, cl);
 
   if (ar->growable)
@@ -96,4 +120,43 @@ retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {
     }
   }
   return ret;
+}
+
+typedef struct {
+  arrayPo src;
+  compareEls compare;
+  void *cl;
+} ArrayCtx;
+
+static comparison elComp(integer el1, integer el2, void *cl) {
+  ArrayCtx *ctx = (ArrayCtx *) cl;
+  return ctx->compare(ctx->src, el1, el2, ctx->cl);
+}
+
+static retCode swapEntry(integer el1, integer el2, void *cl) {
+  ArrayCtx *ctx = (ArrayCtx *) cl;
+  byte buffer[ctx->src->elSize];
+
+  void *entry1 = nthEntry(ctx->src, el1);
+  void *entry2 = nthEntry(ctx->src, el2);
+
+  assert(entry1 != Null && entry2 != Null);
+  memcpy(buffer, entry1, ctx->src->elSize);
+  memcpy(entry1, entry2, ctx->src->elSize);
+  memcpy(entry2, buffer, ctx->src->elSize);
+  return Ok;
+}
+
+retCode sortArray(arrayPo ar, compareEls compare, void *cl) {
+  ArrayCtx ctx = {.src=ar, .compare=compare, .cl=cl};
+  return quick(0, arrayCount(ar), elComp, swapEntry, (void *) &ctx);
+}
+
+retCode copyOutData(arrayPo ar, void *buffer, integer buffSize) {
+  if (buffSize < ar->elSize * ar->count)
+    return Space;
+  else {
+    memcpy(buffer, ar->data, buffSize);
+    return Ok;
+  }
 }

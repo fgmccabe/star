@@ -4,6 +4,7 @@
 
 #include <heapP.h>
 #include <memory.h>
+#include "array.h"
 #include <arith.h>
 #include "codeP.h"
 #include "labelsP.h"
@@ -13,6 +14,8 @@
 #include "quick.h"
 #include "tpl.h"
 #include "globals.h"
+#include "decodeP.h"
+#include "pkgP.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -70,15 +73,17 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo) &mtd->pool, c);
-  helper((ptrPo) &mtd->locals, c);
-  helper((ptrPo) &mtd->lines, c);
 
   return ((termPo) o) + mtdSize(cl, o);
 }
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
-  free((void *) mtd->instructions);
+  if (mtd->instructions != Null) {
+    free(mtd->instructions);
+    mtd->instructions = Null;
+  }
+
   return ((termPo) o) + mtdSize(class, o);
 }
 
@@ -99,7 +104,7 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
     return showLbl(out, lbl, 0, precision, alt);
   } else {
     outMsg(out, "<unknown mtd: ");
-    disass(out, Null, mtd, mtd->instructions);
+    dissassMtd(out, Null, mtd, precision, depth, alt, "");
     return outMsg(out, ">");
   }
 }
@@ -112,66 +117,68 @@ labelPo mtdLabel(methodPo mtd) {
   return Null;
 }
 
-integer insOffset(methodPo m, insPo pc) {
-  return (integer) (pc - m->instructions);
-}
-
-insPo pcAddr(methodPo mtd, integer pcOffset) {
-  return &mtd->instructions[pcOffset];
-}
-
 integer stackDelta(methodPo mtd) {
   assert(mtd != Null);
   return mtd->stackDelta;
 }
 
 logical validPC(methodPo mtd, insPo pc) {
-  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->codeSize]);
+  return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
+}
+
+int32 codeOffset(methodPo mtd, insPo pc){
+  assert(validPC(mtd,pc));
+  return pc-mtd->instructions;
 }
 
 integer mtdCodeSize(methodPo mtd) {
-  return mtd->codeSize;
+  return mtd->insCount;
 }
 
-termPo findPcLocation(methodPo mtd, integer pc) {
-  normalPo lines = mtd->lines;
-  if (lines != Null) {
+termPo findPcLocation(methodPo mtd, int32 pc) {
+  arrayPo locs = mtd->locs;
+  if (locs != Null) {
     integer start = 0;
-    integer limit = termArity(lines) - 1;
+    integer limit = arrayCount(locs) - 1;
 
     integer lowerPc = -1;
     integer upperPc = mtdCodeSize(mtd);
 
-    termPo lowerLoc = Null;
-    termPo upperLoc = Null;
+    int32 lowerLoc = -1;
+    int32 upperLoc = -1;
 
     while (limit >= start) {
       integer mid = start + (limit - start) / 2;
-      normalPo midEntry = C_NORMAL(nthArg(lines, mid));
-      integer testPc = integerVal(nthArg(midEntry, 1));
-      termPo testLoc = nthArg(midEntry, 0);
+      methodLocPo midEntry = (methodLocPo) nthEntry(locs, mid);
+      int32 testPc = midEntry->pc;
+      int32 testLit = midEntry->litNo;
 
-      if (testPc == pc)
-        return testLoc;
-      else if (testPc < pc) {
+      if (testPc == pc) {
+        if (testLit > 0)
+          return getMtdLit(mtd, testLit);
+        else
+          return Null;
+      } else if (testPc < pc) {
         start = mid + 1;
         if (testPc > lowerPc) {
           lowerPc = testPc;
-          lowerLoc = testLoc;
+          lowerLoc = testLit;
         }
       } else {
         limit = mid - 1;
 
         if (testPc < upperPc) {
           upperPc = testPc;
-          upperLoc = testLoc;
+          upperLoc = testLit;
         }
       }
     }
-    if (lowerLoc != Null)
-      return lowerLoc;
+    if (lowerLoc >0)
+      return getMtdLit(mtd, lowerLoc);
+    else if(upperLoc>-1)
+      return getMtdLit(mtd, upperLoc);
     else
-      return upperLoc;
+      return Null;
   } else
     return Null;
 }
@@ -265,27 +272,32 @@ integer codeArity(methodPo mtd) {
   return mtd->arity;
 }
 
+integer methodSigLit(methodPo mtd)
+{
+  return mtd->sigIx;
+}
+
+integer codeSize(methodPo mtd){
+  return mtd->insCount;
+}
+
 methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals, normalPo lines) {
+defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,
+          labelPo lbl, normalPo pool, arrayPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
-  gcAddRoot(H, (ptrPo) &locals);
-  gcAddRoot(H, (ptrPo) &lines);
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
-  size_t codeSize = insCount * sizeof(insWord);
-  mtd->instructions = (insPo) malloc(codeSize);
-  memcpy((void *) mtd->instructions, ins, codeSize);
-
-  mtd->codeSize = insCount;
+  mtd->entryCount = 0;
+  mtd->insCount = insCount;
+  mtd->instructions = instructions;
   mtd->jit = Null;
+  mtd->sigIx = funSigIx;
   mtd->arity = labelArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
-  mtd->locals = locals;
-  mtd->lines = lines;
+  mtd->locs = locs;
   mtd->stackDelta = stackDelta;
 
   lbl->mtd = mtd;
@@ -295,14 +307,15 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
   return mtd;
 }
 
-methodPo declareMethod(const char *name, integer arity, insPo ins, integer insCount) {
+methodPo
+specialMethod(const char *name, integer arity, integer insCount, insPo instructions, termPo sigTerm, integer lclCount) {
   labelPo lbl = declareLbl(name, arity, 0);
-  normalPo pool = allocateTpl(globalHeap, 1);
+  normalPo pool = allocateTpl(globalHeap, 2);
   setArg(pool, 0, (termPo) lbl);
+  setArg(pool, 1, sigTerm);
 
-  return defineMtd(globalHeap, ins, insCount, 0, 0, lbl, pool, C_NORMAL(unitEnum), C_NORMAL(unitEnum));
+  return defineMtd(globalHeap, insCount, instructions, 1, 0, 0, 0, pool, Null);
 }
-
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;

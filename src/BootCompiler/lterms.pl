@@ -7,10 +7,11 @@
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
 		  termHash/2,
-		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,
+		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,ssConsMap/2,
 		  idInTerm/2, 
 		  mergeGl/4,
-		  validLProg/2]).
+		  validLProg/2,
+		 tipeOf/2]).
 
 :- use_module(display).
 :- use_module(misc).
@@ -19,7 +20,6 @@
 :- use_module(location).
 :- use_module(types).
 :- use_module(escapes).
-:- use_module(intrinsics).
 :- use_module(errors).
 
 mergeGl(none,G,_,G).
@@ -81,8 +81,10 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
-ssTrm(idnt(Nm),_,id(Nm)) :-!.
-ssTrm(anon,_,ss("_")) :-!.
+ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp])) :-!,
+      ssType(T,false,Dp,STp).
+ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])).
+ssTrm(ann(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
@@ -95,19 +97,15 @@ ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ocall(_,Op,Args),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
+ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(voke(_,K,Args),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
+ssTrm(voke(_,K,Args,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
   ssTrm(K,Dp,KK),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(ecll(_,Es,Args),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
-  Dp1 is Dp+2,
-  showArgs(Args,Dp1,AA).
-ssTrm(intrinsic(_,Op,Args),Dp,sq([id(OpNm),ss("<"),AA,ss(">")])) :-!,
-  atom_string(Op,OpNm),
+ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
 ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
@@ -116,8 +114,8 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   showArgs(A,Dp1,AA).
 ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss(":"),FF])) :-
   ssTrm(Free,Dp,FF).
-ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])) :-!.
-ssTrm(nth(_,Rc,Off),Dp,sq([OO,ss("."),ix(Off)])) :-!,
+ssTrm(enum(Nm,_Tp),_,sq([ss("."),id(Nm)])) :-!.
+ssTrm(nth(_,Rc,Off,_),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
 ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
@@ -147,9 +145,6 @@ ssTrm(case(_,G,Cases,Deflt),Dp,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
-ssTrm(unpack(_,G,Cases),Dp, sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssTrm,CC).
 ssTrm(seqD(_,L,R),Dp,sq([LL,ss(";"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
@@ -214,10 +209,6 @@ ssAct(case(_,G,Cases,Deflt),Dp,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssAct(Deflt,Dp,DD).
-ssAct(unpack(_,G,Cases),Dp,
-      sq([ss("unpack "),GG,ss(" in "),CC])) :-!,
-  ssTrm(G,Dp,GG),
-  ssCases(Cases,Dp,lterms:ssAct,CC).
 ssAct(iftte(_,G,T,nop(_)),Dp,
       sq([ss("if "),GG,ss(" then "),nl(Dp2),TT])) :-!,
   Dp2 is Dp+2,
@@ -304,18 +295,19 @@ substGoal(Q,some(In),some(Out)) :-
 substAction(Q,In,Out) :-
   rewriteAction(lterms:applyQ(Q),In,Out),!.
 
-applyQ(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
+applyQ(Q,idnt(Nm,_),Trm) :- is_member((Nm,Trm),Q),!.
 
 substTerms(Q,Els,NEls):-
   map(Els,lterms:substTerm(Q),NEls).
 
 rewriteTerm(QTst,T,T1) :-
   call(QTst,T,T1),!.
+rewriteTerm(_,idnt(Nm,Tp),idnt(Nm,Tp)).
 rewriteTerm(_,voyd,voyd).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,bigx(Ix),bigx(Ix)).
-rewriteTerm(_,idnt(Nm),idnt(Nm)).
-rewriteTerm(_,anon,anon).
+rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
+rewriteTerm(_,ann(T),ann(T)).
 rewriteTerm(_,float(Dx),float(Dx)).
 rewriteTerm(_,chr(Cp),chr(Cp)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
@@ -330,13 +322,13 @@ rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
 rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
+rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,voke(Lc,Op,Args),voke(Lc,NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,nth(Lc,Op,Off),nth(Lc,NOp,Off)) :-
+rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
   rewriteTerm(QTest,Op,NOp).
 rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
   rewriteTerm(QTest,T,NT).
@@ -353,9 +345,7 @@ rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,intrinsic(Lc,Op,Args),intrinsic(Lc,Op,NArgs)) :-
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
+rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
@@ -367,9 +357,6 @@ rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
-rewriteTerm(QTest,unpack(Lc,T,C),unpack(Lc,NT,NC)) :-
-  rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC).
 rewriteTerm(QTest,seqD(Lc,L,R),seqD(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -442,9 +429,6 @@ rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
 rewriteAction(QTest,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,D,ND),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
-rewriteAction(QTest,unpack(Lc,G,C),unpack(Lc,GG,CC)) :-
-  rewriteTerm(QTest,G,GG),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
 rewriteAction(QTest,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
   rewriteTerm(QTest,G,GG),
@@ -520,28 +504,26 @@ termHash(lbl(Nm,Ar),Hx) :-
 locTerm(loc(Pk,Ln,Col,Pos,Len),Tpl) :-
   mkTpl([strg(Pk),intgr(Ln),intgr(Col),intgr(Pos),intgr(Len)],Tpl).
 
-idInTerm(idnt(Nm),Term) :-
+idInTerm(idnt(Nm,_),Term) :-
   inTerm(Term,Nm),!.
 
-inTerm(idnt(Nm),Nm).
+inTerm(idnt(Nm,_),Nm).
 inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
 inTerm(cll(_,_,Args),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm).
-inTerm(ocall(_,Op,_),Nm) :-
+inTerm(ocall(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
-inTerm(ocall(_,_Op,Args),Nm) :-
+inTerm(ocall(_,_Op,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(voke(_,Op,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(voke(_,_Op,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(ecll(_,_,Args),Nm) :-
+inTerm(ecll(_,_,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(intrinsic(_,_Op,Args),Nm) :-
-  is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(nth(_,Op,_),Nm) :-
+inTerm(nth(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(cel(_,C),Nm) :-
   inTerm(C,Nm).
@@ -572,10 +554,6 @@ inTerm(varNames(_,_,T),Nm) :-
 inTerm(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inTerm(case(_,_T,C),Nm) :-
-  is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
-inTerm(unpack(_,T,_C),Nm) :-
-  inTerm(T,Nm),!.
-inTerm(unpack(_,_T,C),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
 inTerm(seqD(_,L,R),Nm) :-
   inTerm(L,Nm) ; inTerm(R,Nm).
@@ -619,10 +597,6 @@ inAction(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inAction(case(_,_T,C),Nm) :-
   is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
-inAction(unpack(_,T,_C),Nm) :-
-  inTerm(T,Nm),!.
-inAction(unpack(_,_T,C),Nm) :-
-  is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
 inAction(iftte(_,G,L,R),Nm) :-!,
   (inTerm(G,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm)).
 inAction(whle(_,G,L),Nm) :-!,
@@ -638,6 +612,38 @@ isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
+
+tipeOf(voyd,voidType).
+tipeOf(ann(Tp),Tp).
+tipeOf(idnt(_,T),T).
+tipeOf(intgr(_),Tp) :- stdType("integer",Tp,_),!.
+tipeOf(flot(_),Tp) :- stdType("float",Tp,_),!.
+tipeOf(rais(_,_,_),voidType).
+tipeOf(cll(_,_,_,T),T).
+tipeOf(ocall(_,_,_,T),T).
+tipeOf(voke(_,_,_,T),T).
+tipeOf(ecll(_,_,_,T),T).
+tipeOf(nth(_,_,_,T),T).
+tipeOf(cel(_,_,T),T).
+tipeOf(get(_,_,T),T).
+tipeOf(setix(_,_,_,_),voidType).
+tipeOf(enum(_),voidType).
+tipeOf(ctpl(_,Args),tplType(AA)) :-
+  map(Args,lterms:tipeOf,AA).
+tipeOf(resme(_,_,_,T),T).
+tipeOf(whr(_,E,_),T) :-
+  tipeOf(E,T).
+tipeOf(varNames(_,_,E),T) :-
+  tipeOf(E,T).
+tipeOf(case(_,_G,_C,_D,T),T).
+tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
+tipeOf(cnj(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(dsj(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
+tipeOf(mtch(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(ng(_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
+tipeOf(vlof(_,_,T),T).
 
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
   declareNms(PkgDecls,[],Dct),
@@ -676,13 +682,13 @@ declareDef(impDec(_,Nm,_),Dct,Dx) :-
 declareArgs(Args,Dct,Dx) :-
   rfold(Args,lterms:declareArg,Dct,Dx).
 
-declareArg(idnt(Nm),D,Dx) :-
+declareArg(idnt(Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
 
-validTerm(idnt(Nm),Lc,D) :-
+validTerm(idnt(Nm,_),Lc,D) :-
   (is_member(Nm,D) -> true ; 
    reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
-validTerm(anon,_,_).
+validTerm(ann(_),_,_).
 validTerm(voyd,_,_).
 validTerm(intgr(_),_,_).
 validTerm(bigx(_),_,_).
@@ -692,7 +698,7 @@ validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
 validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
   validTerms(Args,Lc,D).
-validTerm(ocall(Lc,Op,Args),_,D) :-
+validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
 validTerm(clos(_,_,Free),Lc,D) :-
@@ -700,11 +706,8 @@ validTerm(clos(_,_,Free),Lc,D) :-
 validTerm(voke(Lc,Op,Args),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
-validTerm(ecll(Lc,Es,Args),_,D) :-
+validTerm(ecll(Lc,Es,Args,_),_,D) :-
   isEscape(Es),!,
-  validTerms(Args,Lc,D).
-validTerm(intrinsic(Lc,Is,Args),_,D) :-
-  isIntrinsic(_,_,Is),
   validTerms(Args,Lc,D).
 validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
@@ -712,7 +715,7 @@ validTerm(rais(Lc,T,E),_,D) :-
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
   validTerms(Args,Lc,D).
 validTerm(enum(_),_,_).
-validTerm(nth(Lc,Rc,Off),_,D) :-
+validTerm(nth(Lc,Rc,Off,_),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D).
 validTerm(cel(Lc,C),_,D) :-
@@ -742,9 +745,6 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
-validTerm(unpack(Lc,G,Cases),_,D) :-
-  validTerm(G,Lc,D),
-  validCases(Cases,lterms:validTerm,D).
 validTerm(try(Lc,B,T,E,H),_,D) :-
   declareArg(T,D,D1),
   validTerm(B,Lc,D1),
@@ -791,9 +791,9 @@ validTerms([A|Args],Lc,D) :-
 
 validVr(Id,D,[Id|D]).
 
-validPtn(idnt(Nm),_,D,Dx) :-
+validPtn(idnt(Nm,_),_,D,Dx) :-
   add_mem(Nm,D,Dx).
-validPtn(anon,_,Dx,Dx).
+validPtn(ann(_),_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
 validPtn(bigx(_),_,Dx,Dx).
@@ -804,7 +804,7 @@ validPtn(lbl(_,_),_,Dx,Dx).
 validPtn(ctpl(lbl(_,_),Args),Lc,D,Dx) :-
   validPtns(Args,Lc,D,Dx).
 validPtn(enum(_),_,Dx,Dx).
-validPtn(nth(Lc,Rc,_),_,D,Dx) :-
+validPtn(nth(Lc,Rc,_,_),_,D,Dx) :-
   validPtn(Rc,Lc,D,Dx).
 validPtn(whr(Lc,Ptn,Cond),_,D,Dx) :-
   validPtn(Ptn,Lc,D,D0),
@@ -866,9 +866,6 @@ validAction(case(Lc,G,C,Df),_,D,Dx) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D),
   validAction(Df,Lc,D,Dx).
-validAction(unpack(Lc,G,C),_,D,D) :-
-  validTerm(G,Lc,D),
-  validCases(C,lterms:validAct,D).
 validAction(iftte(Lc,G,L,R),_,D,Dx) :-!,
   glVars(G,D,D0),
   validTerm(G,Lc,D0),
@@ -899,9 +896,9 @@ validAction(try(Lc,B,T,E,H),_,D,D) :-
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 
-ptnVars(idnt(Nm),D,Dx) :-
+ptnVars(idnt(Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
-ptnVars(anon,Dx,Dx).
+ptnVars(ann(_),Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(bigx(_),Dx,Dx).
@@ -911,16 +908,14 @@ ptnVars(strg(_),Dx,Dx).
 ptnVars(lbl(_,_),Dx,Dx).
 ptnVars(cll(_,_,Args),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(ocall(_,_,Args),D,Dx) :-
+ptnVars(ocall(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(ecll(_,_,Args),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(intrinsic(_,_,Args),D,Dx) :-
+ptnVars(ecll(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ctpl(_,Args),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(enum(_),Dx,Dx).
-ptnVars(nth(_,Rc,_),D,Dx) :-
+ptnVars(nth(_,Rc,_,_),D,Dx) :-
   ptnVars(Rc,D,Dx).
 ptnVars(whr(_,Ptn,Cond),D,Dx) :-
   ptnVars(Ptn,D,D0),
