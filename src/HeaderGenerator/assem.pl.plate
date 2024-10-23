@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:- module(assemble,[assem/2, dispCode/1, opcodeHash/1]).
+:- module(assemble,[assem/2, dispCode/1, dispIns/1, opcodeHash/1]).
 :- use_module(misc).
 :- use_module(lterms).
 :- use_module(types).
@@ -8,7 +8,7 @@
 :- use_module(display).
 :- use_module(escapes).
 
-assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
+assem(func(Nm,H,Sig,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
     assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
@@ -17,6 +17,7 @@ assem(func(Nm,H,Sig,Lx,Ins),MTpl) :-
     mkTpl(Lcs,LcsTpl),
     encPolicy(H,HP),
     hwm(Ins,0,0,HWM),
+    localHwm(Ins,0,0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -37,7 +38,11 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   mkTpl([Lbl,intgr(Ix)],E),
   encMap(Map,MM).
 
-#(Hwm)
+hwm([],_,H,H).
+#(stackHwm)
+
+localHwm([],_,H,H).
+#(localHwm)
 
 assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
     mnem(Ins,[Lb|Lbs],Lt,Lts,Lc,Lcx,Code,Cdx).
@@ -89,7 +94,7 @@ dispCode(Prog) :-
   showCode(Prog,O),
   displayln(O).
 
-showCode(func(Nm,H,Sig,_Lx,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showCode(func(Nm,H,Sig,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
   ssTrm(Nm,0,NN),
   showMnems(Ins,[0],II),
   ssPolicy(H,HH),!.
@@ -103,8 +108,12 @@ showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).
 
+dispIns(Ins) :-
+  showBlock(Ins,[],O),
+  displayln(O).
+
 showBlock(Ins,Prefix,iv(nl(K),II)) :-
-  K is length(Prefix)*2,
+  pcSpace(Prefix,K),
   showMnems(Ins,[0|Prefix],II).
 
 showMnems([],_,[ss("end")]).
