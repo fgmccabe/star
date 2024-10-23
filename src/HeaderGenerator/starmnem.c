@@ -36,7 +36,6 @@ int getOptions(int argc, char **argv) {
   return optind;
 }
 
-static char *dot(opAndSpec A);
 static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt);
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
@@ -157,16 +156,6 @@ static char *capitalize(char *str) {
     buffer[0] = (char) ('A' + (buffer[0] - 'a'));
   }
   return buffer;
-}
-
-char *dot(opAndSpec A) {
-  switch (A) {
-    case nOp:
-    case tOs:
-      return ".";
-    default:
-      return "";
-  }
 }
 
 static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {

@@ -16,7 +16,7 @@ typedef enum {
     Escape = 5,            // call C escape
     TCall = 6,            // TCall <prog>
     TOCall = 7,            // TOCall
-    Locals = 8,            // locals definition
+    Entry = 8,            // locals definition
     Ret = 9,            // return
     Block = 10,            // block of instructions
     Break = 11,            // leave block
@@ -108,7 +108,7 @@ typedef enum {
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1940171491073006432
+#define OPCODE_SIGNATURE 1960799436663205384
 #endif
 
 typedef enum {

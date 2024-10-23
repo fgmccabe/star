@@ -394,8 +394,8 @@ retCode run(processPo P) {
         continue;       /* Were done */
       }
 
-      case Locals: {
-        int32 height = PC->fst;
+      case Entry: {
+        integer height = lclCount(frameMtd(FP));
         assert(height >= 0);
         SP = ((ptrPo) FP) - height;
         for (integer ix = 0; ix < height; ix++)

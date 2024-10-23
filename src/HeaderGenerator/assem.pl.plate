@@ -36,31 +36,35 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   mkTpl([Lbl,intgr(Ix)],E),
   encMap(Map,MM).
 
-assemBlock(Ins,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-    mnem(Ins,[none|Lbs],Lt,Lts,Lc,Lcx,Code,Cdx).
+#(Hwm)
+
+assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
+    mnem(Ins,[Lb|Lbs],Lt,Lts,Lc,Lcx,Code,Cdx).
 
 mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-  mnem(Inner,[(Lb,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
-  mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
-mnem([iLocal(Nm,Scope,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-    findLevel(0,Lbs,Scope,Lvl),
-    mkTpl([strg(Nm),intgr(Lvl),intgr(Off)],Entry),
-    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
-    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Code,Cdx).
+      baseOffset(Lbs,Base),
+      mnem(Inner,[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
+      mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 #(Mnem)
 
-findLevel(Lvl,[(Tgt,_)|_],Tgt,Lvl) :-!.
+baseOffset([(_,Base,_)|_],Base).
+baseOffset([],0).
+
+findLevel(Lvl,[(Tgt,_,_)|_],Tgt,Lvl) :-!.
 findLevel(L,[none|Ends],Tgt,Lo) :-
-  L1 is L+1,
-  findLevel(L1,Ends,Tgt,Lo).
+      L1 is L+1,
+      findLevel(L1,Ends,Tgt,Lo).
 findLevel(L,[_|Ends],Tgt,Lo) :-
   findLevel(L,Ends,Tgt,Lo).
 
-findLocal(Nm,[(_,Lcls)|_],Off) :-
-  is_member((Nm,Off),Lcls),!.
+findLocal(Nm,[(_,_.Lcls)|_],Off) :-
+      is_member((Nm,Off),Lcls),!.
 findLocal(Nm,[_|Lvls],Off) :-
-  findLocal(Nm,Lvls,Off).
+      findLocal(Nm,Lvls,Off).
+
+declareLocal(Nm,[(Tgt,Off,Lcls)|Lbs],[(Tgt,NxtOff,[(Nm,Off)|Lcls])|Lbs],Off) :-
+      NxtOff is Off+1.
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
@@ -112,7 +116,6 @@ showMnems([M|Ins],Pc,[MM|II]) :-
   bumpPc(Pc,Pc1),
   showMnems(Ins,Pc1,II).
 
-showMnem(iLocal(Nm,Scope,Off),_Pc,sq([ss(Nm),ss("::"),ss(Scope),ss(":"),ix(Off)])).
 #(Show)
 
 opcodeHash(#(Hash)).
