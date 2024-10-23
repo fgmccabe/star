@@ -65,7 +65,7 @@ genFun(D,Opts,Lc,Nm,H,Tp,Args,Value,CdTrm) :-
   genRet(Opts,FC1,[],Stk1,_),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   findMaxLocal(Dx,Mx),
-  genDbg(Opts,C,[iLocals(Mx)|C0]),
+  genDbg(Opts,C,[iEntry)|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,Cde));true ),
@@ -81,7 +81,7 @@ genGlb(D,Opts,Lc,Nm,Tp,Value,Cd) :-
   compAbort(Lc,strg("def failed"),[],Opts,L2,_L3,D1,Dx,CA,[iHalt(10)],some(0),_),
   genRet(Opts,FC1,[],Stk0,_),
   findMaxLocal(Dx,Mx),
-  genDbg(Opts,C,[iLocals(Mx)|C0]),
+  genDbg(Opts,C,[iEntry|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispCode(func(lbl(Nm,0),hard,Sig,Mx,Cde));true ),
@@ -93,7 +93,7 @@ genRet(Opts,C,Cx,_Stk,none) :-
 dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
   dropStk(Stk,1,Stk1).
 
-resetVars(scope(Vrs,FrReg,M0),scope(_,_,M1),scope(Vrs,FrReg,Mx)) :-
+resetVars(scope(Vrs,M0),scope(_,M1),scope(Vrs,Mx)) :-
   Mx is max(M0,M1).
 
 mergeVars(scope(V1,Fr1,M1),scope(V2,Fr2,M2),scope(Vx,Frx,Mx)) :-
@@ -101,7 +101,7 @@ mergeVars(scope(V1,Fr1,M1),scope(V2,Fr2,M2),scope(Vx,Frx,Mx)) :-
   intersect(Fr1,Fr2,Frx),
   Mx is max(M1,M2).
 
-initDict(scope([],[],0)).
+initDict(scope([],0)).
 
 buildArgs([],_,D,D) :-!.
 buildArgs([A|R],Ix,D,Dx) :-
@@ -109,8 +109,7 @@ buildArgs([A|R],Ix,D,Dx) :-
   Ix1 is Ix+1,
   buildArgs(R,Ix1,D0,Dx).
 
-buildArg(idnt(Nm,Tp),Ix,scope(D,FreeRg,Mx),
-	 scope([(Nm,T,a(Ix))|D],FreeRg,Mx)) :-!,
+buildArg(idnt(Nm,Tp),Ix,scope(D,Mx),scope([(Nm,T,a(Ix))|D],Mx)) :-!,
   toLtipe(Tp,T).
 buildArg(_,_,D,D).
 

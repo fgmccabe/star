@@ -33,7 +33,7 @@ star.compiler.assem{
     .iEscape(string) |
     .iTCall(termLbl) |
     .iTOCall(integer) |
-    .iLocals(integer) |
+    .iEntry |
     .iRet |
     .iBlock(ltipe,cons[assemOp]) |
     .iBreak(assemLbl) |
@@ -172,7 +172,7 @@ star.compiler.assem{
   mnem(.iEscape(U),Lbls,Lts,Lcs) => ([.intgr(5),.strg(U)],Lts,Lcs).
   mnem(.iTCall(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(6),.intgr(LtNo)],Lt1,Lcs).
   mnem(.iTOCall(U),Lbls,Lts,Lcs) => ([.intgr(7),.intgr(U)],Lts,Lcs).
-  mnem(.iLocals(U),Lbls,Lts,Lcs) => ([.intgr(8),.intgr(U)],Lts,Lcs).
+  mnem(.iEntry,Lbls,Lts,Lcs) => ([.intgr(8)],Lts,Lcs).
   mnem(.iRet,Lbls,Lts,Lcs) => ([.intgr(9)],Lts,Lcs).
   mnem(.iBlock(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Lts1,Lcs1) .= assemBlock(V,[],["",..Lbls],Lt1,Lcs) => ([.intgr(10),.intgr(LtNo),mkTpl(Blk::cons[data])],Lts1,Lcs1).
   mnem(.iBreak(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(11),.intgr(Lvl)],Lts,Lcs).
@@ -315,7 +315,7 @@ star.compiler.assem{
   showIns(.iEscape(U),Pc) => "Escape $(U)".
   showIns(.iTCall(U),Pc) => "TCall $(U)".
   showIns(.iTOCall(U),Pc) => "TOCall $(U)".
-  showIns(.iLocals(U),Pc) => "Locals $(U)".
+  showIns(.iEntry,Pc) => "Entry".
   showIns(.iRet,Pc) => "Ret".
   showIns(.iBlock(U,V),Pc) => "Block $(U) $(V)".
   showIns(.iBreak(U),Pc) => "Break $(U)".
@@ -409,5 +409,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1940171491073006432.
+  public opcodeHash = 1960799436663205384.
 }
