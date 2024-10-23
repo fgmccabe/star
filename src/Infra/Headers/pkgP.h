@@ -7,7 +7,6 @@
 
 #include "pkg.h"
 #include "starOptions.h"
-//#include "debugP.h"
 
 typedef struct _package_record_ {
   char packageName[MAX_SYMB_LEN];
@@ -30,6 +29,11 @@ extern packagePo markLoaded(char *package, char *version);
 extern logical isLoadedPackage(packagePo pkg);
 
 extern retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt);
+
+retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl);
+
+typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *cl);
+retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
 
 extern tracingLevel tracePkg;
 

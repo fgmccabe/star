@@ -4,11 +4,11 @@
  * all rights reserved
  **/
 
-#ifndef _OPCODES_H_
-#define _OPCODES_H_
+#ifndef OPCODES_H_
+#define OPCODES_H_
 
 typedef enum {
-      Halt = 0,            // Stop execution
+    Halt = 0,            // Stop execution
     Nop = 1,            // No operation
     Abort = 2,            // abort with message
     Call = 3,            // Call <prog>
@@ -16,54 +16,54 @@ typedef enum {
     Escape = 5,            // call C escape
     TCall = 6,            // TCall <prog>
     TOCall = 7,            // TOCall
-    Locals = 8,            // locals definition
+    Entry = 8,            // locals definition
     Ret = 9,            // return
-    Jmp = 10,            // jump lbl
-    Block = 11,            // block of instructions
-    Break = 12,            // leave block
+    Block = 10,            // block of instructions
+    Break = 11,            // leave block
+    Loop = 12,            // jump back to start of block
     Drop = 13,            // drop top of stack
     Dup = 14,            // duplicate top of stack
     Rot = 15,            // Pull up nth element of stack
     Rst = 16,            // reset stack height to a fixed height
-    Fiber = 17,            // Create new fiber
-    Spawn = 18,            // spawn a new task
-    Suspend = 19,            // suspend fiber
-    Resume = 20,            // resume fiber
-    Retire = 21,            // retire a fiber
-    Underflow = 22,            // underflow from current stack
-    TEq = 23,            // L R --> L==R, where L,R are tasks
-    Try = 24,            // start a try-catch block
-    EndTry = 25,            // clear a try block
-    Throw = 26,            // Invoke a continuation
-    Reset = 27,            // establish a delimited zone
-    Shift = 28,            // capture continuation
-    Invoke = 29,            // invoke continuation
-    LdV = 30,            // Place a void value on stack
-    LdC = 31,            // load literal from constant pool
-    LdA = 32,            // load stack from args[xx]
-    LdL = 33,            // load stack from local[xx]
-    StL = 34,            // store tos to local[xx]
-    StV = 35,            // clear a local to void
-    TL = 36,            // copy tos to local[xx]
-    StA = 37,            // store tos to args[xx]
-    LdG = 38,            // load a global variable
-    StG = 39,            // store into a global variable
-    TG = 40,            // copy into a global variable
-    Thunk = 41,            // create a thunk from a lambda
-    LdTh = 42,            // derefence a thunk, potentially running its lambda
-    StTh = 43,            // store a value into a thunk variable
-    TTh = 44,            // update thunk and leave on stack
-    Cell = 45,            // create R/W cell
-    Get = 46,            // access a R/W cell
-    Assign = 47,            // assign to a R/W cell
-    CLbl = 48,            // T,Lbl --> test for a data term, branch if lbl
-    Nth = 49,            // T --> el, pick up the nth element
-    StNth = 50,            // T el --> store in nth element
-    If = 51,            // break if true
-    IfNot = 52,            // break if false
-    Case = 53,            // T --> T, case <Max> 
-    IndxJmp = 54,            // check and jump on index
-    Unpack = 55,            // check against term & unpack
+    Pick = 17,            // pick n entries, reset stack height
+    Fiber = 18,            // Create new fiber
+    Spawn = 19,            // spawn a new task
+    Suspend = 20,            // suspend fiber
+    Resume = 21,            // resume fiber
+    Retire = 22,            // retire a fiber
+    Underflow = 23,            // underflow from current stack
+    TEq = 24,            // L R --> L==R, where L,R are tasks
+    Try = 25,            // a try-catch block
+    EndTry = 26,            // end try block
+    Throw = 27,            // Invoke a continuation
+    Reset = 28,            // establish a delimited zone
+    Shift = 29,            // capture continuation
+    Invoke = 30,            // invoke continuation
+    LdV = 31,            // Place a void value on stack
+    LdC = 32,            // load literal from constant pool
+    LdA = 33,            // load stack from args[xx]
+    LdL = 34,            // load stack from local[xx]
+    StL = 35,            // store tos to local[xx]
+    StV = 36,            // clear a local to void
+    TL = 37,            // copy tos to local[xx]
+    StA = 38,            // store tos to args[xx]
+    LdG = 39,            // load a global variable
+    StG = 40,            // store into a global variable
+    TG = 41,            // copy into a global variable
+    Thunk = 42,            // create a thunk from a lambda
+    LdTh = 43,            // derefence a thunk, potentially running its lambda
+    StTh = 44,            // store a value into a thunk variable
+    TTh = 45,            // update thunk and leave on stack
+    Cell = 46,            // create R/W cell
+    Get = 47,            // access a R/W cell
+    Assign = 48,            // assign to a R/W cell
+    CLbl = 49,            // T,Lbl --> test for a data term, break if lbl
+    Nth = 50,            // T --> el, pick up the nth element
+    StNth = 51,            // T el --> store in nth element
+    If = 52,            // break if true
+    IfNot = 53,            // break if false
+    Case = 54,            // T --> T, case <Max> 
+    IndxJmp = 55,            // check and jump on index
     IAdd = 56,            // L R --> L+R
     ISub = 57,            // L R --> L-R
     IMul = 58,            // L R --> L*R
@@ -100,14 +100,15 @@ typedef enum {
     Cmp = 89,            // t1 t2 --> , branch to offset if not same literal
     Frame = 90,            // frame instruction
     dBug = 91,            // debugging prefix
+    Line = 92,            // mark location in source
+    Local = 93,            // introduce local variable
 
-  label,
   illegalOp,
   maxOpCode
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1179729356229233166
+#define OPCODE_SIGNATURE 1960799436663205384
 #endif
 
 typedef enum {
@@ -118,7 +119,6 @@ typedef enum {
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
   lcs,          // Store to local variable
-  off,          /* offset within current code */
   Es,           // escape code 0..65535
   lit,          /* constant literal */
   sym,          // Symbol
@@ -126,7 +126,7 @@ typedef enum {
   tPe,          // Type signature
   bLk,          // A block of instructions
   lVl,          // How many blocks to break out of
+  lNe,          // Special marker for line numbers
 } opAndSpec;                    // Specification code for an operand
 
 #endif
-

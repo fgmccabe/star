@@ -18,6 +18,24 @@
  'l': List
 */
 
+decodeData(Txt,Val) :-
+  string_chars(Txt,Chrs),
+  phrase(decodeDta(Val),Chrs).
+
+decodeDta(intgr(Nm)) --> ['x'], decInt(Nm).
+decodeDta(bigx(Ix)) --> ['b'], tdigits(Ix).
+decodeDta(float(Dx)) --> ['d'], decFloat(Dx).
+decodeDta(ctpl(Nm,[])) --> ['e'], decodeText(Nm).
+decodeDta(chr(Cp)) --> ['c'], decodeChar(Cp).
+decodeDta(strg(Txt)) --> ['s'], decodeText(Txt).
+decodeDta(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
+decodeDta(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeDta(Con), decTrms(Len,Els).
+decodeDta(clos(Nm,Ar,Free)) --> ['p'], decodeDta(lbl(Nm,Ar)), decodeDta(Free).
+decodeDta(lst(Els)) --> ['l'], decInt(Len), decTerms(Len,Els).
+
+decTrms(0,[]) --> [].
+decTrms(Count,[D|M]) --> { Count>0}, decodeDta(D), { C is Count-1}, decTrms(C,M).
+
 decodeValue(Txt,Val) :-
   string_chars(Txt,Chrs),
   phrase(decodeTerm(Val),Chrs).

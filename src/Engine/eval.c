@@ -22,9 +22,6 @@
 
 logical collectStats = False;
 
-#define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
-#define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
-
 #define checkAlloc(Count) STMT_WRAP({\
   if (reserveSpace(H, Count) != Ok) {\
     saveRegisters();\
@@ -76,7 +73,7 @@ retCode run(processPo P) {
 
   currentProcess = P;
 
-  for (;;) {
+  for (;; PC++) {
     pcCount++;        /* increment total number of executed */
 
     if (insDebugging) {
@@ -85,9 +82,9 @@ retCode run(processPo P) {
       restoreRegisters();
     }
 
-    switch ((OpCode) (*PC++)) {
+    switch (PC->op) {
       case Halt: {
-        int32 exitCode = collectI32(PC);
+        int32 exitCode = PC->fst;
 
         return (retCode) exitCode;
       }
@@ -107,7 +104,7 @@ retCode run(processPo P) {
       }
 
       case Call: {
-        labelPo nProg = C_LBL(nthElem(LITS, collectI32(PC)));
+        labelPo nProg = C_LBL(nthElem(LITS, PC->fst));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
 
         if (mtd == Null) {
@@ -125,8 +122,7 @@ retCode run(processPo P) {
             verifyStack(STK, H);
 #endif
         }
-
-        assert(isPcOfMtd(frameMtd(FP), PC));
+        assert(validPC(frameMtd(FP), PC));
         FP->pc = PC;
 
         if (hasJit(mtd)) {
@@ -148,7 +144,7 @@ retCode run(processPo P) {
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        int arity = collectI32(PC);
+        int arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
           logMsg(logFile, "Calling non-closure %T", cl);
@@ -182,7 +178,7 @@ retCode run(processPo P) {
 #endif
         }
 
-        assert(isPcOfMtd(frameMtd(FP), PC));
+        assert(validPC(frameMtd(FP), PC));
         FP->pc = PC;
         pushFrme(mtd);
         LITS = codeLits(mtd);
@@ -190,8 +186,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Escape: {     /* call escape */
-        int32 escNo = collectI32(PC); /* escape number */
+      case Escape: {                     /* call escape */
+        int32 escNo = PC->fst;           /* escape number */
 
         if (collectStats)
           recordEscape(escNo);
@@ -293,7 +289,7 @@ retCode run(processPo P) {
       }
 
       case TCall: {       /* Tail call of explicit program */
-        termPo nProg = nthElem(LITS, collectI32(PC));
+        termPo nProg = nthElem(LITS, PC->fst);
         labelPo lbl = C_LBL(nProg);
         integer arity = labelArity(lbl);
 
@@ -341,7 +337,7 @@ retCode run(processPo P) {
       }
 
       case TOCall: {       /* Tail call */
-        int arity = collectI32(PC);
+        int arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
           logMsg(logFile, "Calling non-closure %T", cl);
@@ -398,8 +394,8 @@ retCode run(processPo P) {
         continue;       /* Were done */
       }
 
-      case Locals: {
-        int32 height = collectI32(PC);
+      case Entry: {
+        integer height = lclCount(frameMtd(FP));
         assert(height >= 0);
         SP = ((ptrPo) FP) - height;
         for (integer ix = 0; ix < height; ix++)
@@ -414,16 +410,21 @@ retCode run(processPo P) {
         SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
-        LITS =FP->pool;
+        LITS = FP->pool;
 
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
       }
 
-      case Jmp:       /* jump to local offset */
-        PC = collectOff(PC);
-        assert(validPC(frameMtd(FP), PC));
+      case Block: {
+        PC += PC->alt;
         continue;
+      }
+
+      case Break: {
+        PC += PC->alt;
+        continue;
+      }
 
       case Drop: {
         SP++;       /* drop tos */
@@ -437,7 +438,7 @@ retCode run(processPo P) {
       }
 
       case Rot: {       // Pull up nth element of stack
-        integer cnt = collectI32(PC);
+        integer cnt = PC->fst;
         termPo tmp = SP[0];
 
         for (integer ix = 0; ix < cnt; ix++) {
@@ -448,7 +449,7 @@ retCode run(processPo P) {
       }
 
       case Rst: {
-        int32 height = collectI32(PC);
+        int32 height = PC->fst;
         assert(height >= 0);
         SP = &local(lclCount(frameMtd(FP)) + height);
         continue;
@@ -599,7 +600,7 @@ retCode run(processPo P) {
 #endif
           }
 
-          assert(isPcOfMtd(frameMtd(FP), PC));
+          assert(validPC(frameMtd(FP), PC));
           FP->pc = PC;
           pushFrme(mtd);
           LITS = codeLits(mtd);
@@ -608,16 +609,15 @@ retCode run(processPo P) {
         }
       }
 
-      case Invoke:{                        // Invoke a continuation on current top of stack
+      case Invoke: {                        // Invoke a continuation on current top of stack
         termPo event = pop();
         termPo k = pop();
-        if(!isContinuation(k)){
+        if (!isContinuation(k)) {
           logMsg(logFile, "tried to invoke non-continuation %T", k);
           bail();
-        }
-        else{
+        } else {
           continuationPo cont = C_CONTINUATION(k);
-          if(continIsValid(cont)){
+          if (continIsValid(cont)) {
             stackPo stack = contStack(cont);
             invalidateCont(cont);
 
@@ -626,7 +626,7 @@ retCode run(processPo P) {
             restoreRegisters();
             push(event);
             continue;
-          } else{
+          } else {
             logMsg(logFile, "continuation %T not in valid state", k);
             bail();
           }
@@ -634,12 +634,11 @@ retCode run(processPo P) {
       }
 
       case Try: {
-        insPo exit = collectOff(PC);
-        assert(validPC(frameMtd(FP), exit));
+        assert(validPC(frameMtd(FP), PC+PC->alt));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
 
         saveRegisters();
-        integer tryIndex = pushTryFrame(STK, P, exit, SP, FP);
+        integer tryIndex = pushTryFrame(STK, P, PC + PC->alt, SP, FP);
         restoreRegisters();
         push(makeInteger(tryIndex));
 #ifdef TRACESTACK
@@ -708,23 +707,23 @@ retCode run(processPo P) {
       }
 
       case LdC:     /* load literal value from pool */
-        push(nthElem(LITS, collectI32(PC)));
+        push(nthElem(LITS, PC->fst));
         continue;
 
       case LdA: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         push(arg(offset));    /* load argument */
         continue;
       }
 
       case LdL: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         push(local(offset));      /* load local */
         continue;
       }
 
       case LdG: {
-        int32 glbNo = collectI32(PC);
+        int32 glbNo = PC->fst;
 
         globalPo glb = findGlobalVar(glbNo);
 
@@ -769,9 +768,9 @@ retCode run(processPo P) {
       }
 
       case CLbl: {
-        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
+        labelPo l = C_LBL(nthElem(LITS, PC->fst));
         termPo t = top();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (isNormalPo(t)) {
@@ -784,7 +783,7 @@ retCode run(processPo P) {
       }
 
       case Nth: {
-        int32 ix = collectI32(PC);  /* which element */
+        int32 ix = PC->fst;  /* which element */
         termPo t = pop();
         check(isNormalPo(t), "tried to access non term");
 
@@ -795,34 +794,34 @@ retCode run(processPo P) {
       }
 
       case StL: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = pop();
         continue;
       }
 
       case StV: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = voidEnum;
         continue;
       }
       case TL: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = top();
         continue;
       }
 
       case StA: {
-        int32 offset = collectI32(PC);
+        int32 offset = PC->fst;
         ptrPo dest = &arg(offset);
         *dest = pop();     /* store as argument */
         continue;
       }
 
       case StNth: {      /* store into a closure */
-        int32 ix = collectI32(PC);
+        int32 ix = PC->fst;
         termPo tos = pop();
         normalPo cl = C_NORMAL(pop());
         cl->args[ix] = tos;
@@ -830,7 +829,7 @@ retCode run(processPo P) {
       }
 
       case StG: {
-        int32 glbNo = collectI32(PC);
+        int32 glbNo = PC->fst;
         termPo val = pop();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
@@ -838,7 +837,7 @@ retCode run(processPo P) {
       }
 
       case TG: {
-        int32 glbNo = collectI32(PC);
+        int32 glbNo = PC->fst;
         termPo val = top();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
@@ -862,8 +861,6 @@ retCode run(processPo P) {
 
       case LdTh: {
         thunkPo thVr = C_THUNK(pop());
-        insPo exit = collectOff(PC);
-        assert(validPC(frameMtd(FP), exit));
 
         if (thunkIsSet(thVr)) {
           termPo vr = thunkVal(thVr);
@@ -871,7 +868,9 @@ retCode run(processPo P) {
           check(vr != Null, "undefined thunk value");
 
           push(vr);     /* load thunk variable */
-          PC = exit;    // Jump past call
+
+          assert(validPC(frameMtd(FP), PC+PC->alt));
+          PC += PC->alt;    // Jump into thunk block
         } else {
           closurePo thLambda = thunkLam(thVr);
 
@@ -905,7 +904,7 @@ retCode run(processPo P) {
 #endif
           }
 
-          assert(isPcOfMtd(frameMtd(FP), PC));
+          assert(validPC(frameMtd(FP), PC));
           FP->pc = PC;
           pushFrme(mtd);
           LITS = codeLits(mtd);
@@ -1058,7 +1057,7 @@ retCode run(processPo P) {
       case ICmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (integerVal(i) != integerVal(j))
@@ -1092,7 +1091,7 @@ retCode run(processPo P) {
       case CCmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (charVal(i) != charVal(j))
@@ -1246,7 +1245,7 @@ retCode run(processPo P) {
       case FCmp: {
         termPo x = pop();
         termPo y = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (floatVal(x) != floatVal(y))
@@ -1255,40 +1254,22 @@ retCode run(processPo P) {
       }
 
       case Case: {      /* case instruction */
-        int32 mx = collectI32(PC);
+        int32 mx = PC->fst;
 
         termPo tos = top();
         integer hx = hashTerm(tos) % mx;
 
-        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
+        PC = (insPo) ((void *) PC + hx + 1);
         continue;
       }
 
       case IndxJmp: {    // Branch based on index of constructor term
-        int32 mx = collectI32(PC);
+        int32 mx = PC->fst;
         normalPo top = C_NORMAL(top());
         labelPo lbl = termLbl(top);
         integer hx = labelIndex(lbl);
 
-        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
-        continue;
-      }
-
-      case Unpack: {
-        labelPo l = C_LBL(nthElem(LITS, collectI32(PC)));
-        termPo t = pop();
-        insPo exit = collectOff(PC);
-
-        assert(validPC(frameMtd(FP), exit));
-
-        normalPo n;
-        if (isNormalPo(t) && sameLabel(l, termLbl(n = C_NORMAL(t)))) {
-          integer arity = labelArity(l);
-          for (integer ix = arity - 1; ix >= 0; ix--)
-            push(nthElem(n, ix));
-        } else {
-          PC = exit;
-        }
+        PC = (insPo) ((void *) PC + hx + 1);
         continue;
       }
 
@@ -1300,7 +1281,7 @@ retCode run(processPo P) {
             return ret;
           restoreRegisters();
         }
-        labelPo cd = C_LBL(nthElem(LITS, collectI32(PC)));
+        labelPo cd = C_LBL(nthElem(LITS, PC->fst));
 
         if (!labelDefined(cd)) {
           logMsg(logFile, "label %L not defined", cd);
@@ -1314,7 +1295,7 @@ retCode run(processPo P) {
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo lbl = C_LBL(nthElem(LITS, collectI32(PC)));
+        labelPo lbl = C_LBL(nthElem(LITS, PC->fst));
         integer arity = labelArity(lbl);
 
         if (enoughRoom(H, lbl) != Ok) {
@@ -1334,7 +1315,7 @@ retCode run(processPo P) {
       case Cmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, j))
@@ -1344,7 +1325,7 @@ retCode run(processPo P) {
 
       case If: {
         termPo i = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (sameTerm(i, trueEnum))
@@ -1354,7 +1335,7 @@ retCode run(processPo P) {
 
       case IfNot: {
         termPo i = pop();
-        insPo exit = collectOff(PC);
+        insPo exit = PC+PC->alt;
         assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, trueEnum))
@@ -1364,7 +1345,7 @@ retCode run(processPo P) {
 
       case Frame: {
 #ifdef TRACESTACK
-        termPo frame = nthElem(LITS, collectI32(PC));
+        termPo frame = nthElem(LITS, PC->fst);
         if (stackVerify) {
           integer frameDepth;
           if (isString(frame)) {

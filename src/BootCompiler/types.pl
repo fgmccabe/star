@@ -1,6 +1,6 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
-	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,
+	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,mkFnTipe/3,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
 	   progTypeArity/2,progArgTypes/2,funResType/2,
@@ -8,6 +8,7 @@
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
+	   ssTipe/2,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
@@ -294,10 +295,10 @@ tpArity(_,0).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 
-tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
+tpArgTypes(allType(_,Tp),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
-tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
-tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(constrained(Tp,_),ArTps) :- progArgTypes(Tp,ArTps).
+tpArgTypes(funType(A,_),ArTps) :- progArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -507,20 +508,34 @@ toLtipe(Tp,LTp) :-
 toLtp(type("star.core*integer"),i64Tipe) :- !.
 toLtp(type("star.core*float"),f64Tipe) :- !.
 toLtp(type("star.core*boolean"),blTipe) :- !.
-toLtp(funType(Args,Res),fnTipe(As,R)) :-
+toLtp(funType(Args,Res),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(tplType(Args),tplTipe(As)) :-
+toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
+toLtp(voidType,vdTipe) :-!.
 toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-
   mkPtrs(Cnt,As),!.
 
+mkFnTipe(Args,Res,fnTipe(tplTipe(Args),Res)).
+
 mkPtrs(0,[]) :-!.
 mkPtrs(I,[ptrTipe|As]) :-
   I1 is I-1,
   mkPtrs(I1,As).
+
+
+ssTipe(ptrTipe,ss("p")).
+ssTipe(i64Tipe,ss("i")).
+ssTipe(f64Tipe,ss("f")).
+ssTipe(blTipe,ss("l")).
+ssTipe(tplTipe(Tps),sq([ss("("),iv(ss(","),SS),ss(")")])) :-
+  map(Tps,types:ssTipe,SS).
+ssTipe(fnTipe(A,R),sq([AA,ss(" => "),RR])) :-
+  ssTipe(A,AA),
+  ssTipe(R,RR).
 
 unitTp(tplType([])).
 

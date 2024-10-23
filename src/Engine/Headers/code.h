@@ -7,8 +7,8 @@
 #include "normal.h"
 #include "opcodes.h"
 
-typedef uint16 insWord;
-typedef const insWord *insPo;
+//typedef uint16 insWord;
+typedef struct instruction_ *insPo;
 
 typedef struct method_ *methodPo;
 
@@ -24,11 +24,12 @@ termPo getMtdLit(methodPo mtd, integer litNo);
 
 integer lclCount(methodPo mtd);
 integer codeArity(methodPo mtd);
+integer methodSigLit(methodPo mtd);
 
-termPo findPcLocation(methodPo mtd, integer pc);
-integer insOffset(methodPo m, insPo pc);
-insPo pcAddr(methodPo mtd, integer pcOffset);
-integer mtdCodeSize(methodPo mtd);
+integer codeSize(methodPo mtd);
+termPo findPcLocation(methodPo mtd, int32 pc);
+logical validPC(methodPo mtd, insPo pc);
+int32 codeOffset(methodPo mtd, insPo pc);
 
 integer callCount(methodPo mtd);
 
