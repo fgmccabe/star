@@ -4,11 +4,11 @@
  * all rights reserved
  **/
 
-#ifndef _OPCODES_H_
-#define _OPCODES_H_
+#ifndef OPCODES_H_
+#define OPCODES_H_
 
 typedef enum {
-      Halt = 0,            // Stop execution
+    Halt = 0,            // Stop execution
     Nop = 1,            // No operation
     Abort = 2,            // abort with message
     Call = 3,            // Call <prog>
@@ -130,4 +130,3 @@ typedef enum {
 } opAndSpec;                    // Specification code for an operand
 
 #endif
-
