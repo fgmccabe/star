@@ -65,7 +65,7 @@ genFun(D,Opts,Lc,Nm,H,Tp,Args,Value,CdTrm) :-
   genRet(Opts,FC1,[],Stk1,_),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   findMaxLocal(Dx,Mx),
-  genDbg(Opts,C,[iEntry)|C0]),
+  genDbg(Opts,C,[iEntry|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,C));true ),
   peepOptimize(C,Cde),
   (is_member(showGenCode,Opts) -> dispCode(func(Nm,H,Sig,Mx,Cde));true ),
@@ -128,9 +128,11 @@ genDebug(Opts,Debug,[Debug|Cx],Cx) :-
   is_member(debugging,Opts),!.
 genDebug(_,_,Cx,Cx).
 
-clearLclVar(Nm,scope(Vrs,FreeRg,Mx),scope(NVrs,NFreeRg,NMx)) :-
-  subtract((Nm,_,l(Off),_,_),Vrs,NVrs),
-  addToFree(Off,FreeRg,Mx,NFreeRg,NMx).
+clearLclVar(_Nm,Scope,Scope).
+
+%% scope(Vrs,Mx),scope(NVrs,NMx)) :-
+%%   subtract((Nm,_,l(Off),_,_),Vrs,NVrs),
+%%   addToFree(Off,FreeRg,Mx,NFreeRg,NMx).
 
 nextFreeOff([Off|FreeRg],Mx,Off,FreeRg,Mx).
 nextFreeOff([],Mx,Mx1,[],Mx1) :-
@@ -138,8 +140,7 @@ nextFreeOff([],Mx,Mx1,[],Mx1) :-
 
 addToFree(Off,FreeRg,Mx,[Off|FreeRg],Mx) :-!.
 
-defineGlbVar(Nm,Tp,scope(Vrs,FreeRg,Mx),
-	     scope([(Nm,T,g(Nm),none,none)|Vrs],FreeRg,Mx)) :-
+defineGlbVar(Nm,Tp,scope(Vrs,Mx),scope([(Nm,T,g(Nm),none,none)|Vrs],Mx)) :-
   toLtipe(Tp,T).
 
 populateVarNames([],_,_,C,C).

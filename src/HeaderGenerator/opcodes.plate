@@ -4,11 +4,11 @@
  * all rights reserved
  **/
 
-#ifndef _OPCODES_H_
-#define _OPCODES_H_
+#ifndef OPCODES_H_
+#define OPCODES_H_
 
 typedef enum {
-  #(OpCodes)
+#(OpCodes)
   illegalOp,
   maxOpCode
 } OpCode;
@@ -36,4 +36,3 @@ typedef enum {
 } opAndSpec;                    // Specification code for an operand
 
 #endif
-
