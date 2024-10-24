@@ -113,44 +113,25 @@ buildArg(_,_,D,D).
 lclVar(Nm,T,Wh,scope(Vrs,_)) :-
   is_member((Nm,T,Wh),Vrs),!.
 
-defineLclVar(Nm,T,Opts,scope(Vrs,Mx),scope([(Nm,T,l(Nm))|Vrs],Mx),Nm,C,Cx) :-
-  genDebug(Opts,iLocal(Nm,strng(Nm)),C,Cx).
+defineLclVar(Lc,Nm,Tp,Opts,scope(Vrs,Mx),scope([(Nm,T,l(Nm))|Vrs],Mx),Nm,C,Cx) :-
+  toLtipe(Tp,T),  
+  (is_member(debugging,Opts) ->
+     locTerm(Lc,Lt),
+     encType(Tp,Sig),
+     mkTpl([strg(Nm),strg(Sig),Lt],VarDesc),
+     genDebug(Opts,iLocal(Nm,VarDesc),C,Cx);
+   C=Cx).
 
-defineTmpVar(TmpNm,T,Opts,D,Dx,Off,C,Cx) :-
+defineTmpVar(Lc,TmpNm,Tp,Opts,D,Dx,Off,C,Cx) :-
   genTmpVar(D,TmpNm),
-  defineLclVar(TmpNm,T,Opts,D,Dx,Off,C,Cx).
+  defineLclVar(Lc,TmpNm,Tp,Opts,D,Dx,Off,C,Cx).
 
 genDebug(Opts,Debug,[Debug|Cx],Cx) :-
   is_member(debugging,Opts),!.
 genDebug(_,_,Cx,Cx).
 
-clearLclVar(_Nm,Scope,Scope).
-
-%% scope(Vrs,Mx),scope(NVrs,NMx)) :-
-%%   subtract((Nm,_,l(Off),_,_),Vrs,NVrs),
-%%   addToFree(Off,FreeRg,Mx,NFreeRg,NMx).
-
-nextFreeOff([Off|FreeRg],Mx,Off,FreeRg,Mx).
-nextFreeOff([],Mx,Mx1,[],Mx1) :-
-  Mx1 is Mx+1.
-
-addToFree(Off,FreeRg,Mx,[Off|FreeRg],Mx) :-!.
-
 defineGlbVar(Nm,Tp,scope(Vrs,Mx),scope([(Nm,T,g(Nm),none,none)|Vrs],Mx)) :-
   toLtipe(Tp,T).
-
-populateVarNames([],_,_,C,C).
-populateVarNames([(Nw,idnt(Ex,T))|Vs],Lc,D,C,Cx) :-
-  populateVarNm(Nw,T,Lc,Ex,D,C,C0),
-  populateVarNames(Vs,Lc,D,C0,Cx).
-
-populateVarNm(Nw,_,_,Ex,scope(Vrs,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
-  is_member((Ex,_,l(Off),Frm,End),Vrs),!.
-populateVarNm(_,T,_,Ex,scope(Vrs,_),Cx,Cx) :-
-  is_member((Ex,T,a(_),_,_),Vrs),!.
-populateVarNm(_,_,Lc,Ex,_,C,C) :-
-  reportError("variable %s not known",[id(Ex)],Lc),
-  abort.
 
 genLbl(Lbs,Lb,[Lb|Lbs]) :-
   length(Lbs,N),
@@ -159,28 +140,22 @@ genLbl(Lbs,Lb,[Lb|Lbs]) :-
 genTmpVar(scope(_,Mx),Nm) :-
   swritef(Nm,"_𝜏%d",[Mx]).
 
-findMaxLocal(scope(_,Mx),Mx).
+compExpCase(Term,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  compExp(Term,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
-localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
-localMx(_,M,M).
-
-
-compExpCase(T,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  compExp(T,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-
-compVar(a(A),Last,[iLdA(A)|C],Cx,Stk,Stkx) :- !,
+compVar(a(A),Last,Opts,[iLdA(A)|C],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C,Cx,Stka,Stkx).
-compVar(l(X),Last,[iLdL(X)|C],Cx,Stk,Stkx) :- !,
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
+compVar(l(X),Last,Opts,[iLdL(X)|C],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C,Cx,Stka,Stkx).
-compVar(g(GlbNm),Last,[iLdG(GlbNm)|C],Cx,Stk,Stkx) :-
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
+compVar(g(GlbNm),Last,Opts,[iLdG(GlbNm)|C],Cx,Stk,Stkx) :-
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
 
 /* Compile actions */
-compAction(nop(_),_Lc,_Brks,Last,_Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
-  genLastReturn(Last,C,Cx,Stk,Stkx).
+compAction(nop(_),_Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
+  genLastReturn(Last,Opts,C,Cx,Stk,Stkx).
 compAction(seq(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
   compAction(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
@@ -217,8 +192,7 @@ compAction(mtch(Lc,P,E),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
 compAction(defn(Lc,idnt(Nm,Tp),E),OLc,_Last,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,D1,C0,[iStL(Off)|C1],Stk,Stk0),
-  toLtipe(Tp,T),
-  defineLclVar(Nm,T,Opts,D1,Dx,Off,C1,Cx),
+  defineLclVar(Lc,Nm,Tp,Opts,D1,Dx,Off,C1,Cx),
   dropStk(Stk,1,Stk0).
 compAction(setix(Lc,Exp,Off,Vl),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),
@@ -245,8 +219,7 @@ compAction(whle(Lc,G,B),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
   reconcileStack(Stka,Stkb,Stk,LC2,[iLoop(Lp)]),!.
 compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  toLtipe(Tp,T),
-  defineLclVar(Nm,T,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
+  defineLclVar(Lc,Nm,Tp,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iStL(Off)|C2],Stk,Stk1),
   verify(gencode:bumpStk(Stk,1,Stk1),"expecting a single bump in stack"),
   compAction(Act,Lc,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,_).
@@ -273,13 +246,11 @@ compTry(Lc,B,idnt(V,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,St
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iTry(FlatTp,[iStL(TOff)|BC])|HC]))|Cz]),
   genLbl(L,Ok,L1),
   flatBlockSig(FlatTp),
-  toLtipe(Tp,T),
-  defineLclVar(V,T,Opts,D,D1,TOff,BC,B1),
+  defineLclVar(Lc,V,Tp,Opts,D,D1,TOff,BC,B1),
   call(Hndlr,B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TOff),iEndTry(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   resetVars(D,D2,D3),
-  toLtipe(ETp,ET),
-  defineLclVar(E,ET,Opts,D3,D4,EOff,H1,[iStL(EOff)|H2]),
+  defineLclVar(Lc,E,ETp,Opts,D3,D4,EOff,H1,[iStL(EOff)|H2]),
   call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
@@ -352,8 +323,8 @@ mergeStkLvl(Stk1,Stk2,Stk1,Msg) :-
   verify(gencode:sameStk(Stk1,Stk2),Msg).
 
 % compile argument patterns. If fail, then break out
-compPtnArgs([],_Lc,_Getter,_Ix,_Fail,_Brks,Last,_Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
-  genLastReturn(Last,C,Cx,Stk,Stkx).
+compPtnArgs([],_Lc,_Getter,_Ix,_Fail,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
+  genLastReturn(Last,Opts,C,Cx,Stk,Stkx).
 compPtnArgs([A|R],Lc,Getter,Ix,Fail,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compPtnArg(A,Lc,Getter,Ix,Fail,Brks,Opts,L,L1,D,D1,C,C1,Stk,Stk1),
   Ix1 is Ix+1,
@@ -376,15 +347,14 @@ compPtn(ann(_),_,_Fail,_Opts,Lx,Lx,Dx,Dx,[iDrop|Cx],Cx,Stk,Stkx) :-
 compPtn(Lit,_,Fail,_Opts,Lx,Lx,Dx,Dx,[iLdC(Lit),iCmp(Fail)|Cx],Cx,Stk,Stkx) :-
   isLiteral(Lit),!,
   dropStk(Stk,1,Stkx).
-compPtn(idnt(Nm,Tp),_,_Fail,_Brks,Opts,Lx,Lx,D,Dx,[iStL(Off)|C],Cx,Stk,Stkx) :-
-  toLtipe(Tp,T),
-  defineLclVar(Nm,T,Opts,D,Dx,Off,C,Cx),
+compPtn(idnt(Nm,Tp),Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  defineLclVar(Lc,Nm,Tp,Opts,D,Dx,Off,C,[iStL(Off)|Cx]),
   dropStk(Stk,1,Stkx).
-compPtn(ctpl(St,Args),Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail),iStL(Off)|C],Cx,Stk,Stkx) :-
-  defineTmpVar(_TmpNm,ptrTipe,Opts,D,D1,Off,C,C0),
+compPtn(ctpl(St,Args),Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail)|C],Cx,Stk,Stkx) :-
+  tipeOf(ctpl(St,Args),Tp),
+  defineTmpVar(Lc,_TmpNm,Tp,Opts,D,D1,Off,C,[iStL(Off)|C0]),
   dropStk(Stk,1,Stk0),
-  compPtnArgs(Args,Lc,gencode:useTmp(Off,ptrTipe),0,Fail,Brks,notLast,Opts,L,Lx,D1,D2,C0,Cx,Stk0,Stkx),
-  clearLclVar(Off,D2,Dx).
+  compPtnArgs(Args,Lc,gencode:useTmp(Off,ptrTipe),0,Fail,Brks,notLast,Opts,L,Lx,D1,Dx,C0,Cx,Stk0,Stkx).
 compPtn(whr(Lc,P,Cnd),OLc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compPtn(P,Lc,Fail,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),
@@ -395,9 +365,9 @@ compPtn(T,Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stk,Stk) :-
 
 
 % compile a condition. Invoke passed in Fail label if the condition is false
-compCond(enum(Sy),_Lc,_Fail,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
+compCond(enum(Sy),_Lc,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
   isTrueSymb(Sy),!.
-compCond(enum(Sy),_,Fail,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stkx,Stkx) :-
+compCond(enum(Sy),_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stkx,Stkx) :-
   isFalseSymb(Sy),!.
 compCond(cnj(Lc,A,B),OLc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
@@ -435,36 +405,36 @@ compCond(E,Lc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   mergeStkLvl(Stk,Stka,Stkx,"pattern conditional").
 
 % compile an expression
-compExp(voyd,_,_Brks,Last,_Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
+compExp(voyd,_,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C,Cx,Stka,Stkx).
-compExp(Trm,_Lc,_Brks,Last,_Opts,Lx,Lx,Dx,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
+compExp(Trm,_Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
   isLiteral(Trm),!,
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C,Cx,Stka,Stkx).
-compExp(idnt(Nm,_),Lc,_Brks,Last,_Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
+compExp(idnt(Nm,_),Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
   (lclVar(Nm,_T,V,Dx) -> 
-   compVar(V,Last,C,Cx,Stk,Stkx) ;
+   compVar(V,Last,Opts,C,Cx,Stk,Stkx) ;
    reportError("cannot locate variable %s",[id(Nm)],Lc),
    abort).
 compExp(ctpl(St,A),Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C,[iAlloc(St)|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stkx,C1,C2),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(ecll(Lc,Nm,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   isIntrinsic(Nm,_,Op),!,
   chLine(Opts,OLc,Lc,C,C0),
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[Op|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stkx,C1,C2),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(ecll(Lc,Nm,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iEscape(Nm)|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stkx,C1,C2),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(cll(Lc,Nm,A),OLc,Brks,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iTCall(Nm)|C1],Stk,_Stka),
@@ -497,49 +467,44 @@ compExp(voke(Lc,K,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(K,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iInvoke(Arity)|C2],Stka,_Stkb),
   bumpStk(Stk,Stka),
   frameIns(Stkx,C2,C3),
-  genLastReturn(Last,C3,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C3,Cx,Stka,Stkx).
 compExp(clos(Lb,Ar,Free),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Free,OLc,Brks,Opts,L,Lx,D,Dx,C,[iClosure(lbl(Lb,Ar))|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stkx,C1,C2),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(nth(Lc,Exp,Off,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iNth(Off)|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
-  genLastReturn(Last,C1,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(setix(Lc,Exp,Off,Vl),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
   compExp(Vl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iStNth(Off)|C1],Stk0,_Stkx),
-  genLastReturn(Last,C1,Cx,Stk,Stkx).
+  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
 compExp(cel(Lc,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iCell|C1],Stk,Stka),
   frameIns(Stka,C1,C2),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(get(Lc,Exp),_,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iGet|C1],Stk,Stka),
-  genLastReturn(Last,C1,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compExp(Cl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iSet|C1],Stk1,_Stka),
-  genLastReturn(Last,C1,Cx,Stk,Stkx).
+  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,BlkTp),
   compCase(T,Lc,BlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(try(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   compTry(Lc,B,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk).
-compExp(varNames(Lc,Vrs,T),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  populateVarNames(Vrs,Lc,D,C0,C1),
-  compExp(T,Lc,Brks,Last,Opts,L,Lx,D,Dx,C1,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  toLtipe(Tp,T),
-  defineLclVar(Nm,T,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
+  defineLclVar(Lc,Nm,Tp,Opts,D,D1,Off,C0,[iStV(Off)|C1]),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iStL(Off)|C2],Stk,Stk1),
   verify(gencode:bumpStk(Stk,1,Stk1),"expecting a single bump in stack"),
   compExp(Exp,Lc,Lc,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,Stkx).
@@ -570,7 +535,7 @@ compExp(vlof(Lc,A),_,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(tsk(Lc,F),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iFiber|C0]),!,
   compExp(F,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1,Stk,Stka),
-  genLastReturn(Last,C1,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(BlkTp,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
   isCond(Cond),!,
   isTrueSymb(True),
@@ -579,7 +544,7 @@ compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(B
   genLbl(L,Ok,L0),
   genLbl(L0,Fl,L1),
   compCond(Cond,Lc,Fl,Brks,Opts,L1,Lx,D,Dx,C1,[iLdC(enum(True)),iBreak(Ok)|C2],Stk,Stka),
-  genLastReturn(Last,C2,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(T,Lc,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-
   reportError("cannot compile %s",[ltrm(T)],Lc),
   abort.
@@ -671,7 +636,8 @@ compCaseBranch([(P,E,Lc)],_BlkTp,Ok,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,C,Stk,Stkx) :
 compCaseBranch([(P,E,Lc)|SC],BlkTp,Ok,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iTL(Off),iLbl(Fl,iBlock(BlkTp,PC))|C],Stk,Stkx) :-
   genLbl(L,Fl,L1),
   genLine(Opts,Lc,PC,PC0),
-  defineLclVar("__",ptrTipe,Brks,Opts,D,D1,Off,PC0,PC1),
+  tipeOf(P,PTp),
+  defineLclVar(Lc,"__",PTp,Brks,Opts,D,D1,Off,PC0,PC1),
   compPtn(P,Lc,Fl,Brks,Opts,L1,L2,D1,D2,PC1,PC2,Stk,Stk0),
   call(Hndlr,E,Lc,Ok,Brks,Opts,L2,L3,D2,D3,PC2,[iBreak(Ok)],Stk0,Stka),
   resetVars(D1,D3,D4),
@@ -689,5 +655,6 @@ compMoreCase([(P,E,Lc)|SC],VLb,BlkTp,Ok,Dflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iLdL(VLb
   compMoreCase(SC,VLb,BlkTp,Ok,Dflt,Hndlr,Brks,Opts,L3,Lx,D2,Dx,C,Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"more case branch stack").
 
-genLastReturn(last,[iRet|Cx],Cx,_,none).
-genLastReturn(notLast,C,C,Stk,Stk).
+genLastReturn(last,Opts,C,Cx,Stk,Stkx) :-
+  genRet(Opts,C,Cx,Stk,Stkx).
+genLastReturn(notLast,_,C,C,Stk,Stk).

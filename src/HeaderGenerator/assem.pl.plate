@@ -39,6 +39,8 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   encMap(Map,MM).
 
 stackHwm([],_,H,H).
+stackHwm([iLbl(_,I)|Ins],C,H,Hx) :-
+  stackHwm([I|Ins],C,H,Hx).
 #(stackHwm)
 
 countLocal(Nm,Lcs,Lcs,Hwm,Hwm) :-
@@ -51,6 +53,8 @@ countLocal(Nm,Lcs,Lx,Hwm,H1) :-
     H1 = Hwm).
 
 localHwm([],_,H,H).
+localHwm([iLbl(_,I)|Ins],C,H,Hx) :-
+  localHwm([I|Ins],C,H,Hx).
 #(localHwm)
 
 assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
@@ -95,11 +99,10 @@ mkInsTpl(Is,Tpl) :-
     map(Is,assemble:mkIns,Ins),
     mkTpl(Ins,Tpl).
 
-mkIns(O,intgr(O)) :- number(O).
-mkIns(S,strg(S)) :- string(S).
+mkIns(O,intgr(O)) :- number(O),!.
+mkIns(S,strg(S)) :- string(S),!.
 mkIns(C,Tpl) :- length(C,_),
-  mkInsTpl(C,Args),
-  mkTpl(Args,Tpl).
+  mkInsTpl(C,Tpl).
 
 dispCode(Prog) :-
   showCode(Prog,O),

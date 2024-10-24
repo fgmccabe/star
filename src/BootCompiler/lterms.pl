@@ -137,9 +137,6 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
-ssTrm(varNames(_,Vars,Value),Dp,sq([ss("vars:"),VV,ss("->"),EE])) :-!,
-  ssVarNames(Vars,Dp,VV),
-  ssTrm(Value,Dp,EE).
 ssTrm(case(_,G,Cases,Deflt),Dp,
       sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
@@ -276,12 +273,6 @@ ssTrmGuard(none,_,sq([])) :- !.
 ssTrmGuard(some(C),Dp,sq([ss("where "),CC])) :-
   ssTrm(C,Dp,CC).
 
-ssVarNames(Vrs,Dp,iv(ss(","),VV)) :-
-  map(Vrs,lterms:ssVarBinding(Dp),VV).
-
-ssVarBinding(Dp,(V,Vx),ss([id(V),ss("/"),VV])) :-
-  ssTrm(Vx,Dp,VV).
-
 dispTerm(T) :-
   display:display(lterms:ssTrm(T,0)).
 
@@ -350,9 +341,6 @@ rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,C,NC).
-rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
-  map(V,lterms:rewriteVN(QTest),NV),
-  rewriteTerm(QTest,T,NT).
 rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
@@ -547,10 +535,6 @@ inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
   inTerm(C,Nm),!.
-inTerm(varNames(_,V,_),Nm) :-
-  is_member((Nm,_),V),!.
-inTerm(varNames(_,_,T),Nm) :-
-  inTerm(T,Nm),!.
 inTerm(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inTerm(case(_,_T,C),Nm) :-
@@ -632,8 +616,6 @@ tipeOf(ctpl(_,Args),tplType(AA)) :-
   map(Args,lterms:tipeOf,AA).
 tipeOf(resme(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
-  tipeOf(E,T).
-tipeOf(varNames(_,_,E),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
@@ -738,9 +720,6 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
-validTerm(varNames(Lc,Vars,Value),_,D) :-
-  rfold(Vars,lterms:validVr,D,D1),
-  validTerm(Value,Lc,D1).
 validTerm(case(Lc,G,Cases,Deflt),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
@@ -810,8 +789,6 @@ validPtn(whr(Lc,Ptn,Cond),_,D,Dx) :-
   validPtn(Ptn,Lc,D,D0),
   glVars(Cond,D0,Dx),
   validTerm(Cond,Lc,Dx).
-validPtn(varNames(Lc,_,Value),_,D,Dx) :-
-  validPtn(Value,Lc,D,Dx).
 validPtn(T,Lc,D,D) :-
   reportError("(internal) Invalid pattern %s",[ltrm(T)],Lc).
 
