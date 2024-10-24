@@ -586,7 +586,7 @@ mnem([iRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,[9|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[10,LtNo,B|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
+      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,_Lcx,B,[]),
       mnem(Ins,Lbls,Lt2,Ltx,Lc,Lcx,M,Cdx).
 mnem([iBreak(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[11,Lvl|M],Cdx) :-
       findLevel(V,Lbls,0,Lvl),
@@ -620,7 +620,7 @@ mnem([iTEq|Ins],Lbls,Lt,Ltx,Lc,Lcx,[24|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iTry(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[25,LtNo,B|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
+      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,_Lcx,B,[]),
       mnem(Ins,Lbls,Lt2,Ltx,Lc,Lcx,M,Cdx).
 mnem([iEndTry(W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[26,Lvl|M],Cdx) :-
       findLevel(W,Lbls,0,Lvl),
@@ -641,17 +641,17 @@ mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[32,LtNo|M],Cdx) :-
 mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[33,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[34,Off|M],Cdx) :-
-      findLocal(V,Lbls,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
+      findLocal(V,Lc,Lc1,Off),
+      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).
 mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[35,Off|M],Cdx) :-
-      findLocal(V,Lbls,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
+      findLocal(V,Lc,Lc1,Off),
+      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).
 mnem([iStV(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[36,Off|M],Cdx) :-
-      findLocal(V,Lbls,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
+      findLocal(V,Lc,Lc1,Off),
+      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).
 mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[37,Off|M],Cdx) :-
-      findLocal(V,Lbls,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
+      findLocal(V,Lc,Lc1,Off),
+      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).
 mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[38,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iLdG(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[39,V|M],Cdx) :-
@@ -775,9 +775,9 @@ mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[92,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).
 mnem([iLocal(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[93,Off,LtNo|M],Cdx) :-
-      declareLocal(V,Lbls,Lbl0,Off),
+      findLocal(V,Lc,Lc0,Off),
       findLit(Lt,W,LtNo,Lt1),
-      mnem(Ins,Lbl0,Lt1,Ltx,Lc,Lcx,M,Cdx).
+      mnem(Ins,Lbl0,Lt1,Ltx,Lc0,Lcx,M,Cdx).
 
 
 baseOffset([(_,Base,_)|_],Base).
@@ -792,13 +792,13 @@ findLevel(Tgt,[none|Ends],L,Lo) :-
 findLevel(Tgt,[_|Ends],L,Lo) :-
   findLevel(Tgt,Ends,L,Lo).
 
-findLocal(Nm,[(_,_,Lcls)|_],Off) :-
+findLocal(Nm,Lcls,Lcls,Off) :-
       is_member((Nm,Off),Lcls),!.
-findLocal(Nm,[none|Lvls],Off) :-
-      findLocal(Nm,Lvls,Off).
+findLocal(Nm,Lcls,[(Nm,Off)|Lcls],Off) :-
+      length(Lcls,Off).
 
-declareLocal(Nm,[(Tgt,Off,Lcls)|Lbs],[(Tgt,NxtOff,[(Nm,Off)|Lcls])|Lbs],Off) :-
-      NxtOff is Off+1.
+declareLocal(Nm,Lc,Lcx,Off) :-
+  findLocal(Nm,Lc,Lcx,Off).
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
