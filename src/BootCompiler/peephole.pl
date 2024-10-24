@@ -63,6 +63,12 @@ lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
+varReferenced(Nm,[iLdL(Nm)|_]) :-!.
+varReferenced(Nm,[iLbl(_,I)|_]) :- varReferenced(Nm,[I]),!.
+varReferenced(Nm,[iBlock(_,I)|_]) :- varReferenced(Nm,I),!.
+varReferenced(Nm,[iTry(_,I)|_]) :- varReferenced(Nm,I),!.
+varReferenced(Nm,[_|Ins]) :- varReferenced(Nm,Ins).
+
 copyN(0,I,I,X,X) :-!.
 copyN(N,[A|I],Ix,[A|X],Xx) :-
   N1 is N-1,
