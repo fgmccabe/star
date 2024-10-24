@@ -11,13 +11,13 @@
 assem(func(Nm,H,Sig,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
-    assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
+    assemBlock(Ins,none,[],Ls1,Lts,[],Lcs,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
     encPolicy(H,HP),
-    hwm(Ins,0,0,HWM),
-    localHwm(Ins,0,0,Lx),
+    stackHwm(Ins,0,0,HWM),
+    localHwm(Ins,[],0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -38,8 +38,17 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   mkTpl([Lbl,intgr(Ix)],E),
   encMap(Map,MM).
 
-hwm([],_,H,H).
+stackHwm([],_,H,H).
 #(stackHwm)
+
+countLocal(Nm,Lcs,Lcs,Hwm,Hwm) :-
+  is_member(Nm,Lcs),!.
+countLocal(Nm,Lcs,Lx,Hwm,H1) :-
+  add_mem(Nm,Lcs,Lx),
+  length(Lx,Ln),
+  (Ln>Hwm ->
+    H1 = Ln;
+    H1 = Hwm).
 
 localHwm([],_,H,H).
 #(localHwm)
@@ -50,24 +59,26 @@ assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
 mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem(Inner,[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
+      mnem([Inner],[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
       mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 #(Mnem)
 
 baseOffset([(_,Base,_)|_],Base).
+baseOffset([none|Lbs],Base) :-
+  baseOffset(Lbs,Base).
 baseOffset([],0).
 
-findLevel(Lvl,[(Tgt,_,_)|_],Tgt,Lvl) :-!.
-findLevel(L,[none|Ends],Tgt,Lo) :-
+findLevel(Tgt,[(Tgt,_,_)|_],Lvl,Lvl) :-!.
+findLevel(Tgt,[none|Ends],L,Lo) :-
       L1 is L+1,
-      findLevel(L1,Ends,Tgt,Lo).
-findLevel(L,[_|Ends],Tgt,Lo) :-
-  findLevel(L,Ends,Tgt,Lo).
+      findLevel(Tgt,Ends,L1,Lo).
+findLevel(Tgt,[_|Ends],L,Lo) :-
+  findLevel(Tgt,Ends,L,Lo).
 
-findLocal(Nm,[(_,_.Lcls)|_],Off) :-
+findLocal(Nm,Lcls,Lcls,Off) :-
       is_member((Nm,Off),Lcls),!.
-findLocal(Nm,[_|Lvls],Off) :-
-      findLocal(Nm,Lvls,Off).
+findLocal(Nm,Lcls,[(Nm,Off)|Lcls],Off) :-
+      length(Lcls,Off).
 
 declareLocal(Nm,[(Tgt,Off,Lcls)|Lbs],[(Tgt,NxtOff,[(Nm,Off)|Lcls])|Lbs],Off) :-
       NxtOff is Off+1.

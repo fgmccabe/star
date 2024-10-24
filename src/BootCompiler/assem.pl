@@ -11,13 +11,13 @@
 assem(func(Nm,H,Sig,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
-    assemBlock(Ins,[],Ls1,Lts,[],Lcs,Cde,[]),
+    assemBlock(Ins,none,[],Ls1,Lts,[],Lcs,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
     encPolicy(H,HP),
-    hwm(Ins,0,0,HWM),
-    localHwm(Ins,0,0,Lx),
+    stackHwm(Ins,0,0,HWM),
+    localHwm(Ins,[],0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -38,622 +38,520 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   mkTpl([Lbl,intgr(Ix)],E),
   encMap(Map,MM).
 
-hwm([],_,H,H).
-hwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iNop|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iAbort|Ins],CH0,H0,Hwm) :-
+stackHwm([],_,H,H).
+stackHwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iNop|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iAbort|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCall(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCall(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iOCall(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iOCall(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iEscape(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iEscape(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iTCall(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iTOCall(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iEntry|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iRet|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iBlock(_,W)|Ins],CH0,H0,Hwm) :-
-  hwm(W,CH0,H0,H1),
-  hwm(Ins,CH0,H1,Hwm).
-hwm([iBreak(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iLoop(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iDrop|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iTCall(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iTOCall(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iEntry|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iRet|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iBlock(_,W)|Ins],CH0,H0,Hwm) :-
+  stackHwm(W,CH0,H0,H1),
+  stackHwm(Ins,CH0,H1,Hwm).
+stackHwm([iBreak(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iLoop(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iDrop|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iDup|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iDup|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iRot(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iRst(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iPick(_,_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iFiber|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iSpawn|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iSuspend|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iRot(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iRst(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iPick(_,_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iFiber|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iSpawn|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iSuspend|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iResume|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iResume|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iRetire|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iRetire|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iUnderflow|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iTEq|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iUnderflow|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iTEq|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iTry(_,W)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iTry(_,W)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(W,CH1,H1,H2),
-  hwm(Ins,CH1,H2,Hwm).
-hwm([iEndTry(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(W,CH1,H1,H2),
+  stackHwm(Ins,CH1,H2,Hwm).
+stackHwm([iEndTry(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iThrow|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iReset|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iShift|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iThrow|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iReset|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iShift|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iInvoke|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iInvoke|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iLdV|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iLdV|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iLdC(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iLdC(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iLdA(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iLdA(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iLdL(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iLdL(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iStL(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iStL(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iStV(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iTL(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iStA(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iStV(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iTL(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iStA(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iLdG(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iLdG(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iStG(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iStG(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iTG(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iThunk|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iLdTh|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iStTh|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iTG(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iThunk|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iLdTh|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iStTh|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iTTh|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iTTh|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCell|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iGet|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iAssign|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCell|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iGet|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iAssign|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCLbl(_,_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iNth(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iStNth(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCLbl(_,_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iNth(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iStNth(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIf(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIf(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIfNot(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIfNot(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCase(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iIndxJmp(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iIAdd|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCase(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iIndxJmp(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iIAdd|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iISub|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iISub|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIMul|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIMul|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIDiv|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIDiv|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIMod|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIMod|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIAbs|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iIEq|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIAbs|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iIEq|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iILt|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iILt|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iIGe|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iIGe|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iICmp(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iICmp(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCEq|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCEq|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCLt|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCLt|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCGe|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCGe|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iCCmp(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iCCmp(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBAnd|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBAnd|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBOr|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBOr|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBXor|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBXor|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBLsl|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBLsl|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBLsr|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBLsr|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBAsr|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBAsr|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iBNot|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iFAdd|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iBNot|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iFAdd|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFSub|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFSub|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFMul|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFMul|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFDiv|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFDiv|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFMod|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFMod|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFAbs|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iFEq|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFAbs|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iFEq|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFLt|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFLt|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFGe|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFGe|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFCmp(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFCmp(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iAlloc(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iAlloc(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iClosure(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iCmp(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iClosure(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iCmp(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(Ins,CH1,H1,Hwm).
-hwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iDBug|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iLine(_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
-hwm([iLocal(_,_)|Ins],CH0,H0,Hwm) :-
-  hwm(Ins,CH0,H0,Hwm).
+  stackHwm(Ins,CH1,H1,Hwm).
+stackHwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iDBug|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iLine(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iLocal(_,_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
 
+
+countLocal(Nm,Lcs,Lcs,Hwm,Hwm) :-
+  is_member(Nm,Lcs),!.
+countLocal(Nm,Lcs,Lx,Hwm,H1) :-
+  add_mem(Nm,Lcs,Lx),
+  length(Lx,Ln),
+  (Ln>Hwm ->
+    H1 = Ln;
+    H1 = Hwm).
 
 localHwm([],_,H,H).
-localHwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iNop|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iAbort|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCall(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iOCall(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iEscape(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iTCall(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iTOCall(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iEntry|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iRet|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iBlock(_,W)|Ins],CH0,H0,Hwm) :-
-  hwm(W,CH0,H0,H1),
-  localHwm(Ins,CH0,H1,Hwm).
-localHwm([iBreak(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iLoop(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iDrop|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iDup|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iRot(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iRst(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iPick(_,_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iFiber|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iSpawn|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iSuspend|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iResume|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iRetire|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iUnderflow|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iTEq|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iTry(_,W)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  hwm(W,CH1,H1,H2),
-  localHwm(Ins,CH1,H2,Hwm).
-localHwm([iEndTry(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iThrow|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iReset|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iShift|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iInvoke|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iLdV|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iLdC(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iLdA(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iLdL(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iStL(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iStV(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iTL(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iStA(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iLdG(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iStG(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iTG(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iThunk|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iLdTh|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iStTh|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iTTh|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCell|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iGet|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iAssign|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCLbl(_,_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iNth(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iStNth(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIf(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIfNot(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCase(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iIndxJmp(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iIAdd|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iISub|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIMul|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIDiv|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIMod|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIAbs|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iIEq|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iILt|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iIGe|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iICmp(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCEq|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCLt|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCGe|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iCCmp(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBAnd|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBOr|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBXor|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBLsl|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBLsr|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBAsr|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iBNot|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iFAdd|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFSub|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFMul|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFDiv|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFMod|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFAbs|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iFEq|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFLt|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFGe|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFCmp(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iAlloc(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iClosure(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iCmp(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-2,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  localHwm(Ins,CH1,H1,Hwm).
-localHwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iDBug|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iLine(_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
-localHwm([iLocal(_,_)|Ins],CH0,H0,Hwm) :-
-  localHwm(Ins,CH0,H0,Hwm).
+localHwm([iHalt(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iNop|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iAbort|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCall(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iOCall(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iEscape(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTCall(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTOCall(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iEntry|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iRet|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBlock(_,W)|Ins],C0,H0,Hwm) :-
+  localHwm(W,C0,H0,H1),
+  localHwm(Ins,C0,H1,Hwm).
+localHwm([iBreak(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLoop(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iDrop|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iDup|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iRot(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iRst(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iPick(_,_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFiber|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iSpawn|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iSuspend|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iResume|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iRetire|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iUnderflow|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTEq|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTry(_,W)|Ins],C0,H0,Hwm) :-
+  localHwm(W,C0,H0,H1),
+  localHwm(Ins,C0,H1,Hwm).
+localHwm([iEndTry(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iThrow|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iReset|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iShift|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iInvoke|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdV|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdC(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdA(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdL(V)|Ins],C0,H0,Hwm) :-
+  countLocal(V,C0,C1,H0,H1),
+  localHwm(Ins,C1,H1,Hwm).
+localHwm([iStL(V)|Ins],C0,H0,Hwm) :-
+  countLocal(V,C0,C1,H0,H1),
+  localHwm(Ins,C1,H1,Hwm).
+localHwm([iStV(V)|Ins],C0,H0,Hwm) :-
+  countLocal(V,C0,C1,H0,H1),
+  localHwm(Ins,C1,H1,Hwm).
+localHwm([iTL(V)|Ins],C0,H0,Hwm) :-
+  countLocal(V,C0,C1,H0,H1),
+  localHwm(Ins,C1,H1,Hwm).
+localHwm([iStA(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdG(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iStG(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTG(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iThunk|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLdTh|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iStTh|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iTTh|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCell|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iGet|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iAssign|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCLbl(_,_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iNth(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iStNth(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIf(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIfNot(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCase(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIndxJmp(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIAdd|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iISub|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIMul|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIDiv|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIMod|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIAbs|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIEq|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iILt|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iIGe|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iICmp(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCEq|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCLt|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCGe|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCCmp(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBAnd|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBOr|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBXor|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBLsl|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBLsr|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBAsr|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iBNot|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFAdd|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFSub|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFMul|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFDiv|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFMod|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFAbs|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFEq|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFLt|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFGe|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFCmp(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iAlloc(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iClosure(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iCmp(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iFrame(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iDBug|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLine(_)|Ins],C0,H0,Hwm) :-
+  localHwm(Ins,C0,H0,Hwm).
+localHwm([iLocal(V,_)|Ins],C0,H0,Hwm) :-
+  countLocal(V,C0,C1,H0,H1),
+  localHwm(Ins,C1,H1,Hwm).
 
 
 assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
@@ -662,7 +560,7 @@ assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
 mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem(Inner,[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
+      mnem([Inner],[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
       mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
 mnem([iHalt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[0,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -688,13 +586,13 @@ mnem([iRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,[9|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[10,LtNo,B|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
+      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
       mnem(Ins,Lbls,Lt2,Ltx,Lc,Lcx,M,Cdx).
 mnem([iBreak(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[11,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iLoop(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[12,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iDrop|Ins],Lbls,Lt,Ltx,Lc,Lcx,[13|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -722,10 +620,10 @@ mnem([iTEq|Ins],Lbls,Lt,Ltx,Lc,Lcx,[24|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iTry(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[25,LtNo,B|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
+      assemBlock(W,none,Lbls,Lt1,Lt2,Lc,Lcx,B,[]),
       mnem(Ins,Lbls,Lt2,Ltx,Lc,Lcx,M,Cdx).
 mnem([iEndTry(W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[26,Lvl|M],Cdx) :-
-      findLevel(Lbls,W,0,Lvl),
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iThrow|Ins],Lbls,Lt,Ltx,Lc,Lcx,[27|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -778,17 +676,17 @@ mnem([iAssign|Ins],Lbls,Lt,Ltx,Lc,Lcx,[48|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iCLbl(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[49,LtNo,Lvl|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
-      findLevel(Lbls,W,0,Lvl),
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).
 mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[50,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[51,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iIf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[52,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iIfNot(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[53,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[54,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -813,7 +711,7 @@ mnem([iILt|Ins],Lbls,Lt,Ltx,Lc,Lcx,[63|M],Cdx) :-
 mnem([iIGe|Ins],Lbls,Lt,Ltx,Lc,Lcx,[64|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iICmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[65,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iCEq|Ins],Lbls,Lt,Ltx,Lc,Lcx,[66|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -822,7 +720,7 @@ mnem([iCLt|Ins],Lbls,Lt,Ltx,Lc,Lcx,[67|M],Cdx) :-
 mnem([iCGe|Ins],Lbls,Lt,Ltx,Lc,Lcx,[68|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iCCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[69,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iBAnd|Ins],Lbls,Lt,Ltx,Lc,Lcx,[70|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
@@ -857,7 +755,7 @@ mnem([iFLt|Ins],Lbls,Lt,Ltx,Lc,Lcx,[84|M],Cdx) :-
 mnem([iFGe|Ins],Lbls,Lt,Ltx,Lc,Lcx,[85|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iFCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[86,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[87,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
@@ -866,7 +764,7 @@ mnem([iClosure(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[88,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).
 mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[89,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,V,0,Lvl),
+      findLevel(V,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).
 mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[90,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
@@ -883,18 +781,20 @@ mnem([iLocal(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[93,Off,LtNo|M],Cdx) :-
 
 
 baseOffset([(_,Base,_)|_],Base).
+baseOffset([none|Lbs],Base) :-
+  baseOffset(Lbs,Base).
 baseOffset([],0).
 
-findLevel(Lvl,[(Tgt,_,_)|_],Tgt,Lvl) :-!.
-findLevel(L,[none|Ends],Tgt,Lo) :-
+findLevel(Tgt,[(Tgt,_,_)|_],Lvl,Lvl) :-!.
+findLevel(Tgt,[none|Ends],L,Lo) :-
       L1 is L+1,
-      findLevel(L1,Ends,Tgt,Lo).
-findLevel(L,[_|Ends],Tgt,Lo) :-
-  findLevel(L,Ends,Tgt,Lo).
+      findLevel(Tgt,Ends,L1,Lo).
+findLevel(Tgt,[_|Ends],L,Lo) :-
+  findLevel(Tgt,Ends,L,Lo).
 
-findLocal(Nm,[(_,_.Lcls)|_],Off) :-
+findLocal(Nm,[(_,_,Lcls)|_],Off) :-
       is_member((Nm,Off),Lcls),!.
-findLocal(Nm,[_|Lvls],Off) :-
+findLocal(Nm,[none|Lvls],Off) :-
       findLocal(Nm,Lvls,Off).
 
 declareLocal(Nm,[(Tgt,Off,Lcls)|Lbs],[(Tgt,NxtOff,[(Nm,Off)|Lcls])|Lbs],Off) :-

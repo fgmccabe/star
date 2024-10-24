@@ -11,7 +11,6 @@
 
 peepOptimize(Ins,Code) :-
   dropUnreachable(Ins,Is),
-  dispIns(Is),
   peep(Is,Code).
 
 dropUnreachable([],[]) :-!.
