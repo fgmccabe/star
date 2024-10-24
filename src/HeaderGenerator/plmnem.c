@@ -232,13 +232,20 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,M,Cdx).\n");
           break;
-        case lcl:
-        case lcs:
+        case lcl: {
           outMsg(out, ",LtNo,Off|M],Cdx) :-\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      findLocal(W,Lc,Lc1,Off),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc1,Lcx,M,Cdx).\n");
           break;
+        }
+        case lcs: {
+          outMsg(out, ",LtNo,Off|M],Cdx) :-\n");
+          outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+          outMsg(out, "      declareLocal(W,Lc,Lc1,Off),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc1,Lcx,M,Cdx).\n");
+          break;
+        }
         case bLk: {
           outMsg(out, ",LtNo,B|M],Cdx) :-\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
@@ -270,8 +277,6 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case i32:
         case art:
         case arg:
-        case lcl:
-        case lcs:
         case glb:
         case Es:
           outMsg(out, ",V,W|M],Cdx) :-\n");
@@ -292,7 +297,45 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           exit(1);
       }
       break;
-    case lcs:
+    case lcs: {
+      switch (A2) {
+        case nOp:
+        case tOs:
+          outMsg(out, ",Off|M],Cdx) :-\n");
+          outMsg(out, "      findLocal(V,Lc,Lc1,Off),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
+          break;
+        case lcl: {
+          outMsg(out, ",VOff,WOff|M],Cdx) :-\n");
+          outMsg(out, "      declareLocal(V,Lc,Lc0,VOff),\n");
+          outMsg(out, "      findLocal(W,Lc0,Lc1,WOff),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
+          break;
+        }
+        case lcs: {
+          outMsg(out, ",VOff,WOff|M],Cdx) :-\n");
+          outMsg(out, "      declareLocal(V,Lc,Lc0,VOff),\n");
+          outMsg(out, "      declareLocal(W,Lc0,Lc1,WOff),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
+          break;
+        }
+        case lVl:
+          outMsg(out, ",V,Lvl|M],Cdx) :-\n");
+          outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,M,Cdx).\n");
+          break;
+        case lit: // Special case: we know we are declaring the variable
+          outMsg(out, ",Off,LtNo|M],Cdx) :-\n");
+          outMsg(out, "      declareLocal(V,Lc,Lc0,Off),\n");
+          outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
+          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Lc0,Lcx,M,Cdx).\n");
+          break;
+        default:
+          check(False, "Cannot generate instruction");
+          exit(1);
+      }
+      break;
+    }
     case lcl: {
       switch (A2) {
         case nOp:
@@ -301,13 +344,20 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      findLocal(V,Lc,Lc1,Off),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
           break;
-        case lcl:
-        case lcs:
+        case lcl: {
+          outMsg(out, ",VOff,WOff|M],Cdx) :-\n");
+          outMsg(out, "      findLocal(V,Lc,Lc0,VOff),\n");
+          outMsg(out, "      declareLocal(W,Lc0,Lc1,WOff),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
+          break;
+        }
+        case lcs: {
           outMsg(out, ",VOff,WOff|M],Cdx) :-\n");
           outMsg(out, "      findLocal(V,Lc,Lc0,VOff),\n");
           outMsg(out, "      findLocal(W,Lc0,Lc1,WOff),\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Lc1,Lcx,M,Cdx).\n");
           break;
+        }
         case lVl:
           outMsg(out, ",V,Lvl|M],Cdx) :-\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
@@ -315,9 +365,9 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           break;
         case lit: // Special case: we know we are declaring the variable
           outMsg(out, ",Off,LtNo|M],Cdx) :-\n");
-          outMsg(out, "      declareLocal(V,Lbls,Lbl0,Off),\n");
+          outMsg(out, "      findLocal(V,Lc,Lc0,Off),\n");
           outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Lc,Lcx,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Lc0,Lcx,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
@@ -419,7 +469,6 @@ static void genStackHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, o
   outMsg(out, "  stackHwm(Ins,CH%d,H%d,Hwm).\n", CVar, HVar);
 }
 
-
 static char *genLocalHWmArg(ioPo out, char *sep, opAndSpec A, char *var) {
   switch (A) {
     case nOp:                             // No operand
@@ -446,6 +495,7 @@ static char *genLocalHWmArg(ioPo out, char *sep, opAndSpec A, char *var) {
       check(False, "Cannot generate argument code");
   }
 }
+
 static void genLocalHwmOp(ioPo out, opAndSpec A, char *var, integer *C, integer *H) {
   switch (A) {
     case nOp:
@@ -463,12 +513,12 @@ static void genLocalHwmOp(ioPo out, opAndSpec A, char *var, integer *C, integer 
       break;
     case lcl:
     case lcs:
-      outMsg(out, "  countLocal(%s,C%d,C%d,H%d,H%d),\n",var,*C,(*C)+1,*H,(*H)+1);
+      outMsg(out, "  countLocal(%s,C%d,C%d,H%d,H%d),\n", var, *C, (*C) + 1, *H, (*H) + 1);
       (*C)++;
       (*H)++;
       break;
-    case bLk:{
-      outMsg(out, "  localHwm(%s,C%d,H%d,H%d),\n", var, *C,*H,(*H)+1);
+    case bLk: {
+      outMsg(out, "  localHwm(%s,C%d,H%d,H%d),\n", var, *C, *H, (*H) + 1);
       (*H)++;
       break;
     }

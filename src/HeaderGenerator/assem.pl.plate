@@ -80,8 +80,8 @@ findLocal(Nm,Lcls,Lcls,Off) :-
 findLocal(Nm,Lcls,[(Nm,Off)|Lcls],Off) :-
       length(Lcls,Off).
 
-declareLocal(Nm,[(Tgt,Off,Lcls)|Lbs],[(Tgt,NxtOff,[(Nm,Off)|Lcls])|Lbs],Off) :-
-      NxtOff is Off+1.
+declareLocal(Nm,Lc,Lcx,Off) :-
+  findLocal(Nm,Lc,Lcx,Off).
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
