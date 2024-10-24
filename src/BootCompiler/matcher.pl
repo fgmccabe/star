@@ -74,28 +74,26 @@ compileMatch(inVars,Subber,Conder,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
   matchVars(Lc,Subber,Conder,Vrs,Tpls,Deflt,Map,Dp,Reslt).
 
 conditionalize([],_,Deflt,Deflt).
-conditionalize([(_,(Lc,Bnds,Guard,Test,Val),_)|M],Conder,Deflt,Repl) :-!,
+conditionalize([(_,(Lc,_Bnds,Guard,Test,Val),_)|M],Conder,Deflt,Repl) :-!,
   pullWhere(Val,none,Vl,C0),
   mergeGl(Guard,Test,Lc,G0),
   mergeGl(G0,C0,Lc,TT),
   (mustSucceed(TT) ->
-   applyBindings(Bnds,Lc,Vl,Repl);
+     Repl=Vl;
    conditionalize(M,Conder,Deflt,Other),
-   applyBindings(Bnds,Lc,Vl,TVl),
-   call(Conder,Lc,TT,TVl,Other,Repl)
+   call(Conder,Lc,TT,Vl,Other,Repl)
   ).
 
 conditionalize(_Vrs,_,[],Deflt,Deflt).
-conditionalize(Vrs,Conder,[(Args,(Lc,Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-
+conditionalize(Vrs,Conder,[(Args,(Lc,_Bnds,Guard,Test,Val),_)|M],Deflt,Repl) :-
   mkMatchCond(Vrs,Args,Lc,BaseCond),
   pullWhere(Val,BaseCond,Vl,C0),
   mergeGl(Guard,Test,Lc,G0),
   mergeGl(C0,G0,Lc,TT),
   (mustSucceed(TT) ->
-   applyBindings(Bnds,Lc,Vl,Repl);
+   Vl = Repl;
    conditionalize(Vrs,Conder,M,Deflt,Other),
-   applyBindings(Bnds,Lc,Vl,TVl),
-   call(Conder,Lc,TT,TVl,Other,Repl)
+   call(Conder,Lc,TT,Vl,Other,Repl)
   ).
 
 mkMatchCond([_|Vrs],[ann(_)|Args],Lc,Cnd) :-
@@ -106,10 +104,6 @@ mkMatchCond([V|Vrs],[A|Args],Lc,Cond) :-
   mergeGl(some(mtch(Lc,A,V)),C0,Lc,Cond).
   
 mustSucceed(none).
-
-applyBindings(Bnds,Lc,Val,DVal) :-
-  filter(Bnds,matcher:filterBndVar(Val),VBnds),!,
-  (VBnds=[] -> DVal=Val ; DVal = varNames(Lc,VBnds,Val)).
 
 filterBndVar(Val,(Nm,X)) :-
   \+ string_concat("_",_,Nm),

@@ -367,7 +367,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",Off,LtNo|M],Cdx) :-\n");
           outMsg(out, "      findLocal(V,Lc,Lc0,Off),\n");
           outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Lc0,Lcx,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc0,Lcx,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");

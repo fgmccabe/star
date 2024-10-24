@@ -514,6 +514,8 @@ toLtp(funType(Args,Res),fnTipe(As,R)) :-!,
 toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
 toLtp(voidType,vdTipe) :-!.
+toLtp(allType(_,Tp),LTp) :-
+  toLtipe(Tp,LTp).
 toLtp(_,ptrTipe).
 
 mkTplTipe(Cnt,tplTipe(As)) :-

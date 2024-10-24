@@ -39,6 +39,8 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
   encMap(Map,MM).
 
 stackHwm([],_,H,H).
+stackHwm([iLbl(_,I)|Ins],C,H,Hx) :-
+  stackHwm([I|Ins],C,H,Hx).
 stackHwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iNop|Ins],CH0,H0,Hwm) :-
@@ -357,6 +359,8 @@ countLocal(Nm,Lcs,Lx,Hwm,H1) :-
     H1 = Hwm).
 
 localHwm([],_,H,H).
+localHwm([iLbl(_,I)|Ins],C,H,Hx) :-
+  localHwm([I|Ins],C,H,Hx).
 localHwm([iHalt(_)|Ins],C0,H0,Hwm) :-
   localHwm(Ins,C0,H0,Hwm).
 localHwm([iNop|Ins],C0,H0,Hwm) :-
@@ -777,7 +781,7 @@ mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[92,LtNo|M],Cdx) :-
 mnem([iLocal(V,W)|Ins],Lbls,Lt,Ltx,Lc,Lcx,[93,Off,LtNo|M],Cdx) :-
       findLocal(V,Lc,Lc0,Off),
       findLit(Lt,W,LtNo,Lt1),
-      mnem(Ins,Lbl0,Lt1,Ltx,Lc0,Lcx,M,Cdx).
+      mnem(Ins,Lbls,Lt1,Ltx,Lc0,Lcx,M,Cdx).
 
 
 baseOffset([(_,Base,_)|_],Base).
@@ -812,11 +816,10 @@ mkInsTpl(Is,Tpl) :-
     map(Is,assemble:mkIns,Ins),
     mkTpl(Ins,Tpl).
 
-mkIns(O,intgr(O)) :- number(O).
-mkIns(S,strg(S)) :- string(S).
+mkIns(O,intgr(O)) :- number(O),!.
+mkIns(S,strg(S)) :- string(S),!.
 mkIns(C,Tpl) :- length(C,_),
-  mkInsTpl(C,Args),
-  mkTpl(Args,Tpl).
+  mkInsTpl(C,Tpl).
 
 dispCode(Prog) :-
   showCode(Prog,O),
