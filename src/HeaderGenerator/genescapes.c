@@ -93,22 +93,22 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
 
   switch (*sig++) {
     case intSig:
-      dumpStdType("star.core*integer", out);
+      dumpStdType("star*integer", out);
       break;
     case bigSig:
-      dumpStdType("star.core*bigint", out);
+      dumpStdType("star*bigint", out);
       break;
     case fltSig:
-      dumpStdType("star.core*float", out);
+      dumpStdType("star*float", out);
       break;
     case chrSig:
-      dumpStdType("star.core*char", out);
+      dumpStdType("star*char", out);
       break;
     case strSig:
-      dumpStdType("star.core*string", out);
+      dumpStdType("star*string", out);
       break;
     case logSig:
-      dumpStdType("star.core*boolean", out);
+      dumpStdType("star*boolean", out);
       break;
     case kvrSig:
       outStr(O_IO(out), "kVar(");
@@ -300,22 +300,22 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
 
   switch (*sig++) {
     case intSig:
-      dumpStdType("star.core*integer", out);
+      dumpStdType("star*integer", out);
       break;
     case bigSig:
-      dumpStdType("star.core*bigint", out);
+      dumpStdType("star*bigint", out);
       break;
     case fltSig:
-      dumpStdType("star.core*float", out);
+      dumpStdType("star*float", out);
       break;
     case chrSig:
-      dumpStdType("star.core*char", out);
+      dumpStdType("star*char", out);
       break;
     case strSig:
-      dumpStdType("star.core*string", out);
+      dumpStdType("star*string", out);
       break;
     case logSig:
-      dumpStdType("star.core*boolean", out);
+      dumpStdType("star*boolean", out);
       break;
     case kvrSig: {
       outStr(O_IO(out), ".kVar(");

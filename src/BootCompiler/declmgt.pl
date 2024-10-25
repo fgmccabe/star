@@ -1,15 +1,16 @@
 :- module(declmgt,[declareType/4,isType/3,
-		declareTypeVars/4,isTypeVar/3,
-		declareVr/6,
-		declareEnum/6,declareCns/6,
-		getVar/5,getVarTypeFace/4,varLoc/4,
-		currentVar/3,
-		declareContract/4,getContract/3,
-		declareImplementation/5,
-		getImplementation/4,
-		manageConstraints/4,
-		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
-		dispEnv/1,declareDecl/4,declareAllDecls/4,defineContract/5
+		   declareTypeVars/4,isTypeVar/3,
+		   declareVr/6,
+		   declareEnum/6,declareCns/6,
+		   getVar/5,getVarTypeFace/4,varLoc/4,
+		   currentVar/3,
+		   declareContract/4,getContract/3,
+		   declareImplementation/5,
+		   getImplementation/4,
+		   manageConstraints/4,
+		   pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
+		   dispEnv/1,declareDecl/4,declareAllDecls/4,defineContract/5,
+		   stdDict/1
 	       ]).
 
 :- use_module(canon).
@@ -21,6 +22,11 @@
 :- use_module(location).
 :- use_module(errors).
 :- use_module(unify).
+
+stdDict(Base) :-
+  pushScope([],B),
+  stdDecl(Std),
+  declareAllDecls(Std,std,B,Base).
 
 declareAllDecls([],_,Env,Env).
 declareAllDecls([D|More],Lc,Env,Evx) :-

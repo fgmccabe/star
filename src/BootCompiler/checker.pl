@@ -1279,7 +1279,7 @@ mkBoot(Env,Lc,Pkg,Dfs,[BootDef|Dfs],Decls,[funDec("_boot",BootNm,BootTp)|Decls])
   findType("cons",Lc,Env,ConsTp),
   getVar(Lc,"_main",Env,MainTrm,MnTp),
   mangleName(Pkg,value,"_boot",BootNm),
-  applyTypeFun(ConsTp,[type("star.core*string")],Lc,Env,LSTp),
+  applyTypeFun(ConsTp,[type("star*string")],Lc,Env,LSTp),
   CmdVr = v(Lc,"CmdVr",LSTp),
   unitTp(UnitTp),
   MainTp = funType(tplType([LSTp]),UnitTp),

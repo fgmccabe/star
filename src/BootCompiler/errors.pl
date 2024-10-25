@@ -1,4 +1,4 @@
-:-module(errors,[reportError/3,reportFatal/3,
+:-module(errors,[reportError/3,reportFatal/2,reportFatal/3,
 		 reportWarning/3,reportMsg/2,reportMsg/3,genMsg/3,
 		 testOpt/2,
 		 errorCount/1,warningCount/1,
@@ -35,6 +35,9 @@ reportWarning(Msg,A,Lc) :- incWarningCount(),
 
 reportFatal(Msg,A,Lc) :-
   reportError(Msg,A,Lc),
+  abort.
+reportFatal(Msg,A) :-
+  reportMsg(Msg,A),
   abort.
 
 testOpt(none,_) :-!.

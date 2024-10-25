@@ -83,18 +83,18 @@ typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(update(_,Rc,_,_),Tp) :- !, typeOfCanon(Rc,Tp).
-typeOfCanon(intLit(_,_),type("star.core*integer")) :- !.
-typeOfCanon(bigLit(_,_),type("star.core*bigint")) :- !.
-typeOfCanon(floatLit(_,_),type("star.core*float")) :- !.
-typeOfCanon(charLit(_,_),type("star.core*char")) :- !.
-typeOfCanon(stringLit(_,_),type("star.core*string")) :- !.
+typeOfCanon(intLit(_,_),type("star*integer")) :- !.
+typeOfCanon(bigLit(_,_),type("star*bigint")) :- !.
+typeOfCanon(floatLit(_,_),type("star*float")) :- !.
+typeOfCanon(charLit(_,_),type("star*char")) :- !.
+typeOfCanon(stringLit(_,_),type("star*string")) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(open(_,_,Tp),Tp) :-!.
-typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
-typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
-typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
-typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
+typeOfCanon(match(_,_,_),type("star*boolean")) :-!.
+typeOfCanon(conj(_,_,_),type("star*boolean")) :-!.
+typeOfCanon(disj(_,_,_),type("star*boolean")) :-!.
+typeOfCanon(implies(_,_,_),type("star*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
