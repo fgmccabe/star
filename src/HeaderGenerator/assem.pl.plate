@@ -7,15 +7,16 @@
 :- use_module(encode).
 :- use_module(display).
 :- use_module(escapes).
+:- use_module(errors).
 
-assem(func(Nm,H,Sig,Ins),MTpl) :-
+assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
-    assemBlock(Ins,none,[],Ls1,Lts,[],Lcs,Cde,[]),
+    declareLocals(Lcls,LsMap,LcsTpl),
+    assemBlock(Ins,none,[],Ls1,Lts,LsMap,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
-    mkTpl(Lcs,LcsTpl),
-    encPolicy(H,HP),
+    encPolicy(Pol,HP),
     stackHwm(Ins,0,0,HWM),
     localHwm(Ins,[],0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
@@ -57,14 +58,14 @@ localHwm([iLbl(_,I)|Ins],C,H,Hx) :-
   localHwm([I|Ins],C,H,Hx).
 #(localHwm)
 
-assemBlock(Ins,Lb,Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
-    mnem(Ins,[Lb|Lbs],Lt,Lts,Lc,Lcx,Code,Cdx).
+assemBlock(Ins,Lb,Lbs,Lt,Lts,LsMap,Code,Cdx) :-
+    mnem(Ins,[Lb|Lbs],Lt,Lts,LsMap,Code,Cdx).
 
-mnem([],_,Lt,Lt,Lc,Lc,Cdx,Cdx).
-mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Lc,Lcx,Code,Cdx) :-
+mnem([],_,Lt,Lt,_LsMap,Cdx,Cdx).
+mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,LsMap,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem([Inner],[(Lb,Base,[])|Lbs],Lt,Lt0,Lc,Lc0,Code,Cd0),
-      mnem(Ins,Lbs,Lt0,Lts,Lc0,Lcx,Cd0,Cdx).
+      mnem([Inner],[(Lb,Base,[])|Lbs],Lt,Lt0,LsMap,Code,Cd0),
+      mnem(Ins,Lbs,Lt0,Lts,LsMap,Cd0,Cdx).
 #(Mnem)
 
 baseOffset([(_,Base,_)|_],Base).
@@ -79,13 +80,20 @@ findLevel(Tgt,[none|Ends],L,Lo) :-
 findLevel(Tgt,[_|Ends],L,Lo) :-
   findLevel(Tgt,Ends,L,Lo).
 
-findLocal(Nm,Lcls,Lcls,Off) :-
-      is_member((Nm,Off),Lcls),!.
-findLocal(Nm,Lcls,[(Nm,Off)|Lcls],Off) :-
-      length(Lcls,Off).
+findLocal(Nm,LsMap,Off) :-
+      is_member((Nm,Off),LsMap),!.
+findLocal(Nm,_,_) :-
+      reportFatal("internal: Cannot assemble variable reference %s",[Nm]).
 
-declareLocal(Nm,Lc,Lcx,Off) :-
-  findLocal(Nm,Lc,Lcx,Off).
+declareLocals(Lst, Map, Tpl) :-
+  declareLocals(Lst,0,Map, Lcls),
+  mkTpl(Lcls,Tpl).
+
+declareLocals([],_,[],[]) :-!.
+declareLocals([(Nm,Spec)|Lcls],Off,[(Nm,Off)|LsMap],[Entry|Lcls]) :-
+  mkTpl([strg(Nm),intgr(Off),Spec],Entry),
+  Off1 is Off+1,
+  declareLocals(Lcls,Off1,LsMap,Lcls).
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
@@ -106,9 +114,11 @@ mkIns(C,Tpl) :- length(C,_),
 
 dispCode(Prog) :-
   showCode(Prog,O),
+  validSS(O),
   displayln(O).
 
-showCode(func(Nm,H,Sig,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),iv(nl(0),II)])) :-
+showCode(func(Nm,H,Sig,Lcls,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),LL,iv(nl(0),II)])) :-
+  ssLocals(Lcls,LL),
   ssTrm(Nm,0,NN),
   showMnems(Ins,[0],II),
   ssPolicy(H,HH),!.
@@ -118,6 +128,14 @@ showCode(struct(Lbl,Sig,Ix),sq([ss("symb "),LL,ss(":"),TT,ss(" @ "),ix(Ix)])) :-
 showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
   ssConsMap(Map,XX),
   ssType(Tp,false,0,TT).
+
+ssLocals(Lcs,sq([ss("Locals:"),nl(0),iv(nl(2),LL),nl(0)])) :- \+Lcs=[], ssLcs(Lcs,LL),!.
+ssLocals([],ss("")).
+
+ssLcs([],[]).
+ssLcs([(Nm,Spec)|Lcs],[sq([ss(Nm),ss(" ~ "),SS])|LL]) :-
+  ssTrm(Spec,0,SS),
+  ssLcs(Lcs,LL).
 
 ssPolicy(soft,ss("soft")).
 ssPolicy(hard,ss("hard")).

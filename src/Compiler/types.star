@@ -593,12 +593,12 @@ star.compiler.types{
   ntEnumTp(T) where ET ?= isEnumType(T) => ET.
   
   public unitTp = .tupleType([]).
-  public chrType = .nomnal("star.core*char").
-  public intType = .nomnal("star.core*integer").
-  public bigintType = .nomnal("star.core*bigint").
-  public fltType = .nomnal("star.core*float").
-  public strType = .nomnal("star.core*string").
-  public boolType = .nomnal("star.core*boolean").
+  public chrType = .nomnal("star*char").
+  public intType = .nomnal("star*integer").
+  public bigintType = .nomnal("star*bigint").
+  public fltType = .nomnal("star*float").
+  public strType = .nomnal("star*string").
+  public boolType = .nomnal("star*boolean").
   public thunkType(T) => makeTpExp("thunk",[T]).
   public ioType = .nomnal("ioHandle").
 

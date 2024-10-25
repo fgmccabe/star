@@ -16,7 +16,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdType/3,contType/2,tagType/3,
+	   stdDecl/1,stdType/3,contType/2,tagType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -474,12 +474,12 @@ contractType(constrained(_,Cn),Tp) :-
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
-stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
-stdType("bigint",type("star.core*bigint"),typeExists(type("star.core*bigint"),faceType([],[]))).
-stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
-stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
-stdType("char",type("star.core*char"),typeExists(type("star.core*char"),faceType([],[]))).
-stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
+stdType("integer",type("star*integer"),typeExists(type("star*integer"),faceType([],[]))).
+stdType("bigint",type("star*bigint"),typeExists(type("star*bigint"),faceType([],[]))).
+stdType("float",type("star*float"),typeExists(type("star*float"),faceType([],[]))).
+stdType("boolean",type("star*boolean"),typeExists(type("star*boolean"),faceType([],[]))).
+stdType("char",type("star*char"),typeExists(type("star.core*char"),faceType([],[]))).
+stdType("string",type("star*string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("cons",
 	tpFun("star.core*cons",1),
 	allType(kVar("a"),
@@ -500,6 +500,36 @@ stdType("thunk",
 	allType(kVar("e"),
 		typeExists(tpExp(tpFun("thunk",1),kVar("e")),
 			   faceType([],[])))).
+
+
+stdDecl([typeDec("integer",type("star*integer"),typeExists(type("star*integer"),faceType([],[]))),
+	 typeDec("bigint",type("star*bigint"),typeExists(type("star*bigint"),faceType([],[]))),
+	 typeDec("float",type("star*float"),typeExists(type("star*float"),faceType([],[]))),
+	 typeDec("boolean",type("star*boolean"),typeExists(type("star*boolean"),faceType([],[]))),
+	 cnsDec("true","star#true",consType(tplType([]),type("star*boolean"))),
+	 cnsDec("false","star#false",consType(tplType([]),type("star*boolean"))),
+	 typeDec("char",type("star*char"),typeExists(type("star.core*char"),faceType([],[]))),
+	 typeDec("string",type("star*string"),typeExists(type("star.core*string"),faceType([],[]))),
+	 typeDec("cons",
+		 tpFun("star.core*cons",1),
+		 allType(kVar("a"),
+			 typeExists(tpExp(tpFun("star.core*cons",2),kVar("a")),
+				    faceType([],[])))),
+	 typeDec("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))),
+	 typeDec("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))),
+	 typeDec("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))),
+	 typeDec("fiber",
+		 tpFun("fiber",2),
+		 allType(kVar("a"),
+			 allType(kVar("e"),
+				 typeExists(tpExp(tpExp(tpFun("fiber",2),kVar("a")),
+						  kVar("e")),
+					    faceType([],[]))))),
+	 typeDec("thunk",
+		 tpFun("thunk",1),
+		 allType(kVar("e"),
+			 typeExists(tpExp(tpFun("thunk",1),kVar("e")),
+				    faceType([],[]))))]).
 
 toLtipe(Tp,LTp) :-
   deRef(Tp,DTp),

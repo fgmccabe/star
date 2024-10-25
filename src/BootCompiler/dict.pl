@@ -13,7 +13,7 @@
 		declareConstraints/4,
 		allConstraints/2,
 		declareTryScope/5,getTryScope/5,
-		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
+		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,
 		dispEnv/1
 	       ]).
 
@@ -297,17 +297,6 @@ procNames([K-Vr|More],P,SoFar,Result) :-
   call(P,K,Vr,SoFar,S0),
   procNames(More,P,S0,Result).
 
-declareStdTypes([],D,D).
-declareStdTypes([T|Ts],D,Dx) :-
-  stdType(T,Tp,TpEx),
-  declareType(T,tpDef(std,Tp,TpEx),D,D1),
-  declareStdTypes(Ts,D1,Dx).
-
-stdDict(Base) :-
-  pushScope([],B),
-  declareStdTypes(["integer","bigint","char","string","float",
-		   "cons","file","fiber"],B,Base).
-
 dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts,Trs),Cx,
 	    sq([ix(Cx),ss("-"),
 		iv(nl(2),[TT,VV,II,AA,UU,CC,BB])])) :-
@@ -392,5 +381,3 @@ dispEnv([D|Env],Cx) :-
   display(DD),
   C1 is Cx+1,
   dispEnv(Env,C1).
-
-
