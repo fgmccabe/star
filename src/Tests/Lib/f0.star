@@ -16,6 +16,11 @@ test.f0{
     times(x,y) => _int_plus(x,y).
     minus(x,y) => _int_plus(x,y).
   }
+
+  _main(_) => valof{
+    _logmsg("hello world");
+    valis ()
+  }
 }
   
   
