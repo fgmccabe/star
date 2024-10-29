@@ -35,6 +35,7 @@ vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 dropVar(_,[],[]).
 dropVar(Vr,[iTL(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
+dropVar(Vr,[iLocal(Vr,_)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
   dropVar(Vr,Is,Isx).
