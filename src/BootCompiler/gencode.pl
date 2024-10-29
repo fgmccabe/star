@@ -226,7 +226,7 @@ compAction(whle(Lc,G,B),OLc,Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
   flatBlockSig(FlatTp),
   genLbl(L,Lp,L1),
   genLbl(L1,Done,L2),
-  compCond(G,Lc,Done,Brks,Opts,L2,L3,D,D1,LC,LC1,Stk,Stka),
+  compCond(G,Lc,Done,Brks,normal,Opts,L2,L3,D,D1,LC,LC1,Stk,Stka),
   compAction(B,Lc,Ok,Brks,notLast,Opts,L3,Lx,D1,Dx,LC1,LC2,Stk,Stkb),
   reconcileStack(Stka,Stkb,Stk,LC2,[iLoop(Lp)]),!.
 compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
@@ -240,7 +240,7 @@ compAction(iftte(Lc,G,A,B),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
   flatBlockSig(FlatTp),
-  compCond(G,Lc,Fl,Brks,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
+  compCond(G,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
   verify(Stk=Stk0,"conditions should not increase stack"),
   compAction(A,Lc,Ok,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Ok)],Stk,Stka),
   compAction(B,Lc,Ok,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iBreak(Ok)],Stk,Stkb),
@@ -374,16 +374,20 @@ compPtn(ctpl(St,Args),Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail)|C],Cx,Stk,Stkx
 compPtn(whr(Lc,P,Cnd),OLc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compPtn(P,Lc,Fail,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),
-  compCond(Cnd,Lc,Fail,Brks,Opts,L1,Lx,D1,Dx,C1,Cx,Stkx,Stky),
+  compCond(Cnd,Lc,Fail,Brks,normal,Opts,L1,Lx,D1,Dx,C1,Cx,Stkx,Stky),
   verify((Stkx=Stky),"where condition does not leave stack alone").
 compPtn(T,Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stk,Stk) :-
   reportError("(internal) cannot compile pattern %s",[ltrm(T)],Lc).
 
 
 % compile a condition. Invoke passed in Fail label if the condition is false
-compCond(enum(Sy),_Lc,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
+compCond(enum(Sy),_Lc,_Fail,_Brks,normal,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
   isTrueSymb(Sy),!.
-compCond(enum(Sy),_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stkx,Stkx) :-
+compCond(enum(Sy),_Lc,_Fail,_Brks,negated,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stkx,Stkx) :-
+  isTrueSymb(Sy),!.
+compCond(enum(Sy),_,Fail,_Brks,normal,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stkx,Stkx) :-
+  isFalseSymb(Sy),!.
+compCond(enum(Sy),_,Fail,_Brks,negated,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
   isFalseSymb(Sy),!.
 compCond(cnj(Lc,A,B),OLc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
