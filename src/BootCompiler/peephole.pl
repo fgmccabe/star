@@ -10,12 +10,12 @@
 :- use_module(location).
 
 peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
-  peepCode(Ins,PIns),
+  peepCode(Ins,[],PIns),
   findUnusedVars(LsMap,PIns,LsMx,Insx).
 
-peepCode(Ins,Code) :-
+peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),
-  peep(Is,Code).
+  peep(Is,Lbls,Code).
 
 findUnusedVars([(Vr,_Spec)|Vrs],Ins,AVrs,ACde) :-
   \+varRead(Vr,Ins),
@@ -57,27 +57,27 @@ dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
 dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
 dropUnreachable([iAbort|_],[iAbort]) :-!.
 dropUnreachable([iHalt(Ix)|_],[iHalt(Ix)]) :-!.
-dropUnreachable([I|Ins],[I|DIns]) :-
-  dropUnreachable(Ins,DIns).
 dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
   copyN(Mx,I,I0,Is,Is0),
   dropUnreachable(I0,Is0).
+dropUnreachable([I|Ins],[I|DIns]) :-
+  dropUnreachable(Ins,DIns).
 
-peep([],[]) :-!.
-peep([iStL(Off),iLdL(Off),iRet|_], [iRet]) :-!.
-peep([iStL(Off),iLdL(Off)|Is], Ins) :-
-  peep([iTL(Off)|Is],Ins).
-peep([iBlock(Tpe,IB)|Is],[iBlock(Tpe,IBs)|Ins]) :-
-  peepCode(IB,IBs),
-  peep(Is,Ins).
-peep([iLbl(Lb,iBlock(Tps,IB))|Is],Ins) :-
-  peepCode(IB,IB0),
-  peep(Is,Is0),
+peep([],_,[]) :-!.
+peep([iStL(Off),iLdL(Off),iRet|_], _, [iRet]) :-!.
+peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-
+  peep([iTL(Off)|Is],Lbls, Ins).
+peep([iBlock(Tpe,IB)|Is],Lbls, [iBlock(Tpe,IBs)|Ins]) :-
+  peepCode(IB,Lbls,IBs),
+  peep(Is,Lbls, Ins).
+peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-
+  peepCode(IB,[Lb|Lbls],IB0),
+  peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
    concat(IB0,Is0,Is1),
    dropUnreachable(Is1,Ins)).
-peep([I|Is],[I|Ins]) :- peep(Is,Ins).
+peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 
 pullJumps(Ins,InsX) :-
   findTgts(Ins,mp{},Map),
@@ -96,6 +96,8 @@ lblReferenced(Lb,[iCLbl(_,Lb)|_]).
 lblReferenced(Lb,[iUnpack(_,Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
+lblReferenced(Lb,[iBlock(_,I)|_]) :-
+  lblReferenced(Lb,I).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 varReferenced(Nm,[iLdL(Nm)|_]) :-!.

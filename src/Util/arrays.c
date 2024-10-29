@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "config.h"
 #include "arrayP.h"
 #include "quick.h"
 
@@ -25,6 +24,7 @@ arrayPo allocArray(int elSize, integer initial, logical growable) {
   ar->data = malloc(elSize * initial);
   ar->dataLength = elSize * initial;
   ar->count = 0;
+  ar->reserved = 0;
   ar->growable = growable;
   return ar;
 }
@@ -36,20 +36,25 @@ arrayPo fixedArray(int elSize, integer initial, void *data) {
   ar->data = data;
   ar->dataLength = elSize * initial;
   ar->count = 0;
+  ar->reserved = 0;
   ar->growable = False;
   return ar;
 }
 
 retCode reserveRoom(arrayPo ar, integer count) {
-  if (ar->dataLength < count * ar->elSize) {
+  assert(count >= 0);
+  integer newLimit = ar->reserved + count;
+
+  if (ar->dataLength < newLimit * ar->elSize) {
     if (ar->growable) {
-      integer newSize = ar->dataLength + count * ar->elSize;
+      integer newSize = newLimit * ar->elSize;
       void *newData = realloc(ar->data, newSize);
       if (newData == Null)
         return Space;
       else {
         ar->data = newData;
         ar->dataLength = newSize;
+        ar->reserved = newLimit;
         return Ok;
       }
     } else
@@ -76,7 +81,30 @@ retCode appendEntry(arrayPo ar, void *el) {
   void *tgt = ar->data + (ar->count * ar->elSize);
   memcpy(tgt, el, ar->elSize);
   ar->count++;
+  if (ar->count > ar->reserved)
+    ar->reserved = ar->count;
   return Ok;
+}
+
+void *newEntry(arrayPo ar) {
+  if (ar->elSize * (ar->count + 1) > ar->dataLength) {
+    if (ar->growable) {
+      integer newSize = ar->dataLength + ar->dataLength / 2 + ar->elSize;
+      void *newData = realloc(ar->data, newSize);
+      if (newData == Null)
+        return Null;
+      else {
+        ar->data = newData;
+        ar->dataLength = newSize;
+      }
+    } else
+      return Null;
+  }
+  assert((ar->count + 1) * ar->elSize < ar->dataLength);
+  ar->count++;
+  if (ar->count > ar->reserved)
+    ar->reserved = ar->count;
+  return ar->data + (ar->count * ar->elSize);
 }
 
 integer arrayCount(arrayPo ar) {
@@ -89,7 +117,9 @@ void *nthEntry(arrayPo ar, integer ix) {
 }
 
 void setNth(arrayPo ar, integer ix, void *el) {
-  assert(ix >= 0 && ix < ar->count);
+  assert(ix >= 0 && ix <= maximum(ar->reserved, ar->count));
+  if (ix == ar->count)
+    ar->count++;
   memcpy(&ar->data[ix], el, ar->elSize);
 }
 

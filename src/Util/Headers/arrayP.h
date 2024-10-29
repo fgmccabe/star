@@ -12,6 +12,7 @@ typedef struct array_ {
   void *data;           // Raw data
   integer dataLength;   // Size of overall data
   integer count;        // How many elements in use
+  integer reserved;     // How much room has been reserved
   logical growable;     // Is the array allowed to grow
 } ArrayRecord;
 

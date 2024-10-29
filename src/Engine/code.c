@@ -282,7 +282,7 @@ integer codeSize(methodPo mtd){
 }
 
 methodPo
-defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,
+defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
@@ -298,7 +298,7 @@ defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, inte
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locs = locs;
-  mtd->stackDelta = stackDelta;
+  mtd->stackDelta = stackHeight;
 
   lbl->mtd = mtd;
 
@@ -314,7 +314,7 @@ specialMethod(const char *name, integer arity, integer insCount, insPo instructi
   setArg(pool, 0, (termPo) lbl);
   setArg(pool, 1, sigTerm);
 
-  return defineMtd(globalHeap, insCount, instructions, 1, 0, 0, 0, pool, Null);
+  return defineMtd(globalHeap, insCount, instructions, 1, 0, 0, lbl, pool, Null);
 }
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
