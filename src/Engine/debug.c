@@ -160,7 +160,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
             return False;
         }
       }
-      case Locals: {
+      case Entry: {
         if (p->waterMark == Null && breakPointSet(frameLbl(p->stk->fp))) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -656,7 +656,7 @@ static logical shouldWeStopIns(processPo p) {
             return False;
         }
       }
-      case Locals: {
+      case Entry: {
         if (p->waterMark == Null && breakPointSet(mtdLabel(frameMtd(p->stk->fp)))) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -881,7 +881,7 @@ DebugWaitFor enterDebug(processPo p) {
   switch (pc->op) {
     case Abort:
       return lnDebug(p, peekStack(stk, 1), showAbort);
-    case Locals:
+    case Entry:
       return lnDebug(p, Null, showEntry);
     case Ret:
       return lnDebug(p, topStack(stk), showRet);

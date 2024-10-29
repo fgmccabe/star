@@ -111,6 +111,10 @@ retCode jit_Alloc(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Entry(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_LdA(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
   int32 argNo = code[pc].fst;
@@ -237,6 +241,10 @@ retCode jit_Rot(insPo code, integer pc, jitCompPo jit) {
   return Ok;
 }
 
+retCode jit_Pick(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
   int32 litNo = code[pc].fst;
 
@@ -290,6 +298,16 @@ retCode jit_Block(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_Break(insPo code, integer pc, jitCompPo jit) {
+  assemCtxPo ctx = assemCtx(jit);
+  codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
+
+  assert(tgt != Null);
+
+  b(tgt);
+  return Ok;
+}
+
+retCode jit_Loop(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
 

@@ -20,6 +20,6 @@ typedef struct _encoding_support_ {
 retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer);
 
 retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
-retCode
-decodeInstructions(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize);
+
+retCode decodeInstructions(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize);
 #endif //STAR_ENCODEDP_H

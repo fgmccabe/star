@@ -84,7 +84,7 @@ labelPo mtdLabel(methodPo mtd);
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo
-defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackDelta,
+defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs);
 
 methodPo

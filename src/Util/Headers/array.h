@@ -17,6 +17,7 @@ arrayPo allocArray(int elSize, integer initial, logical growable);
 arrayPo fixedArray(int elSize, integer initial, void *data);
 retCode reserveRoom(arrayPo ar, integer count);
 retCode appendEntry(arrayPo ar,void *el);
+void *newEntry(arrayPo ar);
 void *nthEntry(arrayPo ar,integer ix);
 void setNth(arrayPo ar, integer ix, void *el);
 retCode dropEntry(arrayPo ar,integer ix);

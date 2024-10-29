@@ -253,7 +253,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           continue;
         }
       }
-      case Locals:
+      case Entry:
         continue;
       case Ret:
         if (pc != block->insCount - 1)
@@ -280,6 +280,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         } else
           return Error;
       }
+      case Loop:
       case Break: {
         if (checkBreak(ctx, pc, stackDepth, code[pc].alt) != Ok)
           return Error;
@@ -510,8 +511,8 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         for (integer ix = 0; ix < mx; ix++) {
           insPo caseIns = &code[pc + ix];
           switch (caseIns->op) {
-            case Block:
             case Break:
+            case Loop:
               continue;
             default:
               return verifyError(ctx, ".%d: invalid case instruction", pc + ix);

@@ -354,7 +354,8 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
-  integer funIx = 1;
+  integer stackHeight;
+  integer sigIndex;
   DefinitionMode redefine = hardDef;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
@@ -368,7 +369,10 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
-    ret = decodeInteger(in, &funIx);
+    ret = decodeInteger(in, &sigIndex);
+
+  if (ret == Ok)
+    ret = decodeInteger(in, &stackHeight);
 
   if (ret == Ok)
     ret = decodeInteger(in, &lclCount);
@@ -376,7 +380,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   if (ret == Ok) {
     integer insCount = 0;
     insPo instructions = Null;
-    HwmRec Hwm = {.max=0, .current=0};
     arrayPo locs;
     ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
 
@@ -403,10 +406,9 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             } // Otherwise don't redefine
           } else {
             gcAddRoot(H, (ptrPo) &lbl);
-            integer stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
 
-
-            methodPo mtd = defineMtd(H, insCount, instructions, lclCount, hwmOf(&Hwm), stackDelta, lbl, C_NORMAL(pool), locs);
+            methodPo mtd = defineMtd(H, insCount, instructions, sigIndex, lclCount, stackHeight, lbl, C_NORMAL(pool),
+                                     locs);
             if (enableVerify)
               ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
@@ -420,7 +422,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   }
 
   if (ret == Error)
-    logMsg(logFile,"problem in loading %s/%d: %s", prgName, arity, errorMsg);
+    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
 
   return ret;
 }
