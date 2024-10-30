@@ -95,9 +95,6 @@ genGlb(D,Opts,Lc,Nm,Tp,Value,Cd) :-
 genRet(Opts,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
-dropCont(Lx,Lx,D,D,[iDrop|Cx],Cx,Stk,Stk1) :-
-  dropStk(Stk,1,Stk1).
-
 initDict(scope([])).
 
 getLsMap(scope(Dx),Vrs) :-
@@ -390,19 +387,29 @@ compCond(enum(Sy),_,Fail,_Brks,normal,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stk
   isFalseSymb(Sy),!.
 compCond(enum(Sy),_,_Fail,_Brks,negated,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
   isFalseSymb(Sy),!.
+compCond(cnj(Lc,enum(A),B),_OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  isTrueSymb(A),!,
+  compCond(B,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compCond(cnj(_Lc,enum(A),_B),_OLc,Fail,_Brks,normal,_Opts,Lx,Lx,Dx,Dx,[iBreak(Fail)|Cx],Cx,Stk,Stk) :-
+  isFalseSymb(A),!.
 compCond(cnj(Lc,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compCond(A,Lc,Fail,Brks,normal,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compCond(B,Lc,Fail,Brks,normal,Opts,L1,Lx,D1,Dx,C1,Cx,Stk1,Stkx).
 compCond(cnj(Lc,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- % apply de morgan's law
   compCond(dsj(Lc,ng(Lc,A),ng(Lc,B)),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compCond(dsj(_Lc,enum(A),_B),_OLc,_Fail,_Brks,normal,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stkx,Stkx) :-
+  isTrueSymb(A),!.
+compCond(dsj(_Lc,enum(A),B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  isFalseSymb(A),!,
+  compCond(B,OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compCond(dsj(Lc,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
   flatBlockSig(FlatTp),
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
   compCond(A,Lc,Fl,Brks,normal,Opts,L1,L2,D,D0,AC,[iBreak(Ok)],Stk,Stka),
-  compCond(B,Lc,Fail,Brks,normal,Opts,L2,Lx,D0,Dx,BC,[],Stk,Stkb),
+  compCond(B,Lc,Fail,Brks,normal,Opts,L2,Lx,D0,Dx,BC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"disjunction").
 compCond(dsj(Lc,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- % apply de morgan's law
   compCond(cnj(Lc,ng(Lc,A),ng(Lc,B)),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
@@ -436,10 +443,12 @@ compCond(mtch(Lc,P,E),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compPtn(P,Lc,Ok,Brks,Opts,L2,Lx,D1,Dx,CA1,[iBreak(Fail)],Stka,Stkb),
   mergeStkLvl(Stk,Stkb,Stkx,"pattern conditional").
 compCond(E,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iIfNot(Fail)|Cx],Stk,Stka),
+  compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iIfNot(Fail)|Cx],Stk,Stk0),
+  dropStk(Stk0,1,Stka),
   mergeStkLvl(Stk,Stka,Stkx,"value conditional").
 compCond(E,Lc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iIf(Fail)|Cx],Stk,Stka),
+  compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iIf(Fail)|Cx],Stk,Stk0),
+  dropStk(Stk0,1,Stka),
   mergeStkLvl(Stk,Stka,Stkx,"value conditional").
 
 % compile an expression
@@ -599,8 +608,8 @@ isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
 
-isTrueSymb("star.core#true").
-isFalseSymb("star.core#false").
+isTrueSymb("star#true").
+isFalseSymb("star#false").
 
 compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(BlkTp,CC))|DC]))|Cx],Cx,Stk,Stkx) :-
   genLbl(L,Df,L0),
@@ -612,7 +621,9 @@ compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(
 
   compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[iBreak(Df)],CC,C0,Stk1,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk1,Stkb),
-  dispIns([iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(BlkTp,CC))|DC]))]),
+  (is_member(traceGenCode,Opts) ->
+   dispIns([iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(BlkTp,CC))|DC]))]);
+   true),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
 genCaseTable(Cases,P,Table) :-

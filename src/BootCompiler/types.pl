@@ -474,12 +474,12 @@ contractType(constrained(_,Cn),Tp) :-
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
-stdType("integer",type("star*integer"),typeExists(type("star*integer"),faceType([],[]))).
-stdType("bigint",type("star*bigint"),typeExists(type("star*bigint"),faceType([],[]))).
-stdType("float",type("star*float"),typeExists(type("star*float"),faceType([],[]))).
-stdType("boolean",type("star*boolean"),typeExists(type("star*boolean"),faceType([],[]))).
-stdType("char",type("star*char"),typeExists(type("star.core*char"),faceType([],[]))).
-stdType("string",type("star*string"),typeExists(type("star.core*string"),faceType([],[]))).
+stdType("integer",type("integer"),typeExists(type("integer"),faceType([],[]))).
+stdType("bigint",type("bigint"),typeExists(type("bigint"),faceType([],[]))).
+stdType("float",type("float"),typeExists(type("float"),faceType([],[]))).
+stdType("boolean",type("boolean"),typeExists(type("boolean"),faceType([],[]))).
+stdType("char",type("char"),typeExists(type("star.core*char"),faceType([],[]))).
+stdType("string",type("string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("cons",
 	tpFun("star.core*cons",1),
 	allType(kVar("a"),
@@ -502,14 +502,14 @@ stdType("thunk",
 			   faceType([],[])))).
 
 
-stdDecl([typeDec("integer",type("star*integer"),typeExists(type("star*integer"),faceType([],[]))),
-	 typeDec("bigint",type("star*bigint"),typeExists(type("star*bigint"),faceType([],[]))),
-	 typeDec("float",type("star*float"),typeExists(type("star*float"),faceType([],[]))),
-	 typeDec("boolean",type("star*boolean"),typeExists(type("star*boolean"),faceType([],[]))),
-	 cnsDec("true","star#true",consType(tplType([]),type("star*boolean"))),
-	 cnsDec("false","star#false",consType(tplType([]),type("star*boolean"))),
-	 typeDec("char",type("star*char"),typeExists(type("star.core*char"),faceType([],[]))),
-	 typeDec("string",type("star*string"),typeExists(type("star.core*string"),faceType([],[]))),
+stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([],[]))),
+	 typeDec("bigint",type("bigint"),typeExists(type("bigint"),faceType([],[]))),
+	 typeDec("float",type("float"),typeExists(type("float"),faceType([],[]))),
+	 typeDec("boolean",type("boolean"),typeExists(type("boolean"),faceType([],[]))),
+	 cnsDec("true","star#true",consType(tplType([]),type("boolean"))),
+	 cnsDec("false","star#false",consType(tplType([]),type("boolean"))),
+	 typeDec("char",type("char"),typeExists(type("char"),faceType([],[]))),
+	 typeDec("string",type("string"),typeExists(type("string"),faceType([],[]))),
 	 typeDec("cons",
 		 tpFun("star.core*cons",1),
 		 allType(kVar("a"),

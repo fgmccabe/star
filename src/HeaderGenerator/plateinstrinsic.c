@@ -372,22 +372,22 @@ static char *dumpPrologSig(char *sig, ioPo out) {
 
   switch (*sig++) {
     case intSig:
-      dumpPrologStdType("star*integer", out);
+      dumpPrologStdType("integer", out);
       break;
     case bigSig:
-      dumpPrologStdType("star*bigint", out);
+      dumpPrologStdType("bigint", out);
       break;
     case fltSig:
-      dumpPrologStdType("star*float", out);
+      dumpPrologStdType("float", out);
       break;
     case chrSig:
-      dumpPrologStdType("star*char", out);
+      dumpPrologStdType("char", out);
       break;
     case strSig:
-      dumpPrologStdType("star*string", out);
+      dumpPrologStdType("string", out);
       break;
     case logSig:
-      dumpPrologStdType("star*boolean", out);
+      dumpPrologStdType("boolean", out);
       break;
     case kvrSig:
       outStr(out, "kVar(");

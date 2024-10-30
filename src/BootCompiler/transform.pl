@@ -52,46 +52,49 @@
 
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
-  makePkgMap(Pkg,PkgDecls,Map),
+  makePkgMap(PkgDecls,Map),
 %  (is_member(traceNormalize,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
-makePkgMap(Pkg,PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
+makePkgMap(PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
+  stdDecl(Std),
+  makeConstructorMap(Std,consMap{},StdMap),
   reverse(PkgDecls,Decls),  % declare imports first
-  makeConstructorMap(Decls,consMap{},ConsMap),
-  declareModuleGlobals(Pkg,Decls,ConsMap,varMap{},VarMap,typeMap{},TpMap),!.
+  makeConstructorMap(Decls,StdMap,ConsMap),
+  declareModuleGlobals(Std,ConsMap,varMap{},SVarMap,typeMap{},STpMap),!,
+  declareModuleGlobals(Decls,ConsMap,SVarMap,VarMap,STpMap,TpMap),!.
 
-declareModuleGlobals(Pkg,[Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
-  declMdlGlobal(Pkg,Def,ConsMap,VMap,M0,TMap,TM0),
-  declareModuleGlobals(Pkg,Rest,ConsMap,M0,VMx,TM0,TMx).
-declareModuleGlobals(_,[],_,Map,Map,TMap,TMap).
+declareModuleGlobals([Def|Rest],ConsMap,VMap,VMx,TMap,TMx) :-
+  declMdlGlobal(Def,ConsMap,VMap,M0,TMap,TM0),
+  declareModuleGlobals(Rest,ConsMap,M0,VMx,TM0,TMx).
+declareModuleGlobals([],_,Map,Map,TMap,TMap).
 
-declMdlGlobal(_Pkg,funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
+declMdlGlobal(funDec(Nm,LclName,Tp),_,VMp,VMx,TMx,TMx) :-
   mangleName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,moduleFun(LclName,some(ClosureName),Ar,Tp),VMp,VMx).
-declMdlGlobal(_Pkg,varDec(Nm,LclName,Tp),_,Mp,Mx,TMx,TMx) :-
+declMdlGlobal(varDec(Nm,LclName,Tp),_,Mp,Mx,TMx,TMx) :-
   declEntry(Nm,moduleVar(LclName,Tp),Mp,Mx).
-declMdlGlobal(_Pkg,cnsDec(_Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
+declMdlGlobal(cnsDec(_Nm,FullNm,Tp),_,Mp,Mx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   declEntry(FullNm,moduleCons(FullNm,Tp,Ar),Mp,Mx).
-declMdlGlobal(_Pkg,typeDec(Nm,Tp,_),ConsMap,VMx,VMx,TMp,TMx) :-
+declMdlGlobal(typeDec(Nm,Tp,_),ConsMap,VMx,VMx,TMp,TMx) :-
   tpName(Tp,TpNm),
   findConsMap(TpNm,ConsMap,IxMap),!,
   declEntry(Nm,moduleType(TpNm,Tp,IxMap),TMp,TMx).
-declMdlGlobal(_,accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
+declMdlGlobal(accDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   makeKey(AccName,Key),
   (get_dict(Key,VMp,_),VMx=VMp;
   mangleName(AccName,closure,ClosureName),
    declEntry(AccName,moduleFun(AccName,some(ClosureName),Ar,Tp),VMp,VMx)).
-declMdlGlobal(_,updDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
+declMdlGlobal(updDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   makeKey(AccName,Key),
   (get_dict(Key,VMp,_),VMx=VMp;
    mangleName(AccName,closure,ClosureName),
    declEntry(AccName,moduleFun(AccName,some(ClosureName),Ar,Tp),VMp,VMx)).
-declMdlGlobal(_,_,_,Mx,Mx,TMx,TMx).
+declMdlGlobal(_,_,Mx,Mx,TMx,TMx).
 
 makeConstructorMap(Decls,CnMp,ConsMap) :-
   findAllConstructors(Decls,[],Cons),

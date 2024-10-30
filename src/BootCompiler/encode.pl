@@ -87,12 +87,12 @@ encodeType(T,C,Cx) :-
 encodeT(anonType,['_'|O],O).
 encodeT(voidType,['v'|O],O).
 encodeT(T,['_'|O],O) :- isUnbound(T).
-encodeT(type("star*boolean"),['l'|O],O).
-encodeT(type("star*integer"),['i'|O],O).
-encodeT(type("star*bigint"),['b'|O],O).
-encodeT(type("star*float"),['f'|O],O).
-encodeT(type("star*char"),['c'|O],O).
-encodeT(type("star*string"),['s'|O],O).
+encodeT(type("boolean"),['l'|O],O).
+encodeT(type("integer"),['i'|O],O).
+encodeT(type("bigint"),['b'|O],O).
+encodeT(type("float"),['f'|O],O).
+encodeT(type("char"),['c'|O],O).
+encodeT(type("string"),['s'|O],O).
 encodeT(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeT(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
