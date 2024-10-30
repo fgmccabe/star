@@ -35,6 +35,7 @@ vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 dropVar(_,[],[]).
 dropVar(Vr,[iTL(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
+dropVar(Vr,[iStV(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iLocal(Vr,_)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
@@ -72,17 +73,16 @@ peep([iBlock(Tpe,IB)|Is],Lbls, [iBlock(Tpe,IBs)|Ins]) :-
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
 peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-
-  peepCode(IB,[Lb|Lbls],IB0),
+  peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
-   concat(IB0,Is0,Is1),
-   dropUnreachable(Is1,Ins)).
+   concat(IB0,Is0,Ins)).
+peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
+  resolveLblRef(Lb,Lbls,LLb).
+peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-
+  resolveLblRef(Lb,Lbls,LLb).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
-
-pullJumps(Ins,InsX) :-
-  findTgts(Ins,mp{},Map),
-  pullJmps(Ins,Map,InsX).
 
 lblReferenced(Lb,[iBreak(Lb)|_]).
 lblReferenced(Lb,[iLoop(Lb)|_]).
@@ -100,6 +100,12 @@ lblReferenced(Lb,[iLbl(_,I)|_]) :-
 lblReferenced(Lb,[iBlock(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
+
+resolveLblRef(Lb,Lbls,LLb) :-
+  is_member((Lb,Cde),Lbls),!,
+  (Cde=[iBreak(Lb0)|_] ->
+   resolveLblRef(Lb0,Lbls,LLb) ;
+   LLb = Lb).
 
 varReferenced(Nm,[iLdL(Nm)|_]) :-!.
 varReferenced(Nm,[iLbl(_,I)|_]) :- varReferenced(Nm,[I]),!.

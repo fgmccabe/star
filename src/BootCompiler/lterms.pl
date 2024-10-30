@@ -628,7 +628,8 @@ tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
 tipeOf(vlof(_,_,T),T).
 
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
-  declareNms(PkgDecls,[],Dct),
+  declareStd(Base),
+  declareNms(PkgDecls,Base,Dct),
   validDfs(Defs,Dct),!.
 
 validDfs([],_).
@@ -644,6 +645,10 @@ validDf(glbDef(Lc,_Nm,_Tp,Value),Dct) :-
 validDf(typDef(_Lc,_Tp,_Rl,_IxMap),_) :-!.
 validDf(lblDef(_,_,_,_),_).
 
+declareStd(Base) :-
+  stdDecl(Decls),
+  rfold(Decls,lterms:declareDef,[],Base).
+
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).
 
@@ -652,7 +657,8 @@ declareDef(funDec(_,Nm,_Tp),Dct,Dx) :-!,
 declareDef(varDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
 declareDef(typeDec(_,_,_),Dx,Dx).
-declareDef(cnsDec(_,_,_),Dx,Dx).
+declareDef(cnsDec(_,Nm,_),D,Dx) :-
+  add_mem(Nm,D,Dx).
 declareDef(contractDec(_,_,_),Dx,Dx).
 declareDef(accDec(_,_,Nm,_),Dct,Dx) :-
   add_mem(Nm,Dct,Dx).

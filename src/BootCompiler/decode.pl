@@ -75,12 +75,12 @@ decodeSignature(S,Tp) :-
 
 decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
-decodeType(type("star*integer")) --> ['i'].
-decodeType(type("star*bigint")) --> ['b'].
-decodeType(type("star*float")) --> ['f'].
-decodeType(type("star*char")) --> ['c'].
-decodeType(type("star*string")) --> ['s'].
-decodeType(type("star*boolean")) --> ['l'].
+decodeType(type("integer")) --> ['i'].
+decodeType(type("bigint")) --> ['b'].
+decodeType(type("float")) --> ['f'].
+decodeType(type("char")) --> ['c'].
+decodeType(type("string")) --> ['s'].
+decodeType(type("boolean")) --> ['l'].
 decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).
