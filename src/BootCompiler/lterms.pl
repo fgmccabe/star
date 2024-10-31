@@ -145,7 +145,7 @@ ssTrm(case(_,G,Cases,Deflt),Dp,
 ssTrm(seqD(_,L,R),Dp,sq([LL,ss(";"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnj(_,L,R),Dp,sq([LL,ss("&&"),RR])) :-!,
+ssTrm(cnj(_,L,R),Dp,sq([lp,LL,ss("&&"),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
 ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-!,
@@ -159,7 +159,7 @@ ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ?? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) 
 ssTrm(mtch(_,L,R),Dp,sq([lp,LL,ss(".="),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(ng(_,R),Dp,sq([lp,ss("~"),RR,rp])) :-!,
+ssTrm(ng(_,R),Dp,sq([ss("~"),lp,RR,rp])) :-!,
   ssTrm(R,Dp,RR).
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
