@@ -447,7 +447,7 @@ static void recordLoc(breakLevelPo brk, integer pc, int32 litNo) {
   appendEntry(ar, &loc);
 }
 
-static retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, breakLevelPo brk);
+static retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, int32 *tgt, breakLevelPo brk);
 static integer findBreak(breakLevelPo brk, integer pc, int32 lvl);
 
 static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
@@ -456,14 +456,15 @@ static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
   return ixCmp(sx->pc, sy->pc);
 }
 
-retCode decodeInstructions(ioPo in, integer *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
+retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
   arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
   BreakLevel brk = {.locs=lcs, .pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
   integer pc = 0;
 
-  tryRet(decodeBlock(in, ar, &pc, &brk));
-  tryRet(copyOutData(ar, (void *) code, sizeof(Instruction) * (size_t) (*insCount)));
+  tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
+  *code = (insPo)malloc(sizeof(Instruction) * (size_t) *insCount);
+  tryRet(copyOutData(ar, (void *) *code, sizeof(Instruction) * (size_t) *insCount));
   eraseArray(ar, Null, Null);
 
   if (arrayCount(lcs) > 0) {
@@ -485,15 +486,11 @@ static retCode decodeI32(ioPo in, int32 *rest) {
 }
 
 static retCode decodeIns(ioPo in, arrayPo ar, integer *pc, integer *count, breakLevelPo brk) {
-  integer and;
   char escNm[MAX_SYMB_LEN];
   insPo ins = (insPo) newEntry(ar);
   retCode ret = Ok;
 
-  appendEntry(ar, &ins);        // Array entry is junk at this point
-
   if ((ret = decodeInteger(in, (integer *) &ins->op)) == Ok) {
-    integer pcLoc = *pc;
     (*pc)++;
     (*count)--;                 // Increment decode counter
     switch (ins->op) {
@@ -509,7 +506,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, integer *pc, integer *count, break
 #define szlit ret = decodeI32(in, &ins->fst); (*count)--;
 #define sztPe ret = decodeI32(in, &ins->fst); (*count)--;
 #define szglb {retCode ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);} (*count)--;
-#define szbLk { tryRet(decodeBlock(in, ar,  pc, brk));   \
+#define szbLk { tryRet(decodeBlock(in, ar,  pc, &ins->alt, brk));   \
                     (*count)--;  }
 #define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk, *pc, lvl); (*count)--; }
 #define szlNe { ret = decodeI32(in, &ins->fst); (*count)--; recordLoc(brk,*pc,ins->fst);}
@@ -544,16 +541,14 @@ static retCode decodeIns(ioPo in, arrayPo ar, integer *pc, integer *count, break
         return Error;
       }
     }
-    setNth(ar, pcLoc, (void *) &ins);
   }
   return ret;
 }
 
-retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, breakLevelPo brk) {
+retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, int32 *tgt, breakLevelPo brk) {
   BreakLevel blkBrk = {.pc=*pc, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   integer count;
 
-  insPo tgt = (insPo) nthEntry(ar, *pc);
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
 
   if (ret == Ok) {
@@ -561,7 +556,7 @@ retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, breakLevelPo brk) {
       ret = decodeIns(in, ar, pc, &count, &blkBrk);
     }
 
-    tgt->alt = (int32) (*pc);
+    *tgt = (int32) (*pc);
   }
   return ret;
 }

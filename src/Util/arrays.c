@@ -104,7 +104,7 @@ void *newEntry(arrayPo ar) {
   ar->count++;
   if (ar->count > ar->reserved)
     ar->reserved = ar->count;
-  return ar->data + (ar->count * ar->elSize);
+  return ar->data + ((ar->count-1) * ar->elSize);
 }
 
 integer arrayCount(arrayPo ar) {

@@ -378,7 +378,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
-    integer insCount = 0;
+    int32 insCount = 0;
     insPo instructions = Null;
     arrayPo locs;
     ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
@@ -447,7 +447,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
   if (ret == Ok) {
     insPo instructions;
-    integer insCount;
+    int32 insCount;
     arrayPo locs;
 
     ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
