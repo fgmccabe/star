@@ -66,13 +66,15 @@ dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
 
 peep([],_,[]) :-!.
+peep([iLine(_),iLine(Lne)|Ins],Inx) :-!,
+  peep([iLine(Lne)|Ins],Inx).
 peep([iStL(Off),iLdL(Off),iRet|_], _, [iRet]) :-!.
-peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-
+peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-!,
   peep([iTL(Off)|Is],Lbls, Ins).
-peep([iBlock(Tpe,IB)|Is],Lbls, [iBlock(Tpe,IBs)|Ins]) :-
+peep([iBlock(Tpe,IB)|Is],Lbls, [iBlock(Tpe,IBs)|Ins]) :-!,
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
-peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-
+peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-!,
   peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
@@ -99,7 +101,7 @@ peep([iCCmp(Lb)|_],Lbls,[iCCmp(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
-peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-
+peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-!,
   resolveLblRef(Lb,Lbls,LLb).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 

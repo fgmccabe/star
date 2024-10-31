@@ -21,8 +21,8 @@ test.f0{
   --   less:(x,x)=>boolean.
   -- }
 
---  implementation cmp[integer] => {
-  less(A,B) => _int_lt(A,B).
+ --  implementation cmp[integer] => {	
+    less(A,B) => _int_lt(A,B).
 --  }
 
   -- caseTest(Ix) => case Ix in {
