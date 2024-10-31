@@ -22,31 +22,23 @@ typedef struct {
   logical read;      //  Has this cell been read?
 } Var, *varPo;
 
-typedef struct block_ {
-  int32 tpe;         // Index of the type literal
-  integer pc;
-  integer limit;
-  integer insCount;
-} BlockSegment, *segmentPo;
-
 typedef struct verify_context_ *verifyCtxPo;
 typedef struct verify_context_ {
   char *prefix;
-  char *errorMsg;
-  long msgLen;
   methodPo mtd;
-  arrayPo segments;
-  verifyCtxPo parent;
-  segmentPo currSeg;
+  int32 from;
+  int32 limit;
+  int32 tpe;            // Expected signature for this context
   integer entryDepth;
   integer exitDepth;
   varPo locals;
+  verifyCtxPo parent;
+  char *errorMsg;
+  long msgLen;
 } VerifyContext;
 
-static retCode segmentCode(methodPo mtd, arrayPo *segments, char *errorMsg, integer msgLen);
-static segmentPo findSegment(arrayPo segments, integer pc);
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
-static retCode verifyBlock(segmentPo block, verifyCtxPo ctx);
+static retCode verifyBlock(int32 from, int32 limit, int32 tpe, int32 *delta, verifyCtxPo ctx);
 static retCode extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, int32 sigLit);
 
 static varPo mergeVars(varPo seg, varPo next, integer count);
@@ -77,22 +69,17 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     showMethodCode(logFile, "Verify method %s\n", name, mtd);
 #endif
 
-  arrayPo segments = Null;
-  tryRet(segmentCode(mtd, &segments, errorMsg, msgLen));
+  VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
+			  .mtd=mtd, .from = 0, .limit=mtdCodeSize(mtd),
+			  .parent=Null,
+			  .locals=initVars(lclCount(mtd))};
 
-  if (segments == Null)
-    return Ok; // Empty code
-  else {
-    VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
-      .mtd=mtd, .segments=segments, .currSeg=(segmentPo) nthEntry(segments, 0), .parent=Null,
-      .locals=initVars(lclCount(mtd))};
+  int32 delta = 0;
 
-    for (integer sx = 0; sx < arrayCount(segments); sx++)
-      tryRet(verifyBlock((segmentPo) nthEntry(segments, sx), &mtdCtx));
+  tryRet(verifyBlock(0,codeMtdSize(mtd),methodSigLit(mtd),&delta,&mtdCtx));
 
-    eraseVars(mtdCtx.locals);
-    return Ok;
-  }
+  eraseVars(mtdCtx.locals);
+  return Ok;
 }
 
 static varPo mergeVars(varPo seg, varPo next, integer count) {
@@ -167,28 +154,48 @@ static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integ
   return Ok;
 }
 
-retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
-  integer entryDepth, exitDepth;
-  tryRet(extractBlockSig(&entryDepth, &exitDepth, ctx, block->tpe));
-  integer stackDepth = entryDepth;
-  insPo code = ctx->mtd->instructions;
+static logical isLastPC(int32 pc,int32 limit){
+  return pc>=limit-1;
+}
 
-  for (integer pc = block->pc; pc < block->limit; pc++) {
+retCode verifyBlock(int32 from, int32 limit, int32 tpe, int32 *delta,verifyCtxPo parentCtx){
+  integer entryDepth, exitDepth;
+  tryRet(extractBlockSig(&entryDepth, &exitDepth, parentCtx, tpe));
+  integer stackDepth = entryDepth;
+  insPo code = parentCtx->mtd->instructions;
+
+  *delta = exitDepth-entryDepth;
+
+  char prefix[MAXLINE];
+  strMsg(prefix, NumberOf(prefix), "%s.%d", parentCtx->prefix, from);
+
+  VerifyContext ctx = {.prefix=prefix,
+    .errorMsg=parentCtx->errorMsg,.msgLen=parentCtx->msgLen,
+    .mtd = parentCtx->mtd,
+    .parent = parentCtx,
+    .tpe = tpe,
+    .entryDepth = entryDepth, .exitDepth=exitDepth,
+    .locals = copyVars(parentCtx->locals,lclCount(parentCtx->mtd)) };
+
+  int32 pc = from;
+
+  while(pc < limit) {
     insPo ins = &code[pc];
     switch (ins->op) {
       case Halt: {
-        if (pc != block->insCount - 1)
+        if (!isLastPC(pc,limit))
           return verifyError(ctx, ".%d: Halt should be last instruction in block", pc);
         else
-          return Ok;
+	  break;
       }
       case Nop:
+	pc++;
         break;
       case Abort: {
-        if (pc != block->insCount - 1)
+        if (!isLastPC(pc,limit))
           return verifyError(ctx, ".%d: Abort should be last instruction in block", pc);
         else
-          return Ok;
+	  break;
       }
       case Call: {
         int32 litNo = code[pc].fst;
@@ -204,6 +211,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d: invalid call label: %t", pc, lit);
         if (code[pc + 1].op != Frame)
           return verifyError(ctx, ".%d: expecting a frame instruction after call", pc);
+	pc++;
         continue;
       }
       case TCall: {
@@ -218,24 +226,27 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           stackDepth -= arity - 1;
         } else
           return verifyError(ctx, ".%d: invalid call label: %t", pc, lit);
-        if (pc != block->insCount - 1)
+        if (!isLastPC(pc,limit))
           return verifyError(ctx, ".%d: TCall should be last instruction in block", pc);
-        return Ok;
+	break;
       }
       case OCall: {
         int arity = code[pc].fst;
         if (stackDepth < arity)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= arity - 1;
+        if (code[pc + 1].op != Frame)
+          return verifyError(ctx, ".%d: expecting a frame instruction after ocall", pc);
+	pc++;
         continue;
       }
       case TOCall: {
         int arity = code[pc].fst;
         if (stackDepth < arity)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        if (pc != block->insCount - 1)
+        if (!isLastPC(pc,limit))
           return verifyError(ctx, ".%d: TCall should be last instruction in block", pc);
-        return Ok;
+        break;
       }
       case Escape: {
         int32 escNo = code[pc].fst;
@@ -250,48 +261,45 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           stackDepth -= arity - 1;
           if (code[pc + 1].op != Frame)
             return verifyError(ctx, ".%d: expecting a frame instruction after escape", pc);
+	  pc++;
           continue;
         }
       }
       case Entry:
+	pc++;
         continue;
-      case Ret:
-        if (pc != block->insCount - 1)
+      case Ret:{
+        if (!isLastPC(pc,limit))
           return verifyError(ctx, ".%d: Ret should be last instruction in block", pc);
-        return Ok;
-
+	break;
+      }
       case Block: {
         int32 litNo = code[pc].fst;
-        integer entryDepth, exitDepth;
-        tryRet(extractBlockSig(&entryDepth, &exitDepth, ctx, 0));
-        return verifyError(ctx, ".%d: invalid signature string: %T ", pc, lit);
+	int32 blockDelta = 0;
 
-        char prefix[MAXLINE];
-        strMsg(prefix, NumberOf(prefix), "%s.%d", ctx->prefix, pc);
-        segmentPo blockSeg = findSegment(ctx->segments, code[pc].alt);
-
-        VerifyContext blockCtx = {.prefix = prefix, .errorMsg=ctx->errorMsg, .msgLen=ctx->msgLen,
-          .mtd=ctx->mtd, .parent=ctx, .segments=ctx->segments, .currSeg = blockSeg,
-          .locals = ctx->locals};
-
-        if (verifyBlock(blockSeg, &blockCtx) == Ok) {
-          stackDepth = stackDepth - entryDepth + exitDepth;
-          continue;
-        } else
-          return Error;
+	if(verifyBlock(pc+1,pc+code[pc].alt,litNo,&blockDelta,ctx)==Ok){
+	  stackDepth += blockDelta;
+	  pc = pc+code[pc].alt;
+	  continue;
+	}
+	else
+	  return Error;
       }
+
       case Loop:
       case Break: {
         if (checkBreak(ctx, pc, stackDepth, code[pc].alt) != Ok)
           return Error;
-
-        continue;
+	if(!isLastPC(pc,limit))
+          return verifyError(ctx, ".%d: Break should be last instruction in block", pc);
+	break;
       }
 
       case Drop: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: stack depth %d does not permit a Drop", pc, stackDepth);
         stackDepth--;
+	pc++;
         continue;
       }
 
@@ -299,6 +307,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: stack depth %d does not permit a Dup", pc, stackDepth);
         stackDepth++;
+	pc++;
         continue;
       }
 
@@ -306,12 +315,14 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         int32 count = code[pc].fst;
         if (stackDepth < count)
           return verifyError(ctx, ".%d: insufficient stack depth for rotate %d", pc, count);
+	pc++;
         continue;
       }
       case Rst: {
         int32 count = code[pc].fst;
         if (stackDepth < count)
           return verifyError(ctx, ".%d: insufficient stack depth for stack reset %d", pc, count);
+	pc++;
         continue;
       }
       case Pick: {
@@ -322,59 +333,78 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d: insufficient stack depth for stack reset %d", pc, height);
         if (height < pick)
           return verifyError(ctx, ".%d: pick count should not be greater than height %d", pc, pick, height);
+	pc++;
         continue;
       }
 
       case Fiber:
-        break;
       case Spawn:
-        break;
       case Suspend:
-        break;
       case Resume:
-        break;
       case Retire:
-        break;
+	return verifyError(ctx, ".%d: verify not implemented", pc);
       case Underflow:
         return verifyError(ctx, ".%d: special instruction illegal in regular code %", pc);
       case TEq: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
-      case Try:
-        break;
-      case EndTry:
-        break;
+      case Try: {
+        int32 litNo = code[pc].fst;
+	int32 blockDelta = 0;
+
+	if(verifyBlock(pc+1,pc+code[pc].alt,litNo,&blockDelta,ctx)==Ok){
+	  stackDepth += blockDelta;
+	  pc = pc+code[pc].alt;
+	  continue;
+	}
+	else
+	  return Error;
+      }
+      case EndTry:{
+        if (stackDepth < 1)
+          return verifyError(ctx, ".%d: insufficient stack depth for EndTry %d", pc, count);
+	stackDepth--;
+	pc++;
+        continue;
+      }
       case Throw: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
-        continue;
+	if(!isLastPC(pc,limit))
+          return verifyError(ctx, ".%d: Throw should be last instruction in block", pc);
+	break;
       }
       case Reset: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case Shift: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case Invoke:
-        break;
+	return verifyError(ctx, ".%d: verify not implemented", pc);
       case LdV:
         stackDepth++;
+	pc++;
         continue;
       case LdC: {
         int32 litNo = code[pc].fst;
         if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
           return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
         stackDepth++;
+	pc++;
         continue;
       }
       case LdA: {
@@ -382,6 +412,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (argNo < 0 || argNo > codeArity(ctx->mtd))
           return verifyError(ctx, ".%d Out of bounds argument number: %d", pc, argNo);
         stackDepth++;
+	pc++;
         continue;
       }
       case LdL: {
@@ -389,6 +420,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (argNo < 0 || argNo > lclCount(ctx->mtd))
           return verifyError(ctx, ".%d Out of bounds local number: %d", pc, argNo);
         stackDepth++;
+	pc++;
         continue;
       }
       case StL: {
@@ -398,6 +430,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth--;
+	pc++;
         continue;
       }
       case StV:
@@ -405,6 +438,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         int32 argNo = code[pc].fst;
         if (argNo < 0 || argNo > lclCount(ctx->mtd))
           return verifyError(ctx, ".%d Out of bounds local number: %d", pc, argNo);
+	pc++;
         continue;
       }
       case StA: {
@@ -414,6 +448,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth--;
+	pc++;
         continue;
       }
       case LdG: {
@@ -423,6 +458,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (glb == Null)
           return verifyError(ctx, ".%d unknown global variable: %d", pc, glbNo);
         stackDepth++;
+	pc++;
         continue;
       }
       case StG: {
@@ -433,6 +469,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
+	pc++;
         continue;
       }
       case TG: {
@@ -442,35 +479,41 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d unknown global variable: %d", pc, glbNo);
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case Thunk:
       case LdTh: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case StTh: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case TTh: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
+	pc++;
         continue;
       }
       case Cell:
       case Get: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case Assign: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth -= 2;
+	pc++;
         continue;
       }
       case CLbl: {
@@ -482,17 +525,22 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d: invalid label: %t", pc, lit);
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        if (checkBreak(ctx, pc, stackDepth, code[pc].alt) != Ok)
+          return Error;
+	pc++;
         continue;
       }
       case Nth: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case StNth: {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth -= 2;
+	pc++;
         continue;
       }
       case If:
@@ -501,6 +549,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return verifyError(ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         if (checkBreak(ctx, pc, stackDepth, code[pc].alt) != Ok)
           return Error;
+	pc++;
         continue;
       }
       case Case:
@@ -518,6 +567,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
               return verifyError(ctx, ".%d: invalid case instruction", pc + ix);
           }
         }
+	pc+=mx;
         continue;
       }
       case IAdd:
@@ -526,6 +576,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case IDiv:
@@ -533,11 +584,13 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 3)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 2;
+	pc++;
         continue;
       }
       case IAbs: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case IEq:
@@ -546,6 +599,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case Cmp:
@@ -558,6 +612,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
           return Error;
         else {
           stackDepth -= 1;
+	  pc++;
           continue;
         }
       }
@@ -567,6 +622,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case BAnd:
@@ -578,11 +634,13 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case BNot: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case FAdd:
@@ -591,6 +649,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
       case FDiv:
@@ -598,11 +657,13 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 3)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 2;
+	pc++;
         continue;
       }
       case FAbs: {
         if (stackDepth < 1)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+	pc++;
         continue;
       }
       case FEq:
@@ -611,6 +672,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (stackDepth < 2)
           return verifyError(ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         stackDepth -= 1;
+	pc++;
         continue;
       }
 
@@ -629,6 +691,7 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
             return verifyError(ctx, ".%d: expecting Frame instruction after Alloc", pc);
           else {
             stackDepth = stackDepth - arity + 1;
+	    pc++;
             continue;
           }
         }
@@ -644,8 +707,10 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         else {
           if (stackDepth < 1)
             return verifyError(ctx, ".%d: insufficient stack args for Closure instruction", pc);
-          else
+          else{
+	    pc++;
             continue;
+	  }
         }
       }
 
@@ -669,15 +734,18 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         if (depth != stackDepth)
           return verifyError(ctx, ".%d: stack depth %d does not match Frame instruction %d", pc, stackDepth, depth);
 
+	pc++;
         continue;
       }
       case dBug:
+	pc++;
         continue;
       case Line:
       case Local: {
         int32 litNo = code[pc].fst;
         if (litNo < 0 || litNo >= codeLitCount(ctx->mtd))
           return verifyError(ctx, ".%d: invalid literal number: %d ", pc, litNo);
+	pc++;
         continue;
       }
       case illegalOp:
@@ -685,7 +753,10 @@ retCode verifyBlock(segmentPo block, verifyCtxPo ctx) {
         return verifyError(ctx, ".%d: illegal instruction", pc);
     }
   }
-  return verifyError(ctx, ".%d: execution past last instruction in block", block->insCount);
+  mergeVars(parentCtx->locals,ctx->locals,lclCount(ctx->mtd));
+  eraseVars(ctx->locals);
+  return Ok;
+
 }
 
 retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
@@ -707,60 +778,3 @@ retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
   return Error;
 }
 
-static comparison comparePcs(arrayPo ar, integer ix, integer iy, void *cl);
-
-retCode segmentCode(methodPo mtd, arrayPo *segments, char *errorMsg, integer msgLen) {
-  arrayPo segs = *segments = allocArray(sizeof(BlockSegment), 16, True);
-  insPo code = mtd->instructions;
-  integer limit = mtd->insCount;
-
-  {
-    BlockSegment fst = {.pc = 0, .limit=limit, .insCount=-1, .tpe=(int32) methodSigLit(mtd)};
-    appendEntry(segs, &fst);
-  }
-
-
-  // We (re)discover the block boundaries in two passes
-  for (integer pc = 0; pc < limit; pc++) {
-    switch (code[pc].op) {
-      case Block:
-      case Try: {
-        BlockSegment blk = {.pc = pc+1, .limit=limit, .insCount=-1, .tpe=code[pc].fst};
-        appendEntry(segs, &blk);
-        pc += code[pc].alt;
-        continue;
-      }
-      default:
-        continue;
-    }
-  }
-  // Phase 2: sort the array
-  tryRet(sortArray(segs, comparePcs, Null));
-
-  // Phase 3, trim the segments
-  for (integer ix = arrayCount(segs) - 1; ix > 0; ix--) {
-    segmentPo seg = (segmentPo) nthEntry(segs, ix);
-    segmentPo prev = (segmentPo) nthEntry(segs, ix - 1);
-
-    assert(seg != Null && prev != Null);
-    prev->limit = seg->pc;
-    prev->insCount = prev->limit - prev->pc;
-  }
-
-  return Ok;
-}
-
-comparison comparePcs(arrayPo ar, integer ix, integer iy, void *cl) {
-  segmentPo sx = (segmentPo) nthEntry(ar, ix);
-  segmentPo sy = (segmentPo) nthEntry(ar, iy);
-  return ixCmp(sx->pc, sy->pc);
-}
-
-segmentPo findSegment(arrayPo segments, integer pc) {
-  for (integer ix = 0; ix < arrayCount(segments); ix++) {
-    segmentPo seg = (segmentPo) nthEntry(segments, ix);
-    if (seg->pc == pc)
-      return seg;
-  }
-  return Null;
-}
