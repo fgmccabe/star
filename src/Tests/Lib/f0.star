@@ -17,13 +17,13 @@ test.f0{
   --   minus(x,y) => _int_minus(x,y).
   -- }
 
-  contract all x ~~ cmp[x] ::= {
-    less:(x,x)=>boolean.
-  }
+  -- contract all x ~~ cmp[x] ::= {
+  --   less:(x,x)=>boolean.
+  -- }
 
-  implementation cmp[integer] => {
-    less(A,B) => _int_lt(A,B)
-  }
+--  implementation cmp[integer] => {
+  less(A,B) => _int_lt(A,B).
+--  }
 
   -- caseTest(Ix) => case Ix in {
   --   | 0 => 0
@@ -40,13 +40,13 @@ test.f0{
 
 
   condTest:(integer,integer)=>string.
-  condTest(A,B) => (((.true && ~ less(A,B)) || ~ (less(B,A) && .false)) ?? "alpha" || "beta").
+--  condTest(A,B) => (((.true && less(A,B)) || (less(B,A) && .false)) ?? "alpha" || "beta").
+  condTest(A,B) => (((.true && ~ less(A,B)) || ~ (less(B,A) && .true)) ?? "alpha" || "beta").
+--  condTest(A,B) => (~(less(B,A) && less(A,B)) ?? "alpha" || "beta").
+--  condTest(A,B) => (( ~ less(A,B) || ~ less(B,A)) ?? "alpha" || "beta").
 
   -- _main(_) => valof{
   --   _logmsg("hello world");
   --   valis ()
   -- }
 }
-  
-  
-  
