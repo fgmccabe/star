@@ -131,10 +131,6 @@ int32 codeOffset(methodPo mtd, insPo pc){
   return pc-mtd->instructions;
 }
 
-integer mtdCodeSize(methodPo mtd) {
-  return mtd->insCount;
-}
-
 termPo findPcLocation(methodPo mtd, int32 pc) {
   arrayPo locs = mtd->locs;
   if (locs != Null) {
@@ -142,7 +138,7 @@ termPo findPcLocation(methodPo mtd, int32 pc) {
     integer limit = arrayCount(locs) - 1;
 
     integer lowerPc = -1;
-    integer upperPc = mtdCodeSize(mtd);
+    integer upperPc = codeSize(mtd);
 
     int32 lowerLoc = -1;
     int32 upperLoc = -1;
