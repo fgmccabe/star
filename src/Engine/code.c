@@ -282,7 +282,7 @@ integer codeSize(methodPo mtd){
 }
 
 methodPo
-defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
+defineMtd(heapPo H, int32 insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);

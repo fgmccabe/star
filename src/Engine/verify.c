@@ -725,8 +725,9 @@ retCode segmentCode(methodPo mtd, arrayPo *segments, char *errorMsg, integer msg
     switch (code[pc].op) {
       case Block:
       case Try: {
-        BlockSegment blk = {.pc = code[pc].alt, .limit=limit, .insCount=-1, .tpe=code[pc].fst};
+        BlockSegment blk = {.pc = pc+1, .limit=limit, .insCount=-1, .tpe=code[pc].fst};
         appendEntry(segs, &blk);
+        pc += code[pc].alt;
         continue;
       }
       default:

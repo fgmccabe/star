@@ -34,7 +34,7 @@ typedef struct method_ {
   integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;        /* A pool tuple of constants */
   arrayPo locs;         // Sorted array of location information
-  integer insCount;     // How many instructions are there in the code?
+  int32 insCount;       // How many instructions are there in the code?
   insPo instructions;   // The actual instructions
 } MethodRec;
 
@@ -84,7 +84,7 @@ labelPo mtdLabel(methodPo mtd);
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo
-defineMtd(heapPo H, integer insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
+defineMtd(heapPo H, int32 insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs);
 
 methodPo
