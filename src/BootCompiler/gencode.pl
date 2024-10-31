@@ -284,18 +284,12 @@ frameIns(some(Stk),[iFrame(Sig)|Cx],Cx) :-
   frameSig(Stk,Sig).
 frameIns(none,Cx,Cx).
 
-popStack(lbl(_,Ar),St,Stx) :-
-  dropStk(St,Ar-1,Stx).
-
 stkLvl(some(Lvl),Lvl).
 
 resetStack(Stk,Stk,C,C) :-!.
 resetStack(Stk,Stk0,[iDrop|C],C) :-
   dropStk(Stk0,1,Stk),!.
 resetStack(some(Lvl),_,[iRst(Lvl)|Cx],Cx).
-
-asmCont(Op,Cont,Stk,L,Lx,D,Dx,[Op|C],Cx,_,Stkx) :-
-  call(Cont,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 reconcileStack(_,_,none,C,C) :-!.
 reconcileStack(Stk,Stk,_,C,C) :-!.
