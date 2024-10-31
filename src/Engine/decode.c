@@ -447,8 +447,8 @@ static void recordLoc(breakLevelPo brk, integer pc, int32 litNo) {
   appendEntry(ar, &loc);
 }
 
-static retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, int32 *tgt, breakLevelPo brk);
-static integer findBreak(breakLevelPo brk, integer pc, int32 lvl);
+static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk);
+static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
 static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
   methodLocPo sx = (methodLocPo) nthEntry(ar, ix);
@@ -460,7 +460,7 @@ retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, arrayPo *locs,
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
   arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
   BreakLevel brk = {.locs=lcs, .pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
-  integer pc = 0;
+  int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
   *code = (insPo)malloc(sizeof(Instruction) * (size_t) *insCount);
@@ -485,7 +485,7 @@ static retCode decodeI32(ioPo in, int32 *rest) {
   return ret;
 }
 
-static retCode decodeIns(ioPo in, arrayPo ar, integer *pc, integer *count, breakLevelPo brk) {
+static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLevelPo brk) {
   char escNm[MAX_SYMB_LEN];
   insPo ins = (insPo) newEntry(ar);
   retCode ret = Ok;
@@ -545,7 +545,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, integer *pc, integer *count, break
   return ret;
 }
 
-retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, int32 *tgt, breakLevelPo brk) {
+retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
   BreakLevel blkBrk = {.pc=*pc, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   integer count;
 
@@ -556,12 +556,12 @@ retCode decodeBlock(ioPo in, arrayPo ar, integer *pc, int32 *tgt, breakLevelPo b
       ret = decodeIns(in, ar, pc, &count, &blkBrk);
     }
 
-    *tgt = (int32) (*pc);
+    *tgt = *pc;
   }
   return ret;
 }
 
-integer findBreak(breakLevelPo brk, integer pc, int32 lvl) {
+int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
   for (int l = 0; l < lvl && brk != Null; l++)
     brk = brk->parent;
   if (brk != Null) {
