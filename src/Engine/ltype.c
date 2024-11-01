@@ -24,7 +24,7 @@ retCode skipTypeSig(const char *text, integer len, integer *pos) {
       case vdTp:
         return Ok;
       case parTp: {
-        nextCodePoint(text,pos,len);
+        nextCodePoint(text, pos, len);
         return Ok;
       }
       case funTp: {
@@ -60,13 +60,13 @@ static int digitVal(codePoint ch) {
   return (int) (ch - '0');
 }
 
-retCode typeSigArity(const char *sig, integer len, integer *arity){
-  if(*sig==tplTp){
+retCode typeSigArity(const char *sig, integer len, integer *arity) {
+  if (*sig == tplTp) {
     integer pos = 1;
     *arity = 0;
-    while(sig[pos]!=')'){
+    while (sig[pos] != ')') {
       (*arity)++;
-      tryRet(skipTypeSig(sig,len,&pos));
+      tryRet(skipTypeSig(sig, len, &pos));
     }
     return Ok;
   } else
@@ -84,7 +84,16 @@ retCode funArgSig(const char *text, integer len, integer *pos) {
 retCode funResSig(const char *text, integer len, integer *pos) {
   codePoint ch = nextCodePoint(text, pos, len);
   if (ch == funTp)
-    return skipTypeSig(text,len,pos);
+    return skipTypeSig(text, len, pos);
   else
     return Error;
+}
+
+logical isTupleSig(const char *text, integer len) {
+  if (len > 0) {
+    integer pos = 0;
+    codePoint ch = nextCodePoint(text, &pos, len);
+    return ch == tplTp;
+  } else
+    return False;
 }

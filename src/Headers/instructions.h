@@ -29,8 +29,8 @@ instruction(Entry, nOp, nOp, 0, "F()()", "locals definition")
 instruction(Ret, tOs, nOp, 0, "F()v", "return")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
-instruction(Break, lVl, nOp, 0, "F()()", "leave block")
-instruction(Loop, lVl, nOp, 0, "F()()", "jump back to start of block")
+instruction(Break, nOp, lVl, 0, "F()()", "leave block")
+instruction(Loop, nOp, lVl, 0, "F()()", "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "F(p)(pp)", "duplicate top of stack")
@@ -80,8 +80,8 @@ instruction(CLbl, sym, lVl, 0, "F()()", "T,Lbl --> test for a data term, break i
 instruction(Nth, i32, nOp, 0, "F(p)p", "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "F(pp)()", "T el --> store in nth element")
 
-instruction(If, lVl, tOs, -1,"F(p)()",  "break if true")
-instruction(IfNot, lVl, tOs, -1,"F(p)()",  "break if false")
+instruction(If, tOs, lVl, -1,"F(p)()",  "break if true")
+instruction(IfNot, tOs, lVl, -1,"F(p)()",  "break if false")
 
 instruction(Case, i32, tOs, 0, "F(p)p", "T --> T, case <Max> ")
 instruction(IndxJmp, i32, tOs, 0, "F(p)p", "check and jump on index")
@@ -96,12 +96,12 @@ instruction(IAbs, tOs, nOp, 0, "F(i)i", "L --> abs(L)")
 instruction(IEq, tOs, tOs, -1, "F(ii)l", "L R --> L==R")
 instruction(ILt, tOs, tOs, -1, "F(ii)l", "L R --> L<R")
 instruction(IGe, tOs, tOs, -1, "F(ii)l", "L R --> L>=R")
-instruction(ICmp, lVl, tOs, -2, "F(ii)()", "L R --> break if not same integer")
+instruction(ICmp, tOs, lVl, -2, "F(ii)()", "L R --> break if not same integer")
 
 instruction(CEq, tOs, tOs, -1, "F(ii)l", "L R --> L==R")
 instruction(CLt, tOs, tOs, -1, "F(ii)l", "L R --> L<R")
 instruction(CGe, tOs, tOs, -1, "F(ii)l", "L R --> L>=R")
-instruction(CCmp, lVl, tOs, -2, "F(ii)l", "L R --> break if not same character")
+instruction(CCmp, tOs, lVl, -2, "F(ii)l", "L R --> break if not same character")
 
 instruction(BAnd, tOs, tOs, -1, "F(ii)i", "L R --> L&R")
 instruction(BOr, tOs, tOs, -1, "F(ii)i", "L R --> L|R")
@@ -121,12 +121,12 @@ instruction(FAbs, tOs, nOp, 0, "F(f)f", "L --> abs(L)")
 instruction(FEq, tOs, tOs, -1, "F(ff)l", "L R e --> L==R")
 instruction(FLt, tOs, tOs, -1, "F(ff)l", "L R --> L<R")
 instruction(FGe, tOs, tOs, 1, "F(ff)l", "L R --> L>=R")
-instruction(FCmp, lVl, tOs, -2, "F(ff)()", "L R --> branch if not same floating point")
+instruction(FCmp, tOs, lVl, -2, "F(ff)()", "L R --> branch if not same floating point")
 
 instruction(Alloc, sym, nOp, 1, "F()()", "new structure, elements from stack")
 instruction(Closure, sym, tOs, 0, "F(p)p", "allocate a closure")
 
-instruction(Cmp, lVl, tOs, -2, "F(pp)()", "t1 t2 --> , branch to offset if not same literal")
+instruction(Cmp, tOs, lVl, -2, "F(pp)()", "t1 t2 --> , branch to offset if not same literal")
 
 instruction(Frame, tPe, nOp, 0, "F()()", "frame instruction")
 
