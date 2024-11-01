@@ -508,7 +508,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLe
 #define szglb {retCode ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);} (*count)--;
 #define szbLk { tryRet(decodeBlock(in, ar,  pc, &ins->alt, brk));   \
                     (*count)--;  }
-#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->fst = findBreak(brk, *pc, lvl); (*count)--; }
+#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->alt = findBreak(brk, *pc, lvl); (*count)--; }
 #define szlNe { ret = decodeI32(in, &ins->fst); (*count)--; recordLoc(brk,*pc,ins->fst);}
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
@@ -546,7 +546,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLe
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=*pc, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  BreakLevel blkBrk = {.pc=(*pc)-1, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   integer count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
@@ -562,7 +562,7 @@ retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk
 }
 
 int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
-  for (int l = 0; l < lvl && brk != Null; l++)
+  for (int l = 1; l < lvl && brk != Null; l++)
     brk = brk->parent;
   if (brk != Null) {
     return brk->pc - pc;

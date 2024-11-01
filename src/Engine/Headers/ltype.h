@@ -24,5 +24,6 @@ retCode typeSigArity(const char *sig, integer len, integer *arity);
 
 retCode funArgSig(const char *text, integer len, integer *pos);
 retCode funResSig(const char *text, integer len, integer *pos);
+logical isTupleSig(const char *text, integer len);
 
 #endif //STAR_LTYPE_H

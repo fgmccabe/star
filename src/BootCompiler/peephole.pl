@@ -66,8 +66,8 @@ dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
 
 peep([],_,[]) :-!.
-peep([iLine(_),iLine(Lne)|Ins],Inx) :-!,
-  peep([iLine(Lne)|Ins],Inx).
+peep([iLine(_),iLine(Lne)|Ins],Lbls,Inx) :-!,
+  peep([iLine(Lne)|Ins],Lbls,Inx).
 peep([iStL(Off),iLdL(Off),iRet|_], _, [iRet]) :-!.
 peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-!,
   peep([iTL(Off)|Is],Lbls, Ins).
