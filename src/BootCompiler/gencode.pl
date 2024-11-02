@@ -592,22 +592,18 @@ isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
 
-isTrueSymb("star#true").
-isFalseSymb("star#false").
+isTrueSymb("true").
+isFalseSymb("false").
 
-compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(BlkTp,CC))|DC]))|Cx],Cx,Stk,Stkx) :-
+compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(FlatTp,CC))|DC]))|Cx],Cx,Stk,Stkx) :-
+  flatBlockSig(FlatTp),
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
-
   compExp(Gv,Lc,Brks,notLast,Opts,L1,L2,D,D1,C0,[iCase(Mx)|CB],Stk,Stk1),
-
   genCaseTable(Cases,Mx,Table),
-
-  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[iBreak(Df)],CC,C0,Stk1,Stka),
-  call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk1,Stkb),
-  (is_member(traceGenCode,Opts) ->
-   dispIns([iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(BlkTp,CC))|DC]))]);
-   true),
+  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,CB0,CC,C0,Stk1,Stka),
+  resetStack(Stk,Stk1,CB0,[iBreak(Df)]),
+  call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
 genCaseTable(Cases,P,Table) :-

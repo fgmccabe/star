@@ -9,8 +9,7 @@
 		   getImplementation/4,
 		   manageConstraints/4,
 		   pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
-		   dispEnv/1,declareDecl/4,declareAllDecls/4,defineContract/5,
-		   stdDict/1
+		   dispEnv/1,declareDecl/4,declareAllDecls/4,defineContract/5
 	       ]).
 
 :- use_module(canon).

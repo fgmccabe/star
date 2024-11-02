@@ -13,13 +13,13 @@ star.compiler.intrinsics{
     | "_int_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIAdd, .true, .notLast))  -- add two integers
     | "_int_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iISub, .true, .notLast))  -- subtract two integers
     | "_int_times" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIMul, .true, .notLast))  -- multiply two integers
-    | "_int_div" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.raisEs(.nomnal("star.core*errorCode"))),.iIDiv, .true, .notLast))  -- divide two integers
-    | "_int_mod" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.raisEs(.nomnal("star.core*errorCode"))),.iIMod, .true, .notLast))  -- modulo remainder
+    | "_int_div" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.raisEs(.nomnal("errorCode"))),.iIDiv, .true, .notLast))  -- divide two integers
+    | "_int_mod" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.raisEs(.nomnal("errorCode"))),.iIMod, .true, .notLast))  -- modulo remainder
     | "_flt_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.iFAdd, .true, .notLast))  -- add two floats
     | "_flt_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.iFSub, .true, .notLast))  -- subtract two floats
     | "_flt_times" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.iFMul, .true, .notLast))  -- multiply two floats
-    | "_flt_div" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.raisEs(.nomnal("star.core*errorCode"))),.iFDiv, .true, .notLast))  -- divide two floats
-    | "_flt_mod" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.raisEs(.nomnal("star.core*errorCode"))),.iFMod, .true, .notLast))  -- modulo remainder
+    | "_flt_div" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.raisEs(.nomnal("errorCode"))),.iFDiv, .true, .notLast))  -- divide two floats
+    | "_flt_mod" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.raisEs(.nomnal("errorCode"))),.iFMod, .true, .notLast))  -- modulo remainder
     | "_int_abs" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType])),intType),.iIAbs, .true, .notLast))  -- integer absolute value
     | "_flt_abs" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType])),fltType),.iFAbs, .true, .notLast))  -- float absolute value
     | "_int_eq" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),boolType),.iIEq, .false, .notLast))  -- integer equality

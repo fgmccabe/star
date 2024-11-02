@@ -11,12 +11,12 @@
 #define ioHandle "t'ioHandle'"
 #define inHandle "t'inHandle'"
 #define outHandle "t'outHandle'"
-#define optionType(T) "Uz1'star.core*option'" T
+#define optionType(T) "Uz1'option'" T
 #define eitherType(E,O) "UUz2'star.either*either'" E O
 #define futureType(F,E) "UUz2'future'" F E
 #define fiberType(R,S) "UUz2'fiber'" R S
 
-#define ERRCODE "t'star.core*errorCode'"
+#define ERRCODE "t'errorCode'"
 
 /* Define the standard escapes */
 escape(_exit, "F(i)()", "terminate engine")

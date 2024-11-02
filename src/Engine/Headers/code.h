@@ -26,7 +26,7 @@ integer lclCount(methodPo mtd);
 integer codeArity(methodPo mtd);
 integer methodSigLit(methodPo mtd);
 
-integer codeSize(methodPo mtd);
+int32 codeSize(methodPo mtd);
 termPo findPcLocation(methodPo mtd, int32 pc);
 logical validPC(methodPo mtd, insPo pc);
 int32 codeOffset(methodPo mtd, insPo pc);

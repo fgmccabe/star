@@ -600,8 +600,8 @@ isCnd(ng(_,_)).
 tipeOf(voyd,voidType).
 tipeOf(ann(Tp),Tp).
 tipeOf(idnt(_,T),T).
-tipeOf(intgr(_),Tp) :- stdType("integer",Tp,_),!.
-tipeOf(flot(_),Tp) :- stdType("float",Tp,_),!.
+tipeOf(intgr(_),type("integer")).
+tipeOf(flot(_),type("float")).
 tipeOf(rais(_,_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
@@ -619,11 +619,11 @@ tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
-tipeOf(cnj(_,_,_),T) :- stdType("boolean",T,_),!.
-tipeOf(dsj(_,_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(cnj(_,_,_),type("boolean")).
+tipeOf(dsj(_,_,_),type("boolean")).
 tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
-tipeOf(mtch(_,_,_),T) :- stdType("boolean",T,_),!.
-tipeOf(ng(_,_),T) :- stdType("boolean",T,_),!.
+tipeOf(mtch(_,_,_),type("boolean")).
+tipeOf(ng(_,_),type("boolean")).
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
 tipeOf(vlof(_,_,T),T).
 

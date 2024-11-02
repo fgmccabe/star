@@ -1038,12 +1038,12 @@ static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
     outStr(out, " <tos>");
 }
 
-static void showPcOffset(ioPo out, insPo pc) {
-  outMsg(out, " PC[%+d]", pc->alt);
+static void showPcOffset(ioPo out, int32 offset) {
+  outMsg(out, " PC[%d]", offset);
 }
 
-static void showEscCall(ioPo out, insPo pc) {
-  escapePo esc = getEscape(pc->fst);
+static void showEscCall(ioPo out, int32 escNo) {
+  escapePo esc = getEscape(escNo);
   outMsg(out, " %s/%d", esc->name, esc->arity);
 }
 
@@ -1066,29 +1066,29 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
   switch (pc->op) {
 #undef instruction
 
-#define show_nOp
-#define show_tOs showTos(out,stk,delta++)
-#define show_art showTopOfStack(out,stk,pc->fst)
-#define show_i32 outMsg(out," #%d",pc->fst)
-#define show_arg showArg(out,stk,pc->fst)
-#define show_lcl showLcl(out,stk,pc->fst)
-#define show_lcs outMsg(out," l[%d]",pc->fst)
-#define show_bLk showPcOffset(out,pc)
-#define show_lVl outMsg(out," #%d",pc->alt)
-#define show_sym showConstant(out,mtd,pc->fst)
-#define show_Es showEscCall(out, pc)
-#define show_lit showConstant(out,mtd,pc->alt)
-#define show_lNe showConstant(out,mtd,pc->fst)
-#define show_glb showGlb(out, findGlobalVar(pc->fst))
-#define show_tPe showFrame(out,stk,mtd,pc->fst)
+#define show_nOp(Tgt)
+#define show_tOs(Tgt) showTos(out,stk,delta++)
+#define show_art(Tgt) showTopOfStack(out,stk,(Tgt))
+#define show_i32(Tgt) outMsg(out," #%d",(Tgt))
+#define show_arg(Tgt) showArg(out,stk,(Tgt))
+#define show_lcl(Tgt) showLcl(out,stk,(Tgt))
+#define show_lcs(Tgt) outMsg(out," l[%d]",(Tgt))
+#define show_bLk(Tgt) showPcOffset(out,(Tgt))
+#define show_lVl(Tgt) outMsg(out," ^%d",(Tgt))
+#define show_sym(Tgt) showConstant(out,mtd,(Tgt))
+#define show_Es(Tgt) showEscCall(out, (Tgt))
+#define show_lit(Tgt) showConstant(out,mtd,(Tgt))
+#define show_lNe(Tgt) showConstant(out,mtd,(Tgt))
+#define show_glb(Tgt) showGlb(out, findGlobalVar((Tgt)))
+#define show_tPe(Tgt) showFrame(out,stk,mtd,(Tgt))
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
     case Op:{                               \
       outMsg(out," %s",#Op);                \
       integer delta=0;                      \
-      show_##A1;                            \
-      show_##A2;                            \
-      return pc+1;                            \
+      show_##A1(pc->fst);                   \
+      show_##A2(pc->alt);                   \
+      return pc+1;                          \
     }
 
 #include "instructions.h"

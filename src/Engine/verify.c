@@ -38,11 +38,12 @@ typedef struct verify_context_ {
 
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
 static retCode
-verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig, integer sigLen);
+verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
+            integer sigLen);
 static retCode
 extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
-static varPo mergeVars(varPo seg, varPo next, integer count);
+static void mergeVars(varPo seg, varPo next, integer count);
 
 static varPo initVars(integer count) {
   varPo vars = (varPo) malloc(sizeof(Var) * count);
@@ -80,23 +81,18 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 
   char *funBlockSig = "F()p";    // Special block signature for function bodies
 
-  tryRet(verifyBlock(0, codeSize(mtd), &delta, &mtdCtx, funBlockSig, uniStrLen(funBlockSig)));
+  tryRet(verifyBlock(0, 0, codeSize(mtd), &delta, &mtdCtx, funBlockSig, uniStrLen(funBlockSig)));
 
   eraseVars(mtdCtx.locals);
   return Ok;
 }
 
-static varPo mergeVars(varPo seg, varPo next, integer count) {
-  if (next == Null)
-    return copyVars(seg, count);
-  else {
-    assert(seg != Null);
-    for (integer ix = 0; ix < count; ix++) {
-      next[ix].inited &= seg[ix].inited;
-      next[ix].read |= seg[ix].read;
-    }
+static void mergeVars(varPo seg, varPo next, integer count) {
+  assert(seg != Null);
+  for (integer ix = 0; ix < count; ix++) {
+    next[ix].inited &= seg[ix].inited;
+    next[ix].read |= seg[ix].read;
   }
-  return next;
 }
 
 static retCode showVars();
@@ -139,8 +135,9 @@ extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, const 
 static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integer tgt) {
   verifyCtxPo tgtCtx = ctx;
 
-  while (tgtCtx != Null && tgt > 0) {
-    tgt--;
+  tgt = pc + 1 + tgt;
+
+  while (tgtCtx != Null && tgtCtx->from != tgt) {
     tgtCtx = tgtCtx->parent;
   }
 
@@ -150,6 +147,7 @@ static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integ
                          stackDepth);
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
+  mergeVars(ctx->locals, tgtCtx->locals, lclCount(ctx->mtd));
   return Ok;
 }
 
@@ -157,7 +155,9 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig, integer sigLen) {
+retCode
+verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
+            integer sigLen) {
   integer entryDepth, exitDepth;
   tryRet(extractBlockSig(&entryDepth, &exitDepth, parentCtx, blockSig, sigLen));
   integer stackDepth = entryDepth;
@@ -171,11 +171,11 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
   VerifyContext ctx = {.prefix=prefix,
     .errorMsg=parentCtx->errorMsg, .msgLen=parentCtx->msgLen,
     .mtd = parentCtx->mtd,
+    .from = from,
+    .limit = limit,
     .parent = parentCtx,
     .entryDepth = entryDepth, .exitDepth=exitDepth,
     .locals = copyVars(parentCtx->locals, lclCount(parentCtx->mtd))};
-
-  int32 pc = from;
 
   while (pc < limit) {
     insPo ins = &code[pc];
@@ -281,9 +281,9 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
           integer sigLn;
           const char *blockSg = strVal(lit, &sigLn);
 
-          if (verifyBlock(pc + 1, pc + code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
+          if (verifyBlock(pc, pc + 1, code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
             stackDepth += blockDelta;
-            pc = pc + code[pc].alt;
+            pc = code[pc].alt;
             continue;
           } else
             return Error;
@@ -292,10 +292,12 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
 
       case Loop:
       case Break: {
-        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt) != Ok)
-          return Error;
-        if (!isLastPC(pc++, limit))
+        if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
+
+        if (checkBreak(&ctx, pc, stackDepth, code[pc].fst) != Ok)
+          return Error;
+        pc++;
         break;
       }
 
@@ -365,9 +367,9 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
           integer sigLn;
           const char *blockSg = strVal(lit, &sigLn);
 
-          if (verifyBlock(pc + 1, pc + code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
+          if (verifyBlock(pc, pc + 1, code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
             stackDepth += blockDelta;
-            pc = pc + code[pc].alt;
+            pc = code[pc].alt;
             continue;
           } else
             return Error;
@@ -558,6 +560,7 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         if (checkBreak(&ctx, pc, stackDepth, code[pc].alt) != Ok)
           return Error;
+        stackDepth--;
         pc++;
         continue;
       }
@@ -566,17 +569,20 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
         int32 mx = code[pc].fst;
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        for (integer ix = 0; ix < mx; ix++) {
-          insPo caseIns = &code[pc + ix];
+        for (int32 ix = 0; ix < mx; ix++) {
+          int32 casePc = pc + 1 + ix;
+          insPo caseIns = &code[casePc];
           switch (caseIns->op) {
             case Break:
             case Loop:
+              if (checkBreak(&ctx, casePc, stackDepth, caseIns->fst) != Ok)
+                return Error;
               continue;
             default:
-              return verifyError(&ctx, ".%d: invalid case instruction", pc + ix);
+              return verifyError(&ctx, ".%d: invalid case instruction", casePc);
           }
         }
-        pc += mx;
+        pc += mx + 1;
         continue;
       }
       case IAdd:
@@ -620,7 +626,7 @@ retCode verifyBlock(int32 from, int32 limit, int32 *delta, verifyCtxPo parentCtx
         else if (checkBreak(&ctx, pc, stackDepth - 2, code[pc].alt) != Ok)
           return Error;
         else {
-          stackDepth -= 1;
+          stackDepth -= 2;
           pc++;
           continue;
         }

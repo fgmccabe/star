@@ -687,11 +687,11 @@ mnem([iNth(V)|Ins],Lbls,Lt,Ltx,LsMap,[50,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,LsMap,[51,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
-mnem([iIf(V)|Ins],Lbls,Lt,Ltx,LsMap,[52,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iIf(W)|Ins],Lbls,Lt,Ltx,LsMap,[52,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
-mnem([iIfNot(V)|Ins],Lbls,Lt,Ltx,LsMap,[53,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iIfNot(W)|Ins],Lbls,Lt,Ltx,LsMap,[53,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iCase(V)|Ins],Lbls,Lt,Ltx,LsMap,[54,V|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
@@ -715,8 +715,8 @@ mnem([iILt|Ins],Lbls,Lt,Ltx,LsMap,[63|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iIGe|Ins],Lbls,Lt,Ltx,LsMap,[64|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
-mnem([iICmp(V)|Ins],Lbls,Lt,Ltx,LsMap,[65,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iICmp(W)|Ins],Lbls,Lt,Ltx,LsMap,[65,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iCEq|Ins],Lbls,Lt,Ltx,LsMap,[66|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
@@ -724,8 +724,8 @@ mnem([iCLt|Ins],Lbls,Lt,Ltx,LsMap,[67|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iCGe|Ins],Lbls,Lt,Ltx,LsMap,[68|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
-mnem([iCCmp(V)|Ins],Lbls,Lt,Ltx,LsMap,[69,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iCCmp(W)|Ins],Lbls,Lt,Ltx,LsMap,[69,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iBAnd|Ins],Lbls,Lt,Ltx,LsMap,[70|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
@@ -759,8 +759,8 @@ mnem([iFLt|Ins],Lbls,Lt,Ltx,LsMap,[84|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iFGe|Ins],Lbls,Lt,Ltx,LsMap,[85|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
-mnem([iFCmp(V)|Ins],Lbls,Lt,Ltx,LsMap,[86,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iFCmp(W)|Ins],Lbls,Lt,Ltx,LsMap,[86,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,LsMap,[87,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
@@ -768,8 +768,8 @@ mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,LsMap,[87,LtNo|M],Cdx) :-
 mnem([iClosure(V)|Ins],Lbls,Lt,Ltx,LsMap,[88,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,LsMap,M,Cdx).
-mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,LsMap,[89,Lvl|M],Cdx) :-
-      findLevel(V,Lbls,0,Lvl),
+mnem([iCmp(W)|Ins],Lbls,Lt,Ltx,LsMap,[89,Lvl|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,LsMap,M,Cdx).
 mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,LsMap,[90,LtNo|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
@@ -974,7 +974,7 @@ showMnem(iTry(U,V),Pc,sq([PcDx,ss(": "),ss("Try"), ss(" "), UU, ss(","), VV])) :
   pcSpace(SPc,Dp),
   VV = sq([nl(Dp),iv(nl(Dp), Ms)]),
   true.
-showMnem(iEndTry(V),Pc,sq([PcDx,ss(": "),ss("EndTry"), ss(","), VV])) :- !,
+showMnem(iEndTry(V),Pc,sq([PcDx,ss(": "),ss("EndTry"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
   VV=ss(V),!,
   true.
@@ -1067,13 +1067,13 @@ showMnem(iStNth(U),Pc,sq([PcDx,ss(": "),ss("StNth"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iIf(U),Pc,sq([PcDx,ss(": "),ss("If"), ss(" "), UU])) :- !,
+showMnem(iIf(V),Pc,sq([PcDx,ss(": "),ss("If"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
-showMnem(iIfNot(U),Pc,sq([PcDx,ss(": "),ss("IfNot"), ss(" "), UU])) :- !,
+showMnem(iIfNot(V),Pc,sq([PcDx,ss(": "),ss("IfNot"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
 showMnem(iCase(U),Pc,sq([PcDx,ss(": "),ss("Case"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
@@ -1110,9 +1110,9 @@ showMnem(iILt,Pc,sq([PcDx,ss(": "),ss("ILt")])) :- !,
 showMnem(iIGe,Pc,sq([PcDx,ss(": "),ss("IGe")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iICmp(U),Pc,sq([PcDx,ss(": "),ss("ICmp"), ss(" "), UU])) :- !,
+showMnem(iICmp(V),Pc,sq([PcDx,ss(": "),ss("ICmp"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
 showMnem(iCEq,Pc,sq([PcDx,ss(": "),ss("CEq")])) :- !,
   showPc(Pc,PcDx),
@@ -1123,9 +1123,9 @@ showMnem(iCLt,Pc,sq([PcDx,ss(": "),ss("CLt")])) :- !,
 showMnem(iCGe,Pc,sq([PcDx,ss(": "),ss("CGe")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iCCmp(U),Pc,sq([PcDx,ss(": "),ss("CCmp"), ss(" "), UU])) :- !,
+showMnem(iCCmp(V),Pc,sq([PcDx,ss(": "),ss("CCmp"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
 showMnem(iBAnd,Pc,sq([PcDx,ss(": "),ss("BAnd")])) :- !,
   showPc(Pc,PcDx),
@@ -1175,9 +1175,9 @@ showMnem(iFLt,Pc,sq([PcDx,ss(": "),ss("FLt")])) :- !,
 showMnem(iFGe,Pc,sq([PcDx,ss(": "),ss("FGe")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iFCmp(U),Pc,sq([PcDx,ss(": "),ss("FCmp"), ss(" "), UU])) :- !,
+showMnem(iFCmp(V),Pc,sq([PcDx,ss(": "),ss("FCmp"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
 showMnem(iAlloc(U),Pc,sq([PcDx,ss(": "),ss("Alloc"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
@@ -1187,9 +1187,9 @@ showMnem(iClosure(U),Pc,sq([PcDx,ss(": "),ss("Closure"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
-showMnem(iCmp(U),Pc,sq([PcDx,ss(": "),ss("Cmp"), ss(" "), UU])) :- !,
+showMnem(iCmp(V),Pc,sq([PcDx,ss(": "),ss("Cmp"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
-  UU=ss(U),!,
+  VV=ss(V),!,
   true.
 showMnem(iFrame(U),Pc,sq([PcDx,ss(": "),ss("Frame"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),

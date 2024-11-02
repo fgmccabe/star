@@ -273,7 +273,7 @@ integer methodSigLit(methodPo mtd)
   return mtd->sigIx;
 }
 
-integer codeSize(methodPo mtd){
+int32 codeSize(methodPo mtd){
   return mtd->insCount;
 }
 

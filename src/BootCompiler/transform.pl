@@ -808,7 +808,7 @@ collectLabelVars([_|Args],ThVr,Ix,List,Lx) :-
 closureRule(_,Lc,Nm,ClosureName,ThVr,(Lc,[ThVr,DotName],none,clos(ClosureName,2,ThVr))) :-
   makeDotLbl(Nm,DotName).
 
-accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("star.core#true"),cll(Lc,lbl(LclName,1),[ThV]))) :-
+accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("true"),cll(Lc,lbl(LclName,1),[ThV]))) :-
   makeDotLbl(Nm,DotName).
 
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).

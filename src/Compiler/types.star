@@ -453,10 +453,10 @@ star.compiler.types{
   public contType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
-  public lstType(Tp) => .tpExp(.tpFun("star.core*cons",1),Tp).
+  public lstType(Tp) => .tpExp(.tpFun("cons",1),Tp).
   public refType(Tp) => .tpExp(.tpFun("ref",1),Tp).
   public tagType(Tp) => .tpExp(.tpFun("tag",1),Tp).
-  public optType(Tp) => .tpExp(.tpFun("star.core*option",1),Tp).
+  public optType(Tp) => .tpExp(.tpFun("option",1),Tp).
   public fiberType(R,S) => .tpExp(.tpExp(.tpFun("fiber",2),R),S).
   public singleType(A) => .tpExp(.tpFun("star.core*single",1),A).
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
@@ -593,12 +593,12 @@ star.compiler.types{
   ntEnumTp(T) where ET ?= isEnumType(T) => ET.
   
   public unitTp = .tupleType([]).
-  public chrType = .nomnal("star*char").
-  public intType = .nomnal("star*integer").
-  public bigintType = .nomnal("star*bigint").
-  public fltType = .nomnal("star*float").
-  public strType = .nomnal("star*string").
-  public boolType = .nomnal("star*boolean").
+  public chrType = .nomnal("char").
+  public intType = .nomnal("integer").
+  public bigintType = .nomnal("bigint").
+  public fltType = .nomnal("float").
+  public strType = .nomnal("string").
+  public boolType = .nomnal("boolean").
   public thunkType(T) => makeTpExp("thunk",[T]).
   public ioType = .nomnal("ioHandle").
 

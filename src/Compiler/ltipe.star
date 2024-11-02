@@ -106,9 +106,9 @@ star.compiler.ltipe{
   reduceTp(T) => redTp(deRef(T)).
 
   redTp(Tp) => case Tp in {
-    | .nomnal("star.core*integer") => .int64
-    | .nomnal("star.core*float") => .flt64
-    | .nomnal("star.core*boolean") => .bool
+    | .nomnal("integer") => .int64
+    | .nomnal("float") => .flt64
+    | .nomnal("boolean") => .bool
     | .nomnal(_) => .ptr
     | _ where (A,R) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
       .funTipe(As//reduceTp,reduceTp(R))

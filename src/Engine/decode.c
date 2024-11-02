@@ -494,28 +494,28 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLe
     (*pc)++;
     (*count)--;                 // Increment decode counter
     switch (ins->op) {
-#define sznOp
-#define sztOs
-#define szart ret = decodeI32(in, &ins->fst); (*count)--;
-#define szi32 ret = decodeI32(in, &ins->fst); (*count)--;
-#define szarg ret = decodeI32(in, &ins->fst); (*count)--;
-#define szlcl ret = decodeI32(in, &ins->fst); (*count)--;
-#define szlcs ret = decodeI32(in, &ins->fst); (*count)--;
-#define szsym ret = decodeI32(in, &ins->fst); (*count)--;
-#define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = lookupEscape(escNm);} (*count)--;
-#define szlit ret = decodeI32(in, &ins->fst); (*count)--;
-#define sztPe ret = decodeI32(in, &ins->fst); (*count)--;
-#define szglb {retCode ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst = globalVarNo(escNm);} (*count)--;
-#define szbLk { tryRet(decodeBlock(in, ar,  pc, &ins->alt, brk));   \
+#define sznOp(Tgt)
+#define sztOs(Tgt)
+#define szart(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szi32(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szarg(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szlcl(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szlcs(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szsym(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szlit(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define sztPe(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szEs(Tgt) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = lookupEscape(escNm);} (*count)--;
+#define szglb(Tgt) {retCode ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = globalVarNo(escNm);} (*count)--;
+#define szbLk(Tgt) { tryRet(decodeBlock(in, ar,  pc, &(Tgt), brk));   \
                     (*count)--;  }
-#define szlVl { int32 lvl; tryRet(decodeI32(in, &lvl)); ins->alt = findBreak(brk, *pc, lvl); (*count)--; }
-#define szlNe { ret = decodeI32(in, &ins->fst); (*count)--; recordLoc(brk,*pc,ins->fst);}
+#define szlVl(Tgt) { int32 lvl; tryRet(decodeI32(in, &lvl)); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
+#define szlNe(Tgt) { ret = decodeI32(in, &(Tgt)); (*count)--; recordLoc(brk,*pc,(Tgt));}
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
       case Op:{                             \
-        sz##A1                          \
-        sz##A2                          \
-        break;                              \
+        sz##A1(ins->fst)                   \
+        sz##A2(ins->alt)                   \
+        break;                             \
       }
 
 #include "instructions.h"

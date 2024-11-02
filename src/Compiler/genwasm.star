@@ -152,8 +152,8 @@ star.compiler.wasm.gen{
 
   compCond:(cExp,tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCond(C,TM,Succ,Fail,Ctx,Stk) => case C in {
-    | .cTerm(_,"star.core#true",[],_) => Succ.C(Ctx,Stk,[])
-    | .cTerm(_,"star.core#false",[],_) => Fail.C(Ctx,Stk,[])
+    | .cTerm(_,"true",[],_) => Succ.C(Ctx,Stk,[])
+    | .cTerm(_,"false",[],_) => Fail.C(Ctx,Stk,[])
     | .cCnj(Lc,L,R) => valof{
       FC = splitCont(Lc,Ctx,ctxCont(Ctx,Fail));
       valis compCond(L,.notLast,condCont(R,TM,Succ,FC,Stk),FC,Ctx,Stk)

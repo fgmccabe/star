@@ -195,7 +195,7 @@ star.compiler.dict{
 	declareType("boolean",.none,boolType,.typeExists(boolType,emptyFace),
 	  declareType("char",.none,chrType,.typeExists(chrType,emptyFace),
 	    declareType("string",.none,strType,.typeExists(strType,emptyFace),
-	      declareType("cons",.none,.tpFun("star.core*cons",1),
+	      declareType("cons",.none,.tpFun("cons",1),
 		.allRule(.kVar("e"),
 		  .typeExists(lstType(.kVar("e")),emptyFace)),
 		declareType("thunk",.none,.tpFun("thunk",1),

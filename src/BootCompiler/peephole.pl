@@ -84,25 +84,34 @@ peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-!,
 peep([iTry(Tpe,IB)|Is],Lbls, [iTry(Tpe,IBs)|Ins]) :-
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
-
-peep([iIf(Lb)|_],Lbls,[iIf(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iIfNot(Lb)|_],Lbls,[iIfNot(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iCLbl(Tgt,Lb)|_],Lbls,[iCLbl(Tgt,LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iCmp(Lb)|_],Lbls,[iCmp(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iICmp(Lb)|_],Lbls,[iICmp(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iFCmp(Lb)|_],Lbls,[iFCmp(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iCCmp(Lb)|_],Lbls,[iCCmp(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
+peep([iIf(Lb)|In],Lbls,[iIf(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iIfNot(Lb)|In],Lbls,[iIfNot(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iCLbl(Tgt,Lb)|In],Lbls,[iCLbl(Tgt,LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iCmp(Lb)|In],Lbls,[iCmp(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iICmp(Lb)|In],Lbls,[iICmp(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iFCmp(Lb)|In],Lbls,[iFCmp(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-!,
   resolveLblRef(Lb,Lbls,LLb).
+peep([iCase(Mx)|In],Lbls,[iCase(Mx)|Inx]) :-
+  copyN(Mx,In,I0,Inx,Is0),
+  peep(I0,Lbls,Is0).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 
 lblReferenced(Lb,[iBreak(Lb)|_]).

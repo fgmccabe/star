@@ -32,7 +32,7 @@ test.comp.chk{
 
   show disp(A1).
 
-  SD = declareVar("true",none,tipe("star.core*boolean"),stdDict).
+  SD = declareVar("true",none,tipe("boolean"),stdDict).
 
   P1 = checkProgram(getBrEls(A1),"test",SD,R0).
 

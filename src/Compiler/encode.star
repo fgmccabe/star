@@ -18,16 +18,16 @@ star.compiler.types.encode{
   case deRef(Tp) in {
     | .voidType => [`v`]
     | .anonType => [`_`]
-    | .nomnal("star.core*integer") => [`i`]
-    | .nomnal("star.core*bigint") => [`b`]
-    | .nomnal("star.core*float") => [`f`]
-    | .nomnal("star.core*string") => [`s`]
-    | .nomnal("star.core*boolean") => [`l`]
+    | .nomnal("integer") => [`i`]
+    | .nomnal("bigint") => [`b`]
+    | .nomnal("float") => [`f`]
+    | .nomnal("string") => [`s`]
+    | .nomnal("boolean") => [`l`]
     | .nomnal(Nm) => [`t`]++encodeText(Nm)
     | .kVar(Nm) => [`k`]++encodeText(Nm)
     | .kFun(Nm,Ar) => [`K`]++encodeNat(Ar)++encodeText(Nm)
     | .tpFun(Nm,Ar) => [`z`]++encodeNat(Ar)++encodeText(Nm)
-    | .tpExp(.tpFun("star.core*cons",1),El) => [`L`]++encodeType(El)
+    | .tpExp(.tpFun("cons",1),El) => [`L`]++encodeType(El)
     | .tpExp(.tpFun("ref",1),El) => [`r`]++encodeType(El)
     | .tpExp(.tpExp(.tpFun("=>",2),A),R) => [`F`]++encodeType(A)++encodeType(R)
     | .tpExp(.tpExp(.tpFun("<=>",2),A),R) => [`C`]++encodeType(A)++encodeType(R)
@@ -113,12 +113,12 @@ star.compiler.types.encode{
 
   decodeType:(cons[char]) => (tipe,cons[char]).
   decodeType([Ch,..Ts]) => case Ch in {
-    | `i` => (.nomnal("star.core*integer"),Ts)
-    | `b` => (.nomnal("star.core*bigint"),Ts)
-    | `f` => (.nomnal("star.core*float"),Ts)
-    | `c` => (.nomnal("star.core*char"),Ts)
-    | `s` => (.nomnal("star.core*string"),Ts)
-    | `l` => (.nomnal("star.core*boolean"),Ts)
+    | `i` => (.nomnal("integer"),Ts)
+    | `b` => (.nomnal("bigint"),Ts)
+    | `f` => (.nomnal("float"),Ts)
+    | `c` => (.nomnal("char"),Ts)
+    | `s` => (.nomnal("string"),Ts)
+    | `l` => (.nomnal("boolean"),Ts)
     | `_` => (.anonType,Ts)
     | `k` => valof{
       (Nm,T1) = decodeText(Ts);
