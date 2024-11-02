@@ -5,7 +5,6 @@
 #include <heapP.h>
 #include <memory.h>
 #include "array.h"
-#include <arith.h>
 #include "codeP.h"
 #include "labelsP.h"
 #include "debugP.h"
@@ -13,7 +12,6 @@
 #include <stdlib.h>
 #include "quick.h"
 #include "tpl.h"
-#include "globals.h"
 #include "decodeP.h"
 #include "pkgP.h"
 
@@ -128,7 +126,7 @@ logical validPC(methodPo mtd, insPo pc) {
 
 int32 codeOffset(methodPo mtd, insPo pc){
   assert(validPC(mtd,pc));
-  return pc-mtd->instructions;
+  return (int32)(pc-mtd->instructions);
 }
 
 termPo findPcLocation(methodPo mtd, int32 pc) {
@@ -260,15 +258,15 @@ packagePo markLoaded(char *package, char *version) {
     return createPkg(package, version);
 }
 
-integer lclCount(methodPo mtd) {
+int32 lclCount(methodPo mtd) {
   return mtd->lclcnt;
 }
 
-integer codeArity(methodPo mtd) {
+int32 codeArity(methodPo mtd) {
   return mtd->arity;
 }
 
-integer methodSigLit(methodPo mtd)
+int32 methodSigLit(methodPo mtd)
 {
   return mtd->sigIx;
 }
@@ -278,7 +276,7 @@ int32 codeSize(methodPo mtd){
 }
 
 methodPo
-defineMtd(heapPo H, int32 insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
+defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
@@ -304,7 +302,7 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, integer funSigIx, intege
 }
 
 methodPo
-specialMethod(const char *name, integer arity, integer insCount, insPo instructions, termPo sigTerm, integer lclCount) {
+specialMethod(const char *name, int32 arity, int32 insCount, insPo instructions, termPo sigTerm, int32 lclCount) {
   labelPo lbl = declareLbl(name, arity, 0);
   normalPo pool = allocateTpl(globalHeap, 2);
   setArg(pool, 0, (termPo) lbl);

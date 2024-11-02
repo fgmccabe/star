@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <globals.h>
 #include "stackP.h"
-#include "termP.h"
 #include "engineP.h"
 
 logical traceStack = False;             // stack operation tracing
@@ -516,8 +515,8 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
   } while (stk != Null);
 }
 
-integer stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
-  integer count = 0;
+int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
+  int32 count = 0;
   tryFramePo try = stk->try;
   ptrPo limit = (ptrPo) fp - lclCount(mtd);
   while (sp < limit) {
@@ -644,7 +643,7 @@ stackPo detachStack(stackPo base, stackPo top) {
 
   top->bottom = base;
   stackPo s = base;
-  while (s != Null && s != top) {
+  while (s != top) {
     assert(s->state == active);
     s->state = suspended;
     s->bottom = base;

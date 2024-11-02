@@ -411,11 +411,11 @@ retCode decodeList(ioPo in, encodePo S, integer count, heapPo H, termPo *tgt, st
   }
 }
 
-retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize) {
+retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize) {
   if (isLookingAt(in, "n") == Ok) {
     char nm[MAXLINE];
-    integer ar;
-    retCode ret = decInt(in, count);
+    int32 ar;
+    retCode ret = decI32(in, count);
     if (ret == Ok) {
       ret = decodeLbl(in, nm, NumberOf(nm), &ar, errorMsg, msgSize);
       if (ret == Ok) {
@@ -463,7 +463,7 @@ retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, arrayPo *locs,
   int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
-  *code = (insPo)malloc(sizeof(Instruction) * (size_t) *insCount);
+  *code = (insPo) malloc(sizeof(Instruction) * (size_t) *insCount);
   tryRet(copyOutData(ar, (void *) *code, sizeof(Instruction) * (size_t) *insCount));
   eraseArray(ar, Null, Null);
 
@@ -478,24 +478,24 @@ retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, arrayPo *locs,
   return Ok;
 }
 
-static retCode decodeI32(ioPo in, int32 *rest) {
+static retCode decodeOp(ioPo in, OpCode *op) {
   integer val;
   retCode ret = decodeInteger(in, &val);
-  *rest = (int32) val;
+  *op = (OpCode) val;
   return ret;
 }
 
-static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLevelPo brk) {
+static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
   char escNm[MAX_SYMB_LEN];
   insPo ins = (insPo) newEntry(ar);
   retCode ret = Ok;
 
-  if ((ret = decodeInteger(in, (integer *) &ins->op)) == Ok) {
+  if ((ret = decodeOp(in, &ins->op)) == Ok) {
     (*pc)++;
     (*count)--;                 // Increment decode counter
     switch (ins->op) {
-#define sznOp(Tgt)
-#define sztOs(Tgt)
+#define sznOp(Tgt) {(Tgt) = 0x55555555; }
+#define sztOs(Tgt) {(Tgt) = 0x7e7e7e7e; }
 #define szart(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szi32(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szarg(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
@@ -546,8 +546,8 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, integer *count, breakLe
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=(*pc)-1, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
-  integer count;
+  BreakLevel blkBrk = {.pc=(*pc) - 1, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
 

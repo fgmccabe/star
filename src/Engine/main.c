@@ -32,6 +32,7 @@
 #include "libEscapes.h"
 
 #include "stringBufferP.h"
+#include "ltype.h"
 
 char *copyright = "(c) 2010 and beyond F.G.McCabe\nApache Licence 2.0";
 
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
   installMsgProc('I', showIdentifier);
   installMsgProc('C', genQuotedChr);
   installMsgProc('Q', genQuotedStr);
+  installMsgProc('Y', showLS);
 
   if ((narg = getEngineOptions(argc, argv)) < 0) {
     exit(1);

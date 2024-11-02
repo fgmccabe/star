@@ -58,7 +58,7 @@ void initLbls() {
   lblTableTop = 0;
 }
 
-labelPo declareLbl(const char *name, integer arity, integer index) {
+labelPo declareLbl(const char *name, int32 arity, int32 index) {
   LabelRecord Lbl = {.name=name, .arity=arity};
   labelPo lbl = hashGet(labelHashTable, &Lbl);
 
@@ -69,7 +69,7 @@ labelPo declareLbl(const char *name, integer arity, integer index) {
     lbl = &labelTable[lblTableTop++];
     lbl->lbl.arity = (&Lbl)->arity;
     lbl->lbl.name = uniDuplicate((&Lbl)->name);
-    lbl->len = uniStrLen((&Lbl)->name);
+    lbl->len = (int32)uniStrLen((&Lbl)->name);
     lbl->index = index;
     lbl->mtd = Null;
     lbl->clss = labelClass;
@@ -90,12 +90,12 @@ labelPo declareLbl(const char *name, integer arity, integer index) {
   return lbl;
 }
 
-labelPo findLbl(const char *name, integer arity) {
+labelPo findLbl(const char *name, int32 arity) {
   LabelRecord lbl = {.name=name, .arity=arity};
   return (labelPo) hashGet(labelHashTable, &lbl);
 }
 
-termPo declareEnum(const char *name, integer index, heapPo H) {
+termPo declareEnum(const char *name, int32 index, heapPo H) {
   labelPo lbl = declareLbl(name, 0, index);
   int root = gcAddRoot(H, (ptrPo) &lbl);
   normalPo tpl = allocateStruct(H, lbl);
@@ -192,7 +192,7 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
     return outMsg(out, "%Q/%d", name, arity);
 }
 
-void showAllLabels() {
+__attribute__((unused)) void showAllLabels() {
   for (integer ix = 0; ix < lblTableTop; ix++) {
     outMsg(logFile, "%A\n", &labelTable[ix]);
   }
@@ -207,7 +207,7 @@ logical labelDefined(labelPo lbl) {
   return lbl->mtd != Null;
 }
 
-integer labelArity(labelPo lbl) {
+int32 labelArity(labelPo lbl) {
   return lbl->lbl.arity;
 }
 
@@ -215,18 +215,11 @@ const char *labelName(labelPo lbl) {
   return lbl->lbl.name;
 }
 
-integer labelIndex(labelPo lbl) {
+int32 labelIndex(labelPo lbl) {
   return lbl->index;
 }
 
-logical isLabel(labelPo lbl, char *nm, integer arity) {
-  if (lbl != Null)
-    return uniCmp(lbl->lbl.name, nm) == same && lbl->lbl.arity == arity;
-  else
-    return False;
-}
-
-labelPo tplLabel(integer arity) {
+labelPo tplLabel(int32 arity) {
   char txt[MAX_SYMB_LEN];
 
   strMsg(txt, NumberOf(txt), "()%d", arity);

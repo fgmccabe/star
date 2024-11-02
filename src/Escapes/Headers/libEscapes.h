@@ -23,7 +23,7 @@ typedef struct escape_record_ {
   char *name;         /* Name of the escape */
   char *sig;          /* Signature of the escape */
   libFun fun;         /* The function itself */
-  integer arity;      /* How many arguments */
+  int32 arity;        /* How many arguments */
 } EscapeRec;
 
 void installEscapes();

@@ -3,11 +3,9 @@
 #include <assert.h>
 #include "term.h"
 #include <globals.h>
-#include <strings.h>
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
-#include "timers.h"
 #include "quick.h"
 
 static EscapeRec escapes[256];
@@ -39,7 +37,7 @@ int installEscape(EscapeCode code, char *name, char *sig, libFun fun) {
   esc->name = uniDuplicate(name);
   esc->sig = uniDuplicate(sig);
   esc->fun = fun;
-  integer arity;
+  int32 arity;
 
   funSigArity(sig, &arity);
   esc->arity = arity;
@@ -116,7 +114,7 @@ char *escapeName(escapePo esc) {
   return esc->name;
 }
 
-integer escapeArity(escapePo esc) {
+int32 escapeArity(escapePo esc) {
   return esc->arity;
 }
 

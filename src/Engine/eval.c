@@ -1347,7 +1347,7 @@ retCode run(processPo P) {
 #ifdef TRACESTACK
         termPo frame = nthElem(LITS, PC->fst);
         if (stackVerify) {
-          integer frameDepth;
+          int32 frameDepth;
           if (isString(frame)) {
             integer sigLen;
             const char *sig = strVal(frame, &sigLen);

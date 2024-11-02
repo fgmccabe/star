@@ -20,7 +20,10 @@ typedef enum {
 
 retCode validTypeSig(const char *text, integer len);
 retCode skipTypeSig(const char *text, integer len, integer *pos);
-retCode typeSigArity(const char *sig, integer len, integer *arity);
+retCode typeSigArity(const char *sig, integer len, int32 *arity);
+retCode showLSig(ioPo out, const char *sig, integer len);
+
+retCode showLS(ioPo f, void *data, long depth, long precision, logical alt);
 
 retCode funArgSig(const char *text, integer len, integer *pos);
 retCode funResSig(const char *text, integer len, integer *pos);
