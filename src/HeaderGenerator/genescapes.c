@@ -201,7 +201,7 @@ char *dumpPrologSig(char *sig, strBufferPo out) {
     case lstSig: {
       outStr(O_IO(out), "tpExp(");
       outStr(O_IO(out), "tpFun(");
-      dumpStr("star.core*cons", out);
+      dumpStr("cons", out);
       outStr(O_IO(out), ",1),");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
@@ -412,7 +412,7 @@ static char *dumpStarSig(char *sig, strBufferPo out) {
     case lstSig: {
       outStr(O_IO(out), ".tpExp(");
       outStr(O_IO(out), ".tpFun(");
-      dumpStr("star.core*cons", out);
+      dumpStr("cons", out);
       outStr(O_IO(out), ",1),");
       sig = dumpStarSig(sig, out);
       outStr(O_IO(out), ")");

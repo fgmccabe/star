@@ -6,7 +6,7 @@
 #define continType(R,S) "x" R S
 #define fiberType(R,S) "UUz2'fiber'" R S
 
-#define ERRCODE "t'star.core*errorCode"
+#define ERRCODE "t'errorCode"
 
 
 /* Define the standard intrinsics */

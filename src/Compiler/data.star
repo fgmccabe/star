@@ -122,10 +122,10 @@ star.compiler.data{
   }
 
   public trueEnum:data.
-  trueEnum = .term("star.core#true",[]).
+  trueEnum = .term("true",[]).
 
   public falseEnum:data.
-  falseEnum = .term("star.core#false",[]).
+  falseEnum = .term("false",[]).
 
   -- Written in this way to maximize potential for tail recursion
 

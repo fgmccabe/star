@@ -10,8 +10,8 @@ termPo noneEnum;
 labelPo someCons;
 
 void initOption() {
-  noneEnum = declareEnum("star.core#none", 0, globalHeap);
-  someCons = declareLbl("star.core#some", 1, 1);
+  noneEnum = declareEnum("none", 0, globalHeap);
+  someCons = declareLbl("some", 1, 1);
 }
 
 normalPo wrapSome(heapPo H, termPo lhs) {

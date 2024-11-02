@@ -79,36 +79,36 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  eOk = declareEnum("star.core#Ok", -1, globalHeap);
-  eSWITCH = declareEnum("star.core#eSWITCH", -1, globalHeap);
-  eERROR = declareEnum("star.core#eERROR", -1, globalHeap);
-  eINTRUPT = declareEnum("star.core#eINTRUPT", -1, globalHeap);
-  eEOF = declareEnum("star.core#eEOF", -1, globalHeap);
-  eNOTDIR = declareEnum("star.core#eNOTDIR", -1, globalHeap);
-  eNOFILE = declareEnum("star.core#eNOFILE", -1, globalHeap);
-  eNOTFND = declareEnum("star.core#eNOTFND", -1, globalHeap);
-  eINVAL = declareEnum("star.core#eINVAL", -1, globalHeap);
-  eRANGE = declareEnum("star.core#eRANGE", -1, globalHeap);
-  eNOPERM = declareEnum("star.core#eNOPERM", -1, globalHeap);
-  eFAIL = declareEnum("star.core#eFAIL", -1, globalHeap);
-  eIOERROR = declareEnum("star.core#eIOERROR", -1, globalHeap);
-  eCONNECT = declareEnum("star.core#eCONNECT", -1, globalHeap);
-  eDEAD = declareEnum("star.core#eDEAD", -1, globalHeap);
+  eOk = declareEnum("Ok", -1, globalHeap);
+  eSWITCH = declareEnum("eSWITCH", -1, globalHeap);
+  eERROR = declareEnum("eERROR", -1, globalHeap);
+  eINTRUPT = declareEnum("eINTRUPT", -1, globalHeap);
+  eEOF = declareEnum("eEOF", -1, globalHeap);
+  eNOTDIR = declareEnum("eNOTDIR", -1, globalHeap);
+  eNOFILE = declareEnum("eNOFILE", -1, globalHeap);
+  eNOTFND = declareEnum("eNOTFND", -1, globalHeap);
+  eINVAL = declareEnum("eINVAL", -1, globalHeap);
+  eRANGE = declareEnum("eRANGE", -1, globalHeap);
+  eNOPERM = declareEnum("eNOPERM", -1, globalHeap);
+  eFAIL = declareEnum("eFAIL", -1, globalHeap);
+  eIOERROR = declareEnum("eIOERROR", -1, globalHeap);
+  eCONNECT = declareEnum("eCONNECT", -1, globalHeap);
+  eDEAD = declareEnum("eDEAD", -1, globalHeap);
 
-  falseEnum = declareEnum("star#false", -1, globalHeap);
-  trueEnum = declareEnum("star#true", -1, globalHeap);
+  falseEnum = declareEnum("false", -1, globalHeap);
+  trueEnum = declareEnum("true", -1, globalHeap);
 
-  voidEnum = declareEnum("star#void", -1, globalHeap);
+  voidEnum = declareEnum("void", -1, globalHeap);
 
-  eofEnum = declareEnum("star.core#eof", -1, globalHeap);
-  canceledEnum = declareEnum("star.core#canceled", -1, globalHeap);
+  eofEnum = declareEnum("eof", -1, globalHeap);
+  canceledEnum = declareEnum("canceled", -1, globalHeap);
 
-  errorLbl = declareLbl("star.core#error", 2, -1);
+  errorLbl = declareLbl("error", 2, -1);
 
-  divZero = declareEnum("star.core#divZero", -1, globalHeap);
+  divZero = declareEnum("divZero", -1, globalHeap);
 
-  noValue = declareEnum("star.core#noValue", -1, globalHeap);
-  hasValue = declareEnum("star.core#hasValue", -1, globalHeap);
+  noValue = declareEnum("noValue", -1, globalHeap);
+  hasValue = declareEnum("hasValue", -1, globalHeap);
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
 }

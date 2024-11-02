@@ -216,8 +216,8 @@ star.compiler.assem{
   mnem(.iCLbl(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) && Lvl ?= findLevel(Lbls,V) => ([.intgr(49),.intgr(LtNo),.intgr(Lvl)],Lt1,Lcs).
   mnem(.iNth(U),Lbls,Lts,Lcs) => ([.intgr(50),.intgr(U)],Lts,Lcs).
   mnem(.iStNth(U),Lbls,Lts,Lcs) => ([.intgr(51),.intgr(U)],Lts,Lcs).
-  mnem(.iIf(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(52),.intgr(Lvl)],Lts,Lcs).
-  mnem(.iIfNot(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(53),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iIf(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(52),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iIfNot(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(53),.intgr(Tgt)],Lts,Lcs).
   mnem(.iCase(U),Lbls,Lts,Lcs) => ([.intgr(54),.intgr(U)],Lts,Lcs).
   mnem(.iIndxJmp(U),Lbls,Lts,Lcs) => ([.intgr(55),.intgr(U)],Lts,Lcs).
   mnem(.iIAdd,Lbls,Lts,Lcs) => ([.intgr(56)],Lts,Lcs).
@@ -229,11 +229,11 @@ star.compiler.assem{
   mnem(.iIEq,Lbls,Lts,Lcs) => ([.intgr(62)],Lts,Lcs).
   mnem(.iILt,Lbls,Lts,Lcs) => ([.intgr(63)],Lts,Lcs).
   mnem(.iIGe,Lbls,Lts,Lcs) => ([.intgr(64)],Lts,Lcs).
-  mnem(.iICmp(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(65),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iICmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(65),.intgr(Tgt)],Lts,Lcs).
   mnem(.iCEq,Lbls,Lts,Lcs) => ([.intgr(66)],Lts,Lcs).
   mnem(.iCLt,Lbls,Lts,Lcs) => ([.intgr(67)],Lts,Lcs).
   mnem(.iCGe,Lbls,Lts,Lcs) => ([.intgr(68)],Lts,Lcs).
-  mnem(.iCCmp(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(69),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iCCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(69),.intgr(Tgt)],Lts,Lcs).
   mnem(.iBAnd,Lbls,Lts,Lcs) => ([.intgr(70)],Lts,Lcs).
   mnem(.iBOr,Lbls,Lts,Lcs) => ([.intgr(71)],Lts,Lcs).
   mnem(.iBXor,Lbls,Lts,Lcs) => ([.intgr(72)],Lts,Lcs).
@@ -250,10 +250,10 @@ star.compiler.assem{
   mnem(.iFEq,Lbls,Lts,Lcs) => ([.intgr(83)],Lts,Lcs).
   mnem(.iFLt,Lbls,Lts,Lcs) => ([.intgr(84)],Lts,Lcs).
   mnem(.iFGe,Lbls,Lts,Lcs) => ([.intgr(85)],Lts,Lcs).
-  mnem(.iFCmp(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(86),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iFCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(86),.intgr(Tgt)],Lts,Lcs).
   mnem(.iAlloc(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(87),.intgr(LtNo)],Lt1,Lcs).
   mnem(.iClosure(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(88),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iCmp(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(89),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(89),.intgr(Tgt)],Lts,Lcs).
   mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(90),.intgr(LtNo)],Lt1,Lcs).
   mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(91)],Lts,Lcs).
   mnem(.iLine(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(92),.intgr(LtNo)],Lt1,Lcs).
@@ -359,8 +359,8 @@ star.compiler.assem{
   showIns(.iCLbl(U,V),Pc) => "CLbl $(U) $(V)".
   showIns(.iNth(U),Pc) => "Nth $(U)".
   showIns(.iStNth(U),Pc) => "StNth $(U)".
-  showIns(.iIf(U),Pc) => "If $(U)".
-  showIns(.iIfNot(U),Pc) => "IfNot $(U)".
+  showIns(.iIf(V),Pc) => "If $(V)".
+  showIns(.iIfNot(V),Pc) => "IfNot $(V)".
   showIns(.iCase(U),Pc) => "Case $(U)".
   showIns(.iIndxJmp(U),Pc) => "IndxJmp $(U)".
   showIns(.iIAdd,Pc) => "IAdd".
@@ -372,11 +372,11 @@ star.compiler.assem{
   showIns(.iIEq,Pc) => "IEq".
   showIns(.iILt,Pc) => "ILt".
   showIns(.iIGe,Pc) => "IGe".
-  showIns(.iICmp(U),Pc) => "ICmp $(U)".
+  showIns(.iICmp(V),Pc) => "ICmp $(V)".
   showIns(.iCEq,Pc) => "CEq".
   showIns(.iCLt,Pc) => "CLt".
   showIns(.iCGe,Pc) => "CGe".
-  showIns(.iCCmp(U),Pc) => "CCmp $(U)".
+  showIns(.iCCmp(V),Pc) => "CCmp $(V)".
   showIns(.iBAnd,Pc) => "BAnd".
   showIns(.iBOr,Pc) => "BOr".
   showIns(.iBXor,Pc) => "BXor".
@@ -393,10 +393,10 @@ star.compiler.assem{
   showIns(.iFEq,Pc) => "FEq".
   showIns(.iFLt,Pc) => "FLt".
   showIns(.iFGe,Pc) => "FGe".
-  showIns(.iFCmp(U),Pc) => "FCmp $(U)".
+  showIns(.iFCmp(V),Pc) => "FCmp $(V)".
   showIns(.iAlloc(U),Pc) => "Alloc $(U)".
   showIns(.iClosure(U),Pc) => "Closure $(U)".
-  showIns(.iCmp(U),Pc) => "Cmp $(U)".
+  showIns(.iCmp(V),Pc) => "Cmp $(V)".
   showIns(.iFrame(U),Pc) => "Frame $(U)".
   showIns(.idBug,Pc) => "dBug".
   showIns(.iLine(U),Pc) => "Line $(U)".

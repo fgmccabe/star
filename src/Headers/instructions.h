@@ -29,8 +29,8 @@ instruction(Entry, nOp, nOp, 0, "F()()", "locals definition")
 instruction(Ret, tOs, nOp, 0, "F()v", "return")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
-instruction(Break, nOp, lVl, 0, "F()()", "leave block")
-instruction(Loop, nOp, lVl, 0, "F()()", "jump back to start of block")
+instruction(Break, lVl, nOp, 0, "F()()", "leave block")
+instruction(Loop, lVl, nOp, 0, "F()()", "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "F(p)(pp)", "duplicate top of stack")

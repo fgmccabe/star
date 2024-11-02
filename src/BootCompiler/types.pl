@@ -16,7 +16,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdDecl/1,stdType/3,contType/2,tagType/3,
+	   stdDecl/1,contType/2,tagType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -361,7 +361,7 @@ mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
 
 contType(Arg,Tp) :-
-  mkTypeExp(tpFun("star.core*cont",1),[Arg],Tp).
+  mkTypeExp(tpFun("cont",1),[Arg],Tp).
 
 tagType(Arg,Res,Tp) :-
   mkTypeExp(tpFun("tag",2),[Arg,Res],Tp).
@@ -474,47 +474,32 @@ contractType(constrained(_,Cn),Tp) :-
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
-stdType("integer",type("integer"),typeExists(type("integer"),faceType([],[]))).
-stdType("bigint",type("bigint"),typeExists(type("bigint"),faceType([],[]))).
-stdType("float",type("float"),typeExists(type("float"),faceType([],[]))).
-stdType("boolean",type("boolean"),typeExists(type("boolean"),faceType([],[]))).
-stdType("char",type("char"),typeExists(type("star.core*char"),faceType([],[]))).
-stdType("string",type("string"),typeExists(type("star.core*string"),faceType([],[]))).
-stdType("cons",
-	tpFun("star.core*cons",1),
-	allType(kVar("a"),
-		typeExists(tpExp(tpFun("star.core*cons",2),kVar("a")),
-			   faceType([],[])))).
-stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
-stdType("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))).
-stdType("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))).
-stdType("fiber",
-	tpFun("fiber",2),
-	allType(kVar("a"),
-		allType(kVar("e"),
-			typeExists(tpExp(tpExp(tpFun("fiber",2),kVar("a")),
-					 kVar("e")),
-				   faceType([],[]))))).
-stdType("thunk",
-	tpFun("thunk",1),
-	allType(kVar("e"),
-		typeExists(tpExp(tpFun("thunk",1),kVar("e")),
-			   faceType([],[])))).
-
-
 stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([],[]))),
 	 typeDec("bigint",type("bigint"),typeExists(type("bigint"),faceType([],[]))),
 	 typeDec("float",type("float"),typeExists(type("float"),faceType([],[]))),
 	 typeDec("boolean",type("boolean"),typeExists(type("boolean"),faceType([],[]))),
-	 cnsDec("true","star#true",consType(tplType([]),type("boolean"))),
-	 cnsDec("false","star#false",consType(tplType([]),type("boolean"))),
+	 cnsDec("true","true",consType(tplType([]),type("boolean"))),
+	 cnsDec("false","false",consType(tplType([]),type("boolean"))),
 	 typeDec("char",type("char"),typeExists(type("char"),faceType([],[]))),
 	 typeDec("string",type("string"),typeExists(type("string"),faceType([],[]))),
 	 typeDec("cons",
-		 tpFun("star.core*cons",1),
+		 tpFun("cons",1),
 		 allType(kVar("a"),
-			 typeExists(tpExp(tpFun("star.core*cons",2),kVar("a")),
+			 typeExists(tpExp(tpFun("cons",2),kVar("a")),
 				    faceType([],[])))),
+	 cnsDec("nil","nil",
+		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("cons",1),kVar("e"))))),		
+	 cnsDec("cons","cons",
+		allType(kVar("e"),consType(tplType([kvar("e"),tpExp(tpFun("cons",1),kVar("e"))]),tpExp(tpFun("cons",1),kVar("e"))))),		
+	 typeDec("option",
+		 tpFun("option",1),
+		 allType(kVar("a"),
+			 typeExists(tpExp(tpFun("option",2),kVar("a")),
+				    faceType([],[])))),
+	 cnsDec("none","none",
+		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("option",1),kVar("e"))))),
+	 cnsDec("some","some",
+		allType(kVar("e"),consType(tplType([kvar("e")]),tpExp(tpFun("option",1),kVar("e"))))),
 	 typeDec("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))),
 	 typeDec("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))),
 	 typeDec("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))),
@@ -529,15 +514,33 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		 tpFun("thunk",1),
 		 allType(kVar("e"),
 			 typeExists(tpExp(tpFun("thunk",1),kVar("e")),
-				    faceType([],[]))))]).
+				    faceType([],[])))),
+	 typeDec("errorCode",
+		 type("errorCode"),
+		 typeExists(type("errorCode"),faceType([],[]))),
+	 cnsDec("eINTRUPT","eINTRUPT",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eNOTDIR","eNOTDIR",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eNOFILE","eNOFILE",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eNOTFND","eNOTFND",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eINVAL","eINVAL",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eRANGE","eRANGE",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eNOPERM","eNOPERM",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eFAIL","eFAIL",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eIOERROR","eIOERROR",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eCONNECT","eCONNECT",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eDEAD","eDEAD",consType(tplType([]),type("errorCode"))),
+	 cnsDec("divZero","divZero",consType(tplType([]),type("errorCode"))),
+	 cnsDec("noValue","noValue",consType(tplType([]),type("errorCode"))),
+	 cnsDec("hasValue","hasValue",consType(tplType([]),type("errorCode")))
+	]).
 
 toLtipe(Tp,LTp) :-
   deRef(Tp,DTp),
   toLtp(DTp,LTp).
 
-toLtp(type("star.core*integer"),i64Tipe) :- !.
-toLtp(type("star.core*float"),f64Tipe) :- !.
-toLtp(type("star.core*boolean"),blTipe) :- !.
+toLtp(type("integer"),i64Tipe) :- !.
+toLtp(type("float"),f64Tipe) :- !.
+toLtp(type("boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).

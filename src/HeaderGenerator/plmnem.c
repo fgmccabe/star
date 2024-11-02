@@ -597,22 +597,24 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec 
 
   switch (A1) {
     case nOp:
+    case tOs:
       break;
     default:
       sep1 = ", ss(\" \"), ";
       V1 = "UU";
-    case tOs:
-      switch (A2) {
-        case nOp:
-        case tOs:
-          break;
-        default:
-          sep2 = ", ss(\",\"), ";
-          V2 = "VV";
-          break;
+  }
 
-          break;
-      }
+  switch (A2) {
+    case nOp:
+    case tOs:
+      break;
+    default:
+      if (A1 != tOs)
+        sep2 = ", ss(\",\"), ";
+      else
+        sep2 = ", ss(\" \"), ";
+      V2 = "VV";
+      break;
   }
 
   outMsg(out, ",Pc,sq([PcDx,ss(\": \"),ss(\"%P\")%s%s%s%s])) :- !,\n", mnem, sep1, V1, sep2, V2);

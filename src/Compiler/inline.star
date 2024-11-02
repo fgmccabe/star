@@ -196,22 +196,22 @@ star.compiler.inline{
       }
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
 
-  applyCnj(_,.cTerm(_,"star.core#true",[],_),R) => R.
-  applyCnj(_,.cTerm(Lc,"star.core#false",[],Tp),R) => .cTerm(Lc,"star.core#false",[],Tp).
+  applyCnj(_,.cTerm(_,"true",[],_),R) => R.
+  applyCnj(_,.cTerm(Lc,"false",[],Tp),R) => .cTerm(Lc,"false",[],Tp).
   applyCnj(Lc,L,R) => .cCnj(Lc,L,R).
 
-  applyDsj(_,.cTerm(_,"star.core#false",[],_),R) => R.
-  applyDsj(_,.cTerm(Lc,"star.core#true",[],Tp),R) => 
-    .cTerm(Lc,"star.core#false",[],Tp).
+  applyDsj(_,.cTerm(_,"false",[],_),R) => R.
+  applyDsj(_,.cTerm(Lc,"true",[],Tp),R) => 
+    .cTerm(Lc,"false",[],Tp).
   applyDsj(Lc,L,R) => .cDsj(Lc,L,R).
 
-  applyNeg(_,.cTerm(Lc,"star.core#false",[],Tp)) => .cTerm(Lc,"star.core#true",[],Tp).
-  applyNeg(_,.cTerm(Lc,"star.core#true",[],Tp)) => .cTerm(Lc,"star.core#false",[],Tp).
+  applyNeg(_,.cTerm(Lc,"false",[],Tp)) => .cTerm(Lc,"true",[],Tp).
+  applyNeg(_,.cTerm(Lc,"true",[],Tp)) => .cTerm(Lc,"false",[],Tp).
   applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
   applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
-  applyCnd(_,.cTerm(_,"star.core#false",[],_),_L,R,_,_) => R.
-  applyCnd(_,.cTerm(_,"star.core#true",[],_),L,_R,_,_) => L.
+  applyCnd(_,.cTerm(_,"false",[],_),_L,R,_,_) => R.
+  applyCnd(_,.cTerm(_,"true",[],_),L,_R,_,_) => L.
   applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cId(Vr,_)) .= V =>
     rewrite(L,rwVar({Vr->E})).
   applyCnd(Lc,.cCnj(_,.cMatch(_,V,E),BB),L,R,Map,Dep) where .cVar(_,.cId(Vr,VTp)) .= V &&
@@ -229,13 +229,13 @@ star.compiler.inline{
 
   applyMatch(Lc,Ptn,Exp,_,_) where isGround(Ptn) && isGround(Exp) =>
     (Ptn==Exp ??
-    .cTerm(Lc,"star.core#true",[],boolType) ||
-    .cTerm(Lc,"star.core#false",[],boolType)).
+    .cTerm(Lc,"true",[],boolType) ||
+    .cTerm(Lc,"false",[],boolType)).
   applyMatch(Lc,.cTerm(_,Lb,A1,_),.cTerm(_,Lb,A2,_),Map,Depth) =>
     makeSubMatches(Lc,A1,A2).
   applyMatch(Lc,Ptn,Exp,_,_) => .cMatch(Lc,Ptn,Exp).
 
-  makeSubMatches(Lc,[],[]) => .cTerm(Lc,"star.core#true",[],boolType).
+  makeSubMatches(Lc,[],[]) => .cTerm(Lc,"true",[],boolType).
   makeSubMatches(Lc,[T1],[T2]) => .cMatch(Lc,T1,T2).
   makeSubMatches(Lc,[P1,..P1s],[T2,..T2s]) => .cCnj(Lc,.cMatch(Lc,P1,T2),makeSubMatches(Lc,P1s,T2s)).
 
@@ -302,26 +302,26 @@ star.compiler.inline{
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
   rewriteECall(Lc,"_int_eq",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A == B??"true"||"false"),[],boolType).
   rewriteECall(Lc,"_int_lt",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A < B??"true"||"false"),[],boolType).
   rewriteECall(Lc,"_int_ge",[.cInt(_,A),.cInt(_,B)],_) =>
-    .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A >= B??"true"||"false"),[],boolType).
 
   rewriteECall(Lc,"_flt_plus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A+B).
   rewriteECall(Lc,"_flt_minus",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A-B).
   rewriteECall(Lc,"_flt_times",[.cFlt(_,A),.cFlt(_,B)],_) => .cFlt(Lc,A*B).
   rewriteECall(Lc,"_flt_eq",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A == B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A == B??"true"||"false"),[],boolType).
   rewriteECall(Lc,"_flt_lt",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A < B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A < B??"true"||"false"),[],boolType).
   rewriteECall(Lc,"_flt_ge",[.cFlt(_,A),.cFlt(_,B)],_) =>
-    .cTerm(Lc,(A >= B??"star.core#true"||"star.core#false"),[],boolType).
+    .cTerm(Lc,(A >= B??"true"||"false"),[],boolType).
 
   rewriteECall(Lc,"_str_multicat",[As],_) where isGround(As) =>
     .cString(Lc,pullStrings(As)*).
   rewriteECall(Lc,Op,Args,Tp) default => .cCall(Lc,Op,Args,Tp).
 
-  pullStrings(.cTerm(_,"star.core#nil",[],_)) => [].
-  pullStrings(.cTerm(_,"star.core#cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
+  pullStrings(.cTerm(_,"nil",[],_)) => [].
+  pullStrings(.cTerm(_,"cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
 }
