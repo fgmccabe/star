@@ -60,7 +60,7 @@ static int digitVal(codePoint ch) {
   return (int) (ch - '0');
 }
 
-retCode typeSigArity(const char *sig, integer len, integer *arity) {
+retCode typeSigArity(const char *sig, integer len, int32 *arity) {
   if (*sig == tplTp) {
     integer pos = 1;
     *arity = 0;
@@ -96,4 +96,65 @@ logical isTupleSig(const char *text, integer len) {
     return ch == tplTp;
   } else
     return False;
+}
+
+static retCode showSig(ioPo out, const char *sig, integer *pos, integer len);
+
+retCode showLSig(ioPo out, const char *sig, integer len) {
+  integer pos = 0;
+  return showSig(out, sig, &pos, len);
+}
+
+retCode showLS(ioPo f, void *data, long depth, long precision, logical alt) {
+  char *sig = (char *) data;
+  integer pos = 0;
+  return showSig(f, sig, &pos, depth);
+}
+
+retCode showSig(ioPo out, const char *sig, integer *pos, integer len) {
+  codePoint ch = nextCodePoint(sig, pos, len);
+  if (ch != 0) {
+    switch (ch) {
+      case int64Tp:
+        return outStr(out, "i");
+      case flt64Tp:
+        return outStr(out, "f");
+      case boolTp:
+        return outStr(out, "b");
+      case ptrTp:
+        return outStr(out, "r");
+      case vdTp:
+        return outStr(out, "v");
+      case parTp: {
+        ch = nextCodePoint(sig, pos, len);
+        return outMsg(out, "\\%%c", ch);
+      }
+      case funTp: {
+        retCode ret = showSig(out, sig, pos, len);
+        if (ret == Ok)
+          ret = outStr(out, "=>");
+        if (ret == Ok)
+          ret = showSig(out, sig, pos, len);
+        return ret;
+      }
+      case tplTp: {
+        retCode ret = outStr(out, "(");
+        while (ret == Ok) {
+          integer ps = *pos;
+          char *sep = "";
+          if (nextCodePoint(sig, &ps, len) == ')') {
+            *pos = ps;
+            return outStr(out, ")");
+          } else
+            outStr(out, sep);
+          ret = showSig(out, sig, pos, len);
+          sep = ",";
+        }
+        return Ok;
+      }
+      default:
+        return Error;
+    }
+  } else
+    return Eof;
 }

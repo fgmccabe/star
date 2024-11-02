@@ -22,7 +22,7 @@ typedef ReturnStatus (*libFun)(heapPo h);
 
 escapePo getEscape(uint32 escNo);
 char *escapeName(escapePo esc);
-integer escapeArity(escapePo esc);
+int32 escapeArity(escapePo esc);
 libFun escapeFun(escapePo esc);
 
 #endif //STAR_ESCAPE_H

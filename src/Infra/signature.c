@@ -8,13 +8,6 @@
 static logical validSig(char *sig, integer *start, integer end);
 static logical validConstraint(char *sig, integer *start, integer end);
 
-logical validSignature(char *sig) {
-  integer pos = 0;
-  integer end = uniStrLen(sig);
-
-  return (logical) (validSig(sig, &pos, end) && pos == end);
-}
-
 static logical skipId(const char *sig, integer *start, integer end) {
   integer pos = *start;
   char quote = sig[pos++];
@@ -140,9 +133,9 @@ logical validConstraint(char *sig, integer *start, integer end) {
   }
 }
 
-static retCode tplArity(char *sig, integer *arity, integer *start, integer end);
+static retCode tplArity(char *sig, int32 *arity, integer *start, integer end);
 
-static retCode funArity(char *sig, integer *arity, integer *start, integer end) {
+static retCode funArity(char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {
     case tplSig: {
       *arity = 0;
@@ -170,17 +163,16 @@ static retCode funArity(char *sig, integer *arity, integer *start, integer end) 
     default:
       return Error;      /* Not a valid signature */
   }
-  return Error;
 }
 
-retCode funSigArity(char *sig, integer *arity) {
+retCode funSigArity(char *sig, int32 *arity) {
   integer pos = 0;
   integer end = uniStrLen(sig);
 
   return funArity(sig, arity, &pos, end);
 }
 
-static retCode tplArity(char *sig, integer *arity, integer *start, integer end) {
+static retCode tplArity(char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {
     case tplSig: {
       *arity = 0;
@@ -202,11 +194,6 @@ static retCode tplArity(char *sig, integer *arity, integer *start, integer end) 
     default:
       return Error;      /* Not a valid signature */
   }
-}
-
-retCode tupleArity(const char *sig, integer sigLen, integer *arity) {
-  integer pos = 0;
-  return tplArity((char *) sig, arity, &pos, sigLen);
 }
 
 static retCode skipConstrnt(char *sig, integer *start, integer end);
@@ -357,19 +344,16 @@ static retCode skipFields(ioPo in) {
 
 static retCode skipConstraint(ioPo in) {
   codePoint ch;
-  retCode ret = inChar(in, &ch);
 
-  if (ret == Ok) {
+  if (inChar(in, &ch) == Ok) {
     switch (ch) {
       case contractCon:
         tryRet(skipIdentifier(in));
         tryRet(skipSignature(in));
         return skipSignature(in);
       case hasFieldCon:
-        ret = skipSignature(in);
-        if (ret == Ok)
-          ret = skipSignature(in);
-        return ret;
+        tryRet(skipSignature(in));
+        return skipSignature(in);
       case implicitCon:
         tryRet(skipIdentifier(in));
         return skipSignature(in);
@@ -379,26 +363,7 @@ static retCode skipConstraint(ioPo in) {
         return Error;
     }
   }
-  return ret;
-}
-
-static retCode readInt(ioPo in, integer *ix) {
-  integer arity = 0;
-  retCode ret = Ok;
-  while (ret == Ok) {
-    codePoint cp;
-    ret = inChar(in, &cp);
-    if (ret == Ok) {
-      if (isNdChar(cp)) {
-        arity = arity * 10 + digitValue(cp);
-      } else {
-        ret = unGetChar(in, cp);
-        break;
-      }
-    }
-  }
-  *ix = arity;
-  return ret;
+  return Error;
 }
 
 retCode skipSignature(ioPo in) {
@@ -476,17 +441,10 @@ retCode skipSignature(ioPo in) {
   return ret;
 }
 
-retCode showSig(ioPo out, char *sig) {
-  integer pos = 0;
-  integer end = uniStrLen(sig);
-
-  return showSignature(out, sig, &pos, end);
-}
-
-static retCode showSigId(ioPo out, char *sig, integer *start, integer end) {
+static retCode showSigId(ioPo out, const char *sig, integer *start, integer end) {
   char qt = sig[(*start)++];
   while (*start < end) {
-    char ch = sig[(*start)]++;
+    char ch = sig[(*start)++];
     if (sig[ch] == qt)
       break;
     else
@@ -498,19 +456,7 @@ static retCode showSigId(ioPo out, char *sig, integer *start, integer end) {
     return Error;
 }
 
-static retCode showSigInt(ioPo out, char *sig, integer *start, integer end) {
-  while (*start < end) {
-    char ch = sig[(*start)]++;
-    if (isNdChar((codePoint) ch))
-      tryRet(outChar(out, (codePoint) ch));
-  }
-  if (*start < end)
-    return Ok;
-  else
-    return Error;
-}
-
-static retCode showSigTplEls(ioPo out, char *sig, integer *start, integer end) {
+static retCode showSigTplEls(ioPo out, const char *sig, integer *start, integer end) {
   char *sep = "";
   while (*start < end && sig[*start] != ')') {
     tryRet(outStr(out, sep));
@@ -525,7 +471,7 @@ static retCode showSigTplEls(ioPo out, char *sig, integer *start, integer end) {
     return Error;
 }
 
-retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
+retCode showSignature(ioPo out, const char *sig, integer *start, integer end) {
   switch (sig[(*start)++]) {
     case anySig:
       return outStr(out, "_");
@@ -636,7 +582,7 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
   }
 }
 
-retCode showConstraint(ioPo out, char *sig, integer *start, integer end) {
+retCode showConstraint(ioPo out, const char *sig, integer *start, integer end) {
   if (*start < end) {
     switch (sig[(*start)++]) {
 

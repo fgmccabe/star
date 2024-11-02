@@ -11,19 +11,18 @@
 
 typedef struct program_label_ *labelPo;
 
-labelPo findLbl(const char *name, integer arity);
+labelPo findLbl(const char *name, int32 arity);
 integer labelHash(labelPo lbl);
 
-labelPo declareLbl(const char *name, integer arity, integer index);
-labelPo tplLabel(integer arity);
+labelPo declareLbl(const char *name, int32 arity, int32 index);
+labelPo tplLabel(int32 arity);
 logical isTplLabel(const char *nm) ;
 logical isALabel(termPo t);
 
-integer labelArity(labelPo lbl);
+int32 labelArity(labelPo lbl);
 const char * labelName(labelPo lbl);
-integer labelIndex(labelPo lbl);
+int32 labelIndex(labelPo lbl);
 
-logical isLabel(labelPo lbl, char *nm, integer arity);
 logical sameLabel(labelPo l1, labelPo l2);
 
 logical breakPointSet(labelPo lbl);

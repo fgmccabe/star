@@ -68,6 +68,13 @@ retCode decodeInteger(ioPo in, integer *ix) {
     return Fail;
 }
 
+retCode decodeI32(ioPo in, int32 *ix) {
+  if (isLookingAt(in, "x") == Ok)
+    return decI32(in, ix);
+  else
+    return Fail;
+}
+
 retCode decodeText(ioPo in, strBufferPo buffer) {
   codePoint delim;
   clearStrBuffer(buffer);
@@ -511,10 +518,16 @@ static DecodeCallBacks copyCB = {
   copyBignum,         // Copy a big number
 };
 
-retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
-                  char *errorMsg, integer msgLen) {
+retCode decI32(ioPo in, int32 *rest) {
+  integer val;
+  retCode ret = decInt(in, &val);
+  *rest = (int32) val;
+  return ret;
+}
+
+retCode decodeLbl(ioPo in, char *nm, long nmLen, int32 *arity, char *errorMsg, integer msgLen) {
   if (isLookingAt(in, "o") == Ok) {
-    retCode ret = decInt(O_IO(in), arity);
+    retCode ret = decI32(O_IO(in), arity);
 
     if (ret != Ok)
       return ret;

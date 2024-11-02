@@ -18,16 +18,16 @@ extern integer maxLabels;
 
 typedef struct {
   const char *name;
-  integer arity;
+  int32 arity;
 } LabelRecord, *labelRecordPo;
 
 typedef struct program_label_ {
   clssPo clss;                // == labelClass
   LabelRecord lbl;            // The label itself
-  integer index;              // Index of label in type
+  int32 index;                // Index of label in type
   integer hash;               // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
-  integer len;                // How long is the label name
+  int32 len;                  // How long is the label name
   logical breakPointSet;      // Has a breakpoint been set for this label
 } LblRecord;
 
@@ -37,12 +37,12 @@ extern clssPo labelClass;
 
 extern void initLbls();
 void markLabels(gcSupportPo G);
-void showAllLabels();
+__attribute__((unused)) void showAllLabels();
 
 methodPo labelCode(labelPo lbl);
 logical labelDefined(labelPo lbl);
 
-termPo declareEnum(const char *name, integer index, heapPo H);
+termPo declareEnum(const char *name, int32 index, heapPo H);
 
 extern integer lblTableTop;
 extern LblRecord *labelTable;

@@ -544,10 +544,11 @@ compExp(rais(Lc,T,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   compExp(E,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iThrow|Cx],Stk1,_).
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(BlkTp,AC))|BC]))|Cx]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
   nearlyFlatSig(ptrTipe,BlkTp),
+  flatBlockSig(FlatTp),
   compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
   verify(Stk=Stk0,"conditions should not increase stack"),
   compExp(A,Lc,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Ok)],Stk,Stka),
@@ -601,8 +602,7 @@ compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(
   genLbl(L0,Ok,L1),
   compExp(Gv,Lc,Brks,notLast,Opts,L1,L2,D,D1,C0,[iCase(Mx)|CB],Stk,Stk1),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,CB0,CC,C0,Stk1,Stka),
-  resetStack(Stk,Stk1,CB0,[iBreak(Df)]),
+  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,C0,Stk1,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 

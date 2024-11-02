@@ -11,6 +11,7 @@
 #include "editline.h"
 #include "ltype.h"
 #include "libEscapes.h"
+#include "signature.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;
@@ -77,9 +78,6 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-#define collectI32(pc) (collI32(pc))
-#define collI32(pc) hi32 = (uint32)(uint16)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
-
 ReturnStatus g__ins_debug(heapPo h) {
   insDebugging = tracing = True;
   currentProcess->waitFor = stepInto;
@@ -102,7 +100,7 @@ static integer cmdCount(char *cmdLine, integer deflt) {
 static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
-void dC(termPo w) {
+__attribute__((unused)) void dC(termPo w) {
   outMsg(logFile, "%,*T\n", displayDepth, w);
   flushOut();
 }
@@ -113,16 +111,27 @@ static retCode showConstant(ioPo out, methodPo mtd, integer conIx) {
 
 static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
   termPo frameLit = nthArg(mtd->pool, conIx);
-  integer stackDp = 0;
+  int32 stackDp = 0;
   if (isString(frameLit)) {
     integer sigLen;
     const char *sig = strVal(frameLit, &sigLen);
     tryRet(typeSigArity(sig, sigLen, &stackDp));
   } else if (isInteger(frameLit))
-    stackDp = integerVal(frameLit);
+    stackDp = (int32) integerVal(frameLit);
   if (stk != Null) {
     assert(stackDp == stackDepth(stk, mtd, stk->sp, stk->fp));
     return outMsg(out, " %d %,*T", stackDp, displayDepth, frameLit);
+  } else
+    return outMsg(out, " %,*T", displayDepth, frameLit);
+}
+
+static retCode showSig(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
+  termPo frameLit = nthArg(mtd->pool, conIx);
+  if (isString(frameLit)) {
+    integer sigLen;
+    const char *sig = strVal(frameLit, &sigLen);
+
+    return outMsg(out, " %,*Y", sigLen, sig);
   } else
     return outMsg(out, " %,*T", displayDepth, frameLit);
 }
@@ -939,8 +948,6 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0) {
-          framePo f = currFrame(stk);
-          methodPo mtd = frameMtd(f);
           p->waitFor = cmder(&opts, p, frameMtd(currFrame(stk)));
         } else {
           outStr(debugOutChnnl, "\n");
@@ -1042,17 +1049,22 @@ static void showPcOffset(ioPo out, int32 offset) {
   outMsg(out, " PC[%d]", offset);
 }
 
+static void showBlkLvl(ioPo out, int32 pc, int32 offset) {
+  if (pc >= 0)
+    outMsg(out, " ^[%d]", pc + 1 + offset);
+  else
+    outMsg(out, " ^%d", offset);
+}
+
 static void showEscCall(ioPo out, int32 escNo) {
   escapePo esc = getEscape(escNo);
   outMsg(out, " %s/%d", esc->name, esc->arity);
 }
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
-  int32 hi32, lo32;
-
+  int32 offset = -1;
   if (mtd != Null) {
-    insPo entry = entryPoint(mtd);
-    integer offset = codeOffset(mtd, pc);
+    offset = codeOffset(mtd, pc);
 
     normalPo lits = codeLits(mtd);
     if (lits != Null)
@@ -1074,13 +1086,13 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_lcl(Tgt) showLcl(out,stk,(Tgt))
 #define show_lcs(Tgt) outMsg(out," l[%d]",(Tgt))
 #define show_bLk(Tgt) showPcOffset(out,(Tgt))
-#define show_lVl(Tgt) outMsg(out," ^%d",(Tgt))
+#define show_lVl(Tgt) showBlkLvl(out,offset,(Tgt))
 #define show_sym(Tgt) showConstant(out,mtd,(Tgt))
 #define show_Es(Tgt) showEscCall(out, (Tgt))
 #define show_lit(Tgt) showConstant(out,mtd,(Tgt))
 #define show_lNe(Tgt) showConstant(out,mtd,(Tgt))
 #define show_glb(Tgt) showGlb(out, findGlobalVar((Tgt)))
-#define show_tPe(Tgt) showFrame(out,stk,mtd,(Tgt))
+#define show_tPe(Tgt) showSig(out,stk,mtd,(Tgt))
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
     case Op:{                               \
@@ -1102,7 +1114,7 @@ retCode dissassMtd(ioPo out, stackPo stk, methodPo mtd, integer precision, integ
   insPo code = entryPoint(mtd);
   insPo limit = code + codeSize(mtd);
   for (insPo pc = code; pc < limit; pc++)
-    disass(out,stk,mtd,pc);
+    disass(out, stk, mtd, pc);
   return Ok;
 }
 

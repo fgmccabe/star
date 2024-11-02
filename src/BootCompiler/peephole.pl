@@ -60,8 +60,7 @@ dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
 dropUnreachable([iAbort|_],[iAbort]) :-!.
 dropUnreachable([iHalt(Ix)|_],[iHalt(Ix)]) :-!.
 dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
-  copyN(Mx,I,I0,Is,Is0),
-  dropUnreachable(I0,Is0).
+  copyN(Mx,I,[],Is,[]).
 dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
 
@@ -110,8 +109,7 @@ peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
 peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-!,
   resolveLblRef(Lb,Lbls,LLb).
 peep([iCase(Mx)|In],Lbls,[iCase(Mx)|Inx]) :-
-  copyN(Mx,In,I0,Inx,Is0),
-  peep(I0,Lbls,Is0).
+  copyN(Mx,In,[],Inx,[]).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 
 lblReferenced(Lb,[iBreak(Lb)|_]).

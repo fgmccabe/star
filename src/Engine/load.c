@@ -7,14 +7,12 @@
 
 #include "engine.h"
 #include <globals.h>
-#include <term.h>
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
 #include "codeP.h"
 #include "labelsP.h"
 #include "verifyP.h"
-#include "array.h"
 
 tracingLevel tracePkg = noTracing;
 
@@ -265,11 +263,11 @@ static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long
 static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
 retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
-  integer count;
+  int32 count;
   if (decodeTplCount(in, &count, errorMsg, msgLen) == Ok) {
     retCode ret = Ok;
 
-    for (integer ix = 0; ret == Ok && ix < count; ix++) {
+    for (int32 ix = 0; ret == Ok && ix < count; ix++) {
       if (isLookingAt(in, funcPreamble) == Ok)
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, globalPreamble) == Ok)
@@ -309,7 +307,7 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
 
 
 retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
-  integer policyCount;
+  int32 policyCount;
   retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
   for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
     char nameBuff[MAX_SYMB_LEN];
@@ -325,9 +323,9 @@ retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorM
   return ret;
 }
 
-static integer maxDepth(insPo ins, integer count, normalPo constPool) {
-  integer currDepth = 0;
-  integer maxDepth = 0;
+static int32 maxDepth(insPo ins, integer count, normalPo constPool) {
+  int32 currDepth = 0;
+  int32 maxDepth = 0;
 
   for (integer pc = 0; pc < count; pc++, ins++) {
     switch (ins->op) {
@@ -352,10 +350,10 @@ static integer maxDepth(insPo ins, integer count, normalPo constPool) {
 
 retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
-  integer arity;
-  integer lclCount = 0;
-  integer stackHeight;
-  integer sigIndex;
+  int32 arity;
+  int32 lclCount = 0;
+  int32 stackHeight;
+  int32 sigIndex;
   DefinitionMode redefine = hardDef;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
@@ -369,13 +367,13 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
 
   if (ret == Ok)
-    ret = decodeInteger(in, &sigIndex);
+    ret = decodeI32(in, &sigIndex);
 
   if (ret == Ok)
-    ret = decodeInteger(in, &stackHeight);
+    ret = decodeI32(in, &stackHeight);
 
   if (ret == Ok)
-    ret = decodeInteger(in, &lclCount);
+    ret = decodeI32(in, &lclCount);
 
   if (ret == Ok) {
     int32 insCount = 0;
@@ -429,8 +427,8 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
 retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
-  integer arity;
-  integer lclCount = 0;
+  int32 arity;
+  int32 lclCount = 0;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
 
@@ -443,7 +441,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
     ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
 
   if (ret == Ok)
-    ret = decodeInteger(in, &lclCount);
+    ret = decI32(in, &lclCount);
 
   if (ret == Ok) {
     insPo instructions;
@@ -479,7 +477,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
             } else {
               gcAddRoot(H, (ptrPo) &lbl);
 
-              integer stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
+              int32 stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
 
               methodPo mtd = defineMtd(H, insCount, instructions, 1, lclCount, stackDelta, lbl, C_NORMAL(pool), locs);
               if (enableVerify)
@@ -513,7 +511,7 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Type rule signature
   if (ret == Ok) {                             // Type index
-    integer count;
+    int32 count;
     ret = decodeTplCount(in, &count, errorMsg, msgSize);
 
     if (ret == Ok) {
@@ -521,12 +519,12 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
       for (integer ix = 0; ret == Ok && ix < count; ix++) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           char lblName[MAX_SYMB_LEN];
-          integer arity;
+          int32 arity;
 
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity, errorMsg, msgSize);
           if (ret == Ok) {
-            integer index;
-            ret = decodeInteger(in, &index);
+            int32 index;
+            ret = decodeI32(in, &index);
             if (ret == Ok) {
 #ifdef TRACEPKG
               if (tracePkg >= detailedTracing)
@@ -545,7 +543,7 @@ retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
 
 retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
   char lblName[MAX_SYMB_LEN];
-  integer arity;
+  int32 arity;
 
   retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity, errorMsg, msgSize);
 
@@ -558,8 +556,8 @@ retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSiz
     ret = skipEncoded(in, errorMsg, msgSize);
 
     if (ret == Ok) {
-      integer index;
-      ret = decodeInteger(in, &index);
+      int32 index;
+      ret = decodeI32(in, &index);
       if (ret == Ok) {
         declareLbl(lblName, arity, index);
       }

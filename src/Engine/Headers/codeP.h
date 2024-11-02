@@ -1,5 +1,5 @@
-#ifndef _CODE_P_H_
-#define _CODE_P_H_
+#ifndef CODE_P_H_
+#define CODE_P_H_
 
 /*
  * Private header for the code format structure
@@ -28,10 +28,10 @@ typedef struct method_ {
   clssPo clss;          // == specialClass
   jitCode jit;          /* Pointer to jit'ed code */
   integer entryCount;
-  integer sigIx;        // Index of the function signature literal
-  integer arity;        /* How many arguments in method */
-  integer lclcnt;       // How many locals in the environment
-  integer stackDelta;   // How much space to allocate for the stack
+  int32 sigIx;          // Index of the function signature literal
+  int32 arity;          /* How many arguments in method */
+  int32 lclcnt;         // How many locals in the environment
+  int32 stackDelta;     // How much space to allocate for the stack
   normalPo pool;        /* A pool tuple of constants */
   arrayPo locs;         // Sorted array of location information
   int32 insCount;       // How many instructions are there in the code?
@@ -84,11 +84,11 @@ labelPo mtdLabel(methodPo mtd);
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo
-defineMtd(heapPo H, int32 insCount, insPo instructions, integer funSigIx, integer lclCount, integer stackHeight,
+defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
           labelPo lbl, normalPo pool, arrayPo locs);
 
 methodPo
-specialMethod(const char *name, integer arity, integer insCount, insPo instructions, termPo sigTerm, integer lclCount);
+specialMethod(const char *name, int32 arity, int32 insCount, insPo instructions, termPo sigTerm, int32 lclCount);
 
 void showMtdCounts(ioPo out);
 

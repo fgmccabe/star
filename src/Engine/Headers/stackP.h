@@ -88,7 +88,7 @@ static inline logical stackHasSpace(stackPo stk, integer amount) {
 }
 
 framePo dropFrame(stackPo stk);
-integer stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp);
+int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp);
 
 void stackSanityCheck(stackPo stk);
 void verifyStack(stackPo stk, heapPo H);

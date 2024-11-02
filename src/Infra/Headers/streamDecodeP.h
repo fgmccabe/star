@@ -12,12 +12,13 @@
 extern tracingLevel traceDecode;
 #endif
 
-extern retCode decInt(ioPo in, integer *ii);
-extern retCode decFlt(ioPo in, double *dx);
-extern retCode decodeInteger(ioPo in, integer *ix);
-extern retCode decodeText(ioPo in, strBufferPo buffer);
-extern retCode decodeString(ioPo in, char *buffer, integer buffLen);
-extern retCode decodeName(ioPo in, char *buffer, integer buffLen, integer *length);
+retCode decInt(ioPo in, integer *ii);
+retCode decFlt(ioPo in, double *dx);
+retCode decodeInteger(ioPo in, integer *ix);
+retCode decodeI32(ioPo in, int32 *ix);
+retCode decodeText(ioPo in, strBufferPo buffer);
+retCode decodeString(ioPo in, char *buffer, integer buffLen);
+retCode decodeName(ioPo in, char *buffer, integer buffLen, integer *length);
 
 typedef struct {
   char field[MAX_SYMB_LEN];
@@ -33,7 +34,7 @@ typedef retCode (*charProc)(codePoint cp, void *cl);
 typedef retCode (*stringProc)(char *sx, integer len, void *cl);
 typedef retCode (*consProc)(integer len, void *cl);
 typedef retCode (*flagProc)(void *cl);
-typedef retCode (*bignumProc)(uint32* data,integer count,void *cl);
+typedef retCode (*bignumProc)(uint32 *data, integer count, void *cl);
 
 typedef struct {
   flagProc startDecoding;

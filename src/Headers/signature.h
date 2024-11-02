@@ -72,13 +72,10 @@ typedef enum {
   cloTrm = 'p',         // A closure object
 } starDecodeKey;
 
-logical validSignature(char *s);
-retCode funSigArity(char *sig, integer *arity);
-retCode tupleArity(const char *sig, integer sigLen, integer *arity);
+retCode funSigArity(char *sig, int32 *arity);
 retCode skipSig(char *sig, integer *start, integer end);
-retCode showSignature(ioPo out, char *sig, integer *start, integer end);
-retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
-retCode showSig(ioPo out, char *sig);
+retCode showSignature(ioPo out, const char *sig, integer *start, integer end);
+retCode showConstraint(ioPo out, const char *sig, integer *start, integer end);
 retCode skipSignature(ioPo in);
 
 #endif

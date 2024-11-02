@@ -6,13 +6,9 @@
 #include <globals.h>
 #include <debug.h>
 #include "verifyP.h"
-#include "topSort.h"
 #include "ltype.h"
 #include "arith.h"
 #include "libEscapes.h"
-#include "codeP.h"
-#include "decodeP.h"
-#include "array.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 logical traceVerify = False;      // true if tracing code verification
@@ -28,9 +24,9 @@ typedef struct verify_context_ {
   methodPo mtd;
   int32 from;
   int32 limit;
-  integer entryDepth;
   integer exitDepth;
   varPo locals;
+  int32 lclCount;
   verifyCtxPo parent;
   char *errorMsg;
   long msgLen;
@@ -41,7 +37,7 @@ static retCode
 verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
             integer sigLen);
 static retCode
-extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
+extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
 static void mergeVars(varPo seg, varPo next, integer count);
 
@@ -74,8 +70,9 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
     .mtd=mtd, .from = 0, .limit=codeSize(mtd),
     .parent=Null,
-    .entryDepth=0, .exitDepth=1,
-    .locals=initVars(lclCount(mtd))};
+    .exitDepth=1,
+    .locals=initVars(lclCount(mtd)),
+    .lclCount=lclCount(mtd)};
 
   int32 delta = 0;
 
@@ -102,7 +99,7 @@ static void showVar(char *nm, integer ix, varPo v) {
 }
 
 retCode
-extractBlockSig(integer *entryDepth, integer *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen) {
+extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen) {
   if (validTypeSig(blockSig, sigLen) != Ok) {
     strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
     return Error;
@@ -158,9 +155,9 @@ static logical isLastPC(int32 pc, int32 limit) {
 retCode
 verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
             integer sigLen) {
-  integer entryDepth, exitDepth;
+  int32 entryDepth, exitDepth;
   tryRet(extractBlockSig(&entryDepth, &exitDepth, parentCtx, blockSig, sigLen));
-  integer stackDepth = entryDepth;
+  int32 stackDepth = entryDepth;
   insPo code = parentCtx->mtd->instructions;
 
   *delta = exitDepth - entryDepth;
@@ -174,8 +171,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
     .from = from,
     .limit = limit,
     .parent = parentCtx,
-    .entryDepth = entryDepth, .exitDepth=exitDepth,
-    .locals = copyVars(parentCtx->locals, lclCount(parentCtx->mtd))};
+    .exitDepth=exitDepth,
+    .locals = copyVars(parentCtx->locals, parentCtx->lclCount)};
 
   while (pc < limit) {
     insPo ins = &code[pc];
@@ -201,7 +198,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx.mtd, litNo);
         if (isALabel(lit)) {
-          integer arity = labelArity(C_LBL(lit));
+          int32 arity = labelArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           stackDepth -= arity - 1;
@@ -218,7 +215,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx.mtd, litNo);
         if (isALabel(lit)) {
-          integer arity = labelArity(C_LBL(lit));
+          int32 arity = labelArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           stackDepth -= arity - 1;
@@ -239,7 +236,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         continue;
       }
       case TOCall: {
-        int arity = code[pc].fst;
+        int32 arity = code[pc].fst;
         if (stackDepth < arity)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         if (!isLastPC(pc++, limit))
@@ -253,7 +250,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         if (esc == Null)
           return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
         else {
-          integer arity = escapeArity(esc);
+          int32 arity = escapeArity(esc);
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           stackDepth -= arity - 1;
@@ -427,28 +424,33 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         continue;
       }
       case LdL: {
-        int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo > lclCount(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, argNo);
+        int32 lclNo = code[pc].fst;
+        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
+        ctx.locals[lclNo].read = True;
+        if(!ctx.locals[lclNo].inited)
+          return verifyError(&ctx, ".%d Read from uninitialized local %d", pc, lclNo);
         stackDepth++;
         pc++;
         continue;
       }
       case StL: {
-        int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo > lclCount(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, argNo);
+        int32 lclNo = code[pc].fst;
+        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        ctx.locals[lclNo].inited = True;
         stackDepth--;
         pc++;
         continue;
       }
       case StV:
       case TL: {
-        int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo > lclCount(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, argNo);
+        int32 lclNo = code[pc].fst;
+        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
+        ctx.locals[lclNo].inited = True;
         pc++;
         continue;
       }
@@ -583,6 +585,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
           }
         }
         pc += mx + 1;
+        if (!isLastPC(pc, limit))
+          return verifyError(&ctx, ".%d: Case should be last instruction in block", pc);
         continue;
       }
       case IAdd:
@@ -633,13 +637,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       }
       case CEq:
       case CLt:
-      case CGe: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
-        continue;
-      }
+      case CGe:
       case BAnd:
       case BOr:
       case BXor:
@@ -699,7 +697,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid symbol literal: %t", pc, lit);
         else {
-          integer arity = labelArity(C_LBL(lit));
+          int32 arity = labelArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient stack args for Alloc instruction", pc);
           else if (code[pc + 1].op != Frame)
@@ -734,15 +732,15 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo frameLit = getMtdLit(ctx.mtd, litNo);
-        integer depth;
+        int32 depth;
 
         if (isString(frameLit)) {
-          integer sigLen;
-          const char *sig = strVal(frameLit, &sigLen);
+          integer frameSigLen;
+          const char *sig = strVal(frameLit, &frameSigLen);
 
-          tryRet(typeSigArity(sig, sigLen, &depth));
+          tryRet(typeSigArity(sig, frameSigLen, &depth));
         } else if (isInteger(frameLit))
-          depth = integerVal(frameLit);
+          depth = (int32)integerVal(frameLit);
         else
           return verifyError(&ctx, ".%d: invalid Frame literal: %T", pc, lit);
 
