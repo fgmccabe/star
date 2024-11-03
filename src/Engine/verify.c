@@ -129,10 +129,10 @@ extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char
   }
 }
 
-static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integer tgt) {
+static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integer delta) {
   verifyCtxPo tgtCtx = ctx;
 
-  tgt = pc + 1 + tgt;
+  int32 tgt = pc + 1 + delta;
 
   while (tgtCtx != Null && tgtCtx->from != tgt) {
     tgtCtx = tgtCtx->parent;
@@ -277,10 +277,12 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         } else {
           integer sigLn;
           const char *blockSg = strVal(lit, &sigLn);
+          int32 blockLen = code[pc].alt;
+          pc++;
 
-          if (verifyBlock(pc, pc + 1, code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
+          if (verifyBlock(pc - 1, pc, pc + blockLen, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
             stackDepth += blockDelta;
-            pc = code[pc].alt;
+            pc += blockLen;
             continue;
           } else
             return Error;
@@ -425,10 +427,10 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       }
       case LdL: {
         int32 lclNo = code[pc].fst;
-        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].read = True;
-        if(!ctx.locals[lclNo].inited)
+        if (!ctx.locals[lclNo].inited)
           return verifyError(&ctx, ".%d Read from uninitialized local %d", pc, lclNo);
         stackDepth++;
         pc++;
@@ -436,7 +438,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       }
       case StL: {
         int32 lclNo = code[pc].fst;
-        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
@@ -448,7 +450,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       case StV:
       case TL: {
         int32 lclNo = code[pc].fst;
-        if (lclNo < 0 || lclNo > lclCount(ctx.mtd))
+        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].inited = True;
         pc++;
@@ -740,7 +742,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
 
           tryRet(typeSigArity(sig, frameSigLen, &depth));
         } else if (isInteger(frameLit))
-          depth = (int32)integerVal(frameLit);
+          depth = (int32) integerVal(frameLit);
         else
           return verifyError(&ctx, ".%d: invalid Frame literal: %T", pc, lit);
 

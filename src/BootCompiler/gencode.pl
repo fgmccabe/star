@@ -81,7 +81,7 @@ genGlb(D,Opts,Lc,Nm,Tp,Value,Cd) :-
   encLtp(LTp,Sig),
   genLbl([],Abrt,L1),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(strg(Sig),FC))|CA]),
-  compExp(Value,Lc,[],last,Opts,L1,L2,D,D1,FC,[iTG(Nm)|FC1],some(0),Stk0),
+  compExp(Value,Lc,[],notLast,Opts,L1,L2,D,D1,FC,[iTG(Nm),iRet|FC1],some(0),Stk0),
   compAbort(Lc,strg("def failed"),[],Opts,L2,_L3,D1,Dx,CA,[iHalt(10)],some(0),_),
   genRet(Opts,FC1,[],Stk0,_),
   genDbg(Opts,C,[iEntry|C0]),
@@ -204,7 +204,7 @@ compAction(defn(Lc,idnt(Nm,Tp),E),OLc,_Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,D1,C0,[iStL(Nm)|C1],Stk,Stk0),
   defineLclVar(Lc,Nm,Tp,Opts,D1,Dx,C1,Cx),
-  dropStk(Stk,1,Stk0).
+  dropStk(Stk0,1,Stk).
 compAction(setix(Lc,Exp,Off,Vl),OLc,_Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),

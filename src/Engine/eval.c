@@ -69,11 +69,9 @@ retCode run(processPo P) {
   register normalPo LITS = FP->pool; /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
 
-  register uint32 hi32, lo32;    /* Temporary registers */
-
   currentProcess = P;
 
-  for (;; PC++) {
+  for (;;) {
     pcCount++;        /* increment total number of executed */
 
     if (insDebugging) {
@@ -89,7 +87,7 @@ retCode run(processPo P) {
         return (retCode) exitCode;
       }
       case Nop: {
-        continue;
+        break;
       }
       case Abort: {
         termPo lc = pop();
@@ -123,7 +121,7 @@ retCode run(processPo P) {
 #endif
         }
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC;
+        FP->pc = PC+1;
 
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
@@ -179,7 +177,7 @@ retCode run(processPo P) {
         }
 
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC;
+        FP->pc = PC+1;
         pushFrme(mtd);
         LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called
@@ -280,7 +278,7 @@ retCode run(processPo P) {
         if (ret.ret == Normal) {
           if (ret.result != Null)
             push(ret.result);
-          continue;
+          break;
         } else {
           push(ret.result);
           push(ret.cont);
@@ -400,7 +398,7 @@ retCode run(processPo P) {
         SP = ((ptrPo) FP) - height;
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;
-        continue;
+        break;
       };
 
       case Ret: {        /* return from function */
@@ -417,24 +415,34 @@ retCode run(processPo P) {
       }
 
       case Block: {
-        PC += PC->alt;
+        break;
+      }
+
+      breakPoint:
+      case Break: {
+        PC += PC->alt + 1;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
         continue;
       }
 
-      case Break: {
+      case Loop: {
         PC += PC->alt;
-        continue;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        break;
       }
 
       case Drop: {
         SP++;       /* drop tos */
-        continue;
+        break;
       }
 
       case Dup: {        /* duplicate tos */
         termPo tos = *SP;
         *--SP = tos;
-        continue;
+        break;
       }
 
       case Rot: {       // Pull up nth element of stack
@@ -445,14 +453,14 @@ retCode run(processPo P) {
           SP[ix] = SP[ix + 1];
         }
         SP[cnt] = tmp;
-        continue;
+        break;
       }
 
       case Rst: {
         int32 height = PC->fst;
         assert(height >= 0);
         SP = &local(lclCount(frameMtd(FP)) + height);
-        continue;
+        break;
       }
 
       case Fiber: {
@@ -550,7 +558,7 @@ retCode run(processPo P) {
         P->stk = attachStack(P->stk, child);
         verifyStack(P->stk, P->heap);
         restoreRegisters();
-        continue;
+        break;
       }
 
       case Shift: { // Suspend current computation, invoke shift function with new continuation.
@@ -601,7 +609,7 @@ retCode run(processPo P) {
           }
 
           assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC;
+          FP->pc = PC+1;
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
@@ -634,7 +642,7 @@ retCode run(processPo P) {
       }
 
       case Try: {
-        assert(validPC(frameMtd(FP), PC+PC->alt));
+        assert(validPC(frameMtd(FP), PC + PC->alt));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
 
         saveRegisters();
@@ -645,7 +653,7 @@ retCode run(processPo P) {
         if (traceStack)
           logMsg(logFile, "entering try scope %ld (%d)", tryIndex, tryStackSize(P));
 #endif
-        continue;
+        break;
       }
 
       case EndTry: {
@@ -666,7 +674,7 @@ retCode run(processPo P) {
           *--tgt = *--src;
         }
         SP = STK->sp = tgt;
-        continue;
+        break;
       }
       case Throw: {
         Exception:
@@ -699,27 +707,27 @@ retCode run(processPo P) {
 
         termPo Rs = (C_STACK(Lhs) == C_STACK(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case LdV: {
         push(voidEnum);     /* load void */
-        continue;
+        break;
       }
 
       case LdC:     /* load literal value from pool */
         push(nthElem(LITS, PC->fst));
-        continue;
+        break;
 
       case LdA: {
         int32 offset = PC->fst;
         push(arg(offset));    /* load argument */
-        continue;
+        break;
       }
 
       case LdL: {
         int32 offset = PC->fst;
         push(local(offset));      /* load local */
-        continue;
+        break;
       }
 
       case LdG: {
@@ -728,12 +736,13 @@ retCode run(processPo P) {
         globalPo glb = findGlobalVar(glbNo);
 
         if (glbIsSet(glb)) {
-          termPo vr = getGlobal(glb);
+          termPo gval = getGlobal(glb);
 
-          check(vr != Null, "undefined global");
+          check(gval != Null, "undefined global");
           check(stackRoom(1), "unexpected stack overflow");
 
-          push(vr);     /* load a global variable */
+          push(gval);     /* load a global variable */
+          break;
         } else {
           labelPo glbLbl = findLbl(globalVarName(glb), 0);
           if (glbLbl == Null) {
@@ -758,28 +767,25 @@ retCode run(processPo P) {
               verifyStack(STK, H);
 #endif
           }
-          FP->pc = PC;
+          FP->pc = PC+1;
           pushFrme(glbThnk);
 
           LITS = codeLits(glbThnk);
           H = globalHeap;
+          continue;
         }
-        continue;
       }
 
       case CLbl: {
         labelPo l = C_LBL(nthElem(LITS, PC->fst));
         termPo t = top();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
           if (sameLabel(l, termLbl(cl)))
-            continue;
+            break;
         }
-        PC = exit;
-        continue;
+        goto breakPoint;
       }
 
       case Nth: {
@@ -790,34 +796,34 @@ retCode run(processPo P) {
         normalPo cl = C_NORMAL(t);  /* which term? */
         push(nthArg(cl, ix));
 
-        continue;
+        break;
       }
 
       case StL: {
         int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = pop();
-        continue;
+        break;
       }
 
       case StV: {
         int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = voidEnum;
-        continue;
+        break;
       }
       case TL: {
         int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = top();
-        continue;
+        break;
       }
 
       case StA: {
         int32 offset = PC->fst;
         ptrPo dest = &arg(offset);
         *dest = pop();     /* store as argument */
-        continue;
+        break;
       }
 
       case StNth: {      /* store into a closure */
@@ -825,7 +831,7 @@ retCode run(processPo P) {
         termPo tos = pop();
         normalPo cl = C_NORMAL(pop());
         cl->args[ix] = tos;
-        continue;
+        break;
       }
 
       case StG: {
@@ -833,7 +839,7 @@ retCode run(processPo P) {
         termPo val = pop();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
-        continue;
+        break;
       }
 
       case TG: {
@@ -841,7 +847,7 @@ retCode run(processPo P) {
         termPo val = top();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
-        continue;
+        break;
       }
 
       case Thunk: {  // Create a new thunk
@@ -856,21 +862,19 @@ retCode run(processPo P) {
         }
         thunkPo thnk = thunkVar(H, thLam);
         push(thnk);       /* put the structure back on the stack */
-        continue;
+        break;
       }
 
       case LdTh: {
         thunkPo thVr = C_THUNK(pop());
 
         if (thunkIsSet(thVr)) {
-          termPo vr = thunkVal(thVr);
+          termPo vl = thunkVal(thVr);
 
-          check(vr != Null, "undefined thunk value");
+          check(vl != Null, "undefined thunk value");
 
-          push(vr);     /* load thunk variable */
-
-          assert(validPC(frameMtd(FP), PC+PC->alt));
-          PC += PC->alt;    // Jump into thunk block
+          push(vl);     /* load thunk variable */
+          break;
         } else {
           closurePo thLambda = thunkLam(thVr);
 
@@ -905,12 +909,12 @@ retCode run(processPo P) {
           }
 
           assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC;
+          FP->pc = PC+1;
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment program count
+          continue;
         }
-        continue;
       }
 
       case StTh: {                           // Store into thunk
@@ -923,7 +927,7 @@ retCode run(processPo P) {
         }
 
         setThunk(thnk, val);      // Update the thunk variable
-        continue;
+        break;
       }
 
       case TTh: {                        // Set thunk and carry on
@@ -936,27 +940,27 @@ retCode run(processPo P) {
         }
 
         setThunk(thnk, val);      // Update the thunk variable
-        continue;
+        break;
       }
 
       case Cell: {
         checkAlloc(CellCellCount);
         cellPo cell = newCell(H, pop());
         push(cell);
-        continue;
+        break;
       }
 
       case Get: {
         cellPo cell = C_CELL(pop());
         push(getCell(cell));
-        continue;
+        break;
       }
 
       case Assign: {
         cellPo cell = C_CELL(pop());
         termPo vl = pop();
         setCell(cell, vl);
-        continue;
+        break;
       }
 
       case IAdd: {
@@ -965,7 +969,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeInteger(Lhs + Rhs);
         push(Rs);
-        continue;
+        break;
       }
 
       case ISub: {
@@ -974,7 +978,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeInteger(Lhs - Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case IMul: {
         integer Lhs = integerVal(pop());
@@ -982,7 +986,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeInteger(Lhs * Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case IDiv: {
         termPo tryIndex = pop();
@@ -998,7 +1002,7 @@ retCode run(processPo P) {
         } else {
           termPo Rs = makeInteger(Lhs / Rhs);
           push(Rs);
-          continue;
+          break;
         }
       }
       case IMod: {
@@ -1019,7 +1023,7 @@ retCode run(processPo P) {
           termPo Rs = (termPo) makeInteger(reslt);
 
           push(Rs);
-          continue;
+          break;
         }
       }
       case IAbs: {
@@ -1028,7 +1032,7 @@ retCode run(processPo P) {
 
         termPo Rs = (Arg < 0 ? makeInteger(-Arg) : Trm);
         push(Rs);
-        continue;
+        break;
       }
       case IEq: {
         termPo Lhs = pop();
@@ -1036,7 +1040,7 @@ retCode run(processPo P) {
 
         termPo Rs = (integerVal(Lhs) == integerVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case ILt: {
         termPo Lhs = pop();
@@ -1044,7 +1048,7 @@ retCode run(processPo P) {
 
         termPo Rs = (integerVal(Lhs) < integerVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case IGe: {
         termPo Lhs = pop();
@@ -1052,17 +1056,16 @@ retCode run(processPo P) {
 
         termPo Rs = (integerVal(Lhs) >= integerVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case ICmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
-        if (integerVal(i) != integerVal(j))
-          PC = exit;
-        continue;
+        if (integerVal(i) != integerVal(j)) {
+          goto breakPoint;
+        }
+        break;
       }
       case CEq: {
         termPo Lhs = pop();
@@ -1070,7 +1073,7 @@ retCode run(processPo P) {
 
         termPo Rs = (charVal(Lhs) == charVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case CLt: {
         termPo Lhs = pop();
@@ -1078,7 +1081,7 @@ retCode run(processPo P) {
 
         termPo Rs = (charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case CGe: {
         termPo Lhs = pop();
@@ -1086,17 +1089,16 @@ retCode run(processPo P) {
 
         termPo Rs = (charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case CCmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
-        if (charVal(i) != charVal(j))
-          PC = exit;
-        continue;
+        if (charVal(i) != charVal(j)) {
+          goto breakPoint;
+        } else
+          break;
       }
       case BAnd: {
         integer Lhs = integerVal(pop());
@@ -1104,7 +1106,7 @@ retCode run(processPo P) {
 
         termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs & (uinteger) Rhs));
         push(Rs);
-        continue;
+        break;
       }
       case BOr: {
         integer Lhs = integerVal(pop());
@@ -1112,7 +1114,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeInteger((integer) ((uinteger) Lhs | (uinteger) Rhs));
         push(Rs);
-        continue;
+        break;
       }
       case BXor: {
         integer Lhs = integerVal(pop());
@@ -1120,14 +1122,14 @@ retCode run(processPo P) {
 
         termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
         push(Rs);
-        continue;
+        break;
       }
       case BNot: {
         integer Lhs = integerVal(pop());
 
         termPo Rs = (termPo) makeInteger((integer) (~(uinteger) Lhs));
         push(Rs);
-        continue;
+        break;
       }
       case BLsl: {
         integer Lhs = integerVal(pop());
@@ -1135,7 +1137,7 @@ retCode run(processPo P) {
 
         termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs << (uinteger) Rhs));
         push(Rs);
-        continue;
+        break;
       }
       case BLsr: {
         integer Lhs = integerVal(pop());
@@ -1143,7 +1145,7 @@ retCode run(processPo P) {
 
         termPo Rs = (termPo) makeInteger((integer) (((uinteger) Lhs) >> ((uinteger) Rhs)));
         push(Rs);
-        continue;
+        break;
       }
       case BAsr: {
         integer Lhs = integerVal(pop());
@@ -1151,7 +1153,7 @@ retCode run(processPo P) {
 
         termPo Rs = (termPo) makeInteger((Lhs) >> Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case FAdd: {
         double Lhs = floatVal(pop());
@@ -1159,7 +1161,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeFloat(Lhs + Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case FSub: {
         double Lhs = floatVal(pop());
@@ -1167,7 +1169,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeFloat(Lhs - Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case FMul: {
         double Lhs = floatVal(pop());
@@ -1175,7 +1177,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeFloat(Lhs * Rhs);
         push(Rs);
-        continue;
+        break;
       }
       case FDiv: {
         termPo tryIndex = pop();
@@ -1192,7 +1194,7 @@ retCode run(processPo P) {
         } else {
           termPo Rs = makeFloat(Lhs / Rhs);
           push(Rs);
-          continue;
+          break;
         }
       }
       case FMod: {
@@ -1208,7 +1210,7 @@ retCode run(processPo P) {
         } else {
           termPo Rs = makeFloat(fmod(Lhs, Rhs));
           push(Rs);
-          continue;
+          break;
         }
       }
       case FAbs: {
@@ -1216,7 +1218,7 @@ retCode run(processPo P) {
 
         termPo Rs = makeFloat(fabs(Lhs));
         push(Rs);
-        continue;
+        break;
       }
       case FEq: {
         termPo Lhs = pop();
@@ -1224,7 +1226,7 @@ retCode run(processPo P) {
 
         termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Rhs) / 1.0e20) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case FLt: {
         termPo Lhs = pop();
@@ -1232,7 +1234,7 @@ retCode run(processPo P) {
 
         termPo Rs = (floatVal(Lhs) < floatVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case FGe: {
         termPo Lhs = pop();
@@ -1240,17 +1242,16 @@ retCode run(processPo P) {
 
         termPo Rs = (floatVal(Lhs) >= floatVal(Rhs) ? trueEnum : falseEnum);
         push(Rs);
-        continue;
+        break;
       }
       case FCmp: {
         termPo x = pop();
         termPo y = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
-        if (floatVal(x) != floatVal(y))
-          PC = exit;
-        continue;
+        if (floatVal(x) != floatVal(y)) {
+          goto breakPoint;
+        } else
+          break;
       }
 
       case Case: {      /* case instruction */
@@ -1291,7 +1292,7 @@ retCode run(processPo P) {
         closurePo cl = newClosure(H, cd, pop());
 
         push(cl);       /* put the closure back on the stack */
-        continue;
+        break;
       }
 
       case Alloc: {      /* heap allocate term */
@@ -1309,38 +1310,35 @@ retCode run(processPo P) {
         for (int ix = 0; ix < arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the structure back on the stack */
-        continue;
+        break;
       }
 
       case Cmp: {
         termPo i = pop();
         termPo j = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
         if (!sameTerm(i, j))
-          PC = exit;
-        continue;
+          goto breakPoint;
+        else
+          break;
       }
 
       case If: {
         termPo i = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
-        if (sameTerm(i, trueEnum))
-          PC = exit;
-        continue;
+        if (!sameTerm(i, trueEnum)) {
+          goto breakPoint;
+        } else
+          break;
       }
 
       case IfNot: {
         termPo i = pop();
-        insPo exit = PC+PC->alt;
-        assert(validPC(frameMtd(FP), exit));
 
-        if (!sameTerm(i, trueEnum))
-          PC = exit;
-        continue;
+        if (sameTerm(i, trueEnum)) {
+          goto breakPoint;
+        } else
+          break;
       }
 
       case Frame: {
@@ -1363,7 +1361,7 @@ retCode run(processPo P) {
 #else
         PC += 2; // ignore frame entity for now
 #endif
-        continue;
+        break;
       }
 
       case dBug: {
@@ -1372,12 +1370,13 @@ retCode run(processPo P) {
           enterDebug(P);
           restoreRegisters();
         }
-        continue;
+        break;
       }
 
       default:
       case illegalOp:
         syserr("Illegal instruction");
     }
+    PC++;
   }
 }
