@@ -546,7 +546,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=(*pc) - 1, .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
@@ -556,7 +556,7 @@ retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk
       ret = decodeIns(in, ar, pc, &count, &blkBrk);
     }
 
-    *tgt = *pc;
+    *tgt = *pc - blkBrk.pc;
   }
   return ret;
 }
@@ -565,7 +565,7 @@ int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
   for (int l = 1; l < lvl && brk != Null; l++)
     brk = brk->parent;
   if (brk != Null) {
-    return brk->pc - pc;
+    return brk->pc - pc - 1;
   } else
     return 0;
 }

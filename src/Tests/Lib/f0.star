@@ -46,7 +46,9 @@ test.f0{
 --  condTest(A,B) => (( ~ less(A,B) || ~ less(B,A)) ?? "alpha" || "beta").
 
   _main(_) => valof{
+    X = fact(14);
     _logmsg("hello world");
+    _logmsg(_stringOf(X,0));
     valis ()
   }
 }

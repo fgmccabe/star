@@ -998,6 +998,10 @@ void showAllLocals(ioPo out, stackPo stk, framePo fp) {
         outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
+    } else {
+      ptrPo var = stackLcl(stk, fp, vx);
+      if (*var != Null)
+        outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
     }
   }
 }
@@ -1046,7 +1050,7 @@ static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
 }
 
 static void showPcOffset(ioPo out, int32 offset) {
-  outMsg(out, " PC[%d]", offset);
+  outMsg(out, " PC[%+d]", offset);
 }
 
 static void showBlkLvl(ioPo out, int32 pc, int32 offset) {
