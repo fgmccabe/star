@@ -20,7 +20,7 @@ instruction(Nop, nOp, nOp, 0, "F()()", "No operation")
 instruction(Abort, tOs, tOs, -2, "F(pp)v", "abort with message")
 
 instruction(Call, sym, nOp, 1, "F()p", "Call <prog>")
-instruction(OCall, art, nOp, 1, "F(p)p", "OCall")
+instruction(OCall, art, tOs, 1, "F(p)p", "OCall")
 instruction(Escape, Es, nOp, 1, "F()p", "call C escape")
 instruction(TCall, sym, nOp, 0, "F()()", "TCall <prog>")
 instruction(TOCall, art, tOs, 0, "F()()", "TOCall")

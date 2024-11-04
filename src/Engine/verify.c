@@ -39,26 +39,24 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
 static retCode
 extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
-static void mergeVars(varPo seg, varPo next, integer count);
-
-static varPo initVars(integer count) {
-  varPo vars = (varPo) malloc(sizeof(Var) * count);
+static void initVars(varPo vars,integer count) {
   for (integer ix = 0; ix < count; ix++) {
     vars[ix].inited = False;
     vars[ix].read = False;
   }
-  return vars;
 }
 
-static void eraseVars(varPo vars) {
-  free(vars);
-}
-
-varPo copyVars(varPo src, integer count) {
-  varPo vars = (varPo) malloc(sizeof(Var) * count);
+static void copyVars(varPo vars, varPo src, integer count) {
   for (integer ix = 0; ix < count; ix++)
     vars[ix] = src[ix];
-  return vars;
+}
+
+static void mergeVars(varPo dst, varPo src, integer count) {
+  assert(dst != Null && src!=Null);
+  for (integer ix = 0; ix < count; ix++) {
+    dst[ix].inited &= src[ix].inited;
+    dst[ix].read |= src[ix].read;
+  }
 }
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
@@ -67,35 +65,23 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     showMethodCode(logFile, "Verify method %s\n", name, mtd);
 #endif
 
+  int32 lclCnt = lclCount(mtd);
+  Var locals[lclCnt];
+
+  initVars(locals,lclCnt);
+
   VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
     .mtd=mtd, .from = 0, .limit=codeSize(mtd),
     .parent=Null,
     .exitDepth=1,
-    .locals=initVars(lclCount(mtd)),
-    .lclCount=lclCount(mtd)};
+    .locals=locals,
+    .lclCount=lclCnt};
 
   int32 delta = 0;
 
   char *funBlockSig = "F()p";    // Special block signature for function bodies
 
-  tryRet(verifyBlock(0, 0, codeSize(mtd), &delta, &mtdCtx, funBlockSig, uniStrLen(funBlockSig)));
-
-  eraseVars(mtdCtx.locals);
-  return Ok;
-}
-
-static void mergeVars(varPo seg, varPo next, integer count) {
-  assert(seg != Null);
-  for (integer ix = 0; ix < count; ix++) {
-    next[ix].inited &= seg[ix].inited;
-    next[ix].read |= seg[ix].read;
-  }
-}
-
-static retCode showVars();
-
-static void showVar(char *nm, integer ix, varPo v) {
-  outMsg(logFile, " %s[%d]%s%s", nm, ix, v->inited ? "*" : "", v->read ? "R" : "");
+  return verifyBlock(0, 0, codeSize(mtd), &delta, &mtdCtx, funBlockSig, uniStrLen(funBlockSig));
 }
 
 retCode
@@ -144,7 +130,7 @@ static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integ
                          stackDepth);
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
-  mergeVars(ctx->locals, tgtCtx->locals, lclCount(ctx->mtd));
+  mergeVars(tgtCtx->locals, ctx->locals, lclCount(ctx->mtd));
   return Ok;
 }
 
@@ -152,8 +138,7 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode
-verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
+retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
             integer sigLen) {
   int32 entryDepth, exitDepth;
   tryRet(extractBlockSig(&entryDepth, &exitDepth, parentCtx, blockSig, sigLen));
@@ -165,6 +150,10 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
   char prefix[MAXLINE];
   strMsg(prefix, NumberOf(prefix), "%s.%d", parentCtx->prefix, from);
 
+  int32 lclCnt = parentCtx->lclCount;
+  Var locals[lclCnt];
+  copyVars(locals,parentCtx->locals,lclCnt);
+
   VerifyContext ctx = {.prefix=prefix,
     .errorMsg=parentCtx->errorMsg, .msgLen=parentCtx->msgLen,
     .mtd = parentCtx->mtd,
@@ -172,7 +161,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
     .limit = limit,
     .parent = parentCtx,
     .exitDepth=exitDepth,
-    .locals = copyVars(parentCtx->locals, parentCtx->lclCount)};
+    .locals = locals,
+    .lclCount = lclCnt};
 
   while (pc < limit) {
     insPo ins = &code[pc];
@@ -267,7 +257,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       case Ret: {
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
-        break;
+        return Ok;   // No merge of locals here
       }
       case Block: {
         int32 blockDelta = 0;
@@ -426,8 +416,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         continue;
       }
       case LdL: {
-        int32 lclNo = code[pc].fst;
-        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
+        int32 lclNo = code[pc].fst-1;
+        if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].read = True;
         if (!ctx.locals[lclNo].inited)
@@ -437,8 +427,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         continue;
       }
       case StL: {
-        int32 lclNo = code[pc].fst;
-        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
+        int32 lclNo = code[pc].fst-1;
+        if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
@@ -449,8 +439,8 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
       }
       case StV:
       case TL: {
-        int32 lclNo = code[pc].fst;
-        if (lclNo < 1 || lclNo > lclCount(ctx.mtd))
+        int32 lclNo = code[pc].fst-1;
+        if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].inited = True;
         pc++;
@@ -768,8 +758,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
-  mergeVars(parentCtx->locals, ctx.locals, lclCount(ctx.mtd));
-  eraseVars(ctx.locals);
+  mergeVars(parentCtx->locals, locals, lclCnt);
   return Ok;
 }
 
