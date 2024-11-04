@@ -1,7 +1,7 @@
 star.core {
   @"Core definitions of types and interfaces that are really part of the language".
 
-  public boolean ::= .true | .false.
+--  public boolean ::= .true | .false.
 
   equality@"defines semantic equality".
   public contract all x ~~ equality[x] ::= {
@@ -91,7 +91,7 @@ star.core {
     _null:S
   }
 
-  public all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
+--  public all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
@@ -122,8 +122,8 @@ star.core {
     disp(.false) => "false".
   }
 
-  option@"the option type is useful when a value is not always available".
-  public all t ~~ option[t] ::= .none | .some(t).
+  -- option@"the option type is useful when a value is not always available".
+  -- public all t ~~ option[t] ::= .none | .some(t).
 
   public id:all a ~~ (a)=>a.
   id(X)=>X.
@@ -138,21 +138,21 @@ star.core {
 
   public exception ::= .exception(string).
 
-  public errorCode ::= .eINTRUPT |
-  .eNOTDIR |
-  .eNOFILE |
-  .eNOTFND |
-  .eINVAL |
-  .eRANGE |
-  .eNOPERM |
-  .eFAIL |
-  .eIOERROR |
-  .eCONNECT |
-  .eDEAD |
-  .divZero |
-  .eof |
-  .noValue |
-  .hasValue.
+  -- public errorCode ::= .eINTRUPT |
+  -- .eNOTDIR |
+  -- .eNOFILE |
+  -- .eNOTFND |
+  -- .eINVAL |
+  -- .eRANGE |
+  -- .eNOPERM |
+  -- .eFAIL |
+  -- .eIOERROR |
+  -- .eCONNECT |
+  -- .eDEAD |
+  -- .divZero |
+  -- .eof |
+  -- .noValue |
+  -- .hasValue.
 
   public implementation display[errorCode] => {
     disp(.eINTRUPT) => "eINTRUPT".

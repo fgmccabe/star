@@ -29,6 +29,7 @@ varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
+vrRead(Vr,iTry(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iLdL(Vr)) :-!.
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
@@ -80,6 +81,13 @@ peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-!,
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
+peep([iLbl(Lb,iTry(Tps,IB))|Is],Lbls, Ins) :-!,
+  peepCode(IB,[(Lb,Is)|Lbls],IB0),
+  peep(Is,Lbls,Is0),
+  (lblReferenced(Lb,IB0) ->
+   Ins=[iLbl(Lb,iTry(Tps,IB0))|Is0];
+   concat(IB0,Is0,Is1),
+   peepCode(Is1,Lbls,Ins)).
 peep([iTry(Tpe,IB)|Is],Lbls, [iTry(Tpe,IBs)|Ins]) :-
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
@@ -105,6 +113,8 @@ peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
+  resolveLblRef(Lb,Lbls,LLb).
+peep([iEndTry(Lb)|_],Lbls,[iEndTry(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-!,
   resolveLblRef(Lb,Lbls,LLb).

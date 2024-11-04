@@ -12,7 +12,7 @@ displayln(L) :-
 
 ss_to_chrs(ss(Str),C,Cx) :-!,
   appStr(Str,C,Cx).
-ss_to_chrs(qt(Qt,Str),C,Cx) :-!,
+ss_to_chrs(qt(Str,Qt),C,Cx) :-!,
   appQuoted(Str,Qt,C,Cx).
 ss_to_chrs(ix(Ix),C,Cx) :-!,
   appInt(Ix,C,Cx).
@@ -64,6 +64,7 @@ ss_to_str(L,Str) :-
   string_chars(Str,Chrs).
 
 validSS(ss(S)) :-!, string(S).
+validSS(qt(S,_Q)) :-!, string(S).
 validSS(cp(S)) :-!, atom(S).
 validSS(ix(I)) :-!, integer(I).
 validSS(fx(Dx)) :-!, float(Dx).

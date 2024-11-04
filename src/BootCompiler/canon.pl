@@ -103,6 +103,7 @@ typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
+typeOfCanon(nth(_,_,_,Tp),Tp) :-!.
 typeOfCanon(cell(_,Vl),tpExp(tpFun("ref",1),Tp)) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(deref(_,Vl),Tp) :-

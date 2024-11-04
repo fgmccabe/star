@@ -1,8 +1,7 @@
 star.coerce{
   import star.core.
 
-  public
-  contract all s,d ~~ coercion[s,d] ::= {
+  public contract all s,d ~~ coercion[s,d] ::= {
     _coerce:(s)=>option[d].
   }
 

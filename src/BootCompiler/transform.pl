@@ -533,8 +533,8 @@ trVarExp(Lc,Nm,Tp,ann(Tp),_,_,Q,Q) :-
 liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
   thisVar(Map,Vr),!,
   merge([Vr],Q,Qx).
-liftVar(Lc,idnt(Nm,_),Vr,Map,Opts,Q,Qx) :-
-  trVarExp(Lc,Nm,Vr,Map,Opts,Q,Qx).
+liftVar(Lc,idnt(Nm,Tp),Vr,Map,Opts,Q,Qx) :-
+  trVarExp(Lc,Nm,Tp,Vr,Map,Opts,Q,Qx).
 
 implementVarExp(localVar(_,Val,_),_,_Nm,_,Exp,Map,Opts,Q,Qx) :-
   liftExp(Val,Exp,Q,Qx,Map,Opts,[],[]).
