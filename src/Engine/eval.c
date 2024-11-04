@@ -428,7 +428,7 @@ retCode run(processPo P) {
       }
 
       case Loop: {
-        PC += PC->alt;
+        PC += PC->fst;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         break;
@@ -469,8 +469,8 @@ retCode run(processPo P) {
         saveRegisters();
         stackPo child = newStack(H, fiberLambda);
         restoreRegisters();
-        push(child);                                                 // We return the new stack
-        continue;
+        push(child);              // We return the new stack
+        break;
       }
 
       case Spawn: {
@@ -1326,7 +1326,7 @@ retCode run(processPo P) {
       case If: {
         termPo i = pop();
 
-        if (!sameTerm(i, trueEnum)) {
+        if (sameTerm(i, trueEnum)) {
           goto breakPoint;
         } else
           break;
@@ -1335,7 +1335,7 @@ retCode run(processPo P) {
       case IfNot: {
         termPo i = pop();
 
-        if (sameTerm(i, trueEnum)) {
+        if (!sameTerm(i, trueEnum)) {
           goto breakPoint;
         } else
           break;

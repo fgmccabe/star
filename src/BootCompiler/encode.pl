@@ -145,6 +145,7 @@ encodeLtipe(i64Tipe,['i'|O],O).
 encodeLtipe(f64Tipe,['f'|O],O).
 encodeLtipe(blTipe,['l'|O],O).
 encodeLtipe(ptrTipe,['p'|O],O).
+encodeLtipe(vdTipe,['v'|O],O).
 encodeLtipe(fnTipe(As,R),['F'|O],Ox) :-
   encodeLtipe(As,O,O1),
   encodeLtipe(R,O1,Ox).

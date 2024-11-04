@@ -5,6 +5,21 @@ test.f0{
   fact(0)=>1.
   fact(N)=>times(N,fact(minus(N,1))).
 
+  fib:(integer)=>integer.
+  fib(0) => 0.
+  fib(N) => valof{
+    x := 0;
+    y := 1;
+    i := 1;
+    while less(i!,N) do{
+      z = plus(x!,y!);
+      x := y!;
+      y := z;
+      i := plus(i!,1);
+    };
+    valis y!
+  }
+
   contract all x ~~ ar[x] ::= {
     plus:(x,x)=>x.
     minus:(x,x)=>x.
@@ -46,9 +61,11 @@ test.f0{
 --  condTest(A,B) => (( ~ less(A,B) || ~ less(B,A)) ?? "alpha" || "beta").
 
   _main(_) => valof{
-    X = fact(14);
+    X = fact(4);
     _logmsg("hello world");
     _logmsg(_stringOf(X,0));
+    _logmsg(_stringOf(fib(32),0));
+    
     valis ()
   }
 }

@@ -90,10 +90,10 @@ declareLocals(Lst, Map, Tpl) :-
   mkTpl(Lcls,Tpl).
 
 declareLocals([],_,[],[]) :-!.
-declareLocals([(Nm,Spec)|Lcls],Off,[(Nm,Off)|LsMap],[Entry|Lcls]) :-
+declareLocals([(Nm,Spec)|Lcls],Off,[(Nm,Off)|LsMap],[Entry|Lx]) :-
   mkTpl([strg(Nm),intgr(Off),Spec],Entry),
   Off1 is Off+1,
-  declareLocals(Lcls,Off1,LsMap,Lcls).
+  declareLocals(Lcls,Off1,LsMap,Lx).
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
