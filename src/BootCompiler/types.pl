@@ -490,7 +490,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 cnsDec("nil","nil",
 		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("cons",1),kVar("e"))))),		
 	 cnsDec("cons","cons",
-		allType(kVar("e"),consType(tplType([kvar("e"),tpExp(tpFun("cons",1),kVar("e"))]),tpExp(tpFun("cons",1),kVar("e"))))),		
+		allType(kVar("e"),consType(tplType([kVar("e"),tpExp(tpFun("cons",1),kVar("e"))]),tpExp(tpFun("cons",1),kVar("e"))))),		
 	 typeDec("option",
 		 tpFun("option",1),
 		 allType(kVar("a"),
@@ -499,7 +499,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 cnsDec("none","none",
 		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("option",1),kVar("e"))))),
 	 cnsDec("some","some",
-		allType(kVar("e"),consType(tplType([kvar("e")]),tpExp(tpFun("option",1),kVar("e"))))),
+		allType(kVar("e"),consType(tplType([kVar("e")]),tpExp(tpFun("option",1),kVar("e"))))),
 	 typeDec("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))),
 	 typeDec("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))),
 	 typeDec("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))),
@@ -531,7 +531,8 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 cnsDec("eDEAD","eDEAD",consType(tplType([]),type("errorCode"))),
 	 cnsDec("divZero","divZero",consType(tplType([]),type("errorCode"))),
 	 cnsDec("noValue","noValue",consType(tplType([]),type("errorCode"))),
-	 cnsDec("hasValue","hasValue",consType(tplType([]),type("errorCode")))
+	 cnsDec("hasValue","hasValue",consType(tplType([]),type("errorCode"))),
+	 cnsDec("eof","eof",consType(tplType([]),type("errorCode")))
 	]).
 
 toLtipe(Tp,LTp) :-

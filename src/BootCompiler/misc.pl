@@ -215,10 +215,19 @@ appQuoted(Str,Qt,O,E) :-
   quoteConcat(Q,Chars,O1,O2),!,
   appStr(Qt,O2,E).
 
+
+backslash('\a','a').
+backslash('\b','b').
+backslash('\e','e').
+backslash('\t','t').
+backslash('\n','n').
+backslash('\r','r').
+
 quoteConcat(_,[],O,O).
 quoteConcat(Qt,['\"'|More],['\\','\"'|Out],Ox) :- quoteConcat(Qt,More,Out,Ox).
 quoteConcat(Qt,[Qt|More],['\\',Qt|Out],Ox) :- quoteConcat(Qt,More,Out,Ox).
 quoteConcat(Qt,['\\'|More],['\\','\\'|Out],Ox) :- quoteConcat(Qt,More,Out,Ox).
+quoteConcat(Qt,[Ch|More],['\\',B|Out],Ox) :- backslash(Ch,B),!, quoteConcat(Qt,More,Out,Ox).
 quoteConcat(Qt,[C|More],[C|Out],Ox) :- quoteConcat(Qt,More,Out,Ox).
 
 appSym(Sym,O,E) :- atom_chars(Sym,Chrs), concat(Chrs,E,O).

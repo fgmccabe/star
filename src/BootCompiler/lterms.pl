@@ -89,7 +89,7 @@ ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
 ssTrm(float(Dx),_,fx(Dx)) :-!.
 ssTrm(chr(Cp),_,sq([ss("`"),cp(Cp),ss("`")])) :-!.
-ssTrm(strg(Str),_,sq([ss(""""),ss(Str),ss("""")])) :-!.
+ssTrm(strg(Str),_,qt(Str,'\"')) :-!.
 ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
@@ -600,7 +600,9 @@ isCnd(ng(_,_)).
 tipeOf(voyd,voidType).
 tipeOf(ann(Tp),Tp).
 tipeOf(idnt(_,T),T).
+tipeOf(chr(_),type("char")).
 tipeOf(intgr(_),type("integer")).
+tipeOf(strg(_),type("string")).
 tipeOf(flot(_),type("float")).
 tipeOf(rais(_,_,_),voidType).
 tipeOf(cll(_,_,_,T),T).

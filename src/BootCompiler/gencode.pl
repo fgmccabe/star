@@ -191,13 +191,13 @@ compAction(perf(Lc,Cll),OLc,_Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(Cll,Lc,Brks,Last,Opts,L,Lx,D,Dx,C0,C1,Stk,Stk0),
   resetStack(Stk,Stk0,C1,Cx).
-compAction(mtch(Lc,P,E),OLc,_Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
+compAction(mtch(Lc,P,E),OLc,_Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Abrt,iBlock(FlatTp,CB))|Ca]))|Cx]),
   genLbl(L,Ok,L1),
   genLbl(L1,Abrt,L2),
   flatBlockSig(FlatTp),
   compExp(E,Lc,Brks,notLast,Opts,L2,L3,D,D1,CB,C1,Stk,Stk1),
-  compPtn(P,Lc,Brks,Last,Opts,L3,L4,D1,D2,C1,C2,Stk1,Stka),
+  compPtn(P,Lc,Abrt,Brks,Opts,L3,L4,D1,D2,C1,C2,Stk1,Stka),
   resetStack(Stk,Stka,C2,[iBreak(Ok)]),
   compAbort(Lc,strg("match fail"),Brks,Opts,L4,Lx,D2,Dx,Ca,[],Stk,_).
 compAction(defn(Lc,idnt(Nm,Tp),E),OLc,_Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
@@ -215,10 +215,10 @@ compAction(asgn(Lc,Cll,Exp),OLc,_Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !
   compExp(Exp,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
   compExp(Cll,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iAssign|Cx],Stka,Stkb),
   dropStk(Stkb,2,Stk).
-compAction(case(Lc,T,Cases,Deflt),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+compAction(case(Lc,T,Cases,Deflt),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   flatBlockSig(FlatTp),
-  compCase(T,Lc,FlatTp,Cases,Deflt,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stk).
+  compCase(T,Lc,FlatTp,Cases,Deflt,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(whle(Lc,G,B),OLc,Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock(FlatTp,[iLbl(Lp,iBlock(FlatTp,LC))]))|Cx]),!,
   flatBlockSig(FlatTp),
@@ -227,24 +227,24 @@ compAction(whle(Lc,G,B),OLc,Ok,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   compCond(G,Lc,Done,Brks,normal,Opts,L2,L3,D,D1,LC,LC1,Stk,Stka),
   compAction(B,Lc,Ok,Brks,notLast,Opts,L3,Lx,D1,Dx,LC1,LC2,Stk,Stkb),
   reconcileStack(Stka,Stkb,Stk,LC2,[iLoop(Lp)]),!.
-compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iStL(Nm)|C2],Stk,Stk1),
   verify(gencode:bumpStk(Stk,Stk1),"expecting a single bump in stack"),
-  compAction(Act,Lc,Ok,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,_).
-compAction(iftte(Lc,G,A,B),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
+  compAction(Act,Lc,Ok,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,Stkx).
+compAction(iftte(Lc,G,A,B),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,[iLbl(Thn,iBlock(FlatTp,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),
-  genLbl(L0,Ok,L1),
+  genLbl(L0,Thn,L1),
   flatBlockSig(FlatTp),
   compCond(G,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
   verify(Stk=Stk0,"conditions should not increase stack"),
-  compAction(A,Lc,Ok,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Ok)],Stk,Stka),
-  compAction(B,Lc,Ok,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iBreak(Ok)],Stk,Stkb),
-  mergeStkLvl(Stka,Stkb,Stk,"conditional action").
-compAction(try(Lc,B,T,E,H),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!, 
-  compTry(Lc,B,T,E,H,OLc,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk).
+  compAction(A,Lc,Ok,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Thn)],Stk,Stka),
+  compAction(B,Lc,Ok,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iBreak(Thn)],Stk,Stkb),
+  mergeStkLvl(Stka,Stkb,Stkx,"conditional action").
+compAction(try(Lc,B,T,E,H),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!, 
+  compTry(Lc,B,T,E,H,OLc,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compAction(vls(Lc,E),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,Last,Opts,L,Lx,D,Dx,C0,[iBreak(Ok)|Cx],Stk,_).
@@ -258,11 +258,12 @@ compCaseAct(Ok,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 compTry(Lc,B,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iTry(FlatTp,[iStL(TV)|BC])|HC]))|Cz]),
-  genLbl(L,Ok,L1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Try,iTry(FlatTp,[iStL(TV)|BC]))|HC]))|Cz]),
+  genLbl(L,Ok,L0),
+  genLbl(L0,Try,L1),
   flatBlockSig(FlatTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
-  call(Hndlr,B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Ok)],Stk,Stka),
+  call(Hndlr,B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Try)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
   call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
@@ -530,7 +531,7 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   nearlyFlatSig(ptrTipe,BlkTp),
   compCase(T,Lc,BlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(try(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  compTry(Lc,B,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk).
+  compTry(Lc,B,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
@@ -651,8 +652,8 @@ compCases([],Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T]
 compCases([(Ix,Case)|Cs],Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(CL)|T],Tx,[iLbl(CL,iBlock(BlkTp,CC))|CCx],Cx,Stk,Stkx) :-!,
   Ix1 is Ix+1,
   genLbl(L,CL,L0),
-  compCases(Cs,Ix1,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D1,Dx,T,Tx,CC,Cx,Stk,Stk2),
-  compCaseBranch(Case,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L1,Lx,D,D1,CCx,[],Stk,Stk1),
+  compCases(Cs,Ix1,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D,D1,T,Tx,CC,Cx,Stk,Stk2),
+  compCaseBranch(Case,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L1,Lx,D1,Dx,CCx,[],Stk,Stk1),
   mergeStkLvl(Stk1,Stk2,Stkx,"case branch").
 compCases(Cs,Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
   Ix1 is Ix+1,
