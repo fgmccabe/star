@@ -284,7 +284,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
 
-        if (checkBreak(&ctx, pc, stackDepth, code[pc].fst) != Ok)
+        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt) != Ok)
           return Error;
         pc++;
         break;
@@ -580,7 +580,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
           switch (caseIns->op) {
             case Break:
             case Loop:
-              if (checkBreak(&ctx, casePc, stackDepth, caseIns->fst) != Ok)
+              if (checkBreak(&ctx, casePc, stackDepth, caseIns->alt) != Ok)
                 return Error;
               continue;
             default:
@@ -756,7 +756,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
       case dBug:
         pc++;
         continue;
-      case Line:
       case Local: {
         int32 litNo = code[pc].fst;
         if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))

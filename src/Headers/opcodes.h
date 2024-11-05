@@ -101,15 +101,14 @@ typedef enum {
     Cmp = 90,            // t1 t2 --> , branch to offset if not same literal
     Frame = 91,            // frame instruction
     dBug = 92,            // debugging prefix
-    Line = 93,            // mark location in source
-    Local = 94,            // introduce local variable
+    Local = 93,            // introduce local variable
 
   illegalOp,
   maxOpCode
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 296323699755771822
+#define OPCODE_SIGNATURE 1071833283800003086
 #endif
 
 typedef enum {
@@ -127,7 +126,6 @@ typedef enum {
   tPe,          // Type signature
   bLk,          // A block of instructions
   lVl,          // How many blocks to break out of
-  lNe,          // Special marker for line numbers
 } opAndSpec;                    // Specification code for an operand
 
 #endif

@@ -118,7 +118,6 @@ star.compiler.assem{
     .iCmp(assemLbl) |
     .iFrame(ltipe) |
     .idBug |
-    .iLine(data) |
     .iLocal(integer,data) |
 
     .iLbl(string, assemOp).
@@ -176,8 +175,8 @@ star.compiler.assem{
   mnem(.iEntry,Lbls,Lts,Lcs) => ([.intgr(8)],Lts,Lcs).
   mnem(.iRet,Lbls,Lts,Lcs) => ([.intgr(9)],Lts,Lcs).
   mnem(.iBlock(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Lts1,Lcs1) .= assemBlock(V,[],["",..Lbls],Lt1,Lcs) => ([.intgr(10),.intgr(LtNo),mkTpl(Blk::cons[data])],Lts1,Lcs1).
-  mnem(.iBreak(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(11),.intgr(Lvl)],Lts,Lcs).
-  mnem(.iLoop(U),Lbls,Lts,Lcs) where Lvl ?= findLevel(Lbls,U) => ([.intgr(12),.intgr(Lvl)],Lts,Lcs).
+  mnem(.iBreak(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(11),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iLoop(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(12),.intgr(Tgt)],Lts,Lcs).
   mnem(.iDrop,Lbls,Lts,Lcs) => ([.intgr(13)],Lts,Lcs).
   mnem(.iDup,Lbls,Lts,Lcs) => ([.intgr(14)],Lts,Lcs).
   mnem(.iRot(U),Lbls,Lts,Lcs) => ([.intgr(15),.intgr(U)],Lts,Lcs).
@@ -258,8 +257,7 @@ star.compiler.assem{
   mnem(.iCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(90),.intgr(Tgt)],Lts,Lcs).
   mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(91),.intgr(LtNo)],Lt1,Lcs).
   mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(92)],Lts,Lcs).
-  mnem(.iLine(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(93),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iLocal(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(94),.intgr(U),.intgr(LtNo)],Lt1,Lcs).
+  mnem(.iLocal(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(93),.intgr(U),.intgr(LtNo)],Lt1,Lcs).
 
   mnem(I,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
@@ -320,8 +318,8 @@ star.compiler.assem{
   showIns(.iEntry,Pc) => "Entry".
   showIns(.iRet,Pc) => "Ret".
   showIns(.iBlock(U,V),Pc) => "Block $(U) $(V)".
-  showIns(.iBreak(U),Pc) => "Break $(U)".
-  showIns(.iLoop(U),Pc) => "Loop $(U)".
+  showIns(.iBreak(V),Pc) => "Break $(V)".
+  showIns(.iLoop(V),Pc) => "Loop $(V)".
   showIns(.iDrop,Pc) => "Drop".
   showIns(.iDup,Pc) => "Dup".
   showIns(.iRot(U),Pc) => "Rot $(U)".
@@ -402,7 +400,6 @@ star.compiler.assem{
   showIns(.iCmp(V),Pc) => "Cmp $(V)".
   showIns(.iFrame(U),Pc) => "Frame $(U)".
   showIns(.idBug,Pc) => "dBug".
-  showIns(.iLine(U),Pc) => "Line $(U)".
   showIns(.iLocal(U,V),Pc) => "Local $(U) $(V)".
 
 
@@ -412,5 +409,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 296323699755771822.
+  public opcodeHash = 1071833283800003086.
 }
