@@ -235,10 +235,10 @@ formCase(([Lbl|_],_,_),Subber,Conder,Lbl,Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
 formCase(([enum(Lb)|_],_,_),Subber,Conder,enum(Lb),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
   subTriples(Tpls,STpls),
   matchTriples(Lc,Subber,Conder,Vrs,STpls,Deflt,Map,Dp,Case).
-formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,ctpl(Op,NVrs),[Tpl],Lc,Vrs,Deflt,Map,Dp,Case) :-!,
+formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-!,
   genTplVars(Args,NVrs),
   concat(NVrs,Vrs,NArgs),
-  subTriples([Tpl],NTpls),
+  subTriples(Tpls,NTpls),
   matchTriples(Lc,Subber,Conder,NArgs,NTpls,Deflt,Map,Dp,Case).
 
 genTplVars([],[]).
