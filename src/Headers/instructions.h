@@ -76,7 +76,8 @@ instruction(Cell, tOs, nOp, 0,"F()p",  "create R/W cell")
 instruction(Get, tOs, nOp, 0, "F(p)p", "access a R/W cell")
 instruction(Assign, tOs, tOs, -2, "F(pp)()", "assign to a R/W cell")
 
-instruction(CLbl, sym, lVl, 0, "F()()", "T,Lbl --> test for a data term, break if lbl")
+instruction(CLbl, sym, lVl, 0, "F()()", "T,Lbl --> test for a data term, break if not lbl")
+instruction(CLit, lit, lVl, 0, "F(p)(p)", "T,lit --> test for a literal value, break if not")
 instruction(Nth, i32, nOp, 0, "F(p)p", "T --> el, pick up the nth element")
 instruction(StNth, i32, nOp, -2, "F(pp)()", "T el --> store in nth element")
 

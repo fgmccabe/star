@@ -470,6 +470,10 @@ retCode jit_BLsr(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_CLit(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_CLbl(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }

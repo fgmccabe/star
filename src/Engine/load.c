@@ -53,46 +53,53 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
         if ((ret = isLookingAt(file, stringSig)) == Ok)
           ret = decodeText(file, sigBuffer);
-
-        rewindStrBuffer(sigBuffer);
-        ioPo pkgIn = O_IO(sigBuffer);
-
-        if (ret == Ok && isLookingAt(pkgIn, pkgSig) == Ok)
-          ret = decodePkgName(pkgIn, &lddPkg, errorMsg, msgSize);
-        else
-          ret = Error;
-
-        if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
+        if (ret != Ok) {
           closeIo(O_IO(sigBuffer));
-          strMsg(errorMsg, msgSize, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
-          return Error;
-        }
+          strMsg(errorMsg, msgSize, "invalid package signature %P\n", &lddPkg, pkg);
+        } else {
+          rewindStrBuffer(sigBuffer);
+          ioPo pkgIn = O_IO(sigBuffer);
 
-        if (ret == Ok) {
-          integer opSig = -1;
-
-          ret = decodeInteger(O_IO(sigBuffer), &opSig);
-
-          if (ret != Ok || opSig != OPCODE_SIGNATURE) {
+          if (ret == Ok && isLookingAt(pkgIn, pkgSig) == Ok)
+            ret = decodePkgName(pkgIn, &lddPkg, errorMsg, msgSize);
+          else {
             closeIo(O_IO(sigBuffer));
-            strMsg(errorMsg, msgSize, "package: %P has invalid instruction signature\n", pkg);
+            strMsg(errorMsg, msgSize, "invalid package signature %P\n", &lddPkg, pkg);
+            ret = Error;
+          }
+
+          if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
+            closeIo(O_IO(sigBuffer));
+            strMsg(errorMsg, msgSize, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
             return Error;
           }
 
-          if (pickup != Null)
-            ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
+          if (ret == Ok) {
+            integer opSig = -1;
 
-          if (ret == Ok)
-            ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip export declarations
+            ret = decodeInteger(O_IO(sigBuffer), &opSig);
 
-          if (ret == Ok)
-            ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
+            if (ret != Ok || opSig != OPCODE_SIGNATURE) {
+              closeIo(O_IO(sigBuffer));
+              strMsg(errorMsg, msgSize, "package: %P has invalid instruction signature\n", pkg);
+              return Error;
+            }
 
-          if (ret == Ok)
-            ret = loadDefs(O_IO(sigBuffer), globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
-                           msgSize);
+            if (pickup != Null)
+              ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
+
+            if (ret == Ok)
+              ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip export declarations
+
+            if (ret == Ok)
+              ret = skipEncoded(O_IO(sigBuffer), errorMsg, msgSize); // Skip local declarations
+
+            if (ret == Ok)
+              ret = loadDefs(O_IO(sigBuffer), globalHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg,
+                             msgSize);
+          }
+          closeIo(O_IO(sigBuffer));
         }
-        closeIo(O_IO(sigBuffer));
       }
 
       closeIo(file);

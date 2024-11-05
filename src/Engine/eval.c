@@ -121,7 +121,7 @@ retCode run(processPo P) {
 #endif
         }
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC+1;
+        FP->pc = PC + 1;
 
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
@@ -177,7 +177,7 @@ retCode run(processPo P) {
         }
 
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC+1;
+        FP->pc = PC + 1;
         pushFrme(mtd);
         LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called
@@ -609,7 +609,7 @@ retCode run(processPo P) {
           }
 
           assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC+1;
+          FP->pc = PC + 1;
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
@@ -767,13 +767,23 @@ retCode run(processPo P) {
               verifyStack(STK, H);
 #endif
           }
-          FP->pc = PC+1;
+          FP->pc = PC + 1;
           pushFrme(glbThnk);
 
           LITS = codeLits(glbThnk);
           H = globalHeap;
           continue;
         }
+      }
+
+      case CLit: {
+        termPo l = nthElem(LITS, PC->fst);
+        termPo t = top();
+
+        if (!sameTerm(l, t))
+          goto breakPoint;
+        else
+          break;
       }
 
       case CLbl: {
@@ -909,7 +919,7 @@ retCode run(processPo P) {
           }
 
           assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC+1;
+          FP->pc = PC + 1;
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment program count

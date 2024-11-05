@@ -86,7 +86,7 @@ findLocal(Nm,_,_) :-
       reportFatal("internal: Cannot assemble variable reference %s",[Nm]).
 
 declareLocals(Lst, Map, Tpl) :-
-  declareLocals(Lst,0,Map, Lcls),
+  declareLocals(Lst,1,Map, Lcls),
   mkTpl(Lcls,Tpl).
 
 declareLocals([],_,[],[]) :-!.
