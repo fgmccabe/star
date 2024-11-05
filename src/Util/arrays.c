@@ -179,7 +179,7 @@ static retCode swapEntry(integer el1, integer el2, void *cl) {
 
 retCode sortArray(arrayPo ar, compareEls compare, void *cl) {
   ArrayCtx ctx = {.src=ar, .compare=compare, .cl=cl};
-  return quick(0, arrayCount(ar), elComp, swapEntry, (void *) &ctx);
+  return quick(0, arrayCount(ar)-1, elComp, swapEntry, (void *) &ctx);
 }
 
 retCode copyOutData(arrayPo ar, void *buffer, integer buffSize) {
