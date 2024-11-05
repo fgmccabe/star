@@ -521,6 +521,17 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         pc++;
         continue;
       }
+      case CLit: {
+        int32 litNo = code[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
+          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt) != Ok)
+          return Error;
+        pc++;
+        continue;
+      }
       case CLbl: {
         int32 litNo = code[pc].fst;
         if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))

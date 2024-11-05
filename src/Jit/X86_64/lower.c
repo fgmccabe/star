@@ -427,6 +427,10 @@ retCode jit_CLbl(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
+retCode jit_CLit(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Unpack(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }

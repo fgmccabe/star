@@ -57,58 +57,59 @@ typedef enum {
     Cell = 46,            // create R/W cell
     Get = 47,            // access a R/W cell
     Assign = 48,            // assign to a R/W cell
-    CLbl = 49,            // T,Lbl --> test for a data term, break if lbl
-    Nth = 50,            // T --> el, pick up the nth element
-    StNth = 51,            // T el --> store in nth element
-    If = 52,            // break if true
-    IfNot = 53,            // break if false
-    Case = 54,            // T --> T, case <Max> 
-    IndxJmp = 55,            // check and jump on index
-    IAdd = 56,            // L R --> L+R
-    ISub = 57,            // L R --> L-R
-    IMul = 58,            // L R --> L*R
-    IDiv = 59,            // L R --> L/R
-    IMod = 60,            // L R --> L%R
-    IAbs = 61,            // L --> abs(L)
-    IEq = 62,            // L R --> L==R
-    ILt = 63,            // L R --> L<R
-    IGe = 64,            // L R --> L>=R
-    ICmp = 65,            // L R --> break if not same integer
-    CEq = 66,            // L R --> L==R
-    CLt = 67,            // L R --> L<R
-    CGe = 68,            // L R --> L>=R
-    CCmp = 69,            // L R --> break if not same character
-    BAnd = 70,            // L R --> L&R
-    BOr = 71,            // L R --> L|R
-    BXor = 72,            // L R --> L^R
-    BLsl = 73,            // L R --> L<<R
-    BLsr = 74,            // L R --> L>>R
-    BAsr = 75,            // L R --> L>>>R
-    BNot = 76,            // L --> ~L
-    FAdd = 77,            // L R --> L+R
-    FSub = 78,            // L R --> L-R
-    FMul = 79,            // L R --> L*R
-    FDiv = 80,            // L R --> L/R
-    FMod = 81,            // L R --> L%R
-    FAbs = 82,            // L --> abs(L)
-    FEq = 83,            // L R e --> L==R
-    FLt = 84,            // L R --> L<R
-    FGe = 85,            // L R --> L>=R
-    FCmp = 86,            // L R --> branch if not same floating point
-    Alloc = 87,            // new structure, elements from stack
-    Closure = 88,            // allocate a closure
-    Cmp = 89,            // t1 t2 --> , branch to offset if not same literal
-    Frame = 90,            // frame instruction
-    dBug = 91,            // debugging prefix
-    Line = 92,            // mark location in source
-    Local = 93,            // introduce local variable
+    CLbl = 49,            // T,Lbl --> test for a data term, break if not lbl
+    CLit = 50,            // T,lit --> test for a literal value, break if not
+    Nth = 51,            // T --> el, pick up the nth element
+    StNth = 52,            // T el --> store in nth element
+    If = 53,            // break if true
+    IfNot = 54,            // break if false
+    Case = 55,            // T --> T, case <Max> 
+    IndxJmp = 56,            // check and jump on index
+    IAdd = 57,            // L R --> L+R
+    ISub = 58,            // L R --> L-R
+    IMul = 59,            // L R --> L*R
+    IDiv = 60,            // L R --> L/R
+    IMod = 61,            // L R --> L%R
+    IAbs = 62,            // L --> abs(L)
+    IEq = 63,            // L R --> L==R
+    ILt = 64,            // L R --> L<R
+    IGe = 65,            // L R --> L>=R
+    ICmp = 66,            // L R --> break if not same integer
+    CEq = 67,            // L R --> L==R
+    CLt = 68,            // L R --> L<R
+    CGe = 69,            // L R --> L>=R
+    CCmp = 70,            // L R --> break if not same character
+    BAnd = 71,            // L R --> L&R
+    BOr = 72,            // L R --> L|R
+    BXor = 73,            // L R --> L^R
+    BLsl = 74,            // L R --> L<<R
+    BLsr = 75,            // L R --> L>>R
+    BAsr = 76,            // L R --> L>>>R
+    BNot = 77,            // L --> ~L
+    FAdd = 78,            // L R --> L+R
+    FSub = 79,            // L R --> L-R
+    FMul = 80,            // L R --> L*R
+    FDiv = 81,            // L R --> L/R
+    FMod = 82,            // L R --> L%R
+    FAbs = 83,            // L --> abs(L)
+    FEq = 84,            // L R e --> L==R
+    FLt = 85,            // L R --> L<R
+    FGe = 86,            // L R --> L>=R
+    FCmp = 87,            // L R --> branch if not same floating point
+    Alloc = 88,            // new structure, elements from stack
+    Closure = 89,            // allocate a closure
+    Cmp = 90,            // t1 t2 --> , branch to offset if not same literal
+    Frame = 91,            // frame instruction
+    dBug = 92,            // debugging prefix
+    Line = 93,            // mark location in source
+    Local = 94,            // introduce local variable
 
   illegalOp,
   maxOpCode
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1960799436663205384
+#define OPCODE_SIGNATURE 296323699755771822
 #endif
 
 typedef enum {

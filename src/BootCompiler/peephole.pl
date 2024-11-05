@@ -100,6 +100,9 @@ peep([iIfNot(Lb)|In],Lbls,[iIfNot(LLb)|Inx]) :-
 peep([iCLbl(Tgt,Lb)|In],Lbls,[iCLbl(Tgt,LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
+peep([iCLit(Tgt,Lb)|In],Lbls,[iCLit(Tgt,LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
 peep([iCmp(Lb)|In],Lbls,[iCmp(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
@@ -134,6 +137,7 @@ lblReferenced(Lb,[iCCmp(Lb)|_]).
 lblReferenced(Lb,[iICmp(Lb)|_]).
 lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
+lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iUnpack(_,Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
