@@ -418,9 +418,16 @@ retCode run(processPo P) {
         break;
       }
 
-      breakPoint:
-      case Break: {
+    breakPoint:{
         PC += PC->alt + 1;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
+        continue;
+      }
+
+      case Break: {
+        PC += PC->fst + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         PC += PC->alt + 1;
@@ -1270,7 +1277,7 @@ retCode run(processPo P) {
         termPo tos = top();
         integer hx = hashTerm(tos) % mx;
 
-        PC = (insPo) ((void *) PC + hx + 1);
+        PC = PC + hx + 1;
         continue;
       }
 
@@ -1280,7 +1287,7 @@ retCode run(processPo P) {
         labelPo lbl = termLbl(top);
         integer hx = labelIndex(lbl);
 
-        PC = (insPo) ((void *) PC + hx + 1);
+        PC = PC + hx + 1;
         continue;
       }
 
