@@ -122,14 +122,9 @@ lclVar(Nm,T,Wh,scope(Vrs)) :-
 defineLclVar(Lc,Nm,Tp,Opts,D,Dx,C,Cx) :-
   defineVar(Lc,Nm,Tp,Opts,l(Nm),D,Dx,C,Cx).
 
-defineVar(Lc,Nm,Tp,Opts,Mode,scope(Vrs),scope([(Nm,strg(Sig),Mode)|Vrs]),C,Cx) :-
+defineVar(_Lc,Nm,Tp,_Opts,Mode,scope(Vrs),scope([(Nm,strg(Sig),Mode)|Vrs]),Cx,Cx) :-
   toLtipe(Tp,T),
-  encLtp(T,Sig),
-  (is_member(debugging,Opts) ->
-   locTerm(Lc,Lt),
-   mkTpl([strg(Nm),Lt],LDesc),
-   genDebug(Opts,iLocal(Nm,LDesc),C,Cx);
-   C=Cx).
+  encLtp(T,Sig).
 
 defineTmpVar(Lc,TmpNm,Tp,Opts,D,Dx,C,Cx) :-
   genTmpVar(D,TmpNm),
@@ -601,13 +596,13 @@ isCond(mtch(_,_,_)).
 isTrueSymb("true").
 isFalseSymb("false").
 
-compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Df,iBlock(FlatTp,CC))|DC]))|Cx],Cx,Stk,Stkx) :-
-  flatBlockSig(FlatTp),
+compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(OkBlkTp,C0))|Cx],Cx,Stk,Stkx) :-
+  nearlyFlatSig(ptrTipe,OkBlkTp),
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
-  compExp(Gv,Lc,Brks,notLast,Opts,L1,L2,D,D1,C0,[iCase(Mx)|CB],Stk,Stk1),
+  compExp(Gv,Lc,Brks,notLast,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(BlkTp,CC)),iDrop|DC],Stk,Stk1),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,C0,Stk1,Stka),
+  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk1,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 

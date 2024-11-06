@@ -19,11 +19,6 @@ typedef struct instruction_ {
   int32 alt;            // but some may also have a second operand
 } Instruction;
 
-typedef struct methodLoc_ {
-  int32 pc;
-  int32 litNo;
-} MethodLoc, *methodLocPo;
-
 typedef struct method_ {
   clssPo clss;          // == specialClass
   jitCode jit;          /* Pointer to jit'ed code */
@@ -33,7 +28,7 @@ typedef struct method_ {
   int32 lclcnt;         // How many locals in the environment
   int32 stackDelta;     // How much space to allocate for the stack
   normalPo pool;        /* A pool tuple of constants */
-  arrayPo locs;         // Sorted array of location information
+  termPo locs;         // Sorted array of location information
   int32 insCount;       // How many instructions are there in the code?
   insPo instructions;   // The actual instructions
 } MethodRec;
@@ -85,7 +80,7 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo
 defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
-          labelPo lbl, normalPo pool, arrayPo locs);
+          labelPo lbl, normalPo pool, termPo locs);
 
 methodPo
 specialMethod(const char *name, int32 arity, int32 insCount, insPo instructions, termPo sigTerm, int32 lclCount);

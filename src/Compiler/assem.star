@@ -118,7 +118,6 @@ star.compiler.assem{
     .iCmp(assemLbl) |
     .iFrame(ltipe) |
     .idBug |
-    .iLocal(integer,data) |
 
     .iLbl(string, assemOp).
 
@@ -257,7 +256,6 @@ star.compiler.assem{
   mnem(.iCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(90),.intgr(Tgt)],Lts,Lcs).
   mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(91),.intgr(LtNo)],Lt1,Lcs).
   mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(92)],Lts,Lcs).
-  mnem(.iLocal(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(93),.intgr(U),.intgr(LtNo)],Lt1,Lcs).
 
   mnem(I,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
@@ -400,7 +398,6 @@ star.compiler.assem{
   showIns(.iCmp(V),Pc) => "Cmp $(V)".
   showIns(.iFrame(U),Pc) => "Frame $(U)".
   showIns(.idBug,Pc) => "dBug".
-  showIns(.iLocal(U,V),Pc) => "Local $(U) $(V)".
 
 
   showPc:(cons[integer]) => string.
@@ -409,5 +406,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1071833283800003086.
+  public opcodeHash = 855221420700215238.
 }

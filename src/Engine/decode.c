@@ -13,7 +13,6 @@
 #include "signature.h"
 #include "labelsP.h"
 #include "closureP.h"
-#include "array.h"
 #include "codeP.h"
 #include "libEscapes.h"
 #include "../Jit/ARM64/Headers/arm64.h"
@@ -286,9 +285,9 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       return res;
     }
     case lblTrm: {
-      integer arity;
+      int32 arity;
 
-      if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
+      if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
 
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
@@ -434,46 +433,24 @@ retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize) {
 typedef struct break_level_ *breakLevelPo;
 
 typedef struct break_level_ {
-  arrayPo locs;
-  integer pc;
+  int32 pc;
   breakLevelPo parent;
   char *errorMsg;
   integer msgSize;
 } BreakLevel;
 
-static void recordLoc(breakLevelPo brk, integer pc, int32 litNo) {
-  arrayPo ar = brk->locs;
-  MethodLoc loc = {.pc=pc, .litNo=litNo};
-  appendEntry(ar, &loc);
-}
-
 static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk);
 static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
-static comparison byPc(arrayPo ar, integer ix, integer iy, void *cl) {
-  methodLocPo sx = (methodLocPo) nthEntry(ar, ix);
-  methodLocPo sy = (methodLocPo) nthEntry(ar, iy);
-  return ixCmp(sx->pc, sy->pc);
-}
-
-retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, arrayPo *locs, char *errorMsg, long msgSize) {
+retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
-  arrayPo lcs = allocArray(sizeof(MethodLoc), 16, True);
-  BreakLevel brk = {.locs=lcs, .pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
+  BreakLevel brk = {.pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
   int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
   *code = (insPo) malloc(sizeof(Instruction) * (size_t) *insCount);
   tryRet(copyOutData(ar, (void *) *code, sizeof(Instruction) * (size_t) *insCount));
   eraseArray(ar, Null, Null);
-
-  if (arrayCount(lcs) > 0) {
-    sortArray(lcs, byPc, Null); // sort by pc, to make searching for location easier
-    *locs = lcs;
-  } else {
-    *locs = Null;
-    eraseArray(lcs, Null, Null);
-  }
 
   return Ok;
 }
@@ -506,10 +483,9 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #define sztPe(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szEs(Tgt) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = lookupEscape(escNm);} (*count)--;
 #define szglb(Tgt) {retCode ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = globalVarNo(escNm);} (*count)--;
-#define szbLk(Tgt) { tryRet(decodeBlock(in, ar,  pc, &(Tgt), brk));   \
+#define szbLk(Tgt) { ret = decodeBlock(in, ar,  pc, &(Tgt), brk);   \
                     (*count)--;  }
-#define szlVl(Tgt) { int32 lvl; tryRet(decodeI32(in, &lvl)); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
-#define szlNe(Tgt) { ret = decodeI32(in, &(Tgt)); (*count)--; recordLoc(brk,*pc,(Tgt));}
+#define szlVl(Tgt) { int32 lvl; ret = decodeI32(in, &lvl); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\
       case Op:{                             \
@@ -535,7 +511,6 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #undef szglb
 #undef sznOp
 #undef sztOs
-#undef szlNe
       default: {
         strMsg(brk->errorMsg, brk->msgSize, "invalid instruction encoding");
         return Error;
@@ -546,7 +521,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .locs=brk->locs, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);

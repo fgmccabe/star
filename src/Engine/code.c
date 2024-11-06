@@ -14,6 +14,7 @@
 #include "tpl.h"
 #include "decodeP.h"
 #include "pkgP.h"
+#include "arith.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -71,6 +72,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo) &mtd->pool, c);
+  helper((ptrPo) &mtd->locs, c);
 
   return ((termPo) o) + mtdSize(cl, o);
 }
@@ -124,53 +126,52 @@ logical validPC(methodPo mtd, insPo pc) {
   return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
-int32 codeOffset(methodPo mtd, insPo pc){
-  assert(validPC(mtd,pc));
-  return (int32)(pc-mtd->instructions);
+int32 codeOffset(methodPo mtd, insPo pc) {
+  assert(validPC(mtd, pc));
+  return (int32) (pc - mtd->instructions);
 }
 
 termPo findPcLocation(methodPo mtd, int32 pc) {
-  arrayPo locs = mtd->locs;
-  if (locs != Null) {
+  if (mtd->locs!=Null && isNormalPo(mtd->locs)) {
+    normalPo locs = C_NORMAL(mtd->locs);
+
     integer start = 0;
-    integer limit = arrayCount(locs) - 1;
+    integer limit = termArity(locs) - 1;
 
     integer lowerPc = -1;
     integer upperPc = codeSize(mtd);
 
-    int32 lowerLoc = -1;
-    int32 upperLoc = -1;
+    termPo lowerLoc = Null;
+    termPo upperLoc = Null;
 
     while (limit >= start) {
       integer mid = start + (limit - start) / 2;
-      methodLocPo midEntry = (methodLocPo) nthEntry(locs, mid);
-      int32 testPc = midEntry->pc;
-      int32 testLit = midEntry->litNo;
 
-      if (testPc == pc) {
-        if (testLit > 0)
-          return getMtdLit(mtd, testLit);
-        else
-          return Null;
-      } else if (testPc < pc) {
+      normalPo midEntry = C_NORMAL(nthArg(locs, mid));
+
+      int32 testPc = (int32) integerVal(nthArg(midEntry, 0));
+
+      if (testPc == pc)
+        return nthArg(midEntry, 1);
+      else if (testPc < pc) {
         start = mid + 1;
         if (testPc > lowerPc) {
           lowerPc = testPc;
-          lowerLoc = testLit;
+          lowerLoc = nthArg(midEntry, 1);
         }
       } else {
         limit = mid - 1;
 
         if (testPc < upperPc) {
           upperPc = testPc;
-          upperLoc = testLit;
+          upperLoc = nthArg(midEntry, 1);
         }
       }
     }
-    if (lowerLoc >0)
-      return getMtdLit(mtd, lowerLoc);
-    else if(upperLoc>-1)
-      return getMtdLit(mtd, upperLoc);
+    if (lowerLoc != Null)
+      return lowerLoc;
+    else if (upperLoc != Null)
+      return upperLoc;
     else
       return Null;
   } else
@@ -266,18 +267,17 @@ int32 codeArity(methodPo mtd) {
   return mtd->arity;
 }
 
-int32 methodSigLit(methodPo mtd)
-{
+int32 methodSigLit(methodPo mtd) {
   return mtd->sigIx;
 }
 
-int32 codeSize(methodPo mtd){
+int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
 methodPo
 defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
-          labelPo lbl, normalPo pool, arrayPo locs) {
+          labelPo lbl, normalPo pool, termPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
 
