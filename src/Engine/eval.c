@@ -1384,10 +1384,11 @@ retCode run(processPo P) {
       case dBug: {
         if (lineDebugging) {
           saveRegisters();
+          FP->pc++;                   // We aim to continue at the next instruction
           enterDebug(P);
           restoreRegisters();
         }
-        break;
+        continue;
       }
 
       default:

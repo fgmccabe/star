@@ -756,13 +756,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
       case dBug:
         pc++;
         continue;
-      case Local: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        pc++;
-        continue;
-      }
+
       case illegalOp:
       case maxOpCode:
         return verifyError(&ctx, ".%d: illegal instruction", pc);

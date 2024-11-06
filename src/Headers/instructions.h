@@ -132,4 +132,3 @@ instruction(Cmp, tOs, lVl, -2, "F(pp)()", "t1 t2 --> , branch to offset if not s
 instruction(Frame, tPe, nOp, 0, "F()()", "frame instruction")
 
 instruction(dBug, nOp, nOp, 0, "F()()", "debugging prefix")
-instruction(Local, lcl, lit, 0, "F()()", "introduce local variable")

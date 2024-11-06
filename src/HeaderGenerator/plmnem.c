@@ -381,6 +381,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case nOp:
         case tOs:
           outMsg(out, ",V|M],Cdx) :-\n");
+          outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         default:
@@ -390,11 +391,13 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       break;
     case lVl:                            // program counter relative offset
       outMsg(out, ",Lvl|M],Cdx) :-\n");
+      outMsg(out, "      Pc1 is Pc+1,\n");
       outMsg(out, "      findLevel(V,Lbls,0,Lvl),\n");
       outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
       break;
     case bLk:
       outMsg(out, ",B|M],Cdx) :-\n");
+      outMsg(out, "      Pc1 is Pc+1,\n");
       outMsg(out, "      assemBlock(V,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),\n");
       outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).\n");
     default:

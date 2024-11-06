@@ -794,21 +794,17 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   return outMsg(out, ")");
 }
 
-static retCode shCall(ioPo out, char *msg, termPo loc, methodPo mtd, stackPo stk) {
-  tryRet(outMsg(out, "%s %#L %#.16T", msg, loc, mtd));
-
-  return shArgs(out, displayDepth, stk->sp, codeArity(mtd));
-}
-
 void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
   methodPo mtd = frameMtd(f);
   termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
   if (showColors)
-    shCall(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF, loc, mtd, stk);
+    outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16T", loc, mtd);
   else
-    shCall(out, "entry:", loc, mtd, stk);
+    outMsg(out, "entry: %#L %#.16T", loc, mtd);
+
+  shArgs(out, displayDepth, (ptrPo) (stk->fp + 1), codeArity(mtd));
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {

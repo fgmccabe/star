@@ -256,8 +256,7 @@ static char *consPreamble = "n3o3\1cons\1";
 static char *structPreamble = "n3o3\1struct\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
-static char *funcPreamble = "n8o8\1func\1";
-static char *globalPreamble = "n7o7\1global\1";
+static char *funcPreamble = "n9o9\1func\1";
 
 typedef enum {
   hardDef,
@@ -265,7 +264,6 @@ typedef enum {
 } DefinitionMode;
 
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
-static retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
@@ -277,8 +275,6 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
     for (int32 ix = 0; ret == Ok && ix < count; ix++) {
       if (isLookingAt(in, funcPreamble) == Ok)
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
-      else if (isLookingAt(in, globalPreamble) == Ok)
-        ret = loadGlobal(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, consPreamble) == Ok)
@@ -385,8 +381,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   if (ret == Ok) {
     int32 insCount = 0;
     insPo instructions = Null;
-    arrayPo locs;
-    ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
+    ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize);
 
     if (ret == Ok) {
       termPo pool = voidEnum;
@@ -402,98 +397,32 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         ret = decode(in, &support, H, &locals, tmpBuffer);
 
         if (ret == Ok) {
-          labelPo lbl = declareLbl(prgName, arity, -1);
-
-          if (labelCode(lbl) != Null) {
-            if (redefine != softDef) {
-              strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-              ret = Error;
-            } // Otherwise don't redefine
-          } else {
-            gcAddRoot(H, (ptrPo) &lbl);
-
-            methodPo mtd = defineMtd(H, insCount, instructions, sigIndex, lclCount, stackHeight, lbl, C_NORMAL(pool),
-                                     locs);
-            if (enableVerify)
-              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-
-            if (ret == Ok && jitOnLoad)
-              ret = jitMethod(mtd, errorMsg, msgSize);
-          }
-        }
-      }
-      gcReleaseRoot(H, root);
-    }
-  }
-
-  if (ret == Error)
-    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
-
-  return ret;
-}
-
-retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
-  char prgName[MAX_SYMB_LEN];
-  int32 arity;
-  int32 lclCount = 0;
-
-  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
-
-#ifdef TRACEPKG
-  if (tracePkg >= detailedTracing)
-    logMsg(logFile, "loading global %s/%d", &prgName, arity);
-#endif
-
-  if (ret == Ok)
-    ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
-
-  if (ret == Ok)
-    ret = decI32(in, &lclCount);
-
-  if (ret == Ok) {
-    insPo instructions;
-    int32 insCount;
-    arrayPo locs;
-
-    ret = decodeInstructions(in, &insCount, &instructions, &locs, errorMsg, msgSize);
-
-    if (ret == Ok) {
-      termPo pool = voidEnum;
-      int root = gcAddRoot(H, &pool);
-      EncodeSupport support = {errorMsg, msgSize, H};
-      strBufferPo tmpBuffer = newStringBuffer();
-
-      ret = decode(in, &support, H, &pool, tmpBuffer);
-
-      if (ret == Ok) {
-        termPo locals = voidEnum;
-        gcAddRoot(H, &locals);
-        ret = decode(in, &support, H, &locals, tmpBuffer);
-
-        if (ret == Ok) {
-          termPo lines = voidEnum;
-          gcAddRoot(H, &lines);
-          ret = decode(in, &support, H, &lines, tmpBuffer);
+          termPo locs = voidEnum;
+          gcAddRoot(H, &locs);
+          ret = decode(in, &support, H, &locs, tmpBuffer);
 
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity, -1);
 
             if (labelCode(lbl) != Null) {
-              strMsg(errorMsg, msgSize, "attempt to redeclare global %A", lbl);
-              ret = Error;
+              if (redefine != softDef) {
+                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+                ret = Error;
+              } // Otherwise don't redefine
             } else {
               gcAddRoot(H, (ptrPo) &lbl);
 
-              int32 stackDelta = maxDepth(instructions, insCount, C_NORMAL(pool)) + lclCount;
-
-              methodPo mtd = defineMtd(H, insCount, instructions, 1, lclCount, stackDelta, lbl, C_NORMAL(pool), locs);
+              methodPo mtd = defineMtd(H, insCount, instructions, sigIndex, lclCount, stackHeight, lbl, C_NORMAL(pool),
+                                       locs);
               if (enableVerify)
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+
+              if (ret == Ok && jitOnLoad)
+                ret = jitMethod(mtd, errorMsg, msgSize);
             }
           }
         }
       }
-      closeIo(O_IO(tmpBuffer));
       gcReleaseRoot(H, root);
     }
   }

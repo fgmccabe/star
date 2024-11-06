@@ -101,14 +101,13 @@ typedef enum {
     Cmp = 90,            // t1 t2 --> , branch to offset if not same literal
     Frame = 91,            // frame instruction
     dBug = 92,            // debugging prefix
-    Local = 93,            // introduce local variable
 
   illegalOp,
   maxOpCode
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1071833283800003086
+#define OPCODE_SIGNATURE 855221420700215238
 #endif
 
 typedef enum {
