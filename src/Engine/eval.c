@@ -418,14 +418,6 @@ retCode run(processPo P) {
         break;
       }
 
-    breakPoint:{
-        PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
-        PC += PC->alt + 1;
-        continue;
-      }
-
       case Break: {
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
@@ -787,9 +779,13 @@ retCode run(processPo P) {
         termPo l = nthElem(LITS, PC->fst);
         termPo t = top();
 
-        if (!sameTerm(l, t))
-          goto breakPoint;
-        else
+        if (!sameTerm(l, t)) {
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
+        } else
           break;
       }
 
@@ -802,7 +798,11 @@ retCode run(processPo P) {
           if (sameLabel(l, termLbl(cl)))
             break;
         }
-        goto breakPoint;
+        PC += PC->alt + 1;  // First jump to the block
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
+        continue;
       }
 
       case Nth: {
@@ -1080,7 +1080,11 @@ retCode run(processPo P) {
         termPo j = pop();
 
         if (integerVal(i) != integerVal(j)) {
-          goto breakPoint;
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         }
         break;
       }
@@ -1113,7 +1117,11 @@ retCode run(processPo P) {
         termPo j = pop();
 
         if (charVal(i) != charVal(j)) {
-          goto breakPoint;
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         } else
           break;
       }
@@ -1266,7 +1274,11 @@ retCode run(processPo P) {
         termPo y = pop();
 
         if (floatVal(x) != floatVal(y)) {
-          goto breakPoint;
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         } else
           break;
       }
@@ -1334,9 +1346,13 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
 
-        if (!sameTerm(i, j))
-          goto breakPoint;
-        else
+        if (!sameTerm(i, j)) {
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
+        } else
           break;
       }
 
@@ -1344,7 +1360,11 @@ retCode run(processPo P) {
         termPo i = pop();
 
         if (sameTerm(i, trueEnum)) {
-          goto breakPoint;
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         } else
           break;
       }
@@ -1353,7 +1373,11 @@ retCode run(processPo P) {
         termPo i = pop();
 
         if (!sameTerm(i, trueEnum)) {
-          goto breakPoint;
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         } else
           break;
       }
