@@ -238,8 +238,8 @@ compAction(iftte(Lc,G,A,B),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compAction(A,Lc,Ok,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Thn)],Stk,Stka),
   compAction(B,Lc,Ok,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iBreak(Thn)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"conditional action").
-compAction(try(Lc,B,T,E,H),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!, 
-  compTry(Lc,B,T,E,H,OLc,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compAction(try(Lc,B,T,E,H),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compTry(Lc,B,tplTipe([]),T,E,H,OLc,gencode:compCaseAct(Ok),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compAction(vls(Lc,E),OLc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,Last,Opts,L,Lx,D,Dx,C0,[iBreak(Ok)|Cx],Stk,_).
@@ -252,11 +252,13 @@ compAction(A,Lc,_Ok,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-
 compCaseAct(Ok,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Ok,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
-compTry(Lc,B,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Try,iTry(FlatTp,[iStL(TV)|BC]))|HC]))|Cz]),
+compTry(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Try,iTry(TryTp,[iStL(TV)|BC]))|HC]))|Cz]),
   genLbl(L,Ok,L0),
   genLbl(L0,Try,L1),
-  flatBlockSig(FlatTp),
+  nearlyFlatSig(ResTp,BlkTp),
+  toLtipe(ETp,ETipe),
+  blockSig([ETipe],ResTp,TryTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
   call(Hndlr,B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Try)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
@@ -264,17 +266,18 @@ compTry(Lc,B,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,S
   call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
-caseBlockSig(ResTp,strg(Sig)) :-
-  mkFnTipe([ptrTipe],ResTp,BlkTp), % consume at least one existing el from stack
+blockSig(ArgTps,ResTp,strg(Sig)) :-
+  mkFnTipe(ArgTps,ResTp,BlkTp),
   encLtp(BlkTp,Sig).
 
-flatBlockSig(strg(Sig)) :-
-  mkFnTipe([],tplTipe([]),FlatTp),
-  encLtp(FlatTp,Sig).
+caseBlockSig(ResTp,Sig) :-
+  blockSig([ptrTipe],ResTp,Sig). % consume at least one existing el from stack
 
-nearlyFlatSig(Tp,strg(Sig)) :-
-  mkFnTipe([],Tp,BlkTp),
-  encLtp(BlkTp,Sig).
+flatBlockSig(Sig) :-
+  blockSig([],tplTipe([]),Sig).
+
+nearlyFlatSig(Tp,Sig) :-
+  blockSig([],Tp,Sig).
 
 frameSig(Stk,strg(Sig)) :-
   mkTplTipe(Stk,FrTp),
@@ -530,7 +533,9 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   caseBlockSig(ptrTipe,CaseBlkTp),
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(try(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  compTry(Lc,B,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
+  tipeOf(B,BTp),
+  toLtipe(BTp,ResTp),
+  compTry(Lc,B,ResTp,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,_).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),

@@ -519,8 +519,9 @@ static void genLocalHwmOp(ioPo out, opAndSpec A, char *var, integer *C, integer 
       (*H)++;
       break;
     case bLk: {
-      outMsg(out, "  localHwm(%s,C%d,H%d,H%d),\n", var, *C, *H, (*H) + 1);
+      outMsg(out, "  localHwm(%s,C%d,C%d,H%d,H%d),\n", var, *C, (*C)+1, *H, (*H) + 1);
       (*H)++;
+      (*C)++;
       break;
     }
     default:
@@ -541,7 +542,7 @@ static void genLocalHwm(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
   if (strcmp(sep, ",") == 0)
     outStr(out, ")");
 
-  outMsg(out, "|Ins],C0,H0,Hwm) :-\n");
+  outMsg(out, "|Ins],C0,Cx,H0,Hwm) :-\n");
 
   integer HVar = 0;
   integer CVar = 0;
@@ -549,7 +550,7 @@ static void genLocalHwm(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
   genLocalHwmOp(out, A1, "V", &CVar, &HVar);
   genLocalHwmOp(out, A2, "W", &CVar, &HVar);
 
-  outMsg(out, "  localHwm(Ins,C%d,H%d,Hwm).\n", CVar, HVar);
+  outMsg(out, "  localHwm(Ins,C%d,Cx,H%d,Hwm).\n", CVar, HVar);
 }
 
 typedef struct {

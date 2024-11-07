@@ -195,7 +195,8 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
 closureEntry(Map,Lc,Name,Tp,Arity,Extra,[ClEntry|L],L) :-
   lookupVar(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure),!,
-  progArgTypes(Tp,Tps),
+  extendFunTp(Tp,Extra,ATp),
+  realArgTypes(ATp,Tps),
   genVars(Tps,Args),
   extendFunTp(Tp,[_],TTp),
   Ar is Arity+1,
