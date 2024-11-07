@@ -25,6 +25,7 @@ typedef struct verify_context_ {
   int32 from;
   int32 limit;
   integer exitDepth;
+  logical propagated;    // Have we had an exit?
   varPo locals;
   int32 lclCount;
   verifyCtxPo parent;
@@ -39,7 +40,7 @@ verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentC
 static retCode
 extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
-static void initVars(varPo vars,integer count) {
+static void initVars(varPo vars, integer count) {
   for (integer ix = 0; ix < count; ix++) {
     vars[ix].inited = False;
     vars[ix].read = False;
@@ -51,10 +52,11 @@ static void copyVars(varPo vars, varPo src, integer count) {
     vars[ix] = src[ix];
 }
 
-static void mergeVars(varPo dst, varPo src, integer count) {
-  assert(dst != Null && src!=Null);
+static void mergeVars(varPo dst, varPo src, integer count, logical propagated) {
+  assert(dst != Null && src != Null);
   for (integer ix = 0; ix < count; ix++) {
-    dst[ix].inited &= src[ix].inited;
+    if (!propagated)
+      dst[ix].inited |= src[ix].inited;
     dst[ix].read |= src[ix].read;
   }
 }
@@ -68,14 +70,15 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   int32 lclCnt = lclCount(mtd);
   Var locals[lclCnt];
 
-  initVars(locals,lclCnt);
+  initVars(locals, lclCnt);
 
   VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
     .mtd=mtd, .from = 0, .limit=codeSize(mtd),
     .parent=Null,
     .exitDepth=1,
     .locals=locals,
-    .lclCount=lclCnt};
+    .lclCount=lclCnt,
+    .propagated=False};
 
   int32 delta = 0;
 
@@ -115,7 +118,7 @@ extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char
   }
 }
 
-static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integer delta) {
+static retCode checkBreak(verifyCtxPo ctx, int32 pc, integer stackDepth, int32 delta) {
   verifyCtxPo tgtCtx = ctx;
 
   int32 tgt = pc + 1 + delta;
@@ -130,7 +133,8 @@ static retCode checkBreak(verifyCtxPo ctx, integer pc, integer stackDepth, integ
                          stackDepth);
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
-  mergeVars(tgtCtx->locals, ctx->locals, lclCount(ctx->mtd));
+  mergeVars(tgtCtx->locals, ctx->locals, lclCount(ctx->mtd), ctx->propagated);
+  ctx->propagated = True;
   return Ok;
 }
 
@@ -139,7 +143,7 @@ static logical isLastPC(int32 pc, int32 limit) {
 }
 
 retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo parentCtx, const char *blockSig,
-            integer sigLen) {
+                    integer sigLen) {
   int32 entryDepth, exitDepth;
   tryRet(extractBlockSig(&entryDepth, &exitDepth, parentCtx, blockSig, sigLen));
   int32 stackDepth = entryDepth;
@@ -152,7 +156,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
 
   int32 lclCnt = parentCtx->lclCount;
   Var locals[lclCnt];
-  copyVars(locals,parentCtx->locals,lclCnt);
+  copyVars(locals, parentCtx->locals, lclCnt);
 
   VerifyContext ctx = {.prefix=prefix,
     .errorMsg=parentCtx->errorMsg, .msgLen=parentCtx->msgLen,
@@ -162,7 +166,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
     .parent = parentCtx,
     .exitDepth=exitDepth,
     .locals = locals,
-    .lclCount = lclCnt};
+    .lclCount = lclCnt,
+    .propagated=False};
 
   while (pc < limit) {
     insPo ins = &code[pc];
@@ -355,10 +360,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         } else {
           integer sigLn;
           const char *blockSg = strVal(lit, &sigLn);
+          int32 blockLen = code[pc].alt;
+          pc++;
 
-          if (verifyBlock(pc, pc + 1, code[pc].alt, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
-            stackDepth += blockDelta;
-            pc = code[pc].alt;
+          if (verifyBlock(pc - 1, pc, pc + blockLen, &blockDelta, &ctx, blockSg, sigLn) == Ok) {
+            stackDepth++; // We have an error code if we fail
+            pc += blockLen;
             continue;
           } else
             return Error;
@@ -368,6 +375,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient stack depth for EndTry", pc);
         stackDepth--;
+        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt) != Ok)
+          return Error;
         pc++;
         continue;
       }
@@ -416,7 +425,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         continue;
       }
       case LdL: {
-        int32 lclNo = code[pc].fst-1;
+        int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].read = True;
@@ -427,7 +436,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         continue;
       }
       case StL: {
-        int32 lclNo = code[pc].fst-1;
+        int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         if (stackDepth < 1)
@@ -439,7 +448,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
       }
       case StV:
       case TL: {
-        int32 lclNo = code[pc].fst-1;
+        int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         ctx.locals[lclNo].inited = True;
@@ -762,7 +771,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, verifyCtxPo
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
-  mergeVars(parentCtx->locals, locals, lclCnt);
+  mergeVars(parentCtx->locals, locals, lclCnt, ctx.propagated);
   return Ok;
 }
 

@@ -19,7 +19,7 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     encPolicy(Pol,HP),
     mkTpl(Lns,LnTpl),
     stackHwm(Ins,0,0,HWM),
-    localHwm(Ins,[],0,Lx),
+    localHwm(Ins,[],_,0,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl,LnTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -56,11 +56,11 @@ countLocal(Nm,Lcs,Lx,Hwm,H1) :-
     H1 = Ln;
     H1 = Hwm).
 
-localHwm([],_,H,H).
-localHwm([iLbl(_,I)|Ins],C,H,Hx) :-
-  localHwm([I|Ins],C,H,Hx).
-localHwm([iLine(_)|Ins],C,H,Hx) :-
-  localHwm(Ins,C,H,Hx).
+localHwm([],Cx,Cx,H,H).
+localHwm([iLbl(_,I)|Ins],C,Cx,H,Hx) :-
+  localHwm([I|Ins],C,Cx,H,Hx).
+localHwm([iLine(_)|Ins],C,Cx,H,Hx) :-
+  localHwm(Ins,C,Cx,H,Hx).
 #(localHwm)
 
 assemBlock(Ins,Lb,Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-

@@ -501,6 +501,17 @@ examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
+examineTerm(A,Ax) :-
+  isReset(A,Lc,H,E),!,
+  macroTerm(H,Hx),
+  macroType(E,Ex),
+  mkReset(Lc,Hx,Ex,Ax).
+examineTerm(A,Ax) :-
+  isShift(A,Lc,T,K,S),!,
+  macroTerm(T,Tx),
+  macroTerm(K,Kx),
+  macroType(S,Sx),
+  mkShift(Lc,Tx,Kx,Sx,Ax).
 examineTerm(T,Tx) :-
   isParseCall(T,Lc,L,R),!,
   macroTerm(L,Lx),

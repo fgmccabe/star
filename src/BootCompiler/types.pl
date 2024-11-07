@@ -3,7 +3,7 @@
 	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,mkFnTipe/3,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
-	   progTypeArity/2,progArgTypes/2,funResType/2,
+	   progTypeArity/2,progArgTypes/2,realArgTypes/2,funResType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,
@@ -292,6 +292,23 @@ tpArity(consType(A,_),Ar) :- !,
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
+
+realArgTypes(Tp,ArTps) :- deRef(Tp,TT), rlArgTypes(TT,ArTps).
+
+rlArgTypes(allType(_,Tp),As) :- !, realArgTypes(Tp,As).
+rlArgTypes(existType(_,Tp),As) :- !, realArgTypes(Tp,As).
+rlArgTypes(constrained(Tp,C),[CC|As]) :- !,
+  realArgTypes(Tp,As),
+  contractType(C,CC).
+rlArgTypes(funType(A,_),As) :- !,
+  realArgTypes(A,As).
+rlArgTypes(consType(A,_),As) :- !,
+  realArgTypes(A,As).
+rlArgTypes(tplType(A),A) :- !.
+rlArgTypes(faceType(Flds,_),As) :- !,
+  sort(Flds,types:cmpFld,SFlds),
+  project0(SFlds,As).
+rlArgTypes(_,[]).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 

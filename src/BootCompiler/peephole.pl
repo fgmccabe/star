@@ -11,10 +11,10 @@
 
 peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
-  findUnusedVars(LsMap,PIns,LsMx,Insx).
+  findUnusedVars(LsMap,PIns,LsMx,Insx),!.
 
 peepCode(Ins,Lbls,Code) :-
-  dropUnreachable(Ins,Is),
+  dropUnreachable(Ins,Is),!,
   peep(Is,Lbls,Code).
 
 findUnusedVars([(Vr,_Spec)|Vrs],Ins,AVrs,ACde) :-
@@ -30,7 +30,7 @@ varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iTry(_,I)) :- varRead(Vr,I).
-vrRead(Vr,iLdL(Vr)) :-!.
+vrRead(Vr,iLdL(Vr)).
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
 dropVar(_,[],[]).
@@ -39,6 +39,9 @@ dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStV(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iLocal(Vr,_)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
+  dropVar(Vr,In,Inx),
+  dropVar(Vr,Is,Isx).
+dropVar(Vr,[iTry(Sig,In)|Is],[iTry(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
   dropVar(Vr,Is,Isx).
 dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
@@ -55,6 +58,7 @@ dropUnreachable([],[]) :-!.
 dropUnreachable([iBreak(Lvl)|_],[iBreak(Lvl)]) :-!.
 dropUnreachable([iLoop(Lvl)|_],[iLoop(Lvl)]) :-!.
 dropUnreachable([iEndTry(Lvl)|_],[iEndTry(Lvl)]) :-!.
+dropUnreachable([iThrow|_],[iThrow]) :-!.
 dropUnreachable([iRet|_],[iRet]) :-!.
 dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
 dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
@@ -81,13 +85,12 @@ peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-!,
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
-peep([iLbl(Lb,iTry(Tps,IB))|Is],Lbls, Ins) :-!,
+peep([iLbl(Lb,iTry(Tp,IB))|Is],Lbls, Ins) :-!,
   peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
-   Ins=[iLbl(Lb,iTry(Tps,IB0))|Is0];
-   concat(IB0,Is0,Is1),
-   peepCode(Is1,Lbls,Ins)).
+   Ins=[iLbl(Lb,iTry(Tp,IB0))|Is0];
+   Ins=[iTry(Tp,IB0)|Is0]).
 peep([iTry(Tpe,IB)|Is],Lbls, [iTry(Tpe,IBs)|Ins]) :-
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
@@ -143,6 +146,8 @@ lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-
   lblReferenced(Lb,I).
+lblReferenced(Lb,[iTry(_,I)|_]) :-
+  lblReferenced(Lb,I).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 resolveLblRef(Lb,Lbls,LLb) :-
@@ -150,12 +155,6 @@ resolveLblRef(Lb,Lbls,LLb) :-
   (Cde=[iBreak(Lb0)|_] ->
    resolveLblRef(Lb0,Lbls,LLb) ;
    LLb = Lb).
-
-varReferenced(Nm,[iLdL(Nm)|_]) :-!.
-varReferenced(Nm,[iLbl(_,I)|_]) :- varReferenced(Nm,[I]),!.
-varReferenced(Nm,[iBlock(_,I)|_]) :- varReferenced(Nm,I),!.
-varReferenced(Nm,[iTry(_,I)|_]) :- varReferenced(Nm,I),!.
-varReferenced(Nm,[_|Ins]) :- varReferenced(Nm,Ins).
 
 copyN(0,I,I,X,X) :-!.
 copyN(N,[A|I],Ix,[A|X],Xx) :-

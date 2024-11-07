@@ -1045,15 +1045,18 @@ static void showTopOfStack(ioPo out, stackPo stk, integer cnt) {
     outStr(out, " <tos>");
 }
 
-static void showPcOffset(ioPo out, int32 offset) {
-  outMsg(out, " PC[%+d]", offset);
+static void showPcTgt(ioPo out, int32 pc, int32 offset) {
+  if (pc >= 0)
+    outMsg(out, " ↓[%d]", pc + offset);
+  else
+    outMsg(out, " ↓%d", offset);
 }
 
 static void showBlkLvl(ioPo out, int32 pc, int32 offset) {
   if (pc >= 0)
-    outMsg(out, " ^[%d]", pc + 1 + offset);
+    outMsg(out, " ↑[%d]", pc + 1 + offset);
   else
-    outMsg(out, " ^%d", offset);
+    outMsg(out, " ↑%d", offset);
 }
 
 static void showEscCall(ioPo out, int32 escNo) {
@@ -1085,7 +1088,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_arg(Tgt) showArg(out,stk,(Tgt))
 #define show_lcl(Tgt) showLcl(out,stk,(Tgt))
 #define show_lcs(Tgt) outMsg(out," l[%d]",(Tgt))
-#define show_bLk(Tgt) showPcOffset(out,(Tgt))
+#define show_bLk(Tgt) showPcTgt(out,offset,(Tgt)+1)
 #define show_lVl(Tgt) showBlkLvl(out,offset,(Tgt))
 #define show_sym(Tgt) showConstant(out,mtd,(Tgt))
 #define show_Es(Tgt) showEscCall(out, (Tgt))
