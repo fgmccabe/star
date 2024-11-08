@@ -47,7 +47,7 @@ instruction(Underflow, nOp, nOp, 0, "F()()", "underflow from current stack")
 instruction(TEq, tOs, tOs, -1, "F(pp)l", "L R --> L==R, where L,R are tasks")
 
 instruction(Try, tPe, bLk, 1, "F()p", "a try-catch block")
-instruction(EndTry, tOs, nOp, -1, "F(p)()", "end try")
+instruction(EndTry, tOs, lVl, -1, "F(p)()", "end try")
 instruction(Throw, tOs, tOs, 0, "F(p)v", "Invoke a continuation")
 instruction(Reset,tOs,nOp,0, "F(p)()", "establish a delimited zone")
 instruction(Shift,tOs,tOs,-1,"F(pp)v", "capture continuation")

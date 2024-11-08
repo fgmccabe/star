@@ -81,14 +81,24 @@ test.f0{
 
   public exception ::= .exception(string).
 
-  trial:()=>().
-  trial() => valof{
+  thrw:()=>().
+  thrw() => valof{
     try{
       raise .exception("bong");
     } catch exception in {
       .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis () }
     }
   }
+
+  nothrw:()=>option[string].
+  nothrw() => valof{
+    try{
+      valis .some("no throw")
+    } catch exception in {
+      .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis .none }
+    }
+  }
+  
 
   _main(_) => valof{
     X = fact(4);
@@ -98,7 +108,8 @@ test.f0{
 
     _logmsg(dspEr(.eNOFILE));
 
-    trial();
+    thrw();
+    _logmsg(_stringOf(nothrw(),0));
     valis ()
   }
 }
