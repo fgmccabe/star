@@ -126,8 +126,11 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, integer stackDepth, int32 d
   int32 tgt = pc + 1 + delta;
 
   while (tgtCtx != Null && tgtCtx->from != tgt) {
-    if(!isTry && tgtCtx->tryBlock)
+    if(isTry){
+      tgtCtx->tryBlock=False;
+    } else if(tgtCtx->tryBlock)
       return verifyError(ctx, ".%d:not permitted to break out of a try block", pc);
+
     tgtCtx = tgtCtx->parent;
   }
 
@@ -379,6 +382,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
       case EndTry: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient stack depth for EndTry", pc);
+        if (checkBreak(&ctx, pc, stackDepth, ins->alt, True) != Ok)
+          return Error;
         stackDepth--;
         pc++;
         continue;
