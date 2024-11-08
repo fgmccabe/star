@@ -34,7 +34,7 @@ typedef enum {
     Underflow = 23,            // underflow from current stack
     TEq = 24,            // L R --> L==R, where L,R are tasks
     Try = 25,            // a try-catch block
-    EndTry = 26,            // end try block
+    EndTry = 26,            // end try
     Throw = 27,            // Invoke a continuation
     Reset = 28,            // establish a delimited zone
     Shift = 29,            // capture continuation

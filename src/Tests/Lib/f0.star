@@ -79,6 +79,17 @@ test.f0{
 --  condTest(A,B) => (~(less(B,A) && less(A,B)) ?? "alpha" || "beta").
 --  condTest(A,B) => (( ~ less(A,B) || ~ less(B,A)) ?? "alpha" || "beta").
 
+  public exception ::= .exception(string).
+
+  trial:()=>().
+  trial() => valof{
+    try{
+      raise .exception("bong");
+    } catch exception in {
+      .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis () }
+    }
+  }
+
   _main(_) => valof{
     X = fact(4);
     _logmsg("hello world");
@@ -86,6 +97,8 @@ test.f0{
     _logmsg(_stringOf(fib(32),0));
 
     _logmsg(dspEr(.eNOFILE));
+
+    trial();
     valis ()
   }
 }
