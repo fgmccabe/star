@@ -380,8 +380,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient stack depth for EndTry", pc);
         stackDepth--;
-        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt, True) != Ok)
-          return Error;
         pc++;
         continue;
       }

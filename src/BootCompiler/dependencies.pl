@@ -306,9 +306,9 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isReset(T,_,H,E),!,
-  collectTermRefs(H,All,R,R1),
-  collectTermRefs(E,All,R1,Rx).
-collectTermRefs(T,All,Rf,Rfx) :-
+  collectTermRefs(H,All,Rf,R1),
+  collectTermRefs(E,All,R1,Rfx).
+collectTermRefs(T,All,R,Rx) :-
   isShift(T,_,T,K,S),!,
   collectTermRefs(T,All,R,R0),
   collectTermRefs(K,All,R0,R1),

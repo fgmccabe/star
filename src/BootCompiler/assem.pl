@@ -121,7 +121,7 @@ stackHwm([iTry(_,W)|Ins],CH0,H0,Hwm) :-
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(W,CH1,H1,H2),
   stackHwm(Ins,CH1,H2,Hwm).
-stackHwm([iEndTry(_)|Ins],CH0,H0,Hwm) :-
+stackHwm([iEndTry|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
@@ -419,7 +419,7 @@ localHwm([iTEq|Ins],C0,Cx,H0,Hwm) :-
 localHwm([iTry(_,W)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(W,C0,C1,H0,H1),
   localHwm(Ins,C1,Cx,H1,Hwm).
-localHwm([iEndTry(_)|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iEndTry|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iThrow|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -656,9 +656,8 @@ mnem([iTry(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[25,LtNo,B|M],Cdx) :-
       findLit(Lt,V,LtNo,Lt1),
       assemBlock(W,none,Lbls,Lt1,Lt2,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
       mnem(Ins,Lbls,Lt2,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
-mnem([iEndTry(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[26,Lvl|M],Cdx) :-
+mnem([iEndTry|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[26|M],Cdx) :-
       Pc1 is Pc+1,
-      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iThrow|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[27|M],Cdx) :-
       Pc1 is Pc+1,
@@ -884,7 +883,7 @@ baseOffset([none|Lbs],Base) :-
 baseOffset([],0).
 
 findLevel(Tgt,[(Tgt,_,_)|_],Lvl,Lvl) :-!.
-findLevel(Tgt,[none|Ends],L,Lo) :-!,
+findLevel(Tgt,[none|Ends],L,Lo) :-
       L1 is L+1,
       findLevel(Tgt,Ends,L1,Lo).
 findLevel(Tgt,[_|Ends],L,Lo) :-
@@ -1070,9 +1069,8 @@ showMnem(iTry(U,V),Pc,sq([PcDx,ss(": "),ss("Try"), ss(" "), UU, ss(","), VV])) :
   pcSpace(SPc,Dp),
   VV = sq([nl(Dp),iv(nl(Dp), Ms)]),
   true.
-showMnem(iEndTry(V),Pc,sq([PcDx,ss(": "),ss("EndTry"), ss(" "), VV])) :- !,
+showMnem(iEndTry,Pc,sq([PcDx,ss(": "),ss("EndTry")])) :- !,
   showPc(Pc,PcDx),
-  VV=ss(V),!,
   true.
 showMnem(iThrow,Pc,sq([PcDx,ss(": "),ss("Throw")])) :- !,
   showPc(Pc,PcDx),
