@@ -961,7 +961,8 @@ showBlock(Ins,Prefix,iv(nl(K),II)) :-
 showMnems([],_,[ss("end")]).
 showMnems([iLbl(Lb,L)|Ins],Pc,[sq([ss(Lb),ss(":"),LL])|II]) :-
   showMnem(L,Pc,LL),
-  showMnems(Ins,Pc,II).
+  bumpPc(Pc,Pc1),
+  showMnems(Ins,Pc1,II).
 showMnems([M|Ins],Pc,[MM|II]) :-
   showMnem(M,Pc,MM),
   bumpPc(Pc,Pc1),

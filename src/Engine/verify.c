@@ -25,7 +25,7 @@ typedef struct verify_context_ {
   int32 from;
   int32 limit;
   integer exitDepth;
-  logical propagated;    // Have we had an exit?
+  verifyCtxPo propagated;    // Where have we propagated to?
   logical tryBlock;      // Is this from a Try block?
   varPo locals;
   int32 lclCount;
@@ -79,7 +79,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     .exitDepth=1,
     .locals=locals,
     .lclCount=lclCnt,
-    .propagated=False,
+    .propagated=Null,
     .tryBlock=False};
 
   int32 delta = 0;
@@ -126,9 +126,9 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, integer stackDepth, int32 d
   int32 tgt = pc + 1 + delta;
 
   while (tgtCtx != Null && tgtCtx->from != tgt) {
-    if(isTry){
-      tgtCtx->tryBlock=False;
-    } else if(tgtCtx->tryBlock)
+    if (isTry) {
+      tgtCtx->tryBlock = False;
+    } else if (tgtCtx->tryBlock)
       return verifyError(ctx, ".%d:not permitted to break out of a try block", pc);
 
     tgtCtx = tgtCtx->parent;
@@ -140,8 +140,8 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, integer stackDepth, int32 d
                          stackDepth);
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
-  mergeVars(tgtCtx->locals, ctx->locals, lclCount(ctx->mtd), ctx->propagated);
-  ctx->propagated = True;
+  mergeVars(tgtCtx->locals, ctx->locals, lclCount(ctx->mtd), ctx->propagated == tgtCtx);
+  ctx->propagated = tgtCtx;
   return Ok;
 }
 
@@ -174,7 +174,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
     .exitDepth=exitDepth,
     .locals = locals,
     .lclCount = lclCnt,
-    .propagated=False,
+    .propagated=Null,
     .tryBlock=tryBlock};
 
   while (pc < limit) {
@@ -292,7 +292,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
         }
       }
 
-      case Loop:
+      case Loop: {
+        if (!isLastPC(pc, limit))
+          return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
+
+        if (checkBreak(&ctx, pc, stackDepth, code[pc].alt, False) != Ok)
+          return Error;
+        return Ok;
+      }
       case Break: {
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
@@ -345,12 +352,37 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
         continue;
       }
 
-      case Fiber:
-      case Spawn:
-      case Suspend:
+      case Fiber: {
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient stack depth for Fiber", pc);
+        pc++;
+        continue;
+      }
+      case Spawn: {
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient stack depth for Spawn", pc);
+        pc++;
+        stackDepth++;
+        continue;
+      }
+
       case Resume:
-      case Retire:
-        return verifyError(&ctx, ".%d: verify not implemented", pc);
+      case Suspend: {
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient stack depth for Resume/Suspend", pc);
+        pc++;
+        stackDepth--;
+        continue;
+      }
+
+      case Retire: {
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient stack depth for Retire", pc);
+        if (!isLastPC(pc++, limit))
+          return verifyError(&ctx, ".%d: Retire should be last instruction in block", pc);
+        return Ok;
+      }
+
       case Underflow:
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
       case TEq: {
@@ -405,13 +437,18 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
       }
       case Shift: {
         if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          return verifyError(&ctx, ".%d: insufficient args on stack for Shift: %d", pc, stackDepth);
         stackDepth -= 1;
         pc++;
         continue;
       }
-      case Invoke:
-        return verifyError(&ctx, ".%d: verify not implemented", pc);
+      case Invoke: {
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient args on stack for Invoke: %d", pc, stackDepth);
+        stackDepth -= 1;
+        pc++;
+        continue;
+      }
       case LdV:
         stackDepth++;
         pc++;
@@ -779,7 +816,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, int32 *delta, logical try
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
-  mergeVars(parentCtx->locals, locals, lclCnt, ctx.propagated);
+  mergeVars(parentCtx->locals, locals, lclCnt, ctx.propagated == parentCtx);
   return Ok;
 }
 
