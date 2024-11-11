@@ -95,10 +95,10 @@ void initGlobals() {
   eCONNECT = declareEnum("eCONNECT", -1, globalHeap);
   eDEAD = declareEnum("eDEAD", -1, globalHeap);
 
-  falseEnum = declareEnum("false", -1, globalHeap);
-  trueEnum = declareEnum("true", -1, globalHeap);
+  falseEnum = declareEnum("false", 0, globalHeap);
+  trueEnum = declareEnum("true", 1, globalHeap);
 
-  voidEnum = declareEnum("void", -1, globalHeap);
+  voidEnum = declareEnum("void", 0, globalHeap);
 
   eofEnum = declareEnum("eof", -1, globalHeap);
   canceledEnum = declareEnum("canceled", -1, globalHeap);
