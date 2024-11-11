@@ -406,7 +406,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           int32 blockEntryDepth, blockExitDepth;
           tryRet(extractBlockSig(&blockEntryDepth, &blockExitDepth, &ctx, blockSg, sigLn));
 
-          if (stackDepth < blockEntryDepth)
+          if (stackDepth < blockEntryDepth-1) // The Try block has an extra value pushed on stack
             return verifyError(&ctx, ".%d Try Block stack on entry insufficiently deep: %d vs actual %d", pc,
                                blockEntryDepth, stackDepth);
 

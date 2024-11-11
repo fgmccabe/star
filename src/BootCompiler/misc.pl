@@ -1,7 +1,7 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,part2/3,
 	       is_member/2,add_mem/3,del_mem/3,one_of/1,
 	       merge/3,intersect/3,subtract/3,replace/4,filter/3,front/3,
-	       collect/4,map/3,lfold/4,rfold/4,forall/2,
+	       collect/4,map/3,lfold/4,rfold/4,foreach/2,
 	       project0/2,project1/2,project0_3/2,project1_3/2,project2_3/2,
 	       zip/3,split_list/4,index_list/3,nth_of/3,
 	       isIdentifier/1,
@@ -192,8 +192,8 @@ lfold([E|L],F,S,Sx) :-
   lfold(L,F,S,S0),
   call(F,E,S0,Sx),!.
 
-forall([],_) :-!.
-forall([T|Ts],P) :- call(P,T),!,forall(Ts,P).
+foreach([],_) :-!.
+foreach([T|Ts],P) :- call(P,T),!,foreach(Ts,P).
 
 appStr(Str,O,E) :- string_chars(Str,Chrs), concat(Chrs,E,O).
 
