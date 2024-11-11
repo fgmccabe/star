@@ -925,7 +925,7 @@ glVars(_,Dx,Dx).
 % Check for a 'simple' pattern (that is easy to compile)
 isSimplePtn(P) :- simplPtn(P),!.
 
-simplPtn(idnt(Nm,_)).
+simplPtn(idnt(_,_)).
 simplPtn(ann(_)).
 simplPtn(voyd).
 simplPtn(intgr(_)).
@@ -934,7 +934,7 @@ simplPtn(float(_)).
 simplPtn(chr(_)).
 simplPtn(strg(_)).
 simplPtn(lbl(_,_)).
-simplPtn(ctpl(_,Args)) :- forall(Args,lterms:simplTn),!.
+simplPtn(ctpl(_,Args)) :- foreach(Args,lterms:simplTn),!.
 simplPtn(enum(_)).
 
 

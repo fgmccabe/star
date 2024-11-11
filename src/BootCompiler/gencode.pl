@@ -217,7 +217,7 @@ compAction(asgn(Lc,Cll,Exp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   dropStk(Stkb,2,Stk).
 compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  caseBlockSig(tplTipe([]),CaseBlkTp),
+  caseBlockSig(ptrTipe,CaseBlkTp),
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compAction,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(whle(Lc,G,B),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock(FlatTp,[iLbl(Lp,iBlock(FlatTp,LC))]))|Cx]),!,
