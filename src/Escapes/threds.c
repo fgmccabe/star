@@ -76,7 +76,7 @@ ReturnStatus g__thread_state(heapPo h, termPo a1) {
   if (tgt == NULL)
     st = declareEnum(state_names[dead], dead, globalHeap);
   else
-    st = declareEnum(state_names[tgt->state], dead, globalHeap);
+    st = declareEnum(state_names[tgt->state], tgt->state, globalHeap);
   setProcessRunnable(currentProcess);
   return (ReturnStatus) {.ret=Normal, .result=st};
 }
