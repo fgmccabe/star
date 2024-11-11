@@ -10,7 +10,7 @@
 		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,ssConsMap/2,
 		  idInTerm/2, 
 		  mergeGl/4,
-		  validLProg/2,
+		  validLProg/2,isSimplePtn/1,
 		 tipeOf/2]).
 
 :- use_module(display).
@@ -921,4 +921,21 @@ glVars(cnd(_,T,L,R),D,Dx) :-
 glVars(mtch(_,L,_),D,Dx) :-
   ptnVars(L,D,Dx).
 glVars(_,Dx,Dx).
+
+% Check for a 'simple' pattern (that is easy to compile)
+isSimplePtn(P) :- simplPtn(P),!.
+
+simplPtn(idnt(Nm,_)).
+simplPtn(ann(_)).
+simplPtn(voyd).
+simplPtn(intgr(_)).
+simplPtn(bigx(_)).
+simplPtn(float(_)).
+simplPtn(chr(_)).
+simplPtn(strg(_)).
+simplPtn(lbl(_,_)).
+simplPtn(ctpl(_,Args)) :- forall(Args,lterms:simplTn),!.
+simplPtn(enum(_)).
+
+
 

@@ -149,6 +149,12 @@ genTmpVar(scope(Vrs),Nm) :-
 compExpCase(Term,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compExp(Term,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
+compIdExp(idnt(Nm,_),Lc,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-
+  (lclVar(Nm,_T,V,Dx) ->
+   compVar(V,Last,Opts,C,Cx,Stk,Stkx) ;
+   reportError("cannot locate variable %s",[id(Nm)],Lc),
+   abort).
+
 compVar(a(A),Last,Opts,[iLdA(A)|C],Cx,Stk,Stkx) :- !,
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
@@ -448,11 +454,8 @@ compExp(Trm,_Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
   isLiteral(Trm),!,
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
-compExp(idnt(Nm,_),Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
-  (lclVar(Nm,_T,V,Dx) -> 
-   compVar(V,Last,Opts,C,Cx,Stk,Stkx) ;
-   reportError("cannot locate variable %s",[id(Nm)],Lc),
-   abort).
+compExp(idnt(Nm,Tp),Lc,_Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compIdExp(idnt(Nm,Tp),Lc,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ctpl(St,A),Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C,[iAlloc(St)|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
@@ -607,17 +610,28 @@ compCase(Gv,Lc,BlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(
   nearlyFlatSig(ptrTipe,OkBlkTp),
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
-  compExp(Gv,Lc,Brks,notLast,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(BlkTp,CC)),iDrop|DC],Stk,Stk1),
+  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(BlkTp,CC)),iDrop|DC],Stk,Stk1),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Mx,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk1,Stka),
+  compCases(Table,0,Mx,GVar,BlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk,Stk1,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
+
+compGvExp(idnt(Nm,Tp),idnt(Nm,Tp),Lc,_Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compIdExp(idnt(Nm,Tp),Lc,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compGvExp(Exp,idnt(GVar,Tp),Lc,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  tipeOf(Exp,Tp),
+  compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,D1,C,C1,Stk,Stkx),
+  defineTmpVar(Lc,GVar,Tp,Opts,D1,Dx,C1,[iTL(GVar)|Cx]).
 
 genCaseTable(Cases,P,Table) :-
   length(Cases,L),
   nextPrime(L,P),
   caseHashes(Cases,P,Hs),
-  sortCases(Hs,Table).
+  sortCases(Hs,Tbl),
+  (length(Tbl,L) -> Table=Tbl ;		% try up to two primes
+   nextPrime(P,NP),
+   caseHashes(Cases,NP,NHs),
+   sortCases(NHs,Table)).
 
 caseHashes([],_,[]).
 caseHashes([(P,E,Lc)|Cases],Mx,[(P,Hx,E,Lc)|C]) :-
@@ -650,49 +664,42 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Ix,Mx,_BlkTp,_Ok,_Df,_Hndlr,_Brks,_Last,_Opts,Lx,Lx,D,D,Tx,Tx,Cx,Cx,_Stk,none) :-
+compCases([],Ix,Mx,_GVar,_BlkTp,_Ok,_Df,_Hndlr,_Brks,_Last,_Opts,Lx,Lx,D,D,Tx,Tx,Cx,Cx,_OStk,_Stk,none) :-
   Ix>=Mx.
-compCases([],Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
+compCases([],Ix,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,OStk,Stk,Stkx) :-
   Ix1 is Ix+1,
-  compCases([],Ix1,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
-compCases([(Ix,Case)|Cs],Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(CL)|T],Tx,[iLbl(CL,iBlock(BlkTp,CC))|CCx],Cx,Stk,Stkx) :-!,
+  compCases([],Ix1,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,OStk,Stk,Stkx).
+compCases([(Ix,Case)|Cs],Ix,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(CL)|T],Tx,[iLbl(CL,iBlock(BlkTp,CC))|CCx],Cx,OStk,Stk,Stkx) :-!,
   Ix1 is Ix+1,
   genLbl(L,CL,L0),
-  compCases(Cs,Ix1,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D,D1,T,Tx,CC,Cx,Stk,Stk2),
-  compCaseBranch(Case,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L1,Lx,D1,Dx,CCx,[],Stk,Stk1),
+  compCases(Cs,Ix1,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D,D1,T,Tx,CC,Cx,OStk,Stk,Stk2),
+  compCaseBranch(Case,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L1,Lx,D1,Dx,CCx,[],OStk,Stk,Stk1),
   mergeStkLvl(Stk1,Stk2,Stkx,"case branch").
-compCases(Cs,Ix,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
+compCases(Cs,Ix,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,OStk,Stk,Stkx) :-
   Ix1 is Ix+1,
-  compCases(Cs,Ix1,Mx,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
+  compCases(Cs,Ix1,Mx,GVar,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,OStk,Stk,Stkx).
 
 % two cases to consider: hash collision or no hash collision
-compCaseBranch([(P,E,Lc)],_BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compCaseBranch([(P,E,Lc)],_GV,_BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,_OStk,Stk,Stkx) :-!,
   genLine(Opts,Lc,C,C0),
   compPtn(P,Lc,Dflt,Brks,Opts,L,L1,D,D2,C0,C1,Stk,Stk1),
   call(Hndlr,E,Lc,Brks,Last,Opts,L1,Lx,D2,Dx,C1,[iBreak(Ok)|Cx],Stk1,Stkx).
-compCaseBranch([(P,E,Lc)|SC],BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iTL(TmpNm),iLbl(Fl,iBlock(BlkTp,PC))|C],Cx,Stk,Stkx) :-
-  genLbl(L,Fl,L1),
-  genLine(Opts,Lc,PC,PC0),
-  tipeOf(P,PTp),
-  defineTmpVar(Lc,TmpNm,PTp,Opts,D,D1,PC0,PC1),
-  compPtn(P,Lc,Fl,Brks,Opts,L1,L2,D1,D2,PC1,PC2,Stk,Stk0),
-  call(Hndlr,E,Lc,Brks,Last,Opts,L2,L3,D2,D3,PC2,[iBreak(Ok)],Stk0,Stka),
-  compMoreCase(SC,TmpNm,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L3,Lx,D3,Dx,C,Cx,Stk0,Stkb),
-  mergeStkLvl(Stka,Stkb,Stkx,"case branch stack").
 
-compMoreCase([],_Vlb,_BlkTp,_Ok,Dflt,_Hndlr,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,[iBreak(Dflt)|Cx],Cx,Stkx,Stkx) :-!.
-compMoreCase([(P,E,Lc)|SC],VLb,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLdL(VLb),iLbl(Fl,iBlock(BlkTp,PC))|C],Cx,Stk,Stkx) :-
-  genLbl(L,Fl,L1),
-  bumpStk(Stk,Stk0),
-  genLine(Opts,Lc,PC,PC0),
-  compPtn(P,Lc,Fl,Brks,Opts,L1,L2,D,D1,PC0,PC1,Stk0,Stk1),
-  call(Hndlr,E,Lc,Brks,Last,Opts,L2,L3,D1,D2,PC1,[iBreak(Ok)],Stk1,Stka),
-  compMoreCase(SC,VLb,BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L3,Lx,D2,Dx,C,Cx,Stk,Stkb),
-  mergeStkLvl(Stka,Stkb,Stkx,"more case branch stack").
+compCaseBranch(Entries,GVar,_BlkTp,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,OStk,Stk,Stkx) :-
+  resetStack(OStk,Stk,C,C0),
+  compCaseCond(Entries,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,OStk,Stkx).
 
-combineLast(_,last,last) :-!.
-combineLast(Prefix,notLast(Cde),notLast(Cx)) :-
-  concat(Prefix,Cde,Cx).
+compCaseCond([],_GVar,_Ok,Dflt,_Hndlr,_Last,Lx,Lx,Dx,Dx,[iBreak(Dflt)|Cx],Cx,_Stk,none).
+compCaseCond([(P,E,Lc)],GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  compCond(mtch(Lc,P,GVar),Lc,Dflt,Brks,normal,Opts,L,L1,D,D1,C,C1,Stk,Stka),
+  call(Hndlr,E,Lc,Brks,Last,Opts,L1,Lx,D1,Dx,C1,[iBreak(Ok)|Cx],Stka,Stkx).
+compCaseCond([(P,E,Lc)|More],GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Fl,iBlock(FlatTp,AC))|BC],[],Stk,Stkx) :-
+  flatBlockSig(FlatTp),
+  genLbl(L,Fl,L0),
+  compCond(mtch(Lc,P,GVar),Lc,Fl,Brks,normal,Opts,L0,L1,D,D1,AC,AC1,Stk,Stk0),
+  call(Hndlr,E,Lc,Brks,Last,Opts,L1,L2,D1,D2,AC1,[iBreak(Ok)],Stk0,Stka),
+  compCaseCond(More,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L2,Lx,D2,Dx,BC,[],Stk,Stkb),
+  mergeStkLvl(Stka,Stkb,Stkx,"disjunction").
 
 genLastReturn(last,Opts,C,Cx,Stk,Stkx) :-
   genRet(Opts,C,Cx,Stk,Stkx).
