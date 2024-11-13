@@ -122,7 +122,7 @@ retCode showSig(ioPo out, const char *sig, integer *pos, integer len) {
       case boolTp:
         return outStr(out, "b");
       case ptrTp:
-        return outStr(out, "r");
+        return outStr(out, "p");
       case vdTp:
         return outStr(out, "v");
       case parTp: {

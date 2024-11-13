@@ -9,7 +9,7 @@
 #include "objectP.h"
 #include "vector.h"
 
-extern logical traceVerify;
+extern tracingLevel traceVerify;
 extern logical enableVerify;      // Do we verify code that is loaded into engine
 
 #endif //STAR_VERIFYP_H

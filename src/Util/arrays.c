@@ -87,7 +87,7 @@ retCode appendEntry(arrayPo ar, void *el) {
 }
 
 void *newEntry(arrayPo ar) {
-  if (ar->elSize * (ar->count + 1) > ar->dataLength) {
+  if (ar->elSize * (ar->count + 1) >= ar->dataLength) {
     if (ar->growable) {
       integer newSize = ar->dataLength + ar->dataLength / 2 + ar->elSize;
       void *newData = realloc(ar->data, newSize);
