@@ -464,6 +464,7 @@ static retCode decodeOp(ioPo in, OpCode *op) {
 
 static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
   char escNm[MAX_SYMB_LEN];
+  int32 thisPc = (int32) arrayCount(ar);
   insPo ins = (insPo) newEntry(ar);
   retCode ret = Ok;
 
@@ -483,8 +484,10 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #define sztPe(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szEs(Tgt) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = lookupEscape(escNm);} (*count)--;
 #define szglb(Tgt) {retCode ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = globalVarNo(escNm);} (*count)--;
-#define szbLk(Tgt) { ret = decodeBlock(in, ar,  pc, &(Tgt), brk);   \
-                    (*count)--;  }
+#define szbLk(Tgt) { int32 offset; ret = decodeBlock(in, ar,  pc, &offset, brk);   \
+                    (*count)--;                                                    \
+                    ins = (insPo)nthEntry(ar,thisPc);                              \
+                    (Tgt) = offset;}
 #define szlVl(Tgt) { int32 lvl; ret = decodeI32(in, &lvl); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
 
 #define instruction(Op, A1, A2, Dl, Tp, Cmt)\

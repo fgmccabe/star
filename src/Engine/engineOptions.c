@@ -72,7 +72,8 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'v':    /* turn on verify tracing */
 #ifdef TRACEVERIFY
-        traceVerify = True;
+        if (traceVerify < detailedTracing)
+          traceVerify++;
         logMsg(logFile, "Verification tracing enabled\n");
         continue;
 #else
@@ -91,18 +92,18 @@ static retCode debugOption(char *option, logical enable) {
               return -1;
 #endif
 
-    case 'm':{    /* trace memory activity  */
+      case 'm': {    /* trace memory activity  */
 #ifdef TRACEMEM
         traceMemory = True;
         logMsg(logFile, "GC tracing enabled\n");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
-	return -1;
+  return -1;
 #endif
-    }
+      }
 
-    case 'O':    /* trace continuation operations  */
+      case 'O':    /* trace continuation operations  */
 #ifdef TRACESTACK
         traceContinuations = True;
         logMsg(logFile, "Continuation tracing enabled\n");
@@ -111,7 +112,7 @@ static retCode debugOption(char *option, logical enable) {
         logMsg(logFile,"Continuation tracing not enabled");
         return -1;
 #endif
-      
+
       case 'H':    /* validate heap after allocations  */
 #ifdef TRACEMEM
         validateMemory = True;
