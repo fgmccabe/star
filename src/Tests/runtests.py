@@ -4,11 +4,12 @@ from pprint import pprint
 import subprocess
 import sys, getopt
 
-starExec = "/Users/fgm/Projects/star/Build/src/Engine/star"
+starBuild = "/Users/fgm/Projects/star/Build"
+starExec = f"{starBuild}/src/Engine/star"
 testDir = "/Users/fgm/Projects/star/src/Tests/"
-sbc = "/Users/fgm/Projects/star/src/BootCompiler/sbc"
-sc = "/Users/fgm/bin/sc"
-repoDir = "/Users/fgm/Projects/star/Build/.star-repo/"
+sbc = f"{starBuild}/src/BootCompiler/sbc"
+sc = f"{starBuild}/src/Compiler/sc"
+repoDir = f"{starBuild}/.star-repo/"
 usage = "runtests.py [-t <testpkg>|--all] --compile_only --tracing --repo <dir>"
 
 tracing = False
