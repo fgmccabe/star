@@ -12,7 +12,7 @@ test.ac8{
   }
 
   contract all e ~~ throwable[e] ::= {
-    _throw:(e)=>()
+    _throw:all x ~~ (e)=>x
   }
 
   f:(integer) => integer.
