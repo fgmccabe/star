@@ -344,8 +344,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case Rst: {
         int32 count = code[pc].fst;
-        if (stackDepth < count)
+        if (stackDepth+ctx.trueDepth < count)
           return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, count);
+        stackDepth = count-ctx.trueDepth;
+        if(stackDepth<0)
+          return verifyError(&ctx, ".%d: insufficient block stack depth for stack reset %d", pc, count);
         pc++;
         continue;
       }
@@ -822,7 +825,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         else
           return verifyError(&ctx, ".%d: invalid Frame literal: %T", pc, lit);
 
-        if (depth != stackDepth)
+        if (depth != stackDepth + ctx.trueDepth)
           return verifyError(&ctx, ".%d: stack depth %d does not match Frame instruction %d", pc, stackDepth, depth);
 
         pc++;

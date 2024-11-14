@@ -427,7 +427,7 @@ retCode run(processPo P) {
       }
 
       case Loop: {
-        PC += PC->alt;
+        PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         break;
