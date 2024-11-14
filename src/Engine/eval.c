@@ -492,6 +492,7 @@ retCode run(processPo P) {
           logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
           bail();
         } else {
+          PC++;
           saveRegisters();
           P->stk = detachStack(STK, stack);
           restoreRegisters();
@@ -507,6 +508,7 @@ retCode run(processPo P) {
           logMsg(logFile, "tried to resume %s stack %T", stackStateName(stackState(stack)), stack);
           bail();
         } else {
+          PC++;
           saveRegisters();
           P->stk = attachStack(STK, stack);
           restoreRegisters();
