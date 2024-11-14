@@ -34,7 +34,7 @@ isIntrinsic("_bnot",funType(tplType([type("integer")]),type("integer")),iBNot). 
 isIntrinsic("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean")))),iTEq).  % compare two fiber identifiers
 isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
 isIntrinsic("_suspend",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend fiber
-isIntrinsic("_retire",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([])))),iRetire).  % retire fiber
+isIntrinsic("_retire",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("e"))))),iRetire).  % retire fiber
 isIntrinsic("_resume",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume fiber
 isIntrinsic("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t")))),iCell).  % create a reference cell
 isIntrinsic("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t"))),iGet).  % access contents of reference cell

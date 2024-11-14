@@ -4,9 +4,9 @@ from pprint import pprint
 import subprocess
 import sys, getopt
 
-starBuild = "/Users/fgm/Projects/star/Build"
+starBuild = "/Users/fgm/Sources/star/build"
 starExec = f"{starBuild}/src/Engine/star"
-testDir = "/Users/fgm/Projects/star/src/Tests/"
+testDir = "/Users/fgm/Sources/star/src/Tests/"
 sbc = f"{starBuild}/src/BootCompiler/sbc"
 sc = f"{starBuild}/src/Compiler/sc"
 repoDir = f"{starBuild}/.star-repo/"
@@ -26,7 +26,7 @@ def main(argv):
     compile_failures = []
     run_failures = []
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag=","inline"])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","compile_only","tracing","all","ignore_failures","ignore-failures","starexec=","sbc","testdir=","repo=","cflag=","rflag=","inline"])
     except getopt.GetoptError as e:
         print (e.msg)
         sys.exit(2)
@@ -40,7 +40,7 @@ def main(argv):
             compile_only = True
         elif opt in ['-d','--tracing']:
             tracing = True
-        elif opt == "--ignore_failures":
+        elif opt in ["--ignore_failures", "--ignore-failures"]:
             ignore_failures = True
         elif opt == '--all':
             with open(testDir+'catalog') as cat:

@@ -190,10 +190,13 @@ compAction(rais(Lc,T,E),OLc,Brks,_Return,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iThrow|Cx],Stka,_Stka).
-compAction(perf(Lc,Cll),OLc,Brks,_Return,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
+compAction(perf(Lc,Cll),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(Cll,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1,Stk,Stk0),
   resetStack(Stk,Stk0,C1,Cx).
+compAction(perf(Lc,Cll),OLc,Brks,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compExp(Cll,Lc,Brks,last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(mtch(Lc,P,E),OLc,Brks,_Return,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Abrt,iBlock(FlatTp,CB))|Ca]))|Cx]),
   genLbl(L,Ok,L1),
@@ -572,6 +575,12 @@ compExp(seqD(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   resetStack(Stk,Stk1,C1,C2),
   compExp(B,Lc,Brks,Last,Opts,L1,Lx,D1,Dx,C2,Cx,Stk,Stkx).
+compExp(vlof(Lc,A),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  nearlyFlatSig(ptrTipe,BlkTp),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,CA))|Cx]),
+  genLbl(L,Ok,L0),
+  compAction(A,Lc,[("$valof",gencode:breakOut,Ok,Stkx)|Brks],valof(Ok),Opts,L0,Lx,D,Dx,CA,[],Stk,_Stkx),
+  bumpStk(Stk,Stkx).
 compExp(vlof(Lc,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   nearlyFlatSig(ptrTipe,BlkTp),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,CA))|Cx]),

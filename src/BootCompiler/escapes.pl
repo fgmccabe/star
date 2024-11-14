@@ -57,7 +57,7 @@ escapeType("_big_format",constrained(funType(tplType([type("bigint"),type("strin
 escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean"))))).
 escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")))))).
 escapeType("_suspend",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r"))))).
-escapeType("_retire",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),tplType([]))))).
+escapeType("_retire",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("e")))))).
 escapeType("_resume",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))))).
 escapeType("sqrt",constrained(funType(tplType([type("float")]),type("float")),raises(type("errorCode")))).
 escapeType("exp",constrained(funType(tplType([type("float")]),type("float")),raises(type("errorCode")))).

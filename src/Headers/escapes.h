@@ -92,7 +92,7 @@ escape(_big_format, "|F(bs)sr"ERRCODE, "format a big integer")
 escape(_fiber_eq,":k'r':k's'F("fiberType("k'r'","k's'")fiberType("k'r'","k's'")")l","compare two fiber identifiers")
 escape(_fiber,":k'r':k's'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"create a new fiber")
 escape(_suspend,":k'r':k's'F("fiberType("k'r'","k's'")"k's')k'r'","suspend fiber")
-escape(_retire,":k'r':k's'F("fiberType("k'r'","k's'")"k's')()","retire fiber")
+escape(_retire,":k'r':k's':k'e'F("fiberType("k'r'","k's'")"k's')k'e'","retire fiber")
 escape(_resume,":k'r':k's'F("fiberType("k'r'","k's'")"k'r')k's'","resume fiber")
 
 escape(sqrt, "|F(f)fr"ERRCODE, "square root")

@@ -49,7 +49,7 @@ intrinsic(_bnot,"F(i)i","BNot",True,NotLast,"bitwise negate number")
 intrinsic(_fiber_eq,":k'r':k's'F("fiberType("k'r'","k's'")fiberType("k'r'","k's'")")l","TEq",True,NotLast,"compare two fiber identifiers")
 intrinsic(_fiber,":k'r':k's'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"Fiber",True,NotLast,"create a new fiber")
 intrinsic(_suspend,":k'r':k's'F("fiberType("k'r'","k's'")"k's')k'r'","Suspend",False,NotLast,"suspend fiber")
-intrinsic(_retire,":k'r':k's'F("fiberType("k'r'","k's'")"k's')()","Retire",False,Last,"retire fiber")
+intrinsic(_retire,":k'r':k's':k'e'F("fiberType("k'r'","k's'")"k's')k'e'","Retire",False,Last,"retire fiber")
 intrinsic(_resume,":k'r':k's'F("fiberType("k'r'","k's'")"k'r')k's'","Resume",False,NotLast,"resume fiber")
 
 intrinsic(_cell, ":k't'F(k't')rk't'", "Cell", True, NotLast,"create a reference cell")
