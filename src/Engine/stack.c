@@ -33,11 +33,11 @@ SpecialClass StackClass = {
 
 static Instruction underflowCode[] = {Underflow, 0};
 
-static Instruction newFiberCode[] = {Rot, 0, 1, TOCall, 0, 3};
+static Instruction newFiberCode[] = {Rot, 1, 0, TOCall, 3, 0};
 
-static Instruction newTaskCode[] = {Rot, 0, 2, Rot, 0, 1, TOCall, 0, 3};
+static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
 
-static Instruction spawnCode[] = {TOCall, 0, 2};
+static Instruction spawnCode[] = {TOCall, 2, 0};
 
 methodPo underflowMethod;
 methodPo newFiberMethod;
