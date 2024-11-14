@@ -180,10 +180,12 @@ compAction(lbld(Lc,Lb,A),OLc,Brks,Return,Opts,L,Lx,D,Dx,[iLbl(BrkLb,iBlock(FlatT
   compAction(A,Lc,[(Lb,gencode:breakOut,BrkLb,Stk)|Brks],Return,Opts,L1,Lx,D,Dx,C0,[iBreak(BrkLb)],Stk,Stk0),
   resetStack(Stk,Stk0,C,Cx).
 compAction(brk(Lc,Nm),OLc,Brks,_Return,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
-  (is_member((Nm,Brker,Stkx),Brks) ->
-   chLine(Opts,OLc,Lc,C,[Brker|Cx]) ;
+  chLine(Opts,OLc,Lc,C,C0),
+  (is_member((Nm,Brker,Lbl,Stkx),Brks) ->
+   call(Brker,Lbl,C0,Cx);
    reportError("not in scope of break label %s",[ss(Nm)],Lc),
-   Stk=Stkx).
+   Stk=Stkx,
+   C0=Cx).
 compAction(rais(Lc,T,E),OLc,Brks,_Return,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
@@ -574,7 +576,8 @@ compExp(vlof(Lc,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   nearlyFlatSig(ptrTipe,BlkTp),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,CA))|Cx]),
   genLbl(L,Ok,L0),
-  compAction(A,Lc,[("$valof",gencode:breakOut,Ok,Stkx)|Brks],Last,Opts,L0,Lx,D,Dx,CA,[],Stk,Stkx).
+  compAction(A,Lc,[("$valof",gencode:breakOut,Ok,Stkx)|Brks],Last,Opts,L0,Lx,D,Dx,CA,[],Stk,_Stkx),
+  bumpStk(Stk,Stkx).
 compExp(tsk(Lc,F),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iFiber|C0]),!,
   compExp(F,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1,Stk,Stka),
