@@ -86,9 +86,6 @@ freeVarsInAction(doLbld(_,_,R),E,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doBrk(_,_),Ex,Ex,_,F,F) :-!.
 freeVarsInAction(doValis(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doRaise(_,T,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(E,Ex,Q,F0,Fv).
 freeVarsInAction(doDefn(_,V,E),Ex,Ex1,Q,F,Fv) :-!,
   ptnVars(V,Ex,Ex1),
   freeVars(E,Ex,Q,F,Fv).

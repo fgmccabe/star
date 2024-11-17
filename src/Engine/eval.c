@@ -706,14 +706,6 @@ retCode run(processPo P) {
         }
       }
 
-      case TEq: {
-        termPo Lhs = pop();
-        termPo Rhs = pop();
-
-        termPo Rs = (C_STACK(Lhs) == C_STACK(Rhs) ? trueEnum : falseEnum);
-        push(Rs);
-        break;
-      }
       case LdV: {
         push(voidEnum);     /* load void */
         break;
@@ -732,6 +724,12 @@ retCode run(processPo P) {
       case LdL: {
         int32 offset = PC->fst;
         push(local(offset));      /* load local */
+        break;
+      }
+
+      case LdS: {                /* duplicate a stack element */
+        termPo tos = SP[PC->fst];
+        *--SP = tos;
         break;
       }
 
@@ -783,7 +781,7 @@ retCode run(processPo P) {
 
       case CLit: {
         termPo l = nthElem(LITS, PC->fst);
-        termPo t = top();
+        termPo t = pop();
 
         if (!sameTerm(l, t)) {
           PC += PC->alt + 1;
@@ -797,7 +795,7 @@ retCode run(processPo P) {
 
       case CLbl: {
         labelPo l = C_LBL(nthElem(LITS, PC->fst));
-        termPo t = top();
+        termPo t = pop();
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
@@ -839,13 +837,6 @@ retCode run(processPo P) {
         int32 offset = PC->fst;
         ptrPo dest = &local(offset);
         *dest = top();
-        break;
-      }
-
-      case StA: {
-        int32 offset = PC->fst;
-        ptrPo dest = &arg(offset);
-        *dest = pop();     /* store as argument */
         break;
       }
 
@@ -1292,7 +1283,7 @@ retCode run(processPo P) {
       case Case: {      /* case instruction */
         int32 mx = PC->fst;
 
-        termPo tos = top();
+        termPo tos = pop();
         integer hx = hashTerm(tos) % mx;
 
         PC = PC + hx + 1;
@@ -1301,7 +1292,7 @@ retCode run(processPo P) {
 
       case IndxJmp: {    // Branch based on index of constructor term
         int32 mx = PC->fst;
-        normalPo top = C_NORMAL(top());
+        normalPo top = C_NORMAL(pop());
         labelPo lbl = termLbl(top);
         integer hx = labelIndex(lbl);
 

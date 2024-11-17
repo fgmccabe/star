@@ -165,7 +165,6 @@ locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doLbld(Lc,_,_),Lc) :-!.
 locOfCanon(doBrk(Lc,_),Lc) :-!.
 locOfCanon(doValis(Lc,_),Lc) :-!.
-locOfCanon(doRaise(Lc,_,_,_),Lc) :-!.
 locOfCanon(doSpawn(Lc,_),Lc) :-!.
 locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doDefn(Lc,_,_),Lc) :-!.
@@ -308,10 +307,6 @@ ssAction(doLbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
   ssAction(A,Dp,AA).
 ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
-  ssTerm(E,Dp,EE).
-ssAction(doRaise(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
-  typeOfCanon(T,ETp),
-  ssType(ETp,true,Dp,TT),
   ssTerm(E,Dp,EE).
 ssAction(doCall(_,E),Dp,sq([ss("call "),EE])) :-!,
   ssTerm(E,Dp,EE).

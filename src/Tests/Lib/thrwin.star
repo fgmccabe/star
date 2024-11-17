@@ -9,7 +9,7 @@ test.throwing{
   }
 
   public contract all e ~~ throwable[e] ::= {
-    _throw:(e)=>()
+    _throw:all k ~~ (e)=>k
   }
 
 }

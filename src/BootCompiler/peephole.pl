@@ -76,6 +76,12 @@ peep([iLine(_),iLine(Lne)|Ins],Lbls,Inx) :-!,
 peep([iStL(Off),iLdL(Off),iRet|_], _, [iRet]) :-!.
 peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-!,
   peep([iTL(Off)|Is],Lbls, Ins).
+peep([iLdL(_),iDrop|Is],Lbls,Ins) :- !,
+  peep(Is,Lbls,Ins).
+peep([iLdA(_),iDrop|Is],Lbls,Ins) :- !,
+  peep(Is,Lbls,Ins).
+peep([iNth(_),iDrop|Is],Lbls,Ins) :-
+  peep([iDrop|Is],Lbls,Ins).  
 peep([iBlock(Tpe,IB)|Is],Lbls, [iBlock(Tpe,IBs)|Ins]) :-!,
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).

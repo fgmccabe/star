@@ -263,9 +263,6 @@ overloadAction(doLbld(Lc,Lb,A),Dict,St,Stx,doLbld(Lc,Lb,AA)) :-!,
 overloadAction(doBrk(Lc,Lb),_,St,St,doBrk(Lc,Lb)) :-!.
 overloadAction(doValis(Lc,A),Dict,St,Stx,doValis(Lc,AA)) :-
   overloadTerm(A,Dict,St,Stx,AA).
-overloadAction(doRaise(Lc,T,A),Dict,St,Stx,doRaise(Lc,TT,AA)) :-
-  overloadTerm(T,Dict,St,St0,TT),
-  overloadTerm(A,Dict,St0,Stx,AA).
 overloadAction(doDefn(Lc,V,E),Dict,St,Stx,doDefn(Lc,V,EE)) :-
   overloadTerm(E,Dict,St,Stx,EE).
 overloadAction(doMatch(Lc,P,A),Dict,St,Stx,doMatch(Lc,PP,AA)) :-
@@ -276,6 +273,7 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(A,Dict,St1,Stx,AA).
 overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
   overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
+
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,St2,AA),

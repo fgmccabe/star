@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
     strBufferPo typeBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Tp, Cmt) insOp(O_IO(typeBuff),#M,M,A1,A2,Cmt);
+#define instruction(M, A1, A2, Dl, _, Cmt) insOp(O_IO(typeBuff),#M,M,A1,A2,Cmt);
 
 #include "instructions.h"
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     strBufferPo mnemBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Tp, cmt) genStarMnem(O_IO(mnemBuff),#M,M,A1,A2,Dl,cmt);
+#define instruction(M, A1, A2, Dl, _, cmt) genStarMnem(O_IO(mnemBuff),#M,M,A1,A2,Dl,cmt);
 
 #include "instructions.h"
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     strBufferPo showBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Tp, cmt) showStarIns(O_IO(showBuff),#M,M,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, _, cmt) showStarIns(O_IO(showBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -441,7 +441,7 @@ integer staropHash() {
   integer hash = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Tp, Cmt) hash = hash61(hash*39+opHash(#M,M));
+#define instruction(M, A1, A2, Dl, _, Cmt) hash = hash61(hash*39+opHash(#M,M));
 
 #include "instructions.h"
 

@@ -6,8 +6,8 @@ test.as2{
     foo : ref integer.
     foo = ref 0.
 
-    reset:()=>boolean.
-    reset() => valof{
+    clearFoo:()=>boolean.
+    clearFoo() => valof{
       foo := 0;
       valis .false
     }
@@ -23,12 +23,12 @@ test.as2{
     check([E,..Es],[D,..Ds]) =>
       ( try D==E ??
 	  mark(D) && check(Es,Ds) ||
-	  reset()
+	  clearFoo()
 	catch () in {
 	  _ => .false
 	}
       ).
-    check(_,_) default => reset().
+    check(_,_) default => clearFoo().
   .} in check.
 
   notMuch:raises () |: ()=>().

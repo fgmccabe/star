@@ -55,7 +55,7 @@ retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *er
   for (integer pc = 0; ret == Ok && pc < insCount; pc++) {
     switch (code[pc].op) {
 
-#define instruction(Op, A1, A2, Dl, Tp, Cmt)    \
+#define instruction(Op, A1, A2, Dl, _, Cmt)    \
     case Op:{                                   \
       ret = jit_##Op(code,pc,jitCtx);            \
       break;                                    \

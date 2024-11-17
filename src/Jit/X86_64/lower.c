@@ -132,6 +132,10 @@ retCode jit_LdL(insPo code, integer *pc, jitCompPo jitCtx) {
   return Ok;
 }
 
+retCode jit_LdS(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_LdC(insPo code, integer *pc, jitCompPo jitCtx) {
   verifyJitCtx(jitCtx, 1, 0);
   int32 litNo = collectOperand(code, pc);
@@ -157,10 +161,6 @@ retCode jit_Nth(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_StNth(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_StA(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
@@ -472,10 +472,6 @@ retCode jit_Release(insPo code, integer *pc, jitCompPo jitCtx) {
 }
 
 retCode jit_Underflow(insPo code, integer *pc, jitCompPo jitCtx) {
-  return Error;
-}
-
-retCode jit_TEq(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 

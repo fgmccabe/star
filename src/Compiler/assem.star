@@ -42,14 +42,12 @@ star.compiler.assem{
     .iDup |
     .iRot(integer) |
     .iRst(integer) |
-    .iPick(integer,integer) |
     .iFiber |
     .iSpawn |
     .iSuspend |
     .iResume |
     .iRetire |
     .iUnderflow |
-    .iTEq |
     .iTry(ltipe,cons[assemOp]) |
     .iEndTry(assemLbl) |
     .iThrow |
@@ -63,7 +61,7 @@ star.compiler.assem{
     .iStL(integer) |
     .iStV(integer) |
     .iTL(integer) |
-    .iStA(integer) |
+    .iLdS(integer) |
     .iLdG(string) |
     .iStG(string) |
     .iTG(string) |
@@ -180,82 +178,80 @@ star.compiler.assem{
   mnem(.iDup,Lbls,Lts,Lcs) => ([.intgr(14)],Lts,Lcs).
   mnem(.iRot(U),Lbls,Lts,Lcs) => ([.intgr(15),.intgr(U)],Lts,Lcs).
   mnem(.iRst(U),Lbls,Lts,Lcs) => ([.intgr(16),.intgr(U)],Lts,Lcs).
-  mnem(.iPick(U,V),Lbls,Lts,Lcs) => ([.intgr(17),.intgr(U),.intgr(V)],Lts,Lcs).
-  mnem(.iFiber,Lbls,Lts,Lcs) => ([.intgr(18)],Lts,Lcs).
-  mnem(.iSpawn,Lbls,Lts,Lcs) => ([.intgr(19)],Lts,Lcs).
-  mnem(.iSuspend,Lbls,Lts,Lcs) => ([.intgr(20)],Lts,Lcs).
-  mnem(.iResume,Lbls,Lts,Lcs) => ([.intgr(21)],Lts,Lcs).
-  mnem(.iRetire,Lbls,Lts,Lcs) => ([.intgr(22)],Lts,Lcs).
-  mnem(.iUnderflow,Lbls,Lts,Lcs) => ([.intgr(23)],Lts,Lcs).
-  mnem(.iTEq,Lbls,Lts,Lcs) => ([.intgr(24)],Lts,Lcs).
-  mnem(.iTry(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Lts1,Lcs1) .= assemBlock(V,[],["",..Lbls],Lt1,Lcs) => ([.intgr(25),.intgr(LtNo),mkTpl(Blk::cons[data])],Lts1,Lcs1).
-  mnem(.iEndTry(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(26),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iThrow,Lbls,Lts,Lcs) => ([.intgr(27)],Lts,Lcs).
-  mnem(.iReset,Lbls,Lts,Lcs) => ([.intgr(28)],Lts,Lcs).
-  mnem(.iShift,Lbls,Lts,Lcs) => ([.intgr(29)],Lts,Lcs).
-  mnem(.iInvoke,Lbls,Lts,Lcs) => ([.intgr(30)],Lts,Lcs).
-  mnem(.iLdV,Lbls,Lts,Lcs) => ([.intgr(31)],Lts,Lcs).
-  mnem(.iLdC(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(32),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iLdA(U),Lbls,Lts,Lcs) => ([.intgr(33),.intgr(U)],Lts,Lcs).
-  mnem(.iLdL(U),Lbls,Lts,Lcs) => ([.intgr(34),.intgr(U)],Lts,Lcs).
-  mnem(.iStL(U),Lbls,Lts,Lcs) => ([.intgr(35),.intgr(U)],Lts,Lcs).
-  mnem(.iStV(U),Lbls,Lts,Lcs) => ([.intgr(36),.intgr(U)],Lts,Lcs).
-  mnem(.iTL(U),Lbls,Lts,Lcs) => ([.intgr(37),.intgr(U)],Lts,Lcs).
-  mnem(.iStA(U),Lbls,Lts,Lcs) => ([.intgr(38),.intgr(U)],Lts,Lcs).
-  mnem(.iLdG(U),Lbls,Lts,Lcs) => ([.intgr(39),.strg(U)],Lts,Lcs).
-  mnem(.iStG(U),Lbls,Lts,Lcs) => ([.intgr(40),.strg(U)],Lts,Lcs).
-  mnem(.iTG(U),Lbls,Lts,Lcs) => ([.intgr(41),.strg(U)],Lts,Lcs).
-  mnem(.iThunk,Lbls,Lts,Lcs) => ([.intgr(42)],Lts,Lcs).
-  mnem(.iLdTh,Lbls,Lts,Lcs) => ([.intgr(43)],Lts,Lcs).
-  mnem(.iStTh,Lbls,Lts,Lcs) => ([.intgr(44)],Lts,Lcs).
-  mnem(.iTTh,Lbls,Lts,Lcs) => ([.intgr(45)],Lts,Lcs).
-  mnem(.iCell,Lbls,Lts,Lcs) => ([.intgr(46)],Lts,Lcs).
-  mnem(.iGet,Lbls,Lts,Lcs) => ([.intgr(47)],Lts,Lcs).
-  mnem(.iAssign,Lbls,Lts,Lcs) => ([.intgr(48)],Lts,Lcs).
-  mnem(.iCLbl(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) && Lvl ?= findLevel(Lbls,V) => ([.intgr(49),.intgr(LtNo),.intgr(Lvl)],Lt1,Lcs).
-  mnem(.iCLit(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= findLevel(Lbls,V) => ([.intgr(50),.intgr(LtNo),.intgr(Tgt)],Lt1,Lcs).
-  mnem(.iNth(U),Lbls,Lts,Lcs) => ([.intgr(51),.intgr(U)],Lts,Lcs).
-  mnem(.iStNth(U),Lbls,Lts,Lcs) => ([.intgr(52),.intgr(U)],Lts,Lcs).
-  mnem(.iIf(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(53),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iIfNot(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(54),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iCase(U),Lbls,Lts,Lcs) => ([.intgr(55),.intgr(U)],Lts,Lcs).
-  mnem(.iIndxJmp(U),Lbls,Lts,Lcs) => ([.intgr(56),.intgr(U)],Lts,Lcs).
-  mnem(.iIAdd,Lbls,Lts,Lcs) => ([.intgr(57)],Lts,Lcs).
-  mnem(.iISub,Lbls,Lts,Lcs) => ([.intgr(58)],Lts,Lcs).
-  mnem(.iIMul,Lbls,Lts,Lcs) => ([.intgr(59)],Lts,Lcs).
-  mnem(.iIDiv,Lbls,Lts,Lcs) => ([.intgr(60)],Lts,Lcs).
-  mnem(.iIMod,Lbls,Lts,Lcs) => ([.intgr(61)],Lts,Lcs).
-  mnem(.iIAbs,Lbls,Lts,Lcs) => ([.intgr(62)],Lts,Lcs).
-  mnem(.iIEq,Lbls,Lts,Lcs) => ([.intgr(63)],Lts,Lcs).
-  mnem(.iILt,Lbls,Lts,Lcs) => ([.intgr(64)],Lts,Lcs).
-  mnem(.iIGe,Lbls,Lts,Lcs) => ([.intgr(65)],Lts,Lcs).
-  mnem(.iICmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(66),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iCEq,Lbls,Lts,Lcs) => ([.intgr(67)],Lts,Lcs).
-  mnem(.iCLt,Lbls,Lts,Lcs) => ([.intgr(68)],Lts,Lcs).
-  mnem(.iCGe,Lbls,Lts,Lcs) => ([.intgr(69)],Lts,Lcs).
-  mnem(.iCCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(70),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iBAnd,Lbls,Lts,Lcs) => ([.intgr(71)],Lts,Lcs).
-  mnem(.iBOr,Lbls,Lts,Lcs) => ([.intgr(72)],Lts,Lcs).
-  mnem(.iBXor,Lbls,Lts,Lcs) => ([.intgr(73)],Lts,Lcs).
-  mnem(.iBLsl,Lbls,Lts,Lcs) => ([.intgr(74)],Lts,Lcs).
-  mnem(.iBLsr,Lbls,Lts,Lcs) => ([.intgr(75)],Lts,Lcs).
-  mnem(.iBAsr,Lbls,Lts,Lcs) => ([.intgr(76)],Lts,Lcs).
-  mnem(.iBNot,Lbls,Lts,Lcs) => ([.intgr(77)],Lts,Lcs).
-  mnem(.iFAdd,Lbls,Lts,Lcs) => ([.intgr(78)],Lts,Lcs).
-  mnem(.iFSub,Lbls,Lts,Lcs) => ([.intgr(79)],Lts,Lcs).
-  mnem(.iFMul,Lbls,Lts,Lcs) => ([.intgr(80)],Lts,Lcs).
-  mnem(.iFDiv,Lbls,Lts,Lcs) => ([.intgr(81)],Lts,Lcs).
-  mnem(.iFMod,Lbls,Lts,Lcs) => ([.intgr(82)],Lts,Lcs).
-  mnem(.iFAbs,Lbls,Lts,Lcs) => ([.intgr(83)],Lts,Lcs).
-  mnem(.iFEq,Lbls,Lts,Lcs) => ([.intgr(84)],Lts,Lcs).
-  mnem(.iFLt,Lbls,Lts,Lcs) => ([.intgr(85)],Lts,Lcs).
-  mnem(.iFGe,Lbls,Lts,Lcs) => ([.intgr(86)],Lts,Lcs).
-  mnem(.iFCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(87),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iAlloc(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(88),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iClosure(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(89),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.iCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(90),.intgr(Tgt)],Lts,Lcs).
-  mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(91),.intgr(LtNo)],Lt1,Lcs).
-  mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(92)],Lts,Lcs).
+  mnem(.iFiber,Lbls,Lts,Lcs) => ([.intgr(17)],Lts,Lcs).
+  mnem(.iSpawn,Lbls,Lts,Lcs) => ([.intgr(18)],Lts,Lcs).
+  mnem(.iSuspend,Lbls,Lts,Lcs) => ([.intgr(19)],Lts,Lcs).
+  mnem(.iResume,Lbls,Lts,Lcs) => ([.intgr(20)],Lts,Lcs).
+  mnem(.iRetire,Lbls,Lts,Lcs) => ([.intgr(21)],Lts,Lcs).
+  mnem(.iUnderflow,Lbls,Lts,Lcs) => ([.intgr(22)],Lts,Lcs).
+  mnem(.iTry(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Lts1,Lcs1) .= assemBlock(V,[],["",..Lbls],Lt1,Lcs) => ([.intgr(23),.intgr(LtNo),mkTpl(Blk::cons[data])],Lts1,Lcs1).
+  mnem(.iEndTry(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(24),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iThrow,Lbls,Lts,Lcs) => ([.intgr(25)],Lts,Lcs).
+  mnem(.iReset,Lbls,Lts,Lcs) => ([.intgr(26)],Lts,Lcs).
+  mnem(.iShift,Lbls,Lts,Lcs) => ([.intgr(27)],Lts,Lcs).
+  mnem(.iInvoke,Lbls,Lts,Lcs) => ([.intgr(28)],Lts,Lcs).
+  mnem(.iLdV,Lbls,Lts,Lcs) => ([.intgr(29)],Lts,Lcs).
+  mnem(.iLdC(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(30),.intgr(LtNo)],Lt1,Lcs).
+  mnem(.iLdA(U),Lbls,Lts,Lcs) => ([.intgr(31),.intgr(U)],Lts,Lcs).
+  mnem(.iLdL(U),Lbls,Lts,Lcs) => ([.intgr(32),.intgr(U)],Lts,Lcs).
+  mnem(.iStL(U),Lbls,Lts,Lcs) => ([.intgr(33),.intgr(U)],Lts,Lcs).
+  mnem(.iStV(U),Lbls,Lts,Lcs) => ([.intgr(34),.intgr(U)],Lts,Lcs).
+  mnem(.iTL(U),Lbls,Lts,Lcs) => ([.intgr(35),.intgr(U)],Lts,Lcs).
+  mnem(.iLdS(U),Lbls,Lts,Lcs) => ([.intgr(36),.intgr(U)],Lts,Lcs).
+  mnem(.iLdG(U),Lbls,Lts,Lcs) => ([.intgr(37),.strg(U)],Lts,Lcs).
+  mnem(.iStG(U),Lbls,Lts,Lcs) => ([.intgr(38),.strg(U)],Lts,Lcs).
+  mnem(.iTG(U),Lbls,Lts,Lcs) => ([.intgr(39),.strg(U)],Lts,Lcs).
+  mnem(.iThunk,Lbls,Lts,Lcs) => ([.intgr(40)],Lts,Lcs).
+  mnem(.iLdTh,Lbls,Lts,Lcs) => ([.intgr(41)],Lts,Lcs).
+  mnem(.iStTh,Lbls,Lts,Lcs) => ([.intgr(42)],Lts,Lcs).
+  mnem(.iTTh,Lbls,Lts,Lcs) => ([.intgr(43)],Lts,Lcs).
+  mnem(.iCell,Lbls,Lts,Lcs) => ([.intgr(44)],Lts,Lcs).
+  mnem(.iGet,Lbls,Lts,Lcs) => ([.intgr(45)],Lts,Lcs).
+  mnem(.iAssign,Lbls,Lts,Lcs) => ([.intgr(46)],Lts,Lcs).
+  mnem(.iCLbl(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) && Lvl ?= findLevel(Lbls,V) => ([.intgr(47),.intgr(LtNo),.intgr(Lvl)],Lt1,Lcs).
+  mnem(.iCLit(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= findLevel(Lbls,V) => ([.intgr(48),.intgr(LtNo),.intgr(Tgt)],Lt1,Lcs).
+  mnem(.iNth(U),Lbls,Lts,Lcs) => ([.intgr(49),.intgr(U)],Lts,Lcs).
+  mnem(.iStNth(U),Lbls,Lts,Lcs) => ([.intgr(50),.intgr(U)],Lts,Lcs).
+  mnem(.iIf(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(51),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iIfNot(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(52),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iCase(U),Lbls,Lts,Lcs) => ([.intgr(53),.intgr(U)],Lts,Lcs).
+  mnem(.iIndxJmp(U),Lbls,Lts,Lcs) => ([.intgr(54),.intgr(U)],Lts,Lcs).
+  mnem(.iIAdd,Lbls,Lts,Lcs) => ([.intgr(55)],Lts,Lcs).
+  mnem(.iISub,Lbls,Lts,Lcs) => ([.intgr(56)],Lts,Lcs).
+  mnem(.iIMul,Lbls,Lts,Lcs) => ([.intgr(57)],Lts,Lcs).
+  mnem(.iIDiv,Lbls,Lts,Lcs) => ([.intgr(58)],Lts,Lcs).
+  mnem(.iIMod,Lbls,Lts,Lcs) => ([.intgr(59)],Lts,Lcs).
+  mnem(.iIAbs,Lbls,Lts,Lcs) => ([.intgr(60)],Lts,Lcs).
+  mnem(.iIEq,Lbls,Lts,Lcs) => ([.intgr(61)],Lts,Lcs).
+  mnem(.iILt,Lbls,Lts,Lcs) => ([.intgr(62)],Lts,Lcs).
+  mnem(.iIGe,Lbls,Lts,Lcs) => ([.intgr(63)],Lts,Lcs).
+  mnem(.iICmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(64),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iCEq,Lbls,Lts,Lcs) => ([.intgr(65)],Lts,Lcs).
+  mnem(.iCLt,Lbls,Lts,Lcs) => ([.intgr(66)],Lts,Lcs).
+  mnem(.iCGe,Lbls,Lts,Lcs) => ([.intgr(67)],Lts,Lcs).
+  mnem(.iCCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(68),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iBAnd,Lbls,Lts,Lcs) => ([.intgr(69)],Lts,Lcs).
+  mnem(.iBOr,Lbls,Lts,Lcs) => ([.intgr(70)],Lts,Lcs).
+  mnem(.iBXor,Lbls,Lts,Lcs) => ([.intgr(71)],Lts,Lcs).
+  mnem(.iBLsl,Lbls,Lts,Lcs) => ([.intgr(72)],Lts,Lcs).
+  mnem(.iBLsr,Lbls,Lts,Lcs) => ([.intgr(73)],Lts,Lcs).
+  mnem(.iBAsr,Lbls,Lts,Lcs) => ([.intgr(74)],Lts,Lcs).
+  mnem(.iBNot,Lbls,Lts,Lcs) => ([.intgr(75)],Lts,Lcs).
+  mnem(.iFAdd,Lbls,Lts,Lcs) => ([.intgr(76)],Lts,Lcs).
+  mnem(.iFSub,Lbls,Lts,Lcs) => ([.intgr(77)],Lts,Lcs).
+  mnem(.iFMul,Lbls,Lts,Lcs) => ([.intgr(78)],Lts,Lcs).
+  mnem(.iFDiv,Lbls,Lts,Lcs) => ([.intgr(79)],Lts,Lcs).
+  mnem(.iFMod,Lbls,Lts,Lcs) => ([.intgr(80)],Lts,Lcs).
+  mnem(.iFAbs,Lbls,Lts,Lcs) => ([.intgr(81)],Lts,Lcs).
+  mnem(.iFEq,Lbls,Lts,Lcs) => ([.intgr(82)],Lts,Lcs).
+  mnem(.iFLt,Lbls,Lts,Lcs) => ([.intgr(83)],Lts,Lcs).
+  mnem(.iFGe,Lbls,Lts,Lcs) => ([.intgr(84)],Lts,Lcs).
+  mnem(.iFCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(85),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iAlloc(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(86),.intgr(LtNo)],Lt1,Lcs).
+  mnem(.iClosure(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(87),.intgr(LtNo)],Lt1,Lcs).
+  mnem(.iCmp(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(88),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iFrame(U),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(89),.intgr(LtNo)],Lt1,Lcs).
+  mnem(.idBug,Lbls,Lts,Lcs) => ([.intgr(90)],Lts,Lcs).
 
   mnem(I,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
@@ -322,14 +318,12 @@ star.compiler.assem{
   showIns(.iDup,Pc) => "Dup".
   showIns(.iRot(U),Pc) => "Rot $(U)".
   showIns(.iRst(U),Pc) => "Rst $(U)".
-  showIns(.iPick(U,V),Pc) => "Pick $(U) $(V)".
   showIns(.iFiber,Pc) => "Fiber".
   showIns(.iSpawn,Pc) => "Spawn".
   showIns(.iSuspend,Pc) => "Suspend".
   showIns(.iResume,Pc) => "Resume".
   showIns(.iRetire,Pc) => "Retire".
   showIns(.iUnderflow,Pc) => "Underflow".
-  showIns(.iTEq,Pc) => "TEq".
   showIns(.iTry(U,V),Pc) => "Try $(U) $(V)".
   showIns(.iEndTry(V),Pc) => "EndTry $(V)".
   showIns(.iThrow,Pc) => "Throw".
@@ -343,7 +337,7 @@ star.compiler.assem{
   showIns(.iStL(U),Pc) => "StL $(U)".
   showIns(.iStV(U),Pc) => "StV $(U)".
   showIns(.iTL(U),Pc) => "TL $(U)".
-  showIns(.iStA(U),Pc) => "StA $(U)".
+  showIns(.iLdS(U),Pc) => "LdS $(U)".
   showIns(.iLdG(U),Pc) => "LdG $(U)".
   showIns(.iStG(U),Pc) => "StG $(U)".
   showIns(.iTG(U),Pc) => "TG $(U)".
@@ -406,5 +400,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 855221420700215238.
+  public opcodeHash = 544731968861105627.
 }

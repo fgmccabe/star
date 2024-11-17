@@ -130,7 +130,8 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, integer stackDep
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
 
-  propagateVars(ctx, tgtCtx);
+  if (tgtCtx->parent != Null)
+    propagateVars(ctx, tgtCtx->parent);
   return Ok;
 }
 
@@ -344,22 +345,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case Rst: {
         int32 count = code[pc].fst;
-        if (stackDepth+ctx.trueDepth < count)
+        if (stackDepth + ctx.trueDepth < count)
           return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, count);
-        stackDepth = count-ctx.trueDepth;
-        if(stackDepth<0)
+        stackDepth = count - ctx.trueDepth;
+        if (stackDepth < 0)
           return verifyError(&ctx, ".%d: insufficient block stack depth for stack reset %d", pc, count);
-        pc++;
-        continue;
-      }
-      case Pick: {
-        int32 height = code[pc].fst;
-        int32 pick = code[pc].alt;
-
-        if (stackDepth < height)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, height);
-        if (height < pick)
-          return verifyError(&ctx, ".%d: pick count should not be greater than height %d", pc, pick, height);
         pc++;
         continue;
       }
@@ -399,13 +389,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Underflow:
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
-      case TEq: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
-        continue;
-      }
+
       case Try: {
         termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
         if (!isString(lit)) {
@@ -503,6 +487,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case LdS:{
+        int32 stackOff = code[pc].fst;
+        if (stackOff < 0 || stackOff >= stackDepth)
+          return verifyError(&ctx, ".%d Out of bounds stack offset: %d", pc, stackOff);
+        stackDepth++;
+        pc++;
+        continue;
+      }
       case StL: {
         int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= ctx.lclCount)
@@ -520,16 +512,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (lclNo < 0 || lclNo >= ctx.lclCount)
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
         locals[lclNo].inited = True;
-        pc++;
-        continue;
-      }
-      case StA: {
-        int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo > codeArity(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds argument number: %d", pc, argNo);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth--;
         pc++;
         continue;
       }
@@ -604,6 +586,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
         if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
           return Error;
         pc++;
@@ -618,6 +601,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return verifyError(&ctx, ".%d: invalid label: %t", pc, lit);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
         if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
           return Error;
         pc++;
@@ -651,6 +635,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         int32 mx = code[pc].fst;
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth--;
         for (int32 ix = 0; ix < mx; ix++) {
           int32 casePc = pc + 1 + ix;
           insPo caseIns = &code[casePc];
