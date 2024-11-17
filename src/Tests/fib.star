@@ -15,16 +15,16 @@ test.fib{
     timer_finish(timer!);
     showMsg("Fib of $(V) is $(F)");
 
-    try{
-      _jit_compile(fib)
-    } catch errorCode in {
-      X => showMsg("$(X)")
-    };
-    valis ()
+    -- try{
+    --   _jit_compile(fib)
+    -- } catch errorCode in {
+    --   X => showMsg("$(X)")
+    -- };
+    -- valis ()
   }
 
   public _main:(cons[string])=>().
-  _main([]) => main(40).
+  _main([]) => main(20).
   _main([Count]) => main(Count::integer).
 }
   

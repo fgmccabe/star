@@ -333,7 +333,7 @@ static int32 maxDepth(insPo ins, integer count, normalPo constPool) {
   for (integer pc = 0; pc < count; pc++, ins++) {
     switch (ins->op) {
 
-#define instruction(Op, A1, A2, Dl, Tp, Cmt) \
+#define instruction(Op, A1, A2, Dl, _, Cmt) \
       case Op:{                  \
         currDepth+=(Dl);        \
         if(currDepth>maxDepth)  \

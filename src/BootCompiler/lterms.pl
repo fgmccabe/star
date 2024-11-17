@@ -93,7 +93,7 @@ ssTrm(strg(Str),_,qt(Str,'\"')) :-!.
 ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
-ssTrm(cll(_,Op,Args),Dp,sq([OO,lp,AA,rp])) :- !,
+ssTrm(cll(_,Op,Args,_Tp),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
@@ -310,7 +310,7 @@ rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
 rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
+rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
@@ -498,7 +498,7 @@ idInTerm(idnt(Nm,_),Term) :-
 inTerm(idnt(Nm,_),Nm).
 inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
-inTerm(cll(_,_,Args),Nm) :-
+inTerm(cll(_,_,Args,_),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm).
 inTerm(ocall(_,Op,_,_),Nm) :-
@@ -686,7 +686,7 @@ validTerm(float(_),_,_).
 validTerm(chr(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
-validTerm(cll(Lc,lbl(_,_),Args),_,D) :-
+validTerm(cll(Lc,lbl(_,_),Args,_),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerm(Op,Lc,D),
@@ -891,7 +891,7 @@ ptnVars(float(_),Dx,Dx).
 ptnVars(chr(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).
 ptnVars(lbl(_,_),Dx,Dx).
-ptnVars(cll(_,_,Args),D,Dx) :-
+ptnVars(cll(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ocall(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).

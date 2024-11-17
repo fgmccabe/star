@@ -46,7 +46,6 @@ intrinsic(_blsr,"F(ii)i","BLsr",True,NotLast,"logical right shift")
 intrinsic(_basr,"F(ii)i","BAsr",True,NotLast,"arithmetic right shift")
 intrinsic(_bnot,"F(i)i","BNot",True,NotLast,"bitwise negate number")
 
-intrinsic(_fiber_eq,":k'r':k's'F("fiberType("k'r'","k's'")fiberType("k'r'","k's'")")l","TEq",True,NotLast,"compare two fiber identifiers")
 intrinsic(_fiber,":k'r':k's'F(F("fiberType("k'r'","k's'")"k'r')k's')"fiberType("k'r'","k's'"),"Fiber",True,NotLast,"create a new fiber")
 intrinsic(_suspend,":k'r':k's'F("fiberType("k'r'","k's'")"k's')k'r'","Suspend",False,NotLast,"suspend fiber")
 intrinsic(_retire,":k'r':k's':k'e'F("fiberType("k'r'","k's'")"k's')k'e'","Retire",False,Last,"retire fiber")

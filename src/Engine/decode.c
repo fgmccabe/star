@@ -490,7 +490,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
                     (Tgt) = offset;}
 #define szlVl(Tgt) { int32 lvl; ret = decodeI32(in, &lvl); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
 
-#define instruction(Op, A1, A2, Dl, Tp, Cmt)\
+#define instruction(Op, A1, A2, Dl, _, Cmt)\
       case Op:{                             \
         sz##A1(ins->fst)                   \
         sz##A2(ins->alt)                   \

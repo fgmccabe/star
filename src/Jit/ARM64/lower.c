@@ -133,6 +133,10 @@ retCode jit_LdL(insPo code, integer pc, jitCompPo jit) {
   return Ok;
 }
 
+retCode jit_LdS(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_LdC(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 0);
   int32 litNo = code[pc].fst;
@@ -163,10 +167,6 @@ retCode jit_Nth(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_StNth(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_StA(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
@@ -239,10 +239,6 @@ retCode jit_Rot(insPo code, integer pc, jitCompPo jit) {
   }
   jit->vStack[jit->vTop - height] = top;
   return Ok;
-}
-
-retCode jit_Pick(insPo code, integer pc, jitCompPo jit) {
-  return Error;
 }
 
 retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
@@ -519,10 +515,6 @@ retCode jit_Release(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_Underflow(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_TEq(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 

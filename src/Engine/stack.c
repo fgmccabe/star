@@ -493,6 +493,8 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
           if (*var != Null && *var != voidEnum)
             outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
         }
+
+
       }
     }
   }

@@ -518,7 +518,10 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
-  stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments);
+  if (line[0] == 'L')
+    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars);
+  else
+    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments);
 
   resetDeflt("n");
   return moreDebug;
@@ -1110,7 +1113,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_glb(Tgt) showGlb(out, findGlobalVar((Tgt)))
 #define show_tPe(Tgt) showSig(out,stk,mtd,(Tgt))
 
-#define instruction(Op, A1, A2, Dl, Tp, Cmt)\
+#define instruction(Op, A1, A2, Dl, _, Cmt)\
     case Op:{                               \
       outMsg(out," %s",#Op);                \
       integer delta=0;                      \

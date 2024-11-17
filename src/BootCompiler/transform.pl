@@ -188,11 +188,11 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,Extra,Opts,Eqns,Rules,[],Ex,Ex0),
   (is_member(traceNormalize,Opts) -> dispEquations(Rules);true),
-  closureEntry(Map,Lc,Nm,Tp,Arity,Extra,Opts,Ex0,Exx),
+  closureEntry(Map,Lc,Nm,Tp,Extra,Opts,Ex0,Exx),
   functionMatcher(Lc,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!,
   (is_member(traceNormalize,Opts) -> dispRuleSet(Fun);true).
 
-closureEntry(Map,Lc,Name,Tp,Arity,Extra,Opts,[ClEntry|L],L) :-
+closureEntry(Map,Lc,Name,Tp,Extra,Opts,[ClEntry|L],L) :-
   lookupVar(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure),!,
   extendFunTp(Tp,Extra,ATp),
@@ -201,10 +201,11 @@ closureEntry(Map,Lc,Name,Tp,Arity,Extra,Opts,[ClEntry|L],L) :-
   length(Args,Ar),
   (Extra = [] ->
    genVar("ϕ",tplType([]),FrVr),
-   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,[FrVr|Args],cll(Lc,lbl(Prog,Arity),Args)) ;
-   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,cll(Lc,lbl(Prog,Ar),Args))),
+   Ar1 is Ar+1,
+   ClEntry = fnDef(Lc,lbl(Closure,Ar1),hard,ATp,[FrVr|Args],cll(Lc,lbl(Prog,Ar),Args,ATp)) ;
+   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,cll(Lc,lbl(Prog,Ar),Args,ATp))),
   (is_member(traceNormalize,Opts) -> dispRuleSet(ClEntry);true).
-closureEntry(_,_,_Name,_Tp,_,_,_,L,L).
+closureEntry(_,_,_Name,_Tp,_,_,L,L).
 %  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
 extendFunTp(Tp,[],Tp):-!.
@@ -319,15 +320,15 @@ trPtnCallOp(Lc,Nm,Tp,Args,Ptn,Q,Qx,Map,Opts,Ex,Ex) :-
   lookupVar(Map,Nm,V),
   implementPtnCall(V,Lc,Tp,Args,Ptn,Map,Opts,Q,Qx).
 
-implementPtnCall(localFun(Fn,_,Ar,ThVr,_),Lc,Tp,Args,
-		 whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Map,Opts,Q,Qx) :-
+implementPtnCall(localFun(Fn,_,Ar,ThVr,Tp),Lc,Tp,Args,
+		 whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs,Tp))),Map,Opts,Q,Qx) :-
   genVar("_X",Tp,X),
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat(Args,[Vr],XArgs),
   merge([X],Q,Qx),
   A2 is Ar+1.
-implementPtnCall(moduleFun(Fn,_,Ar,_),Lc,Tp,Args,
-		 whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,Ar),Args))),_,_,Q,Qx) :-
+implementPtnCall(moduleFun(Fn,_,Ar,Tp),Lc,Tp,Args,
+		 whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,Ar),Args,Tp))),_,_,Q,Qx) :-
   genVar("_X",Tp,X),
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,_Tp,Args,ctpl(lbl(Mdl,Ar),Args),_,_,Q,Q).
@@ -423,9 +424,6 @@ liftAction(doLbld(Lc,Lb,A),lbld(Lc,Lb,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doBrk(Lc,Lb),brk(Lc,Lb),Qx,Qx,_Map,_Opts,Exx,Exx) :-!.
 liftAction(doValis(Lc,E),vls(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doRaise(Lc,T,E),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftAction(doDefn(Lc,P,E),defn(Lc,PP,EE),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftPtn(P,PP,Q,Q0,Map,Opts,Ex,Ex0), % simplified pattern
   liftExp(E,EE,Q0,Qx,Map,Opts,Ex0,Exx).
@@ -566,11 +564,11 @@ trExpCallOp(Lc,enm(Lc0,Nm,Tp),_,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 trExpCallOp(Lc,Op,Tp,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
-implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,_Tp,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,cll(Lc,lbl(Fn,Ar2),XArgs,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
-implementFunCall(Lc,moduleFun(Fn,_,Ar,_),_,Args,_Tp,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,cll(Lc,lbl(Fn,Ar),Args,Tp),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,ocall(Lc,idnt(Fn,Tp),Args,RTp),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,_Tp,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
 implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
@@ -800,20 +798,8 @@ collectLabelVars([idnt(Nm,Tp)|Args],ThVr,Ix,List,Lx) :-
 collectLabelVars([_|Args],ThVr,Ix,List,Lx) :-
   collectLabelVars(Args,ThVr,Ix,List,Lx).
 
-/*
- Generate the closure return:
- OuterNm(ThVr,.Nm) => ClosureNm(ThVr)
-*/
-closureRule(_,Lc,Nm,ClosureName,ThVr,(Lc,[ThVr,DotName],none,clos(ClosureName,2,ThVr))) :-
-  makeDotLbl(Nm,DotName).
-
-accessRule(_,Lc,Nm,LclName,ThV,(Lc,[ThV,DotName],enum("true"),cll(Lc,lbl(LclName,1),[ThV]))) :-
-  makeDotLbl(Nm,DotName).
-
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).
 programAccess(localFun(Prog,Closure,_Arity,_,_),Prog,Closure).
-
-makeDotLbl(Nm,lbl(Nm,0)).
 
 mkUnit(U) :-
   mkTpl([],U).
