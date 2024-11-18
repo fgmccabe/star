@@ -455,7 +455,7 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
     if (loc != Null)
       outMsg(out, "[%d] %L: %T", frameNo, loc, mtd);
     else
-      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, pc);
+      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, codeOffset(mtd, fp->pc));
 
     integer count = argCount(mtd);
 
