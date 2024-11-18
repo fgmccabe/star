@@ -928,10 +928,12 @@ isTryCatch(A,Lc,B,E,Hs) :-
   isUnary(A,Lc,"try",I),
   isBinary(I,_,"catch",B,R),
   isBinary(R,_,"in",E,H),
-  isBraceTuple(H,_,Hs).
+  isBraceTuple(H,_,[Els]),
+  deBar(Els,Hs).
 
-mkTryCatch(Lc,B,E,H,A) :-
-  braceTuple(Lc,H,Hs),
+mkTryCatch(Lc,B,E,Cases,A) :-
+  reBar(Cases,Cs),
+  braceTuple(Lc,[Cs],Hs),
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).

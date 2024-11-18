@@ -40,6 +40,7 @@ macroRl(":=",expression,macroRules:indexAssignMacro).
 macroRl("=>",statement,macroRules:curryMacro).
 macroRl("=>",expression,macroRules:curryMacro).
 macroRl("do",action,macroRules:forLoopMacro).
+macroRl(":",action,macroRules:forMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
 macroRl("..<",expression,macroRules:incRangeMacro).
@@ -53,6 +54,7 @@ macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
 macroRl("raises",type,macroRules:raisesMacro).
+macroRl("async",type,macroRules:asyncMacro).
 
 build_main(As,Bs) :-
   look_for_signature(As,"main",Lc,Ms),
@@ -495,6 +497,57 @@ decRangeMacro(T,expression,Rp) :-
 
    mkSequence(Lc,[S1,Lbld],Ax).
 
+  /*
+  for P : G do B
+  becomes
+  {
+    lb:while .true do{
+  case _resume(G,._next) in {
+    | _yld(P) => B
+    | _yld(_) default => {}
+    | ._all => break lb
+  }
+    }
+  }
+  */
+
+ forMacro(A,action,Ax) :-
+   isBinary(A,Lc,":",LL,RR),
+   isUnary(LL,_,"for",P),
+   isBinary(RR,_,"do",G,B),!,
+
+   genIden(Lc,Lb),
+
+   mkEnum(Lc,"true",True),
+
+   /* Build :_all => break Lb */
+   mkBreak(Lc,Lb,Brk),
+   mkEnum(Lc,"_all",All),
+   mkEquation(Lc,All,none,Brk,EndEq),
+
+   /* build :_yld(P) => B */
+   mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
+   mkEquation(Lc,BYld,none,B,YldEqn),
+
+   /* build :_yld(_) default => {} */
+   braceTuple(Lc,[],Nop),
+   mkAnon(Lc,Anon),
+   mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
+   mkDefault(Lc,DYld,Dflt),
+   mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+
+   /* build case _resume(G,._next) in .. */
+   mkEnum(Lc,"_next",Next),
+   binary(Lc,"_resume",G,Next,GV),
+   caseExp(Lc,GV,[YldEqn,DefltEqn,EndEq],Rsme),
+   braceTuple(Lc,[Rsme],Resume),
+
+   /* Build while .true loop */
+   mkWhileDo(Lc,True,Resume,Loop),
+
+   /* Build Lb:while .true do .. */
+   mkLbldAction(Lc,Lb,Loop,Ax).
+
 /* generator{A}
    becomes
    _fiber((this,_) => valof{
@@ -585,3 +638,9 @@ raisesMacro(T,type,Tx) :-
   isBinary(T,Lc,"raises",L,R),!,
   unary(Lc,"raises",R,E),
   binary(Lc,"|:",E,L,Tx).
+
+asyncMacro(T,type,Tx) :-
+  isUnary(T,Lc,"async",R),!,
+  mkSqType(Lc,"task",[name(Lc,"_")],TTp),
+  typeAnnotation(Lc,name(Lc,"this"),TTp,CTp),
+  binary(Lc,"|:",CTp,R,Tx).
