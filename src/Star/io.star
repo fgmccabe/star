@@ -110,10 +110,10 @@ star.io{
 	  Txt := [Ln,..Txt!];
 	}
       } catch ioException in {
-	.pastEof => {
+	| .pastEof => {
 	  showMsg("At eof");
 	}
-	_ => {
+	| _ => {
 	  showMsg("??");
 	  _close(In);
 	  raise .ioError
@@ -123,7 +123,7 @@ star.io{
       _close(In);
       valis reverse(Txt!)*
     } catch errorCode in {
-      .eof => {
+      | .eof => {
 	showMsg("outer eof");
 	raise .pastEof
       }

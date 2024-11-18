@@ -60,6 +60,7 @@
 	      isRaises/3,mkRaises/3,
 	      isReset/4,mkReset/4,
 	      isShift/5,mkShift/5,
+	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
@@ -956,6 +957,18 @@ isShift(A,Lc,T,K,S) :-
 mkShift(Lc,T,K,S,A) :-
   binary(Lc,"in",K,S,I),
   binary(Lc,"shift",T,I,A).
+
+isThunk(A,Lc,Th) :-
+  isUnary(A,Lc,"$$",Th).
+
+mkThunk(Lc,Th,A) :-
+  unary(Lc,"$$",Th,A).
+
+isThunkRef(A,Lc,Th) :-
+  isUnary(A,Lc,"!!",Th).
+
+mkThunkRef(Lc,Th,A) :-
+  unary(Lc,"!!",Th,A).
 
 isBreak(A,Lc,L) :-
   isUnary(A,Lc,"break",L),
