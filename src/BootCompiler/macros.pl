@@ -504,7 +504,7 @@ examineTerm(A,Ax) :-
 examineTerm(A,Ax) :-
   isReset(A,Lc,H,E),!,
   macroTerm(H,Hx),
-  macroType(E,Ex),
+  macroTerm(E,Ex),
   mkReset(Lc,Hx,Ex,Ax).
 examineTerm(A,Ax) :-
   isShift(A,Lc,T,K,S),!,
@@ -512,6 +512,14 @@ examineTerm(A,Ax) :-
   macroTerm(K,Kx),
   macroType(S,Sx),
   mkShift(Lc,Tx,Kx,Sx,Ax).
+examineTerm(A,Ax) :-
+  isThunk(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkThunk(Lc,Vx,Ax).
+examineTerm(A,Ax) :-
+  isThunkRef(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkThunkRef(Lc,Vx,Ax).
 examineTerm(T,Tx) :-
   isParseCall(T,Lc,L,R),!,
   macroTerm(L,Lx),

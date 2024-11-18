@@ -19,8 +19,8 @@
 #define ERRCODE "t'errorCode'"
 
 /* Define the standard escapes */
-escape(_exit, "F(i)()", "terminate engine")
-escape(_abort, ":k'a'F(k'a's)()", "abort process")
+escape(_exit, ":k'e'F(i)k'e'", "terminate engine")
+escape(_abort, ":k'a':k'e'F(k'a's)k'e'", "abort process")
 
 escape(_definedLbl, "F(si)l", "test for defined name")
 escape(_globalIsSet,"F(s)l","test if a global var is set")

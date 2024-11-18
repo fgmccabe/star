@@ -11,7 +11,7 @@ test.lb{
       valis ()
     }
 
-    reset() => valof{
+    reSet() => valof{
       R := 0;
       valis ()
     }
@@ -25,7 +25,7 @@ test.lb{
       valis .true
     }
     ii(N) where N<0 => valof{
-      reset();
+      reSet();
       valis .false
     }
   .} in ii(A).

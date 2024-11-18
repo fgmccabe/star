@@ -6,8 +6,8 @@ star.compiler.escapes{
 
   public escapeType:(string)=>option[tipe].
   escapeType(Es) => case Es in {
-    | "_exit" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.tupleType([])))
-    | "_abort" => .some(.allType(.kVar("a"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("string")])),.tupleType([]))))
+    | "_exit" => .some(.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.kVar("e"))))
+    | "_abort" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("string")])),.kVar("e")))))
     | "_definedLbl" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("integer")])),.nomnal("boolean")))
     | "_globalIsSet" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.nomnal("boolean")))
     | "_int_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))

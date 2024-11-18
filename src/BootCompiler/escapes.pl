@@ -2,8 +2,8 @@
 
 :-module(escapes,[isEscape/1,escapeType/2]).
 
-escapeType("_exit",funType(tplType([type("integer")]),tplType([]))).
-escapeType("_abort",allType(kVar("a"),funType(tplType([kVar("a"),type("string")]),tplType([])))).
+escapeType("_exit",allType(kVar("e"),funType(tplType([type("integer")]),kVar("e")))).
+escapeType("_abort",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("string")]),kVar("e"))))).
 escapeType("_definedLbl",funType(tplType([type("string"),type("integer")]),type("boolean"))).
 escapeType("_globalIsSet",funType(tplType([type("string")]),type("boolean"))).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
