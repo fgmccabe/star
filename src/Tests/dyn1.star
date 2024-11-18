@@ -4,7 +4,7 @@ test.dyn1{
 
   -- Experiments in throwing
 
-  fa: _throw|=(integer)=>() |: (integer)=>integer.
+  fa: _throw|=(all e ~~ (integer)=>e) |: (integer)=>integer.
   fa(X) => valof{
     if X>5 then
       _throw(10)
