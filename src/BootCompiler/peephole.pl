@@ -129,8 +129,7 @@ peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iEndTry(Lb)|_],Lbls,[iEndTry(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
-peep([iLoop(Lb)|_],Lbls,[iLoop(LLb)]) :-!,
-  resolveLblRef(Lb,Lbls,LLb).
+peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
 peep([iRetire|_],_,[iRetire]) :-!.
 peep([iCase(Mx)|In],_Lbls,[iCase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).

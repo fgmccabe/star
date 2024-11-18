@@ -370,7 +370,7 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   (idnt(_,_)=Bound ->
    caseMatcher(Lc,Bound,Cases,Map,Result) ;
-   typeOfCanon(Bound,Tp),
+   typeOfCanon(Bnd,Tp),
    genVar("_C",Tp,V),
    caseMatcher(Lc,V,Cases,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
@@ -461,7 +461,12 @@ liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
-  actionCaseMatcher(Lc,BB,Cases,Map,Reslt).
+  (idnt(_,_)=BB ->
+   actionCaseMatcher(Lc,BB,Cases,Map,Reslt);
+   typeOfCanon(B,Tp),
+   genVar("_C",Tp,V),
+   actionCaseMatcher(Lc,V,Cases,Map,Rslt),
+   Reslt = seq(Lc,defn(Lc,V,BB),Rslt)).
 liftAction(doTryCatch(Lc,B,T,H),try(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
