@@ -127,6 +127,10 @@ ssTrm(get(_,C),Dp,sq([CC,ss("!")])) :-!,
 ssTrm(set(_,C,V),Dp,sq([CC,ss(":="),VV])) :-!,
   ssTrm(C,Dp,CC),
   ssTrm(V,Dp,VV).
+ssTrm(thk(_,Lm,_),Dp,sq([ss("$$ "),lp,LL,rp])) :-!,
+  ssTrm(Lm,Dp,LL).
+ssTrm(thkRf(_,Rf,_),Dp,sq([lp,RR,rp,ss("!!")])) :-!,
+  ssTrm(Rf,Dp,RR).
 ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])) :-!.
 ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-!,
   ssTrm(Ptn,Dp,PP),
@@ -719,6 +723,10 @@ validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
   validTerm(Vl,Lc,D).
+validTerm(thk(Lc,Th,_),_,D) :-
+  validTerm(Th,Lc,D).
+validTerm(thkRf(Lc,Th,_),_,D) :-
+  validTerm(Th,Lc,D).
 validTerm(whr(Lc,Exp,Cond),_,D) :-
   glVars(Cond,D,D1),
   validTerm(Exp,Lc,D1),

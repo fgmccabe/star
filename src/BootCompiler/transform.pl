@@ -410,7 +410,10 @@ liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
-  
+liftExp(thunk(Lc,E,Tp),thk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(thnkRef(Lc,E,Tp),thkRf(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).

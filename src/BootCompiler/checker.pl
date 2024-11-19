@@ -785,6 +785,19 @@ typeOfExp(Term,Tp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
   mkRefTp(Tp,RTp),
   typeOfExp(I,RTp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,thunk(Lc,Lam,Tp),Path) :-
+  isThunk(Term,Lc,Th),!,
+  newTypeVar("t",ThT),
+  thunkType(ThT,ThTp),
+  verifyType(Lc,ast(Term),ThTp,Tp,Env),
+  roundTuple(Lc,[],Args),
+  mkEquation(Lc,Args,none,Th,Eqn),
+  typeOfLambda(Eqn,funType(tplType([]),ThT),Env,Lam,Path).
+typeOfExp(Term,Tp,Env,Ev,thnkRef(Lc,Exp,Tp),Path) :-
+  isThunkRef(Term,Lc,Rf),!,
+  thunkType(Tp,ThTp),
+  typeOfExp(Rf,ThTp,Env,Ev,Exp,Path).
+
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
