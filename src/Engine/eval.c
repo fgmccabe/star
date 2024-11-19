@@ -110,6 +110,8 @@ retCode run(processPo P) {
           bail();
         }
 
+        PC++;
+
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
@@ -121,7 +123,7 @@ retCode run(processPo P) {
 #endif
         }
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC + 1;
+        FP->pc = PC;
 
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
@@ -163,6 +165,8 @@ retCode run(processPo P) {
           bail();
         }
 
+        PC++;
+
         push(closureFree(obj));                     // Put the free term back on the stack
 
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
@@ -181,7 +185,7 @@ retCode run(processPo P) {
         }
 
         assert(validPC(frameMtd(FP), PC));
-        FP->pc = PC + 1;
+        FP->pc = PC;
         pushFrme(mtd);
         LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called

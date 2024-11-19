@@ -6,6 +6,7 @@
 #include <globals.h>
 #include "stackP.h"
 #include "engineP.h"
+#include "debug.h"
 
 tracingLevel traceStack = noTracing;    // stack operation tracing
 integer minStackSize = 256;             /* What is the smallest stack size */
@@ -63,7 +64,7 @@ void initStacks() {
   integer regionSize = (1 << lg2(stackRegionSize));
 
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
+  if (traceStack > noTracing)
     outMsg(logFile, "setting stack region to %d words\n", regionSize);
 #endif
 
@@ -102,8 +103,8 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
   stk->counter = 0;
 
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
-    outMsg(logFile, "new stack of %d words\n", sze);
+  if (traceStack > noTracing)
+    outMsg(logFile, "%d new stack of %d words\n%_", pcCount, sze);
 #endif
 
   stk->fp = pushFrame(stk, underFlow);
@@ -399,17 +400,17 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
     }
 
     assert(fp == fpLimit && sp == spLimit && try == tryLimit);
-  }
 
-  if (stk->attachment != Null)
-    helper((ptrPo) &stk->attachment, c);
-  if (stk->bottom != Null)
-    helper((ptrPo) &stk->bottom, c);
+    if (stk->attachment != Null)
+      helper((ptrPo) &stk->attachment, c);
+    if (stk->bottom != Null)
+      helper((ptrPo) &stk->bottom, c);
 
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
-    stackSanityCheck(stk);
+    if (traceStack > noTracing)
+      stackSanityCheck(stk);
 #endif
+  }
 
   return o + StackCellCount;
 }
@@ -417,6 +418,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 termPo stkFinalizer(specialClassPo class, termPo o) {
   stackPo tsk = C_STACK(o);
   if (tsk->stkMem != Null) {
+    tsk->state = moribund;
     releaseBlock(stackRegion, (voidPtr) tsk->stkMem);
     tsk->stkMem = Null;
   }
@@ -493,7 +495,6 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
           if (*var != Null && *var != voidEnum)
             outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
         }
-
 
       }
     }
@@ -613,7 +614,7 @@ stackPo attachStack(stackPo tsk, stackPo top) {
   assert(bottom != Null && isAttachedStack(bottom, top));
 
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
+  if (traceStack > noTracing)
     outMsg(logFile, "attach stack %T to %T\n", top, tsk);
 #endif
 
@@ -637,7 +638,7 @@ stackPo attachStack(stackPo tsk, stackPo top) {
 // Get the stack immediately below the identified parent
 stackPo detachStack(stackPo base, stackPo top) {
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
+  if (traceStack > noTracing)
     outMsg(logFile, "detach %T up to %T\n", base, top);
 #endif
   assert(stackState(top) == active && top->bottom == Null);
@@ -659,7 +660,7 @@ stackPo detachStack(stackPo base, stackPo top) {
   s->bottom = base;
 
 #ifdef TRACESTACK
-  if (traceStack>noTracing) {
+  if (traceStack > noTracing) {
     outMsg(logFile, "now at %T\n", parent);
     assert(hasClass((termPo) parent, stackClass));
   }
@@ -669,8 +670,8 @@ stackPo detachStack(stackPo base, stackPo top) {
 
 stackPo dropStack(stackPo tsk) {
 #ifdef TRACESTACK
-  if (traceStack>noTracing)
-    outMsg(logFile, "drop stack %T\n%_", tsk);
+  if (traceStack > noTracing)
+    outMsg(logFile, "%d drop stack %T\n%_", pcCount, tsk);
   stackReleases++;
 #endif
   stackPo previous = tsk->attachment;
