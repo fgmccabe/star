@@ -42,6 +42,8 @@ isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(tdot(_,_,_,_)).
 isCanon(enm(_,_,_)).
+isCanon(thunk(_,_,_)).
+isCanon(thnkRef(_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
@@ -115,6 +117,8 @@ typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
+typeOfCanon(thunk(_,_,Tp),Tp) :- !.
+typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
@@ -158,6 +162,8 @@ locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
+locOfCanon(thunk(Lc,_,_),Lc) :-!.
+locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
@@ -284,6 +290,10 @@ ssTerm(raise(_,_,E,_),Dp,sq([ss(" raise "),EE])) :-!,
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
+  ssTerm(A,Dp,AA).
+ssTerm(thunk(_,A,_),Dp,sq([ss("$$ "),AA])) :-!,
+  ssTerm(A,Dp,AA).
+ssTerm(thnkRef(_,A,_),Dp,sq([AA,ss("!!")])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),AA,ss(" catch "),TT,ss(" in "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,

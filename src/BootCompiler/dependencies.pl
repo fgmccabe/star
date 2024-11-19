@@ -309,10 +309,16 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectTermRefs(H,All,Rf,R1),
   collectTermRefs(E,All,R1,Rfx).
 collectTermRefs(T,All,R,Rx) :-
-  isShift(T,_,T,K,S),!,
-  collectTermRefs(T,All,R,R0),
+  isShift(T,_,Tg,K,S),!,
+  collectTermRefs(Tg,All,R,R0),
   collectTermRefs(K,All,R0,R1),
   collectTermRefs(S,All,R1,Rx).
+collectTermRefs(T,All,R,Rx) :-
+  isThunk(T,_,V),!,
+  collectTermRefs(V,All,R,Rx).
+collectTermRefs(T,All,R,Rx) :-
+  isThunkRef(T,_,V),!,
+  collectTermRefs(V,All,R,Rx).
 collectTermRefs(app(_,Op,Args),All,R,Rx) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Rx).

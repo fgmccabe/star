@@ -13,7 +13,9 @@ test.th0{
 
   main:()=>().
   main() => valof{
+    assert vv!;
     assert thunk!! == 2;
+    assert ~vv!;
     assert thunk!! == 2;
     valis ()
   }
