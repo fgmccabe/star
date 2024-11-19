@@ -138,7 +138,7 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
 ssTrm(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
+      sq([ss("case "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
@@ -202,7 +202,7 @@ ssAct(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
   ssTrm(Vl,Dp,VV).
 ssAct(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),lb,CC,rb,ss(" else "),DD])) :-!,
+      sq([ss("case "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
   ssAct(Deflt,Dp,DD).
