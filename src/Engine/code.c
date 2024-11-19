@@ -119,7 +119,7 @@ labelPo mtdLabel(methodPo mtd) {
 
 integer stackDelta(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->stackDelta;
+  return mtd->stackDelta+mtd->lclcnt;
 }
 
 logical validPC(methodPo mtd, insPo pc) {
