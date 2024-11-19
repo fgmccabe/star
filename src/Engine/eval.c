@@ -116,7 +116,7 @@ retCode run(processPo P) {
           gcReleaseRoot(H, root);
           assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
 #ifdef TRACESTACK
-          if (traceStack)
+          if (traceStack > noTracing)
             verifyStack(STK, H);
 #endif
         }
@@ -166,12 +166,16 @@ retCode run(processPo P) {
         push(closureFree(obj));                     // Put the free term back on the stack
 
         if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+#ifdef TRACESTACK
+          if (traceStack >= detailedTracing)
+            logMsg(logFile, "growing stack due to overflow in OCall");
+#endif
           int root = gcAddRoot(H, (ptrPo) &mtd);
           stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
           gcReleaseRoot(H, root);
 
 #ifdef TRACESTACK
-          if (traceStack)
+          if (traceStack > noTracing)
             verifyStack(STK, H);
 #endif
         }
@@ -529,7 +533,7 @@ retCode run(processPo P) {
           dropStack(fiber);
           restoreRegisters();
 #ifdef TRACESTACK
-          if (traceStack)
+          if (traceStack > noTracing)
             verifyStack(STK, H);
 #endif
           push(event);
@@ -604,7 +608,7 @@ retCode run(processPo P) {
             gcReleaseRoot(H, root);
 
 #ifdef TRACESTACK
-            if (traceStack)
+            if (traceStack > noTracing)
               verifyStack(STK, H);
 #endif
           }
