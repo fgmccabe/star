@@ -6,7 +6,7 @@
 long initHeapSize = 4 * 1024 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
-logical traceMemory = False;      /* memory tracing */
+tracingLevel traceMemory = noTracing;      /* memory tracing */
 logical traceAllocs = False;      // trace allocations
 logical validateMemory = False;   // Validate heap after every allocation
 
@@ -26,7 +26,7 @@ void initHeap(long heapSize) {
     globalHeap = &heap;
 
 #ifdef TRACEMEM
-    if (traceMemory) {
+    if (traceMemory>noTracing) {
       outMsg(logFile, "establish heap of %ld words total\n", initHeapSize);
       outMsg(logFile, "lower half at 0x%x, %ld words\n", heap.start, heap.limit - heap.base);
     }

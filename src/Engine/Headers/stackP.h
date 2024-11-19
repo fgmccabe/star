@@ -47,7 +47,7 @@ typedef struct StackStructure {
 #define TryFrameCellCount CellCount(sizeof (TryFrame))
 
 extern void initStacks();
-extern logical traceStack;      // stack operation tracing
+extern tracingLevel traceStack;    // stack operation tracing
 
 #define MINMINSTACKSIZE (64)
 

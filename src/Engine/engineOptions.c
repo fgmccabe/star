@@ -94,7 +94,8 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'm': {    /* trace memory activity  */
 #ifdef TRACEMEM
-        traceMemory = True;
+        if (traceMemory < detailedTracing)
+          traceMemory++;
         logMsg(logFile, "GC tracing enabled\n");
         continue;
 #else
@@ -125,7 +126,9 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'S':    /* trace stack operations  */
 #ifdef TRACESTACK
-        traceStack = True;
+        if (traceStack < detailedTracing)
+          traceStack++;
+
         stackVerify = True;
         logMsg(logFile, "Stack tracing enabled\n");
         continue;

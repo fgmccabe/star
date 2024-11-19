@@ -94,7 +94,7 @@ retCode gcCollect(heapPo H, long amount) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory) {
+  if (traceMemory>noTracing) {
     outMsg(logFile, "%d objects found in mark root phase\n%_", G->oCnt);
   }
 #endif
@@ -112,7 +112,7 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory>noTracing)
     verifyProcesses(H);
 #endif
 
@@ -130,7 +130,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
 #ifdef TRACEMEM
-    if (traceMemory) {
+    if (traceMemory>noTracing) {
       outMsg(logFile, "%d objects found\n", G->oCnt);
       outMsg(logFile, "%d bytes used\n", H->curr - H->start);
       outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
@@ -244,7 +244,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   gcGrow++;
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory>noTracing)
     outMsg(logFile, "extending heap by: %ld+%ld to %ld\n%_", factor, hmin, newSize);
 #endif
 
@@ -265,7 +265,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   H->allocMode = lowerHalf;
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory>noTracing)
     verifyProcesses(H);
 #endif
 
@@ -277,7 +277,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory) {
+  if (traceMemory>noTracing) {
     outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
   }
 #endif
@@ -287,7 +287,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory>noTracing)
     verifyProcesses(H);
 #endif
 
@@ -299,7 +299,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   }
 
 #ifdef TRACEMEM
-  if (traceMemory) {
+  if (traceMemory>noTracing) {
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }

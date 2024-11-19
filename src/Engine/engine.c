@@ -176,7 +176,7 @@ comparison sameProcess(void *a, void *b) {
 
 retCode markProcess(processPo P, gcSupportPo G) {
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory>noTracing)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
   P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
