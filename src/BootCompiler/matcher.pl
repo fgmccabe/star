@@ -242,7 +242,8 @@ formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,M
   matchTriples(Lc,Subber,Conder,NArgs,NTpls,Deflt,Map,Dp,Case).
 
 genTplVars([],[]).
-genTplVars([ann(T)|Vrs],[ann(T)|Rest]) :-
+genTplVars([ann(T)|Vrs],[idnt(NNm,T)|Rest]) :-
+  genstr("__",NNm),
   genTplVars(Vrs,Rest).
 genTplVars([idnt(Nm,T)|Vrs],[idnt(NNm,T)|Rest]) :-
   genstr(Nm,NNm),
