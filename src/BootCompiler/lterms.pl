@@ -335,6 +335,10 @@ rewriteTerm(QTest,set(Lc,T,V),set(Lc,NT,NV)) :-
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerm(QTest,Vl,NVl).
+rewriteTerm(QTest,thk(Lc,Lam,Tp),thk(Lc,LLam,Tp)) :-
+  rewriteTerm(QTest,Lam,LLam).
+rewriteTerm(QTest,thkRf(Lc,Lam,Tp),thkRf(Lc,LLam,Tp)) :-
+  rewriteTerm(QTest,Lam,LLam).
 rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
   rewriteTerm(QTest,Free,NFree).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-

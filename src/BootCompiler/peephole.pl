@@ -125,6 +125,9 @@ peep([iFCmp(Lb)|In],Lbls,[iFCmp(LLb)|Inx]) :-
 peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
+peep([iLdTh(Lb)|In],Lbls,[iLdTh(LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iEndTry(Lb)|_],Lbls,[iEndTry(LLb)]) :-
@@ -149,6 +152,7 @@ lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
 lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iUnpack(_,Lb)|_]).
+lblReferenced(Lb,[iLdTh(_,Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-

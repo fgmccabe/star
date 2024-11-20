@@ -487,7 +487,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case LdS:{
+      case LdS: {
         int32 stackOff = code[pc].fst;
         if (stackOff < 0 || stackOff >= stackDepth)
           return verifyError(&ctx, ".%d Out of bounds stack offset: %d", pc, stackOff);
@@ -546,11 +546,19 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case Thunk:
-      case LdTh: {
+      case Thunk: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         pc++;
+        continue;
+      }
+      case LdTh: {
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
+          return Error;
+        pc++;
+        stackDepth++;
         continue;
       }
       case StTh: {

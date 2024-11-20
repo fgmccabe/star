@@ -66,7 +66,7 @@ instruction(StG, glb, tOs, -1, "F(p)()", "store into a global variable")
 instruction(TG, glb, tOs, 0, "F(p)p", "copy into a global variable")
 
 instruction(Thunk, tOs, nOp, 0, "F(p)p", "create a thunk from a lambda")
-instruction(LdTh, tOs, nOp, 0, "F(p)p", "derefence a thunk, potentially running its lambda")
+instruction(LdTh, tOs, lVl, 0, "F(p)p", "derefence a thunk, potentially running its lambda")
 instruction(StTh, tOs, tOs, -2, "F(pp)()", "store a value into a thunk variable")
 instruction(TTh, tOs, tOs, -1, "F(pp)p", "update thunk and leave on stack")
 
