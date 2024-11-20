@@ -548,8 +548,8 @@ compExp(nth(Lc,Exp,Off,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(setix(Lc,Exp,Off,Vl),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
-  compExp(Vl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iStNth(Off)|C1],Stk0,_Stkx),
-  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
+  compExp(Vl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iStNth(Off)|C2],Stk0,_Stkx),
+  genLastReturn(Last,Opts,C2,Cx,Stk,Stkx).
 compExp(cel(Lc,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iCell|C1],Stk,Stka),
@@ -566,9 +566,12 @@ compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(thk(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iThunk|Cx],Stk,Stkx).
-compExp(thkRf(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(thkRf(Lc,Th,Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,[iLbl(Ex,iBlock(BlckSig,C))|Cx],Cx,Stk,Stkx) :-!,
+  genLbl(L,Ex,L0),
+  toLtipe(Tp,ThTp),
+  nearlyFlatSig(ThTp,BlckSig),
   chLine(Opts,OLc,Lc,C,C0),!,
-  compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdTh|Cx],Stk,Stkx).
+  compExp(Th,Lc,Brks,notLast,Opts,L0,Lx,D,Dx,C0,[iLdTh(Ex),iRot(1),iTTh,iBreak(Ex)],Stk,Stkx).
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,CaseBlkTp),

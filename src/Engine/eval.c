@@ -896,7 +896,12 @@ retCode run(processPo P) {
           check(vl != Null, "undefined thunk value");
 
           push(vl);     /* load thunk variable */
-          break;
+
+          PC += PC->alt + 1;  // break out of the thunk block
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
         } else {
           closurePo thLambda = thunkLam(thVr);
 
