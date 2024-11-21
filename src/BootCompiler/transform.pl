@@ -414,6 +414,9 @@ liftExp(thunk(Lc,E,Tp),thk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thnkRef(Lc,E,Tp),thkRf(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(thnkSet(Lc,E,V),thkSt(Lc,EE,VV),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Ex0),
+  liftExp(V,VV,Q,Qx,Map,Opts,Ex0,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).

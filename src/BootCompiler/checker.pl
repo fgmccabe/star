@@ -785,14 +785,9 @@ typeOfExp(Term,Tp,Env,Ev,deref(Lc,Exp),Path) :-
   isCellRef(Term,Lc,I),
   mkRefTp(Tp,RTp),
   typeOfExp(I,RTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,thunk(Lc,Lam,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,Thnk,Path) :-
   isThunk(Term,Lc,Th),!,
-  newTypeVar("t",ThT),
-  thunkType(ThT,ThTp),
-  verifyType(Lc,ast(Term),ThTp,Tp,Env),
-  roundTuple(Lc,[],Args),
-  mkEquation(Lc,Args,none,Th,Eqn),
-  typeOfLambda(Eqn,funType(tplType([]),ThT),Env,Lam,Path).
+  typeOfThunk(Lc,Th,Tp,Env,Thnk,Path).
 typeOfExp(Term,Tp,Env,Ev,thnkRef(Lc,Exp,Tp),Path) :-
   isThunkRef(Term,Lc,Rf),!,
   thunkType(Tp,ThTp),
@@ -915,6 +910,18 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   verifyType(Lc,ast(Term),funType(AT,RT),LambdaTp,Env),
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,E1,_,Exp,Path).
+
+typeOfThunk(Lc,Term,Tp,Env,
+	    thunk(Lc,
+		  lambda(Lc,Lbl,[],rule(Lc,tple(Lc,[ThnkVar]),none,thnkSet(Lc,ThnkVar,Exp)),funType(tplType([Tp]),ThT)),
+		  Tp),Path) :-
+  newTypeVar("t",ThT),
+  genNewName(Path,"Γ",ThNme),
+  ThnkVar = v(Lc,ThNme,Tp),
+  lambdaLbl(Path,"λ",Lbl),
+  thunkType(ThT,ThTp),
+  verifyType(Lc,ast(Term),ThTp,Tp,Env),
+  typeOfExp(Term,ThT,Env,_,Exp,Path).
 
 checkAction(A,Tp,HasVal,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,

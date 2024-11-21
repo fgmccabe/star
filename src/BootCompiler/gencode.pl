@@ -566,12 +566,14 @@ compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(thk(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iThunk|Cx],Stk,Stkx).
-compExp(thkRf(Lc,Th,Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,[iLbl(Ex,iBlock(BlckSig,C))|Cx],Cx,Stk,Stkx) :-!,
-  genLbl(L,Ex,L0),
-  toLtipe(Tp,ThTp),
-  nearlyFlatSig(ThTp,BlckSig),
+compExp(thkRf(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  compExp(Th,Lc,Brks,notLast,Opts,L0,Lx,D,Dx,C0,[iLdTh(Ex),iRot(1),iTTh,iBreak(Ex)],Stk,Stkx).
+  compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdTh|Cx],Stk,Stkx).
+compExp(thkSt(Lc,Th,Vl),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compExp(Vl,Lc,Brks,notLast,Opts,L,L1,D,D0,C0,C1,Stk,Stk0),
+  compExp(Th,Lc,Brks,notLast,Opts,L1,Lx,D0,Dx,C1,[iTTh|Cx],Stk0,Stk1),
+  dropStk(Stk1,1,Stkx).
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,CaseBlkTp),

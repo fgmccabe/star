@@ -131,6 +131,9 @@ ssTrm(thk(_,Lm,_),Dp,sq([ss("$$ "),lp,LL,rp])) :-!,
   ssTrm(Lm,Dp,LL).
 ssTrm(thkRf(_,Rf,_),Dp,sq([lp,RR,rp,ss("!!")])) :-!,
   ssTrm(Rf,Dp,RR).
+ssTrm(thkSt(_,Rf,Vl),Dp,sq([lp,RR,ss("!:=!"),VV,rp])) :-!,
+  ssTrm(Rf,Dp,RR),
+  ssTrm(Vl,Dp,VV).
 ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])) :-!.
 ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-!,
   ssTrm(Ptn,Dp,PP),
@@ -339,6 +342,9 @@ rewriteTerm(QTest,thk(Lc,Lam,Tp),thk(Lc,LLam,Tp)) :-
   rewriteTerm(QTest,Lam,LLam).
 rewriteTerm(QTest,thkRf(Lc,Lam,Tp),thkRf(Lc,LLam,Tp)) :-
   rewriteTerm(QTest,Lam,LLam).
+rewriteTerm(QTest,thkSt(Lc,Lam,Vl),thkSt(Lc,LLam,VV)) :-
+  rewriteTerm(QTest,Lam,LLam),
+  rewriteTerm(QTest,Vl,VV).
 rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
   rewriteTerm(QTest,Free,NFree).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
@@ -731,6 +737,9 @@ validTerm(thk(Lc,Th,_),_,D) :-
   validTerm(Th,Lc,D).
 validTerm(thkRf(Lc,Th,_),_,D) :-
   validTerm(Th,Lc,D).
+validTerm(thkSt(Lc,Th,Vl),_,D) :-
+  validTerm(Th,Lc,D),
+  validTerm(Vl,Lc,D).
 validTerm(whr(Lc,Exp,Cond),_,D) :-
   glVars(Cond,D,D1),
   validTerm(Exp,Lc,D1),

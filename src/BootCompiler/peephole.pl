@@ -152,7 +152,7 @@ lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
 lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iUnpack(_,Lb)|_]).
-lblReferenced(Lb,[iLdTh(_,Lb)|_]).
+lblReferenced(Lb,[iLdTh(Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-

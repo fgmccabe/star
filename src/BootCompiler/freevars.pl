@@ -30,6 +30,7 @@ freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(deref(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(thunk(_,L,_),Ex,Q,F,Fv) :- freeVars(L,Ex,Q,F,Fv).
 freeVars(thnkRef(_,L,_),Ex,Q,F,Fv) :- freeVars(L,Ex,Q,F,Fv).
+freeVars(thnkSet(_,T,V),Ex,Q,F,Fv) :- freeVars(T,Ex,Q,F,F0), freeVars(V,Ex,Q,F0,Fv).
 freeVars(where(_,T,C),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),
   freeVars(T,E1,Q,F,F0),
   freeVars(C,E1,Q,F0,FV).

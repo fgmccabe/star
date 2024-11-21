@@ -66,7 +66,7 @@ star.compiler.assem{
     .iStG(string) |
     .iTG(string) |
     .iThunk |
-    .iLdTh(assemLbl) |
+    .iLdTh |
     .iStTh |
     .iTTh |
     .iCell |
@@ -202,7 +202,7 @@ star.compiler.assem{
   mnem(.iStG(U),Lbls,Lts,Lcs) => ([.intgr(38),.strg(U)],Lts,Lcs).
   mnem(.iTG(U),Lbls,Lts,Lcs) => ([.intgr(39),.strg(U)],Lts,Lcs).
   mnem(.iThunk,Lbls,Lts,Lcs) => ([.intgr(40)],Lts,Lcs).
-  mnem(.iLdTh(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(41),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iLdTh,Lbls,Lts,Lcs) => ([.intgr(41)],Lts,Lcs).
   mnem(.iStTh,Lbls,Lts,Lcs) => ([.intgr(42)],Lts,Lcs).
   mnem(.iTTh,Lbls,Lts,Lcs) => ([.intgr(43)],Lts,Lcs).
   mnem(.iCell,Lbls,Lts,Lcs) => ([.intgr(44)],Lts,Lcs).
@@ -342,7 +342,7 @@ star.compiler.assem{
   showIns(.iStG(U),Pc) => "StG $(U)".
   showIns(.iTG(U),Pc) => "TG $(U)".
   showIns(.iThunk,Pc) => "Thunk".
-  showIns(.iLdTh(V),Pc) => "LdTh $(V)".
+  showIns(.iLdTh,Pc) => "LdTh".
   showIns(.iStTh,Pc) => "StTh".
   showIns(.iTTh,Pc) => "TTh".
   showIns(.iCell,Pc) => "Cell".

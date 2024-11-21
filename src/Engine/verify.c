@@ -470,7 +470,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case LdA: {
         int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo > codeArity(ctx.mtd))
+        if (argNo < 0 || argNo >= codeArity(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds argument number: %d", pc, argNo);
         stackDepth++;
         pc++;
@@ -555,10 +555,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case LdTh: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
-          return Error;
         pc++;
-        stackDepth++;
         continue;
       }
       case StTh: {
