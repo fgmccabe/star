@@ -44,13 +44,21 @@ test.f0{
   --   minus(x,y) => _int_minus(x,y).
   -- }
 
-  contract all x ~~ cmp[x] ::= {
-    less:(x,x)=>boolean.
-  }
+  -- contract all x ~~ cmp[x] ::= {
+  --   less:(x,x)=>boolean.
+  -- }
 
-  implementation cmp[integer] => {	
-    less(A,B) => _int_lt(A,B).
-  }
+  -- implementation cmp[integer] => {	
+  --   less(A,B) => _int_lt(A,B).
+  -- }
+
+  foo:(integer)=>integer.
+  foo(Ix) => let{.
+    bar = $$ jump(Ix).
+
+    jump(0) => 1.
+    jump(N) => 0.
+  .} in bar!!.
 
   -- caseTest(Ix) => case Ix in {
   --   | 0 => 0
@@ -59,26 +67,26 @@ test.f0{
   --   | _ default => _int_times(2,Ix)
   -- }
 
-  dspEr(.eINTRUPT) => "eINTRUPT".
-  dspEr(.eNOFILE) => "eNOFIL".
-  dspEr(.eNOTDIR) => "eNOTDIR".
-  dspEr(.eNOTFND) => "eNOTFND".
-  dspEr(.eINVAL) => "eINVAL".
-  dspEr(.eRANGE) => "eRANGE".
-  dspEr(.eNOPERM) => "eNOPERM".
-  dspEr(.eFAIL) => "eFAIL".
-  dspEr(.eIOERROR) => "eIOERROR".
-  dspEr(.eCONNECT) => "eCONNECT".
-  dspEr(.eDEAD) => "eDEAD".
-  dspEr(.divZero) => "divZero".
-  dspEr(.noValue) => "noValue".
-  dspEr(.hasValue) => "hasValue".
-  dspEr(.eof) => "eof".
+  -- dspEr(.eINTRUPT) => "eINTRUPT".
+  -- dspEr(.eNOFILE) => "eNOFIL".
+  -- dspEr(.eNOTDIR) => "eNOTDIR".
+  -- dspEr(.eNOTFND) => "eNOTFND".
+  -- dspEr(.eINVAL) => "eINVAL".
+  -- dspEr(.eRANGE) => "eRANGE".
+  -- dspEr(.eNOPERM) => "eNOPERM".
+  -- dspEr(.eFAIL) => "eFAIL".
+  -- dspEr(.eIOERROR) => "eIOERROR".
+  -- dspEr(.eCONNECT) => "eCONNECT".
+  -- dspEr(.eDEAD) => "eDEAD".
+  -- dspEr(.divZero) => "divZero".
+  -- dspEr(.noValue) => "noValue".
+  -- dspEr(.hasValue) => "hasValue".
+  -- dspEr(.eof) => "eof".
 
-  funnyComp((0,0)) => 0.
-  funnyComp((1,X)) => X.
-  funnyComp((X,1)) => X.
-  funnyComp((2,X where less(2,X))) => X.
+  -- funnyComp((0,0)) => 0.
+  -- funnyComp((1,X)) => X.
+  -- funnyComp((X,1)) => X.
+  -- funnyComp((2,X where less(2,X))) => X.
 
 --   condT0:(integer,integer)=>string.
 --   condT0(A,B) => ((less(A,B) || less(B,A)) ?? "alpha" || "beta").

@@ -896,11 +896,7 @@ retCode run(processPo P) {
           check(vl != Null, "undefined thunk value");
 
           push(vl);     /* load thunk variable */
-
-          PC += PC->alt + 1;  // break out of the thunk block
-          assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
-          PC += PC->alt + 1;
+          PC++;
           continue;
         } else {
           closurePo thLambda = thunkLam(thVr);
@@ -910,8 +906,8 @@ retCode run(processPo P) {
           if (lb == Null) {
             logMsg(logFile, "label %T not defined", thLambda);
             bail();
-          } else if (labelArity(lb) != 1) {
-            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 1);
+          } else if (labelArity(lb) != 2) {
+            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 2);
             bail();
           }
 

@@ -169,7 +169,7 @@ stackHwm([iTG(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iThunk|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
-stackHwm([iLdTh(_)|Ins],CH0,H0,Hwm) :-
+stackHwm([iLdTh|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iStTh|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
@@ -453,7 +453,7 @@ localHwm([iTG(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iThunk|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iLdTh(_)|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iLdTh|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iStTh|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -703,9 +703,8 @@ mnem([iTG(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[39,V|M],Cdx) :-
 mnem([iThunk|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[40|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdTh(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[41,Lvl|M],Cdx) :-
+mnem([iLdTh|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[41|M],Cdx) :-
       Pc1 is Pc+1,
-      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iStTh|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[42|M],Cdx) :-
       Pc1 is Pc+1,
@@ -1116,9 +1115,8 @@ showMnem(iTG(U),Pc,sq([PcDx,ss(": "),ss("TG"), ss(" "), UU])) :- !,
 showMnem(iThunk,Pc,sq([PcDx,ss(": "),ss("Thunk")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iLdTh(V),Pc,sq([PcDx,ss(": "),ss("LdTh"), ss(" "), VV])) :- !,
+showMnem(iLdTh,Pc,sq([PcDx,ss(": "),ss("LdTh")])) :- !,
   showPc(Pc,PcDx),
-  VV=ss(V),!,
   true.
 showMnem(iStTh,Pc,sq([PcDx,ss(": "),ss("StTh")])) :- !,
   showPc(Pc,PcDx),
