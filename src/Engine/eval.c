@@ -561,13 +561,19 @@ retCode run(processPo P) {
           logMsg(logFile, "expecting a closure, not %T", lambda);
           bail();
         }
+        PC++;
         saveRegisters();
         stackPo child = splitStack(P, lambda);
 
         P->stk = attachStack(P->stk, child);
-        verifyStack(P->stk, P->heap);
+
+#ifdef TRACESTACK
+        if (traceStack > noTracing)
+          verifyStack(STK, H);
+#endif
+
         restoreRegisters();
-        break;
+        continue;
       }
 
       case Shift: { // Suspend current computation, invoke shift function with new continuation.
@@ -578,6 +584,7 @@ retCode run(processPo P) {
           logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
           bail();
         } else {
+          PC++;
           saveRegisters();
           continuationPo cont = allocateContinuation(H, stack);
           P->stk = detachStack(STK, stack);
@@ -618,7 +625,7 @@ retCode run(processPo P) {
           }
 
           assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC + 1;
+          FP->pc = PC;
           pushFrme(mtd);
           LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
@@ -627,8 +634,8 @@ retCode run(processPo P) {
       }
 
       case Invoke: {                        // Invoke a continuation on current top of stack
-        termPo event = pop();
         termPo k = pop();
+        termPo event = pop();
         if (!isContinuation(k)) {
           logMsg(logFile, "tried to invoke non-continuation %T", k);
           bail();
@@ -638,6 +645,7 @@ retCode run(processPo P) {
             stackPo stack = contStack(cont);
             invalidateCont(cont);
 
+            PC++;
             saveRegisters();
             P->stk = attachStack(STK, stack);
             restoreRegisters();
@@ -975,13 +983,7 @@ retCode run(processPo P) {
 
       case Get: {
         cellPo cell = C_CELL(pop());
-	if(!isCellSet(cell)){
-	  PC += PC->alt + 1;  // First jump to the block
-	  assert(validPC(frameMtd(FP), PC));
-	  assert(PC->op == Block);
-	  PC += PC->alt;
-	} else
-	  push(getCell(cell));
+        push(getCell(cell));
         break;
       }
 

@@ -70,7 +70,7 @@ star.compiler.assem{
     .iStTh |
     .iTTh |
     .iCell |
-    .iGet(assemLbl) |
+    .iGet |
     .iAssign |
     .iCLbl(termLbl,assemLbl) |
     .iCLit(data,assemLbl) |
@@ -206,7 +206,7 @@ star.compiler.assem{
   mnem(.iStTh,Lbls,Lts,Lcs) => ([.intgr(42)],Lts,Lcs).
   mnem(.iTTh,Lbls,Lts,Lcs) => ([.intgr(43)],Lts,Lcs).
   mnem(.iCell,Lbls,Lts,Lcs) => ([.intgr(44)],Lts,Lcs).
-  mnem(.iGet(V),Lbls,Lts,Lcs) where Tgt ?= findLevel(Lbls,V) => ([.intgr(45),.intgr(Tgt)],Lts,Lcs).
+  mnem(.iGet,Lbls,Lts,Lcs) => ([.intgr(45)],Lts,Lcs).
   mnem(.iAssign,Lbls,Lts,Lcs) => ([.intgr(46)],Lts,Lcs).
   mnem(.iCLbl(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) && Lvl ?= findLevel(Lbls,V) => ([.intgr(47),.intgr(LtNo),.intgr(Lvl)],Lt1,Lcs).
   mnem(.iCLit(U,V),Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= findLevel(Lbls,V) => ([.intgr(48),.intgr(LtNo),.intgr(Tgt)],Lt1,Lcs).
@@ -346,7 +346,7 @@ star.compiler.assem{
   showIns(.iStTh,Pc) => "StTh".
   showIns(.iTTh,Pc) => "TTh".
   showIns(.iCell,Pc) => "Cell".
-  showIns(.iGet(V),Pc) => "Get $(V)".
+  showIns(.iGet,Pc) => "Get".
   showIns(.iAssign,Pc) => "Assign".
   showIns(.iCLbl(U,V),Pc) => "CLbl $(U) $(V)".
   showIns(.iCLit(U,V),Pc) => "CLit $(U) $(V)".

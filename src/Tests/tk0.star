@@ -16,7 +16,7 @@ test.tk0{
     try{
       Tsk = (this) => valof{
 	try{
-	  T = tsk(this,ζtk0);
+	  T = tsk(this,ζ tk0);
 	  Fv = waitfor(T);
 	  showMsg("result $(Fv)");
 
@@ -29,7 +29,7 @@ test.tk0{
 		else
 		raise ()
 	      }
-	    } in ζtk2);
+	    } in ζ tk2);
 	  F2 = waitfor(T2);
 	  showMsg("final result $(F2)");
 	  
