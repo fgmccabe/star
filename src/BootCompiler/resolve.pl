@@ -186,9 +186,14 @@ overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
 overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
-overloadTerm(invoke(Lc,Op,Args,Tp),Dict,St,Stx,invoke(Lc,ROp,RArgs,Tp)) :-
+overloadTerm(reset(Lc,Exp,Tp),Dict,St,Stx,reset(Lc,EE,Tp)) :-
+  overloadTerm(Exp,Dict,St,Stx,EE).
+overloadTerm(shift(Lc,T,E,Tp),Dict,St,Stx,shift(Lc,TT,EE,Tp)) :-
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(invoke(Lc,Op,Arg,Tp),Dict,St,Stx,invoke(Lc,ROp,RArg,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
-  overloadTerm(Args,Dict,St0,Stx,RArgs).
+  overloadTerm(Arg,Dict,St0,Stx,RArg).
 overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,St,Stx,Over) :-
   ( resolveConstraint(Lc,Cx,Dict,St,St0,Trw) ->
     overloadTerm(Trw,Dict,St0,St1,RTrw),

@@ -366,8 +366,13 @@ liftExp(apply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(capply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,Tp,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(invoke(Lc,K,tple(_,A),_),voke(Lc,KK,AA),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExps(A,AA,[],Q,Q1,Map,Opts,Ex,Ex1),
+liftExp(reset(Lc,Lam,Tp),rset(Lc,LLam,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(Lam,LLam,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(shift(Lc,Tg,Lam,Tp),shyft(Lc,TT,LLam,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(Tg,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(Lam,LLam,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(invoke(Lc,K,A,Tp),voke(Lc,KK,AA,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(A,AA,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(K,KK,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tdot(Lc,R,Ix,Tp),nth(Lc,Rc,Ix,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(R,Rc,Q,Qx,Map,Opts,Ex,Exx).

@@ -101,10 +101,15 @@ ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(voke(_,K,Args,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
+ssTrm(rset(_,Lam,_),Dp,sq([ss("reset"),lp,LL,rp])) :-!,
+  ssTrm(Lam,Dp,LL).
+ssTrm(shyft(_,T,Lam,_),Dp,sq([lp,TT,ss("shift"),LL,rp])) :-!,
+  ssTrm(T,Dp,TT),
+  ssTrm(Lam,Dp,LL).
+ssTrm(voke(_,K,Arg,_),Dp,sq([KK,ss("."),lp,AA,rp])) :-!,
   ssTrm(K,Dp,KK),
   Dp1 is Dp+2,
-  showArgs(Args,Dp1,AA).
+  ssTrm(Arg,Dp1,AA).
 ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
@@ -323,9 +328,14 @@ rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
 rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,voke(Lc,Op,Args),voke(Lc,NOp,NArgs)) :-
+rewriteTerm(QTest,rset(Lc,Lam,Tp),rset(Lc,LL,Tp)) :-
+  rewriteTerm(QTest,Lam,LL).
+rewriteTerm(QTest,shyft(Lc,Tg,Lm,Tp),shyft(Lc,TT,LL,Tp)) :-
+  rewriteTerm(QTest,Tg,TT),
+  rewriteTerm(QTest,Lm,LL).
+rewriteTerm(QTest,voke(Lc,Op,Arg,Tp),voke(Lc,NOp,NArg,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
+  rewriteTerm(QTest,Arg,NArg).
 rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
   rewriteTerm(QTest,Op,NOp).
 rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
@@ -521,10 +531,12 @@ inTerm(ocall(_,_Op,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(clos(_,_,Fr),Nm) :-
   inTerm(Fr,Nm).
-inTerm(voke(_,Op,_),Nm) :-
-  inTerm(Op,Nm).
-inTerm(voke(_,_Op,Args),Nm) :-
-  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(rset(_,Lm,_),Nm) :-!,
+  inTerm(Lm,Nm).
+inTerm(shyft(_,Tg,Lam,_),Nm) :-!,
+  (inTerm(Tg,Nm);inTerm(Lam,Nm)).
+inTerm(voke(_,Op,Arg,_),Nm) :-!,
+  (inTerm(Op,Nm);inTerm(Arg,Nm)).
 inTerm(ecll(_,_,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(nth(_,Op,_,_),Nm) :-
@@ -627,6 +639,8 @@ tipeOf(flot(_),type("float")).
 tipeOf(rais(_,_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
+tipeOf(rset(_,_,T),T).
+tipeOf(shyft(_,_,_,T),T).
 tipeOf(voke(_,_,_,T),T).
 tipeOf(ecll(_,_,_,T),T).
 tipeOf(nth(_,_,_,T),T).
@@ -713,9 +727,14 @@ validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(clos(_,_,Free),Lc,D) :-
   validTerm(Free,Lc,D).
-validTerm(voke(Lc,Op,Args),_,D) :-
+validTerm(rset(Lc,Lam,_),_,D) :-
+  validTerm(Lam,Lc,D).
+validTerm(shyft(Lc,Tg,Lam,_),_,D) :-
+  validTerm(Tg,Lc,D),
+  validTerm(Lam,Lc,D).
+validTerm(voke(Lc,Op,Arg,_),_,D) :-
   validTerm(Op,Lc,D),
-  validTerms(Args,Lc,D).
+  validTerm(Arg,Lc,D).
 validTerm(ecll(Lc,Es,Args,_),_,D) :-
   isEscape(Es),!,
   validTerms(Args,Lc,D).
@@ -850,8 +869,6 @@ validAction(lbld(Lc,_,A),_,D,Dx) :-!,
   validAction(A,Lc,D,Dx).
 validAction(brk(_,_),_,D,D) :- !.
 validAction(vls(Lc,E),_,D,D) :- !,
-  validTerm(E,Lc,D).
-validAction(rse(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(rais(Lc,T,E),_,D,D) :- !,
   validTerm(T,Lc,D),

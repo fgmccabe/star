@@ -438,7 +438,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case Reset: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
         pc++;
         continue;
       }
@@ -580,8 +579,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case Get: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
-          return Error;
         pc++;
         continue;
       }

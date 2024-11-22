@@ -45,6 +45,8 @@ isCanon(enm(_,_,_)).
 isCanon(thunk(_,_,_)).
 isCanon(thnkRef(_,_,_)).
 isCanon(thnkSet(_,_,_)).
+isCanon(reset(_,_,_)).
+isCanon(shift(_,_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
@@ -122,6 +124,8 @@ typeOfCanon(thunk(_,_,Tp),Tp) :- !.
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(thnkSet(_,Th,_),Tp) :- !,
   typeOfCanon(Th,Tp).
+typeOfCanon(reset(_,_,Tp),Tp) :- !.
+typeOfCanon(shift(_,_,_,Tp),Tp) :- !.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
@@ -169,6 +173,8 @@ locOfCanon(thunk(Lc,_,_),Lc) :-!.
 locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(thnkSet(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
+locOfCanon(reset(Lc,_,_),Lc) :-!.
+locOfCanon(shift(Lc,_,_,_),Lc) :-!.
 
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
@@ -225,9 +231,9 @@ ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
 ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(invoke(_,Op,Args,_),Dp,sq([O,ss("."),A])) :-
+ssTerm(invoke(_,Op,Arg,_),Dp,sq([O,ss("."),lp,A,rp])) :-
   ssTerm(Op,Dp,O),
-  ssTerm(Args,Dp,A).
+  ssTerm(Arg,Dp,A).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
@@ -302,6 +308,11 @@ ssTerm(thnkRef(_,A,_),Dp,sq([AA,ss("!!")])) :-!,
 ssTerm(thnkSet(_,Th,Vl),Dp,sq([TT,ss("!:=!"),VV])) :-!,
   ssTerm(Th,Dp,TT),
   ssTerm(Vl,Dp,VV).
+ssTerm(reset(_,A,_),Dp,sq([lp,ss("reset "),AA,rp])) :-!,
+  ssTerm(A,Dp,AA).
+ssTerm(shift(_,T,E,_),Dp,sq([lp,TT,ss("shift "),EE,rp])) :-!,
+  ssTerm(T,Dp,TT),
+  ssTerm(E,Dp,EE).
 ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),AA,ss(" catch "),TT,ss(" in "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),

@@ -462,7 +462,7 @@ examineTerm(T,Tx) :-
 examineTerm(T,Tx) :-
   isInvoke(T,Lc,F,V),!,
   macroTerm(F,Fx),
-  map(V,macros:macroTerm,Vx),
+  macroTerm(V,Vx),
   mkInvoke(Lc,Fx,Vx,Tx).
 examineTerm(T,Tx) :-
   isFiber(T,Lc,B),!,
@@ -510,7 +510,7 @@ examineTerm(A,Ax) :-
   isShift(A,Lc,T,K,S),!,
   macroTerm(T,Tx),
   macroTerm(K,Kx),
-  macroType(S,Sx),
+  macroTerm(S,Sx),
   mkShift(Lc,Tx,Kx,Sx,Ax).
 examineTerm(A,Ax) :-
   isThunk(A,Lc,V),!,

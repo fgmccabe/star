@@ -65,7 +65,7 @@ genFun(D,Opts,Lc,Nm,H,Tp,Args,Value,CdTrm) :-
   genDbg(Opts,C,[iEntry|C0]),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(BlkTp,FC))|CA]),
   compArgs(Args,Lc,0,Abrt,[],Opts,L1,L2,D,D1,FC,FC0,some(0),Stk0),
-  compExp(Value,Lc,[("$abort",gencode:breakOut,Abrt,some(0))],last,Opts,L2,L3,D1,D3,FC0,FC1,Stk0,Stk1),
+  compExp(Value,Lc,[],last,Opts,L2,L3,D1,D3,FC0,FC1,Stk0,Stk1),
   genRet(Opts,FC1,[],Stk1,_),
   compAbort(Lc,strg("def failed"),[],Opts,L3,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   getLsMap(Dx,LsMap),
@@ -272,21 +272,18 @@ compAct(Next,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Brks,Last,Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 compTry(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iTry(TryTp,[iStL(TV),
-							  iLbl(Abrt,iBlock(TryTp,BC))|ABC])|HC]))|Cz]),
-  genLbl(L,Ok,L0),
-  genLbl(L0,Abrt,L1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iTry(TryTp,[iStL(TV)|BC])|HC]))|Cz]),
+  genLbl(L,Ok,L1),
   nearlyFlatSig(ResTp,BlkTp),
   toLtipe(ETp,ETipe),
   blockSig([ETipe],ResTp,TryTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
   replace(Brks,("$valof",_,Lbl,VStk),("$valof",gencode:tryEnder(TV),Lbl,VStk),NBrks),
-  call(Hndlr,B,Lc,[("$abort",gencode:breakOut,Abrt,some(0))|NBrks],notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Ok)],Stk,Stka),
+  call(Hndlr,B,Lc,NBrks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
-  call(Hndlr,H,Lc,Brks,Last,Opts,L2,L3,D4,D5,H2,[iBreak(Ok)],Stk,Stkb),
-  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!,
-  compAbort(Lc,strg("run-time error"),Brks,Opts,L3,Lx,D5,Dx,ABC,[],Stk,_).
+  call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
+  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 tryEnder(TV,Ok,[iLdL(TV),iEndTry(Ok)|Cx],Cx).
 breakOut(Ok,[iBreak(Ok)|Cx],Cx).
@@ -529,15 +526,6 @@ compExp(ocall(Lc,O,A,_Tp),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(O,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iOCall(Arity)|C2],Stka,_),
   bumpStk(Stk,Stkx),
   frameIns(Stkx,C2,Cx).
-compExp(voke(Lc,K,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  length(A,Ar),
-  Arity is Ar+1,
-  compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
-  compExp(K,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iInvoke(Arity)|C2],Stka,_Stkb),
-  bumpStk(Stk,Stka),
-  frameIns(Stka,C2,C3),
-  genLastReturn(Last,Opts,C3,Cx,Stka,Stkx).
 compExp(clos(Lb,Ar,Free),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Free,OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iClosure(lbl(Lb,Ar))|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
@@ -559,13 +547,8 @@ compExp(cel(Lc,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   frameIns(Stka,C1,C2),
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(get(Lc,Exp),_,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  (is_member(("$abort",_,Abrt,_),Brks) ->
-     compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iGet(Abrt)|C1],Stk,Stka),
-     genLastReturn(Last,Opts,C1,Cx,Stka,Stkx);
-   reportError("cannot compile %s",[ltrm(get(Lc,Exp))],Lc),
-   Stkx=Stk,
-   L=Lx,
-   C=Cx).
+  compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iGet|C1],Stk,Stka),
+  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
@@ -602,6 +585,20 @@ compExp(rais(Lc,T,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(E,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iThrow|Cx],Stk1,_).
+compExp(rset(Lc,Lam,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Lam,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iReset|Cx],Stk,Stkx).
+compExp(shyft(Lc,Tg,Lam,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Tg,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
+  compExp(Lam,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iShift|Cx],Stk0,_Stk),
+  bumpStk(Stk,Stkx).
+compExp(voke(Lc,K,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
+  compExp(K,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iInvoke|C2],Stka,_Stkb),
+  frameIns(Stka,C2,C3),
+  genLastReturn(Last,Opts,C3,Cx,Stka,Stkx).
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(CondSig,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),

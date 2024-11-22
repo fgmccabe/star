@@ -71,7 +71,7 @@ instruction(StTh, tOs, tOs, -2, "F(pp)()", "store a value into a thunk variable"
 instruction(TTh, tOs, tOs, -1, "F(pp)p", "update thunk and leave on stack")
 
 instruction(Cell, tOs, nOp, 0,"F()p",  "create R/W cell")
-instruction(Get, tOs, lVl, 0, "F(p)p", "access a R/W cell, break if not set")
+instruction(Get, tOs, nOp, 0, "F(p)p", "access a R/W cell")
 instruction(Assign, tOs, tOs, -2, "F(pp)()", "assign to a R/W cell")
 
 instruction(CLbl, sym, lVl, -1, "F()()", "T,Lbl --> test for a data term, break if not lbl")

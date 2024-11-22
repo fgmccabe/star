@@ -11,7 +11,8 @@
 
 peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
-  findUnusedVars(LsMap,PIns,LsMx,Insx),!.
+  findUnusedVars(LsMap,PIns,LsMx,Ins0),!,
+  peepCode(Ins0,[],Insx).       % We need to peep twice, cos droping vars gives us a chance for more
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,
@@ -78,7 +79,11 @@ peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-!,
   peep([iTL(Off)|Is],Lbls, Ins).
 peep([iLdL(_),iDrop|Is],Lbls,Ins) :- !,
   peep(Is,Lbls,Ins).
+peep([iLdL(_),iNth(_),iDrop|Is],Lbls,Ins) :- !,
+  peep(Is,Lbls,Ins).
 peep([iLdA(_),iDrop|Is],Lbls,Ins) :- !,
+  peep(Is,Lbls,Ins).
+peep([iLdA(_),iNth(_),iDrop|Is],Lbls,Ins) :- !,
   peep(Is,Lbls,Ins).
 peep([iNth(_),iDrop|Is],Lbls,Ins) :-
   peep([iDrop|Is],Lbls,Ins).  
@@ -127,9 +132,6 @@ peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
   peep(In,Lbls,Inx).
 peep([iLdTh|In],Lbls,[iLdTh|Inx]) :-
   peep(In,Lbls,Inx).
-peep([iGet(Lb)|In],Lbls,[iGet(LLb)|Inx]) :-
-  resolveLblRef(Lb,Lbls,LLb),
-  peep(In,Lbls,Inx).
 peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
@@ -157,7 +159,6 @@ lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
 lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iUnpack(_,Lb)|_]).
-lblReferenced(Lb,[iGet(Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-

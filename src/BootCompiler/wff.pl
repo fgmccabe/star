@@ -917,12 +917,12 @@ isRaises(A,Lc,T) :-
 mkRaises(Lc,T,A) :-
   unary(Lc,"raises",T,A).
 
-isInvoke(T,Lc,O,As) :-
+isInvoke(T,Lc,O,A) :-
   isBinary(T,Lc,".",O,R),
-  isTuple(R,_,As).
+  isTuple(R,_,[A]).
 
-mkInvoke(Lc,O,As,T) :-
-  roundTuple(Lc,As,R),
+mkInvoke(Lc,O,A,T) :-
+  roundTuple(Lc,[A],R),
   binary(Lc,".",O,R,T).
 
 isTryCatch(A,Lc,B,E,Hs) :-

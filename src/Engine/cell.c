@@ -55,12 +55,7 @@ termPo cellFinalizer(specialClassPo class, termPo o) {
 }
 
 logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
-  cellPo c1 = C_CELL(o1);
-  cellPo c2 = C_CELL(o2);
-  if(isCellSet(c1) && isCellSet(c2))
-    return sameTerm(c1->content, c2->content);
-  else
-    return o1==o2;
+  return o1==o2;
 }
 
 integer hashCell(specialClassPo cl, termPo o) {

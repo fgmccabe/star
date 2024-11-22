@@ -16,7 +16,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdDecl/1,contType/2,tagType/3,thunkType/2,
+	   stdDecl/1,contType/3,tagType/2,thunkType/2,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -377,14 +377,14 @@ mkTypeExp(Op,[],Op).
 mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
 
-contType(Arg,Tp) :-
-  mkTypeExp(tpFun("cont",1),[Arg],Tp).
+contType(Arg,Res,Tp) :-
+  mkTypeExp(tpFun("cont",2),[tplType([Arg]),Res],Tp).
 
 thunkType(Arg,Tp) :-
   mkTypeExp(tpFun("thunk",1),[Arg],Tp).
 
-tagType(Arg,Res,Tp) :-
-  mkTypeExp(tpFun("tag",2),[Arg,Res],Tp).
+tagType(Arg,Tp) :-
+  mkTypeExp(tpFun("tag",1),[Arg],Tp).
 
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),
@@ -485,6 +485,7 @@ contractType(conTract(Nm,A,D),Tp) :-
   length(Args,Ar),
   mkTypeExp(tpFun(Nm,Ar),Args,Tp).
 contractType(implicit(_,Tp),Tp).
+contractType(implementsFace(_,Tp),Tp).
 contractType(raises(Tp),Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
@@ -542,6 +543,11 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		 tpFun("thunk",1),
 		 allType(kVar("e"),
 			 typeExists(tpExp(tpFun("thunk",1),kVar("e")),
+				    faceType([],[])))),
+	 typeDec("tag",
+		 tpFun("tag",1),
+		 allType(kVar("e"),
+			 typeExists(tpExp(tpFun("tag",1),kVar("e")),
 				    faceType([],[])))),
 	 typeDec("errorCode",
 		 type("errorCode"),
