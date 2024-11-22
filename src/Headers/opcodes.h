@@ -53,7 +53,7 @@ typedef enum {
     StTh = 42,            // store a value into a thunk variable
     TTh = 43,            // update thunk and leave on stack
     Cell = 44,            // create R/W cell
-    Get = 45,            // access a R/W cell
+    Get = 45,            // access a R/W cell, break if not set
     Assign = 46,            // assign to a R/W cell
     CLbl = 47,            // T,Lbl --> test for a data term, break if not lbl
     CLit = 48,            // T,lit --> test for a literal value, break if not

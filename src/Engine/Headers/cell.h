@@ -11,12 +11,14 @@ typedef struct _cell_record_ *cellPo;
 
 extern clssPo cellClass;
 
-extern cellPo C_CELL(termPo t);
+cellPo C_CELL(termPo t);
 
 logical isCell(termPo t);
 
-extern termPo getCell(cellPo cell);
+termPo getCell(cellPo cell);
 
-extern termPo setCell(cellPo cell, termPo e);
+termPo setCell(cellPo cell, termPo e);
+
+logical isCellSet(cellPo cell);
 
 #endif //STAR_CELL_H

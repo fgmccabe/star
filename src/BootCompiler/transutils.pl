@@ -129,7 +129,6 @@ definedInDefs([_|Defs],Pr,Prx) :-
 definedP(_Nm,moduleFun(_,_,_,Tp),Tp).
 definedP(_Nm,localFun(_,_,_,_,Tp),Tp).
 definedP(_Nm,moduleVar(_,Tp),Tp).
-definedP(_Nm,localVar(_,_,Tp),Tp).
 
 labelVars(Map,Prgs) :-
   lblVars(Map,[],Prgs).
@@ -234,12 +233,6 @@ ssLyrDec(Nm-moduleFun(LclName,_AccessName,Ar,_),
 ssLyrDec(Nm-localFun(LclName,_ClosureName,Ar,ThV,_),
 	 sq([ss("Fun "),id(Nm),ss("="),ss(LclName),ss("/"),ix(Ar),ss("@"),TT])) :-
   ssTrm(ThV,0,TT).
-ssLyrDec(Nm-localVar(LclName,ThV,_),
-	 sq([ss("Var "),id(Nm),ss("="),ss(LclName),ss("@"),TT])) :-
-  ssTrm(ThV,0,TT).
-ssLyrDec(Nm-localVar(_,Val,_),
-	 sq([ss("Var "),id(Nm),ss("="),VV])) :-
-  ssTerm(Val,0,VV).
 ssLyrDec(Nm-moduleVar(LclName,_Tp),
 	 sq([ss("Global Var "),id(Nm),ss("="),ss(LclName)])).
 ssLyrDec(Nm-labelArg(_Field,Ix,ThV,Tp),
