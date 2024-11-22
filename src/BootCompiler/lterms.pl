@@ -519,6 +519,8 @@ inTerm(ocall(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(ocall(_,_Op,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(clos(_,_,Fr),Nm) :-
+  inTerm(Fr,Nm).
 inTerm(voke(_,Op,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(voke(_,_Op,Args),Nm) :-
@@ -553,24 +555,28 @@ inTerm(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inTerm(case(_,_T,C),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
-inTerm(seqD(_,L,R),Nm) :-
+inTerm(seqD(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(cnj(_,L,R),Nm) :-
+inTerm(cnj(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(dsj(_,L,R),Nm) :-
+inTerm(dsj(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(cnd(_,T,L,R),Nm) :-
+inTerm(cnd(_,T,L,R),Nm) :-!,
   inTerm(T,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(mtch(_,L,R),Nm) :-
+inTerm(mtch(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(ng(_,R),Nm) :-
+inTerm(ng(_,R),Nm) :-!,
   inTerm(R,Nm).
-inTerm(ltt(_,_,B,_E),Nm) :-
-  inTerm(B,Nm).
-inTerm(ltt(_,_,_B,E),Nm) :-
-  inTerm(E,Nm).
-inTerm(vlof(_,A),Nm) :-
+inTerm(ltt(_,_,B,E),Nm) :-!,
+  (inTerm(B,Nm);inTerm(E,Nm)).
+inTerm(vlof(_,A),Nm) :-!,
   inAction(A,Nm).
+inTerm(thk(_,Th,_),Nm) :-!,
+  inTerm(Th,Nm).
+inTerm(thkRf(_,Th,_),Nm) :-!,
+  inTerm(Th,Nm).
+inTerm(thkSt(_,Th,Vl),Nm) :-!,
+  (inTerm(Th,Nm) ; inTerm(Vl,Nm)).
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,

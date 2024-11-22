@@ -975,7 +975,13 @@ retCode run(processPo P) {
 
       case Get: {
         cellPo cell = C_CELL(pop());
-        push(getCell(cell));
+	if(!isCellSet(cell)){
+	  PC += PC->alt + 1;  // First jump to the block
+	  assert(validPC(frameMtd(FP), PC));
+	  assert(PC->op == Block);
+	  PC += PC->alt;
+	} else
+	  push(getCell(cell));
         break;
       }
 

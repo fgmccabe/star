@@ -10,6 +10,7 @@
 
 typedef struct _cell_record_ {
   clssPo clss;                  // == cellClass
+  integer hash;                 // Cells have a stable hash
   termPo content;               // Contents
 } CellRecord;
 

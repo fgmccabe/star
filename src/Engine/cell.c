@@ -10,9 +10,11 @@ static long cellSize(specialClassPo cl, termPo o);
 static termPo cellCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static logical cellCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer cellHash(specialClassPo cl, termPo o);
+static integer hashCell(specialClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo cellFinalizer(specialClassPo class, termPo o);
+
+static integer cellHash = 0;
 
 SpecialClass CellClass = {
   .clss = Null,
@@ -21,7 +23,7 @@ SpecialClass CellClass = {
   .scanFun = cellScan,
   .finalizer = cellFinalizer,
   .compFun = cellCmp,
-  .hashFun = cellHash,
+  .hashFun = hashCell,
   .dispFun = cellDisp
 };
 
@@ -40,27 +42,29 @@ termPo cellCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  cellPo list = C_CELL(o);
+  cellPo cell = C_CELL(o);
 
-  helper(&list->content, c);
+  if(cell->content!=Null)
+    helper(&cell->content, c);
 
   return o + CellCellCount;
 }
 
 termPo cellFinalizer(specialClassPo class, termPo o) {
-  cellPo list = C_CELL(o);
-
   return o + CellCellCount;
 }
 
 logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
   cellPo c1 = C_CELL(o1);
   cellPo c2 = C_CELL(o2);
-  return sameTerm(c1->content, c2->content);
+  if(isCellSet(c1) && isCellSet(c2))
+    return sameTerm(c1->content, c2->content);
+  else
+    return o1==o2;
 }
 
-integer cellHash(specialClassPo cl, termPo o) {
-  return hash61(uniHash("cell") * 37 + termHash(C_CELL(o)->content));
+integer hashCell(specialClassPo cl, termPo o) {
+  return C_CELL(o)->hash;
 }
 
 retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -94,16 +98,22 @@ cellPo C_CELL(termPo t) {
 cellPo newCell(heapPo H, termPo content) {
   int root = gcAddRoot(H, (ptrPo) (&content));
   cellPo cell = (cellPo) allocateObject(H, cellClass, CellCellCount);
+  cell->hash = hash61(cellHash++);
   cell->content = content;
   gcReleaseRoot(H, root);
   return cell;
 }
 
-extern termPo getCell(cellPo cell) {
+termPo getCell(cellPo cell) {
   return cell->content;
 }
 
-extern termPo setCell(cellPo cell, termPo e) {
+termPo setCell(cellPo cell, termPo e) {
   cell->content = e;
   return (termPo) cell;
 }
+
+logical isCellSet(cellPo cell){
+  return cell->content!=Null;
+}
+

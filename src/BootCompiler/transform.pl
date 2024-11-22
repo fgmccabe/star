@@ -252,6 +252,8 @@ transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dx
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)).
+transformLetDef(varDef(_Lc,Nm,LclNm,_,_Tp,Exp),_,_Map,OMap,Opts,F,[(Nm,lbl(LclNm,1),Rep)|F],Dx,Dxx) :-
+  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
 transformLetDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
@@ -306,6 +308,10 @@ implementVarPtn(moduleVar(Vn,Tp),_,_,Lc,cll(Lc,lbl(Vn,0),[],Tp),_,_,Q,Q) :-
   reportError("not allowed to have globals in patterns: %s",[id(Vn)],Lc). % module variable
 implementVarPtn(labelArg(N,Ix,ThVr,_),_,Tp,Lc,
 		whr(Lc,N,mtch(Lc,N,nth(Lc,Vr,Ix,Tp))),Map,Opts,Q,Qx) :- !, % argument from label
+  liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
+  merge([N],Q0,Qx).
+implementVarPtn(thunkArg(N,Lbl,ThVr,_),_,Tp,Lc,
+		whr(Lc,N,mtch(Lc,N,cll(Lc,Lbl,[Vr],Tp))),Map,Opts,Q,Qx) :- !, % argument from label
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,_,enum(Enum),_,_,Q,Q).
@@ -544,10 +550,10 @@ liftVar(_,Vr,Vr,Map,_Opts,Q,Qx):-
 liftVar(Lc,idnt(Nm,Tp),Vr,Map,Opts,Q,Qx) :-
   trVarExp(Lc,Nm,Tp,Vr,Map,Opts,Q,Qx).
 
-implementVarExp(localVar(_,Val,_),_,_Nm,_,Exp,Map,Opts,Q,Qx) :-
-  liftExp(Val,Exp,Q,Qx,Map,Opts,[],[]).
 implementVarExp(moduleVar(V,_),_Lc,_,Tp,idnt(V,Tp),_,_,Qx,Qx).
 implementVarExp(labelArg(_N,Ix,ThVr,_),Lc,_,Tp,nth(Lc,ThV,Ix,Tp),Map,Opts,Q,Qx) :-
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
+implementVarExp(thunkArg(_N,Lbl,ThVr,_),Lc,_,Tp,cll(Lc,Lbl,[ThV],Tp),Map,Opts,Q,Qx) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementVarExp(moduleCons(Enum,_,0),_,_,_,enum(Enum),_,_,Q,Q).
 implementVarExp(moduleCons(C,_,Ar),_,_,_,Cns,_,_,Q,Q) :-
@@ -582,6 +588,8 @@ implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,cll(Lc,lbl(Fn,Ar2),XArgs,
 implementFunCall(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,cll(Lc,lbl(Fn,Ar),Args,Tp),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,ocall(Lc,idnt(Fn,Tp),Args,RTp),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,_Tp,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
+implementFunCall(Lc,thunkArg(_,Lbl,ThVr,OTp),_,Args,Tp,ocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,notInMap,Nm,Args,Tp,ocall(Lc,idnt(Nm,Tp),Args,Tp),Q,Q,_Map,_Opts,Ex,Ex) :-
@@ -640,10 +648,11 @@ liftEls([(_,P)|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
 letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVars(letRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
-  concat(CellVars,ThFree,FreeVars),
+%  concat(CellVars,ThFree,FreeVars),
   makeConstructorMap(Decls,consMap{},ConsMap),
-  collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
-  declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
+  collectThunkVars(CellVars,ThVr,0,FIx,varMap{},V0),
+  collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),
+  declareThetaVars(Decls,ThVr,CellVars,ConsMap,V1,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Qx,Map,Opts,
@@ -653,7 +662,7 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Qx,Map,Opts,
   concat(CellVars,ThFree,FreeVars),
   merge(CellVars,Q,Qx),
   makeConstructorMap(Decls,consMap{},ConsMap),
-  collectLabelVars(FreeVars,ThVr,0,varMap{},V0),
+  collectLabelVars(FreeVars,ThVr,0,_,varMap{},V0),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
@@ -664,17 +673,19 @@ letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   concat(CellVars,ThFree,FreeVars),
   makeConstructorMap(Decls,consMap{},ConsMap),
   declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
-  collectLabelVars(FreeVars,ThVr,0,V0,Vx),
+  collectLabelVars(FreeVars,ThVr,0,_,V0,Vx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letRecActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
        [lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTerm) :-
   findFreeVarsInAction(doLetRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
   varDefs(Defs,CellVars),
-  concat(CellVars,ThFree,FreeVars),
   makeConstructorMap(Decls,consMap{},ConsMap),
-  declareThetaVars(Decls,ThVr,CellVars,ConsMap,varMap{},V0,typeMap{},Tx),
-  collectLabelVars(FreeVars,ThVr,0,V0,Vx),
+
+  collectThunkVars(CellVars,ThVr,0,FIx,varMap{},V0),
+  collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),
+  declareThetaVars(Decls,ThVr,CellVars,ConsMap,V1,Vx,typeMap{},Tx),
+
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 declarePtnVars(Q,[lyr(Vars,Tx,Cons,ThVr)|Map],[lyr(NVars,Tx,Cons,ThVr)|Map]) :-
@@ -688,7 +699,7 @@ lambdaMap(Lam,ThVr,Q,Map,Opts,FreeTerm,[lyr(Vx,typeMap{},consMap{},ThVr)|Map]) :
   findFreeVars(Lam,Map,Q,LmFree),
   map(LmFree,lterms:tipeOf,FrTps),
   genVar("_ΛV",tplType(FrTps),ThVr),
-  collectLabelVars(LmFree,ThVr,0,varMap{},Vx),
+  collectLabelVars(LmFree,ThVr,0,_,varMap{},Vx),
   locOfCanon(Lam,Lc),
   makeFreeTerm([],Lc,LmFree,Map,Opts,FreeTerm).
 
@@ -780,9 +791,8 @@ declareThetaVar(funDec(Nm,LclName,Tp),ThV,_,_,V,Vx,Tx,Tx) :-
   mangleName(LclName,closure,ClosureName),
   progTypeArity(Tp,Ar),
   declEntry(Nm,localFun(LclName,ClosureName,Ar,ThV,Tp),V,Vx).
-declareThetaVar(varDec(Nm,LclName,Tp),ThV,CellVars,_,V,Vx,Tx,Tx) :-
-  (is_member(idnt(Nm,_),CellVars) -> V=Vx ;
-   declEntry(Nm,localVar(LclName,ThV,Tp),V,Vx)).
+declareThetaVar(varDec(Nm,_LclName,_Tp),_ThV,CellVars,_,Vx,Vx,Tx,Tx) :-
+  verify(misc:is_member(idnt(Nm,_),CellVars),"theta var not properly picked up").
 declareThetaVar(cnsDec(_Nm,LclName,Tp),_ThV,_,_,V,Vx,Tx,Tx) :-
   progTypeArity(Tp,Ar),
   declEntry(LclName,moduleCons(LclName,Tp,Ar),V,Vx).
@@ -801,13 +811,23 @@ declareThetaVar(updDec(_,_,AccName,Tp),ThV,_,_,V,Vx,TMx,TMx) :-
 
 declareThetaVar(_,_,_,_,Vx,Vx,Tx,Tx).
 
-collectLabelVars([],_,_,List,List).
-collectLabelVars([idnt(Nm,Tp)|Args],ThVr,Ix,List,Lx) :-
+collectLabelVars([],_,Ix,Ix,List,List).
+collectLabelVars([idnt(Nm,Tp)|Args],ThVr,Ix,Ixx,List,Lx) :-
   Ix1 is Ix+1,
   declEntry(Nm,labelArg(idnt(Nm,Tp),Ix,ThVr,Tp),List,L0),
-  collectLabelVars(Args,ThVr,Ix1,L0,Lx).
-collectLabelVars([_|Args],ThVr,Ix,List,Lx) :-
-  collectLabelVars(Args,ThVr,Ix,List,Lx).
+  collectLabelVars(Args,ThVr,Ix1,Ixx,L0,Lx).
+collectLabelVars([_|Args],ThVr,Ix,Ixx,List,Lx) :-
+  collectLabelVars(Args,ThVr,Ix,Ixx,List,Lx).
+
+collectThunkVars([],_,Ix,Ix,List,List).
+collectThunkVars([idnt(Nm,Tp)|Args],ThVr,Ix,Ixx,List,Lx) :-
+  Ix1 is Ix+1,
+  declEntry(Nm,labelArg(idnt(Nm,Tp),Ix,ThVr,Tp),List,L0),
+  collectThunkVars(Args,ThVr,Ix1,Ixx,L0,Lx).
+collectThunkVars([_|Args],ThVr,Ix,Ixx,List,Lx) :-
+  collectThunkVars(Args,ThVr,Ix,Ixx,List,Lx).
+
+
 
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).
 programAccess(localFun(Prog,Closure,_Arity,_,_),Prog,Closure).
