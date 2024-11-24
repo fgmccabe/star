@@ -119,7 +119,7 @@ instruction(FAbs, tOs, nOp, 0, "F(f)f", "L --> abs(L)")
 
 instruction(FEq, tOs, tOs, -1, "F(ff)l", "L R e --> L==R")
 instruction(FLt, tOs, tOs, -1, "F(ff)l", "L R --> L<R")
-instruction(FGe, tOs, tOs, 1, "F(ff)l", "L R --> L>=R")
+instruction(FGe, tOs, tOs, -1, "F(ff)l", "L R --> L>=R")
 instruction(FCmp, tOs, lVl, -2, "F(ff)()", "L R --> branch if not same floating point")
 
 instruction(Alloc, sym, nOp, 1, "F()()", "new structure, elements from stack")

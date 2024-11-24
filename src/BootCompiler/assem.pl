@@ -328,7 +328,7 @@ stackHwm([iFLt|Ins],CH0,H0,Hwm) :-
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
 stackHwm([iFGe|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0+1,
+  CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
 stackHwm([iFCmp(_)|Ins],CH0,H0,Hwm) :-
@@ -561,7 +561,7 @@ assemBlock(Ins,Lb,Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
 mnem([],_,Lt,Lt,Lnx,Lnx,Pcx,Pcx,_LsMap,Cdx,Cdx).
 mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem([Inner],[(Lb,Base,[])|Lbs],Lt,Lt0,Ln,Ln1,Pc,Pc1,LsMap,Code,Cd0),
+      mnem([Inner],[(Lb,Base)|Lbs],Lt,Lt0,Ln,Ln1,Pc,Pc1,LsMap,Code,Cd0),
       mnem(Ins,Lbs,Lt0,Lts,Ln1,Lnx,Pc1,Pcx,LsMap,Cd0,Cdx).
 mnem([iLine(Lne)|Ins],Lbs,Lt,Lts,[Line|Lns],Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
   mkTpl([intgr(Pc),Lne],Line),
@@ -868,12 +868,12 @@ mnem([iDBug|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[90|M],Cdx) :-
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 
 
-baseOffset([(_,Base,_)|_],Base).
+baseOffset([(_,Base)|_],Base).
 baseOffset([none|Lbs],Base) :-
   baseOffset(Lbs,Base).
 baseOffset([],0).
 
-findLevel(Tgt,[(Tgt,_,_)|_],Lvl,Lvl) :-!.
+findLevel(Tgt,[(Tgt,_)|_],Lvl,Lvl) :-!.
 findLevel(Tgt,[none|Ends],L,Lo) :-
       L1 is L+1,
       findLevel(Tgt,Ends,L1,Lo).

@@ -19,34 +19,39 @@ star.compiler.assem{
     disp(.softDefinition) => "soft".
   }
 
-  public codeSegment ::= .func(termLbl,codePolicy,ltipe,integer,cons[assemOp]) |
-    .global(termLbl,ltipe,integer,cons[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[assemOp]) |
+    .global(termLbl,ltipe,cons[(string,data)],cons[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
   public assemOp ::=
 #(OpCodes)
-    .iLbl(string, assemOp).
+    | .iLbl(string, assemOp)
+    | .iLine(data).
 
-  public assemLbl ::= .bo(string) | .bp(string).
+  public assemLbl ~> string.
 
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
-    | .func(Nm,H,Sig,Lx,Ins) => valof{
+    | .func(Nm,H,Sig,Lcs,Ins) => valof{
       funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
       (Lt1,tpIx) = findLit(Lt0,funSig);
-      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
+      (Code,_,Lts,Lns) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs),[]);
       valis mkCons("func",
-          [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl(Lcs::cons[data])])
+          [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
+          .intgr(size(Lcs)),mkTpl(Code::cons[data]),litTbl(Lts),
+           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
     }
-    | .global(Nm,Sig,Lx,Ins) => valof{
+    | .global(Nm,Sig,Lcs,Ins) => valof{
       funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
       (Lt1,tpIx) = findLit(Lt0,funSig);
-      (Code,Lts,Lcs) = assemBlock(Ins,[],[],Lt1,[]);
+      (Code,_,Lts,Lns) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs),[]);
       valis mkCons("global",
-         [.symb(Nm),.intgr(tpIx),.intgr(Lx),mkTpl(Code::cons[data]),litTbl(Lts),mkTpl({Lcl|Lcl in Lcs})])
+         [.symb(Nm),.intgr(tpIx),.intgr(stackHwm(Ins)),
+          .intgr(size(Lcs)),mkTpl(Code::cons[data]),litTbl(Lts),
+          mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
     }
     | .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
@@ -54,48 +59,66 @@ star.compiler.assem{
       mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
   }.
 
+  declareLocals:(cons[(string,data)]) => map[string,integer].
+  declareLocals(Lcs) => let{.
+    decl([],_) => {}.
+    decl([(Vr,_),..Lcs],Lc) => [Vr -> Lc,..decl(Lcs,Lc+1)].
+  .} in decl(Lcs,1).             -- First local is #1
+
   encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).
 
   encPolicy(.hardDefinition) => mkTpl([]).
   encPolicy(.softDefinition) => mkTpl([.strg("soft")]).
 
-  private assemBlock:(cons[assemOp],multi[data],cons[string],map[data,integer],set[data]) =>
-                                        (multi[data],map[data,integer],set[data]).
-  assemBlock([],Code,Lbls,Lts,Lcx) => (Code,Lts,Lcx).
-  assemBlock([I,..Ins],SoFar,Lbs,Lts,Lcx) => valof{
-    (Code,Lt0,Lc0) = mnem(I,Lbs,Lts,Lcx);
-    valis assemBlock(Ins,SoFar++Code,Lbs,Lt0,Lc0)
+  lblLevel ~> option[assemLbl].
+
+  private assemBlock:(cons[assemOp],multi[data],integer,
+                      cons[lblLevel],map[data,integer],map[string,integer],set[data]) =>
+                                        (multi[data],integer,map[data,integer],set[data]).
+  assemBlock([],Code,Pc,Lbls,Lts,_Lcx,Lns) => (Code,Pc,Lts,Lns).
+  assemBlock([I,..Ins],SoFar,Pc,Lbs,Lts,Lcx,Lns) => valof{
+    (Code,Pc1,Lt0,Ln0) = mnem(I,Pc,Lbs,Lts,Lcx,Lns);
+    valis assemBlock(Ins,SoFar++Code,Pc1,Lbs,Lt0,Lcx,Ln0)
   }
 
-  private mnem:(assemOp,cons[string],map[data,integer],set[data]) =>
-    (multi[data],map[data,integer],set[data]).
-  mnem(.iLbl(Lb,I),Lbls,Lts,Lcs) => mnem(I,[Lb,..Lbls],Lts,Lcs).
+  private mnem:(assemOp,integer,cons[lblLevel],map[data,integer],map[string,integer],set[data]) =>
+    (multi[data],integer,map[data,integer],set[data]).
+  mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs,Lns) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs,Lns).
+  mnem(.iLine(Lne),Pc,Lbls,Lts,Lcs,Lns) => ([],Pc,Lts,Lns\+mkTpl([.intgr(Pc),Lne])).
 #(Mnem)
-  mnem(I,Lbls,Lts,Lcs) => valof{
+  mnem(I,Pc,Lbls,Lts,Lcs,Lns) => valof{
     reportTrap("Cannot assemble instruction $(I)");
-    valis ([],Lts,Lcs)
+    valis ([],Pc,Lts,Lns)
   }.
+
+  private stackHwm:(cons[assemOp]) => integer.
+  stackHwm(Code) where (_,HWM) .= stkHwm(Code,0,0) => HWM.
+
+  private stkHwm:(cons[assemOp],integer,integer) => (integer,integer).
+  stkHwm([],H,HWM) => (H,HWM).
+  stkHwm([.iLbl(_,I),..Ins],CH,Hwm) => valof{
+    (CH1,H1) = stkHwm([I],CH,Hwm);
+    valis stkHwm(Ins,CH1,H1)
+  }
+  stkHwm([.iLine(_),..Ins],CH,Hwm) => stkHwm(Ins,CH,Hwm).
+#(stackHwm)
 
   findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
-  findLevel:(cons[string],assemLbl) => option[integer].
+  findLocal:(string,map[string,integer])=>option[integer].
+  findLocal(Nm,Lcs) => Lcs[Nm].
+
+  findLevel:(cons[lblLevel],assemLbl) => option[integer].
   findLevel(Lbs,Lb) => let{.
     findLvl([],_) => .none.
-    findLvl([LL,.._], Lvl) where .bo(LL) .= Lb => .some(Lvl).
-    findLvl([LL,.._], Lvl) where .bp(LL) .= Lb => .some(-Lvl).
-    findLvl(["",..Ls],Lvl) => findLvl(Ls,Lvl+1).
-    findLvl([_,..Ls],Lvl) => findLvl(Ls,Lvl).
+    findLvl([.some(LL),.._], Lvl) where LL == Lb => .some(Lvl).
+    findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
 
   litTbl:(map[data,integer]) => data.
   litTbl(Lts) => mkTpl(sort(Lts::cons[(data,integer)],((T1,Ix1), (T2,Ix2)) => Ix1<Ix2)//fst).
-
-  public implementation display[assemLbl] => {
-    disp(.bo(L)) => "→\\#(L)".
-    disp(.bp(L)) => "←\\#(L)".
-  }
 
   public implementation display[codeSegment] => {
     disp(.func(Nm,_,Tp,_,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins).
