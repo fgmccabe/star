@@ -662,8 +662,7 @@ compCase(Gv,Lc,OkBlkTp,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBloc
   compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(CaseBlkTp,CC))|DC],Stk,_Stk1),
   genCaseTable(Cases,Mx,Table),
   compCases(Table,0,Mx,GVar,CaseBlkTp,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk,Stka),
-  compIdExp(GVar,Lc,notLast,Opts,L3,L4,D2,D3,DC,DC0,Stk,Stk0),
-  call(Hndlr,Deflt,Lc,Brks,Last,Opts,L4,Lx,D3,Dx,DC0,[iBreak(Ok)],Stk0,Stkb),
+  call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
 compGvExp(idnt(Nm,Tp),idnt(Nm,Tp),Lc,_Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,

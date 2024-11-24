@@ -38,6 +38,7 @@ int getOptions(int argc, char **argv) {
 
 static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt);
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
+static void genStackHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt);
 static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 
 int main(int argc, char **argv) {
@@ -85,6 +86,20 @@ int main(int argc, char **argv) {
     integer tpLen;
     char *typeCode = getTextFromBuffer(typeBuff, &tpLen);
     hashPut(vars, "OpCodes", typeCode);
+
+    {
+      // Set up the hwm calculator
+      strBufferPo hwmBuff = newStringBuffer();
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, _, cmt) genStackHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
+
+#include "instructions.h"
+
+      integer insLen;
+      char *allCode = getTextFromBuffer(hwmBuff, &insLen);
+      hashPut(vars, "stackHwm", allCode);
+    }
 
     // Set up the assembler proper
     strBufferPo mnemBuff = newStringBuffer();
@@ -160,7 +175,7 @@ static char *capitalize(char *str) {
 static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
   char *sep = "(";
 
-  outMsg(out, "  mnem(.i%s", mnem);
+  outMsg(out, "  mnem(.i%s", capitalize(mnem));
 
   sep = genArg(out, sep, A, "U");
 
@@ -171,7 +186,7 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
   else
     sep = "";
 
-  outMsg(out, "%s,Lbls,Lts,Lcs) ", sep);
+  outMsg(out, "%s,Pc,Lbls,Lts,Lcs,Lns) ", sep);
 
   switch (A) {
     case nOp:                             // No operand
@@ -179,130 +194,128 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> ([.intgr(%d)],Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d)],Pc+1,Lts,Lns).\n", op);
           return;
         case bLk: {                           // A nested block of instructions
           outMsg(out,
-                 "where (Blk,Lts1,Lcs1) .= assemBlock(U,[],[\"\",..Lbls],Lts,Lcs) => ([.intgr(%d),mkTpl(Blk::cons[data])],Lts1,Lcs1).\n",
+                 "where (Blk,Pc1,Lts1,Lns1) .= assemBlock(U,[],Pc+1,[.none,..Lbls],Lts,Lcs,Lns) => ([.intgr(%d),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).\n",
                  op);
           return;
         }
         case lVl:
           outMsg(out,
-                 "where Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(Tgt)],Lts,Lcs).\n",
+                 "where Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(Tgt)],Pc+1,Lts,Lns).\n",
                  op);
           return;
         case i32:
-          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lbls,Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Pc+1,Lbls,Lns).\n", op);
           return;
         default:
           check(False, "invalid second operand");
       }
-    case lit:
+    case sym:{
+      char *cond = "where (Lt1,LtNo) .= findLit(Lts,.symb(U))";
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(%d),.intgr(LtNo)],Lt1,Lcs).\n",
-                 op);
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", cond, op);
           return;
         case lVl:
-          outMsg(out,
-                 "where (Lt1,LtNo) .= findLit(Lts,U) && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Lt1,Lcs).\n",
+          outMsg(out, "%s && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n", cond,
                  op);
           return;
         case lcl:
-          outMsg(out, "where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Lt1,Lcs).\n", op);
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1,Lns).\n", cond, op);
           return;
         default:
           check(False, "Cannot generate instruction code");
       }
-    case tPe: {
-      char *findLit = "(Lt1,LtNo) .= findLit(Lts,.strg(U::string))";
+    }
+    case lit: {
+      char *cond = "where (Lt1,LtNo) .= findLit(Lts,U)";
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out,
-                 "where %s => ([.intgr(%d),.intgr(LtNo)],Lt1,Lcs).\n", findLit, op);
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        case lVl:
+          outMsg(out, "%s && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n", cond,
+                 op);
+          return;
+        case lcl:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+    }
+    case tPe: {
+      char *lit = "where (Lt1,LtNo) .= findLit(Lts,.strg(U::string))";
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", lit, op);
           return;
         case bLk: {                             // A nested block of instructions
-          outMsg(out,
-                 "where %s && (Blk,Lts1,Lcs1) .= assemBlock(V,[],[\"\",..Lbls],Lt1,Lcs) => ([.intgr(%d),.intgr(LtNo),mkTpl(Blk::cons[data])],Lts1,Lcs1).\n",
-                 findLit, op);
+          outMsg(out, "%s && (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>\n"
+                      "    ([.intgr(%d),.intgr(LtNo),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).\n",
+                 lit, op);
           return;
         }
         case lVl:
           outMsg(out,
-                 "where %s) && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Lt1,Lcs).\n",
-                 findLit, op);
+                 "%s) && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n",
+                 lit, op);
           return;
         default:
           check(False, "Cannot generate instruction code");
       }
     }
 
-    case sym: {                            // symbol
-      char *cond = "where (Lt1,LtNo) .= findLit(Lts,.symb(U))";
-
-      switch (B) {
-        case nOp:
-        case tOs:
-          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Lt1,Lcs).\n", cond, op);
-          return;
-        case lVl:
-          outMsg(out,
-                 "%s && Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Lvl)],Lt1,Lcs).\n",
-                 cond, op);
-          return;
-        case lcl:
-          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Lt1,Lcs).\n", cond, op);
-          return;
-        default:
-          check(False, "Cannot generate instruction code");
-      }
-    }
     case i32:
     case art:
     case arg:
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Pc+1,Lts,Lns).\n", op);
           return;
         case lVl:
           outMsg(out,
-                 "where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(%d),.intgr(U),.intgr(Lvl)],Lts,Lcs).\n",
+                 "where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(%d),.intgr(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n",
                  op);
           return;
         case i32:
-          outMsg(out, "=> ([.intgr(%d),.intgr(U),.intgr(V)],Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d),.intgr(U),.intgr(V)],Pc+1,Lts,Lns).\n", op);
           return;
         default:
           check(False, "Cannot generate instruction code");
       }
     case lcl:
-    case lcs:
+    case lcs: {
+      char *cond = "Off ?= findLocal(U,Lcs)";
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Lts,Lcs).\n", op);
+          outMsg(out, "where %s => ([.intgr(%d),.intgr(Off)],Pc+1,Lts,Lns).\n", cond, op);
           return;
         case lit:
-          outMsg(out, "where (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(%d),.intgr(U),.intgr(LtNo)],Lt1,Lcs).\n", op);
+          outMsg(out,
+                 "where %s && (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(%d),.intgr(Off),.intgr(LtNo)],Pc+1,Lt1,Lns).\n",
+                 cond, op);
           return;
         default:
           check(False, "Cannot generate instruction code: invalid second operand");
       }
+    }
     case glb:
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> ([.intgr(%d),.strg(U)],Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d),.strg(U)],Pc+1,Lts,Lns).\n", op);
           return;
         case lVl:
-          outMsg(out,
-                 "where Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Lts,Lcs).\n",
-                 op);
+          outMsg(out, "where Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n", op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -312,12 +325,10 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
       switch (B) {
         case nOp:
         case tOs:
-          outMsg(out, "=> ([.intgr(%d),.strg(U)],Lts,Lcs).\n", op);
+          outMsg(out, "=> ([.intgr(%d),.strg(U)],Pc+1,Lts,Lns).\n", op);
           break;
         case lVl:
-          outMsg(out,
-                 "&& Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Lts,Lcs).\n",
-                 op);
+          outMsg(out, "where Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n", op);
           return;
         default:
           check(False, "Cannot generate instruction code");
@@ -325,25 +336,11 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
       break;
     }
     case bLk: {                           // A nested block of instructions
-      outMsg(out,
-             "where (Blk,Lts1,Lcs1) .= assemBlock(U,[],[\"\",..Lbls],Lts,Lcs) => ([.intgr(%d),mkTpl(Blk::cons[data])],Lts1,Lcs1).\n",
-             op);
-      return;
+      check(False, "block not allowed as first argument");
     }
     case lVl: {                          // Break out of a nesting sequence of blocks
-      switch (B) {
-        case nOp:
-        case tOs:
-          outMsg(out,
-                 "where Lvl ?= findLevel(Lbls,U) => ([.intgr(%d),.intgr(Lvl)],Lts,Lcs).\n",
-                 op);
-          return;
-        default:
-          check(False, "Cannot generate instruction code");
-      }
-    }
-    default:
       check(False, "invalid first operand");
+    }
   }
 }
 
@@ -359,9 +356,10 @@ static char *opAndTp(opAndSpec A) {
     case i32:
     case art:
     case arg:
+      return "integer";
     case lcl:
     case lcs:
-      return "integer";
+      return "string";
     case lVl:
       return "assemLbl";
     case Es:
@@ -378,7 +376,7 @@ static char *opAndTp(opAndSpec A) {
 }
 
 void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "    .i%s", mnem);
+  outMsg(out, "    | .i%s", capitalize(mnem));
   char *T1 = opAndTp(A1);
   char *T2 = opAndTp(A2);
 
@@ -391,7 +389,78 @@ void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) 
   } else if (T2 != Null)
     outMsg(out, "(%s)", T2);
 
-  outMsg(out, " |\n");
+  outMsg(out, "\n");
+}
+
+static void genHwmOp(ioPo out, opAndSpec A, char *argVar, integer *currH, integer *H) {
+  switch (A) {
+    case bLk: {
+      outMsg(out, "  (CH%d,H%d) = stkHwm(%s,CH%d,H%d);\n", (*currH) + 1, (*H) + 1, argVar, *currH, *H);
+      (*H)++;
+      (*currH)++;
+      return;
+    }
+    default:;
+  }
+}
+
+static char *genHWmArg(ioPo out, char *sep, opAndSpec A, char *var) {
+  switch (A) {
+    case nOp:                             // No operand
+    case tOs:
+      return sep;
+    case lit:
+    case tPe:
+    case sym:
+    case glb:
+    case Es:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case lVl:
+      outMsg(out, "%s_", sep, var);
+      return ",";
+    case bLk:
+      outMsg(out, "%s%s", sep, var);
+      return ",";
+    default:
+      check(False, "Cannot generate argument code");
+  }
+}
+
+// Construct the HWM calculator
+static void genStackHwm(ioPo out, char *mnem, int op, int delta, opAndSpec A1, opAndSpec A2, char *cmt) {
+  char *sep = "(";
+
+  outMsg(out, "  stkHwm([.i%s", capitalize(mnem));
+
+  sep = genHWmArg(out, sep, A1, "V");
+  sep = genHWmArg(out, sep, A2, "W");
+
+  if (strcmp(sep, ",") == 0)
+    outStr(out, ")");
+
+  outMsg(out, ",..Ins],CH0,H0) => valof{\n");
+
+  integer currH = 0;
+  integer currCH = 0;
+
+  genHwmOp(out, A1, "V", &currCH, &currH);
+  genHwmOp(out, A2, "W", &currCH, &currH);
+
+  if (delta != 0) {
+    outMsg(out, "    CH%d = CH%d%s%d;\n", currCH + 1, currCH, (delta > 0 ? "+" : ""), delta);
+    currCH++;
+  }
+
+  if (delta > 0 || A1 == bLk || A2 == bLk)
+    outMsg(out, "    valis stkHwm(Ins,CH%d,(CH%d>H%d??CH%d||H%d))\n", currCH, currCH, currH, currCH, currH);
+  else
+    outMsg(out, "    valis stkHwm(Ins,CH%d,H%d)\n", currCH, currH);
+
+  outMsg(out, "  }\n");
 }
 
 static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
@@ -418,7 +487,7 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
 }
 
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
-  outMsg(out, "  showIns(.i%s", mnem);
+  outMsg(out, "  showIns(.i%s", capitalize(mnem));
 
   char *sep = genArg(out, "(", A1, "U");
   sep = genArg(out, sep, A2, "V");

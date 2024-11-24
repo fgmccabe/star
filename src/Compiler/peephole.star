@@ -10,15 +10,9 @@ star.compiler.peephole{
   import star.compiler.location.
   import star.compiler.data.
 
-  implementation equality[assemLbl] => {
-    .al(L1) == .al(L2) => L1==L2.
-  }
-
-  implementation hashable[assemLbl] => {
-    hash(.al(L)) => hash(L).
-  }
-
-  public peepOptimize:(cons[assemOp])=>cons[assemOp].
+  public peepOptimize:(codeSegment)=>codeSegment.
+  peepOptimize(.func(Lbl,Pol,Tp,
+    cons[assemOp])=>cons[assemOp].
   peepOptimize(Ins) => valof{
     Map = splitSegments([.iLbl(.al("")),..Ins],[]);
     if traceCodegen! then
