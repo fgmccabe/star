@@ -20,8 +20,8 @@ star.compiler.gencode{
 
   public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
   compProg(Pkg,Defs,Globals) => valof{
-    Vars = foldLeft(declGlobal,[],Globals);
-    valis compDefs(Defs,localFuns(Defs,Vars))
+    Vars = localFuns(Defs,foldLeft(declGlobal,[],Globals));
+    valis compDefs(Defs,Vars)
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)].
@@ -29,9 +29,9 @@ star.compiler.gencode{
   declGlobal(_,Vrs) => Vrs.
 
   localFuns:(cons[cDefn],map[string,srcLoc])=>map[string,srcLoc].
-  localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
+  localFuns(Defs,Vars) => foldRight(defFn,Vars,Defs).
 
-  defFun(Def,Vrs) => case Def in {
+  defFn(Def,Vrs) => case Def in {
     | .fnDef(Lc,Nm,Tp,_,_) => Vrs[Nm->.glbFun(.tLbl(Nm,arity(Tp)),Tp::ltipe)]
     | .glDef(Lc,Nm,Tp,_) => Vrs[Nm->.glbVar(Nm,Tp::ltipe)]
     | _ default => Vrs
@@ -41,12 +41,18 @@ star.compiler.gencode{
   compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
 
   genDef:(cDefn,map[string,srcLoc]) => codeSegment.
-  genDef(Defn,Glbs) => case Defn in {
-    | .fnDef(Lc,Nm,Tp,Args,Val) => valof {
-      if traceCodegen! then
-	showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
-      Ctx = emptyCtx(Glbs);
-      (_,AbortCde) = abortCont(Lc,"function: $(Nm)").C(Ctx,.some([]),[]);
+  genDef(.fnDef(Lc,Nm,Tp,Args,Val),Glbs) => genFun(Lc,Nm,Tp,Args,Val,Glbs).
+  genDef(.glDef(Lc,Nm,Tp,Val),Glbs) => genGlb(Lc,Nm,Tp,Val,Glbs).
+  genDef(.tpDef(Lc,Tp,TpRl,Index),_) => .tipe(Tp,TpRl,Index).
+  genDef(.lblDef(_Lc,Lbl,Tp,Ix),_) => .struct(Lbl,Tp,Ix).
+
+  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
+    if traceCodegen! then
+      showMsg("compile $(.fnDef(Lc,Nm,Tp,Args,Val))");
+    Ctx = emptyCtx(Glbs);
+
+    (AbrtCde,_,_) = compAbort(Lc,"function: $(Nm) aborted",Ctx,.some([]));
+
 
       (_Stk,Code) = compArgPtns(Args,Lc,0,expCont(Val,Lc,.noMore,retCont),
 	jmpCont(Ctx.escape,.none),Ctx,.some([]));
@@ -58,25 +64,23 @@ star.compiler.gencode{
 	showMsg("code is $(.func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped))");
       };
       valis .func(.tLbl(Nm,size(Args)),.hardDefinition,Tp,Ctx.hwm!,Peeped)
-    }
-    | .glDef(Lc,Nm,Tp,Val) => valof{
-      if traceCodegen! then
-	showMsg("compile global $(Nm)\:$(Tp) = $(Val))");
-      Ctx = emptyCtx(Glbs);
-      (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
-      (_Stk,Code) = compExp(Val,Lc,.notLast,glbRetCont(Nm),Ctx,.some([]));
+  }
 
-      if traceCodegen! then
-	showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
-      
-      Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
-      if traceCodegen! then
-	showMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
+  genGlb(Lc,Nm,Tp,Val,Glbs) => valof{
+    if traceCodegen! then
+      showMsg("compile global $(Nm)\:$(Tp) = $(Val))");
+    Ctx = emptyCtx(Glbs);
+    (_,AbortCde) = abortCont(Lc,"global: $(Nm)").C(Ctx,.none,[]);
+    (_Stk,Code) = compExp(Val,Lc,.notLast,glbRetCont(Nm),Ctx,.some([]));
     
-      valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
-    }
-  | .tpDef(Lc,Tp,TpRl,Index) => .tipe(Tp,TpRl,Index)
-  | .lblDef(_Lc,Lbl,Tp,Ix) => .struct(Lbl,Tp,Ix)
+    if traceCodegen! then
+      showMsg("non-peep code is $((Code++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp])");
+
+    Peeped = peepOptimize(([.iLocals(Ctx.hwm!),..Code]++[.iLbl(Ctx.escape),..AbortCde])::cons[assemOp]);
+    if traceCodegen! then
+      showMsg("code is $(.global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped))");
+
+    valis .global(.tLbl(Nm,0),Tp,Ctx.hwm!,Peeped)
   }
 
   compExp:(cExp,option[locn],tailMode,Cont,codeCtx,stack) =>
@@ -756,12 +760,9 @@ star.compiler.gencode{
       ACont.C(Ctx,Stk,Cde++[.iAssign])
   }
 
-  abortCont:(option[locn],string) => Cont.
-  abortCont(.some(Lc),Msg) => cont{
-    C(_,_,Cde) => valof{
-      valis (.none,Cde++[.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort])
-    }
-  }
+  compAbort:(option[locn],string,codeCtx,stack) => (cons[assemOp],codeCtx,stack).
+  compAbort(.some(Lc),Msg,Ctx,Stk) =>
+    ([.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort],Ctx,.none).
 
   errorCont:(option[locn],string) => Cont.
   errorCont(Lc,Msg) => cont{
@@ -1000,4 +1001,9 @@ star.compiler.gencode{
   chLine(.none,_) => [].
   chLine(.some(Lc),.some(Lc)) => [].
   chLine(_,.some(Lc)) => (genDebug! ?? [.iLine(Lc::data)] || []).
+
+  flatSig = funTipe(.tplTipe([]),.voidTipe)::string.
+  nearlyFlatSig(T) => .funTipe(.tplTipe([]),T)::string.
+  blockSig(Args,Rs) => .funTipe(.tplTipe(Args),Rs)::string.
+
 }
