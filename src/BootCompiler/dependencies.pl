@@ -305,6 +305,11 @@ collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
+  isTryHandle(T,_,L,E,C),!,
+  collectTermRefs(L,All,Rf,Rf1),
+  collectTypeRefs(E,All,Rf1,Rf2),
+  collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
   isReset(T,_,H,E),!,
   collectTermRefs(H,All,Rf,R1),
   collectTermRefs(E,All,R1,Rfx).

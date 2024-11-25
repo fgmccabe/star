@@ -11,165 +11,156 @@ star.compiler.peephole{
   import star.compiler.data.
 
   public peepOptimize:(codeSegment)=>codeSegment.
-  peepOptimize(.func(Lbl,Pol,Tp,
-    cons[assemOp])=>cons[assemOp].
-  peepOptimize(Ins) => valof{
-    Map = splitSegments([.iLbl(.al("")),..Ins],[]);
-    if traceCodegen! then
-      showMsg(makeDotGraph("segs",Map));
-    PMap = pullTgts(Map);
-    if traceCodegen! then
-      showMsg(makeDotGraph("psegs",PMap));
-    PC = sequentialize([.al("")],PMap);
-    valis _optval(tail(PC))
+  peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
+    Ins0 = peepCode(Ins,[]);
+    (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
+    valis .func(Lbl,Pol,Tp,LcMp1,peepCode(Ins1,[]))
+  }
+  peepOptimize(.global(Lbl,Tp,LcMap,Ins)) => valof{
+    Ins0 = peepCode(Ins,[]);
+    (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
+    valis .global(Lbl,Tp,LcMp1,peepCode(Ins1,[]))
+  }
+  peepOptimize(Df) default => Df.
+
+  peepCode(Ins,Lbls) => peep(dropUnreachable(Ins),Lbls).
+
+  findUnusedVars([],Ins) => ([],Ins).
+  findUnusedVars([(Nm,Spec),..LcMp],Ins) => valof{
+    if varRead(Nm,Ins) then {
+      (Lm1,I1) = findUnusedVars(LcMp,Ins);
+      valis ([(Nm,Spec),..Lm1],I1)
+    } else
+    valis findUnusedVars(LcMp,dropVar(Nm,Ins))
   }
 
-  uncondJmp(Op) => case Op in {
-    | .iJmp(_) => .true
-    | .iRet => .true
-    | .iAbort => .true
-    | .iRetire => .true
-    | .iTCall(_) => .true
-    | .iTOCall(_) => .true
-    | .iCase(_) => .true
-    | .iIndxJmp(_) => .true
-    | .iThrow => .true
-    | _ default => .false
-  }
+  varRead(Vr,[]) => .false.
+  varRead(Vr,[I,..Is]) => vrRead(Vr,I) || varRead(Vr,Is).
 
-  -- Low-level optimizations.
-  peep:(cons[assemOp])=>cons[assemOp].
-  peep([]) => [].
-  peep([.iLine(Lc),.iLine(_),..Ins]) => peep([.iLine(Lc),..Ins]).
-  peep(Ins) where Inx ?= accessorPtn(Ins) => peep(Inx).
-  peep([.iStL(Off),.iLdL(Off),..Ins]) => peep([.iTL(Off),..Ins]).
-  peep([.iRot(0),..Ins]) => peep(Ins).
-  peep([I,..Ins]) => [I,..peep(Ins)].
+  vrRead(Vr,.iBlock(_,Is)) => varRead(Vr,Is).
+  vrRead(Vr,.iTry(_,Is)) => varRead(Vr,Is).
+  vrRead(Vr,.iLdL(V)) => V==Vr.
+  vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
 
-  accessorPtn([.iUnpack(Lb,Fl),..Ins]) => valof{
-    if (Dx,[.iStL(Off),..Ins1]) .= dropSeq(Ins,[]) &&
-	(_,[.iLdL(Off),.iRet,..Inz]) .= dropSeq(Ins1,[]) then{
-	  valis .some([.iUnpack(Lb,Fl),..Dx++[.iRet,..Inz]])
-	}
-    else
-    valis .none
-  }
-  accessorPtn(_) default => .none.
-
-  dropSeq([.iDrop,..Ins],Dz) => dropSeq(Ins,[.iDrop,..Dz]).
-  dropSeq(Ins,Dz) => (Dz,Ins).
-
-  segment::=.segment(assemLbl,option[assemLbl],cons[assemOp],set[assemLbl]).
-
-  implementation display[segment] => {
-    disp(.segment(Lb,FLb,Ins,Exits)) => "segment $(Lb)\:$(Ins) ~> $(FLb)\:$(Exits)"
-  }
-
-  splitSegments:(cons[assemOp],map[assemLbl,segment]) => map[assemLbl,segment].
-  splitSegments([],Map) => Map.
-  splitSegments([.iLbl(Lb),..Code],Map) => splitSegment(Code,Lb,[],[],Map).
-  splitSegments([I,..Code],Map) => valof{
-    reportTrap("Expecting a label $(I) ..  $(Code)");
-    valis splitSegments(Code,Map)
-  }
-
-  splitSegment:(cons[assemOp],assemLbl,cons[assemOp],set[assemLbl],map[assemLbl,segment]) => map[assemLbl,segment].
-  splitSegment([],Lb,SoFar,Exits,Map) => Map[Lb->.segment(Lb,.none,reverse(SoFar),Exits)].
-  splitSegment([.iLbl(XLb),..Code],Lb,SoFar,Exits,Map) =>
-    splitSegment(Code,XLb,[],[],Map[Lb->.segment(Lb,.some(XLb),reverse(SoFar),Exits)]).
-  splitSegment([Op,..Code],Lb,SoFar,Exits,Map) => valof{
-    Ex = (Tgt?=opTgt(Op) ?? Exits\+Tgt || Exits);
-
-    if (.iIndxJmp(Cnt).=Op || .iCase(Cnt).=Op) && (Front,Rest) ?= front(Code,Cnt) then{
-      valis splitSegments(Rest,Map[Lb->.segment(Lb,.none,reverse(SoFar)++[Op,..Front],
-	    findExits(Front,Ex))])
-    } else if .iJmp(Tgt).=Op && [.iLbl(Tgt),.._].=Code then{
-      valis splitSegments(Code,Map[Lb->.segment(Lb,.some(Tgt),reverse(SoFar),Ex)])
+  dropVar(Vr,[]) => [].
+  dropVar(Vr,[.iTL(Vr),..Is]) => dropVar(Vr,Is).
+  dropVar(Vr,[.iStL(Vr),..Is]) => [.iDrop,..dropVar(Vr,Is)].
+  dropVar(Vr,[.iStV(Vr),..Is]) => dropVar(Vr,Is).
+  dropVar(Vr,[.iBlock(Tp,Bs),..Is]) => [.iBlock(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
+  dropVar(Vr,[.iTry(Tp,Bs),..Is]) => [.iTry(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
+  dropVar(Vr,[.iLbl(Lb,I),..Is]) => valof{
+    IRx = dropVar(Vr,[I]);
+    if isEmpty(IRx) then
+      valis dropVar(Vr,Is)
+    else if [Ix].=IRx then
+      valis [.iLbl(Lb,Ix),..dropVar(Vr,Is)]
+    else{
+      reportTrap("problem in dropVar $(I)");
+      valis []
     }
-    else if uncondJmp(Op) then
-      valis splitSegments(Code,Map[Lb->.segment(Lb,.none,reverse([Op,..SoFar]),Ex)])
-    else 
-    valis splitSegment(Code,Lb,[Op,..SoFar],Ex,Map)
   }
+  dropVar(Vr,[I,..Is]) => [I,..dropVar(Vr,Is)].
 
-  findExits:(cons[assemOp],set[assemLbl]) => set[assemLbl].
-  findExits(Code,Ex) => foldLeft((O,X) => (TT?=opTgt(O)??X\+TT||X),Ex,Code).
+  dropUnreachable([]) => [].
+  dropUnreachable([.iBreak(Lvl),.._]) => [.iBreak(Lvl)].
+  dropUnreachable([.iLoop(Lvl),.._]) => [.iLoop(Lvl)].
+  dropUnreachable([.iEndTry(Lvl),.._]) => [.iEndTry(Lvl)].
+  dropUnreachable([.iThrow,.._]) => [.iThrow].
+  dropUnreachable([.iRet,.._]) => [.iRet].
+  dropUnreachable([.iTCall(Lb),.._]) => [.iTCall(Lb)].
+  dropUnreachable([.iTOCall(Ar),.._]) => [.iTOCall(Ar)].
+  dropUnreachable([.iAbort,.._]) => [.iAbort].
+  dropUnreachable([.iHalt(Ix),.._]) => [.iHalt(Ix)].
+  dropUnreachable([.iRetire,.._]) => [.iRetire].
+  dropUnreachable([.iCase(Mx),..Is]) => [.iCase(Mx),..copyN(Mx,Is)].
+  dropUnreachable([.iIndxJmp(Mx),..Is]) => [.iIndxJmp(Mx),..copyN(Mx,Is)].
+  dropUnreachable([I,..Is]) => [I,..dropUnreachable(Is)].
 
-  opTgt(.iJmp(Lb)) => .some(Lb).
-  opTgt(.iCLbl(_,Lb)) => .some(Lb).
-  opTgt(.iUnpack(_,Lb)) => .some(Lb).
-  opTgt(.iICmp(Lb)) => .some(Lb).
-  opTgt(.iCCmp(Lb)) => .some(Lb).
-  opTgt(.iFCmp(Lb)) => .some(Lb).
-  opTgt(.iCmp(Lb)) => .some(Lb).
-  opTgt(.iIf(Lb)) => .some(Lb).
-  opTgt(.iIfNot(Lb)) => .some(Lb).
-  opTgt(.iTry(Lb)) => .some(Lb).
-  opTgt(_) default => .none.
-
-  reTgt(.iJmp(_),Lb) => .iJmp(Lb).
-  reTgt(.iCLbl(T,_),Lb) => .iCLbl(T,Lb).
-  reTgt(.iUnpack(T,_),Lb) => .iUnpack(T,Lb).
-  reTgt(.iICmp(_),Lb) => .iICmp(Lb).
-  reTgt(.iCCmp(_),Lb) => .iCCmp(Lb).
-  reTgt(.iFCmp(_),Lb) => .iFCmp(Lb).
-  reTgt(.iCmp(_),Lb) => .iCmp(Lb).
-  reTgt(.iIf(_),Lb) => .iIf(Lb).
-  reTgt(.iIfNot(_),Lb) => .iIfNot(Lb).
-  reTgt(.iTry(_),Lb) => .iTry(Lb).
-  reTgt(O,_) default => O.
-
-  pullTgts:(map[assemLbl,segment]) => map[assemLbl,segment].
-  pullTgts(Map) => (Map///(Lbl,Seg)=>pullSegment(Seg,Map)).
-
-  pullSegment:(segment,map[assemLbl,segment]) => segment.
-  pullSegment(.segment(Lbl,Flw,Ops,Exits),Map) => valof{
-    Nops = peep(pullOps(Ops,Map));
-    valis .segment(Lbl,Flw,Nops,findExits(Nops,[]))
-  }
-
-  pullOps([],_) => [].
-  pullOps([O,..Code],Map) => [pullTgt(O,Map),..pullOps(Code,Map)].
-
-  pullTgt(.iJmp(Tg),Map) where .segment(_,_,[.iRet,.._],_) ?= Map[Tg] => .iRet.
-  pullTgt(O,Map) => valof{
-    if Tg?=opTgt(O) then{
-      if .segment(_,_,[.iJmp(Tgt),.._],_) ?= Map[Tg] then
-	valis pullTgt(reTgt(O,Tgt),Map)
-      else if .segment(_,.some(Flw),[],_) ?= Map[Tg] then
-	valis pullTgt(reTgt(O,Flw),Map)
-      else
-      valis O
-    }
-    else
-    valis O
-  }.
-
-  sequentialize:(cons[assemLbl],map[assemLbl,segment]) => cons[assemOp].
-  sequentialize([],_Map) => [].
-  sequentialize([Lbl,..Ls],Map) => valof{
-    if .segment(_,Flw,Ops,Exits) ?= Map[Lbl] then{
-      if F ?= Flw then{
-	if _ ?= Map[F] then
-	  valis [.iLbl(Lbl),..Ops]++sequentialize([F,..Ls++(Exits::cons[assemLbl])],Map[~Lbl])
-	else
-	valis [.iLbl(Lbl),..Ops]++[.iJmp(F)]++sequentialize(Ls++(Exits::cons[assemLbl]),Map[~Lbl])
-	
-      } else{
-	valis [.iLbl(Lbl),..Ops]++sequentialize(Ls++(Exits::cons[assemLbl]),Map[~Lbl])
-      }
-    }
-    else
-      valis sequentialize(Ls,Map)
-  }
+  copyN(0,_) => [].
+  copyN(K,[I,..Is]) => [I,..copyN(K-1,Is)].
     
-  makeDotGraph:(string,map[assemLbl,segment])=>string.
-  makeDotGraph(Nm,Map) => "digraph $(Nm) {\n#(ixLeft((_,S,F)=>F++makeSegGraph(S),"",Map))}".
-
-  makeSegGraph(.segment(Lbl,Flw,Code,Exits)) => valof{
-    ExNodes = ((Exits::cons[assemLbl])//(Tgt)=>"\"$(Lbl)\" -> \"$(Tgt)\";\n")*;
-    Node = "\"$(Lbl)\" [shape=box,label=$(disp(Lbl)++":"++(Code//(I)=>disp(I))*)];\n";
-    Follow = (Tgt?=Flw ?? "\"$(Lbl)\" -> \"$(Tgt)\" [ style=dotted, color=red ]" || "");
-    valis Node++ExNodes++Follow
+  -- Low-level optimizations.
+  peep:(cons[assemOp],cons[(string,cons[assemOp])])=>cons[assemOp].
+  peep([],_) => [].
+  peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],).
+  peep([.iStL(Off),.iLdL(Off),.iRet,.._],_) => [.iRet].
+  peep([.iStL(Off),.iLdL(Off),..Ins],Lbls) => peep([.iTL(Off),..Ins],Lbls).
+  peep([.iRot(0),..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLdL(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLdL(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLdA(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLdA(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iNth(_),.iDrop,..Ins],Lbls) => peep([.iDrop,..Ins],Lbls).
+  peep([.iBlock(Tpe,Is),..Ins],Lbls) => [.iBlock(Tpe,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
+  peep([.iLbl(Lb,.iBlock(Tpe,Is)),..Ins],Lbls) => valof{
+    Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
+    if lblReferenced(Lb,Is0) then
+      valis [.iLbl(Lb,.iBlock(Tpe,Is0)),..peep(Ins,Lbls)]
+    else
+    valis peep(Is0++Ins,Lbls)
   }
+  peep([.iLbl(Lb,.iTry(Tpe,Is)),..Ins],Lbls) => valof{
+    Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
+    if lblReferenced(Lb,Is0) then
+      valis [.iLbl(Lb,.iTry(Tpe,Is0)),..peep(Ins,Lbls)]
+    else
+    valis [.iTry(Tpe,Is0),..peep(Ins,Lbls)]
+  }
+  peep([.iTry(Tpe,Is),..Ins],Lbls) => 
+    [.iTry(Tpe,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
+  peep([.iIf(Lb),..Ins],Lbls) =>
+    [.iIf(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iIfNot(Lb),..Ins],Lbls) =>
+    [.iIfNot(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iCLbl(Tgt,Lb),..Ins],Lbls) =>
+    [.iCLbl(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iCLit(Tgt,Lb),..Ins],Lbls) =>
+    [.iCLit(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iCmp(Lb),..Ins],Lbls) =>
+    [.iCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iICmp(Lb),..Ins],Lbls) =>
+    [.iICmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iFCmp(Lb),..Ins],Lbls) =>
+    [.iFCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iCCmp(Lb),..Ins],Lbls) =>
+    [.iCCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
+  peep([.iBreak(Lb),.._],Lbls) =>
+    [.iBreak(resolveLbl(Lb,Lbls))].
+  peep([.iEndTry(Lb),.._],Lbls) =>
+    [.iEndTry(resolveLbl(Lb,Lbls))].
+  peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
+  peep([.iRetire,.._],_Lbls) => [.iRetire].
+  peep([.iCase(Mx),..Ins],Lbls) => [.iCase(Mx),..copyN(Mx,Ins)].
+  peep([.iIndxJmp(Mx),..Ins],Lbls) => [.iIndxJmp(Mx),..copyN(Mx,Ins)].
+  peep([I,..Ins],Lbls) => [I,..peep(Ins,Lbls)].
+
+  lblReferenced(Lb,[.iBreak(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iLoop(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iEndTry(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iIf(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iIfNot(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCmp(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCCmp(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iICmp(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iFCmp(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLbl(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iCLit(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iLbl(_,I),..Ins]) =>
+    lblReferenced(Lb,[I]) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[.iBlock(_,I),..Ins]) =>
+    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[.iTry(_,I),..Ins]) =>
+    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
+  lblReferenced(Lb,[_,..Ins]) => lblReferenced(Lb,Ins).
+  lblReferenced(_,[]) => .false.
+
+  resolveLbl(Lb,[]) default => Lb.
+  resolveLbl(Lb,[(Lb,Is),..Lbls]) where [.iBreak(Lbx),.._].=Is =>
+    resolveLbl(Lbx,Lbls).
+  resolveLbl(Lb,[(Lb,_),.._]) => Lb.
+  resolveLbl(Lb,[_,..Lbls]) => resolveLbl(Lb,Lbls).
 }

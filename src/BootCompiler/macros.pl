@@ -498,6 +498,12 @@ examineTerm(A,Ax) :-
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Ex,Cs,Ax).
 examineTerm(A,Ax) :-
+  isTryHandle(A,Lc,B,E,C),!,
+  macroTerm(B,Bx),
+  macroType(E,Ex),
+  map(C,macros:macroLambda,Cs),
+  mkTryHandle(Lc,Bx,Ex,Cs,Ax).
+examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
