@@ -132,8 +132,44 @@ typeAnnotation(Lc,V,T,St) :-
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
+  isRoundConstructors(Lc,Body),!,
   getQuantifiers(Lhs,Q,Inner),
   isConstrainedTp(Inner,Cx,Head).
+
+isRoundConstructors(Body,Quants,_Lc,Tp) :-
+  isBinary(C,Lc,"|",L,R),!,
+  isRoundConstructors(L,Quants,Constraints,Tp,Defs,Df0,P,P0,A,A0,Export),
+  collectConstructors(R,Quants,Constraints,Tp,Df0,Dfx,P0,Px,A0,Ax,Export).
+
+collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
+collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
+  isUnary(C,_,"|",R),!,
+  collectConstructors(R,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export).
+collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
+		    P,Px,Ax,Ax,Export) :-
+  isIden(C,Lc,Enm),!,
+  roundTuple(Lc,[],Hd),
+  binary(Lc,"<=>",Hd,Tp,CnTp),
+  reConstrain(Constraints,CnTp,Rl),
+  reUQuant(Quants,Rl,St),
+  call(Export,cns(Enm),P,Px).
+collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
+		    P,Px,Ax,Ax,Export) :-
+  isEnum(C,Lc,E),
+  isIden(E,_,Enm),!,
+  roundTuple(Lc,[],Hd),
+  binary(Lc,"<=>",Hd,Tp,CnTp),
+  reConstrain(Constraints,CnTp,Rl),
+  reUQuant(Quants,Rl,St),
+  call(Export,cns(Enm),P,Px).
+collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
+		    P,Px,Ax,Ax,Export) :-
+  isRoundCon(C,_,_,Lc,Nm,Args),!,
+  roundTuple(Lc,Args,Hd),
+  binary(Lc,"<=>",Hd,Tp,Rl),
+  reConstrain(Constraints,Rl,CRl),
+  reUQuant(Quants,CRl,St),
+  call(Export,cns(Nm),P,Px).
 
 mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
   reConstrain(Cx,Head,H0),
@@ -142,8 +178,8 @@ mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
 
 isStructTypeStmt(Stmt,Lc,Q,XQ,Cx,Head,Nm,Els) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
-  genQuantifiers(Lhs,Q,Head),
-  isBraceCon(Body,XQ,Cx,_,Nm,Els).
+  isBraceCon(Body,XQ,Cx,_,Nm,Els),
+  genQuantifiers(Lhs,Q,Head).
 
 mkStructTypeStmt(Lc,Q,X,Cx,H,Nm,Els,Stmt) :-
   braceTerm(Lc,Nm,Els,Br),
@@ -937,6 +973,20 @@ mkTryCatch(Lc,B,E,Cases,A) :-
   braceTuple(Lc,[Cs],Hs),
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
+  unary(Lc,"try",A0,A).
+
+isTryHandle(A,Lc,B,E,Hs) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"handle",B,R),
+  isBinary(R,_,"in",E,H),
+  isBraceTuple(H,_,[Els]),
+  deBar(Els,Hs).
+
+mkTryHandle(Lc,B,E,Cases,A) :-
+  reBar(Cases,Cs),
+  braceTuple(Lc,[Cs],Hs),
+  binary(Lc,"in",E,Hs,R),
+  binary(Lc,"handle",B,R,A0),
   unary(Lc,"try",A0,A).
 
 isReset(A,Lc,name(Lc,"tag"),E) :-
