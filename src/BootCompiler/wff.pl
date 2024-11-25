@@ -136,12 +136,15 @@ isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   getQuantifiers(Lhs,Q,Inner),
   isConstrainedTp(Inner,Cx,Head).
 
-isRoundConstructors(Body,Quants,_Lc,Tp) :-
-  isBinary(C,Lc,"|",L,R),!,
-  isRoundConstructors(L,Quants,Constraints,Tp,Defs,Df0,P,P0,A,A0,Export),
-  collectConstructors(R,Quants,Constraints,Tp,Df0,Dfx,P0,Px,A0,Ax,Export).
+isRoundConstructors(_,Body) :-
+  isBinary(Body,Lc,"|",L,R),!,
+  isRoundConstructors(Lc,L),
+  isRoundConstructors(Lc,R).
+isRoundConstructors(_,Body) :-
+  isUnary(Body,Lc,"|",R),!,
+  isRoundConstructors(Lc,R).
 
-collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
+
 collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
   isUnary(C,_,"|",R),!,
   collectConstructors(R,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export).
