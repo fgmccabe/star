@@ -2,14 +2,12 @@ test.rc{
   import star.
   import star.assert.
 
-  public pp[a] ::= pp{C:integer} |
-    pq{C:integer. A:a}.
+  public pp[a] ::= pp{C:integer}.
 
   kk ::= kk{C:integer}.
 
-  aa ::= aa{A:integer. ii:map[integer,boolean]. b:string. c:map[string,boolean]}.
+  aa ::= aA{A:integer. ii:map[integer,boolean]. b:string. c:map[string,boolean]}.
   
-
   implementation measured[aa->>integer] => {
     [|A|] => [|A.ii|]
   }
@@ -20,12 +18,10 @@ test.rc{
 
   implementation all e ~~ lc[pp[e]->>integer] => {
     ll(pp{C=XX}) => XX.
-    ll(pq{C=YY}) => YY.
   }
 
   implementation all a ~~ display[a] |: display[pp[a]] => {
     disp(pp{C=Ix}) => "pp{C=$(Ix)}".
-    disp(pq{C=Ix. A=A}) => "pq{C=$(Ix),A=$(A)}"
   }
 
   public cont:(integer)=>pp[()].
@@ -36,7 +32,7 @@ test.rc{
   public main:()=>().
   main()=>valof{
     show cont(2).C;
-    AA = aa{A=10. ii=[1->.false, 2->.true]. b="hi". c=[]};
+    AA = aA{A=10. ii=[1->.false, 2->.true]. b="hi". c=[]};
 
     show [|AA|];
 

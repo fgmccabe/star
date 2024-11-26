@@ -92,19 +92,18 @@ collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Dfx,P,Px,A,Ax,Export) 
   isBraceTuple(Face,_,Els),
   rfold(Els,checker:tpeFldViz(Nm,Export),P0,P1),
   collectConstructors(Body,Quants,Constraints,Head,Defs,Dfx,P1,Px,A,Ax,Export).
-collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Dfx,P,Px,A,Ax,Export) :-
-  isStructTypeStmt(St,Lc,Quants,Constraints,Head,Body),
-  typeName(Head,Nm),
+collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St]),(cns(CnNm),Lc,[CnSt])|Defs],Defs,P,Px,Ax,Ax,Export) :-
+  isStructTypeStmt(St,Lc,Q,XQ,Cx,Tp,CnNm,Els),
+  typeName(Tp,Nm),
   call(Export,tpe(Nm),P,P0),
-  isBraceCon(Body,XQ,XC,Lc,BrNm,Els),!,
   rfold(Els,checker:tpeFldViz(Nm,Export),P0,P1),
-  call(Export,cns(BrNm),P,Px),
+  call(Export,cns(CnNm),P1,Px),
   braceTuple(Lc,Els,Hd),
-  reConstrain(XC,Hd,XHd),
+  reConstrain(Cx,Hd,XHd),
   reXQuant(XQ,XHd,QHd),
   binary(Lc,"<=>",QHd,Tp,Rl),
-  reConstrain(Constraints,Rl,CRl),
-  reUQuant(Quants,CRl,St).
+  reConstrain(Cx,Rl,CRl),
+  reUQuant(Q,CRl,CnSt).
 collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,Export) :-
   ruleName(St,Nm,Kind),
   locOfAst(St,Lc),

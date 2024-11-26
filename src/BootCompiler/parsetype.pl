@@ -349,32 +349,32 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
   buildUpdaters(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D1,D0,Acc,Acc0,Publish,Viz,Dc1,Dcx),
   declareAccessors(Acc,Ev0,Ev).
 
-
-parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,Nm,Entries,[Defn|D1],Dx,E,Ev,
+parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Els,[Defn|Df],Dfx,E,Ev,
 		      Publish,Viz,Dc,Dcx,Path):-
-  braceTuple(Lc,Entries,F),
-  reConstrain(Cs,F,Face),
   parseBoundTpVars(Xs,X),
   parseBoundTpVars(Qs,Q),
-  concat(X,Q,QV),
-  parseTypeHead(Hd,QV,Tp,Nm,_Args,Path),
-  parseConstraints(Cs,E,QV,Cx,[]),
-%  reportMsg("algebraic type head %s",[tpe(Tp)],Lc),
-  pickTypeTemplate(Tp,Type),
-  parseType(Face,E,QV,FceTp),
-  wrapType([],[],XQ,[],FceTp,FaceTp),
-%  reportMsg("face type %s",[tpe(FaceTp)],Lc),
-  wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
-%  buildConsMap(Body,ConsMap,Path),
-%  reportMsg("algebraic face rule %s",[tpe(FaceRule)],Lc),
-  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
-%  tpName(Type,TpNm),
+  parseConstraints(Cs,E,Q,Cx,[]),
+
+  parseTypeFields(Els,E,Q,[],Fs,[],Ts),
+  sort(Fs,checker:cmpPair,SortedFlds),
+  sort(Ts,checker:cmpPair,SortedTps),
+  Face = faceType(SortedFlds,SortedTps),
+
+  parseTypeHead(Hd,Q,Tp,Nm,_Args,Path),
+  wrapType(Q,Cx,X,[],typeExists(Tp,Face),FaceRule),
+  wrapType(Q,Cx,[],[],Tp,Type),
+
+  genBraceConstructor(Lc,SortedFlds,Nm,BrNm,Q,Cx,Tp,Df,Df0,E,Ev0,ConDecl),
+  genBraceAccessors(Lc,Q,Cx,BrNm,Tp,SortedFlds,SortedFlds,Df0,Dfx,Acc,[],
+		    Publish,Viz,tpe(Nm),Dc,Dc0),
+  declareAccessors(Acc,Ev0,Ev1),
+  call(Publish,Viz,tpe(Nm),ConDecl,Dc0,Dcx),
+
+  %  tpName(Type,TpNm),
   Defn = typeDef(Lc,Nm,Type,FaceRule),
   Decl = typeDec(Nm,Type,FaceRule),
-  call(Publish,Viz,tpe(Nm),Decl,Dc,Dc0),
-  buildAccessors(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D0,Dx,Acc0,[],Publish,Viz,Dc0,Dc1),
-  buildUpdaters(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D1,D0,Acc,Acc0,Publish,Viz,Dc1,Dcx),
-  declareAccessors(Acc,Ev0,Ev).
+  declareType(Nm,Decl,Ev1,Ev2),
+  declareAccessors(Acc,Ev2,Ev).
 
 declareAccessors(Acc,Ev,Evx) :-
   rfold(Acc,parsetype:declareAcc,Ev,Evx).
@@ -752,6 +752,12 @@ parseTypeCore(St,Type,_Env,Path) :-
   reUQnt(Q,LTp,Type).
 parseTypeCore(St,Type,_,Path) :-
   isAlgebraicTypeStmt(St,_,Quants,_,Hd,_),
+  parseBoundTpVars(Quants,Q),
+  parseTypeHead(Hd,Q,Tp,_,Args,Path),
+  mkTpLambda(Args,Tp,LTp),
+  reUQnt(Q,LTp,Type).
+parseTypeCore(St,Type,_,Path) :-
+  isStructTypeStmt(St,_,Quants,_,_,Hd,_,_),
   parseBoundTpVars(Quants,Q),
   parseTypeHead(Hd,Q,Tp,_,Args,Path),
   mkTpLambda(Args,Tp,LTp),
