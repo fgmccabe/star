@@ -372,9 +372,9 @@ parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Els,[Defn|Df],Dfx,E,Ev,
 
   %  tpName(Type,TpNm),
   Defn = typeDef(Lc,Nm,Type,FaceRule),
-  Decl = typeDec(Nm,Type,FaceRule),
-  declareType(Nm,Decl,Ev1,Ev2),
-  declareAccessors(Acc,Ev2,Ev).
+  Decl = tpDef(Lc,Type,FaceRule),
+  declareType(Nm,Decl,Ev1,Ev).
+
 
 declareAccessors(Acc,Ev,Evx) :-
   rfold(Acc,parsetype:declareAcc,Ev,Evx).
