@@ -58,6 +58,7 @@
 	      isTryCatch/5,mkTryCatch/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
+	      isTryHandle/5,mkTryHandle/5,
 	      isReset/4,mkReset/4,
 	      isShift/5,mkShift/5,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
@@ -132,47 +133,21 @@ typeAnnotation(Lc,V,T,St) :-
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
-  isRoundConstructors(Lc,Body),!,
+  isRoundConstructors(Body),!,
   getQuantifiers(Lhs,Q,Inner),
   isConstrainedTp(Inner,Cx,Head).
 
-isRoundConstructors(_,Body) :-
-  isBinary(Body,Lc,"|",L,R),!,
-  isRoundConstructors(Lc,L),
-  isRoundConstructors(Lc,R).
-isRoundConstructors(_,Body) :-
-  isUnary(Body,Lc,"|",R),!,
-  isRoundConstructors(Lc,R).
-
-
-collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export) :-
-  isUnary(C,_,"|",R),!,
-  collectConstructors(R,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,Export).
-collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
-		    P,Px,Ax,Ax,Export) :-
-  isIden(C,Lc,Enm),!,
-  roundTuple(Lc,[],Hd),
-  binary(Lc,"<=>",Hd,Tp,CnTp),
-  reConstrain(Constraints,CnTp,Rl),
-  reUQuant(Quants,Rl,St),
-  call(Export,cns(Enm),P,Px).
-collectConstructors(C,Quants,Constraints,Tp,[(cns(Enm),Lc,[St])|Defs],Defs,
-		    P,Px,Ax,Ax,Export) :-
-  isEnum(C,Lc,E),
-  isIden(E,_,Enm),!,
-  roundTuple(Lc,[],Hd),
-  binary(Lc,"<=>",Hd,Tp,CnTp),
-  reConstrain(Constraints,CnTp,Rl),
-  reUQuant(Quants,Rl,St),
-  call(Export,cns(Enm),P,Px).
-collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
-		    P,Px,Ax,Ax,Export) :-
-  isRoundCon(C,_,_,Lc,Nm,Args),!,
-  roundTuple(Lc,Args,Hd),
-  binary(Lc,"<=>",Hd,Tp,Rl),
-  reConstrain(Constraints,Rl,CRl),
-  reUQuant(Quants,CRl,St),
-  call(Export,cns(Nm),P,Px).
+isRoundConstructors(Body) :-
+  isBinary(Body,_,"|",L,R),!,
+  isRoundConstructors(L),
+  isRoundConstructors(R).
+isRoundConstructors(Body) :-
+  isUnary(Body,_,"|",R),!,
+  isRoundConstructors(R).
+isRoundConstructors(Body) :-
+  isEnum(Body,_Lc,E),isIden(E,_,_),!.
+isRoundConstructors(Body) :-
+  isRoundCon(Body,_XQ,_XC,_Lc,_Nm,_Els),!.
 
 mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
   reConstrain(Cx,Head,H0),
@@ -182,14 +157,14 @@ mkAlgebraicTypeStmt(Lc,Q,Cx,Head,Body,S) :-
 isStructTypeStmt(Stmt,Lc,Q,XQ,Cx,Head,Nm,Els) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
   isBraceCon(Body,XQ,Cx,_,Nm,Els),
-  genQuantifiers(Lhs,Q,Head).
+  getQuantifiers(Lhs,Q,Head).
 
 mkStructTypeStmt(Lc,Q,X,Cx,H,Nm,Els,Stmt) :-
-  braceTerm(Lc,Nm,Els,Br),
-  binary(Lc,"::=",H,Br,S),
-  reConstrain(Cx,S,S0),
-  reXQuant(X,S0,S1),
-  reUQuant(Q,S1,Stmt).
+  braceTerm(Lc,name(Lc,Nm),Els,Br),
+  reXQuant(X,Br,B1),
+  reConstrain(Cx,H,H0),
+  reUQuant(Q,H0,H1),
+  binary(Lc,"::=",H1,B1,Stmt).
 
 isConstructor(C,Lc,C,[]) :-
   isIden(C,Lc,_).
