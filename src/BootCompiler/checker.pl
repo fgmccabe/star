@@ -175,17 +175,6 @@ collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
   reConstrain(Constraints,Rl,CRl),
   reUQuant(Quants,CRl,St),
   call(Export,cns(Nm),P,Px).
-collectConstructors(C,Quants,Constraints,Tp,[(cns(Nm),Lc,[St])|Defs],Defs,
-		    P,Px,Ax,Ax,Export) :-
-  isBraceCon(C,XQ,XC,Lc,Nm,Els),!,
-  pullOthers(Els,Entries,_Asserts,_Defaults),
-  call(Export,cns(Nm),P,Px),
-  braceTuple(Lc,Entries,Hd),
-  reConstrain(XC,Hd,XHd),
-  reXQuant(XQ,XHd,QHd),
-  binary(Lc,"<=>",QHd,Tp,Rl),
-  reConstrain(Constraints,Rl,CRl),
-  reUQuant(Quants,CRl,St).
 collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,_Export) :-
   isPrivate(C,_,I),
   collectConstructors(I,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,checker:prvteViz).
