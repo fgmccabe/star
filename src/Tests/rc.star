@@ -2,7 +2,7 @@ test.rc{
   import star.
   import star.assert.
 
-  public pp[a] ::= pp{C:integer}.
+  public pp[a] ::= pP{C:integer}.
 
   -- kk ::= kk{C:integer}.
 
@@ -21,11 +21,11 @@ test.rc{
   -- }
 
   -- implementation all a ~~ display[a] |: display[pp[a]] => {
-  --   disp(pp{C=Ix}) => "pp{C=$(Ix)}".
+  --   disp(pp{C=Ix}) => "pP{C=$(Ix)}".
   -- }
 
   public cont:(integer)=>pp[()].
-  cont(C) => pp{
+  cont(C) => pP{
     C=C
   }
 
