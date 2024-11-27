@@ -10,7 +10,7 @@ test.hr1{
     inc:(t)=>t.
   }
 
-  iNeedAnInc:incHndlr[integer]|:(integer)=>integer.
+  iNeedAnInc:(H:incHndlr[integer])|:(integer)=>integer.
   iNeedAnInc(X) =>
     (H.inc).(X).
 
