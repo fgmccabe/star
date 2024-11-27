@@ -378,7 +378,7 @@ mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
 
 contType(Arg,Res,Tp) :-
-  mkTypeExp(tpFun("cont",2),[tplType([Arg]),Res],Tp).
+  mkTypeExp(tpFun("=>>",2),[tplType([Arg]),Res],Tp).
 
 thunkType(Arg,Tp) :-
   mkTypeExp(tpFun("thunk",1),[Arg],Tp).

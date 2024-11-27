@@ -29,6 +29,7 @@
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
 	      isContRule/5,mkContRule/5,
+	      isContType/4,mkContType/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -595,6 +596,12 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
+
+isContType(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"=>>",Lhs,Rhs).
+
+mkContType(Lc,Lhs,Rhs,T) :-
+  binary(Lc,"=>>",Lhs,Rhs,T).
 
 isContRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>>",L,Rhs),
