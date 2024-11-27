@@ -536,7 +536,7 @@ combineActionUpdate(Lc,Vr,Ix,Term,SoFar,seq(Lc,setix(Lc,Vr,Ix,Term),SoFar)).
 computeFreeVect(Lc,Vr,Fr,[],_,Exp,ltt(Lc,Vr,Fr,Exp)).
 computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
   \+idInTerm(Vr,Term),!,
-  split_list(Ix,Args,F,[voyd|R]),
+  split_list(Ix,Args,F,[ann(_)|R]),
   concat(F,[Term|R],NArgs),
   computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Update,Exp,Reslt).
 computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
@@ -763,7 +763,7 @@ makeFreeTerm(CellVars,Lc,ThFr,Map,Opts,FreeTerm) :-
   concat(CV,FrExps,Args),
   mkTpl(Args,FreeTerm).
 
-emptyCell(_Lc,idnt(_,_),voyd).
+emptyCell(_Lc,idnt(_,Tp),ann(Tp)).
 
 mkFreeVar(Map,Opts,Lc,idnt(Nm,Tp),Vr) :-
   trVarExp(Lc,Nm,Tp,Vr,Map,Opts,[],_).

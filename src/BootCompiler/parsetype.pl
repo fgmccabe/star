@@ -324,7 +324,7 @@ parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
   isStructTypeStmt(St,Lc,Q,X,Cx,Hd,Nm,Els),
   parseStructTypeDef(Lc,Q,X,Cx,Hd,Nm,Els,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
 
-parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
+parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|Dx],Dx,E,Ev,
 		      Publish,Viz,Dc,Dcx,Path):-
   algebraicFace(Body,[],EQ,Face),
   parseBoundTpVars(EQ,XQ),
@@ -340,14 +340,11 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
   wrapType(Q,Cx,[],[],typeExists(Tp,FaceTp),FaceRule),
 %  buildConsMap(Body,ConsMap,Path),
 %  reportMsg("algebraic face rule %s",[tpe(FaceRule)],Lc),
-  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev0),
+  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev),
 %  tpName(Type,TpNm),
   Defn = typeDef(Lc,Nm,Type,FaceRule),
   Decl = typeDec(Nm,Type,FaceRule),
-  call(Publish,Viz,tpe(Nm),Decl,Dc,Dc0),
-  buildAccessors(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D0,Dx,Acc0,[],Publish,Viz,Dc0,Dc1),
-  buildUpdaters(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D1,D0,Acc,Acc0,Publish,Viz,Dc1,Dcx),
-  declareAccessors(Acc,Ev0,Ev).
+  call(Publish,Viz,tpe(Nm),Decl,Dc,Dcx).
 
 parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Fields,[TpDefn,CnDefn|Df],Dfx,Env,Envx,
 		      Publish,Viz,Dc,Dcx,Path):-
@@ -361,17 +358,16 @@ parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Fields,[TpDefn,CnDefn|Df],Dfx,Env,Envx,
   Face = faceType(SortedFlds,SortedTps),
 
   parseTypeHead(Hd,Q,Tp,Nm,_Args,Path),
+  pickTypeTemplate(Tp,Type),
   wrapType(Q,Cx,X,[],typeExists(Tp,Face),FaceRule),
-  wrapType(Q,Cx,[],[],Tp,Type),
+  wrapType(Q,Cx,[],[],consType(faceType(SortedFlds,SortedTps),Tp),ConTp),
+%  reportMsg("constructor type %s",[tpe(ConTp)],Lc),
 
-  wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
-  reportMsg("constructor type %s",[tpe(ConTp)],Lc),
-
-  genBraceAccessors(Lc,Q,Cx,BrNm,Tp,SortedFlds,SortedFlds,Df,Dfx,Acc,[],
+  mangleName(Path,class,BrNm,ConNm),
+  genBraceAccessors(Lc,Q,Cx,ConNm,Tp,SortedFlds,SortedFlds,Df,Dfx,Acc,[],
 		    Publish,Viz,tpe(Nm),Dc,Dc0),
   declareAccessors(Acc,Env,Ev1),
 
-  mangleName(Path,class,BrNm,ConNm),
   ConDecl = cnsDec(BrNm,ConNm,ConTp),
 
   call(Publish,Viz,tpe(Nm),typeDec(Nm,Type,FaceRule),Dc0,Dc1),
@@ -553,6 +549,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 	   none,
 	   XX),
   call(Publish,Viz,ExNm,accDec(Tp,Fld,AccName,AccFunTp),Dc,Dcx).
+%  dispDef(funDef(Lc,AccName,AccName,soft,AccFunTp,[],[Eqn])).
 
 genBraceConstructor(Lc,[],Nm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,enm(Lc,Nm,ConTp))|Df],Df,Env,Ev,cnsDec(Nm,ConNm,ConTp)) :-
