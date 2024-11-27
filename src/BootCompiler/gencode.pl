@@ -480,6 +480,9 @@ compCond(E,Lc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 compExp(voyd,_,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
+compExp(ann(_),_,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
+  bumpStk(Stk,Stka),
+  genLastReturn(Last,Opts,C,Cx,Stka,Stkx).
 compExp(Trm,_Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdC(Trm)|C],Cx,Stk,Stkx) :-
   isLiteral(Trm),!,
   bumpStk(Stk,Stka),

@@ -803,7 +803,6 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isInvoke(Term,Lc,O,A),!,
   typeOfInvoke(Lc,O,A,Tp,Env,Exp,Path).
-
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),

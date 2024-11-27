@@ -6,14 +6,7 @@ test.al{
     friend:a.
     name:string.
     age:(integer)=>integer
-  }
-  | student{
-      name:string.
-    } |
-    employee{
-      name:string.
-      friend:a
-    }.
+  }.
 
   Pete  = someOne{
     name = "peter".

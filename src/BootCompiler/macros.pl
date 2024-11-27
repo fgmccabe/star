@@ -92,8 +92,8 @@ examineStmt(S,Sx) :-
   macroType(H,Hx),
   map(C,macros:macroType,Cx),
   map(Els,macros:braceTypeMacro,Elx),
-  mkStructTypeStmt(Lc,Q,X,Cx,Hx,Nm,Elx,Sx),
-  dispAst(Sx).
+  mkStructTypeStmt(Lc,Q,X,Cx,Hx,Nm,Elx,Sx).
+%  dispAst(Sx).
 examineStmt(S,S) :-
   isAnnotation(S,_,_,_),!.
 examineStmt(S,S) :-
