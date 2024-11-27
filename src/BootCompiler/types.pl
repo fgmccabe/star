@@ -423,15 +423,7 @@ implementationName(constrained(T,_),Nm) :- implementationName(T,Nm).
 surfaceNames([],_,S,S).
 surfaceNames([T|L],Sep,S0,Sx) :-
   deRef(T,TT),
-  tpNm(TT,SN),
-  appStr(Sep,S0,S1),
-  appStr(SN,S1,S2),
-  surfaceNames(L,Sep,S2,Sx).
-
-surfaceNames([],_,S,S).
-surfaceNames([T|L],Sep,S0,Sx) :-
-  deRef(T,TT),
-  tpNm(TT,SN),
+  tpNm(TT,SN),!,
   appStr(Sep,S0,S1),
   appStr(SN,S1,S2),
   surfaceNames(L,Sep,S2,Sx).

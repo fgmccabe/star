@@ -110,7 +110,8 @@ resolveAgain(_,resolved,Term,T,Dict,R) :- !,
   overloadTerm(T,Dict,inactive,St,T0),
   resolveAgain(inactive,St,Term,T0,Dict,R).
 resolveAgain(_,inactive,_,T,_,T) :- !.
-resolveAgain(active(_,Msg),active(Lc,Msg),Term,_,_,Term) :-
+resolveAgain(active(_,Msg),active(Lc,Msg1),Term,_,_,Term) :-
+  similarStrings(Msg,Msg1),
   reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
 resolveAgain(_,active(Lc,Msg),Orig,_,Dict,R) :-
   overloadTerm(Orig,Dict,inactive,St,T0),!,

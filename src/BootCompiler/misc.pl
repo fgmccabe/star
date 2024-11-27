@@ -25,7 +25,7 @@
 	       nextPrime/2,sieve/2,
 	       check_implies/2,verify/2,bin_nop/2,
 	       clear_track/0,track/2,
-	       negateString/2]).
+	       negateString/2,similarStrings/2]).
 
 :- use_module(errors).
 
@@ -490,3 +490,7 @@ negateString(S,S1) :-
 negateString(S,S1) :-
   string_chars(S,R),!,
   string_chars(S1,['-'|R]).
+
+similarStrings(S,S1) :-
+  isub(S,S1,D,[normalize(true)]),
+  D>0.75.

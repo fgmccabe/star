@@ -349,13 +349,13 @@ parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,[Defn|D1],Dx,E,Ev,
   buildUpdaters(Lc,Q,XQ,Cx,Path,Nm,Tp,FceTp,Body,D1,D0,Acc,Acc0,Publish,Viz,Dc1,Dcx),
   declareAccessors(Acc,Ev0,Ev).
 
-parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Els,[Defn|Df],Dfx,E,Ev,
+parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Fields,[TpDefn,CnDefn|Df],Dfx,Env,Envx,
 		      Publish,Viz,Dc,Dcx,Path):-
   parseBoundTpVars(Xs,X),
   parseBoundTpVars(Qs,Q),
-  parseConstraints(Cs,E,Q,Cx,[]),
+  parseConstraints(Cs,Env,Q,Cx,[]),
 
-  parseTypeFields(Els,E,Q,[],Fs,[],Ts),
+  parseTypeFields(Fields,Env,Q,[],Fs,[],Ts),
   sort(Fs,checker:cmpPair,SortedFlds),
   sort(Ts,checker:cmpPair,SortedTps),
   Face = faceType(SortedFlds,SortedTps),
@@ -364,17 +364,22 @@ parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Els,[Defn|Df],Dfx,E,Ev,
   wrapType(Q,Cx,X,[],typeExists(Tp,Face),FaceRule),
   wrapType(Q,Cx,[],[],Tp,Type),
 
-  genBraceConstructor(Lc,SortedFlds,Nm,BrNm,Q,Cx,Tp,Df,Df0,E,Ev0,ConDecl),
-  genBraceAccessors(Lc,Q,Cx,BrNm,Tp,SortedFlds,SortedFlds,Df0,Dfx,Acc,[],
+  wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
+  reportMsg("constructor type %s",[tpe(ConTp)],Lc),
+
+  genBraceAccessors(Lc,Q,Cx,BrNm,Tp,SortedFlds,SortedFlds,Df,Dfx,Acc,[],
 		    Publish,Viz,tpe(Nm),Dc,Dc0),
-  declareAccessors(Acc,Ev0,Ev1),
-  call(Publish,Viz,tpe(Nm),ConDecl,Dc0,Dcx),
+  declareAccessors(Acc,Env,Ev1),
 
-  %  tpName(Type,TpNm),
-  Defn = typeDef(Lc,Nm,Type,FaceRule),
-  Decl = tpDef(Lc,Type,FaceRule),
-  declareType(Nm,Decl,Ev1,Ev).
+  mangleName(Path,class,BrNm,ConNm),
+  ConDecl = cnsDec(BrNm,ConNm,ConTp),
 
+  call(Publish,Viz,tpe(Nm),typeDec(Nm,Type,FaceRule),Dc0,Dc1),
+  call(Publish,Viz,tpe(Nm),ConDecl,Dc1,Dcx),
+
+  TpDefn = typeDef(Lc,Nm,Type,FaceRule),
+  CnDefn = cnsDef(Lc,Nm,enm(Lc,ConNm,ConTp)),
+  declareType(Nm,tpDef(Lc,Type,FaceRule),Ev1,Envx).
 
 declareAccessors(Acc,Ev,Evx) :-
   rfold(Acc,parsetype:declareAcc,Ev,Evx).
@@ -549,9 +554,6 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 	   XX),
   call(Publish,Viz,ExNm,accDec(Tp,Fld,AccName,AccFunTp),Dc,Dcx).
 
-newFieldVar((Nm,_),(Fs,Args),([(Nm,kVar(Nm1))|Fs],[kVar(Nm1)|Args])) :-
-  genstr("ϰ",Nm1).
-
 genBraceConstructor(Lc,[],Nm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,enm(Lc,Nm,ConTp))|Df],Df,Env,Ev,cnsDec(Nm,ConNm,ConTp)) :-
   wrapType(Q,Cx,[],[],consType(faceType([],[]),Tp),ConTp),
@@ -559,8 +561,6 @@ genBraceConstructor(Lc,[],Nm,ConNm,Q,Cx,Tp,
 genBraceConstructor(Lc,Fields,Nm,ConNm,Q,Cx,Tp,
 		    [cnsDef(Lc,Nm,enm(Lc,ConNm,ConTp))|Df],Df,Env,Ev,cnsDec(Nm,ConNm,ConTp)) :-
   wrapType(Q,Cx,[],[],consType(faceType(Fields,[]),Tp),ConTp),
-%  project1(Fields,FTps),
-%  wrapType(Q,Cx,[],[],consType(tplType(FTps),Tp),CnTp),
   declareCns(Lc,Nm,ConNm,ConTp,Env,Ev).
 
 cmpVarDef((N1,_),(N2,_)) :-
