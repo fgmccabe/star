@@ -262,12 +262,36 @@ star.compiler.wff{
       (_,Q,_,L,R) ?= isAlgebraic(I) => .some((Lc,Q,deComma(C),L,R)).
   isAlgebraic(A) where
       (Lc,H,I) ?= isBinary(A,"::=") &&
-      (Q,T) .= getQuantifiers(H) =>
+	  (Q,T) .= getQuantifiers(H) && onlyRoundConstructors(I) =>
     .some((Lc,Q,[],T,I)).
   isAlgebraic(A) default => .none.
 
+  onlyRoundConstructors(A) where (_,L,R) ?= isBinary(A,"|") =>
+    onlyRoundConstructors(L) && onlyRoundConstructors(R).
+  onlyRoundConstructors(A) where (_,R) ?= isUnary(A,"|") =>
+    onlyRoundConstructors(R).
+  onlyRoundConstructors(A) => _ ?= isEnumSymb(A) || _ ?= isEnumCon(A).
+
   public mkAlgebraicTypeStmt(Lc,Q,C,H,B) =>
     binary(Lc,"::=",reUQuant(Lc,Q,reConstrain(C,H)),B).
+
+  public isStructTypeStmt:(ast) =>
+    option[(option[locn],cons[ast],cons[ast],ast,ast)].
+  isStructTypeStmt(A) => isStruct(A).
+
+  isStruct:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
+  isStruct(A) where
+      (Lc,Q,I) ?= isQuantified(A) &&
+      (_,_,Cx,L,R) ?= isStruct(I) => .some((Lc,Q,Cx,L,R)).
+  isStruct(A) where
+      (Lc,C,I) ?= isBinary(A,"|:") &&
+      (_,Q,_,L,R) ?= isStruct(I) => .some((Lc,Q,deComma(C),L,R)).
+  isStruct(A) where
+      (Lc,H,I) ?= isBinary(A,"::=") &&
+	  _ ?= isBraceTerm(I) &&
+	      (Q,T) .= getQuantifiers(H) =>
+    .some((Lc,Q,[],T,I)).
+  isStruct(A) default => .none.
 
   public isLetDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
@@ -332,7 +356,7 @@ star.compiler.wff{
 
   isDefinition(A) => (_?=isDefn(A) || _?=isTypeExistsStmt(A) ||
     _?=isTypeAnnotation(A) || _?= isTypeFunStmt(A) || _?=isEquation(A) ||
-    _ ?= isAlgebraicTypeStmt(A)).
+    _ ?= isAlgebraicTypeStmt(A) || _ ?= isStructTypeStmt(A)).
 
   public isConjunct(A) => isBinary(A,"&&").
 

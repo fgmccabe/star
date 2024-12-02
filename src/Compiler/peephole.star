@@ -16,11 +16,6 @@ star.compiler.peephole{
     (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
     valis .func(Lbl,Pol,Tp,LcMp1,peepCode(Ins1,[]))
   }
-  peepOptimize(.global(Lbl,Tp,LcMap,Ins)) => valof{
-    Ins0 = peepCode(Ins,[]);
-    (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
-    valis .global(Lbl,Tp,LcMp1,peepCode(Ins1,[]))
-  }
   peepOptimize(Df) default => Df.
 
   peepCode(Ins,Lbls) => peep(dropUnreachable(Ins),Lbls).
@@ -82,7 +77,7 @@ star.compiler.peephole{
   -- Low-level optimizations.
   peep:(cons[assemOp],cons[(string,cons[assemOp])])=>cons[assemOp].
   peep([],_) => [].
-  peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],).
+  peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],Lbls).
   peep([.iStL(Off),.iLdL(Off),.iRet,.._],_) => [.iRet].
   peep([.iStL(Off),.iLdL(Off),..Ins],Lbls) => peep([.iTL(Off),..Ins],Lbls).
   peep([.iRot(0),..Ins],Lbls) => peep(Ins,Lbls).

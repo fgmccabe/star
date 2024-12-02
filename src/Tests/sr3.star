@@ -17,7 +17,7 @@ test.sr3{
   hendler(L) =>
     (reset(
       let{
-       hndl(.inc(X)) => (shift K in K.(X+1))
+	hndl(.inc(X)) => (shift K in K.(X+1))
       } in L+hndl(.inc(3)))).
 
   main:()=>().

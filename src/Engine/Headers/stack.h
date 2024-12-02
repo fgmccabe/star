@@ -7,6 +7,7 @@
 
 #include "term.h"
 #include "engine.h"
+#include "closure.h"
 
 typedef struct StackStructure *stackPo;
 
@@ -31,7 +32,7 @@ retCode setTaskState(stackPo stk, StackState state);
 
 stackPo newFiber(heapPo H, termPo lam);
 stackPo newStack(heapPo H, termPo lam);
-stackPo splitStack(processPo P, termPo lam);
+stackPo splitStack(processPo P, closurePo lam);
 stackPo attachStack(stackPo tsk, stackPo top);
 stackPo detachStack(stackPo base, stackPo top);
 stackPo dropStack(stackPo tsk);

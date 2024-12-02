@@ -482,7 +482,7 @@ retCode run(processPo P) {
 
       case Spawn: {
         // The top of a stack should be a unary lambda
-        termPo lambda = pop();
+        closurePo lambda = C_CLOSURE(pop());
         saveRegisters();
         stackPo child = splitStack(P, lambda);
 
@@ -556,7 +556,7 @@ retCode run(processPo P) {
 
       case Reset: {  // Start a new delimited computation
         // The top of a stack should be a unary lambda
-        termPo lambda = pop();
+        closurePo lambda = C_CLOSURE(pop());
         if (!isClosure(lambda)) {
           logMsg(logFile, "expecting a closure, not %T", lambda);
           bail();

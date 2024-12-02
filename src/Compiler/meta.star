@@ -515,7 +515,13 @@ star.compiler.meta{
     }
   }
 
-
   public mainDefined:(cons[decl])=>boolean.
   mainDefined(Decs) => {? .funDec(_,"_main",_,_) in Decs ?}.
+
+  public codePolicy ::= .hardDefinition | .softDefinition.
+
+  public implementation display[codePolicy] => {
+    disp(.hardDefinition) => "hard".
+    disp(.softDefinition) => "soft".
+  }
 }

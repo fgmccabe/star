@@ -26,6 +26,7 @@ star.compiler.term{
   | .cClos(option[locn],string,integer,cExp,tipe)
   | .cThnk(option[locn],cExp,tipe)
   | .cThDrf(option[locn],cExp,tipe)
+  | .cThSet(option[locn],cExp,cExp)
   | .cCall(option[locn],string,cons[cExp],tipe)
   | .cOCall(option[locn],cExp,cons[cExp],tipe)
   | .cRaise(option[locn],cExp,cExp,tipe)
@@ -106,6 +107,7 @@ star.compiler.term{
     | .cClos(_,Nm,Ar,Fr,_) => "<#(Nm)/$(Ar)\:#(dspExp(Fr,Off))>"
     | .cThnk(_,Fr,_) => "$$#(dspExp(Fr,Off))"
     | .cThDrf(_,E,_) => "#(dspExp(E,Off))!!"
+    | .cThSet(_,E,V) => "#(dspExp(E,Off))!!#(dspExp(V,Off))"
     | .cRaise(_,T,E,_) => "#(dspExp(T,Off)) raise #(dspExp(E,Off))"
     | .cLtt(_,V,D,I) => valof{
       Off2=Off++"  ";
@@ -237,6 +239,7 @@ star.compiler.term{
     | .cClos(_,L1,A1,F1,_) => .cClos(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2)
     | .cThnk(_,F1,_) => .cThnk(_,F2,_).=E2 && eqTerm(F1,F2)
     | .cThDrf(_,T1,_) => .cThDrf(_,T2,_).=E2 && eqTerm(T1,T2)
+    | .cThSet(_,T1,V1) => .cThSet(_,T2,V2).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2)
     | .cCall(_,S1,A1,_) => .cCall(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2)
     | .cOCall(_,S1,A1,_) => .cOCall(_,S2,A2,_).=E2 && eqTerm(S1,S2) && eqs(A1,A2)
     | .cRaise(_,T1,S1,_) => .cRaise(_,T2,S2,_).=E2 && T1==T2 && S1==S2
@@ -332,6 +335,7 @@ star.compiler.term{
       | .cClos(Lc,_,_,_,_) => Lc
       | .cThnk(Lc,_,_) => Lc
       | .cThDrf(Lc,_,_) => Lc
+      | .cThSet(Lc,_,_) => Lc
       | .cMatch(Lc,_,_) => Lc
       | .cLtt(Lc,_,_,_) => Lc
       | .cCase(Lc,_,_,_,_) => Lc
@@ -367,6 +371,7 @@ star.compiler.term{
       | .cClos(_,_,_,_,Tp) => Tp
       | .cThnk(_,_,Tp) => Tp
       | .cThDrf(_,_,Tp) => Tp
+      | .cThSet(_,Th,_) => tpOf(Th)
       | .cOCall(_,_,_,Tp) => Tp
       | .cCall(_,_,_,Tp) => Tp
       | .cRaise(_,_,_,Tp) => Tp
@@ -472,6 +477,7 @@ star.compiler.term{
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Tst),Tp)
     | .cThnk(Lc,F,Tp) => .cThnk(Lc,rwTerm(F,Tst),Tp)
     | .cThDrf(Lc,E,Tp) => .cThDrf(Lc,rwTerm(E,Tst),Tp)
+    | .cThSet(Lc,E,V) => .cThSet(Lc,rwTerm(E,Tst),rwTerm(V,Tst))
     | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp)
     | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp)
     | .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp)
@@ -560,6 +566,7 @@ star.compiler.term{
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,frshnE(F,Sc),Tp)
     | .cThnk(Lc,F,Tp) => .cThnk(Lc,frshnE(F,Sc),Tp)
     | .cThDrf(Lc,E,Tp) => .cThDrf(Lc,frshnE(E,Sc),Tp)
+    | .cThSet(Lc,E,V) => .cThSet(Lc,frshnE(E,Sc),frshnE(V,Sc))
     | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,frshnEs(Args,Sc),Tp)
     | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
     | .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,frshnE(Th,Sc),frshnE(E,Sc),Tp)
@@ -813,6 +820,7 @@ star.compiler.term{
     | .cClos(_,_,_,F,_) => validE(F,Vrs)
     | .cThnk(_,F,_) => validE(F,Vrs)
     | .cThDrf(_,E,_) => validE(E,Vrs)
+    | .cThSet(_,E,V) => validE(E,Vrs) && validE(V,Vrs)
     | .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}
     | .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}
     | .cRaise(_,T,E,_) => validE(T,Vrs) && validE(E,Vrs)
@@ -998,6 +1006,7 @@ star.compiler.term{
     | .cClos(_,_,_,F,_) => presentInE(F,A,C)
     | .cThnk(_,F,_) => presentInE(F,A,C)
     | .cThDrf(_,E,_) => presentInE(E,A,C)
+    | .cThSet(_,E,V) => presentInE(E,A,C) || presentInE(V,A,C)
     | .cCall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}
     | .cOCall(_,Op,Args,_) =>
       presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}
@@ -1064,6 +1073,7 @@ star.compiler.term{
 	.strg(encodeSignature(Tp))])
     | .cThDrf(Lc,E,Tp) => mkCons("thref",[Lc::data,frzeExp(E),
 	.strg(encodeSignature(Tp))])
+    | .cThSet(Lc,E,V) => mkCons("thset",[Lc::data,frzeExp(E),frzeExp(V)])
     | .cCall(Lc,Nm,Args,Tp) => mkCons("call",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp))])
     | .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,frzeExp(Op),
@@ -1154,6 +1164,7 @@ star.compiler.term{
     | .term("thnk",[Lc,F,Sig]) =>
       .cThnk(thawLoc(Lc),thwTrm(F),decodeSig(Sig))
     | .term("thref",[Lc,E,Sig]) => .cThDrf(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
+    | .term("thset",[Lc,E,V]) => .cThSet(thawLoc(Lc),thwTrm(E),thwTrm(V))
     | .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
       .cCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
     | .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
@@ -1266,6 +1277,7 @@ star.compiler.term{
     | .cClos(Lc,Nm,_,Fr,Tp) => foldV(Fr,Mode,Fn,Fn(.cVar(Lc,.cId(Nm,Tp)),Mode,SoF))
     | .cThnk(_,Fr,_) =>foldV(Fr,Mode,Fn,SoF)
     | .cThDrf(_,E,_) => foldV(E,Mode,Fn,SoF)
+    | .cThSet(_,E,V) => foldV(V,Mode,Fn,foldV(E,Mode,Fn,SoF))
     | .cCall(Lc,F,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cId(F,Tp)),Mode,SoF),Args)
     | .cOCall(_,Op,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),foldV(Op,Mode,Fn,SoF),Args)
     | .cRaise(_,_,X,_) => foldV(X,Mode,Fn,SoF)
