@@ -7,6 +7,7 @@
 #include "stackP.h"
 #include "engineP.h"
 #include "debug.h"
+#include "closure.h"
 
 tracingLevel traceStack = noTracing;    // stack operation tracing
 integer minStackSize = 256;             /* What is the smallest stack size */
@@ -595,7 +596,7 @@ stackPo newStack(heapPo H, termPo lam) {
   return child;                                                 // We return the new stack
 }
 
-stackPo splitStack(processPo P, termPo lam) {
+stackPo splitStack(processPo P, closurePo lam) {
   heapPo H = P->heap;
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);
@@ -604,7 +605,7 @@ stackPo splitStack(processPo P, termPo lam) {
   child->fp = pushFrame(child, spawnMethod);
 
   pushStack(child, (termPo) child);
-  pushStack(child, lam);
+  pushStack(child, (termPo) lam);
 
   return child;                                                 // We return the new stack
 }

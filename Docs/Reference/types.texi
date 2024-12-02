@@ -187,6 +187,7 @@ There are two ways that a type may be defined in a scope.
 @caption{Type Definition}
 @display
 @anchored{TypeDefinition} ::= @refer{AlgebraicTypeDefinition}
+  | @refer{StructureTypeDefinition}
   | @refer{TypeAliasStmt}
 @end display
 @end float
@@ -195,9 +196,8 @@ There are two ways that a type may be defined in a scope.
 @subsection Algebraic Type Definition
 
 An algebraic type definition is a statement that defines a type in
-terms of different constructors for the type. There are three kinds of
-constructors: enumerated symbols, positional constructor functions and
-records:
+terms of different constructors for the type. There are two kinds of
+constructors: enumerated symbols and positional constructor functions:
 
 @float BNF,algebraicTypeDefFig
 @caption{Algebraic Type Definition}
@@ -206,11 +206,8 @@ records:
 
 @anchored{Constructor} ::= @refer{EnumeratedSymbol}
   | @refer{PositionalConstructor}
-  | @refer{RecordConstructor}
 
 @anchored{PositionalConstructor} ::= @code{.} @refer{Identifier} @code{(} @refer{Type} @code{,}  @dots{}  @code{,} @refer{Type} @code{)}
-
-@anchored{RecordConstructor} ::= @refer{Identifier} @code{@{} @refer{Annotation} @refer{Terminator} @dots{}  @refer{Terminator} @refer{Annotation} @code{@}}
 @end display
 @end float
 
@@ -226,7 +223,8 @@ i.e., constructors @emph{paint a picture} of the shape of potential
 values of the type.
 
 There are three kinds of Constructor: enumerated symbols, term
-constructor constructors and labeled record constructors.
+constructor constructors and labeled record constructors. However, the
+labeled record constructor is specified in a separate type definition statement.
 
 As elaborated below, each @emph{arm} of an algebraic type definition
 defines a value or set of values that belong to the type. There is a
@@ -240,19 +238,15 @@ used as data structuring tools; but mathematically they are functions.
 
 For example, the type definition:
 @example
-person ::= .noone | .someone(string,integer)
+tree ::= .empty | .node(tree,integer)
 @end example
-induces the constructor function for @code{someone}:
+induces the constructor function for @code{node}:
 @example
-someone : (string,integer) <=> person
+node : (tree,integer) <=> true
 @end example
-The enumerated symbol has a simpler type:
+The enumerated symbol @code{empty} has a simpler type:
 @example
-noone : () <=> person
-@end example
-whereas:
-@example
-.noone : person
+empty : () <=> tree
 @end example
 
 The complete set of constructor functions introduced within an
@@ -260,26 +254,11 @@ algebraic type definition is complete: i.e., they define all the
 possible values of the type.
 
 @quotation NOTE
-A given label, whether it is used as an @refer{EnumeratedSymbol}, the
-label of a @refer{PositionalConstructor} or a
-@refer{RecordConstructor} can be defined only once. I.e., it is not
+A given label, whether it is used as an @refer{EnumeratedSymbol} or the
+label of a @refer{PositionalConstructor}, can be defined only once. I.e., it is not
 permitted to @emph{share} constructor labels across different
 types. Nor may such a label be used as the name of a variable in the
 same scope.
-@end quotation
-
-@quotation Note
-Different record constructors within an algebraic type definition may
-define fields with the same name. For example, in
-@example
-person ::= student@{name:string. course:string@} |
-  employee@{name:string. company:string@}
-@end example
-the @code{name} field occurs in both the @code{student} constructor
-and the @code{employee} constructor.
-
-In the event of defining the same field in multiple constructors, the
-types associated with them @emph{must be identical}.
 @end quotation
 
 @quotation NOTE
@@ -296,6 +275,52 @@ cons[e] ::= .nil | .cons(e,cons[e])
 
 The reason is that the quantifiers in such a definition may be
 reliably inferred without being explicitly identified.
+@end quotation
+
+
+@node Structure Type Definition
+@subsection Structure Type Definition
+
+A structure type definition is a statement that defines a type associated with a record with named fields:
+
+@float BNF,structureTypeDefFig
+@caption{Structure Type Definition}
+@display
+@anchored{StructureTypeDefinition} ::= @refer{Type} @code{::=} @refer{RecordConstructor}
+
+@anchored{RecordConstructor} ::= @refer{Identifier} @code{@{} @refer{Annotation} @refer{Terminator} @dots{}  @refer{Terminator} @refer{Annotation} @code{@}}
+@end display
+@end float
+
+For example, the type definition:
+@example
+person ::= .person@{ name:string @}
+@end example
+induces the record constructor function for @code{person}:
+@example
+person : @{ name:string @} <=> person
+@end example
+
+@quotation NOTE
+A given label, whether it is used as an @refer{EnumeratedSymbol}, the
+label of a @refer{PositionalConstructor} or a
+@refer{RecordConstructor} can be defined only once. I.e., it is not
+permitted to @emph{share} constructor labels across different
+types. Nor may such a label be used as the name of a variable in the
+same scope.
+@end quotation
+
+@quotation NOTE
+As with @refer{AlgebraicTypeDefinition} statements, a @refer{StructureTypeDefinition} may be quantified. In addition, we
+may omit the explicit quantifiers. I.e., instead of
+
+@example
+all e ~~ person[e] ::= person@{ name:string. interest: a @}
+@end example
+it is permissable to write:
+@example
+person[e] ::= person@{ name:string. interest: a @}
+@end example
 @end quotation
 
 @node Type Alias Statement
@@ -488,7 +513,7 @@ the @emph{interface} to the type.
 
 This interface contains all the fields that are defined in any of the
 @refer{RecordConstructor}s that are part of the
-@refer{AlgebraicTypeDefinition} that defines the @refer{NominalType}.
+@refer{StructureTypeDefinition} that defines the @refer{NominalType}.
 
 For example, given the type definition:
 @example
@@ -726,25 +751,26 @@ constructors are @emph{exported} from a record.
 @cindex type,continuation
 
 @noindent
-A continuation type denotes a continuation value. It takes the form of a
-possibly empty sequence of argument types -- denoting the types of the
-arguments to the continuation -- enclosed in parentheses; followed by the
+A continuation type denotes a continuation value. It takes the form of an argument type -- denoting the type of the
+argument to the continuation -- enclosed in parentheses; followed by the
 result type of the continuation. @refer{continuationTypeFig} highlights the form
 of the continuation type:
 
 @float BNT,continuationTypeFig
 @caption{Continuation Type}
 @display
-@anchored{ContinuationType} ::= @refer{TupleType} @code{=>>} @refer{Type}
+@anchored{ContinuationType} ::= (@refer{Type}) @code{=>>} @refer{Type}
 @end display
 @end float
 
-For example, a continuation of two arguments -- an @code{integer} and a
-@code{string} that returns a list of @code{string}s has a type that
+For example, a continuation of an @code{integer} and that returns a list of @code{string}s has a type that
 takes the form:
 @example
-(integer,string) =>> cons[string]
+(integer) =>> cons[string]
 @end example
+
+Note that, although the argument type is expected to parenthesized, continuations only ever
+expect a single value: the value that is passed to the continuation.
 
 @node Reference Type
 @subsection Reference Type

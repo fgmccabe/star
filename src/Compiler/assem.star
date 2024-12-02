@@ -8,19 +8,12 @@ star.compiler.assem{
   import star.compiler.escapes.
   import star.compiler.location.
   import star.compiler.data.
+  import star.compiler.meta.
   import star.compiler.types.
   import star.compiler.types.encode.
   import star.compiler.ltipe.
 
-  public codePolicy ::= .hardDefinition | .softDefinition.
-
-  public implementation display[codePolicy] => {
-    disp(.hardDefinition) => "hard".
-    disp(.softDefinition) => "soft".
-  }
-
   public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[assemOp]) |
-    .global(termLbl,ltipe,cons[(string,data)],cons[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
@@ -133,16 +126,6 @@ star.compiler.assem{
           [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
           .intgr(size(Lcs)),mkTpl(Code::cons[data]),litTbl(Lts),
            mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
-    }
-    | .global(Nm,Sig,Lcs,Ins) => valof{
-      funSig = .strg(Sig::string);
-      (Lt0,_) = findLit([],.symb(Nm));
-      (Lt1,tpIx) = findLit(Lt0,funSig);
-      (Code,_,Lts,Lns) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs),[]);
-      valis mkCons("global",
-         [.symb(Nm),.intgr(tpIx),.intgr(stackHwm(Ins)),
-          .intgr(size(Lcs)),mkTpl(Code::cons[data]),litTbl(Lts),
-          mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
     }
     | .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
