@@ -41,6 +41,7 @@ star.compiler.operators{
     | "all" => [.prefixOp(1010,1009)]
     | ".<." => [.infixOp(699,700,699)]
     | "&&" => [.infixOp(909,910,910)]
+    | "task" => [.prefixOp(999,998)]
     | "let" => [.prefixOp(899,898)]
     | "~=" => [.infixOp(899,900,899)]
     | "~>" => [.infixOp(1230,1231,1230)]
@@ -78,6 +79,7 @@ star.compiler.operators{
     | "+" => [.postfixOp(699,700), .infixOp(720,720,719)]
     | ".>>." => [.infixOp(600,600,599)]
     | "*>" => [.infixOp(904,905,904), .prefixOp(905,904)]
+    | "resume" => [.prefixOp(999,998), .infixOp(998,999,998)]
     | "," => [.infixOp(999,1000,1000)]
     | "contract" => [.prefixOp(1560,1559)]
     | "\\/" => [.infixOp(720,720,719)]
@@ -105,6 +107,7 @@ star.compiler.operators{
     | "|=" => [.infixOp(998,999,998)]
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
+    | "suspend" => [.prefixOp(999,998), .infixOp(998,999,998)]
     | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
     | "reset" => [.infixOp(998,999,998), .prefixOp(999,998)]
     | "~~" => [.infixOp(1239,1240,1240)]
@@ -423,6 +426,7 @@ star.compiler.operators{
   keyword(Op) => case Op in {
     | "all" => .true
     | "&&" => .true
+    | "task" => .true
     | "let" => .true
     | "~>" => .true
     | "throw" => .true
@@ -451,6 +455,7 @@ star.compiler.operators{
     | "(" => .true
     | ")" => .true
     | "*>" => .true
+    | "resume" => .true
     | "," => .true
     | "contract" => .true
     | "./" => .true
@@ -472,6 +477,7 @@ star.compiler.operators{
     | "|>" => .true
     | "in" => .true
     | "break" => .true
+    | "suspend" => .true
     | "reset" => .true
     | "~~" => .true
     | "!!" => .true
@@ -486,7 +492,6 @@ star.compiler.operators{
     | "]" => .true
     | "<=>" => .true
     | "|]" => .true
-    | "continuation" => .true
     | "generator" => .true
     | "?}" => .true
     | "valof" => .true

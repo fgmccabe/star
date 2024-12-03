@@ -6,6 +6,7 @@
   '(  ("all" ( (prefix 1010 1009)))
   (".<." ( (infix 699 700 699)))
   ("&&" ( (infix 909 910 910)))
+  ("task" ( (prefix 999 998)))
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
@@ -43,6 +44,7 @@
   ("+" ( (postfix 699 700) (infix 720 720 719)))
   (".>>." ( (infix 600 600 599)))
   ("*>" ( (infix 904 905 904) (prefix 905 904)))
+  ("resume" ( (prefix 999 998) (infix 998 999 998)))
   ("," ( (infix 999 1000 1000)))
   ("contract" ( (prefix 1560 1559)))
   ("\\/" ( (infix 720 720 719)))
@@ -70,6 +72,7 @@
   ("|=" ( (infix 998 999 998)))
   ("in" ( (infix 899 900 900)))
   ("break" ( (prefix 10 9)))
+  ("suspend" ( (prefix 999 998) (infix 998 999 998)))
   ("trace" ( (infix 139 140 139) (prefix 140 139)))
   ("reset" ( (infix 998 999 998) (prefix 999 998)))
   ("~~" ( (infix 1239 1240 1240)))
@@ -137,6 +140,7 @@
 
 (defconst star-keywords
   '("all"
+"task"
 "let"
 "throw"
 "do"
@@ -149,6 +153,7 @@
 "then"
 "ζ"
 "default"
+"resume"
 "contract"
 "raises"
 "try"
@@ -156,12 +161,12 @@
 "if"
 "in"
 "break"
+"suspend"
 "reset"
 "public"
 "ref"
 "where"
 "case"
-"continuation"
 "generator"
 "valof"
 "yield"
