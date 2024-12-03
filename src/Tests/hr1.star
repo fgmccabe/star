@@ -19,7 +19,7 @@ test.hr1{
     R = valof{
       try{
 	valis iNeedAnInc(3)
-      } handle incHndlr{
+      } handle incHndlr in {
 	inc(U) => resume U+1
       }
     };
