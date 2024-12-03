@@ -697,7 +697,8 @@ star.compiler.checker{
       showMsg("thunk $(E)\:$(Et)");
 
     LName = genId(Path++"λ");
-    valis .thunk(Lc,.lambda(Lc,LName,.rule(Lc,.tple(Lc,[]),.none,ThExp),[],funType([],Et)),Tp)
+    ThnkVr = .vr(Lc,genId("Θ"),Tp);
+    valis .thunk(Lc,.lambda(Lc,LName,.rule(Lc,.tple(Lc,[ThnkVr]),.none,.thSet(Lc,ThnkVr,ThExp)),[],funType([],Et)),Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunkRef(A) => valof{
     ThExp = typeOfExp(E,thunkType(Tp),Env,Path);

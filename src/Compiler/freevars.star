@@ -57,6 +57,7 @@ star.compiler.freevars{
     | .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
+    | .thSet(_,E,V) => freeVarsInExp(V,Q,freeVarsInExp(E,Q,Fv))
     | .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
     } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv))
