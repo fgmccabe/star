@@ -295,6 +295,11 @@ star.compiler.resolve{
     (RRhs,St1) = overloadTerm(Rhs,Dict,St);
     valis (.thRef(Lc,RRhs,Tp),St1)
   }
+  overloadTerm(.thSet(Lc,Th,Vl),Dict,St) => valof{
+    (TT,St1) = overloadTerm(Th,Dict,St);
+    (VV,St2) = overloadTerm(Vl,Dict,St1);
+    valis (.thSet(Lc,TT,VV),St2)
+  }
   overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
     if traceCanon! then
       showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp)) @ $(Lc)");

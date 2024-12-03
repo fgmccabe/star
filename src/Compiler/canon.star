@@ -36,6 +36,7 @@ star.compiler.canon{
   .lambda(option[locn],string,rule[canon],cons[constraint],tipe) |
   .thunk(option[locn],canon,tipe) |
   .thRef(option[locn],canon,tipe) |
+  .thSet(option[locn],canon,canon) |
   .owpen(option[locn],canon) |
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
@@ -87,6 +88,7 @@ star.compiler.canon{
       | .lambda(_,_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
+      | .thSet(_,Th,_) => typeOf(Th)
       | .letExp(_,_,_,E) => typeOf(E)
       | .letRec(_,_,_,E) => typeOf(E)
       | .apply(_,_,_,Tp) => Tp
@@ -119,6 +121,7 @@ star.compiler.canon{
      | .tdot(Lc,_,_,_) => Lc
      | .thunk(Lc,_,_) => Lc
      | .thRef(Lc,_,_) => Lc
+     | .thSet(Lc,_,_) => Lc
      | .csexp(Lc,_,_,_) => Lc
      | .trycatch(Lc,_,_,_,_) => Lc
      | .rais(Lc,_,_,_) => Lc
@@ -247,6 +250,7 @@ star.compiler.canon{
     | .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
     | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
+    | .thSet(_,E,V) => "#(showCanon(E,0,Sp))!!:=#(showCanon(V,0,Sp))"
     | .rst(_,E,_) => "reset #(showCanon(E,0,Sp))"
     | .shyft(_,T,E,_) => "#(showCanon(T,0,Sp)) shift #(showCanon(E,0,Sp))"
     | .invoke(_,K,E,_) => "#(showCanon(K,0,Sp)) . (#(showCanon(E,0,Sp)))"

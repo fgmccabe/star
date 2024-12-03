@@ -316,6 +316,13 @@ star.compiler.normalize{
     (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
     valis (.cThDrf(Lc,NTh,Tp),Ex1)
   }
+  liftExp(.thSet(Lc,Th,Vl),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift thunk set $(.thSet(Lc,Th,Vl))");
+    (TT,Ex1) = liftExp(Th,Map,Q,Ex);
+    (VV,Ex2) = liftExp(Vl,Map,Q,Ex1);
+    valis (.cThSet(Lc,TT,VV),Ex2)
+  }
   liftExp(.rst(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift $(.rst(Lc,Lm,Tp))\:$(Tp)");
