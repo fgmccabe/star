@@ -541,8 +541,8 @@ compExp(nth(Lc,Exp,Off,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(setix(Lc,Exp,Off,Vl),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compExp(Exp,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
-  compExp(Vl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iStNth(Off)|C2],Stk0,_Stkx),
+  compExp(Vl,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
+  compExp(Exp,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iStNth(Off)|C2],Stk0,_Stkx),
   genLastReturn(Last,Opts,C2,Cx,Stk,Stkx).
 compExp(cel(Lc,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),

@@ -40,7 +40,10 @@ star.compiler.canon{
   .owpen(option[locn],canon) |
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
-  .vlof(option[locn],canonAction,tipe).
+  .vlof(option[locn],canonAction,tipe) |
+  .taske(option[locn],canon,tipe) |
+  .susp(option[locn],canon,canon,tipe) |
+  .resum(option[locn],canon,canon,tipe).
 
   public canonAction ::= .doNop(option[locn]) |
   .doSeq(option[locn],canonAction,canonAction) |
@@ -101,41 +104,47 @@ star.compiler.canon{
       | .disj(_,_,_) => boolType
       | .cond(_,_,L,_) => typeOf(L)
       | .vlof(_,_,Tp) => Tp
+      | .taske(_,_,_) => Tp
+      | .susp(_,_,_,Tp) => Tp
+      | .resum(_,_,_,Tp) => Tp
     }
   .}
 
   public implementation hasLoc[canon] => {
     locOf(Cn) => case Cn in {
-     | .anon(Lc,_) => Lc
-     | .vr(Lc,_,_) => Lc
-     | .mtd(Lc,_,_) => Lc
-     | .over(Lc,_,_) => Lc
-     | .intr(Lc,_) => Lc
-     | .bintr(Lc,_) => Lc
-     | .flt(Lc,_) => Lc
-     | .kar(Lc,_) => Lc
-     | .strng(Lc,_) => Lc
-     | .enm(Lc,_,_) => Lc
-     | .dot(Lc,_,_,_) => Lc
-     | .update(Lc,_,_,_) => Lc
-     | .tdot(Lc,_,_,_) => Lc
-     | .thunk(Lc,_,_) => Lc
-     | .thRef(Lc,_,_) => Lc
-     | .thSet(Lc,_,_) => Lc
-     | .csexp(Lc,_,_,_) => Lc
-     | .trycatch(Lc,_,_,_,_) => Lc
-     | .rais(Lc,_,_,_) => Lc
-     | .match(Lc,_,_) => Lc
-     | .conj(Lc,_,_) => Lc
-     | .disj(Lc,_,_) => Lc
-     | .neg(Lc,_) => Lc
-     | .cond(Lc,_,_,_) => Lc
-     | .apply(Lc,_,_,_) => Lc
-     | .tple(Lc,_) => Lc
-     | .lambda(Lc,_,_,_,_) => Lc
-     | .letExp(Lc,_,_,_) => Lc
-     | .letRec(Lc,_,_,_) => Lc
-     | .vlof(Lc,_,_) => Lc
+      | .anon(Lc,_) => Lc
+      | .vr(Lc,_,_) => Lc
+      | .mtd(Lc,_,_) => Lc
+      | .over(Lc,_,_) => Lc
+      | .intr(Lc,_) => Lc
+      | .bintr(Lc,_) => Lc
+      | .flt(Lc,_) => Lc
+      | .kar(Lc,_) => Lc
+      | .strng(Lc,_) => Lc
+      | .enm(Lc,_,_) => Lc
+      | .dot(Lc,_,_,_) => Lc
+      | .update(Lc,_,_,_) => Lc
+      | .tdot(Lc,_,_,_) => Lc
+      | .thunk(Lc,_,_) => Lc
+      | .thRef(Lc,_,_) => Lc
+      | .thSet(Lc,_,_) => Lc
+      | .csexp(Lc,_,_,_) => Lc
+      | .trycatch(Lc,_,_,_,_) => Lc
+      | .rais(Lc,_,_,_) => Lc
+      | .match(Lc,_,_) => Lc
+      | .conj(Lc,_,_) => Lc
+      | .disj(Lc,_,_) => Lc
+      | .neg(Lc,_) => Lc
+      | .cond(Lc,_,_,_) => Lc
+      | .apply(Lc,_,_,_) => Lc
+      | .tple(Lc,_) => Lc
+      | .lambda(Lc,_,_,_,_) => Lc
+      | .letExp(Lc,_,_,_) => Lc
+      | .letRec(Lc,_,_,_) => Lc
+      | .vlof(Lc,_,_) => Lc
+      | .taske(Lc,_,_) => Lc
+      | .susp(Lc,_,_,_) => Lc
+      | .resum(Lc,_,_,_) => Lc
     }
   }
 
@@ -260,6 +269,8 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .taske(_,T,_) where (OPr,Rp) ?= isPrefixOp("task") =>
+      "#(leftParen(OPr,Pr)) task #(showAct(T,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>

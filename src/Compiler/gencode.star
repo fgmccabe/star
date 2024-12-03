@@ -1,5 +1,6 @@
 star.compiler.gencode{
   import star.
+  import star.assert.
   import star.multi.
   import star.pkg.
   import star.sort.
@@ -159,19 +160,38 @@ star.compiler.gencode{
       valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ThC++[.iLdTh])
     }
     | .cThSet(Lc,Th,Vl) => valof{
-      (Stk0,ThC) = compExp(Th,Lc,.notLast,Ctx,Stk);
-      (_Stk1,VlC) = compExp(Vl,Lc,.notLast,Ctx,Stk0);
+      (Stk0,VlC) = compExp(Vl,Lc,.notLast,Ctx,Stk);
+      (_Stk,ThC) = compExp(Th,Lc,.notLast,Ctx,Stk0);
       Stk1 = pushStack(typeOf(Th)::ltipe,Stk);
-      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ThC++++VlC++[.iTTh])
+      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++VlC++ThC++[.iTTh])
     }
-    | .cNth(Lc,E,Ix,Tp) =>
-      compExp(E,Lc,.notLast,nthCont(Ix,Cont,pushStack(Tp::ltipe,Stk)),Ctx,Stk)
-    | .cSetNth(Lc,R,Ix,V) => compExp(R,Lc,.notLast,expCont(V,Lc,.notLast,setNthCont(Ix,Cont,Stk)),Ctx,Stk)
-    | .cSeq(Lc,L,R) =>
-      compExp(L,Lc,.notLast,resetStkCont(Stk,expCont(R,Lc,TM,Cont)),Ctx,Stk)
+    | .cNth(Lc,E,Ix,Tp) => valof{
+      (Stk0,Vl) = compExp(E,Lc,.notLast,Ctx,Stk);
+      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++Vk++[.iNth(Ix)])
+    }
+    | .cSetNth(Lc,R,Ix,V) => valof{
+      (Stk0,RC) = compExp(R,Lc,.notLast,Ctx,Stk);
+      (_Stk,VC) = compExp(V,Lc,.notLast,Ctx,Stk0);
+
+      valis genLastReturn(Last,pushStack(typeOf(R)::ltipe,Stk),
+	chLine(OLc,Lc)++RC++VC++[.iStNth(Ix)])
+    }
+    | .cSeq(Lc,L,R) => valof{
+      (Stk0,LC) = compExp(L,Lc,.notLast,Ctx,Stk);
+      (Stk1,RC) = compExp(R,Lc,Last,Ctx,Stk);
+      valis (Stk1,chLine(OLc,Lc)++LC++resetStack([|Stk0|],Stk)++RC)
+    }
     | .cCnd(Lc,G,L,R) => valof{
-      CC = splitCont(Lc,Ctx,Cont);
-      valis compCond(G,Lc,TM,expCont(L,Lc,TM,CC),ctxCont(Ctx,expCont(R,Lc,TM,CC)),Ctx,Stk)
+      Fl = genLbl(Ctx,"Fl");
+      Ok = genLbl(Ctx,"Ok");
+      (Stk0,CC) = compCond(G,Lc,.normal,Ctx,Stk);
+      verify(()=>Stk0==Stk,"conditions must not increase stack",Lc);
+      (Stk1,LC) = compExp(L,Lc,Last,Ctx,Stk);
+      (Stk2,RC) = compExp(R,Lc,Last,Ctx,Stk);
+      valis (reconcileStack(Stk1,Stk2),chLine(OLc,Lc)++
+	[.iLbl(Ok,.iBlock(nearlyFlatSig(typeOf(L)::ltipe),
+	      [.iLbl(Fl,.iBlock(flatSig,CC++LC++[.iBreak(Ok)]))]++
+	      RC++[.iBreak(Ok)]))])
     }
     | .cCase(Lc,Gov,Cases,Deflt,_Tp) => valof{
       valis compCase(Lc,Gov,Cases,Deflt, (E,C1)=>expCont(E,Lc,TM,C1),Cont,Ctx,Stk)
@@ -776,11 +796,6 @@ star.compiler.gencode{
   setNthCont:(integer,Cont,stack)=>Cont.
   setNthCont(Ix,Cont,Stk) => cont{
     C(Ctx,_SS,Cde) => Cont.C(Ctx,Stk,Cde++[.iStNth(Ix)]).
-  }
-
-  closCont:(stack,termLbl,Cont) => Cont.
-  closCont(Stk,Lbl,Cont) => cont{
-    C(Ctx,_,Cde) => Cont.C(Ctx,Stk,Cde++[.iClosure(Lbl)])
   }
 
   catchCont:all e ~~ (assemLbl,integer,()=>(stack,multi[assemOp])) => Cont.

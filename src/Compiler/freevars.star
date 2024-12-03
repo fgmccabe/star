@@ -40,10 +40,10 @@ star.compiler.freevars{
       Q1 = Q\condVars(T,[]);
       valis freeVarsInExp(L,Q1,freeVarsInExp(R,Q,freeVarsInCond(T,Q1,Fv)))
     }
-    | .apply(_,O,A,_) =>
-      freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
+    | .apply(_,O,A,_) => freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
     | .tple(_,Els) => freeVarsInTuple(Els,Q,Fv)
-    | .match(_,P,S) where Q1 .= dropVars(P,Q) => freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
+    | .match(_,P,S) where Q1 .= dropVars(P,Q) =>
+      freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
     | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
