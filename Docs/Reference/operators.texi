@@ -14,6 +14,10 @@
 @tab right associative infix
 @tab 910
 @tab conjunction
+@item @code{task}
+@tab non-associative prefix
+@tab 999
+@tab introduce a suspendable task
 @item @code{let}
 @tab non-associative prefix
 @tab 899
@@ -186,6 +190,14 @@
 @tab non-associative prefix
 @tab 905
 @tab grammar skip
+@item @code{resume}
+@tab non-associative prefix
+@tab 999
+@tab resume task
+@item @code{resume}
+@tab non-associative infix
+@tab 999
+@tab resume task
 @item @code{,}
 @tab right associative infix
 @tab 1000
@@ -314,6 +326,14 @@
 @tab non-associative prefix
 @tab 10
 @tab break out of an action (loop or block)
+@item @code{suspend}
+@tab non-associative prefix
+@tab 999
+@tab suspend task
+@item @code{suspend}
+@tab non-associative infix
+@tab 999
+@tab suspend task
 @item @code{trace}
 @tab non-associative infix
 @tab 140
@@ -527,40 +547,42 @@
 @multitable {implementation}{implementation}{implementation}
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{all}
+@tab @code{task}
 @tab @code{let}
-@tab @code{throw}
-@item @code{do}
+@item @code{throw}
+@tab @code{do}
 @tab @code{import}
-@tab @code{catch}
-@item @code{valis}
+@item @code{catch}
+@tab @code{valis}
 @tab @code{for}
-@tab @code{raise}
-@item @code{async}
+@item @code{raise}
+@tab @code{async}
 @tab @code{then}
-@tab @code{ζ}
-@item @code{default}
-@tab @code{contract}
+@item @code{ζ}
+@tab @code{default}
+@tab @code{resume}
+@item @code{contract}
 @tab @code{raises}
-@item @code{try}
-@tab @code{exists}
+@tab @code{try}
+@item @code{exists}
 @tab @code{if}
-@item @code{in}
-@tab @code{break}
+@tab @code{in}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{reset}
 @item @code{public}
 @tab @code{ref}
 @tab @code{where}
 @item @code{case}
-@tab @code{continuation}
 @tab @code{generator}
-@item @code{valof}
-@tab @code{yield}
+@tab @code{valof}
+@item @code{yield}
 @tab @code{while}
-@item @code{private}
-@tab @code{implementation}
+@tab @code{private}
+@item @code{implementation}
 @tab @code{shift}
-@item @code{type}
-@tab @code{handle}
+@tab @code{type}
+@item @code{handle}
 @tab @code{else}
 
 @end multitable
