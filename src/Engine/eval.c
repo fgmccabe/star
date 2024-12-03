@@ -858,8 +858,8 @@ retCode run(processPo P) {
 
       case StNth: {      /* store into a closure */
         int32 ix = PC->fst;
-        termPo tos = pop();
         normalPo cl = C_NORMAL(pop());
+        termPo tos = pop();
         cl->args[ix] = tos;
         break;
       }

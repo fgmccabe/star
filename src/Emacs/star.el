@@ -110,7 +110,7 @@
 	  (star-one-of
 	   '(
 	     "boolean" "float" "integer" "bigint" "char" "string" "ref"
-	     "fiber" "action" "set" "cons" "option"
+	     "fiber" "set" "cons" "option"
 	     )) "\\>")
   "Regular expression matching the standard types to highlight in Star mode.")
 

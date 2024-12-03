@@ -14,6 +14,15 @@ star.assert{
     valis ()
   }
 
+  public verify:(()=>boolean,string,option[locn]) => ();
+  verify(Tst,Msg,Lc) => valof{
+    if ~Tst() then{
+      showMsg("failed assert #(Msg) at $(Lc)");
+      _exit(1)
+    };
+    valis ()
+  }
+
   public shwMsg:all t ~~ display[t] |: (t,string,string) => ().
   shwMsg(Vl,Msg,Lc) => valof{
     showMsg("#(Msg) = $(Vl) at #(Lc)");
