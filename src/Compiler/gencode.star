@@ -218,9 +218,6 @@ star.compiler.gencode{
 
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++HCde)
     }
-    | .cReset(Lc,E,Tp) => compExp(E,Lc,.notLast,resetCont(pushStack(Tp::ltipe,Stk),Cont),Ctx,Stk)
-    | .cShift(Lc,T,E,Tp) => compExp(T,Lc,.notLast,expCont(E,Lc,.notLast,shiftCont(pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
-    | .cInvoke(Lc,K,E,Tp) => compExp(K,Lc,.notLast,expCont(E,Lc,.notLast,invokeCont(TM,pushStack(Tp::ltipe,Stk),Cont)),Ctx,Stk)
     | .cRaise(Lc,T,E,_) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,raiseCont),Ctx,Stk)
     | .cValof(Lc,A,Tp) =>
       compAction(A,Lc,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)

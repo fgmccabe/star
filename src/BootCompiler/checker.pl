@@ -790,19 +790,6 @@ typeOfExp(Term,Tp,Env,Ev,thnkRef(Lc,Exp,Tp),Path) :-
   isThunkRef(Term,Lc,Rf),!,
   thunkType(Tp,ThTp),
   typeOfExp(Rf,ThTp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,reset(Lc,Lam,Tp),Path) :-
-  isReset(Term,Lc,Tg,Bnd),!,
-  tagType(Tp,TTp),
-  typeOfPtn(Tg,TTp,Env,Ev0,Ptn,Path),
-  typeOfExp(Bnd,Tp,Ev0,_Ev,Exp,Path),
-  lambdaLbl(Path,"ρ",Lbl),
-  Lam = lambda(Lc,Lbl,[],rule(Lc,tple(Lc,[Ptn]),none,Exp),funType(tplType([TTp]),Tp)).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isShift(Term,Lc,Tg,K,Bnd),!,
-  typeOfShift(Lc,Tg,K,Bnd,Tp,Env,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
-  isInvoke(Term,Lc,O,A),!,
-  typeOfInvoke(Lc,O,A,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Val,Path) :-
   isQBraceTuple(Term,Lc,Els),
   reportError("anonymous brace expression %s not supported",[ast(Term)],Lc),
@@ -932,22 +919,6 @@ typeOfThunk(Lc,Term,Tp,Env,
   thunkType(ThT,ThTp),
   verifyType(Lc,ast(Term),ThTp,Tp,Env),
   typeOfExp(Term,ThT,Env,_,Exp,Path).
-
-typeOfShift(Lc,Tg,K,Bnd,Tp,Env,shift(Lc,Tag,Lam,Tp),Path):-
-  newTypeVar("A",AnsTp),
-  tagType(AnsTp,TgTp),
-  typeOfExp(Tg,TgTp,Env,Ev0,Tag,Path),
-  contType(Tp,AnsTp,KTp),
-  typeOfPtn(K,KTp,Ev0,Ev1,KV,Path),
-  typeOfExp(Bnd,AnsTp,Ev1,_,Shft,Path),
-  lambdaLbl(Path,"σ",Lbl),
-  Lam = lambda(Lc,Lbl,[],rule(Lc,tple(Lc,[KV]),none,Shft),funType(tplType([KTp]),AnsTp)).
-
-typeOfInvoke(Lc,O,A,Tp,Env,invoke(Lc,K,Ar,Tp),Path) :-
-  newTypeVar("A",Atp),
-  contType(Atp,Tp,KTp),
-  typeOfExp(O,KTp,Env,_E,K,Path),
-  typeOfExp(A,Atp,Env,_,Ar,Path).
 
 checkAction(A,Tp,HasVal,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,

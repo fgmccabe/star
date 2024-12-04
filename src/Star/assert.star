@@ -14,7 +14,7 @@ star.assert{
     valis ()
   }
 
-  public verify:(()=>boolean,string,option[locn]) => ();
+  public verify:(()=>boolean,string,option[locn]) => ().
   verify(Tst,Msg,Lc) => valof{
     if ~Tst() then{
       showMsg("failed assert #(Msg) at $(Lc)");

@@ -267,7 +267,6 @@ star.compiler.types{
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
-  showTpExp(.tpFun("=>>",2),[A,R],Dp) => "#(showType(A,Dp-1)) =>> #(showType(R,Dp-1))".
   showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
@@ -450,7 +449,6 @@ star.compiler.types{
 
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
-  public contType(A,B) => .tpExp(.tpExp(.tpFun("=>>",2),A),B).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
   public lstType(Tp) => .tpExp(.tpFun("cons",1),Tp).
@@ -467,8 +465,6 @@ star.compiler.types{
 	.tpFun("=>",2).=deRef(O2) => .some(deRef(A)).
     funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
 	.tpFun("<=>",2).=deRef(O2) => .some(deRef(A)).
-    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
-	.tpFun("=>>",2).=deRef(O2) => .some(deRef(A)).
     funTpArg(.allType(_,T)) => funTpArg(deRef(T)).
     funTpArg(.constrainedType(T,C)) where FTp ?= funTpArg(deRef(T)) =>
       .some(extendArgType(FTp,.some(C))).
@@ -541,23 +537,6 @@ star.compiler.types{
 	  .tpExp(O2,A) .= deRef(O) &&
 	      .tpFun("<=>",2).=deRef(O2) => .some((A,B)).
   isCnType(_) default => .none.
-
-  public isContType:(tipe) => option[(tipe,tipe)].
-  isContType(Tp) where
-      .tpExp(O,B).=deRef(Tp) &&
-	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("=>>",2).=deRef(O2) => .some((A,B)).
-  isContType(.allType(_,Tp)) => isContType(deRef(Tp)).
-  isContType(.existType(_,Tp)) => isContType(deRef(Tp)).
-  isContType(.constrainedType(T,_))=>isContType(T).
-  isContType(_) default => .none.
-
-  public isCntType:(tipe) => option[(tipe,tipe)].
-  isCntType(Tp) where
-      .tpExp(O,B).=deRef(Tp) &&
-	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("=>>",2).=deRef(O2) => .some((A,B)).
-  isCntType(_) default => .none.
 
   public isTagType:(tipe) => option[tipe].
   isTagType(Tp) where

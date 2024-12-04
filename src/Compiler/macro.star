@@ -190,12 +190,6 @@ star.compiler.macro{
     mkThunkRef(Lc,macroTerm(R)).
   examineTerm(A) where (Lc,R) ?= isSuppress(A) =>
     mkSuppress(Lc,macroTerm(R)).
-  examineTerm(A) where (Lc,T,E) ?= isReset(A) =>
-    mkReset(Lc,macroTerm(T),macroTerm(E)).
-  examineTerm(A) where (Lc,T,K,E) ?= isShift(A) =>
-    mkShift(Lc,macroTerm(T),macroTerm(K),macroTerm(E)).
-  examineTerm(A) where (Lc,T,E) ?= isInvoke(A) =>
-    mkInvoke(Lc,macroTerm(T),E//macroTerm).
   examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroTerm(B)).
   examineTerm(A) where (Lc,D,B) ?= isLetRecDef(A) =>
@@ -347,8 +341,6 @@ star.compiler.macro{
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
     mkFunctionType(Lc,macroType(L),macroType(R)).
-  examineType(A) where (Lc,L,R) ?= isContinuationType(A) =>
-    mkContinuationType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,R) ?= isTag(A) =>

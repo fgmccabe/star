@@ -47,10 +47,6 @@ instruction(Underflow, nOp, nOp, 0, "F()()", "underflow from current stack")
 instruction(Try, tPe, bLk, 1, "F()p", "a try-catch block")
 instruction(EndTry, tOs, lVl, -1, "F(p)()", "end try")
 instruction(Throw, tOs, tOs, 0, "F(p)v", "Invoke a continuation")
-instruction(Reset,tOs,nOp,0, "F(p)()", "establish a delimited zone")
-instruction(Shift,tOs,tOs,-1,"F(pp)v", "capture continuation")
-
-instruction(Invoke, tOs, tOs, -1, "F(pp)v", "invoke continuation")
 
 instruction(LdV, nOp, nOp, 1, "F()p", "Place a void value on stack")
 instruction(LdC, lit, nOp, 1, "F()p", "load literal from constant pool")

@@ -17,7 +17,6 @@
 #include "debugP.h"
 #include "buddyP.h"
 #include "labelsP.h"
-#include "continuationP.h"
 #include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
@@ -103,16 +102,6 @@ static retCode debugOption(char *option, logical enable) {
   return -1;
 #endif
       }
-
-      case 'O':    /* trace continuation operations  */
-#ifdef TRACESTACK
-        traceContinuations = True;
-        logMsg(logFile, "Continuation tracing enabled\n");
-        continue;
-#else
-        logMsg(logFile,"Continuation tracing not enabled");
-        return -1;
-#endif
 
       case 'H':    /* validate heap after allocations  */
 #ifdef TRACEMEM

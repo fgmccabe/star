@@ -117,9 +117,6 @@ star.compiler.inline{
     | .cTry(Lc,Inn,Th,E,H,Tp) =>
       .cTry(Lc,simplifyExp(Inn,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp)
-    | .cReset(Lc,E,Tp) => .cReset(Lc,simExp(E,Map,Depth),Tp)
-    | .cShift(Lc,T,E,Tp) => .cShift(Lc,simExp(T,Map,Depth),simExp(E,Map,Depth),Tp)
-    | .cInvoke(Lc,T,E,Tp) => .cInvoke(Lc,simExp(T,Map,Depth),simExp(E,Map,Depth),Tp)
     | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
   }
 
