@@ -24,7 +24,6 @@
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("&&", [infixOp(909, 910, 910)]).
-  operator("task", [prefixOp(999, 998)]).
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).

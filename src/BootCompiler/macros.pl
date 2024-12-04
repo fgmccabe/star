@@ -470,9 +470,9 @@ examineTerm(T,Tx) :-
   macroTerm(V,Vx),
   mkInvoke(Lc,Fx,Vx,Tx).
 examineTerm(T,Tx) :-
-  isFiber(T,Lc,B),!,
+  isTask(T,Lc,B),!,
   macroAction(B,Bx),
-  mkFiber(Lc,Bx,Tx).
+  mkTask(Lc,Bx,Tx).
 examineTerm(T,Tx) :-
   isGenerator(T,Lc,B),!,
   macroAction(B,Bx),

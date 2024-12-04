@@ -41,7 +41,6 @@ star.compiler.operators{
     | "all" => [.prefixOp(1010,1009)]
     | ".<." => [.infixOp(699,700,699)]
     | "&&" => [.infixOp(909,910,910)]
-    | "task" => [.prefixOp(999,998)]
     | "let" => [.prefixOp(899,898)]
     | "~=" => [.infixOp(899,900,899)]
     | "~>" => [.infixOp(1230,1231,1230)]

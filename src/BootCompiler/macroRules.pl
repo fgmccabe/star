@@ -50,6 +50,7 @@ macroRl("show",action,macroRules:showMacro).
 macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator{}",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
+macroRl("task{}",expression,macroRules:taskMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
@@ -597,6 +598,42 @@ yieldMacro(E,action,Ax) :-
   /* Build suspend */
   binary(Lc,"_suspend",name(Lc,"this"),Yld,SS),
   caseExp(Lc,SS,[NxtRl,Cancel],Ax).
+
+  /* task { A }
+
+  becomes
+
+  _fiber((this,Frst)=> case Frst in {
+      | .go_ahead => .result(valof{A})
+      | .shut_down => raise .canceled
+    })
+
+  */
+
+  taskMacro(E,expression,Rp) :-
+    isTask(E,Lc,A),!,
+    genIden(Lc,"Frst",Frst),
+
+    /* Build .shut_down_ => raise .canceled */
+    mkEnum(Lc,"shut_down_",Down),
+    mkEnum(Lc,"canceled",Can),
+    mkRaise(Lc,Can,Raise),
+    mkEquation(Lc,Down,none,Raise,End),
+
+    /* build .go_ahead => .result(valof{A}) */
+    mkEnum(Lc,"go_ahead",Ahead),
+
+    mkValof(Lc,A,V),
+    mkConApply(Lc,name(Lc,"result"),V,Vl),
+    mkEquation(Lc,Ahead,none,Vl,Go),
+
+    /* build case Frst in .. */
+    caseExp(Lc,Frst,[End,Go],Body),
+    roundTuple(Lc,[name(Lc,"this"),Frst],Args),
+
+    mkEquation(Lc,Args,none,Body,Lm),
+    unary(Lc,"_fiber",Lm,Rp).
+
 
 /*
   K -> V
