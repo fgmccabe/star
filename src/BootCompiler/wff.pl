@@ -50,8 +50,9 @@
 	      isIotaComprehension/4,
 	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
 	      isTestComprehension/3,mkTestComprehension/3,
-	      isFiber/3,mkFiber/3,isGenerator/3,mkGenerator/3,
+	      isGenerator/3,mkGenerator/3,
 	      isGeneratorType/3,mkGeneratorType/3,
+	      isTask/3,mkTask/3,
 	      isCaseExp/4,caseExp/4,
 	      isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
@@ -640,9 +641,8 @@ mkLetRec(Lc,Els,Bnd,Let) :-
   unary(Lc,"let",Body,L),
   binary(Lc,"in",L,Bnd,Let).
 
-isFiber(T,Lc,Bd) :- isBraceApply(T,Lc,"fiber",[Bd]).
-
-mkFiber(Lc,Bd,T) :- braceApply(Lc,"fiber",[Bd],T).
+isTask(T,Lc,Bd) :- isBraceApply(T,Lc,"task",[Bd]).
+mkTask(Lc,Bd,T) :- braceApply(Lc,"task",[Bd],T).
 
 isGenerator(T,Lc,Bd) :- isBraceApply(T,Lc,"generator",[Bd]).
 
