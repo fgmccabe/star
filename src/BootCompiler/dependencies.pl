@@ -304,20 +304,6 @@ collectTermRefs(T,All,Rf,Rfx) :-
 collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
-  isTryHandle(T,_,L,E,C),!,
-  collectTermRefs(L,All,Rf,Rf1),
-  collectTypeRefs(E,All,Rf1,Rf2),
-  collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
-  isReset(T,_,H,E),!,
-  collectTermRefs(H,All,Rf,R1),
-  collectTermRefs(E,All,R1,Rfx).
-collectTermRefs(T,All,R,Rx) :-
-  isShift(T,_,Tg,K,S),!,
-  collectTermRefs(Tg,All,R,R0),
-  collectTermRefs(K,All,R0,R1),
-  collectTermRefs(S,All,R1,Rx).
 collectTermRefs(T,All,R,Rx) :-
   isThunk(T,_,V),!,
   collectTermRefs(V,All,R,Rx).

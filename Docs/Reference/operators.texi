@@ -338,14 +338,6 @@
 @tab non-associative prefix
 @tab 140
 @tab display tracing message
-@item @code{reset}
-@tab non-associative infix
-@tab 999
-@tab reset context
-@item @code{reset}
-@tab non-associative prefix
-@tab 999
-@tab reset context
 @item @code{~~}
 @tab right associative infix
 @tab 1240
@@ -462,14 +454,6 @@
 @tab non-associative prefix
 @tab 1260
 @tab contract implementation
-@item @code{shift}
-@tab non-associative infix
-@tab 998
-@tab capture continuation
-@item @code{shift}
-@tab non-associative prefix
-@tab 998
-@tab capture continuation
 @item @code{>>=}
 @tab right associative infix
 @tab 950
@@ -498,10 +482,6 @@
 @tab left associative infix
 @tab 600
 @tab test nth bit
-@item @code{handle}
-@tab non-associative infix
-@tab 1199
-@tab try @{...@} handle Tp in @{...@}
 @item @code{~}
 @tab non-associative prefix
 @tab 905
@@ -565,20 +545,17 @@
 @tab @code{in}
 @item @code{break}
 @tab @code{suspend}
-@tab @code{reset}
-@item @code{public}
-@tab @code{ref}
+@tab @code{public}
+@item @code{ref}
 @tab @code{where}
-@item @code{case}
-@tab @code{generator}
+@tab @code{case}
+@item @code{generator}
 @tab @code{valof}
-@item @code{yield}
-@tab @code{while}
+@tab @code{yield}
+@item @code{while}
 @tab @code{private}
-@item @code{implementation}
-@tab @code{shift}
-@tab @code{type}
-@item @code{handle}
+@tab @code{implementation}
+@item @code{type}
 @tab @code{else}
 
 @end multitable

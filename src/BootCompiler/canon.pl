@@ -37,7 +37,6 @@ isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(capply(_,_,_,_)).
-isCanon(invoke(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(tdot(_,_,_,_)).
@@ -45,8 +44,6 @@ isCanon(enm(_,_,_)).
 isCanon(thunk(_,_,_)).
 isCanon(thnkRef(_,_,_)).
 isCanon(thnkSet(_,_,_)).
-isCanon(reset(_,_,_)).
-isCanon(shift(_,_,_,_)).
 isCanon(tple(_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
@@ -105,7 +102,6 @@ typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
-typeOfCanon(invoke(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(nth(_,_,_,Tp),Tp) :-!.
@@ -124,8 +120,6 @@ typeOfCanon(thunk(_,_,Tp),Tp) :- !.
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(thnkSet(_,Th,_),Tp) :- !,
   typeOfCanon(Th,Tp).
-typeOfCanon(reset(_,_,Tp),Tp) :- !.
-typeOfCanon(shift(_,_,_,Tp),Tp) :- !.
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
@@ -159,7 +153,6 @@ locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
-locOfCanon(invoke(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
@@ -173,9 +166,6 @@ locOfCanon(thunk(Lc,_,_),Lc) :-!.
 locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(thnkSet(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
-locOfCanon(reset(Lc,_,_),Lc) :-!.
-locOfCanon(shift(Lc,_,_,_),Lc) :-!.
-
 locOfCanon(doNop(Lc),Lc) :-!.
 locOfCanon(doSeq(Lc,_,_),Lc) :-!.
 locOfCanon(doLbld(Lc,_,_),Lc) :-!.
@@ -231,9 +221,6 @@ ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
 ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(invoke(_,Op,Arg,_),Dp,sq([O,ss("."),lp,A,rp])) :-
-  ssTerm(Op,Dp,O),
-  ssTerm(Arg,Dp,A).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
@@ -308,11 +295,6 @@ ssTerm(thnkRef(_,A,_),Dp,sq([AA,ss("!!")])) :-!,
 ssTerm(thnkSet(_,Th,Vl),Dp,sq([TT,ss("!:=!"),VV])) :-!,
   ssTerm(Th,Dp,TT),
   ssTerm(Vl,Dp,VV).
-ssTerm(reset(_,A,_),Dp,sq([lp,ss("reset "),AA,rp])) :-!,
-  ssTerm(A,Dp,AA).
-ssTerm(shift(_,T,E,_),Dp,sq([lp,TT,ss("shift "),EE,rp])) :-!,
-  ssTerm(T,Dp,TT),
-  ssTerm(E,Dp,EE).
 ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),AA,ss(" catch "),TT,ss(" in "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),

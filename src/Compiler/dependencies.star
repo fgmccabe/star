@@ -294,12 +294,6 @@ star.compiler.dependencies{
     collectTermRefs(I,All,Rf).
   collectTermRefs(T,All,Rf) where (_,I) ?= isSuppress(T) =>
     collectTermRefs(I,All,Rf).
-  collectTermRefs(T,All,Rf) where (_,A,B) ?= isReset(T) =>
-    collectTermRefs(B,All,collectTermRefs(A,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,G,A,B) ?= isShift(T) =>
-    collectTermRefs(B,All,collectTermRefs(A,All,collectTermRefs(G,All,Rf))).
-  collectTermRefs(T,All,Rf) where (_,A,B) ?= isInvoke(T) =>
-    collectTermListRefs(B,All,collectTermRefs(A,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Op,Args) ?= isRoundTerm(T) =>
     collectTermListRefs(Args,All,collectTermRefs(Op,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Args) ?= isTuple(T) => 
@@ -445,8 +439,6 @@ star.compiler.dependencies{
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isConstructorType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
-    collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isContinuationType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>
     collectTypeRefs(R,All,SoFar).

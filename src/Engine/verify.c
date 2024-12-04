@@ -435,26 +435,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         propagateVars(&ctx, parentCtx);
         return Ok;
       }
-      case Reset: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case Shift: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack for Shift: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
-        continue;
-      }
-      case Invoke: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack for Invoke: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
-        continue;
-      }
       case LdV:
         stackDepth++;
         pc++;

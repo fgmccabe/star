@@ -465,11 +465,6 @@ examineTerm(T,Tx) :-
   map(C,macros:macroLambda,Cx),
   caseExp(Lc,Ex,Cx,Tx).
 examineTerm(T,Tx) :-
-  isInvoke(T,Lc,F,V),!,
-  macroTerm(F,Fx),
-  macroTerm(V,Vx),
-  mkInvoke(Lc,Fx,Vx,Tx).
-examineTerm(T,Tx) :-
   isTask(T,Lc,B),!,
   macroAction(B,Bx),
   mkTask(Lc,Bx,Tx).
@@ -503,26 +498,9 @@ examineTerm(A,Ax) :-
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Ex,Cs,Ax).
 examineTerm(A,Ax) :-
-  isTryHandle(A,Lc,B,E,C),!,
-  macroTerm(B,Bx),
-  macroType(E,Ex),
-  map(C,macros:macroLambda,Cs),
-  mkTryHandle(Lc,Bx,Ex,Cs,Ax).
-examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
-examineTerm(A,Ax) :-
-  isReset(A,Lc,H,E),!,
-  macroTerm(H,Hx),
-  macroTerm(E,Ex),
-  mkReset(Lc,Hx,Ex,Ax).
-examineTerm(A,Ax) :-
-  isShift(A,Lc,T,K,S),!,
-  macroTerm(T,Tx),
-  macroTerm(K,Kx),
-  macroTerm(S,Sx),
-  mkShift(Lc,Tx,Kx,Sx,Ax).
 examineTerm(A,Ax) :-
   isThunk(A,Lc,V),!,
   macroTerm(V,Vx),

@@ -418,10 +418,6 @@ star.compiler.wff{
 
   public mkSearch(Lc,P,S) => binary(Lc,"in",P,S).
 
-  public isContinuationType(A) => isBinary(A,"=>>").
-
-  public mkContinuationType(Lc,A,B) => binary(Lc,"=>>",A,B).
-
   public isTag(A) => isUnary(A,"tag").
 
   public mkTag(Lc,A) => unary(Lc,"tag",A).
@@ -836,25 +832,6 @@ star.compiler.wff{
 
   public mkTryHandle(Lc,B,E,H) =>
     unary(Lc,"try",binary(Lc,"handle",B,binary(Lc,"in",E,H))).
-
-  public isReset(A) where (Lc,B) ?= isUnary(A,"reset") => .some((Lc,.nme(Lc,"tag"),B)).
-  isReset(A) => isBinary(A,"reset").
-
-  public isShift:(ast) => option[(option[locn],ast,ast,ast)].
-  isShift(A) => ((Lc,X) ?= isUnary(A,"shift") && (_,K,E) ?= isBinary(X,"in") ??
-    .some((Lc,.nme(Lc,"tag"),K,E)) || .none).
-  isShift(A) => ((Lc,T,X) ?= isBinary(A,"shift") && (_,K,E) ?= isBinary(X,"in") ??
-    .some((Lc,T,K,E)) || .none).
-
-  public mkReset(Lc,.nme(_,"tag"),A) => unary(Lc,"reset",A).
-  mkReset(Lc,A,B) => binary(Lc,"reset",A,B).
-
-  public mkShift(Lc,.nme(_,"tag"),K,E) => unary(Lc,"shift",binary(Lc,"in",K,E)).
-  mkShift(Lc,T,K,E) => binary(Lc,"shift",T,binary(Lc,"in",K,E)).
-
-  public isContinuation:(ast) => option[locn].
-  isContinuation(A) where .nme(Lc,"continuation") .= A => Lc.
-  isContinuation(_) default => .none.
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where

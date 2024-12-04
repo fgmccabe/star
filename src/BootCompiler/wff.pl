@@ -54,15 +54,11 @@
 	      isGeneratorType/3,mkGeneratorType/3,
 	      isTask/3,mkTask/3,
 	      isCaseExp/4,caseExp/4,
-	      isInvoke/4,mkInvoke/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
-	      isTryHandle/5,mkTryHandle/5,
-	      isReset/4,mkReset/4,
-	      isShift/5,mkShift/5,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
@@ -938,14 +934,6 @@ isRaises(A,Lc,T) :-
 mkRaises(Lc,T,A) :-
   unary(Lc,"raises",T,A).
 
-isInvoke(T,Lc,O,A) :-
-  isBinary(T,Lc,".",O,R),
-  isTuple(R,_,[A]).
-
-mkInvoke(Lc,O,A,T) :-
-  roundTuple(Lc,[A],R),
-  binary(Lc,".",O,R,T).
-
 isTryCatch(A,Lc,B,E,Hs) :-
   isUnary(A,Lc,"try",I),
   isBinary(I,_,"catch",B,R),
@@ -959,39 +947,6 @@ mkTryCatch(Lc,B,E,Cases,A) :-
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).
-
-isTryHandle(A,Lc,B,E,Hs) :-
-  isUnary(A,Lc,"try",I),
-  isBinary(I,_,"handle",B,R),
-  isBinary(R,_,"in",E,H),
-  isBraceTuple(H,_,[Els]),
-  deBar(Els,Hs).
-
-mkTryHandle(Lc,B,E,Cases,A) :-
-  reBar(Cases,Cs),
-  braceTuple(Lc,[Cs],Hs),
-  binary(Lc,"in",E,Hs,R),
-  binary(Lc,"handle",B,R,A0),
-  unary(Lc,"try",A0,A).
-
-isReset(A,Lc,name(Lc,"tag"),E) :-
-  isUnary(A,Lc,"reset",E),!.
-isReset(A,Lc,H,E) :-
-  isBinary(A,Lc,"reset",H,E).
-
-mkReset(Lc,H,E,R) :-
-  binary(Lc,"reset",H,E,R).
-
-isShift(A,Lc,name(Lc,"tag"),K,S) :-
-  isUnary(A,Lc,"shift",I),
-  isBinary(I,_,"in",K,S),!.
-isShift(A,Lc,T,K,S) :-
-  isBinary(A,Lc,"shift",T,I),!,
-  isBinary(I,_,"in",K,S).
-
-mkShift(Lc,T,K,S,A) :-
-  binary(Lc,"in",K,S,I),
-  binary(Lc,"shift",T,I,A).
 
 isThunk(A,Lc,Th) :-
   isUnary(A,Lc,"$$",Th).

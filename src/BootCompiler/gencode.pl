@@ -588,20 +588,6 @@ compExp(rais(Lc,T,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(E,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iThrow|Cx],Stk1,_).
-compExp(rset(Lc,Lam,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Lam,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iReset|Cx],Stk,Stkx).
-compExp(shyft(Lc,Tg,Lam,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Tg,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk0),
-  compExp(Lam,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iShift|Cx],Stk0,_Stk),
-  bumpStk(Stk,Stkx).
-compExp(voke(Lc,K,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
-  compExp(K,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iInvoke|C2],Stka,_Stkb),
-  frameIns(Stka,C2,C3),
-  genLastReturn(Last,Opts,C3,Cx,Stka,Stkx).
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(CondSig,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),

@@ -21,8 +21,7 @@ set(HEADER_FILES
         Headers/bkpoint.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
-	Headers/continuation.h Headers/continuationP.h
-        Headers/cons.h
+		Headers/cons.h
         Headers/engine.h
         Headers/decode.h
         ../Infra/Headers/encoding.h Headers/decodeP.h
@@ -68,7 +67,6 @@ set(SOURCE_FILES
 	closure.c
 	code.c
 	cons.c
-	continuation.c
         decode.c
 	debug.c
         either.c

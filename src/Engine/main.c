@@ -15,7 +15,6 @@
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
-#include "continuationP.h"
 #include "closureP.h"
 #include "formioP.h"
 #include "arithP.h"
@@ -75,7 +74,6 @@ int main(int argc, char **argv) {
   initChars();
   initStrings();
   initLbls();
-  initContinuations();
   initThunk();
   initGlobals();
   initCons();

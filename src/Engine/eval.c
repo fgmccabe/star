@@ -12,7 +12,6 @@
 #include "char.h"
 #include "engineP.h"
 #include "debugP.h"
-#include "continuationP.h"
 #include <math.h>
 #include "cellP.h"
 #include "closureP.h"
@@ -552,110 +551,6 @@ retCode run(processPo P) {
         restoreRegisters();
         push(val);
         continue;
-      }
-
-      case Reset: {  // Start a new delimited computation
-        // The top of a stack should be a unary lambda
-        closurePo lambda = C_CLOSURE(pop());
-        if (!isClosure(lambda)) {
-          logMsg(logFile, "expecting a closure, not %T", lambda);
-          bail();
-        }
-        PC++;
-        saveRegisters();
-        stackPo child = splitStack(P, lambda);
-
-        P->stk = attachStack(P->stk, child);
-
-#ifdef TRACESTACK
-        if (traceStack > noTracing)
-          verifyStack(STK, H);
-#endif
-
-        restoreRegisters();
-        continue;
-      }
-
-      case Shift: { // Suspend current computation, invoke shift function with new continuation.
-        termPo cl = pop();
-        stackPo stack = C_STACK(pop());
-
-        if (stackState(stack) != active) {
-          logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);
-          bail();
-        } else {
-          PC++;
-          saveRegisters();
-          continuationPo cont = allocateContinuation(H, stack);
-          P->stk = detachStack(STK, stack);
-          restoreRegisters();
-
-          push((termPo) cont);
-
-          if (!isClosure(cl)) {
-            logMsg(logFile, "Calling non-closure %T", cl);
-            bail();
-          }
-          closurePo obj = C_CLOSURE(cl);
-          labelPo lb = closureLabel(obj);
-
-          if (labelArity(lb) != 2) {
-            logMsg(logFile, "closure %T does not have correct arity %d", obj, 2);
-            bail();
-          }
-
-          methodPo mtd = labelCode(lb);       /* set up for object call */
-
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", lb);
-            bail();
-          }
-
-          push(closureFree(obj));                     // Put the free term back on the stack
-
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
-
-#ifdef TRACESTACK
-            if (traceStack > noTracing)
-              verifyStack(STK, H);
-#endif
-          }
-
-          assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC;
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment number of times program called
-          continue;
-        }
-      }
-
-      case Invoke: {                        // Invoke a continuation on current top of stack
-        termPo k = pop();
-        termPo event = pop();
-        if (!isContinuation(k)) {
-          logMsg(logFile, "tried to invoke non-continuation %T", k);
-          bail();
-        } else {
-          continuationPo cont = C_CONTINUATION(k);
-          if (continIsValid(cont)) {
-            stackPo stack = contStack(cont);
-            invalidateCont(cont);
-
-            PC++;
-            saveRegisters();
-            P->stk = attachStack(STK, stack);
-            restoreRegisters();
-            push(event);
-            continue;
-          } else {
-            logMsg(logFile, "continuation %T not in valid state", k);
-            bail();
-          }
-        }
       }
 
       case Try: {

@@ -73,7 +73,6 @@
   ("break" ( (prefix 10 9)))
   ("suspend" ( (prefix 999 998) (infix 998 999 998)))
   ("trace" ( (infix 139 140 139) (prefix 140 139)))
-  ("reset" ( (infix 998 999 998) (prefix 999 998)))
   ("~~" ( (infix 1239 1240 1240)))
   ("assert" ( (prefix 1240 1239)))
   ("!!" ( (postfix 99 100)))
@@ -103,14 +102,12 @@
   (":?" ( (infix 399 400 399)))
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
-  ("shift" ( (infix 997 998 997) (prefix 998 997)))
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
   ("type" ( (prefix 1251 1250)))
   ("|" ( (prefix 1548 1547) (infix 1548 1548 1547)))
   (".#." ( (infix 600 600 599)))
-  ("handle" ( (infix 1198 1199 1198)))
   ("~" ( (prefix 905 904)))
   ("^//" ( (infix 800 800 799)))
   ("||" ( (infix 919 920 920)))
@@ -161,7 +158,6 @@
 "in"
 "break"
 "suspend"
-"reset"
 "public"
 "ref"
 "where"
@@ -172,9 +168,7 @@
 "while"
 "private"
 "implementation"
-"shift"
 "type"
-"handle"
 "else"
 )
   "Table of standard keywords"
