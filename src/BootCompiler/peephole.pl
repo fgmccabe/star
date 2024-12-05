@@ -16,7 +16,10 @@ peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,
-  peep(Is,Lbls,Code).
+  peep(Is,Lbls,Is0),
+  length(Is,L1),
+  length(Is0,L2),
+  (L2<L1*0.9 -> peep(Is0,Lbls,Code) ; Code=Is0).
 
 findUnusedVars([(Vr,_Spec)|Vrs],Ins,AVrs,ACde) :-
   \+varRead(Vr,Ins),

@@ -19,7 +19,7 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     encPolicy(Pol,HP),
     mkTpl(Lns,LnTpl),
     stackHwm(Ins,0,0,HWM),
-    localHwm(Ins,[],_,0,Lx),
+    length(Lcls,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl,LnTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).

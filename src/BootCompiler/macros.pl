@@ -145,10 +145,9 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
-examineType(T,Tx) :- isContType(T,Lc,L,R),!,
+examineType(T,Tx) :- isTaskType(T,Lc,L),!,
   macroType(L,Lx),
-  macroType(R,Rx),
-  mkContType(Lc,Lx,Rx,Tx).
+  mkTaskType(Lc,Lx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).

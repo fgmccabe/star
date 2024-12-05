@@ -53,10 +53,9 @@ parseType(F,Env,Q,consType(AT,RT)) :-
   parseArgType(L,Env,Q,AT),!,
   parseType(R,Env,Q,RT).
 parseType(F,Env,Q,Tp) :-
-  isContType(F,_,L,R),
-  parseArgType(L,Env,Q,AT),
-  parseType(R,Env,Q,RT),
-  contType(AT,RT,Tp).
+  isTaskType(F,_,A),
+  parseType(A,Env,Q,AT),
+  taskType(AT,Tp).
 parseType(F,Env,Q,Tp) :-
   isRef(F,_,L),
   parseType(L,Env,Q,A),
