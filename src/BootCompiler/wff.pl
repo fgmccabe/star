@@ -15,6 +15,7 @@
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isFuncType/4,funcType/4,
+	      isTaskType/3,mkTaskType/3,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
 	      isConApply/4,mkConApply/4,
@@ -29,7 +30,6 @@
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
 	      isContRule/5,mkContRule/5,
-	      isContType/4,mkContType/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -373,6 +373,12 @@ funcType(Lc,L,R,Tp) :-
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).
 
+isTaskType(T,Lc,Tp) :-
+  isSquareApply(T,Lc,"task",[Tp]).
+  
+mkTaskType(Lc,Tp,T) :-
+  mkSqType(Lc,"task",[Tp],T).
+
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
 
@@ -593,12 +599,6 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
-
-isContType(Trm,Lc,Lhs,Rhs) :-
-  isBinary(Trm,Lc,"=>>",Lhs,Rhs).
-
-mkContType(Lc,Lhs,Rhs,T) :-
-  binary(Lc,"=>>",Lhs,Rhs,T).
 
 isContRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>>",L,Rhs),

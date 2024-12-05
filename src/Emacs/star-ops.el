@@ -136,7 +136,6 @@
 
 (defconst star-keywords
   '("all"
-"task"
 "let"
 "throw"
 "do"

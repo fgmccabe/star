@@ -422,7 +422,6 @@ star.compiler.operators{
   keyword(Op) => case Op in {
     | "all" => .true
     | "&&" => .true
-    | "task" => .true
     | "let" => .true
     | "~>" => .true
     | "throw" => .true

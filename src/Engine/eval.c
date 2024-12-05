@@ -916,11 +916,11 @@ retCode run(processPo P) {
       }
       case IDiv: {
         termPo tryIndex = pop();
-
         assert(isInteger(tryIndex));
 
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
+
         if (Rhs == 0) {
           push(divZero);
           push(tryIndex);
@@ -933,7 +933,6 @@ retCode run(processPo P) {
       }
       case IMod: {
         termPo tryIndex = pop();
-
         assert(isInteger(tryIndex));
 
         integer denom = integerVal(pop());
@@ -1115,7 +1114,6 @@ retCode run(processPo P) {
       }
       case FDiv: {
         termPo tryIndex = pop();
-
         assert(isInteger(tryIndex));
 
         double Lhs = floatVal(pop());
@@ -1137,6 +1135,7 @@ retCode run(processPo P) {
 
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
+
         if (Rhs == 0.0) {
           push(divZero);
           push(tryIndex);

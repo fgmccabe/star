@@ -16,7 +16,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdDecl/1,contType/3,tagType/2,thunkType/2,
+	   stdDecl/1,taskType/2,tagType/2,thunkType/2,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -377,8 +377,8 @@ mkTypeExp(Op,[],Op).
 mkTypeExp(Op,[A|Args],Tp) :-
   mkTypeExp(tpExp(Op,A),Args,Tp).
 
-contType(Arg,Res,Tp) :-
-  mkTypeExp(tpFun("=>>",2),[tplType([Arg]),Res],Tp).
+taskType(Arg,Tp) :-
+  mkTypeExp(tpFun("task",1),[Arg],Tp).
 
 thunkType(Arg,Tp) :-
   mkTypeExp(tpFun("thunk",1),[Arg],Tp).
