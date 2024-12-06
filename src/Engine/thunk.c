@@ -57,15 +57,11 @@ long thnkSize(specialClassPo cl, termPo o) {
   return ThunkCellCount;
 }
 
-comparison thunkCmp(thunkPo lb1, thunkPo lb2) {
-  return lb1 == lb2;
-}
-
 logical thnkCmp(specialClassPo cl, termPo o1, termPo o2) {
   thunkPo i1 = C_THUNK(o1);
   thunkPo i2 = C_THUNK(o2);
 
-  return (logical) (thunkCmp(i1, i2) == same);
+  return (logical) (i1==i2);
 }
 
 static integer thnkHash(specialClassPo cl, termPo o) {

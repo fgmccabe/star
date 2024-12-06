@@ -25,6 +25,7 @@
 #include "editline.h"
 #include "starP.h"
 #include "futureP.h"
+#include "singleP.h"
 #include "thunkP.h"
 #include "vectP.h"
 #include "ioops.h"
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
   initChars();
   initStrings();
   initLbls();
+  initSingle();
   initThunk();
   initGlobals();
   initCons();

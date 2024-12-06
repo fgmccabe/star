@@ -525,6 +525,34 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case Sav:{
+	stackDepth++;
+	pc++;
+	continue;
+      }
+      case LdSav:{
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth + trueDepth, False) != Ok)
+          return Error;
+	
+        pc++;
+        continue;
+      }
+      case StSav:{
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        pc++;
+        continue;
+      }
+      case TSav: {
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
+        pc++;
+        continue;
+      }
       case Thunk: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);

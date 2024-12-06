@@ -66,6 +66,11 @@ instruction(LdTh, tOs, nOp, 0, "F(p)p", "derefence a thunk, potentially running 
 instruction(StTh, tOs, tOs, -2, "F(pp)()", "store a value into a thunk variable")
 instruction(TTh, tOs, tOs, -1, "F(pp)p", "update thunk and leave on stack")
 
+instruction(Sav, nOp, nOp, 0, "F()p", "create a single assignment variable")
+instruction(LdSav, tOs, lVl, 0, "F(p)p", "derefence a sav, break if not set")
+instruction(StSav, tOs, tOs, -2, "F(pp)()", "store a value into a single assignment variable")
+instruction(TSav, tOs, tOs, -1, "F(pp)p", "update single assignment variable leave value on stack")
+
 instruction(Cell, tOs, nOp, 0,"F()p",  "create R/W cell")
 instruction(Get, tOs, nOp, 0, "F(p)p", "access a R/W cell")
 instruction(Assign, tOs, tOs, -2, "F(pp)()", "assign to a R/W cell")

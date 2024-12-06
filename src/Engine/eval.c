@@ -775,6 +775,67 @@ retCode run(processPo P) {
         break;
       }
 
+      case Sav: {  // Create a new single assignment variable
+        if (reserveSpace(H, SingleCellCount) != Ok) {
+          saveRegisters();
+          retCode ret = gcCollect(H, SingleCellCount);
+          if (ret != Ok)
+            return ret;
+          restoreRegisters();
+        }
+        singlePo sav = singleVar(H);
+        push(sav);       /* put the structure back on the stack */
+        break;
+      }
+
+      case LdSav: {
+        singlePo savVr = C_SINGLE(pop());
+
+        if (singleIsSet(savVr)) {
+          termPo vl = singleVal(savVr);
+
+          check(vl != Null, "undefined single assignment value");
+
+          push(vl);     /* load single variable */
+          PC++;
+          continue;
+        } else {
+	  push((termPo)savVr);
+
+	  PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          PC += PC->alt + 1;
+          continue;
+	}
+      }
+
+      case StSav: {                           // Store into single
+        singlePo sav = C_SINGLE(pop());
+        termPo val = pop();
+
+        if (singleIsSet(sav)) {
+          logMsg(logFile, "single %T already set", sav);
+          bail();
+        }
+
+        setSingle(sav, val);      // Update the single variable
+        break;
+      }
+
+      case TSav: {                        // Set single and carry on
+        singlePo sav = C_SINGLE(pop());
+        termPo val = top();
+
+        if (singleIsSet(sav)) {
+          logMsg(logFile, "single %T already set", sav);
+          bail();
+        }
+
+        setSingle(sav, val);      // Update the single variable
+        break;
+      }
+
       case Thunk: {  // Create a new thunk
         closurePo thLam = C_CLOSURE(pop());
 

@@ -805,7 +805,6 @@ declareThetaVar(updDec(_,_,AccName,Tp),ThV,_,_,V,Vx,TMx,TMx) :-
   progTypeArity(Tp,Ar),
   mangleName(AccName,closure,ClosureName),
   declEntry(AccName,localFun(AccName,ClosureName,Ar,ThV,Tp),V,Vx).
-
 declareThetaVar(_,_,_,_,Vx,Vx,Tx,Tx).
 
 collectLabelVars([],_,Ix,Ix,List,List).
