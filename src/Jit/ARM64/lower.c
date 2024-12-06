@@ -186,6 +186,22 @@ retCode jit_TG(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Sav(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_LdSav(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_StSav(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_TSav(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Thunk(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }

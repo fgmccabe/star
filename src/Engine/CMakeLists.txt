@@ -47,6 +47,8 @@ set(HEADER_FILES
         Headers/char.h Headers/charP.h Headers/bignumP.h Headers/closure.h Headers/closureP.h
         Headers/normal.h
         Headers/normalP.h
+        Headers/singleP.h
+        Headers/single.h
         Headers/thunkP.h
         Headers/thunk.h
         Headers/future.h
@@ -84,6 +86,7 @@ set(SOURCE_FILES
 	ltype.c
 	main.c
 	option.c
+        single.c
 	stack.c
         strings.c
 	term.c
