@@ -65,7 +65,8 @@ genFun(D,Opts,Lc,Nm,H,Tp,Args,Value,CdTrm) :-
   genDbg(Opts,C,[iEntry|C0]),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(BlkTp,FC))|CA]),
   compArgs(Args,Lc,0,Abrt,[],Opts,L1,L2,D,D1,FC,FC0,some(0),Stk0),
-  compExp(Value,Lc,[],last,Opts,L2,L3,D1,D3,FC0,FC1,Stk0,Stk1),
+  compExp(Value,Lc,[("$abort",gencode:breakOut,Abrt,none)],last,
+	  Opts,L2,L3,D1,D3,FC0,FC1,Stk0,Stk1),
   genRet(Opts,FC1,[],Stk1,_),
   compAbort(Lc,strg("def failed"),[],Opts,L3,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   getLsMap(Dx,LsMap),
@@ -568,6 +569,26 @@ compExp(thkSt(Lc,Th,Vl),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Vl,Lc,Brks,notLast,Opts,L,L1,D,D0,C0,C1,Stk,Stk0),
   compExp(Th,Lc,Brks,notLast,Opts,L1,Lx,D0,Dx,C1,[iTTh|Cx],Stk0,Stk1),
   dropStk(Stk1,1,Stkx).
+compExp(sav(Lc,_),OLc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,[iSav|C1]),!,
+  bumpStk(Stk,Stka),
+  frameIns(Stka,C1,C2),
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
+compExp(savGet(Lc,Sv,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  (is_member(("$abort",_Brker,Abort,_),Brks) ->
+   compExp(Sv,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdSv(Abort)|C2],Stk,Stka),
+   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx);
+   reportError("not in scope of abort",[],Lc),
+   Stkx=none,
+   C=Cx,
+   D=Dx,
+   L=Lx).
+compExp(savSet(Lc,Sv,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
+  compExp(Sv,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iTSav|C1],Stk1,_Stka),
+  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,CaseBlkTp),

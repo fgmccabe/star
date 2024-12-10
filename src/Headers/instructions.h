@@ -67,7 +67,9 @@ instruction(StTh, tOs, tOs, -2, "F(pp)()", "store a value into a thunk variable"
 instruction(TTh, tOs, tOs, -1, "F(pp)p", "update thunk and leave on stack")
 
 instruction(Sav, nOp, nOp, 0, "F()p", "create a single assignment variable")
+
 instruction(LdSav, tOs, lVl, 0, "F(p)p", "derefence a sav, break if not set")
+instruction(TstSav, tOs, nOp, 0, "F(p)l", "test a sav, return a logical")
 instruction(StSav, tOs, tOs, -2, "F(pp)()", "store a value into a single assignment variable")
 instruction(TSav, tOs, tOs, -1, "F(pp)p", "update single assignment variable leave value on stack")
 

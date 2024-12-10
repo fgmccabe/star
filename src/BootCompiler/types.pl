@@ -16,7 +16,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdDecl/1,taskType/2,tagType/2,thunkType/2,
+	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -382,6 +382,9 @@ taskType(Arg,Tp) :-
 
 thunkType(Arg,Tp) :-
   mkTypeExp(tpFun("thunk",1),[Arg],Tp).
+
+savType(Arg,Tp) :-
+  mkTypeExp(tpFun("sav",1),[Arg],Tp).
 
 tagType(Arg,Tp) :-
   mkTypeExp(tpFun("tag",1),[Arg],Tp).

@@ -16,6 +16,7 @@
 #include "cellP.h"
 #include "closureP.h"
 #include "thunkP.h"
+#include "singleP.h"
 #include "errorCodes.h"
 #include "ltype.h"
 
@@ -788,6 +789,14 @@ retCode run(processPo P) {
         break;
       }
 
+      case TstSav: {
+        singlePo savVr = C_SINGLE(pop());
+
+        termPo Rs = (singleIsSet(savVr) ? trueEnum : falseEnum);
+        push(Rs);
+        break;
+      }
+
       case LdSav: {
         singlePo savVr = C_SINGLE(pop());
 
@@ -800,14 +809,14 @@ retCode run(processPo P) {
           PC++;
           continue;
         } else {
-	  push((termPo)savVr);
+          push((termPo) savVr);
 
-	  PC += PC->alt + 1;
+          PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
           assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
-	}
+        }
       }
 
       case StSav: {                           // Store into single
