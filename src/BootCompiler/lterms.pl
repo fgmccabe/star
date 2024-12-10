@@ -134,7 +134,7 @@ ssTrm(thkSt(_,Rf,Vl),Dp,sq([lp,RR,ss("!:=!"),VV,rp])) :-!,
 ssTrm(sav(_,_),_Dp,sq([ss("sav"),lp,rp])) :-!.
 ssTrm(savIsSet(_,S),Dp,sq([SS,ss("?")])) :-!,
   ssTrm(S,Dp,SS).
-ssTrm(savGet(_,Rf,_),Dp,sq([lp,RR,rp,ss("^")])) :-!,
+ssTrm(savGet(_,Rf,_),Dp,sq([lp,RR,ss("^"),rp])) :-!,
   ssTrm(Rf,Dp,RR).
 ssTrm(savSet(_,Rf,Vl),Dp,sq([lp,RR,ss("?:=?"),VV,rp])) :-!,
   ssTrm(Rf,Dp,RR),
@@ -843,6 +843,8 @@ validPtn(ctpl(lbl(_,_),Args),Lc,D,Dx) :-
 validPtn(enum(_),_,Dx,Dx).
 validPtn(nth(Lc,Rc,_,_),_,D,Dx) :-
   validPtn(Rc,Lc,D,Dx).
+validPtn(savGet(Lc,V,_),_,D,Dx) :-
+  validPtn(V,Lc,D,Dx).
 validPtn(whr(Lc,Ptn,Cond),_,D,Dx) :-
   validPtn(Ptn,Lc,D,D0),
   glVars(Cond,D0,Dx),
@@ -950,6 +952,8 @@ ptnVars(ctpl(_,Args),D,Dx) :-
 ptnVars(enum(_),Dx,Dx).
 ptnVars(nth(_,Rc,_,_),D,Dx) :-
   ptnVars(Rc,D,Dx).
+ptnVars(savGet(_,Sv,_),D,Dx) :-
+  ptnVars(Sv,D,Dx).
 ptnVars(whr(_,Ptn,Cond),D,Dx) :-
   ptnVars(Ptn,D,D0),
   glVars(Cond,D0,Dx).
