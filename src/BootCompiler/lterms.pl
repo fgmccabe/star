@@ -130,6 +130,14 @@ ssTrm(thkRf(_,Rf,_),Dp,sq([lp,RR,rp,ss("!!")])) :-!,
 ssTrm(thkSt(_,Rf,Vl),Dp,sq([lp,RR,ss("!:=!"),VV,rp])) :-!,
   ssTrm(Rf,Dp,RR),
   ssTrm(Vl,Dp,VV).
+ssTrm(sav(_,_),_Dp,sq([ss("sav"),lp,rp])) :-!.
+ssTrm(savIsSet(_,S),Dp,sq([SS,ss("?")])) :-!,
+  ssTrm(S,Dp,SS).
+ssTrm(savGet(_,Rf,_),Dp,sq([lp,RR,rp,ss("^")])) :-!,
+  ssTrm(Rf,Dp,RR).
+ssTrm(savSet(_,Rf,Vl),Dp,sq([lp,RR,ss("?:=?"),VV,rp])) :-!,
+  ssTrm(Rf,Dp,RR),
+  ssTrm(Vl,Dp,VV).
 ssTrm(lbl(Nm,Ar),_,sq([id(Nm),ss("/"),ix(Ar)])) :-!.
 ssTrm(whr(_,Ptn,Cond),Dp,sq([PP,ss(" whr "),CC])) :-!,
   ssTrm(Ptn,Dp,PP),
@@ -336,6 +344,14 @@ rewriteTerm(QTest,thk(Lc,Lam,Tp),thk(Lc,LLam,Tp)) :-
 rewriteTerm(QTest,thkRf(Lc,Lam,Tp),thkRf(Lc,LLam,Tp)) :-
   rewriteTerm(QTest,Lam,LLam).
 rewriteTerm(QTest,thkSt(Lc,Lam,Vl),thkSt(Lc,LLam,VV)) :-
+  rewriteTerm(QTest,Lam,LLam),
+  rewriteTerm(QTest,Vl,VV).
+rewriteTerm(_QTest,sav(Lc,Tp),sav(Lc,Tp)) :-!.
+rewriteTerm(QTest,savIsSet(Lc,S),savIsSet(Lc,SS)) :-!,
+  rewriteTerm(QTest,S,SS).
+rewriteTerm(QTest,savGet(Lc,L,Tp),savGet(Lc,LL,Tp)) :-
+  rewriteTerm(QTest,L,LL).
+rewriteTerm(QTest,savSet(Lc,Lam,Vl),savSet(Lc,LLam,VV)) :-
   rewriteTerm(QTest,Lam,LLam),
   rewriteTerm(QTest,Vl,VV).
 rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
@@ -566,6 +582,13 @@ inTerm(thkRf(_,Th,_),Nm) :-!,
   inTerm(Th,Nm).
 inTerm(thkSt(_,Th,Vl),Nm) :-!,
   (inTerm(Th,Nm) ; inTerm(Vl,Nm)).
+inTerm(sav(_,_),_) :-!,false.
+inTerm(savIsSet(_,S),Nm) :-!,
+  inTerm(S,Nm).
+inTerm(savGet(_,Th,_),Nm) :-!,
+  inTerm(Th,Nm).
+inTerm(savSet(_,Th,Vl),Nm) :-!,
+  (inTerm(Th,Nm) ; inTerm(Vl,Nm)).
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
@@ -635,6 +658,12 @@ tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
 tipeOf(mtch(_,_,_),type("boolean")).
 tipeOf(ng(_,_),type("boolean")).
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
+tipeOf(thk(_,_,T),T).
+tipeOf(sav(_,T),T).
+tipeOf(savIsSet(_,_),type("boolean")).
+tipeOf(savGet(_,_,Tp),Tp).
+tipeOf(savSet(_,S,T),Nm) :-!,
+  inTerm(S,Nm);inTerm(T,Nm).
 tipeOf(vlof(_,_,T),T).
 
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
@@ -729,6 +758,14 @@ validTerm(thk(Lc,Th,_),_,D) :-
 validTerm(thkRf(Lc,Th,_),_,D) :-
   validTerm(Th,Lc,D).
 validTerm(thkSt(Lc,Th,Vl),_,D) :-
+  validTerm(Th,Lc,D),
+  validTerm(Vl,Lc,D).
+validTerm(sav(_Lc,_),_,_D) :-!.
+validTerm(savIsSet(Lc,S),_,D) :-
+  validTerm(S,Lc,D).
+validTerm(savGet(Lc,Th,_),_,D) :-
+  validTerm(Th,Lc,D).
+validTerm(savSet(Lc,Th,Vl),_,D) :-
   validTerm(Th,Lc,D),
   validTerm(Vl,Lc,D).
 validTerm(whr(Lc,Exp,Cond),_,D) :-
