@@ -190,6 +190,10 @@ retCode jit_Sav(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_TstSav(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_LdSav(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }

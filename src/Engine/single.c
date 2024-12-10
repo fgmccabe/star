@@ -87,9 +87,9 @@ retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical
   singlePo single = C_SINGLE(t);
 
   if (singleVal(single) != Null)
-    return outMsg(out, "single: %,*T", depth, single->content);
+    return outMsg(out, "<!%,*T!>", depth, single->content);
   else
-    return outMsg(out, "single: (undef)");
+    return outMsg(out, "<!(undef)!>");
 }
 
 termPo singleVal(singlePo v) {

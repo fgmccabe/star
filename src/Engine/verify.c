@@ -530,6 +530,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 	pc++;
 	continue;
       }
+      case TstSav:{
+	if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+	pc++;
+	continue;
+      }
       case LdSav:{
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);

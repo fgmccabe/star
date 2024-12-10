@@ -165,6 +165,7 @@ lblReferenced(Lb,[iBlock(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iTry(_,I)|_]) :-
   lblReferenced(Lb,I).
+lblReferenced(Lb,[iLdSav(Lb)|_]).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 resolveLblRef(Lb,Lbls,LLb) :-

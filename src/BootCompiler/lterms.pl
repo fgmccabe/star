@@ -81,8 +81,9 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
-ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp])) :-!,
-      ssType(T,false,Dp,STp).
+ssTrm(idnt(Nm,_T),_Dp,sq([id(Nm)])) :-!.
+%% ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp])) :-!,
+%%       ssType(T,false,Dp,STp).
 ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])).
 ssTrm(ann(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.

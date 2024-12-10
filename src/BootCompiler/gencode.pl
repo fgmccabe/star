@@ -574,10 +574,14 @@ compExp(sav(Lc,_),OLc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
   bumpStk(Stk,Stka),
   frameIns(Stka,C1,C2),
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
+compExp(savIsSet(Lc,Sv),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(Sv,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iTstSav|C1],Stk,Stka),
+  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
 compExp(savGet(Lc,Sv,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   (is_member(("$abort",_Brker,Abort,_),Brks) ->
-   compExp(Sv,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdSv(Abort)|C2],Stk,Stka),
+   compExp(Sv,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdSav(Abort)|C2],Stk,Stka),
    genLastReturn(Last,Opts,C2,Cx,Stka,Stkx);
    reportError("not in scope of abort",[],Lc),
    Stkx=none,
@@ -587,8 +591,8 @@ compExp(savGet(Lc,Sv,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(savSet(Lc,Sv,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
-  compExp(Sv,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iTSav|C1],Stk1,_Stka),
-  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
+  compExp(Sv,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iTSav|C2],Stk1,_Stka),
+  genLastReturn(Last,Opts,C2,Cx,Stk,Stkx).
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,CaseBlkTp),
