@@ -396,6 +396,8 @@ compPtn(ctpl(St,Args),Lc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   defineTmpVar(Lc,TmpNm,Tp,Opts,D,D1,C,[iTL(TmpNm),iCLbl(St,Fail)|C1]),
   dropStk(Stk,1,Stk0),
   compPtnArgs(Args,Lc,idnt(TmpNm,Tp),0,Fail,Brks,notLast,Opts,L,Lx,D1,Dx,C1,Cx,Stk0,Stkx).
+compPtn(savGet(Lc,V,_),_,Fail,Brks,Opts,L,Lx,D,Dx,[iLdSav(Fail)|C],Cx,Stk,Stkx) :-
+  compPtn(V,Lc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compPtn(whr(Lc,P,Cnd),OLc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compPtn(P,Lc,Fail,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stkx),

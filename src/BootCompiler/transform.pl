@@ -820,12 +820,13 @@ liftFreeThunk(Lc,Nm,LclNm,Tp,ThVr,Exp,Fx,Q,Map,Opts,[ThDf|Ex],Exx) :-
   liftExp(Exp,VExp,Q,_,Map,Opts,Ex,Exx),
   savType(Tp,STp),
   Vr = idnt(Nm,STp),
+  genVar("ϕ",Tp,SvVl),
   ThDf = fnDef(Lc,LclNm,hard,funType(tplType([FrTp]),Tp),
 	       [ThVr],
 	       vlof(Lc,seq(Lc,
 			   defn(Lc,Vr,nth(Lc,ThVr,Fx,Tp)),
-			   iftte(Lc,savIsSet(Lc,Vr),
-				 vls(Lc,savGet(Lc,Vr,Tp)),
+			   iftte(Lc,mtch(Lc,savGet(Lc,SvVl,Tp),Vr),
+				 vls(Lc,SvVl),
 				 vls(Lc,savSet(Lc,Vr,VExp)))))).
 
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).
