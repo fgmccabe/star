@@ -161,10 +161,11 @@ transformMdlDef(cnsDef(Lc,_Nm,enm(_,FullNm,Tp)),_Pkg,Map,_,D,Dx) :-
   transformConsDef(Lc,FullNm,Tp,Map,D,Dx).
 transformMdlDef(conDef(_,_,_),_Pkg,_,_,Dxx,Dxx).
 
-transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[glbDef(Lc,ExtNm,Tp,Vl)|Dx],Dxx) :-
+transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[GlbDef|Dx],Dxx) :-
   (is_member(traceNormalize,Opts) -> dispDef(varDef(Lc,ExtNm,ExtNm,[],Tp,Val));true),
-  liftExp(Val,Vl,[],_Q,Map,Opts,Dx,Dxx). 
-%  (is_member(traceNormalize,Opts) -> dispRuleSet(glbDef(Lc,ExtNm,Tp,Vl));true).
+  liftExp(Val,Vl,[],_Q,Map,Opts,Dx,Dxx),
+  GlbDef = glbDef(Lc,ExtNm,Tp,Vl),
+  (is_member(traceNormalize,Opts) -> dispRuleSet(GlbDef);true).
 
 extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
@@ -251,7 +252,8 @@ transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dx
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)),
-  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
+  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
+  (is_member(traceNormalize,Opts) -> dispAct(defn(none,Nm,Rep));true).
 transformLetDef(varDef(Lc,Nm,_LclNm,_,Tp,Exp),Extra,Map,OMap,Opts,F,F,Dx,Dxx) :-
   lookupVar(Map,Nm,thunkArg(ThVr,Lbl,Ix)),
   liftFreeThunk(Lc,Nm,Lbl,Tp,ThVr,Exp,Ix,Extra,OMap,Opts,Dx,Dxx).
@@ -497,9 +499,6 @@ liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
 liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftLet(Lc,Decls,Defs,Bnd,transform:liftExp,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
-liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftLetRec(Lc,Decls,Defs,transform:liftExp,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
-
 liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   genVar("_ThR",Tp,ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,QL,Map,Opts,ThMap,RMap,FreeTerm),
@@ -508,6 +507,9 @@ liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   call(Cll,Bnd,BExpr,QL,_Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(traceNormalize,Opts) -> dispTerm(Exp);true).
+
+liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftLetRec(Lc,Decls,Defs,transform:liftExp,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
 liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",Tp,ThVr),
@@ -616,8 +618,6 @@ liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamF
   (is_member(traceNormalize,Opts) -> dispCanon(lambda(Lc,LamLbl,Cx,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Cx,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
-%  is_member((_,Args,_,_),Rls),!,
-%  length(Args,Ar),
   functionMatcher(Lc,lbl(LamLbl,Ar),hard,Tp,Rls,Map,LamFun).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-

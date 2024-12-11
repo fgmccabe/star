@@ -2,7 +2,7 @@
 	  [trCons/3,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
 	   lookupVar/3,lookupThetaVar/3,lookupTypeIndex/3,
 	   lookupType/3,findConsType/3,
-	   definedProgs/2,labelVars/2,
+	   definedProgs/2,
 	   genVar/3, genVars/2,
 	   genAnons/2,
 	   pushOpt/3, dispMap/3,
@@ -131,26 +131,6 @@ definedP(_Nm,moduleFun(_,_,_,Tp),Tp).
 definedP(_Nm,localFun(_,_,_,_,Tp),Tp).
 definedP(_Nm,moduleVar(_,Tp),Tp).
 
-labelVars(Map,Prgs) :-
-  lblVars(Map,[],Prgs).
-
-lblVars([],Pr,Pr).
-lblVars([lyr(Vrs,_,_,ThVr)|Map],Pr,Prx) :-
-  (ThVr=void -> Pr=Pr0 ;add_mem(ThVr,Pr,Pr0)),
-  dict_pairs(Vrs,_,Pairs),
-  labelVarsInDefs(Pairs,Pr0,Pr1),
-  lblVars(Map,Pr1,Prx).
-
-labelVarsInDefs([],Pr,Pr).
-labelVarsInDefs([_-labelArg(V,_,_ThVr,_)|Defs],Pr,Prx) :-
-  (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
-  labelVarsInDefs(Defs,Pr0,Prx).
-labelVarsInDefs([V-thunkArg(_ThVr,_._)|Defs],Pr,Prx) :-
-  (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
-  labelVarsInDefs(Defs,Pr0,Prx).
-labelVarsInDefs([_|Defs],Pr,Prx) :-
-  labelVarsInDefs(Defs,Pr,Prx).
-
 mergeGoal(none,G,_,G).
 mergeGoal(some(G),none,_,G).
 mergeGoal(some(G1),some(G2),Lc,some(cnj(Lc,G1,G2))).
@@ -240,8 +220,8 @@ ssLyrDec(Nm-localFun(LclName,_ClosureName,Ar,ThV,_),
 ssLyrDec(Nm-moduleVar(LclName,_Tp),
 	 sq([ss("Global Var "),id(Nm),ss("="),ss(LclName)])).
 ssLyrDec(Nm-labelArg(_Field,Ix,ThV,Tp),
-	 sq([ss("Free Var "),id(Nm),ss(":"),TT,ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
-  ssTrm(ThV,0,TT),
+	 sq([ss("Free Var "),id(Nm),ss(":"),TT,ss("="),VV,ss("["),ix(Ix),ss("]")])) :-
+  ssTrm(ThV,0,VV),
   ssType(Tp,false,0,TT).
 ssLyrDec(Nm-thunkArg(ThV,Lbl,_Tp),
 	 sq([ss("Thunk Var "),id(Nm),ss("="),LL,ss("["),TT,ss("]")])) :-
