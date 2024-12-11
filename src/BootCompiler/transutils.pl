@@ -90,6 +90,7 @@ findThetaVar(lyr(VrMap,_,_,_),Key,V) :-
 getThetaVar(localFun(_,_,_,ThVr,_),ThVr).
 getThetaVar(localClass(_,_,_,_,ThVr),ThVr).
 getThetaVar(labelArg(_,_,ThVr,_),ThVr).
+getThetaVar(thunkArg(ThVr,_,_),ThVr).
 
 lookupTypeIndex(Map,TpNm,Index) :-
   makeKey(TpNm,Key),
@@ -142,6 +143,9 @@ lblVars([lyr(Vrs,_,_,ThVr)|Map],Pr,Prx) :-
 
 labelVarsInDefs([],Pr,Pr).
 labelVarsInDefs([_-labelArg(V,_,_ThVr,_)|Defs],Pr,Prx) :-
+  (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
+  labelVarsInDefs(Defs,Pr0,Prx).
+labelVarsInDefs([V-thunkArg(_ThVr,_._)|Defs],Pr,Prx) :-
   (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
   labelVarsInDefs(Defs,Pr0,Prx).
 labelVarsInDefs([_|Defs],Pr,Prx) :-
@@ -239,6 +243,10 @@ ssLyrDec(Nm-labelArg(_Field,Ix,ThV,Tp),
 	 sq([ss("Free Var "),id(Nm),ss(":"),TT,ss("="),TT,ss("["),ix(Ix),ss("]")])) :-
   ssTrm(ThV,0,TT),
   ssType(Tp,false,0,TT).
+ssLyrDec(Nm-thunkArg(ThV,Lbl,_Tp),
+	 sq([ss("Thunk Var "),id(Nm),ss("="),LL,ss("["),TT,ss("]")])) :-
+  ssTrm(ThV,0,TT),
+  ssTrm(Lbl,0,LL).
 ssLyrDec(Nm-moduleType(TpNm,_Tp,IxMap),
 	 sq([ss("Module type "),id(Nm),ss("="),ss(TpNm),CC])) :-
   ssConsIndex(IxMap,CC).
