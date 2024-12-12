@@ -6,8 +6,11 @@ test.as{
 
   -- peter:{name:string. age:integer}.
   peter = let{.
-    name = "fred" ++ "'s friend".
+    name = fred.name ++ "'s friend".
   .} in pTrm{name=name. age=23 }.
+
+  fred = pTrm{.
+    name = "fred". age=45 .}.
 
   main:()=> ().
   main() => valof{
