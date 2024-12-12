@@ -252,14 +252,12 @@ transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dx
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)),
-  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
-  (is_member(traceNormalize,Opts) -> dispAct(defn(none,Nm,Rep));true).
+  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
 transformLetDef(varDef(Lc,Nm,_LclNm,_,Tp,Exp),Extra,Map,OMap,Opts,F,F,Dx,Dxx) :-
   lookupVar(Map,Nm,thunkArg(ThVr,Lbl,Ix)),
   liftFreeThunk(Lc,Nm,Lbl,Tp,ThVr,Exp,Ix,Extra,OMap,Opts,Dx,Dxx).
-
-transformLetDef(varDef(_Lc,Nm,LclNm,_,_Tp,Exp),_,_Map,OMap,Opts,F,[(Nm,lbl(LclNm,1),Rep)|F],Dx,Dxx) :-
-  liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
+%% transformLetDef(varDef(_Lc,Nm,LclNm,_,_Tp,Exp),_,_Map,OMap,Opts,F,[(Nm,lbl(LclNm,1),Rep)|F],Dx,Dxx) :-
+%%   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
 transformLetDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
@@ -502,6 +500,9 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   genVar("_ThR",Tp,ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,QL,Map,Opts,ThMap,RMap,FreeTerm),
+  (is_member(traceNormalize,Opts) ->
+     reportMsg("Free term %s",[ltrm(FreeTerm)]),
+     dispMap("Let map: ",1,ThMap);true),
   tipeOf(FreeTerm,Tp),
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,QL,_Qx,ThMap,Opts,Ex1,Exx),
@@ -516,7 +517,8 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm,_CellVars),
   tipeOf(FreeTerm,Tp),
   (is_member(traceNormalize,Opts) ->
-   dispMap("Letrec map: ",1,ThMap);true),
+     reportMsg("Free term %s",[ltrm(FreeTerm)]),
+     dispMap("Letrec map: ",1,ThMap);true),
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
@@ -741,10 +743,9 @@ isVarDef(varDef(_,Nm,_LclNm,_,Tp,_),F,Fv) :-
   add_mem(idnt(Nm,Tp),F,Fv).
 isVarDef(_,Fv,Fv).
 
-makeFreeTerm(CellVars,Lc,ThFr,Map,Opts,FreeTerm) :-
+makeFreeTerm(CellVars,Lc,ThFr,_Map,_Opts,FreeTerm) :-
   map(CellVars,transform:emptyCell(Lc),CV),
-  map(ThFr,transform:mkFreeVar(Map,Opts,Lc),FrExps),
-  concat(CV,FrExps,Args),
+  concat(CV,ThFr,Args),
   mkTpl(Args,FreeTerm).
 
 emptyCell(Lc,idnt(_,Tp),sav(Lc,STp)) :-
