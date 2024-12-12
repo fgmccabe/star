@@ -1,5 +1,5 @@
 :- module(lterms,[ssTransformed/2,
-		  dispRuleSet/1,dispProg/1,dispEquations/1,
+		  ssRuleSet/3,dispRuleSet/1,dispProg/1,dispEquations/1,
 		  substTerm/3,substGoal/3,substAction/3,
 		  substTerms/3,rewriteTerm/3,
 		  rewriteAction/3,
@@ -44,6 +44,9 @@ ssRuleSet(typDef(_Lc,Tp,_Rl,IxMap),
 ssRuleSet(lblDef(_Lc,Lbl,_Tp,Ix),
 	  sq([ss("Cn: "),LL,ss(" @ "),ix(Ix)])) :-
   ssTrm(Lbl,0,LL).
+
+ssRuleSet(Df,_,DD) :-
+  ssRuleSet(Df,DD).
 
 dispEquations(Eqs) :-
   map(Eqs,lterms:ssEqn(lterms:ssTrm),EE),
@@ -674,8 +677,11 @@ validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
 
 validDfs([],_).
 validDfs([D|Dfs],Dct) :-
+  errorCount(E),
   validDf(D,Dct),!,
-  validDfs(Dfs,Dct).
+  (noNewErrors(E) ->
+     validDfs(Dfs,Dct);
+   reportMsg("(validate) Defn %s not valid",[ldef(D)])).
 
 validDf(fnDef(Lc,_,_,_Tp,Args,Value),Dct) :-!,
   declareArgs(Args,Dct,D0),

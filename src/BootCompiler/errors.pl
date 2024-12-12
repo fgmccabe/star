@@ -114,6 +114,8 @@ showTrm(con(T),O) :-
   ss_to_chrs(types:ssConstraint(true,0,T),O,[]).
 showTrm(dcl(D),O) :-
   ss_to_chrs(canon:ssDecl(D),O,[]).
+showTrm(ldef(D),O) :-
+  ss_to_chrs(lterms:ssRuleSet(D),O,[]).
 showTrm(ltrm(L),O) :-
   ss_to_chrs(lterms:ssTrm(L,0),O,[]).
 showTrm(lact(A),O) :-
