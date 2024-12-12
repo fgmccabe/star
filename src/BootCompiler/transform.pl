@@ -102,7 +102,6 @@ makeConstructorMap(Decls,CnMp,ConsMap) :-
 
 findAllConstructors([],Cons,Cons) :-!.
 findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
-%  collectibleCons(CnsTp),!,
   consTpName(CnsTp,TpNm),
   (concat(L1,[(TpNm,L)|L2],Cons) ->
    concat(L1,[(TpNm,[(Nm,FullNm,CnsTp)|L])|L2],C0) ;
@@ -110,9 +109,6 @@ findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,C0,Cnx).
 findAllConstructors([_|Defs],Cons,Cnx) :-
   findAllConstructors(Defs,Cons,Cnx).
-
-collectibleCons(Tp) :-
-  moveQuants(Tp,_,consType(tplType(_),_)),!.
 
 collectCons(Nm,TpNm,Cons,Cns) :-
   (concat(L1,[(TpNm,L)|L2],Cons) ->
@@ -256,8 +252,6 @@ transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F
 transformLetDef(varDef(Lc,Nm,_LclNm,_,Tp,Exp),Extra,Map,OMap,Opts,F,F,Dx,Dxx) :-
   lookupVar(Map,Nm,thunkArg(ThVr,Lbl,Ix)),
   liftFreeThunk(Lc,Nm,Lbl,Tp,ThVr,Exp,Ix,Extra,OMap,Opts,Dx,Dxx).
-%% transformLetDef(varDef(_Lc,Nm,LclNm,_,_Tp,Exp),_,_Map,OMap,Opts,F,[(Nm,lbl(LclNm,1),Rep)|F],Dx,Dxx) :-
-%%   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
 transformLetDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
@@ -536,9 +530,9 @@ combineUpdate(Lc,Vr,Ix,Term,SoFar,seqD(Lc,setix(Lc,Vr,Ix,Term),SoFar)).
 combineActionUpdate(Lc,Vr,Ix,Term,SoFar,seq(Lc,setix(Lc,Vr,Ix,Term),SoFar)).
 
 computeFreeVect(Lc,Vr,Fr,[],_,Exp,ltt(Lc,Vr,Fr,Exp)).
-computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(Nm,Ix,Term)|Ups],Update,Exp,Reslt) :-
+computeFreeVect(Lc,Vr,ctpl(Lbl,Args),[(_Nm,Ix,Term)|Ups],Update,Exp,Reslt) :-
   \+idInTerm(Vr,Term),!,
-  split_list(Ix,Args,F,[idnt(Nm,_)|R]),
+  split_list(Ix,Args,F,[_|R]),
   concat(F,[Term|R],NArgs),
   computeFreeVect(Lc,Vr,ctpl(Lbl,NArgs),Ups,Update,Exp,Reslt).
 computeFreeVect(Lc,Vr,Fr,[(_,Ix,Term)|Ups],Update,Exp,Reslt) :-
@@ -663,7 +657,7 @@ letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTe
   makeConstructorMap(Decls,consMap{},ConsMap),
   collectThunkVars(Defs,ThVr,0,FIx,varMap{},V0,CellVars),
   collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),
-  declareThetaVars(Decls,ThVr,ConsMap,V1,Vx,typeMap{},Tx),
+  declareThetaDefs(Decls,ThVr,ConsMap,V1,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Qx,Map,Opts,
@@ -674,7 +668,7 @@ letMap(Lc,Decls,Defs,Bnd,ThVr,Q,Qx,Map,Opts,
   merge(CellVars,Q,Qx),
   makeConstructorMap(Decls,consMap{},ConsMap),
   collectLabelVars(FreeVars,ThVr,0,_,varMap{},V0),
-  declareThetaVars(Decls,ThVr,ConsMap,V0,Vx,typeMap{},Tx),
+  declareThetaDefs(Decls,ThVr,ConsMap,V0,Vx,typeMap{},Tx),
   makeFreeTerm([],Lc,FreeVars,Map,Opts,FreeTerm).
 
 letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
@@ -683,7 +677,7 @@ letActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,
   varDefs(Defs,CellVars),
   concat(CellVars,ThFree,FreeVars),
   makeConstructorMap(Decls,consMap{},ConsMap),
-  declareThetaVars(Decls,ThVr,ConsMap,varMap{},V0,typeMap{},Tx),
+  declareThetaDefs(Decls,ThVr,ConsMap,varMap{},V0,typeMap{},Tx),
   collectLabelVars(FreeVars,ThVr,0,_,V0,Vx),
   makeFreeTerm([],Lc,FreeVars,Map,Opts,FreeTerm).
 
@@ -693,7 +687,7 @@ letRecActionMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],
 
   collectThunkVars(Defs,ThVr,0,FIx,varMap{},V0,CellVars),
   collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),
-  declareThetaVars(Decls,ThVr,ConsMap,V1,Vx,typeMap{},Tx),
+  declareThetaDefs(Decls,ThVr,ConsMap,V1,Vx,typeMap{},Tx),
   makeFreeTerm(CellVars,Lc,ThFree,Map,Opts,FreeTerm).
 
 declarePtnVars(Q,[lyr(Vars,Tx,Cons,ThVr)|Map],[lyr(NVars,Tx,Cons,ThVr)|Map]) :-
@@ -780,10 +774,10 @@ notVar(V) :- V\=idnt(_,_).
 
 isIdnt(idnt(_,_)).
 
-declareThetaVars([],_,_,Vx,Vx,Tx,Tx).
-declareThetaVars([D|Ds],ThVr,ConsMap,V,Vx,T,Tx) :-
+declareThetaDefs([],_,_,Vx,Vx,Tx,Tx).
+declareThetaDefs([D|Ds],ThVr,ConsMap,V,Vx,T,Tx) :-
   declareThetaVar(D,ThVr,ConsMap,V,V0,T,T0),!,
-  declareThetaVars(Ds,ThVr,ConsMap,V0,Vx,T0,Tx).
+  declareThetaDefs(Ds,ThVr,ConsMap,V0,Vx,T0,Tx).
 
 declareThetaVar(funDec(Nm,LclName,Tp),ThV,_,V,Vx,Tx,Tx) :-
   mangleName(LclName,closure,ClosureName),
