@@ -112,7 +112,7 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
-ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss(":"),FF])) :-
+ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss("|"),FF,ss(">")])) :-
   ssTrm(Free,Dp,FF).
 ssTrm(enum(Nm,_Tp),_,sq([ss("."),id(Nm)])) :-!.
 ssTrm(nth(_,Rc,Off,_),Dp,sq([OO,ss("."),ix(Off)])) :-!,
