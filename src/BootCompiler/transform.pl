@@ -456,7 +456,7 @@ liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(traceNormalize,Opts) -> dispAction(doLet(Lc,Decls,Defs,B));true),
-  genVar("_ThR",Tp,ThVr),
+  genVar("_ThAL",Tp,ThVr),
   letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
   tipeOf(FreeTerm,Tp),
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
@@ -465,7 +465,7 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(traceNormalize,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 %  (is_member(traceNormalize,Opts) -> dispAction(doLetRec(Lc,Decls,Defs,B));true),
-  genVar("_ThR",Tp,ThVr),
+  genVar("_ThRA",Tp,ThVr),
   letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
   tipeOf(FreeTerm,Tp),
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
@@ -498,7 +498,7 @@ liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftLet(Lc,Decls,Defs,Bnd,transform:liftExp,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
 liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
-  genVar("_ThR",Tp,ThVr),
+  genVar("_ThL",Tp,ThVr),
   letMap(Lc,Decls,Defs,Bnd,ThVr,Q,QL,Map,Opts,ThMap,RMap,FreeTerm),
   (is_member(traceNormalize,Opts) ->
      reportMsg("Free term %s",[ltrm(FreeTerm)]),
@@ -517,13 +517,13 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm,_CellVars),
   tipeOf(FreeTerm,Tp),
   (is_member(traceNormalize,Opts) ->
-     reportMsg("Free term %s",[ltrm(FreeTerm)]),
+     reportMsg("Free term %s",[ltrm(FreeTerm)],Lc),
      dispMap("Letrec map: ",1,ThMap);true),
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
   (is_member(traceNormalize,Opts) ->
-   dispTerm(Exp);true).
+   reportMsg("lifted let rec %s",[ltrm(Exp)],Lc);true).
 
 mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
   computeFreeVect(Lc,Vr,Fr,Ups,transform:combineUpdate,Exp,AExp).
@@ -619,8 +619,14 @@ liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamF
   Ar is Ar0+1,
   (is_member(traceNormalize,Opts) -> dispCanon(lambda(Lc,LamLbl,Cx,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Cx,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
+  (is_member(traceNormalize,Opts) ->
+   reportMsg("Free term %s",[ltrm(FreeTerm)]),
+   dispMap("Lambda map: ",1,LMap);true),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
-  functionMatcher(Lc,lbl(LamLbl,Ar),hard,Tp,Rls,Map,LamFun).
+  functionMatcher(Lc,lbl(LamLbl,Ar),hard,Tp,Rls,Map,LamFun),
+  (is_member(traceNormalize,Opts) ->
+   reportMsg("Lifted Lambda: %s",[ldef(LamFun)],Lc);
+   true).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
@@ -743,9 +749,10 @@ isVarDef(varDef(_,Nm,_LclNm,_,Tp,_),F,Fv) :-
   add_mem(idnt(Nm,Tp),F,Fv).
 isVarDef(_,Fv,Fv).
 
-makeFreeTerm(CellVars,Lc,ThFr,_Map,_Opts,FreeTerm) :-
+makeFreeTerm(CellVars,Lc,ThFr,Map,Opts,FreeTerm) :-
   map(CellVars,transform:emptyCell(Lc),CV),
-  concat(CV,ThFr,Args),
+  map(ThFr,transform:mkFreeVar(Map,Opts,Lc),CFr),
+  concat(CV,CFr,Args),
   mkTpl(Args,FreeTerm).
 
 emptyCell(Lc,idnt(_,Tp),sav(Lc,STp)) :-
