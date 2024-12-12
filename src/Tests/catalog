@@ -156,6 +156,7 @@
     "test.sys": "sys.star",
     "test.t": "t.star",
     "test.th0": "th0.star",
+    "test.th1": "th1.star",
     "test.thfib": "thfib.star",
     "test.tk0" : "tk0.star",
     "test.tl" : "tl.star",
