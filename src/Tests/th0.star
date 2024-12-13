@@ -4,24 +4,25 @@ test.th0{
 
   vv = ref .true.
 
-  thkFn(Lam) => ()=>
+  thkFn:all x ~~ (()=>x)=>()=>x.
+  thkFn(Lam) => 
     let{.
       K = Lam().
-    .} in K.
+    .} in (()=>K).
 
   thunk = thkFn(()=>valof{
       assert vv!;
       showMsg("make a thunk");
       vv := .false;
       valis 2
-    })().
+    }).
 
   main:()=>().
   main() => valof{
     assert vv!;
-    assert thunk == 2;
+    assert thunk() == 2;
     assert ~vv!;
-    assert thunk == 2;
+    assert thunk() == 2;
     valis ()
   }
 }
