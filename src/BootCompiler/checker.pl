@@ -908,17 +908,11 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Path) :-
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,E1,_,Exp,Path).
 
-typeOfThunk(Lc,Term,Tp,Env,
-	    thunk(Lc,
-		  lambda(Lc,Lbl,[],rule(Lc,tple(Lc,[ThnkVar]),none,thnkSet(Lc,ThnkVar,Exp)),funType(tplType([Tp]),ThT)),
-		  Tp),Path) :-
-  newTypeVar("t",ThT),
-  genNewName(Path,"Γ",ThNme),
-  ThnkVar = v(Lc,ThNme,Tp),
-  lambdaLbl(Path,"λ",Lbl),
-  thunkType(ThT,ThTp),
+typeOfThunk(Lc,Term,Tp,Env,thunk(Lc,ThExp,Tp),Path) :- 
+  newTypeVar("υ",VlTp),
+  thunkType(VlTp,ThTp),
   verifyType(Lc,ast(Term),ThTp,Tp,Env),
-  typeOfExp(Term,ThT,Env,_,Exp,Path).
+  typeOfExp(Term,VlTp,Env,_,Exp,Path).
 
 checkAction(A,Tp,HasVal,Env,Ev,As,Path) :-
   isBraceTuple(A,_,[S]),!,
