@@ -191,8 +191,6 @@ termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 termPo glbFinalizer(specialClassPo class, termPo o) {
-  globalPo glb = C_GLOB(o);
-
   return o + GlobalCellCount;
 }
 
@@ -274,13 +272,6 @@ globalPo findGlobalVar(int32 varNo) {
 
 int32 globalVarNo(const char *nm) {
   return (int32) (globalVar(nm)->varNo);
-}
-
-logical isValidGlobalVarNo(int32 varNo) {
-  if (varNo >= 0 && varNo < numGlbVars) {
-    return True;
-  } else
-    return False;
 }
 
 logical glbIsSet(globalPo glb) {

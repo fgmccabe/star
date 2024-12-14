@@ -50,18 +50,6 @@ termPo consTail(normalPo p) {
   return nthArg(p, 1);
 }
 
-void updateConsHead(termPo cns, termPo h) {
-  assert(isCons((termPo) cns));
-  normalPo p = C_NORMAL(cns);
-  setArg(p, 0, h);
-}
-
-void updateConsTail(termPo cns, termPo t) {
-  assert(isCons((termPo) cns));
-  normalPo p = C_NORMAL(cns);
-  setArg(p, 1, t);
-}
-
 integer consLength(termPo t) {
   integer ln = 0;
   while (isNormalPo(t) && termLbl(C_NORMAL(t)) == consCons) {

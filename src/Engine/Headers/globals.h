@@ -18,7 +18,6 @@ extern globalPo C_GLOB(termPo t);
 extern globalPo globalVar(const char *nm);
 
 extern int32 globalVarNo(const char *nm);
-extern logical isValidGlobalVarNo(int32 varNo);
 
 extern globalPo findGlobalVar(int32 varNo);
 

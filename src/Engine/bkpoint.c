@@ -3,8 +3,6 @@
 //
 
 #include "bkpoint.h"
-#include <arith.h>
-#include <labels.h>
 
 integer addBreakPoints(breakPointPo bp) {
   return setLabelBreakPoint(bp->nm, uniStrLen(bp->nm), bp->arity);

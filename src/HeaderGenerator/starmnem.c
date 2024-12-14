@@ -161,8 +161,6 @@ static char *genArg(ioPo out, char *sep, opAndSpec A, char *V) {
   }
 }
 
-char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n";
-
 static char *capitalize(char *str) {
   static char buffer[128];
   strcpy(buffer, str);

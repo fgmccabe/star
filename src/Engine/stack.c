@@ -7,7 +7,6 @@
 #include "stackP.h"
 #include "engineP.h"
 #include "debug.h"
-#include "closure.h"
 
 tracingLevel traceStack = noTracing;    // stack operation tracing
 integer minStackSize = 256;             /* What is the smallest stack size */
@@ -151,10 +150,6 @@ framePo dropFrame(stackPo stk) {
   stk->sp = (ptrPo) (fp + 1) + argCount(frameMtd(fp));
   stk->fp = fp->fp;
   return stk->fp;
-}
-
-ptrPo currSP(stackPo stk) {
-  return stk->sp;
 }
 
 integer stackHwm(stackPo tsk) {

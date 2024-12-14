@@ -53,8 +53,6 @@ termPo thrCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  threadPo str = C_THREAD(o);
-
   return o + ThreadCellCount;
 }
 

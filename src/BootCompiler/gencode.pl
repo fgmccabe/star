@@ -560,17 +560,6 @@ compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   compExp(Cl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iSet|C1],Stk1,_Stka),
   genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
-compExp(thk(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),!,
-  compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iThunk|Cx],Stk,Stkx).
-compExp(thkRf(Lc,Th,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),!,
-  compExp(Th,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,[iLdTh|Cx],Stk,Stkx).
-compExp(thkSt(Lc,Th,Vl),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),!,
-  compExp(Vl,Lc,Brks,notLast,Opts,L,L1,D,D0,C0,C1,Stk,Stk0),
-  compExp(Th,Lc,Brks,notLast,Opts,L1,Lx,D0,Dx,C1,[iTTh|Cx],Stk0,Stk1),
-  dropStk(Stk1,1,Stkx).
 compExp(sav(Lc,_),OLc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iSav|C1]),!,
   bumpStk(Stk,Stka),

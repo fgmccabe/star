@@ -4,7 +4,6 @@
 
 #include <heapP.h>
 #include <memory.h>
-#include "array.h"
 #include "codeP.h"
 #include "labelsP.h"
 #include "debugP.h"
@@ -265,10 +264,6 @@ int32 lclCount(methodPo mtd) {
 
 int32 codeArity(methodPo mtd) {
   return mtd->arity;
-}
-
-int32 methodSigLit(methodPo mtd) {
-  return mtd->sigIx;
 }
 
 int32 codeSize(methodPo mtd) {

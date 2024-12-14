@@ -123,7 +123,3 @@ ioChnnlPo stdErrChnl(heapPo h) {
   }
   return inChnl;
 }
-
-void scanChnnl() {
-
-}

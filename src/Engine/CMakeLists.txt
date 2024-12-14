@@ -49,9 +49,7 @@ set(HEADER_FILES
         Headers/normalP.h
         Headers/singleP.h
         Headers/single.h
-        Headers/thunkP.h
-        Headers/thunk.h
-        Headers/future.h
+		Headers/future.h
         Headers/futureP.h
         Headers/vect.h
         Headers/vectP.h
@@ -90,8 +88,7 @@ set(SOURCE_FILES
 	stack.c
         strings.c
 	term.c
-        thunk.c
-	thr.c
+        thr.c
 	verify.c
         vect.c
 )

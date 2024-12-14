@@ -19,6 +19,4 @@ termPo getCell(cellPo cell);
 
 termPo setCell(cellPo cell, termPo e);
 
-logical isCellSet(cellPo cell);
-
 #endif //STAR_CELL_H

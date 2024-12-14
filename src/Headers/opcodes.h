@@ -45,69 +45,65 @@ typedef enum {
     LdG = 34,            // load a global variable
     StG = 35,            // store into a global variable
     TG = 36,            // copy into a global variable
-    Thunk = 37,            // create a thunk from a lambda
-    LdTh = 38,            // derefence a thunk, potentially running its lambda
-    StTh = 39,            // store a value into a thunk variable
-    TTh = 40,            // update thunk and leave on stack
-    Sav = 41,            // create a single assignment variable
-    LdSav = 42,            // derefence a sav, break if not set
-    TstSav = 43,            // test a sav, return a logical
-    StSav = 44,            // store a value into a single assignment variable
-    TSav = 45,            // update single assignment variable leave value on stack
-    Cell = 46,            // create R/W cell
-    Get = 47,            // access a R/W cell
-    Assign = 48,            // assign to a R/W cell
-    CLbl = 49,            // T,Lbl --> test for a data term, break if not lbl
-    CLit = 50,            // T,lit --> test for a literal value, break if not
-    Nth = 51,            // T --> el, pick up the nth element
-    StNth = 52,            // T el --> store in nth element
-    If = 53,            // break if true
-    IfNot = 54,            // break if false
-    Case = 55,            // T --> T, case <Max> 
-    IndxJmp = 56,            // check and jump on index
-    IAdd = 57,            // L R --> L+R
-    ISub = 58,            // L R --> L-R
-    IMul = 59,            // L R --> L*R
-    IDiv = 60,            // L R --> L/R
-    IMod = 61,            // L R --> L%R
-    IAbs = 62,            // L --> abs(L)
-    IEq = 63,            // L R --> L==R
-    ILt = 64,            // L R --> L<R
-    IGe = 65,            // L R --> L>=R
-    ICmp = 66,            // L R --> break if not same integer
-    CEq = 67,            // L R --> L==R
-    CLt = 68,            // L R --> L<R
-    CGe = 69,            // L R --> L>=R
-    CCmp = 70,            // L R --> break if not same character
-    BAnd = 71,            // L R --> L&R
-    BOr = 72,            // L R --> L|R
-    BXor = 73,            // L R --> L^R
-    BLsl = 74,            // L R --> L<<R
-    BLsr = 75,            // L R --> L>>R
-    BAsr = 76,            // L R --> L>>>R
-    BNot = 77,            // L --> ~L
-    FAdd = 78,            // L R --> L+R
-    FSub = 79,            // L R --> L-R
-    FMul = 80,            // L R --> L*R
-    FDiv = 81,            // L R --> L/R
-    FMod = 82,            // L R --> L%R
-    FAbs = 83,            // L --> abs(L)
-    FEq = 84,            // L R e --> L==R
-    FLt = 85,            // L R --> L<R
-    FGe = 86,            // L R --> L>=R
-    FCmp = 87,            // L R --> branch if not same floating point
-    Alloc = 88,            // new structure, elements from stack
-    Closure = 89,            // allocate a closure
-    Cmp = 90,            // t1 t2 --> , branch to offset if not same literal
-    Frame = 91,            // frame instruction
-    dBug = 92,            // debugging prefix
+    Sav = 37,            // create a single assignment variable
+    LdSav = 38,            // derefence a sav, break if not set
+    TstSav = 39,            // test a sav, return a logical
+    StSav = 40,            // store a value into a single assignment variable
+    TSav = 41,            // update single assignment variable leave value on stack
+    Cell = 42,            // create R/W cell
+    Get = 43,            // access a R/W cell
+    Assign = 44,            // assign to a R/W cell
+    CLbl = 45,            // T,Lbl --> test for a data term, break if not lbl
+    CLit = 46,            // T,lit --> test for a literal value, break if not
+    Nth = 47,            // T --> el, pick up the nth element
+    StNth = 48,            // T el --> store in nth element
+    If = 49,            // break if true
+    IfNot = 50,            // break if false
+    Case = 51,            // T --> T, case <Max> 
+    IndxJmp = 52,            // check and jump on index
+    IAdd = 53,            // L R --> L+R
+    ISub = 54,            // L R --> L-R
+    IMul = 55,            // L R --> L*R
+    IDiv = 56,            // L R --> L/R
+    IMod = 57,            // L R --> L%R
+    IAbs = 58,            // L --> abs(L)
+    IEq = 59,            // L R --> L==R
+    ILt = 60,            // L R --> L<R
+    IGe = 61,            // L R --> L>=R
+    ICmp = 62,            // L R --> break if not same integer
+    CEq = 63,            // L R --> L==R
+    CLt = 64,            // L R --> L<R
+    CGe = 65,            // L R --> L>=R
+    CCmp = 66,            // L R --> break if not same character
+    BAnd = 67,            // L R --> L&R
+    BOr = 68,            // L R --> L|R
+    BXor = 69,            // L R --> L^R
+    BLsl = 70,            // L R --> L<<R
+    BLsr = 71,            // L R --> L>>R
+    BAsr = 72,            // L R --> L>>>R
+    BNot = 73,            // L --> ~L
+    FAdd = 74,            // L R --> L+R
+    FSub = 75,            // L R --> L-R
+    FMul = 76,            // L R --> L*R
+    FDiv = 77,            // L R --> L/R
+    FMod = 78,            // L R --> L%R
+    FAbs = 79,            // L --> abs(L)
+    FEq = 80,            // L R e --> L==R
+    FLt = 81,            // L R --> L<R
+    FGe = 82,            // L R --> L>=R
+    FCmp = 83,            // L R --> branch if not same floating point
+    Alloc = 84,            // new structure, elements from stack
+    Closure = 85,            // allocate a closure
+    Cmp = 86,            // t1 t2 --> , branch to offset if not same literal
+    Frame = 87,            // frame instruction
+    dBug = 88,            // debugging prefix
 
   illegalOp,
   maxOpCode
 } OpCode;
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 2088813164016131965
+#define OPCODE_SIGNATURE 1250871461224459436
 #endif
 
 typedef enum {

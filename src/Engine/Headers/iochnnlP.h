@@ -20,6 +20,4 @@ typedef struct io_record_ {
 extern void initIoChnnl();
 extern ioChnnlPo allocateIOChnnl(heapPo H, ioPo io);
 
-void scanChnnl();
-
 #endif //STAR_IOP_H

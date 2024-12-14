@@ -206,22 +206,6 @@ retCode jit_TSav(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Thunk(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_LdTh(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_StTh(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_TTh(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
 retCode jit_Dup(insPo code, integer pc, jitCompPo jit) {
   verifyJitCtx(jit, 1, 1);
   jit->vStack[jit->vTop] = jit->vStack[jit->vTop - 1];

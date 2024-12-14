@@ -11,8 +11,6 @@
 
 normalPo allocateCons(heapPo H, termPo lhs, termPo rhs);
 
-void updateConsHead(termPo cns,termPo h);
-void updateConsTail(termPo cns,termPo t);
 void initCons();
 
 retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical alt);
