@@ -790,7 +790,10 @@ typeOfExp(Term,Tp,Env,Ev,deref(Lc,Exp),Opts,Path) :-
   typeOfExp(I,RTp,Env,Ev,Exp,Opts,Path).
 typeOfExp(Term,Tp,Env,Env,Thnk,Opts,Path) :-
   isThunk(Term,Lc,Th),!,
-  typeOfThunk(Lc,Th,Tp,Env,Thnk,Opts,Path).
+  typeOfThunk(Lc,Th,Tp,Env,Thnk,Opts,Path),
+  (is_member(traceCheck,Opts) -> 
+   reportMsg("thunk expression  %s:%s",[can(Thnk),tpe(Tp)],Lc);
+   true).
 typeOfExp(Term,Tp,Env,Ev,thnkRef(Lc,Exp,Tp),Opts,Path) :-
   isThunkRef(Term,Lc,Rf),!,
   thunkType(Tp,ThTp),
@@ -934,14 +937,13 @@ typeOfThunk(Lc,Term,Tp,Env,
 						    XVar,
 						    svSet(Lc,SavVar,Exp),VlTp)),
 					  funType(tplType([]),VlTp)))),Tp),Opts,Path) :-
-  newTypeVar("σ",SvTp),
   newTypeVar("υ",VlTp),
+  savType(VlTp,SvTp),
   genNewName(Path,"Σ",SavNm),
   SavVar = v(Lc,SavNm,SvTp),
   genNewName(Path,"σ",XNm),
   XVar = v(Lc,XNm,VlTp),
   lambdaLbl(Path,"λ",Lbl),
-  savType(VlTp,SvTp),
   thunkType(VlTp,ThTp),
   verifyType(Lc,ast(Term),ThTp,Tp,Env),
   typeOfExp(Term,VlTp,Env,_,Exp,Opts,Path).
