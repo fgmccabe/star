@@ -356,6 +356,7 @@ marker(over,"!").
 marker(package,"#").
 marker(field,"°").
 marker(closure,"^").
+marker(thunk,"σ").
 
 dollarName(Nm,DlNm) :-
   string_concat("$",Nm,DlNm).

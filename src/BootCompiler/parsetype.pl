@@ -1,6 +1,6 @@
 :- module(parsetype,[parseType/3,
 		     parseTypeCore/4,
-		     parseContract/10,parseTypeDef/10,algebraicFace/4,
+		     parseContract/11,parseTypeDef/11,algebraicFace/4,
 		     typeTemplate/3,
 		     parseContractConstraint/7,
 		     unwrapType/4,wrapType/4]).
@@ -280,7 +280,7 @@ parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[ast(FS)],Lc).
 
-parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,ConRule),
+parseContract(T,Env,Ev,Opts,Path,[conDef(Nm,ConNm,ConRule),
 			     ConTpDef|Df],Dfx,Publish,Viz,Dc,Dcx) :-
   isContractStmt(T,Lc,Quants,Cx,Con,Els),
   parseBoundTpVars(Quants,Q),
@@ -294,7 +294,9 @@ parseContract(T,Env,Ev,Path,[conDef(Nm,ConNm,ConRule),
   contractType(SpC,ConTp),
   wrapType(Q,Cx,[],[],typeExists(ConTp,Face),FaceRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
-%  reportMsg("contract type  %s",[ConTpDef]),
+  (is_member(traceCheck,Opts) -> 
+     reportMsg("contract type  %s",[ConTpDef]);
+   true),
   dollarName(Nm,DlNm),
   ConTpDef = typeDef(Lc,DlNm,CnType,FaceRule),
   genBraceConstructor(Lc,SortedFlds,DlNm,ConNm,Q,Cx,ConTp,Df,Df0,Env,Ev0,ConDecl),
@@ -314,17 +316,19 @@ parseContractSpec(T,_Q,_Env,conTract(ConNm,[],[]),Nm,ConNm,Path) :-
   isIden(T,_,Nm),!,
   contractName(Path,Nm,ConNm).
 
-parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
+parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,Opts,Path) :-
   isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),!,
-%  reportMsg("parse type exists: %s",[St]),
+  (is_member(traceCheck,Opts) -> 
+     reportMsg("parse type exists: %s",[St]);
+   true),
   parseTypeExists(Lc,Quants,Ct,Hd,Body,Defn,E,Ev,Publish,Viz,Dc,Dcx,Path).
-parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
+parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,_Opts,Path) :-
   isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
   parseTypeFun(Lc,Quants,Ct,Hd,Bd,Defn,E,Ev,Publish,Viz,Dc,Dcx,Path).
-parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
+parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,_Opts,Path) :-
   isAlgebraicTypeStmt(St,Lc,Quants,Constraints,Hd,Body),
   parseAlgebraicTypeDef(Lc,Quants,Constraints,Hd,Body,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
-parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path) :-
+parseTypeDef(St,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,_Opts,Path) :-
   isStructTypeStmt(St,Lc,Q,X,Cx,Hd,Nm,Els),
   parseStructTypeDef(Lc,Q,X,Cx,Hd,Nm,Els,Defs,Dx,E,Ev,Publish,Viz,Dc,Dcx,Path).
 

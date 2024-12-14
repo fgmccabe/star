@@ -413,7 +413,7 @@ liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thunk(Lc,E,Tp),thk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftThunk(Lc,E,Tp,EE,Q,Qx,Map,Opts,Ex,Exx).
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thnkRef(Lc,E,Tp),thkRf(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thnkSet(Lc,E,V),thkSt(Lc,EE,VV),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -422,47 +422,6 @@ liftExp(thnkSet(Lc,E,V),thkSt(Lc,EE,VV),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   locOfCanon(XX,Lc),
   reportFatal("internal: cannot transform %s as expression",[XX],Lc).
-
-%% Translate thunks into uses of SAVars & lambda
-
-% $$ E becomes
-%
-% valof{
-%   SV = _SV;
-%   valis () => (X^=SV ?? X || SV <- E)
-% }
-
-% where _SV is a new single assignment variable and ^= is a pattern match and
-% <- is setting the SAV
-
-liftThunk(Lc,E,Tp,thk(Lc,Exp,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-
-% typeOfThunk(Lc,Term,Tp,Env,
-% 	    valof(Lc,
-% 		  doSeq(Lc,
-% 			doDefn(Lc,SavVar,newSV(Lc,SvTp)),
-% 			doValis(Lc,lambda(Lc,Lbl,[],
-% 					  rule(Lc,tple(Lc,[]),none,
-% 					       cond(Lc,
-% 						    match(Lc,svGet(Lc,XVar,SvTp),SavVar),
-% 						    XVar,
-% 						    svSet(Lc,SavVar,Exp),VlTp)),
-% 					  funType(tplType([]),VlTp)))),Tp),Path) :-
-%   newTypeVar("σ",SvTp),
-%   newTypeVar("υ",VlTp),
-%   genNewName(Path,"Σ",SavNm),
-%   SavVar = v(Lc,SavNm,SvTp),
-%   genNewName(Path,"σ",XNm),
-%   XVar = v(Lc,XNm,VlTp),
-%   lambdaLbl(Path,"λ",Lbl),
-%   savType(ThT,SvTp),
-  
-%   verifyType(Lc,ast(Term),ThTp,Tp,Env),
-
-%   typeOfExp(Term,ThT,Env,_,Exp,Path).
-
-  
 
 liftAction(doNop(Lc),nop(Lc),Q,Q,_,_,Ex,Ex) :-!.
 liftAction(doSeq(Lc,L,R),seq(Lc,LL,RR),Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -506,6 +465,7 @@ liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   liftAction(B,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
+%  (is_member(traceNormalize,Opts) -> dispAct(Exp);true).
 liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(B,BB,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cs,Cases,Q0,Qx,Map,Opts,transform:liftAction,Ex0,Exx),
