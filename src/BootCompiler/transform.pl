@@ -290,6 +290,8 @@ liftPtn(capply(Lc,enm(_,Nm,Tp),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
+liftPtn(svGet(Lc,P,Tp),savGet(Lc,PP,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftPtn(P,PP,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
   locOfCanon(XX,Lc),
   typeOfCanon(XX,Tp),
@@ -414,9 +416,12 @@ liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thunk(Lc,E,Tp),thk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(thnkRef(Lc,E,Tp),thkRf(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(thnkRef(Lc,E,Tp),ocall(Lc,EE,[],Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(thnkSet(Lc,E,V),thkSt(Lc,EE,VV),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(newSV(Lc,Tp),sav(Lc,Tp),Qx,Qx,_Map,_Opts,Exx,Exx).
+liftExp(svGet(Lc,E,Tp),savGet(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(svSet(Lc,E,V),savSet(Lc,EE,VV),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Ex0),
   liftExp(V,VV,Q,Qx,Map,Opts,Ex0,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-

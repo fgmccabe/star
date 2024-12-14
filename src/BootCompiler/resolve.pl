@@ -225,7 +225,10 @@ overloadTerm(thunk(Lc,A,Tp),Dict,St,Stx,thunk(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(thnkRef(Lc,A,Tp),Dict,St,Stx,thnkRef(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
-overloadTerm(thnkSet(Lc,Th,Vl),Dict,St,Stx,thnkSet(Lc,TT,VV)) :-!,
+overloadTerm(newSV(Lc,Tp),_Dict,Stx,Stx,newSV(Lc,Tp)) :-!.
+overloadTerm(svGet(Lc,A,T),Dict,St,Stx,svGet(Lc,AA,T)) :-!,
+  overloadTerm(A,Dict,St,Stx,AA).
+overloadTerm(svSet(Lc,Th,Vl),Dict,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Th,Dict,St,St0,TT),
   overloadTerm(Vl,Dict,St0,Stx,VV).
 overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
