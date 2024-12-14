@@ -294,11 +294,11 @@ parseContract(T,Env,Ev,Opts,Path,[conDef(Nm,ConNm,ConRule),
   contractType(SpC,ConTp),
   wrapType(Q,Cx,[],[],typeExists(ConTp,Face),FaceRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
-  (is_member(traceCheck,Opts) -> 
-     reportMsg("contract type  %s",[ConTpDef]);
-   true),
   dollarName(Nm,DlNm),
   ConTpDef = typeDef(Lc,DlNm,CnType,FaceRule),
+  (is_member(traceCheck,Opts) -> 
+   reportMsg("contract type  %s",[ConTpDef]);
+   true),
   genBraceConstructor(Lc,SortedFlds,DlNm,ConNm,Q,Cx,ConTp,Df,Df0,Env,Ev0,ConDecl),
   call(Publish,Viz,con(Nm),ConDecl,Dc,Dca),
 %  reportMsg("contract type constructor %s",[CnsDef]),

@@ -293,8 +293,8 @@ parseAnnotation(_,_,_,_,_,_,Face,Face).
 
 defineType(N,_,_,Env,T,[(N,Tp)|T],_,_) :-
   isType(N,Env,tpDef(_,Tp,_)),!.
-defineType(N,_,St,Env,T,[(N,Type)|T],Opts,Path) :-
-  parseTypeCore(St,Type,Env,Opts,Path).
+defineType(N,_,St,Env,T,[(N,Type)|T],_Opts,Path) :-
+  parseTypeCore(St,Type,Env,Path).
 defineType(_,Lc,St,_,T,T,_,_) :-
   reportError("cannot parse type statement %s",[St],Lc).
 
@@ -411,7 +411,7 @@ checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Opts,Path) :-
   typeOfExp(R,VlTp,E,_E2,Value,Opts,Path),
   qualifiedName(Path,Nm,ExtNm).
 
-checkThetaBody(Tp,Lbl,Lc,Els,Opts,Env,Val,Opts,Path) :-
+checkThetaBody(Tp,Lbl,Lc,Els,Env,Val,Opts,Path) :-
   evidence(Tp,Env,Q,ETp),
   faceOfType(ETp,Lc,Env,FaceTp),
   getConstraints(FaceTp,Cx,Face),
@@ -457,7 +457,7 @@ checkRecordBody(Tp,Lbl,Lc,Els,Env,letExp(Lc,LDecls,Defs,Exp),Opts,Path) :-
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Lc,Cx,E0,BaseEnv),
   genNewName(Path,"Γ",ThPath),
-  recordEnv(checker:letExport,Opts,ThPath,Lc,Els,faceType(Fs,Ts),Opts,BaseEnv,_,Defs,RDecls),
+  recordEnv(checker:letExport,Opts,ThPath,Lc,Els,faceType(Fs,Ts),BaseEnv,_,Defs,RDecls),
 %  completePublic(Public,Public,FullPublic,Opts,Path),
 %  computeThetaExport(Defs,Fs,FullPublic,_Decls,Defs),!,
 %  filterTheta(Decls,Fs,Public,XDecls,LDecls),
@@ -1118,7 +1118,7 @@ checkCaseExp(_Lc,Bnd,Cases,Tp,Env,Env,Checker,Bound,Eqns,Opts,Path) :-
 %  reportMsg("case governer: %s:%s",[Bound,LhsTp]),
   checkCases(Cases,LhsTp,Tp,Env,Eqns,Eqx,Eqx,[],Checker,Opts,Path),!.
 
-checkCases([],_,_,_,Eqs,Eqs,Dfx,Dfx,_,_).
+checkCases([],_,_,_,Eqs,Eqs,Dfx,Dfx,_,_,_).
 checkCases([C|Ss],LhsTp,Tp,Env,Eqns,Eqx,Df,Dfx,Checker,Opts,Path) :-
   isEquation(C,Lc,L,G,R),!,
   checkCase(Lc,L,G,R,LhsTp,Tp,Env,Eqns,Eqs,Df,Df0,Checker,Opts,Path),
