@@ -24,7 +24,6 @@ termPo getMtdLit(methodPo mtd, integer litNo);
 
 int32 lclCount(methodPo mtd);
 int32 codeArity(methodPo mtd);
-int32 methodSigLit(methodPo mtd);
 
 int32 codeSize(methodPo mtd);
 termPo findPcLocation(methodPo mtd, int32 pc);

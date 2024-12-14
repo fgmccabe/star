@@ -26,7 +26,6 @@
 #include "starP.h"
 #include "futureP.h"
 #include "singleP.h"
-#include "thunkP.h"
 #include "vectP.h"
 #include "ioops.h"
 #include "libEscapes.h"
@@ -76,7 +75,6 @@ int main(int argc, char **argv) {
   initStrings();
   initLbls();
   initSingle();
-  initThunk();
   initGlobals();
   initCons();
   initEither();

@@ -559,31 +559,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case Thunk: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case LdTh: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case StTh: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case TTh: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        pc++;
-        continue;
-      }
       case Cell:{
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);

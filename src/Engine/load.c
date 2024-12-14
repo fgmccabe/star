@@ -60,7 +60,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           rewindStrBuffer(sigBuffer);
           ioPo pkgIn = O_IO(sigBuffer);
 
-          if (ret == Ok && isLookingAt(pkgIn, pkgSig) == Ok)
+          if (isLookingAt(pkgIn, pkgSig) == Ok)
             ret = decodePkgName(pkgIn, &lddPkg, errorMsg, msgSize);
           else {
             closeIo(O_IO(sigBuffer));

@@ -7,10 +7,7 @@
 #include <lblops.h>
 
 #include "engineP.h"
-#include "decode.h"
-#include "globals.h"
 #include "debugP.h"
-#include "tpl.h"
 
 // Count instructions etc.
 static poolPo prPool;     /* pool of processes */
@@ -114,10 +111,6 @@ void switchProcessState(processPo p, ProcessState state) {
 
 void setProcessRunnable(processPo p) {
   switchProcessState(p, runnable);
-}
-
-integer nextTryCounter(processPo P) {
-  return P->tryCounter++;
 }
 
 ProcessState processState(processPo p) {

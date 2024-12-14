@@ -107,8 +107,3 @@ termPo setCell(cellPo cell, termPo e) {
   cell->content = e;
   return (termPo) cell;
 }
-
-logical isCellSet(cellPo cell){
-  return cell->content!=Null;
-}
-

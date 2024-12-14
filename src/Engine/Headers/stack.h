@@ -41,8 +41,6 @@ framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
 framePo pushFrame(stackPo stk, methodPo mtd);
 
-ptrPo currSP(stackPo stk);
-
 termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);

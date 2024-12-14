@@ -1022,14 +1022,14 @@ checkAction(A,Tp,HasVal,Env,Env,doLet(Lc,Decls,Defs,Ac),Opts,Path) :-
   pushScope(Env,ThEnv),
   recordEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,HasVal,OEnv,_,Ac,ThPath).
+  checkAction(B,Tp,HasVal,OEnv,_,Ac,Opts,ThPath).
 checkAction(A,Tp,HasVal,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Opts,Path) :-
   isLetRec(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   thetaEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,HasVal,OEnv,_,Ac,ThPath).
+  checkAction(B,Tp,HasVal,OEnv,_,Ac,Opts,ThPath).
 checkAction(A,Tp,HasVal,Env,Env,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
   isCaseExp(A,Lc,Bnd,Cases),
   newTypeVar("B",BVr),
@@ -1040,8 +1040,7 @@ checkAction(A,Tp,HasVal,Env,Env,doCall(Lc,Exp),Opts,Path) :-
   newTypeVar("_",RTp),
   typeOfRoundTerm(Lc,F,Args,RTp,Env,Exp,Opts,Path),
   checkLastAction(A,Lc,HasVal,Tp,RTp,Env).
-
-checkAction(A,Tp,_HasVal,Env,Env,doNop(Lc),_) :-
+checkAction(A,Tp,_HasVal,Env,Env,doNop(Lc),_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
 

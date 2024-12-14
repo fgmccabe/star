@@ -46,8 +46,6 @@ termPo closureScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o
 }
 
 termPo closureFinalizer(specialClassPo class, termPo o) {
-  closurePo list = C_CLOSURE(o);
-
   return o + ClosureCellCount;
 }
 

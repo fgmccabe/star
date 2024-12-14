@@ -4,7 +4,6 @@
 
 #include <math.h>
 #include "arithP.h"
-#include "assert.h"
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
@@ -59,8 +58,6 @@ integer intHash(specialClassPo cl, termPo o) {
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", alt);
 }
-
-typedef struct float_term *fltPo;
 
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   return outDouble(out, floatVal(t), 'g', 0, (int) precision, ' ', True, False);

@@ -11,7 +11,6 @@
 #include "editline.h"
 #include "ltype.h"
 #include "libEscapes.h"
-#include "signature.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;

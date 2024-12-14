@@ -127,13 +127,6 @@ ssTrm(get(_,C),Dp,sq([CC,ss("!")])) :-!,
 ssTrm(set(_,C,V),Dp,sq([CC,ss(":="),VV])) :-!,
   ssTrm(C,Dp,CC),
   ssTrm(V,Dp,VV).
-ssTrm(thk(_,Lm,_),Dp,sq([ss("$$ "),lp,LL,rp])) :-!,
-  ssTrm(Lm,Dp,LL).
-ssTrm(thkRf(_,Rf,_),Dp,sq([lp,RR,rp,ss("!!")])) :-!,
-  ssTrm(Rf,Dp,RR).
-ssTrm(thkSt(_,Rf,Vl),Dp,sq([lp,RR,ss("!:=!"),VV,rp])) :-!,
-  ssTrm(Rf,Dp,RR),
-  ssTrm(Vl,Dp,VV).
 ssTrm(sav(_,_),_Dp,sq([ss("sav"),lp,rp])) :-!.
 ssTrm(savIsSet(_,S),Dp,sq([SS,ss("?")])) :-!,
   ssTrm(S,Dp,SS).
@@ -343,13 +336,6 @@ rewriteTerm(QTest,set(Lc,T,V),set(Lc,NT,NV)) :-
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerm(QTest,Vl,NVl).
-rewriteTerm(QTest,thk(Lc,Lam,Tp),thk(Lc,LLam,Tp)) :-
-  rewriteTerm(QTest,Lam,LLam).
-rewriteTerm(QTest,thkRf(Lc,Lam,Tp),thkRf(Lc,LLam,Tp)) :-
-  rewriteTerm(QTest,Lam,LLam).
-rewriteTerm(QTest,thkSt(Lc,Lam,Vl),thkSt(Lc,LLam,VV)) :-
-  rewriteTerm(QTest,Lam,LLam),
-  rewriteTerm(QTest,Vl,VV).
 rewriteTerm(_QTest,sav(Lc,Tp),sav(Lc,Tp)) :-!.
 rewriteTerm(QTest,savIsSet(Lc,S),savIsSet(Lc,SS)) :-!,
   rewriteTerm(QTest,S,SS).
@@ -580,12 +566,6 @@ inTerm(ltt(_,_,B,E),Nm) :-!,
   (inTerm(B,Nm);inTerm(E,Nm)).
 inTerm(vlof(_,A),Nm) :-!,
   inAction(A,Nm).
-inTerm(thk(_,Th,_),Nm) :-!,
-  inTerm(Th,Nm).
-inTerm(thkRf(_,Th,_),Nm) :-!,
-  inTerm(Th,Nm).
-inTerm(thkSt(_,Th,Vl),Nm) :-!,
-  (inTerm(Th,Nm) ; inTerm(Vl,Nm)).
 inTerm(sav(_,_),_) :-!,false.
 inTerm(savIsSet(_,S),Nm) :-!,
   inTerm(S,Nm).
@@ -662,7 +642,6 @@ tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
 tipeOf(mtch(_,_,_),type("boolean")).
 tipeOf(ng(_,_),type("boolean")).
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
-tipeOf(thk(_,_,T),T).
 tipeOf(sav(_,T),T).
 tipeOf(savIsSet(_,_),type("boolean")).
 tipeOf(savGet(_,_,Tp),Tp).
@@ -759,13 +738,6 @@ validTerm(set(Lc,C,V),_,D) :-
 validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
-  validTerm(Vl,Lc,D).
-validTerm(thk(Lc,Th,_),_,D) :-
-  validTerm(Th,Lc,D).
-validTerm(thkRf(Lc,Th,_),_,D) :-
-  validTerm(Th,Lc,D).
-validTerm(thkSt(Lc,Th,Vl),_,D) :-
-  validTerm(Th,Lc,D),
   validTerm(Vl,Lc,D).
 validTerm(sav(_Lc,_),_,_D) :-!.
 validTerm(savIsSet(Lc,S),_,D) :-

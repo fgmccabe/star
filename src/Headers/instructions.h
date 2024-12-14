@@ -61,13 +61,7 @@ instruction(LdG, glb, nOp, 1, "F()p", "load a global variable")
 instruction(StG, glb, tOs, -1, "F(p)()", "store into a global variable")
 instruction(TG, glb, tOs, 0, "F(p)p", "copy into a global variable")
 
-instruction(Thunk, tOs, nOp, 0, "F(p)p", "create a thunk from a lambda")
-instruction(LdTh, tOs, nOp, 0, "F(p)p", "derefence a thunk, potentially running its lambda")
-instruction(StTh, tOs, tOs, -2, "F(pp)()", "store a value into a thunk variable")
-instruction(TTh, tOs, tOs, -1, "F(pp)p", "update thunk and leave on stack")
-
 instruction(Sav, nOp, nOp, 0, "F()p", "create a single assignment variable")
-
 instruction(LdSav, tOs, lVl, 0, "F(p)p", "derefence a sav, break if not set")
 instruction(TstSav, tOs, nOp, 0, "F(p)l", "test a sav, return a logical")
 instruction(StSav, tOs, tOs, -2, "F(pp)()", "store a value into a single assignment variable")

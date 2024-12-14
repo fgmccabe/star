@@ -4,7 +4,6 @@
 #include "futureP.h"
 #include "assert.h"
 #include "globals.h"
-#include "cell.h"
 
 static long futureSize(specialClassPo cl, termPo o);
 static termPo futureCopy(specialClassPo cl, termPo dst, termPo src);

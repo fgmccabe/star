@@ -221,8 +221,6 @@ overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
-overloadTerm(thunk(Lc,A,Tp),Dict,St,Stx,thunk(Lc,AA,Tp)) :-!,
-  overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(thnkRef(Lc,A,Tp),Dict,St,Stx,thnkRef(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(newSV(Lc,Tp),_Dict,Stx,Stx,newSV(Lc,Tp)) :-!.

@@ -16,7 +16,6 @@
 #include "verifyP.h"
 #include "debugP.h"
 #include "buddyP.h"
-#include "labelsP.h"
 #include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
@@ -356,10 +355,10 @@ static retCode setDefaultSize(char *option, logical enable) {
   integer size = parseSize(option);
   if (size < minStackSize) {
     outMsg(logFile, "default size should be at least %d\n", minStackSize);
-    size = minStackSize;
+    return Error;
   } else if (size > stackRegionSize / 2) {
     outMsg(logFile, "size should no larger than %d\n", stackRegionSize / 2);
-    size = stackRegionSize / 2;
+    return Error;
   } else if (size != (1 << lg2(size))) {
     outMsg(logFile, "size should be a power of 2, suggesting %d\n", 1 << (lg2(size) + 1));
     size = 1 << (lg2(size) + 1);

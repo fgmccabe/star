@@ -29,13 +29,3 @@ logical isSome(termPo t) {
   } else
     return False;
 }
-
-logical isNone(termPo t) {
-  return sameTerm(t, noneEnum);
-}
-
-termPo unwrapSome(normalPo p) {
-  assert(isSome((termPo) p));
-  return nthArg(p, 0);
-}
-

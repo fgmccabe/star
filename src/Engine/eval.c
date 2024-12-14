@@ -15,7 +15,6 @@
 #include <math.h>
 #include "cellP.h"
 #include "closureP.h"
-#include "thunkP.h"
 #include "singleP.h"
 #include "errorCodes.h"
 #include "ltype.h"
@@ -844,101 +843,6 @@ retCode run(processPo P) {
         setSingle(sav, val);      // Update the single variable
         break;
       }
-
-      case Thunk: {  // Create a new thunk
-        closurePo thLam = C_CLOSURE(pop());
-
-        if (reserveSpace(H, ThunkCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, ThunkCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
-        thunkPo thnk = thunkVar(H, thLam);
-        push(thnk);       /* put the structure back on the stack */
-        break;
-      }
-
-      case LdTh: {
-        thunkPo thVr = C_THUNK(pop());
-
-        if (thunkIsSet(thVr)) {
-          termPo vl = thunkVal(thVr);
-
-          check(vl != Null, "undefined thunk value");
-
-          push(vl);     /* load thunk variable */
-          PC++;
-          continue;
-        } else {
-          closurePo thLambda = thunkLam(thVr);
-
-          labelPo lb = closureLabel(thLambda);
-
-          if (lb == Null) {
-            logMsg(logFile, "label %T not defined", thLambda);
-            bail();
-          } else if (labelArity(lb) != 2) {
-            logMsg(logFile, "closure %T does not have correct arity %d", thLambda, 2);
-            bail();
-          }
-
-          methodPo mtd = labelCode(lb);       /* set up for object call */
-
-          if (mtd == Null) {
-            logMsg(logFile, "no definition for %T", lb);
-            bail();
-          }
-          push(thVr);                                         // Keep the thunk var
-          push(closureFree(thLambda));                     // Put the free term back on the stack
-
-          if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
-            int root = gcAddRoot(H, (ptrPo) &mtd);
-            stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
-            gcReleaseRoot(H, root);
-
-#ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
-#endif
-          }
-
-          assert(validPC(frameMtd(FP), PC));
-          FP->pc = PC + 1;
-          pushFrme(mtd);
-          LITS = codeLits(mtd);
-          incEntryCount(mtd);              // Increment program count
-          continue;
-        }
-      }
-
-      case StTh: {                           // Store into thunk
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = pop();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
-        break;
-      }
-
-      case TTh: {                        // Set thunk and carry on
-        thunkPo thnk = C_THUNK(pop());
-        termPo val = top();
-
-        if (thunkIsSet(thnk)) {
-          logMsg(logFile, "thunk %T already set", thnk);
-          bail();
-        }
-
-        setThunk(thnk, val);      // Update the thunk variable
-        break;
-      }
-
       case Cell: {
         checkAlloc(CellCellCount);
         cellPo cell = newCell(H, pop());
@@ -1370,7 +1274,7 @@ retCode run(processPo P) {
             const char *sig = strVal(frame, &sigLen);
             tryRet(typeSigArity(sig, sigLen, &frameDepth));
           } else
-            frameDepth = integerVal(frame);
+            frameDepth = (int32)integerVal(frame);
           if (frameDepth != stackDepth(STK, frameMtd(FP), SP, FP)) {
             logMsg(logFile, "stack depth: %d does not match frame signature %T",
                    stackDepth(STK, frameMtd(FP), SP, FP),

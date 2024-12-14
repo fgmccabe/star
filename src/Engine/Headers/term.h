@@ -75,6 +75,4 @@ retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical a
 
 logical sameTerm(termPo t1, termPo t2);
 
-ptrPo minPtr(ptrPo p1,ptrPo p2);
-
 #endif //STAR_TERM_H

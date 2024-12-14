@@ -139,9 +139,9 @@ retCode showSig(ioPo out, const char *sig, integer *pos, integer len) {
       }
       case tplTp: {
         retCode ret = outStr(out, "(");
+        char *sep = "";
         while (ret == Ok) {
           integer ps = *pos;
-          char *sep = "";
           if (nextCodePoint(sig, &ps, len) == ')') {
             *pos = ps;
             return outStr(out, ")");

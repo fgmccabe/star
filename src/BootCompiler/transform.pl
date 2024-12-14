@@ -414,8 +414,6 @@ liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(thunk(Lc,E,Tp),thk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(thnkRef(Lc,E,Tp),ocall(Lc,EE,[],Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(newSV(Lc,Tp),sav(Lc,Tp),Qx,Qx,_Map,_Opts,Exx,Exx).

@@ -152,13 +152,6 @@ retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) 
     return outMsg(out, "%S", name);
 }
 
-ptrPo minPtr(ptrPo p1,ptrPo p2){
-  if(p1<=p2)
-    return p1;
-  else
-    return p2;
-}
-
 logical sameTerm(termPo t1, termPo t2) {
   clssPo c1 = classOf(t1);
   clssPo c2 = classOf(t2);
@@ -222,7 +215,7 @@ integer termSize(normalPo t) {
 }
 
 normalPo allocateTpl(heapPo H, integer arity) {
-  labelPo lbl = tplLabel(arity);
+  labelPo lbl = tplLabel((int32)arity);
   int root = gcAddRoot(H, (ptrPo) &lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
