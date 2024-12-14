@@ -38,6 +38,8 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-c'|More],CWD,Cx,[typeCheckOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-tc'|More],CWD,Cx,[traceCheck|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-m'|More],CWD,Cx,[macroOnly|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-n'|More],CWD,Cx,[transformOnly|Opts],Files) :-!,

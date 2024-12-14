@@ -116,7 +116,7 @@ typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
-typeOfCanon(thunk(_,_,Tp),Tp) :- !.
+typeOfCanon(thunk(_,_,T),Tp) :- !, thunkType(T,Tp).
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(thnkSet(_,Th,_),Tp) :- !,
   typeOfCanon(Th,Tp).
