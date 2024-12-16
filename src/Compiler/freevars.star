@@ -42,22 +42,20 @@ star.compiler.freevars{
     }
     | .apply(_,O,A,_) => freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
     | .tple(_,Els) => freeVarsInTuple(Els,Q,Fv)
-    | .match(_,P,S) where Q1 .= dropVars(P,Q) =>
-      freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
+    | .match(_,P,S) where Q1 .= dropVars(P,Q) => freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
     | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
     | .trycatch(_,E,T,H,_) where Q1 .= dropVars(T,Q) =>
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
 	foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
-    | .rst(_,E,_) => freeVarsInExp(E,Q,Fv)
-    | .shyft(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
-    | .invoke(_,K,E,_) => freeVarsInExp(K,Q,freeVarsInExp(E,Q,Fv))
     | .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
     | .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
-    | .thSet(_,E,V) => freeVarsInExp(V,Q,freeVarsInExp(E,Q,Fv))
+    | .newSav(_,_) => Fv
+    | .svGet(_,V,_) => freeVarsInExp(V,Q,Fv)
+    | .svSet(_,S,V) => freeVarsInExp(S,Q,freeVarsInExp(V,Q,Fv))
     | .letExp(_,D,_,E) => let{
       QD = dropDefs(D,Q).
     } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv))

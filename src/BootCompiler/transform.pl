@@ -564,11 +564,11 @@ implementVarExp(moduleCons(C,_,Ar),_,_,_,Cns,_,_,Q,Q) :-
   trCons(C,Ar,Cns).
 implementVarExp(notInMap,_,Nm,Tp,idnt(Nm,Tp),_,_,Q,Qx) :-
   merge([idnt(Nm,Tp)],Q,Qx).
-implementVarExp(moduleFun(_,some(Closure),Ar,_),_,_,_,clos(Closure,Ar1,Unit),_,_,Q,Q) :-
+implementVarExp(moduleFun(_,some(Closure),Ar,Tp),_,_,_,clos(Closure,Ar1,Unit,Tp),_,_,Q,Q) :-
   Closure\==void,
   Ar1 is Ar+1,
   mkTpl([],Unit).
-implementVarExp(localFun(_Fn,Closure,Ar,ThVr,_),Lc,_,_,clos(Closure,Ar1,Vr),Map,Opts,Q,Qx) :-
+implementVarExp(localFun(_Fn,Closure,Ar,ThVr,Tp),Lc,_,_,clos(Closure,Ar1,Vr,Tp),Map,Opts,Q,Qx) :-
   Ar1 is Ar+1,
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx).
 implementVarExp(_Other,Lc,Nm,Tp,idnt(Nm,Tp),_,_,Q,Q) :-
@@ -611,7 +611,7 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftGuard(G,Test,Q0,Q1,Map,Opts,Ex0,Ex1), % condition goals
   call(Lifter,Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx).
 
-liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm),Q,Map,Opts,[LamFun|Ex],Exx) :-
+liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[LamFun|Ex],Exx) :-
   progTypeArity(Tp,Ar0),
   Ar is Ar0+1,
   (is_member(traceNormalize,Opts) -> dispCanon(lambda(Lc,LamLbl,Cx,Eqn,Tp));true),

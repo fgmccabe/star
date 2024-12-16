@@ -579,6 +579,7 @@ star.compiler.types{
   public strType = .nomnal("string").
   public boolType = .nomnal("boolean").
   public thunkType(T) => makeTpExp("thunk",[T]).
+  public savType(T) => makeTpExp("sav",[T]).
   public ioType = .nomnal("ioHandle").
 
   public isThunkType(Tp) =>

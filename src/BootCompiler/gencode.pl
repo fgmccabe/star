@@ -532,7 +532,7 @@ compExp(ocall(Lc,O,A,_Tp),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(O,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iOCall(Arity)|C2],Stka,_),
   bumpStk(Stk,Stkx),
   frameIns(Stkx,C2,Cx).
-compExp(clos(Lb,Ar,Free),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(clos(Lb,Ar,Free,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Free,OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iClosure(lbl(Lb,Ar))|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stka,C1,C2),

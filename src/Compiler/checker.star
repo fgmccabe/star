@@ -686,20 +686,8 @@ star.compiler.checker{
       valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp);
     }
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) => valof{
-    Et = newTypeVar("_E");
-
-    checkType(A,thunkType(Et),Tp,Env);
-
-    ThExp = typeOfExp(E,Et,Env,Path);
-
-    if traceCanon! then
-      showMsg("thunk $(E)\:$(Et)");
-
-    LName = genId(Path++"λ");
-    ThnkVr = .vr(Lc,genId("Θ"),Tp);
-    valis .thunk(Lc,.lambda(Lc,LName,.rule(Lc,.tple(Lc,[ThnkVr]),.none,.thSet(Lc,ThnkVr,ThExp)),[],funType([],Et)),Tp)
-  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) =>
+    typeOfThunk(Lc,E,Tp,Env,Path).
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunkRef(A) => valof{
     ThExp = typeOfExp(E,thunkType(Tp),Env,Path);
 
@@ -941,6 +929,38 @@ star.compiler.checker{
       reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
       valis .vr(Lc,"_",Tp)
     }
+  }
+
+  /*
+  $$ E is mapped to
+
+  valof{
+    SV = _SV;
+    valis ()=> (X^=SV ?? X || SV <- E)
+  }
+
+  where _SV is a new single assignment var, ^= matches one and <- assigns to it.
+
+  */
+  typeOfThunk(Lc,E,Tp,Env,Path) => valof{
+    VlTp = mewTypeVar("υ");
+    SvTp = savType(VlTp);
+
+    checkType(A,thunkType(VlTp),Tp,Env);
+
+    SavVr = .vr(Lc,genNewName(Path,"Σ"),SvTp);
+    XVr = .vr(Lc,genNewName(Path,"σ"),SvTp);
+
+    valis .thunk(Lc,.vlof(Lc,
+	.doSeq(Lc,
+	  .doDefn(Lc,SavVr,.newSav(Lc,VlTp)),
+	  .doValis(Lc,
+	    .lambda(Lc,lambdaLbl(Lc),
+	      .rule(Lc,.tple(Lc,[]),.none,
+		.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
+		  XVr,
+		  .svSet(Lc,SavVr,
+		    typeOfExp(E,SvVl,Env,Path)))))))),Tp)
   }
 
   checkAction:(ast,tipe,dict,string) => (canonAction,dict).

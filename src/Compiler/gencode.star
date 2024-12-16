@@ -149,21 +149,15 @@ star.compiler.gencode{
       valis genLastReturn(Last,Stk2,
 	chLine(OLc,Lc)++FCode++[.iClosure(.tLbl(Nm,Ar)),frameIns(Stk2)])
     }
-    | .cThnk(Lc,Th,Tp) => valof{
+    | .cSv(Lc,Tp) => genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++[.iSav])
+    | .cSvDrf(Lc,Th,Tp) => valof{
       (_Stk,ThC) = compExp(Th,Lc,.notLast,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
-      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ThC++[.iThunk])
-    }      
-    | .cThDrf(Lc,Th,Tp) => valof{
-      (_Stk,ThC) = compExp(Th,Lc,.notLast,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
-      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ThC++[.iLdTh])
+      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++ThC++[.iLdTh])
     }
-    | .cThSet(Lc,Th,Vl) => valof{
+    | .cSvSet(Lc,Th,Vl) => valof{
       (Stk0,VlC) = compExp(Vl,Lc,.notLast,Ctx,Stk);
       (_Stk,ThC) = compExp(Th,Lc,.notLast,Ctx,Stk0);
-      Stk1 = pushStack(typeOf(Th)::ltipe,Stk);
-      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++VlC++ThC++[.iTTh])
+      valis genLastReturn(Last,pushStack(typeOf(Vl)::ltipe,Stk),chLine(OLc,Lc)++VlC++ThC++[.iTTh])
     }
     | .cNth(Lc,E,Ix,Tp) => valof{
       (Stk0,Vl) = compExp(E,Lc,.notLast,Ctx,Stk);
