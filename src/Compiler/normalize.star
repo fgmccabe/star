@@ -33,7 +33,7 @@ star.compiler.normalize{
 
   all e ~~ crFlow[e] ~> (e,cons[cDefn]).
 
-  transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) =>cons[cDefn].
+  transformDef:(canonDef,nameMap,nameMap,set[cId],option[cExp],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
