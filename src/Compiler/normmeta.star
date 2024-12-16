@@ -19,6 +19,7 @@ star.compiler.normalize.meta{
   | .moduleCons(string,tipe)
   | .localCons(string,tipe,cId)
   | .labelArg(cId,integer)
+  | .thunkArg(cId,termLbl,integer)
   | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).
@@ -39,6 +40,7 @@ star.compiler.normalize.meta{
       | .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)"
       | .localVar(Vr) => "local var $(Vr)"
       | .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]"
+      | .thunkArg(Base,Lbl,Ix) => "thunk arg $(Base)[$(Ix)], $(Lbl)"
       | .globalVar(Nm,Tp) => "global #(Nm)"
     }
   }
@@ -56,6 +58,7 @@ star.compiler.normalize.meta{
   lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
     | .labelArg(ThV,_) => .some(ThV)
+    | .thunkArg(ThV,_,_) => .some(ThV)
     | .localFun(_,_,_,ThV) => .some(ThV)
     | _ default => .none
     }.

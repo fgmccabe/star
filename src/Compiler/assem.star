@@ -592,7 +592,6 @@ star.compiler.assem{
     valis stkHwm(Ins,CH0,H0)
   }
 
-
   findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
@@ -612,7 +611,6 @@ star.compiler.assem{
 
   public implementation display[codeSegment] => {
     disp(.func(Nm,_,Tp,_,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins).
-    disp(.global(Nm,Tp,_,Ins)) => "glb $(Nm)\:$(Tp)\n"++showMnem(Ins).
     disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
     disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
   }
@@ -627,6 +625,7 @@ star.compiler.assem{
   showBlock:(cons[assemOp],cons[integer]) => string.
   showBlock(Ins,Pc) => interleave(showCode(Ins,Pc),"\n")*.
 
+  showCode:(cons[assemOp],cons[integer]) => cons[string].
   showCode([],_) => [].
   showCode([Ins,..Cde],Pc) => ["\#(showPc(Pc)\: \#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
 

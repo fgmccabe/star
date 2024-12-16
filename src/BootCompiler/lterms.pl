@@ -112,8 +112,9 @@ ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
   showArgs(A,Dp1,AA).
-ssTrm(clos(Nm,Ar,Free),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss("|"),FF,ss(">")])) :-
-  ssTrm(Free,Dp,FF).
+ssTrm(clos(Nm,Ar,Free,Tp),Dp,sq([ss("<"),id(Nm),ss("/"),ix(Ar),ss("|"),FF,ss(":"),TT,ss(">")])) :-
+  ssTrm(Free,Dp,FF),
+  ssType(Tp,false,Dp,TT).
 ssTrm(enum(Nm,_Tp),_,sq([ss("."),id(Nm)])) :-!.
 ssTrm(nth(_,Rc,Off,_),Dp,sq([OO,ss("."),ix(Off)])) :-!,
   ssTrm(Rc,Dp,OO).
@@ -344,7 +345,7 @@ rewriteTerm(QTest,savGet(Lc,L,Tp),savGet(Lc,LL,Tp)) :-
 rewriteTerm(QTest,savSet(Lc,Lam,Vl),savSet(Lc,LLam,VV)) :-
   rewriteTerm(QTest,Lam,LLam),
   rewriteTerm(QTest,Vl,VV).
-rewriteTerm(QTest,clos(Nm,Ar,Free),clos(Nm,Ar,NFree)) :-
+rewriteTerm(QTest,clos(Nm,Ar,Free,Tp),clos(Nm,Ar,NFree,Tp)) :-
   rewriteTerm(QTest,Free,NFree).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
@@ -487,7 +488,7 @@ isLiteral(lbl(_,_)).
 isLiteral(ctpl(Lbl,Args)) :-
   isLiteral(Lbl),
   check_implies(misc:is_member(A,Args),lterms:isLiteral(A)),!.
-isLiteral(clos(_,_,F)) :-
+isLiteral(clos(_,_,F,_)) :-
   isLiteral(F).
 
 termHash(voyd,0).
@@ -518,7 +519,7 @@ inTerm(ocall(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(ocall(_,_Op,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(clos(_,_,Fr),Nm) :-
+inTerm(clos(_,_,Fr,_),Nm) :-
   inTerm(Fr,Nm).
 inTerm(ecll(_,_,Args,_),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
@@ -647,6 +648,7 @@ tipeOf(savIsSet(_,_),type("boolean")).
 tipeOf(savGet(_,_,Tp),Tp).
 tipeOf(savSet(_,S,T),Nm) :-!,
   inTerm(S,Nm);inTerm(T,Nm).
+tipeOf(clos(_,_,_,Tp),Tp).
 tipeOf(vlof(_,_,T),T).
 
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
@@ -714,7 +716,7 @@ validTerm(cll(Lc,lbl(_,_),Args,_),_,D) :-
 validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
-validTerm(clos(_,_,Free),Lc,D) :-
+validTerm(clos(_,_,Free,_Tp),Lc,D) :-
   validTerm(Free,Lc,D).
 validTerm(ecll(Lc,Es,Args,_),_,D) :-
   isEscape(Es),!,

@@ -307,21 +307,13 @@ star.compiler.normalize{
   liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift thunk $(.thunk(Lc,Lm,Tp))\:$(Tp)");
-    (NLm,Ex1) = liftExp(Lm,Map,Q,Ex);
-    valis (.cThnk(Lc,NLm,Tp),Ex1)
+    valis liftExp(Lm,Map,Q,Ex);
   }
   liftExp(.thRef(Lc,Th,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
-    (NTh,Ex1) = liftExp(Th,Map,Q,Ex);
-    valis (.cThDrf(Lc,NTh,Tp),Ex1)
-  }
-  liftExp(.thSet(Lc,Th,Vl),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("lift thunk set $(.thSet(Lc,Th,Vl))");
-    (TT,Ex1) = liftExp(Th,Map,Q,Ex);
-    (VV,Ex2) = liftExp(Vl,Map,Q,Ex1);
-    valis (.cThSet(Lc,TT,VV),Ex2)
+    (Thk,Ex1) = liftExp(Th,Map,Q,Ex);
+    valis (.cOCall(Lc,Thk,[],Tp),Ex1)
   }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
@@ -437,7 +429,6 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-
     (lVars,glDefs) = unzip(varDefs(Defs));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
@@ -501,10 +492,7 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cId],set[cId],
       cons[cDefn]) => crFlow[x].
   liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-    GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
-    GrpVars = (Grp^/(D)=>_?=isVarDef(D));
-
-    (lVars,glDefs) = unzip(varDefs(GrpVars));
+    (lVars,glDefs) = unzip(varDefs(Grp));
 
     rawGrpFree = freeLabelVars(Free,Outer)::cons[cId];
     varParents = freeParents(rawGrpFree \ lVars,Outer);
@@ -546,7 +534,6 @@ star.compiler.normalize{
       if traceNormalize! then{
 	showMsg("lVars = $(lVars)");
 	showMsg("glDefs = $(glDefs)");
-	showMsg("GrpVars = $(GrpVars)");
 	showMsg("GrpFree = $(GrpFree)");
       };
 

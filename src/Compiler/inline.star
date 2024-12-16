@@ -99,9 +99,9 @@ star.compiler.inline{
     | .cNth(Lc,T,Ix,Tp) => inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp)
     | .cSetNth(Lc,T,Ix,Vl) => applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth))
     | .cClos(Lc,Lb,Ar,Fr,Tp) => .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp)
-    | .cThnk(Lc,Fn,Tp) => .cThnk(Lc,simExp(Fn,Map,Depth),Tp)
-    | .cThDrf(Lc,Th,Tp) => .cThDrf(Lc,simExp(Th,Map,Depth),Tp)
-    | .cThSet(Lc,T,V) => .cThSet(Lc,simExp(T,Map,Depth),simExp(V,Map,Depth))
+    | .cSv(_,_) => Exp
+    | .cSvDrf(Lc,Th,Tp) => .cSvDrf(Lc,simExp(Th,Map,Depth),Tp)
+    | .cSvSet(Lc,T,V) => .cSvSet(Lc,simExp(T,Map,Depth),simExp(V,Map,Depth))
     | .cSeq(Lc,L,R) => .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth))
     | .cCnj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
     | .cDsj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
