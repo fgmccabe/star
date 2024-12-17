@@ -24,6 +24,7 @@ star.compiler.term{
   | .cNth(option[locn],cExp,integer,tipe)
   | .cSetNth(option[locn],cExp,integer,cExp)
   | .cClos(option[locn],string,integer,cExp,tipe)
+  | .cTask(option[locn],cExp,tipe)
   | .cSv(option[locn],tipe)
   | .cSvDrf(option[locn],cExp,tipe)
   | .cSvSet(option[locn],cExp,cExp)
@@ -102,6 +103,7 @@ star.compiler.term{
     | .cNth(_,O,Ix,_) => "#(dspExp(O,Off)).$(Ix)"
     | .cSetNth(_,O,Ix,E) => "(#(dspExp(O,Off)).$(Ix) <- #(dspExp(E,Off)))"
     | .cClos(_,Nm,Ar,Fr,_) => "<#(Nm)/$(Ar)\:#(dspExp(Fr,Off))>"
+    | .cTask(_,E,_) => "fiber #(dspExp(E,Off))"
     | .cSv(_,Tp) => "^$(Tp)"
     | .cSvDrf(_,E,_) => "#(dspExp(E,Off))^"
     | .cSvSet(_,E,V) => "#(dspExp(E,Off))<-#(dspExp(V,Off))"
@@ -231,6 +233,7 @@ star.compiler.term{
     | .cString(_,S1) => .cString(_,S2).=E2 && S1==S2
     | .cTerm(_,S1,A1,_) => .cTerm(_,S2,A2,_).=E2 && S1==S2 && eqs(A1,A2)
     | .cClos(_,L1,A1,F1,_) => .cClos(_,L2,A2,F2,_).=E2 && L1==L2 && A1==A2 && eqTerm(F1,F2)
+    | .cTask(_,F1,_) => .cTask(_,F2,_).=E2 && eqTerm(F1,F2)
     | .cSv(_,_) => .cSv(_,_).=E2
     | .cSvDrf(_,T1,_) => .cSvDrf(_,T2,_).=E2 && eqTerm(T1,T2)
     | .cSvSet(_,T1,V1) => .cSvSet(_,T2,V2).=E2 && eqTerm(T1,T2) && eqTerm(V1,V2)
@@ -324,6 +327,7 @@ star.compiler.term{
       | .cSetNth(Lc,_,_,_) => Lc
       | .cTerm(Lc,_,_,_) => Lc
       | .cClos(Lc,_,_,_,_) => Lc
+      | .cTask(Lc,_,_) => Lc
       | .cSv(Lc,_) => Lc
       | .cSvDrf(Lc,_,_) => Lc
       | .cSvSet(Lc,_,_) => Lc
@@ -357,6 +361,7 @@ star.compiler.term{
       | .cString(_,_) => strType
       | .cTerm(_,_,_,Tp) => Tp
       | .cClos(_,_,_,_,Tp) => Tp
+      | .cTask(_,_,Tp) => Tp
       | .cSv(_,Tp) => Tp
       | .cSvDrf(_,_,Tp) => Tp
       | .cSvSet(_,_,Vl) => tpOf(Vl)
@@ -460,6 +465,7 @@ star.compiler.term{
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,rwTerm(R,Tst),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,rwTerm(R,Tst),Ix,rwTerm(E,Tst))
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,rwTerm(F,Tst),Tp)
+    | .cTask(Lc,F,Tp) => .cTask(Lc,rwTerm(F,Tst),Tp)
     | .cSv(_,_) => Trm
     | .cSvDrf(Lc,E,Tp) => .cSvDrf(Lc,rwTerm(E,Tst),Tp)
     | .cSvSet(Lc,E,V) => .cSvSet(Lc,rwTerm(E,Tst),rwTerm(V,Tst))
@@ -546,6 +552,7 @@ star.compiler.term{
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
     | .cClos(Lc,L,A,F,Tp) => .cClos(Lc,L,A,frshnE(F,Sc),Tp)
+    | .cTask(Lc,F,Tp) => .cTask(Lc,frshnE(F,Sc),Tp)
     | .cSv(_,_) => Trm
     | .cSvDrf(Lc,E,Tp) => .cSvDrf(Lc,frshnE(E,Sc),Tp)
     | .cSvSet(Lc,E,V) => .cSvSet(Lc,frshnE(E,Sc),frshnE(V,Sc))
@@ -797,6 +804,7 @@ star.compiler.term{
     | .cNth(_,R,_,_) => validE(R,Vrs)
     | .cSetNth(_,R,_,V) => validE(R,Vrs) && validE(V,Vrs)
     | .cClos(_,_,_,F,_) => validE(F,Vrs)
+    | .cTask(_,F,_) => validE(F,Vrs)
     | .cSv(_,_) => .true
     | .cSvDrf(_,E,_) => validE(E,Vrs)
     | .cSvSet(_,E,V) => validE(E,Vrs) && validE(V,Vrs)
@@ -982,6 +990,7 @@ star.compiler.term{
     | .cNth(_,R,_,_) => presentInE(R,A,C)
     | .cSetNth(_,R,_,V) => presentInE(R,A,C) || presentInE(V,A,C)
     | .cClos(_,_,_,F,_) => presentInE(F,A,C)
+    | .cTask(_,F,_) => presentInE(F,A,C)
     | .cSv(_,_) => .false
     | .cSvDrf(_,E,_) => presentInE(E,A,C)
     | .cSvSet(_,E,V) => presentInE(E,A,C) || presentInE(V,A,C)
@@ -1044,6 +1053,7 @@ star.compiler.term{
 	frzeExp(R)])
     | .cClos(Lc,N,A,F,Tp) => mkCons("clos",[Lc::data,.strg(N),.intgr(A),frzeExp(F),
 	.strg(encodeSignature(Tp))])
+    | .cTask(Lc,F,Tp) => mkCons("task",[Lc::data,frzeExp(F),.strg(encodeSignature(Tp))])
     | .cSv(Lc,Tp) => mkCons("sav",[Lc::data,.strg(encodeSignature(Tp))])
     | .cSvDrf(Lc,E,Tp) => mkCons("svget",[Lc::data,frzeExp(E),
 	.strg(encodeSignature(Tp))])
@@ -1132,6 +1142,7 @@ star.compiler.term{
       .cSetNth(thawLoc(Lc),thwTrm(E),Ix,thwTrm(R))
     | .term("clos",[Lc,.strg(N),.intgr(A),F,Sig]) =>
       .cClos(thawLoc(Lc),N,A,thwTrm(F),decodeSig(Sig))
+    | .term("fiber",[Lc,F,Sig]) => .cTask(thawLoc(Lc),thwTrm(F),decodeSig(Sig))
     | .term("sav",[Lc,Sig]) => .cSv(thawLoc(Lc),decodeSig(Sig))
     | .term("svref",[Lc,E,Sig]) => .cSvDrf(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
     | .term("svset",[Lc,E,V]) => .cSvSet(thawLoc(Lc),thwTrm(E),thwTrm(V))
@@ -1241,6 +1252,7 @@ star.compiler.term{
     | .cNth(_,T,_,_) => foldV(T,Mode,Fn,SoF)
     | .cSetNth(_,T,_,R) => foldV(T,Mode,Fn,foldV(R,Mode,Fn,SoF))
     | .cClos(Lc,Nm,_,Fr,Tp) => foldV(Fr,Mode,Fn,Fn(.cVar(Lc,.cId(Nm,Tp)),Mode,SoF))
+    | .cTask(Lc,Fr,Tp) => foldV(Fr,Mode,Fn,Mode,SoF)
     | .cSv(_,_) => SoF
     | .cSvDrf(_,E,_) => foldV(E,Mode,Fn,SoF)
     | .cSvSet(_,E,V) => foldV(V,Mode,Fn,foldV(E,Mode,Fn,SoF))

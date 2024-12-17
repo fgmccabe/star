@@ -42,7 +42,7 @@ star.compiler.gencode{
   genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
     Ctx = emptyCtx(Glbs);
 
-    (AbrtCde,_,_) = compAbort(Lc,"function: $(Nm) aborted",Ctx,.some([]));
+    (AbrtCde,_) = compAbort(Lc,"function: $(Nm) aborted",Ctx,.some([]));
 
     BlkSig = nearlyFlatSig(funTypeRes(Tp)::ltipe);
 
@@ -69,7 +69,7 @@ star.compiler.gencode{
   genGlb(Lc,Nm,Tp,Val,Glbs) => valof{
     Ctx = emptyCtx(Glbs);
 
-    (AbrtCde,_,_) = compAbort(Lc,"global eval: $(Nm) aborted",Ctx,.some([]));
+    (AbrtCde,_) = compAbort(Lc,"global eval: $(Nm) aborted",Ctx,.some([]));
 
     AbrtLbl = genLbl(Ctx,"Abrt");
 
@@ -119,8 +119,7 @@ star.compiler.gencode{
     | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
       Stk1 = pushStack(Tp::ltipe,Stk);
-      valis genLastReturn(Last,Stk1,
-	chLine(OLc,Lc)++ArgCode++[Ins]++(Frm??[frameIns(Stk1)]||[]))
+      valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ArgCode++[Ins]++(Frm??[frameIns(Stk1)]||[]))
     }
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
@@ -151,6 +150,10 @@ star.compiler.gencode{
       valis genLastReturn(Last,Stk2,
 	chLine(OLc,Lc)++FCode++[.iClosure(.tLbl(Nm,Ar)),frameIns(Stk2)])
     }
+    | .cTask(Lc,T,Tp) => valof{
+      (_,TC) = compExp(T,Lc,Brks,.notLast,Ctx,Stk);
+      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++TC++[.iFiber])
+    }
     | .cSv(Lc,Tp) => genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++[.iSav])
     | .cSvDrf(Lc,Th,Tp) => valof{
       (_Stk,ThC) = compExp(Th,Lc,Brks,.notLast,Ctx,Stk);
@@ -180,23 +183,24 @@ star.compiler.gencode{
     | .cCnd(Lc,G,L,R) => valof{
       Fl = genLbl(Ctx,"Fl");
       Ok = genLbl(Ctx,"Ok");
-      (Stk0,CC) = compCond(G,Lc,.Brks,normal,Ctx,Stk);
+      (CC,Ctx1) = compCond(G,Lc,.Brks,normal,Ctx,Stk);
       verify(()=>Stk0==Stk,"conditions must not increase stack",Lc);
-      (Stk1,LC) = compExp(L,Lc,Brks,Last,Ctx,Stk);
+      (Stk1,LC) = compExp(L,Lc,Brks,Last,Ctx1,Stk);
       (Stk2,RC) = compExp(R,Lc,Brks,Last,Ctx,Stk);
       valis (reconcileStack(Stk1,Stk2),chLine(OLc,Lc)++
 	[.iLbl(Ok,.iBlock(nearlyFlatSig(typeOf(L)::ltipe),
 	      [.iLbl(Fl,.iBlock(flatSig,CC++LC++[.iBreak(Ok)]))]++
 	      RC++[.iBreak(Ok)]))])
     }
-    | .cCase(Lc,Gov,Cases,Deflt,_Tp) => 
-      compCase(Lc,Gov,Cases,Deflt, (E,C1)=>expCont(E,Lc,TM,C1),Last,Brks,Ctx,Stk)
+    | .cCase(Lc,Gov,Cases,Deflt,_Tp) => compCase(Lc,Gov,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
     | .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
-      valis compExp(Val,Lc,.notLast,stoCont(Vr,VTp::ltipe,Stk,expCont(Bnd,Lc,TM,Cont)),Ctx,Stk)
+      Ctx1 = defineLclVar(Vr,ThTp::ltipe,Ctx);
+      (Stk1,VV) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
+      (Stkx,BB) = compExp(Bnd,Lc,Brks,Last,Ctx1,Stk);
+      valis (Stkx,chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB)
     }
-    | .cAbort(Lc,Msg,Tp) => abortCont(Lc,Msg).C(Ctx,Stk,[])
+    | .cAbort(Lc,Msg,Tp) => compAbort(Lc,Msg,Ctx,Stk)
     | .cTry(Lc,B,.cVar(_,.cId(Th,ThTp)),.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
-
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
       
@@ -213,9 +217,15 @@ star.compiler.gencode{
 
       valis (reconcileStack(Stk1,Stk2),[.iTry(Blk),.iStL(TOff)]++BCde++[.iLbl(Blk),.iStL(EOff)]++HCde)
     }
-    | .cRaise(Lc,T,E,_) => compExp(E,Lc,.notLast,expCont(T,Lc,.notLast,raiseCont),Ctx,Stk)
-    | .cValof(Lc,A,Tp) =>
-      compAction(A,Lc,TM,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
+    | .cRaise(Lc,T,E,_) => valof{
+      (Stk1,EC) = compExp(E,Lc,Brks,.notLast,Stk);
+      (Stk2,TC) = compExp(T,Lc,Brks,.notLast,Stk1);
+      valis (.none,chLine(OLc,Lc)++EC++TC++[.iThrow])
+    }
+    | .cValof(Lc,A,Tp) => valof{
+      
+      compAction(A,Lc,[("$valof",,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
+	}
     |  C where isCond(C) => valof{
       Nx = defineLbl("E",Ctx);
       Stk0 = pushStack(boolType::ltipe,Stk);
@@ -230,25 +240,55 @@ star.compiler.gencode{
   }
 
     -- Expressions are evaluated in reverse order
-  compExps:(cons[cExp],option[locn],codeCtx,stack) => (stack,multi[assemOp]).
-    compExps([],_,_,Stk)=>(Ctx,Stk,[]).
-  compExps([Exp,..Es],Lc,Ctx,Stk)=> valof{
-    (Stk1,Rest) = compExps(Es,locOf(Exp),Ctx,Stk);
-    (Stk2,EC) = compExp(Exp,Lc,.notLast,Ctx,Stk1);
+  compExps:(cons[cExp],option[locn],cons[breakLbl],codeCtx,stack) => (stack,multi[assemOp]).
+  compExps([],_,_,_,Stk)=>(Ctx,Stk,[]).
+  compExps([Exp,..Es],Lc,Brks,Ctx,Stk)=> valof{
+    (Stk1,Rest) = compExps(Es,locOf(Exp),Brks,Ctx,Stk);
+    (Stk2,EC) = compExp(Exp,Lc,Brks,.notLast,Ctx,Stk1);
     valis (Stk2,Rest++EC)
   }
 
+  condMode ::= .normal | .negated.
 
-  
-    
-  compCond:(cExp,option[locn],tailMode,Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compCond(C,OLc,TM,Succ,Fail,Ctx,Stk) => case C in {
-    | .cTerm(_,"true",[],_) => Succ.C(Ctx,Stk,[])
-    | .cTerm(_,"false",[],_) => Fail.C(Ctx,Stk,[])
+  compCond:(cExp,option[locn],assemLbl,cons[breakLbl],condMode,codeCtx,stack) => (multi[assemOp],codeCtx).
+  compCond(C,OLc,Fail,Brks,.negated,Ctx,Stk) => compNegated(C,OLc,Fail,Brks,Ctx,Stk).
+  compCond(C,OLc,Fail,Brks,.normal,Ctx,Stk) => compNormal(C,OLc,Fail,Brks,Ctx,Stk).
+
+  compNormal:(cExp,option[locn],assemLbl,cons[breakLbl],codeCtx,stack) => (multi[assemOp],codeCtx).
+  compNormal(C,OLc,Fail,Brks,Ctx,Stk) => case C in {
+    | .cTerm(_,"true",[],_) => ([],Ctx)
+    | .cTerm(_,"false",[],_) => ([.iBreak(Fail)],Ctx)
     | .cCnj(Lc,L,R) => valof{
-      FC = splitCont(Lc,Ctx,ctxCont(Ctx,Fail));
-      valis compCond(L,Lc,.notLast,condCont(R,Lc,TM,Succ,FC,Stk),FC,Ctx,Stk)
+      (LC,Ctxa) = compNormal(L,Lc,Fail,Brks,Ctx,Stk);
+      (RC,Ctxb) = compNormal(R,Lc,Fail,Brks,Ctxa,Stk);
+      valis (chLine(OLc,Lc)++LC++Rc,Ctxb)
     }
+    | .cDsj(Lc,L,R) => valof{
+      Fl = genLbl(Ctx);
+      Ok = genLbl(Ctx);
+      (LC,Ctxa) = compNormal(L,Lc,Fl,Brks,Ctx,Stk);
+      (RC,Ctxb) = compNormal(R,Lc,Fail,Brks,Ctx,Stk);
+
+      valis (chLine(OLc,Lc)++[.iLbl(Ok,.iBlock(flatSig,[.iLbl(Fl,.iBlock(flatSig,LC++[.iBreak(Ok)]))]++RC++[.iBreak(Ok)]))],mergeCtx(Ctxa,Ctxb))
+    }
+    | .cNeg(Lc,R) => compNegated(R,OLc,Fail,Brks,Ctx,Stk)
+    | .cCnd(Lc,T,L,R) => valof{
+      Ctxa = dsjCtx(Ctx,L,R);
+      SC = splitCont(Lc,Ctxa,Succ);
+      FC = splitCont(Lc,Ctxa,Fail);
+      
+      valis compCond(T,Lc,.notLast,condCont(L,Lc,TM,SC,FC,Stk),ctxCont(Ctxa,condCont(R,Lc,TM,SC,FC,Stk)),Ctxa,Stk)
+    }
+    | .cMatch(Lc,Ptn,Exp) => compExp(Exp,Lc,.notLast,ptnCont(Ptn,Lc,Succ,Fail),Ctx,Stk)
+    | Exp default => compExp(Exp,OLc,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
+  }
+
+  compNegated:(cExp,option[locn],assemLbl,cons[breakLbl],codeCtx,stack) => (multi[assemOp],codeCtx).
+  compNegated(C,OLc,Fail,Brks,Ctx,Stk) => case C in {
+    | .cTerm(_,"true",[],_) => ([.iBreak(Fail)],Ctx)
+    | .cTerm(_,"false",[],_) => ([],Ctx)
+    | .cCnj(Lc,L,R) => compNormal(.cDsj(Lc,.cNeg(Lc,L),.cNeg(Lc,R)),OLc,Fail,Brks,Ctx,Stk)
+
     | .cDsj(Lc,L,R) => valof{
       Ctxa = dsjCtx(Ctx,L,R);
       SC = splitCont(Lc,Ctxa,ctxCont(Ctxa,Succ));
@@ -266,6 +306,7 @@ star.compiler.gencode{
     | .cMatch(Lc,Ptn,Exp) => compExp(Exp,Lc,.notLast,ptnCont(Ptn,Lc,Succ,Fail),Ctx,Stk)
     | Exp default => compExp(Exp,OLc,.notLast,ifCont(locOf(Exp),Stk,Succ,Fail),Ctx,Stk)
   }
+  
 
   compAction:(aAction,option[locn],tailMode,Cont,Cont,codeCtx,stack) =>(stack,multi[assemOp]).
   compAction(A,OLc,TM,ACont,Cont,Ctx,Stk) => case A in {
@@ -766,7 +807,7 @@ star.compiler.gencode{
   condCont(Cond,Lc,TM,Succ,Fail,Stk) => cont{
     C(Ctx,XStk,Cde) => valof{
       (Stk1,SSCde) = resetStack([|Stk|],XStk);
-      (Stk2,CCde) = compCond(Cond,Lc,TM,Succ,Fail,Ctx,Stk1);
+      (tk2,CCde) = compCond(Cond,Lc,TM,Succ,Fail,Ctx,Stk1);
       valis (Stk2,Cde++SSCde++CCde)
     }
   }
@@ -804,9 +845,9 @@ star.compiler.gencode{
       ACont.C(Ctx,Stk,Cde++[.iAssign])
   }
 
-  compAbort:(option[locn],string,codeCtx,stack) => (cons[assemOp],codeCtx,stack).
+  compAbort:(option[locn],string,codeCtx,stack) => (cons[assemOp],stack).
   compAbort(.some(Lc),Msg,Ctx,Stk) =>
-    ([.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort],Ctx,.none).
+    ([.iLdC(Lc::data),.iLdC(.strg(Msg)),.iAbort],.none).
 
   errorCont:(option[locn],string) => Cont.
   errorCont(Lc,Msg) => cont{
@@ -930,7 +971,7 @@ star.compiler.gencode{
     if _ ?=Ctx.vars[Nm] then
       valis Ctx
     else
-    valis snd(defineLclVar(Nm,Tp,Ctx))
+    valis defineLclVar(Nm,Tp,Ctx)
   }
 
   argSrcLocs:(cons[cId],map[string,srcLoc],integer) => map[string,srcLoc].
