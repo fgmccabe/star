@@ -627,9 +627,9 @@ compExp(vlof(Lc,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compAction(A,Lc,[("$valof",gencode:breakOut,Ok,Stkx)|Brks],Last,last,Opts,L0,Lx,D,Dx,CA,[],Stk,_Stkx),
   bumpStk(Stk,Stkx).
 compExp(tsk(Lc,F),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,[iFiber|C0]),!,
+  chLine(Opts,OLc,Lc,C,C0),!,
   compExp(F,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1,Stk,Stka),
-  genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
+  genLastReturn(Last,Opts,C1,[iFiber|Cx],Stka,Stkx).
 compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(FlatTp,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
   isCond(Cond),!,
   isTrueSymb(True),
