@@ -46,7 +46,7 @@ star.compiler.gencode{
 
     BlkSig = nearlyFlatSig(funTypeRes(Tp)::ltipe);
 
-    AbrtLbl = genLbl(Ctx,"Abrt");
+    AbrtLbl = defineLbl(Ctx,"Abrt");
 
     AbrtBrks = [("$abort",AbrtLbl,.none)];
 
@@ -71,7 +71,7 @@ star.compiler.gencode{
 
     (AbrtCde,_) = compAbort(Lc,"global eval: $(Nm) aborted",Ctx,.some([]));
 
-    AbrtLbl = genLbl(Ctx,"Abrt");
+    AbrtLbl = defineLbl(Ctx,"Abrt");
 
     BlkSig = nearlyFlatSig(Tp::ltipe);
 
@@ -94,7 +94,7 @@ star.compiler.gencode{
   compExp:(cExp,option[locn],cons[breakLbl],tailMode,codeCtx,stack) => (stack,multi[assemOp]).
   compExp(Exp,OLc,Brks,Last,Ctx,Stk) => case Exp in {
     | E where isGround(E) =>
-      genLastReturn(Last,pushStack(typeOf(Exp)::ltipe,Stk),[.iLdC(Exp::data)])
+      genLastReturn(Last,pshStack(typeOf(Exp),Stk),[.iLdC(Exp::data)])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
 	valis case Loc in {
@@ -105,31 +105,31 @@ star.compiler.gencode{
 	}
       } else {
 	reportError("cannot locate variable $(Vr)\:$(Tp)",Lc);
-	valis (pushStack(Tp::ltipe,Stk),[.iLdV])
+	valis (pshStack(Tp,Stk),[.iLdV])
       }
     }
-    | .cVoid(Lc,Tp) => genLastReturn(Last,pushStack(Tp::ltipe,Stk),[.iLdV])
-    | .cAnon(Lc,Tp) => genLastReturn(Last,pushStack(Tp::ltipe,Stk),[.iLdV])
+    | .cVoid(Lc,Tp) => genLastReturn(Last,pshStack(Tp,Stk),[.iLdV])
+    | .cAnon(Lc,Tp) => genLastReturn(Last,pshStack(Tp,Stk),[.iLdV])
     | .cTerm(Lc,Nm,Args,Tp) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
+      Stk1 = pshStack(Tp,Stk);
       valis genLastReturn(Last,Stk1,
 	chLine(OLc,Lc)++ArgCode++[.iAlloc(.tLbl(Nm,size(Args))),frameIns(Stk1)])
     }
     | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
+      Stk1 = pshStack(Tp,Stk);
       valis genLastReturn(Last,Stk1,chLine(OLc,Lc)++ArgCode++[Ins]++(Frm??[frameIns(Stk1)]||[]))
     }
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
+      Stk1 = pshStack(Tp,Stk);
       valis genLastReturn(Last,Stk1,
 	chLine(OLc,Lc)++ArgCode++[.iEscape(Nm),frameIns(Stk1)])
     }
     | .cCall(Lc,Nm,Args,Tp) => valof{
       (_,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pushStack(Tp::ltipe,Stk);
+      Stk1 = pshStack(Tp,Stk);
       if .noMore.=Last then
 	valis (Stk1,chLine(OLc,Lc)++ArgCode++[.iTCall(.tLbl(Nm,[|Args|]))])
       else
@@ -138,7 +138,7 @@ star.compiler.gencode{
     | .cOCall(Lc,Op,Args,Tp) => valof{
       (Stk0,ArgCode) = compExps(Args,Lc,Brks,Ctx,Stk);
       (_,OCode) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
-      Stk1 = pushStack(Tp::ltipe,Stk);
+      Stk1 = pshStack(Tp,Stk);
       if Last==.noMore then
 	valis (Stk1,chLine(OLc,Lc)++ArgCode++OCode++[.iTOCall([|Args|])])
       else
@@ -146,33 +146,33 @@ star.compiler.gencode{
     }
     | .cClos(Lc,Nm,Ar,F,Tp) => valof{
       (Stk1,FCode) = compExp(F,Lc,Brks,.notLast,Ctx,Stk);
-      Stk2 = pushStack(Tp::ltipe,Stk);
+      Stk2 = pshStack(Tp,Stk);
       valis genLastReturn(Last,Stk2,
 	chLine(OLc,Lc)++FCode++[.iClosure(.tLbl(Nm,Ar)),frameIns(Stk2)])
     }
     | .cTask(Lc,T,Tp) => valof{
       (_,TC) = compExp(T,Lc,Brks,.notLast,Ctx,Stk);
-      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++TC++[.iFiber])
+      valis genLastReturn(Last,pshStack(Tp,Stk),chLine(OLc,Lc)++TC++[.iFiber])
     }
-    | .cSv(Lc,Tp) => genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++[.iSav])
+    | .cSv(Lc,Tp) => genLastReturn(Last,pshStack(Tp,Stk),chLine(OLc,Lc)++[.iSav])
     | .cSvDrf(Lc,Th,Tp) => valof{
       (_Stk,ThC) = compExp(Th,Lc,Brks,.notLast,Ctx,Stk);
-      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++ThC++[.iLdTh])
+      valis genLastReturn(Last,pshStack(Tp,Stk),chLine(OLc,Lc)++ThC++[.iLdTh])
     }
     | .cSvSet(Lc,Th,Vl) => valof{
       (Stk0,VlC) = compExp(Vl,Lc,Brks,.notLast,Ctx,Stk);
       (_Stk,ThC) = compExp(Th,Lc,Brks,.notLast,Ctx,Stk0);
-      valis genLastReturn(Last,pushStack(typeOf(Vl)::ltipe,Stk),chLine(OLc,Lc)++VlC++ThC++[.iTTh])
+      valis genLastReturn(Last,pshStack(typeOf(Vl),Stk),chLine(OLc,Lc)++VlC++ThC++[.iTTh])
     }
     | .cNth(Lc,E,Ix,Tp) => valof{
       (Stk0,Vl) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-      valis genLastReturn(Last,pushStack(Tp::ltipe,Stk),chLine(OLc,Lc)++Vk++[.iNth(Ix)])
+      valis genLastReturn(Last,pshStack(Tp,Stk),chLine(OLc,Lc)++Vk++[.iNth(Ix)])
     }
     | .cSetNth(Lc,R,Ix,V) => valof{
       (Stk0,RC) = compExp(R,Lc,Brks,.notLast,Ctx,Stk);
       (_Stk,VC) = compExp(V,Lc,Brks,.notLast,Ctx,Stk0);
 
-      valis genLastReturn(Last,pushStack(typeOf(R)::ltipe,Stk),
+      valis genLastReturn(Last,pshStack(typeOf(R),Stk),
 	chLine(OLc,Lc)++RC++VC++[.iStNth(Ix)])
     }
     | .cSeq(Lc,L,R) => valof{
@@ -181,8 +181,8 @@ star.compiler.gencode{
       valis (Stk1,chLine(OLc,Lc)++LC++resetStack([|Stk0|],Stk)++RC)
     }
     | .cCnd(Lc,G,L,R) => valof{
-      Fl = genLbl(Ctx,"Fl");
-      Ok = genLbl(Ctx,"Ok");
+      Fl = defineLbl(Ctx,"Fl");
+      Ok = defineLbl(Ctx,"Ok");
       (CC,Ctx1) = compCond(G,Lc,.Brks,normal,Ctx,Stk);
       verify(()=>Stk0==Stk,"conditions must not increase stack",Lc);
       (Stk1,LC) = compExp(L,Lc,Brks,Last,Ctx1,Stk);
@@ -205,7 +205,7 @@ star.compiler.gencode{
 	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
       
       (CLb,Ctx0) = defineExitLbl("Tr",Ctx);
-      Blk = defineLbl("H",Ctx);
+      Blk = defineLbl(Ctx,"H");
       (TOff,CtxB) = defineLclVar(Th,ThTp::ltipe,Ctx0);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       
@@ -223,12 +223,16 @@ star.compiler.gencode{
       valis (.none,chLine(OLc,Lc)++EC++TC++[.iThrow])
     }
     | .cValof(Lc,A,Tp) => valof{
+      Ok = defineLbl(Ok,"Ctx");
+      Sig = nearlyFlatSig(Tp::ltipe);
+      Stkx = pshStack(Tp,Stk);
       
-      compAction(A,Lc,[("$valof",,abortCont(Lc,"missing valis action"),splitCont(Lc,Ctx,Cont),Ctx,Stk)
-	}
+      valis (Stkx,
+	chLine(OLc,Lc)++[.iLbl(Ok,.iBlock(Sig,compAction(A,Lc,[("$valof",Ok,Stkx)|Brks],Last,Ctx,Stk)))])
+    }
     |  C where isCond(C) => valof{
-      Nx = defineLbl("E",Ctx);
-      Stk0 = pushStack(boolType::ltipe,Stk);
+      Nx = defineLbl(Ctx,"E");
+      Stk0 = pshStack(boolType,Stk);
       (Stk1,Cde) = compCond(C,OLc,.notLast,trueCont(jmpCont(Nx,Stk0)),falseCont(jmpCont(Nx,Stk0)),
 	Ctx,Stk);
       valis Cont.C(Ctx,Stk1,Cde++[.iLbl(Nx)]) -- fix me
@@ -264,8 +268,8 @@ star.compiler.gencode{
       valis (chLine(OLc,Lc)++LC++Rc,Ctxb)
     }
     | .cDsj(Lc,L,R) => valof{
-      Fl = genLbl(Ctx);
-      Ok = genLbl(Ctx);
+      Fl = defineLbl(Ctx,"Fl");
+      Ok = defineLbl(Ctx,"Ok");
       (LC,Ctxa) = compNormal(L,Lc,Fl,Brks,Ctx,Stk);
       (RC,Ctxb) = compNormal(R,Lc,Fail,Brks,Ctx,Stk);
 
@@ -339,9 +343,9 @@ star.compiler.gencode{
 	resetStkCont(Stk,ctxCont(Ctx,actionCont(R,Lc,TM,AC,CC))),Ctx,Stk)
     }
     | .aWhile(Lc,G,B) => valof{
-      Lp = defineLbl("Lp",Ctx);
-      Tst = defineLbl("Tst",Ctx);
-      Ex = defineLbl("Ex",Ctx);
+      Lp = defineLbl(Ctx,"Lp");
+      Tst = defineLbl(Ctx,"Tst");
+      Ex = defineLbl(Ctx,"Ex");
       GCtx = glCtx(Ctx,G);
 
       (Stk1,WCde) = compCond(G,Lc,.notLast,jmpCont(Lp,Stk),jmpCont(Ex,Stk),GCtx,Stk);
@@ -358,7 +362,7 @@ star.compiler.gencode{
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
       
-      Blk = defineLbl("H",Ctx);
+      Blk = defineLbl(Ctx,"H");
       (TOff,Ctx0) = defineLclVar(Th,ETp::ltipe,Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp::ltipe,Ctx);
       AC = splitCont(Lc,Ctx,ACont);
@@ -384,8 +388,8 @@ star.compiler.gencode{
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
       showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
-    Nxt = defineLbl("CN",Ctx);
-    DLbl = defineLbl("CD",Ctx);
+    Nxt = defineLbl(Ctx,"CN");
+    DLbl = defineLbl(Ctx,"CD");
 
     (Stk1,GCode) = compExp(Gv,Lc,.notLast,nxCont(Nxt),Ctx,Stk);
     (Table,Max) = genCaseTable(Cases);
@@ -445,7 +449,7 @@ star.compiler.gencode{
       if ~reconcileable(Stkb,Stkc) then
 	reportError("cannot recon stack of first case $(Case)=$(Stkb) with other cases $(Cases)=$(Stkc)",.none);
 
-      Lb = defineLbl("CC",Ctx);
+      Lb = defineLbl(Ctx,"CC");
       valis (reconcileStack(Stkb,Stkc),[.iJmp(Lb)]++TCde2,Cde2++[.iLbl(Lb),..CCde])
     }
     | [(Iy,Case),..Cases] => valof{
@@ -467,8 +471,8 @@ star.compiler.gencode{
       if traceCodegen! then
 	showMsg("stack going into this long arm $(Ptn) -> $(Exp) is $(Stk)\nMore\: $(More)");
       
-      Fl = defineLbl("CF",Ctx);
-      VLb = defineLbl("CN",Ctx);
+      Fl = defineLbl(Ctx,"CF");
+      VLb = defineLbl(Ctx,"CN");
       Vr = genSym("__");
       Ptipe = typeOf(Ptn)::ltipe;
       (Off,Ctx1) = defineLclVar(Vr,Ptipe,Ctx);
@@ -493,7 +497,7 @@ star.compiler.gencode{
   compMoreArm(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
     | [] => Fail.C(Ctx,.none,[])
     | [(Lc,Ptn,Exp),..More] => valof{
-      Fl = defineLbl("CM",Ctx);
+      Fl = defineLbl(Ctx,"CM");
       
       (Stk3,RstCde) = compMoreArm(More,Off,Comp,Succ,Fail,Ctx,Stk);
 
@@ -548,7 +552,7 @@ star.compiler.gencode{
   compArgPtrn(Ptn,Lc,Ix,Succ,Fail,Ctx,Stk) where .cVar(_,.cId(Vr,Tp)) .= Ptn =>
     Succ.C(defineArgVar(Vr,Tp,Ix,Ctx),Stk,[]).
   compArgPtrn(Ptn,Lc,Ix,Succ,Fail,Ctx,Stk) => valof{
-    (Stk1,Code1) = compPttrn(Ptn,Lc,Succ,Fail,Ctx,pushStack(typeOf(Ptn)::ltipe,Stk));
+    (Stk1,Code1) = compPttrn(Ptn,Lc,Succ,Fail,Ctx,pshStack(typeOf(Ptn),Stk));
     valis (Stk1,[.iLdA(Ix)]++Code1)
   }
 
@@ -584,7 +588,7 @@ star.compiler.gencode{
     | .cAnon(Lc,_) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
     | .cTerm(Lc,Nm,Args,Tp) => valof{
       Stk0 = dropStack(Stk);
-      Flb = defineLbl("U",Ctx);
+      Flb = defineLbl(Ctx,"U");
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
       
       (Stk2,SCde) = compPtnArgs(Args,Lc,Succ,resetStkCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
@@ -596,7 +600,7 @@ star.compiler.gencode{
     }
     | _ default => valof{
       if isGround(Ptn) then{
-	Flb = defineLbl("Tst",Ctx);
+	Flb = defineLbl(Ctx,"Tst");
 	Stk0 = dropStack(Stk); 
 	(Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
 	(Stk2,SCde) = Succ.C(Ctx,Stk0,[]);
@@ -741,7 +745,7 @@ star.compiler.gencode{
   ifCont:(option[locn],stack,Cont,Cont) => Cont.
   ifCont(Lc,Stk,Succ,Fail) => cont{
     C(Ctx,_,Cde) => valof{
-      Flb = defineLbl("F",Ctx);
+      Flb = defineLbl(Ctx,"F");
       (SStk,SCde) = Succ.C(Ctx,Stk,[.iIfNot(Flb)]);
       (FStk,FCde) = Fail.C(Ctx,Stk,[]);
       
@@ -863,28 +867,6 @@ star.compiler.gencode{
     C(Ctx,Stk,Cde) => valof{
       (SStk,SCde) = compAction(A,OLc,TM,ACont,Cont,Ctx,Stk);
       valis (SStk,Cde++SCde)
-    }
-  }
-
-  splitCont:(option[locn],codeCtx,Cont) => Cont.
-  splitCont(Lc,Ctx0,Cnt) => valof{
-    Lb = defineLbl("Splt",Ctx0);      -- Create a new label
-    tStk = ref .none;
-    triggered = ref .false;
-    
-    valis cont{
-      C(_Ctx,Stk,Cde) => valof{
-	if triggered! then{
-	  valis (tStk!,Cde++[.iJmp(Lb)])
-	} else{
-	  triggered := .true;
-	  
-	  (rStk,rCde) = Cnt.C(Ctx0,Stk,Cde++[.iLbl(Lb)]);
-	  
-	  tStk := rStk;
-	  valis (rStk,rCde);
-	}
-      }
     }
   }
 
@@ -1012,12 +994,6 @@ star.compiler.gencode{
   .glbFun(termLbl,ltipe) |
   .thnkFn(termLbl,ltipe).
 
-  genLbl(Ctx,Nm) => valof{
-    Ix = Ctx.lbls!;
-    Ctx.lbls := Ctx.lbls!+1;
-    valis "L#{Nm}$(Ix)"
-  }
-
   stack ~> option[cons[ltipe]].
   breakLbl ~> (string,assemLbl,stack).
 
@@ -1032,15 +1008,18 @@ star.compiler.gencode{
     lbls = ref 0.
   }
 
-  defineLbl:(string,codeCtx)=>assemLbl.
-  defineLbl(Pr,C) => valof{
+  defineLbl:(codeCtx,string)=>assemLbl.
+  defineLbl(C,Pr) => valof{
     CurLbl = C.lbls!;
     C.lbls := CurLbl+1;
-    valis .al("#(Pr)$(CurLbl)")
+    valis "L#(Pr)$(CurLbl)"
   }
 
   pushStack:(ltipe,stack) => stack.
   pushStack(Tp,.some(Stk)) => .some([Tp,..Stk]).
+
+  pshStack:(tipe,stack) => stack.
+  pshStack(Tp,.some(Stk)) => .some([Tp::ltipe,..Stk]).
 
   loadStack:(cons[ltipe],stack) => stack.
   loadStack(Tps,.some(Stk)) => .some(Tps++Stk).
