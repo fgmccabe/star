@@ -569,26 +569,25 @@ star.compiler.gencode{
     }
   }
 
-  compPttrn:(cExp,option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compPttrn(Ptn,Lc,Succ,Fail,Ctx,Stk) => compPtn(Ptn,Lc,Succ,Fail,Ctx,Stk).
-  
-  compPtn:(cExp,option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compPtn(Ptn,OLc,Succ,Fail,Ctx,Stk) => case Ptn in {
-    | .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
+  compPtn:(cExp,option[locn],assemLbl,cons[breakLvl],codeCtx,stack) => (codeCtx,stack,multi[assemOp]).
+  compPtn(Ptn,OLc,Fail,Brks,Ctx,Stk) => case Ptn in {
+    | .cVar(_,.cId("_",_)) => (codeCtx,dropStack(Stk),[.iDrop])
     | .cVar(Lc,.cId(Vr,Tp)) => valof{
       if Loc ?= locateVar(Vr,Ctx) then 
-	valis compPtnVar(Lc,Vr,Loc,Succ,Ctx,dropStack(Stk))
+	valis compPtnVar(Vr,Loc,Stk)
       else{
 	LTp = Tp::ltipe;
-	(Off,Ctx1) = defineLclVar(Vr,LTp,Ctx);
-	valis compPtnVar(Lc,Vr,.lclVar(Off,LTp),Succ,Ctx1,dropStack(Stk))
+	Ctx1 = defineLclVar(Vr,LTp,Ctx);
+	valis compPtnVar(Vr,.lclVar(Vr,LTp),Stk)
       }
     }
-    | .cVoid(Lc,_) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
-    | .cAnon(Lc,_) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
+    | .cVoid(Lc,_) => (dropStack(Stk),[.iDrop])
+    | .cAnon(Lc,_) => (dropStack(Stk),[.iDrop])
     | .cTerm(Lc,Nm,Args,Tp) => valof{
       Stk0 = dropStack(Stk);
       Flb = defineLbl(Ctx,"U");
+
+
       (Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
       
       (Stk2,SCde) = compPtnArgs(Args,Lc,Succ,resetStkCont(Stk0,jmpCont(Flb,Stk1)),Ctx,loadStack(Args//(A)=>(typeOf(A)::ltipe),Stk0));
@@ -598,19 +597,12 @@ star.compiler.gencode{
 
       valis (reconcileStack(Stk1,Stk2),[.iUnpack(.tLbl(Nm,size(Args)),Flb)]++SCde++[.iLbl(Flb),..FCde])
     }
-    | _ default => valof{
-      if isGround(Ptn) then{
-	Flb = defineLbl(Ctx,"Tst");
-	Stk0 = dropStack(Stk); 
-	(Stk1,FCde) = Fail.C(Ctx,Stk0,[]);
-	(Stk2,SCde) = Succ.C(Ctx,Stk0,[]);
-	valis (reconcileStack(Stk1,Stk2),
-	  [.iLdC(Ptn::data),ptnCmp(Ptn,Flb)]++SCde++[.iLbl(Flb),..FCde])
-      } else{
+    | _ default => ( isGround(Ptn) ??
+      (dropStack(Stk),[.iCLit(Ptn::data,Fail)]) || valof{
 	reportError("uncompilable pattern $(Ptn)",locOf(Ptn));
-	valis Succ.C(Ctx,Stk,[])
+	valis (dropStack(Stk),[.iBreak(Fail)])
       }
-    }
+    )
   }
 
   ptnCmp(Ptn,Lb) => case Ptn in {
@@ -620,14 +612,17 @@ star.compiler.gencode{
     | _ => .iCmp(Lb)
   }.
 
-  compPtnVar:(option[locn],string,srcLoc,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compPtnVar(Lc,Nm,.lclVar(Off,Tp),Cont,Ctx,Stk) => Cont.C(Ctx,Stk,[.iStL(Off)]).
-  compPtnVar(Lc,Nm,.argVar(Off,Tp),Cont,Ctx,Stk) => Cont.C(Ctx,Stk,[.iDrop]).
+  compPtnVar:(string,srcLoc,codeCtx,stack) => (codeCtx,stack,multi[assemOp]).
+  compPtnVar(Nm,.lclVar(Off,Tp),Ctx,Stk) => (Ctx,dropStack(Stk),[.iStL(Off)]).
+  compPtnVar(Nm,.argVar(Off,Tp),Ctx,Stk) => (Ctx,dropStack(Stk),[.iDrop]).
 
-  compPtnArgs:(cons[cExp],option[locn],Cont,Cont,codeCtx,stack) => (stack,multi[assemOp]).
-  compPtnArgs(Es,Lc,Succ,Fail,Ctx,Stk) => case Es in {
-    | [] => Succ.C(Ctx,Stk,[])
-    | [A,..As] => compPtn(A,Lc,argsPtnCont(As,locOf(A),Succ,Fail),Fail,Ctx,Stk)
+  compPtnArgs:(cons[cExp],option[locn],assemLbl,cons[breakLvl],codeCtx,stack) => (codeCtx,stack,multi[assemOp]).
+  compPtnArgs(Es,Lc,Fail,Brks,Ctx,Stk) => case Es in {
+    | [] => (Ctx,Stk,[])
+    | [A,..As] => valof{
+      (Ctx0,Stka,AC) = compPtn(A,Lc,Fail,Brks,Ctx,Stk);
+
+      compPtn(A,Lc,argsPtnCont(As,locOf(A),Succ,Fail),Fail,Ctx,Stk)
   }
 
   argsPtnCont(As,Lc,Succ,Fail) => cont{
@@ -751,23 +746,6 @@ star.compiler.gencode{
       
       valis (reconcileStack(SStk,FStk),Cde++SCde++[.iLbl(Flb),..FCde])
     }
-  }
-
-  nullCont = cont{
-    C(_,Stk,Cde) => (Stk,Cde).
-  }
-
-  ctxCont:(codeCtx,Cont) => Cont.
-  ctxCont(Ctx,Cont) => cont{
-    C(_,Stk,Cde) => Cont.C(Ctx,Stk,Cde)
-  }
-
-  bothCont:(Cont,Cont) => Cont.
-  bothCont(L,R) => cont{
-    C(Ctx,Stk,Cde) => valof{
-      (Stk1,C1) = L.C(Ctx,Stk,Cde);
-      valis R.C(Ctx,Stk1,C1)
-    }.
   }
 
   falseCont:(Cont) => Cont.

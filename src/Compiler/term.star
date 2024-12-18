@@ -540,14 +540,14 @@ star.compiler.term{
 
   frshnE:(cExp,scope)=>cExp.
   frshnE(Trm,Sc) => case Trm in {
-    | .cVoid(Lc,Tp) => .cVoid(Lc,Tp)
-    | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
+    | .cVoid(Lc,Tp) => Trm
+    | .cAnon(Lc,Tp) => Trm
     | .cVar(Lc,V) => (Rp ?= hasBinding(lName(V),Sc) ?? Rp || Trm)
-    | .cInt(Lc,Ix) => .cInt(Lc,Ix)
-    | .cBig(Lc,Ix) => .cBig(Lc,Ix)
-    | .cFlt(Lc,Dx) => .cFlt(Lc,Dx)
-    | .cChar(Lc,Cx) => .cChar(Lc,Cx)
-    | .cString(Lc,Sx) => .cString(Lc,Sx)
+    | .cInt(Lc,Ix) => Trm
+    | .cBig(Lc,Ix) => Trm
+    | .cFlt(Lc,Dx) => Trm
+    | .cChar(Lc,Cx) => Trm
+    | .cString(Lc,Sx) => Trm
     | .cTerm(Lc,Op,Args,Tp) => .cTerm(Lc,Op,frshnEs(Args,Sc),Tp)
     | .cNth(Lc,R,Ix,Tp) =>.cNth(Lc,frshnE(R,Sc),Ix,Tp)
     | .cSetNth(Lc,R,Ix,E) =>.cSetNth(Lc,frshnE(R,Sc),Ix,frshnE(E,Sc))
