@@ -769,7 +769,7 @@ star.compiler.term{
       case Df in {
 	| .fnDef(Lc,Nm,Tp,Args,Val) => {
 	  D1 = foldLeft(ptnVrs,D,Args);
-	  if ~{? E in Args *> validP(E,D1) ?} || ~validE(Val,D1) then{
+	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validE(Val,D1) then{
 	    reportError("$(.fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
 	  }
 	}
@@ -806,7 +806,6 @@ star.compiler.term{
     | .cClos(_,_,_,F,_) => validE(F,Vrs)
     | .cTask(_,F,_) => validE(F,Vrs)
     | .cSv(_,_) => .true
-    | .cSvDrf(_,E,_) => validE(E,Vrs)
     | .cSvSet(_,E,V) => validE(E,Vrs) && validE(V,Vrs)
     | .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}
     | .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}
@@ -826,7 +825,7 @@ star.compiler.term{
     | .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs)
     | .cMatch(_,V,E) => valof{
       V1 = glVars(E,Vrs);
-      valis validP(V,V1) && validE(E,V1)
+      valis validPtn(V,V1) && validE(E,V1)
     }
     | .cVarNmes(_,_,E) => validE(E,Vrs)
     | .cAbort(_,_,_) => .true
@@ -838,8 +837,8 @@ star.compiler.term{
     | .cValof(_,A,_) => validA(A,Vrs)
   }
 
-  validP:(cExp,set[cId]) => boolean.
-  validP(Exp,Vrs) => case Exp in {
+  validPtn:(cExp,set[cId]) => boolean.
+  validPtn(Exp,Vrs) => case Exp in {
     | .cVoid(Lc,Tp) => .true
     | .cAnon(_,_) => .true
     | .cVar(Lc,V) => .true
@@ -848,8 +847,8 @@ star.compiler.term{
     | .cChar(_,_) => .true
     | .cString(_,_) => .true
     | .cFlt(_,_) => .true
-    | .cTerm(_,_,Args,_) => {? E in Args *> validP(E,Vrs) ?}
-    | .cSvDrf(_,P,_) => validP(P,Vrs)
+    | .cTerm(_,_,Args,_) => {? E in Args *> validPtn(E,Vrs) ?}
+    | .cSvDrf(_,P,_) => validPtn(P,Vrs)
     | _ default => valof{
       reportError("invalid pattern: $(Exp)",locOf(Exp));
       valis .false
@@ -860,7 +859,7 @@ star.compiler.term{
   validCases([],_,_) => .true.
   validCases([(_,A,E),..Cs],P,Vrs) => valof{
     D1 = ptnVrs(A,Vrs);
-    valis validP(A,D1) && P(E,D1) && validCases(Cs,P,Vrs)
+    valis validPtn(A,D1) && P(E,D1) && validCases(Cs,P,Vrs)
   }
 
   validA:(aAction,set[cId])=>boolean.
@@ -869,7 +868,7 @@ star.compiler.term{
     | .aSeq(_,A1,A2) => valof{
       if .aDefn(_,P,V) .= A1 then{
 	V1 = ptnVrs(P,Vrs);
-	valis validP(P,V1) && validE(V,Vrs) && validA(A2,V1);
+	valis validPtn(P,V1) && validE(V,Vrs) && validA(A2,V1);
       } else {
 	valis validA(A1,Vrs) && validA(A2,Vrs)
       }
@@ -879,7 +878,7 @@ star.compiler.term{
     | .aValis(_,E) => validE(E,Vrs)
     | .aDo(_,E) => validE(E,Vrs)
     | .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs)
-    | .aDefn(_,P,E) => validP(P,ptnVrs(P,Vrs)) && validE(E,Vrs)
+    | .aDefn(_,P,E) => validPtn(P,ptnVrs(P,Vrs)) && validE(E,Vrs)
     | .aAsgn(_,L,V) => validE(L,Vrs) && validE(V,Vrs)
     | .aCase(_,G,Cs,Df) => validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs)
     | .aIftte(_,G,Th,E) => valof{
