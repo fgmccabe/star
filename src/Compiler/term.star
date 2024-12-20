@@ -133,21 +133,20 @@ star.compiler.term{
   }
 
   pDspExp:(cExp,string) => string.
-  pDspExp(E,Off) where complex(E) => "(#(dspExp(E,Off)))".
+  pDspExp(E,Off) where needParens(E) => "(#(dspExp(E,Off)))".
   pDspExp(E,Off) default => "#(dspExp(E,Off))".
 
-  complex(.cLtt(_,_,_,_)) => .true.
-  complex(.cOCall(_,_,_,_)) => .true.
-  complex(.cCnj(_,_,_)) => .true.
-  complex(.cCnj(_,_,_)) => .true.
-  complex(.cDsj(_,_,_)) => .true.
-  complex(.cNeg(_,_)) => .true.
-  complex(.cCnd(_,_,_,_)) => .true.
-  complex(.cVarNmes(_,_,_)) => .true.
-  complex(.cCase(_,_,_,_,_)) => .true.
-  complex(.cTry(_,_,_,_,_,_)) => .true.
-  complex(.cValof(_,_,_)) => .true.
-  complex(_) default => .false.
+  needParens(.cLtt(_,_,_,_)) => .true.
+  needParens(.cOCall(_,_,_,_)) => .true.
+  needParens(.cCnj(_,_,_)) => .true.
+  needParens(.cCnj(_,_,_)) => .true.
+  needParens(.cDsj(_,_,_)) => .true.
+  needParens(.cNeg(_,_)) => .true.
+  needParens(.cCnd(_,_,_,_)) => .true.
+  needParens(.cVarNmes(_,_,_)) => .true.
+  needParens(.cCase(_,_,_,_,_)) => .true.
+  needParens(.cTry(_,_,_,_,_,_)) => .true.
+  needParens(_) default => .false.
 
   dspAct:(aAction,string)=>string.
   dspAct(Act,Off) => case Act in {
