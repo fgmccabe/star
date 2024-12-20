@@ -1,0 +1,16 @@
+star.compiler.escapes{
+  -- Automatically Generated -- Do NOT Edit
+  import star.
+
+  import star.compiler.types.
+
+  public escapeType:(string)=>option[tipe].
+  escapeType(Es) => case Es in {
+#(Escapes)    | _ default => .none
+  }
+
+  public isEscape:(string)=>boolean.
+  isEscape(Es) => case Es in {
+#(IsEscape)    | _ default => .false
+  }
+}
