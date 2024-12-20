@@ -1,0 +1,7 @@
+/* Automatically generated, do not edit */
+
+:-module(escapes,[isEscape/1,escapeType/2]).
+
+#(Escapes)
+
+#(IsEscape)

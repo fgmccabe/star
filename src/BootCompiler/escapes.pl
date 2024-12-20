@@ -257,6 +257,8 @@ escapeType("_shell",constrained(funType(tplType([type("string"),tpExp(tpFun("con
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),type("string"))).
 escapeType("_jit_compile",allType(kVar("a"),allType(kVar("b"),constrained(funType(tplType([funType(tplType([kVar("a")]),kVar("b"))]),tplType([])),raises(type("errorCode")))))).
+
+
 isEscape("_exit").
 isEscape("_abort").
 isEscape("_definedLbl").
@@ -512,3 +514,4 @@ isEscape("_shell").
 isEscape("_ins_debug").
 isEscape("_stackTrace").
 isEscape("_jit_compile").
+

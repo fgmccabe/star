@@ -38,7 +38,6 @@ termPo voidEnum;
 termPo eofEnum;
 termPo canceledEnum;
 termPo unitEnum;
-labelPo errorLbl;
 
 static hashPo globals;
 
@@ -102,8 +101,6 @@ void initGlobals() {
 
   eofEnum = declareEnum("eof", -1, globalHeap);
   canceledEnum = declareEnum("canceled", -1, globalHeap);
-
-  errorLbl = declareLbl("error", 2, -1);
 
   divZero = declareEnum("divZero", -1, globalHeap);
 

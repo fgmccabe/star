@@ -1,7 +1,7 @@
-/* Automatically generated, do not edit */
-
 star.compiler.escapes{
+  -- Automatically Generated -- Do NOT Edit
   import star.
+
   import star.compiler.types.
 
   public escapeType:(string)=>option[tipe].
@@ -521,6 +521,6 @@ star.compiler.escapes{
     | "_ins_debug" => .true
     | "_stackTrace" => .true
     | "_jit_compile" => .true
-    | _ default => .false.
+    | _ default => .false
   }
-}.
+}

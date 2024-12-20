@@ -592,6 +592,7 @@ star.compiler.assem{
     valis stkHwm(Ins,CH0,H0)
   }
 
+
   findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).

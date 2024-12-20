@@ -6,7 +6,6 @@
 #include "ooio.h"
 #include "formioP.h"
 #include "template.h"
-#include <stringBuffer.h>
 #include <assert.h>
 #include <ctype.h>
 #include "formexts.h"
