@@ -14,17 +14,17 @@ star.compiler.normalize.meta{
   public consMap ~> cons[(termLbl,tipe,integer)].
 
   public nameMapEntry ::= .moduleFun(cExp,string)
-  | .localFun(string,string,integer,cId)
+  | .localFun(string,string,integer,cV)
   | .localVar(cExp)
   | .moduleCons(string,tipe)
-  | .localCons(string,tipe,cId)
-  | .labelArg(cId,integer)
-  | .thunkArg(cId,termLbl,integer)
+  | .localCons(string,tipe,cV)
+  | .labelArg(cV,integer)
+  | .thunkArg(cV,termLbl,integer)
   | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).
 
-  public mapLayer ::= .lyr(option[cId],map[string,nameMapEntry],map[string,typeMapEntry]).
+  public mapLayer ::= .lyr(option[cV],map[string,nameMapEntry],map[string,typeMapEntry]).
 
   public nameMap ~> cons[mapLayer].
 
@@ -54,7 +54,7 @@ star.compiler.normalize.meta{
 
   anyDef(D) => .some(D).
 
-  public lookupThetaVar:(nameMap,string)=>option[cId].
+  public lookupThetaVar:(nameMap,string)=>option[cV].
   lookupThetaVar(Map,Nm) where E?=lookupVarName(Map,Nm) =>
     case E in {
     | .labelArg(ThV,_) => .some(ThV)
@@ -64,7 +64,7 @@ star.compiler.normalize.meta{
     }.
   lookupThetaVar(_,_) default => .none.
 
-  public layerVar:(nameMap)=>option[cId].
+  public layerVar:(nameMap)=>option[cV].
   layerVar([.lyr(V,_,_),.._])=>V.
   layerVar([])=>.none.
 

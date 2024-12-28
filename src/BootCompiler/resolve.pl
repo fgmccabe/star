@@ -249,16 +249,20 @@ overloadTryCatch(E,v(Lc,ErNm,ErTp),H,EE,HH,Dict,St,Stx,Over) :-
 %  reportMsg("try %s resolved to %s",[can(E),can(EE)]),
   overloadCases(H,Over,Dict,St0,Stx,HH).
 
-overloadLambda(Lc,Lbl,[],Eqn,Tp,Dict,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-!,
-  overloadEquation([],Eqn,Dict,OEqn).
+overloadLambda(Lc,Lbl,[],rule(Lc,Args,G,Exp),Tp,Dict,St,Stx,
+	       lambda(Lc,Lbl,[],rule(Lc,RArgs,RG,RExp),Tp)) :-!,
+  defineArgVars(Args,Dict,RDict),
+  overloadTerm(Args,RDict,St,St0,RArgs),
+  overloadGuard(G,RDict,St0,St1,RG),
+  overloadTerm(Exp,RDict,St1,Stx,RExp).
 overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquation(CVars,Eqn,FDict,OEqn).
 					      
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,St,Stx,RDefs,RBound) :-
   declareAllDecls(Decls,Lc,Dict,RDict),
-  overload(Defs,RDict,RDefs),
-  call(RR,Bound,RDict,St,Stx,RBound).
+  call(RR,Bound,RDict,St,Stx,RBound),
+  overload(Defs,RDict,RDefs).
 
 overloadAction(doNop(Lc),_,St,St,doNop(Lc)) :-!.
 overloadAction(doSeq(Lc,A,B),Dict,St,Stx,doSeq(Lc,AA,BB)) :-

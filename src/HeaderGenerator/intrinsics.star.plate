@@ -7,6 +7,12 @@ star.compiler.intrinsics{
 
   public tailMode ::= .noMore | .notLast.
 
+  public implementation equality[tailMode] => {
+    .noMore == .noMore => .true.
+    .notLast == .notLast => .true.
+    _ == _ default => .false.
+  }
+
   public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {
 #(Intrinsics)

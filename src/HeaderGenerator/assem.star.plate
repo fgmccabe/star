@@ -13,7 +13,7 @@ star.compiler.assem{
   import star.compiler.types.encode.
   import star.compiler.ltipe.
 
-  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],multi[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
 
@@ -55,7 +55,7 @@ star.compiler.assem{
 
   lblLevel ~> option[assemLbl].
 
-  private assemBlock:(cons[assemOp],multi[data],integer,
+  private assemBlock:(multi[assemOp],multi[data],integer,
                       cons[lblLevel],map[data,integer],map[string,integer],set[data]) =>
                                         (multi[data],integer,map[data,integer],set[data]).
   assemBlock([],Code,Pc,Lbls,Lts,_Lcx,Lns) => (Code,Pc,Lts,Lns).
@@ -74,10 +74,10 @@ star.compiler.assem{
     valis ([],Pc,Lts,Lns)
   }.
 
-  private stackHwm:(cons[assemOp]) => integer.
+  private stackHwm:(multi[assemOp]) => integer.
   stackHwm(Code) where (_,HWM) .= stkHwm(Code,0,0) => HWM.
 
-  private stkHwm:(cons[assemOp],integer,integer) => (integer,integer).
+  private stkHwm:(multi[assemOp],integer,integer) => (integer,integer).
   stkHwm([],H,HWM) => (H,HWM).
   stkHwm([.iLbl(_,I),..Ins],CH,Hwm) => valof{
     (CH1,H1) = stkHwm([I],CH,Hwm);
@@ -113,13 +113,13 @@ star.compiler.assem{
     disp(Op) => showIns(Op,[]).
   }
 
-  showMnem:(cons[assemOp]) => string.
+  showMnem:(multi[assemOp]) => string.
   showMnem(Ops) => showBlock(Ops,[0]).
 
-  showBlock:(cons[assemOp],cons[integer]) => string.
+  showBlock:(multi[assemOp],cons[integer]) => string.
   showBlock(Ins,Pc) => interleave(showCode(Ins,Pc),"\n")*.
 
-  showCode:(cons[assemOp],cons[integer]) => cons[string].
+  showCode:(multi[assemOp],cons[integer]) => cons[string].
   showCode([],_) => [].
   showCode([Ins,..Cde],Pc) => ["\\#(showPc(Pc)\: \\#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
 

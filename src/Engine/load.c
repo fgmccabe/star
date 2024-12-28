@@ -253,6 +253,7 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
 }
 
 static char *structPreamble = "n3o3\1struct\1";
+static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
 static char *funcPreamble = "n9o9\1func\1";
@@ -276,7 +277,7 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
         ret = loadFunc(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
-      else if (isLookingAt(in, structPreamble) == Ok)
+      else if (isLookingAt(in, structPreamble) == Ok || isLookingAt(in, consPreamble) == Ok)
         ret = loadCtor(in, h, owner, errorMsg, msgLen);
       else {
         strMsg(errorMsg, msgLen, "invalid code stream");

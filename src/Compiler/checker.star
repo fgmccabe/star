@@ -943,10 +943,10 @@ star.compiler.checker{
 
   */
   typeOfThunk(Lc,E,Tp,Env,Path) => valof{
-    VlTp = mewTypeVar("υ");
+    VlTp = newTypeVar("υ");
     SvTp = savType(VlTp);
 
-    checkType(A,thunkType(VlTp),Tp,Env);
+    checkType(E,thunkType(VlTp),Tp,Env);
 
     SavVr = .vr(Lc,genNewName(Path,"Σ"),SvTp);
     XVr = .vr(Lc,genNewName(Path,"σ"),SvTp);
@@ -960,7 +960,7 @@ star.compiler.checker{
 		.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
 		  XVr,
 		  .svSet(Lc,SavVr,
-		    typeOfExp(E,SvVl,Env,Path)))))))),Tp)
+		    typeOfExp(E,VlTp,Env,Path)))),[],funType([],Tp)))),Tp),Tp)
   }
 
   checkAction:(ast,tipe,dict,string) => (canonAction,dict).
@@ -1101,6 +1101,7 @@ star.compiler.checker{
 	if DRl?=Deflt then{
 	  reportError("cannot have more than one default, other one at $(locOf(DRl))",
 	    locOf(Cs));
+	  valis []
 	}
 	else
 	valis checkRules(Ps,ATp,Tp,Env,Path,Chk,SoFar,.some(Rl))

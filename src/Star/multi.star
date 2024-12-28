@@ -75,4 +75,21 @@ star.multi{
     (M//F) => mapOver(M,F)
   }
 
+  public implementation all e ~~ sizeable[multi[e]] => {
+    size(M) => multiSize(M).
+    isEmpty(M) => multiIsEmpty(M)
+  }
+
+  multiSize:all e ~~ (multi[e]) => integer.
+  multiSize(.null) => 0.
+  multiSize(.single(_)) => 1.
+  multiSize(.multi(L)) => multiListSize(L).
+
+  multiListSize(.nil) => 0.
+  multiListSize(.cons(H,T)) => multiSize(H)+multiListSize(T).
+
+  multiIsEmpty:all e ~~ (multi[e]) => boolean.
+  multiIsEmpty(.null) => .true.
+  multiIsEmpty(_) default => .false.
+
 }

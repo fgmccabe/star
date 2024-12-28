@@ -111,7 +111,7 @@ star.compiler.types.encode{
     valis Tp
   }
 
-  decodeType:(cons[char]) => (tipe,cons[char]).
+  public decodeType:(cons[char]) => (tipe,cons[char]).
   decodeType([Ch,..Ts]) => case Ch in {
     | `i` => (.nomnal("integer"),Ts)
     | `b` => (.nomnal("bigint"),Ts)

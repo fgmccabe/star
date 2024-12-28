@@ -51,7 +51,7 @@ star.compiler.inline{
 
   -- ptnMatch tries to match an actual value with a pattern
   ptnMatch:(cExp,cExp,map[string,cExp]) => match[map[string,cExp]].
-  ptnMatch(.cVar(Lc1,.cId(V1,T1)),E,Map) => .matching(Map[V1->E]).
+  ptnMatch(.cVar(Lc1,.cV(V1,T1)),E,Map) => .matching(Map[V1->E]).
   ptnMatch(.cInt(_,Ix),.cInt(_,Ix),Map) => .matching(Map).
   ptnMatch(.cBig(_,Bx),.cBig(_,Bx),Map) => .matching(Map).
   ptnMatch(.cFlt(_,Dx),.cFlt(_,Dx),Map) => .matching(Map).
@@ -156,6 +156,8 @@ star.compiler.inline{
   simAct(.aDo(Lc,E),Map,Depth) => .aDo(Lc,simplifyExp(E,Map,Depth)).
   simAct(.aDefn(Lc,V,E),Map,Depth) =>
     .aDefn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
+  simAct(.aMatch(Lc,V,E),Map,Depth) =>
+    .aMatch(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aAsgn(Lc,V,E),Map,Depth) =>
     .aAsgn(Lc,simplifyExp(V,Map,Depth),simplifyExp(E,Map,Depth)).
   simAct(.aSetNth(Lc,T,Ix,E),Map,Depth) =>
@@ -184,8 +186,8 @@ star.compiler.inline{
   getValis(Lc,.cValof(_,A,_)) => A.
   getValis(Lc,E) => .aValis(Lc,E).
   
-  inlineVar(Lc,.cId("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
-  inlineVar(Lc,.cId(Id,Tp),Map,Depth) where
+  inlineVar(Lc,.cV("_",Tp),_Map,_Depth) => .cAnon(Lc,Tp).
+  inlineVar(Lc,.cV(Id,Tp),Map,Depth) where
       .glDef(_,_,_,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
     Sim = simplify(Vl,Map,Depth);
     if traceInline! then
@@ -210,10 +212,10 @@ star.compiler.inline{
   applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
   applyCnd(_,.cTerm(_,"false",[],_),_L,R,_,_) => R.
   applyCnd(_,.cTerm(_,"true",[],_),L,_R,_,_) => L.
-  applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cId(Vr,_)) .= V =>
+  applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cV(Vr,_)) .= V =>
     rewrite(L,rwVar({Vr->E})).
-  applyCnd(Lc,.cCnj(_,.cMatch(_,V,E),BB),L,R,Map,Dep) where .cVar(_,.cId(Vr,VTp)) .= V &&
-      ~ varUsed(BB,.cId(Vr,VTp)) =>
+  applyCnd(Lc,.cCnj(_,.cMatch(_,V,E),BB),L,R,Map,Dep) where .cVar(_,.cV(Vr,VTp)) .= V &&
+      ~ varUsed(BB,.cV(Vr,VTp)) =>
     applyCnd(Lc,BB,rewrite(L,rwVar({Vr->E})),R,Map,Dep).
   applyCnd(Lc,T,L,R,_,_) => mkCond(Lc,T,L,R).
 
@@ -269,8 +271,8 @@ star.compiler.inline{
   }
 
   inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
-    (option[locn],cId,cExp,e,map[defnSp,cDefn],integer) => e.
-  inlineLtt(Lc,.cId(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
+    (option[locn],cV,cExp,e,map[defnSp,cDefn],integer) => e.
+  inlineLtt(Lc,.cV(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
     simplify(rewrite(Exp,rwVar({Vr->Bnd})),Map,Depth).
   inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
     mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
