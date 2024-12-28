@@ -40,23 +40,8 @@ star.compiler.resolve{
   }
 
   overloadDef:(canonDef,dict)=>(canonDef,dict).
-  overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) => valof{
-    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
-    REqns = Eqs//(Eq)=>resolveEqn(Eq,Extra,CDict);
-
-    (Qx,Qt) = deQuant(Tp);
-    (_,ITp) = deConstrain(Qt);
-    if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
-      CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
-      if traceCanon! then
-	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
-      valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
-    }
-    else{
-      reportError("function does not have a function type: $(Tp)",Lc);
-      valis (.funDef(Lc,Nm,Eqs,Cx,Tp),Dict)
-    }
-  }
+  overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) =>
+    overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
   overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqn,_,_),Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,[Eqn],Cx,Tp).
   overloadDef(.varDef(Lc,Nm,Val,Cx,Tp),Dict) =>
@@ -178,7 +163,7 @@ star.compiler.resolve{
   defineArgVars(Ptn,D) =>
     foldLeft(defineArg,D,ptnVars(Ptn,[],[])).
 
-  defineArg(.cId(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
+  defineArg(.cV(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
 
   overload:all e ~~ resolve[e] |: (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
@@ -295,11 +280,16 @@ star.compiler.resolve{
     (RRhs,St1) = overloadTerm(Rhs,Dict,St);
     valis (.thRef(Lc,RRhs,Tp),St1)
   }
-  overloadTerm(.thSet(Lc,Th,Vl),Dict,St) => valof{
+  overloadTerm(.svGet(Lc,Rhs,Tp),Dict,St) => valof{
+    (RRhs,St1) = overloadTerm(Rhs,Dict,St);
+    valis (.svGet(Lc,RRhs,Tp),St1)
+  }
+  overloadTerm(.svSet(Lc,Th,Vl),Dict,St) => valof{
     (TT,St1) = overloadTerm(Th,Dict,St);
     (VV,St2) = overloadTerm(Vl,Dict,St1);
-    valis (.thSet(Lc,TT,VV),St2)
+    valis (.svSet(Lc,TT,VV),St2)
   }
+  overloadTerm(.newSav(Lc,Tp),Dict,St) => (.newSav(Lc,Tp),St).
   overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
     if traceCanon! then
       showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp)) @ $(Lc)");
@@ -339,20 +329,6 @@ star.compiler.resolve{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,TT,EE,Tp),St2)
-  }
-  overloadTerm(.rst(Lc,E,Tp),Dict,St) => valof{
-    (EE,St1) = overloadTerm(E,Dict,St);
-    valis (.rst(Lc,EE,Tp),St1)
-  }
-  overloadTerm(.shyft(Lc,T,E,Tp),Dict,St) => valof{
-    (TT,St1) = overloadTerm(T,Dict,St);
-    (EE,St2) = overloadTerm(E,Dict,St1);
-    valis (.shyft(Lc,TT,EE,Tp),St2)
-  }
-  overloadTerm(.invoke(Lc,T,E,Tp),Dict,St) => valof{
-    (TT,St1) = overloadTerm(T,Dict,St);
-    (EE,St2) = overloadTerm(E,Dict,St1);
-    valis (.invoke(Lc,TT,EE,Tp),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);

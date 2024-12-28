@@ -13,7 +13,7 @@ star.compiler.matcher{
   import star.compiler.location.
 
   all e ~~ triple[e] ~>
-    (cons[cExp],(option[locn],cons[(string,cId)],option[cExp],e),integer).
+    (cons[cExp],(option[locn],cons[(string,cV)],option[cExp],e),integer).
 
   public functionMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],cExp)]) => option[cDefn].
   functionMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
@@ -46,7 +46,7 @@ star.compiler.matcher{
   genVars:(option[locn],tipe) => cons[cExp].
   genVars(Lc,.tupleType(L)) => let{.
     genV([]) => [].
-    genV([T,..Ts]) => [.cVar(Lc,.cId(genId("_"),T)),..genV(Ts)].
+    genV([T,..Ts]) => [.cVar(Lc,.cV(genId("_"),T)),..genV(Ts)].
   .} in genV(L).
 
   makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
@@ -161,7 +161,7 @@ star.compiler.matcher{
   mkMatchCond([],[],Test,_,Val) => (Test,Val).
   mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],Test,Lc,Val) =>
     mkMatchCond(Args,Vars,Test,Lc,Val).
-  mkMatchCond([.cVar(VLc,.cId(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
+  mkMatchCond([.cVar(VLc,.cV(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
     if traceNormalize! then
       showMsg("match $(Vr) with $(V)");
 
@@ -229,7 +229,7 @@ star.compiler.matcher{
 
   emptyCase:(option[locn],tipe,string)=>cExp.
   emptyCase(Lc,T,Nm) where (.tupleType(ArgTps),ResTp) ?= isConsType(T) =>
-    .cTerm(Lc,Nm,ArgTps//(ATp)=>.cVar(Lc,.cId("_",ATp)),ResTp).
+    .cTerm(Lc,Nm,ArgTps//(ATp)=>.cVar(Lc,.cV("_",ATp)),ResTp).
   
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
@@ -246,7 +246,7 @@ star.compiler.matcher{
     applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
       valis (Args, (CLc,B,Gl,Exp),Ix)
     }
-    applyToTriple(([.cVar(VLc,.cId(Vr,VTp)),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
+    applyToTriple(([.cVar(VLc,.cV(Vr,VTp)),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
       Mp = rwVar({Vr->V});
 
       if traceNormalize! then
@@ -290,7 +290,7 @@ star.compiler.matcher{
     valis (Lc,.cTerm(Lc,Lbl,Vrs,Tp),Case)
   }.
 
-  genTplVar(Arg) => .cVar(locOf(Arg),.cId(genId("V"),typeOf(Arg))).
+  genTplVar(Arg) => .cVar(locOf(Arg),.cV(genId("V"),typeOf(Arg))).
 
   pickMoreCases:all e ~~ (triple[e],cons[triple[e]],(triple[e],triple[e])=>boolean,
     cons[triple[e]],cons[triple[e]])=> (cons[triple[e]],cons[triple[e]]).
@@ -318,7 +318,7 @@ star.compiler.matcher{
     valis applyBindings(Lc,Bnds,Vl)
   }
 
-  applyBindings:all e ~~ reform[e] |: (option[locn],cons[(string,cId)],e) => e.
+  applyBindings:all e ~~ reform[e] |: (option[locn],cons[(string,cV)],e) => e.
   applyBindings(Lc,Bnds,Val) => valof{
     VBnds = (Bnds^/(((Nm,_))=>~isUnderscoreName(Nm)));
     if isEmpty(VBnds) then

@@ -366,7 +366,7 @@ static char *opAndTp(opAndSpec A) {
     case tPe:
       return "ltipe";
     case bLk:
-      return "cons[assemOp]";
+      return "multi[assemOp]";
     default:
       fprintf(stderr, "Unknown instruction type code\n");
       exit(1);

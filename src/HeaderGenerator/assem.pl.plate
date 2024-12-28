@@ -22,7 +22,7 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     length(Lcls,Lx),
     mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl,LnTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
-    mkCons("cons",[Lbl,Sig,intgr(Ix)],Tpl).
+    mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
     encMap(Map,MapEls),
     tpName(Tp,TpNm),

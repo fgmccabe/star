@@ -162,6 +162,7 @@ comprehensionMacro(T,expression,Rp) :-
   (isBinary(Bnd,"<*",_,L,R) ->
    makeTotalizer(Lc,L,R,Body,Rp);
    makeComprehension(Lc,Bnd,Body,Rp)).
+%  dispAst(Rp).
 
 makeComprehension(Lc,Bnd,Body,Rp) :-
   makeCondition(Body,macroRules:passThru,macroRules:push(Lc,Bnd),grounded(name(Lc,"_null")),Rp).
@@ -206,18 +207,19 @@ foldResult(Lc,F,E,grounded(St),Res) :-
   roundTerm(Lc,F,[E,St],Res).
 foldResult(_,_,_,lyfted(St),St).
 
+% create a conditional lambda:
+% (El,St) => (Ptn.=El ?? push(Val,St) || St)
+
 makeCondition(A,Lift,Succ,Zed,Rp) :-
   isSearch(A,Lc,Ptn,Src),!,
-  genIden(Lc,"sF",Sf),
+  genIden(Lc,"El",El),
   genIden(Lc,"St",St),
-  mkAnon(Lc,Anon),
-  roundTerm(Lc,Sf,[Ptn,St],S),
-  roundTerm(Lc,Sf,[Anon,St],F),
+  roundTuple(Lc,[El,St],S),
   call(Succ,grounded(St),Sc),
   call(Lift,grounded(St),Lf),
-  eqn(Lc,S,Sc,Eq1),
-  eqn(Lc,F,Lf,Eq2),
-  mkLetDef(Lc,[Eq1,Eq2],Sf,FF),
+  match(Lc,Ptn,El,Tst),
+  conditional(Lc,Tst,Sc,Lf,Body),
+  mkEquation(Lc,S,none,Body,FF),
   call(Lift,Zed,ZZ),
 %  unary(Lc,"_more",ZZ,ZI),
   ternary(Lc,"_iter",Src,ZZ,FF,Rp).

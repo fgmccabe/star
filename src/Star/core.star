@@ -138,22 +138,6 @@ star.core {
 
   public exception ::= .exception(string).
 
-  -- public errorCode ::= .eINTRUPT |
-  -- .eNOTDIR |
-  -- .eNOFILE |
-  -- .eNOTFND |
-  -- .eINVAL |
-  -- .eRANGE |
-  -- .eNOPERM |
-  -- .eFAIL |
-  -- .eIOERROR |
-  -- .eCONNECT |
-  -- .eDEAD |
-  -- .divZero |
-  -- .eof |
-  -- .noValue |
-  -- .hasValue.
-
   public implementation display[errorCode] => {
     disp(.eINTRUPT) => "eINTRUPT".
     disp(.eNOFILE) => "eNOFIL".

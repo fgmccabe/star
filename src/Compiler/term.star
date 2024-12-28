@@ -14,7 +14,7 @@ star.compiler.term{
   
   public cExp ::= .cVoid(option[locn],tipe)
   | .cAnon(option[locn],tipe)
-  | .cVar(option[locn],cId)
+  | .cVar(option[locn],cV)
   | .cInt(option[locn],integer)
   | .cChar(option[locn],char)
   | .cBig(option[locn],bigint)
@@ -36,15 +36,15 @@ star.compiler.term{
   | .cDsj(option[locn],cExp,cExp)
   | .cNeg(option[locn],cExp)
   | .cCnd(option[locn],cExp,cExp,cExp)
-  | .cLtt(option[locn],cId,cExp,cExp)
+  | .cLtt(option[locn],cV,cExp,cExp)
   | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
   | .cMatch(option[locn],cExp,cExp)
-  | .cVarNmes(option[locn],cons[(string,cId)],cExp)
+  | .cVarNmes(option[locn],cons[(string,cV)],cExp)
   | .cAbort(option[locn],string,tipe)
   | .cTry(option[locn],cExp,cExp,cExp,cExp,tipe)
   | .cValof(option[locn],aAction,tipe).
   
-  public cId ::= .cId(string,tipe).
+  public cV ::= .cV(string,tipe).
 
   public all e ~~ cCase[e] ~> (option[locn],cExp,e).
 
@@ -56,13 +56,14 @@ star.compiler.term{
     | .aDo(option[locn],cExp)
     | .aSetNth(option[locn],cExp,integer,cExp)
     | .aDefn(option[locn],cExp,cExp)
+    | .aMatch(option[locn],cExp,cExp)
     | .aAsgn(option[locn],cExp,cExp)
     | .aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
     | .aIftte(option[locn],cExp,aAction,aAction)
     | .aWhile(option[locn],cExp,aAction)
     | .aTry(option[locn],aAction,cExp,cExp,aAction)
-    | .aLtt(option[locn],cId,cExp,aAction)
-    | .aVarNmes(option[locn],cons[(string,cId)],aAction)
+    | .aLtt(option[locn],cV,cExp,aAction)
+    | .aVarNmes(option[locn],cons[(string,cV)],aAction)
     | .aAbort(option[locn],string).
 
   public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp) |
@@ -90,7 +91,7 @@ star.compiler.term{
   dspExp(Exp,Off) => case Exp in {
     | .cVoid(_,_) => "void"
     | .cAnon(_,_) => "_"
-    | .cVar(_,.cId(V,VTp)) => "%#(V)"
+    | .cVar(_,.cV(V,VTp)) => "%#(V)"
     | .cInt(_,Ix) => disp(Ix)
     | .cChar(_,Ix) => disp(Ix)
     | .cBig(_,Ix) => disp(Ix)
@@ -161,6 +162,7 @@ star.compiler.term{
     | .aDo(_,E) => "call #(dspExp(E,Off))"
     | .aSetNth(_,T,Ix,V) => "update #(dspExp(T,Off))[$(Ix)] <- #(dspExp(V,Off))"
     | .aDefn(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))"
+    | .aMatch(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))"
     | .aAsgn(_,P,E) => "#(dspExp(P,Off)) := #(dspExp(E,Off))"
     | .aCase(_,E,Cs,Df) => valof{
       Off2=Off++"  ";
@@ -210,16 +212,16 @@ star.compiler.term{
 
   public rwVar:(map[string,cExp])=>(cExp)=>option[cExp].
   rwVar(M) => let{
-    test(.cVar(_,.cId(Nm,_))) => M[Nm].
+    test(.cVar(_,.cV(Nm,_))) => M[Nm].
     test(_) => .none.
   } in test.
 
-  public implementation equality[cId] => {
-    .cId(N1,T1) == .cId(N2,T2) => N1==N2.
+  public implementation equality[cV] => {
+    .cV(N1,T1) == .cV(N2,T2) => N1==N2.
   }
 
-  public implementation hashable[cId] => {
-    hash(.cId(N,T)) => hash(N).
+  public implementation hashable[cV] => {
+    hash(.cV(N,T)) => hash(N).
   }
 
   eqTerm(E1,E2) => case E1 in {
@@ -288,6 +290,7 @@ star.compiler.term{
     | .aDo(_,E1) => .aDo(_,E2).=A2 && eqTerm(E1,E2)
     | .aSetNth(_,V1,Ix1,T1) => .aSetNth(_,V2,Ix2,T2).=A2 && eqTerm(V1,V2) && Ix1==Ix2 && eqTerm(T1,T2)
     | .aDefn(_,E1,V1) => .aDefn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
+    | .aMatch(_,E1,V1) => .aMatch(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
     | .aAsgn(_,E1,V1) => .aAsgn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
     | .aCase(_,S1,C1,D1) => .aCase(_,S2,C2,D2).=A2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2)
@@ -386,16 +389,16 @@ star.compiler.term{
     typeOf = tpOf
   }
 
-  public implementation hasType[cId] => {
-    typeOf(.cId(_,Tp)) => Tp.
+  public implementation hasType[cV] => {
+    typeOf(.cV(_,Tp)) => Tp.
   }
 
   public implementation display[cExp] => {
     disp(T) => dspExp(T,"")
   }
 
-  public implementation display[cId] => {
-    disp(.cId(Nm,Tp)) => "%#(Nm)\:$(Tp)".
+  public implementation display[cV] => {
+    disp(.cV(Nm,Tp)) => "%#(Nm)\:$(Tp)".
   }
 
   public implementation hasLoc[aAction] => {
@@ -408,6 +411,7 @@ star.compiler.term{
       | .aDo(Lc,_) => Lc
       | .aSetNth(Lc,_,_,_) => Lc
       | .aDefn(Lc,_,_) => Lc
+      | .aMatch(Lc,_,_) => Lc
       | .aAsgn(Lc,_,_) => Lc
       | .aCase(Lc,_,_,_) => Lc
       | .aIftte(Lc,_,_,_) => Lc
@@ -434,7 +438,7 @@ star.compiler.term{
       | .cInt(_,Ix) => .some(.intgr(Ix))
       | .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(.term(Nm,NArgs))
-      | .cClos(_,L,A,F,_) where NF ?= _coerce(F) => .some(.clos(.tLbl(L,A),NF))
+      | .cClos(_,L,A,F,Tp) where NF ?= _coerce(F) => .some(.clos(.tLbl(L,A),NF,Tp))
       | _ default => .none
     }.
 
@@ -496,6 +500,7 @@ star.compiler.term{
     | .aDo(Lc,E) => .aDo(Lc,rwTerm(E,Tst))
     | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,rwTerm(V,Tst),Ix,rwTerm(E,Tst))
     | .aDefn(Lc,V,E) => .aDefn(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
+    | .aMatch(Lc,V,E) => .aMatch(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst))
     | .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst))
@@ -508,7 +513,7 @@ star.compiler.term{
 
   dropVar:(string,(cExp)=>option[cExp])=>(cExp)=>option[cExp].
   dropVar(Nm,Tst) => let{
-    test(.cVar(_,.cId(Nm,_))) => .none.
+    test(.cVar(_,.cV(Nm,_))) => .none.
     test(T) default => Tst(T)
   } in test.
   
@@ -591,19 +596,19 @@ star.compiler.term{
   hasBinding(V,[M,.._]) where Vl ?= M[V] => .some(Vl).
   hasBinding(V,[_,..Ms]) => hasBinding(V,Ms).
 
-  newVars:(set[cId],scope) => scope.
+  newVars:(set[cV],scope) => scope.
   newVars(Vrs,[Mp,..Ms]) => let{
-    def:(cId,map[termLbl,cExp]) => map[termLbl,cExp].
+    def:(cV,map[termLbl,cExp]) => map[termLbl,cExp].
     def(V,M) where Nm .= lName(V) => (_ ?= M[Nm] ?? M || M[Nm->newVar(V)]).
   } in [foldLeft(def,Mp,Vrs),..Ms].
 
-  newVar(.cId(Nm,Tp)) => .cVar(.none,.cId(genId(Nm),Tp)).
+  newVar(.cV(Nm,Tp)) => .cVar(.none,.cV(genId(Nm),Tp)).
 
   pushScope:(scope) => scope.
   pushScope(Sc) => [[],..Sc].
 
-  public lName:(cId) => termLbl.
-  lName(.cId(Nm,Tp)) => .tLbl(Nm,arity(Tp)).
+  public lName:(cV) => termLbl.
+  lName(.cV(Nm,Tp)) => .tLbl(Nm,arity(Tp)).
 
   frshnA:(aAction,scope)=>aAction.
   frshnA(Ac,Sc) => case Ac in {
@@ -612,6 +617,10 @@ star.compiler.term{
       Sc1 = newVars(ptnVrs(P,[]),Sc);
       valis .aSeq(Lc,.aDefn(LL,frshnE(P,Sc1),frshnE(E,Sc)),frshnA(R,Sc1))
     }
+    | .aSeq(Lc,.aMatch(LL,P,E),R) => valof{
+      Sc1 = newVars(ptnVrs(P,[]),Sc);
+      valis .aSeq(Lc,.aMatch(LL,frshnE(P,Sc1),frshnE(E,Sc)),frshnA(R,Sc1))
+    }
     | .aSeq(Lc,L,R) => .aSeq(Lc,frshnA(L,Sc),frshnA(R,Sc))
     | .aLbld(Lc,L,A) => .aLbld(Lc,L,frshnA(A,Sc))
     | .aBreak(Lc,L) => .aBreak(Lc,L)
@@ -619,6 +628,7 @@ star.compiler.term{
     | .aDo(Lc,E) => .aDo(Lc,frshnE(E,Sc))
     | .aSetNth(Lc,V,Ix,E) => .aSetNth(Lc,frshnE(V,Sc),Ix,frshnE(E,Sc))
     | .aDefn(Lc,V,E) => .aDefn(Lc,frshnE(V,Sc),frshnE(E,Sc))
+    | .aMatch(Lc,V,E) => .aMatch(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
     | .aIftte(Lc,C,L,R) => valof{
@@ -659,11 +669,11 @@ star.compiler.term{
   isTypeDef(.tpDef(_,_,_,_)) => .true.
   isTypeDef(_) default => .false.
 
-  public cName:(cId) => string.
-  cName(.cId(Nm,_))=>Nm.
+  public cName:(cV) => string.
+  cName(.cV(Nm,_))=>Nm.
 
-  public cType:(cId) => tipe.
-  cType(.cId(_,Tp)) => Tp.
+  public cType:(cV) => tipe.
+  cType(.cV(_,Tp)) => Tp.
 
   public isCond:(cExp)=>boolean.
   isCond(C) => case C in {
@@ -697,9 +707,9 @@ star.compiler.term{
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
-    varNames:(option[locn],cons[(string,cId)],e)=>e.
+    varNames:(option[locn],cons[(string,cV)],e)=>e.
     pullWhere:(e) => (e,option[cExp]).
-    mkLtt:(option[locn],cId,cExp,e) => e.
+    mkLtt:(option[locn],cV,cExp,e) => e.
   }
 
   public implementation reform[cExp] => {.
@@ -742,20 +752,20 @@ star.compiler.term{
     mkLtt(Lc,V,E,X) => .aLtt(Lc,V,E,X).
   }
 
-  dfVars:(cons[cDefn],set[cId])=>set[cId].
-  dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cId(Nm,Tp)).
-  dfVars([.glDef(_,Nm,Tp,_),..Ds],D) => dfVars(Ds,D\+.cId(Nm,Tp)).
+  dfVars:(cons[cDefn],set[cV])=>set[cV].
+  dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
+  dfVars([.glDef(_,Nm,Tp,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
   dfVars([_,..Ds],D) => dfVars(Ds,D).
   dfVars([],D) => D.
 
-  dclVrs:(cons[decl],set[cId])=>set[cId].
+  dclVrs:(cons[decl],set[cV])=>set[cV].
   dclVrs(Decs,Vrs) => foldLeft(dclVr,Vrs,Decs).
 
   dclVr(Df,Vrs) => case Df in {
-    | .funDec(_,_,Nm,Tp) => Vrs\+.cId(Nm,Tp)
-    | .varDec(_,_,Nm,Tp) => Vrs\+.cId(Nm,Tp)
-    | .cnsDec(_,_,Nm,Tp) => Vrs\+.cId(Nm,Tp)
-    | .implDec(_,_,Nm,Tp) => Vrs\+.cId(Nm,Tp)
+    | .funDec(_,_,Nm,Tp) => Vrs\+.cV(Nm,Tp)
+    | .varDec(_,_,Nm,Tp) => Vrs\+.cV(Nm,Tp)
+    | .cnsDec(_,_,Nm,Tp) => Vrs\+.cV(Nm,Tp)
+    | .implDec(_,_,Nm,Tp) => Vrs\+.cV(Nm,Tp)
     | _ default => Vrs
   }
 
@@ -783,7 +793,7 @@ star.compiler.term{
     valis ()
   }
 
-  validE:(cExp,set[cId]) => boolean.
+  validE:(cExp,set[cV]) => boolean.
   validE(Exp,Vrs) => case Exp in {
     | .cVoid(Lc,Tp) => .true
     | .cAnon(Lc,_) => valof{
@@ -836,7 +846,7 @@ star.compiler.term{
     | .cValof(_,A,_) => validA(A,Vrs)
   }
 
-  validPtn:(cExp,set[cId]) => boolean.
+  validPtn:(cExp,set[cV]) => boolean.
   validPtn(Exp,Vrs) => case Exp in {
     | .cVoid(Lc,Tp) => .true
     | .cAnon(_,_) => .true
@@ -854,18 +864,21 @@ star.compiler.term{
     }
   }
   
-  validCases:all e ~~ (cons[cCase[e]],(e,set[cId])=>boolean,set[cId]) => boolean.
+  validCases:all e ~~ (cons[cCase[e]],(e,set[cV])=>boolean,set[cV]) => boolean.
   validCases([],_,_) => .true.
   validCases([(_,A,E),..Cs],P,Vrs) => valof{
     D1 = ptnVrs(A,Vrs);
     valis validPtn(A,D1) && P(E,D1) && validCases(Cs,P,Vrs)
   }
 
-  validA:(aAction,set[cId])=>boolean.
+  validA:(aAction,set[cV])=>boolean.
   validA(Ac,Vrs) => case Ac in {
     | .aNop(_) => .true
     | .aSeq(_,A1,A2) => valof{
       if .aDefn(_,P,V) .= A1 then{
+	V1 = ptnVrs(P,Vrs);
+	valis validPtn(P,V1) && validE(V,Vrs) && validA(A2,V1);
+      } else if .aMatch(_,P,V) .= A1 then{
 	V1 = ptnVrs(P,Vrs);
 	valis validPtn(P,V1) && validE(V,Vrs) && validA(A2,V1);
       } else {
@@ -878,6 +891,7 @@ star.compiler.term{
     | .aDo(_,E) => validE(E,Vrs)
     | .aSetNth(_,V,_,E) => validE(V,Vrs) && validE(E,Vrs)
     | .aDefn(_,P,E) => validPtn(P,ptnVrs(P,Vrs)) && validE(E,Vrs)
+    | .aMatch(_,P,E) => validPtn(P,ptnVrs(P,Vrs)) && validE(E,Vrs)
     | .aAsgn(_,L,V) => validE(L,Vrs) && validE(V,Vrs)
     | .aCase(_,G,Cs,Df) => validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs)
     | .aIftte(_,G,Th,E) => valof{
@@ -898,7 +912,7 @@ star.compiler.term{
     | .aAbort(_,_) => .true
   }
 
-  public ptnVrs:(cExp,set[cId]) => set[cId].
+  public ptnVrs:(cExp,set[cV]) => set[cV].
   ptnVrs(E,Vrs) => case E in {
     | .cVoid(_,_) => Vrs
     | .cAnon(_,_) => Vrs
@@ -913,7 +927,7 @@ star.compiler.term{
     | .cSvDrf(_,E,_) => ptnVrs(E,Vrs)
   }
 
-  public glVars:(cExp,set[cId])=>set[cId].
+  public glVars:(cExp,set[cV])=>set[cV].
   glVars(G,Vrs) => case G in {
     | .cCnj(_,L,R) => glVars(R,glVars(L,Vrs))
     | .cDsj(_,L,R) => valof{
@@ -946,7 +960,7 @@ star.compiler.term{
   public lblUsed:(aAction,string) => boolean.
   lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
 
-  public varUsed:all T ~~ present[T] |: (T,cId) => boolean.
+  public varUsed:all T ~~ present[T] |: (T,cV) => boolean.
   varUsed(T,V) => present(T,(Ex)=>(.cVar(_,VV).=Ex ?? VV==V || .false)).
 
   isBreak(.aBreak(_,Lb),Lb) => .true.
@@ -962,6 +976,7 @@ star.compiler.term{
     | .aDo(_,E) => presentInE(E,C,T)
     | .aSetNth(_,V,_,E) => presentInE(V,C,T) || presentInE(E,C,T)
     | .aDefn(_,_,E) => presentInE(E,C,T)
+    | .aMatch(_,P,E) => presentInE(P,C,T) || presentInE(E,C,T)
     | .aAsgn(_,L,V) => presentInE(L,C,T) || presentInE(V,C,T)
     | .aCase(_,G,Cs,D) =>
       presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T)
@@ -1031,13 +1046,13 @@ star.compiler.term{
     | .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)])
   }
 
-  frzeVar(.cId(Nm,Tp)) => mkTpl([.strg(Nm),encodeSig(Tp)]).
+  frzeVar(.cV(Nm,Tp)) => mkTpl([.strg(Nm),encodeSig(Tp)]).
 
   frzeExp:(cExp)=>data.
   frzeExp(Ex) => case Ex in {
     | .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)])
     | .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)])
-    | .cVar(Lc,.cId(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)])
+    | .cVar(Lc,.cV(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)])
     | .cInt(Lc,Ix) => mkCons("int",[Lc::data,.intgr(Ix)])
     | .cChar(Lc,Cx) => mkCons("chr",[Lc::data,.chr(Cx)])
     | .cFlt(Lc,Dx) => mkCons("flt",[Lc::data,.flot(Dx)])
@@ -1068,7 +1083,7 @@ star.compiler.term{
     | .cNeg(Lc,R) => mkCons("neg",[Lc::data,frzeExp(R)])
     | .cCnd(Lc,T,L,R) => mkCons("cnd",[Lc::data,frzeExp(T),frzeExp(L),frzeExp(R)])
     | .cMatch(Lc,L,R) => mkCons("mtch",[Lc::data,frzeExp(L),frzeExp(R)])
-    | .cLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
+    | .cLtt(Lc,.cV(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeExp(X)])
     | .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)])
@@ -1081,7 +1096,7 @@ star.compiler.term{
   freezeCases:all e ~~ (cons[cCase[e]],(e)=>data) => data.
   freezeCases(Cs,F) => mkTpl(Cs//((Lc,Pt,E))=>mkTpl([Lc::data,frzeExp(Pt),F(E)])).
 
-  freezeNames(Vs) => mkTpl(Vs//((Nm,.cId(Vn,VTp)))=>
+  freezeNames(Vs) => mkTpl(Vs//((Nm,.cV(Vn,VTp)))=>
       mkTpl([.strg(Nm),.strg(Vn),encodeSig(VTp)])).
 
   frzeAct:(aAction)=>data.
@@ -1094,13 +1109,14 @@ star.compiler.term{
     | .aDo(Lc,V) => mkCons("do",[Lc::data,frzeExp(V)])
     | .aSetNth(Lc,V,Ix,E) => mkCons("setix",[Lc::data,frzeExp(V),.intgr(Ix),frzeExp(E)])
     | .aDefn(Lc,P,V) => mkCons("defn",[Lc::data,frzeExp(P),frzeExp(V)])
+    | .aMatch(Lc,P,V) => mkCons("match",[Lc::data,frzeExp(P),frzeExp(V)])
     | .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)])
     | .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(C,frzeAct),frzeAct(D)])
     | .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)])
     | .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)])
     | .aTry(Lc,B,T,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(T),frzeExp(E),frzeAct(H)])
-    | .aLtt(Lc,.cId(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
+    | .aLtt(Lc,.cV(V,Tp),B,X) => mkCons("ltt",[Lc::data,.strg(V),encodeSig(Tp),
 	frzeExp(B),frzeAct(X)])
     | .aVarNmes(Lc,Vs,B) => mkCons("vrs",[Lc::data,freezeNames(Vs),frzeAct(B)])
     | .aAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)])
@@ -1119,14 +1135,14 @@ star.compiler.term{
       .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix)
   }
 
-  thawVr(.term(_,[.strg(Vn),VSig]))=>.cId(Vn,decodeSig(VSig)).
+  thawVr(.term(_,[.strg(Vn),VSig]))=>.cV(Vn,decodeSig(VSig)).
 
   thwTrm:(data) => cExp.
   thwTrm(D) => case D in {
     | .term("void",[Lc,Sig]) =>
       .cVoid(thawLoc(Lc),decodeSig(Sig))
     | .term("anon",[Lc,Sig]) => .cAnon(thawLoc(Lc),decodeSig(Sig))
-    | .term("var",[Lc,.strg(V),Sig]) => .cVar(thawLoc(Lc),.cId(V,decodeSig(Sig)))
+    | .term("var",[Lc,.strg(V),Sig]) => .cVar(thawLoc(Lc),.cV(V,decodeSig(Sig)))
     | .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix)
     | .term("chr",[Lc,.chr(Ix)]) => .cChar(thawLoc(Lc),Ix)
     | .term("flt",[Lc,.flot(Dx)]) => .cFlt(thawLoc(Lc),Dx)
@@ -1162,7 +1178,7 @@ star.compiler.term{
       .cCnd(thawLoc(Lc),thwTrm(T),thwTrm(L),thwTrm(R))
     | .term("mtch",[Lc,L,R]) => .cMatch(thawLoc(Lc),thwTrm(L),thwTrm(R))
     | .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
-      .cLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thwTrm(X))
+      .cLtt(thawLoc(Lc),.cV(V,decodeSig(Sig)),thwTrm(B),thwTrm(X))
     | .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thwTrm(G),
       thawCases(Cs,thwTrm),thwTrm(Df),decodeSig(Sig))
     | .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig))
@@ -1179,7 +1195,7 @@ star.compiler.term{
       (thawLoc(Lc),thwTrm(P),T(E))).
 
   thawVars(.term(_,Vs)) => (Vs//(.term(_,[.strg(Nm),.strg(Vn),Sig]))=>
-      (Nm,.cId(Vn,decodeSig(Sig)))).
+      (Nm,.cV(Vn,decodeSig(Sig)))).
 
   thawAct:(data) => aAction.
   thawAct(A) => case A in {
@@ -1191,6 +1207,7 @@ star.compiler.term{
     | .term("do",[Lc,V]) => .aDo(thawLoc(Lc),thwTrm(V))
     | .term("setix",[Lc,V,.intgr(Ix),E]) => .aSetNth(thawLoc(Lc),thwTrm(V),Ix,thwTrm(E))
     | .term("defn",[Lc,P,V]) => .aDefn(thawLoc(Lc),thwTrm(P),thwTrm(V))
+    | .term("match",[Lc,P,V]) => .aMatch(thawLoc(Lc),thwTrm(P),thwTrm(V))
     | .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thwTrm(P),thwTrm(V))
     | .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thwTrm(G),thawCases(C,thawAct),
       thawAct(D))
@@ -1199,7 +1216,7 @@ star.compiler.term{
     | .term("try",[Lc,B,T,E,H]) => .aTry(thawLoc(Lc),thawAct(B),thwTrm(T),thwTrm(E),thawAct(H))
     | .term("vrs",[Lc,Vs,B]) => .aVarNmes(thawLoc(Lc),thawVars(Vs),thawAct(B))
     | .term("ltt",[Lc,.strg(V),Sig,B,X]) =>
-      .aLtt(thawLoc(Lc),.cId(V,decodeSig(Sig)),thwTrm(B),thawAct(X))
+      .aLtt(thawLoc(Lc),.cV(V,decodeSig(Sig)),thwTrm(B),thawAct(X))
     | .term("abrt",[Lc,.strg(M)]) => .aAbort(thawLoc(Lc),M)
   }
 
@@ -1224,7 +1241,7 @@ star.compiler.term{
 
   findRefs:(cDefn,map[string,cDefn])=> cons[string].
   findRefs(Df,Gls) => let{
-    findVRef(.cVar(_,.cId(V,_)),.inExp,SoF) =>
+    findVRef(.cVar(_,.cV(V,_)),.inExp,SoF) =>
       ({? _ ?= Gls[V] && ~ V in SoF ?} ?? [V,..SoF] || SoF).
     findVRef(_,_,SoF) default => SoF.
   } in let{
@@ -1246,15 +1263,15 @@ star.compiler.term{
     | .cFlt(_,Dx) => SoF
     | .cBig(_,Bx) => SoF
     | .cString(_,Sx) => SoF
-    | .cTerm(Lc,Lb,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cId(Lb,Tp)),Mode,SoF),Args)
+    | .cTerm(Lc,Lb,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cV(Lb,Tp)),Mode,SoF),Args)
     | .cNth(_,T,_,_) => foldV(T,Mode,Fn,SoF)
     | .cSetNth(_,T,_,R) => foldV(T,Mode,Fn,foldV(R,Mode,Fn,SoF))
-    | .cClos(Lc,Nm,_,Fr,Tp) => foldV(Fr,Mode,Fn,Fn(.cVar(Lc,.cId(Nm,Tp)),Mode,SoF))
-    | .cTask(Lc,Fr,Tp) => foldV(Fr,Mode,Fn,Mode,SoF)
+    | .cClos(Lc,Nm,_,Fr,Tp) => foldV(Fr,Mode,Fn,Fn(.cVar(Lc,.cV(Nm,Tp)),Mode,SoF))
+    | .cTask(Lc,Fr,Tp) => foldV(Fr,Mode,Fn,SoF)
     | .cSv(_,_) => SoF
     | .cSvDrf(_,E,_) => foldV(E,Mode,Fn,SoF)
     | .cSvSet(_,E,V) => foldV(V,Mode,Fn,foldV(E,Mode,Fn,SoF))
-    | .cCall(Lc,F,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cId(F,Tp)),Mode,SoF),Args)
+    | .cCall(Lc,F,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cV(F,Tp)),Mode,SoF),Args)
     | .cOCall(_,Op,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),foldV(Op,Mode,Fn,SoF),Args)
     | .cRaise(_,_,X,_) => foldV(X,Mode,Fn,SoF)
     | .cSeq(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
@@ -1287,6 +1304,7 @@ star.compiler.term{
     | .aDo(_,V) => foldV(V,.inExp,Fn,SoF)
     | .aSetNth(_,V,Ix,E) => foldV(E,.inExp,Fn,foldV(V,.inExp,Fn,SoF))
     | .aDefn(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inPtn,Fn,SoF))
+    | .aMatch(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inPtn,Fn,SoF))
     | .aAsgn(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inExp,Fn,SoF))
     | .aCase(_,G,C,D) => foldA(D,Fn,foldACases(C,Fn,foldV(G,.inExp,Fn,SoF)))
     | .aIftte(_,T,L,R) => foldA(R,Fn,foldA(L,Fn,foldV(T,.inExp,Fn,SoF)))
@@ -1301,6 +1319,6 @@ star.compiler.term{
   foldACases(Cs,Fn,SoF) =>
     foldRight(((_,Pt,A),SF)=>foldA(A,Fn,foldV(Pt,.inPtn,Fn,SF)),SoF,Cs).
 
-  public genVar:(string,tipe)=>cId.
-  genVar(Pr,Tp) => .cId(genId(Pr),Tp).
+  public genVar:(string,tipe)=>cV.
+  genVar(Pr,Tp) => .cV(genId(Pr),Tp).
 }

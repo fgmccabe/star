@@ -380,6 +380,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       res = decode(in, S, H, &t, tmpBuffer); /* read the free term */
       if (res == Ok)
         *tgt = (termPo) newClosure(H, lbl, t);
+      res = skipSignature(in);
       gcReleaseRoot(H, root);
       return res;
     }

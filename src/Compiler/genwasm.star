@@ -78,7 +78,7 @@ star.compiler.wasm.gen{
 --    | .cBig(Lc,Bx) => Cont.C(Ctx,pushStack(bigintType,Stk),wasmBigInt(Bx))
     | .cFlt(Lc,Dx) => Cont.C(Ctx,pushStack(fltType,Stk),wasmFloat(Dx))
     | .cString(Lc,Sx) => wasmString(Sx,Stk,Ctx)
-    | .cVar(Lc,.cId(Vr,Tp)) => valof{
+    | .cVar(Lc,.cV(Vr,Tp)) => valof{
       if Loc?=locateVar(Vr,Ctx) then {
 	case Loc in {
 	  | .lclVar(Nm,Tp) => Cont.C(Ctx,pushStack(Tp,Stk),[.LocalGet(Nm)])
@@ -108,11 +108,11 @@ star.compiler.wasm.gen{
     | .cCase(Lc,Gov,Cases,Deflt,_Tp) => valof{
       valis compCase(Lc,Gov,Cases,Deflt, (E,C1)=>expCont(E,TM,C1),Cont,Ctx,Stk)
     }
-    | .cLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
+    | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       valis compExp(Val,.notLast,stoCont(Vr,VTp,Stk,expCont(Bnd,TM,Cont)),Ctx,Stk)
     }
     | .cAbort(Lc,Msg,Tp) => abortCont(Lc,Msg).C(Ctx,Stk,[])
-    | .cTry(Lc,B,.cVar(_,.cId(Th,ThTp)),.cVar(_,.cId(Er,ETp)),H,Tp) => valof{
+    | .cTry(Lc,B,.cVar(_,.cV(Th,ThTp)),.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
       (CLb,Ctx0) = defineExitLbl("Tr",Ctx);
       Blk = defineLbl("H",Ctx);
       (TOff,CtxB) = defineLclVar(Th,ThTp,Ctx0);
@@ -219,10 +219,10 @@ star.compiler.wasm.gen{
       valis ACont.C(Ctx,reconcileStack(Stk0,Stk1),
 	[.iJmp(Tst),.iLbl(Lp)]++BCde++[.iLbl(Tst)]++WCde++[.iLbl(Ex)])
     }
-    |.aLtt(Lc,.cId(Vr,VTp),Val,Bnd) => valof{
+    |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       valis compExp(Val,.notLast,stoCont(Vr,VTp,Stk,actionCont(Bnd,TM,ACont,Cont)),Ctx,Stk)
     }
-    | .aTry(Lc,B,.cVar(_,.cId(Th,ThTp)), .cVar(_,.cId(Er,ETp)),H) => valof{
+    | .aTry(Lc,B,.cVar(_,.cV(Th,ThTp)), .cVar(_,.cV(Er,ETp)),H) => valof{
       Blk = defineLbl("H",Ctx);
       (TOff,Ctx0) = defineLclVar(Th,ETp,Ctx);
       (EOff,Ctx1) = defineLclVar(Er,ETp,Ctx);
@@ -390,8 +390,8 @@ star.compiler.wasm.gen{
   
   compPtn:(cExp,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compPtn(Ptn,Succ,Fail,Ctx,Stk) => case Ptn in {
-    | .cVar(_,.cId("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
-    | .cVar(Lc,.cId(Vr,Tp)) => valof{
+    | .cVar(_,.cV("_",_)) => Succ.C(Ctx,dropStack(Stk),[.iDrop])
+    | .cVar(Lc,.cV(Vr,Tp)) => valof{
       if Loc ?= locateVar(Vr,Ctx) then 
 	valis compPtnVar(Lc,Vr,Loc,Succ,Ctx,dropStack(Stk))
       else{
@@ -779,23 +779,23 @@ star.compiler.wasm.gen{
     valis snd(defineLclVar(Nm,Tp,Ctx))
   }
 
-  argVars:(cons[cId],srcMap) => srcMap.
+  argVars:(cons[cV],srcMap) => srcMap.
   argVars([],Mp)=>Mp.
-  argVars([.cId(Nm,Tp),..As],Vars) =>
+  argVars([.cV(Nm,Tp),..As],Vars) =>
     argVars(As,Vars[Nm->.lclVar(Ix,Tp)]).
   argVars([_,..As],Map) => argVars(As,Map).
 
   glCtx:(codeCtx,cExp) => codeCtx.
   glCtx(Ctx,Exp) => valof{
     Vrs = glVars(Exp,[]);
-    valis foldLeft((.cId(Nm,Tp),C)=>snd(defineLclVar(Nm,Tp,C)),Ctx,Vrs)
+    valis foldLeft((.cV(Nm,Tp),C)=>snd(defineLclVar(Nm,Tp,C)),Ctx,Vrs)
   }
 
   dsjCtx:(codeCtx,cExp,cExp) => codeCtx.
   dsjCtx(Ctx,L,R) => valof{
     CommonVrs = glVars(L,[]) /\ glVars(R,[]);
 
-    valis foldLeft((.cId(Nm,Tp),Cx)=>snd(defineLclVar(Nm,Tp,Cx)),Ctx,CommonVrs)
+    valis foldLeft((.cV(Nm,Tp),Cx)=>snd(defineLclVar(Nm,Tp,Cx)),Ctx,CommonVrs)
   }
 
   drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
@@ -892,7 +892,7 @@ star.compiler.wasm.gen{
   collectExpLcls(Exp,Mp) => case Exp in {
     | .cVoid(_,_) => Mp
     | .cAnon(_,_) => Mp
-    | .cVar(_,.cId(Nm,Tp)) => declareLocal(Nm,.lclVar(Nm,Tp),Mp)
+    | .cVar(_,.cV(Nm,Tp)) => declareLocal(Nm,.lclVar(Nm,Tp),Mp)
     | .cInt(_,_) => Mp
     | .cChar(_,_) => Mp
     | .cBig(_,_) => Mp

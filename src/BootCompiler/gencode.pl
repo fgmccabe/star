@@ -318,9 +318,10 @@ resetStack(Stk,Stk0,[iDrop|C],C) :-
   dropStk(Stk0,1,Stk),!.
 resetStack(some(Lvl),_,[iRst(Lvl)|Cx],Cx).
 
-reconcileStack(_,_,none,C,C) :-!.
-reconcileStack(Stk,Stk,_,C,C) :-!.
-reconcileStack(some(Stki),some(Stk),_,[iRst(Stk)|C],C) :-
+reconcileStack(Stk,none,Stk,C,C) :-!.
+reconcileStack(none,Stk,Stk,C,C) :-!.
+reconcileStack(Stk,Stk,Stk,C,C) :-!.
+reconcileStack(some(Stki),some(Stk),some(Stk),[iRst(Stk)|C],C) :-
   Stki>Stk,!.
 
 consistentStack(_Stk,none) :-!.

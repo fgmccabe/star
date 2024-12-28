@@ -1,6 +1,7 @@
 star.compiler.peephole{
   import star.
   import star.pkg.
+  import star.multi.
 
   import star.compiler.assem.
   import star.compiler.errors.
@@ -75,7 +76,7 @@ star.compiler.peephole{
   copyN(K,[I,..Is]) => [I,..copyN(K-1,Is)].
     
   -- Low-level optimizations.
-  peep:(cons[assemOp],cons[(string,cons[assemOp])])=>cons[assemOp].
+  peep:(multi[assemOp],cons[(string,multi[assemOp])])=>multi[assemOp].
   peep([],_) => [].
   peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],Lbls).
   peep([.iStL(Off),.iLdL(Off),.iRet,.._],_) => [.iRet].
