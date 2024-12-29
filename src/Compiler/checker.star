@@ -36,7 +36,7 @@ star.compiler.checker{
 	-- if traceCanon! then
 	--   showMsg("Import declarations $(IDecls)");
 
-	PkgEnv = declareDecls(IDecls,stdDict);
+	PkgEnv = declareDecls(IDecls,declareDecls(stdTypes,emptyDict));
 	PkgPth = packageName(Pkg);
 
 	(Vis,Opens,Annots,Gps) = dependencies(Stmts);

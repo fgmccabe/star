@@ -510,7 +510,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 typeDec("option",
 		 tpFun("option",1),
 		 allType(kVar("a"),
-			 typeExists(tpExp(tpFun("option",2),kVar("a")),
+			 typeExists(tpExp(tpFun("option",1),kVar("a")),
 				    faceType([],[])))),
 	 cnsDec("none","none",
 		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("option",1),kVar("e"))))),

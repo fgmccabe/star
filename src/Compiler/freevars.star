@@ -192,6 +192,9 @@ star.compiler.freevars{
     | .kar(_,_) => Q
     | .strng(_,_) => Q
     | .enm(_,_,_) => Q
+    | .svGet(_,E,_) => ptnVars(E,Q,Fv)
+    | .svSet(_,E,V) => ptnVars(V,Q,ptnVars(E,Q,Fv))
+    | .newSav(_,_) => Q
     | .mtd(_,_,_) => Q
     | .over(_,V,_) => ptnVars(V,Q,Fv)
     | .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv)
