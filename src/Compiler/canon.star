@@ -234,7 +234,7 @@ star.compiler.canon{
     | .kar(_,Ch) => disp(Ch)
     | .flt(_,Lt) => disp(Lt)
     | .strng(_,Lt) => disp(Lt)
-    | .enm(_,Nm,Tp) => "°#(Nm)"
+    | .enm(_,Nm,Tp) => ".#(Nm)"
     | .dot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°#(F)\:$(Tp)"
     | .tdot(_,R,F,Tp) => "#(showCanon(R,0,Sp))°$(F)\:$(Tp)"
     | .update(_,L,F,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>

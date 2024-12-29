@@ -174,7 +174,7 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,.none,Tp,.typeExists(Tp,Tp),Env)).
 
-  emptyDict:dict.
+  public emptyDict:dict.
   emptyDict = .dict([scope{
 	types=[].
 	vars=[].
@@ -185,36 +185,70 @@ star.compiler.dict{
 	trys=[].
       }],ref []).
 
+  public stdTypes:cons[decl].
+  stdTypes = [.tpeDec(.none,"integer",intType,.typeExists(intType,emptyFace)),
+    .tpeDec(.none,"bigint",bigintType,.typeExists(bigintType,emptyFace)),
+    .tpeDec(.none,"float",fltType,.typeExists(fltType,emptyFace)),
+    .tpeDec(.none,"boolean",boolType,.typeExists(boolType,emptyFace)),
+    .cnsDec(.none,"true","true",enumType(boolType)),
+    .cnsDec(.none,"false","false",enumType(boolType)),
+    .tpeDec(.none,"char",chrType,.typeExists(chrType,emptyFace)),
+    .tpeDec(.none,"string",strType,.typeExists(strType,emptyFace)),
+    .tpeDec(.none,"cons",.tpFun("cons",1),
+      .allRule(.kVar("e"),
+	.typeExists(lstType(.kVar("e")),emptyFace))),
+    .cnsDec(.none,"cons","cons",
+      .allType(.kVar("e"),consType(.tupleType([.kVar("e"),lstType(.kVar("e"))]),
+	  lstType(.kVar("e"))))),
+    .cnsDec(.none,"nil","nil",
+      .allType(.kVar("e"),consType(.tupleType([]),lstType(.kVar("e"))))),
+    .tpeDec(.none,"option",.tpFun("option",1),
+      .allRule(.kVar("e"),
+	.typeExists(optType(.kVar("e")),emptyFace))),
+    .cnsDec(.none,"some","some",
+      .allType(.kVar("e"),consType(.tupleType([.kVar("e")]),
+	  optType(.kVar("e"))))),
+    .cnsDec(.none,"none","none",
+      .allType(.kVar("e"),consType(.tupleType([]),optType(.kVar("e"))))),
 
--- Standard types are predefined by the language
-  public stdDict:dict.
-  stdDict =
-    declareType("integer",.none,intType,.typeExists(intType,emptyFace),
-    declareType("bigint",.none,bigintType,.typeExists(bigintType,emptyFace),
-      declareType("float",.none,fltType,.typeExists(fltType,emptyFace),
-	declareType("boolean",.none,boolType,.typeExists(boolType,emptyFace),
-	  declareType("char",.none,chrType,.typeExists(chrType,emptyFace),
-	    declareType("string",.none,strType,.typeExists(strType,emptyFace),
-	      declareType("cons",.none,.tpFun("cons",1),
-		.allRule(.kVar("e"),
-		  .typeExists(lstType(.kVar("e")),emptyFace)),
-		declareType("thunk",.none,.tpFun("thunk",1),
-		  .allRule(.kVar("e"),
-		    .typeExists(thunkType(.kVar("e")),emptyFace)),
-		  declareType("fiber",.none,.tpFun("fiber",2),
-		    .allRule(.kVar("a"),
-		      .allRule(.kVar("e"),
-			.typeExists(makeTpExp("fiber",
-			    [.kVar("a"),.kVar("e")]),emptyFace))),
-		      declareType("ioHandle",.none,ioType,
-			.typeExists(ioType,emptyFace),
-			declareType("single",.none,.tpFun("single",1),
-			  .allRule(.kVar("e"),
-			    .typeExists(singleType(.kVar("e")),emptyFace)),
-			  declareType("future",.none,.tpFun("future",2),
-			    .allRule(.kVar("v"),
-			      .allRule(.kVar("e"),
-				.typeExists(futureType(.kVar("v"),.kVar("e")),
-				  emptyFace))),
-			    emptyDict)))))))))))).
+    .tpeDec(.none,"thunk",.tpFun("thunk",1),
+      .allRule(.kVar("e"),
+	.typeExists(thunkType(.kVar("e")),emptyFace))),
+    .tpeDec(.none,"fiber",.tpFun("fiber",2),
+      .allRule(.kVar("a"),
+	.allRule(.kVar("e"),
+	  .typeExists(makeTpExp("fiber",
+	      [.kVar("a"),.kVar("e")]),emptyFace)))),
+
+    .tpeDec(.none,"tag",.tpFun("tag",1),
+      .allRule(.kVar("e"),
+	.typeExists(makeTpExp("tag",
+	    [.kVar("e")]),emptyFace))),
+    
+    .tpeDec(.none,"ioHandle",ioType,.typeExists(ioType,emptyFace)),
+    .tpeDec(.none,"single",.tpFun("single",1),
+      .allRule(.kVar("e"),
+	.typeExists(singleType(.kVar("e")),emptyFace))),
+    .tpeDec(.none,"future",.tpFun("future",2),
+      .allRule(.kVar("v"),
+	.allRule(.kVar("e"),
+	  .typeExists(futureType(.kVar("v"),.kVar("e")),
+	    emptyFace)))),
+    .tpeDec(.none,"errorCode",errorCodeType,.typeExists(errorCodeType,emptyFace)),
+    .cnsDec(.none,"eINTRUPT","eINTRUPT",enumType(errorCodeType)),
+    .cnsDec(.none,"eNOTDIR","eNOTDIR",enumType(errorCodeType)),
+    .cnsDec(.none,"eNOFILE","eNOFILE",enumType(errorCodeType)),
+    .cnsDec(.none,"eNOTFND","eNOTFND",enumType(errorCodeType)),
+    .cnsDec(.none,"eINVAL","eINVAL",enumType(errorCodeType)),
+    .cnsDec(.none,"eRANGE","eRANGE",enumType(errorCodeType)),
+    .cnsDec(.none,"eNOPERM","eNOPERM",enumType(errorCodeType)),
+    .cnsDec(.none,"eFAIL","eFAIL",enumType(errorCodeType)),
+    .cnsDec(.none,"eIOERROR","eIOERROR",enumType(errorCodeType)),
+    .cnsDec(.none,"eCONNECT","eCONNECT",enumType(errorCodeType)),
+    .cnsDec(.none,"eDEAD","eDEAD",enumType(errorCodeType)),
+    .cnsDec(.none,"divZero","divZero",enumType(errorCodeType)),
+    .cnsDec(.none,"noValue","noValue",enumType(errorCodeType)),
+    .cnsDec(.none,"hasValue","hasValue",enumType(errorCodeType)),
+    .cnsDec(.none,"eof","eof",enumType(errorCodeType))
+  ]
 }

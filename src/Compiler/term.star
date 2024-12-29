@@ -924,7 +924,7 @@ star.compiler.term{
     | .cFlt(_,_) => Vrs
     | .cTerm(_,_,Args,_) => foldLeft(ptnVrs,Vrs,Args)
     | .cNth(_,R,_,_) => ptnVrs(R,Vrs)
-    | .cSvDrf(_,E,_) => ptnVrs(E,Vrs)
+    | .cSvDrf(_,S,_) => ptnVrs(S,Vrs)
   }
 
   public glVars:(cExp,set[cV])=>set[cV].

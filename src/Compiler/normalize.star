@@ -4,6 +4,7 @@ star.compiler.normalize{
   import star.sort.
 
   import star.compiler.canon.
+  import star.compiler.dict.
   import star.compiler.term.
   import star.compiler.errors.
   import star.compiler.escapes.
@@ -19,7 +20,7 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,cons[canonDef],cons[decl])=>cons[cDefn].
   normalize(PkgSpec,Defs,Decls) => valof{
-    Map = pkgMap(Decls,[]);
+    Map = pkgMap(Decls,pkgMap(stdTypes,[]));
     valis transformGroup(Defs,Map,Map,[],.none,[])
   }
 
@@ -189,6 +190,10 @@ star.compiler.normalize{
 
     valis liftPtnCallOp(Lc,Nm,LArgs,Tp,Map,Q,Ex1)
   }
+  liftPtn(.svGet(Lc,S,Tp),Map,Q,Ex) => valof{
+    (SS,Ex1) = liftExp(S,Map,Q,Ex);
+    valis (.cSvDrf(Lc,SS,Tp),Ex1)
+  }
   liftPtn(Cn,_,_,Ex) => valof{
     Lc = locOf(Cn);
     reportError("may not have $(Cn) as a pattern",Lc);
@@ -314,6 +319,12 @@ star.compiler.normalize{
       showMsg("lift thunk ref $(.thRef(Lc,Th,Tp))\:$(Tp)");
     (Thk,Ex1) = liftExp(Th,Map,Q,Ex);
     valis (.cOCall(Lc,Thk,[],Tp),Ex1)
+  }
+  liftExp(.newSav(Lc,Tp),Map,Q,Ex) => (.cSv(Lc,Tp),Ex).
+  liftExp(.svSet(Lc,S,V),Map,Q,Ex) => valof{
+    (SS,Ex1) = liftExp(S,Map,Q,Ex);
+    (VV,Ex2) = liftExp(V,Map,Q,Ex1);
+    valis (.cSvSet(Lc,SS,VV),Ex2)
   }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);

@@ -581,6 +581,7 @@ star.compiler.types{
   public thunkType(T) => makeTpExp("thunk",[T]).
   public savType(T) => makeTpExp("sav",[T]).
   public ioType = .nomnal("ioHandle").
+  public errorCodeType = .nomnal("errorCode").
 
   public isThunkType(Tp) =>
     (.tpExp(Op,E) .= deRef(Tp) && .tpFun("thunk",1).=deRef(Op) ?? .some(E) || .none).
