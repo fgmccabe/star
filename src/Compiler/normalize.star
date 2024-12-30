@@ -375,6 +375,10 @@ star.compiler.normalize{
   implementVarExp:(option[locn],nameMapEntry,nameMap,tipe) => cExp.
   implementVarExp(Lc,.localFun(_,ClNm,Ar,ThVr),Map,Tp) =>
     .cClos(Lc,ClNm,Ar,liftVarExp(Lc,cName(ThVr),typeOf(ThVr),Map),Tp).
+  implementVarExp(Lc,.thunkArg(Base,VFn,_),Map,Tp) => valof{
+    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+    valis .cCall(Lc,VFn,[V],Tp)
+  }
   implementVarExp(Lc,.labelArg(Base,Ix),Map,Tp) => valof{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis .cNth(Lc,V,Ix,Tp)
@@ -427,6 +431,10 @@ star.compiler.normalize{
     V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
     valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
   }
+  implementFunCall(Lc,.thunkArg(Base,VFn,Ix),_,Args,Tp,Map,Ex) => valof{
+    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+    valis (.cOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp),Ex)
+  }
   implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
     (.cOCall(Lc,Vr,Args,Tp),Ex).
   implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
@@ -469,7 +477,7 @@ star.compiler.normalize{
       ThV = genVar("_ThVr",freeType);
       ThVr = .cVar(Lc,ThV);
 
-      L = collectLabelVars(allFree,ThV,0,[]);
+      L = collectThunkVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
       MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
 
@@ -532,7 +540,7 @@ star.compiler.normalize{
 
       CM = makeConsMap(Decls);
 
-      L = collectLabelVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
+      L = collectThunkVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
       
       M = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
 
@@ -561,6 +569,27 @@ star.compiler.normalize{
     }
   }
 
+  liftFreeThunk(Lc,Nm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
+
+    FrTp = typeOf(ThVr);
+    (VV,Ex1) = liftExp(Val,Outer,Q,Ex);
+    SV = .cVar(Lc,genVar("_SVr",savType(Tp)));
+    X = .cVar(Lc,genVar("ϕ",Tp));
+    TV = .cVar(Lc,ThVr);
+
+    ThDf = .fnDef(Lc,Nm,funType([typeOf(ThVr)],Tp),
+      [TV],
+      .cValof(Lc,
+	.aSeq(Lc,
+	  .aDefn(Lc,SV,.cNth(Lc,TV,Ix,savType(Tp))),
+	  .aIftte(Lc,.cMatch(Lc,.cSvDrf(Lc,X,Tp),SV),
+	    .aValis(Lc,X),
+	    .aValis(Lc,.cSvSet(Lc,SV,VV)))),Tp));
+    valis ([(Nm,Ix,.cSv(Lc,savType(Tp))),..Fx],[ThDf,..Ex1])
+  }
+
   fixUp ~> (string,integer,cExp).
 
   computeFixups:all e ~~ letify[e] |: (cons[fixUp],option[locn],cV,cExp,e) => e.
@@ -570,7 +599,7 @@ star.compiler.normalize{
       showMsg("compute fixup for $(Nm) at $(Ix) = $(Up)");
       showMsg("present: $(Vr) in $(Up) $(present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)))");
     };
-
+    
     if ~present(Up,(T) => (.cVar(_,VV).=T ?? VV==Vr || .false)) &&
 	.cTerm(FLc,FOp,FArgs,FTp) .= Fr then{
 	  Fr1 = .cTerm(FLc,FOp,FArgs[Ix->Up],FTp);
@@ -605,17 +634,11 @@ star.compiler.normalize{
     valis (Fx,[.glDef(Lc,FullNm,Tp,Vl),..Defs])
   }
   transformLetDef(.varDef(Lc,Nm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
-    if traceNormalize! then
-      showMsg("lift $(Nm)\:$(Tp) = $(Val) @ $(Lc)");
-
-    if (_,Ix) ?= labelIndex(Nm,Map) then{
-      (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
-      valis ([(Nm,Ix,Vl),..Fx],Defs)
-    }
-    else{
-      reportError("cannot compile var $(Nm), because not in map",Lc);
-      valis (Fx,Ex)
-    }
+    if (_,Ix) ?= thunkIndex(Nm,Map) then{
+      valis liftFreeThunk(Lc,Nm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex)
+    } else
+    reportError("(internal) expecting correct thunk index for $(Nm)",Lc);
+    valis (Fx,Ex)
   }
   transformLetDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex) =>
     transformLetDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex).
@@ -725,14 +748,19 @@ star.compiler.normalize{
   collectLabelVars([.cV(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->.labelArg(ThV,Ix)]).
   
+  collectThunkVars:(cons[cV],cV,integer,map[string,nameMapEntry]) =>
+    map[string,nameMapEntry].
+  collectThunkVars([],_,_,LV) => LV.
+  collectThunkVars([.cV(Nm,Tp),..Vrs],ThV,Ix,Entries) =>
+    collectThunkVars(Vrs,ThV,Ix+1,Entries[Nm->.thunkArg(ThV,Nm,Ix)]).
+  
   -- eliminate free variables that can be computed from other free vars
   reduceFreeArgs:(cons[cV],nameMap) => cons[cV].
   reduceFreeArgs(FrVrs,Map) => let{.
     reduceArgs:(cons[cV],cons[cV]) => cons[cV].
     reduceArgs([],Frs) => Frs.
     reduceArgs([FrV,..FrArgs],Frs) where
-	FrNm .= cName(FrV) &&
-	OTh ?= lookupThetaVar(Map,FrNm) &&
+	OTh ?= lookupThetaVar(Map,cName(FrV)) &&
 	OTh .<. Frs =>
       reduceArgs(FrArgs,drop(FrV,Frs)).
     reduceArgs([_,..FrArgs],Frs) => reduceArgs(FrArgs,Frs).
@@ -774,16 +802,17 @@ star.compiler.normalize{
   labelVar(.cV(Nm,_),Map,So) where Entry?=lookupVarName(Map,Nm) =>
     case Entry in {
     | .labelArg(ThVr,_) => So\+ThVr
+    | .thunkArg(ThVr,_,_) => So\+ThVr
     | .localFun(_,_,_,ThVr) => So\+ThVr
     | _ => So
     }.
   labelVar(_,_,So) default => So.
 
-  labelIndex:(string,nameMap) => option[(cV,integer)].
-  labelIndex(Nm,Map) => valof{
+  thunkIndex:(string,nameMap) => option[(cV,integer)].
+  thunkIndex(Nm,Map) => valof{
     if E?=lookupVarName(Map,Nm) then{
       case E in {
-	| .labelArg(Thv,Ix) => valis .some((Thv,Ix))
+	| .thunkArg(Thv,_,Ix) => valis .some((Thv,Ix))
 	| _ default => valis .none
       }
     } else
