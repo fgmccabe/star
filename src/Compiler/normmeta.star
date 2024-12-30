@@ -19,7 +19,7 @@ star.compiler.normalize.meta{
   | .moduleCons(string,tipe)
   | .localCons(string,tipe,cV)
   | .labelArg(cV,integer)
-  | .thunkArg(cV,termLbl,integer)
+  | .thunkArg(cV,string,integer)
   | .globalVar(string,tipe).
 
   public typeMapEntry ::= .moduleType(string,tipe,consMap).

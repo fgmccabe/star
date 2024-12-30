@@ -56,9 +56,7 @@ star.compiler.freevars{
     | .newSav(_,_) => Fv
     | .svGet(_,V,_) => freeVarsInExp(V,Q,Fv)
     | .svSet(_,S,V) => freeVarsInExp(S,Q,freeVarsInExp(V,Q,Fv))
-    | .letExp(_,D,_,E) => let{
-      QD = dropDefs(D,Q).
-    } in freeVarsInExp(E,QD,freeVarsInDefs(D,Q,Fv))
+    | .letExp(_,D,_,E) => freeVarsInExp(E,dropDefs(D,Q),freeVarsInDefs(D,Q,Fv))
     | .letRec(Lc,D,_,E) => valof{
       QD = dropDefs(D,Q);
       valis freeVarsInExp(E,QD,freeVarsInDefs(D,QD,Fv))

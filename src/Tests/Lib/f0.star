@@ -52,6 +52,11 @@ test.f0{
     less(A,B) => _int_lt(A,B).
   }
 
+  letish:(integer)=>integer.
+  letish(XX) => let{.
+    LV = plus(XX,2).
+  .} in LV.
+
   foo:(integer)=>integer.
   foo(Ix) => let{.
     bar = $$ jump(Ix).

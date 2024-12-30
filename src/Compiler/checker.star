@@ -374,7 +374,7 @@ star.compiler.checker{
 	if traceCanon! then
 	  showMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
-	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
+	valis ([.varDef(Lc,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
 	    (~isEmpty(Cx) ??
 	      .funDec(Lc,ImplVrNm,ImplVrNm,ImplTp) ||
