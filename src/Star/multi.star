@@ -21,6 +21,11 @@ star.multi{
     _nil = .null
   }
 
+  private mform:all e ~~ (cons[multi[e]])=>multi[e].
+  mform(.nil) => .null.
+  mform(.cons(M,.nil)) => M.
+  mform(C) => .multi(C).
+
   public implementation all e ~~ stream[multi[e]->>e] => {.
     _eof(.null) => .true.
     _eof(.multi(.nil)) => .true.
@@ -28,7 +33,7 @@ star.multi{
 
     _hdtl(.single(X)) => .some((X,.null)).
     _hdtl(.multi(.cons(H,T))) where (F,R) ?= _hdtl(H) =>
-      .some((F,push(R,.multi(T)))).
+      .some((F,push(R,mform(T)))).
 
     private push(.null,X) => X.
     push(M,X) => .multi(.cons(M,.cons(X,.nil))).
@@ -41,6 +46,7 @@ star.multi{
     conc(A,.single(X)) => .multi([A,.single(X)]).
   } in {
     L++R => conc(L,R).
+    _multicat(.nil) => .null.
     _multicat(L) => .multi(L).
   }
 
@@ -67,7 +73,7 @@ star.multi{
   public implementation all e,f ~~ mapping[multi->>e,f] => let{.
     mapOver(.null,F) => .null.
     mapOver(.single(X),F) => .single(F(X)).
-    mapOver(.multi(L),F) => .multi(multiMapOver(L,F)).
+    mapOver(.multi(L),F) => mform(multiMapOver(L,F)).
 
     multiMapOver(.nil,F) => .nil.
     multiMapOver(.cons(H,T),F) => .cons(mapOver(H,F),multiMapOver(T,F)).
