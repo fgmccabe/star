@@ -510,7 +510,7 @@ star.compiler.gencode{
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(CaseSig,
+    valis ([.iLbl(Ok,.iBlock(flatSig,
 	    [.iLbl(Df,.iBlock(flatSig,GC++CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
