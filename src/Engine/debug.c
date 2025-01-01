@@ -16,27 +16,16 @@ integer pcCount = 0;
 static integer lineCount = 0;
 
 static void showEntry(ioPo out, stackPo stk, termPo call);
-
 static void showAbort(ioPo out, stackPo stk, termPo reason);
-
 static void showRet(ioPo out, stackPo stk, termPo val);
-
 static void showAssign(ioPo out, stackPo stk, termPo vl);
-
 static void showResume(ioPo out, stackPo stk, termPo cont);
-
 static void showRegisters(processPo p, heapPo h);
-
 static void showAllLocals(ioPo out, stackPo stk, framePo fp);
-
 static void showTos(ioPo out, stackPo stk, integer offset);
-
 static retCode showLcl(ioPo out, stackPo stk, integer vr);
-
 static retCode showArg(ioPo out, stackPo stk, integer arg);
-
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
-
 static void stackSummary(ioPo out, stackPo stk);
 
 static sockPo debuggerListener = Null;

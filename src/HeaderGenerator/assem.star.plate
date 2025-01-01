@@ -45,7 +45,7 @@ star.compiler.assem{
   declareLocals:(cons[(string,data)]) => map[string,integer].
   declareLocals(Lcs) => let{.
     decl([],_) => {}.
-    decl([(Vr,_),..Lcs],Lc) => [Vr -> Lc,..decl(Lcs,Lc+1)].
+    decl([(Vr,_),..Ls],Lc) => [Vr -> Lc,..decl(Ls,Lc+1)].
   .} in decl(Lcs,1).             -- First local is #1
 
   encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).
@@ -96,7 +96,7 @@ star.compiler.assem{
   findLevel:(cons[lblLevel],assemLbl) => option[integer].
   findLevel(Lbs,Lb) => let{.
     findLvl([],_) => .none.
-    findLvl([.some(LL),.._], Lvl) where LL == Lb => .some(Lvl).
+    findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? .some(Lvl) || findLvl(Ls,Lvl)).
     findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
 
@@ -117,18 +117,24 @@ star.compiler.assem{
   showMnem(Ops) => showBlock(Ops,[0]).
 
   showBlock:(multi[assemOp],cons[integer]) => string.
-  showBlock(Ins,Pc) => interleave(showCode(Ins,Pc),"\n")*.
+  showBlock(Ins,Pc) => interleave(showCode(Ins,[0,..Pc]),"\n")*.
 
   showCode:(multi[assemOp],cons[integer]) => cons[string].
   showCode([],_) => [].
-  showCode([Ins,..Cde],Pc) => ["\\#(showPc(Pc)\: \\#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
+  showCode([Ins,..Cde],Pc) => ["\#(showPc(Pc))\: \#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
 
   showIns:(assemOp,cons[integer]) => string.
-  showIns(.iLbl(Lb,I),Pc) => "\#(Lb): \\#(showIns(I,Pc))".
+  showIns(.iLbl(Lb,I),Pc) => "\#(Lb):  \#(showIns(I,Pc))".
 #(Show)
 
   showPc:(cons[integer]) => string.
-  showPc(Pcs) => interleave(Pcs//disp,":")*.
+  showPc(Pcs) => "\#(spaces(size(Pcs)))\#(interleave(Pcs//disp,".")*)".
+
+  spaces:(integer)=>string.
+  spaces(Ln) => let{.
+    sp(0) => [].
+    sp(N) => [` `,..sp(N-1)].
+  .} in _implode(sp(Ln)).
 
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].

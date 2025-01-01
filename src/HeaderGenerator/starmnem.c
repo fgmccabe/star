@@ -473,13 +473,17 @@ static logical genDisp(ioPo out, opAndSpec A, char *Nm) {
     case i32:
     case art:
     case arg:
-    case lcl:
-    case lcs:
     case glb:
     case Es:
-    case bLk:
-    case lVl:
       outMsg(out, " $(%s)", Nm);
+      return True;
+    case lcl:
+    case lcs:
+    case lVl:
+      outMsg(out, " #(%s)", Nm);
+      return True;
+    case bLk:
+      outMsg(out,"\\n#(showBlock(%s,Pc))",Nm);
       return True;
   }
 }

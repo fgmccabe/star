@@ -134,7 +134,7 @@ star.compiler.assem{
   declareLocals:(cons[(string,data)]) => map[string,integer].
   declareLocals(Lcs) => let{.
     decl([],_) => {}.
-    decl([(Vr,_),..Lcs],Lc) => [Vr -> Lc,..decl(Lcs,Lc+1)].
+    decl([(Vr,_),..Ls],Lc) => [Vr -> Lc,..decl(Ls,Lc+1)].
   .} in decl(Lcs,1).             -- First local is #1
 
   encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).
@@ -603,7 +603,7 @@ star.compiler.assem{
   findLevel:(cons[lblLevel],assemLbl) => option[integer].
   findLevel(Lbs,Lb) => let{.
     findLvl([],_) => .none.
-    findLvl([.some(LL),.._], Lvl) where LL == Lb => .some(Lvl).
+    findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? .some(Lvl) || findLvl(Ls,Lvl)).
     findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
 
@@ -624,14 +624,14 @@ star.compiler.assem{
   showMnem(Ops) => showBlock(Ops,[0]).
 
   showBlock:(multi[assemOp],cons[integer]) => string.
-  showBlock(Ins,Pc) => interleave(showCode(Ins,Pc),"\n")*.
+  showBlock(Ins,Pc) => interleave(showCode(Ins,[0,..Pc]),"\n")*.
 
   showCode:(multi[assemOp],cons[integer]) => cons[string].
   showCode([],_) => [].
-  showCode([Ins,..Cde],Pc) => ["\#(showPc(Pc)\: \#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
+  showCode([Ins,..Cde],Pc) => ["#(showPc(Pc))\: #(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
 
   showIns:(assemOp,cons[integer]) => string.
-  showIns(.iLbl(Lb,I),Pc) => "#(Lb): \#(showIns(I,Pc))".
+  showIns(.iLbl(Lb,I),Pc) => "#(Lb):  #(showIns(I,Pc))".
   showIns(.iHalt(U),Pc) => "Halt $(U)".
   showIns(.iNop,Pc) => "Nop".
   showIns(.iAbort,Pc) => "Abort".
@@ -642,9 +642,9 @@ star.compiler.assem{
   showIns(.iTOCall(U),Pc) => "TOCall $(U)".
   showIns(.iEntry,Pc) => "Entry".
   showIns(.iRet,Pc) => "Ret".
-  showIns(.iBlock(U,V),Pc) => "Block $(U) $(V)".
-  showIns(.iBreak(V),Pc) => "Break $(V)".
-  showIns(.iLoop(V),Pc) => "Loop $(V)".
+  showIns(.iBlock(U,V),Pc) => "Block $(U)\n#(showBlock(V,Pc))".
+  showIns(.iBreak(V),Pc) => "Break #(V)".
+  showIns(.iLoop(V),Pc) => "Loop #(V)".
   showIns(.iDrop,Pc) => "Drop".
   showIns(.iDup,Pc) => "Dup".
   showIns(.iRot(U),Pc) => "Rot $(U)".
@@ -655,34 +655,34 @@ star.compiler.assem{
   showIns(.iResume,Pc) => "Resume".
   showIns(.iRetire,Pc) => "Retire".
   showIns(.iUnderflow,Pc) => "Underflow".
-  showIns(.iTry(U,V),Pc) => "Try $(U) $(V)".
-  showIns(.iEndTry(V),Pc) => "EndTry $(V)".
+  showIns(.iTry(U,V),Pc) => "Try $(U)\n#(showBlock(V,Pc))".
+  showIns(.iEndTry(V),Pc) => "EndTry #(V)".
   showIns(.iThrow,Pc) => "Throw".
   showIns(.iLdV,Pc) => "LdV".
   showIns(.iLdC(U),Pc) => "LdC $(U)".
   showIns(.iLdA(U),Pc) => "LdA $(U)".
-  showIns(.iLdL(U),Pc) => "LdL $(U)".
-  showIns(.iStL(U),Pc) => "StL $(U)".
-  showIns(.iStV(U),Pc) => "StV $(U)".
-  showIns(.iTL(U),Pc) => "TL $(U)".
+  showIns(.iLdL(U),Pc) => "LdL #(U)".
+  showIns(.iStL(U),Pc) => "StL #(U)".
+  showIns(.iStV(U),Pc) => "StV #(U)".
+  showIns(.iTL(U),Pc) => "TL #(U)".
   showIns(.iLdS(U),Pc) => "LdS $(U)".
   showIns(.iLdG(U),Pc) => "LdG $(U)".
   showIns(.iStG(U),Pc) => "StG $(U)".
   showIns(.iTG(U),Pc) => "TG $(U)".
   showIns(.iSav,Pc) => "Sav".
-  showIns(.iLdSav(V),Pc) => "LdSav $(V)".
+  showIns(.iLdSav(V),Pc) => "LdSav #(V)".
   showIns(.iTstSav,Pc) => "TstSav".
   showIns(.iStSav,Pc) => "StSav".
   showIns(.iTSav,Pc) => "TSav".
   showIns(.iCell,Pc) => "Cell".
   showIns(.iGet,Pc) => "Get".
   showIns(.iAssign,Pc) => "Assign".
-  showIns(.iCLbl(U,V),Pc) => "CLbl $(U) $(V)".
-  showIns(.iCLit(U,V),Pc) => "CLit $(U) $(V)".
+  showIns(.iCLbl(U,V),Pc) => "CLbl $(U) #(V)".
+  showIns(.iCLit(U,V),Pc) => "CLit $(U) #(V)".
   showIns(.iNth(U),Pc) => "Nth $(U)".
   showIns(.iStNth(U),Pc) => "StNth $(U)".
-  showIns(.iIf(V),Pc) => "If $(V)".
-  showIns(.iIfNot(V),Pc) => "IfNot $(V)".
+  showIns(.iIf(V),Pc) => "If #(V)".
+  showIns(.iIfNot(V),Pc) => "IfNot #(V)".
   showIns(.iCase(U),Pc) => "Case $(U)".
   showIns(.iIndxJmp(U),Pc) => "IndxJmp $(U)".
   showIns(.iIAdd,Pc) => "IAdd".
@@ -694,11 +694,11 @@ star.compiler.assem{
   showIns(.iIEq,Pc) => "IEq".
   showIns(.iILt,Pc) => "ILt".
   showIns(.iIGe,Pc) => "IGe".
-  showIns(.iICmp(V),Pc) => "ICmp $(V)".
+  showIns(.iICmp(V),Pc) => "ICmp #(V)".
   showIns(.iCEq,Pc) => "CEq".
   showIns(.iCLt,Pc) => "CLt".
   showIns(.iCGe,Pc) => "CGe".
-  showIns(.iCCmp(V),Pc) => "CCmp $(V)".
+  showIns(.iCCmp(V),Pc) => "CCmp #(V)".
   showIns(.iBAnd,Pc) => "BAnd".
   showIns(.iBOr,Pc) => "BOr".
   showIns(.iBXor,Pc) => "BXor".
@@ -715,16 +715,22 @@ star.compiler.assem{
   showIns(.iFEq,Pc) => "FEq".
   showIns(.iFLt,Pc) => "FLt".
   showIns(.iFGe,Pc) => "FGe".
-  showIns(.iFCmp(V),Pc) => "FCmp $(V)".
+  showIns(.iFCmp(V),Pc) => "FCmp #(V)".
   showIns(.iAlloc(U),Pc) => "Alloc $(U)".
   showIns(.iClosure(U),Pc) => "Closure $(U)".
-  showIns(.iCmp(V),Pc) => "Cmp $(V)".
+  showIns(.iCmp(V),Pc) => "Cmp #(V)".
   showIns(.iFrame(U),Pc) => "Frame $(U)".
   showIns(.iDBug,Pc) => "dBug".
 
 
   showPc:(cons[integer]) => string.
-  showPc(Pcs) => interleave(Pcs//disp,":")*.
+  showPc(Pcs) => "#(spaces(size(Pcs)))#(interleave(Pcs//disp,".")*)".
+
+  spaces:(integer)=>string.
+  spaces(Ln) => let{.
+    sp(0) => [].
+    sp(N) => [` `,..sp(N-1)].
+  .} in _implode(sp(Ln)).
 
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].

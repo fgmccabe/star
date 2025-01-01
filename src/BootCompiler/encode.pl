@@ -5,6 +5,7 @@
 :- use_module(misc).
 :- use_module(base64).
 :- use_module(types).
+:- use_module(gensig).
 
 encode(T,Str) :-
   encodeTerm(T,Chrs,[]),!,
@@ -23,7 +24,8 @@ encodeTerm(lbl(Nm,Arity),['o'|O],Ox) :-
 encodeTerm(clos(Nm,Ar,Env,Tp),['p'|O],Ox) :-
   encodeTerm(lbl(Nm,Ar),O,O1),
   encodeTerm(Env,O1,O2),
-  encodeType(Tp,O2,Ox).
+  encodeSignature(Tp,Sig),
+  encodeTerm(Sig,O2,Ox).
 encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   length(Els,Ln),
   encodeInt(Ln,O,O1),
