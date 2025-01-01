@@ -1,4 +1,5 @@
-:- module(gensig,[genPkgSig/2,encPkg/2,formatDecl/2]).
+:- module(gensig,[genPkgSig/2,encPkg/2,formatDecl/2,
+		  encodeSignature/2]).
 
 :- use_module(misc).
 :- use_module(lterms).

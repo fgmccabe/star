@@ -448,7 +448,8 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-    (lVars,glDefs) = unzip(varDefs(Defs));
+    (lclVars,glDefs) = unzip(varDefs(Defs));
+    lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
     CM = makeConsMap(Decls);
     GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
 
@@ -511,7 +512,8 @@ star.compiler.normalize{
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],
       cons[cDefn]) => crFlow[x].
   liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-    (lVars,glDefs) = unzip(varDefs(Grp));
+    (lclVars,glDefs) = unzip(varDefs(Grp));
+    lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
 
     rawGrpFree = freeLabelVars(Free,Outer)::cons[cV];
     varParents = freeParents(rawGrpFree \ lVars,Outer);

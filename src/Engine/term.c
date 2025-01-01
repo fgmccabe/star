@@ -115,7 +115,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {
-      retCode ret = showLbl(out, lbl, 0, 24, alt);
+      retCode ret = outMsg(out,"%Q", labelName(lbl));
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;

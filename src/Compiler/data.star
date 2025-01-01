@@ -128,7 +128,6 @@ star.compiler.data{
   falseEnum = .term("false",[]).
 
   -- Written in this way to maximize potential for tail recursion
-
   encodeT:(data,cons[char])=>cons[char].
   encodeT(D,Chs) => case D in {
     | .intgr(Ix) => encodeInt(Ix,[`x`,..Chs])
@@ -137,7 +136,7 @@ star.compiler.data{
     | .chr(Cx) => encodeChar(Cx,[`c`,..Chs])
     | .strg(Tx) => encodeText(Tx,[`s`,..Chs])
     | .symb(Sym) => encodeL(Sym,Chs)
-    | .clos(Lb,F,_T) => encodeT(F,encodeL(Lb,[`p`,..Chs]))
+    | .clos(Lb,F,T) => encodeT(encodeSig(T),encodeT(F,encodeL(Lb,[`p`,..Chs])))
     | .term("[]",Els) => encodeTerms(Els,encodeNat(size(Els),[`l`,..Chs]))
     | .term(Op,Args) =>
       encodeTerms(Args,encodeL(.tLbl(Op,size(Args)),encodeNat(size(Args),[`n`,..Chs])))

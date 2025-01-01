@@ -165,7 +165,7 @@ star.compiler{
 	      PkgSig = mkTpl([pkgTerm(CPkg),
 		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		  mkTpl(PkgSpec.exports//((D)=>D::data))])::string;
-	      
+
 	      Code = mkTpl([pkgTerm(CPkg),
 		  .intgr(opcodeHash),
 		  mkTpl(PkgSpec.imports//(.pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),

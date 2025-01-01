@@ -113,10 +113,8 @@ star.compiler.term{
       Off2=Off++"  ";
       valis "let $(V) = #(dspExp(D,Off2)) in\n#(Off2)#(dspExp(I,Off2))"
     }
-    | .cCase(_,E,Cs,D,_)  => valof{
-      Off2=Off++"  ";
-      valis "case #(dspExp(E,Off)) in {\n#(Off2)#(dspCases(Cs,dspExp,Off2)*)\n#(Off)} else #(dspExp(D,Off))"
-    }
+    | .cCase(_,E,Cs,D,_)  => 
+      "case #(dspExp(E,Off)) in {#(dspCases(Cs,dspExp,Off++"  ")*)\n#(Off)} else #(dspExp(D,Off))"
     | .cMatch(_,P,E) => "#(dspExp(P,Off)).=#(dspExp(E,Off))"
     | .cCnj(_,L,R) => "#(dspExp(L,Off)) && #(dspExp(R,Off))"
     | .cDsj(_,L,R) => "(#(dspExp(L,Off)) || #(dspExp(R,Off)))"
@@ -164,10 +162,8 @@ star.compiler.term{
     | .aDefn(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))"
     | .aMatch(_,P,E) => "#(dspExp(P,Off)) = #(dspExp(E,Off))"
     | .aAsgn(_,P,E) => "#(dspExp(P,Off)) := #(dspExp(E,Off))"
-    | .aCase(_,E,Cs,Df) => valof{
-      Off2=Off++"  ";
-      valis "case (#(dspExp(E,Off))) in {\n#(Off2)#(dspCases(Cs,dspAct,Off2)*)\n#(Off)} else #(dspAct(Df,Off))"
-    }
+    | .aCase(_,E,Cs,Df) =>
+      "case (#(dspExp(E,Off))) in {#(dspCases(Cs,dspAct,Off++"  ")*)\n#(Off)} else #(dspAct(Df,Off))"
     | .aIftte(_,C,T,E) => valof{
       Off2=Off++"  ";
       valis "if #(dspExp(C,Off)) then\n#(Off2)#(dspAct(T,Off2)) else\n#(Off2)#(dspAct(E,Off2))"

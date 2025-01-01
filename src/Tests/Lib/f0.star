@@ -54,8 +54,11 @@ test.f0{
 
   letish:(integer)=>integer.
   letish(XX) => let{.
-    LV = plus(XX,2).
-  .} in LV.
+    LV =  valof{
+      _logmsg("Compute LV for #(_stringOf(XX,0))");
+      valis  plus(XX,2)
+    }
+  .} in times(LV,LV).
 
   foo:(integer)=>integer.
   foo(Ix) => let{.
@@ -137,7 +140,7 @@ test.f0{
     _logmsg(dspEr(.eINTRUPT));
 
     thrw();
-    _logmsg(_stringOf(nothrw(),0));
+    _logmsg(_stringOf(nothrw(),10));
     valis ()
   }
 }

@@ -30,7 +30,7 @@ decodeDta(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeDta(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeDta(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeDta(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeDta(Con), decTrms(Len,Els).
-decodeDta(clos(Nm,Ar,Free,Tp)) --> ['p'], decodeDta(lbl(Nm,Ar)), decodeDta(Free), decodeType(Tp).
+decodeDta(clos(Nm,Ar,Free,Tp)) --> ['p'], decodeDta(lbl(Nm,Ar)), decodeDta(Free), decodeSig(Tp).
 decodeDta(lst(Els)) --> ['l'], decInt(Len), decTerms(Len,Els).
 
 decTrms(0,[]) --> [].
@@ -49,7 +49,7 @@ decodeTerm(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
-decodeTerm(clos(Nm,Ar,Free,Tp)) --> ['p'], decodeTerm(lbl(Nm,Ar)), decodeTerm(Free), decodeType(Tp).
+decodeTerm(clos(Nm,Ar,Free,Tp)) --> ['p'], decodeTerm(lbl(Nm,Ar)), decodeTerm(Free), decodeSig(Tp).
 decodeTerm(lst(Els)) --> ['l'], decInt(Len), decTerms(Len,Els).
 
 decTerms(0,[]) --> [].
@@ -68,6 +68,8 @@ collectQuoted(C,[Ch|M]) --> [Ch], collectQuoted(C,M).
 
 decodeChar(Ch) --> ['\\', Ch],!.
 decodeChar(Ch) --> [Ch].
+
+decodeSig(Tp) --> decodeTerm(strg(Txt)), { decodeSignature(Txt,Tp)}.
 
 decodeSignature(S,Tp) :-
   string_chars(S,Chrs),
