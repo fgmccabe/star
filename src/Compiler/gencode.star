@@ -470,8 +470,8 @@ star.compiler.gencode{
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,Ctx2,Stk);
 
       valis ([.iLbl(Ok,
-	    .iBlock(nearlyFlatSig(TVTp::ltipe),
-	      [.iTry(blockSig([ETp::ltipe],TVTp::ltipe),
+	    .iBlock(flatSig,
+	      [.iTry(blockSig([ETp::ltipe],.tplTipe([])),
 		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)])]++
 	      [.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
