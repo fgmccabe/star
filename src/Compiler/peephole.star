@@ -124,7 +124,7 @@ star.compiler.peephole{
   peep([.iBreak(Lb),.._],Lbls) =>
     [.iBreak(resolveLbl(Lb,Lbls))].
   peep([.iEndTry(Lb),.._],Lbls) =>
-    [.iEndTry(resolveLbl(Lb,Lbls))].
+    [.iEndTry(Lb)].
   peep([.iLdSav(Lb),..Ins],Lbls) =>
     [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].

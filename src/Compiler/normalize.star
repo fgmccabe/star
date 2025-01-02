@@ -43,6 +43,8 @@ star.compiler.normalize{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
+  transformDef(.varDef(Lc,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
+    transformFunction(Lc,FullNm,[.rule(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -470,7 +472,7 @@ star.compiler.normalize{
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
-      Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
+      Ex1 = transformGroup(Defs,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
       valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
       freeType = .tupleType(allFree//typeOf);
@@ -486,7 +488,7 @@ star.compiler.normalize{
 
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
-      Ex1 = transformGroup(GrpFns,M,M,GrpQ,.some(ThVr),Ex);
+      Ex1 = transformGroup(Defs,M,M,GrpQ,.some(ThVr),Ex);
       
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
       (cellArgs,Ex2) = liftExps(glDefs,GrpQ,Outer,Ex1);

@@ -27,7 +27,7 @@ test.f0{
       z = plus(x!,y!);
       x := y!;
       y := z;
-      i := plus(i!,1);
+      i := plus(i!,one);
     };
     valis y!
   }
@@ -36,12 +36,16 @@ test.f0{
     plus:(x,x)=>x.
     minus:(x,x)=>x.
     times:(x,x)=>x.
+    zed:x.
+    one:x.
   }
 
   implementation ar[integer] => {
     plus(x,y) => _int_plus(x,y).
     times(x,y) => _int_times(x,y).
     minus(x,y) => _int_minus(x,y).
+    zed = 0.
+    one = 1.
   }
 
   contract all x ~~ cmp[x] ::= {
