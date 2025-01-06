@@ -39,7 +39,7 @@ star.compiler.canondeps{
     
   definedName:(canonDef)=>defnSp.
   definedName(.funDef(_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
-  definedName(.varDef(_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
+  definedName(.varDef(_,Nm,_,_,_,Tp))=>.varSp(Nm,Tp).
   definedName(.typeDef(_,Nm,_,_))=>.tpSp(.nomnal(Nm)).
   definedName(.cnsDef(_,Nm,_,Tp))=>.varSp(Nm,Tp).
   definedName(.implDef(_,_,Nm,_,_,Tp))=>.varSp(Nm,Tp).
@@ -61,7 +61,7 @@ star.compiler.canondeps{
       Free = foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),[],Rls);
       valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cV(V,T) in Free},D)
     }
-    | .varDef(_,Nm,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D)
+    | .varDef(_,Nm,_,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D)
     | .cnsDef(_,Nm,_,Tp) => .defSpec(.varSp(Nm,Tp),[],D)
     | .implDef(_,_,Nm,Val,_,Tp) => .defSpec(.varSp(Nm,Tp),freeRefs(Val,Q,All),D)
   }

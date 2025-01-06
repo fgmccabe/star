@@ -42,10 +42,10 @@ star.compiler.resolve{
   overloadDef:(canonDef,dict)=>(canonDef,dict).
   overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
-  overloadDef(.varDef(Lc,Nm,.lambda(_,_,Eqn,_,_),Cx,Tp),Dict) =>
-    overloadFunction(Dict,Lc,Nm,[Eqn],Cx,Tp).
-  overloadDef(.varDef(Lc,Nm,Val,Cx,Tp),Dict) =>
-    overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp).
+  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqn,_,_),Cx,Tp),Dict) =>
+    overloadFunction(Dict,Lc,FullNm,[Eqn],Cx,Tp).
+  overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.typeDef(Lc,Nm,Tp,TpRl),Dict) => (.typeDef(Lc,Nm,Tp,TpRl),Dict).
@@ -85,11 +85,11 @@ star.compiler.resolve{
     }
   }
  
-  overloadVarDef:(dict,option[locn],string,canon,cons[constraint],tipe)=>
+  overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
     (canonDef,dict).
-  overloadVarDef(Dict,Lc,Nm,Val,[],Tp) => 
-    (.varDef(Lc,Nm,overload(Val,Dict),[],Tp),Dict).
-  overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp) => valof{
+  overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
+    (.varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp),Dict).
+  overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
     if traceCanon! then
       showMsg("overload definition $(Nm) = $(Val), Cx=$(Cx)");
 
@@ -99,7 +99,7 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
 
-    ODefn = .varDef(Lc,Nm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp);
+    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp);
 
     if traceCanon! then
       showMsg("overloaded definition $(ODefn)");
