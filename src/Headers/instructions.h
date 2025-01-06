@@ -30,6 +30,7 @@ instruction(Ret, tOs, nOp, 0, "F()v", "return")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
 instruction(Break, nOp, lVl, 0, "F()()", "leave block")
+instruction(Result, nOp, lVl, -1, "F(p)p", "return value out of block")
 instruction(Loop, nOp, lVl, 0, "F()()", "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")
@@ -46,6 +47,7 @@ instruction(Underflow, nOp, nOp, 0, "F()()", "underflow from current stack")
 
 instruction(Try, tPe, bLk, 1, "F()p", "a try-catch block")
 instruction(EndTry, tOs, lVl, -1, "F(p)()", "end try")
+instruction(TryRslt, tOs, lVl, -1, "F(pp)p", "end try with a  result")
 instruction(Throw, tOs, tOs, 0, "F(p)v", "Invoke a continuation")
 
 instruction(LdV, nOp, nOp, 1, "F()p", "Place a void value on stack")
@@ -79,7 +81,7 @@ instruction(StNth, i32, nOp, -2, "F(pp)()", "T el --> store in nth element")
 instruction(If, tOs, lVl, -1,"F(p)()",  "break if true")
 instruction(IfNot, tOs, lVl, -1,"F(p)()",  "break if false")
 
-instruction(Case, i32, tOs, -1, "F(p)p", "T --> T, case <Max> ")
+instruction(Case, i32, tOs, -1, "F(p)p", "T --> T, case <Max>")
 instruction(IndxJmp, i32, tOs, -1, "F(p)p", "check and jump on index")
 
 instruction(IAdd, tOs, tOs, -1, "F(ii)i", "L R --> L+R")
