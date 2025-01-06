@@ -298,14 +298,14 @@ star.compiler.checker{
       Val = typeOfExp(R,VarTp,Es,Path);
       FullNm = qualifiedName(Path,.valMark,Nm);
       if traceCanon! then
-	showMsg("definition $(.varDef(Lc,FullNm,Val,Cx,Tp))");
+	showMsg("definition $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp))");
 
       if .lambda(_,_,Rl,_,_).=Val then
 	valis ([.funDef(Lc,FullNm,[Rl],Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
       else if ~isEmpty(Cx) then
-	valis ([.varDef(Lc,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
+	valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
       else
-      valis ([.varDef(Lc,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
+      valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
     }
     else{
       reportError("bad definition $(Stmt)",Lc);
@@ -374,7 +374,7 @@ star.compiler.checker{
 	if traceCanon! then
 	  showMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
-	valis ([.varDef(Lc,ImplVrNm,Impl,Cx,ImplTp)],
+	valis ([.varDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
 	    (~isEmpty(Cx) ??
 	      .funDec(Lc,ImplVrNm,ImplVrNm,ImplTp) ||
@@ -791,7 +791,7 @@ star.compiler.checker{
 	  AccNm = qualifiedName(brTplNm,.fldMark,Fld);
 	  Rc = .vr(Lc,"XX",Tp);
 	  AccTp = funType([Tp],FTp);
-	  Acc = .varDef(Lc,AccNm,.lambda(Lc,lambdaLbl(Lc),
+	  Acc = .varDef(Lc,AccNm,AccNm,.lambda(Lc,lambdaLbl(Lc),
 	      .rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),[],AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);

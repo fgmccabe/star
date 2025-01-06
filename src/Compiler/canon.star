@@ -63,7 +63,7 @@ star.compiler.canon{
   public rule[t] ::= .rule(option[locn],canon,option[canon],t).
     
   public canonDef ::=
-    .varDef(option[locn],string,canon,cons[constraint],tipe) |
+    .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
     .funDef(option[locn],string,cons[rule[canon]],cons[constraint],tipe) |
     .typeDef(option[locn],string,tipe,typeRule) |
     .cnsDef(option[locn],string,integer,tipe) |
@@ -175,24 +175,24 @@ star.compiler.canon{
 
   public implementation hasLoc[canonDef] => {
     locOf(Df) => case Df in {
-     | .varDef(Lc,_,_,_,_) => Lc
-     | .funDef(Lc,_,_,_,_) => Lc
-     | .typeDef(Lc,_,_,_) => Lc
-     | .cnsDef(Lc,_,_,_) => Lc
-     | .implDef(Lc,_,_,_,_,_) => Lc
+      | .varDef(Lc,_,_,_,_,_) => Lc
+      | .funDef(Lc,_,_,_,_) => Lc
+      | .typeDef(Lc,_,_,_) => Lc
+      | .cnsDef(Lc,_,_,_) => Lc
+      | .implDef(Lc,_,_,_,_,_) => Lc
     }
   }
 
   public implementation reQuant[canonDef] => {
     reQuant(Qs,Df) => case Df in {
-      | .varDef(Lc,Nm,Vl,Cx,Tp) => .varDef(Lc,Nm,Vl,Cx,reQuant(Qs,Tp))
+      | .varDef(Lc,Nm,LongNm,Vl,Cx,Tp) => .varDef(Lc,Nm,LongNm,Vl,Cx,reQuant(Qs,Tp))
       | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuant(Qs,Tp))
       | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,Rl))
       | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuant(Qs,Tp))
       | .implDef(Lc,Nm,FlNm,Vl,Cx,Tp) => .implDef(Lc,Nm,FlNm,Vl,Cx,reQuant(Qs,Tp))
     }
     reQuantX(Qs,Df) => case Df in {
-      | .varDef(Lc,Nm,Vl,Cx,Tp) => .varDef(Lc,Nm,Vl,Cx,reQuantX(Qs,Tp))
+      | .varDef(Lc,Nm,LongNm,Vl,Cx,Tp) => .varDef(Lc,Nm,LongNm,Vl,Cx,reQuantX(Qs,Tp))
       | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuantX(Qs,Tp))
       | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,Rl))
       | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuantX(Qs,Tp))
@@ -332,12 +332,11 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-   | .funDef(_,Nm,Rls,_,Tp) =>
-      "Fun: #(Nm)\:$(Tp) = #(showRls(Nm,Rls,showCanon,Sp))"
-   | .varDef(_,Nm,V,_,Tp) => "Var: #(Nm)\:$(Tp) = #(showCanon(V,0,Sp))"
-   | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
-   | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
-   | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)"
+    | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(showRls(Nm,Rls,showCanon,Sp))"
+    | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
+    | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
+    | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
+    | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)"
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.

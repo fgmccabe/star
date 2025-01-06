@@ -152,7 +152,7 @@ star.compiler.freevars{
   public freeVarsInDef:(canonDef,set[cV],set[cV])=>set[cV].
   freeVarsInDef(.funDef(_,_,Rls,_,_),Q,Fv) =>
     foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,Rls).
-  freeVarsInDef(.varDef(_,_,E,_,_),Q,Fv) => freeVarsInExp(E,Q,Fv).
+  freeVarsInDef(.varDef(_,_,_,E,_,_),Q,Fv) => freeVarsInExp(E,Q,Fv).
   freeVarsInDef(.implDef(_,_,_,Val,_,_),Q,Fv) => freeVarsInExp(Val,Q,Fv).
   freeVarsInDef(_,_,Fv) default => Fv.
 
@@ -166,7 +166,7 @@ star.compiler.freevars{
   dropDefs(Defs,Q) => foldRight((D,QQ) => dropDef(D,QQ),Q,Defs).
 
   dropDef(.funDef(_,Nm,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
-  dropDef(.varDef(_,Nm,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
+  dropDef(.varDef(_,Nm,_,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
   dropDef(.implDef(_,Nm,_,_,_,Tp),Q) => Q\-.cV(Nm,Tp).
   dropDef(_,Q) => Q.
 

@@ -37,16 +37,16 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
-  transformDef(.varDef(Lc,FullNm,.lambda(_,LNm,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
+  transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
-  transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
+  transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
-  transformDef(.varDef(Lc,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
+  transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[.rule(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
-  transformDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
+  transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
+    transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
     transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex).
   transformDef(.cnsDef(Lc,FullNm,Ix,Tp),Map,_,_,_,Ex) =>
@@ -294,13 +294,13 @@ star.compiler.normalize{
   liftExp(.letExp(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letExp(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      showMsg("lift let exp $(.letExp(Lc,Grp,Decs,Bnd)), Q=$(Q), Free=$(Free)");
+      showMsg("lift let exp @ $(Lc)");
     valis liftLet(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex)
   }
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      showMsg("lift let exp $(.letRec(Lc,Grp,Decs,Bnd))");
+      showMsg("lift let rec exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
   liftExp(.lambda(Lc,FullNm,Eqn,Cx,Tp),Map,Q,Ex) => valof{
@@ -446,10 +446,14 @@ star.compiler.normalize{
     valis (.cVoid(Lc,Tp),[])
   }
 
-  liftLet:all e,x ~~ transform[e->>x],letify[x] |:
+  liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |:
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
+    if traceNormalize! then{
+      showMsg("definitions in let group $(Defs)");
+    };
+
     (lclVars,glDefs) = unzip(varDefs(Defs));
     lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
     CM = makeConsMap(Decls);
@@ -467,12 +471,19 @@ star.compiler.normalize{
     if isEmpty(allFree) then{
       MM = pkgMap(Decls,Outer);
       Ex1 = transformGroup(Defs,Outer,Outer,[],.none,Ex);
+
+      if traceNormalize! then
+	showMsg("let functions (0) $(Ex1)");
       valis transform(Bnd,MM,Q,Ex1)
     } else if [SFr] .= allFree && isEmpty(lVars) then {
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
       Ex1 = transformGroup(Defs,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
+
+      if traceNormalize! then
+	showMsg("let functions: $(Ex1)");
+      
       valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
       freeType = .tupleType(allFree//typeOf);
@@ -490,30 +501,30 @@ star.compiler.normalize{
       
       Ex1 = transformGroup(Defs,M,M,GrpQ,.some(ThVr),Ex);
       
+      if traceNormalize! then
+	showMsg("let functions (2) $(Ex1)");
+
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
       (cellArgs,Ex2) = liftExps(glDefs,GrpQ,Outer,Ex1);
 
+      if traceNormalize! then
+	showMsg("let functions (2b) $(Ex2)");
+
       GrpFree = crTpl(Lc,freeArgs++cellArgs);
 
-      if traceNormalize! then{
-	showMsg("free term is $(GrpFree)");
-      };
-
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
-
-      if traceNormalize! then{
-	showMsg("definitions are $(Exx)");
-      };
 
       valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
-  -- In a let rec, all the non functions must end up in the free data
 
   liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],
       cons[cDefn]) => crFlow[x].
   liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
+    if traceNormalize! then
+      showMsg("let rec at $(Lc)");
+    
     (lclVars,glDefs) = unzip(varDefs(Grp));
     lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
 
@@ -629,23 +640,23 @@ star.compiler.normalize{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
-  transformLetDef(.varDef(Lc,FullNm,.lambda(_,_,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
+  transformLetDef(.varDef(Lc,_,FullNm,.lambda(_,_,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
-  transformLetDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
+  transformLetDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Fx,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
     valis (Fx,[.glDef(Lc,FullNm,Tp,Vl),..Defs])
   }
-  transformLetDef(.varDef(Lc,Nm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
-    if (_,Ix) ?= thunkIndex(Nm,Map) then{
-      valis liftFreeThunk(Lc,Nm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex)
+  transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,.some(V),Fx,Ex) where .cVar(VLc,ThVr) .= V => valof{
+    if (_,Ix) ?= thunkIndex(FullNm,Map) then{
+      valis liftFreeThunk(Lc,FullNm,Val,Tp,Ix,ThVr,Outer,Q,Fx,Ex)
     } else
     reportError("(internal) expecting correct thunk index for $(Nm)",Lc);
     valis (Fx,Ex)
   }
-  transformLetDef(.implDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex) =>
-    transformLetDef(.varDef(Lc,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex).
+  transformLetDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex) =>
+    transformLetDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Fx,Ex).
   transformLetDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Fx,Ex) => valof{
     Ex1 = transformTypeDef(Lc,Nm,Tp,TpRl,Map,Ex);
     valis (Fx,Ex1)
@@ -728,6 +739,10 @@ star.compiler.normalize{
   }
   liftAction(.doLet(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.doLet(Lc,Grp,Dcs,Bnd),Q);
+
+    if traceNormalize! then
+      showMsg("lift let action $(.doLet(Lc,Grp,Dcs,Bnd))");
+    
     valis liftLet(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
@@ -740,7 +755,7 @@ star.compiler.normalize{
     foldLeft((D,FF) => (V?=isVarDef(D) ?? [V,..FF] || FF),
       [],Defs).
 
-  isVarDef(.varDef(_,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>
+  isVarDef(.varDef(_,_,FullNm,Vl,_,Tp)) where ~isFunDef(Vl) =>
     .some((.cV(FullNm,Tp),Vl)).
   isVarDef(.implDef(_,_,Nm,Vl,_,Tp)) where ~isFunDef(Vl) =>
     .some((.cV(Nm,Tp),Vl)).
@@ -794,7 +809,7 @@ star.compiler.normalize{
 
   collectQ:(canonDef,set[cV]) => set[cV].
   collectQ(.funDef(_,Nm,_,_,Tp),Q) => Q\+.cV(Nm,Tp).
-  collectQ(.varDef(_,Nm,Val,_,Tp),Q) => Q\+.cV(Nm,Tp).
+  collectQ(.varDef(_,_,Nm,Val,_,Tp),Q) => Q\+.cV(Nm,Tp).
   collectQ(.implDef(_,_,FullNm,Val,_,Tp),Q) => Q\+.cV(FullNm,Tp).
   collectQ(.typeDef(_,_,_,_),Q) => Q.
   collectQ(.cnsDef(_,_,_,_),Q) => Q.
