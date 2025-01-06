@@ -20,8 +20,8 @@ star.compiler.gencode{
   import star.compiler.data.
 
   public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
-  compProg(Pkg,Defs,Globals) => valof{
-    Vars = foldLeft(declGlobal,[],Globals);
+  compProg(Pkg,Defs,Decls) => valof{
+    Vars = foldLeft(declGlobal,[],Decls);
     valis compDefs(Defs,Vars)
   }
 

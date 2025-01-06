@@ -412,7 +412,19 @@ retCode run(processPo P) {
         termPo retVal = *SP;     /* return value */
 
         assert(FP < baseFrame(STK));
-        SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
+
+        ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
+        tryFramePo try = STK->try;
+
+        if ((ptrPo) try >= SP && (ptrPo) try < tgtSp) {
+          while ((ptrPo) try < tgtSp) {
+            check(try->fp == FP, "misaligned try block");
+            try = try->try;
+          }
+          STK->try = try;
+        }
+
+        SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
         LITS = FP->pool;
@@ -438,6 +450,15 @@ retCode run(processPo P) {
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         break;
+      }
+
+      case Result: { /* return a value from a block */
+        PC += PC->alt + 1;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
+
+        continue;       /* and carry after reset block */
       }
 
       case Drop: {
@@ -507,6 +528,7 @@ retCode run(processPo P) {
           continue;
         }
       }
+
       case Resume: {
         stackPo stack = C_STACK(pop());
         termPo event = pop();
@@ -543,6 +565,7 @@ retCode run(processPo P) {
           continue;
         }
       }
+
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
@@ -592,6 +615,35 @@ retCode run(processPo P) {
         PC += PC->alt + 1;
         continue;
       }
+
+      case TryRslt: {
+        integer tryIndex = integerVal(pop());
+        termPo val = pop();
+
+#ifdef TRACESTACK
+        if (traceStack)
+          logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackSize(P));
+#endif
+        check(STK->try->tryIndex == tryIndex, "misaligned try block");
+        tryFramePo try = STK->try;
+        check(try->fp == FP, "misaligned try block");
+        STK->try = try->try;
+
+        ptrPo tgt = (ptrPo) (try + 1);
+        ptrPo src = (ptrPo) try;
+        while (src > SP) {
+          *--tgt = *--src;
+        }
+        SP = STK->sp = tgt;
+        push(val);
+
+        PC += PC->alt + 1;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block || PC->op == Try);
+        PC += PC->alt + 1;
+        continue;
+      }
+
       case Throw: {
         Exception:
         {
@@ -808,8 +860,6 @@ retCode run(processPo P) {
           PC++;
           continue;
         } else {
-          push((termPo) savVr);
-
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
           assert(PC->op == Block);
@@ -1274,7 +1324,7 @@ retCode run(processPo P) {
             const char *sig = strVal(frame, &sigLen);
             tryRet(typeSigArity(sig, sigLen, &frameDepth));
           } else
-            frameDepth = (int32)integerVal(frame);
+            frameDepth = (int32) integerVal(frame);
           if (frameDepth != stackDepth(STK, frameMtd(FP), SP, FP)) {
             logMsg(logFile, "stack depth: %d does not match frame signature %T",
                    stackDepth(STK, frameMtd(FP), SP, FP),
@@ -1305,4 +1355,5 @@ retCode run(processPo P) {
     }
     PC++;
   }
+
 }

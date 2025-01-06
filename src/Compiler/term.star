@@ -81,10 +81,10 @@ star.compiler.term{
   dspDef:(cDefn,string) => string.
   dspDef(Df,Off) => case Df in {
     | .fnDef(_Lc,Nm,Tp,Args,Rep) =>
-      "fun: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))"
-    | .glDef(_Lc,Nm,Tp,Rep) => "var: #(Nm)=#(dspExp(Rep,Off))"
-    | .tpDef(_Lc,Tp,TpRl,Map) => "tpe: $(TpRl) with $(Map)"
-    | .lblDef(_Lc,Lbl,Tp,Ix) => "lbl: $(Lbl)\:$(Tp)@$(Ix)"
+      "fn: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))"
+    | .glDef(_Lc,Nm,Tp,Rep) => "vr: #(Nm)=#(dspExp(Rep,Off))"
+    | .tpDef(_Lc,Tp,TpRl,Map) => "tp: $(TpRl) with $(Map)"
+    | .lblDef(_Lc,Lbl,Tp,Ix) => "lb: $(Lbl)\:$(Tp)@$(Ix)"
   }
 
   dspExp:(cExp,string) => string.
