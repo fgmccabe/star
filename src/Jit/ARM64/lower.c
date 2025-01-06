@@ -307,6 +307,10 @@ retCode jit_Break(insPo code, integer pc, jitCompPo jit) {
   return Ok;
 }
 
+retCode jit_Result(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Loop(insPo code, integer pc, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
@@ -527,6 +531,10 @@ retCode jit_Try(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_EndTry(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_TryRslt(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
