@@ -318,7 +318,7 @@ static DebugWaitFor dbgOver(char *line, processPo p, void *cl) {
   }
   p->tracing = False;
 
-  resetDeflt("n");
+  resetDeflt("N");
   return stepOver;
 }
 
@@ -798,6 +798,24 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
   return outMsg(out, ")");
 }
 
+static void showCall(ioPo out, stackPo stk, termPo pr) {
+  framePo f = currFrame(stk);
+  methodPo mtd = frameMtd(f);
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
+
+  if (isLabelPo(pr)) {
+    methodPo callee = labelCode(C_LBL(pr));
+
+    if (showColors)
+      outMsg(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF" %#L %#.16T", loc, callee);
+    else
+      outMsg(out, "call: %#L %#.16T", loc, callee);
+
+    shArgs(out, displayDepth, stk->sp, codeArity(callee));
+  } else
+    outMsg(out, "invalid use of showCall");
+}
+
 void showEntry(ioPo out, stackPo stk, termPo _call) {
   framePo f = currFrame(stk);
   methodPo mtd = frameMtd(f);
@@ -890,6 +908,9 @@ DebugWaitFor enterDebug(processPo p) {
   switch (pc->op) {
     case Abort:
       return lnDebug(p, peekStack(stk, 1), showAbort);
+    case Call:
+    case TCall:
+      return lnDebug(p, getMtdLit(frameMtd(f), pc->fst), showCall);
     case Entry:
       return lnDebug(p, Null, showEntry);
     case Ret:

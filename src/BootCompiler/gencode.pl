@@ -513,12 +513,14 @@ compExp(ecll(Lc,Nm,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(cll(Lc,Nm,A,_Tp),OLc,Brks,last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iTCall(Nm)|Cx],Stk,_).
+  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,C1,Stk,_),
+  genDbg(Opts,C1,[iTCall(Nm)|Cx]).
 compExp(cll(Lc,Nm,A,_Tp),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iCall(Nm)|C1],Stk,_Stka),
+  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,C1,Stk,_Stka),
+  genDbg(Opts,C1,[iCall(Nm)|C2]),
   bumpStk(Stk,Stkx),
-  frameIns(Stkx,C1,Cx).
+  frameIns(Stkx,C2,Cx).
 compExp(ocall(Lc,O,A,_Tp),OLc,Brks,last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   length(A,Ar),
@@ -590,9 +592,7 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   nearlyFlatSig(ptrTipe,CaseBlkTp),
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(try(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  tipeOf(B,BTp),
-  toLtipe(BTp,ResTp),
-  compTry(Lc,B,ResTp,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+  compTry(Lc,B,ptrTipe,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
