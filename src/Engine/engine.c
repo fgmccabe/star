@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <lblops.h>
-
+#include "globals.h"
 #include "engineP.h"
 #include "debugP.h"
 
@@ -32,7 +32,7 @@ void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltMethod = specialMethod("halt", 0, NumberOf(haltCode), haltCode, NULL, 0);
+  haltMethod = specialMethod("halt", 0, NumberOf(haltCode), haltCode, unitEnum, 0);
 
   runTimer = newTimer("running");
 }

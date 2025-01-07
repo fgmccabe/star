@@ -854,12 +854,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 }
 
 int32 ctxDepth(verifyCtxPo ctx, int32 currDepth) {
-  int32 depth = 0;
+  int32 depth = currDepth;
   while (ctx != Null) {
-    depth += ctx->entryDepth;
+    if (ctx->tryBlock)
+      depth -= ctx->entryDepth - 1;
+    else
+      depth -= ctx->entryDepth;
+    depth += ctx->currDepth;
     ctx = ctx->parent;
-    if (ctx != Null)
-      depth += ctx->currDepth;
   }
   return depth;
 }
