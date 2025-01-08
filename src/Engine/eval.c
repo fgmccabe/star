@@ -585,8 +585,8 @@ retCode run(processPo P) {
         restoreRegisters();
         push(makeInteger(tryIndex));
 #ifdef TRACESTACK
-        if (traceStack)
-          logMsg(logFile, "entering try scope %ld (%d)", tryIndex, tryStackSize(P));
+        if (traceStack >= detailedTracing)
+          logMsg(logFile, "%ld: entering try scope %ld (%d)", pcCount, tryIndex, tryStackSize(P));
 #endif
         break;
       }
@@ -595,8 +595,8 @@ retCode run(processPo P) {
         integer tryIndex = integerVal(pop());
 
 #ifdef TRACESTACK
-        if (traceStack)
-          logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackSize(P));
+        if (traceStack >= detailedTracing)
+          logMsg(logFile, "%ld: leaving try scope %ld (%d)", pcCount, tryIndex, tryStackSize(P));
 #endif
         check(STK->try->tryIndex == tryIndex, "misaligned try block");
         tryFramePo try = STK->try;

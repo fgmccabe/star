@@ -465,12 +465,12 @@ star.compiler.gencode{
       Ctx2 = defineLclVar(Er,ETp,Ctx);
       StkT = pshStack(TVTp,Stk);
 
-      TBrks = Brks["$valof"->((C,S)=>(resetStack([|StkT|],S)++[.iLdL(TV),.iEndTry(Ok)],C,.none))];
+      TBrks = Brks["$valof"->((C,S)=>(resetStack([|StkT|],S)++[.iLdL(TV),.iTryRslt(Ok)],C,.none))];
       (BC,_,Stka) = compAction(B,Lc,TBrks,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,Ctx2,Stk);
 
       valis ([.iLbl(Ok,
-	    .iBlock(flatSig,
+	    .iBlock(nearlyFlatSig(.ptr),
 	      [.iTry(blockSig([ETp::ltipe],.tplTipe([])),
 		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)])]++
 	      [.iStL(Er)]++HC++[.iBreak(Ok)]))],

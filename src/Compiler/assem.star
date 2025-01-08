@@ -644,6 +644,7 @@ star.compiler.assem{
 
   showIns:(assemOp,cons[integer]) => string.
   showIns(.iLbl(Lb,I),Pc) => "#(Lb):  #(showIns(I,Pc))".
+  showIns(.iLine(D),Pc) => "Line $(D)".
   showIns(.iHalt(U),Pc) => "Halt $(U)".
   showIns(.iNop,Pc) => "Nop".
   showIns(.iAbort,Pc) => "Abort".

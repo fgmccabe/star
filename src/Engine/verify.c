@@ -445,7 +445,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient stack depth for TryRslt", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, True) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth - 1, True) != Ok)
           return Error;
         stackDepth--;
         pc++;

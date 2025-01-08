@@ -125,6 +125,7 @@ star.compiler.assem{
 
   showIns:(assemOp,cons[integer]) => string.
   showIns(.iLbl(Lb,I),Pc) => "\#(Lb):  \#(showIns(I,Pc))".
+  showIns(.iLine(D),Pc) => "Line $(D)".
 #(Show)
 
   showPc:(cons[integer]) => string.
