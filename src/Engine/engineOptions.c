@@ -118,7 +118,7 @@ static retCode debugOption(char *option, logical enable) {
           traceStack++;
 
         stackVerify = True;
-        logMsg(logFile, "Stack tracing enabled\n");
+        logMsg(logFile, "Stack tracing (level %d) enabled", traceStack);
         continue;
 #else
         logMsg(logFile,"stack operation tracing not enabled");

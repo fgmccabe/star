@@ -667,7 +667,7 @@ stackPo detachStack(stackPo base, stackPo top) {
 stackPo dropStack(stackPo tsk) {
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "%d drop stack\n%_", pcCount);
+    outMsg(logFile, "%ld drop stack\n%_", pcCount);
   stackReleases++;
 #endif
   stackPo previous = tsk->attachment;
