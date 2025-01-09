@@ -305,7 +305,9 @@ star.compiler.normalize{
   }
   liftExp(.lambda(Lc,FullNm,Eqn,Cx,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      showMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Cx,Tp))\:$(Tp)");
+      showMsg("lift lambda $(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
+	[.funDec(Lc,FullNm,FullNm,Tp)],
+	.vr(Lc,FullNm,Tp)))");
 
     valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
@@ -470,7 +472,7 @@ star.compiler.normalize{
 
     if isEmpty(allFree) then{
       MM = pkgMap(Decls,Outer);
-      Ex1 = transformGroup(Defs,Outer,Outer,[],.none,Ex);
+      Ex1 = transformGroup(GrpFns,Outer,Outer,[],.none,Ex);
 
       if traceNormalize! then
 	showMsg("let functions (0) $(Ex1)");
@@ -479,7 +481,7 @@ star.compiler.normalize{
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
       GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
-      Ex1 = transformGroup(Defs,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
+      Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
 
       if traceNormalize! then
 	showMsg("let functions: $(Ex1)");
@@ -499,7 +501,7 @@ star.compiler.normalize{
 
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
       
-      Ex1 = transformGroup(Defs,M,M,GrpQ,.some(ThVr),Ex);
+      Ex1 = transformGroup(GrpFns,M,M,GrpQ,.some(ThVr),Ex);
       
       if traceNormalize! then
 	showMsg("let functions (2) $(Ex1)");

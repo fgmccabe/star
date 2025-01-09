@@ -48,7 +48,7 @@ star.compiler.gencode{
 
     AbrtLbl = defineLbl(Ctx,"Abrt");
 
-    AbrtBrks = ["$abort" -> ((C,S)=>(AbrtCde,C,.none))];
+    AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
 
     (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,AbrtBrks,Ctx,.some([]));
 
@@ -74,7 +74,7 @@ star.compiler.gencode{
     AbrtCde = compAbort(Lc,"global eval: $(Nm) aborted",Ctx);
 
     AbrtLbl = defineLbl(Ctx,"Abrt");
-    AbrtBrks = ["$abort" -> ((C,S)=>(AbrtCde,C,.none))];
+    AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
 
     BlkSig = nearlyFlatSig(Tp::ltipe);
 
@@ -204,7 +204,7 @@ star.compiler.gencode{
       Ctx1 = defineLclVar(TV,TVTp,Ctx);
       Ctx2 = defineLclVar(Er,ETp,Ctx);
 
-      TBrks = Brks["$valof"->((C,S)=>(resetStack([|Stk|],S)++[.iLdL(TV),.iEndTry(Ok)],C,.none))];
+      TBrks = reworkBreak("$valof",Brks,((Lbl)=>(C,S)=>(resetStack([|Stk|],S)++[.iLdL(TV),.iEndTry(Ok)],C,.none)));
       (BC,_,Stka) = compExp(B,Lc,TBrks,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compExp(H,Lc,Brks,Last,Ctx2,Stk);
 
@@ -226,7 +226,7 @@ star.compiler.gencode{
       Sig = nearlyFlatSig(Tp::ltipe);
       Stkx = pshStack(Tp,Stk);
       (AC,_,_) = compAction(A,Lc,
-	Brks["$valof"->((C,S)=>(resetStack([|Stkx|],S)++[.iBreak(Ok)],C,Stkx))],
+	Brks["$valof"->(((C,S)=>(resetStack([|Stkx|],S)++[.iBreak(Ok)],C,Stkx)),Ok)],
 	Last,Ctx,Stk);
       
       valis (chLine(OLc,Lc)++[.iLbl(Ok,.iBlock(Sig,AC))],Ctx,Stkx)
@@ -360,13 +360,13 @@ star.compiler.gencode{
     | .aLbld(Lc,Lb,LbldA) => valof{
       Ex = defineLbl(Ctx,Lb);
       (LC,_,_) = compAction(LbldA,Lc,
-	Brks[Lb->((C,S0)=>(resetStack([|Stk|],S0)++[.iBreak(Ex)],C,Stk))],
+	Brks[Lb->(((C,S0)=>(resetStack([|Stk|],S0)++[.iBreak(Ex)],C,Stk)),Ex)],
 	Last,Ctx,Stk);
       valis(chLine(OLc,Lc)++[.iLbl(Ex,
 	    .iBlock(flatSig,LC++[.iBreak(Ex)]))],Ctx,Stk)
     }
     | .aBreak(Lc,Lb) => valof{
-      if XCont?=Brks[Lb] then{
+      if (XCont,_)?=Brks[Lb] then{
 	valis XCont(Ctx,Stk)
       }
       else{
@@ -376,7 +376,7 @@ star.compiler.gencode{
     }
     | .aValis(Lc,E) => valof{
       (VC,_,Stk0) = compExp(E,Lc,Brks,Last,Ctx,Stk);
-      if XF ?= Brks["$valof"] then{
+      if (XF,_) ?= Brks["$valof"] then{
 	(XC,C,_) = XF(Ctx,Stk0);
 	valis (chLine(OLc,Lc)++VC++XC,C,.none)
       }
@@ -465,7 +465,8 @@ star.compiler.gencode{
       Ctx2 = defineLclVar(Er,ETp,Ctx);
       StkT = pshStack(TVTp,Stk);
 
-      TBrks = Brks["$valof"->((C,S)=>(resetStack([|StkT|],S)++[.iLdL(TV),.iTryRslt(Ok)],C,.none))];
+      TBrks = reworkBreak("$valof",Brks,(Lbl)=>((C,S)=>(resetStack([|StkT|],S)++[.iLdL(TV),.iEndTry(Ok)],C,.none)));
+
       (BC,_,Stka) = compAction(B,Lc,TBrks,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,Ctx2,Stk);
 
@@ -510,7 +511,7 @@ star.compiler.gencode{
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(flatSig,
+    valis ([.iLbl(Ok,.iBlock(BlkSig,
 	    [.iLbl(Df,.iBlock(flatSig,GC++CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
@@ -618,9 +619,6 @@ star.compiler.gencode{
       | .cTerm(Lc,Nm,Args,Tp) => {
 	(SCde,Ctx2,Stk2) = compPttrnArgs(Args,Lc,0,Src,Fail,Brks,Ctx,Stk);
 
-	if traceCodegen! then
-	  showMsg("Succ stack $(Stk2)");
-	
 	valis (chLine(OLc,Lc)++VC++[.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
       }
       | _ default => {
@@ -667,9 +665,6 @@ star.compiler.gencode{
       Ctx1 = defineLclVar(V,Tp,Ctx);
 
       (SCde,Ctx2,Stk2) = compArgPtns(Args,Lc,0,.cV(V,Tp),Fail,Brks,Ctx1,Stk0);
-
-      if traceCodegen! then
-	showMsg("Succ stack $(Stk2)");
 
       valis (chLine(OLc,Lc)++[.iTL(V),.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
     }
@@ -799,7 +794,13 @@ star.compiler.gencode{
   .thnkFn(termLbl,ltipe).
 
   stack ~> option[cons[ltipe]].
-    breakLvls ~> map[string,(codeCtx,stack)=>(multi[assemOp],codeCtx,stack)].
+  breakFun ~> (codeCtx,stack)=>(multi[assemOp],codeCtx,stack).
+  breakLvls ~> map[string,(breakFun,assemLbl)].
+
+  reworkBreak:(string,breakLvls,(assemLbl)=>breakFun) => breakLvls.
+  reworkBreak(Lb,Brks,Fn) where (_,Lbl) ?= Brks[Lb] =>
+    Brks[Lb->(Fn(Lbl),Lbl)].
+  reworkBreak(_,Brks,_) default => Brks.
 
   codeCtx ::= codeCtx{
     vars : ref map[string,(tipe,srcLoc)].
