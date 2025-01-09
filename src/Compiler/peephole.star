@@ -158,6 +158,7 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iLdSav(Lb),.._]) => .true.
   lblReferenced(Lb,[_,..Ins]) => lblReferenced(Lb,Ins).
 
+  -- resolveLbl(Lb,_) default => Lb.
   resolveLbl(Lb,[]) default => Lb.
   resolveLbl(Lb,[(Lb,Is),..Lbls]) where [.iBreak(Lbx),.._].=Is =>
     resolveLbl(Lbx,Lbls).
