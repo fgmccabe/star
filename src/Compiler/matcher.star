@@ -24,7 +24,7 @@ star.compiler.matcher{
       if traceNormalize! then
 	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
-      Error = genRaise(Lc,Nm,funTypeRes(Tp));
+      Error = genRaise(Lc,"function match failure #(Nm)",funTypeRes(Tp));
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
       valis .some(.fnDef(Lc,Nm,Tp,NVrs,Reslt))
     }
@@ -37,8 +37,6 @@ star.compiler.matcher{
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
-    -- if traceNormalize! then
-    --   showMsg("match cases $(Cs)\ngoverning expression $(Gov)\:$(typeOf(Gov))");
     Trpls = makeTriples(Cs);
     valis matchTriples(Lc,[Gov],Trpls,Deflt,0,Map)
   }
@@ -61,8 +59,6 @@ star.compiler.matcher{
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Depth,Map) => valof{
     Parts = partitionTriples(Triples);
-    if traceNormalize! then
-      showMsg("partition triples into $(Parts)");
     valis matchSegments(Parts,Vrs,Lc,Deflt,Depth,Map)
   }.
 
@@ -122,8 +118,6 @@ star.compiler.matcher{
   compileMatch:all e ~~ reform[e],rewrite[e],display[e] |:
     (argMode,cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   compileMatch(_,Seg,Vrs,Lc,Deflt,Depth,_Map) where tooDeep(Depth) => valof{
-    if traceNormalize! then
-      showMsg("generate condition from $(Seg)");
     valis conditionMatch(Seg,Vrs,Deflt)
   }.
   compileMatch(.inScalars,Seg,Vrs,Lc,Deflt,Depth,Map) =>
@@ -143,11 +137,7 @@ star.compiler.matcher{
   conditionMatch([(Args,(Lc,Bnds,Test,Val),_),..M],Vrs,Deflt) => valof{
     (Vl,Cnd) = pullWhere(Val);
 
-    if traceNormalize! then
-      showMsg("generate condition match $(Args) .= $(Vrs)");
     (Tst,Res) = mkMatchCond(Args,Vrs,mergeGoal(Lc,Cnd,Test),Lc,Vl);
-    if traceNormalize! then
-      showMsg("match cond $(Tst) ?? $(Res)");
     Other = conditionMatch(M,Vrs,Deflt);
 
     if Cond?=Tst then
@@ -162,22 +152,10 @@ star.compiler.matcher{
   mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],Test,Lc,Val) =>
     mkMatchCond(Args,Vars,Test,Lc,Val).
   mkMatchCond([.cVar(VLc,.cV(Vr,VTp)),..Args],[V,..Vars],Test,Lc,Val) => valof{
-    if traceNormalize! then
-      showMsg("match $(Vr) with $(V)");
-
     Mp = rwVar({Vr->V});
     NArgs = rewriteTerms(Args,Mp);
-    if traceNormalize! then
-      showMsg("rewritten args $(NArgs)");
-
     NTst = fmap((T)=>rewrite(T,Mp),Test);
-    if traceNormalize! then
-      showMsg("rewritten test $(NTst)");
-
     NVal = rewrite(Val,Mp);
-    if traceNormalize! then
-      showMsg("rewritten val $(NVal)");
-
     valis mkMatchCond(NArgs,Vars,NTst,Lc,NVal)
   }
   mkMatchCond([A,..Args],[V,..Vars],Test,Lc,Val) =>
@@ -233,12 +211,8 @@ star.compiler.matcher{
   
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
-  matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
-    if traceNormalize! then
-      showMsg("var match, subsititute for $(V) in $(Triples)");
-
-    valis matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map)
-  }
+  matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) =>
+    matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map).
 
   applyVar:all e ~~ rewrite[e], display[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) => let{
@@ -249,15 +223,9 @@ star.compiler.matcher{
     applyToTriple(([.cVar(VLc,.cV(Vr,VTp)),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
       Mp = rwVar({Vr->V});
 
-      if traceNormalize! then
-	showMsg("replace #(Vr)\:$(VTp) with $(V)");
-
       NArgs = rewriteTerms(Args,Mp);
       NGl = fmap((T)=>rewrite(T,Mp),Gl);
       NExp = rewrite(Exp,Mp);
-
-      if traceNormalize! then
-	showMsg("result $(NExp)");
 
       valis (NArgs, (CLc,B,NGl,NExp),Ix)
     }

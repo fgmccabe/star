@@ -272,7 +272,7 @@ star.compiler.gencode{
 	| .glbFun(Nm,_) => genReturn(Last,[.iLdC(.symb(Nm))],Ctx,pshStack(Tp,Stk))
       }
     } else {
-      reportError("cannot locate variable $(Vr)\:$(Tp)",Lc);
+      reportError("cannot compile variable $(Vr)\:$(Tp)",Lc);
       valis ([.iLdV],Ctx,pshStack(Tp,Stk))
     }
   }
