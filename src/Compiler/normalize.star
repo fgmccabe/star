@@ -451,15 +451,12 @@ star.compiler.normalize{
   liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |:
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],cons[cDefn]) =>
       crFlow[x].
-  liftLet(Lc,Defs,Decls,Bnd,Outer,Q,Free,Ex) => valof{
-    if traceNormalize! then{
-      showMsg("definitions in let group $(Defs)");
-    };
+  liftLet(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
+    (lclVars,glDefs) = unzip(varDefs(Grp));
 
-    (lclVars,glDefs) = unzip(varDefs(Defs));
     lVars = (lclVars//((.cV(Lvn,Ltp))=>.cV(Lvn,savType(Ltp))));
     CM = makeConsMap(Decls);
-    GrpFns = (Defs^/(D)=>~_?=isVarDef(D));
+    GrpFns = (Grp^/(D)=>~_?=isVarDef(D));
 
     rawGrpFree = freeLabelVars(Free,Outer)::cons[cV];
 
@@ -470,9 +467,17 @@ star.compiler.normalize{
     
     allFree = freeVars++lVars;
 
+    if traceNormalize! then{
+      showMsg("var definitions in let group $(lclVars)");
+      showMsg("var definitions in let group $(glDefs)");
+      showMsg("freeVars: $(freeVars)");
+      showMsg("lVars: $(lVars)");
+      showMsg("allFree: $(allFree)");
+    };
+
     if isEmpty(allFree) then{
       MM = pkgMap(Decls,Outer);
-      Ex1 = transformGroup(GrpFns,Outer,Outer,[],.none,Ex);
+      Ex1 = transformGroup(GrpFns,Outer,MM,[],.none,Ex);
 
       if traceNormalize! then
 	showMsg("let functions (0) $(Ex1)");
@@ -480,18 +485,19 @@ star.compiler.normalize{
     } else if [SFr] .= allFree && isEmpty(lVars) then {
       MM = [.lyr(.some(SFr),foldRight((D,LL)=>collectMtd(D,.some(SFr),LL),[],Decls),CM),..Outer];
       M = Outer;
-      GrpQ = foldLeft(collectQ,Q\+SFr,Defs);
-      Ex1 = transformGroup(GrpFns,Outer,Outer,GrpQ,.some(.cVar(Lc,SFr)),Ex);
+      GrpQ = foldLeft(collectQ,Q\+SFr,Grp);
+      Ex1 = transformGroup(Grp,Outer,MM,GrpQ,.some(.cVar(Lc,SFr)),Ex);
 
-      if traceNormalize! then
-	showMsg("let functions: $(Ex1)");
+      if traceNormalize! then{
+	showMsg("let functions (1): $(Ex1)");
+      };
       
       valis transform(Bnd,MM,GrpQ,Ex1);
     } else {
-      freeType = .tupleType(allFree//typeOf);
-
-      ThV = genVar("_ThVr",freeType);
+      ThV = genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr = .cVar(Lc,ThV);
+
+      CM = makeConsMap(Decls);
 
       L = collectThunkVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
@@ -499,24 +505,25 @@ star.compiler.normalize{
 
       M = [.lyr(.some(ThV),L,CM),..Outer];
 
-      GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q,lVars),Defs);
-      
-      Ex1 = transformGroup(GrpFns,M,M,GrpQ,.some(ThVr),Ex);
-      
-      if traceNormalize! then
-	showMsg("let functions (2) $(Ex1)");
-
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
-      (cellArgs,Ex2) = liftExps(glDefs,GrpQ,Outer,Ex1);
+      GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
 
-      if traceNormalize! then
-	showMsg("let functions (2b) $(Ex2)");
+      cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
+      GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
-      GrpFree = crTpl(Lc,freeArgs++cellArgs);
+      if traceNormalize! then{
+	showMsg("lVars = $(lVars)");
+	showMsg("glDefs = $(glDefs)");
+	showMsg("GrpFree = $(GrpFree)");
+      };
+
+      (Fx,Ex2) = transformLetDefs(Grp,M,MM,GrpQ,.some(ThVr),[],Ex);
+      if traceNormalize! then{
+	showMsg("fixups $(Fx)");
+      };
 
       (BndTrm,Exx) = transform(Bnd,MM,GrpQ,Ex2);
-
-      valis (letify(Lc,ThV,GrpFree,BndTrm),Exx)
+      valis (computeFixups(Fx,Lc,ThV,GrpFree,BndTrm),Exx)
     }
   }
 
