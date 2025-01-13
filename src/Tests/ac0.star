@@ -20,7 +20,7 @@ test.ac0{
   main() => valof{
     try{
       valis _logmsg(disp(ff(10)))
-    } catch errorCode in {_ => {}};
+    } catch errorCode in {_ => {_logmsg("error")}};
     valis ();
   }
 }

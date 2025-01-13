@@ -368,7 +368,20 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case Pick: {
+        int32 depth = code[pc].fst;
+        int32 keep = code[pc].alt;
 
+        if (ctxDepth(ctx.parent, stackDepth) < depth)
+          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
+
+        if(keep>depth)
+          return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, depth);
+
+        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
+        pc++;
+        continue;
+      }
       case Fiber: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient stack depth for Fiber", pc);
