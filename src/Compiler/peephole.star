@@ -62,6 +62,7 @@ star.compiler.peephole{
   dropUnreachable([.iBreak(Lvl),.._]) => [.iBreak(Lvl)].
   dropUnreachable([.iLoop(Lvl),.._]) => [.iLoop(Lvl)].
   dropUnreachable([.iEndTry(Lvl),.._]) => [.iEndTry(Lvl)].
+  dropUnreachable([.iTryRslt(Lvl),.._]) => [.iTryRslt(Lvl)].
   dropUnreachable([.iThrow,.._]) => [.iThrow].
   dropUnreachable([.iRet,.._]) => [.iRet].
   dropUnreachable([.iTCall(Lb),.._]) => [.iTCall(Lb)].
@@ -123,8 +124,8 @@ star.compiler.peephole{
     [.iCCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iBreak(Lb),.._],Lbls) =>
     [.iBreak(resolveLbl(Lb,Lbls))].
-  peep([.iEndTry(Lb),.._],Lbls) =>
-    [.iEndTry(Lb)].
+  peep([.iEndTry(Lb),.._],Lbls) => [.iEndTry(resolveLbl(Lb,Lbls))].
+  peep([.iTryRslt(Lb),.._],Lbls) => [.iTryRslt(resolveLbl(Lb,Lbls))].
   peep([.iLdSav(Lb),..Ins],Lbls) =>
     [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
@@ -137,6 +138,7 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iBreak(Lb),.._]) => .true.
   lblReferenced(Lb,[.iLoop(Lb),.._]) => .true.
   lblReferenced(Lb,[.iEndTry(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iTryRslt(Lb),.._]) => .true.
   lblReferenced(Lb,[.iIf(Lb),.._]) => .true.
   lblReferenced(Lb,[.iIfNot(Lb),.._]) => .true.
   lblReferenced(Lb,[.iCmp(Lb),.._]) => .true.

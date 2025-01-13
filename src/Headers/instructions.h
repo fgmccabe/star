@@ -37,6 +37,7 @@ instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "F(p)(pp)", "duplicate top of stack")
 instruction(Rot, i32, nOp, 0, "F()()", "Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "F()()", "reset stack height to a fixed height")
+instruction(Pick, i32, i32, 0, "", "adjust stack to n depth, using top k elements")
 
 instruction(Fiber, tOs, nOp, 0, "F(p)p", "Create new fiber")
 instruction(Spawn, tOs, nOp, 0, "F(p)p", "spawn a new task")

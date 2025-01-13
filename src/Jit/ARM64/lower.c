@@ -245,6 +245,10 @@ retCode jit_Rot(insPo code, integer pc, jitCompPo jit) {
   return Ok;
 }
 
+retCode jit_Pick(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
   int32 litNo = code[pc].fst;
 

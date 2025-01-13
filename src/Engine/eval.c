@@ -473,13 +473,28 @@ retCode run(processPo P) {
       }
 
       case Rot: {       // Pull up nth element of stack
-        integer cnt = PC->fst;
+        int32 cnt = PC->fst;
         termPo tmp = SP[0];
 
-        for (integer ix = 0; ix < cnt; ix++) {
+        for (int32 ix = 0; ix < cnt; ix++) {
           SP[ix] = SP[ix + 1];
         }
         SP[cnt] = tmp;
+        break;
+      }
+
+      case Pick: {       // Reset stack, keeping top elements
+        int32 depth = PC->fst;
+        int32 keep = PC->alt;
+
+        ptrPo src = &SP[keep];
+        ptrPo tgt = &SP[depth + keep];
+
+        for (int32 ix = 0; ix < keep; ix++) {
+          *--tgt = *--src;
+        }
+        SP = &SP[depth];
+        assert(SP == tgt);
         break;
       }
 
