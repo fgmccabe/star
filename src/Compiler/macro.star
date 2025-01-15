@@ -61,6 +61,9 @@ star.compiler.macro{
     mkImplementationStmt(Lc,Q//macroType,Cx//macroConstraint,macroType(Tp),macroTerm(Exp)).
   examineStmt(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
     mkAlgebraicTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),macroAlgebraic(B)).
+  examineStmt(A) where (Lc,Q,C,Tp,B) ?= isStructTypeStmt(A) =>
+    mkStructTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),
+    macroStruct(B)).
   examineStmt(A) where _ ?= isAnnotation(A) => A.
   examineStmt(A) => valof{
     reportError("cannot figure out statement\n$(A)",locOf(A));
@@ -68,7 +71,6 @@ star.compiler.macro{
   }
 
   macroAlgebraic(A) => macroAst(A,.constructor,examCons).
-
   examCons(A) => examineConstructor(A).
 
   examineConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
@@ -80,8 +82,6 @@ star.compiler.macro{
     roundTerm(Lc,macroTerm(O),Els//macroType).
   examineConstructor(A) where (Lc,O,Els) ?= isEnumCon(A) =>
     mkEnumCon(Lc,macroTerm(O),Els//macroType).
-  examineConstructor(A) where (Lc,O,Els) ?= isBrTerm(A) => 
-    braceTerm(Lc,O,Els//macroTypeDef).
   examineConstructor(A) where (Lc,Q,I) ?= isQuantified(A) =>
     reUQuant(Lc,Q//macroType,macroAlgebraic(I)).
   examineConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
@@ -90,6 +90,11 @@ star.compiler.macro{
     reportError("cannot figure out constructor $(A)",locOf(A));
     valis A
   }
+
+  macroStruct(A) => macroAst(A,.constructor,examineStruct).
+
+  examineStruct(A) where (Lc,O,Els) ?= isBrTerm(A) =>
+    braceTerm(Lc,O,Els//macroTypeDef).
 
   macroTypeDef:(ast) => ast.
   macroTypeDef(A) => macroAst(A,.statement,examineTypeStmt).

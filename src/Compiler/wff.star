@@ -93,7 +93,7 @@ star.compiler.wff{
   roundTerm(Lc,Op,Els) => .app(Lc,Op,.tpl(Lc,"()",Els)).
 
   public isBraceTerm:(ast) => option[(option[locn],ast,cons[ast])].
-  isBraceTerm(E) where .app(Lc,Op,.tpl(Lc,"{}",Els)).=E => .some((Lc,Op,Els)).
+  isBraceTerm(E) where .app(Lc,Op,.tpl(_,"{}",Els)).=E => .some((Lc,Op,Els)).
   isBraceTerm(_) default => .none.
 
   public braceTerm:(option[locn],ast,cons[ast]) => ast.
@@ -292,6 +292,9 @@ star.compiler.wff{
 	      (Q,T) .= getQuantifiers(H) =>
     .some((Lc,Q,[],T,I)).
   isStruct(A) default => .none.
+
+  public mkStructTypeStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
+  mkStructTypeStmt(Lc,Q,C,H,B) => binary(Lc,"::=",reUQuant(Lc,Q,reConstrain(C,H)),B).
 
   public isLetDef:(ast) => option[(option[locn],cons[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ?= isBinary(A,"in") &&
