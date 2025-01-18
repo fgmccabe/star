@@ -78,7 +78,7 @@ star.compiler.gencode{
 
     BlkSig = nearlyFlatSig(Tp::ltipe);
 
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.noMore,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.notLast,Ctx,.some([]));
     
     C0 = genDbg([.iEntry])++chLine(.none,Lc)++
       [.iLbl(AbrtLbl,.iBlock(BlkSig,EC++[.iTG(Nm),.iRet]))]
@@ -211,8 +211,8 @@ star.compiler.gencode{
       if ~reconcileable(Stka,Stkb) then
 	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
 
-      valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(Tp::ltipe),
-	      [.iTry(blockSig([ETp::ltipe],Tp::ltipe),
+      valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.ptr),
+	      [.iTry(blockSig([ETp::ltipe],.ptr),
 		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)])]++[.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }

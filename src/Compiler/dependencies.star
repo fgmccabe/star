@@ -92,6 +92,12 @@ star.compiler.dependencies{
 	(Dfs,Pbs) = collectConstructors(R,Hd,Defs,Pb,Vz);
 	valis (Stmts,[.defnSpec(.tpSp(Id),Lc,[A]),..Dfs],[(.tpSp(Id),Vz),..Pbs],As,Opn)
       }.
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where
+      (Lc,_,Cx,Hd,R) ?= isStructTypeStmt(A) => valof{
+	Id = surfaceName(Hd);
+	(Dfs,Pbs) = collectStruct(R,Hd,Defs,Pb,Vz);
+	valis (Stmts,[.defnSpec(.tpSp(Id),Lc,[A]),..Dfs],[(.tpSp(Id),Vz),..Pbs],As,Opn)
+      }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz) where
       (Lc,Nm,Rhs) ?= isDefn(A) && (_,Id) ?= isName(Nm) => valof{
 	Sp = .varSp(Id);
@@ -125,11 +131,6 @@ star.compiler.dependencies{
   }
   collectConstructors(T,H,Defs,Pb,Vz) where (_,R) ?= isUnary(T,"|") => 
     collectConstructors(R,H,Defs,Pb,Vz).
-  collectConstructors(T,H,Defs,Pb,Vz) where
-      (Lc,Op,Els) ?= isBrTerm(T) && (_,Id) ?=isName(Op) => valof{
-	Sp = .cnsSp(Id);
-	valis ([.defnSpec(Sp,Lc,[mkConstructorType(Lc,brTuple(Lc,Els),H)]),..Defs],publishName(Sp,Vz,Pb))
-      }.
   collectConstructors(T,H,Defs,Pb,Vz) where (Lc,Id) ?= isEnumSymb(T) => valof{
     Sp = .cnsSp(Id);
     valis ([.defnSpec(Sp,Lc,[H]),..Defs],publishName(Sp,Vz,Pb))
@@ -143,6 +144,12 @@ star.compiler.dependencies{
   collectConstructors(T,H,Defs,Pb,Vz) where (_Lc,_Q,I) ?= isXQuantified(T) =>
     collectConstructors(I,H,Defs,Pb,Vz).
   collectConstructors(T,_,Defs,Pb,_Vz) default => (Defs,Pb).
+
+  collectStruct(T,H,Defs,Pb,Vz) where
+      (Lc,Q,X,Id,Els) ?= isBraceCon(T) => valof{
+	Sp = .cnsSp(Id);
+    valis ([.defnSpec(Sp,Lc,[reUQuant(Lc,Q,reXQuant(Lc,X,mkConstructorType(Lc,brTuple(Lc,Els),H)))]),..Defs],publishName(Sp,Vz,Pb))
+      }.
 
   isDefined:(defnSp,cons[defnSpec])=>option[locn].
   isDefined(_,[]) => .none.
@@ -217,6 +224,11 @@ star.compiler.dependencies{
     A0 = filterOut(All,Q);
     Rf0 = collectConstraintRefs(Cx,A0,Rf);
     valis collectConstructorRefs(R,A0,Rf0);
+  }
+  collectStmtRefs(A,All,Annots,Rf) where (Lc,Q,Cx,L,R) ?= isStructTypeStmt(A) => valof{
+    A0 = filterOut(All,Q);
+    Rf0 = collectConstraintRefs(Cx,A0,Rf);
+    valis collectStructRefs(R,A0,Rf0);
   }
   collectStmtRefs(A,All,Annots,Rf) where
       (_,Q,Cx,L,R) ?= isTypeFunStmt(A) => valof{
@@ -508,8 +520,6 @@ star.compiler.dependencies{
     collectConstructorRefs(R,All,collectConstructorRefs(L,All,SoFar)).
   collectConstructorRefs(T,All,SoFar) where (_,R) ?= isUnary(T,"|") =>
     collectConstructorRefs(R,All,SoFar).
-  collectConstructorRefs(T,All,SoFar) where (_,_,Els) ?= isBrTerm(T) =>
-    collectFaceTypes(Els,All,SoFar).
   collectConstructorRefs(T,All,SoFar) where _ ?= isEnumSymb(T) => SoFar.
   collectConstructorRefs(T,All,SoFar) where (_,_,Els) ?= isEnumCon(T) =>
     collectTypeList(Els,All,SoFar).
@@ -521,6 +531,9 @@ star.compiler.dependencies{
     reportError("cannot fathom constructor form $(T)",locOf(T));
     valis SoFar
   }
+
+  collectStructRefs(T,All,SoFar) where (_,_,_,_,Els) ?= isBraceCon(T) =>
+    collectFaceTypes(Els,All,SoFar).
 
   collectFaceTypes([],_,Rf) => Rf.
   collectFaceTypes([D,..Ds],All,Rf) => valof{
