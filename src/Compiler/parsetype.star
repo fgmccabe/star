@@ -405,6 +405,8 @@ star.compiler.typeparse{
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isAlgebraicTypeStmt(St) =>
     parseAlgebraicType(Lc,Nm,V,C,H,B,Env,Path).
+  parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isStructTypeStmt(St) =>
+    parseStructType(Lc,Nm,V,C,H,B,Env,Path).
   parseTypeDef(_,St,_,_) => valof{
     reportError("invalid type definition: $(St)",locOf(St));
     valis ([],[])
@@ -428,6 +430,14 @@ star.compiler.typeparse{
     valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
   }
   parseTypeCore(St,Env,Path) where (Lc,V,C,H,_) ?= isAlgebraicTypeStmt(St) => valof{
+    Q = parseBoundTpVars(V);
+    QEnv = declareTypeVars(Q,Env);
+    (Tp,TArgs) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
+    Tmplte = pickTypeTemplate(Tp);
+    valis .some((Tmplte,foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),.faceType([],[])),Q)))
+  }
+  parseTypeCore(St,Env,Path) where (Lc,V,C,H,_) ?= isStructTypeStmt(St) => valof{
     Q = parseBoundTpVars(V);
     QEnv = declareTypeVars(Q,Env);
     (Tp,TArgs) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
@@ -517,6 +527,52 @@ star.compiler.typeparse{
     Cx = parseConstraints(C,QEnv);
     Tmplte = pickTypeTemplate(Tp);
 
+    Cs = collectConstructors(B);
+
+    if traceCanon! then
+      showMsg("Cs=$(Cs)");
+    
+    TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),
+	.faceType([],[])),Q);
+
+    if traceCanon! then
+      showMsg("type rule $(TpRl)");
+
+    Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
+    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
+
+    if traceCanon! then
+      showMsg("algebraic CMP $(CMap)");
+
+    (CDefs,CDecs) = buildConstructors(B,CMap,Cx,Tp,QEnv,Path);
+
+    TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
+    TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
+
+    Qs = Q//snd;
+
+    valis ([TDef,..(CDefs//(D)=>reQuant(Qs,D))],
+      [TDec,..(CDecs//(D)=>reQuant(Qs,D))])
+  }
+  parseAlgebraicType(Lc,Nm,_,_,_,_,_,_) => valof{
+    reportError("invalid type definition of $(Nm)",Lc);
+    valis ([],[])
+  }
+
+  public parseStructType:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,string) => (cons[canonDef],cons[decl]).
+  parseStructType(Lc,Nm,V,C,H,B,Env,Path) => valof{
+    if traceCanon! then
+      showMsg("parse struct type defn at $(Lc)");
+    
+    Q = parseBoundTpVars(V);
+    if traceCanon! then
+      showMsg("bound vars $(Q)");
+    QEnv = declareTypeVars(Q,Env);
+
+    (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
+    Cx = parseConstraints(C,QEnv);
+    Tmplte = pickTypeTemplate(Tp);
+
     (Fs,Xs,Ts,Cs) = parseAlgebraicFace(B,QEnv,Path);
     
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),
@@ -540,9 +596,27 @@ star.compiler.typeparse{
     valis ([TDef,..(CDefs//(D)=>reQuant(Qs,D))]++ADefs++UDefs,
       [TDec,..(CDecs//(D)=>reQuant(Qs,D))]++ADecs++UDecs)
   }
-  parseAlgebraicType(Lc,Nm,_,_,_,_,_,_) => valof{
+  parseStructType(Lc,Nm,_,_,_,_,_,_) => valof{
     reportError("invalid type definition of $(Nm)",Lc);
     valis ([],[])
+  }
+
+  collectConstructors:(ast)=>cons[(string,ast)].
+  collectConstructors(A) where (Lc,L,R) ?= isBinary(A,"|") =>
+    collectConstructors(L) ++ collectConstructors(R).
+  collectConstructors(A) where (Lc,R) ?= isUnary(A,"|") => 
+    collectConstructors(R).
+  collectConstructors(A) where (Lc,Op,_) ?= isRoundTerm(A) && (_,Id)?=isName(Op) =>
+    [(Id,A)].
+  collectConstructors(A) where (Lc,Id) ?= isEnumSymb(A) => [(Id,A)].
+  collectConstructors(A) where (Lc,Op,_) ?= isEnumCon(A) && (_,Id) ?= isName(Op) => [(Id,A)].
+  collectConstructors(A) where (_,_,B) ?= isQuantified(A) =>
+    collectConstructors(B).
+  collectConstructors(A) where (_,_,B) ?= isXQuantified(A) =>
+    collectConstructors(B).
+  collectConstructors(A) default => valof{
+    reportError("invalid case in algebraic type",locOf(A));
+    valis []
   }
 
   parseAlgebraicFace:(ast,dict,string)=>(tipes,tipes,rules,cons[(string,ast)]).

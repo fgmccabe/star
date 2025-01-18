@@ -93,8 +93,12 @@ star.compiler.macro{
 
   macroStruct(A) => macroAst(A,.constructor,examineStruct).
 
-  examineStruct(A) where (Lc,O,Els) ?= isBrTerm(A) =>
-    braceTerm(Lc,O,Els//macroTypeDef).
+  examineStruct(A) where (Lc,Q,X,Nm,Els) ?= isBraceCon(A) =>
+    mkBraceCon(Lc,Q//macroType,X//macroType,Nm,Els//macroTypeDef).
+  examineStruct(A) => valof{
+    reportError("cannot figure out struct declaration\n$(A)",locOf(A));
+    valis A
+  }
 
   macroTypeDef:(ast) => ast.
   macroTypeDef(A) => macroAst(A,.statement,examineTypeStmt).

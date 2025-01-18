@@ -8,7 +8,7 @@ star.actor{
   }
 
   public actorProtocol[i] ::=
-    exists r ~~ query{ q:(i)=>r. resp:receiver[r]}
+    exists r ~~ .query((i)=>r, receiver[r])
     | .tell((i)=>()).
 
   public actorHead:all i ~~ (emitter[actorProtocol[i]],i) => taskFun[()].
@@ -16,9 +16,7 @@ star.actor{
     while .true do{
       try{
 	case collect(mBox) in {
-	  | query{q=Q. resp=Reply. } => {
-	    post(Q(body),Reply);
-	  }
+	  | .query(Q,Reply) => { post(Q(body),Reply) }
 	  | .tell(A) => {
 	    A(body);
 	  }
@@ -32,7 +30,7 @@ star.actor{
   public implementation all i ~~ sa[actor[i]->>i] => {
     _query(.actor(this,Ch),Q) => valof{
       (P,R) = newSlot();
-      post(query{q=Q. resp=R},Ch);
+      post(.query(Q,R),Ch);
       valis collect(P)
     }
     _tell(.actor(this,Ch),A) => valof{

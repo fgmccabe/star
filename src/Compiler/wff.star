@@ -270,6 +270,8 @@ star.compiler.wff{
     onlyRoundConstructors(L) && onlyRoundConstructors(R).
   onlyRoundConstructors(A) where (_,R) ?= isUnary(A,"|") =>
     onlyRoundConstructors(R).
+  onlyRoundConstructors(A) where (_,_,I) ?= isXQuantified(A) =>
+    onlyRoundConstructors(I).
   onlyRoundConstructors(A) => _ ?= isEnumSymb(A) || _ ?= isEnumCon(A).
 
   public mkAlgebraicTypeStmt(Lc,Q,C,H,B) =>
@@ -288,10 +290,27 @@ star.compiler.wff{
       (_,Q,_,L,R) ?= isStruct(I) => .some((Lc,Q,deComma(C),L,R)).
   isStruct(A) where
       (Lc,H,I) ?= isBinary(A,"::=") &&
-	  _ ?= isBraceTerm(I) &&
+	  _ ?= isBraceCon(I) &&
 	      (Q,T) .= getQuantifiers(H) =>
     .some((Lc,Q,[],T,I)).
   isStruct(A) default => .none.
+
+  public isBraceCon:(ast)=>option[(option[locn],cons[ast],cons[ast],string,cons[ast])].
+  isBraceCon(A) => isBrCon(A,.none,[],[],"",[]).
+
+  isBrCon:(ast,option[locn],cons[ast],cons[ast],string,cons[ast])=>
+    option[(option[locn],cons[ast],cons[ast],string,cons[ast])].  
+  isBrCon(A,_,Q,X,__,_) where (Lc,N,Els) ?= isBraceTerm(A) && (_,Nm) ?= isName(N) =>
+    .some((Lc,Q,X,Nm,Els)).
+  isBrCon(A,_,_,X,Nm,Els) where (Lc,Q,I) ?= isQuantified(A) =>
+    isBrCon(I,Lc,Q,X,Nm,Els).
+  isBrCon(A,_,Q,_,Nm,Els) where (Lc,X,I) ?= isXQuantified(A) =>
+    isBrCon(I,Lc,Q,X,Nm,Els).
+  isBrCon(_,_,_,_,_,_) default => .none.
+
+  public mkBraceCon:(option[locn],cons[ast],cons[ast],string,cons[ast]) => ast.
+  mkBraceCon(Lc,Q,X,Nm,Els) =>
+    reUQuant(Lc,Q,reXQuant(Lc,X,braceTerm(Lc,.nme(Lc,Nm),Els))).
 
   public mkStructTypeStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
   mkStructTypeStmt(Lc,Q,C,H,B) => binary(Lc,"::=",reUQuant(Lc,Q,reConstrain(C,H)),B).
