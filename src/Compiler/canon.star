@@ -30,7 +30,7 @@ star.compiler.canon{
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
   .tple(option[locn],cons[canon]) |
-  .lambda(option[locn],string,rule[canon],cons[constraint],tipe) |
+  .lambda(option[locn],string,rule[canon],tipe) |
   .thunk(option[locn],canon,tipe) |
   .thRef(option[locn],canon,tipe) |
   .newSav(option[locn],tipe) |
@@ -85,7 +85,7 @@ star.compiler.canon{
       | .csexp(_,_,_,Tp) => Tp
       | .trycatch(_,_,_,_,Tp) => Tp
       | .rais(_,_,_,Tp) => Tp
-      | .lambda(_,_,_,_,Tp) => Tp
+      | .lambda(_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
       | .newSav(_,Tp) => Tp
@@ -139,7 +139,7 @@ star.compiler.canon{
       | .cond(Lc,_,_,_) => Lc
       | .apply(Lc,_,_,_) => Lc
       | .tple(Lc,_) => Lc
-      | .lambda(Lc,_,_,_,_) => Lc
+      | .lambda(Lc,_,_,_) => Lc
       | .letExp(Lc,_,_,_) => Lc
       | .letRec(Lc,_,_,_) => Lc
       | .vlof(Lc,_,_) => Lc
@@ -257,7 +257,7 @@ star.compiler.canon{
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))"
     | .apply(_,L,R,_) => showApply(L,R,Pr,Sp)
     | .tple(_,Els) => "(#(showTuple(Els,Sp)))"
-    | .lambda(_,Nm,Rl,_,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
+    | .lambda(_,Nm,Rl,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
     | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
     | .newSav(_,Tp) => "^$(Tp)"
@@ -389,7 +389,7 @@ star.compiler.canon{
 
   public isFunDef:(canon)=>boolean.
   isFunDef(Df) => case Df in {
-   | .lambda(_,_,_,_,_) => .true
+   | .lambda(_,_,_,_) => .true
    | .letExp(_,_,_,Exp) => isFunDef(Exp)
    | .letRec(_,_,_,Exp) => isFunDef(Exp)
    | _ default => .false

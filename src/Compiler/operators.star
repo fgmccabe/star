@@ -58,7 +58,6 @@ star.compiler.operators{
     | "..>" => [.infixOp(749,750,749)]
     | "->" => [.infixOp(889,890,889)]
     | ".+." => [.prefixOp(700,699)]
-    | "<$" => [.infixOp(719,720,720)]
     | "raise" => [.prefixOp(930,929)]
     | "async" => [.prefixOp(1234,1233)]
     | "then" => [.infixOp(1179,1180,1179)]
@@ -296,7 +295,6 @@ star.compiler.operators{
     | ("::",`=`) => .some("::=")
     | ("<",`*`) => .some("<*")
     | ("<",`~`) => .some("<~")
-    | ("<",`$`) => .some("<$")
     | ("<",`|`) => .some("<|")
     | ("<",`=`) => .some("<=")
     | ("<=",`>`) => .some("<=>")
@@ -391,7 +389,6 @@ star.compiler.operators{
     | "<" => .true  /* less than */
     | "<*" => .true  /* left fold */
     | "<~" => .true  /* type interface rule */
-    | "<$" => .true  /* constant replace */
     | "<|" => .true  /* meta quote */
     | "<=>" => .true  /* constructor arrow */
     | "=" => .true  /* definition */

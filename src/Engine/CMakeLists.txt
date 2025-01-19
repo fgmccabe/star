@@ -6,7 +6,7 @@ include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers
 add_subdirectory("EngineTests")
 
 set(HEADER_FILES
-	Headers/ideal.h
+        Headers/ideal.h
         ../Headers/version.h
         ../Headers/config.h
         ../Headers/instructions.h
@@ -20,16 +20,20 @@ set(HEADER_FILES
         Headers/bkpoint.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
-		Headers/cons.h
+        Headers/cons.h
         Headers/engine.h
         Headers/decode.h
-        ../Infra/Headers/encoding.h Headers/decodeP.h
+        ../Infra/Headers/encoding.h
+        Headers/decodeP.h
         ../Infra/Headers/streamDecode.h
-        ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
+        ../Infra/Headers/manifest.h
+        ../Infra/Headers/manifestP.h
+        ../Infra/Headers/pkg.h
         Headers/star.h
         Headers/globalsP.h
         ../Headers/starOptions.h
         Headers/globals.h
+        Headers/profile.h
         Headers/heap.h Headers/heapP.h
         Headers/term.h Headers/termP.h Headers/strings.h Headers/arith.h
         Headers/debug.h
@@ -48,7 +52,7 @@ set(HEADER_FILES
         Headers/normalP.h
         Headers/singleP.h
         Headers/single.h
-		Headers/future.h
+        Headers/future.h
         Headers/futureP.h
         Headers/vect.h
         Headers/vectP.h
@@ -58,38 +62,39 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-	arith.c
-	bignum.c
-	bkpoint.c
-	cell.c
+        arith.c
+        bignum.c
+        bkpoint.c
+        cell.c
         char.c
-	closure.c
-	code.c
-	cons.c
+        closure.c
+        code.c
+        cons.c
         decode.c
-	debug.c
+        debug.c
         either.c
-	eval.c
-	engine.c
-	engineOptions.c
+        eval.c
+        engine.c
+        engineOptions.c
         future.c
-	gc.c
-	globals.c
-	heap.c
-	ideal.c
-	iochnl.c
-	labels.c
-	load.c
-	ltype.c
-	main.c
-	option.c
+        gc.c
+        globals.c
+        heap.c
+        ideal.c
+        iochnl.c
+        labels.c
+        load.c
+        ltype.c
+        main.c
+        option.c
         single.c
-	stack.c
+        stack.c
         strings.c
-	term.c
+        term.c
         thr.c
-	verify.c
+        verify.c
         vect.c
+        profile.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

@@ -1,7 +1,6 @@
   public implementation functor[option] => {.
     fmap(_,.none) => .none.
     fmap(F,some(A)) => some(F(A)).
-    C <$ L => fmap((_)=>C,L).
  .}
 
   public implementation monad[option] => {
@@ -12,8 +11,6 @@
   public implementation all a ~~ functor[either[a]] => {
     fmap(F,either(X)) => either(F(X)).
     fmap(_,other(E)) => other(E).
-    C <$ either(_) => either(C).
-    C <$ other(E) => other(E).
   }
 
   public implementation all e ~~ injection[option,either[e]] => {

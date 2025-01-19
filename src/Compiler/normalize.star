@@ -37,7 +37,7 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
-  transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
+  transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
     (Vl,Defs) = liftExp(Val,Outer,Q,Ex);
@@ -303,13 +303,13 @@ star.compiler.normalize{
       showMsg("lift let rec exp $(.letRec(Lc,Grp,Decs,Bnd))");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
-  liftExp(.lambda(Lc,FullNm,Eqn,Cx,Tp),Map,Q,Ex) => valof{
+  liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
-      showMsg("lift lambda $(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
+      showMsg("lift lambda $(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
 	.vr(Lc,FullNm,Tp)))");
 
-    valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],Cx,Tp)],
+    valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
 	[.funDec(Lc,FullNm,FullNm,Tp)],
 	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
   }
@@ -649,7 +649,7 @@ star.compiler.normalize{
     Ex1 = transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }
-  transformLetDef(.varDef(Lc,_,FullNm,.lambda(_,_,Eqn,_,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
+  transformLetDef(.varDef(Lc,_,FullNm,.lambda(_,_,Eqn,Tp),_,_),Map,Outer,Q,Extra,Fx,Ex) => valof{
     Ex1 = transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex);
     valis (Fx,Ex1)
   }

@@ -50,7 +50,7 @@ star.compiler.freevars{
       freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
 	foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
     | .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
-    | .lambda(_,_,Rl,_,_) => freeVarsInRule(Rl,Q,Fv)
+    | .lambda(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .newSav(_,_) => Fv
@@ -202,7 +202,7 @@ star.compiler.freevars{
     | .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv)
     | .disj(Lc,L,R) => ptnVars(L,Q,Fv)/\ptnVars(R,Q,Fv)
     | .neg(Lc,R) => Q
-    | .lambda(_,_,_,_,_) => Q
+    | .lambda(_,_,_,_) => Q
     | .letExp(_,B,_,E) => Q
     | .letRec(_,B,_,E) => Q
   }

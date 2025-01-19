@@ -42,7 +42,7 @@ star.compiler.resolve{
   overloadDef:(canonDef,dict)=>(canonDef,dict).
   overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
-  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqn,_,_),Cx,Tp),Dict) =>
+  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqn,_),Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,FullNm,[Eqn],Cx,Tp).
   overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
@@ -58,7 +58,7 @@ star.compiler.resolve{
   overloadFunction:(dict,option[locn],string,cons[rule[canon]],cons[constraint],tipe)=>
     (canonDef,dict).
   overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
-    if traceCanon! then
+    if traceResolve! then
       showMsg("overload function $(Nm) = $(Eqns), Cx=$(Cx)");
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
       
@@ -67,7 +67,7 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
-      if traceCanon! then
+      if traceResolve! then
 	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
       valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
     } else{
@@ -90,7 +90,7 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
     (.varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp),Dict).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
-    if traceCanon! then
+    if traceResolve! then
       showMsg("overload definition $(Nm) = $(Val), Cx=$(Cx)");
 
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
@@ -99,9 +99,9 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
 
-    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp);
+    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp);
 
-    if traceCanon! then
+    if traceResolve! then
       showMsg("overloaded definition $(ODefn)");
 
     valis (ODefn,Dict)
@@ -110,7 +110,7 @@ star.compiler.resolve{
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
     (canonDef,dict).
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
-    if traceCanon! then
+    if traceResolve! then
       showMsg("overload implementation definition $(Nm) = $(Val)");
 
     (Qx,Qt) = deQuant(Tp);
@@ -125,7 +125,7 @@ star.compiler.resolve{
       valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),[],CTp),[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp),Dict)
     }
   }
 
@@ -154,7 +154,7 @@ star.compiler.resolve{
   }
   defineCVars(Lc,[.raisEs(Tp),..Tps],Vrs,D) => valof{
     QNm = qualifiedName("$R",.tractMark,tpName(deRef(Tp)));
-    if traceCanon! then
+    if traceResolve! then
       showMsg("defining try scope for $(Tp) with #(QNm)");
     valis defineCVars(Lc,Tps,[.vr(Lc,QNm,Tp),..Vrs],
       declareTryScope(Lc,Tp,QNm,D))
@@ -230,14 +230,14 @@ star.compiler.resolve{
     valis (overApply(Lc,OverOp,NArgs,typeOf(T)),markResolved(St2))
   }
   overloadTerm(.apply(lc,.over(OLc,T,Cx),Args,Tp),Dict,St) => valof{
-    if traceCanon! then
+    if traceResolve! then
       showMsg("$(lc)\: overload $(.over(OLc,T,Cx)) in call");
 
     (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
 
-    if traceCanon! then
+    if traceResolve! then
       showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
 
     valis (.apply(lc,OverOp,NArgs,Tp),markResolved(St3))
@@ -290,17 +290,16 @@ star.compiler.resolve{
     valis (.svSet(Lc,TT,VV),St2)
   }
   overloadTerm(.newSav(Lc,Tp),Dict,St) => (.newSav(Lc,Tp),St).
-  overloadTerm(.lambda(Lc,Nm,Rl,Cx,Tp),Dict,St) => valof{
-    if traceCanon! then
-      showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Cx,Tp)) @ $(Lc)");
+  overloadTerm(.lambda(Lc,Nm,Rl,Tp),Dict,St) => valof{
+    if traceResolve! then
+      showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Tp)) @ $(Lc)");
     
-    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
-    (RRl,St1) = overloadRule(Extra,Rl,CDict,St);
+    (RRl,St1) = overloadRule([],Rl,Dict,St);
 
-    if traceCanon! then
-      showMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,[],Tp))\:$(Tp)");
+    if traceResolve! then
+      showMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,Tp))\:$(Tp)");
     
-    valis (.lambda(Lc,Nm,RRl,[],Tp),St1)
+    valis (.lambda(Lc,Nm,RRl,Tp),St1)
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     TDict = declareDecls(Decls,Dict);
@@ -339,7 +338,7 @@ star.compiler.resolve{
     reportError("cannot resolve term $(T)",Lc);
     valis (T,.active(Lc,"cannot resolve term $(T)"))
   }
-  
+
   resolveRef(.mtd(Lc,Nm,Tp),DT,Args,Dict,St) => valof{
     (OverOp,St1) = resolveDot(Lc,DT,Nm,Tp,Dict,St);
     valis (OverOp,Args,St1)
@@ -357,7 +356,6 @@ star.compiler.resolve{
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
       .rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
-      [],
       funType(ArgTps,Tp))
   }
 
@@ -544,11 +542,11 @@ star.compiler.resolve{
 
   resolveDot:(option[locn],canon,string,tipe,dict,resolveState) => (canon,resolveState).
   resolveDot(Lc,Rc,Fld,Tp,Dict,St) => valof{
-    if traceCanon! then
+    if traceResolve! then
       showMsg("resolve $(Rc).#(Fld)\:$(Tp) @ $(Lc)");
     RcTp = typeOf(Rc);
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
-      if traceCanon! then
+      if traceResolve! then
 	showMsg("access function $(AccFn)\:$(typeOf(AccFn))");
       
       Ft = newTypeVar("F");
@@ -556,7 +554,7 @@ star.compiler.resolve{
 	FrFt = snd(freshen(Ft,Dict));
 	(Cx,FldT) = deConstrain(FrFt);
 
-	if traceCanon! then
+	if traceResolve! then
 	  showMsg("check field type $(Ft)=$(FldT) against $(Tp)");
 
 	if sameType(Tp,FldT,Dict) then{
@@ -570,7 +568,7 @@ star.compiler.resolve{
 	  .fatal(Lc,"accessor for field $(Rc).$(Fld)\:$(typeOf(AccFn)) for $(RcTp) not consistent with required type $(Tp)"))
       }
     } else{
-      if traceCanon! then
+      if traceResolve! then
 	showMsg("cannot find accessor for $(Rc)\:$(typeOf(Rc)).#(Fld) in $(Dict)");
       valis (.dot(Lc,Rc,Fld,Tp),.active(Lc,"cannot find accessor for field $(Fld) for $(RcTp)"))
     }

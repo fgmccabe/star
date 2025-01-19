@@ -151,7 +151,6 @@ star.skew{
     fmp(F,.rl(L)) => .rl(L//(((Ix,T))=>(Ix,fm(F,T)))).
   .} in {
     fmap = fmp.
-    C <$ L => fmp((_)=>C,L).
   }
   
   public implementation all e ~~ display[e] |: display[sk[e]] => let{.

@@ -86,10 +86,6 @@
 @tab non-associative prefix
 @tab 700
 @tab count of number of bits
-@item @code{<$}
-@tab right associative infix
-@tab 720
-@tab constant replace
 @item @code{raise}
 @tab non-associative prefix
 @tab 930
@@ -575,71 +571,70 @@
   @tab @code{..>}
   @item @code{->}
   @tab @code{.+.}
-  @tab @code{<$}
   @tab @code{ζ}
   @tab @code{!}
-  @item @code{->>}
-  @tab @code{?=}
+  @tab @code{->>}
+  @item @code{?=}
   @tab @code{<*}
   @tab @code{#}
   @tab @code{??}
-  @item @code{%}
-  @tab @code{.>>>.}
+  @tab @code{%}
+  @item @code{.>>>.}
   @tab @code{\\+}
   @tab @code{*}
   @tab @code{\\-}
-  @item @code{+}
-  @tab @code{.>>.}
+  @tab @code{+}
+  @item @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
   @tab @code{\\/}
-  @item @code{-}
-  @tab @code{.}
+  @tab @code{-}
+  @item @code{.}
   @tab @code{/}
   @tab @code{$$}
   @tab @code{:}
-  @item @code{;}
-  @tab @code{-->}
+  @tab @code{;}
+  @item @code{-->}
   @tab @code{<}
   @tab @code{.=}
   @tab @code{=>>}
-  @item @code{=}
-  @tab @code{|:}
+  @tab @code{=}
+  @item @code{|:}
   @tab @code{++}
   @tab @code{>}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @item @code{//}
-  @tab @code{.~.}
+  @tab @code{//}
+  @item @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @item @code{=>}
-  @tab @code{<=>}
+  @tab @code{=>}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float

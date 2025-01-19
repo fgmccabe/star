@@ -46,6 +46,7 @@ star.compiler{
 	    forceCompileOption,
 	    traceDependencyOption,
 	    traceAstOption,
+	    traceResolveOption,
 	    showMacroOption,
 	    macroTraceOption,
 	    checkOnlyOption,
