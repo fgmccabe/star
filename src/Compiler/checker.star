@@ -300,7 +300,7 @@ star.compiler.checker{
       if traceCanon! then
 	showMsg("definition $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp))");
 
-      if .lambda(_,_,Rl,_,_).=Val then
+      if .lambda(_,_,Rl,_).=Val then
 	valis ([.funDef(Lc,FullNm,[Rl],Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
       else if ~isEmpty(Cx) then
 	valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
@@ -680,10 +680,10 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Cnd,E0,Path);
       Rep = typeOfExp(R,Rt,E1,Path);
 
-      valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Cx,Tp);
+      valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
     } else{
       Rep = typeOfExp(R,Rt,E0,Path);
-      valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Cx,Tp);
+      valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Tp);
     }
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,E) ?= isThunk(A) =>
@@ -792,7 +792,7 @@ star.compiler.checker{
 	  Rc = .vr(Lc,"XX",Tp);
 	  AccTp = funType([Tp],FTp);
 	  Acc = .varDef(Lc,AccNm,AccNm,.lambda(Lc,lambdaLbl(Lc),
-	      .rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),[],AccTp),
+	      .rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
 	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
@@ -960,7 +960,7 @@ star.compiler.checker{
 		.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
 		  XVr,
 		  .svSet(Lc,SavVr,
-		    typeOfExp(E,VlTp,Env,Path)))),[],funType([],Tp)))),Tp),Tp)
+		    typeOfExp(E,VlTp,Env,Path)))),funType([],Tp)))),Tp),Tp)
   }
 
   checkAction:(ast,tipe,dict,string) => (canonAction,dict).

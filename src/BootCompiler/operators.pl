@@ -41,7 +41,6 @@
   operator("..>", [infixOp(749, 750, 749)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
-  operator("<$", [infixOp(719, 720, 720)]).
   operator("raise", [prefixOp(930, 929)]).
   operator("async", [prefixOp(1234, 1233)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
@@ -242,7 +241,6 @@
   follows('::','=','::=').
   follows('<','*','<*').
   follows('<','~','<~').
-  follows('<','$','<$').
   follows('<','|','<|').
   follows('<','=','<=').
   follows('<=','>','<=>').
@@ -333,7 +331,6 @@
   final('<',"<").	 /* less than */
   final('<*',"<*").	 /* left fold */
   final('<~',"<~").	 /* type interface rule */
-  final('<$',"<$").	 /* constant replace */
   final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */

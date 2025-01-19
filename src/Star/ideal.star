@@ -263,7 +263,6 @@ star.ideal{
     fm(F,.ihNode(A1,A2,A3,A4)) => .ihNode(fm(F,A1),fm(F,A2),fm(F,A3),fm(F,A4)).
   .} in {
     fmap = fm.
-    C <$ L => fm((_)=>C,L).
   }
 
   public implementation all k,v ~~ stream[map[k,v]->>keyval[k,v]] => let{.

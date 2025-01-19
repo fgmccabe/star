@@ -247,23 +247,17 @@ star.compiler.macro.rules{
   /*
   * Ptn in Src
   * becomes
-  * let{
-  *  sF(Ptn,St) => Succ(X,St).
-  *  sF(_,St) default => Lift(St).
-  * } in _iter(Src,Zed,sF)
-  *
+  * (El,St) => (Ptn.=El ?? Succ(X,St) || Lift(St)
   * where Succ, Lift & Zed are parameters to the conversion
   */
   makeCondition:(ast,(lyfted[ast])=>ast,(lyfted[ast])=>ast,lyfted[ast]) => ast.
   makeCondition(A,Lift,Succ,Zed) where (Lc,Ptn,Src) ?= isSearch(A) => valof{
-    sF = genName(Lc,"sF");
+    El = genName(Lc,"El");
     St = genName(Lc,"St");
 
-    Eq1 = equation(Lc,roundTerm(Lc,sF,[Ptn,St]),Succ(.grounded(St)));
-    Eq2 = equation(Lc,roundTerm(Lc,sF,[mkAnon(Lc),St]),Lift(.grounded(St)));
-    
-    FF = mkLetDef(Lc,[Eq1,Eq2],sF);
-    valis ternary(Lc,"_iter",Src,Lift(Zed),FF)
+    Lam = mkLambda(Lc,.true,rndTuple(Lc,[El,St]),.none,
+      mkConditional(Lc,mkMatch(Lc,Ptn,El),Succ(.grounded(St)),Lift(.grounded(St))));
+    valis ternary(Lc,"_iter",Src,Lift(Zed),Lam)
   }
   makeCondition(A,Lift,Succ,Zed) where (Lc,L,R) ?= isConjunct(A) => 
     makeCondition(L,Lift,(Lf) => makeCondition(R,Lift,Succ,Lf),Zed).

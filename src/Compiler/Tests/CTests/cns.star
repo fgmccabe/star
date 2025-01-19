@@ -39,6 +39,5 @@ test.cns{
     fm(f,cons(H,T)) => cons(f(H),fm(f,T))
   } in {
     fmap = fm.
-    C <$ L => fm((_)=>C,L).
   }
 }
