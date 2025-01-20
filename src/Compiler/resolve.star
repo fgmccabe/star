@@ -292,14 +292,35 @@ star.compiler.resolve{
   overloadTerm(.newSav(Lc,Tp),Dict,St) => (.newSav(Lc,Tp),St).
   overloadTerm(.lambda(Lc,Nm,Rl,Tp),Dict,St) => valof{
     if traceResolve! then
-      showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Tp)) @ $(Lc)");
-    
-    (RRl,St1) = overloadRule([],Rl,Dict,St);
+      showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Tp))\:$(Tp) @ $(Lc)");
 
-    if traceResolve! then
-      showMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,Tp))\:$(Tp)");
+    if isConstrainedType(Tp) then{
+      (Cx,UTp) = deConstrain(Tp);
+      if traceResolve! then
+	showMsg("constrained lambda, Cx= $(Cx)");
+
+      (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+
+      Eqn = resolveEqn(Rl,Extra,CDict);
+      (Qx,Qt) = deQuant(Tp);
+      (_,ITp) = deConstrain(Qt);
+      if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
+	CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+	if traceResolve! then
+	  showMsg("overloaded constrained lambda $(.lambda(Lc,Nm,Eqn,CTp))");
+	valis (.lambda(Lc,Nm,Eqn,CTp),St)
+      } else{
+	reportError("type of $(Nm) not a function type",Lc);
+	valis (.lambda(Lc,Nm,Eqn,Tp),St)
+      }
+    } else{
+      (RRl,St1) = overloadRule([],Rl,Dict,St);
+
+      if traceResolve! then
+	showMsg("overloaded lambda $(.lambda(Lc,Nm,RRl,Tp))\:$(Tp)");
     
-    valis (.lambda(Lc,Nm,RRl,Tp),St1)
+      valis (.lambda(Lc,Nm,RRl,Tp),St1)
+    }
   }
   overloadTerm(.letExp(Lc,Gp,Decls,Rhs),Dict,St) => valof{
     TDict = declareDecls(Decls,Dict);

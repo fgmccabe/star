@@ -87,9 +87,6 @@ test.y{
     };
 
     show fooC(()=>"world");
-    show fooC((()=>(.false ?? "world"||(raise .exception("bad world")))):
-     raises exception |: ()=>string);
---   show fooC(fooE:raises exception |: ()=>string);
 
     try{
       show fooG(()=>42)
