@@ -72,7 +72,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEVERIFY
         if (traceVerify < detailedTracing)
           traceVerify++;
-        logMsg(logFile, "Verification tracing enabled\n");
+        logMsg(logFile, "Verification tracing enabled");
         continue;
 #else
         logMsg(logFile, "code verification not enabled\n");
@@ -83,7 +83,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEMEM
         traceAllocs = True;
 
-        logMsg(logFile, "Memory allocation tracing enabled\n");
+        logMsg(logFile, "Memory allocation tracing enabled");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
@@ -94,7 +94,7 @@ static retCode debugOption(char *option, logical enable) {
 #ifdef TRACEMEM
         if (traceMemory < detailedTracing)
           traceMemory++;
-        logMsg(logFile, "GC tracing enabled\n");
+        logMsg(logFile, "GC tracing enabled");
         continue;
 #else
         logMsg(logFile,"memory tracing not enabled");
@@ -105,7 +105,7 @@ static retCode debugOption(char *option, logical enable) {
       case 'H':    /* validate heap after allocations  */
 #ifdef TRACEMEM
         validateMemory = True;
-        logMsg(logFile, "Heap validation enabled\n");
+        logMsg(logFile, "Heap validation enabled");
         continue;
 #else
         logMsg(logFile,"memory validation not enabled");
@@ -138,7 +138,7 @@ static retCode debugOption(char *option, logical enable) {
         lineDebugging = True;
         interactive = False;
         tracing = True;
-        logMsg(logFile, "Symbolic tracing enabled\n");
+        logMsg(logFile, "Symbolic tracing enabled");
         continue;
 
       case 'g':    /* Internal symbolic debugging */
@@ -159,14 +159,14 @@ static retCode debugOption(char *option, logical enable) {
       case 's':
         collectStats = True;
         atexit(dumpStats);
-        logMsg(logFile, "Statistics collection enabled\n");
+        logMsg(logFile, "Statistics collection enabled");
         break;
 
       case 'M':     /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
         if (traceManifest < detailedTracing)
           traceManifest++;
-        logMsg(logFile, "Manifest tracing enabled\n");
+        logMsg(logFile, "Manifest tracing enabled");
 #else
         logMsg(logFile, "Resource tracing not enabled\n");
         return Error;

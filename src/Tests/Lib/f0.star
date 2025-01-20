@@ -132,13 +132,14 @@ test.f0{
       .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis .none }
     }
   }
-  
+
+  zeero() => 0.
 
   _main(_) => valof{
     X = fact(4);
     _logmsg("hello world");
     _logmsg(_stringOf(X,0));
-    _logmsg(_stringOf(fib(32),0));
+    _logmsg(_stringOf(fib(32),zeero()));
 
     _logmsg(dspEr(.eNOFILE));
     _logmsg(dspEr(.eINTRUPT));

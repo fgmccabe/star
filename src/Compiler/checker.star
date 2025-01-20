@@ -496,6 +496,7 @@ star.compiler.checker{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,Lc,.none,[],Env,Path);
+
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
   typeOfArgPtn(A,Tp,Env,Path) => typeOfPtn(A,Tp,Env,Path).
@@ -672,7 +673,13 @@ star.compiler.checker{
 
     checkType(A,fnType(At,Rt),ProgTp,Es);
     
+    if traceCanon! then
+      showMsg("expected arg type $(At)");
+
     (As,ACnd,E0) = typeOfArgPtn(Ar,At,Es,Path);
+
+    if traceCanon! then
+      showMsg("lambda arg ptn $(As)");
 
     LName = genId(Path++"λ");
 

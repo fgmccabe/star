@@ -304,14 +304,10 @@ star.compiler.normalize{
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
   liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("lift lambda $(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
-	[.funDec(Lc,FullNm,FullNm,Tp)],
-	.vr(Lc,FullNm,Tp)))");
-
-    valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
-	[.funDec(Lc,FullNm,FullNm,Tp)],
-	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
+    valis liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex)
+    -- valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
+    -- 	[.funDec(Lc,FullNm,FullNm,Tp)],
+    -- 	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
   }
   liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
@@ -446,6 +442,41 @@ star.compiler.normalize{
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
     valis (.cVoid(Lc,Tp),[])
+  }
+
+  liftLambda:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
+  liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Outer,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift lambda $(.lambda(Lc,FullNm,Eqn,Tp))\:$(Tp)");
+
+    Free = findFree(.lambda(Lc,FullNm,Eqn,Tp),Q);
+    rawFree = freeLabelVars(Free,Outer)::cons[cV];
+    varParents = freeParents(rawFree,Outer);
+    freeVars = reduceFreeArgs(varParents,Outer);
+
+    ThV = genVar("_ThVr",typeOf(freeVars));
+    ThVr = .cVar(Lc,ThV);
+
+    ATp = extendFunTp(deRef(Tp),.some(ThVr));
+    
+    L = collectLabelVars(freeVars,ThV,0,[]);
+
+    M = [.lyr(.some(ThV),L,[]),..Outer];
+
+    freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+    LamFree = crTpl(Lc,freeArgs);
+
+    ((_,NArgs,NG,NBody),Ex1) = transformRule(Eqn,M,Outer,Q\+ThV,.some(ThVr),Ex);
+
+    Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
+    LamDefn = .fnDef(Lc,FullNm,ATp,NArgs,(G ?= NG ??
+	.cCnd(Lc,G,NBody,.cAbort(Lc,"lambda args failed",Tp)) ||
+	NBody));
+
+    if traceNormalize! then
+      showMsg("lambda lifted to $(Closure), new defn: $(LamDefn)");
+
+    valis (Closure,[LamDefn,..Ex])
   }
 
   liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |:

@@ -104,7 +104,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "%d new stack of %d words\n%_", pcCount, sze);
+    outMsg(logFile, "%ld new stack of %d words\n%_", pcCount, sze);
 #endif
 
   stk->fp = pushFrame(stk, underFlow);
