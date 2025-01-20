@@ -256,8 +256,8 @@ star.compiler.canon{
     | .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))"
     | .apply(_,L,R,_) => showApply(L,R,Pr,Sp)
-    | .tple(_,Els) => "(#(showTuple(Els,Sp)))"
-    | .lambda(_,Nm,Rl,_) => "(#(showRl(Nm,"=>",Rl,showCanon,Sp++"  ")))"
+    | .tple(_,Els) => "#(showTuple(Els,Sp))"
+    | .lambda(_,Nm,Rl,_) => "(#(showRl(Nm,Rl,showCanon,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
     | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
     | .newSav(_,Tp) => "^$(Tp)"
@@ -340,13 +340,13 @@ star.compiler.canon{
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.
-  showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,"=>",Rl,Shw,Sp),"\n"++Sp++"| ")*.
+  showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Shw,Sp),"\n"++Sp++"| ")*.
 
-  showRl:all x ~~ (string,string,rule[x],(x,integer,string)=>string,string) => string.
-  showRl(Nm,Arrw,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Arrw) =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) #(Arrw) #(Shw(Val,Rp,Sp))".
-  showRl(Nm,Arrw,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Arrw) =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) #(Arrw) #(Shw(Val,Rp,Sp))".
+  showRl:all x ~~ (string,rule[x],(x,integer,string)=>string,string) => string.
+  showRl(Nm,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+    "#(Nm)#(showCanon(Ptn,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
+  showRl(Nm,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+    "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
 
   showDecs:(cons[decl],string) => string.
   showDecs(Dcs,Sp) => interleave(Dcs//disp,"\n"++Sp)*.
@@ -372,7 +372,7 @@ star.compiler.canon{
   displayDefs(Dfs) => interleave(Dfs//disp,"\n")*.
 
   public implementation all x ~~ display[x] |: display[rule[x]] => {
-    disp(Eq) => showRl("λ","=>",Eq,(X,_,_)=>disp(X),"").
+    disp(Eq) => showRl("λ",Eq,(X,_,_)=>disp(X),"").
   }
 
   public isGoal:(canon)=>boolean.

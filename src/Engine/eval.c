@@ -21,16 +21,33 @@
 
 logical collectStats = False;
 
-#define checkAlloc(Count) STMT_WRAP({\
-  if (reserveSpace(H, Count) != Ok) {\
-    saveRegisters();\
-    retCode ret = gcCollect(H, Count);\
-    if (ret != Ok)\
-      return ret;\
-    restoreRegisters();   \
+#ifdef TRACESTACK
+#define checkAlloc(Count) STMT_WRAP({  \
+  if (reserveSpace(H, Count) != Ok) {  \
+    saveRegisters();                   \
+    retCode ret = gcCollect(H, Count); \
+    if (ret != Ok)                     \
+      return ret;                      \
+    if (traceStack > noTracing){       \
+      verifyStack(P->stk, H);             \
+      verifyHeap(H);                   \
+    }                                  \
+    restoreRegisters();                \
     check(reserveSpace(H,Count)==Ok,"could not reserve space");\
-  }\
+  }                                    \
 })
+#else
+#define checkAlloc(Count) STMT_WRAP({  \
+  if (reserveSpace(H, Count) != Ok) {  \
+    saveRegisters();                   \
+    retCode ret = gcCollect(H, Count); \
+    if (ret != Ok)                     \
+      return ret;                      \
+    restoreRegisters();                \
+    check(reserveSpace(H,Count)==Ok,"could not reserve space");\
+  }                                    \
+})
+#endif
 
 #define pop() (*SP++)
 #define top() (*SP)
@@ -843,13 +860,7 @@ retCode run(processPo P) {
       }
 
       case Sav: {  // Create a new single assignment variable
-        if (reserveSpace(H, SingleCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, SingleCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
+        checkAlloc(SingleCellCount);
         singlePo sav = singleVar(H);
         push(sav);       /* put the structure back on the stack */
         break;
@@ -1251,13 +1262,7 @@ retCode run(processPo P) {
       }
 
       case Closure: {      /* heap allocate closure */
-        if (reserveSpace(H, ClosureCellCount) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, ClosureCellCount);
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
+        checkAlloc(ClosureCellCount);
         labelPo cd = C_LBL(nthElem(LITS, PC->fst));
 
         if (!labelDefined(cd)) {
@@ -1275,13 +1280,7 @@ retCode run(processPo P) {
         labelPo lbl = C_LBL(nthElem(LITS, PC->fst));
         integer arity = labelArity(lbl);
 
-        if (enoughRoom(H, lbl) != Ok) {
-          saveRegisters();
-          retCode ret = gcCollect(H, NormalCellCount(arity));
-          if (ret != Ok)
-            return ret;
-          restoreRegisters();
-        }
+        checkAlloc(NormalCellCount(arity));
         normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
         for (int ix = 0; ix < arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
@@ -1370,5 +1369,4 @@ retCode run(processPo P) {
     }
     PC++;
   }
-
 }
