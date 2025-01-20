@@ -641,9 +641,9 @@ star.compiler.types{
 
   public deConstrain:(tipe) => (cons[constraint],tipe).
   deConstrain(T) => let{.
-    deC(.constrainedType(I,V),Qs) => deC(I,[V,..Qs]).
+    deC(.constrainedType(I,V),Qs) => deC(deRef(I),[V,..Qs]).
     deC(Tp,Qs) => (reverse(Qs),Tp).
-  .} in deC(T,[]).
+  .} in deC(deRef(T),[]).
 
   public reConstrainType:(cons[constraint],tipe) => tipe.
   reConstrainType([],Tp) => Tp.

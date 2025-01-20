@@ -476,7 +476,7 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("lambda lifted to $(Closure), new defn: $(LamDefn)");
 
-    valis (Closure,[LamDefn,..Ex])
+    valis (Closure,[LamDefn,..Ex1])
   }
 
   liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |:
