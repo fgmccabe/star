@@ -118,7 +118,7 @@ labelPo mtdLabel(methodPo mtd) {
 
 integer stackDelta(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->stackDelta+mtd->lclcnt;
+  return mtd->stackDelta + mtd->lclcnt;
 }
 
 logical validPC(methodPo mtd, insPo pc) {
@@ -131,7 +131,7 @@ int32 codeOffset(methodPo mtd, insPo pc) {
 }
 
 termPo findPcLocation(methodPo mtd, int32 pc) {
-  if (mtd->locs!=Null && isNormalPo(mtd->locs)) {
+  if (mtd->locs != Null && isNormalPo(mtd->locs)) {
     normalPo locs = C_NORMAL(mtd->locs);
 
     integer start = 0;
@@ -296,14 +296,14 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lc
   return mtd;
 }
 
-methodPo
-specialMethod(const char *name, int32 arity, int32 insCount, insPo instructions, termPo sigTerm, int32 lclCount) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls) {
   labelPo lbl = declareLbl(name, arity, 0);
   normalPo pool = allocateTpl(globalHeap, 2);
   setArg(pool, 0, (termPo) lbl);
   setArg(pool, 1, sigTerm);
 
-  return defineMtd(globalHeap, insCount, instructions, 1, 0, 0, lbl, pool, Null);
+  defineMtd(globalHeap, insCx, instructions, 1, 0, 0, lbl, pool, Null);
+  return lbl;
 }
 
 static retCode showMtdCount(labelPo lbl, void *cl) {

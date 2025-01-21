@@ -40,11 +40,6 @@ static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
 
 static Instruction spawnCode[] = {TOCall, 2, 0};
 
-methodPo underflowMethod;
-methodPo newFiberMethod;
-methodPo newTaskMethod;
-methodPo spawnMethod;
-
 clssPo stackClass = (clssPo) &StackClass;
 
 static integer stackCount = 0;
@@ -56,10 +51,9 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss = specialClass;
 
-  underflowMethod = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
-  newFiberMethod = specialMethod("newFiber", 0, NumberOf(newFiberCode), newFiberCode, NULL, 0);
-  newTaskMethod = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);
-  spawnMethod = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0);
+  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
+  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);
+  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -76,7 +70,7 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment) {
+stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state, stackPo attachment) {
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
@@ -107,7 +101,7 @@ stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState stat
     outMsg(logFile, "%ld new stack of %d words\n%_", pcCount, sze);
 #endif
 
-  stk->fp = pushFrame(stk, underFlow);
+  stk->fp = pushFrame(stk, labelCode(underFlow));
   gcReleaseRoot(H, root);
 
   return stk;
@@ -531,13 +525,13 @@ int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
   return count;
 }
 
-stackPo glueOnStack(heapPo H, stackPo tsk, integer size, integer saveArity) {
-  int root = gcAddRoot(H, (ptrPo) &tsk);
+stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
+  int root = gcAddRoot(H, (ptrPo) &stk);
 
-  assert(size >= minStackSize && stackState(tsk) != moribund);
+  assert(size >= minStackSize && stackState(stk) != moribund);
 
-  stackPo newStack = allocateStack(H, size, underflowMethod, stackState(tsk), tsk);
-  moveStack2Stack(newStack, tsk, saveArity);
+  stackPo newStack = allocateStack(H, size, underflowProg, stackState(stk), stk);
+  moveStack2Stack(newStack, stk, saveArity);
   propagateHwm(newStack);
   gcReleaseRoot(H, root);
   return newStack;
@@ -562,7 +556,7 @@ stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd) {
 stackPo spinupStack(heapPo H, integer size) {
   assert(size >= minStackSize);
 
-  return allocateStack(H, size, underflowMethod, suspended, Null);
+  return allocateStack(H, size, underflowProg, suspended, Null);
 }
 
 stackPo newFiber(heapPo H, termPo lam) {
@@ -570,7 +564,7 @@ stackPo newFiber(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, newTaskMethod);
+  child->fp = pushFrame(child, labelCode(taskProg));
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -583,7 +577,7 @@ stackPo newStack(heapPo H, termPo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, newTaskMethod);
+  child->fp = pushFrame(child, labelCode(taskProg));
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -597,7 +591,7 @@ stackPo splitStack(processPo P, closurePo lam) {
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, spawnMethod);
+  child->fp = pushFrame(child, labelCode(spawnProg));
 
   pushStack(child, (termPo) child);
   pushStack(child, (termPo) lam);

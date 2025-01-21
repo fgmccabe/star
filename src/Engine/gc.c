@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "engineP.h"      /* access engine definitions */
+#include "debug.h"
 
 #include <memory.h>
 #include <globalsP.h>
@@ -62,6 +63,12 @@ void setupGCSupport(heapPo H, gcSupportPo G) {
 }
 
 retCode gcCollect(heapPo H, long amount) {
+#ifdef TRACEMEM
+  if (traceMemory > noTracing) {
+    outMsg(logFile, "GC #%d @ %ld\n%_", gcCount, pcCount);
+  }
+#endif
+
   GCSupport GCSRec;
   gcSupportPo G = &GCSRec;
 
@@ -70,7 +77,7 @@ retCode gcCollect(heapPo H, long amount) {
   if (rT)
     pauseTimer(runTimer);
 
-  if(gcTimer==Null)
+  if (gcTimer == Null)
     gcTimer = newTimer("gc");
 
   resumeTimer(gcTimer);
@@ -94,7 +101,7 @@ retCode gcCollect(heapPo H, long amount) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing) {
+  if (traceMemory > noTracing) {
     outMsg(logFile, "%d objects found in mark root phase\n%_", G->oCnt);
   }
 #endif
@@ -112,7 +119,7 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing)
+  if (traceMemory > noTracing)
     verifyProcesses(H);
 #endif
 
@@ -124,17 +131,17 @@ retCode gcCollect(heapPo H, long amount) {
   }
 
 #ifdef TRACEMEM
-    if (validateMemory) {
-      verifyHeap(H);
-    }
+  if (validateMemory) {
+    verifyHeap(H);
+  }
 #endif
 
 #ifdef TRACEMEM
-    if (traceMemory>noTracing) {
-      outMsg(logFile, "%d objects found\n", G->oCnt);
-      outMsg(logFile, "%d bytes used\n", H->curr - H->start);
-      outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
-    }
+  if (traceMemory > noTracing) {
+    outMsg(logFile, "%d objects found\n", G->oCnt);
+    outMsg(logFile, "%d bytes used\n", H->curr - H->start);
+    outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
+  }
 #endif
 
   pauseTimer(gcTimer);
@@ -244,7 +251,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   gcGrow++;
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing)
+  if (traceMemory > noTracing)
     outMsg(logFile, "extending heap by: %ld+%ld to %ld\n%_", factor, hmin, newSize);
 #endif
 
@@ -265,7 +272,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   H->allocMode = lowerHalf;
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing)
+  if (traceMemory > noTracing)
     verifyProcesses(H);
 #endif
 
@@ -277,7 +284,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing) {
+  if (traceMemory > noTracing) {
     outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
   }
 #endif
@@ -287,7 +294,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing)
+  if (traceMemory > noTracing)
     verifyProcesses(H);
 #endif
 
@@ -299,7 +306,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
   }
 
 #ifdef TRACEMEM
-  if (traceMemory>noTracing) {
+  if (traceMemory > noTracing) {
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }

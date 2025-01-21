@@ -539,7 +539,10 @@ retCode run(processPo P) {
         stackPo child = splitStack(P, lambda);
 
         P->stk = attachStack(P->stk, child);
-        verifyStack(P->stk, P->heap);
+#ifdef TRACESTACK
+        if (traceStack > noTracing)
+          verifyStack(P->stk, H);
+#endif
         restoreRegisters();
         continue;
       }

@@ -23,16 +23,13 @@ static integer newProcessNumber();
 
 __thread processPo currentProcess = Null;
 
-
 static Instruction haltCode[] =  {Halt, 0};
-
-methodPo haltMethod;
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltMethod = specialMethod("halt", 0, NumberOf(haltCode), haltCode, unitEnum, 0);
+  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, unitEnum, 0);
 
   runTimer = newTimer("running");
 }
@@ -59,7 +56,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   processPo P = (processPo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
-  stackPo stk = P->stk = allocateStack(h, stackSize, haltMethod, active, Null);
+  stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, active, Null);
 
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, mtd);
