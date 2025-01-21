@@ -2,21 +2,31 @@ test.cnd{
   import star.
   import star.assert.
 
-  T = tag().
+  -- Test conditional expressions involving matching
 
-  UU = T prompt 1.
-  XX = T prompt (1 + (T cut K in 3)).
+  isValid(XX) where (_,I) ?= isQ(XX) => isValid(XX).
+  isValid(XX) where (_,I) ?= isX(XX) => isValid(XX).
+  isValid(XX) where (_,I) ?= isPr(XX) => isValid(XX).
+  isValid(XX) where (_,I) ?= isPb(XX) => isValid(XX).
+  isValid(XX) => _ ?= isB(XX).
 
-  YY = T prompt (1 + (T cut K in K.(3))).
+  isQ("Q") => .some(("Q","Ok")).
+  isQ(_) => .none.
 
-  main:()=>().
+  isX("X") => .some(("X","Ok")).
+  isX(_) => .none.
+
+  isPr("Pr") => .some(("Pr","Ok")).
+  isPr(_) => .none.
+
+  isPb("Pb") => .some(("Pb","Ok")).
+  isPb(_) => .none.
+
+  isB("Bin") => .some("Ok").
+  isB(_) => .none.
+
   main()=>valof{
-    show UU;
-    assert UU == 1;
-    show XX;
-    assert XX==3;
-    show YY;
+    assert isValid("Bin");
     valis ()
   }
-    
 }

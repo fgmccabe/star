@@ -615,8 +615,7 @@ star.compiler.checker{
     valis .cond(Lc,Tst,Thn,Els)
   }.
   typeOfExp(A,Tp,Env,Path) where _ ?= isConjunct(A) => valof{
-    (_,boolTp,_,_) = _optval(findType(Env,"boolean"));
-    checkType(A,boolTp,Tp,Env);
+    checkType(A,boolType,Tp,Env);
     (Gl,_) = checkCond(A,Env,Path);
     valis Gl
   }.
@@ -631,6 +630,7 @@ star.compiler.checker{
     valis Gl
   }.
   typeOfExp(A,Tp,Env,Path) where _ ?= isMatch(A) => valof{
+    checkType(A,boolType,Tp,Env);
     (Gl,_) = checkCond(A,Env,Path);
     valis Gl
   }
