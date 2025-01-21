@@ -25,7 +25,7 @@ typedef enum {
 
 typedef struct stack_frame_ *framePo;
 
-stackPo allocateStack(heapPo H, integer sze, methodPo underFlow, StackState state, stackPo attachment);
+stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state, stackPo attachment);
 
 StackState stackState(stackPo tsk);
 retCode setTaskState(stackPo stk, StackState state);

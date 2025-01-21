@@ -38,11 +38,11 @@ extern clssPo methodClass;
 #define MtdCellCount CellCount(sizeof(MethodRec))
 
 // These are needed during GC
-extern methodPo haltMethod;
-methodPo underflowMethod;
-methodPo newFiberMethod;
-methodPo newTaskMethod;
-methodPo spawnMethod;
+
+labelPo haltProg;
+labelPo underflowProg;
+labelPo taskProg;
+labelPo spawnProg;
 
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
@@ -82,8 +82,8 @@ methodPo
 defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
           labelPo lbl, normalPo pool, termPo locs);
 
-methodPo
-specialMethod(const char *name, int32 arity, int32 insCount, insPo instructions, termPo sigTerm, int32 lclCount);
+labelPo
+specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls);
 
 void showMtdCounts(ioPo out);
 

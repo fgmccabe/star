@@ -51,12 +51,14 @@ integer termArity(normalPo term) {
 }
 
 termPo nthArg(normalPo term, int64 ix) {
+  if (ix < 0 || ix >= termArity(term))
+    logMsg(logFile, "%ld: %d not in range of [0,..%d)", pcCount, ix, termArity(term));
   check(ix >= 0 && ix < termArity(term), "out of bounds");
   return term->args[ix];
 }
 
-termPo lastArg(normalPo term){
-  return term->args[labelArity(term->lbl)-1];
+termPo lastArg(normalPo term) {
+  return term->args[labelArity(term->lbl) - 1];
 }
 
 //
@@ -115,7 +117,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {
-      retCode ret = outMsg(out,"%Q", labelName(lbl));
+      retCode ret = outMsg(out, "%Q", labelName(lbl));
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;
@@ -165,14 +167,15 @@ logical sameTerm(termPo t1, termPo t2) {
     normalPo n2 = C_NORMAL(t2);
     labelPo lbl = n1->lbl;
     integer arity = labelArity(lbl);
-    if(arity==0)
+    if (arity == 0)
       return True;
-    else{
-      for (integer ix = 0; ix < arity-1; ix++) {
-	if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
-	  return False;
+    else {
+      for (integer ix = 0; ix < arity - 1; ix++) {
+        if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
+          return False;
       }
-      __attribute__((musttail)) return sameTerm(lastArg(n1),lastArg(n2));
+        __attribute__((musttail))
+      return sameTerm(lastArg(n1), lastArg(n2));
     }
   }
 }
@@ -215,7 +218,7 @@ integer termSize(normalPo t) {
 }
 
 normalPo allocateTpl(heapPo H, integer arity) {
-  labelPo lbl = tplLabel((int32)arity);
+  labelPo lbl = tplLabel((int32) arity);
   int root = gcAddRoot(H, (ptrPo) &lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);

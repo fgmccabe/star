@@ -108,6 +108,8 @@ void initGlobals() {
   hasValue = declareEnum("hasValue", -1, globalHeap);
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
+
+
 }
 
 globalPo C_GLOB(termPo t) {
@@ -236,12 +238,6 @@ void markGlobals(gcSupportPo G) {
   unitEnum = markPtr(G, (ptrPo) &unitEnum);
 
   hNilEnum = markPtr(G, &hNilEnum);
-
-  haltMethod = C_MTD(markPtr(G,(ptrPo)&haltMethod));
-  underflowMethod = C_MTD(markPtr(G,(ptrPo)&underflowMethod));
-  newFiberMethod = C_MTD(markPtr(G,(ptrPo)&newFiberMethod));
-  newTaskMethod = C_MTD(markPtr(G,(ptrPo)&newTaskMethod));
-  spawnMethod = C_MTD(markPtr(G,(ptrPo)&spawnMethod));
 
   scanVect(G);
 }
