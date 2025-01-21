@@ -30,7 +30,7 @@ star.compiler.gencode{
   declGlobal(_,Vrs) => Vrs.
 
   compDefs:(cons[cDefn],map[string,(tipe,srcLoc)])=> cons[codeSegment].
-  compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(traceCodegen! trace D,Glbs)).
+  compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
 
   genDef:(cDefn,map[string,(tipe,srcLoc)]) => codeSegment.
   genDef(.fnDef(Lc,Nm,Tp,Args,Val),Glbs) => genFun(Lc,Nm,Tp,Args,Val,Glbs).
@@ -41,6 +41,9 @@ star.compiler.gencode{
   genFun:(option[locn],string,tipe,cons[cExp],cExp,map[string,(tipe,srcLoc)]) => codeSegment.
   genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
     Ctx = emptyCtx(Glbs);
+
+    if traceCodegen! then
+      showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\:$(Tp)~$(Tp::ltipe)");
 
     AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
 
@@ -891,8 +894,8 @@ star.compiler.gencode{
   genDbg:(multi[assemOp]) => multi[assemOp].
   genDbg(Ins) => (genDebug! ?? [.iDBug,..Ins] || Ins).
 
-  voidSig = funTipe([],.voidTipe).
-  flatSig = funTipe([],.tplTipe([])).
+  voidSig = .funTipe([],.voidTipe).
+  flatSig = .funTipe([],.tplTipe([])).
   nearlyFlatSig(T) => .funTipe([],T).
   blockSig(Args,Rs) => .funTipe(Args,Rs).
 

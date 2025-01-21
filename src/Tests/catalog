@@ -33,6 +33,7 @@
     "test.cstream": "cstr.star",
     "test.cnb": "cnb.star",
     "test.cnc": "cnc.star",
+    "test.cnd": "cnd.star",
     "test.cnf": "cnf.star",
     "test.cnq": "cnq.star",
     "test.cns": "cns.star",
