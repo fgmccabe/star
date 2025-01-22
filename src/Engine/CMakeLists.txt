@@ -33,7 +33,6 @@ set(HEADER_FILES
         Headers/globalsP.h
         ../Headers/starOptions.h
         Headers/globals.h
-        Headers/profile.h
         Headers/heap.h Headers/heapP.h
         Headers/term.h Headers/termP.h Headers/strings.h Headers/arith.h
         Headers/debug.h
@@ -94,7 +93,6 @@ set(SOURCE_FILES
         thr.c
         verify.c
         vect.c
-        profile.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
