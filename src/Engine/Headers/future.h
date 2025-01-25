@@ -10,8 +10,6 @@
 
 typedef struct future_record *futurePo;
 
-extern clssPo futureClass;
-
 extern futurePo C_FUTURE(termPo t);
 
 typedef retCode (*futurePoll)(futurePo ft, heapPo h, void *cl, void *cl2);

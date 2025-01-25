@@ -15,7 +15,6 @@ static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, log
 static termPo bigFinalizer(specialClassPo class, termPo o);
 
 SpecialClass BignumClass = {
-  .clss = Null,
   .sizeFun = bigSize,
   .copyFun = bigCopy,
   .scanFun = bigScan,
@@ -28,7 +27,7 @@ SpecialClass BignumClass = {
 clssPo bignumClass = (clssPo) &BignumClass;
 
 void initBignum() {
-  BignumClass.clss = specialClass;
+  BignumClass.clss.clss = specialClass;
 }
 
 logical isBignum(termPo t) {
@@ -51,7 +50,7 @@ uint32 *bigDigits(bignumPo b) {
 termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
   bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
 
-  big->clss = bignumClass;
+  big->clss.clss = bignumClass;
   big->count = count;
 
   wordMove(big->data, count, data, count);

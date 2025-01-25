@@ -11,8 +11,6 @@
 
 typedef struct global_rec_ *globalPo;
 
-extern clssPo globalClass;
-
 extern globalPo C_GLOB(termPo t);
 
 extern globalPo globalVar(const char *nm);

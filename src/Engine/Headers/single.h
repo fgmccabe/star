@@ -11,8 +11,6 @@
 
 typedef struct single_rec_ *singlePo;
 
-extern clssPo singleClass;
-
 singlePo C_SINGLE(termPo t);
 
 singlePo singleVar(heapPo H);

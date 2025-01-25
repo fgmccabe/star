@@ -15,8 +15,8 @@
 #include "manifestP.h"
 #include "verifyP.h"
 #include "debugP.h"
-#include "buddyP.h"
 #include "engineP.h"
+#include "buddyP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";

@@ -44,7 +44,7 @@ static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
 void initCode() {
-  MethodClass.clss = specialClass;
+  MethodClass.clss.clss = specialClass;
 
   pkgPool = newPool(sizeof(PackageRec), 16);
   packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
@@ -134,17 +134,17 @@ termPo findPcLocation(methodPo mtd, int32 pc) {
   if (mtd->locs != Null && isNormalPo(mtd->locs)) {
     normalPo locs = C_NORMAL(mtd->locs);
 
-    integer start = 0;
-    integer limit = termArity(locs) - 1;
+    int32 start = 0;
+    int32 limit = termArity(locs) - 1;
 
-    integer lowerPc = -1;
-    integer upperPc = codeSize(mtd);
+    int32 lowerPc = -1;
+    int32 upperPc = codeSize(mtd);
 
     termPo lowerLoc = Null;
     termPo upperLoc = Null;
 
     while (limit >= start) {
-      integer mid = start + (limit - start) / 2;
+      int32 mid = start + (limit - start) / 2;
 
       normalPo midEntry = C_NORMAL(nthArg(locs, mid));
 

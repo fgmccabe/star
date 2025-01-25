@@ -27,7 +27,7 @@ SpecialClass IOChnnlClass = {
 clssPo ioChnnlClass = (clssPo) &IOChnnlClass;
 
 void initIoChnnl() {
-  IOChnnlClass.clss = specialClass;
+  IOChnnlClass.clss.clss = specialClass;
 }
 
 ioChnnlPo allocateIOChnnl(heapPo H, ioPo io) {

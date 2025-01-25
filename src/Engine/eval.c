@@ -160,7 +160,7 @@ retCode run(processPo P) {
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        int arity = PC->fst;
+        int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
           logMsg(logFile, "Calling non-closure %T", cl);
@@ -313,7 +313,7 @@ retCode run(processPo P) {
       case TCall: {       /* Tail call of explicit program */
         termPo nProg = nthElem(LITS, PC->fst);
         labelPo lbl = C_LBL(nProg);
-        integer arity = labelArity(lbl);
+        int32 arity = labelArity(lbl);
 
         methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
@@ -359,7 +359,7 @@ retCode run(processPo P) {
       }
 
       case TOCall: {       /* Tail call */
-        int arity = PC->fst;
+        int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
           logMsg(logFile, "Calling non-closure %T", cl);
@@ -1281,11 +1281,11 @@ retCode run(processPo P) {
 
       case Alloc: {      /* heap allocate term */
         labelPo lbl = C_LBL(nthElem(LITS, PC->fst));
-        integer arity = labelArity(lbl);
+        int32 arity = labelArity(lbl);
 
         checkAlloc(NormalCellCount(arity));
         normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
-        for (int ix = 0; ix < arity; ix++)
+        for (int32 ix = 0; ix < arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the structure back on the stack */
         break;
@@ -1349,8 +1349,6 @@ retCode run(processPo P) {
             bail();
           }
         }
-#else
-        PC += 2; // ignore frame entity for now
 #endif
         break;
       }

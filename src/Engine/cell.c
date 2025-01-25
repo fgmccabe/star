@@ -17,7 +17,6 @@ static termPo cellFinalizer(specialClassPo class, termPo o);
 static integer cellHash = 0;
 
 SpecialClass CellClass = {
-  .clss = Null,
   .sizeFun = cellSize,
   .copyFun = cellCopy,
   .scanFun = cellScan,
@@ -78,7 +77,7 @@ retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical a
 }
 
 void initCell() {
-  CellClass.clss = specialClass;
+  CellClass.clss.clss = specialClass;
 }
 
 logical isCell(termPo t){

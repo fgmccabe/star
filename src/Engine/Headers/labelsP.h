@@ -22,7 +22,7 @@ typedef struct {
 } LabelRecord, *labelRecordPo;
 
 typedef struct program_label_ {
-  clssPo clss;                // == labelClass
+  ClassRecord clss;           // == labelClass
   LabelRecord lbl;            // The label itself
   int32 index;                // Index of label in type
   integer hash;               // Hash code for the label

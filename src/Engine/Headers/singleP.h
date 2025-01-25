@@ -11,7 +11,7 @@
 #include "closure.h"
 
 typedef struct single_rec_ {
-  clssPo clss;                  // == singleClass
+  ClassRecord clss;             // == singleClass
   termPo content;               // Contents
   integer hash;
 } SingleRecord;

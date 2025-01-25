@@ -10,8 +10,6 @@
 
 typedef struct closure_record_ *closurePo;
 
-extern clssPo closureClass;
-
 extern closurePo C_CLOSURE(termPo t);
 
 extern logical isClosure(termPo t);

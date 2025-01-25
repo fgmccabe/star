@@ -27,7 +27,7 @@ SpecialClass StrClass = {
 clssPo strClass = (clssPo) &StrClass;
 
 void initStrings() {
-  StrClass.clss = specialClass;
+  StrClass.clss.clss = specialClass;
 }
 
 stringPo C_STR(termPo t) {
@@ -44,7 +44,7 @@ const char *strVal(termPo o, integer *size) {
 termPo allocateString(heapPo H, const char *txt, long length) {
   stringPo str = (stringPo) allocateObject(H, strClass, StringCellCount(length));
 
-  str->clss = strClass;
+  str->clss.clss = strClass;
   str->hash = 0;
   str->length = length;
 

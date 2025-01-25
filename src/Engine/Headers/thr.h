@@ -11,8 +11,6 @@
 
 typedef struct _thread_record_ *threadPo;
 
-extern clssPo threadClass;    /* threadClass is a specialClass */
-
 extern threadPo C_THREAD(termPo t);
 
 void initThr(void);

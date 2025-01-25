@@ -29,7 +29,7 @@ SpecialClass SingleClass = {
 clssPo singleClass = (clssPo) &SingleClass;
 
 void initSingle() {
-  SingleClass.clss = specialClass;
+  SingleClass.clss.clss = specialClass;
 }
 
 singlePo C_SINGLE(termPo t) {
@@ -42,7 +42,7 @@ singlePo singleVar(heapPo H) {
   singlePo single = (singlePo) allocateObject(H, singleClass, SingleCellCount);
 
   single->content = Null;
-  single->clss = singleClass;
+  single->clss.clss = singleClass;
 
   single->hash = hash61(singleHashCount++);
 

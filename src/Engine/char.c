@@ -24,7 +24,7 @@ SpecialClass CharacterClass = {
 clssPo charClass = (clssPo) &CharacterClass;
 
 void initChars() {
-  CharacterClass.clss = specialClass;
+  CharacterClass.clss.clss = specialClass;
 }
 
 termPo allocateCharacter(codePoint cp) {

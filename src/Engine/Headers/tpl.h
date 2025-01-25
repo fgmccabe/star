@@ -10,6 +10,6 @@
 
 extern normalPo allocatePair(heapPo H, termPo lhs, termPo rhs);
 
-extern normalPo allocateTpl(heapPo H, integer count);
+extern normalPo allocateTpl(heapPo H, int32 arity);
 
 #endif //STAR_TPL_H

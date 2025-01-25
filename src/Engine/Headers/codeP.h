@@ -20,7 +20,7 @@ typedef struct instruction_ {
 } Instruction;
 
 typedef struct method_ {
-  clssPo clss;          // == specialClass
+  ClassRecord clss;     // == specialClass
   jitCode jit;          /* Pointer to jit'ed code */
   integer entryCount;
   int32 sigIx;          // Index of the function signature literal

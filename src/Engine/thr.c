@@ -31,7 +31,7 @@ pthread_key_t processKey;              /* Special key for thread specific */
 integer live_processes = 0;
 
 void initThr() {
-  ThredClass.clss = specialClass;
+  ThredClass.clss.clss = specialClass;
   pthread_key_create(&processKey, NULL);  /* create the processKey */
 }
 
@@ -83,7 +83,7 @@ processPo getThreadProcess(threadPo t) {
 threadPo allocateThread(heapPo H, processPo pr) {
   threadPo thr = (threadPo) allocateObject(H, threadClass, ThreadCellCount);
 
-  thr->clss = threadClass;
+  thr->clss.clss = threadClass;
   thr->process = pr;
 
   return thr;

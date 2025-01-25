@@ -71,7 +71,7 @@ SpecialClass GlobalClass = {
 clssPo globalClass = (clssPo) &GlobalClass;
 
 void initGlobals() {
-  GlobalClass.clss = specialClass;
+  GlobalClass.clss.clss = specialClass;
   globals = newHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
 
   glbVars = (globalPo) malloc(sizeof(GlobalRecord) * 1024);
@@ -136,7 +136,7 @@ globalPo globalVar(const char *nm) {
 
     glb->name = uniDuplicate(nm);
     glb->content = Null;
-    glb->clss = globalClass;
+    glb->clss.clss = globalClass;
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);

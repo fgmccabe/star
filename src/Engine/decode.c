@@ -315,9 +315,9 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
     }
     case dtaTrm: {
       termPo lbl;
-      integer arity;
+      int32 arity;
 
-      if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
+      if ((res = decI32(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
 
       if ((res = decode(in, S, H, &lbl, tmpBuffer)) != Ok)

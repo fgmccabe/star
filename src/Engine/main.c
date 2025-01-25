@@ -69,11 +69,11 @@ int main(int argc, char **argv) {
   initTimers();     /* Initialize time stuff */
   initHistory(/*".star"*/Null);
   initHeap(initHeapSize);
+  initLbls();
   initArith();
   initBignum();
   initChars();
   initStrings();
-  initLbls();
   initSingle();
   initGlobals();
   initCons();

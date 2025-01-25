@@ -9,7 +9,7 @@
 #include "termP.h"
 
 typedef struct closure_record_ {
-  clssPo clss;                  // == closureClass
+  ClassRecord clss;             // == closureClass
   labelPo lbl;
   termPo content;               // Contents
 } ClosureRecord;

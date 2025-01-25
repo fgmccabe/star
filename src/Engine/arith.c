@@ -10,7 +10,6 @@ static integer intHash(specialClassPo cl, termPo o);
 static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
 
 SpecialClass IntegerClass = {
-  .clss = Null,
   .sizeFun = Null,
   .copyFun = Null,
   .scanFun = Null,
@@ -20,14 +19,13 @@ SpecialClass IntegerClass = {
   .dispFun = intDisp
 };
 
-clssPo integerClass = (clssPo) &IntegerClass;
+clssPo integerClass =  (clssPo) &IntegerClass;
 
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
 static integer fltHash(specialClassPo cl, termPo o);
 
 SpecialClass FloatClass = {
-  .clss = Null,
   .sizeFun = Null,
   .copyFun = Null,
   .scanFun = Null,
@@ -37,11 +35,11 @@ SpecialClass FloatClass = {
   .dispFun = fltDisp
 };
 
-clssPo floatClass = (clssPo) &FloatClass;
+clssPo floatClass = (clssPo)&FloatClass;
 
 void initArith() {
-  IntegerClass.clss = specialClass;
-  FloatClass.clss = specialClass;
+  IntegerClass.clss.clss = specialClass;
+  FloatClass.clss.clss = specialClass;
 }
 
 logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
