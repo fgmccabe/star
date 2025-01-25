@@ -216,7 +216,7 @@ star.compiler.gencode{
 
       valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.ptr),
 	      [.iTry(blockSig([ETp::ltipe],.ptr),
-		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)])]++[.iStL(Er)]++HC++[.iBreak(Ok)]))],
+		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)]),.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
     | .cRaise(Lc,T,E,_) => valof{
@@ -672,15 +672,23 @@ star.compiler.gencode{
     }
     | .cVoid(Lc,_) => ([.iDrop],Ctx,dropStack(Stk))
     | .cAnon(Lc,_) => ([.iDrop],Ctx,dropStack(Stk))
-    | .cTerm(Lc,Nm,Args,Tp) => valof{
+    | .cTerm(Lc,Nm,Args,Tp) where canFail(Nm,Tp,Ctx) => valof{
       Stk0 = dropStack(Stk);
-      Flb = defineLbl(Ctx,"U");
       V = genSym("__");
       Ctx1 = defineLclVar(V,Tp,Ctx);
 
       (SCde,Ctx2,Stk2) = compArgPtns(Args,Lc,0,.cV(V,Tp),Fail,Brks,Ctx1,Stk0);
 
       valis (chLine(OLc,Lc)++[.iTL(V),.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
+    }
+    | .cTerm(Lc,Nm,Args,Tp) where ~canFail(Nm,Tp,Ctx) => valof{
+      Stk0 = dropStack(Stk);
+      V = genSym("__");
+      Ctx1 = defineLclVar(V,Tp,Ctx);
+
+      (SCde,Ctx2,Stk2) = compArgPtns(Args,Lc,0,.cV(V,Tp),Fail,Brks,Ctx1,Stk0);
+
+      valis (chLine(OLc,Lc)++[.iTL(V),..SCde],Ctx2,Stk2)
     }
     | .cSvDrf(Lc,P,_) => valof{
       (PC,PCxt,Stk0) = compPtn(P,Lc,Fail,Brks,Ctx,Stk);
@@ -827,6 +835,11 @@ star.compiler.gencode{
     Brks[Lb->(Fn(Lbl),Lbl)].
   reworkBreak(_,Brks,_) default => Brks.
 
+  codeDict ::= codeDict{
+    vars : map[string,(tipe,srcLoc)].
+    types : map[string,cons[(termLbl,tipe,integer)]].
+  }
+
   codeCtx ::= codeCtx{
     vars : ref map[string,(tipe,srcLoc)].
     lbls : ref integer.  
@@ -894,8 +907,8 @@ star.compiler.gencode{
   genDbg:(multi[assemOp]) => multi[assemOp].
   genDbg(Ins) => (genDebug! ?? [.iDBug,..Ins] || Ins).
 
-  voidSig = .funTipe([],.voidTipe).
   flatSig = .funTipe([],.tplTipe([])).
+  nearlyFlatSig(.tplTipe([])) => .funTipe([],.ptr).
   nearlyFlatSig(T) => .funTipe([],T).
   blockSig(Args,Rs) => .funTipe(Args,Rs).
 
@@ -903,4 +916,7 @@ star.compiler.gencode{
     disp(.noMore) => "noMore".
     disp(.notLast) => "notLast".
   }
+
+  canFail:(string,tipe,codeCtx) => boolean.
+  canFail(Nm,_Tp,_Ctx) => ~isTplLbl(Nm).
 }
