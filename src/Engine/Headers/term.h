@@ -9,6 +9,7 @@
 #include "ooio.h"
 
 typedef struct class_record *clssPo;
+
 typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
 
 integer termHash(termPo t);

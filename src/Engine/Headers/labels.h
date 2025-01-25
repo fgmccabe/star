@@ -40,6 +40,4 @@ retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
 
 labelPo C_LBL(termPo t);
 
-logical isLabelPo(termPo t);
-
 #endif //STAR_LBL_H

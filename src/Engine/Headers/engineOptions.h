@@ -22,6 +22,7 @@
 #define TRACELOCK
 #define TRACE_DBG
 #define TRACEDECODE
+#define TRACE_BUDDY_MEMORY
 #endif
 
 #define STAR_MAIN "STAR_MAIN"

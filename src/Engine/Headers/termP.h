@@ -9,7 +9,6 @@
 #include "term.h"
 #include "code.h"
 
-
 typedef struct class_record {
   clssPo clss;
 } ClassRecord;
@@ -34,7 +33,7 @@ typedef integer (*classHashFun)(specialClassPo class, termPo t1);
 typedef termPo (*classFinalizerFun)(specialClassPo class, termPo o);
 
 typedef struct special_class {
-  clssPo clss;                 // == specialClass
+  ClassRecord clss;            // == specialClass
   classSizeFun sizeFun;        /* Function to compute size of object */
   classCpyFun copyFun;         /* Function to copy special object */
   classScanFun scanFun;        /* Function to scan object */

@@ -29,7 +29,7 @@ typedef struct try_frame_ {
 #define STACKFRAME_SIZE 3
 
 typedef struct StackStructure {
-  clssPo clss;                  // == stackClass
+  ClassRecord clss;             // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High watermark of stack sizes rooted off this stack

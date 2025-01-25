@@ -20,7 +20,6 @@ static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, log
 static termPo lblFinalizer(specialClassPo class, termPo o);
 
 SpecialClass LabelClass = {
-  .clss = Null,
   .sizeFun = lblSize,
   .copyFun = lblCopy,
   .scanFun = lblScan,
@@ -51,7 +50,7 @@ static comparison LabelCmp(labelRecordPo l1, labelRecordPo l2) {
 }
 
 void initLbls() {
-  LabelClass.clss = specialClass;
+  LabelClass.clss.clss = specialClass;
   labelHashTable = newHash(1024, (hashFun) LabelHash, (compFun) LabelCmp, (destFun) Null);
 
   labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
@@ -72,7 +71,7 @@ labelPo declareLbl(const char *name, int32 arity, int32 index) {
     lbl->len = (int32)uniStrLen((&Lbl)->name);
     lbl->index = index;
     lbl->mtd = Null;
-    lbl->clss = labelClass;
+    lbl->clss.clss = labelClass;
     lbl->hash = LabelHash(&Lbl);
     lbl->breakPointSet = False;
     hashPut(labelHashTable, &lbl->lbl, lbl);
@@ -121,12 +120,8 @@ logical sameLabel(labelPo l1, labelPo l2) {
 }
 
 labelPo C_LBL(termPo t) {
-  assert(isLabelPo(t));
+  assert(isALabel(t));
   return (labelPo) t;
-}
-
-logical isLabelPo(termPo t) {
-  return hasClass(t, labelClass);
 }
 
 void markLabels(gcSupportPo G) {

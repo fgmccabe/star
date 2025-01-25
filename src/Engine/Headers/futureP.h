@@ -17,7 +17,7 @@ typedef enum{
 } futureState;
 
 typedef struct future_record {
-  clssPo clss;                  // == promiseClass
+  ClassRecord clss;                  // == futureClass
   integer hash;
   termPo val;
   futureState state;

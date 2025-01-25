@@ -103,7 +103,7 @@ void verifyHeap(heapPo H) {
     } else {
       normalPo trm = C_NORMAL(t);
       labelPo lbl = C_LBL((termPo) clss);
-      for (integer ix = 0; ix < labelArity(lbl); ix++) {
+      for (int32 ix = 0; ix < labelArity(lbl); ix++) {
         validPtr(H, trm->args[ix]);
       }
       t = t + termSize(trm);

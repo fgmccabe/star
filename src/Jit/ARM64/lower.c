@@ -253,7 +253,7 @@ retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
   int32 litNo = code[pc].fst;
 
   labelPo lbl = C_LBL(getMtdLit(jit->mtd, litNo));
-  integer arity = labelArity(lbl);
+  int32 arity = labelArity(lbl);
 
   spillUpto(jit, arity);    // Spill all stack arguments up until arity
 

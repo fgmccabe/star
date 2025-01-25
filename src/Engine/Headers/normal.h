@@ -18,9 +18,9 @@ labelPo termLbl(normalPo t);
 
 integer termSize(normalPo t);
 
-integer termArity(normalPo term);
+int32 termArity(normalPo term);
 
-termPo nthArg(normalPo term, integer ix);
+termPo nthArg(normalPo term, int32 ix);
 
 void setArg(normalPo term, integer ix, termPo arg);
 

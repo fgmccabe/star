@@ -13,8 +13,6 @@
 
 typedef struct bignum_term_ *bignumPo;
 
-extern clssPo bignumClass;
-
 logical isBignum(termPo t);
 
 extern bignumPo C_BIGNUM(termPo t);

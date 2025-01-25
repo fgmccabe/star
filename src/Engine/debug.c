@@ -803,7 +803,7 @@ static void showCall(ioPo out, stackPo stk, termPo pr) {
   methodPo mtd = frameMtd(f);
   termPo loc = findPcLocation(mtd, codeOffset(mtd, f->pc));
 
-  if (isLabelPo(pr)) {
+  if (isALabel(pr)) {
     methodPo callee = labelCode(C_LBL(pr));
 
     if (showColors)

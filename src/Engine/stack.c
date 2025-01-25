@@ -6,9 +6,13 @@
 #include <globals.h>
 #include "stackP.h"
 #include "engineP.h"
-#include "debug.h"
+#ifdef TRACESTACK
+#include "debugP.h"
+
 
 tracingLevel traceStack = noTracing;    // stack operation tracing
+#endif
+
 integer minStackSize = 256;             /* What is the smallest stack size */
 integer defaultStackSize = 4096;        // What is the initial default stack size when running
 integer stackRegionSize = (1 << 26);    /* 64M cells is default stack region */
@@ -49,7 +53,7 @@ static integer stackReleases = 0;
 static buddyRegionPo stackRegion;
 
 void initStacks() {
-  StackClass.clss = specialClass;
+  StackClass.clss.clss = specialClass;
 
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
   taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);

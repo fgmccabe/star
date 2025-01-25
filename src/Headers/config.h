@@ -2,7 +2,9 @@
 #define CONFIG_H_
 
 /* Enable tracing insDebugging code to be compiled */
+#ifndef NDEBUG
 #define ALLTRACE /**/
+#endif
 
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
@@ -47,7 +49,9 @@ typedef long long int64;
 
 typedef unsigned long long uint64;
 
+#ifndef NDEBUG
 #define VERIFY_OBJECT
+#endif
 
 #define STARDIR "/opt/star/star-repo/"
 

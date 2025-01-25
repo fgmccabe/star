@@ -72,15 +72,15 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
 }
 
 int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount) {
-  int ix;
+  int argx;
 
   logical processedOptions[optionCount];
 
-  for (ix = 0; ix < optionCount; ix++)
+  for (int32 ix = 0; ix < optionCount; ix++)
     processedOptions[ix] = False;
 
-  for (ix = 1; ix < argc; ix++) {
-    char *opt = argv[ix];
+  for (argx = 1; argx < argc; argx++) {
+    char *opt = argv[argx];
 
     if (uniIsLit(opt, "--"))
       break;
@@ -91,8 +91,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
           switch (options[j].hasArg) {
             case hasArgument: {
               if (uniStrLen(opt) == 2) {
-                if (ix < argc - 1) {
-                  if (options[j].setter(argv[++ix], True) != Ok)
+                if (argx < argc - 1) {
+                  if (options[j].setter(argv[++argx], True) != Ok)
                     goto failOptions;
                   else {
                     processedOptions[j] = True;
@@ -124,8 +124,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
         } else if (uniIsLitPrefix(opt, "--") && uniCmp(options[j].longName, opt + uniStrLen("--")) == same) {
           switch (options[j].hasArg) {
             case hasArgument: {
-              if (ix < argc - 1) {
-                if (options[j].setter(argv[++ix], True) != Ok)
+              if (argx < argc - 1) {
+                if (options[j].setter(argv[++argx], True) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -153,28 +153,28 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
   }
 
   // Process environment variable alternatives
-  for (int jx = 0; jx < optionCount; jx++) {
-    if (!processedOptions[jx] && options[jx].envVar != Null) {
-      char *var = getenv(options[jx].envVar);
+  for (int ix = 0; ix < optionCount; ix++) {
+    if (!processedOptions[ix] && options[ix].envVar != Null) {
+      char *var = getenv(options[ix].envVar);
       if (var != Null) {
-        switch (options[jx].hasArg) {
+        switch (options[ix].hasArg) {
           case noArgument: {
             logical
               setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same ||
                                   uniCmp(var, "yes") == same ||
                                   uniCmp(var, "YES") == same);
-            if (options[jx].setter(var, setOpt) == Ok)
-              processedOptions[jx] = True;
+            if (options[ix].setter(var, setOpt) == Ok)
+              processedOptions[ix] = True;
             else {
-              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[ix].envVar, var);
               goto failOptions;
             }
           }
           case hasArgument: {
-            if (options[jx].setter(var, True) == Ok)
-              processedOptions[jx] = True;
+            if (options[ix].setter(var, True) == Ok)
+              processedOptions[ix] = True;
             else {
-              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[ix].envVar, var);
               goto failOptions;
             }
           }
@@ -183,7 +183,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
     }
   }
 
-  return ix;
+  return argx;
 
   failOptions:
   showUsage(argv[0], copyRight, options, optionCount);
