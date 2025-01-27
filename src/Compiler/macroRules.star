@@ -486,9 +486,9 @@ star.compiler.macro.rules{
 
   /* task { A }
 
-  becomes
+  becomes a task function
 
-  _fiber((this,Frst)=> case Frst in {
+  (this,Frst)=> case Frst in {
       | .go_ahead => .result(valof{A})
       | .shut_down => raise .canceled
     })
