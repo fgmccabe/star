@@ -215,7 +215,7 @@ star.compiler.gencode{
 	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
 
       valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.ptr),
-	      [.iTry(blockSig([ETp::ltipe],.ptr),
+	      [.iTry(blockSig([ETp::ltipe],.tplTipe([.ptr])),
 		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)]),.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
@@ -516,6 +516,8 @@ star.compiler.gencode{
     if traceCodegen! then{
       showMsg("$(Max) case table: $(Table)");
       showMsg("stack going into cases: $(Stk0)");
+      showMsg("blksig: $(BlkSig)");
+      showMsg("casesig: $(CaseSig)");
     };
     
     (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
@@ -688,7 +690,7 @@ star.compiler.gencode{
 
       (SCde,Ctx2,Stk2) = compArgPtns(Args,Lc,0,.cV(V,Tp),Fail,Brks,Ctx1,Stk0);
 
-      valis (chLine(OLc,Lc)++[.iTL(V),..SCde],Ctx2,Stk2)
+      valis (chLine(OLc,Lc)++[.iStL(V),..SCde],Ctx2,Stk2)
     }
     | .cSvDrf(Lc,P,_) => valof{
       (PC,PCxt,Stk0) = compPtn(P,Lc,Fail,Brks,Ctx,Stk);
@@ -908,8 +910,7 @@ star.compiler.gencode{
   genDbg(Ins) => (genDebug! ?? [.iDBug,..Ins] || Ins).
 
   flatSig = .funTipe([],.tplTipe([])).
-  nearlyFlatSig(.tplTipe([])) => .funTipe([],.ptr).
-  nearlyFlatSig(T) => .funTipe([],T).
+  nearlyFlatSig(T) => .funTipe([],.tplTipe([T])).
   blockSig(Args,Rs) => .funTipe(Args,Rs).
 
   implementation display[tailMode] => {
