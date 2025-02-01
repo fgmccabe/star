@@ -25,6 +25,7 @@ test.cnd{
   isB("Bin") => .some("Ok").
   isB(_) => .none.
 
+  main:()=>().
   main()=>valof{
     assert isValid("Bin");
     valis ()
