@@ -18,7 +18,6 @@
 #define TRACECAPABILITY
 #define TRACEPKG
 #define TRACESTATS
-#define TRACEVERIFY
 #define TRACELOCK
 #define TRACE_DBG
 #define TRACEDECODE
