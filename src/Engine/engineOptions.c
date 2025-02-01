@@ -69,15 +69,10 @@ static retCode debugOption(char *option, logical enable) {
 #endif
 
       case 'v':    /* turn on verify tracing */
-#ifdef TRACEVERIFY
         if (traceVerify < detailedTracing)
           traceVerify++;
         logMsg(logFile, "Verification tracing enabled");
         continue;
-#else
-        logMsg(logFile, "code verification not enabled\n");
-        return Error;
-#endif
 
       case 'a':    /* trace memory allocations  */
 #ifdef TRACEMEM
@@ -225,9 +220,7 @@ static retCode debugOption(char *option, logical enable) {
 static retCode debugOptHelp(ioPo out, char opt, char *usage) {
   return outMsg(out, "    -d|--debug <"
                      "d|D|"
-                     #ifdef TRACEVERIFY
                      "v|"
-                     #endif
                      #ifdef TRACEMEM
                      "m|H|"
                      #endif

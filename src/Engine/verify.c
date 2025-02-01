@@ -46,10 +46,8 @@ static retCode
 extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
-#ifdef TRACEVERIFY
   if (traceVerify > noTracing)
     showMethodCode(logFile, "Verify method %s\n", name, mtd);
-#endif
 
   int32 lclCnt = lclCount(mtd);
   Var locals[lclCnt];
@@ -172,12 +170,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
   while (pc < limit) {
     insPo ins = &code[pc];
-#ifdef TRACEVERIFY
     if (traceVerify > generalTracing) {
       disass(logFile, Null, ctx.mtd, ins);
       outMsg(logFile, "\n%_");
     }
-#endif
 
     switch (ins->op) {
       case Halt: {
