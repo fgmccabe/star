@@ -11,7 +11,6 @@
 #include "arm64P.h"
 #include "macros.h"
 
-/* Lower Star VM code to Arm64 code */
 /* Register allocation for arm64:
  *
  * SP = X31 = stack pointer
