@@ -30,6 +30,7 @@ typedef enum {
   mcReg,
   global,
   engineSymbol,
+  stackRelative,
   noWhere
 } srcLoc;
 

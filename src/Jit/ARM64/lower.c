@@ -41,8 +41,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
   if (stkAdjustment != 0)
     sub(SP, SP, IM(stkAdjustment));
 
-  stackCheck(jit, mtd, (int32) stkDelta);
-  return Ok;
+  return stackCheck(jit, mtd, (int32) stkDelta);
 }
 
 retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
@@ -134,7 +133,11 @@ retCode jit_LdL(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_LdS(insPo code, integer pc, jitCompPo jit) {
-  return Error;
+  verifyJitCtx(jit, 1, 0);
+  int32 offset = code[pc].fst;
+  vOperand op = {.loc=stackRelative, .ix=offset};
+  jit->vStack[jit->vTop++] = op;
+  return Ok;
 }
 
 retCode jit_LdC(insPo code, integer pc, jitCompPo jit) {
@@ -146,7 +149,11 @@ retCode jit_LdC(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_LdG(insPo code, integer pc, jitCompPo jit) {
-  return Error;
+  verifyJitCtx(jit, 1, 0);
+  int32 litNo = code[pc].fst;
+  vOperand lclOp = {.loc=global, .ix=litNo};
+  jit->vStack[jit->vTop++] = lclOp;
+  return Ok;
 }
 
 retCode jit_LdV(insPo code, integer pc, jitCompPo jit) {
@@ -159,6 +166,7 @@ retCode jit_LdV(insPo code, integer pc, jitCompPo jit) {
 
 retCode jit_StV(insPo code, integer pc, jitCompPo jit) {
   int32 lclNo = code[pc].fst;
+
   return Error;
 }
 
@@ -522,10 +530,6 @@ retCode jit_Retire(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Release(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
 retCode jit_Underflow(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
@@ -546,28 +550,8 @@ retCode jit_Throw(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
-retCode jit_Reset(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_Shift(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
-retCode jit_Invoke(insPo code, integer pc, jitCompPo jit) {
-  return Error;
-}
-
 retCode jit_dBug(insPo code, integer pc, jitCompPo jit) {
   return Error;
-}
-
-retCode jit_Line(insPo code, integer pc, jitCompPo jit) {
-  return Ok;
-}
-
-retCode jit_Local(insPo code, integer pc, jitCompPo jit) {
-  return Ok;
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
@@ -609,8 +593,59 @@ retCode spillUpto(jitCompPo jit, integer depth) {
   }
   return Ok;
 }
+typedef struct {
+  armReg src;
+  armReg dst;
+} RgMvSpec;
+
+static retCode shuffleRegisters(jitCompPo jit, RgMvSpec *specs, int16 mvTop);
 
 retCode loadStackIntoArgRegisters(jitCompPo jit, integer arity) {
+  assemCtxPo ctx = assemCtx(jit);
+  RgMvSpec specs[32];
+  int16 mvTop = 0;
+
+  assert(jit->vTop >= arity);
+
+  armReg argRg = X0;
+
+  for (integer ix = 0; ix < arity; ix++, argRg++) {
+    operandPo entry = &jit->vStack[jit->vTop - ix];
+
+    switch (entry->loc) {
+      case argument:
+      case local:
+      case constant:
+      case global:
+        continue;
+      case mcReg: {
+        armReg Rg = entry->mcLoc.reg;
+        if(Rg==argRg)
+          continue;
+        else if(Rg>argRg){
+          mov(argRg,RG(Rg));
+          continue;
+        }else{
+          specs[mvTop].src = Rg;
+          specs[mvTop].dst = argRg;
+          mvTop++;
+          continue;
+        }
+      }
+      default:
+        check(False, "illegal source loc on stack");
+        return Error;
+    }
+  }
+
+  if(mvTop>0)
+    return shuffleRegisters(jit,specs,mvTop);
+  return Ok;
+}
+
+retCode shuffleRegisters(jitCompPo jit, RgMvSpec *specs, int16 mvTop){
+  check(False, "not implemented yet");
+
   return Error;
 }
 
