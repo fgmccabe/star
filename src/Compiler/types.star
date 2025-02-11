@@ -307,6 +307,7 @@ star.compiler.types{
   -- in general, hashing types is not reliable because of unification
   public implementation hashable[tipe] => let{.
     hsh(Tp) => case Tp in {
+      | .voidType => 0
       | .kVar(Nm) => hash(Nm)
       | .kFun(Nm,Ar) => Ar*37+hash(Nm)
       | .tVar(_,Nm) => hash("V")+hash(Nm)

@@ -40,6 +40,8 @@ star.compiler.typeparse{
   parseType(Tp,Env) where (Lc,Nm) ?= isName(Tp) => valof{
     if Nm=="_" then
       valis newTypeVar("_")
+    else if Nm=="void" then
+      valis .voidType
     else if (_,T,TpRl,_) ?= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
 	(_,.typeLambda(_,Rhs)) = freshen(TpRl,Env);

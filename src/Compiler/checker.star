@@ -275,6 +275,10 @@ star.compiler.checker{
 
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgramType) = deConstrain(ETp);
+
+    if traceCanon! then
+      showMsg("constraints $(Cx)");
+
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
     Rls = processEqns(Stmts,ProgramType,[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
@@ -888,12 +892,9 @@ star.compiler.checker{
   }.
 
   typeOfVar(Lc,Id,Tp,Refresh,Env,Path) => valof{
-    if traceCanon! then
-      showMsg("check var $(Id), expected type $(Tp)");
-
     if Var ?= findVar(Lc,Id,Refresh,Env) then{
       if traceCanon! then
-	showMsg("var in dict with type $(typeOf(Var))");
+	showMsg("var found: $(Id)\:$(typeOf(Var))");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{
