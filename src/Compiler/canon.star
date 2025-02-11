@@ -292,7 +292,7 @@ star.compiler.canon{
    | .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
       "valis #(showCanon(E,Rp,Sp))"
    | .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
-      "#(showCanon(L,Lp,Sp)) = #(showCanon(R,Rp,Sp))"
+      "#(showCanon(L,Lp,Sp))\:$(typeOf(L)) = #(showCanon(R,Rp,Sp))"
    | .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))"
    | .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>

@@ -486,29 +486,36 @@ star.compiler.macro.rules{
 
   /* task { A }
 
-  becomes a task function
+  becomes a task:
 
-  (this,Frst)=> case Frst in {
-      | .go_ahead => .result(valof{A})
-      | .shut_down => raise .canceled
-    })
+  tsk(this, let{
+      tk:async () => _ raises _.
+      tk() => valof { A }
+    } in ζ tk)
 
+  where tsk is a library function defined in mbox.
   */
 
   taskMacro(E,.expression) where (Lc,A) ?= isTaskExp(E) => valof{
-    Frst = genName(Lc,"Frst");
+    Tk = genName(Lc,"tk");
+    Anon = .nme(Lc,"_");
+    Empty = rndTuple(Lc,[]);
+    -- Build type annotation:
+    -- tk:async () => _ raises _.
+    TkTp = mkTypeAnnotation(Lc,Tk,mkAsync(Lc,binary(Lc,"raises",mkFunctionType(Lc,Empty,Anon),Anon)));
 
-    /* Build .shut_down_ => raise .canceled */
-    End = mkLambda(Lc,.false,enum(Lc,"shut_down_"),.none,mkRaise(Lc,enum(Lc,"camceled")));
+    -- Build function:
+    -- tk() => valof { A }
+    TkDf = mkEquation(Lc,.some(Tk),.true,Empty,.none,mkValof(Lc,brTuple(Lc,[A])));
 
-    /* build .go_ahead => .result(valof{A}) */
-    Go = mkLambda(Lc,.false,enum(Lc,"go_ahead"),.none,
-      mkCon(Lc,"result",[mkValof(Lc,brTuple(Lc,[A]))]));
+    -- Build let defn
+    LetFn = mkLetDef(Lc,[TkTp,TkDf],mkSuppress(Lc,Tk));
 
-    /* build case Frst in .. */
-    Body = mkCaseExp(Lc,Frst,[Go,End]);
-
-    valis .active(mkLambda(Lc,.true,rndTuple(Lc,[.nme(Lc,"this"),Frst]),.none,Body))
+    -- Build call to tsk
+    Call = roundTerm(Lc,.nme(Lc,"tsk"),[.nme(Lc,"this"),LetFn]);
+    if macroTracing! then
+      showMsg("task: $(Call)");
+    valis .active(Call)
   }
   taskMacro(_,_) default => .inactive.
 

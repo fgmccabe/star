@@ -390,6 +390,195 @@ void insOp(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) 
   outMsg(out, "\n");
 }
 
+
+// Generate the disassembler
+
+
+
+
+static void genDiss(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, int delta, char *cmt) {
+  char *lp = "";
+  char *sep = "";
+  char *rp = "";
+
+  outMsg(out, "  diss([.intgr(%d),", op);
+
+  sep = genArg(out, lp, A, "U");
+
+  sep = genArg(out, sep, B, "V");
+
+  if (strcmp(sep, ",") == 0)
+    sep = ")";
+  else
+    sep = "";
+
+  outMsg(out, "%s,..Code]) => [.i", sep,capitalize(mnem));
+
+  switch (A) {
+    case nOp:                             // No operand
+    case tOs:
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> ([.intgr(%d)],Pc+1,Lts,Lns).\n", op);
+          return;
+        case bLk: {                           // A nested block of instructions
+          outMsg(out,
+                 "where (Blk,Pc1,Lts1,Lns1) .= assemBlock(U,[],Pc+1,[.none,..Lbls],Lts,Lcs,Lns) => ([.intgr(%d),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).\n",
+                 op);
+          return;
+        }
+        case lVl:
+          outMsg(out,
+                 "where Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(Tgt)],Pc+1,Lts,Lns).\n",
+                 op);
+          return;
+        case i32:
+          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Pc+1,Lbls,Lns).\n", op);
+          return;
+        default:
+          check(False, "invalid second operand");
+      }
+    case sym:{
+      char *cond = "where (Lt1,LtNo) .= findLit(Lts,.symb(U))";
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        case lVl:
+          outMsg(out, "%s && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n", cond,
+                 op);
+          return;
+        case lcl:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+    }
+    case lit: {
+      char *cond = "where (Lt1,LtNo) .= findLit(Lts,U)";
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        case lVl:
+          outMsg(out, "%s && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n", cond,
+                 op);
+          return;
+        case lcl:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1,Lns).\n", cond, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+    }
+    case tPe: {
+      char *lit = "where (Lt1,LtNo) .= findLit(Lts,.strg(U::string))";
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo)],Pc+1,Lt1,Lns).\n", lit, op);
+          return;
+        case bLk: {                             // A nested block of instructions
+          outMsg(out, "%s && (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>\n"
+                      "    ([.intgr(%d),.intgr(LtNo),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).\n",
+                 lit, op);
+          return;
+        }
+        case lVl:
+          outMsg(out,
+                 "%s) && Tgt ?= findLevel(Lbls,V) => ([.intgr(%d),.intgr(LtNo),.intgr(Tgt)],Pc+1,Lt1,Lns).\n",
+                 lit, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+    }
+
+    case i32:
+    case art:
+    case arg:
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> ([.intgr(%d),.intgr(U)],Pc+1,Lts,Lns).\n", op);
+          return;
+        case lVl:
+          outMsg(out,
+                 "where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(%d),.intgr(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n",
+                 op);
+          return;
+        case i32:
+          outMsg(out, "=> ([.intgr(%d),.intgr(U),.intgr(V)],Pc+1,Lts,Lns).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+    case lcl:
+    case lcs: {
+      char *cond = "Off ?= findLocal(U,Lcs)";
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "where %s => ([.intgr(%d),.intgr(Off)],Pc+1,Lts,Lns).\n", cond, op);
+          return;
+        case lit:
+          outMsg(out,
+                 "where %s && (Lt1,LtNo) .= findLit(Lts,V) => ([.intgr(%d),.intgr(Off),.intgr(LtNo)],Pc+1,Lt1,Lns).\n",
+                 cond, op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code: invalid second operand");
+      }
+    }
+    case glb:
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> ([.intgr(%d),.strg(U)],Pc+1,Lts,Lns).\n", op);
+          return;
+        case lVl:
+          outMsg(out, "where Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+
+    case Es: {                              // escape name
+      switch (B) {
+        case nOp:
+        case tOs:
+          outMsg(out, "=> ([.intgr(%d),.strg(U)],Pc+1,Lts,Lns).\n", op);
+          break;
+        case lVl:
+          outMsg(out, "where Lvl ?= findLevel(Lbls,V) => ([.intgr(%d),.strg(U),.intgr(Lvl)],Pc+1,Lts,Lns).\n", op);
+          return;
+        default:
+          check(False, "Cannot generate instruction code");
+      }
+      break;
+    }
+    case bLk: {                           // A nested block of instructions
+      check(False, "block not allowed as first argument");
+    }
+    case lVl: {                          // Break out of a nesting sequence of blocks
+      check(False, "invalid first operand");
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
 static void genHwmOp(ioPo out, opAndSpec A, char *argVar, integer *currH, integer *H) {
   switch (A) {
     case bLk: {
