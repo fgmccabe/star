@@ -187,14 +187,6 @@ overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
 overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
-overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,St,Stx,Over) :-
-  ( resolveConstraint(Lc,Cx,Dict,St,St0,Trw) ->
-    overloadTerm(Trw,Dict,St0,St1,RTrw),
-    overloadTerm(ErExp,Dict,St1,Stx,RExp),
-    Over = raise(RLc,RTrw,RExp,ETp);
-    genMsg("cannot find exception scope for %s",[Cx],Msg),
-    markActive(St,Lc,Msg,Stx),
-    Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
   ( resolveConstraints(Lc,Cx,Dict,St,St0,DTerms) ->
     resolveRef(T,DTerms,[],OverOp,Dict,St0,St1,NArgs),
@@ -231,9 +223,8 @@ overloadTerm(svSet(Lc,Th,Vl),Dict,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Vl,Dict,St0,Stx,VV).
 overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
   overloadTryCatch(E,V,H,EE,HH,Dict,St,Stx,resolve:overloadTerm).
-overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
-  overloadTerm(T,Dict,St,St0,TT),
-  overloadTerm(E,Dict,St0,Stx,EE).
+overloadTerm(raise(Lc,Er,ETp),Dict,St,Stx,raise(Lc,EE,ETp)) :-
+  overloadTerm(Er,Dict,St,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).

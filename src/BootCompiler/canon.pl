@@ -115,7 +115,7 @@ typeOfCanon(over(_,T,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
-typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
+typeOfCanon(raise(_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(newSV(_,Tp),Tp) :- !.
@@ -162,7 +162,7 @@ locOfCanon(tryCatch(Lc,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
-locOfCanon(raise(Lc,_,_,_),Lc) :-!.
+locOfCanon(raise(Lc,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
 locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(newSV(Lc,_),Lc) :-!.
@@ -285,7 +285,7 @@ ssTerm(match(_,P,E),Dp,sq([lp,LL,ss(" .= "),RR,rp])) :-
   ssTerm(E,Dp,RR).
 ssTerm(neg(_,R),Dp,sq([lp,ss(" ~ "),RR,rp])) :-
   ssTerm(R,Dp,RR).
-ssTerm(raise(_,_,E,_),Dp,sq([ss(" raise "),EE])) :-!,
+ssTerm(raise(_,E,_),Dp,sq([ss(" raise "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).

@@ -63,9 +63,8 @@ freeVars(case(_,Gov,Cses,_),Ex,Q,F,Fv) :-
   freeVarsInRules(Cses,Ex,Q,freevars:freeVars,F0,Fv).
 freeVars(valof(_,A,_),Ex,Q,F,Fv) :-!,
   freeVarsInAction(A,Ex,Q,F,Fv).
-freeVars(raise(_,A,T,_),Ex,Q,F,Fv) :-!,
-  freeVars(T,Ex,Q,F,F0),
-  freeVars(A,Ex,Q,F0,Fv).
+freeVars(raise(_,E,_),Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
 freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   ptnVars(T,Ex,Ex1),  
   freeVars(B,Ex1,Q,F,F0),

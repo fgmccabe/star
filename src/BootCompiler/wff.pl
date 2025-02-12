@@ -56,7 +56,7 @@
 	      isCaseExp/4,caseExp/4,
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
-	      isTryCatch/5,mkTryCatch/5,
+	      isTryCatch/4,mkTryCatch/4,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
@@ -934,17 +934,15 @@ isRaises(A,Lc,T) :-
 mkRaises(Lc,T,A) :-
   unary(Lc,"raises",T,A).
 
-isTryCatch(A,Lc,B,E,Hs) :-
+isTryCatch(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),
-  isBinary(I,_,"catch",B,R),
-  isBinary(R,_,"in",E,H),
+  isBinary(I,_,"catch",B,H),
   isBraceTuple(H,_,[Els]),
   deBar(Els,Hs).
 
-mkTryCatch(Lc,B,E,Cases,A) :-
+mkTryCatch(Lc,B,Cases,A) :-
   reBar(Cases,Cs),
-  braceTuple(Lc,[Cs],Hs),
-  binary(Lc,"in",E,Hs,R),
+  braceTuple(Lc,[Cs],R),
   binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).
 
