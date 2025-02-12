@@ -24,9 +24,17 @@ instruction(OCall, art, tOs, 1, "F(p)p", "OCall")
 instruction(Escape, Es, nOp, 1, "F()p", "call C escape")
 instruction(TCall, sym, nOp, 0, "F()v", "TCall <prog>")
 instruction(TOCall, art, tOs, 0, "F()v", "TOCall")
+
+instruction(Invke, sym, lVl, 1, "F()p", "Call <prog>, break on exception")
+instruction(OInvke, art, lVl, 1, "F(p)p", "OCall")
+instruction(EInvke, Es, lVl, 1, "F()p", "call C escape")
+instruction(Tnvke, sym, lVl, 0, "F()v", "TCall <prog>")
+instruction(TOnvke, art, lVl, 0, "F()v", "TOCall")
+  
 instruction(Entry, nOp, nOp, 0, "F()()", "locals definition")
 
 instruction(Ret, tOs, nOp, 0, "F()v", "return")
+instruction(RThrw, tOs, lVl, 0, "F()v", "return exception")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
 instruction(Break, nOp, lVl, 0, "F()()", "leave block")

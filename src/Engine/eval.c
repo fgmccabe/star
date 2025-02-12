@@ -117,6 +117,7 @@ retCode run(processPo P) {
         return Error;
       }
 
+      case Invke:
       case Call: {
         labelPo nProg = C_LBL(nthElem(LITS, PC->fst));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
@@ -159,6 +160,7 @@ retCode run(processPo P) {
         continue;
       }
 
+      case OInvke:
       case OCall: {        /* Call tos a1 .. an -->   */
         int32 arity = PC->fst;
         termPo cl = pop();
@@ -208,6 +210,7 @@ retCode run(processPo P) {
         continue;
       }
 
+      case EInvke:
       case Escape: {                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
 
@@ -310,6 +313,7 @@ retCode run(processPo P) {
         }
       }
 
+      case Tnvke:
       case TCall: {       /* Tail call of explicit program */
         termPo nProg = nthElem(LITS, PC->fst);
         labelPo lbl = C_LBL(nProg);
@@ -358,6 +362,7 @@ retCode run(processPo P) {
         continue;       /* Were done */
       }
 
+      case TOnvke:
       case TOCall: {       /* Tail call */
         int32 arity = PC->fst;
         termPo cl = pop();
@@ -447,6 +452,36 @@ retCode run(processPo P) {
         LITS = FP->pool;
 
         push(retVal);      /* push return value */
+        continue;       /* and carry on regardless */
+      }
+      case RThrw: {        /* exceptional return from function */
+        termPo retVal = *SP;     /* return value */
+
+        assert(FP < baseFrame(STK));
+
+        ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
+        tryFramePo try = STK->try;
+
+        if ((ptrPo) try >= SP && (ptrPo) try < tgtSp) {
+          while ((ptrPo) try < tgtSp) {
+            check(try->fp == FP, "misaligned try block");
+            try = try->try;
+          }
+          STK->try = try;
+        }
+
+        SP = tgtSp; // Just above arguments to current call
+        FP = FP->fp;
+        PC = FP->pc-1;    // Step back to the call instruction
+        LITS = FP->pool;
+
+        push(retVal);      /* push return value */
+
+        PC += PC->alt + 1; // Effect a break to the handler block
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
+	
         continue;       /* and carry on regardless */
       }
 

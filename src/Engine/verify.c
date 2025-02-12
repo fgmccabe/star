@@ -212,6 +212,27 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case Invke: {
+        int32 litNo = code[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
+          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        termPo lit = getMtdLit(ctx.mtd, litNo);
+        if (isALabel(lit)) {
+          int32 arity = labelArity(C_LBL(lit));
+          if (stackDepth < arity)
+            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+        } else
+          return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
+        if (code[pc + 1].op != Frame)
+          return verifyError(&ctx, ".%d: expecting a frame instruction after call", pc);
+
+	if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+          return Error;
+	
+        pc++;
+        continue;
+      }
       case TCall: {
         int32 litNo = code[pc].fst;
         if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
@@ -228,7 +249,26 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
         propagateVars(&ctx, parentCtx);
         return Ok;
+      }
+      case Tnvke: {
+        int32 litNo = code[pc].fst;
+        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
+          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        termPo lit = getMtdLit(ctx.mtd, litNo);
+        if (isALabel(lit)) {
+          int32 arity = labelArity(C_LBL(lit));
+          if (stackDepth < arity)
+            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        } else
+          return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
+        if (!isLastPC(pc++, limit))
+          return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
 
+	if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+          return Error;
+	
+        propagateVars(&ctx, parentCtx);
+        return Ok;
       }
       case OCall: {
         int arity = code[pc].fst;
@@ -240,6 +280,18 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case OInvke: {
+        int arity = code[pc].fst;
+        if (stackDepth < arity)
+          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= arity - 1;
+        if (code[pc + 1].op != Frame)
+          return verifyError(&ctx, ".%d: expecting a frame instruction after ocall", pc);
+	if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+          return Error;
+        pc++;
+        continue;
+      }
       case TOCall: {
         int32 arity = code[pc].fst;
         if (stackDepth < arity)
@@ -247,6 +299,18 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
         propagateVars(&ctx, parentCtx);
+
+        return Ok;
+      }
+      case TOnvke: {
+        int32 arity = code[pc].fst;
+        if (stackDepth < arity)
+          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        if (!isLastPC(pc++, limit))
+          return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
+        propagateVars(&ctx, parentCtx);
+	if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+          return Error;
 
         return Ok;
       }
@@ -267,6 +331,25 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           continue;
         }
       }
+      case EInvke: {
+        int32 escNo = code[pc].fst;
+        escapePo esc = getEscape(escNo);
+
+        if (esc == Null)
+          return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
+        else {
+          int32 arity = escapeArity(esc);
+          if (stackDepth < arity)
+            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+          if (code[pc + 1].op != Frame)
+            return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
+	  if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+	    return Error;
+          pc++;
+          continue;
+        }
+      }
       case Entry:
         pc++;
         stackDepth = 0;
@@ -275,6 +358,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
         propagateVars(&ctx, parentCtx);
+        return Ok;   // No merge of locals here
+      }
+      case RThrw: {
+        if (!isLastPC(pc++, limit))
+          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
+        propagateVars(&ctx, parentCtx);
+	if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+	  return Error;
         return Ok;   // No merge of locals here
       }
       case Block: {

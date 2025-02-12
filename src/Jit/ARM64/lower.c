@@ -268,7 +268,15 @@ retCode jit_Call(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Invke(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_OCall(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_OInvke(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
@@ -276,7 +284,15 @@ retCode jit_TCall(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
+retCode jit_Tnvke(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
 retCode jit_TOCall(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_TOnvke(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
@@ -298,6 +314,10 @@ retCode jit_Escape(insPo code, integer pc, jitCompPo jit) {
 }
 
 retCode jit_Ret(insPo code, integer pc, jitCompPo jit) {
+  return Error;
+}
+
+retCode jit_RThrw(insPo code, integer pc, jitCompPo jit) {
   return Error;
 }
 
