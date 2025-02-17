@@ -15,7 +15,7 @@ star.compiler.intrinsics{
 
   public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {
-    | "_abort" => .some((.allType(.nomnal("a"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),strType])),.tupleType([]))),.iAbort, .false, .noMore))  -- abort process
+    | "_abort" => .some((.allType(.nomnal("a"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),strType])),.nomnal("e")))),.iAbort, .false, .noMore))  -- abort process
     | "_int_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIAdd, .true, .notLast))  -- add two integers
     | "_int_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iISub, .true, .notLast))  -- subtract two integers
     | "_int_times" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIMul, .true, .notLast))  -- multiply two integers
@@ -44,13 +44,13 @@ star.compiler.intrinsics{
     | "_blsr" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iBLsr, .true, .notLast))  -- logical right shift
     | "_basr" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iBAsr, .true, .notLast))  -- arithmetic right shift
     | "_bnot" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType])),intType),.iBNot, .true, .notLast))  -- bitwise negate number
-    | "_fiber" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s"))])),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))))),.iFiber, .true, .notLast))  -- create a new fiber
+    | "_fiber" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("r")),.nomnal("s")])),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))))),.iFiber, .true, .notLast))  -- create a new fiber
     | "_suspend" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))),.iSuspend, .false, .notLast))  -- suspend fiber
     | "_retire" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("e"))))),.iRetire, .false, .noMore))  -- retire fiber
     | "_resume" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))),.iResume, .false, .notLast))  -- resume fiber
-    | "_cell" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("t")])),.tpExp(.tpFun("ref",1),.nomnal("t")))),.iCell, .true, .notLast))  -- create a reference cell
-    | "_get" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t"))])),.nomnal("t"))),.iGet, .false, .notLast))  -- access contents of reference cell
-    | "_assign" => .some((.allType(.nomnal("t"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("t")),.nomnal("t")])),.tupleType([]))),.iAssign, .false, .notLast))  -- update contents of reference cell
+    | "_cell" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("r")])),.tpExp(.tpFun("ref",1),.nomnal("r")))),.iCell, .true, .notLast))  -- create a reference cell
+    | "_get" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("r"))])),.nomnal("r"))),.iGet, .false, .notLast))  -- access contents of reference cell
+    | "_assign" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("r")),.nomnal("r")])),.tupleType([]))),.iAssign, .false, .notLast))  -- update contents of reference cell
 
     | _ default => .none
   }
