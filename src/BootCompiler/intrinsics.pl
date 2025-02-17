@@ -2,7 +2,7 @@
 
 :-module(intrinsics,[isIntrinsic/3]).
 
-isIntrinsic("_abort",allType(kVar("a"),funType(tplType([kVar("a"),type("string")]),tplType([]))),iAbort).  % abort process
+isIntrinsic("_abort",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("string")]),kVar("e")))),iAbort).  % abort process
 isIntrinsic("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer")),iIAdd).  % add two integers
 isIntrinsic("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer")),iISub).  % subtract two integers
 isIntrinsic("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer")),iIMul).  % multiply two integers
@@ -31,11 +31,11 @@ isIntrinsic("_blsl",funType(tplType([type("integer"),type("integer")]),type("int
 isIntrinsic("_blsr",funType(tplType([type("integer"),type("integer")]),type("integer")),iBLsr).  % logical right shift
 isIntrinsic("_basr",funType(tplType([type("integer"),type("integer")]),type("integer")),iBAsr).  % arithmetic right shift
 isIntrinsic("_bnot",funType(tplType([type("integer")]),type("integer")),iBNot).  % bitwise negate number
-isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
+isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),kVar("r")),kVar("s")]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
 isIntrinsic("_suspend",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend fiber
 isIntrinsic("_retire",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("e"))))),iRetire).  % retire fiber
 isIntrinsic("_resume",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume fiber
-isIntrinsic("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t")))),iCell).  % create a reference cell
-isIntrinsic("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t"))),iGet).  % access contents of reference cell
-isIntrinsic("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([]))),iAssign).  % update contents of reference cell
+isIntrinsic("_cell",allType(kVar("r"),funType(tplType([kVar("r")]),tpExp(tpFun("ref",1),kVar("r")))),iCell).  % create a reference cell
+isIntrinsic("_get",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r"))]),kVar("r"))),iGet).  % access contents of reference cell
+isIntrinsic("_assign",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r")),kVar("r")]),tplType([]))),iAssign).  % update contents of reference cell
 

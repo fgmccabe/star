@@ -42,7 +42,7 @@ escapeType("_big_bitand",funType(tplType([type("bigint"),type("bigint")]),type("
 escapeType("_big_bitor",funType(tplType([type("bigint"),type("bigint")]),type("bigint"))).
 escapeType("_big_bitxor",funType(tplType([type("bigint"),type("bigint")]),type("bigint"))).
 escapeType("_big_bitnot",funType(tplType([type("bigint")]),type("bigint"))).
-escapeType("_big_gcd",constrained(funType(tplType([type("bigint"),type("bigint")]),type("bigint")),raises(type("errorCode")))).
+escapeType("_big_gcd",constrained(funType(tplType([type("bigint"),type("bigint")]),tplType([type("bigint"),type("bigint")])),raises(type("errorCode")))).
 escapeType("_big_hash",funType(tplType([type("bigint")]),type("integer"))).
 escapeType("_big_eq",funType(tplType([type("bigint"),type("bigint")]),type("boolean"))).
 escapeType("_big_lt",funType(tplType([type("bigint"),type("bigint")]),type("boolean"))).
@@ -87,16 +87,16 @@ escapeType("_blsl",funType(tplType([type("integer"),type("integer")]),type("inte
 escapeType("_blsr",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_basr",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_bnot",funType(tplType([type("integer")]),type("integer"))).
-escapeType("_cell",allType(kVar("t"),funType(tplType([kVar("t")]),tpExp(tpFun("ref",1),kVar("t"))))).
-escapeType("_get",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t"))]),kVar("t")))).
-escapeType("_assign",allType(kVar("t"),funType(tplType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")]),tplType([])))).
+escapeType("_cell",allType(kVar("r"),funType(tplType([kVar("r")]),tpExp(tpFun("ref",1),kVar("r"))))).
+escapeType("_get",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r"))]),kVar("r")))).
+escapeType("_assign",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r")),kVar("r")]),tplType([])))).
 escapeType("_cell_future",allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpFun("ref",1),tpExp(tpExp(tpFun("star.either*either",2),kVar("s")),kVar("e")))]),tpExp(tpExp(tpFun("future",2),kVar("s")),kVar("e")))))).
-escapeType("_futureIsResolved",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("boolean"))))).
-escapeType("_futureIsAccepted",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("boolean"))))).
-escapeType("_futureIsRejected",allType(kVar("f"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),type("boolean"))))).
-escapeType("_futureVal",allType(kVar("f"),allType(kVar("e"),constrained(funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("f")),kVar("e"))]),kVar("f")),raises(kVar("e")))))).
-escapeType("_tuple_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("integer")]),kVar("e"))))).
-escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tplType([kVar("t"),type("integer"),kVar("e")]),kVar("t"))))).
+escapeType("_futureIsResolved",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
+escapeType("_futureIsAccepted",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
+escapeType("_futureIsRejected",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
+escapeType("_futureVal",allType(kVar("a"),allType(kVar("e"),constrained(funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),kVar("a")),raises(kVar("e")))))).
+escapeType("_tuple_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer")]),kVar("e"))))).
+escapeType("_tuple_set_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer"),kVar("e")]),kVar("a"))))).
 escapeType("_cwd",funType(tplType([]),type("string"))).
 escapeType("_cd",constrained(funType(tplType([type("string")]),tplType([])),raises(type("errorCode")))).
 escapeType("_rm",constrained(funType(tplType([type("string")]),tplType([])),raises(type("errorCode")))).
@@ -225,7 +225,7 @@ escapeType("_str_ge",funType(tplType([type("string"),type("string")]),type("bool
 escapeType("_str_hash",funType(tplType([type("string")]),type("integer"))).
 escapeType("_str_len",funType(tplType([type("string")]),type("integer"))).
 escapeType("_str_gen",funType(tplType([type("string")]),type("string"))).
-escapeType("_stringOf",allType(kVar("t"),funType(tplType([kVar("t"),type("integer")]),type("string")))).
+escapeType("_stringOf",allType(kVar("r"),funType(tplType([kVar("r"),type("integer")]),type("string")))).
 escapeType("_explode",funType(tplType([type("string")]),tpExp(tpFun("cons",1),type("char")))).
 escapeType("_implode",funType(tplType([tpExp(tpFun("cons",1),type("char"))]),type("string"))).
 escapeType("_str_find",funType(tplType([type("string"),type("string"),type("integer")]),type("integer"))).
@@ -256,7 +256,7 @@ escapeType("_waitfor",constrained(funType(tplType([type("star.thread*thread")]),
 escapeType("_shell",constrained(funType(tplType([type("string"),tpExp(tpFun("cons",1),type("string")),tpExp(tpFun("cons",1),tplType([type("string"),type("string")]))]),type("integer")),raises(type("errorCode")))).
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),type("string"))).
-escapeType("_jit_compile",allType(kVar("a"),allType(kVar("b"),constrained(funType(tplType([funType(tplType([kVar("a")]),kVar("b"))]),tplType([])),raises(type("errorCode")))))).
+escapeType("_jit_compile",allType(kVar("a"),allType(kVar("e"),constrained(funType(tplType([funType(tplType([kVar("a")]),kVar("e"))]),tplType([])),raises(type("errorCode")))))).
 
 
 isEscape("_exit").
