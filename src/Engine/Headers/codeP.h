@@ -86,5 +86,6 @@ labelPo
 specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls);
 
 void showMtdCounts(ioPo out);
-
+void countOp(OpCode op);
+void dumpOpCount(ioPo out);
 #endif
