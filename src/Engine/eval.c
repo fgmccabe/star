@@ -96,6 +96,11 @@ retCode run(processPo P) {
       restoreRegisters();
     }
 
+#ifndef NDEBUG
+    if (collectStats)
+      countOp(PC->op);
+#endif
+
     switch (PC->op) {
       case Halt: {
         int32 exitCode = PC->fst;

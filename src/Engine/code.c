@@ -357,3 +357,43 @@ retCode setJitCode(methodPo mtd, jitCode code) {
   mtd->jit = code;
   return Ok;
 }
+
+static integer opCount[maxOpCode];
+
+void countOp(OpCode op){
+  opCount[op]++;
+}
+
+static comparison cmpOpCount(integer i, integer j, void *cl) {
+  integer *indices = (integer *) cl;
+
+  integer iCount = opCount[indices[i]];
+  integer jCount = opCount[indices[j]];
+
+  if (iCount < jCount)
+    return smaller;
+  else if (iCount == jCount)
+    return same;
+  else
+    return bigger;
+}
+
+void dumpOpCount(ioPo out) {
+#ifndef NDEBUG
+  outMsg(out, "instructions executed\n");
+
+  integer indices[NumberOf(opCount)];
+  for (int ix = 0; ix < NumberOf(opCount); ix++)
+    indices[ix] = ix;
+
+  // Sort them by frequency
+  quick(0, NumberOf(opCount) - 1, cmpOpCount, swapIndex, (void *) indices);
+
+  for (integer ix = 0; ix < NumberOf(opCount); ix++) {
+    integer op = indices[ix];
+    if(opCount[op]!=0){
+      outMsg(out,"%s: %ld\n",opNames[op],opCount[op]);
+    }
+  }
+#endif
+}
