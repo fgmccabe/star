@@ -33,8 +33,6 @@ typedef struct program_label_ {
 
 #define LabelCellCount CellCount(sizeof(LblRecord))
 
-extern clssPo labelClass;
-
 extern void initLbls();
 void markLabels(gcSupportPo G);
 __attribute__((unused)) void showAllLabels();

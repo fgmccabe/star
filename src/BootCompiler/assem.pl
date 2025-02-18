@@ -67,7 +67,7 @@ stackHwm([iTCall(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iTOCall(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
-stackHwm([iEntry|Ins],CH0,H0,Hwm) :-
+stackHwm([iEntry(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iRet|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
@@ -383,7 +383,7 @@ localHwm([iTCall(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iTOCall(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iEntry|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iEntry(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iRet|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -596,7 +596,7 @@ mnem([iTCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[6,LtNo|M],Cdx) :-
 mnem([iTOCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[7,V|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iEntry|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[8|M],Cdx) :-
+mnem([iEntry(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[8,V|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iRet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[9|M],Cdx) :-
@@ -1001,8 +1001,9 @@ showMnem(iTOCall(U),Pc,sq([PcDx,ss(": "),ss("TOCall"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iEntry,Pc,sq([PcDx,ss(": "),ss("Entry")])) :- !,
+showMnem(iEntry(U),Pc,sq([PcDx,ss(": "),ss("Entry"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
+  UU=ix(U),
   true.
 showMnem(iRet,Pc,sq([PcDx,ss(": "),ss("Ret")])) :- !,
   showPc(Pc,PcDx),

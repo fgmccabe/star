@@ -88,6 +88,20 @@ int main(int argc, char **argv) {
     strMsg(hashBuff,NumberOf(hashBuff),"%ld",staropHash());
     hashPut(vars, "Hash", hashBuff);
 
+    // Set up the names of the opcodes
+    strBufferPo nameBuff = newStringBuffer();
+
+    char *sep = "";
+
+#undef instruction
+#define instruction(M, A1, A2, Dl, _, Cmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
+#include "instructions.h"
+#undef instruction
+
+    integer nmLen;
+    char *opNames = getTextFromBuffer(nameBuff, &nmLen);
+    hashPut(vars, "OpNames", opNames);
+
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
     flushOut();

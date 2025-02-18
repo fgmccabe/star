@@ -15,7 +15,7 @@ star.compiler.peephole{
   peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
     Ins0 = peepCode(Ins,[]);
     (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
-    valis .func(Lbl,Pol,Tp,LcMp1,peepCode(Ins1,[]))
+    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(peepCode(Ins1,[]),size(LcMp1)))
   }
   peepOptimize(Df) default => Df.
 
@@ -165,4 +165,7 @@ star.compiler.peephole{
     resolveLbl(Lbx,Lbls).
   resolveLbl(Lb,[(Lb,_),.._]) => Lb.
   resolveLbl(Lb,[_,..Lbls]) => resolveLbl(Lb,Lbls).
+
+  adjustEntry([.iEntry(_),..Ins],Cnt) => [.iEntry(Cnt),..Ins].
+  adjustEntry([Op,..Ins],Cnt) => [Op,..adjustEntry(Ins,Cnt)].
 }

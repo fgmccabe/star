@@ -119,11 +119,6 @@ logical sameLabel(labelPo l1, labelPo l2) {
   return (logical) (l1 == l2);
 }
 
-labelPo C_LBL(termPo t) {
-  assert(isALabel(t));
-  return (labelPo) t;
-}
-
 void markLabels(gcSupportPo G) {
   for (integer ix = 0; ix < lblTableTop; ix++) {
     labelPo lbl = &labelTable[ix];

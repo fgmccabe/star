@@ -422,8 +422,9 @@ retCode run(processPo P) {
       }
 
       case Entry: {
-        integer height = lclCount(frameMtd(FP));
+        integer height = PC->fst;
         assert(height >= 0);
+        assert(height==lclCount(frameMtd(FP)));
         SP = ((ptrPo) FP) - height;
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;

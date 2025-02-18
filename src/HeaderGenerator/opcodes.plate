@@ -13,6 +13,10 @@ typedef enum {
   maxOpCode
 } OpCode;
 
+#ifndef NDEBUG
+static char *opNames[] = {#(OpNames)};
+#endif
+
 #ifndef OPCODE_SIGNATURE
 #define OPCODE_SIGNATURE #(Hash)
 #endif
