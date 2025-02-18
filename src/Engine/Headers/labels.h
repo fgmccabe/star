@@ -10,6 +10,7 @@
 #include "term.h"
 
 typedef struct program_label_ *labelPo;
+extern clssPo labelClass;
 
 labelPo findLbl(const char *name, int32 arity);
 integer labelHash(labelPo lbl);
@@ -38,6 +39,10 @@ retCode iterateLabels(labelProc proc,void *cl);
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
 retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
 
-labelPo C_LBL(termPo t);
+#ifndef NDEBUG
+#define C_LBL(c) ((labelPo)(checkClass((c),labelClass)))
+#else
+#define C_LBL(t) ((labelPo) (t))
+#endif
 
 #endif //STAR_LBL_H

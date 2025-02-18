@@ -24,7 +24,7 @@ instruction(OCall, art, tOs, 1, "F(p)p", "OCall")
 instruction(Escape, Es, nOp, 1, "F()p", "call C escape")
 instruction(TCall, sym, nOp, 0, "F()v", "TCall <prog>")
 instruction(TOCall, art, tOs, 0, "F()v", "TOCall")
-instruction(Entry, nOp, nOp, 0, "F()()", "locals definition")
+instruction(Entry, i32, nOp, 0, "F()()", "locals definition")
 
 instruction(Ret, tOs, nOp, 0, "F()v", "return")
 

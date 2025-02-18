@@ -56,9 +56,9 @@ star.compiler.gencode{
     (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,AbrtBrks,Ctx,.some([]));
 
     (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.noMore,Ct1,Stk0);
-
-    C0 = genDbg([.iEntry])++chLine(.none,Lc)++
-      [.iLbl(AbrtLbl,.iBlock(flatSig,FC++EC++[.iRet]))]++AbrtCde;
+    
+    C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
+    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(flatSig,FC++EC++[.iRet]))]++AbrtCde;
     Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
 
     if traceCodegen! then
@@ -83,7 +83,7 @@ star.compiler.gencode{
 
     (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.notLast,Ctx,.some([]));
     
-    C0 = genDbg([.iEntry])++chLine(.none,Lc)++
+    C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++chLine(.none,Lc)++
       [.iLbl(AbrtLbl,.iBlock(BlkSig,EC++[.iTG(Nm),.iRet]))]
       ++AbrtCde;
 

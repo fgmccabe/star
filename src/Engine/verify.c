@@ -268,6 +268,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         }
       }
       case Entry:
+        if (code[pc].fst != ctx.lclCount)
+          return verifyError(&ctx, ".%d local count %d does not match method local count %d", pc, code[pc].fst,
+                             ctx.lclCount);
         pc++;
         stackDepth = 0;
         continue;
@@ -371,7 +374,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (ctxDepth(ctx.parent, stackDepth) < depth)
           return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
 
-        if(keep>depth)
+        if (keep > depth)
           return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, depth);
 
         stackDepth = depth - ctxDepth(ctx.parent, stackDepth);

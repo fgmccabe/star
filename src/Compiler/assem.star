@@ -26,7 +26,7 @@ star.compiler.assem{
     | .iEscape(string)
     | .iTCall(termLbl)
     | .iTOCall(integer)
-    | .iEntry
+    | .iEntry(integer)
     | .iRet
     | .iBlock(ltipe,multi[assemOp])
     | .iBreak(assemLbl)
@@ -168,7 +168,7 @@ star.compiler.assem{
   mnem(.iEscape(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(5),.strg(U)],Pc+1,Lts,Lns).
   mnem(.iTCall(U),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(6),.intgr(LtNo)],Pc+1,Lt1,Lns).
   mnem(.iTOCall(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(7),.intgr(U)],Pc+1,Lts,Lns).
-  mnem(.iEntry,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(8)],Pc+1,Lts,Lns).
+  mnem(.iEntry(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(8),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iRet,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(9)],Pc+1,Lts,Lns).
   mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
     ([.intgr(10),.intgr(LtNo),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
@@ -297,7 +297,7 @@ star.compiler.assem{
   stkHwm([.iTOCall(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
-  stkHwm([.iEntry,..Ins],CH0,H0) => valof{
+  stkHwm([.iEntry(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
   stkHwm([.iRet,..Ins],CH0,H0) => valof{
@@ -658,7 +658,7 @@ star.compiler.assem{
   showIns(.iEscape(U),Pc) => "Escape $(U)".
   showIns(.iTCall(U),Pc) => "TCall $(U)".
   showIns(.iTOCall(U),Pc) => "TOCall $(U)".
-  showIns(.iEntry,Pc) => "Entry".
+  showIns(.iEntry(U),Pc) => "Entry $(U)".
   showIns(.iRet,Pc) => "Ret".
   showIns(.iBlock(U,V),Pc) => "Block $(U)\n#(showBlock(V,Pc))".
   showIns(.iBreak(V),Pc) => "Break #(V)".

@@ -12,7 +12,8 @@
 peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
   findUnusedVars(LsMap,PIns,LsMx,Ins0),!,
-  peepCode(Ins0,[],Insx).       % We need to peep twice, cos droping vars gives us a chance for more
+  peepCode(Ins0,[],Ins1),  % We need to peep twice, cos droping vars gives us a chance for more
+  adjustEntry(Ins1,LsMx,Insx).
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,
@@ -179,3 +180,7 @@ copyN(N,[A|I],Ix,[A|X],Xx) :-
   N1 is N-1,
   copyN(N1,I,Ix,X,Xx).
 
+adjustEntry([iEntry(_)|Ins],LsMx,[iEntry(Cnt)|Ins]) :-!,
+  length(LsMx,Cnt).
+adjustEntry([Op|Ins],LsMx,[Op|Insx]) :-
+  adjustEntry(Ins,LsMx,Insx).

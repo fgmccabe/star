@@ -31,11 +31,6 @@ logical isSpecialClass(clssPo p) {
   return (logical) (p->clss == specialClass);
 }
 
-normalPo C_NORMAL(termPo t) {
-  assert(isNormalPo(t));
-  return (normalPo) t;
-}
-
 logical isNormalPo(termPo t) {
   return hasClass((termPo) classOf(t), labelClass);
 }
