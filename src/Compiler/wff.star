@@ -796,6 +796,8 @@ star.compiler.wff{
   public isTaskExp(A) where (Lc,.nme(_,"task"),[El]) ?= isBraceTerm(A) => .some((Lc,El)).
   isTaskExp(_) default => .none.
 
+  public mkTaskExp(Lc,As) => braceTerm(Lc,.nme(Lc,"task"),[As]).
+
   public isActionSeq:(ast) => option[(option[locn],ast,ast)].
   isActionSeq(A) => isBinary(A,";").
 

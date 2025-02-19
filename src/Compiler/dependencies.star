@@ -346,6 +346,8 @@ star.compiler.dependencies{
     ((_,[As]) ?= isBrTuple(L) ??
       collectDoRefs(As,All,Rf) ||
 	collectTermRefs(L,All,Rf)).
+  collectTermRefs(T,All,Rf) where (_,As) ?= isTaskExp(T) =>
+    collectDoRefs(As,All,Rf).
   collectTermRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
     collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) =>

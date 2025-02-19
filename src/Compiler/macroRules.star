@@ -59,7 +59,7 @@ star.compiler.macro.rules{
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
     "generator\${}" -> [(.expression,generatorMacro)],
-    "task\${}" -> [(.expression,taskMacro)],
+--    "task\${}" -> [(.expression,taskMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],
@@ -488,10 +488,10 @@ star.compiler.macro.rules{
 
   becomes a task:
 
-  tsk(this, let{
+  (tsk(this, let{
       tk:async () => _ raises _.
       tk() => valof { A }
-    } in ζ tk)
+      } in ζ tk):future[_,void])
 
   where tsk is a library function defined in mbox.
   */
