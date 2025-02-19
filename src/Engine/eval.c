@@ -816,10 +816,9 @@ retCode run(processPo P) {
       case Nth: {
         int32 ix = PC->fst;  /* which element */
         termPo t = pop();
-        check(isNormalPo(t), "tried to access non term");
 
         normalPo cl = C_NORMAL(t);  /* which term? */
-        push(nthArg(cl, ix));
+        push(nthElem(cl, ix));
 
         break;
       }
@@ -1339,8 +1338,8 @@ retCode run(processPo P) {
 
       case Frame: {
 #ifdef TRACESTACK
-        termPo frame = nthElem(LITS, PC->fst);
         if (stackVerify) {
+          termPo frame = nthElem(LITS, PC->fst);
           int32 frameDepth;
           if (isString(frame)) {
             integer sigLen;
