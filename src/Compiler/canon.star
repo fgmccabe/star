@@ -40,7 +40,7 @@ star.compiler.canon{
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
   .vlof(option[locn],canonAction,tipe) |
-  .taske(option[locn],canon,tipe) |
+  .taske(option[locn],canonAction,tipe) |
   .susp(option[locn],canon,canon,tipe) |
   .resum(option[locn],canon,canon,tipe).
 
@@ -270,7 +270,7 @@ star.compiler.canon{
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .taske(_,A,_) where (OPr,Rp) ?= isPrefixOp("task") =>
-      "#(leftParen(OPr,Pr)) task #(showCanon(A,Rp,Sp))#(rgtParen(OPr,Pr))"
+      "#(leftParen(OPr,Pr)) task #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>
