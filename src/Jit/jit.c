@@ -49,30 +49,6 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return ret;
 }
 
-retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen) {
-  retCode ret = Ok;
-
-  for (integer pc = 0; ret == Ok && pc < insCount; pc++) {
-    switch (code[pc].op) {
-
-#define instruction(Op, A1, A2, Dl, _, Cmt)    \
-    case Op:{                                   \
-      ret = jit_##Op(code,pc,jitCtx);            \
-      break;                                    \
-    }
-
-#include "instructions.h"
-
-#undef instruction
-
-      default:
-        return Error;
-    }
-  }
-
-  return ret;
-}
-
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   switch (codeArity(mtd)) {
     case 0:
