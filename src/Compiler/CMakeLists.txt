@@ -5,7 +5,7 @@ set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo/")
 
 set(TEMP_MANIFEST ${TEMP_REPO}/manifest)
-set(MANIFEST ${REPO_DIR}/mnaifest)
+set(MANIFEST ${REPO_DIR}/manifest)
 
 file(MAKE_DIRECTORY ${TEMP_REPO})
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}")
@@ -18,6 +18,7 @@ set(SC "${STAR}" "${STAR_COMPILER_FLAGS}" "-r" "${TEMP_REPO}/" "star.compiler")
 set(STAR ${CMAKE_CURRENT_BINARY_DIR}/../Engine/star)
 
 file(GLOB COMPILER_DEPS
+        CONFIGURE_DEPENDS
         LIST_DIRECTORIES false
         ${CMAKE_CURRENT_SOURCE_DIR}/*.star)
 
@@ -34,7 +35,7 @@ add_custom_command(OUTPUT ${MANIFEST}
   )
 
 add_custom_target(compiler
-  DEPENDS ${MANIFEST})
+  DEPENDS ${MANIFEST} ${COMPILER_DEPS})
 
 #add_dependencies(compiler star.memnonics star.operators star.escapes star.intrinsics)
 
