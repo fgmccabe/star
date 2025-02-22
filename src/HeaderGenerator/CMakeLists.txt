@@ -28,25 +28,23 @@ set(STARESC_SOURCE_FILES
 add_executable(genstaresc ${STARESC_SOURCE_FILES})
 target_link_libraries(genstaresc ooio)
 
-set(OPCODES_SOURCE_FILES opcodes.c)
+set(OPCODES_SOURCE_FILES opcodes.c ../Headers/instructions.h)
 add_executable(opcodes ${OPCODES_SOURCE_FILES})
 target_link_libraries(opcodes ooio)
 
 set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/opcodes.h)
 set(OPCODES_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/opcodes.plate)
 
-add_custom_target(opcodes.h DEPENDS opcodes
+add_custom_command(OUTPUT ${OPCODES_H}
         COMMAND opcodes -t ${OPCODES_PLATE} ${OPCODES_H}
         COMMENT "Opcodes header in ${OPCODES_H}")
 
 set(ASM_SOURCE_FILES plmnem.c)
-add_executable(plmnem ${ASM_SOURCE_FILES})
-add_dependencies(plmnem opcodes.h)
+add_executable(plmnem ${ASM_SOURCE_FILES} ${OPCODES_H})
 target_link_libraries(plmnem ooio infra)
 
-set(STAR_ASM_SOURCE_FILES starmnem.c)
+set(STAR_ASM_SOURCE_FILES starmnem.c ${OPCODES_H})
 add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
-add_dependencies(starmnem opcodes.h)
 target_link_libraries(starmnem ooio infra)
 
 set(INTRINSIC_SOURCE_FILES plateinstrinsic.c

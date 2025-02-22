@@ -11,6 +11,6 @@ set(UNITABLE ${CMAKE_CURRENT_SOURCE_DIR}/unitable.c)
 
 add_executable(parseUni ${SOURCE_FILES})
 
-add_custom_target(unitable ALL DEPENDS parseUni
+add_custom_target(unitable DEPENDS parseUni
         COMMAND parseUni  ${UNICODE}  ${UNITABLE}
         COMMENT "Unicode table in ${UNITABLE}")

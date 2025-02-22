@@ -4,6 +4,9 @@ project(compiler)
 set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 set(TEMP_REPO "${CMAKE_BINARY_DIR}/.temp-repo/")
 
+set(TEMP_MANIFEST ${TEMP_REPO}/manifest)
+set(MANIFEST ${REPO_DIR}/mnaifest)
+
 file(MAKE_DIRECTORY ${TEMP_REPO})
 set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${TEMP_REPO}")
 
@@ -14,16 +17,24 @@ set(SBC "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc")
 set(SC "${STAR}" "${STAR_COMPILER_FLAGS}" "-r" "${TEMP_REPO}/" "star.compiler")
 set(STAR ${CMAKE_CURRENT_BINARY_DIR}/../Engine/star)
 
-file(GLOB COMPILER_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/*.star)
+file(GLOB COMPILER_DEPS
+        LIST_DIRECTORIES false
+        ${CMAKE_CURRENT_SOURCE_DIR}/*.star)
 
-add_custom_target(compiler
-  ALL
-  DEPENDS ${COMPILER_DEPS} ${STAR}
-  COMMENT Build into ${TEMP_REPO}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND ${SBC} "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}" "star.compiler"
+add_custom_command(OUTPUT ${TEMP_MANIFEST}
+        DEPENDS ${COMPILER_DEPS}
+        COMMENT Build into ${TEMP_REPO}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${SBC} "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}" "star.compiler"
+  )
+
+add_custom_command(OUTPUT ${MANIFEST}
+  DEPENDS ${COMPILER_DEPS} ${STAR} ${TEMP_MANIFEST}
   COMMAND ${STAR} "-r" "${TEMP_REPO}" "-h2g" "star.compiler" "-R" "${REPO_DIR}/" "-W" "${CMAKE_CURRENT_SOURCE_DIR}/" "star.compiler"
   )
+
+add_custom_target(compiler
+  DEPENDS ${MANIFEST})
 
 #add_dependencies(compiler star.memnonics star.operators star.escapes star.intrinsics)
 
