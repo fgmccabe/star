@@ -40,7 +40,6 @@ star.compiler.canon{
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
   .vlof(option[locn],canonAction,tipe) |
-  .taske(option[locn],canonAction,tipe) |
   .susp(option[locn],canon,canon,tipe) |
   .resum(option[locn],canon,canon,tipe).
 
@@ -103,7 +102,6 @@ star.compiler.canon{
       | .disj(_,_,_) => boolType
       | .cond(_,_,L,_) => typeOf(L)
       | .vlof(_,_,Tp) => Tp
-      | .taske(_,_,Tp) => Tp
       | .susp(_,_,_,Tp) => Tp
       | .resum(_,_,_,Tp) => Tp
     }
@@ -143,7 +141,6 @@ star.compiler.canon{
       | .letExp(Lc,_,_,_) => Lc
       | .letRec(Lc,_,_,_) => Lc
       | .vlof(Lc,_,_) => Lc
-      | .taske(Lc,_,_) => Lc
       | .susp(Lc,_,_,_) => Lc
       | .resum(Lc,_,_,_) => Lc
     }
@@ -269,8 +266,6 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
-    | .taske(_,A,_) where (OPr,Rp) ?= isPrefixOp("task") =>
-      "#(leftParen(OPr,Pr)) task #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>
