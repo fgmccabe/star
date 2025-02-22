@@ -59,7 +59,7 @@ star.compiler.macro.rules{
     "show" -> [(.actn,showMacro)],
     "trace" -> [(.expression,traceMacro)],
     "generator\${}" -> [(.expression,generatorMacro)],
---    "task\${}" -> [(.expression,taskMacro)],
+    "task\${}" -> [(.expression,taskMacro)],
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],

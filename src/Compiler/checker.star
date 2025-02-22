@@ -716,14 +716,6 @@ star.compiler.checker{
       valis typeOfExp(E,Tp,Env,Path)
     }
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,As) ?= isTaskExp(A) => valof{
-    VlTp = newTypeVar("_V");
-    ErTp = newTypeVar("_E");
-    checkType(A,futureType(VlTp,ErTp),Tp,Env);
-    
-    (Act,_) = checkAction(As,VlTp,Env,Path);
-    valis .taske(Lc,Act,Tp)
-  }
   typeOfExp(A,Tp,Env,Pth) where (Lc,Op,Els) ?= isLabeledTheta(A) && (_,Nm)?=isName(Op) => valof{
     FceTp = newTypeVar("_");
     ConTp = consType(FceTp,Tp);
