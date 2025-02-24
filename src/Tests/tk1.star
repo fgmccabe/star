@@ -10,9 +10,9 @@ test.tk1{
       Tsk = (this) => valof{
 	try{
 	  T = (task{
-	    showMsg("starting tk0");
-	    valis "hello"
-	  }: future[string,void]);
+	      showMsg("starting tk0");
+	      valis "hello"
+	    }: future[string,()]);
 	  Fv = waitfor(T);
 	  showMsg("result $(Fv)");
 
