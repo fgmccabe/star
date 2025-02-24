@@ -46,7 +46,7 @@ star.compiler.escapes{
     | "_big_bitor" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.nomnal("bigint")))
     | "_big_bitxor" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.nomnal("bigint")))
     | "_big_bitnot" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint")])),.nomnal("bigint")))
-    | "_big_gcd" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.raisEs(.nomnal("errorCode"))))
+    | "_big_gcd" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.nomnal("bigint")),.raisEs(.nomnal("errorCode"))))
     | "_big_hash" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint")])),.nomnal("integer")))
     | "_big_eq" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.nomnal("boolean")))
     | "_big_lt" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("bigint")])),.nomnal("boolean")))

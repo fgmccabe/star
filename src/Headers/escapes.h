@@ -89,7 +89,7 @@ escape(_big_bitor, func(big big,big), "bitwise or of two bigints")
 escape(_big_bitxor, func(big big,big), "bitwise exclusive or of two bigints")
 escape(_big_bitnot, func(big,big), "bitwise negation of a bigint")
 
-escape(_big_gcd, raises(func(big big,tpl(big big)),ERR), "gcd of two bigints")
+escape(_big_gcd, raises(func(big big,big),ERR), "gcd of two bigints")
 escape(_big_hash, func(big,int), "compute hash of bigint")
 
 escape(_big_eq, func(big big,bool), "bigint equality")
