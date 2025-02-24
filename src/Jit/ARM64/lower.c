@@ -3,12 +3,9 @@
 //
 #include <config.h>
 #include "lowerP.h"
-#include "jitOps.h"
 #include "stackP.h"
 #include "globals.h"
-#include "signals.h"
 #include "jitP.h"
-#include "codeP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -120,9 +117,10 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         assemCtxPo ctx = assemCtx(jit);
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
+        int32 arity = escapeArity(esc);
 
-        spillUpto(jit, escapeArity(esc));    // Spill all stack arguments up until arity
-        loadStackIntoArgRegisters(jit, escapeArity(esc));
+        spillUpto(jit, arity);    // Spill all stack arguments up until arity
+        loadStackIntoArgRegisters(jit, arity);
         codeLblPo escLbl = defineLabel(ctx, (integer) escapeFun(esc));
         bl(escLbl);
         pc++;
@@ -133,7 +131,9 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Entry:            // locals definition
         return Error;
       case Ret:            // return
-      case Block:            // block of instructions
+      case Block: {            // block of instructions
+        codeLblPo altTgt = defineLabel(ctx,code[pc].alt);
+         }
       case Break: {            // leave block
         assemCtxPo ctx = assemCtx(jit);
         codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
@@ -186,7 +186,18 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
-      case Pick:            // adjust stack to n depth, using top k elements
+      case Pick: {            // adjust stack to n depth, using top k elements
+        int32 height = code[pc].fst;
+        int32 keep = code[pc].alt;
+        check(height>=0 && height <= jit->vTop, "reset alignment");
+        check(keep>=0 && keep <= jit->vTop-height, "keep depth more than available");
+        for(int32 ix=0;ix<keep;ix++){
+          jit->vStack[height+ix] = jit->vStack[jit->vTop-keep+ix];
+        }
+        jit->vTop = height+keep;
+        pc++;
+        continue;
+      }
       case Fiber:            // Create new fiber
       case Spawn:            // spawn a new task
       case Suspend:            // suspend fiber

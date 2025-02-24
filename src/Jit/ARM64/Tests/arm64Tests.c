@@ -5,6 +5,9 @@
 #include "arm64P.h"
 #include "test_infra.h"
 #include "armRegSetTest.h"
+#include "asminfra.h"
+#include "macros.h"
+#include "jitP.h"
 
 static retCode test_adc() {
   assemCtxPo ctx = createCtx();

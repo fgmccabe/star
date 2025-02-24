@@ -10,6 +10,7 @@ include_directories("Headers"
         "../../Util/Headers"
         "../../Engine/Headers"
         "../../Headers"
+        "AsmInfra/Headers"
         "./Headers")
 
 set(HEADER_FILES
@@ -19,7 +20,7 @@ set(HEADER_FILES
         Headers/lowerP.h
         )
 
-set(SOURCE_FILES assemx86_64.c ins_x64.c ../asmInfra.c lower.c )
+set(SOURCE_FILES assemx86_64.c ins_x64.c ../Common/asmInfra.c lower.c )
 add_library(X86_64 STATIC ${SOURCE_FILES})
 
 

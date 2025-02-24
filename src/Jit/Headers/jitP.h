@@ -14,6 +14,7 @@
 #include "array.h"
 #include "escape.h"
 #include "codeP.h"
+#include "asminfra.h"
 
 #define MAX_VSTACK 256
 
@@ -42,13 +43,6 @@ typedef struct {
   void *address;
   escapePo escape;
 } vOperand, *operandPo;
-
-typedef struct assem_ctx {
-  unsigned char *bytes;
-  uint32 size;
-  uint32 pc;
-  arrayPo lbls;
-} AssemCtxRecord;
 
 typedef enum {
   localVar,
@@ -81,31 +75,16 @@ typedef struct jit_compiler_ {
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
 
-typedef struct assem_lbl {
-  arrayPo refs;
-  integer pc;
-} AssemLblRecord;
-
-void emitU8(assemCtxPo ctx, uint8 byte);
-void emitU16(assemCtxPo ctx, uint16 word);
-void emitU32(assemCtxPo ctx, uint32 word);
-void emitU64(assemCtxPo ctx, uint64 word);
-void updateU32(assemCtxPo ctx, integer pc, uint32 word);
-uint32 readCtxAtPc(assemCtxPo ctx, integer pc);
-
 jitCompPo jitContext(methodPo mtd);
 void clearJitContext(jitCompPo ctx);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 
-void initAssem();
-assemCtxPo createCtx();
-void discardCtx(assemCtxPo ctx);
 jitCode createCode(assemCtxPo ctx);
+
+void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
 void markEntry(jitCompPo jit, codeLblPo entry);
 codeLblPo jitEntry(jitCompPo jit);
-
-extern integer undefinedPc;
 
 retCode sortLabels(jitCompPo jit);
 
@@ -122,14 +101,7 @@ retCode sortLabels(jitCompPo jit);
 retCode resolvePcLbl(insPo code, integer pc, jitCompPo jit, char *errMsg, integer msgLen);
 codeLblPo getLblByPc(insPo pc, integer delta, jitCompPo jit);
 
-uint32 currentPc(assemCtxPo ctx);
 
-typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
-retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
-static retCode updateLblEntry(void *entry, integer ix, void *cl);
-integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
-void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
-void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
 typedef struct lbl_ref {
   lblRefUpdater updater;
@@ -143,6 +115,5 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit);
 retCode jit_postamble(methodPo mtd, jitCompPo ctx);
 retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen);
 
-void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
 #endif //STAR_JITP_H

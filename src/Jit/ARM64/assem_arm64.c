@@ -7,6 +7,7 @@
 
 #include "arm64P.h"
 #include "assem_encode.h"
+#include "macros.h"
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
   codeLblPo entry = defineLabel(ctx, ctx->pc);
