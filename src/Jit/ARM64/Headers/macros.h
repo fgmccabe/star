@@ -47,6 +47,11 @@ logical isLabelDefined(codeLblPo lbl);
 uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
 
+static retCode updateLblEntry(void *entry, integer ix, void *cl);
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
+void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
+void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
+
 retCode callIntrinsic(assemCtxPo ctx, libFun fn, integer arity,...);
 
 #endif //STAR_MACROS_H

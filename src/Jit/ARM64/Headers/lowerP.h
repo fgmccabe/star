@@ -7,7 +7,6 @@
 
 #include "hash.h"
 #include "lower.h"
-#include "jitP.h"
 #include "arm64P.h"
 #include "macros.h"
 

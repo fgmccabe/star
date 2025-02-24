@@ -7,7 +7,6 @@
 #include "codeP.h"
 #include "lower.h"
 #include "jitP.h"
-#include "jitOps.h"
 
 integer jitThreshold = 1000;
 logical jitOnLoad = False;

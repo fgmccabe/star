@@ -11,6 +11,7 @@ include_directories("Headers"
         "../../Engine/Headers"
         "../../Escapes/Headers"
         "../../Headers"
+        "../Common/Headers"
         "./Headers")
 
 set(HEADER_FILES
@@ -22,13 +23,16 @@ set(HEADER_FILES
         ../../Escapes/Headers/libEscapes.h
         assem_encode.h
         Headers/macros.h
+        ../Headers/infra.h
+        ../Common/Headers/asminfra.h
 )
 
 set(SOURCE_FILES
         assem_arm64.c
         lower.c
         assem_encode.c
-        macros.c)
+        macros.c
+        ../Common/asmInfra.c)
 
 add_library(ARM64 STATIC ${SOURCE_FILES})
 

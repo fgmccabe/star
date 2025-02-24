@@ -3,6 +3,7 @@
 //
 
 #include "assem_encode.h"
+#include "macros.h"
 #include <assert.h>
 
 static void updateRelPc(assemCtxPo ctx, codeLblPo lbl, integer pc) {

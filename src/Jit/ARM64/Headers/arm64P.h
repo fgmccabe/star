@@ -5,7 +5,7 @@
 #ifndef STAR_ARM64P_H
 #define STAR_ARM64P_H
 
-#include "jitP.h"
+#include "asminfra.h"
 #include "arm64.h"
 #include "ooio.h"
 #include "array.h"
