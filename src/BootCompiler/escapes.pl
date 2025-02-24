@@ -42,7 +42,7 @@ escapeType("_big_bitand",funType(tplType([type("bigint"),type("bigint")]),type("
 escapeType("_big_bitor",funType(tplType([type("bigint"),type("bigint")]),type("bigint"))).
 escapeType("_big_bitxor",funType(tplType([type("bigint"),type("bigint")]),type("bigint"))).
 escapeType("_big_bitnot",funType(tplType([type("bigint")]),type("bigint"))).
-escapeType("_big_gcd",constrained(funType(tplType([type("bigint"),type("bigint")]),tplType([type("bigint"),type("bigint")])),raises(type("errorCode")))).
+escapeType("_big_gcd",constrained(funType(tplType([type("bigint"),type("bigint")]),type("bigint")),raises(type("errorCode")))).
 escapeType("_big_hash",funType(tplType([type("bigint")]),type("integer"))).
 escapeType("_big_eq",funType(tplType([type("bigint"),type("bigint")]),type("boolean"))).
 escapeType("_big_lt",funType(tplType([type("bigint"),type("bigint")]),type("boolean"))).
