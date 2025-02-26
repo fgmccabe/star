@@ -24,7 +24,7 @@ file(GLOB COMPILER_DEPS
 
 add_custom_command(OUTPUT ${TEMP_MANIFEST}
         DEPENDS ${COMPILER_DEPS}
-        COMMENT Build into ${TEMP_REPO}
+        COMMENT "Build into ${TEMP_REPO}"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${SBC} "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${TEMP_REPO}" "star.compiler"
   )

@@ -59,6 +59,8 @@
 	      isTryCatch/5,mkTryCatch/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,
+	      isTry/4,mkTry/4,isResult/3,mkResult/3,isFail/3,mkFail/3,
+	      isCheckResult/3,mkCheckResult/3,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
@@ -947,6 +949,36 @@ mkTryCatch(Lc,B,E,Cases,A) :-
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).
+
+isTry(A,Lc,B,Hs) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"catch",B,R),
+  isBraceTuple(R,_,[Els]),
+  deBar(Els,Hs).
+
+mkTry(Lc,B,Cases,A) :-
+  reBar(Cases,Cs),
+  braceTuple(Lc,[Cs],R),
+  binary(Lc,"catch",B,R,A0),
+  unary(Lc,"try",A0,A).
+
+isResult(A,Lc,R) :-
+  isUnary(A,Lc,"result",R).
+
+mkResult(Lc,R,A) :-
+  unary(Lc,"result",R,A).
+
+isFail(A,Lc,R) :-
+  isUnary(A,Lc,"fail",R).
+
+mkFail(Lc,R,A) :-
+  unary(Lc,"fail",R,A).
+
+isCheckResult(A,Lc,R) :-
+  isUnary(A,Lc,"?",R).
+
+mkCheckResult(Lc,R,A) :-
+  unary(Lc,"?",R,A).
 
 isThunk(A,Lc,Th) :-
   isUnary(A,Lc,"$$",Th).

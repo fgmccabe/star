@@ -501,6 +501,23 @@ examineTerm(A,Ax) :-
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
+  isTry(A,Lc,B,C),!,
+  macroTerm(B,Bx),
+  map(C,macros:macroLambda,Cs),
+  mkTry(Lc,Bx,Cs,Ax).
+examineTerm(A,Ax) :-
+  isResult(A,Lc,R),!,
+  macroTerm(R,Rx),
+  mkResult(Lc,Rx,Ax).
+examineTerm(A,Ax) :-
+  isFail(A,Lc,R),!,
+  macroTerm(R,Rx),
+  mkFail(Lc,Rx,Ax).
+examineTerm(A,Ax) :-
+  isCheckResult(A,Lc,R),!,
+  macroTerm(R,Rx),
+  mkCheckResult(Lc,Rx,Ax).
+examineTerm(A,Ax) :-
   isThunk(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThunk(Lc,Vx,Ax).

@@ -17,6 +17,7 @@
   ("valis" ( (prefix 930 929)))
   (",.." ( (infix 999 1000 999)))
   ("for" ( (prefix 1175 1174)))
+  ("result" ( (prefix 930 929)))
   ("••" ( (infix 450 450 449)))
   ("..<" ( (infix 749 750 749)))
   ("**" ( (infix 600 600 599)))
@@ -65,6 +66,7 @@
   ("show" ( (prefix 1240 1239)))
   ("++" ( (infix 719 720 720)))
   (">" ( (infix 899 900 899)))
+  ("?" ( (prefix 305 304)))
   ("return" ( (prefix 930 929)))
   ("@" ( (prefix 400 399) (infix 399 400 400)))
   ("|=" ( (infix 998 999 998)))
@@ -102,6 +104,7 @@
   (".<<." ( (infix 600 600 599)))
   ("implementation" ( (prefix 1260 1259)))
   (">>=" ( (infix 949 950 950)))
+  ("fail" ( (prefix 930 929)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
   ("type" ( (prefix 1251 1250)))
@@ -142,6 +145,7 @@
 "catch"
 "valis"
 "for"
+"result"
 "raise"
 "async"
 "then"
@@ -166,6 +170,7 @@
 "while"
 "private"
 "implementation"
+"fail"
 "type"
 "else"
 )

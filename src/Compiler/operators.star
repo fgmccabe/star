@@ -52,6 +52,7 @@ star.compiler.operators{
     | "valis" => [.prefixOp(930,929)]
     | ",.." => [.infixOp(999,1000,999)]
     | "for" => [.prefixOp(1175,1174)]
+    | "result" => [.prefixOp(930,929)]
     | "••" => [.infixOp(450,450,449)]
     | "..<" => [.infixOp(749,750,749)]
     | "**" => [.infixOp(600,600,599)]
@@ -100,6 +101,7 @@ star.compiler.operators{
     | "show" => [.prefixOp(1240,1239)]
     | "++" => [.infixOp(719,720,720)]
     | ">" => [.infixOp(899,900,899)]
+    | "?" => [.prefixOp(305,304)]
     | "return" => [.prefixOp(930,929)]
     | "@" => [.prefixOp(400,399), .infixOp(399,400,400)]
     | "|=" => [.infixOp(998,999,998)]
@@ -137,6 +139,7 @@ star.compiler.operators{
     | ".<<." => [.infixOp(600,600,599)]
     | "implementation" => [.prefixOp(1260,1259)]
     | ">>=" => [.infixOp(949,950,950)]
+    | "fail" => [.prefixOp(930,929)]
     | "^/" => [.infixOp(960,960,959)]
     | "<~" => [.infixOp(998,999,998)]
     | "type" => [.prefixOp(1251,1250)]
@@ -400,6 +403,7 @@ star.compiler.operators{
     | ">=" => .true  /* greater than or equal */
     | ">>" => .true  /* grammar produce value */
     | ">>=" => .true  /* monadic bind */
+    | "?" => .true  /* inspect a result expression */
     | "??" => .true  /* conditional operator */
     | "?=" => .true  /* optional decomposition match */
     | "?}" => .true  /* test comprehension */
@@ -429,6 +433,7 @@ star.compiler.operators{
     | "valis" => .true
     | ",.." => .true
     | "for" => .true
+    | "result" => .true
     | "..<" => .true
     | "..>" => .true
     | "{?" => .true
@@ -464,6 +469,7 @@ star.compiler.operators{
     | "=>>" => .true
     | "=" => .true
     | "|:" => .true
+    | "?" => .true
     | "@" => .true
     | "|=" => .true
     | "|>" => .true
@@ -493,6 +499,7 @@ star.compiler.operators{
     | ":?" => .true
     | "implementation" => .true
     | "<|" => .true
+    | "fail" => .true
     | "<~" => .true
     | "{" => .true
     | "type" => .true

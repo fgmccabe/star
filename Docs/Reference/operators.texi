@@ -62,6 +62,10 @@
 @tab non-associative prefix
 @tab 1175
 @tab for ... do @{@}
+@item @code{result}
+@tab non-associative prefix
+@tab 930
+@tab return a positive result
 @item @code{••}
 @tab left associative infix
 @tab 450
@@ -294,6 +298,10 @@
 @tab non-associative infix
 @tab 900
 @tab greater than
+@item @code{?}
+@tab non-associative prefix
+@tab 305
+@tab inspect a result expression
 @item @code{return}
 @tab non-associative prefix
 @tab 930
@@ -454,6 +462,10 @@
 @tab right associative infix
 @tab 950
 @tab monadic bind
+@item @code{fail}
+@tab non-associative prefix
+@tab 930
+@tab return a negative result
 @item @code{^/}
 @tab left associative infix
 @tab 960
@@ -526,32 +538,34 @@
 @tab @code{catch}
 @item @code{valis}
 @tab @code{for}
-@tab @code{raise}
-@item @code{async}
+@tab @code{result}
+@item @code{raise}
+@tab @code{async}
 @tab @code{then}
-@tab @code{ζ}
-@item @code{default}
+@item @code{ζ}
+@tab @code{default}
 @tab @code{resume}
-@tab @code{contract}
-@item @code{raises}
+@item @code{contract}
+@tab @code{raises}
 @tab @code{try}
-@tab @code{exists}
-@item @code{if}
+@item @code{exists}
+@tab @code{if}
 @tab @code{in}
-@tab @code{break}
-@item @code{suspend}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{public}
-@tab @code{ref}
-@item @code{where}
+@item @code{ref}
+@tab @code{where}
 @tab @code{case}
-@tab @code{generator}
-@item @code{valof}
+@item @code{generator}
+@tab @code{valof}
 @tab @code{yield}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{implementation}
+@item @code{fail}
 @tab @code{type}
-@item @code{else}
+@tab @code{else}
 
 @end multitable
 @end float
@@ -602,39 +616,40 @@
   @item @code{|:}
   @tab @code{++}
   @tab @code{>}
+  @tab @code{?}
   @tab @code{@@}
-  @tab @code{|=}
-  @item @code{~~}
+  @item @code{|=}
+  @tab @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @tab @code{//}
-  @item @code{.~.}
+  @item @code{//}
+  @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @tab @code{=>}
-  @item @code{<=>}
+  @item @code{=>}
+  @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @tab @code{::}
-  @item @code{+++}
+  @item @code{::}
+  @tab @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @tab @code{>>=}
-  @item @code{^/}
+  @item @code{>>=}
+  @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @tab @code{~}
-  @item @code{^//}
+  @item @code{~}
+  @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @tab @code{>=}
-  @item @code{>>}
+  @item @code{>=}
+  @tab @code{>>}
 
 @end multitable
 @end float
