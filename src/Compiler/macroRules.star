@@ -488,10 +488,10 @@ star.compiler.macro.rules{
 
   becomes a task:
 
-  (tsk(this, let{
+  tsk(this, let{
       tk:async () => _ raises _.
       tk() => valof { A }
-      } in ζ tk):future[_,void])
+      } in ζ tk)
 
   where tsk is a library function defined in mbox.
   */

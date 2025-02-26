@@ -16,13 +16,13 @@ test.tk1{
 	  Fv = waitfor(T);
 	  showMsg("result $(Fv)");
 
-	  T2 = task{
+	  T2 = (task{
 	    showMsg("starting tk2");
 	    if 3>2 then
 	      valis "there"
 	    else
 	    raise ()
-	  };
+	  }:future[string,()]);
 	  F2 = waitfor(T2);
 	  showMsg("final result $(F2)");
 	  
