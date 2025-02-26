@@ -63,7 +63,6 @@ star.compiler.macro.rules{
     "yield" -> [(.actn,yieldMacro)],
     "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],
-    "future\${}" -> [(.expression,futureMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
       (.typeterm,grammarTypeMacro),
@@ -561,13 +560,4 @@ star.compiler.macro.rules{
 	  squareTerm(Lc,.nme(Lc,"task"),[.nme(Lc,"_")])),
 	R)).
   asyncMacro(_,_) default => .inactive.
-
-  -- convert future{E} to tsk(this,()=>valof{E})
-  futureMacro(A,.expression) where
-      (Lc,Op,[B]) ?= isBrTerm(A) &&
-	  (_,"future") ?= isName(Op) => valof{
-    Eq = equation(Lc,rndTuple(Lc,[]),mkValof(Lc,brTuple(Lc,[B])));
-    valis .active(binary(Lc,"tsk",.nme(Lc,"this"),Eq))
-	  }.
-  futureMacro(_,_) default => .inactive.
 }
