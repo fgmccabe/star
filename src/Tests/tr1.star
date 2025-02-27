@@ -8,7 +8,7 @@ test.tr1{
 
   checkMe:(integer) => boolean.
   checkMe(X) => (try
-    isOdd(X)
+    ?isOdd(X)
     catch {
       Msg => valof{
 	showMsg(Msg);
