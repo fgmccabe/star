@@ -64,7 +64,7 @@
 @tab for ... do @{@}
 @item @code{result}
 @tab non-associative prefix
-@tab 930
+@tab 830
 @tab return a positive result
 @item @code{••}
 @tab left associative infix
@@ -464,7 +464,7 @@
 @tab monadic bind
 @item @code{fail}
 @tab non-associative prefix
-@tab 930
+@tab 830
 @tab return a negative result
 @item @code{^/}
 @tab left associative infix
