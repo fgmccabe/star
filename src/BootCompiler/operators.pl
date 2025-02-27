@@ -35,7 +35,7 @@
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
-  operator("result", [prefixOp(930, 929)]).
+  operator("result", [prefixOp(830, 829)]).
   operator("••", [infixOp(450, 450, 449)]).
   operator("..<", [infixOp(749, 750, 749)]).
   operator("**", [infixOp(600, 600, 599)]).
@@ -122,7 +122,7 @@
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
   operator(">>=", [infixOp(949, 950, 950)]).
-  operator("fail", [prefixOp(930, 929)]).
+  operator("fail", [prefixOp(830, 829)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
   operator("type", [prefixOp(1251, 1250)]).
