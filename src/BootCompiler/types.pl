@@ -350,7 +350,7 @@ isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 mkRefTp(A,tpExp(tpFun("ref",1),A)).
 
 isEitherTp(T,A,B) :-
-  isTypeExp(tpFun("star.either*either",2),[A,B]).
+  isTypeExp(T,tpFun("star.either*either",2),[A,B]).
 
 eitherType(A,B,Tp) :-
   mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).

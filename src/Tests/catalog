@@ -166,6 +166,7 @@
     "test.tm" : "tm.star",
     "test.tp1": "tp1.star",
     "test.tr": "tr.star",
+    "test.tr1": "tr1.star",
     "test.trec": "trec.star",
     "test.ts": "ts.star",
     "test.ts0": "ts0.star",

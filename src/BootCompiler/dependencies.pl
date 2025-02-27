@@ -304,7 +304,7 @@ collectTermRefs(T,All,Rf,Rfx) :-
 collectTermRefs(T,All,Rf,Rfx) :-
   isTry(T,_,L,C),!,
   collectTermRefs(L,All,Rf,Rf1),
-  collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
+  collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isResult(T,_,R),!,
   collectTermRefs(R,All,Rf,Rfx).
