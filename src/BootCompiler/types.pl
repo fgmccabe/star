@@ -17,6 +17,7 @@
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
+	   isEitherTp/3,eitherType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -348,6 +349,12 @@ isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
 mkRefTp(A,tpExp(tpFun("ref",1),A)).
 
+isEitherTp(T,A,B) :-
+  isTypeExp(tpFun("star.either*either",2),[A,B]).
+
+eitherType(A,B,Tp) :-
+  mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
+
 isTypeLam(Tp) :- isTypeLam(Tp,_).
 
 isTypeLam(Tp,Ar) :- deRef(Tp,TT), isTpLam(TT,Ar).
@@ -371,7 +378,7 @@ isTypeExp(Tp,Op,Args) :-
 
 isTpExp(tpExp(O,A),Op,Args,Ax) :-
   isTpExp(O,Op,Args,[A|Ax]).
-isTpExp(Op,Op,Args,Args).
+isTpExp(O,Op,Args,Args) :- deRef(O,Op).
 
 mkTypeExp(Op,[],Op).
 mkTypeExp(Op,[A|Args],Tp) :-
@@ -590,7 +597,6 @@ mkPtrs(0,[]) :-!.
 mkPtrs(I,[ptrTipe|As]) :-
   I1 is I-1,
   mkPtrs(I1,As).
-
 
 ssTipe(ptrTipe,ss("p")).
 ssTipe(i64Tipe,ss("i")).

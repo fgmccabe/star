@@ -969,6 +969,22 @@ checkAction(A,_,_,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
 checkAction(A,Tp,_HasVal,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,Env,_,ValExp,Opts,Path).
+checkAction(A,Tp,_HasVal,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
+  isResult(A,Lc,E),!,
+  newTypeVar("V",VTp),
+  newTypeVar("_",ErTp),
+  eitherType(VTp,ErTp,ETp),
+  verifyType(Lc,ast(E),ETp,Tp),
+  mkConApply(Lc,name(Lc,"either"),[E],C),
+  typeOfExp(C,Tp,Env,_,ValExp,Opts,Path).
+checkAction(A,Tp,_HasVal,Env,Env,doFail(Lc,ValExp),Opts,Path) :-
+  isFail(A,Lc,E),!,
+  newTypeVar("_",VTp),
+  newTypeVar("E",ErTp),
+  eitherType(VTp,ErTp,ETp),
+  verifyType(Lc,ast(E),ETp,Tp),
+  mkConApply(Lc,name(Lc,"other"),[E],C),
+  typeOfExp(C,Tp,Env,_,ValExp,Opts,Path).
 checkAction(A,_Tp,_HasVal,Env,Ev,doCall(Lc,Thrw),Opts,Path) :-
   isRaise(A,Lc,_E),!,
   newTypeVar("E",ErTp),
