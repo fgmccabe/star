@@ -848,9 +848,9 @@ typeOfExp(Term,Tp,RmTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
 typeOfExp(A,Tp,RmTp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
   isTryCatch(A,Lc,B,E,H),!,
   checkTryCatch(Lc,B,E,H,Tp,RmTp,Env,checker:typeOfExp,Body,Trw,Hndlr,Opts,Path).
-typeOfExp(A,Tp,RmTp,Env,Env,try(Lc,Body,Hndlr),Opts,Path) :-
+typeOfExp(A,Tp,RmTp,Env,Env,try(Lc,Body,Hndlr,ErTp),Opts,Path) :-
   isTry(A,Lc,B,H),!,
-  checkTry(B,H,Tp,RmTp,Env,checker:typeOfExp,Body,Hndlr,Opts,Path).
+  checkTry(B,H,Tp,RmTp,ErTp,Env,checker:typeOfExp,Body,Hndlr,Opts,Path).
 typeOfExp(A,Tp,_RmTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Opts,Path) :-
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
@@ -870,15 +870,15 @@ typeOfExp(A,Tp,RmTp,Env,Ev,result(Lc,ValExp,Tp),Opts,Path) :-
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp,Env),
   mkConApply(Lc,name(Lc,"either"),[E],C),
-  typeOfExp(C,VTp,RmTp,Env,Ev,ValExp,Opts,Path).
-typeOfExp(A,Tp,RmTp,Env,Env,fail(Lc,ValExp,Tp),Opts,Path) :-
+  typeOfExp(C,RmTp,RmTp,Env,Ev,ValExp,Opts,Path).
+typeOfExp(A,Tp,RmTp,Env,Env,result(Lc,ValExp,Tp),Opts,Path) :-
   isFail(A,Lc,E),!,
   newTypeVar("_",VTp),
   newTypeVar("E",ErTp),
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp,Env),
   mkConApply(Lc,name(Lc,"other"),[E],C),
-  typeOfExp(C,ErTp,RmTp,Env,_,ValExp,Opts,Path).
+  typeOfExp(C,RmTp,RmTp,Env,_,ValExp,Opts,Path).
 typeOfExp(Term,Tp,RmTp,Env,Env,Exp,Opts,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,RmTp,Env,Exp,Opts,Path).
@@ -1000,7 +1000,7 @@ checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doResult(Lc,ValExp),Opts,Path) :-
   verifyType(Lc,ast(E),ETp,RmTp),
   mkConApply(Lc,name(Lc,"either"),[E],C),
   typeOfExp(C,VTp,RmTp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doFail(Lc,ValExp),Opts,Path) :-
+checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doResult(Lc,ValExp),Opts,Path) :-
   isFail(A,Lc,E),!,
   newTypeVar("_",VTp),
   newTypeVar("E",ErTp),
@@ -1040,9 +1040,9 @@ checkAction(A,_Tp,RmTp,HasVal,Env,Ev,Act,Opts,Path) :-
 checkAction(A,Tp,RmTp,HasVal,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
   isTryCatch(A,Lc,B,E,H),!,
   checkTryCatch(Lc,B,E,H,Tp,RmTp,Env,checker:tryAction(HasVal),Body,Trw,Hndlr,Opts,Path).
-checkAction(A,Tp,RmTp,HasVal,Env,Env,doTry(Lc,Body,Hndlr),Opts,Path) :-
+checkAction(A,Tp,RmTp,HasVal,Env,Env,doTry(Lc,Body,Hndlr,ErTp),Opts,Path) :-
   isTry(A,Lc,B,H),!,
-  checkTry(B,H,Tp,RmTp,Env,checker:tryAction(HasVal),Body,Hndlr,Opts,Path).
+  checkTry(B,H,Tp,RmTp,ErTp,Env,checker:tryAction(HasVal),Body,Hndlr,Opts,Path).
 checkAction(A,Tp,RmTp,HasVal,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,RmTp,Env,E0,Tst,Opts,Path),
@@ -1118,10 +1118,10 @@ checkTryCatch(Lc,B,E,Hs,Tp,RmTp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path) 
   parseType(E,Env,ErTp),
   tryBlockName(Path,ErTp,ErNm),
   declareTryScope(Lc,ErTp,ErNm,Env,Ev2),
-  call(Check,B,Tp,Ev2,_,Body,Opts,Path),
+  call(Check,B,Tp,RmTp,Ev2,_,Body,Opts,Path),
   checkCases(Hs,ErTp,Tp,RmTp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 
-checkTry(B,Hs,Tp,RmTp,Env,Check,Body,Hndlr,Opts,Path) :-
+checkTry(B,Hs,Tp,RmTp,ErTp,Env,Check,Body,Hndlr,Opts,Path) :-
   newTypeVar("Er",ErTp),
   eitherType(Tp,ErTp,ETp),
   call(Check,B,Tp,ETp,Env,_,Body,Opts,Path),
@@ -1150,8 +1150,8 @@ checkGoal(Term,RmTp,Env,Env,neg(Lc,Rhs),Opts,Path) :-
 checkGoal(Term,RmTp,Env,Ev,match(Lc,Lhs,Rhs),Opts,Path) :-
   isMatch(Term,Lc,P,E),!,
   newTypeVar("_#",TV),
-  typeOfPtn(P,RmTp,TV,Env,Ev,Lhs,Opts,Path),
-  typeOfExp(E,RmTp,TV,Env,_,Rhs,Opts,Path).
+  typeOfPtn(P,TV,RmTp,Env,Ev,Lhs,Opts,Path),
+  typeOfExp(E,TV,RmTp,Env,_,Rhs,Opts,Path).
 checkGoal(Trm,RmTp,Env,Ev,Gl,Opts,Path) :-
   isTuple(Trm,_,[Inner]),
   \+ isTuple(Inner,_), !,

@@ -231,7 +231,7 @@ overloadTerm(svSet(Lc,Th,Vl),Dict,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Vl,Dict,St0,Stx,VV).
 overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
   overloadTryCatch(E,V,H,EE,HH,Dict,St,Stx,resolve:overloadTerm).
-overloadTerm(try(Lc,E,H),Dict,St,Stx,try(Lc,EE,HH)) :-
+overloadTerm(try(Lc,E,H,ErTp),Dict,St,Stx,try(Lc,EE,HH,ErTp)) :-
   overloadTerm(E,Dict,St,St1,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
@@ -292,7 +292,7 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(A,Dict,St1,Stx,AA).
 overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
   overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
-overloadAction(doTry(Lc,E,H),Dict,St,Stx,doTry(Lc,EE,HH)) :-
+overloadAction(doTry(Lc,E,H,ErTp),Dict,St,Stx,doTry(Lc,EE,HH,ErTp)) :-
   overloadTerm(E,Dict,St,St1,EE),
   overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
 overloadAction(doResult(Lc,E),Dict,St,Stx,doResult(Lc,EE)) :-

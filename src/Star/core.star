@@ -134,8 +134,6 @@ star.core {
   public (••):all a,b,c ~~ ((b,b)=>c,(a)=>b)=>(a,a)=>c.
   F •• G => (x,y)=>F(G(x),G(y)).
 
-  public all x,e ~~ result[x,e] ::= ._ok(x) | ._except(e).
-
   public exception ::= .exception(string).
 
   public implementation display[errorCode] => {

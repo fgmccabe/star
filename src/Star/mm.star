@@ -33,10 +33,4 @@
     _raise(S) => other(S).
   }
 
-  public implementation all e ~~ monad[result[e]] => {
-    (bad(E) >>= _) => bad(E).
-    (ok(A) >>= F) => F(A).
-
-    return X => ok(X).
-  }
 
