@@ -182,9 +182,10 @@ ssTrm(tryCtch(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH]))
   ssTrm(T,Dp,TT),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
-ssTrm(tryC(_,B,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
+ssTrm(tryC(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(B,Dp2,BB),
+  ssTrm(E,Dp2,EE),
   ssTrm(H,Dp,HH).
 ssTrm(chk(_,R,_),Dp,sq([lp,ss("?"),RR,rp])) :-!,
   ssTrm(R,Dp,RR).
@@ -801,9 +802,10 @@ validTerm(tryCtch(Lc,B,T,E,H),_,D) :-
   validTerm(B,Lc,D1),
   ptnVars(E,D,D0),
   validTerm(H,Lc,D0).
-validTerm(tryC(Lc,B,H),_,D) :-
+validTerm(tryC(Lc,B,E,H),_,D) :-
   validTerm(B,Lc,D),
-  validTerm(H,Lc,D).
+  ptnVars(E,D,D0),
+  validTerm(H,Lc,D0).
 validTerm(chk(Lc,C,_),_,D) :-
   validTerm(C,Lc,D).
 validTerm(rslt(Lc,C,_),_,D) :-
