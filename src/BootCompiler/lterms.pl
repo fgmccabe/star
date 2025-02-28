@@ -177,11 +177,19 @@ ssTrm(tsk(_,A),Dp,sq([ss("fiber "),AA])) :-
   ssTrm(A,Dp,AA).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
-ssTrm(try(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH])) :-
+ssTrm(tryCtch(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
+ssTrm(tryC(_,B,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
+  Dp2 is Dp+2,
+  ssTrm(B,Dp2,BB),
+  ssTrm(H,Dp,HH).
+ssTrm(chk(_,R,_),Dp,sq([lp,ss("?"),RR,rp])) :-!,
+  ssTrm(R,Dp,RR).
+ssTrm(rslt(_,R,_),Dp,sq([lp,ss("^"),RR,rp])) :-!,
+  ssTrm(R,Dp,RR).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -244,12 +252,20 @@ ssAct(ltt(_,Vr,B,A),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),AA])) :-!,
   ssAct(A,Dp1,AA).
 ssAct(error(_,M),Dp,sq([ss(" error "),MM])) :-
   ssTrm(M,Dp,MM).
-ssAct(try(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
+ssAct(doTryCtch(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE),
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
+ssAct(doTryC(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
+  Dp2 is Dp+2,
+  ssTrm(E,Dp,EE),
+  ssAct(B,Dp2,BB),
+  ssAct(H,Dp2,HH).
+ssAct(doRslt(_,E,_),Dp,sq([ss("^"),EE])) :-!,
+  ssTrm(E,Dp,EE).
+
 ssAct(perf(_,E),Dp,sq([ss("call "),EE])) :-
   ssTrm(E,Dp,EE).
 
@@ -386,11 +402,19 @@ rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
-rewriteTerm(QTest,try(Lc,B,T,E,H),try(Lc,BB,TT,EE,HH)) :-!,
+rewriteTerm(QTest,tryCtch(Lc,B,T,E,H),tryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE),
   rewriteTerm(QTest,B,BB),
   rewriteTerm(QTest,H,HH).
+rewriteTerm(QTest,tryC(Lc,B,E,H),tryC(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(QTest,B,BB),
+  rewriteTerm(QTest,E,EE),
+  rewriteTerm(QTest,H,HH).
+rewriteTerm(QTest,chk(Lc,R,Tp),chk(Lc,NR,Tp)) :-
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,rslt(Lc,R,Tp),rslt(Lc,NR,Tp)) :-
+  rewriteTerm(QTest,R,NR).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
@@ -448,11 +472,17 @@ rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
   rewriteAction(lterms:checkV(V,QTest),B,BB).
 rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
-rewriteAction(QTest,try(Lc,B,T,E,H),try(Lc,BB,TT,EE,HH)) :-!,
+rewriteAction(QTest,doTryCtch(Lc,B,T,E,H),doTryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
+rewriteAction(QTest,doTryC(Lc,B,E,H),doTryC(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(QTest,E,EE),
+  rewriteAction(QTest,B,BB),
+  rewriteAction(QTest,H,HH).
+rewriteAction(QTest,doRslt(Lc,E,Tp),doRslt(Lc,EE,Tp)) :-!,
+  rewriteTerm(QTest,E,EE).
   
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
@@ -606,8 +636,12 @@ inAction(ltt(_,_,E,B),Nm) :-!,
   (inTerm(E,Nm) ; inAction(B,Nm)).
 inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
-inAction(try(_,B,T,E,H),Nm) :-!,
+inAction(doTryCtch(_,B,T,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
+inAction(doTryC(_,B,E,H),Nm) :-!,
+  (inAction(B,Nm) ;  inTerm(E,Nm) ; inAction(H,Nm)).
+inAction(doRslt(_,E,_),Nm) :- !,
+  inTerm(E,Nm).
 
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
@@ -762,11 +796,18 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
-validTerm(try(Lc,B,T,E,H),_,D) :-
+validTerm(tryCtch(Lc,B,T,E,H),_,D) :-
   declareArg(T,D,D1),
   validTerm(B,Lc,D1),
   ptnVars(E,D,D0),
   validTerm(H,Lc,D0).
+validTerm(tryC(Lc,B,H),_,D) :-
+  validTerm(B,Lc,D),
+  validTerm(H,Lc,D).
+validTerm(chk(Lc,C,_),_,D) :-
+  validTerm(C,Lc,D).
+validTerm(rslt(Lc,C,_),_,D) :-
+  validTerm(C,Lc,D).
 validTerm(seqD(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
@@ -902,12 +943,17 @@ validAction(ltt(Lc,V,E,B),_,D,D) :-!,
   validAction(B,Lc,D1,_).
 validAction(error(Lc,M),_,D,D) :-
   validTerm(M,Lc,D).
-validAction(try(Lc,B,T,E,H),_,D,D) :-
+validAction(doTryCtch(Lc,B,T,E,H),_,D,D) :-
   declareArg(T,D,D1),
   validAction(B,Lc,D1,_),
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
-
+validAction(doTryC(Lc,B,E,H),_,D,D) :-
+  validAction(B,Lc,D,_),
+  ptnVars(E,D,D0),
+  validAction(H,Lc,D0,_).
+validAction(doRslt(Lc,C,_),_,D,D) :-
+  validTerm(C,Lc,D).
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 

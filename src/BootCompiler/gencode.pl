@@ -254,8 +254,8 @@ compAction(iftte(Lc,G,A,B),OLc,Brks,Last,Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compAction(A,Lc,Brks,Last,Next,Opts,L2,L3,D1,D2,AC1,[iBreak(Thn)],Stk,Stka),
   compAction(B,Lc,Brks,Last,Next,Opts,L3,Lx,D2,Dx,BC,[iBreak(Thn)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"conditional action").
-compAction(try(Lc,B,T,E,H),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  compTry(Lc,B,tplTipe([]),T,E,H,OLc,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stka),
+compAction(doTryCtch(Lc,B,T,E,H),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+  compTryCtch(Lc,B,tplTipe([]),T,E,H,OLc,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stka),
   verify(gencode:consistentStack(Stk,Stka),"try action not permitted to leave stuff on stack").
 compAction(vls(Lc,E),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   (is_member(("$valof",Brker,Ok,_),Brks) ->
@@ -272,7 +272,7 @@ compAction(A,Lc,_Brks,_Last,_Next,_Opts,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-
 compAct(Next,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Brks,Last,Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
-compTry(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+compTryCtch(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iTry(TryTp,[iStL(TV)|BC])|HC]))|Cz]),
   genLbl(L,Ok,L1),
   nearlyFlatSig(ResTp,BlkTp),
@@ -591,8 +591,8 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   nearlyFlatSig(ptrTipe,CaseBlkTp),
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(try(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compTry(Lc,B,ptrTipe,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compExp(tryCtch(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compTryCtch(Lc,B,ptrTipe,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),

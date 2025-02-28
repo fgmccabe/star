@@ -71,6 +71,14 @@ freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex1,Q,F,F0),
   freeVars(T,Ex1,Q,F0,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
+freeVars(try(_,B,H,_ErTp),Ex,Q,F,Fv) :-!,
+  freeVars(B,Ex,Q,F,F1),
+  freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
+freeVars(check(_,A,_),Ex,Q,F,Fv) :-!,
+  freeVars(A,Ex,Q,F,Fv).
+freeVars(result(_,A,_),Ex,Q,F,Fv) :-!,
+  freeVars(A,Ex,Q,F,Fv).
+
 freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
 freeVars(T,_,_,F,F) :-
@@ -104,6 +112,11 @@ freeVarsInAction(doTryCatch(_,B,T,H),Ex,Exx,Q,F,Fv) :-!,
   freeVars(T,Ex1,Q,F,F0),
   freeVarsInAction(B,Ex1,Exx,Q,F0,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F1,Fv).
+freeVarsInAction(doTry(_,B,H,_),Ex,Exx,Q,F,Fv) :-!,
+  freeVarsInAction(B,Ex,Exx,Q,F,F0),
+  freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F0,Fv).
+freeVarsInAction(doResult(_,E),Ex,Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Exx,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
   freeVars(T,Ex1,Q,F,F0),
