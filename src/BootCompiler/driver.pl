@@ -55,6 +55,8 @@ parseFlags(['-ti'|More],CWD,Cx,[traceGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-da'|More],CWD,Cx,[showAst|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-dm'|More],CWD,Cx,[showMacro|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dd'|More],CWD,Cx,[showGroups|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dc'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
@@ -135,9 +137,10 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   startCount,
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
+  (is_member(showAst,Opts) -> dispAst(Term) ; true),
   noErrors,
   macroPkg(Term,Prog),
-  (is_member(showAst,Opts) -> dispAst(Prog) ; true),
+  (is_member(showMacro,Opts) -> dispAst(Prog) ; true),
   (\+ is_member(macroOnly,Opts), noErrors ->
    checkProgram(Prog,Pkg,Repo,Opts,PkgDecls,Canon),!,
    (is_member(showTCCode,Opts) -> dispCanonProg(Canon);true),

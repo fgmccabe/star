@@ -60,6 +60,7 @@ isCanon(tryCatch(_,_,_,_)).
 isCanon(try(_,_,_,_)).
 isCanon(check(_,_,_)).
 isCanon(result(_,_,_)).
+isCanon(fail(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -131,6 +132,7 @@ typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
 typeOfCanon(try(_,E,_,_),Tp) :- !, typeOfCanon(E,Tp).
 typeOfCanon(check(_,_,Tp),Tp) :-!.
 typeOfCanon(result(_,_,Tp),Tp) :-!.
+typeOfCanon(fail(_,_,Tp),Tp) :-!.
 
 typesOf([],[]).
 typesOf([C|Cs],[Tp|Tps]) :-
@@ -168,6 +170,7 @@ locOfCanon(tryCatch(Lc,_,_,_),Lc) :-!.
 locOfCanon(try(Lc,_,_,_),Lc) :-!.
 locOfCanon(check(Lc,_,_),Lc) :-!.
 locOfCanon(result(Lc,_,_),Lc) :-!.
+locOfCanon(fail(Lc,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
@@ -190,6 +193,7 @@ locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_,_),Lc) :- !.
 locOfCanon(doTry(Lc,_,_,_),Lc) :-!.
 locOfCanon(doResult(Lc,_),Lc) :-!.
+locOfCanon(doFail(Lc,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
@@ -323,7 +327,10 @@ ssTerm(try(_,A,Hs,_),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
 ssTerm(check(_,T,_),Dp,sq([ss("?"),TT])) :-
   Dp2 is Dp+2,
   ssTerm(T,Dp2,TT).
-ssTerm(result(_,T,_),Dp,sq([ss("^"),TT])) :-
+ssTerm(result(_,T,_),Dp,sq([ss("result"),TT])) :-
+  Dp2 is Dp+2,
+  ssTerm(T,Dp2,TT).
+ssTerm(fail(_,T,_),Dp,sq([ss("fail"),TT])) :-
   Dp2 is Dp+2,
   ssTerm(T,Dp2,TT).
 
@@ -365,6 +372,8 @@ ssAction(doTry(_,A,Hs,_),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
 ssAction(doResult(_,E),Dp,sq([ss("result "),EE])) :-!,
+  ssTerm(E,Dp,EE).
+ssAction(doFail(_,E),Dp,sq([ss("fail "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doIfThenElse(_,T,A,doNop(_)),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
   Dp2 is Dp+2,

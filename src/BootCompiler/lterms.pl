@@ -191,6 +191,8 @@ ssTrm(chk(_,R,_),Dp,sq([lp,ss("?"),RR,rp])) :-!,
   ssTrm(R,Dp,RR).
 ssTrm(rslt(_,R,_),Dp,sq([lp,ss("^"),RR,rp])) :-!,
   ssTrm(R,Dp,RR).
+ssTrm(fayle(_,R,_),Dp,sq([lp,ss("fail "),RR,rp])) :-!,
+  ssTrm(R,Dp,RR).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -264,7 +266,9 @@ ssAct(doTryC(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
   ssTrm(E,Dp,EE),
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
-ssAct(doRslt(_,E,_),Dp,sq([ss("^"),EE])) :-!,
+ssAct(doRslt(_,E,_),Dp,sq([ss("result "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(doFayle(_,E,_),Dp,sq([ss("fail "),EE])) :-!,
   ssTrm(E,Dp,EE).
 
 ssAct(perf(_,E),Dp,sq([ss("call "),EE])) :-
@@ -416,6 +420,8 @@ rewriteTerm(QTest,chk(Lc,R,Tp),chk(Lc,NR,Tp)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,rslt(Lc,R,Tp),rslt(Lc,NR,Tp)) :-
   rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,fayle(Lc,R,Tp),fayle(Lc,NR,Tp)) :-
+  rewriteTerm(QTest,R,NR).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
@@ -483,6 +489,8 @@ rewriteAction(QTest,doTryC(Lc,B,E,H),doTryC(Lc,BB,EE,HH)) :-!,
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
 rewriteAction(QTest,doRslt(Lc,E,Tp),doRslt(Lc,EE,Tp)) :-!,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,doFayle(Lc,E,Tp),doFayle(Lc,EE,Tp)) :-!,
   rewriteTerm(QTest,E,EE).
   
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
@@ -642,6 +650,8 @@ inAction(doTryCtch(_,B,T,E,H),Nm) :-!,
 inAction(doTryC(_,B,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(E,Nm) ; inAction(H,Nm)).
 inAction(doRslt(_,E,_),Nm) :- !,
+  inTerm(E,Nm).
+inAction(doFayle(_,E,_),Nm) :- !,
   inTerm(E,Nm).
 
 isCnd(cnj(_,_,_)).
@@ -810,6 +820,8 @@ validTerm(chk(Lc,C,_),_,D) :-
   validTerm(C,Lc,D).
 validTerm(rslt(Lc,C,_),_,D) :-
   validTerm(C,Lc,D).
+validTerm(fayle(Lc,C,_),_,D) :-
+  validTerm(C,Lc,D).
 validTerm(seqD(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
@@ -955,6 +967,8 @@ validAction(doTryC(Lc,B,E,H),_,D,D) :-
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
 validAction(doRslt(Lc,C,_),_,D,D) :-
+  validTerm(C,Lc,D).
+validAction(dofayle(Lc,C,_),_,D,D) :-
   validTerm(C,Lc,D).
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).

@@ -78,6 +78,8 @@ freeVars(check(_,A,_),Ex,Q,F,Fv) :-!,
   freeVars(A,Ex,Q,F,Fv).
 freeVars(result(_,A,_),Ex,Q,F,Fv) :-!,
   freeVars(A,Ex,Q,F,Fv).
+freeVars(fail(_,A,_),Ex,Q,F,Fv) :-!,
+  freeVars(A,Ex,Q,F,Fv).
 
 freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
@@ -116,6 +118,8 @@ freeVarsInAction(doTry(_,B,H,_),Ex,Exx,Q,F,Fv) :-!,
   freeVarsInAction(B,Ex,Exx,Q,F,F0),
   freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F0,Fv).
 freeVarsInAction(doResult(_,E),Ex,Ex,Q,F,Fv) :-!,
+  freeVars(E,Ex,Q,F,Fv).
+freeVarsInAction(doFail(_,E),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Exx,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
