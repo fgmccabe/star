@@ -397,6 +397,8 @@ liftExp(check(Lc,E,Tp),chk(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(result(Lc,E,Tp),rslt(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(fail(Lc,E,Tp),fayle(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
@@ -501,6 +503,8 @@ liftAction(doTry(Lc,B,H,ErTp),doTryC(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("_E",ErTp,E),
   actionCaseMatcher(Lc,E,Cases,Map,HH).
 liftAction(doResult(Lc,E,Tp),doRslt(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
+liftAction(doFail(Lc,E,Tp),doFayle(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doCall(Lc,E),perf(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).

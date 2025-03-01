@@ -633,7 +633,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx.mtd, litNo);
         if (!isALabel(lit))
-          return verifyError(&ctx, ".%d: invalid label: %t", pc, lit);
+          return verifyError(&ctx, ".%d: invalid label: %T", pc, lit);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;

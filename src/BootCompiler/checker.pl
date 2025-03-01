@@ -863,22 +863,20 @@ typeOfExp(A,Tp,RmTp,Env,Ev,check(Lc,Vl,Tp),Opts,Path) :-
   verifyType(Lc,ast(A),ETp,RmTp,Env),
   eitherType(Tp,ErTp,CTp),
   typeOfExp(R,CTp,RmTp,Env,Ev,Vl,Opts,Path).
-typeOfExp(A,Tp,RmTp,Env,Ev,result(Lc,ValExp,Tp),Opts,Path) :-
+typeOfExp(A,Tp,RmTp,Env,Env,result(Lc,ValExp,Tp),Opts,Path) :-
   isResult(A,Lc,E),!,
   newTypeVar("V",VTp),
   newTypeVar("_",ErTp),
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp,Env),
-  mkConApply(Lc,name(Lc,"either"),[E],C),
-  typeOfExp(C,RmTp,RmTp,Env,Ev,ValExp,Opts,Path).
-typeOfExp(A,Tp,RmTp,Env,Env,result(Lc,ValExp,Tp),Opts,Path) :-
+  typeOfExp(E,VTp,voidType,Env,_,ValExp,Opts,Path).
+typeOfExp(A,Tp,RmTp,Env,Env,fail(Lc,ValExp,Tp),Opts,Path) :-
   isFail(A,Lc,E),!,
   newTypeVar("_",VTp),
   newTypeVar("E",ErTp),
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp,Env),
-  mkConApply(Lc,name(Lc,"other"),[E],C),
-  typeOfExp(C,RmTp,RmTp,Env,_,ValExp,Opts,Path).
+  typeOfExp(E,ErTp,voidType,Env,_,ValExp,Opts,Path).
 typeOfExp(Term,Tp,RmTp,Env,Env,Exp,Opts,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,RmTp,Env,Exp,Opts,Path).
@@ -998,16 +996,14 @@ checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doResult(Lc,ValExp),Opts,Path) :-
   newTypeVar("_",ErTp),
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp),
-  mkConApply(Lc,name(Lc,"either"),[E],C),
-  typeOfExp(C,VTp,RmTp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doResult(Lc,ValExp),Opts,Path) :-
+  typeOfExp(E,VTp,RmTp,Env,_,ValExp,Opts,Path).
+checkAction(A,_Tp,RmTp,_HasVal,Env,Env,doFail(Lc,ValExp),Opts,Path) :-
   isFail(A,Lc,E),!,
   newTypeVar("_",VTp),
   newTypeVar("E",ErTp),
   eitherType(VTp,ErTp,ETp),
   verifyType(Lc,ast(E),ETp,RmTp),
-  mkConApply(Lc,name(Lc,"other"),[E],C),
-  typeOfExp(C,ErTp,RmTp,Env,_,ValExp,Opts,Path).
+  typeOfExp(E,ErTp,RmTp,Env,_,ValExp,Opts,Path).
 checkAction(A,_Tp,_RmTp,_HasVal,Env,Ev,doCall(Lc,Thrw),Opts,Path) :-
   isRaise(A,Lc,_E),!,
   newTypeVar("C",ErTp),

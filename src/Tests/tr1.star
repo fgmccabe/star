@@ -4,7 +4,7 @@ test.tr1{
   import star.assert.
   
   isOdd:(integer) => either[boolean,string].
-  isOdd(X) => (X.&.1==0 ?? fail "not odd" || result .true).
+  isOdd(X) => (X.&.1==0 ?? fail "$(X) is not odd" || result .true).
 
   checkMe:(integer) => boolean.
   checkMe(X) => (try
