@@ -231,18 +231,9 @@ overloadTerm(svSet(Lc,Th,Vl),Dict,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Vl,Dict,St0,Stx,VV).
 overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
   overloadTryCatch(E,V,H,EE,HH,Dict,St,Stx,resolve:overloadTerm).
-overloadTerm(try(Lc,E,H,ErTp),Dict,St,Stx,try(Lc,EE,HH,ErTp)) :-
-  overloadTerm(E,Dict,St,St1,EE),
-  overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(result(Lc,E,Tp),Dict,St,Stx,result(Lc,EE,Tp)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
-overloadTerm(fail(Lc,E,Tp),Dict,St,Stx,fail(Lc,EE,Tp)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
-overloadTerm(check(Lc,E,Tp),Dict,St,Stx,check(Lc,EE,Tp)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
@@ -292,13 +283,6 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(A,Dict,St1,Stx,AA).
 overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
   overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
-overloadAction(doTry(Lc,E,H,ErTp),Dict,St,Stx,doTry(Lc,EE,HH,ErTp)) :-
-  overloadTerm(E,Dict,St,St1,EE),
-  overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
-overloadAction(doResult(Lc,E),Dict,St,Stx,doResult(Lc,EE)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
-overloadAction(doFail(Lc,E),Dict,St,Stx,doFail(Lc,EE)) :-
-  overloadTerm(E,Dict,St,Stx,EE).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
   overloadAction(A,Dict,St1,St2,AA),

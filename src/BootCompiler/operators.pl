@@ -27,7 +27,6 @@
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
-  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -35,7 +34,6 @@
   operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
-  operator("result", [prefixOp(830, 829)]).
   operator("••", [infixOp(450, 450, 449)]).
   operator("..<", [infixOp(749, 750, 749)]).
   operator("**", [infixOp(600, 600, 599)]).
@@ -84,7 +82,6 @@
   operator("show", [prefixOp(1240, 1239)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
-  operator("?", [prefixOp(305, 304)]).
   operator("return", [prefixOp(930, 929)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("|=", [infixOp(998, 999, 998)]).
@@ -122,7 +119,6 @@
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("implementation", [prefixOp(1260, 1259)]).
   operator(">>=", [infixOp(949, 950, 950)]).
-  operator("fail", [prefixOp(830, 829)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
   operator("type", [prefixOp(1251, 1250)]).
@@ -345,7 +341,6 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
-  final('?',"?").	 /* inspect a result expression */
   final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
@@ -363,7 +358,6 @@
   keyword("&&").
   keyword("let").
   keyword("~>").
-  keyword("throw").
   keyword("{.").
   keyword("do").
   keyword("import").
@@ -371,7 +365,6 @@
   keyword("valis").
   keyword(",..").
   keyword("for").
-  keyword("result").
   keyword("..<").
   keyword("..>").
   keyword("{?").
@@ -407,7 +400,6 @@
   keyword("=>>").
   keyword("=").
   keyword("|:").
-  keyword("?").
   keyword("@").
   keyword("|=").
   keyword("|>").
@@ -437,7 +429,6 @@
   keyword(":?").
   keyword("implementation").
   keyword("<|").
-  keyword("fail").
   keyword("<~").
   keyword("{").
   keyword("type").
