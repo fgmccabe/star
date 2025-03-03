@@ -182,17 +182,6 @@ ssTrm(tryCtch(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH]))
   ssTrm(T,Dp,TT),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
-ssTrm(tryC(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
-  Dp2 is Dp+2,
-  ssTrm(B,Dp2,BB),
-  ssTrm(E,Dp2,EE),
-  ssTrm(H,Dp,HH).
-ssTrm(chk(_,R,_),Dp,sq([lp,ss("?"),RR,rp])) :-!,
-  ssTrm(R,Dp,RR).
-ssTrm(rslt(_,R,_),Dp,sq([lp,ss("^"),RR,rp])) :-!,
-  ssTrm(R,Dp,RR).
-ssTrm(fayle(_,R,_),Dp,sq([lp,ss("fail "),RR,rp])) :-!,
-  ssTrm(R,Dp,RR).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -261,15 +250,6 @@ ssAct(doTryCtch(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,s
   ssTrm(E,Dp,EE),
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
-ssAct(doTryC(_,B,E,H),Dp,sq([ss("try "),BB,ss(" catch "),EE,ss(" in "),HH])) :-
-  Dp2 is Dp+2,
-  ssTrm(E,Dp,EE),
-  ssAct(B,Dp2,BB),
-  ssAct(H,Dp2,HH).
-ssAct(doRslt(_,E,_),Dp,sq([ss("result "),EE])) :-!,
-  ssTrm(E,Dp,EE).
-ssAct(doFayle(_,E,_),Dp,sq([ss("fail "),EE])) :-!,
-  ssTrm(E,Dp,EE).
 
 ssAct(perf(_,E),Dp,sq([ss("call "),EE])) :-
   ssTrm(E,Dp,EE).
@@ -412,16 +392,6 @@ rewriteTerm(QTest,tryCtch(Lc,B,T,E,H),tryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteTerm(QTest,B,BB),
   rewriteTerm(QTest,H,HH).
-rewriteTerm(QTest,tryC(Lc,B,E,H),tryC(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(QTest,B,BB),
-  rewriteTerm(QTest,E,EE),
-  rewriteTerm(QTest,H,HH).
-rewriteTerm(QTest,chk(Lc,R,Tp),chk(Lc,NR,Tp)) :-
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,rslt(Lc,R,Tp),rslt(Lc,NR,Tp)) :-
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,fayle(Lc,R,Tp),fayle(Lc,NR,Tp)) :-
-  rewriteTerm(QTest,R,NR).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
@@ -484,14 +454,6 @@ rewriteAction(QTest,doTryCtch(Lc,B,T,E,H),doTryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
-rewriteAction(QTest,doTryC(Lc,B,E,H),doTryC(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(QTest,E,EE),
-  rewriteAction(QTest,B,BB),
-  rewriteAction(QTest,H,HH).
-rewriteAction(QTest,doRslt(Lc,E,Tp),doRslt(Lc,EE,Tp)) :-!,
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,doFayle(Lc,E,Tp),doFayle(Lc,EE,Tp)) :-!,
-  rewriteTerm(QTest,E,EE).
   
 rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
@@ -647,12 +609,6 @@ inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
 inAction(doTryCtch(_,B,T,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
-inAction(doTryC(_,B,E,H),Nm) :-!,
-  (inAction(B,Nm) ;  inTerm(E,Nm) ; inAction(H,Nm)).
-inAction(doRslt(_,E,_),Nm) :- !,
-  inTerm(E,Nm).
-inAction(doFayle(_,E,_),Nm) :- !,
-  inTerm(E,Nm).
 
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
@@ -812,16 +768,6 @@ validTerm(tryCtch(Lc,B,T,E,H),_,D) :-
   validTerm(B,Lc,D1),
   ptnVars(E,D,D0),
   validTerm(H,Lc,D0).
-validTerm(tryC(Lc,B,E,H),_,D) :-
-  validTerm(B,Lc,D),
-  ptnVars(E,D,D0),
-  validTerm(H,Lc,D0).
-validTerm(chk(Lc,C,_),_,D) :-
-  validTerm(C,Lc,D).
-validTerm(rslt(Lc,C,_),_,D) :-
-  validTerm(C,Lc,D).
-validTerm(fayle(Lc,C,_),_,D) :-
-  validTerm(C,Lc,D).
 validTerm(seqD(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
@@ -962,14 +908,6 @@ validAction(doTryCtch(Lc,B,T,E,H),_,D,D) :-
   validAction(B,Lc,D1,_),
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
-validAction(doTryC(Lc,B,E,H),_,D,D) :-
-  validAction(B,Lc,D,_),
-  ptnVars(E,D,D0),
-  validAction(H,Lc,D0,_).
-validAction(doRslt(Lc,C,_),_,D,D) :-
-  validTerm(C,Lc,D).
-validAction(dofayle(Lc,C,_),_,D,D) :-
-  validTerm(C,Lc,D).
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 

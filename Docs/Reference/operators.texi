@@ -26,10 +26,6 @@
 @tab non-associative infix
 @tab 1231
 @tab type function
-@item @code{throw}
-@tab non-associative prefix
-@tab 930
-@tab perform an effect
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -62,10 +58,6 @@
 @tab non-associative prefix
 @tab 1175
 @tab for ... do @{@}
-@item @code{result}
-@tab non-associative prefix
-@tab 830
-@tab return a positive result
 @item @code{••}
 @tab left associative infix
 @tab 450
@@ -298,10 +290,6 @@
 @tab non-associative infix
 @tab 900
 @tab greater than
-@item @code{?}
-@tab non-associative prefix
-@tab 305
-@tab inspect a result expression
 @item @code{return}
 @tab non-associative prefix
 @tab 930
@@ -462,10 +450,6 @@
 @tab right associative infix
 @tab 950
 @tab monadic bind
-@item @code{fail}
-@tab non-associative prefix
-@tab 830
-@tab return a negative result
 @item @code{^/}
 @tab left associative infix
 @tab 960
@@ -532,38 +516,35 @@
 @headitem Keyword @tab Keyword @tab Keyword
 @item @code{all}
 @tab @code{let}
-@tab @code{throw}
-@item @code{do}
-@tab @code{import}
+@tab @code{do}
+@item @code{import}
 @tab @code{catch}
-@item @code{valis}
-@tab @code{for}
-@tab @code{result}
-@item @code{raise}
+@tab @code{valis}
+@item @code{for}
+@tab @code{raise}
 @tab @code{async}
-@tab @code{then}
-@item @code{ζ}
+@item @code{then}
+@tab @code{ζ}
 @tab @code{default}
-@tab @code{resume}
-@item @code{contract}
+@item @code{resume}
+@tab @code{contract}
 @tab @code{raises}
-@tab @code{try}
-@item @code{exists}
+@item @code{try}
+@tab @code{exists}
 @tab @code{if}
-@tab @code{in}
-@item @code{break}
+@item @code{in}
+@tab @code{break}
 @tab @code{suspend}
-@tab @code{public}
-@item @code{ref}
+@item @code{public}
+@tab @code{ref}
 @tab @code{where}
-@tab @code{case}
-@item @code{generator}
+@item @code{case}
+@tab @code{generator}
 @tab @code{valof}
-@tab @code{yield}
-@item @code{while}
+@item @code{yield}
+@tab @code{while}
 @tab @code{private}
-@tab @code{implementation}
-@item @code{fail}
+@item @code{implementation}
 @tab @code{type}
 @tab @code{else}
 
@@ -616,40 +597,39 @@
   @item @code{|:}
   @tab @code{++}
   @tab @code{>}
-  @tab @code{?}
   @tab @code{@@}
-  @item @code{|=}
-  @tab @code{~~}
+  @tab @code{|=}
+  @item @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @item @code{//}
-  @tab @code{.~.}
+  @tab @code{//}
+  @item @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @item @code{=>}
-  @tab @code{<=>}
+  @tab @code{=>}
+  @item @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @item @code{::}
-  @tab @code{+++}
+  @tab @code{::}
+  @item @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @item @code{>>=}
-  @tab @code{^/}
+  @tab @code{>>=}
+  @item @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @item @code{~}
-  @tab @code{^//}
+  @tab @code{~}
+  @item @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @item @code{>=}
-  @tab @code{>>}
+  @tab @code{>=}
+  @item @code{>>}
 
 @end multitable
 @end float
