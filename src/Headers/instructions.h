@@ -46,6 +46,7 @@ instruction(Resume, tOs, tOs, -1, "F(pp)()", "resume fiber")
 instruction(Retire, tOs, tOs, -2, "F(pp)v", "retire a fiber")
 instruction(Underflow, nOp, nOp, 0, "F()()", "underflow from current stack")
 
+instruction(VoidTry, nOp, nOp, 1, "F()p", "generate a void handler code")
 instruction(Try, tPe, bLk, 1, "F()p", "a try-catch block")
 instruction(EndTry, tOs, lVl, -1, "F(p)()", "end try")
 instruction(TryRslt, tOs, lVl, -1, "F(pp)p", "end try with a  result")

@@ -94,7 +94,7 @@ escapeType("_cell_future",allType(kVar("s"),allType(kVar("e"),funType(tplType([t
 escapeType("_futureIsResolved",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
 escapeType("_futureIsAccepted",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
 escapeType("_futureIsRejected",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
-escapeType("_futureVal",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),tpExp(tpExp(tpFun("star.either*either",2),kVar("a")),kVar("e")))))).
+escapeType("_futureVal",allType(kVar("a"),allType(kVar("e"),constrained(funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),kVar("a")),raises(kVar("e")))))).
 escapeType("_tuple_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer")]),kVar("e"))))).
 escapeType("_tuple_set_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer"),kVar("e")]),kVar("a"))))).
 escapeType("_cwd",funType(tplType([]),type("string"))).
