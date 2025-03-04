@@ -6,6 +6,7 @@
 #include <globals.h>
 #include "stackP.h"
 #include "engineP.h"
+
 #ifdef TRACESTACK
 #include "debugP.h"
 
@@ -92,8 +93,8 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
   stk->sze = sze;
   stk->hwm = sze;
   stk->sp = &stk->stkMem[sze];
-  stk->fp = (framePo) stk->sp;
-  stk->try = (tryFramePo) stk->sp;
+  stk->fp = baseFrame(stk);
+  stk->tp = baseTry(stk);
   stk->attachment = attachment;
   stk->bottom = (state == active ? Null : stk);
   stk->state = state;
@@ -164,15 +165,15 @@ void propagateHwm(stackPo tsk) {
 }
 
 framePo pushFrame(stackPo stk, methodPo mtd) {
-  framePo f = ((framePo) stk->sp) - 1;
-  assert(validFP(stk, stk->fp));
+  assert(stackHasSpace(stk, FrameCellCount));
+  framePo f = (framePo) maxPtr(((ptrPo) (stk->fp + 1)), ((ptrPo) (stk->tp + 1)));
 
   f->pool = codeLits(mtd);
   f->pc = entryPoint(mtd);
   f->fp = stk->fp;
+  f->args = stk->sp;
 
   stk->fp = f;
-  stk->sp = (ptrPo) f;
 
   return f;
 }
@@ -194,9 +195,9 @@ void stackSanityCheck(stackPo stk) {
       assert(stk->stkMem == Null);
       return;
   }
-  assert(validStkPtr(stk, stk->sp) && validFP(stk, stk->fp) && stk->sp <= (ptrPo) stk->fp);
-  assert(stk->try <= tryLimit(stk));
-  assert((ptrPo) stk->try >= stk->sp);
+  assert(stk->fp >= baseFrame(stk) && ((ptrPo) (stk->fp + 1)) < stk->sp);
+  assert(stk->try >= baseTry(stk));
+  assert((ptrPo) stk->try < stk->sp);
   assert(!inFreeBlock(stackRegion, stk->stkMem));
 }
 
@@ -210,18 +211,18 @@ void verifyStack(stackPo stk, heapPo H) {
       ptrPo spLimit = stackLimit(stk);
       framePo fp = stk->fp;
       framePo fpLimit = baseFrame(stk);
-      tryFramePo try = stk->try;
-      tryFramePo trLimit = tryLimit(stk);
+      tryFramePo try = stk->tp;
+      tryFramePo trLimit = baseTry(stk);
 
-      while (fp < fpLimit || sp < spLimit || try < trLimit) {
-        if (sp < (ptrPo) try && sp < (ptrPo) fp)
-          validPtr(H, *sp++);
-        else if (sp == (ptrPo) try) {
-          check((ptrPo) try < (ptrPo) fp, "out of balance frame");
+      while (fp > fpLimit || try > trLimit) {
+        if((ptrPo)try>(ptrPo)fp){  // We have a tryFrame to check
           check(validFP(stk, try->fp), "invalid try frame pointer");
-          sp = (ptrPo) (try + 1);
+          check(try->tp<try,"try frame pointer not pointing to earlier frame");
+          check(try->sp >= sp, "try sp not in order");
+          check(try->fp<=fp,"try fp out of order");
           try = try->try;
         } else {
+          
           check(sp == (ptrPo) fp, "expecting a frame here");
           check(isMethod((termPo) frameMtd(fp)), "expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
@@ -229,6 +230,10 @@ void verifyStack(stackPo stk, heapPo H) {
           fp = fp->fp;
         }
       }
+
+      // Walk the value stack...
+      for (ptrPo p = stk->sp; p < spLimit; p++)
+        validPtr(H, p);
 
       stk = stk->attachment;
     }
@@ -310,42 +315,6 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
       return Null;
   }
   return Null;
-}
-
-// Drop the try block without touching anything else
-retCode dropTryFrame(processPo P, integer tryIndex) {
-  stackPo stk = P->stk;
-
-  while (stk != Null) {
-    tryFramePo try = stk->try;
-
-    while (try < tryLimit(stk)) {
-      if (try->tryIndex == tryIndex) {
-        stk->try = try->try;
-        return Ok;
-      } else
-        try = stk->try = try->try;
-    }
-    if (stk->attachment != Null) {
-      stk = stk->attachment;
-    } else
-      return Error;
-  }
-  return Error;
-}
-
-integer tryStackSize(processPo P) {
-  integer size = 0;
-  stackPo stk = P->stk;
-  while (stk != Null) {
-    tryFramePo try = stk->try;
-    while (try < tryLimit(stk)) {
-      size++;
-      try = try->try;
-    }
-    stk = stk->attachment;
-  }
-  return size;
 }
 
 void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
@@ -465,7 +434,7 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
           outMsg(out, "(");
           char *sep = "";
           for (integer ix = 0; ix < count; ix++) {
-            outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(stk, fp, ix));
+            outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(fp, ix));
             sep = ", ";
           }
           outMsg(out, ")\n");
@@ -477,14 +446,14 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
         outMsg(out, "(");
         char *sep = "";
         for (integer ix = 0; ix < count; ix++) {
-          outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(stk, fp, ix));
+          outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(fp, ix));
           sep = ", ";
         }
         outMsg(out, ")\n");
         count = lclCount(mtd);
 
         for (integer vx = 1; vx <= count; vx++) {
-          ptrPo var = stackLcl(stk, fp, vx);
+          ptrPo var = stackLcl(fp, vx);
           if (*var != Null && *var != voidEnum)
             outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
         }
