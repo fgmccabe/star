@@ -98,7 +98,7 @@ star.compiler.escapes{
     | "_futureIsResolved" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
     | "_futureIsAccepted" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
     | "_futureIsRejected" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
-    | "_futureVal" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.tpExp(.tpExp(.tpFun("star.either*either",2),.kVar("a")),.kVar("e"))))))
+    | "_futureVal" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.kVar("a")),.raisEs(.kVar("e"))))))
     | "_tuple_nth" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("integer")])),.kVar("e")))))
     | "_tuple_set_nth" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("integer"),.kVar("e")])),.kVar("a")))))
     | "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("string")))

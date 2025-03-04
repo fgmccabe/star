@@ -98,7 +98,6 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
   stk->bottom = (state == active ? Null : stk);
   stk->state = state;
   stk->hash = stackCount++;
-  stk->counter = 0;
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)

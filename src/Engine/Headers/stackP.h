@@ -18,6 +18,8 @@ typedef struct stack_frame_ {
   normalPo pool;                // The constant pool
 } StackFrame;
 
+#define STACKFRAME_SIZE 3
+
 typedef struct try_frame_ *tryFramePo;
 typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
@@ -25,8 +27,6 @@ typedef struct try_frame_ {
   insPo pc;
   tryFramePo try;               // Previous try frame
 } TryFrame;
-
-#define STACKFRAME_SIZE 3
 
 typedef struct StackStructure {
   ClassRecord clss;             // == stackClass
@@ -40,7 +40,6 @@ typedef struct StackStructure {
   stackPo bottom;               // What is the actual innermost stack
   StackState state;             // is the stack attached, root, detached or moribund
   ptrPo stkMem;                 // Memory block used for stack
-  integer counter;              // Used to verify continuations
 } StackRecord;
 
 #define StackCellCount CellCount(sizeof(StackRecord))

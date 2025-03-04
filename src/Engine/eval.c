@@ -627,6 +627,12 @@ retCode run(processPo P) {
         continue;
       }
 
+      case VoidTry:{
+        push(makeInteger(-1));       // An illegal try index
+        PC++;
+        continue;
+      }
+
       case Try: {
         assert(validPC(frameMtd(FP), PC + PC->alt + 1));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");

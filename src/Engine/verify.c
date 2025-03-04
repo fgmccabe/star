@@ -417,6 +417,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case Underflow:
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
 
+      case VoidTry:
+        pc++;
+        stackDepth++;
+        continue;
+
       case Try: {
         termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
         if (!isString(lit)) {
