@@ -468,7 +468,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, void *cl) {
 static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
   framePo fp = currFrame(stk);
-  ptrPo limit = stackLcl(stk, fp, lclCount(frameMtd(fp)));
+  ptrPo limit = stackLcl(fp, lclCount(frameMtd(fp)));
   tryFramePo try = stk->try;
 
   if (line[0] == '\n') {
@@ -1004,7 +1004,7 @@ void stackSummary(ioPo out, stackPo stk) {
 
 retCode showArg(ioPo out, stackPo stk, integer arg) {
   if (stk != Null) {
-    return outMsg(out, " A[%d] = %,*T", arg, displayDepth, *stackArg(stk, stk->fp, arg));
+    return outMsg(out, " A[%d] = %,*T", arg, displayDepth, *stackArg(stk->fp, arg));
   } else
     return outMsg(out, " A[%d]", arg);
 }
@@ -1014,13 +1014,13 @@ void showAllLocals(ioPo out, stackPo stk, framePo fp) {
   for (integer vx = 1; vx <= lclCount(mtd); vx++) {
     char vName[MAX_SYMB_LEN];
     if (localVName(mtd, fp->pc, vx, vName, NumberOf(vName)) == Ok) {
-      ptrPo var = stackLcl(stk, fp, vx);
+      ptrPo var = stackLcl(fp, vx);
       if (*var != Null && *var != voidEnum)
         outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
     } else {
-      ptrPo var = stackLcl(stk, fp, vx);
+      ptrPo var = stackLcl(fp, vx);
       if (*var != Null)
         outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
     }
@@ -1029,7 +1029,7 @@ void showAllLocals(ioPo out, stackPo stk, framePo fp) {
 
 retCode showLcl(ioPo out, stackPo stk, integer vr) {
   if (stk != Null)
-    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *stackLcl(stk, stk->fp, vr));
+    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *stackLcl(stk->fp, vr));
   else
     return outMsg(out, " l[%d]", vr);
 }
@@ -1152,7 +1152,7 @@ void showRegisters(processPo p, heapPo h) {
   stackPo stk = p->stk;
   framePo fp = stk->fp;
   methodPo mtd = frameMtd(fp);
-  ptrPo limit = stackLcl(stk, fp, lclCount(mtd));
+  ptrPo limit = stackLcl(fp, lclCount(mtd));
   ptrPo sp = stk->sp;
   tryFramePo try = stk->try;
 
@@ -1168,7 +1168,7 @@ void showRegisters(processPo p, heapPo h) {
 
   integer count = argCount(mtd);
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackArg(stk, fp, ix));
+    outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackArg(fp, ix));
   }
 
   showAllLocals(debugOutChnnl, stk, fp);
