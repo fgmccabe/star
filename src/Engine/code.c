@@ -380,7 +380,7 @@ static comparison cmpOpCount(integer i, integer j, void *cl) {
 
 void dumpOpCount(ioPo out) {
 #ifndef NDEBUG
-  outMsg(out, "instructions executed\n");
+  outMsg(out, "%ld instructions executed\n",pcCount);
 
   integer indices[NumberOf(opCount)];
   for (int ix = 0; ix < NumberOf(opCount); ix++)

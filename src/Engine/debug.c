@@ -142,12 +142,12 @@ static logical shouldWeStop(processPo p, termPo arg) {
 
     if (debugDebugging) {
       outMsg(logFile, "debug: waterMark=0x%x, sp=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark,
-             p->stk->sp, p->stk->fp, p->traceCount, (p->tracing ? "yes" : "no"));
+             p->stk->sp, frame, p->traceCount, (p->tracing ? "yes" : "no"));
       disass(logFile, stk, frameMtd(frame), frame->pc);
       outMsg(logFile, "\n%_");
     }
 
-    switch (p->stk->fp->pc->op) {
+    switch (frame->pc->op) {
       case Abort:
         return True;
       case Ret: {
@@ -168,7 +168,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
         }
       }
       case Entry: {
-        if (p->waterMark == Null && breakPointSet(frameLbl(p->stk->fp))) {
+        if (p->waterMark == Null && breakPointSet(frameLbl(frame))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -305,15 +305,16 @@ static DebugWaitFor dbgSingle(char *line, processPo p, void *cl) {
 static DebugWaitFor dbgOver(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 0);
   stackPo stk = p->stk;
+  framePo frame = currFrame(stk);
 
-  switch (p->stk->fp->pc->op) {
+  switch (frame->pc->op) {
     case Ret: {
-      p->waterMark = previousFrame(stk, stk->fp);
+      p->waterMark = previousFrame(stk, frame);
       break;
     }
 
     default:
-      p->waterMark = p->stk->fp;
+      p->waterMark = frame;
       break;
   }
   p->tracing = False;
@@ -349,15 +350,16 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, void *cl) {
   p->tracing = False;
   resetDeflt("n");
   stackPo stk = p->stk;
+  framePo frame = currFrame(stk);
 
-  switch (stk->fp->pc->op) {
+  switch (frame->pc->op) {
     case Ret: {
-      p->waterMark = previousFrame(stk, stk->fp);
+      p->waterMark = previousFrame(stk, frame);
       break;
     }
 
     default:
-      p->waterMark = p->stk->fp;
+      p->waterMark = frame;
       break;
   }
   return stepOut;
@@ -473,15 +475,15 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
 
   if (line[0] == '\n') {
 
-    for (integer vx = 0; sp < limit;vx++,sp++) {
+    for (integer vx = 0; sp < limit; vx++, sp++) {
       outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
   } else {
     integer count = cmdCount(line, 1);
     limit -= count;
 
-    for (integer vx = 0; sp < limit;vx++,sp++) {
-        outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
+    for (integer vx = 0; sp < limit; vx++, sp++) {
+      outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
   }
 
@@ -598,14 +600,15 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
 
   integer frameNo = 0;
-  framePo fp = stk->fp;
+  framePo frame = stk->fp;
 
-  while (frameNo < count && validFP(stk, fp)) {
-    fp = dropFrame(stk);
+  while (frameNo < count && validFP(stk, frame)) {
+    frame = dropFrame(stk);
     frameNo++;
   }
 
-  fp->pc = entryPoint(frameMtd(fp));
+  if (frame != Null)
+    frame->pc = entryPoint(frameMtd(frame));
 
   outMsg(debugOutChnnl, "Dropped %d frames\n%_", frameNo);
   showStackCall(debugOutChnnl, displayDepth, stk->fp, stk, 0, showPrognames);
@@ -1139,7 +1142,7 @@ void showRegisters(processPo p, heapPo h) {
   ptrPo limit = stackLcl(fp, lclCount(mtd));
   ptrPo sp = stk->sp;
 
-  for (integer vx = 0; sp < limit;vx++) {
+  for (integer vx = 0; sp < limit; vx++) {
     outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp++);
   }
 

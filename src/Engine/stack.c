@@ -6,6 +6,7 @@
 #include <globals.h>
 #include "stackP.h"
 #include "engineP.h"
+#include "debugP.h"
 
 #ifdef TRACESTACK
 tracingLevel traceStack = noTracing;    // stack operation tracing
@@ -192,7 +193,7 @@ void stackSanityCheck(stackPo stk) {
       assert(stk->stkMem == Null);
       return;
   }
-  assert(stk->fp >= baseFrame(stk) && ((ptrPo) (stk->fp + 1)) < stk->sp);
+  assert(stk->fp >= baseFrame(stk) && ((ptrPo) (stk->fp + 1)) <= stk->sp);
   assert(stk->tp >= baseTry(stk));
   assert((ptrPo) (stk->tp+1) < stk->sp);
   assert(!inFreeBlock(stackRegion, stk->stkMem));
@@ -314,6 +315,21 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
       return Null;
   }
   return Null;
+}
+
+integer tryStackDepth(processPo P){
+  integer count = 0;
+  stackPo stk = P->stk;
+
+  while(stk!=Null){
+    tryFramePo try = stk->tp;
+    while(try> baseTry(stk)){
+      count++;
+      try = try->try;
+    }
+    stk = stk->attachment;
+  }
+  return count;
 }
 
 void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
