@@ -93,6 +93,7 @@ void dumpStackStats(ioPo out);
 
 integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp);
 stackPo popTryFrame(processPo P, integer tryIndex);
+integer tryStackDepth(processPo P);
 
 static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;
@@ -122,9 +123,13 @@ static inline ptrPo maxPtr(ptrPo a, ptrPo b) {
   return a > b ? a : b;
 }
 
+static inline ptrPo controlTop(framePo fp, tryFramePo tp) {
+  return maxPtr(((ptrPo) (fp + 1)), ((ptrPo) (tp + 1)));
+}
+
 static inline logical stackHasSpace(stackPo stk, integer amount) {
   assert(amount >= 0);
-  return stk->sp - amount > maxPtr(((ptrPo) stk->fp + 1), ((ptrPo) stk->tp + 1));
+  return stk->sp - amount > controlTop(stk->fp,stk->tp);
 }
 
 framePo dropFrame(stackPo stk);

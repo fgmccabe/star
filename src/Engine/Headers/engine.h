@@ -30,7 +30,6 @@ typedef enum {
 processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
 void switchProcessState(processPo p, ProcessState state);
 void setProcessRunnable(processPo p);
-ProcessState processState(processPo p);
 integer processNo(processPo p);
 
 typedef retCode (*procProc)(processPo p, void *cl);

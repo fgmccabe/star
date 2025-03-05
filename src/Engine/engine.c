@@ -110,10 +110,6 @@ void setProcessRunnable(processPo p) {
   switchProcessState(p, runnable);
 }
 
-ProcessState processState(processPo p) {
-  return p->state;
-}
-
 integer processNo(processPo p) {
   return p->processNo;
 }

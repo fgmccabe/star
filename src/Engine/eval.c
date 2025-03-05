@@ -52,12 +52,31 @@ logical collectStats = False;
 #define pop() (*SP++)
 #define top() (*SP)
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(lcl) (((ptrPo)FP)[-(lcl)])
-#define arg(aix) (((ptrPo)(FP+1))[(aix)])
-#define stackRoom(amnt) ((SP-(amnt)) > STK->stkMem)
-#define saveRegisters() STMT_WRAP({ FP->pc = PC; STK->sp = SP; STK->fp = FP; P->stk = STK;})
-#define restoreRegisters() STMT_WRAP({ STK = P->stk; FP = STK->fp; PC = FP->pc;  SP=STK->sp; LITS=FP->pool;})
-#define pushFrme(mtd) STMT_WRAP({framePo f = ((framePo)SP)-1; f->fp=FP; PC = f->pc = entryPoint(mtd); f->pool = codeLits(mtd); FP = f; SP = (ptrPo)FP;})
+#define local(lcl) (FP->args[-(lcl)])
+#define arg(aix) (FP->args[aix])
+#define stackRoom(amnt) (SP - (amnt) > CT)
+#define saveRegisters() STMT_WRAP({ \
+  FP->pc = PC;                      \
+  STK->sp = SP;                     \
+  STK->fp = FP;                     \
+  P->stk = STK;                     \
+  })
+#define restoreRegisters() STMT_WRAP({ \
+  STK = P->stk;                        \
+  FP = STK->fp;                        \
+  PC = FP->pc;                         \
+  SP=STK->sp;                          \
+  LITS=FP->pool;                       \
+  CT = controlTop(FP,STK->tp);         \
+  })
+#define pushFrme(mtd) STMT_WRAP({ \
+  framePo f = ((framePo)CT);      \
+  CT = ((ptrPo)(f+1));            \
+  f->fp=FP;                       \
+  PC = f->pc = entryPoint(mtd);   \
+  f->pool = codeLits(mtd);        \
+  FP = f;                         \
+  })
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars);\
@@ -81,6 +100,7 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
+  ptrPo CT = controlTop(FP,STK->tp);
   register insPo PC = FP->pc;    /* Program counter */
   register normalPo LITS = FP->pool; /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
@@ -134,11 +154,11 @@ retCode run(processPo P) {
 
         PC++;
 
-        if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+        if (!stackRoom(stackDelta(mtd) + FrameCellCount)) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
-          stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+          stackGrow(stackDelta(mtd) + FrameCellCount, codeArity(mtd));
           gcReleaseRoot(H, root);
-          assert(stackRoom(stackDelta(mtd) + STACKFRAME_SIZE));
+          assert(stackRoom(stackDelta(mtd) + FrameCellCount));
 #ifdef TRACESTACK
           if (traceStack > noTracing)
             verifyStack(STK, H);
@@ -191,13 +211,13 @@ retCode run(processPo P) {
 
         push(closureFree(obj));                     // Put the free term back on the stack
 
-        if (!stackRoom(stackDelta(mtd) + STACKFRAME_SIZE)) {
+        if (!stackRoom(stackDelta(mtd) + FrameCellCount)) {
 #ifdef TRACESTACK
           if (traceStack >= detailedTracing)
             logMsg(logFile, "growing stack due to overflow in OCall");
 #endif
           int root = gcAddRoot(H, (ptrPo) &mtd);
-          stackGrow(stackDelta(mtd) + STACKFRAME_SIZE, codeArity(mtd));
+          stackGrow(stackDelta(mtd) + FrameCellCount, codeArity(mtd));
           gcReleaseRoot(H, root);
 
 #ifdef TRACESTACK
@@ -328,7 +348,7 @@ retCode run(processPo P) {
           bail();
         }
 
-        if (!stackRoom(stackDelta(mtd))) {
+        if (!stackRoom(FrameCellCount + stackDelta(mtd))) {
           int root = gcAddRoot(H, (ptrPo) &mtd);
 
           stackPo prevStack = STK;
@@ -347,18 +367,16 @@ retCode run(processPo P) {
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
+          assert(CT == ((ptrPo) (FP + 1)));
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
-          framePo Pfp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-          FP = ((framePo) tgt) - 1;      // Frame might have moved
-          FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
           FP->pool = LITS = codeLits(mtd);
-          SP = (ptrPo) FP;
+          FP->args = SP = tgt;
         }
 
         incEntryCount(mtd);              // Increment number of times program called
@@ -406,17 +424,16 @@ retCode run(processPo P) {
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
+          assert(CT == ((ptrPo) (FP + 1)));
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
-          framePo Pfp = FP->fp;
 
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
-          FP = ((framePo) tgt) - 1;      // Frame might have moved
-          FP->fp = Pfp;
           FP->pc = PC = entryPoint(mtd);
           FP->pool = LITS = codeLits(mtd);
+          FP->args = SP = tgt;
         }
 
         incEntryCount(mtd);              // Increment number of times program called
@@ -427,7 +444,7 @@ retCode run(processPo P) {
         integer height = PC->fst;
         assert(height >= 0);
         assert(height == lclCount(frameMtd(FP)));
-        SP = ((ptrPo) FP) - height;
+        SP -= height;
         for (integer ix = 0; ix < height; ix++)
           SP[ix] = voidEnum;
         PC++;
@@ -437,18 +454,16 @@ retCode run(processPo P) {
       case Ret: {        /* return from function */
         termPo retVal = *SP;     /* return value */
 
-        assert(FP < baseFrame(STK));
+        assert(FP > baseFrame(STK));
 
         ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
-        tryFramePo try = STK->try;
+        tryFramePo try = STK->tp;
 
-        if ((ptrPo) try >= SP && (ptrPo) try < tgtSp) {
-          while ((ptrPo) try < tgtSp) {
-            check(try->fp == FP, "misaligned try block");
-            try = try->try;
-          }
-          STK->try = try;
+        while ((ptrPo) try > (ptrPo) FP) {
+          check(try->fp == FP, "misaligned try block");
+          try = try->try;
         }
+        STK->tp = try;
 
         SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
@@ -456,6 +471,7 @@ retCode run(processPo P) {
         LITS = FP->pool;
 
         push(retVal);      /* push return value */
+        CT = controlTop(FP,try);
         continue;       /* and carry on regardless */
       }
 
@@ -627,7 +643,7 @@ retCode run(processPo P) {
         continue;
       }
 
-      case VoidTry:{
+      case VoidTry: {
         push(makeInteger(-1));       // An illegal try index
         PC++;
         continue;
@@ -643,7 +659,7 @@ retCode run(processPo P) {
         push(makeInteger(tryIndex));
 #ifdef TRACESTACK
         if (traceStack >= detailedTracing)
-          logMsg(logFile, "%ld: entering try scope %ld (%d)", pcCount, tryIndex, tryStackSize(P));
+          logMsg(logFile, "%ld: entering try scope %ld", pcCount, tryIndex, tryStackDepth(P));
 #endif
         PC++;
         continue;
@@ -654,19 +670,15 @@ retCode run(processPo P) {
 
 #ifdef TRACESTACK
         if (traceStack >= detailedTracing)
-          logMsg(logFile, "%ld: leaving try scope %ld (%d)", pcCount, tryIndex, tryStackSize(P));
+          logMsg(logFile, "%ld: leaving try scope %ld (%d)", pcCount, tryIndex, tryStackDepth(P));
 #endif
-        check(STK->try->tryIndex == tryIndex, "misaligned try block");
-        tryFramePo try = STK->try;
+        check(STK->tp->tryIndex == tryIndex, "misaligned try block");
+        tryFramePo try = STK->tp;
         check(try->fp == FP, "misaligned try block");
-        STK->try = try->try;
+        STK->tp = try->try;
+        CT = controlTop(FP,STK->tp);
+        SP = STK->sp = try->sp;
 
-        ptrPo tgt = (ptrPo) (try + 1);
-        ptrPo src = (ptrPo) try;
-        while (src > SP) {
-          *--tgt = *--src;
-        }
-        SP = STK->sp = tgt;
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block || PC->op == Try);
@@ -680,19 +692,14 @@ retCode run(processPo P) {
 
 #ifdef TRACESTACK
         if (traceStack)
-          logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackSize(P));
+          logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackDepth(P));
 #endif
-        check(STK->try->tryIndex == tryIndex, "misaligned try block");
-        tryFramePo try = STK->try;
+        check(STK->tp->tryIndex == tryIndex, "misaligned try block");
+        tryFramePo try = STK->tp;
         check(try->fp == FP, "misaligned try block");
-        STK->try = try->try;
-
-        ptrPo tgt = (ptrPo) (try + 1);
-        ptrPo src = (ptrPo) try;
-        while (src > SP) {
-          *--tgt = *--src;
-        }
-        SP = STK->sp = tgt;
+        STK->tp = try->try;
+        CT = controlTop(FP,STK->tp);
+        SP = STK->sp = try->sp;
         push(val);
 
         PC += PC->alt + 1;
@@ -709,7 +716,7 @@ retCode run(processPo P) {
 
 #ifdef TRACESTACK
           if (traceStack)
-            logMsg(logFile, "throwing to try scope %ld (%d)", tryIndex, tryStackSize(P));
+            logMsg(logFile, "throwing to try scope %ld (%d)", tryIndex, tryStackDepth(P));
 #endif
 
           termPo val = pop();
@@ -786,11 +793,11 @@ retCode run(processPo P) {
             bail();
           }
 
-          if (!stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE)) {
+          if (!stackRoom(stackDelta(glbThnk) + FrameCellCount)) {
             int root = gcAddRoot(H, (ptrPo) &glbThnk);
-            stackGrow(stackDelta(glbThnk) + STACKFRAME_SIZE, codeArity(glbThnk));
+            stackGrow(stackDelta(glbThnk) + FrameCellCount, codeArity(glbThnk));
             gcReleaseRoot(H, root);
-            assert(stackRoom(stackDelta(glbThnk) + STACKFRAME_SIZE));
+            assert(stackRoom(stackDelta(glbThnk) + FrameCellCount));
 
 #ifdef TRACESTACK
             if (traceStack)
