@@ -469,35 +469,19 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
   stackPo stk = p->stk;
   framePo fp = currFrame(stk);
   ptrPo limit = stackLcl(fp, lclCount(frameMtd(fp)));
-  tryFramePo try = stk->try;
+  ptrPo sp = stk->sp;
 
   if (line[0] == '\n') {
-    ptrPo sp = stk->sp;
 
-    for (integer ix = 0; sp < limit;) {
-      if (sp == (ptrPo) try) {
-        sp = (ptrPo) (try + 1);
-        try = try->try;
-      } else {
-        outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
-        sp++;
-        ix++;
-      }
+    for (integer vx = 0; sp < limit;vx++,sp++) {
+      outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
   } else {
     integer count = cmdCount(line, 1);
     limit -= count;
-    ptrPo sp = stk->sp;
 
-    for (integer ix = 0; sp < limit;) {
-      if (sp == (ptrPo) try) {
-        sp = (ptrPo) (try + 1);
-        try = try->try;
-      } else {
-        outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
-        sp++;
-        ix++;
-      }
+    for (integer vx = 0; sp < limit;vx++,sp++) {
+        outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
   }
 
@@ -1154,16 +1138,9 @@ void showRegisters(processPo p, heapPo h) {
   methodPo mtd = frameMtd(fp);
   ptrPo limit = stackLcl(fp, lclCount(mtd));
   ptrPo sp = stk->sp;
-  tryFramePo try = stk->try;
 
-  for (integer ix = 0; sp < limit;) {
-    if (sp == (ptrPo) try) {
-      sp = (ptrPo) (try + 1);
-      continue;
-    } else {
-      outMsg(debugOutChnnl, "SP[%d]=%,*T\n", ix, displayDepth, *sp++);
-      ix++;
-    }
+  for (integer vx = 0; sp < limit;vx++) {
+    outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp++);
   }
 
   integer count = argCount(mtd);
