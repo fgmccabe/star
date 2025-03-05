@@ -85,7 +85,8 @@ retCode enoughRoom(heapPo H, labelPo lbl) {
 }
 
 void validPtr(heapPo H, termPo t) {
-  assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
+  if(isPointer(t))
+    assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
 }
 
 static retCode verifyScanHelper(ptrPo arg, void *c) {

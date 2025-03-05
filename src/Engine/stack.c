@@ -8,9 +8,6 @@
 #include "engineP.h"
 
 #ifdef TRACESTACK
-#include "debugP.h"
-
-
 tracingLevel traceStack = noTracing;    // stack operation tracing
 #endif
 
@@ -102,7 +99,7 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "%ld new stack of %d words\n%_", pcCount, sze);
+    outMsg(logFile, "new stack of %d words\n%_", sze);
 #endif
 
   stk->fp = pushFrame(stk, labelCode(underFlow));
@@ -144,8 +141,8 @@ framePo previousFrame(stackPo stk, framePo fp) {
 framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
-  assert((ptrPo) stk->try > (ptrPo) stk->fp);
-  stk->sp = (ptrPo) (fp + 1) + argCount(frameMtd(fp));
+  assert((ptrPo) stk->tp < (ptrPo) stk->fp);
+  stk->sp = fp->args + argCount(frameMtd(fp));
   stk->fp = fp->fp;
   return stk->fp;
 }
@@ -196,8 +193,8 @@ void stackSanityCheck(stackPo stk) {
       return;
   }
   assert(stk->fp >= baseFrame(stk) && ((ptrPo) (stk->fp + 1)) < stk->sp);
-  assert(stk->try >= baseTry(stk));
-  assert((ptrPo) stk->try < stk->sp);
+  assert(stk->tp >= baseTry(stk));
+  assert((ptrPo) (stk->tp+1) < stk->sp);
   assert(!inFreeBlock(stackRegion, stk->stkMem));
 }
 
@@ -217,26 +214,26 @@ void verifyStack(stackPo stk, heapPo H) {
       while (fp > fpLimit || try > trLimit) {
         if((ptrPo)try>(ptrPo)fp){  // We have a tryFrame to check
           check(validFP(stk, try->fp), "invalid try frame pointer");
-          check(try->tp<try,"try frame pointer not pointing to earlier frame");
+          check(try->try<try,"try frame pointer not pointing to earlier frame");
           check(try->sp >= sp, "try sp not in order");
           check(try->fp<=fp,"try fp out of order");
+          sp = try->sp;
           try = try->try;
         } else {
-          
-          check(sp == (ptrPo) fp, "expecting a frame here");
+          check((ptrPo)fp>(ptrPo)try,"overlapping try/frame");
           check(isMethod((termPo) frameMtd(fp)), "expecting a code pointer in the frame");
           check(validFP(stk, fp->fp), "invalid fp in frame");
-          sp = (ptrPo) (fp + 1);
+          check(fp->args>=sp,"frame arg pointer invalid");
+          sp = fp->args+argCount(frameMtd(fp));
           fp = fp->fp;
         }
       }
 
       // Walk the value stack...
       for (ptrPo p = stk->sp; p < spLimit; p++)
-        validPtr(H, p);
-
-      stk = stk->attachment;
+        validPtr(H, *p);
     }
+    stk = stk->attachment;
   }
 }
 
@@ -281,13 +278,15 @@ void pushStack(stackPo stk, termPo ptr) {
 }
 
 integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp) {
-  tryFramePo try = ((tryFramePo) stk->sp) - 1;
+  assert(stackHasSpace(stk, TryFrameCellCount));
+  tryFramePo try = (tryFramePo)maxPtr(((ptrPo)(stk->fp+1)), ((ptrPo)(stk->tp+1)));
 
   try->fp = fp;
   try->pc = pc;
-  stk->sp = (ptrPo) try;
-  try->try = stk->try;
-  stk->try = try;
+  try->sp = sp;
+  try->tryIndex = P->tryCounter++;
+  try->try = stk->tp;
+  stk->tp = try;
   return try->tryIndex = P->tryCounter++;
 }
 
@@ -295,19 +294,19 @@ stackPo popTryFrame(processPo P, integer tryIndex) {
   stackPo stk = P->stk;
 
   while (stk != Null) {
-    tryFramePo try = stk->try;
+    tryFramePo try = stk->tp;
 
     while (try < tryLimit(stk)) {
       if (try->tryIndex == tryIndex) {
 
         stk->fp = try->fp;
-        stk->sp = (ptrPo) (try + 1);
+        stk->sp = try->sp;
         stk->fp->pc = try->pc;
-        stk->try = try->try;
+        stk->tp = try->try;
         assert(validPC(frameMtd(stk->fp), stk->fp->pc));
         return stk;
       } else
-        try = stk->try = try->try;
+        try = stk->tp = try->try;
     }
     if (stk->attachment != Null) {
       stk = P->stk = dropStack(stk);
@@ -340,28 +339,25 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
     ptrPo spLimit = stackLimit(stk);
     framePo fp = stk->fp;
     framePo fpLimit = baseFrame(stk);
-    tryFramePo try = stk->try;
-    tryFramePo tryLimit = (tryFramePo) spLimit;
+    tryFramePo try = stk->tp;
+    tryFramePo tpLimit = baseTry(stk);
 
-    while (fp < fpLimit || sp < spLimit || try < tryLimit) {
-      if ((ptrPo) fp <= sp) {
-        if ((ptrPo) try < (ptrPo) fp) {
-          assert(False);
-        } else {
-          helper((ptrPo) &fp->pool, c);
-          sp = (ptrPo) (fp + 1);
-          fp = fp->fp;
-        }
-      } else if (sp < (ptrPo) try) {
-        helper(sp++, c);
-      } else {
-        assert(sp == (ptrPo) try);
-        sp = (ptrPo) (try + 1);
+    while (fp > fpLimit || try > tpLimit) {
+      if ((ptrPo) fp > (ptrPo)try) {
+        assert(fp>fpLimit);
+        helper((ptrPo) &fp->pool, c);
+        fp = fp->fp;
+      } else if((ptrPo)try>(ptrPo)fp){
+        assert(try>tpLimit);
         try = try->try;
       }
     }
 
-    assert(fp == fpLimit && sp == spLimit && try == tryLimit);
+    // Walk the value stack...
+    for (ptrPo p = stk->sp; p < spLimit; p++)
+      helper((ptrPo)&p, c);
+
+    assert(fp == fpLimit && sp == spLimit && try == tpLimit);
 
     if (stk->attachment != Null)
       helper((ptrPo) &stk->attachment, c);
@@ -457,7 +453,6 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
           if (*var != Null && *var != voidEnum)
             outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
         }
-
       }
     }
   }
@@ -471,7 +466,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
   do {
     framePo fp = stk->fp;
 
-    while (fp < baseFrame(stk)) {
+    while (fp > baseFrame(stk)) {
       showStackCall(out, depth, fp, stk, frameNo++, tracing);
       fp = fp->fp;
     }
@@ -481,20 +476,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
 }
 
 int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
-  int32 count = 0;
-  tryFramePo try = stk->try;
-  ptrPo limit = (ptrPo) fp - lclCount(mtd);
-  while (sp < limit) {
-    while (sp == (ptrPo) try) {
-      sp = (ptrPo) (try + 1);
-      try = try->try;
-    }
-    if (sp < limit) {
-      count++;
-      sp++;
-    }
-  }
-  return count;
+  return stackLcl(fp,lclCount(frameMtd(fp)))-sp;
 }
 
 stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {

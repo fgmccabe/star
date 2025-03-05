@@ -51,17 +51,18 @@ typedef struct stack_frame_ {
   ptrPo args;                   // The arg/local split point
 } StackFrame;
 
-#define FrameCellCount (cellCount(sizeof(StackFrame)))
+#define FrameCellCount (CellCount(sizeof(StackFrame)))
 
 typedef struct try_frame_ *tryFramePo;
 typedef struct try_frame_ {
   integer tryIndex;             // Special index incremented for each try
   framePo fp;
+  ptrPo sp;                     // Value of stack when try started
   insPo pc;
   tryFramePo try;               // Previous try frame
 } TryFrame;
 
-#define TRYFRAME_COUNT (cellCount(sizeof(TryFrame)))
+#define TryFrameCellCount (CellCount(sizeof(TryFrame)))
 
 typedef struct StackStructure {
   ClassRecord clss;             // == stackClass
