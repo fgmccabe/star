@@ -75,6 +75,7 @@ logical collectStats = False;
   f->fp=FP;                       \
   PC = f->pc = entryPoint(mtd);   \
   f->pool = codeLits(mtd);        \
+  f->args = SP;                   \
   FP = f;                         \
   })
 #define bail() STMT_WRAP({\
