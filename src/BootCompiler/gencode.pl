@@ -279,19 +279,19 @@ compAct(Next,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compAction(A,Lc,Brks,Last,Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 
 compTryCtch(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iTry(TryTp,[iStL(TV)|BC])|HC]))|Cz]),
-  genLbl(L,Ok,L1),
+  genLbl(L,Ok,L0),
+  genLbl(L0,Tr,L1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Tr,iTry(TryTp,[iStL(TV)|BC]))|HC]))|Cz]),
   nearlyFlatSig(ResTp,BlkTp),
   toLtipe(ETp,ETipe),
   blockSig([ETipe],ResTp,TryTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
   replace(Brks,("$valof",_,Lbl,VStk),("$valof",gencode:tryEnder(TV),Lbl,VStk),NBrks),
-  call(Hndlr,B,Lc,NBrks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Ok)],Stk,Stka),
+  call(Hndlr,B,Lc,NBrks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Tr)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
   call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
-  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!,
-  (is_member(traceGenCode,Opts) -> dispIns([iLbl(Ok,iBlock(BlkTp,[iTry(TryTp,[iStL(TV)|BC])|HC]))]) ; true).
+  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 tryEnder(TV,Ok,_Stk,_,[iLdL(TV),iEndTry(Ok)|Cx],Cx).
 breakOut(Ok,Stk,Stkx,C,Cx) :-
@@ -600,7 +600,7 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   nearlyFlatSig(ptrTipe,CaseBlkTp),
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(tryCtch(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compTryCtch(Lc,B,ptrTipe,T,E,H,OLc,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+  compTryExp(Lc,B,ptrTipe,T,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
@@ -659,6 +659,20 @@ compExps([],_,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stk,Stk) :-!.
 compExps([T|Ts],Lc,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compExps(Ts,Lc,Brks,Opts,L,L1,D,D1,C,C0,Stk,Stk0),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C0,Cx,Stk0,Stkx).
+
+compTryExp(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  genLbl(L,Ok,L0),
+  genLbl(L0,Tr,L1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Tr,iTry(TryTp,[iStL(TV)|BC]))|HC]))|Cz]),
+  nearlyFlatSig(ResTp,BlkTp),
+  toLtipe(ETp,ETipe),
+  blockSig([ETipe],ResTp,TryTp),
+  defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
+  compExp(B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iTryRslt(Tr)],Stk,Stka),
+  genLine(Opts,Lc,HC,H1),
+  defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
+  compExp(H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
+  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 isCond(cnj(_,_,_)).
 isCond(cnd(_,_,_,_)).
