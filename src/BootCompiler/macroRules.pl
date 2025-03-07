@@ -77,7 +77,6 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
   roundTerm(Lc,name(Lc,"main"),Cs,MnCall),
-%  mkValof(Lc,Rhs,MnCall),
   eqn(Lc,Lhs,MnCall,Main),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
@@ -605,37 +604,43 @@ yieldMacro(E,action,Ax) :-
 
   becomes
 
-  _fiber((this,Frst)=> case Frst in {
-      | .go_ahead => .result(valof{A})
-      | .shut_down => raise .canceled
-    })
+    tsk(this, let{
+      tk:async () => _ raises _.
+      tk() => valof { A }
+      } in ζ tk)
 
+  where tsk is a library function defined in mbox.
   */
 
   taskMacro(E,expression,Rp) :-
     isTask(E,Lc,A),!,
-    genIden(Lc,"Frst",Frst),
+    genIden(Lc,"tk",Tk),
+    Anon = name(Lc,"_"),
+    roundTuple(Lc,[],Empty),
 
-    /* Build .shut_down_ => raise .canceled */
-    mkEnum(Lc,"shut_down_",Down),
-    mkEnum(Lc,"canceled",Can),
-    mkRaise(Lc,Can,Raise),
-    mkEquation(Lc,Down,none,Raise,End),
+    % Build type annotation:
+    % tk:async () => _ raises _.
 
-    /* build .go_ahead => .result(valof{A}) */
-    mkEnum(Lc,"go_ahead",Ahead),
+    funcType(Lc,Empty,Anon,FnT0),
+    binary(Lc,"raises",FnT0,Anon,FnT1),
+    unary(Lc,"async",FnT1,FnTp),
 
-    mkValof(Lc,A,V),
-    mkConApply(Lc,name(Lc,"result"),V,Vl),
-    mkEquation(Lc,Ahead,none,Vl,Go),
+    typeAnnotation(Lc,Tk,FnTp,St1),
 
-    /* build case Frst in .. */
-    caseExp(Lc,Frst,[End,Go],Body),
-    roundTuple(Lc,[name(Lc,"this"),Frst],Args),
+    % Build function:
+    % tk() => valof { A }
 
-    mkEquation(Lc,Args,none,Body,Lm),
-    unary(Lc,"_fiber",Lm,Rp).
+    braceTuple(Lc,[A],AB),
+    mkValof(Lc,AB,V),
+    buildEquation(Lc,Tk,[],none,false,V,St2),
 
+    % Build let defn
+    mkSuppress(Lc,Tk,Bnd),
+    mkLetDef(Lc,[St1,St2],Bnd,LetFn),
+
+    % Build call to tsk
+    roundTerm(Lc,name(Lc,"tsk"),[name(Lc,"this"),LetFn],Rp).
+%    dispAst(Rp).
 
 /*
   K -> V

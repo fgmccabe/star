@@ -287,13 +287,13 @@ compTryCtch(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Hndlr,Brks,Last,Opts,L,Lx,D
   blockSig([ETipe],ResTp,TryTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
   replace(Brks,("$valof",_,Lbl,VStk),("$valof",gencode:tryEnder(TV),Lbl,VStk),NBrks),
-  call(Hndlr,B,Lc,NBrks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Tr)],Stk,Stka),
+  call(Hndlr,B,Lc,NBrks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iEndTry(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
   call(Hndlr,H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
-tryEnder(TV,Ok,_Stk,_,[iLdL(TV),iEndTry(Ok)|Cx],Cx).
+tryEnder(TV,Ok,_Stk,_,[iLdL(TV),iTryRslt(Ok)|Cx],Cx).
 breakOut(Ok,Stk,Stkx,C,Cx) :-
   resetStack(Stkx,Stk,C,[iBreak(Ok)|Cx]).
   
@@ -668,7 +668,7 @@ compTryExp(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,C
   toLtipe(ETp,ETipe),
   blockSig([ETipe],ResTp,TryTp),
   defineLclVar(Lc,TV,Tp,Opts,D,D1,BC,B1),
-  compExp(B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iTryRslt(Tr)],Stk,Stka),
+  compExp(B,Lc,Brks,notLast,Opts,L1,L2,D1,D2,B1,[iLdL(TV),iTryRslt(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
   compExp(H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),

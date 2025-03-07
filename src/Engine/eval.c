@@ -361,6 +361,7 @@ retCode run(processPo P) {
 
           SP = STK->sp;
           FP = STK->fp;
+          CT = controlTop(FP,STK->tp);
           pushFrme(mtd);
           LITS = codeLits(mtd);
 
