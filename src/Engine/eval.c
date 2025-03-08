@@ -419,6 +419,7 @@ retCode run(processPo P) {
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
           SP = STK->sp;
           FP = STK->fp;
+          CT = controlTop(FP,STK->tp);
           pushFrme(mtd);
           LITS = codeLits(mtd);
 
