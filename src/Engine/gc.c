@@ -83,6 +83,11 @@ retCode gcCollect(heapPo H, long amount) {
   resumeTimer(gcTimer);
 
 #ifdef TRACEMEM
+  if (traceMemory > noTracing)
+    verifyProcesses(H);
+#endif
+
+#ifdef TRACEMEM
   if (validateMemory) {
     verifyHeap(H);
   }

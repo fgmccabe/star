@@ -370,8 +370,8 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
     }
 
     // Walk the value stack...
-    for (ptrPo p = stk->sp; p < spLimit; p++)
-      helper((ptrPo)&p, c);
+    for (sp = stk->sp; sp < spLimit; sp++)
+      helper(sp, c);
 
     assert(fp == fpLimit && sp == spLimit && try == tpLimit);
 
