@@ -16,9 +16,8 @@
 
 long timezone_offset;    // offset in seconds from GMT
 
-struct timeval initial_time;    // Time when the engine started
-
 void initTime(void) {
+  struct timeval initial_time;    // Time when the engine started
   time_t tloc;
   struct tm *tmptr;
 
@@ -139,7 +138,7 @@ double get_time(void) {
 
   gettimeofday(&t, NULL);
 
-  return t.tv_sec + t.tv_usec / 1.0e6;
+  return (double) t.tv_sec + t.tv_usec / 1.0e6;
 }
 
 /*
@@ -148,8 +147,9 @@ double get_time(void) {
 double get_date(void) {
   struct timeval t;
 
-  gettimeofday(&t, NULL);
-
-  t.tv_sec -= t.tv_sec % SECSINDAY;
-  return (double) (t.tv_sec + timezone_offset);
+  if (gettimeofday(&t, NULL) == 0) {
+    t.tv_sec -= t.tv_sec % SECSINDAY;
+    return (double) (t.tv_sec);
+  } else
+    return (double)NAN;
 }
