@@ -111,8 +111,8 @@ star.compiler.ast{
   rightPar(_,_) default => "".
 
   isInterpolated(A) where (_,I) ?= isUnary(A,"_str_multicat") => isDispCons(I).
-  isInterpolated(A) where (_,I) ?= isUnary(A,"disp") => isDisp(I).
-  isInterpolated(A) where (_,I,_) ?= isBinary(A,"_format") => isDisp(I).
+  isInterpolated(A) where (_,I) ?= isUnary(A,"disp") => .true.
+  isInterpolated(A) where (_,I,_) ?= isBinary(A,"_format") => .true.
   isInterpolated(A) default => .false.
 
   deInterpolate:(ast) => string.
