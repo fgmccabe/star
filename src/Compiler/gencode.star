@@ -205,10 +205,9 @@ star.compiler.gencode{
       Ok = defineLbl(Ctx,"Tr");
       Stkx = pshStack(Tp,Stk);
       Ctx1 = defineLclVar(TV,TVTp,Ctx);
-      Ctx2 = defineLclVar(Er,ETp,Ctx);
+      Ctx2 = defineLclVar(Er,ETp,Ctx1);
 
-      TBrks = reworkBreak("$valof",Brks,((Lbl)=>(C,S)=>(pickStack([|Stk|],S)++[.iLdL(TV),.iTryRslt(Lbl)],C,.none)));
-      (BC,_,Stka) = compExp(B,Lc,TBrks,.notLast,Ctx1,Stk);
+      (BC,_,Stka) = compExp(B,Lc,Brks,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compExp(H,Lc,Brks,Last,Ctx2,Stk);
 
       if ~reconcileable(Stka,Stkb) then
@@ -216,7 +215,8 @@ star.compiler.gencode{
 
       valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.ptr),
 	      [.iTry(blockSig([ETp::ltipe],.tplTipe([.ptr])),
-		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Ok)]),.iStL(Er)]++HC++[.iBreak(Ok)]))],
+		  [.iStL(TV)]++BC++[.iLdL(TV),.iTryRslt(Ok)]),.iStL(Er)]++HC++
+	      [.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
     | .cRaise(Lc,T,E,_) => valof{
