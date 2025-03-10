@@ -193,7 +193,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
               p->traceCount--;
             return (logical) (p->traceCount == 0);
           case stepOver:
-            return (logical) (p->traceCount == 0);
+//            return (logical) (p->traceCount == 0);
           default:
             return False;
         }
@@ -492,10 +492,15 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
-  if (line[0] == 'L')
-    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars);
-  else
-    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments);
+  if (line[0] == 'L') {
+    integer count = cmdCount(line+1, MAX_INT);
+
+    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars, count);
+  }else {
+    integer count = cmdCount(line, MAX_INT);
+
+    stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments, count);
+  }
 
   resetDeflt("n");
   return moreDebug;
@@ -798,7 +803,7 @@ static void showCall(ioPo out, stackPo stk, termPo pr) {
     else
       outMsg(out, "call: %#L %#.16T", loc, callee);
 
-    shArgs(out, displayDepth, stk->sp, codeArity(callee));
+    shArgs(out, displayDepth, stk->fp->args, codeArity(callee));
   } else
     outMsg(out, "invalid use of showCall");
 }
@@ -813,7 +818,7 @@ void showEntry(ioPo out, stackPo stk, termPo _call) {
   else
     outMsg(out, "entry: %#L %#.16T", loc, mtd);
 
-  shArgs(out, displayDepth, (ptrPo) (stk->fp + 1), codeArity(mtd));
+  shArgs(out, displayDepth, stk->fp->args, codeArity(mtd));
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {

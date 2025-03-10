@@ -285,7 +285,6 @@ integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp) {
   try->fp = fp;
   try->pc = pc;
   try->sp = sp;
-  try->tryIndex = P->tryCounter++;
   try->try = stk->tp;
   stk->tp = try;
   return try->tryIndex = P->tryCounter++;
@@ -474,7 +473,7 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
   }
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing) {
+void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth) {
   outMsg(out, "Stack trace for process %d\n", p->processNo);
 
   integer frameNo = 0;
@@ -482,13 +481,16 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
   do {
     framePo fp = stk->fp;
 
-    while (fp > baseFrame(stk)) {
+    while (fp > baseFrame(stk) && maxDepth-->0) {
       showStackCall(out, depth, fp, stk, frameNo++, tracing);
       fp = fp->fp;
     }
 
     stk = stk->attachment;
-  } while (stk != Null);
+  } while (stk != Null && maxDepth>0);
+
+  if(maxDepth<=0)
+    outMsg(out,"...\n");
 }
 
 int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
