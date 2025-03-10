@@ -80,7 +80,7 @@ logical collectStats = False;
   })
 #define bail() STMT_WRAP({\
   saveRegisters();\
-  stackTrace(P, logFile, STK,displayDepth,showLocalVars);\
+  stackTrace(P, logFile, STK,displayDepth,showLocalVars,100);\
   return Error;\
   })
 
@@ -139,7 +139,7 @@ retCode run(processPo P) {
         logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
         verifyProc(P, H);
-        stackTrace(P, logFile, P->stk, displayDepth, showArguments);
+        stackTrace(P, logFile, P->stk, displayDepth, showArguments, 50);
 
         return Error;
       }

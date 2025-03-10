@@ -158,7 +158,7 @@ typedef enum {
 } StackTraceLevel;
 
 void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing);
-void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing);
+void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
 static inline methodPo frameMtd(framePo fp) {
   if (fp->pool != Null) {

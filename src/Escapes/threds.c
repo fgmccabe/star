@@ -116,7 +116,7 @@ ReturnStatus g__waitfor(heapPo h, termPo xc, termPo a1) {
 ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
   logMsg(logFile, "Abort %T at %L", msg, lc);
   verifyProc(currentProcess, h);
-  stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showPrognames);
+  stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showPrognames, -1);
   star_exit(99);
   return (ReturnStatus) {.ret=Normal, .result=(termPo) voidEnum};
 }
@@ -124,7 +124,7 @@ ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
 ReturnStatus g__stackTrace(heapPo h) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments);
+  stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments, -1);
 
   ReturnStatus rt = {.ret=Normal, .result=allocateFromStrBuffer(h, str)};
   closeIo(O_IO(str));
