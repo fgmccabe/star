@@ -146,10 +146,18 @@ double get_time(void) {
  */
 double get_date(void) {
   struct timeval t;
+  time_t tloc;
+  struct tm *tmptr;
 
-  if (gettimeofday(&t, NULL) == 0) {
-    t.tv_sec -= t.tv_sec % SECSINDAY;
-    return (double) (t.tv_sec);
-  } else
+  if(gettimeofday(&t, NULL)==0){
+    tloc = t.tv_sec;
+    tmptr = localtime(&tloc);
+    tmptr->tm_hour = 0;
+    tmptr->tm_min = 0;
+    tmptr->tm_sec = 0;
+
+    return (double) mktime(tmptr);
+  }
+  else
     return (double)NAN;
 }
