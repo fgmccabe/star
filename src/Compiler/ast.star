@@ -137,6 +137,7 @@ star.compiler.ast{
   isDisp(A) where (_,S) ?= isUnary(A,"_str_multicat") => isDispCons(S).
   isDisp(A) where (_,S) ?= isUnary(A,"disp") => .true.
   isDisp(A) where (_,I,F) ?= isBinary(A,"_format") => .true.
+  isDisp(A) where _ ?= isStr(A) => .true.
   isDisp(_) default => .false.
 
   public implementation coercion[ast,string] => {
