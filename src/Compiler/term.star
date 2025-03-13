@@ -1154,7 +1154,7 @@ star.compiler.term{
       .cClos(thawLoc(Lc),N,A,thwTrm(F),decodeSig(Sig))
     | .term("fiber",[Lc,F,Sig]) => .cTask(thawLoc(Lc),thwTrm(F),decodeSig(Sig))
     | .term("sav",[Lc,Sig]) => .cSv(thawLoc(Lc),decodeSig(Sig))
-    | .term("svref",[Lc,E,Sig]) => .cSvDrf(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
+    | .term("svget",[Lc,E,Sig]) => .cSvDrf(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
     | .term("svset",[Lc,E,V]) => .cSvSet(thawLoc(Lc),thwTrm(E),thwTrm(V))
     | .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
       .cCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
