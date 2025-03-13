@@ -120,10 +120,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       outMsg(c->follow, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
       break;
     case genStar:
-      if (uniCmp(prefix, "") == same)
-        outMsg(c->first, "    | `%#c` => .some(\"%P%#c\")\n", last, prefix, last);
-      else
-        outMsg(c->follow, "    | (\"%P\",`%#c`) => .some(\"%P%#c\")\n", prefix, last, prefix, last);
+      outMsg(c->follow, "  follows(\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
     default:

@@ -74,7 +74,7 @@ logical collectStats = False;
   CT = ((ptrPo)(f+1));            \
   f->fp=FP;                       \
   PC = f->pc = entryPoint(mtd);   \
-  f->pool = codeLits(mtd);        \
+  LITS = f->pool = codeLits(glbThnk); \
   f->args = SP;                   \
   FP = f;                         \
   })
@@ -180,7 +180,6 @@ retCode run(processPo P) {
           push(res);
         } else {
           pushFrme(mtd);
-          LITS = codeLits(mtd);
           incEntryCount(mtd);              // Increment number of times program called
         }
         continue;
@@ -230,7 +229,6 @@ retCode run(processPo P) {
         assert(validPC(frameMtd(FP), PC));
         FP->pc = PC;
         pushFrme(mtd);
-        LITS = codeLits(mtd);
         incEntryCount(mtd);              // Increment number of times program called
         continue;
       }
@@ -363,7 +361,6 @@ retCode run(processPo P) {
           FP = STK->fp;
           CT = controlTop(FP,STK->tp);
           pushFrme(mtd);
-          LITS = codeLits(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
@@ -421,7 +418,6 @@ retCode run(processPo P) {
           FP = STK->fp;
           CT = controlTop(FP,STK->tp);
           pushFrme(mtd);
-          LITS = codeLits(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
@@ -809,9 +805,6 @@ retCode run(processPo P) {
           }
           FP->pc = PC + 1;
           pushFrme(glbThnk);
-
-          LITS = codeLits(glbThnk);
-          H = globalHeap;
           continue;
         }
       }

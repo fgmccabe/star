@@ -205,8 +205,6 @@ escapeType("_isLetterChar",funType(tplType([type("char")]),type("boolean"))).
 escapeType("_digitCode",constrained(funType(tplType([type("char")]),type("integer")),raises(type("errorCode")))).
 escapeType("_codePoint",funType(tplType([type("char")]),type("integer"))).
 escapeType("_char",funType(tplType([type("integer")]),type("char"))).
-escapeType("_isIDStart",funType(tplType([type("char")]),type("boolean"))).
-escapeType("_isIDContinue",funType(tplType([type("char")]),type("boolean"))).
 escapeType("_int2str",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer")]),type("string"))).
 escapeType("_flt2str",funType(tplType([type("float"),type("integer"),type("char"),type("boolean")]),type("string"))).
 escapeType("_int_format",constrained(funType(tplType([type("integer"),type("string")]),type("string")),raises(type("errorCode")))).
@@ -462,8 +460,6 @@ isEscape("_isLetterChar").
 isEscape("_digitCode").
 isEscape("_codePoint").
 isEscape("_char").
-isEscape("_isIDStart").
-isEscape("_isIDContinue").
 isEscape("_int2str").
 isEscape("_flt2str").
 isEscape("_int_format").

@@ -58,9 +58,7 @@ star.compiler.operators{
   }
 
   public follows:(string,char) => option[string].
-  follows(Op,Ch) => case (Op,Ch) in {
-#(Follows)    | (_,_) default => .none
-  }
+#(Follows)  follows(_,_) default => .none.
 
   public final:(string) => boolean.
   final(Op) => case Op in {

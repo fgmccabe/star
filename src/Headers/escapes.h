@@ -286,9 +286,6 @@ escape(_digitCode, raises(func(chr,int),ERR), "convert char to num")
 escape(_codePoint, func(chr,int), "convert char to code point integer")
 escape(_char, func(int,chr), "convert integer code point to char")
 
-escape(_isIDStart, func(chr,bool), "is start char of identifier")
-escape(_isIDContinue, func(chr,bool), "is continue char of identifier")
-
 // String handling escapes
 escape(_int2str, func(int int int int,strng), "format an integer as a string")
 escape(_flt2str, func(flt int chr bool,strng), "format a floating as a string")
