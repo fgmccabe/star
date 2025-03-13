@@ -264,22 +264,6 @@ ReturnStatus g__isLetterChar(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__isIDStart(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
-
-  termPo Rs = (isIdStart(ch) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__isIDContinue(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
-
-  termPo Rs = (isIdContinue(ch) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
 ReturnStatus g__digitCode(heapPo h, termPo xc, termPo a1) {
   codePoint ch = charVal(a1);
 

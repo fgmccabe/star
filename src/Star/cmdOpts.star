@@ -27,6 +27,8 @@ star.cmdOpts{
   processOption(A,L,Specs,SoFar) where
       O ?= search(Specs,(e)=>(e.shortForm==A|| _ ?=search(e.alternatives,(o)=>o==A))) => 
     checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
+  processOption(A,_,Specs,_) where strPrefix("-",A) =>
+    raise "Invalid option: $(A)\n#(collectUsage(Specs))".
   processOption(A,L,_,SoFar) => (SoFar,[A,..L]).
 
   checkOption:all o ~~ raises string |: (cons[string],string,option[(string)=>boolean],(string,o) => o,cons[cmdOption[o]],o) =>

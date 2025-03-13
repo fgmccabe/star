@@ -129,7 +129,8 @@ star.compiler{
 	  if errorFree() && ~ typeCheckOnly! then {
 	    AllDecls = IDecls++Decls;
 	    N = normalize(PkgSpec,Defs,AllDecls);
-	    validProg(N,AllDecls);
+	    if .base .= optimization! then
+	      validProg(N,AllDecls);
 	    
 	    Inlined = valof{
 	      if optimization! ==.inlining && mainDefined(AllDecls) then{

@@ -209,8 +209,6 @@ star.compiler.escapes{
     | "_digitCode" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("integer")),.raisEs(.nomnal("errorCode"))))
     | "_codePoint" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("integer")))
     | "_char" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("char")))
-    | "_isIDStart" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("boolean")))
-    | "_isIDContinue" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("boolean")))
     | "_int2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer"),.nomnal("integer"),.nomnal("integer")])),.nomnal("string")))
     | "_flt2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float"),.nomnal("integer"),.nomnal("char"),.nomnal("boolean")])),.nomnal("string")))
     | "_int_format" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("string")])),.nomnal("string")),.raisEs(.nomnal("errorCode"))))
@@ -469,8 +467,6 @@ star.compiler.escapes{
     | "_digitCode" => .true
     | "_codePoint" => .true
     | "_char" => .true
-    | "_isIDStart" => .true
-    | "_isIDContinue" => .true
     | "_int2str" => .true
     | "_flt2str" => .true
     | "_int_format" => .true
