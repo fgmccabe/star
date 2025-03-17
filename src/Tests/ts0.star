@@ -13,7 +13,7 @@ test.ts0{
     (Gen,_) => valof{
       Ix = ref F;
       while Ix! < T do{
-	case _suspend(Gen,.yild(Ix!)) in {
+	case Gen suspend .yild(Ix!) in {
 	  | .next => {}
 	  | .cancel => _retire(Gen,.end)
 	};
@@ -29,7 +29,7 @@ test.ts0{
     Tl = ref 0;
 
     while .true do {
-      case _resume(TT,.next) in {
+      case TT resume .next in {
 	| .yild(X) => {
 --	  _logmsg("add $(X) to $(Tl!)");
 	  Tl := Tl! + X

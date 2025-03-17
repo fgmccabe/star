@@ -6,10 +6,11 @@
 	   progTypeArity/2,progArgTypes/2,realArgTypes/2,funResType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
-	   isProgramType/1,isRefTp/2,mkRefTp/2,
+	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   ssTipe/2,
 	   contractType/2,contractTypes/2,
+	   fiberType/3,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
@@ -348,6 +349,9 @@ isProgType(Tp) :- isCnsType(Tp,_,_),!.
 isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
 mkRefTp(A,tpExp(tpFun("ref",1),A)).
+
+fiberType(R,S,Tp) :-
+  mkTypeExp(tpFun("fiber",2),[R,S],Tp).
 
 isEitherTp(T,A,B) :-
   isTypeExp(T,tpFun("star.either*either",2),[A,B]).

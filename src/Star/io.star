@@ -193,7 +193,7 @@ star.io{
 
   waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k raises e.
   waitforIO(IO,Ft) => valof{
-    case _suspend(this,.requestIO(IO,()=>~_futureIsResolved(Ft))) in {
+    case this suspend .requestIO(IO,()=>~_futureIsResolved(Ft)) in {
       | .go_ahead => {
 	valis _futureVal(Ft)
       }

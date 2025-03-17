@@ -566,11 +566,6 @@ compExp(cel(Lc,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(get(Lc,Exp),_,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Exp,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iGet|C1],Stk,Stka),
   genLastReturn(Last,Opts,C1,Cx,Stka,Stkx).
-compExp(set(Lc,Cl,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(Val,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
-  compExp(Cl,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iSet|C1],Stk1,_Stka),
-  genLastReturn(Last,Opts,C1,Cx,Stk,Stkx).
 compExp(sav(Lc,_),OLc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iSav|C1]),!,
   bumpStk(Stk,Stka),
@@ -639,6 +634,20 @@ compExp(tsk(Lc,F),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(F,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1,Stk,Stka),
   genLastReturn(Last,Opts,C1,[iFiber|Cx],Stka,Stkx).
+compExp(susp(Lc,T,M,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(M,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
+  compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iSuspend|C2],Stk1,_Stka),
+  genLastReturn(Last,Opts,C2,Cx,Stk1,Stkx).
+compExp(rtire(Lc,T,M,_Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(M,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
+  compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iRetire|Cx],Stk1,_Stka).
+compExp(resme(Lc,T,M,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  compExp(M,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
+  compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iResume|C2],Stk1,_Stka),
+  genLastReturn(Last,Opts,C2,Cx,Stk1,Stkx).
 compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(BlkTp,[iLbl(Fl,iBlock(FlatTp,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
   isCond(Cond),!,
   isTrueSymb(True),

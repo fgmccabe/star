@@ -21,6 +21,7 @@
   is_in(X,[X|_]).
   is_in(X,[_|Y]) :- is_in(X,Y).
 
+  operator("retire", [prefixOp(899, 898), infixOp(898, 899, 898)]).
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("&&", [infixOp(909, 910, 910)]).
@@ -59,7 +60,7 @@
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator("*>", [infixOp(904, 905, 904), prefixOp(905, 904)]).
-  operator("resume", [prefixOp(999, 998), infixOp(998, 999, 998)]).
+  operator("resume", [infixOp(898, 899, 898)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1560, 1559)]).
   operator("\\/", [infixOp(720, 720, 719)]).
@@ -87,7 +88,7 @@
   operator("|=", [infixOp(998, 999, 998)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
-  operator("suspend", [prefixOp(999, 998), infixOp(998, 999, 998)]).
+  operator("suspend", [prefixOp(899, 898), infixOp(898, 899, 898)]).
   operator("trace", [infixOp(139, 140, 139), prefixOp(140, 139)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
@@ -354,6 +355,7 @@
   final('#',"#").	 /* Macro statement marker */
   final('$$',"$$").	 /* thunk expression */
 
+  keyword("retire").
   keyword("all").
   keyword("&&").
   keyword("let").

@@ -221,6 +221,15 @@ overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
 overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
+overloadTerm(suspend(Lc,T,M,Tp),Dict,St,Stx,suspend(Lc,TT,MM,Tp)) :-!,
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(M,Dict,St0,Stx,MM).
+overloadTerm(retire(Lc,T,M,Tp),Dict,St,Stx,retire(Lc,TT,MM,Tp)) :-!,
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(M,Dict,St0,Stx,MM).
+overloadTerm(resume(Lc,T,M,Tp),Dict,St,Stx,resume(Lc,TT,MM,Tp)) :-!,
+  overloadTerm(T,Dict,St,St0,TT),
+  overloadTerm(M,Dict,St0,Stx,MM).
 overloadTerm(thnkRef(Lc,A,Tp),Dict,St,Stx,thnkRef(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(newSV(Lc,Tp),_Dict,Stx,Stx,newSV(Lc,Tp)) :-!.
@@ -300,7 +309,7 @@ overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,St,Stx,doLetRec(Lc,Decls,RDefs
 overloadAction(case(Lc,G,C,Tp),Dict,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,St1,Stx,CC).
-overloadAction(doCall(Lc,T),Dict,St,Stx,doCall(Lc,TT)) :-
+overloadAction(doExp(Lc,T),Dict,St,Stx,doExp(Lc,TT)) :-
   overloadTerm(T,Dict,St,Stx,TT).
 overloadAction(A,_,St,St,A) :-
   locOfCanon(A,Lc),

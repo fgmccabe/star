@@ -304,6 +304,18 @@ collectTermRefs(T,All,Rf,Rfx) :-
 collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isResume(T,_,Ts,Ms),!,
+  collectTermRefs(Ts,All,Rf,Rf0),
+  collectTermRefs(Ms,All,Rf0,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isSuspend(T,_,Ts,Ms),!,
+  collectTermRefs(Ts,All,Rf,Rf0),
+  collectTermRefs(Ms,All,Rf0,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isRetire(T,_,Ts,Ms),!,
+  collectTermRefs(Ts,All,Rf,Rf0),
+  collectTermRefs(Ms,All,Rf0,Rfx).
 collectTermRefs(T,All,R,Rx) :-
   isThunk(T,_,V),!,
   collectTermRefs(V,All,R,Rx).

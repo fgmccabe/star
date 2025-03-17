@@ -648,13 +648,13 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
     Cl = typeOfExp(C,refType(Tp),Env,Path);
-    valis .apply(Lc,.vr(Lc,"_get",funType([refType(Tp)],Tp)),[Cl],Tp)
+    valis .get(Lc,Cl,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (Lc,V) ?= isRef(A) => valof{
     VTp = newTypeVar("_C");
     Vl = typeOfExp(V,VTp,Env,Path);
     checkType(V,refType(VTp),Tp,Env);
-    valis .apply(Lc,.vr(Lc,"_cell",funType([VTp],Tp)),[Vl],Tp)
+    valis .cell(Lc,Vl,Tp)
   }
   typeOfExp(A,Tp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path).
@@ -886,6 +886,20 @@ star.compiler.checker{
     V = typeOfExp(E,ErTp,Env,Path);
     valis .over(Lc,.rais(Lc,.anon(Lc,ErTp),V,Tp),.raisEs(ErTp))
   }
+  typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(Tp,MsgTp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis .susp(Lc,Tsk,Msg,Tp)
+  }
+  typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(MsgTp,Tp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis .resum(Lc,Tsk,Msg,Tp)
+  }
   typeOfExp(A,Tp,_,_) => valof{
     reportError("cannot type check expression $(A)",locOf(A));
     valis .anon(locOf(A),Tp)
@@ -1075,6 +1089,22 @@ star.compiler.checker{
       },[],.none);
     valis (.doCase(Lc,Gv,Rules),Env)
   }
+  checkAction(A,Tp,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(TTp,MsgTp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis (.doExp(Lc,.susp(Lc,Tsk,Msg,TTp)),Env)
+  }
+  checkAction(A,Tp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(MsgTp,TTp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env)
+  }
   checkAction(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
     Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_r"),Env,Path);
     valis (.doExp(Lc,Call),Env)
@@ -1091,7 +1121,7 @@ star.compiler.checker{
       RfTp = refType(Tp);
       Val = typeOfExp(Rhs,Tp,Env,Path);
       Ev = declareVar(Id,Id,ILc,refType(Tp),.none,Env);
-      valis (.doDefn(Lc,.vr(ILc,Id,RfTp),.apply(Lc,.vr(Lc,"_cell",funType([Tp],RfTp)),[Val],RfTp)),Ev)
+      valis (.doDefn(Lc,.vr(ILc,Id,RfTp),.cell(Lc,Val,RfTp)),Ev)
     } else{
       Val = typeOfExp(Rhs,Tp,Env,Path);
       Var = typeOfExp(Lhs,refType(Tp),Env,Path);

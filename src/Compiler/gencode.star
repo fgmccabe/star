@@ -153,15 +153,19 @@ star.compiler.gencode{
 	chLine(OLc,Lc)++FCode++
 	[.iClosure(.tLbl(Nm,Ar)),frameIns(Stk2)],Ctx,Stk2)
     }
-    | .cTask(Lc,T,Tp) => valof{
-      (TC,_,_) = compExp(T,Lc,Brks,.notLast,Ctx,Stk);
-      valis genReturn(Last,chLine(OLc,Lc)++TC++[.iFiber],Ctx,pshStack(Tp,Stk))
-    }
     | .cSv(Lc,Tp) => genReturn(Last,chLine(OLc,Lc)++[.iSav],Ctx,pshStack(Tp,Stk))
     | .cSvSet(Lc,Th,Vl) => valof{
       (VlC,_,Stk0) = compExp(Vl,Lc,Brks,.notLast,Ctx,Stk);
       (ThC,_,_) = compExp(Th,Lc,Brks,.notLast,Ctx,Stk0);
       valis genReturn(Last,chLine(OLc,Lc)++VlC++ThC++[.iTSav],Ctx,pshStack(typeOf(Vl),Stk))
+    }
+    | .cCel(Lc,E,Tp) => valof{
+      (EC,_,Stk0) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      valis genReturn(Last,chLine(OLc,Lc)++EC++[.iCell],Ctx,pshStack(Tp,Stk))
+    }
+    | .cGet(Lc,E,Tp) => valof{
+      (EC,_,Stk0) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      valis genReturn(Last,chLine(OLc,Lc)++EC++[.iGet],Ctx,pshStack(Tp,Stk))
     }
     | .cNth(Lc,E,Ix,Tp) => valof{
       (VL,_,_) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
@@ -223,6 +227,16 @@ star.compiler.gencode{
       (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
       (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
       valis (chLine(OLc,Lc)++EC++TC++[.iThrow],Ctx,.none)
+    }
+    | .cResum(Lc,T,E,Tp) => valof{
+      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      valis (chLine(OLc,Lc)++TC++EC++[.iResume],Ctx,pushStack(Tp::ltipe,Stk))
+    }
+    | .cSusp(Lc,T,E,Tp) => valof{
+      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      valis (chLine(OLc,Lc)++TC++EC++[.iSuspend],Ctx,pushStack(Tp::ltipe,Stk))
     }
     | .cValof(Lc,A,Tp) => valof{
       Vl = defineLbl(Ctx,"Vl");

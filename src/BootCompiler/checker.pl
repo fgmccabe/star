@@ -852,6 +852,25 @@ typeOfExp(A,Tp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Opts,Path
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
   typeOfExp(E,ErTp,Env,_,ErExp,Opts,Path).
+typeOfExp(A,Tp,Env,Env,suspend(Lc,T,M,Tp),Opts,Path) :-
+  isSuspend(A,Lc,L,R),!,
+  newTypeVar("M",MTp),
+  fiberType(Tp,MTp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path).
+typeOfExp(A,Tp,Env,Env,retire(Lc,T,M,Tp),Opts,Path) :-
+  isRetire(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  fiberType(TTp,MTp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path).
+typeOfExp(A,Tp,Env,Env,resume(Lc,T,M,Tp),Opts,Path) :-
+  isResume(A,Lc,L,R),!,
+  newTypeVar("M",MTp),
+  fiberType(MTp,Tp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Opts,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Exp,Opts,Path).
@@ -965,7 +984,7 @@ checkAction(A,_,_,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
 checkAction(A,Tp,_HasVal,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,_HasVal,Env,Ev,doCall(Lc,Thrw),Opts,Path) :-
+checkAction(A,_Tp,_HasVal,Env,Ev,doExp(Lc,Thrw),Opts,Path) :-
   isRaise(A,Lc,_E),!,
   newTypeVar("C",ErTp),
   typeOfExp(A,ErTp,Env,Ev,Thrw,Opts,Path).
@@ -1031,7 +1050,30 @@ checkAction(A,Tp,HasVal,Env,Env,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
   newTypeVar("B",BVr),
   typeOfExp(Bnd,BVr,Env,_,Bound,Opts,Path),
   checkCases(Cases,BVr,Tp,Env,Eqns,Eqx,Eqx,[],checker:tryAction(HasVal),Opts,Path),!.
-checkAction(A,Tp,HasVal,Env,Env,doCall(Lc,Exp),Opts,Path) :-
+checkAction(A,Tp,HasVal,Env,Env,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
+  isSuspend(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  fiberType(TTp,MTp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path),
+  checkLastAction(A,Lc,HasVal,Tp,TTp,Env).
+checkAction(A,Tp,_HasVal,Env,Env,doExp(Lc,retire(Lc,T,M,Tp)),Opts,Path) :-
+  isRetire(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  fiberType(TTp,MTp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path).
+checkAction(A,Tp,HasVal,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
+  isResume(A,Lc,L,R),!,
+  newTypeVar("T",TTp),
+  newTypeVar("M",MTp),
+  fiberType(MTp,TTp,FTp),
+  typeOfExp(L,FTp,Env,_,T,Opts,Path),
+  typeOfExp(R,MTp,Env,_,M,Opts,Path),
+  checkLastAction(A,Lc,HasVal,Tp,TTp,Env).
+checkAction(A,Tp,HasVal,Env,Env,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   newTypeVar("_",RTp),
   typeOfRoundTerm(Lc,F,Args,RTp,Env,Exp,Opts,Path),

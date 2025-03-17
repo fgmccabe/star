@@ -414,6 +414,15 @@ liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(fiber(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(resume(Lc,T,M,Tp),resme(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(suspend(Lc,T,M,Tp),susp(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(retire(Lc,T,M,Tp),rtire(Lc,TT,MM,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
+  liftExp(M,MM,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(thnkRef(Lc,E,Tp),ocall(Lc,EE,[],Tp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(newSV(Lc,Tp),sav(Lc,Tp),Qx,Qx,_Map,_Opts,Exx,Exx).
@@ -485,7 +494,7 @@ liftAction(doTryCatch(Lc,B,T,H),doTryCtch(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :
   typeOfCanon(T,Tp),
   genVar("_E",Tp,E),
   actionCaseMatcher(Lc,E,Cases,Map,HH).
-liftAction(doCall(Lc,E),perf(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
+liftAction(doExp(Lc,E),perf(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
   locOfCanon(XX,Lc),

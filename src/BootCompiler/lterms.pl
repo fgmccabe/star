@@ -125,9 +125,6 @@ ssTrm(cel(_,C),Dp,sq([ss("ref "),CC])) :-!,
   ssTrm(C,Dp,CC).
 ssTrm(get(_,C),Dp,sq([CC,ss("!")])) :-!,
   ssTrm(C,Dp,CC).
-ssTrm(set(_,C,V),Dp,sq([CC,ss(":="),VV])) :-!,
-  ssTrm(C,Dp,CC),
-  ssTrm(V,Dp,VV).
 ssTrm(sav(_,_),_Dp,sq([ss("sav"),lp,rp])) :-!.
 ssTrm(savIsSet(_,S),Dp,sq([SS,ss("?")])) :-!,
   ssTrm(S,Dp,SS).
@@ -182,6 +179,15 @@ ssTrm(tryCtch(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH]))
   ssTrm(T,Dp,TT),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
+ssTrm(susp(_,T,E,_),Dp,sq([TT,ss(" suspend "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
+ssTrm(rtire(_,T,E,_),Dp,sq([TT,ss(" retire "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
+ssTrm(resme(_,T,E,_),Dp,sq([TT,ss(" resume "),EE])) :-
+  ssTrm(T,Dp,TT),
+  ssTrm(E,Dp,EE).
 
 dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
@@ -332,9 +338,6 @@ rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
   rewriteTerm(QTest,T,NT).
 rewriteTerm(QTest,get(Lc,T),get(Lc,NT)) :-
   rewriteTerm(QTest,T,NT).
-rewriteTerm(QTest,set(Lc,T,V),set(Lc,NT,NV)) :-
-  rewriteTerm(QTest,T,NT),
-  rewriteTerm(QTest,V,NV).
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerm(QTest,Vl,NVl).
@@ -382,7 +385,13 @@ rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
   rewriteAction(QTest,A,AA).
 rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
   rewriteTerm(QTest,F,FF).
-rewriteTerm(QTest,resme(Lc,T,E),resme(Lc,TT,EE)) :-
+rewriteTerm(QTest,resme(Lc,T,E,Tp),resme(Lc,TT,EE,Tp)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,susp(Lc,T,E,Tp),susp(Lc,TT,EE,Tp)) :-
+  rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,rtire(Lc,T,E,Tp),rtire(Lc,TT,EE,Tp)) :-
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
@@ -530,20 +539,24 @@ inTerm(cel(_,C),Nm) :-
   inTerm(C,Nm).
 inTerm(get(_,C),Nm) :-
   inTerm(C,Nm).
-inTerm(set(_,C,_),Nm) :-
-  inTerm(C,Nm).
-inTerm(set(_,_,V),Nm) :-
-  inTerm(V,Nm).
 inTerm(setix(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(setix(_,_,_,Vl),Nm) :-
   inTerm(Vl,Nm).
 inTerm(ctpl(_,Args),Nm) :-
   is_member(Arg,Args), inTerm(Arg,Nm),!.
-inTerm(resme(_,L,_A),Nm) :-
-  is_member(L,Nm).
-inTerm(resme(_,_L,Arg),Nm) :-
-  inTerm(Arg,Nm),!.
+inTerm(resme(_,T,_M,_),Nm) :-
+  is_member(T,Nm).
+inTerm(resme(_,_T,M,_),Nm) :-
+  inTerm(M,Nm),!.
+inTerm(susp(_,T,_M,_),Nm) :-
+  is_member(T,Nm).
+inTerm(susp(_,_T,M,_),Nm) :-
+  inTerm(M,Nm),!.
+inTerm(rtire(_,T,_M,_),Nm) :-
+  is_member(T,Nm),!.
+inTerm(rtire(_,_T,M,_),Nm) :-
+  inTerm(M,Nm),!.
 inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
@@ -634,6 +647,8 @@ tipeOf(enum(_),voidType).
 tipeOf(ctpl(_,Args),tplType(AA)) :-
   map(Args,lterms:tipeOf,AA).
 tipeOf(resme(_,_,_,T),T).
+tipeOf(susp(_,_,_,T),T).
+tipeOf(rtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
@@ -735,9 +750,6 @@ validTerm(cel(Lc,C),_,D) :-
   validTerm(C,Lc,D).
 validTerm(get(Lc,C),_,D) :-
   validTerm(C,Lc,D).
-validTerm(set(Lc,C,V),_,D) :-
-  validTerm(C,Lc,D),
-  validTerm(V,Lc,D).
 validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
   validTerm(Rc,Lc,D),
@@ -794,7 +806,13 @@ validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).
 validTerm(tsk(Lc,F),_,D) :-
   validTerm(F,Lc,D).
-validTerm(resme(Lc,T,E),_,D) :-
+validTerm(resme(Lc,T,E,_),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(susp(Lc,T,E,_),_,D) :-
+  validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(rtire(Lc,T,E,_),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(error(Lc,M),_,D) :-
