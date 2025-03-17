@@ -12,7 +12,7 @@ test.sieve{
 	post(Ix!,Chnnl)
       }
     } catch mboxException in { .canceled => {
-	_retire(this,.retired_)
+	retire .retired_
     }
     }
   }
@@ -42,7 +42,7 @@ test.sieve{
 	valis Nxt
       }
     } catch mboxException in { .canceled => {}};
-    _retire(this,.retired_)
+    retire .retired_
   }
 
   _main:(cons[string]) => ().
@@ -55,7 +55,7 @@ test.sieve{
     Gn = gen(IChnnl);
     Sv = (Tsk)=>valof{
       sieve(Tsk,0,Cnt,FstCh);
-      _retire(Tsk,.retired_)
+      Tsk retire .retired_
     };
 
     try{

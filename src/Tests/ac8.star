@@ -21,7 +21,7 @@ test.ac8{
 	let{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
-	      _retire(TryTsk,.err(E))
+	      TryTsk retire .err(E)
 	    }
 	  }
 	} in {
@@ -29,7 +29,7 @@ test.ac8{
 	  if X>5 then
 	    _throw(10)
 	  else
-	  _retire(TryTsk,.ok(3*X))
+	  TryTsk retire .ok(3*X)
 	}
 	});
     case TT resume () in {

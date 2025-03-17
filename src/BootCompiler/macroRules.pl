@@ -577,7 +577,7 @@ generatorMacro(E,expression,Ex) :-
    becomes
    case this suspend ._yld(E) in {
      ._next => {}.
-     ._cancel => _retire(this,._all)
+     ._cancel => retire ._all
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -593,7 +593,7 @@ yieldMacro(E,action,Ax) :-
   /* build ._cancel => _retire(this,._all) */
   mkEnum(Lc,"_cancel",Can),
   mkEnum(Lc,"_all",All),
-  binary(Lc,"_retire",name(Lc,"this"),All,Rs),
+  mkRetire(Lc,name(Lc,"this"),All,Rs),
   mkEquation(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */

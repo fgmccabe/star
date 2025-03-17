@@ -108,9 +108,9 @@ escape(_big_format, raises(func(big strng,strng),ERR), "format a big integer")
 
 escape(_fiber_eq,all(r,all(s,func(fiber(r,s) fiber(r,s),bool))),"compare two fiber identifiers")
 escape(_fiber,all(r,all(s,func(func(fiber(r,s) r,s),fiber(r,s)))),"create a new fiber")
-escape(_suspend,all(r,all(s,func(fiber(r,s) s,r))),"suspend fiber")
-escape(_retire,all(r,all(s,all(e,func(fiber(r,s) s,e)))),"retire fiber")
-escape(_resume,all(r,all(s,func(fiber(r,s) r,s))),"resume fiber")
+/* escape(_suspend,all(r,all(s,func(fiber(r,s) s,r))),"suspend fiber") */
+/* escape(_retire,all(r,all(s,all(e,func(fiber(r,s) s,e)))),"retire fiber") */
+/* escape(_resume,all(r,all(s,func(fiber(r,s) r,s))),"resume fiber") */
 
 escape(sqrt, raises(func(flt,flt),ERR), "square root")
 escape(exp, raises(func(flt,flt),ERR), "exponential")

@@ -30,11 +30,11 @@ test.ct0{
 		  | .shut_down_ => raise .canceled
 		};
 		showMsg("After 2 pauses $(Cnt)");
-		_retire(Tsk,.blocked(()=>.false))
+		Tsk retire .blocked(()=>.false)
 	      } catch mboxException in {
 		| _ => {
 		  showMsg("we were canceled");
-		  _retire(Tsk,.retired_)
+		  Tsk retire .retired_
 		}
 	      }
 	    });

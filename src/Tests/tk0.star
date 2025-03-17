@@ -37,7 +37,7 @@ test.tk0{
 	} catch string in {
 	  Msg => {
 	    showMsg(Msg);
-	    _retire(this,.retired_)
+	    retire .retired_
 	  }
 	}
       };

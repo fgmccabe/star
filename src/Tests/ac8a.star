@@ -35,12 +35,12 @@ test.ac8a{
 	  implementation throwable[integer] => {
 	    _throw(E) => valof{
 	      showMsg("retiring...");
-	      _retire(TryTsk,.err(E))
+	      TryTsk retire .err(E)
 	    }
 	  }
 	} in {
 	  showMsg("starting f($(X))");
-	  _retire(TryTsk,.ok(ff(X)))
+	  TryTsk retire .ok(ff(X))
 	}
       });
 

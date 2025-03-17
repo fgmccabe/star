@@ -15,12 +15,12 @@ test.ts0{
       while Ix! < T do{
 	case Gen suspend .yild(Ix!) in {
 	  | .next => {}
-	  | .cancel => _retire(Gen,.end)
+	  | .cancel => Gen retire .end
 	};
       
 	Ix := Ix! + 1;
       };
-      _retire(Gen,.end)
+      Gen retire .end
     }).
 
   adder:(integer,integer) => integer.
