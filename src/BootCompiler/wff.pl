@@ -59,6 +59,7 @@
 	      isTryCatch/5,mkTryCatch/5,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,isRaises/4,mkRaises/4,
+	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
 	      isDynamic/4,mkDynamic/4,
 	      isBreak/3,mkBreak/3,isLbldAction/4,mkLbldAction/4,
@@ -951,6 +952,28 @@ mkTryCatch(Lc,B,E,Cases,A) :-
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
   unary(Lc,"try",A0,A).
+
+isResume(A,Lc,T,M) :-
+  isBinary(A,Lc,"resume",T,M).
+
+mkResume(Lc,T,M,A) :-
+  binary(Lc,"resume",T,M,A).
+
+isSuspend(A,Lc,T,M) :-
+  isBinary(A,Lc,"suspend",T,M), !.
+isSuspend(A,Lc,name(Lc,"this"),M) :-
+  isUnary(A,Lc,"suspend",M).
+
+mkSuspend(Lc,T,M,A) :-
+  binary(Lc,"suspend",T,M,A).
+
+isRetire(A,Lc,T,M) :-
+  isBinary(A,Lc,"retire",T,M),!.
+isRetire(A,Lc,name(Lc,"this"),M) :-
+  isUnary(A,Lc,"retire",M).
+
+mkRetire(Lc,T,M,A) :-
+  binary(Lc,"retire",T,M,A).
 
 isThunk(A,Lc,Th) :-
   isUnary(A,Lc,"$$",Th).

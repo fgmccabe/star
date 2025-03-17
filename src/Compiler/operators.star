@@ -38,6 +38,7 @@ star.compiler.operators{
 
   oper:(string)=>cons[operator].
   oper(Op) => case Op in {
+    | "retire" => [.prefixOp(899,898), .infixOp(898,899,898)]
     | "all" => [.prefixOp(1010,1009)]
     | ".<." => [.infixOp(699,700,699)]
     | "&&" => [.infixOp(909,910,910)]
@@ -76,7 +77,7 @@ star.compiler.operators{
     | "+" => [.postfixOp(699,700), .infixOp(720,720,719)]
     | ".>>." => [.infixOp(600,600,599)]
     | "*>" => [.infixOp(904,905,904), .prefixOp(905,904)]
-    | "resume" => [.prefixOp(999,998), .infixOp(998,999,998)]
+    | "resume" => [.infixOp(898,899,898)]
     | "," => [.infixOp(999,1000,1000)]
     | "contract" => [.prefixOp(1560,1559)]
     | "\\/" => [.infixOp(720,720,719)]
@@ -104,7 +105,7 @@ star.compiler.operators{
     | "|=" => [.infixOp(998,999,998)]
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
-    | "suspend" => [.prefixOp(999,998), .infixOp(998,999,998)]
+    | "suspend" => [.prefixOp(899,898), .infixOp(898,899,898)]
     | "trace" => [.infixOp(139,140,139), .prefixOp(140,139)]
     | "~~" => [.infixOp(1239,1240,1240)]
     | "assert" => [.prefixOp(1240,1239)]
@@ -414,6 +415,7 @@ star.compiler.operators{
 
   public keyword:(string) => boolean.
   keyword(Op) => case Op in {
+    | "retire" => .true
     | "all" => .true
     | "&&" => .true
     | "let" => .true

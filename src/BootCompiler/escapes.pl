@@ -87,9 +87,6 @@ escapeType("_blsl",funType(tplType([type("integer"),type("integer")]),type("inte
 escapeType("_blsr",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_basr",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_bnot",funType(tplType([type("integer")]),type("integer"))).
-escapeType("_cell",allType(kVar("r"),funType(tplType([kVar("r")]),tpExp(tpFun("ref",1),kVar("r"))))).
-escapeType("_get",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r"))]),kVar("r")))).
-escapeType("_assign",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r")),kVar("r")]),tplType([])))).
 escapeType("_cell_future",allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpFun("ref",1),tpExp(tpExp(tpFun("star.either*either",2),kVar("s")),kVar("e")))]),tpExp(tpExp(tpFun("future",2),kVar("s")),kVar("e")))))).
 escapeType("_futureIsResolved",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
 escapeType("_futureIsAccepted",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
@@ -342,9 +339,6 @@ isEscape("_blsl").
 isEscape("_blsr").
 isEscape("_basr").
 isEscape("_bnot").
-isEscape("_cell").
-isEscape("_get").
-isEscape("_assign").
 isEscape("_cell_future").
 isEscape("_futureIsResolved").
 isEscape("_futureIsAccepted").

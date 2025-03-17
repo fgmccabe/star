@@ -32,7 +32,7 @@ test.ac8{
 	  _retire(TryTsk,.ok(3*X))
 	}
 	});
-    case _resume(TT,()) in {
+    case TT resume () in {
       | .err(E) => {
 	showMsg("err $(E)");
 	valis -E

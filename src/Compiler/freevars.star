@@ -56,12 +56,16 @@ star.compiler.freevars{
     | .newSav(_,_) => Fv
     | .svGet(_,V,_) => freeVarsInExp(V,Q,Fv)
     | .svSet(_,S,V) => freeVarsInExp(S,Q,freeVarsInExp(V,Q,Fv))
+    | .cell(_,V,_) => freeVarsInExp(V,Q,Fv)
+    | .get(_,V,_) => freeVarsInExp(V,Q,Fv)
     | .letExp(_,D,_,E) => freeVarsInExp(E,dropDefs(D,Q),freeVarsInDefs(D,Q,Fv))
     | .letRec(Lc,D,_,E) => valof{
       QD = dropDefs(D,Q);
       valis freeVarsInExp(E,QD,freeVarsInDefs(D,QD,Fv))
     }
     | .vlof(_,A,_) => freeVarsInAct(A,Q,Fv)
+    | .resum(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
+    | .susp(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
     | _ default => valof{
       reportError("cant find free vars in $(Exp)",locOf(Exp));
       valis Fv

@@ -57,6 +57,9 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_,_)).
 isCanon(fiber(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
+isCanon(suspend(_,_,_,_)).
+isCanon(retire(_,_,_,_)).
+isCanon(resume(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -117,6 +120,9 @@ typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
 typeOfCanon(fiber(_,_,Tp),Tp) :-!.
+typeOfCanon(suspend(_,_,_,Tp),Tp) :- !.
+typeOfCanon(retire(_,_,_,Tp),Tp) :- !.
+typeOfCanon(resume(_,_,_,Tp),Tp) :- !.
 typeOfCanon(thnkRef(_,_,Tp),Tp) :- !.
 typeOfCanon(newSV(_,Tp),Tp) :- !.
 typeOfCanon(svGet(_,_,Tp),Tp) :- !.
@@ -164,6 +170,9 @@ locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
 locOfCanon(fiber(Lc,_,_),Lc) :-!.
+locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
+locOfCanon(retire(Lc,_,_,_),Lc) :-!.
+locOfCanon(resume(Lc,_,_,_),Lc) :-!.
 locOfCanon(thnkRef(Lc,_,_),Lc) :-!.
 locOfCanon(newSV(Lc,_),Lc) :-!.
 locOfCanon(svGet(Lc,_,_),Lc) :-!.
@@ -183,7 +192,7 @@ locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
-locOfCanon(doCall(Lc,_),Lc) :-!.
+locOfCanon(doExp(Lc,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
@@ -291,6 +300,15 @@ ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
 ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
   ssTerm(A,Dp,AA).
+ssTerm(suspend(_,T,M,_),Dp,sq([TT,ss(" suspend "),MM])) :-!,
+  ssTerm(T,Dp,TT),
+  ssTerm(M,Dp,MM).
+ssTerm(retire(_,T,M,_),Dp,sq([TT,ss(" retire "),MM])) :-!,
+  ssTerm(T,Dp,TT),
+  ssTerm(M,Dp,MM).
+ssTerm(resume(_,T,M,_),Dp,sq([TT,ss(" resume "),MM])) :-!,
+  ssTerm(T,Dp,TT),
+  ssTerm(M,Dp,MM).
 ssTerm(thnkRef(_,A,_),Dp,sq([AA,ss("!!")])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(newSV(_,T),Dp,sq([ss("#"),lp,TT,rp])) :-!,
@@ -323,7 +341,7 @@ ssAction(doLbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,
 ssAction(doBrk(_,Lb),_,sq([ss("break "),ss(Lb)])) :-!.
 ssAction(doValis(_,E),Dp,sq([ss("valis "),EE])) :-!,
   ssTerm(E,Dp,EE).
-ssAction(doCall(_,E),Dp,sq([ss("call "),EE])) :-!,
+ssAction(doExp(_,E),Dp,sq([ss("call "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssAction(doMatch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTerm(P,Dp,PP),

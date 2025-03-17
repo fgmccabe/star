@@ -37,7 +37,7 @@ test.dyn1{
 
   f:(integer) => integer.
   f(X) => valof{
-    case _resume(_fiber((TryTsk,_) =>valof{
+    case _fiber((TryTsk,_) =>valof{
 	  let{
 	    _throw(E) => valof{
 	      showMsg("retiring...");
@@ -47,7 +47,7 @@ test.dyn1{
 	    showMsg("starting f($(X))");
 	    _retire(TryTsk,.ok(fe(X)))
 	  }
-	}),()) in {
+	}) resume () in {
       | .err(E) => {
 	showMsg("We got exception $(E)");
 	valis -E

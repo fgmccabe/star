@@ -48,9 +48,6 @@ star.compiler.intrinsics{
     | "_suspend" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))),.iSuspend, .false, .notLast))  -- suspend fiber
     | "_retire" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("e"))))),.iRetire, .false, .noMore))  -- retire fiber
     | "_resume" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))),.iResume, .false, .notLast))  -- resume fiber
-    | "_cell" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("r")])),.tpExp(.tpFun("ref",1),.nomnal("r")))),.iCell, .true, .notLast))  -- create a reference cell
-    | "_get" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("r"))])),.nomnal("r"))),.iGet, .false, .notLast))  -- access contents of reference cell
-    | "_assign" => .some((.allType(.nomnal("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.nomnal("r")),.nomnal("r")])),.tupleType([]))),.iAssign, .false, .notLast))  -- update contents of reference cell
 
     | _ default => .none
   }

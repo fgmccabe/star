@@ -20,12 +20,12 @@ test.ct0{
 	    (Tsk)=>valof{
 	      try{
 		showMsg("We were spawned $(Cnt)");
-		case _suspend(Tsk,.yield_) in {
+		case Tsk suspend .yield_ in {
 		  | .go_ahead => {}
 		  | .shut_down_ => raise .canceled
 		};
 		showMsg("After 1 pause $(Cnt)");
-		case _suspend(Tsk,.yield_) in {
+		case Tsk suspend .yield_ in {
 		  | .go_ahead => {}
 		  | .shut_down_ => raise .canceled
 		};

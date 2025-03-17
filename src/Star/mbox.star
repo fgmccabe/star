@@ -37,14 +37,14 @@ star.mbox{
   post(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
       | .hasData(_) => {
-	case _suspend(this,.blocked(()=>.hasData(_).=St!)) in {
+	case this suspend .blocked(()=>.hasData(_).=St!) in {
 	  | .go_ahead => valis post(D,Ch)
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
-	case _suspend(this,.yield_) in {
+	case this suspend(this .yield_ in {
 	  | .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -57,13 +57,13 @@ star.mbox{
     case St! in {
       | .hasData(D) => {
 	St := .quiescent;
-	case _suspend(this,.yield_) in {
+	case this suspend .yield_ in {
 	  | .go_ahead => valis D
 	  | .shut_down_ => raise .canceled
 	}
       }
       | .quiescent => {
-	case _suspend(this,.blocked(()=> ~.hasData(_).=St!)) in {
+	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  | .go_ahead => valis collect(Ch)
 	  | .shut_down_ => raise .canceled
 	}
@@ -83,7 +83,7 @@ star.mbox{
   subTask(Schd,F) => valof{
     Fn = _fiber((Tsk,_)=>.result(F(Tsk)));
 
-    case _suspend(Schd,.schedule(Fn)) in {
+    case Schd suspend .schedule(Fn) in {
       | .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -99,14 +99,14 @@ star.mbox{
       while ~isEmpty(Q!) do{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
-	  case _resume(T,.go_ahead) in {
+	  case T resume .go_ahead in {
 	    | .yield_ => {
 	      Q:=Q!++[T];
 	    }
 	    | .result(Rslt) => {
 	      while [C,..Cs] .= Q! do{
 		Q := Cs;
-		_resume(C,.shut_down_);
+		C resume .shut_down_;
 	      };
 		
 	      valis Rslt
@@ -158,7 +158,7 @@ star.mbox{
   
   public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
   pause() => valof{
-    case _suspend(this,.yield_) in {
+    case this suspend .yield_ in {
       | .go_ahead => valis ()
       | .shut_down_ => raise .canceled
     }
@@ -184,7 +184,7 @@ star.mbox{
 
   public waitfor:all k,e ~~ async (future[k,e])=>k raises e.
   waitfor(Ft) => valof{
-    case _suspend(this,.blocked(()=>~_futureIsResolved(Ft))) in {
+    case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
       | .go_ahead => {
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
@@ -213,7 +213,7 @@ star.mbox{
 	  }
 	}));
     
-    _suspend(sched,.schedule(Fb));
+    sched suspend .schedule(Fb);
 
     valis _cell_future(C)
   }

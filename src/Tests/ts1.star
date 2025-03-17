@@ -15,9 +15,9 @@ test.ts1{
   iterFn(this,L) => let{
     yildFn:((),e)=>().
     yildFn(_,E) => valof{
-      case _suspend(this,.yild(E)) in {
+      case suspend .yild(E) in {
 	| .next => valis ()
-	| .cancel => _retire(this,.end)
+	| .cancel => retire .end
       }
     }
   } in valof{
@@ -32,9 +32,9 @@ test.ts1{
   itrFn(L) => _fiber((this,_) => let{
       yildFn:((),e)=>().
       yildFn(_,E) => valof{
-	case _suspend(this,.yild(E)) in {
+	case suspend .yild(E) in {
 	  | .next => valis ()
-	  | .cancel => _retire(this,.end)
+	  | .cancel => retire .end
 	}
       }
     } in valof{
@@ -50,7 +50,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case _resume(TT,.next) in {
+      case TT resume .next in {
 	| .yild(X) where isEven(X) => {
 	  Tl := Tl! + X;
 	}
@@ -68,7 +68,7 @@ test.ts1{
     Tl = ref 0;
 
     while .true do {
-      case _resume(TT,.next) in {
+      case TT resume .next in {
 	| .yild(X) where ~isEven(X) => {
 	  Tl := Tl! + X;
 	}

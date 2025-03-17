@@ -25,7 +25,7 @@ test.eras{
 
   sieve:(integer,integer,integer,generator[integer]) => integer.
   sieve(Cnt,Mx,Pr,Gen) => valof{
-    case _resume(Gen,._next) in {
+    case Gen resume ._next in {
       | ._yld(Nxt) => {
 	if Cnt<Mx then{
 --	  showMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");

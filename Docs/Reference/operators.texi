@@ -2,6 +2,14 @@
 @caption{Standard Operators}
 @multitable {implementation}{non-associative prefix}{1010}{Apply optional function and match result}
 @headitem Operator @tab Form @tab Priority @tab Description
+@item @code{retire}
+@tab non-associative prefix
+@tab 899
+@tab retire task
+@item @code{retire}
+@tab non-associative infix
+@tab 899
+@tab retire task
 @item @code{all}
 @tab non-associative prefix
 @tab 1010
@@ -179,12 +187,8 @@
 @tab 905
 @tab grammar skip
 @item @code{resume}
-@tab non-associative prefix
-@tab 999
-@tab resume task
-@item @code{resume}
 @tab non-associative infix
-@tab 999
+@tab 899
 @tab resume task
 @item @code{,}
 @tab right associative infix
@@ -316,11 +320,11 @@
 @tab break out of an action (loop or block)
 @item @code{suspend}
 @tab non-associative prefix
-@tab 999
+@tab 899
 @tab suspend task
 @item @code{suspend}
 @tab non-associative infix
-@tab 999
+@tab 899
 @tab suspend task
 @item @code{trace}
 @tab non-associative infix
@@ -514,39 +518,40 @@
 @caption{Keywords}
 @multitable {implementation}{implementation}{implementation}
 @headitem Keyword @tab Keyword @tab Keyword
-@item @code{all}
+@item @code{retire}
+@tab @code{all}
 @tab @code{let}
-@tab @code{do}
-@item @code{import}
+@item @code{do}
+@tab @code{import}
 @tab @code{catch}
-@tab @code{valis}
-@item @code{for}
+@item @code{valis}
+@tab @code{for}
 @tab @code{raise}
-@tab @code{async}
-@item @code{then}
+@item @code{async}
+@tab @code{then}
 @tab @code{ζ}
-@tab @code{default}
-@item @code{resume}
+@item @code{default}
+@tab @code{resume}
 @tab @code{contract}
-@tab @code{raises}
-@item @code{try}
+@item @code{raises}
+@tab @code{try}
 @tab @code{exists}
-@tab @code{if}
-@item @code{in}
+@item @code{if}
+@tab @code{in}
 @tab @code{break}
-@tab @code{suspend}
-@item @code{public}
+@item @code{suspend}
+@tab @code{public}
 @tab @code{ref}
-@tab @code{where}
-@item @code{case}
+@item @code{where}
+@tab @code{case}
 @tab @code{generator}
-@tab @code{valof}
-@item @code{yield}
+@item @code{valof}
+@tab @code{yield}
 @tab @code{while}
-@tab @code{private}
-@item @code{implementation}
+@item @code{private}
+@tab @code{implementation}
 @tab @code{type}
-@tab @code{else}
+@item @code{else}
 
 @end multitable
 @end float

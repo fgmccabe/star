@@ -501,6 +501,21 @@ examineTerm(A,Ax) :-
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
+  isResume(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkResume(Lc,Tx,Mx,Ax).
+examineTerm(A,Ax) :-
+  isSuspend(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkSuspend(Lc,Tx,Mx,Ax).
+examineTerm(A,Ax) :-
+  isRetire(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkRetire(Lc,Tx,Mx,Ax).
+examineTerm(A,Ax) :-
   isThunk(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThunk(Lc,Vx,Ax).
@@ -726,6 +741,21 @@ examineAction(T,Tx) :-
   macroTerm(E,Ex),
   map(C,macros:actionCase,Cx),
   caseExp(Lc,Ex,Cx,Tx).
+examineAction(A,Ax) :-
+  isResume(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkResume(Lc,Tx,Mx,Ax).
+examineAction(A,Ax) :-
+  isSuspend(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkSuspend(Lc,Tx,Mx,Ax).
+examineAction(A,Ax) :-
+  isRetire(A,Lc,T,M),!,
+  macroTerm(T,Tx),
+  macroTerm(M,Mx),
+  mkRetire(Lc,Tx,Mx,Ax).
 examineAction(A,Ax) :-
   isRoundTerm(A,_,_,_),!,
   macroTerm(A,Ax).

@@ -99,6 +99,8 @@ star.compiler.inline{
     | .cNth(Lc,T,Ix,Tp) => inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp)
     | .cSetNth(Lc,T,Ix,Vl) => applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth))
     | .cClos(Lc,Lb,Ar,Fr,Tp) => .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp)
+    | .cCel(Lc,E,Tp) => .cCel(Lc,simExp(E,Map,Depth),Tp)
+    | .cGet(Lc,E,Tp) => .cGet(Lc,simExp(E,Map,Depth),Tp)
     | .cSv(_,_) => Exp
     | .cSvDrf(Lc,Th,Tp) => .cSvDrf(Lc,simExp(Th,Map,Depth),Tp)
     | .cSvSet(Lc,T,V) => .cSvSet(Lc,simExp(T,Map,Depth),simExp(V,Map,Depth))
@@ -117,6 +119,10 @@ star.compiler.inline{
     | .cTry(Lc,Inn,Th,E,H,Tp) =>
       .cTry(Lc,simplifyExp(Inn,Map,Depth),simplifyExp(Th,Map,Depth),
       simplifyExp(E,Map,Depth),simplifyExp(H,Map,Depth),Tp)
+    | .cSusp(Lc,T,M,Tp) =>
+      .cSusp(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
+    | .cResum(Lc,T,M,Tp) =>
+      .cResum(Lc,simplifyExp(T,Map,Depth),simplifyExp(M,Map,Depth),Tp)
     | .cValof(Lc,Act,Tp) => valofAct(Lc,simplifyAct(Act,Map,Depth),Tp)
   }
 

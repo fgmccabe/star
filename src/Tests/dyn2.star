@@ -15,7 +15,7 @@ test.dyn2{
   fs(X) => (X<0 ?? raiz("negative arg") || X>100 ?? raiz(10) || X*4).
 
   f:(integer) => integer.
-  f(X) => _resume(_fiber((K,_)=>
+  f(X) => _fiber((K,_)=>
 	let{
 	  implementation raising[string] => {
 	    raiz(M) => valof{
@@ -30,7 +30,7 @@ test.dyn2{
 	      _retire(K,I);
 	    }
 	  }
-	} in fs(X)),()).
+	} in fs(X)) resume ().
 
   main:()=>().
   main() => valof{

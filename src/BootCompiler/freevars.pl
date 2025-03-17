@@ -71,9 +71,17 @@ freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex1,Q,F,F0),
   freeVars(T,Ex1,Q,F0,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
-
 freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
+freeVars(suspend(_,T,M,_),Ex,Q,F,Fv) :-
+  freeVars(T,Ex,Q,F,F0),
+  freeVars(M,Ex,Q,F0,Fv).
+freeVars(retire(_,T,M,_),Ex,Q,F,Fv) :-
+  freeVars(T,Ex,Q,F,F0),
+  freeVars(M,Ex,Q,F0,Fv).
+freeVars(resume(_,T,M,_),Ex,Q,F,Fv) :-
+  freeVars(T,Ex,Q,F,F0),
+  freeVars(M,Ex,Q,F0,Fv).
 freeVars(T,_,_,F,F) :-
   locOfCanon(T,Lc),
   reportError("cannot find free vars in %s",[can(T)],Lc).
@@ -126,7 +134,7 @@ freeVarsInAction(doLetRec(_,_,Defs,Bnd),Ex,Ex,Q,F,Fv) :-!,
 freeVarsInAction(doCase(_,G,Cs,_),Ex,Ex,Q,F,Fv) :-!,
   freeVars(G,Ex,Q,F,F0),
   freeVarsInRules(Cs,Ex,Q,freevars:freeVarsInAct,F0,Fv).
-freeVarsInAction(doCall(_,C),Ex,Ex,Q,F,Fv) :-!,
+freeVarsInAction(doExp(_,C),Ex,Ex,Q,F,Fv) :-!,
   freeVars(C,Ex,Q,F,Fv).
 freeVarsInAction(A,Ex,Ex,_,F,F) :-
   locOfCanon(A,Lc),

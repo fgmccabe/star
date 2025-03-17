@@ -35,7 +35,4 @@ isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funTyp
 isIntrinsic("_suspend",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend fiber
 isIntrinsic("_retire",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("e"))))),iRetire).  % retire fiber
 isIntrinsic("_resume",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume fiber
-isIntrinsic("_cell",allType(kVar("r"),funType(tplType([kVar("r")]),tpExp(tpFun("ref",1),kVar("r")))),iCell).  % create a reference cell
-isIntrinsic("_get",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r"))]),kVar("r"))),iGet).  % access contents of reference cell
-isIntrinsic("_assign",allType(kVar("r"),funType(tplType([tpExp(tpFun("ref",1),kVar("r")),kVar("r")]),tplType([]))),iAssign).  % update contents of reference cell
 

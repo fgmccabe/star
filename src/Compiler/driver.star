@@ -129,8 +129,6 @@ star.compiler{
 	  if errorFree() && ~ typeCheckOnly! then {
 	    AllDecls = IDecls++Decls;
 	    N = normalize(PkgSpec,Defs,AllDecls);
-	    if .base .= optimization! then
-	      validProg(N,AllDecls);
 	    
 	    Inlined = valof{
 	      if optimization! ==.inlining && mainDefined(AllDecls) then{
@@ -145,7 +143,8 @@ star.compiler{
 	    if showNormalize! then{
 	      showMsg("normalized code #(dispCrProg(Inlined))");
 	    };
-	    validProg(Inlined,AllDecls);
+	    if .base .= optimization! then
+	      validProg(Inlined,AllDecls);
 	    if errorFree() && genWasm! then{
 	      (Imported,Merged) = mergePkgs(
 		PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg

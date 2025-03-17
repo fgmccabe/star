@@ -290,6 +290,14 @@ star.compiler.resolve{
     valis (.svSet(Lc,TT,VV),St2)
   }
   overloadTerm(.newSav(Lc,Tp),Dict,St) => (.newSav(Lc,Tp),St).
+  overloadTerm(.cell(Lc,Rhs,Tp),Dict,St) => valof{
+    (RRhs,St1) = overloadTerm(Rhs,Dict,St);
+    valis (.cell(Lc,RRhs,Tp),St1)
+  }
+  overloadTerm(.get(Lc,Rhs,Tp),Dict,St) => valof{
+    (RRhs,St1) = overloadTerm(Rhs,Dict,St);
+    valis (.get(Lc,RRhs,Tp),St1)
+  }
   overloadTerm(.lambda(Lc,Nm,Rl,Tp),Dict,St) => valof{
     if traceResolve! then
       showMsg("overload lambda $(.lambda(Lc,Nm,Rl,Tp))\:$(Tp) @ $(Lc)");
@@ -349,6 +357,16 @@ star.compiler.resolve{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
     valis (.rais(Lc,TT,EE,Tp),St2)
+  }
+  overloadTerm(.susp(Lc,T,M,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (MM,St2) = overloadTerm(M,Dict,St1);
+    valis (.susp(Lc,TT,MM,Tp),St2)
+  }
+  overloadTerm(.resum(Lc,T,M,Tp),Dict,St) => valof{
+    (TT,St1) = overloadTerm(T,Dict,St);
+    (MM,St2) = overloadTerm(M,Dict,St1);
+    valis (.resum(Lc,TT,MM,Tp),St2)
   }
   overloadTerm(.vlof(Lc,Act,Tp),Dict,St) => valof{
     (Ac,St1) = overloadAction(Act,Dict,St);

@@ -91,9 +91,6 @@ star.compiler.escapes{
     | "_blsr" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_basr" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_bnot" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("integer")))
-    | "_cell" => .some(.allType(.kVar("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("r")])),.tpExp(.tpFun("ref",1),.kVar("r")))))
-    | "_get" => .some(.allType(.kVar("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.kVar("r"))])),.kVar("r"))))
-    | "_assign" => .some(.allType(.kVar("r"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.kVar("r")),.kVar("r")])),.tupleType([]))))
     | "_cell_future" => .some(.allType(.kVar("s"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpFun("ref",1),.tpExp(.tpExp(.tpFun("star.either*either",2),.kVar("s")),.kVar("e")))])),.tpExp(.tpExp(.tpFun("future",2),.kVar("s")),.kVar("e"))))))
     | "_futureIsResolved" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
     | "_futureIsAccepted" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
@@ -349,9 +346,6 @@ star.compiler.escapes{
     | "_blsr" => .true
     | "_basr" => .true
     | "_bnot" => .true
-    | "_cell" => .true
-    | "_get" => .true
-    | "_assign" => .true
     | "_cell_future" => .true
     | "_futureIsResolved" => .true
     | "_futureIsAccepted" => .true

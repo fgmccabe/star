@@ -344,7 +344,7 @@ star.compiler.macro.rules{
   becomes
   {
     lb:while .true do{
-  case _resume(G,._next) in {
+  case G resume ._next in {
     | _yld(P) => B
     | _yld(_) default => {}
     | ._all => break lb
@@ -365,8 +365,8 @@ star.compiler.macro.rules{
     /* build _yld(_) default => {} */
     Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build case _resume(G,._next) in .. */
-    Resume = mkCaseExp(Lc,binary(Lc,"_resume",G,enum(Lc,"_next")),[Yld,Deflt,End]);
+    /* build case G resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,G,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -422,8 +422,8 @@ star.compiler.macro.rules{
     /* build _yld(_) default => {} */
     Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
-    /* build case _resume(I,._next) in .. */
-    Resume = mkCaseExp(Lc,binary(Lc,"_resume",I,enum(Lc,"_next")),[Yld,Deflt,End]);
+    /* build case I resume ._next in .. */
+    Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
 
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
@@ -466,7 +466,7 @@ star.compiler.macro.rules{
 
   /* yield E
   becomes
-  case _suspend(this,._yld(E)) in {
+  case this suspend ._yld(E) in {
     | ._next => {}
     | ._cancel => _retire(this,._all)
   }
@@ -480,7 +480,7 @@ star.compiler.macro.rules{
     Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire",This,enum(Lc,"_all")));
 
     /* Build suspend */
-    valis .active(mkCaseExp(Lc,binary(Lc,"_suspend",This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
+    valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))
   }
 
   /* task { A }

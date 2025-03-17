@@ -326,6 +326,14 @@ star.compiler.normalize{
     (VV,Ex2) = liftExp(V,Map,Q,Ex1);
     valis (.cSvSet(Lc,SS,VV),Ex2)
   }
+  liftExp(.cell(Lc,V,Tp),Map,Q,Ex) => valof{
+    (VV,Ex1) = liftExp(V,Map,Q,Ex);
+    valis (.cCel(Lc,VV,Tp),Ex1)
+  }
+  liftExp(.get(Lc,V,Tp),Map,Q,Ex) => valof{
+    (VV,Ex1) = liftExp(V,Map,Q,Ex);
+    valis (.cGet(Lc,VV,Tp),Ex1)
+  }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
     (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
@@ -353,6 +361,16 @@ star.compiler.normalize{
     (LT,Ex1) = liftExp(T,Map,Q,Ex);
     (LE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.cRaise(Lc,LT,LE,Tp),Ex1)
+  }
+  liftExp(.resum(Lc,T,M,Tp),Map,Q,Ex) => valof{
+    (TT,Ex1) = liftExp(T,Map,Q,Ex);
+    (MM,Ex2) = liftExp(M,Map,Q,Ex1);
+    valis (.cResum(Lc,TT,MM,Tp),Ex2)
+  }
+  liftExp(.susp(Lc,T,M,Tp),Map,Q,Ex) => valof{
+    (TT,Ex1) = liftExp(T,Map,Q,Ex);
+    (MM,Ex2) = liftExp(M,Map,Q,Ex1);
+    valis (.cSusp(Lc,TT,MM,Tp),Ex2)
   }
   liftExp(.vlof(Lc,A,Tp),Map,Q,Ex) => valof{
     (Acts,Ex1) = liftAction(A,Map,Q,Ex);

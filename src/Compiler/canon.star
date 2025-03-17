@@ -36,6 +36,8 @@ star.compiler.canon{
   .newSav(option[locn],tipe) |
   .svGet(option[locn],canon,tipe) |
   .svSet(option[locn],canon,canon) |
+  .cell(option[locn],canon,tipe) |
+  .get(option[locn],canon,tipe) |
   .owpen(option[locn],canon) |
   .letExp(option[locn],cons[canonDef],cons[decl],canon) |
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
@@ -90,6 +92,8 @@ star.compiler.canon{
       | .newSav(_,Tp) => Tp
       | .svGet(_,_,Tp) => Tp
       | .svSet(_,_,Vl) => typeOf(Vl)
+      | .cell(_,_,Tp) => Tp
+      | .get(_,_,Tp) => Tp
       | .letExp(_,_,_,E) => typeOf(E)
       | .letRec(_,_,_,E) => typeOf(E)
       | .apply(_,_,_,Tp) => Tp
@@ -127,6 +131,8 @@ star.compiler.canon{
       | .newSav(Lc,_) => Lc
       | .svGet(Lc,_,_) => Lc
       | .svSet(Lc,_,_) => Lc
+      | .cell(Lc,_,_) => Lc
+      | .get(Lc,_,_) => Lc
       | .csexp(Lc,_,_,_) => Lc
       | .trycatch(Lc,_,_,_,_) => Lc
       | .rais(Lc,_,_,_) => Lc
@@ -152,21 +158,21 @@ star.compiler.canon{
 
   public implementation hasLoc[canonAction] => {
     locOf(A) => case A in {
-     | .doNop(Lc) => Lc
-     | .doSeq(Lc,_,_) => Lc
-     | .doLbld(Lc,_,_) => Lc
-     | .doBrk(Lc,_) => Lc
-     | .doValis(Lc,_) => Lc
-     | .doDefn(Lc,_,_) => Lc
-     | .doMatch(Lc,_,_) => Lc
-     | .doAssign(Lc,_,_) => Lc
-     | .doTryCatch(Lc,_,_,_) => Lc
-     | .doIfThen(Lc,_,_,_) => Lc
-     | .doCase(Lc,_,_) => Lc
-     | .doWhile(Lc,_,_) => Lc
-     | .doLet(Lc,_,_,_) => Lc
-     | .doLetRec(Lc,_,_,_) => Lc
-     | .doExp(Lc,_) => Lc
+      | .doNop(Lc) => Lc
+      | .doSeq(Lc,_,_) => Lc
+      | .doLbld(Lc,_,_) => Lc
+      | .doBrk(Lc,_) => Lc
+      | .doValis(Lc,_) => Lc
+      | .doDefn(Lc,_,_) => Lc
+      | .doMatch(Lc,_,_) => Lc
+      | .doAssign(Lc,_,_) => Lc
+      | .doTryCatch(Lc,_,_,_) => Lc
+      | .doIfThen(Lc,_,_,_) => Lc
+      | .doCase(Lc,_,_) => Lc
+      | .doWhile(Lc,_,_) => Lc
+      | .doLet(Lc,_,_,_) => Lc
+      | .doLetRec(Lc,_,_,_) => Lc
+      | .doExp(Lc,_) => Lc
     }
   }
 
@@ -260,12 +266,18 @@ star.compiler.canon{
     | .newSav(_,Tp) => "^$(Tp)"
     | .svGet(_,S,_) => "#(showCanon(S,0,Sp))^"
     | .svSet(_,S,V) => "#(showCanon(S,0,Sp)) <- #(showCanon(V,0,Sp))"
+    | .cell(_,I,_) => "ref #(showCanon(I,0,Sp))"
+    | .get(_,I,_) => "#(showCanon(I,0,Sp))!"
     | .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .susp(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
+      "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) suspend #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .resum(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
+      "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) resume #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
 
   showApply(.vr(_,Op,_),[L,R],Pr,Sp) where (Lp,OPr,Rp) ?= isInfixOp(Op) =>
@@ -279,33 +291,33 @@ star.compiler.canon{
   showTuple(Els,Sp) => "(#(interleave(Els//(El)=>showCanon(El,0,Sp),",")*))".
 
   showAct(Ac,Pr,Sp) => case Ac in {
-   | .doNop(_) => "{}"
-   | .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
+    | .doNop(_) => "{}"
+    | .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
       "{\n#(Sp++"  ")#(showActSeq(.doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}"
-   | .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))"
-   | .doBrk(_,Lb) => "break #(Lb)"
-   | .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
+    | .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))"
+    | .doBrk(_,Lb) => "break #(Lb)"
+    | .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
       "valis #(showCanon(E,Rp,Sp))"
-   | .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
+    | .doDefn(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("=") =>
       "#(showCanon(L,Lp,Sp))\:$(typeOf(L)) = #(showCanon(R,Rp,Sp))"
-   | .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
+    | .doMatch(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))"
-   | .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
+    | .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
       "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))"
-   | .doTryCatch(_,A,T,H) =>
+    | .doTryCatch(_,A,T,H) =>
       "try #(showAct(A,Pr,Sp)) catch #(showCanon(T,Pr,Sp)) in {\n#(showCases(H,showAct,Sp))\n}"
-   | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
+    | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))"
-   | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
+    | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "case #(showCanon(G,Lp,Sp)) in #(showCases(C,showAct,Sp))"
-   | .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
+    | .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
       "while #(showCanon(G,Rp,Sp)) do #(showAct(B,0,Sp))"
-   | .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
+    | .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showAct(B,Rp,Sp2))"
-   | .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
+    | .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))"
-   | .doExp(_,E) => "call #(showCanon(E,Pr,Sp))"
+    | .doExp(_,E) => "call #(showCanon(E,Pr,Sp))"
   }
 
   showActSeq(.doSeq(_,L,R),Pr,Sp) => "#(showAct(L,Pr-1,Sp));\n#(Sp)#(showActSeq(R,Pr,Sp))".
