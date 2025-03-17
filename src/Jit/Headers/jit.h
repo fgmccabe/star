@@ -31,7 +31,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
 termPo invokeJitMethod(methodPo mtd, heapPo H, stackPo stk);
 
 #ifdef TRACEJIT
-extern logical traceJit;
+extern tracingLevel traceJit;
 #endif
 extern integer jitThreshold;
 extern logical jitOnLoad;

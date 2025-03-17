@@ -75,10 +75,6 @@ intrinsic(_suspend,all(r,all(s,func(fiber(r,s) s,r))),"Suspend",False,NotLast,"s
 intrinsic(_retire,all(r,all(s,all(e,func(fiber(r,s) s,e)))),"Retire",False,Last,"retire fiber")
 intrinsic(_resume,all(r,all(s,func(fiber(r,s) r,s))),"Resume",False,NotLast,"resume fiber")
 
-intrinsic(_cell, all(r,func(r,ref(r))), "Cell", True, NotLast,"create a reference cell")
-intrinsic(_get, all(r,func(ref(r),r)), "Get", False,NotLast,"access contents of reference cell")
-intrinsic(_assign, all(r,func(ref(r) r,unit)), "Assign", False, NotLast,"update contents of reference cell")
-
 #undef processState
 #undef thread
 #undef io

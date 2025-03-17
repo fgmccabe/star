@@ -40,13 +40,11 @@ instruction(Rst, i32, nOp, 0, "F()()", "reset stack height to a fixed height")
 instruction(Pick, i32, i32, 0, "", "adjust stack to n depth, using top k elements")
 
 instruction(Fiber, tOs, nOp, 0, "F(p)p", "Create new fiber")
-instruction(Spawn, tOs, nOp, 0, "F(p)p", "spawn a new task")
 instruction(Suspend, tOs, tOs, -1, "F(pp)()", "suspend fiber")
 instruction(Resume, tOs, tOs, -1, "F(pp)()", "resume fiber")
 instruction(Retire, tOs, tOs, -2, "F(pp)v", "retire a fiber")
 instruction(Underflow, nOp, nOp, 0, "F()()", "underflow from current stack")
 
-instruction(VoidTry, nOp, nOp, 1, "F()p", "generate a void handler code")
 instruction(Try, tPe, bLk, 1, "F()p", "a try-catch block")
 instruction(EndTry, tOs, lVl, -1, "F(p)()", "end try")
 instruction(TryRslt, tOs, lVl, -1, "F(pp)p", "end try with a  result")

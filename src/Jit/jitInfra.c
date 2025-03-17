@@ -6,7 +6,7 @@
 #include <lower.h>
 #include "jitP.h"
 #include "quick.h"
-#include "assert.h"
+#include "regAlloc.h"
 
 static poolPo contextPool = Null;
 
@@ -14,6 +14,7 @@ void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
   }
+//  initRegAlloc();
 }
 
 jitCompPo jitContext(methodPo mtd) {

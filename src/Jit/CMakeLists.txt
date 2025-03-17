@@ -22,7 +22,11 @@ set(HEADER_FILES
         Headers/jit.h
         Headers/jitP.h
         Headers/jitOps.h
+        Common/Headers/regAlloc.h
         Common/Headers/asminfra.h
+        Common/Headers/regAlloc.h
+        Common/Headers/codeTree.h
+        Common/Headers/codeTreeP.h
         ../Util/Headers/array.h
         ../Escapes/Headers/libEscapes.h
         ${JIT_ARCH}/Headers/lower.h
@@ -30,6 +34,8 @@ set(HEADER_FILES
 
 set(JIT_SOURCE_FILES jit.c jitInfra.c Common/asmInfra.c
         Common/Headers/asminfra.h)
+#        Common/regAlloc.c
+#        Common/codeTree.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})

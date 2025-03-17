@@ -114,7 +114,6 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
       }
       case OCall:            // OCall
       case Escape: {            // call C escape
-        assemCtxPo ctx = assemCtx(jit);
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
@@ -135,7 +134,6 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         codeLblPo altTgt = defineLabel(ctx,code[pc].alt);
          }
       case Break: {            // leave block
-        assemCtxPo ctx = assemCtx(jit);
         codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
 
         assert(tgt != Null);
@@ -146,7 +144,6 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
       }
       case Result:            // return value out of block
       case Loop: {            // jump back to start of block
-        assemCtxPo ctx = assemCtx(jit);
         codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
 
         assert(tgt != Null);
@@ -199,7 +196,6 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         continue;
       }
       case Fiber:            // Create new fiber
-      case Spawn:            // spawn a new task
       case Suspend:            // suspend fiber
       case Resume:            // resume fiber
       case Retire:            // retire a fiber

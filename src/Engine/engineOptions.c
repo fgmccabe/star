@@ -144,7 +144,9 @@ static retCode debugOption(char *option, logical enable) {
 
       case 'j':
 #ifdef TRACEJIT
-        traceJit = True;
+        if (traceJit < detailedTracing)
+          traceJit++;
+        logMsg(logFile, "Jit tracing enabled");
         continue;
 #else
         logMsg(logFile, "jit tracing not enabled");

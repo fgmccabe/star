@@ -1,36 +1,36 @@
 cmake_minimum_required(VERSION 3.20)
-project(arm64)
+project(assem)
 
-add_subdirectory(Assem)
+add_subdirectory(Tests)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories("Headers"
         "../Headers"
-        "../../Util/Headers"
-        "../../Engine/Headers"
-        "../../Escapes/Headers"
+        "../../../Util/Headers"
+        "../../../Engine/Headers"
+        "../../../Escapes/Headers"
+        "../../../Headers"
         "../../Headers"
-        "../Common/Headers"
-        "./Headers")
+        "../../Common/Headers")
 
 set(HEADER_FILES
         Headers/arm64.h
         Headers/arm64P.h
-        Headers/lower.h
-        Headers/lowerP.h
         ../../Util/Headers/array.h
         ../../Escapes/Headers/libEscapes.h
-        Assem/Headers/assem_encode.h
+        assem_encode.h
         Headers/macros.h
         ../Headers/infra.h
         ../Common/Headers/asminfra.h
 )
 
 set(SOURCE_FILES
-        lower.c)
+        assem_arm64.c
+        assem_encode.c
+        macros.c
+        ../../Common/asmInfra.c)
 
-add_library(ARM64 STATIC ${SOURCE_FILES})
-target_link_libraries(ARM64 assem)
+add_library(assem STATIC ${SOURCE_FILES})
 
 

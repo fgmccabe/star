@@ -12,7 +12,7 @@ integer jitThreshold = 1000;
 logical jitOnLoad = False;
 
 #ifdef TRACEJIT
-logical traceJit = False;
+tracingLevel traceJit =  noTracing;
 #endif
 
 assemCtxPo assemCtx(jitCompPo jitCtx) {

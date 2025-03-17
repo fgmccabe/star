@@ -12,7 +12,7 @@ ReturnStatus g__fiber_eq(heapPo h, termPo a1, termPo a2) {
 
 ReturnStatus g__fiber(heapPo h, termPo a1) {
   termPo fiberLambda = a1;
-  stackPo child = newFiber(h, fiberLambda);
+  stackPo child = newStack(h, fiberLambda);
   return (ReturnStatus) {.ret=Normal, .result = (termPo) child};
 }
 
