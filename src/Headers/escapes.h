@@ -145,10 +145,6 @@ escape(_blsr, func(int int,int), "logical right shift")
 escape(_basr, func(int int,int), "arithmetic right shift")
 escape(_bnot, func(int,int), "bitwise negate number")
 
-escape(_cell, all(r,func(r,ref(r))), "create a reference cell")
-escape(_get, all(r,func(ref(r),r)), "access contents of reference cell")
-escape(_assign, all(r,func(ref(r) r,unit)), "update contents of reference cell")
-
 escape(_cell_future,all(s,all(e,func(ref(either(s,e)),future(s,e)))),"create a user-programmable future")
 
 escape(_futureIsResolved,all(a,all(e,func(future(a,e),bool))), "test to see if a future has been set")

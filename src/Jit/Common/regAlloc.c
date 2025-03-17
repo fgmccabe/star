@@ -1,26 +1,31 @@
 //
-// Created by Francis McCabe on 7/26/18.
+// Created by Francis McCabe on 3/12/25.
 //
 
-#include <stdlib.h>
-#include <globals.h>
+#include "regAlloc.h"
+#include "escape.h"
+#include "codeP.h"
 #include "debugP.h"
-#include "verifyP.h"
-#include "ltype.h"
-#include "arith.h"
-#include "libEscapes.h"
-#include "stackP.h"
+#include "strings.h"
 
-logical enableVerify = True;         // True if we verify code as it is loaded
-tracingLevel traceVerify = noTracing;      // Set if tracing code verification
+static poolPo rangePool = Null;
+static poolPo varPool = Null;
 
-typedef struct {
-  logical inited;    //  True if cell has real value
-  logical read;      //  Has this cell been read?
-} Var, *varPo;
+void initRegAlloc() {
+  if (rangePool == Null) {
+    rangePool = newPool(sizeof(RangeRecord), 2048);
+    varPool = newPool(sizeof(VarSpec), 2048);
+  }
+}
 
-typedef struct verify_context_ *verifyCtxPo;
-typedef struct verify_context_ {
+int32 computeRanges(methodPo mtd) {
+  int32 localCnt = 0;
+  int32 stackCnt = 0;
+
+}
+
+typedef struct range_context_ *rangeCxtPo;
+typedef struct range_context_ {
   char *prefix;
   methodPo mtd;
   int32 from;
@@ -28,121 +33,15 @@ typedef struct verify_context_ {
   int32 entryDepth;
   int32 exitDepth;
   int32 currDepth;
-  verifyCtxPo propagated;    // Where have we propagated to?
+  rangeCxtPo propagated;    // Where have we propagated to?
   logical tryBlock;      // Is this from a Try block?
-  varPo locals;
+  varSpecPo locals;
   int32 lclCount;
-  verifyCtxPo parent;
-  char *errorMsg;
-  long msgLen;
+  rangeCxtPo parent;
 } VerifyContext;
 
-static int32 ctxDepth(verifyCtxPo ctx, int32 currDepth);
-
-static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
-static retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx, int32 entryDepth,
-                           int32 exitDepth, int32 currDepth);
-static retCode
-extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
-
-retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
-  if (traceVerify > noTracing)
-    showMethodCode(logFile, "Verify method %s\n", name, mtd);
-
-  int32 lclCnt = lclCount(mtd);
-  Var locals[lclCnt];
-
-  for (integer ix = 0; ix < lclCnt; ix++) {
-    locals[ix].inited = False;
-    locals[ix].read = False;
-  }
-
-  VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
-    .mtd=mtd, .from = 0, .limit=codeSize(mtd),
-    .parent=Null,
-    .exitDepth=1,
-    .locals=locals,
-    .lclCount=lclCnt,
-    .propagated=Null,
-    .tryBlock=False};
-
-  char *funSig = "F()p";    // Special block signature for function bodies
-
-  int32 sigEntryDepth, sigExitDepth;
-  tryRet(extractBlockSig(&sigEntryDepth, &sigExitDepth, &mtdCtx, funSig, uniStrLen(funSig)));
-
-  return verifyBlock(0, 0, codeSize(mtd), False, &mtdCtx, 0, 1, 0);
-}
-
-retCode extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen) {
-  if (validTypeSig(blockSig, sigLen) != Ok) {
-    strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
-    return Error;
-  } else {
-    integer argPos = 0;
-    if (funArgSig(blockSig, sigLen, &argPos) != Ok) {
-      strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
-      return Error;
-    }
-    if (typeSigArity(&blockSig[argPos], sigLen - argPos, entryDepth) != Ok) {
-      strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "Invalid argument signature of signature literal: %T"RED_ESC_OFF,
-             lit);
-      return Error;
-    } else {
-      integer pos = argPos;
-      skipTypeSig(blockSig, sigLen, &pos);
-      if (isTupleSig(&blockSig[pos], sigLen - pos)) {
-        if (typeSigArity(&blockSig[pos], sigLen - pos, exitDepth) != Ok) {
-          strMsg(ctx->errorMsg, ctx->msgLen,
-                 RED_ESC_ON "Invalid result signature of signature literal: %T"RED_ESC_OFF, lit);
-          return Error;
-        }
-      } else
-        *exitDepth = 1;
-    }
-    return Ok;
-  }
-}
-
-static void propagateVars(verifyCtxPo ctx, verifyCtxPo tgtCtx) {
-  for (integer ix = 0; ix < ctx->lclCount; ix++) {
-    if (!(ctx->propagated == tgtCtx))
-      tgtCtx->locals[ix].inited |= ctx->locals[ix].inited;
-    tgtCtx->locals[ix].read |= ctx->locals[ix].read;
-  }
-  ctx->propagated = tgtCtx;
-}
-
-static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, integer stackDepth, logical isTry) {
-  verifyCtxPo tgtCtx = ctx;
-
-  while (tgtCtx != Null && tgtCtx->from != tgt) {
-    if (!isTry && tgtCtx->tryBlock)
-      return verifyError(ctx, ".%d:not permitted to break out of a try block", pc);
-    stackDepth += (tgtCtx->currDepth - tgtCtx->entryDepth);
-    if (tgtCtx->tryBlock)
-      stackDepth++; // account for special circumstance of try block
-    tgtCtx = tgtCtx->parent;
-  }
-
-  if (tgtCtx != Null) {
-    if (stackDepth != tgtCtx->exitDepth)
-      return verifyError(ctx, ".%d: block exit depth %d does not match current stack depth %d", pc, tgtCtx->exitDepth,
-                         stackDepth);
-  } else
-    return verifyError(ctx, ".%d: break target not found", pc);
-
-  if (tgtCtx->parent != Null)
-    propagateVars(ctx, tgtCtx->parent);
-  return Ok;
-}
-
-static logical isLastPC(int32 pc, int32 limit) {
-  return pc >= limit - 1;
-}
-
-retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx, int32 entryDepth,
-                    int32 exitDepth, int32 currDepth) {
+static retCode rangeBlock(int32 from, int32 pc, int32 limit, logical tryBlock, rangeCxtPo parentCtx, int32 entryDepth,
+                          int32 exitDepth, int32 currDepth) {
   int32 stackDepth = entryDepth;
   insPo code = parentCtx->mtd->instructions;
 
@@ -150,12 +49,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
   strMsg(prefix, NumberOf(prefix), "%s.%d", parentCtx->prefix, from);
 
   int32 lclCnt = parentCtx->lclCount;
-  Var locals[lclCnt];
+  VarSpec locals[lclCnt];
   for (integer ix = 0; ix < lclCnt; ix++)
     locals[ix] = parentCtx->locals[ix];
 
   VerifyContext ctx = {.prefix=prefix,
-    .errorMsg=parentCtx->errorMsg, .msgLen=parentCtx->msgLen,
     .mtd = parentCtx->mtd,
     .from = from,
     .limit = limit,
@@ -170,161 +68,128 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
   while (pc < limit) {
     insPo ins = &code[pc];
-    if (traceVerify > generalTracing) {
+    if (traceJit > generalTracing) {
       disass(logFile, Null, ctx.mtd, ins);
       outMsg(logFile, "\n%_");
     }
 
     switch (ins->op) {
       case Halt: {
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Halt should be last instruction in block", pc);
-        else {
-          propagateVars(&ctx, parentCtx);
-          return Ok;
-        }
+        terminateAllVars();
+        return Ok;
       }
       case Nop:
         pc++;
         break;
       case Abort: {
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Abort should be last instruction in block", pc);
-        else {
-          propagateVars(&ctx, parentCtx);
-          return Ok;
-        }
+        terminateAllVars();
+        return Ok;
       }
       case Call: {
         int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        assert(litNo >= 0 && litNo < codeLitCount(ctx.mtd));
         termPo lit = getMtdLit(ctx.mtd, litNo);
-        if (isALabel(lit)) {
-          int32 arity = labelArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-        } else
-          return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after call", pc);
+        assert(isALabel(lit));
+        int32 arity = labelArity(C_LBL(lit));
+        assert(stackDepth >= arity);
+        terminateStackVars(arity);
+        newStackVar();
+        stackDepth -= arity - 1;
+        assert(code[pc + 1].op == Frame);
         pc++;
         continue;
       }
       case TCall: {
         int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        assert(litNo >= 0 && litNo < codeLitCount(ctx.mtd));
         termPo lit = getMtdLit(ctx.mtd, litNo);
-        if (isALabel(lit)) {
-          int32 arity = labelArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        } else
-          return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
-
-        propagateVars(&ctx, parentCtx);
+        assert(isALabel(lit));
+        int32 arity = labelArity(C_LBL(lit));
+        assert(stackDepth >= arity);
+        terminateStackVars(arity);
+        terminateAllVars();
         return Ok;
 
       }
       case OCall: {
         int arity = code[pc].fst;
-        if (stackDepth < arity)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        assert(stackDepth >= arity);
         stackDepth -= arity - 1;
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after ocall", pc);
+        assert(code[pc + 1].op == Frame);
+        terminateStackVars(arity);
+        newStackVar();
         pc++;
         continue;
       }
       case TOCall: {
         int32 arity = code[pc].fst;
-        if (stackDepth < arity)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
-        propagateVars(&ctx, parentCtx);
-
+        assert(stackDepth >= arity);
+        terminateStackVars(arity);
+        terminateAllVars();
         return Ok;
       }
       case Escape: {
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
+        assert(esc != Null);
 
-        if (esc == Null)
-          return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
-        else {
-          int32 arity = escapeArity(esc);
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-          if (code[pc + 1].op != Frame)
-            return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
-          pc++;
-          continue;
-        }
+        int32 arity = escapeArity(esc);
+        assert(stackDepth >= arity);
+        terminateStackVars(arity);
+        newStackVar();
+        stackDepth -= arity - 1;
+        assert(code[pc + 1].op == Frame);
+        pc++;
+        continue;
       }
-      case Entry:
-        if (code[pc].fst != ctx.lclCount)
-          return verifyError(&ctx, ".%d local count %d does not match method local count %d", pc, code[pc].fst,
-                             ctx.lclCount);
+      case Entry: {
+        assert(code[pc].fst == ctx.lclCount);
         pc++;
         stackDepth = 0;
+        newLocalVars(code[pc].fst);
         continue;
+      }
       case Ret: {
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
-        propagateVars(&ctx, parentCtx);
+        terminateAllVars();
         return Ok;   // No merge of locals here
       }
       case Block: {
         termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
-        if (!isString(lit)) {
-          return verifyError(&ctx, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
-        } else {
-          integer sigLn;
-          const char *blockSg = strVal(lit, &sigLn);
-          int32 blockEntryDepth, blockExitDepth;
-          tryRet(extractBlockSig(&blockEntryDepth, &blockExitDepth, &ctx, blockSg, sigLn));
+        assert(isString(lit));
+        integer sigLn;
+        const char *blockSg = strVal(lit, &sigLn);
+        int32 blockEntryDepth, blockExitDepth;
+        tryRet(extractBlockSig(&blockEntryDepth, &blockExitDepth, &ctx, blockSg, sigLn));
 
-          if (stackDepth < blockEntryDepth)
-            return verifyError(&ctx, ".%d Block stack on entry insufficiently deep: %d vs actual %d", pc,
-                               blockEntryDepth, stackDepth);
+        assert(stackDepth >= blockEntryDepth);
+        int32 blockLen = code[pc].alt;
+        pc++;
 
-          int32 blockLen = code[pc].alt;
-          pc++;
-
-          if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, blockEntryDepth, blockExitDepth, stackDepth) == Ok) {
-            stackDepth += blockExitDepth - blockEntryDepth;
-            pc += blockLen;
-            continue;
-          } else
-            return Error;
-        }
+        if (rangeBlock(pc - 1, pc, pc + blockLen, False, &ctx, blockEntryDepth, blockExitDepth, stackDepth) == Ok) {
+          stackDepth += blockExitDepth - blockEntryDepth;
+          pc += blockLen;
+          continue;
+        } else
+          return Error;
       }
 
       case Loop: {
-        if (!isLastPC(pc, limit))
-          return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
+        assert(isLastPC(pc, limit));
 
         if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
           return Error;
         return Ok;
       }
       case Break: {
-        if (!isLastPC(pc, limit))
-          return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
+        assert(isLastPC(pc, limit));
+
 
         if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
           return Error;
         return Ok;
       }
       case Result: {
-        if (!isLastPC(pc, limit))
-          return verifyError(&ctx, ".%d: Result should be last instruction in block", pc);
+        assert(isLastPC(pc, limit));
 
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
@@ -387,6 +252,13 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case Spawn: {
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient stack depth for Spawn", pc);
+        pc++;
+        stackDepth++;
+        continue;
+      }
 
       case Resume:
       case Suspend: {
@@ -409,6 +281,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Underflow:
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
+
+      case VoidTry:
+        pc++;
+        stackDepth++;
+        continue;
 
       case Try: {
         termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
@@ -854,11 +731,13 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
+
   propagateVars(&ctx, parentCtx);
-  return Ok;
+  return
+    Ok;
 }
 
-int32 ctxDepth(verifyCtxPo ctx, int32 currDepth) {
+int32 ctxDepth(rangeCxtPo ctx, int32 currDepth) {
   int32 depth = currDepth;
   while (ctx != Null) {
     if (ctx->tryBlock)
@@ -870,23 +749,3 @@ int32 ctxDepth(verifyCtxPo ctx, int32 currDepth) {
   }
   return depth;
 }
-
-retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
-  char buff[MAXLINE];
-  strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
-
-  va_list args;      /* access the generic arguments */
-  va_start(args, msg);    /* start the variable argument sequence */
-
-
-  __voutMsg(O_IO(f), msg, args);  /* Display into the string buffer */
-
-  va_end(args);
-  outByte(O_IO(f), 0);                /* Terminate the string */
-
-  closeIo(O_IO(f));
-
-  strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "%s%s"RED_ESC_OFF, ctx->prefix, buff);
-  return Error;
-}
-

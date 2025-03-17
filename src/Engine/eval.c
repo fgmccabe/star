@@ -74,7 +74,7 @@ logical collectStats = False;
   CT = ((ptrPo)(f+1));            \
   f->fp=FP;                       \
   PC = f->pc = entryPoint(mtd);   \
-  LITS = f->pool = codeLits(glbThnk); \
+  LITS = f->pool = codeLits(mtd); \
   f->args = SP;                   \
   FP = f;                         \
   })
@@ -101,7 +101,7 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  ptrPo CT = controlTop(FP,STK->tp);
+  ptrPo CT = controlTop(FP, STK->tp);
   register insPo PC = FP->pc;    /* Program counter */
   register normalPo LITS = FP->pool; /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
@@ -235,7 +235,7 @@ retCode run(processPo P) {
 
       case Escape: {                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
-
+        PC++;
         if (collectStats)
           recordEscape(escNo);
 
@@ -327,7 +327,6 @@ retCode run(processPo P) {
         if (ret.ret == Normal) {
           if (ret.result != Null)
             push(ret.result);
-          PC++;
           continue;
         } else {
           push(ret.result);
@@ -359,7 +358,7 @@ retCode run(processPo P) {
 
           SP = STK->sp;
           FP = STK->fp;
-          CT = controlTop(FP,STK->tp);
+          CT = controlTop(FP, STK->tp);
           pushFrme(mtd);
 
           // drop old frame on old stack
@@ -416,7 +415,7 @@ retCode run(processPo P) {
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
           SP = STK->sp;
           FP = STK->fp;
-          CT = controlTop(FP,STK->tp);
+          CT = controlTop(FP, STK->tp);
           pushFrme(mtd);
 
           // drop old frame on old stack
@@ -470,7 +469,7 @@ retCode run(processPo P) {
         LITS = FP->pool;
 
         push(retVal);      /* push return value */
-        CT = controlTop(FP,try);
+        CT = controlTop(FP, try);
         continue;       /* and carry on regardless */
       }
 
@@ -563,21 +562,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Spawn: {
-        // The top of a stack should be a unary lambda
-        closurePo lambda = C_CLOSURE(pop());
-        saveRegisters();
-        stackPo child = splitStack(P, lambda);
-
-        P->stk = attachStack(P->stk, child);
-#ifdef TRACESTACK
-        if (traceStack > noTracing)
-          verifyStack(P->stk, H);
-#endif
-        restoreRegisters();
-        continue;
-      }
-
       case Suspend: { // Suspend identified fiber.
         stackPo stack = C_STACK(pop());
         termPo event = pop();
@@ -642,12 +626,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case VoidTry: {
-        push(makeInteger(-1));       // An illegal try index
-        PC++;
-        continue;
-      }
-
       case Try: {
         assert(validPC(frameMtd(FP), PC + PC->alt + 1));
         check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
@@ -675,7 +653,7 @@ retCode run(processPo P) {
         tryFramePo try = STK->tp;
         check(try->fp == FP, "misaligned try block");
         STK->tp = try->try;
-        CT = controlTop(FP,STK->tp);
+        CT = controlTop(FP, STK->tp);
         SP = STK->sp = try->sp;
 
         PC += PC->alt + 1;
@@ -697,7 +675,7 @@ retCode run(processPo P) {
         tryFramePo try = STK->tp;
         check(try->fp == FP, "misaligned try block");
         STK->tp = try->try;
-        CT = controlTop(FP,STK->tp);
+        CT = controlTop(FP, STK->tp);
         SP = STK->sp = try->sp;
         push(val);
 
