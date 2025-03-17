@@ -45,9 +45,6 @@ star.compiler.intrinsics{
     | "_basr" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iBAsr, .true, .notLast))  -- arithmetic right shift
     | "_bnot" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType])),intType),.iBNot, .true, .notLast))  -- bitwise negate number
     | "_fiber" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))])),.nomnal("r")),.nomnal("s")])),.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s"))))),.iFiber, .true, .notLast))  -- create a new fiber
-    | "_suspend" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("r")))),.iSuspend, .false, .notLast))  -- suspend fiber
-    | "_retire" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("s")])),.nomnal("e"))))),.iRetire, .false, .noMore))  -- retire fiber
-    | "_resume" => .some((.allType(.nomnal("r"),.allType(.nomnal("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.nomnal("r")),.nomnal("s")),.nomnal("r")])),.nomnal("s")))),.iResume, .false, .notLast))  -- resume fiber
 
     | _ default => .none
   }

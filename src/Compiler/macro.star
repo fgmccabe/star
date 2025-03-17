@@ -158,6 +158,12 @@ star.compiler.macro{
     mkLetRecDef(Lc,macroStmts(D),macroAction(B)).
   examineAction(A) where (Lc,G,Cs) ?= isCase(A) => 
     mkCaseExp(Lc,macroTerm(G),Cs//macroCaseAction).
+  examineAction(A) where (Lc,T,M) ?= isSuspend(A) =>
+    mkSuspend(Lc,macroTerm(T),macroTerm(M)).
+  examineAction(A) where (Lc,T,M) ?= isResume(A) =>
+    mkResume(Lc,macroTerm(T),macroTerm(M)).
+  examineAction(A) where (Lc,T,M) ?= isRetire(A) =>
+    mkRetire(Lc,macroTerm(T),macroTerm(M)).
   examineAction(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
   examineAction(A) default => valof{
@@ -259,6 +265,8 @@ star.compiler.macro{
     mkResume(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,L,R) ?= isSuspend(A) =>
     mkSuspend(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isRetire(A) =>
+    mkRetire(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
     mkFiberTerm(Lc,macroAction(S)).
   examineTerm(A) where (Lc,S) ?= isGenerator(A) =>

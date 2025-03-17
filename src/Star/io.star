@@ -197,7 +197,7 @@ star.io{
       | .go_ahead => {
 	valis _futureVal(Ft)
       }
-      | _ => _retire(this,.retired_)
+      | _ => retire .retired_
     }
   }
   

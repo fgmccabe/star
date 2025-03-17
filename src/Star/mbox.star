@@ -44,7 +44,7 @@ star.mbox{
       }
       | .quiescent => {
 	St := .hasData(D);
-	case this suspend(this .yield_ in {
+	case this suspend .yield_ in {
 	  | .go_ahead => valis ()
 	  | .shut_down_ => raise .canceled
 	}
@@ -189,10 +189,10 @@ star.mbox{
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
 	} else
-	_retire(this,.retired_)
+	retire .retired_
       }
       | _ =>
-	_retire(this,.retired_)
+	retire .retired_
     }
   }
 
@@ -204,11 +204,11 @@ star.mbox{
     Fb = _fiber((this,_)=>.result(valof{
 	  try{
 	    C := .either(TFn());	-- this marks the future as resolved
-	    _retire(this,.retired_)
+	    retire .retired_
 	  } catch e in {
 	    Ex => {
 	      C := .other(Ex);
-	      _retire(this,.retired_)
+	      retire .retired_
 	    }
 	  }
 	}));

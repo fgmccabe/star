@@ -60,9 +60,6 @@ star.compiler.escapes{
     | "_big_format" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("bigint"),.nomnal("string")])),.nomnal("string")),.raisEs(.nomnal("errorCode"))))
     | "_fiber_eq" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s"))])),.nomnal("boolean")))))
     | "_fiber" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.kVar("r")])),.kVar("s"))])),.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s"))))))
-    | "_suspend" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.kVar("s")])),.kVar("r")))))
-    | "_retire" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.kVar("s")])),.kVar("e"))))))
-    | "_resume" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.kVar("r")])),.kVar("s")))))
     | "sqrt" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")),.raisEs(.nomnal("errorCode"))))
     | "exp" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")),.raisEs(.nomnal("errorCode"))))
     | "log" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")))
@@ -315,9 +312,6 @@ star.compiler.escapes{
     | "_big_format" => .true
     | "_fiber_eq" => .true
     | "_fiber" => .true
-    | "_suspend" => .true
-    | "_retire" => .true
-    | "_resume" => .true
     | "sqrt" => .true
     | "exp" => .true
     | "log" => .true

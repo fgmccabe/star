@@ -32,7 +32,4 @@ isIntrinsic("_blsr",funType(tplType([type("integer"),type("integer")]),type("int
 isIntrinsic("_basr",funType(tplType([type("integer"),type("integer")]),type("integer")),iBAsr).  % arithmetic right shift
 isIntrinsic("_bnot",funType(tplType([type("integer")]),type("integer")),iBNot).  % bitwise negate number
 isIntrinsic("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),kVar("r")),kVar("s")]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))))),iFiber).  % create a new fiber
-isIntrinsic("_suspend",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("r")))),iSuspend).  % suspend fiber
-isIntrinsic("_retire",allType(kVar("r"),allType(kVar("s"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("s")]),kVar("e"))))),iRetire).  % retire fiber
-isIntrinsic("_resume",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s")))),iResume).  % resume fiber
 

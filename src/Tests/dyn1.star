@@ -41,11 +41,11 @@ test.dyn1{
 	  let{
 	    _throw(E) => valof{
 	      showMsg("retiring...");
-	      _retire(TryTsk,.err(E))
+	      TryTsk retire .err(E)
 	    }
 	  } in {
 	    showMsg("starting f($(X))");
-	    _retire(TryTsk,.ok(fe(X)))
+	    TryTsk retire .ok(fe(X))
 	  }
 	}) resume () in {
       | .err(E) => {

@@ -468,7 +468,7 @@ star.compiler.macro.rules{
   becomes
   case this suspend ._yld(E) in {
     | ._next => {}
-    | ._cancel => _retire(this,._all)
+    | ._cancel => retire._all
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
@@ -476,8 +476,8 @@ star.compiler.macro.rules{
     /* build ._next => {} */
     Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => _retire(this,._all) */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,binary(Lc,"_retire",This,enum(Lc,"_all")));
+    /* build ._cancel => retire ._all */
+    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
     valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))

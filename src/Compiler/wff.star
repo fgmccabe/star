@@ -850,8 +850,15 @@ star.compiler.wff{
   public isResume(A) => isBinary(A,"resume").
   public mkResume(Lc,L,R) => binary(Lc,"resume",L,R).
 
-  public isSuspend(A) => isBinary(A,"suspend").
+  public isSuspend(A) where D ?= isBinary(A,"suspend") => .some(D).
+  isSuspend(A) where (Lc,M) ?= isUnary(A,"suspend") => .some((Lc,.nme(Lc,"this"),M)).
+
   public mkSuspend(Lc,L,R) => binary(Lc,"suspend",L,R).
+
+  public isRetire(A) where D ?= isBinary(A,"retire") => .some(D).
+  isRetire(A) where (Lc,M) ?= isUnary(A,"retire") => .some((Lc,.nme(Lc,"this"),M)).
+
+  public mkRetire(Lc,L,R) => binary(Lc,"retire",L,R).
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where

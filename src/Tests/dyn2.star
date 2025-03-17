@@ -20,14 +20,14 @@ test.dyn2{
 	  implementation raising[string] => {
 	    raiz(M) => valof{
 	      showMsg("error message: #(M)");
-	      _retire(K,-1);
+	      K retire -1;
 	    }
 	  }
 
 	  implementation raising[integer] => {
 	    raiz(I) => valof{
 	      showMsg("error value: $(I)");
-	      _retire(K,I);
+	      K retire I;
 	    }
 	  }
 	} in fs(X)) resume ().
