@@ -41,6 +41,7 @@ typedef void (*regProc)(armReg rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 codeLblPo newLabel(assemCtxPo ctx);
+codeLblPo currentPcLabel(assemCtxPo ctx);
 codeLblPo defineLabel(assemCtxPo ctx, integer pc);
 void setLabel(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);

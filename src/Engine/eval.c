@@ -195,7 +195,7 @@ retCode run(processPo P) {
         closurePo obj = C_CLOSURE(cl);
         labelPo lb = closureLabel(obj);
 
-        if (labelArity(lb) != arity) {
+        if (lblArity(lb) != arity) {
           logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
           bail();
         }
@@ -338,7 +338,7 @@ retCode run(processPo P) {
       case TCall: {       /* Tail call of explicit program */
         termPo nProg = nthElem(LITS, PC->fst);
         labelPo lbl = C_LBL(nProg);
-        int32 arity = labelArity(lbl);
+        int32 arity = lblArity(lbl);
 
         methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
@@ -391,7 +391,7 @@ retCode run(processPo P) {
         closurePo obj = C_CLOSURE(cl);
         labelPo lb = closureLabel(obj);
 
-        if (labelArity(lb) != arity) {
+        if (lblArity(lb) != arity) {
           logMsg(logFile, "closure %T does not have correct arity %d", obj, arity);
           bail();
         }
@@ -1318,7 +1318,7 @@ retCode run(processPo P) {
         int32 mx = PC->fst;
         normalPo top = C_NORMAL(pop());
         labelPo lbl = termLbl(top);
-        integer hx = labelIndex(lbl);
+        integer hx = lblIndex(lbl);
 
         PC = PC + hx + 1;
         continue;
@@ -1342,7 +1342,7 @@ retCode run(processPo P) {
 
       case Alloc: {      /* heap allocate term */
         labelPo lbl = C_LBL(nthElem(LITS, PC->fst));
-        int32 arity = labelArity(lbl);
+        int32 arity = lblArity(lbl);
 
         checkAlloc(NormalCellCount(arity));
         normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */

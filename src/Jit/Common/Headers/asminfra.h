@@ -29,6 +29,7 @@ uint32 currentPc(assemCtxPo ctx);
 
 typedef void (*lblRefUpdater)(assemCtxPo ctx, codeLblPo lbl, integer pc);
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater);
+retCode clearLbl(codeLblPo lbl);
 
 void emitU8(assemCtxPo ctx, uint8 byte);
 void emitU16(assemCtxPo ctx, uint16 word);

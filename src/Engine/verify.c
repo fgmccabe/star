@@ -201,7 +201,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx.mtd, litNo);
         if (isALabel(lit)) {
-          int32 arity = labelArity(C_LBL(lit));
+          int32 arity = lblArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           stackDepth -= arity - 1;
@@ -218,7 +218,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
         termPo lit = getMtdLit(ctx.mtd, litNo);
         if (isALabel(lit)) {
-          int32 arity = labelArity(C_LBL(lit));
+          int32 arity = lblArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
         } else
@@ -791,7 +791,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid symbol literal: %t", pc, lit);
         else {
-          int32 arity = labelArity(C_LBL(lit));
+          int32 arity = lblArity(C_LBL(lit));
           if (stackDepth < arity)
             return verifyError(&ctx, ".%d: insufficient stack args for Alloc instruction", pc);
           else if (code[pc + 1].op != Frame)

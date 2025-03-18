@@ -70,7 +70,7 @@ typedef struct jit_compiler_ {
   assemCtxPo assemCtx;
   codeLblPo entry;
   arrayPo locals;
-  arrayPo labels;
+  hashPo labels;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
@@ -86,8 +86,6 @@ void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 void markEntry(jitCompPo jit, codeLblPo entry);
 codeLblPo jitEntry(jitCompPo jit);
 
-retCode sortLabels(jitCompPo jit);
-
 armReg findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, armReg rg);
 
@@ -95,13 +93,9 @@ integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState s
 integer findLocalOffset(jitCompPo jit, integer id);
 integer cancelLocal(jitCompPo jit, integer id);
 
-
-void collectLblTgt(insPo pc, jitCompPo jit);
-retCode sortLabels(jitCompPo jit);
-retCode resolvePcLbl(insPo code, integer pc, jitCompPo jit, char *errMsg, integer msgLen);
-codeLblPo getLblByPc(insPo pc, integer delta, jitCompPo jit);
-
-
+codeLblPo makeLbl(jitCompPo jit, insPo pc);
+codeLblPo createLbl(jitCompPo jit, insPo pc);
+codeLblPo getLbl(jitCompPo jit, insPo pc);
 
 typedef struct lbl_ref {
   lblRefUpdater updater;

@@ -283,7 +283,7 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lc
   mtd->instructions = instructions;
   mtd->jit = Null;
   mtd->sigIx = funSigIx;
-  mtd->arity = labelArity(lbl);
+  mtd->arity = lblArity(lbl);
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locs = locs;

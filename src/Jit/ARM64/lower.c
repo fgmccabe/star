@@ -46,7 +46,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = defineLabel(ctx, undefinedPc);
 
-  sub(X16, SP, IM(delta));
+  sub(X16, SSP, IM(delta));
   ldr(X17, OF(X27, stkMemOffset));
   cmp(X16, RG(X17));
   bhi(okLbl);
@@ -68,9 +68,9 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
 retCode jit_postamble(methodPo mtd, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
-  add(SP, FP, IM(sizeof(StackFrame)));
+  add(SSP, FP, IM(sizeof(StackFrame)));
   mov(PL, OF(FP, OffsetOf(StackFrame, pool)));
-  ldp(FP, LR, PSX(SP, 16));
+  ldp(FP, LR, PSX(SSP, 16));
   ret(LR);
   return Ok;
 }
@@ -85,7 +85,7 @@ static void pushStkOp(jitCompPo jit, vOperand operand) {
   jit->vStack[jit->vTop++] = operand;
 }
 
-retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen) {
+static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen){
   retCode ret = Ok;
   assemCtxPo ctx = assemCtx(jit);
 
@@ -106,7 +106,7 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         int32 litNo = code[pc].fst;
 
         labelPo lbl = C_LBL(getMtdLit(jit->mtd, litNo));
-        int32 arity = labelArity(lbl);
+        int32 arity = lblArity(lbl);
 
         spillUpto(jit, arity);    // Spill all stack arguments up until arity
         pc++;
@@ -131,10 +131,19 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
         return Error;
       case Ret:            // return
       case Block: {            // block of instructions
-        codeLblPo altTgt = defineLabel(ctx,code[pc].alt);
-         }
+        createLbl(jit, &code[pc]);
+        codeLblPo exit = makeLbl(jit, &code[pc + code[pc].alt]);
+        jitBlock(jit,&code[pc+1],code[pc].alt,errMsg,msgLen);
+        setLabel(ctx,exit);
+        pc++;
+        continue;
+      }
       case Break: {            // leave block
-        codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
+        insPo blockStart = &code[pc + code[pc].alt];
+
+        assert(blockStart->op==Block || blockStart->op==Try);
+
+        codeLblPo tgt = getLbl(jit, blockStart+blockStart->alt);
 
         assert(tgt != Null);
 
@@ -144,7 +153,7 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
       }
       case Result:            // return value out of block
       case Loop: {            // jump back to start of block
-        codeLblPo tgt = getLblByPc(&code[pc], code[pc].alt, jit);
+        codeLblPo tgt = makeLbl(jit, &code[pc + code[pc].alt]);
 
         assert(tgt != Null);
 
@@ -186,12 +195,12 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Pick: {            // adjust stack to n depth, using top k elements
         int32 height = code[pc].fst;
         int32 keep = code[pc].alt;
-        check(height>=0 && height <= jit->vTop, "reset alignment");
-        check(keep>=0 && keep <= jit->vTop-height, "keep depth more than available");
-        for(int32 ix=0;ix<keep;ix++){
-          jit->vStack[height+ix] = jit->vStack[jit->vTop-keep+ix];
+        check(height >= 0 && height <= jit->vTop, "reset alignment");
+        check(keep >= 0 && keep <= jit->vTop - height, "keep depth more than available");
+        for (int32 ix = 0; ix < keep; ix++) {
+          jit->vStack[height + ix] = jit->vStack[jit->vTop - keep + ix];
         }
-        jit->vTop = height+keep;
+        jit->vTop = height + keep;
         pc++;
         continue;
       }
@@ -335,6 +344,10 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
   }
 
   return ret;
+}
+
+retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen) {
+  return jitBlock(jit,code,insCount,errMsg,msgLen);
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {

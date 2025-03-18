@@ -26,8 +26,6 @@ void initAssem() {
   }
 }
 
-static retCode clearLbl(codeLblPo lbl);
-
 assemCtxPo createCtx() {
   initAssem();
 
@@ -91,6 +89,10 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
+codeLblPo currentPcLabel(assemCtxPo ctx){
+  return defineLabel(ctx,ctx->pc);
+}
+
 codeLblPo defineLabel(assemCtxPo ctx, integer pc) {
   codeLblPo lbl = (codeLblPo) allocPool(lblPool);
   lbl->refs = Null;
@@ -102,7 +104,7 @@ codeLblPo defineLabel(assemCtxPo ctx, integer pc) {
 codeLblPo newLabel(assemCtxPo ctx){
   codeLblPo lbl = (codeLblPo) allocPool(lblPool);
   lbl->refs = Null;
-  lbl->pc = -1;
+  lbl->pc = undefinedPc;
 
   return lbl;
 }

@@ -324,7 +324,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
         return res;
 
       if (res == Ok) {
-        if (labelArity(C_LBL(lbl)) != arity) {
+        if (lblArity(C_LBL(lbl)) != arity) {
           strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
           res = Error;
         }

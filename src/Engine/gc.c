@@ -174,7 +174,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
         G->oCnt++;
 
         labelPo lbl = C_LBL((termPo) clss);
-        int32 size = NormalCellCount(labelArity(lbl));
+        int32 size = NormalCellCount(lblArity(lbl));
         termPo nn = G->H->curr;
         memcpy(nn, t, termSize(C_NORMAL(t)) * sizeof(termPo));
         G->H->curr += size;

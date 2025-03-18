@@ -197,19 +197,19 @@ logical labelDefined(labelPo lbl) {
   return lbl->mtd != Null;
 }
 
-int32 labelArity(labelPo lbl) {
+int32 lblArity(labelPo lbl) {
   return lbl->lbl.arity;
 }
 
-const char *labelName(labelPo lbl) {
+const char *lblName(labelPo lbl) {
   return lbl->lbl.name;
 }
 
-int32 labelIndex(labelPo lbl) {
+int32 lblIndex(labelPo lbl) {
   return lbl->index;
 }
 
-labelPo tplLabel(int32 arity) {
+labelPo tplLbl(int32 arity) {
   char txt[MAX_SYMB_LEN];
 
   strMsg(txt, NumberOf(txt), "()%d", arity);
