@@ -71,9 +71,6 @@ intrinsic(_basr,func(int int,int),"BAsr",True,NotLast,"arithmetic right shift")
 intrinsic(_bnot,func(int,int),"BNot",True,NotLast,"bitwise negate number")
 
 intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r) s,fiber(r,s)))),"Fiber",True,NotLast,"create a new fiber")
-/* intrinsic(_suspend,all(r,all(s,func(fiber(r,s) s,r))),"Suspend",False,NotLast,"suspend fiber") */
-/* intrinsic(_retire,all(r,all(s,all(e,func(fiber(r,s) s,e)))),"Retire",False,Last,"retire fiber") */
-/* intrinsic(_resume,all(r,all(s,func(fiber(r,s) r,s))),"Resume",False,NotLast,"resume fiber") */
 
 #undef processState
 #undef thread

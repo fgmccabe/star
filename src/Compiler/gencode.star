@@ -231,12 +231,17 @@ star.compiler.gencode{
     | .cResum(Lc,T,E,Tp) => valof{
       (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
       (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
-      valis (chLine(OLc,Lc)++TC++EC++[.iResume],Ctx,pushStack(Tp::ltipe,Stk))
+      valis (chLine(OLc,Lc)++EC++TC++[.iResume],Ctx,pushStack(Tp::ltipe,Stk))
     }
     | .cSusp(Lc,T,E,Tp) => valof{
       (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
       (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
-      valis (chLine(OLc,Lc)++TC++EC++[.iSuspend],Ctx,pushStack(Tp::ltipe,Stk))
+      valis (chLine(OLc,Lc)++EC++TC++[.iSuspend],Ctx,pushStack(Tp::ltipe,Stk))
+    }
+    | .cRetyr(Lc,T,E,Tp) => valof{
+      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      valis (chLine(OLc,Lc)++EC++TC++[.iRetire],Ctx,.none)
     }
     | .cValof(Lc,A,Tp) => valof{
       Vl = defineLbl(Ctx,"Vl");

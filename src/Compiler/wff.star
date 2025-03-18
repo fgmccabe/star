@@ -852,11 +852,13 @@ star.compiler.wff{
 
   public isSuspend(A) where D ?= isBinary(A,"suspend") => .some(D).
   isSuspend(A) where (Lc,M) ?= isUnary(A,"suspend") => .some((Lc,.nme(Lc,"this"),M)).
+  isSuspend(_) default => .none.
 
   public mkSuspend(Lc,L,R) => binary(Lc,"suspend",L,R).
 
   public isRetire(A) where D ?= isBinary(A,"retire") => .some(D).
   isRetire(A) where (Lc,M) ?= isUnary(A,"retire") => .some((Lc,.nme(Lc,"this"),M)).
+  isRetire(_) default => .none.
 
   public mkRetire(Lc,L,R) => binary(Lc,"retire",L,R).
 

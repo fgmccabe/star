@@ -66,6 +66,7 @@ star.compiler.freevars{
     | .vlof(_,A,_) => freeVarsInAct(A,Q,Fv)
     | .resum(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
     | .susp(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
+    | .retyre(_,T,M,_) => freeVarsInExp(T,Q,freeVarsInExp(T,Q,Fv))
     | _ default => valof{
       reportError("cant find free vars in $(Exp)",locOf(Exp));
       valis Fv
