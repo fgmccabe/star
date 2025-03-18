@@ -77,11 +77,11 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
 }
 
 normalPo allocateStruct(heapPo H, labelPo lbl) {
-  return (normalPo) allocateObject(H, (clssPo) lbl, NormalCellCount(labelArity(lbl)));
+  return (normalPo) allocateObject(H, (clssPo) lbl, NormalCellCount(lblArity(lbl)));
 }
 
 retCode enoughRoom(heapPo H, labelPo lbl) {
-  return reserveSpace(H, NormalCellCount(labelArity(lbl)));
+  return reserveSpace(H, NormalCellCount(lblArity(lbl)));
 }
 
 void validPtr(heapPo H, termPo t) {
@@ -104,7 +104,7 @@ void verifyHeap(heapPo H) {
     } else {
       normalPo trm = C_NORMAL(t);
       labelPo lbl = C_LBL((termPo) clss);
-      for (int32 ix = 0; ix < labelArity(lbl); ix++) {
+      for (int32 ix = 0; ix < lblArity(lbl); ix++) {
         validPtr(H, trm->args[ix]);
       }
       t = t + termSize(trm);

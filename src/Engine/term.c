@@ -41,7 +41,7 @@ labelPo termLbl(normalPo t) {
 
 int32 termArity(normalPo term) {
   assert(term != Null);
-  return labelArity(termLbl(term));
+  return lblArity(termLbl(term));
 }
 
 termPo nthArg(normalPo term, int32 ix) {
@@ -50,7 +50,7 @@ termPo nthArg(normalPo term, int32 ix) {
 }
 
 termPo lastArg(normalPo term) {
-  return term->args[labelArity(term->lbl) - 1];
+  return term->args[lblArity(term->lbl) - 1];
 }
 
 void setArg(normalPo term, int64 ix, termPo arg) {
@@ -92,10 +92,10 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
 
-    if (isTplLabel(labelName(lbl))) {
+    if (isTplLabel(lblName(lbl))) {
       return showArgs(out, nml, precision, depth, alt);
-    } else if (labelArity(lbl) == 0) {
-      return outMsg(out, ".%Q", labelName(lbl));
+    } else if (lblArity(lbl) == 0) {
+      return outMsg(out, ".%Q", lblName(lbl));
     } else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
     else if (isVector(t))
@@ -103,7 +103,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {
-      retCode ret = outMsg(out, "%Q", labelName(lbl));
+      retCode ret = outMsg(out, "%Q", lblName(lbl));
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;
@@ -119,7 +119,7 @@ retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical a
 }
 
 retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  const char *name = labelName(lbl);
+  const char *name = lblName(lbl);
   integer lblLen = uniStrLen(name);
   if (alt) {
     retCode ret;
@@ -152,7 +152,7 @@ logical sameTerm(termPo t1, termPo t2) {
     normalPo n1 = C_NORMAL(t1);
     normalPo n2 = C_NORMAL(t2);
     labelPo lbl = n1->lbl;
-    int32 arity = labelArity(lbl);
+    int32 arity = lblArity(lbl);
     if (arity == 0)
       return True;
     else {
@@ -175,7 +175,7 @@ integer termHash(termPo t) {
     normalPo n1 = C_NORMAL(t);
     labelPo lbl = n1->lbl;
     integer hash = termHash((termPo) lbl);
-    for (int32 ix = 0; ix < labelArity(lbl); ix++)
+    for (int32 ix = 0; ix < lblArity(lbl); ix++)
       hash = hash * 37 + termHash(nthArg(n1, ix));
 
     return hash;
@@ -185,7 +185,7 @@ integer termHash(termPo t) {
 termPo termFinalizer(specialClassPo class, termPo o) {
   labelPo lbl = C_LBL((termPo) classOf(o));
 
-  return o + NormalCellCount(labelArity(lbl));
+  return o + NormalCellCount(lblArity(lbl));
 }
 
 // Special hash function used in case instruction. Only looks at the label of the term
@@ -200,11 +200,11 @@ integer hashTerm(termPo t) {
 }
 
 integer termSize(normalPo t) {
-  return NormalCellCount(labelArity(t->lbl));
+  return NormalCellCount(lblArity(t->lbl));
 }
 
 normalPo allocateTpl(heapPo H, int32 arity) {
-  labelPo lbl = tplLabel(arity);
+  labelPo lbl = tplLbl(arity);
   int root = gcAddRoot(H, (ptrPo) &lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
@@ -225,7 +225,7 @@ retCode walkNormal(termPo t, normalProc proc, void *cl) {
   if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = nml->lbl;
-    int32 arity = labelArity(lbl);
+    int32 arity = lblArity(lbl);
 
     retCode ret = Ok;
     for (int32 ix = 0; ix < arity && ret == Ok; ix++) {

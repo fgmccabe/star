@@ -16,13 +16,13 @@ labelPo findLbl(const char *name, int32 arity);
 integer labelHash(labelPo lbl);
 
 labelPo declareLbl(const char *name, int32 arity, int32 index);
-labelPo tplLabel(int32 arity);
+labelPo tplLbl(int32 arity);
 logical isTplLabel(const char *nm) ;
 logical isALabel(termPo t);
 
-int32 labelArity(labelPo lbl);
-const char * labelName(labelPo lbl);
-int32 labelIndex(labelPo lbl);
+int32 lblArity(labelPo lbl);
+const char * lblName(labelPo lbl);
+int32 lblIndex(labelPo lbl);
 
 logical sameLabel(labelPo l1, labelPo l2);
 
