@@ -43,6 +43,7 @@ star.compiler.canon{
   .letRec(option[locn],cons[canonDef],cons[decl],canon) |
   .vlof(option[locn],canonAction,tipe) |
   .susp(option[locn],canon,canon,tipe) |
+  .retyre(option[locn],canon,canon,tipe) |
   .resum(option[locn],canon,canon,tipe).
 
   public canonAction ::= .doNop(option[locn]) |
@@ -107,6 +108,7 @@ star.compiler.canon{
       | .cond(_,_,L,_) => typeOf(L)
       | .vlof(_,_,Tp) => Tp
       | .susp(_,_,_,Tp) => Tp
+      | .retyre(_,_,_,Tp) => Tp
       | .resum(_,_,_,Tp) => Tp
     }
   .}
@@ -148,6 +150,7 @@ star.compiler.canon{
       | .letRec(Lc,_,_,_) => Lc
       | .vlof(Lc,_,_) => Lc
       | .susp(Lc,_,_,_) => Lc
+      | .retyre(Lc,_,_,_) => Lc
       | .resum(Lc,_,_,_) => Lc
     }
   }
@@ -276,6 +279,8 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))valof #(showAct(A,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .susp(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("suspend") =>
       "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) suspend #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .retyre(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("retire") =>
+      "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) retire #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .resum(_,T,M,_) where (Lp,OPr,Rp) ?= isInfixOp("resume") =>
       "#(leftParen(OPr,Pr))#(showCanon(T,Lp,Sp)) resume #(showCanon(M,Rp,Sp))#(rgtParen(OPr,Pr))"
   }
@@ -317,7 +322,7 @@ star.compiler.canon{
     | .doLetRec(Lc,Defs,Decs,B) where Sp2.=Sp++"  " &&
 	(Lp,OPr,Rp) ?= isInfixOp("in") =>
       "let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp).} in #(showAct(B,Rp,Sp2))"
-    | .doExp(_,E) => "call #(showCanon(E,Pr,Sp))"
+    | .doExp(_,E) => "do #(showCanon(E,Pr,Sp))"
   }
 
   showActSeq(.doSeq(_,L,R),Pr,Sp) => "#(showAct(L,Pr-1,Sp));\n#(Sp)#(showActSeq(R,Pr,Sp))".

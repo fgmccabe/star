@@ -893,6 +893,14 @@ star.compiler.checker{
     Msg = typeOfExp(R,MsgTp,Env,Path);
     valis .susp(Lc,Tsk,Msg,Tp)
   }
+  typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isRetire(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(TTp,MsgTp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis .retyre(Lc,Tsk,Msg,Tp)
+  }
   typeOfExp(A,Tp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
     MsgTp = newTypeVar("_M");
     FTp = fiberType(MsgTp,Tp);
@@ -1096,6 +1104,14 @@ star.compiler.checker{
     Tsk = typeOfExp(L,FTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,Env,Path);
     valis (.doExp(Lc,.susp(Lc,Tsk,Msg,TTp)),Env)
+  }
+  checkAction(A,Tp,Env,Path) where (Lc,L,R) ?= isRetire(A) => valof{
+    TTp = newTypeVar("_T");
+    MsgTp = newTypeVar("_M");
+    FTp = fiberType(TTp,MsgTp);
+    Tsk = typeOfExp(L,FTp,Env,Path);
+    Msg = typeOfExp(R,MsgTp,Env,Path);
+    valis (.doExp(Lc,.retyre(Lc,Tsk,Msg,Tp)),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
     TTp = newTypeVar("_T");

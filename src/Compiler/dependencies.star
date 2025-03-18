@@ -358,6 +358,8 @@ star.compiler.dependencies{
     collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) =>
     collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
+  collectTermRefs(A,All,Rf) where (_,L,R) ?= isRetire(A) =>
+    collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isComprehension(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,R,_,V) ?= isRecordUpdate(T) => 
