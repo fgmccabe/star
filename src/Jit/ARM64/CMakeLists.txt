@@ -11,12 +11,13 @@ include_directories("Headers"
         "../../Engine/Headers"
         "../../Escapes/Headers"
         "../../Headers"
-        "../Common/Headers"
+        "Common/Headers"
+        "Assem/Headers"
         "./Headers")
 
 set(HEADER_FILES
-        Headers/arm64.h
-        Headers/arm64P.h
+        arm64.h
+        arm64P.h
         Headers/lower.h
         Headers/lowerP.h
         ../../Util/Headers/array.h
@@ -24,7 +25,7 @@ set(HEADER_FILES
         Assem/Headers/assem_encode.h
         Headers/macros.h
         ../Headers/infra.h
-        ../Common/Headers/asminfra.h
+        Headers/asminfra.h
 )
 
 set(SOURCE_FILES

@@ -9,7 +9,6 @@
 #include "jit.h"
 #include "ooio.h"
 #include "array.h"
-#include "lower.h"
 #include "macros.h"
 #include "array.h"
 #include "escape.h"
@@ -64,7 +63,7 @@ typedef struct labelMarker {
 typedef struct jit_compiler_ {
   methodPo mtd;
   integer vTop;
-  vOperand vStack[MAX_VSTACK];
+  int32 currSPOffset;
   registerMap usedRegs;
   registerMap freeRegs;
   assemCtxPo assemCtx;
@@ -93,9 +92,9 @@ integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState s
 integer findLocalOffset(jitCompPo jit, integer id);
 integer cancelLocal(jitCompPo jit, integer id);
 
-codeLblPo makeLbl(jitCompPo jit, insPo pc);
-codeLblPo createLbl(jitCompPo jit, insPo pc);
-codeLblPo getLbl(jitCompPo jit, insPo pc);
+codeLblPo defineJitLbl(jitCompPo jit, insPo pc);
+codeLblPo newJitLbl(jitCompPo jit, insPo pc);
+codeLblPo getJitLbl(jitCompPo jit, insPo pc);
 
 typedef struct lbl_ref {
   lblRefUpdater updater;

@@ -5,7 +5,7 @@
 #ifndef STAR_ASMINFRA_H
 #define STAR_ASMINFRA_H
 
-#include <config.h>
+#include "config.h"
 #include "array.h"
 
 typedef struct assem_ctx {

@@ -6,13 +6,9 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/mman.h>
-#include "lower.h"
 #include "jitP.h"
-#include "pool.h"
 #include <stdlib.h>
 #include <assert.h>
-#include "array.h"
-#include "asminfra.h"
 
 static poolPo lblPool = Null;
 static poolPo asmPool = Null;

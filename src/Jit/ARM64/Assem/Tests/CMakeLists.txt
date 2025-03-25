@@ -10,25 +10,27 @@ include_directories("../../Headers"
         "../../../../Escapes/Headers"
         "../../../../Headers"
         "../../../Common/Headers"
-        "../..")
+        "../Headers"
+        "../.."
+        "..")
 
 set(TEST_SOURCE_FILES ../../../../Util/unitTests.c
         ../assem_arm64.c
         ../assem_encode.c
-        ../Headers/assem_encode.h
         arm64Tests.c
-        ../../../Common/asmInfra.c
+        ../asmInfra.c
         ../macros.c
         test_infra.h
         test_infra.c
-        armRegSetTest.h
         armRegSetTest.c
         )
-set(TEST_HEADER_FILES ../../Headers/arm64.h
-        ../../Headers/arm64P.h
+set(TEST_HEADER_FILES ../Headers/arm64.h
+        ../Headers/arm64P.h
+        ../Headers/assem_encode.h
         ../../../../Util/Headers/unitTests.h
         ../../../Headers/jitP.h
-        ../../../Common/Headers/asminfra.h)
+        ../../Headers/asminfra.h
+        armRegSetTest.h)
 
 add_executable(arm64Test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(arm64Test ooio)
