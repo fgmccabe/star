@@ -15,7 +15,7 @@
 #include "closureP.h"
 #include "codeP.h"
 #include "libEscapes.h"
-#include "../Jit/ARM64/Headers/arm64.h"
+#include "../Jit/ARM64/Assem/Headers/arm64.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;

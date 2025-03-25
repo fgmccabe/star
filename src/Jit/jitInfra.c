@@ -106,22 +106,23 @@ void releaseReg(jitCompPo jit, armReg rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }
 
-codeLblPo makeLbl(jitCompPo jit, insPo pc) {
+codeLblPo defineJitLbl(jitCompPo jit, insPo pc) {
   labelMarkerPo entry = (labelMarkerPo) hashGet(jit->labels, (void *) pc);
   if (entry != Null) {
     assert(!isLabelDefined(entry->lbl));
     assert(entry->pc == pc);
+    setLabel(jit->assemCtx,entry->lbl);
     return entry->lbl;
   } else {
     entry = (labelMarkerPo) allocPool(labelPool);
     entry->pc = pc;
-    entry->lbl = newLabel(jit->assemCtx);
+    entry->lbl = currentPcLabel(jit->assemCtx);
     hashPut(jit->labels, entry->pc, entry);
     return entry->lbl;
   }
 }
 
-codeLblPo getLbl(jitCompPo jit, insPo pc) {
+codeLblPo getJitLbl(jitCompPo jit, insPo pc) {
   labelMarkerPo entry = (labelMarkerPo) hashGet(jit->labels, (void *) pc);
   if (entry != Null) {
     assert(entry->pc == pc);
@@ -130,7 +131,7 @@ codeLblPo getLbl(jitCompPo jit, insPo pc) {
     return Null;
 }
 
-codeLblPo createLbl(jitCompPo jit, insPo pc) {
+codeLblPo newJitLbl(jitCompPo jit, insPo pc) {
   labelMarkerPo entry = (labelMarkerPo) hashGet(jit->labels, (void *) pc);
   if (entry != Null) {
     assert(entry->pc == pc);

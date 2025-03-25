@@ -15,8 +15,9 @@ include_directories("Headers"
         "../../Common/Headers")
 
 set(HEADER_FILES
-        Headers/arm64.h
-        Headers/arm64P.h
+        arm64.h
+        arm64P.h
+        Headers/assem_encode.h
         ../../Util/Headers/array.h
         ../../Escapes/Headers/libEscapes.h
         assem_encode.h
@@ -29,7 +30,7 @@ set(SOURCE_FILES
         assem_arm64.c
         assem_encode.c
         macros.c
-        ../../Common/asmInfra.c)
+        asmInfra.c)
 
 add_library(assem STATIC ${SOURCE_FILES})
 

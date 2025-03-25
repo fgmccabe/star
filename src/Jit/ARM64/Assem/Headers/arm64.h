@@ -1,7 +1,7 @@
 #ifndef ARM64_H_
 #define ARM64_H_
 
-#include <config.h>
+#include "config.h"
 #include "utils.h"
 
 typedef struct assem_ctx *assemCtxPo;
@@ -112,7 +112,7 @@ typedef struct {
 
 typedef FlexOp registerSpec;
 
-#define PLATFORM_PC_DELTA 0
+#define PLATFORM_PC_DELTA (0)
 
 #define RG(Rg) ((FlexOp){.mode=reg, .reg=(Rg)})
 #define IM(Vl) ((FlexOp){.mode=imm, .immediate=(Vl)})
@@ -125,7 +125,7 @@ typedef FlexOp registerSpec;
 #define PSX(Rg, Amnt) ((FlexOp){.mode=postX, .reg=Rg, .immediate=(Amnt)})
 #define PRX(Rg, Amnt) ((FlexOp){.mode=preX,  .reg=Rg, .immediate=(Amnt)})
 #define OF(Rg, Amnt) ((FlexOp){.mode=sOff,  .reg=Rg, .immediate=(Amnt)})
-#define PC(Lbl) ((FlexOp){.mode=pcRel, .lbl=Lbl})
+#define PC(Lbl) ((FlexOp){.mode=pcRel, .lbl=(Lbl)})
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize);
 retCode postamble(assemCtxPo ctx);

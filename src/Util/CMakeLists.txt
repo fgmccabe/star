@@ -55,7 +55,8 @@ set(PUBLIC_HEADERS
         Headers/base64.h
         Headers/multi.h
         Headers/signals.h
-        Headers/fiber.h)
+        Headers/fiber.h
+        Headers/lifo.h)
 
 set(HEADER_FILES
         Headers/arrayP.h
@@ -85,12 +86,15 @@ set(HEADER_FILES
         Headers/match.h
         Headers/quick.h
         Headers/byteBufferP.h
-        Headers/fiberP.h)
+        Headers/fiberP.h
+        Headers/lifo.h
+        Headers/lifoP.h)
 
 set(SOURCE_FILES
         arrays.c
-        buddy.c
         base64.c
+        buddy.c
+        byteBuffer.c
         class.c
         cmdOptions.c
         editline.c
@@ -104,6 +108,7 @@ set(SOURCE_FILES
         integer.c
         io.c
         formexts.c
+        lifo.c
         locked.c
         managed.c
         match.c
@@ -131,9 +136,7 @@ set(SOURCE_FILES
 #        ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES}
-        byteBuffer.c
-        Headers/fiberP.h)
+        ${HEADER_FILES})
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
