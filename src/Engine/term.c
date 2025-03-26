@@ -166,6 +166,13 @@ logical sameTerm(termPo t1, termPo t2) {
   }
 }
 
+comparison compTerm(termPo t1, termPo t2) {
+  if (sameTerm(t1, t2))
+    return same;
+  else
+    return different;
+}
+
 integer termHash(termPo t) {
   clssPo c = classOf(t);
 

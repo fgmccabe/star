@@ -44,7 +44,7 @@ static comparison LabelCmp(labelRecordPo l1, labelRecordPo l2) {
     if (l1->arity == l2->arity)
       return same;
     else
-      return incomparible;
+      return different;
   }
   return cmp;
 }

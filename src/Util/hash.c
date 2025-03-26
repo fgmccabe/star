@@ -375,6 +375,6 @@ comparison ptrCmp(void *p1, void *p2){
   if(p1==p2)
     return same;
   else
-    return incomparible;
+    return different;
 }
 

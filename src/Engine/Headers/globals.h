@@ -11,24 +11,27 @@
 
 typedef struct global_rec_ *globalPo;
 
-extern globalPo C_GLOB(termPo t);
+globalPo C_GLOB(termPo t);
 
-extern globalPo globalVar(const char *nm);
+globalPo globalVar(const char *nm);
 
-extern int32 globalVarNo(const char *nm);
+int32 globalVarNo(const char *nm);
 
-extern globalPo findGlobalVar(int32 varNo);
+globalPo findGlobalVar(int32 varNo);
 
-extern termPo getGlobal(globalPo v);
-extern char *globalVarName(globalPo v);
-extern termPo setGlobalVar(globalPo v, termPo e);
-extern logical glbIsSet(globalPo glb);
+termPo getGlobal(globalPo v);
+char *globalVarName(globalPo v);
+termPo setGlobalVar(globalPo v, termPo e);
+logical glbIsSet(globalPo glb);
+
+integer constantLiteral(termPo t);
+integer defineConstantLiteral(termPo t);
 
 extern termPo voidEnum;
 extern termPo eofEnum;
 extern termPo canceledEnum;
 extern termPo unitEnum;
 
-extern void initGlobals();
+void initGlobals();
 
 #endif //STAR_GLOBALS_H

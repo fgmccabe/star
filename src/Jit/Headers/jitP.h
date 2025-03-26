@@ -63,6 +63,7 @@ typedef struct labelMarker {
 typedef struct jit_compiler_ {
   methodPo mtd;
   integer vTop;
+  int32 localDepth;
   int32 currSPOffset;
   registerMap usedRegs;
   registerMap freeRegs;

@@ -81,6 +81,7 @@ retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
 retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt);
 
 logical sameTerm(termPo t1, termPo t2);
+comparison compTerm(termPo t1,termPo t2);
 
 #endif //STAR_TERM_H
 
