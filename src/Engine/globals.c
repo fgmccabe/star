@@ -11,7 +11,6 @@
 #include "globalsP.h"
 #include "vectP.h"
 #include "eitherP.h"
-#include "codeP.h"
 
 termPo eOk;
 termPo eSWITCH;
@@ -40,6 +39,7 @@ termPo canceledEnum;
 termPo unitEnum;
 
 static hashPo globals;
+static hashPo constants;
 
 static GlobalRecord *glbVars;
 static int32 numGlbVars;
@@ -70,9 +70,20 @@ SpecialClass GlobalClass = {
 
 clssPo globalClass = (clssPo) &GlobalClass;
 
+typedef struct {
+  integer literalNo;
+  termPo value;
+} *constantPo, ConstantRecord;
+
+static poolPo constantPool = Null;
+static integer numConstants = 0;
+static void markConstants(gcSupportPo G);
+
 void initGlobals() {
   GlobalClass.clss.clss = specialClass;
   globals = newHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
+  constants = newHash(4096, (hashFun) termHash, (compFun) compTerm, Null);
+  constantPool = newPool(sizeof(ConstantRecord), 4096);
 
   glbVars = (globalPo) malloc(sizeof(GlobalRecord) * 1024);
   glbVarTblSize = 1024;
@@ -108,8 +119,6 @@ void initGlobals() {
   hasValue = declareEnum("hasValue", -1, globalHeap);
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
-
-
 }
 
 globalPo C_GLOB(termPo t) {
@@ -202,6 +211,8 @@ void markGlobals(gcSupportPo G) {
   for (int32 ix = 0; ix < numGlbVars; ix++)
     markGlobal(&glbVars[ix], G);
 
+  markConstants(G);
+
   eOk = markPtr(G, &eOk);
   eSWITCH = markPtr(G, &eSWITCH);
   eERROR = markPtr(G, &eERROR);
@@ -292,3 +303,34 @@ termPo ioErrorCode(retCode ret) {
   }
 }
 
+integer constantLiteral(termPo t) {
+  constantPo c = (constantPo) hashGet(constants, t);
+  if (c == Null)
+    return -1;
+  else
+    return c->literalNo;
+}
+
+integer defineConstantLiteral(termPo t) {
+  constantPo c = (constantPo) hashGet(constants, t);
+  if (c == Null) {
+    c = (constantPo) allocPool(constantPool);
+    c->literalNo = numConstants++;
+    c->value = t;
+    hashPut(constants, t, c);
+  }
+  return c->literalNo;
+}
+
+typedef retCode (*procFun)(void *n, void *r, void *c); /* Processing func */
+
+retCode markConstant(void *n, void *r, void *c) {
+  gcSupportPo g = (gcSupportPo) c;
+  constantPo cp = (constantPo) r;
+  cp->value = markPtr(g, &cp->value);
+  return Ok;
+}
+
+void markConstants(gcSupportPo G) {
+  processHashTable(markConstant, constants, (void *) G);
+}

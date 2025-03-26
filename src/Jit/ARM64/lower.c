@@ -10,19 +10,22 @@
 /* Lower Star VM code to Arm64 code */
 
 static retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta);
-static const integer integerByteCount = (integer) sizeof(integer);
+static int32 pointerSize = sizeof(integer);
 
 static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
 static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
 static retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity);
+static void setJitHeight(jitCompPo jit, int32 height);
+
+#define SSP (X28)
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
-  integer frameSize = lclCount(mtd) * integerByteCount + (integer) sizeof(StackFrame);
+  integer frameSize = lclCount(mtd) * pointerSize + (integer) sizeof(StackFrame);
   if (!isInt32(frameSize))
     return Error;
-  integer stkDelta = stackDelta(mtd) * integerByteCount;
+  integer stkDelta = stackDelta(mtd) * pointerSize;
   if (!isInt32(stkDelta))
     return Error;
 
@@ -33,7 +36,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
 
   stp(FP, X30, PRX(SP, -sizeof(StackFrame)));
   mov(FP, RG(SP));
-  str(PL, OF(FP, OffsetOf(StackFrame, pool)));
+  str(PLE, OF(FP, OffsetOf(StackFrame, pool)));
   if (stkAdjustment != 0)
     sub(SP, SP, IM(stkAdjustment));
 
@@ -68,7 +71,7 @@ retCode jit_postamble(methodPo mtd, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
   add(SSP, FP, IM(sizeof(StackFrame)));
-  mov(PL, OF(FP, OffsetOf(StackFrame, pool)));
+  mov(PLE, OF(FP, OffsetOf(StackFrame, pool)));
   ldp(FP, LR, PSX(SSP, 16));
   ret(LR);
   return Ok;
@@ -78,8 +81,8 @@ static armReg popStkOp(jitCompPo jit) {
   armReg tgt = findFreeReg(jit);
   assemCtxPo ctx = assemCtx(jit);
   int32 stackOffset = jit->currSPOffset;
-  jit->currSPOffset += sizeof(integer);
-  ldr(tgt, OF(SSP, stackOffset));
+  jit->currSPOffset += pointerSize;
+  ldr(tgt, OF(FP, stackOffset));
   jit->vTop--;
 
   return tgt;
@@ -88,8 +91,8 @@ static armReg popStkOp(jitCompPo jit) {
 static void pushStkOp(jitCompPo jit, armReg src) {
   assemCtxPo ctx = assemCtx(jit);
 
-  int32 stackOffset = jit->currSPOffset -= sizeof(integer);
-  str(src, OF(SSP, stackOffset));
+  int32 stackOffset = jit->currSPOffset -= pointerSize;
+  str(src, OF(FP, stackOffset));
   releaseReg(jit, src);
   jit->vTop++;
 }
@@ -141,8 +144,36 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       }
       case TCall:            // TCall <prog>
       case TOCall:            // TOCall
-      case Entry:            // locals definition
         return Error;
+      case Entry: {           // locals definition
+        int32 locals = code[pc].fst;
+        jit->localDepth = locals;
+        setJitHeight(jit, 0);
+        assert(locals >= 0);
+        armReg vd = findFreeReg(jit);
+        mov(vd, IM((integer) voidEnum));
+        stp(LR, FP, PRX(SSP, -2 * pointerSize));
+        mov(FP, PRX(SSP, -pointerSize));
+
+        if (locals < 8) {
+          for (int32 ix = 0; ix < locals; ix++) {
+            str(vd, OF(FP, (ix - locals) * sizeof(integer)));
+          }
+        } else {
+          // Build a loop
+          armReg cx = findFreeReg(jit);
+          mov(cx, IM(-locals));
+          codeLblPo start = currentPcLabel(ctx);
+          str(vd, EX2(FP, cx, S_XTX, 3));
+          sub(cx, cx, IM(1));
+          bne(start);
+          releaseReg(jit, cx);
+        }
+
+        releaseReg(jit, vd);
+        pc++;
+        continue;
+      }
       case Ret:            // return
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
@@ -189,7 +220,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         armReg tgt = findFreeReg(jit);
         int32 stackOffset = jit->currSPOffset;
         ldr(tgt, OF(SSP, stackOffset));
-        jit->currSPOffset -= sizeof(integer);
+        jit->currSPOffset -= pointerSize;
         str(tgt, OF(SSP, stackOffset));
         releaseReg(jit, tgt);
 
@@ -224,12 +255,12 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Pick: {            // adjust stack to n depth, using top k elements
         int32 height = code[pc].fst;
         int32 keep = code[pc].alt;
-        check(height >= 0 && height <= jit->vTop, "reset alignment");
-        check(keep >= 0 && keep <= jit->vTop - height, "keep depth more than available");
-        for (int32 ix = 0; ix < keep; ix++) {
-          jit->vStack[height + ix] = jit->vStack[jit->vTop - keep + ix];
-        }
-        jit->vTop = height + keep;
+//        check(height >= 0 && height <= jit->vTop, "reset alignment");
+//        check(keep >= 0 && keep <= jit->vTop - height, "keep depth more than available");
+//        for (int32 ix = 0; ix < keep; ix++) {
+//          jit->vStack[height + ix] = jit->vStack[jit->vTop - keep + ix];
+//        }
+//        jit->vTop = height + keep;
         pc++;
         continue;
       }
@@ -246,33 +277,33 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
 
         verifyJitCtx(jit, 1, 0);
 
-        vOperand vdOp = {.loc=engineSymbol, .address=voidEnum};
-        jit->vStack[jit->vTop++] = vdOp;
+//        vOperand vdOp = {.loc=engineSymbol, .address=voidEnum};
+//        jit->vStack[jit->vTop++] = vdOp;
         pc++;
         continue;
       }
       case LdC: {            // load literal from constant pool
         verifyJitCtx(jit, 1, 0);
         int32 litNo = code[pc].fst;
-        vOperand lclOp = {.loc=constant, .ix=litNo};
-        jit->vStack[jit->vTop++] = lclOp;
+//        vOperand lclOp = {.loc=constant, .ix=litNo};
+//        jit->vStack[jit->vTop++] = lclOp;
         pc++;
         continue;
       }
       case LdA: {            // load stack from args[xx]
         verifyJitCtx(jit, 1, 0);
         int32 argNo = code[pc].fst;
-        vOperand argOp = {.loc=argument, .ix=argNo};
-
-        jit->vStack[jit->vTop++] = argOp;
+//        vOperand argOp = {.loc=argument, .ix=argNo};
+//
+//        jit->vStack[jit->vTop++] = argOp;
         pc++;
         continue;
       }
       case LdL: {            // load stack from local[xx]
         verifyJitCtx(jit, 1, 0);
         int32 lclNo = code[pc].fst;
-        vOperand lclOp = {.loc=local, .ix=lclNo};
-        jit->vStack[jit->vTop++] = lclOp;
+//        vOperand lclOp = {.loc=local, .ix=lclNo};
+//        jit->vStack[jit->vTop++] = lclOp;
         pc++;
         continue;
       }
@@ -290,7 +321,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         verifyJitCtx(jit, 1, 0);
         int32 litNo = code[pc].fst;
         vOperand lclOp = {.loc=global, .ix=litNo};
-        jit->vStack[jit->vTop++] = lclOp;
+//        jit->vStack[jit->vTop++] = lclOp;
         pc++;
         continue;
       }
@@ -406,9 +437,13 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
 
   for (uint32 ix = 0; ix < arity; ix++) {
     ldr((armReg) (X0 + ix), OF(SSP, jit->currSPOffset));
-    jit->currSPOffset += sizeof(integer);
+    jit->currSPOffset += pointerSize;
   }
   return Ok;
+}
+
+static void setJitHeight(jitCompPo jit, int32 height) {
+  jit->currSPOffset = jit->localDepth - height;
 }
 
 retCode shuffleRegisters(jitCompPo jit, RgMvSpec *specs, int16 mvTop) {

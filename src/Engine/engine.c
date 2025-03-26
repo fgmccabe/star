@@ -157,7 +157,7 @@ comparison sameProcess(void *a, void *b) {
   if (a == b)
     return same;
   else
-    return incomparible;
+    return different;
 }
 
 retCode markProcess(processPo P, gcSupportPo G) {

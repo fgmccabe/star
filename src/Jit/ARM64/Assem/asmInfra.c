@@ -49,7 +49,7 @@ uint32 currentPc(assemCtxPo ctx){
 }
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
-  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
+//  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
 }
 
 retCode clearLbl(codeLblPo lbl) {

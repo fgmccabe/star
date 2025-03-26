@@ -24,7 +24,7 @@ static comparison pcComp(void *l, void *r) {
   if (l == r)
     return same;
   else
-    return incomparible;
+    return different;
 }
 
 static retCode delEntry(void *n, void *r) {
