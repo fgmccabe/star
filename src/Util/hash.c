@@ -30,7 +30,7 @@ typedef struct bucket {
   void *nme;        /* The symbol in the hash table */
   void *r;          /* 'value' of the hashed record */
   bucketPo link;    /* Link in case of hash-crash */
-} BucketRec;
+} BucketRec, *bucketPo;
 
 typedef struct hashtable_ {
   integer size; // The number of entries in the table

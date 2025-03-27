@@ -5,54 +5,55 @@
 #include "array.h"
 #include "eitherP.h"
 #include "constantsP.h"
-
-typedef struct {
-  int32 literalNo;
-  termPo value;
-} *constantPo, ConstantRecord;
+#include "globals.h"
 
 static hashPo constantKeys = Null;
 static arrayPo constants = Null;
 
 void initConstants() {
   constantKeys = newHash(4096, (hashFun) termHash, (compFun) compTerm, Null);
-  constants = allocArray(sizeof(ConstantRecord), 4096, True);
+  constants = allocArray(sizeof(termPo), 4096, True);
+  appendEntry(constants,&voidEnum);
 }
 
 int32 constantLiteral(termPo t) {
-  constantPo c = (constantPo) hashGet(constantKeys, t);
-  if (c == Null)
-    return -1;
+  integer tx = (integer) hashGet(constantKeys,t);
+
+  if(tx!=(integer)Null)
+    return (int32)tx;
   else
-    return c->literalNo;
+    return -1;
 }
 
 termPo getConstant(int32 key){
   if(key>=0 && key< arrayCount(constants)){
-    constantPo c = nthEntry(constants,key);
+    ptrPo c = nthEntry(constants,key);
     if(c!=Null)
-      return c->value;
+      return *c;
   }
   return Null;
 }
 
 int32 defineConstantLiteral(termPo t) {
-  constantPo c = (constantPo) hashGet(constantKeys, t);
-  if (c == Null) {
-    c = (constantPo) newEntry(constants);
-    c->literalNo = arrayCount(constants)-1;
-    c->value = t;
-
-    hashPut(constantKeys, t, c);
+  integer tx = (integer) hashGet(constantKeys, t);
+  if (tx==(integer)Null) {
+    if(appendEntry(constants,&t)==Ok){
+      integer cx = arrayCount(constants)-1;
+    
+      hashPut(constantKeys, t, (void*)cx);
+      return (int32)cx;
+    }
+    else
+      return -1;
   }
-  return c->literalNo;
+  return (int32)tx;
 }
 
 retCode markConstant(void *entry, integer ix, void *cl) {
   gcSupportPo g = (gcSupportPo) cl;
 
-  constantPo c = (constantPo) entry;
-  c->value = markPtr(g, &c->value);
+  ptrPo c = (ptrPo) entry;
+  *c = markPtr(g, c);
 
   return Ok;
 }
