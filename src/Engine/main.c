@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <engineP.h>
 #include <globals.h>
+#include "constantsP.h"
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <consP.h>
@@ -76,6 +77,7 @@ int main(int argc, char **argv) {
   initStrings();
   initSingle();
   initGlobals();
+  initConstants();
   initCons();
   initEither();
   initVect();

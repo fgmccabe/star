@@ -24,9 +24,6 @@ char *globalVarName(globalPo v);
 termPo setGlobalVar(globalPo v, termPo e);
 logical glbIsSet(globalPo glb);
 
-integer constantLiteral(termPo t);
-integer defineConstantLiteral(termPo t);
-
 extern termPo voidEnum;
 extern termPo eofEnum;
 extern termPo canceledEnum;
