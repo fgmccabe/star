@@ -17,6 +17,9 @@ static void initArray() {
   }
 }
 
+static retCode resizeArray(arrayPo ar,integer request);
+static void freeArrayData(arrayPo ar);
+
 arrayPo allocArray(int elSize, integer initial, logical growable) {
   initArray();
   arrayPo ar = (arrayPo) allocPool(arrayPool);
@@ -24,87 +27,69 @@ arrayPo allocArray(int elSize, integer initial, logical growable) {
   ar->data = malloc(elSize * initial);
   ar->dataLength = elSize * initial;
   ar->count = 0;
-  ar->reserved = 0;
-  ar->growable = growable;
+  ar->grow = (growable?resizeArray:Null);
+  ar->free = freeArrayData;
   return ar;
 }
 
-arrayPo fixedArray(int elSize, integer initial, void *data) {
+arrayPo fixedArray(int elSize, integer initial, void *data, arrayGrow grow, arrayRelease release) {
   initArray();
   arrayPo ar = (arrayPo) allocPool(arrayPool);
   ar->elSize = elSize;
   ar->data = data;
   ar->dataLength = elSize * initial;
   ar->count = 0;
-  ar->reserved = 0;
-  ar->growable = False;
+  ar->grow = grow;
+  ar->free = release;
   return ar;
 }
 
-retCode reserveRoom(arrayPo ar, integer count) {
-  assert(count >= 0);
-  integer newLimit = ar->reserved + count;
+static retCode ensureRoom(arrayPo ar, integer request) {
+  assert(request >= 0);
 
-  if (ar->dataLength < newLimit * ar->elSize) {
-    if (ar->growable) {
-      integer newSize = newLimit * ar->elSize;
-      void *newData = realloc(ar->data, newSize);
-      if (newData == Null)
-        return Space;
-      else {
-        ar->data = newData;
-        ar->dataLength = newSize;
-        ar->reserved = newLimit;
-        return Ok;
-      }
-    } else
+  if (ar->dataLength < (ar->count+request) * ar->elSize) {
+    if (ar->grow==Null || ar->grow(ar,request)!=Ok)
       return Error;
-  } else // Already enough room
+  }
+  return Ok; // We have enough room
+}
+
+retCode resizeArray(arrayPo ar,integer request){
+  integer newSize = ar->dataLength+request*ar->elSize;
+  
+  void *newData = realloc(ar->data, newSize);
+  if (newData == Null)
+    return Space;
+  else {
+    ar->data = newData;
+    ar->dataLength = newSize;
     return Ok;
+  }
+}
+
+void freeArrayData(arrayPo ar){
+  free(ar->data);
 }
 
 retCode appendEntry(arrayPo ar, void *el) {
-  if (ar->elSize * (ar->count + 1) > ar->dataLength) {
-    if (ar->growable) {
-      integer newSize = ar->dataLength + ar->dataLength / 2 + ar->elSize;
-      void *newData = realloc(ar->data, newSize);
-      if (newData == Null)
-        return Space;
-      else {
-        ar->data = newData;
-        ar->dataLength = newSize;
-      }
-    } else
-      return Error;
+  if(ensureRoom(ar,1)==Ok){
+    assert((ar->count + 1) * ar->elSize < ar->dataLength);
+    void *tgt = ar->data + (ar->count * ar->elSize);
+    memcpy(tgt, el, ar->elSize);
+    ar->count++;
+    return Ok;
   }
-  assert((ar->count + 1) * ar->elSize < ar->dataLength);
-  void *tgt = ar->data + (ar->count * ar->elSize);
-  memcpy(tgt, el, ar->elSize);
-  ar->count++;
-  if (ar->count > ar->reserved)
-    ar->reserved = ar->count;
-  return Ok;
+  else
+    return Error;
 }
 
 void *newEntry(arrayPo ar) {
-  if (ar->elSize * (ar->count + 1) >= ar->dataLength) {
-    if (ar->growable) {
-      integer newSize = ar->dataLength + ar->dataLength / 2 + ar->elSize;
-      void *newData = realloc(ar->data, newSize);
-      if (newData == Null)
-        return Null;
-      else {
-        ar->data = newData;
-        ar->dataLength = newSize;
-      }
-    } else
-      return Null;
-  }
-  assert((ar->count + 1) * ar->elSize < ar->dataLength);
-  ar->count++;
-  if (ar->count > ar->reserved)
-    ar->reserved = ar->count;
-  return ar->data + ((ar->count-1) * ar->elSize);
+  if(ensureRoom(ar,1)==Ok){
+    assert((ar->count + 1) * ar->elSize < ar->dataLength);
+    ar->count++;
+    return ar->data + ((ar->count-1) * ar->elSize);
+  } else
+    return Null;
 }
 
 integer arrayCount(arrayPo ar) {
@@ -114,13 +99,6 @@ integer arrayCount(arrayPo ar) {
 void *nthEntry(arrayPo ar, integer ix) {
   assert(ix >= 0 && ix < ar->count);
   return ar->data + (ar->elSize * ix);
-}
-
-void setNth(arrayPo ar, integer ix, void *el) {
-  assert(ix >= 0 && ix <= maximum(ar->reserved, ar->count));
-  if (ix == ar->count)
-    ar->count++;
-  memcpy(&ar->data[ix], el, ar->elSize);
 }
 
 retCode dropEntry(arrayPo ar, integer ix) {
@@ -135,8 +113,8 @@ arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
   if (eraser != Null)
     processArrayElements(ar, eraser, cl);
 
-  if (ar->growable)
-    free(ar->data);
+  if (ar->free!=Null)
+    ar->free(ar);
   freePool(arrayPool, ar);
   return Null;
 }
