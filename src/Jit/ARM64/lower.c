@@ -5,6 +5,7 @@
 #include "lowerP.h"
 #include "stackP.h"
 #include "globals.h"
+#include "constants.h"
 #include "jitP.h"
 
 /* Lower Star VM code to Arm64 code */
@@ -93,7 +94,6 @@ static void pushStkOp(jitCompPo jit, armReg src) {
 
   int32 stackOffset = jit->currSPOffset -= pointerSize;
   str(src, OF(FP, stackOffset));
-  releaseReg(jit, src);
   jit->vTop++;
 }
 
@@ -285,8 +285,14 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case LdC: {            // load literal from constant pool
         verifyJitCtx(jit, 1, 0);
         int32 litNo = code[pc].fst;
-//        vOperand lclOp = {.loc=constant, .ix=litNo};
-//        jit->vStack[jit->vTop++] = lclOp;
+        termPo literal = getMtdLit(jit->mtd, litNo);
+        int32 key = defineConstantLiteral(literal);
+        mov(X0, IM(key));
+
+        invokeCFunc1(jit, (Cfunc1) getConstant);
+
+        pushStkOp(jit, X0);
+
         pc++;
         continue;
       }
@@ -359,6 +365,9 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         add(a1, a2, RG(a2));
         pushStkOp(jit, a1);
 
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
         pc++;
         continue;
       }
@@ -412,7 +421,11 @@ retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMs
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
-  return Error;
+  assemCtxPo ctx = assemCtx(jit);
+
+  codeLblPo lbl = defineLabel(ctx, (integer) fun);
+  bl(lbl);
+  return Ok;
 }
 
 retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun) {

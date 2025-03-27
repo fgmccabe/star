@@ -58,6 +58,8 @@ set(HEADER_FILES
         Headers/escape.h
         Headers/either.h
         Headers/eitherP.h
+        Headers/constants.h
+        Headers/constantsP.h
 )
 
 set(SOURCE_FILES
@@ -93,6 +95,7 @@ set(SOURCE_FILES
         thr.c
         verify.c
         vect.c
+        constants.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
