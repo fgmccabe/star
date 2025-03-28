@@ -73,7 +73,7 @@ void freeArrayData(arrayPo ar){
 
 retCode appendEntry(arrayPo ar, void *el) {
   if(ensureRoom(ar,1)==Ok){
-    assert((ar->count + 1) * ar->elSize < ar->dataLength);
+    assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     void *tgt = ar->data + (ar->count * ar->elSize);
     memcpy(tgt, el, ar->elSize);
     ar->count++;
@@ -85,7 +85,7 @@ retCode appendEntry(arrayPo ar, void *el) {
 
 void *newEntry(arrayPo ar) {
   if(ensureRoom(ar,1)==Ok){
-    assert((ar->count + 1) * ar->elSize < ar->dataLength);
+    assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     ar->count++;
     return ar->data + ((ar->count-1) * ar->elSize);
   } else
