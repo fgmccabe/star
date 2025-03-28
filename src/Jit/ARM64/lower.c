@@ -89,6 +89,15 @@ static armReg popStkOp(jitCompPo jit) {
   return tgt;
 }
 
+static armReg topStkOp(jitCompPo jit) {
+  armReg tgt = findFreeReg(jit);
+  assemCtxPo ctx = assemCtx(jit);
+  int32 stackOffset = jit->currSPOffset;
+  ldr(tgt, OF(FP, stackOffset));
+
+  return tgt;
+}
+
 static void pushStkOp(jitCompPo jit, armReg src) {
   assemCtxPo ctx = assemCtx(jit);
 
@@ -274,53 +283,74 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case TryRslt:            // end try with a  result
       case Throw:            // Invoke a continuation
       case LdV: {            // Place a void value on stack
-
-        verifyJitCtx(jit, 1, 0);
-
-//        vOperand vdOp = {.loc=engineSymbol, .address=voidEnum};
-//        jit->vStack[jit->vTop++] = vdOp;
+        int32 key = defineConstantLiteral(voidEnum);
+        mov(X0, IM(key));
+        invokeCFunc1(jit, (Cfunc1) getConstant);
+        pushStkOp(jit, X0);
         pc++;
         continue;
       }
       case LdC: {            // load literal from constant pool
-        verifyJitCtx(jit, 1, 0);
         int32 litNo = code[pc].fst;
         termPo literal = getMtdLit(jit->mtd, litNo);
         int32 key = defineConstantLiteral(literal);
         mov(X0, IM(key));
-
         invokeCFunc1(jit, (Cfunc1) getConstant);
-
         pushStkOp(jit, X0);
 
         pc++;
         continue;
       }
       case LdA: {            // load stack from args[xx]
-        verifyJitCtx(jit, 1, 0);
         int32 argNo = code[pc].fst;
-//        vOperand argOp = {.loc=argument, .ix=argNo};
-//
-//        jit->vStack[jit->vTop++] = argOp;
+        int32 offset = argNo * pointerSize;
+        armReg rg = findFreeReg(jit);
+        ldr(rg, OF(FP, offset));
+        pushStkOp(jit, rg);
+        releaseReg(jit, rg);
         pc++;
         continue;
       }
       case LdL: {            // load stack from local[xx]
-        verifyJitCtx(jit, 1, 0);
         int32 lclNo = code[pc].fst;
-//        vOperand lclOp = {.loc=local, .ix=lclNo};
-//        jit->vStack[jit->vTop++] = lclOp;
+        int32 offset = -lclNo * pointerSize;
+        armReg rg = findFreeReg(jit);
+        ldr(rg, OF(FP, offset));
+        pushStkOp(jit, rg);
+        releaseReg(jit, rg);
         pc++;
         continue;
       }
-      case StL:            // store tos to local[xx]
-        return Error;
+      case StL: {            // store tos to local[xx]
+        int32 lclNo = code[pc].fst;
+        int32 offset = -lclNo * pointerSize;
+        armReg vl = popStkOp(jit);
+        str(vl, OF(FP, offset));
+        releaseReg(jit, vl);
+        pc++;
+        continue;
+      }
       case StV: {           // clear a local to void
         int32 lclNo = code[pc].fst;
-        return Error;
+        int32 offset = -lclNo * pointerSize;
+        armReg vd = findFreeReg(jit);
+        int32 key = defineConstantLiteral(voidEnum);
+        mov(vd, IM(key));
+        invokeCFunc1(jit, (Cfunc1) getConstant);
+        str(vd, OF(FP, offset));
+        releaseReg(jit, vd);
+        pc++;
+        continue;
       }
-      case TL:            // copy tos to local[xx]
-        return Error;
+      case TL: {           // copy tos to local[xx]
+        int32 lclNo = code[pc].fst;
+        int32 offset = -lclNo * pointerSize;
+        armReg vl = topStkOp(jit);
+        str(vl, OF(FP, offset));
+        releaseReg(jit, vl);
+        pc++;
+        continue;
+      }
       case LdS:            // lift a value from the stack
         return Error;
       case LdG: {            // load a global variable
@@ -371,7 +401,19 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
-      case ISub:            // L R --> L-R
+      case ISub: {            // L R --> L-R
+        armReg a1 = popStkOp(jit);
+        armReg a2 = popStkOp(jit);
+
+        sub(a1, a1, RG(a2));
+        pushStkOp(jit, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
       case IMul:            // L R --> L*R
       case IDiv:            // L R --> L/R
       case IMod:            // L R --> L%R
