@@ -478,17 +478,9 @@ retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
   return Error;
 }
 
-typedef struct {
-  armReg src;
-  armReg dst;
-} RgMvSpec;
-
-static retCode shuffleRegisters(jitCompPo jit, RgMvSpec *specs, int16 mvTop);
-
 retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
   assemCtxPo ctx = assemCtx(jit);
   assert(arity < 9);
-  RgMvSpec specs[32];
 
   for (uint32 ix = 0; ix < arity; ix++) {
     ldr((armReg) (X0 + ix), OF(SSP, jit->currSPOffset));
@@ -499,12 +491,6 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
 
 static void setJitHeight(jitCompPo jit, int32 height) {
   jit->currSPOffset = jit->localDepth - height;
-}
-
-retCode shuffleRegisters(jitCompPo jit, RgMvSpec *specs, int16 mvTop) {
-  check(False, "not implemented yet");
-
-  return Error;
 }
 
 retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
