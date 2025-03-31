@@ -793,8 +793,8 @@ star.compiler.wff{
 
   public mkGeneratorType(Lc,Y) => squareTerm(Lc,.qnm(Lc,"generator"),[Y]).
 
-  public isTaskExp(A) where (Lc,.nme(_,"task"),[El]) ?= isBraceTerm(A) => .some((Lc,El)).
-  isTaskExp(_) default => .none.
+  public isTask(A) where (Lc,.nme(_,"task"),[El]) ?= isBraceTerm(A) => .some((Lc,El)).
+  isTask(_) default => .none.
 
   public mkTaskExp(Lc,As) => braceTerm(Lc,.nme(Lc,"task"),[As]).
 

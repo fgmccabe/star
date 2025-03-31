@@ -55,7 +55,7 @@ isCanon(match(_,_,_)).
 isCanon(open(_,_,_)).
 isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_,_)).
-isCanon(fiber(_,_,_)).
+isCanon(task(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
 isCanon(retire(_,_,_,_)).
@@ -119,7 +119,7 @@ typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 typeOfCanon(case(_,_,_,Tp),Tp) :- !.
 typeOfCanon(raise(_,_,_,Tp),Tp) :-!.
-typeOfCanon(fiber(_,_,Tp),Tp) :-!.
+typeOfCanon(task(_,_,Tp),Tp) :-!.
 typeOfCanon(suspend(_,_,_,Tp),Tp) :- !.
 typeOfCanon(retire(_,_,_,Tp),Tp) :- !.
 typeOfCanon(resume(_,_,_,Tp),Tp) :- !.
@@ -169,7 +169,7 @@ locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_,_,_),Lc) :-!.
-locOfCanon(fiber(Lc,_,_),Lc) :-!.
+locOfCanon(task(Lc,_,_),Lc) :-!.
 locOfCanon(suspend(Lc,_,_,_),Lc) :-!.
 locOfCanon(retire(Lc,_,_,_),Lc) :-!.
 locOfCanon(resume(Lc,_,_,_),Lc) :-!.
@@ -298,7 +298,7 @@ ssTerm(raise(_,_,E,_),Dp,sq([ss(" raise "),EE])) :-!,
   ssTerm(E,Dp,EE).
 ssTerm(valof(_,A,_),Dp,sq([ss("valof "),AA])) :-!,
   ssAction(A,Dp,AA).
-ssTerm(fiber(_,A,_),Dp,sq([ss("fiber "),AA])) :-!,
+ssTerm(task(_,A,_),Dp,sq([ss("task "),AA])) :-!,
   ssTerm(A,Dp,AA).
 ssTerm(suspend(_,T,M,_),Dp,sq([TT,ss(" suspend "),MM])) :-!,
   ssTerm(T,Dp,TT),

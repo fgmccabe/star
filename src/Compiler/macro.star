@@ -253,7 +253,7 @@ star.compiler.macro{
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
   examineTerm(A) where (Lc,S) ?= isValof(A) && (VLc,[As])?=isBrTuple(S) =>
     mkValof(Lc,brTuple(VLc,[macroAction(As)])).
-  examineTerm(A) where (Lc,As) ?= isTaskExp(A) =>
+  examineTerm(A) where (Lc,As) ?= isTask(A) =>
     mkTaskExp(Lc,macroAction(As)).
   examineTerm(A) where (Lc,B,E,Hs) ?= isTryCatch(A) =>
     mkTryCatch(Lc,macroTerm(B),macroType(E),Hs//macroLambda).

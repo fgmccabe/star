@@ -298,6 +298,10 @@
 @tab non-associative prefix
 @tab 930
 @tab wrap value in monad
+@item @code{?}
+@tab non-associative prefix
+@tab 300
+@tab extract value from either/or
 @item @code{@@}
 @tab non-associative prefix
 @tab 400
@@ -602,39 +606,40 @@
   @item @code{|:}
   @tab @code{++}
   @tab @code{>}
+  @tab @code{?}
   @tab @code{@@}
-  @tab @code{|=}
-  @item @code{~~}
+  @item @code{|=}
+  @tab @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
   @tab @code{.^.}
-  @tab @code{//}
-  @item @code{.~.}
+  @item @code{//}
+  @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
   @tab @code{\\}
-  @tab @code{=>}
-  @item @code{<=>}
+  @item @code{=>}
+  @tab @code{<=>}
   @tab @code{•}
   @tab @code{.&.}
   @tab @code{///}
-  @tab @code{::}
-  @item @code{+++}
+  @item @code{::}
+  @tab @code{+++}
   @tab @code{:=}
   @tab @code{:?}
   @tab @code{.<<.}
-  @tab @code{>>=}
-  @item @code{^/}
+  @item @code{>>=}
+  @tab @code{^/}
   @tab @code{<~}
   @tab @code{|}
   @tab @code{.#.}
-  @tab @code{~}
-  @item @code{^//}
+  @item @code{~}
+  @tab @code{^//}
   @tab @code{||}
   @tab @code{::=}
   @tab @code{/\\}
-  @tab @code{>=}
-  @item @code{>>}
+  @item @code{>=}
+  @tab @code{>>}
 
 @end multitable
 @end float

@@ -219,7 +219,7 @@ overloadTerm(lambda(Lc,Lbl,Cx,Eqn,Tp),Dict,St,Stx,Lam) :-!,
   overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,St,Stx,Lam).
 overloadTerm(valof(Lc,A,Tp),Dict,St,Stx,valof(Lc,AA,Tp)) :-!,
   overloadAction(A,Dict,St,Stx,AA).
-overloadTerm(fiber(Lc,A,Tp),Dict,St,Stx,fiber(Lc,AA,Tp)) :-!,
+overloadTerm(task(Lc,A,Tp),Dict,St,Stx,task(Lc,AA,Tp)) :-!,
   overloadTerm(A,Dict,St,Stx,AA).
 overloadTerm(suspend(Lc,T,M,Tp),Dict,St,Stx,suspend(Lc,TT,MM,Tp)) :-!,
   overloadTerm(T,Dict,St,St0,TT),

@@ -191,24 +191,11 @@ projectAstTps([A|As],[T|Ts]) :-
   isTypeAnnotation(A,_,_,T),!,
   projectAstTps(As,Ts).
 
-pullOthers([],[],[],[]).
-pullOthers([St|Els],Entries,[St|Asserts],Deflts) :-
-  isIntegrity(St,_,_),!,
-  pullOthers(Els,Entries,Asserts,Deflts).
-pullOthers([St|Els],Entries,Asserts,[St|Deflts]) :-
-  isDefault(St,_,_,_),!,
-  pullOthers(Els,Entries,Asserts,Deflts).
-pullOthers([St|Els],[St|Entries],Asserts,Deflts) :-
-  pullOthers(Els,Entries,Asserts,Deflts).
-
 collectImportDecls([],_,Decls,Decls) :-!.
 collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
   importPkg(Pkg,Repo,spec(_,_,PDecls)),
   concat(PDecls,Decls,Dc0),
   collectImportDecls(More,Repo,Dc0,Dcx).
-
-notAlreadyImported(import(_,_,Pkg),SoFar) :-
-  \+ is_member(import(_,_,Pkg),SoFar),!.
 
 thetaEnv(Publish,Opts,Pkg,Lc,Stmts,Face,Base,TheEnv,Defs,Decls) :-
   collectDefinitions(Stmts,Dfs,viz([],[],[]),Viz,Annots),!,
