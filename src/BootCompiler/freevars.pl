@@ -71,7 +71,7 @@ freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   freeVars(B,Ex1,Q,F,F0),
   freeVars(T,Ex1,Q,F0,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVars,F1,Fv).
-freeVars(fiber(_,A,_),Ex,Q,F,Fv) :-
+freeVars(task(_,A,_),Ex,Q,F,Fv) :-
   freeVars(A,Ex,Q,F,Fv).
 freeVars(suspend(_,T,M,_),Ex,Q,F,Fv) :-
   freeVars(T,Ex,Q,F,F0),

@@ -296,6 +296,9 @@ collectTermRefs(T,A,R0,Rx) :-
 collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   collectDoRefs(E,A,R0,Rx).
+collectTermRefs(T,A,R0,Rx) :-
+  isTask(T,_,E),!,
+  collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,E,C),!,
   collectTermRefs(L,All,Rf,Rf1),

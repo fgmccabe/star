@@ -170,7 +170,7 @@ ssTrm(ng(_,R),Dp,sq([ss("~"),lp,RR,rp])) :-!,
 ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssTrm(M,Dp,MM),
   ssLoc(Lc,LL).
-ssTrm(tsk(_,A),Dp,sq([ss("fiber "),AA])) :-
+ssTrm(tsk(_,A),Dp,sq([ss("task "),AA])) :-
   ssTrm(A,Dp,AA).
 ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).

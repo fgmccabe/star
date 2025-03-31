@@ -84,6 +84,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
+  operator("?", [prefixOp(300, 299)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("|=", [infixOp(998, 999, 998)]).
   operator("in", [infixOp(899, 900, 900)]).
@@ -342,6 +343,7 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
+  final('?',"?").	 /* extract value from either/or */
   final('??',"??").	 /* conditional operator */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */

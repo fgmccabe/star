@@ -495,7 +495,7 @@ star.compiler.macro.rules{
   where tsk is a library function defined in mbox.
   */
 
-  taskMacro(E,.expression) where (Lc,A) ?= isTaskExp(E) => valof{
+  taskMacro(E,.expression) where (Lc,A) ?= isTask(E) => valof{
     Tk = genName(Lc,"tk");
     Anon = .nme(Lc,"_");
     Empty = rndTuple(Lc,[]);

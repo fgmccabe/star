@@ -101,6 +101,7 @@ star.compiler.operators{
     | "++" => [.infixOp(719,720,720)]
     | ">" => [.infixOp(899,900,899)]
     | "return" => [.prefixOp(930,929)]
+    | "?" => [.prefixOp(300,299)]
     | "@" => [.prefixOp(400,399), .infixOp(399,400,400)]
     | "|=" => [.infixOp(998,999,998)]
     | "in" => [.infixOp(899,900,900)]
@@ -398,6 +399,7 @@ star.compiler.operators{
     | ">=" => .true  /* greater than or equal */
     | ">>" => .true  /* grammar produce value */
     | ">>=" => .true  /* monadic bind */
+    | "?" => .true  /* extract value from either/or */
     | "??" => .true  /* conditional operator */
     | "?=" => .true  /* optional decomposition match */
     | "?}" => .true  /* test comprehension */
