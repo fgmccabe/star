@@ -539,6 +539,13 @@ star.compiler.resolve{
 	valis (.anon(Lc,Tp),
 	  .fatal(Lc,"raises $(ETp) not consistent with expected type: $(Tp)"))
       }
+    } else if isUnbound(Tp) && .varDec(_,_,TrNm,ETp) ?= topTryScope(Dict) then{
+      if sameType(snd(freshen(ETp,Dict)),Tp,Dict) then {
+	valis (.vr(Lc,TrNm,Tp),markResolved(St))
+      } else{
+	valis (.anon(Lc,Tp),
+	  .fatal(Lc,"raises $(Tp) not consistent innermost try scope: $(ETp)"))
+      }
     }
     else{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find a exception context for $(Tp)"))

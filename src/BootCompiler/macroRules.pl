@@ -28,8 +28,6 @@ macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("?=",expression,macroRules:optionMatchMacro).
-%macroRl("^",expression,macroRules:unwrapExpMacro).
-%macroRl("^",expression,macroRules:optvalMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl(":",rule,macroRules:caseRuleMacro).
 macroRl(":",actionRule,macroRules:caseRuleMacro).

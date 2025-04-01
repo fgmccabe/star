@@ -50,8 +50,6 @@ star.compiler.macro.rules{
     "__loc__" -> [(.expression,locationMacro)],
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "?=" -> [(.expression, optionMatchMacro)],
-    "?" -> [(.expression, optionMacro), (.pattern, optionMacro)],
-    "^" -> [(.expression,unwrapMacro),(.expression,optvalMacro)],
     "!" -> [(.expression,binRefMacro)],
     "do" -> [(.actn,forInLoopMacro)],
     "implementation" -> [(.statement,implementationMacro)],
@@ -102,13 +100,6 @@ star.compiler.macro.rules{
   }
   binRefMacro(A,_) default => .inactive.
 
-  -- Convert ?E to .some(E)
-  optionMacro(A,.pattern) where (Lc,R) ?= isOption(A) =>
-    .active(mkOption(Lc,R)).
-  optionMacro(A,.expression) where (Lc,R) ?= isOption(A) =>
-    .active(mkOption(Lc,R)).
-  optionMacro(_,_) default => .inactive.
-
   -- Convert P?=E to some(P).=E
   optionMatchMacro(A,.expression) where (Lc,L,R) ?= isOptionMatch(A) =>
     .active(mkMatch(Lc,mkOption(Lc,L),R)).
@@ -128,19 +119,6 @@ star.compiler.macro.rules{
       (Lc,"__pkg__") ?= isName(A) && .locn(Pkg,_,_,_,_)?=Lc =>
     .active(.str(Lc,Pkg)).
 
-  -- Convert expression P^E to X where E ?= P(X)
-  unwrapMacro(A,.expression) where
-      (Lc,Lhs,Rhs) ?= isOptionPtn(A) && (LLc,Nm) ?= isName(Lhs) => valof{
-	X = genName(LLc,"X");
-   	valis .active(mkWhere(Lc,X,mkMatch(LLc,Rhs,unary(LLc,Nm,X))))
-      }.
-  unwrapMacro(_,_) default => .inactive.
-
-  -- Convert expression ^E to _optval(E)
-  optvalMacro(A,.expression) where (Lc,Rhs) ?= isOptVal(A) =>
-    .active(unary(Lc,"_optval",Rhs)).
-  optvalMacro(_,_) default => .inactive.
-  
   -- Convert unary minus to a call to __minus
   uMinusMacro(A,_) where (Lc,R) ?= isUnary(A,"-") =>
     (.int(_,Ix) .= R ??
