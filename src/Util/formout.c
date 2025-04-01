@@ -292,7 +292,7 @@ retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displ
   while (sig > 0 && dec[sig - 1] == '0')
     sig--;      /* chop off trailing zeroes */
 
-  if (uniIsLit(dec, "Infinity") == same) {
+  if (uniIsLit(dec, "Infinity")) {
     uniCpy(out, outLen, dec);
     return Ok;
   } else {
