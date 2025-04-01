@@ -63,7 +63,7 @@ star.compiler.normalize{
     (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
       showMsg("transformed equations: $(Eqs)");
-    Func = _optval(functionMatcher(Lc,FullNm,ATp,Map,Eqs));
+    Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
     if traceNormalize! then
       showMsg("transformed function $(Func)");
 
