@@ -481,7 +481,7 @@ star.compiler.checker{
     Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
-    FaceTp = _optval(faceOfType(ETp,Env));
+    FaceTp = ? faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,Base,Path,.none,[]);
@@ -721,7 +721,7 @@ star.compiler.checker{
     ConTp = consType(FceTp,Tp);
     Fun = typeOfExp(Op,ConTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
-    FaceTp = _optval(faceOfType(ETp,Env));
+    FaceTp = ? faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
@@ -1233,8 +1233,7 @@ star.compiler.checker{
   checkGoal(A,Env,Path) where (_,[Inner]) ?= isTuple(A) =>
     checkGoal(Inner,Env,Path).
   checkGoal(A,Env,Path) => valof{
-    (_,boolTp,_,_) = _optval(findType(Env,"boolean"));
-    Exp = typeOfExp(A,boolTp,Env,Path);
+    Exp = typeOfExp(A,boolType,Env,Path);
     valis (Exp,Env)
   }
 

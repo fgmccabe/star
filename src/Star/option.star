@@ -52,6 +52,10 @@ star.option{
   public _optval:all a~~(option[a])=>a.
   _optval(.some(X)) => X.
 
+  public implementation all e ~~ pull[option[e]->>e] => {
+      ? .some(X) => X
+  }
+
   public implementation all a,b ~~ measured[a->>b] |: measured[option[a]->>option[b]] => {
     [|.none|] => .none.
     [|.some(A)|] => .some([|A|]).
