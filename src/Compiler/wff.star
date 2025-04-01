@@ -409,8 +409,6 @@ star.compiler.wff{
 
   public mkMatch(Lc,L,R) => binary(Lc,".=",L,R).
 
-  public isOption(A) => isUnary(A,"?").
-
   public mkOption(Lc,A) => mkCon(Lc,"some",[A]).
 
   public isOptionMatch(A) where R ?=isBinary(A,"?=") => .some(R).
@@ -758,9 +756,6 @@ star.compiler.wff{
   public mkWherePtn:(option[locn],ast,ast) => ast.
   mkWherePtn(Lc,Ptn,Op) where V.=genName(Lc,"_P") =>
     binary(Lc,"where",V,binary(Lc,".=",mkOption(Lc,Ptn),roundTerm(Lc,Op,[V]))).
-
-  public isOptionPtn:(ast) => option[(option[locn],ast,ast)].
-  isOptionPtn(A) => isBinary(A,"^").
 
   public isOptVal:(ast) => option[(option[locn],ast)].
   isOptVal(A) => isUnary(A,"^").

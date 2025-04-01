@@ -106,6 +106,14 @@ star.compiler.dict{
     findC([_,..Rest]) => findC(Rest).
   .} in findC(Scs).
 
+  public topTryScope:(dict) => option[decl].
+  topTryScope(.dict(Scs,_)) => let{.
+
+    findC([]) => .none.
+    findC([scope{trys=Trs},.._]) where [_ -> Decl,.._] .= Trs => .some(Decl).
+    findC([_,..Rest]) => findC(Rest)
+  .} in findC(Scs).
+
   public declareTryScope:(option[locn],tipe,string,dict) => dict.
   declareTryScope(Lc,Tp,VrNm,.dict([Scope,..Env],Br)) => valof{
     BlkNm = typeSurfaceNm(Tp);

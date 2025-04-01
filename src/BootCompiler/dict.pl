@@ -12,7 +12,7 @@
 		manageConstraints/4,
 		declareConstraints/4,
 		allConstraints/2,
-		declareTryScope/5,getTryScope/5,
+		declareTryScope/5,getTryScope/5,topTryScope/4,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,
 		dispEnv/1
 	       ]).
@@ -221,6 +221,12 @@ tryInDct(Key,Lc,Nm,Tp,[dict(_,_,_,_,_,_,_,Trs)|_]) :-
   get_dict(Key,Trs,tryBlk(Lc,Nm,Tp)),!.
 tryInDct(Key,Lc,Nm,Tp,[_|Outer]) :-
   tryInDct(Key,Lc,Nm,Tp,Outer).
+
+topTryScope([dict(_,_,_,_,_,_,_,Trs)|_],Lc,Nm,Tp) :-
+  dict_pairs(Trs,_,Pairs),
+  member(_-tryBlk(Lc,Nm,Tp),Pairs),!.
+topTryScope([dict(_,_,_,_,_,_,_,_)|Rest],Lc,Nm,Tp) :-
+  topTryScope(Rest,Lc,Nm,Tp).
   
 pushScope(Env,[dict(types{},vars{},[],impls{},accs{},ups{},contracts{},trys{})|Env]).
 
@@ -366,9 +372,10 @@ showImplementation(_Nm-implement(ImplNm,ImplVrNm,ImplTp),
   ssType(ImplTp,false,4,TT).
 
 dispTryBlocks(Trs,iv(nl(4),TT)) :-
-  map(Trs,dict:dispTryBlock,TT).
+  dict_pairs(Trs,_,Pairs),
+  map(Pairs,dict:dispTryBlock,TT).
 
-dispTryBlock(tryBlk(Lc,Vr,Tp),sq([ss("try scope @ "),ss(LL),ss(Vr),ss(":"),TT])) :-
+dispTryBlock(_ - tryBlk(Lc,Vr,Tp),sq([ss("try scope @ "),ss(LL),ss(Vr),ss(":"),TT])) :-
   ssType(Tp,TT),
   ssLoc(Lc,LL).
 

@@ -1122,6 +1122,9 @@ star.compiler.checker{
     valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env)
   }
   checkAction(A,Tp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
+    if traceCanon! then
+      showMsg("Check action $(A)\:$(Tp)");
+
     Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_r"),Env,Path);
     valis (.doExp(Lc,Call),Env)
   }

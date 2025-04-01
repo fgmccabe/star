@@ -467,17 +467,7 @@ resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
    markActive(St,Lc,Msg,Stx),
    Over=void).
 resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
-  tpName(Tp,TpNm),
-  (getTryScope(TpNm,Dict,TLc,VrNm,ErTp),
-   (sameType(ErTp,Tp,Lc,Dict),!,
-    markResolved(St,Stx),
-    Over=v(TLc,VrNm,ErTp);
-    genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx),
-    Over=void) ;
-   genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
-   markActive(St,Lc,Msg,Stx),
-   Over=void).
+  resolveRaises(Lc,Tp,Dict,St,Stx,Over).
 resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -486,6 +476,26 @@ resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   sameType(ITp,CTp,Lc,Dict),
   markResolved(St,St1),
   overloadTerm(Impl,Dict,St1,Stx,Over).
+
+resolveRaises(Lc,Tp,Dict,St,Stx,Over) :-
+  tpName(Tp,TpNm),
+  getTryScope(TpNm,Dict,_TLc,VrNm,ErTp),!,
+  resolveRaises(Lc,Tp,VrNm,ErTp,Dict,St,Stx,Over).
+resolveRaises(Lc,Tp,Dict,St,Stx,Over) :-
+  isUnbound(Tp),
+  topTryScope(Dict,_,VrNm,ErTp),!,
+  resolveRaises(Lc,Tp,VrNm,ErTp,Dict,St,Stx,Over).
+resolveRaises(Lc,Tp,_Dict,St,Stx,void) :-
+  genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
+  markActive(St,Lc,Msg,Stx).
+
+resolveRaises(Lc,Tp,VrNm,ErTp,Dict,St,Stx,Over) :-
+  sameType(ErTp,Tp,Lc,Dict),
+  markResolved(St,Stx),
+  Over=v(Lc,VrNm,ErTp),!.
+resolveRaises(Lc,Tp,_,ErTp,_Dict,St,Stx,void) :-
+  genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
+  markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
 resolveImpl(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-
