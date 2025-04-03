@@ -106,7 +106,7 @@ logical isByte(int64 x);
 logical isI32(int64 x);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit);
-retCode jit_postamble(methodPo mtd, jitCompPo ctx);
+retCode jit_postamble(jitCompPo ctx);
 retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen);
 
 
