@@ -37,7 +37,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
     ret = jitInstructions(jit, entryPoint(mtd), codeSize(mtd), errMsg, msgLen);
 
   if (ret == Ok)
-    ret = jit_postamble(mtd, jit);
+    ret = jit_postamble(jit);
 
   if (ret == Ok)
     return setJitCode(mtd, createCode(jit->assemCtx));

@@ -20,6 +20,8 @@ static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 static retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity);
 static void setJitHeight(jitCompPo jit, int32 height);
 
+static retCode getIntVal(jitCompPo jit, armReg rg);
+static retCode mkIntVal(jitCompPo jit, armReg rg);
 #define SSP (X28)
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
@@ -68,7 +70,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
   return Ok;
 }
 
-retCode jit_postamble(methodPo mtd, jitCompPo jit) {
+retCode jit_postamble(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
   add(SSP, FP, IM(sizeof(StackFrame)));
@@ -183,7 +185,10 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
-      case Ret:            // return
+      case Ret: {           // return
+        pc++;
+        return jit_postamble(jit);
+      }
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
         defineJitLbl(jit, &code[pc]);
@@ -220,8 +225,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         continue;
       }
       case Drop: {            // drop top of stack
-        verifyJitCtx(jit, 1, 0);
-        jit->vTop--;
+        jit->currSPOffset += pointerSize;
         pc++;
         continue;
       }
@@ -392,7 +396,13 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         armReg a1 = popStkOp(jit);
         armReg a2 = popStkOp(jit);
 
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
         add(a1, a2, RG(a2));
+
+        mkIntVal(jit, a1);
+
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
@@ -405,7 +415,12 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         armReg a1 = popStkOp(jit);
         armReg a2 = popStkOp(jit);
 
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
         sub(a1, a1, RG(a2));
+
+        mkIntVal(jit, a1);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
@@ -414,8 +429,27 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
-      case IMul:            // L R --> L*R
-      case IDiv:            // L R --> L/R
+      case IMul: {            // L R --> L*R
+        armReg a1 = popStkOp(jit);
+        armReg a2 = popStkOp(jit);
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        mul(a1, a2, a2);
+
+        mkIntVal(jit, a1);
+
+        pushStkOp(jit, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case IDiv: {           // L R --> L/R
+      }
       case IMod:            // L R --> L%R
       case IAbs:            // L --> abs(L)
       case IEq:            // L R --> L==R
@@ -525,5 +559,18 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
   releaseReg(jit, scratch);
   releaseReg(jit, limit);
   setLabel(ctx, endLbl);
+  return Ok;
+}
+
+retCode getIntVal(jitCompPo jit, armReg rg) {
+  assemCtxPo ctx = assemCtx(jit);
+  asr(rg, rg, IM(2));
+  return Ok;
+}
+
+retCode mkIntVal(jitCompPo jit, armReg rg) {
+  assemCtxPo ctx = assemCtx(jit);
+  lsl(rg, rg, IM(2));
+  orr(rg, rg, IM(intTg));
   return Ok;
 }
