@@ -33,7 +33,7 @@ star.compiler.assem{
       (Code,_,Lts,Lns) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs),[]);
       valis mkCons("func",
           [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
-          .intgr(size(Lcs)),mkTpl(Code::cons[data]),litTbl(Lts),
+          .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
            mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
     }
     | .struct(Lbl,Tp,Ix) =>

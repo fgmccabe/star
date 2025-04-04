@@ -377,17 +377,17 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     ret = decodeI32(in, &lclCount);
 
   if (ret == Ok) {
-    int32 insCount = 0;
-    insPo instructions = Null;
-    ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize);
+    termPo pool = voidEnum;
+    int root = gcAddRoot(H, &pool);
+    EncodeSupport support = {errorMsg, msgSize, H};
+    strBufferPo tmpBuffer = newStringBuffer();
+
+    ret = decode(in, &support, H, &pool, tmpBuffer);
 
     if (ret == Ok) {
-      termPo pool = voidEnum;
-      int root = gcAddRoot(H, &pool);
-      EncodeSupport support = {errorMsg, msgSize, H};
-      strBufferPo tmpBuffer = newStringBuffer();
-
-      ret = decode(in, &support, H, &pool, tmpBuffer);
+      int32 insCount = 0;
+      insPo instructions = Null;
+      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, constantPool);
 
       if (ret == Ok) {
         termPo locals = voidEnum;

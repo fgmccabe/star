@@ -355,8 +355,6 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
-      case LdS:            // lift a value from the stack
-        return Error;
       case LdG: {            // load a global variable
         verifyJitCtx(jit, 1, 0);
         int32 litNo = code[pc].fst;

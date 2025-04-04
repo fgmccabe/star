@@ -445,7 +445,7 @@ typedef struct break_level_ {
 static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk);
 static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
-retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize) {
+retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
   BreakLevel brk = {.pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
   int32 pc = 0;

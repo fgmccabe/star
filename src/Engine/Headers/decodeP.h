@@ -21,5 +21,5 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer
 
 retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize);
 
-retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize);
+retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool);
 #endif //STAR_ENCODEDP_H
