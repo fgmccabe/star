@@ -387,7 +387,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     if (ret == Ok) {
       int32 insCount = 0;
       insPo instructions = Null;
-      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, constantPool);
+      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool);
 
       if (ret == Ok) {
         termPo locals = voidEnum;
