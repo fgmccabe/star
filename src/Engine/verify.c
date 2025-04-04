@@ -496,14 +496,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case LdS: {
-        int32 stackOff = code[pc].fst;
-        if (stackOff < 0 || stackOff >= stackDepth)
-          return verifyError(&ctx, ".%d Out of bounds stack offset: %d", pc, stackOff);
-        stackDepth++;
-        pc++;
-        continue;
-      }
       case StL: {
         int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= ctx.lclCount)

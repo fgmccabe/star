@@ -20,7 +20,7 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     mkTpl(Lns,LnTpl),
     stackHwm(Ins,0,0,HWM),
     length(Lcls,Lx),
-    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),Code,LtTpl,LcsTpl,LnTpl],MTpl).
+    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),LtTpl,Code,LcsTpl,LnTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-

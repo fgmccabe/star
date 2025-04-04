@@ -736,13 +736,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case LdS: {                /* duplicate a stack element */
-        termPo tos = SP[PC->fst];
-        *--SP = tos;
-        PC++;
-        continue;
-      }
-
       case LdG: {
         int32 glbNo = PC->fst;
 

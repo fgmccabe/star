@@ -57,7 +57,6 @@ instruction(LdL, lcl, nOp, 1, "F()p", "load stack from local[xx]")
 instruction(StL, lcs, tOs, -1, "F(p)()", "store tos to local[xx]")
 instruction(StV, lcs, nOp, 0, "F()()", "clear a local to void")
 instruction(TL, lcs, tOs, 0, "F(p)p", "copy tos to local[xx]")
-instruction(LdS, i32, tOs, 1, "F()p", "lift a value from the stack")
 
 instruction(LdG, glb, nOp, 1, "F()p", "load a global variable")
 instruction(StG, glb, tOs, -1, "F(p)()", "store into a global variable")
