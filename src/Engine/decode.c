@@ -437,6 +437,7 @@ typedef struct break_level_ *breakLevelPo;
 
 typedef struct break_level_ {
   int32 pc;
+  termPo pool;
   breakLevelPo parent;
   char *errorMsg;
   integer msgSize;
@@ -447,7 +448,7 @@ static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
 retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
-  BreakLevel brk = {.pc=0, .parent=Null, .errorMsg=errorMsg, .msgSize=msgSize};
+  BreakLevel brk = {.pc=0, .parent=Null, .pool=constantPool, .errorMsg=errorMsg, .msgSize=msgSize};
   int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
@@ -527,7 +528,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .pool=brk->pool, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
   int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
