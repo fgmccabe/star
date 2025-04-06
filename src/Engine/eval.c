@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include <globals.h>
+#include "constants.h"
 #include <turm.h>
 #include <arithP.h>
 #include "char.h"
@@ -66,7 +67,6 @@ logical collectStats = False;
   FP = STK->fp;                        \
   PC = FP->pc;                         \
   SP=STK->sp;                          \
-  LITS=FP->pool;                       \
   CT = controlTop(FP,STK->tp);         \
   })
 #define pushFrme(mtd) STMT_WRAP({ \
@@ -74,7 +74,7 @@ logical collectStats = False;
   CT = ((ptrPo)(f+1));            \
   f->fp=FP;                       \
   PC = f->pc = entryPoint(mtd);   \
-  LITS = f->pool = codeLits(mtd); \
+  f->prog = mtd;                  \
   f->args = SP;                   \
   FP = f;                         \
   })
@@ -103,7 +103,6 @@ retCode run(processPo P) {
   framePo FP = STK->fp;
   ptrPo CT = controlTop(FP, STK->tp);
   register insPo PC = FP->pc;    /* Program counter */
-  register normalPo LITS = FP->pool; /* pool of literals */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
 
   currentProcess = P;
@@ -145,7 +144,7 @@ retCode run(processPo P) {
       }
 
       case Call: {
-        labelPo nProg = C_LBL(nthElem(LITS, PC->fst));
+        labelPo nProg = C_LBL(getConstant(PC->fst));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
 
         if (mtd == Null) {
@@ -336,10 +335,8 @@ retCode run(processPo P) {
       }
 
       case TCall: {       /* Tail call of explicit program */
-        termPo nProg = nthElem(LITS, PC->fst);
-        labelPo lbl = C_LBL(nProg);
+        labelPo lbl = C_LBL(getConstant(PC->fst));
         int32 arity = lblArity(lbl);
-
         methodPo mtd = labelCode(lbl);
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lbl);
@@ -373,7 +370,7 @@ retCode run(processPo P) {
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
           FP->pc = PC = entryPoint(mtd);
-          FP->pool = LITS = codeLits(mtd);
+          FP->prog = mtd;
           FP->args = SP = tgt;
         }
 
@@ -430,7 +427,7 @@ retCode run(processPo P) {
           for (int ix = 0; ix < arity; ix++)
             *--tgt = *--src;    /* copy the argument vector */
           FP->pc = PC = entryPoint(mtd);
-          FP->pool = LITS = codeLits(mtd);
+          FP->prog = mtd;
           FP->args = SP = tgt;
         }
 
@@ -466,7 +463,6 @@ retCode run(processPo P) {
         SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
-        LITS = FP->pool;
 
         push(retVal);      /* push return value */
         CT = controlTop(FP, try);
@@ -717,8 +713,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case LdC:     /* load literal value from pool */
-        push(nthElem(LITS, PC->fst));
+      case LdC:     /* load constant value */
+        push(getConstant(PC->fst));
         PC++;
         continue;
 
@@ -781,7 +777,7 @@ retCode run(processPo P) {
       }
 
       case CLit: {
-        termPo l = nthElem(LITS, PC->fst);
+        termPo l = getConstant(PC->fst);
         termPo t = pop();
 
         if (!sameTerm(l, t)) {
@@ -797,7 +793,7 @@ retCode run(processPo P) {
       }
 
       case CLbl: {
-        labelPo l = C_LBL(nthElem(LITS, PC->fst));
+        labelPo l = C_LBL(getConstant(PC->fst));
         termPo t = pop();
 
         if (isNormalPo(t)) {
@@ -1319,7 +1315,7 @@ retCode run(processPo P) {
 
       case Closure: {      /* heap allocate closure */
         checkAlloc(ClosureCellCount);
-        labelPo cd = C_LBL(nthElem(LITS, PC->fst));
+        labelPo cd = C_LBL(getConstant(PC->fst));
 
         if (!labelDefined(cd)) {
           logMsg(logFile, "label %L not defined", cd);
@@ -1334,7 +1330,7 @@ retCode run(processPo P) {
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo lbl = C_LBL(nthElem(LITS, PC->fst));
+        labelPo lbl = C_LBL(getConstant(PC->fst));
         int32 arity = lblArity(lbl);
 
         checkAlloc(NormalCellCount(arity));
@@ -1395,7 +1391,7 @@ retCode run(processPo P) {
       case Frame: {
 #ifdef TRACESTACK
         if (stackVerify) {
-          termPo frame = nthElem(LITS, PC->fst);
+          termPo frame = getConstant(PC->fst);
           int32 frameDepth;
           if (isString(frame)) {
             integer sigLen;

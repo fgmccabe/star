@@ -3,6 +3,7 @@
 #include "engineP.h"
 #include <stdlib.h>
 #include <globals.h>
+#include "constants.h"
 #include <sock.h>
 #include <manifest.h>
 
@@ -104,27 +105,11 @@ __attribute__((unused)) void dC(termPo w) {
 }
 
 static retCode showConstant(ioPo out, methodPo mtd, integer conIx) {
-  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, conIx));
-}
-
-static retCode showFrame(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
-  termPo frameLit = nthArg(mtd->pool, conIx);
-  int32 stackDp = 0;
-  if (isString(frameLit)) {
-    integer sigLen;
-    const char *sig = strVal(frameLit, &sigLen);
-    tryRet(typeSigArity(sig, sigLen, &stackDp));
-  } else if (isInteger(frameLit))
-    stackDp = (int32) integerVal(frameLit);
-  if (stk != Null) {
-    assert(stackDp == stackDepth(stk, mtd, stk->sp, stk->fp));
-    return outMsg(out, " %d %,*T", stackDp, displayDepth, frameLit);
-  } else
-    return outMsg(out, " %,*T", displayDepth, frameLit);
+  return outMsg(out, " %,*T", displayDepth, getConstant(conIx));
 }
 
 static retCode showSig(ioPo out, stackPo stk, methodPo mtd, integer conIx) {
-  termPo frameLit = nthArg(mtd->pool, conIx);
+  termPo frameLit = getConstant(conIx);
   if (isString(frameLit)) {
     integer sigLen;
     const char *sig = strVal(frameLit, &sigLen);
@@ -139,11 +124,12 @@ static logical shouldWeStop(processPo p, termPo arg) {
   if (focus == NULL || focus == p) {
     stackPo stk = p->stk;
     framePo frame = currFrame(stk);
+    methodPo mtd = frameMtd(frame);
 
     if (debugDebugging) {
       outMsg(logFile, "debug: waterMark=0x%x, sp=0x%x, fp=0x%x, traceCount=%d, tracing=%s, ins: ", p->waterMark,
              p->stk->sp, frame, p->traceCount, (p->tracing ? "yes" : "no"));
-      disass(logFile, stk, frameMtd(frame), frame->pc);
+      disass(logFile, stk, mtd, frame->pc);
       outMsg(logFile, "\n%_");
     }
 
@@ -168,7 +154,7 @@ static logical shouldWeStop(processPo p, termPo arg) {
         }
       }
       case Entry: {
-        if (p->waterMark == Null && breakPointSet(frameLbl(frame))) {
+        if (p->waterMark == Null && breakPointSet(mtdLabel(mtd))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->waterMark = Null;
@@ -493,10 +479,10 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
   if (line[0] == 'L') {
-    integer count = cmdCount(line+1, MAX_INT);
+    integer count = cmdCount(line + 1, MAX_INT);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars, count);
-  }else {
+  } else {
     integer count = cmdCount(line, MAX_INT);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments, count);
@@ -889,38 +875,39 @@ void showRetire(ioPo out, stackPo stk, termPo cont) {
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo trm);
 
-static DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show);
+static DebugWaitFor lnDebug(processPo p, methodPo mtd, termPo arg, showCmd show);
 
 DebugWaitFor enterDebug(processPo p) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
   insPo pc = f->pc;
+  methodPo mtd = frameMtd(f);
 
   lineCount++;
   switch (pc->op) {
     case Abort:
-      return lnDebug(p, peekStack(stk, 1), showAbort);
+      return lnDebug(p, mtd, peekStack(stk, 1), showAbort);
     case Call:
     case TCall:
-      return lnDebug(p, getMtdLit(frameMtd(f), pc->fst), showCall);
+      return lnDebug(p, mtd, getConstant(pc->fst), showCall);
     case Entry:
-      return lnDebug(p, Null, showEntry);
+      return lnDebug(p, mtd, Null, showEntry);
     case Ret:
-      return lnDebug(p, topStack(stk), showRet);
+      return lnDebug(p, mtd, topStack(stk), showRet);
     case Assign:
-      return lnDebug(p, Null, showAssign);
+      return lnDebug(p, mtd, Null, showAssign);
     case Suspend:
-      return lnDebug(p, topStack(stk), showSuspend);
+      return lnDebug(p, mtd, topStack(stk), showSuspend);
     case Resume:
-      return lnDebug(p, topStack(stk), showResume);
+      return lnDebug(p, mtd, topStack(stk), showResume);
     case Retire:
-      return lnDebug(p, topStack(stk), showRetire);
+      return lnDebug(p, mtd, topStack(stk), showRetire);
     default:
       return stepOver;
   }
 }
 
-DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
+DebugWaitFor lnDebug(processPo p, methodPo mtd, termPo arg, showCmd show) {
   static DebugOptions opts = {.opts = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
     {.c = 'N', .cmd=dbgOver, .usage="N step over"},
@@ -961,7 +948,7 @@ DebugWaitFor lnDebug(processPo p, termPo arg, showCmd show) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0) {
-          p->waitFor = cmder(&opts, p, frameMtd(currFrame(stk)));
+          p->waitFor = cmder(&opts, p, mtd);
         } else {
           outStr(debugOutChnnl, "\n");
           flushIo(debugOutChnnl);
@@ -1085,12 +1072,8 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
   int32 offset = -1;
   if (mtd != Null) {
     offset = codeOffset(mtd, pc);
-
-    normalPo lits = codeLits(mtd);
-    if (lits != Null)
-      outMsg(out, "%,*T [%d] ", displayDepth, nthArg(lits, 0), offset);
-    else
-      outMsg(out, "\?\? [%d] ", offset);
+    labelPo lbl = mtdLabel(mtd);
+    outMsg(out, "%,*T [%d] ", displayDepth, lbl, offset);
   } else {
     outMsg(out, "\?\?\? [%lx] ", pc);
   }
@@ -1110,7 +1093,6 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_sym(Tgt) showConstant(out,mtd,(Tgt))
 #define show_Es(Tgt) showEscCall(out, (Tgt))
 #define show_lit(Tgt) showConstant(out,mtd,(Tgt))
-#define show_lNe(Tgt) showConstant(out,mtd,(Tgt))
 #define show_glb(Tgt) showGlb(out, findGlobalVar((Tgt)))
 #define show_tPe(Tgt) showSig(out,stk,mtd,(Tgt))
 

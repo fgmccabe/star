@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <globals.h>
+#include "constants.h"
 #include "debugP.h"
 #include "verifyP.h"
 #include "ltype.h"
@@ -196,10 +197,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         }
       }
       case Call: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (isALabel(lit)) {
           int32 arity = lblArity(C_LBL(lit));
           if (stackDepth < arity)
@@ -213,10 +215,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       }
       case TCall: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (isALabel(lit)) {
           int32 arity = lblArity(C_LBL(lit));
           if (stackDepth < arity)
@@ -280,8 +283,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         propagateVars(&ctx, parentCtx);
         return Ok;   // No merge of locals here
       }
-      case Block: {
-        termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
+      case Block: {        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (!isString(lit)) {
           return verifyError(&ctx, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
         } else {
@@ -411,7 +417,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
 
       case Try: {
-        termPo lit = getMtdLit(ctx.mtd, code[pc].fst);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (!isString(lit)) {
           return verifyError(&ctx, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
         } else {
@@ -470,9 +480,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       case LdC: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
         stackDepth++;
         pc++;
         continue;
@@ -601,9 +611,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       }
       case CLit: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
+        int32 key = code[pc].fst;
+        if(!isDefinedConstant(key))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
@@ -613,10 +623,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       }
       case CLbl: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid label: %T", pc, lit);
         if (stackDepth < 1)
@@ -776,10 +787,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
 
       case Alloc: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid symbol literal: %t", pc, lit);
         else {
@@ -797,10 +809,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
 
       case Closure: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo lit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
         if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid Closure literal: %t", pc, lit);
         else {
@@ -814,10 +827,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
 
       case Frame: {
-        int32 litNo = code[pc].fst;
-        if (litNo < 0 || litNo >= codeLitCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid literal number: %d ", pc, litNo);
-        termPo frameLit = getMtdLit(ctx.mtd, litNo);
+        int32 constant = code[pc].fst;
+        if(!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo frameLit = getConstant(constant);
         int32 depth;
 
         if (isString(frameLit)) {

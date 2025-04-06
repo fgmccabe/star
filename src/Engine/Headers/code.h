@@ -16,14 +16,11 @@ void initCode();
 
 methodPo C_MTD(termPo t);
 
-normalPo codeLits(methodPo mtd);
-integer codeLitCount(methodPo mtd);
 integer stackDelta(methodPo mtd);
-
-termPo getMtdLit(methodPo mtd, integer litNo);
 
 int32 lclCount(methodPo mtd);
 int32 codeArity(methodPo mtd);
+labelPo mtdLabel(methodPo mtd);
 
 int32 codeSize(methodPo mtd);
 termPo findPcLocation(methodPo mtd, int32 pc);
@@ -32,5 +29,4 @@ int32 codeOffset(methodPo mtd, insPo pc);
 
 integer callCount(methodPo mtd);
 
-logical normalCode(methodPo mtd);
 #endif

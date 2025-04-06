@@ -11,6 +11,7 @@
 
 // Count instructions etc.
 static poolPo prPool;     /* pool of processes */
+static labelPo haltProg;
 
 timerPo runTimer = Null;
 

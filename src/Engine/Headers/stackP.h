@@ -46,7 +46,7 @@
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;                     // The current program counter
-  normalPo pool;                // The constant pool
+  methodPo prog;                // The program associated with current frame
   framePo fp;                   // Previous frame
   ptrPo args;                   // The arg/local split point
 } StackFrame;
@@ -161,15 +161,7 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
 void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
 static inline methodPo frameMtd(framePo fp) {
-  if (fp->pool != Null) {
-    labelPo lbl = C_LBL(nthArg(fp->pool, 0));
-    return labelCode(lbl);
-  } else
-    return Null;
-}
-
-static inline labelPo frameLbl(framePo fp) {
-  return C_LBL(nthArg(fp->pool, 0));
+  return fp->prog;
 }
 
 #endif //STAR_STACKP_H
