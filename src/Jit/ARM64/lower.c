@@ -73,6 +73,10 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
 retCode jit_postamble(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
+  ldr(SSP,OF(FP,OffsetOf(StackFrame,args)));
+  mov(X16,IM(argCount(jit->mtd)*pointerSize));
+  add(SSP,SSP,RG(X16));
+
   add(SSP, FP, IM(sizeof(StackFrame)));
   mov(PLE, OF(FP, OffsetOf(StackFrame, prog)));
   ldp(FP, LR, PSX(SSP, 16));
