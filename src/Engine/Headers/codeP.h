@@ -21,14 +21,12 @@ typedef struct instruction_ {
 
 typedef struct method_ {
   ClassRecord clss;     // == specialClass
-  jitCode jit;          /* Pointer to jit'ed code */
+  jitCode jit;          // Jit'ed code
   integer entryCount;
-  int32 sigIx;          // Index of the function signature literal
-  int32 arity;          /* How many arguments in method */
+  labelPo lbl;          // The label of this code
   int32 lclcnt;         // How many locals in the environment
   int32 stackDelta;     // How much space to allocate for the stack
-  normalPo pool;        /* A pool tuple of constants */
-  termPo locs;         // Sorted array of location information
+  termPo locs;          // Sorted array of location information
   int32 insCount;       // How many instructions are there in the code?
   insPo instructions;   // The actual instructions
 } MethodRec;
@@ -36,13 +34,6 @@ typedef struct method_ {
 extern clssPo methodClass;
 
 #define MtdCellCount CellCount(sizeof(MethodRec))
-
-// These are needed during GC
-
-labelPo haltProg;
-labelPo underflowProg;
-labelPo taskProg;
-labelPo spawnProg;
 
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
@@ -55,7 +46,7 @@ static inline insPo entryPoint(methodPo mtd) {
 
 static inline int64 argCount(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->arity;
+  return lblArity(mtd->lbl);
 }
 
 static inline void incEntryCount(methodPo mtd) {
@@ -74,16 +65,12 @@ static inline jitCode codeJit(methodPo mtd) {
 
 retCode setJitCode(methodPo mtd, jitCode code);
 
-labelPo mtdLabel(methodPo mtd);
-
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo
-defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
-          labelPo lbl, normalPo pool, termPo locs);
+defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl, termPo locs);
 
-labelPo
-specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls);
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls);
 
 void showMtdCounts(ioPo out);
 void countOp(OpCode op);

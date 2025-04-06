@@ -49,6 +49,15 @@ int32 defineConstantLiteral(termPo t) {
   return (int32)tx;
 }
 
+logical isDefinedConstant(int32 key){
+  if(key>=0 && key< arrayCount(constants)){
+    termPo constant = getConstant(key);
+    return constant!=Null && (integer)hashGet(constantKeys, constant)==(integer)key;
+  }
+  else
+    return False;
+}
+
 retCode markConstant(void *entry, integer ix, void *cl) {
   gcSupportPo g = (gcSupportPo) cl;
 

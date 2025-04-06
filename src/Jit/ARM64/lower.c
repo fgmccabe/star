@@ -39,7 +39,7 @@ retCode jit_preamble(methodPo mtd, jitCompPo jit) {
 
   stp(FP, X30, PRX(SP, -sizeof(StackFrame)));
   mov(FP, RG(SP));
-  str(PLE, OF(FP, OffsetOf(StackFrame, pool)));
+  str(PLE, OF(FP, OffsetOf(StackFrame, prog)));
   if (stkAdjustment != 0)
     sub(SP, SP, IM(stkAdjustment));
 
@@ -74,7 +74,7 @@ retCode jit_postamble(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
   add(SSP, FP, IM(sizeof(StackFrame)));
-  mov(PLE, OF(FP, OffsetOf(StackFrame, pool)));
+  mov(PLE, OF(FP, OffsetOf(StackFrame, prog)));
   ldp(FP, LR, PSX(SSP, 16));
   ret(LR);
   return Ok;
@@ -126,15 +126,13 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Abort:            // abort with message
         return Error;
       case Call: {            // Call <prog>
-        int32 litNo = code[pc].fst;
+        int32 key = code[pc].fst;
+        labelPo lbl = C_LBL(getConstant(key));
 
-        labelPo lbl = C_LBL(getMtdLit(jit->mtd, litNo));
         int32 arity = lblArity(lbl);
 
-        // Pick up the method literal from the pool
-        ldr(X16, OF(FP, OffsetOf(StackFrame, pool)));
-        ldr(X17, IM(litNo));
-        ldr(X16, EX2(X16, X17, U_XTX, 8));
+        // Pick up the method literal from the frame
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
         // Pick up the jit code itself
         ldr(X16, OF(X16, OffsetOf(MethodRec, jit)));
         br(X16);
@@ -295,9 +293,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         continue;
       }
       case LdC: {            // load literal from constant pool
-        int32 litNo = code[pc].fst;
-        termPo literal = getMtdLit(jit->mtd, litNo);
-        int32 key = defineConstantLiteral(literal);
+        int32 key = code[pc].fst;
         mov(X0, IM(key));
         invokeCFunc1(jit, (Cfunc1) getConstant);
         pushStkOp(jit, X0);

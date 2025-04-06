@@ -70,7 +70,7 @@ termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   methodPo mtd = C_MTD(o);
 
-  helper((ptrPo) &mtd->pool, c);
+  helper((ptrPo) &mtd->lbl, c);
   helper((ptrPo) &mtd->locs, c);
 
   return ((termPo) o) + mtdSize(cl, o);
@@ -96,24 +96,11 @@ integer mtdHash(specialClassPo cl, termPo o) {
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
-
-  normalPo pool = codeLits(mtd);
-  if (pool != Null) {
-    labelPo lbl = C_LBL(nthArg(pool, 0));
-    return showLbl(out, lbl, 0, precision, alt);
-  } else {
-    outMsg(out, "<unknown mtd: ");
-    dissassMtd(out, Null, mtd, precision, depth, alt, "");
-    return outMsg(out, ">");
-  }
+  return showLbl(out, mtdLabel(mtd), 0, precision, alt);
 }
 
 labelPo mtdLabel(methodPo mtd) {
-  normalPo pool = codeLits(mtd);
-  if (pool != Null) {
-    return C_LBL(nthArg(pool, 0));
-  }
-  return Null;
+  return mtd->lbl;
 }
 
 integer stackDelta(methodPo mtd) {
@@ -181,25 +168,6 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
   return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
 
-normalPo codeLits(methodPo mtd) {
-  assert(mtd != Null);
-  return mtd->pool;
-}
-
-logical normalCode(methodPo mtd) {
-  return (logical) (mtd->pool != Null);
-}
-
-integer codeLitCount(methodPo mtd) {
-  assert(mtd != Null && mtd->pool != Null);
-  normalPo lits = mtd->pool;
-  return termArity(lits);
-}
-
-termPo getMtdLit(methodPo mtd, integer litNo) {
-  return nthArg(codeLits(mtd), litNo);
-}
-
 integer callCount(methodPo mtd) {
   return mtd->entryCount;
 }
@@ -263,7 +231,7 @@ int32 lclCount(methodPo mtd) {
 }
 
 int32 codeArity(methodPo mtd) {
-  return mtd->arity;
+  return lblArity(mtd->lbl);
 }
 
 int32 codeSize(methodPo mtd) {
@@ -271,10 +239,8 @@ int32 codeSize(methodPo mtd) {
 }
 
 methodPo
-defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lclCount, int32 stackHeight,
-          labelPo lbl, normalPo pool, termPo locs) {
+defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl, termPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
-  gcAddRoot(H, (ptrPo) &pool);
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
 
@@ -282,10 +248,8 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lc
   mtd->insCount = insCount;
   mtd->instructions = instructions;
   mtd->jit = Null;
-  mtd->sigIx = funSigIx;
-  mtd->arity = lblArity(lbl);
+  mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
-  mtd->pool = pool;
   mtd->locs = locs;
   mtd->stackDelta = stackHeight;
 
@@ -298,11 +262,8 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 funSigIx, int32 lc
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls) {
   labelPo lbl = declareLbl(name, arity, 0);
-  normalPo pool = allocateTpl(globalHeap, 2);
-  setArg(pool, 0, (termPo) lbl);
-  setArg(pool, 1, sigTerm);
 
-  defineMtd(globalHeap, insCx, instructions, 1, 0, 0, lbl, pool, Null);
+  defineMtd(globalHeap, insCx, instructions, 0, 0, lbl, Null);
   return lbl;
 }
 
@@ -360,7 +321,7 @@ retCode setJitCode(methodPo mtd, jitCode code) {
 
 static integer opCount[maxOpCode];
 
-void countOp(OpCode op){
+void countOp(OpCode op) {
   opCount[op]++;
 }
 
@@ -380,7 +341,7 @@ static comparison cmpOpCount(integer i, integer j, void *cl) {
 
 void dumpOpCount(ioPo out) {
 #ifndef NDEBUG
-  outMsg(out, "%ld instructions executed\n",pcCount);
+  outMsg(out, "%ld instructions executed\n", pcCount);
 
   integer indices[NumberOf(opCount)];
   for (int ix = 0; ix < NumberOf(opCount); ix++)
@@ -391,8 +352,8 @@ void dumpOpCount(ioPo out) {
 
   for (integer ix = 0; ix < NumberOf(opCount); ix++) {
     integer op = indices[ix];
-    if(opCount[op]!=0){
-      outMsg(out,"%s: %ld\n",opNames[op],opCount[op]);
+    if (opCount[op] != 0) {
+      outMsg(out, "%s: %ld\n", opNames[op], opCount[op]);
     }
   }
 #endif

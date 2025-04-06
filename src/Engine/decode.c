@@ -3,6 +3,7 @@
 #include <hash.h>
 #include "decodeP.h"
 #include <globals.h>
+#include "constants.h"
 #include <cons.h>
 #include <consP.h>
 #include <stdlib.h>
@@ -15,7 +16,6 @@
 #include "closureP.h"
 #include "codeP.h"
 #include "libEscapes.h"
-#include "../Jit/ARM64/Assem/Headers/arm64.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
@@ -437,7 +437,7 @@ typedef struct break_level_ *breakLevelPo;
 
 typedef struct break_level_ {
   int32 pc;
-  termPo pool;
+  normalPo pool;
   breakLevelPo parent;
   char *errorMsg;
   integer msgSize;
@@ -448,7 +448,7 @@ static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
 retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
-  BreakLevel brk = {.pc=0, .parent=Null, .pool=constantPool, .errorMsg=errorMsg, .msgSize=msgSize};
+  BreakLevel brk = {.pc=0, .parent=Null, .pool=C_NORMAL(constantPool), .errorMsg=errorMsg, .msgSize=msgSize};
   int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
@@ -464,6 +464,23 @@ static retCode decodeOp(ioPo in, OpCode *op) {
   retCode ret = decodeInteger(in, &val);
   *op = (OpCode) val;
   return ret;
+}
+
+static retCode decodeConstant(ioPo in, int32 *tgt, breakLevelPo brk) {
+  int32 litNo;
+  retCode ret = decodeI32(in, &litNo);
+  if (ret == Ok) {
+    if (litNo >= 0 && litNo < termArity(brk->pool)) {
+      termPo literal = nthArg(brk->pool, litNo);
+      *tgt = defineConstantLiteral(literal);
+      return Ok;
+    } else {
+      strMsg(brk->errorMsg, brk->msgSize, "invalid literal number: %d not in range [0..%d)", litNo,
+             termArity(brk->pool));
+      return Error;
+    }
+  } else
+    return ret;
 }
 
 static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
@@ -483,9 +500,9 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #define szarg(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szlcl(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
 #define szlcs(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
-#define szsym(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
-#define szlit(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
-#define sztPe(Tgt) ret = decodeI32(in, &(Tgt)); (*count)--;
+#define szsym(Tgt) ret = decodeConstant(in, &(Tgt), brk); (*count)--;
+#define szlit(Tgt) ret = decodeConstant(in, &(Tgt), brk); (*count)--;
+#define sztPe(Tgt) ret = decodeConstant(in, &(Tgt), brk); (*count)--;
 #define szEs(Tgt) if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = lookupEscape(escNm);} (*count)--;
 #define szglb(Tgt) {retCode ret = decodeString(in,escNm,NumberOf(escNm)); (Tgt) = globalVarNo(escNm);} (*count)--;
 #define szbLk(Tgt) { int32 offset; ret = decodeBlock(in, ar,  pc, &offset, brk);   \

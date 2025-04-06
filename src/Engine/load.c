@@ -410,8 +410,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             } else {
               gcAddRoot(H, (ptrPo) &lbl);
 
-              methodPo mtd = defineMtd(H, insCount, instructions, sigIndex, lclCount, stackHeight, lbl, C_NORMAL(pool),
-                                       locs);
+              methodPo mtd = defineMtd(H, insCount, instructions, lclCount, stackHeight, lbl, locs);
               if (enableVerify)
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
