@@ -14,11 +14,11 @@
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
-	   getConstraints/3,putConstraints/3,
+	   getConstraints/3,putConstraints/3,pickRaises/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
-	   isEitherTp/3,eitherType/3,
+	   isEitherTp/3,eitherType/3,isResultTp/3,resultType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -140,6 +140,27 @@ mvConstraints(constrained(Tp,Con),[Con|C],Cx,Tmp) :-
   deRef(Tp,DTp),
   mvConstraints(DTp,C,Cx,Tmp).
 mvConstraints(Tp,Cx,Cx,Tp).
+
+isResultType(T,VlTp,ErTp) :-
+  deRef(T,Tp),
+  isTypeExp(Tp,tpFun("result",2),[A,B]).
+
+resultType(A,B,Tp) :-
+  mkTypeExp(tpFun("result",2),[A,B],Tp).
+
+isEitherTp(T,A,B) :-
+  deRef(T,Tp),
+  isTypeExp(Tp,tpFun("star.either*either",2),[A,B]).
+
+eitherType(A,B,Tp) :-
+  mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
+
+pickRaises(Cx,Rs,ErTp) :-
+  pickRaises(Cx,[],Rs,voidType,ErTp).
+
+pickRaises([],Rs,Rs,ErTp,ErTp) :-!.
+pickRaises([raises(ErTp)|Cx],Rs,Rx,_,ETp) :-
+  pickRaises(Cx,Rs,Rx,ETp,ErTp).
 
 putConstraints([],Tp,Tp).
 putConstraints([Con|Cx],In,constrained(Tp,Con)) :-
@@ -352,12 +373,6 @@ mkRefTp(A,tpExp(tpFun("ref",1),A)).
 
 fiberType(R,S,Tp) :-
   mkTypeExp(tpFun("fiber",2),[R,S],Tp).
-
-isEitherTp(T,A,B) :-
-  isTypeExp(T,tpFun("star.either*either",2),[A,B]).
-
-eitherType(A,B,Tp) :-
-  mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
 
 isTypeLam(Tp) :- isTypeLam(Tp,_).
 
