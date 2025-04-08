@@ -26,16 +26,11 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   importAll(Imports,Repo,AllImports),
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
-%  dispEnv(Env0),
   thetaEnv(checker:pkgExport,Opts,Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,decls(ThEx,ThL)),
   declareAllDecls(ThEx,Lc,Env0,Env1),
   declareAllDecls(ThL,Lc,Env1,Env2),
   overload(Defs,Env2,ODefs),
   Canon=prog(Pkg,Imports,ThEx,ThL,ODefs),
-%  reportMsg("export declarations",[]),
-%  dispDecls(ThEx),
-%  reportMsg("private declarations",[]),
-%  dispDecls(ThL),
   concat(ThEx,ThL,D0),
   concat(D0,IDecls,PkgDecls).
 
