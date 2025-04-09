@@ -45,6 +45,7 @@ star.compiler.operators{
     | "let" => [.prefixOp(899,898)]
     | "~=" => [.infixOp(899,900,899)]
     | "~>" => [.infixOp(1230,1231,1230)]
+    | "throw" => [.prefixOp(930,929)]
     | ".|." => [.infixOp(720,720,719)]
     | "do" => [.prefixOp(200,199), .infixOp(1199,1200,1199)]
     | "import" => [.prefixOp(900,899)]
@@ -422,6 +423,7 @@ star.compiler.operators{
     | "&&" => .true
     | "let" => .true
     | "~>" => .true
+    | "throw" => .true
     | "{." => .true
     | "do" => .true
     | "import" => .true

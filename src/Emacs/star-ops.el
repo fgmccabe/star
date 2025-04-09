@@ -10,6 +10,7 @@
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
+  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -138,6 +139,7 @@
   '("retire"
 "all"
 "let"
+"throw"
 "do"
 "import"
 "catch"

@@ -242,8 +242,13 @@ overloadTerm(tryCatch(Lc,E,V,H),Dict,St,Stx,tryCatch(Lc,EE,V,HH)) :-
   overloadTryCatch(E,V,H,EE,HH,Dict,St,Stx,resolve:overloadTerm).
 overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
-  overloadTerm(E,Dict,St0,Stx,EE).
-overloadTerm(T,_,St,St,T) :-
+  overloadTerm(E,Dict,St0,Stx,EE).o
+overloadTerm(try(Lc,E,H),Dict,St,Stx,try(Lc,EE,HH)) :-
+  overloadTerm(E,Dict,St,St1,EE),
+  overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
+overloadTerm(throw(Lc,E,Tp),Dict,St,Stx,throw(Lc,EE,Tp)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+verloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
 
