@@ -332,6 +332,13 @@ reconcileStack(Stk,Stk,Stk,C,C) :-!.
 reconcileStack(some(Stki),some(Stk),some(Stk),[iRst(Stk)|C],C) :-
   Stki>Stk,!.
 
+pickStack(_,none,_,C,C) :-!.
+pickStack(some(Dp),some(Dp),_,C,C) :-!.
+pickStack(some(Dp1),some(Dp),_,[iPick(Dp,1)|Cx],Cx) :-
+  Dp1>Dp.
+pickStack(some(Dp1),some(Dp),Lc,C,C) :-
+  reportError("(internal) invalid stack height %s vs %s",[ix(Dp1),ix(Dp)],Lc).
+  
 consistentStack(_Stk,none) :-!.
 consistentStack(none,_Stk) :-!.
 consistentStack(Stk,Stk).
@@ -596,6 +603,8 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compCase(T,Lc,CaseBlkTp,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(tryCtch(Lc,B,T,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compTryExp(Lc,B,ptrTipe,T,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compExp(tryX(Lc,B,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compTryX(Lc,B,ptrTipe,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
@@ -681,6 +690,30 @@ compTryExp(Lc,B,ResTp,idnt(TV,Tp),idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,C
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D4,H1,[iStL(E)|H2]),
   compExp(H,Lc,Brks,Last,Opts,L2,Lx,D4,Dx,H2,[iBreak(Ok)],Stk,Stkb),
+  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
+
+/* try E in H
+   compiles to
+   Ok:[
+     Tr:[
+       E-code
+       break Ok
+     ]
+     H]
+*/
+
+compTryX(Lc,B,ResTp,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  genLbl(L,Ok,L0),
+  genLbl(L0,Tr,L1),
+  nearlyFlatSig(ResTp,BlkTp),
+  bumpStk(Stk,Stk1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Tr,BC)|HC]))|Cz]),
+  compExp(B,Lc,[("$try",gencode:throwOut,Tr,Stk)|Brks],notLast,
+	  Opts,L1,L2,D,D2,BC,BC1,Stk,Stka),
+  pickStack(Stk1,Stka,Lc,BC1,[iBreak(Ok)]),
+  genLine(Opts,Lc,HC,H1),
+  compExp(E,Lc,Brks,notLast,Opts,L2,L3,D2,D3,H1,H2,Stk,_),
+  compExp(H,Lc,Brks,Last,Opts,L3,Lx,D3,Dx,H2,[iBreak(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 isCond(cnj(_,_,_)).

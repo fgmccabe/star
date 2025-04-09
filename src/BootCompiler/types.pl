@@ -18,7 +18,7 @@
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
-	   isEitherTp/3,eitherType/3,isResultTp/3,resultType/3,
+	   isEitherTp/3,eitherType/3,isResultType/3,resultType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -143,7 +143,7 @@ mvConstraints(Tp,Cx,Cx,Tp).
 
 isResultType(T,VlTp,ErTp) :-
   deRef(T,Tp),
-  isTypeExp(Tp,tpFun("result",2),[A,B]).
+  isTypeExp(Tp,tpFun("result",2),[VlTp,ErTp]).
 
 resultType(A,B,Tp) :-
   mkTypeExp(tpFun("result",2),[A,B],Tp).

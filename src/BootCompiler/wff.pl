@@ -57,6 +57,7 @@
 	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
+	      isTry/4,mkTry/4,
 	      isRaise/3,mkRaise/3,
 	      isRaises/3,mkRaises/3,isRaises/4,mkRaises/4,
 	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
@@ -951,6 +952,18 @@ mkTryCatch(Lc,B,E,Cases,A) :-
   braceTuple(Lc,[Cs],Hs),
   binary(Lc,"in",E,Hs,R),
   binary(Lc,"catch",B,R,A0),
+  unary(Lc,"try",A0,A).
+
+isTry(A,Lc,B,Hs) :-
+  isUnary(A,Lc,"try",I),
+  isBinary(I,_,"catch",B,H),
+  isBraceTuple(H,_,[Els]),
+  deBar(Els,Hs).
+
+mkTry(Lc,B,Cases,A) :-
+  reBar(Cases,Cs),
+  braceTuple(Lc,[Cs],Hs),
+  binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
 
 isResume(A,Lc,T,M) :-

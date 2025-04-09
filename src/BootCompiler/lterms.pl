@@ -179,6 +179,10 @@ ssTrm(tryCtch(_,B,T,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),TT,ss(" in "),HH]))
   ssTrm(T,Dp,TT),
   ssTrm(B,Dp2,BB),
   ssTrm(H,Dp,HH).
+ssTrm(tryX(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
+  Dp2 is Dp+2,
+  ssTrm(B,Dp2,BB),
+  ssTrm(H,Dp,HH).
 ssTrm(susp(_,T,E,_),Dp,sq([TT,ss(" suspend "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
@@ -401,6 +405,10 @@ rewriteTerm(QTest,tryCtch(Lc,B,T,E,H),tryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteTerm(QTest,B,BB),
   rewriteTerm(QTest,H,HH).
+rewriteTerm(QTest,tryX(Lc,B,E,H),tryX(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(QTest,E,EE),
+  rewriteTerm(QTest,B,BB),
+  rewriteTerm(QTest,H,HH).
 
 rewriteTerms(QTest,Els,NEls):-
   map(Els,lterms:rewriteTerm(QTest),NEls).
@@ -520,8 +528,6 @@ idInTerm(idnt(Nm,_),Term) :-
   inTerm(Term,Nm),!.
 
 inTerm(idnt(Nm,_),Nm).
-inTerm(rais(_,T,E),Nm) :-!,
-  (inTerm(E,Nm);inTerm(T,Nm)),!.
 inTerm(cll(_,_,Args,_),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm).
@@ -588,6 +594,14 @@ inTerm(savGet(_,Th,_),Nm) :-!,
   inTerm(Th,Nm).
 inTerm(savSet(_,Th,Vl),Nm) :-!,
   (inTerm(Th,Nm) ; inTerm(Vl,Nm)).
+inTerm(tryCtch(_,B,T,E,H),Nm) :-
+  (inTerm(B,Nm) ; inTerm(T,Nm) ; inTerm(E,Nm); inTerm(H,Nm)),!.
+inTerm(tryX(_,B,E,H),Nm) :-
+  (inTerm(B,Nm) ; inTerm(E,Nm); inTerm(H,Nm)),!.
+inTerm(rais(_,T,E),Nm) :-!,
+  (inTerm(E,Nm);inTerm(T,Nm)),!.
+inTerm(rais(_,E),Nm) :-
+  inTerm(E,Nm),!.
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
@@ -778,6 +792,10 @@ validTerm(case(Lc,G,Cases,Deflt),_,D) :-
 validTerm(tryCtch(Lc,B,T,E,H),_,D) :-
   declareArg(T,D,D1),
   validTerm(B,Lc,D1),
+  ptnVars(E,D,D0),
+  validTerm(H,Lc,D0).
+validTerm(tryX(Lc,B,E,H),_,D) :-
+  validTerm(B,Lc,D),
   ptnVars(E,D,D0),
   validTerm(H,Lc,D0).
 validTerm(seqD(Lc,L,R),_,D) :-
