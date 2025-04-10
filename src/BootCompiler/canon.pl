@@ -57,7 +57,7 @@ isCanon(neg(_,_)).
 isCanon(lambda(_,_,_,_,_)).
 isCanon(task(_,_,_)).
 isCanon(tryCatch(_,_,_,_)).
-isCanon(try(_,_,_)).
+isCanon(try(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
 isCanon(retire(_,_,_,_)).
 isCanon(resume(_,_,_,_)).
@@ -133,7 +133,7 @@ typeOfCanon(svSet(_,_,Vl),Tp) :- !,
 typeOfCanon(valof(_,_,Tp),Tp) :-!.
 typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
-typeOfCanon(try(_,E,_),Tp) :- !,
+typeOfCanon(try(_,E,_,_),Tp) :- !,
   typeOfCanon(E,Tp).
 
 typesOf([],[]).
@@ -169,7 +169,7 @@ locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
 locOfCanon(tryCatch(Lc,_,_,_),Lc) :-!.
-locOfCanon(try(Lc,_,_),Lc) :-!.
+locOfCanon(try(Lc,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(valis(Lc,_),Lc) :-!.
@@ -194,6 +194,8 @@ locOfCanon(doMatch(Lc,_,_),Lc) :-!.
 locOfCanon(doDefn(Lc,_,_),Lc) :-!.
 locOfCanon(doAssign(Lc,_,_),Lc) :-!.
 locOfCanon(doTryCatch(Lc,_,_,_),Lc) :- !.
+locOfCanon(doTry(Lc,_,_,_),Lc) :- !.
+locOfCanon(doThrow(Lc,_),Lc) :-!.
 locOfCanon(doIfThenElse(Lc,_,_,_),Lc) :-!.
 locOfCanon(doWhile(Lc,_,_),Lc) :-!.
 locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
@@ -331,7 +333,7 @@ ssTerm(tryCatch(_,A,T,Hs),Dp,sq([ss("try "),AA,ss(" catch "),TT,ss(" in "),lb,HH
   ssTerm(T,Dp,TT),
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
-ssTerm(try(_,A,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+ssTerm(try(_,A,_,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
@@ -369,10 +371,12 @@ ssAction(doTryCatch(_,A,T,Hs),Dp,sq([ss("try "),TT,ss(" in "),AA,ss(" catch "),l
   ssTerm(T,Dp,TT),
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
-ssAction(doTry(_,A,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
+ssAction(doTry(_,A,_,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssAction(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssAction,HH).
+ssAction(doThrow(_,E),Dp,sq([ss("throw "),EE])) :-!,
+  ssTerm(E,Dp,EE).
 ssAction(doIfThenElse(_,T,A,doNop(_)),Dp,sq([ss("if "),TT,ss(" then "),nl(Dp2),AA])) :-!,
   Dp2 is Dp+2,
   ssTerm(T,Dp,TT),

@@ -97,6 +97,8 @@ ssTrm(strg(Str),_,qt(Str,'\"')) :-!.
 ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
+ssTrm(thrw(_,E),Dp,sq([ss("throw "),EE])) :-
+  ssTrm(E,Dp,EE).
 ssTrm(cll(_,Op,Args,_Tp),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
@@ -208,6 +210,8 @@ ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
 ssAct(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
+ssAct(doThrw(_,E),Dp,sq([ss("throw "),EE])) :-!,
+  ssTrm(E,Dp,EE).
 ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTrm(P,Dp,PP),
   ssTrm(E,Dp,EE).
@@ -258,6 +262,10 @@ ssAct(doTryCtch(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,s
   Dp2 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE),
+  ssAct(B,Dp2,BB),
+  ssAct(H,Dp2,HH).
+ssAct(doTryA(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
+  Dp2 is Dp+2,
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
 
@@ -329,6 +337,8 @@ rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
   rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
 rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,thrw(Lc,E),thrw(Lc,EE)) :-!,
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
@@ -432,6 +442,8 @@ rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
 rewriteAction(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :- !,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,doThrw(Lc,E),doThrw(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,mtch(Lc,P,E),mtch(Lc,PP,EE)) :- !,
@@ -468,6 +480,10 @@ rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
   rewriteTerm(QTest,M,MM).
 rewriteAction(QTest,doTryCtch(Lc,B,T,E,H),doTryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,T,TT),
+  rewriteTerm(QTest,E,EE),
+  rewriteAction(QTest,B,BB),
+  rewriteAction(QTest,H,HH).
+rewriteAction(QTest,doTryA(Lc,B,E,H),doTryA(Lc,BB,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
@@ -600,7 +616,7 @@ inTerm(tryX(_,B,E,H),Nm) :-
   (inTerm(B,Nm) ; inTerm(E,Nm); inTerm(H,Nm)),!.
 inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
-inTerm(rais(_,E),Nm) :-
+inTerm(thrw(_,E),Nm) :-
   inTerm(E,Nm),!.
 
 inAction(nop(_),_) :- !,fail.
@@ -612,6 +628,8 @@ inAction(vls(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(rais(_,T,E),Nm) :- !,
   (inTerm(T,Nm) ; inTerm(E,Nm)),!.
+inAction(doThrw(_,E),Nm) :- !,
+  inTerm(E,Nm),!.
 inAction(perf(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(mtch(_,P,E),Nm) :- !,
@@ -636,6 +654,8 @@ inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
 inAction(doTryCtch(_,B,T,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
+inAction(doTryA(_,B,E,H),Nm) :-!,
+  (inAction(B,Nm) ;  inTerm(E,Nm) ; inAction(H,Nm)).
 
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
@@ -650,6 +670,7 @@ tipeOf(intgr(_),type("integer")).
 tipeOf(strg(_),type("string")).
 tipeOf(flot(_),type("float")).
 tipeOf(rais(_,_,_),voidType).
+tipeOf(thrw(_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
 tipeOf(ecll(_,_,_,T),T).
@@ -753,6 +774,8 @@ validTerm(ecll(Lc,Es,Args,_),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
+  validTerm(E,Lc,D).
+validTerm(thrw(Lc,E),_,D) :-
   validTerm(E,Lc,D).
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
   validTerms(Args,Lc,D).
@@ -896,6 +919,8 @@ validAction(vls(Lc,E),_,D,D) :- !,
 validAction(rais(Lc,T,E),_,D,D) :- !,
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
+validAction(doThrw(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
 validAction(perf(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(defn(Lc,P,E),_,D,Dx) :- !,
@@ -942,6 +967,10 @@ validAction(error(Lc,M),_,D,D) :-
 validAction(doTryCtch(Lc,B,T,E,H),_,D,D) :-
   declareArg(T,D,D1),
   validAction(B,Lc,D1,_),
+  ptnVars(E,D,D0),
+  validAction(H,Lc,D0,_).
+validAction(doTryA(Lc,B,E,H),_,D,D) :-
+  validAction(B,Lc,D,_),
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
 validAction(T,Lc,D,D) :-
