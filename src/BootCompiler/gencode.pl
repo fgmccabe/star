@@ -271,7 +271,7 @@ compAction(doTryCtch(Lc,B,T,E,H),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk
   compTryCtch(Lc,B,tplTipe([]),T,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stka),
   verify(gencode:consistentStack(Stk,Stka),"try action not permitted to leave stuff on stack").
 compAction(doTryA(Lc,B,E,H),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  compTryA(Lc,B,tplTipe([]),E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stka),
+  compTryA(Lc,B,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stka),
   verify(gencode:consistentStack(Stk,Stka),"try action not permitted to leave stuff on stack").
 compAction(vls(Lc,E),OLc,Brks,Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-!,
   (is_member(("$valof",Brker,Ok,Stkx),Brks) ->
@@ -732,13 +732,13 @@ compTryX(Lc,B,ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compExp(H,Lc,Brks,Last,Opts,L2,Lx,D3,Dx,H2,[iBreak(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
-compTryA(Lc,B,ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
-  nearlyFlatSig(ResTp,BlkTp),
+  nearlyFlatSig(ptrTipe,BlkTp),
   bumpStk(Stk,Stk1),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(BlkTp,[iLbl(Tr,iBlock(BlkTp,BC))|HC]))|Cz]),
-  compAction(B,Lc,[("$try",gencode:breakOut,Tr,Stk)|Brks],notLast,notLast,
+  compAction(B,Lc,[("$try",gencode:breakOut,Tr,Stk1)|Brks],notLast,notLast,
 	  Opts,L1,L2,D,D2,BC,BC1,Stk,Stka),
   resetStack(Stk1,Stka,BC1,[iBreak(Ok)]),
   genLine(Opts,Lc,HC,H1),
