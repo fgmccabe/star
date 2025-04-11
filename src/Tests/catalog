@@ -71,6 +71,7 @@
     "test.either": "either.star",
     "test.eras": "eras.star",
     "test.ex0": "ex0.star",
+    "test.ex1": "ex1.star",
     "test.f": "f.star",
     "test.fg": "fg.star",
     "test.fi": "fi.star",

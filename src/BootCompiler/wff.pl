@@ -58,7 +58,7 @@
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
 	      isTry/4,mkTry/4,
-	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,
+	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,isThrows/4,mkThrows/4,
 	      isRaises/3,mkRaises/3,isRaises/4,mkRaises/4,
 	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
@@ -945,6 +945,12 @@ isThrow(A,Lc,E) :-
 
 mkThrow(Lc,A,E) :-
   unary(Lc,"throw",A,E).
+
+isThrows(A,Lc,T,E) :-
+  isBinary(A,Lc,"throws",T,E).
+
+mkThrows(Lc,T,E,A) :-
+  binary(Lc,"throws",T,E,A).
 
 isTryCatch(A,Lc,B,E,Hs) :-
   isUnary(A,Lc,"try",I),

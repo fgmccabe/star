@@ -152,6 +152,7 @@ star.compiler.operators{
     | "/\\" => [.infixOp(700,700,699)]
     | ">=" => [.infixOp(899,900,899)]
     | ">>" => [.infixOp(949,950,950)]
+    | "throws" => [.infixOp(950,951,951)]
     | _ default => []
   }
 
@@ -506,6 +507,7 @@ star.compiler.operators{
     | "else" => .true
     | "::=" => .true
     | ">>" => .true
+    | "throws" => .true
     | "{!" => .true
     | _ default => .false
   }

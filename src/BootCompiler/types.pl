@@ -43,6 +43,7 @@ isType(valType(_)).
 
 isConstraint(conTract(_,_,_)).
 isConstraint(implementsFace(_,_)).
+isConstraint(throws(_)).
 
 isConType(Tp,A) :-
   deRef(Tp,T),!,isCnType(T,A).
@@ -275,6 +276,8 @@ ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
 ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")])) :-
   ssType(Tp,ShCon,Dp,TT).
 ssConstraint(ShCon,Dp,raises(Tp),sq([ss("raises "),TT])) :-
+  ssType(Tp,ShCon,Dp,TT).
+ssConstraint(ShCon,Dp,throws(Tp),sq([ss("throws "),TT])) :-
   ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
@@ -652,6 +655,7 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,throws(A)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

@@ -502,6 +502,10 @@ collectTypeRefs(T,All,SoFar,Rest) :-
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
 collectTypeRefs(T,All,SoFar,Rx) :-
+  isThrows(T,_,L,R),
+  collectTypeRefs(L,All,SoFar,R0),
+  collectTypeRefs(R,All,R0,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
   isTypeLambda(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).

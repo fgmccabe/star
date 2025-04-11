@@ -61,6 +61,8 @@ sameConstraint(C1,C2,Lc,Env) :-
   sameImplements(C1,C2,Lc,Env).
 sameConstraint(raises(T1),raises(T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
+sameConstraint(throws(T1),throws(T2),Lc,Env) :-
+  sameType(T1,T2,Lc,Env).
 sameConstraint(implicit(Nm,T1),implicit(Nm,T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
 
@@ -257,6 +259,7 @@ occIn(Id,funType(A,_)) :- occIn(Id,A).
 occIn(Id,funType(_,R)) :- occIn(Id,R).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
+occIn(Id,throws(A)) :- occIn(Id,A),!.
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
 occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
 occIn(Id,typeLambda(_,R)) :- occIn(Id,R).

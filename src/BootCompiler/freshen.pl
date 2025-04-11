@@ -119,6 +119,9 @@ frshnConstraint(conTract(Nm,Args,Deps),Bnd,E,B,Ex,Con) :-
 frshnConstraint(implicit(Nm,Tp),Bnd,E,B,Ex,implicit(Nm,FTp)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   (Bnd=nobind ; bindConstraints([FTp],implicit(Nm,FTp))).
+frshnConstraint(throws(Tp),Bnd,E,B,Ex,throws(FTp)) :-
+  rewriteType(Tp,E,B,Ex,FTp),
+  (Bnd=nobind ; bindConstraints([FTp],throws(FTp))).
 frshnConstraint(raises(Tp),Bnd,E,B,Ex,raises(FTp)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   (Bnd=nobind ; bindConstraints([FTp],raises(FTp))).
