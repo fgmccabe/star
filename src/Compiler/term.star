@@ -985,6 +985,12 @@ star.compiler.term{
     present(A,F) => presentInA(A,(_)=>.false,F)
   }
 
+  public implementation present[cDefn] => {
+    present(.fnDef(_,_,_,_,E),F) => presentInE(E,(_)=>.false,F).
+    present(.glDef(_,_,_,E),F) => presentInE(E,(_)=>.false,F).
+    present(_,_) default => .false
+  }
+
   public lblUsed:(aAction,string) => boolean.
   lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
 
@@ -1049,9 +1055,9 @@ star.compiler.term{
     | .cCase(_,G,Cs,D,_) =>
       presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C)
     | .cMatch(_,V,E) => presentInE(V,A,C) || presentInE(E,A,C)
-    | .cResum(_,T,M,_) => presentInE(T,A,C) || presentInE(M,A,C)
-    | .cSusp(_,T,M,_) => presentInE(T,A,C) || presentInE(M,A,C)
-    | .cRetyr(_,T,M,_) => presentInE(T,A,C) || presentInE(M,A,C)
+    | .cResum(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
+    | .cSusp(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
+    | .cRetyr(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
     | .cVarNmes(_,_,E) => presentInE(E,A,C)
     | .cAbort(_,_,_) => .false
     | .cTry(_,B,Th,E,H,_) =>
