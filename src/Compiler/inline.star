@@ -26,12 +26,12 @@ star.compiler.inline{
   }
 
   pickupDefn:(cDefn,map[defnSp,cDefn])=>map[defnSp,cDefn].
-  pickupDefn(Df,Map) => case Df in {
+  pickupDefn(Df,Map) => (isLeafDef(Df) ?? case Df in {
     | .fnDef(_,Nm,_,_,_) => Map[.varSp(Nm)->Df]
     | .glDef(_,Nm,_,_) => Map[.varSp(Nm)->Df]
     | .tpDef(_,Tp,_,_) => Map[.tpSp(tpName(Tp))->Df]
     | .lblDef(_,_,_,_) => Map
-  }
+    } || Map).
 
   simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
@@ -332,4 +332,9 @@ star.compiler.inline{
 
   pullStrings(.cTerm(_,"nil",[],_)) => [].
   pullStrings(.cTerm(_,"cons",[.cString(_,S),Tl],_)) => [S,..pullStrings(Tl)].
+
+  isLeafDef:(cDefn) => boolean.
+  isLeafDef(D) => ~present(D,(Cll) =>
+      (.cOCall(_,_,_,_).=Cll ||
+      (.cCall(_,Nm,_,_) .= Cll && ~isEscape(Nm)))).
 }
