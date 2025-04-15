@@ -69,6 +69,8 @@ typedef struct StackStructure {
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High watermark of stack sizes rooted off this stack
+  methodPo prog;                // Currently execution function
+  insPo pc;                     // Current program counter
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
   tryFramePo tp;                // Current try frame
