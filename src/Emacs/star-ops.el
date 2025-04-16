@@ -10,6 +10,7 @@
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
+  ("throw" ( (prefix 930 929)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -116,6 +117,7 @@
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
   (">>" ( (infix 949 950 950)))
+  ("throws" ( (infix 950 951 951) (infix 950 951 951)))
 )
   "Table of standard star operators"
 )
@@ -138,6 +140,7 @@
   '("retire"
 "all"
 "let"
+"throw"
 "do"
 "import"
 "catch"
@@ -169,6 +172,7 @@
 "implementation"
 "type"
 "else"
+"throws"
 )
   "Table of standard keywords"
 )

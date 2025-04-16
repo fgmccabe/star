@@ -53,6 +53,7 @@ macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
 macroRl("raises",type,macroRules:raisesMacro).
+macroRl("throws",type,macroRules:throwsMacro).
 macroRl("async",type,macroRules:asyncMacro).
 
 build_main(As,Bs) :-
@@ -680,6 +681,10 @@ raisesMacro(T,type,Tx) :-
   isBinary(T,Lc,"raises",L,R),!,
   unary(Lc,"raises",R,E),
   binary(Lc,"|:",E,L,Tx).
+
+throwsMacro(T,type,Tx) :-
+  isThrows(T,Lc,L,R),!,
+  mkResult(Lc,L,R,Tx).
 
 asyncMacro(T,type,Tx) :-
   isUnary(T,Lc,"async",R),!,

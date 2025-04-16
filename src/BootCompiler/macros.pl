@@ -148,6 +148,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
 examineType(T,Tx) :- isTaskType(T,Lc,L),!,
   macroType(L,Lx),
   mkTaskType(Lc,Lx,Tx).
+examineType(T,Tx) :- isResult(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  mkResult(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).
@@ -497,9 +501,18 @@ examineTerm(A,Ax) :-
   map(C,macros:macroLambda,Cs),
   mkTryCatch(Lc,Bx,Ex,Cs,Ax).
 examineTerm(A,Ax) :-
+  isTry(A,Lc,B,C),!,
+  macroTerm(B,Bx),
+  map(C,macros:macroLambda,Cs),
+  mkTry(Lc,Bx,Cs,Ax).
+examineTerm(A,Ax) :-
   isRaise(A,Lc,V),!,
   macroTerm(V,Vx),
   mkRaise(Lc,Vx,Ax).
+examineTerm(A,Ax) :-
+  isThrow(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkThrow(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
   isResume(A,Lc,T,M),!,
   macroTerm(T,Tx),
@@ -707,6 +720,15 @@ examineAction(A,Ax) :-
   macroType(E,Ex),
   map(C,macros:actionCase,Cs),
   mkTryCatch(Lc,Bx,Ex,Cs,Ax).
+examineAction(A,Ax) :-
+  isTry(A,Lc,B,C),!,
+  macroAction(B,Bx),
+  map(C,macros:actionCase,Cs),
+  mkTry(Lc,Bx,Cs,Ax).
+examineAction(A,Ax) :-
+  isThrow(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkThrow(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isWhileDo(A,Lc,T,B),!,
   macroTerm(T,Tx),

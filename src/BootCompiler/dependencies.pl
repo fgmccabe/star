@@ -305,6 +305,10 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectTypeRefs(E,All,Rf1,Rf2),
   collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
+  isTry(T,_,L,C),!,
+  collectTermRefs(L,All,Rf,Rf1),
+  collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
@@ -442,6 +446,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(L,All,Rf,Rf1),
   collectTypeRefs(E,All,Rf1,Rf2),
   collectCaseRefs(C,collectDoRefs,All,Rf2,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isTry(T,_,L,C),!,
+  collectDoRefs(L,All,Rf,Rf1),
+  collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
 collectDoRefs(T,A,R,Rx) :-
   isLetDef(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),
@@ -493,6 +501,10 @@ collectTypeRefs(T,All,SoFar,Rest) :-
   isBinary(T,_,"->>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
+collectTypeRefs(T,All,SoFar,Rx) :-
+  isResult(T,_,L,R),
+  collectTypeRefs(L,All,SoFar,R0),
+  collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isTypeLambda(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),

@@ -834,6 +834,15 @@ typeOfExp(A,Tp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Opts,Path
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
   typeOfExp(E,ErTp,Env,_,ErExp,Opts,Path).
+typeOfExp(A,Tp,Env,Env,try(Lc,Body,ErTp,Hndlr),Opts,Path) :-
+  isTry(A,Lc,B,H),!,
+  checkTry(B,H,ErTp,Tp,Env,checker:typeOfExp,Body,Hndlr,Opts,Path).
+typeOfExp(A,Tp,Env,Env,throw(Lc,ErExp,Tp),Opts,Path) :-
+  isThrow(A,Lc,E),!,
+  (tryInScope(Env,ErTp) ->
+     typeOfExp(E,ErTp,Env,_,ErExp,Opts,Path);
+   reportError("%s not in a try scope",[ast(A)],Lc),
+   ErExp = void).
 typeOfExp(A,Tp,Env,Env,suspend(Lc,T,M,Tp),Opts,Path) :-
   isSuspend(A,Lc,L,R),!,
   newTypeVar("M",MTp),
@@ -970,6 +979,12 @@ checkAction(A,_Tp,_HasVal,Env,Ev,doExp(Lc,Thrw),Opts,Path) :-
   isRaise(A,Lc,_E),!,
   newTypeVar("C",ErTp),
   typeOfExp(A,ErTp,Env,Ev,Thrw,Opts,Path).
+checkAction(A,_Tp,_HasVal,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
+  isThrow(A,Lc,E),!,
+  (tryInScope(Env,ErTp) ->
+   typeOfExp(E,ErTp,Env,_,Thrw,Opts,Path);
+   reportError("%s not in a try scope",[ast(A)],Lc),
+   Thrw = void).
 checkAction(A,_Tp,HasVal,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Opts,Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
@@ -998,6 +1013,9 @@ checkAction(A,_Tp,HasVal,Env,Ev,Act,Opts,Path) :-
 checkAction(A,Tp,HasVal,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
   isTryCatch(A,Lc,B,E,H),!,
   checkTryCatch(Lc,B,E,H,Tp,Env,checker:tryAction(HasVal),Body,Trw,Hndlr,Opts,Path).
+checkAction(A,Tp,HasVal,Env,Env,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
+  isTry(A,Lc,B,H),!,
+  checkTry(B,H,ErTp,Tp,Env,checker:tryAction(HasVal),Body,Hndlr,Opts,Path).
 checkAction(A,Tp,HasVal,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,Env,E0,Tst,Opts,Path),
@@ -1096,6 +1114,12 @@ checkTryCatch(Lc,B,E,Hs,Tp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path) :-
   parseType(E,Env,ErTp),
   tryBlockName(Path,ErTp,ErNm),
   declareTryScope(Lc,ErTp,ErNm,Env,Ev2),
+  call(Check,B,Tp,Ev2,_,Body,Opts,Path),
+  checkCases(Hs,ErTp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
+
+checkTry(B,Hs,ErTp,Tp,Env,Check,Body,Hndlr,Opts,Path) :-
+  newTypeVar("ErTp",ErTp),
+  setTryScope(ErTp,Env,Ev2),
   call(Check,B,Tp,Ev2,_,Body,Opts,Path),
   checkCases(Hs,ErTp,Tp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 
