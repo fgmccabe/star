@@ -16,6 +16,9 @@ test.rn{
     name:string.
   }
 
+  ppName:(pp)=>string.
+  ppName(P) => P.name.
+
   main:()=>().
   main() => valof{
     P = person{name="fred"};
@@ -24,6 +27,8 @@ test.rn{
     show nameOf(P);
 
     show nmeOf(nameOf,P);
+ 
+    show ppName(P);
     
     assert nameOf(P)=="fred";
     assert nameOf(C) == "aaron";
