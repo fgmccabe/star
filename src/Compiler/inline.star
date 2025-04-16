@@ -21,7 +21,7 @@ star.compiler.inline{
   simplifyGroups:(cons[cons[cDefn]],map[defnSp,cDefn]) => cons[cons[cDefn]].
   simplifyGroups([],_) => [].
   simplifyGroups([Gp,..Gps],Map) => valof{
-    SGp = Gp//(D)=>trace simplifyDefn(trace D,Map);
+    SGp = Gp//(D)=>simplifyDefn(D,Map);
     valis [SGp,..simplifyGroups(Gps,foldLeft(pickupDefn,Map,SGp))]
   }
 

@@ -22,12 +22,29 @@ star.compiler.gencode{
   public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
   compProg(Pkg,Defs,Decls) => valof{
     Vars = foldLeft(declGlobal,[],Decls);
+    Tps = foldLeft(declType,[],Decls);
+
+    if traceCodegen! then
+      showMsg("Compilation dictionary vars: $(Vars), types: $(Tps)");
+    
     valis compDefs(Defs,Vars)
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
   declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
   declGlobal(_,Vrs) => Vrs.
+
+  declType:(decl,map[string,(tipe,cons[tipe])])=>map[string,(tipe,cons[tipe])].
+  declType(.tpeDec(_,Nm,Tp,_), Tps) => 
+    ((_Tp,Cns) ?= Tps[Nm] ?? Tps[Nm->(Tp,Cns)] || Tps[Nm->(Tp,[])]).
+  declType(.cnsDec(_,Nm,_,CnTp),Tps) => valof{
+    RTp = funTypeRes(CnTp);
+    TpNm = tpName(RTp);
+    if (Tpe,Cns) ?= Tps[TpNm] then
+      valis Tps[TpNm->(Tpe,[CnTp,..Cns])] else
+    valis Tps[TpNm->(RTp,[CnTp])]
+  }
+  declType(_,Tps) => Tps.
 
   compDefs:(cons[cDefn],map[string,(tipe,srcLoc)])=> cons[codeSegment].
   compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
@@ -938,5 +955,6 @@ star.compiler.gencode{
   }
 
   canFail:(string,tipe,codeCtx) => boolean.
-  canFail(Nm,_Tp,_Ctx) => ~isTplLbl(Nm).
+  canFail(Nm,_Tp,_Ctx) where isTplLbl(Nm) => .false.
+  canFail(_,_,_) default => .true.
 }
