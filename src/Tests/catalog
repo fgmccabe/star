@@ -1,6 +1,7 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.a1": "a1.star",
     "test.ac0": "ac0.star",
     "test.ac1": "ac1.star",
     "test.ac2": "ac2.star",
@@ -69,6 +70,8 @@
     "test.e": "e.star",
     "test.either": "either.star",
     "test.eras": "eras.star",
+    "test.ex0": "ex0.star",
+    "test.ex1": "ex1.star",
     "test.f": "f.star",
     "test.fg": "fg.star",
     "test.fi": "fi.star",

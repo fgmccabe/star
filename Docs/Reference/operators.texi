@@ -34,6 +34,10 @@
 @tab non-associative infix
 @tab 1231
 @tab type function
+@item @code{throw}
+@tab non-associative prefix
+@tab 930
+@tab throw an exception
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -514,6 +518,14 @@
 @tab right associative infix
 @tab 950
 @tab grammar produce value
+@item @code{throws}
+@tab right associative infix
+@tab 951
+@tab can throw an exception
+@item @code{throws}
+@tab right associative infix
+@tab 951
+@tab can throw an exception
 
 @end multitable
 @end float
@@ -525,37 +537,39 @@
 @item @code{retire}
 @tab @code{all}
 @tab @code{let}
-@item @code{do}
+@item @code{throw}
+@tab @code{do}
 @tab @code{import}
-@tab @code{catch}
-@item @code{valis}
+@item @code{catch}
+@tab @code{valis}
 @tab @code{for}
-@tab @code{raise}
-@item @code{async}
+@item @code{raise}
+@tab @code{async}
 @tab @code{then}
-@tab @code{ζ}
-@item @code{default}
+@item @code{ζ}
+@tab @code{default}
 @tab @code{resume}
-@tab @code{contract}
-@item @code{raises}
+@item @code{contract}
+@tab @code{raises}
 @tab @code{try}
-@tab @code{exists}
-@item @code{if}
+@item @code{exists}
+@tab @code{if}
 @tab @code{in}
-@tab @code{break}
-@item @code{suspend}
+@item @code{break}
+@tab @code{suspend}
 @tab @code{public}
-@tab @code{ref}
-@item @code{where}
+@item @code{ref}
+@tab @code{where}
 @tab @code{case}
-@tab @code{generator}
-@item @code{valof}
+@item @code{generator}
+@tab @code{valof}
 @tab @code{yield}
-@tab @code{while}
-@item @code{private}
+@item @code{while}
+@tab @code{private}
 @tab @code{implementation}
-@tab @code{type}
-@item @code{else}
+@item @code{type}
+@tab @code{else}
+@tab @code{throws}
 
 @end multitable
 @end float
