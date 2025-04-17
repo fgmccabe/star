@@ -36,6 +36,7 @@ isCanon(floatLit(_,_)).
 isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
+isCanon(tapply(_,_,_,_,_)).
 isCanon(capply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
@@ -106,6 +107,7 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
+typeOfCanon(tapply(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
@@ -164,6 +166,7 @@ locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
 locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
+locOfCanon(tapply(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
@@ -238,6 +241,10 @@ ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
+ssTerm(tapply(_,Op,Args,ErTp,_),Dp,sq([O,A,ss("throwing "),TT])) :-
+  ssTerm(Op,Dp,O),
+  ssTerm(Args,Dp,A),
+  ssType(ErTp,false,Dp,TT).
 ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).

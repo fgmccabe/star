@@ -20,6 +20,7 @@ freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
 freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(tapply(_,Op,A,_,_),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
 freeVars(capply(_,_,A,_),Ex,Q,F,FV) :- freeVars(A,Ex,Q,F,FV).
 freeVars(dot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(update(_,Rc,_,Vl),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,F0), freeVars(Vl,Ex,Q,F0,FV).
@@ -202,6 +203,7 @@ ptnVars(enm(_,_,_),Q,Q).
 ptnVars(where(_,Ptn,C),Q,Qx) :- ptnVars(Ptn,Q,Q0), ptnGoalVars(C,Q0,Qx).
 ptnVars(tple(_,Els),Q,Qx) :- ptnVarsInList(Els,Q,Qx).
 ptnVars(apply(_,_,Arg,_),Q,Qx) :- ptnVars(Arg,Q,Qx).
+ptnVars(tapply(_,_,Arg,_,_),Q,Qx) :- ptnVars(Arg,Q,Qx).
 ptnVars(capply(_,_,Arg,_),Q,Qx) :- ptnVars(Arg,Q,Qx).
 ptnVars(dot(_,_,_,_),Q,Q).
 ptnVars(svGet(_,L,_),Q,Qx) :- ptnVars(L,Q,Qx).

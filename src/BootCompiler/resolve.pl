@@ -187,6 +187,9 @@ overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp),Dict,St,Stx,Term)
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
+overloadTerm(tapply(Lc,Op,Args,ErTp,Tp),Dict,St,Stx,tapply(Lc,ROp,RArgs,ErTp,Tp)) :-
+  overloadTerm(Op,Dict,St,St0,ROp),
+  overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
@@ -252,7 +255,7 @@ overloadTerm(try(Lc,E,ErTp,H),Dict,St,Stx,try(Lc,EE,ErTp,HH)) :-
   overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
 overloadTerm(throw(Lc,E,Tp),Dict,St,Stx,throw(Lc,EE,Tp)) :-
   overloadTerm(E,Dict,St,Stx,EE).
-verloadTerm(T,_,St,St,T) :-
+overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
   reportError("invalid term to resolve %s",[can(T)],Lc).
 
@@ -482,6 +485,8 @@ resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
    Over=void).
 resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
   resolveRaises(Lc,Tp,Dict,St,Stx,Over).
+resolveConstraint(Lc,throws(Tp),Dict,St,Stx,Over) :-
+  resolveThrows(Lc,Tp,Dict,St,Stx,Over).
 resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -509,6 +514,20 @@ resolveRaises(Lc,Tp,VrNm,ErTp,Dict,St,Stx,Over) :-
   Over=v(Lc,VrNm,ErTp),!.
 resolveRaises(Lc,Tp,_,ErTp,_Dict,St,Stx,void) :-
   genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
+  markActive(St,Lc,Msg,Stx).
+
+resolveThrows(Lc,ErTp,Dict,St,Stx,Over) :-
+  tryInScope(Dict,TrTp),
+  resolveThrows(Lc,TrTp,ErTp,Dict,St,Stx,Over).
+resolveThrows(Lc,ErTp,_Dict,St,Stx,void) :-
+  genMsg("exception context for %s not defined",[tpe(ErTp)],Msg),
+  markActive(St,Lc,Msg,Stx).
+
+resolveThrows(Lc,TrTp,ErTp,Dict,St,Stx,throwing(Lc,ErTp)) :-
+  sameType(ErTp,TrTp,Lc,Dict),
+  markResolved(St,Stx),!.
+resolveThrows(Lc,TrTp,ErTp,_Dict,St,Stx,void) :-
+  genMsg("throws %s not consistent with %s",[tpe(ErTp),tpe(TrTp)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
