@@ -189,6 +189,9 @@ collConstraint(C,All,Refs,Rfx) :-
 collConstraint(C,All,Refs,Rfx) :-
   isRaises(C,_,Tp),
   collectTypeRefs(Tp,All,Refs,Rfx).
+collConstraint(C,All,Refs,Rfx) :-
+  isThrows(C,_,Tp),
+  collectTypeRefs(Tp,All,Refs,Rfx).
 collConstraint(_,_,Refs,Refs).
 
 locallyDefined([],All,All).

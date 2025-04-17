@@ -254,6 +254,10 @@ examineConstraint(T,Tx) :-
   macroType(E,Ex),
   mkRaises(Lc,Ex,Tx).
 examineConstraint(T,Tx) :-
+  isThrows(T,Lc,E),
+  macroType(E,Ex),
+  mkThrows(Lc,Ex,Tx).
+examineConstraint(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
