@@ -9,9 +9,7 @@ test.ex1{
   main:()=>().
   main()=>valof{
     try{
-      assert 3~=2;
-      
-      throw .exception("bong");
+      assert throwOne();
     } catch {
       .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
     };
