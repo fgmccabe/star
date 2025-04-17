@@ -923,11 +923,11 @@ showCode(tipe(Tp,_Rl,Map),sq([ss("type "),TT,ss(" = "),XX])) :-
   ssConsMap(Map,XX),
   ssType(Tp,false,0,TT).
 
-ssLocals(Lcs,sq([ss("Locals:"),nl(0),iv(nl(2),LL),nl(0)])) :- \+Lcs=[], ssLcs(Lcs,LL),!.
+ssLocals(Lcs,sq([iv(nl(2),[ss("Locals:")|LL]),nl(0)])) :- \+Lcs=[], ssLcs(Lcs,LL),!.
 ssLocals([],ss("")).
 
 ssLcs([],[]).
-ssLcs([(Nm,Spec)|Lcs],[sq([ss(Nm),ss(" ~ "),SS])|LL]) :-
+ssLcs([(Nm,Spec)|Lcs],[sq([ss(Nm),ss(":"),SS])|LL]) :-
   ssTrm(Spec,0,SS),
   ssLcs(Lcs,LL).
 
