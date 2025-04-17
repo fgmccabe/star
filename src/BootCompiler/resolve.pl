@@ -75,6 +75,9 @@ defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,TpBlkNm,Tp)|CVars],FDict) :-
   mangleName("$R",conTract,TpNm,TpBlkNm),
   declareTryScope(Lc,Tp,TpBlkNm,Dict,Dict1),
   defineCVars(Lc,Cx,Dict1,CVars,FDict).
+defineCVars(Lc,[throws(Tp)|Cx],Dict,CVars,FDict) :-
+  setTryScope(Tp,Dict,Dict1),
+  defineCVars(Lc,Cx,Dict1,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -244,7 +247,8 @@ overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(try(Lc,E,ErTp,H),Dict,St,Stx,try(Lc,EE,ErTp,HH)) :-
-  overloadTerm(E,Dict,St,St1,EE),
+  setTryScope(ErTp,Dict,Dict1),
+  overloadTerm(E,Dict1,St,St1,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
 overloadTerm(throw(Lc,E,Tp),Dict,St,Stx,throw(Lc,EE,Tp)) :-
   overloadTerm(E,Dict,St,Stx,EE).

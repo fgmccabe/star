@@ -27,6 +27,9 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
   thetaEnv(checker:pkgExport,Opts,Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,decls(ThEx,ThL)),
+  (is_member(traceCheck,Opts) ->
+   reportMsg("type check before resolving overloads %s",[defs(Defs)],Lc);
+   true),
   declareAllDecls(ThEx,Lc,Env0,Env1),
   declareAllDecls(ThL,Lc,Env1,Env2),
   overload(Defs,Env2,ODefs),

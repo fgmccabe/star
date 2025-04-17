@@ -11,6 +11,7 @@
 :- use_module(canon).
 :- use_module(location).
 :- use_module(lterms).
+:- use_module(misc).
 :- use_module(uri).
 
 :- initialization(startCount).
@@ -136,6 +137,9 @@ showTrm(loc(Lc),O) :-
   showLocation(Lc,O,[]).
 showTrm(canDef(T),O) :-
   ss_to_chrs(canon:ssDef(0,T),O,[]).
+showTrm(defs(L),O) :-
+  map(L,canon:ssDef(0),LL),
+  ss_to_chrs(iv(nl(0),LL),O,[]).
 showTrm(ss(S),O) :-
   string_chars(S,O).
 showTrm(T,O) :-
