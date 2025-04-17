@@ -110,6 +110,7 @@ collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,Export) :-
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,_) :-
   locOfAst(St,Lc),
   reportError("Cannot fathom %s",[St],Lc).
+
 collectDefines([St|Stmts],Kind,OSt,Nm,[St|Defn]) :-
   ruleName(St,Nm,Kind),
   collectDefines(Stmts,Kind,OSt,Nm,Defn).
