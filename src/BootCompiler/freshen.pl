@@ -122,6 +122,9 @@ frshnConstraint(implicit(Nm,Tp),Bnd,E,B,Ex,implicit(Nm,FTp)) :-
 frshnConstraint(raises(Tp),Bnd,E,B,Ex,raises(FTp)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   (Bnd=nobind ; bindConstraints([FTp],raises(FTp))).
+frshnConstraint(throws(Tp),Bnd,E,B,Ex,throws(FTp)) :-
+  rewriteType(Tp,E,B,Ex,FTp),
+  (Bnd=nobind ; bindConstraints([FTp],throws(FTp))).
 frshnConstraint(implementsFace(Tp,Face),Bnd,E,B,Ex,implementsFace(FTp,FFace)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   rewriteType(Face,E,B,Ex,FFace),

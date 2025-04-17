@@ -684,7 +684,8 @@ raisesMacro(T,type,Tx) :-
 
 throwsMacro(T,type,Tx) :-
   isThrows(T,Lc,L,R),!,
-  mkResult(Lc,L,R,Tx).
+  mkThrows(Lc,R,Th),
+  reConstrain([Th],L,Tx).
 
 asyncMacro(T,type,Tx) :-
   isUnary(T,Lc,"async",R),!,
