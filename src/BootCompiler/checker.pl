@@ -1218,14 +1218,6 @@ typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Opts,Path) :-
   locOfAst(A,Lc),
   typeOfPtns(As,ElTypes,E0,Ev,Lc,Els,Opts,Path).
 
-packageExport(Defs,Public,ExportDecls,LDecls,XDefs) :-
-  genDecls(Defs,checker:isPkgPublic(Public),ExportDecls,[],LDecls,[],XDefs,[]).
-
-isPkgPublic(Public,V) :-
-  is_member(V,Public),!.
-
-isAny(_).
-
 pkgExport(viz(Pu,_,_),V,Decl,decls(Ex,Lcl),decls([Decl|Ex],Lcl)) :-
   is_member(V,Pu),!.
 pkgExport(_,_,Decl,decls(Pu,Lcl),decls(Pu,[Decl|Lcl])).
