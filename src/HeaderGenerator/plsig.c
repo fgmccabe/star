@@ -219,6 +219,12 @@ char *dumpPrologConstraint(char *sig, ioPo out) {
       outStr(O_IO(out), ")");
       return sig;
     }
+    case throwsCon: {
+      outStr(O_IO(out), "throws(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
+    }
     default:
       fprintf(stderr, "illegal constraint signature %s\n", sig);
       exit(99);

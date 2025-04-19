@@ -321,6 +321,12 @@ char *dumpStarConstraint(char *sig, ioPo out) {
       outStr(out, ")");
       return sig;
     }
+    case throwsCon: {
+      outStr(out, ".throWs(");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
     default:
       fprintf(stderr, "illegal constraint signature %s\n", sig);
       exit(99);
@@ -545,6 +551,12 @@ char *dumpPrologConstraint(char *sig, ioPo out) {
     }
     case raisesCon: {
       outStr(out, "raises(");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case throwsCon: {
+      outStr(out, "throws(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;
