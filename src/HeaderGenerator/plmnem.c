@@ -384,6 +384,13 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
+        case lVl:{
+          outMsg(out, ",V,Lvl|M],Cdx) :-\n");
+          outMsg(out, "      Pc1 is Pc+1,\n");
+          outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          break;
+        }
         default:
           check(False, "Illegal second operand");
           exit(1);
