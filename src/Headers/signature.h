@@ -54,7 +54,8 @@ typedef enum {
   contractCon = 'c',
   hasFieldCon = 'a',
   implicitCon = 'd',
-  raisesCon = 'r'
+  raisesCon = 'r',
+  throwsCon = 't'
 } constraintSig;
 
 // Data value signatures
