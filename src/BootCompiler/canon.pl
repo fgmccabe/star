@@ -24,6 +24,7 @@ isCanonDef(updDec(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
+isCanon(thrVr(_,_,_,_)).
 isCanon(anon(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
@@ -36,7 +37,6 @@ isCanon(floatLit(_,_)).
 isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
-isCanon(tapply(_,_,_,_,_)).
 isCanon(capply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
 isCanon(update(_,_,_,_)).
@@ -62,6 +62,7 @@ isCanon(try(_,_,_,_)).
 isCanon(suspend(_,_,_,_)).
 isCanon(retire(_,_,_,_)).
 isCanon(resume(_,_,_,_)).
+isCanon(lbld(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(anon(_,_)).
@@ -87,6 +88,7 @@ isIterableGoal(neg(_,R)) :- !, isIterableGoal(R).
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
+typeOfCanon(thrVr(_,_,Tp,_),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
@@ -107,7 +109,6 @@ typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
-typeOfCanon(tapply(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
@@ -137,6 +138,8 @@ typeOfCanon(tryCatch(_,E,_T,_),Tp) :- !,
   typeOfCanon(E,Tp).
 typeOfCanon(try(_,E,_,_),Tp) :- !,
   typeOfCanon(E,Tp).
+typeOfCanon(lbld(_,_,E),Tp) :- !,
+  typeOfCanon(E,Tp).
 
 typesOf([],[]).
 typesOf([C|Cs],[Tp|Tps]) :-
@@ -144,6 +147,7 @@ typesOf([C|Cs],[Tp|Tps]) :-
   typesOf(Cs,Tps).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
+locOfCanon(thrVr(Lc,_,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(update(Lc,_,_,_),Lc) :- !.
@@ -166,7 +170,6 @@ locOfCanon(letExp(Lc,_,_,_),Lc) :- !.
 locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(tapply(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
@@ -205,6 +208,7 @@ locOfCanon(doLet(Lc,_,_,_),Lc) :-!.
 locOfCanon(doLetRec(Lc,_,_,_),Lc) :-!.
 locOfCanon(doExp(Lc,_),Lc) :-!.
 locOfCanon(doCase(Lc,_,_,_),Lc) :-!.
+locOfCanon(lbld(Lc,_,_),Lc) :-!.
 
 constructorName(enm(_,Nm,_),Nm) :-!.
 
@@ -231,6 +235,8 @@ dispCanon(T) :-
   displayln(canon:ssTerm(T,0)).
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
+ssTerm(thrVr(_,Nm,_,ErTp),Dp,sq([id(Nm),ss(" throws "),TT])) :-
+  ssType(ErTp,false,Dp,TT).
 ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
@@ -241,10 +247,6 @@ ssTerm(stringLit(_,Str),_,sq([ss(""""),ss(Str),ss("""")])).
 ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
-ssTerm(tapply(_,Op,Args,ErTp,_),Dp,sq([O,A,ss("throwing "),TT])) :-
-  ssTerm(Op,Dp,O),
-  ssTerm(Args,Dp,A),
-  ssType(ErTp,false,Dp,TT).
 ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
@@ -344,6 +346,8 @@ ssTerm(try(_,A,_,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
+ssTerm(lbld(_,Lb,E),Dp,sq([ss(Lb),ss(":"),EE])) :-
+  ssTerm(E,Dp,EE).
 
 ssTerms([],_,[]).
 ssTerms([T|More],Dp,[TT|TTs]) :-

@@ -915,8 +915,9 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Call,Opts,Path) :-
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
 %  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
+  pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
-  declareConstraints(Lc,Cx,Env,EvL),
+  declareConstraints(Lc,Cx,LEnv,EvL),
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
   newTypeVar("_E",RT),
@@ -955,8 +956,9 @@ typeOfThunk(Lc,Term,Tp,Env,
   XVar = v(Lc,XNm,VlTp),
   lambdaLbl(Path,"λ",Lbl),
   thunkType(VlTp,ThTp),
-  verifyType(Lc,ast(Term),ThTp,Tp,Env),
-  typeOfExp(Term,VlTp,Env,_,Exp,Opts,Path).
+  pushScope(Env,ThnkEnv),
+  verifyType(Lc,ast(Term),ThTp,Tp,ThnkEnv),
+  typeOfExp(Term,VlTp,ThnkEnv,_,Exp,Opts,Path).
 
 checkAction(A,Tp,HasVal,Env,Ev,As,Opts,Path) :-
   isBraceTuple(A,_,[S]),!,
