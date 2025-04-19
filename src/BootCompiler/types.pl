@@ -14,7 +14,7 @@
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
-	   getConstraints/3,putConstraints/3,pickRaises/3,
+	   getConstraints/3,putConstraints/3,pickThrows/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
@@ -155,12 +155,12 @@ isEitherTp(T,A,B) :-
 eitherType(A,B,Tp) :-
   mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
 
-pickRaises(Cx,Rs,ErTp) :-
-  pickRaises(Cx,[],Rs,voidType,ErTp).
+pickThrows(Cx,Rs,ErTp) :-
+  pickThrows(Cx,[],Rs,voidType,ErTp).
 
-pickRaises([],Rs,Rs,ErTp,ErTp) :-!.
-pickRaises([raises(ErTp)|Cx],Rs,Rx,_,ETp) :-
-  pickRaises(Cx,Rs,Rx,ETp,ErTp).
+pickThrows([],Rs,Rs,ErTp,ErTp) :-!.
+pickThrows([throws(ErTp)|Cx],Rs,Rx,_,ETp) :-
+  pickThrows(Cx,Rs,Rx,ETp,ErTp).
 
 putConstraints([],Tp,Tp).
 putConstraints([Con|Cx],In,constrained(Tp,Con)) :-

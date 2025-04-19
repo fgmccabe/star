@@ -127,6 +127,7 @@ markResolved(St,St).
 
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
+overloadTerm(thrVr(Lc,Nm,Tp,ErTp),_,St,St,thrVr(Lc,Nm,Tp,ErTp)).
 overloadTerm(anon(Lc,Tp),_,St,St,anon(Lc,Tp)).
 overloadTerm(intLit(Lc,Ix),_,St,St,intLit(Lc,Ix)).
 overloadTerm(bigLit(Lc,Ix),_,St,St,bigLit(Lc,Ix)).
@@ -185,9 +186,6 @@ overloadTerm(apply(ALc,over(Lc,T,Cx),Args,Tp),Dict,St,Stx,Term) :-
 overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp),Dict,St,Stx,Term) :-
   overloadAccess(ALc,Lc,T,RcTp,Fld,FTp,Args,ATp,Dict,St,Stx,Term).
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
-  overloadTerm(Op,Dict,St,St0,ROp),
-  overloadTerm(Args,Dict,St0,Stx,RArgs).
-overloadTerm(tapply(Lc,Op,Args,ErTp,Tp),Dict,St,Stx,tapply(Lc,ROp,RArgs,ErTp,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(capply(Lc,Op,Args,Tp),Dict,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
@@ -305,7 +303,8 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
 overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
   overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
 overloadAction(doTry(Lc,A,ErTp,H),Dict,St,Stx,doTry(Lc,AA,ErTp,HH)) :-
-  overloadAction(A,Dict,St,St1,AA),
+  setTryScope(ErTp,Dict,Dict1),
+  overloadAction(A,Dict1,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
 overloadAction(doThrow(Lc,E),Dict,St,Stx,doThrow(Lc,EE)) :-
   overloadTerm(E,Dict,St,Stx,EE).
@@ -332,11 +331,12 @@ overloadAction(A,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
-overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
+overloadMethod(_ALc,Lc,T,Cx,Args,Tp,Dict,St,Stx,Reslvd/*apply(ALc,OverOp,tple(LcA,NArgs),Tp)*/) :-
   resolveConstraints(Lc,Cx,Dict,St,St0,DTerms),
   markResolved(St0,St1),
-  overloadTerm(Args,Dict,St1,St2,tple(LcA,RArgs)),
-  resolveRef(T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs).
+  overloadTerm(Args,Dict,St1,St2,tple(_,RArgs)),
+  resolveRef(T,DTerms,RArgs,OverOp,Dict,St2,Stx,NArgs),
+  overApply(Lc,OverOp,NArgs,Tp,Reslvd).
 
 overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,St,Stx,
 	       apply(ALc,Op,tple(LcA,NArgs),ATp)) :-
@@ -347,8 +347,8 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,St,Stx,
 overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
 
-overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
+overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
@@ -379,6 +379,8 @@ overloadList([T|L],C,D,[RT|RL]) :-
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
+resolveRef(v(Lc,Nm,Tp),[throwing(_,ErTp)|DT],RArgs,thrVr(Lc,Nm,Tp,ErTp),_,Stx,Stx,Args) :- !,
+  concat(DT,RArgs,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 resolveRef(C,DT,RArgs,C,_,Stx,Stx,Args) :-

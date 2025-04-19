@@ -110,6 +110,17 @@ ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
 ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
+ssTrm(xcll(_,Op,Args,_Tp,_),Dp,sq([OO,lp,AA,rp,ss("ρ")])) :- !,
+  ssTrm(Op,Dp,OO),
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,AA).
+ssTrm(xocall(_,Op,Args,_,_),Dp,sq([OO,ss("°"),lp,AA,rp,ss("ρ")])) :-!,
+  ssTrm(Op,Dp,OO),
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,AA).
+ssTrm(xecll(_,Es,Args,_,_),Dp,sq([ss("ε"),ss(Es),lp,AA,rp,ss("ρ")])) :-!,
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,AA).
 ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
   ssCOnOp(Op,OO),
   Dp1 is Dp+2,
@@ -340,10 +351,20 @@ rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,thrw(Lc,E),thrw(Lc,EE)) :-!,
   rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
+  rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,xecll(Lc,Call,Args,Tp,ErTp),xecll(Lc,Call,NArgs,Tp,ErTp)) :-
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,xcll(Lc,Op,Args,Tp,ErTp),xcll(Lc,NOp,NArgs,Tp,ErTp)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,xocall(Lc,Op,Args,Tp,ErTp),xocall(Lc,NOp,NArgs,Tp,ErTp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
@@ -367,8 +388,6 @@ rewriteTerm(QTest,clos(Nm,Ar,Free,Tp),clos(Nm,Ar,NFree,Tp)) :-
   rewriteTerm(QTest,Free,NFree).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
@@ -547,14 +566,20 @@ inTerm(idnt(Nm,_),Nm).
 inTerm(cll(_,_,Args,_),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm).
-inTerm(ocall(_,Op,_,_),Nm) :-
-  inTerm(Op,Nm).
-inTerm(ocall(_,_Op,Args,_),Nm) :-
-  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(ocall(_,Op,Args,_),Nm) :-
+  (is_member(Arg,Args), inTerm(Arg,Nm) ; inTerm(Op,Nm)),!.
+inTerm(ecll(_,_,Args,_),Nm) :-
+  is_member(Arg,Args),
+  inTerm(Arg,Nm),!.
+inTerm(xcll(_,_,Args,_,_),Nm) :-
+  is_member(Arg,Args),
+  inTerm(Arg,Nm).
+inTerm(xocall(_,Op,Args,_,_),Nm) :-
+  (is_member(Arg,Args), inTerm(Arg,Nm) ; inTerm(Op,Nm)),!.
+inTerm(xecll(_,_,Args,_,_),Nm) :-
+  (is_member(Arg,Args), inTerm(Arg,Nm)),!.
 inTerm(clos(_,_,Fr,_),Nm) :-
   inTerm(Fr,Nm).
-inTerm(ecll(_,_,Args,_),Nm) :-
-  is_member(Arg,Args), inTerm(Arg,Nm),!.
 inTerm(nth(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(cel(_,C),Nm) :-
@@ -674,6 +699,9 @@ tipeOf(thrw(_,_),voidType).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
 tipeOf(ecll(_,_,_,T),T).
+tipeOf(xcll(_,_,_,T,_),T).
+tipeOf(xocall(_,_,_,T,_),T).
+tipeOf(xecll(_,_,_,T,_),T).
 tipeOf(nth(_,_,_,T),T).
 tipeOf(cel(_,_,T),T).
 tipeOf(get(_,_,T),T).
@@ -762,16 +790,24 @@ validTerm(float(_),_,_).
 validTerm(chr(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
+validTerm(ecll(Lc,Es,Args,_),_,D) :-
+  isEscape(Es),!,
+  validTerms(Args,Lc,D).
 validTerm(cll(Lc,lbl(_,_),Args,_),_,D) :-
   validTerms(Args,Lc,D).
 validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
-validTerm(clos(_,_,Free,_Tp),Lc,D) :-
-  validTerm(Free,Lc,D).
-validTerm(ecll(Lc,Es,Args,_),_,D) :-
+validTerm(xecll(Lc,Es,Args,_,_),_,D) :-
   isEscape(Es),!,
   validTerms(Args,Lc,D).
+validTerm(xcll(Lc,lbl(_,_),Args,_,_),_,D) :-
+  validTerms(Args,Lc,D).
+validTerm(xocall(Lc,Op,Args,_,_),_,D) :-
+  validTerm(Op,Lc,D),
+  validTerms(Args,Lc,D).
+validTerm(clos(_,_,Free,_Tp),Lc,D) :-
+  validTerm(Free,Lc,D).
 validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
@@ -991,6 +1027,12 @@ ptnVars(cll(_,_,Args,_),D,Dx) :-
 ptnVars(ocall(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ecll(_,_,Args,_),D,Dx) :-
+  rfold(Args,lterms:ptnVars,D,Dx).
+ptnVars(xcll(_,_,Args,_,_),D,Dx) :-
+  rfold(Args,lterms:ptnVars,D,Dx).
+ptnVars(xocall(_,_,Args,_,_),D,Dx) :-
+  rfold(Args,lterms:ptnVars,D,Dx).
+ptnVars(xecll(_,_,Args,_,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ctpl(_,Args),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
