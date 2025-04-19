@@ -556,9 +556,10 @@ compExp(ocall(Lc,O,A,_Tp),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   length(A,Ar),
   Arity is Ar+1,
   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,C1,Stk,Stka),
-  compExp(O,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,[iOCall(Arity)|C2],Stka,_),
+  compExp(O,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,C2,Stka,_),
+  genDbg(Opts,C2,[iOCall(Arity)|C3]),
   bumpStk(Stk,Stkx),
-  frameIns(Stkx,C2,Cx).
+  frameIns(Stkx,C3,Cx).
 compExp(clos(Lb,Ar,Free,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Free,OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iClosure(lbl(Lb,Ar))|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
