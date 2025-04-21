@@ -2,7 +2,7 @@ test.ex1{
   import star.
   import star.assert.
 
-  throwOne:(integer) => either[boolean,exception].
+  throwOne:(integer) => result[boolean,exception].
   throwOne(X) => ?? ( X>=0 ?? .true || throw .exception("bing")).
 
   main:()=>().

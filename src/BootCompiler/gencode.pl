@@ -636,10 +636,10 @@ compExp(pul(Lc,E,_),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
    genLbl(L1,Ok,L2),
    genLbl(L2,Fl,Lx),
    blockSig([ptrTipe],ptrTipe,PullSig),
-   EitherLbl = lbl("star.either*either",1),
+   ResltLbl = lbl("normal",1),
    C1 = [iLbl(Ok,iBlock(PullSig,
 			[iLbl(Fl,iBlock(PullSig,
-					[iDup,iCLbl(EitherLbl,Fl),iBreak(Ok)])),
+					[iDup,iCLbl(ResltLbl,Fl),iBreak(Ok)])),
 			 iNth(0)|FC])),
 	 iNth(0)|Cx],
    call(Brker,Exit,Stkx,Stkb,FC,[]);
@@ -649,8 +649,8 @@ compExp(psh(Lc,E,Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genstr("tmp",TmpVr),
   tipeOf(E,ETp),
-  compTryX(Lc,ctpl(lbl("star.either*either",1),[E]),
-	   Tp,idnt(TmpVr,ETp),ctpl(lbl("star.either*other",1),[idnt(TmpVr,ETp)]),
+  compTryX(Lc,ctpl(lbl("normal",1),[E]),
+	   Tp,idnt(TmpVr,ETp),ctpl(lbl("abnormal",1),[idnt(TmpVr,ETp)]),
 	   Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(CondSig,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
