@@ -60,6 +60,8 @@ set(HEADER_FILES
         Headers/eitherP.h
         Headers/constants.h
         Headers/constantsP.h
+        Headers/result.h
+        Headers/resultP.h
 )
 
 set(SOURCE_FILES
@@ -96,6 +98,7 @@ set(SOURCE_FILES
         verify.c
         vect.c
         constants.c
+        result.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
