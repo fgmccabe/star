@@ -3,7 +3,7 @@ star.mbox{
 
   public all e ~~ suspendProtocol[e] ::= .yield_ |
   .blocked(()=>boolean) |
-  .result(e) |
+  .result_(e) |
   .requestIO(ioHandle,()=>boolean) |
   .schedule(task[e]) |
   .retired_.
@@ -77,11 +77,11 @@ star.mbox{
   }
 
   spawnTask:all e ~~ (taskFun[e]) => task[e].
-  spawnTask(F) => _fiber((Tsk,_)=> .result(F(Tsk))).
+  spawnTask(F) => _fiber((Tsk,_)=> .result_(F(Tsk))).
 
   public subTask:all e ~~ (task[e],taskFun[e])=>() raises mboxException.
   subTask(Schd,F) => valof{
-    Fn = _fiber((Tsk,_)=>.result(F(Tsk)));
+    Fn = _fiber((Tsk,_)=>.result_(F(Tsk)));
 
     case Schd suspend .schedule(Fn) in {
       | .go_ahead => valis ()
@@ -103,7 +103,7 @@ star.mbox{
 	    | .yield_ => {
 	      Q:=Q!++[T];
 	    }
-	    | .result(Rslt) => {
+	    | .result_(Rslt) => {
 	      while [C,..Cs] .= Q! do{
 		Q := Cs;
 		C resume .shut_down_;
@@ -167,7 +167,7 @@ star.mbox{
   implementation all e ~~ display[suspendProtocol[e]] => {
     disp(.yield_) => "yield".
     disp(.blocked(B)) => "blocked $(B())".
-    disp(.result(e)) => "result #(_stringOf(e,2))".
+    disp(.result_(e)) => "result #(_stringOf(e,2))".
     disp(.schedule(F)) => "schedule #(_stringOf(F,2))".
     disp(.retired_) => "retired"
   }
@@ -201,7 +201,7 @@ star.mbox{
   tsk(sched,TFn) => valof{
     C = ref .neither;
 
-    Fb = _fiber((this,_)=>.result(valof{
+    Fb = _fiber((this,_)=>.result_(valof{
 	  try{
 	    C := .either(TFn());	-- this marks the future as resolved
 	    retire .retired_

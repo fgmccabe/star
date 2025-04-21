@@ -159,4 +159,10 @@ star.core {
   }
 
   public error ::= .error(string,errorCode).
+
+  public implementation all a,e ~~ display[a], display[e] |:
+    display[result[a,e]] => {
+    disp(.normal(N)) => "✓$(N)".
+    disp(.abnormal(E)) => "✖$(E)"
+    }
 }
