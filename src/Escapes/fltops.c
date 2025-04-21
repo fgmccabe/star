@@ -10,6 +10,7 @@
 #include "char.h"
 #include "arithP.h"
 #include "errorCodes.h"
+#include "result.h"
 
 ReturnStatus g__flt_eq(heapPo h, termPo a1, termPo a2) {
   double fuzz = floatVal(a2) / 1.0e20;
@@ -277,14 +278,13 @@ ReturnStatus g_log10(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g_sqrt(heapPo h, termPo xc, termPo arg1) {
+ReturnStatus g_sqrt(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
 
-  if (Arg < 0.0)
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eRANGE};
-  else {
-    return (ReturnStatus) {.ret=Normal, .result=makeFloat(sqrt(Arg))};
-  }
+  return (ReturnStatus) {.ret=Normal,
+    .result = (termPo)(Arg < 0.0 ?
+		       wrapAbnormal(h,eRANGE) :
+		       wrapResult(h,makeFloat(sqrt(Arg))))};	       
 }
 
 ReturnStatus g_pi(heapPo h) {
