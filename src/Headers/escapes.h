@@ -111,7 +111,7 @@ escape(_fiber_eq,all(r,all(s,func(fiber(r,s) fiber(r,s),bool))),"compare two fib
 escape(_fiber,all(r,all(s,func(func(fiber(r,s) r,s),fiber(r,s)))),"create a new fiber")
 
 escape(sqrt, func(flt,result(flt,ERR)), "square root")
-escape(exp, raises(func(flt,flt),ERR), "exponential")
+escape(exp, func(flt,result(flt,ERR)), "exponential")
 escape(log, func(flt,flt), "logarithm")
 escape(log10, func(flt,flt), "10-based logarithm")
 escape(pi, func(/**/,flt), "return PI")
