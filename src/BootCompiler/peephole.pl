@@ -64,6 +64,7 @@ dropUnreachable([iBreak(Lvl)|_],[iBreak(Lvl)]) :-!.
 dropUnreachable([iLoop(Lvl)|_],[iLoop(Lvl)]) :-!.
 dropUnreachable([iEndTry(Lvl)|_],[iEndTry(Lvl)]) :-!.
 dropUnreachable([iTryRslt(Lvl)|_],[iTryRslt(Lvl)]) :-!.
+dropUnreachable([iResult(Lvl,Lbl)|_],[iResult(Lvl,Lbl)]) :-!.
 dropUnreachable([iThrow|_],[iThrow]) :-!.
 dropUnreachable([iRet|_],[iRet]) :-!.
 dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
@@ -144,6 +145,8 @@ peep([iEndTry(Lb)|_],Lbls,[iEndTry(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iTryRslt(Lb)|_],Lbls,[iTryRslt(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
+peep([iResult(Lvl,Lb)|_],Lbls,[iResult(Lvl,LLb)]) :-
+  resolveLblRef(Lb,Lbls,LLb).
 peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
 peep([iRetire|_],_,[iRetire]) :-!.
 peep([iCase(Mx)|In],_Lbls,[iCase(Mx)|Inx]) :-
@@ -154,6 +157,7 @@ peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 
 lblReferenced(Lb,[iBreak(Lb)|_]).
 lblReferenced(Lb,[iLoop(Lb)|_]).
+lblReferenced(Lb,[iResult(_,Lb)|_]).
 lblReferenced(Lb,[iEndTry(Lb)|_]).
 lblReferenced(Lb,[iTryRslt(Lb)|_]).
 lblReferenced(Lb,[iIf(Lb)|_]).

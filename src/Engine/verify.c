@@ -198,7 +198,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case Call: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -216,7 +216,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case TCall: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -283,8 +283,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         propagateVars(&ctx, parentCtx);
         return Ok;   // No merge of locals here
       }
-      case Block: {        int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+      case Block: {
+        int32 constant = code[pc].fst;
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -335,7 +336,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        int32 depth = code[pc].fst;
+        if (ctxDepth(ctx.parent, stackDepth) < depth)
+          return verifyError(&ctx, ".%d: insufficient stack depth for stack Result %d", pc, depth);
+        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
+
+        if (checkBreak(ctx.parent, pc, pc + code[pc].alt + 1, stackDepth+1, False) != Ok)
           return Error;
         return Ok;
       }
@@ -364,26 +370,26 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       }
       case Rst: {
-        int32 count = code[pc].fst;
-        if (ctxDepth(ctx.parent, stackDepth) < count)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, count);
-        stackDepth = count - ctxDepth(ctx.parent, stackDepth);
+        int32 depth = code[pc].fst;
+        if (ctxDepth(ctx.parent, stackDepth) < depth)
+          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
+        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
         if (stackDepth < 0)
-          return verifyError(&ctx, ".%d: insufficient block stack depth for stack reset %d", pc, count);
+          return verifyError(&ctx, ".%d: insufficient block stack depth for stack reset %d", pc, depth);
         pc++;
         continue;
       }
       case Pick: {
-        int32 depth = code[pc].fst;
+        int32 count = code[pc].fst;
         int32 keep = code[pc].alt;
 
-        if (ctxDepth(ctx.parent, stackDepth) < depth)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
+        if (ctxDepth(ctx.parent, stackDepth) < count || ctxDepth(ctx.parent, stackDepth) < keep)
+          return verifyError(&ctx, ".%d: insufficient stack depth for stack keep %d of %d", pc, keep, count);
 
-        if (keep > depth)
-          return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, depth);
+        if (keep > count)
+          return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, count);
 
-        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
+        stackDepth = count - ctxDepth(ctx.parent, stackDepth);
         pc++;
         continue;
       }
@@ -418,7 +424,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Try: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -481,7 +487,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       case LdC: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
         stackDepth++;
         pc++;
@@ -612,7 +618,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case CLit: {
         int32 key = code[pc].fst;
-        if(!isDefinedConstant(key))
+        if (!isDefinedConstant(key))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
@@ -624,7 +630,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case CLbl: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -788,7 +794,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Alloc: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -810,7 +816,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Closure: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
@@ -828,7 +834,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
       case Frame: {
         int32 constant = code[pc].fst;
-        if(!isDefinedConstant(constant))
+        if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo frameLit = getConstant(constant);

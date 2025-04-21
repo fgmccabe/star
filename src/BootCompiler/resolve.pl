@@ -75,9 +75,6 @@ defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,TpBlkNm,Tp)|CVars],FDict) :-
   mangleName("$R",conTract,TpNm,TpBlkNm),
   declareTryScope(Lc,Tp,TpBlkNm,Dict,Dict1),
   defineCVars(Lc,Cx,Dict1,CVars,FDict).
-defineCVars(Lc,[throws(Tp)|Cx],Dict,CVars,FDict) :-
-  setTryScope(Tp,Dict,Dict1),
-  defineCVars(Lc,Cx,Dict1,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -127,7 +124,6 @@ markResolved(St,St).
 
 overloadTerm(void,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
-overloadTerm(thrVr(Lc,Nm,Tp,ErTp),_,St,St,thrVr(Lc,Nm,Tp,ErTp)).
 overloadTerm(anon(Lc,Tp),_,St,St,anon(Lc,Tp)).
 overloadTerm(intLit(Lc,Ix),_,St,St,intLit(Lc,Ix)).
 overloadTerm(bigLit(Lc,Ix),_,St,St,bigLit(Lc,Ix)).
@@ -248,10 +244,13 @@ overloadTerm(raise(Lc,T,E,Tp),Dict,St,Stx,raise(Lc,TT,EE,Tp)) :-
   overloadTerm(T,Dict,St,St0,TT),
   overloadTerm(E,Dict,St0,Stx,EE).
 overloadTerm(try(Lc,E,ErTp,H),Dict,St,Stx,try(Lc,EE,ErTp,HH)) :-
-  setTryScope(ErTp,Dict,Dict1),
-  overloadTerm(E,Dict1,St,St1,EE),
+  overloadTerm(E,Dict,St,St1,EE),
   overloadCases(H,resolve:overloadTerm,Dict,St1,Stx,HH).
 overloadTerm(throw(Lc,E,Tp),Dict,St,Stx,throw(Lc,EE,Tp)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+overloadTerm(pull(Lc,E,Tp,ErTp),Dict,St,Stx,pull(Lc,EE,Tp,ErTp)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+overloadTerm(push(Lc,E,Tp),Dict,St,Stx,push(Lc,EE,Tp)) :-
   overloadTerm(E,Dict,St,Stx,EE).
 overloadTerm(T,_,St,St,T) :-
   locOfCanon(T,Lc),
@@ -303,10 +302,13 @@ overloadAction(doAssign(Lc,P,A),Dict,St,Stx,doAssign(Lc,PP,AA)) :-
 overloadAction(doTryCatch(Lc,A,V,H),Dict,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
   overloadTryCatch(A,V,H,AA,HH,Dict,St,Stx,resolve:overloadAction).
 overloadAction(doTry(Lc,A,ErTp,H),Dict,St,Stx,doTry(Lc,AA,ErTp,HH)) :-
-  setTryScope(ErTp,Dict,Dict1),
-  overloadAction(A,Dict1,St,St1,AA),
+  overloadAction(A,Dict,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,St1,Stx,HH).
 overloadAction(doThrow(Lc,E),Dict,St,Stx,doThrow(Lc,EE)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+overloadAction(doPull(Lc,E,Tp,ErTp),Dict,St,Stx,doPull(Lc,EE,Tp,ErTp)) :-
+  overloadTerm(E,Dict,St,Stx,EE).
+overloadAction(doPush(Lc,E,Tp),Dict,St,Stx,doPush(Lc,EE,Tp)) :-
   overloadTerm(E,Dict,St,Stx,EE).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,St,St1,TT),
@@ -379,8 +381,6 @@ overloadList([T|L],C,D,[RT|RL]) :-
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
-resolveRef(v(Lc,Nm,Tp),[throwing(_,ErTp)|DT],RArgs,thrVr(Lc,Nm,Tp,ErTp),_,Stx,Stx,Args) :- !,
-  concat(DT,RArgs,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 resolveRef(C,DT,RArgs,C,_,Stx,Stx,Args) :-
@@ -487,8 +487,6 @@ resolveConstraint(Lc,implicit(Nm,Tp),Dict,St,Stx,Over) :-
    Over=void).
 resolveConstraint(Lc,raises(Tp),Dict,St,Stx,Over) :-
   resolveRaises(Lc,Tp,Dict,St,Stx,Over).
-resolveConstraint(Lc,throws(Tp),Dict,St,Stx,Over) :-
-  resolveThrows(Lc,Tp,Dict,St,Stx,Over).
 resolveConstraint(Lc,C,Dict,St,Stx,Over) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -516,20 +514,6 @@ resolveRaises(Lc,Tp,VrNm,ErTp,Dict,St,Stx,Over) :-
   Over=v(Lc,VrNm,ErTp),!.
 resolveRaises(Lc,Tp,_,ErTp,_Dict,St,Stx,void) :-
   genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
-  markActive(St,Lc,Msg,Stx).
-
-resolveThrows(Lc,ErTp,Dict,St,Stx,Over) :-
-  tryInScope(Dict,TrTp),
-  resolveThrows(Lc,TrTp,ErTp,Dict,St,Stx,Over).
-resolveThrows(Lc,ErTp,_Dict,St,Stx,void) :-
-  genMsg("exception context for %s not defined",[tpe(ErTp)],Msg),
-  markActive(St,Lc,Msg,Stx).
-
-resolveThrows(Lc,TrTp,ErTp,Dict,St,Stx,throwing(Lc,ErTp)) :-
-  sameType(ErTp,TrTp,Lc,Dict),
-  markResolved(St,Stx),!.
-resolveThrows(Lc,TrTp,ErTp,_Dict,St,Stx,void) :-
-  genMsg("throws %s not consistent with %s",[tpe(ErTp),tpe(TrTp)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 resolveImpl(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.

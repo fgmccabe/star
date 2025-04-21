@@ -10,7 +10,7 @@
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
-  ("throw" ( (prefix 930 929)))
+  ("throw" ( (prefix 230 229)))
   (".|." ( (infix 720 720 719)))
   ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
   ("import" ( (prefix 900 899)))
@@ -34,7 +34,7 @@
   ("default" ( (postfix 939 940)))
   ("<*" ( (infix 600 600 599)))
   ("#" ( (prefix 1750 1749) (infix 759 760 759)))
-  ("??" ( (infix 919 920 920)))
+  ("??" ( (infix 919 920 920) (prefix 950 949)))
   ("%" ( (infix 700 700 699)))
   (".>>>." ( (infix 600 600 599)))
   ("\\+" ( (infix 700 700 699)))
@@ -117,7 +117,6 @@
   ("/\\" ( (infix 700 700 699)))
   (">=" ( (infix 899 900 899)))
   (">>" ( (infix 949 950 950)))
-  ("throws" ( (prefix 999 998) (infix 950 951 951)))
 )
   "Table of standard star operators"
 )
@@ -172,7 +171,6 @@
 "implementation"
 "type"
 "else"
-"throws"
 )
   "Table of standard keywords"
 )

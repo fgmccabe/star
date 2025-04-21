@@ -30,7 +30,7 @@ instruction(Ret, tOs, nOp, 0, "F()v", "return")
 
 instruction(Block, tPe, bLk, 0, "F()()", "block of instructions")
 instruction(Break, nOp, lVl, 0, "F()()", "leave block")
-instruction(Result, nOp, lVl, -1, "F(p)p", "return value out of block")
+instruction(Result, i32, lVl, -1, "F(p)p", "return value out of block")
 instruction(Loop, nOp, lVl, 0, "F()()", "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "F(p)()", "drop top of stack")

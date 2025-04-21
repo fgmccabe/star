@@ -28,7 +28,7 @@
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
-  operator("throw", [prefixOp(930, 929)]).
+  operator("throw", [prefixOp(230, 229)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(200, 199), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -52,7 +52,7 @@
   operator("default", [postfixOp(939, 940)]).
   operator("<*", [infixOp(600, 600, 599)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
-  operator("??", [infixOp(919, 920, 920)]).
+  operator("??", [infixOp(919, 920, 920), prefixOp(950, 949)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
@@ -135,7 +135,6 @@
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
-  operator("throws", [prefixOp(999, 998), infixOp(950, 951, 951)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).
@@ -407,6 +406,7 @@
   keyword("=>>").
   keyword("=").
   keyword("|:").
+  keyword("?").
   keyword("@").
   keyword("|=").
   keyword("|>").
@@ -447,7 +447,6 @@
   keyword("else").
   keyword("::=").
   keyword(">>").
-  keyword("throws").
   keyword("{!").
 
   isKeyword(X):- keyword(X), !.
