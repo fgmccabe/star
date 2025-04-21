@@ -86,7 +86,7 @@ ReturnStatus g__flt_abs(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
+ReturnStatus g_exp(heapPo h, termPo arg1) {
   double x = floatVal(arg1);
 
   errno = 0;    /* clear errno prior to computation */
@@ -94,11 +94,11 @@ ReturnStatus g_exp(heapPo h, termPo xc, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eRANGE};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(eRANGE)};
     else
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(eINVAL)};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=makeFloat(ans)};
+    return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,makeFloat(ans))};
   }
 }
 
