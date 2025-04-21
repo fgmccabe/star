@@ -189,9 +189,6 @@ collConstraint(C,All,Refs,Rfx) :-
 collConstraint(C,All,Refs,Rfx) :-
   isRaises(C,_,Tp),
   collectTypeRefs(Tp,All,Refs,Rfx).
-collConstraint(C,All,Refs,Rfx) :-
-  isThrows(C,_,Tp),
-  collectTypeRefs(Tp,All,Refs,Rfx).
 collConstraint(_,_,Refs,Refs).
 
 locallyDefined([],All,All).
@@ -313,6 +310,15 @@ collectTermRefs(T,All,Rf,Rfx) :-
   collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isPull(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectTermRefs(T,All,Rf,Rfx) :-
+  isPush(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isResume(T,_,Ts,Ms),!,
@@ -463,6 +469,15 @@ collectDoRefs(T,A,R,Rx) :-
   collectDoRefs(B,A,R0,Rx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isRaise(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isPull(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isPush(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,

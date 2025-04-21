@@ -491,10 +491,16 @@ retCode run(processPo P) {
       }
 
       case Result: { /* return a value from a block */
+        termPo reslt = pop();
+        int32 height = PC->fst;
+        assert(height >= 0);
+        SP = &local(lclCount(frameMtd(FP)) + height - 1);
+
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         PC += PC->alt + 1;
+        push(reslt);
         continue;       /* and carry after reset block */
       }
 

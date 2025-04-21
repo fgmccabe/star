@@ -58,8 +58,8 @@
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTryCatch/5,mkTryCatch/5,
 	      isTry/4,mkTry/4,
-	      isRaise/3,mkRaise/3,isThrow/3,mkThrow/3,
-	      isThrows/4,mkThrows/4,isThrows/3,mkThrows/3,
+	      isRaise/3,mkRaise/3,
+	      isThrow/3,mkThrow/3,isPull/3,mkPull/3,isPush/3,mkPush/3,
 	      isResult/4,mkResult/4,
 	      isRaises/3,mkRaises/3,isRaises/4,mkRaises/4,
 	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
@@ -948,17 +948,17 @@ isThrow(A,Lc,E) :-
 mkThrow(Lc,A,E) :-
   unary(Lc,"throw",A,E).
 
-isThrows(A,Lc,T,E) :-
-  isBinary(A,Lc,"throws",T,E).
+isPull(A,Lc,E) :-
+  isUnary(A,Lc,"?",E).
 
-mkThrows(Lc,T,E,A) :-
-  binary(Lc,"throws",T,E,A).
+mkPull(Lc,A,E) :-
+  unary(Lc,"?",A,E).
 
-isThrows(A,Lc,E) :-
-  isUnary(A,Lc,"throws",E).
+isPush(A,Lc,E) :-
+  isUnary(A,Lc,"??",E).
 
-mkThrows(Lc,A,E) :-
-  unary(Lc,"throws",A,E).
+mkPush(Lc,E,A) :-
+  unary(Lc,"??",E,A).
 
 isResult(A,Lc,T,E) :-
   isBinary(A,Lc,"result",T,E).

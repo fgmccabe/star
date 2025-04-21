@@ -36,7 +36,7 @@
 @tab type function
 @item @code{throw}
 @tab non-associative prefix
-@tab 930
+@tab 230
 @tab throw an exception
 @item @code{.|.}
 @tab left associative infix
@@ -146,6 +146,10 @@
 @tab right associative infix
 @tab 920
 @tab conditional operator
+@item @code{??}
+@tab non-associative prefix
+@tab 950
+@tab pull together a failable cexpression
 @item @code{%}
 @tab left associative infix
 @tab 700
@@ -518,14 +522,6 @@
 @tab right associative infix
 @tab 950
 @tab grammar produce value
-@item @code{throws}
-@tab non-associative prefix
-@tab 999
-@tab can throw an exception
-@item @code{throws}
-@tab right associative infix
-@tab 951
-@tab can throw an exception
 
 @end multitable
 @end float
@@ -569,7 +565,6 @@
 @tab @code{implementation}
 @item @code{type}
 @tab @code{else}
-@tab @code{throws}
 
 @end multitable
 @end float

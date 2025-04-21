@@ -14,7 +14,7 @@
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,occursIn/2,
 	   moveQuants/3,reQuantTps/3,
 	   moveXQuants/3,reQuantX/3,
-	   getConstraints/3,putConstraints/3,pickThrows/3,
+	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
@@ -155,13 +155,6 @@ isEitherTp(T,A,B) :-
 eitherType(A,B,Tp) :-
   mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
 
-pickThrows(Cx,Rs,ErTp) :-
-  pickThrows(Cx,[],Rs,voidType,ErTp).
-
-pickThrows([],Rs,Rs,ErTp,ErTp) :-!.
-pickThrows([throws(ErTp)|Cx],Rs,Rx,_,ETp) :-
-  pickThrows(Cx,Rs,Rx,ETp,ErTp).
-
 putConstraints([],Tp,Tp).
 putConstraints([Con|Cx],In,constrained(Tp,Con)) :-
   putConstraints(Cx,In,Tp).
@@ -275,8 +268,6 @@ ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
 ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")])) :-
   ssType(Tp,ShCon,Dp,TT).
 ssConstraint(ShCon,Dp,raises(Tp),sq([ss("raises "),TT])) :-
-  ssType(Tp,ShCon,Dp,TT).
-ssConstraint(ShCon,Dp,throws(Tp),sq([ss("throws "),TT])) :-
   ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
@@ -510,7 +501,6 @@ contractType(conTract(Nm,A,D),Tp) :-
 contractType(implicit(_,Tp),Tp).
 contractType(implementsFace(_,Tp),Tp).
 contractType(raises(Tp),Tp).
-contractType(throws(Tp),Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
 contractType(constrained(_,Cn),Tp) :-
@@ -673,5 +663,4 @@ occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
 occIn(V,implicit(_,T)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,raises(T)) :- deRef(T,TT),occIn(V,TT),!.
-occIn(V,throws(T)) :- deRef(T,TT),occIn(V,TT),!.
 

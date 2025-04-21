@@ -99,6 +99,10 @@ ssTrm(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-
   ssTrm(E,Dp,EE).
 ssTrm(thrw(_,E),Dp,sq([ss("throw "),EE])) :-
   ssTrm(E,Dp,EE).
+ssTrm(pul(_,E,_),Dp,sq([ss("? "),EE])) :-
+  ssTrm(E,Dp,EE).
+ssTrm(psh(_,E,_),Dp,sq([ss("?? "),EE])) :-
+  ssTrm(E,Dp,EE).
 ssTrm(cll(_,Op,Args,_Tp),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
@@ -108,17 +112,6 @@ ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
 ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
-  Dp1 is Dp+2,
-  showArgs(Args,Dp1,AA).
-ssTrm(xcll(_,Op,Args,_Tp,_),Dp,sq([OO,lp,AA,rp,ss("ρ")])) :- !,
-  ssTrm(Op,Dp,OO),
-  Dp1 is Dp+2,
-  showArgs(Args,Dp1,AA).
-ssTrm(xocall(_,Op,Args,_,_),Dp,sq([OO,ss("°"),lp,AA,rp,ss("ρ")])) :-!,
-  ssTrm(Op,Dp,OO),
-  Dp1 is Dp+2,
-  showArgs(Args,Dp1,AA).
-ssTrm(xecll(_,Es,Args,_,_),Dp,sq([ss("ε"),ss(Es),lp,AA,rp,ss("ρ")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
 ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
@@ -221,7 +214,11 @@ ssAct(vls(_,E),Dp,sq([ss("valis "),EE])) :-!,
 ssAct(rais(_,T,E),Dp,sq([TT,ss(" raise "),EE])) :-!,
   ssTrm(T,Dp,TT),
   ssTrm(E,Dp,EE).
-ssAct(doThrw(_,E),Dp,sq([ss("throw "),EE])) :-!,
+ssAct(aThrow(_,E),Dp,sq([ss("throw "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(aPull(_,E),Dp,sq([ss("? "),EE])) :-!,
+  ssTrm(E,Dp,EE).
+ssAct(aPush(_,E),Dp,sq([ss("?? "),EE])) :-!,
   ssTrm(E,Dp,EE).
 ssAct(mtch(_,P,E),Dp,sq([PP,ss(" .= "),EE])) :-!,
   ssTrm(P,Dp,PP),
@@ -275,7 +272,7 @@ ssAct(doTryCtch(_,B,T,E,H),Dp,sq([ss("try "),TT,ss(" in "),BB,ss(" catch "),EE,s
   ssTrm(E,Dp,EE),
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
-ssAct(doTryA(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
+ssAct(aTry(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
   Dp2 is Dp+2,
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
@@ -351,20 +348,16 @@ rewriteTerm(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :-!,
   rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,thrw(Lc,E),thrw(Lc,EE)) :-!,
   rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,pul(Lc,E,Tp),pul(Lc,EE,Tp)) :-!,
+  rewriteTerm(QTest,E,EE).
+rewriteTerm(QTest,psh(Lc,E,Tp),psh(Lc,EE,Tp)) :-!,
+  rewriteTerm(QTest,E,EE).
 rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xecll(Lc,Call,Args,Tp,ErTp),xecll(Lc,Call,NArgs,Tp,ErTp)) :-
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xcll(Lc,Op,Args,Tp,ErTp),xcll(Lc,NOp,NArgs,Tp,ErTp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xocall(Lc,Op,Args,Tp,ErTp),xocall(Lc,NOp,NArgs,Tp,ErTp)) :-
   rewriteTerm(QTest,Op,NOp),
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
@@ -461,7 +454,11 @@ rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
 rewriteAction(QTest,rais(Lc,T,E),rais(Lc,TT,EE)) :- !,
   rewriteTerm(QTest,T,TT),
   rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,doThrw(Lc,E),doThrw(Lc,EE)) :- !,
+rewriteAction(QTest,aThrow(Lc,E),aThrow(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,aPull(Lc,E),aPull(Lc,EE)) :- !,
+  rewriteTerm(QTest,E,EE).
+rewriteAction(QTest,aPush(Lc,E),aPush(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
   rewriteTerm(QTest,E,EE).
@@ -502,7 +499,7 @@ rewriteAction(QTest,doTryCtch(Lc,B,T,E,H),doTryCtch(Lc,BB,TT,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
-rewriteAction(QTest,doTryA(Lc,B,E,H),doTryA(Lc,BB,EE,HH)) :-!,
+rewriteAction(QTest,aTry(Lc,B,E,H),aTry(Lc,BB,EE,HH)) :-!,
   rewriteTerm(QTest,E,EE),
   rewriteAction(QTest,B,BB),
   rewriteAction(QTest,H,HH).
@@ -571,13 +568,6 @@ inTerm(ocall(_,Op,Args,_),Nm) :-
 inTerm(ecll(_,_,Args,_),Nm) :-
   is_member(Arg,Args),
   inTerm(Arg,Nm),!.
-inTerm(xcll(_,_,Args,_,_),Nm) :-
-  is_member(Arg,Args),
-  inTerm(Arg,Nm).
-inTerm(xocall(_,Op,Args,_,_),Nm) :-
-  (is_member(Arg,Args), inTerm(Arg,Nm) ; inTerm(Op,Nm)),!.
-inTerm(xecll(_,_,Args,_,_),Nm) :-
-  (is_member(Arg,Args), inTerm(Arg,Nm)),!.
 inTerm(clos(_,_,Fr,_),Nm) :-
   inTerm(Fr,Nm).
 inTerm(nth(_,Op,_,_),Nm) :-
@@ -643,6 +633,10 @@ inTerm(rais(_,T,E),Nm) :-!,
   (inTerm(E,Nm);inTerm(T,Nm)),!.
 inTerm(thrw(_,E),Nm) :-
   inTerm(E,Nm),!.
+inTerm(pul(_,E,_),Nm) :-
+  inTerm(E,Nm),!.
+inTerm(psh(_,E,_),Nm) :-
+  inTerm(E,Nm),!.
 
 inAction(nop(_),_) :- !,fail.
 inAction(seq(_,L,R),Nm) :-!,
@@ -653,7 +647,11 @@ inAction(vls(_,E),Nm) :- !,
   inTerm(E,Nm).
 inAction(rais(_,T,E),Nm) :- !,
   (inTerm(T,Nm) ; inTerm(E,Nm)),!.
-inAction(doThrw(_,E),Nm) :- !,
+inAction(aThrow(_,E),Nm) :- !,
+  inTerm(E,Nm),!.
+inAction(aPull(_,E),Nm) :- !,
+  inTerm(E,Nm),!.
+inAction(aPush(_,E),Nm) :- !,
   inTerm(E,Nm),!.
 inAction(perf(_,E),Nm) :- !,
   inTerm(E,Nm).
@@ -679,7 +677,7 @@ inAction(error(_,M),Nm) :-!,
   inTerm(M,Nm).
 inAction(doTryCtch(_,B,T,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(T,Nm) ; inTerm(E,Nm) ; inAction(H,Nm)).
-inAction(doTryA(_,B,E,H),Nm) :-!,
+inAction(aTry(_,B,E,H),Nm) :-!,
   (inAction(B,Nm) ;  inTerm(E,Nm) ; inAction(H,Nm)).
 
 isCnd(cnj(_,_,_)).
@@ -696,12 +694,11 @@ tipeOf(strg(_),type("string")).
 tipeOf(flot(_),type("float")).
 tipeOf(rais(_,_,_),voidType).
 tipeOf(thrw(_,_),voidType).
+tipeOf(pul(_,_,Tp),Tp).
+tipeOf(psh(_,_,Tp),Tp).
 tipeOf(cll(_,_,_,T),T).
 tipeOf(ocall(_,_,_,T),T).
 tipeOf(ecll(_,_,_,T),T).
-tipeOf(xcll(_,_,_,T,_),T).
-tipeOf(xocall(_,_,_,T,_),T).
-tipeOf(xecll(_,_,_,T,_),T).
 tipeOf(nth(_,_,_,T),T).
 tipeOf(cel(_,_,T),T).
 tipeOf(get(_,_,T),T).
@@ -798,20 +795,16 @@ validTerm(cll(Lc,lbl(_,_),Args,_),_,D) :-
 validTerm(ocall(Lc,Op,Args,_),_,D) :-
   validTerm(Op,Lc,D),
   validTerms(Args,Lc,D).
-validTerm(xecll(Lc,Es,Args,_,_),_,D) :-
-  isEscape(Es),!,
-  validTerms(Args,Lc,D).
-validTerm(xcll(Lc,lbl(_,_),Args,_,_),_,D) :-
-  validTerms(Args,Lc,D).
-validTerm(xocall(Lc,Op,Args,_,_),_,D) :-
-  validTerm(Op,Lc,D),
-  validTerms(Args,Lc,D).
 validTerm(clos(_,_,Free,_Tp),Lc,D) :-
   validTerm(Free,Lc,D).
 validTerm(rais(Lc,T,E),_,D) :-
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
 validTerm(thrw(Lc,E),_,D) :-
+  validTerm(E,Lc,D).
+validTerm(pul(Lc,E,_),_,D) :-
+  validTerm(E,Lc,D).
+validTerm(psh(Lc,E,_),_,D) :-
   validTerm(E,Lc,D).
 validTerm(ctpl(lbl(_,_),Args),Lc,D) :-
   validTerms(Args,Lc,D).
@@ -955,7 +948,11 @@ validAction(vls(Lc,E),_,D,D) :- !,
 validAction(rais(Lc,T,E),_,D,D) :- !,
   validTerm(T,Lc,D),
   validTerm(E,Lc,D).
-validAction(doThrw(Lc,E),_,D,D) :- !,
+validAction(aThrow(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
+validAction(aPull(Lc,E),_,D,D) :- !,
+  validTerm(E,Lc,D).
+validAction(aPush(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
 validAction(perf(Lc,E),_,D,D) :- !,
   validTerm(E,Lc,D).
@@ -1005,7 +1002,7 @@ validAction(doTryCtch(Lc,B,T,E,H),_,D,D) :-
   validAction(B,Lc,D1,_),
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
-validAction(doTryA(Lc,B,E,H),_,D,D) :-
+validAction(aTry(Lc,B,E,H),_,D,D) :-
   validAction(B,Lc,D,_),
   ptnVars(E,D,D0),
   validAction(H,Lc,D0,_).
@@ -1027,12 +1024,6 @@ ptnVars(cll(_,_,Args,_),D,Dx) :-
 ptnVars(ocall(_,_,Args,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ecll(_,_,Args,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(xcll(_,_,Args,_,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(xocall(_,_,Args,_,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
-ptnVars(xecll(_,_,Args,_,_),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
 ptnVars(ctpl(_,Args),D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).

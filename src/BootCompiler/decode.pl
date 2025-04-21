@@ -120,7 +120,6 @@ decodeConstraint(constrained(Con,Extra)) --> ['|'], decodeConstraint(Con), decod
 decodeConstraint(conTract(Nm,Args,Deps)) --> ['c'], decodeText(Nm), decodeType(tplType(Args)), decodeType(tplType(Deps)).
 decodeConstraint(implicit(Nm,Tp)) --> ['d'], decodeText(Nm), decodeType(Tp).
 decodeConstraint(raises(Tp)) --> ['r'], decodeType(Tp).
-decodeConstraint(throws(Tp)) --> ['t'], decodeType(Tp).
 decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face,[])).
 decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
 

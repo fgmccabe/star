@@ -26,8 +26,8 @@ star.either{
     hash(.neither) => 0.
   }
 
-  public implementation all e,o ~~ raises o |: pull[either[e,o]->>e] => {
-    ? .either(A) => A.
-    ? .other(B) => raise B
-  }
+  -- public implementation all e,o ~~ raises o |: pull[either[e,o]->>e] => {
+  --   ? .either(A) => A.
+  --   ? .other(B) => raise B
+  -- }
 }

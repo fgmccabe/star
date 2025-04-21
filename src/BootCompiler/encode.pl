@@ -139,8 +139,6 @@ encodeConstraint(implicit(Nm,Tp),['d'|O],Ox) :-
   encodeType(Tp,O1,Ox).
 encodeConstraint(raises(Tp),['r'|O],Ox) :-
   encodeType(Tp,O,Ox).
-encodeConstraint(throws(Tp),['t'|O],Ox) :-
-  encodeType(Tp,O,Ox).
 
 encLtp(Tp,Sig) :-
   encodeLtipe(Tp,Chrs,[]),
