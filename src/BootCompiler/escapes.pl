@@ -57,7 +57,7 @@ escapeType("_big_format",constrained(funType(tplType([type("bigint"),type("strin
 escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean"))))).
 escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")))))).
 escapeType("sqrt",funType(tplType([type("float")]),tpExp(tpExp(tpFun("result",2),type("float")),type("errorCode")))).
-escapeType("exp",constrained(funType(tplType([type("float")]),type("float")),raises(type("errorCode")))).
+escapeType("exp",funType(tplType([type("float")]),tpExp(tpExp(tpFun("result",2),type("float")),type("errorCode")))).
 escapeType("log",funType(tplType([type("float")]),type("float"))).
 escapeType("log10",funType(tplType([type("float")]),type("float"))).
 escapeType("pi",funType(tplType([]),type("float"))).

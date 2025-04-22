@@ -14,6 +14,7 @@
 #define future(F,E) "UUz2'future'" F E
 #define fiber(R,S) "UUz2'fiber'" R S
 #define raises(A,E) "|"A"r"E
+#define throws(A,E) "|"A"t"E
 #define result(A,E) "UUz2'result'" A E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
@@ -358,6 +359,7 @@ escape(_jit_compile,all(a,all(e,raises(func(func(a,e),unit),ERR))),"Jit compile 
 #undef fiber
 #undef func
 #undef raises
+#undef throws
 #undef result
 #undef tpl
 #undef bool
