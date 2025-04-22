@@ -61,7 +61,7 @@ star.compiler.escapes{
     | "_fiber_eq" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s"))])),.nomnal("boolean")))))
     | "_fiber" => .some(.allType(.kVar("r"),.allType(.kVar("s"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s")),.kVar("r")])),.kVar("s"))])),.tpExp(.tpExp(.tpFun("fiber",2),.kVar("r")),.kVar("s"))))))
     | "sqrt" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.tpExp(.tpExp(.tpFun("result",2),.nomnal("float")),.nomnal("errorCode"))))
-    | "exp" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")),.raisEs(.nomnal("errorCode"))))
+    | "exp" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.tpExp(.tpExp(.tpFun("result",2),.nomnal("float")),.nomnal("errorCode"))))
     | "log" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")))
     | "log10" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float")])),.nomnal("float")))
     | "pi" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("float")))
