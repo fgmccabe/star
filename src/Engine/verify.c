@@ -861,8 +861,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
 
-      case illegalOp:
-      case maxOpCode:
+      default:
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
