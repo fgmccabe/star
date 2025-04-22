@@ -94,9 +94,9 @@ ReturnStatus g_exp(heapPo h, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(eRANGE)};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,eRANGE)};
     else
-      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(eINVAL)};
+      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,eINVAL)};
   } else {
     return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,makeFloat(ans))};
   }
