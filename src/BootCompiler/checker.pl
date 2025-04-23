@@ -380,9 +380,10 @@ findType(Nm,Lc,_,anonType) :-
 checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Opts,Path) :-
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
-  typeOfArgPtn(A,AT,voidType,Env,E0,Args,Opts,Path),
-  checkGuard(C,voidType,E0,E1,Guard,Opts,Path),
-  typeOfExp(R,RT,voidType,E1,_E2,Exp,Opts,Path),
+  tryScope(E,ErTp),
+  typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
+  checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
+  typeOfExp(R,RT,ErTp,E1,_E2,Exp,Opts,Path),
   Eqn = rule(Lc,Args,Guard,Exp),
   (is_member(traceCheck,Opts) -> 
      reportMsg("rule %s",[rle(Eqn)],Lc);
@@ -1141,7 +1142,8 @@ checkTryCatch(Lc,B,E,Hs,Tp,OErTp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path)
 
 checkTry(B,Hs,ErTp,Tp,OErTp,Env,Check,Body,Hndlr,Opts,Path) :-
   newTypeVar("ErTp",ErTp),
-  call(Check,B,Tp,ErTp,Env,_,Body,Opts,Path),
+  setTryScope(Env,ErTp,E1),
+  call(Check,B,Tp,ErTp,E1,_,Body,Opts,Path),
   checkCases(Hs,ErTp,Tp,OErTp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 
 tryBlockName(Path,Tp,TrBlkNm) :-
