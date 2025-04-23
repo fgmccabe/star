@@ -147,7 +147,7 @@ declareConstraint(Lc,implicit(Nm,Tp),E,Ev) :-
   declareVr(Lc,Nm,Tp,none,E,Ev).
 declareConstraint(Lc,raises(Tp),E,Ev) :-
   declareVr(Lc,"$try",Tp,none,E,Ev).
-declareConstraint(Lc,throws(Tp),E,Ev) :-
+declareConstraint(_Lc,throws(Tp),E,Ev) :-
   setTryScope(E,Tp,Ev).
 declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons,Trys,TrS)|Outer],
 		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons,Trys,TrS)|Outer]).
@@ -231,7 +231,7 @@ topTryScope([dict(_,_,_,_,_,_,_,Trs,_)|_],Lc,Nm,Tp) :-
 topTryScope([_|Rest],Lc,Nm,Tp) :-
   topTryScope(Rest,Lc,Nm,Tp).
 
-setTryScope(Tp,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,_)|Outer],
+setTryScope([dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,_)|Outer],Tp,
 	    [dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,Tp)|Outer]).
 
 tryScope([dict(_Tps,_Vrs,_Cns,_Impls,_Acs,_Ups,_Cons,_Trys,TrS)|_Outer],TrS).

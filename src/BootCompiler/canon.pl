@@ -24,6 +24,7 @@ isCanonDef(updDec(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
+isCanon(vX(_,_,_,_)).
 isCanon(anon(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
@@ -87,6 +88,7 @@ isIterableGoal(neg(_,R)) :- !, isIterableGoal(R).
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
+typeOfCanon(vX(_,_,Tp,_),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
@@ -147,6 +149,7 @@ typesOf([C|Cs],[Tp|Tps]) :-
   typesOf(Cs,Tps).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
+locOfCanon(vX(Lc,_,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(update(Lc,_,_,_),Lc) :- !.
@@ -238,6 +241,8 @@ dispCanon(T) :-
   displayln(canon:ssTerm(T,0)).
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
+ssTerm(vX(_,Nm,_,ErTp),Dp,sq([ss("throws "),EE,ss("|:"),id(Nm)])) :-
+  ssType(ErTp,false,Dp,EE).
 ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).

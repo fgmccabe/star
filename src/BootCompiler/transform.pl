@@ -611,8 +611,12 @@ trExpCallOp(Lc,v(_,Nm,_),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,
   implementFunCall(Lc,Reslt,Nm,Args,Tp,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,thrVr(_,Nm,_,ErTp),Tp,Args,xecll(Lc,Nm,Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex) :-
+trExpCallOp(Lc,vX(_,Nm,_,ErTp),Tp,Args,xecll(Lc,Nm,Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
+trExpCallOp(Lc,vX(_,Nm,_,ErTp),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  lookupVar(Map,Nm,Reslt),
+  Reslt\=notInMap,!,
+  implementFunCallX(Lc,Reslt,Nm,Args,Tp,ErTp,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
   lookupVar(Map,Nm,Reslt),
   (Reslt = moduleCons(Mdl,_,Ar) ->
@@ -637,6 +641,22 @@ implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,ocall(Lc,cll(Lc,Lbl,[ThV],OTp
 implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
 implementFunCall(Lc,notInMap,Nm,Args,Tp,ocall(Lc,idnt(Nm,Tp),Args,Tp),Q,Q,_Map,_Opts,Ex,Ex) :-
+  reportError("cannot compile unknown function %s",[id(Nm)],Lc).
+
+% implement call with throwing attribute
+implementFunCallX(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,ErTp,xcll(Lc,lbl(Fn,Ar2),XArgs,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+  liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
+  concat([Vr],Args,XArgs),
+  Ar2 is Ar+1.
+implementFunCallX(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,ErTp,xcll(Lc,lbl(Fn,Ar),Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex).
+implementFunCallX(Lc,moduleVar(Fn,Tp),_,Args,RTp,ErTp,xocall(Lc,idnt(Fn,Tp),Args,RTp,ErTp),Qx,Qx,_,_,Ex,Ex).
+implementFunCallX(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,ErTp,xocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+  tipeOf(ThVr,ATp),
+  OTp = funType(tplType([ATp]),Tp),
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
+implementFunCallX(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ErTp,xocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
+implementFunCallX(Lc,notInMap,Nm,Args,Tp,ErTp,xocall(Lc,idnt(Nm,Tp),Args,Tp,ErTp),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[id(Nm)],Lc).
 
 liftCases([],[],Qx,Qx,_Map,_Opts,_,Exx,Exx) :- !.

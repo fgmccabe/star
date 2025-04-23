@@ -2,13 +2,13 @@ test.ex1{
   import star.
   import star.assert.
 
-  throwOne:(integer) => result[boolean,exception].
-  throwOne(X) => ?? ( X>=0 ?? .true || throw .exception("bing")).
+  throwOne:(integer) => boolean throws exception.
+  throwOne(X) =>  X>=0 ?? .true || throw .exception("bing").
 
   main:()=>().
   main()=>valof{
     try{
-      assert ?throwOne(-1);
+      assert throwOne(-1);
     } catch {
       .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
     };
