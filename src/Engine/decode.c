@@ -483,6 +483,34 @@ static retCode decodeConstant(ioPo in, int32 *tgt, breakLevelPo brk) {
     return ret;
 }
 
+static retCode decodeSigHeight(ioPo in, int32 *tgt, breakLevelPo brk) {
+  integer litNo;
+  retCode ret = decodeInteger(in, &litNo);
+  if (ret == Ok) {
+    if (litNo >= 0 && litNo < termArity(brk->pool)) {
+      termPo literal = nthArg(brk->pool, litNo);
+      if(isString(literal)){
+        integer sigLen;
+        integer arity, returns;
+        const char *sig = strVal(literal, &sigLen);
+        funSigArity(sig, sigLen, &arity);
+      }
+      else{
+        strMsg(brk->errorMsg, brk->msgSize, "invalid literal: %T not a string", literal);
+        return Error;
+      }
+      *tgt = defineConstantLiteral(literal);
+      return Ok;
+    } else {
+      strMsg(brk->errorMsg, brk->msgSize, "invalid literal number: %d not in range [0..%d)", litNo,
+             termArity(brk->pool));
+      return Error;
+    }
+  } else
+    return ret;
+  *tgt = (int32) val;
+}
+
 static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
   char escNm[MAX_SYMB_LEN];
   int32 thisPc = (int32) arrayCount(ar);
@@ -544,7 +572,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
   return ret;
 }
 
-static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk){
+static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
   int32 thisPc = (int32) arrayCount(ar);
   insPo ins = (insPo) newEntry(ar);
   retCode ret = Ok;
@@ -553,237 +581,232 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
     (*pc)++;
     (*count)--;                 // Increment decode counter
     switch (ins->op) {
-    case Halt:
-      {
-	ret = decodeI32(in,&ins->fst);
-	(*count)--;
-	return ret;
+      case Halt: {
+        ret = decodeI32(in, &ins->fst);
+        (*count)--;
+        return ret;
       }
-    case Nop:{
-      return Ok;
-    }
+      case Nop:
+      case Abort: {
+        return Ok;
+      }
+      case Call:
+      case TCall: {
+        ret = decodeConstant(in, &ins->fst, brk);
+        (*count)--;
+        return ret;
+      }
+      case OCall: {
+        ret = decodeI32(in, &ins->fst);
+        (*count)--;
+        return ret;
+      }
+      case TOCall: {
+        ret = decodeI32(in, &ins->fst);
+        (*count)--;
+        return ret;
+      }
+      case Escape: {
+        char escNm[MAX_SYMB_LEN];
 
-    case Abort: {
-      return Ok;
-    }
-    case Call: {
-      ret = decodeConstant(in, &ins->fst, brk); (*count)--;
-      return ret;
-    }
-    case TCall: {
-      ret = decodeConstant(in, &ins->fst, brk); (*count)--;
-      return ret;
-    }
-    case OCall: {
-      ret = decodeI32(in,&ins->fst);
-      (*count)--;
-      return ret;
-    }
-    case TOCall: {
-      ret = decodeI32(in,&ins->fst);
-      (*count)--;
-      return ret;
-    }
-    case Escape: {
-      char escNm[MAX_SYMB_LEN];
+        ret = decodeString(in, escNm, NumberOf(escNm));
+        ins->fst = (int32) lookupEscape(escNm);
+        (*count)--;
+        return ret;
+      }
 
+      case Entry: {
+        ret = decodeI32(in, &ins->fst);
+        (*count)--;
+        return ret;
+      }
 
-      ret = decodeString(in,escNm,NumberOf(escNm)); ins->fst =   (int32)lookupEscape(escNm); (*count)--;
-      return ret;
-    }
+      case Ret: {
+        return Ok;
+      }
+      case Block: {
+        (*count) -= 2;
 
-    case Entry:{
-      ret = decodeI32(in,&ins->fst);
-      (*count)--;
-      return ret;
-    }
+        ret = decodeConstant(in, &ins->fst, brk);
+        if (ret == Ok)
+          ret = decodeBlock(in, ar, pc, &ins->alt, brk);
+        return ret;
+      }
 
-    case Ret: {
-      return Ok;
-    }
-    case Block: {
-      ret = decodeConstant(in, &ins->fst, brk); (*count)--;
+      case Loop:
+      case Break: {
+        (*count)--;
+        return decodeI32(in, &ins->alt);
+      }
+      case Result: {
+        (*count) -= 2;
+        ret = decodeI32(in, &ins->fst);
+        if (ret == Ok)
+          ret = decodeI32(in, &ins->alt);
+        return ret;
+      }
 
-      int32 offset; ret = decodeBlock(in, ar,  pc, &offset, brk);
-      (*count)--;
-      ins = (insPo)nthEntry(ar,thisPc);
-      ins->alt = offset;
+      case Drop:
+      case Dup: {
+        return Ok;
+      }
 
-      return ret;
-    }
+      case Rot:
+      case Rst: {
+        (*count)--;
+        return decodeI32(in, &ins->fst);
+      }
+      case Pick: {
+        (*count) -= 2;
+        ret = decodeI32(in, &ins->fst);
+        if (ret == Ok)
+          ret = decodeI32(in, &ins->alt);
+        return ret;
+      }
+      case Fiber:
+      case Resume:
+      case Suspend:
+      case Retire: {
+        return Ok;
+      }
+      case Underflow:
+        return Ok;
+      case Try: {
+        ret = decodeConstant(in, &ins->fst, brk);
+        (*count)--;
 
-    case Loop:
-    case Break:{
-      (*count)--;
-      return decodeI32(in,&ins->alt);
-    }
-    case Result: {
-      (*count)-=2;
-      ret = decodeI32(in,&ins->fst);
-      if(ret==Ok)
-	ret = decodeI32(in,&ins->alt);
-      return ret;
-    }
+        int32 offset;
+        ret = decodeBlock(in, ar, pc, &offset, brk);
+        (*count)--;
+        ins = (insPo) nthEntry(ar, thisPc);
+        ins->alt = offset;
 
-    case Drop:
-    case Dup:{
-      return Ok;
-    }
+        return ret;
+      }
+      case EndTry:
+      case TryRslt: {
+        (*count)--;
+        return decodeI32(in, &ins->alt);
+      }
+      case Throw:
+        return Ok;
+      case LdV:
+        return Ok;
+      case LdC: {
+        (*count)--;
+        return decodeConstant(in, &ins->fst, brk);
+      }
+      case LdA:
+      case LdL:
+      case StL:
+      case StV:
+      case TL: {
+        (*count)--;
+        return decodeI32(in, &ins->fst);
+      }
+      case LdG:
+      case StG:
+      case TG: {
+        char glbNm[MAX_SYMB_LEN];
 
-    case Rot:
-    case Rst:{
-      (*count)--;
-      return decodeI32(in,&ins->fst);
-    }
-    case Pick: {
-      (*count)-=2;
-      ret = decodeI32(in,&ins->fst);
-      if(ret==Ok)
-	ret = decodeI32(in,&ins->alt);
-      return ret;
-    }
-    case Fiber:
-    case Resume:
-    case Suspend:
-    case Retire:{
-      return Ok;
-    }
-    case Underflow:
-      return Ok;
-    case Try: {
-      ret = decodeConstant(in, &ins->fst, brk); (*count)--;
+        (*count)--;
 
-      int32 offset; ret = decodeBlock(in, ar,  pc, &offset, brk);
-      (*count)--;
-      ins = (insPo)nthEntry(ar,thisPc);
-      ins->alt = offset;
+        ret = decodeString(in, glbNm, NumberOf(glbNm));
+        ins->fst = globalVarNo(glbNm);
+      }
+      case Sav:
+      case TstSav:
+      case StSav:
+      case TSav:
+        return Ok;
+      case LdSav: {
+        (*count)--;
+        return decodeI32(in, &ins->alt);
+      }
+      case Cell:
+      case Get:
+      case Assign:
+        return Ok;
+      case CLit:
+      case CLbl: {
+        (*count) -= 2;
+        ret = decodeConstant(in, &ins->fst, brk);
+        if (ret == Ok)
+          ret = decodeI32(in, &ins->alt);
+        return ret;
+      }
+      case Nth:
+      case StNth: {
+        (*count)--;
+        return decodeI32(in, &ins->fst);
+      }
+      case If:
+      case IfNot: {
+        (*count)--;
+        return decodeI32(in, &ins->alt);
+      }
+      case Case:
+      case IndxJmp: {
+        (*count)--;
+        return decodeI32(in, &ins->fst);
+      }
+      case IAdd:
+      case ISub:
+      case IMul:
+        return Ok;
+      case IDiv:
+      case IMod:
+        return Ok;
 
-      return ret;
-    }
-    case EndTry:
-    case TryRslt:{
-      (*count)--;
-      return decodeI32(in,&ins->alt);
-    }    
-    case Throw:
-      return Ok;
-    case LdV:
-      return Ok;
-    case LdC: {
-      (*count)--;
-      return decodeConstant(in, &ins->fst, brk);
-    }
-    case LdA:
-    case LdL:
-    case StL:
-    case StV:
-    case TL:{
-      (*count)--;
-      return decodeI32(in,&ins->fst);
-    }
-    case LdG:
-    case StG:
-    case TG:{
-      char glbNm[MAX_SYMB_LEN];
-      
-      (*count)--;
-    
-      ret = decodeString(in,glbNm,NumberOf(glbNm));
-      ins->fst = globalVarNo(glbNm);
-    }
-    case Sav:
-    case TstSav:
-    case StSav:
-    case TSav:
-      return Ok;
-    case LdSav: {
-      (*count)--;
-      return decodeI32(in,&ins->alt);
-    }
-    case Cell:
-    case Get:
-    case Assign:
-      return Ok;
-    case CLit:
-    case CLbl:{
-      (*count)-=2;
-      ret = decodeConstant(in, &ins->fst, brk);
-      if(ret==Ok)
-	ret = decodeI32(in,&ins->alt);
-      return ret;
-    }
-    case Nth:
-    case StNth:{
-      (*count)--;
-      return decodeI32(in,&ins->fst);
-    }
-    case If:
-    case IfNot: {
-      (*count)--;
-      return decodeI32(in,&ins->alt);
-    }    
-    case Case:
-    case IndxJmp: {
-      (*count)--;
-      return decodeI32(in,&ins->fst);
-    }
-    case IAdd:
-    case ISub:
-    case IMul:
-      return Ok;
-    case IDiv:
-    case IMod:
-      return Ok;
-
-      /*   { */
-      /*       (*count)--; */
-      /* return decodeI32(in,&ins->alt); */
-      /* } */
-    case IAbs:
-    case IEq:
-    case ILt:
-    case IGe:
-      return Ok;
-    case Cmp:
-    case ICmp:
-    case CCmp:
-    case FCmp:{
-      (*count)--;
-      return decodeI32(in,&ins->alt);
-    }    
-    case CEq:
-    case CLt:
-    case CGe:
-    case BAnd:
-    case BOr:
-    case BXor:
-    case BLsl:
-    case BLsr:
-    case BAsr:
-    case BNot:
-      return Ok;
-    case FAdd:
-    case FSub:
-    case FMul:
-      return Ok;
-    case FDiv:
-    case FMod:
-      return Ok;
-    case FAbs:
-    case FEq:
-    case FLt:
-    case FGe:
-      return Ok;
-    case Alloc:
-    case Closure:
-    case Frame:{
-      (*count)--;
-      return decodeConstant(in, &ins->fst, brk);
-    }
-    case dBug:
-      return Ok;
-    default:
-      return Error;
+        /*   { */
+        /*       (*count)--; */
+        /* return decodeI32(in,&ins->alt); */
+        /* } */
+      case IAbs:
+      case IEq:
+      case ILt:
+      case IGe:
+        return Ok;
+      case Cmp:
+      case ICmp:
+      case CCmp:
+      case FCmp: {
+        (*count)--;
+        return decodeI32(in, &ins->alt);
+      }
+      case CEq:
+      case CLt:
+      case CGe:
+      case BAnd:
+      case BOr:
+      case BXor:
+      case BLsl:
+      case BLsr:
+      case BAsr:
+      case BNot:
+        return Ok;
+      case FAdd:
+      case FSub:
+      case FMul:
+        return Ok;
+      case FDiv:
+      case FMod:
+        return Ok;
+      case FAbs:
+      case FEq:
+      case FLt:
+      case FGe:
+        return Ok;
+      case Alloc:
+      case Closure:
+      case Frame: {
+        (*count)--;
+        return decodeConstant(in, &ins->fst, brk);
+      }
+      case dBug:
+        return Ok;
+      default:
+        return Error;
     }
   }
   return ret;
