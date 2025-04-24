@@ -587,6 +587,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case StSav: {
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth-=2;
         pc++;
         continue;
       }
