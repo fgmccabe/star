@@ -32,7 +32,7 @@ star.compiler.assem{
     | .iEntry(integer)
     | .iRet
     | .iXRet
-    | .iBlock(ltipe,multi[assemOp])
+    | .iBlock(integer,multi[assemOp])
     | .iBreak(assemLbl)
     | .iResult(integer,assemLbl)
     | .iLoop(assemLbl)
@@ -46,7 +46,7 @@ star.compiler.assem{
     | .iResume
     | .iRetire
     | .iUnderflow
-    | .iTry(ltipe,multi[assemOp])
+    | .iTry(integer,multi[assemOp])
     | .iEndTry(assemLbl)
     | .iTryRslt(assemLbl)
     | .iThrow
@@ -176,8 +176,8 @@ star.compiler.assem{
   mnem(.iEntry(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(11),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iRet,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(12)],Pc+1,Lts,Lns).
   mnem(.iXRet,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(13)],Pc+1,Lts,Lns).
-  mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
-    ([.intgr(14),.intgr(LtNo),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
+  mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
+    ([.intgr(14),.intgr(U),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
   mnem(.iBreak(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(15),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iResult(U,V),Pc,Lbls,Lts,Lcs,Lns) where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(16),.intgr(U),.intgr(Lvl)],Pc+1,Lts,Lns).
   mnem(.iLoop(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(17),.intgr(Tgt)],Pc+1,Lts,Lns).
@@ -191,8 +191,8 @@ star.compiler.assem{
   mnem(.iResume,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(25)],Pc+1,Lts,Lns).
   mnem(.iRetire,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(26)],Pc+1,Lts,Lns).
   mnem(.iUnderflow,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(27)],Pc+1,Lts,Lns).
-  mnem(.iTry(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) && (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
-    ([.intgr(28),.intgr(LtNo),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
+  mnem(.iTry(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
+    ([.intgr(28),.intgr(U),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
   mnem(.iEndTry(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(29),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iTryRslt(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(30),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iThrow,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(31)],Pc+1,Lts,Lns).

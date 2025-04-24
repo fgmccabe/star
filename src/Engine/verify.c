@@ -26,9 +26,7 @@ typedef struct verify_context_ {
   methodPo mtd;
   int32 from;
   int32 limit;
-  int32 entryDepth;
   int32 exitDepth;
-  int32 currDepth;
   verifyCtxPo propagated;    // Where have we propagated to?
   logical tryBlock;      // Is this from a Try block?
   varPo locals;
@@ -38,11 +36,9 @@ typedef struct verify_context_ {
   long msgLen;
 } VerifyContext;
 
-static int32 ctxDepth(verifyCtxPo ctx, int32 currDepth);
-
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
-static retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx, int32 entryDepth,
-                           int32 exitDepth, int32 currDepth);
+static retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx,
+                           int32 currDepth, int32 exitDepth);
 static retCode
 extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen);
 
@@ -72,7 +68,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   int32 sigEntryDepth, sigExitDepth;
   tryRet(extractBlockSig(&sigEntryDepth, &sigExitDepth, &mtdCtx, funSig, uniStrLen(funSig)));
 
-  return verifyBlock(0, 0, codeSize(mtd), False, &mtdCtx, 0, 1, 0);
+  return verifyBlock(0, 0, codeSize(mtd), False, &mtdCtx, 0, 1);
 }
 
 retCode extractBlockSig(int32 *entryDepth, int32 *exitDepth, verifyCtxPo ctx, const char *blockSig, integer sigLen) {
@@ -114,22 +110,16 @@ static void propagateVars(verifyCtxPo ctx, verifyCtxPo tgtCtx) {
   ctx->propagated = tgtCtx;
 }
 
-static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, integer stackDepth, logical isTry) {
+static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 margin) {
   verifyCtxPo tgtCtx = ctx;
 
   while (tgtCtx != Null && tgtCtx->from != tgt) {
-    if (!isTry && tgtCtx->tryBlock)
-      return verifyError(ctx, ".%d:not permitted to break out of a try block", pc);
-    stackDepth += (tgtCtx->currDepth - tgtCtx->entryDepth);
-    if (tgtCtx->tryBlock)
-      stackDepth++; // account for special circumstance of try block
     tgtCtx = tgtCtx->parent;
   }
 
   if (tgtCtx != Null) {
-    if (stackDepth != tgtCtx->exitDepth)
-      return verifyError(ctx, ".%d: block exit depth %d does not match current stack depth %d", pc, tgtCtx->exitDepth,
-                         stackDepth);
+    if(tgtCtx->exitDepth<margin)
+      return verifyError(ctx, ".%d: block does not have sufficient margin %d", pc, margin);
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
 
@@ -142,9 +132,9 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx, int32 entryDepth,
-                    int32 exitDepth, int32 currDepth) {
-  int32 stackDepth = entryDepth;
+retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx,
+                    int32 currDepth, int32 exitDepth) {
+  int32 stackDepth = currDepth;
   insPo code = parentCtx->mtd->instructions;
 
   char prefix[MAXLINE];
@@ -161,9 +151,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
     .from = from,
     .limit = limit,
     .parent = parentCtx,
-    .entryDepth = entryDepth,
     .exitDepth = exitDepth,
-    .currDepth = currDepth,
     .locals = locals,
     .lclCount = lclCnt,
     .propagated=Null,
@@ -270,6 +258,27 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           continue;
         }
       }
+      case XEscape: {
+        int32 escNo = code[pc].fst;
+        escapePo esc = getEscape(escNo);
+
+        if (esc == Null)
+          return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
+        else {
+          int32 arity = escapeArity(esc);
+          if (stackDepth < arity)
+            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+          stackDepth -= arity - 1;
+          if (code[pc + 1].op != Frame)
+            return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
+          pc++;
+
+	  if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1) != Ok)
+	    return Error;
+
+          continue;
+        }
+      }
       case Entry:
         if (code[pc].fst != ctx.lclCount)
           return verifyError(&ctx, ".%d local count %d does not match method local count %d", pc, code[pc].fst,
@@ -277,47 +286,35 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         stackDepth = 0;
         continue;
-      case Ret: {
+      case Ret:
+      case XRet:{
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
         propagateVars(&ctx, parentCtx);
         return Ok;   // No merge of locals here
       }
       case Block: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+        int32 exitDepth = code[pc].fst;
+	int32 blockLen = code[pc].alt;
+	pc++;
 
-        termPo lit = getConstant(constant);
-        if (!isString(lit)) {
-          return verifyError(&ctx, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
-        } else {
-          integer sigLn;
-          const char *blockSg = strVal(lit, &sigLn);
-          int32 blockEntryDepth, blockExitDepth;
-          tryRet(extractBlockSig(&blockEntryDepth, &blockExitDepth, &ctx, blockSg, sigLn));
+	if(exitDepth<stackDepth)
+	  return verifyError(&ctx, ".%d: Block %d; exit depth cannot be less than current depth",
+			     pc, exitDepth);
 
-          if (stackDepth < blockEntryDepth)
-            return verifyError(&ctx, ".%d Block stack on entry insufficiently deep: %d vs actual %d", pc,
-                               blockEntryDepth, stackDepth);
-
-          int32 blockLen = code[pc].alt;
-          pc++;
-
-          if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, blockEntryDepth, blockExitDepth, stackDepth) == Ok) {
-            stackDepth += blockExitDepth - blockEntryDepth;
-            pc += blockLen;
-            continue;
-          } else
-            return Error;
-        }
+	if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, stackDepth, exitDepth) == Ok) {
+	  stackDepth = exitDepth;
+	  pc += blockLen;
+	  continue;
+	} else
+	  return Error;
       }
 
       case Loop: {
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         return Ok;
       }
@@ -325,7 +322,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         return Ok;
       }
@@ -335,13 +332,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
-
-        int32 depth = code[pc].fst;
-        if (ctxDepth(ctx.parent, stackDepth) < depth)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack Result %d", pc, depth);
-        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
-
-        if (checkBreak(ctx.parent, pc, pc + code[pc].alt + 1, stackDepth+1, False) != Ok)
+        int32 margin = code[pc].fst;
+        if (checkBreak(ctx.parent, pc, pc + code[pc].alt + 1, margin) != Ok)
           return Error;
         return Ok;
       }
@@ -371,11 +363,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case Rst: {
         int32 depth = code[pc].fst;
-        if (ctxDepth(ctx.parent, stackDepth) < depth)
+	if(stackDepth<depth)
           return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
-        stackDepth = depth - ctxDepth(ctx.parent, stackDepth);
-        if (stackDepth < 0)
-          return verifyError(&ctx, ".%d: insufficient block stack depth for stack reset %d", pc, depth);
+	stackDepth = depth;
         pc++;
         continue;
       }
@@ -383,13 +373,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         int32 count = code[pc].fst;
         int32 keep = code[pc].alt;
 
-        if (ctxDepth(ctx.parent, stackDepth) < count || ctxDepth(ctx.parent, stackDepth) < keep)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack keep %d of %d", pc, keep, count);
+        if (stackDepth < count || stackDepth < keep)
+          return verifyError(&ctx, ".%d: insufficient stack depth (%d) for stack keep %d of %d",
+			     pc, stackDepth, keep, count);
 
         if (keep > count)
           return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, count);
 
-        stackDepth = count - ctxDepth(ctx.parent, stackDepth);
+        stackDepth = count;
         pc++;
         continue;
       }
@@ -423,40 +414,26 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
 
       case Try: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+        int32 exitDepth = code[pc].fst;
+	int32 blockLen = code[pc].alt;
+	pc++;
 
-        termPo lit = getConstant(constant);
-        if (!isString(lit)) {
-          return verifyError(&ctx, RED_ESC_ON "Invalid signature literal: %T"RED_ESC_OFF, lit);
-        } else {
-          integer sigLn;
-          const char *blockSg = strVal(lit, &sigLn);
+	if(exitDepth<stackDepth)
+	  return verifyError(&ctx, ".%d: Block %d; exit depth cannot be less than current depth",
+			     pc, exitDepth);
 
-          int32 blockEntryDepth, blockExitDepth;
-          tryRet(extractBlockSig(&blockEntryDepth, &blockExitDepth, &ctx, blockSg, sigLn));
-
-          if (stackDepth < blockEntryDepth - 1) // The Try block has an extra value pushed on stack
-            return verifyError(&ctx, ".%d Try Block stack on entry insufficiently deep: %d vs actual %d", pc,
-                               blockEntryDepth, stackDepth);
-
-          int32 blockLen = code[pc].alt;
-          pc++;
-
-          if (verifyBlock(pc - 1, pc, pc + blockLen, True, &ctx, blockEntryDepth, blockExitDepth, stackDepth) == Ok) {
-            stackDepth++; // We have an error code if we fail
-            pc += blockLen;
-            continue;
-          } else
-            return Error;
-        }
+	if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, stackDepth, exitDepth) == Ok) {
+	  stackDepth = exitDepth;
+	  pc += blockLen;
+	  continue;
+	} else
+	  return Error;
       }
       case EndTry: {
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient stack depth for EndTry", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth - 1, True) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1) != Ok)
           return Error;
         stackDepth--;
         pc++;
@@ -466,7 +443,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient stack depth for TryRslt", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth - 1, True) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         stackDepth--;
         pc++;
@@ -578,7 +555,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth - 1, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
 
         pc++;
@@ -624,7 +601,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         pc++;
         continue;
@@ -640,7 +617,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         pc++;
         continue;
@@ -663,7 +640,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth, False) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         pc++;
         continue;
@@ -680,7 +657,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           switch (caseIns->op) {
             case Break:
             case Loop:
-              if (checkBreak(&ctx, casePc, casePc + code[casePc].alt + 1, stackDepth, False) != Ok)
+              if (checkBreak(&ctx, casePc, casePc + code[casePc].alt + 1, 0) != Ok)
                 return Error;
               continue;
             default:
@@ -731,7 +708,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case FCmp: {
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        else if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, stackDepth - 2, False) != Ok)
+        else if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
           return Error;
         else {
           stackDepth -= 2;
@@ -792,7 +769,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-
       case Alloc: {
         int32 constant = code[pc].fst;
         if (!isDefinedConstant(constant))
@@ -814,7 +790,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           }
         }
       }
-
       case Closure: {
         int32 constant = code[pc].fst;
         if (!isDefinedConstant(constant))
@@ -832,7 +807,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           }
         }
       }
-
       case Frame: {
         int32 constant = code[pc].fst;
         if (!isDefinedConstant(constant))
@@ -851,9 +825,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         else
           return verifyError(&ctx, ".%d: invalid Frame literal: %T", pc, lit);
 
-        if (depth != ctxDepth(&ctx, stackDepth))
+        if (depth != stackDepth)
           return verifyError(&ctx, ".%d: stack depth %d does not match Frame instruction %d", pc,
-                             ctxDepth(ctx.parent, stackDepth), depth);
+                             stackDepth, depth);
 
         pc++;
         continue;
@@ -868,19 +842,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
   }
   propagateVars(&ctx, parentCtx);
   return Ok;
-}
-
-int32 ctxDepth(verifyCtxPo ctx, int32 currDepth) {
-  int32 depth = currDepth;
-  while (ctx != Null) {
-    if (ctx->tryBlock)
-      depth -= ctx->entryDepth - 1;
-    else
-      depth -= ctx->entryDepth;
-    depth += ctx->currDepth;
-    ctx = ctx->parent;
-  }
-  return depth;
 }
 
 retCode verifyError(verifyCtxPo ctx, char *msg, ...) {

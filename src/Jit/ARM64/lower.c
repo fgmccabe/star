@@ -155,6 +155,9 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         continue;
       }
+      case XEscape:
+      case XOCall:
+      case XCall:
       case TCall:            // TCall <prog>
       case TOCall:            // TOCall
         return Error;
@@ -191,6 +194,8 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         pc++;
         return jit_postamble(jit);
       }
+      case XRet:
+	return Error;
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
         defineJitLbl(jit, &code[pc]);
@@ -482,7 +487,8 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Cmp:            // t1 t2 --> , branch to offset if not same literal
       case Frame:            // frame instruction
       case dBug:            // debugging prefix
-      default:
+      case maxOpCode:
+      case illegalOp:
         return Error;
     }
   }

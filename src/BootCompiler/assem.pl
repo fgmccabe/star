@@ -630,11 +630,10 @@ mnem([iRet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[12|M],Cdx) :-
 mnem([iXRet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[13|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[14,LtNo,B|M],Cdx) :-
+mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[14V,B|M],Cdx) :-
       Pc1 is Pc+1,
-      findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,none,Lbls,Lt1,Lt2,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
-      mnem(Ins,Lbls,Lt2,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
+      assemBlock(V,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
+      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
 mnem([iBreak(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[15,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
@@ -677,11 +676,10 @@ mnem([iRetire|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[26|M],Cdx) :-
 mnem([iUnderflow|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[27|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTry(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[28,LtNo,B|M],Cdx) :-
+mnem([iTry(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[28V,B|M],Cdx) :-
       Pc1 is Pc+1,
-      findLit(Lt,V,LtNo,Lt1),
-      assemBlock(W,none,Lbls,Lt1,Lt2,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
-      mnem(Ins,Lbls,Lt2,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
+      assemBlock(V,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
+      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
 mnem([iEndTry(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[29,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
@@ -1050,7 +1048,7 @@ showMnem(iXRet,Pc,sq([PcDx,ss(": "),ss("XRet")])) :- !,
   true.
 showMnem(iBlock(U,V),Pc,sq([PcDx,ss(": "),ss("Block"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  ssTrm(U,0,UU),
+  UU=ix(U),
   blockPc(Pc,SPc),
   showMnems(V, SPc, Ms),
   pcSpace(SPc,Dp),
@@ -1105,7 +1103,7 @@ showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
   true.
 showMnem(iTry(U,V),Pc,sq([PcDx,ss(": "),ss("Try"), ss(" "), UU, ss(","), VV])) :- !,
   showPc(Pc,PcDx),
-  ssTrm(U,0,UU),
+  UU=ix(U),
   blockPc(Pc,SPc),
   showMnems(V, SPc, Ms),
   pcSpace(SPc,Dp),
