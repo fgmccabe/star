@@ -286,6 +286,11 @@ static void genStarMnem(ioPo out, char *mnem, int op, opAndSpec A, opAndSpec B, 
         case i32:
           outMsg(out, "=> ([.intgr(%d),.intgr(U),.intgr(V)],Pc+1,Lts,Lns).\n", op);
           return;
+        case bLk: {                             // A nested block of instructions
+          outMsg(out, "where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>\n"
+                      "    ([.intgr(%d),.intgr(U),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).\n",op);
+          return;
+        }
         default:
           check(False, "Cannot generate instruction code");
       }

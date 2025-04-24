@@ -483,34 +483,6 @@ static retCode decodeConstant(ioPo in, int32 *tgt, breakLevelPo brk) {
     return ret;
 }
 
-static retCode decodeSigHeight(ioPo in, int32 *tgt, breakLevelPo brk) {
-  integer litNo;
-  retCode ret = decodeInteger(in, &litNo);
-  if (ret == Ok) {
-    if (litNo >= 0 && litNo < termArity(brk->pool)) {
-      termPo literal = nthArg(brk->pool, litNo);
-      if(isString(literal)){
-        integer sigLen;
-        integer arity, returns;
-        const char *sig = strVal(literal, &sigLen);
-        funSigArity(sig, sigLen, &arity);
-      }
-      else{
-        strMsg(brk->errorMsg, brk->msgSize, "invalid literal: %T not a string", literal);
-        return Error;
-      }
-      *tgt = defineConstantLiteral(literal);
-      return Ok;
-    } else {
-      strMsg(brk->errorMsg, brk->msgSize, "invalid literal number: %d not in range [0..%d)", litNo,
-             termArity(brk->pool));
-      return Error;
-    }
-  } else
-    return ret;
-  *tgt = (int32) val;
-}
-
 static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
   char escNm[MAX_SYMB_LEN];
   int32 thisPc = (int32) arrayCount(ar);

@@ -143,7 +143,8 @@ retCode run(processPo P) {
         return Error;
       }
 
-      case Call: {
+      case Call:
+      case XCall:{
         labelPo nProg = C_LBL(getConstant(PC->fst));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
 
@@ -184,7 +185,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case OCall: {        /* Call tos a1 .. an -->   */
+      case OCall:
+      case XOCall:{        /* Call tos a1 .. an -->   */
         int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
@@ -232,7 +234,7 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Escape: {                     /* call escape */
+      case Escape:{                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
         PC++;
         if (collectStats)
@@ -333,6 +335,114 @@ retCode run(processPo P) {
           goto Exception;
         }
       }
+
+      case XEscape:{                     /* call escape */
+        int32 escNo = PC->fst;           /* escape number */
+        PC++;
+        if (collectStats)
+          recordEscape(escNo);
+
+        escapePo esc = getEscape(escNo);
+        saveRegisters();
+        assert(H->topRoot == 0);
+        ReturnStatus ret;
+
+        switch (esc->arity) {
+          case 0:
+            ret = ((escFun0) (esc->fun))(H);
+            break;
+          case 1: {
+            termPo a1 = popStack(STK);
+            ret = ((escFun1) (esc->fun))(H, a1);
+            break;
+          }
+          case 2: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            ret = ((escFun2) (esc->fun))(H, a1, a2);
+            break;
+          }
+          case 3: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
+            break;
+          }
+          case 4: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
+            break;
+          }
+          case 5: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            ret = ((escFun5) (esc->fun))(H, a1, a2, a3, a4, a5);
+            break;
+          }
+          case 6: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            ret = ((escFun6) (esc->fun))(H, a1, a2, a3, a4, a5, a6);
+            break;
+          }
+          case 7: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            termPo a7 = popStack(STK);
+            ret = ((escFun7) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7);
+            break;
+          }
+          case 8: {
+            termPo a1 = popStack(STK);
+            termPo a2 = popStack(STK);
+            termPo a3 = popStack(STK);
+            termPo a4 = popStack(STK);
+            termPo a5 = popStack(STK);
+            termPo a6 = popStack(STK);
+            termPo a7 = popStack(STK);
+            termPo a8 = popStack(STK);
+            ret = ((escFun8) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7, a8);
+            break;
+          }
+          default:
+            logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
+            bail();
+        }
+
+        restoreRegisters();
+        assert(H->topRoot == 0);
+
+        if (ret.ret == Normal) {
+          if (ret.result != Null)
+            push(ret.result);
+          continue;
+        } else {
+	  PC += PC->alt + 1;
+	  assert(validPC(frameMtd(FP), PC));
+	  assert(PC->op == Block);
+	  SP = &local(lclCount(frameMtd(FP)) + PC->fst);
+	  PC += PC->alt + 1;
+	  
+          push(ret.result);
+	  continue;
+        }
+      }
+	
 
       case TCall: {       /* Tail call of explicit program */
         labelPo lbl = C_LBL(getConstant(PC->fst));
@@ -468,6 +578,34 @@ retCode run(processPo P) {
         CT = controlTop(FP, try);
         continue;       /* and carry on regardless */
       }
+
+      case XRet: {        /* exceptional return from function */
+        termPo retVal = *SP;     /* return value */
+
+        assert(FP > baseFrame(STK));
+
+        ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
+        tryFramePo try = STK->tp;
+
+        while ((ptrPo) try > (ptrPo) FP) {
+          check(try->fp == FP, "misaligned try block");
+          try = try->try;
+        }
+        STK->tp = try;
+
+        SP = tgtSp; // Just above arguments to current call
+        FP = FP->fp;
+        PC = FP->pc - 1;
+        PC += PC->alt + 1;
+        assert(validPC(frameMtd(FP), PC));
+        assert(PC->op == Block);
+        PC += PC->alt + 1;
+	
+        push(retVal);      /* push return value */
+        CT = controlTop(FP, try);
+        continue;       /* and carry on regardless */
+      }
+	
 
       case Block: {
         PC++;
@@ -1430,7 +1568,7 @@ retCode run(processPo P) {
         }
       }
 
-      default:
+      case maxOpCode:
       case illegalOp:
         syserr("Illegal instruction");
     }
