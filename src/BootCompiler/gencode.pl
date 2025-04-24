@@ -60,13 +60,11 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
-  flatBlockSig(FlatSig),
-  nearlyFlatSig(ptrTipe,NFlatSig),
   genLbl(L0,Lx,L1),
   genLbl(L1,Er,L2),
-  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(FlatSig,
-				       [iLbl(Lx,iBlock(NFlatSig,
-						       [iLbl(Er,iBlock(NFlatSig,FC)),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
+				       [iLbl(Lx,iBlock(1,
+						       [iLbl(Er,iBlock(1,FC)),
 							iXRet])),iRet]))|CA]),
   BaseBrks = [("$try",gencode:breakOut,Er,none)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D,D1,FC,FC0,some(0),Stk0),
@@ -87,7 +85,6 @@ genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
   toLtipe(funType(tplType([]),Tp),LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
-%  nearlyFlatSig(ptrTipe,NFlatSig),
   genLbl(L0,_Lx,L1),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(strg(Sig),FC))|CA]),
   compExp(Value,Lc,[],notLast,Opts,L1,L2,D,D1,FC,[iTG(Nm),iRet|FC1],some(0),Stk0),
@@ -336,6 +333,9 @@ frameIns(none,Cx,Cx).
 
 stkLvl(some(Lvl),Lvl).
 
+stkNxtLvl(some(Lvl),L) :-
+  L is Lvl+1.
+
 resetStack(Stk,Stk,C,C) :-!.
 resetStack(none,_Stk,C,C) :- !.
 resetStack(Stk,Stk0,[iDrop|C],C) :-
@@ -457,8 +457,8 @@ compCond(cnj(Lc,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compCond(cnj(Lc,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :- !, % apply de morgan's law
   compCond(dsj(Lc,ng(Lc,A),ng(Lc,B)),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compCond(dsj(Lc,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(Fl,iBlock(FlatTp,AC))|BC]))|Cx]),
-  flatBlockSig(FlatTp),
+  stkLvl(Stk,Lvl),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(Fl,iBlock(Lvl,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
   compCond(A,Lc,Fl,Brks,normal,Opts,L1,L2,D,D0,AC,[iBreak(Ok)],Stk,Stka),
@@ -473,8 +473,8 @@ compCond(ng(Lc,A),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCond(A,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  flatBlockSig(FlatTp),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatTp,[iLbl(El,iBlock(FlatTp,CA))|CB]))|Cx]),
+  stkLvl(Stk,Lvl),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(El,iBlock(Lvl,CA))|CB]))|Cx]),
   genLbl(L,El,L0),
   compCond(T,Lc,El,Brks,normal,Opts,L0,L1,D,D1,CA,C0,Stk,Stk0),
   genLbl(L1,Ok,L2),
@@ -489,8 +489,8 @@ compCond(mtch(Lc,P,E),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   compPtn(P,Lc,Fail,Brks,Opts,L3,Lx,D1,Dx,C1,Cx,Stka,Stkb),
   verify(Stkb=Stk,"match condition should not affect stack").
 compCond(mtch(Lc,P,E),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
-  flatBlockSig(FlatSig),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(FlatSig,CB))|Cx]),
+  stkLvl(Stk,Lvl),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,CB))|Cx]),
   genLbl(L,Ok,L1),
   compExp(E,Lc,Brks,notLast,Opts,L1,L3,D,D1,CB,C1,Stk,Stka),
   compPtn(P,Lc,Ok,Brks,Opts,L3,Lx,D1,Dx,C1,[iBreak(Fail)],Stka,Stkb),
