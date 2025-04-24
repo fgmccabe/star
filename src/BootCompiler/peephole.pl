@@ -67,6 +67,7 @@ dropUnreachable([iTryRslt(Lvl)|_],[iTryRslt(Lvl)]) :-!.
 dropUnreachable([iResult(Lvl,Lbl)|_],[iResult(Lvl,Lbl)]) :-!.
 dropUnreachable([iThrow|_],[iThrow]) :-!.
 dropUnreachable([iRet|_],[iRet]) :-!.
+dropUnreachable([iXRet|_],[iXRet]) :-!.
 dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
 dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
 dropUnreachable([iAbort|_],[iAbort]) :-!.
@@ -175,6 +176,9 @@ lblReferenced(Lb,[iBlock(_,I)|_]) :-
 lblReferenced(Lb,[iTry(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(Lb)|_]).
+lblReferenced(Lb,[iXCall(_,Lb)|_]).
+lblReferenced(Lb,[iXOCall(_,Lb)|_]).
+lblReferenced(Lb,[iXEscape(_,Lb)|_]).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 resolveLblRef(Lb,Lbls,LLb) :-
