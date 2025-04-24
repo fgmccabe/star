@@ -134,9 +134,9 @@ logical validConstraint(char *sig, integer *start, integer end) {
   }
 }
 
-static retCode tplArity(char *sig, int32 *arity, integer *start, integer end);
+static retCode tplArity(const char *sig, int32 *arity, integer *start, integer end);
 
-static retCode funArity(char *sig, int32 *arity, integer *start, integer end) {
+static retCode funArity(const char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {
     case tplSig: {
       *arity = 0;
@@ -166,14 +166,25 @@ static retCode funArity(char *sig, int32 *arity, integer *start, integer end) {
   }
 }
 
-retCode funSigArity(char *sig, int32 *arity) {
+retCode funSigArity(const char *sig, integer length, int32 *arity) {
   integer pos = 0;
-  integer end = uniStrLen(sig);
-
-  return funArity(sig, arity, &pos, end);
+  return funArity(sig, arity, &pos, length);
 }
 
-static retCode tplArity(char *sig, int32 *arity, integer *start, integer end) {
+retCode funSigReturns(const char *sig, integer length, int32 *count){
+  integer pos = 0;
+  int32 ignore;
+  tryRet(funArity(sig,&ignore,&pos,length));
+  if(sig[pos]==tplSig)
+    return tplArity(sig,count,&pos,length);
+  else{
+    *count = 1;
+    return Ok;
+  }
+}
+
+
+static retCode tplArity(const char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {
     case tplSig: {
       *arity = 0;
@@ -197,9 +208,9 @@ static retCode tplArity(char *sig, int32 *arity, integer *start, integer end) {
   }
 }
 
-static retCode skipConstrnt(char *sig, integer *start, integer end);
+static retCode skipConstrnt(const char *sig, integer *start, integer end);
 
-retCode skipSig(char *sig, integer *start, integer end) {
+retCode skipSig(const char *sig, integer *start, integer end) {
   if ((*start) < end) {
     switch (sig[(*start)++]) {
       case anySig:
@@ -276,7 +287,7 @@ retCode skipSig(char *sig, integer *start, integer end) {
     return Error;
 }
 
-retCode skipConstrnt(char *sig, integer *start, integer end) {
+retCode skipConstrnt(const char *sig, integer *start, integer end) {
   if (*start < end) {
     switch (sig[(*start)++]) {
       case contractCon:

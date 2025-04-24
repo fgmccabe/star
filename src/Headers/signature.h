@@ -73,9 +73,9 @@ typedef enum {
   cloTrm = 'p',         // A closure object
 } starDecodeKey;
 
-retCode funSigArity(char *sig, int32 *arity);
-retCode funSigReturns(char *sig, int32 *count);
-retCode skipSig(char *sig, integer *start, integer end);
+retCode funSigArity(const char *sig, integer length, int32 *arity);
+retCode funSigReturns(const char *sig, integer length, int32 *count);
+retCode skipSig(const char *sig, integer *start, integer end);
 retCode showSignature(ioPo out, const char *sig, integer *start, integer end);
 retCode showConstraint(ioPo out, const char *sig, integer *start, integer end);
 retCode skipSignature(ioPo in);
