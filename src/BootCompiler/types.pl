@@ -7,6 +7,7 @@
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
+	   isThrowingType/3,
 	   isResultType/3,resultType/3,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   ssTipe/2,
@@ -362,6 +363,17 @@ isProgType(allType(_,Tp)) :- !, isProgType(Tp).
 isProgType(constrained(Tp,_)) :- isProgType(Tp).
 isProgType(Tp) :- isFunctionType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_,_),!.
+
+isThrowingType(Tp,ResTp,ErTp) :- deRef(Tp,TT), isThrowsType(TT,ResTp,ErTp).
+
+isThrowsType(allType(_,Tp),RsTp,ErTp) :- !,
+  isThrowingType(Tp,RsTp,ErTp).
+isThrowsType(constrained(Tp,throws(ErTp)),RsTp,ErTp) :-!,
+  funResType(Tp,RsTp).
+isThrowsType(constrained(Tp,_),RsTp,ErTp) :-
+  isThrowingType(Tp,RsTp,ErTp).
+isThrowsType(Tp,RsTp,voidType) :-
+  funResType(Tp,RsTp).
 
 isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
