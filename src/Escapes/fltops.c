@@ -94,12 +94,11 @@ ReturnStatus g_exp(heapPo h, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,eRANGE)};
+      return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eRANGE};
     else
-      return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,eINVAL)};
-  } else {
-    return (ReturnStatus) {.ret=Normal, .result=(termPo)wrapResult(h,makeFloat(ans))};
-  }
+      return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eINVAL};
+  } else
+    return (ReturnStatus) {.ret=Normal, .result=makeFloat(ans)};
 }
 
 ReturnStatus g__ldexp(heapPo h, termPo a1, termPo a2) {
@@ -281,10 +280,10 @@ ReturnStatus g_log10(heapPo h, termPo arg1) {
 ReturnStatus g_sqrt(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result = (termPo)(Arg < 0.0 ?
-		       wrapAbnormal(h,eRANGE) :
-		       wrapResult(h,makeFloat(sqrt(Arg))))};	       
+  if(Arg >= 0.0)
+    return (ReturnStatus) {.ret=Normal, .result=makeFloat(sqrt(Arg))};
+  else
+    return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eRANGE};
 }
 
 ReturnStatus g_pi(heapPo h) {

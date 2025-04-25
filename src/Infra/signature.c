@@ -135,6 +135,7 @@ logical validConstraint(char *sig, integer *start, integer end) {
 }
 
 static retCode tplArity(const char *sig, int32 *arity, integer *start, integer end);
+static retCode constraintArity(const char *sig, int32 *arity, integer *start, integer end);
 
 static retCode funArity(const char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {
@@ -159,8 +160,7 @@ static retCode funArity(const char *sig, int32 *arity, integer *start, integer e
       return funArity(sig, arity, start, end);
     case constrainedSig: // Constrained signature, add 1 to arity
       tryRet(funArity(sig, arity, start, end));
-      (*arity)++;
-      return Ok;
+      return constraintArity(sig, arity, start, end);
     default:
       return Error;      /* Not a valid signature */
   }
@@ -171,18 +171,35 @@ retCode funSigArity(const char *sig, integer length, int32 *arity) {
   return funArity(sig, arity, &pos, length);
 }
 
-retCode funSigReturns(const char *sig, integer length, int32 *count){
+retCode funSigReturns(const char *sig, integer length, int32 *count) {
   integer pos = 0;
   int32 ignore;
-  tryRet(funArity(sig,&ignore,&pos,length));
-  if(sig[pos]==tplSig)
-    return tplArity(sig,count,&pos,length);
-  else{
+  tryRet(funArity(sig, &ignore, &pos, length));
+  if (sig[pos] == tplSig)
+    return tplArity(sig, count, &pos, length);
+  else {
     *count = 1;
     return Ok;
   }
 }
 
+static retCode constraintArity(const char *sig, int32 *arity, integer *start, integer end) {
+  switch (sig[(*start)++]) {
+    case contractCon:
+      (*arity)++;
+      return skipSig(sig, start, end);
+    case hasFieldCon:
+      (*arity)++;
+      return skipSig(sig, start, end);
+    case implicitCon:
+      (*arity)++;
+      return skipSig(sig, start, end);
+    case throwsCon:
+      return skipSig(sig, start, end);
+    default:
+      return Error;
+  }
+}
 
 static retCode tplArity(const char *sig, int32 *arity, integer *start, integer end) {
   switch (sig[(*start)++]) {

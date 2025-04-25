@@ -5,8 +5,9 @@ test.c0{
 
   public cons[e] ::= .nil | .cons(e,cons[e]).
 
-  public pp[a] ::= pp{C:integer} |
-    pq{C:integer. A:a}.
+  public pp[a] ::= pp{C:integer}.
+
+  pq[a] ::= pq{C:integer. A:a}.
 
   kk ::= kk{C:integer}.
 
@@ -18,7 +19,6 @@ test.c0{
 
   implementation all e ~~ lc[pp[e]->>integer] => {
     ll(pp{C=XX}) => XX.
-    ll(pq{C=YY}) => YY.
   }
 
   tt ::= .tt(integer).

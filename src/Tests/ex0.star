@@ -1,15 +1,12 @@
 test.ex0{
-  import star.
-  import star.assert.
+  except ::= .except(string).
 
   main:()=>().
   main()=>valof{
     try{
-      assert 3~=2;
-      
-      throw .exception("bong");
+      throw .except("bong");
     } catch {
-      .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
+      .except(Msg) => { _logmsg("out with a #(Msg)"); valis () }
     };
   }
 }

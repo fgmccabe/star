@@ -118,8 +118,8 @@ test.f0{
   thrw:()=>().
   thrw() => valof{
     try{
-      raise .exception("bong");
-    } catch exception in {
+      throw .exception("bong");
+    } catch {
       .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis () }
     }
   }
@@ -128,7 +128,7 @@ test.f0{
   nothrw() => valof{
     try{
       valis .some("no throw")
-    } catch exception in {
+    } catch {
       .exception(Msg) => { _logmsg(_str_concat("out with a ",Msg)); valis .none }
     }
   }

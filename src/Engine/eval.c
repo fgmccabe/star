@@ -144,7 +144,7 @@ retCode run(processPo P) {
       }
 
       case Call:
-      case XCall:{
+      case XCall: {
         labelPo nProg = C_LBL(getConstant(PC->fst));
         methodPo mtd = labelCode(nProg);    // Which program do we want?
 
@@ -186,7 +186,7 @@ retCode run(processPo P) {
       }
 
       case OCall:
-      case XOCall:{        /* Call tos a1 .. an -->   */
+      case XOCall: {        /* Call tos a1 .. an -->   */
         int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
@@ -234,7 +234,7 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Escape:{                     /* call escape */
+      case Escape: {                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
         PC++;
         if (collectStats)
@@ -336,9 +336,8 @@ retCode run(processPo P) {
         }
       }
 
-      case XEscape:{                     /* call escape */
+      case XEscape: {                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
-        PC++;
         if (collectStats)
           recordEscape(escNo);
 
@@ -430,19 +429,19 @@ retCode run(processPo P) {
         if (ret.ret == Normal) {
           if (ret.result != Null)
             push(ret.result);
+          PC++;
           continue;
         } else {
-	  PC += PC->alt + 1;
-	  assert(validPC(frameMtd(FP), PC));
-	  assert(PC->op == Block);
-	  SP = &local(lclCount(frameMtd(FP)) + PC->fst);
-	  PC += PC->alt + 1;
-	  
+          PC += PC->alt + 1;
+          assert(validPC(frameMtd(FP), PC));
+          assert(PC->op == Block);
+          SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1);
+          PC += PC->alt + 1;
+
           push(ret.result);
-	  continue;
+          continue;
         }
       }
-	
 
       case TCall: {       /* Tail call of explicit program */
         labelPo lbl = C_LBL(getConstant(PC->fst));
@@ -600,12 +599,11 @@ retCode run(processPo P) {
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
         PC += PC->alt + 1;
-	
+
         push(retVal);      /* push return value */
         CT = controlTop(FP, try);
         continue;       /* and carry on regardless */
       }
-	
 
       case Block: {
         PC++;

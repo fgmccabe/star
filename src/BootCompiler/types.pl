@@ -303,8 +303,9 @@ progTypeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
 
 tpArity(allType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
 tpArity(existType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
-tpArity(constrained(Tp,_),Ar) :- !,
-  progTypeArity(Tp,A), Ar is A+1.
+tpArity(constrained(Tp,Constraint),Ar) :- !,
+  extraArity(Constraint,Extra),
+  progTypeArity(Tp,A), Ar is A+Extra.
 tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
@@ -313,13 +314,19 @@ tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
 
+extraArity(throws(_),0).
+extraArity(conTract(_,_,_),1).
+extraArity(implementsFace(_,_),1).
+extraArity(implicit(_,_),1).
+extraArity(raises(_),1).
+
 realArgTypes(Tp,ArTps) :- deRef(Tp,TT), rlArgTypes(TT,ArTps).
 
 rlArgTypes(allType(_,Tp),As) :- !, realArgTypes(Tp,As).
 rlArgTypes(existType(_,Tp),As) :- !, realArgTypes(Tp,As).
-rlArgTypes(constrained(Tp,C),[CC|As]) :- !,
-  realArgTypes(Tp,As),
-  contractType(C,CC).
+rlArgTypes(constrained(Tp,C),As) :- !,
+  constraintArgType(C,As,Ax),
+  realArgTypes(Tp,Ax).
 rlArgTypes(funType(A,_),As) :- !,
   realArgTypes(A,As).
 rlArgTypes(consType(A,_),As) :- !,
@@ -329,6 +336,13 @@ rlArgTypes(faceType(Flds,_),As) :- !,
   sort(Flds,types:cmpFld,SFlds),
   project0(SFlds,As).
 rlArgTypes(_,[]).
+
+constraintArgType(throws(_),Cx,Cx).
+constraintArgType(conTract(Nm,A,D),[CC|Cx],Cx) :-
+  contractType(conTract(Nm,A,D),CC).
+constraintArgType(implicit(_,Tp),[Tp|Cx],Cx).
+constraintArgType(implementsFace(_,Tp),[Tp|Cx],Cx).
+constraintArgType(raises(Tp),[Tp|Cx],Cx).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 
