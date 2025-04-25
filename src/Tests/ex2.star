@@ -1,14 +1,27 @@
 test.ex2{
-  import star.
-  import star.assert.
-
   main:()=>().
   main()=>valof{
     try{
-      show sqrt(10.4);
-      assert ?sqrt(-1.0) == 0.0;
+      _logmsg(_stringOf(sqrt(10.4),0));
+      _logmsg(_stringOf(sqrt(-1.0),0));
     } catch {
-      ErrCode => { showMsg("out with a $(ErrCode)"); valis () }
+      ErrCode => { _logmsg("out with a #(dspEr(ErrCode))"); valis () }
     };
   }
+
+  dspEr(.eINTRUPT) => "eINTRUPT".
+  dspEr(.eNOFILE) => "eNOFIL".
+  dspEr(.eNOTDIR) => "eNOTDIR".
+  dspEr(.eNOTFND) => "eNOTFND".
+  dspEr(.eINVAL) => "eINVAL".
+  dspEr(.eRANGE) => "eRANGE".
+  dspEr(.eNOPERM) => "eNOPERM".
+  dspEr(.eFAIL) => "eFAIL".
+  dspEr(.eIOERROR) => "eIOERROR".
+  dspEr(.eCONNECT) => "eCONNECT".
+  dspEr(.eDEAD) => "eDEAD".
+  dspEr(.divZero) => "divZero".
+  dspEr(.noValue) => "noValue".
+  dspEr(.hasValue) => "hasValue".
+  dspEr(.eof) => "eof".
 }

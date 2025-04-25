@@ -1,16 +1,15 @@
 test.ex1{
-  import star.
-  import star.assert.
+  except ::= .except(string).
 
-  throwOne:(integer) => boolean throws exception.
-  throwOne(X) =>  X>=0 ?? .true || throw .exception("bing").
+  throwOne:(integer) => boolean throws except.
+  throwOne(X) =>  _int_ge(X,0) ?? .true || throw .except("bing").
 
   main:()=>().
   main()=>valof{
     try{
-      assert throwOne(-1);
+      _logmsg(throwOne(-1)??"no throw"||"either");
     } catch {
-      .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
+      .except(Msg) => { _logmsg("out with a #(Msg)"); valis () }
     };
   }
 }

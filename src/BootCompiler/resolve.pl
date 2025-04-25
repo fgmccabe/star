@@ -355,6 +355,7 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,St,Stx,
 overloadCases(Cses,Resolver,Dict,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,St,Stx,RCases).
 
+overApply(_,OverOp,[],_,OverOp) :- \+vX(_,_,_,_) = OverOp,!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
 overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
