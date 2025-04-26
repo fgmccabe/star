@@ -13,7 +13,7 @@ star.compiler.escapes{
     | "_int_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_minus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_times" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
-    | "_int_div" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")),.raisEs(.nomnal("errorCode"))))
+    | "_int_div" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")),.throWs(.nomnal("errorCode"))))
     | "_int_mod" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")),.raisEs(.nomnal("errorCode"))))
     | "_int_hash" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("integer")))
     | "_int_gcd" => .some(.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")),.raisEs(.nomnal("errorCode"))))

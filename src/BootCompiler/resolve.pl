@@ -389,6 +389,8 @@ resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,St,Stx,MtdCall),!.
 resolveRef(v(Lc,Nm,Tp),[throwing(_,ErTp)],Args,vX(Lc,Nm,Tp,ErTp),_Dict,St,St,Args).
+resolveRef(apply(Lx,v(Lc,Nm,Tp),Args,RsTp),[throwing(_,ErTp)],Args,
+	   apply(Lx,vX(Lc,Nm,Tp,ErTp),Args,RsTp),_Dict,St,St,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 resolveRef(C,DT,RArgs,C,_,Stx,Stx,Args) :-

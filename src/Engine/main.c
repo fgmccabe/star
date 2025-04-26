@@ -26,7 +26,6 @@
 #include "editline.h"
 #include "starP.h"
 #include "futureP.h"
-#include "resultP.h"
 #include "singleP.h"
 #include "vectP.h"
 #include "ioops.h"
@@ -81,7 +80,6 @@ int main(int argc, char **argv) {
   initConstants();
   initCons();
   initEither();
-  initResult();
   initVect();
   initIdeal();
   initOption();

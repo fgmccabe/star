@@ -10,7 +10,6 @@
 #include "char.h"
 #include "arithP.h"
 #include "errorCodes.h"
-#include "result.h"
 
 ReturnStatus g__flt_eq(heapPo h, termPo a1, termPo a2) {
   double fuzz = floatVal(a2) / 1.0e20;
