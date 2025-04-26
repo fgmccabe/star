@@ -134,9 +134,9 @@ star.core {
   public (••):all a,b,c ~~ ((b,b)=>c,(a)=>b)=>(a,a)=>c.
   F •• G => (x,y)=>F(G(x),G(y)).
 
-  -- public contract all x,y ~~ pull[x->>y] ::= {
-  --   (?):(x) => y
-  -- }
+  public contract all x,y ~~ pull[x->>y] ::= {
+    (?):(x) => y
+  }
 
   public exception ::= .exception(string).
 
@@ -159,10 +159,4 @@ star.core {
   }
 
   public error ::= .error(string,errorCode).
-
-  public implementation all a,e ~~ display[a], display[e] |:
-    display[result[a,e]] => {
-    disp(.normal(N)) => "✓$(N)".
-    disp(.abnormal(E)) => "✖$(E)"
-    }
 }

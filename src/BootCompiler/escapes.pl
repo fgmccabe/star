@@ -9,7 +9,7 @@ escapeType("_globalIsSet",funType(tplType([type("string")]),type("boolean"))).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer"))).
-escapeType("_int_div",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode")))).
+escapeType("_int_div",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),throws(type("errorCode")))).
 escapeType("_int_mod",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode")))).
 escapeType("_int_hash",funType(tplType([type("integer")]),type("integer"))).
 escapeType("_int_gcd",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode")))).

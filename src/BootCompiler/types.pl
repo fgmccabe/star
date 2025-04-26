@@ -8,7 +8,6 @@
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
 	   isThrowingType/3,
-	   isResultType/3,resultType/3,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   ssTipe/2,
 	   contractType/2,contractTypes/2,
@@ -20,7 +19,6 @@
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
 	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
-	   isEitherTp/3,eitherType/3,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -142,20 +140,6 @@ mvConstraints(constrained(Tp,Con),[Con|C],Cx,Tmp) :-
   deRef(Tp,DTp),
   mvConstraints(DTp,C,Cx,Tmp).
 mvConstraints(Tp,Cx,Cx,Tp).
-
-isResultType(T,VlTp,ErTp) :-
-  deRef(T,Tp),
-  isTypeExp(Tp,tpFun("result",2),[VlTp,ErTp]).
-
-resultType(A,B,Tp) :-
-  mkTypeExp(tpFun("result",2),[A,B],Tp).
-
-isEitherTp(T,A,B) :-
-  deRef(T,Tp),
-  isTypeExp(Tp,tpFun("star.either*either",2),[A,B]).
-
-eitherType(A,B,Tp) :-
-  mkTypeExp(tpFun("star.either*either",2),[A,B],Tp).
 
 putConstraints([],Tp,Tp).
 putConstraints([Con|Cx],In,constrained(Tp,Con)) :-
@@ -565,10 +549,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		allType(kVar("e"),consType(tplType([]),tpExp(tpFun("option",1),kVar("e"))))),
 	 cnsDec("some","some",
 		allType(kVar("e"),consType(tplType([kVar("e")]),tpExp(tpFun("option",1),kVar("e"))))),
-	 typeDec("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))),
-	 typeDec("version",type("star.pkg*version"),typeExists(type("star.pkg*version"),faceType([],[]))),
 	 typeDec("ioHandle",type("ioHandle"),typeExists(type("ioHandle"),faceType([],[]))),
-	 typeDec("file",type("star.file*fileHandle"),typeExists(type("star.file*fileHandle"),faceType([],[]))),
 	 typeDec("fiber",
 		 tpFun("fiber",2),
 		 allType(kVar("a"),

@@ -467,7 +467,6 @@ star.compiler.operators{
     | "=>>" => .true
     | "=" => .true
     | "|:" => .true
-    | "?" => .true
     | "@" => .true
     | "|=" => .true
     | "|>" => .true

@@ -499,7 +499,8 @@ checkImplementation(Stmt,INm,[ImplVar|Dfs],Dfs,Env,Evx,_,
   contractType(Spec,CnType),
   dollarName(Nm,DlNm),
   labelImplExp(IBody,DlNm,ImpBody),
-  typeOfExp(ImpBody,CnType,voidType,ThEnv,_ThEv,ImplTerm,Opts,ImplVrNm),
+  tryScope(ThEnv,ErTp),
+  typeOfExp(ImpBody,CnType,ErTp,ThEnv,_ThEv,ImplTerm,Opts,ImplVrNm),
   (is_member(traceCheck,Opts) -> 
      reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]);
    true),
@@ -513,7 +514,7 @@ checkImplementation(Stmt,INm,[ImplVar|Dfs],Dfs,Env,Evx,_,
   declareImplementation(ImplName,ImplVrNm,ImpType,Ev0,Evx),
   call(Publish,Viz,imp(INm),Decl,Dc,Dc0),
   call(Publish,Viz,imp(INm),VDcl,Dc0,Dcx),!.
-checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_,_,Dcx,Dcx,_) :-
+checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_,_,Dcx,Dcx,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement %s",[ast(Stmt)],Lc).
 
