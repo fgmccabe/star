@@ -10,6 +10,7 @@
 :- use_module(dict).
 :- use_module(errors).
 :- use_module(freshen).
+:- use_module(meta).
 :- use_module(misc).
 :- use_module(unify).
 :- use_module(wff).
@@ -299,9 +300,7 @@ parseContract(T,Env,Ev,Opts,Path,[conDef(Nm,ConNm,ConRule),
   wrapType(Q,Cx,[],[],ConTp,CnType),
   dollarName(Nm,DlNm),
   ConTpDef = typeDef(Lc,DlNm,CnType,FaceRule),
-  (is_member(traceCheck,Opts) -> 
-   reportMsg("contract type  %s",[ConTpDef]);
-   true),
+  checkOpt(Opts,traceCheck,parsetype:showContractType(ConTpDef)),
   genBraceConstructor(Lc,SortedFlds,DlNm,ConNm,Q,Cx,ConTp,Df,Df0,Env,Ev0,ConDecl),
   call(Publish,Viz,con(Nm),ConDecl,Dc,Dca),
 %  reportMsg("contract type constructor %s",[CnsDef]),
@@ -321,9 +320,7 @@ parseContractSpec(T,_Q,_Env,conTract(ConNm,[],[]),Nm,ConNm,Path) :-
 
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,Opts,Path) :-
   isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),!,
-  (is_member(traceCheck,Opts) -> 
-     reportMsg("parse type exists: %s",[St]);
-   true),
+  checkOpt(Opts,traceCheck,meta:showAst(Lc,"parse type exists: %s",[St])),
   parseTypeExists(Lc,Quants,Ct,Hd,Body,Defn,E,Ev,Publish,Viz,Dc,Dcx,Path).
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Publish,Viz,Dc,Dcx,_Opts,Path) :-
   isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
@@ -712,3 +709,7 @@ parseHeadArgs([H|L],B,[V|Args]) :-
   isIden(H,Lc,Nm),
   (is_member((Nm,V),B) ; reportError("type argument %s not quantified ",[ast(H)],Lc)),
   parseHeadArgs(L,B,Args).
+
+showContractType(Def,_) :-
+  reportMsg("contract type  %s",[canDef(Def)]).
+  

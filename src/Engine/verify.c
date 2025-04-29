@@ -676,7 +676,13 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case IDiv:
+      case IDiv: {
+        if (stackDepth < 2)
+          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth --;
+        pc++;
+        continue;
+      }
       case IMod: {
         if (stackDepth < 3)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);

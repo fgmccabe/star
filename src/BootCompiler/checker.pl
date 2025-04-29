@@ -11,6 +11,7 @@
 :- use_module(parsetype).
 :- use_module(dict).
 :- use_module(declmgt).
+:- use_module(meta).
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(errors).
@@ -32,7 +33,7 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
    true),
   declareAllDecls(ThEx,Lc,Env0,Env1),
   declareAllDecls(ThL,Lc,Env1,Env2),
-  overload(Defs,Env2,ODefs),
+  overload(Defs,Env2,Opts,ODefs),
   Canon=prog(Pkg,Imports,ThEx,ThL,ODefs),
   concat(ThEx,ThL,D0),
   concat(D0,IDecls,PkgDecls).
@@ -308,9 +309,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Publish,Viz,Dc,Dcx,Opts,Path) :-
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Opts,Path),
   qualifiedName(Path,N,LclName),
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx,Publish,Viz,Dc,Dcx),
-  (is_member(traceCheck,Opts) -> 
-     reportMsg("type of %s:%s",[N,ProgramType]);
-   true).
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of %s:%s",[id(N),tpe(ProgramType)])).
 
 formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
   Eqn = rule(Lc,_,_,_),
@@ -832,11 +831,14 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
-  checkAction(Ac,Tp,ErTp,hasVal,Env,Ev,Act,Opts,Path).
+  checkAction(Ac,Tp,ErTp,hasVal,Env,Ev,Act,Opts,Path),
+  (is_member(traceCheck,Opts) -> 
+   reportMsg("action %s:%s/%s",[cnact(Act),tpe(Tp),tpe(ErTp)],Lc);
+   true).
 typeOfExp(A,Tp,ErTp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
   isTryCatch(A,Lc,B,E,H),!,
   checkTryCatch(Lc,B,E,H,Tp,ErTp,Env,checker:typeOfExp,Body,Trw,Hndlr,Opts,Path).
-typeOfExp(A,Tp,_ErTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),[raises(ErTp)]),Opts,Path) :-
+typeOfExp(A,Tp,_ErTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),raises(ErTp)),Opts,Path) :-
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
   typeOfExp(E,ErTp,voidType,Env,_,ErExp,Opts,Path).

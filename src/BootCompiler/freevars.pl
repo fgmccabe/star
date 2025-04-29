@@ -10,11 +10,7 @@
 freeVars(v(_,Nm,Tp),Ex,Q,F,Fv) :-
   \+isEscape(Nm),
   call(Q,Ex,Nm,Tp,F,Fv),!.
-freeVars(vX(_,Nm,Tp,_),Ex,Q,F,Fv) :-
-  \+isEscape(Nm),
-  call(Q,Ex,Nm,Tp,F,Fv),!.
 freeVars(v(_,_,_),_Ex,_Q,Fv,Fv).
-freeVars(vX(_,_,_,_),_Ex,_Q,Fv,Fv).
 freeVars(anon(_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
 freeVars(intLit(_,_),_,_,F,F).
@@ -23,6 +19,8 @@ freeVars(floatLit(_,_),_,_,F,F).
 freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
+freeVars(throwing(_,C,_),Ex,Q,F,Fv) :-
+  freeVars(C,Ex,Q,F,Fv).
 freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :-
   freeVars(Op,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,FV).
@@ -206,7 +204,6 @@ freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
 ptnVars(v(_,Nm,Tp),Q,Qx) :- add_mem(idnt(Nm,Tp),Q,Qx).
-ptnVars(vX(_,Nm,Tp,_),Q,Qx) :- add_mem(idnt(Nm,Tp),Q,Qx).
 ptnVars(anon(_,_),Q,Q).
 ptnVars(intLit(_,_),Q,Q).
 ptnVars(bigLit(_,_),Q,Q).

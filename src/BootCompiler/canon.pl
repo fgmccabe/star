@@ -24,7 +24,6 @@ isCanonDef(updDec(_,_,_,_)).
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
-isCanon(vX(_,_,_,_)).
 isCanon(anon(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
@@ -39,6 +38,7 @@ isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(capply(_,_,_,_)).
 isCanon(dot(_,_,_,_)).
+isCanon(throwing(_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(tdot(_,_,_,_)).
 isCanon(enm(_,_,_)).
@@ -79,6 +79,7 @@ isGoal(implies(_,_,_)) :- !.
 isGoal(disj(_,_,_)) :- !.
 isGoal(neg(_,_)) :- !.
 isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
+isGoal(throwing(_,G,_)) :- isGoal(G).
 
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(implies(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
@@ -88,7 +89,6 @@ isIterableGoal(neg(_,R)) :- !, isIterableGoal(R).
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
-typeOfCanon(vX(_,_,Tp,_),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
@@ -110,6 +110,7 @@ typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
+typeOfCanon(throwing(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(nth(_,_,_,Tp),Tp) :-!.
@@ -149,7 +150,6 @@ typesOf([C|Cs],[Tp|Tps]) :-
   typesOf(Cs,Tps).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
-locOfCanon(vX(Lc,_,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(update(Lc,_,_,_),Lc) :- !.
@@ -173,6 +173,7 @@ locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
+locOfCanon(throwing(Lc,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
@@ -241,8 +242,6 @@ dispCanon(T) :-
   displayln(canon:ssTerm(T,0)).
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
-ssTerm(vX(_,Nm,_,ErTp),Dp,sq([ss("throws "),EE,ss("|:"),id(Nm)])) :-
-  ssType(ErTp,false,Dp,EE).
 ssTerm(anon(_,_),_,ss("_")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
@@ -290,12 +289,15 @@ ssTerm(lambda(_,Lbl,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
-ssTerm(over(_,V,Cx),Dp,sq([ss("<"),iv(ss(","),CCs),ss("|:"),VV,ss(">")])) :-
-  map(Cx,types:ssConstraint(false,Dp),CCs),
+ssTerm(over(_,V,Cx),Dp,sq([ss("<"),CC,ss("|:"),VV,ss(">")])) :-
+  ssConstraint(false,Dp,Cx,CC),
   ssTerm(V,Dp,VV).
 ssTerm(overaccess(_,R,Fld,F),Dp,sq([RR,ss("<~{"),ss(Fld),ss(":"),FF,ss("}")])) :-
   ssTerm(R,Dp,RR),
   ssType(F,false,Dp,FF).
+ssTerm(throwing(_,C,ErTp),Dp,sq([lp,ss("throws "),EE,ss("|:"),CC,rp])) :-
+  ssType(ErTp,false,Dp,EE),
+  ssTerm(C,Dp,CC).
 ssTerm(where(_,Ptn,Cond),Dp,sq([PP,GG])) :-
   ssTerm(Ptn,Dp,PP),
   ssGuard(some(Cond),Dp,GG).
@@ -434,11 +436,6 @@ ssActSeq(doSeq(_,L,R),Dp,sq([LL,ss(";"),nl(Dp),RR])) :-!,
   ssActSeq(R,Dp,RR).
 ssActSeq(A,Dp,S) :-
   ssAction(A,Dp,S).
-
-ssConstraints([],_,[]).
-ssConstraints([T|More],Dp,[TT|TTs]) :-
-  ssConstraint(false,Dp,T,TT),
-  ssConstraints(More,Dp,TTs).
 
 ssRule(Rl,Dp,Ds) :-
   ssRule("",Dp,Rl,Ds).

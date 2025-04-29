@@ -17,11 +17,19 @@ test.ex3{
     one = 1.
   }
 
+  foo:all x,y ~~ ar[x->>y], throws y |: (x) => x.
+  foo(x) => div(x,x).
+
+  bar:all x,y ~~ ar[x->>y], ar[integer->>y] |: (x) => (x,integer).
+  bar(x) => (foo(x),foo(3)).
+
   main:()=>().
   main()=>valof{
     try{
-      _logmsg(_stringOf(div(3,2),0));
-      _logmsg(_stringOf(div(2,0),0));
+--      Tm = (times:(integer,integer)=>integer);
+      Dv = div;
+      _logmsg(_stringOf(Dv(3,2),0));
+--      _logmsg(_stringOf(div(2,0),0));
     } catch {
       Msg => { _logmsg("out with a #(Msg)"); valis () }
     };

@@ -79,7 +79,7 @@ star.compiler.assem{
     | .iIAdd
     | .iISub
     | .iIMul
-    | .iIDiv
+    | .iIDiv(assemLbl)
     | .iIMod
     | .iIAbs
     | .iIEq
@@ -225,7 +225,7 @@ star.compiler.assem{
   mnem(.iIAdd,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(58)],Pc+1,Lts,Lns).
   mnem(.iISub,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(59)],Pc+1,Lts,Lns).
   mnem(.iIMul,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(60)],Pc+1,Lts,Lns).
-  mnem(.iIDiv,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(61)],Pc+1,Lts,Lns).
+  mnem(.iIDiv(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(61),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iIMod,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(62)],Pc+1,Lts,Lns).
   mnem(.iIAbs,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(63)],Pc+1,Lts,Lns).
   mnem(.iIEq,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(64)],Pc+1,Lts,Lns).
@@ -494,7 +494,7 @@ star.compiler.assem{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
-  stkHwm([.iIDiv,..Ins],CH0,H0) => valof{
+  stkHwm([.iIDiv(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-2;
     valis stkHwm(Ins,CH1,H0)
   }
@@ -723,7 +723,7 @@ star.compiler.assem{
   showIns(.iIAdd,Pc) => "IAdd".
   showIns(.iISub,Pc) => "ISub".
   showIns(.iIMul,Pc) => "IMul".
-  showIns(.iIDiv,Pc) => "IDiv".
+  showIns(.iIDiv(V),Pc) => "IDiv #(V)".
   showIns(.iIMod,Pc) => "IMod".
   showIns(.iIAbs,Pc) => "IAbs".
   showIns(.iIEq,Pc) => "IEq".
