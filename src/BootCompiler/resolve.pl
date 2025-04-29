@@ -394,6 +394,8 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,Opts,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,MtdCall),!.
+resolveRef(throwing(Lc,Trm,ErTp),DTs,Args,throwing(Lc,Over,ErTp),Dict,Opts,St,Stx,Args) :-
+  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,Args).
 resolveRef(C,[throwing(Lc,ErTp)],Args,throwing(Lc,C,ErTp),_Dict,_,St,St,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
