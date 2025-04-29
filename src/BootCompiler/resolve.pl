@@ -104,14 +104,14 @@ defineArg(capply(_,_,Args,_),Dict,RDict) :-!,
 defineArg(_,Dict,Dict).
   
 resolveTerm(Term,Dict,Opts,Resolved) :-
-  overloadTerm(Term,Dict,Opts,inactive,St,RTerm),!,
   locOfCanon(Term,Lc),
+  traceCheck(Opts,Lc,"resolve %s",[can(Term)]),
+  overloadTerm(Term,Dict,Opts,inactive,St,RTerm),!,
   traceCheck(Opts,Lc,"resolved term %s",[can(RTerm)]),
   resolveAgain(inactive,St,Term,RTerm,Dict,Opts,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
 resolveAgain(_,resolved,Term,T,Dict,Opts,R) :- !,
-%  reportMsg("resolving again %s",[can(T)]),
   overloadTerm(T,Dict,Opts,inactive,St,T0),
   resolveAgain(inactive,St,Term,T0,Dict,Opts,R).
 resolveAgain(_,inactive,_,T,_,_,T) :- !.
@@ -205,14 +205,7 @@ overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,Opts,St,Stx,Over) :-
     markActive(St,Lc,Msg,Stx),
     Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
-  ( resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]) ->
-    resolveRef(T,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
-    typeOfCanon(T,TTp),
-    overApply(Lc,OverOp,NArgs,TTp,Over),
-    markResolved(St1,Stx);
-    genMsg("cannot find implementation for contracts %s",[Cx],Msg),
-    markActive(St,Lc,Msg,Stx),
-    Over = over(Lc,T,Cx)).
+  overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
   resolveRef(T,[AccessOp],[],OverOp,Dict,Opts,St1,St2,NArgs),
@@ -344,6 +337,16 @@ overloadAction(A,_,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
+overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Over) :-
+  resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),!,
+  resolveRef(T,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
+  typeOfCanon(T,TTp),
+  overApply(Lc,OverOp,NArgs,TTp,Over),
+  markResolved(St1,Stx).
+overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,over(Lc,T,Cx)) :-
+  genMsg("cannot find implementation for contracts %s",[Cx],Msg),
+  markActive(St,Lc,Msg,Stx).
+
 overloadMethod(_ALc,Lc,T,Cx,Args,Tp,Dict,Opts,St,Stx,Reslvd) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method: %s:%s",[can(apply(Lc,over(Lc,T,Cx),Args,Tp)),tpe(Tp)])),
   resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),
@@ -391,12 +394,14 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
   call(C,T,D,O,RT),
   overloadList(L,C,D,O,RL).
 
+resolveRef(over(Lc,Trm,Con),DTs,Args,over(Lc,Over,Con),Dict,Opts,St,Stx,Args) :-
+  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,Args).
+resolveRef(C,[throwing(Lc,ErTp)],Args,throwing(Lc,C,ErTp),_Dict,_,St,St,Args).
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,Opts,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,MtdCall),!.
 resolveRef(throwing(Lc,Trm,ErTp),DTs,Args,throwing(Lc,Over,ErTp),Dict,Opts,St,Stx,Args) :-
   resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,Args).
-resolveRef(C,[throwing(Lc,ErTp)],Args,throwing(Lc,C,ErTp),_Dict,_,St,St,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 resolveRef(C,DT,RArgs,C,_,Opts,Stx,Stx,Args) :-
@@ -411,11 +416,11 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
   newTypeVar("FF",RTp),
   (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
    freshen(RTp,Dict,_,CFTp),
-   getConstraints(CFTp,Cx,FTp), % constraints here are dropped!
+   getConstraints(CFTp,_Cx,FTp), % constraints here are dropped!
    sameType(FTp,Tp,Lc,Dict),
-   V = v(Lc,FunNm,funType(tplType([RcTp]),FTp)),
-%   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp),
-   manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
+   V = v(Lc,FunNm,funType(tplType([RcTp]),Tp)),
+   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp),
+%   manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
    traceCheck(Opts,Lc,"dot resolved term %s",[can(Reslvd)]),
    markResolved(St,Stx);
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
