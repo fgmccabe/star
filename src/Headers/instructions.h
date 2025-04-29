@@ -90,7 +90,7 @@ instruction(IndxJmp, i32, tOs, -1, "F(p)p", "check and jump on index")
 instruction(IAdd, tOs, tOs, -1, "F(ii)i", "L R --> L+R")
 instruction(ISub, tOs, tOs, -1, "F(ii)i", "L R --> L-R")
 instruction(IMul, tOs, tOs, -1, "F(ii)i", "L R --> L*R")
-instruction(IDiv, tOs, tOs, -2, "F(ii)i", "L R --> L/R")
+instruction(IDiv, tOs, lVl, -2, "F(ii)i", "L R --> L/R")
 instruction(IMod, tOs, tOs, -2, "F(ii)i", "L R --> L%R")
 instruction(IAbs, tOs, nOp, 0, "F(i)i", "L --> abs(L)")
 

@@ -101,10 +101,13 @@ mkCns(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
 mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
 
 manageConstraints([],_,V,V).
-manageConstraints([implementsFace(RTp,faceType(Flds,_))|Cx],Lc,Term,Exp) :-
-  manageFieldAccess(Flds,Lc,RTp,Term,Dot),
-  manageConstraints(Cx,Lc,Dot,Exp).
-manageConstraints([Con|Cx],Lc,V,over(Lc,V,[Con|Cx])).
+manageConstraints([Cx|Cxs],Lc,Term,Over) :-
+  manageConstraints(Cxs,Lc,Term,Inner),
+  manageConstraint(Cx,Lc,Inner,Over).
+
+manageConstraint(implementsFace(RTp,faceType(Flds,_)),Lc,Term,Dot) :-
+  manageFieldAccess(Flds,Lc,RTp,Term,Dot).
+manageConstraint(Cx,Lc,Term,over(Lc,Term,Cx)).
 
 manageFieldAccess([],_,_,Term,Term) :-!.
 manageFieldAccess([(Fld,Ftp)|Flds],Lc,RTp,Term,Exp) :-

@@ -363,10 +363,13 @@ liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,Tp,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+  typeOfCanon(Op,OTp),
+  traceTrans(Opts,Lc,"implement call to %s:%s",[can(Op),tpe(OTp)]),
+  trExpCallOp(Lc,Op,Tp,nothrow,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(capply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,Tp,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+  traceTrans(Opts,Lc,"implement call to %s:%s",[can(Op),tpe(Tp)]),
+  trExpCallOp(Lc,Op,Tp,nothrow,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tdot(Lc,R,Ix,Tp),nth(Lc,Rc,Ix,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(R,Rc,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -605,19 +608,17 @@ implementVarExp(localFun(_Fn,Closure,Ar,ThVr,Tp),Lc,_,_,clos(Closure,Ar1,Vr,Tp),
 implementVarExp(_Other,Lc,Nm,Tp,idnt(Nm,Tp),_,_,Q,Q) :-
   reportError("cannot handle %s in expression",[id(Nm)],Lc).
 
-trExpCallOp(Lc,v(_,Nm,_),Tp,Args,ecll(Lc,Nm,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
+trExpCallOp(Lc,throwing(_,Op,ErTp),Tp,nothrow,Args,Call,Q,Qx,Map,Opts,Ex,Exx) :-
+  trExpCallOp(Lc,Op,Tp,throw(ErTp),Args,Call,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(Lc,v(_,Nm,_),Tp,nothrow,Args,ecll(Lc,Nm,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
-trExpCallOp(Lc,v(_,Nm,_),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,v(_,Nm,_),Tp,throw(ErTp),Args,xecll(Lc,Nm,Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex) :-
+  isEscape(Nm),!.
+trExpCallOp(Lc,v(_,Nm,_),Tp,Throwing,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupVar(Map,Nm,Reslt),
   Reslt\=notInMap,!,
-  implementFunCall(Lc,Reslt,Nm,Args,Tp,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,vX(_,Nm,_,ErTp),Tp,Args,xecll(Lc,Nm,Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex) :-
-  isEscape(Nm),!.
-trExpCallOp(Lc,vX(_,Nm,_,ErTp),Tp,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  lookupVar(Map,Nm,Reslt),
-  Reslt\=notInMap,!,
-  implementFunCallX(Lc,Reslt,Nm,Args,Tp,ErTp,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
+  implementFunCall(Lc,Reslt,Nm,Args,Tp,Throwing,Exp,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
   lookupVar(Map,Nm,Reslt),
   (Reslt = moduleCons(Mdl,_,Ar) ->
    Exp = ctpl(lbl(Mdl,Ar),Args);
@@ -625,38 +626,44 @@ trExpCallOp(_Lc,enm(Lc,Nm,_Tp),_,Args,Exp,Qx,Qx,Map,_Opts,Exx,Exx) :-
    Arity is Ar+1,
    Exp = ctpl(lbl(Nm,Arity),[ThV|Args]);
    reportError("cannot handle constructor %s",[id(Nm)],Lc)).
-trExpCallOp(Lc,Op,Tp,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,Op,Tp,nothrow,A,ocall(Lc,Rc,A,Tp),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(Lc,Op,Tp,throw(ErTp),A,xocall(Lc,Rc,A,Tp,ErTp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
-implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,cll(Lc,lbl(Fn,Ar2),XArgs,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,nothrow,cll(Lc,lbl(Fn,Ar2),XArgs,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
-implementFunCall(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,cll(Lc,lbl(Fn,Ar),Args,Tp),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,ocall(Lc,idnt(Fn,Tp),Args,RTp),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,ocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
-  tipeOf(ThVr,ATp),
-  OTp = funType(tplType([ATp]),Tp),
-  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
-implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
-  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
-implementFunCall(Lc,notInMap,Nm,Args,Tp,ocall(Lc,idnt(Nm,Tp),Args,Tp),Q,Q,_Map,_Opts,Ex,Ex) :-
-  reportError("cannot compile unknown function %s",[id(Nm)],Lc).
-
-% implement call with throwing attribute
-implementFunCallX(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,ErTp,xcll(Lc,lbl(Fn,Ar2),XArgs,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,Ar,ThVr,_),_,Args,Tp,throw(ErTp),xcll(Lc,lbl(Fn,Ar2),XArgs,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
   liftVar(Lc,ThVr,Vr,Map,Opts,Q,Qx),
   concat([Vr],Args,XArgs),
   Ar2 is Ar+1.
-implementFunCallX(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,ErTp,xcll(Lc,lbl(Fn,Ar),Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex).
-implementFunCallX(Lc,moduleVar(Fn,Tp),_,Args,RTp,ErTp,xocall(Lc,idnt(Fn,Tp),Args,RTp,ErTp),Qx,Qx,_,_,Ex,Ex).
-implementFunCallX(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,ErTp,xocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,nothrow,
+		 cll(Lc,lbl(Fn,Ar),Args,Tp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleFun(Fn,_,Ar,Tp),_,Args,_Tp,throw(ErTp),
+		 xcll(Lc,lbl(Fn,Ar),Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,nothrow,
+		 ocall(Lc,idnt(Fn,Tp),Args,RTp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,moduleVar(Fn,Tp),_,Args,RTp,throw(ErTp),
+		 xocall(Lc,idnt(Fn,Tp),Args,RTp,ErTp),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,nothrow,
+		 ocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
   tipeOf(ThVr,ATp),
   OTp = funType(tplType([ATp]),Tp),
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
-implementFunCallX(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,ErTp,xocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+implementFunCall(Lc,thunkArg(ThVr,Lbl,_),_,Args,Tp,throw(ErTp),
+		 xocall(Lc,cll(Lc,Lbl,[ThV],OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex):-
+  tipeOf(ThVr,ATp),
+  OTp = funType(tplType([ATp]),Tp),
   liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
-implementFunCallX(Lc,notInMap,Nm,Args,Tp,ErTp,xocall(Lc,idnt(Nm,Tp),Args,Tp,ErTp),Q,Q,_Map,_Opts,Ex,Ex) :-
+implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,nothrow,
+		 ocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp),Q,Qx,Map,Opts,Ex,Ex) :-
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
+implementFunCall(Lc,labelArg(_,Ix,ThVr,OTp),_,Args,Tp,throw(ErTp),
+		 xocall(Lc,nth(Lc,ThV,Ix,OTp),Args,Tp,ErTp),Q,Qx,Map,Opts,Ex,Ex) :-
+  liftVar(Lc,ThVr,ThV,Map,Opts,Q,Qx).
+implementFunCall(Lc,notInMap,Nm,Args,Tp,_,ocall(Lc,idnt(Nm,Tp),Args,Tp),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[id(Nm)],Lc).
 
 liftCases([],[],Qx,Qx,_Map,_Opts,_,Exx,Exx) :- !.
@@ -895,5 +902,7 @@ liftFreeThunk(Lc,Nm,LclNm,Tp,ThVr,Exp,Fx,Q,Map,Opts,[ThDf|Ex],Exx) :-
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).
 programAccess(localFun(Prog,Closure,_Arity,_,_),Prog,Closure).
 
-mkUnit(U) :-
-  mkTpl([],U).
+traceTrans(Opts,Lc,Msg,Args) :-
+  is_member(traceNormalize,Opts),!,
+  reportMsg(Msg,Args,Lc).
+traceTrans(_,_,_,_).

@@ -11,6 +11,7 @@
 #define future(F,E) "UUz2'future'" F E
 #define fiber(R,S) "UUz2'fiber'" R S
 #define raises(A,E) "|"A"r"E
+#define throws(A,E) "|"A"t"E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
 #define vec(E) "V" E
@@ -38,7 +39,7 @@ intrinsic(_abort,all(a,all(e,func(a str,e))),"Abort",False, Last, "abort process
 intrinsic(_int_plus, func(int int, int),"IAdd",True,NotLast,"add two integers")
 intrinsic(_int_minus, func(int int, int),"ISub",True,NotLast,"subtract two integers")
 intrinsic(_int_times, func(int int, int),"IMul",True,NotLast,"multiply two integers")
-intrinsic(_int_div,raises(func(int int, int),ERR),"IDiv",True,NotLast,"divide two integers")
+intrinsic(_int_div,throws(func(int int, int),ERR),"IDiv",True,NotLast,"divide two integers")
 intrinsic(_int_mod,raises(func(int int, int),ERR),"IMod",True,NotLast,"modulo remainder")
 
 intrinsic(_flt_plus,func(flt flt,flt),"FAdd",True,NotLast,"add two floats")
@@ -81,6 +82,7 @@ intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r) s,fiber(r,s)))),"Fiber",Tru
 #undef future
 #undef fiber
 #undef raises
+#undef throws
 #undef func
 #undef tpl
 #undef bool

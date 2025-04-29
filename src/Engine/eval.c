@@ -94,6 +94,15 @@ logical collectStats = False;
   }\
   })
 
+#define breakOut(PC,SP,F,EX) STMT_WRAP({             \
+  PC += PC->alt + 1;                                 \
+  assert(validPC(frameMtd(FP), PC));                 \
+  assert(PC->op == Block);                           \
+  SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1); \
+  PC += PC->alt + 1;                                 \
+  push(EX);                                          \
+  })
+
 /*
  * Execute program on a given process/thread structure
  */
@@ -1129,22 +1138,17 @@ retCode run(processPo P) {
         continue;
       }
       case IDiv: {
-        termPo tryIndex = pop();
-        assert(isInteger(tryIndex));
-
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
         if (Rhs == 0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
+          breakOut(PC,SP,FP,divZero);
         } else {
           termPo Rs = makeInteger(Lhs / Rhs);
           push(Rs);
           PC++;
-          continue;
         }
+        continue;
       }
       case IMod: {
         termPo tryIndex = pop();

@@ -31,12 +31,12 @@ ReturnStatus g__int_times(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__int_div(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__int_div(heapPo h, termPo a1, termPo a2) {
   integer denom = integerVal(a1);
   integer numerator = integerVal(a2);
 
   if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
   } else {
     termPo Rs = makeInteger(denom / numerator);
     return (ReturnStatus) {.ret=Normal, .result=Rs};

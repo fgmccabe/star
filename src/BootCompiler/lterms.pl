@@ -116,14 +116,16 @@ ssTrm(ocall(_,Op,Args,_),Dp,sq([OO,ss("°"),lp,AA,rp])) :-!,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(xocall(_,Op,Args,_,_),Dp,sq([OO,ss("x°"),lp,AA,rp])) :-!,
+ssTrm(xocall(_,Op,Args,_,ErTp),Dp,sq([ss("throws "),EE,ss("|:"),OO,ss("°°"),lp,AA,rp])) :-!,
+  ssType(ErTp,false,Dp,EE),
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
 ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(xecll(_,Es,Args,_,_),Dp,sq([ss("xε"),ss(Es),ss("("),AA,ss(")")])) :-!,
+ssTrm(xecll(_,Es,Args,_,ErTp),Dp,sq([ss("throws "),EE,ss("|:"),ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
+  ssType(ErTp,false,Dp,EE),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
 ssTrm(ctpl(Op,A),Dp,sq([ss("."),OO,lp,AA,rp])) :-!,
@@ -215,7 +217,7 @@ dispAct(A) :-
   display:display(lterms:ssAct(A,0)).
 
 ssAct(nop(_),_,ss("{}")) :-!.
-ssAct(seq(Lc,A,B),Dp,sq([ss("{"),iv(sq([ss(";"),nl(Dp2)]),AA),ss("}")])) :-!,
+ssAct(seq(Lc,A,B),Dp,sq([ss("{"),nl(Dp2),iv(sq([ss(";"),nl(Dp2)]),AA),nl(Dp),ss("}")])) :-!,
   Dp2 is Dp+2,
   ssActSeq(seq(Lc,A,B),Dp2,AA).
 ssAct(lbld(_,Lb,A),Dp,sq([ss(Lb),ss(":"),AA])) :-!,

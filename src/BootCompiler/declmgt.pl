@@ -3,13 +3,8 @@
 		   declareVr/6,
 		   declareEnum/6,declareCns/6,
 		   getVar/5,getVarTypeFace/4,varLoc/4,
-		   currentVar/3,
-		   declareContract/4,getContract/3,
-		   declareImplementation/5,
-		   getImplementation/4,
-		   manageConstraints/4,
-		   pushScope/2,mergeDict/4,pushFace/4,makeKey/2,stdDict/1,
-		   dispEnv/1,declareDecl/4,declareAllDecls/4,defineContract/5
+		   stdDict/1,
+		   declareDecl/4,declareAllDecls/4,defineContract/5
 	       ]).
 
 :- use_module(canon).
@@ -66,10 +61,7 @@ declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
 
 formMethods([],_,_,_,_,Env,Env).
 formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
-  moveQuants(Tp,FQ,CMTp),
-  getConstraints(CMTp,_,QTp),
-  merge(FQ,Q,MQ),
-  putConstraints(Cx,constrained(QTp,Con),CC),
-  moveQuants(MTp,MQ,CC),
-  declareMtd(Lc,Nm,MTp,Env,E0),
+  putConstraints(Cx,constrained(Tp,Con),MTp),
+  moveQuants(CTp,Q,MTp),
+  declareMtd(Lc,Nm,CTp,Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
