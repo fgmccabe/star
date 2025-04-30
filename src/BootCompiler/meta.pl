@@ -65,7 +65,7 @@ isOpt(Opts,Flag) :-
 checkOpt(Opts,Flag,Cmd) :-
   is_member(Flag,Opts),!,
   call(Cmd,Flag).
-checkOpts(_,_,_) :-!.
+checkOpt(_,_,_) :-!.
 
 showAst(Lc,M,A,_) :-
   reportMsg(M,[ast(A)],Lc).
