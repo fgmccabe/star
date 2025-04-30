@@ -118,11 +118,15 @@ resolveAgain(_,inactive,_,T,_,_,T) :- !.
 resolveAgain(active(_,Msg),active(Lc,Msg1),Term,_,_,_,Term) :-
   similarStrings(Msg,Msg1),
   reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
+resolveAgain(_,fatal(Lc,Msg),Term,_,_,_,Term) :-
+  reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
 resolveAgain(_,active(Lc,Msg),Orig,_,Dict,Opts,R) :-
   overloadTerm(Orig,Dict,Opts,inactive,St,T0),!,
   resolveAgain(active(Lc,Msg),St,Orig,T0,Dict,Opts,R).
 
 markActive(_,Lc,Msg,active(Lc,Msg)).
+
+markFatal(_,Lc,Msg,fatal(Lc,Msg)).
 
 markResolved(inactive,resolved).
 markResolved(St,St).
@@ -202,7 +206,7 @@ overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,Opts,St,Stx,Over) :-
     overloadTerm(ErExp,Dict,Opts,St1,Stx,RExp),
     Over = raise(RLc,RTrw,RExp,ETp);
     genMsg("cannot find exception scope for %s",[Cx],Msg),
-    markActive(St,Lc,Msg,Stx),
+    markFatal(St,Lc,Msg,Stx),
     Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
   overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Over).
@@ -212,7 +216,7 @@ overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp),Over),
   markResolved(St2,Stx);
   genMsg("cannot find accessor for %s of type %s",[ss(Fld),tpe(RcTp)],Msg),
-  markActive(St,Lc,Msg,Stx),
+  markFatal(St,Lc,Msg,Stx),
   Over = overaccess(Lc,T,RcTp,Fld,FTp).
 overloadTerm(mtd(Lc,Nm,Tp),_,_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
@@ -425,7 +429,7 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
    markResolved(St,Stx);
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(dot(Lc,Rc,Fld,Tp)),tpe(Tp)],Msg),
-   markActive(St,Lc,Msg,Stx),
+   markFatal(St,Lc,Msg,Stx),
    Reslvd = dot(Lc,Rc,Fld,Tp)).
 resolveDot(Lc,Rc,Fld,Tp,_Dict,_,St,Stx,dot(Lc,Rc,Fld,Tp)) :-
   typeOfCanon(Rc,RcTp),
@@ -441,15 +445,15 @@ resolveTDot(Lc,Rc,Ix,Tp,Dict,_Opts,St,Stx,tdot(Lc,Rc,Ix,Tp)) :-
    (sameType(ElTp,Tp,Lc,Dict) -> St=Stx ;
     genMsg("%sth type of %s:%s not consistent with expected type %s",
 	   [ix(Ix),tpe(ElTp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx));
+    markFatal(St,Lc,Msg,Stx));
    genMsg("%type of %s:%s not a tuple of at least %d",
 	   [can(Rc),tpe(RcTp),ix(Ix)],Msg),
-   markActive(St,Lc,Msg,Stx)).
+   markFatal(St,Lc,Msg,Stx)).
 resolveTDot(Lc,Rc,Ix,Tp,_Dict,_,St,Stx,tdot(Lc,Rc,Ix,Tp)) :-
   typeOfCanon(Rc,RcTp),
   genMsg("%type of %s:%s not a tuple of at least %d",
 	 [can(Rc),tpe(RcTp),ix(Ix)],Msg),
-  markActive(St,Lc,Msg,Stx).
+  markFatal(St,Lc,Msg,Stx).
 
 resolveAccess(Lc,RcTp,Fld,Tp,Dict,_Opts,St,Stx,Reslvd) :-
   findAccess(RcTp,Fld,Dict,AccTp,FunNm),
@@ -464,7 +468,7 @@ resolveAccess(Lc,RcTp,Fld,Tp,Dict,_Opts,St,Stx,Reslvd) :-
    markResolved(St,Stx);
    genMsg("no accessor for %s defined for type %s",[ss(Fld),tpe(RcTp)],Msg),
    Reslvd=void,
-   markActive(St,Lc,Msg,Stx)).
+   markFatal(St,Lc,Msg,Stx)).
    
 resolveUpdate(Lc,Rc,Fld,Vl,Dict,Opts,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
@@ -484,13 +488,13 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,Opts,St,Stx,Reslvd) :-
    markResolved(St1,Stx);
    genMsg("updater defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(update(Lc,Rc,Fld,Vl)),tpe(RcTp)],Msg),
-   markActive(St,Lc,Msg,Stx),
+   markFatal(St,Lc,Msg,Stx),
    Reslvd = update(Lc,Rc,Fld,Vl)).
 resolveUpdate(Lc,Rc,Fld,Vl,_Dict,_,St,Stx,update(Lc,Rc,Fld,Vl)) :-
   typeOfCanon(Rc,RcTp),
   genMsg("no updater defined for %s for type %s in %s",
 	 [Fld,tpe(RcTp),can(upate(Lc,Rc,Fld,Vl))],Msg),
-  markActive(St,Lc,Msg,Stx).
+  markFatal(St,Lc,Msg,Stx).
 
 resolveConstraints(_,[],_,_,St,St,[]).
 resolveConstraints(Lc,[Con|C],Dict,Opts,St,Stx,Extra) :-
@@ -518,10 +522,10 @@ resolveImplicit(Lc,Nm,Tp,Dict,Opts,St,Stx,Over) :-
    (sameType(ITp,Tp,Lc,Dict),
     markResolved(St,Stx);
     genMsg("implicit %s:%s not consistent with %s",[Nm,tpe(ITp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx),
+    markFatal(St,Lc,Msg,Stx),
     Over=void) ;
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
-   markActive(St,Lc,Msg,Stx),
+   markFatal(St,Lc,Msg,Stx),
    Over=void).
 
 resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over) :-
@@ -534,7 +538,7 @@ resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over) :-
   resolveRaises(Lc,Tp,VrNm,ErTp,Dict,Opts,St,Stx,Over).
 resolveRaises(Lc,Tp,_Dict,_,St,Stx,void) :-
   genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
-  markActive(St,Lc,Msg,Stx).
+  markFatal(St,Lc,Msg,Stx).
 
 resolveRaises(Lc,Tp,VrNm,ErTp,Dict,_Opts,St,Stx,Over) :-
   sameType(ErTp,Tp,Lc,Dict),
@@ -549,11 +553,13 @@ resolveThrows(Lc,Tp,Dict,Opts,St,Stx) :-
   ( sameType(ErTp,Tp,Lc,Dict) ->
     markResolved(St,Stx),
     traceCheck(Opts,Lc,"resolve throws %s",[tpe(ErTp)]);
-    genMsg("throw context %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
-    markActive(St,Lc,Msg,Stx)).
+    ( sameType(voidType,ErTp,Lc,Dict) ->
+      genMsg("no throw context for %s",[tpe(Tp)],Msg);
+      genMsg("throw context %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg)),
+    markFatal(St,Lc,Msg,Stx)).
 resolveThrows(Lc,Tp,_Dict,_Opts,St,Stx) :-
   genMsg("no try scope for %s",[tpe(Tp)],Msg),
-  markActive(St,Lc,Msg,Stx).
+  markFatal(St,Lc,Msg,Stx).
 
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
