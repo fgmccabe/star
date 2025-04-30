@@ -111,8 +111,8 @@ resolveTerm(Term,Dict,Opts,Resolved) :-
   resolveAgain(inactive,St,Term,RTerm,Dict,Opts,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
-resolveAgain(_,resolved,Term,T,Dict,Opts,R) :- !,
-  overloadTerm(T,Dict,Opts,inactive,St,T0),
+resolveAgain(Prior,resolved,Term,T,Dict,Opts,R) :- !,
+  overloadTerm(T,Dict,Opts,Prior,St,T0),
   resolveAgain(inactive,St,Term,T0,Dict,Opts,R).
 resolveAgain(_,inactive,_,T,_,_,T) :- !.
 resolveAgain(active(_,Msg),active(Lc,Msg1),Term,_,_,_,Term) :-
@@ -365,7 +365,7 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
 overloadCases(Cses,Resolver,Dict,Opts,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,Opts,St,Stx,RCases).
 
-overApply(_,OverOp,[],_,OverOp) :-!.
+overApply(_,OverOp,[],_,OverOp) :- !.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
@@ -394,8 +394,8 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
   call(C,T,D,O,RT),
   overloadList(L,C,D,O,RL).
 
-resolveRef(over(Lc,Trm,Con),DTs,Args,over(Lc,Over,Con),Dict,Opts,St,Stx,Args) :-
-  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,Args).
+resolveRef(over(Lc,Trm,Con),DTs,Args,over(Lc,Over,Con),Dict,Opts,St,Stx,NArgs) :-
+  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,NArgs).
 resolveRef(C,[throwing(Lc,ErTp)],Args,throwing(Lc,C,ErTp),_Dict,_,St,St,Args).
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,Opts,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
