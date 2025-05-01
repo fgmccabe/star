@@ -152,7 +152,7 @@ star.compiler.operators{
     | "/\\" => [.infixOp(700,700,699)]
     | ">=" => [.infixOp(899,900,899)]
     | ">>" => [.infixOp(949,950,950)]
-    | "throws" => [.infixOp(950,951,951)]
+    | "throws" => [.infixOp(949,950,949)]
     | _ default => []
   }
 
