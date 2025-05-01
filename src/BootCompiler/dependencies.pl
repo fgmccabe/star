@@ -508,6 +508,10 @@ collectTypeRefs(T,All,SoFar,Rx) :-
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
+  isThrows(T,_,L,R),
+  collectTypeRefs(L,All,SoFar,R0),
+  collectTypeRefs(R,All,R0,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
   isBinary(T,_,"<=>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).

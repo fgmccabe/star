@@ -145,6 +145,10 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :- isThrows(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroType(R,Rx),
+  mkThrows(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isTaskType(T,Lc,L),!,
   macroType(L,Lx),
   mkTaskType(Lc,Lx,Tx).
@@ -253,10 +257,6 @@ examineConstraint(T,Tx) :-
   isRaises(T,Lc,E),
   macroType(E,Ex),
   mkRaises(Lc,Ex,Tx).
-examineConstraint(T,Tx) :-
-  isThrows(T,Lc,E),
-  macroType(E,Ex),
-  mkThrows(Lc,Ex,Tx).
 examineConstraint(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),

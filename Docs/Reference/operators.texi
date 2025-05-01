@@ -526,10 +526,6 @@
 @tab right associative infix
 @tab 951
 @tab can throw an exception
-@item @code{throws}
-@tab non-associative prefix
-@tab 999
-@tab can throw an exception
 
 @end multitable
 @end float
