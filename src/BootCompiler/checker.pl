@@ -339,6 +339,7 @@ processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Opts,Path) :-
 
 processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"check equation %s\nagainst %s",[ast(St),tpe(ProgramType)])),
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path).
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Opts,Path) :-
   isDefn(St,Lc,L,R),
@@ -376,20 +377,21 @@ findType(Nm,_,Env,Tp) :-
 findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
-checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Opts,Path) :-
+checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
+  splitUpProgramType(ProgramType,AT,RT,ErTp),
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
-  tryScope(E,ErTp),
   typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   typeOfExp(R,RT,ErTp,E1,_E2,Exp,Opts,Path),
   Eqn = rule(Lc,Args,Guard,Exp),
-  (is_member(traceCheck,Opts) -> 
-     reportMsg("rule %s",[rle(Eqn)],Lc);
-   true),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"rule: %s",[rle(Eqn)])),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
+
+splitUpProgramType(funType(AT,RT),AT,RT,voidType) :-!.
+splitUpProgramType(funType(AT,RT,ET),AT,RT,ET).
 
 checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Opts,Path) :-
   isIden(L,_,Nm),
@@ -498,8 +500,7 @@ checkImplementation(Stmt,INm,[ImplVar|Dfs],Dfs,Env,Evx,_,
   contractType(Spec,CnType),
   dollarName(Nm,DlNm),
   labelImplExp(IBody,DlNm,ImpBody),
-  tryScope(ThEnv,ErTp),
-  typeOfExp(ImpBody,CnType,ErTp,ThEnv,_ThEv,ImplTerm,Opts,ImplVrNm),
+  typeOfExp(ImpBody,CnType,voidType,ThEnv,_ThEv,ImplTerm,Opts,ImplVrNm),
   (is_member(traceCheck,Opts) -> 
      reportMsg("implementation %s:%s",[can(ImplTerm),tpe(CnType)]);
    true),
@@ -838,10 +839,10 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
 typeOfExp(A,Tp,ErTp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
   isTryCatch(A,Lc,B,E,H),!,
   checkTryCatch(Lc,B,E,H,Tp,ErTp,Env,checker:typeOfExp,Body,Trw,Hndlr,Opts,Path).
-typeOfExp(A,Tp,_ErTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),raises(ErTp)),Opts,Path) :-
+typeOfExp(A,Tp,OErTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),raises(ErTp)),Opts,Path) :-
   isRaise(A,Lc,E),!,
   newTypeVar("E",ErTp),
-  typeOfExp(E,ErTp,voidType,Env,_,ErExp,Opts,Path).
+  typeOfExp(E,ErTp,OErTp,Env,_,ErExp,Opts,Path).
 typeOfExp(A,Tp,OErTp,Env,Env,try(Lc,Body,ErTp,Hndlr),Opts,Path) :-
   isTry(A,Lc,B,H),!,
   checkTry(B,H,ErTp,Tp,OErTp,Env,checker:typeOfExp,Body,Hndlr,Opts,Path).
@@ -919,6 +920,12 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
   (sameType(funType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
    Call=apply(Lc,Fun,Args,Tp);
+   sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
+     (sameType(ETp,ErTp,Lc,Env) ->
+	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+	Call=tapply(Lc,Fun,Args,Tp,ErTp);
+      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
+      Call=void);
    sameType(consType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
    Call=capply(Lc,Fun,Args,Tp);
@@ -1145,7 +1152,6 @@ checkTryCatch(Lc,B,E,Hs,Tp,OErTp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path)
 
 checkTry(B,Hs,ErTp,Tp,OErTp,Env,Check,Body,Hndlr,Opts,Path) :-
   newTypeVar("ErTp",ErTp),
-  setTryScope(Env,ErTp,E1),
   call(Check,B,Tp,ErTp,E1,_,Body,Opts,Path),
   checkCases(Hs,ErTp,Tp,OErTp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 

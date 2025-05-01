@@ -17,10 +17,10 @@ test.ex3{
     one = 1.
   }
 
-  foo:all x,y ~~ ar[x->>y], throws y |: (x) => x.
+  foo:all x,y ~~ ar[x->>y] |: (x) => x throws y.
   foo(x) => div(x,x).
 
-  bar:all x,y ~~ ar[x->>y], ar[integer->>y] , throws y |: (x) => (x,integer).
+  bar:all x,y ~~ ar[x->>y], ar[integer->>y] |: (x) => (x,integer) throws y.
   bar(x) => (foo(x),foo(3)).
 
   main:()=>().

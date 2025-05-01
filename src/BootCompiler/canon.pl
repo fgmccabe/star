@@ -37,8 +37,8 @@ isCanon(charLit(_,_)).
 isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_,_)).
 isCanon(capply(_,_,_,_)).
+isCanon(tapply(_,_,_,_,_)).
 isCanon(dot(_,_,_,_)).
-isCanon(throwing(_,_,_)).
 isCanon(update(_,_,_,_)).
 isCanon(tdot(_,_,_,_)).
 isCanon(enm(_,_,_)).
@@ -79,7 +79,6 @@ isGoal(implies(_,_,_)) :- !.
 isGoal(disj(_,_,_)) :- !.
 isGoal(neg(_,_)) :- !.
 isGoal(cond(_,_,L,R,_)) :- !, isGoal(L),isGoal(R).
-isGoal(throwing(_,G,_)) :- isGoal(G).
 
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
 isIterableGoal(implies(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
@@ -110,7 +109,7 @@ typeOfCanon(letExp(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(letRec(_,_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(capply(_,_,_,Tp),Tp) :-!.
-typeOfCanon(throwing(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
+typeOfCanon(tapply(_,_,_,Tp,_),Tp) :-!.
 typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 typeOfCanon(nth(_,_,_,Tp),Tp) :-!.
@@ -173,7 +172,7 @@ locOfCanon(letRec(Lc,_,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(capply(Lc,_,_,_),Lc) :-!.
-locOfCanon(throwing(Lc,_,_),Lc) :-!.
+locOfCanon(tapply(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
@@ -255,6 +254,10 @@ ssTerm(apply(_,Op,Args,_),Dp,sq([O,A])) :-
 ssTerm(capply(_,Op,Args,_),Dp,sq([O,A])) :-
   ssTerm(Op,Dp,O),
   ssTerm(Args,Dp,A).
+ssTerm(tapply(_,Op,Args,_,ErTp),Dp,sq([O,A,ss(" throws "),EE])) :-
+  ssTerm(Op,Dp,O),
+  ssTerm(Args,Dp,A),
+  ssType(ErTp,false,Dp,EE).
 ssTerm(dot(_,Rc,Fld,_),Dp,sq([R,ss("."),id(Fld)])) :-
   ssTerm(Rc,Dp,R).
 ssTerm(update(_,Rc,Fld,Vl),Dp,sq([RR,ss("."),id(Fld),ss("="),VV])) :-
@@ -289,15 +292,12 @@ ssTerm(lambda(_,Lbl,_,Rle,_),Dp,sq([lp,Rl,rp])) :-
 ssTerm(tple(_,Els),Dp,sq([lp,iv(ss(", "),SEls),rp])) :-
   ssTerms(Els,Dp,SEls).
 ssTerm(mtd(_,Nm,_),_,sq([ss("°"),id(Nm)])).
-ssTerm(over(_,V,Cx),Dp,sq([ss("<"),CC,ss("|:"),VV,ss(">")])) :-
+ssTerm(over(_,V,Cx),Dp,sq([ss("<|"),CC,ss("|:"),VV,ss("|>")])) :-
   ssConstraint(false,Dp,Cx,CC),
   ssTerm(V,Dp,VV).
 ssTerm(overaccess(_,R,Fld,F),Dp,sq([RR,ss("<~{"),ss(Fld),ss(":"),FF,ss("}")])) :-
   ssTerm(R,Dp,RR),
   ssType(F,false,Dp,FF).
-ssTerm(throwing(_,C,ErTp),Dp,sq([lp,ss("throws "),EE,ss("|:"),CC,rp])) :-
-  ssType(ErTp,false,Dp,EE),
-  ssTerm(C,Dp,CC).
 ssTerm(where(_,Ptn,Cond),Dp,sq([PP,GG])) :-
   ssTerm(Ptn,Dp,PP),
   ssGuard(some(Cond),Dp,GG).

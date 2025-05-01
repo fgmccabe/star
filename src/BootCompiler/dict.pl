@@ -150,8 +150,6 @@ declareConstraint(Lc,implicit(Nm,Tp),E,Ev) :-
   declareVr(Lc,Nm,Tp,none,E,Ev).
 declareConstraint(Lc,raises(Tp),E,Ev) :-
   declareVr(Lc,"$try",Tp,none,E,Ev).
-declareConstraint(_Lc,throws(Tp),E,Ev) :-
-  setTryScope(E,Tp,Ev).
 declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons,Trys,TrS)|Outer],
 		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons,Trys,TrS)|Outer]).
 

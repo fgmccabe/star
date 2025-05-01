@@ -95,6 +95,7 @@ decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con)
 decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(Tps).
 decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
+decodeType(funType(A,T,E)) --> ['T'], decodeType(A), decodeType(T), decodeType(E).
 decodeType(tplType(Tps)) --> decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).
 decodeType(typeLambda(L,R)) --> ['y'], decodeType(L), decodeType(R).
@@ -120,7 +121,6 @@ decodeConstraint(constrained(Con,Extra)) --> ['|'], decodeConstraint(Con), decod
 decodeConstraint(conTract(Nm,Args,Deps)) --> ['c'], decodeText(Nm), decodeType(tplType(Args)), decodeType(tplType(Deps)).
 decodeConstraint(implicit(Nm,Tp)) --> ['d'], decodeText(Nm), decodeType(Tp).
 decodeConstraint(raises(Tp)) --> ['r'], decodeType(Tp).
-decodeConstraint(throws(Tp)) --> ['t'], decodeType(Tp).
 decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face,[])).
 decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
 
