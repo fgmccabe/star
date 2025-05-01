@@ -84,6 +84,10 @@ frshn(funType(A,R),E,B,Ex,funType(FA,FR)) :-
 frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
+frshn(funType(A,R,Er),E,B,Ex,funType(FA,FR,FEr)) :-
+  rewriteType(A,E,B,Ex,FA),
+  rewriteType(R,E,B,Ex,FR),
+  rewriteType(Er,E,B,Ex,FEr).
 frshn(tplType(L),E,B,Ex,tplType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
 frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :-
   rewriteType(O,E,B,Ex,FO),
@@ -122,9 +126,6 @@ frshnConstraint(implicit(Nm,Tp),Bnd,E,B,Ex,implicit(Nm,FTp)) :-
 frshnConstraint(raises(Tp),Bnd,E,B,Ex,raises(FTp)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   (Bnd=nobind ; bindConstraints([FTp],raises(FTp))).
-frshnConstraint(throws(Tp),Bnd,E,B,Ex,throws(FTp)) :-
-  rewriteType(Tp,E,B,Ex,FTp),
-  (Bnd=nobind ; bindConstraints([FTp],throws(FTp))).
 frshnConstraint(implementsFace(Tp,Face),Bnd,E,B,Ex,implementsFace(FTp,FFace)) :-
   rewriteType(Tp,E,B,Ex,FTp),
   rewriteType(Face,E,B,Ex,FFace),

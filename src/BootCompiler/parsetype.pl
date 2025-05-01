@@ -187,9 +187,6 @@ parseConstraint(T,Env,B,[implicit(Nm,Tp)|Cx],Cx) :-
 parseConstraint(T,Env,B,[raises(Tp)|Cx],Cx) :-
   isRaises(T,_,R),
   parseType(R,Env,B,Tp).
-parseConstraint(T,Env,B,[throws(Tp)|Cx],Cx) :-
-  isThrows(T,_,R),
-  parseType(R,Env,B,Tp).
 parseConstraint(T,Env,B,[implementsFace(TV,AT)|Cx],Cx) :-
   isTypeExists(T,_,L,R),
   parseType(L,Env,B,TV),

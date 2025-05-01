@@ -260,8 +260,6 @@ ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")]))
   ssType(Tp,ShCon,Dp,TT).
 ssConstraint(ShCon,Dp,raises(Tp),sq([ss("raises "),TT])) :-
   ssType(Tp,ShCon,Dp,TT).
-ssConstraint(ShCon,Dp,throws(Tp),sq([ss("throws "),TT])) :-
-  ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
 ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-
@@ -305,7 +303,6 @@ tpArity(tplType(A),Ar) :- !,length(A,Ar).
 tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
 
-extraArity(throws(_),0).
 extraArity(conTract(_,_,_),1).
 extraArity(implementsFace(_,_),1).
 extraArity(implicit(_,_),1).
@@ -330,7 +327,6 @@ rlArgTypes(faceType(Flds,_),As) :- !,
   project0(SFlds,As).
 rlArgTypes(_,[]).
 
-constraintArgType(throws(_),Cx,Cx).
 constraintArgType(conTract(Nm,A,D),[CC|Cx],Cx) :-
   contractType(conTract(Nm,A,D),CC).
 constraintArgType(implicit(_,Tp),[Tp|Cx],Cx).
@@ -378,12 +374,11 @@ isThrowingType(Tp,ResTp,ErTp) :- deRef(Tp,TT), isThrowsType(TT,ResTp,ErTp).
 
 isThrowsType(allType(_,Tp),RsTp,ErTp) :- !,
   isThrowingType(Tp,RsTp,ErTp).
-isThrowsType(constrained(Tp,throws(ErTp)),RsTp,ErTp) :-!,
-  funResType(Tp,RsTp).
-isThrowsType(constrained(Tp,_),RsTp,ErTp) :-
+isThrowsType(existType(_,Tp),RsTp,ErTp) :- !,
   isThrowingType(Tp,RsTp,ErTp).
-isThrowsType(Tp,RsTp,voidType) :-
-  funResType(Tp,RsTp).
+isThrowsType(constrained(Tp,_),RsTp,ErTp) :- !,
+  isThrowingType(Tp,RsTp,ErTp).
+isThrowsType(funType(_,RsTp,ErTp),RsTp,ErTp) :-!.
 
 isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
@@ -691,6 +686,7 @@ occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,funType(A,_,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R,_)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,funType(_,_,E)) :- deRef(E,EE),occIn(V,EE).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.

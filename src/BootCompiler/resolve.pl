@@ -77,9 +77,6 @@ defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,TpBlkNm,Tp)|CVars],FDict) :-
   mangleName("$R",conTract,TpNm,TpBlkNm),
   declareTryScope(Lc,Tp,TpBlkNm,Dict,Dict1),
   defineCVars(Lc,Cx,Dict1,CVars,FDict).
-defineCVars(Lc,[throws(Tp)|Cx],Dict,CVars,FDict) :-
-  setTryScope(Dict,Tp,Dict1),
-  defineCVars(Lc,Cx,Dict1,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -149,8 +146,6 @@ overloadTerm(update(Lc,Rc,Fld,Vl),Dict,Opts,St,Stx,Update) :-
 overloadTerm(tdot(Lc,Rc,Fld,Tp),Dict,Opts,St,Stx,Dot) :-
   overloadTerm(Rc,Dict,Opts,St,St0,RRc),
   resolveTDot(Lc,RRc,Fld,Tp,Dict,Opts,St0,Stx,Dot).
-overloadTerm(throwing(Lc,C,ErTp),Dict,Opts,St,Stx,throwing(Lc,CC,ErTp)) :-
-  overloadTerm(C,Dict,Opts,St,Stx,CC).
 overloadTerm(enm(Lc,Rf,Tp),_,_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,Opts,St,Stx,tple(Lc,RArgs)) :-!,
   overloadLst(Args,resolve:overloadTerm,Dict,Opts,St,Stx,RArgs).
@@ -191,13 +186,18 @@ overloadTerm(case(Lc,B,C,Tp),Dict,Opts,St,Stx,case(Lc,RB,RC,Tp)) :-
   overloadTerm(B,Dict,Opts,St,St0,RB),
   overloadCases(C,resolve:overloadTerm,Dict,Opts,St0,Stx,RC).
 overloadTerm(apply(ALc,over(Lc,T,Cx),Args,Tp),Dict,Opts,St,Stx,Term) :-
-  overloadMethod(ALc,Lc,T,Cx,Args,Tp,Dict,Opts,St,Stx,Term).
+  overloadMethod(ALc,Lc,T,Cx,Args,Tp,makeApply,Dict,Opts,St,Stx,Term).
 overloadTerm(apply(ALc,overaccess(Lc,T,RcTp,Fld,FTp),Args,ATp),Dict,Opts,St,Stx,Term) :-
   overloadAccess(ALc,Lc,T,RcTp,Fld,FTp,Args,ATp,Dict,Opts,St,Stx,Term).
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,Opts,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,Opts,St,St0,ROp),
   overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
 overloadTerm(capply(Lc,Op,Args,Tp),Dict,Opts,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
+  overloadTerm(Op,Dict,Opts,St,St0,ROp),
+  overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
+overloadTerm(tapply(ALc,over(Lc,T,Cx),Args,Tp,ErTp),Dict,Opts,St,Stx,Term) :-
+  overloadMethod(ALc,Lc,T,Cx,Args,Tp,makeTApply(ErTp),Dict,Opts,St,Stx,Term).
+overloadTerm(tapply(Lc,Op,Args,Tp,ErTp),Dict,Opts,St,Stx,tapply(Lc,ROp,RArgs,Tp,ErTp)) :-
   overloadTerm(Op,Dict,Opts,St,St0,ROp),
   overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
 overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,Opts,St,Stx,Over) :-
@@ -209,11 +209,11 @@ overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,Opts,St,Stx,Over) :-
     markFatal(St,Lc,Msg,Stx),
     Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
-  overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Over).
+  overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,makeApply,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
   resolveRef(T,[AccessOp],[],OverOp,Dict,Opts,St1,St2,NArgs),
-  curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp),Over),
+  curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp),makeApply,Over),
   markResolved(St2,Stx);
   genMsg("cannot find accessor for %s of type %s",[ss(Fld),tpe(RcTp)],Msg),
   markFatal(St,Lc,Msg,Stx),
@@ -341,23 +341,23 @@ overloadAction(A,_,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
-overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Over) :-
+overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Make,Over) :-
   resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),!,
   resolveRef(T,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
   typeOfCanon(T,TTp),
-  overApply(Lc,OverOp,NArgs,TTp,Over),
+  overApply(Lc,OverOp,NArgs,TTp,Make,Over),
   markResolved(St1,Stx).
-overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,over(Lc,T,Cx)) :-
+overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
   genMsg("cannot find implementation for contracts %s",[Cx],Msg),
   markActive(St,Lc,Msg,Stx).
 
-overloadMethod(_ALc,Lc,T,Cx,Args,Tp,Dict,Opts,St,Stx,Reslvd) :-
+overloadMethod(_ALc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method: %s:%s",[can(apply(Lc,over(Lc,T,Cx),Args,Tp)),tpe(Tp)])),
   resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),
   markResolved(St0,St1),
   overloadTerm(Args,Dict,Opts,St1,St2,tple(_,RArgs)),
   resolveRef(T,DTerms,RArgs,OverOp,Dict,Opts,St2,Stx,NArgs),
-  overApply(Lc,OverOp,NArgs,Tp,Reslvd),
+  overApply(Lc,OverOp,NArgs,Tp,Make,Reslvd),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method resolved term %s",[can(Reslvd)])).
 
 overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
@@ -369,18 +369,24 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
 overloadCases(Cses,Resolver,Dict,Opts,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,Opts,St,Stx,RCases).
 
-overApply(_,OverOp,[],_,OverOp) :- !.
-overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
-overApply(Lc,OverOp,Args,Tp,Lam) :-
-  curryOver(Lc,OverOp,Args,Tp,Lam).
+overApply(_,OverOp,[],_,_,OverOp) :- !.
+overApply(Lc,OverOp,Args,Tp,Make,Over) :- \+isProgramType(Tp),!,
+  call(Make,Lc,OverOp,Args,Tp,Over).
+overApply(Lc,OverOp,Args,Tp,Make,Lam) :-
+  curryOver(Lc,OverOp,Args,Tp,Make,Lam).
 
-curryOver(Lc,OverOp,Cx,Tp,
+makeApply(Lc,Op,Args,Tp,apply(Lc,Op,tple(Lc,Args),Tp)).
+
+makeTApply(ErTp,Lc,Op,Args,Tp,tapply(Lc,Op,tple(Lc,Args),Tp,ErTp)).
+
+curryOver(Lc,OverOp,Cx,Tp,Make,
     lambda(Lc,Lbl,[],rule(Lc,tple(Lc,Args),none,
-          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tplType(ArTps),Tp))) :-
+			  Call),funType(tplType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs),
   lcPk(Lc,Path),
+  call(Make,Lc,OverOp,NArgs,Tp,Call),
   lambdaLbl(Path,"curry",Lbl).
 
 genVrs([],_,[]).
@@ -400,12 +406,9 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
 
 resolveRef(over(Lc,Trm,Con),DTs,Args,over(Lc,Over,Con),Dict,Opts,St,Stx,NArgs) :-
   resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,NArgs).
-resolveRef(C,[throwing(Lc,ErTp)],Args,throwing(Lc,C,ErTp),_Dict,_,St,St,Args).
 resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,Opts,St,Stx,Args) :-
   concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,MtdCall),!.
-resolveRef(throwing(Lc,Trm,ErTp),DTs,Args,throwing(Lc,Over,ErTp),Dict,Opts,St,Stx,Args) :-
-  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,Args).
 resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,_,Stx,Stx,Args) :- !,
   concat(DT,RArgs,Args).
 resolveRef(C,DT,RArgs,C,_,Opts,Stx,Stx,Args) :-
@@ -484,7 +487,7 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,Opts,St,Stx,Reslvd) :-
    Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
    resolveConstraints(Lc,Cx,Dict,Opts,St,St0,DTerms),
    resolveRef(Acc,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
-   overApply(Lc,OverOp,NArgs,RcTp,Reslvd),
+   overApply(Lc,OverOp,NArgs,RcTp,makeApply,Reslvd),
    markResolved(St1,Stx);
    genMsg("updater defined for %s:%s in %s\nnot consistent with\n%s",
 	  [Fld,tpe(FAccTp),can(update(Lc,Rc,Fld,Vl)),tpe(RcTp)],Msg),
@@ -505,8 +508,6 @@ resolveConstraint(Lc,implicit(Nm,Tp),Dict,Opts,St,Stx,[Over|Exs],Exs) :-
   resolveImplicit(Lc,Nm,Tp,Dict,Opts,St,Stx,Over).
 resolveConstraint(Lc,raises(Tp),Dict,Opts,St,Stx,[Over|Exs],Exs) :-
   resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over).
-resolveConstraint(Lc,throws(Tp),Dict,Opts,St,Stx,[throwing(Lc,Tp)|Exs],Exs) :-
-  resolveThrows(Lc,Tp,Dict,Opts,St,Stx).
 resolveConstraint(Lc,C,Dict,Opts,St,Stx,[Over|Exs],Exs) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -547,19 +548,6 @@ resolveRaises(Lc,Tp,VrNm,ErTp,Dict,_Opts,St,Stx,Over) :-
 resolveRaises(Lc,Tp,_,ErTp,_Dict,_Opts,St,Stx,void) :-
   genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
   markActive(St,Lc,Msg,Stx).
-
-resolveThrows(Lc,Tp,Dict,Opts,St,Stx) :-
-  tryScope(Dict,ErTp),
-  ( sameType(ErTp,Tp,Lc,Dict) ->
-    markResolved(St,Stx),
-    traceCheck(Opts,Lc,"resolve throws %s",[tpe(ErTp)]);
-    ( sameType(voidType,ErTp,Lc,Dict) ->
-      genMsg("no throw context for %s",[tpe(Tp)],Msg);
-      genMsg("throw context %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg)),
-    markFatal(St,Lc,Msg,Stx)).
-resolveThrows(Lc,Tp,_Dict,_Opts,St,Stx) :-
-  genMsg("no try scope for %s",[tpe(Tp)],Msg),
-  markFatal(St,Lc,Msg,Stx).
 
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).

@@ -23,6 +23,10 @@ sm(tpExp(O1,A1),tpExp(O2,A2),Lc,Env) :- sameType(O1,O2,Lc,Env), sameType(A1,A2,L
 sm(valType(A1),valType(A2),Lc,Env) :- sameType(A1,A2,Lc,Env).
 sm(tplType(A1),tplType(A2),Lc,Env) :- smList(A1,A2,Lc,Env).
 sm(funType(A1,R1),funType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
+sm(funType(A1,R1,E1),funType(A2,R2,E2),Lc,Env) :-
+  sameType(R1,R2,Lc,Env),
+  sameType(A2,A1,Lc,Env),
+  sameType(E1,E2,Lc,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
 sm(consType(A1,R1),consType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A1,A2,Lc,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
@@ -60,8 +64,6 @@ sameConstraint(C1,C2,Lc,Env) :-
 sameConstraint(C1,C2,Lc,Env) :-
   sameImplements(C1,C2,Lc,Env).
 sameConstraint(raises(T1),raises(T2),Lc,Env) :-
-  sameType(T1,T2,Lc,Env).
-sameConstraint(throws(T1),throws(T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
 sameConstraint(implicit(Nm,T1),implicit(Nm,T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
@@ -179,6 +181,10 @@ smpTp(tplType(A),Lc,Env,C,Cx,tplType(As)) :-
 smpTp(funType(L,R),Lc,Env,C,Cx,funType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
+smpTp(funType(L,R,E),Lc,Env,C,Cx,funType(Ls,Rs,Es)) :-
+  simplifyType(L,Lc,Env,C,C0,Ls),
+  simplifyType(R,Lc,Env,C0,C1,Rs),
+  simplifyType(E,Lc,Env,C1,Cx,Es).
 smpTp(consType(L,R),Lc,Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
@@ -223,8 +229,6 @@ smpCon(implicit(Nm,T),Lc,Env,C,Cx,implicit(Nm,Ts)) :-
   simplifyType(T,Lc,Env,C,Cx,Ts).
 smpCon(raises(T),Lc,Env,C,Cx,raises(Ts)) :-
   simplifyType(T,Lc,Env,C,Cx,Ts).
-smpCon(throws(T),Lc,Env,C,Cx,throws(Ts)) :-
-  simplifyType(T,Lc,Env,C,Cx,Ts).
 
 bind(tVar(Curr,Con,VLc,Nm,Id),Tp,Lc) :- !,
   \+varIsIn(tVar(Curr,Con,_,Nm,Id),Tp),
@@ -257,8 +261,8 @@ occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
 occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
 occIn(Id,valType(I)) :- occIn(Id,I).
 occIn(Id,tplType(L)) :- is_member(A,L), occIn(Id,A).
-occIn(Id,funType(A,_)) :- occIn(Id,A).
-occIn(Id,funType(_,R)) :- occIn(Id,R).
+occIn(Id,funType(A,R)) :- occIn(Id,A);occIn(Id,R).
+occIn(Id,funType(A,R,E)) :- occIn(Id,A);occIn(Id,R);occIn(Id,E).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).

@@ -19,9 +19,10 @@ freeVars(floatLit(_,_),_,_,F,F).
 freeVars(charLit(_,_),_,_,F,F).
 freeVars(stringLit(_,_),_,_,F,F).
 freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
-freeVars(throwing(_,C,_),Ex,Q,F,Fv) :-
-  freeVars(C,Ex,Q,F,Fv).
 freeVars(apply(_,Op,A,_),Ex,Q,F,FV) :-
+  freeVars(Op,Ex,Q,F,F0),
+  freeVars(A,Ex,Q,F0,FV).
+freeVars(tapply(_,Op,A,_,_),Ex,Q,F,FV) :-
   freeVars(Op,Ex,Q,F,F0),
   freeVars(A,Ex,Q,F0,FV).
 freeVars(capply(_,_,A,_),Ex,Q,F,FV) :- freeVars(A,Ex,Q,F,FV).
