@@ -221,6 +221,15 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
+    case throwSig:
+      outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
     case conSig:
       outStr(out, ".tpExp(.tpExp(.tpFun(\"<=>\",2),");
       sig = dumpStarSig(sig, out);
@@ -317,12 +326,6 @@ char *dumpStarConstraint(char *sig, ioPo out) {
     }
     case raisesCon: {
       outStr(out, ".raisEs(");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    }
-    case throwsCon: {
-      outStr(out, ".throWs(");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       return sig;
@@ -456,6 +459,15 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;
+    case throwSig:
+      outStr(out, "funType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
     case conSig:
       outStr(out, "consType(");
       sig = dPrologTple(sig, out);
@@ -551,12 +563,6 @@ char *dumpPrologConstraint(char *sig, ioPo out) {
     }
     case raisesCon: {
       outStr(out, "raises(");
-      sig = dumpPrologSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    }
-    case throwsCon: {
-      outStr(out, "throws(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;

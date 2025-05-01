@@ -363,8 +363,6 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkTpl(TA,TApl).
 liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(throwing(TLc,apply(Lc,Op,A,Tp),ErTp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftExp(apply(Lc,throwing(TLc,Op,ErTp),A,Tp),Call,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   typeOfCanon(Op,OTp),

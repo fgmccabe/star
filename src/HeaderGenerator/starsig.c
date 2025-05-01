@@ -116,6 +116,16 @@ char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       return sig;
     }
+    case throwSig: {
+      outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
     case contSig: {
       outStr(out, ".tpExp(.tpExp(.tpFun(\"=>>\",2),");
       sig = dumpStarSig(sig, out);
@@ -222,12 +232,6 @@ char *dumpStarConstraint(char *sig, ioPo out) {
     }
     case raisesCon: {
       outStr(out, ".raisEs(");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    }
-    case throwsCon: {
-      outStr(out, ".throWs(");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       return sig;

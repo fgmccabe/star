@@ -117,6 +117,15 @@ char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
+    case throwSig:
+      outStr(O_IO(out), "funType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
     case contSig:
       outStr(O_IO(out), "continType(");
       sig = dumpPrologSig(sig, out);
@@ -215,12 +224,6 @@ char *dumpPrologConstraint(char *sig, ioPo out) {
     }
     case raisesCon: {
       outStr(O_IO(out), "raises(");
-      sig = dumpPrologSig(sig, out);
-      outStr(O_IO(out), ")");
-      return sig;
-    }
-    case throwsCon: {
-      outStr(O_IO(out), "throws(");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;

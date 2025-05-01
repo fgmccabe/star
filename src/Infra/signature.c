@@ -111,6 +111,8 @@ logical validSig(char *sig, integer *start, integer end) {
         return validSig(sig, start, end);
       else
         return False;
+    case throwSig:      // Throwing function signature
+      return (logical) (validSig(sig, start, end) && validSig(sig, start, end) && validSig(sig, start, end));
     case constrainedSig:
       return (logical) (validSig(sig, start, end) && validConstraint(sig, start, end));
     default:
@@ -127,7 +129,6 @@ logical validConstraint(char *sig, integer *start, integer end) {
     case implicitCon:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
     case raisesCon:
-    case throwsCon:
       return validSig(sig, start, end);
     default:
       return False;
@@ -153,6 +154,8 @@ static retCode funArity(const char *sig, int32 *arity, integer *start, integer e
         return Error;
     }
     case funSig:        /* Function signature */
+    case conSig:
+    case throwSig:
       return tplArity(sig, arity, start, end);
     case xstSig:        /* Existential quantifier */
     case allSig:        /* Universal quantifier */
@@ -193,8 +196,6 @@ static retCode constraintArity(const char *sig, int32 *arity, integer *start, in
       return skipSig(sig, start, end);
     case implicitCon:
       (*arity)++;
-      return skipSig(sig, start, end);
-    case throwsCon:
       return skipSig(sig, start, end);
     default:
       return Error;
@@ -293,6 +294,10 @@ retCode skipSig(const char *sig, integer *start, integer end) {
       case tplambdaSig:
         tryRet(skipSig(sig, start, end));
         return skipSig(sig, start, end);
+      case throwSig:       /*  throwing function, has three arg types */
+        tryRet(skipSig(sig, start, end));
+        tryRet(skipSig(sig, start, end));
+        return skipSig(sig, start, end);
       case constrainedSig:
         tryRet(skipSig(sig, start, end));
 
@@ -322,7 +327,6 @@ retCode skipConstrnt(const char *sig, integer *start, integer end) {
         } else
           return Error;
       case raisesCon:
-      case throwsCon:
         return skipSig(sig, start, end);
       default:
         return Error;
@@ -388,7 +392,6 @@ static retCode skipConstraint(ioPo in) {
         tryRet(skipIdentifier(in));
         return skipSignature(in);
       case raisesCon:
-      case throwsCon:
         return skipSignature(in);
       default:
         return Error;
@@ -455,6 +458,14 @@ retCode skipSignature(ioPo in) {
       case tplambdaSig:
       case funDep: {
         ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipSignature(in);
+        return ret;
+      }
+      case throwSig: {
+        ret = skipSignature(in);
+        if (ret == Ok)
+          ret = skipSignature(in);
         if (ret == Ok)
           ret = skipSignature(in);
         return ret;
@@ -582,6 +593,12 @@ retCode showSignature(ioPo out, const char *sig, integer *start, integer end) {
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, " <=> "));
       return showSignature(out, sig, start, end);
+    case throwSig:        /* Throwing function signature */
+      tryRet(showSignature(out, sig, start, end));
+      tryRet(outStr(out, "=>"));
+      tryRet(showSignature(out, sig, start, end));
+      tryRet(outStr(out, " throws "));
+      return showSignature(out, sig, start, end);
     case contSig:        /* Continuation signature */
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, "=>>"));
@@ -646,9 +663,6 @@ retCode showConstraint(ioPo out, const char *sig, integer *start, integer end) {
         return showSignature(out, sig, start, end);
       case raisesCon:
         tryRet(outStr(out, "raises "));
-        return showSignature(out, sig, start, end);
-      case throwsCon:
-        tryRet(outStr(out, "throws "));
         return showSignature(out, sig, start, end);
       default:
         return Error;

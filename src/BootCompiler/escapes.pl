@@ -9,7 +9,7 @@ escapeType("_globalIsSet",funType(tplType([type("string")]),type("boolean"))).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer"))).
-escapeType("_int_div",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),throws(type("errorCode")))).
+escapeType("_int_div",funType(tplType([type("integer"),type("integer")]),type("integer"),type("errorCode"))).
 escapeType("_int_mod",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode")))).
 escapeType("_int_hash",funType(tplType([type("integer")]),type("integer"))).
 escapeType("_int_gcd",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode")))).
@@ -56,8 +56,8 @@ escapeType("_big2str",funType(tplType([type("bigint")]),type("string"))).
 escapeType("_big_format",constrained(funType(tplType([type("bigint"),type("string")]),type("string")),raises(type("errorCode")))).
 escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean"))))).
 escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"))]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")))))).
-escapeType("sqrt",constrained(funType(tplType([type("float")]),type("float")),throws(type("errorCode")))).
-escapeType("exp",constrained(funType(tplType([type("float")]),type("float")),throws(type("errorCode")))).
+escapeType("sqrt",funType(tplType([type("float")]),type("float"),type("errorCode"))).
+escapeType("exp",funType(tplType([type("float")]),type("float"),type("errorCode"))).
 escapeType("log",funType(tplType([type("float")]),type("float"))).
 escapeType("log10",funType(tplType([type("float")]),type("float"))).
 escapeType("pi",funType(tplType([]),type("float"))).
