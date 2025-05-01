@@ -19,7 +19,7 @@ star.compiler.intrinsics{
     | "_int_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIAdd, .true, .notLast))  -- add two integers
     | "_int_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iISub, .true, .notLast))  -- subtract two integers
     | "_int_times" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.iIMul, .true, .notLast))  -- multiply two integers
-    | "_int_div" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.throWs(.nomnal("errorCode"))),.iIDiv, .true, .notLast))  -- divide two integers
+    | "_int_div" => .some((.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([intType,intType])),intType),.nomnal("errorCode")),.iIDiv, .true, .notLast))  -- divide two integers
     | "_int_mod" => .some((.constrainedType(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),.raisEs(.nomnal("errorCode"))),.iIMod, .true, .notLast))  -- modulo remainder
     | "_flt_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.iFAdd, .true, .notLast))  -- add two floats
     | "_flt_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([fltType,fltType])),fltType),.iFSub, .true, .notLast))  -- subtract two floats

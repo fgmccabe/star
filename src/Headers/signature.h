@@ -43,6 +43,7 @@ typedef enum {
 
   funSig = 'F', /* Function signature */
   conSig = 'C', /* constructor */
+  throwSig = 'T', /* A throwing function signature */
 
   contSig = 'x', // Continuation signature
 
@@ -54,8 +55,7 @@ typedef enum {
   contractCon = 'c',
   hasFieldCon = 'a',
   implicitCon = 'd',
-  raisesCon = 'r',
-  throwsCon = 't'
+  raisesCon = 'r'
 } constraintSig;
 
 // Data value signatures

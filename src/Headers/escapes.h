@@ -14,8 +14,7 @@
 #define future(F,E) "UUz2'future'" F E
 #define fiber(R,S) "UUz2'fiber'" R S
 #define raises(A,E) "|"A"r"E
-#define throws(A,E) "|"A"t"E
-#define result(A,E) "UUz2'result'" A E
+#define throws(A,R,E) "T" tpl(A) R E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
 #define vec(E) "V" E
@@ -47,7 +46,7 @@ escape(_globalIsSet,func(strng, bool),"test if a global var is set")
 escape(_int_plus, func(int int, int), "add two integers")
 escape(_int_minus, func(int int, int), "subtract two integers")
 escape(_int_times, func(int int, int), "multiply two integers")
-escape(_int_div, throws(func(int int, int),ERR), "divide two integers")
+escape(_int_div, throws(int int, int,ERR), "divide two integers")
 escape(_int_mod, raises(func(int int, int),ERR), "modulo remainder")
 escape(_int_hash, func(int, int), "compute hash of integer")
 escape(_int_gcd, raises(func(int int,  int),ERR), "gcd of two integers")
@@ -111,8 +110,8 @@ escape(_big_format, raises(func(big strng,strng),ERR), "format a big integer")
 escape(_fiber_eq,all(r,all(s,func(fiber(r,s) fiber(r,s),bool))),"compare two fiber identifiers")
 escape(_fiber,all(r,all(s,func(func(fiber(r,s) r,s),fiber(r,s)))),"create a new fiber")
 
-escape(sqrt, throws(func(flt,flt),ERR), "square root")
-escape(exp, throws(func(flt,flt),ERR), "exponential")
+escape(sqrt, throws(flt,flt,ERR), "square root")
+escape(exp, throws(flt,flt,ERR), "exponential")
 escape(log, func(flt,flt), "logarithm")
 escape(log10, func(flt,flt), "10-based logarithm")
 escape(pi, func(/**/,flt), "return PI")
@@ -360,7 +359,6 @@ escape(_jit_compile,all(a,all(e,raises(func(func(a,e),unit),ERR))),"Jit compile 
 #undef func
 #undef raises
 #undef throws
-#undef result
 #undef tpl
 #undef bool
 #undef chr
