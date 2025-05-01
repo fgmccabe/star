@@ -523,8 +523,8 @@
 @tab 950
 @tab grammar produce value
 @item @code{throws}
-@tab right associative infix
-@tab 951
+@tab non-associative infix
+@tab 950
 @tab can throw an exception
 
 @end multitable
