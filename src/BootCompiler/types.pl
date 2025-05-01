@@ -33,6 +33,7 @@ isType(type(_)).
 isType(tpExp(_,_)).
 isType(tplType(_)).
 isType(funType(_,_)).
+isType(funType(_,_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
@@ -176,6 +177,10 @@ ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
 ssType(funType(A,R),ShCon,Dp,sq([AA,ss("=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
+ssType(funType(A,R,E),ShCon,Dp,sq([AA,ss("=>"),RR,ss(" throws "),EE])) :-
+  ssType(A,ShCon,Dp,AA),
+  ssType(R,ShCon,Dp,RR),
+  ssType(E,ShCon,Dp,EE).
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
@@ -292,6 +297,8 @@ tpArity(constrained(Tp,Constraint),Ar) :- !,
   progTypeArity(Tp,A), Ar is A+Extra.
 tpArity(funType(A,_),Ar) :- !,
   progTypeArity(A,Ar).
+tpArity(funType(A,_,_),Ar) :- !,
+  progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -312,6 +319,8 @@ rlArgTypes(constrained(Tp,C),As) :- !,
   constraintArgType(C,As,Ax),
   realArgTypes(Tp,Ax).
 rlArgTypes(funType(A,_),As) :- !,
+  realArgTypes(A,As).
+rlArgTypes(funType(A,_,_),As) :- !,
   realArgTypes(A,As).
 rlArgTypes(consType(A,_),As) :- !,
   realArgTypes(A,As).
@@ -334,6 +343,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(Tp,_),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- progArgTypes(A,ArTps).
+tpArgTypes(funType(A,_,_),ArTps) :- progArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -342,12 +352,14 @@ resType(allType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(existType(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
+resType(funType(_,R,_),R) :- !.
 resType(R,R) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
 isFunctionType(funType(A,_),Ar) :- progTypeArity(A,Ar).
+isFunctionType(funType(A,_,_),Ar) :- progTypeArity(A,Ar).
 
 isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg,Rep).
 
@@ -496,6 +508,7 @@ tpNm(tplType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
 tpNm(funType(_,_),"=>").
+tpNm(funType(_,_,_),"=>").
 tpNm(faceType(Flds,_),Nm) :-
   sort(Flds,types:cmpFld,SFlds),
   project0(SFlds,Fns),
@@ -623,6 +636,9 @@ toLtp(type("boolean"),blTipe) :- !.
 toLtp(funType(Args,Res),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
+toLtp(funType(Args,Res,_),fnTipe(As,R)) :-!,
+  toLtipe(Args,As),
+  toLtipe(Res,R).
 toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
 toLtp(voidType,vdTipe) :-!.
@@ -673,6 +689,8 @@ occIn(V,tpExp(_,A)) :- deRef(A,AA),occIn(V,AA),!.
 occIn(V,tplType(L)) :- is_member(A,L), deRef(A,AA),occIn(V,AA).
 occIn(V,funType(A,_)) :- deRef(A,AA),occIn(V,AA).
 occIn(V,funType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,funType(A,_,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,funType(_,R,_)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.

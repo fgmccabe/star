@@ -135,7 +135,7 @@
   operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
-  operator("throws", [infixOp(950, 951, 951), prefixOp(999, 998)]).
+  operator("throws", [infixOp(950, 951, 951)]).
 
   bracket("[||]", "[|", "|]", "", 2000).
   bracket("<||>", "<|", "|>", "", 2000).

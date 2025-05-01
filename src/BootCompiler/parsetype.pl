@@ -45,10 +45,10 @@ parseType(Sq,Env,Q,Tp) :-
   parseTypes(Args,Env,Q,ArgTps),
   freshen(Op,Env,_Qx,OOp),
   doTypeFun(Lc,OOp,ArgTps,Env,Tp).
-parseType(F,Env,Q,funType(AT,RT)) :-
+parseType(F,Env,Q,FT) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,Q,AT),
-  parseType(R,Env,Q,RT).
+  parseResultType(R,Env,Q,AT,FT).
 parseType(F,Env,Q,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,Q,AT),!,
@@ -104,6 +104,13 @@ parseArgType(T,Env,Q,tplType(AT)) :-
   parseTypes(A,Env,Q,AT).
 parseArgType(T,Env,Q,Tp) :-
   parseType(T,Env,Q,Tp).
+
+parseResultType(A,Env,Q,AT,funType(AT,RT,ET)) :-
+  isThrows(A,_,L,R),
+  parseType(L,Env,Q,RT),
+  parseType(R,Env,Q,ET).
+parseResultType(A,Env,Q,AT,funType(AT,RT)) :-
+  parseType(A,Env,Q,RT).
 
 fieldInFace(Fields,Nm,_,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
