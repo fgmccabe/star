@@ -211,6 +211,9 @@ extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-!,
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
+extendFunTp(funType(tplType(Els),Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
+  extendTplTp(Extra,Anons),!,
+  concat(Anons,Els,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
   extendFunTp(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
@@ -372,6 +375,11 @@ liftExp(capply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"implement call to %s:%s",[can(Op),tpe(Tp)])),
   trExpCallOp(Lc,Op,Tp,nothrow,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(tapply(Lc,Op,tple(_,A),Tp,ErTp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
+  typeOfCanon(Op,OTp),
+  checkOpt(Opts,traceNormalize,showMsg(Lc,"implement call to %s:%s",[can(Op),tpe(OTp)])),
+  trExpCallOp(Lc,Op,Tp,throw(ErTp),LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tdot(Lc,R,Ix,Tp),nth(Lc,Rc,Ix,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(R,Rc,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,

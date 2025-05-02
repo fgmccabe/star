@@ -909,6 +909,7 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
   (sameType(funType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
    Call=apply(Lc,Fun,Args,Tp);
+   newTypeVar("_E",ETp),
    sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
      (sameType(ETp,ErTp,Lc,Env) ->
 	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
@@ -1130,7 +1131,7 @@ checkTryCatch(Lc,B,E,Hs,Tp,OErTp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path)
 
 checkTry(B,Hs,ErTp,Tp,OErTp,Env,Check,Body,Hndlr,Opts,Path) :-
   newTypeVar("ErTp",ErTp),
-  call(Check,B,Tp,ErTp,E1,_,Body,Opts,Path),
+  call(Check,B,Tp,ErTp,Env,_,Body,Opts,Path),
   checkCases(Hs,ErTp,Tp,OErTp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 
 tryBlockName(Path,Tp,TrBlkNm) :-
