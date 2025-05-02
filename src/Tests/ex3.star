@@ -26,9 +26,12 @@ test.ex3{
   main:()=>().
   main()=>valof{
     try{
---      Tm = (times:(integer,integer)=>integer);
-      Dv = div;
-      _logmsg(_stringOf(Dv(3,2),0));
+      try{
+	Dv = div;
+	_logmsg(_stringOf(Dv(3,0),0));
+      } catch {
+	Msg => { _logmsg("get got an exception: #(Msg)") }
+      };
       _logmsg(_stringOf(div(2,0),0));
     } catch {
       Msg => { _logmsg("out with a #(Msg)"); valis () }
