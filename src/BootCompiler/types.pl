@@ -3,7 +3,8 @@
 	   toLtipe/2,mkTplTipe/2,tpName/2,consTpName/2,tpArgs/3,tpArgs/2,mkFnTipe/3,
 	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
-	   progTypeArity/2,progArgTypes/2,realArgTypes/2,funResType/2,
+	   progTypeArity/2,progArgTypes/2,realArgTypes/2,
+	   funResType/2,funExType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
@@ -350,6 +351,13 @@ resType(constrained(_,Tp),ResTp) :- resType(Tp,ResTp).
 resType(funType(_,R),R) :- !.
 resType(funType(_,R,_),R) :- !.
 resType(R,R) :- !.
+
+funExType(Tp,ResTp) :- deRef(Tp,TT), exType(TT,ResTp).
+
+exType(allType(_,Tp),ResTp) :- deRef(Tp,DTp),exType(DTp,ResTp).
+exType(existType(_,Tp),ResTp) :- deRef(Tp,DTp),exType(DTp,ResTp).
+exType(constrained(_,Tp),ResTp) :- deRef(Tp,DTp),exType(DTp,ResTp).
+exType(funType(_,_,ErTp),ErTp) :- !.
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 

@@ -187,24 +187,28 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,Extra,Opts,Eqns,Rules,[],Ex,Ex0),
   (is_member(traceNormalize,Opts) -> dispEquations(Rules);true),
-  closureEntry(Map,Lc,Nm,Tp,Extra,Opts,Ex0,Exx),
+  closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
   functionMatcher(Lc,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!,
   (is_member(traceNormalize,Opts) -> dispRuleSet(Fun);true).
 
-closureEntry(Map,Lc,Name,Tp,Extra,Opts,[ClEntry|L],L) :-
+closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
   lookupVar(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure),!,
   extendFunTp(Tp,Extra,ATp),
   realArgTypes(ATp,Tps),
   genVars(Tps,Args),
   length(Args,Ar),
+  funResType(ATp,ResTp),
+  (funExType(Tp,ErTp) ->
+   Call = xcll(Lc,lbl(Prog,Ar),Args,ResTp,ErTp);
+   Call = cll(Lc,lbl(Prog,Ar),Args,ResTp)),
   (Extra = [] ->
    genVar("ϕ",tplType([]),FrVr),
    Ar1 is Ar+1,
-   ClEntry = fnDef(Lc,lbl(Closure,Ar1),hard,ATp,[FrVr|Args],cll(Lc,lbl(Prog,Ar),Args,ATp)) ;
-   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,cll(Lc,lbl(Prog,Ar),Args,ATp))),
+   ClEntry = fnDef(Lc,lbl(Closure,Ar1),hard,ATp,[FrVr|Args],Call);
+   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,Call)),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"closure rule %s",[ldef(ClEntry)])).
-closureEntry(_,_,_Name,_Tp,_,_,L,L).
+closureEntry(_,_,_Name,_Tp,_,_,_,L,L).
 %  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
 extendFunTp(Tp,[],Tp):-!.
