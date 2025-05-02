@@ -12,7 +12,6 @@ typedef enum {
 
 typedef struct return_code_ {
   escapeReturn ret;
-  termPo cont;
   termPo result;
 } ReturnStatus;
 

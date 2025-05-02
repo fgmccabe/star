@@ -271,7 +271,7 @@ ReturnStatus g__digitCode(heapPo h, termPo a1) {
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(digitValue(ch))};
 
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
   }
 }
 
