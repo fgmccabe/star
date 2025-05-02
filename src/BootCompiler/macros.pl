@@ -254,10 +254,6 @@ examineConstraint(T,Tx) :-
   macroType(Tp,TTp),
   mkDynamic(Lc,Nm,TTp,Tx).
 examineConstraint(T,Tx) :-
-  isRaises(T,Lc,E),
-  macroType(E,Ex),
-  mkRaises(Lc,Ex,Tx).
-examineConstraint(T,Tx) :-
   isTypeExists(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
@@ -499,20 +495,10 @@ examineTerm(T,Tx) :-
   macroTerm(O,Ox),
   qbraceTerm(Lc,Ox,Dx,Tx).
 examineTerm(A,Ax) :-
-  isTryCatch(A,Lc,B,E,C),!,
-  macroTerm(B,Bx),
-  macroType(E,Ex),
-  map(C,macros:macroLambda,Cs),
-  mkTryCatch(Lc,Bx,Ex,Cs,Ax).
-examineTerm(A,Ax) :-
   isTry(A,Lc,B,C),!,
   macroTerm(B,Bx),
   map(C,macros:macroLambda,Cs),
   mkTry(Lc,Bx,Cs,Ax).
-examineTerm(A,Ax) :-
-  isRaise(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkRaise(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
   isThrow(A,Lc,V),!,
   macroTerm(V,Vx),
@@ -719,12 +705,6 @@ examineAction(A,Ax) :-
   macroAction(L,Lx),
   mkIfThen(Lc,Tx,Lx,Ax).
 examineAction(A,Ax) :-
-  isTryCatch(A,Lc,B,E,C),!,
-  macroAction(B,Bx),
-  macroType(E,Ex),
-  map(C,macros:actionCase,Cs),
-  mkTryCatch(Lc,Bx,Ex,Cs,Ax).
-examineAction(A,Ax) :-
   isTry(A,Lc,B,C),!,
   macroAction(B,Bx),
   map(C,macros:actionCase,Cs),
@@ -748,10 +728,6 @@ examineAction(A,Ax) :-
   isValis(A,Lc,V),!,
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isRaise(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkRaise(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

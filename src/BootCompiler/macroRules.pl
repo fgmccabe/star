@@ -52,7 +52,6 @@ macroRl("task{}",expression,macroRules:taskMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).
-macroRl("raises",type,macroRules:raisesMacro).
 macroRl("async",type,macroRules:asyncMacro).
 
 build_main(As,Bs) :-
@@ -603,7 +602,7 @@ yieldMacro(E,action,Ax) :-
   becomes
 
     tsk(this, let{
-      tk:async () => _ raises _.
+      tk:async () => _ throws _.
       tk() => valof { A }
       } in ζ tk)
 
@@ -617,11 +616,11 @@ yieldMacro(E,action,Ax) :-
     roundTuple(Lc,[],Empty),
 
     % Build type annotation:
-    % tk:async () => _ raises _.
+    % tk:async () => _ throws _.
 
-    funcType(Lc,Empty,Anon,FnT0),
-    binary(Lc,"raises",FnT0,Anon,FnT1),
-    unary(Lc,"async",FnT1,FnTp),
+    mkThrows(Lc,Anon,Anon,Rslt),
+    funcType(Lc,Empty,Rslt,FnT),
+    unary(Lc,"async",FnT,FnTp),
 
     typeAnnotation(Lc,Tk,FnTp,St1),
 
@@ -675,11 +674,6 @@ caseRuleMacro(T,_,Tx) :-
   isBinary(R,LLc,"=>",A,B),!,
   binary(Lc,":",L,A,Ptn),
   binary(LLc,"=>",Ptn,B,Tx).
-
-raisesMacro(T,type,Tx) :-
-  isBinary(T,Lc,"raises",L,R),!,
-  unary(Lc,"raises",R,E),
-  binary(Lc,"|:",E,L,Tx).
 
 asyncMacro(T,type,Tx) :-
   isUnary(T,Lc,"async",R),!,

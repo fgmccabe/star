@@ -186,9 +186,6 @@ collConstraint(C,All,Refs,[con(Nm)|Refs]) :-
 collConstraint(C,All,Refs,Rfx) :-
   isDynamic(C,_,_,Tp),
   collectTypeRefs(Tp,All,Refs,Rfx).
-collConstraint(C,All,Refs,Rfx) :-
-  isRaises(C,_,Tp),
-  collectTypeRefs(Tp,All,Refs,Rfx).
 collConstraint(_,_,Refs,Refs).
 
 locallyDefined([],All,All).
@@ -300,17 +297,9 @@ collectTermRefs(T,A,R0,Rx) :-
   isTask(T,_,E),!,
   collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isTryCatch(T,_,L,E,C),!,
-  collectTermRefs(L,All,Rf,Rf1),
-  collectTypeRefs(E,All,Rf1,Rf2),
-  collectCaseRefs(C,collectTermRefs,All,Rf2,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
   isTry(T,_,L,C),!,
   collectTermRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectTermRefs,All,Rf1,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
-  isRaise(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
@@ -445,11 +434,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isTryCatch(T,_,L,E,C),!,
-  collectDoRefs(L,All,Rf,Rf1),
-  collectTypeRefs(E,All,Rf1,Rf2),
-  collectCaseRefs(C,collectDoRefs,All,Rf2,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
   isTry(T,_,L,C),!,
   collectDoRefs(L,All,Rf,Rf1),
   collectCaseRefs(C,collectDoRefs,All,Rf1,Rfx).
@@ -461,9 +445,6 @@ collectDoRefs(T,A,R,Rx) :-
   isLetRec(T,_,S,B),!,
   collectStmtRefs(S,A,[],R,R0),
   collectDoRefs(B,A,R0,Rx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isRaise(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).

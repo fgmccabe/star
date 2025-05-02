@@ -836,13 +836,6 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   (is_member(traceCheck,Opts) -> 
    reportMsg("action %s:%s/%s",[cnact(Act),tpe(Tp),tpe(ErTp)],Lc);
    true).
-typeOfExp(A,Tp,ErTp,Env,Env,tryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
-  isTryCatch(A,Lc,B,E,H),!,
-  checkTryCatch(Lc,B,E,H,Tp,ErTp,Env,checker:typeOfExp,Body,Trw,Hndlr,Opts,Path).
-typeOfExp(A,Tp,OErTp,Env,Env,over(Lc,raise(Lc,void,ErExp,Tp),raises(ErTp)),Opts,Path) :-
-  isRaise(A,Lc,E),!,
-  newTypeVar("E",ErTp),
-  typeOfExp(E,ErTp,OErTp,Env,_,ErExp,Opts,Path).
 typeOfExp(A,Tp,OErTp,Env,Env,try(Lc,Body,ErTp,Hndlr),Opts,Path) :-
   isTry(A,Lc,B,H),!,
   checkTry(B,H,ErTp,Tp,OErTp,Env,checker:typeOfExp,Body,Hndlr,Opts,Path).
@@ -990,10 +983,6 @@ checkAction(A,_,_,_,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
 checkAction(A,Tp,ErTp,_HasVal,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,_ErTp,_HasVal,Env,Ev,doExp(Lc,Thrw),Opts,Path) :-
-  isRaise(A,Lc,_E),!,
-  newTypeVar("C",ErTp),
-  typeOfExp(A,ErTp,voidType,Env,Ev,Thrw,Opts,Path).
 checkAction(A,_Tp,ErTp,_HasVal,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
@@ -1022,9 +1011,6 @@ checkAction(A,_Tp,ErTp,HasVal,Env,Ev,Act,Opts,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,ErTp,Env,Ev,Act,Opts,Path),
   validLastAct(A,Lc,HasVal).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doTryCatch(Lc,Body,Trw,Hndlr),Opts,Path) :-
-  isTryCatch(A,Lc,B,E,H),!,
-  checkTryCatch(Lc,B,E,H,Tp,ErTp,Env,checker:tryAction(HasVal),Body,Trw,Hndlr,Opts,Path).
 checkAction(A,Tp,OErTp,HasVal,Env,Env,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
   isTry(A,Lc,B,H),!,
   checkTry(B,H,ErTp,Tp,OErTp,Env,checker:tryAction(HasVal),Body,Hndlr,Opts,Path).
@@ -1121,13 +1107,6 @@ checkLastAction(A,Lc,hasVal,ETp,ATp,Env) :-
 checkGuard(none,_ErTp,Env,Env,none,_,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Opts,Path) :-
   checkGoal(G,ErTp,Env,Ev,Goal,Opts,Path).
-
-checkTryCatch(Lc,B,E,Hs,Tp,OErTp,Env,Check,Body,v(Lc,ErNm,ErTp),Hndlr,Opts,Path) :-
-  parseType(E,Env,ErTp),
-  tryBlockName(Path,ErTp,ErNm),
-  declareTryScope(Lc,ErTp,ErNm,Env,Ev2),
-  call(Check,B,Tp,ErTp,Ev2,_,Body,Opts,Path),
-  checkCases(Hs,ErTp,Tp,OErTp,Env,Hndlr,Eqx,Eqx,[],Check,Opts,Path),!.
 
 checkTry(B,Hs,ErTp,Tp,OErTp,Env,Check,Body,Hndlr,Opts,Path) :-
   newTypeVar("ErTp",ErTp),

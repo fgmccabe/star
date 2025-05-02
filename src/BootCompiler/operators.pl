@@ -42,7 +42,6 @@
   operator("..>", [infixOp(749, 750, 749)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator(".+.", [prefixOp(700, 699)]).
-  operator("raise", [prefixOp(930, 929)]).
   operator("async", [prefixOp(1234, 1233)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("ζ", [prefixOp(1, 0)]).
@@ -67,7 +66,6 @@
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
-  operator("raises", [infixOp(950, 951, 951), prefixOp(999, 998)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
@@ -375,7 +373,6 @@
   keyword("..<").
   keyword("..>").
   keyword("{?").
-  keyword("raise").
   keyword("async").
   keyword(". ").
   keyword("then").
@@ -395,7 +392,6 @@
   keyword("contract").
   keyword("./").
   keyword(".").
-  keyword("raises").
   keyword("try").
   keyword("exists").
   keyword("if").

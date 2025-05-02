@@ -259,8 +259,6 @@ ssConstraint(ShCon,Dp,implementsFace(Tp,Face),sq([TT,ss("<~"),FF])) :-
   ssType(Face,ShCon,Dp,FF).
 ssConstraint(ShCon,Dp,implicit(Nm,Tp),sq([ss("("),ss(Nm),ss(" : "),TT,ss(")")])) :-
   ssType(Tp,ShCon,Dp,TT).
-ssConstraint(ShCon,Dp,raises(Tp),sq([ss("raises "),TT])) :-
-  ssType(Tp,ShCon,Dp,TT).
 
 ssVarConstraints(C,_,[]) :- var(C),!.
 ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-
@@ -307,7 +305,6 @@ tpArity(_,0).
 extraArity(conTract(_,_,_),1).
 extraArity(implementsFace(_,_),1).
 extraArity(implicit(_,_),1).
-extraArity(raises(_),1).
 
 realArgTypes(Tp,ArTps) :- deRef(Tp,TT), rlArgTypes(TT,ArTps).
 
@@ -332,7 +329,6 @@ constraintArgType(conTract(Nm,A,D),[CC|Cx],Cx) :-
   contractType(conTract(Nm,A,D),CC).
 constraintArgType(implicit(_,Tp),[Tp|Cx],Cx).
 constraintArgType(implementsFace(_,Tp),[Tp|Cx],Cx).
-constraintArgType(raises(Tp),[Tp|Cx],Cx).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
 
@@ -529,7 +525,6 @@ contractType(conTract(Nm,A,D),Tp) :-
   mkTypeExp(tpFun(Nm,Ar),Args,Tp).
 contractType(implicit(_,Tp),Tp).
 contractType(implementsFace(_,Tp),Tp).
-contractType(raises(Tp),Tp).
 contractType(throws(Tp),Tp).
 contractType(allType(V,CT),allType(V,T)) :-
   contractType(CT,T).
@@ -714,6 +709,5 @@ occIn(V,conTract(_,_,D)) :- is_member(A,D), deRef(A,AA),occIn(V,AA).
 occIn(V,implementsFace(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,implementsFace(_,F)) :- deRef(F,FF),occIn(V,FF),!.
 occIn(V,implicit(_,T)) :- deRef(T,TT),occIn(V,TT),!.
-occIn(V,raises(T)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,throws(T)) :- deRef(T,TT),occIn(V,TT),!.
 

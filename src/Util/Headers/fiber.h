@@ -18,8 +18,6 @@ typedef enum {
 typedef struct fiber_record_ *fiberPo;
 typedef retCode (*fiberFun)(fiberPo thisFiber, void *cl);
 
-fiberPo newFiber(fiberFun runner);
-
 retCode suspendFiber(fiberPo thisFiber, fiberStatus msg, void *data);
 retCode resumeFiber(fiberPo fiber, fiberStatus msg, void *data);
 retCode retireFiber(fiberPo thisFbier, fiberStatus ret, void *data);

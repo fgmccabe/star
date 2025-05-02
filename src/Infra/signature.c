@@ -128,8 +128,6 @@ logical validConstraint(char *sig, integer *start, integer end) {
       return (logical) validSig(sig, start, end) && validSig(sig, start, end);
     case implicitCon:
       return (logical) (skipId(sig, start, end) && validSig(sig, start, end));
-    case raisesCon:
-      return validSig(sig, start, end);
     default:
       return False;
   }
@@ -326,8 +324,6 @@ retCode skipConstrnt(const char *sig, integer *start, integer end) {
           return skipSig(sig, start, end);
         } else
           return Error;
-      case raisesCon:
-        return skipSig(sig, start, end);
       default:
         return Error;
     }
@@ -390,8 +386,6 @@ static retCode skipConstraint(ioPo in) {
         return skipSignature(in);
       case implicitCon:
         tryRet(skipIdentifier(in));
-        return skipSignature(in);
-      case raisesCon:
         return skipSignature(in);
       default:
         return Error;
@@ -660,9 +654,6 @@ retCode showConstraint(ioPo out, const char *sig, integer *start, integer end) {
         tryRet(outStr(out, "implicit "));
         tryRet(showSigId(out, sig, start, end));
         tryRet(outStr(out, " : "));
-        return showSignature(out, sig, start, end);
-      case raisesCon:
-        tryRet(outStr(out, "raises "));
         return showSignature(out, sig, start, end);
       default:
         return Error;

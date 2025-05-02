@@ -76,11 +76,6 @@ fiberPo fiber(int count, ...) {
   return v;
 }
 
-
-
-
-fiberPo newFiber(fiberFun runner);
-
 retCode suspendFiber(fiberPo thisFiber, fiberStatus msg, void *data);
 retCode resumeFiber(fiberPo fiber, fiberStatus msg, void *data);
 retCode retireFiber(fiberPo thisFbier, fiberStatus ret, void *data);
