@@ -160,7 +160,7 @@ overloadTerm(where(Lc,Trm,Cond),Dict,Opts,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,Opts,St,St0,RTrm),
   overloadTerm(Cond,Dict,Opts,St0,Stx,RCond).
 overloadTerm(conj(Lc,L,R),Dict,Opts,St,Stx,conj(Lc,RL,RR)) :-
-  overloadTerm(L,Dict,Opts,Opts,St,St0,RL),
+  overloadTerm(L,Dict,Opts,St,St0,RL),
   overloadTerm(R,Dict,Opts,St0,Stx,RR).
 overloadTerm(disj(Lc,L,R),Dict,Opts,St,Stx,disj(Lc,RL,RR)) :-
   overloadTerm(L,Dict,Opts,St,St0,RL),
