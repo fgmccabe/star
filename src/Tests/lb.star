@@ -19,7 +19,7 @@ test.lb{
     ii(N) where N>=0 => valof{
       try{
 	inc();
-      } catch () in {
+      } catch {
 	_ => {}
       };
       valis .true

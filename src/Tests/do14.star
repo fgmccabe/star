@@ -1,18 +1,18 @@
 test.do14{
-  -- Test raises
+  -- Test throws
   import star.
   import star.assert.
 
-  isEven: raises string |: (integer) => boolean.
-  isEven(X) where (try X%2==0 catch exception in {_ => .false}) => .true.
-  isEven(X) default => raise "$(X) not even".
+  isEven: (integer) => boolean throws string.
+  isEven(X) where (try X%2==0 catch {_ => .false}) => .true.
+  isEven(X) default => throw "$(X) not even".
 
   main:()=>().
   main()=>valof{
       try{
 	assert isEven(2);
 	assert ~ isEven(3);
-      } catch string in {
+      } catch {
 	M => showMsg("We got #(M)")
       };
     valis ()

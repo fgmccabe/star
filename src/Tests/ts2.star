@@ -37,9 +37,9 @@ test.ts2{
       for (X where ~isEven(X)) in L do{
 	showMsg(disp(X));
 	if X>6 then
-	  raise ()
+	  throw ()
       }
-    } catch () in {
+    } catch {
       _ => {
 	showMsg("caught")
       }

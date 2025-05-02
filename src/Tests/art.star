@@ -34,7 +34,7 @@ test.art{
   integer_four = ((X,Y)=>_int_plus(X,Y),
     (X,Y)=>_int_minus(X,Y),
     (X,Y)=>_int_times(X,Y),
-    (X,Y) => (try _int_div(X,Y) catch errorCode in {_ => 0}),
+    (X,Y) => (try _int_div(X,Y) catch {_ => 0}),
     0,
     1).
 
@@ -45,7 +45,7 @@ test.art{
   float_four = ((X,Y)=>_flt_plus(X,Y),
     (X,Y)=>_flt_minus(X,Y),
     (X,Y)=>_flt_times(X,Y),
-    (X,Y) => (try _flt_div(X,Y) catch errorCode in {_ => 0.0}),
+    (X,Y) => (try _flt_div(X,Y) catch {_ => 0.0}),
     0.0,
     1.0).
 

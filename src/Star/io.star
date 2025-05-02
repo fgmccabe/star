@@ -10,97 +10,97 @@ star.io{
     disp(.pastEof) => "pastEof"
   }
 
-  public rdChar:(ioHandle) => char raises ioException.
+  public rdChar:(ioHandle) => char throws ioException.
   rdChar(H) => valof{
     try{
       valis _inchar(H)
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdCharAsync:async (ioHandle)=>char raises ioException.
+  public rdCharAsync:async (ioHandle)=>char throws ioException.
   rdCharAsync(IO) => valof{
     try{
       valis waitforIO(IO,_inchar_async(IO))
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdChars:(ioHandle,integer) => string raises ioException.
+  public rdChars:(ioHandle,integer) => string throws ioException.
   rdChars(H,Cx) => valof{
     try{
       valis _inchars(H,Cx)
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdCharsAsync:async (ioHandle,integer)=>string raises ioException.
+  public rdCharsAsync:async (ioHandle,integer)=>string throws ioException.
   rdCharsAsync(IO,Cx) => valof{
     try{
       valis waitforIO(IO,_inchars_async(IO,Cx))
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdLine:(ioHandle) => string raises ioException.
+  public rdLine:(ioHandle) => string throws ioException.
   rdLine(H) => valof{
     try{
       valis _inline(H)
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdLineAsync:async (ioHandle)=> string raises ioException.
+  public rdLineAsync:async (ioHandle)=> string throws ioException.
   rdLineAsync(IO) => valof{
     try{
       valis waitforIO(IO,_inline_async(IO))
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdBytes:(ioHandle,integer) => vect[integer] raises ioException.
+  public rdBytes:(ioHandle,integer) => vect[integer] throws ioException.
   rdBytes(H,Cx) => valof{
     try{
       valis _inbytes(H,Cx)
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdBytesAsync:async (ioHandle,integer)=> vect[integer] raises ioException.
+  public rdBytesAsync:async (ioHandle,integer)=> vect[integer] throws ioException.
   rdBytesAsync(IO,Cx) => valof{
     try{
       valis waitforIO(IO,_inbytes_async(IO,Cx))
-    } catch errorCode in {
-      | .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      | .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdFile:(string)=> string raises ioException.
+  public rdFile:(string)=> string throws ioException.
   rdFile(F) => valof{
     try{
       valis _get_file(F);
-    } catch errorCode in {
-      .eof => raise .pastEof
-      | _ default => raise .ioError
+    } catch {
+      .eof => throw .pastEof
+      | _ default => throw .ioError
     }
   }
 
-  public rdFileAsync:async (string)=> string raises ioException.
+  public rdFileAsync:async (string)=> string throws ioException.
   rdFileAsync(Fl) => valof{
     try{
       In = _openInFile(Fl,3);
@@ -109,89 +109,89 @@ star.io{
 	while Ln.=rdCharsAsync(In,1024) do{
 	  Txt := [Ln,..Txt!];
 	}
-      } catch ioException in {
+      } catch {
 	| .pastEof => {
 	  showMsg("At eof");
 	}
 	| _ => {
 	  showMsg("??");
 	  _close(In);
-	  raise .ioError
+	  throw .ioError
 	}
       };
 
       _close(In);
       valis reverse(Txt!)*
-    } catch errorCode in {
+    } catch {
       | .eof => {
 	showMsg("outer eof");
-	raise .pastEof
+	throw .pastEof
       }
       | _ => {
 	showMsg("outer error");
-	raise .ioError
+	throw .ioError
       }
     }
   }
 
-  public wrChar:(ioHandle,char) => () raises ioException.
+  public wrChar:(ioHandle,char) => () throws ioException.
   wrChar(H,C) => valof{
     try{
       valis _outchar(H,C)
-    } catch errorCode in {
-      | _ default => raise .ioError
+    } catch {
+      | _ default => throw .ioError
     }
   }
 
-  public wrCharAsync:async (ioHandle,char)=> () raises ioException.
+  public wrCharAsync:async (ioHandle,char)=> () throws ioException.
   wrCharAsync(IO,C) => valof{
     try{
       valis waitforIO(IO,_outchar_async(IO,C))
-    } catch errorCode in {
-      | _ default => raise .ioError
+    } catch {
+      | _ default => throw .ioError
     }
   }
 
-  public wrText:(ioHandle,string) => () raises ioException.
+  public wrText:(ioHandle,string) => () throws ioException.
   wrText(H,S) => valof{
     try{
       valis _outtext(H,S)
-    } catch errorCode in {
-      | _ default => raise .ioError
+    } catch {
+      | _ default => throw .ioError
     }
   }
 
-  public wrTextAsync:async (ioHandle,string)=>() raises ioException.
+  public wrTextAsync:async (ioHandle,string)=>() throws ioException.
   wrTextAsync(IO,S) => valof{
     try{
       valis waitforIO(IO,_outtext_async(IO,S))
-    } catch errorCode in {
-      | _ default => raise .ioError
+    } catch {
+      | _ default => throw .ioError
     }
   }
 
-  public wrFile:(string,string) => () raises ioException.
+  public wrFile:(string,string) => () throws ioException.
   wrFile(F,S) => valof{
     try{
       valis _put_file(F,S)
-    } catch errorCode in {
-      | _ default => raise .ioError
+    } catch {
+      | _ default => throw .ioError
     }
   }
 
-  public wrFileAsync:async (string,string)=> () raises ioException.
+  public wrFileAsync:async (string,string)=> () throws ioException.
   wrFileAsync(F,S) => valof{
     try{
       Ot = _openOutFile(F,3);
       wrTextAsync(Ot,S);
       _close(Ot);
       valis ()
-    } catch errorCode in {
-      _ default => raise .ioError
+    } catch {
+      _ default => throw .ioError
     }
   }
 
-  waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k raises e.
+  waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k throws e.
   waitforIO(IO,Ft) => valof{
     case this suspend .requestIO(IO,()=>~_futureIsResolved(Ft)) in {
       | .go_ahead => {

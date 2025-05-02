@@ -4,13 +4,13 @@ test.tr{
   import star.
   import star.assert.
 
-  isOdd:raises string |: (integer) => boolean.
-  isOdd(X) => (X.&.1==0 ?? (raise "not odd") || .true).
+  isOdd:(integer) => boolean throws string.
+  isOdd(X) => (X.&.1==0 ?? (throw "not odd") || .true).
 
   checkMe:(integer) => boolean.
   checkMe(X) => (try
     isOdd(X)
-    catch string in {
+    catch {
       _ => .false
     }).
 

@@ -9,7 +9,7 @@ test.coe{
   logMsg(M) => valof{
     try{
       _logmsg(M)
-    } catch errorCode in {_ => {}};
+    } catch {_ => {}};
     valis ()
   }
 

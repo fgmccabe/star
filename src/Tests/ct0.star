@@ -22,16 +22,16 @@ test.ct0{
 		showMsg("We were spawned $(Cnt)");
 		case Tsk suspend .yield_ in {
 		  | .go_ahead => {}
-		  | .shut_down_ => raise .canceled
+		  | .shut_down_ => throw .canceled
 		};
 		showMsg("After 1 pause $(Cnt)");
 		case Tsk suspend .yield_ in {
 		  | .go_ahead => {}
-		  | .shut_down_ => raise .canceled
+		  | .shut_down_ => throw .canceled
 		};
 		showMsg("After 2 pauses $(Cnt)");
 		Tsk retire .blocked(()=>.false)
-	      } catch mboxException in {
+	      } catch {
 		| _ => {
 		  showMsg("we were canceled");
 		  Tsk retire .retired_
@@ -42,7 +42,7 @@ test.ct0{
 	showMsg("moving along, $(Count!) rounds left ");
       };
       showMsg("end of try");
-    } catch mboxException in {
+    } catch {
       | .canceled => {
 	showMsg("$(K) shutting down");
       }
@@ -51,14 +51,14 @@ test.ct0{
     valis ()
   }.
 
-  dividesBy(X,Y) => (try X%Y==0 catch exception in { _ => .false}).
+  dividesBy(X,Y) => (try X%Y==0 catch { _ => .false}).
   
   main:()=>().
   main() => valof{
     try{
       Rs = nursery([tt(10),tt(20)]);
       showMsg("final result $(Rs)");
-    } catch mboxException in {
+    } catch {
       E => showMsg(disp(E))
     };
     valis ()

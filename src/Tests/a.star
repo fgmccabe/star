@@ -22,8 +22,8 @@ test.a{
       showMsg("\e[33m#("yellow")\e[0m");
       showMsg("\e[31mred\e[0m");
       
-      raise .exception("bong");
-    } catch exception in {
+      throw .exception("bong");
+    } catch {
       .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
     };
   }

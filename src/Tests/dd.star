@@ -35,8 +35,8 @@ test.dd{
     try {
       A = ff(6);
       B = ff(7);
-      raise ()
-    } catch () in {
+      throw ()
+    } catch {
       _ => valis 10
     }
   }
@@ -57,14 +57,14 @@ test.dd{
       fc(10);
       
       try {
-        raise "fred"
-      } catch string in {
+        throw "fred"
+      } catch {
 	(F) => {
 	  showMsg("we got an exception $(F)");
-	  raise ()
+	  throw ()
 	}
       }
-    } catch () in {
+    } catch {
       (E) => {
 	showMsg("we got exception $(E), returning $(R)");
 	valis R
@@ -72,12 +72,12 @@ test.dd{
     }
   }
 
-  TT : raises string |: (integer)=>integer.
+  TT : throws string |: (integer)=>integer.
   TT(U)=> valof{
     if U>0 then
       valis U
     else
-    raise "Negative $(U)"
+    throw "Negative $(U)"
   }
 
   main:()=>().
@@ -97,7 +97,7 @@ test.dd{
 
       assert TT(1)==1;
       show TT(-1)			-- never finish this
-    } catch string in {
+    } catch {
       M => showMsg("Huh: #(M)")
     };
     valis ()

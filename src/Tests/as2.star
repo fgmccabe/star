@@ -24,17 +24,17 @@ test.as2{
       ( try D==E ??
 	  mark(D) && check(Es,Ds) ||
 	  clearFoo()
-	catch () in {
+	catch {
 	  _ => .false
 	}
       ).
     check(_,_) default => clearFoo().
   .} in check.
 
-  notMuch:raises () |: ()=>().
+  notMuch:()=>() throws ().
   notMuch()=>valof{
     showMsg("hello there");
-    raise ()
+    throw ()
   }
 
   main:()=>().
@@ -43,7 +43,7 @@ test.as2{
       assert checkLists()([1,2],[1,2]);
       assert ~checkLists()([],[1]);
       show notMuch();
-    } catch  () in {
+    } catch {
       _ => showMsg("as expected")
     };
     valis ()

@@ -10,7 +10,7 @@ test.iobytes{
       while Data.=rdBytesAsync(Io,25) do{
 	showMsg("file data: $(Data)");
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -31,12 +31,12 @@ test.iobytes{
 	  
 	nursery([Rd]);
 	showMsg("reader done");
-      } catch mboxException in {
+      } catch {
 	| .deadlock => showMsg("Reader got deadlocked")
 	| .canceled => showMsg("Everything got canceled")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

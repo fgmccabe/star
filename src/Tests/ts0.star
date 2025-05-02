@@ -48,7 +48,7 @@ test.ts0{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch errorCode in {_ => {}};
+    } catch {_ => {}};
     valis ()
   }
   

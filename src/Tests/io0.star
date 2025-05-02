@@ -14,7 +14,7 @@ test.io0{
       while Ch.=_inchar(In) do{
 	showMsg("char: $(Ch)");
       }
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

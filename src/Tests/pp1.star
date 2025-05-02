@@ -8,7 +8,7 @@ test.pp1{
       (StdIn,StdOut,StdErr) = _popen(Cmd,Args,[]);
 
       valis readLines(StdOut)
-    } catch errorCode in { C => {
+    } catch { C => {
 	showMsg("Error in popen: $(C)");
 	valis []
     }
@@ -16,7 +16,7 @@ test.pp1{
   }
 
   readLines(Fl) => let{.
-    rdLns:()=>cons[string] raises errorCode.
+    rdLns:()=>cons[string] throws errorCode.
     rdLns() => valof{
       if _end_of_file(Fl) then
 	valis []
@@ -29,7 +29,7 @@ test.pp1{
   .} in valof{
     try{
       valis rdLns()
-    } catch errorCode in {
+    } catch {
       | .eof => valis []
       | Other => {
 	showMsg("io error: $(Other)");

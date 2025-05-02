@@ -20,14 +20,14 @@ test.gr{
     disp(E) => dsp(E)
   }
 
-  eval:raises exception |: (expr,map[char,integer]) => integer.
+  eval:(expr,map[char,integer]) => integer throws exception.
   eval(.sum(L,R),D) => eval(L,D)+eval(R,D).
   eval(.sub(L,R),D) => eval(L,D)-eval(R,D).
   eval(.prod(L,R),D) => eval(L,D)*eval(R,D).
   eval(.div(L,R),D) => eval(L,D)/eval(R,D).
   eval(.var(V),D) where DV ?=D[V] => DV.
   eval(.int(Ix),_) => Ix.
-  eval(E,D) => raise .exception("Cant evaluate $(E) in $(D)").
+  eval(E,D) => throw .exception("Cant evaluate $(E) in $(D)").
 
   parseExp:() >> expr --> cons[char].
   parseExp >> E --> exp0 >> E, end.
@@ -48,12 +48,12 @@ test.gr{
   unitExp >> .int(digitVal(I)) --> [I], {isDigit(I)}.
   unitExp >> .var(A) --> [A], {isLetter(A)}.
 
-  evalStr:raises exception |: (string,map[char,integer]) => integer.
+  evalStr:(string,map[char,integer]) => integer throws exception.
   evalStr(T,D) => valof{
     if (E,_) ?= parseExp(T::cons[char]) then
       valis eval(E,D)
     else
-    raise .exception("Cannot parse #(T)")
+    throw .exception("Cannot parse #(T)")
   }
 
   main:()=>().
@@ -66,14 +66,14 @@ test.gr{
       assert evalStr("a",{`a`->5})==5;
       show evalStr("(1+a)/(1-a)",{`a`->1});
 
-    } catch exception in {
+    } catch {
       .exception(M) => {
 	showMsg("arithmetic went wrong: #(M)");
       }
     };
     try{
       show evalStr("(1+a)/(1-a",{`a`->1});
-    } catch exception in {
+    } catch {
       .exception(M) => {
 	showMsg("arithmetic went wrong: #(M)");
       }

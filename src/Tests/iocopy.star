@@ -10,7 +10,7 @@ test.iocopy{
       Text = rdFileAsync(src);
 --      showMsg("File text: #(Text)");
       wrFileAsync(dest,Text);
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -29,11 +29,11 @@ test.iocopy{
 	
 	Eras = nursery([Rd]);
 	showMsg("file copy done");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Writer got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

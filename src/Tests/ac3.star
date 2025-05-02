@@ -9,10 +9,10 @@ test.ac3{
     try{
       logM("p1");
       if X>5 then
-	raise 10
+	throw 10
       else
       valis 3*X
-    } catch integer in {
+    } catch {
       (I) => {
 	logM(disp(I))
       }
@@ -31,7 +31,7 @@ test.ac3{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch errorCode in {_ => {}};
+    } catch {_ => {}};
     valis ()
   }
 }

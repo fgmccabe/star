@@ -45,7 +45,7 @@ test.act0{
       showMsg("$(Rs)");
 
       assert Rs==.pong;
-    } catch mboxException in { _ => showMsg("huh?")
+    } catch { _ => showMsg("huh?")
     };
     valis ()
   }

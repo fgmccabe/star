@@ -40,8 +40,8 @@ star.iostream{
     foldRight = fold.
   }
 
-  public inStream:all t ~~ display[t], raises ioException |:
-    (string,(raises ioException|:(ioHandle)=>t))=>inputStream[t].
+  public inStream:all t ~~ display[t] |:
+    (string,((ioHandle)=>t throws ioException))=>inputStream[t] throws ioException.
   inStream(Fl,Fn) => valof{
     try{
       Io = _openInFile(Fl,3);
@@ -51,7 +51,7 @@ star.iostream{
 	  try{
 	    Nxt = Fn(Io);
 	    valis .streamPair(Nxt,.streamThunk($$next()))
-	  } catch ioException in {
+	  } catch {
 	    _ => {
 	      _close(Io);
 	      valis .endStream
@@ -61,19 +61,19 @@ star.iostream{
       .} in {
 	valis .streamThunk($$next())
       }
-    } catch errorCode in {
-      _ => raise .ioError
+    } catch {
+      _ => throw .ioError
     }
   }
 
-  public inCharStream:raises ioException |: (string) => inputStream[char].
+  public inCharStream:(string) => inputStream[char] throws ioException.
   inCharStream(Fl) => inStream(Fl,(Io)=>rdChar(Io)).
 
-  public inLineStream:raises ioException |: (string) => inputStream[string].
+  public inLineStream:(string) => inputStream[string] throws ioException.
   inLineStream(Fl) => inStream(Fl,(Io)=>rdLine(Io)).
 
-  public inBytesStream:raises ioException |: (string,integer) =>
-    inputStream[vect[integer]].
+  public inBytesStream: (string,integer) =>
+    inputStream[vect[integer]] throws ioException.
   inBytesStream(Fl,BfSze) => inStream(Fl,(Io)=>rdBytes(Io,BfSze)).
 
   public forceStream:all e ~~ (inputStream[e]) => cons[e].

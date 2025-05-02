@@ -11,7 +11,7 @@ test.io4{
 	showMsg("file text: $(Txt)");
 	valis Txt
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -30,12 +30,12 @@ test.io4{
 	  
 	Text = nursery([Rd]);
 	showMsg("reader done: $(Text)");
-      } catch mboxException in {
+      } catch {
 	| .deadlock => showMsg("Reader got deadlocked")
 	| .canceled => showMsg("Everything got canceled")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

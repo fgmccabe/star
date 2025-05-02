@@ -4,7 +4,7 @@ test.iostrm{
   import star.iostream.
   import star.assert.
 
-  countCPs:raises ioException |: (string)=>integer.
+  countCPs:(string)=>integer throws ioException.
   countCPs(Fl) => let{.
    count([],Cx) => Cx.
    count([_,..Rst],Cx) => count(Rst,Cx+1)
@@ -30,7 +30,7 @@ test.iostrm{
 
       assert countCPs(Fl)==foldLeft((_,Ix)=>Ix+1,0,inCharStream(Fl));
 
-    } catch ioException in {
+    } catch {
       | Cde => showMsg("error code $(Cde)")
     };
     valis ()

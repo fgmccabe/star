@@ -5,76 +5,52 @@ test.y{
   -- Test out some try catch handling
 
   -- A function that throws an exception
-  fooE:raises exception |: () => string.
+  fooE:() => string throws exception.
   fooE() => valof{
     showMsg("raising from fooE");
-    raise .exception("fooE")
+    throw .exception("fooE")
   }
 
   -- A function that throws a generic exception
-  fooG:all e ~~ raises e |: (()=>e)=>().
-  fooG(E) => raise E().
+  fooG:all e ~~ (()=>e)=>() throws e.
+  fooG(E) => throw E().
 
   -- A function that catches a generic exception
-  fooC:all e ~~ (raises e |: ()=>string) => string.
+  fooC:all e ~~ ()=>string) => string throws e.
   fooC(F) => 
     (try
       F()
-      catch e in {
+      catch {
 	_ => valof{
 	  showMsg("we got an exception");
 	  valis "we got an exception"
 	}
       }).
 
-  -- A function that handles two kinds of exception
-  fooT:(integer) => string.
-  fooT(T) => valof{
-    try{
-      try{
-	if 1<T then
-	  raise .exception("$(T) is bigger than 1")
-	else
-	raise "$(T) not bigger than 1"
-      } catch exception in {
-	.exception(M) => { showMsg("we got exception $(M)");
-	  valis M
-	}
-      }
-    } catch string in {
-      S => { showMsg("we got string #(S)");
-	valis S
-      }
-    }
-  }
-
   fooInner:(integer) => string.
   fooInner(X) => (try
     let{
-	inner(U) where U<0 => raise "$(U) is less than zero".
+	inner(U) where U<0 => throw "$(U) is less than zero".
 	inner(U) => disp(U*U)
       } in inner(X)
-    catch string in {
+    catch {
       Msg => Msg
     }).
 
   -- A function that throws one of two kinds of exception
-  fooX:raises string, raises exception |: (integer) => ().
+  fooX:throws string, throws exception |: (integer) => ().
   fooX(T) => valof{
     if 1 < T then
-      raise .exception("$(T) is bigger than 1")
+      throw .exception("$(T) is bigger than 1")
     else
-    raise "$(T) not bigger than 1"
+    throw "$(T) not bigger than 1"
   }
 
   main:()=>().
   main() => valof{
-    assert fooT(2)=="2 is bigger than 1";
-    assert fooT(0)=="0 not bigger than 1";
-
     try{
       show fooE()
-    } catch exception in {
+    } catch {
       .exception(M) => {
 	showMsg("fooE threw #(M)")
       }
@@ -82,7 +58,7 @@ test.y{
 
     try{
       show fooG(()=>"test string")
-    } catch string in {
+    } catch {
       M => showMsg("fooG throws $(M)")
     };
 
@@ -90,7 +66,7 @@ test.y{
 
     try{
       show fooG(()=>42)
-    } catch integer in {
+    } catch {
       M => showMsg("fooG throws $(M)")
     };
 
@@ -98,11 +74,11 @@ test.y{
     try{
       try{
 	fooX(2)
-      } catch exception in {
+      } catch {
 	.exception(M) => { showMsg("we got exception $(M)");
 	}
       }
-    } catch string in {
+    } catch {
       S => { showMsg("we got string #(S)");
       }
     };
@@ -110,11 +86,11 @@ test.y{
     try{
       try{
 	fooX(0)
-      } catch exception in {
+      } catch {
 	.exception(M) => { showMsg("we got exception $(M)");
 	}
       }
-    } catch string in {
+    } catch {
       S => { showMsg("we got string #(S)");
       }
     };

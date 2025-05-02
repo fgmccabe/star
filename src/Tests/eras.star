@@ -13,7 +13,7 @@ test.eras{
     }
   }
 
-  divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
+  divides(X,Y) => (try X%Y==0 catch {_ => .false}).
 
   filter:(integer,generator[integer]) => generator[integer].
   filter(Prm,Gen) => generator{

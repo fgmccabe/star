@@ -4,7 +4,7 @@ test.ac4{
 
   -- test action functions
 
-  f:raises string |: (integer) => integer.
+  f:(integer) => integer throws string.
   f(X) => valof{
     if X == 1 then{
       valis 1
@@ -12,7 +12,7 @@ test.ac4{
       XX = f(X-1);
       valis XX*X
     } else
-    raise "illegal arg of f"
+    throw "illegal arg of f"
   }
 
   main:()=>().
@@ -23,7 +23,7 @@ test.ac4{
       logM(disp(f(-10)));
       F = f(-10);
       logM(disp(F))
-    } catch string in {
+    } catch {
       E => {
 	logM(E)
       }
@@ -35,8 +35,7 @@ test.ac4{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch errorCode in {_ => {}};
+    } catch {_ => {}};
     valis ()
   }
-  
 }

@@ -10,7 +10,7 @@ test.incopy{
       Ch = inChannel(src);
 
       valis .some(readAll(Ch))
-    } catch errorCode in {
+    } catch {
       _ => valis .none
     }
   }
