@@ -16,9 +16,9 @@ test.cnb{
   }
 
   public factF:(integer)=>integer.
-  factF(N) => (try factFF(1,N,1) catch () in { _ => -1}).
+  factF(N) => (try factFF(1,N,1) catch { _ => -1}).
 
-  factFF:raises () |: (integer,integer,integer)=>integer.
+  factFF:(integer,integer,integer)=>integer throws ().
   factFF(F,T,S) => valof{
     if F>T then
       valis S

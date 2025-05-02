@@ -2,7 +2,7 @@ test.ac7{
   import star.
   import star.assert.
 
-  f: raises string |: (integer) => integer.
+  f: (integer) => integer throws string.
   f(X) => valof{
     if X == 1 then{
       valis 1
@@ -10,7 +10,7 @@ test.ac7{
       XX = f(X-1);
       valis XX*X
     } else
-    raise "illegal arg"
+    throw "illegal arg"
   }
 
   main:()=>().
@@ -18,7 +18,7 @@ test.ac7{
     try{
       F10 = f(10);
       show F10;
-    } catch string in {
+    } catch {
       E => {
 	logMsg(.warning,E)
       }

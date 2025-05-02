@@ -30,7 +30,7 @@ test.do12{
       assert multiWhr(.foo(23))==23;
       assert seqCase(.foo(23))==23;
       assert seqCase(.bar(""))==0;
-    } catch () in {
+    } catch {
       | _ => showMsg("bad valof")
     };
     valis ()

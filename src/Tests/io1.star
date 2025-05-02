@@ -10,7 +10,7 @@ test.io1{
       while Ch.=rdCharAsync(IO) do{
 	showMsg("char: $(Ch)");
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -31,11 +31,11 @@ test.io1{
 	  
 	nursery([Rd]);
 	showMsg("reader done");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Reader got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

@@ -11,15 +11,15 @@ test.sieve{
 	Ix := Ix!+2;
 	post(Ix!,Chnnl)
       }
-    } catch mboxException in { .canceled => {
+    } catch { .canceled => {
 	retire .retired_
     }
     }
   }
 
-  divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
+  divides(X,Y) => (try X%Y==0 catch {_ => .false}).
 
-  filter:(this : task[integer]), raises mboxException |: (integer,emitter[integer],receiver[integer]) => ().
+  filter:(this : task[integer]) |: (integer,emitter[integer],receiver[integer]) => () throws mboxException.
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collect(Chnl) do{
       if ~divides(Nxt,Prm) then
@@ -41,7 +41,7 @@ test.sieve{
 	showMsg("collected $(Mx) primes");
 	valis Nxt
       }
-    } catch mboxException in { .canceled => {}};
+    } catch { .canceled => {}};
     retire .retired_
   }
 
@@ -61,7 +61,7 @@ test.sieve{
     try{
       Eras = nursery([Gn,Sv]);
       showMsg("final result $(Eras)");
-    } catch mboxException in {
+    } catch {
       .deadlock => showMsg("Sieve got deadlocked")
     };
     valis ()

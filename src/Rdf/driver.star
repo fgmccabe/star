@@ -30,7 +30,7 @@ rdf.driver{
 	    showParseOption],
 	  defltOptions(WI,RI)
 	))
-    } catch string in {
+    } catch {
       Msg => { logMsg(Msg);
 	valis ()
       }

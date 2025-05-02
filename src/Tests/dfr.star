@@ -2,7 +2,7 @@ test.dfr{
   import star.
   import star.assert.
 
-  CX : raises string |: (cons[integer],integer) => integer.
+  CX : (cons[integer],integer) => integer throws string.
   CX(Is,Lm) => valof{
     Cx = ref 0;
 
@@ -13,10 +13,10 @@ test.dfr{
 	  Cx := Cx!+Ix
       };
       valis Cx!
-    } catch string in {
+    } catch {
       (E) => {
 	showMsg(E);
-	raise E
+	throw E
       }
     }
   }
@@ -27,7 +27,7 @@ test.dfr{
   main()=>valof{
     try{
       show CX(IS,2);
-    } catch string in {
+    } catch {
       _ => showMsg("something went bad")
     };
     valis ()

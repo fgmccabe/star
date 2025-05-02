@@ -10,7 +10,7 @@ star.system{
   setenv(Ky,Vl) => valof{
     try{
       valis _setenv(Ky,Vl);
-    } catch errorCode in {
+    } catch {
       _ => valis () -- ignore errors
     }
   }
@@ -18,7 +18,7 @@ star.system{
   public envir:()=>cons[(string,string)].
   envir() => _envir().
 
-  public shell:(string,cons[string],cons[(string,string)])=>integer raises errorCode.
+  public shell:(string,cons[string],cons[(string,string)])=>integer throws errorCode.
   shell(Cmd,Args,Env) => _shell(Cmd,Args,Env).
 
 }

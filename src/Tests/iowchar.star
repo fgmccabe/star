@@ -11,7 +11,7 @@ test.iowchar{
 	showMsg("write char: $(Ch)");
 	wrCharAsync(IO,Ch);
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -35,11 +35,11 @@ test.iowchar{
 	  
 	nursery([Rd]);
 	showMsg("writer done");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Writer got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

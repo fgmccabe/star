@@ -6,7 +6,7 @@ star.file{
   getFile(Fn) where Fl .= Fn && _file_present(Fl) => valof{
     try{
       valis .some(_get_file(Fl))
-    } catch errorCode in {
+    } catch {
       .eNOTFND => valis .none
     }
   }
@@ -14,7 +14,7 @@ star.file{
 
   public putFile:(string,string)=>().
   putFile(Fn,Content) =>
-    (try _put_file(Fn,Content) catch errorCode in {_ => ()}).
+    (try _put_file(Fn,Content) catch {_ => ()}).
 
   public filePresent:(string) => boolean.
   filePresent(Fn) => _file_present(Fn).

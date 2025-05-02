@@ -134,8 +134,8 @@ star.core {
   public (••):all a,b,c ~~ ((b,b)=>c,(a)=>b)=>(a,a)=>c.
   F •• G => (x,y)=>F(G(x),G(y)).
 
-  public contract all x,y ~~ pull[x->>y] ::= {
-    (?):(x) => y
+  public contract all x,y,e ~~ pull[x->>y,e] ::= {
+    (?):(x) => y throws e
   }
 
   public exception ::= .exception(string).

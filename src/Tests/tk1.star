@@ -21,20 +21,20 @@ test.tk1{
 	    if 3>2 then
 	      valis "there"
 	    else
-	    raise ()
+	    throw ()
 	  };
 	  F2 = waitfor(T2);
 	  showMsg("final result $(F2)");
 	  
 	  valis ()
-	} catch () in {
+	} catch {
 	  _ => retire .retired_
 	}
       };
 	
       nursery([Tsk]);
 
-    } catch mboxException in {
+    } catch {
       E => showMsg("$(E)")
     };
     valis ()

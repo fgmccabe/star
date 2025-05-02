@@ -205,7 +205,7 @@ star.mbox{
 	  try{
 	    C := .either(TFn());	-- this marks the future as resolved
 	    retire .retired_
-	  } catch e in {
+	  } catch {
 	    Ex => {
 	      C := .other(Ex);
 	      retire .retired_

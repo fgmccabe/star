@@ -17,7 +17,7 @@ test.fib{
 
     -- try{
     --   _jit_compile(fib)
-    -- } catch errorCode in {
+    -- } catch {
     --   X => showMsg("$(X)")
     -- };
     -- valis ()

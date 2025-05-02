@@ -2,10 +2,10 @@ test.do13{
   import star.
   import star.assert.
 
-  maybeFail: raises integer |: (integer)=>integer.
+  maybeFail: (integer)=>integer throws integer.
   maybeFail(X) => valof{
     if X==10 then
-      raise 10
+      throw 10
     else
       valis X
   }
@@ -21,7 +21,7 @@ test.do13{
       assert BB == 6;
       XX = maybeFail(10);
       assert .false  -- never get here
-    } catch integer in {
+    } catch {
       (Ix) => {
 	assert Ix==10
       }

@@ -12,7 +12,7 @@ test.io2{
 	showMsg("Ln: $(Ln)");
 	out := [Ln,..out!]
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -33,11 +33,11 @@ test.io2{
 	  
 	Text = nursery([Rd]);
 	showMsg("output: $(Text)");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Reader got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

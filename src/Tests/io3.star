@@ -10,7 +10,7 @@ test.io3{
       while Ln.=rdLineAsync(IO) do{
 	showMsg("line: $(Ln)");
       }
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -30,7 +30,7 @@ test.io3{
 	Rd = (Tsk) => readAll(Tsk,In);
 	nursery([Rd]);
 	showMsg("reader done");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Reader got deadlocked")
       };
       valis ()

@@ -23,7 +23,7 @@ test.ac5{
       logM(disp(F10));
       F = f(-10);
       logM(disp(F))
-    } catch string in {
+    } catch {
       E => {
 	logM(E)
       }
@@ -35,7 +35,7 @@ test.ac5{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch errorCode in {_ => {}};
+    } catch {_ => {}};
     valis ()
   }
   

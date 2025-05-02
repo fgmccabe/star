@@ -45,7 +45,7 @@ test.opgr{
     apply(.plus,[L,R]) => .some(L+R).
     apply(.times,[L,R]) => .some(L*R).
     apply(.sub,[L,R]) => .some(L-R).
-    apply(.div,[L,R]) => (try .some(L/R) catch exception in { _ => .none}).
+    apply(.div,[L,R]) => (try .some(L/R) catch { _ => .none}).
     apply(.uminus,[R]) => .some(-R).
   .} in ev(Ex).
 

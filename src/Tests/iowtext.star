@@ -8,7 +8,7 @@ test.iowtext{
   writeAll(this,IO,txt) => valof{
     try{
       wrTextAsync(IO,txt);
-    } catch ioException in {
+    } catch {
       | .ioError => showMsg("bad io")
       | .pastEof => showMsg("all done")
     };
@@ -32,11 +32,11 @@ test.iowtext{
 	  
 	nursery([Rd]);
 	showMsg("writer done");
-      } catch mboxException in {
+      } catch {
 	.deadlock => showMsg("Writer got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

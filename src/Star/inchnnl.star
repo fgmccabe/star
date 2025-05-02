@@ -11,7 +11,7 @@ star.inchnnl{
 	if _fposition(Io)~=Pos then{
 	  _fseek(Io,Pos)
 	}
-      } catch errorCode in {
+      } catch {
 	_ => {}
       };
       valis ()
@@ -27,7 +27,7 @@ star.inchnnl{
       try{
 	Ch = _inchar(Io);
 	valis .some((Ch,.inChnnl(Io,_fposition(Io))))
-      } catch errorCode in {
+      } catch {
 	_ => valis .none
       }
     }
@@ -40,7 +40,7 @@ star.inchnnl{
     disp(.inChnnl(Io,Pos)) => "<In:#(_fname(Io))@$(Pos)>"
   }
 
-  public inChannel:raises errorCode|:(string)=>inChnnl.
+  public inChannel:(string)=>inChnnl throws errorCode.
   inChannel(Fl) => .inChnnl(_openInFile(Fl,3),0).
 }
 
