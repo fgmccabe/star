@@ -94,7 +94,7 @@ logical collectStats = False;
   }\
   })
 
-#define breakOut(PC,SP,F,EX) STMT_WRAP({             \
+#define breakOut(PC, SP, F, EX) STMT_WRAP({             \
   PC += PC->alt + 1;                                 \
   assert(validPC(frameMtd(FP), PC));                 \
   assert(PC->op == Block);                           \
@@ -339,9 +339,8 @@ retCode run(processPo P) {
             push(ret.result);
           continue;
         } else {
-          push(ret.result);
-          push(ret.cont);
-          goto Exception;
+          logMsg(logFile, "invalid return from escape %s", escapeName(esc));
+          bail();
         }
       }
 
@@ -1142,7 +1141,7 @@ retCode run(processPo P) {
         integer Rhs = integerVal(pop());
 
         if (Rhs == 0) {
-          breakOut(PC,SP,FP,divZero);
+          breakOut(PC, SP, FP, divZero);
         } else {
           termPo Rs = makeInteger(Lhs / Rhs);
           push(Rs);
@@ -1155,7 +1154,7 @@ retCode run(processPo P) {
         integer numerator = integerVal(pop());
 
         if (numerator == 0) {
-          breakOut(PC,SP,FP,divZero);
+          breakOut(PC, SP, FP, divZero);
         } else {
           integer reslt = denom % numerator;
 
@@ -1352,7 +1351,7 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(PC,SP,FP,divZero);
+          breakOut(PC, SP, FP, divZero);
         } else {
           termPo Rs = makeFloat(Lhs / Rhs);
           push(Rs);
@@ -1365,7 +1364,7 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(PC,SP,FP,divZero);
+          breakOut(PC, SP, FP, divZero);
         } else {
           termPo Rs = makeFloat(fmod(Lhs, Rhs));
           push(Rs);

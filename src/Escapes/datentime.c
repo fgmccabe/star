@@ -165,7 +165,7 @@ ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal, .result=result};
   } else {
     closeIo(O_IO(buff));
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
   }
 }
 

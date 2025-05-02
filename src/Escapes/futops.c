@@ -46,7 +46,7 @@ ReturnStatus g__resolveFuture(heapPo h, termPo a1, termPo a2) {
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=hasValue};
+      return (ReturnStatus) {.ret=Abnormal, .result=hasValue};
   }
 }
 
@@ -57,7 +57,7 @@ ReturnStatus g__rejectFuture(heapPo h, termPo a1, termPo a2) {
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=hasValue};
+      return (ReturnStatus) {.ret=Abnormal, .result=hasValue};
   }
 }
 
@@ -67,5 +67,5 @@ ReturnStatus g__futureVal(heapPo h, termPo a1) {
   if (futureIsAccepted(ft))
     return (ReturnStatus) {.ret=Normal, .result=futureValue(ft)};
   else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=futureValue(ft)};
+    return (ReturnStatus) {.ret=Abnormal, .result=futureValue(ft)};
 }

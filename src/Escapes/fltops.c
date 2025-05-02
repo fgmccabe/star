@@ -52,7 +52,7 @@ ReturnStatus g__flt_div(heapPo h, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     termPo Rs = makeFloat(floatVal(a1) / denom);
 
@@ -64,7 +64,7 @@ ReturnStatus g__flt_mod(heapPo h, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
 
@@ -93,9 +93,9 @@ ReturnStatus g_exp(heapPo h, termPo arg1) {
 
   if (errno != 0) {
     if (errno == EDOM || errno == ERANGE)
-      return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eRANGE};
+      return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
     else
-      return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eINVAL};
+      return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
   } else
     return (ReturnStatus) {.ret=Normal, .result=makeFloat(ans)};
 }
@@ -187,10 +187,10 @@ ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
   char buff[64];
   integer pos = 0;
 
-  if(formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length)==Ok)
+  if (formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length) == Ok)
     return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
   else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
 }
 
 ReturnStatus g__flt_hash(heapPo h, termPo arg1) {
@@ -280,10 +280,10 @@ ReturnStatus g_log10(heapPo h, termPo arg1) {
 ReturnStatus g_sqrt(heapPo h, termPo arg1) {
   double Arg = floatVal(arg1);
 
-  if(Arg >= 0.0)
+  if (Arg >= 0.0)
     return (ReturnStatus) {.ret=Normal, .result=makeFloat(sqrt(Arg))};
   else
-    return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eRANGE};
+    return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
 }
 
 ReturnStatus g_pi(heapPo h) {

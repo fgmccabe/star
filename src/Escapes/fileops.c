@@ -34,7 +34,7 @@ ReturnStatus g__cd(processPo p, termPo a1) {
     case Ok:
       return (ReturnStatus) {.ret=Normal, .result = unitEnum};
     default:
-      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eRANGE};
+      return (ReturnStatus) {.ret=Abnormal, .result = eRANGE};
   }
 }
 
@@ -58,12 +58,12 @@ ReturnStatus g__rm(processPo p, termPo a1) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result = eNOPERM};
       case EBUSY:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eFAIL};
+        return (ReturnStatus) {.ret=Abnormal, .result = eFAIL};
       case ENOENT:
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result = eIOERROR};
     }
   }
 }
@@ -90,12 +90,12 @@ ReturnStatus g__rmdir(heapPo h, termPo a1) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result = eNOPERM};
       case EBUSY:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eFAIL};
+        return (ReturnStatus) {.ret=Abnormal, .result = eFAIL};
       case ENOENT:
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result = eIOERROR};
     }
   }
 }
@@ -124,12 +124,12 @@ ReturnStatus g__mkdir(heapPo h, termPo a1, termPo a2) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result = eNOPERM};
       case EBUSY:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eFAIL};
+        return (ReturnStatus) {.ret=Abnormal, .result = eFAIL};
       case ENOENT:
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result = eIOERROR};
     }
   }
 }
@@ -161,12 +161,12 @@ ReturnStatus g__mv(heapPo h, termPo a1, termPo a2) {
         goto tryAgain;
       case EACCES:
       case EPERM:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result = eNOPERM};
       case EBUSY:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eFAIL};
+        return (ReturnStatus) {.ret=Abnormal, .result = eFAIL};
       case ENOENT:
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result = eIOERROR};
     }
   }
 }
@@ -188,14 +188,14 @@ ReturnStatus g__ls(heapPo h, termPo a1) {
       case EACCES:
       case EMFILE:
       case ENFILE:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case ENAMETOOLONG:
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   } else {
     termPo list = (termPo) nilEnum;
@@ -240,21 +240,21 @@ ReturnStatus g__file_mode(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOFILE};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOFILE};
       case ENAMETOOLONG:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case EACCES:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ELOOP:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case EIO:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eIOERROR};
       case EFAULT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   } else {
     setProcessRunnable(currentProcess);
@@ -283,7 +283,7 @@ ReturnStatus g__file_chmod(heapPo h, termPo a1, termPo a2) {
       case EACCES:
       case EPERM:
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result = eNOPERM};
     }
   }
   setProcessRunnable(currentProcess);
@@ -355,21 +355,21 @@ ReturnStatus g__file_type(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOFILE};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOFILE};
       case ENAMETOOLONG:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case EACCES:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ELOOP:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case EIO:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eIOERROR};
       case EFAULT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   }
 
@@ -392,7 +392,7 @@ ReturnStatus g__file_type(heapPo h, termPo a1) {
   else if (S_ISSOCK(buf.st_mode))
     type = makeInteger(fileSocket);
   else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
 
   return (ReturnStatus) {.ret=Normal, .result =type};
 }
@@ -416,21 +416,21 @@ ReturnStatus g__file_size(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTDIR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case EACCES:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ELOOP:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case EIO:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eIOERROR};
       case EFAULT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   } else {
     termPo details = makeInteger(buf.st_size);
@@ -460,21 +460,21 @@ ReturnStatus g__file_date(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTDIR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case EACCES:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ELOOP:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case EIO:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eIOERROR};
       case EFAULT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   } else {
     termPo atime = makeInteger(buf.st_atime);
@@ -515,21 +515,21 @@ ReturnStatus g__file_modified(heapPo h, termPo a1) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTDIR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTDIR};
       case ENAMETOOLONG:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case ENOENT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
       case EACCES:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOPERM};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOPERM};
       case ELOOP:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       case EIO:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .result =eIOERROR};
       case EFAULT:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+        return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+        return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
     }
   } else {
     termPo mtime = makeInteger(buf.st_mtime);
@@ -555,7 +555,7 @@ ReturnStatus g__openInFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result = eNOTFND};
 }
 
 ReturnStatus g__openOutFile(heapPo h, termPo a1, termPo a2) {
@@ -573,7 +573,7 @@ ReturnStatus g__openOutFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result = eNOTFND};
 }
 
 ReturnStatus g__openAppendFile(heapPo h, termPo a1, termPo a2) {
@@ -591,7 +591,7 @@ ReturnStatus g__openAppendFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result = eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result = eNOTFND};
 }
 
 ReturnStatus g__openAppendIOFile(heapPo h, termPo a1, termPo a2) {
@@ -609,7 +609,7 @@ ReturnStatus g__openAppendIOFile(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, file)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .result =eNOTFND};
 }
 
 ioEncoding pickEncoding(integer k) {

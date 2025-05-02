@@ -20,7 +20,7 @@ ReturnStatus g__jit_compile(heapPo h, termPo a1) {
     retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
     if (ret != Ok) {
       logMsg(logFile, "%s\n", errMsg);
-      return (ReturnStatus) {.ret=Abnormal, .cont=Null, .result=eINVAL};
+      return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
     } else
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   }

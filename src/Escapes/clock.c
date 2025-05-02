@@ -52,11 +52,11 @@ ReturnStatus g__delay(processPo p, termPo a1) {
     setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINTRUPT};
+        return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
       case EINVAL:
       case ENOSYS:
       default:
-        return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINVAL};
+        return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
     }
   } else {
     setProcessRunnable(p);
@@ -97,11 +97,11 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
       setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINTRUPT};
+          return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
         case EINVAL:
         case ENOSYS:
         default:
-          return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINVAL};
+          return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
       }
     } else {
       setProcessRunnable(p);
@@ -149,7 +149,7 @@ double get_date(void) {
   time_t tloc;
   struct tm *tmptr;
 
-  if(gettimeofday(&t, NULL)==0){
+  if (gettimeofday(&t, NULL) == 0) {
     tloc = t.tv_sec;
     tmptr = localtime(&tloc);
     tmptr->tm_hour = 0;
@@ -157,7 +157,6 @@ double get_date(void) {
     tmptr->tm_sec = 0;
 
     return (double) mktime(tmptr);
-  }
-  else
-    return (double)NAN;
+  } else
+    return (double) NAN;
 }

@@ -36,7 +36,7 @@ ReturnStatus g__int_div(heapPo h, termPo a1, termPo a2) {
   integer numerator = integerVal(a2);
 
   if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     termPo Rs = makeInteger(denom / numerator);
     return (ReturnStatus) {.ret=Normal, .result=Rs};
@@ -48,7 +48,7 @@ ReturnStatus g__int_mod(heapPo h, termPo a1, termPo a2) {
   integer numerator = integerVal(a2);
 
   if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   } else {
     integer reslt = denom % numerator;
 
@@ -66,7 +66,7 @@ ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Normal, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   }
 }
 
@@ -89,7 +89,7 @@ ReturnStatus g__int_pow(heapPo h, termPo a1, termPo a2) {
   integer y = integerVal(a2);
 
   if (y < 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=noValue};
+    return (ReturnStatus) {.ret=Abnormal, .result=noValue};
   } else
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(intPow(x, y))};
 }
@@ -198,7 +198,7 @@ ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
 ReturnStatus g__int_lg2(heapPo h, termPo Lhs) {
   integer Arg = integerVal(Lhs);
   if (Arg <= 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eRANGE};
+    return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
   } else {
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(lg2(Arg))};
   }
@@ -233,7 +233,7 @@ ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, pos)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
 }
 
 ReturnStatus g__int2flt(heapPo h, termPo arg1) {

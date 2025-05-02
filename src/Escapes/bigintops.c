@@ -114,7 +114,7 @@ ReturnStatus g__big_div(heapPo h, termPo a1, termPo a2) {
     gcReleaseRoot(h, root);
     return (ReturnStatus) {.ret=Normal, .result=Rs};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   }
 }
 
@@ -132,7 +132,7 @@ ReturnStatus g__big_gcd(heapPo h, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Normal, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
   }
 }
 
@@ -152,7 +152,7 @@ ReturnStatus g__big_format(heapPo h, termPo a1, termPo a2) {
   if (resLen >= 0) {
     return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, resLen)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result =eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result =eINVAL};
 }
 
 ReturnStatus g__big2str(heapPo h, termPo a1) {

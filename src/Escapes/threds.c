@@ -58,7 +58,7 @@ ReturnStatus g__kill(heapPo h, termPo a1) {
     ps_kill(tgt);
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
 }
 
 ReturnStatus g__thread(heapPo h) {
@@ -99,18 +99,18 @@ ReturnStatus g__waitfor(heapPo h, termPo a1) {
       setProcessRunnable(currentProcess);
       switch (errno) {
         case EINVAL:
-          return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
+          return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
         case ESRCH:
-          return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
+          return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
         case EDEADLK:
-          return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eDEAD};
+          return (ReturnStatus) {.ret=Abnormal, .result=eDEAD};
         default: {
           return (ReturnStatus) {.ret=Normal, .result=(termPo) voidEnum};
         }
       }
     }
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eDEAD};
+    return (ReturnStatus) {.ret=Abnormal, .result=eDEAD};
 }
 
 ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
