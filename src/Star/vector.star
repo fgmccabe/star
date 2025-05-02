@@ -44,7 +44,7 @@ star.vector{
     valis (Fst,Snd)
   }
 
-  lg2(X) => (try _int_lg2(X) catch errorCode in {_ => -1}).
+  lg2(X) => (try _int_lg2(X) catch {_ => -1}).
 
   bitcnt(X) => ((lg2(X)+1).>>.1)*2. -- Round up the log to the next even number
 

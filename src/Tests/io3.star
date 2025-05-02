@@ -34,7 +34,7 @@ test.io3{
 	.deadlock => showMsg("Reader got deadlocked")
       };
       valis ()
-    } catch errorCode in {
+    } catch {
       | .eof => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };

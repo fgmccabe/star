@@ -48,11 +48,11 @@ ReturnStatus g__flt_times(heapPo h, termPo a1, termPo a2) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__flt_div(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__flt_div(heapPo h, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
   } else {
     termPo Rs = makeFloat(floatVal(a1) / denom);
 
@@ -60,11 +60,11 @@ ReturnStatus g__flt_div(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__flt_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__flt_mod(heapPo h, termPo a1, termPo a2) {
   double denom = floatVal(a2);
 
   if (denom == 0.0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
   } else {
     termPo Rs = makeFloat(fmod(floatVal(a1), floatVal(a2)));
 
@@ -187,9 +187,10 @@ ReturnStatus g__flt_format(heapPo h, termPo a1, termPo a2) {
   char buff[64];
   integer pos = 0;
 
-  formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length);
-
-  return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
+  if(formattedFloat(floatVal(a1), buff, &pos, NumberOf(buff), fmt, length)==Ok)
+    return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
+  else
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
 }
 
 ReturnStatus g__flt_hash(heapPo h, termPo arg1) {

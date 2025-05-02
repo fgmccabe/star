@@ -16,7 +16,7 @@
 #include <consP.h>
 #include "pkgops.h"
 
-ReturnStatus g__pkg_is_present(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__pkg_is_present(heapPo h, termPo a1, termPo a2) {
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
@@ -35,7 +35,7 @@ ReturnStatus g__pkg_is_present(heapPo h, termPo xc, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Normal, .result= falseEnum};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result= eNOTFND};
   }
 }
 
@@ -61,7 +61,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   return Ok;
 }
 
-ReturnStatus g__install_pkg(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__install_pkg(heapPo h, termPo a1) {
   integer len;
   const char *text = strVal(a1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
@@ -82,10 +82,10 @@ ReturnStatus g__install_pkg(heapPo h, termPo xc, termPo a1) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Normal, .result= (termPo) imports};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eFAIL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eFAIL};
 }
 
-ReturnStatus g__in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
@@ -107,11 +107,11 @@ ReturnStatus g__in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3
       return (ReturnStatus) {.ret=Normal, .result= trueEnum};
     }
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eIOERROR};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result= eIOERROR};
   }
 }
 
-ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__locate_in_manifest(heapPo h, termPo a1, termPo a2, termPo a3) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
@@ -128,13 +128,13 @@ ReturnStatus g__locate_in_manifest(heapPo h, termPo xc, termPo a1, termPo a2, te
     ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
     if (ret != Ok) {
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= eNOTFND};
+      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result= eNOTFND};
     } else {
       return (ReturnStatus) {.ret=Normal,
         .result=(termPo) allocateString(h, rsrc, uniStrLen(rsrc))};
     }
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result= ioErrorCode(ret)};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result= ioErrorCode(ret)};
   }
 }
 

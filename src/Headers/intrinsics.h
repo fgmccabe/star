@@ -10,7 +10,6 @@
 #define either(E,O) "UUz2'star.either*either'" E O
 #define future(F,E) "UUz2'future'" F E
 #define fiber(R,S) "UUz2'fiber'" R S
-#define raises(A,E) "|"A"r"E
 #define throws(A,R,E) "T" tpl(A) R E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
@@ -40,13 +39,13 @@ intrinsic(_int_plus, func(int int, int),"IAdd",True,NotLast,"add two integers")
 intrinsic(_int_minus, func(int int, int),"ISub",True,NotLast,"subtract two integers")
 intrinsic(_int_times, func(int int, int),"IMul",True,NotLast,"multiply two integers")
 intrinsic(_int_div,throws(int int, int,ERR),"IDiv",True,NotLast,"divide two integers")
-intrinsic(_int_mod,raises(func(int int, int),ERR),"IMod",True,NotLast,"modulo remainder")
+intrinsic(_int_mod,throws(int int, int,ERR),"IMod",True,NotLast,"modulo remainder")
 
 intrinsic(_flt_plus,func(flt flt,flt),"FAdd",True,NotLast,"add two floats")
 intrinsic(_flt_minus,func(flt flt,flt),"FSub",True,NotLast,"subtract two floats")
 intrinsic(_flt_times,func(flt flt,flt),"FMul",True,NotLast,"multiply two floats")
-intrinsic(_flt_div, raises(func(flt flt,flt),ERR),"FDiv",True,NotLast,"divide two floats")
-intrinsic(_flt_mod, raises(func(flt flt,flt),ERR),"FMod",True,NotLast,"modulo remainder")
+intrinsic(_flt_div, throws(flt flt,flt,ERR),"FDiv",True,NotLast,"divide two floats")
+intrinsic(_flt_mod, throws(flt flt,flt,ERR),"FMod",True,NotLast,"modulo remainder")
 
 intrinsic(_int_abs,func(int, int),"IAbs",True,NotLast,"integer absolute value")
 intrinsic(_flt_abs,func(flt,flt),"FAbs",True,NotLast,"float absolute value")
@@ -81,7 +80,6 @@ intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r) s,fiber(r,s)))),"Fiber",Tru
 #undef either
 #undef future
 #undef fiber
-#undef raises
 #undef throws
 #undef func
 #undef tpl

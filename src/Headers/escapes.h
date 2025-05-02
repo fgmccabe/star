@@ -13,7 +13,6 @@
 #define either(E,O) "UUz2'star.either*either'" E O
 #define future(F,E) "UUz2'future'" F E
 #define fiber(R,S) "UUz2'fiber'" R S
-#define raises(A,E) "|"A"r"E
 #define throws(A,R,E) "T" tpl(A) R E
 #define func(A,R) "F" tpl(A) R
 #define tpl(E) "(" E ")"
@@ -47,17 +46,17 @@ escape(_int_plus, func(int int, int), "add two integers")
 escape(_int_minus, func(int int, int), "subtract two integers")
 escape(_int_times, func(int int, int), "multiply two integers")
 escape(_int_div, throws(int int, int,ERR), "divide two integers")
-escape(_int_mod, raises(func(int int, int),ERR), "modulo remainder")
+escape(_int_mod, throws(int int, int,ERR), "modulo remainder")
 escape(_int_hash, func(int, int), "compute hash of integer")
-escape(_int_gcd, raises(func(int int,  int),ERR), "gcd of two integers")
+escape(_int_gcd, throws(int int,  int,ERR), "gcd of two integers")
 
-escape(_int_lg2,raises(func(int, int),ERR),"integer log2")
+escape(_int_lg2,throws(int, int,ERR),"integer log2")
 
 escape(_flt_plus, func(flt flt,flt), "add two floats")
 escape(_flt_minus, func(flt flt,flt), "subtract two floats")
 escape(_flt_times, func(flt flt,flt), "multiply two floats")
-escape(_flt_div, raises(func(flt flt,flt),ERR), "divide two floats")
-escape(_flt_mod, raises(func(flt flt,flt),ERR), "modulo remainder")
+escape(_flt_div, throws(flt flt,flt,ERR), "divide two floats")
+escape(_flt_mod, throws(flt flt,flt,ERR), "modulo remainder")
 
 escape(_int_abs, func(int, int), "integer absolute value")
 escape(_flt_abs, func(flt,flt), "float absolute value")
@@ -66,7 +65,7 @@ escape(_int_eq, func(int int,bool), "integer equality")
 escape(_int_lt, func(int int,bool), "integer less than")
 escape(_int_ge, func(int int,bool), "integer greater or equal")
 
-escape(_int_pow, raises(func(int int, int),ERR), "integer exponentiation")
+escape(_int_pow, throws(int int, int,ERR), "integer exponentiation")
 
 escape(_flt_eq, func(flt flt,bool), "float equality")
 escape(_flt_lt, func(flt flt,bool), "float less than")
@@ -84,13 +83,13 @@ escape(_flt_pwr, func(flt flt,flt), "raise X to the power Y")
 escape(_big_plus, func(big big,big), "add two bigints")
 escape(_big_minus, func(big big,big), "subtract two bigints")
 escape(_big_times, func(big big,big), "multiply two bigints")
-escape(_big_div, raises(func(big big,tpl(big big)),ERR), "divide two bigints, return quotient & remainder")
+escape(_big_div, throws(big big,tpl(big big),ERR), "divide two bigints, return quotient & remainder")
 escape(_big_bitand, func(big big,big), "bitwise and of two bigints")
 escape(_big_bitor, func(big big,big), "bitwise or of two bigints")
 escape(_big_bitxor, func(big big,big), "bitwise exclusive or of two bigints")
 escape(_big_bitnot, func(big,big), "bitwise negation of a bigint")
 
-escape(_big_gcd, raises(func(big big,big),ERR), "gcd of two bigints")
+escape(_big_gcd, throws(big big,big,ERR), "gcd of two bigints")
 escape(_big_hash, func(big,int), "compute hash of bigint")
 
 escape(_big_eq, func(big big,bool), "bigint equality")
@@ -105,7 +104,7 @@ escape(_big2ints, func(big,lst(int)), "convert bigint to list of integers")
 escape(_str2big, func(strng,option(big)), "convert string to bigint")
 escape(_big2str, func(big,strng), "convert bigint to string")
 
-escape(_big_format, raises(func(big strng,strng),ERR), "format a big integer")
+escape(_big_format, throws(big strng,strng,ERR), "format a big integer")
 
 escape(_fiber_eq,all(r,all(s,func(fiber(r,s) fiber(r,s),bool))),"compare two fiber identifiers")
 escape(_fiber,all(r,all(s,func(func(fiber(r,s) r,s),fiber(r,s)))),"create a new fiber")
@@ -148,88 +147,88 @@ escape(_cell_future,all(s,all(e,func(ref(either(s,e)),future(s,e)))),"create a u
 escape(_futureIsResolved,all(a,all(e,func(future(a,e),bool))), "test to see if a future has been set")
 escape(_futureIsAccepted, all(a,all(e,func(future(a,e),bool))), "test to see if a future has been accepted")
 escape(_futureIsRejected, all(a,all(e,func(future(a,e),bool))), "test to see if a future has been rejected")
-escape(_futureVal, all(a,all(e,raises(func(future(a,e),a),e))), "get the value of the future")
+escape(_futureVal, all(a,all(e,throws(future(a,e),a,e))), "get the value of the future")
 
 escape(_tuple_nth, all(a,all(e,func(a int,e))), "Access tuple element")
 escape(_tuple_set_nth, all(a,all(e,func(a int e,a))), "Update tuple element")
 
 escape(_cwd, func(/**/,strng), "return url of current working directory")
-escape(_cd, raises(func(strng,unit),ERR), "change current working directory")
-escape(_rm, raises(func(strng,unit),ERR), "remove file")
-escape(_mv, raises(func(strng strng,unit),ERR), "rename file")
-escape(_mkdir, raises(func(strng int,unit),ERR), "create directory")
-escape(_rmdir, raises(func(strng,unit),ERR), "delete directory")
+escape(_cd, throws(strng,unit,ERR), "change current working directory")
+escape(_rm, throws(strng,unit,ERR), "remove file")
+escape(_mv, throws(strng strng,unit,ERR), "rename file")
+escape(_mkdir, throws(strng int,unit,ERR), "create directory")
+escape(_rmdir, throws(strng,unit,ERR), "delete directory")
 escape(_isdir, func(strng,bool), "is directory present")
-escape(_file_chmod, raises(func(strng int,unit),ERR), "change mode of a file or directory")
-escape(_ls, raises(func(strng,lst(strng)),ERR), "return a array of files in a directory")
+escape(_file_chmod, throws(strng int,unit,ERR), "change mode of a file or directory")
+escape(_ls, throws(strng,lst(strng),ERR), "return a array of files in a directory")
 escape(_repo, func(/**/,strng), "return the standard repo directory name")
 
-escape(_file_mode, raises(func(strng,int),ERR), "report modes of a file")
+escape(_file_mode, throws(strng,int,ERR), "report modes of a file")
 escape(_file_present, func(strng,bool), "check presence of a file")
-escape(_file_type, raises(func(strng,int),ERR), "report on the type of a file")
-escape(_file_size, raises(func(strng,int),ERR), "report on the size of a file")
-escape(_file_modified, raises(func(strng,int),ERR), "report on when a file was last modified")
-escape(_file_date, raises(func(strng,tpl(int int int)),ERR), "report on file access time and modification times")
+escape(_file_type, throws(strng,int,ERR), "report on the type of a file")
+escape(_file_size, throws(strng,int,ERR), "report on the size of a file")
+escape(_file_modified, throws(strng,int,ERR), "report on when a file was last modified")
+escape(_file_date, throws(strng,tpl(int int int),ERR), "report on file access time and modification times")
 
-escape(_openInFile, raises(func(strng int,io),ERR), "open input file")
-escape(_openOutFile, raises(func(strng int,io),ERR), "open output file")
-escape(_openAppendFile, raises(func(strng int,io),ERR), "open output file")
-escape(_openAppendIOFile, raises(func(strng int,io),ERR), "open output file")
+escape(_openInFile, throws(strng int,io,ERR), "open input file")
+escape(_openOutFile, throws(strng int,io,ERR), "open output file")
+escape(_openAppendFile, throws(strng int,io,ERR), "open output file")
+escape(_openAppendIOFile, throws(strng int,io,ERR), "open output file")
 
-escape(_popen, raises(func(strng lst(strng) lst(tpl(strng strng)), tpl(io io io)),ERR), "open a pipe")
+escape(_popen, throws(strng lst(strng) lst(tpl(strng strng)), tpl(io io io),ERR), "open a pipe")
 
-escape(_close, raises(func(io,unit),ERR), "close file")
+escape(_close, throws(io,unit,ERR), "close file")
 escape(_end_of_file, func(io,bool), "end of file test")
-escape(_inchars, raises(func(io int,strng),ERR), "read block string")
-escape(_inchars_async, raises(func(io int,future(strng,ERR)),ERR), "async read block string")
-escape(_inchar, raises(func(io,chr),ERR), "read single character")
-escape(_inchar_async, raises(func(io,future(chr,ERR)),ERR), "async read single character")
-escape(_inbyte, raises(func(io,int),ERR), "read single byte")
-escape(_inbyte_async, raises(func(io,future(int,ERR)),ERR), "async ead single byte")
-escape(_inbytes,raises(func(io int,vec(int)),ERR),"read block of bytes")
-escape(_inbytes_async,raises(func(io int,future(vec(int),ERR)),ERR),"async read block of bytes")
-escape(_inline, raises(func(io,strng),ERR), "read a line")
-escape(_inline_async, raises(func(io,future(strng,ERR)),ERR), "async read of a line")
-escape(_outchar, raises(func(io chr,unit),ERR), "write a single character")
-escape(_outchar_async, raises(func(io chr,future(unit,ERR)),ERR), "async write a single character")
-escape(_outbyte, raises(func(io int,unit),ERR), "write a single byte")
-escape(_outbyte_async, raises(func(io int,future(unit,ERR)),ERR), "async write a single byte")
-escape(_outbytes, raises(func(io lst(int),unit),ERR), "write a list of bytes")
-escape(_outtext, raises(func(io strng,unit),ERR), "write a string as a block")
-escape(_outtext_async, raises(func(io strng,future(unit,ERR)),ERR), "async write a string as a block")
+escape(_inchars, throws(io int,strng,ERR), "read block string")
+escape(_inchars_async, throws(io int,future(strng,ERR),ERR), "async read block string")
+escape(_inchar, throws(io,chr,ERR), "read single character")
+escape(_inchar_async, throws(io,future(chr,ERR),ERR), "async read single character")
+escape(_inbyte, throws(io,int,ERR), "read single byte")
+escape(_inbyte_async, throws(io,future(int,ERR),ERR), "async ead single byte")
+escape(_inbytes,throws(io int,vec(int),ERR),"read block of bytes")
+escape(_inbytes_async,throws(io int,future(vec(int),ERR),ERR),"async read block of bytes")
+escape(_inline, throws(io,strng,ERR), "read a line")
+escape(_inline_async, throws(io,future(strng,ERR),ERR), "async read of a line")
+escape(_outchar, throws(io chr,unit,ERR), "write a single character")
+escape(_outchar_async, throws(io chr,future(unit,ERR),ERR), "async write a single character")
+escape(_outbyte, throws(io int,unit,ERR), "write a single byte")
+escape(_outbyte_async, throws(io int,future(unit,ERR),ERR), "async write a single byte")
+escape(_outbytes, throws(io lst(int),unit,ERR), "write a list of bytes")
+escape(_outtext, throws(io strng,unit,ERR), "write a string as a block")
+escape(_outtext_async, throws(io strng,future(unit,ERR),ERR), "async write a string as a block")
 escape(_stdfile, func(int,io), "standard file descriptor")
 escape(_fposition, func(io,int), "report current file position")
-escape(_fseek, raises(func(io int,unit),ERR), "seek to new file position")
-escape(_flush, raises(func(io,unit),ERR), "flush the I/O buffer")
+escape(_fseek, throws(io int,unit,ERR), "seek to new file position")
+escape(_flush, throws(io,unit,ERR), "flush the I/O buffer")
 escape(_flushall, func(/**/,unit), "flush all files")
 escape(_fname,func(io,strng),"the channel file name")
 
 escape(_waitIo,all(e,func(lst(tpl(io func(/**/,bool) e)) int,bool)), "Poll for IO ready")
 escape(_setfileencoding, func(io int,unit), "set file encoding on file")
 
-escape(_get_file, raises(func(strng,strng),ERR), "file into a char sequence")
-escape(_put_file, raises(func(strng strng,unit),ERR), "write string into file")
+escape(_get_file, throws(strng,strng,ERR), "file into a char sequence")
+escape(_put_file, throws(strng strng,unit,ERR), "write string into file")
 escape(_show, func(strng,unit), "show something on console")
 
-escape(_install_pkg, raises(func(strng, lst(tpl(strng strng))),ERR), "define package from string contents")
-escape(_pkg_is_present, raises(func(strng strng,bool),ERR), "True if an identified package is available")
-escape(_in_manifest, raises(func(strng strng strng,bool),ERR), "True if pkg/version/kind is present in manifest")
-escape(_locate_in_manifest, raises(func(strng strng strng,strng),ERR), "Access manifest resource")
+escape(_install_pkg, throws(strng, lst(tpl(strng strng)),ERR), "define package from string contents")
+escape(_pkg_is_present, throws(strng strng,bool,ERR), "True if an identified package is available")
+escape(_in_manifest, throws(strng strng strng,bool,ERR), "True if pkg/version/kind is present in manifest")
+escape(_locate_in_manifest, throws(strng strng strng,strng,ERR), "Access manifest resource")
 
 escape(_logmsg, func(strng,unit), "log a message in logfile or console")
 escape(_display_depth,func(/**/,int), "Current standard display depth")
 
 // Socket handling functions
-escape(_connect, raises(func(strng int int,tpl(io io)),ERR), "connect to remote host")
-escape(_listen, raises(func(int,io),ERR), "listen on a port")
-escape(_accept, raises(func(io, tpl(io io strng int strng)),ERR), "accept connection")
+escape(_connect, throws(strng int int,tpl(io io),ERR), "connect to remote host")
+escape(_listen, throws(int,io,ERR), "listen on a port")
+escape(_accept, throws(io, tpl(io io strng int strng),ERR), "accept connection")
 
 escape(_hosttoip, func(strng,lst(strng)), "IP address of host")
-escape(_iptohost, raises(func(strng,strng),ERR), "host name from IP")
+escape(_iptohost, throws(strng,strng,ERR), "host name from IP")
 
 // Timing and delaying
-escape(_delay, raises(func(flt,unit),ERR), "delay for period of time")
-escape(_sleep, raises(func(flt,unit),ERR), "sleep until a definite time")
+escape(_delay, throws(flt,unit,ERR), "delay for period of time")
+escape(_sleep, throws(flt,unit,ERR), "sleep until a definite time")
 escape(_now, func(/**/,flt), "current time")
 escape(_today, func(/**/,flt), "time at midnight")
 escape(_ticks, func(/**/,int), "used CPU time")
@@ -237,7 +236,7 @@ escape(_time2date, func(flt,tpl(int int int int int int flt int)), "convert a ti
 escape(_time2utc, func(flt,tpl(int int int int int int flt int)), "convert a time to UTC date")
 escape(_date2time, func(int int int int int flt int,flt), "convert a date to a time")
 escape(_utc2time, func(int int int int int flt int,flt), "convert a UTC date to a time")
-escape(_formattime,raises(func(flt strng,strng),ERR),"format a time value")
+escape(_formattime,throws(flt strng,strng,ERR),"format a time value")
 escape(_parsetime,func(strng strng,option(flt)),"parse a date expression guided by format string")
 
 // Character class escapes
@@ -275,7 +274,7 @@ escape(_isZpChar, func(chr,bool), "is Separator, para char")
 escape(_isZsChar, func(chr,bool), "is Separator, space char")
 
 escape(_isLetterChar, func(chr,bool), "is letter char")
-escape(_digitCode, raises(func(chr,int),ERR), "convert char to num")
+escape(_digitCode, throws(chr,int,ERR), "convert char to num")
 
 escape(_codePoint, func(chr,int), "convert char to code point integer")
 escape(_char, func(int,chr), "convert integer code point to char")
@@ -283,8 +282,8 @@ escape(_char, func(int,chr), "convert integer code point to char")
 // String handling escapes
 escape(_int2str, func(int int int int,strng), "format an integer as a string")
 escape(_flt2str, func(flt int chr bool,strng), "format a floating as a string")
-escape(_int_format, raises(func(int strng,strng),ERR), "format an integer using picture format")
-escape(_flt_format, func(flt strng,strng), "format a floating point using picture format")
+escape(_int_format, throws(int strng,strng,ERR), "format an integer using picture format")
+escape(_flt_format, throws(flt strng,strng,ERR), "format a floating point using picture format")
 
 escape(_str2flt, func(strng,option(flt)), "parse a string as a float")
 escape(_str2int, func(strng,option(int)), "parse a string as an integer")
@@ -322,7 +321,7 @@ escape(_str_splice, func(strng int int strng,strng), "splice a substring into a 
 
 escape(_str_multicat, func(lst(strng),strng), "Concatenate a list of strings into one")
 escape(_str_hdtl, func(strng,option(tpl(chr strng))), "pick up the first character and return remainder")
-escape(_str_back, raises(func(strng,tpl(strng chr)),ERR), "pick up the last character and return remainder")
+escape(_str_back, throws(strng,tpl(strng chr),ERR), "pick up the last character and return remainder")
 escape(_str_cons, func(chr strng,strng), "put a char in the front")
 escape(_code2str, func(chr,strng), "make a 1 char string")
 escape(_str_apnd, func(strng chr,strng), "put a char in the back")
@@ -331,22 +330,22 @@ escape(_str_quote, func(strng,strng), "construct a quoted version of a string")
 escape(_str_format, func(strng strng,strng), "apply formatting to a char sequence")
 
 escape(_getenv, func(strng,option(strng)), "get an environment variable")
-escape(_setenv, raises(func(strng strng,unit),ERR), "set an environment variable")
+escape(_setenv, throws(strng strng,unit,ERR), "set an environment variable")
 escape(_envir, func(/**/,lst(tpl(strng strng))), "return entire environment")
 
 // Process manipulation
 escape(_fork, func(func(/**/,unit),thread), "fork new process")
 escape(_thread, func(/**/,thread), "report thread of current process")
-escape(_kill, raises(func(thread,unit),ERR), "kill off a process")
+escape(_kill, throws(thread,unit,ERR), "kill off a process")
 escape(_thread_state, func(thread,processState), "state of process")
-escape(_waitfor, raises(func(thread,unit),ERR), "wait for other thread to terminate")
+escape(_waitfor, throws(thread,unit,ERR), "wait for other thread to terminate")
 
-escape(_shell, raises(func(strng lst(strng) lst(tpl(strng strng)),int),ERR), "Run a shell cmd")
+escape(_shell, throws(strng lst(strng) lst(tpl(strng strng)),int,ERR), "Run a shell cmd")
 
 escape(_ins_debug, func(/**/,unit), "set instruction-level")
 escape(_stackTrace, func(/**/,strng), "Print a stack trace")
 
-escape(_jit_compile,all(a,all(e,raises(func(func(a,e),unit),ERR))),"Jit compile a single arg function")
+escape(_jit_compile,all(a,all(e,throws(func(a,e),unit,ERR))),"Jit compile a single arg function")
 
 #undef processState
 #undef thread
@@ -357,7 +356,6 @@ escape(_jit_compile,all(a,all(e,raises(func(func(a,e),unit),ERR))),"Jit compile 
 #undef future
 #undef fiber
 #undef func
-#undef raises
 #undef throws
 #undef tpl
 #undef bool

@@ -7,8 +7,8 @@ star.arith{
     __minus: (x)=>x.
     zero: x.
     (*): (x,x)=>x.
-    (/): raises exception |: (x,x)=>x.
-    (%): raises exception |: (x,x)=>x.
+    (/): (x,x)=>x throws exception.
+    (%): (x,x)=>x throws exception.
     one:x.
   }.
 
@@ -18,8 +18,8 @@ star.arith{
     X-Y => _int_minus(X,Y).
     zero = 0.
     X*Y => _int_times(X,Y).
-    X/Y => (try _int_div(X,Y) catch errorCode in {_ => raise .exception("divide by zero")}).
-    X%Y => (try _int_mod(X,Y) catch errorCode in {_ => raise .exception("divide by zero")}).
+    X/Y => (try _int_div(X,Y) catch {_ => throw .exception("divide by zero")}).
+    X%Y => (try _int_mod(X,Y) catch {_ => throw .exception("divide by zero")}).
     one = 1.
     __minus(Ix) => _int_minus(0,Ix).
   }.
@@ -46,7 +46,7 @@ star.arith{
   }
 
   public implementation format[integer] => {
-    _format(X,F) => (try _int_format(X,F) catch errorCode in {_ => "bad format"}).
+    _format(X,F) => (try _int_format(X,F) catch {_ => "bad format"}).
   }
 
   public implementation arith[bigint] => {
@@ -58,16 +58,16 @@ star.arith{
       try{
 	(p,_) = _big_div(X,Y);
 	valis p
-      } catch errorCode in {
-	.divZero => raise .exception("divide by zero")
+      } catch {
+	.divZero => throw .exception("divide by zero")
       }
     }
     X%Y => valof{
       try{
 	(_,q) = _big_div(X,Y);
 	valis q
-      } catch errorCode in {
-	.divZero => raise .exception("divide by zero")
+      } catch {
+	.divZero => throw .exception("divide by zero")
       }
     }
     one = 0b1.
@@ -96,7 +96,7 @@ star.arith{
   }
 
   public implementation format[bigint] => {
-    _format(X,F) => (try _big_format(X,F) catch errorCode in {_ => "bad format"}).
+    _format(X,F) => (try _big_format(X,F) catch {_ => "bad format"}).
   }
 
   -- implement standard contracts for floats
@@ -106,8 +106,8 @@ star.arith{
     zero = 0.0.
 
     X*Y => _flt_times(X,Y).
-    X/Y => (try _flt_div(X,Y) catch errorCode in {_ => raise .exception("divide by zero")}).
-    X%Y => (try _flt_mod(X,Y) catch errorCode in {_ => raise .exception("divide by zero")}).
+    X/Y => (try _flt_div(X,Y) catch {_ => throw .exception("divide by zero")}).
+    X%Y => (try _flt_mod(X,Y) catch {_ => throw .exception("divide by zero")}).
     one = 1.0.
     __minus(Dx) => _flt_minus(0.0,Dx).
   }
@@ -145,7 +145,7 @@ star.arith{
   }
 
   public implementation format[float] => {
-    _format(X,F) => (try _flt_format(X,F) catch errorCode in {_ => "bad format"}).
+    _format(X,F) => (try _flt_format(X,F) catch {_ => "bad format"}).
   }
 
   public contract all e ~~ pwr[e] ::= {

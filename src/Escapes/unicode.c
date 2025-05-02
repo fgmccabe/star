@@ -264,14 +264,14 @@ ReturnStatus g__isLetterChar(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__digitCode(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__digitCode(heapPo h, termPo a1) {
   codePoint ch = charVal(a1);
 
   if (isNdChar(ch)) {
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(digitValue(ch))};
 
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
   }
 }
 

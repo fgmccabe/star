@@ -14,7 +14,7 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__listen(heapPo h, termPo a1) {
   integer port = integerVal(a1);
   char nBuff[MAXFILELEN];
   ioPo listen;
@@ -25,14 +25,14 @@ ReturnStatus g__listen(heapPo h, termPo xc, termPo a1) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOPERM};
   else {
     return (ReturnStatus) {.ret=Normal,
       .result =(termPo) allocateIOChnnl(h, listen)};
   }
 }
 
-ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
   ioPo listen = ioChannel(C_IO(a1));
   ioEncoding enc = pickEncoding(integerVal(a2));
 
@@ -46,7 +46,7 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
   setProcessRunnable(currentProcess);
 
   if (listen == NULL)
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOPERM};
   else {
 
     switch (ret) {
@@ -59,7 +59,7 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
         if (peerN == NULL || peerI == NULL) {
           closeIo(inC);
           closeIo(outC);
-          return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
+          return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
         }
 
         termPo inChnl = (termPo) allocateIOChnnl(h, inC);
@@ -90,12 +90,12 @@ ReturnStatus g__accept(heapPo h, termPo xc, termPo a1, termPo a2) {
         return (ReturnStatus) {.ret=Normal, .result =(termPo) reslt};
       }
       default:
-        return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eIOERROR};
     }
   }
 }
 
-ReturnStatus g__connect(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__connect(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer port = integerVal(a2);
 
   integer hLen;
@@ -127,7 +127,7 @@ ReturnStatus g__connect(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eCONNECT};
+      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eCONNECT};
   }
 }
 
@@ -154,7 +154,7 @@ ReturnStatus g__hosttoip(heapPo h, termPo a1) {
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__iptohost(heapPo h, termPo a1) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(a1), ip, NumberOf(ip));
@@ -165,7 +165,7 @@ ReturnStatus g__iptohost(heapPo h, termPo xc, termPo a1) {
     termPo Host = allocateCString(h, host);
     return (ReturnStatus) {.ret=Normal, .result =Host};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
 }
 
 

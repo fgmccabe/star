@@ -39,33 +39,33 @@ ReturnStatus g__futureIsRejected(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=(termPo) (futureIsRejected(C_FUTURE(a1)) ? trueEnum : falseEnum)};
 }
 
-ReturnStatus g__resolveFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__resolveFuture(heapPo h, termPo a1, termPo a2) {
   futurePo ft = C_FUTURE(a1);
   switch (resolveFuture(ft, a2)) {
     case Ok: {
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=hasValue};
+      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=hasValue};
   }
 }
 
-ReturnStatus g__rejectFuture(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__rejectFuture(heapPo h, termPo a1, termPo a2) {
   futurePo ft = C_FUTURE(a1);
   switch (rejectFuture(ft, a2)) {
     case Ok: {
       return (ReturnStatus) {.ret=Normal, .result=unitEnum};
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=hasValue};
+      return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=hasValue};
   }
 }
 
-ReturnStatus g__futureVal(heapPo h, termPo xc, termPo a1) {
+ReturnStatus g__futureVal(heapPo h, termPo a1) {
   futurePo ft = C_FUTURE(a1);
 
   if (futureIsAccepted(ft))
     return (ReturnStatus) {.ret=Normal, .result=futureValue(ft)};
   else
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=futureValue(ft)};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=futureValue(ft)};
 }

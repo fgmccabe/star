@@ -33,39 +33,39 @@ star.mbox{
     valis (.emitter(Ch),.receiver(Ch))
   }
 
-  public post:all d ~~ async (d,receiver[d])=>() raises mboxException.
+  public post:all d ~~ async (d,receiver[d])=>() throws mboxException.
   post(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
       | .hasData(_) => {
 	case this suspend .blocked(()=>.hasData(_).=St!) in {
 	  | .go_ahead => valis post(D,Ch)
-	  | .shut_down_ => raise .canceled
+	  | .shut_down_ => throw .canceled
 	}
       }
       | .quiescent => {
 	St := .hasData(D);
 	case this suspend .yield_ in {
 	  | .go_ahead => valis ()
-	  | .shut_down_ => raise .canceled
+	  | .shut_down_ => throw .canceled
 	}
       }
     }
   }
 
-  public collect:all d ~~ async (emitter[d]) => d raises mboxException.
+  public collect:all d ~~ async (emitter[d]) => d throws mboxException.
   collect(Ch where .emitter(St).=Ch) => valof{
     case St! in {
       | .hasData(D) => {
 	St := .quiescent;
 	case this suspend .yield_ in {
 	  | .go_ahead => valis D
-	  | .shut_down_ => raise .canceled
+	  | .shut_down_ => throw .canceled
 	}
       }
       | .quiescent => {
 	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
 	  | .go_ahead => valis collect(Ch)
-	  | .shut_down_ => raise .canceled
+	  | .shut_down_ => throw .canceled
 	}
       }
     }
@@ -79,17 +79,17 @@ star.mbox{
   spawnTask:all e ~~ (taskFun[e]) => task[e].
   spawnTask(F) => _fiber((Tsk,_)=> .result_(F(Tsk))).
 
-  public subTask:all e ~~ (task[e],taskFun[e])=>() raises mboxException.
+  public subTask:all e ~~ (task[e],taskFun[e])=>() throws mboxException.
   subTask(Schd,F) => valof{
     Fn = _fiber((Tsk,_)=>.result_(F(Tsk)));
 
     case Schd suspend .schedule(Fn) in {
       | .go_ahead => valis ()
-      | .shut_down_ => raise .canceled
+      | .shut_down_ => throw .canceled
     }
   }
 
-  public nursery:all e ~~ raises mboxException |: (cons[taskFun[e]]) => e.
+  public nursery:all e ~~ (cons[taskFun[e]]) => e throws mboxException.
   nursery(Ts) => valof{
     Q := (Ts//spawnTask)::qc[task[e]];
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
@@ -137,7 +137,7 @@ star.mbox{
 	Q := Wts
       }
     };
-    raise .canceled
+    throw .canceled
   }
 
   testBlocked:all y ~~ (cons[(()=>boolean,y)],cons[(()=>boolean,y)],qc[y])=>
@@ -156,11 +156,11 @@ star.mbox{
   testIoQ([(Io,P,T),..Q],BQ,Ws) =>
     testIoQ(Q,[(Io,P,T),..BQ],Ws).
   
-  public pause:all e ~~ this |= task[e], raises mboxException |: () => ().
+  public pause:all e ~~ this |= task[e] |: () => () throws mboxException.
   pause() => valof{
     case this suspend .yield_ in {
       | .go_ahead => valis ()
-      | .shut_down_ => raise .canceled
+      | .shut_down_ => throw .canceled
     }
   }
 
@@ -182,7 +182,7 @@ star.mbox{
     disp(.hasData(D)) => "hasData($(D))".
   }
 
-  public waitfor:all k,e ~~ async (future[k,e])=>k raises e.
+  public waitfor:all k,e ~~ async (future[k,e])=>k throws e.
   waitfor(Ft) => valof{
     case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
       | .go_ahead => {
@@ -197,7 +197,7 @@ star.mbox{
   }
 
   -- Create a future from a user defined function
-  public tsk:all k,e,t ~~ (task[t],(async ()=>k raises e)) => future[k,e].
+  public tsk:all k,e,t ~~ (task[t],(async ()=>k throws e)) => future[k,e].
   tsk(sched,TFn) => valof{
     C = ref .neither;
 
