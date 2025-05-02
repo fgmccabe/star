@@ -27,14 +27,14 @@ star.file{
 	valis _file_modified(F1) > _file_modified(F2)
       else
       valis .false
-    } catch errorCode in {_ => valis .false }
+    } catch {_ => valis .false }
   }
 
   public isDir:(string) => boolean.
   isDir(D) => _isdir(D).
 
   public ls:(string) => cons[string].
-  ls(D) => (try _ls(D) catch errorCode in {_ => []}).
+  ls(D) => (try _ls(D) catch {_ => []}).
 
   public cwd:()=>string.
   cwd() => _cwd().

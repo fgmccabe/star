@@ -1151,16 +1151,11 @@ retCode run(processPo P) {
         continue;
       }
       case IMod: {
-        termPo tryIndex = pop();
-        assert(isInteger(tryIndex));
-
         integer denom = integerVal(pop());
         integer numerator = integerVal(pop());
 
         if (numerator == 0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
+          breakOut(PC,SP,FP,divZero);
         } else {
           integer reslt = denom % numerator;
 
@@ -1353,16 +1348,11 @@ retCode run(processPo P) {
         continue;
       }
       case FDiv: {
-        termPo tryIndex = pop();
-        assert(isInteger(tryIndex));
-
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
+          breakOut(PC,SP,FP,divZero);
         } else {
           termPo Rs = makeFloat(Lhs / Rhs);
           push(Rs);
@@ -1371,16 +1361,11 @@ retCode run(processPo P) {
         }
       }
       case FMod: {
-        termPo tryIndex = pop();
-        assert(isInteger(tryIndex));
-
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          push(divZero);
-          push(tryIndex);
-          goto Exception;
+          breakOut(PC,SP,FP,divZero);
         } else {
           termPo Rs = makeFloat(fmod(Lhs, Rhs));
           push(Rs);

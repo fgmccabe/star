@@ -43,12 +43,12 @@ ReturnStatus g__int_div(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__int_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__int_mod(heapPo h, termPo a1, termPo a2) {
   integer denom = integerVal(a1);
   integer numerator = integerVal(a2);
 
   if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
   } else {
     integer reslt = denom % numerator;
 
@@ -58,7 +58,7 @@ ReturnStatus g__int_mod(heapPo h, termPo xc, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__int_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
   integer gC = intGCD(integerVal(a1), integerVal(a2));
 
   if (gC > 0) {
@@ -66,7 +66,7 @@ ReturnStatus g__int_gcd(heapPo h, termPo xc, termPo a1, termPo a2) {
 
     return (ReturnStatus) {.ret=Normal, .result=g};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=divZero};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=divZero};
   }
 }
 
@@ -84,12 +84,12 @@ static integer intPow(integer x, integer y) {
   return result;
 }
 
-ReturnStatus g__int_pow(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__int_pow(heapPo h, termPo a1, termPo a2) {
   integer x = integerVal(a1);
   integer y = integerVal(a2);
 
   if (y < 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=noValue};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=noValue};
   } else
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(intPow(x, y))};
 }
@@ -195,10 +195,10 @@ ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__int_lg2(heapPo h, termPo xc, termPo Lhs) {
+ReturnStatus g__int_lg2(heapPo h, termPo Lhs) {
   integer Arg = integerVal(Lhs);
   if (Arg <= 0) {
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eRANGE};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eRANGE};
   } else {
     return (ReturnStatus) {.ret=Normal, .result=makeInteger(lg2(Arg))};
   }
@@ -221,7 +221,7 @@ ReturnStatus g__int2str(heapPo h, termPo arg1) {
   return (ReturnStatus) {.result = str, .ret=Normal};
 }
 
-ReturnStatus g__int_format(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
   integer ix = integerVal(a1);
   integer length;
   const char *fmt = strVal(a2, &length);
@@ -233,7 +233,7 @@ ReturnStatus g__int_format(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (ret == Ok) {
     return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, pos)};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
 }
 
 ReturnStatus g__int2flt(heapPo h, termPo arg1) {

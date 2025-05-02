@@ -125,7 +125,7 @@ ReturnStatus g__getenv(heapPo h, termPo a1) {
   }
 }
 
-ReturnStatus g__setenv(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
@@ -135,7 +135,7 @@ ReturnStatus g__setenv(heapPo h, termPo xc, termPo a1, termPo a2) {
   if (setenv((char *) key, val, 1) == 0) {
     return (ReturnStatus) {.ret=Normal, .result=unitEnum};
   } else
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eFAIL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eFAIL};
 }
 
 ReturnStatus g__repo(heapPo h) {
@@ -146,7 +146,7 @@ ReturnStatus g__repo(heapPo h) {
   return (ReturnStatus) {.result = repo, .ret=Normal};
 }
 
-ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
@@ -161,10 +161,10 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -227,9 +227,9 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
+              return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
             case EFAULT:
-              return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
+              return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
             case EINTR:
             default:
               continue;
@@ -238,13 +238,13 @@ ReturnStatus g__shell(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
           return (ReturnStatus) {.ret=Normal,
             .result = makeInteger(WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
-          return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINTRUPT};
+          return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINTRUPT};
       } while (True);
     }
   }
 }
 
-ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
@@ -257,10 +257,10 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOTFND};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOTFND};
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(currentProcess);
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eNOPERM};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eNOPERM};
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -328,7 +328,7 @@ ReturnStatus g__popen(heapPo h, termPo xc, termPo a1, termPo a2, termPo a3) {
           free(envp[ix]);    /* release the strings we allocated */
 
         setProcessRunnable(currentProcess);
-        return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eIOERROR};
+        return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eIOERROR};
       }
     }
   }

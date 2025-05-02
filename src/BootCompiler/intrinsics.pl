@@ -7,12 +7,12 @@ isIntrinsic("_int_plus",funType(tplType([type("integer"),type("integer")]),type(
 isIntrinsic("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer")),iISub).  % subtract two integers
 isIntrinsic("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer")),iIMul).  % multiply two integers
 isIntrinsic("_int_div",funType(tplType([type("integer"),type("integer")]),type("integer"),type("errorCode")),iIDiv).  % divide two integers
-isIntrinsic("_int_mod",constrained(funType(tplType([type("integer"),type("integer")]),type("integer")),raises(type("errorCode"))),iIMod).  % modulo remainder
+isIntrinsic("_int_mod",funType(tplType([type("integer"),type("integer")]),type("integer"),type("errorCode")),iIMod).  % modulo remainder
 isIntrinsic("_flt_plus",funType(tplType([type("float"),type("float")]),type("float")),iFAdd).  % add two floats
 isIntrinsic("_flt_minus",funType(tplType([type("float"),type("float")]),type("float")),iFSub).  % subtract two floats
 isIntrinsic("_flt_times",funType(tplType([type("float"),type("float")]),type("float")),iFMul).  % multiply two floats
-isIntrinsic("_flt_div",constrained(funType(tplType([type("float"),type("float")]),type("float")),raises(type("errorCode"))),iFDiv).  % divide two floats
-isIntrinsic("_flt_mod",constrained(funType(tplType([type("float"),type("float")]),type("float")),raises(type("errorCode"))),iFMod).  % modulo remainder
+isIntrinsic("_flt_div",funType(tplType([type("float"),type("float")]),type("float"),type("errorCode")),iFDiv).  % divide two floats
+isIntrinsic("_flt_mod",funType(tplType([type("float"),type("float")]),type("float"),type("errorCode")),iFMod).  % modulo remainder
 isIntrinsic("_int_abs",funType(tplType([type("integer")]),type("integer")),iIAbs).  % integer absolute value
 isIntrinsic("_flt_abs",funType(tplType([type("float")]),type("float")),iFAbs).  % float absolute value
 isIntrinsic("_int_eq",funType(tplType([type("integer"),type("integer")]),type("boolean")),iIEq).  % integer equality

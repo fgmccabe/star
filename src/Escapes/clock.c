@@ -36,7 +36,7 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo p, termPo xc, termPo a1) {
+ReturnStatus g__delay(processPo p, termPo a1) {
   double dx = floatVal(a1);
 
   struct timespec tm;
@@ -52,11 +52,11 @@ ReturnStatus g__delay(processPo p, termPo xc, termPo a1) {
     setProcessRunnable(p);
     switch (errno) {
       case EINTR:
-        return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINTRUPT};
+        return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINTRUPT};
       case EINVAL:
       case ENOSYS:
       default:
-        return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINVAL};
+        return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINVAL};
     }
   } else {
     setProcessRunnable(p);
@@ -64,7 +64,7 @@ ReturnStatus g__delay(processPo p, termPo xc, termPo a1) {
   }
 }
 
-ReturnStatus g__sleep(processPo p, termPo xc, termPo a1) {
+ReturnStatus g__sleep(processPo p, termPo a1) {
   double f = floatVal(a1);
 
   struct timeval now;
@@ -97,11 +97,11 @@ ReturnStatus g__sleep(processPo p, termPo xc, termPo a1) {
       setProcessRunnable(p);
       switch (errno) {
         case EINTR:
-          return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINTRUPT};
+          return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINTRUPT};
         case EINVAL:
         case ENOSYS:
         default:
-          return (ReturnStatus) {.ret = Abnormal, .cont = xc, .result = eINVAL};
+          return (ReturnStatus) {.ret = Abnormal, .cont = Null, .result = eINVAL};
       }
     } else {
       setProcessRunnable(p);

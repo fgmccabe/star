@@ -147,7 +147,7 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
-ReturnStatus g__formattime(heapPo h, termPo xc, termPo a1, termPo a2) {
+ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
   time_t when = (time_t) floatVal(a1);
   integer fmtLen;
   const char *fmt = strVal(a2, &fmtLen);
@@ -165,7 +165,7 @@ ReturnStatus g__formattime(heapPo h, termPo xc, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Normal, .result=result};
   } else {
     closeIo(O_IO(buff));
-    return (ReturnStatus) {.ret=Abnormal, .cont = xc, .result=eINVAL};
+    return (ReturnStatus) {.ret=Abnormal, .cont = Null, .result=eINVAL};
   }
 }
 
