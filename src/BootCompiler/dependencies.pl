@@ -315,12 +315,6 @@ collectTermRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectTermRefs(T,All,Rf,Rfx) :-
-  isPull(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
-  isPush(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectTermRefs(T,All,Rf,Rfx) :-
   isResume(T,_,Ts,Ms),!,
   collectTermRefs(Ts,All,Rf,Rf0),
   collectTermRefs(Ms,All,Rf0,Rfx).
@@ -472,12 +466,6 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isThrow(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isPull(T,_,E),!,
-  collectTermRefs(E,All,Rf,Rfx).
-collectDoRefs(T,All,Rf,Rfx) :-
-  isPush(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,

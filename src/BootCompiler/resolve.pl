@@ -253,11 +253,7 @@ overloadTerm(try(Lc,E,ErTp,H),Dict,Opts,St,Stx,try(Lc,EE,ErTp,HH)) :-
   setTryScope(Dict,ErTp,D1),
   overloadTerm(E,D1,Opts,St,St1,EE),
   overloadCases(H,resolve:overloadTerm,Dict,Opts,St1,Stx,HH).
-overloadTerm(throw(Lc,E,Tp),Dict,Opts,St,Stx,throw(Lc,EE,Tp)) :-
-  overloadTerm(E,Dict,Opts,St,Stx,EE).
-overloadTerm(pull(Lc,E,Tp,ErTp),Dict,Opts,St,Stx,pull(Lc,EE,Tp,ErTp)) :-
-  overloadTerm(E,Dict,Opts,St,Stx,EE).
-overloadTerm(push(Lc,E,Tp),Dict,Opts,St,Stx,push(Lc,EE,Tp)) :-
+overloadTerm(throw(Lc,E,ErTp),Dict,Opts,St,Stx,throw(Lc,EE,ErTp)) :-
   overloadTerm(E,Dict,Opts,St,Stx,EE).
 overloadTerm(T,_,_,St,St,T) :-
   locOfCanon(T,Lc),
@@ -313,10 +309,6 @@ overloadAction(doTry(Lc,A,ErTp,H),Dict,Opts,St,Stx,doTry(Lc,AA,ErTp,HH)) :-
   overloadAction(A,D1,Opts,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,Opts,St1,Stx,HH).
 overloadAction(doThrow(Lc,E),Dict,Opts,St,Stx,doThrow(Lc,EE)) :-
-  overloadTerm(E,Dict,Opts,St,Stx,EE).
-overloadAction(doPull(Lc,E,Tp,ErTp),Dict,Opts,St,Stx,doPull(Lc,EE,Tp,ErTp)) :-
-  overloadTerm(E,Dict,Opts,St,Stx,EE).
-overloadAction(doPush(Lc,E,Tp),Dict,Opts,St,Stx,doPush(Lc,EE,Tp)) :-
   overloadTerm(E,Dict,Opts,St,Stx,EE).
 overloadAction(doIfThenElse(Lc,T,A,B),Dict,Opts,St,Stx,doIfThenElse(Lc,TT,AA,BB)) :-
   overloadTerm(T,Dict,Opts,St,St1,TT),

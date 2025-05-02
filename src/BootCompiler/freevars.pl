@@ -73,10 +73,6 @@ freeVars(raise(_,A,T,_),Ex,Q,F,Fv) :-!,
   freeVars(A,Ex,Q,F0,Fv).
 freeVars(throw(_,E,_),Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
-freeVars(pull(_,E,_,_),Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
-freeVars(push(_,E,_),Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
 freeVars(tryCatch(_,B,T,H),Ex,Q,F,Fv) :-!,
   ptnVars(T,Ex,Ex1),  
   freeVars(B,Ex1,Q,F,F0),
@@ -131,10 +127,6 @@ freeVarsInAction(doTry(_,B,_ErTp,H),Ex,Exx,Q,F,Fv) :-!,
   freeVarsInAction(B,Ex,Exx,Q,F,F1),
   freeVarsInRules(H,Ex,Q,freevars:freeVarsInAct,F1,Fv).
 freeVarsInAction(doThrow(_,E),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doPull(_,E,_,_),Ex,Ex,Q,F,Fv) :-!,
-  freeVars(E,Ex,Q,F,Fv).
-freeVarsInAction(doPush(_,E,_),Ex,Ex,Q,F,Fv) :-!,
   freeVars(E,Ex,Q,F,Fv).
 freeVarsInAction(doIfThenElse(_,T,L,R),Ex,Exx,Q,F,Fv) :-!,
   ptnGoalVars(T,Ex,Ex1),
