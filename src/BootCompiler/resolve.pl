@@ -72,11 +72,6 @@ defineCVars(Lc,[implementsFace(X,faceType(Flds,_))|Cx],Dict,CVars,FDict) :-
 defineCVars(Lc,[implicit(Nm,Tp)|Cx],Dict,[v(Lc,Nm,Tp)|CVars],FDict) :-
   declareVr(Lc,Nm,Tp,none,Dict,DDict),
   defineCVars(Lc,Cx,DDict,CVars,FDict).
-defineCVars(Lc,[raises(Tp)|Cx],Dict,[v(Lc,TpBlkNm,Tp)|CVars],FDict) :-
-  tpName(Tp,TpNm),
-  mangleName("$R",conTract,TpNm,TpBlkNm),
-  declareTryScope(Lc,Tp,TpBlkNm,Dict,Dict1),
-  defineCVars(Lc,Cx,Dict1,CVars,FDict).
 defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
   implementationName(Con,ImplNm),
   mangleName("_",value,ImplNm,CVarNm),
@@ -200,14 +195,6 @@ overloadTerm(tapply(ALc,over(Lc,T,Cx),Args,Tp,ErTp),Dict,Opts,St,Stx,Term) :-
 overloadTerm(tapply(Lc,Op,Args,Tp,ErTp),Dict,Opts,St,Stx,tapply(Lc,ROp,RArgs,Tp,ErTp)) :-
   overloadTerm(Op,Dict,Opts,St,St0,ROp),
   overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
-overloadTerm(over(Lc,raise(RLc,void,ErExp,ETp),[Cx]),Dict,Opts,St,Stx,Over) :-
-  ( resolveConstraint(Lc,Cx,Dict,Opts,St,St0,Trw) ->
-    overloadTerm(Trw,Dict,Opts,St0,St1,RTrw),
-    overloadTerm(ErExp,Dict,Opts,St1,Stx,RExp),
-    Over = raise(RLc,RTrw,RExp,ETp);
-    genMsg("cannot find exception scope for %s",[Cx],Msg),
-    markFatal(St,Lc,Msg,Stx),
-    Over = over(Lc,raise(RLc,void,ErExp,ETp),[Cx])).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
   overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,makeApply,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
@@ -244,11 +231,6 @@ overloadTerm(svGet(Lc,A,T),Dict,Opts,St,Stx,svGet(Lc,AA,T)) :-!,
 overloadTerm(svSet(Lc,Th,Vl),Dict,Opts,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Th,Dict,Opts,St,St0,TT),
   overloadTerm(Vl,Dict,Opts,St0,Stx,VV).
-overloadTerm(tryCatch(Lc,E,V,H),Dict,Opts,St,Stx,tryCatch(Lc,EE,V,HH)) :-
-  overloadTryCatch(E,V,H,EE,HH,Dict,Opts,St,Stx,resolve:overloadTerm).
-overloadTerm(raise(Lc,T,E,Tp),Dict,Opts,St,Stx,raise(Lc,TT,EE,Tp)) :-
-  overloadTerm(T,Dict,Opts,St,St0,TT),
-  overloadTerm(E,Dict,Opts,St0,Stx,EE).
 overloadTerm(try(Lc,E,ErTp,H),Dict,Opts,St,Stx,try(Lc,EE,ErTp,HH)) :-
   setTryScope(Dict,ErTp,D1),
   overloadTerm(E,D1,Opts,St,St1,EE),
@@ -262,13 +244,6 @@ overloadTerm(T,_,_,St,St,T) :-
 overloadGuard(none,_,_,Stx,Stx,none) :-!.
 overloadGuard(some(G),Dict,Opts,St,Stx,some(RG)) :-
   overloadTerm(G,Dict,Opts,St,Stx,RG).
-
-overloadTryCatch(E,v(Lc,ErNm,ErTp),H,EE,HH,Dict,Opts,St,Stx,Over) :-
-  declareTryScope(Lc,ErTp,ErNm,Dict,Dict2),
-%  reportMsg("resolving try %s",[can(E)]),
-  call(Over,E,Dict2,Opts,St,St0,EE),
-%  reportMsg("try %s resolved to %s",[can(E),can(EE)]),
-  overloadCases(H,Over,Dict,Opts,St0,Stx,HH).
 
 overloadLambda(Lc,Lbl,[],rule(Lc,Args,G,Exp),Tp,Dict,Opts,St,Stx,
 	       lambda(Lc,Lbl,[],rule(Lc,RArgs,RG,RExp),Tp)) :-!,
@@ -302,8 +277,6 @@ overloadAction(doMatch(Lc,P,A),Dict,Opts,St,Stx,doMatch(Lc,PP,AA)) :-
 overloadAction(doAssign(Lc,P,A),Dict,Opts,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,Opts,St,St1,PP),
   overloadTerm(A,Dict,Opts,St1,Stx,AA).
-overloadAction(doTryCatch(Lc,A,V,H),Dict,Opts,St,Stx,doTryCatch(Lc,AA,V,HH)) :-
-  overloadTryCatch(A,V,H,AA,HH,Dict,Opts,St,Stx,resolve:overloadAction).
 overloadAction(doTry(Lc,A,ErTp,H),Dict,Opts,St,Stx,doTry(Lc,AA,ErTp,HH)) :-
   setTryScope(Dict,ErTp,D1),
   overloadAction(A,D1,Opts,St,St1,AA),
@@ -498,8 +471,6 @@ resolveConstraints(Lc,[Con|C],Dict,Opts,St,Stx,Extra) :-
 
 resolveConstraint(Lc,implicit(Nm,Tp),Dict,Opts,St,Stx,[Over|Exs],Exs) :-
   resolveImplicit(Lc,Nm,Tp,Dict,Opts,St,Stx,Over).
-resolveConstraint(Lc,raises(Tp),Dict,Opts,St,Stx,[Over|Exs],Exs) :-
-  resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over).
 resolveConstraint(Lc,C,Dict,Opts,St,Stx,[Over|Exs],Exs) :-
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
@@ -520,26 +491,6 @@ resolveImplicit(Lc,Nm,Tp,Dict,Opts,St,Stx,Over) :-
    genMsg("implicit %s:%s not defined",[Nm,tpe(Tp)],Msg),
    markFatal(St,Lc,Msg,Stx),
    Over=void).
-
-resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over) :-
-  tpName(Tp,TpNm),
-  getTryScope(TpNm,Dict,_TLc,VrNm,ErTp),!,
-  resolveRaises(Lc,Tp,VrNm,ErTp,Dict,Opts,St,Stx,Over).
-resolveRaises(Lc,Tp,Dict,Opts,St,Stx,Over) :-
-  isUnbound(Tp),
-  topTryScope(Dict,_,VrNm,ErTp),!,
-  resolveRaises(Lc,Tp,VrNm,ErTp,Dict,Opts,St,Stx,Over).
-resolveRaises(Lc,Tp,_Dict,_,St,Stx,void) :-
-  genMsg("exception context for %s not defined",[tpe(Tp)],Msg),
-  markFatal(St,Lc,Msg,Stx).
-
-resolveRaises(Lc,Tp,VrNm,ErTp,Dict,_Opts,St,Stx,Over) :-
-  sameType(ErTp,Tp,Lc,Dict),
-  markResolved(St,Stx),
-  Over=v(Lc,VrNm,ErTp),!.
-resolveRaises(Lc,Tp,_,ErTp,_Dict,_Opts,St,Stx,void) :-
-  genMsg("raises %s not consistent with %s",[tpe(ErTp),tpe(Tp)],Msg),
-  markActive(St,Lc,Msg,Stx).
 
 genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).

@@ -24,7 +24,6 @@
   ("..>" ( (infix 749 750 749)))
   ("->" ( (infix 889 890 889)))
   (".+." ( (prefix 700 699)))
-  ("raise" ( (prefix 930 929)))
   ("async" ( (prefix 1234 1233)))
   ("then" ( (infix 1179 1180 1179)))
   ("ζ" ( (prefix 1 0)))
@@ -49,7 +48,6 @@
   ("\\/" ( (infix 720 720 719)))
   ("-" ( (prefix 300 299) (infix 720 720 719)))
   ("." ( (prefix 10 9) (infix 100 100 99)))
-  ("raises" ( (infix 950 951 951) (prefix 999 998)))
   ("/" ( (infix 700 700 699)))
   ("try" ( (prefix 1200 1199)))
   ("exists" ( (prefix 1010 1009)))
@@ -146,14 +144,12 @@
 "catch"
 "valis"
 "for"
-"raise"
 "async"
 "then"
 "ζ"
 "default"
 "resume"
 "contract"
-"raises"
 "try"
 "exists"
 "if"

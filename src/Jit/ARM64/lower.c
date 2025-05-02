@@ -211,7 +211,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Break: {            // leave block
         insPo blockStart = &code[pc + code[pc].alt];
 
-        assert(blockStart->op == Block || blockStart->op == Try);
+        assert(blockStart->op == Block);
 
         codeLblPo tgt = getJitLbl(jit, blockStart + blockStart->alt);
 
@@ -289,10 +289,6 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Resume:            // resume fiber
       case Retire:            // retire a fiber
       case Underflow:            // underflow from current stack
-      case Try:            // a try-catch block
-      case EndTry:            // end try
-      case TryRslt:            // end try with a  result
-      case Throw:            // Invoke a continuation
       case LdV: {            // Place a void value on stack
         int32 key = defineConstantLiteral(voidEnum);
         mov(X0, IM(key));

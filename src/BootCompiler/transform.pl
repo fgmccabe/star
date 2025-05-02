@@ -395,21 +395,11 @@ liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
    genVar("_C",Tp,V),
    caseMatcher(Lc,V,Cases,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
-liftExp(tryCatch(Lc,B,T,H),tryCtch(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
-  typeOfCanon(T,Tp),
-  genVar("_E",Tp,E),
-  liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftExp,Ex1,Exx),
-  caseMatcher(Lc,E,Cases,Map,HH).
 liftExp(try(Lc,B,ErTp,H),tryX(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(B,BB,Q,Q1,Map,Opts,Ex,Ex1),
   genVar("_E",ErTp,E),
   liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftExp,Ex1,Exx),
   caseMatcher(Lc,E,Cases,Map,HH).
-liftExp(raise(Lc,T,E,_),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(T,TT,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(throw(Lc,E,_),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -512,13 +502,6 @@ liftAction(doCase(Lc,B,Cs,_),Reslt,Q,Qx,Map,Opts,Ex,Exx) :-!,
    genVar("_C",Tp,V),
    actionCaseMatcher(Lc,V,Cases,Map,Rslt),
    Reslt = seq(Lc,defn(Lc,V,BB),Rslt)).
-liftAction(doTryCatch(Lc,B,T,H),doTryCtch(Lc,BB,TT,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftPtn(T,TT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftAction(B,BB,Q0,Q1,Map,Opts,Ex0,Ex1),
-  liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),
-  typeOfCanon(T,Tp),
-  genVar("_E",Tp,E),
-  actionCaseMatcher(Lc,E,Cases,Map,HH).
 liftAction(doTry(Lc,B,ErTp,H),aTry(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(B,BB,Q,Q1,Map,Opts,Ex,Ex1),
   liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftAction,Ex1,Exx),

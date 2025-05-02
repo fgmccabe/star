@@ -59,7 +59,6 @@ star.compiler.operators{
     | "..>" => [.infixOp(749,750,749)]
     | "->" => [.infixOp(889,890,889)]
     | ".+." => [.prefixOp(700,699)]
-    | "raise" => [.prefixOp(930,929)]
     | "async" => [.prefixOp(1234,1233)]
     | "then" => [.infixOp(1179,1180,1179)]
     | "ζ" => [.prefixOp(1,0)]
@@ -84,7 +83,6 @@ star.compiler.operators{
     | "\\/" => [.infixOp(720,720,719)]
     | "-" => [.prefixOp(300,299), .infixOp(720,720,719)]
     | "." => [.prefixOp(10,9), .infixOp(100,100,99)]
-    | "raises" => [.infixOp(950,951,951), .prefixOp(999,998)]
     | "/" => [.infixOp(700,700,699)]
     | "try" => [.prefixOp(1200,1199)]
     | "exists" => [.prefixOp(1010,1009)]
@@ -435,7 +433,6 @@ star.compiler.operators{
     | "..<" => .true
     | "..>" => .true
     | "{?" => .true
-    | "raise" => .true
     | "async" => .true
     | ". " => .true
     | "then" => .true
@@ -455,7 +452,6 @@ star.compiler.operators{
     | "contract" => .true
     | "./" => .true
     | "." => .true
-    | "raises" => .true
     | "try" => .true
     | "exists" => .true
     | "if" => .true

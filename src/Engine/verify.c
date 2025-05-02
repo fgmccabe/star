@@ -406,55 +406,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         propagateVars(&ctx, parentCtx);
         return Ok;
       }
-
       case Underflow:
         return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
-
-      case Try: {
-        int32 exitDepth = code[pc].fst;
-        int32 blockLen = code[pc].alt;
-        pc++;
-
-        if (exitDepth < stackDepth)
-          return verifyError(&ctx, ".%d: Block %d; exit depth cannot be less than current depth",
-                             pc, exitDepth);
-
-        if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, stackDepth, exitDepth) == Ok) {
-          stackDepth = exitDepth;
-          pc += blockLen;
-          continue;
-        } else
-          return Error;
-      }
-      case EndTry: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient stack depth for EndTry", pc);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1) != Ok)
-          return Error;
-        stackDepth--;
-        pc++;
-        continue;
-      }
-      case TryRslt: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient stack depth for TryRslt", pc);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
-          return Error;
-        stackDepth--;
-        pc++;
-        continue;
-      }
-      case Throw: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Throw should be last instruction in block", pc);
-
-        propagateVars(&ctx, parentCtx);
-        return Ok;
-      }
       case LdV:
         stackDepth++;
         pc++;

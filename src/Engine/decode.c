@@ -511,7 +511,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
                     (Tgt) = offset;}
 #define szlVl(Tgt) { int32 lvl; ret = decodeI32(in, &lvl); (Tgt) = findBreak(brk, *pc, lvl); (*count)--; }
 
-#define instruction(Op, A1, A2, Dl, _, Cmt)\
+#define instruction(Op, A1, A2, Dl, Cmt)\
       case Op:{                             \
         sz##A1(ins->fst)                   \
         sz##A2(ins->alt)                   \
@@ -642,25 +642,6 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return Ok;
       }
       case Underflow:
-        return Ok;
-      case Try: {
-        ret = decodeConstant(in, &ins->fst, brk);
-        (*count)--;
-
-        int32 offset;
-        ret = decodeBlock(in, ar, pc, &offset, brk);
-        (*count)--;
-        ins = (insPo) nthEntry(ar, thisPc);
-        ins->alt = offset;
-
-        return ret;
-      }
-      case EndTry:
-      case TryRslt: {
-        (*count)--;
-        return decodeI32(in, &ins->alt);
-      }
-      case Throw:
         return Ok;
       case LdV:
         return Ok;

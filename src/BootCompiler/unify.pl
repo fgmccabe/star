@@ -63,8 +63,6 @@ sameConstraint(C1,C2,Lc,Env) :-
   sameContract(C1,C2,Lc,Env),!.
 sameConstraint(C1,C2,Lc,Env) :-
   sameImplements(C1,C2,Lc,Env).
-sameConstraint(raises(T1),raises(T2),Lc,Env) :-
-  sameType(T1,T2,Lc,Env).
 sameConstraint(implicit(Nm,T1),implicit(Nm,T2),Lc,Env) :-
   sameType(T1,T2,Lc,Env).
 
@@ -226,8 +224,6 @@ smpCon(implementsFace(L,R),Lc,Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
 smpCon(implicit(Nm,T),Lc,Env,C,Cx,implicit(Nm,Ts)) :-
-  simplifyType(T,Lc,Env,C,Cx,Ts).
-smpCon(raises(T),Lc,Env,C,Cx,raises(Ts)) :-
   simplifyType(T,Lc,Env,C,Cx,Ts).
 
 bind(tVar(Curr,Con,VLc,Nm,Id),Tp,Lc) :- !,

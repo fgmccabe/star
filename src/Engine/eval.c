@@ -55,7 +55,7 @@ logical collectStats = False;
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
 #define local(lcl) (FP->args[-(lcl)])
 #define arg(aix) (FP->args[aix])
-#define stackRoom(amnt) (SP - (amnt) > CT)
+#define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ \
   FP->pc = PC;                      \
   STK->sp = SP;                     \
@@ -67,11 +67,9 @@ logical collectStats = False;
   FP = STK->fp;                        \
   PC = FP->pc;                         \
   SP=STK->sp;                          \
-  CT = controlTop(FP,STK->tp);         \
   })
 #define pushFrme(mtd) STMT_WRAP({ \
-  framePo f = ((framePo)CT);      \
-  CT = ((ptrPo)(f+1));            \
+  framePo f = FP+1;               \
   f->fp=FP;                       \
   PC = f->pc = entryPoint(mtd);   \
   f->prog = mtd;                  \
@@ -110,7 +108,6 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  ptrPo CT = controlTop(FP, STK->tp);
   register insPo PC = FP->pc;    /* Program counter */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
 
@@ -472,14 +469,12 @@ retCode run(processPo P) {
 
           SP = STK->sp;
           FP = STK->fp;
-          CT = controlTop(FP, STK->tp);
           pushFrme(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
-          assert(CT == ((ptrPo) (FP + 1)));
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
@@ -529,14 +524,12 @@ retCode run(processPo P) {
           STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
           SP = STK->sp;
           FP = STK->fp;
-          CT = controlTop(FP, STK->tp);
           pushFrme(mtd);
 
           // drop old frame on old stack
           dropFrame(prevStack);
           gcReleaseRoot(H, root);
         } else {
-          assert(CT == ((ptrPo) (FP + 1)));
           // Overwrite existing arguments and locals
           ptrPo tgt = &arg(argCount(frameMtd(FP)));
           ptrPo src = SP + arity;                  /* base of argument vector */
@@ -569,20 +562,12 @@ retCode run(processPo P) {
         assert(FP > baseFrame(STK));
 
         ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
-        tryFramePo try = STK->tp;
-
-        while ((ptrPo) try > (ptrPo) FP) {
-          check(try->fp == FP, "misaligned try block");
-          try = try->try;
-        }
-        STK->tp = try;
 
         SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
 
         push(retVal);      /* push return value */
-        CT = controlTop(FP, try);
         continue;       /* and carry on regardless */
       }
 
@@ -592,13 +577,6 @@ retCode run(processPo P) {
         assert(FP > baseFrame(STK));
 
         ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
-        tryFramePo try = STK->tp;
-
-        while ((ptrPo) try > (ptrPo) FP) {
-          check(try->fp == FP, "misaligned try block");
-          try = try->try;
-        }
-        STK->tp = try;
 
         SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
@@ -609,7 +587,6 @@ retCode run(processPo P) {
         PC += PC->alt + 1;
 
         push(retVal);      /* push return value */
-        CT = controlTop(FP, try);
         continue;       /* and carry on regardless */
       }
 
@@ -770,91 +747,6 @@ retCode run(processPo P) {
         restoreRegisters();
         push(val);
         continue;
-      }
-
-      case Try: {
-        assert(validPC(frameMtd(FP), PC + PC->alt + 1));
-        check(stackRoom(TryFrameCellCount), "unexpected stack overflow");
-
-        saveRegisters();
-        integer tryIndex = pushTryFrame(STK, P, PC + PC->alt + 1, SP, FP);
-        restoreRegisters();
-        push(makeInteger(tryIndex));
-#ifdef TRACESTACK
-        if (traceStack >= detailedTracing)
-          logMsg(logFile, "%ld: entering try scope %ld", pcCount, tryIndex, tryStackDepth(P));
-#endif
-        PC++;
-        continue;
-      }
-
-      case EndTry: {
-        integer tryIndex = integerVal(pop());
-
-#ifdef TRACESTACK
-        if (traceStack >= detailedTracing)
-          logMsg(logFile, "%ld: leaving try scope %ld (%d)", pcCount, tryIndex, tryStackDepth(P));
-#endif
-        check(STK->tp->tryIndex == tryIndex, "misaligned try block");
-        tryFramePo try = STK->tp;
-        check(try->fp == FP, "misaligned try block");
-        STK->tp = try->try;
-        CT = controlTop(FP, STK->tp);
-        SP = STK->sp = try->sp;
-
-        PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block || PC->op == Try);
-        PC += PC->alt + 1;
-        continue;
-      }
-
-      case TryRslt: {
-        integer tryIndex = integerVal(pop());
-        termPo val = pop();
-
-#ifdef TRACESTACK
-        if (traceStack)
-          logMsg(logFile, "leaving try scope %ld (%d)", tryIndex, tryStackDepth(P));
-#endif
-        check(STK->tp->tryIndex == tryIndex, "misaligned try block");
-        tryFramePo try = STK->tp;
-        check(try->fp == FP, "misaligned try block");
-        STK->tp = try->try;
-        CT = controlTop(FP, STK->tp);
-        SP = STK->sp = try->sp;
-        push(val);
-
-        PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block || PC->op == Try);
-        PC += PC->alt + 1;
-        continue;
-      }
-
-      case Throw: {
-        Exception:
-        {
-          integer tryIndex = integerVal(pop());
-
-#ifdef TRACESTACK
-          if (traceStack)
-            logMsg(logFile, "throwing to try scope %ld (%d)", tryIndex, tryStackDepth(P));
-#endif
-
-          termPo val = pop();
-
-          saveRegisters();
-          stackPo stk = popTryFrame(P, tryIndex);
-          if (stk == Null) {
-            logMsg(logFile, "cannot find catch handler");
-            bail();
-          } else {
-            restoreRegisters();
-            push(val);
-            continue;
-          }
-        }
       }
 
       case LdV: {

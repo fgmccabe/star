@@ -230,12 +230,6 @@ char *dumpStarConstraint(char *sig, ioPo out) {
       outStr(out, ")");
       return sig;
     }
-    case raisesCon: {
-      outStr(out, ".raisEs(");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    }
     default:
       fprintf(stderr, "illegal constraint signature %s\n", sig);
       exit(99);

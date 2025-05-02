@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     int Op = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, Cmt) insOp(O_IO(typeBuff),#M,Op, Cmt); Op++;
+#define instruction(M, A1, A2, Dl, Cmt) insOp(O_IO(typeBuff),#M,Op, Cmt); Op++;
 
 #include "instructions.h"
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     char *sep = "";
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, Cmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
+#define instruction(M, A1, A2, Dl, Cmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
 #include "instructions.h"
 #undef instruction
 
@@ -123,7 +123,7 @@ integer staropHash(){
   int Op = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, Cmt) hash = hash61(hash*39+opHash(#M,Op)); Op++;
+#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,Op)); Op++;
 
 #include "instructions.h"
 

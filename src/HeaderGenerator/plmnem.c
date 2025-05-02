@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
       strBufferPo hwmBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, cmt) genStackHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, cmt) genStackHwm(O_IO(hwmBuff),#M,M,Dl,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
       strBufferPo hwmBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, cmt) genLocalHwm(O_IO(hwmBuff),#M,M,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, cmt) genLocalHwm(O_IO(hwmBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     strBufferPo mnemBuff = newStringBuffer();
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, cmt) genPrologIns(O_IO(mnemBuff),#M,M,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, cmt) genPrologIns(O_IO(mnemBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     // Set up the display code
     strBufferPo showBuff = newStringBuffer();
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, cmt) showPrologIns(O_IO(showBuff),#M,M,A1,A2,cmt);
+#define instruction(M, A1, A2, Dl, cmt) showPrologIns(O_IO(showBuff),#M,M,A1,A2,cmt);
 
 #include "instructions.h"
 
@@ -663,7 +663,7 @@ integer staropHash() {
   integer hash = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, _, Cmt) hash = hash61(hash*39+opHash(#M,M));
+#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,M));
 
 #include "instructions.h"
 

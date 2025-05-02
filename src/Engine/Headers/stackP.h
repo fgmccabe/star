@@ -53,17 +53,6 @@ typedef struct stack_frame_ {
 
 #define FrameCellCount (CellCount(sizeof(StackFrame)))
 
-typedef struct try_frame_ *tryFramePo;
-typedef struct try_frame_ {
-  integer tryIndex;             // Special index incremented for each try
-  framePo fp;
-  ptrPo sp;                     // Value of stack when try started
-  insPo pc;
-  tryFramePo try;               // Previous try frame
-} TryFrame;
-
-#define TryFrameCellCount (CellCount(sizeof(TryFrame)))
-
 typedef struct StackStructure {
   ClassRecord clss;             // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
@@ -73,7 +62,6 @@ typedef struct StackStructure {
   insPo pc;                     // Current program counter
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer
-  tryFramePo tp;                // Current try frame
   stackPo attachment;           // Where is the stack attached
   stackPo bottom;               // What is the actual innermost stack
   StackState state;             // is the stack attached, root, detached or moribund
@@ -93,24 +81,12 @@ extern integer stackRegionSize;    // How much space for stacks
 
 void dumpStackStats(ioPo out);
 
-integer pushTryFrame(stackPo stk, processPo P, insPo pc, ptrPo sp, framePo fp);
-stackPo popTryFrame(processPo P, integer tryIndex);
-integer tryStackDepth(processPo P);
-
 static inline ptrPo stackLimit(stackPo stk) {
   return stk->stkMem + stk->sze;
 }
 
 static inline framePo baseFrame(stackPo stk) {
   return ((framePo) (stk->stkMem)) - 1;
-}
-
-static inline tryFramePo tryLimit(stackPo stk) {
-  return (tryFramePo) stackLimit(stk);
-}
-
-static inline tryFramePo baseTry(stackPo stk) {
-  return ((tryFramePo) (stk->stkMem)) - 1;
 }
 
 static inline logical validFP(stackPo stk, framePo fp) {
@@ -121,17 +97,9 @@ static inline logical validStkPtr(stackPo stk, ptrPo p) {
   return p >= stk->stkMem && p >= stk->sp && p <= stackLimit(stk);
 }
 
-static inline ptrPo maxPtr(ptrPo a, ptrPo b) {
-  return a > b ? a : b;
-}
-
-static inline ptrPo controlTop(framePo fp, tryFramePo tp) {
-  return maxPtr(((ptrPo) (fp + 1)), ((ptrPo) (tp + 1)));
-}
-
 static inline logical stackHasSpace(stackPo stk, integer amount) {
   assert(amount >= 0);
-  return stk->sp - amount > controlTop(stk->fp,stk->tp);
+  return stk->sp - amount > ((ptrPo)(stk->fp+1));
 }
 
 framePo dropFrame(stackPo stk);
@@ -145,7 +113,7 @@ static inline ptrPo stackArg(framePo frame, integer arg) {
   return &frame->args[arg];
 }
 
-static inline ptrPo stackLcl(framePo frame, integer lcl) {
+static inline ptrPo stackLcl(framePo frame, int32 lcl) {
   return &frame->args[-lcl];
 }
 
