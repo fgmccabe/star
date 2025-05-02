@@ -649,29 +649,6 @@ compExp(thrw(Lc,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
    compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1x,Stk,Stka),
    call(Brker,Ok,Stka,Stkx,C1x,Cx);
    reportError("not in scope of try",[],Lc)).
-compExp(pul(Lc,E,_),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  compExp(E,Lc,Brks,notLast,Opts,L,L1,D,Dx,C0,C1,Stk,Stkx),
-  (is_member(("$try",Brker,Exit,Stkb),Brks) ->
-   genLbl(L1,Ok,L2),
-   genLbl(L2,Fl,Lx),
-   stkNxtLvl(Stk,Lvl),
-   ResltLbl = lbl("normal",1),
-   C1 = [iLbl(Ok,iBlock(Lvl,
-			[iLbl(Fl,iBlock(Lvl,
-					[iDup,iCLbl(ResltLbl,Fl),iBreak(Ok)])),
-			 iNth(0)|FC])),
-	 iNth(0)|Cx],
-   call(Brker,Exit,Stkx,Stkb,FC,[]);
-   reportError("not in scope of try",[],Lc),
-   C1=Cx,L1=Lx).
-compExp(psh(Lc,E,Tp),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
-  genstr("tmp",TmpVr),
-  tipeOf(E,ETp),
-  compTryX(Lc,ctpl(lbl("normal",1),[E]),
-	   Tp,idnt(TmpVr,ETp),ctpl(lbl("abnormal",1),[idnt(TmpVr,ETp)]),
-	   Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkNxtLvl(Stk,CLvl),
   stkLvl(Stk,Lvl),

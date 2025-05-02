@@ -849,17 +849,6 @@ typeOfExp(A,Tp,OErTp,Env,Env,try(Lc,Body,ErTp,Hndlr),Opts,Path) :-
 typeOfExp(A,Tp,ErTp,Env,Env,throw(Lc,ErExp,Tp),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,ErExp,Opts,Path).
-typeOfExp(A,Tp,ErTp,Env,Env,pull(Lc,Ex,Tp,ErTp),Opts,Path) :-
-  isPull(A,Lc,E),
-  resultType(Tp,ErTp,ResltTp),
-  typeOfExp(E,ResltTp,voidType,Env,_,Ex,Opts,Path).
-typeOfExp(A,Tp,_ErTp,Env,Env,push(Lc,Exp,Tp),Opts,Path) :-
-  isPush(A,Lc,E),
-  newTypeVar("V",VlTp),
-  newTypeVar("E",ErTp),
-  resultType(VlTp,ErTp,ResltTp),
-  verifyType(Lc,ast(A),ResltTp,Tp,Env),
-  typeOfExp(E,VlTp,ErTp,Env,_,Exp,Opts,Path).
 typeOfExp(A,Tp,ErTp,Env,Env,suspend(Lc,T,M,Tp),Opts,Path) :-
   isSuspend(A,Lc,L,R),!,
   newTypeVar("M",MTp),
@@ -1007,17 +996,6 @@ checkAction(A,_Tp,_ErTp,_HasVal,Env,Ev,doExp(Lc,Thrw),Opts,Path) :-
 checkAction(A,_Tp,ErTp,_HasVal,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
-checkAction(A,Tp,ErTp,_HasVal,Env,Env,doPull(Lc,Exp,Tp,ErTp),Opts,Path) :-
-  isPull(A,Lc,E),
-  resultType(Tp,ErTp,ResltTp),
-  typeOfExp(E,ResltTp,voidType,Env,_,Exp,Opts,Path).
-checkAction(A,Tp,_ErTp,_HasVal,Env,Env,doPush(Lc,Exp,ResltTp),Opts,Path) :-
-  isPush(A,Lc,E),
-  newTypeVar("V",VlTp),
-  newTypeVar("E",ErTp),
-  resultType(VlTp,ErTp,ResltTp),
-  verifyType(Lc,ast(A),ResltTp,Tp,Env),
-  typeOfExp(E,VlTp,ErTp,Env,_,Exp,Opts,Path).
 checkAction(A,_Tp,ErTp,HasVal,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Opts,Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,

@@ -518,14 +518,6 @@ examineTerm(A,Ax) :-
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
 examineTerm(A,Ax) :-
-  isPull(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkPull(Lc,Vx,Ax).
-examineTerm(A,Ax) :-
-  isPush(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkPush(Lc,Vx,Ax).
-examineTerm(A,Ax) :-
   isResume(A,Lc,T,M),!,
   macroTerm(T,Tx),
   macroTerm(M,Mx),
@@ -739,10 +731,6 @@ examineAction(A,Ax) :-
   mkTry(Lc,Bx,Cs,Ax).
 examineAction(A,Ax) :-
   isThrow(A,Lc,V),!,
-  macroTerm(V,Vx),
-  mkThrow(Lc,Vx,Ax).
-examineAction(A,Ax) :-
-  isPull(A,Lc,V),!,
   macroTerm(V,Vx),
   mkThrow(Lc,Vx,Ax).
 examineAction(A,Ax) :-

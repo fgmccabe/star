@@ -400,10 +400,6 @@ liftExp(raise(Lc,T,E,_),rais(Lc,TT,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(throw(Lc,E,_),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(pull(Lc,E,Tp,_),pul(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(push(Lc,E,Tp),psh(Lc,EE,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -518,10 +514,6 @@ liftAction(doTry(Lc,B,ErTp,H),aTry(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
   actionCaseMatcher(Lc,E,Cases,Map,HH).
 liftAction(doThrow(Lc,E),aThrow(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doPull(Lc,E,_,_),aPull(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
-liftAction(doPush(Lc,E,_),aPush(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(doExp(Lc,E),perf(Lc,Exp),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftAction(XX,nop(Lc),Q,Q,_,_,Ex,Ex) :-!,
@@ -606,8 +598,6 @@ implementVarExp(localFun(_Fn,Closure,Ar,ThVr,Tp),Lc,_,_,clos(Closure,Ar1,Vr,Tp),
 implementVarExp(_Other,Lc,Nm,Tp,idnt(Nm,Tp),_,_,Q,Q) :-
   reportError("cannot handle %s in expression",[id(Nm)],Lc).
 
-trExpCallOp(Lc,throwing(_,Op,ErTp),Tp,nothrow,Args,Call,Q,Qx,Map,Opts,Ex,Exx) :-
-  trExpCallOp(Lc,Op,Tp,throw(ErTp),Args,Call,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,v(_,Nm,_),Tp,nothrow,Args,ecll(Lc,Nm,Args,Tp),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
 trExpCallOp(Lc,v(_,Nm,_),Tp,throw(ErTp),Args,xecll(Lc,Nm,Args,Tp,ErTp),Qx,Qx,_,_,Ex,Ex) :-
