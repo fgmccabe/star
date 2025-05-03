@@ -526,6 +526,7 @@ liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,QL,_Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  checkOpt(Opts,traceNormalize,showMsg(Lc,"free term %s",[ltrm(BExpr)])),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"tx'ed %s",[ltrm(Exp)])).
 
 liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -539,6 +540,7 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
+  checkOpt(Opts,traceNormalize,showMsg(Lc,"free term %s",[ltrm(BExpr)])),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"tx'ed %s",[ltrm(Exp)])).
 
 mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-

@@ -204,7 +204,7 @@ compAction(lbld(Lc,Lb,A),OLc,Brks,Return,_Next,Opts,L,Lx,D,Dx,
 	   [iLbl(BrkLb,iBlock(Lvl,BC))|Cx],Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,BC,C0),
   genLbl(L,BrkLb,L1),
-  stkLv(Stk,Lvl),
+  stkLvl(Stk,Lvl),
   compAction(A,Lc,[(Lb,gencode:breakOut,BrkLb,Stk)|Brks],Return,notLast,Opts,L1,Lx,D,Dx,C0,[iBreak(BrkLb)],Stk,Stk0),
   verify(gencode:consistentStack(Stk,Stk0),"labeled actions not permitted to return values").
 compAction(brk(Lc,Nm),OLc,Brks,_Return,_Next,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,none) :-!,
