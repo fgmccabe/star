@@ -103,8 +103,8 @@ resolveTerm(Term,Dict,Opts,Resolved) :-
   resolveAgain(inactive,St,Term,RTerm,Dict,Opts,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
-resolveAgain(Prior,resolved,Term,T,Dict,Opts,R) :- !,
-  overloadTerm(T,Dict,Opts,Prior,St,T0),
+resolveAgain(_Prior,resolved,Term,T,Dict,Opts,R) :- !,
+  overloadTerm(T,Dict,Opts,inactive,St,T0),
   resolveAgain(inactive,St,Term,T0,Dict,Opts,R).
 resolveAgain(_,inactive,_,T,_,_,T) :- !.
 resolveAgain(active(_,Msg),active(Lc,Msg1),Term,_,_,_,Term) :-
@@ -195,8 +195,12 @@ overloadTerm(tapply(ALc,over(Lc,T,Cx),Args,Tp,ErTp),Dict,Opts,St,Stx,Term) :-
 overloadTerm(tapply(Lc,Op,Args,Tp,ErTp),Dict,Opts,St,Stx,tapply(Lc,ROp,RArgs,Tp,ErTp)) :-
   overloadTerm(Op,Dict,Opts,St,St0,ROp),
   overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
+overloadTerm(over(Lc,mtd(MLc,Nm,Tp),Cx),Dict,Opts,St,Stx,Term) :-
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload %s",[can(over(Lc,mtd(MLc,Nm,Tp),Cx))])),
+  overloadField(Lc,MLc,Nm,Tp,Cx,Tp,makeApply,Dict,Opts,St,Stx,Term).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
-  overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,makeApply,Over).
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload %s",[can(over(Lc,T,Cx))])),
+  overloadOver(Lc,T,Cx,[],Dict,Opts,St,Stx,makeApply,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
   resolveRef(T,[AccessOp],[],OverOp,Dict,Opts,St1,St2,NArgs),
@@ -306,30 +310,44 @@ overloadAction(A,_,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
-overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Make,Over) :-
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),!,
-  resolveRef(T,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
+overloadOver(Lc,over(OLc,OT,OCx),Cx,SoFar,Dict,Opts,St,Stx,Make,Over) :-
+  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,OverOp),!,
+  overloadOver(OLc,OT,OCx,[OverOp|SoFar],Dict,Opts,St1,Stx,Make,Over).
+overloadOver(Lc,T,Cx,Args,Dict,Opts,St,Stx,Make,Over) :-
+  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,OverOp),!,
   typeOfCanon(T,TTp),
-  overApply(Lc,OverOp,NArgs,TTp,Make,Over),
-  markResolved(St1,Stx).
-overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
-  genMsg("cannot find implementation for contracts %s",[Cx],Msg),
+  overloadTerm(T,Dict,Opts,St1,St2,RT),
+  reverse([OverOp|Args],CArgs),
+  overApply(Lc,RT,CArgs,TTp,Make,Over),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload over resolved term %s",[can(Over)])),
+  markResolved(St2,Stx).
+overloadOver(Lc,T,Cx,_,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
+  genMsg("cannot resolve constraint %s",[con(Cx)],Msg),
   markActive(St,Lc,Msg,Stx).
 
-overloadMethod(_ALc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
+overloadMethod(MLc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method: %s:%s",[can(apply(Lc,over(Lc,T,Cx),Args,Tp)),tpe(Tp)])),
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DTerms,[]),
-  markResolved(St0,St1),
-  overloadTerm(Args,Dict,Opts,St1,St2,tple(_,RArgs)),
-  resolveRef(T,DTerms,RArgs,OverOp,Dict,Opts,St2,Stx,NArgs),
-  overApply(Lc,OverOp,NArgs,Tp,Make,Reslvd),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method resolved term %s",[can(Reslvd)])).
+  resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DArg),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"constraint resolves to %s",[can(DArg)])),
+  overloadTerm(Args,Dict,Opts,St0,St1,tple(_,RArgs)),
+  resolveRef(T,DArg,RArgs,Dict,Opts,St1,St2,OverOp,NArgs),
+  overApply(MLc,OverOp,NArgs,Tp,Make,Reslvd),
+  markResolved(St2,Stx),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"resolved method: %s",[can(Reslvd)])).
+
+overloadField(Lc,MLc,Nm,Tp,Cx,Tp,Make,Dict,Opts,St,Stx,Term) :-
+  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,DArg),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"constraint resolves to %s",[can(DArg)])),
+  resolveRef(mtd(Lc,Nm,Tp),DArg,[],Dict,Opts,St1,St2,OverOp,NArgs),
+  overApply(MLc,OverOp,NArgs,Tp,Make,Term),
+  markResolved(St2,Stx),
+  checkOpt(Opts,traceCheck,showMsg(Lc,"resolved field: %s",[can(Term)])).  
 
 overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
 	       apply(ALc,Op,tple(LcA,NArgs),ATp)) :-
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,Opts,St,St1,AccessOp),
   overloadTerm(Args,Dict,Opts,St1,St2,tple(LcA,RArgs)),
-  resolveRef(T,[AccessOp],RArgs,Op,Dict,Opts,St2,Stx,NArgs).
+  resolveRef(T,AccessOp,RArgs,Dict,Opts,St2,Stx,Op,NArgs).
   
 overloadCases(Cses,Resolver,Dict,Opts,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,Opts,St,Stx,RCases).
@@ -369,17 +387,9 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
   call(C,T,D,O,RT),
   overloadList(L,C,D,O,RL).
 
-resolveRef(over(Lc,Trm,Con),DTs,Args,over(Lc,Over,Con),Dict,Opts,St,Stx,NArgs) :-
-  resolveRef(Trm,DTs,Args,Over,Dict,Opts,St,Stx,NArgs).
-resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,MtdCall,Dict,Opts,St,Stx,Args) :-
-  concat(Ds,RArgs,Args),
-  resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,MtdCall),!.
-resolveRef(v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),_,_,Stx,Stx,Args) :- !,
-  concat(DT,RArgs,Args).
-resolveRef(C,DT,RArgs,C,_,Opts,Stx,Stx,Args) :-
-  [Cx|_]=DT,
-  checkOpt(Opts,traceCheck,meta:showMsg(none,"resolve ref default %s",[Cx])),
-  concat(DT,RArgs,Args).
+resolveRef(mtd(Lc,Nm,Tp),DT,Args,Dict,Opts,St,Stx,Mtd,Args) :-
+  resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,Mtd),!.
+resolveRef(C,DT,Args,_,_Opts,Stx,Stx,C,[DT|Args]).
 
 resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
@@ -465,18 +475,23 @@ resolveUpdate(Lc,Rc,Fld,Vl,_Dict,_,St,Stx,update(Lc,Rc,Fld,Vl)) :-
   markFatal(St,Lc,Msg,Stx).
 
 resolveConstraints(_,[],_,_,St,St,[]).
-resolveConstraints(Lc,[Con|C],Dict,Opts,St,Stx,Extra) :-
-  resolveConstraint(Lc,Con,Dict,Opts,St,St0,Extra,Exs),!,
+resolveConstraints(Lc,[Con|C],Dict,Opts,St,Stx,[Over|Exs]) :-
+  resolveConstraint(Lc,Con,Dict,Opts,St,St0,Over),!,
   resolveConstraints(Lc,C,Dict,Opts,St0,Stx,Exs).
 
-resolveConstraint(Lc,implicit(Nm,Tp),Dict,Opts,St,Stx,[Over|Exs],Exs) :-
+resolveConstraint(Lc,implicit(Nm,Tp),Dict,Opts,St,Stx,Over) :-
   resolveImplicit(Lc,Nm,Tp,Dict,Opts,St,Stx,Over).
-resolveConstraint(Lc,C,Dict,Opts,St,Stx,[Over|Exs],Exs) :-
+resolveConstraint(Lc,C,Dict,Opts,St,Stx,Over) :-
+  resolveContract(Lc,C,Dict,Opts,St,Stx,Over).
+
+resolveContract(Lc,C,Dict,Opts,St,Stx,Over) :-
+  checkOpt(Opts,traceCheck,showMsg(Lc,"resolve contract %s",[con(C)])),
   implementationName(C,ImpNm),
   getImplementation(Dict,ImpNm,ImplVrNm,_ImplTp),
   getVar(Lc,ImplVrNm,Dict,Impl,ITp),
   contractType(C,CTp),
   sameType(ITp,CTp,Lc,Dict),
+  checkOpt(Opts,traceCheck,showMsg(Lc,"found implementation %s:%s",[can(Impl),tpe(CTp)])),
   markResolved(St,St1),
   overloadTerm(Impl,Dict,Opts,St1,Stx,Over).
 

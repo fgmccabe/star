@@ -3,6 +3,8 @@
 
 :- use_module(errors).
 :- use_module(misc).
+:- use_module(uri).
+:- use_module(repository).
 
 parseFlags([],CWD,CWD,[],[]).
 parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-!,
