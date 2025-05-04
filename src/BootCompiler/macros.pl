@@ -437,8 +437,10 @@ examineTerm(T,Tx) :-
   mkEquation(Lc,Lx,Gx,Rx,Tx).
 examineTerm(T,Tx) :-
   isValof(T,Lc,A),
-  isBraceTuple(A,_,[As]),!,
-  macroAction(As,A1),
+  isBraceTuple(A,_,Els),!,
+  deSequence(Els,As),
+  map(As,macros:macroAction,Axs),
+  reSequence(Axs,A1),
   braceTuple(Lc,[A1],Ax),
   mkValof(Lc,Ax,Tx).
 examineTerm(T,Tx) :-
@@ -660,12 +662,14 @@ examineAction(A,Ax) :-
 examineAction(A,Ax) :-
   isActionSeq(A,_,L),!,
   macroAction(L,Ax).
-examineAction(A,Ax) :-
-  isBraceTuple(A,Lc,[S]),!,
-  macroAction(S,Sx),
-  braceTuple(Lc,[Sx],Ax).
 examineAction(A,A) :-
   isBraceTuple(A,_,[]),!.
+examineAction(A,Ax) :-
+  isBraceTuple(A,Lc,Els),!,
+  deSequence(Els,As),
+  map(As,macros:macroAction,Axs),
+  reSequence(Axs,A1),
+  braceTuple(Lc,[A1],Ax).
 examineAction(A,Ax) :-
   isLbldAction(A,Lc,Lb,B),!,
   macroAction(B,Bx),

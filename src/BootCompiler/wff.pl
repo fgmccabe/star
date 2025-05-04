@@ -67,7 +67,7 @@
 	      isIfThenElse/5,isIfThen/4,mkIfThenElse/5,mkIfThen/4,
 	      isWhileDo/4,isForDo/4,isForDo/5,
 	      mkWhileDo/4,mkForDo/5,
-	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,
+	      isActionSeq/4,isActionSeq/3,mkActionSeq/4,deSequence/2,reSequence/2,
 	      isLetDef/4,isLetRec/4,mkLetDef/4,mkLetRec/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
@@ -733,6 +733,27 @@ mkSequence(_,[S],S) :-!.
 mkSequence(Lc,[S1|Sx],Trm) :-
   mkSequence(Lc,Sx,Gx),
   binary(Lc,";",S1,Gx,Trm).
+
+deSequence(Els,LL) :-
+  deSequence(Els,LL,[]),!.
+deSequence([El|Els],LL,Lx) :-
+  deSequence(El,LL,L0),
+  deSequence(Els,L0,Lx).
+deSequence([],Lx,Lx).
+deSequence(T,LL,Lx) :-
+  isBinary(T,_,";",L,R),
+  deSequence(L,LL,L0),
+  deSequence(R,L0,Lx).
+deSequence(T,LL,Lx) :-
+  isUnary(T,_,";",L),
+  deSequence(L,LL,Lx).
+deSequence(T,[T|Lx],Lx).
+
+reSequence([T],T).
+reSequence([F|M],T) :-
+  reSequence(M,T1),
+  locOfAst(F,Lc),
+  binary(Lc,";",F,T1,T).
 
 isLiteralInteger(integer(Lc,Ix),Lc,Ix) :-!.
 isLiteralInteger(I,Lc,Nx) :-
