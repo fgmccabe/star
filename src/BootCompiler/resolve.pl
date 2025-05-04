@@ -200,7 +200,7 @@ overloadTerm(over(Lc,mtd(MLc,Nm,Tp),Cx),Dict,Opts,St,Stx,Term) :-
   overloadField(Lc,MLc,Nm,Tp,Cx,Tp,makeApply,Dict,Opts,St,Stx,Term).
 overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload %s",[can(over(Lc,T,Cx))])),
-  overloadOver(Lc,T,Cx,[],Dict,Opts,St,Stx,makeApply,Over).
+  overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,makeApply,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
   resolveRef(T,[AccessOp],[],OverOp,Dict,Opts,St1,St2,NArgs),
@@ -310,33 +310,28 @@ overloadAction(A,_,_,St,St,A) :-
   locOfCanon(A,Lc),
   reportError("cannot resolve action %s",[cnact(A)],Lc).
 
-overloadOver(Lc,over(OLc,OT,OCx),Cx,SoFar,Dict,Opts,St,Stx,Make,Over) :-
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,OverOp),!,
-  overloadOver(OLc,OT,OCx,[OverOp|SoFar],Dict,Opts,St1,Stx,Make,Over).
-overloadOver(Lc,T,Cx,Args,Dict,Opts,St,Stx,Make,Over) :-
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,OverOp),!,
+overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Make,Over) :-
+  resolveConstraints(Lc,Cx,Dict,Opts,St,St1,DTerms),!,
+  resolveRef(T,DTerms,[],Dict,Opts,St1,St2,OverOp,NArgs),
   typeOfCanon(T,TTp),
-  overloadTerm(T,Dict,Opts,St1,St2,RT),
-  reverse([OverOp|Args],CArgs),
-  overApply(Lc,RT,CArgs,TTp,Make,Over),
+  overApply(Lc,OverOp,NArgs,TTp,Make,Over),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload over resolved term %s",[can(Over)])),
   markResolved(St2,Stx).
-overloadOver(Lc,T,Cx,_,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
+overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
   genMsg("cannot resolve constraint %s",[con(Cx)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 overloadMethod(MLc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload method: %s:%s",[can(apply(Lc,over(Lc,T,Cx),Args,Tp)),tpe(Tp)])),
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St0,DArg),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"constraint resolves to %s",[can(DArg)])),
+  resolveConstraints(Lc,Cx,Dict,Opts,St,St0,DTerms),
   overloadTerm(Args,Dict,Opts,St0,St1,tple(_,RArgs)),
-  resolveRef(T,DArg,RArgs,Dict,Opts,St1,St2,OverOp,NArgs),
-  overApply(MLc,OverOp,NArgs,Tp,Make,Reslvd),
+  resolveRef(T,DTerms,RArgs,Dict,Opts,St1,St2,OverOp,NArgs),
+  call(Make,MLc,OverOp,NArgs,Tp,Reslvd),
   markResolved(St2,Stx),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"resolved method: %s",[can(Reslvd)])).
 
 overloadField(Lc,MLc,Nm,Tp,Cx,Tp,Make,Dict,Opts,St,Stx,Term) :-
-  resolveConstraint(Lc,Cx,Dict,Opts,St,St1,DArg),
+  resolveConstraints(Lc,Cx,Dict,Opts,St,St1,DArg),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"constraint resolves to %s",[can(DArg)])),
   resolveRef(mtd(Lc,Nm,Tp),DArg,[],Dict,Opts,St1,St2,OverOp,NArgs),
   overApply(MLc,OverOp,NArgs,Tp,Make,Term),
@@ -387,9 +382,11 @@ overloadList([T|L],C,D,O,[RT|RL]) :-
   call(C,T,D,O,RT),
   overloadList(L,C,D,O,RL).
 
-resolveRef(mtd(Lc,Nm,Tp),DT,Args,Dict,Opts,St,Stx,Mtd,Args) :-
+resolveRef(mtd(Lc,Nm,Tp),[DT|Ds],RArgs,Dict,Opts,St,Stx,Mtd,Args) :-
+  concat(Ds,RArgs,Args),
   resolveDot(Lc,DT,Nm,Tp,Dict,Opts,St,Stx,Mtd),!.
-resolveRef(C,DT,Args,_,_Opts,Stx,Stx,C,[DT|Args]).
+resolveRef(C,DT,RArgs,_Dict,_Opts,Stx,Stx,C,Args) :-
+  concat(DT,RArgs,Args).
 
 resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
   typeOfCanon(Rc,RcTp),
@@ -398,11 +395,11 @@ resolveDot(Lc,Rc,Fld,Tp,Dict,Opts,St,Stx,Reslvd) :-
   newTypeVar("FF",RTp),
   (sameType(funType(tplType([RcTp]),RTp),FAccTp,Lc,Dict),
    freshen(RTp,Dict,_,CFTp),
-   getConstraints(CFTp,_Cx,FTp), % constraints here are dropped!
+   getConstraints(CFTp,Cx,FTp),
    sameType(FTp,Tp,Lc,Dict),
    V = v(Lc,FunNm,funType(tplType([RcTp]),Tp)),
-   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp),
-%   manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
+%   Reslvd = apply(Lc,V,tple(Lc,[Rc]),Tp),
+   manageConstraints(Cx,Lc,apply(Lc,V,tple(Lc,[Rc]),Tp),Reslvd),
    traceCheck(Opts,Lc,"dot resolved term %s",[can(Reslvd)]),
    markResolved(St,Stx);
    genMsg("accessor defined for %s:%s in %s\nnot consistent with\n%s",
