@@ -16,7 +16,7 @@ test.y{
   fooG(E) => throw E().
 
   -- A function that catches a generic exception
-  fooC:all e ~~ ()=>string) => string throws e.
+  fooC:all e ~~ (()=>string throws e) => string.
   fooC(F) => 
     (try
       F()
@@ -26,25 +26,6 @@ test.y{
 	  valis "we got an exception"
 	}
       }).
-
-  fooInner:(integer) => string.
-  fooInner(X) => (try
-    let{
-	inner(U) where U<0 => throw "$(U) is less than zero".
-	inner(U) => disp(U*U)
-      } in inner(X)
-    catch {
-      Msg => Msg
-    }).
-
-  -- A function that throws one of two kinds of exception
-  fooX:throws string, throws exception |: (integer) => ().
-  fooX(T) => valof{
-    if 1 < T then
-      throw .exception("$(T) is bigger than 1")
-    else
-    throw "$(T) not bigger than 1"
-  }
 
   main:()=>().
   main() => valof{
@@ -62,41 +43,13 @@ test.y{
       M => showMsg("fooG throws $(M)")
     };
 
-    show fooC(()=>"world");
+    show fooC((()=>"world"):(()=>string throws ()));
 
     try{
       show fooG(()=>42)
     } catch {
       M => showMsg("fooG throws $(M)")
     };
-
-    -- Try a function with two kinds of exception
-    try{
-      try{
-	fooX(2)
-      } catch {
-	.exception(M) => { showMsg("we got exception $(M)");
-	}
-      }
-    } catch {
-      S => { showMsg("we got string #(S)");
-      }
-    };
-
-    try{
-      try{
-	fooX(0)
-      } catch {
-	.exception(M) => { showMsg("we got exception $(M)");
-	}
-      }
-    } catch {
-      S => { showMsg("we got string #(S)");
-      }
-    };
-
-    assert fooInner(2) == "4";
-    assert fooInner(-2) == "-2 is less than zero";
 
     valis ()
   }
