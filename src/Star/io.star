@@ -100,38 +100,33 @@ star.io{
     }
   }
 
+  close:(ioHandle)=>() throws ioException.
+  close(FH) => valof{
+    try{
+      valis _close(FH);
+    } catch {
+      | .eof => throw .pastEof
+      | _ => throw .ioError
+    }
+  }
+
+  openInFile:(string) => ioHandle throws ioException.
+  openInFile(Fl) => (try
+    _openInFile(Fl,3)
+    catch {
+      _ => throw .ioError
+    }).
+
   public rdFileAsync:async (string)=> string throws ioException.
   rdFileAsync(Fl) => valof{
-    try{
-      In = _openInFile(Fl,3);
-      Txt := [];
-      try{
-	while Ln.=rdCharsAsync(In,1024) do{
-	  Txt := [Ln,..Txt!];
-	}
-      } catch {
-	| .pastEof => {
-	  showMsg("At eof");
-	}
-	| _ => {
-	  showMsg("??");
-	  _close(In);
-	  throw .ioError
-	}
-      };
+    In = openInFile(Fl);
+    Txt := [];
 
-      _close(In);
-      valis reverse(Txt!)*
-    } catch {
-      | .eof => {
-	showMsg("outer eof");
-	throw .pastEof
-      }
-      | _ => {
-	showMsg("outer error");
-	throw .ioError
-      }
+    while Ln.=rdCharsAsync(In,1024) do{
+      Txt := [Ln,..Txt!];
     }
+    close(In);
+    valis reverse(Txt!)*
   }
 
   public wrChar:(ioHandle,char) => () throws ioException.
