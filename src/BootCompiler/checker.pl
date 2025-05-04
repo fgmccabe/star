@@ -179,18 +179,6 @@ collectConstructors(C,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,_Export) :-
   isPrivate(C,_,I),
   collectConstructors(I,Quants,Constraints,Tp,Defs,Dfx,P,Px,A,Ax,checker:prvteViz).
 
-cmpAstPair(A1,A2) :-
-  isTypeAnnotation(A1,_,N1,_),
-  isTypeAnnotation(A2,_,N2,_),
-  isIden(N1,_,I1),
-  isIden(N2,_,I2),
-  str_lt(I1,I2).
-
-projectAstTps([],[]) :-!.
-projectAstTps([A|As],[T|Ts]) :-
-  isTypeAnnotation(A,_,_,T),!,
-  projectAstTps(As,Ts).
-
 collectImportDecls([],_,Decls,Decls) :-!.
 collectImportDecls([importPk(_Lc,_Viz,Pkg)|More],Repo,Decls,Dcx) :-
   importPkg(Pkg,Repo,spec(_,_,PDecls)),
@@ -309,7 +297,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Publish,Viz,Dc,Dcx,Opts,Path) :-
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Opts,Path),
   qualifiedName(Path,N,LclName),
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx,Publish,Viz,Dc,Dcx),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of %s:%s",[id(N),tpe(ProgramType)])).
+  checkOpt(Opts,traceCheck,showMsg(Lc,"type of %s:%s",[id(N),tpe(ProgramType)])).
 
 formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
   Eqn = rule(Lc,_,_,_),
@@ -378,7 +366,7 @@ findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
 checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
-  splitUpProgramType(ProgramType,AT,RT,ErTp),
+  splitUpProgramType(Lc,E,ProgramType,AT,RT,ErTp),
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
   typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
@@ -390,8 +378,14 @@ checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
-splitUpProgramType(funType(AT,RT),AT,RT,voidType) :-!.
-splitUpProgramType(funType(AT,RT,ET),AT,RT,ET).
+splitUpProgramType(Lc,Env,FTp,AT,RT,ET) :-
+  newTypeVar("A",AT),
+  newTypeVar("R",RT),
+  newTypeVar("E",ET),
+  (sameType(FTp,funType(AT,RT),Lc,Env) ->
+   sameType(ET,voidType,Lc,Env);
+   sameType(FTp,funType(AT,RT,ET),Lc,Env);
+   reportError("Expecting a function type, not %s",[tpe(FTp)],Lc)).
 
 checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Opts,Path) :-
   isIden(L,_,Nm),
@@ -825,8 +819,8 @@ typeOfExp(Term,Tp,ErTp,Env,Env,capply(Lc,Fun,Args,Tp),Opts,Path) :-
   typeOfExp(F,consType(At,Tp),ErTp,Env,E0,Fun,Opts,Path),
   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
-  isEquation(Term,_Lc,_H,_R),
-  typeOfLambda(Term,Tp,Env,Lam,Opts,Path).
+  isEquation(Term,Lc,_H,_R),
+  typeOfLambda(Lc,Term,Tp,Env,Lam,Opts,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
@@ -897,6 +891,7 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
   genTpVars(A,Vrs),
   At = tplType(Vrs),
   typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of function %s:%s",[can(Fun),tpe(FnTp)])),
   (sameType(funType(At,Tp),FnTp,Lc,E0) ->
    typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
    Call=apply(Lc,Fun,Args,Tp);
@@ -913,19 +908,17 @@ typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
    Call=void).
 
-typeOfLambda(Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
-%  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
+typeOfLambda(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
+  checkOpt(Opts,traceCheck,showMsg(Lc,"expected type of lambda %s:%s",[ast(Term),tpe(Tp)])),
   pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
   declareConstraints(Lc,Cx,LEnv,EvL),
+  splitUpProgramType(Lc,Env,LambdaTp,AT,RT,ErTp),
   isEquation(Term,Lc,H,C,R),
-  newTypeVar("_A",AT),
-  newTypeVar("_E",RT),
-  typeOfArgPtn(H,AT,voidType,EvL,E0,Args,Opts,Path),
-  checkGuard(C,voidType,E0,E1,Guard,Opts,Path),
-  verifyType(Lc,ast(Term),funType(AT,RT),LambdaTp,Env),
+  typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
+  checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   lambdaLbl(Path,"λ",Lbl),
-  typeOfExp(R,RT,voidType,E1,_,Exp,Opts,Path).
+  typeOfExp(R,RT,ErTp,E1,_,Exp,Opts,Path).
 
 %% Translate thunks into uses of SAVars & lambda
 % $$ E becomes

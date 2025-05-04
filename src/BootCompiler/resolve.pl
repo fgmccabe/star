@@ -155,7 +155,7 @@ overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,Opts,St,Stx,
   overloadLet(Lc,Decls,Defs,Bound,resolve:overloadTerm,Dict,Opts,St,Stx,RDefs,RBound).
 overloadTerm(letRec(Lc,Decls,Defs,Bound),Dict,Opts,St,Stx,
 	     letRec(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadTerm,Dict,Opts,St,Stx,RDefs,RBound).
+  overloadLetRec(Lc,Decls,Defs,Bound,resolve:overloadTerm,Dict,Opts,St,Stx,RDefs,RBound).
 overloadTerm(where(Lc,Trm,Cond),Dict,Opts,St,Stx,where(Lc,RTrm,RCond)) :-
   overloadTerm(Trm,Dict,Opts,St,St0,RTrm),
   overloadTerm(Cond,Dict,Opts,St0,Stx,RCond).
@@ -262,6 +262,11 @@ overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,Opts,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-
 overloadLet(Lc,Decls,Defs,Bound,RR,Dict,Opts,St,Stx,RDefs,RBound) :-
   declareAllDecls(Decls,Lc,Dict,RDict),
   call(RR,Bound,RDict,Opts,St,Stx,RBound),
+  overload(Defs,Dict,Opts,RDefs).
+
+overloadLetRec(Lc,Decls,Defs,Bound,RR,Dict,Opts,St,Stx,RDefs,RBound) :-
+  declareAllDecls(Decls,Lc,Dict,RDict),
+  call(RR,Bound,RDict,Opts,St,Stx,RBound),
   overload(Defs,RDict,Opts,RDefs).
 
 overloadAction(doNop(Lc),_,_,St,St,doNop(Lc)) :-!.
@@ -300,7 +305,7 @@ overloadAction(doWhile(Lc,T,A),Dict,Opts,St,Stx,doWhile(Lc,TT,AA)) :-
 overloadAction(doLet(Lc,Decls,Defs,Bound),Dict,Opts,St,Stx,doLet(Lc,Decls,RDefs,RBound)) :-
   overloadLet(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,Opts,St,Stx,RDefs,RBound).
 overloadAction(doLetRec(Lc,Decls,Defs,Bound),Dict,Opts,St,Stx,doLetRec(Lc,Decls,RDefs,RBound)) :-
-  overloadLet(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,Opts,St,Stx,RDefs,RBound).
+  overloadLetRec(Lc,Decls,Defs,Bound,resolve:overloadAction,Dict,Opts,St,Stx,RDefs,RBound).
 overloadAction(case(Lc,G,C,Tp),Dict,Opts,St,Stx,case(Lc,GG,CC,Tp)) :-
   overloadTerm(G,Dict,Opts,St,St1,GG),
   overloadCases(C,resolve:overloadAction,Dict,Opts,St1,Stx,CC).
