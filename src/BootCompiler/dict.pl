@@ -12,8 +12,6 @@
 		manageConstraints/4,
 		declareConstraints/4,
 		allConstraints/2,
-		declareTryScope/5,getTryScope/5,topTryScope/4,
-		setTryScope/3,tryScope/2,
 		pushScope/2,mergeDict/4,pushFace/4,makeKey/2,
 		dispEnv/1
 	       ]).
@@ -32,11 +30,11 @@ isType(Nm,Env,Tp) :-
   makeKey(Id,Key),
   typeInD(Key,Env,Tp).
 
-typeInD(Key,[dict(Types,_,_,_,_,_,_,_,_)|_],Tp) :- get_dict(Key,Types,Tp),!.
+typeInD(Key,[dict(Types,_,_,_,_,_,_)|_],Tp) :- get_dict(Key,Types,Tp),!.
 typeInD(Key,[_|Env],Tp) :- typeInD(Key,Env,Tp).
 
-declareType(Nm,TpDef,[dict(Types,Nms,Cons,Impls,Accs,Ups,Contracts,Trys,TrScope)|Outer],
-	    [dict(Types1,Nms,Cons,Impls,Accs,Ups,Contracts,Trys,TrScope)|Outer]) :-
+declareType(Nm,TpDef,[dict(Types,Nms,Cons,Impls,Accs,Ups,Contracts)|Outer],
+	    [dict(Types1,Nms,Cons,Impls,Accs,Ups,Contracts)|Outer]) :-
   makeKey(Nm,Key),
   put_dict(Key,Types,TpDef,Types1).
 
@@ -49,8 +47,8 @@ isTypeVar(Nm,Env,Tp) :-
   isType(Nm,Env,tpDef(_,Tp,voidType)),!.
 
 declareVar(Nm,Lc,Tp,Face,Mk,
-	   [dict(Types,Names,Cns,Impls,Accs,Ups,Contracts,Trys,TrS)|Outer],
-	   [dict(Types,Names1,Cns,Impls,Accs,Ups,Contracts,Trys,TrS)|Outer]) :-
+	   [dict(Types,Names,Cns,Impls,Accs,Ups,Contracts)|Outer],
+	   [dict(Types,Names1,Cns,Impls,Accs,Ups,Contracts)|Outer]) :-
 %  reportMsg("Declare %s:%s",[id(Nm),tpe(Tp)],Lc),
   makeKey(Nm,Key),
   put_dict(Key,Names,vrEntry(Lc,Mk,Face,Tp),Names1).
@@ -114,14 +112,14 @@ mkVr(Nm,Lc,Tp,v(Lc,Nm,Tp)).
 noFace(_,faceType([],[])).
 mkFld(Fld,Rc,Lc,Tp,dot(Lc,Rc,Fld,Tp)).
 
-isVr(Key,[dict(_,Names,_,_,_,_,_,_,_)|_],Vr) :- get_dict(Key,Names,Vr),!.
+isVr(Key,[dict(_,Names,_,_,_,_,_)|_],Vr) :- get_dict(Key,Names,Vr),!.
 isVr(Key,[_|Outer],Vr) :- isVr(Key,Outer,Vr).
 
 currentVar(Nm,Env,some(Vr)) :- makeKey(Nm,Key), isVr(Key,Env,Vr),!.
 currentVar(_,_,none).
 
-declareContract(Nm,Con,[dict(Types,Nms,Cns,Impls,Accs,Ups,Contracts,Trs,TrS)|Outer],
-		[dict(Types,Nms,Cns,Impls,Accs,Ups,Cons,Trs,TrS)|Outer]) :-
+declareContract(Nm,Con,[dict(Types,Nms,Cns,Impls,Accs,Ups,Contracts)|Outer],
+		[dict(Types,Nms,Cns,Impls,Accs,Ups,Cons)|Outer]) :-
   makeKey(Nm,Key),
   put_dict(Key,Contracts,Con,Cons).
 
@@ -131,11 +129,11 @@ getContract(Nm,Env,Con) :-
   makeKey(Id,Key),
   contractInD(Key,Env,Con).
 
-contractInD(Ky,[dict(_,_,_,_,_,_,Cons,_,_)|_],Con) :- get_dict(Ky,Cons,Con),!.
+contractInD(Ky,[dict(_,_,_,_,_,_,Cons)|_],Con) :- get_dict(Ky,Cons,Con),!.
 contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
 
 allConstraints([],[]).
-allConstraints([dict(_,_,Cons,_,_,_,_,_,_)|D],C,Cx) :-
+allConstraints([dict(_,_,Cons,_,_,_,_)|D],C,Cx) :-
   concat(Cons,C,C0),
   allConstraints(D,C0,Cx).
 
@@ -145,8 +143,8 @@ declareConstraint(Lc,C,E,Ev) :- C=conTract(_,_Args,_Deps),!,
   declareVr(Lc,ImpNm,CTp,none,E,Ev).
 declareConstraint(Lc,implicit(Nm,Tp),E,Ev) :-
   declareVr(Lc,Nm,Tp,none,E,Ev).
-declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons,Trys,TrS)|Outer],
-		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons,Trys,TrS)|Outer]).
+declareConstraint(_,Con,[dict(Types,Nms,Cns,Impl,Accs,Ups,Cons)|Outer],
+		  [dict(Types,Nms,[Con|Cns],Impl,Accs,Ups,Cons)|Outer]).
 
 declareConstraints(_,[],Env,Env).
 declareConstraints(Lc,[C|L],E,Ex) :-
@@ -154,8 +152,8 @@ declareConstraints(Lc,[C|L],E,Ex) :-
   declareConstraints(Lc,L,E0,Ex).
 
 declareImplementation(ImplNm,ImplVrNm,Tp,
-		      [dict(Tps,Nms,Cns,Impls,Acs,Ups,Cons,Trys,TrS)|Outer],
-		      [dict(Tps,Nms,Cns,Implx,Acs,Ups,Cons,Trys,TrS)|Outer]) :-
+		      [dict(Tps,Nms,Cns,Impls,Acs,Ups,Cons)|Outer],
+		      [dict(Tps,Nms,Cns,Implx,Acs,Ups,Cons)|Outer]) :-
   makeKey(ImplNm,Key),
   put_dict(Key,Impls,implement(ImplNm,ImplVrNm,Tp),Implx).
 
@@ -163,13 +161,13 @@ getImplementation(Env,ImplNm,ImplVrNm,ImplTp) :-
   makeKey(ImplNm,Key),
   implInDct(Env,Key,ImplVrNm,ImplTp).
 
-implInDct([dict(_,_,_,Impls,_,_,_,_,_)|_],Key,ImplVrNm,ImplTp) :-
+implInDct([dict(_,_,_,Impls,_,_,_)|_],Key,ImplVrNm,ImplTp) :-
   get_dict(Key,Impls,implement(_,ImplVrNm,ImplTp)).
 implInDct([_|Env],Key,ImplVrNm,ImplTp) :-
   implInDct(Env,Key,ImplVrNm,ImplTp).
 
-declareFieldAccess(Tp,Fld,Fun,FldTp,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,TrS)|Outer],
-		   [dict(Tps,Vrs,Cns,Impls,Acx,Ups,Cons,Trys,TrS)|Outer]) :-
+declareFieldAccess(Tp,Fld,Fun,FldTp,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons)|Outer],
+		   [dict(Tps,Vrs,Cns,Impls,Acx,Ups,Cons)|Outer]) :-
   tpName(Tp,TpNm),
   makeKey(TpNm,Key),!,
   (get_dict(Key,Acs,Accors) ->
@@ -181,14 +179,14 @@ getFieldAccess(Tp,Fld,Fun,FldTp,Dict) :-
   makeKey(TpNm,Key),!,
   accInDct(Key,Fld,Fun,FldTp,Dict).
 
-accInDct(Ky,Fld,Fun,FldTp,[dict(_,_,_,_,Acc,_,_,_,_)|_]) :-
+accInDct(Ky,Fld,Fun,FldTp,[dict(_,_,_,_,Acc,_,_)|_]) :-
   get_dict(Ky,Acc,A),
   is_member((Fld,Fun,FldTp),A),!.
 accInDct(Ky,Fld,Fun,FldTp,[_|Outer]) :-
   accInDct(Ky,Fld,Fun,FldTp,Outer).
 
-declareFieldUpdater(Tp,Fld,Fun,FldTp,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,TrS)|Outer],
-		   [dict(Tps,Vrs,Cns,Impls,Acs,Upx,Cons,Trys,TrS)|Outer]) :-
+declareFieldUpdater(Tp,Fld,Fun,FldTp,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons)|Outer],
+		   [dict(Tps,Vrs,Cns,Impls,Acs,Upx,Cons)|Outer]) :-
   tpName(Tp,TpNm),
   makeKey(TpNm,Key),!,
   (get_dict(Key,Ups,Accors) ->
@@ -200,48 +198,22 @@ getFieldUpdater(Tp,Fld,Fun,FldTp,Dict) :-
   makeKey(TpNm,Key),!,
   upInDct(Key,Fld,Fun,FldTp,Dict).
 
-upInDct(Ky,Fld,Fun,FldTp,[dict(_,_,_,_,_,Acc,_,_,_)|_]) :-
+upInDct(Ky,Fld,Fun,FldTp,[dict(_,_,_,_,_,Acc,_)|_]) :-
   get_dict(Ky,Acc,A),
   is_member((Fld,Fun,FldTp),A),!.
 upInDct(Ky,Fld,Fun,FldTp,[_|Outer]) :-
   upInDct(Ky,Fld,Fun,FldTp,Outer).
 
-declareTryScope(Lc,Tp,TpVrNm,[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,TrS)|Outer],
-		[dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trx,TrS)|Outer]) :-
-  tpName(Tp,TpNm),
-  makeKey(TpNm,Key),!,
-  put_dict(Key,Trys,tryBlk(Lc,TpVrNm,Tp),Trx).
-
-getTryScope(TpNm,Dict,Lc,Nm,ETp) :-
-  makeKey(TpNm,Key),!,
-  tryInDct(Key,Lc,Nm,ETp,Dict).
-
-tryInDct(Key,Lc,Nm,Tp,[dict(_,_,_,_,_,_,_,Trs,_)|_]) :-
-  get_dict(Key,Trs,tryBlk(Lc,Nm,Tp)),!.
-tryInDct(Key,Lc,Nm,Tp,[_|Outer]) :-
-  tryInDct(Key,Lc,Nm,Tp,Outer).
-
-topTryScope([dict(_,_,_,_,_,_,_,Trs,_)|_],Lc,Nm,Tp) :-
-  dict_pairs(Trs,_,Pairs),
-  member(_-tryBlk(Lc,Nm,Tp),Pairs),!.
-topTryScope([_|Rest],Lc,Nm,Tp) :-
-  topTryScope(Rest,Lc,Nm,Tp).
-
-setTryScope([dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,_)|Outer],Tp,
-	    [dict(Tps,Vrs,Cns,Impls,Acs,Ups,Cons,Trys,Tp)|Outer]).
-
-tryScope([dict(_Tps,_Vrs,_Cns,_Impls,_Acs,_Ups,_Cons,_Trys,TrS)|_Outer],TrS).
-
-pushScope(Env,[dict(types{},vars{},[],impls{},accs{},ups{},contracts{},trys{},voidType)|Env]).
+pushScope(Env,[dict(types{},vars{},[],impls{},accs{},ups{},contracts{})|Env]).
 
 mergeDict(D1,D2,Env,D3) :-
   length(D1,L1),
   length(D2,L1),!,
   mergeScopes(D1,D2,Env,D3).
 
-mergeScopes([dict(Ts1,Ns1,Cns,Impls,Accs,Ups,Cons,Trys,TrS)|O],
-    [dict(Ts2,Ns2,Cns,Impls,Accs,Ups,Cons,Trys,TrS)|O],Env,
-	    [dict(Ts3,N3,Cns,Impls,Accs,Ups,Cons,Trys,TrS)|O]) :-
+mergeScopes([dict(Ts1,Ns1,Cns,Impls,Accs,Ups,Cons)|O],
+    [dict(Ts2,Ns2,Cns,Impls,Accs,Ups,Cons)|O],Env,
+	    [dict(Ts3,N3,Cns,Impls,Accs,Ups,Cons)|O]) :-
   dict_pairs(Ts1,T,T1),
   dict_pairs(Ts2,_,T2),
   mergeTDefs(T1,T2,Env,Ts),
@@ -296,7 +268,7 @@ processDictLvl(Dict,P,Cx,Result) :-
 
 processDictLvl(_,_,0,SoFar,SoFar).
 processDictLvl([],_,_,SoFar,SoFar).
-processDictLvl([dict(_,Names,_,_,_,_,_,_,_)|Outer],P,Cx,SoFar,Result) :-
+processDictLvl([dict(_,Names,_,_,_,_,_)|Outer],P,Cx,SoFar,Result) :-
   dict_pairs(Names,_,Pairs),
   procNames(Pairs,P,SoFar,S0),
   Cx1 is Cx-1,
@@ -307,16 +279,15 @@ procNames([K-Vr|More],P,SoFar,Result) :-
   call(P,K,Vr,SoFar,S0),
   procNames(More,P,S0,Result).
 
-dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts,Trys,_TrS),Cx,
+dispDictLvl(dict(Types,Nms,_Cns,Impls,Accs,Ups,Contracts),Cx,
 	    sq([ix(Cx),ss("-"),
-		iv(nl(2),[TT,VV,II,AA,UU,CC,BB])])) :-
+		iv(nl(2),[TT,VV,II,AA,UU,CC])])) :-
   dispTypes(Types,TT),
   dispVars(Nms,VV),
   dispImplementations(Impls,II),
   dispAccessors(Accs,AA),
   dispUpdaters(Ups,UU),
-  dispContracts(Contracts,CC),
-  dispTryBlocks(Trys,BB).
+  dispContracts(Contracts,CC).
 
 dispTypes(Tps,sq([ss("Types"),nl(4),iv(nl(4),TT)])) :-
   dict_pairs(Tps,_,Pairs),
@@ -374,14 +345,6 @@ dispImplementations(Acs,sq([ss("Implementations"),nl(4),iv(nl(4),II)])) :-
 showImplementation(_Nm-implement(ImplNm,ImplVrNm,ImplTp),
 		   sq([id(ImplNm),ss("="),id(ImplVrNm),ss(":"),TT])) :-
   ssType(ImplTp,false,4,TT).
-
-dispTryBlocks(Trs,iv(nl(4),TT)) :-
-  dict_pairs(Trs,_,Pairs),
-  map(Pairs,dict:dispTryBlock,TT).
-
-dispTryBlock(_ - tryBlk(Lc,Vr,Tp),sq([ss("try scope @ "),ss(LL),ss(Vr),ss(":"),TT])) :-
-  ssType(Tp,TT),
-  ssLoc(Lc,LL).
 
 dispEnv(Env) :-
   dispEnv(Env,0).
