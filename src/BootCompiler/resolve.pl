@@ -336,9 +336,8 @@ overloadMethod(MLc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"resolved method: %s",[can(Reslvd)])).
 
 overloadField(Lc,MLc,Nm,Tp,Cx,Tp,Make,Dict,Opts,St,Stx,Term) :-
-  resolveConstraints(Lc,Cx,Dict,Opts,St,St1,DArg),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"constraint resolves to %s",[can(DArg)])),
-  resolveRef(mtd(Lc,Nm,Tp),DArg,[],Dict,Opts,St1,St2,OverOp,NArgs),
+  resolveConstraints(Lc,Cx,Dict,Opts,St,St1,DArgs),
+  resolveRef(mtd(Lc,Nm,Tp),DArgs,[],Dict,Opts,St1,St2,OverOp,NArgs),
   overApply(MLc,OverOp,NArgs,Tp,Make,Term),
   markResolved(St2,Stx),
   checkOpt(Opts,traceCheck,showMsg(Lc,"resolved field: %s",[can(Term)])).  
@@ -347,7 +346,7 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
 	       apply(ALc,Op,tple(LcA,NArgs),ATp)) :-
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,Opts,St,St1,AccessOp),
   overloadTerm(Args,Dict,Opts,St1,St2,tple(LcA,RArgs)),
-  resolveRef(T,AccessOp,RArgs,Dict,Opts,St2,Stx,Op,NArgs).
+  resolveRef(T,[AccessOp],RArgs,Dict,Opts,St2,Stx,Op,NArgs).
   
 overloadCases(Cses,Resolver,Dict,Opts,St,Stx,RCases) :-
   overloadLst(Cses,resolve:overloadRule(Resolver),Dict,Opts,St,Stx,RCases).
