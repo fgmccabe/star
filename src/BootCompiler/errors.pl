@@ -113,6 +113,9 @@ showTrm(tpe(T),O) :-
   ss_to_chrs(types:ssType(T,true,0),O,[]).
 showTrm(con(T),O) :-
   ss_to_chrs(types:ssConstraint(true,0,T),O,[]).
+showTrm(cons(T),O) :-
+  map(T,canon:ssConstraint(true,0),TT),
+  ss_to_chrs(iv(ss(", "),TT),O,[]).
 showTrm(dcl(D),O) :-
   ss_to_chrs(canon:ssDecl(D),O,[]).
 showTrm(ldef(D),O) :-

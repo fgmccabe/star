@@ -203,7 +203,7 @@ overloadTerm(over(Lc,T,Cx),Dict,Opts,St,Stx,Over) :-
   overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,makeApply,Over).
 overloadTerm(overaccess(Lc,T,RcTp,Fld,FTp),Dict,Opts,St,Stx,Over) :-
   resolveAccess(Lc,RcTp,Fld,FTp,Dict,Opts,St,St1,AccessOp),
-  resolveRef(T,[AccessOp],[],OverOp,Dict,Opts,St1,St2,NArgs),
+  resolveRef(T,[AccessOp],[],Dict,Opts,St1,St2,OverOp,NArgs),
   curryOver(Lc,OverOp,NArgs,funType(tplType([RcTp]),FTp),makeApply,Over),
   markResolved(St2,Stx);
   genMsg("cannot find accessor for %s of type %s",[ss(Fld),tpe(RcTp)],Msg),
@@ -323,7 +323,7 @@ overloadOver(Lc,T,Cx,Dict,Opts,St,Stx,Make,Over) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload over resolved term %s",[can(Over)])),
   markResolved(St2,Stx).
 overloadOver(Lc,T,Cx,_Dict,_Opts,St,Stx,_,over(Lc,T,Cx)) :-
-  genMsg("cannot resolve constraint %s",[con(Cx)],Msg),
+  genMsg("cannot resolve constraint(s) %s",[cons(Cx)],Msg),
   markActive(St,Lc,Msg,Stx).
 
 overloadMethod(MLc,Lc,T,Cx,Args,Tp,Make,Dict,Opts,St,Stx,Reslvd) :-
@@ -462,7 +462,7 @@ resolveUpdate(Lc,Rc,Fld,Vl,Dict,Opts,St,Stx,Reslvd) :-
    V = v(Lc,FunNm,funType(tplType([RcTp,VlTp]),RcTp)),
    Acc = apply(Lc,V,tple(Lc,[Rc,Vl]),RcTp),
    resolveConstraints(Lc,Cx,Dict,Opts,St,St0,DTerms),
-   resolveRef(Acc,DTerms,[],OverOp,Dict,Opts,St0,St1,NArgs),
+   resolveRef(Acc,DTerms,[],Dict,Opts,St0,St1,OverOp,NArgs),
    overApply(Lc,OverOp,NArgs,RcTp,makeApply,Reslvd),
    markResolved(St1,Stx);
    genMsg("updater defined for %s:%s in %s\nnot consistent with\n%s",

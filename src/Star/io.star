@@ -100,17 +100,16 @@ star.io{
     }
   }
 
-  close:(ioHandle)=>() throws ioException.
+  public close:(ioHandle)=>().
   close(FH) => valof{
     try{
       valis _close(FH);
     } catch {
-      | .eof => throw .pastEof
-      | _ => throw .ioError
+      | _ => valis ()
     }
   }
 
-  openInFile:(string) => ioHandle throws ioException.
+  public openInFile:(string) => ioHandle throws ioException.
   openInFile(Fl) => (try
     _openInFile(Fl,3)
     catch {
@@ -174,7 +173,7 @@ star.io{
     }
   }
 
-  openOutFile:(string) => ioHandle throws ioException.
+  public openOutFile:(string) => ioHandle throws ioException.
   openOutFile(Fl) => (try
     _openOutFile(Fl,3)
     catch {

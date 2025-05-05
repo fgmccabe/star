@@ -184,6 +184,7 @@ locOfCanon(newSV(Lc,_),Lc) :-!.
 locOfCanon(svGet(Lc,_,_),Lc) :-!.
 locOfCanon(svSet(Lc,_,_),Lc) :-!.
 locOfCanon(cell(Lc,_),Lc) :-!.
+locOfCanon(deref(Lc,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(over(Lc,_,_),Lc) :-!.
 locOfCanon(doNop(Lc),Lc) :-!.
