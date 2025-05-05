@@ -236,8 +236,7 @@ overloadTerm(svSet(Lc,Th,Vl),Dict,Opts,St,Stx,svSet(Lc,TT,VV)) :-!,
   overloadTerm(Th,Dict,Opts,St,St0,TT),
   overloadTerm(Vl,Dict,Opts,St0,Stx,VV).
 overloadTerm(try(Lc,E,ErTp,H),Dict,Opts,St,Stx,try(Lc,EE,ErTp,HH)) :-
-  setTryScope(Dict,ErTp,D1),
-  overloadTerm(E,D1,Opts,St,St1,EE),
+  overloadTerm(E,Dict,Opts,St,St1,EE),
   overloadCases(H,resolve:overloadTerm,Dict,Opts,St1,Stx,HH).
 overloadTerm(throw(Lc,E,ErTp),Dict,Opts,St,Stx,throw(Lc,EE,ErTp)) :-
   overloadTerm(E,Dict,Opts,St,Stx,EE).
@@ -287,8 +286,7 @@ overloadAction(doAssign(Lc,P,A),Dict,Opts,St,Stx,doAssign(Lc,PP,AA)) :-
   overloadTerm(P,Dict,Opts,St,St1,PP),
   overloadTerm(A,Dict,Opts,St1,Stx,AA).
 overloadAction(doTry(Lc,A,ErTp,H),Dict,Opts,St,Stx,doTry(Lc,AA,ErTp,HH)) :-
-  setTryScope(Dict,ErTp,D1),
-  overloadAction(A,D1,Opts,St,St1,AA),
+  overloadAction(A,Dict,Opts,St,St1,AA),
   overloadCases(H,resolve:overloadAction,Dict,Opts,St1,Stx,HH).
 overloadAction(doThrow(Lc,E),Dict,Opts,St,Stx,doThrow(Lc,EE)) :-
   overloadTerm(E,Dict,Opts,St,Stx,EE).
