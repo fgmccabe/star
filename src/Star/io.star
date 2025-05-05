@@ -174,16 +174,18 @@ star.io{
     }
   }
 
+  openOutFile:(string) => ioHandle throws ioException.
+  openOutFile(Fl) => (try
+    _openOutFile(Fl,3)
+    catch {
+      _ => throw .ioError
+    }).
+
   public wrFileAsync:async (string,string)=> () throws ioException.
   wrFileAsync(F,S) => valof{
-    try{
-      Ot = _openOutFile(F,3);
-      wrTextAsync(Ot,S);
-      _close(Ot);
-      valis ()
-    } catch {
-      _ default => throw .ioError
-    }
+    Ot = openOutFile(F);
+    wrTextAsync(Ot,S);
+    valis close(Ot)
   }
 
   waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k throws e.
