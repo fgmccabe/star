@@ -43,26 +43,22 @@ star.iostream{
   public inStream:all t ~~ display[t] |:
     (string,((ioHandle)=>t throws ioException))=>inputStream[t] throws ioException.
   inStream(Fl,Fn) => valof{
-    try{
-      Io = _openInFile(Fl,3);
+    Io = openInFile(Fl);
 
-      let{.
-	next() => valof{
-	  try{
-	    Nxt = Fn(Io);
-	    valis .streamPair(Nxt,.streamThunk($$next()))
-	  } catch {
-	    _ => {
-	      _close(Io);
-	      valis .endStream
-	    }
+    let{.
+      next() => valof{
+	try{
+	  Nxt = Fn(Io);
+	  valis .streamPair(Nxt,.streamThunk($$next()))
+	} catch {
+	  _ => {
+	    close(Io);
+	    valis .endStream
 	  }
 	}
-      .} in {
-	valis .streamThunk($$next())
       }
-    } catch {
-      _ => throw .ioError
+    .} in {
+      valis .streamThunk($$next())
     }
   }
 
