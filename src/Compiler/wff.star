@@ -150,6 +150,11 @@ star.compiler.wff{
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
   isFunctionType(A) => isBinary(A,"=>").
 
+  public isThrows:(ast) => option[(option[locn],ast,ast)].
+  isThrows(A) => isBinary(A,"throw").
+
+  public mkThrows(Lc,T,E) => binary(Lc,"throw",T,E).
+
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
   isConstructorStmt(A) where (_,_,I) ?= isXQuantified(A) =>
@@ -182,11 +187,6 @@ star.compiler.wff{
   isDepends(_) default => .none.
 
   public mkDepends(Lc,L,R) => binary(Lc,"->>",reComma(L),reComma(R)).
-
-  public isRaises:(ast) => option[(option[locn],ast)].
-  isRaises(T) => isUnary(T,"raises").
-
-  public mkRaises(Lc,R) => unary(Lc,"raises",R).
 
   public isAnnotation:(ast) => option[(option[locn],ast,ast)].
   isAnnotation(A) where (Lc,L,R) ?= isBinary(A,"@") =>
@@ -811,36 +811,33 @@ star.compiler.wff{
 
   public mkValof(Lc,I) => unary(Lc,"valof",I).
 
-  public isRaise:(ast) => option[(option[locn],ast)].
-  isRaise(A) => isUnary(A,"raise").
+  deSequence:(cons[ast]) => cons[ast].
+  deSequence(Els) => let {.
+    deSeq([],SoF) => SoF.
+    deSeq([El,..Es],SoF) where
+      (_,L,R) ?= isSequence(El) => deSeq([L,R],deSeq(Es,SoF)).
+    deSeq([El,..Es],SoF) where (_,L) ?= isUnary(El,";") => deSeq([L],deSeq(Es,SoF)).
+    deSeq([El,..Es],SoF) => 
 
-  public mkRaise(Lc,E) => unary(Lc,"raise",E).
 
   public isThrow:(ast) => option[(option[locn],ast)].
-  isThrow(A) => isUnary(A,"raise").
+  isThrow(A) => isUnary(A,"throw").
 
   public mkThrow(Lc,E) => unary(Lc,"throw",E).
 
-  public isInvoke:(ast) => option[(option[locn],ast,cons[ast])].
-  isInvoke(T) where (Lc,Op,A) ?= isBinary(T,".") && (_,As) ?= isTuple(A) => .some((Lc,Op,As)).
-  isInvoke(_) default => .none.
-
-  public mkInvoke(Lc,K,A) => binary(Lc,".",K,rndTuple(Lc,A)).
-  
   public isAsync(A) => isUnary(A,"async").
 
   public mkAsync(Lc,I) => unary(Lc,"async",I).
 
-  public isTryCatch:(ast) => option[(option[locn],ast,ast,cons[ast])].
-  isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
-      (_,B,R) ?= isBinary(I,"catch") &&
-	  (_,E,H) ?= isBinary(R,"in") &&
-	      (_,Hs) ?= isBrTuple(H) =>
+  public isTry:(ast) => option[(option[locn],ast,cons[ast])].
+  isTry(A) where (Lc,I) ?= isUnary(A,"try") &&
+      (_,B,H) ?= isBinary(I,"catch") &&
+	  (_,Hs) ?= isBrTuple(H) =>
     ([El].=Hs ?? .some((Lc,B,E,deBar(El))) || .some((Lc,B,E,Hs))).
-  isTryCatch(_) default => .none.
+  isTry(_) default => .none.
 
-  public mkTryCatch(Lc,B,E,Hs) =>
-    unary(Lc,"try",binary(Lc,"catch",B,binary(Lc,"in",E,brTuple(Lc,[reBar(Hs)])))).
+  public mkTry(Lc,B,Hs) =>
+    unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
   public isResume(A) => isBinary(A,"resume").
   public mkResume(Lc,L,R) => binary(Lc,"resume",L,R).
