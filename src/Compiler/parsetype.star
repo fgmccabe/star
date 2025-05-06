@@ -80,6 +80,12 @@ star.compiler.typeparse{
     R = parseType(Rhs,Env);
     valis fnType(A,R)
   }
+  parseType(T,Env) where (Lc,Lhs,Rhs,Ehs) ?= isThrowingFunType(T) => valof{
+    A = parseArgType(Lhs,Env);
+    R = parseType(Rhs,Env);
+    E = parseType(Ehs,Env);
+    valis thrType(A,R,E)
+  }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
@@ -311,10 +317,6 @@ star.compiler.typeparse{
   parseConstraint(A,Env) where (Lc,Id,T) ?= isImplicit(A) => valof{
     Tp = parseType(T,Env);
     valis .implicit(Id,Tp)
-  }
-  parseConstraint(A,Env) where (Lc,T) ?= isRaises(A) => valof{
-    Tp = parseType(T,Env);
-    valis .raisEs(Tp)
   }
   parseConstraint(A,Env) => parseContractConstraint(A,Env).
   

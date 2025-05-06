@@ -148,12 +148,18 @@ star.compiler.wff{
   isConstructorType(A) => isBinary(A,"<=>").
 
   public isFunctionType:(ast) => option[(option[locn],ast,ast)].
-  isFunctionType(A) => isBinary(A,"=>").
+  isFunctionType(A) where
+      (Lc,L,R) ?= isBinary(A,"=>") && ~ _ ?= isBinary(R,"throws") =>
+    .some((Lc,L,R)).
+  isFunctionType(_) default => .none.
 
-  public isThrows:(ast) => option[(option[locn],ast,ast)].
-  isThrows(A) => isBinary(A,"throw").
+  public isThrowingFunType:(ast) => option[(option[locn],ast,ast,ast)].
+  isThrowingFunType(A) where
+      (Lc,L,R) ?= isBinary(A,"=>") && (_,Rs,Et) ?= isBinary(R,"throws") =>
+    .some((Lc,L,Rs,Et)).
+  isThrowingFunType(A) default => .none.
 
-  public mkThrows(Lc,T,E) => binary(Lc,"throw",T,E).
+  public mkThrowingFunType(Lc,L,R,E) => binary(Lc,"=>",L,binary(Lc,"throws",R,E)).
 
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
@@ -610,6 +616,7 @@ star.compiler.wff{
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
   surfaceName(T) where _ ?= isFunctionType(T) => "=>".
+  surfaceName(T) where _ ?= isThrowingFunType(T) => "=>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.
@@ -806,19 +813,26 @@ star.compiler.wff{
 
   public mkValis(Lc,I) => unary(Lc,"valis",I).
 
-  public isValof:(ast) => option[(option[locn],ast)].
-  isValof(A) => isUnary(A,"valof").
+  public isValof:(ast) => option[(option[locn],cons[ast])].
+  isValof(A) where (Lc,B) ?= isUnary(A,"valof") && (_,Els) ?= isBrTuple(B) =>
+    .some((Lc,deSequence(Els))).
+  isValof(_) default => .none.
 
-  public mkValof(Lc,I) => unary(Lc,"valof",I).
-
-  deSequence:(cons[ast]) => cons[ast].
+  public deSequence:(cons[ast]) => cons[ast].
   deSequence(Els) => let {.
     deSeq([],SoF) => SoF.
     deSeq([El,..Es],SoF) where
-      (_,L,R) ?= isSequence(El) => deSeq([L,R],deSeq(Es,SoF)).
+	(_,L,R) ?= isSequence(El) => deSeq([L,R],deSeq(Es,SoF)).
     deSeq([El,..Es],SoF) where (_,L) ?= isUnary(El,";") => deSeq([L],deSeq(Es,SoF)).
-    deSeq([El,..Es],SoF) => 
+    deSeq([El,..Es],SoF) => [El,..deSeq(Es,SoF)].
+  .} in deSeq(Els,[]).
 
+  public mkValof(Lc,I) => unary(Lc,"valof",brTuple(Lc,[reSequence(I)])).
+
+  reSequence:(cons[ast]) => ast.
+  reSequence([A]) => A.
+  reSequence([A,..As]) =>
+    binary(locOf(A),";",A,reSequence(As)).
 
   public isThrow:(ast) => option[(option[locn],ast)].
   isThrow(A) => isUnary(A,"throw").
@@ -833,7 +847,7 @@ star.compiler.wff{
   isTry(A) where (Lc,I) ?= isUnary(A,"try") &&
       (_,B,H) ?= isBinary(I,"catch") &&
 	  (_,Hs) ?= isBrTuple(H) =>
-    ([El].=Hs ?? .some((Lc,B,E,deBar(El))) || .some((Lc,B,E,Hs))).
+    ([El].=Hs ?? .some((Lc,B,deBar(El))) || .some((Lc,B,Hs))).
   isTry(_) default => .none.
 
   public mkTry(Lc,B,Hs) =>

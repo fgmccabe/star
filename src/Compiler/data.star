@@ -271,11 +271,12 @@ star.compiler.data{
   encodeNat:(integer,cons[char]) => cons[char].
   encodeNat(D,Cs) => (try
     let{.
+      encNat:(integer,cons[char]) => cons[char] throws exception.
       encNat(Dx,Chs) where Dx>=0 && Dx=<9 =>
 	[digitChar(Dx),..Chs].
       encNat(Dx,Chs) => [digitChar(Dx%10),..encNat(Dx/10,Chs)]
     .} in encNat(D,Cs)
-    catch exception in { _ => Cs}
+    catch { _ => Cs}
   ).
 
   encodeInt:(integer,cons[char])=>cons[char].

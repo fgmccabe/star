@@ -141,8 +141,8 @@ star.compiler.macro{
     mkIfThenElse(Lc,macroCond(T),macroAction(L),macroAction(R)).
   examineAction(A) where (Lc,T,L) ?= isIfThen(A) => 
     mkIfThen(Lc,macroCond(T),macroAction(L)).
-  examineAction(A) where (Lc,B,E,Hs) ?= isTryCatch(A) =>
-    mkTryCatch(Lc,macroAction(B),macroType(E),Hs//macroCaseAction).
+  examineAction(A) where (Lc,B,Hs) ?= isTry(A) =>
+    mkTry(Lc,macroAction(B),Hs//macroCaseAction).
   examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForIn(A) =>
@@ -150,7 +150,6 @@ star.compiler.macro{
   examineAction(A) where (Lc,El,C,B) ?= isForDo(A) => 
     mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
   examineAction(A) where (Lc,T) ?= isValis(A) => mkValis(Lc,macroTerm(T)).
-  examineAction(A) where (Lc,T) ?= isRaise(A) => mkRaise(Lc,macroTerm(T)).
   examineAction(A) where (Lc,T) ?= isThrow(A) => mkThrow(Lc,macroTerm(T)).
   examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
     mkLetDef(Lc,macroStmts(D),macroAction(B)).
@@ -251,14 +250,12 @@ star.compiler.macro{
     mkImplies(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,D,L,C,R) ?= isLambda(A) => 
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
-  examineTerm(A) where (Lc,S) ?= isValof(A) && (VLc,[As])?=isBrTuple(S) =>
-    mkValof(Lc,brTuple(VLc,[macroAction(As)])).
+  examineTerm(A) where (Lc,S) ?= isValof(A) =>
+    mkValof(Lc,S//macroAction).
   examineTerm(A) where (Lc,As) ?= isTask(A) =>
     mkTaskExp(Lc,macroAction(As)).
-  examineTerm(A) where (Lc,B,E,Hs) ?= isTryCatch(A) =>
-    mkTryCatch(Lc,macroTerm(B),macroType(E),Hs//macroLambda).
-  examineTerm(A) where (Lc,T) ?= isRaise(A) =>
-    mkRaise(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,B,Hs) ?= isTry(A) =>
+    mkTry(Lc,macroTerm(B),Hs//macroLambda).
   examineTerm(A) where (Lc,T) ?= isThrow(A) =>
     mkThrow(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,L,R) ?= isResume(A) =>
@@ -360,6 +357,8 @@ star.compiler.macro{
     mkConstructorType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
     mkFunctionType(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R,E) ?= isThrowingFunType(A) =>
+    mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,R) ?= isTag(A) =>
@@ -404,8 +403,6 @@ star.compiler.macro{
     mkTypeExists(Lc,macroType(L),macroType(R)).
   examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
     mkImplicit(Lc,Nm,macroType(T)).
-  examineConstraint(A) where (Lc,T) ?= isRaises(A) =>
-    mkRaises(Lc,macroType(T)).
   examineConstraint(A) where (_,[El]) ?= isTuple(A) =>
     examineConstraint(El).
   examineConstraint(A) default => valof{
@@ -461,13 +458,13 @@ star.compiler.macro{
     MLhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
 --    showMsg("main action $(Action)");
-    Valof = mkValof(Lc,brTuple(Lc,[Action]));
+    Valof = mkValof(Lc,[Action]);
     Main = equation(Lc,MLhs,Valof);
     XX = genName(Lc,"XX");
     FallBack = equation(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),
-      mkValof(Lc,brTuple(Lc,[
-	    actionSeq(Lc,unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
-	      mkValis(Lc,unit(Lc)))])));
+      mkValof(Lc,[
+	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
+	  mkValis(Lc,unit(Lc))]));
     Annot = mkTypeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].

@@ -29,7 +29,6 @@
 	      isParseCall/4,mkParseCall/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
-	      isContRule/5,mkContRule/5,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -76,8 +75,7 @@
 	      isCons/4,mkCons/4,
 	      isPair/4,pair/4,
 	      isUnaryMinus/3,
-	      unitTpl/2,
-	      dlName/2,dtName/2]).
+	      unitTpl/2]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
@@ -602,17 +600,6 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
 eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 
-isContRule(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,"=>>",L,Rhs),
-  (isWhere(L,_,Lhs,G), Cond=some(G) ; L=Lhs, Cond=none),
-  \+isBinary(Lhs,_,"spawn",_,_).
-
-mkContRule(Lc,Lhs,none,Rhs,Eqn) :-
-  binary(Lc,"=>>",Lhs,Rhs,Eqn).
-mkContRule(Lc,Args,some(G),Rhs,Eqn) :-
-  whereTerm(Lc,Args,G,Lhs),
-  binary(Lc,"=>>",Lhs,Rhs,Eqn).
-
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
 
@@ -1086,8 +1073,4 @@ isQuote(Trm,Lc,Body) :-
 unitTpl(Lc,Unit) :-
   roundTuple(Lc,[],Unit).
 
-dlName(name(Lc,N),name(Lc,DlN)) :- dollarName(N,DlN).
-
-dtName(name(Lc,Nm),name(Lc,DtNm)) :-
-  dotName(Nm,DtNm).
 

@@ -342,18 +342,14 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L) ?= isValof(T) =>
-    ((_,[As]) ?= isBrTuple(L) ??
-      collectDoRefs(As,All,Rf) ||
-	collectTermRefs(L,All,Rf)).
+  collectTermRefs(T,All,Rf) where (_,As) ?= isValof(T) =>
+    foldLeft((A,R) => collectDoRefs(A,All,R),Rf,As).
   collectTermRefs(T,All,Rf) where (_,As) ?= isTask(T) =>
     collectDoRefs(As,All,Rf).
-  collectTermRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
-    collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,R) ?= isThrow(A) =>
     collectTermRefs(R,All,Rf).
-  collectTermRefs(A,All,Rf) where (_,L,E,H) ?= isTryCatch(A) =>
-    collectCasesRefs(H,collectTermRefs,All,collectTypeRefs(E,All,collectTermRefs(L,All,Rf))).
+  collectTermRefs(A,All,Rf) where (_,L,H) ?= isTry(A) =>
+    collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ?= isResume(A) =>
     collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) =>
@@ -402,12 +398,10 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,R) ?= isValis(A) => 
     collectTermRefs(R,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,R) ?= isRaise(A) => 
-    collectTermRefs(R,All,Rf).
   collectDoRefs(A,All,Rf) where (_,R) ?= isThrow(A) =>
     collectTermRefs(R,All,Rf).
-  collectDoRefs(A,All,Rf) where (_,L,E,H) ?= isTryCatch(A) =>
-    collectCasesRefs(H,collectDoRefs,All,collectTypeRefs(E,All,collectDoRefs(L,All,Rf))).
+  collectDoRefs(A,All,Rf) where (_,L,H) ?= isTry(A) =>
+    collectCasesRefs(H,collectDoRefs,All,collectDoRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetDef(T) =>
@@ -427,8 +421,8 @@ star.compiler.dependencies{
     Rf0 = collectCondRefs(T,All,Rf);
     valis collectDoRefs(L,All,Rf0)
   }
-  collectDoRefs(A,All,Rf) where (_,[S]) ?= isBrTuple(A) =>
-    collectDoRefs(S,All,Rf).
+  collectDoRefs(A,All,Rf) where (_,As) ?= isBrTuple(A) =>
+    foldLeft((Ac,R) => collectDoRefs(Ac,All,R),Rf,deSequence(As)).
   collectDoRefs(A,All,Rf) => collectTermRefs(A,All,Rf).
 
   collectCasesRefs([],_,_,Rf) => Rf.
@@ -456,6 +450,8 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
+  collectTypeRefs(T,All,SoFar) where (_,L,R,E) ?= isThrowingFunType(T) =>
+    collectTypeRefs(E,All,collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar))).
   collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>
     collectTypeRefs(R,All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"->>") =>
@@ -504,8 +500,6 @@ star.compiler.dependencies{
   collectConstraintRef(T,All,Rf) where _ ?= isSquareTerm(T) => 
     collectContractRefs(T,All,Rf).
   collectConstraintRef(T,All,Rf) where (_,_,Tp) ?= isImplicit(T) =>
-    collectTypeRefs(Tp,All,Rf).
-  collectConstraintRef(T,All,Rf) where (_,Tp) ?= isRaises(T) =>
     collectTypeRefs(Tp,All,Rf).
   collectConstraintRef(T,All,Rf) => collectTypeRefs(T,All,Rf).
 

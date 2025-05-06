@@ -98,7 +98,6 @@ star.compiler.wasm.gentypes{
     | .conTract(_,Ts,Ds) => foldRight((E,S)=>findRfsInTp(E,Defs,S),foldRight((E,S)=>findRfsInTp(E,Defs,S),SoFar,Ts),Ds)
     | .hasField(T,_,R) => findRfsInTp(T,Defs,findRfsInTp(R,Defs,SoFar))
     | .implicit(_,T) => findRfsInTp(T,Defs,SoFar)
-    | .raisEs(T) => findRfsInTp(T,Defs,SoFar)
   }
 
   findRfsInRl(Rl,Defs,SoFar) => case Rl in {
