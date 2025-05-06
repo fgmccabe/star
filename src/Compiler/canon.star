@@ -29,6 +29,7 @@ star.compiler.canon{
   .neg(option[locn],canon) |
   .cond(option[locn],canon,canon,canon) |
   .apply(option[locn],canon,cons[canon],tipe) |
+  .tapply(option[locn],canon,cons[canon],tipe,tipe) |
   .tple(option[locn],cons[canon]) |
   .lambda(option[locn],string,rule[canon],tipe) |
   .thunk(option[locn],canon,tipe) |
@@ -55,6 +56,7 @@ star.compiler.canon{
   .doMatch(option[locn],canon,canon) |
   .doAssign(option[locn],canon,canon) |
   .doTryCatch(option[locn],canonAction,canon,cons[rule[canonAction]]) |
+  .doThrow(option[locn],canon) |
   .doIfThen(option[locn],canon,canonAction,canonAction) |
   .doCase(option[locn],canon,cons[rule[canonAction]]) |
   .doWhile(option[locn],canon,canonAction) |
@@ -98,6 +100,7 @@ star.compiler.canon{
       | .letExp(_,_,_,E) => typeOf(E)
       | .letRec(_,_,_,E) => typeOf(E)
       | .apply(_,_,_,Tp) => Tp
+      | .tapply(_,_,_,Tp,_) => Tp
       | .tple(_,Els) => .tupleType(Els//typeOf)
       | .dot(_,_,_,Tp) => Tp
       | .tdot(_,_,_,Tp) => Tp
@@ -144,6 +147,7 @@ star.compiler.canon{
       | .neg(Lc,_) => Lc
       | .cond(Lc,_,_,_) => Lc
       | .apply(Lc,_,_,_) => Lc
+      | .tapply(Lc,_,_,_,_) => Lc
       | .tple(Lc,_) => Lc
       | .lambda(Lc,_,_,_) => Lc
       | .letExp(Lc,_,_,_) => Lc
@@ -170,6 +174,7 @@ star.compiler.canon{
       | .doMatch(Lc,_,_) => Lc
       | .doAssign(Lc,_,_) => Lc
       | .doTryCatch(Lc,_,_,_) => Lc
+      | .doThrow(Lc,_,_) => Lc
       | .doIfThen(Lc,_,_,_) => Lc
       | .doCase(Lc,_,_) => Lc
       | .doWhile(Lc,_,_) => Lc
@@ -262,6 +267,7 @@ star.compiler.canon{
     | .cond(_,T,L,R) where (Lp,OPr,Rp) ?= isInfixOp("??") =>
       "(#(showCanon(T,Lp,Sp)) ?? #(showCanon(L,Rp,Sp)) || #(showCanon(R,Rp,Sp)))"
     | .apply(_,L,R,_) => showApply(L,R,Pr,Sp)
+    | .tapply(_,L,R,_,ETp) => "#(showApply(L,R,Pr,Sp)) throws $(ETp)"
     | .tple(_,Els) => "#(showTuple(Els,Sp))"
     | .lambda(_,Nm,Rl,_) => "(#(showRl(Nm,Rl,showCanon,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
@@ -311,6 +317,8 @@ star.compiler.canon{
       "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))"
     | .doTryCatch(_,A,T,H) =>
       "try #(showAct(A,Pr,Sp)) catch #(showCanon(T,Pr,Sp)) in {\n#(showCases(H,showAct,Sp))\n}"
+    | .doThrow(_,A,_) =>
+      "throw #(showCanon(A,Pr,Sp))"
     | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))"
     | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>

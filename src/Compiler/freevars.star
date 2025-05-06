@@ -41,6 +41,7 @@ star.compiler.freevars{
       valis freeVarsInExp(L,Q1,freeVarsInExp(R,Q,freeVarsInCond(T,Q1,Fv)))
     }
     | .apply(_,O,A,_) => freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
+    | .tapply(_,O,A,_,_) => freeVarsInTuple(A,Q,freeVarsInExp(O,Q,Fv))
     | .tple(_,Els) => freeVarsInTuple(Els,Q,Fv)
     | .match(_,P,S) where Q1 .= dropVars(P,Q) => freeVarsInExp(S,Q1,freeVarsInExp(P,Q1,Fv))
     | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
@@ -89,6 +90,7 @@ star.compiler.freevars{
     | .doAssign(_,L,R) => freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv))
     | .doTryCatch(_,L,T,H) where Q1 .= dropVars(T,Q) =>
       foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F),freeVarsInAct(L,Q1,Fv), H)
+    | .doThrow(_,E,_) freeVarsInExp(E,Q,Fv)
     | .doIfThen(Lc,T,L,R) => valof{
       Q1 = Q\condVars(T,[]);
       valis freeVarsInAct(L,Q1,freeVarsInAct(R,Q,freeVarsInCond(T,Q1,Fv)))
@@ -202,6 +204,7 @@ star.compiler.freevars{
     | .over(_,V,_) => ptnVars(V,Q,Fv)
     | .cond(_,T,L,R) => ptnVars(L,ptnVars(T,Q,Fv),Fv)/\ ptnVars(R,Q,Fv)
     | .apply(_,O,A,_) => ptnTplVars(A,Q,Fv)
+    | .tapply(_,O,A,_,_) => ptnTplVars(A,Q,Fv)
     | .tple(_,Els) => ptnTplVars(Els,Q,Fv)
     | .match(_,P,S) => ptnVars(P,Q,Fv)
     | .conj(Lc,L,R) => ptnVars(R,ptnVars(L,Q,Fv),Fv)

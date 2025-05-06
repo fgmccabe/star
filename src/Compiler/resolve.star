@@ -152,13 +152,6 @@ star.compiler.resolve{
     valis defineCVars(Lc,Tps,[.vr(Lc,Nm,Tp),..Vrs],
       declareVar(Nm,Nm,Lc,Tp,.none,D))
   }
-  defineCVars(Lc,[.raisEs(Tp),..Tps],Vrs,D) => valof{
-    QNm = qualifiedName("$R",.tractMark,tpName(deRef(Tp)));
-    if traceResolve! then
-      showMsg("defining try scope for $(Tp) with #(QNm)");
-    valis defineCVars(Lc,Tps,[.vr(Lc,QNm,Tp),..Vrs],
-      declareTryScope(Lc,Tp,QNm,D))
-  }
 
   defineArgVars(Ptn,D) =>
     foldLeft(defineArg,D,ptnVars(Ptn,[],[])).
@@ -219,11 +212,6 @@ star.compiler.resolve{
   }
   overloadTerm(.mtd(Lc,Nm,Tp),Dict,St) => 
     (.mtd(Lc,Nm,Tp),.active(Lc,"cannot resolve unconstrained method #(Nm)\:$(Tp)")).
-  overloadTerm(.over(Lc,.rais(Lc,_,E,ETp),Cx),Dict,St) => valof{
-    (Trw,St1) = resolveConstraint(Lc,Cx,Dict,St);
-    (ErE,St2) = overloadTerm(E,Dict,St1);
-    valis (.rais(Lc,Trw,ErE,ETp),markResolved(St2))
-  }
   overloadTerm(.over(Lc,T,Cx),Dict,St) => valof{
     (DArg,St1) = resolveConstraint(Lc,Cx,Dict,St);
     (OverOp,NArgs,St2) = resolveRef(T,DArg,[],Dict,St1);
@@ -353,10 +341,10 @@ star.compiler.resolve{
     (HH,St2) = overloadRules([],Hs,Dict,St1);
     valis (.trycatch(Lc,BB,.vr(TLc,Tnm,ErTp),HH,Tp),St2)
   }
-  overloadTerm(.rais(Lc,T,E,Tp),Dict,St) => valof{
+  overloadTerm(.thrwC(Lc,T,E,Tp),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
     (EE,St2) = overloadTerm(E,Dict,St1);
-    valis (.rais(Lc,TT,EE,Tp),St2)
+    valis (.thrwC(Lc,TT,EE,Tp),St2)
   }
   overloadTerm(.susp(Lc,T,M,Tp),Dict,St) => valof{
     (TT,St1) = overloadTerm(T,Dict,St);
@@ -531,27 +519,6 @@ star.compiler.resolve{
       valis (.anon(Lc,Tp),.active(Lc,"cannot find an definition for implicit var #(Id)\:$(Tp)"))
     }
   }
-  resolveConstraint(Lc,.raisEs(Tp),Dict,St) => valof{
-    if .varDec(_,_,TrNm,ETp) ?= findTryScope(Tp,Dict) then{
-      if sameType(snd(freshen(ETp,Dict)),Tp,Dict) then {
-	valis (.vr(Lc,TrNm,Tp),markResolved(St))
-      } else{
-	valis (.anon(Lc,Tp),
-	  .fatal(Lc,"raises $(ETp) not consistent with expected type: $(Tp)"))
-      }
-    } else if isUnbound(Tp) && .varDec(_,_,TrNm,ETp) ?= topTryScope(Dict) then{
-      if sameType(snd(freshen(ETp,Dict)),Tp,Dict) then {
-	valis (.vr(Lc,TrNm,Tp),markResolved(St))
-      } else{
-	valis (.anon(Lc,Tp),
-	  .fatal(Lc,"raises $(Tp) not consistent innermost try scope: $(ETp)"))
-      }
-    }
-    else{
-      valis (.anon(Lc,Tp),.active(Lc,"cannot find a exception context for $(Tp)"))
-    }
-  }
-  
   resolveConstraint(Lc,.hasField(RcTp,Fld,FldTp),Dict,St) => valof{
     if (AccessOp,St1) ?= resolveAccess(Lc,RcTp,Fld,FldTp,Dict,St) then{
       valis (AccessOp,St1)
