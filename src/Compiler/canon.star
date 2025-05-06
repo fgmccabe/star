@@ -21,8 +21,8 @@ star.compiler.canon{
   .tdot(option[locn],canon,integer,tipe) |
   .update(option[locn],canon,string,canon) |
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
-  .trycatch(option[locn],canon,canon,cons[rule[canon]],tipe) |
-  .rais(option[locn],canon,canon,tipe) |
+  .tryC(option[locn],canon,cons[rule[canon]],tipe) |
+  .thrwC(option[locn],canon,tipe,tipe) |
   .match(option[locn],canon,canon) |
   .conj(option[locn],canon,canon) |
   .disj(option[locn],canon,canon) |
@@ -85,8 +85,8 @@ star.compiler.canon{
       | .strng(_,_) => strType
       | .enm(_,_,Tp) => Tp
       | .csexp(_,_,_,Tp) => Tp
-      | .trycatch(_,_,_,_,Tp) => Tp
-      | .rais(_,_,_,Tp) => Tp
+      | .tryC(_,_,_,Tp) => Tp
+      | .thrwC(_,_,Tp,_) => Tp
       | .lambda(_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
@@ -136,8 +136,8 @@ star.compiler.canon{
       | .cell(Lc,_,_) => Lc
       | .get(Lc,_,_) => Lc
       | .csexp(Lc,_,_,_) => Lc
-      | .trycatch(Lc,_,_,_,_) => Lc
-      | .rais(Lc,_,_,_) => Lc
+      | .tryC(Lc,_,_,_) => Lc
+      | .thrwC(Lc,_,_,_) => Lc
       | .match(Lc,_,_) => Lc
       | .conj(Lc,_,_) => Lc
       | .disj(Lc,_,_) => Lc
@@ -247,10 +247,10 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))"
-    | .trycatch(_,Exp,T,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
-      "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCanon(T,Rp,Sp)) in #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))"
-    | .rais(_,T,Exp,_) where (OPr,Rp) ?= isPrefixOp("raise") =>
-      "#(leftParen(OPr,Pr)) #(showCanon(T,Rp,Sp)) raise #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))"
+    | .tryC(_,Exp,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
+      "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))"
+    | .thrwC(_,Exp,_,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
+      "#(leftParen(OPr,Pr)) throw #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .conj(_,L,R) where (Lp,OPr,Rp) ?= isInfixOp("&&") =>
