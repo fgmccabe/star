@@ -238,7 +238,7 @@ star.compiler.checker{
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
     | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
-      (Defs,Decls) = checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path);
+      (Defs,Decls) = checkVar(Nm,Tp,.voidType,Lc,Stmt,Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
     | .defnSpec(.tpSp(Nm),Lc,[St]) => valof{
@@ -290,8 +290,8 @@ star.compiler.checker{
     valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
 
-  checkVar:(string,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
-  checkVar(Nm,Tp,Lc,Stmt,Env,Outer,Path) => valof{
+  checkVar:(string,tipe,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
+  checkVar(Nm,Tp,ErTp,Lc,Stmt,Env,Outer,Path) => valof{
     if traceCanon! then
       showMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
 
@@ -299,7 +299,7 @@ star.compiler.checker{
     (Cx,VarTp) = deConstrain(ETp);
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
     if (_,Lhs,R) ?= isDefn(Stmt) then{
-      Val = typeOfExp(R,VarTp,Es,Path);
+      Val = typeOfExp(R,VarTp,ErTp,Es,Path);
       FullNm = qualifiedName(Path,.valMark,Nm);
       if traceCanon! then
 	showMsg("definition $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp))");
@@ -338,18 +338,31 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
-    Ats = genArgTps(Arg);
-    RTp = newTypeVar("_R");
-    checkType(St,funType(Ats,RTp),ProgramType,Env);
-    (Args,ACnd,E0) = typeOfArgPtn(Arg,.tupleType(Ats),Outer,Path);
+    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
+    (Args,ACnd,E0) = typeOfArgPtn(Arg,ATp,ErTp,Outer,Path);
 
     if Wh?=Cnd then{
-      (Cond,E1) = checkCond(Wh,E0,Path);
-      Rep = typeOfExp(R,RTp,E1,Path);
+      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
+      Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 
       valis (.rule(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
-      valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,E0,Path)),IsDeflt)
+      valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+    }
+  }
+
+  splitupProgramType(Lc,Env,PTp) => valof{
+    ATp = newTypeVar("_A");
+    RTp = newTypeVar("_R");
+    ETp = newTypeVar("_E");
+
+    if sameType(fnType(ATp,Rtp),PTp,Env) && sameType(.voidType,ETp,Env) then
+      valis (ATp,RTp,ETp)
+    else if sameType(throwingType(ATp,Rtp,ETp),PTp,Env) then
+      valis (ATp,RTp,ETp)
+    else{
+      reportError("expecting a function type, not $(PTp)",Lc);
+      valis (ATp,RTp,ETp)
     }
   }
 
@@ -371,7 +384,7 @@ star.compiler.checker{
       ConTp = mkConType(CnNm,CnTps,CnDps);
       if sameType(ConTp,typeOf(Cn),Env) then {
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
-	Impl = typeOfExp(B,ConTp,Es,Path);
+	Impl = typeOfExp(B,ConTp,.voidType,Es,Path);
 	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
 	ImplTp = rebind(BV,reConstrainType(Cx,ConTp),Es);
@@ -394,29 +407,29 @@ star.compiler.checker{
     }
   }
 
-  typeOfPtn:(ast,tipe,dict,string) => (canon,option[canon],dict).
-  typeOfPtn(A,Tp,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{
+  typeOfPtn:(ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
+  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{
     V = genName(Lc,Id);
     (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,Env,Path);
-    (Cond,Ev1) = checkCond(binary(Lc,"==",V,A),Ev0,Path);
+    (Cond,Ev1) = checkCond(binary(Lc,"==",V,A),ErTp,Ev0,Path);
     valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
   }.
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) => valof{
+  typeOfPtn(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) => valof{
     Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
 
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
-  typeOfPtn(A,Tp,Env,Path) where _ ?= isEnumSymb(A) => valof{
-    Enm = typeOfExp(A,Tp,Env,Path);
+  typeOfPtn(A,Tp,ErTp,Env,Path) where _ ?= isEnumSymb(A) => valof{
+    Enm = typeOfExp(A,Tp,ErTp,Env,Path);
     valis (Enm,.none,Env)
   }
-  typeOfPtn(A,Tp,Env,Path) where isLitAst(A) => valof{
-    Exp = typeOfExp(A,Tp,Env,Path);
+  typeOfPtn(A,Tp,ErTp,Env,Path) where isLitAst(A) => valof{
+    Exp = typeOfExp(A,Tp,ErTp,Env,Path);
     valis (Exp,.none,Env)
   }
 
-  typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
     if traceCanon! then
       showMsg("type annotated var $(Id)\:$(T)");
 
@@ -429,7 +442,7 @@ star.compiler.checker{
     Ev = declareVr(Id,Lc,Tp,(OLc,_,D) => .vr(OLc,Id,Tp),.none,Env);
     valis (.vr(Lc,Id,Tp),.none,Ev)
   }
-  typeOfPtn(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
       showMsg("type annotated pattern $(E)\:$(T)");
 
@@ -441,32 +454,31 @@ star.compiler.checker{
     checkType(E,Tp,ETp,Env);
     if traceCanon! then
       showMsg("type annotated ptn $(E), check against $(ETp)");
-    valis typeOfPtn(E,ETp,Env,Path)
+    valis typeOfPtn(E,ETp,ErTp,Env,Path)
   }.
-  typeOfPtn(A,Tp,Env,Path) where 
-      (Lc,E,C) ?= isWhere(A) => valof{
-	(Ptn,PCond,Ev0) = typeOfPtn(E,Tp,Env,Path);
-	(Cond,Ev1) = checkCond(C,Ev0,Path);
-	valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
-      }.
-  typeOfPtn(A,Tp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
-    typeOfPtn(El,Tp,Env,Path).
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,E,C) ?= isWhere(A) => valof{
+    (Ptn,PCond,Ev0) = typeOfPtn(E,Tp,ErTp,Env,Path);
+    (Cond,Ev1) = checkCond(C,ErTp,Ev0,Path);
+    valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
+  }.
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
+    typeOfPtn(El,Tp,ErTp,Env,Path).
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,Lc,.none,[],Env,Path);
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Els) ?= isEnumCon(A) => valof{
     At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
+    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
     (Cx,ArgTp) = deConstrain(ETp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
     if .tupleType(Tps) .= deRef(ArgTp) then{
-      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,Lc,Base,Path);
+      (Args,Cond,Ev) = typeOfArgsPtn(Els,Tps,ErTp,Lc,Base,Path);
 
       valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
     } else{
@@ -474,49 +486,49 @@ star.compiler.checker{
       valis (.anon(Lc,Tp),.none,Env)
     }
   }
-  typeOfPtn(A,Tp,Env,Path) where (Lc,Op,Ss) ?= isBrTerm(A) && (OLc,Nm)?=isName(Op) => valof{
+  typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Op,Ss) ?= isBrTerm(A) && (OLc,Nm)?=isName(Op) => valof{
     if traceCanon! then
       showMsg("labeled record ptn: $(A)");
     At = newTypeVar("A");
-    Fun = typeOfExp(Op,consType(At,Tp),Env,Path);
+    Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
     FaceTp = ? faceOfType(ETp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,Base,Path,.none,[]);
+    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
     Args = fillinElementPtns(Lc,Els,Face);
 
     valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
   }
-  typeOfPtn(A,Tp,Env,_) => valof{
+  typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
     reportError("illegal pattern: $(A), expecting a $(Tp)",Lc);
     valis (.anon(Lc,Tp),.none,Env)    
   }
 
-  typeOfArgPtn:(ast,tipe,dict,string) => (canon,option[canon],dict).
-  typeOfArgPtn(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfArgPtn:(ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
+  typeOfArgPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,Lc,.none,[],Env,Path);
+    (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
 
     valis (.tple(Lc,Ptns),Cond,Ev)
   }
-  typeOfArgPtn(A,Tp,Env,Path) => typeOfPtn(A,Tp,Env,Path).
+  typeOfArgPtn(A,Tp,ErTp,Env,Path) => typeOfPtn(A,Tp,ErTp,Env,Path).
 
-  typeOfArgsPtn:(cons[ast],cons[tipe],option[locn],dict,string) =>
+  typeOfArgsPtn:(cons[ast],cons[tipe],tipe,option[locn],dict,string) =>
     (cons[canon],option[canon],dict).
-  typeOfArgsPtn(Els,Tps,Lc,Env,Path) => typeOfPtns(Els,Tps,Lc,.none,[],Env,Path).
+  typeOfArgsPtn(Els,Tps,ErTp,Lc,Env,Path) => typeOfPtns(Els,Tps,ErTp,Lc,.none,[],Env,Path).
 
-  typeOfElementPtns:(cons[ast],tipe,dict,string,option[canon],cons[(string,canon)]) =>
+  typeOfElementPtns:(cons[ast],tipe,tipe,dict,string,option[canon],cons[(string,canon)]) =>
     (cons[(string,canon)],option[canon],dict).
-  typeOfElementPtns([],_,Env,_,Cnd,Prs) => (Prs,Cnd,Env).
-  typeOfElementPtns([D,..Ds],Tp,Env,Pth,Cnd,SoFr) => valof{
+  typeOfElementPtns([],_,_,Env,_,Cnd,Prs) => (Prs,Cnd,Env).
+  typeOfElementPtns([D,..Ds],Tp,ErTp,Env,Pth,Cnd,SoFr) => valof{
     if (Lc,Lhs,R) ?= isDefn(D) && (_,Nm) ?= isName(Lhs) then{
       if FTp ?= fieldInFace(Tp,Nm) then{
-	(Ptn,C1,Ev) = typeOfPtn(R,FTp,Env,Pth);
-	valis typeOfElementPtns(Ds,Tp,Ev,Pth,mergeGoal(Lc,Cnd,C1),[(Nm,Ptn),..SoFr])
+	(Ptn,C1,Ev) = typeOfPtn(R,FTp,ErTp,Env,Pth);
+	valis typeOfElementPtns(Ds,Tp,ErTp,Ev,Pth,mergeGoal(Lc,Cnd,C1),[(Nm,Ptn),..SoFr])
       } else{
 	reportError("Field $(Nm) is not a legal element of $(Tp)",locOf(D));
 	valis ([],.none,Env)
@@ -537,54 +549,54 @@ star.compiler.checker{
 
   project1(L) => (L//snd).
 
-  typeOfPtns:(cons[ast],cons[tipe],option[locn],option[canon],cons[canon],dict,string) =>
+  typeOfPtns:(cons[ast],cons[tipe],tipe,option[locn],option[canon],cons[canon],dict,string) =>
     (cons[canon],option[canon],dict).
-  typeOfPtns([],[],_,Cond,Els,Env,_) => (reverse(Els),Cond,Env).
-  typeOfPtns([P,..Ps],[T,..Ts],_,Cnd,Els,Env,Path) => valof{
-    (Pt,C,E0) = typeOfPtn(P,T,Env,Path);
-    valis typeOfPtns(Ps,Ts,locOf(P),mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
+  typeOfPtns([],[],_,_,Cond,Els,Env,_) => (reverse(Els),Cond,Env).
+  typeOfPtns([P,..Ps],[T,..Ts],ErTp,_,Cnd,Els,Env,Path) => valof{
+    (Pt,C,E0) = typeOfPtn(P,T,ErTp,Env,Path);
+    valis typeOfPtns(Ps,Ts,ErTp,locOf(P),mergeGoal(locOf(P),Cnd,C),[Pt,..Els],E0,Path)
   }
-  typeOfPtns([],[T,.._],Lc,Cnd,Els,Env,_) => valof{
+  typeOfPtns([],[T,.._],_,Lc,Cnd,Els,Env,_) => valof{
     reportError("insufficient arguments, expecting a $(T)",Lc);
     valis (reverse(Els),Cnd,Env)
   }
-  typeOfPtns([P,.._],[],_,Cnd,Els,Env,_) => valof{
+  typeOfPtns([P,.._],[],_,_,Cnd,Els,Env,_) => valof{
     reportError("too many arguments: $(P)",locOf(P));
     valis (reverse(Els),Cnd,Env)
   }
   
-  typeOfExp:(ast,tipe,dict,string) => canon.
-  typeOfExp(A,Tp,Env,Path) where Lc ?= isAnon(A) => valof{
+  typeOfExp:(ast,tipe,tipe,dict,string) => canon.
+  typeOfExp(A,Tp,_,Env,Path) where Lc ?= isAnon(A) => valof{
     reportError("anonymous variable not permitted in expression",Lc);
     valis .anon(Lc,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Id) ?= isName(A) =>
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) =>
     typeOfVar(Lc,Id,Tp,.true,Env,Path).
-  typeOfExp(A,Tp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
-    Fun = typeOfExp(.nme(Lc,Nm),consType(.tupleType([]),Tp),Env,Path);
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
+    Fun = typeOfExp(.nme(Lc,Nm),consType(.tupleType([]),Tp),ErTp,Env,Path);
     valis .apply(Lc,Fun,[],Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Ix) ?= isInt(A)  => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ?= isInt(A)  => valof{
     checkType(A,intType,Tp,Env);
     valis .intr(Lc,Ix)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Ix) ?= isBig(A)  => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Ix) ?= isBig(A)  => valof{
     checkType(A,bigintType,Tp,Env);
     valis .bintr(Lc,Ix)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Dx) ?= isFlt(A) => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Dx) ?= isFlt(A) => valof{
     checkType(A,fltType,Tp,Env);
     valis .flt(Lc,Dx)
   }.
-  typeOfExp(A,Tp,Env,Path) where (Lc,Cx) ?= isChr(A)  => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Cx) ?= isChr(A)  => valof{
     checkType(A,chrType,Tp,Env);
     valis .kar(Lc,Cx)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,Sx) ?= isStr(A) => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,Sx) ?= isStr(A) => valof{
     checkType(A,strType,Tp,Env);
     valis .strng(Lc,Sx)
   }.
-  typeOfExp(A,Tp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) => valof{
     if traceCanon! then
       showMsg("type annotated expression $(E)\:$(T)");
     ETp = parseType(T,Env);
@@ -594,77 +606,77 @@ star.compiler.checker{
 
     checkType(E,Tp,ETp,Env);
 
-    valis typeOfExp(E,ETp,Env,Path)
+    valis typeOfExp(E,ETp,ErTp,Env,Path)
   }.
-  typeOfExp(A,Tp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,F) ?= isFieldAcc(A) => valof{
     RTp = newTypeVar("R");
-    Rc = typeOfExp(R,RTp,Env,Path);
+    Rc = typeOfExp(R,RTp,ErTp,Env,Path);
     valis .dot(Lc,Rc,F,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,R,Ix) ?= isTupleAcc(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,Ix) ?= isTupleAcc(A) => valof{
     RTp = newTypeVar("R");
-    Rc = typeOfExp(R,RTp,Env,Path);
+    Rc = typeOfExp(R,RTp,ErTp,Env,Path);
     valis .tdot(Lc,Rc,Ix,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,R,Fld,V) ?= isRecordUpdate(A) => valof{
-    Rc = typeOfExp(R,Tp,Env,Path);
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,R,Fld,V) ?= isRecordUpdate(A) => valof{
+    Rc = typeOfExp(R,Tp,ErTp,Env,Path);
     VTp = newTypeVar("_V");
-    Vl = typeOfExp(V,VTp,Env,Path);
+    Vl = typeOfExp(V,VTp,ErTp,Env,Path);
     valis .update(Lc,Rc,Fld,Vl)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,T,L,R) ?= isConditional(A) => valof{
-    (Tst,E0) = checkCond(T,Env,Path);
-    Thn = typeOfExp(L,Tp,E0,Path);
-    Els = typeOfExp(R,Tp,Env,Path);
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,T,L,R) ?= isConditional(A) => valof{
+    (Tst,E0) = checkCond(T,ErTp,Env,Path);
+    Thn = typeOfExp(L,Tp,ErTp,E0,Path);
+    Els = typeOfExp(R,Tp,ErTp,Env,Path);
     valis .cond(Lc,Tst,Thn,Els)
   }.
-  typeOfExp(A,Tp,Env,Path) where _ ?= isConjunct(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isConjunct(A) => valof{
     checkType(A,boolType,Tp,Env);
-    (Gl,_) = checkCond(A,Env,Path);
+    (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }.
-  typeOfExp(A,Tp,Env,Path) where _ ?= isDisjunct(A)  => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isDisjunct(A)  => valof{
     checkType(A,boolType,Tp,Env);
-    (Gl,_) = checkCond(A,Env,Path);
+    (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }.
-  typeOfExp(A,Tp,Env,Path) where _ ?= isNegation(A)  => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isNegation(A)  => valof{
     checkType(A,boolType,Tp,Env);
-    (Gl,_) = checkCond(A,Env,Path);
+    (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }.
-  typeOfExp(A,Tp,Env,Path) where _ ?= isMatch(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where _ ?= isMatch(A) => valof{
     checkType(A,boolType,Tp,Env);
-    (Gl,_) = checkCond(A,Env,Path);
+    (Gl,_) = checkCond(A,ErTp,Env,Path);
     valis Gl
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
     GTp = newTypeVar("_e");
-    Gv = typeOfExp(G,GTp,Env,Path);
+    Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = checkRules(Cases,GTp,Tp,Env,Path,typeOfExp,[],.none);
+    Rules = checkRules(Cases,GTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
     checkPtnCoverage(Rules//((.rule(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
-    Cl = typeOfExp(C,refType(Tp),Env,Path);
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
+    Cl = typeOfExp(C,refType(Tp),ErTp,Env,Path);
     valis .get(Lc,Cl,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,V) ?= isRef(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,V) ?= isRef(A) => valof{
     VTp = newTypeVar("_C");
-    Vl = typeOfExp(V,VTp,Env,Path);
+    Vl = typeOfExp(V,VTp,ErTp,Env,Path);
     checkType(V,refType(VTp),Tp,Env);
     valis .cell(Lc,Vl,Tp)
   }
-  typeOfExp(A,Tp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
-    typeOfExp(El,Tp,Env,Path).
-  typeOfExp(A,Tp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
+  typeOfExp(A,Tp,ErTp,Env,Path) where (_,[El]) ?= isTuple(A) && ~ _ ?= isTuple(El) =>
+    typeOfExp(El,Tp,ErTp,Env,Path).
+  typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
-    Ptns = typeOfExps(Els,Tvs,Lc,[],Env,Path);
+    Ptns = typeOfExps(Els,Tvs,ErTp,Lc,[],Env,Path);
     valis .tple(Lc,Ptns)
   }
-  typeOfExp(A,Tp,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
+  typeOfExp(A,Tp,_,Env,Path) where (Lc,_,Ar,C,R) ?= isLambda(A) => valof{
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
 
@@ -930,26 +942,26 @@ star.compiler.checker{
     }
   }
 
-  typeOfExps:(cons[ast],cons[tipe],option[locn],cons[canon],dict,string) =>
+  typeOfExps:(cons[ast],cons[tipe],tipe,option[locn],cons[canon],dict,string) =>
     cons[canon].
-  typeOfExps([],[],_,Els,Env,_) =>reverse(Els).
-  typeOfExps([P,..Ps],[T,..Ts],_,Els,Env,Path) =>
-    typeOfExps(Ps,Ts,locOf(P),[typeOfExp(P,T,Env,Path),..Els],Env,Path).
-  typeOfExps([],[T,.._],Lc,Els,Env,_) => valof{
+  typeOfExps([],[],_,_,Els,Env,_) =>reverse(Els).
+  typeOfExps([P,..Ps],[T,..Ts],ErTp,_,Els,Env,Path) =>
+    typeOfExps(Ps,Ts,ErTp,locOf(P),[typeOfExp(P,T,ErTp,Env,Path),..Els],Env,Path).
+  typeOfExps([],[T,.._],_,Lc,Els,Env,_) => valof{
     reportError("insufficient arguments, expecting a $(T)",Lc);
     valis reverse(Els)
   }
-  typeOfExps([P,.._],[],_,Els,Env,_) => valof{
+  typeOfExps([P,.._],[],_,_,Els,Env,_) => valof{
     reportError("too many arguments: $(P)",locOf(P));
     valis reverse(Els)
   }
 
-  typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
-  typeOfRoundTerm(Lc,Op,As,Tp,Env,Path) => valof{
+  typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,tipe,dict,string) => canon.
+  typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
     Vrs = genTpVars(As);
     At = .tupleType(Vrs);
     ExTp = newTypeVar("F");
-    Fun = typeOfExp(Op,ExTp,Env,Path);
+    Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
     FnTp = fnType(At,Tp);
 
     if sameType(ExTp,FnTp,Env) then{
