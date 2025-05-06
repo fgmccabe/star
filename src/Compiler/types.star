@@ -533,15 +533,6 @@ star.compiler.types{
 	      .tpFun("<=>",2).=deRef(O2) => .some((A,B)).
   isCnType(_) default => .none.
 
-  public isTagType:(tipe) => option[tipe].
-  isTagType(Tp) where
-      .tpExp(O,A).=deRef(Tp) &&
-	  .tpFun("tag",1).=deRef(O) => .some(A).
-  isTagType(.allType(_,Tp)) => isTagType(deRef(Tp)).
-  isTagType(.existType(_,Tp)) => isTagType(deRef(Tp)).
-  isTagType(.constrainedType(T,_))=>isTagType(T).
-  isTagType(_) default => .none.
-
   public isConstrainedType:(tipe) => boolean.
   isConstrainedType(Tp) => isConstrained(deRef(Tp)).
 

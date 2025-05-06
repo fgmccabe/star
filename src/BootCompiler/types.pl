@@ -19,7 +19,7 @@
 	   getConstraints/3,putConstraints/3,
 	   implementationName/2,lclImplName/3,
 	   mkTypeRule/3,
-	   stdDecl/1,taskType/2,tagType/2,thunkType/2,savType/2,
+	   stdDecl/1,taskType/2,thunkType/2,savType/2,
 	   unitTp/1]).
 :- use_module(misc).
 :- use_module(display).
@@ -429,9 +429,6 @@ thunkType(Arg,Tp) :-
 savType(Arg,Tp) :-
   mkTypeExp(tpFun("sav",1),[Arg],Tp).
 
-tagType(Arg,Tp) :-
-  mkTypeExp(tpFun("tag",1),[Arg],Tp).
-
 tpName(Tp,Nm) :-
   deRef(Tp,RTp),
   tpNm(RTp,Nm).
@@ -568,25 +565,6 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 				 typeExists(tpExp(tpExp(tpFun("fiber",2),kVar("a")),
 						  kVar("e")),
 					    faceType([],[]))))),
-	 typeDec("result",
-		 tpFun("result",2),
-		 allType(kVar("a"),
-			 allType(kVar("e"),
-				 typeExists(tpExp(tpExp(tpFun("result",2),kVar("a")),
-						  kVar("e")),
-					    faceType([],[]))))),
-	 cnsDec("normal","normal",
-		allType(kVar("a"),
-			allType(kVar("e"),
-				consType(tplType([kVar("a")]),
-					 tpExp(tpExp(tpFun("result",2),kVar("a")),
-						  kVar("e")))))),
-	 cnsDec("abnormal","abnormal",
-		allType(kVar("a"),
-			allType(kVar("e"),
-				consType(tplType([kVar("e")]),
-					 tpExp(tpExp(tpFun("result",2),kVar("a")),
-						  kVar("e")))))),
 	 typeDec("future",
 		 tpFun("future",2),
 		 allType(kVar("a"),
@@ -598,11 +576,6 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		 tpFun("thunk",1),
 		 allType(kVar("e"),
 			 typeExists(tpExp(tpFun("thunk",1),kVar("e")),
-				    faceType([],[])))),
-	 typeDec("tag",
-		 tpFun("tag",1),
-		 allType(kVar("e"),
-			 typeExists(tpExp(tpFun("tag",1),kVar("e")),
 				    faceType([],[])))),
 	 typeDec("errorCode",
 		 type("errorCode"),

@@ -152,10 +152,6 @@ examineType(T,Tx) :- isThrows(T,Lc,L,R),!,
 examineType(T,Tx) :- isTaskType(T,Lc,L),!,
   macroType(L,Lx),
   mkTaskType(Lc,Lx,Tx).
-examineType(T,Tx) :- isResult(T,Lc,L,R),!,
-  macroType(L,Lx),
-  macroType(R,Rx),
-  mkResult(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isRoundTuple(T,Lc,Els),!,
   map(Els,macros:macroType,Elx),
   roundTuple(Lc,Elx,Tx).

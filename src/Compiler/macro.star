@@ -361,8 +361,6 @@ star.compiler.macro{
     mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
-  examineType(A) where (Lc,R) ?= isTag(A) =>
-    mkTag(Lc,macroType(R)).
   examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>
     mkTypeLambda(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,Q,T) ?= isQuantified(A) =>

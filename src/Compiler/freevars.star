@@ -47,10 +47,8 @@ star.compiler.freevars{
     | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
-    | .trycatch(_,E,T,H,_) where Q1 .= dropVars(T,Q) =>
-      freeVarsInExp(T,Q1,freeVarsInExp(E,Q1,
-	foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H)))
-    | .rais(_,T,E,_) => freeVarsInExp(T,Q,freeVarsInExp(E,Q,Fv))
+    | .tryC(_,E,H,_) => freeVarsInExp(E,Q,foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H))
+    | .thrwC(_,E,_,_) => freeVarsInExp(E,Q,Fv)
     | .lambda(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
