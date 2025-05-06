@@ -82,7 +82,7 @@ star.compiler.misc{
   filterDups:(integer,cons[integer])=>cons[integer].
   filterDups(C,I) => (I^/(X)=>~divides(X,C)).
 
-  divides(X,Y) => (try X%Y==0 catch exception in {_ => .false}).
+  divides(X,Y) => (try X%Y==0 catch {_ => .false}).
 
   public drop:all e ~~ equality[e] |: (e,cons[e])=>cons[e].
   drop(_,[]) => [].

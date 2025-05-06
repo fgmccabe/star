@@ -432,7 +432,7 @@ star.compiler.macro.rules{
 	    mkLambda(Lc,.false,
 	      rndTuple(Lc,[.nme(Lc,"this"),.nme(Lc,"_")]),
 	      .none,
-	  mkValof(Lc,brTuple(Lc,[mkSequence(Lc,A,All)])))))
+	  mkValof(Lc,[A,All]))))
       }.
   generatorMacro(_,_) default => .inactive.
 
@@ -483,7 +483,7 @@ star.compiler.macro.rules{
 
     -- Build function:
     -- tk() => valof { A }
-    TkDf = mkEquation(Lc,.some(Tk),.true,Empty,.none,mkValof(Lc,brTuple(Lc,[A])));
+    TkDf = mkEquation(Lc,.some(Tk),.true,Empty,.none,mkValof(Lc,[A]));
 
     -- Build let defn
     LetFn = mkLetDef(Lc,[TkTp,TkDf],mkSuppress(Lc,Tk));

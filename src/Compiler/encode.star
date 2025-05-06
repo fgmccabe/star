@@ -30,6 +30,7 @@ star.compiler.types.encode{
     | .tpExp(.tpFun("cons",1),El) => [`L`]++encodeType(El)
     | .tpExp(.tpFun("ref",1),El) => [`r`]++encodeType(El)
     | .tpExp(.tpExp(.tpFun("=>",2),A),R) => [`F`]++encodeType(A)++encodeType(R)
+    | .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),R),E) => [`T`]++encodeType(A)++encodeType(R)++encodeType(E)
     | .tpExp(.tpExp(.tpFun("<=>",2),A),R) => [`C`]++encodeType(A)++encodeType(R)
     | .tpExp(Op,A) => [`U`]++encodeType(Op)++encodeType(A)
     | .tupleType(Els) => [`(`]++encodeTypes(Els)++[`)`]
@@ -60,8 +61,6 @@ star.compiler.types.encode{
     [`a`]++encodeType(V)++encodeType(.faceType([(F,deRef(T))],[])).
   encodeConstraint(.implicit(Nm,T)) =>
     [`d`]++encodeText(Nm)++encodeType(T).
-  encodeConstraint(.raisEs(T)) =>
-    [`r`]++encodeType(T).
 
   encodeTypeRule:(typeRule)=>multi[char].
   encodeTypeRule(.allRule(V,R)) =>
@@ -98,11 +97,12 @@ star.compiler.types.encode{
   public encodeNat:(integer) => multi[char].
   encodeNat(D) => (try
     let{.
+      encNat:(integer) => multi[char] throws exception.
       encNat(Dx) where Dx>=0 && Dx=<9 =>
 	[digitChar(Dx)].
       encNat(Dx) => encNat(Dx/10)++[digitChar(Dx%10)]
     .} in encNat(D)
-    catch exception in { _ => []}
+    catch { _ => []}
   ).
 
   public decodeSignature:(string) => tipe.
@@ -265,10 +265,6 @@ star.compiler.types.encode{
     (Nm,T0) = decodeText(T);
     (FT,T1) = decodeType(T0);
     valis (.implicit(Nm,FT),T1)
-  }
-  decodeConstraint([`r`,..T]) => valof{
-    (FT,T1) = decodeType(T);
-    valis (.raisEs(FT),T1)
   }
 
   decodeText:(cons[char]) => (string,cons[char]).

@@ -102,7 +102,6 @@ star.compiler.unify{
       same(V1,V2,Env) && F1==F2 && same(T1,T2,Env).
     sameConstraint(.implicit(N1,T1),.implicit(N2,T2),Env) =>
       N1==N2 && same(T1,T2,Env).
-    sameConstraint(.raisEs(T1),.raisEs(T2),Env) => same(T1,T2,Env).
     sameConstraint(_,_,_) default => .false.
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
@@ -164,7 +163,6 @@ star.compiler.unify{
   rewriteCon(.hasField(V,F,T),Env) =>
     .hasField(rewriteType(V,Env),F,rewriteType(T,Env)).
   rewriteCon(.implicit(N,T),Env) => .implicit(N,rewriteType(T,Env)).
-  rewriteCon(.raisEs(T),Env) => .raisEs(rewriteType(T,Env)).
 
   rewriteTypeRule(.typeExists(L,R),Env) =>
     .typeExists(rewriteType(L,Env),rewriteType(R,Env)).
