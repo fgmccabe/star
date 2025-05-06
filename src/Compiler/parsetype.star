@@ -96,8 +96,6 @@ star.compiler.typeparse{
     S = parseType(Rhs,Env);
     valis fiberType(R,S)
   }
-  parseType(T,Env) where (Lc,Rhs) ?= isTag(T) =>
-    tagType(parseType(Rhs,Env)).
   parseType(T,Env) where (Lc,Rhs) ?= isRef(T) =>
     refType(parseType(Rhs,Env)).
   parseType(T,Env) where (Lc,[A]) ?= isTuple(T) => valof{

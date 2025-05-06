@@ -53,12 +53,10 @@
 	      isGeneratorType/3,mkGeneratorType/3,
 	      isTask/3,mkTask/3,
 	      isCaseExp/4,caseExp/4,
-	      isDoTerm/3,mkDoTerm/3,isDo/3,mkDo/3,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
 	      isTry/4,mkTry/4,
 	      isThrow/3,mkThrow/3,
 	      isThrows/4,mkThrows/4,
-	      isResult/4,mkResult/4,
 	      isResume/4,mkResume/4,isSuspend/4,mkSuspend/4,isRetire/4,mkRetire/4,
 	      isThunk/3,mkThunk/3,isThunkRef/3,mkThunkRef/3,
 	      isDynamic/4,mkDynamic/4,
@@ -905,21 +903,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-isDoTerm(A,Lc,Stmt) :-
-  isUnary(A,Lc,"do",I),
-  isBraceTuple(I,_,[Stmt]).
-
-mkDoTerm(Lc,A,Trm) :-
-  braceTuple(Lc,[A],S0),
-  unary(Lc,"do",S0,Trm).
-
-isDo(A,Lc,I) :-
-  isUnary(A,Lc,"do",I),
-  \+isBraceTuple(I,_,_).
-
-mkDo(Lc,A,Trm) :-
-  unary(Lc,"do",A,Trm).
-
 isValis(A,Lc,E) :-
   (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
 
@@ -943,12 +926,6 @@ isThrows(A,Lc,V,E) :-
 
 mkThrows(Lc,V,E,A) :-
   binary(Lc,"throws",V,E,A).
-
-isResult(A,Lc,T,E) :-
-  isBinary(A,Lc,"result",T,E).
-
-mkResult(Lc,T,E,A) :-
-  binary(Lc,"result",T,E,A).
 
 isTry(A,Lc,B,Hs) :-
   isUnary(A,Lc,"try",I),

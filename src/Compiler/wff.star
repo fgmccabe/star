@@ -20,9 +20,6 @@ star.compiler.wff{
   public dollarName:(ast) => ast.
   dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 
-  public dotId:(ast) => ast.
-  dotId(.nme(Lc,Id)) => .nme(Lc,dotName(Id)).
-
   public hashName:(ast) => ast.
   hashName(.nme(Lc,Id)) => .nme(Lc,"#"++Id).
 
@@ -176,16 +173,19 @@ star.compiler.wff{
   public mkFunctionType(Lc,L,R) => binary(Lc,"=>",L,R).
   
   public deComma:(ast) => cons[ast].
-  deComma(Trm) => let{.
-    deC(T,SoF) where (_,Lh,Rh)?=isBinary(T,",") =>
-      deC(Rh,[Lh,..SoF]).
-    deC(T,SoF) => reverse([T,..SoF]).
-  .} in deC(Trm,[]).
+  deComma(Trm) => deTree(Trm,",").
 
   public reComma:(cons[ast]) => ast.
   reComma([A]) => A.
   reComma([A,..As]) =>
     binary(locOf(A),",",A,reComma(As)).
+
+  deTree:(ast,string) => cons[ast].
+  deTree(Trm,Op) => let{.
+    deT(T) where (_,Lh,Rh)?=isBinary(T,Op) => deT(Lh)++deT(Rh).
+    deT(T) where (_,Rh) ?= isUnary(T,Op) => [Rh].
+    deT(T) => [T].
+  .} in deT(Trm).
 
   public isDepends:(ast) => option[(option[locn],cons[ast],cons[ast])].
   isDepends(T) where (Lc,Lh,Rh)?=isBinary(T,"->>") =>
@@ -443,10 +443,6 @@ star.compiler.wff{
   isSearch(_) default => .none.
 
   public mkSearch(Lc,P,S) => binary(Lc,"in",P,S).
-
-  public isTag(A) => isUnary(A,"tag").
-
-  public mkTag(Lc,A) => unary(Lc,"tag",A).
 
   getQuantifiers(T) where
       (_,Q,I) ?= isQuantified(T) => (Q,I).
@@ -736,11 +732,7 @@ star.compiler.wff{
     unary(Lc,"case",binary(Lc,"in",E,brTuple(Lc,[reBar(C)]))).
 
   public deBar:(ast) => cons[ast].
-  deBar(Trm) => let{.
-    deC(T) where (_,Lh,Rh)?=isBinary(T,"|") => deC(Lh)++deC(Rh).
-    deC(T) where (_,Rh) ?= isUnary(T,"|") => [Rh].
-    deC(T) => [T].
-  .} in deC(Trm).
+  deBar(Trm) => deTree(Trm,"|").
 
   public reBar:(cons[ast]) => ast.
   reBar([A]) => A.

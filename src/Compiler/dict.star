@@ -227,16 +227,7 @@ star.compiler.dict{
 	.allRule(.kVar("e"),
 	  .typeExists(makeTpExp("fiber",
 	      [.kVar("a"),.kVar("e")]),emptyFace)))),
-
-    .tpeDec(.none,"tag",.tpFun("tag",1),
-      .allRule(.kVar("e"),
-	.typeExists(makeTpExp("tag",
-	    [.kVar("e")]),emptyFace))),
-    
     .tpeDec(.none,"ioHandle",ioType,.typeExists(ioType,emptyFace)),
-    .tpeDec(.none,"single",.tpFun("single",1),
-      .allRule(.kVar("e"),
-	.typeExists(singleType(.kVar("e")),emptyFace))),
     .tpeDec(.none,"future",.tpFun("future",2),
       .allRule(.kVar("v"),
 	.allRule(.kVar("e"),
