@@ -63,26 +63,33 @@ star.compiler.normalize{
     (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
       showMsg("transformed equations: $(Eqs)");
-    Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
-    if traceNormalize! then
-      showMsg("transformed function $(Func)");
+    try{
+      Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
+      if traceNormalize! then
+	showMsg("transformed function $(Func)");
 
-    ClosureNm = closureNm(FullNm);
-    ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cV("_",unitTp));
-    ClVars = makeFunVars(Tp);
-    ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
+      ClosureNm = closureNm(FullNm);
+      ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cV("_",unitTp));
+      ClVars = makeFunVars(Tp);
+      ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
 
-    ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
+      ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
 
-    if Exv?=Extra then {
-      ClosEntry =
-	.fnDef(Lc,ClosureNm,ClosTp,ClArgs,.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
-      valis [Func,ClosEntry,..Ex1]
-    } else {
-      ClosEntry =
-	.fnDef(Lc,ClosureNm,ClosTp,
+      if Exv?=Extra then {
+	ClosEntry =
+	  .fnDef(Lc,ClosureNm,ClosTp,ClArgs,.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	valis [Func,ClosEntry,..Ex1]
+      } else {
+	ClosEntry =
+	  .fnDef(Lc,ClosureNm,ClosTp,
 	  ClArgs,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
-      valis [Func,ClosEntry,..Ex1]
+	valis [Func,ClosEntry,..Ex1]
+      }
+    } catch {
+      _ => {
+	reportError("cannot build matcher for function $(FullNm)",Lc);
+	valis Ex
+      }
     }
   }
 
@@ -350,17 +357,15 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("type of $(Th)\:$(typeOf(Th))");
     ErTp = typeOf(Th);
-    (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
-    (BB,Ex2) = liftExp(B,Map,ptnVars(Th,Q,[]),Ex1);
+    (BB,Ex2) = liftExp(B,Map,Q,Ex);
     (Hs,Ex3) = transformRules(Hndlr,Map,Map,Q,.none,Ex2);
     ErrVr = .cVar(Lc,genVar("E",ErTp));
     HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
-    valis (.cTry(Lc,BB,TT,ErrVr,HH,Tp),Ex3)
+    valis (.cTry(Lc,BB,ErrVr,HH,Tp),Ex3)
   }
-  liftExp(.rais(Lc,T,E,Tp),Map,Q,Ex) => valof{
-    (LT,Ex1) = liftExp(T,Map,Q,Ex);
-    (LE,Ex2) = liftExp(E,Map,Q,Ex1);
-    valis (.cRaise(Lc,LT,LE,Tp),Ex1)
+  liftExp(.thrw(Lc,E,Tp,_),Map,Q,Ex) => valof{
+    (LE,Ex2) = liftExp(E,Map,Q,Ex);
+    valis (.cThrw(Lc,LE,Tp),Ex)
   }
   liftExp(.resum(Lc,T,M,Tp),Map,Q,Ex) => valof{
     (TT,Ex1) = liftExp(T,Map,Q,Ex);
@@ -784,17 +789,17 @@ star.compiler.normalize{
       valis (.aLtt(Lc,V,LGv,Res),Ex2)
     }
   }
-  liftAction(.doTryCatch(Lc,B,Th,H),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("type of $(Th)\:$(typeOf(Th))");
-    ErTp = typeOf(Th);
-    (TT,Ex1) = liftPtn(Th,Map,Q,Ex);
-    (BB,Ex2) = liftAction(B,Map,ptnVars(Th,Q,[]),Ex1);
+  liftAction(.doTry(Lc,B,ErTp,H),Map,Q,Ex) => valof{
+    (BB,Ex2) = liftAction(B,Map,Q,Ex);
     (Hs,Ex3) = transformRules(H,Map,Map,Q,.none,Ex2);
     ErrVr = .cVar(Lc,genVar("E",ErTp));
     Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
     
-    valis (.aTry(Lc,BB,TT,ErrVr,Hndlr),Ex3)
+    valis (.aTry(Lc,BB,ErrVr,Hndlr),Ex3)
+  }
+  liftAction(.doThrow(Lc,E),Map,Q,Ex) => valof{
+    (EE,Ex1) = liftExp(E,Map,Q,Ex);
+    valis (.aThrw(Lc,EE),Ex1)
   }
   liftAction(.doExp(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);

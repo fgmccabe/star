@@ -21,8 +21,8 @@ star.compiler.canon{
   .tdot(option[locn],canon,integer,tipe) |
   .update(option[locn],canon,string,canon) |
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
-  .tryC(option[locn],canon,cons[rule[canon]],tipe) |
-  .thrwC(option[locn],canon,tipe,tipe) |
+  .trycatch(option[locn],canon,tipe,cons[rule[canon]],tipe) |
+  .thrw(option[locn],canon,tipe,tipe) |
   .match(option[locn],canon,canon) |
   .conj(option[locn],canon,canon) |
   .disj(option[locn],canon,canon) |
@@ -55,7 +55,7 @@ star.compiler.canon{
   .doDefn(option[locn],canon,canon) |
   .doMatch(option[locn],canon,canon) |
   .doAssign(option[locn],canon,canon) |
-  .doTryCatch(option[locn],canonAction,canon,cons[rule[canonAction]]) |
+  .doTry(option[locn],canonAction,tipe,cons[rule[canonAction]]) |
   .doThrow(option[locn],canon) |
   .doIfThen(option[locn],canon,canonAction,canonAction) |
   .doCase(option[locn],canon,cons[rule[canonAction]]) |
@@ -87,8 +87,8 @@ star.compiler.canon{
       | .strng(_,_) => strType
       | .enm(_,_,Tp) => Tp
       | .csexp(_,_,_,Tp) => Tp
-      | .tryC(_,_,_,Tp) => Tp
-      | .thrwC(_,_,Tp,_) => Tp
+      | .trycatch(_,_,_,_,Tp) => Tp
+      | .thrw(_,_,Tp,_) => Tp
       | .lambda(_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
@@ -139,8 +139,8 @@ star.compiler.canon{
       | .cell(Lc,_,_) => Lc
       | .get(Lc,_,_) => Lc
       | .csexp(Lc,_,_,_) => Lc
-      | .tryC(Lc,_,_,_) => Lc
-      | .thrwC(Lc,_,_,_) => Lc
+      | .trycatch(Lc,_,_,_,_) => Lc
+      | .thrw(Lc,_,_,_) => Lc
       | .match(Lc,_,_) => Lc
       | .conj(Lc,_,_) => Lc
       | .disj(Lc,_,_) => Lc
@@ -173,8 +173,8 @@ star.compiler.canon{
       | .doDefn(Lc,_,_) => Lc
       | .doMatch(Lc,_,_) => Lc
       | .doAssign(Lc,_,_) => Lc
-      | .doTryCatch(Lc,_,_,_) => Lc
-      | .doThrow(Lc,_,_) => Lc
+      | .doTry(Lc,_,_,_) => Lc
+      | .doThrow(Lc,_) => Lc
       | .doIfThen(Lc,_,_,_) => Lc
       | .doCase(Lc,_,_) => Lc
       | .doWhile(Lc,_,_) => Lc
@@ -252,9 +252,9 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))#(showCanon(L,Lp,Sp)).#(F) = #(showCanon(R,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .csexp(_,Exp,Cs,_) where (OPr,Rp) ?= isPrefixOp("case") =>
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))"
-    | .tryC(_,Exp,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
+    | .trycatch(_,Exp,_,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
       "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))"
-    | .thrwC(_,Exp,_,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
+    | .thrw(_,Exp,_,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
       "#(leftParen(OPr,Pr)) throw #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))"
@@ -315,10 +315,9 @@ star.compiler.canon{
       "#(showCanon(L,Lp,Sp)) .= #(showCanon(R,Rp,Sp))"
     | .doAssign(_,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(":=") =>
       "#(showCanon(L,Lp,Sp)) := #(showCanon(R,Rp,Sp))"
-    | .doTryCatch(_,A,T,H) =>
-      "try #(showAct(A,Pr,Sp)) catch #(showCanon(T,Pr,Sp)) in {\n#(showCases(H,showAct,Sp))\n}"
-    | .doThrow(_,A,_) =>
-      "throw #(showCanon(A,Pr,Sp))"
+    | .doTry(_,A,_,H) =>
+      "try #(showAct(A,Pr,Sp)) catch {\n#(showCases(H,showAct,Sp))\n}"
+    | .doThrow(_,A) => "throw #(showCanon(A,Pr,Sp))"
     | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))"
     | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>

@@ -42,10 +42,17 @@ star.compiler.impawt{
   pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
   pickupPkgSpec(Txt,Lc) => valof{
     if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
-      Pkg = ? pickupPkg(Pk);
-      Imports = pickupImports(Imps,Lc);
-      Decls = pickupDeclarations(Ds,Lc);
-      valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
+      try{
+	Pkg = ? pickupPkg(Pk);
+	Imports = pickupImports(Imps,Lc);
+	Decls = pickupDeclarations(Ds,Lc);
+	valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
+      } catch {
+	_ => {
+	  reportError("could not decode package spec",Lc);
+	  valis .none
+	}
+      }
     } else {
       reportError("could not decode package spec",Lc);
       valis .none

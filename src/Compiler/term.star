@@ -384,7 +384,7 @@ star.compiler.term{
       | .cGet(_,_,Tp) => Tp
       | .cOCall(_,_,_,Tp) => Tp
       | .cCall(_,_,_,Tp) => Tp
-      | .cRaise(_,_,_,Tp) => Tp
+      | .cThrw(_,_,Tp) => Tp
       | .cNth(_,_,_,Tp) => Tp
       | .cSetNth(_,T,_,_) => tpOf(T)
       | .cSeq(_,_,R) => tpOf(R)
@@ -494,7 +494,7 @@ star.compiler.term{
     | .cGet(Lc,E,Tp) => .cGet(Lc,rwTerm(E,Tst),Tp)
     | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,Args//(A)=>rwTerm(A,Tst),Tp)
     | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,rwTerm(Op,Tst),Args//(A)=>rwTerm(A,Tst),Tp)
-    | .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,rwTerm(Th,Tst),rwTerm(E,Tst),Tp)
+    | .cThrw(Lc,E,Tp) =>.cThrw(Lc,rwTerm(E,Tst),Tp)
     | .cSeq(Lc,L,R) =>.cSeq(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
     | .cCnj(Lc,L,R) =>.cCnj(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
     | .cDsj(Lc,L,R) =>.cDsj(Lc,rwTerm(L,Tst),rwTerm(R,Tst))
@@ -587,7 +587,7 @@ star.compiler.term{
     | .cGet(Lc,E,Tp) => .cGet(Lc,frshnE(E,Sc),Tp)
     | .cCall(Lc,Op,Args,Tp) => .cCall(Lc,Op,frshnEs(Args,Sc),Tp)
     | .cOCall(Lc,Op,Args,Tp) => .cOCall(Lc,frshnE(Op,Sc),frshnEs(Args,Sc),Tp)
-    | .cRaise(Lc,Th,E,Tp) =>.cRaise(Lc,frshnE(Th,Sc),frshnE(E,Sc),Tp)
+    | .cThrw(Lc,E,Tp) =>.cThrw(Lc,frshnE(E,Sc),Tp)
     | .cSeq(Lc,L,R) =>.cSeq(Lc,frshnE(L,Sc),frshnE(R,Sc))
     | .cCnd(Lc,G,L,R) => valof{
       Sc1 = newVars(glVars(G,[]),Sc);
@@ -847,7 +847,7 @@ star.compiler.term{
     | .cGet(_,E,_) => validE(E,Vrs)
     | .cCall(_,_,Args,_) => {? E in Args *> validE(E,Vrs) ?}
     | .cOCall(_,Op,Args,_) => validE(Op,Vrs) && {? E in Args *> validE(E,Vrs) ?}
-    | .cRaise(_,T,E,_) => validE(T,Vrs) && validE(E,Vrs)
+    | .cThrw(_,E,_) => validE(E,Vrs)
     | .cSeq(_,L,R) => validE(L,Vrs) && validE(R,Vrs)
     | .cCnj(_,L,R) => valof{
       V1 = glVars(L,Vrs);
@@ -1049,7 +1049,7 @@ star.compiler.term{
     | .cCall(_,_,Args,_) => {? E in Args && presentInE(E,A,C) ?}
     | .cOCall(_,Op,Args,_) =>
       presentInE(Op,A,C) || {? E in Args && presentInE(E,A,C) ?}
-    | .cRaise(_,Th,E,_) => presentInE(Th,A,C) || presentInE(E,A,C)
+    | .cThrw(_,E,_) => presentInE(E,A,C)
     | .cSeq(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
     | .cCnj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
     | .cDsj(_,L,R) => presentInE(L,A,C) || presentInE(R,A,C)
@@ -1120,7 +1120,7 @@ star.compiler.term{
 	.strg(encodeSignature(Tp))])
     | .cOCall(Lc,Op,Args,Tp) => mkCons("ocll",[Lc::data,frzeExp(Op),
 	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))])
-    | .cRaise(Lc,Th,X,Tp) => mkCons("rais",[Lc::data,frzeExp(Th),
+    | .cThrw(Lc,X,Tp) => mkCons("throw",[Lc::data,
 	frzeExp(X),.strg(encodeSignature(Tp))])
     | .cSeq(Lc,L,R) => mkCons("seq",[Lc::data,frzeExp(L),frzeExp(R)])
     | .cCnj(Lc,L,R) => mkCons("cnj",[Lc::data,frzeExp(L),frzeExp(R)])
@@ -1214,8 +1214,8 @@ star.compiler.term{
       .cCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
     | .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
       .cOCall(thawLoc(Lc),thwTrm(Op),Args//thwTrm,decodeSig(Sig))
-    | .term("rais",[Lc,Th,Op,Sig]) =>
-      .cRaise(thawLoc(Lc),thwTrm(Th),thwTrm(Op),decodeSig(Sig))
+    | .term("throw",[Lc,Op,Sig]) =>
+      .cThrw(thawLoc(Lc),thwTrm(Op),decodeSig(Sig))
     | .term("seq",[Lc,L,R]) =>
       .cSeq(thawLoc(Lc),thwTrm(L),thwTrm(R))
     | .term("cnj",[Lc,L,R]) =>
@@ -1328,7 +1328,7 @@ star.compiler.term{
     | .cGet(Lc,E,Tp) => foldV(E,Mode,Fn,SoF)
     | .cCall(Lc,F,Args,Tp) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),Fn(.cVar(Lc,.cV(F,Tp)),Mode,SoF),Args)
     | .cOCall(_,Op,Args,_) => foldRight((Arg,SF)=>foldV(Arg,Mode,Fn,SF),foldV(Op,Mode,Fn,SoF),Args)
-    | .cRaise(_,_,X,_) => foldV(X,Mode,Fn,SoF)
+    | .cThrw(_,X,_) => foldV(X,Mode,Fn,SoF)
     | .cSeq(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
     | .cCnj(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))
     | .cDsj(_,L,R) => foldV(R,Mode,Fn,foldV(L,Mode,Fn,SoF))

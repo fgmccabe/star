@@ -22,7 +22,6 @@ star.compiler.dict{
     impls:map[string,implEntry].
     accessors:map[string,map[string,accEntry]].
     updaters:map[string,map[string,accEntry]].
-    trys:map[string,decl].
     }.
 
   public dict::=.dict(cons[scope],ref map[string,(cons[canonDef],cons[decl])]).
@@ -34,9 +33,8 @@ star.compiler.dict{
 	impls=Imps.
 	accessors=Accs.
 	updaters=Ups.
-	trys=Trys.
 	}) =>
-      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)\nTryBlocks: $(Trys)".
+      "Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cnts),\nImplementations: $(Imps),\nAccessors: $(Accs)\nUpdaters: $(Ups)".
   }
 
   public implementation display[dict] => {
@@ -97,29 +95,6 @@ star.compiler.dict{
   undeclareImplementation(Nm,.dict([Scope,..Env],Br)) =>
     .dict([Scope.impls=Scope.impls[~Nm],..Env],Br).
 
-  public findTryScope:(tipe,dict) => option[decl].
-  findTryScope(Tp,.dict(Scs,_)) => let{.
-    Nm = typeSurfaceNm(Tp).
-
-    findC([]) => .none.
-    findC([scope{trys=Trs},.._]) where Blk?=Trs[Nm] => .some(Blk).
-    findC([_,..Rest]) => findC(Rest).
-  .} in findC(Scs).
-
-  public topTryScope:(dict) => option[decl].
-  topTryScope(.dict(Scs,_)) => let{.
-
-    findC([]) => .none.
-    findC([scope{trys=Trs},.._]) where [_ -> Decl,.._] .= Trs => .some(Decl).
-    findC([_,..Rest]) => findC(Rest)
-  .} in findC(Scs).
-
-  public declareTryScope:(option[locn],tipe,string,dict) => dict.
-  declareTryScope(Lc,Tp,VrNm,.dict([Scope,..Env],Br)) => valof{
-    BlkNm = typeSurfaceNm(Tp);
-    valis .dict([Scope.trys=Scope.trys[BlkNm->.varDec(Lc,VrNm,VrNm,Tp)],..Env],Br)
-  }
-
   public declareAccessor:(option[locn],tipe,string,string,tipe,dict) => dict.
   declareAccessor(Lc,Tp,Fld,AccFn,AccTp,.dict([Scope,..Env],Br)) => valof{
     Key = tpName(Tp);
@@ -174,7 +149,6 @@ star.compiler.dict{
 	impls=[].
 	accessors=[].
 	updaters=[].
-	trys=[].
       },..Scs],Br).
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
@@ -190,7 +164,6 @@ star.compiler.dict{
 	impls=[].
 	accessors=[].
 	updaters=[].
-	trys=[].
       }],ref []).
 
   public stdTypes:cons[decl].

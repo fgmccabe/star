@@ -84,7 +84,7 @@ star.compiler.typeparse{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
     E = parseType(Ehs,Env);
-    valis thrType(A,R,E)
+    valis throwingType(A,R,E)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);
