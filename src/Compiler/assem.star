@@ -76,7 +76,7 @@ star.compiler.assem{
     | .iISub
     | .iIMul
     | .iIDiv(assemLbl)
-    | .iIMod
+    | .iIMod(assemLbl)
     | .iIAbs
     | .iIEq
     | .iILt
@@ -96,8 +96,8 @@ star.compiler.assem{
     | .iFAdd
     | .iFSub
     | .iFMul
-    | .iFDiv
-    | .iFMod
+    | .iFDiv(assemLbl)
+    | .iFMod(assemLbl)
     | .iFAbs
     | .iFEq
     | .iFLt
@@ -217,7 +217,7 @@ star.compiler.assem{
   mnem(.iISub,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(55)],Pc+1,Lts,Lns).
   mnem(.iIMul,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(56)],Pc+1,Lts,Lns).
   mnem(.iIDiv(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(57),.intgr(Tgt)],Pc+1,Lts,Lns).
-  mnem(.iIMod,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(58)],Pc+1,Lts,Lns).
+  mnem(.iIMod(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(58),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iIAbs,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(59)],Pc+1,Lts,Lns).
   mnem(.iIEq,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(60)],Pc+1,Lts,Lns).
   mnem(.iILt,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(61)],Pc+1,Lts,Lns).
@@ -237,8 +237,8 @@ star.compiler.assem{
   mnem(.iFAdd,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(75)],Pc+1,Lts,Lns).
   mnem(.iFSub,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(76)],Pc+1,Lts,Lns).
   mnem(.iFMul,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(77)],Pc+1,Lts,Lns).
-  mnem(.iFDiv,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(78)],Pc+1,Lts,Lns).
-  mnem(.iFMod,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(79)],Pc+1,Lts,Lns).
+  mnem(.iFDiv(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(78),.intgr(Tgt)],Pc+1,Lts,Lns).
+  mnem(.iFMod(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(79),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iFAbs,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(80)],Pc+1,Lts,Lns).
   mnem(.iFEq,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(81)],Pc+1,Lts,Lns).
   mnem(.iFLt,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(82)],Pc+1,Lts,Lns).
@@ -473,7 +473,7 @@ star.compiler.assem{
     CH1 = CH0-2;
     valis stkHwm(Ins,CH1,H0)
   }
-  stkHwm([.iIMod,..Ins],CH0,H0) => valof{
+  stkHwm([.iIMod(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-2;
     valis stkHwm(Ins,CH1,H0)
   }
@@ -551,11 +551,11 @@ star.compiler.assem{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
-  stkHwm([.iFDiv,..Ins],CH0,H0) => valof{
+  stkHwm([.iFDiv(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
-  stkHwm([.iFMod,..Ins],CH0,H0) => valof{
+  stkHwm([.iFMod(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
@@ -695,7 +695,7 @@ star.compiler.assem{
   showIns(.iISub,Pc) => "ISub".
   showIns(.iIMul,Pc) => "IMul".
   showIns(.iIDiv(V),Pc) => "IDiv #(V)".
-  showIns(.iIMod,Pc) => "IMod".
+  showIns(.iIMod(V),Pc) => "IMod #(V)".
   showIns(.iIAbs,Pc) => "IAbs".
   showIns(.iIEq,Pc) => "IEq".
   showIns(.iILt,Pc) => "ILt".
@@ -715,8 +715,8 @@ star.compiler.assem{
   showIns(.iFAdd,Pc) => "FAdd".
   showIns(.iFSub,Pc) => "FSub".
   showIns(.iFMul,Pc) => "FMul".
-  showIns(.iFDiv,Pc) => "FDiv".
-  showIns(.iFMod,Pc) => "FMod".
+  showIns(.iFDiv(V),Pc) => "FDiv #(V)".
+  showIns(.iFMod(V),Pc) => "FMod #(V)".
   showIns(.iFAbs,Pc) => "FAbs".
   showIns(.iFEq,Pc) => "FEq".
   showIns(.iFLt,Pc) => "FLt".

@@ -34,7 +34,6 @@ star.compiler.peephole{
   varRead(Vr,[I,..Is]) => vrRead(Vr,I) || varRead(Vr,Is).
 
   vrRead(Vr,.iBlock(_,Is)) => varRead(Vr,Is).
-  vrRead(Vr,.iTry(_,Is)) => varRead(Vr,Is).
   vrRead(Vr,.iLdL(V)) => V==Vr.
   vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
   vrRead(_,_) default => .false.
@@ -44,7 +43,6 @@ star.compiler.peephole{
   dropVar(Vr,[.iStL(Vr),..Is]) => [.iDrop,..dropVar(Vr,Is)].
   dropVar(Vr,[.iStV(Vr),..Is]) => dropVar(Vr,Is).
   dropVar(Vr,[.iBlock(Tp,Bs),..Is]) => [.iBlock(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
-  dropVar(Vr,[.iTry(Tp,Bs),..Is]) => [.iTry(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
   dropVar(Vr,[.iLbl(Lb,I),..Is]) => valof{
     IRx = dropVar(Vr,[I]);
     if isEmpty(IRx) then
@@ -60,11 +58,10 @@ star.compiler.peephole{
 
   dropUnreachable([]) => [].
   dropUnreachable([.iBreak(Lvl),.._]) => [.iBreak(Lvl)].
+  dropUnreachable([.iResult(Lvl,Lbl),.._]) => [.iResult(Lvl,Lbl)].
   dropUnreachable([.iLoop(Lvl),.._]) => [.iLoop(Lvl)].
-  dropUnreachable([.iEndTry(Lvl),.._]) => [.iEndTry(Lvl)].
-  dropUnreachable([.iTryRslt(Lvl),.._]) => [.iTryRslt(Lvl)].
-  dropUnreachable([.iThrow,.._]) => [.iThrow].
   dropUnreachable([.iRet,.._]) => [.iRet].
+  dropUnreachable([.iXRet,.._]) => [.iXRet].
   dropUnreachable([.iTCall(Lb),.._]) => [.iTCall(Lb)].
   dropUnreachable([.iTOCall(Ar),.._]) => [.iTOCall(Ar)].
   dropUnreachable([.iAbort,.._]) => [.iAbort].
@@ -82,6 +79,7 @@ star.compiler.peephole{
   peep([],_) => [].
   peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],Lbls).
   peep([.iStL(Off),.iLdL(Off),.iRet,.._],_) => [.iRet].
+  peep([.iStL(Off),.iLdL(Off),.iXRet,.._],_) => [.iXRet].
   peep([.iStL(Off),.iLdL(Off),..Ins],Lbls) => peep([.iTL(Off),..Ins],Lbls).
   peep([.iRot(0),..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iLdL(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
@@ -89,23 +87,14 @@ star.compiler.peephole{
   peep([.iLdA(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iLdA(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iNth(_),.iDrop,..Ins],Lbls) => peep([.iDrop,..Ins],Lbls).
-  peep([.iBlock(Tpe,Is),..Ins],Lbls) => [.iBlock(Tpe,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
-  peep([.iLbl(Lb,.iBlock(Tpe,Is)),..Ins],Lbls) => valof{
+  peep([.iBlock(L,Is),..Ins],Lbls) => [.iBlock(L,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
+  peep([.iLbl(Lb,.iBlock(Lvl,Is)),..Ins],Lbls) => valof{
     Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
     if lblReferenced(Lb,Is0) then
-      valis [.iLbl(Lb,.iBlock(Tpe,Is0)),..peep(Ins,Lbls)]
+      valis [.iLbl(Lb,.iBlock(Lvl,Is0)),..peep(Ins,Lbls)]
     else
     valis peepCode(Is0++Ins,Lbls)
   }
-  peep([.iLbl(Lb,.iTry(Tpe,Is)),..Ins],Lbls) => valof{
-    Is0 = peepCode(Is,[(Lb,Is),..Lbls]);
-    if lblReferenced(Lb,Is0) then
-      valis [.iLbl(Lb,.iTry(Tpe,Is0)),..peep(Ins,Lbls)]
-    else
-    valis [.iTry(Tpe,Is0),..peep(Ins,Lbls)]
-  }
-  peep([.iTry(Tpe,Is),..Ins],Lbls) => 
-    [.iTry(Tpe,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
   peep([.iIf(Lb),..Ins],Lbls) =>
     [.iIf(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iIfNot(Lb),..Ins],Lbls) =>
@@ -124,8 +113,7 @@ star.compiler.peephole{
     [.iCCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iBreak(Lb),.._],Lbls) =>
     [.iBreak(resolveLbl(Lb,Lbls))].
-  peep([.iEndTry(Lb),.._],Lbls) => [.iEndTry(resolveLbl(Lb,Lbls))].
-  peep([.iTryRslt(Lb),.._],Lbls) => [.iTryRslt(resolveLbl(Lb,Lbls))].
+  peep([.iResult(Cnt,Lb),.._],Lbls) => [.iResult(Cnt,resolveLbl(Lb,Lbls))].
   peep([.iLdSav(Lb),..Ins],Lbls) =>
     [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
@@ -137,8 +125,10 @@ star.compiler.peephole{
   lblReferenced(_,[]) => .false.
   lblReferenced(Lb,[.iBreak(Lb),.._]) => .true.
   lblReferenced(Lb,[.iLoop(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iEndTry(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iTryRslt(Lb),.._]) => .true.
+  lblReferenced(Lb,[.iResult(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iXCall(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iXOCall(_,Lb),.._]) => .true.
+  lblReferenced(Lb,[.iXEscape(_,Lb),.._]) => .true.
   lblReferenced(Lb,[.iIf(Lb),.._]) => .true.
   lblReferenced(Lb,[.iIfNot(Lb),.._]) => .true.
   lblReferenced(Lb,[.iCmp(Lb),.._]) => .true.
@@ -154,8 +144,6 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iLbl(_,I),..Ins]) =>
     lblReferenced(Lb,[I]) || lblReferenced(Lb,Ins).
   lblReferenced(Lb,[.iBlock(_,I),..Ins]) =>
-    lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
-  lblReferenced(Lb,[.iTry(_,I),..Ins]) =>
     lblReferenced(Lb,I) || lblReferenced(Lb,Ins).
   lblReferenced(Lb,[.iLdSav(Lb),.._]) => .true.
   lblReferenced(Lb,[_,..Ins]) => lblReferenced(Lb,Ins).

@@ -13,7 +13,7 @@ star.compiler.intrinsics{
     _ == _ default => .false.
   }
 
-  public intrinsic:(string) => option[(tipe,assemOp,boolean,tailMode)].
+  public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean,tailMode)].
   intrinsic(Es) => case Es in {
 #(Intrinsics)
     | _ default => .none

@@ -228,7 +228,7 @@ stackHwm([iIDiv(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
-stackHwm([iIMod|Ins],CH0,H0,Hwm) :-
+stackHwm([iIMod(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-2,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
@@ -304,11 +304,11 @@ stackHwm([iFMul|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
-stackHwm([iFDiv|Ins],CH0,H0,Hwm) :-
+stackHwm([iFDiv(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
-stackHwm([iFMod|Ins],CH0,H0,Hwm) :-
+stackHwm([iFMod(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
@@ -481,7 +481,7 @@ localHwm([iIMul|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iIDiv(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iIMod|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iIMod(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iIAbs|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -521,9 +521,9 @@ localHwm([iFSub|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iFMul|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iFDiv|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iFDiv(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iFMod|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iFMod(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iFAbs|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -755,8 +755,9 @@ mnem([iIDiv(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[57,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIMod|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[58|M],Cdx) :-
+mnem([iIMod(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[58,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iIAbs|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[59|M],Cdx) :-
       Pc1 is Pc+1,
@@ -817,11 +818,13 @@ mnem([iFSub|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[76|M],Cdx) :-
 mnem([iFMul|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[77|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFDiv|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[78|M],Cdx) :-
+mnem([iFDiv(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[78,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFMod|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[79|M],Cdx) :-
+mnem([iFMod(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[79,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
+      findLevel(W,Lbls,0,Lvl),
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iFAbs|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[80|M],Cdx) :-
       Pc1 is Pc+1,
@@ -1174,8 +1177,9 @@ showMnem(iIDiv(V),Pc,sq([PcDx,ss(": "),ss("IDiv"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
   VV=ss(V),!,
   true.
-showMnem(iIMod,Pc,sq([PcDx,ss(": "),ss("IMod")])) :- !,
+showMnem(iIMod(V),Pc,sq([PcDx,ss(": "),ss("IMod"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
+  VV=ss(V),!,
   true.
 showMnem(iIAbs,Pc,sq([PcDx,ss(": "),ss("IAbs")])) :- !,
   showPc(Pc,PcDx),
@@ -1236,11 +1240,13 @@ showMnem(iFSub,Pc,sq([PcDx,ss(": "),ss("FSub")])) :- !,
 showMnem(iFMul,Pc,sq([PcDx,ss(": "),ss("FMul")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iFDiv,Pc,sq([PcDx,ss(": "),ss("FDiv")])) :- !,
+showMnem(iFDiv(V),Pc,sq([PcDx,ss(": "),ss("FDiv"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
+  VV=ss(V),!,
   true.
-showMnem(iFMod,Pc,sq([PcDx,ss(": "),ss("FMod")])) :- !,
+showMnem(iFMod(V),Pc,sq([PcDx,ss(": "),ss("FMod"), ss(" "), VV])) :- !,
   showPc(Pc,PcDx),
+  VV=ss(V),!,
   true.
 showMnem(iFAbs,Pc,sq([PcDx,ss(": "),ss("FAbs")])) :- !,
   showPc(Pc,PcDx),
