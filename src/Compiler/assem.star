@@ -172,7 +172,7 @@ star.compiler.assem{
   mnem(.iEntry(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(11),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iRet,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(12)],Pc+1,Lts,Lns).
   mnem(.iXRet,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(13)],Pc+1,Lts,Lns).
-  mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lt1,Lcs,Lns) =>
+  mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lts,Lcs,Lns) =>
     ([.intgr(14),.intgr(U),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
   mnem(.iBreak(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(15),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iResult(U,V),Pc,Lbls,Lts,Lcs,Lns) where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(16),.intgr(U),.intgr(Lvl)],Pc+1,Lts,Lns).

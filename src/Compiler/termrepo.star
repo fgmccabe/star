@@ -40,11 +40,17 @@ star.compiler.term.repo{
   addToRepo(.repo(Root,Man),.pkg(Pk,Vr),Kind,Text) => valof{
     Ext = extensionMapping(Kind);
     Fn = "#(Pk).#(Vr::string)#(Ext)";
-    FU = ? resolveUri(Root,Fn::uri);
-    putResource(FU,Text);
-    valis flushRepo(.repo(Root,addToManifest(Man,.pkg(Pk,Vr),Kind,Fn)))
+    try{
+      FU = ? resolveUri(Root,Fn::uri);
+      putResource(FU,Text);
+      valis flushRepo(.repo(Root,addToManifest(Man,.pkg(Pk,Vr),Kind,Fn)))
+    } catch {
+      _ => {
+	showMsg("cannot resolve #(Fn)");
+	valis .repo(Root,Man)
+      }
+    }
   }
-
 
   public addSigToRepo:(termRepo,pkg,string) => termRepo.
   addSigToRepo(.repo(Root,Man),Pk,Sig) =>
