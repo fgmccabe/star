@@ -625,7 +625,7 @@ star.compiler.gencode{
 
   caseHashes:all e ~~ (cons[cCase[e]],integer)=>cons[(option[locn],cExp,integer,e)].
   caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,
-      (try caseHash(Pt)%Mx catch exception in {_ => 0}),Ex)).
+      (try caseHash(Pt)%Mx catch {_ => 0}),Ex)).
 
   caseHash:(cExp)=>integer.
   caseHash(E) => case E in {

@@ -34,19 +34,15 @@ varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
-vrRead(Vr,iTry(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iLdL(Vr)).
+vrRead(Vr,iLdA(Vr)).
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
 dropVar(_,[],[]).
 dropVar(Vr,[iTL(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStV(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
-dropVar(Vr,[iLocal(Vr,_)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
-  dropVar(Vr,In,Inx),
-  dropVar(Vr,Is,Isx).
-dropVar(Vr,[iTry(Sig,In)|Is],[iTry(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
   dropVar(Vr,Is,Isx).
 dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
@@ -62,8 +58,6 @@ dropVar(Vr,[I|Ins],[I|Ix]) :- dropVar(Vr,Ins,Ix).
 dropUnreachable([],[]) :-!.
 dropUnreachable([iBreak(Lvl)|_],[iBreak(Lvl)]) :-!.
 dropUnreachable([iLoop(Lvl)|_],[iLoop(Lvl)]) :-!.
-dropUnreachable([iEndTry(Lvl)|_],[iEndTry(Lvl)]) :-!.
-dropUnreachable([iTryRslt(Lvl)|_],[iTryRslt(Lvl)]) :-!.
 dropUnreachable([iResult(Lvl,Lbl)|_],[iResult(Lvl,Lbl)]) :-!.
 dropUnreachable([iThrow|_],[iThrow]) :-!.
 dropUnreachable([iRet|_],[iRet]) :-!.
@@ -110,9 +104,6 @@ peep([iLbl(Lb,iTry(Tp,IB))|Is],Lbls, Ins) :-!,
   (lblReferenced(Lb,IB0) ->
    Ins=[iLbl(Lb,iTry(Tp,IB0))|Is0];
    Ins=[iTry(Tp,IB0)|Is0]).
-peep([iTry(Tpe,IB)|Is],Lbls, [iTry(Tpe,IBs)|Ins]) :-
-  peepCode(IB,Lbls,IBs),
-  peep(Is,Lbls, Ins).
 peep([iIf(Lb)|In],Lbls,[iIf(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
@@ -142,11 +133,7 @@ peep([iCCmp(Lb)|In],Lbls,[iCCmp(LLb)|Inx]) :-
   peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
-peep([iEndTry(Lb)|_],Lbls,[iEndTry(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iTryRslt(Lb)|_],Lbls,[iTryRslt(LLb)]) :-
-  resolveLblRef(Lb,Lbls,LLb).
-peep([iResult(Lvl,Lb)|_],Lbls,[iResult(Lvl,LLb)]) :-
+peep([iResult(Cnt,Lb)|_],Lbls,[iResult(Cnt,LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
 peep([iRetire|_],_,[iRetire]) :-!.
@@ -159,8 +146,6 @@ peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 lblReferenced(Lb,[iBreak(Lb)|_]).
 lblReferenced(Lb,[iLoop(Lb)|_]).
 lblReferenced(Lb,[iResult(_,Lb)|_]).
-lblReferenced(Lb,[iEndTry(Lb)|_]).
-lblReferenced(Lb,[iTryRslt(Lb)|_]).
 lblReferenced(Lb,[iIf(Lb)|_]).
 lblReferenced(Lb,[iIfNot(Lb)|_]).
 lblReferenced(Lb,[iCmp(Lb)|_]).
@@ -172,8 +157,6 @@ lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-
-  lblReferenced(Lb,I).
-lblReferenced(Lb,[iTry(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(Lb)|_]).
 lblReferenced(Lb,[iXCall(_,Lb)|_]).
