@@ -22,7 +22,7 @@ star.compiler.canon{
   .update(option[locn],canon,string,canon) |
   .csexp(option[locn],canon,cons[rule[canon]],tipe) |
   .trycatch(option[locn],canon,tipe,cons[rule[canon]],tipe) |
-  .thrw(option[locn],canon,tipe,tipe) |
+  .thrw(option[locn],canon,tipe) |
   .match(option[locn],canon,canon) |
   .conj(option[locn],canon,canon) |
   .disj(option[locn],canon,canon) |
@@ -88,7 +88,7 @@ star.compiler.canon{
       | .enm(_,_,Tp) => Tp
       | .csexp(_,_,_,Tp) => Tp
       | .trycatch(_,_,_,_,Tp) => Tp
-      | .thrw(_,_,Tp,_) => Tp
+      | .thrw(_,_,Tp) => Tp
       | .lambda(_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
@@ -140,7 +140,7 @@ star.compiler.canon{
       | .get(Lc,_,_) => Lc
       | .csexp(Lc,_,_,_) => Lc
       | .trycatch(Lc,_,_,_,_) => Lc
-      | .thrw(Lc,_,_,_) => Lc
+      | .thrw(Lc,_,_) => Lc
       | .match(Lc,_,_) => Lc
       | .conj(Lc,_,_) => Lc
       | .disj(Lc,_,_) => Lc
@@ -254,7 +254,7 @@ star.compiler.canon{
       "#(leftParen(OPr,Pr))case #(showCanon(Exp,Rp,Sp)) in #(showCases(Cs,showCanon,Sp))#(rgtParen(OPr,Pr))"
     | .trycatch(_,Exp,_,H,_) where (OPr,Rp) ?= isPrefixOp("try") =>
       "#(leftParen(OPr,Pr))try #(showCanon(Exp,Rp,Sp)) catch #(showCases(H,showCanon,Sp++"  "))#(rgtParen(OPr,Pr))"
-    | .thrw(_,Exp,_,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
+    | .thrw(_,Exp,_) where (OPr,Rp) ?= isPrefixOp("throw") =>
       "#(leftParen(OPr,Pr)) throw #(showCanon(Exp,Rp,Sp))#(rgtParen(OPr,Pr))"
     | .match(_,Ptn,Gen) where (Lp,OPr,Rp) ?= isInfixOp(".=") =>
       "#(leftParen(OPr,Pr))#(showCanon(Ptn,Lp,Sp)) .= #(showCanon(Gen,Rp,Sp))#(rgtParen(OPr,Pr))"

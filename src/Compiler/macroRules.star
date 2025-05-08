@@ -59,7 +59,6 @@ star.compiler.macro.rules{
     "generator\${}" -> [(.expression,generatorMacro)],
     "task\${}" -> [(.expression,taskMacro)],
     "yield" -> [(.actn,yieldMacro)],
-    "raises" -> [(.typeterm,raisesMacro)],
     "async" -> [(.typeterm,asyncMacro)],
     "->" -> [(.expression,arrowMacro),(.pattern,arrowMacro)],
     "-->" -> [(.statement,grammarMacro),
@@ -466,7 +465,7 @@ star.compiler.macro.rules{
   becomes a task:
 
   tsk(this, let{
-      tk:async () => _ raises _.
+      tk:async () => _ throws _.
       tk() => valof { A }
       } in ζ tk)
 
@@ -478,8 +477,8 @@ star.compiler.macro.rules{
     Anon = .nme(Lc,"_");
     Empty = rndTuple(Lc,[]);
     -- Build type annotation:
-    -- tk:async () => _ raises _.
-    TkTp = mkTypeAnnotation(Lc,Tk,mkAsync(Lc,binary(Lc,"raises",mkFunctionType(Lc,Empty,Anon),Anon)));
+    -- tk:async () => _ throws _.
+    TkTp = mkTypeAnnotation(Lc,Tk,mkAsync(Lc,mkThrowingFunType(Lc,Empty,Anon,Anon)));
 
     -- Build function:
     -- tk() => valof { A }
@@ -523,12 +522,6 @@ star.compiler.macro.rules{
       (Lc,P,R) ?= isBinary(A,":") && (LLc,T,E) ?= isBinary(R,"=>") =>
     .active(binary(Lc,"=>",binary(Lc,":",P,T),E)).
   caseRuleMacro(A,_) default => .inactive.
-
-  -- Convert T raises E to raises E |: T
-  raisesMacro(A,.typeterm) where
-      (Lc,L,R) ?= isBinary(A,"raises") =>
-    .active(binary(Lc,"|:",unary(Lc,"raises",R),L)).
-  raisesMacro(_,_) default => .inactive.
 
   -- Convert async T to (this:task[_]) |: T.
   asyncMacro(A,.typeterm) where
