@@ -356,9 +356,9 @@ star.compiler.checker{
     RTp = newTypeVar("_R");
     ETp = newTypeVar("_E");
 
-    if sameType(fnType(ATp,Rtp),PTp,Env) && sameType(.voidType,ETp,Env) then
+    if sameType(fnType(ATp,RTp),PTp,Env) && sameType(.voidType,ETp,Env) then
       valis (ATp,RTp,ETp)
-    else if sameType(throwingType(ATp,Rtp,ETp),PTp,Env) then
+    else if sameType(throwingType(ATp,RTp,ETp),PTp,Env) then
       valis (ATp,RTp,ETp)
     else{
       reportError("expecting a function type, not $(PTp)",Lc);
@@ -411,7 +411,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{
     V = genName(Lc,Id);
-    (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,Env,Path);
+    (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,ErTp,Env,Path);
     (Cond,Ev1) = checkCond(binary(Lc,"==",V,A),ErTp,Ev0,Path);
     valis (Ptn,mergeGoal(Lc,PCond,.some(Cond)),Ev1)
   }.
@@ -493,13 +493,20 @@ star.compiler.checker{
     Fun = typeOfExp(Op,consType(At,Tp),ErTp,Env,Path);
 
     (Q,ETp) = evidence(deRef(At),Env);
-    FaceTp = ? faceOfType(ETp,Env);
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
-    (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
-    Args = fillinElementPtns(Lc,Els,Face);
+    try{
+      FaceTp = ? faceOfType(ETp,Env);
+      (Cx,Face) = deConstrain(FaceTp);
+      Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+      (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
+      Args = fillinElementPtns(Lc,Els,Face);
 
-    valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
+      valis (.apply(Lc,Fun,Args,Tp),Cond,Ev)
+    } catch {
+      _ => {
+	reportError("$(At) has no fields",Lc);
+	valis (.anon(Lc,Tp),.none,Env)
+      }
+    }
   }
   typeOfPtn(A,Tp,_,Env,_) => valof{
     Lc = locOf(A);
@@ -690,7 +697,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("expected arg type $(ATp)");
 
-    (As,ACnd,E0) = typeOfArgPtn(Ar,ATp,ErTpEs,Path);
+    (As,ACnd,E0) = typeOfArgPtn(Ar,ATp,ErTp,Es,Path);
 
     if traceCanon! then
       showMsg("lambda arg ptn $(As)");
@@ -699,18 +706,18 @@ star.compiler.checker{
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,ErTp,E0,Path);
-      Rep = typeOfExp(R,Rt,ErTp,E1,Path);
+      Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 
       valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
     } else{
-      Rep = typeOfExp(R,Rt,E0,Path);
+      Rep = typeOfExp(R,RTp,ErTp,E0,Path);
       valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Tp);
     }
   }
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,E) ?= isThunk(A) =>
     typeOfThunk(Lc,E,Tp,Env,Path).
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,E) ?= isThunkRef(A) => valof{
-    ThExp = typeOfExp(E,thunkType(Tp),voidType,Env,Path);
+    ThExp = typeOfExp(E,thunkType(Tp),.voidType,Env,Path);
 
     if traceCanon! then
       showMsg("thunk ref $(ThExp)\:$(Tp)");
@@ -731,13 +738,20 @@ star.compiler.checker{
     ConTp = consType(FceTp,Tp);
     Fun = typeOfExp(Op,ConTp,ErTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
-    FaceTp = ? faceOfType(ETp,Env);
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
+    try{
+      FaceTp = ? faceOfType(ETp,Env);
+      (Cx,Face) = deConstrain(FaceTp);
+      Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
-    (Defs,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
+      (Defs,Decls,ThEnv) = thetaEnv(Lc,genNewName(Pth,"θ"),Els,Face,Base);
 
-    valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
+      valis formTheta(Lc,Fun,Face,Defs,Decls,Tp)
+    } catch {
+      _ => {
+	reportError("$(FceTp) has no fields",Lc);
+	valis .anon(Lc,Tp)
+      }
+    }
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
     if traceCanon! then{
@@ -880,19 +894,19 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Ac) ?= isValof(A) => valof{
-    (Act,_) = checkAction(Ac,Tp,ErTp,Env,Path);
+    (Act,_) = checkActions(Lc,Ac,Tp,ErTp,Env,Path);
     valis .vlof(Lc,Act,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Body,Rls) ?= isTry(A) => valof{
     BErTp = newTypeVar("E");
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
-    NB = typeOfExp(Body,Tp,BErTp,Ev0,Path);
+    NB = typeOfExp(Body,Tp,BErTp,Env,Path);
     HRls = checkRules(Rls,BErTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
     valis .trycatch(Lc,NB,BErTp,HRls,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
     V = typeOfExp(E,ErTp,.voidType,Env,Path);
-    valis .thrwC(Lc,.anon(Lc,ErTp),V,Tp)
+    valis .thrw(Lc,V,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
     MsgTp = newTypeVar("_M");
@@ -958,13 +972,15 @@ star.compiler.checker{
     At = .tupleType(Vrs);
     ExTp = newTypeVar("F");
     Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
-    FnTp = fnType(At,Tp);
 
-    if sameType(ExTp,FnTp,Env) then{
-      Args = typeOfExps(As,Vrs,Lc,[],Env,Path);      
+    if sameType(ExTp,fnType(At,Tp),Env) then {
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
       valis .apply(Lc,Fun,Args,Tp)
+    } else if sameType(ExTp,throwingType(At,Tp,ErTp),Env) then {
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
+	valis .tapply(Lc,Fun,Args,Tp,ErTp)
     } else{
-      reportError("type of $(Op)\:$(ExTp) not consistent with $(FnTp)",Lc);
+      reportError("type of $(Op)\:$(ExTp) not consistent with $(ExTp) => $(Tp)",Lc);
       valis .vr(Lc,"_",Tp)
     }
   }
@@ -1001,9 +1017,18 @@ star.compiler.checker{
 		    typeOfExp(E,VlTp,.voidType,Env,Path)))),funType([],Tp)))),Tp),Tp)
   }
 
+  checkActions:(option[locn],cons[ast],tipe,tipe,dict,string) => (canonAction,dict).
+  checkActions(Lc,[],_Tp,_ErTp,Env,_Path) => (.doNop(Lc),Env).
+  checkActions(_,[A],Tp,ErTp,Env,Path) => checkAction(A,Tp,ErTp,Env,Path).
+  checkActions(Lc,[A,..As],Tp,ErTp,Env,Path) => valof{
+    (LL,E1) = checkAction(A,Tp,ErTp,Env,Path);
+    (RR,Ex) = checkActions(locOf(A),As,Tp,ErTp,E1,Path);
+    valis (.doSeq(Lc,LL,RR),Ex)
+  }
+
   checkAction:(ast,tipe,tipe,dict,string) => (canonAction,dict).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,[St]) ?= isBrTuple(A) =>
-    checkAction(St,Tp,Env,Path).
+    checkAction(St,Tp,ErTp,Env,Path).
   checkAction(A,_Tp,_,Env,Path) where (Lc,[]) ?= isBrTuple(A) =>
     (.doNop(Lc),Env).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,L,R) ?= isActionSeq(A) => valof{
@@ -1047,12 +1072,12 @@ star.compiler.checker{
   }
   checkAction(A,_,ErTp,Env,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) =>
     checkAssignment(Lc,Lhs,Rhs,ErTp,Env,Path).
-  checkAction(A,Tp,ErTp,Env,Path) where (Lc,Body,E,Rls) ?= isTryCatch(A) => valof{
+  checkAction(A,Tp,ErTp,Env,Path) where (Lc,Body,Rls) ?= isTry(A) => valof{
     ETp = newTypeVar("_E");
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
-    (NB,_) = checkAction(Body,Tp,ETp,Ev0,Path);
+    (NB,_) = checkAction(Body,Tp,ETp,Env,Path);
     Hs = checkRules(Rls,ETp,Tp,ErTp,Env,Path,
-      (AA,_,Eva,_)=>valof{
+      (AA,_,_,Eva,_)=>valof{
 	(HA,_)=checkAction(AA,Tp,ErTp,Eva,Path);
 	valis HA
       },[],.none);
@@ -1098,7 +1123,7 @@ star.compiler.checker{
     Gv = typeOfExp(G,ETp,ErTp,Env,Path);
 
     Rules = checkRules(Cases,ETp,Tp,ErTp,Env,Path,
-      (Ac,_,E,Path) => valof{
+      (Ac,_,_,E,Path) => valof{
 	(Act,_) = checkAction(Ac,Tp,ErTp,E,Path);
 	valis Act
       },[],.none);
@@ -1208,7 +1233,7 @@ star.compiler.checker{
   mergeCond(Lc,Gl,.some(G2)) => .conj(Lc,Gl,G2).
   
   checkCond:(ast,tipe,dict,string) => (canon,dict).
-  checkCond(A,ErTP,Env,Path) => checkGoal(A,ErTp,Env,Path).
+  checkCond(A,ErTp,Env,Path) => checkGoal(A,ErTp,Env,Path).
 
   checkGoal:(ast,tipe,dict,string) => (canon,dict).
   checkGoal(A,ErTp,Env,Path) where (Lc,L,R) ?= isConjunct(A) => valof{
