@@ -56,26 +56,27 @@ star.compiler.gencode{
   genDef(.lblDef(_Lc,Lbl,Tp,Ix),_) => .struct(Lbl,Tp,Ix).
 
   genFun:(option[locn],string,tipe,cons[cExp],cExp,map[string,(tipe,srcLoc)]) => codeSegment.
-  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
+  genFun(Lc,Nm,Tp,Args,Val,Glbs) where iThrowingType(Tp) => valof{
     Ctx = emptyCtx(Glbs);
 
     if traceCodegen! then
       showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\:$(Tp)~$(Tp::ltipe)");
 
     AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
-
-    BlkSig = nearlyFlatSig(funTypeRes(Tp)::ltipe);
-
     AbrtLbl = defineLbl(Ctx,"Abrt");
+
+    ExLbl = defineLbl(Ctx,"Exit");
 
     AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
 
-    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,AbrtBrks,Ctx,.some([]));
+    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,ExLbl,AbrtBrks,Ctx,.some([]));
 
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.noMore,Ct1,Stk0);
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,ExLbl,.noMore,Ct1,Stk0);
     
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
-    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(flatSig,FC++EC++[.iRet]))]++AbrtCde;
+    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
+	  [.iLbl(ExLbl,.iBlock(1,FC++EC++[.iRet])),.iXRet])),..AbrtCde];
+    
     Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
 
     if traceCodegen! then
