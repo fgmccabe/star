@@ -87,6 +87,33 @@ star.compiler.gencode{
 
     valis Peeped;
   }
+  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
+    Ctx = emptyCtx(Glbs);
+
+    if traceCodegen! then
+      showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\:$(Tp)~$(Tp::ltipe)");
+
+    AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
+    AbrtLbl = defineLbl(Ctx,"Abrt");
+
+    AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
+
+    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,AbrtLbl,AbrtBrks,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,AbrtLbl,.noMore,Ct1,Stk0);
+    
+    C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
+    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,FC++EC++[.iRet])),..AbrtCde];
+    
+    Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
+
+    if traceCodegen! then
+      showMsg("non-peep code is $(Code)");
+    Peeped = peepOptimize(Code);
+    if traceCodegen! then
+      showMsg("peeped code is $(Peeped)");
+
+    valis Peeped;
+  }
 
   genGlb:(option[locn],string,tipe,cExp,map[string,(tipe,srcLoc)]) => codeSegment.
   genGlb(Lc,Nm,Tp,Val,Glbs) => valof{
@@ -99,7 +126,7 @@ star.compiler.gencode{
 
     BlkSig = nearlyFlatSig(Tp::ltipe);
 
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.notLast,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,AbrtLbl,.notLast,Ctx,.some([]));
     
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++chLine(.none,Lc)++
       [.iLbl(AbrtLbl,.iBlock(BlkSig,EC++[.iTG(Nm),.iRet]))]
@@ -118,24 +145,24 @@ star.compiler.gencode{
 
   compReturn ~> (multi[assemOp],codeCtx,stack).
 
-  compExp:(cExp,option[locn],breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compExp(Exp,OLc,Brks,Last,Ctx,Stk) => case Exp in {
+  compExp:(cExp,option[locn],breakLvls,assemLbl,tailMode,codeCtx,stack) => compReturn.
+  compExp(Exp,OLc,Brks,ExLbl,Last,Ctx,Stk) => case Exp in {
     | E where isGround(E) =>
       genReturn(Last,[.iLdC(Exp::data)],Ctx,pshStack(typeOf(Exp),Stk))
     | .cVar(Lc,Vr) => compVar(Vr,Lc,Last,Ctx,Stk)
     | .cVoid(Lc,Tp) => genReturn(Last,[.iLdV],Ctx,pshStack(Tp,Stk))
     | .cAnon(Lc,Tp) => genReturn(Last,[.iLdV],Ctx,pshStack(Tp,Stk))
     | .cTerm(Lc,Nm,Args,Tp) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
+      (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++
 	ArgCode++[.iAlloc(.tLbl(Nm,[|Args|])),frameIns(Stk1)],Ctx,Stk1)
     }
     | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
+      (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++
-	ArgCode++[Ins]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
+	ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
     }
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) => valof{
       (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
@@ -152,6 +179,12 @@ star.compiler.gencode{
       else
       valis (chLine(OLc,Lc)++ArgCode++
 	[.iCall(.tLbl(Nm,[|Args|])),frameIns(Stk1)],Ctx,Stk1)
+    }
+    | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
+      (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
+      Stk1 = pshStack(Tp,Stk);
+      valis genReturn(Last,chLine(OLc,Lc)++
+	ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
     }
     | .cOCall(Lc,Op,Args,Tp) => valof{
       (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Ctx,Stk);

@@ -901,8 +901,11 @@ star.compiler.checker{
     BErTp = newTypeVar("E");
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
     NB = typeOfExp(Body,Tp,BErTp,Env,Path);
-    HRls = checkRules(Rls,BErTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
-    valis .trycatch(Lc,NB,BErTp,HRls,Tp)
+    HEnv = declareVar(ErNm,ErNm,Lc,BErTp,.none,Env);
+
+    HandlerCase = mkCaseExp(Lc,.nme(Lc,ErNm),Rls);
+    Handler = typeOfExp(HandlerCase,Tp,ErTp,HEnv,Path);
+    valis .trycatch(Lc,NB,.vr(Lc,ErNm,BErTp),Handler,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
     V = typeOfExp(E,ErTp,.voidType,Env,Path);
@@ -1076,12 +1079,11 @@ star.compiler.checker{
     ETp = newTypeVar("_E");
     ErNm = qualifiedName(Path,.tractMark,tpName(deRef(ErTp)));
     (NB,_) = checkAction(Body,Tp,ETp,Env,Path);
-    Hs = checkRules(Rls,ETp,Tp,ErTp,Env,Path,
-      (AA,_,_,Eva,_)=>valof{
-	(HA,_)=checkAction(AA,Tp,ErTp,Eva,Path);
-	valis HA
-      },[],.none);
-    valis (.doTry(Lc,NB,ETp,Hs),Env)
+    HEnv = declareVar(ErNm,ErNm,Lc,ETp,.none,Env);
+
+    HandlerCase = mkCaseExp(Lc,.nme(Lc,ErNm),Rls);
+    (Handler,_) = checkAction(HandlerCase,Tp,ErTp,HEnv,Path);
+    valis (.doTry(Lc,NB,.vr(Lc,ErNm,ETp),Handler),Env)
   }
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);

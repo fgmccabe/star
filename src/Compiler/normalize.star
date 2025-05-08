@@ -353,17 +353,13 @@ star.compiler.normalize{
       valis (.cLtt(Lc,V,LGov,Res),Ex2)
     }
   }
-  liftExp(.trycatch(Lc,B,Th,Hndlr,Tp),Map,Q,Ex) => valof{
-    if traceNormalize! then
-      showMsg("type of $(Th)\:$(typeOf(Th))");
-    ErTp = typeOf(Th);
-    (BB,Ex2) = liftExp(B,Map,Q,Ex);
-    (Hs,Ex3) = transformRules(Hndlr,Map,Map,Q,.none,Ex2);
-    ErrVr = .cVar(Lc,genVar("E",ErTp));
-    HH = caseMatcher(Lc,Map,ErrVr,.cAbort(Lc,"no matches",Tp),Hs);
-    valis (.cTry(Lc,BB,ErrVr,HH,Tp),Ex3)
+  liftExp(.trycatch(Lc,B,E,H,Tp),Map,Q,Ex) => valof{
+    (BB,Ex1) = liftExp(B,Map,Q,Ex);
+    (EE,Ex2) = liftExp(E,Map,Q,Ex1);
+    (HH,Ex3) = liftExp(H,Map,Q,Ex2);
+    valis (.cTry(Lc,BB,EE,HH,Tp),Ex3)
   }
-  liftExp(.thrw(Lc,E,Tp,_),Map,Q,Ex) => valof{
+  liftExp(.thrw(Lc,E,Tp),Map,Q,Ex) => valof{
     (LE,Ex2) = liftExp(E,Map,Q,Ex);
     valis (.cThrw(Lc,LE,Tp),Ex)
   }
@@ -756,7 +752,8 @@ star.compiler.normalize{
     valis (.aDefn(Lc,PP,EE),Ex2)
   }
   liftAction(.doMatch(Lc,P,E),Map,Q,Ex) => valof{
-    (PP,Ex1) = liftPtn(P,Map,Q,Ex);
+    Q1 = ptnVars(P,Q,[]);
+    (PP,Ex1) = liftPtn(P,Map,Q1,Ex);
     (EE,Ex2) = liftExp(E,Map,Q,Ex1);
     valis (.aMatch(Lc,PP,EE),Ex2)
   }
@@ -789,13 +786,12 @@ star.compiler.normalize{
       valis (.aLtt(Lc,V,LGv,Res),Ex2)
     }
   }
-  liftAction(.doTry(Lc,B,ErTp,H),Map,Q,Ex) => valof{
-    (BB,Ex2) = liftAction(B,Map,Q,Ex);
-    (Hs,Ex3) = transformRules(H,Map,Map,Q,.none,Ex2);
-    ErrVr = .cVar(Lc,genVar("E",ErTp));
-    Hndlr = caseMatcher(Lc,Map,ErrVr,.aAbort(Lc,"no matches"),Hs);
-    
-    valis (.aTry(Lc,BB,ErrVr,Hndlr),Ex3)
+  liftAction(.doTry(Lc,B,E,H),Map,Q,Ex) => valof{
+    (BB,Ex1) = liftAction(B,Map,Q,Ex);
+    Q1 = ptnVars(E,Q,[]);
+    (EE,Ex2) = liftPtn(E,Map,Q1,Ex1);
+    (HH,Ex3) = liftAction(H,Map,Q1,Ex2);
+    valis (.aTry(Lc,BB,EE,HH),Ex3)
   }
   liftAction(.doThrow(Lc,E),Map,Q,Ex) => valof{
     (EE,Ex1) = liftExp(E,Map,Q,Ex);

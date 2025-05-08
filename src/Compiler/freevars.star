@@ -47,7 +47,7 @@ star.compiler.freevars{
     | .conj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .disj(_,L,R) => freeVarsInCond(Exp,Q,Fv)
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
-    | .trycatch(_,E,_,H,_) => freeVarsInExp(E,Q,foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,H))
+    | .trycatch(_,B,E,H,_) => freeVarsInExp(B,Q,freeVarsInExp(H,dropVars(E,Q),Fv))
     | .thrw(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .lambda(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
@@ -86,7 +86,7 @@ star.compiler.freevars{
     | .doMatch(_,P,E) where Q1 .= dropVars(P,Q) =>
       freeVarsInExp(E,Q1,freeVarsInExp(P,Q1,Fv))
     | .doAssign(_,L,R) => freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv))
-    | .doTry(_,L,_,H) => foldLeft((Rl,F) => freeVarsInRule(Rl,Q,F),freeVarsInAct(L,Q,Fv), H)
+    | .doTry(_,L,E,H) => freeVarsInAct(H,dropVars(E,Q),freeVarsInAct(L,Q,Fv))
     | .doThrow(_,E) => freeVarsInExp(E,Q,Fv)
     | .doIfThen(Lc,T,L,R) => valof{
       Q1 = Q\condVars(T,[]);
