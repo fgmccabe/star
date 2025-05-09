@@ -34,7 +34,7 @@ instruction(XRet, tOs, nOp, 0, "return exception")
 
 instruction(Block, i32, bLk, 0, "block of instructions")
 instruction(Break, nOp, lVl, 0, "leave block")
-instruction(Result, i32, lVl, -1, "return value out of block")
+instruction(Result, nOp, lVl, -1, "return value out of block")
 instruction(Loop, nOp, lVl, 0, "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "drop top of stack")

@@ -304,9 +304,7 @@ compAct(Next,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 
 breakOut(Ok,Stk,Stkx,C,Cx) :-
   resetStack(Stkx,Stk,C,[iBreak(Ok)|Cx]).
-throwOut(Lbl,_Stk,Stkx,[iResult(RsltLvl,Lbl)|Cx],Cx) :-
-  stkLvl(Stkx,Lvl),
-  RsltLvl is Lvl+1.
+throwOut(Lbl,_Stk,_Stkx,[iResult(Lbl)|Cx],Cx).
   
 frameSig(Stk,strg(Sig)) :-
   mkTplTipe(Stk,FrTp),
@@ -719,10 +717,10 @@ compTryX(Lc,B,_ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :
   stkNxtLvl(Stk,RLvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(RLvl,[iLbl(Tr,iBlock(RLvl,BC))|HC]))|Cz]),
   compExp(B,Lc,[("$try",gencode:throwOut,Tr,Stk)|Brks],notLast,
-	  Opts,L1,L2,D,D2,BC,[iResult(RLvl,Ok)],Stk,Stka),
+	  Opts,L1,L2,D,D2,BC,[iResult(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D3,H1,[iStL(E)|H2]),
-  compExp(H,Lc,Brks,Last,Opts,L2,Lx,D3,Dx,H2,[iBreak(Ok)],Stk,Stkb),
+  compExp(H,Lc,Brks,Last,Opts,L2,Lx,D3,Dx,H2,[iResult(Ok)],Stk,Stkb),
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
