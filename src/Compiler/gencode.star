@@ -64,14 +64,12 @@ star.compiler.gencode{
 
     AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
     AbrtLbl = defineLbl(Ctx,"Abrt");
-
     ExLbl = defineLbl(Ctx,"Exit");
 
     AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
 
-    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,ExLbl,AbrtBrks,Ctx,.some([]));
-
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,ExLbl,.noMore,Ct1,Stk0);
+    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,.some(ExLbl),AbrtBrks,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.some(ExLbl),.noMore,Ct1,Stk0);
     
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
@@ -98,8 +96,8 @@ star.compiler.gencode{
 
     AbrtBrks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
 
-    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,AbrtLbl,AbrtBrks,Ctx,.some([]));
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,AbrtLbl,.noMore,Ct1,Stk0);
+    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,.none,AbrtBrks,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.none,.noMore,Ct1,Stk0);
     
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,FC++EC++[.iRet])),..AbrtCde];
@@ -126,10 +124,10 @@ star.compiler.gencode{
 
     BlkSig = nearlyFlatSig(Tp::ltipe);
 
-    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,AbrtLbl,.notLast,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compExp(Val,Lc,AbrtBrks,.none,.notLast,Ctx,.some([]));
     
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++chLine(.none,Lc)++
-      [.iLbl(AbrtLbl,.iBlock(BlkSig,EC++[.iTG(Nm),.iRet]))]
+      [.iLbl(AbrtLbl,.iBlock(0,EC++[.iTG(Nm),.iRet]))]
       ++AbrtCde;
 
     Code = .func(.tLbl(Nm,0),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
@@ -145,50 +143,58 @@ star.compiler.gencode{
 
   compReturn ~> (multi[assemOp],codeCtx,stack).
 
-  compExp:(cExp,option[locn],breakLvls,assemLbl,tailMode,codeCtx,stack) => compReturn.
-  compExp(Exp,OLc,Brks,ExLbl,Last,Ctx,Stk) => case Exp in {
+  compExp:(cExp,option[locn],breakLvls,option[assemLbl],tailMode,codeCtx,stack) => compReturn.
+  compExp(Exp,OLc,Brks,Exit,Last,Ctx,Stk) => case Exp in {
     | E where isGround(E) =>
       genReturn(Last,[.iLdC(Exp::data)],Ctx,pshStack(typeOf(Exp),Stk))
     | .cVar(Lc,Vr) => compVar(Vr,Lc,Last,Ctx,Stk)
     | .cVoid(Lc,Tp) => genReturn(Last,[.iLdV],Ctx,pshStack(Tp,Stk))
     | .cAnon(Lc,Tp) => genReturn(Last,[.iLdV],Ctx,pshStack(Tp,Stk))
     | .cTerm(Lc,Nm,Args,Tp) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
+      (ArgCode,_,_) = compExps(Args,Lc,Brks,Exit,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++
 	ArgCode++[.iAlloc(.tLbl(Nm,[|Args|])),frameIns(Stk1)],Ctx,Stk1)
     }
-    | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
-      Stk1 = pshStack(Tp,Stk);
-      valis genReturn(Last,chLine(OLc,Lc)++
-	ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
-    }
-    | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pshStack(Tp,Stk);
-      valis genReturn(Last,chLine(OLc,Lc)++
-	ArgCode++[.iEscape(Nm),frameIns(Stk1)],Ctx,Stk1)
-    }
     | .cCall(Lc,Nm,Args,Tp) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
+      (ArgCode,_,_) = compExps(Args,Lc,Brks,Exit,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
-      if .noMore.=Last then
+
+      if (_,Ins,Frm,_)?=intrinsic(Nm) && ExLbl ?= Exit then
+	valis genReturn(Last,chLine(OLc,Lc)++
+	ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
+      else if isEscape(Nm) then
+	valis genReturn(Last,chLine(OLc,Lc)++
+	ArgCode++[.iEscape(Nm),frameIns(Stk1)],Ctx,Stk1)
+      else if .noMore.=Last then
 	valis (chLine(OLc,Lc)++ArgCode++
 	[.iTCall(.tLbl(Nm,[|Args|]))],Ctx,Stk1)
       else
       valis (chLine(OLc,Lc)++ArgCode++
 	[.iCall(.tLbl(Nm,[|Args|])),frameIns(Stk1)],Ctx,Stk1)
     }
-    | .cCall(Lc,Nm,Args,Tp) where (_,Ins,Frm,_)?=intrinsic(Nm) => valof{
+    | .cXCall(Lc,Nm,Args,Tp,_) => valof{
       (ArgCode,_,_) = compExps(Args,Lc,Brks,ExLbl,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
-      valis genReturn(Last,chLine(OLc,Lc)++
-	ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
+      if ExLbl?=Exit then{
+	if (_,Ins,Frm,_)?=intrinsic(Nm) then
+	  valis genReturn(Last,chLine(OLc,Lc)++
+	  ArgCode++[Ins(ExLbl)]++(Frm??[frameIns(Stk1)]||[]),Ctx,Stk1)
+	else if isEscape(Nm) then
+	  valis genReturn(Last,chLine(OLc,Lc)++
+	  ArgCode++[.iXEscape(Nm,ExLbl),frameIns(Stk1)],Ctx,Stk1)
+	else
+	valis genReturn(Last,chLine(OLc,Lc)++
+	  ArgCode++[.iXCall(.tLbl(Nm,[|Args|]),ExLbl),frameIns(Stk1)],Ctx,Stk1)
+      }
+      else{
+	reportError("throwing call outside of try scope",Lc);
+	valis ([],Ctx,Stk)
+      }
     }
     | .cOCall(Lc,Op,Args,Tp) => valof{
-      (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Ctx,Stk);
-      (OCode,_,_) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
+      (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Exit,Ctx,Stk);
+      (OCode,_,_) = compExp(Op,Lc,Brks,Exit,.notLast,Ctx,Stk0);
       Stk1 = pshStack(Tp,Stk);
       if Last==.noMore then
 	valis (chLine(OLc,Lc)++ArgCode++OCode++
@@ -197,8 +203,20 @@ star.compiler.gencode{
       valis (chLine(OLc,Lc)++ArgCode++OCode++
 	[.iOCall([|Args|]+1),frameIns(Stk1)],Ctx,Stk1)
     }
+    | .cXOCall(Lc,Op,Args,Tp) => valof{
+      if ExLbl?=Exit then{
+	(ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Exit,Ctx,Stk);
+	(OCode,_,_) = compExp(Op,Lc,Brks,Exit,.notLast,Ctx,Stk0);
+	Stk1 = pshStack(Tp,Stk);
+	valis genReturn(Last,chLine(OLc,Lc)++
+	  ArgCode++[.iXOCall([|Args|]+1,ExLbl),frameIns(Stk1)],Ctx,Stk1)
+      } else{
+	reportError("throwing call outside of try scope",Lc);
+	valis ([],Ctx,Stk)
+      }
+    }
     | .cClos(Lc,Nm,Ar,F,Tp) => valof{
-      (FCode,_,Stk1) = compExp(F,Lc,Brks,.notLast,Ctx,Stk);
+      (FCode,_,Stk1) = compExp(F,Lc,Brks,Exit,.notLast,Ctx,Stk);
       Stk2 = pshStack(Tp,Stk);
       valis genReturn(Last,
 	chLine(OLc,Lc)++FCode++
@@ -206,92 +224,99 @@ star.compiler.gencode{
     }
     | .cSv(Lc,Tp) => genReturn(Last,chLine(OLc,Lc)++[.iSav],Ctx,pshStack(Tp,Stk))
     | .cSvSet(Lc,Th,Vl) => valof{
-      (VlC,_,Stk0) = compExp(Vl,Lc,Brks,.notLast,Ctx,Stk);
-      (ThC,_,_) = compExp(Th,Lc,Brks,.notLast,Ctx,Stk0);
+      (VlC,_,Stk0) = compExp(Vl,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (ThC,_,_) = compExp(Th,Lc,Brks,Exit,.notLast,Ctx,Stk0);
       valis genReturn(Last,chLine(OLc,Lc)++VlC++ThC++[.iTSav],Ctx,pshStack(typeOf(Vl),Stk))
     }
     | .cCel(Lc,E,Tp) => valof{
-      (EC,_,Stk0) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (EC,_,Stk0) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++EC++[.iCell],Ctx,pshStack(Tp,Stk))
     }
     | .cGet(Lc,E,Tp) => valof{
-      (EC,_,Stk0) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (EC,_,Stk0) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++EC++[.iGet],Ctx,pshStack(Tp,Stk))
     }
     | .cNth(Lc,E,Ix,Tp) => valof{
-      (VL,_,_) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+      (VL,_,_) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
       valis genReturn(Last,chLine(OLc,Lc)++VL++[.iNth(Ix)],Ctx,pshStack(Tp,Stk))
     }
     | .cSetNth(Lc,R,Ix,V) => valof{
-      (RC,_,Stk0) = compExp(R,Lc,Brks,.notLast,Ctx,Stk);
-      (VC,_,_) = compExp(V,Lc,Brks,.notLast,Ctx,Stk0);
+      (RC,_,Stk0) = compExp(R,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (VC,_,_) = compExp(V,Lc,Brks,Exit,.notLast,Ctx,Stk0);
 
       valis genReturn(Last,
 	chLine(OLc,Lc)++RC++VC++[.iStNth(Ix)],Ctx,pshStack(typeOf(R),Stk))
     }
     | .cSeq(Lc,L,R) => valof{
-      (LC,_,Stk0) = compExp(L,Lc,Brks,.notLast,Ctx,Stk);
-      (RC,_,Stkx) = compExp(R,Lc,Brks,Last,Ctx,Stk);
+      (LC,_,Stk0) = compExp(L,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (RC,_,Stkx) = compExp(R,Lc,Brks,Exit,Last,Ctx,Stk);
       valis (chLine(OLc,Lc)++LC++resetStack([|Stk|],Stk0)++RC,Ctx,Stkx)
     }
     | .cCnd(Lc,G,L,R) => valof{
       Fl = defineLbl(Ctx,"Fl");
       Ok = defineLbl(Ctx,"Ok");
-      (CC,Ctx1) = compCond(G,Lc,Fl,Brks,Ctx,Stk);
-      (LC,_,Stk1) = compExp(L,Lc,Brks,Last,Ctx1,Stk);
-      (RC,_,Stk2) = compExp(R,Lc,Brks,Last,Ctx,Stk);
+      (CC,Ctx1) = compCond(G,Lc,Fl,Brks,Exit,Ctx,Stk);
+      (LC,_,Stk1) = compExp(L,Lc,Brks,Exit,Last,Ctx1,Stk);
+      (RC,_,Stk2) = compExp(R,Lc,Brks,Exit,Last,Ctx,Stk);
+      Lvl = stkLvl(Stk);
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(nearlyFlatSig(typeOf(L)::ltipe),
-	      [.iLbl(Fl,.iBlock(flatSig,CC++LC++[.iBreak(Ok)]))]++
+	[.iLbl(Ok,.iBlock(Lvl+1,
+	      [.iLbl(Fl,.iBlock(Lvl,CC++LC++[.iBreak(Ok)]))]++
 	      RC++[.iBreak(Ok)]))],Ctx,reconcileStack(Stk1,Stk2))
     }
-    | .cCase(Lc,Gov,Cases,Deflt,Tp) => compCase(Lc,Gov,Cases,Deflt,nearlyFlatSig(Tp::ltipe),compExp,Brks,Last,Ctx,Stk)
+    | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
+      compCase(Lc,Gov,Cases,Deflt,nearlyFlatSig(Tp::ltipe),compExp,Brks,Exit,Last,Ctx,Stk)
     | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       Ctx1 = defineLclVar(Vr,VTp,Ctx);
-      (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
-      (BB,_,Stkx) = compExp(Bnd,Lc,Brks,Last,Ctx1,Stk);
+      (VV,_,Stk1) = compExp(Val,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (BB,_,Stkx) = compExp(Bnd,Lc,Brks,Exit,Last,Ctx1,Stk);
       valis (chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB,Ctx,Stkx)
     }
     | .cAbort(Lc,Msg,Tp) => (compAbort(Lc,Msg,Ctx),Ctx,.none)
-    | .cTry(Lc,B,.cVar(_,.cV(TV,TVTp)),.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
+    | .cTry(Lc,B,.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
 
       Ok = defineLbl(Ctx,"Tr");
+      TrX = defineLbl(Ctx,"TrX");
       Stkx = pshStack(Tp,Stk);
-      Ctx1 = defineLclVar(TV,TVTp,Ctx);
-      Ctx2 = defineLclVar(Er,ETp,Ctx1);
+      Ctx1 = defineLclVar(Er,ETp,Ctx);
 
-      (BC,_,Stka) = compExp(B,Lc,Brks,.notLast,Ctx1,Stk);
-      (HC,_,Stkb) = compExp(H,Lc,Brks,Last,Ctx2,Stk);
+      (BC,_,Stka) = compExp(B,Lc,Brks,.some(TrX),.notLast,Ctx,Stk);
+      (HC,_,Stkb) = compExp(H,Lc,Brks,Exit,Last,Ctx1,Stk);
 
       if ~reconcileable(Stka,Stkb) then
 	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
+	  
+      RLvl = stkLvl(Stk)+1;
 
-      valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.ptr),
-	      [.iTry(blockSig([ETp::ltipe],.tplTipe([.ptr])),
-		  [.iStL(TV)]++BC++[.iLdL(TV),.iTryRslt(Ok)]),.iStL(Er)]++HC++
-	      [.iBreak(Ok)]))],
+      valis ([.iLbl(Ok,.iBlock(RLvl,
+	      [.iLbl(TrX,.iBlock(RLvl,BC++[.iResult(RLvl,Ok)])),
+		.iStL(Er)]++HC++[.iResult(RLvl,Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
-    | .cRaise(Lc,T,E,_) => valof{
-      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
-      valis (chLine(OLc,Lc)++EC++TC++[.iThrow],Ctx,.none)
+    | .cThrow(Lc,E,_) => valof{
+      if ExLbl ?= Exit then{
+	(EC,_,Stk1) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
+	valis (chLine(OLc,Lc)++EC++TC++[.iResult(ExLbl)],Ctx,.none)
+      } else{
+	reportError("throw outside of try scope",Lc);
+	valis ([],Ctx,Stk)
+      }
     }
     | .cResum(Lc,T,E,Tp) => valof{
-      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      (EC,_,Stk1) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,Exit,.notLast,Ctx,Stk1);
       valis (chLine(OLc,Lc)++EC++TC++[.iResume],Ctx,pushStack(Tp::ltipe,Stk))
     }
     | .cSusp(Lc,T,E,Tp) => valof{
-      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      (EC,_,Stk1) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,Exit,.notLast,Ctx,Stk1);
       valis (chLine(OLc,Lc)++EC++TC++[.iSuspend],Ctx,pushStack(Tp::ltipe,Stk))
     }
     | .cRetyr(Lc,T,E,Tp) => valof{
-      (EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-      (TC,_,Stk2) = compExp(T,Lc,Brks,.notLast,Ctx,Stk1);
+      (EC,_,Stk1) = compExp(E,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (TC,_,Stk2) = compExp(T,Lc,Brks,Exit,.notLast,Ctx,Stk1);
       valis (chLine(OLc,Lc)++EC++TC++[.iRetire],Ctx,.none)
     }
     | .cValof(Lc,A,Tp) => valof{
@@ -300,17 +325,18 @@ star.compiler.gencode{
       Stkx = pshStack(Tp,Stk);
       (AC,_,_) = compAction(A,Lc,
 	Brks["$valof"->(((C,S)=>(resetStack([|Stkx|],S)++[.iBreak(Vl)],C,Stkx)),Vl)],
-	Last,.noMore,Ctx,Stk);
+	Exit,Last,.noMore,Ctx,Stk);
       
-      valis (chLine(OLc,Lc)++[.iLbl(Vl,.iBlock(Sig,AC))],Ctx,Stkx)
+      valis (chLine(OLc,Lc)++[.iLbl(Vl,.iBlock(stkLvl(Stkx),AC))],Ctx,Stkx)
     }
     |  C where isCond(C) => valof{
       Ok = defineLbl(Ctx,"Ok");
       Fl = defineLbl(Ctx,"Fl");
       Stk0 = pshStack(boolType,Stk);
-      (CC,_Ctx1) = compCond(C,OLc,Fl,Brks,Ctx,Stk);
-      valis ([.iLbl(Ok,.iBlock(nearlyFlatSig(.bool),
-	      [.iLbl(Fl,.iBlock(flatSig,
+      (CC,_Ctx1) = compCond(C,OLc,Fl,Brks,Exit,Ctx,Stk);
+      Lvl = stkLvl(Stk);
+      valis ([.iLbl(Ok,.iBlock(Lvl+1,
+	      [.iLbl(Fl,.iBlock(Lvl,
 		    CC++[.iLdC(trueEnum),.iBreak(Ok)])),
 		.iLdC(falseEnum),.iBreak(Ok)]))],Ctx,Stk0)
     }
@@ -351,52 +377,54 @@ star.compiler.gencode{
   }
 
     -- Expressions are evaluated in reverse order
-  compExps:(cons[cExp],option[locn],breakLvls,codeCtx,stack) => compReturn.
-  compExps([],_,_,Ctx,Stk)=>([],Ctx,Stk).
-  compExps([Exp,..Es],Lc,Brks,Ctx,Stk)=> valof{
-    (Rest,_,Stk1) = compExps(Es,locOf(Exp),Brks,Ctx,Stk);
-    (EC,_,Stk2) = compExp(Exp,Lc,Brks,.notLast,Ctx,Stk1);
+  compExps:(cons[cExp],option[locn],breakLvls,option[assemLbl],codeCtx,stack) => compReturn.
+  compExps([],_,_,_,Ctx,Stk)=>([],Ctx,Stk).
+  compExps([Exp,..Es],Lc,Brks,Exit,Ctx,Stk)=> valof{
+    (Rest,_,Stk1) = compExps(Es,locOf(Exp),Brks,Exit,Ctx,Stk);
+    (EC,_,Stk2) = compExp(Exp,Lc,Brks,Exit,.notLast,Ctx,Stk1);
     valis (Rest++EC,Ctx,Stk2)
   }
 
-  compCond:(cExp,option[locn],assemLbl,breakLvls,codeCtx,stack) => (multi[assemOp],codeCtx).
-  compCond(C,OLc,Fail,Brks,Ctx,Stk) => case C in {
+  compCond:(cExp,option[locn],assemLbl,breakLvls,option[assemLbl],
+    codeCtx,stack) => (multi[assemOp],codeCtx).
+  compCond(C,OLc,Fail,Brks,Exit,Ctx,Stk) => case C in {
     | .cTerm(_,"true",[],_) => ([],Ctx)
     | .cTerm(_,"false",[],_) => ([.iBreak(Fail)],Ctx)
     | .cCnj(Lc,L,R) => valof{
-      (LC,Ctxa) = compCond(L,Lc,Fail,Brks,Ctx,Stk);
-      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Ctxa,Stk);
+      (LC,Ctxa) = compCond(L,Lc,Fail,Brks,Exit,Ctx,Stk);
+      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Exit,Ctxa,Stk);
       valis (chLine(OLc,Lc)++LC++RC,Ctxb)
     }
     | .cDsj(Lc,L,R) => valof{
       Fl = defineLbl(Ctx,"Fl");
       Ok = defineLbl(Ctx,"Ok");
-      (LC,Ctxa) = compCond(L,Lc,Fl,Brks,Ctx,Stk);
-      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Ctx,Stk);
+      (LC,Ctxa) = compCond(L,Lc,Fl,Brks,Exit,Ctx,Stk);
+      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Exit,Ctx,Stk);
 
-      valis (chLine(OLc,Lc)++[.iLbl(Ok,.iBlock(flatSig,
-	      [.iLbl(Fl,.iBlock(flatSig,LC++[.iBreak(Ok)]))]++RC
+      valis (chLine(OLc,Lc)++[.iLbl(Ok,.iBlock(stkLvl(Stk),
+	      [.iLbl(Fl,.iBlock(stkLvl(Stk),LC++[.iBreak(Ok)]))]++RC
 	      ++[.iBreak(Ok)]))],mergeCtx(Ctxa,Ctxb))
     }
-    | .cNeg(Lc,R) => compNegated(R,OLc,Fail,Brks,Ctx,Stk)
+    | .cNeg(Lc,R) => compNegated(R,OLc,Fail,Brks,Exit,Ctx,Stk)
     | .cCnd(Lc,T,L,R) => valof{
       Ok = defineLbl(Ctx,"Ok");
       Fl = defineLbl(Ctx,"El");
-      (TC,Ctx1) = compCond(T,Lc,Fl,Brks,Ctx,Stk);
-      (LC,Ctxa) = compCond(L,Lc,Fail,Brks,Ctx1,Stk);
-      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Ctx,Stk);
+      (TC,Ctx1) = compCond(T,Lc,Fl,Brks,Exit,Ctx,Stk);
+      (LC,Ctxa) = compCond(L,Lc,Fail,Brks,Exit,Ctx1,Stk);
+      (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Exit,Ctx,Stk);
+      Lvl = stkLvl(Stk);
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(flatSig,[.iLbl(Fl,
-		    .iBlock(flatSig,TC++LC++[.iBreak(Ok)]))]
+	[.iLbl(Ok,.iBlock(Lvl,[.iLbl(Fl,
+		    .iBlock(Lvl,TC++LC++[.iBreak(Ok)]))]
 		++RC++[.iBreak(Ok)]))],mergeCtx(Ctxa,Ctxb))
     }
     | .cMatch(Lc,Ptn,Exp) => valof{
-      (EC,_,Stk0) = compExp(Exp,Lc,Brks,.notLast,Ctx,Stk);
-      (PC,Ctx1,_) = compPtn(Ptn,Lc,Fail,Brks,Ctx,Stk0);
+      (EC,_,Stk0) = compExp(Exp,Lc,Brks,Exit,.notLast,Ctx,Stk);
+      (PC,Ctx1,_) = compPtn(Ptn,Lc,Fail,Brks,Exit,Ctx,Stk0);
       valis (chLine(OLc,Lc)++EC++PC,Ctx1)
     }
     | Exp default => valof{
-      (EC,_,_) = compExp(Exp,OLc,Brks,.notLast,Ctx,Stk);
+      (EC,_,_) = compExp(Exp,OLc,Brks,Exit,.notLast,Ctx,Stk);
       valis (EC++[.iIfNot(Fail)],Ctx)
     }
   }
@@ -414,7 +442,7 @@ star.compiler.gencode{
       (EC,_,Stk0) = compExp(Exp,Lc,Brks,.notLast,Ctx,Stk);
       (PC,Ctx1,_) = compPtn(Ptn,Lc,Ok,Brks,Ctx,Stk0);
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(flatSig,EC++PC++[.iBreak(Fail)]))],Ctx)
+	[.iLbl(Ok,.iBlock(stkLvl(Stk),EC++PC++[.iBreak(Fail)]))],Ctx)
     }
     | Exp default => valof{
       (EC,_,_) = compExp(Exp,OLc,Brks,.notLast,Ctx,Stk);
@@ -435,7 +463,7 @@ star.compiler.gencode{
       LBrks = Brks[Lb->(((C,S0)=>(resetStack([|Stk|],S0)++[.iBreak(Ex)],C,Stk)),Ex)];
       (LC,_,_) = compAction(LbldA,Lc,LBrks,Last,.notLast,Ctx,Stk);
       valis(chLine(OLc,Lc)++[.iLbl(Ex,
-	    .iBlock(flatSig,LC++[.iBreak(Ex)]))],Ctx,Stk)
+	    .iBlock(stkLvl(Stk),LC++[.iBreak(Ex)]))],Ctx,Stk)
     }
     | .aBreak(Lc,Lb) => valof{
       if (XCont,_)?=Brks[Lb] then{
@@ -477,8 +505,8 @@ star.compiler.gencode{
 	Ok = defineLbl(Ctx,"Ok");
 	(PC,Ctx1,_) = compPtn(P,Lc,Ab,Brks,Ctx,Stk0);
 	valis (chLine(OLc,Lc)++[.iLbl(Ok,
-	      .iBlock(flatSig,[.iLbl(Ab,
-		      .iBlock(flatSig,EC++PC++[.iBreak(Ok)]))]
+	      .iBlock(stkLvl(Stk),[.iLbl(Ab,
+		    .iBlock(stkLvl(Stk),EC++PC++[.iBreak(Ok)]))]
 		  ++compAbort(Lc,"definition failed",Ctx)))],Ctx1,Stk)
       }
     }
@@ -488,8 +516,8 @@ star.compiler.gencode{
       Ok = defineLbl(Ctx,"Ok");
       (PC,Ctx1,_) = compPtn(P,Lc,Ab,Brks,Ctx,Stk0);
       valis (chLine(OLc,Lc)++[.iLbl(Ok,
-	    .iBlock(flatSig,[.iLbl(Ab,
-		  .iBlock(flatSig,EC++PC++[.iBreak(Ok)]))]++
+	    .iBlock(stkLvl(Stk),[.iLbl(Ab,
+		  .iBlock(stkLvl(Stk),EC++PC++[.iBreak(Ok)]))]++
 	      compAbort(Lc,"match failed",Ctx)))],Ctx1,Stk)
     }
     | .aAsgn(Lc,P,E) => valof{
@@ -517,8 +545,8 @@ star.compiler.gencode{
       (LC,Ctxa,Stka) = compAction(L,Lc,Brks,Last,Next,Ctx1,Stk);
       (RC,Ctxb,Stkb) = compAction(R,Lc,Brks,Last,Next,Ctx,Stk);
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(flatSig,
-	      [.iLbl(Fl,.iBlock(flatSig,
+	[.iLbl(Ok,.iBlock(stkLvl(Stk),
+	      [.iLbl(Fl,.iBlock(stkLvl(Stk),
 		    CC++LC++[.iBreak(Ok)]))]++
 	      RC++[.iBreak(Ok)]))],mergeCtx(Ctxa,Ctxb),reconcileStack(Stka,Stkb))
     }
@@ -530,8 +558,8 @@ star.compiler.gencode{
       (BC,_,_) = compAction(B,Lc,Brks,.notLast,.notLast,Ctx1,Stk);
 
       valis ([.iLbl(Done,
-	    .iBlock(flatSig,[.iLbl(Lp,
-		    .iBlock(flatSig,
+	    .iBlock(stkLvl(Stk),[.iLbl(Lp,
+		    .iBlock(stkLvl(Stk),
 		      GC++BC++[.iLoop(Lp)]))]))],Ctx,Stk)
     }
     |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
@@ -555,7 +583,7 @@ star.compiler.gencode{
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,.notLast,Ctx2,Stk);
 
       valis (chLine(OLc,Lc)++[.iLbl(Tr,
-	    .iBlock(flatSig,
+	    .iBlock(stkLvl(Stk),
 	      [.iTry(blockSig([ETp::ltipe],.tplTipe([])),
 		  [.iStL(TV)]++BC++[.iLdL(TV),.iEndTry(Tr)])]++
 	      [.iStL(Er)]++HC++[.iBreak(Tr)]))],
@@ -572,8 +600,8 @@ star.compiler.gencode{
 
   compCase:all e ~~ display[e] |:
     (option[locn],cExp,cons[cCase[e]],e,ltipe,
-    caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compCase(Lc,Gv,Cases,Deflt,BlkSig,Hndlr,Brks,Last,Ctx,Stk) => valof{
+    caseHandler[e],breakLvls,option[assemLbl],tailMode,codeCtx,stack) => compReturn.
+  compCase(Lc,Gv,Cases,Deflt,BlkSig,Hndlr,Brks,Exit,Last,Ctx,Stk) => valof{
     if traceCodegen! then
       showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Df = defineLbl(Ctx,"Df");
@@ -597,7 +625,7 @@ star.compiler.gencode{
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(BlkSig,
+    valis ([.iLbl(Ok,.iBlock(stkLvl(Stk),
 	    GC++[.iLbl(Df,.iBlock(CaseSig,CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
@@ -947,6 +975,10 @@ star.compiler.gencode{
 
   loadStack:(cons[ltipe],stack) => stack.
   loadStack(Tps,.some(Stk)) => .some(Tps++Stk).
+
+  stkLvl:(stack)=>integer.
+  stkLvl(.some(Stk)) => size(Stk).
+  stkLvl(.none) => -1.
 
   popTo:all e ~~ (cons[e],integer) => cons[e].
   popTo(LL,D) => let{.

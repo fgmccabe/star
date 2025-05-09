@@ -329,8 +329,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
-        int32 margin = code[pc].fst;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, margin) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1) != Ok)
           return Error;
         return Ok;
       }

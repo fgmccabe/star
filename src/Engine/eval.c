@@ -576,14 +576,14 @@ retCode run(processPo P) {
 
         assert(FP > baseFrame(STK));
 
-        ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
-
-        SP = tgtSp; // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc - 1;
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
+
+        int32 height = PC->fst;
+        SP = &local(lclCount(frameMtd(FP)) + height - 1);
         PC += PC->alt + 1;
 
         push(retVal);      /* push return value */
@@ -599,6 +599,8 @@ retCode run(processPo P) {
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
+        int32 height = PC->fst;
+        SP = &local(lclCount(frameMtd(FP)) + height);
         PC += PC->alt + 1;
         continue;
       }
@@ -607,19 +609,19 @@ retCode run(processPo P) {
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
+        int32 height = PC->fst;
+        SP = &local(lclCount(frameMtd(FP)) + height);
         PC++;
         continue;
       }
 
       case Result: { /* return a value from a block */
         termPo reslt = pop();
-        int32 height = PC->fst;
-        assert(height >= 0);
-        SP = &local(lclCount(frameMtd(FP)) + height - 1);
-
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
         assert(PC->op == Block);
+        int32 height = PC->fst;
+        SP = &local(lclCount(frameMtd(FP)) + height - 1);
         PC += PC->alt + 1;
         push(reslt);
         continue;       /* and carry after reset block */

@@ -34,7 +34,7 @@ star.compiler.assem{
     | .iXRet
     | .iBlock(integer,multi[assemOp])
     | .iBreak(assemLbl)
-    | .iResult(integer,assemLbl)
+    | .iResult(assemLbl)
     | .iLoop(assemLbl)
     | .iDrop
     | .iDup
@@ -175,7 +175,7 @@ star.compiler.assem{
   mnem(.iBlock(U,V),Pc,Lbls,Lts,Lcs,Lns) where (Blk,Pc1,Lts1,Lns1) .= assemBlock(V,[],Pc+1,[.none,..Lbls],Lts,Lcs,Lns) =>
     ([.intgr(14),.intgr(U),mkTpl(Blk::cons[data])],Pc1,Lts1,Lns1).
   mnem(.iBreak(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(15),.intgr(Tgt)],Pc+1,Lts,Lns).
-  mnem(.iResult(U,V),Pc,Lbls,Lts,Lcs,Lns) where Lvl ?= findLevel(Lbls,V) =>  ([.intgr(16),.intgr(U),.intgr(Lvl)],Pc+1,Lts,Lns).
+  mnem(.iResult(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(16),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iLoop(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(17),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iDrop,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(18)],Pc+1,Lts,Lns).
   mnem(.iDup,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(19)],Pc+1,Lts,Lns).
@@ -320,7 +320,7 @@ star.compiler.assem{
   stkHwm([.iBreak(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
-  stkHwm([.iResult(_,_),..Ins],CH0,H0) => valof{
+  stkHwm([.iResult(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
@@ -653,7 +653,7 @@ star.compiler.assem{
   showIns(.iXRet,Pc) => "XRet".
   showIns(.iBlock(U,V),Pc) => "Block $(U)\n#(showBlock(V,Pc))".
   showIns(.iBreak(V),Pc) => "Break #(V)".
-  showIns(.iResult(U,V),Pc) => "Result $(U) #(V)".
+  showIns(.iResult(V),Pc) => "Result #(V)".
   showIns(.iLoop(V),Pc) => "Loop #(V)".
   showIns(.iDrop,Pc) => "Drop".
   showIns(.iDup,Pc) => "Dup".
