@@ -466,6 +466,17 @@ star.compiler.types{
     funTpArg(_) default => .none
   .} in funTpArg(deRef(Tp)).
 
+  public isThrowingType:(tipe) => boolean.
+  isThrowingType(Tp) => isThr(deRef(Tp)).
+
+  isThr(.allType(_,T)) => isThr(deRef(T)).
+  isThr(.existType(_,T)) => isThr(deRef(T)).
+  isThr(.constrainedType(T,E)) => isThr(deRef(T)).
+  isThr(.tpExp(O,_)) where
+      .tpExp(O1,A) .= deRef(O) && .tpExp(O2,A) .= deRef(O1) &&
+	  .tpFun("=>",3).=deRef(O2) => .true.
+  isThr(_) default => .false.
+
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
   extendFunTp(Tp,Vs) => case deRef(Tp) in {
