@@ -972,24 +972,24 @@ star.compiler.checker{
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,tipe,dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
     Vrs = genTpVars(As);
-    At = .tupleType(Vrs);
-    ExTp = newTypeVar("F");
-    Fun = typeOfExp(Op,ExTp,ErTp,Env,Path);
+    AtTp = .tupleType(Vrs);
+    FnTp = newTypeVar("F");
+    Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
-    if sameType(ExTp,fnType(At,Tp),Env) then {
+    if sameType(FnTp,fnType(AtTp,Tp),Env) then {
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
       valis .apply(Lc,Fun,Args,Tp)
-    } else if sameType(ExTp,throwingType(At,Tp,ErTp),Env) then {
+    } else if sameType(FnTp,throwingType(AtTp,Tp,ErTp),Env) then {
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
 	valis .tapply(Lc,Fun,Args,Tp,ErTp)
     } else{
-      reportError("type of $(Op)\:$(ExTp) not consistent with $(ExTp) => $(Tp)",Lc);
+      reportError("type of $(Op)\:$(FnTp) not consistent with $(AtTp) => $(Tp)",Lc);
       valis .vr(Lc,"_",Tp)
     }
   }
 
   /*
-  $$ E is mapped to
+  Thunk $$ E is mapped to
 
   valof{
     SV = _SV;
