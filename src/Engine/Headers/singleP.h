@@ -8,7 +8,6 @@
 #include "single.h"
 #include "termP.h"
 #include "heapP.h"
-#include "closure.h"
 
 typedef struct single_rec_ {
   ClassRecord clss;             // == singleClass

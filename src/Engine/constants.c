@@ -16,15 +16,6 @@ void initConstants() {
   appendEntry(constants,&voidEnum);
 }
 
-int32 constantLiteral(termPo t) {
-  integer tx = (integer) hashGet(constantKeys,t);
-
-  if(tx!=(integer)Null)
-    return (int32)tx;
-  else
-    return -1;
-}
-
 termPo getConstant(int32 key){
   if(key>=0 && key< arrayCount(constants)){
     ptrPo c = nthEntry(constants,key);

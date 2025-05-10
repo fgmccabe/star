@@ -9,9 +9,6 @@
 #include "heap.h"
 #include "labelsP.h"
 
-normalPo wrapEither(heapPo H, termPo lhs);
-normalPo wrapOr(heapPo H, termPo lhs);
-
 logical isNeither(termPo t);
 logical isEither(termPo t);
 logical isOr(termPo t);

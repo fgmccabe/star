@@ -8,7 +8,6 @@
 #include "heap.h"
 #include "term.h"
 
-int32 constantLiteral(termPo t);
 int32 defineConstantLiteral(termPo t);
 termPo getConstant(int32 key);
 logical isDefinedConstant(int32 key);
