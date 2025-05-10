@@ -17,6 +17,5 @@ singlePo singleVar(heapPo H);
 termPo singleVal(singlePo v);
 termPo setSingle(singlePo v, termPo e);
 logical singleIsSet(singlePo single);
-closurePo singleLam(singlePo single);
 
 #endif //STAR_SINGLE_H

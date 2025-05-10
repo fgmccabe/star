@@ -47,18 +47,3 @@ termPo orValue(termPo t) {
   return nthElem(C_NORMAL(t), 0);
 }
 
-normalPo wrapEither(heapPo H, termPo t) {
-  int root = gcAddRoot(H, &t);
-  normalPo trm = allocateStruct(H, eitherConstructor);
-  setArg(trm, 0, t);
-  gcReleaseRoot(H, root);
-  return trm;
-}
-
-normalPo wrapOr(heapPo H, termPo t) {
-  int root = gcAddRoot(H, &t);
-  normalPo trm = allocateStruct(H, orConstructor);
-  setArg(trm, 0, t);
-  gcReleaseRoot(H, root);
-  return trm;
-}
