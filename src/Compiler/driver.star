@@ -36,41 +36,49 @@ star.compiler{
 
   public _main:(cons[string])=>().
   _main(Args) => valof{
-    WI= ? parseUri("file:"++_cwd());
-    RI= ? parseUri("file:"++_repo());
     try{
-      valis handleCmds(processOptions(Args,[wdOption,
-	    stdinOption,
-	    repoOption,
-	    graphOption,
-	    forceCompileOption,
-	    traceDependencyOption,
-	    traceAstOption,
-	    traceResolveOption,
-	    showMacroOption,
-	    macroTraceOption,
-	    checkOnlyOption,
-	    showCheckOption,
-	    traceCheckOption,
-	    macroOnlyOption,
-	    showNormalizeOption,
-	    traceNormalizeOption,
-	    noCodeOption,
-	    showCodegenOption,	    
-	    traceCodegenOption,	    
-	    optimizeLvlOption,
-	    traceInlineOption,
-	    genDebugOption,
-	    genWasmOption,
-	    traceWasmOption
-	  ],
-	  defltOptions(WI,RI)
-	))
-    } catch string in {
-      Msg => { logMsg(.severe,Msg);
+      WI= ? parseUri("file:"++_cwd());
+      RI= ? parseUri("file:"++_repo());
+      try{
+	valis handleCmds(processOptions(Args,[wdOption,
+	      stdinOption,
+	      repoOption,
+	      graphOption,
+	      forceCompileOption,
+	      traceDependencyOption,
+	      traceAstOption,
+	      traceResolveOption,
+	      showMacroOption,
+	      macroTraceOption,
+	      checkOnlyOption,
+	      showCheckOption,
+	      traceCheckOption,
+	      macroOnlyOption,
+	      showNormalizeOption,
+	      traceNormalizeOption,
+	      noCodeOption,
+	      showCodegenOption,	    
+	      traceCodegenOption,	    
+	      optimizeLvlOption,
+	      traceInlineOption,
+	      genDebugOption,
+	      genWasmOption,
+	      traceWasmOption
+	    ],
+	    defltOptions(WI,RI)
+	  ))
+      } catch {
+	Msg => {
+	  logMsg(.severe,Msg);
+	  valis ()
+	}
+      }
+    } catch {
+      .exception(Msg) => {
+	logMsg(.severe,Msg);
 	valis ()
       }
-    };
+    }
   }
 
   handleCmds:((compilerOptions,cons[string]))=>().

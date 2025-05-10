@@ -751,7 +751,7 @@ compCase(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(
   stkLvl(Stk,Lvl),
   compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Mx,GVar,OkLvl,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk,Stka),
+  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iCase(Mx)|CB],Stk,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
@@ -803,21 +803,21 @@ mergeDuplicate([(P,H,E)|M],H,[(P,E)|Ds],Rs) :-!,
   mergeDuplicate(M,H,Ds,Rs).
 mergeDuplicate(M,_,[],M).
 
-compCases([],Ix,Mx,_GVar,_BlkLvl,_Ok,_Df,_Hndlr,_Brks,_Last,_Opts,Lx,Lx,D,D,Tx,Tx,Cx,Cx,_Stk,none) :-
+compCases([],Ix,Mx,_GVar,_Ok,_Df,_Hndlr,_Brks,_Last,_Opts,Lx,Lx,D,D,Tx,Tx,Cx,Cx,_Stk,none) :-
   Ix>=Mx.
-compCases([],Ix,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
+compCases([],Ix,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
   Ix1 is Ix+1,
-  compCases([],Ix1,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
-compCases([(Ix,Case)|Cs],Ix,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(CL)|T],Tx,[iLbl(CL,iBlock(Lvl,CC))|CCx],Cx,Stk,Stkx) :-!,
+  compCases([],Ix1,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
+compCases([(Ix,Case)|Cs],Ix,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(El)|T],Tx,[iLbl(El,iBlock(Lvl,CC))|CCx],Cx,Stk,Stkx) :-!,
   stkLvl(Stk,Lvl),
   Ix1 is Ix+1,
-  genLbl(L,CL,L0),
-  compCases(Cs,Ix1,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D,D1,T,Tx,CC,Cx,Stk,Stk2),
+  genLbl(L,El,L0),
+  compCases(Cs,Ix1,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L0,L1,D,D1,T,Tx,CC,Cx,Stk,Stk2),
   compCaseBranch(Case,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L1,Lx,D1,Dx,CCx,[],Stk,Stk1),
   mergeStkLvl(Stk1,Stk2,Stkx,"case branch").
-compCases(Cs,Ix,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
+compCases(Cs,Ix,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iBreak(Dflt)|T],Tx,C,Cx,Stk,Stkx) :-
   Ix1 is Ix+1,
-  compCases(Cs,Ix1,Mx,GVar,BlkLvl,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
+  compCases(Cs,Ix1,Mx,GVar,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,T,Tx,C,Cx,Stk,Stkx).
 
 % two cases to consider: hash collision or no hash collision
 compCaseBranch([(P,E,Lc)],GV,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
