@@ -5,7 +5,7 @@
 
 #include <stdlib.h>
 #include <pkgP.h>
-#include <decodeP.h>
+#include <decode.h>
 #include "manifestP.h"
 #include "debug.h"
 
