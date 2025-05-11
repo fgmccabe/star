@@ -8,7 +8,7 @@
 #include "engine.h"
 #include <globals.h>
 #include "signature.h"
-#include "decodeP.h"             /* pick up the term encoding definitions */
+#include "decode.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
 #include "codeP.h"
 #include "labelsP.h"

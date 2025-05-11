@@ -22,9 +22,8 @@ set(HEADER_FILES
         Headers/code.h Headers/codeP.h
         Headers/cons.h
         Headers/engine.h
-        Headers/decode.h
         ../Infra/Headers/encoding.h
-        Headers/decodeP.h
+        Headers/decode.h
         ../Infra/Headers/streamDecode.h
         ../Infra/Headers/manifest.h
         ../Infra/Headers/manifestP.h

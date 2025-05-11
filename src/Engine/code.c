@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "quick.h"
 #include "tpl.h"
-#include "decodeP.h"
+#include "decode.h"
 #include "pkgP.h"
 #include "arith.h"
 
