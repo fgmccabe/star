@@ -351,21 +351,6 @@ star.compiler.checker{
     }
   }
 
-  splitupProgramType(Lc,Env,PTp) => valof{
-    ATp = newTypeVar("_A");
-    RTp = newTypeVar("_R");
-    ETp = newTypeVar("_E");
-
-    if sameType(fnType(ATp,RTp),PTp,Env) && sameType(.voidType,ETp,Env) then
-      valis (ATp,RTp,ETp)
-    else if sameType(throwingType(ATp,RTp,ETp),PTp,Env) then
-      valis (ATp,RTp,ETp)
-    else{
-      reportError("expecting a function type, not $(PTp)",Lc);
-      valis (ATp,RTp,ETp)
-    }
-  }
-
   checkImplementation:(option[locn],cons[ast],cons[ast],ast,ast,dict,dict,string) =>
     (cons[canonDef],cons[decl]).
   checkImplementation(Lc,Q,C,H,B,Env,Outer,Path) => valof{

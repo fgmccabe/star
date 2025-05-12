@@ -264,6 +264,10 @@ star.compiler.normalize{
     (LEls,Ex1) = liftExps(Els,Q,Map,Ex);
     valis liftExpCallOp(Lc,Op,LEls,Tp,Map,Q,Ex1)
   }
+  liftExp(.tapply(Lc,Op,Els,Tp,ErTp),Map,Q,Ex) => valof{
+    (LEls,Ex1) = liftExps(Els,Q,Map,Ex);
+    valis liftThrowingOp(Lc,Op,LEls,Tp,ErTp,Map,Q,Ex1)
+  }
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
     valis (.cVoid(Lc,Tp),Ex)
@@ -427,7 +431,7 @@ star.compiler.normalize{
   liftExpCallOp(Lc,.vr(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,.enm(_,Nm,_),Args,Tp,Map,_,Ex) where Entry ?= lookupVarName(Map,Nm) =>
-    implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex).
+    implConstructor(Lc,Entry,Nm,Args,Tp,Map,Ex).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Q,Ex) => valof{
     (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
     valis (.cOCall(Lc,LOp,Args,Tp),Ex0)
@@ -441,12 +445,6 @@ star.compiler.normalize{
     crFlow[cExp].
   implementFunCall(Lc,.moduleFun(_,Fn),_,Args,Tp,Map,Ex) =>
     (.cCall(Lc,Fn,Args,Tp),Ex).
-  implementFunCall(Lc,.moduleCons(Fn,FTp),_,Args,Tp,Map,Ex) =>
-    (.cTerm(Lc,Fn,Args,Tp),Ex).
-  implementFunCall(Lc,.localCons(Fn,FTp,Vr),_,Args,Tp,Map,Ex) => valof{
-    VV=liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
-    valis (.cTerm(Lc,Fn,[VV,..Args],Tp),Ex)
-  }
   implementFunCall(Lc,.localFun(Nm,_,_,Th),_,Args,Tp,Map,Ex) => valof{
     V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
     valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
@@ -464,6 +462,82 @@ star.compiler.normalize{
   implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
     (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
+    reportError("illegal variable $(Vr) - $(V)",Lc);
+    valis (.cVoid(Lc,Tp),[])
+  }
+
+  liftThrowingOp:(option[locn],canon,cons[cExp],tipe,tipe,nameMap,set[cV],cons[cDefn]) =>
+    crFlow[cExp].
+  liftThrowingOp(Lc,.vr(_,Nm,_),Args,Tp,ErTp,Map,_,Ex) where isEscape(Nm) =>
+    (.cXCall(Lc,Nm,Args,Tp,ErTp),Ex).
+  liftThrowingOp(Lc,.vr(_,Nm,_),Args,Tp,ErTp,Map,_,Ex)
+      where Entry ?= lookupVarName(Map,Nm) =>
+    case Entry in {
+    | .moduleFun(_,Fn) => (.cXCall(Lc,Fn,Args,Tp,ErTp),Ex)
+    | .localFun(Nm,_,_,Th) => valof{
+      V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
+      valis (.cXCall(Lc,Nm,[V,..Args],Tp,ErTp),Ex)
+    }
+    | .labelArg(Base,Ix) => valof{
+      V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+      valis (.cXOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp,ErTp),Ex)
+    }
+    | .thunkArg(Base,VFn,Ix) => valof{
+      V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+      valis (.cXOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp,ErTp),Ex)
+    }
+    | .localVar(Vr) => (.cXOCall(Lc,Vr,Args,Tp,ErTp),Ex)
+    | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp,ErTp),Ex)
+    | _ default => valof{
+      reportError("illegal call variable $(Nm)",Lc);
+      valis (.cVoid(Lc,Tp),[])
+    }
+    }.
+  liftThrowingOp(Lc,Op,Args,Tp,ErTp,Map,Q,Ex) => valof{
+    (LOp,Ex0) = liftExp(Op,Map,Q,Ex);
+    valis (.cXOCall(Lc,LOp,Args,Tp,ErTp),Ex0)
+  }
+  liftThrowingOp(Lc,Op,Args,Tp,_,_,_,_) => valof{
+    reportError("cannot compile function $(Op) applied to $(Args)",Lc);
+    valis (.cVoid(Lc,Tp),[])
+  }.
+
+  implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
+    crFlow[cExp].
+  implementFunCall(Lc,.moduleFun(_,Fn),_,Args,Tp,Map,Ex) =>
+    (.cCall(Lc,Fn,Args,Tp),Ex).
+  implementFunCall(Lc,.localFun(Nm,_,_,Th),_,Args,Tp,Map,Ex) => valof{
+    V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
+    valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
+  }
+  implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) => valof{
+    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+    valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
+  }
+  implementFunCall(Lc,.thunkArg(Base,VFn,Ix),_,Args,Tp,Map,Ex) => valof{
+    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
+    valis (.cOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp),Ex)
+  }
+  implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
+    (.cOCall(Lc,Vr,Args,Tp),Ex).
+  implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
+    (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
+  implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
+    reportError("illegal variable $(Vr) - $(V)",Lc);
+    valis (.cVoid(Lc,Tp),[])
+  }
+
+  
+
+  implConstructor:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
+    crFlow[cExp].
+  implConstructor(Lc,.moduleCons(Fn,FTp),_,Args,Tp,Map,Ex) =>
+    (.cTerm(Lc,Fn,Args,Tp),Ex).
+  implConstructor(Lc,.localCons(Fn,FTp,Vr),_,Args,Tp,Map,Ex) => valof{
+    VV=liftVarExp(Lc,cName(Vr),typeOf(Vr),Map);
+    valis (.cTerm(Lc,Fn,[VV,..Args],Tp),Ex)
+  }
+  implConstructor(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
     valis (.cVoid(Lc,Tp),[])
   }

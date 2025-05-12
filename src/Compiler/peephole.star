@@ -19,7 +19,7 @@ star.compiler.peephole{
   }
   peepOptimize(Df) default => Df.
 
-  peepCode(Ins,Lbls) => peep(dropUnreachable(Ins),Lbls).
+  peepCode(Ins,Lbls) => peep(peep(dropUnreachable(Ins),Lbls),Lbls).
 
   findUnusedVars([],Ins) => ([],Ins).
   findUnusedVars([(Nm,Spec),..LcMp],Ins) => valof{
