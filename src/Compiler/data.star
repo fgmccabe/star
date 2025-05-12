@@ -41,7 +41,8 @@ star.compiler.data{
       | .chr(Cx) => disp(Cx)
       | .strg(Sx) => disp(Sx)
       | .term(T,Args) where isTupleLbl(T) => "(#(dispTs(Args)))"
-      | .term(Op,Args) => "#(Op)(#(dispTs(Args)))"
+      | .term(Op,[]) => ".#(Op)"
+      | .term(Op,Args) => ".#(Op)(#(dispTs(Args)))"
       | .symb(Sx) => "'$(Sx)'"
       | .clos(Lb,Fr,_) => "<$(Lb)\:#(dispT(Fr))>"
     }
