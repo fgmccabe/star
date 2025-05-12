@@ -104,9 +104,6 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
       closeIo(file);
 
-      if (ret != Ok)
-        logMsg(logFile, "problem in loading %P: %s", pkg, errorMsg);
-
       return ret;
     } else {
       strMsg(errorMsg, msgSize, "package %P not found", pkg);

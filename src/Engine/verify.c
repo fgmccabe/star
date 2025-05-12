@@ -143,6 +143,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Abort should be last instruction in block", pc);
         else {
+          if (stackDepth < 2)
+            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           propagateVars(&ctx, parentCtx);
           return Ok;
         }
