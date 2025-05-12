@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
   {
     timerPo loadTimer = startTimer("load");
     if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-      logMsg(logFile, "Could not load boot pkg %s: %s", pkgName(&mainPkge), errMsg);
       exit(99);
     }
     pauseTimer(loadTimer);
