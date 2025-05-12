@@ -80,7 +80,7 @@ star.compiler.typeparse{
     R = parseType(Rhs,Env);
     valis fnType(A,R)
   }
-  parseType(T,Env) where (Lc,Lhs,Rhs,Ehs) ?= isThrowingFunType(T) => valof{
+  parseType(T,Env) where (Lc,Lhs,Rhs,Ehs) ?= isThrwFunctionType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
     E = parseType(Ehs,Env);
