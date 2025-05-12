@@ -428,6 +428,10 @@ star.compiler.resolve{
     (EE,St1) = overloadTerm(E,Dict,St);
     valis (.doValis(Lc,EE),St1)
   }
+  overloadAction(.doThrow(Lc,E),Dict,St) => valof{
+    (EE,St1) = overloadTerm(E,Dict,St);
+    valis (.doThrow(Lc,EE),St1)
+  }
   overloadAction(.doDefn(Lc,P,V),Dict,St) => valof{
     (PP,St1) = overloadTerm(P,Dict,St);
     (VV,St2) = overloadTerm(V,Dict,St1);

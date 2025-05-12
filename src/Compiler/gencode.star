@@ -505,6 +505,15 @@ star.compiler.gencode{
 	valis ([],Ctx,Stk)
       }
     }
+    | .aThrw(Lc,E) => valof{
+      if (_,Lbl) ?= Brks["$try"] then{
+	(EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
+	valis (chLine(OLc,Lc)++EC++[.iResult(Lbl)],Ctx,.none)
+      } else{
+	reportError("throw outside of try scope",Lc);
+	valis ([],Ctx,Stk)
+      }
+    }
     | .aDo(Lc,E) => valof{
       case Next in {
 	| .noMore => valis compExp(E,Lc,Brks,Last,Ctx,Stk)
