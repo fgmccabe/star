@@ -150,11 +150,11 @@ star.compiler.wff{
     .some((Lc,L,R)).
   isFunctionType(_) default => .none.
 
-  public isThrowingFunType:(ast) => option[(option[locn],ast,ast,ast)].
-  isThrowingFunType(A) where
+  public isThrwFunctionType:(ast) => option[(option[locn],ast,ast,ast)].
+  isThrwFunctionType(A) where
       (Lc,L,R) ?= isBinary(A,"=>") && (_,Rs,Et) ?= isBinary(R,"throws") =>
     .some((Lc,L,Rs,Et)).
-  isThrowingFunType(A) default => .none.
+  isThrwFunctionType(A) default => .none.
 
   public mkThrowingFunType(Lc,L,R,E) => binary(Lc,"=>",L,binary(Lc,"throws",R,E)).
 
@@ -612,7 +612,7 @@ star.compiler.wff{
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
   surfaceName(T) where _ ?= isFunctionType(T) => "=>".
-  surfaceName(T) where _ ?= isThrowingFunType(T) => "=>".
+  surfaceName(T) where _ ?= isThrwFunctionType(T) => "=>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
 
   public mkImplementationStmt:(option[locn],cons[ast],cons[ast],ast,ast) => ast.

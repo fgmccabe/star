@@ -450,7 +450,7 @@ star.compiler.dependencies{
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R,E) ?= isThrowingFunType(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R,E) ?= isThrwFunctionType(T) =>
     collectTypeRefs(E,All,collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar))).
   collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>
     collectTypeRefs(R,All,SoFar).
