@@ -180,6 +180,12 @@ star.compiler.types.encode{
       (R,T1) = decodeType(T0);
       valis (fnType(A,R),T1)
     }
+    | `T` => valof{
+      (A,T0) = decodeType(Ts);
+      (R,T1) = decodeType(T0);
+      (E,T2) = decodeType(T1);
+      valis (throwingType(A,R,E),T2)
+    }
     | `C` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
