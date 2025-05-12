@@ -263,6 +263,7 @@ star.compiler.types{
 
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
+  showTpExp(.tpFun("=>",3),[A,R,E],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1)) throws #(showType(E,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
   showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
@@ -432,6 +433,7 @@ star.compiler.types{
   arity(Tp) => ar(deRef(Tp)).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(Tp) where (A,_) ?= isFnType(Tp) => arity(A).
+  ar(Tp) where (A,_,_) ?= isThrowingFunType(Tp) => arity(A).
   ar(Tp) where (A,_) ?= isCnType(Tp) => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
@@ -455,27 +457,32 @@ star.compiler.types{
   public futureType(A,B) => .tpExp(.tpExp(.tpFun("future",2),A),B).
 
   public funTypeArg:(tipe) => option[tipe].
-  funTypeArg(Tp) => let{.
-    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
-	.tpFun("=>",2).=deRef(O2) => .some(deRef(A)).
-    funTpArg(.tpExp(O,_)) where .tpExp(O2,A) .= deRef(O) &&
-	.tpFun("<=>",2).=deRef(O2) => .some(deRef(A)).
-    funTpArg(.allType(_,T)) => funTpArg(deRef(T)).
-    funTpArg(.constrainedType(T,C)) where FTp ?= funTpArg(deRef(T)) =>
-      .some(extendArgType(FTp,.some(C))).
-    funTpArg(_) default => .none
-  .} in funTpArg(deRef(Tp)).
+  funTypeArg(.allType(_,T)) => funTypeArg(deRef(T)).
+  funTypeArg(.constrainedType(T,C)) where FTp ?= funTypeArg(deRef(T)) =>
+    .some(extendArgType(FTp,.some(C))).
+  funTypeArg(Tp) where (A,_) ?= isFunType(deRef(Tp)) => .some(A).
+  funTypeArg(Tp) where (A,_,_) ?= isThrowingFunType(Tp) => .some(A).
+  funTypeArg(Tp) where (A,_) ?= isConsType(Tp) => .some(A).
+  funTypeArg(_) default => .none.
+
+  extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  extendArgType(Tp,.none) => Tp.
+  extendArgType(Tp,.some(C))
+      where .tupleType(Els).=deRef(Tp) => .tupleType([typeOf(C),..Els]).
 
   public isThrowingType:(tipe) => boolean.
-  isThrowingType(Tp) => isThr(deRef(Tp)).
+  isThrowingType(Tp) => _ ?= isThrowingFunType(Tp).
 
-  isThr(.allType(_,T)) => isThr(deRef(T)).
-  isThr(.existType(_,T)) => isThr(deRef(T)).
-  isThr(.constrainedType(T,E)) => isThr(deRef(T)).
-  isThr(.tpExp(O,_)) where
-      .tpExp(O1,A) .= deRef(O) && .tpExp(O2,A) .= deRef(O1) &&
-	  .tpFun("=>",3).=deRef(O2) => .true.
-  isThr(_) default => .false.
+  public isThrowingFunType:(tipe) => option[(tipe,tipe,tipe)].
+  isThrowingFunType(Tp) => let{.
+    thrFnTp(.allType(_,T)) => thrFnTp(deRef(T)).
+    thrFnTp(.existType(_,T)) => thrFnTp(deRef(T)).
+    thrFnTp(.constrainedType(T,E)) => thrFnTp(deRef(T)).
+    thrFnTp(.tpExp(O,E)) where .tpExp(O2,R) .= deRef(O) &&
+	.tpExp(O3,A) .= deRef(O2) &&
+	    .tpFun("=>",3).=deRef(O3) => .some((deRef(A),deRef(R),deRef(E))).
+    thrFnTp(_) default => .none.
+  .} in thrFnTp(deRef(Tp)).
 
   public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
@@ -483,21 +490,14 @@ star.compiler.types{
     | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
     | .existType(V,B) => .existType(V,extendFunTp(B,Vs))
     | .constrainedType(T,C) => .constrainedType(extendFunTp(T,Vs),C)
-    | _ where (A,B)?=isFunType(Tp) &&
-	.tupleType(Es).=deRef(A) =>
-      funType(extendTplType(Es,Vs),B).
+    | _ => ((A,B)?=isFunType(Tp) ?? fnType(extendTplType(deRef(A),Vs),B) ||
+      (A,B,E) ?= isThrowingFunType(Tp) ?? throwingType(extendTplType(deRef(A),Vs),B,E) ||
+    Tp).
   }
 
-  extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
-  extendArgType(Tp,.none) => Tp.
-  extendArgType(Tp,.some(C)) => case deRef(Tp) in {
-    | .tupleType(Els) => .tupleType([typeOf(C),..Els])
-  }.
-
-  public extendTplType:all x ~~ hasType[x] |:
-    (cons[tipe],option[x])=>cons[tipe].
+  public extendTplType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
   extendTplType(Es,.none) => Es.
-  extendTplType(Es,.some(E)) => [typeOf(E),..Es].
+  extendTplType(.tupleType(Es),.some(E)) => .tupleType([typeOf(E),..Es]).
 
   public funTypeRes(Tp) => funRes(deRef(Tp)).
 

@@ -56,15 +56,15 @@ star.compiler.gencode{
   genDef(.lblDef(_Lc,Lbl,Tp,Ix),_) => .struct(Lbl,Tp,Ix).
 
   genFun:(option[locn],string,tipe,cons[cExp],cExp,map[string,(tipe,srcLoc)]) => codeSegment.
-  genFun(Lc,Nm,Tp,Args,Val,Glbs) where isThrowingType(Tp) => valof{
+  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
     Ctx = emptyCtx(Glbs);
 
     if traceCodegen! then
-      showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\:$(Tp)~$(Tp::ltipe)");
+      showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\n");
 
     AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
     AbrtLbl = defineLbl(Ctx,"Abrt");
-    ExLbl = defineLbl(Ctx,"Exit");
+    ExLbl = defineLbl(Ctx,"TrExit");
 
     Brks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl),
       "$try" -> (((C,S)=>([.iResult(ExLbl)],C,.none)),ExLbl)];
@@ -75,33 +75,6 @@ star.compiler.gencode{
     C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
 	  [.iLbl(ExLbl,.iBlock(1,FC++EC++[.iRet])),.iXRet])),..AbrtCde];
-    
-    Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
-
-    if traceCodegen! then
-      showMsg("non-peep code is $(Code)");
-    Peeped = peepOptimize(Code);
-    if traceCodegen! then
-      showMsg("peeped code is $(Peeped)");
-
-    valis Peeped;
-  }
-  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
-    Ctx = emptyCtx(Glbs);
-
-    if traceCodegen! then
-      showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\:$(Tp)~$(Tp::ltipe)");
-
-    AbrtCde = compAbort(Lc,"function: $(Nm) aborted",Ctx);
-    AbrtLbl = defineLbl(Ctx,"Abrt");
-
-    Brks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl)];
-
-    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,Brks,Ctx,.some([]));
-    (EC,Ct2,Stk1) = compExp(Val,Lc,Brks,.noMore,Ct1,Stk0);
-    
-    C0 = genDbg([.iEntry(size(varInfo(Ct2)))])++
-    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,FC++EC++[.iRet])),..AbrtCde];
     
     Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
 
@@ -172,18 +145,41 @@ star.compiler.gencode{
       }
     }
     | .cXCall(Lc,Nm,Args,Tp,_) => valof{
-      (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
-      Stk1 = pshStack(Tp,Stk);
+      if isEscape(Nm) then
+	valis compEscape(OLc,Lc,Nm,Args,Tp,Brks,Last,Ctx,Stk)
+      else {
+	(ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
+	Stk1 = pshStack(Tp,Stk);
 
-      if (_,XLbl) ?= Brks["$try"] then{
-	valis genReturn(Last,chLine(OLc,Lc)++ArgCode++
-	  [.iXCall(.tLbl(Nm,[|Args|]),XLbl),frameIns(Stk1)],Ctx,Stk1)
-      } else{
-	reportError("invoke throwing function: #(Nm) outside a try scope",Lc);
-	valis ([],Ctx,Stk1)
+	if (_,XLbl) ?= Brks["$try"] then{
+	  valis genReturn(Last,chLine(OLc,Lc)++ArgCode++
+	    [.iXCall(.tLbl(Nm,[|Args|]),XLbl),frameIns(Stk1)],Ctx,Stk1)
+	} else{
+	  reportError("invoke throwing function: #(Nm) outside a try scope",Lc);
+	  valis ([],Ctx,Stk1)
+	}
       }
     }
     | .cOCall(Lc,Op,Args,Tp) => valof{
+      (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Ctx,Stk);
+      (OCode,_,_) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
+      Stk1 = pshStack(Tp,Stk);
+
+      if isThrowingType(typeOf(Op)) then{
+	if (_,XLbl) ?= Brks["$try"] then{
+	  valis genReturn(Last,chLine(OLc,Lc)++ArgCode++OCode++
+	    [.iXOCall([|Args|]+1,XLbl),frameIns(Stk1)],Ctx,Stk1)
+	} else{
+	  reportError("invoke throwing function: $(Op) outside a try scope",Lc);
+	  valis ([],Ctx,Stk1)
+	}
+      } else if Last==.noMore then
+	valis (chLine(OLc,Lc)++ArgCode++OCode++[.iTOCall([|Args|]+1)],Ctx,Stk1)
+      else
+      valis (chLine(OLc,Lc)++ArgCode++OCode++
+	[.iOCall([|Args|]+1),frameIns(Stk1)],Ctx,Stk1)
+    }
+    | .cXOCall(Lc,Op,Args,Tp,ErTp) => valof{
       (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Ctx,Stk);
       (OCode,_,_) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
       Stk1 = pshStack(Tp,Stk);
@@ -261,8 +257,9 @@ star.compiler.gencode{
     }
     | .cAbort(Lc,Msg,Tp) => (compAbort(Lc,Msg,Ctx),Ctx,.none)
     | .cTry(Lc,B,.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
-      if traceCodegen! then
+      if traceCodegen! then{
 	showMsg("compiling try catch @$(Lc), $(B), catch $(H)");
+      }
 
       Ok = defineLbl(Ctx,"Tr");
       TrX = defineLbl(Ctx,"TrX");
@@ -286,9 +283,9 @@ star.compiler.gencode{
 	Ctx,reconcileStack(Stka,Stkb))
     }
     | .cThrw(Lc,E,_) => valof{
-      if (_,ExLbl) ?= Brks["$try"] then{
+      if (_,Lbl) ?= Brks["$try"] then{
 	(EC,_,Stk1) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
-	valis (chLine(OLc,Lc)++EC++[.iResult(ExLbl)],Ctx,.none)
+	valis (chLine(OLc,Lc)++EC++[.iResult(Lbl)],Ctx,.none)
       } else{
 	reportError("throw outside of try scope",Lc);
 	valis ([],Ctx,Stk)
@@ -600,7 +597,7 @@ star.compiler.gencode{
       Stkx = pshStack(ETp,Stk);
       Ctx1 = defineLclVar(Er,ETp,Ctx);
 
-      TBrks = Brks["$try" -> (((C,S)=>([.iResult(TrX)],C,.none)),TrX)];
+      TBrks = Brks["$try" -> (((C,S)=>([.iBreak(TrX)],C,.none)),TrX)];
 
       (BC,_,Stka) = compAction(B,Lc,TBrks,.notLast,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,.notLast,Ctx,Stk);
@@ -608,11 +605,11 @@ star.compiler.gencode{
       if ~reconcileable(Stka,Stkb) then
 	reportError("cannot reconcile try exp $(B) with handler $(H)",Lc);
 	  
-      RLvl = stkLvl(Stk)+1;
+      RLvl = stkLvl(Stk);
 
       valis (chLine(OLc,Lc)++
 	[.iLbl(Ok,.iBlock(RLvl,
-	      [.iLbl(TrX,.iBlock(RLvl,BC++[.iResult(Ok)])),
+	      [.iLbl(TrX,.iBlock(RLvl+1,BC++[.iBreak(Ok)])),
 		.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
@@ -643,7 +640,7 @@ star.compiler.gencode{
     (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[.iCase(Max)],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
-      reportError("cannot cases' stack $(Cases) with default $(Deflt)",Lc);
+      reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
 
     valis ([.iLbl(Ok,.iBlock(OkLvl,
 	    GC++[.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],

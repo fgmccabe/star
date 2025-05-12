@@ -65,7 +65,8 @@ star.compiler.resolve{
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
-    if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
+    (Atp,Rtp,Etp) = splitupProgramType(Lc,CDict,ITp);
+    if .tupleType(AITp).=deRef(Atp) && RITp .= deRef(Rtp) then {
       CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
       if traceResolve! then
 	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
@@ -234,6 +235,24 @@ star.compiler.resolve{
     (ROp,St1) = overloadTerm(Op,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
+  }
+  overloadTerm(.tapply(lc,.over(OLc,T,Cx),Args,Tp,ErTp),Dict,St) => valof{
+    if traceResolve! then
+      showMsg("$(lc)\: overload $(.over(OLc,T,Cx)) in call");
+
+    (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
+    (OverOp,NArgs,St3) = resolveRef(T,DArg,RArgs,Dict,St2);
+
+    if traceResolve! then
+      showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
+
+    valis (.tapply(lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
+  }
+  overloadTerm(.tapply(lc,Op,Args,Tp,ErTp),Dict,St) => valof{
+    (ROp,St1) = overloadTerm(Op,Dict,St);
+    (RArgs,St2) = overloadTplEls(Args,Dict,St1);
+    valis (.tapply(lc,ROp,RArgs,Tp,ErTp),St2)
   }
   overloadTerm(.match(Lc,Ptn,Src),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
@@ -655,5 +674,20 @@ star.compiler.resolve{
     disp(.resolved) => "resolved".
     disp(.active(Lc,Msg)) => "active $(Lc)\:#(Msg)".
     disp(.fatal(Lc,Msg)) => "error $(Lc)\:#(Msg)".
+  }
+
+  public splitupProgramType(Lc,Env,PTp) => valof{
+    ATp = newTypeVar("_A");
+    RTp = newTypeVar("_R");
+    ETp = newTypeVar("_E");
+
+    if sameType(fnType(ATp,RTp),PTp,Env) && sameType(.voidType,ETp,Env) then
+      valis (ATp,RTp,ETp)
+    else if sameType(throwingType(ATp,RTp,ETp),PTp,Env) then
+      valis (ATp,RTp,ETp)
+    else{
+      reportError("expecting a function type, not $(PTp)",Lc);
+      valis (ATp,RTp,ETp)
+    }
   }
 }
