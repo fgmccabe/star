@@ -631,10 +631,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         continue;
       }
       case IDiv:
-      case IMod:{
+      case IMod: {
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth --;
+        stackDepth--;
         pc++;
         continue;
       }
@@ -701,7 +701,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case FMod: {
         if (stackDepth < 2)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth --;
+        stackDepth--;
         pc++;
         continue;
       }
@@ -759,27 +759,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         }
       }
       case Frame: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-
-        termPo frameLit = getConstant(constant);
-        int32 depth;
-
-        if (isString(frameLit)) {
-          integer frameSigLen;
-          const char *sig = strVal(frameLit, &frameSigLen);
-
-          tryRet(typeSigArity(sig, frameSigLen, &depth));
-        } else if (isInteger(frameLit))
-          depth = (int32) integerVal(frameLit);
-        else
-          return verifyError(&ctx, ".%d: invalid Frame literal: %T", pc, lit);
-
+        int32 depth = code[pc].fst;
         if (depth != stackDepth)
           return verifyError(&ctx, ".%d: stack depth %d does not match Frame instruction %d", pc,
                              stackDepth, depth);
-
         pc++;
         continue;
       }

@@ -1413,24 +1413,7 @@ retCode run(processPo P) {
       }
 
       case Frame: {
-#ifdef TRACESTACK
-        if (stackVerify) {
-          termPo frame = getConstant(PC->fst);
-          int32 frameDepth;
-          if (isString(frame)) {
-            integer sigLen;
-            const char *sig = strVal(frame, &sigLen);
-            tryRet(typeSigArity(sig, sigLen, &frameDepth));
-          } else
-            frameDepth = (int32) integerVal(frame);
-          if (frameDepth != stackDepth(STK, frameMtd(FP), SP, FP)) {
-            logMsg(logFile, "stack depth: %d does not match frame signature %T",
-                   stackDepth(STK, frameMtd(FP), SP, FP),
-                   frame);
-            bail();
-          }
-        }
-#endif
+        assert(SP==&local(lclCount(frameMtd(FP)) + PC->fst));
         PC++;
         continue;
       }

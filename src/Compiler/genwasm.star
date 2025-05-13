@@ -756,7 +756,7 @@ star.compiler.wasm.gen{
   }
 
   frameIns:(stack)=>wOp.
-  frameIns(.some(Stk)) => .iFrame(.tplTipe(Stk)).
+  frameIns(.some(Stk)) => .iFrame(size(Stk)).
 
   locateVar:(string,codeCtx)=>option[srcLoc].
   locateVar(Nm,Ctx) => Ctx.vars[Nm].
