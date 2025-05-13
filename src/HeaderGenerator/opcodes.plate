@@ -22,9 +22,9 @@ static char *opNames[] = {#(OpNames)};
 #endif
 
 typedef enum {
-  nOp,                                   // No operand
+  nOp,          // No operand
   tOs,          // top of stack
-  i32,         /* 32 bit literal operand */
+  i32,          /* 32 bit literal operand */
   art,          /* Arity */
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
@@ -36,6 +36,6 @@ typedef enum {
   tPe,          // Type signature
   bLk,          // A block of instructions
   lVl,          // How many blocks to break out of
-} opAndSpec;                    // Specification code for an operand
+} opAndSpec;    // Specification code for an operand
 
 #endif
