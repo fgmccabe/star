@@ -502,33 +502,6 @@ star.compiler.normalize{
     valis (.cVoid(Lc,Tp),[])
   }.
 
-  implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
-    crFlow[cExp].
-  implementFunCall(Lc,.moduleFun(_,Fn),_,Args,Tp,Map,Ex) =>
-    (.cCall(Lc,Fn,Args,Tp),Ex).
-  implementFunCall(Lc,.localFun(Nm,_,_,Th),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Th),typeOf(Th),Map);
-    valis (.cCall(Lc,Nm,[V,..Args],Tp),Ex)
-  }
-  implementFunCall(Lc,.labelArg(Base,Ix),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis (.cOCall(Lc,.cNth(Lc,V,Ix,Tp),Args,Tp),Ex)
-  }
-  implementFunCall(Lc,.thunkArg(Base,VFn,Ix),_,Args,Tp,Map,Ex) => valof{
-    V = liftVarExp(Lc,cName(Base),typeOf(Base),Map);
-    valis (.cOCall(Lc,.cCall(Lc,VFn,[V],Tp),Args,Tp),Ex)
-  }
-  implementFunCall(Lc,.localVar(Vr),_,Args,Tp,Map,Ex) =>
-    (.cOCall(Lc,Vr,Args,Tp),Ex).
-  implementFunCall(Lc,.globalVar(Nm,GTp),_,Args,Tp,Map,Ex) =>
-    (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
-  implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
-    reportError("illegal variable $(Vr) - $(V)",Lc);
-    valis (.cVoid(Lc,Tp),[])
-  }
-
-  
-
   implConstructor:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
     crFlow[cExp].
   implConstructor(Lc,.moduleCons(Fn,FTp),_,Args,Tp,Map,Ex) =>
