@@ -1137,7 +1137,7 @@ star.compiler.term{
 	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp))])
     | .cXCall(Lc,Nm,Args,Tp,ETp) => mkCons("xcall",[Lc::data,.strg(Nm),mkTpl(Args//frzeExp),
 	.strg(encodeSignature(Tp)),.strg(encodeSignature(ETp))])
-    | .cXOCall(Lc,Op,Args,Tp,ETp) => mkCons("ocll",[Lc::data,frzeExp(Op),
+    | .cXOCall(Lc,Op,Args,Tp,ETp) => mkCons("xocll",[Lc::data,frzeExp(Op),
 	mkTpl(Args//frzeExp),.strg(encodeSignature(Tp)),.strg(encodeSignature(ETp))])
     | .cCel(Lc,E,Tp) => mkCons("cel",[Lc::data,frzeExp(E),
 	.strg(encodeSignature(Tp))])

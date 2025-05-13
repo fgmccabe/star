@@ -184,19 +184,17 @@ star.compiler.gencode{
       (OCode,_,_) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
       Stk1 = pshStack(Tp,Stk);
 
-      if isThrowingType(typeOf(Op)) then{
-	if (_,XLbl) ?= Brks["$try"] then{
-	  valis genReturn(Last,chLine(OLc,Lc)++ArgCode++OCode++
-	    [.iXOCall([|Args|]+1,XLbl),frameIns(Stk1)],Ctx,Stk1)
-	} else{
-	  reportError("invoke throwing function: $(Op) outside a try scope",Lc);
-	  valis ([],Ctx,Stk1)
-	}
-      } else if Last==.noMore then
-	valis (chLine(OLc,Lc)++ArgCode++OCode++[.iTOCall([|Args|]+1)],Ctx,Stk1)
-      else
-      valis (chLine(OLc,Lc)++ArgCode++OCode++
-	[.iOCall([|Args|]+1),frameIns(Stk1)],Ctx,Stk1)
+      if traceCodegen! then{
+	showMsg("compiling throwing call @$(Op)\:$(typeOf(Op))");
+      }
+
+      if (_,XLbl) ?= Brks["$try"] then{
+	valis genReturn(Last,chLine(OLc,Lc)++ArgCode++OCode++
+	  [.iXOCall([|Args|]+1,XLbl),frameIns(Stk1)],Ctx,Stk1)
+      } else{
+	reportError("invoke throwing function: $(Op) outside a try scope",Lc);
+	valis ([],Ctx,Stk1)
+      }
     }
     | .cClos(Lc,Nm,Ar,F,Tp) => valof{
       (FCode,_,Stk1) = compExp(F,Lc,Brks,.notLast,Ctx,Stk);
