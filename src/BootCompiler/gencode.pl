@@ -306,12 +306,7 @@ breakOut(Ok,Stk,Stkx,C,Cx) :-
   resetStack(Stkx,Stk,C,[iBreak(Ok)|Cx]).
 throwOut(Lbl,_Stk,_Stkx,[iResult(Lbl)|Cx],Cx).
   
-frameSig(Stk,strg(Sig)) :-
-  mkTplTipe(Stk,FrTp),
-  encLtp(FrTp,Sig).
-
-frameIns(some(Stk),[iFrame(Sig)|Cx],Cx) :-
-  frameSig(Stk,Sig).
+frameIns(some(Depth),[iFrame(Depth)|Cx],Cx).
 frameIns(none,Cx,Cx).
 
 stkLvl(some(Lvl),Lvl).

@@ -106,7 +106,7 @@ star.compiler.assem{
     | .iAlloc(termLbl)
     | .iClosure(termLbl)
     | .iCmp(assemLbl)
-    | .iFrame(ltipe)
+    | .iFrame(integer)
     | .iDBug
 
     | .iLbl(string, assemOp)
@@ -247,7 +247,7 @@ star.compiler.assem{
   mnem(.iAlloc(U),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(85),.intgr(LtNo)],Pc+1,Lt1,Lns).
   mnem(.iClosure(U),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(86),.intgr(LtNo)],Pc+1,Lt1,Lns).
   mnem(.iCmp(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(87),.intgr(Tgt)],Pc+1,Lts,Lns).
-  mnem(.iFrame(U),Pc,Lbls,Lts,Lcs,Lns) where (Lt1,LtNo) .= findLit(Lts,.strg(U::string)) => ([.intgr(88),.intgr(LtNo)],Pc+1,Lt1,Lns).
+  mnem(.iFrame(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(88),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iDBug,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(89)],Pc+1,Lts,Lns).
 
   mnem(I,Pc,Lbls,Lts,Lcs,Lns) => valof{

@@ -124,6 +124,6 @@ instruction(Closure, sym, tOs, 0, "allocate a closure")
 
 instruction(Cmp, tOs, lVl, -2, "t1 t2 --> , branch to offset if not same literal")
 
-instruction(Frame, tPe, nOp, 0, "frame instruction")
+instruction(Frame, i32, nOp, 0, "frame instruction")
 
 instruction(dBug, nOp, nOp, 0, "debugging prefix")

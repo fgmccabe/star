@@ -919,7 +919,7 @@ star.compiler.gencode{
   pickStack(_,.none) => [].
 
   frameIns:(stack)=>assemOp.
-  frameIns(.some(Stk)) => .iFrame(.tplTipe(Stk)).
+  frameIns(.some(Stk)) => .iFrame(size(Stk)).
 
   locateVar:(string,codeCtx)=>option[srcLoc].
   locateVar(Nm,Ctx) where (_,Loc) ?= Ctx.vars![Nm] => .some(Loc).
