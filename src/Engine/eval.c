@@ -549,9 +549,9 @@ retCode run(processPo P) {
         integer height = PC->fst;
         assert(height >= 0);
         assert(height == lclCount(frameMtd(FP)));
-        SP -= height;
-        for (integer ix = 0; ix < height; ix++)
-          SP[ix] = voidEnum;
+        for (int32 ix=0;ix<height;ix++)
+          push(voidEnum);
+
         PC++;
         continue;
       };
@@ -561,9 +561,7 @@ retCode run(processPo P) {
 
         assert(FP > baseFrame(STK));
 
-        ptrPo tgtSp = &arg(argCount(frameMtd(FP)));
-
-        SP = tgtSp; // Just above arguments to current call
+        SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
         FP = FP->fp;
         PC = FP->pc;
 
