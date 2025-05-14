@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "constants.h"
 #include "jitP.h"
+#include "formioP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -23,6 +24,8 @@ static void setJitHeight(jitCompPo jit, int32 height);
 static retCode getIntVal(jitCompPo jit, armReg rg);
 static retCode mkIntVal(jitCompPo jit, armReg rg);
 #define SSP (X28)
+
+static retCode jitError(jitCompPo jit, char *msg, ...);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
   integer frameSize = lclCount(mtd) * pointerSize + (integer) sizeof(StackFrame);
@@ -73,9 +76,9 @@ retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta) {
 retCode jit_postamble(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
-  ldr(SSP,OF(FP,OffsetOf(StackFrame,args)));
-  mov(X16,IM(argCount(jit->mtd)*pointerSize));
-  add(SSP,SSP,RG(X16));
+  ldr(SSP, OF(FP, OffsetOf(StackFrame, args)));
+  mov(X16, IM(argCount(jit->mtd) * pointerSize));
+  add(SSP, SSP, RG(X16));
 
   add(SSP, FP, IM(sizeof(StackFrame)));
   mov(PLE, OF(FP, OffsetOf(StackFrame, prog)));
@@ -112,7 +115,7 @@ static void pushStkOp(jitCompPo jit, armReg src) {
   jit->vTop++;
 }
 
-static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen) {
+static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
   retCode ret = Ok;
   assemCtxPo ctx = assemCtx(jit);
 
@@ -130,10 +133,15 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
       case Abort:            // abort with message
         return Error;
       case Call: {            // Call <prog>
-        int32 key = code[pc].fst;
-        labelPo lbl = C_LBL(getConstant(key));
+        labelPo nProg = C_LBL(getConstant(code[pc].fst));
 
-        int32 arity = lblArity(lbl);
+        codeLblPo mtdCodeLabel = defineLabel(ctx, (integer) labelCode);
+        bl(mtdCodeLabel);
+
+        codeLblPo haveMtdLbl = newLabel(ctx);
+        cbnz(X0, haveMtdLbl);
+
+        methodPo mtd = labelCode(nProg);
 
         // Pick up the method literal from the frame
         ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
@@ -195,7 +203,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
         return jit_postamble(jit);
       }
       case XRet:
-	return Error;
+        return Error;
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
         defineJitLbl(jit, &code[pc]);
@@ -203,7 +211,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
 
         codeLblPo exit = newJitLbl(jit, &code[pc + blockLen]);
 
-        jitBlock(jit, &code[pc + 1], blockLen, errMsg, msgLen);
+        jitBlock(jit, &code[pc + 1], blockLen);
         setLabel(ctx, exit);
         pc += blockLen;
         continue;
@@ -493,7 +501,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount, char *errMs
 }
 
 retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen) {
-  return jitBlock(jit, code, insCount, errMsg, msgLen);
+  return jitBlock(jit, code, insCount);
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
@@ -573,4 +581,22 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
   lsl(rg, rg, IM(2));
   orr(rg, rg, IM(intTg));
   return Ok;
+}
+
+retCode jitError(jitCompPo jit, char *msg, ...) {
+  char buff[MAXLINE];
+  strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
+
+  va_list args;      /* access the generic arguments */
+  va_start(args, msg);    /* start the variable argument sequence */
+
+  __voutMsg(O_IO(f), msg, args);  /* Display into the string buffer */
+
+  va_end(args);
+  outByte(O_IO(f), 0);                /* Terminate the string */
+
+  closeIo(O_IO(f));
+
+  strMsg(jit->errMsg, jit->msgLen, RED_ESC_ON "%s"RED_ESC_OFF, buff);
+  return Error;
 }

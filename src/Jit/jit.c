@@ -29,7 +29,7 @@ codeLblPo jitEntry(jitCompPo jit) {
 }
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
-  jitCompPo jit = jitContext(mtd);
+  jitCompPo jit = jitContext(mtd, errMsg, msgLen);
 
   retCode ret = jit_preamble(mtd, jit);
 
