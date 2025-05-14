@@ -763,23 +763,19 @@ retCode run(processPo P) {
         continue;
 
       case LdA: {
-        int32 offset = PC->fst;
-        push(arg(offset));    /* load argument */
+        push(arg(PC->fst));    /* load argument */
         PC++;
         continue;
       }
 
       case LdL: {
-        int32 offset = PC->fst;
-        push(local(offset));      /* load local */
+        push(local(PC->fst));      /* load local */
         PC++;
         continue;
       }
 
       case LdG: {
-        int32 glbNo = PC->fst;
-
-        globalPo glb = findGlobalVar(glbNo);
+        globalPo glb = findGlobalVar(PC->fst);
 
         if (glbIsSet(glb)) {
           termPo gval = getGlobal(glb);
@@ -855,61 +851,51 @@ retCode run(processPo P) {
       }
 
       case Nth: {
-        int32 ix = PC->fst;  /* which element */
         termPo t = pop();
 
         normalPo cl = C_NORMAL(t);  /* which term? */
-        push(nthElem(cl, ix));
+        push(nthElem(cl, PC->fst));
 
         PC++;
         continue;
       }
 
       case StL: {
-        int32 offset = PC->fst;
-        ptrPo dest = &local(offset);
-        *dest = pop();
+	local(PC->fst) = pop();
         PC++;
         continue;
       }
 
       case StV: {
-        int32 offset = PC->fst;
-        ptrPo dest = &local(offset);
-        *dest = voidEnum;
+        local(PC->fst) = voidEnum;
         PC++;
         continue;
       }
       case TL: {
-        int32 offset = PC->fst;
-        ptrPo dest = &local(offset);
-        *dest = top();
+	local(PC->fst) = top();
         PC++;
         continue;
       }
 
       case StNth: {      /* store into a closure */
-        int32 ix = PC->fst;
         normalPo cl = C_NORMAL(pop());
         termPo tos = pop();
-        cl->args[ix] = tos;
+        cl->args[PC->fst] = tos;
         PC++;
         continue;
       }
 
       case StG: {
-        int32 glbNo = PC->fst;
         termPo val = pop();
-        globalPo glb = findGlobalVar(glbNo);
+        globalPo glb = findGlobalVar(PC->fst);
         setGlobalVar(glb, val);      // Update the global variable
         PC++;
         continue;
       }
 
       case TG: {
-        int32 glbNo = PC->fst;
         termPo val = top();
-        globalPo glb = findGlobalVar(glbNo);
+        globalPo glb = findGlobalVar(PC->fst);
         setGlobalVar(glb, val);      // Update the global variable
         PC++;
         continue;

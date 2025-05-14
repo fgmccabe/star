@@ -71,11 +71,13 @@ typedef struct jit_compiler_ {
   codeLblPo entry;
   arrayPo locals;
   hashPo labels;
+  char *errMsg;
+  integer msgLen;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
 
-jitCompPo jitContext(methodPo mtd);
+jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen);
 void clearJitContext(jitCompPo ctx);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 

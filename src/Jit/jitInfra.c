@@ -39,7 +39,7 @@ static retCode delEntry(void *n, void *r) {
   return Ok;
 }
 
-jitCompPo jitContext(methodPo mtd) {
+jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen) {
   jitCompPo jitComp = (jitCompPo) allocPool(contextPool);
 
   jitComp->mtd = mtd;
@@ -49,6 +49,8 @@ jitCompPo jitContext(methodPo mtd) {
   jitComp->freeRegs = defltAvailRegSet();
   jitComp->locals = allocArray(sizeof(LocalRecord), 0, True);
   jitComp->labels = newHash(1024, pcHash, pcComp, delEntry);
+  jitComp->errMsg = errMsg;
+  jitComp->msgLen = msgLen;
   return jitComp;
 }
 
