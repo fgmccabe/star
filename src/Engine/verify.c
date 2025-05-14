@@ -278,13 +278,15 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           continue;
         }
       }
-      case Entry:
-        if (code[pc].fst != ctx.lclCount)
+      case Entry: {
+        int32 depth = code[pc].fst;
+        if (depth != ctx.lclCount)
           return verifyError(&ctx, ".%d local count %d does not match method local count %d", pc, code[pc].fst,
                              ctx.lclCount);
         pc++;
         stackDepth = 0;
         continue;
+      }
       case Ret:
       case XRet: {
         if (!isLastPC(pc++, limit))

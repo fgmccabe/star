@@ -94,8 +94,6 @@ logical collectStats = False;
 
 #define breakOut(PC, SP, F, EX) STMT_WRAP({             \
   PC += PC->alt + 1;                                 \
-  assert(validPC(frameMtd(FP), PC));                 \
-  assert(PC->op == Block);                           \
   SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1); \
   PC += PC->alt + 1;                                 \
   push(EX);                                          \
@@ -171,7 +169,6 @@ retCode run(processPo P) {
             verifyStack(STK, H);
 #endif
         }
-        assert(validPC(frameMtd(FP), PC));
         FP->pc = PC;
 
         if (hasJit(mtd)) {
@@ -233,7 +230,6 @@ retCode run(processPo P) {
 #endif
         }
 
-        assert(validPC(frameMtd(FP), PC));
         FP->pc = PC;
         pushFrme(mtd);
         incEntryCount(mtd);              // Increment number of times program called
@@ -348,7 +344,6 @@ retCode run(processPo P) {
 
         escapePo esc = getEscape(escNo);
         saveRegisters();
-        assert(H->topRoot == 0);
         ReturnStatus ret;
 
         switch (esc->arity) {
@@ -438,8 +433,6 @@ retCode run(processPo P) {
           continue;
         } else {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1);
           PC += PC->alt + 1;
 
@@ -547,8 +540,6 @@ retCode run(processPo P) {
 
       case Entry: {
         integer height = PC->fst;
-        assert(height >= 0);
-        assert(height == lclCount(frameMtd(FP)));
         for (int32 ix=0;ix<height;ix++)
           push(voidEnum);
 
@@ -577,8 +568,6 @@ retCode run(processPo P) {
         FP = FP->fp;
         PC = FP->pc - 1;
         PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
 
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height - 1);
@@ -596,7 +585,6 @@ retCode run(processPo P) {
       case Break: {
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height);
         PC += PC->alt + 1;
@@ -606,7 +594,6 @@ retCode run(processPo P) {
       case Loop: {
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height);
         PC++;
@@ -617,7 +604,6 @@ retCode run(processPo P) {
         termPo reslt = pop();
         PC += PC->alt + 1;
         assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height - 1);
         PC += PC->alt + 1;
@@ -660,15 +646,13 @@ retCode run(processPo P) {
         for (int32 ix = 0; ix < keep; ix++) {
           *--tgt = *--src;
         }
-        SP = &SP[depth];
-        assert(SP == tgt);
+        SP = tgt;
         PC++;
         continue;
       }
 
       case Rst: {
         int32 height = PC->fst;
-        assert(height >= 0);
         SP = &local(lclCount(frameMtd(FP)) + height);
         PC++;
         continue;
@@ -821,7 +805,6 @@ retCode run(processPo P) {
         if (!sameTerm(l, t)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
@@ -843,7 +826,6 @@ retCode run(processPo P) {
         }
         PC += PC->alt + 1;  // First jump to the block
         assert(validPC(frameMtd(FP), PC));
-        assert(PC->op == Block);
         PC += PC->alt + 1;
         continue;
       }
@@ -930,7 +912,6 @@ retCode run(processPo P) {
         } else {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         }
@@ -1086,7 +1067,6 @@ retCode run(processPo P) {
         if (integerVal(i) != integerVal(j)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         }
@@ -1127,7 +1107,6 @@ retCode run(processPo P) {
         if (charVal(i) != charVal(j)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1292,7 +1271,6 @@ retCode run(processPo P) {
         if (floatVal(x) != floatVal(y)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1357,7 +1335,6 @@ retCode run(processPo P) {
         if (!sameTerm(i, j)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1372,7 +1349,6 @@ retCode run(processPo P) {
         if (sameTerm(i, trueEnum)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1387,7 +1363,6 @@ retCode run(processPo P) {
         if (!sameTerm(i, trueEnum)) {
           PC += PC->alt + 1;
           assert(validPC(frameMtd(FP), PC));
-          assert(PC->op == Block);
           PC += PC->alt + 1;
           continue;
         } else {
