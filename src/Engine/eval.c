@@ -19,6 +19,7 @@
 #include "singleP.h"
 #include "errorCodes.h"
 #include "ltype.h"
+#include "../Jit/ARM64/Assem/Headers/arm64.h"
 
 logical collectStats = False;
 
@@ -92,12 +93,17 @@ logical collectStats = False;
   }\
   })
 
-#define breakOut(PC, SP, F, EX) STMT_WRAP({             \
+#define breakOut(EX) STMT_WRAP({                     \
   PC += PC->alt + 1;                                 \
   SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1); \
   PC += PC->alt + 1;                                 \
   push(EX);                                          \
   })
+
+#define breakBlock() STMT_WRAP({                     \
+  PC += PC->alt + 1;                                 \
+  PC += PC->alt + 1;                                 \
+})
 
 /*
  * Execute program on a given process/thread structure
@@ -432,11 +438,7 @@ retCode run(processPo P) {
           PC++;
           continue;
         } else {
-          PC += PC->alt + 1;
-          SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1);
-          PC += PC->alt + 1;
-
-          push(ret.result);
+          breakOut(ret.result);
           continue;
         }
       }
@@ -584,7 +586,6 @@ retCode run(processPo P) {
 
       case Break: {
         PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height);
         PC += PC->alt + 1;
@@ -593,7 +594,6 @@ retCode run(processPo P) {
 
       case Loop: {
         PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height);
         PC++;
@@ -603,7 +603,6 @@ retCode run(processPo P) {
       case Result: { /* return a value from a block */
         termPo reslt = pop();
         PC += PC->alt + 1;
-        assert(validPC(frameMtd(FP), PC));
         int32 height = PC->fst;
         SP = &local(lclCount(frameMtd(FP)) + height - 1);
         PC += PC->alt + 1;
@@ -803,9 +802,7 @@ retCode run(processPo P) {
         termPo t = pop();
 
         if (!sameTerm(l, t)) {
-          PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
-          PC += PC->alt + 1;
+          breakBlock();
           continue;
         } else {
           PC++;
@@ -824,9 +821,7 @@ retCode run(processPo P) {
             continue;
           }
         }
-        PC += PC->alt + 1;  // First jump to the block
-        assert(validPC(frameMtd(FP), PC));
-        PC += PC->alt + 1;
+        breakBlock();       // First jump to the block
         continue;
       }
 
@@ -910,9 +905,7 @@ retCode run(processPo P) {
           PC++;
           continue;
         } else {
-          PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
-          PC += PC->alt + 1;
+          breakBlock();
           continue;
         }
       }
@@ -1000,7 +993,7 @@ retCode run(processPo P) {
         integer Rhs = integerVal(pop());
 
         if (Rhs == 0) {
-          breakOut(PC, SP, FP, divZero);
+          breakOut(divZero);
         } else {
           termPo Rs = makeInteger(Lhs / Rhs);
           push(Rs);
@@ -1013,7 +1006,7 @@ retCode run(processPo P) {
         integer numerator = integerVal(pop());
 
         if (numerator == 0) {
-          breakOut(PC, SP, FP, divZero);
+          breakOut(divZero);
         } else {
           integer reslt = denom % numerator;
 
@@ -1065,9 +1058,7 @@ retCode run(processPo P) {
         termPo j = pop();
 
         if (integerVal(i) != integerVal(j)) {
-          PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
-          PC += PC->alt + 1;
+          breakBlock();
           continue;
         }
         PC++;
@@ -1208,7 +1199,7 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(PC, SP, FP, divZero);
+          breakOut(divZero);
         } else {
           termPo Rs = makeFloat(Lhs / Rhs);
           push(Rs);
@@ -1221,7 +1212,7 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(PC, SP, FP, divZero);
+          breakOut(divZero);
         } else {
           termPo Rs = makeFloat(fmod(Lhs, Rhs));
           push(Rs);
