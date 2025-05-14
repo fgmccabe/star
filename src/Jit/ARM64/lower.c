@@ -147,7 +147,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
         // Pick up the jit code itself
         ldr(X16, OF(X16, OffsetOf(MethodRec, jit)));
-        br(X16);
+        blr(X16);
         pc++;
         continue;
       }
