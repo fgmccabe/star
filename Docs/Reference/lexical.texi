@@ -17,9 +17,7 @@
 
 @Star{} source text is based on the Unicode character set. This means
 that identifiers and string values may directly use any Unicode
-characters; specifically any @emph{Unicode Scalar Value}.@footnote{In
-particular, the so-called @emph{surrogate pairs} are not legal in
-@Star{}.}
+characters; specifically any @emph{Unicode Scalar Value}.
 
 @quotation Note
 We use the term @emph{CodePoint} to refer to a Unicode Scalar Value --
@@ -29,7 +27,7 @@ are technically Unicode Scalar Values.
 @end quotation
 
 @quotation Note
-However, all the standard operators and keywords fall in he ASCII
+However, nearly all the standard operators and keywords fall in he ASCII
 subset of Unicode.
 @end quotation
 
@@ -75,6 +73,10 @@ Horizontal Tab.
 @anchored{LineComment} ::= (@code{--@spce{}} | @code{--\t}) @refer{Char} @dots{} @refer{Char} @code{\n}
 @end display
 @end float
+
+Note that any block comment markers are ignored in a line comment
+(i.e., a @code{/*} sequence in a line comment does not signal the
+start of a block comment).
 
 @node Block Comment
 @subsubsection Block Comment
@@ -131,8 +133,8 @@ represent the Unicode code points of particular characters.
 
 @quotation TIP
 The lexical syntax for numeric values is for positive values only. The
-interpretation of negative numeric literals is part of the grammar,
-not the lexical notation.
+interpretation of negative numeric literals is part of the grammar not
+the lexical notation.
 @end quotation
 
 @node Integer Tokens
