@@ -10,8 +10,7 @@
 #include "heapP.h"
 #include "jit.h"
 #include "array.h"
-
-#include <assert.h>
+#include "labelsP.h"
 
 typedef struct instruction_ {
   OpCode op;
@@ -63,6 +62,10 @@ static inline jitCode codeJit(methodPo mtd) {
   return mtd->jit;
 }
 
+static inline int32 lclCount(methodPo mtd) {
+  return mtd->lclcnt;
+}
+
 retCode setJitCode(methodPo mtd, jitCode code);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
@@ -73,6 +76,4 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 st
 labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls);
 
 void showMtdCounts(ioPo out);
-void countOp(OpCode op);
-void dumpOpCount(ioPo out);
 #endif

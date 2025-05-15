@@ -14,6 +14,10 @@
 static retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta);
 static int32 pointerSize = sizeof(integer);
 
+static int32 argOffset(int32 argNo) {
+  return argNo * pointerSize;
+}
+
 static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
 static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
@@ -92,7 +96,7 @@ static armReg popStkOp(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   int32 stackOffset = jit->currSPOffset;
   jit->currSPOffset += pointerSize;
-  ldr(tgt, OF(FP, stackOffset));
+  ldr(tgt, OF(SSP, stackOffset));
   jit->vTop--;
 
   return tgt;
@@ -102,7 +106,7 @@ static armReg topStkOp(jitCompPo jit) {
   armReg tgt = findFreeReg(jit);
   assemCtxPo ctx = assemCtx(jit);
   int32 stackOffset = jit->currSPOffset;
-  ldr(tgt, OF(FP, stackOffset));
+  ldr(tgt, OF(SSP, stackOffset));
 
   return tgt;
 }
@@ -111,7 +115,7 @@ static void pushStkOp(jitCompPo jit, armReg src) {
   assemCtxPo ctx = assemCtx(jit);
 
   int32 stackOffset = jit->currSPOffset -= pointerSize;
-  str(src, OF(FP, stackOffset));
+  str(src, OF(SSP, stackOffset));
   jit->vTop++;
 }
 
@@ -298,17 +302,16 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       case Retire:            // retire a fiber
       case Underflow:            // underflow from current stack
       case LdV: {            // Place a void value on stack
-        int32 key = defineConstantLiteral(voidEnum);
-        mov(X0, IM(key));
-        invokeCFunc1(jit, (Cfunc1) getConstant);
+        mov(X0, IM((integer)voidEnum));
         pushStkOp(jit, X0);
         pc++;
         continue;
       }
       case LdC: {            // load literal from constant pool
         int32 key = code[pc].fst;
-        mov(X0, IM(key));
-        invokeCFunc1(jit, (Cfunc1) getConstant);
+        termPo lit = getConstant(key);
+
+        mov(X0, IM((integer) lit));
         pushStkOp(jit, X0);
 
         pc++;
@@ -316,9 +319,9 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       }
       case LdA: {            // load stack from args[xx]
         int32 argNo = code[pc].fst;
-        int32 offset = argNo * pointerSize;
         armReg rg = findFreeReg(jit);
-        ldr(rg, OF(FP, offset));
+        ldr(rg, OF(FP, OffsetOf(StackFrame, args)));
+        ldr(rg, OF(rg, argOffset(argNo)));
         pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
@@ -328,7 +331,8 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg rg = findFreeReg(jit);
-        ldr(rg, OF(FP, offset));
+        ldr(rg, OF(FP, OffsetOf(StackFrame, args)));
+        ldr(rg, OF(rg, offset));
         pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
@@ -338,8 +342,11 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg vl = popStkOp(jit);
-        str(vl, OF(FP, offset));
+        armReg rg = findFreeReg(jit);
+        ldr(rg, OF(FP, OffsetOf(StackFrame, args)));
+        str(vl, OF(rg, offset));
         releaseReg(jit, vl);
+        releaseReg(jit, rg);
         pc++;
         continue;
       }
@@ -347,11 +354,12 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg vd = findFreeReg(jit);
-        int32 key = defineConstantLiteral(voidEnum);
-        mov(vd, IM(key));
-        invokeCFunc1(jit, (Cfunc1) getConstant);
-        str(vd, OF(FP, offset));
+        mov(vd, IM((integer)voidEnum));
+        armReg rg = findFreeReg(jit);
+        ldr(rg, OF(FP, OffsetOf(StackFrame, args)));
+        str(vd, OF(rg, offset));
         releaseReg(jit, vd);
+        releaseReg(jit, rg);
         pc++;
         continue;
       }
@@ -359,7 +367,10 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg vl = topStkOp(jit);
-        str(vl, OF(FP, offset));
+        armReg vr = findFreeReg(jit);
+        ldr(vr, OF(FP, OffsetOf(StackFrame, args)));
+        str(vl, OF(vr, offset));
+        releaseReg(jit,vr);
         releaseReg(jit, vl);
         pc++;
         continue;
@@ -390,7 +401,14 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       case Get:            // access a R/W cell
       case Assign:            // assign to a R/W cell
       case CLbl:            // T,Lbl --> test for a data term, break if not lbl
-      case CLit:            // T,lit --> test for a literal value, break if not
+      case CLit: {            // T,lit --> test for a literal value, break if not
+        termPo lit = getConstant(code[pc].fst);
+        armReg rg = findFreeReg(jit);
+        mov(rg, IM((integer)lit));
+        armReg st = popStkOp(jit);
+
+      }
+
       case Nth:            // T --> el, pick up the nth element
         return Error;
       case StNth:            // T el --> store in nth element
