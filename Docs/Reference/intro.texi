@@ -7,8 +7,7 @@
 
 @noindent
 @Star{} is a high-level symbolic programming language oriented to
-the needs of large-scale high performance processing in modern
-parallel and distributed computing environments.
+general purpose programming.
 
 @Star{} is a @emph{functional-first} language -- in that functions
 and other programs are first class values. However, it is explicitly
@@ -21,7 +20,7 @@ programming and in order to get the best value from programming in
 all programs and all values have a single type that is determined by a
 combination of type inference and explicit type annotations.
 
-While this definitely increases the initial burden of the programmer;
+While this can increase the initial burden of the programmer;
 we believe that correctness of programs is a long-term productivity
 gain -- especially for large programs developed by teams of
 programmers.
@@ -31,11 +30,6 @@ constraints and higher-rank and higher kinded types. Furthermore,
 except in cases where higher-ranked types are required, type inference
 is used extensively to reduce the burden of type bureaucracy on
 programmers.
-
-@Star{} is extensible; there are many mechanisms designed to allow
-extensions to the language to be designed simply and
-effectively. Using such techniques can significantly ease the burden
-of writing applications.
 
 @node About this reference
 @section About this Reference
