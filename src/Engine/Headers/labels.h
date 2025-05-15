@@ -20,7 +20,6 @@ labelPo tplLbl(int32 arity);
 logical isTplLabel(const char *nm) ;
 logical isALabel(termPo t);
 
-int32 lblArity(labelPo lbl);
 const char * lblName(labelPo lbl);
 int32 lblIndex(labelPo lbl);
 

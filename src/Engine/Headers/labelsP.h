@@ -37,10 +37,17 @@ extern void initLbls();
 void markLabels(gcSupportPo G);
 __attribute__((unused)) void showAllLabels();
 
-methodPo labelCode(labelPo lbl);
 logical labelDefined(labelPo lbl);
 
 termPo declareEnum(const char *name, int32 index, heapPo H);
+
+static inline int32 lblArity(labelPo lbl) {
+  return lbl->lbl.arity;
+}
+
+static inline methodPo labelCode(labelPo lbl) {
+  return lbl->mtd;
+}
 
 extern integer lblTableTop;
 extern LblRecord *labelTable;

@@ -61,17 +61,16 @@ logical collectStats = False;
   FP->pc = PC;                      \
   STK->sp = SP;                     \
   STK->fp = FP;                     \
-  P->stk = STK;                     \
   })
 #define restoreRegisters() STMT_WRAP({ \
   STK = P->stk;                        \
   FP = STK->fp;                        \
   PC = FP->pc;                         \
-  SP=STK->sp;                          \
+  SP = STK->sp;                        \
   })
 #define pushFrme(mtd) STMT_WRAP({ \
   framePo f = FP+1;               \
-  f->fp=FP;                       \
+  f->fp = FP;                     \
   PC = f->pc = entryPoint(mtd);   \
   f->prog = mtd;                  \
   f->args = SP;                   \
@@ -112,24 +111,19 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  register insPo PC = FP->pc;    /* Program counter */
+  register insPo PC = FP->pc;          /* Program counter */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
 
   currentProcess = P;
 
   for (;;) {
-    pcCount++;        /* increment total number of executed */
+    pcCount++;                         /* increment total number of executed */
 
     if (insDebugging) {
       saveRegisters();
       insDebug(P);
       restoreRegisters();
     }
-
-#ifndef NDEBUG
-    if (collectStats)
-      countOp(PC->op);
-#endif
 
     switch (PC->op) {
       case Halt: {

@@ -189,16 +189,8 @@ __attribute__((unused)) void showAllLabels() {
   flushOut();
 }
 
-methodPo labelCode(labelPo lbl) {
-  return lbl->mtd;
-}
-
 logical labelDefined(labelPo lbl) {
   return lbl->mtd != Null;
-}
-
-int32 lblArity(labelPo lbl) {
-  return lbl->lbl.arity;
 }
 
 const char *lblName(labelPo lbl) {

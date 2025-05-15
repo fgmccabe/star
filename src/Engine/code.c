@@ -5,15 +5,13 @@
 #include <heapP.h>
 #include <memory.h>
 #include "codeP.h"
-#include "labelsP.h"
-#include "debugP.h"
 #include <assert.h>
 #include <stdlib.h>
 #include "quick.h"
-#include "tpl.h"
 #include "decode.h"
 #include "pkgP.h"
 #include "arith.h"
+#include <assert.h>
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -226,10 +224,6 @@ packagePo markLoaded(char *package, char *version) {
     return createPkg(package, version);
 }
 
-int32 lclCount(methodPo mtd) {
-  return mtd->lclcnt;
-}
-
 int32 codeArity(methodPo mtd) {
   return lblArity(mtd->lbl);
 }
@@ -317,44 +311,4 @@ retCode setJitCode(methodPo mtd, jitCode code) {
   assert(!hasJit(mtd));
   mtd->jit = code;
   return Ok;
-}
-
-static integer opCount[maxOpCode];
-
-void countOp(OpCode op) {
-  opCount[op]++;
-}
-
-static comparison cmpOpCount(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-
-  integer iCount = opCount[indices[i]];
-  integer jCount = opCount[indices[j]];
-
-  if (iCount < jCount)
-    return smaller;
-  else if (iCount == jCount)
-    return same;
-  else
-    return bigger;
-}
-
-void dumpOpCount(ioPo out) {
-#ifndef NDEBUG
-  outMsg(out, "%ld instructions executed\n", pcCount);
-
-  integer indices[NumberOf(opCount)];
-  for (int ix = 0; ix < NumberOf(opCount); ix++)
-    indices[ix] = ix;
-
-  // Sort them by frequency
-  quick(0, NumberOf(opCount) - 1, cmpOpCount, swapIndex, (void *) indices);
-
-  for (integer ix = 0; ix < NumberOf(opCount); ix++) {
-    integer op = indices[ix];
-    if (opCount[op] != 0) {
-      outMsg(out, "%s: %ld\n", opNames[op], opCount[op]);
-    }
-  }
-#endif
 }
