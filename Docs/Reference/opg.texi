@@ -30,8 +30,8 @@ it is simple to extend. The latter is particularly important in
 
 However, it also makes certain other aspects more challenging. In
 particular, an operator precedence grammar knows less about the
-program as it is parsed. This means that syntax error messages are
-liable to less informative.
+program as it is parsed. This means that syntax error messages may
+sometimes be less informative.
 
 @node Operator Precedence Grammar
 @section Operator Precedence Grammar
@@ -68,11 +68,9 @@ can be interpreted -- by treating @code{=>} as an operator -- as:
 @end example
 
 Of course, this is merely a @emph{parse} of the equation. The real
-task of the compiler is to interpret this abstract syntax as an
+task of a compiler is to interpret this abstract syntax as an
 equation rather than as an attempt to apply the @code{=>}
-function.@footnote{The entire operator precedence grammar (not
-including tokenization) is very succinct, as can be seen in
-@xref{srOpPrecGrammar}.}
+function.
 
 @float BNF,srOpPrecGrammar
 @caption{Operator Precedence Grammar}
@@ -88,7 +86,12 @@ including tokenization) is very succinct, as can be seen in
 
 @var{Postfix}(Priority) ::= @var{Term}(L) @var{Identifier} where postfix($2,L,P) && P<=Priority
 
-@var{Term0} ::= 
+@var{Term0} ::= @refer{NumericLiteral}
+  | @refer{CharLiteral}
+  | @refer{StringLiteral}
+  | @refer{Identifier}(I) where ~ isOperator(I)
+  | @refer{QuotedIdentifier}
+  | @code{(} @var{Term} @code{)}
 
 @end display
 @end float
