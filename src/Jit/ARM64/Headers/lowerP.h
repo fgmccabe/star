@@ -22,7 +22,7 @@
  * X18 = platform register
  * X19-X25 = callee saved registers
  * SB = X27 = current stack structure pointer
- * PL = X28 = constant pool pointer
+ * SSP = X28 = star's stack pointer
  */
 
 #endif //STAR_LOWERP_H

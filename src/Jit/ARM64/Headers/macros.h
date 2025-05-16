@@ -53,6 +53,8 @@ integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
 void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
-retCode callIntrinsic(assemCtxPo ctx, libFun fn, integer arity,...);
+typedef integer (*runtimeFn)();
+
+retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...);
 
 #endif //STAR_MACROS_H

@@ -121,7 +121,7 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-retCode callIntrinsic(assemCtxPo ctx, libFun fn, integer arity, ...) {
+retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
   va_list args;
   va_start(args, arity);    /* start the variable argument sequence */
   FlexOp operands[arity];
