@@ -127,7 +127,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
     switch (code[pc].op) {
       case Halt: {            // Stop execution
         integer errCode = code[pc].fst;
-        ret = callIntrinsic(ctx, (libFun) star_exit, 1, IM(errCode));
+        ret = callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(errCode));
         pc++;
         continue;
       }
@@ -139,13 +139,14 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       case Call: {            // Call <prog>
         labelPo nProg = C_LBL(getConstant(code[pc].fst));
 
-        codeLblPo mtdCodeLabel = defineLabel(ctx, (integer) labelCode);
-        bl(mtdCodeLabel);
+	// pick up the pointer to the method
+	mov(X16, IM((integer)nProg));
+	ldr(X17, OF(X16,OffsetOf(LblRecord,mtd)));
+ 
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
 
-        codeLblPo haveMtdLbl = newLabel(ctx);
-        cbnz(X0, haveMtdLbl);
 
-        methodPo mtd = labelCode(nProg);
 
         // Pick up the method literal from the frame
         ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
