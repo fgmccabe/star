@@ -26,9 +26,5 @@ set(TEST_SOURCE_FILES
 add_executable(engineTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(engineTest ooio infra)
 
-
-
-add_executable(goto EXCLUDE_FROM_ALL ${GOTO_SRC_FILES})
-
 add_custom_target(testEngine ALL DEPENDS engineTest
         COMMAND engineTest)
