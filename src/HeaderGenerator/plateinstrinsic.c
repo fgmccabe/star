@@ -120,7 +120,10 @@ static char *capitalize(char *str);
 static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt) {
   outMsg(out, "isIntrinsic(\"%P\",", name);
   dumpPrologSig(tipe, out);
-  outMsg(out, ",i%s).  %% %s\n", capitalize(op), cmt);
+  if (tipe[0] == throwSig)
+    outMsg(out, ",i%s,throwing).  %% %s\n", capitalize(op), cmt);
+  else
+    outMsg(out, ",i%s,noThrow).  %% %s\n", capitalize(op), cmt);
 }
 
 static char *dumpStarSig(char *sig, ioPo out);
@@ -128,16 +131,17 @@ static char *dumpStarSig(char *sig, ioPo out);
 static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode, char *cmt) {
   outMsg(out, "    | \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
-  if(tipe[0]==throwSig)
+  if (tipe[0] == throwSig)
     outMsg(out, ",(Lb)=>.i%s(Lb), %s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"),
-	   (tailMode == Last ? ".noMore" : ".notLast"), cmt);
+           (tailMode == Last ? ".noMore" : ".notLast"), cmt);
   else
     outMsg(out, ",(_)=>.i%s, %s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"),
-	   (tailMode == Last ? ".noMore" : ".notLast"), cmt);
+           (tailMode == Last ? ".noMore" : ".notLast"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);
-static char *dInt(char *sig, int *len);
+static char *dInt(char *sig,
+int *len);
 static char *dStarSequence(char *sig, ioPo out);
 static char *dStarFields(char *sig, ioPo out);
 static char *dumpStarConstraint(char *sig, ioPo out);
@@ -571,20 +575,28 @@ static void dumpPrologStdType(char *name, ioPo out) {
   outMsg(out, ")");
 }
 
-static int digitVal(char D) {
+static int
+
+digitVal(char D) {
   assert(D >= '0' && D <= '9');
   return D - '0';
 }
 
-static char *dInt(char *sig, int *len) {
-  char K = *sig;
-  int Ln = 0;
-  while (isdigit(K)) {
-    Ln = Ln * 10 + digitVal(K);
-    K = *++sig;
-  }
-  *len = Ln;
-  return sig;
+static char *dInt(char *sig,
+int *len) {
+char K = *sig;
+int
+Ln = 0;
+while (
+isdigit(K)
+) {
+Ln = Ln * 10 + digitVal(K);
+K = *++sig;
+}
+*
+len = Ln;
+return
+sig;
 }
 
 static char *dPrologTple(char *sig, ioPo out) {

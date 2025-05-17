@@ -501,15 +501,24 @@ compExp(ctpl(St,A),Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   frameIns(Stka,C1,C2),
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(ecll(Lc,Nm,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  isIntrinsic(Nm,_,Op),!,
+  isIntrinsic(Nm,_,Op,Thrw),!,
   chLine(Opts,OLc,Lc,C,C0),
-  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[Op|C1],Stk,_Stka),
+  genIntrinsic(Thrw,Lc,Op,Brks,Ins),
+  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[Ins|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stka,C1,C2),
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
 compExp(ecll(Lc,Nm,A,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[iEscape(Nm)|C1],Stk,_Stka),
+  bumpStk(Stk,Stka),
+  frameIns(Stka,C1,C2),
+  genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
+compExp(xecll(Lc,Nm,A,_Tp,_ErTp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+  isIntrinsic(Nm,_,Op,Thrw),!,
+  chLine(Opts,OLc,Lc,C,C0),
+  genIntrinsic(Thrw,Lc,Op,Brks,Ins),
+  compExps(A,Lc,Brks,Opts,L,Lx,D,Dx,C0,[Ins|C1],Stk,_Stka),
   bumpStk(Stk,Stka),
   frameIns(Stka,C1,C2),
   genLastReturn(Last,Opts,C2,Cx,Stka,Stkx).
@@ -695,6 +704,13 @@ compExps([],_,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx,Stk,Stk) :-!.
 compExps([T|Ts],Lc,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compExps(Ts,Lc,Brks,Opts,L,L1,D,D1,C,C0,Stk,Stk0),
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C0,Cx,Stk0,Stkx).
+
+genIntrinsic(noThrow,_Lc,Op,_Brks,Op) :-!.
+genIntrinsic(throwing,_,Op,Brks,Ins) :-
+  is_member(("$try",_,Er,_),Brks),!,
+  Ins =.. [Op,Er].
+genIntrinsic(throwing,Lc,Op,_Brks,Op) :-
+  reportError("not in scope of try",[],Lc).
 
 /* try E in H
    compiles to

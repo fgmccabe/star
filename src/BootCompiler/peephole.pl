@@ -154,6 +154,10 @@ lblReferenced(Lb,[iICmp(Lb)|_]).
 lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
 lblReferenced(Lb,[iCLit(_,Lb)|_]).
+lblReferenced(Lb,[iIDiv(Lb)|_]).
+lblReferenced(Lb,[iIMod(Lb)|_]).
+lblReferenced(Lb,[iFDiv(Lb)|_]).
+lblReferenced(Lb,[iFMod(Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-
