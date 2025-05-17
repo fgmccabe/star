@@ -1,5 +1,5 @@
 /* Automatically generated, do not edit */
 
-:-module(intrinsics,[isIntrinsic/3]).
+:-module(intrinsics,[isIntrinsic/4]).
 
 #(Intrinsics)
