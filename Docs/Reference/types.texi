@@ -61,8 +61,8 @@ For example, the type expression
 (integer)=>string
 @end example
 
-is the type of functions that take an @code{integer} as an
-argument and produce a @code{string} value.
+is the type of functions that take an @code{integer} as an argument
+and produce a @code{string} value.
 
 The language for denoting types is quite expressive. It is possible to
 have types that are parameterized; that is they are composed from
@@ -692,7 +692,12 @@ user-defined type as well as a @refer{FaceType}.
 @cindex type,function
 
 @noindent
-A function type denotes a function value. It takes the form of a
+A function type denotes a function value. There are two forms of
+function type: a normal, non-throwing, form and a throwing form. The
+latter signals that the function may throw an exception, whereas the
+non-throwing form is not permitted to throw an exception.
+
+It takes the form of a
 possibly empty sequence of argument types -- denoting the types of the
 arguments to the function -- enclosed in parentheses; followed by the
 result type of the function. @refer{functionTypeFig} highlights the form
@@ -702,6 +707,7 @@ of the function type:
 @caption{Function Type}
 @display
 @anchored{FunctionType} ::= @refer{TupleType} @code{=>} @refer{Type}
+  | @refer{TupleType} @code{=>} @refer{Type} @code{throws} @refer{Type}
 @end display
 @end float
 
@@ -711,6 +717,25 @@ takes the form:
 @example
 (integer,string) => cons[string]
 @end example
+
+A throwing function type, such as:
+@example
+(integer,string) => cons[string] throws string
+@end example
+
+signals that the function can throw an exception -- of type
+@code{string} in this case -- when called. It is possible for the
+exception type to be quantified, as in:
+
+@example
+all x,e ~~ (x) => integer throws e
+@end example
+
+This is a generic function type that takes an @code{x} and either
+returns an @code{integer} or throws @code{e}.
+
+Exceptions and exception handling are further described in @ref{Try
+Catch}.
 
 @node Constructor Type
 @subsubsection Constructor Type
