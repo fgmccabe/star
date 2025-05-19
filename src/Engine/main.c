@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
   {
     timerPo loadTimer = startTimer("load");
     if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
+      logMsg(logFile, "Problem in loading program %P: %S", &mainPkge, errMsg, uniStrLen(errMsg));
       exit(99);
     }
     pauseTimer(loadTimer);

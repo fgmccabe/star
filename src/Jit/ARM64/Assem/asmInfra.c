@@ -132,6 +132,10 @@ uint64 labelTgt(codeLblPo lbl) {
   return lbl->pc;
 }
 
+void labelConst(codeLblPo lbl, assemCtxPo ctx) {
+  emitU64(ctx, labelTgt(lbl));
+}
+
 #define UNDEF_LBL_LANDING_PAD 0x12244
 
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {

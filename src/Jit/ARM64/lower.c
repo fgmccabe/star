@@ -22,6 +22,8 @@ static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
 static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
+static retCode bail(jitCompPo jit, char *msg, ...);
+
 static retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity);
 static void setJitHeight(jitCompPo jit, int32 height);
 
@@ -30,6 +32,19 @@ static retCode mkIntVal(jitCompPo jit, armReg rg);
 #define SSP (X28)
 
 static retCode jitError(jitCompPo jit, char *msg, ...);
+
+typedef struct jitBlock_ *jitBlockPo;
+
+typedef struct jitBlock_ {
+  int32 height;
+  int32 startPc;
+  codeLblPo breakLbl;
+  codeLblPo loopLbl;
+  jitBlockPo parent;
+} JitBlock;
+
+static codeLblPo breakLabel(jitBlockPo block, int32 tgt);
+static codeLblPo loopLabel(jitBlockPo block, int32 tgt);
 
 retCode jit_preamble(methodPo mtd, jitCompPo jit) {
   integer frameSize = lclCount(mtd) * pointerSize + (integer) sizeof(StackFrame);
@@ -119,43 +134,87 @@ static void pushStkOp(jitCompPo jit, armReg src) {
   jit->vTop++;
 }
 
-static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
+static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo code,
+                        int32 from, int32 startPc, int32 endPc) {
   retCode ret = Ok;
   assemCtxPo ctx = assemCtx(jit);
 
-  for (integer pc = 0; pc < insCount; pc++) {
+  JitBlock block = {
+    .startPc = from,
+    .height = height,
+    .breakLbl = newLabel(ctx),
+    .loopLbl = currentPcLabel(ctx),
+    .parent = parent
+  };
+
+  for (int32 pc = startPc; ret == Ok && pc < endPc; pc++) {
     switch (code[pc].op) {
       case Halt: {            // Stop execution
         integer errCode = code[pc].fst;
         ret = callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(errCode));
-        pc++;
         continue;
       }
       case Nop:            // No operation
-        pc++;
         continue;
       case Abort:            // abort with message
         return Error;
       case Call: {            // Call <prog>
         labelPo nProg = C_LBL(getConstant(code[pc].fst));
 
-	// pick up the pointer to the method
-	mov(X16, IM((integer)nProg));
-	ldr(X17, OF(X16,OffsetOf(LblRecord,mtd)));
- 
+        // pick up the pointer to the method
+        mov(X16, IM((integer) nProg));
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
+        bail(jit, "Function %T not defined", nProg);
 
+        setLabel(ctx, haveMtd);
 
-        // Pick up the method literal from the frame
-        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+        codeLblPo returnPc = newLabel(ctx);
+        adr(X0, returnPc);
+        str(X0, OF(FP, OffsetOf(StackFrame, pc)));
+
         // Pick up the jit code itself
-        ldr(X16, OF(X16, OffsetOf(MethodRec, jit)));
-        blr(X16);
-        pc++;
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        br(X16);
+
+        setLabel(ctx, returnPc);
         continue;
       }
+      case XCall: {            // Call <prog>, with catch
+        labelPo nProg = C_LBL(getConstant(code[pc].fst));
+
+        // pick up the pointer to the method
+        mov(X16, IM((integer) nProg));
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
+
+        bail(jit, "Function %T not defined", nProg);
+
+        setLabel(ctx, haveMtd);
+
+        codeLblPo returnPc = newLabel(ctx);
+        adr(X0, returnPc);
+        str(X0, OF(FP, OffsetOf(StackFrame, pc)));
+
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        br(X16);
+
+        codeLblPo catch = breakLabel(&block, pc + code[pc].alt + 1);
+        if (catch == Null)
+          return jitError(jit, "not in try scope");
+
+        emitLblRef(ctx, catch);
+
+        setLabel(ctx, returnPc);
+        continue;
+      }
+
       case OCall:            // OCall
       case Escape: {            // call C escape
         int32 escNo = code[pc].fst;
@@ -170,7 +229,6 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       }
       case XEscape:
       case XOCall:
-      case XCall:
       case TCall:            // TCall <prog>
       case TOCall:            // TOCall
         return Error;
@@ -204,20 +262,23 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         continue;
       }
       case Ret: {           // return
-        pc++;
-        return jit_postamble(jit);
+        ldr(X0, RG(SSP));
+        // Pick up the currently running program
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+        ldr(X17, OF(X16, OffsetOf(MethodRec, lbl)));
+        ldr(X17, OF(X17, OffsetOf(LabelRecord, arity)));
+        sub(SSP, FP, RG(X17));
+        ldr(FP, OF(FP, OffsetOf(StackFrame, fp)));
+        pushStkOp(jit, X0);
+        ldr(X0, OF(FP, OffsetOf(StackFrame, pc)));
+        br(X0);
       }
       case XRet:
         return Error;
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
-        defineJitLbl(jit, &code[pc]);
-        pc++;
 
-        codeLblPo exit = newJitLbl(jit, &code[pc + blockLen]);
-
-        jitBlock(jit, &code[pc + 1], blockLen);
-        setLabel(ctx, exit);
+        ret = jitBlock(jit, &block, code[pc].fst, code, pc, pc + 1, pc + blockLen);
         pc += blockLen;
         continue;
       }
@@ -303,7 +364,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       case Retire:            // retire a fiber
       case Underflow:            // underflow from current stack
       case LdV: {            // Place a void value on stack
-        mov(X0, IM((integer)voidEnum));
+        mov(X0, IM((integer) voidEnum));
         pushStkOp(jit, X0);
         pc++;
         continue;
@@ -355,7 +416,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg vd = findFreeReg(jit);
-        mov(vd, IM((integer)voidEnum));
+        mov(vd, IM((integer) voidEnum));
         armReg rg = findFreeReg(jit);
         ldr(rg, OF(FP, OffsetOf(StackFrame, args)));
         str(vd, OF(rg, offset));
@@ -371,7 +432,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
         armReg vr = findFreeReg(jit);
         ldr(vr, OF(FP, OffsetOf(StackFrame, args)));
         str(vl, OF(vr, offset));
-        releaseReg(jit,vr);
+        releaseReg(jit, vr);
         releaseReg(jit, vl);
         pc++;
         continue;
@@ -405,7 +466,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
       case CLit: {            // T,lit --> test for a literal value, break if not
         termPo lit = getConstant(code[pc].fst);
         armReg rg = findFreeReg(jit);
-        mov(rg, IM((integer)lit));
+        mov(rg, IM((integer) lit));
         armReg st = popStkOp(jit);
 
       }
@@ -520,7 +581,7 @@ static retCode jitBlock(jitCompPo jit, insPo code, integer insCount) {
 }
 
 retCode jitInstructions(jitCompPo jit, insPo code, integer insCount, char *errMsg, integer msgLen) {
-  return jitBlock(jit, code, insCount);
+  return jitBlock(jit, Null, 0, code, 0, 0, insCount);
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
@@ -602,6 +663,26 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
   return Ok;
 }
 
+codeLblPo breakLabel(jitBlockPo block, int32 tgt) {
+  while (block != Null) {
+    if (block->startPc == tgt)
+      return block->breakLbl;
+    else
+      block = block->parent;
+  }
+  return Null;
+}
+
+codeLblPo loopLabel(jitBlockPo block, int32 tgt) {
+  while (block != Null) {
+    if (block->startPc == tgt)
+      return block->loopLbl;
+    else
+      block = block->parent;
+  }
+  return Null;
+}
+
 retCode jitError(jitCompPo jit, char *msg, ...) {
   char buff[MAXLINE];
   strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
@@ -618,4 +699,27 @@ retCode jitError(jitCompPo jit, char *msg, ...) {
 
   strMsg(jit->errMsg, jit->msgLen, RED_ESC_ON "%s"RED_ESC_OFF, buff);
   return Error;
+}
+
+retCode bail(jitCompPo jit, char *msg, ...) {
+  return callIntrinsic(assemCtx(jit), (runtimeFn) star_exit, 1, IM(100));
+
+  /* char buff[MAXLINE]; */
+  /* strBufferPo f = fixedStringBuffer(buff, NumberOf(buff)); */
+
+  /* va_list args;      /\* access the generic arguments *\/ */
+  /* va_start(args, msg);    /\* start the variable argument sequence *\/ */
+
+  /* __voutMsg(O_IO(f), msg, args);  /\* Display into the string buffer *\/ */
+
+  /* va_end(args); */
+  /* outByte(O_IO(f), 0);                /\* Terminate the string *\/ */
+
+  /* closeIo(O_IO(f)); */
+
+  /* assemCtxPo ctx = assemCtx(jit);   */
+  /* integer conString = stringConstant(ctx,buff,uniStrlen(buff)); */
+  /* ldr(X0,IM(conString)); */
+
+  /* return callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(conString)); */
 }

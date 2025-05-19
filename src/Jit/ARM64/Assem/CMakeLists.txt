@@ -24,13 +24,15 @@ set(HEADER_FILES
         Headers/macros.h
         ../Headers/infra.h
         ../Common/Headers/asminfra.h
+        Headers/disass.h
 )
 
 set(SOURCE_FILES
         assem_arm64.c
         assem_encode.c
         macros.c
-        asmInfra.c)
+        asmInfra.c
+        disass.c)
 
 add_library(assem STATIC ${SOURCE_FILES})
 

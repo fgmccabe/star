@@ -144,12 +144,6 @@ void encodeLogImm(uint1 w, uint8 opc, uint64 val, armReg Rn, armReg Rd, assemCtx
   emitU32(ctx, ins);
 }
 
-void encodeMovWide(uint1 w, uint8 opc, uint8 hw, int16 imm, armReg Rd, assemCtxPo ctx) {
-  uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x25, 23) |
-               two_bt(hw, 21) | sxt_bt(imm, 5) | fiv_bt(Rd, 0);
-  emitU32(ctx, ins);
-}
-
 void encodeImmRegReg(uint1 w, uint8 opc, uint1 N, uint8 immr, uint8 imms, armReg Rn, armReg Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | two_bt(opc, 29) | six_bt(0x26, 23) | one_bt(N, 22) |
                six_bt(immr, 16) | sxt_bt(imms, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
@@ -321,42 +315,10 @@ void encodeLdStRegX(uint8 sz, uint1 V, uint8 opc, int16 imm, uint8 op2, armReg R
   emitU32(ctx, ins);
 }
 
-void encodeLdStRegPre(uint8 sz, uint1 V, uint8 opc, int16 imm, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) |
-               nin_bt(imm, 12) | two_bt(3, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
 void encodeLdRegLit(uint8 sz, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(sz, 30) | six_bt(0x19, 24) | two_bt(opc, 22) |
                nin_bt(imm9, 12) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
-}
-
-void encodeLdStRegOff(uint8 opc, uint1 V, uint1 L, int8 imm7, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(opc, 30) | thr_bt(0x5, 27) | one_bt(V, 26) | two_bt(2, 23) | one_bt(L, 22) |
-               svn_bt(imm7, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void encodeIxReg(uint8 w, uint1 V, int8 opc, int8 imm, armReg Rn, armReg Rt, ixMode ix, assemCtxPo ctx) {
-  switch (ix) {
-    case postIndex: {
-      encodeLdStRegX(w, V, opc, imm, 0, Rn, Rt, ctx);
-      return;
-    }
-    case preIndex: {
-      encodeLdStRegPre(w, V, opc, imm, Rn, Rt, ctx);
-      return;
-    }
-    case signedOff: {
-      encodeLdStRegOff(w, V, opc, imm, XZR, Rn, Rt, ctx);
-      return;
-    }
-    default: {
-      check(False, "invalid index mode");
-    }
-  }
 }
 
 void encodeLdStUnPriv(uint8 sz, uint1 V, uint8 opc, int16 imm9, armReg Rn, armReg Rt, assemCtxPo ctx) {
@@ -371,14 +333,6 @@ encodeALd3Reg(uint8 sz, uint8 opc, uint1 a, uint1 r, uint1 N, armReg Rs, uint8 o
               assemCtxPo ctx) {
   uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | two_bt(opc, 24) | one_bt(a, 23) | one_bt(r, 22) |
                one_bt(1, 21) | fiv_bt(Rs, 16) | thr_bt(opt, 12) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
-  emitU32(ctx, ins);
-}
-
-void
-encodeLdSt3Reg(uint8 sz, uint1 V, uint8 opc, armReg Rm, uint8 opt, uint1 S, armReg Rn, armReg Rt, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | thr_bt(0x7, 27) | one_bt(V, 26) | two_bt(opc, 22) | one_bt(1, 21) |
-               fiv_bt(Rm, 16) | thr_bt(opt, 13) | one_bt(S, 12) |
-               fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }
 
