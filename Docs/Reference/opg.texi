@@ -74,52 +74,30 @@ function.
 
 @float BNF,srOpPrecGrammar
 @caption{Operator Precedence Grammar}
-@display
-@var{Term}(Priority) ::= @var{Prefix}(Priority)
-  | @var{Infix}(Priority)
-  | @var{Postfix}(Priority)
-  | @var{Term0}
+@example
+term(Priority) >> T --> prefix(Priority) >> T.
+term(Priority) >> T --> infix(Priority) >> T.
+term(Priority) >> T --> postfix(Priority) >> T.
+term(Priority) >> T --> term0 >> T.
 
-@var{Prefix}(Priority) ::= @var{Identifier} @var{Term}(R) where prefix($1,P,R) and P<=Priority
+prefix(Priority) >> Op(A) --> [Op],
+   @{ (Pr,RPr) ?= isPrefixOp(Op) && Pr =< Priority @},
+   term(RPr) >> A.
 
-@var{Infix}(Priority) ::= @var{Term}(L) @var{Identifier} @var{Term}(R) where infix($2,L,P,R) && P<=Priority
+infix(Priority) >> Op(A,B) --> term(LPr) >> A, [Op],
+   @{ (LPr,Pr,RPr) ?= isInfixOp(Op) && Pr =< Priority @},
+   term(RPr) >> B.
 
-@var{Postfix}(Priority) ::= @var{Term}(L) @var{Identifier} where postfix($2,L,P) && P<=Priority
+postfix(Priority) >> Op(A) --> term(LPr) >> A, [Op],
+   @{ (LPr,Pr) ?= isPostfix(Op) && Pr =< Priority @}.
 
-@var{Term0} ::= @refer{NumericLiteral}
-  | @refer{CharLiteral}
-  | @refer{StringLiteral}
-  | @refer{Identifier}(I) where ~ isOperator(I)
-  | @refer{QuotedIdentifier}
-  | @code{(} @var{Term} @code{)}
-
-@end display
+term0 >> T --> literal >> T.
+@end example
 @end float
 
-Some notes about @ref{srOpPrecGrammar}:
-@itemize
-@item
-We are somewhat liberal with traditional BNF notation; terms such as
-@display
-where infix($2,L,P,R) && P<=Priority
-@end display
-amount to @emph{constraints} on the production: this condition must be satisfied in addition to the normal sequences of terminals and non-terminals
-@item
-A non-terminal of the form:
-@display
-@var{Term}(Priority)
-@end display
-amounts to a parameterized non-terminal. Or, equivalently, it stands
-for all possible expansions of the non-terminal.
-@item
-This grammar is the basis of the actual grammar for @Star{};
-although the actual implementation is somewhat more efficient than the
-ambiguous grammar would suggest.
-@item
-There is an additional constraint not implied by this set of rules: a
-given identifier may be an operator of more than one form - prefix,
-infix and postfix.
-@end itemize
+Note that the grammar in @ref{srOpPrecGrammar} is based on @Star{}'s
+grammar notation (see @ref{Grammar Rules}) but is presented here for
+illustative purposes: it is not an executable grammar.
 
 @node Standard Operators
 @section Standard Operators
