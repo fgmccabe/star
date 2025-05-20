@@ -16,11 +16,6 @@ enum {
   genProlog, genStar
 } genMode = genProlog;
 
-typedef enum {
-  Last,
-  NotLast
-} TailEsc;
-
 char *prefix = "star.comp.intrinsics";
 char *templateFn = "intrinsics.star.plate";
 char date[MAXLINE] = "";
@@ -49,7 +44,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt);
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode, char *cmt);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -92,13 +87,13 @@ int main(int argc, char **argv) {
       case genProlog:
 
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, Alloc, Tail, cmt) genPrologIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genPrologIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
 
 #include "intrinsics.h"
         break;
       case genStar:
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, Alloc, Tail, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,Alloc,Tail, cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,Alloc, cmt);
 
 #include "intrinsics.h"
     }
@@ -128,15 +123,13 @@ static void genPrologIntrinsic(ioPo out, char *name, char *tipe, char *op, char 
 
 static char *dumpStarSig(char *sig, ioPo out);
 
-static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, TailEsc tailMode, char *cmt) {
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt) {
   outMsg(out, "    | \"%s\" => .some((", name);
   dumpStarSig(tipe, out);
   if (tipe[0] == throwSig)
-    outMsg(out, ",(Lb)=>.i%s(Lb), %s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"),
-           (tailMode == Last ? ".noMore" : ".notLast"), cmt);
+    outMsg(out, ",(Lb)=>.i%s(Lb), %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
   else
-    outMsg(out, ",(_)=>.i%s, %s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"),
-           (tailMode == Last ? ".noMore" : ".notLast"), cmt);
+    outMsg(out, ",(_)=>.i%s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
 }
 
 static char *dName(char *sig, ioPo out);

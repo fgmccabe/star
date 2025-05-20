@@ -5,15 +5,7 @@ star.compiler.intrinsics{
   import star.compiler.types.
   import star.compiler.assem.
 
-  public tailMode ::= .noMore | .notLast.
-
-  public implementation equality[tailMode] => {
-    .noMore == .noMore => .true.
-    .notLast == .notLast => .true.
-    _ == _ default => .false.
-  }
-
-  public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean,tailMode)].
+  public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean)].
   intrinsic(Es) => case Es in {
 #(Intrinsics)
     | _ default => .none
