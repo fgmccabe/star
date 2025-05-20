@@ -336,7 +336,7 @@ star.compiler.gencode{
     (ArgCode,_,Stka) = compExps(Args,Lc,Brks,Ctx,Stk);
     Stk1 = pshStack(Tp,Stk);
 
-    if (ITp,Ins,Frm,_)?=intrinsic(Nm) then{
+    if (ITp,Ins,Frm)?=intrinsic(Nm) then{
       if isThrowingType(ITp) then{
 	if (_,XLbl) ?= Brks["$try"] then{
 	  valis genReturn(Last,chLine(OLc,Lc)++ArgCode++
@@ -1033,6 +1033,14 @@ star.compiler.gencode{
   flatSig = .funTipe([],.tplTipe([])).
   nearlyFlatSig(T) => .funTipe([],.tplTipe([T])).
   blockSig(Args,Rs) => .funTipe(Args,Rs).
+
+  tailMode ::= .noMore | .notLast.
+
+   implementation equality[tailMode] => {
+    .noMore == .noMore => .true
+    .notLast == .notLast => .true.
+    _ == _ default => .false.
+  }
 
   implementation display[tailMode] => {
     disp(.noMore) => "noMore".
