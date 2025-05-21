@@ -19,7 +19,6 @@
 #include "singleP.h"
 #include "errorCodes.h"
 #include "ltype.h"
-#include "../Jit/ARM64/Assem/Headers/arm64.h"
 
 logical collectStats = False;
 
