@@ -1037,7 +1037,7 @@ star.compiler.gencode{
   tailMode ::= .noMore | .notLast.
 
    implementation equality[tailMode] => {
-    .noMore == .noMore => .true
+    .noMore == .noMore => .true.
     .notLast == .notLast => .true.
     _ == _ default => .false.
   }
