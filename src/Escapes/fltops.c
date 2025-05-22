@@ -169,14 +169,14 @@ ReturnStatus g__float_bits(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Normal, .result=Rs};
 }
 
-ReturnStatus g__flt2str(heapPo h, termPo arg1, termPo p, termPo m, termPo s) {
-  double Arg = floatVal(arg1);
-  int precision = (int) integerVal(p);
-  codePoint mdc = charVal(m);
+ReturnStatus g__flt2str(heapPo h, stackPo stk) {
+  double Arg = floatVal(popStack(stk));
+  int precision = (int) integerVal(popStack(stk));
+  codePoint mdc = charVal(popStack(stk));
   FloatDisplayMode mode = (mdc == 'f' ? fractional : mdc == 's' ? scientific : general);
   char buff[64];
 
-  formatDouble(buff, NumberOf(buff), Arg, mode, precision, s == trueEnum ? True : False);
+  formatDouble(buff, NumberOf(buff), Arg, mode, precision, popStack(stk) == trueEnum ? True : False);
 
   return (ReturnStatus) {.ret=Normal,
     .result = (termPo) allocateString(h, buff, uniStrLen(buff))};
