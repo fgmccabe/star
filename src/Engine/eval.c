@@ -8,99 +8,15 @@
 #include "config.h"
 #include <globals.h>
 #include "constants.h"
-#include <arithP.h>
 #include "char.h"
-#include "engineP.h"
-#include "debugP.h"
 #include <math.h>
-#include "cellP.h"
-#include "closureP.h"
-#include "singleP.h"
 #include "errorCodes.h"
-#include "ltype.h"
 #include "libEscapes.h"
+
+#include "evalP.h"
 
 logical collectStats = False;
 
-#ifdef TRACESTACK
-#define checkAlloc(Count) STMT_WRAP({  \
-  if (reserveSpace(H, Count) != Ok) {  \
-    saveRegisters();                   \
-    retCode ret = gcCollect(H, Count); \
-    if (ret != Ok)                     \
-      return ret;                      \
-    if (traceStack > noTracing){       \
-      verifyStack(P->stk, H);             \
-      verifyHeap(H);                   \
-    }                                  \
-    restoreRegisters();                \
-    check(reserveSpace(H,Count)==Ok,"could not reserve space");\
-  }                                    \
-})
-#else
-#define checkAlloc(Count) STMT_WRAP({  \
-  if (reserveSpace(H, Count) != Ok) {  \
-    saveRegisters();                   \
-    retCode ret = gcCollect(H, Count); \
-    if (ret != Ok)                     \
-      return ret;                      \
-    restoreRegisters();                \
-    check(reserveSpace(H,Count)==Ok,"could not reserve space");\
-  }                                    \
-})
-#endif
-
-#define pop() (*SP++)
-#define top() (*SP)
-#define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(lcl) (FP->args[-(lcl)])
-#define arg(aix) (FP->args[aix])
-#define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
-#define saveRegisters() STMT_WRAP({ \
-  FP->pc = PC;                      \
-  STK->sp = SP;                     \
-  STK->fp = FP;                     \
-  })
-#define restoreRegisters() STMT_WRAP({ \
-  STK = P->stk;                        \
-  FP = STK->fp;                        \
-  PC = FP->pc;                         \
-  SP = STK->sp;                        \
-  })
-#define pushFrme(mtd) STMT_WRAP({ \
-  framePo f = FP+1;               \
-  PC = f->pc = entryPoint(mtd);   \
-  f->prog = mtd;                  \
-  f->args = SP;                   \
-  FP = f;                         \
-  })
-#define bail() STMT_WRAP({\
-  saveRegisters();\
-  stackTrace(P, logFile, STK,displayDepth,showLocalVars,100);\
-  return Error;\
-  })
-
-#define stackGrow(Amnt, SaveArity) STMT_WRAP({\
-  saveRegisters();\
-  P->stk = glueOnStack(H, STK, maximum(stackHwm(STK),(STK->sze * 3) / 2 + (Amnt)),SaveArity); \
-  restoreRegisters();\
-  if (!stackRoom(Amnt)) {\
-    logMsg(logFile, "cannot extend stack sufficiently");\
-    bail();\
-  }\
-  })
-
-#define breakOut(EX) STMT_WRAP({                     \
-  PC += PC->alt + 1;                                 \
-  SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1); \
-  PC += PC->alt + 1;                                 \
-  push(EX);                                          \
-  })
-
-#define breakBlock() STMT_WRAP({                     \
-  PC += PC->alt + 1;                                 \
-  PC += PC->alt + 1;                                 \
-})
 
 /*
  * Execute program on a given process/thread structure
@@ -109,8 +25,14 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  register insPo PC = FP->pc;          /* Program counter */
+  register insPo PC = STK->pc;          /* Program counter */
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
+  register methodPo PROG = STK->prog;
+  register ptrPo ARGS = STK->args;
+
+  methodPo LPROG =Null;
+  insPo LINK = Null;
+  ptrPo LARGS = Null;
 
   currentProcess = P;
 
@@ -157,19 +79,9 @@ retCode run(processPo P) {
           bail();
         }
 
-        PC++;
-
-        if (!stackRoom(stackDelta(mtd) + FrameCellCount)) {
-          int root = gcAddRoot(H, (ptrPo) &mtd);
-          stackGrow(stackDelta(mtd) + FrameCellCount, codeArity(mtd));
-          gcReleaseRoot(H, root);
-          assert(stackRoom(stackDelta(mtd) + FrameCellCount));
-#ifdef TRACESTACK
-          if (traceStack > noTracing)
-            verifyStack(STK, H);
-#endif
-        }
-        FP->pc = PC;
+        LPROG = PROG;
+        LARGS = ARGS;
+        LINK = PC+1;
 
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
@@ -182,8 +94,7 @@ retCode run(processPo P) {
           restoreRegisters();
           push(res);
         } else {
-          pushFrme(mtd);
-          incEntryCount(mtd);              // Increment number of times program called
+
         }
         continue;
       }
@@ -417,9 +328,35 @@ retCode run(processPo P) {
       }
 
       case Entry: {
+
+        if (!stackRoom(stackDelta(PROG) + FrameCellCount)) {
+          int root = gcAddRoot(H, (ptrPo) &PROG);
+          stackGrow(stackDelta(PROG) + FrameCellCount, codeArity(PROG));
+          gcReleaseRoot(H, root);
+          assert(stackRoom(stackDelta(mtd) + FrameCellCount));
+#ifdef TRACESTACK
+          if (traceStack > noTracing)
+            verifyStack(STK, H);
+#endif
+        }
+
+        FP++;
+        FP->prog = LPROG;
+        FP->link = LINK;
+        FP->args = LARGS;
+
+        LPROG = Null;
+        LINK = Null;
+        LARGS = Null;
+
+        ARGS = SP+codeArity(PROG);
+
         integer height = PC->fst;
         for (int32 ix=0;ix<height;ix++)
           push(voidEnum);
+
+        pushFrme(mtd);
+        incEntryCount(mtd);              // Increment number of times program called
 
         PC++;
         continue;
