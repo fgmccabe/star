@@ -59,6 +59,7 @@ set(HEADER_FILES
         Headers/eitherP.h
         Headers/constants.h
         Headers/constantsP.h
+        Headers/evalP.h
 )
 
 set(SOURCE_FILES
