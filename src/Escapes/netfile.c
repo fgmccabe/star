@@ -95,13 +95,12 @@ ReturnStatus g__accept(heapPo h, termPo a1, termPo a2) {
   }
 }
 
-ReturnStatus g__connect(heapPo h, termPo a1, termPo a2, termPo a3) {
-  integer port = integerVal(a2);
-
+ReturnStatus g__connect(heapPo h, stackPo stk) {
   integer hLen;
-  const char *host = strVal(a1, &hLen);
+  const char *host = strVal(popStack(stk), &hLen);
+  integer port = integerVal(popStack(stk));
 
-  ioEncoding enc = pickEncoding(integerVal(a3));
+  ioEncoding enc = pickEncoding(integerVal(popStack(stk)));
 
   switchProcessState(currentProcess, wait_io);
 

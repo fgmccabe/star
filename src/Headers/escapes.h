@@ -204,11 +204,6 @@ escape(_get_file, throws(strng,strng,ERR), "file into a char sequence")
 escape(_put_file, throws(strng strng,unit,ERR), "write string into file")
 escape(_show, func(strng,unit), "show something on console")
 
-escape(_install_pkg, throws(strng, lst(tpl(strng strng)),ERR), "define package from string contents")
-escape(_pkg_is_present, throws(strng strng,bool,ERR), "True if an identified package is available")
-escape(_in_manifest, throws(strng strng strng,bool,ERR), "True if pkg/version/kind is present in manifest")
-escape(_locate_in_manifest, throws(strng strng strng,strng,ERR), "Access manifest resource")
-
 escape(_logmsg, func(strng,unit), "log a message in logfile or console")
 escape(_display_depth,func(/**/,int), "Current standard display depth")
 
