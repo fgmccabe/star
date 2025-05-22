@@ -38,7 +38,6 @@ set(SOURCE_FILES
         libEscapes.c
         system.c
         netfile.c
-        pkgops.c
         stkops.c
         stringops.c
         threds.c

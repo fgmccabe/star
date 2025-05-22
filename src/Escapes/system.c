@@ -147,15 +147,15 @@ ReturnStatus g__repo(heapPo h, stackPo stk) {
   return (ReturnStatus) {.result = repo, .ret=Normal};
 }
 
-ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__shell(heapPo h, stackPo stk) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(popStack(stk)), cmd, NumberOf(cmd));
 
-  termPo args = a2;
-  termPo env = a3;
+  termPo args = popStack(stk);
+  termPo env = popStack(stk);
 
   integer argCnt = consLength(args);
   integer envCnt = consLength(env);
@@ -245,16 +245,17 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
   }
 }
 
-ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__popen(heapPo h, stackPo stk) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(popStack(stk)), cmd, NumberOf(cmd));
 
-  termPo args = a2;
+  termPo args = popStack(stk);
   integer argCnt = consLength(args);
-  integer envCnt = consLength(a3);
+  termPo environment = popStack(stk);
+  integer envCnt = consLength(environment);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(currentProcess);
@@ -277,7 +278,7 @@ ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
 
     argv[argCnt + 1] = NULL;
     strBufferPo lineBf = newStringBuffer();
-    termPo env = a3;
+    termPo env = environment;
 
     for (integer ix = 0; ix < envCnt; ix++) {
       normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));

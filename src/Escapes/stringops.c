@@ -433,23 +433,23 @@ ReturnStatus g__implode(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=result};
 }
 
-ReturnStatus g__str_find(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__str_find(heapPo h, stackPo stk) {
   integer len;
-  const char *str = strVal(a1, &len);
+  const char *str = strVal(popStack(stk), &len);
   integer tlen;
-  const char *tgt = strVal(a2, &tlen);
-  integer start = integerVal(a3);
+  const char *tgt = strVal(popStack(stk), &tlen);
+  integer start = integerVal(popStack(stk));
 
   integer found = uniSearch(str, len, start, tgt, tlen);
 
   return (ReturnStatus) {.ret=Normal, .result=makeInteger(found)};
 }
 
-ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__sub_str(heapPo h, stackPo stk) {
   integer len;
-  const char *str = strVal(a1, &len);
-  integer start = integerVal(a2);
-  integer count = integerVal(a3);
+  const char *str = strVal(popStack(stk), &len);
+  integer start = integerVal(popStack(stk));
+  integer count = integerVal(popStack(stk));
 
   count = minimum(count, len - start);
 
