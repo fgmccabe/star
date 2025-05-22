@@ -266,14 +266,6 @@ retCode run(processPo P) {
             ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
             break;
           }
-          case 4: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
-            break;
-          }
           default: {
             ret = ((escFun)(esc->fun))(H, STK);
             break;
@@ -319,14 +311,6 @@ retCode run(processPo P) {
             termPo a2 = popStack(STK);
             termPo a3 = popStack(STK);
             ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
-            break;
-          }
-          case 4: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
             break;
           }
           default: {

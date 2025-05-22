@@ -586,14 +586,14 @@ ReturnStatus g__str_concat(heapPo h, termPo a1, termPo a2) {
     .result=(termPo) allocateString(h, buff, llen + rlen)};
 }
 
-ReturnStatus g__str_splice(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4) {
-  integer from = integerVal(a2);
-  integer cnt = integerVal(a3);
+ReturnStatus g__str_splice(heapPo h, stackPo stk) {
 
   integer llen;
-  const char *lhs = strVal(a1, &llen);
+  const char *lhs = strVal(popStack(stk), &llen);
+  integer from = integerVal(popStack(stk));
+  integer cnt = integerVal(popStack(stk));
   integer rlen;
-  const char *rhs = strVal(a4, &rlen);
+  const char *rhs = strVal(popStack(stk), &rlen);
 
   // Clamp the from and cnt values
   if (from < 0)
