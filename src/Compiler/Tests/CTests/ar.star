@@ -25,7 +25,7 @@ test.ar{
   }.
 
   public implementation display[integer] => {
-    disp(X) => ss(_int2str(X,10,0,0c )).
+    disp(X) => ss(_int2str(X)).
   }
 
     public implementation equality[integer] => {

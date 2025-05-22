@@ -42,7 +42,7 @@ star.arith{
   }
 
   public implementation display[integer] => {
-    disp(X) => _int2str(X,10,0,0c ).
+    disp(X) => _int2str(X).
   }
 
   public implementation format[integer] => {

@@ -3,9 +3,7 @@
 //
 
 #include "config.h"
-#include <turm.h>
 #include "codeP.h"
-#include "lower.h"
 #include "jitP.h"
 
 integer jitThreshold = 1000;

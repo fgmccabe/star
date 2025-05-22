@@ -18,7 +18,7 @@
 #include "fileops.h"
 #include "tpl.h"
 
-ReturnStatus g__cwd(heapPo h) {
+ReturnStatus g__cwd(heapPo h, stackPo stk) {
   char cwBuffer[MAXFILELEN];
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(currentProcess));
   termPo cwd = (termPo) allocateString(h, cwBuffer, uniStrLen(cwBuffer));

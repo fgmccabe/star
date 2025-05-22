@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include "consP.h"
 #include "option.h"
+#include "stack.h"
 
 
 // Number of nano seconds
@@ -81,7 +82,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(heapPo h) {
+ReturnStatus g__envir(heapPo h, stackPo stk) {
   integer cnt = countEnviron();
   termPo list = (termPo) nilEnum;
   int root = gcAddRoot(h, (ptrPo) &list);
@@ -138,7 +139,7 @@ ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Abnormal, .result=eFAIL};
 }
 
-ReturnStatus g__repo(heapPo h) {
+ReturnStatus g__repo(heapPo h, stackPo stk) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(h, repoBuffer, uniStrLen(repoBuffer));

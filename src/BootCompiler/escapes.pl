@@ -4,8 +4,6 @@
 
 escapeType("_exit",allType(kVar("e"),funType(tplType([type("integer")]),kVar("e")))).
 escapeType("_abort",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("string")]),kVar("e"))))).
-escapeType("_definedLbl",funType(tplType([type("string"),type("integer")]),type("boolean"))).
-escapeType("_globalIsSet",funType(tplType([type("string")]),type("boolean"))).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer"))).
@@ -89,8 +87,6 @@ escapeType("_futureIsResolved",allType(kVar("a"),allType(kVar("e"),funType(tplTy
 escapeType("_futureIsAccepted",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
 escapeType("_futureIsRejected",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),type("boolean"))))).
 escapeType("_futureVal",allType(kVar("a"),allType(kVar("e"),funType(tplType([tpExp(tpExp(tpFun("future",2),kVar("a")),kVar("e"))]),kVar("a"),kVar("e"))))).
-escapeType("_tuple_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer")]),kVar("e"))))).
-escapeType("_tuple_set_nth",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("integer"),kVar("e")]),kVar("a"))))).
 escapeType("_cwd",funType(tplType([]),type("string"))).
 escapeType("_cd",funType(tplType([type("string")]),tplType([]),type("errorCode"))).
 escapeType("_rm",funType(tplType([type("string")]),tplType([]),type("errorCode"))).
@@ -199,7 +195,7 @@ escapeType("_isLetterChar",funType(tplType([type("char")]),type("boolean"))).
 escapeType("_digitCode",funType(tplType([type("char")]),type("integer"),type("errorCode"))).
 escapeType("_codePoint",funType(tplType([type("char")]),type("integer"))).
 escapeType("_char",funType(tplType([type("integer")]),type("char"))).
-escapeType("_int2str",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer")]),type("string"))).
+escapeType("_int2str",funType(tplType([type("integer")]),type("string"))).
 escapeType("_flt2str",funType(tplType([type("float"),type("integer"),type("char"),type("boolean")]),type("string"))).
 escapeType("_int_format",funType(tplType([type("integer"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_flt_format",funType(tplType([type("float"),type("string")]),type("string"),type("errorCode"))).
@@ -253,8 +249,6 @@ escapeType("_jit_compile",allType(kVar("a"),allType(kVar("e"),funType(tplType([f
 
 isEscape("_exit").
 isEscape("_abort").
-isEscape("_definedLbl").
-isEscape("_globalIsSet").
 isEscape("_int_plus").
 isEscape("_int_minus").
 isEscape("_int_times").
@@ -338,8 +332,6 @@ isEscape("_futureIsResolved").
 isEscape("_futureIsAccepted").
 isEscape("_futureIsRejected").
 isEscape("_futureVal").
-isEscape("_tuple_nth").
-isEscape("_tuple_set_nth").
 isEscape("_cwd").
 isEscape("_cd").
 isEscape("_rm").

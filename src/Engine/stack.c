@@ -137,14 +137,14 @@ framePo currFrame(stackPo stk) {
 
 framePo previousFrame(stackPo stk, framePo fp) {
   assert(validFP(stk, fp));
-  return fp->fp;
+  return fp-1;
 }
 
 framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
   stk->sp = fp->args + argCount(frameMtd(fp));
-  stk->fp = fp->fp;
+  stk->fp--;
   return stk->fp;
 }
 
@@ -168,7 +168,6 @@ framePo pushFrame(stackPo stk, methodPo mtd) {
 
   f->prog = mtd;
   f->pc = entryPoint(mtd);
-  f->fp = stk->fp;
   f->args = stk->sp;
 
   stk->fp = f;
@@ -211,10 +210,10 @@ void verifyStack(stackPo stk, heapPo H) {
 
       while (fp > fpLimit) {
         check(isMethod((termPo) frameMtd(fp)), "expecting a code pointer in the frame");
-        check(validFP(stk, fp->fp), "invalid fp in frame");
+        check(validFP(stk, fp-1), "invalid fp in frame");
         check(fp->args >= sp, "frame arg pointer invalid");
         sp = fp->args + argCount(frameMtd(fp));
-        fp = fp->fp;
+        fp--;
       }
 
       // Walk the value stack...
@@ -291,7 +290,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
     while (fp > fpLimit) {
       helper((ptrPo) &fp->prog, c);
-      fp = fp->fp;
+      fp--;
     }
 
     // Walk the value stack...
@@ -407,7 +406,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
 
     while (fp > baseFrame(stk) && maxDepth-- > 0) {
       showStackCall(out, depth, fp, stk, frameNo++, tracing);
-      fp = fp->fp;
+      fp--;
     }
 
     stk = stk->attachment;

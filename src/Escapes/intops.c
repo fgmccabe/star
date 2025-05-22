@@ -250,14 +250,14 @@ ReturnStatus g__irand(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Normal, .result=makeInteger(rnd % mx)};
 }
 
-ReturnStatus g__random(heapPo h) {
+ReturnStatus g__random(heapPo h, stackPo stk) {
   double rnd = ((double) random()) / LARGE_INT32;
 
   return (ReturnStatus) {.ret=Normal,
     .result=(termPo) makeFloat(rnd)};
 }
 
-ReturnStatus g__seed(termPo arg1) {
+ReturnStatus g__seed(heapPo h, termPo arg1) {
   srandom((unsigned int) integerVal(arg1));
   return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }

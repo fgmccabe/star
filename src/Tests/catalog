@@ -64,6 +64,7 @@
     "test.dis" : "dis.star",
     "test.di": "di.star",
     "test.dq": "dq.star",
+    "test.dte": "dte.star",
     "test.dyn1": "dyn1.star",
     "test.dyn2": "dyn2.star",
     "test.dy2": "dy2.star",

@@ -21,7 +21,6 @@ set(HEADER_FILES
         Headers/threds.h
         Headers/lblops.h
         Headers/pkgops.h
-        Headers/turm.h
         Headers/listops.h
         Headers/stkops.h Headers/futureops.h
         timeout.h)
@@ -36,7 +35,6 @@ set(SOURCE_FILES
         fltops.c
         intops.c
         ioops.c
-        lblops.c
         libEscapes.c
         system.c
         netfile.c
@@ -44,7 +42,6 @@ set(SOURCE_FILES
         stkops.c
         stringops.c
         threds.c
-        turm.c
         unicode.c fiberops.c
         timeout.c
         futops.c
