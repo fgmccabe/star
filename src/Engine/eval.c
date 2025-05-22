@@ -8,7 +8,6 @@
 #include "config.h"
 #include <globals.h>
 #include "constants.h"
-#include <turm.h>
 #include <arithP.h>
 #include "char.h"
 #include "engineP.h"
@@ -19,6 +18,7 @@
 #include "singleP.h"
 #include "errorCodes.h"
 #include "ltype.h"
+#include "libEscapes.h"
 
 logical collectStats = False;
 
@@ -69,7 +69,6 @@ logical collectStats = False;
   })
 #define pushFrme(mtd) STMT_WRAP({ \
   framePo f = FP+1;               \
-  f->fp = FP;                     \
   PC = f->pc = entryPoint(mtd);   \
   f->prog = mtd;                  \
   f->args = SP;                   \
@@ -116,6 +115,7 @@ retCode run(processPo P) {
   currentProcess = P;
 
   for (;;) {
+#ifndef NDEBUG
     pcCount++;                         /* increment total number of executed */
 
     if (insDebugging) {
@@ -123,6 +123,7 @@ retCode run(processPo P) {
       insDebug(P);
       restoreRegisters();
     }
+#endif
 
     switch (PC->op) {
       case Halt: {
@@ -247,9 +248,6 @@ retCode run(processPo P) {
         ReturnStatus ret;
 
         switch (esc->arity) {
-          case 0:
-            ret = ((escFun0) (esc->fun))(H);
-            break;
           case 1: {
             termPo a1 = popStack(STK);
             ret = ((escFun1) (esc->fun))(H, a1);
@@ -276,51 +274,10 @@ retCode run(processPo P) {
             ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
             break;
           }
-          case 5: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            ret = ((escFun5) (esc->fun))(H, a1, a2, a3, a4, a5);
+          default: {
+            ret = ((escFun)(esc->fun))(H, STK);
             break;
           }
-          case 6: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            ret = ((escFun6) (esc->fun))(H, a1, a2, a3, a4, a5, a6);
-            break;
-          }
-          case 7: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            termPo a7 = popStack(STK);
-            ret = ((escFun7) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7);
-            break;
-          }
-          case 8: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            termPo a7 = popStack(STK);
-            termPo a8 = popStack(STK);
-            ret = ((escFun8) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7, a8);
-            break;
-          }
-          default:
-            logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
-            bail();
         }
 
         restoreRegisters();
@@ -346,9 +303,6 @@ retCode run(processPo P) {
         ReturnStatus ret;
 
         switch (esc->arity) {
-          case 0:
-            ret = ((escFun0) (esc->fun))(H);
-            break;
           case 1: {
             termPo a1 = popStack(STK);
             ret = ((escFun1) (esc->fun))(H, a1);
@@ -375,51 +329,10 @@ retCode run(processPo P) {
             ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
             break;
           }
-          case 5: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            ret = ((escFun5) (esc->fun))(H, a1, a2, a3, a4, a5);
+          default: {
+            ret = ((escFun)(esc->fun))(H, STK);
             break;
           }
-          case 6: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            ret = ((escFun6) (esc->fun))(H, a1, a2, a3, a4, a5, a6);
-            break;
-          }
-          case 7: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            termPo a7 = popStack(STK);
-            ret = ((escFun7) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7);
-            break;
-          }
-          case 8: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            termPo a7 = popStack(STK);
-            termPo a8 = popStack(STK);
-            ret = ((escFun8) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7, a8);
-            break;
-          }
-          default:
-            logMsg(logFile, "invalid arity for escape %s", escapeName(esc));
-            bail();
         }
 
         restoreRegisters();
@@ -548,7 +461,7 @@ retCode run(processPo P) {
         assert(FP > baseFrame(STK));
 
         SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
-        FP = FP->fp;
+        FP--;
         PC = FP->pc;
 
         push(retVal);      /* push return value */
@@ -560,7 +473,7 @@ retCode run(processPo P) {
 
         assert(FP > baseFrame(STK));
 
-        FP = FP->fp;
+        FP--;
         PC = FP->pc - 1;
         PC += PC->alt + 1;
 

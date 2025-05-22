@@ -268,7 +268,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         ldr(X17, OF(X16, OffsetOf(MethodRec, lbl)));
         ldr(X17, OF(X17, OffsetOf(LabelRecord, arity)));
         sub(SSP, FP, RG(X17));
-        ldr(FP, OF(FP, OffsetOf(StackFrame, fp)));
+        sub(FP, FP, IM(sizeof(StackFrame)));
         pushStkOp(jit, X0);
         ldr(X0, OF(FP, OffsetOf(StackFrame, pc)));
         br(X0);

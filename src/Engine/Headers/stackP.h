@@ -30,7 +30,6 @@
  *      ,,
  * /-----------/
  * /  ARGS     /
- * /  FP       /
  * /  PROG     /
  * /  PC       /  <- FP
  * /===========/
@@ -40,7 +39,6 @@ typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
   insPo pc;                     // The current program counter
   methodPo prog;                // The program associated with current frame
-  framePo fp;                   // Previous frame
   ptrPo args;                   // The arg/local split point
 } StackFrame;
 
@@ -51,7 +49,6 @@ typedef struct StackStructure {
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High watermark of stack sizes rooted off this stack
-  methodPo prog;                // Currently execution function
   insPo pc;                     // Current program counter
   ptrPo sp;                     // Current stack pointer
   framePo fp;                   // Current frame pointer

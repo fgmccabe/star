@@ -13,6 +13,7 @@
 #include "arithP.h"
 #include "errorCodes.h"
 #include "globals.h"
+#include "stack.h"
 
 long timezone_offset;    // offset in seconds from GMT
 
@@ -111,20 +112,20 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 }
 
 /* Return the current time */
-ReturnStatus g__now(heapPo h) {
+ReturnStatus g__now(heapPo h, stackPo stk) {
   termPo now = makeFloat(get_time());
 
   return (ReturnStatus) {.ret=Normal, .result=now};
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(heapPo h) {
+ReturnStatus g__today(heapPo h, stackPo stk) {
   termPo now = makeFloat(get_date());
 
   return (ReturnStatus) {.ret=Normal, .result=now};
 }
 
-ReturnStatus g__ticks(heapPo h) {
+ReturnStatus g__ticks(heapPo h, stackPo stk) {
   termPo now = makeInteger((integer) clock());
 
   return (ReturnStatus) {.ret=Normal, .result=now};

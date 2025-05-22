@@ -8,8 +8,6 @@ star.compiler.escapes{
   escapeType(Es) => case Es in {
     | "_exit" => .some(.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.kVar("e"))))
     | "_abort" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("string")])),.kVar("e")))))
-    | "_definedLbl" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("integer")])),.nomnal("boolean")))
-    | "_globalIsSet" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.nomnal("boolean")))
     | "_int_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_minus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_times" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
@@ -93,8 +91,6 @@ star.compiler.escapes{
     | "_futureIsAccepted" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
     | "_futureIsRejected" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.nomnal("boolean")))))
     | "_futureVal" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.tpExp(.tpExp(.tpFun("future",2),.kVar("a")),.kVar("e"))])),.kVar("a")),.kVar("e")))))
-    | "_tuple_nth" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("integer")])),.kVar("e")))))
-    | "_tuple_set_nth" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("integer"),.kVar("e")])),.kVar("a")))))
     | "_cwd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("string")))
     | "_cd" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string")])),.tupleType([])),.nomnal("errorCode")))
     | "_rm" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string")])),.tupleType([])),.nomnal("errorCode")))
@@ -203,7 +199,7 @@ star.compiler.escapes{
     | "_digitCode" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("char")])),.nomnal("integer")),.nomnal("errorCode")))
     | "_codePoint" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("integer")))
     | "_char" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("char")))
-    | "_int2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer"),.nomnal("integer"),.nomnal("integer")])),.nomnal("string")))
+    | "_int2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("string")))
     | "_flt2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float"),.nomnal("integer"),.nomnal("char"),.nomnal("boolean")])),.nomnal("string")))
     | "_int_format" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("integer"),.nomnal("string")])),.nomnal("string")),.nomnal("errorCode")))
     | "_flt_format" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("float"),.nomnal("string")])),.nomnal("string")),.nomnal("errorCode")))
@@ -260,8 +256,6 @@ star.compiler.escapes{
   isEscape(Es) => case Es in {
     | "_exit" => .true
     | "_abort" => .true
-    | "_definedLbl" => .true
-    | "_globalIsSet" => .true
     | "_int_plus" => .true
     | "_int_minus" => .true
     | "_int_times" => .true
@@ -345,8 +339,6 @@ star.compiler.escapes{
     | "_futureIsAccepted" => .true
     | "_futureIsRejected" => .true
     | "_futureVal" => .true
-    | "_tuple_nth" => .true
-    | "_tuple_set_nth" => .true
     | "_cwd" => .true
     | "_cd" => .true
     | "_rm" => .true

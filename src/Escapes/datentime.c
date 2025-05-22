@@ -7,9 +7,9 @@
 #include <strings.h>
 #include <arithP.h>
 #include <tpl.h>
-#include "globals.h"
 #include "clock.h"
 #include "option.h"
+#include "stack.h"
 #include "errorCodes.h"
 
 #define DATE_DOW 0
@@ -22,21 +22,21 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus
-g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo hour, termPo min, termPo s, termPo gmtoff) {
+ReturnStatus g__date2time(heapPo h, stackPo stk) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(yr) - 1900); /* Extract the year */
-  now.tm_mon = (int) (integerVal(mon) - 1); /* Extract the month */
-  now.tm_mday = (int) (integerVal(day)); /* Extract the day of the month */
-  now.tm_hour = (int) (integerVal(hour)); /* Extract the hour */
-  now.tm_min = (int) (integerVal(min)); /* Extract the minute */
+  now.tm_year = (int) (integerVal(popStack(stk)) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(popStack(stk)) - 1);     // Extract the month
+  now.tm_mday = (int) (integerVal(popStack(stk)));        // Extract the day of the month
+  now.tm_hour = (int) (integerVal(popStack(stk)));        // Extract the hour
+  now.tm_min = (int) (integerVal(popStack(stk)));         // Extract the minute
 
-  double sec = floatVal(s);
+  double sec = floatVal(popStack(stk));
   double fraction = modf(sec, &sec);           // Extract the seconds
-
   now.tm_sec = (int) sec;
-  now.tm_gmtoff = (int) integerVal(gmtoff);
+
+  now.tm_gmtoff = (int) integerVal(popStack(stk));        // Offset from GMT
+
   now.tm_isdst = -1;
 
   time_t when = mktime(&now);
@@ -45,21 +45,19 @@ g__date2time(heapPo h, termPo yr, termPo mon, termPo day, termPo hour, termPo mi
     .result=makeFloat((double) when + fraction)};
 }
 
-ReturnStatus g__utc2time(heapPo h, termPo a1) {
-  normalPo dte = C_NORMAL(a1);
+ReturnStatus g__utc2time(heapPo h, stackPo stk) {
   struct tm now;
+  now.tm_year = (int) (integerVal(popStack(stk)) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(popStack(stk)) - 1);     // Extract the month
+  now.tm_mday = (int) (integerVal(popStack(stk)));        // Extract the day of the month
+  now.tm_hour = (int) (integerVal(popStack(stk)));        // Extract the hour
+  now.tm_min = (int) (integerVal(popStack(stk)));         // Extract the minute
 
-  now.tm_year = (int) (integerVal(nthArg(dte, DATE_YEAR)) - 1900); /* Extract the year */
-  now.tm_mon = (int) (integerVal(nthArg(dte, DATE_MON)) - 1); /* Extract the month */
-  now.tm_mday = (int) (integerVal(nthArg(dte, DATE_DAY))); /* Extract the day of the month */
-  now.tm_hour = (int) (integerVal(nthArg(dte, DATE_HOUR))); /* Extract the hour */
-  now.tm_min = (int) (integerVal(nthArg(dte, DATE_MIN))); /* Extract the minute */
-
-  double sec;
-  double fraction = modf(floatVal(nthArg(dte, DATE_SEC)), &sec);           // Extract the second)
-
+  double sec = floatVal(popStack(stk));
+  double fraction = modf(sec, &sec);           // Extract the seconds
   now.tm_sec = (int) sec;
-  now.tm_gmtoff = (int) integerVal(nthArg(dte, DATE_UTC));
+
+  now.tm_gmtoff = (int) integerVal(popStack(stk));        // Offset from GMT
   now.tm_isdst = -1;
 
   time_t when = timegm(&now);

@@ -6,7 +6,7 @@ star.coerce{
   }
 
   public implementation coercion[integer,string] => {
-    _coerce(Ix) => .some(_int2str(Ix,10,0,0))
+    _coerce(Ix) => .some(_int2str(Ix))
   }
 
   public implementation coercion[float,string] => {

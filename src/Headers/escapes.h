@@ -39,9 +39,6 @@
 escape(_exit, all(e,func(int,e)), "terminate engine")
 escape(_abort, all(a,all(e,func(a strng,e))), "abort process")
 
-escape(_definedLbl, func(strng int,bool), "test for defined name")
-escape(_globalIsSet,func(strng, bool),"test if a global var is set")
-
 escape(_int_plus, func(int int, int), "add two integers")
 escape(_int_minus, func(int int, int), "subtract two integers")
 escape(_int_times, func(int int, int), "multiply two integers")
@@ -148,9 +145,6 @@ escape(_futureIsResolved,all(a,all(e,func(future(a,e),bool))), "test to see if a
 escape(_futureIsAccepted, all(a,all(e,func(future(a,e),bool))), "test to see if a future has been accepted")
 escape(_futureIsRejected, all(a,all(e,func(future(a,e),bool))), "test to see if a future has been rejected")
 escape(_futureVal, all(a,all(e,throws(future(a,e),a,e))), "get the value of the future")
-
-escape(_tuple_nth, all(a,all(e,func(a int,e))), "Access tuple element")
-escape(_tuple_set_nth, all(a,all(e,func(a int e,a))), "Update tuple element")
 
 escape(_cwd, func(/**/,strng), "return url of current working directory")
 escape(_cd, throws(strng,unit,ERR), "change current working directory")
@@ -280,7 +274,7 @@ escape(_codePoint, func(chr,int), "convert char to code point integer")
 escape(_char, func(int,chr), "convert integer code point to char")
 
 // String handling escapes
-escape(_int2str, func(int int int int,strng), "format an integer as a string")
+escape(_int2str, func(int,strng), "format an integer as a string")
 escape(_flt2str, func(flt int chr bool,strng), "format a floating as a string")
 escape(_int_format, throws(int strng,strng,ERR), "format an integer using picture format")
 escape(_flt_format, throws(flt strng,strng,ERR), "format a floating point using picture format")
