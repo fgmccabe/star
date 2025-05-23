@@ -17,7 +17,6 @@
 
 logical collectStats = False;
 
-
 /*
  * Execute program on a given process/thread structure
  */
@@ -29,10 +28,6 @@ retCode run(processPo P) {
   register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
-
-  methodPo LPROG =Null;
-  insPo LINK = Null;
-  ptrPo LARGS = Null;
 
   currentProcess = P;
 
@@ -79,9 +74,14 @@ retCode run(processPo P) {
           bail();
         }
 
-        LPROG = PROG;
-        LARGS = ARGS;
-        LINK = PC+1;
+        FP++;
+        FP->prog = PROG;
+        FP->link = PC + 1;
+        FP->args = ARGS;
+
+        PROG = mtd;
+        ARGS = SP;
+        PC = entryPoint(mtd);
 
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
@@ -93,8 +93,6 @@ retCode run(processPo P) {
           termPo res = invokeJitMethod(mtd, H, STK);
           restoreRegisters();
           push(res);
-        } else {
-
         }
         continue;
       }
@@ -122,28 +120,16 @@ retCode run(processPo P) {
           bail();
         }
 
-        PC++;
+        push(closureFree(obj));             // Put the free term back on the stack
 
-        push(closureFree(obj));                     // Put the free term back on the stack
+        FP++;                                  // Guaranteed to have room for the frame
+        FP->prog = PROG;
+        FP->link = PC + 1;
+        FP->args = ARGS;
 
-        if (!stackRoom(stackDelta(mtd) + FrameCellCount)) {
-#ifdef TRACESTACK
-          if (traceStack >= detailedTracing)
-            logMsg(logFile, "growing stack due to overflow in OCall");
-#endif
-          int root = gcAddRoot(H, (ptrPo) &mtd);
-          stackGrow(stackDelta(mtd) + FrameCellCount, codeArity(mtd));
-          gcReleaseRoot(H, root);
-
-#ifdef TRACESTACK
-          if (traceStack > noTracing)
-            verifyStack(STK, H);
-#endif
-        }
-
-        FP->pc = PC;
-        pushFrme(mtd);
-        incEntryCount(mtd);              // Increment number of times program called
+        PROG = mtd;
+        ARGS = SP;
+        PC = entryPoint(mtd);
         continue;
       }
 
@@ -171,7 +157,7 @@ retCode run(processPo P) {
             break;
           }
           default: {
-            ret = ((escFun)(esc->fun))(H, STK);
+            ret = ((escFun) (esc->fun))(H, STK);
             break;
           }
         }
@@ -211,7 +197,7 @@ retCode run(processPo P) {
             break;
           }
           default: {
-            ret = ((escFun)(esc->fun))(H, STK);
+            ret = ((escFun) (esc->fun))(H, STK);
             break;
           }
         }
@@ -239,36 +225,15 @@ retCode run(processPo P) {
           bail();
         }
 
-        if (!stackRoom(FrameCellCount + stackDelta(mtd))) {
-          int root = gcAddRoot(H, (ptrPo) &mtd);
+        // Overwrite existing arguments and locals
+        ptrPo tgt = &arg(argCount(PROG));
+        ptrPo src = SP + arity;                  /* base of argument vector */
 
-          stackPo prevStack = STK;
-
-          gcAddRoot(H, (ptrPo) &prevStack);
-
-          saveRegisters();
-          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
-
-          SP = STK->sp;
-          FP = STK->fp;
-          pushFrme(mtd);
-
-          // drop old frame on old stack
-          dropFrame(prevStack);
-          gcReleaseRoot(H, root);
-        } else {
-          // Overwrite existing arguments and locals
-          ptrPo tgt = &arg(argCount(frameMtd(FP)));
-          ptrPo src = SP + arity;                  /* base of argument vector */
-
-          for (int ix = 0; ix < arity; ix++)
-            *--tgt = *--src;    /* copy the argument vector */
-          FP->pc = PC = entryPoint(mtd);
-          FP->prog = mtd;
-          FP->args = SP = tgt;
-        }
-
-        incEntryCount(mtd);              // Increment number of times program called
+        for (int ix = 0; ix < arity; ix++)
+          *--tgt = *--src;                       /* copy the argument vector */
+        PC = entryPoint(mtd);
+        PROG = mtd;
+        ARGS = SP = tgt;
         continue;       /* Were done */
       }
 
@@ -295,68 +260,40 @@ retCode run(processPo P) {
           bail();
         }
 
-        if (!stackRoom(stackDelta(mtd))) {
-          int root = gcAddRoot(H, (ptrPo) &mtd);
+        // Overwrite existing arguments and locals
+        ptrPo tgt = &arg(argCount(PROG));
+        ptrPo src = SP + arity;                  /* base of argument vector */
 
-          stackPo prevStack = STK;
-
-          gcAddRoot(H, (ptrPo) &prevStack);
-
-          saveRegisters();
-          STK = P->stk = glueOnStack(H, STK, (STK->sze * 3) / 2 + stackDelta(mtd), arity);
-          SP = STK->sp;
-          FP = STK->fp;
-          pushFrme(mtd);
-
-          // drop old frame on old stack
-          dropFrame(prevStack);
-          gcReleaseRoot(H, root);
-        } else {
-          // Overwrite existing arguments and locals
-          ptrPo tgt = &arg(argCount(frameMtd(FP)));
-          ptrPo src = SP + arity;                  /* base of argument vector */
-
-          for (int ix = 0; ix < arity; ix++)
-            *--tgt = *--src;    /* copy the argument vector */
-          FP->pc = PC = entryPoint(mtd);
-          FP->prog = mtd;
-          FP->args = SP = tgt;
-        }
-
-        incEntryCount(mtd);              // Increment number of times program called
+        for (int ix = 0; ix < arity; ix++)
+          *--tgt = *--src;                       /* copy the argument vector */
+        PC = entryPoint(mtd);
+        PROG = mtd;
+        ARGS = SP = tgt;
         continue;       /* Were done */
       }
 
       case Entry: {
-
         if (!stackRoom(stackDelta(PROG) + FrameCellCount)) {
-          int root = gcAddRoot(H, (ptrPo) &PROG);
-          stackGrow(stackDelta(PROG) + FrameCellCount, codeArity(PROG));
-          gcReleaseRoot(H, root);
-          assert(stackRoom(stackDelta(mtd) + FrameCellCount));
+          saveRegisters();
+          integer Amnt = stackDelta(PROG) + FrameCellCount;
+          P->stk = glueOnStack(H, STK, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
+          restoreRegisters();
+          if (!stackRoom(Amnt)) {
+            logMsg(logFile, "cannot extend stack sufficiently");
+            bail();
+          }
+
 #ifdef TRACESTACK
           if (traceStack > noTracing)
             verifyStack(STK, H);
 #endif
         }
 
-        FP++;
-        FP->prog = LPROG;
-        FP->link = LINK;
-        FP->args = LARGS;
-
-        LPROG = Null;
-        LINK = Null;
-        LARGS = Null;
-
-        ARGS = SP+codeArity(PROG);
-
         integer height = PC->fst;
-        for (int32 ix=0;ix<height;ix++)
+        for (int32 ix = 0; ix < height; ix++)
           push(voidEnum);
 
-        pushFrme(mtd);
-        incEntryCount(mtd);              // Increment number of times program called
+        incEntryCount(PROG);              // Increment number of times program called
 
         PC++;
         continue;
@@ -367,9 +304,11 @@ retCode run(processPo P) {
 
         assert(FP > baseFrame(STK));
 
-        SP = &arg(argCount(frameMtd(FP))); // Just above arguments to current call
+        SP = &arg(argCount(PROG));       // Just above arguments to current call
+        PROG = FP->prog;
+        ARGS = FP->args;
+        PC = FP->link;
         FP--;
-        PC = FP->pc;
 
         push(retVal);      /* push return value */
         continue;       /* and carry on regardless */
@@ -380,12 +319,15 @@ retCode run(processPo P) {
 
         assert(FP > baseFrame(STK));
 
+        PROG = FP->prog;
+        ARGS = FP->args;
+        PC = FP->link - 1;
         FP--;
-        PC = FP->pc - 1;
+
         PC += PC->alt + 1;
 
         int32 height = PC->fst;
-        SP = &local(lclCount(frameMtd(FP)) + height - 1);
+        SP = &local(lclCount(PROG) + height - 1);
         PC += PC->alt + 1;
 
         push(retVal);      /* push return value */
@@ -400,7 +342,7 @@ retCode run(processPo P) {
       case Break: {
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(frameMtd(FP)) + height);
+        SP = &local(lclCount(PROG) + height);
         PC += PC->alt + 1;
         continue;
       }
@@ -408,7 +350,7 @@ retCode run(processPo P) {
       case Loop: {
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(frameMtd(FP)) + height);
+        SP = &local(lclCount(PROG) + height);
         PC++;
         continue;
       }
@@ -417,7 +359,7 @@ retCode run(processPo P) {
         termPo reslt = pop();
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(frameMtd(FP)) + height - 1);
+        SP = &local(lclCount(PROG) + height - 1);
         PC += PC->alt + 1;
         push(reslt);
         continue;       /* and carry after reset block */
@@ -465,7 +407,7 @@ retCode run(processPo P) {
 
       case Rst: {
         int32 height = PC->fst;
-        SP = &local(lclCount(frameMtd(FP)) + height);
+        SP = &local(lclCount(PROG) + height);
         PC++;
         continue;
       }
@@ -497,7 +439,6 @@ retCode run(processPo P) {
           continue;
         }
       }
-
       case Resume: {
         stackPo stack = C_STACK(pop());
         termPo event = pop();
@@ -534,7 +475,6 @@ retCode run(processPo P) {
           continue;
         }
       }
-
       case Underflow: {
         termPo val = pop();
         saveRegisters();  // Seal off the current stack
@@ -593,19 +533,15 @@ retCode run(processPo P) {
             bail();
           }
 
-          if (!stackRoom(stackDelta(glbThnk) + FrameCellCount)) {
-            int root = gcAddRoot(H, (ptrPo) &glbThnk);
-            stackGrow(stackDelta(glbThnk) + FrameCellCount, codeArity(glbThnk));
-            gcReleaseRoot(H, root);
-            assert(stackRoom(stackDelta(glbThnk) + FrameCellCount));
+          FP++;
+          FP->prog = PROG;
+          FP->link = PC + 1;
+          FP->args = ARGS;
 
-#ifdef TRACESTACK
-            if (traceStack)
-              verifyStack(STK, H);
-#endif
-          }
-          FP->pc = PC + 1;
-          pushFrme(glbThnk);
+          PROG = glbThnk;
+          ARGS = SP;
+          PC = entryPoint(glbThnk);
+
           continue;
         }
       }
@@ -649,7 +585,7 @@ retCode run(processPo P) {
       }
 
       case StL: {
-	local(PC->fst) = pop();
+        local(PC->fst) = pop();
         PC++;
         continue;
       }
@@ -660,7 +596,7 @@ retCode run(processPo P) {
         continue;
       }
       case TL: {
-	local(PC->fst) = top();
+        local(PC->fst) = top();
         PC++;
         continue;
       }
@@ -910,7 +846,7 @@ retCode run(processPo P) {
 
         if (charVal(i) != charVal(j)) {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
+          assert(validPC(PROG, PC));
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1074,7 +1010,7 @@ retCode run(processPo P) {
 
         if (floatVal(x) != floatVal(y)) {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
+          assert(validPC(PROG, PC));
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1138,7 +1074,7 @@ retCode run(processPo P) {
 
         if (!sameTerm(i, j)) {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
+          assert(validPC(PROG, PC));
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1152,7 +1088,7 @@ retCode run(processPo P) {
 
         if (sameTerm(i, trueEnum)) {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
+          assert(validPC(PROG, PC));
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1166,7 +1102,7 @@ retCode run(processPo P) {
 
         if (!sameTerm(i, trueEnum)) {
           PC += PC->alt + 1;
-          assert(validPC(frameMtd(FP), PC));
+          assert(validPC(PROG, PC));
           PC += PC->alt + 1;
           continue;
         } else {
@@ -1176,7 +1112,7 @@ retCode run(processPo P) {
       }
 
       case Frame: {
-        assert(SP==&local(lclCount(frameMtd(FP)) + PC->fst));
+        assert(SP == &local(lclCount(PROG) + PC->fst));
         PC++;
         continue;
       }
@@ -1184,7 +1120,7 @@ retCode run(processPo P) {
       case dBug: {
         if (lineDebugging) {
           saveRegisters();
-          FP->pc++;                   // We aim to continue at the next instruction
+          PC++;                   // We aim to continue at the next instruction
           enterDebug(P);
           restoreRegisters();
           continue;

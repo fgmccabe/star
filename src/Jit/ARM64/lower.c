@@ -29,7 +29,9 @@ static void setJitHeight(jitCompPo jit, int32 height);
 
 static retCode getIntVal(jitCompPo jit, armReg rg);
 static retCode mkIntVal(jitCompPo jit, armReg rg);
+
 #define SSP (X28)
+#define AG  (X26)
 
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
@@ -176,7 +178,11 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
 
         codeLblPo returnPc = newLabel(ctx);
         adr(X0, returnPc);
-        str(X0, OF(FP, OffsetOf(StackFrame, pc)));
+
+        add(FP,FP,IM(sizeof(StackFrame)));  // Bump the current frame
+        str(X0, OF(FP, OffsetOf(StackFrame, link)));
+        str(AG, OF(FP, OffsetOf(StackFrame, args)));
+        str(XZR, OF(FP, OffsetOf(StackFrame, prog))); // Not using this?
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
@@ -201,7 +207,6 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
 
         codeLblPo returnPc = newLabel(ctx);
         adr(X0, returnPc);
-        str(X0, OF(FP, OffsetOf(StackFrame, pc)));
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
@@ -272,7 +277,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         sub(SSP, FP, RG(X17));
         sub(FP, FP, IM(sizeof(StackFrame)));
         pushStkOp(jit, X0);
-        ldr(X0, OF(FP, OffsetOf(StackFrame, pc)));
+        ldr(X0, OF(FP, OffsetOf(StackFrame, link)));
         br(X0);
       }
       case XRet:

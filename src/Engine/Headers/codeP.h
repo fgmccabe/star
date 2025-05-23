@@ -43,7 +43,7 @@ static inline insPo entryPoint(methodPo mtd) {
   return mtd->instructions;
 }
 
-static inline int64 argCount(methodPo mtd) {
+static inline int32 argCount(methodPo mtd) {
   assert(mtd != Null);
   return lblArity(mtd->lbl);
 }

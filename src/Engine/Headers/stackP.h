@@ -95,18 +95,17 @@ static inline logical stackHasSpace(stackPo stk, integer amount) {
 }
 
 framePo dropFrame(stackPo stk);
-int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp);
 
 void stackSanityCheck(stackPo stk);
 void verifyStack(stackPo stk, heapPo H);
 logical isAttachedStack(stackPo base, stackPo tgt);
 
-static inline ptrPo stackArg(framePo frame, integer arg) {
-  return &frame->args[arg];
+static inline ptrPo stackArg(ptrPo args, integer arg) {
+  return &args[arg];
 }
 
-static inline ptrPo stackLcl(framePo frame, int32 lcl) {
-  return &frame->args[-lcl];
+static inline ptrPo stackLcl(ptrPo args, int32 lcl) {
+  return &args[-lcl];
 }
 
 char *stackStateName(StackState ste);
@@ -119,11 +118,8 @@ typedef enum {
   showLocalVars
 } StackTraceLevel;
 
-void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing);
+void
+showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, methodPo prog, insPo pc);
 void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
-
-static inline methodPo frameMtd(framePo fp) {
-  return fp->prog;
-}
 
 #endif //STAR_STACKP_H
