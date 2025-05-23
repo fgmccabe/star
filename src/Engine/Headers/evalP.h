@@ -44,8 +44,8 @@
 #define pop() (*SP++)
 #define top() (*SP)
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(lcl) (FP->args[-(lcl)])
-#define arg(aix) (FP->args[aix])
+#define local(lcl) (ARGS[-(lcl)])
+#define arg(aix) (ARGS[aix])
 #define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ \
   STK->prog = PROG;                 \
@@ -62,13 +62,7 @@
   PC = STK->pc;                        \
   SP = STK->sp;                        \
   })
-#define pushFrme(mtd) STMT_WRAP({ \
-  framePo f = FP+1;               \
-  PC = f->pc = entryPoint(mtd);   \
-  f->prog = mtd;                  \
-  f->args = SP;                   \
-  FP = f;                         \
-  })
+
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars,100);\
@@ -87,7 +81,7 @@
 
 #define breakOut(EX) STMT_WRAP({                     \
   PC += PC->alt + 1;                                 \
-  SP = &local(lclCount(frameMtd(FP)) + PC->fst - 1); \
+  SP = &local(lclCount(PROG) + PC->fst - 1); \
   PC += PC->alt + 1;                                 \
   push(EX);                                          \
   })

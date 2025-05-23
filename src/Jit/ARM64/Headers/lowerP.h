@@ -21,6 +21,7 @@
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
  * X19-X25 = callee saved registers
+ * AG = X26 = s pointer
  * SB = X27 = current stack structure pointer
  * SSP = X28 = star's stack pointer
  */

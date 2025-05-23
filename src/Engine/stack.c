@@ -143,7 +143,11 @@ framePo previousFrame(stackPo stk, framePo fp) {
 framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
-  stk->sp = fp->args + argCount(frameMtd(fp));
+  stk->pc = fp->link;
+  stk->prog = fp->prog;
+
+  stk->args = fp->args;
+  stk->sp = fp->args + argCount(stk->prog);
   stk->fp--;
   return stk->fp;
 }
@@ -166,9 +170,13 @@ framePo pushFrame(stackPo stk, methodPo mtd) {
   assert(stackHasSpace(stk, FrameCellCount));
   framePo f = stk->fp + 1;
 
-  f->prog = mtd;
-  f->pc = entryPoint(mtd);
-  f->args = stk->sp;
+  f->prog = stk->prog;
+  f->args = stk->args;
+  f->link = stk->pc;
+
+  stk->pc = entryPoint(mtd);
+  stk->prog = mtd;
+  stk->args = stk->sp;
 
   stk->fp = f;
 
@@ -207,12 +215,15 @@ void verifyStack(stackPo stk, heapPo H) {
       ptrPo spLimit = stackLimit(stk);
       framePo fp = stk->fp;
       framePo fpLimit = baseFrame(stk);
+      methodPo prog = stk->prog;
+      ptrPo args = stk->args;
 
       while (fp > fpLimit) {
-        check(isMethod((termPo) frameMtd(fp)), "expecting a code pointer in the frame");
-        check(validFP(stk, fp-1), "invalid fp in frame");
-        check(fp->args >= sp, "frame arg pointer invalid");
-        sp = fp->args + argCount(frameMtd(fp));
+        check(isMethod((termPo) prog), "expecting a code pointer");
+        check(args >= sp, "frame arg pointer invalid");
+        sp = fp->args + argCount(prog);
+        prog = fp->prog;
+        args = fp->args;
         fp--;
       }
 
@@ -275,6 +286,9 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
   }
   totsk->sp = dst;
   fromtsk->sp += count;
+  pushFrame(totsk, fromtsk->prog);
+  totsk->pc = fromtsk->pc;
+  dropFrame(fromtsk);
 }
 
 termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
@@ -342,23 +356,23 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   return outMsg(out, "(.stack %d:[%s] %T.)",
                 stk->hash,
                 stackStateName(stk->state),
-                stackState(stk) == moribund ? voidEnum : (termPo) frameMtd(stk->fp));
+                stackState(stk) == moribund ? voidEnum : (termPo) stk->prog);
 }
 
-void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer frameNo, StackTraceLevel tracing) {
-  methodPo mtd = frameMtd(fp);
-  assert(isMethod((termPo) mtd));
-  insPo pc = fp->pc;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, pc));
+void
+showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel level, methodPo prog, insPo pc) {
+  assert(isMethod((termPo) prog));
+
+  termPo loc = findPcLocation(prog, codeOffset(prog, pc));
 
   if (loc != Null)
-    outMsg(out, "[%d] %L: %T", frameNo, loc, mtd);
+    outMsg(out, "[%d] %L: %T", frameNo, loc, prog);
   else
-    outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, mtd, codeOffset(mtd, pc));
+    outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, prog, codeOffset(prog, pc));
 
-  integer count = argCount(mtd);
+  int32 count = argCount(prog);
 
-  switch (tracing) {
+  switch (level) {
     default:
     case showPrognames: {
       outMsg(out, "\n");
@@ -369,7 +383,7 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
         outMsg(out, "(");
         char *sep = "";
         for (integer ix = 0; ix < count; ix++) {
-          outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(fp, ix));
+          outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(args, ix));
           sep = ", ";
         }
         outMsg(out, ")\n");
@@ -380,15 +394,15 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
     case showLocalVars: {
       outMsg(out, "(");
       char *sep = "";
-      for (integer ix = 0; ix < count; ix++) {
-        outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(fp, ix));
+      for (int32 ix = 0; ix < count; ix++) {
+        outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(args, ix));
         sep = ", ";
       }
       outMsg(out, ")\n");
-      count = lclCount(mtd);
+      count = lclCount(prog);
 
-      for (integer vx = 1; vx <= count; vx++) {
-        ptrPo var = stackLcl(fp, vx);
+      for (int32 vx = 1; vx <= count; vx++) {
+        ptrPo var = stackLcl(args, vx);
         if (*var != Null && *var != voidEnum)
           outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
       }
@@ -396,16 +410,22 @@ void showStackCall(ioPo out, integer depth, framePo fp, stackPo stk, integer fra
   }
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth) {
+void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel level, integer maxDepth) {
   outMsg(out, "Stack trace for process %d\n", p->processNo);
 
   integer frameNo = 0;
+  framePo fp = stk->fp;
+  methodPo prog = stk->prog;
+  ptrPo args = stk->args;
+  insPo pc = stk->pc;
 
   do {
-    framePo fp = stk->fp;
-
     while (fp > baseFrame(stk) && maxDepth-- > 0) {
-      showStackCall(out, depth, fp, stk, frameNo++, tracing);
+      showStackCall(out, depth, args, frameNo++, level, prog, pc);
+      prog = fp->prog;
+      args = fp->args;
+      pc = fp->link;
+
       fp--;
     }
 
@@ -414,10 +434,6 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLev
 
   if (maxDepth <= 0)
     outMsg(out, "...\n");
-}
-
-int32 stackDepth(stackPo stk, methodPo mtd, ptrPo sp, framePo fp) {
-  return stackLcl(fp, lclCount(frameMtd(fp))) - sp;
 }
 
 stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
