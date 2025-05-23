@@ -455,7 +455,7 @@ retCode run(processPo P) {
           continue;
         }
       }
-      case Retire: { // Similar to a suspend, except that we trash the susending stack
+      case Retire: { // Similar to suspend, except that we trash the suspending stack
         stackPo fiber = C_STACK(pop());
         termPo event = pop();
 
@@ -876,7 +876,7 @@ retCode run(processPo P) {
         integer Lhs = integerVal(pop());
         integer Rhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
+        termPo Rs = makeInteger((integer) ((uinteger) Lhs ^ (uinteger) Rhs));
         push(Rs);
         PC++;
         continue;
@@ -884,7 +884,7 @@ retCode run(processPo P) {
       case BNot: {
         integer Lhs = integerVal(pop());
 
-        termPo Rs = (termPo) makeInteger((integer) (~(uinteger) Lhs));
+        termPo Rs =  makeInteger((integer) (~(uinteger) Lhs));
         push(Rs);
         PC++;
         continue;
@@ -1030,7 +1030,6 @@ retCode run(processPo P) {
       }
 
       case IndxJmp: {    // Branch based on index of constructor term
-        int32 mx = PC->fst;
         normalPo top = C_NORMAL(pop());
         labelPo lbl = termLbl(top);
         integer hx = lblIndex(lbl);
@@ -1119,8 +1118,8 @@ retCode run(processPo P) {
 
       case dBug: {
         if (lineDebugging) {
-          saveRegisters();
           PC++;                   // We aim to continue at the next instruction
+          saveRegisters();
           enterDebug(P);
           restoreRegisters();
           continue;
