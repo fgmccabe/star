@@ -143,11 +143,20 @@ framePo previousFrame(stackPo stk, framePo fp) {
 framePo dropFrame(stackPo stk) {
   framePo fp = stk->fp;
   assert(validFP(stk, fp));
+
+
+  SP = &arg(argCount(PROG));       // Just above arguments to current call
+  PROG = FP->prog;
+  ARGS = FP->args;
+  PC = FP->link;
+  FP--;
+
+
+
   stk->pc = fp->link;
   stk->prog = fp->prog;
-
+  stk->sp = stk->args + argCount(stk->prog);
   stk->args = fp->args;
-  stk->sp = fp->args + argCount(stk->prog);
   stk->fp--;
   return stk->fp;
 }
@@ -288,7 +297,6 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
   fromtsk->sp += count;
   pushFrame(totsk, fromtsk->prog);
   totsk->pc = fromtsk->pc;
-  dropFrame(fromtsk);
 }
 
 termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
@@ -443,6 +451,7 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
 
   stackPo newStack = allocateStack(H, size, underflowProg, stackState(stk), stk);
   moveStack2Stack(newStack, stk, saveArity);
+  dropFrame(stk);
   propagateHwm(newStack);
   gcReleaseRoot(H, root);
   return newStack;
