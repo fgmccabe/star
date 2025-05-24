@@ -759,6 +759,9 @@ star.compiler.gencode{
 
 	valis (chLine(OLc,Lc)++VC++[.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
       }
+      | .cInt(_,Ix) => valis (VC++[.iCInt(Ptn::data,Fail)],Ctx,Stk)
+      | .cChar(_,Cx) => valis (VC++[.iCChar(Ptn::data,Fail)],Ctx,Stk)
+      | .cFlt(_,Dx) => valis (VC++[.iCFlt(Ptn::data,Fail)],Ctx,Stk)
       | _ default => {
 	if isGround(Ptn) then
 	  valis (VC++[.iCLit(Ptn::data,Fail)],Ctx,Stk)
@@ -818,6 +821,9 @@ star.compiler.gencode{
       (PC,PCxt,Stk0) = compPtn(P,Lc,Fail,Brks,Ctx,Stk);
       valis ([.iLdSav(Fail)]++PC,PCxt,Stk0)
     }
+    | .cInt(_,Ix) => ([.iCInt(Ptn::data,Fail)],Ctx,Stk)
+    | .cChar(_,Cx) => ([.iCChar(Ptn::data,Fail)],Ctx,Stk)
+    | .cFlt(_,Dx) => ([.iCFlt(Ptn::data,Fail)],Ctx,Stk)
     | _ default => ( isGround(Ptn) ??
       ([.iCLit(Ptn::data,Fail)],Ctx,dropStack(Stk)) || valof{
 	reportError("uncompilable pattern $(Ptn)",locOf(Ptn));

@@ -142,10 +142,6 @@ star.compiler.escapes{
     | "_get_file" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string")])),.nomnal("string")),.nomnal("errorCode")))
     | "_put_file" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("string")])),.tupleType([])),.nomnal("errorCode")))
     | "_show" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.tupleType([])))
-    | "_install_pkg" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string")])),.tpExp(.tpFun("cons",1),.tupleType([.nomnal("string"),.nomnal("string")]))),.nomnal("errorCode")))
-    | "_pkg_is_present" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("string")])),.nomnal("boolean")),.nomnal("errorCode")))
-    | "_in_manifest" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("string"),.nomnal("string")])),.nomnal("boolean")),.nomnal("errorCode")))
-    | "_locate_in_manifest" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("string"),.nomnal("string")])),.nomnal("string")),.nomnal("errorCode")))
     | "_logmsg" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.tupleType([])))
     | "_display_depth" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("integer")))
     | "_connect" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("integer"),.nomnal("integer")])),.tupleType([.nomnal("ioHandle"),.nomnal("ioHandle")])),.nomnal("errorCode")))
@@ -390,10 +386,6 @@ star.compiler.escapes{
     | "_get_file" => .true
     | "_put_file" => .true
     | "_show" => .true
-    | "_install_pkg" => .true
-    | "_pkg_is_present" => .true
-    | "_in_manifest" => .true
-    | "_locate_in_manifest" => .true
     | "_logmsg" => .true
     | "_display_depth" => .true
     | "_connect" => .true

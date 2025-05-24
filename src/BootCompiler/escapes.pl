@@ -138,10 +138,6 @@ escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("integer")]
 escapeType("_get_file",funType(tplType([type("string")]),type("string"),type("errorCode"))).
 escapeType("_put_file",funType(tplType([type("string"),type("string")]),tplType([]),type("errorCode"))).
 escapeType("_show",funType(tplType([type("string")]),tplType([]))).
-escapeType("_install_pkg",funType(tplType([type("string")]),tpExp(tpFun("cons",1),tplType([type("string"),type("string")])),type("errorCode"))).
-escapeType("_pkg_is_present",funType(tplType([type("string"),type("string")]),type("boolean"),type("errorCode"))).
-escapeType("_in_manifest",funType(tplType([type("string"),type("string"),type("string")]),type("boolean"),type("errorCode"))).
-escapeType("_locate_in_manifest",funType(tplType([type("string"),type("string"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_logmsg",funType(tplType([type("string")]),tplType([]))).
 escapeType("_display_depth",funType(tplType([]),type("integer"))).
 escapeType("_connect",funType(tplType([type("string"),type("integer"),type("integer")]),tplType([type("ioHandle"),type("ioHandle")]),type("errorCode"))).
@@ -383,10 +379,6 @@ isEscape("_setfileencoding").
 isEscape("_get_file").
 isEscape("_put_file").
 isEscape("_show").
-isEscape("_install_pkg").
-isEscape("_pkg_is_present").
-isEscape("_in_manifest").
-isEscape("_locate_in_manifest").
 isEscape("_logmsg").
 isEscape("_display_depth").
 isEscape("_connect").

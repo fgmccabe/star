@@ -2,62 +2,55 @@
 // Created by Francis McCabe on 3/26/25.
 //
 
-#include "array.h"
+#include <stdlib.h>
 #include "eitherP.h"
 #include "constantsP.h"
 #include "globals.h"
 
 static hashPo constantKeys = Null;
-static arrayPo constants = Null;
+static termPo *constAnts = Null;
+static int32 nextConstant = 0;
+static int32 constantPoolSize = 0;
 
 void initConstants() {
   constantKeys = newHash(4096, (hashFun) termHash, (compFun) compTerm, Null);
-  constants = allocArray(sizeof(termPo), 4096, True);
-  appendEntry(constants,&voidEnum);
+  constAnts = (termPo *) malloc(sizeof(termPo) * 4096);
+  constantPoolSize = 4096;
+  constAnts[nextConstant++] = voidEnum; // First entry cannot be used
 }
 
-termPo getConstant(int32 key){
-  if(key>=0 && key< arrayCount(constants)){
-    ptrPo c = nthEntry(constants,key);
-    if(c!=Null)
-      return *c;
-  }
-  return Null;
+termPo getConstant(int32 key) {
+  assert(key >= 0 && key < nextConstant);
+  return constAnts[key];
 }
 
 int32 defineConstantLiteral(termPo t) {
   integer tx = (integer) hashGet(constantKeys, t);
-  if (tx==(integer)Null) {
-    if(appendEntry(constants,&t)==Ok){
-      integer cx = arrayCount(constants)-1;
-    
-      hashPut(constantKeys, t, (void*)cx);
-      return (int32)cx;
+  if (tx == (integer) Null) {
+    if (nextConstant == constantPoolSize) {
+      constantPoolSize *= 2;
+      constAnts = (termPo *) realloc(constAnts, sizeof(termPo) * constantPoolSize);
     }
-    else
-      return -1;
+    integer cx = (integer) nextConstant++;
+    constAnts[cx] = t;
+
+    hashPut(constantKeys, t, (void *) cx);
+
+    return (int32) cx;
   }
-  return (int32)tx;
+
+  return (int32) tx;
 }
 
-logical isDefinedConstant(int32 key){
-  if(key>=0 && key< arrayCount(constants)){
+logical isDefinedConstant(int32 key) {
+  if (key >= 0 && key < nextConstant) {
     termPo constant = getConstant(key);
-    return constant!=Null && (integer)hashGet(constantKeys, constant)==(integer)key;
-  }
-  else
+    return constant != Null && (integer) hashGet(constantKeys, constant) == (integer) key;
+  } else
     return False;
 }
 
-retCode markConstant(void *entry, integer ix, void *cl) {
-  gcSupportPo g = (gcSupportPo) cl;
-
-  ptrPo c = (ptrPo) entry;
-  *c = markPtr(g, c);
-
-  return Ok;
-}
-
 void markConstants(gcSupportPo G) {
-  processArrayElements(constants,markConstant,(void*)G);
+  for(int32 ix=0;ix<nextConstant;ix++)
+    constAnts[ix] = markPtr(G, &constAnts[ix]);
 }

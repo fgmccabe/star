@@ -548,6 +548,45 @@ retCode run(processPo P) {
         }
       }
 
+      case CInt: {
+        integer lx = integerVal(getConstant(PC->fst));
+        integer tx = integerVal(pop());
+
+        if (lx!=tx) {
+          breakBlock();
+          continue;
+        } else {
+          PC++;
+          continue;
+        }
+      }
+
+      case CChar: {
+        codePoint lx = charVal(getConstant(PC->fst));
+        codePoint tx = charVal(pop());
+
+        if (lx!=tx) {
+          breakBlock();
+          continue;
+        } else {
+          PC++;
+          continue;
+        }
+      }
+
+      case CFlt: {
+        double lx = floatVal(getConstant(PC->fst));
+        double tx = floatVal(pop());
+
+        if (lx!=tx) {
+          breakBlock();
+          continue;
+        } else {
+          PC++;
+          continue;
+        }
+      }
+
       case CLit: {
         termPo l = getConstant(PC->fst);
         termPo t = pop();

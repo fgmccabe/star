@@ -11,6 +11,7 @@
 #include "arith.h"
 #include "libEscapes.h"
 #include "stackP.h"
+#include "char.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 tracingLevel traceVerify = noTracing;      // Set if tracing code verification
@@ -547,9 +548,51 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case CLit: {
+      case CLit:{
         int32 key = code[pc].fst;
         if (!isDefinedConstant(key))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
+          return Error;
+        pc++;
+        continue;
+      }
+      case CInt:{
+        int32 key = code[pc].fst;
+        termPo lit = getConstant(key);
+
+        if (lit==Null || !isInteger(lit))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
+          return Error;
+        pc++;
+        continue;
+      }
+      case CFlt:{
+        int32 key = code[pc].fst;
+        termPo lit = getConstant(key);
+
+        if (lit==Null || !isFloat(lit))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
+        stackDepth--;
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
+          return Error;
+        pc++;
+        continue;
+      }
+      case CChar:{
+        int32 key = code[pc].fst;
+        termPo lit = getConstant(key);
+
+        if (lit==Null || !isChar(lit))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
