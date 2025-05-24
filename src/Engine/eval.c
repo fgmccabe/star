@@ -136,8 +136,10 @@ retCode run(processPo P) {
       case Escape: {                     /* call escape */
         int32 escNo = PC->fst;           /* escape number */
         PC++;
+#ifndef NDEBUG
         if (collectStats)
           recordEscape(escNo);
+#endif
 
         escapePo esc = getEscape(escNo);
         saveRegisters();
