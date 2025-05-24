@@ -470,6 +470,9 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
       case Get:            // access a R/W cell
       case Assign:            // assign to a R/W cell
       case CLbl:            // T,Lbl --> test for a data term, break if not lbl
+      case CInt:
+      case CChar:
+      case CFlt:
       case CLit: {            // T,lit --> test for a literal value, break if not
         termPo lit = getConstant(code[pc].fst);
         armReg rg = findFreeReg(jit);
