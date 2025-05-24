@@ -86,15 +86,6 @@ void initClosure() {
   ClosureClass.clss.clss = specialClass;
 }
 
-closurePo C_CLOSURE(termPo t) {
-  assert(hasClass(t, closureClass));
-  return (closurePo) t;
-}
-
-logical isClosure(termPo t) {
-  return hasClass(t, closureClass);
-}
-
 closurePo newClosure(heapPo H, labelPo lbl, termPo content) {
   int root = gcAddRoot(H, (ptrPo) (&content));
   closurePo closure = (closurePo) allocateObject(H, closureClass, ClosureCellCount);
