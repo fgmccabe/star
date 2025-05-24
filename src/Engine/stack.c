@@ -120,18 +120,12 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
 
 StackState stackState(stackPo tsk) { return tsk->state; }
 
-retCode setTaskState(stackPo tsk, StackState state) {
+static retCode markActive(stackPo tsk) {
   switch (tsk->state) {
     case suspended:
-      tsk->state = state;
+      tsk->state = active;
       return Ok;
     case active:
-      if (state != suspended && state != moribund)
-        return Error;
-      else {
-        tsk->state = state;
-        return Ok;
-      }
     case moribund:
       return Error;
   }
@@ -481,19 +475,6 @@ stackPo spinupStack(heapPo H, integer size) {
   return allocateStack(H, size, underflowProg, suspended, Null);
 }
 
-stackPo newFiber(heapPo H, termPo lam) {
-  int root = gcAddRoot(H, (ptrPo) &lam);
-  stackPo child = spinupStack(H, minStackSize);
-  gcReleaseRoot(H, root);
-
-  child->fp = pushFrame(child, labelCode(taskProg));
-
-  pushStack(child, lam);
-  pushStack(child, (termPo) child);
-
-  return child; // We return the new stack
-}
-
 stackPo newStack(heapPo H, termPo lam) {
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);
@@ -503,20 +484,6 @@ stackPo newStack(heapPo H, termPo lam) {
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
-
-  return child; // We return the new stack
-}
-
-stackPo splitStack(processPo P, closurePo lam) {
-  heapPo H = P->heap;
-  int root = gcAddRoot(H, (ptrPo) &lam);
-  stackPo child = spinupStack(H, minStackSize);
-  gcReleaseRoot(H, root);
-
-  child->fp = pushFrame(child, labelCode(spawnProg));
-
-  pushStack(child, (termPo) child);
-  pushStack(child, (termPo) lam);
 
   return child; // We return the new stack
 }
@@ -536,11 +503,11 @@ stackPo attachStack(stackPo tsk, stackPo top) {
   stackPo f = bottom;
 
   while (f != top) {
-    setTaskState(f, active);
+    markActive(f);
     f->bottom = Null;
     f = f->attachment;
   }
-  setTaskState(f, active);
+  markActive(f);
 
   assert(f == top && top->attachment == Null);
   top->attachment = tsk;
