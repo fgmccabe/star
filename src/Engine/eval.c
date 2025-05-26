@@ -74,15 +74,6 @@ retCode run(processPo P) {
           bail();
         }
 
-        FP++;
-        FP->prog = PROG;
-        FP->link = PC + 1;
-        FP->args = ARGS;
-
-        PROG = mtd;
-        ARGS = SP;
-        PC = entryPoint(mtd);
-
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
           if (traceJit) {
@@ -90,9 +81,18 @@ retCode run(processPo P) {
           }
 #endif
           saveRegisters();
-          termPo res = invokeJitMethod(mtd, H, STK);
+          invokeJitMethod(mtd, H, STK);
           restoreRegisters();
-          push(res);
+          PC++;
+        } else{
+          FP++;
+          FP->prog = PROG;
+          FP->link = PC + 1;
+          FP->args = ARGS;
+
+          PROG = mtd;
+          ARGS = SP;
+          PC = entryPoint(mtd);
         }
         continue;
       }

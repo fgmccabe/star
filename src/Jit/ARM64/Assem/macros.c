@@ -2,12 +2,10 @@
 // Created by Francis McCabe on 9/8/24.
 //
 
-#include "macros.h"
-#include "code.h"
-#include "libEscapes.h"
+#include "macros.h"\
 
 registerMap defltAvailRegSet() {
-  return callerSaved() | calleeSaved() | stackRegs();
+  return callerSaved() | scratchRegs();
 }
 
 registerMap emptyRegSet() {
@@ -47,7 +45,7 @@ registerMap allocReg(registerMap from, armReg Rg) {
 }
 
 registerMap freeReg(registerMap from, armReg Rg) {
-  check((from & (1u << Rg)) != 0, "register already free");
+  check((from & (1u << Rg)) == 0, "register already free");
   return (from | (1u << Rg));
 }
 

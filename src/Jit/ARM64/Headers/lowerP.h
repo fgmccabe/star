@@ -10,20 +10,4 @@
 #include "arm64P.h"
 #include "macros.h"
 
-/* Register allocation for arm64:
- *
- * SP = X31 = system stack pointer
- * FP = X29 = frame pointer
- * LR = X30 = link register
- * X0-X8 = integer parameters
- * X0 = return register
- * X9-X15 = caller saved scratch registers
- * X16-X17 = intra procedure call scratch registers
- * X18 = platform register
- * X19-X25 = callee saved registers
- * AG = X26 = s pointer
- * SB = X27 = current stack structure pointer
- * SSP = X28 = star's stack pointer
- */
-
 #endif //STAR_LOWERP_H

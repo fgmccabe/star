@@ -214,7 +214,7 @@ logical isI32(int64 x) {
   return x >= MIN_I32 && x <= MAX_I32;
 }
 
-jitCode createCode(assemCtxPo ctx) {
+jittedCode createCode(assemCtxPo ctx) {
   cleanupLabels(ctx);
   extern int errno;
   errno = 0;
@@ -256,5 +256,5 @@ jitCode createCode(assemCtxPo ctx) {
 
   free(ctx->bytes);
   ctx->bytes = Null;
-  return (jitCode)code;
+  return (jittedCode)code;
 }

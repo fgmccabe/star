@@ -62,10 +62,7 @@ typedef struct labelMarker {
 
 typedef struct jit_compiler_ {
   methodPo mtd;
-  integer vTop;
-  int32 localDepth;
   int32 currSPOffset;
-  registerMap usedRegs;
   registerMap freeRegs;
   assemCtxPo assemCtx;
   codeLblPo entry;
@@ -81,7 +78,7 @@ jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen);
 void clearJitContext(jitCompPo ctx);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 
-jitCode createCode(assemCtxPo ctx);
+jittedCode createCode(assemCtxPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
@@ -107,9 +104,7 @@ typedef struct lbl_ref {
 logical isByte(int64 x);
 logical isI32(int64 x);
 
-retCode jit_preamble(methodPo mtd, jitCompPo jit);
-retCode jit_postamble(jitCompPo ctx);
-retCode jitInstructions(jitCompPo jitCtx, insPo code, integer insCount, char *errMsg, integer msgLen);
+retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 
 
 #endif //STAR_JITP_H
