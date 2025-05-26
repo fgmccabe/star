@@ -10,7 +10,7 @@ test.jt{
     assert inc42(0)==42;
 
     try{
-      _jit_compile(inc42);
+      _jit_compile("test.jt@inc42",1);
     } catch {
       Cde => showMsg("We got errr: $(Cde)")
     };

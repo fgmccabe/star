@@ -244,7 +244,7 @@ star.compiler.escapes{
     | "_shell" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.tpExp(.tpFun("cons",1),.nomnal("string")),.tpExp(.tpFun("cons",1),.tupleType([.nomnal("string"),.nomnal("string")]))])),.nomnal("integer")),.nomnal("errorCode")))
     | "_ins_debug" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([])))
     | "_stackTrace" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("string")))
-    | "_jit_compile" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a")])),.kVar("e"))])),.tupleType([])),.nomnal("errorCode")))))
+    | "_jit_compile" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("integer")])),.tupleType([])),.nomnal("errorCode")))
     | _ default => .none
   }
 

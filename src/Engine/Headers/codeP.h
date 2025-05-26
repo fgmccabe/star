@@ -20,7 +20,7 @@ typedef struct instruction_ {
 
 typedef struct method_ {
   ClassRecord clss; // == specialClass
-  jitCode jit;      // Jit'ed code
+  jittedCode jit;      // Jit'ed code
   integer entryCount;
   labelPo lbl;        // The label of this code
   int32 lclcnt;       // How many locals in the environment
@@ -53,14 +53,14 @@ static inline logical hasJit(methodPo mtd) {
   return mtd->jit != Null;
 }
 
-static inline jitCode codeJit(methodPo mtd) {
+static inline jittedCode jitCode(methodPo mtd) {
   assert(mtd != Null && mtd->jit != Null);
   return mtd->jit;
 }
 
 static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
 
-retCode setJitCode(methodPo mtd, jitCode code);
+retCode setJitCode(methodPo mtd, jittedCode code);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 

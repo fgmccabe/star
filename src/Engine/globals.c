@@ -38,6 +38,9 @@ termPo eofEnum;
 termPo canceledEnum;
 termPo unitEnum;
 
+labelPo trueLbl;
+labelPo falseLbl;
+
 static hashPo globals;
 
 static GlobalRecord *glbVars;
@@ -69,8 +72,6 @@ SpecialClass GlobalClass = {
 
 clssPo globalClass = (clssPo) &GlobalClass;
 
-
-
 void initGlobals() {
   GlobalClass.clss.clss = specialClass;
   globals = newHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
@@ -96,7 +97,9 @@ void initGlobals() {
   eDEAD = declareEnum("eDEAD", -1, globalHeap);
 
   falseEnum = declareEnum("false", 0, globalHeap);
+  falseLbl = termLbl(C_NORMAL(falseEnum));
   trueEnum = declareEnum("true", 1, globalHeap);
+  trueLbl = termLbl(C_NORMAL(trueEnum));
 
   voidEnum = declareEnum("void", 0, globalHeap);
 
