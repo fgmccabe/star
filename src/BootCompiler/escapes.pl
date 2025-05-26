@@ -240,7 +240,7 @@ escapeType("_waitfor",funType(tplType([type("star.thread*thread")]),tplType([]),
 escapeType("_shell",funType(tplType([type("string"),tpExp(tpFun("cons",1),type("string")),tpExp(tpFun("cons",1),tplType([type("string"),type("string")]))]),type("integer"),type("errorCode"))).
 escapeType("_ins_debug",funType(tplType([]),tplType([]))).
 escapeType("_stackTrace",funType(tplType([]),type("string"))).
-escapeType("_jit_compile",allType(kVar("a"),allType(kVar("e"),funType(tplType([funType(tplType([kVar("a")]),kVar("e"))]),tplType([]),type("errorCode"))))).
+escapeType("_jit_compile",funType(tplType([type("string"),type("integer")]),tplType([]),type("errorCode"))).
 
 
 isEscape("_exit").

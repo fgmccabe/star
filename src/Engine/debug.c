@@ -485,11 +485,11 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
   return moreDebug;
 }
 
-void showMethodCode(ioPo out, char *msg, char *name, methodPo mtd) {
+void showMethodCode(ioPo out, char *msg, methodPo mtd) {
   insPo pc = entryPoint(mtd);
   insPo last = entryPoint(mtd) + codeSize(mtd);
 
-  outMsg(out, msg, name);
+  outMsg(out, msg, mtdLabel(mtd));
 
   outMsg(out, "%d locals\n", lclCount(mtd));
 

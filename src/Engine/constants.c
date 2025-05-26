@@ -51,6 +51,6 @@ logical isDefinedConstant(int32 key) {
 }
 
 void markConstants(gcSupportPo G) {
-  for(int32 ix=0;ix<nextConstant;ix++)
+  for (int32 ix = 0; ix < nextConstant; ix++)
     constAnts[ix] = markPtr(G, &constAnts[ix]);
 }

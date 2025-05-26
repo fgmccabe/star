@@ -307,7 +307,7 @@ void showMtdCounts(ioPo out) {
   }
 }
 
-retCode setJitCode(methodPo mtd, jitCode code) {
+retCode setJitCode(methodPo mtd, jittedCode code) {
   assert(!hasJit(mtd));
   mtd->jit = code;
   return Ok;

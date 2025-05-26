@@ -1126,7 +1126,7 @@ retCode run(processPo P) {
       case If: {
         termPo i = pop();
 
-        if (sameTerm(i, trueEnum)) {
+        if (isTrueEnum(i)) {
           PC += PC->alt + 1;
           assert(validPC(PROG, PC));
           PC += PC->alt + 1;
@@ -1140,7 +1140,7 @@ retCode run(processPo P) {
       case IfNot: {
         termPo i = pop();
 
-        if (!sameTerm(i, trueEnum)) {
+        if (!isTrueEnum(i)) {
           PC += PC->alt + 1;
           assert(validPC(PROG, PC));
           PC += PC->alt + 1;
