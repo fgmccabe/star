@@ -14,9 +14,9 @@
 
 /* Register allocation for arm64:
  *
- * X0-X8 = integer parameters
+ * X0-X7 = integer parameters
  * X0 = return register
- * X9-X15 = caller saved scratch registers
+ * X8-X15 = caller saved scratch registers
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
  * X19-X25 = callee saved registers
@@ -78,10 +78,9 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   fp->prog = stk->prog;
   fp->args = stk->args;
 
-  asm( "stp x28, x29, [sp, #-16]!\n"
-       "stp x26, x27, [sp, #-16]!\n"
-       "stp x24, x25, [sp, #-16]!\n"
-       "stp x22, x23, [sp, #-16]!\n"
+  asm( "stp x29, x30, [sp, #-16]!\n"
+       "stp x27, x28, [sp, #-16]!\n"
+       "stp x25, x26, [sp, #-16]!\n"
        "ldr x27, %[stk]\n"
        "ldr x28, %[ssp]\n"
        "ldr x26, %[ag]\n"
@@ -91,14 +90,13 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
        "str x26, %[ag]\n"
        "str x27, %[stk]\n"
        "str x29, %[fp]\n"
-       "ldp x22, x23, [sp], #16\n"
-       "ldp x24, x25, [sp], #16\n"
-       "ldp x26, x27, [sp], #16\n"
-       "ldp x28, x29, [sp], #16\n"
+       "ldp x25, x26, [sp], #16\n"
+       "ldp x27, x28, [sp], #16\n"
+       "ldp x29, x30, [sp], #16\n"
     : [stk]  "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
   [fplink] "=m"(fp->link)
   :
-  : "x0", "cc", "memory");
+  : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
 
   return Ok;
 }
@@ -231,7 +229,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         if (catch == Null)
           return jitError(jit, "not in try scope");
 
-        cmp(X0,RG(XZR));
+        cmp(X0, RG(XZR));
         bne(catch);
         continue;
       }
@@ -290,7 +288,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
         // Adjust Star stack and args register
-        add(SSP, AG, IM(codeArity(jit->mtd)*pointerSize));
+        add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
         ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
         // Pick up return address
         ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
@@ -367,7 +365,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
       case Rst: {            // reset stack height to a fixed height
         int32 stkHeight = code[pc].fst;
         int32 lx = lclCount(jit->mtd);
-        int32 heightOffset = (lx+stkHeight) * pointerSize;
+        int32 heightOffset = (lx + stkHeight) * pointerSize;
 
         sub(SSP, AG, IM(heightOffset));
         pc++;
