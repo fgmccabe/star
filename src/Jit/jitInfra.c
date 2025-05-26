@@ -43,9 +43,7 @@ jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen) {
   jitCompPo jitComp = (jitCompPo) allocPool(contextPool);
 
   jitComp->mtd = mtd;
-  jitComp->vTop = 0;
   jitComp->assemCtx = createCtx();
-  jitComp->usedRegs = 0;
   jitComp->freeRegs = defltAvailRegSet();
   jitComp->locals = allocArray(sizeof(LocalRecord), 0, True);
   jitComp->labels = newHash(1024, pcHash, pcComp, delEntry);
