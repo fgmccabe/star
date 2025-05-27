@@ -127,6 +127,7 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
   for (integer ix = 0; ix < arity; ix++) {
     operands[ix] = (FlexOp) va_arg(args, FlexOp);
   }
+  va_end(args);
 
   switch (arity) {
     case 8:
@@ -146,8 +147,8 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
     case 1:
       mov(X0, operands[0]);
     case 0: {
-      codeLblPo tgtLbl = defineLabel(ctx, (integer) fn);
-      bl(tgtLbl);
+      mov(X16, IM((integer)fn));
+      blr(X16);
       return Ok;
     }
     default:

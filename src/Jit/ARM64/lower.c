@@ -169,11 +169,14 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
       case Halt: {            // Stop execution
         integer errCode = code[pc].fst;
         ret = callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(errCode));
+        pc++;
         continue;
       }
       case Nop:            // No operation
+        pc++;
         continue;
       case Abort:            // abort with message
+        pc++;
         return Error;
       case Call: {            // Call <prog>
         labelPo nProg = C_LBL(getConstant(code[pc].fst));
@@ -203,6 +206,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         blr(X16);
 
         setLabel(ctx, returnPc);
+        pc++;
         continue;
       }
       case XCall: {            // Call <prog>, with catch
@@ -235,6 +239,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
 
         cmp(X0, RG(XZR));
         bne(catch);
+        pc++;
         continue;
       }
 
@@ -245,8 +250,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         int32 arity = escapeArity(esc);
 
         loadStackIntoArgRegisters(jit, arity);
-        codeLblPo escLbl = defineLabel(ctx, (integer) escapeFun(esc));
-        bl(escLbl);
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5), RG(X6), RG(X7));
         pc++;
         continue;
       }
@@ -317,13 +321,9 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
       }
       case Break: {            // leave block
         insPo blockStart = &code[pc + code[pc].alt];
-
         assert(blockStart->op == Block);
-
         codeLblPo tgt = getJitLbl(jit, blockStart + blockStart->alt);
-
         assert(tgt != Null);
-
         b(tgt);
         pc++;
         continue;
@@ -629,8 +629,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
     }
   }
 
-  return
-    ret;
+  return ret;
 }
 
 retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLen) {
@@ -663,8 +662,7 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
   assert(arity < 9);
 
   for (uint32 ix = 0; ix < arity; ix++) {
-    ldr((armReg) (X0 + ix), OF(SSP, jit->currSPOffset));
-    jit->currSPOffset += pointerSize;
+    ldr((armReg) (X0 + ix), PSX(SSP,pointerSize));
   }
   return Ok;
 }
