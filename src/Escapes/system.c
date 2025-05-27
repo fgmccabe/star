@@ -82,7 +82,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(heapPo h, stackPo stk) {
+ReturnStatus g__envir(heapPo h) {
   integer cnt = countEnviron();
   termPo list = (termPo) nilEnum;
   int root = gcAddRoot(h, (ptrPo) &list);
@@ -139,7 +139,7 @@ ReturnStatus g__setenv(heapPo h, termPo a1, termPo a2) {
     return (ReturnStatus) {.ret=Abnormal, .result=eFAIL};
 }
 
-ReturnStatus g__repo(heapPo h, stackPo stk) {
+ReturnStatus g__repo(heapPo h) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(h, repoBuffer, uniStrLen(repoBuffer));
@@ -147,15 +147,15 @@ ReturnStatus g__repo(heapPo h, stackPo stk) {
   return (ReturnStatus) {.result = repo, .ret=Normal};
 }
 
-ReturnStatus g__shell(heapPo h, stackPo stk) {
+ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popStack(stk)), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
 
-  termPo args = popStack(stk);
-  termPo env = popStack(stk);
+  termPo args = a2;
+  termPo env = a3;
 
   integer argCnt = consLength(args);
   integer envCnt = consLength(env);
@@ -245,16 +245,16 @@ ReturnStatus g__shell(heapPo h, stackPo stk) {
   }
 }
 
-ReturnStatus g__popen(heapPo h, stackPo stk) {
+ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
   switchProcessState(currentProcess, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popStack(stk)), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(a1), cmd, NumberOf(cmd));
 
-  termPo args = popStack(stk);
+  termPo args = a2;
   integer argCnt = consLength(args);
-  termPo environment = popStack(stk);
+  termPo environment =a3;
   integer envCnt = consLength(environment);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {

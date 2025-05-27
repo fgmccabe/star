@@ -61,7 +61,7 @@ ReturnStatus g__kill(heapPo h, termPo a1) {
     return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
 }
 
-ReturnStatus g__thread(heapPo h, stackPo stk) {
+ReturnStatus g__thread(heapPo h) {
   return (ReturnStatus) {.ret=Normal, .result=(termPo) currentProcess->thread};
 }
 
@@ -121,7 +121,7 @@ ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
   return (ReturnStatus) {.ret=Normal, .result=(termPo) voidEnum};
 }
 
-ReturnStatus g__stackTrace(heapPo h, stackPo stk) {
+ReturnStatus g__stackTrace(heapPo h) {
   strBufferPo str = newStringBuffer();
 
   stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments, -1);

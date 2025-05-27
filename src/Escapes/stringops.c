@@ -17,26 +17,26 @@
 #include "errorCodes.h"
 
 ReturnStatus g__chr_eq(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus) {.ret=Normal, .result=(charVal(a1) == charVal(a2) ? trueEnum : falseEnum)};
+  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) == charVal(a2) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__chr_lt(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus) {.ret=Normal, .result=(charVal(a1) < charVal(a2) ? trueEnum : falseEnum)};
+  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) < charVal(a2) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__chr_ge(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus) {.ret=Normal, .result=(charVal(a1) >= charVal(a2) ? trueEnum : falseEnum)};
+  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) >= charVal(a2) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__chr_hash(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Normal, .result=makeInteger(charVal(a1))};
+  return (ReturnStatus){.ret = Normal, .result = makeInteger(charVal(a1))};
 }
 
 ReturnStatus g__chr_quote(heapPo h, termPo a1) {
   strBufferPo strb = newStringBuffer();
   qtChar(O_IO(strb), charVal(a1));
 
-  ReturnStatus result = {.ret=Normal, .result= allocateFromStrBuffer(h, strb)};
+  ReturnStatus result = {.ret = Normal, .result = allocateFromStrBuffer(h, strb)};
 
   closeIo(O_IO(strb));
   return result;
@@ -71,11 +71,11 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
       }
     }
 
-    ReturnStatus result = {.ret=Normal, .result= allocateFromStrBuffer(h, strb)};
+    ReturnStatus result = {.ret = Normal, .result = allocateFromStrBuffer(h, strb)};
     closeIo(O_IO(strb));
     return result;
   } else {
-    ReturnStatus result = {.ret=Normal, .result=allocateCString(h, "format error")};
+    ReturnStatus result = {.ret = Normal, .result = allocateCString(h, "format error")};
     return result;
   }
 }
@@ -86,7 +86,7 @@ ReturnStatus g__str_eq(heapPo h, termPo a1, termPo a2) {
 
   logical eq = stringHash(s1) == stringHash(s2) && sameString(s1, s2);
 
-  return (ReturnStatus) {.ret=Normal, .result=(eq ? trueEnum : falseEnum)};
+  return (ReturnStatus){.ret = Normal, .result = (eq ? trueEnum : falseEnum)};
 }
 
 // Lexicographic comparison
@@ -103,15 +103,16 @@ ReturnStatus g__str_lt(heapPo h, termPo a1, termPo a2) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus) {.ret=Normal, .result=trueEnum};
+      return (ReturnStatus){.ret = Normal, .result = trueEnum};
     } else if (chl > ch2) {
-      return (ReturnStatus) {.ret=Normal, .result=falseEnum};
+      return (ReturnStatus){.ret = Normal, .result = falseEnum};
     }
   }
-  if (ri < rlen) { // There is more on the right, so the left counts as being smaller
-    return (ReturnStatus) {.ret=Normal, .result=trueEnum};
+  if (ri < rlen) {
+    // There is more on the right, so the left counts as being smaller
+    return (ReturnStatus){.ret = Normal, .result = trueEnum};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=falseEnum};
+    return (ReturnStatus){.ret = Normal, .result = falseEnum};
   }
 }
 
@@ -128,15 +129,16 @@ ReturnStatus g__str_ge(heapPo h, termPo a1, termPo a2) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus) {.ret=Normal, .result=falseEnum};
+      return (ReturnStatus){.ret = Normal, .result = falseEnum};
     } else if (chl > ch2) {
-      return (ReturnStatus) {.ret=Normal, .result=trueEnum};
+      return (ReturnStatus){.ret = Normal, .result = trueEnum};
     }
   }
-  if (li <= llen) { // There is more on the left, so it counts as being bigger
-    return (ReturnStatus) {.ret=Normal, .result=trueEnum};
+  if (li <= llen) {
+    // There is more on the left, so it counts as being bigger
+    return (ReturnStatus){.ret = Normal, .result = trueEnum};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=falseEnum};
+    return (ReturnStatus){.ret = Normal, .result = falseEnum};
   }
 }
 
@@ -149,13 +151,17 @@ ReturnStatus g__str_hash(heapPo h, termPo a1) {
     lhs->hash = uniNHash(str, len);
   }
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=makeInteger(lhs->hash)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = makeInteger(lhs->hash)
+  };
 }
 
 ReturnStatus g__str_len(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Normal,
-    .result= makeInteger(strLength(C_STR(a1)))};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = makeInteger(strLength(C_STR(a1)))
+  };
 }
 
 ReturnStatus g__str2flt(heapPo h, termPo a1) {
@@ -166,11 +172,13 @@ ReturnStatus g__str2flt(heapPo h, termPo a1) {
 
   switch (parseDouble(str, len, &flt)) {
     case Ok:
-      return (ReturnStatus) {.ret=Normal,
-        .result=(termPo) wrapSome(H, makeFloat(flt))};
+      return (ReturnStatus){
+        .ret = Normal,
+        .result = (termPo) wrapSome(H, makeFloat(flt))
+      };
     default:
     case Error:
-      return (ReturnStatus) {.ret=Normal, .result = noneEnum};
+      return (ReturnStatus){.ret = Normal, .result = noneEnum};
   }
 }
 
@@ -183,10 +191,12 @@ ReturnStatus g__str2int(heapPo h, termPo a1) {
   integer pos = 0;
   switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
-      return (ReturnStatus) {.ret=Normal,
-        .result=(termPo) wrapSome(H, makeInteger(ix))};
+      return (ReturnStatus){
+        .ret = Normal,
+        .result = (termPo) wrapSome(H, makeInteger(ix))
+      };
     default:
-      return (ReturnStatus) {.ret=Normal, .result = noneEnum};
+      return (ReturnStatus){.ret = Normal, .result = noneEnum};
   }
 }
 
@@ -196,14 +206,14 @@ ReturnStatus g__str_charat(heapPo h, termPo a1, termPo a2) {
   integer ix = integerVal(a2);
 
   if (ix >= len)
-    return (ReturnStatus) {.ret=Normal, .result = noneEnum};
+    return (ReturnStatus){.ret = Normal, .result = noneEnum};
   else {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
     if (ret == Ok) {
-      return (ReturnStatus) {.ret=Normal, .result = (termPo) wrapSome(h, allocateCharacter(cp))};
+      return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, allocateCharacter(cp))};
     } else
-      return (ReturnStatus) {.ret=Normal, .result = noneEnum};
+      return (ReturnStatus){.ret = Normal, .result = noneEnum};
   }
 }
 
@@ -214,8 +224,10 @@ ReturnStatus g__str_gen(heapPo h, termPo a1) {
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, rnd, uniStrLen(rnd))};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, rnd, uniStrLen(rnd))
+  };
 }
 
 ReturnStatus g__stringOf(heapPo h, termPo a1, termPo a2) {
@@ -227,8 +239,10 @@ ReturnStatus g__stringOf(heapPo h, termPo a1, termPo a2) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus result = {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, oLen)};
+  ReturnStatus result = {
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, oLen)
+  };
 
   closeIo(O_IO(strb));
   return result;
@@ -241,8 +255,10 @@ ReturnStatus g__str_quote(heapPo h, termPo a1) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus result = {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, oLen)};
+  ReturnStatus result = {
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, oLen)
+  };
 
   closeIo(O_IO(strb));
   return result;
@@ -293,7 +309,7 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
     case 'R':
       alignment = alignRight;
       break;
-    default:;
+    default: ;
   }
 
   // What is the output width?
@@ -356,8 +372,10 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
     }
   }
 
-  ReturnStatus result = {.ret=Normal,
-    .result= allocateFromStrBuffer(h, strb)};
+  ReturnStatus result = {
+    .ret = Normal,
+    .result = allocateFromStrBuffer(h, strb)
+  };
 
   closeIo(O_IO(strb));
   return result;
@@ -391,7 +409,7 @@ ReturnStatus g__explode(heapPo h, termPo a1) {
 
   assert(consLength(list) == countCodePoints(buffer, 0, len));
 
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) list};
+  return (ReturnStatus){.ret = Normal, .result = (termPo) list};
 }
 
 void dS(termPo w) {
@@ -430,34 +448,36 @@ ReturnStatus g__implode(heapPo h, termPo a1) {
 
   if (buffer != buff)
     free(buffer);
-  return (ReturnStatus) {.ret=Normal, .result=result};
+  return (ReturnStatus){.ret = Normal, .result = result};
 }
 
-ReturnStatus g__str_find(heapPo h, stackPo stk) {
+ReturnStatus g__str_find(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer len;
-  const char *str = strVal(popStack(stk), &len);
+  const char *str = strVal(a1, &len);
   integer tlen;
-  const char *tgt = strVal(popStack(stk), &tlen);
-  integer start = integerVal(popStack(stk));
+  const char *tgt = strVal(a2, &tlen);
+  integer start = integerVal(a3);
 
   integer found = uniSearch(str, len, start, tgt, tlen);
 
-  return (ReturnStatus) {.ret=Normal, .result=makeInteger(found)};
+  return (ReturnStatus){.ret = Normal, .result = makeInteger(found)};
 }
 
-ReturnStatus g__sub_str(heapPo h, stackPo stk) {
+ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
   integer len;
-  const char *str = strVal(popStack(stk), &len);
-  integer start = integerVal(popStack(stk));
-  integer count = integerVal(popStack(stk));
+  const char *str = strVal(a1, &len);
+  integer start = integerVal(a2);
+  integer count = integerVal(a3);
 
   count = minimum(count, len - start);
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, count)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, count)
+  };
 }
 
 ReturnStatus g__str_hdtl(heapPo h, termPo a1) {
@@ -480,9 +500,9 @@ ReturnStatus g__str_hdtl(heapPo h, termPo a1) {
     setArg(pair, 0, chCode);
     setArg(pair, 1, rest);
     gcReleaseRoot(H, mark);
-    return (ReturnStatus) {.ret=Normal, .result=(termPo) wrapSome(h, (termPo) pair)};
+    return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, (termPo) pair)};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=noneEnum};
+    return (ReturnStatus){.ret = Normal, .result = noneEnum};
   }
 }
 
@@ -495,8 +515,10 @@ ReturnStatus g__str_cons(heapPo h, termPo a1, termPo a2) {
   appendCodePoint(str, &offset, len + 16, ch);
   copyChars2Buff(src, &str[offset], len + 16);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, str, offset + len)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, str, offset + len)
+  };
 }
 
 ReturnStatus g__code2str(heapPo h, termPo a1) {
@@ -505,8 +527,10 @@ ReturnStatus g__code2str(heapPo h, termPo a1) {
   char str[16];
   appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, str, codeLength)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, str, codeLength)
+  };
 }
 
 ReturnStatus g__str_apnd(heapPo h, termPo a1, termPo a2) {
@@ -519,8 +543,10 @@ ReturnStatus g__str_apnd(heapPo h, termPo a1, termPo a2) {
 
   appendCodePoint(str, &offset, len + 16, ch);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, str, offset)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, str, offset)
+  };
 }
 
 ReturnStatus g__str_back(heapPo h, termPo a1) {
@@ -543,9 +569,9 @@ ReturnStatus g__str_back(heapPo h, termPo a1) {
     setArg(pair, 0, rest);
     setArg(pair, 1, chCode);
     gcReleaseRoot(H, mark);
-    return (ReturnStatus) {.ret=Normal, .result=(termPo) pair};
+    return (ReturnStatus){.ret = Normal, .result = (termPo) pair};
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+    return (ReturnStatus){.ret = Abnormal, .result = eNOTFND};
   }
 }
 
@@ -568,7 +594,7 @@ ReturnStatus g__str_split(heapPo h, termPo a1, termPo a2) {
   setArg(pair, 1, rhs);
 
   gcReleaseRoot(H, root);
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) pair};
+  return (ReturnStatus){.ret = Normal, .result = (termPo) pair};
 }
 
 ReturnStatus g__str_concat(heapPo h, termPo a1, termPo a2) {
@@ -582,18 +608,19 @@ ReturnStatus g__str_concat(heapPo h, termPo a1, termPo a2) {
   uniMove(buff, len, lhs, llen);
   uniMove(&buff[llen], len - llen, rhs, rlen);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, llen + rlen)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, llen + rlen)
+  };
 }
 
-ReturnStatus g__str_splice(heapPo h, stackPo stk) {
-
+ReturnStatus g__str_splice(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4) {
   integer llen;
-  const char *lhs = strVal(popStack(stk), &llen);
-  integer from = integerVal(popStack(stk));
-  integer cnt = integerVal(popStack(stk));
+  const char *lhs = strVal(a1, &llen);
+  integer from = integerVal(a2);
+  integer cnt = integerVal(a3);
   integer rlen;
-  const char *rhs = strVal(popStack(stk), &rlen);
+  const char *rhs = strVal(a4, &rlen);
 
   // Clamp the from and cnt values
   if (from < 0)
@@ -611,8 +638,10 @@ ReturnStatus g__str_splice(heapPo h, stackPo stk) {
   uniMove(&buff[from], len - from, rhs, rlen);
   uniMove(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, len)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, len)
+  };
 }
 
 ReturnStatus g__str_start(heapPo h, termPo a1, termPo a2) {
@@ -621,8 +650,10 @@ ReturnStatus g__str_start(heapPo h, termPo a1, termPo a2) {
   integer rlen;
   const char *rhs = strVal(a2, &rlen);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)
+  };
 }
 
 ReturnStatus g__str_end(heapPo h, termPo a1, termPo a2) {
@@ -631,8 +662,10 @@ ReturnStatus g__str_end(heapPo h, termPo a1, termPo a2) {
   integer rlen;
   const char *rhs = strVal(a2, &rlen);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)
+  };
 }
 
 ReturnStatus g__str_multicat(heapPo h, termPo t) {
@@ -649,8 +682,10 @@ ReturnStatus g__str_multicat(heapPo h, termPo t) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus rt = {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, oLen)};
+  ReturnStatus rt = {
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, oLen)
+  };
   closeIo(O_IO(strb));
   return rt;
 }
@@ -664,6 +699,8 @@ ReturnStatus g__str_reverse(heapPo h, termPo a1) {
 
   uniReverse(buff, len);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) allocateString(h, buff, len)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = (termPo) allocateString(h, buff, len)
+  };
 }

@@ -112,20 +112,20 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 }
 
 /* Return the current time */
-ReturnStatus g__now(heapPo h, stackPo stk) {
+ReturnStatus g__now(heapPo h) {
   termPo now = makeFloat(get_time());
 
   return (ReturnStatus) {.ret=Normal, .result=now};
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(heapPo h, stackPo stk) {
+ReturnStatus g__today(heapPo h) {
   termPo now = makeFloat(get_date());
 
   return (ReturnStatus) {.ret=Normal, .result=now};
 }
 
-ReturnStatus g__ticks(heapPo h, stackPo stk) {
+ReturnStatus g__ticks(heapPo h) {
   termPo now = makeInteger((integer) clock());
 
   return (ReturnStatus) {.ret=Normal, .result=now};
