@@ -53,6 +53,10 @@ static retCode mkIntVal(jitCompPo jit, armReg rg);
 #define AG  (X26)
 #define STK (X27)
 
+static int32 fpArgs = OffsetOf(StackFrame, args);
+static int32 fpProg = OffsetOf(StackFrame, prog);
+static int32 fpLink = OffsetOf(StackFrame, link);
+
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
 typedef struct jitBlock_ *jitBlockPo;
@@ -130,7 +134,6 @@ static armReg popStkOp(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
 
   ldr(tgt, PSX(SSP, pointerSize));
-
   return tgt;
 }
 
@@ -147,15 +150,16 @@ static void pushStkOp(jitCompPo jit, armReg src) {
   str(src, PRX(SSP, -pointerSize));
 }
 
-static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo code,
-                        int32 from, int32 startPc, int32 endPc) {
+static retCode
+jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, insPo code, int32 from, int32 startPc,
+         int32 endPc) {
   retCode ret = Ok;
   assemCtxPo ctx = assemCtx(jit);
 
   JitBlock block = {
     .startPc = from,
     .height = height,
-    .breakLbl = newLabel(ctx),
+    .breakLbl =  breakLbl,
     .loopLbl = currentPcLabel(ctx),
     .parent = parent,
   };
@@ -188,9 +192,9 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         codeLblPo returnPc = newLabel(ctx);
 
         add(FP, FP, IM(sizeof(StackFrame)));  // Bump the current frame
-        str(AG, OF(FP, OffsetOf(StackFrame, args)));
+        str(AG, OF(FP, fpArgs));
         mov(X0, IM((integer) jit->mtd));
-        str(X0, OF(FP, OffsetOf(StackFrame, prog)));   // We know what program we are executing
+        str(X0, OF(FP, fpProg));   // We know what program we are executing
         str(X16, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
 
         // Pick up the jit code itself
@@ -216,9 +220,9 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         setLabel(ctx, haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame)));  // Bump the current frame
-        str(AG, OF(FP, OffsetOf(StackFrame, args)));
+        str(AG, OF(FP, fpArgs));
         ldr(X0, OF(STK, OffsetOf(StackRecord, prog)));
-        str(X0, OF(FP, OffsetOf(StackFrame, prog))); // Copy from stack
+        str(X0, OF(FP, fpProg)); // Copy from stack
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
         // Pick up the jit code itself
@@ -255,7 +259,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         int32 locals = code[pc].fst;
         assert(locals >= 0);
 
-        str(LR, OF(FP, OffsetOf(StackFrame, link)));
+        str(LR, OF(FP, fpLink));
 
         if (locals > 0) {
           armReg vd = findFreeReg(jit);
@@ -284,14 +288,14 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         armReg vl = popStkOp(jit);
 
         // Pick up the caller program
-        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+        ldr(X16, OF(FP, fpProg));
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
         // Adjust Star stack and args register
         add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
-        ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
+        ldr(AG, OF(FP, fpArgs));
         // Pick up return address
-        ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
+        ldr(X16, OF(FP, fpLink));
         // Drop frame
         sub(FP, FP, IM(sizeof(StackFrame)));
         // Put return value on stack
@@ -304,9 +308,11 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
         return Error;
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
+        codeLblPo brkLbl = newLabel(ctx);
 
-        ret = jitBlock(jit, &block, code[pc].fst, code, pc, pc + 1, pc + blockLen);
+        ret = jitBlock(jit, &block, brkLbl, code[pc].fst, code, pc, pc + 1, pc + blockLen);
         pc += blockLen;
+        setLabel(ctx, brkLbl);
         continue;
       }
       case Break: {            // leave block
@@ -476,15 +482,41 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
       case Get:            // access a R/W cell
       case Assign:            // assign to a R/W cell
       case CLbl:            // T,Lbl --> test for a data term, break if not lbl
+        return Error;
       case CInt:
       case CChar:
-      case CFlt:
+      case CFlt: {
+        armReg st = popStkOp(jit);
+        integer lit = (integer) getConstant(code[pc].fst);
+        if (is12bit(lit))
+          cmp(st, IM(lit));
+        else {
+          armReg lt = findFreeReg(jit);
+          mov(lt, IM(lit));
+          cmp(st, RG(lt));
+          releaseReg(jit, lt);
+        }
+        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        if (lbl != Null)
+          bne(lbl);
+        else
+          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        pc++;
+        continue;
+      }
       case CLit: {            // T,lit --> test for a literal value, break if not
         termPo lit = getConstant(code[pc].fst);
-        armReg rg = findFreeReg(jit);
-        mov(rg, IM((integer) lit));
-        armReg st = popStkOp(jit);
-
+        mov(X0, IM((integer) lit));  // set up call to sameTerm
+        ldr(X1, PSX(SSP, pointerSize));
+        invokeCFunc2(jit, (Cfunc2) sameTerm);
+        cmp(X0, RG(XZR));
+        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        if (lbl != Null)
+          beq(lbl);
+        else
+          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        pc++;
+        continue;
       }
 
       case Nth:            // T --> el, pick up the nth element
@@ -597,7 +629,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo parent, int32 height, insPo co
     }
   }
 
-  return ret;
+  return
+    ret;
 }
 
 retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLen) {
@@ -606,7 +639,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     showMethodCode(logFile, "Jit method %L\n", mtd);
   }
 #endif
-  return jitBlock(jit, Null, 0, entryPoint(mtd), 0, 0, codeSize(mtd));
+  return jitBlock(jit, Null, Null, 0, entryPoint(mtd), 0, 0, codeSize(mtd));
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {

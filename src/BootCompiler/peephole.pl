@@ -116,6 +116,15 @@ peep([iCLbl(Tgt,Lb)|In],Lbls,[iCLbl(Tgt,LLb)|Inx]) :-
 peep([iCLit(Tgt,Lb)|In],Lbls,[iCLit(Tgt,LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
+peep([iCInt(Tgt,Lb)|In],Lbls,[iCInt(Tgt,LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iCChar(Tgt,Lb)|In],Lbls,[iCChar(Tgt,LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
+peep([iCFlt(Tgt,Lb)|In],Lbls,[iCFlt(Tgt,LLb)|Inx]) :-
+  resolveLblRef(Lb,Lbls,LLb),
+  peep(In,Lbls,Inx).
 peep([iCmp(Lb)|In],Lbls,[iCmp(LLb)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
@@ -153,6 +162,9 @@ lblReferenced(Lb,[iCCmp(Lb)|_]).
 lblReferenced(Lb,[iICmp(Lb)|_]).
 lblReferenced(Lb,[iFCmp(Lb)|_]).
 lblReferenced(Lb,[iCLbl(_,Lb)|_]).
+lblReferenced(Lb,[iCInt(_,Lb)|_]).
+lblReferenced(Lb,[iCChar(_,Lb)|_]).
+lblReferenced(Lb,[iCFlt(_,Lb)|_]).
 lblReferenced(Lb,[iCLit(_,Lb)|_]).
 lblReferenced(Lb,[iIDiv(Lb)|_]).
 lblReferenced(Lb,[iIMod(Lb)|_]).

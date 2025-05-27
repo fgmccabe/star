@@ -76,5 +76,8 @@ void encodeSve(assemCtxPo ctx);
 #define ntn_bt(X,S) (((X)&0x7ffffu)<<(S))
 #define tsx_bt(X,S) (((X)&0x7ffffffu)<<(S))
 
+static inline logical is12bit(integer vl){
+  return (vl&0xfffu)==vl;
+}
 
 #endif //STAR_ARM64P_H

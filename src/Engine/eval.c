@@ -84,7 +84,7 @@ retCode run(processPo P) {
           invokeJitMethod(mtd, H, STK);
           restoreRegisters();
           PC++;
-        } else{
+        } else {
           FP++;
           FP->prog = PROG;
           FP->link = PC + 1;
@@ -548,37 +548,13 @@ retCode run(processPo P) {
         }
       }
 
-      case CInt: {
-        integer lx = integerVal(getConstant(PC->fst));
-        integer tx = integerVal(pop());
-
-        if (lx!=tx) {
-          breakBlock();
-          continue;
-        } else {
-          PC++;
-          continue;
-        }
-      }
-
-      case CChar: {
-        codePoint lx = charVal(getConstant(PC->fst));
-        codePoint tx = charVal(pop());
-
-        if (lx!=tx) {
-          breakBlock();
-          continue;
-        } else {
-          PC++;
-          continue;
-        }
-      }
-
+      case CInt:
+      case CChar:
       case CFlt: {
-        double lx = floatVal(getConstant(PC->fst));
-        double tx = floatVal(pop());
+        termPo lt = getConstant(PC->fst);
+        termPo tx = pop();
 
-        if (lx!=tx) {
+        if (lt != tx) {
           breakBlock();
           continue;
         } else {
@@ -925,7 +901,7 @@ retCode run(processPo P) {
       case BNot: {
         integer Lhs = integerVal(pop());
 
-        termPo Rs =  makeInteger((integer) (~(uinteger) Lhs));
+        termPo Rs = makeInteger((integer) (~(uinteger) Lhs));
         push(Rs);
         PC++;
         continue;
