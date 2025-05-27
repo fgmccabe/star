@@ -388,6 +388,8 @@ compPtn(voyd,_,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iDrop|Cx],Cx,Stk,Stkx) :-!,
   dropStk(Stk,1,Stkx).
 compPtn(ann(_),_,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iDrop|Cx],Cx,Stk,Stkx) :-!,
   dropStk(Stk,1,Stkx).
+compPtn(intgr(Ix),_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCInt(intgr(Ix),Fail)|Cx],Cx,Stk,Stkx) :-
+  dropStk(Stk,1,Stkx).
 compPtn(Lit,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail)|Cx],Cx,Stk,Stkx) :-
   isLiteral(Lit),!,
   dropStk(Stk,1,Stkx).
