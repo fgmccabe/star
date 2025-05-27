@@ -543,7 +543,7 @@ ReturnStatus g__logmsg(heapPo h, termPo a1) {
   return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }
 
-ReturnStatus g__display_depth(heapPo h, stackPo stk) {
+ReturnStatus g__display_depth(heapPo h) {
   return (ReturnStatus) {.ret=Normal, .result=makeInteger(displayDepth)};
 }
 
@@ -605,7 +605,7 @@ ReturnStatus g__flush(heapPo h, termPo a1) {
     return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
 }
 
-ReturnStatus g__flushall(heapPo h, stackPo stk) {
+ReturnStatus g__flushall(heapPo h) {
   flushOut();
   return (ReturnStatus) {.ret=Normal, .result=unitEnum};
 }

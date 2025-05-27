@@ -250,7 +250,7 @@ ReturnStatus g__irand(heapPo h, termPo arg1) {
   return (ReturnStatus) {.ret=Normal, .result=makeInteger(rnd % mx)};
 }
 
-ReturnStatus g__random(heapPo h, stackPo stk) {
+ReturnStatus g__random(heapPo h) {
   double rnd = ((double) random()) / LARGE_INT32;
 
   return (ReturnStatus) {.ret=Normal,

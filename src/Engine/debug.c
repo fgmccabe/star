@@ -76,7 +76,7 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-ReturnStatus g__ins_debug(heapPo h, stackPo stk) {
+ReturnStatus g__ins_debug(heapPo h) {
   insDebugging = tracing = True;
   currentProcess->waitFor = stepInto;
   currentProcess->tracing = True;

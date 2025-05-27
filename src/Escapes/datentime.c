@@ -22,48 +22,53 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus g__date2time(heapPo h, stackPo stk) {
+ReturnStatus g__date2time(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4, termPo a5, termPo a6, termPo a7) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(popStack(stk)) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(popStack(stk)) - 1);     // Extract the month
-  now.tm_mday = (int) (integerVal(popStack(stk)));        // Extract the day of the month
-  now.tm_hour = (int) (integerVal(popStack(stk)));        // Extract the hour
-  now.tm_min = (int) (integerVal(popStack(stk)));         // Extract the minute
+  now.tm_year = (int) (integerVal(a1) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(a2) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(a3)); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(a4)); // Extract the hour
+  now.tm_min = (int) (integerVal(a5)); // Extract the minute
 
-  double sec = floatVal(popStack(stk));
-  double fraction = modf(sec, &sec);           // Extract the seconds
+  double sec = floatVal(a6);
+  double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(popStack(stk));        // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(a7); // Offset from GMT
 
   now.tm_isdst = -1;
 
   time_t when = mktime(&now);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=makeFloat((double) when + fraction)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = makeFloat((double) when + fraction)
+  };
 }
 
-ReturnStatus g__utc2time(heapPo h, stackPo stk) {
+ReturnStatus g__utc2time(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4, termPo a5, termPo a6, termPo a7) {
   struct tm now;
-  now.tm_year = (int) (integerVal(popStack(stk)) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(popStack(stk)) - 1);     // Extract the month
-  now.tm_mday = (int) (integerVal(popStack(stk)));        // Extract the day of the month
-  now.tm_hour = (int) (integerVal(popStack(stk)));        // Extract the hour
-  now.tm_min = (int) (integerVal(popStack(stk)));         // Extract the minute
 
-  double sec = floatVal(popStack(stk));
-  double fraction = modf(sec, &sec);           // Extract the seconds
+  now.tm_year = (int) (integerVal(a1) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(a2) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(a3)); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(a4)); // Extract the hour
+  now.tm_min = (int) (integerVal(a5)); // Extract the minute
+
+  double sec = floatVal(a6);
+  double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(popStack(stk));        // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(a7); // Offset from GMT
   now.tm_isdst = -1;
 
   time_t when = timegm(&now);
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=makeFloat((double) when + fraction)};
+  return (ReturnStatus){
+    .ret = Normal,
+    .result = makeFloat((double) when + fraction)
+  };
 }
 
 ReturnStatus g__time2date(heapPo h, termPo a1) {
@@ -101,7 +106,7 @@ ReturnStatus g__time2date(heapPo h, termPo a1) {
   setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) dte};
+  return (ReturnStatus){.ret = Normal, .result = (termPo) dte};
 }
 
 ReturnStatus g__time2utc(heapPo h, termPo a1) {
@@ -140,7 +145,7 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
-  return (ReturnStatus) {.ret=Normal, .result= (termPo) dte};
+  return (ReturnStatus){.ret = Normal, .result = (termPo) dte};
 }
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
@@ -160,10 +165,10 @@ ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
     termPo result = allocateFromStrBuffer(h, buff);
     closeIo(O_IO(buff));
 
-    return (ReturnStatus) {.ret=Normal, .result=result};
+    return (ReturnStatus){.ret = Normal, .result = result};
   } else {
     closeIo(O_IO(buff));
-    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+    return (ReturnStatus){.ret = Abnormal, .result = eINVAL};
   }
 }
 
@@ -186,8 +191,10 @@ static integer countFmtChrs(const char *fmt, integer *pos, integer len, codePoin
 }
 
 static char *shortMonths[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-static char *longMonths[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September",
-                             "October", "November", "December"};
+static char *longMonths[] = {
+  "January", "February", "March", "April", "May", "June", "July", "August", "September",
+  "October", "November", "December"
+};
 
 static char *shortDays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static char *longDays[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -531,7 +538,8 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
           gmtOffset = znHours * 60 * 60 + znMins * 60;
         continue;
       }
-      default: { // skip over other characters
+      default: {
+        // skip over other characters
         codePoint ch = nextCodePoint(src, &srcPos, srcLen);
         if (ch != f)
           return Fail;
@@ -571,8 +579,8 @@ ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return (ReturnStatus) {.ret=Normal, .result=(termPo) wrapSome(h, makeFloat((double) tm))};
+    return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, makeFloat((double) tm))};
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=noneEnum};
+    return (ReturnStatus){.ret = Normal, .result = noneEnum};
   }
 }
