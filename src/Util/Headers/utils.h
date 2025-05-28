@@ -65,6 +65,10 @@ static logical inline isOdd(integer x) {
   return x % 2 == 1;
 }
 
+static logical inline is16bit(integer x) {
+  return (((uinteger) x) & 0xffffu) == (uinteger) x;
+}
+
 typedef struct hwm_ {
   integer current;
   integer max;
@@ -88,7 +92,7 @@ extern void syserr(const char *msg);
 #ifndef NDEBUG
 #define check(Tst, Msg) STMT_WRAP(if(!(Tst)){check_(__func__, __FILE__, __LINE__,#Tst,(Msg));})
 #else
-#define check(Tst,Msg)
+#define check(Tst, Msg)
 #endif
 
 extern void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
