@@ -38,9 +38,6 @@ termPo eofEnum;
 termPo canceledEnum;
 termPo unitEnum;
 
-labelPo trueLbl;
-labelPo falseLbl;
-
 static hashPo globals;
 
 static GlobalRecord *glbVars;
@@ -97,9 +94,9 @@ void initGlobals() {
   eDEAD = declareEnum("eDEAD", -1, globalHeap);
 
   falseEnum = declareEnum("false", 0, globalHeap);
-  falseLbl = termLbl(C_NORMAL(falseEnum));
+  defineConstantLiteral(falseEnum);        // Ensure unique reference to false and true enums
   trueEnum = declareEnum("true", 1, globalHeap);
-  trueLbl = termLbl(C_NORMAL(trueEnum));
+  defineConstantLiteral(trueEnum);
 
   voidEnum = declareEnum("void", 0, globalHeap);
 

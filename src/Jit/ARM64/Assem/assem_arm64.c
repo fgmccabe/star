@@ -436,10 +436,6 @@ void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx) 
   encodeExtrct(w, 0, w, 0, Rm, lsb, Rn, Rd, ctx);
 }
 
-void ld64b(armReg Rt, armReg Rn, assemCtxPo ctx) {
-
-}
-
 void ldaddab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
   encodeALd3Reg(0, 0, one, zero, one, Rs, 0, Rn, Rt, ctx);
 }
@@ -787,29 +783,29 @@ void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
       if ((S1.immediate & 0xffffffffffff) == 0) {
         imm16 = S1.immediate >> 48;
         sh = 3;
-      } else if ((S1.immediate & 0xffffffff) == 0 && (S1.immediate & 0xffff00000000)==S1.immediate) {
+      } else if ((S1.immediate & 0xffffffff) == 0 && (S1.immediate & 0xffff00000000) == S1.immediate) {
         imm16 = S1.immediate >> 32;
         sh = 2;
-      } else if ((S1.immediate & 0xffff) == 0 && (S1.immediate & 0xffff0000)==S1.immediate) {
+      } else if ((S1.immediate & 0xffff) == 0 && (S1.immediate & 0xffff0000) == S1.immediate) {
         imm16 = S1.immediate >> 16;
         sh = 1;
-      } else if ((S1.immediate & 0xffff)==S1.immediate){
+      } else if ((S1.immediate & 0xffff) == S1.immediate) {
         imm16 = S1.immediate;
         sh = 0;
-      } else{
-	uint16 chunk1 = (S1.immediate >> 48);
-	uint16 chunk2 = (S1.immediate >> 32) & 0xffff;
-	uint16 chunk3 = (S1.immediate >> 16) & 0xffff;
-	uint16 chunk4 = S1.immediate & 0xffff;
+      } else {
+        uint16 chunk1 = (S1.immediate >> 48);
+        uint16 chunk2 = (S1.immediate >> 32) & 0xffff;
+        uint16 chunk3 = (S1.immediate >> 16) & 0xffff;
+        uint16 chunk4 = S1.immediate & 0xffff;
 
-	encodeImm1Reg(1, 2, 0x25, 0, chunk4, Rd, ctx);
-	if(chunk3!=0)
-	  encodeImm1Reg(1, 3, 0x25, 1, chunk3, Rd, ctx);
-	if(chunk2!=0)
-	  encodeImm1Reg(1, 3, 0x25, 2, chunk2, Rd, ctx);
-	if(chunk1!=0)
-	encodeImm1Reg(1, 3, 0x25, 3, chunk1, Rd, ctx);
-	return;
+        encodeImm1Reg(1, 2, 0x25, 0, chunk4, Rd, ctx);
+        if (chunk3 != 0)
+          encodeImm1Reg(1, 3, 0x25, 1, chunk3, Rd, ctx);
+        if (chunk2 != 0)
+          encodeImm1Reg(1, 3, 0x25, 2, chunk2, Rd, ctx);
+        if (chunk1 != 0)
+          encodeImm1Reg(1, 3, 0x25, 3, chunk1, Rd, ctx);
+        return;
       }
 
       encodeImm1Reg(1, 2, 0x25, sh, (int16) imm16, Rd, ctx);
@@ -1228,4 +1224,9 @@ void umulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 
 void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xdd, Rm, 0, XZR, Rn, Rd, ctx);
+}
+
+logical sameFlexOp(FlexOp a, FlexOp b) {
+  return a.mode == b.mode && a.rgm == b.rgm && a.ext == b.ext && a.shift == b.shift && a.immediate == b.immediate && a.
+         reg == b.reg;
 }

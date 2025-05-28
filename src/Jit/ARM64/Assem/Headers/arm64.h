@@ -113,6 +113,8 @@ typedef struct {
 
 typedef FlexOp registerSpec;
 
+logical sameFlexOp(FlexOp a, FlexOp b);
+
 #define PLATFORM_PC_DELTA (0)
 
 #define RG(Rg) ((FlexOp){.mode=reg, .reg=(Rg)})
@@ -290,8 +292,6 @@ void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define eor(Rd, Rn, S2) do {FlexOp s=S2;  eor_(1, Rd, Rn, s, ctx); } while(False)
 
 void extr_(uint1 w, armReg Rd, armReg Rn, armReg Rm, uint8 lsb, assemCtxPo ctx);
-
-void ld64b(armReg Rt, armReg Rn, assemCtxPo ctx);
 
 void ldaddab_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 #define ldaddab(Rs, Rt, Rn) ldaddab_(Rs, Rt, Rn, ctx)

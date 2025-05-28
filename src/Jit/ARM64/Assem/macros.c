@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 9/8/24.
 //
 
-#include "macros.h"\
+#include "macros.h"
 
 registerMap defltAvailRegSet() {
   return callerSaved() | scratchRegs();
@@ -131,21 +131,30 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
 
   switch (arity) {
     case 8:
-      mov(X7, operands[7]);
+      if (!sameFlexOp(RG(X7), operands[7]))
+        mov(X7, operands[7]);
     case 7:
-      mov(X6, operands[6]);
+      if (!sameFlexOp(RG(X6), operands[6]))
+        mov(X6, operands[6]);
     case 6:
-      mov(X5, operands[5]);
+      if (!sameFlexOp(RG(X5), operands[5]))
+        mov(X5, operands[5]);
     case 5:
-      mov(X4, operands[4]);
+      if (!sameFlexOp(RG(X4), operands[4]))
+        mov(X4, operands[4]);
     case 4:
-      mov(X3, operands[3]);
+      if (!sameFlexOp(RG(X3), operands[3]))
+        mov(X3, operands[3]);
     case 3:
-      mov(X2, operands[2]);
+      if (!sameFlexOp(RG(X2), operands[2]))
+        mov(X2, operands[2]);
     case 2:
-      mov(X1, operands[1]);
-    case 1:
-      mov(X0, operands[0]);
+      if (!sameFlexOp(RG(X1), operands[1]))
+        mov(X1, operands[1]);
+    case 1: {
+      if (!sameFlexOp(RG(X0), operands[0]))
+        mov(X0, operands[0]);
+    }
     case 0: {
       mov(X16, IM((integer)fn));
       blr(X16);
@@ -155,4 +164,3 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
       return Error;
   }
 }
-
