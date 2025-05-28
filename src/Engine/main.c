@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
   initChars();
   initStrings();
   initSingle();
-  initGlobals();
   initConstants();
+  initGlobals();
   initCons();
   initEither();
   initVect();

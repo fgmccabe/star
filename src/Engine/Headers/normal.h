@@ -31,22 +31,4 @@ void setArg(normalPo term, integer ix, termPo arg);
 typedef retCode (*normalProc)(termPo term, void *cl);
 
 retCode walkNormal(termPo t, normalProc proc, void *cl);
-
-extern labelPo trueLbl;
-extern labelPo falseLbl;
-
-#ifndef NDEBUG
-static inline logical isTrueEnum(termPo t) {
-  if (isNormalPo(t)) {
-    normalPo n = C_NORMAL(t);
-    return termLbl(n) == trueLbl;
-  } else
-    return False;
-}
-#else
-static inline logical isTrueEnum(termPo t){
-  clssPo cls = t->clss;
-  return (labelPo)cls == trueLbl;
-}
-#endif
 #endif //STAR_NORMAL_H
