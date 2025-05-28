@@ -111,6 +111,7 @@
     "test.js": "js.star",
     "test.jt": "jt.star",
     "test.jt1": "jt1.star",
+    "test.jt2": "jt2.star",
     "test.l": "l.star",
     "test.la": "la.star",
     "test.lb": "lb.star",
