@@ -202,7 +202,6 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
-        mov(X0, RG(XZR));
         blr(X16);
 
         setLabel(ctx, returnPc);
@@ -237,7 +236,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         if (catch == Null)
           return jitError(jit, "not in try scope");
 
-        cmp(X0, RG(XZR));
+        tst(X0, RG(X0));
         bne(catch);
         pc++;
         continue;
@@ -250,7 +249,8 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         int32 arity = escapeArity(esc);
 
         loadStackIntoArgRegisters(jit, arity);
-        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5), RG(X6), RG(X7));
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5), RG(X6),
+                      RG(X7));
         pc++;
         continue;
       }
@@ -304,17 +304,38 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         sub(FP, FP, IM(sizeof(StackFrame)));
         // Put return value on stack
         pushStkOp(jit, vl);
+        eor(X0, X0, RG(X0));
         br(X16);
         pc++;
         continue;
       }
-      case XRet:
-        return Error;
+      case XRet:{           // exception return
+        armReg vl = popStkOp(jit);
+
+        // Pick up the caller program
+        ldr(X16, OF(FP, fpProg));
+        str(X16, OF(STK, OffsetOf(StackRecord, prog)));
+
+        // Adjust Star stack and args register
+        add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
+        ldr(AG, OF(FP, fpArgs));
+        // Pick up return address
+        ldr(X16, OF(FP, fpLink));
+        // Drop frame
+        sub(FP, FP, IM(sizeof(StackFrame)));
+        // Put return value on stack
+        pushStkOp(jit, vl);
+        mov(X0, IM(1));  // Signal exceptional return
+        br(X16);
+        pc++;
+        continue;
+      }
       case Block: {            // block of instructions
         int32 blockLen = code[pc].alt;
         codeLblPo brkLbl = newLabel(ctx);
+        pc++;
 
-        ret = jitBlock(jit, &block, brkLbl, code[pc].fst, code, pc, pc + 1, pc + blockLen);
+        ret = jitBlock(jit, &block, brkLbl, code[pc].fst, code, pc - 1, pc, pc + blockLen);
         pc += blockLen;
         setLabel(ctx, brkLbl);
         continue;
@@ -571,7 +592,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
-        mul(a1, a2, a2);
+        mul(a1, a2, a1);
 
         mkIntVal(jit, a1);
 
@@ -662,7 +683,7 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
   assert(arity < 9);
 
   for (uint32 ix = 0; ix < arity; ix++) {
-    ldr((armReg) (X0 + ix), PSX(SSP,pointerSize));
+    ldr((armReg) (X0 + ix), PSX(SSP, pointerSize));
   }
   return Ok;
 }
