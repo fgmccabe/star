@@ -10,7 +10,7 @@ test.fib{
 
   main:(integer)=>().
   main(V) => valof{
-    timer = ref timer_start((2.0**(V::float))::integer, "fib");
+    timer = ref timer_start(((V::float)**2.0)::integer, "fib");
     F = fib(V);
     timer_finish(timer!);
     showMsg("Fib of $(V) is $(F)");
@@ -24,7 +24,7 @@ test.fib{
   }
 
   public _main:(cons[string])=>().
-  _main([]) => main(20).
+  _main([]) => main(30).
   _main([Count]) => main(Count::integer).
 }
   
