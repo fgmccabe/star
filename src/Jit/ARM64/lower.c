@@ -351,9 +351,8 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         continue;
       }
       case Break: {            // leave block
-        insPo blockStart = &code[pc + code[pc].alt];
-        assert(blockStart->op == Block);
-        codeLblPo tgt = getJitLbl(jit, blockStart + blockStart->alt);
+        assert(code[block.startPc].op == Block);
+        codeLblPo tgt = breakLabel(&block, pc + code[pc].alt + 1);
         assert(tgt != Null);
         b(tgt);
         pc++;
