@@ -8,13 +8,13 @@
 #include "globals.h"
 
 static hashPo constantKeys = Null;
-static termPo *constAnts = Null;
+ptrPo constAnts = Null;
 static int32 nextConstant = 0;
 static int32 constantPoolSize = 0;
 
 void initConstants() {
   constantKeys = newHash(4096, (hashFun) termHash, (compFun) compTerm, Null);
-  constAnts = (termPo *) malloc(sizeof(termPo) * 4096);
+  constAnts = (ptrPo) malloc(sizeof(termPo) * 4096);
   constantPoolSize = 4096;
   constAnts[nextConstant++] = voidEnum; // First entry cannot be used
 }

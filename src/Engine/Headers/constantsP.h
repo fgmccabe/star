@@ -11,5 +11,6 @@
 void initConstants();
 
 void markConstants(gcSupportPo G);
+extern ptrPo constAnts;
 
 #endif //STAR_CONSTANTSP_H

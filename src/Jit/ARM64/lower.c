@@ -5,7 +5,7 @@
 #include "lowerP.h"
 #include "stackP.h"
 #include "globals.h"
-#include "constants.h"
+#include "constantsP.h"
 #include "jitP.h"
 #include "formioP.h"
 #include "debug.h"
@@ -19,7 +19,7 @@
  * X8-X15 = caller saved scratch registers
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
- * X19-X25 = callee saved registers
+ * X25 = Constants vector
  * AG = X26 = args pointer
  * STK = X27 = current stack structure pointer
  * SSP = X28 = star stack pointer
@@ -27,9 +27,6 @@
  * LR = X30 = link register
  * SP = X31 = system stack pointer
  */
-
-
-
 
 static retCode stackCheck(jitCompPo jit, methodPo mtd, int32 delta);
 static int32 pointerSize = sizeof(integer);
@@ -52,6 +49,7 @@ static retCode mkIntVal(jitCompPo jit, armReg rg);
 #define SSP (X28)
 #define AG  (X26)
 #define STK (X27)
+#define CO (X25)
 
 static int32 fpArgs = OffsetOf(StackFrame, args);
 static int32 fpProg = OffsetOf(StackFrame, prog);
@@ -88,6 +86,7 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
        "ldr x27, %[stk]\n"
        "ldr x28, %[ssp]\n"
        "ldr x26, %[ag]\n"
+       "ldr x25, %[constants]\n"
        "ldr x16, %[code]\n"
        "ldr x29, %[fp]\n"
        "blr x16\n"
@@ -98,7 +97,7 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
        "ldp x27, x28, [sp], #16\n"
        "ldp x29, x30, [sp], #16\n"
     : [stk]  "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
-  [fplink] "=m"(fp->link)
+  [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
   :
   : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
 
@@ -150,6 +149,19 @@ static void pushStkOp(jitCompPo jit, armReg src) {
   str(src, PRX(SSP, -pointerSize));
 }
 
+static armReg loadConstant(jitCompPo jit, int32 key, armReg tgt) {
+  assemCtxPo ctx = assemCtx(jit);
+  termPo lit = getConstant(key);
+
+  if (isSmall(lit))
+    mov(tgt, IM((integer) lit));
+  else {
+    ldr(tgt, OF(X25, key * pointerSize));
+  }
+
+  return tgt;
+}
+
 static retCode
 jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, insPo code, int32 from, int32 startPc,
          int32 endPc) {
@@ -179,16 +191,14 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         pc++;
         return Error;
       case Call: {            // Call <prog>
-        labelPo nProg = C_LBL(getConstant(code[pc].fst));
-
+        loadConstant(jit, code[pc].fst, X16);
         // pick up the pointer to the method
-        mov(X16, IM((integer) nProg));
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bail(jit, "Function %T not defined", nProg);
+        bail(jit, "Function %T not defined", getConstant(code[pc].fst));;
 
         setLabel(ctx, haveMtd);
 
@@ -309,7 +319,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         pc++;
         continue;
       }
-      case XRet:{           // exception return
+      case XRet: {           // exception return
         armReg vl = popStkOp(jit);
 
         // Pick up the caller program
@@ -423,10 +433,10 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
       }
       case LdC: {            // load literal from constant pool
         int32 key = code[pc].fst;
-        termPo lit = getConstant(key);
+        armReg cn = loadConstant(jit, key, findFreeReg(jit));
 
-        mov(X0, IM((integer) lit));
-        pushStkOp(jit, X0);
+        pushStkOp(jit, cn);
+        releaseReg(jit, cn);
 
         pc++;
         continue;
