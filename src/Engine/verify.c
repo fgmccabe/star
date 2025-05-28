@@ -300,10 +300,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         int32 blockLen = code[pc].alt;
         pc++;
 
-//        if (exitDepth < stackDepth)
-//          return verifyError(&ctx, ".%d: Block %d; exit depth cannot be less than current depth",
-//                             pc-1, exitDepth);
-
         if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, stackDepth, exitDepth) == Ok) {
           stackDepth = exitDepth;
           pc += blockLen;
