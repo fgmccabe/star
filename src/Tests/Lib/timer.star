@@ -10,7 +10,7 @@ test.lib.timer{
       stop = _ticks();
       elapsed = ((stop - start)::float)/1.0e6;
       ops_per_sec = ((count::float) / elapsed)::integer;
-      showMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
+      showMsg("$(count)\t#(msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
     } catch {
       .exception(M) => showMsg("exception: $(M)")
     };
