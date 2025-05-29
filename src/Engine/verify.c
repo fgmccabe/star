@@ -637,6 +637,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
+      case ICase:
       case Case:
       case IndxJmp: {
         int32 mx = code[pc].fst;

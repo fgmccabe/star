@@ -1048,6 +1048,15 @@ retCode run(processPo P) {
           continue;
         }
       }
+      case ICase:{
+        int32 mx = PC->fst;
+
+        integer tos = integerVal(pop());
+        integer hx = hash61(tos) % mx;
+
+        PC = PC + hx + 1;
+        continue;
+      }
 
       case Case: {      /* case instruction */
         int32 mx = PC->fst;

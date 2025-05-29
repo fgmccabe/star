@@ -68,6 +68,7 @@ star.compiler.peephole{
   dropUnreachable([.iHalt(Ix),.._]) => [.iHalt(Ix)].
   dropUnreachable([.iRetire,.._]) => [.iRetire].
   dropUnreachable([.iCase(Mx),..Is]) => [.iCase(Mx),..copyN(Mx,Is)].
+  dropUnreachable([.iICase(Mx),..Is]) => [.iICase(Mx),..copyN(Mx,Is)].
   dropUnreachable([.iIndxJmp(Mx),..Is]) => [.iIndxJmp(Mx),..copyN(Mx,Is)].
   dropUnreachable([I,..Is]) => [I,..dropUnreachable(Is)].
 
@@ -124,6 +125,7 @@ star.compiler.peephole{
     [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
   peep([.iRetire,.._],_Lbls) => [.iRetire].
+  peep([.iICase(Mx),..Ins],Lbls) => [.iICase(Mx),..copyN(Mx,Ins)].
   peep([.iCase(Mx),..Ins],Lbls) => [.iCase(Mx),..copyN(Mx,Ins)].
   peep([.iIndxJmp(Mx),..Ins],Lbls) => [.iIndxJmp(Mx),..copyN(Mx,Ins)].
   peep([I,..Ins],Lbls) => [I,..peep(Ins,Lbls)].
