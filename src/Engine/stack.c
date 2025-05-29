@@ -453,20 +453,7 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
 }
 
 stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd) {
-  int root = gcAddRoot(globalHeap, (ptrPo) &stk);
-
-  stackPo prevStack = stk;
-
-  gcAddRoot(globalHeap, (ptrPo) &prevStack);
-
-  stk =
-      glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, codeArity(mtd));
-  pushFrame(stk, mtd);
-
-  // drop old frame on old stack
-  dropFrame(prevStack);
-  gcReleaseRoot(globalHeap, root);
-  return stk;
+  return glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, codeArity(mtd));
 }
 
 stackPo spinupStack(heapPo H, integer size) {
