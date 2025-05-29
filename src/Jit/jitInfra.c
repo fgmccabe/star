@@ -102,6 +102,15 @@ armReg findFreeReg(jitCompPo jit) {
   return rg;
 }
 
+retCode reserveReg(jitCompPo jit, armReg rg) {
+  if (isRegInMap(jit->freeRegs, rg)) {
+    jit->freeRegs = dropReg(jit->freeRegs, rg);
+    return Ok;
+  }
+  else
+    return Error;
+}
+
 void releaseReg(jitCompPo jit, armReg rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }

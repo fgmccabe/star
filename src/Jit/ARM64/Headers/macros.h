@@ -34,6 +34,7 @@ registerMap allocReg(registerMap from, armReg Rg);
 registerMap freeReg(registerMap from, armReg Rg);
 registerMap dropReg(registerMap map, armReg Rg);
 registerMap addReg(registerMap from, armReg Rg);
+logical isRegInMap(registerMap from, armReg Rg);
 
 armReg nxtAvailReg(registerMap from);
 
