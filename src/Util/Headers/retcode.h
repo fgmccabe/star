@@ -21,7 +21,7 @@ typedef enum {
   different                     /* Just different */
 } comparison;
 
-#define tryRet(Exp) STMT_WRAP({ retCode ret=(Exp); if(ret!=Ok)return ret; })
+#define tryRet(Exp) STMT_WRAP({ retCode rt=(Exp); if(rt!=Ok)return rt; })
 
 typedef enum {
   inProgress,
