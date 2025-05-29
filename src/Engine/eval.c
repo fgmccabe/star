@@ -24,8 +24,8 @@ retCode run(processPo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  register insPo PC = STK->pc;          /* Program counter */
-  register ptrPo SP = STK->sp;         /* Current 'top' of stack (grows down) */
+  register insPo PC = STK->pc; /* Program counter */
+  register ptrPo SP = STK->sp; /* Current 'top' of stack (grows down) */
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
 
@@ -67,7 +67,7 @@ retCode run(processPo P) {
       case Call:
       case XCall: {
         labelPo nProg = C_LBL(getConstant(PC->fst));
-        methodPo mtd = labelCode(nProg);    // Which program do we want?
+        methodPo mtd = labelCode(nProg); // Which program do we want?
 
         if (mtd == Null) {
           logMsg(logFile, "label %L not defined", nProg);
@@ -98,7 +98,8 @@ retCode run(processPo P) {
       }
 
       case OCall:
-      case XOCall: {        /* Call tos a1 .. an -->   */
+      case XOCall: {
+        /* Call tos a1 .. an -->   */
         int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
@@ -113,16 +114,16 @@ retCode run(processPo P) {
           bail();
         }
 
-        methodPo mtd = labelCode(lb);       /* set up for object call */
+        methodPo mtd = labelCode(lb); /* set up for object call */
 
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lb);
           bail();
         }
 
-        push(closureFree(obj));             // Put the free term back on the stack
+        push(closureFree(obj)); // Put the free term back on the stack
 
-        FP++;                                  // Guaranteed to have room for the frame
+        FP++; // Guaranteed to have room for the frame
         FP->prog = PROG;
         FP->link = PC + 1;
         FP->args = ARGS;
@@ -134,8 +135,9 @@ retCode run(processPo P) {
       }
 
       case Escape:
-      case XEscape:{                     /* call escape */
-        int32 escNo = PC->fst;           /* escape number */
+      case XEscape: {
+        /* call escape */
+        int32 escNo = PC->fst; /* escape number */
 
 #ifndef NDEBUG
         if (collectStats)
@@ -167,7 +169,7 @@ retCode run(processPo P) {
             termPo a1 = popStack(STK);
             termPo a2 = popStack(STK);
             termPo a3 = popStack(STK);
-            ret = ((escFun3) (esc->fun))(H, a1, a2,a3);
+            ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
             break;
           }
           case 4: {
@@ -225,13 +227,14 @@ retCode run(processPo P) {
         } else if (PC->op == XEscape) {
           breakOut(ret.result);
           continue;
-        } else{
+        } else {
           logMsg(logFile, "invalid return from escape %s", escapeName(esc));
           bail();
         }
       }
 
-      case TCall: {       /* Tail call of explicit program */
+      case TCall: {
+        /* Tail call of explicit program */
         labelPo lbl = C_LBL(getConstant(PC->fst));
         int32 arity = lblArity(lbl);
         methodPo mtd = labelCode(lbl);
@@ -242,17 +245,18 @@ retCode run(processPo P) {
 
         // Overwrite existing arguments and locals
         ptrPo tgt = &arg(argCount(PROG));
-        ptrPo src = SP + arity;                  /* base of argument vector */
+        ptrPo src = SP + arity; /* base of argument vector */
 
         for (int ix = 0; ix < arity; ix++)
-          *--tgt = *--src;                       /* copy the argument vector */
+          *--tgt = *--src; /* copy the argument vector */
         PC = entryPoint(mtd);
         PROG = mtd;
         ARGS = SP = tgt;
-        continue;       /* Were done */
+        continue; /* Were done */
       }
 
-      case TOCall: {       /* Tail call */
+      case TOCall: {
+        /* Tail call */
         int32 arity = PC->fst;
         termPo cl = pop();
         if (!isClosure(cl)) {
@@ -267,8 +271,8 @@ retCode run(processPo P) {
           bail();
         }
 
-        push(closureFree(obj));                     // Put the free term back on the stack
-        methodPo mtd = labelCode(lb);       /* set up for object call */
+        push(closureFree(obj)); // Put the free term back on the stack
+        methodPo mtd = labelCode(lb); /* set up for object call */
 
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lb);
@@ -277,14 +281,14 @@ retCode run(processPo P) {
 
         // Overwrite existing arguments and locals
         ptrPo tgt = &arg(argCount(PROG));
-        ptrPo src = SP + arity;                  /* base of argument vector */
+        ptrPo src = SP + arity; /* base of argument vector */
 
         for (int ix = 0; ix < arity; ix++)
-          *--tgt = *--src;                       /* copy the argument vector */
+          *--tgt = *--src; /* copy the argument vector */
         PC = entryPoint(mtd);
         PROG = mtd;
         ARGS = SP = tgt;
-        continue;       /* Were done */
+        continue; /* Were done */
       }
 
       case Entry: {
@@ -308,29 +312,31 @@ retCode run(processPo P) {
         for (int32 ix = 0; ix < height; ix++)
           push(voidEnum);
 
-        incEntryCount(PROG);              // Increment number of times program called
+        incEntryCount(PROG); // Increment number of times program called
 
         PC++;
         continue;
       };
 
-      case Ret: {        /* return from function */
-        termPo retVal = *SP;     /* return value */
+      case Ret: {
+        /* return from function */
+        termPo retVal = *SP; /* return value */
 
         assert(FP > baseFrame(STK));
 
-        SP = &arg(argCount(PROG));       // Just above arguments to current call
+        SP = &arg(argCount(PROG)); // Just above arguments to current call
         PROG = FP->prog;
         ARGS = FP->args;
         PC = FP->link;
         FP--;
 
-        push(retVal);      /* push return value */
-        continue;       /* and carry on regardless */
+        push(retVal); /* push return value */
+        continue; /* and carry on regardless */
       }
 
-      case XRet: {        /* exceptional return from function */
-        termPo retVal = *SP;     /* return value */
+      case XRet: {
+        /* exceptional return from function */
+        termPo retVal = *SP; /* return value */
 
         assert(FP > baseFrame(STK));
 
@@ -345,8 +351,8 @@ retCode run(processPo P) {
         SP = &local(lclCount(PROG) + height - 1);
         PC += PC->alt + 1;
 
-        push(retVal);      /* push return value */
-        continue;       /* and carry on regardless */
+        push(retVal); /* push return value */
+        continue; /* and carry on regardless */
       }
 
       case Block: {
@@ -370,30 +376,33 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Result: { /* return a value from a block */
+      case Result: {
+        /* return a value from a block */
         termPo reslt = pop();
         PC += PC->alt + 1;
         int32 height = PC->fst;
         SP = &local(lclCount(PROG) + height - 1);
         PC += PC->alt + 1;
         push(reslt);
-        continue;       /* and carry after reset block */
+        continue; /* and carry after reset block */
       }
 
       case Drop: {
-        SP++;       /* drop tos */
+        SP++; /* drop tos */
         PC++;
         continue;
       }
 
-      case Dup: {        /* duplicate tos */
+      case Dup: {
+        /* duplicate tos */
         termPo tos = *SP;
         *--SP = tos;
         PC++;
         continue;
       }
 
-      case Rot: {       // Pull up nth element of stack
+      case Rot: {
+        // Pull up nth element of stack
         int32 cnt = PC->fst;
         termPo tmp = SP[0];
 
@@ -405,7 +414,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Pick: {       // Reset stack, keeping top elements
+      case Pick: {
+        // Reset stack, keeping top elements
         int32 depth = PC->fst;
         int32 keep = PC->alt;
 
@@ -433,12 +443,13 @@ retCode run(processPo P) {
         saveRegisters();
         stackPo child = newStack(H, fiberLambda);
         restoreRegisters();
-        push(child);              // We return the new stack
+        push(child); // We return the new stack
         PC++;
         continue;
       }
 
-      case Suspend: { // Suspend identified fiber.
+      case Suspend: {
+        // Suspend identified fiber.
         stackPo stack = C_STACK(pop());
         termPo event = pop();
 
@@ -470,7 +481,8 @@ retCode run(processPo P) {
           continue;
         }
       }
-      case Retire: { // Similar to suspend, except that we trash the suspending stack
+      case Retire: {
+        // Similar to suspend, except that we trash the suspending stack
         stackPo fiber = C_STACK(pop());
         termPo event = pop();
 
@@ -492,7 +504,7 @@ retCode run(processPo P) {
       }
       case Underflow: {
         termPo val = pop();
-        saveRegisters();  // Seal off the current stack
+        saveRegisters(); // Seal off the current stack
         assert(stackState(STK) == active);
         P->stk = dropStack(STK);
         restoreRegisters();
@@ -501,24 +513,24 @@ retCode run(processPo P) {
       }
 
       case LdV: {
-        push(voidEnum);     /* load void */
+        push(voidEnum); /* load void */
         PC++;
         continue;
       }
 
-      case LdC:     /* load constant value */
+      case LdC: /* load constant value */
         push(getConstant(PC->fst));
         PC++;
         continue;
 
       case LdA: {
-        push(arg(PC->fst));    /* load argument */
+        push(arg(PC->fst)); /* load argument */
         PC++;
         continue;
       }
 
       case LdL: {
-        push(local(PC->fst));      /* load local */
+        push(local(PC->fst)); /* load local */
         PC++;
         continue;
       }
@@ -532,7 +544,7 @@ retCode run(processPo P) {
           check(gval != Null, "undefined global");
           check(stackRoom(1), "unexpected stack overflow");
 
-          push(gval);     /* load a global variable */
+          push(gval); /* load a global variable */
           PC++;
           continue;
         } else {
@@ -541,7 +553,7 @@ retCode run(processPo P) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
             bail();
           }
-          methodPo glbThnk = labelCode(glbLbl);       /* set up for object call */
+          methodPo glbThnk = labelCode(glbLbl); /* set up for object call */
 
           if (glbThnk == Null) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
@@ -582,11 +594,9 @@ retCode run(processPo P) {
 
         if (!sameTerm(l, t)) {
           breakBlock();
-          continue;
-        } else {
+        } else
           PC++;
-          continue;
-        }
+        continue;
       }
 
       case CLbl: {
@@ -600,14 +610,14 @@ retCode run(processPo P) {
             continue;
           }
         }
-        breakBlock();       // First jump to the block
+        breakBlock(); // First jump to the block
         continue;
       }
 
       case Nth: {
         termPo t = pop();
 
-        normalPo cl = C_NORMAL(t);  /* which term? */
+        normalPo cl = C_NORMAL(t); /* which term? */
         push(nthElem(cl, PC->fst));
 
         PC++;
@@ -631,7 +641,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case StNth: {      /* store into a closure */
+      case StNth: {
+        /* store into a closure */
         normalPo cl = C_NORMAL(pop());
         termPo tos = pop();
         cl->args[PC->fst] = tos;
@@ -642,7 +653,7 @@ retCode run(processPo P) {
       case StG: {
         termPo val = pop();
         globalPo glb = findGlobalVar(PC->fst);
-        setGlobalVar(glb, val);      // Update the global variable
+        setGlobalVar(glb, val); // Update the global variable
         PC++;
         continue;
       }
@@ -650,15 +661,16 @@ retCode run(processPo P) {
       case TG: {
         termPo val = top();
         globalPo glb = findGlobalVar(PC->fst);
-        setGlobalVar(glb, val);      // Update the global variable
+        setGlobalVar(glb, val); // Update the global variable
         PC++;
         continue;
       }
 
-      case Sav: {  // Create a new single assignment variable
+      case Sav: {
+        // Create a new single assignment variable
         checkAlloc(SingleCellCount);
         singlePo sav = singleVar(H);
-        push(sav);       /* put the structure back on the stack */
+        push(sav); /* put the structure back on the stack */
         PC++;
         continue;
       }
@@ -680,7 +692,7 @@ retCode run(processPo P) {
 
           check(vl != Null, "undefined single assignment value");
 
-          push(vl);     /* load single variable */
+          push(vl); /* load single variable */
           PC++;
           continue;
         } else {
@@ -689,7 +701,8 @@ retCode run(processPo P) {
         }
       }
 
-      case StSav: {                           // Store into single
+      case StSav: {
+        // Store into single
         singlePo sav = C_SINGLE(pop());
         termPo val = pop();
 
@@ -698,12 +711,13 @@ retCode run(processPo P) {
           bail();
         }
 
-        setSingle(sav, val);      // Update the single variable
+        setSingle(sav, val); // Update the single variable
         PC++;
         continue;
       }
 
-      case TSav: {                        // Set single and carry on
+      case TSav: {
+        // Set single and carry on
         singlePo sav = C_SINGLE(pop());
         termPo val = top();
 
@@ -712,7 +726,7 @@ retCode run(processPo P) {
           bail();
         }
 
-        setSingle(sav, val);      // Update the single variable
+        setSingle(sav, val); // Update the single variable
         PC++;
         continue;
       }
@@ -1048,17 +1062,17 @@ retCode run(processPo P) {
           continue;
         }
       }
-      case ICase:{
+      case ICase: {
         int32 mx = PC->fst;
 
-        integer tos = integerVal(pop());
-        integer hx = hash61(tos) % mx;
+        integer hx = hash61(integerVal(pop())) % mx;
 
         PC = PC + hx + 1;
         continue;
       }
 
-      case Case: {      /* case instruction */
+      case Case: {
+        /* case instruction */
         int32 mx = PC->fst;
 
         termPo tos = pop();
@@ -1068,7 +1082,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case IndxJmp: {    // Branch based on index of constructor term
+      case IndxJmp: {
+        // Branch based on index of constructor term
         normalPo top = C_NORMAL(pop());
         labelPo lbl = termLbl(top);
         integer hx = lblIndex(lbl);
@@ -1077,7 +1092,8 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Closure: {      /* heap allocate closure */
+      case Closure: {
+        /* heap allocate closure */
         checkAlloc(ClosureCellCount);
         labelPo cd = C_LBL(getConstant(PC->fst));
 
@@ -1088,20 +1104,21 @@ retCode run(processPo P) {
 
         closurePo cl = newClosure(H, cd, pop());
 
-        push(cl);       /* put the closure back on the stack */
+        push(cl); /* put the closure back on the stack */
         PC++;
         continue;
       }
 
-      case Alloc: {      /* heap allocate term */
+      case Alloc: {
+        /* heap allocate term */
         labelPo lbl = C_LBL(getConstant(PC->fst));
         int32 arity = lblArity(lbl);
 
         checkAlloc(NormalCellCount(arity));
         normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
         for (int32 ix = 0; ix < arity; ix++)
-          cl->args[ix] = pop();   /* fill in free variables by popping from stack */
-        push(cl);       /* put the structure back on the stack */
+          cl->args[ix] = pop(); /* fill in free variables by popping from stack */
+        push(cl); /* put the structure back on the stack */
         PC++;
         continue;
       }
@@ -1124,7 +1141,7 @@ retCode run(processPo P) {
       case If: {
         termPo i = pop();
 
-        if (i==trueEnum) {
+        if (i == trueEnum) {
           PC += PC->alt + 1;
           assert(validPC(PROG, PC));
           PC += PC->alt + 1;
@@ -1138,7 +1155,7 @@ retCode run(processPo P) {
       case IfNot: {
         termPo i = pop();
 
-        if (i!=trueEnum) {
+        if (i != trueEnum) {
           PC += PC->alt + 1;
           assert(validPC(PROG, PC));
           PC += PC->alt + 1;
@@ -1157,7 +1174,7 @@ retCode run(processPo P) {
 
       case dBug: {
         if (lineDebugging) {
-          PC++;                   // We aim to continue at the next instruction
+          PC++; // We aim to continue at the next instruction
           saveRegisters();
           enterDebug(P);
           restoreRegisters();
