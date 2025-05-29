@@ -579,6 +579,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pc++;
         continue;
       }
+      case ICase:
       case Case: // T --> T, case <Max>
       case IndxJmp: // check and jump on index
       case IAdd: {

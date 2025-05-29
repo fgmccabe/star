@@ -82,6 +82,7 @@ instruction(StNth, i32, nOp, -2, "T el --> store in nth element")
 instruction(If, tOs, lVl, -1, "break if true")
 instruction(IfNot, tOs, lVl, -1, "break if false")
 
+instruction(ICase, i32, tOs, -1, "T --> T, icase <Max>")
 instruction(Case, i32, tOs, -1, "T --> T, case <Max>")
 instruction(IndxJmp, i32, tOs, -1, "check and jump on index")
 

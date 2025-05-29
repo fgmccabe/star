@@ -63,44 +63,45 @@ typedef enum {
     StNth = 52,            // T el --> store in nth element
     If = 53,            // break if true
     IfNot = 54,            // break if false
-    Case = 55,            // T --> T, case <Max>
-    IndxJmp = 56,            // check and jump on index
-    IAdd = 57,            // L R --> L+R
-    ISub = 58,            // L R --> L-R
-    IMul = 59,            // L R --> L*R
-    IDiv = 60,            // L R --> L/R
-    IMod = 61,            // L R --> L%R
-    IAbs = 62,            // L --> abs(L)
-    IEq = 63,            // L R --> L==R
-    ILt = 64,            // L R --> L<R
-    IGe = 65,            // L R --> L>=R
-    ICmp = 66,            // L R --> break if not same integer
-    CEq = 67,            // L R --> L==R
-    CLt = 68,            // L R --> L<R
-    CGe = 69,            // L R --> L>=R
-    CCmp = 70,            // L R --> break if not same character
-    BAnd = 71,            // L R --> L&R
-    BOr = 72,            // L R --> L|R
-    BXor = 73,            // L R --> L^R
-    BLsl = 74,            // L R --> L<<R
-    BLsr = 75,            // L R --> L>>R
-    BAsr = 76,            // L R --> L>>>R
-    BNot = 77,            // L --> ~L
-    FAdd = 78,            // L R --> L+R
-    FSub = 79,            // L R --> L-R
-    FMul = 80,            // L R --> L*R
-    FDiv = 81,            // L R --> L/R
-    FMod = 82,            // L R --> L%R
-    FAbs = 83,            // L --> abs(L)
-    FEq = 84,            // L R e --> L==R
-    FLt = 85,            // L R --> L<R
-    FGe = 86,            // L R --> L>=R
-    FCmp = 87,            // L R --> branch if not same floating point
-    Alloc = 88,            // new structure, elements from stack
-    Closure = 89,            // allocate a closure
-    Cmp = 90,            // t1 t2 --> , branch to offset if not same literal
-    Frame = 91,            // frame instruction
-    dBug = 92,            // debugging prefix
+    ICase = 55,            // T --> T, icase <Max>
+    Case = 56,            // T --> T, case <Max>
+    IndxJmp = 57,            // check and jump on index
+    IAdd = 58,            // L R --> L+R
+    ISub = 59,            // L R --> L-R
+    IMul = 60,            // L R --> L*R
+    IDiv = 61,            // L R --> L/R
+    IMod = 62,            // L R --> L%R
+    IAbs = 63,            // L --> abs(L)
+    IEq = 64,            // L R --> L==R
+    ILt = 65,            // L R --> L<R
+    IGe = 66,            // L R --> L>=R
+    ICmp = 67,            // L R --> break if not same integer
+    CEq = 68,            // L R --> L==R
+    CLt = 69,            // L R --> L<R
+    CGe = 70,            // L R --> L>=R
+    CCmp = 71,            // L R --> break if not same character
+    BAnd = 72,            // L R --> L&R
+    BOr = 73,            // L R --> L|R
+    BXor = 74,            // L R --> L^R
+    BLsl = 75,            // L R --> L<<R
+    BLsr = 76,            // L R --> L>>R
+    BAsr = 77,            // L R --> L>>>R
+    BNot = 78,            // L --> ~L
+    FAdd = 79,            // L R --> L+R
+    FSub = 80,            // L R --> L-R
+    FMul = 81,            // L R --> L*R
+    FDiv = 82,            // L R --> L/R
+    FMod = 83,            // L R --> L%R
+    FAbs = 84,            // L --> abs(L)
+    FEq = 85,            // L R e --> L==R
+    FLt = 86,            // L R --> L<R
+    FGe = 87,            // L R --> L>=R
+    FCmp = 88,            // L R --> branch if not same floating point
+    Alloc = 89,            // new structure, elements from stack
+    Closure = 90,            // allocate a closure
+    Cmp = 91,            // t1 t2 --> , branch to offset if not same literal
+    Frame = 92,            // frame instruction
+    dBug = 93,            // debugging prefix
 
   illegalOp,
   maxOpCode
@@ -163,6 +164,7 @@ static char *opNames[] = {
       "StNth",
       "If",
       "IfNot",
+      "ICase",
       "Case",
       "IndxJmp",
       "IAdd",
@@ -204,7 +206,7 @@ static char *opNames[] = {
 #endif
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 184135021676908312
+#define OPCODE_SIGNATURE 2231337229613573684
 #endif
 
 typedef enum {
