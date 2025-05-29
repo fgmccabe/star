@@ -4,14 +4,14 @@ test.jt2{
   import test.lib.timer.
 
   public fib:(integer)=>integer.
-  fib(N) => (
-    0.=N ?? 0 ||
-    1.=N ?? 1 ||
-    _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2)))).
+  -- fib(N) => (
+  --   0.=N ?? 0 ||
+  --   1.=N ?? 1 ||
+  --   _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2)))).
 
-  -- fib(0) => 0.
-  -- fib(1) => 1.
-  -- fib(N) => _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2))).
+  fib(0) => 0.
+  fib(1) => 1.
+  fib(N) => _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2))).
 
   main:(integer)=>().
   main(V) => valof{

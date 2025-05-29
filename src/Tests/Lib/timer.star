@@ -17,5 +17,18 @@ test.lib.timer{
     valis ()
   }
 
-
+  public timeOf:(()=>(),string,integer)=>().
+  timeOf(Fn,Msg,Cx) => valof{
+    try{
+      Start = _ticks();
+      Fn();
+      Stop = _ticks();
+      elapsed = ((Stop - Start)::float)/1.0e6;
+      ops_per_sec = ((Cx::float) / elapsed)::integer;
+      showMsg("#(Msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
+    } catch {
+      .exception(M) => showMsg("exception: $(M)")
+    };
+    valis ()
+  }
 }

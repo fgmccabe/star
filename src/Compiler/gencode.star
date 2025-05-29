@@ -644,7 +644,9 @@ star.compiler.gencode{
 
     (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
 
-    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[.iCase(Max)],Ctx,Stk);
+    CaseIns = (intType==deRef(typeOf(Gv)) ?? .iICase(Max) || .iCase(Max));
+
+    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[CaseIns],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);

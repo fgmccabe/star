@@ -9,6 +9,7 @@
 	   isFunctionType/1,isFunctionType/2,isCnsType/3,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
 	   isThrowingType/3,
+	   isIntegerType/1,
 	   ssConstraint/4,ssType/4,dispType/1,dispConstraint/1,
 	   ssTipe/2,
 	   contractType/2,contractTypes/2,
@@ -383,6 +384,8 @@ isThrowsType(existType(_,Tp),RsTp,ErTp) :- !,
 isThrowsType(constrained(Tp,_),RsTp,ErTp) :- !,
   isThrowingType(Tp,RsTp,ErTp).
 isThrowsType(funType(_,RsTp,ErTp),RsTp,ErTp) :-!.
+
+isIntegerType(Tp) :- deRef(Tp,type("integer")).
 
 isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
