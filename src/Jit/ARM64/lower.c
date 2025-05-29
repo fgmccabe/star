@@ -2,6 +2,7 @@
 // Created by Francis McCabe on 7/9/20.
 //
 #include <config.h>
+#include <assert.h>
 #include "lowerP.h"
 #include "stackP.h"
 #include "globals.h"
@@ -76,25 +77,25 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   fp->args = stk->args;
 
   asm( "stp x29, x30, [sp, #-16]!\n"
-       "stp x27, x28, [sp, #-16]!\n"
-       "stp x25, x26, [sp, #-16]!\n"
-       "ldr x27, %[stk]\n"
-       "ldr x28, %[ssp]\n"
-       "ldr x26, %[ag]\n"
-       "ldr x25, %[constants]\n"
-       "ldr x16, %[code]\n"
-       "ldr x29, %[fp]\n"
-       "blr x16\n"
-       "str x26, %[ag]\n"
-       "str x27, %[stk]\n"
-       "str x29, %[fp]\n"
-       "ldp x25, x26, [sp], #16\n"
-       "ldp x27, x28, [sp], #16\n"
-       "ldp x29, x30, [sp], #16\n"
+    "stp x27, x28, [sp, #-16]!\n"
+    "stp x25, x26, [sp, #-16]!\n"
+    "ldr x27, %[stk]\n"
+    "ldr x28, %[ssp]\n"
+    "ldr x26, %[ag]\n"
+    "ldr x25, %[constants]\n"
+    "ldr x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str x26, %[ag]\n"
+    "str x27, %[stk]\n"
+    "str x29, %[fp]\n"
+    "ldp x25, x26, [sp], #16\n"
+    "ldp x27, x28, [sp], #16\n"
+    "ldp x29, x30, [sp], #16\n"
     : [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
-  [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
-  :
-  : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
+    [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
+    :
+    : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
 
   return Ok;
 }
@@ -579,7 +580,28 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pc++;
         continue;
       }
-      case ICase:
+      case ICase: {
+        armReg gr = popStkOp(jit, findFreeReg(jit));
+        getIntVal(jit, gr);
+        and(gr, gr, IM(LARGE_INT61));
+        armReg divisor = findFreeReg(jit);
+        mov(divisor, IM(code[pc].fst));
+        armReg quotient = findFreeReg(jit);
+        udiv(quotient, gr, divisor);
+        msub(gr, divisor, quotient, gr);
+        releaseReg(jit, divisor);
+        armReg tgt = findFreeReg(jit);
+        codeLblPo jmpTbl = newLabel(ctx);
+        adr(tgt, jmpTbl);
+        add(tgt, tgt, LS(gr,2));
+        br(tgt);
+        releaseReg(jit, tgt);
+        releaseReg(jit, quotient);
+        releaseReg(jit, gr);
+        setLabel(ctx, jmpTbl);
+        pc++;
+        continue;
+      }
       case Case: // T --> T, case <Max>
       case IndxJmp: // check and jump on index
       case IAdd: {
@@ -698,9 +720,11 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     showMethodCode(logFile, "Jit method %L\n", mtd);
   }
 #endif
-  ValueStack valueStack = {.stackHeight=0};
-  JitBlock block = {.code = entryPoint(
-    mtd), .startPc=0, .valStk=&valueStack, .breakLbl=Null, .loopLbl=Null, .parent=Null};
+  ValueStack valueStack = {.stackHeight = 0};
+  JitBlock block = {
+    .code = entryPoint(mtd),
+    .startPc = 0, .valStk = &valueStack, .breakLbl = Null, .loopLbl = Null, .parent = Null
+  };
 
   return jitBlock(jit, &block, 0, codeSize(mtd));
 }
@@ -791,8 +815,7 @@ codeLblPo loopLabel(jitBlockPo block, int32 tgt) {
     if (block->startPc == tgt) {
       assert(block->code[block->startPc].op == Block);
       return block->loopLbl;
-    }
-    else
+    } else
       block = block->parent;
   }
   return Null;
