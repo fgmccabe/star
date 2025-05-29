@@ -61,16 +61,6 @@ static int32 fpLink = OffsetOf(StackFrame, link);
 
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
-typedef struct jitBlock_ *jitBlockPo;
-
-typedef struct jitBlock_ {
-  int32 height;
-  int32 startPc;
-  codeLblPo breakLbl;
-  codeLblPo loopLbl;
-  jitBlockPo parent;
-} JitBlock;
-
 static codeLblPo breakLabel(jitBlockPo block, int32 tgt);
 
 static codeLblPo loopLabel(jitBlockPo block, int32 tgt);
@@ -86,25 +76,25 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   fp->args = stk->args;
 
   asm( "stp x29, x30, [sp, #-16]!\n"
-    "stp x27, x28, [sp, #-16]!\n"
-    "stp x25, x26, [sp, #-16]!\n"
-    "ldr x27, %[stk]\n"
-    "ldr x28, %[ssp]\n"
-    "ldr x26, %[ag]\n"
-    "ldr x25, %[constants]\n"
-    "ldr x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str x26, %[ag]\n"
-    "str x27, %[stk]\n"
-    "str x29, %[fp]\n"
-    "ldp x25, x26, [sp], #16\n"
-    "ldp x27, x28, [sp], #16\n"
-    "ldp x29, x30, [sp], #16\n"
+       "stp x27, x28, [sp, #-16]!\n"
+       "stp x25, x26, [sp, #-16]!\n"
+       "ldr x27, %[stk]\n"
+       "ldr x28, %[ssp]\n"
+       "ldr x26, %[ag]\n"
+       "ldr x25, %[constants]\n"
+       "ldr x16, %[code]\n"
+       "ldr x29, %[fp]\n"
+       "blr x16\n"
+       "str x26, %[ag]\n"
+       "str x27, %[stk]\n"
+       "str x29, %[fp]\n"
+       "ldp x25, x26, [sp], #16\n"
+       "ldp x27, x28, [sp], #16\n"
+       "ldp x29, x30, [sp], #16\n"
     : [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
-    [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
-    :
-    : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
+  [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
+  :
+  : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
 
   return Ok;
 }
@@ -167,21 +157,12 @@ static armReg loadConstant(jitCompPo jit, int32 key, armReg tgt) {
   return tgt;
 }
 
-static retCode
-jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, insPo code, int32 from, int32 startPc,
-         int32 endPc) {
+static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc) {
   retCode ret = Ok;
   assemCtxPo ctx = assemCtx(jit);
+  insPo code = block->code;
 
-  JitBlock block = {
-    .startPc = from,
-    .height = height,
-    .breakLbl = breakLbl,
-    .loopLbl = currentPcLabel(ctx),
-    .parent = parent,
-  };
-
-  for (int32 pc = startPc; ret == Ok && pc < endPc;) {
+  for (int32 pc = from; ret == Ok && pc < endPc;) {
     switch (code[pc].op) {
       case Halt: {
         // Stop execution
@@ -250,7 +231,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
         blr(X16);
 
-        codeLblPo catch = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo catch = breakLabel(block, pc + code[pc].alt + 1);
         if (catch == Null)
           return jitError(jit, "not in try scope");
 
@@ -354,21 +335,28 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         pc++;
         continue;
       }
-      case Block: {
-        // block of instructions
+      case Block: { // block of instructions
         int32 blockLen = code[pc].alt;
         codeLblPo brkLbl = newLabel(ctx);
         pc++;
 
-        ret = jitBlock(jit, &block, brkLbl, code[pc].fst, code, pc - 1, pc, pc + blockLen);
+        JitBlock subBlock = {
+          .code = code,
+          .valStk = block->valStk,
+          .startPc = pc - 1,
+          .breakLbl = brkLbl,
+          .loopLbl = currentPcLabel(ctx),
+          .parent = block,
+        };
+
+        ret = jitBlock(jit, &subBlock, pc, pc + blockLen);
         pc += blockLen;
         setLabel(ctx, brkLbl);
         continue;
       }
       case Break: {
         // leave block
-        assert(code[block.startPc].op == Block);
-        codeLblPo tgt = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo tgt = breakLabel(block, pc + code[pc].alt + 1);
         assert(tgt != Null);
         b(tgt);
         pc++;
@@ -556,7 +544,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
           cmp(st, RG(lt));
           releaseReg(jit, lt);
         }
-        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
         if (lbl != Null)
           bne(lbl);
         else
@@ -571,7 +559,7 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         ldr(X1, PSX(SSP, pointerSize));
         invokeCFunc2(jit, (Cfunc2) sameTerm);
         cmp(X0, RG(XZR));
-        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
         if (lbl != Null)
           beq(lbl);
         else
@@ -584,15 +572,14 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         return Error;
       case StNth: // T el --> store in nth element
         return Error;
-      case If: {
-        // break if true
+      case If: { // break if true
         armReg vl = popStkOp(jit);
         armReg tr = findFreeReg(jit);
-        mov(tr, IM((integer)trueEnum));
+        mov(tr, IM((integer) trueEnum));
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
         if (lbl != Null)
           bne(lbl);
         else
@@ -600,15 +587,14 @@ jitBlock(jitCompPo jit, jitBlockPo parent, codeLblPo breakLbl, int32 height, ins
         pc++;
         continue;
       }
-      case IfNot: {
-        // break if false
+      case IfNot: { // break if false
         armReg vl = popStkOp(jit);
         armReg tr = findFreeReg(jit);
-        mov(tr, IM((integer)trueEnum));
+        mov(tr, IM((integer) trueEnum));
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        codeLblPo lbl = breakLabel(&block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
         if (lbl != Null)
           beq(lbl);
         else
@@ -734,7 +720,10 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     showMethodCode(logFile, "Jit method %L\n", mtd);
   }
 #endif
-  return jitBlock(jit, Null, Null, 0, entryPoint(mtd), 0, 0, codeSize(mtd));
+  ValueStack valueStack = {.stackHeight=0};
+  JitBlock block = {.code = entryPoint(mtd), .startPc=0, .valStk=&valueStack, .breakLbl=Null, .loopLbl=Null, .parent=Null};
+
+  return jitBlock(jit, &block, 0, codeSize(mtd));
 }
 
 retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
@@ -809,8 +798,10 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
 
 codeLblPo breakLabel(jitBlockPo block, int32 tgt) {
   while (block != Null) {
-    if (block->startPc == tgt)
+    if (block->startPc == tgt) {
+      assert(block->code[block->startPc].op == Block);
       return block->breakLbl;
+    }
     else
       block = block->parent;
   }

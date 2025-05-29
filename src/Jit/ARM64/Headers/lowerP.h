@@ -22,4 +22,24 @@ static inline logical isSmall(termPo x) {
     return False;
 }
 
+typedef struct {
+  FlexOp src;
+} StackEntry;
+
+typedef struct {
+  StackEntry valueStack[128];
+  int32 stackHeight;
+} ValueStack, *valueStackPo;
+
+typedef struct jitBlock_ *jitBlockPo;
+
+typedef struct jitBlock_ {
+  valueStackPo valStk;
+  insPo code;
+  int32 startPc;
+  codeLblPo breakLbl;
+  codeLblPo loopLbl;
+  jitBlockPo parent;
+} JitBlock;
+
 #endif //STAR_LOWERP_H
