@@ -57,6 +57,10 @@ registerMap addReg(registerMap from, armReg Rg) {
   return (from | (1u << Rg));
 }
 
+logical isRegInMap(registerMap from, armReg Rg) {
+  return ((from & (1u << Rg)) != 0);
+}
+
 armReg nxtAvailReg(registerMap from) {
   for (uint32 ix = 0; ix < 64u; ix++) {
     uint64 mask = 1u << ix;

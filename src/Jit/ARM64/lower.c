@@ -313,7 +313,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pc++;
         continue;
       }
-      case Block: { // block of instructions
+      case Block: {
+        // block of instructions
         int32 blockLen = code[pc].alt;
         codeLblPo brkLbl = newLabel(ctx);
         pc++;
@@ -411,7 +412,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
       case Resume: // resume fiber
       case Retire: // retire a fiber
       case Underflow: // underflow from current stack
-      case LdV: {  // Place a void value on stack
+      case LdV: {
+        // Place a void value on stack
         armReg vd = findFreeReg(jit);
         mov(vd, IM((integer) voidEnum));
         pushStkOp(jit, vd);
@@ -550,7 +552,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         return Error;
       case StNth: // T el --> store in nth element
         return Error;
-      case If: { // break if true
+      case If: {
+        // break if true
         armReg vl = popStkOp(jit, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
         mov(tr, IM((integer) trueEnum));
@@ -565,7 +568,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pc++;
         continue;
       }
-      case IfNot: { // break if false
+      case IfNot: {
+        // break if false
         armReg vl = popStkOp(jit, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
         mov(tr, IM((integer) trueEnum));
@@ -602,7 +606,32 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pc++;
         continue;
       }
-      case Case: // T --> T, case <Max>
+      case Case: {
+        // T --> T, case <Max>
+        if (reserveReg(jit, X0) == Ok) {
+          popStkOp(jit, X0);
+          callIntrinsic(ctx, (runtimeFn) hashTerm, 1, RG(X0));
+          armReg divisor = findFreeReg(jit);
+          mov(divisor, IM(code[pc].fst));
+          armReg quotient = findFreeReg(jit);
+          udiv(quotient, X0, divisor);
+          msub(X0, divisor, quotient, X0);
+          releaseReg(jit, divisor);
+          armReg tgt = findFreeReg(jit);
+          codeLblPo jmpTbl = newLabel(ctx);
+          adr(tgt, jmpTbl);
+          add(tgt, tgt, LS(gr,2));
+          br(tgt);
+          releaseReg(jit, tgt);
+          releaseReg(jit, quotient);
+          releaseReg(jit, X0);
+          setLabel(ctx, jmpTbl);
+          pc++;
+          continue;
+        } else {
+          return jitError(jit, "cannot reserve R0");
+        }
+      }
       case IndxJmp: // check and jump on index
       case IAdd: {
         // L R --> L+R

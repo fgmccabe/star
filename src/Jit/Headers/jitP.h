@@ -85,6 +85,7 @@ void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 void markEntry(jitCompPo jit, codeLblPo entry);
 codeLblPo jitEntry(jitCompPo jit);
 
+retCode reserveReg(jitCompPo jit, armReg rg);
 armReg findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, armReg rg);
 
