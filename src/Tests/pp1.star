@@ -30,7 +30,7 @@ test.pp1{
     try{
       valis rdLns()
     } catch {
-      | .eof => valis []
+      | .eEOF => valis []
       | Other => {
 	showMsg("io error: $(Other)");
 	_abort(Other,"error")

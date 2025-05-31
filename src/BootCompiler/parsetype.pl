@@ -382,13 +382,13 @@ parseStructTypeDef(Lc,Qs,Xs,Cs,Hd,BrNm,Fields,[TpDefn,CnDefn|Df],Dfx,Env,Envx,
   genBraceUpdaters(Lc,Q,Cx,ConNm,Tp,SortedFlds,SortedFlds,Df0,Dfx,Ups,[],
 		    Publish,Viz,tpe(Nm),Dc0,Dc1),
   declareAccessors(Ups,Ev1,Ev2),
-
-  call(Publish,Viz,tpe(Nm),typeDec(Nm,Type,FaceRule,[(ConNm,0)]),Dc1,Dc2),
+  ConsIx = [(lbl(ConNm,Ar),0)],
+  call(Publish,Viz,tpe(Nm),typeDec(Nm,Type,FaceRule,ConsIx),Dc1,Dc2),
   call(Publish,Viz,tpe(Nm),ConDecl,Dc2,Dcx),
   progTypeArity(Type,Ar),
-  TpDefn = typeDef(Lc,Nm,Type,FaceRule,[(lbl(ConNm,Ar),0)]),
+  TpDefn = typeDef(Lc,Nm,Type,FaceRule,ConsIx),
   CnDefn = cnsDef(Lc,Nm,enm(Lc,ConNm,ConTp)),
-  declareType(Nm,tpDef(Lc,Type,FaceRule,[(ConNm,0)]),Ev2,Envx).
+  declareType(Nm,tpDef(Lc,Type,FaceRule,ConsIx),Ev2,Envx).
 
 declareAccessors(Acc,Ev,Evx) :-
   rfold(Acc,parsetype:declareAcc,Ev,Evx).
@@ -509,6 +509,9 @@ findCons(Body,Cons,Cnx,Path) :-
   isBinary(Body,_,"|",L,R),!,
   findCons(L,Cons,C0,Path),
   findCons(R,C0,Cnx,Path).
+findCons(Body,Cons,Cnx,Path) :-
+  isUnary(Body,_,"|",R),!,
+  findCons(R,Cons,Cnx,Path).
 findCons(Body,[lbl(Id,0)|Cnx],Cnx,Path) :-
   isIden(Body,_,Nm),!,
   mangleName(Path,class,Nm,Id).

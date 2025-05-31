@@ -15,7 +15,7 @@ star.io{
     try{
       valis _inchar(H)
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -25,7 +25,7 @@ star.io{
     try{
       valis waitforIO(IO,_inchar_async(IO))
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -35,7 +35,7 @@ star.io{
     try{
       valis _inchars(H,Cx)
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -45,7 +45,7 @@ star.io{
     try{
       valis waitforIO(IO,_inchars_async(IO,Cx))
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -55,7 +55,7 @@ star.io{
     try{
       valis _inline(H)
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -65,7 +65,7 @@ star.io{
     try{
       valis waitforIO(IO,_inline_async(IO))
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -75,7 +75,7 @@ star.io{
     try{
       valis _inbytes(H,Cx)
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -85,7 +85,7 @@ star.io{
     try{
       valis waitforIO(IO,_inbytes_async(IO,Cx))
     } catch {
-      | .eof => throw .pastEof
+      | .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }
@@ -95,7 +95,7 @@ star.io{
     try{
       valis _get_file(F);
     } catch {
-      .eof => throw .pastEof
+      .eEOF => throw .pastEof
       | _ default => throw .ioError
     }
   }

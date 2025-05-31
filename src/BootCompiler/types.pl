@@ -595,7 +595,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 		  (lbl("eNOTFND",0),9),
 		  (lbl("eINVAL",0),10),
 		  (lbl("eRANGE",0),11),
-		  (lbl("eof",0),12),
+		  (lbl("eEOF",0),12),
 		  (lbl("hasValue",0),13),
 		  (lbl("noValue",0),14)]),
 	 cnsDec("eINTRUPT","eINTRUPT",consType(tplType([]),type("errorCode"))),
@@ -612,7 +612,7 @@ stdDecl([typeDec("integer",type("integer"),typeExists(type("integer"),faceType([
 	 cnsDec("divZero","divZero",consType(tplType([]),type("errorCode"))),
 	 cnsDec("noValue","noValue",consType(tplType([]),type("errorCode"))),
 	 cnsDec("hasValue","hasValue",consType(tplType([]),type("errorCode"))),
-	 cnsDec("eof","eof",consType(tplType([]),type("errorCode")))
+	 cnsDec("eEOF","eEOF",consType(tplType([]),type("errorCode")))
 	]).
 
 toLtipe(Tp,LTp) :-

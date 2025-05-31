@@ -155,7 +155,7 @@ star.core {
     disp(.divZero) => "divZero".
     disp(.noValue) => "noValue".
     disp(.hasValue) => "hasValue".
-    disp(.eof) => "eof".
+    disp(.eEOF) => "eEOF".
   }
 
   public error ::= .error(string,errorCode).

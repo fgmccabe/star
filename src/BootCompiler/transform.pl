@@ -107,10 +107,6 @@ collectIxMap(typeDec(_Nm,Tp,_Rl,Map),CnMp,ConsMap) :-
   put_dict(Key,CnMp,Map,ConsMap).
 collectIxMap(_,ConsMap,ConsMap).
 
-% makeConstructorMap(Decls,CnMp,ConsMap) :-
-%   findAllConstructors(Decls,[],Cons),
-%   indexConstructors(Cons,CnMp,ConsMap).
-
 findAllConstructors([],Cons,Cons) :-!.
 findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
   consTpName(CnsTp,TpNm),
@@ -191,7 +187,7 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
-  extendFunTp(Tp,Extra,ATp),
+  extendFunType(Tp,Extra,ATp),
   transformEquations(Map,Extra,Opts,Eqns,Rules,[],Ex,Ex0),
   (is_member(traceNormalize,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
@@ -201,7 +197,7 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
 closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
   lookupVar(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure),!,
-  extendFunTp(Tp,Extra,ATp),
+  extendFunType(Tp,Extra,ATp),
   realArgTypes(ATp,Tps),
   genVars(Tps,Args),
   length(Args,Ar),
@@ -218,19 +214,25 @@ closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
 closureEntry(_,_,_Name,_Tp,_,_,_,L,L).
 %  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
+extendFunType(Tp,Extra,ETp) :-
+  deRef(Tp,DTp),
+  extendFunTp(DTp,Extra,ETp).
+
 extendFunTp(Tp,[],Tp):-!.
-extendFunTp(funType(tplType(Els),Rt),Extra,funType(tplType(NEls),Rt)) :-!,
+extendFunTp(funType(AT,Rt),Extra,funType(tplType(NEls),Rt)) :-!,
+  deRef(AT,tplType(Els)),
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
-extendFunTp(funType(tplType(Els),Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
+extendFunTp(funType(AT,Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
+  deRef(AT,tplType(Els)),
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
-  extendFunTp(T,Extra,NT).
+  extendFunType(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
-  extendFunTp(T,Extra,NT).
+  extendFunType(T,Extra,NT).
 extendFunTp(constrained(T,C),Extra,constrained(NT,C)) :-
-  extendFunTp(T,Extra,NT).
+  extendFunType(T,Extra,NT).
 
 extendTplTp([],[]).
 extendTplTp([T|M],[Tp|NEls]) :-
@@ -678,7 +680,7 @@ liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[L
    reportMsg("Free term %s",[ltrm(FreeTerm)]),
    dispMap("Lambda map: ",1,LMap);true),
   extraArity(Arity,[ThVr],Ar),
-  extendFunTp(Tp,[ThVr],ATp),
+  extendFunType(Tp,[ThVr],ATp),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
   functionMatcher(Lc,lbl(LamLbl,Ar),hard,ATp,Rls,Map,LamFun),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"Lifted Lambda: %s",[ldef(LamFun)])).

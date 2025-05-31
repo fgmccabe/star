@@ -93,7 +93,7 @@ test.f0{
   dspEr(.divZero) => "divZero".
   dspEr(.noValue) => "noValue".
   dspEr(.hasValue) => "hasValue".
-  dspEr(.eof) => "eof".
+  dspEr(.eEOF) => "eEOF".
 
   funnyComp((0,0)) => 0.
   funnyComp((1,X)) => X.
