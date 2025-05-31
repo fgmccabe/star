@@ -16,7 +16,7 @@
 isCanonDef(funDef(_,_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
 isCanonDef(cnsDef(_,_,_)).
-isCanonDef(typeDef(_,_,_,_)).
+isCanonDef(typeDef(_,_,_,_,_)).
 isCanonDef(conDef(_,_,_)).
 isCanonDef(implDef(_,_,_,_)).
 isCanonDef(accDec(_,_,_,_)).
@@ -440,9 +440,10 @@ ssDef(Dp,cnsDef(Lc,Nm,C),
   typeOfCanon(C,Tp),
   ssType(Tp,true,Dp,Ts),
   ssLoc(Lc,Lcs).
-ssDef(Dp,typeDef(Lc,_Nm,_Tp,Rl),sq([ss("type "),Ts,ss("@"),Lcs])) :-
+ssDef(Dp,typeDef(Lc,_Nm,_Tp,Rl,Mp),sq([ss("type "),Ts,ss("Map:"),sq(MM),ss("@"),Lcs])) :-
   ssLoc(Lc,Lcs),
-  ssType(Rl,true,Dp,Ts).
+  ssType(Rl,true,Dp,Ts),
+  ssMap(Mp,MM).
 ssDef(Dp,conDef(Nm,_ConNm,Rl),
       sq([ss("contract "),id(Nm),ss(" : "),Ts])) :-
   ssType(Rl,true,Dp,Ts).
@@ -455,6 +456,10 @@ ssDef(Dp,accDec(Tp,FldNm,FunNm,_),
 ssDef(Dp,updDec(Tp,FldNm,FunNm,_),
       sq([ss("upd "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-
   ssType(Tp,false,Dp,Ts).
+
+ssMap([],[]).
+ssMap([(lbl(Cn,Ar),Ix)|Mp],[sq([ss(" "),ss(Cn),ss("/"),ix(Ar),ss("@"),ix(Ix)])|MM]) :-
+  ssMap(Mp,MM).
 
 ssFunction(Dp,Nm,Type,Eqns,
 	   sq([ss("fun "),id(Nm),ss(" : "),Ts,nl(Dp),Rs])) :-
@@ -491,7 +496,7 @@ ssDecl(Dp,X,varDec(Nm,LclNme,Tp),
 ssDecl(Dp,X,cnsDec(Nm,LclNme,Tp),
       sq([X,ss("cons "),id(Nm),ss("~"),id(LclNme),ss(" :: "),Ts])) :-
   ssType(Tp,true,Dp,Ts).
-ssDecl(Dp,X,typeDec(Nm,Tp,_Rl),
+ssDecl(Dp,X,typeDec(Nm,Tp,_Rl,_Mp),
        sq([X,ss("type "),id(Nm),ss("::"),Ts])) :-
   ssType(Tp,true,Dp,Ts).
 ssDecl(Dp,X,contractDec(Nm,_ConNm,Rl),

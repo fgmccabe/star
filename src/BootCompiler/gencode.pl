@@ -18,7 +18,7 @@ genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   encPkg(Pkg,PT),
   initDict(D0),
   genImports(Imports,ImpTpl),
-  rfold(PkgDecls,gencode:defGlbl(Opts),D0,D2),
+  rfold(PkgDecls,gencode:decl(Opts),D0,D2),
   genDefs(Defs,Opts,D2,C,[]),
   mkTpl(C,Cdes),
   map(Decls,gensig:formatDecl,Ds),
@@ -30,6 +30,8 @@ genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   encode(Tp,Txt),
   encode(strg(Txt),Text).
 
+traceTrm(Cl,Trm,Out) :- call(Cl,Trm,Out), dispTerm(Out).
+
 genImports(Imps,ImpTpl) :-
   map(Imps,gencode:genImport,Els),
   mkTpl(Els,ImpTpl).
@@ -37,9 +39,12 @@ genImports(Imps,ImpTpl) :-
 genImport(importPk(_,_,Pkg),PkgTrm) :-
   encPkg(Pkg,PkgTrm).
 
-defGlbl(Opts,varDec(_,Nm,Tp),D,Dx) :-!,
+decl(Opts,varDec(_,Nm,Tp),D,Dx) :-!,
   defineGlbVar(Nm,Tp,Opts,D,Dx).
-defGlbl(_,_,D,D).
+decl(_,typeDec(TpNm,Tp,Rl,IxMap),D,Dx) :-
+  tpName(Tp,Nm),
+  defineType(Nm,typeDec(TpNm,Tp,Rl,IxMap),D,Dx).
+decl(_,_,D,D).
 
 genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
@@ -122,9 +127,9 @@ genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
 genRet(Opts,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
-initDict(scope([])).
+initDict(scope([],tps{})).
 
-getLsMap(scope(Dx),Vrs) :-
+getLsMap(scope(Dx,_),Vrs) :-
   extractMap(Dx,Vrs),!.
 
 extractMap([],[]).
@@ -143,13 +148,13 @@ buildArg(idnt(Nm,Tp),Ix,Lc,Opts,D,Dx) :-!,
   defineVar(Lc,Nm,Tp,Opts,a(Ix),D,Dx).
 buildArg(_,_,_,_,D,D).
 
-lclVar(Nm,T,Wh,scope(Vrs)) :-
+lclVar(Nm,T,Wh,scope(Vrs,_)) :-
   is_member((Nm,T,Wh),Vrs),!.
 
 defineLclVar(Lc,Nm,Tp,Opts,D,Dx,Cx,Cx) :-
   defineVar(Lc,Nm,Tp,Opts,l(Nm),D,Dx).
 
-defineVar(_Lc,Nm,Tp,_Opts,Mode,scope(Vrs),scope(NVrs)) :-
+defineVar(_Lc,Nm,Tp,_Opts,Mode,scope(Vrs,Tps),scope(NVrs,Tps)) :-
   toLtipe(Tp,T),
   encLtp(T,Sig),
   add_mem((Nm,strg(Sig),Mode),Vrs,NVrs).
@@ -162,15 +167,24 @@ genDebug(Opts,Debug,[Debug|Cx],Cx) :-
   is_member(debugging,Opts),!.
 genDebug(_,_,Cx,Cx).
 
-defineGlbVar(Nm,Tp,_Opts,scope(Vrs),scope([(Nm,strg(Sig),g(Nm))|Vrs])) :-
+defineGlbVar(Nm,Tp,_Opts,scope(Vrs,Tps),scope([(Nm,strg(Sig),g(Nm))|Vrs],Tps)) :-
   toLtipe(Tp,T),
   encLtp(T,Sig).
+
+defineType(Nm,TpDec,scope(Vrs,Tps),scope(Vrs,NTps)) :-
+  makeKey(Nm,Key),
+  put_dict(Key,Tps,TpDec,NTps).
+
+getTypeIndex(Tp,scope(_,Tps),Index) :-
+  tpName(Tp,Nm),
+  makeKey(Nm,Key),
+  get_dict(Key,Tps,typeDec(_,_,_,Index)).
 
 genLbl(Lbs,Lb,[Lb|Lbs]) :-
   length(Lbs,N),
   swritef(Lb,"_L%d",[N]).
 
-genTmpVar(scope(Vrs),Nm) :-
+genTmpVar(scope(Vrs,_),Nm) :-
   length(Vrs,Mx),
   swritef(Nm,"_Φ%d",[Mx]).
 
@@ -259,6 +273,15 @@ compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Last,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk
   chLine(Opts,OLc,Lc,C,C0),!,
   stkNxtLvl(Stk,Lvl),
   compCase(T,Lc,Lvl,Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  stkLvl(Stk,Lvl),
+  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx),
+  verify(gencode:consistentStack(Stk,Stkx),"case action not permitted to leave stuff on stack").
+compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  stkNxtLvl(Stk,Lvl),
+  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(whle(Lc,G,B),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   stkLvl(Stk,Lvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock(Lvl,[iLbl(Lp,iBlock(Lvl,LC))]))|Cx]),!,
@@ -630,6 +653,10 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   stkNxtLvl(Stk,Lvl),
   compCase(T,Lc,Lvl,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+compExp(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),
+  stkNxtLvl(Stk,Lvl),
+  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(tryX(Lc,B,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compTryX(Lc,B,ptrTipe,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
@@ -861,6 +888,42 @@ compCaseCond([(P,E,Lc)|More],GV,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,
   call(Hndlr,E,Lc,Brks,Last,Opts,L2,L3,D2,D3,C2,[iBreak(Ok)],Stk,Stka),
   compCaseCond(More,GV,Ok,Dflt,Hndlr,Brks,Last,Opts,L3,Lx,D3,Dx,BC,[],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"disjunction").
+
+compUnpack(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(OkLvl,C0))|Cx],Cx,Stk,Stkx) :-
+  genLbl(L,Df,L0),
+  genLbl(L0,Ok,L1),
+  stkLvl(Stk,Lvl),
+  tipeOf(Gv,Tp),
+  getTypeIndex(Tp,D,Index),
+  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
+  genUnpackTable(Cases,Index,Table),
+  length(Table,Mx),
+  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iUnpack(Mx)|CB],Stk,Stka),
+  call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
+  mergeStkLvl(Stka,Stkb,Stkx,"case exp").
+
+genUnpackTable(Cases,Index,Table) :-
+  genConsTable(Cases,Index,[],Table),!.
+
+genConsTable([],_,Tbl,Tbl).
+genConsTable([(P,E,Lc)|Cases],Index,Tbl,Table) :-
+  consLabelIndex(P,Index,Ix),
+  insertInTable((P,E,Lc),Ix,Tbl,Tbl1),
+  genConsTable(Cases,Index,Tbl1,Table).
+
+consLabelIndex(ctpl(Lbl,_),Index,Ix) :-
+  is_member((Lbl,Ix),Index).
+consLabelIndex(enum(Lbl),Index,Ix) :-
+  is_member((lbl(Lbl,0),Ix),Index).
+
+insertInTable(P,Ix,[],[(Ix,[P])]).
+insertInTable(P,Ix,[(Iy,E)|Tbl],[(Ix,[P]),(Iy,E)|Tbl]) :-
+  Iy>Ix,!.
+insertInTable(P,Ix,[(Iy,E)|Tbl],[(Iy,E)|Tblx]) :-
+  Iy<Ix,
+  insertInTable(P,Ix,Tbl,Tblx).
+insertInTable(P,Ix,[(Ix,E)|Tbl],[(Ix,EE)|Tbl]) :-
+  concat([P],E,EE).
 
 genLastReturn(last,Opts,C,Cx,Stk,Stkx) :-
   genRet(Opts,C,Cx,Stk,Stkx).

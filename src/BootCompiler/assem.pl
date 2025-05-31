@@ -224,7 +224,7 @@ stackHwm([iCase(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
-stackHwm([iIndxJmp(_)|Ins],CH0,H0,Hwm) :-
+stackHwm([iUnpack(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0-1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
   stackHwm(Ins,CH1,H1,Hwm).
@@ -495,7 +495,7 @@ localHwm([iICase(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iCase(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iIndxJmp(_)|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iUnpack(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iIAdd|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -781,7 +781,7 @@ mnem([iICase(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[55,V|M],Cdx) :-
 mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[56,V|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIndxJmp(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[57,V|M],Cdx) :-
+mnem([iUnpack(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[57,V|M],Cdx) :-
       Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
 mnem([iIAdd|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[58|M],Cdx) :-
@@ -1219,7 +1219,7 @@ showMnem(iCase(U),Pc,sq([PcDx,ss(": "),ss("Case"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iIndxJmp(U),Pc,sq([PcDx,ss(": "),ss("IndxJmp"), ss(" "), UU])) :- !,
+showMnem(iUnpack(U),Pc,sq([PcDx,ss(": "),ss("Unpack"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
@@ -1344,7 +1344,7 @@ showMnem(iDBug,Pc,sq([PcDx,ss(": "),ss("dBug")])) :- !,
   true.
 
 
-opcodeHash(2231337229613573684).
+opcodeHash(1603234843245358032).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

@@ -483,7 +483,7 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return decodeI32(in, &ins->alt);
       }
       case Case:
-      case IndxJmp: {
+      case Unpack: {
         (*count)--;
         return decodeI32(in, &ins->fst);
       }

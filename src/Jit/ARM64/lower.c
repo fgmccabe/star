@@ -77,25 +77,25 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   fp->args = stk->args;
 
   asm( "stp x29, x30, [sp, #-16]!\n"
-    "stp x27, x28, [sp, #-16]!\n"
-    "stp x25, x26, [sp, #-16]!\n"
-    "ldr x27, %[stk]\n"
-    "ldr x28, %[ssp]\n"
-    "ldr x26, %[ag]\n"
-    "ldr x25, %[constants]\n"
-    "ldr x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str x26, %[ag]\n"
-    "str x27, %[stk]\n"
-    "str x29, %[fp]\n"
-    "ldp x25, x26, [sp], #16\n"
-    "ldp x27, x28, [sp], #16\n"
-    "ldp x29, x30, [sp], #16\n"
+       "stp x27, x28, [sp, #-16]!\n"
+       "stp x25, x26, [sp, #-16]!\n"
+       "ldr x27, %[stk]\n"
+       "ldr x28, %[ssp]\n"
+       "ldr x26, %[ag]\n"
+       "ldr x25, %[constants]\n"
+       "ldr x16, %[code]\n"
+       "ldr x29, %[fp]\n"
+       "blr x16\n"
+       "str x26, %[ag]\n"
+       "str x27, %[stk]\n"
+       "str x29, %[fp]\n"
+       "ldp x25, x26, [sp], #16\n"
+       "ldp x27, x28, [sp], #16\n"
+       "ldp x29, x30, [sp], #16\n"
     : [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
-    [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
-    :
-    : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
+  [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
+  :
+  : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
 
   return Ok;
 }
@@ -166,8 +166,6 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
 
         setLabel(ctx, haveMtd);
 
-        codeLblPo returnPc = newLabel(ctx);
-
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
         mov(X0, IM((integer) jit->mtd));
@@ -177,8 +175,6 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
         blr(X16);
-
-        setLabel(ctx, returnPc);
         pc++;
         continue;
       }
@@ -205,14 +201,18 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
-        blr(X16);
+
+        codeLblPo returnPc = newLabel(ctx);
+        adr(LR, returnPc);
+
+        br(X16);
 
         codeLblPo catch = breakLabel(block, pc + code[pc].alt + 1);
         if (catch == Null)
           return jitError(jit, "not in try scope");
 
-        tst(X0, RG(X0));
-        bne(catch);
+        b(catch);
+        setLabel(ctx, returnPc);
         pc++;
         continue;
       }
@@ -308,7 +308,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         // Put return value on stack
         pushStkOp(jit, vl);
         releaseReg(jit, vl);
-        mov(X0, IM(1)); // Signal exceptional return
+
+        sub(X16,X16,IM(pointerSize));  // Step back one instruction to get to the break
         br(X16);
         pc++;
         continue;
@@ -534,9 +535,12 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
       }
       case CLit: {
         // T,lit --> test for a literal value, break if not
-        termPo lit = getConstant(code[pc].fst);
-        mov(X0, IM((integer) lit)); // set up call to sameTerm
-        ldr(X1, PSX(SSP, pointerSize));
+        int32 key = code[pc].fst;
+        tryRet(reserveReg(jit, X0));
+        tryRet(reserveReg(jit, X1));
+        loadConstant(jit, key, X0);
+
+        popStkOp(jit, X1);
         invokeCFunc2(jit, (Cfunc2) sameTerm);
         tst(X0, RG(X0));
         codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
@@ -545,6 +549,8 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         else
           return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
         pc++;
+        releaseReg(jit, X0);
+        releaseReg(jit, X1);
         continue;
       }
 
@@ -597,7 +603,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         armReg tgt = findFreeReg(jit);
         codeLblPo jmpTbl = newLabel(ctx);
         adr(tgt, jmpTbl);
-        add(tgt, tgt, LS(gr,2));
+        add(tgt, tgt, LS(gr, 2));
         br(tgt);
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
@@ -620,7 +626,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
           armReg tgt = findFreeReg(jit);
           codeLblPo jmpTbl = newLabel(ctx);
           adr(tgt, jmpTbl);
-          add(tgt, tgt, LS(gr,2));
+          add(tgt, tgt, LS(X0, 2));
           br(tgt);
           releaseReg(jit, tgt);
           releaseReg(jit, quotient);
@@ -632,7 +638,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
           return jitError(jit, "cannot reserve R0");
         }
       }
-      case IndxJmp: // check and jump on index
+      case Unpack: // check and jump on index
       case IAdd: {
         // L R --> L+R
         armReg a1 = popStkOp(jit, findFreeReg(jit));

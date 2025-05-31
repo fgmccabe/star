@@ -1,6 +1,28 @@
 test.ex3{
   except ::= .except(string).
 
+  cns[x] ::= .nl | .cns(x,cns[x]).
+
+  conc:all e ~~ (cns[e],cns[e])=>cns[e].
+  conc(.nl,X) => X.
+  conc(.cns(E,L),X) => .cns(E,conc(L,X)).
+
+  contract all t ~~ display[t] ::= {
+    disp:(t)=>string.
+  }
+  
+  implementation display[integer] => {
+    disp(X) => _int2str(X).
+  }
+
+  implementation all e ~~ display[e] |: display[cns[e]] => let{.
+    consDisp(.nl,L) => L.
+    consDisp(.cns(X,.nl),L) => .cons(disp(X), L).
+    consDisp(.cns(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
+ .} in {
+    disp(L) => _str_multicat(.cons("[",consDisp(L,.cons("]",.nil))))
+  }
+  
   contract all x,e ~~ ar[x->>e] ::= {
     times:(x,x)=>x.
     div:(x,x) => x throws e.
@@ -25,6 +47,8 @@ test.ex3{
 
   main:()=>().
   main()=>valof{
+    _logmsg("$(conc(.cns(3,.cns(2,.cns(1,.nl))),.cns(-1,.cns(-2,.nl))))");
+    
     try{
       try{
 	Dv = div;

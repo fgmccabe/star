@@ -98,8 +98,18 @@ declMdlGlobal(updDec(_,_,AccName,Tp),_,VMp,VMx,TMx,TMx) :-
 declMdlGlobal(_,_,Mx,Mx,TMx,TMx).
 
 makeConstructorMap(Decls,CnMp,ConsMap) :-
-  findAllConstructors(Decls,[],Cons),
-  indexConstructors(Cons,CnMp,ConsMap).
+  rfold(Decls,transform:collectIxMap,CnMp,ConsMap).
+
+collectIxMap(typeDec(_Nm,Tp,_Rl,Map),CnMp,ConsMap) :-
+  Map\=[],!,
+  tpName(Tp,TpNm),
+  makeKey(TpNm,Key),
+  put_dict(Key,CnMp,Map,ConsMap).
+collectIxMap(_,ConsMap,ConsMap).
+
+% makeConstructorMap(Decls,CnMp,ConsMap) :-
+%   findAllConstructors(Decls,[],Cons),
+%   indexConstructors(Cons,CnMp,ConsMap).
 
 findAllConstructors([],Cons,Cons) :-!.
 findAllConstructors([cnsDec(Nm,FullNm,CnsTp)|Defs],Cons,Cnx) :-
@@ -152,8 +162,8 @@ transformMdlDef(funDef(Lc,Nm,ExtNm,H,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Map,Opts,Dx,Dxx).
 transformMdlDef(varDef(Lc,_Nm,ExtNm,[],Tp,Val),_Pkg,Map,Opts,Dx,Dxx) :-
   transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,Dx,Dxx).
-transformMdlDef(typeDef(Lc,_Nm,Tp,Rl),_Pkg,Map,_,D,Dx) :-
-  transformTypeDef(Lc,Tp,Rl,Map,D,Dx).
+transformMdlDef(typeDef(Lc,_Nm,Tp,Rl,IxMap),_Pkg,Map,_,D,Dx) :-
+  transformTypeDef(Lc,Tp,Rl,IxMap,Map,D,Dx).
 transformMdlDef(cnsDef(Lc,_Nm,enm(_,FullNm,Tp)),_Pkg,Map,_,D,Dx) :-
   transformConsDef(Lc,FullNm,Tp,Map,D,Dx).
 transformMdlDef(conDef(_,_,_),_Pkg,_,_,Dxx,Dxx).
@@ -169,10 +179,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformTypeDef(Lc,Tp,Rl,Map,[typDef(Lc,Tp,Rl,IxMap)|Dx],Dx) :-
-  tpName(Tp,TpNm),
-  lookupTypeIndex(Map,TpNm,IxMap),!.
-transformTypeDef(_Lc,_Tp,_Rl,_Map,Dx,Dx).
+transformTypeDef(Lc,Tp,Rl,IxMap,_Map,[typDef(Lc,Tp,Rl,IxMap)|Dx],Dx).
 
 transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   consTpName(Tp,TpNm),
@@ -262,7 +269,7 @@ transformLetDef(varDef(Lc,Nm,_LclNm,_,Tp,Exp),Extra,Map,OMap,Opts,F,F,Dx,Dxx) :-
   lookupVar(Map,Nm,thunkArg(ThVr,Lbl,Ix)),
   liftFreeThunk(Lc,Nm,Lbl,Tp,ThVr,Exp,Ix,Extra,OMap,Opts,Dx,Dxx).
 transformLetDef(cnsDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
-transformLetDef(typeDef(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
+transformLetDef(typeDef(_,_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(conDef(_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(accDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
 transformLetDef(updDec(_,_,_,_),_,_,_,_,Fx,Fx,Dx,Dx).
@@ -664,17 +671,17 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   call(Lifter,Value,Rep,Q1,Qx,BMap,Opts,Ex1,Exx).
 
 liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[LamFun|Ex],Exx) :-
-  progTypeArity(Tp,Ar0),
-  Ar is Ar0+1,
+  progTypeArity(Tp,Arity),
   (is_member(traceNormalize,Opts) -> dispCanon(lambda(Lc,LamLbl,Cx,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Cx,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
   (is_member(traceNormalize,Opts) ->
    reportMsg("Free term %s",[ltrm(FreeTerm)]),
    dispMap("Lambda map: ",1,LMap);true),
+  extraArity(Arity,[ThVr],Ar),
+  extendFunTp(Tp,[ThVr],ATp),
   transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
-  functionMatcher(Lc,lbl(LamLbl,Ar),hard,Tp,Rls,Map,LamFun),
+  functionMatcher(Lc,lbl(LamLbl,Ar),hard,ATp,Rls,Map,LamFun),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"Lifted Lambda: %s",[ldef(LamFun)])).
-
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).

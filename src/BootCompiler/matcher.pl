@@ -9,7 +9,7 @@
 :- use_module(transutils).
 
 functionMatcher(Lc,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
-  eqnArgTypes(Eqns,Tps),
+  realArgTypes(Tp,Tps),
   genVars(Tps,NVrs),
   makeTriples(Eqns,0,Tpls),
   getLocalLblName(Nm,LclNm),
@@ -163,29 +163,11 @@ mkCase(Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
 mkCase(Lc,V,_,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
-mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
+mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
-mkUnpack(_Lc,V,Conder,[(Ptn,Exp,Lc)],_Index,Deflt,_Map,Reslt) :-!,
+mkUnpack(_Lc,V,Conder,[(Ptn,Exp,Lc)],Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
-mkUnpack(Lc,V,_,Cases,_Index,Deflt,_Map,case(Lc,V,Cases,Deflt)).
-
-populateArms([],_,_,_,_,[]).
-populateArms([(lbl(FullNm,_),_Ix)|Index],Cases,Map,DLc,Deflt,[Arm|Arms]) :-
-  (armPresent(FullNm,Cases,Lbl,Exp,Lc) ->
-   Arm=(Lbl,Exp,Lc);
-   lookupVar(Map,FullNm,moduleCons(_,CnsTp,_)),
-   emptyCase(CnsTp,FullNm,EmptyLbl),
-   Arm=(EmptyLbl,Deflt,DLc)),
-  populateArms(Index,Cases,Map,DLc,Deflt,Arms).
-
-armPresent(Nm,[(enum(Nm),Exp,Lc)|_],ctpl(lbl(Nm,0),[]),Exp,Lc) :-!.
-armPresent(Nm,[(ctpl(lbl(Nm,Ar),As),Exp,Lc)|_],ctpl(lbl(Nm,Ar),As),Exp,Lc) :-!.
-armPresent(Nm,[_|Cases],Lbl,Exp,Lc) :-
-  armPresent(Nm,Cases,Lbl,Exp,Lc).
-
-emptyCase(ConsTp,CnsNm,ctpl(lbl(CnsNm,Ar),Args)) :-
-  isConType(ConsTp,Ar),
-  genAnons(Ar,Args).
+mkUnpack(Lc,V,_,Cases,Deflt,_Map,unpack(Lc,V,Cases,Deflt)).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-
   appStr("case ",C,C0),
@@ -205,13 +187,10 @@ dispCases(Css) :-
   string_chars(Res,Chrs), write(Res).  
 
 matchConstructors(Lc,Subber,Conder,Tpls,[V|Vrs],Deflt,Map,Dp,CaseExp) :-
-%  reportMsg("constructor case around %s,\ndefault %s",[V,Deflt],Lc),
   sort(Tpls,matcher:compareConstructorTriple,ST),
   Dp1 is Dp+1,
   formCases(ST,Subber,Conder,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
-					%  dispCases(Cases),
-  findIndexMap(Tpls,Map,Index),
-  mkUnpack(Lc,V,Conder,Cases,Index,Deflt,Map,CaseExp).
+  mkUnpack(Lc,V,Conder,Cases,Deflt,Map,CaseExp).
 
 findIndexMap([([A|_],_,_)|_],Map,Index) :-
   cnsName(A,ANm),

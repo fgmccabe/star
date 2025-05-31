@@ -267,7 +267,7 @@ parseAnnotation(N,Lc,Stmts,_,_,_,F,[(N,Tp)|F]) :-
 parseAnnotation(_,_,_,_,_,_,Face,Face).
 
 defineType(N,_,_,Env,T,[(N,Tp)|T],_,_) :-
-  isType(N,Env,tpDef(_,Tp,_)),!.
+  isType(N,Env,tpDef(_,Tp,_,_)),!.
 defineType(N,_,St,Env,T,[(N,Type)|T],_Opts,Path) :-
   parseTypeCore(St,Type,Env,Path).
 defineType(_,Lc,St,_,T,T,_,_) :-
@@ -361,7 +361,7 @@ guessType(_,N,Lc,GTp) :- !,
   newTypeVar("_",GTp).
 
 findType(Nm,_,Env,Tp) :-
-  isType(Nm,Env,tpDef(_,Tp,_)),!.
+  isType(Nm,Env,tpDef(_,Tp,_,_)),!.
 findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
@@ -1213,11 +1213,11 @@ genDecl(funDef(_,Nm,FullNm,_,Tp,_,_),Def,Public,
   call(Public,var(Nm)),!.
 genDecl(funDef(_,Nm,FullNm,_,Tp,_,_),Def,_,Ex,Ex,
 	[funDec(Nm,FullNm,Tp)|Lx],Lx,[Def|Dfx],Dfx).
-genDecl(typeDef(_,Nm,Tp,TpRule),Def,Public,
-	[typeDec(Nm,Tp,TpRule)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
+genDecl(typeDef(_,Nm,Tp,TpRule,Map),Def,Public,
+	[typeDec(Nm,Tp,TpRule,Map)|Ex],Ex,Lx,Lx,[Def|Dfx],Dfx) :-
   call(Public,tpe(Nm)),!.
-genDecl(typeDef(_,Nm,Tp,TpRule),Def,_,Ex,Ex,
-	[typeDec(Nm,Tp,TpRule)|Lx],Lx,[Def|Dfx],Dfx).
+genDecl(typeDef(_,Nm,Tp,TpRule,Map),Def,_,Ex,Ex,
+	[typeDec(Nm,Tp,TpRule,Map)|Lx],Lx,[Def|Dfx],Dfx).
 genDecl(varDef(Lc,Nm,FullNm,[],Tp,lambda(_,_,Cx,Eqn,_)),_,Public,
 	 [funDec(Nm,FullNm,Tp)|Ex],Ex,Lx,Lx,
 	 [funDef(Lc,Nm,FullNm,hard,Tp,Cx,[Eqn])|Dfx],Dfx) :-
