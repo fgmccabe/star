@@ -86,10 +86,11 @@ pickupDeclaration(ctpl(lbl("con",3),
 		       [strg(Nm),strg(CnNm),strg(Sig)]),
 		  contractDec(Nm,CnNm,Spec)) :-
   decodeSignature(Sig,Spec).
-pickupDeclaration(ctpl(lbl("tpe",3),[strg(Nm),strg(Sig),strg(RlSig)]),
-		  typeDec(Nm,Tp,TpRule)) :-
+pickupDeclaration(ctpl(lbl("tpe",4),[strg(Nm),strg(Sig),strg(RlSig),Mp]),
+		  typeDec(Nm,Tp,TpRule,IxMap)) :-
   decodeSignature(Sig,Tp),
-  decodeSignature(RlSig,TpRule).
+  decodeSignature(RlSig,TpRule),
+  decodeConsMap(Mp,IxMap).
 pickupDeclaration(ctpl(lbl("var",3),[strg(Nm),strg(FullNm),strg(Sig)]),
 		  varDec(Nm,FullNm,Tp)) :-
   decodeSignature(Sig,Tp).
@@ -101,13 +102,10 @@ pickupDeclaration(ctpl(lbl("cns",3),
 		  cnsDec(Nm,FullNm,CnTp)) :-
   decodeSignature(Sig,CnTp).
 
-
 decodeConsMap(ctpl(_,Ctors),ConsMap) :-
   map(Ctors,import:pickupCtor,ConsMap).
 
-pickupCtor(ctpl(_,[strg(Nm),strg(FlNm),intgr(Ix),strg(Sig)]),(Nm,FlNm,Ix,Tp)) :-
-  decodeSignature(Sig,Tp).
-
+pickupCtor(ctpl(_,[strg(Lbl),intgr(Ix)]),(Lbl,Ix)).
 	    
 loadCode(Strm,[]) :-
   at_end_of_stream(Strm).

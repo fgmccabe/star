@@ -72,7 +72,7 @@ dispRuleSet(RS) :-
 ssConsMap(Els,iv(ss(", "),EE)) :-
   map(Els,lterms:ssConsEntry,EE).
 
-ssConsEntry((Lb,Ix),sq([LL,ss(":"),ix(Ix)])) :-
+ssConsEntry((Lb,Ix),sq([LL,ss("@"),ix(Ix)])) :-
   ssTrm(Lb,0,LL).
   
 showArgs(Args,Dp,iv(ss(","),AA)) :-
@@ -161,6 +161,11 @@ ssTrm(case(_,G,Cases,Deflt),Dp,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
+ssTrm(unpack(_,G,Cases,Deflt),Dp,
+      sq([ss("unpack "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
+  ssTrm(G,Dp,GG),
+  ssCases(Cases,Dp,lterms:ssTrm,CC),
+  ssTrm(Deflt,Dp,DD).
 ssTrm(seqD(_,L,R),Dp,sq([LL,ss(";"),RR])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
@@ -228,6 +233,11 @@ ssAct(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Rc,Dp,OO),
   ssTrm(Vl,Dp,VV).
 ssAct(case(_,G,Cases,Deflt),Dp,
+      sq([ss("case "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
+  ssTrm(G,Dp,GG),
+  ssCases(Cases,Dp,lterms:ssAct,CC),
+  ssAct(Deflt,Dp,DD).
+ssAct(unpack(_,G,Cases,Deflt),Dp,
       sq([ss("case "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssAct,CC),
@@ -379,6 +389,10 @@ rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
+rewriteTerm(QTest,unpack(Lc,T,C,D),unpack(Lc,NT,NC,ND)) :-
+  rewriteTerm(QTest,T,NT),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
+  rewriteTerm(QTest,D,ND).
 rewriteTerm(QTest,seqD(Lc,L,R),seqD(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -453,6 +467,10 @@ rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
   rewriteTerm(QTest,P,PP),
   rewriteTerm(QTest,E,EE).
 rewriteAction(QTest,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
+  rewriteTerm(QTest,G,GG),
+  rewriteAction(QTest,D,ND),
+  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
+rewriteAction(QTest,unpack(Lc,G,C,D),unpack(Lc,GG,CC,ND)) :-
   rewriteTerm(QTest,G,GG),
   rewriteAction(QTest,D,ND),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
@@ -583,6 +601,10 @@ inTerm(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inTerm(case(_,_T,C),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
+inTerm(unpack(_,T,_C),Nm) :-
+  inTerm(T,Nm),!.
+inTerm(unpack(_,_T,C),Nm) :-
+  is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
 inTerm(seqD(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
 inTerm(cnj(_,L,R),Nm) :-!,
@@ -634,6 +656,10 @@ inAction(case(_,T,_C),Nm) :-
   inTerm(T,Nm),!.
 inAction(case(_,_T,C),Nm) :-
   is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
+inAction(unpack(_,T,_C),Nm) :-
+  inTerm(T,Nm),!.
+inAction(unpack(_,_T,C),Nm) :-
+  is_member((P,V,_),C), (inTerm(P,Nm);inAction(V,Nm)),!.
 inAction(iftte(_,G,L,R),Nm) :-!,
   (inTerm(G,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm)).
 inAction(whle(_,G,L),Nm) :-!,
@@ -677,6 +703,7 @@ tipeOf(rtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
+tipeOf(unpack(_,_G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
 tipeOf(cnj(_,_,_),type("boolean")).
 tipeOf(dsj(_,_,_),type("boolean")).
@@ -724,7 +751,7 @@ declareDef(funDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
 declareDef(varDec(_,Nm,_Tp),Dct,Dx) :-!,
   add_mem(Nm,Dct,Dx).
-declareDef(typeDec(_,_,_),Dx,Dx).
+declareDef(typeDec(_,_,_,_),Dx,Dx).
 declareDef(cnsDec(_,Nm,_),D,Dx) :-
   add_mem(Nm,D,Dx).
 declareDef(contractDec(_,_,_),Dx,Dx).
@@ -804,6 +831,10 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
 validTerm(case(Lc,G,Cases,Deflt),_,D) :-
+  validTerm(G,Lc,D),
+  validCases(Cases,lterms:validTerm,D),
+  validTerm(Deflt,Lc,D).
+validTerm(unpack(Lc,G,Cases,Deflt),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
@@ -927,6 +958,10 @@ validAction(asgn(Lc,P,E),_,D,D) :- !,
   validTerm(P,Lc,D),
   validTerm(E,Lc,D).
 validAction(case(Lc,G,C,Df),_,D,Dx) :-
+  validTerm(G,Lc,D),
+  validCases(C,lterms:validAct,D),
+  validAction(Df,Lc,D,Dx).
+validAction(unpack(Lc,G,C,Df),_,D,Dx) :-
   validTerm(G,Lc,D),
   validCases(C,lterms:validAct,D),
   validAction(Df,Lc,D,Dx).

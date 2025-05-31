@@ -39,9 +39,10 @@ formatDecl(varDec(Nm,FullNm,Tp),ctpl(lbl("var",3),[strg(Nm),strg(FullNm),Sig])) 
   encodeSignature(Tp,Sig).
 formatDecl(funDec(Nm,FullNm,Tp),ctpl(lbl("fun",3),[strg(Nm),strg(FullNm),Sig])) :-
   encodeSignature(Tp,Sig).
-formatDecl(typeDec(Nm,Tp,TpRule),ctpl(lbl("tpe",3),[strg(Nm),TpSig,RlSig])) :-
+formatDecl(typeDec(Nm,Tp,TpRule,IxMap),ctpl(lbl("tpe",4),[strg(Nm),TpSig,RlSig,MM])) :-
   encodeSignature(Tp,TpSig),
-  encodeSignature(TpRule,RlSig).
+  encodeSignature(TpRule,RlSig),
+  formatIxMap(IxMap,MM).
 formatDecl(accDec(Tp,Fld,Fn,AccTp),
 	   ctpl(lbl("acc",4),[TpSig,strg(Fld),strg(Fn),AccSig])) :-
   encodeSignature(Tp,TpSig),
@@ -60,15 +61,11 @@ formatDecl(cnsDec(Nm,FullNm,Tp),ctpl(lbl("cns",3),
 				     [strg(Nm),strg(FullNm),Sig])) :-
   encodeSignature(Tp,Sig).
 
+formatIxMap(En,MapTpl) :-
+  map(En,gensig:formatIx,Els),
+  mkTpl(Els,MapTpl).
 
-formatCnMap((TpNm,Cns),ConTpl) :-
-  map(Cns,gensig:formatCns,Cnx),
-  mkTpl(Cnx,CnTpl),
-  mkTpl([strg(TpNm),CnTpl],ConTpl).
-
-formatCns((Nm,FlNm,Tp),Fmt) :-
-  encodeSignature(Tp,CnSig),
-  mkTpl([strg(Nm),strg(FlNm),CnSig],Fmt).
+formatIx((Lb,Ix),ctpl(lbl("ix",2), [Lb,intgr(Ix)])).
 
 formatContracts([],[]).
 formatContracts([conDef(Nm,CnNm,Spec)|M],[ConTpl|R]) :-

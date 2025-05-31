@@ -40,11 +40,11 @@ declareType(Nm,TpDef,[dict(Types,Nms,Cons,Impls,Accs,Ups,Contracts)|Outer],
 
 declareTypeVars([],_,Env,Env).
 declareTypeVars([(Nm,Tp)|Vars],Lc,Env,Ex) :-
-  declareType(Nm,tpDef(Lc,Tp,voidType),Env,E0),
+  declareType(Nm,tpDef(Lc,Tp,voidType,[]),Env,E0),
   declareTypeVars(Vars,Lc,E0,Ex).
 
 isTypeVar(Nm,Env,Tp) :-
-  isType(Nm,Env,tpDef(_,Tp,voidType)),!.
+  isType(Nm,Env,tpDef(_,Tp,voidType,_)),!.
 
 declareVar(Nm,Lc,Tp,Face,Mk,
 	   [dict(Types,Names,Cns,Impls,Accs,Ups,Contracts)|Outer],
@@ -241,7 +241,7 @@ mergeVDefs([Vr-T1|D1],D2,Env,[Vr-T1|D3]) :-
 mergeVDefs([_|D1],D2,Env,D3) :-
   mergeVDefs(D1,D2,Env,D3).
 
-sameTpDef(tpDef(Lc,T1,R1),tpDef(_,T2,R2),Env) :-
+sameTpDef(tpDef(Lc,T1,R1,_),tpDef(_,T2,R2,_),Env) :-
   unify:sameType(T1,T2,Lc,Env),
   unify:sameType(R1,R2,Lc,Env).
 
@@ -260,7 +260,7 @@ pushFields([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
 pushTypes([],_,Env,Env).
 pushTypes([(N,Type)|Tps],Lc,Env,ThEnv) :-
   mkTypeRule(Type,Tp,Rl),
-  declareType(N,tpDef(Lc,Tp,Rl),Env,E0),
+  declareType(N,tpDef(Lc,Tp,Rl,[]),Env,E0),
   pushTypes(Tps,Lc,E0,ThEnv).
 
 processDictLvl(Dict,P,Cx,Result) :-
@@ -293,9 +293,14 @@ dispTypes(Tps,sq([ss("Types"),nl(4),iv(nl(4),TT)])) :-
   dict_pairs(Tps,_,Pairs),
   map(Pairs,dict:showTpEntry,TT).
 
-showTpEntry(_-tpDef(_Lc,Tp,Rl),sq([TT,ss("~~"),RR])) :-
+showTpEntry(_-tpDef(_Lc,Tp,Rl,Mp),sq([TT,ss("~~"),RR,sq(MM)])) :-
   ssType(Tp,false,2,TT),
-  ssType(Rl,false,2,RR).
+  ssType(Rl,false,2,RR),
+  ssMap(Mp,MM).
+
+ssMap([],[]).
+ssMap([(Cn,Ix)|Mp],[sq([ss(Cn),ss("@"),ix(Ix)])|MM]) :-
+  ssMap(Mp,MM).
 
 dispContracts(Cons,sq([ss("Contracts"),nl(4),iv(nl(4),CC)])) :-
   dict_pairs(Cons,_,Pairs),

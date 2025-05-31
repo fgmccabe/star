@@ -643,7 +643,8 @@ retCode run(processPo P) {
 
       case StNth: {
         /* store into a closure */
-        normalPo cl = C_NORMAL(pop());
+        termPo top = pop();
+        normalPo cl = C_NORMAL(top);
         termPo tos = pop();
         cl->args[PC->fst] = tos;
         PC++;
@@ -1082,10 +1083,11 @@ retCode run(processPo P) {
         continue;
       }
 
-      case IndxJmp: {
+      case Unpack: {
         // Branch based on index of constructor term
-        normalPo top = C_NORMAL(pop());
-        labelPo lbl = termLbl(top);
+        termPo top = pop();
+        assert(isNormalPo(top));
+        labelPo lbl = termLbl(C_NORMAL(top));
         integer hx = lblIndex(lbl);
 
         PC = PC + hx + 1;

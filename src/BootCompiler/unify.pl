@@ -88,13 +88,13 @@ subFace(Tp1,Tp2,Lc,Env) :-
   check_implies(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Lc,Env))).
 
 isTypeFun(type(Nm),[],_Lc,Env,Tp) :-
-  isType(Nm,Env,tpDef(_,_,Rule)),
+  isType(Nm,Env,tpDef(_,_,Rule,_)),
   isTypeLam(Rule),!,
   freshen(Rule,Env,_,Tp).
 isTypeFun(tpExp(Nm,A),[A|Args],Lc,Env,Tp) :-!,
   isTypeFun(Nm,Args,Lc,Env,Tp).
 isTypeFun(tpFun(Nm,_),[],_Lc,Env,Tp) :-
-  isType(Nm,Env,tpDef(_,_,Rule)),!,
+  isType(Nm,Env,tpDef(_,_,Rule,_)),!,
   isTypeLam(Rule),!,
   freshen(Rule,Env,_,Tp).
 
@@ -103,14 +103,14 @@ faceOfType(T,Lc,Env,Face) :-
   getFace(Tp,Lc,Env,Face).
 
 getFace(type(Nm),Lc,Env,Face) :- 
-  (isType(Nm,Env,tpDef(_,_,FaceRule)) ->
+  (isType(Nm,Env,tpDef(_,_,FaceRule,_)) ->
    freshen(FaceRule,Env,_,typeExists(Lhs,FTp)),
    sameType(type(Nm),Lhs,Lc,Env),!,
    getFace(FTp,Lc,Env,Face) ;
    Face=faceType([],[])).
 getFace(tpExp(Op,Arg),Lc,Env,Face) :-
   isTypeExp(tpExp(Op,Arg),tpFun(Nm,_),_),!,
-  isType(Nm,Env,tpDef(_,_,FaceRule)),
+  isType(Nm,Env,tpDef(_,_,FaceRule,_)),
   freshen(FaceRule,Env,_,Rl),
   getConstraints(Rl,_,typeExists(Lhs,FTp)),
   sameType(Lhs,tpExp(Op,Arg),Lc,Env),!,

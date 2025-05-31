@@ -183,8 +183,9 @@ ReturnStatus g__shell(heapPo h, termPo a1, termPo a2, termPo a3) {
     argv[argCnt + 1] = NULL;
 
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
-      env = consTail(C_NORMAL(env));
+      normalPo envTerm = C_NORMAL(env);
+      normalPo pair = C_NORMAL(consHead(envTerm));
+      env = consTail(envTerm);
       strBufferPo lineBf = newStringBuffer();
 
       integer klen, vlen;
@@ -281,8 +282,9 @@ ReturnStatus g__popen(heapPo h, termPo a1, termPo a2, termPo a3) {
     termPo env = environment;
 
     for (integer ix = 0; ix < envCnt; ix++) {
-      normalPo pair = C_NORMAL(consHead(C_NORMAL(env)));
-      env = consTail(C_NORMAL(env));
+      normalPo envTerm = C_NORMAL(env);
+      normalPo pair = C_NORMAL(consHead(envTerm));
+      env = consTail(envTerm);
 
       integer klen, vlen;
       const char *key = strVal(nthArg(pair, 0), &klen);

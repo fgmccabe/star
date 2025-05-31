@@ -37,8 +37,8 @@ declareDecl(_,updDec(Tp,Fld,FnNm,AccTp),Ev,Evx) :-
   declareFieldUpdater(Tp,Fld,FnNm,AccTp,Ev,Evx).
 declareDecl(Lc,contractDec(Nm,CnNm,Rule),Ev,Evx) :-
   defineContract(Nm,Lc,conDef(Nm,CnNm,Rule),Ev,Evx).
-declareDecl(Lc,typeDec(Nm,Tp,Rule),Env,Evx) :-
-  declareType(Nm,tpDef(Lc,Tp,Rule),Env,Evx).
+declareDecl(Lc,typeDec(Nm,Tp,Rule,Map),Env,Evx) :-
+  declareType(Nm,tpDef(Lc,Tp,Rule,Map),Env,Evx).
 declareDecl(Lc,varDec(Nm,_FullNm,Tp),Env,Evx) :-
   declareVr(Lc,Nm,Tp,none,Env,Evx).
 declareDecl(Lc,cnsDec(Nm,FullNm,Tp),Env,Evx) :-

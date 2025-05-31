@@ -276,7 +276,7 @@ retCode jit_Case(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
-retCode jit_IndxJmp(insPo code, integer *pc, jitCompPo jitCtx) {
+retCode jit_Unpack(insPo code, integer *pc, jitCompPo jitCtx) {
   return Error;
 }
 
