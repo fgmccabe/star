@@ -221,6 +221,6 @@ star.compiler.dict{
     .cnsDec(.none,"divZero","divZero",enumType(errorCodeType)),
     .cnsDec(.none,"noValue","noValue",enumType(errorCodeType)),
     .cnsDec(.none,"hasValue","hasValue",enumType(errorCodeType)),
-    .cnsDec(.none,"eof","eof",enumType(errorCodeType))
+    .cnsDec(.none,"eEOF","eEOF",enumType(errorCodeType))
   ]
 }

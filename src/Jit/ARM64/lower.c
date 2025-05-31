@@ -5,11 +5,13 @@
 #include <assert.h>
 #include "lowerP.h"
 #include "stackP.h"
+#include "labelsP.h"
 #include "globals.h"
 #include "constantsP.h"
 #include "jitP.h"
 #include "formioP.h"
 #include "debug.h"
+#include "errorCodes.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -309,7 +311,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pushStkOp(jit, vl);
         releaseReg(jit, vl);
 
-        sub(X16,X16,IM(pointerSize));  // Step back one instruction to get to the break
+        sub(X16, X16, IM(pointerSize));  // Step back one instruction to get to the break
         br(X16);
         pc++;
         continue;
@@ -638,7 +640,28 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
           return jitError(jit, "cannot reserve R0");
         }
       }
-      case Unpack: // check and jump on index
+      case Unpack: { // check and jump on index
+        armReg tgt = popStkOp(jit, findFreeReg(jit));
+        armReg ix = findFreeReg(jit);
+        ldr(ix, OF(tgt, 0));          // Pick up the label
+        ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
+        // Make sure that it is less than max
+        armReg divisor = findFreeReg(jit);
+        mov(divisor, IM(code[pc].fst));
+        armReg quotient = findFreeReg(jit);
+        udiv(quotient, ix, divisor);
+        msub(ix, divisor, quotient, ix);
+
+        codeLblPo jmpTbl = newLabel(ctx);
+        adr(tgt, jmpTbl);
+        add(tgt, tgt, LS(ix, 2));
+        br(tgt);
+        releaseReg(jit, tgt);
+        releaseReg(jit, quotient);
+        releaseReg(jit, ix);
+        setLabel(ctx, jmpTbl);
+        pc++;
+      }
       case IAdd: {
         // L R --> L+R
         armReg a1 = popStkOp(jit, findFreeReg(jit));
@@ -700,6 +723,35 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
       }
       case IDiv: {
         // L R --> L/R
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        codeLblPo skip = newLabel(ctx);
+        tst(a2, IM(0));
+        bne(skip);
+        int32 divZeroKey = defineConstantLiteral(divZero);
+
+        loadConstant(jit, divZeroKey, a2);
+        pushStkOp(jit, a2);
+        int32 tgtBlock = pc + code[pc].alt + 1;
+        codeLblPo lbl = breakLabel(block, tgtBlock);
+        if (lbl != Null) {
+          add(SSP, AG, IM(-(lclCount(jit->mtd) + code[tgtBlock].fst - 1) * pointerSize));
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", tgtBlock);
+
+        setLabel(ctx, skip);
+        sdiv(a1, a1, a2);
+        mkIntVal(jit, a1);
+        pushStkOp(jit, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        pc++;
+        continue;
       }
       case IMod: // L R --> L%R
       case IAbs: // L --> abs(L)

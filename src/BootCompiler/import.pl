@@ -105,7 +105,7 @@ pickupDeclaration(ctpl(lbl("cns",3),
 decodeConsMap(ctpl(_,Ctors),ConsMap) :-
   map(Ctors,import:pickupCtor,ConsMap).
 
-pickupCtor(ctpl(_,[strg(Lbl),intgr(Ix)]),(Lbl,Ix)).
+pickupCtor(ctpl(_,[Lbl,intgr(Ix)]),(Lbl,Ix)).
 	    
 loadCode(Strm,[]) :-
   at_end_of_stream(Strm).

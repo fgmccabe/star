@@ -16,7 +16,7 @@
 
 genCode(PkgDecls,mdule(Pkg,Imports,Decls,LDecls,Defs),Opts,Text) :-
   encPkg(Pkg,PT),
-  initDict(D0),
+  initDict(D0,Opts),
   genImports(Imports,ImpTpl),
   rfold(PkgDecls,gencode:decl(Opts),D0,D2),
   genDefs(Defs,Opts,D2,C,[]),
@@ -127,7 +127,9 @@ genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
 genRet(Opts,C,Cx,_Stk,none) :-
   genDbg(Opts,C,[iRet|Cx]).
 
-initDict(scope([],tps{})).
+initDict(D,Opts) :-
+  stdDecl(Decls),
+  rfold(Decls,gencode:decl(Opts),scope([],tps{}),D).
 
 getLsMap(scope(Dx,_),Vrs) :-
   extractMap(Dx,Vrs),!.
@@ -897,7 +899,7 @@ compUnpack(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBloc
   getTypeIndex(Tp,D,Index),
   compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
   genUnpackTable(Cases,Index,Table),
-  length(Table,Mx),
+  maxTableEntry(Table,Mx),
   compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iUnpack(Mx)|CB],Stk,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
@@ -910,6 +912,17 @@ genConsTable([(P,E,Lc)|Cases],Index,Tbl,Table) :-
   consLabelIndex(P,Index,Ix),
   insertInTable((P,E,Lc),Ix,Tbl,Tbl1),
   genConsTable(Cases,Index,Tbl1,Table).
+
+maxTableEntry(Tbl,Mx) :-
+  mxEntry(Tbl,0,M),!,
+  Mx is M+1.
+
+mxEntry([],M,M).
+mxEntry([(Ix,_)|Tbl],M,Mx) :-
+  Ix>M ->
+  M1 is Ix+1,
+  mxEntry(Tbl,M1,Mx);
+  mxEntry(Tbl,M,Mx).
 
 consLabelIndex(ctpl(Lbl,_),Index,Ix) :-
   is_member((Lbl,Ix),Index).

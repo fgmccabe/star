@@ -12,9 +12,6 @@
 #include "eitherP.h"
 #include "constantsP.h"
 
-termPo eOk;
-termPo eSWITCH;
-termPo eERROR;
 termPo eEOF;
 termPo eINTRUPT;
 termPo eINVAL;
@@ -34,7 +31,6 @@ termPo hasValue;
 termPo falseEnum;
 termPo trueEnum;
 termPo voidEnum;
-termPo eofEnum;
 termPo canceledEnum;
 termPo unitEnum;
 
@@ -77,21 +73,21 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  eOk = declareEnum("Ok", -1, globalHeap);
-  eSWITCH = declareEnum("eSWITCH", -1, globalHeap);
-  eERROR = declareEnum("eERROR", -1, globalHeap);
-  eINTRUPT = declareEnum("eINTRUPT", -1, globalHeap);
-  eEOF = declareEnum("eEOF", -1, globalHeap);
-  eNOTDIR = declareEnum("eNOTDIR", -1, globalHeap);
-  eNOFILE = declareEnum("eNOFILE", -1, globalHeap);
-  eNOTFND = declareEnum("eNOTFND", -1, globalHeap);
-  eINVAL = declareEnum("eINVAL", -1, globalHeap);
-  eRANGE = declareEnum("eRANGE", -1, globalHeap);
-  eNOPERM = declareEnum("eNOPERM", -1, globalHeap);
-  eFAIL = declareEnum("eFAIL", -1, globalHeap);
-  eIOERROR = declareEnum("eIOERROR", -1, globalHeap);
-  eCONNECT = declareEnum("eCONNECT", -1, globalHeap);
-  eDEAD = declareEnum("eDEAD", -1, globalHeap);
+  divZero = declareEnum("divZero", 0, globalHeap);
+  eCONNECT = declareEnum("eCONNECT", 1, globalHeap);
+  eDEAD = declareEnum("eDEAD", 2, globalHeap);
+  eFAIL = declareEnum("eFAIL", 3, globalHeap);
+  eINTRUPT = declareEnum("eINTRUPT", 4, globalHeap);
+  eIOERROR = declareEnum("eIOERROR", 5, globalHeap);
+  eNOFILE = declareEnum("eNOFILE", 6, globalHeap);
+  eNOPERM = declareEnum("eNOPERM", 7, globalHeap);
+  eNOTDIR = declareEnum("eNOTDIR", 8, globalHeap);
+  eNOTFND = declareEnum("eNOTFND", 9, globalHeap);
+  eINVAL = declareEnum("eINVAL", 10, globalHeap);
+  eRANGE = declareEnum("eRANGE", 11, globalHeap);
+  eEOF = declareEnum("eEOF", 12, globalHeap);
+  hasValue = declareEnum("hasValue", 13, globalHeap);
+  noValue = declareEnum("noValue", 14, globalHeap);
 
   falseEnum = declareEnum("false", 0, globalHeap);
   defineConstantLiteral(falseEnum);        // Ensure unique reference to false and true enums
@@ -100,13 +96,7 @@ void initGlobals() {
 
   voidEnum = declareEnum("void", 0, globalHeap);
 
-  eofEnum = declareEnum("eof", -1, globalHeap);
   canceledEnum = declareEnum("canceled", -1, globalHeap);
-
-  divZero = declareEnum("divZero", -1, globalHeap);
-
-  noValue = declareEnum("noValue", -1, globalHeap);
-  hasValue = declareEnum("hasValue", -1, globalHeap);
 
   unitEnum = (termPo) allocateTpl(globalHeap, 0);
 }
@@ -203,9 +193,6 @@ void markGlobals(gcSupportPo G) {
 
   markConstants(G);
 
-  eOk = markPtr(G, &eOk);
-  eSWITCH = markPtr(G, &eSWITCH);
-  eERROR = markPtr(G, &eERROR);
   eINTRUPT = markPtr(G, &eINTRUPT);
   eEOF = markPtr(G, &eEOF);
 
@@ -224,7 +211,6 @@ void markGlobals(gcSupportPo G) {
   trueEnum = markPtr(G, &trueEnum);
 
   voidEnum = markPtr(G, &voidEnum);
-  eofEnum = markPtr(G, &eofEnum);
   canceledEnum = markPtr(G, &canceledEnum);
 
   nilEnum = markPtr(G, &nilEnum);
@@ -287,7 +273,7 @@ termPo ioErrorCode(retCode ret) {
     case Error:
       return eIOERROR;
     case Eof:
-      return eofEnum;
+      return eEOF;
     default:
       return eIOERROR;
   }

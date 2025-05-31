@@ -37,7 +37,7 @@ test.iowtext{
       };
       valis ()
     } catch {
-      | .eof => showMsg("end of file")
+      | .eEOF => showMsg("end of file")
       | Cde => showMsg("error code $(Cde)")
     };
 

@@ -23,5 +23,5 @@ test.ex2{
   dspEr(.divZero) => "divZero".
   dspEr(.noValue) => "noValue".
   dspEr(.hasValue) => "hasValue".
-  dspEr(.eof) => "eof".
+  dspEr(.eEOF) => "eEOF".
 }

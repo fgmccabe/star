@@ -64,7 +64,7 @@ ReturnStatus g__inchar(heapPo h, termPo a1) {
     case Ok:
       return (ReturnStatus) {.ret=Normal, .result=allocateCharacter(cp)};
     case Eof:
-      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eEOF};
     default:
       return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
   }
@@ -225,7 +225,7 @@ ReturnStatus g__inbyte(heapPo h, termPo a1) {
     case Ok:
       return (ReturnStatus) {.ret=Normal, .result=makeInteger(b)};
     case Eof:
-      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eEOF};
     default:
       return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
   }
@@ -271,7 +271,7 @@ ReturnStatus g__inbyte_async(heapPo h, termPo a1) {
       case Ok:
         return (ReturnStatus) {.ret=Normal, .result=makeInteger(b)};
       case Eof:
-        return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
+        return (ReturnStatus) {.ret=Abnormal, .result=eEOF};
       default:
         return (ReturnStatus) {.ret=Abnormal, .result=ioErrorCode(ret)};
     }
@@ -414,7 +414,7 @@ ReturnStatus g__inline(heapPo h, termPo a1) {
     }
     case Eof: {
       closeIo(O_IO(buffer));
-      return (ReturnStatus) {.ret=Abnormal, .result=eofEnum};
+      return (ReturnStatus) {.ret=Abnormal, .result=eEOF};
     }
     default: {
       closeIo(O_IO(buffer));

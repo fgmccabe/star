@@ -68,11 +68,11 @@ dropUnreachable([iAbort|_],[iAbort]) :-!.
 dropUnreachable([iHalt(Ix)|_],[iHalt(Ix)]) :-!.
 dropUnreachable([iRetire|_],[iRetire]) :-!.
 dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
-  copyN(Mx,I,[],Is,[]).
+  copyN(Mx,I,_,Is,[]).
 dropUnreachable([iICase(Mx)|I],[iICase(Mx)|Is]) :-
-  copyN(Mx,I,[],Is,[]).
+  copyN(Mx,I,_,Is,[]).
 dropUnreachable([iUnpack(Mx)|I],[iUnpack(Mx)|Is]) :-
-  copyN(Mx,I,[],Is,[]).
+  copyN(Mx,I,_,Is,[]).
 dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
 
