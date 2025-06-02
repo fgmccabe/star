@@ -640,7 +640,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
           return jitError(jit, "cannot reserve R0");
         }
       }
-      case Unpack: { // check and jump on index
+      case IxCase: { // check and jump on index
         armReg tgt = popStkOp(jit, findFreeReg(jit));
         armReg ix = findFreeReg(jit);
         ldr(ix, OF(tgt, 0));          // Pick up the label

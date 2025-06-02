@@ -33,7 +33,7 @@ retCode run(processPo P) {
 
   for (;;) {
 #ifndef NDEBUG
-    pcCount++;                         /* increment total number of executed */
+    pcCount++; /* increment total number of executed */
 
     if (insDebugging) {
       saveRegisters();
@@ -1083,12 +1083,13 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Unpack: {
+      case IxCase: {
         // Branch based on index of constructor term
+        int32 mx = PC->fst;
         termPo top = pop();
         assert(isNormalPo(top));
         labelPo lbl = termLbl(C_NORMAL(top));
-        integer hx = lblIndex(lbl);
+        integer hx = lblIndex(lbl) % mx;
 
         PC = PC + hx + 1;
         continue;

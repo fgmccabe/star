@@ -71,7 +71,7 @@ dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
   copyN(Mx,I,_,Is,[]).
 dropUnreachable([iICase(Mx)|I],[iICase(Mx)|Is]) :-
   copyN(Mx,I,_,Is,[]).
-dropUnreachable([iUnpack(Mx)|I],[iUnpack(Mx)|Is]) :-
+dropUnreachable([iIxCase(Mx)|I],[iIxCase(Mx)|Is]) :-
   copyN(Mx,I,_,Is,[]).
 dropUnreachable([I|Ins],[I|DIns]) :-
   dropUnreachable(Ins,DIns).
@@ -154,7 +154,7 @@ peep([iCase(Mx)|In],_Lbls,[iCase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).
 peep([iICase(Mx)|In],_Lbls,[iICase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).
-peep([iUnpack(Mx)|In],_Lbls,[iUnpack(Mx)|Inx]) :-
+peep([iIxCase(Mx)|In],_Lbls,[iIxCase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 

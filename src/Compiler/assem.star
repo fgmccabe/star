@@ -75,7 +75,7 @@ star.compiler.assem{
     | .iIfNot(assemLbl)
     | .iICase(integer)
     | .iCase(integer)
-    | .iUnpack(integer)
+    | .iIxCase(integer)
     | .iIAdd
     | .iISub
     | .iIMul
@@ -130,8 +130,7 @@ star.compiler.assem{
           .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
            mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
     }
-    | .struct(Lbl,Tp,Ix) =>
-      mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
+    | .struct(Lbl,Tp,Ix) => mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
     | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
   }.
 
@@ -219,7 +218,7 @@ star.compiler.assem{
   mnem(.iIfNot(V),Pc,Lbls,Lts,Lcs,Lns) where Tgt ?= findLevel(Lbls,V) => ([.intgr(54),.intgr(Tgt)],Pc+1,Lts,Lns).
   mnem(.iICase(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(55),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iCase(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(56),.intgr(U)],Pc+1,Lts,Lns).
-  mnem(.iUnpack(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(57),.intgr(U)],Pc+1,Lts,Lns).
+  mnem(.iIxCase(U),Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(57),.intgr(U)],Pc+1,Lts,Lns).
   mnem(.iIAdd,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(58)],Pc+1,Lts,Lns).
   mnem(.iISub,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(59)],Pc+1,Lts,Lns).
   mnem(.iIMul,Pc,Lbls,Lts,Lcs,Lns) => ([.intgr(60)],Pc+1,Lts,Lns).
@@ -476,7 +475,7 @@ star.compiler.assem{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
-  stkHwm([.iUnpack(_),..Ins],CH0,H0) => valof{
+  stkHwm([.iIxCase(_),..Ins],CH0,H0) => valof{
     CH1 = CH0-1;
     valis stkHwm(Ins,CH1,H0)
   }
@@ -717,7 +716,7 @@ star.compiler.assem{
   showIns(.iIfNot(V),Pc) => "IfNot #(V)".
   showIns(.iICase(U),Pc) => "ICase $(U)".
   showIns(.iCase(U),Pc) => "Case $(U)".
-  showIns(.iUnpack(U),Pc) => "Unpack $(U)".
+  showIns(.iIxCase(U),Pc) => "IxCase $(U)".
   showIns(.iIAdd,Pc) => "IAdd".
   showIns(.iISub,Pc) => "ISub".
   showIns(.iIMul,Pc) => "IMul".
@@ -768,5 +767,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1603234843245358032.
+  public opcodeHash = 424795499480556971.
 }

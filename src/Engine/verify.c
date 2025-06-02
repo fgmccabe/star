@@ -639,7 +639,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case ICase:
       case Case:
-      case Unpack: {
+      case IxCase: {
         int32 mx = code[pc].fst;
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);

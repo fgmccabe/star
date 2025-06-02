@@ -1,5 +1,6 @@
 :- module(gencode,[genCode/4]).
 
+:- use_module(meta).
 :- use_module(misc).
 :- use_module(types).
 :- use_module(lterms).
@@ -900,7 +901,8 @@ compUnpack(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBloc
   compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
   genUnpackTable(Cases,Index,Table),
   maxTableEntry(Table,Mx),
-  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iUnpack(Mx)|CB],Stk,Stka),
+  checkOpt(Opts,traceGenCode,showMsg(Lc,"unpack table %s size %s",[Table,ix(Mx)])),
+  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iIxCase(Mx)|CB],Stk,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
