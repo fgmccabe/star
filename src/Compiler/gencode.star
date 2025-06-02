@@ -658,6 +658,34 @@ star.compiler.gencode{
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
 
+  compIndexCase:all e ~~ display[e] |:
+    (option[locn],cExp,integer,cons[cCase[e]],e,
+    caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
+  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) => valof{
+    if traceCodegen! then
+      showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
+    Df = defineLbl(Ctx,"Df");
+    Ok = defineLbl(Ctx,"Ok");
+    Lvl = stkLvl(Stk);
+    (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
+    
+    (Table,Max) = genIndexTable(Cases,Ctx);
+
+    (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
+
+    CaseIns = (intType==deRef(typeOf(Gv)) ?? .iICase(Max) || .iCase(Max));
+
+    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[CaseIns],Ctx,Stk);
+
+    if ~reconcileable(Stkc,Stkd) then
+      reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
+
+    valis ([.iLbl(Ok,.iBlock(OkLvl,
+	    GC++[.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
+      mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
+  }
+  
+
   compGVExp(.cVar(Lc,V),OLc,Brks,Ctx,Stk) => 
     (V,chLine(OLc,Lc)++loadSrc(V)(Lc,Ctx),Ctx,pshStack(typeOf(V),Stk)).
   compGVExp(E,OLc,Brks,Ctx,Stk) => valof{
@@ -727,6 +755,16 @@ star.compiler.gencode{
     | .cString(_,Sx) => hash(Sx)
     | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
   }.
+
+  genIndexTable(Cases,Ctx) =>
+    (sortCases(caseIndices(Cases,Ctx)),maxIndex(Cases)+1).
+
+  caseIndices(Cases,Ctx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseIndex(Pt),Ex)).
+
+  caseIndex(.cTerm(_,Nm,_,_),Ctx) => valof{
+  }
+  
+  
 
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
 
