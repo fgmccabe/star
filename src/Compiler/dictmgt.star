@@ -9,6 +9,7 @@ star.compiler.dict.mgt{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.types.
   import star.compiler.unify.
 
@@ -206,7 +207,7 @@ star.compiler.dict.mgt{
     | .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
       declareVar(AccFn,AccFn,Lc,AccTp,.none,declareUpdater(Lc,Tp,Fld,AccFn,AccTp,Dict))
     | .conDec(Lc,Nm,ConNm,ConRl) => declareContract(Lc,Nm,ConRl,Dict)
-    | .tpeDec(Lc,Nm,Tp,TpRl) => declareType(Nm,Lc,Tp,TpRl,Dict)
+    | .tpeDec(Lc,Nm,Tp,TpRl,Map) => declareType(Nm,Lc,Tp,TpRl,Dict)
     | .varDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
     | .funDec(Lc,Nm,FullNm,Tp) => declareVar(Nm,FullNm,Lc,Tp,.none,Dict)
     | .cnsDec(Lc,Nm,FullNm,Tp) => declareConstructor(Nm,FullNm,Lc,Tp,Dict)

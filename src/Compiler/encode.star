@@ -1,11 +1,38 @@
-star.compiler.types.encode{
+star.compiler.encode{
   import star.
   import star.multi.
   import star.sort.
 
   import star.compiler.location.
   import star.compiler.meta.
+  import star.compiler.data.
+  import star.pkg.
   import star.compiler.types.
+
+  public implementation coercion[data,string] => {
+    _coerce(T) => .some((encData(T)::cons[char])::string).
+  }
+
+  encData:(data)=>multi[char].
+  encData(D) => case D in {
+    | .intgr(Ix) => [`x`,..encodeInt(Ix)]
+    | .bigi(Bx) => [`b`,..encodeBig(Bx)]
+    | .flot(Dx) => [`d`,..encodeText(Dx::string)]
+    | .chr(Cx) => [`c`,..encodeChar(Cx,`\\`)]
+    | .strg(Tx) => [`s`,..encodeText(Tx)]
+    | .symb(Sym) => encodeL(Sym)
+    | .clos(Lb,F,T) => [`p`]++encodeL(Lb)++encData(F)++encData(encodeSig(T))
+    | .term("[]",Els) => [`l`]++encodeNat(size(Els))++encodeTerms(Els)
+    | .term(Op,Args) => [`n`]++encodeNat(size(Args))++encodeL(.tLbl(Op,size(Args)))++encodeTerms(Args)
+  }
+
+  encodeL:(termLbl)=>multi[char].
+  encodeL(.tLbl(Nm,Ar)) => [`o`]++encodeNat(Ar)++encodeText(Nm).
+
+  encodeTerms([]) => [].
+  encodeTerms([T,..Ts]) => encData(T)++encodeTerms(Ts).
+
+  encodeBig(Bx) => encodeText(Bx::string).
 
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => (encodeType(deRef(Tp))::cons[char])::string.
@@ -94,6 +121,15 @@ star.compiler.types.encode{
   encodeQuoted([`\\`,..Cs],D) => [`\\`,`\\`,..encodeQuoted(Cs,D)].
   encodeQuoted([C,..Cs],D) => [C,..encodeQuoted(Cs,D)].
 
+  encodeChar:(char,char)=>multi[char].
+  encodeChar(`\\`,_) => [`\\`,`\\`].
+  encodeChar(D,D) => [`\\`,D].
+  encodeChar(C,_) => [C].
+
+  public encodeInt:(integer)=>multi[char].
+  encodeInt(Ix) where Ix<0 => [`-`,..encodeNat(-Ix)].
+  encodeInt(Ix) => encodeNat(Ix).
+
   public encodeNat:(integer) => multi[char].
   encodeNat(D) => (try
     let{.
@@ -105,186 +141,43 @@ star.compiler.types.encode{
     catch { _ => []}
   ).
 
-  public decodeSignature:(string) => tipe.
-  decodeSignature(St) => valof{
-    (Tp,_) = decodeType(St::cons[char]);
-    valis Tp
+  public encodeSig:(tipe)=>data.
+  encodeSig(Tp) => .strg(encodeSignature(Tp)).
+
+  public implementation coercion[tipe,data] => {
+    _coerce(T) => .some(encodeSig(T))
   }
 
-  public decodeType:(cons[char]) => (tipe,cons[char]).
-  decodeType([Ch,..Ts]) => case Ch in {
-    | `i` => (.nomnal("integer"),Ts)
-    | `b` => (.nomnal("bigint"),Ts)
-    | `f` => (.nomnal("float"),Ts)
-    | `c` => (.nomnal("char"),Ts)
-    | `s` => (.nomnal("string"),Ts)
-    | `l` => (.nomnal("boolean"),Ts)
-    | `_` => (.anonType,Ts)
-    | `k` => valof{
-      (Nm,T1) = decodeText(Ts);
-      valis (.kVar(Nm),T1)
-    }
-    | `K` => valof{
-      (Ar,T0) = decodeNat(Ts,0);
-      (Nm,T1) = decodeText(T0);
-      valis (.kFun(Nm,Ar),T1)
-    }
-    | `t` => valof{
-      (Nm,T1) = decodeText(Ts);
-      valis (.nomnal(Nm),T1)
-    }
-    | `z` => valof{
-      (Ar,T0) = decodeNat(Ts,0);
-      (Nm,T1) = decodeText(T0);
-      valis (.tpFun(Nm,Ar),T1)
-    }
-    | `L` => valof{
-      (ElTp,T0) = decodeType(Ts);
-      valis (lstType(ElTp),T0)
-    }
-    | `U` => valof{
-      (OpTp,T0) = decodeType(Ts);
-      (ElTp,T1) = decodeType(T0);
-      valis (.tpExp(OpTp,ElTp),T1)
-    }
-    | `r` => valof{
-      (ElTp,T0) = decodeType(Ts);
-      valis (refType(ElTp),T0)
-    }
-    | `(` => valof{
-      (Tps,T0) = decodeTypes(Ts);
-      valis (.tupleType(Tps),T0)
-    }
-    | `:` => valof{
-      (V,T0) = decodeType(Ts);
-      (B,T1) = decodeType(T0);
-      valis (.allType(V,B),T1)
-    }
-    | `e` => valof{
-      (V,T0) = decodeType(Ts);
-      (B,T1) = decodeType(T0);
-      valis (.existType(V,B),T1)
-    }
-    | `|` => valof{
-      (V,T0) = decodeType(Ts);
-      (B,T1) = decodeConstraint(T0);
-      valis (.constrainedType(V,B),T1)
-    }
-    | `I` => valof{
-      (F1,T0) = decodeFields(Ts);
-      (F2,T1) = decodeTypeRules(T0);
-      valis (.faceType(F1,F2),T1)
-    }
-    | `F` => valof{
-      (A,T0) = decodeType(Ts);
-      (R,T1) = decodeType(T0);
-      valis (fnType(A,R),T1)
-    }
-    | `T` => valof{
-      (A,T0) = decodeType(Ts);
-      (R,T1) = decodeType(T0);
-      (E,T2) = decodeType(T1);
-      valis (throwingType(A,R,E),T2)
-    }
-    | `C` => valof{
-      (A,T0) = decodeType(Ts);
-      (R,T1) = decodeType(T0);
-      valis (consType(A,R),T1)
-    }
+  public implementation coercion[decl,data] => {
+    _coerce(D) => .some(case D in {
+	| .implDec(_,ConNm,ImplNm,Tp) =>
+	  mkCons("imp",[.strg(ConNm),.strg(ImplNm),encodeSig(Tp)])
+	| .accDec(_,Tp,Fld,Fn,AccTp) =>
+	  mkCons("acc",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)])
+	| .updDec(_,Tp,Fld,Fn,AccTp) =>
+	  mkCons("upd",[encodeSig(Tp),.strg(Fld),.strg(Fn),encodeSig(AccTp)])
+	| .conDec(_,Nm,FullNm,TpRl) =>
+	  mkCons("con",[.strg(Nm),.strg(FullNm),.strg(encodeTpRlSignature(TpRl))])
+	| .tpeDec(_,Nm,Tp,TpRl,IxMap) =>
+	  mkCons("tpe",[.strg(Nm),encodeSig(Tp),.strg(encodeTpRlSignature(TpRl)),encodeMap(IxMap)])
+	| .cnsDec(_,Nm,FullNm,Tp) =>
+	  mkCons("cns",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+	| .varDec(_,Nm,FullNm,Tp) =>
+	  mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+	| .funDec(_,Nm,FullNm,Tp) =>
+	  mkCons("fun",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
+      }).
   }
 
-  decodeTypes:(cons[char])=> (cons[tipe],cons[char]).
-  decodeTypes([`)`,..Ts]) => ([],Ts). 
-  decodeTypes(Ts) => valof{
-    (ElTp,T0) = decodeType(Ts);
-    (Tps,T1) = decodeTypes(T0);
-    valis ([ElTp,..Tps],T1)
-  }
+  encodeMap:(indexMap)=>data.
+  encodeMap(Map) => mkTpl(ixRight((Lbl,Ix,Mp)=>
+	[mkTpl([.symb(Lbl),.intgr(Ix)]),..Mp],[],Map)).
 
-  public decodeTypeRuleSignature:(string) => typeRule.
-  decodeTypeRuleSignature(St) => valof{
-    (Tp,_) = decodeTypeRule(St::cons[char]);
-    valis Tp
-  }
+  public pkgTerm:(pkg)=>data.
+  pkgTerm(.pkg(Pk,Ver))=>mkCons("pkg",[.strg(Pk),versTerm(Ver)]).
 
-  decodeTypeRule:(cons[char])=>(typeRule,cons[char]).
-  decodeTypeRule([`:`,..Ts]) => valof{
-    (V,T0) = decodeType(Ts);
-    (R,T1) = decodeTypeRule(T0);
-    valis (.allRule(V,R),T1)
-  }  
-  decodeTypeRule([`Y`,..Ts]) => valof{
-    (A,T0) = decodeType(Ts);
-    (R,T1) = decodeType(T0);
-    valis (.typeExists(A,R),T1)
-  }
-  decodeTypeRule([`Z`,..Ts]) => valof{
-    (.conTract(N,T,D),T0) = decodeConstraint(Ts);
-    (R,T1) = decodeType(T0);
-    valis (.contractExists(N,T,D,R),T1)
-  }
-  decodeTypeRule([`y`,..Ts]) => valof{
-    (A,T0) = decodeType(Ts);
-    (R,T1) = decodeType(T0);
-    valis (.typeLambda(A,R),T1)
-  }
-
-  decodeTypeRules:(cons[char])=>(cons[(string,typeRule)],cons[char]).
-  decodeTypeRules([`[`,..Ts]) => decodeRls(Ts,[]).
-
-  decodeRls:(cons[char],cons[(string,typeRule)])=>
-    (cons[(string,typeRule)],cons[char]).
-  decodeRls([`]`,..Ts],Rls) => (reverse(Rls),Ts).
-  decodeRls(Ts,Rls) => valof{
-    (Nm,T0) = decodeText(Ts);
-    (Rl,T1) = decodeTypeRule(T0);
-    valis decodeRls(T1,[(Nm,Rl),..Rls])
-  }
-
-  decodeFields:(cons[char])=>(cons[(string,tipe)],cons[char]).
-  decodeFields([`{`,..Ts]) => decodeFlds(Ts,[]).
-
-  decodeFlds:(cons[char],cons[(string,tipe)])=>
-    (cons[(string,tipe)],cons[char]).
-  decodeFlds([`}`,..Ts],Flds) => (reverse(Flds),Ts).
-  decodeFlds(Ts,Flds) => valof{
-    (Nm,T0) = decodeText(Ts);
-    (Tp,T1) = decodeType(T0);
-    valis decodeFlds(T1,[(Nm,Tp),..Flds])
-  }
-
-  decodeConstraint:(cons[char])=>(constraint,cons[char]).
-  decodeConstraint([`c`,..T]) => valof{
-    (Nm,T0) = decodeText(T);
-    (.tupleType(Tps),T1) = decodeType(T0);
-    (.tupleType(Dps),T2) = decodeType(T1);
-    valis (.conTract(Nm,Tps,Dps),T2)
-  }
-  decodeConstraint([`a`,..T]) => valof{
-    (BT,T0) = decodeType(T);
-    if (.faceType([(Fld,FT)],_),T1) .= decodeType(T0) then
-      valis (.hasField(BT,Fld,FT),T1)
-    else
-    valis (.hasField(BT,"",.voidType),T0)
-  }
-  decodeConstraint([`d`,..T]) => valof{
-    (Nm,T0) = decodeText(T);
-    (FT,T1) = decodeType(T0);
-    valis (.implicit(Nm,FT),T1)
-  }
-
-  decodeText:(cons[char]) => (string,cons[char]).
-  decodeText([C,..L]) => valof{
-    (Q,Cs) = collectQuoted(L,[],C);
-    valis (reverse(Q)::string,Cs)
-  }
-
-  collectQuoted:(cons[char],cons[char],char) => (cons[char],cons[char]).
-  collectQuoted([S,..Lx],SoF,S) => (SoF,Lx).
-  collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
-  collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
-
-  decodeNat:(cons[char],integer) => (integer,cons[char]).
-  decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
-  decodeNat(Ls,Ix) default => (Ix,Ls).
+  public versTerm:(version)=>data.
+  versTerm(.defltVersion) => .symb(.tLbl("*",0)).
+  versTerm(.vers("*")) => .symb(.tLbl("*",0)).
+  versTerm(.vers(V)) => .strg(V).  
 }

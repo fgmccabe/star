@@ -2,12 +2,13 @@ star.compiler.matcher{
   import star.
   import star.sort.
 
-  import star.compiler.term.
+  import star.compiler.data.
   import star.compiler.errors.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.normalize.meta.
-  import star.compiler.data.
+  import star.compiler.opts.
+  import star.compiler.term.
   import star.compiler.types.
 
   import star.compiler.location.
@@ -184,31 +185,9 @@ star.compiler.matcher{
   matchTuples(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    VTp = typeOf(V);
-    Arity = arity(VTp);
-    Index = [(.tLbl(tplLbl(Arity),Arity),consType(VTp,VTp),0)];
-    Arms = populateArms(Index,Cases,Lc,Deflt,Map);
-    valis mkCase(Lc,V,Arms,Deflt)
+    valis mkCase(Lc,V,Cases,Deflt)
   }
 
-  populateArms:all e ~~ display[e] |: (consMap,cons[cCase[e]],option[locn],e,nameMap) => cons[cCase[e]].
-  populateArms(Index,Cases,Lc,Deflt,Map) =>
-    { populateArm(Entry,Cases,Lc,Deflt,Map) | Entry in sort(Index,((_,_,I1),(_,_,I2))=>I1>I2)}.
-
-  populateArm((.tLbl(FullNm,_),Tp,_),Cases,DLc,Deflt,Map) where
-      Arm ?= armPresent(FullNm,Cases) => Arm.
-  populateArm((.tLbl(FullNm,Ar),CnsTp,_),Cases,Lc,Deflt,Map) => 
-    (Lc,emptyCase(Lc,CnsTp,FullNm),Deflt).
-    
-  armPresent(Nm,[(CLc,.cTerm(Lc,Nm,Args,Tp),Exp),.._]) =>
-    .some((CLc,.cTerm(Lc,Nm,Args,Tp),Exp)).
-  armPresent(Nm,[_,..Cases]) => armPresent(Nm,Cases).
-  armPresent(_,[]) => .none.
-
-  emptyCase:(option[locn],tipe,string)=>cExp.
-  emptyCase(Lc,T,Nm) where (.tupleType(ArgTps),ResTp) ?= isConsType(T) =>
-    .cTerm(Lc,Nm,ArgTps//(ATp)=>.cVar(Lc,.cV("_",ATp)),ResTp).
-  
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) =>

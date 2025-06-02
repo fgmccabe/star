@@ -6,6 +6,8 @@ star.compiler.term.repo{
   import star.repo.manifest.
   import star.uri.
   import star.resources.
+  import star.compiler.decode.
+  import star.compiler.encode.
   import star.compiler.misc.
   import star.compiler.data.
   

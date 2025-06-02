@@ -10,6 +10,7 @@ star.compiler.macro{
   import star.compiler.macro.grammar.
   import star.compiler.macro.infra.
   import star.compiler.macro.rules.
+  import star.compiler.opts.
   import star.compiler.wff.
 
   macroAst:(ast,macroContext,(ast)=>ast) => ast.

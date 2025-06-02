@@ -6,8 +6,9 @@ star.compiler.dependencies{
   import star.compiler.location.
   import star.compiler.operators.
   import star.compiler.meta.
-  import star.compiler.wff.
   import star.compiler.misc.
+  import star.compiler.opts.
+  import star.compiler.wff.
 
   public visMap ~> cons[(defnSp,visibility)].
 
@@ -559,4 +560,57 @@ star.compiler.dependencies{
     qName(V) where (_,L,_) ?= isBinary(V,"/") => qName(L).
     qName(_) default => .none.
   .} in foldLeft((V,MM) where Id?=qName(V) => MM[~.varSp(Id)],M,Q).
+
+  public defnSpec ::= .defnSpec(defnSp,option[locn],cons[ast]).
+
+  public implementation hasLoc[defnSpec] => {
+    locOf(.defnSpec(_,Lc,_)) => Lc
+  }
+
+  public defnSp ::= .varSp(string)
+    | .cnsSp(string)
+    | .tpSp(string)
+    | .conSp(string)
+    | .implSp(string).
+
+  public implementation display[defnSp] => let{
+    dispSp(S) => case S in {
+      | .varSp(Nm) => "var: $(Nm)"
+      | .cnsSp(Nm) => "constructor: $(Nm)"
+      | .tpSp(Nm) => "type: $(Nm)"
+      | .conSp(Nm) => "contract: $(Nm)"
+      | .implSp(Nm) => "implementation: $(Nm)"
+    }
+  } in {
+    disp = dispSp
+  }
+
+  public implementation equality[defnSp] => let{
+    eql(Sp1,Sp2) => case Sp1 in {
+      | .cnsSp(S1) => .cnsSp(S2).=Sp2 && S1==S2
+      | .tpSp(S1) => .tpSp(S2).=Sp2 && S1==S2
+      | .varSp(S1) => .varSp(S2).=Sp2 && S1==S2
+      | .implSp(S1) => .implSp(S2).=Sp2 && S1==S2
+      | .conSp(S1) => .conSp(S2).=Sp2 && S1==S2
+      | _ default => .false
+    }
+  } in {
+    S1 == S2 => eql(S1,S2)
+  }
+
+  public implementation hashable[defnSp] => {
+    hash(Sp) => case Sp in {
+      | .varSp(Nm) => hash(Nm)*37+hash("var")
+      | .cnsSp(Nm) => hash(Nm)*37+hash("cns")
+      | .tpSp(Nm) => hash(Nm)*37+hash("tp")
+      | .conSp(Nm) => hash(Nm)*37+hash("con")
+      | .implSp(Nm) => hash(Nm)*37+hash("impl")
+    }
+  }
+
+  public implementation display[defnSpec] => let{
+    dispSpec(.defnSpec(Sp,Lc,Els)) => "$(Sp)@$(Lc)$(Els)"
+  } in {
+    disp = dispSpec
+  }
 }

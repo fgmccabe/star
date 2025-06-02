@@ -7,11 +7,13 @@ star.compiler.gencode{
 
   import star.compiler.assem.
   import star.compiler.term.
+  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.intrinsics.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.peephole.
   import star.compiler.ltipe.
   import star.compiler.types.
@@ -35,7 +37,7 @@ star.compiler.gencode{
   declGlobal(_,Vrs) => Vrs.
 
   declType:(decl,map[string,(tipe,cons[tipe])])=>map[string,(tipe,cons[tipe])].
-  declType(.tpeDec(_,Nm,Tp,_), Tps) => 
+  declType(.tpeDec(_,Nm,Tp,_,Map), Tps) => 
     ((_Tp,Cns) ?= Tps[Nm] ?? Tps[Nm->(Tp,Cns)] || Tps[Nm->(Tp,[])]).
   declType(.cnsDec(_,Nm,_,CnTp),Tps) => valof{
     RTp = funTypeRes(CnTp);

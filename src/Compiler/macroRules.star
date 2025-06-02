@@ -9,6 +9,7 @@ star.compiler.macro.rules{
   import star.compiler.meta.
   import star.compiler.macro.grammar.
   import star.compiler.macro.infra.
+  import star.compiler.opts.
   import star.compiler.wff.
 
   public macroRule ~> (ast,macroContext) => macroState.
