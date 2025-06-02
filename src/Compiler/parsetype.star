@@ -4,13 +4,15 @@ star.compiler.typeparse{
   
   import star.compiler.ast.
   import star.compiler.canon.
+  import star.compiler.data.
   import star.compiler.dict.
   import star.compiler.dict.mgt.
-  import star.compiler.meta.
-  import star.compiler.misc.
   import star.compiler.errors.
   import star.compiler.freshen.
   import star.compiler.location.
+  import star.compiler.meta.
+  import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.types.
   import star.compiler.unify.
   import star.compiler.wff.
@@ -391,7 +393,7 @@ star.compiler.typeparse{
     Tmplte = pickTypeTemplate(Tp);
     Fce = parseType(B,declareType(Nm,Lc,Tmplte,.typeExists(Tp,.faceType([],[])),QEnv));
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),Fce),Q);
-    valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl)])
+    valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl,[])])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isTypeFunStmt(St) => valof{
     Q = parseBoundTpVars(V);
@@ -403,7 +405,7 @@ star.compiler.typeparse{
     Tmplte = pickTypeTemplate(Tp);
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeLambda(reConstrainType(Cx,Tp),RTp),Q);
 
-    valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl)])
+    valis ([.typeDef(Lc,Nm,Tmplte,TpRl)],[.tpeDec(Lc,Nm,Tmplte,TpRl,[])])
   }
   parseTypeDef(Nm,St,Env,Path) where (Lc,V,C,H,B) ?= isAlgebraicTypeStmt(St) =>
     parseAlgebraicType(Lc,Nm,V,C,H,B,Env,Path).
@@ -496,7 +498,7 @@ star.compiler.typeparse{
     
     TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
     Tmplte = .tpFun(FullNm,[|ArgTps|]+[|DepTps|]);
-    TpeDec = .tpeDec(Lc,Id,Tmplte,TypeRl);
+    TpeDec = .tpeDec(Lc,Id,Tmplte,TypeRl,[.tLbl(FullNm,[|Flds|])->0]);
     TDef = .typeDef(Lc,Id,Tmplte,TypeRl);
     
     ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
@@ -546,10 +548,11 @@ star.compiler.typeparse{
     if traceCanon! then
       showMsg("algebraic CMP $(CMap)");
 
-    (CDefs,CDecs) = buildConstructors(B,CMap,Cx,Tp,QEnv,Path);
+    (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
+
 
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
-    TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
+    TDec = .tpeDec(Lc,Nm,Tmplte,TpRl,Index);
 
     Qs = Q//snd;
 
@@ -586,12 +589,12 @@ star.compiler.typeparse{
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
 
-    (CDefs,CDecs) = buildConstructors(B,CMap,Cx,Tp,QEnv,Path);
+    (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
     (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Path);
     (UDefs,UDecs) = buildUpdaters(Fs,B,Q,Cx,Tp,Path);
 
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
-    TDec = .tpeDec(Lc,Nm,Tmplte,TpRl);
+    TDec = .tpeDec(Lc,Nm,Tmplte,TpRl,Index);
 
     Qs = Q//snd;
 
@@ -703,64 +706,74 @@ star.compiler.typeparse{
     valis [(RNm,Rl2),..mergeType(Id,Rl,As,Env,Lc)]
   }
 
-  buildConstructors:(ast,map[string,integer],cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
-
-  buildConstructors(A,Mp,Cx,Tp,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
-    (Dfl,Dcl) = buildConstructors(L,Mp,Cx,Tp,Env,Path);
-    (Dfr,Dcr) = buildConstructors(R,Mp,Cx,Tp,Env,Path);
-    valis (Dfl++Dfr,Dcl++Dcr)
+  buildConstructors:(ast,map[string,integer],indexMap,cons[constraint],tipe,dict,string) =>
+    (cons[canonDef],cons[decl],indexMap).
+  buildConstructors(A,Mp,Idx,Cx,Tp,Env,Path) where (Lc,L,R) ?= isBinary(A,"|") => valof{
+    (Dfl,Dcl,Idx1) = buildConstructors(L,Mp,Idx,Cx,Tp,Env,Path);
+    (Dfr,Dcr,Index) = buildConstructors(R,Mp,Idx1,Cx,Tp,Env,Path);
+    valis (Dfl++Dfr,Dcl++Dcr,Index)
   }
-  buildConstructors(A,Mp,Cx,Tp,Env,Path) where (Lc,R) ?= isUnary(A,"|") =>
-    buildConstructors(R,Mp,Cx,Tp,Env,Path).
-  buildConstructors(A,Mp,Cx,Tp,Env,Path) =>
-    buildConstructor(A,Mp,Cx,Tp,Env,Path).
+  buildConstructors(A,Mp,Idx,Cx,Tp,Env,Path) where (Lc,R) ?= isUnary(A,"|") =>
+    buildConstructors(R,Mp,Idx,Cx,Tp,Env,Path).
+  buildConstructors(A,Mp,Idx,Cx,Tp,Env,Path) =>
+    buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path).
 
-  buildConstructor:(ast,map[string,integer],cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl]).
+  buildConstructor:(ast,map[string,integer],indexMap,cons[constraint],tipe,dict,string)=> (cons[canonDef],cons[decl],indexMap).
   
-  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,O,Els) ?= isBrTerm(A) &&
+  buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path) where (Lc,O,Els) ?= isBrTerm(A) &&
       (_,Nm) ?= isName(O) => valof{
-	(Flds,Tps) = parseTypeFields(Els,[],[],Env);
-	ConNm = qualifiedName(Path,.conMark,Nm);
+    (Flds,Tps) = parseTypeFields(Els,[],[],Env);
+    ConNm = qualifiedName(Path,.conMark,Nm);
 
-	ConTp = wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp));
-	if Ix?=Mp[Nm] then
-	  valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
-	else{
-	  reportError("(internal) cant find #(Nm) in $(Mp)",Lc);
-	  valis ([],[])
-	}
+    ConTp = wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp));
+    if Ix?=Mp[Nm] then
+      valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)],Idx[.tLbl(ConNm,arity(ConTp))->Ix])
+    else{
+      reportError("(internal) cant find #(Nm) in $(Mp)",Lc);
+      valis ([],[],Idx)
+    }
       }.
-  buildConstructor(A,Mp,Cx,Tp,Env,Path)
+  buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path)
       where (Lc,O,Args) ?= isEnumCon(A) && (_,Nm) ?= isName(O) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
     
     ConTp = wrapConstraints(Cx,consType(.tupleType(parseTypes(Args,Env)),Tp));
-    valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
+
+    if Ix?=Mp[Nm] then
+      valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)],Idx[.tLbl(ConNm,arity(ConTp))->Ix])
+    else{
+      reportError("(internal) cant find #(Nm) in $(Mp)",Lc);
+      valis ([],[],Idx)
+    }
   }.
-  buildConstructor(A,Mp,Cx,Tp,Env,Path)
+  buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path)
       where (Lc,Nm) ?= isEnumSymb(A) && Ix?=Mp[Nm] => valof{
     ConNm = qualifiedName(Path,.conMark,Nm);
     
     ConTp = wrapConstraints(Cx,enumType(Tp));
-    valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)])
+    if Ix?=Mp[Nm] then
+      valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)],Idx[.tLbl(ConNm,0)->Ix])
+    else{
+      reportError("(internal) cant find #(Nm) in $(Mp)",Lc);
+      valis ([],[],Idx)
+    }
   }.
-  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,B,C) ?= isQuantified(A) => valof{
+  buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path) where (Lc,B,C) ?= isQuantified(A) => valof{
     BV = parseBoundTpVars(B);
     QEnv = declareTypeVars(BV,Env);
-    (Df,Dc) = buildConstructor(C,Mp,Cx,Tp,QEnv,Path);
+    (Df,Dc,Indx) = buildConstructor(C,Mp,Idx,Cx,Tp,QEnv,Path);
 
-    
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
-      valis ([.cnsDef(LLc,ConNm,Ix,reQ(BV,ConTp))],[.cnsDec(LLc2,Nm,ConNm,reQ(BV,CTp))])
+      valis ([.cnsDef(LLc,ConNm,Ix,reQ(BV,ConTp))],[.cnsDec(LLc2,Nm,ConNm,reQ(BV,CTp))],Indx)
     } else{
       reportError("invalid constructor case $(A)",locOf(A));
-      valis ([],[])
+      valis ([],[],Idx)
     }
   }
-  buildConstructor(A,Mp,Cx,Tp,Env,Path) where (Lc,B,C) ?= isXQuantified(A) => valof{
+  buildConstructor(A,Mp,Idx,Cx,Tp,Env,Path) where (Lc,B,C) ?= isXQuantified(A) => valof{
     BV = parseBoundTpVars(B);
     XEnv = declareTypeVars(BV,Env);
-    (Df,Dc) = buildConstructor(C,Mp,Cx,Tp,XEnv,Path);
+    (Df,Dc,Indx) = buildConstructor(C,Mp,Idx,Cx,Tp,XEnv,Path);
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
 
     if traceCanon! then
@@ -770,15 +783,15 @@ star.compiler.typeparse{
       if traceCanon! then
 	showMsg("reconstructed $(ConTp) is $(CnTp)");
 
-      valis ([.cnsDef(LLc,ConNm,Ix,CnTp)],[.cnsDec(LLc2,Nm,ConNm,CnTp)])
+      valis ([.cnsDef(LLc,ConNm,Ix,CnTp)],[.cnsDec(LLc2,Nm,ConNm,CnTp)],Indx)
     } else{
       reportError("invalid constructor case $(A)",locOf(A));
-      valis ([],[])
+      valis ([],[],Idx)
     }
   }
-  buildConstructor(A,_,_,_,_,_) => valof{
+  buildConstructor(A,_,_,_,_,_,_) => valof{
     reportError("invalid constructor case $(A)",locOf(A));
-    valis ([],[])
+    valis ([],[],[])
   }
 
   buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).

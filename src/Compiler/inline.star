@@ -3,11 +3,13 @@ star.compiler.inline{
   import star.sort.
 
   import star.compiler.data.
+  import star.compiler.dependencies.
   import star.compiler.term.
   import star.compiler.escapes.
   import star.compiler.freevars.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.types.
 
   import star.compiler.location.

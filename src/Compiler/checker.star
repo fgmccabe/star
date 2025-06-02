@@ -8,6 +8,7 @@ star.compiler.checker{
   import star.compiler.canon.
   import star.compiler.canondeps.
   import star.compiler.coverage.
+  import star.compiler.data.
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.dict.mgt.
@@ -17,6 +18,7 @@ star.compiler.checker{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.resolve.
   import star.compiler.types.
   import star.compiler.typeparse.
@@ -802,7 +804,7 @@ star.compiler.checker{
       CnsDc = .cnsDec(Lc,brTplNm,brTplNm,CnsTp);
 
       AnTpDef = .typeDef(Lc,brTplNm,Tmplte,AnRl);
-      AnTpDec = .tpeDec(Lc,brTplNm,Tmplte,AnRl);
+      AnTpDec = .tpeDec(Lc,brTplNm,Tmplte,AnRl,[.tLbl(brTplNm,[|Tps|])->0]);
 
       if traceCanon! then
 	showMsg("generated type $(AnTpDef), constructor $(CnsDf)");

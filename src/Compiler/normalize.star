@@ -13,6 +13,7 @@ star.compiler.normalize{
   import star.compiler.meta.
   import star.compiler.normalize.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.types.
 
   import star.compiler.location.

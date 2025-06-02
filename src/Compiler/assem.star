@@ -10,12 +10,12 @@ star.compiler.assem{
   import star.compiler.data.
   import star.compiler.meta.
   import star.compiler.types.
-  import star.compiler.types.encode.
+  import star.compiler.encode.
   import star.compiler.ltipe.
 
   public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],multi[assemOp]) |
     .struct(termLbl,tipe,integer) |
-    .tipe(tipe,typeRule,cons[(termLbl,tipe,integer)]).
+    .tipe(tipe,typeRule,map[termLbl,integer]).
 
   public assemOp ::=
     | .iHalt(integer)
@@ -132,8 +132,7 @@ star.compiler.assem{
     }
     | .struct(Lbl,Tp,Ix) =>
       mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
-    | .tipe(Tp,TpRl,Map) =>
-      mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
+    | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
   }.
 
   declareLocals:(cons[(string,data)]) => map[string,integer].
@@ -142,7 +141,7 @@ star.compiler.assem{
     decl([(Vr,_),..Ls],Lc) => [Vr -> Lc,..decl(Ls,Lc+1)].
   .} in decl(Lcs,1).             -- First local is #1
 
-  encodeMap(Entries) => mkTpl(Entries//((Lbl,_,Ix))=>mkTpl([.symb(Lbl),.intgr(Ix)])).
+  encodeMap(Entries) => mkTpl(ixRight((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Entries)).
 
   encPolicy(.hardDefinition) => mkTpl([]).
   encPolicy(.softDefinition) => mkTpl([.strg("soft")]).

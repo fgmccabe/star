@@ -13,6 +13,7 @@ star.compiler{
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
+  import star.compiler.encode.
   import star.compiler.grapher.
   import star.compiler.term.
   import star.compiler.dict.
@@ -23,6 +24,7 @@ star.compiler{
   import star.compiler.macro.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.package.merge.
@@ -30,8 +32,8 @@ star.compiler{
   import star.compiler.types.
   import star.compiler.normalize.
   import star.compiler.data.
-  import star.compiler.wasm.types.
-  import star.compiler.wasm.gentypes.
+--  import star.compiler.wasm.types.
+--  import star.compiler.wasm.gentypes.
 --  import star.compiler.wasm.gen.
 
   public _main:(cons[string])=>().
@@ -153,15 +155,15 @@ star.compiler{
 	    };
 	    if .base .= optimization! then
 	      validProg(Inlined,AllDecls);
-	    if errorFree() && genWasm! then{
-	      (Imported,Merged) = mergePkgs(
-		PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
-		,.some(pkgLoc(P)),Repo,[P],Inlined);
-	      tpMap = buildWasmTypeMap(Merged);
-	      if traceWasm! then{
-		showMsg("wasm type map: $(tpMap)");
-	      };
-	    };
+	    -- if errorFree() && genWasm! then{
+	    --   (Imported,Merged) = mergePkgs(
+	    -- 	PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
+	    -- 	,.some(pkgLoc(P)),Repo,[P],Inlined);
+	    --   tpMap = buildWasmTypeMap(Merged);
+	    --   if traceWasm! then{
+	    -- 	showMsg("wasm type map: $(tpMap)");
+	    --   };
+	    -- };
 	    if errorFree() && genCode! then{
 	      Segs = compProg(P,Inlined,AllDecls);
 	      

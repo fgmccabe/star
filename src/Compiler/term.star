@@ -4,12 +4,13 @@ star.compiler.term{
   import star.multi.
 
   import star.compiler.data.
+  import star.compiler.decode.
+  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.types.
-  import star.compiler.types.encode.
   import star.pkg.
   
   public cExp ::= .cVoid(option[locn],tipe)
@@ -40,6 +41,7 @@ star.compiler.term{
   | .cCnd(option[locn],cExp,cExp,cExp)
   | .cLtt(option[locn],cV,cExp,cExp)
   | .cCase(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
+  | .cUnpack(option[locn],cExp,cons[cCase[cExp]],cExp,tipe)
   | .cMatch(option[locn],cExp,cExp)
   | .cResum(option[locn],cExp,cExp,tipe)
   | .cSusp(option[locn],cExp,cExp,tipe)
@@ -65,6 +67,7 @@ star.compiler.term{
   | .aMatch(option[locn],cExp,cExp)
   | .aAsgn(option[locn],cExp,cExp)
   | .aCase(option[locn],cExp,cons[cCase[aAction]],aAction)
+  | .aUnpack(option[locn],cExp,cons[cCase[aAction]],aAction)
   | .aIftte(option[locn],cExp,aAction,aAction)
   | .aWhile(option[locn],cExp,aAction)
   | .aTry(option[locn],aAction,cExp,aAction)
@@ -75,7 +78,7 @@ star.compiler.term{
 
   public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp) |
   .glDef(option[locn],string,tipe,cExp) |
-  .tpDef(option[locn],tipe,typeRule,cons[(termLbl,tipe,integer)]) |
+  .tpDef(option[locn],tipe,typeRule,indexMap) |
   .lblDef(option[locn],termLbl,tipe,integer).
 
   public dispCrProg:(cons[cDefn])=>string.
@@ -124,6 +127,8 @@ star.compiler.term{
     }
     | .cCase(_,E,Cs,D,_)  => 
       "case #(dspExp(E,Off)) in {#(dspCases(Cs,dspExp,Off++"  ")*)\n#(Off)} else #(dspExp(D,Off))"
+    | .cUnpack(_,E,Cs,D,_)  => 
+      "unpack #(dspExp(E,Off)) in {#(dspCases(Cs,dspExp,Off++"  ")*)\n#(Off)} else #(dspExp(D,Off))"
     | .cMatch(_,P,E) => "#(dspExp(P,Off)).=#(dspExp(E,Off))"
     | .cCnj(_,L,R) => "#(dspExp(L,Off)) && #(dspExp(R,Off))"
     | .cDsj(_,L,R) => "(#(dspExp(L,Off)) || #(dspExp(R,Off)))"
@@ -157,6 +162,7 @@ star.compiler.term{
   needParens(.cCnd(_,_,_,_)) => .true.
   needParens(.cVarNmes(_,_,_)) => .true.
   needParens(.cCase(_,_,_,_,_)) => .true.
+  needParens(.cUnpack(_,_,_,_,_)) => .true.
   needParens(.cTry(_,_,_,_,_)) => .true.
   needParens(_) default => .false.
 
@@ -177,6 +183,8 @@ star.compiler.term{
     | .aAsgn(_,P,E) => "#(dspExp(P,Off)) := #(dspExp(E,Off))"
     | .aCase(_,E,Cs,Df) =>
       "case (#(dspExp(E,Off))) in {#(dspCases(Cs,dspAct,Off++"  ")*)\n#(Off)} else #(dspAct(Df,Off))"
+    | .aUnpack(_,E,Cs,Df) =>
+      "unpack (#(dspExp(E,Off))) in {#(dspCases(Cs,dspAct,Off++"  ")*)\n#(Off)} else #(dspAct(Df,Off))"
     | .aIftte(_,C,T,E) => valof{
       Off2=Off++"  ";
       valis "if #(dspExp(C,Off)) then\n#(Off2)#(dspAct(T,Off2)) else\n#(Off2)#(dspAct(E,Off2))"
@@ -265,6 +273,8 @@ star.compiler.term{
 	T1==T2 && eqTerm(L1,L2) && eqTerm(R1,R2)
     | .cCase(_,S1,C1,D1,_) => .cCase(_,S2,C2,D2,_).=E2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2)
+    | .cUnpack(_,S1,C1,D1,_) => .cUnpack(_,S2,C2,D2,_).=E2 &&
+	eqTerm(S1,S2) && eqCs(C1,eqTerm,C2) && eqTerm(D1,D2)
     | .cMatch(_,P1,V1) => .cMatch(_,P2,V2).=E2 && eqTerm(V1,V2) && eqTerm(P1,P2)
     | .cAbort(_,M1,T1) => .cAbort(_,M2,T2).=E2 && M1==M2 && T1==T2
     | .cTry(_,M1,E1,H1,_) => .cTry(_,M2,E2,H2,_).=E2 &&
@@ -308,6 +318,8 @@ star.compiler.term{
     | .aMatch(_,E1,V1) => .aMatch(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
     | .aAsgn(_,E1,V1) => .aAsgn(_,E2,V2).=A2 && eqTerm(E1,E2) && eqTerm(V1,V2)
     | .aCase(_,S1,C1,D1) => .aCase(_,S2,C2,D2).=A2 &&
+	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2)
+    | .aUnpack(_,S1,C1,D1) => .aUnpack(_,S2,C2,D2).=A2 &&
 	eqTerm(S1,S2) && eqCs(C1,eqAct,C2) && eqAct(D1,D2)
     | .aIftte(_,C1,L1,R1) => .aIftte(_,C2,L2,R2).=A2 &&
 	eqTerm(C1,C2) && eqAct(L1,L2) && eqAct(R1,R2)
@@ -353,6 +365,7 @@ star.compiler.term{
       | .cMatch(Lc,_,_) => Lc
       | .cLtt(Lc,_,_,_) => Lc
       | .cCase(Lc,_,_,_,_) => Lc
+      | .cUnpack(Lc,_,_,_,_) => Lc
       | .cCall(Lc,_,_,_)=>Lc
       | .cOCall(Lc,_,_,_)=>Lc
       | .cXCall(Lc,_,_,_,_)=>Lc
@@ -403,6 +416,7 @@ star.compiler.term{
       | .cNeg(_,_) => boolType
       | .cLtt(_,_,_,E) => tpOf(E)
       | .cCase(_,_,_,_,Tp) => Tp
+      | .cUnpack(_,_,_,_,Tp) => Tp
       | .cCnd(_,_,L,_) => tpOf(L)
       | .cMatch(_,_,_) => boolType
       | .cResum(_,_,_,T) => T
@@ -442,6 +456,7 @@ star.compiler.term{
       | .aMatch(Lc,_,_) => Lc
       | .aAsgn(Lc,_,_) => Lc
       | .aCase(Lc,_,_,_) => Lc
+      | .aUnpack(Lc,_,_,_) => Lc
       | .aIftte(Lc,_,_,_) => Lc
       | .aWhile(Lc,_,_) => Lc
       | .aTry(Lc,_,_,_) => Lc
@@ -515,6 +530,8 @@ star.compiler.term{
     | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,rwTerm(D,Tst),rwTerm(E,dropVar(cName(V),Tst)))
     | .cCase(Lc,Sel,Cases,Dflt,Tp) => .cCase(Lc,rwTerm(Sel,Tst),
       Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp)
+    | .cUnpack(Lc,Sel,Cases,Dflt,Tp) => .cUnpack(Lc,rwTerm(Sel,Tst),
+      Cases//(C)=>rwCase(C,Tst,rwTerm),rwTerm(Dflt,Tst),Tp)
     | .cMatch(Lc,P,E) => .cMatch(Lc,rwTerm(P,Tst),rwTerm(E,Tst))
     | .cTry(Lc,B,E,H,Tp) => .cTry(Lc,rwTerm(B,Tst),rwTerm(E,Tst),rwTerm(H,Tst),Tp)
     | .cResum(Lc,T,M,Tp) => .cResum(Lc,rwTerm(T,Tst),rwTerm(M,Tst),Tp)
@@ -538,6 +555,7 @@ star.compiler.term{
     | .aMatch(Lc,V,E) => .aMatch(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,rwTerm(V,Tst),rwTerm(E,Tst))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst))
+    | .aUnpack(Lc,G,Cs,D) => .aUnpack(Lc,rwTerm(G,Tst),Cs//(C)=>rwCase(C,Tst,rwAct),rwAct(D,Tst))
     | .aIftte(Lc,C,L,R) => .aIftte(Lc,rwTerm(C,Tst),rwAct(L,Tst),rwAct(R,Tst))
     | .aWhile(Lc,C,B) => .aWhile(Lc,rwTerm(C,Tst),rwAct(B,Tst))
     | .aTry(Lc,B,E,Hs) => .aTry(Lc,rwAct(B,Tst),rwTerm(E,Tst),rwAct(Hs,Tst))
@@ -619,6 +637,7 @@ star.compiler.term{
     | .cMatch(Lc,P,E) => .cMatch(Lc,frshnE(P,Sc),frshnE(E,Sc))
     | .cLtt(Lc,V,D,E) =>.cLtt(Lc,V,frshnE(D,Sc),frshnE(E,pushScope(Sc)))
     | .cCase(Lc,Sel,Cs,Dflt,Tp) => .cCase(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
+    | .cUnpack(Lc,Sel,Cs,Dflt,Tp) => .cUnpack(Lc,frshnE(Sel,Sc),frCases(Cs,Sc,frshnE),frshnE(Dflt,Sc),Tp)
     | .cTry(Lc,B,E,H,Tp) => valof{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(ptnVrs(E,[]),Sc0);
@@ -672,6 +691,7 @@ star.compiler.term{
     | .aMatch(Lc,V,E) => .aMatch(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aAsgn(Lc,V,E) => .aAsgn(Lc,frshnE(V,Sc),frshnE(E,Sc))
     | .aCase(Lc,G,Cs,D) => .aCase(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
+    | .aUnpack(Lc,G,Cs,D) => .aUnpack(Lc,frshnE(G,Sc),frCases(Cs,Sc,frshnA),frshnA(D,Sc))
     | .aIftte(Lc,C,L,R) => valof{
       Sc0 = pushScope(Sc);
       Sc1 = newVars(glVars(C,[]),Sc0);
@@ -749,6 +769,7 @@ star.compiler.term{
   public contract all e ~~ reform[e] ::= {
     mkCond:(option[locn],cExp,e,e)=>e.
     mkCase:(option[locn],cExp,cons[cCase[e]],e) => e.
+    mkUnpack:(option[locn],cExp,cons[cCase[e]],e) => e.
     varNames:(option[locn],cons[(string,cV)],e)=>e.
     pullWhere:(e) => (e,option[cExp]).
     mkLtt:(option[locn],cV,cExp,e) => e.
@@ -774,6 +795,8 @@ star.compiler.term{
 --    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
+    mkUnpack(Lc,V,Cases,Deflt) => .cUnpack(Lc,V,Cases,Deflt,typeOf(Deflt)).
+
     mkLtt(Lc,V,E,X) => .cLtt(Lc,V,E,X).
   .}
 
@@ -790,6 +813,9 @@ star.compiler.term{
 
     mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .aCase(Lc,V,Cases,Deflt).
+    
+    mkUnpack(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
+    mkUnpack(Lc,V,Cases,Deflt) => .aUnpack(Lc,V,Cases,Deflt).
 
     mkLtt(Lc,V,E,X) => .aLtt(Lc,V,E,X).
   }
@@ -877,6 +903,7 @@ star.compiler.term{
     }
     | .cLtt(_,B,V,E) => validE(V,Vrs) && validE(E,Vrs\+B)
     | .cCase(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs)
+    | .cUnpack(_,G,Cs,Df,_) => validE(G,Vrs) && validCases(Cs,validE,Vrs) && validE(Df,Vrs)
     | .cMatch(_,V,E) => valof{
       V1 = glVars(E,Vrs);
       valis validPtn(V,V1) && validE(E,V1)
@@ -941,6 +968,7 @@ star.compiler.term{
     | .aMatch(_,P,E) => validPtn(P,ptnVrs(P,Vrs)) && validE(E,Vrs)
     | .aAsgn(_,L,V) => validE(L,Vrs) && validE(V,Vrs)
     | .aCase(_,G,Cs,Df) => validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs)
+    | .aUnpack(_,G,Cs,Df) => validE(G,Vrs) && validCases(Cs,validA,Vrs) && validA(Df,Vrs)
     | .aIftte(_,G,Th,E) => valof{
       D1 = glVars(G,Vrs);
       valis validE(G,D1) && validA(Th,D1) && validA(E,Vrs)
@@ -1033,6 +1061,8 @@ star.compiler.term{
     | .aAsgn(_,L,V) => presentInE(L,C,T) || presentInE(V,C,T)
     | .aCase(_,G,Cs,D) =>
       presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T)
+    | .aUnpack(_,G,Cs,D) =>
+      presentInE(G,C,T) || presentInCases(Cs,presentInA,C,T) || presentInA(D,C,T)
     | .aIftte(_,G,Th,E) =>
       presentInE(G,C,T) || presentInA(Th,C,T) || presentInA(E,C,T)
     | .aWhile(_,G,B) => presentInE(G,C,T) || presentInA(B,C,T)
@@ -1077,6 +1107,8 @@ star.compiler.term{
     | .cLtt(_,_,V,E) => presentInE(V,A,C) || presentInE(E,A,C)
     | .cCase(_,G,Cs,D,_) =>
       presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C)
+    | .cUnpack(_,G,Cs,D,_) =>
+      presentInE(G,A,C) || presentInCases(Cs,presentInE,A,C) || presentInE(D,A,C)
     | .cMatch(_,V,E) => presentInE(V,A,C) || presentInE(E,A,C)
     | .cResum(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
     | .cSusp(_,Tk,M,_) => presentInE(Tk,A,C) || presentInE(M,A,C)
@@ -1103,7 +1135,7 @@ star.compiler.term{
 	frzeExp(Vl)])
     | .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
 	.strg(encodeTpRlSignature(TpRl)),
-	mkTpl(Map//((Lbl,CTp,Ix))=>mkTpl([.symb(Lbl),encodeSig(CTp),.intgr(Ix)]))])
+	mkTpl(ixLeft((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Map))])
     | .lblDef(Lc,Lbl,Tp,Ix) => mkCons("cns",[Lc::data,.symb(Lbl),encodeSig(Tp),.intgr(Ix)])
   }
 
@@ -1155,6 +1187,8 @@ star.compiler.term{
 	frzeExp(B),frzeExp(X)])
     | .cCase(Lc,G,Cs,Df,Tp) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)])
+    | .cUnpack(Lc,G,Cs,Df,Tp) => mkCons("unpack",[Lc::data,frzeExp(G),
+	freezeCases(Cs,frzeExp),frzeExp(Df),encodeSig(Tp)])
     | .cAbort(Lc,Msg,Tp) => mkCons("abrt",[Lc::data,.strg(Msg),encodeSig(Tp)])
     | .cTry(Lc,B,E,H,Tp) => mkCons("try",[Lc::data,frzeExp(B),frzeExp(E),frzeExp(H),encodeSig(Tp)])
     | .cResum(Lc,L,R,Tp) => mkCons("rsme",[Lc::data,frzeExp(L),frzeExp(R),encodeSig(Tp)])
@@ -1184,6 +1218,8 @@ star.compiler.term{
     | .aAsgn(Lc,P,V) => mkCons("asgn",[Lc::data,frzeExp(P),frzeExp(V)])
     | .aCase(Lc,G,C,D) => mkCons("case",[Lc::data,frzeExp(G),
 	freezeCases(C,frzeAct),frzeAct(D)])
+    | .aUnpack(Lc,G,C,D) => mkCons("unpack",[Lc::data,frzeExp(G),
+	freezeCases(C,frzeAct),frzeAct(D)])
     | .aIftte(Lc,T,L,R) => mkCons("iftt",[Lc::data,frzeExp(T),frzeAct(L),frzeAct(R)])
     | .aWhile(Lc,T,I) => mkCons("whle",[Lc::data,frzeExp(T),frzeAct(I)])
     | .aTry(Lc,B,E,H) => mkCons("try",[Lc::data,frzeAct(B),frzeExp(E),frzeAct(H)])
@@ -1202,7 +1238,7 @@ star.compiler.term{
       .glDef(thawLoc(Lc),V,decodeSig(Sig),thwTrm(Vl))
     | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
       .tpDef(thawLoc(Lc),decodeSig(Sig),decodeTypeRuleSignature(RlSig),
-	Map//(.term(_,[.symb(Lbl),LSig,.intgr(Ix)]))=>(Lbl,decodeSig(LSig),Ix))
+      foldLeft((.term(_,[.symb(Lbl),.intgr(Ix)]),Mp)=>Mp[Lbl->Ix],[],Map))
     | .term("cns",[Lc,.symb(Lbl),Sig,.intgr(Ix)]) =>
       .lblDef(thawLoc(Lc),Lbl,decodeSig(Sig),Ix)
   }
@@ -1258,6 +1294,8 @@ star.compiler.term{
       .cLtt(thawLoc(Lc),.cV(V,decodeSig(Sig)),thwTrm(B),thwTrm(X))
     | .term("case",[Lc,G,Cs,Df,Sig]) => .cCase(thawLoc(Lc),thwTrm(G),
       thawCases(Cs,thwTrm),thwTrm(Df),decodeSig(Sig))
+    | .term("unpack",[Lc,G,Cs,Df,Sig]) => .cUnpack(thawLoc(Lc),thwTrm(G),
+      thawCases(Cs,thwTrm),thwTrm(Df),decodeSig(Sig))
     | .term("abrt",[Lc,.strg(M),Sig]) => .cAbort(thawLoc(Lc),M,decodeSig(Sig))
     | .term("try",[Lc,B,E,H,Sig]) =>
       .cTry(thawLoc(Lc),thwTrm(B),thwTrm(E),thwTrm(H),decodeSig(Sig))
@@ -1290,6 +1328,8 @@ star.compiler.term{
     | .term("match",[Lc,P,V]) => .aMatch(thawLoc(Lc),thwTrm(P),thwTrm(V))
     | .term("asgn",[Lc,P,V]) => .aAsgn(thawLoc(Lc),thwTrm(P),thwTrm(V))
     | .term("case",[Lc,G,C,D]) => .aCase(thawLoc(Lc),thwTrm(G),thawCases(C,thawAct),
+      thawAct(D))
+    | .term("unpack",[Lc,G,C,D]) => .aUnpack(thawLoc(Lc),thwTrm(G),thawCases(C,thawAct),
       thawAct(D))
     | .term("iftt",[Lc,T,L,R]) => .aIftte(thawLoc(Lc),thwTrm(T),thawAct(L),thawAct(R))
     | .term("whle",[Lc,T,I]) => .aWhile(thawLoc(Lc),thwTrm(T),thawAct(I))
@@ -1367,6 +1407,8 @@ star.compiler.term{
     | .cLtt(_,_,B,X) => foldV(X,Mode,Fn,foldV(B,.inExp,Fn,SoF))
     | .cCase(_,G,Cs,Df,_) =>
       foldV(Df,.inExp,Fn,foldECases(Cs,Mode,Fn,foldV(G,.inExp,Fn,SoF)))
+    | .cUnpack(_,G,Cs,Df,_) =>
+      foldV(Df,.inExp,Fn,foldECases(Cs,Mode,Fn,foldV(G,.inExp,Fn,SoF)))
     | .cAbort(_,_,_) => SoF
     | .cTry(_,B,E,H,_) => foldV(H,.inExp,Fn,foldV(B,.inExp,Fn,foldV(E,.inExp,Fn,SoF)))
     | .cResum(_,L,R,_) => foldV(R,.inExp,Fn,foldV(L,.inPtn,Fn,SoF))
@@ -1394,6 +1436,7 @@ star.compiler.term{
     | .aMatch(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inPtn,Fn,SoF))
     | .aAsgn(_,P,V) => foldV(V,.inExp,Fn,foldV(P,.inExp,Fn,SoF))
     | .aCase(_,G,C,D) => foldA(D,Fn,foldACases(C,Fn,foldV(G,.inExp,Fn,SoF)))
+    | .aUnpack(_,G,C,D) => foldA(D,Fn,foldACases(C,Fn,foldV(G,.inExp,Fn,SoF)))
     | .aIftte(_,T,L,R) => foldA(R,Fn,foldA(L,Fn,foldV(T,.inExp,Fn,SoF)))
     | .aWhile(_,T,I) => foldA(I,Fn,foldV(T,.inExp,Fn,SoF))
     | .aTry(_,B,E,H) => foldA(B,Fn,foldA(H,Fn,SoF))

@@ -6,6 +6,8 @@ star.compiler.impawt{
 
   import star.compiler.term.repo.
   import star.compiler.canon.
+  import star.compiler.decode.
+  import star.compiler.encode.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.misc.
@@ -13,7 +15,6 @@ star.compiler.impawt{
   import star.compiler.data.
   import star.compiler.term.
   import star.compiler.types.
-  import star.compiler.types.encode.
 
   public importAll:all r ~~ repo[r]|:
     (cons[importSpec],r,cons[importSpec], cons[decl]) => (cons[importSpec],cons[decl]).
@@ -116,10 +117,11 @@ star.compiler.impawt{
 
   pickupDeclaration(.term("con",[.strg(Nm),.strg(CnNm),.strg(Sig)]),Lc) =>
     .some(.conDec(Lc,Nm,CnNm,decodeTypeRuleSignature(Sig))).
-  pickupDeclaration(.term("tpe",[.strg(Nm),.strg(TSig),.strg(RSig)]),Lc) => valof{
+  pickupDeclaration(.term("tpe",[.strg(Nm),.strg(TSig),.strg(RSig),.term(_,Els)]),Lc) => valof{
     Tp = decodeSignature(TSig);
     RlTp = decodeTypeRuleSignature(RSig);
-    valis .some(.tpeDec(Lc,Nm,Tp,RlTp))
+    Map = decodeIndexMap(Els);
+    valis .some(.tpeDec(Lc,Nm,Tp,RlTp,Map))
   }
   pickupDeclaration(.term("var",[.strg(Nm),.strg(FlNm),.strg(Sig)]),Lc) =>
     .some(.varDec(Lc,Nm,FlNm,decodeSignature(Sig))).
@@ -132,6 +134,8 @@ star.compiler.impawt{
     reportError("invalid declaration",Lc);
     valis .none
   }
+
+  decodeIndexMap(Els) => foldLeft((.term(_,[.symb(Lbl),.intgr(Ix)]),Mp) => Mp[Lbl->Ix],[],Els).
 
   implementation coercion[pkg,data] => {
     _coerce(.pkg(P,.defltVersion)) => .some(.term("pkg",[.strg(P),.symb(.tLbl("*",0))])).
@@ -176,8 +180,9 @@ star.compiler.impawt{
       .term("upd",[Tp::data,.strg(Fld),.strg(Acc),AccTp::data]).
     mkTerm(.conDec(_,Nm,FlNm,CtRl)) =>
       .term("con",[.strg(Nm),.strg(FlNm),CtRl::data]).
-    mkTerm(.tpeDec(_,Nm,Tp,Rl)) =>
-      .term("tpe",[.strg(Nm),Tp::data,Rl::data]).
+    mkTerm(.tpeDec(_,Nm,Tp,Rl,Map)) =>
+      .term("tpe",[.strg(Nm),Tp::data,Rl::data,
+	mkTpl(ixLeft((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Map))]).
     mkTerm(.varDec(_,Nm,FlNm,Tp)) =>
       .term("var",[.strg(Nm),.strg(FlNm),Tp::data]).
     mkTerm(.funDec(_,Nm,FlNm,Tp)) =>

@@ -11,8 +11,6 @@ star.compiler.normalize.meta{
   import star.compiler.types.
   import star.compiler.location.
 
-  public consMap ~> cons[(termLbl,tipe,integer)].
-
   public nameMapEntry ::= .moduleFun(cExp,string)
   | .localFun(string,string,integer,cV)
   | .localVar(cExp)
@@ -22,7 +20,7 @@ star.compiler.normalize.meta{
   | .thunkArg(cV,string,integer)
   | .globalVar(string,tipe).
 
-  public typeMapEntry ::= .moduleType(string,tipe,consMap).
+  public typeMapEntry ::= .moduleType(string,tipe,indexMap).
 
   public mapLayer ::= .lyr(option[cV],map[string,nameMapEntry],map[string,typeMapEntry]).
 
@@ -46,7 +44,7 @@ star.compiler.normalize.meta{
   }
 
   public implementation display[typeMapEntry] => {
-    disp(.moduleType(Nm,Tp,ConsMap)) => "type #(Nm)\:$(Tp) <- $(ConsMap)".
+    disp(.moduleType(Nm,Tp,IxMap)) => "type #(Nm)\:$(Tp) <- $(IxMap)".
   }
 
   public lookupVarName:(nameMap,string)=>option[nameMapEntry].
@@ -74,7 +72,7 @@ star.compiler.normalize.meta{
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
 
-  public findIndexMap:(string,nameMap) => option[consMap].
+  public findIndexMap:(string,nameMap) => option[indexMap].
   findIndexMap(Tp,Map) => lookupTypeMap(Map,Tp).
 
   lookupTypeMap([],_) => .none.
@@ -90,36 +88,14 @@ star.compiler.normalize.meta{
 
   public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
   makeConsMap(Decls) => let{.
-    collectConstructors:(cons[decl],map[string,cons[(string,tipe)]]) =>
-      map[string,cons[(string,tipe)]].
-    collectConstructors([],Map) => Map.
-    collectConstructors([.cnsDec(Lc,Nm,FullNm,Tp),..Ds],Map) => valof{
-      TpNm = tpName(funTypeRes(Tp));
-      if E ?= Map[TpNm] then
-	valis collectConstructors(Ds,Map[TpNm->[(FullNm,Tp),..E]])
-      else
-      valis collectConstructors(Ds,Map[TpNm->[(FullNm,Tp)]])
+    collectTypeMaps:(cons[decl],map[string,typeMapEntry]) => map[string,typeMapEntry].
+    collectTypeMaps([],Map) => Map.
+    collectTypeMaps([.tpeDec(_,Nm,Tp,_,IxMap),..Ds],Map) => valof{
+      FullNm = tpName(Tp);
+      valis collectTypeMaps(Ds,Map[Nm->.moduleType(FullNm,Tp,IxMap)])
     }
-    collectConstructors([_,..Ds],Map) => collectConstructors(Ds,Map).
-
-    indexConstructors:(map[string,cons[(string,tipe)]]) => map[string,consMap].
-    indexConstructors(M) =>
-      { TpNm -> { (mkConsLbl(CNm,CTp),CTp,Ix) | ((CNm,CTp),Ix) in indexList(sort(CMp,((N1,_),(N2,_))=>N1<N2),0) } | TpNm->CMp in M }.
-	    
-    indexList:all e ~~ (cons[e],integer)=>cons[(e,integer)].
-    indexList([],_) => [].
-    indexList([E,..Es],Ix) => [(E,Ix),..indexList(Es,Ix+1)].
-    
-    collectMdlTypes:(cons[decl],map[string,consMap],
-      map[string,typeMapEntry]) => map[string,typeMapEntry].
-    collectMdlTypes([],Cns,Map) => Map.
-    collectMdlTypes([.tpeDec(Lc,Nm,Tp,_),..Ds],Cns,Map) where
-	TpNm .= tpName(Tp) &&
-	Entry ?= Cns[TpNm] =>
-      collectMdlTypes(Ds,Cns,(Map[Nm->.moduleType(TpNm,Tp,Entry)])
-	[TpNm->.moduleType(TpNm,Tp,Entry)]).
-    collectMdlTypes([_D,..Ds],Cns,Map) => collectMdlTypes(Ds,Cns,Map).
-  .} in collectMdlTypes(Decls,indexConstructors(collectConstructors(Decls,[])),[]).
+    collectTypeMaps([_,..Ds],Map) => collectTypeMaps(Ds,Map).
+  .} in collectTypeMaps(Decls,[]).
 
   collectibleConsType:(tipe) => option[string].
   collectibleConsType(Tp) where
@@ -142,7 +118,7 @@ star.compiler.normalize.meta{
     Entry = .moduleCons(FullNm,Tp);
     valis Map[Nm->Entry][FullNm->Entry]
   }
-  declMdlGlobal(.tpeDec(_,_,_,_),Map) => Map.
+  declMdlGlobal(.tpeDec(_,_,_,_,_),Map) => Map.
   declMdlGlobal(.accDec(_,_,_,_,_),Map) => Map.
   declMdlGlobal(.updDec(_,_,_,_,_),Map) => Map.
   declMdlGlobal(.conDec(_,_,_,_),Map) => Map.
