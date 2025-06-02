@@ -84,7 +84,7 @@ instruction(IfNot, tOs, lVl, -1, "break if false")
 
 instruction(ICase, i32, tOs, -1, "T --> T, icase <Max>")
 instruction(Case, i32, tOs, -1, "T --> T, case <Max>")
-instruction(Unpack, i32, tOs, -1, "check and jump on index")
+instruction(IxCase, i32, tOs, -1, "check and jump on type index")
 
 instruction(IAdd, tOs, tOs, -1, "L R --> L+R")
 instruction(ISub, tOs, tOs, -1, "L R --> L-R")

@@ -65,7 +65,7 @@ typedef enum {
     IfNot = 54,            // break if false
     ICase = 55,            // T --> T, icase <Max>
     Case = 56,            // T --> T, case <Max>
-    Unpack = 57,            // check and jump on index
+    IxCase = 57,            // check and jump on type index
     IAdd = 58,            // L R --> L+R
     ISub = 59,            // L R --> L-R
     IMul = 60,            // L R --> L*R
@@ -166,7 +166,7 @@ static char *opNames[] = {
       "IfNot",
       "ICase",
       "Case",
-      "Unpack",
+      "IxCase",
       "IAdd",
       "ISub",
       "IMul",
@@ -206,7 +206,7 @@ static char *opNames[] = {
 #endif
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1603234843245358032
+#define OPCODE_SIGNATURE 424795499480556971
 #endif
 
 typedef enum {
