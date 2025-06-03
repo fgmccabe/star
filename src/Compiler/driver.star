@@ -196,11 +196,12 @@ star.compiler{
 	    showMsg("no code generated");
 	  }
 	};
-	if ~errorFree() then{
-	  showMsg("$(countErrors()+countTraps()) errors found");
-	};
 	if ~warningFree() then
 	  showMsg("$(countWarnings()) warnings found");
+	if ~errorFree() then{
+	  showMsg("$(countErrors()+countTraps()) errors found");
+	  _exit(1)
+	};
 	valis Repo
       }
       else{

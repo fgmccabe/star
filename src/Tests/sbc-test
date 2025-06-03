@@ -1,0 +1,2 @@
+#!/bin/bash
+sbc -r test-repo/ $1 && star -r test-repo/ $1

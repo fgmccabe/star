@@ -7,13 +7,12 @@ test.pr{
     role : string.
   }
 
-  mkPr(Nm,Rl) =>
-    pr{
-      name = ref Nm.
-      role = Rl
-    }
+  mkPr(Nm,Rl) => pr{
+    name = ref Nm.
+    role = Rl
+  }
 
-    main:()=>().
+  main:()=>().
   main() => valof{
     joe = mkPr("fred","janitor");
 

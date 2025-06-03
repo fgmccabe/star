@@ -498,8 +498,6 @@ star.compiler.typeparse{
     
     TypeRl = foldLeft(((_,QV),Rl) => .allRule(QV,Rl),.typeExists(DlTp,Face),Qv);
     Tmplte = .tpFun(FullNm,[|ArgTps|]+[|DepTps|]);
-    TpeDec = .tpeDec(Lc,Id,Tmplte,TypeRl,[.tLbl(FullNm,[|Flds|])->0]);
-    TDef = .typeDef(Lc,Id,Tmplte,TypeRl);
     
     ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
     
@@ -507,6 +505,10 @@ star.compiler.typeparse{
     ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
     
     (ConAccs,AccDecs) = buildAccessors(Flds,mkBrTerm(Lc,.nme(Lc,DlId),Els),Qv,Cx,DlTp,Path);
+
+    TpeDec = .tpeDec(Lc,Id,Tmplte,TypeRl,[.tLbl(ConFullNm,[|Flds|])->0]);
+    TDef = .typeDef(Lc,Id,Tmplte,TypeRl);
+
     valis ([TDef,.cnsDef(Lc,ConFullNm,0,ConConTp),..ConAccs], [TpeDec,ConDec,ConCns,..AccDecs])
       }.
   parseContract(St,_,_) => valof{
