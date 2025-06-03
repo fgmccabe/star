@@ -740,7 +740,7 @@ static void showCall(ioPo out, stackPo stk, termPo pr) {
     else
       outMsg(out, "call: %#L %#.16T", loc, callee);
 
-    shArgs(out, displayDepth, stk->fp->args, codeArity(callee));
+    shArgs(out, displayDepth, stk->args, codeArity(callee));
   } else
     outMsg(out, "invalid use of showCall");
 }
@@ -754,7 +754,7 @@ void showEntry(ioPo out, stackPo stk, termPo _call) {
   else
     outMsg(out, "entry: %#L %#.16T", loc, mtd);
 
-  shArgs(out, displayDepth, stk->fp->args, codeArity(mtd));
+  shArgs(out, displayDepth, stk->args, codeArity(mtd));
 }
 
 void showRet(ioPo out, stackPo stk, termPo val) {

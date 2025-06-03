@@ -29,37 +29,29 @@ star.compiler.gencode{
     if traceCodegen! then
       showMsg("Compilation dictionary vars: $(Vars), types: $(Tps)");
     
-    valis compDefs(Defs,Vars)
+    valis compDefs(Defs,Vars,Tps)
   }
 
   declGlobal(.varDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
   declGlobal(.funDec(_,_,Nm,Tp), Vrs) => Vrs[Nm->(Tp,.glbVar(Nm,Tp::ltipe))].
   declGlobal(_,Vrs) => Vrs.
 
-  declType:(decl,map[string,(tipe,cons[tipe])])=>map[string,(tipe,cons[tipe])].
-  declType(.tpeDec(_,Nm,Tp,_,Map), Tps) => 
-    ((_Tp,Cns) ?= Tps[Nm] ?? Tps[Nm->(Tp,Cns)] || Tps[Nm->(Tp,[])]).
-  declType(.cnsDec(_,Nm,_,CnTp),Tps) => valof{
-    RTp = funTypeRes(CnTp);
-    TpNm = tpName(RTp);
-    if (Tpe,Cns) ?= Tps[TpNm] then
-      valis Tps[TpNm->(Tpe,[CnTp,..Cns])] else
-    valis Tps[TpNm->(RTp,[CnTp])]
-  }
+  declType:(decl,map[string,indexMap])=>map[string,indexMap].
+  declType(.tpeDec(_,Nm,Tp,_,Map),Tps) => Tps[Nm->Map].
   declType(_,Tps) => Tps.
 
-  compDefs:(cons[cDefn],map[string,(tipe,srcLoc)])=> cons[codeSegment].
-  compDefs(Dfs,Glbs) => (Dfs//(D)=>genDef(D,Glbs)).
+  compDefs:(cons[cDefn],map[string,(tipe,srcLoc)],map[string,indexMap])=> cons[codeSegment].
+  compDefs(Dfs,Glbs,Tps) => (Dfs//(D)=>genDef(D,Glbs,Tps)).
 
-  genDef:(cDefn,map[string,(tipe,srcLoc)]) => codeSegment.
-  genDef(.fnDef(Lc,Nm,Tp,Args,Val),Glbs) => genFun(Lc,Nm,Tp,Args,Val,Glbs).
-  genDef(.glDef(Lc,Nm,Tp,Val),Glbs) => genGlb(Lc,Nm,Tp,Val,Glbs).
-  genDef(.tpDef(Lc,Tp,TpRl,Index),_) => .tipe(Tp,TpRl,Index).
-  genDef(.lblDef(_Lc,Lbl,Tp,Ix),_) => .struct(Lbl,Tp,Ix).
+  genDef:(cDefn,map[string,(tipe,srcLoc)],map[string,indexMap]) => codeSegment.
+  genDef(.fnDef(Lc,Nm,Tp,Args,Val),Glbs,Tps) => genFun(Lc,Nm,Tp,Args,Val,Glbs,Tps).
+  genDef(.glDef(Lc,Nm,Tp,Val),Glbs,Tps) => genGlb(Lc,Nm,Tp,Val,Glbs,Tps).
+  genDef(.tpDef(Lc,Tp,TpRl,Index),_,_) => .tipe(Tp,TpRl,Index).
+  genDef(.lblDef(_Lc,Lbl,Tp,Ix),_,_) => .struct(Lbl,Tp,Ix).
 
-  genFun:(option[locn],string,tipe,cons[cExp],cExp,map[string,(tipe,srcLoc)]) => codeSegment.
-  genFun(Lc,Nm,Tp,Args,Val,Glbs) => valof{
-    Ctx = emptyCtx(Glbs);
+  genFun:(option[locn],string,tipe,cons[cExp],cExp,map[string,(tipe,srcLoc)],map[string,indexMap]) => codeSegment.
+  genFun(Lc,Nm,Tp,Args,Val,Glbs,Tps) => valof{
+    Ctx = emptyCtx(Glbs,Tps);
 
     if traceCodegen! then
       showMsg("Compile $(.fnDef(Lc,Nm,Tp,Args,Val))\n");
@@ -89,9 +81,9 @@ star.compiler.gencode{
     valis Peeped;
   }
 
-  genGlb:(option[locn],string,tipe,cExp,map[string,(tipe,srcLoc)]) => codeSegment.
-  genGlb(Lc,Nm,Tp,Val,Glbs) => valof{
-    Ctx = emptyCtx(Glbs);
+  genGlb:(option[locn],string,tipe,cExp,map[string,(tipe,srcLoc)],map[string,indexMap]) => codeSegment.
+  genGlb(Lc,Nm,Tp,Val,Glbs,Tps) => valof{
+    Ctx = emptyCtx(Glbs,Tps);
 
     AbrtCde = compAbort(Lc,"global eval: $(Nm) aborted",Ctx);
 
@@ -669,13 +661,12 @@ star.compiler.gencode{
     Lvl = stkLvl(Stk);
     (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
     
-    (Table,Max) = genIndexTable(Cases,Ctx);
+    Table = genIndexTable(Cases,Ctx);
+    Mx = maxIndex(Table).
 
     (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
 
-    CaseIns = (intType==deRef(typeOf(Gv)) ?? .iICase(Max) || .iCase(Max));
-
-    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[CaseIns],Ctx,Stk);
+    (CC,Ctxc,Stkc) = compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,[.iIxCase(Mx+1)],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
@@ -756,16 +747,24 @@ star.compiler.gencode{
     | .cTerm(_,Nm,Args,_) => size(Args)*37+hash(Nm)
   }.
 
-  genIndexTable(Cases,Ctx) =>
-    (sortCases(caseIndices(Cases,Ctx)),maxIndex(Cases)+1).
+  genIndexTable:all e ~~ (cons[cCase[e]],codeCtx) => cons[csEntry[e]].
+  genIndexTable(Cases,Ctx) => sortCases(caseIndices(Cases,Ctx)).
 
-  caseIndices(Cases,Ctx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseIndex(Pt),Ex)).
+  caseIndices(Cases,Ctx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseIndex(Pt,Ctx),Ex)).
 
-  caseIndex(.cTerm(_,Nm,_,_),Ctx) => valof{
+  caseIndex(.cTerm(Lc,Nm,Els,Tp),Ctx) => valof{
+    if IxMap ?= Ctx.tps[tpName(Tp)] && Ix ?= IxMap[.tLbl(Nm,[|Els|])] then
+      valis Ix
+    else{
+      reportError("cannot find index of #(Nm)",Lc);
+      valis 0
+    }
   }
-  
-  
 
+  maxIndex:all e ~~ (cons[csEntry[e]]) => integer.
+  maxIndex(Cases) => foldRight(((Ix,_),Mx) => max(Ix,Mx),0,Cases).
+
+  sortCases:all e ~~ (cons[(option[locn],cExp,integer,e)]) => cons[csEntry[e]].
   sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
 
   mergeDuplicates:all e ~~ (cons[(option[locn],cExp,integer,e)])=>cons[csEntry[e]].
@@ -1009,18 +1008,21 @@ star.compiler.gencode{
 
   codeCtx ::= codeCtx{
     vars : ref map[string,(tipe,srcLoc)].
+    tps : map[string,indexMap].
     lbls : ref integer.  
   }
 
-  emptyCtx:(map[string,(tipe,srcLoc)])=>codeCtx.
-  emptyCtx(Glbs) => codeCtx{
+  emptyCtx:(map[string,(tipe,srcLoc)],map[string,indexMap])=>codeCtx.
+  emptyCtx(Glbs,Tps) => codeCtx{
     vars = ref Glbs.
+    tps = Tps.
     lbls = ref 0.
   }
 
   mergeCtx:(codeCtx,codeCtx)=>codeCtx.
   mergeCtx(C1,C2) => codeCtx{
     vars = C1.vars.
+    tps = C1.tps.
     lbls = C1.lbls.
   }
 
