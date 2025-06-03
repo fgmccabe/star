@@ -122,12 +122,19 @@ star.compiler.normalize{
   }
 
   implementation letify[cExp] => {
-    letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
+    letify(Lc,V,Vl,B) => .cValof(Lc,
+      .aSeq(Lc,
+	.aDefn(Lc,.cVar(Lc,V),Vl),
+	.aValis(Lc,B)),
+      typeOf(B)).
+--    letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .cSeq(Lc,.cSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
   implementation letify[aAction] => {
-    letify(Lc,V,Vl,B) => .aLtt(Lc,V,Vl,B).
+    letify(Lc,V,Vl,B) => .aSeq(Lc,
+      .aDefn(Lc,.cVar(Lc,V),Vl),
+      B).
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 

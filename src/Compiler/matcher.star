@@ -177,8 +177,8 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    valis mkCase(Lc,V,Cases,Deflt)
---    valis mkIndex(Lc,V,Cases,Deflt)
+--    valis mkCase(Lc,V,Cases,Deflt)
+    valis mkIndex(Lc,V,Cases,Deflt)
   }
 
   matchTuples:all e ~~ reform[e],rewrite[e],display[e] |:
@@ -186,8 +186,8 @@ star.compiler.matcher{
   matchTuples(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
-    valis mkCase(Lc,V,Cases,Deflt)
---    valis mkIndex(Lc,V,Cases,Deflt)
+--    valis mkCase(Lc,V,Cases,Deflt)
+   valis mkIndex(Lc,V,Cases,Deflt)
   }
 
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:

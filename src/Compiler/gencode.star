@@ -24,7 +24,7 @@ star.compiler.gencode{
   public compProg:(pkg,cons[cDefn],cons[decl])=>cons[codeSegment].
   compProg(Pkg,Defs,Decls) => valof{
     Vars = foldLeft(declGlobal,[],Decls);
-    Tps = foldLeft(declType,[],Decls);
+    Tps = foldLeft(declType,foldLeft(declType,[],Decls),stdTypes);
 
     if traceCodegen! then
       showMsg("Compilation dictionary vars: $(Vars), types: $(Tps)");
@@ -37,7 +37,7 @@ star.compiler.gencode{
   declGlobal(_,Vrs) => Vrs.
 
   declType:(decl,map[string,indexMap])=>map[string,indexMap].
-  declType(.tpeDec(_,Nm,Tp,_,Map),Tps) => Tps[Nm->Map].
+  declType(.tpeDec(_,Nm,Tp,_,Map),Tps) => Tps[tpName(Tp)->Map].
   declType(_,Tps) => Tps.
 
   compDefs:(cons[cDefn],map[string,(tipe,srcLoc)],map[string,indexMap])=> cons[codeSegment].
@@ -241,6 +241,8 @@ star.compiler.gencode{
     }
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       compCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
+    | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
+      compIndexCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
     | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       Ctx1 = defineLclVar(Vr,VTp,Ctx);
       (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
@@ -556,6 +558,14 @@ star.compiler.gencode{
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
 	Brks,Last,Ctx,Stk)
       | .notLast => compCase(Lc,G,stkLvl(Stk),Cs,D,
+	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
+	Brks,Last,Ctx,Stk)
+    }
+    | .aIxCase(Lc,G,Cs,D) => case Next in {
+      | .noMore => compIndexCase(Lc,G,stkLvl(Stk)+1,Cs,D,
+	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
+	Brks,Last,Ctx,Stk)
+      | .notLast => compIndexCase(Lc,G,stkLvl(Stk),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
 	Brks,Last,Ctx,Stk)
     }

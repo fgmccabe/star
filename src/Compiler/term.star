@@ -146,7 +146,7 @@ star.compiler.term{
     | .cTry(_,B,E,H,_)=> 
       "(try #(dspExp(B,Off)) catch $(E) in #(dspExp(H,Off)))"
     | .cThrw(_,E,_) => "throw #(dspExp(E,Off))"
-    | .cValof(_,A,_) => "valof{#(dspAct(A,Off))}"
+    | .cValof(_,A,_) => "valof #(dspAct(A,Off))"
   }
 
   pDspExp:(cExp,string) => string.

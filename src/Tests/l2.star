@@ -2,7 +2,7 @@ test.l2{
   import star.
   import star.assert.
 
-  tree[a] ::= .empty | .node(tree[a],a,tree[a]).
+  all a ~~ tree[a] ::= .empty | .node(tree[a],a,tree[a]).
 
   implementation all e ~~ display[e] |: display[tree[e]] => let {.
     dTree(.empty) => "e".
