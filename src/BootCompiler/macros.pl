@@ -436,9 +436,11 @@ examineTerm(T,Tx) :-
   isBraceTuple(A,_,Els),!,
   deSequence(Els,As),
   map(As,macros:macroAction,Axs),
-  reSequence(Axs,A1),
-  braceTuple(Lc,[A1],Ax),
-  mkValof(Lc,Ax,Tx).
+  (reSequence(Axs,A1),
+   braceTuple(Lc,[A1],Ax),
+   mkValof(Lc,Ax,Tx);
+   reportError("cannot figure out valof expression %s",[ast(T)],Lc),
+   T=Tx).
 examineTerm(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
   macroTerm(L,Lx),
