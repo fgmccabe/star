@@ -243,6 +243,12 @@ star.compiler.gencode{
       compCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
     | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
       compIndexCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
+    | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
+      Ctx1 = defineLclVar(Vr,VTp,Ctx);
+      (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
+      (BB,_,Stkx) = compExp(Bnd,Lc,Brks,Last,Ctx1,Stk);
+      valis (chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB,Ctx,Stkx)
+    }
     | .cAbort(Lc,Msg,Tp) => (compAbort(Lc,Msg,Ctx),Ctx,.none)
     | .cTry(Lc,B,.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
       if traceCodegen! then{
@@ -587,6 +593,12 @@ star.compiler.gencode{
 		    .iBlock(stkLvl(Stk),
 		      GC++BC++[.iLoop(Lp)]))]))],Ctx,Stk)
     }
+    |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
+      Ctx1 = defineLclVar(Vr,VTp,Ctx);
+      (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
+      (BB,Ctx2,_) = compAction(Bnd,Lc,Brks,Last,Next,Ctx1,Stk);
+      valis (chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB,Ctx2,Stk)
+    }
     | .aTry(Lc,B,.cVar(_,.cV(Er,ETp)),H) => valof{
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), Er=$(Er)");
@@ -759,6 +771,8 @@ star.compiler.gencode{
       valis 0
     }
   }
+
+  hasIndexMap(Ctx,TpNm) => _ ?= Ctx.tps[TpNm].
 
   maxIndex:all e ~~ (cons[csEntry[e]]) => integer.
   maxIndex(Cases) => foldRight(((Ix,_),Mx) => max(Ix,Mx),0,Cases).

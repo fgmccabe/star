@@ -127,6 +127,7 @@ star.compiler.normalize{
 	.aDefn(Lc,.cVar(Lc,V),Vl),
 	.aValis(Lc,B)),
       typeOf(B)).
+--    letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .cSeq(Lc,.cSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
