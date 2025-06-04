@@ -311,7 +311,7 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         pushStkOp(jit, vl);
         releaseReg(jit, vl);
 
-        sub(X16, X16, IM(pointerSize));  // Step back one instruction to get to the break
+        sub(X16, X16, IM(pointerSize)); // Step back one instruction to get to the break
         br(X16);
         pc++;
         continue;
@@ -556,10 +556,26 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
         continue;
       }
 
-      case Nth: // T --> el, pick up the nth element
-        return Error;
-      case StNth: // T el --> store in nth element
-        return Error;
+      case Nth: {
+        // T --> el, pick up the nth element
+        armReg vl = popStkOp(jit, findFreeReg(jit));
+        ldr(vl, OF(vl,(code[pc].fst+1)*pointerSize));
+        pushStkOp(jit, vl);
+        releaseReg(jit, vl);
+        pc++;
+        continue;
+      }
+      case StNth: {
+        // T el --> store in nth element
+        armReg trm = popStkOp(jit, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
+        str(vl, OF(trm, (code[pc].fst+1)*pointerSize));
+
+        releaseReg(jit, vl);
+        releaseReg(jit, trm);
+        pc++;
+        continue;
+      }
       case If: {
         // break if true
         armReg vl = popStkOp(jit, findFreeReg(jit));
@@ -640,10 +656,11 @@ static retCode jitBlock(jitCompPo jit, jitBlockPo block, int32 from, int32 endPc
           return jitError(jit, "cannot reserve R0");
         }
       }
-      case IxCase: { // check and jump on index
+      case IxCase: {
+        // check and jump on index
         armReg tgt = popStkOp(jit, findFreeReg(jit));
         armReg ix = findFreeReg(jit);
-        ldr(ix, OF(tgt, 0));          // Pick up the label
+        ldr(ix, OF(tgt, 0)); // Pick up the label
         ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
         // Make sure that it is less than max
         armReg divisor = findFreeReg(jit);
