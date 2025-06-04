@@ -111,7 +111,6 @@ star.compiler.inline{
     | .cDsj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
     | .cNeg(_,_) => simCond(Exp,Map,Depth)
     | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth.>>.1)
-    | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
@@ -182,8 +181,6 @@ star.compiler.inline{
   simAct(.aTry(Lc,B,E,H),Map,Depth) =>
     .aTry(Lc,simplifyAct(B,Map,Depth),simplifyExp(E,Map,Depth),simplifyAct(H,Map,Depth)).
   simAct(.aThrw(Lc,E),Map,Depth) => .aThrw(Lc,simplifyExp(E,Map,Depth)).
-  simAct(.aLtt(Lc,Vr,Bnd,A),Map,Depth) =>
-    inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),A,Map,Depth).
   simAct(.aVarNmes(Lc,Vrs,X),Map,Depth) =>
     .aVarNmes(Lc,Vrs,simplifyAct(X,Map,Depth)).
   simAct(.aAbort(Lc,Txt),_,_) => .aAbort(Lc,Txt).
@@ -278,13 +275,6 @@ star.compiler.inline{
     | .noMatch => .noMatch
     | .insufficient => .insufficient
   }
-
-  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
-    (option[locn],cV,cExp,e,map[defnSp,cDefn],integer) => e.
-  inlineLtt(Lc,.cV(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
-    simplify(rewrite(Exp,rwVar({Vr->Bnd})),Map,Depth).
-  inlineLtt(Lc,Vr,Bnd,Exp,Map,Depth) =>
-    mkLtt(Lc,Vr,Bnd,simplify(Exp,Map,Depth)).
 
   varFound(Vr) => (T)=>(.cVar(_,VV).=T ?? VV==Vr || .false).
   

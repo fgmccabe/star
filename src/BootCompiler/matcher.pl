@@ -163,11 +163,11 @@ mkCase(Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
 mkCase(Lc,V,_,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
-mkUnpack(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],Deflt,_Map,Reslt) :-!,
+mkIndexed(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
-mkUnpack(_Lc,V,Conder,[(Ptn,Exp,Lc)],Deflt,_Map,Reslt) :-!,
+mkIndexed(_Lc,V,Conder,[(Ptn,Exp,Lc)],Deflt,_Map,Reslt) :-!,
   call(Conder,Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
-mkUnpack(Lc,V,_,Cases,Deflt,_Map,unpack(Lc,V,Cases,Deflt)).
+mkIndexed(Lc,V,_,Cases,Deflt,_Map,unpack(Lc,V,Cases,Deflt)).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-
   appStr("case ",C,C0),
@@ -190,7 +190,7 @@ matchConstructors(Lc,Subber,Conder,Tpls,[V|Vrs],Deflt,Map,Dp,CaseExp) :-
   sort(Tpls,matcher:compareConstructorTriple,ST),
   Dp1 is Dp+1,
   formCases(ST,Subber,Conder,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
-  mkUnpack(Lc,V,Conder,Cases,Deflt,Map,CaseExp).
+  mkIndexed(Lc,V,Conder,Cases,Deflt,Map,CaseExp).
 
 findIndexMap([([A|_],_,_)|_],Map,Index) :-
   cnsName(A,ANm),

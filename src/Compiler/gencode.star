@@ -243,12 +243,6 @@ star.compiler.gencode{
       compCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
     | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
       compIndexCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
-    | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
-      Ctx1 = defineLclVar(Vr,VTp,Ctx);
-      (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
-      (BB,_,Stkx) = compExp(Bnd,Lc,Brks,Last,Ctx1,Stk);
-      valis (chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB,Ctx,Stkx)
-    }
     | .cAbort(Lc,Msg,Tp) => (compAbort(Lc,Msg,Ctx),Ctx,.none)
     | .cTry(Lc,B,.cVar(_,.cV(Er,ETp)),H,Tp) => valof{
       if traceCodegen! then{
@@ -593,12 +587,6 @@ star.compiler.gencode{
 		    .iBlock(stkLvl(Stk),
 		      GC++BC++[.iLoop(Lp)]))]))],Ctx,Stk)
     }
-    |.aLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
-      Ctx1 = defineLclVar(Vr,VTp,Ctx);
-      (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
-      (BB,Ctx2,_) = compAction(Bnd,Lc,Brks,Last,Next,Ctx1,Stk);
-      valis (chLine(OLc,Lc)++VV++[.iStL(Vr)]++BB,Ctx2,Stk)
-    }
     | .aTry(Lc,B,.cVar(_,.cV(Er,ETp)),H) => valof{
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), Er=$(Er)");
@@ -663,14 +651,14 @@ star.compiler.gencode{
   compIndexCase:all e ~~ display[e] |:
     (option[locn],cExp,integer,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) => valof{
+  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) where hasIndexMap(Ctx,tpName(typeOf(Gv))) => valof{
     if traceCodegen! then
       showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Df = defineLbl(Ctx,"Df");
     Ok = defineLbl(Ctx,"Ok");
     Lvl = stkLvl(Stk);
     (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
-    
+
     Table = genIndexTable(Cases,Ctx);
     Mx = maxIndex(Table).
 
@@ -685,8 +673,9 @@ star.compiler.gencode{
 	    GC++[.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
+  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) =>
+    compCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk).
   
-
   compGVExp(.cVar(Lc,V),OLc,Brks,Ctx,Stk) => 
     (V,chLine(OLc,Lc)++loadSrc(V)(Lc,Ctx),Ctx,pshStack(typeOf(V),Stk)).
   compGVExp(E,OLc,Brks,Ctx,Stk) => valof{

@@ -729,7 +729,7 @@ star.compiler.typeparse{
 
     ConTp = wrapConstraints(Cx,consType(.faceType(Flds,Tps),Tp));
     if Ix?=Mp[Nm] then
-      valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)],Idx[.tLbl(ConNm,arity(ConTp))->Ix])
+      valis ([.cnsDef(Lc,ConNm,Ix,ConTp)],[.cnsDec(Lc,Nm,ConNm,ConTp)],Idx[.tLbl(ConNm,[|Flds|])->Ix])
     else{
       reportError("(internal) cant find #(Nm) in $(Mp)",Lc);
       valis ([],[],Idx)

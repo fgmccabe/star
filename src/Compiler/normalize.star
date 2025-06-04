@@ -127,7 +127,6 @@ star.compiler.normalize{
 	.aDefn(Lc,.cVar(Lc,V),Vl),
 	.aValis(Lc,B)),
       typeOf(B)).
---    letify(Lc,V,Vl,B) => .cLtt(Lc,V,Vl,B).
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .cSeq(Lc,.cSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
@@ -360,9 +359,12 @@ star.compiler.normalize{
       Reslt = caseMatcher(Lc,Map,LGov,.cAbort(Lc,"no matches",Tp),Cs);
       valis (Reslt,Ex2)
     } else {
-      V = genVar("C",typeOf(LGov));
-      Res = caseMatcher(Lc,Map,.cVar(Lc,V),.cAbort(Lc,"no matches",Tp),Cs);
-      valis (.cLtt(Lc,V,LGov,Res),Ex2)
+      V = .cVar(Lc,genVar("C",typeOf(LGov)));
+      Res = caseMatcher(Lc,Map,V,.cAbort(Lc,"no matches",Tp),Cs);
+      valis (.cValof(Lc,
+	  .aSeq(Lc,
+	    .aDefn(Lc,V,LGov),
+	    .aValis(Lc,Res)),Tp),Ex2)
     }
   }
   liftExp(.trycatch(Lc,B,E,H,Tp),Map,Q,Ex) => valof{
@@ -833,12 +835,11 @@ star.compiler.normalize{
     (CCs,Ex2) = transformRules(Cs,Map,Map,Q,.none,Ex1);
     if .cVar(_,_).=LGv then{
       Reslt = caseMatcher(Lc,Map,LGv,.aAbort(Lc,"no matches"),CCs);
-
       valis (Reslt,Ex2)
     } else {
-      V = genVar("C",typeOf(Gv));
-      Res = caseMatcher(Lc,Map,.cVar(Lc,V),.aAbort(Lc,"no matches"),CCs);
-      valis (.aLtt(Lc,V,LGv,Res),Ex2)
+      V = .cVar(Lc,genVar("C",typeOf(Gv)));
+      Res = caseMatcher(Lc,Map,V,.aAbort(Lc,"no matches"),CCs);
+      valis (.aSeq(Lc,.aDefn(Lc,V,LGv),Res),Ex2)
     }
   }
   liftAction(.doTry(Lc,B,E,H),Map,Q,Ex) => valof{
