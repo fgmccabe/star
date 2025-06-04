@@ -6,7 +6,7 @@ import sys, getopt
 
 # Run a script for every member of the catalog
 
-testDir = "/Users/fgm/Projects/star/src/Tests/"
+testDir = "@TESTDIR@/"
 tester = f"{testDir}/sbc-test"
 tracing = False
 ignore_failures = False

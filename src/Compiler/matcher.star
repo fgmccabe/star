@@ -177,7 +177,6 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
---    valis mkCase(Lc,V,Cases,Deflt)
     valis mkIndex(Lc,V,Cases,Deflt)
   }
 
@@ -186,8 +185,7 @@ star.compiler.matcher{
   matchTuples(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
---    valis mkCase(Lc,V,Cases,Deflt)
-   valis mkIndex(Lc,V,Cases,Deflt)
+    valis mkCase(Lc,V,Cases,Deflt)
   }
 
   matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
@@ -306,14 +304,6 @@ star.compiler.matcher{
 
   sameConstructor(.cTerm(_,A,_,_), .cTerm(_,B,_,_)) => A==B.
   sameConstructor(_,_) default => .false.
-
-  pullVarLets:(cons[cExp],cExp)=>(cons[cExp],cExp).
-  pullVarLets(Vrs,.cLtt(Lc,V,A,Exp)) =>
-    pullVarLets(Vrs//replaceWith(A,.cVar(Lc,V)),Exp).
-  pullVarLets(Vrs,Exp) => (Vrs,Exp).
-
-  replaceWith:(cExp,cExp) => (cExp)=>cExp.
-  replaceWith(A,B) => (X) => (A==X??B||X).
 
   tooDeep(X) => X>0.
 }
