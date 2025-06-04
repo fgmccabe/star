@@ -1,4 +1,4 @@
-star.ompiler.decode{
+star.compiler.decode{
   import star.
   
   import star.compiler.types.
@@ -85,17 +85,6 @@ star.ompiler.decode{
   decodeChar:(cons[char]) => (char,cons[char]).
   decodeChar([`\\`,X,..L]) => (X,L).
   decodeChar([X,..L]) => (X,L).
-
-  decodeText:(cons[char]) => (string,cons[char]).
-  decodeText([C,..L]) => valof{
-    (Q,Cs) = collectQuoted(L,[],C);
-    valis (reverse(Q)::string,Cs)
-  }
-
-  collectQuoted:(cons[char],cons[char],char) => (cons[char],cons[char]).
-  collectQuoted([S,..Lx],SoF,S) => (SoF,Lx).
-  collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
-  collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
 
   public decodeSig:(data) => tipe.
   decodeSig(.strg(Sig)) => decodeSignature(Sig).
@@ -278,11 +267,4 @@ star.ompiler.decode{
   collectQuoted([S,..Lx],SoF,S) => (SoF,Lx).
   collectQuoted([`\\`,X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[X,..SoF],S).
-
-  decodeNat:(cons[char],integer) => (integer,cons[char]).
-  decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
-  decodeNat(Ls,Ix) default => (Ix,Ls).
-
-
-  
 }  

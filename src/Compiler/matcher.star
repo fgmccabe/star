@@ -305,5 +305,13 @@ star.compiler.matcher{
   sameConstructor(.cTerm(_,A,_,_), .cTerm(_,B,_,_)) => A==B.
   sameConstructor(_,_) default => .false.
 
+  pullVarLets:(cons[cExp],cExp)=>(cons[cExp],cExp).
+  pullVarLets(Vrs,.cLtt(Lc,V,A,Exp)) =>
+    pullVarLets(Vrs//replaceWith(A,.cVar(Lc,V)),Exp).
+  pullVarLets(Vrs,Exp) => (Vrs,Exp).
+
+  replaceWith:(cExp,cExp) => (cExp)=>cExp.
+  replaceWith(A,B) => (X) => (A==X??B||X).
+
   tooDeep(X) => X>0.
 }
