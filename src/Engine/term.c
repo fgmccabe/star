@@ -195,7 +195,7 @@ termPo termFinalizer(specialClassPo class, termPo o) {
   return o + NormalCellCount(lblArity(lbl));
 }
 
-// Special hash function used in case instruction. Only looks at the label of the term
+// Special hash function used in case instruction. Only look at the label of the term
 
 integer hashTerm(termPo t) {
   clssPo c = classOf(t);
@@ -203,7 +203,7 @@ integer hashTerm(termPo t) {
   if (isSpecialClass(c))
     return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
   else
-    return hashTerm((termPo) (C_NORMAL(t)->lbl));
+    return labelHash(C_NORMAL(t)->lbl);
 }
 
 integer termSize(normalPo t) {
