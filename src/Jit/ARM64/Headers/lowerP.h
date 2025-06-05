@@ -34,6 +34,7 @@ typedef struct {
 typedef struct jitBlock_ *jitBlockPo;
 
 typedef struct jitBlock_ {
+  jitCompPo jit;
   valueStackPo valStk;
   insPo code;
   int32 startPc;
