@@ -17,7 +17,7 @@ test.jt2{
   main(V) => valof{
     timer = ref timer_start(((V::float)**2.0)::integer, "fib");
     F = fib(V);
-    timer_finish(timer!);
+    t1 = timer_finish(timer!)::float;
     showMsg("Fib of $(V) is $(F)");
 
     try{
@@ -28,8 +28,12 @@ test.jt2{
 
     timer = ref timer_start(((V::float)**2.0)::integer, "fib");
     F = fib(V);
-    timer_finish(timer!);
+    t2 = timer_finish(timer!)::float;
     showMsg("Fib of $(V) is $(F)");
+
+    try {
+      showMsg("Factor = $(_flt_div(t1,t2))")
+    } catch { M => showMsg("Exception ") }
     
     valis ()
   }

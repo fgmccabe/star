@@ -42,7 +42,7 @@ termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
 
-stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd);
+stackPo handleStackOverflow(stackPo stk, integer delta, int32 arity);
 
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);

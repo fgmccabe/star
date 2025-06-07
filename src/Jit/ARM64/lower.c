@@ -50,8 +50,9 @@ static retCode bail(jitCompPo jit, char *msg, ...);
 static retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity);
 
 static retCode getIntVal(jitCompPo jit, armReg rg);
-
 static retCode mkIntVal(jitCompPo jit, armReg rg);
+static retCode getFltVal(jitCompPo jit, armReg rg);
+static retCode mkFltVal(jitCompPo jit, armReg rg);
 
 #define SSP (X28)
 #define AG  (X26)
@@ -64,9 +65,12 @@ static int32 fpLink = OffsetOf(StackFrame, link);
 
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
-static codeLblPo breakLabel(jitBlockPo block, int32 tgt);
-
-static codeLblPo loopLabel(jitBlockPo block, int32 tgt);
+static jitBlockPo breakBlock(jitBlockPo block, int32 tgt);
+static codeLblPo breakLabel(jitBlockPo block);
+static codeLblPo loopLabel(jitBlockPo block);
+retCode breakOutEq(jitBlockPo block, int32 tgt);
+retCode breakOutNe(jitBlockPo block, int32 tgt);
+retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop);
 
 retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   jittedCode code = jitCode(mtd);
@@ -160,14 +164,17 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         return Error;
       case Call: {
         // Call <prog>
-        loadConstant(jit, code[pc].fst, X16);
+        int32 key = code[pc].fst;
+        int arity = codeArity(labelCode(C_LBL(getConstant(key))));
+
+        loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bail(jit, "Function %T not defined", getConstant(code[pc].fst));;
+        bail(jit, "Function %T not defined", getConstant(key));
 
         setLabel(ctx, haveMtd);
 
@@ -211,12 +218,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(LR, returnPc);
 
         br(X16);
-
-        codeLblPo catch = breakLabel(block, pc + code[pc].alt + 1);
-        if (catch == Null)
-          return jitError(jit, "not in try scope");
-
-        b(catch);
+        codeLblPo brking = currentPcLabel(ctx);
+        ret = breakOut(block, pc + code[pc].alt + 1, True);
+        b(brking); // step back to the break out code
         setLabel(ctx, returnPc);
         pc++;
         continue;
@@ -322,6 +326,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Block: {
         // block of instructions
         int32 blockLen = code[pc].alt;
+        int32 blockHeight = code[pc].fst;
         codeLblPo brkLbl = newLabel(ctx);
         pc++;
 
@@ -336,24 +341,30 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         };
 
         ret = jitBlock(&subBlock, pc, pc + blockLen);
+
         pc += blockLen;
         setLabel(ctx, brkLbl);
+        add(SSP, AG, IM((lclCount(jit->mtd) + blockHeight) * pointerSize));
         continue;
       }
       case Break: {
         // leave block
-        codeLblPo tgt = breakLabel(block, pc + code[pc].alt + 1);
-        assert(tgt != Null);
-        b(tgt);
+        ret = breakOut(block, pc + code[pc].alt + 1, False);
         pc++;
         continue;
       }
-      case Result: // return value out of block
+      case Result: {
+        // return value out of block
+        ret = breakOut(block, pc + code[pc].alt + 1, True);
+        pc++;
+        continue;
+      }
       case Loop: {
         // jump back to start of block
-        codeLblPo tgt = loopLabel(block, pc + code[pc].alt+1);
+        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        codeLblPo tgt = loopLabel(tgtBlock);
         assert(tgt != Null);
-
+        add(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst) * pointerSize));
         b(tgt);
         pc++;
         continue;
@@ -530,29 +541,22 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           cmp(st, RG(lt));
           releaseReg(jit, lt);
         }
-        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
-        if (lbl != Null)
-          bne(lbl);
-        else
-          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        releaseReg(jit, st);
+        ret = breakOutNe(block, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
       case CLit: {
         // T,lit --> test for a literal value, break if not
         int32 key = code[pc].fst;
+
         tryRet(reserveReg(jit, X0));
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
-
         popStkOp(block, X1);
         invokeCFunc2(jit, (Cfunc2) sameTerm);
         tst(X0, RG(X0));
-        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
-        if (lbl != Null)
-          beq(lbl);
-        else
-          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
         releaseReg(jit, X0);
         releaseReg(jit, X1);
@@ -562,7 +566,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Nth: {
         // T --> el, pick up the nth element
         armReg vl = popStkOp(block, findFreeReg(jit));
-        ldr(vl, OF(vl,(code[pc].fst+1)*pointerSize));
+        ldr(vl, OF(vl, (code[pc].fst + 1) * pointerSize));
         pushStkOp(block, vl);
         releaseReg(jit, vl);
         pc++;
@@ -572,7 +576,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // T el --> store in nth element
         armReg trm = popStkOp(block, findFreeReg(jit));
         armReg vl = popStkOp(block, findFreeReg(jit));
-        str(vl, OF(trm, (code[pc].fst+1)*pointerSize));
+        str(vl, OF(trm, (code[pc].fst + 1) * pointerSize));
 
         releaseReg(jit, vl);
         releaseReg(jit, trm);
@@ -587,11 +591,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
-        if (lbl != Null)
-          bne(lbl);
-        else
-          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        ret = breakOutNe(block, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -603,11 +603,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        codeLblPo lbl = breakLabel(block, pc + code[pc].alt + 1);
-        if (lbl != Null)
-          beq(lbl);
-        else
-          return jitError(jit, "cannot find target label for %d", pc + code[pc].alt + 1);
+        ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -755,10 +751,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         loadConstant(jit, divZeroKey, a2);
         pushStkOp(block, a2);
-        int32 tgtBlock = pc + code[pc].alt + 1;
-        codeLblPo lbl = breakLabel(block, tgtBlock);
+        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          add(SSP, AG, IM(-(lclCount(jit->mtd) + code[tgtBlock].fst - 1) * pointerSize));
+          add(SSP, AG, IM(-(lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -793,7 +789,46 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case FAdd: // L R --> L+R
       case FSub: // L R --> L-R
       case FMul: // L R --> L*R
-      case FDiv: // L R --> L/R
+      case FDiv: {
+        // L R --> L/R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+        getFltVal(jit, a1);
+        getFltVal(jit, a2);
+
+        codeLblPo skip = newLabel(ctx);
+        tst(a2, IM(0));
+        bne(skip);
+        int32 divZeroKey = defineConstantLiteral(divZero);
+
+        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+
+        if (tgtBlock != Null) {
+          add(SSP, AG, IM(-(lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
+          loadConstant(jit, divZeroKey, a2);
+          pushStkOp(block, a2);
+
+          codeLblPo lbl = breakLabel(tgtBlock);
+          if (lbl != Null) {
+            b(lbl);
+          } else
+            return jitError(jit, "cannot find target label for %d", tgtBlock);
+        } else
+          return jitError(jit, "cannot find target label for %d", tgtBlock);
+
+        setLabel(ctx, skip);
+        fmov(FP(F0), RG(a1));
+        fmov(FP(F1), RG(a2));
+        fdiv(F0, F0, F1);
+        fmov(RG(a1), FP(F0));
+        mkFltVal(jit, a1);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        pc++;
+        continue;
+      }
       case FMod: // L R --> L%R
       case FAbs: // L --> abs(L)
       case FEq: // L R e --> L==R
@@ -907,26 +942,83 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
   return Ok;
 }
 
-codeLblPo breakLabel(jitBlockPo block, int32 tgt) {
+retCode getFltVal(jitCompPo jit, armReg rg) {
+  assemCtxPo ctx = assemCtx(jit);
+  asr(rg, rg, IM(2));
+  return Ok;
+}
+
+retCode mkFltVal(jitCompPo jit, armReg rg) {
+  assemCtxPo ctx = assemCtx(jit);
+  lsl(rg, rg, IM(2));
+  orr(rg, rg, IM(intTg));
+  return Ok;
+}
+
+retCode breakOutEq(jitBlockPo block, int32 tgt) {
+  jitBlockPo tgtBlock = breakBlock(block, tgt);
+  codeLblPo lbl = breakLabel(tgtBlock);
+  jitCompPo jit = block->jit;
+  assemCtxPo ctx = assemCtx(block->jit);
+
+  if (lbl != Null) {
+    beq(lbl);
+    return Ok;
+  } else
+    return jitError(jit, "cannot find target label for %d", tgt);
+}
+
+retCode breakOutNe(jitBlockPo block, int32 tgt) {
+  jitBlockPo tgtBlock = breakBlock(block, tgt);
+  codeLblPo lbl = breakLabel(tgtBlock);
+  jitCompPo jit = block->jit;
+  assemCtxPo ctx = assemCtx(block->jit);
+
+  if (lbl != Null) {
+    bne(lbl);
+    return Ok;
+  } else
+    return jitError(jit, "cannot find target label for %d", tgt);
+}
+
+retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop) {
+  jitBlockPo tgtBlock = breakBlock(block, tgt);
+  codeLblPo lbl = breakLabel(tgtBlock);
+  jitCompPo jit = block->jit;
+  assemCtxPo ctx = assemCtx(block->jit);
+  insPo code = block->code;
+
+  if (lbl != Null) {
+    if (keepTop) {
+      armReg tp = findFreeReg(jit);
+      popStkOp(block, tp);
+      add(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
+      pushStkOp(block, tp);
+      releaseReg(jit, tp);
+    }
+    b(lbl);
+    return Ok;
+  } else
+    return jitError(jit, "cannot find target label for %d", tgt);
+}
+
+jitBlockPo breakBlock(jitBlockPo block, int32 tgt) {
   while (block != Null) {
     if (block->startPc == tgt) {
       assert(block->code[block->startPc].op == Block);
-      return block->breakLbl;
+      return block;
     } else
       block = block->parent;
   }
   return Null;
 }
 
-codeLblPo loopLabel(jitBlockPo block, int32 tgt) {
-  while (block != Null) {
-    if (block->startPc == tgt) {
-      assert(block->code[block->startPc].op == Block);
-      return block->loopLbl;
-    } else
-      block = block->parent;
-  }
-  return Null;
+codeLblPo breakLabel(jitBlockPo block) {
+  return block->breakLbl;
+}
+
+codeLblPo loopLabel(jitBlockPo block) {
+  return block->loopLbl;
 }
 
 retCode jitError(jitCompPo jit, char *msg, ...) {
@@ -990,12 +1082,12 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   mov(X0, IM((integer) mtd));
   str(X0, OF(STK, OffsetOf(StackRecord, prog)));
 
-  stp(CO, CO, PRX(SP, 2 * pointerSize));
+  stp(CO, X0, PRX(SP, 2 * pointerSize));
 
-  tryRet(callIntrinsic(ctx, (runtimeFn) handleStackOverflow, 3, RG(STK), IM(delta), IM((integer) mtd)));
+  tryRet(callIntrinsic(ctx, (runtimeFn) handleStackOverflow, 3, RG(STK), IM(delta), IM((integer) codeArity(mtd))));
 
   mov(STK, RG(X0));
-  ldp(CO, CO, PSX(SP, 2 * pointerSize));
+  ldp(CO, X0, PSX(SP, 2 * pointerSize));
 
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
   ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));

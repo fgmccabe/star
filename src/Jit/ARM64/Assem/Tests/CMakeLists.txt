@@ -23,6 +23,7 @@ set(TEST_SOURCE_FILES ../../../../Util/unitTests.c
         test_infra.h
         test_infra.c
         armRegSetTest.c
+        armFpTests.c
         )
 set(TEST_HEADER_FILES ../Headers/arm64.h
         ../Headers/arm64P.h
@@ -30,7 +31,8 @@ set(TEST_HEADER_FILES ../Headers/arm64.h
         ../../../../Util/Headers/unitTests.h
         ../../../Headers/jitP.h
         ../../Headers/asminfra.h
-        armRegSetTest.h)
+        armRegSetTest.h
+        armFpTests.h)
 
 add_executable(arm64Test EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(arm64Test ooio)

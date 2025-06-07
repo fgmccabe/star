@@ -86,6 +86,18 @@ void encodeAddSubImm(uint1 w, uint1 op, uint1 S, uint8 code, int32 imm, armReg R
   emitU32(ctx, ins);
 }
 
+void encodeScalarOp(Precision P, uint8 op, fpReg Rm, fpReg Rn, fpReg Rd, assemCtxPo ctx) {
+  uint32 ins = ayt_bt(0b00011110, 24) | two_bt(P, 22) | one_bt(1, 21) | fiv_bt(Rm, 16) |
+               six_bt(op, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeFpMovOp(uint1 w, uint8 ftype, uint8 mode, uint8 op, uint8 Rn, uint8 Rd, assemCtxPo ctx) {
+  uint32 ins = one_bt(w, 31) | svn_bt(0b0011110, 24) | two_bt(ftype, 22) | one_bt(0b1, 21) |
+    two_bt(mode,19) | fiv_bt(op, 14) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
 static inline uint64 rotRight(uint64 x) {
   return (x >> 1) | (x << (64 - 1));
 }
