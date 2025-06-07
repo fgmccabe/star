@@ -132,11 +132,13 @@ long lblSize(specialClassPo cl, termPo o) {
 }
 
 termPo lblCopy(specialClassPo cl, termPo dst, termPo src) {
+  syserr("Should not be scanning labels");
   *((labelPo) dst) = *((labelPo) src);
   return dst + LabelCellCount;
 }
 
 termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  syserr("Should not be scanning labels");
   labelPo lbl = C_LBL(o);
 
   if (lbl->mtd != Null)
@@ -146,6 +148,7 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 termPo lblFinalizer(specialClassPo class, termPo o) {
+  syserr("Should not be scanning labels");
   return o + LabelCellCount;
 }
 

@@ -58,6 +58,7 @@ long mtdSize(specialClassPo cl, termPo o) {
 }
 
 termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
+  syserr("Should not be scanning code objects");
   methodPo si = C_MTD(src);
   methodPo di = (methodPo) dst;
   *di = *si;
@@ -66,6 +67,7 @@ termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
 }
 
 termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  syserr("Should not be scanning code objects");
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo) &mtd->lbl, c);
