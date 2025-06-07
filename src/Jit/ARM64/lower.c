@@ -951,7 +951,7 @@ retCode getFltVal(jitCompPo jit, armReg rg) {
 retCode mkFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
   lsl(rg, rg, IM(2));
-  orr(rg, rg, IM(intTg));
+  orr(rg, rg, IM(fltTg));
   return Ok;
 }
 

@@ -740,9 +740,26 @@ static void showCall(ioPo out, stackPo stk, termPo pr) {
     else
       outMsg(out, "call: %#L %#.16T", loc, callee);
 
-    shArgs(out, displayDepth, stk->args, codeArity(callee));
+    shArgs(out, displayDepth, stk->sp, codeArity(callee));
   } else
     outMsg(out, "invalid use of showCall");
+}
+
+static void showTCall(ioPo out, stackPo stk, termPo pr) {
+  methodPo mtd = stk->prog;
+  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+
+  if (isALabel(pr)) {
+    methodPo callee = labelCode(C_LBL(pr));
+
+    if (showColors)
+      outMsg(out, GREEN_ESC_ON"tcall:"GREEN_ESC_OFF" %#L %#.16T", loc, callee);
+    else
+      outMsg(out, "tcall: %#L %#.16T", loc, callee);
+
+    shArgs(out, displayDepth, stk->sp, codeArity(callee));
+  } else
+    outMsg(out, "invalid use of showTCall");
 }
 
 void showEntry(ioPo out, stackPo stk, termPo _call) {
@@ -830,8 +847,9 @@ DebugWaitFor enterDebug(processPo p) {
     case Abort:
       return lnDebug(p, mtd, peekStack(stk, 1), showAbort);
     case Call:
-    case TCall:
       return lnDebug(p, mtd, getConstant(pc->fst), showCall);
+    case TCall:
+      return lnDebug(p, mtd, getConstant(pc->fst), showTCall);
     case Entry:
       return lnDebug(p, mtd, Null, showEntry);
     case Ret:

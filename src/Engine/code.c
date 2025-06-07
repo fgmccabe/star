@@ -8,10 +8,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "quick.h"
-#include "decode.h"
 #include "pkgP.h"
 #include "arith.h"
-#include <assert.h>
 
 static poolPo pkgPool;
 static poolPo mtdPool;
@@ -74,6 +72,11 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   helper((ptrPo) &mtd->locs, c);
 
   return ((termPo) o) + mtdSize(cl, o);
+}
+
+void markMethod(methodPo mtd, gcSupportPo G) {
+  if (mtd->locs != Null)
+    mtd->locs = markPtr(G, &mtd->locs);
 }
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
@@ -268,7 +271,7 @@ static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
   methodPo mtd = labelCode(lbl);
   if (mtd != Null && callCount(mtd) > 0) {
-    return outMsg(out, "%L %ld\n", lbl, callCount(mtd));
+    return outMsg(out, "%A %ld\n", lbl, callCount(mtd));
   } else
     return Ok;
 }
