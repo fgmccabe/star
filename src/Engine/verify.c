@@ -43,7 +43,7 @@ static retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, 
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (traceVerify > noTracing)
-    showMethodCode(logFile, "Verify method %L\n", mtd);
+    showMethodCode(logFile, "Verify %A\n", mtd);
 
   int32 lclCnt = lclCount(mtd);
   Var locals[lclCnt];

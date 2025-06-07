@@ -123,7 +123,7 @@ void markLabels(gcSupportPo G) {
   for (integer ix = 0; ix < lblTableTop; ix++) {
     labelPo lbl = &labelTable[ix];
     if (lbl->mtd != Null)
-      lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
+      markMethod(lbl->mtd,G);
   }
 }
 
@@ -275,7 +275,7 @@ integer clearLabelBreakPoint(char *srch, integer slen, integer arity) {
 
 static retCode showBkPt(labelPo lbl, void *cl) {
   if (lbl->breakPointSet)
-    return outMsg((ioPo) cl, "bk: %L\n%_", lbl);
+    return outMsg((ioPo) cl, "bk: %A\n%_", lbl);
   return Ok;
 }
 

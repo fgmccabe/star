@@ -70,7 +70,7 @@ retCode run(processPo P) {
         methodPo mtd = labelCode(nProg); // Which program do we want?
 
         if (mtd == Null) {
-          logMsg(logFile, "label %L not defined", nProg);
+          logMsg(logFile, "label %A not defined", nProg);
           bail();
         }
 
@@ -1101,7 +1101,7 @@ retCode run(processPo P) {
         labelPo cd = C_LBL(getConstant(PC->fst));
 
         if (!labelDefined(cd)) {
-          logMsg(logFile, "label %L not defined", cd);
+          logMsg(logFile, "label %A not defined", cd);
           bail();
         }
 

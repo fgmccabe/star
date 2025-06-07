@@ -37,7 +37,7 @@ extern clssPo methodClass;
 static inline logical isMethod(termPo m) { return hasClass(m, methodClass); }
 
 static inline insPo entryPoint(methodPo mtd) {
-  assert(isMethod((termPo)mtd));
+  assert(isMethod((termPo) mtd));
   return mtd->instructions;
 }
 
@@ -69,6 +69,8 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       insPo instructions, termPo sigTerm, int32 lcls);
+
+void markMethod(methodPo mtd, gcSupportPo G);
 
 void showMtdCounts(ioPo out);
 #endif
