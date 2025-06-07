@@ -568,13 +568,13 @@ typedef enum {
 } Precision;
 
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
-#define fadd(P, Rd, Rm, Rn) fadd_(P, Rd,Rm,Rn,ctx)
+#define fadd(Rd, Rm, Rn) fadd_(Double, Rd,Rm,Rn,ctx)
 
 void fsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
-#define fsub(P, Rd, Rm, Rn) fsub_(P, Rd,Rm,Rn,ctx)
+#define fsub(Rd, Rm, Rn) fsub_(Double, Rd,Rm,Rn,ctx)
 
 void fmul_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
-#define fmul(P, Rd, Rm, Rn) fmul_(P, Rd,Rm,Rn,ctx)
+#define fmul(Rd, Rm, Rn) fmul_(Double, Rd,Rm,Rn,ctx)
 
 void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 #define fdiv(Rd, Rm, Rn) fdiv_(Double, Rd,Rm,Rn,ctx)

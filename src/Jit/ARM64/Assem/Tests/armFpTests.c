@@ -20,8 +20,24 @@ static retCode test_fmov() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_fops(){
+  assemCtxPo ctx = createCtx();
+
+  fadd(F0, F2, F4);
+  fsub(F4,F2,F12);
+  fmul(F3,F6,F8);
+  fdiv(F5,F8,F17);
+
+  uint8 tgt[] = { 0x40, 0x28, 0x64, 0x1e, 0x44, 0x38, 0x6c, 0x1e,
+                  0xc3, 0x08, 0x68, 0x1e, 0x05, 0x19, 0x71, 0x1e,
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+
+}
+
 retCode fp_tests() {
   tryRet(run_test(test_fmov));
+  tryRet(run_test(test_fops));
 
   return Ok;
 }
