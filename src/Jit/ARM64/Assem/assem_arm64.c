@@ -1226,7 +1226,65 @@ void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xdd, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
+void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  encodeScalarOp(p, 0b001010, Rm, Rn, Rd, ctx);
+}
+
+void fsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  encodeScalarOp(p, 0b001110, Rm, Rn, Rd, ctx);
+}
+
+void fmul_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  encodeScalarOp(p, 0b000010, Rm, Rn, Rd, ctx);
+}
+
+void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  encodeScalarOp(p, 0b000110, Rm, Rn, Rd, ctx);
+}
+
+void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
+  switch (d.mode) {
+    case reg: {
+      switch (s.mode) {
+        case fp: {
+          encodeFpMovOp(1, p, 0, 0b11000, s.fp, d.reg, ctx);
+          return;
+        }
+        case imm:
+        default:
+          check(False, "unsupported address mode (fmov)");
+      }
+    }
+    case fp: {
+      switch (s.mode) {
+        case reg: {
+          encodeFpMovOp(1, p, 0, 0b11100, s.reg, d.fp, ctx);
+          return;
+        }
+        case fp:{
+          encodeFpMovOp(0, p, 0, 1, s.fp, d.fp, ctx);
+          return;
+        }
+        case imm:{
+          uint32 ins = ayt_bt(0b0011110, 24) | two_bt(p, 22) | one_bt(0b1, 21) |
+                       ayt_bt(s.immediate,13) | one_bt(1, 12) | fiv_bt(d.fp, 0);
+          emitU32(ctx, ins);
+          return;
+        }
+        default:
+          check(False, "unsupported address mode (fmov)");
+      }
+    }
+    default:
+      check(False, "unsupported address mode (fmov)");
+  }
+}
+
 logical sameFlexOp(FlexOp a, FlexOp b) {
   return a.mode == b.mode && a.rgm == b.rgm && a.ext == b.ext && a.shift == b.shift && a.immediate == b.immediate && a.
-         reg == b.reg;
+    reg == b.reg;
+}
+
+logical isRegisterOp(FlexOp a) {
+  return a.mode == reg;
 }

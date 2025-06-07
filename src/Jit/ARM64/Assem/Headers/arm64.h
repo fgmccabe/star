@@ -47,6 +47,41 @@ typedef enum {
 } armReg;
 
 typedef enum {
+  F0 = 0,
+  F1 = 1,
+  F2 = 2,
+  F3 = 3,
+  F4 = 4,
+  F5 = 5,
+  F6 = 6,
+  F7 = 7,
+  F8 = 8,
+  F9 = 9,
+  F10 = 10,
+  F11 = 11,
+  F12 = 12,
+  F13 = 13,
+  F14 = 14,
+  F15 = 15,
+  F16 = 16,
+  F17 = 17,
+  F18 = 18,
+  F19 = 19,
+  F20 = 20,
+  F21 = 21,
+  F22 = 22,
+  F23 = 23,
+  F24 = 24,
+  F25 = 25,
+  F26 = 26,
+  F27 = 27,
+  F28 = 28,
+  F29 = 29,
+  F30 = 30,
+  F31 = 31,
+} fpReg;
+
+typedef enum {
   EQ = 0,    // Equal
   NE = 0x1,  // Note equal
   CS = 0x2,  // Carry set or Higher condition
@@ -80,6 +115,7 @@ typedef enum {
   imm,  // Immediate value
   shft, // Shifting mode
   reg, // register
+  fp,  // floating point register
   extnd,  // extended
   postX, // post increment
   preX, // predecrement
@@ -106,6 +142,7 @@ typedef struct {
   int64 immediate;
   armReg reg;
   armReg rgm;
+  fpReg fp;
   armShift shift;
   armExtent ext;
   codeLblPo lbl;
@@ -114,6 +151,8 @@ typedef struct {
 typedef FlexOp registerSpec;
 
 logical sameFlexOp(FlexOp a, FlexOp b);
+
+logical isRegisterOp(FlexOp a);
 
 #define PLATFORM_PC_DELTA (0)
 
@@ -129,6 +168,7 @@ logical sameFlexOp(FlexOp a, FlexOp b);
 #define PRX(Rg, Amnt) ((FlexOp){.mode=preX,  .reg=Rg, .immediate=(Amnt)})
 #define OF(Rg, Amnt) ((FlexOp){.mode=sOff,  .reg=Rg, .immediate=(Amnt)})
 #define PC(Lbl) ((FlexOp){.mode=pcRel, .lbl=(Lbl)})
+#define FP(Rg) ((FlexOp){.mode=fp, .fp=(Rg)})
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize);
 retCode postamble(assemCtxPo ctx);
@@ -520,6 +560,27 @@ void umulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 
 void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 #define umull(Rd, Rm, Rn) umull_(Rd,Rm,Rn,ctx)
+
+typedef enum {
+  Half = 0b11,
+  Single = 0b00,
+  Double = 0b01
+} Precision;
+
+void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
+#define fadd(P, Rd, Rm, Rn) fadd_(P, Rd,Rm,Rn,ctx)
+
+void fsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
+#define fsub(P, Rd, Rm, Rn) fsub_(P, Rd,Rm,Rn,ctx)
+
+void fmul_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
+#define fmul(P, Rd, Rm, Rn) fmul_(P, Rd,Rm,Rn,ctx)
+
+void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
+#define fdiv(Rd, Rm, Rn) fdiv_(Double, Rd,Rm,Rn,ctx)
+
+void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx);
+#define fmov(D, S) fmov_(Double, D, S, ctx)
 
 void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
 void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);

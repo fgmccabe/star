@@ -55,6 +55,8 @@ void encodeShift3Reg(uint1 wide, uint1 o, uint1 S, uint8 op, armShift sh, uint1 
 void encode2Imm1Src(uint1 w, uint8 op, uint8 immr, uint8 imms, armReg R1, armReg RD, assemCtxPo ctx);
 void encodeCnd3Reg(uint1 w, uint1 o, uint1 S, uint8 op, armReg Rm, armCond cond, uint1 o2, armReg Rn, armReg Rd,
                    assemCtxPo ctx);
+void encodeScalarOp(Precision P, uint8 op, fpReg Rm, fpReg Rn, fpReg Rd, assemCtxPo ctx);
+void encodeFpMovOp(uint1 w, uint8 ftype, uint8 mode, uint8 op, uint8 Rn, uint8 Rd, assemCtxPo ctx);
 
 void
 encodeLdStPrPostIx(uint1 w, uint1 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);

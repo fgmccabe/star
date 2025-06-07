@@ -5,7 +5,7 @@
 #include "Assem/Headers/arm64P.h"
 #include "test_infra.h"
 #include "armRegSetTest.h"
-#include "asminfra.h"
+#include "armFpTests.h"
 #include "macros.h"
 #include "jitP.h"
 
@@ -740,6 +740,7 @@ retCode all_tests() {
   tryRet(run_test(test_addFun));
   tryRet(run_test(test_factFun));
   tryRet(regset_tests());
+  tryRet(fp_tests());
 
   return Ok;
 }

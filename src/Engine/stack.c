@@ -452,8 +452,8 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
   return newStack;
 }
 
-stackPo handleStackOverflow(stackPo stk, integer delta, methodPo mtd) {
-  return glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, codeArity(mtd));
+stackPo handleStackOverflow(stackPo stk, integer delta, int32 arity) {
+  return glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, arity);
 }
 
 stackPo spinupStack(heapPo H, integer size) {

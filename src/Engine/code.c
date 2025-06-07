@@ -14,6 +14,7 @@
 #include <assert.h>
 
 static poolPo pkgPool;
+static poolPo mtdPool;
 static hashPo packages;
 
 static long mtdSize(specialClassPo cl, termPo o);
@@ -45,6 +46,7 @@ void initCode() {
   MethodClass.clss.clss = specialClass;
 
   pkgPool = newPool(sizeof(PackageRec), 16);
+  mtdPool = newPool(sizeof(MethodRec), 4096);
   packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
 }
 
@@ -236,8 +238,9 @@ methodPo
 defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl, termPo locs) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
 
-  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount);
+  methodPo mtd = (methodPo) allocPool(mtdPool);
 
+  mtd->clss.clss = methodClass;
   mtd->entryCount = 0;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
