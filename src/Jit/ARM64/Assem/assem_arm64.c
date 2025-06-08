@@ -1261,13 +1261,13 @@ void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
           encodeFpMovOp(1, p, 0, 0b11100, s.reg, d.fp, ctx);
           return;
         }
-        case fp:{
+        case fp: {
           encodeFpMovOp(0, p, 0, 1, s.fp, d.fp, ctx);
           return;
         }
-        case imm:{
+        case imm: {
           uint32 ins = ayt_bt(0b0011110, 24) | two_bt(p, 22) | one_bt(0b1, 21) |
-                       ayt_bt(s.immediate,13) | one_bt(1, 12) | fiv_bt(d.fp, 0);
+                       ayt_bt(s.immediate, 13) | one_bt(1, 12) | fiv_bt(d.fp, 0);
           emitU32(ctx, ins);
           return;
         }

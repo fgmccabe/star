@@ -3,38 +3,27 @@ test.jt3{
   import star.assert.
   import test.lib.timer.
 
-  public fib:(float)=>float.
-  fib(0) => 0.
-  fib(1) => 1.
-  fib(N) => _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2))).
+  conc:(string,string)=>string.
+  conc(A,B) => _str_concat(A,B).
 
-  main:(float)=>().
-  main(V) => valof{
-    timer = ref timer_start((Vt**2.0)::integer, "fib");
-    F = fib(V);
-    t1 = timer_finish(timer!)::float;
-    showMsg("Fib of $(V) is $(F)");
+  main:(string,string)=>().
+  main(A,B) => valof{
+    showMsg(conc(A,B));
 
     try{
-      _jit_compile("#(__pkg__)@fib",1);
+      _jit_compile("#(__pkg__)@conc",2);
     } catch {
       X => showMsg("$(X)")
     };
 
-    timer = ref timer_start((V**2.0::integer, "fib");
-    F = fib(V);
-    t2 = timer_finish(timer!)::float;
-    showMsg("Fib of $(V) is $(F)");
-
-    try {
-      showMsg("Factor = $(_flt_div(t1,t2))")
-    } catch { M => showMsg("Exception ") }
+    showMsg(conc(A,B));
     
+    assert conc("hello","there")=="hellothere";
     valis ()
   }
 
   public _main:(cons[string])=>().
-  _main([]) => main(3).
-  _main([Count]) => main(Count::integer).
+  _main([]) => main("hello ","world").
+  _main([A,B]) => main(A,B).
 }
     
