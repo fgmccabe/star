@@ -275,8 +275,10 @@ examineConstraintArg(T,Tx) :-
 macroTerm(T,Tx) :-
   macroAst(T,expression,macros:examineTerm,Tx).
 
+
+
 examineTerm(T,T) :-
-  isIden(T,_,_),!.
+  isIden(T,_,_), \+ isTuple(T,_,_),!.
 examineTerm(T,T) :-
   isEnum(T,_,N),isIden(N,_,_),!.
 examineTerm(T,T) :-
@@ -317,6 +319,10 @@ examineTerm(T,Tx) :-
   map(D,macros:macroStmt,Dx),
   macroTerm(B,Bx),
   mkLetRec(Lc,Dx,Bx,Tx).
+examineTerm(T,Tx) :-
+  isTuple(T,Lc,E),!,
+  map(E,macros:macroTerm,Ex),
+  roundTuple(Lc,Ex,Tx).
 examineTerm(T,Tx) :-
   isConApply(T,Lc,O,As),!,
   map(As,macros:macroTerm,Ax),

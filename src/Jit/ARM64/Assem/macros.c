@@ -168,3 +168,9 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
       return Error;
   }
 }
+
+retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {
+  mov(reg,IM((integer) address));
+  ldr(reg,OF(reg,0));
+  return Ok;
+}

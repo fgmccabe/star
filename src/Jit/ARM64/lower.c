@@ -47,7 +47,7 @@ static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
 static retCode bail(jitCompPo jit, char *msg, ...);
 
-static retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity);
+static retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity);
 
 static retCode getIntVal(jitCompPo jit, armReg rg);
 static retCode mkIntVal(jitCompPo jit, armReg rg);
@@ -71,6 +71,9 @@ static codeLblPo loopLabel(jitBlockPo block);
 retCode breakOutEq(jitBlockPo block, int32 tgt);
 retCode breakOutNe(jitBlockPo block, int32 tgt);
 retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop);
+
+void stashRegisters(jitCompPo jit);
+void unstashRegisters(jitCompPo jit);
 
 retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   jittedCode code = jitCode(mtd);
@@ -226,20 +229,79 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
 
-      case OCall: // OCall
+      case OCall: { // OCall
+        int32 arity = code[pc].fst;
+
+        popStkOp(block, X16);          // Pick up the closure
+        ldr(X17, OF(X16, 0));                // Pick up the label
+        // pick up the pointer to the method
+        ldr(X0, OF(X17, OffsetOf(LblRecord, mtd)));
+
+        ldr(X16, OF(X16, pointerSize));    // Pick up the free term
+        pushStkOp(block, X16);        // The free term isthe first argument
+
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X0, haveMtd);
+
+        bail(jit, "Function not defined");
+
+        setLabel(ctx, haveMtd);
+
+        add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
+        str(AG, OF(FP, fpArgs));
+        mov(X0, IM((integer) jit->mtd));
+        str(X0, OF(FP, fpProg)); // We know what program we are executing
+        str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
+
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        blr(X16);
+        pc++;
+        return Error;
+      }
       case Escape: {
         // call C escape
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
 
-        loadStackIntoArgRegisters(jit, arity);
-        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5), RG(X6),
-                      RG(X7));
+        loadStackIntoArgRegisters(jit, X1, arity);
+        loadCGlobal(ctx, X0, (void *) &globalHeap);
+        stashRegisters(jit);
+        stp(X0,X0,PRX(SP,-2*pointerSize)); // leave room for the fat return value
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
+                      RG(X6), RG(X7), RG(X8));
+        ldp(X0,X1,PSX(SP,2*pointerSize));
+        unstashRegisters(jit);
+        // X0 is the return code - which we ignore for normal escapes
+        // X1 is the return value
+        pushStkOp(block, X1);
         pc++;
         continue;
       }
-      case XEscape:
+      case XEscape: {
+        // call C escape, with possible exception return
+        int32 escNo = code[pc].fst;
+        escapePo esc = getEscape(escNo);
+        int32 arity = escapeArity(esc);
+
+        loadStackIntoArgRegisters(jit, X1, arity);
+        loadCGlobal(ctx, X0, (void *) &globalHeap);
+        stashRegisters(jit);
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
+                      RG(X6), RG(X7), RG(X8));
+        unstashRegisters(jit);
+        // X0 is the return code - which we ignore for normal escapes
+        codeLblPo next = newLabel(ctx);
+        pushStkOp(block, X1);        // X1 is the return value
+        tstw(X0, RG(X0));
+        beq(next);
+        ret = breakOut(block, pc + code[pc].alt + 1, False);
+
+        setLabel(ctx, next);
+        pc++;
+        continue;
+      }
       case XOCall:
       case TCall: // TCall <prog>
       case TOCall: // TOCall
@@ -884,12 +946,12 @@ retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
   return callIntrinsic(assemCtx(jit), (runtimeFn) fun, 3, RG(X0), RG(X1), RG(X2));
 }
 
-retCode loadStackIntoArgRegisters(jitCompPo jit, uint32 arity) {
+retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity) {
   assemCtxPo ctx = assemCtx(jit);
   assert(arity < 9);
 
   for (uint32 ix = 0; ix < arity; ix++) {
-    ldr((armReg) (X0 + ix), PSX(SSP, pointerSize));
+    ldr((armReg) (startRg + ix), PSX(SSP, pointerSize));
   }
   return Ok;
 }
@@ -1095,4 +1157,20 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
   setLabel(ctx, okLbl);
   return Ok;
+}
+
+void stashRegisters(jitCompPo jit){
+  assemCtxPo ctx = assemCtx(jit);
+  stp(STK,CO,PRX(SP,-2*pointerSize));
+  str(AG,OF(X27, OffsetOf(StackRecord,args)));
+  str(SSP,OF(X27, OffsetOf(StackRecord,sp)));
+  str(FP,OF(X27,OffsetOf(StackRecord,fp)));
+}
+
+void unstashRegisters(jitCompPo jit){
+  assemCtxPo ctx = assemCtx(jit);
+  ldp(STK,CO,PRX(SP,2*pointerSize));
+  ldr(AG,OF(X27, OffsetOf(StackRecord,args)));
+  ldr(SSP,OF(X27, OffsetOf(StackRecord,sp)));
+  ldr(FP,OF(X27,OffsetOf(StackRecord,fp)));
 }

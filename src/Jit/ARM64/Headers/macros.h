@@ -61,5 +61,6 @@ void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 typedef integer (*runtimeFn)();
 
 retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...);
+retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address);
 
 #endif //STAR_MACROS_H

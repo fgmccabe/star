@@ -542,6 +542,7 @@ void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 
 void tst_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define tst(s1, s2) do{ FlexOp s=s2; tst_(1, s1, s, ctx); } while(False)
+#define tstw(s1, s2) do{ FlexOp s=s2; tst_(0, s1, s, ctx); } while(False)
 
 void udiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 #define udiv(Rd, Rn, Rm) udiv_(1, Rd, Rn, Rm, ctx)
