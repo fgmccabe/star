@@ -8,21 +8,18 @@
 #include "assigns.h"
 #include "cellP.h"
 
-ReturnStatus g__cell(heapPo h, termPo a1) {
-  cellPo cell = newCell(h, a1);
-
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) cell};
+ReturnStatus g__cell(processPo P) {
+  pshVal(P, (termPo) newCell(currentHeap, popVal(P)));
+  return Normal;
 }
 
-ReturnStatus g__get(heapPo h, termPo a1) {
-  cellPo cell = C_CELL(a1);
-  return (ReturnStatus) {.ret=Normal, .result=getCell(cell)};
+ReturnStatus g__get(processPo P) {
+  pshVal(P, getCell(C_CELL(popVal(P))));
+  return Normal;
 }
 
-ReturnStatus g__assign(heapPo h, termPo a1, termPo a2) {
-  cellPo Cell = C_CELL(a1);
-
-  setCell(Cell, a2);
-
-  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+ReturnStatus g__assign(processPo P) {
+  cellPo Cell = C_CELL(popVal(P));
+  setCell(Cell, popVal(P));
+  return Normal;
 }

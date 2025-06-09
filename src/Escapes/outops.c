@@ -13,21 +13,21 @@
 #include "futureP.h"
 #include "errorCodes.h"
 #include "arith.h"
+#include "escape.h"
 
 static retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2);
 
-ReturnStatus g__outchar(heapPo h, termPo a1, termPo a2) {
-  ioPo io = ioChannel(C_IO(a1));
-  codePoint cp = charVal(a2);
+ReturnStatus g__outchar(processPo P) {
+  ioPo io = ioChannel(C_IO(popVal(P)));
+  codePoint cp = charVal(popVal(P));
 
-  if (outChar(io, cp) == Ok)
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
-}
-
-static taskState nullWrite(ioPo out, asyncPo async) {
-  return succeeded;
+  if (outChar(io, cp) == Ok) {
+    pshVal(P, unitEnum);
+    return Normal;
+  } else {
+    pshVal(P, eIOERROR);
+    return Abnormal;
+  }
 }
 
 static taskState wrChar(ioPo out, asyncPo async) {
@@ -52,34 +52,39 @@ static retCode wrCleanup(asyncPo async, retCode ret) {
   return ret;
 }
 
-ReturnStatus g__outchar_async(heapPo h, termPo a1, termPo a2) {
-  ioChnnlPo chnl = C_IO(a1);
+ReturnStatus g__outchar_async(processPo P) {
+  ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
     retCode ret = enableASynch(f);
 
-    asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(a2), Null);
+    asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(popVal(P)), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
-
-      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
+      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      pshVal(P, (termPo) ft);
+      return Normal;
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
-  } else
-    return g__outchar(h, a1, a2);
+    pshVal(P, eNOPERM);
+    return Abnormal;
+  }
+  pshVal(P, eINVAL);
+  return Abnormal;
 }
 
-ReturnStatus g__outbyte(heapPo h, termPo a1, termPo a2) {
-  ioPo io = ioChannel(C_IO(a1));
-  integer cp = integerVal(a2);
+ReturnStatus g__outbyte(processPo P) {
+  ioPo io = ioChannel(C_IO(popVal(P)));
+  integer cp = integerVal(popVal(P));
 
-  if (outByte(io, cp) == Ok)
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+  if (outByte(io, cp) == Ok) {
+    pshVal(P, unitEnum);
+    return Normal;
+  } else {
+    pshVal(P, eIOERROR);
+    return Abnormal;
+  }
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
@@ -96,29 +101,32 @@ static taskState wrByte(ioPo out, asyncPo async) {
   }
 }
 
-ReturnStatus g__outbyte_async(heapPo h, termPo a1, termPo a2) {
-  ioChnnlPo chnl = C_IO(a1);
+ReturnStatus g__outbyte_async(processPo P) {
+  ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
     retCode ret = enableASynch(f);
 
-    asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(a2), Null);
+    asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(popVal(P)), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
-
-      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
+      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      pshVal(P, (termPo) ft);
+      return Normal;
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
-  } else
-    return g__outchar(h, a1, a2);
+    pshVal(P, eNOPERM);
+    return Abnormal;
+  }
+  pshVal(P, eINVAL);
+  return Abnormal;
 }
 
-ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
-  ioPo io = ioChannel(C_IO(a1));
+ReturnStatus g__outbytes(processPo P) {
+  ioPo io = ioChannel(C_IO(popVal(P)));
   retCode ret = Ok;
+  termPo a2 = popVal(P);
 
   while (ret == Ok && isCons(a2)) {
     byte b = (byte) integerVal(consHead(C_NORMAL(a2)));
@@ -126,16 +134,19 @@ ReturnStatus g__outbytes(heapPo h, termPo a1, termPo a2) {
     a2 = consTail(C_NORMAL(a2));
   }
 
-  if (ret == Ok)
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+  if (ret == Ok) {
+    pshVal(P, unitEnum);
+    return Normal;
+  } else {
+    pshVal(P, eIOERROR);
+    return Abnormal;
+  }
 }
 
-ReturnStatus g__outtext(heapPo h, termPo a1, termPo a2) {
-  ioPo io = ioChannel(C_IO(a1));
+ReturnStatus g__outtext(processPo P) {
+  ioPo io = ioChannel(C_IO(popVal(P)));
   integer length;
-  const char *text = strVal(a2, &length);
+  const char *text = strVal(popVal(P), &length);
   retCode ret = Ok;
 
   integer pos = 0;
@@ -146,10 +157,13 @@ ReturnStatus g__outtext(heapPo h, termPo a1, termPo a2) {
     pos += actual;
   }
 
-  if (ret == Ok)
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  else
-    return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+  if (ret == Ok) {
+    pshVal(P, unitEnum);
+    return Normal;
+  } else {
+    pshVal(P, eIOERROR);
+    return Abnormal;
+  }
 }
 
 static taskState wrText(ioPo out, asyncPo async) {
@@ -180,11 +194,12 @@ static void textCloser(ioPo io, asyncPo async) {
   asyncCloser(io, async);
 }
 
-ReturnStatus g__outtext_async(heapPo h, termPo a1, termPo a2) {
-  ioChnnlPo chnl = C_IO(a1);
+ReturnStatus g__outtext_async(processPo P) {
+  ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
+    termPo a2 = popVal(P);
 
     retCode ret = enableASynch(f);
 
@@ -197,49 +212,49 @@ ReturnStatus g__outtext_async(heapPo h, termPo a1, termPo a2) {
     asyncPo async = newAsyncTask(wrText, allocUnit, textCloser, wrCleanup, (integer) copy, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(h, voidEnum, pollOutput, io, async);
-
-      return (ReturnStatus) {.ret=Normal, .result=(termPo) ft};
+      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      pshVal(P, (termPo) ft);
+      return Normal;
     }
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOPERM};
-  } else
-    return g__outchar(h, a1, a2);
+    pshVal(P, eNOPERM);
+    return Abnormal;
+  }
+  pshVal(P, eINVAL);
+  return Abnormal;
 }
 
-ReturnStatus g__show(heapPo h, termPo a1) {
+ReturnStatus g__show(processPo P) {
   integer length;
-  const char *text = strVal(a1, &length);
+  const char *text = strVal(popVal(P), &length);
   outMsg(logFile, "%S\n%_", text, length);
-  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+  pshVal(P, unitEnum);
+  return Normal;
 }
 
-ReturnStatus g__put_file(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__put_file(processPo P) {
   char fn[MAXFILELEN];
 
-  copyChars2Buff(C_STR(a1), fn, NumberOf(fn));
+  copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
 
   ioPo io = openOutFile(fn, utf8Encoding);
   if (io != Null) {
     integer tLen;
-    const char *txt = strVal(a2, &tLen);
+    const char *txt = strVal(popVal(P), &tLen);
 
     retCode ret = outText(io, txt, tLen);
     closeIo(O_IO(io));
 
-    if (ret == Ok)
-      return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-    else
-      return (ReturnStatus) {.ret=Abnormal, .result=eIOERROR};
+    if (ret == Ok) {
+      pshVal(P, unitEnum);
+      return Normal;
+    } else {
+      pshVal(P, eIOERROR);
+      return Abnormal;
+    }
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+    pshVal(P, eNOTFND);
+    return Abnormal;
   }
-}
-
-static void putFileCloser(ioPo io, asyncPo async) {
-  closeIo(io);
-  free((void *) async->data);
-  closeIo(async->buffer);
-  asyncCloser(io, async);
 }
 
 static taskState pushAsync(ioPo io, AsyncStruct *async) {

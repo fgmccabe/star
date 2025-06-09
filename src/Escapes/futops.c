@@ -7,6 +7,7 @@
 #include "errorCodes.h"
 #include "cell.h"
 #include "either.h"
+#include "escape.h"
 
 static retCode pollCellFuture(futurePo ft, heapPo h, void *cl, void *cl2) {
   termPo f = futureValue(ft);
@@ -22,50 +23,62 @@ static retCode pollCellFuture(futurePo ft, heapPo h, void *cl, void *cl2) {
     return rejectFuture(ft, orValue(fv));
 }
 
-ReturnStatus g__cell_future(heapPo h, termPo a1) {
+ReturnStatus g__cell_future(processPo P) {
+  termPo a1 = popVal(P);
   assert(isCell(a1));
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) makeFuture(h, a1, pollCellFuture, Null, Null)};
+  pshVal(P, (termPo) makeFuture(currentHeap, a1, pollCellFuture, Null, Null));
+  return Normal;
 }
 
-ReturnStatus g__futureIsResolved(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) (futureIsResolved(C_FUTURE(a1), h) ? trueEnum : falseEnum)};
+ReturnStatus g__futureIsResolved(processPo P) {
+  pshVal(P, futureIsResolved(C_FUTURE(popVal(P)), currentHeap) ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__futureIsAccepted(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) (futureIsAccepted(C_FUTURE(a1)) ? trueEnum : falseEnum)};
+ReturnStatus g__futureIsAccepted(processPo P) {
+  pshVal(P, futureIsAccepted(C_FUTURE(popVal(P))) ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__futureIsRejected(heapPo h, termPo a1) {
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) (futureIsRejected(C_FUTURE(a1)) ? trueEnum : falseEnum)};
+ReturnStatus g__futureIsRejected(processPo P) {
+  pshVal(P, futureIsRejected(C_FUTURE(popVal(P))) ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__resolveFuture(heapPo h, termPo a1, termPo a2) {
-  futurePo ft = C_FUTURE(a1);
-  switch (resolveFuture(ft, a2)) {
+ReturnStatus g__resolveFuture(processPo P) {
+  futurePo ft = C_FUTURE(popVal(P));
+  switch (resolveFuture(ft, popVal(P))) {
     case Ok: {
-      return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+      pshVal(P, unitEnum);
+      return Normal;
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .result=hasValue};
+      pshVal(P, hasValue);
+      return Abnormal;
   }
 }
 
-ReturnStatus g__rejectFuture(heapPo h, termPo a1, termPo a2) {
-  futurePo ft = C_FUTURE(a1);
-  switch (rejectFuture(ft, a2)) {
+ReturnStatus g__rejectFuture(processPo P) {
+  futurePo ft = C_FUTURE(popVal(P));
+  switch (rejectFuture(ft, popVal(P))) {
     case Ok: {
-      return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+      pshVal(P, unitEnum);
+      return Normal;
     }
     default:
-      return (ReturnStatus) {.ret=Abnormal, .result=hasValue};
+      pshVal(P, hasValue);
+      return Abnormal;
   }
 }
 
-ReturnStatus g__futureVal(heapPo h, termPo a1) {
-  futurePo ft = C_FUTURE(a1);
+ReturnStatus g__futureVal(processPo P) {
+  futurePo ft = C_FUTURE(popVal(P));
+
+  pshVal(P, futureValue(ft));
 
   if (futureIsAccepted(ft))
-    return (ReturnStatus) {.ret=Normal, .result=futureValue(ft)};
+    return Normal;
+
   else
-    return (ReturnStatus) {.ret=Abnormal, .result=futureValue(ft)};
+    return Abnormal;
 }

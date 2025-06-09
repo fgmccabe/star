@@ -11,7 +11,7 @@
 #include "char.h"
 #include <math.h>
 #include "errorCodes.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 #include "evalP.h"
 
@@ -147,85 +147,17 @@ retCode run(processPo P) {
         escapePo esc = getEscape(escNo);
         saveRegisters();
         assert(H->topRoot == 0);
-        ReturnStatus ret;
-
-        switch (esc->arity) {
-          case 0: {
-            ret = (esc->fun)(H);
-            break;
-          }
-          case 1: {
-            termPo a1 = popStack(STK);
-            ret = ((escFun1) (esc->fun))(H, a1);
-            break;
-          }
-          case 2: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            ret = ((escFun2) (esc->fun))(H, a1, a2);
-            break;
-          }
-          case 3: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            ret = ((escFun3) (esc->fun))(H, a1, a2, a3);
-            break;
-          }
-          case 4: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            ret = ((escFun4) (esc->fun))(H, a1, a2, a3, a4);
-            break;
-          }
-          case 5: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            ret = ((escFun5) (esc->fun))(H, a1, a2, a3, a4, a5);
-            break;
-          }
-          case 6: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            ret = ((escFun6) (esc->fun))(H, a1, a2, a3, a4, a5, a6);
-            break;
-          }
-          case 7: {
-            termPo a1 = popStack(STK);
-            termPo a2 = popStack(STK);
-            termPo a3 = popStack(STK);
-            termPo a4 = popStack(STK);
-            termPo a5 = popStack(STK);
-            termPo a6 = popStack(STK);
-            termPo a7 = popStack(STK);
-            ret = ((escFun7) (esc->fun))(H, a1, a2, a3, a4, a5, a6, a7);
-            break;
-          }
-          default: {
-            ret = ((escFun) (esc->fun))(H, STK);
-            break;
-          }
-        }
-
+        ReturnStatus ret = (esc->fun)(P);
         restoreRegisters();
         assert(H->topRoot == 0);
 
-        if (ret.ret == Normal) {
-          if (ret.result != Null)
-            push(ret.result);
+        if (ret == Normal) {
           PC++;
           continue;
         } else if (PC->op == XEscape) {
-          breakOut(ret.result);
+          termPo exception = pop();
+          breakOut();
+          push(exception);
           continue;
         } else {
           logMsg(logFile, "invalid return from escape %s", escapeName(esc));
@@ -787,7 +719,8 @@ retCode run(processPo P) {
         integer Rhs = integerVal(pop());
 
         if (Rhs == 0) {
-          breakOut(divZero);
+          breakOut();
+          push(divZero);
         } else {
           termPo Rs = makeInteger(Lhs / Rhs);
           push(Rs);
@@ -800,7 +733,8 @@ retCode run(processPo P) {
         integer numerator = integerVal(pop());
 
         if (numerator == 0) {
-          breakOut(divZero);
+          breakOut();
+          push(divZero);
         } else {
           integer reslt = denom % numerator;
 
@@ -993,7 +927,8 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(divZero);
+          breakOut();
+          push(divZero);
         } else {
           termPo Rs = makeFloat(Lhs / Rhs);
           push(Rs);
@@ -1006,7 +941,8 @@ retCode run(processPo P) {
         double Rhs = floatVal(pop());
 
         if (Rhs == 0.0) {
-          breakOut(divZero);
+          breakOut();
+          push(divZero);
         } else {
           termPo Rs = makeFloat(fmod(Lhs, Rhs));
           push(Rs);

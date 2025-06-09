@@ -31,9 +31,9 @@ void *forkThread(void *arg) {
   return NULL;
 }
 
-ReturnStatus g__fork(heapPo h, termPo a1) {
-  labelPo fn = C_LBL(a1);
-  processPo np = newProcess(h, labelCode(fn), currentProcess->wd, unitEnum);
+ReturnStatus g__fork(processPo P) {
+  labelPo fn = C_LBL(popVal(P));
+  processPo np = newProcess(currentHeap, labelCode(fn), currentProcess->wd, unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 
@@ -46,27 +46,32 @@ ReturnStatus g__fork(heapPo h, termPo a1) {
   if (pthread_create(&np->threadID, &detach, forkThread, np) != 0)
     syserr("cannot fork a thread");
 
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) thread};
+  pshVal(P, (termPo) thread);
+  return Normal;
 }
 
-ReturnStatus g__kill(heapPo h, termPo a1) {
-  threadPo th = C_THREAD(a1);
+ReturnStatus g__kill(processPo P) {
+  threadPo th = C_THREAD(popVal(P));
 
   processPo tgt = getThreadProcess(th);
 
   if (tgt != NULL && tgt != currentProcess) {
     ps_kill(tgt);
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
-  } else
-    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+    pshVal(P, unitEnum);
+    return Normal;
+  } else {
+    pshVal(P, eINVAL);
+    return Abnormal;
+  }
 }
 
-ReturnStatus g__thread(heapPo h) {
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) currentProcess->thread};
+ReturnStatus g__thread(processPo P) {
+  pshVal(P, (termPo) currentProcess->thread);
+  return Normal;
 }
 
-ReturnStatus g__thread_state(heapPo h, termPo a1) {
-  threadPo th = C_THREAD(a1);
+ReturnStatus g__thread_state(processPo P) {
+  threadPo th = C_THREAD(popVal(P));
   processPo tgt = getThreadProcess(th);
 
   switchProcessState(currentProcess, in_exclusion);
@@ -78,15 +83,17 @@ ReturnStatus g__thread_state(heapPo h, termPo a1) {
   else
     st = declareEnum(state_names[tgt->state], tgt->state, globalHeap);
   setProcessRunnable(currentProcess);
-  return (ReturnStatus) {.ret=Normal, .result=st};
+  pshVal(P, st);
+  return Normal;
 }
 
-ReturnStatus g__waitfor(heapPo h, termPo a1) {
-  threadPo th = C_THREAD(a1);
+ReturnStatus g__waitfor(processPo P) {
+  threadPo th = C_THREAD(popVal(P));
   processPo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
-    return (ReturnStatus) {.ret=Normal, .result=(termPo) unitEnum};
+    pshVal(P,unitEnum);
+    return Normal;
   } else if (tgt != currentProcess) {
     pthread_t thread = tgt->threadID;
     void *result;      /* This is ignored */
@@ -94,40 +101,50 @@ ReturnStatus g__waitfor(heapPo h, termPo a1) {
     switchProcessState(currentProcess, wait_term);
     if (pthread_join(thread, &result) == 0) {
       setProcessRunnable(currentProcess);
-      return (ReturnStatus) {.ret=Normal, .result=(termPo) unitEnum};
+      pshVal(P, unitEnum);
+      return Normal;
     } else {
       setProcessRunnable(currentProcess);
       switch (errno) {
         case EINVAL:
-          return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+          pshVal(P, eINVAL);
+          return Abnormal;
         case ESRCH:
-          return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+          pshVal(P, eNOTFND);
+          return Abnormal;
         case EDEADLK:
-          return (ReturnStatus) {.ret=Abnormal, .result=eDEAD};
+          pshVal(P, eDEAD);
+          return Abnormal;
         default: {
-          return (ReturnStatus) {.ret=Normal, .result=(termPo) voidEnum};
+          pshVal(P, unitEnum);
+          return Normal;
         }
       }
     }
-  } else
-    return (ReturnStatus) {.ret=Abnormal, .result=eDEAD};
+  } else {
+    pshVal(P, eDEAD);
+    return Abnormal;
+  }
 }
 
-ReturnStatus g__abort(heapPo h, termPo lc, termPo msg) {
+ReturnStatus g__abort(processPo P) {
+  termPo lc = popVal(P);
+  termPo msg = popVal(P);
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(currentProcess, h);
+  verifyProc(currentProcess, currentHeap);
   stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showPrognames, -1);
   star_exit(99);
-  return (ReturnStatus) {.ret=Normal, .result=(termPo) voidEnum};
+  pshVal(P, unitEnum);
+  return Normal;
 }
 
-ReturnStatus g__stackTrace(heapPo h) {
+ReturnStatus g__stackTrace(processPo P) {
   strBufferPo str = newStringBuffer();
 
   stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments, -1);
 
-  ReturnStatus rt = {.ret=Normal, .result=allocateFromStrBuffer(h, str)};
+  pshVal(P, allocateFromStrBuffer(currentHeap, str));
   closeIo(O_IO(str));
 
-  return rt;
+  return Normal;
 }

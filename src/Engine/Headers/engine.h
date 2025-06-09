@@ -8,7 +8,6 @@
 #include "engineOptions.h"
 #include "code.h"
 #include "heap.h"
-#include "escape.h"
 
 typedef struct processRec_ *processPo;
 
@@ -41,7 +40,10 @@ heapPo processHeap(processPo p);
 char *processWd(processPo p);
 retCode setProcessWd(processPo p, char *wd, integer len);
 
-termPo commandLine(heapPo H);
+termPo commandLine();
+
+void pshVal(processPo p,termPo v);
+termPo popVal(processPo p);
 
 extern __thread processPo currentProcess;
 #endif

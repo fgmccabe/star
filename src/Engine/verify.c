@@ -9,7 +9,7 @@
 #include "verifyP.h"
 #include "ltype.h"
 #include "arith.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 #include "stackP.h"
 #include "char.h"
 

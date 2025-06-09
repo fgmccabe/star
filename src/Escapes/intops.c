@@ -3,70 +3,72 @@
 // Integer operation escapes
 //
 
-
 #include <strings.h>
 #include <stdlib.h>
 #include <globals.h>
-#include "ooio.h"
-#include "engine.h"
 #include "arithP.h"
 #include "errorCodes.h"
 #include "arithmetic.h"
 
-ReturnStatus g__int_plus(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeInteger(integerVal(a1) + integerVal(a2));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+ReturnStatus g__int_plus(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+  pshVal(P, makeInteger(lhs + rhs));
+  return Normal;
 }
 
-ReturnStatus g__int_minus(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeInteger(integerVal(a1) - integerVal(a2));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+ReturnStatus g__int_minus(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+  pshVal(P, makeInteger(lhs - rhs));
+  return Normal;
 }
 
-ReturnStatus g__int_times(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = makeInteger(integerVal(a1) * integerVal(a2));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+ReturnStatus g__int_times(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+  pshVal(P, makeInteger(lhs * rhs));
+  return Normal;
 }
 
-ReturnStatus g__int_div(heapPo h, termPo a1, termPo a2) {
-  integer denom = integerVal(a1);
-  integer numerator = integerVal(a2);
+ReturnStatus g__int_div(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
 
-  if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
+  if (rhs == 0) {
+    pshVal(P, divZero);
+    return Abnormal;
   } else {
-    termPo Rs = makeInteger(denom / numerator);
-    return (ReturnStatus) {.ret=Normal, .result=Rs};
+    pshVal(P, makeInteger(lhs / rhs));
+    return Normal;
   }
 }
 
-ReturnStatus g__int_mod(heapPo h, termPo a1, termPo a2) {
-  integer denom = integerVal(a1);
-  integer numerator = integerVal(a2);
+ReturnStatus g__int_mod(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
 
-  if (numerator == 0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
+  if (rhs == 0) {
+    pshVal(P, divZero);
+    return Abnormal;
   } else {
-    integer reslt = denom % numerator;
-
-    termPo Rs = makeInteger(reslt);
-
-    return (ReturnStatus) {.ret=Normal, .result=Rs};
+    pshVal(P, makeInteger(lhs % rhs));
+    return Normal;
   }
 }
 
-ReturnStatus g__int_gcd(heapPo h, termPo a1, termPo a2) {
-  integer gC = intGCD(integerVal(a1), integerVal(a2));
+ReturnStatus g__int_gcd(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+
+  integer gC = intGCD(lhs, rhs);
 
   if (gC > 0) {
-    termPo g = makeInteger(gC);
-
-    return (ReturnStatus) {.ret=Normal, .result=g};
+    pshVal(P, makeInteger(gC));
+    return Normal;
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=divZero};
+    pshVal(P, divZero);
+    return Abnormal;
   }
 }
 
@@ -84,182 +86,189 @@ static integer intPow(integer x, integer y) {
   return result;
 }
 
-ReturnStatus g__int_pow(heapPo h, termPo a1, termPo a2) {
-  integer x = integerVal(a1);
-  integer y = integerVal(a2);
+ReturnStatus g__int_pow(processPo P) {
+  integer x = integerVal(popVal(P));
+  integer y = integerVal(popVal(P));
 
   if (y < 0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=noValue};
-  } else
-    return (ReturnStatus) {.ret=Normal, .result=makeInteger(intPow(x, y))};
-}
-
-ReturnStatus g__band(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = makeInteger((integer) (Lhs & Rhs));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__basr(heapPo h, termPo a1, termPo a2) {
-  integer Lhs = integerVal(a1);
-  integer Rhs = integerVal(a2);
-
-  termPo Rs = makeInteger(Lhs >> Rhs);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__blsl(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = makeInteger((integer) (Lhs << Rhs));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__blsr(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = makeInteger((integer) (Lhs >> Rhs));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__bor(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = makeInteger((integer) (Lhs | Rhs));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__bxor(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = makeInteger((integer) (Lhs ^ Rhs));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__bnot(heapPo h, termPo arg1) {
-  termPo Rs = makeInteger(~(unsigned) integerVal(arg1));
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__nthb(heapPo h, termPo a1, termPo a2) {
-  uint64 Lhs = (uint64) integerVal(a1);
-  uint64 Rhs = (uint64) integerVal(a2);
-
-  termPo Rs = (Lhs & ((unsigned) 1 << Rhs) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_eq(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (integerVal(a1) == integerVal(a2) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_ge(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (integerVal(a1) >= integerVal(a2) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_lt(heapPo h, termPo a1, termPo a2) {
-  termPo Rs = (integerVal(a1) < integerVal(a2) ? trueEnum : falseEnum);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_abs(heapPo h, termPo a1) {
-  integer Arg = integerVal(a1);
-  termPo Rs = (Arg < 0 ? makeInteger(-Arg) : a1);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_hash(heapPo h, termPo Lhs) {
-  integer Arg = integerVal(Lhs);
-  termPo Rs = (Arg < 0 ? makeInteger(hash61(Arg)) : Lhs);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
-}
-
-ReturnStatus g__int_lg2(heapPo h, termPo Lhs) {
-  integer Arg = integerVal(Lhs);
-  if (Arg <= 0) {
-    return (ReturnStatus) {.ret=Abnormal, .result=eRANGE};
+    pshVal(P, noValue);
+    return Abnormal;
   } else {
-    return (ReturnStatus) {.ret=Normal, .result=makeInteger(lg2(Arg))};
+    pshVal(P, makeInteger(intPow(x, y)));
+    return Normal;
   }
 }
 
-ReturnStatus g__bcount(heapPo h, termPo arg1) {
-  integer Arg = integerVal(arg1);
+ReturnStatus g__band(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
 
-  return (ReturnStatus) {.ret=Normal,
-    .result=makeInteger(countBits(Arg))};
+  pshVal(P, makeInteger(lhs & rhs));
+  return Normal;
 }
 
-ReturnStatus g__int2str(heapPo h, termPo arg1) {
-  integer ix = integerVal(arg1);
+ReturnStatus g__basr(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+
+  pshVal(P, makeInteger(lhs >> rhs));
+  return Normal;
+}
+
+ReturnStatus g__blsl(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+  uint64 rhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, makeInteger((integer) (lhs << rhs)));
+  return Normal;
+}
+
+ReturnStatus g__blsr(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+  uint64 rhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, makeInteger((integer) (lhs >> rhs)));
+  return Normal;
+}
+
+ReturnStatus g__bor(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+  uint64 rhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, makeInteger((integer) (lhs | rhs)));
+  return Normal;
+}
+
+ReturnStatus g__bxor(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+  uint64 rhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, makeInteger((integer) (lhs ^ rhs)));
+  return Normal;
+}
+
+ReturnStatus g__bnot(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, makeInteger((integer) (~lhs)));
+  return Normal;
+}
+
+ReturnStatus g__nthb(processPo P) {
+  uint64 lhs = (uint64) integerVal(popVal(P));
+  uint64 rhs = (uint64) integerVal(popVal(P));
+
+  pshVal(P, (lhs & ((unsigned) 1 << rhs) ? trueEnum : falseEnum));
+  return Normal;
+}
+
+ReturnStatus g__int_eq(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+
+  pshVal(P, lhs == rhs ? trueEnum : falseEnum);
+  return Normal;
+}
+
+ReturnStatus g__int_ge(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+
+  pshVal(P, lhs >= rhs ? trueEnum : falseEnum);
+  return Normal;
+}
+
+ReturnStatus g__int_lt(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  integer rhs = integerVal(popVal(P));
+
+  pshVal(P, lhs < rhs ? trueEnum : falseEnum);
+  return Normal;
+}
+
+ReturnStatus g__int_abs(processPo P) {
+  termPo arg = popVal(P);
+  integer lhs = integerVal(arg);
+  pshVal(P, (lhs < 0 ? makeInteger(-lhs) : arg));
+  return Normal;
+}
+
+ReturnStatus g__int_hash(processPo P) {
+  integer lhs = integerVal(popVal(P));
+  pshVal(P, makeInteger(hash61(lhs)));
+  return Normal;
+}
+
+ReturnStatus g__int_lg2(processPo P) {
+  integer lhs = integerVal(popVal(P));
+
+  if (lhs <= 0) {
+    pshVal(P, eRANGE);
+    return Abnormal;
+  } else {
+    pshVal(P, makeInteger(lg2(lhs)));
+    return Normal;
+  }
+}
+
+ReturnStatus g__bcount(processPo P) {
+  pshVal(P, makeInteger(countBits(integerVal(popVal(P)))));
+  return Normal;
+}
+
+ReturnStatus g__int2str(processPo P) {
+  integer ix = integerVal(popVal(P));
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  termPo str = allocateString(h, buff, len);
-
-  return (ReturnStatus) {.result = str, .ret=Normal};
+  pshVal(P,allocateString(currentHeap, buff, len));
+  return Normal;
 }
 
-ReturnStatus g__int_format(heapPo h, termPo a1, termPo a2) {
-  integer ix = integerVal(a1);
+ReturnStatus g__int_format(processPo P) {
+  integer ix = integerVal(popVal(P));
   integer length;
-  const char *fmt = strVal(a2, &length);
+  const char *fmt = strVal(popVal(P), &length);
   char buff[64];
   integer pos = 0;
 
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    return (ReturnStatus) {.ret=Normal, .result = (termPo) allocateString(h, buff, pos)};
-  } else
-    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+    pshVal(P,allocateString(currentHeap, buff, pos));
+    return Normal;
+  } else{
+    pshVal(P,eINVAL);
+    return Abnormal;
+  }
 }
 
-ReturnStatus g__int2flt(heapPo h, termPo arg1) {
-  integer Arg = integerVal(arg1);
-  termPo Rs = makeFloat((double) Arg);
-
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+ReturnStatus g__int2flt(processPo P) {
+  integer ix = integerVal(popVal(P));
+  termPo Rs = makeFloat((double) ix);
+  pshVal(P,Rs);
+  return Normal;
 }
 
-ReturnStatus g__irand(heapPo h, termPo arg1) {
-  integer mx = integerVal(arg1);
+ReturnStatus g__irand(processPo P) {
+  integer ix = integerVal(popVal(P));
   integer rnd = randomInt();
-
-  return (ReturnStatus) {.ret=Normal, .result=makeInteger(rnd % mx)};
+  pshVal(P, makeInteger(rnd%ix));
+  return Normal;
 }
 
-ReturnStatus g__random(heapPo h) {
+ReturnStatus g__random(processPo P) {
   double rnd = ((double) random()) / LARGE_INT32;
-
-  return (ReturnStatus) {.ret=Normal,
-    .result=(termPo) makeFloat(rnd)};
+  pshVal(P, makeFloat(rnd));
+  return Normal;
 }
 
-ReturnStatus g__seed(heapPo h, termPo arg1) {
-  srandom((unsigned int) integerVal(arg1));
-  return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+ReturnStatus g__seed(processPo P) {
+  unsigned int ix = (unsigned int)integerVal(popVal(P));
+
+  srandom(ix);
+  pshVal(P,unitEnum);
+  return Normal;
 }
 
 integer randomInt() {

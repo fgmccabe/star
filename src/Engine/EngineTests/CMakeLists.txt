@@ -20,6 +20,7 @@ set(TEST_SOURCE_FILES
         ../vect.c
         ../cons.c
         ../ideal.c
+        ../code.c
         vectorTests.c
         dummyGc.c)
 

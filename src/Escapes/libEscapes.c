@@ -4,7 +4,8 @@
 #include "term.h"
 #include <globals.h>
 #include "engine.h"
-#include "libEscapes.h"
+#include "escapeP.h"
+#include "sysops.h"
 #include "signature.h"
 #include "quick.h"
 
@@ -14,11 +15,11 @@ static int topEsc = 0;
 
 static integer escCount[256];
 
-static int installEscape(EscapeCode code, char *name, char *sig, libFun fun);
+static int installEscape(EscapeCode code, char *name, char *sig, escFun fun);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
-extern ReturnStatus g_##Fun(heapPo h);\
+extern ReturnStatus g_##Fun(processPo P);\
   installEscape(Esc##Fun,#Fun,Sig,g_##Fun);
 
 void installEscapes() {
@@ -30,7 +31,7 @@ void installEscapes() {
 
 }
 
-int installEscape(EscapeCode code, char *name, char *sig, libFun fun) {
+int installEscape(EscapeCode code, char *name, char *sig, escFun fun) {
   int escIx = topEsc++;
   escapePo esc = &escapes[code];
 
@@ -118,7 +119,7 @@ int32 escapeArity(escapePo esc) {
   return esc->arity;
 }
 
-libFun escapeFun(escapePo esc) {
+escFun escapeFun(escapePo esc) {
   return esc->fun;
 }
 

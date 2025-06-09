@@ -24,7 +24,7 @@ static integer newProcessNumber();
 
 __thread processPo currentProcess = Null;
 
-static Instruction haltCode[] =  {Halt, 0};
+static Instruction haltCode[] = {Halt, 0};
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
@@ -40,7 +40,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    termPo cmdLine = commandLine(h);
+    termPo cmdLine = commandLine();
     processPo p = newProcess(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
     integer ret = run(p);
@@ -103,6 +103,14 @@ heapPo processHeap(processPo P) {
   return P->heap;
 }
 
+void pshVal(processPo p, termPo v) {
+  pushStack(p->stk, v);
+}
+
+termPo popVal(processPo p) {
+  return popStack(p->stk);
+}
+
 void switchProcessState(processPo p, ProcessState state) {
   p->state = state;
 }
@@ -163,7 +171,7 @@ comparison sameProcess(void *a, void *b) {
 
 retCode markProcess(processPo P, gcSupportPo G) {
 #ifdef TRACEMEM
-  if (traceMemory>noTracing)
+  if (traceMemory > noTracing)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
   P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));

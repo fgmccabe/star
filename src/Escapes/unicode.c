@@ -3,287 +3,316 @@
 //
 
 #include <arithP.h>
-#include <globals.h>
 #include <charP.h>
 #include "unicode.h"
-#include "char.h"
 #include "errorCodes.h"
 
-ReturnStatus g__uniCodeCategory(heapPo h, termPo a1) {
-  codePoint ch = (codePoint) charVal(a1);
+ReturnStatus g__uniCodeCategory(processPo P) {
+  codePoint ch = (codePoint) charVal(popVal(P));
 
-  termPo Rs = makeInteger(uniCharCategory(ch));
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, makeInteger(uniCharCategory(ch)));
+  return Normal;
 }
 
-ReturnStatus g__isCcChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isCcChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCcChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isCfChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isCfChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCfChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isCnChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isCnChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCnChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isCoChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isCoChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCoChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isCsChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isCsChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCsChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLlChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLlChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLlChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLmChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLmChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLmChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLoChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLoChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLoChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLtChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLtChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLtChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLuChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLuChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLuChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isMcChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isMcChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMcChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isMeChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isMeChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMeChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isMnChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isMnChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMnChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isNdChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isNdChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNdChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isNlChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isNlChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNlChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isNoChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isNoChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNoChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPcChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPcChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPcChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPdChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPdChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPdChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPeChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPeChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPeChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPfChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPfChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPfChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPiChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPiChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPiChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPoChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPoChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPoChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isPsChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isPsChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPsChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isScChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isScChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isScChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isSkChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isSkChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSkChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isSmChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isSmChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSmChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isSoChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isSoChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSoChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isZlChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isZlChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZlChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isZpChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isZpChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZpChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isZsChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isZsChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZsChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__isLetterChar(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__isLetterChar(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLetterChar(ch) ? trueEnum : falseEnum);
 
-  return (ReturnStatus) {.ret=Normal, .result=Rs};
+  pshVal(P, Rs);
+  return Normal;
 }
 
-ReturnStatus g__digitCode(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__digitCode(processPo P) {
+  codePoint ch = charVal(popVal(P));
 
   if (isNdChar(ch)) {
-    return (ReturnStatus) {.ret=Normal, .result=makeInteger(digitValue(ch))};
-
+    pshVal(P,makeInteger(digitValue(ch)));
+    return Normal;
   } else {
-    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
+    pshVal(P,eINVAL);
+    return Abnormal;
   }
 }
 
-ReturnStatus g__codePoint(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
-
-  return (ReturnStatus) {.ret=Normal, .result= makeInteger(ch)};
+ReturnStatus g__codePoint(processPo P) {
+  codePoint ch = charVal(popVal(P));
+  pshVal(P, makeInteger(ch));
+  return Normal;
 }
 
-ReturnStatus g__char(heapPo h, termPo a1) {
-  codePoint ch = (codePoint) integerVal(a1);
-
-  return (ReturnStatus) {.ret=Normal,
-    .result=allocateCharacter(ch)};
+ReturnStatus g__char(processPo P) {
+  codePoint ch = (codePoint) integerVal(popVal(P));
+  pshVal(P, allocateCharacter(ch));
+  return Normal;
 }

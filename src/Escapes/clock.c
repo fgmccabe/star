@@ -3,7 +3,6 @@
   Copyright (c) 2016 and beyond. Francis G. McCabe
  */
 
-#include <signal.h>
 #include <time.h>
 #include <math.h>
 #include <errno.h>
@@ -14,6 +13,7 @@
 #include "errorCodes.h"
 #include "globals.h"
 #include "stack.h"
+#include "escape.h"
 
 long timezone_offset;    // offset in seconds from GMT
 
@@ -37,8 +37,8 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo p, termPo a1) {
-  double dx = floatVal(a1);
+ReturnStatus g__delay(processPo P) {
+  double dx = floatVal(popVal(P));
 
   struct timespec tm;
   double seconds;
@@ -48,25 +48,30 @@ ReturnStatus g__delay(processPo p, termPo a1) {
 
   tm.tv_sec = (long) seconds;
   tm.tv_nsec = (long) (fraction * NANO);  /* Convert microseconds to nanoseconds */
-  switchProcessState(p, wait_timer);
+//  switchProcessState(p, wait_timer);
   if (nanosleep(&tm, NULL) != 0) {
-    setProcessRunnable(p);
+//    setProcessRunnable(p);
     switch (errno) {
-      case EINTR:
-        return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
+      case EINTR: {
+        pshVal(P, eINTRUPT);
+        return Abnormal;
+      }
       case EINVAL:
       case ENOSYS:
-      default:
-        return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
+      default: {
+        pshVal(P, eINVAL);
+        return Abnormal;
+      }
     }
   } else {
-    setProcessRunnable(p);
-    return (ReturnStatus) {.ret = Normal, .result = unitEnum};
+//    setProcessRunnable(p);
+    pshVal(P, unitEnum);
+    return Normal;
   }
 }
 
-ReturnStatus g__sleep(processPo p, termPo a1) {
-  double f = floatVal(a1);
+ReturnStatus g__sleep(processPo P) {
+  double f = floatVal(popVal(P));
 
   struct timeval now;
   double seconds;
@@ -74,9 +79,10 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
 
   gettimeofday(&now, NULL);
 
-  if (seconds < now.tv_sec ||
-      (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
-    return (ReturnStatus) {.ret = Normal, .result = unitEnum};
+  if ((long) seconds < now.tv_sec ||
+      ((long) seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
+    pshVal(P, unitEnum);
+    return Normal;
   } else {
     struct timespec tm;
 
@@ -93,42 +99,44 @@ ReturnStatus g__sleep(processPo p, termPo a1) {
       tm.tv_sec--;
     }
 
-    switchProcessState(p, wait_timer);
+//    switchProcessState(p, wait_timer);
     if (nanosleep(&tm, NULL) != 0) {
-      setProcessRunnable(p);
+//      setProcessRunnable(p);
       switch (errno) {
-        case EINTR:
-          return (ReturnStatus) {.ret = Abnormal, .result = eINTRUPT};
+        case EINTR: {
+          pshVal(P, eINTRUPT);
+          return Abnormal;
+        }
         case EINVAL:
         case ENOSYS:
-        default:
-          return (ReturnStatus) {.ret = Abnormal, .result = eINVAL};
+        default: {
+          pshVal(P, eINVAL);
+          return Abnormal;
+        }
       }
     } else {
-      setProcessRunnable(p);
-      return (ReturnStatus) {.ret = Normal, .result = unitEnum};
+//      setProcessRunnable(p);
+      pshVal(P, unitEnum);
+      return Normal;
     }
   }
 }
 
 /* Return the current time */
-ReturnStatus g__now(heapPo h) {
-  termPo now = makeFloat(get_time());
-
-  return (ReturnStatus) {.ret=Normal, .result=now};
+ReturnStatus g__now(processPo P) {
+  pshVal(P, makeFloat(get_time()));
+  return Normal;
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(heapPo h) {
-  termPo now = makeFloat(get_date());
-
-  return (ReturnStatus) {.ret=Normal, .result=now};
+ReturnStatus g__today(processPo P) {
+  pshVal(P, makeFloat(get_date()));
+  return Normal;
 }
 
-ReturnStatus g__ticks(heapPo h) {
-  termPo now = makeInteger((integer) clock());
-
-  return (ReturnStatus) {.ret=Normal, .result=now};
+ReturnStatus g__ticks(processPo P) {
+  pshVal(P, makeInteger((integer) clock()));
+  return Normal;
 }
 
 /*

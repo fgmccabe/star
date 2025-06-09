@@ -12,6 +12,7 @@ logical validateMemory = False;   // Validate heap after every allocation
 
 HeapRecord heap;
 heapPo globalHeap = Null;
+heapPo currentHeap = Null;
 
 integer numAllocated = 0;
 integer totalAllocated = 0;
@@ -23,7 +24,7 @@ void initHeap(long heapSize) {
     heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
     heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
-    globalHeap = &heap;
+    globalHeap = currentHeap = &heap;
 
 #ifdef TRACEMEM
     if (traceMemory>noTracing) {

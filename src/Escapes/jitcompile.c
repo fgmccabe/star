@@ -8,28 +8,36 @@
 #include "labelsP.h"
 #include "errorCodes.h"
 #include "arith.h"
+#include "escape.h"
 
-ReturnStatus g__jit_compile(heapPo h, termPo a1, termPo a2) {
-  stringPo mtdName = C_STR(a1);
+ReturnStatus g__jit_compile(processPo P) {
+  stringPo mtdName = C_STR(popVal(P));
   integer mLen = strLength(mtdName) + 1;
   char buff[mLen];
 
   copyChars2Buff(mtdName, buff, mLen);
 
-  labelPo lbl = findLbl(buff, (int32) integerVal(a2));
+  labelPo lbl = findLbl(buff, (int32) integerVal(popVal(P)));
 
-  if (lbl == Null)
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+  if (lbl == Null) {
+    pshVal(P, eNOTFND);
+    return Abnormal;
+  }
 
   methodPo mtd = labelCode(lbl);
-  if (mtd == Null)
-    return (ReturnStatus) {.ret=Abnormal, .result=eNOTFND};
+  if (mtd == Null) {
+    pshVal(P, eNOTFND);
+    return Abnormal;
+  }
 
   char errMsg[MAXLINE];
   retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
   if (ret != Ok) {
     logMsg(logFile, "%s\n", errMsg);
-    return (ReturnStatus) {.ret=Abnormal, .result=eINVAL};
-  } else
-    return (ReturnStatus) {.ret=Normal, .result=unitEnum};
+    pshVal(P, eINVAL);
+    return Abnormal;
+  } else {
+    pshVal(P, unitEnum);
+    return Normal;
+  }
 }

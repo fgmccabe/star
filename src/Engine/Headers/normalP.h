@@ -17,6 +17,6 @@ static inline termPo nthElem(normalPo term, integer ix) {
   return term->args[ix];
 }
 
-#define NormalCellCount(arity) CellCount(sizeof(Normal)+(arity)*sizeof(termPo))
+#define NormalCellCount(arity) CellCount(sizeof(NormalTerm)+(arity)*sizeof(termPo))
 
 #endif //STAR_NORMALP_H

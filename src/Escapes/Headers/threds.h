@@ -9,7 +9,7 @@
 #include "ooio.h"
 
 #include "engineP.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 #include "thrP.h"
 
 #endif //STAR_THREDS_H

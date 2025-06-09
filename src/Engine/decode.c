@@ -15,7 +15,7 @@
 #include "labelsP.h"
 #include "closureP.h"
 #include "codeP.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 #ifdef TRACEDECODE
 tracingLevel traceDecode = noTracing;
