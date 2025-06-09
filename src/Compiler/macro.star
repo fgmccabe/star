@@ -182,7 +182,7 @@ star.compiler.macro{
 
   macroTerm(A) => macroAst(A,.expression,examineTerm).
 
-  examineTerm(A) where _ ?= isName(A) => A.
+  examineTerm(A) where _ ?= isName(A) && ~_ ?= isTuple(A) => A.
   examineTerm(A) where _ ?= isEnumSymb(A) => A.
   examineTerm(A) where .int(_,_) .= A => A.
   examineTerm(A) where .big(_,_) .= A => A.
