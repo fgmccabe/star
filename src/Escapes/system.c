@@ -28,7 +28,7 @@ ReturnStatus g__exit(processPo P) {
   exit((int) ix);
 }
 
-static char **argsv = NULL;  /* Store the command line list */
+static char **argsv = NULL; /* Store the command line list */
 static int argcnt = 0;
 
 void init_args(char **argv, int argc, int start) {
@@ -36,17 +36,17 @@ void init_args(char **argv, int argc, int start) {
   argcnt = argc - start;
 }
 
-termPo commandLine() {
+termPo commandLine(heapPo h) {
   termPo list = (termPo) nilEnum;
   termPo el = (termPo) voidEnum;
-  int root = gcAddRoot(currentHeap, &list);
-  gcAddRoot(currentHeap, &el);
+  int root = gcAddRoot(h, &list);
+  gcAddRoot(h, &el);
 
   for (integer ix = argcnt - 1; ix >= 0; ix--) {
-    el = (termPo) allocateString(currentHeap, argsv[ix], uniStrLen(argsv[ix]));
-    list = (termPo) allocateCons(currentHeap, el, list);
+    el = (termPo) allocateString(h, argsv[ix], uniStrLen(argsv[ix]));
+    list = (termPo) allocateCons(h, el, list);
   }
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
   return list;
 }
 
@@ -60,30 +60,32 @@ integer countEnviron() {
 
 ReturnStatus g__envir(processPo P) {
   integer cnt = countEnviron();
-  termPo list = (termPo) nilEnum;
-  int root = gcAddRoot(currentHeap, (ptrPo) &list);
+  termPo list = nilEnum;
+
+  heapPo h = processHeap(P);
+  int root = gcAddRoot(h, (ptrPo) &list);
   termPo ky = voidEnum;
   termPo vl = voidEnum;
   termPo pair = voidEnum;
-  gcAddRoot(currentHeap, &ky);
-  gcAddRoot(currentHeap, &vl);
-  gcAddRoot(currentHeap, &pair);
+  gcAddRoot(h, &ky);
+  gcAddRoot(h, &vl);
+  gcAddRoot(h, &pair);
 
-  switchProcessState(currentProcess, in_exclusion);
+  switchProcessState(P, in_exclusion);
 
   for (integer ix = 0; ix < cnt; ix++) {
     char *envPair = environ[ix];
     char *pt = strchr(environ[ix], '=');
 
     if (pt != NULL) {
-      ky = (termPo) allocateString(currentHeap, envPair, pt - envPair);
-      vl = (termPo) allocateString(currentHeap, pt + 1, uniStrLen(pt + 1));
-      pair = (termPo) allocatePair(currentHeap, ky, vl);
-      list = (termPo) allocateCons(currentHeap, pair, list);
+      ky = (termPo) allocateString(h, envPair, pt - envPair);
+      vl = (termPo) allocateString(h, pt + 1, uniStrLen(pt + 1));
+      pair = (termPo) allocatePair(h, ky, vl);
+      list = (termPo) allocateCons(h, pair, list);
     }
   }
-  gcReleaseRoot(currentHeap, root);
-  setProcessRunnable(currentProcess);
+  gcReleaseRoot(h, root);
+  setProcessRunnable(P);
   pshVal(P, list);
   return Normal;
 }
@@ -95,8 +97,10 @@ ReturnStatus g__getenv(processPo P) {
 
   char *val = getenv((char *) key);
 
-  if (val != NULL)
-    pshVal(P, (termPo) wrapSome(currentHeap, allocateCString(currentHeap, val)));
+  if (val != NULL) {
+    heapPo h = processHeap(P);
+    pshVal(P, (termPo) wrapSome(h, allocateCString(h, val)));
+  }
   else
     pshVal(P, noneEnum);
   return Normal;
@@ -121,14 +125,14 @@ ReturnStatus g__setenv(processPo P) {
 ReturnStatus g__repo(processPo P) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
-  termPo repo = (termPo) allocateString(currentHeap, repoBuffer, uniStrLen(repoBuffer));
+  termPo repo = (termPo) allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer));
 
   pshVal(P, repo);
   return Normal;
 }
 
 ReturnStatus g__shell(processPo P) {
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
@@ -141,11 +145,11 @@ ReturnStatus g__shell(processPo P) {
   integer envCnt = consLength(env);
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, eNOTFND);
     return Abnormal;
   } else if (!isExecutableFile(cmd)) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, eNOPERM);
     return Abnormal;
   } else {
@@ -184,7 +188,7 @@ ReturnStatus g__shell(processPo P) {
 
     envp[envCnt] = NULL;
 
-    switchProcessState(currentProcess, wait_child);  /* We are now waiting for a child */
+    switchProcessState(P, wait_child); /* We are now waiting for a child */
 
     if ((pid = fork()) == 0) {
       // child process, terminating after execve
@@ -193,7 +197,7 @@ ReturnStatus g__shell(processPo P) {
       _exit(127);
     } else {
       // parent process (agent)
-      for (integer ix = 1; argv[ix] != NULL; ix++)  // argv[0] is a local string
+      for (integer ix = 1; argv[ix] != NULL; ix++) // argv[0] is a local string
         free(argv[ix]);
 
       for (integer ix = 0; envp[ix] != NULL; ix++)
@@ -206,7 +210,7 @@ ReturnStatus g__shell(processPo P) {
         int childStatus;
         int res = waitpid(pid, &childStatus, 0);
 
-        setProcessRunnable(currentProcess);  /* now we can run */
+        setProcessRunnable(P); /* now we can run */
 
         if (res < 0) {
           switch (errno) {
@@ -220,7 +224,8 @@ ReturnStatus g__shell(processPo P) {
             default:
               continue;
           }
-        } else if (WIFEXITED(childStatus)) { /* exited normally */
+        } else if (WIFEXITED(childStatus)) {
+          /* exited normally */
           pshVal(P, makeInteger(WEXITSTATUS(childStatus)));
           return Normal;
         } else if (WIFSIGNALED(childStatus)) {
@@ -233,7 +238,7 @@ ReturnStatus g__shell(processPo P) {
 }
 
 ReturnStatus g__popen(processPo P) {
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
@@ -245,12 +250,12 @@ ReturnStatus g__popen(processPo P) {
   integer envCnt = consLength(environment);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     pshVal(P, eNOTFND);
     return Abnormal;
   } else if (!isExecutableFile(cmd)) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, eNOPERM);
     return Abnormal;
   } else {
@@ -288,38 +293,38 @@ ReturnStatus g__popen(processPo P) {
     closeIo(O_IO(lineBf));
 
     envp[envCnt] = NULL;
-
+    heapPo h = processHeap(P);
     ioPo inPipe, outPipe, errPipe;
 
     switch (openPipe(argv[0], argv, envp, &inPipe, &outPipe, &errPipe, utf8Encoding)) {
       case Ok: {
-        ioChnnlPo in = allocateIOChnnl(currentHeap, inPipe);
-        int root = gcAddRoot(currentHeap, (ptrPo) &in);
+        ioChnnlPo in = allocateIOChnnl(h, inPipe);
+        int root = gcAddRoot(h, (ptrPo) &in);
 
-        ioChnnlPo out = allocateIOChnnl(currentHeap, outPipe);
-        gcAddRoot(currentHeap, (ptrPo) &out);
+        ioChnnlPo out = allocateIOChnnl(h, outPipe);
+        gcAddRoot(h, (ptrPo) &out);
 
-        ioChnnlPo err = allocateIOChnnl(currentHeap, errPipe);
-        gcAddRoot(currentHeap, (ptrPo) &err);
+        ioChnnlPo err = allocateIOChnnl(h, errPipe);
+        gcAddRoot(h, (ptrPo) &err);
 
-        setProcessRunnable(currentProcess);
+        setProcessRunnable(P);
 
-        normalPo triple = allocateTpl(currentHeap, 3);
+        normalPo triple = allocateTpl(h, 3);
         setArg(triple, 0, (termPo) in);
         setArg(triple, 1, (termPo) out);
         setArg(triple, 2, (termPo) err);
 
-        gcReleaseRoot(currentHeap, root);
+        gcReleaseRoot(h, root);
         pshVal(P, (termPo) triple);
         return Normal;
       }
       default: {
         for (integer ix = 0; ix < argCnt; ix++)
-          free(argv[ix + 1]);    /* release the strings we allocated */
+          free(argv[ix + 1]); /* release the strings we allocated */
         for (integer ix = 0; ix < envCnt; ix++)
-          free(envp[ix]);    /* release the strings we allocated */
+          free(envp[ix]); /* release the strings we allocated */
 
-        setProcessRunnable(currentProcess);
+        setProcessRunnable(P);
         pshVal(P, eIOERROR);
         return Abnormal;
       }

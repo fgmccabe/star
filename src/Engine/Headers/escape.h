@@ -5,7 +5,7 @@
 #ifndef STAR_ESCAPE_H
 #define STAR_ESCAPE_H
 
-#include "stack.h"
+#include "engine.h"
 
 typedef enum {
   Normal,

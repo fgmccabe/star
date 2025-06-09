@@ -10,7 +10,7 @@
 #include "debugP.h"
 
 // Count instructions etc.
-static poolPo prPool;     /* pool of processes */
+static poolPo prPool; /* pool of processes */
 static labelPo haltProg;
 
 timerPo runTimer = Null;
@@ -18,11 +18,10 @@ timerPo runTimer = Null;
 hashPo prTble;
 
 static integer processHash(void *);
+
 static comparison sameProcess(void *, void *);
 
 static integer newProcessNumber();
-
-__thread processPo currentProcess = Null;
 
 static Instruction haltCode[] = {Halt, 0};
 
@@ -40,7 +39,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
   methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
-    termPo cmdLine = commandLine();
+    termPo cmdLine = commandLine(h);
     processPo p = newProcess(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
     integer ret = run(p);
@@ -91,7 +90,7 @@ void ps_kill(processPo p) {
     pthread_t thread = p->threadID;
 
     if (thread) {
-      pthread_cancel(thread);    /* cancel the thread */
+      pthread_cancel(thread); /* cancel the thread */
     }
 
     hashRemove(prTble, (void *) p->processNo);
@@ -101,6 +100,10 @@ void ps_kill(processPo p) {
 
 heapPo processHeap(processPo P) {
   return P->heap;
+}
+
+stackPo processStack(processPo p) {
+  return p->stk;
 }
 
 void pshVal(processPo p, termPo v) {

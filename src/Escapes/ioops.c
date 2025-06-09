@@ -107,20 +107,20 @@ static retCode oneCleanup(asyncPo sync, retCode ret) {
 ReturnStatus g__inchar_async(processPo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
+  heapPo h = processHeap(P);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
     retCode ret = enableASynch(f);
-
     asyncPo async = newAsyncTask(oneChar, allocChar, asyncCloser, oneCleanup, -1, Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         pshVal(P, (termPo) ft);
         return Normal;
-      } else{
+      } else {
         pshVal(P, ioErrorCode(ret));
         return Abnormal;
       }
@@ -131,9 +131,9 @@ ReturnStatus g__inchar_async(processPo P) {
     codePoint cp;
     retCode ret = inChar(io, &cp);
     if (ret == Ok)
-      pshVal(P, (termPo) makeResolvedFuture(currentHeap, allocateCharacter(cp), isAccepted));
+      pshVal(P, (termPo) makeResolvedFuture(h, allocateCharacter(cp), isAccepted));
     else
-      pshVal(P, (termPo) makeResolvedFuture(currentHeap, ioErrorCode(ret), isRejected));
+      pshVal(P, (termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected));
     return Normal;
   }
 }
@@ -153,7 +153,7 @@ ReturnStatus g__inchars(processPo P) {
   }
 
   if (ret == Ok) {
-    pshVal(P, allocateFromStrBuffer(currentHeap, buffer));
+    pshVal(P, allocateFromStrBuffer(processHeap(P), buffer));
     closeIo(O_IO(buffer));
     return Normal;
   } else {
@@ -206,7 +206,7 @@ ReturnStatus g__inchars_async(processPo P) {
     asyncPo async = newAsyncTask(nextChars, allocStr, asyncStrCloser, lineCleanup, limit, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         pshVal(P, (termPo) ft);
@@ -225,7 +225,7 @@ ReturnStatus g__inchars_async(processPo P) {
     }
 
     if (ret == Ok) {
-      pshVal(P, allocateFromStrBuffer(currentHeap, buffer));
+      pshVal(P, allocateFromStrBuffer(processHeap(P), buffer));
       closeIo(O_IO(buffer));
       return Normal;
     } else {
@@ -281,7 +281,7 @@ ReturnStatus g__inbyte_async(processPo P) {
     asyncPo async = newAsyncTask(oneByte, allocByte, asyncCloser, oneCleanup, -1, Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         pshVal(P, (termPo) ft);
@@ -335,7 +335,7 @@ ReturnStatus g__inbytes(processPo P) {
     integer length;
     char *text = getTextFromBuffer(buffer, &length);
 
-    termPo vect = makeVector(currentHeap, length, makeByte, (void *) text);
+    termPo vect = makeVector(processHeap(P), length, makeByte, (void *) text);
     pshVal(P, vect);
     return Normal;
   } else {
@@ -398,12 +398,12 @@ ReturnStatus g__inbytes_async(processPo P) {
     asyncPo async = newAsyncTask(nextBytes, allocBytes, asyncStrCloser, bytesCleanup, limit, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         pshVal(P, (termPo) ft);
         return Normal;
-      } else{
+      } else {
         pshVal(P, ioErrorCode(ret));
         return Abnormal;
       }
@@ -447,7 +447,7 @@ ReturnStatus g__inline(processPo P) {
       integer length;
       char *text = getTextFromBuffer(buffer, &length);
 
-      pshVal(P, allocateString(currentHeap, text, length));
+      pshVal(P, allocateString(processHeap(P), text, length));
       closeIo(O_IO(buffer));
       return Normal;
     }
@@ -507,7 +507,7 @@ ReturnStatus g__inline_async(processPo P) {
     asyncPo async = newAsyncTask(lineChar, allocStr, asyncStrCloser, lineCleanup, -1, O_IO(newStringBuffer()));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollInput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
         pshVal(P, (termPo) ft);
@@ -546,7 +546,7 @@ ReturnStatus g__get_file(processPo P) {
     retCode ret = grabText(io, O_IO(buffer));
 
     if (ret == Eof) {
-      termPo text = allocateFromStrBuffer(currentHeap, buffer);
+      termPo text = allocateFromStrBuffer(processHeap(P), buffer);
       closeIo(O_IO(buffer));
       pshVal(P, text);
       return Normal;
@@ -598,16 +598,17 @@ ReturnStatus g__display_depth(processPo P) {
 ReturnStatus g__stdfile(processPo P) {
   integer fNo = integerVal(popVal(P));
 
+  heapPo h = processHeap(P);
   switch (fNo) {
     case 0:
-      pshVal(P, (termPo) stdInChnl(currentHeap));
+      pshVal(P, (termPo) stdInChnl(h));
       return Normal;
     case 1:
-      pshVal(P, (termPo) stdOutChnl(currentHeap));
+      pshVal(P, (termPo) stdOutChnl(h));
       return Normal;
     case 2:
     default:
-      pshVal(P, (termPo) stdErrChnl(currentHeap));
+      pshVal(P, (termPo) stdErrChnl(h));
       return Normal;
   }
 }
@@ -636,7 +637,7 @@ ReturnStatus g__fseek(processPo P) {
 ReturnStatus g__fname(processPo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
 
-  pshVal(P, allocateCString(currentHeap, fileName(io)));
+  pshVal(P, allocateCString(processHeap(P), fileName(io)));
   return Normal;
 }
 
@@ -650,12 +651,11 @@ ReturnStatus g__setfileencoding(processPo P) {
 
 ReturnStatus g__flush(processPo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
-  if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok){
+  if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok) {
     pshVal(P, unitEnum);
     return Normal;
-  }
-  else{
-    pshVal(P,eIOERROR);
+  } else {
+    pshVal(P, eIOERROR);
     return Abnormal;
   }
 }
@@ -663,7 +663,8 @@ ReturnStatus g__flush(processPo P) {
 ReturnStatus g__flushall(processPo P) {
   flushOut();
   pshVal(P, unitEnum);
-  return Normal;}
+  return Normal;
+}
 
 static retCode countIoChnnls(termPo t, void *cl) {
   if (isIoChannel(t)) {
@@ -709,16 +710,15 @@ ReturnStatus g__waitIo(processPo P) {
 
     retCode ret = waitForAsync(files, fd.ix, timeOut);
 
-    if (ret == Ok){
-      pshVal(P,trueEnum);
+    if (ret == Ok) {
+      pshVal(P, trueEnum);
+      return Normal;
+    } else {
+      pshVal(P, falseEnum);
       return Normal;
     }
-    else{
-      pshVal(P,falseEnum);
-      return Normal;
-    }
-  } else{
-    pshVal(P,trueEnum);
+  } else {
+    pshVal(P, trueEnum);
     return Normal;
   }
 }

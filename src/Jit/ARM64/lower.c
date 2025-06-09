@@ -22,6 +22,7 @@
  * X8-X15 = caller saved scratch registers
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
+ * X24 = current process structure
  * X25 = Constants vector
  * AG = X26 = args pointer
  * STK = X27 = current stack structure pointer
@@ -50,14 +51,18 @@ static retCode bail(jitCompPo jit, char *msg, ...);
 static retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity);
 
 static retCode getIntVal(jitCompPo jit, armReg rg);
+
 static retCode mkIntVal(jitCompPo jit, armReg rg);
+
 static retCode getFltVal(jitCompPo jit, armReg rg);
+
 static retCode mkFltVal(jitCompPo jit, armReg rg);
 
 #define SSP (X28)
 #define AG  (X26)
 #define STK (X27)
 #define CO (X25)
+#define PR (X24)
 
 static int32 fpArgs = OffsetOf(StackFrame, args);
 static int32 fpProg = OffsetOf(StackFrame, prog);
@@ -66,17 +71,25 @@ static int32 fpLink = OffsetOf(StackFrame, link);
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
 static jitBlockPo breakBlock(jitBlockPo block, int32 tgt);
+
 static codeLblPo breakLabel(jitBlockPo block);
+
 static codeLblPo loopLabel(jitBlockPo block);
+
 retCode breakOutEq(jitBlockPo block, int32 tgt);
+
 retCode breakOutNe(jitBlockPo block, int32 tgt);
+
 retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop);
 
 void stashRegisters(jitCompPo jit);
+
 void unstashRegisters(jitCompPo jit);
 
-retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
+retCode invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
+  stackPo stk = processStack(P);
+  heapPo h = processHeap(P);
 
   framePo fp = stk->fp + 1;
 
@@ -85,26 +98,27 @@ retCode invokeJitMethod(methodPo mtd, heapPo H, stackPo stk) {
   fp->prog = stk->prog;
   fp->args = stk->args;
 
-  asm( "stp x29, x30, [sp, #-16]!\n"
-       "stp x27, x28, [sp, #-16]!\n"
-       "stp x25, x26, [sp, #-16]!\n"
-       "ldr x27, %[stk]\n"
-       "ldr x28, %[ssp]\n"
-       "ldr x26, %[ag]\n"
-       "ldr x25, %[constants]\n"
-       "ldr x16, %[code]\n"
-       "ldr x29, %[fp]\n"
-       "blr x16\n"
-       "str x26, %[ag]\n"
-       "str x27, %[stk]\n"
-       "str x29, %[fp]\n"
-       "ldp x25, x26, [sp], #16\n"
-       "ldp x27, x28, [sp], #16\n"
-       "ldp x29, x30, [sp], #16\n"
-    : [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code), [fp] "=m"(stk->fp),
-  [fplink] "=m"(fp->link), [constants] "=m"(constAnts)
-  :
-  : "x0", "x1", "x2", "x3", "x25", "x26", "x27", "x28", "x30", "cc", "memory");
+  asm( "stp x28, x29, [sp, #-16]!\n"
+    "stp x26, x27, [sp, #-16]!\n"
+    "stp x24, x25, [sp, #-16]!\n"
+    "ldr x27, %[stk]\n"
+    "ldr x28, %[ssp]\n"
+    "ldr x26, %[ag]\n"
+    "ldr x25, %[constants]\n"
+    "ldr x24, %[process]\n"
+    "ldr x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str x26, %[ag]\n"
+    "str x27, %[stk]\n"
+    "str x29, %[fp]\n"
+    "ldp x24, x25, [sp], #16\n"
+    "ldp x26, x27, [sp], #16\n"
+    "ldp x28, x29, [sp], #16\n"
+    : [process]"=m" (P), [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code),
+    [fp] "=m"(stk->fp), [constants] "=m"(constAnts), [heap] "=m" (h)
+    :
+    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
 
   return Ok;
 }
@@ -229,16 +243,17 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
 
-      case OCall: { // OCall
+      case OCall: {
+        // OCall
         int32 arity = code[pc].fst;
 
-        popStkOp(block, X16);          // Pick up the closure
-        ldr(X17, OF(X16, 0));                // Pick up the label
+        popStkOp(block, X16); // Pick up the closure
+        ldr(X17, OF(X16, 0)); // Pick up the label
         // pick up the pointer to the method
         ldr(X0, OF(X17, OffsetOf(LblRecord, mtd)));
 
-        ldr(X16, OF(X16, pointerSize));    // Pick up the free term
-        pushStkOp(block, X16);        // The free term isthe first argument
+        ldr(X16, OF(X16, pointerSize)); // Pick up the free term
+        pushStkOp(block, X16); // The free term isthe first argument
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X0, haveMtd);
@@ -268,10 +283,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadStackIntoArgRegisters(jit, X1, arity);
         loadCGlobal(ctx, X0, (void *) &globalHeap);
         stashRegisters(jit);
-        stp(X0,X0,PRX(SP,-2*pointerSize)); // leave room for the fat return value
+        stp(X0, X0, PRX(SP,-2*pointerSize)); // leave room for the fat return value
         callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
                       RG(X6), RG(X7), RG(X8));
-        ldp(X0,X1,PSX(SP,2*pointerSize));
+        ldp(X0, X1, PSX(SP,2*pointerSize));
         unstashRegisters(jit);
         // X0 is the return code - which we ignore for normal escapes
         // X1 is the return value
@@ -293,7 +308,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         unstashRegisters(jit);
         // X0 is the return code - which we ignore for normal escapes
         codeLblPo next = newLabel(ctx);
-        pushStkOp(block, X1);        // X1 is the return value
+        pushStkOp(block, X1); // X1 is the return value
         tstw(X0, RG(X0));
         beq(next);
         ret = breakOut(block, pc + code[pc].alt + 1, False);
@@ -1159,18 +1174,18 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   return Ok;
 }
 
-void stashRegisters(jitCompPo jit){
+void stashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  stp(STK,CO,PRX(SP,-2*pointerSize));
-  str(AG,OF(X27, OffsetOf(StackRecord,args)));
-  str(SSP,OF(X27, OffsetOf(StackRecord,sp)));
-  str(FP,OF(X27,OffsetOf(StackRecord,fp)));
+  stp(STK, CO, PRX(SP,-2*pointerSize));
+  str(AG, OF(X27, OffsetOf(StackRecord,args)));
+  str(SSP, OF(X27, OffsetOf(StackRecord,sp)));
+  str(FP, OF(X27,OffsetOf(StackRecord,fp)));
 }
 
-void unstashRegisters(jitCompPo jit){
+void unstashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  ldp(STK,CO,PRX(SP,2*pointerSize));
-  ldr(AG,OF(X27, OffsetOf(StackRecord,args)));
-  ldr(SSP,OF(X27, OffsetOf(StackRecord,sp)));
-  ldr(FP,OF(X27,OffsetOf(StackRecord,fp)));
+  ldp(STK, CO, PRX(SP,2*pointerSize));
+  ldr(AG, OF(X27, OffsetOf(StackRecord,args)));
+  ldr(SSP, OF(X27, OffsetOf(StackRecord,sp)));
+  ldr(FP, OF(X27,OffsetOf(StackRecord,fp)));
 }

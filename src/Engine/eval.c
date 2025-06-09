@@ -29,7 +29,6 @@ retCode run(processPo P) {
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
 
-  currentProcess = P;
 
   for (;;) {
 #ifndef NDEBUG
@@ -81,7 +80,7 @@ retCode run(processPo P) {
           }
 #endif
           saveRegisters();
-          invokeJitMethod(mtd, H, STK);
+          invokeJitMethod(P, mtd);
           restoreRegisters();
           PC++;
         } else {

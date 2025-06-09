@@ -9,7 +9,7 @@
 #include "cellP.h"
 
 ReturnStatus g__cell(processPo P) {
-  pshVal(P, (termPo) newCell(currentHeap, popVal(P)));
+  pshVal(P, (termPo) newCell(processHeap(P), popVal(P)));
   return Normal;
 }
 

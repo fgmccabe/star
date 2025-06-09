@@ -74,8 +74,9 @@ ReturnStatus g__time2date(processPo P) {
   time_t when = (time_t) time;
 
   struct tm *now = localtime(&when);
-  normalPo dte = allocateTpl(currentHeap, DATE_LEN);
-  int root = gcAddRoot(currentHeap, (ptrPo) &dte);
+  heapPo h = processHeap(P);
+  normalPo dte = allocateTpl(h, DATE_LEN);
+  int root = gcAddRoot(h, (ptrPo) &dte);
 
   double sec;
   double fraction = modf(time, &sec);
@@ -104,7 +105,7 @@ ReturnStatus g__time2date(processPo P) {
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
   pshVal(P, (termPo) dte);
   return Normal;
 }
@@ -114,8 +115,9 @@ ReturnStatus g__time2utc(processPo P) {
   time_t when = (time_t) time;
 
   struct tm *now = gmtime(&when);
-  normalPo dte = allocateTpl(currentHeap, DATE_LEN);
-  int root = gcAddRoot(currentHeap, (ptrPo) &dte);
+  heapPo h = processHeap(P);
+  normalPo dte = allocateTpl(h, DATE_LEN);
+  int root = gcAddRoot(h, (ptrPo) &dte);
 
   double sec;
   double fraction = modf(time, &sec);
@@ -144,7 +146,7 @@ ReturnStatus g__time2utc(processPo P) {
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
   pshVal(P, (termPo) dte);
   return Normal;
 }
@@ -163,7 +165,7 @@ ReturnStatus g__formattime(processPo P) {
   retCode ret = formatDate(O_IO(buff), fmt, fmtLen, now);
 
   if (ret == Ok) {
-    termPo result = allocateFromStrBuffer(currentHeap, buff);
+    termPo result = allocateFromStrBuffer(processHeap(P), buff);
     closeIo(O_IO(buff));
     pshVal(P,result);
     return Normal;
@@ -581,7 +583,7 @@ ReturnStatus g__parsetime(processPo P) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    pshVal(P,(termPo) wrapSome(currentHeap, makeFloat((double)tm)));
+    pshVal(P,(termPo) wrapSome(processHeap(P), makeFloat((double)tm)));
     return Normal;
   } else {
     pshVal(P,noneEnum);

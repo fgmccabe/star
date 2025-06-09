@@ -19,7 +19,7 @@ ReturnStatus g__big_plus(processPo P) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longAdd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -29,7 +29,7 @@ ReturnStatus g__big_minus(processPo P) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -39,7 +39,7 @@ ReturnStatus g__big_bitand(processPo P) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -49,7 +49,7 @@ ReturnStatus g__big_bitor(processPo P) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -59,7 +59,7 @@ ReturnStatus g__big_bitxor(processPo P) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitXor(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -68,7 +68,7 @@ ReturnStatus g__big_bitnot(processPo P) {
   integer cS = bigCount(lhs) + 1;
   uint32 sum[cS];
   integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
-  pshVal(P, allocateBignum(currentHeap, cC, sum));
+  pshVal(P, allocateBignum(processHeap(P), cC, sum));
   return Normal;
 }
 
@@ -78,7 +78,7 @@ ReturnStatus g__big_times(processPo P) {
   integer pS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 prod[pS];
   integer cC = longMultiply(prod, pS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(currentHeap, cC, prod));
+  pshVal(P, allocateBignum(processHeap(P), cC, prod));
   return Normal;
 }
 
@@ -94,13 +94,14 @@ ReturnStatus g__big_div(processPo P) {
 
   retCode ret = longDivide(quot, &qC, rem, &rC, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   if (ret == Ok) {
-    termPo Qt = allocateBignum(currentHeap, qC, quot);
-    int root = gcAddRoot(currentHeap, &Qt);
+    heapPo h = processHeap(P);
+    termPo Qt = allocateBignum(h, qC, quot);
+    int root = gcAddRoot(h, &Qt);
 
-    termPo Rt = allocateBignum(currentHeap, rC, rem);
-    gcAddRoot(currentHeap, &Rt);
-    termPo Rs = (termPo) allocatePair(currentHeap, Qt, Rt);
-    gcReleaseRoot(currentHeap, root);
+    termPo Rt = allocateBignum(h, rC, rem);
+    gcAddRoot(h, &Rt);
+    termPo Rs = (termPo) allocatePair(h, Qt, Rt);
+    gcReleaseRoot(h, root);
     pshVal(P, Rs);
     return Normal;
   } else {
@@ -119,7 +120,7 @@ ReturnStatus g__big_gcd(processPo P) {
 
   integer gC = longGCD(gcd, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   if (gC > 0) {
-    pshVal(P, allocateBignum(currentHeap, (uint32) gC, gcd));
+    pshVal(P, allocateBignum(processHeap(P), (uint32) gC, gcd));
     return Normal;
   } else {
     pshVal(P, divZero);
@@ -141,7 +142,7 @@ ReturnStatus g__big_format(processPo P) {
   integer resLen = longFormat(bgData, bgCount, fmt, fmtLen, buff, bufLen);
 
   if (resLen >= 0) {
-    pshVal(P, allocateString(currentHeap, buff, resLen));
+    pshVal(P, allocateString(processHeap(P), buff, resLen));
     return Normal;
   } else
     pshVal(P, eINVAL);
@@ -156,7 +157,7 @@ ReturnStatus g__big2str(processPo P) {
   integer bufLen = bgCount * 16;
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
-  pshVal(P, allocateString(currentHeap, buff, actual));
+  pshVal(P, allocateString(processHeap(P), buff, actual));
   return Normal;
 }
 
@@ -168,9 +169,10 @@ ReturnStatus g__str2big(processPo P) {
 
   integer bgSize = longFromText(str, len, digits, gSize);
 
-  if (bgSize > 0)
-    pshVal(P, (termPo) wrapSome(currentHeap, allocateBignum(currentHeap, bgSize, digits)));
-  else
+  if (bgSize > 0) {
+    heapPo h = processHeap(P);
+    pshVal(P, (termPo) wrapSome(h, allocateBignum(h, bgSize, digits)));
+  }else
     pshVal(P, noneEnum);
 
   return Normal;
@@ -222,7 +224,7 @@ ReturnStatus g__int2big(processPo P) {
   uint64 U = (uint64) integerVal(popVal(P));
 
   uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
-  pshVal(P, allocateBignum(currentHeap, NumberOf(uu), uu));
+  pshVal(P, allocateBignum(processHeap(P), NumberOf(uu), uu));
   return Normal;
 }
 
@@ -235,17 +237,18 @@ ReturnStatus g__big2ints(processPo P) {
 
   termPo list = (termPo) nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(currentHeap, (ptrPo) &list);
-  gcAddRoot(currentHeap, &el);
+  heapPo h = processHeap(P);
+  int root = gcAddRoot(h, (ptrPo) &list);
+  gcAddRoot(h, &el);
 
   for (integer ix = 0; ix < count; ix++) {
     uint32 segment = digits[ix];
 
     el = makeInteger(segment);
-    list = (termPo) allocateCons(currentHeap, el, list);
+    list = (termPo) allocateCons(h, el, list);
   }
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
 
   pshVal(P, list);
   return Normal;
@@ -262,7 +265,7 @@ ReturnStatus g__ints2big(processPo P) {
     list = consTail(pr);
   }
 
-  pshVal(P, allocateBignum(currentHeap, count, digits));
+  pshVal(P, allocateBignum(processHeap(P), count, digits));
   return Normal;
 }
 
@@ -270,19 +273,20 @@ ReturnStatus g__big2int(processPo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   uint32 count = bigCount(bg);
   uint32 *digits = bigDigits(bg);
+  heapPo h = processHeap(P);
 
   switch (count) {
     case 0: {
-      pshVal(P, (termPo) wrapSome(currentHeap, makeInteger(0)));
+      pshVal(P, (termPo) wrapSome(h, makeInteger(0)));
       break;
     }
     case 1: {
-      pshVal(P, (termPo) wrapSome(currentHeap, makeInteger((integer) digits[0])));
+      pshVal(P, (termPo) wrapSome(h, makeInteger((integer) digits[0])));
       break;
     }
     case 2: {
       uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
-      pshVal(P, (termPo) wrapSome(currentHeap, makeInteger((integer) lge)));
+      pshVal(P, (termPo) wrapSome(h, makeInteger((integer) lge)));
       break;
     }
     default:

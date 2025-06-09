@@ -20,15 +20,15 @@ ReturnStatus g__listen(processPo P) {
   ioPo listen;
 
   strMsg(nBuff, NumberOf(nBuff), "listen@%ld", port);
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
   listen = O_IO(listeningPort(nBuff, (unsigned short) port));
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
 
   if (listen == NULL) {
     pshVal(P, eNOPERM);
     return Abnormal;
   } else {
-    pshVal(P, (termPo) allocateIOChnnl(currentHeap, listen));
+    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), listen));
     return Normal;
   }
 }
@@ -36,15 +36,16 @@ ReturnStatus g__listen(processPo P) {
 ReturnStatus g__accept(processPo P) {
   ioPo listen = ioChannel(C_IO(popVal(P)));
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+  heapPo h = processHeap(P);
 
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   ioPo inC, outC;
 
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
   retCode ret = acceptConnection(O_SOCK(listen), enc, &inC, &outC);
 
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
 
   if (listen == NULL) {
     pshVal(P, eNOPERM);
@@ -64,22 +65,22 @@ ReturnStatus g__accept(processPo P) {
           return Abnormal;
         }
 
-        termPo inChnl = (termPo) allocateIOChnnl(currentHeap, inC);
-        int root = gcAddRoot(currentHeap, &inChnl);
+        termPo inChnl = (termPo) allocateIOChnnl(h, inC);
+        int root = gcAddRoot(h, &inChnl);
 
-        termPo outChnl = (termPo) allocateIOChnnl(currentHeap, outC);
-        gcAddRoot(currentHeap, &outChnl);
+        termPo outChnl = (termPo) allocateIOChnnl(h, outC);
+        gcAddRoot(h, &outChnl);
 
-        termPo peer = allocateString(currentHeap, peerN, uniStrLen(peerN));
-        gcAddRoot(currentHeap, &peer);
+        termPo peer = allocateString(h, peerN, uniStrLen(peerN));
+        gcAddRoot(h, &peer);
 
-        termPo peerIP = allocateString(currentHeap, peerI, uniStrLen(peerI));
-        gcAddRoot(currentHeap, &peerIP);
+        termPo peerIP = allocateString(h, peerI, uniStrLen(peerI));
+        gcAddRoot(h, &peerIP);
 
         termPo prt = makeInteger(port);
-        gcAddRoot(currentHeap, &prt);
+        gcAddRoot(h, &prt);
 
-        normalPo reslt = allocateTpl(currentHeap, 5);
+        normalPo reslt = allocateTpl(h, 5);
 
         setArg(reslt, 0, inChnl);
         setArg(reslt, 1, outChnl);
@@ -87,7 +88,7 @@ ReturnStatus g__accept(processPo P) {
         setArg(reslt, 3, prt);
         setArg(reslt, 4, peerIP);
 
-        gcReleaseRoot(currentHeap, root);
+        gcReleaseRoot(h, root);
         pshVal(P, (termPo) reslt);
         return Normal;
       }
@@ -103,26 +104,27 @@ ReturnStatus g__connect(processPo P) {
   const char *host = strVal(popVal(P), &hLen);
   integer port = integerVal(popVal(P));
 
+  heapPo h = processHeap(P);
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
 
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   ioPo inC, outC;
   retCode ret = connectRemote(host, (int) port, enc, True, &inC, &outC);
 
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
 
   switch (ret) {
     case Ok: {
-      termPo inChnl = (termPo) allocateIOChnnl(currentHeap, inC);
-      int root = gcAddRoot(currentHeap, &inChnl);
+      termPo inChnl = (termPo) allocateIOChnnl(h, inC);
+      int root = gcAddRoot(h, &inChnl);
 
-      termPo outChnl = (termPo) allocateIOChnnl(currentHeap, outC);
-      gcAddRoot(currentHeap, &outChnl);
+      termPo outChnl = (termPo) allocateIOChnnl(h, outC);
+      gcAddRoot(h, &outChnl);
 
-      normalPo reslt = allocateTpl(currentHeap, 2);
+      normalPo reslt = allocateTpl(h, 2);
 
-      gcReleaseRoot(currentHeap, root);
+      gcReleaseRoot(h, root);
       pshVal(P, (termPo) reslt);
       return Normal;
     }
@@ -140,18 +142,18 @@ ReturnStatus g__hosttoip(processPo P) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(popVal(P)), host, NumberOf(host));
-
+  heapPo h = processHeap(P);
   termPo ipList = (termPo) nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(currentHeap, &ipList);
-  gcAddRoot(currentHeap, &el);
+  int root = gcAddRoot(h, &ipList);
+  gcAddRoot(h, &el);
 
   for (int i = 0; getNthHostIP(host, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
-    el = (termPo) allocateCString(currentHeap, ip);
-    ipList = (termPo) allocateCons(currentHeap, el, ipList);
+    el = (termPo) allocateCString(h, ip);
+    ipList = (termPo) allocateCons(h, el, ipList);
   }
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
   pshVal(P, ipList);
   return Normal;
 }
@@ -161,15 +163,15 @@ ReturnStatus g__iptohost(processPo P) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(popVal(P)), ip, NumberOf(ip));
-
+  heapPo h = processHeap(P);
   char *host = getHostname(ip);
 
   if (host != NULL) {
-    termPo Host = allocateCString(currentHeap, host);
-    pshVal(P,Host);
+    termPo Host = allocateCString(h, host);
+    pshVal(P, Host);
     return Normal;
-  } else{
-    pshVal(P,eNOTFND);
+  } else {
+    pshVal(P, eNOTFND);
     return Abnormal;
   }
 }

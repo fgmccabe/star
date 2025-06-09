@@ -33,7 +33,8 @@ void *forkThread(void *arg) {
 
 ReturnStatus g__fork(processPo P) {
   labelPo fn = C_LBL(popVal(P));
-  processPo np = newProcess(currentHeap, labelCode(fn), currentProcess->wd, unitEnum);
+  heapPo h = processHeap(P);
+  processPo np = newProcess(h, labelCode(fn), P->wd, unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 
@@ -55,7 +56,7 @@ ReturnStatus g__kill(processPo P) {
 
   processPo tgt = getThreadProcess(th);
 
-  if (tgt != NULL && tgt != currentProcess) {
+  if (tgt != NULL && tgt != P) {
     ps_kill(tgt);
     pshVal(P, unitEnum);
     return Normal;
@@ -66,7 +67,7 @@ ReturnStatus g__kill(processPo P) {
 }
 
 ReturnStatus g__thread(processPo P) {
-  pshVal(P, (termPo) currentProcess->thread);
+  pshVal(P, (termPo) P->thread);
   return Normal;
 }
 
@@ -74,7 +75,7 @@ ReturnStatus g__thread_state(processPo P) {
   threadPo th = C_THREAD(popVal(P));
   processPo tgt = getThreadProcess(th);
 
-  switchProcessState(currentProcess, in_exclusion);
+  switchProcessState(P, in_exclusion);
 
   termPo st;
 
@@ -82,7 +83,7 @@ ReturnStatus g__thread_state(processPo P) {
     st = declareEnum(state_names[dead], dead, globalHeap);
   else
     st = declareEnum(state_names[tgt->state], tgt->state, globalHeap);
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
   pshVal(P, st);
   return Normal;
 }
@@ -94,17 +95,17 @@ ReturnStatus g__waitfor(processPo P) {
   if (tgt == NULL) {
     pshVal(P,unitEnum);
     return Normal;
-  } else if (tgt != currentProcess) {
+  } else if (tgt != P) {
     pthread_t thread = tgt->threadID;
     void *result;      /* This is ignored */
 
-    switchProcessState(currentProcess, wait_term);
+    switchProcessState(P, wait_term);
     if (pthread_join(thread, &result) == 0) {
-      setProcessRunnable(currentProcess);
+      setProcessRunnable(P);
       pshVal(P, unitEnum);
       return Normal;
     } else {
-      setProcessRunnable(currentProcess);
+      setProcessRunnable(P);
       switch (errno) {
         case EINVAL:
           pshVal(P, eINVAL);
@@ -131,8 +132,8 @@ ReturnStatus g__abort(processPo P) {
   termPo lc = popVal(P);
   termPo msg = popVal(P);
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(currentProcess, currentHeap);
-  stackTrace(currentProcess, logFile, currentProcess->stk, displayDepth, showPrognames, -1);
+  verifyProc(P, processHeap(P));
+  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, -1);
   star_exit(99);
   pshVal(P, unitEnum);
   return Normal;
@@ -141,9 +142,9 @@ ReturnStatus g__abort(processPo P) {
 ReturnStatus g__stackTrace(processPo P) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(currentProcess, O_IO(str), currentProcess->stk, displayDepth, showArguments, -1);
+  stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, -1);
 
-  pshVal(P, allocateFromStrBuffer(currentHeap, str));
+  pshVal(P, allocateFromStrBuffer(processHeap(P), str));
   closeIo(O_IO(str));
 
   return Normal;

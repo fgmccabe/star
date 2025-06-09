@@ -26,12 +26,12 @@ static retCode pollCellFuture(futurePo ft, heapPo h, void *cl, void *cl2) {
 ReturnStatus g__cell_future(processPo P) {
   termPo a1 = popVal(P);
   assert(isCell(a1));
-  pshVal(P, (termPo) makeFuture(currentHeap, a1, pollCellFuture, Null, Null));
+  pshVal(P, (termPo) makeFuture(processHeap(P), a1, pollCellFuture, Null, Null));
   return Normal;
 }
 
 ReturnStatus g__futureIsResolved(processPo P) {
-  pshVal(P, futureIsResolved(C_FUTURE(popVal(P)), currentHeap) ? trueEnum : falseEnum);
+  pshVal(P, futureIsResolved(C_FUTURE(popVal(P)), processHeap(P)) ? trueEnum : falseEnum);
   return Normal;
 }
 

@@ -16,7 +16,7 @@ static retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2);
 ReturnStatus g__settimeout(processPo P) {
   double delta = floatVal(popVal(P));
 
-  futurePo ft = makeFuture(currentHeap, voidEnum, checkTimeOut, Null, Null);
+  futurePo ft = makeFuture(processHeap(P), voidEnum, checkTimeOut, Null, Null);
 
   setTimer(delta, reportTimeout, (void *) ft);
   pshVal(P,unitEnum);

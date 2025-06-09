@@ -13,7 +13,6 @@ typedef struct heap_ *heapPo;
 extern void initHeap(long heapSize);
 
 extern heapPo globalHeap;
-extern heapPo currentHeap;
 
 extern integer numAllocated;
 extern integer totalAllocated;
