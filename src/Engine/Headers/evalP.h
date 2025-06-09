@@ -79,11 +79,10 @@
   }\
   })
 
-#define breakOut(EX) STMT_WRAP({                     \
-  PC += PC->alt + 1;                                 \
+#define breakOut() STMT_WRAP({               \
+  PC += PC->alt + 1;                         \
   SP = &local(lclCount(PROG) + PC->fst - 1); \
-  PC += PC->alt + 1;                                 \
-  push(EX);                                          \
+  PC += PC->alt + 1;                         \
   })
 
 #define breakBlock() STMT_WRAP({                     \

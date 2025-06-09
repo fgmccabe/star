@@ -10,6 +10,7 @@
 #include "clock.h"
 #include "option.h"
 #include "stack.h"
+#include "escape.h"
 #include "errorCodes.h"
 
 #define DATE_DOW 0
@@ -22,64 +23,62 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus g__date2time(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4, termPo a5, termPo a6, termPo a7) {
+ReturnStatus g__date2time(processPo P) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(a1) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(a2) - 1); // Extract the month
-  now.tm_mday = (int) (integerVal(a3)); // Extract the day of the month
-  now.tm_hour = (int) (integerVal(a4)); // Extract the hour
-  now.tm_min = (int) (integerVal(a5)); // Extract the minute
+  now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(popVal(P)) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(popVal(P))); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(popVal(P))); // Extract the hour
+  now.tm_min = (int) (integerVal(popVal(P))); // Extract the minute
 
-  double sec = floatVal(a6);
+  double sec = floatVal(popVal(P));
   double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(a7); // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(popVal(P)); // Offset from GMT
 
   now.tm_isdst = -1;
 
   time_t when = mktime(&now);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = makeFloat((double) when + fraction)
-  };
+  pshVal(P, makeFloat((double) when + fraction));
+  return Normal;
 }
 
-ReturnStatus g__utc2time(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4, termPo a5, termPo a6, termPo a7) {
+ReturnStatus g__utc2time(processPo P) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(a1) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(a2) - 1); // Extract the month
-  now.tm_mday = (int) (integerVal(a3)); // Extract the day of the month
-  now.tm_hour = (int) (integerVal(a4)); // Extract the hour
-  now.tm_min = (int) (integerVal(a5)); // Extract the minute
+  now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(popVal(P)) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(popVal(P))); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(popVal(P))); // Extract the hour
+  now.tm_min = (int) (integerVal(popVal(P))); // Extract the minute
 
-  double sec = floatVal(a6);
+  double sec = floatVal(popVal(P));
   double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(a7); // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(popVal(P)); // Offset from GMT
+
   now.tm_isdst = -1;
 
   time_t when = timegm(&now);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = makeFloat((double) when + fraction)
-  };
+  pshVal(P, makeFloat((double) when + fraction));
+  return Normal;
 }
 
-ReturnStatus g__time2date(heapPo h, termPo a1) {
-  time_t when = (time_t) floatVal(a1);
+ReturnStatus g__time2date(processPo P) {
+  double time = floatVal(popVal(P));
+  time_t when = (time_t) time;
 
   struct tm *now = localtime(&when);
-  normalPo dte = allocateTpl(h, DATE_LEN);
-  int root = gcAddRoot(h, (ptrPo) &dte);
+  normalPo dte = allocateTpl(currentHeap, DATE_LEN);
+  int root = gcAddRoot(currentHeap, (ptrPo) &dte);
 
   double sec;
-  double fraction = modf(floatVal(a1), &sec);
+  double fraction = modf(time, &sec);
 
   termPo year = makeInteger(now->tm_year + 1900);
   setArg(dte, DATE_YEAR, year);
@@ -105,20 +104,21 @@ ReturnStatus g__time2date(heapPo h, termPo a1) {
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(h, root);
-  return (ReturnStatus){.ret = Normal, .result = (termPo) dte};
+  gcReleaseRoot(currentHeap, root);
+  pshVal(P, (termPo) dte);
+  return Normal;
 }
 
-ReturnStatus g__time2utc(heapPo h, termPo a1) {
-  time_t when = (time_t) floatVal(a1);
+ReturnStatus g__time2utc(processPo P) {
+  double time = floatVal(popVal(P));
+  time_t when = (time_t) time;
 
   struct tm *now = gmtime(&when);
-
-  normalPo dte = allocateTpl(h, DATE_LEN);
-  int root = gcAddRoot(h, (ptrPo) &dte);
+  normalPo dte = allocateTpl(currentHeap, DATE_LEN);
+  int root = gcAddRoot(currentHeap, (ptrPo) &dte);
 
   double sec;
-  double fraction = modf(floatVal(a1), &sec);
+  double fraction = modf(time, &sec);
 
   termPo year = makeInteger(now->tm_year + 1900);
   setArg(dte, DATE_YEAR, year);
@@ -144,16 +144,17 @@ ReturnStatus g__time2utc(heapPo h, termPo a1) {
   termPo tmOffset = makeInteger(now->tm_gmtoff);
   setArg(dte, DATE_UTC, tmOffset);
 
-  gcReleaseRoot(h, root);
-  return (ReturnStatus){.ret = Normal, .result = (termPo) dte};
+  gcReleaseRoot(currentHeap, root);
+  pshVal(P, (termPo) dte);
+  return Normal;
 }
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
-ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
-  time_t when = (time_t) floatVal(a1);
+ReturnStatus g__formattime(processPo P) {
+  time_t when = (time_t) floatVal(popVal(P));
   integer fmtLen;
-  const char *fmt = strVal(a2, &fmtLen);
+  const char *fmt = strVal(popVal(P), &fmtLen);
 
   struct tm *now = localtime(&when);
 
@@ -162,13 +163,14 @@ ReturnStatus g__formattime(heapPo h, termPo a1, termPo a2) {
   retCode ret = formatDate(O_IO(buff), fmt, fmtLen, now);
 
   if (ret == Ok) {
-    termPo result = allocateFromStrBuffer(h, buff);
+    termPo result = allocateFromStrBuffer(currentHeap, buff);
     closeIo(O_IO(buff));
-
-    return (ReturnStatus){.ret = Normal, .result = result};
+    pshVal(P,result);
+    return Normal;
   } else {
     closeIo(O_IO(buff));
-    return (ReturnStatus){.ret = Abnormal, .result = eINVAL};
+    pshVal(P,eINVAL);
+    return Abnormal;
   }
 }
 
@@ -566,12 +568,12 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
   return ret;
 }
 
-ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__parsetime(processPo P) {
   integer srcLen;
-  const char *src = strVal(a1, &srcLen);
+  const char *src = strVal(popVal(P), &srcLen);
 
   integer fmtLen;
-  const char *fmt = strVal(a2, &fmtLen);
+  const char *fmt = strVal(popVal(P), &fmtLen);
 
   struct tm time;
 
@@ -579,8 +581,10 @@ ReturnStatus g__parsetime(heapPo h, termPo a1, termPo a2) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, makeFloat((double) tm))};
+    pshVal(P,(termPo) wrapSome(currentHeap, makeFloat((double)tm)));
+    return Normal;
   } else {
-    return (ReturnStatus){.ret = Normal, .result = noneEnum};
+    pshVal(P,noneEnum);
+    return Normal;
   }
 }

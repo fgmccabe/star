@@ -9,7 +9,7 @@
 #include "ooio.h"
 
 #include "engine.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 #include "strings.h"
 #include "arith.h"
 #include "labels.h"

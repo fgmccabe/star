@@ -10,6 +10,6 @@
 #include "unistr.h"
 
 #include "engine.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 #endif //STAR_UNICODE_H

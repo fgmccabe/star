@@ -3,7 +3,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 include_directories("Headers" "../Headers" "../Util/Headers" "../Engine/Headers" "../Infra/Headers" "../Jit/Headers")
 
 set(HEADER_FILES
-        Headers/libEscapes.h
+        ../Engine/Headers/escapeP.h
         Headers/clock.h
         ../Engine/Headers/engine.h
         ../Engine/Headers/escodes.h
@@ -23,7 +23,7 @@ set(HEADER_FILES
         Headers/pkgops.h
         Headers/listops.h
         Headers/stkops.h Headers/futureops.h
-        timeout.h)
+        Headers/sysops.h)
 
 set(SOURCE_FILES
         ${HEADER_FILES}
@@ -38,7 +38,6 @@ set(SOURCE_FILES
         libEscapes.c
         system.c
         netfile.c
-        stkops.c
         stringops.c
         threds.c
         unicode.c fiberops.c

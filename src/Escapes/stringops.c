@@ -4,7 +4,6 @@
 
 #include <stringsP.h>
 #include <arithP.h>
-#include <stringBuffer.h>
 #include <assert.h>
 #include <tpl.h>
 #include <globals.h>
@@ -13,40 +12,50 @@
 #include "consP.h"
 #include "option.h"
 #include "charP.h"
-#include "stringops.h"
 #include "errorCodes.h"
 
-ReturnStatus g__chr_eq(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) == charVal(a2) ? trueEnum : falseEnum)};
+ReturnStatus g__chr_eq(processPo P) {
+  codePoint lhs = charVal(popVal(P));
+  codePoint rhs = charVal(popVal(P));
+  pshVal(P, lhs == rhs ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__chr_lt(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) < charVal(a2) ? trueEnum : falseEnum)};
+ReturnStatus g__chr_lt(processPo P) {
+  codePoint lhs = charVal(popVal(P));
+  codePoint rhs = charVal(popVal(P));
+  pshVal(P, lhs < rhs ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__chr_ge(heapPo h, termPo a1, termPo a2) {
-  return (ReturnStatus){.ret = Normal, .result = (charVal(a1) >= charVal(a2) ? trueEnum : falseEnum)};
+ReturnStatus g__chr_ge(processPo P) {
+  codePoint lhs = charVal(popVal(P));
+  codePoint rhs = charVal(popVal(P));
+  pshVal(P, lhs >= rhs ? trueEnum : falseEnum);
+  return Normal;
 }
 
-ReturnStatus g__chr_hash(heapPo h, termPo a1) {
-  return (ReturnStatus){.ret = Normal, .result = makeInteger(charVal(a1))};
+ReturnStatus g__chr_hash(processPo P) {
+  codePoint lhs = charVal(popVal(P));
+  pshVal(P, makeInteger(lhs));
+  return Normal;
 }
 
-ReturnStatus g__chr_quote(heapPo h, termPo a1) {
+ReturnStatus g__chr_quote(processPo P) {
   strBufferPo strb = newStringBuffer();
-  qtChar(O_IO(strb), charVal(a1));
+  qtChar(O_IO(strb), charVal(popVal(P)));
 
-  ReturnStatus result = {.ret = Normal, .result = allocateFromStrBuffer(h, strb)};
+  pshVal(P, allocateFromStrBuffer(currentHeap, strb));
 
   closeIo(O_IO(strb));
-  return result;
+  return Normal;
 }
 
 // Support formatting of char values
-ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
-  codePoint cp = charVal(a1);
+ReturnStatus g__chr_format(processPo P) {
+  codePoint cp = charVal(popVal(P));
   integer fLen;
-  const char *fmt = strVal(a2, &fLen);
+  const char *fmt = strVal(popVal(P), &fLen);
   strBufferPo strb = newStringBuffer();
   retCode ret;
 
@@ -71,29 +80,35 @@ ReturnStatus g__chr_format(heapPo h, termPo a1, termPo a2) {
       }
     }
 
-    ReturnStatus result = {.ret = Normal, .result = allocateFromStrBuffer(h, strb)};
-    closeIo(O_IO(strb));
-    return result;
+    if (ret == Ok) {
+      pshVal(P, allocateFromStrBuffer(currentHeap, strb));
+      closeIo(O_IO(strb));
+      return Normal;
+    } else {
+      closeIo(O_IO(strb));
+      pshVal(P, eINVAL);
+      return Abnormal;
+    }
   } else {
-    ReturnStatus result = {.ret = Normal, .result = allocateCString(h, "format error")};
-    return result;
+    pshVal(P, eINVAL);
+    return Abnormal;
   }
 }
 
-ReturnStatus g__str_eq(heapPo h, termPo a1, termPo a2) {
-  stringPo s1 = C_STR(a1);
-  stringPo s2 = C_STR(a2);
+ReturnStatus g__str_eq(processPo P) {
+  stringPo s1 = C_STR(popVal(P));
+  stringPo s2 = C_STR(popVal(P));
 
   logical eq = stringHash(s1) == stringHash(s2) && sameString(s1, s2);
-
-  return (ReturnStatus){.ret = Normal, .result = (eq ? trueEnum : falseEnum)};
+  pshVal(P, (eq ? trueEnum : falseEnum));
+  return Normal;
 }
 
 // Lexicographic comparison
-ReturnStatus g__str_lt(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_lt(processPo P) {
   integer llen, rlen;
-  const char *lhs = strVal(a1, &llen);
-  const char *rhs = strVal(a2, &rlen);
+  const char *lhs = strVal(popVal(P), &llen);
+  const char *rhs = strVal(popVal(P), &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -103,23 +118,26 @@ ReturnStatus g__str_lt(heapPo h, termPo a1, termPo a2) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus){.ret = Normal, .result = trueEnum};
+      pshVal(P, trueEnum);
+      return Normal;
     } else if (chl > ch2) {
-      return (ReturnStatus){.ret = Normal, .result = falseEnum};
+      pshVal(P, falseEnum);
+      return Normal;
     }
   }
-  if (ri < rlen) {
+  if (ri < rlen)
     // There is more on the right, so the left counts as being smaller
-    return (ReturnStatus){.ret = Normal, .result = trueEnum};
-  } else {
-    return (ReturnStatus){.ret = Normal, .result = falseEnum};
-  }
+    pshVal(P, trueEnum);
+  else
+    pshVal(P, falseEnum);
+
+  return Normal;
 }
 
-ReturnStatus g__str_ge(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_ge(processPo P) {
   integer llen, rlen;
-  const char *lhs = strVal(a1, &llen);
-  const char *rhs = strVal(a2, &rlen);
+  const char *lhs = strVal(popVal(P), &llen);
+  const char *rhs = strVal(popVal(P), &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -129,20 +147,25 @@ ReturnStatus g__str_ge(heapPo h, termPo a1, termPo a2) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus){.ret = Normal, .result = falseEnum};
+      pshVal(P, falseEnum);
+      return Normal;
     } else if (chl > ch2) {
-      return (ReturnStatus){.ret = Normal, .result = trueEnum};
+      pshVal(P, trueEnum);
+      return Normal;
     }
   }
   if (li <= llen) {
     // There is more on the left, so it counts as being bigger
-    return (ReturnStatus){.ret = Normal, .result = trueEnum};
+    pshVal(P, trueEnum);
+    return Normal;
   } else {
-    return (ReturnStatus){.ret = Normal, .result = falseEnum};
+    pshVal(P, falseEnum);
+    return Normal;
   }
 }
 
-ReturnStatus g__str_hash(heapPo h, termPo a1) {
+ReturnStatus g__str_hash(processPo P) {
+  termPo a1 = popVal(P);
   stringPo lhs = C_STR(a1);
 
   if (lhs->hash == 0) {
@@ -151,87 +174,80 @@ ReturnStatus g__str_hash(heapPo h, termPo a1) {
     lhs->hash = uniNHash(str, len);
   }
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = makeInteger(lhs->hash)
-  };
+  pshVal(P, makeInteger(lhs->hash));
+  return Normal;
 }
 
-ReturnStatus g__str_len(heapPo h, termPo a1) {
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = makeInteger(strLength(C_STR(a1)))
-  };
+ReturnStatus g__str_len(processPo P) {
+  pshVal(P, makeInteger(strLength(C_STR(popVal(P)))));
+  return Normal;
 }
 
-ReturnStatus g__str2flt(heapPo h, termPo a1) {
+ReturnStatus g__str2flt(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
+  const char *str = strVal(popVal(P), &len);
   double flt;
-  heapPo H = h;
 
   switch (parseDouble(str, len, &flt)) {
     case Ok:
-      return (ReturnStatus){
-        .ret = Normal,
-        .result = (termPo) wrapSome(H, makeFloat(flt))
-      };
+      pshVal(P, (termPo) wrapSome(currentHeap, makeFloat(flt)));
+      return Normal;
     default:
     case Error:
-      return (ReturnStatus){.ret = Normal, .result = noneEnum};
+      pshVal(P, noneEnum);
+      return Normal;
   }
 }
 
-ReturnStatus g__str2int(heapPo h, termPo a1) {
+ReturnStatus g__str2int(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
+  const char *str = strVal(popVal(P), &len);
   integer ix;
-  heapPo H = h;
 
   integer pos = 0;
   switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
-      return (ReturnStatus){
-        .ret = Normal,
-        .result = (termPo) wrapSome(H, makeInteger(ix))
-      };
+      pshVal(P, (termPo) wrapSome(currentHeap, makeInteger(ix)));
+      return Normal;
     default:
-      return (ReturnStatus){.ret = Normal, .result = noneEnum};
+      pshVal(P, noneEnum);
+      return Normal;
   }
 }
 
-ReturnStatus g__str_charat(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_charat(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
-  integer ix = integerVal(a2);
+  const char *str = strVal(popVal(P), &len);
+  integer ix = integerVal(popVal(P));
 
-  if (ix >= len)
-    return (ReturnStatus){.ret = Normal, .result = noneEnum};
-  else {
+  if (ix >= len) {
+    pshVal(P, noneEnum);
+    return Normal;
+  } else {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
-    if (ret == Ok) {
-      return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, allocateCharacter(cp))};
-    } else
-      return (ReturnStatus){.ret = Normal, .result = noneEnum};
+    if (ret == Ok)
+      pshVal(P, (termPo) wrapSome(currentHeap, allocateCharacter(cp)));
+    else
+      pshVal(P, noneEnum);
+    return Normal;
   }
 }
 
-ReturnStatus g__str_gen(heapPo h, termPo a1) {
+ReturnStatus g__str_gen(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
+  const char *str = strVal(popVal(P), &len);
   char rnd[MAXLINE];
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, rnd, uniStrLen(rnd))
-  };
+  pshVal(P, allocateString(currentHeap, rnd, uniStrLen(rnd)));
+  return Normal;
 }
 
-ReturnStatus g__stringOf(heapPo h, termPo a1, termPo a2) {
-  integer depth = integerVal(a2);
+ReturnStatus g__stringOf(processPo P) {
+  termPo a1 = popVal(P);
+  integer depth = integerVal(popVal(P));
 
   strBufferPo strb = newStringBuffer();
   dispTerm(O_IO(strb), a1, 0, depth, False);
@@ -239,29 +255,22 @@ ReturnStatus g__stringOf(heapPo h, termPo a1, termPo a2) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus result = {
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, oLen)
-  };
+  pshVal(P, allocateString(currentHeap, buff, oLen));
 
   closeIo(O_IO(strb));
-  return result;
+  return Normal;
 }
 
-ReturnStatus g__str_quote(heapPo h, termPo a1) {
+ReturnStatus g__str_quote(processPo P) {
   strBufferPo strb = newStringBuffer();
-  quoteStrg(O_IO(strb), C_STR(a1));
+  quoteStrg(O_IO(strb), C_STR(popVal(P)));
 
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  ReturnStatus result = {
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, oLen)
-  };
-
+  pshVal(P, allocateString(currentHeap, buff, oLen));
   closeIo(O_IO(strb));
-  return result;
+  return Normal;
 }
 
 typedef enum {
@@ -275,7 +284,9 @@ typedef enum {
   rightToLeft
 } SrcAlign;
 
-ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_format(processPo P) {
+  termPo a1 = popVal(P);
+  termPo a2 = popVal(P);
   integer fLen;
   const char *fmt = strVal(a2, &fLen);
   Alignment alignment = alignLeft;
@@ -309,7 +320,7 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
     case 'R':
       alignment = alignRight;
       break;
-    default: ;
+    default:;
   }
 
   // What is the output width?
@@ -372,27 +383,23 @@ ReturnStatus g__str_format(heapPo h, termPo a1, termPo a2) {
     }
   }
 
-  ReturnStatus result = {
-    .ret = Normal,
-    .result = allocateFromStrBuffer(h, strb)
-  };
+  pshVal(P, allocateFromStrBuffer(currentHeap, strb));
 
   closeIo(O_IO(strb));
-  return result;
+  return Normal;
 }
 
-ReturnStatus g__explode(heapPo h, termPo a1) {
-  stringPo str = C_STR(a1);
+ReturnStatus g__explode(processPo P) {
+  stringPo str = C_STR(popVal(P));
   integer len = strLength(str);
   char buffer[len + 1];
 
   copyChars2Buff(str, buffer, len + 1);
 
-  heapPo H = h;
   termPo list = (termPo) nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(H, (ptrPo) &list);
-  gcAddRoot(H, &el);
+  int root = gcAddRoot(currentHeap, (ptrPo) &list);
+  gcAddRoot(currentHeap, &el);
 
   integer pos = len;
   retCode ret = Ok;
@@ -401,15 +408,16 @@ ReturnStatus g__explode(heapPo h, termPo a1) {
     ret = prevPoint(buffer, &pos, &cp);
     if (ret == Ok) {
       el = allocateCharacter(cp);
-      list = (termPo) allocateCons(H, el, list);
+      list = (termPo) allocateCons(currentHeap, el, list);
     }
   }
 
-  gcReleaseRoot(H, root);
+  gcReleaseRoot(currentHeap, root);
 
   assert(consLength(list) == countCodePoints(buffer, 0, len));
 
-  return (ReturnStatus){.ret = Normal, .result = (termPo) list};
+  pshVal(P, list);
+  return Normal;
 }
 
 void dS(termPo w) {
@@ -424,11 +432,11 @@ void dS(termPo w) {
   flushOut();
 }
 
-ReturnStatus g__implode(heapPo h, termPo a1) {
-  termPo list = a1;
+ReturnStatus g__implode(processPo P) {
+  termPo list = popVal(P);
 
   integer size = 1;
-  for (termPo lst = a1; isCons(lst); lst = consTail(C_NORMAL(lst))) {
+  for (termPo lst = list; isCons(lst); lst = consTail(C_NORMAL(lst))) {
     normalPo en = C_NORMAL(lst);
     size += codePointSize(charVal(consHead(en)));
   }
@@ -444,48 +452,45 @@ ReturnStatus g__implode(heapPo h, termPo a1) {
     list = consTail(pr);
   }
 
-  termPo result = (termPo) allocateString(h, buffer, pos);
+  termPo result = (termPo) allocateString(currentHeap, buffer, pos);
 
   if (buffer != buff)
     free(buffer);
-  return (ReturnStatus){.ret = Normal, .result = result};
+  pshVal(P, result);
+  return Normal;
 }
 
-ReturnStatus g__str_find(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__str_find(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
+  const char *str = strVal(popVal(P), &len);
   integer tlen;
-  const char *tgt = strVal(a2, &tlen);
-  integer start = integerVal(a3);
+  const char *tgt = strVal(popVal(P), &tlen);
+  integer start = integerVal(popVal(P));
 
   integer found = uniSearch(str, len, start, tgt, tlen);
-
-  return (ReturnStatus){.ret = Normal, .result = makeInteger(found)};
+  pshVal(P, makeInteger(found));
+  return Normal;
 }
 
-ReturnStatus g__sub_str(heapPo h, termPo a1, termPo a2, termPo a3) {
+ReturnStatus g__sub_str(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
-  integer start = integerVal(a2);
-  integer count = integerVal(a3);
+  const char *str = strVal(popVal(P), &len);
+  integer start = integerVal(popVal(P));
+  integer count = integerVal(popVal(P));
 
   count = minimum(count, len - start);
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
-
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, count)
-  };
+  pshVal(P, allocateString(currentHeap, buff, count));
+  return Normal;
 }
 
-ReturnStatus g__str_hdtl(heapPo h, termPo a1) {
-  stringPo src = C_STR(a1);
+ReturnStatus g__str_hdtl(processPo P) {
+  stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
   char str[len + 1];
   copyChars2Buff(src, str, len + 1);
-  heapPo H = h;
 
   integer offset = 0;
   codePoint ch;
@@ -493,68 +498,61 @@ ReturnStatus g__str_hdtl(heapPo h, termPo a1) {
 
   if (ret == Ok) {
     termPo chCode = allocateCharacter(ch);
-    int mark = gcAddRoot(H, &chCode);
-    termPo rest = allocateString(H, &str[offset], len - offset);
-    gcAddRoot(H, &rest);
-    normalPo pair = allocateTpl(H, 2);
+    int mark = gcAddRoot(currentHeap, &chCode);
+    termPo rest = allocateString(currentHeap, &str[offset], len - offset);
+    gcAddRoot(currentHeap, &rest);
+    normalPo pair = allocateTpl(currentHeap, 2);
     setArg(pair, 0, chCode);
     setArg(pair, 1, rest);
-    gcReleaseRoot(H, mark);
-    return (ReturnStatus){.ret = Normal, .result = (termPo) wrapSome(h, (termPo) pair)};
+    gcReleaseRoot(currentHeap, mark);
+    pshVal(P, (termPo) wrapSome(currentHeap, (termPo) pair));
+    return Normal;
   } else {
-    return (ReturnStatus){.ret = Normal, .result = noneEnum};
+    pshVal(P, noneEnum);
+    return Normal;
   }
 }
 
-ReturnStatus g__str_cons(heapPo h, termPo a1, termPo a2) {
-  codePoint ch = charVal(a1);
-  stringPo src = C_STR(a2);
+ReturnStatus g__str_cons(processPo P) {
+  codePoint ch = charVal(popVal(P));
+  stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
   integer offset = 0;
   char str[len + 16];
   appendCodePoint(str, &offset, len + 16, ch);
   copyChars2Buff(src, &str[offset], len + 16);
-
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, str, offset + len)
-  };
+  pshVal(P, allocateString(currentHeap, str, offset + len));
+  return Normal;
 }
 
-ReturnStatus g__code2str(heapPo h, termPo a1) {
-  codePoint ch = charVal(a1);
+ReturnStatus g__code2str(processPo P) {
+  codePoint ch = charVal(popVal(P));
   integer codeLength = 0;
   char str[16];
   appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, str, codeLength)
-  };
+  pshVal(P, allocateString(currentHeap, str, codeLength));
+  return Normal;
 }
 
-ReturnStatus g__str_apnd(heapPo h, termPo a1, termPo a2) {
-  codePoint ch = charVal(a2);
-  stringPo src = C_STR(a1);
+ReturnStatus g__str_apnd(processPo P) {
+  stringPo src = C_STR(popVal(P));
+  codePoint ch = charVal(popVal(P));
   integer len = strLength(src);
   integer offset = len;
   char str[len + 16];
   copyChars2Buff(src, str, len + 16);
 
   appendCodePoint(str, &offset, len + 16, ch);
-
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, str, offset)
-  };
+  pshVal(P, allocateString(currentHeap, str, offset));
+  return Normal;
 }
 
-ReturnStatus g__str_back(heapPo h, termPo a1) {
-  stringPo src = C_STR(a1);
+ReturnStatus g__str_back(processPo P) {
+  stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
   char str[len + 1];
   copyChars2Buff(src, str, len + 1);
-  heapPo H = h;
 
   integer offset = len;
   codePoint ch;
@@ -562,65 +560,65 @@ ReturnStatus g__str_back(heapPo h, termPo a1) {
 
   if (ret == Ok) {
     termPo chCode = allocateCharacter(ch);
-    int mark = gcAddRoot(H, (ptrPo) &chCode);
-    termPo rest = allocateString(H, str, offset);
-    gcAddRoot(H, &rest);
-    normalPo pair = allocateTpl(H, 2);
+    int mark = gcAddRoot(currentHeap, (ptrPo) &chCode);
+    termPo rest = allocateString(currentHeap, str, offset);
+    gcAddRoot(currentHeap, &rest);
+    normalPo pair = allocateTpl(currentHeap, 2);
     setArg(pair, 0, rest);
     setArg(pair, 1, chCode);
-    gcReleaseRoot(H, mark);
-    return (ReturnStatus){.ret = Normal, .result = (termPo) pair};
+    gcReleaseRoot(currentHeap, mark);
+    pshVal(P, (termPo) pair);
+    return Normal;
   } else {
-    return (ReturnStatus){.ret = Abnormal, .result = eNOTFND};
+    pshVal(P, eNOTFND);
+    return Abnormal;
   }
 }
 
-ReturnStatus g__str_split(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_split(processPo P) {
   integer len;
-  const char *str = strVal(a1, &len);
-  integer start = integerVal(a2);
+  const char *str = strVal(popVal(P), &len);
+  integer start = integerVal(popVal(P));
 
   char buff[len];
   uniMove(buff, len, str, len);
 
-  heapPo H = h;
-  normalPo pair = allocateTpl(H, 2);
-  int root = gcAddRoot(H, (ptrPo) &pair);
+  normalPo pair = allocateTpl(currentHeap, 2);
+  int root = gcAddRoot(currentHeap, (ptrPo) &pair);
 
-  termPo lhs = (termPo) allocateString(H, buff, start);
+  termPo lhs = (termPo) allocateString(currentHeap, buff, start);
   setArg(pair, 0, lhs);
 
-  termPo rhs = (termPo) allocateString(H, &buff[start], len - start);
+  termPo rhs = (termPo) allocateString(currentHeap, &buff[start], len - start);
   setArg(pair, 1, rhs);
 
-  gcReleaseRoot(H, root);
-  return (ReturnStatus){.ret = Normal, .result = (termPo) pair};
+  gcReleaseRoot(currentHeap, root);
+  pshVal(P, (termPo) pair);
+  return Normal;
 }
 
-ReturnStatus g__str_concat(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_concat(processPo P) {
   integer llen;
-  const char *lhs = strVal(a1, &llen);
+  const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
-  const char *rhs = strVal(a2, &rlen);
+  const char *rhs = strVal(popVal(P), &rlen);
 
   integer len = llen + rlen + 1;
   char buff[len];
   uniMove(buff, len, lhs, llen);
   uniMove(&buff[llen], len - llen, rhs, rlen);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, llen + rlen)
-  };
+  pshVal(P, allocateString(currentHeap, buff, llen + rlen));
+  return Normal;
 }
 
-ReturnStatus g__str_splice(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4) {
+ReturnStatus g__str_splice(processPo P) {
   integer llen;
-  const char *lhs = strVal(a1, &llen);
-  integer from = integerVal(a2);
-  integer cnt = integerVal(a3);
+  const char *lhs = strVal(popVal(P), &llen);
+  integer from = integerVal(popVal(P));
+  integer cnt = integerVal(popVal(P));
   integer rlen;
-  const char *rhs = strVal(a4, &rlen);
+  const char *rhs = strVal(popVal(P), &rlen);
 
   // Clamp the from and cnt values
   if (from < 0)
@@ -638,37 +636,31 @@ ReturnStatus g__str_splice(heapPo h, termPo a1, termPo a2, termPo a3, termPo a4)
   uniMove(&buff[from], len - from, rhs, rlen);
   uniMove(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, len)
-  };
+  pshVal(P, allocateString(currentHeap, buff, len));
+  return Normal;
 }
 
-ReturnStatus g__str_start(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_start(processPo P) {
   integer llen;
-  const char *lhs = strVal(a1, &llen);
+  const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
-  const char *rhs = strVal(a2, &rlen);
-
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)
-  };
+  const char *rhs = strVal(popVal(P), &rlen);
+  pshVal(P, (uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum));
+  return Normal;
 }
 
-ReturnStatus g__str_end(heapPo h, termPo a1, termPo a2) {
+ReturnStatus g__str_end(processPo P) {
   integer llen;
-  const char *lhs = strVal(a1, &llen);
+  const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
-  const char *rhs = strVal(a2, &rlen);
+  const char *rhs = strVal(popVal(P), &rlen);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)
-  };
+  pshVal(P, (uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum));
+  return Normal;
 }
 
-ReturnStatus g__str_multicat(heapPo h, termPo t) {
+ReturnStatus g__str_multicat(processPo P) {
+  termPo t = popVal(P);
   strBufferPo strb = newStringBuffer();
 
   retCode ret = Ok;
@@ -681,26 +673,21 @@ ReturnStatus g__str_multicat(heapPo h, termPo t) {
   }
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
-
-  ReturnStatus rt = {
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, oLen)
-  };
+  pshVal(P, allocateString(currentHeap, buff, oLen));
   closeIo(O_IO(strb));
-  return rt;
+  return Normal;
 }
 
-ReturnStatus g__str_reverse(heapPo h, termPo a1) {
+ReturnStatus g__str_reverse(processPo P) {
   integer len;
-  const char *lhs = strVal(a1, &len);
+  const char *lhs = strVal(popVal(P), &len);
 
   char buff[len];
   uniMove(buff, len, lhs, len);
 
   uniReverse(buff, len);
 
-  return (ReturnStatus){
-    .ret = Normal,
-    .result = (termPo) allocateString(h, buff, len)
-  };
+  pshVal(P, allocateString(currentHeap, buff, len));
+
+  return Normal;
 }

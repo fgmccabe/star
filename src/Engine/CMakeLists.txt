@@ -12,7 +12,7 @@ set(HEADER_FILES
         ../Headers/instructions.h
         ../Util/Headers/ooio.h
         ../Util/Headers/cmdOptions.h
-        ../Escapes/Headers/libEscapes.h
+        Headers/escapeP.h
         ../Util/Headers/integer.h
         ../Jit/Headers/jit.h
         Headers/args.h

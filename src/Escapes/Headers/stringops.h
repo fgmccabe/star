@@ -9,7 +9,7 @@
 #include "ooio.h"
 
 #include "engine.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 #include "strings.h"
 
 #endif //STAR_STRINGOPS_H

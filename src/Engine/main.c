@@ -29,7 +29,7 @@
 #include "singleP.h"
 #include "vectP.h"
 #include "ioops.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 #include "stringBufferP.h"
 #include "ltype.h"

@@ -50,8 +50,7 @@ void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity);
 stackPo spinupStack(heapPo H, integer size);
 
-integer stackHwm(stackPo stk);;
-
+integer stackHwm(stackPo stk);
 integer stackNo(stackPo stk);
 
 extern stackPo C_STACK(termPo t);

@@ -28,7 +28,7 @@ set(HEADER_FILES
         Common/Headers/regAlloc.h
         Common/Headers/codeScan.h
         ../Util/Headers/array.h
-        ../Escapes/Headers/libEscapes.h
+        ../Engine/Headers/escapeP.h
         ${JIT_ARCH}/Headers/lower.h
         )
 

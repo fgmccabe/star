@@ -8,7 +8,6 @@
 #include <assert.h>
 #include "engineP.h"      /* access engine definitions */
 #include "debug.h"
-
 #include <memory.h>
 #include <globalsP.h>
 

@@ -10,7 +10,7 @@
 #include "debugP.h"
 #include "arith.h"
 #include "editline.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 integer pcCount = 0;
 static integer lineCount = 0;
@@ -76,14 +76,15 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-ReturnStatus g__ins_debug(heapPo h) {
+ReturnStatus g__ins_debug(processPo P) {
   insDebugging = tracing = True;
-  currentProcess->waitFor = stepInto;
-  currentProcess->tracing = True;
-  currentProcess->traceCount = 0;
-  currentProcess->waterMark = currentProcess->stk->fp;
+  P->waitFor = stepInto;
+  P->tracing = True;
+  P->traceCount = 0;
+  P->waterMark = P->stk->fp;
 
-  return (ReturnStatus) {.ret=Normal, .result = unitEnum};
+  pshVal(P,unitEnum);
+  return Normal;
 }
 
 static integer cmdCount(char *cmdLine, integer deflt) {

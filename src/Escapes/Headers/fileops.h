@@ -9,7 +9,7 @@
 #include "ooio.h"
 
 #include "engine.h"
-#include "libEscapes.h"
+#include "escapeP.h"
 
 ioEncoding pickEncoding(integer k);
 #endif //STAR_FILEOPS_H
