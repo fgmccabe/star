@@ -1178,7 +1178,7 @@ void stashRegisters(jitCompPo jit) {
 
 void unstashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  ldp(PR, CO, PRX(SP,2*pointerSize)); // pick up process and constants
+  ldp(PR, CO, PSX(SP,2*pointerSize)); // pick up process and constants
   ldr(STK, OF(PR, OffsetOf(ProcessRec, stk)));
   ldr(AG, OF(STK, OffsetOf(StackRecord,args)));
   ldr(SSP, OF(STK, OffsetOf(StackRecord,sp)));
