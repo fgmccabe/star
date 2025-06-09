@@ -696,6 +696,7 @@ ReturnStatus g__waitIo(processPo P) {
   // First count the length of the list
   termPo list = popVal(P);
   integer count = 0;
+  integer timeOut = integerVal(popVal(P));
   walkNormal(list, countIoChnnls, (void *) &count);
 
   if (count > 0) {
@@ -706,7 +707,7 @@ ReturnStatus g__waitIo(processPo P) {
 
     assert(count == fd.ix);
 
-    retCode ret = waitForAsync(files, fd.ix, integerVal(popVal(P)));
+    retCode ret = waitForAsync(files, fd.ix, timeOut);
 
     if (ret == Ok){
       pshVal(P,trueEnum);
