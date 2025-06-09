@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 include_directories("Headers"
         "../Headers"
         "../../../Util/Headers"
+        "../../../Infra/Headers"
         "../../../Engine/Headers"
         "../../../Escapes/Headers"
         "../../../Headers"

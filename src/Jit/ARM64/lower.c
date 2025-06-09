@@ -11,6 +11,7 @@
 #include "jitP.h"
 #include "formioP.h"
 #include "debug.h"
+#include "engineP.h"
 #include "errorCodes.h"
 
 /* Lower Star VM code to Arm64 code */
@@ -90,7 +91,7 @@ retCode invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = processStack(P);
   heapPo h = processHeap(P);
-
+  processPo p = P;
   framePo fp = stk->fp + 1;
 
   // Preload a new frame
@@ -115,7 +116,7 @@ retCode invokeJitMethod(processPo P, methodPo mtd) {
     "ldp x24, x25, [sp], #16\n"
     "ldp x26, x27, [sp], #16\n"
     "ldp x28, x29, [sp], #16\n"
-    : [process]"=m" (P), [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code),
+    : [process]"=m" (p), [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code),
     [fp] "=m"(stk->fp), [constants] "=m"(constAnts), [heap] "=m" (h)
     :
     : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
@@ -280,17 +281,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
 
-        loadStackIntoArgRegisters(jit, X1, arity);
-        loadCGlobal(ctx, X0, (void *) &globalHeap);
         stashRegisters(jit);
-        stp(X0, X0, PRX(SP,-2*pointerSize)); // leave room for the fat return value
-        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
-                      RG(X6), RG(X7), RG(X8));
-        ldp(X0, X1, PSX(SP,2*pointerSize));
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), 1,RG(PR));
         unstashRegisters(jit);
         // X0 is the return code - which we ignore for normal escapes
-        // X1 is the return value
-        pushStkOp(block, X1);
         pc++;
         continue;
       }
@@ -1176,16 +1170,17 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
 void stashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  stp(STK, CO, PRX(SP,-2*pointerSize));
-  str(AG, OF(X27, OffsetOf(StackRecord,args)));
-  str(SSP, OF(X27, OffsetOf(StackRecord,sp)));
-  str(FP, OF(X27,OffsetOf(StackRecord,fp)));
+  stp(PR, CO, PRX(SP,-2*pointerSize)); // stash process & constants
+  str(AG, OF(STK, OffsetOf(StackRecord,args)));
+  str(SSP, OF(STK, OffsetOf(StackRecord,sp)));
+  str(FP, OF(STK,OffsetOf(StackRecord,fp)));
 }
 
 void unstashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  ldp(STK, CO, PRX(SP,2*pointerSize));
-  ldr(AG, OF(X27, OffsetOf(StackRecord,args)));
-  ldr(SSP, OF(X27, OffsetOf(StackRecord,sp)));
-  ldr(FP, OF(X27,OffsetOf(StackRecord,fp)));
+  ldp(PR, CO, PRX(SP,2*pointerSize)); // pick up process and constants
+  ldr(STK, OF(PR, OffsetOf(ProcessRec, stk)));
+  ldr(AG, OF(STK, OffsetOf(StackRecord,args)));
+  ldr(SSP, OF(STK, OffsetOf(StackRecord,sp)));
+  ldr(FP, OF(STK,OffsetOf(StackRecord,fp)));
 }
