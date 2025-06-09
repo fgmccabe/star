@@ -11,3 +11,4 @@ HeaderGenerator/ops
 HeaderGenerator/plmnem
 .star
 BootCompiler/sbc
+Tests/testRunner.py
