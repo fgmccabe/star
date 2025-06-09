@@ -20,8 +20,8 @@
 
 ReturnStatus g__cwd(processPo P) {
   char cwBuffer[MAXFILELEN];
-  strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(currentProcess));
-  pshVal(P, allocateString(currentHeap, cwBuffer, uniStrLen(cwBuffer)));
+  strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(P));
+  pshVal(P, allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
   return Normal;
 }
 
@@ -29,7 +29,7 @@ ReturnStatus g__cd(processPo P) {
   integer len;
   const char *cd = strVal(popVal(P), &len);
 
-  switch (setProcessWd(currentProcess, (char *) cd, len)) {
+  switch (setProcessWd(P, (char *) cd, len)) {
     case Ok:
       pshVal(P, unitEnum);
       return Normal;
@@ -44,17 +44,17 @@ ReturnStatus g__rm(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (unlink(acFn) != -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, unitEnum);
     return Normal;
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;
@@ -80,17 +80,17 @@ ReturnStatus g__rmdir(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (rmdir(acFn) == 0) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, unitEnum);
     return Normal;
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;
@@ -116,19 +116,19 @@ ReturnStatus g__mkdir(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   mode_t mode = (mode_t) integerVal(popVal(P));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (mkdir(acFn, mode) != -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, unitEnum);
     return Normal;
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;
@@ -154,22 +154,22 @@ ReturnStatus g__mv(processPo P) {
   const char *fn = strVal(popVal(P), &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *srcFn = resolveFileName(processWd(currentProcess), fn, sLen, srcBuff, NumberOf(srcBuff));
+  char *srcFn = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
   integer dLen;
   const char *df = strVal(popVal(P), &dLen);
   char dstBuff[MAXFILELEN];
 
-  char *dstFn = resolveFileName(processWd(currentProcess), df, dLen, dstBuff, NumberOf(dstBuff));
+  char *dstFn = resolveFileName(processWd(P), df, dLen, dstBuff, NumberOf(dstBuff));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (rename(srcFn, dstFn) != -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, unitEnum);
     return Normal;
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;
@@ -193,15 +193,15 @@ ReturnStatus g__ls(processPo P) {
   const char *fn = strVal(popVal(P), &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *dir = resolveFileName(processWd(currentProcess), fn, sLen, srcBuff, NumberOf(srcBuff));
+  char *dir = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
 
   DIR *directory;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if ((directory = opendir(dir)) == NULL) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;
@@ -225,24 +225,25 @@ ReturnStatus g__ls(processPo P) {
         return Abnormal;
     }
   } else {
-    termPo list = (termPo) nilEnum;
-    termPo name = (termPo) voidEnum;
-    int root = gcAddRoot(currentHeap, &list);
-    gcAddRoot(currentHeap, &name);
+    termPo list = nilEnum;
+    termPo name = voidEnum;
+    heapPo h = processHeap(P);
+    int root = gcAddRoot(h, &list);
+    gcAddRoot(h, &name);
 
     struct dirent *ent;
 
     while ((ent = readdir(directory)) != NULL) {
       /* skip special entries "." and ".." */
       if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
-        name = (termPo) allocateString(currentHeap, ent->d_name, uniStrLen(ent->d_name));
-        list = (termPo) allocateCons(currentHeap, name, list);
+        name = (termPo) allocateString(h, ent->d_name, uniStrLen(ent->d_name));
+        list = (termPo) allocateCons(h, name, list);
       }
     }
     closedir(directory);              /* Close the directory stream */
 
-    gcReleaseRoot(currentHeap, root);
-    setProcessRunnable(currentProcess);
+    gcReleaseRoot(h, root);
+    setProcessRunnable(P);
 
     pshVal(P, list);
     return Normal;
@@ -254,15 +255,15 @@ ReturnStatus g__file_mode(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
@@ -289,7 +290,7 @@ ReturnStatus g__file_mode(processPo P) {
         return Abnormal;
     }
   } else {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, makeInteger(buf.st_mode));
     return Normal;
   }
@@ -300,15 +301,15 @@ ReturnStatus g__file_chmod(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   mode_t acmode = (mode_t) integerVal(popVal(P));
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (chmod(acFn, acmode) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     switch (errno) {
       case EINTR:
         goto tryAgain;    /* A mega hack */
@@ -319,7 +320,7 @@ ReturnStatus g__file_chmod(processPo P) {
         return Abnormal;
     }
   }
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
   pshVal(P, unitEnum);
   return Normal;
 }
@@ -329,11 +330,11 @@ ReturnStatus g__file_present(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
   termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
   pshVal(P, present);
   return Normal;
 }
@@ -343,11 +344,11 @@ ReturnStatus g__isdir(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
   termPo present = isDirectory(acFn) == Ok ? trueEnum : falseEnum;
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
 
   pshVal(P, present);
   return Normal;
@@ -375,15 +376,15 @@ ReturnStatus g__file_type(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
@@ -411,7 +412,7 @@ ReturnStatus g__file_type(processPo P) {
     }
   }
 
-  setProcessRunnable(currentProcess);
+  setProcessRunnable(P);
 
   termPo type;
 
@@ -442,15 +443,15 @@ ReturnStatus g__file_size(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
@@ -479,7 +480,7 @@ ReturnStatus g__file_size(processPo P) {
   } else {
     termPo details = makeInteger(buf.st_size);
 
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, details);
     return Normal;
   }
@@ -490,15 +491,15 @@ ReturnStatus g__file_date(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
@@ -525,20 +526,21 @@ ReturnStatus g__file_date(processPo P) {
         return Abnormal;
     }
   } else {
+    heapPo h = processHeap(P);
     termPo atime = makeInteger(buf.st_atime);
-    int root = gcAddRoot(currentHeap, &atime);
+    int root = gcAddRoot(h, &atime);
     termPo ctime = makeInteger(buf.st_ctime);
-    gcAddRoot(currentHeap, &ctime);
+    gcAddRoot(h, &ctime);
     termPo mtime = makeInteger(buf.st_mtime);
-    gcAddRoot(currentHeap, &mtime);
-    normalPo triple = allocateTpl(currentHeap, 3);
+    gcAddRoot(h, &mtime);
+    normalPo triple = allocateTpl(h, 3);
 
     setArg(triple, 0, atime);
     setArg(triple, 1, ctime);
     setArg(triple, 2, mtime);
-    gcReleaseRoot(currentHeap, root);
+    gcReleaseRoot(h, root);
 
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, (termPo) triple);
     return Normal;
   }
@@ -549,15 +551,15 @@ ReturnStatus g__file_modified(processPo P) {
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(currentProcess, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
@@ -586,7 +588,7 @@ ReturnStatus g__file_modified(processPo P) {
   } else {
     termPo mtime = makeInteger(buf.st_mtime);
 
-    setProcessRunnable(currentProcess);
+    setProcessRunnable(P);
     pshVal(P, mtime);
     return Normal;
   }
@@ -599,12 +601,13 @@ ReturnStatus g__openInFile(processPo P) {
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInFile(acFn, enc);
+  heapPo h = processHeap(P);
 
   if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(currentHeap, file));
+    pshVal(P, (termPo) allocateIOChnnl(h, file));
     return Normal;
   } else {
     pshVal(P, eNOTFND);
@@ -619,12 +622,12 @@ ReturnStatus g__openOutFile(processPo P) {
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openOutFile(acFn, enc);
 
   if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(currentHeap, file));
+    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
     return Normal;
   } else {
     pshVal(P, eNOTFND);
@@ -639,12 +642,12 @@ ReturnStatus g__openAppendFile(processPo P) {
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openAppendFile(acFn, enc);
 
   if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(currentHeap, file));
+    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
     return Normal;
   } else {
     pshVal(P, eNOTFND);
@@ -659,12 +662,12 @@ ReturnStatus g__openAppendIOFile(processPo P) {
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(currentProcess), fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInOutAppendFile(acFn, enc);
 
   if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(currentHeap, file));
+    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
     return Normal;
   } else {
     pshVal(P, eNOTFND);

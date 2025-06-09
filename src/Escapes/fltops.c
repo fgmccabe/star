@@ -142,13 +142,14 @@ ReturnStatus g__frexp(processPo P) {
   double Arg = floatVal(popVal(P));
   int exp;
   double frac = frexp(Arg, &exp);
-
   termPo man = makeFloat(frac);
-  int root = gcAddRoot(currentHeap, &man);
+
+  heapPo h = processHeap(P);
+  int root = gcAddRoot(h, &man);
   termPo ex = makeInteger((integer) exp);
-  gcAddRoot(currentHeap, &ex);
-  termPo Rs = (termPo) allocatePair(currentHeap, man, ex);
-  gcReleaseRoot(currentHeap, root);
+  gcAddRoot(h, &ex);
+  termPo Rs = (termPo) allocatePair(h, man, ex);
+  gcReleaseRoot(h, root);
   pshVal(P, Rs);
   return Normal;
 }
@@ -159,11 +160,12 @@ ReturnStatus g__modf(processPo P) {
   double frac = modf(Arg, &intgrl);
 
   termPo man = makeFloat(frac);
-  int root = gcAddRoot(currentHeap, &man);
+  heapPo h = processHeap(P);
+  int root = gcAddRoot(h, &man);
   termPo ex = makeInteger((integer) intgrl);
-  gcAddRoot(currentHeap, &ex);
-  termPo Rs = (termPo) allocatePair(currentHeap, man, ex);
-  gcReleaseRoot(currentHeap, root);
+  gcAddRoot(h, &ex);
+  termPo Rs = (termPo) allocatePair(h, man, ex);
+  gcReleaseRoot(h, root);
   pshVal(P, Rs);
   return Normal;
 }
@@ -208,7 +210,7 @@ ReturnStatus g__flt2str(processPo P) {
 
   formatDouble(buff, NumberOf(buff), Arg, mode, precision, popVal(P) == trueEnum ? True : False);
 
-  pshVal(P, (termPo) allocateString(currentHeap, buff, uniStrLen(buff)));
+  pshVal(P, (termPo) allocateString(processHeap(P), buff, uniStrLen(buff)));
   return Normal;
 }
 
@@ -220,7 +222,7 @@ ReturnStatus g__flt_format(processPo P) {
   integer pos = 0;
 
   if (formattedFloat(arg, buff, &pos, NumberOf(buff), fmt, length) == Ok) {
-    pshVal(P, (termPo) allocateString(currentHeap, buff, uniStrLen(buff)));
+    pshVal(P, (termPo) allocateString(processHeap(P), buff, uniStrLen(buff)));
     return Normal;
   } else {
     pshVal(P, eINVAL);

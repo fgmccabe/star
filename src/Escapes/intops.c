@@ -221,7 +221,7 @@ ReturnStatus g__int2str(processPo P) {
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  pshVal(P,allocateString(currentHeap, buff, len));
+  pshVal(P,allocateString(processHeap(P), buff, len));
   return Normal;
 }
 
@@ -235,7 +235,7 @@ ReturnStatus g__int_format(processPo P) {
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    pshVal(P,allocateString(currentHeap, buff, pos));
+    pshVal(P,allocateString(processHeap(P), buff, pos));
     return Normal;
   } else{
     pshVal(P,eINVAL);

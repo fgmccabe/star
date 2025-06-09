@@ -45,7 +45,7 @@ ReturnStatus g__chr_quote(processPo P) {
   strBufferPo strb = newStringBuffer();
   qtChar(O_IO(strb), charVal(popVal(P)));
 
-  pshVal(P, allocateFromStrBuffer(currentHeap, strb));
+  pshVal(P, allocateFromStrBuffer(processHeap(P), strb));
 
   closeIo(O_IO(strb));
   return Normal;
@@ -81,7 +81,7 @@ ReturnStatus g__chr_format(processPo P) {
     }
 
     if (ret == Ok) {
-      pshVal(P, allocateFromStrBuffer(currentHeap, strb));
+      pshVal(P, allocateFromStrBuffer(processHeap(P), strb));
       closeIo(O_IO(strb));
       return Normal;
     } else {
@@ -190,7 +190,7 @@ ReturnStatus g__str2flt(processPo P) {
 
   switch (parseDouble(str, len, &flt)) {
     case Ok:
-      pshVal(P, (termPo) wrapSome(currentHeap, makeFloat(flt)));
+      pshVal(P, (termPo) wrapSome(processHeap(P), makeFloat(flt)));
       return Normal;
     default:
     case Error:
@@ -207,7 +207,7 @@ ReturnStatus g__str2int(processPo P) {
   integer pos = 0;
   switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
-      pshVal(P, (termPo) wrapSome(currentHeap, makeInteger(ix)));
+      pshVal(P, (termPo) wrapSome(processHeap(P), makeInteger(ix)));
       return Normal;
     default:
       pshVal(P, noneEnum);
@@ -227,7 +227,7 @@ ReturnStatus g__str_charat(processPo P) {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
     if (ret == Ok)
-      pshVal(P, (termPo) wrapSome(currentHeap, allocateCharacter(cp)));
+      pshVal(P, (termPo) wrapSome(processHeap(P), allocateCharacter(cp)));
     else
       pshVal(P, noneEnum);
     return Normal;
@@ -241,7 +241,7 @@ ReturnStatus g__str_gen(processPo P) {
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
-  pshVal(P, allocateString(currentHeap, rnd, uniStrLen(rnd)));
+  pshVal(P, allocateString(processHeap(P), rnd, uniStrLen(rnd)));
   return Normal;
 }
 
@@ -255,7 +255,7 @@ ReturnStatus g__stringOf(processPo P) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  pshVal(P, allocateString(currentHeap, buff, oLen));
+  pshVal(P, allocateString(processHeap(P), buff, oLen));
 
   closeIo(O_IO(strb));
   return Normal;
@@ -268,7 +268,7 @@ ReturnStatus g__str_quote(processPo P) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  pshVal(P, allocateString(currentHeap, buff, oLen));
+  pshVal(P, allocateString(processHeap(P), buff, oLen));
   closeIo(O_IO(strb));
   return Normal;
 }
@@ -383,7 +383,7 @@ ReturnStatus g__str_format(processPo P) {
     }
   }
 
-  pshVal(P, allocateFromStrBuffer(currentHeap, strb));
+  pshVal(P, allocateFromStrBuffer(processHeap(P), strb));
 
   closeIo(O_IO(strb));
   return Normal;
@@ -395,11 +395,11 @@ ReturnStatus g__explode(processPo P) {
   char buffer[len + 1];
 
   copyChars2Buff(str, buffer, len + 1);
-
+heapPo h = processHeap(P);
   termPo list = (termPo) nilEnum;
   termPo el = voidEnum;
-  int root = gcAddRoot(currentHeap, (ptrPo) &list);
-  gcAddRoot(currentHeap, &el);
+  int root = gcAddRoot(h, (ptrPo) &list);
+  gcAddRoot(h, &el);
 
   integer pos = len;
   retCode ret = Ok;
@@ -408,11 +408,11 @@ ReturnStatus g__explode(processPo P) {
     ret = prevPoint(buffer, &pos, &cp);
     if (ret == Ok) {
       el = allocateCharacter(cp);
-      list = (termPo) allocateCons(currentHeap, el, list);
+      list = (termPo) allocateCons(h, el, list);
     }
   }
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
 
   assert(consLength(list) == countCodePoints(buffer, 0, len));
 
@@ -452,7 +452,7 @@ ReturnStatus g__implode(processPo P) {
     list = consTail(pr);
   }
 
-  termPo result = (termPo) allocateString(currentHeap, buffer, pos);
+  termPo result = (termPo) allocateString(processHeap(P), buffer, pos);
 
   if (buffer != buff)
     free(buffer);
@@ -482,7 +482,7 @@ ReturnStatus g__sub_str(processPo P) {
 
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
-  pshVal(P, allocateString(currentHeap, buff, count));
+  pshVal(P, allocateString(processHeap(P), buff, count));
   return Normal;
 }
 
@@ -495,17 +495,18 @@ ReturnStatus g__str_hdtl(processPo P) {
   integer offset = 0;
   codePoint ch;
   retCode ret = nxtPoint(str, &offset, len, &ch);
+  heapPo h = processHeap(P);
 
   if (ret == Ok) {
     termPo chCode = allocateCharacter(ch);
-    int mark = gcAddRoot(currentHeap, &chCode);
-    termPo rest = allocateString(currentHeap, &str[offset], len - offset);
-    gcAddRoot(currentHeap, &rest);
-    normalPo pair = allocateTpl(currentHeap, 2);
+    int mark = gcAddRoot(h, &chCode);
+    termPo rest = allocateString(h, &str[offset], len - offset);
+    gcAddRoot(h, &rest);
+    normalPo pair = allocateTpl(h, 2);
     setArg(pair, 0, chCode);
     setArg(pair, 1, rest);
-    gcReleaseRoot(currentHeap, mark);
-    pshVal(P, (termPo) wrapSome(currentHeap, (termPo) pair));
+    gcReleaseRoot(h, mark);
+    pshVal(P, (termPo) wrapSome(h, (termPo) pair));
     return Normal;
   } else {
     pshVal(P, noneEnum);
@@ -521,7 +522,7 @@ ReturnStatus g__str_cons(processPo P) {
   char str[len + 16];
   appendCodePoint(str, &offset, len + 16, ch);
   copyChars2Buff(src, &str[offset], len + 16);
-  pshVal(P, allocateString(currentHeap, str, offset + len));
+  pshVal(P, allocateString(processHeap(P), str, offset + len));
   return Normal;
 }
 
@@ -531,7 +532,7 @@ ReturnStatus g__code2str(processPo P) {
   char str[16];
   appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
 
-  pshVal(P, allocateString(currentHeap, str, codeLength));
+  pshVal(P, allocateString(processHeap(P), str, codeLength));
   return Normal;
 }
 
@@ -544,7 +545,7 @@ ReturnStatus g__str_apnd(processPo P) {
   copyChars2Buff(src, str, len + 16);
 
   appendCodePoint(str, &offset, len + 16, ch);
-  pshVal(P, allocateString(currentHeap, str, offset));
+  pshVal(P, allocateString(processHeap(P), str, offset));
   return Normal;
 }
 
@@ -560,13 +561,14 @@ ReturnStatus g__str_back(processPo P) {
 
   if (ret == Ok) {
     termPo chCode = allocateCharacter(ch);
-    int mark = gcAddRoot(currentHeap, (ptrPo) &chCode);
-    termPo rest = allocateString(currentHeap, str, offset);
-    gcAddRoot(currentHeap, &rest);
-    normalPo pair = allocateTpl(currentHeap, 2);
+    heapPo h = processHeap(P);
+    int mark = gcAddRoot(h, (ptrPo) &chCode);
+    termPo rest = allocateString(h, str, offset);
+    gcAddRoot(h, &rest);
+    normalPo pair = allocateTpl(h, 2);
     setArg(pair, 0, rest);
     setArg(pair, 1, chCode);
-    gcReleaseRoot(currentHeap, mark);
+    gcReleaseRoot(h, mark);
     pshVal(P, (termPo) pair);
     return Normal;
   } else {
@@ -582,17 +584,17 @@ ReturnStatus g__str_split(processPo P) {
 
   char buff[len];
   uniMove(buff, len, str, len);
+heapPo h = processHeap(P);
+  normalPo pair = allocateTpl(h, 2);
+  int root = gcAddRoot(h, (ptrPo) &pair);
 
-  normalPo pair = allocateTpl(currentHeap, 2);
-  int root = gcAddRoot(currentHeap, (ptrPo) &pair);
-
-  termPo lhs = (termPo) allocateString(currentHeap, buff, start);
+  termPo lhs = (termPo) allocateString(h, buff, start);
   setArg(pair, 0, lhs);
 
-  termPo rhs = (termPo) allocateString(currentHeap, &buff[start], len - start);
+  termPo rhs = (termPo) allocateString(h, &buff[start], len - start);
   setArg(pair, 1, rhs);
 
-  gcReleaseRoot(currentHeap, root);
+  gcReleaseRoot(h, root);
   pshVal(P, (termPo) pair);
   return Normal;
 }
@@ -608,7 +610,7 @@ ReturnStatus g__str_concat(processPo P) {
   uniMove(buff, len, lhs, llen);
   uniMove(&buff[llen], len - llen, rhs, rlen);
 
-  pshVal(P, allocateString(currentHeap, buff, llen + rlen));
+  pshVal(P, allocateString(processHeap(P), buff, llen + rlen));
   return Normal;
 }
 
@@ -636,7 +638,7 @@ ReturnStatus g__str_splice(processPo P) {
   uniMove(&buff[from], len - from, rhs, rlen);
   uniMove(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
-  pshVal(P, allocateString(currentHeap, buff, len));
+  pshVal(P, allocateString(processHeap(P), buff, len));
   return Normal;
 }
 
@@ -673,7 +675,7 @@ ReturnStatus g__str_multicat(processPo P) {
   }
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
-  pshVal(P, allocateString(currentHeap, buff, oLen));
+  pshVal(P, allocateString(processHeap(P), buff, oLen));
   closeIo(O_IO(strb));
   return Normal;
 }
@@ -687,7 +689,7 @@ ReturnStatus g__str_reverse(processPo P) {
 
   uniReverse(buff, len);
 
-  pshVal(P, allocateString(currentHeap, buff, len));
+  pshVal(P, allocateString(processHeap(P), buff, len));
 
   return Normal;
 }

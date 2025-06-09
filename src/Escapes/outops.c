@@ -63,7 +63,7 @@ ReturnStatus g__outchar_async(processPo P) {
     asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(popVal(P)), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
       pshVal(P, (termPo) ft);
       return Normal;
     }
@@ -112,7 +112,7 @@ ReturnStatus g__outbyte_async(processPo P) {
     asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(popVal(P)), Null);
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
       pshVal(P, (termPo) ft);
       return Normal;
     }
@@ -212,7 +212,7 @@ ReturnStatus g__outtext_async(processPo P) {
     asyncPo async = newAsyncTask(wrText, allocUnit, textCloser, wrCleanup, (integer) copy, O_IO(buffer));
 
     if (ret == Ok) {
-      futurePo ft = makeFuture(currentHeap, voidEnum, pollOutput, io, async);
+      futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
       pshVal(P, (termPo) ft);
       return Normal;
     }

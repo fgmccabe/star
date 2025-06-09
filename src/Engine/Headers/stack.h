@@ -5,8 +5,9 @@
 #ifndef STAR_STACK_H
 #define STAR_STACK_H
 
+#include "heap.h"
 #include "term.h"
-#include "engine.h"
+#include "code.h"
 #include "closure.h"
 
 typedef struct StackStructure *stackPo;
