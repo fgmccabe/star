@@ -87,41 +87,36 @@ void stashRegisters(jitCompPo jit);
 
 void unstashRegisters(jitCompPo jit);
 
-retCode invokeJitMethod(processPo P, methodPo mtd) {
+ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = processStack(P);
   heapPo h = processHeap(P);
   processPo p = P;
-  framePo fp = stk->fp + 1;
 
-  // Preload a new frame
-  stk->fp = fp;
-  fp->prog = stk->prog;
-  fp->args = stk->args;
+  ReturnStatus ret = Normal;
 
-  asm( "stp x28, x29, [sp, #-16]!\n"
-    "stp x26, x27, [sp, #-16]!\n"
-    "stp x24, x25, [sp, #-16]!\n"
-    "ldr x27, %[stk]\n"
-    "ldr x28, %[ssp]\n"
-    "ldr x26, %[ag]\n"
-    "ldr x25, %[constants]\n"
-    "ldr x24, %[process]\n"
-    "ldr x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str x26, %[ag]\n"
-    "str x27, %[stk]\n"
-    "str x29, %[fp]\n"
-    "ldp x24, x25, [sp], #16\n"
-    "ldp x26, x27, [sp], #16\n"
-    "ldp x28, x29, [sp], #16\n"
-    : [process]"=m" (p), [stk] "=m"(stk), [ssp] "=m"(stk->sp), [ag] "=m"(stk->args), [code] "=m"(code),
-    [fp] "=m"(stk->fp), [constants] "=m"(constAnts), [heap] "=m" (h)
-    :
-    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
+  asm( "mov x27, %[stk]\n"
+       "ldr x28, %[ssp]\n"
+       "ldr x26, %[ag]\n"
+       "ldr x25, %[constants]\n"
+       "ldr x24, %[process]\n"
+       "ldr x16, %[code]\n"
+       "ldr x29, %[fp]\n"
+       "stp x8,x9, [sp, #-16]!\n"
+       "stp x10,x11, [sp, #-16]!\n"
+       "blr x16\n"
+       "ldp x10,x11, [sp], #16\n"
+       "ldp x8,x9, [sp], #16\n"
+       "str w0, %[ret]\n"
+       "str X26, %[ag]\n"
+       "str x28, %[ssp]\n"
+       "str x29, %[fp]\n"
+    : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp),  [ssp] "+m"(stk->sp)
+  : [process]"m"(p), [stk] "r"(stk),  [code] "m"(code),
+  [constants] "m"(constAnts), [heap] "m"(h)
+  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
 
-  return Ok;
+  return ret;
 }
 
 static armReg popStkOp(jitBlockPo block, armReg tgt) {
@@ -282,7 +277,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 arity = escapeArity(esc);
 
         stashRegisters(jit);
-        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), 1,RG(PR));
+        callIntrinsic(ctx, (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstashRegisters(jit);
         // X0 is the return code - which we ignore for normal escapes
         pc++;
@@ -1170,17 +1165,17 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
 void stashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  stp(PR, CO, PRX(SP,-2*pointerSize)); // stash process & constants
-  str(AG, OF(STK, OffsetOf(StackRecord,args)));
-  str(SSP, OF(STK, OffsetOf(StackRecord,sp)));
-  str(FP, OF(STK,OffsetOf(StackRecord,fp)));
+  stp(PR, CO, PRX(SP, -2 * pointerSize)); // stash process & constants
+  str(AG, OF(STK, OffsetOf(StackRecord, args)));
+  str(SSP, OF(STK, OffsetOf(StackRecord, sp)));
+  str(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
 void unstashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  ldp(PR, CO, PSX(SP,2*pointerSize)); // pick up process and constants
+  ldp(PR, CO, PSX(SP, 2 * pointerSize)); // pick up process and constants
   ldr(STK, OF(PR, OffsetOf(ProcessRec, stk)));
-  ldr(AG, OF(STK, OffsetOf(StackRecord,args)));
-  ldr(SSP, OF(STK, OffsetOf(StackRecord,sp)));
-  ldr(FP, OF(STK,OffsetOf(StackRecord,fp)));
+  ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
+  ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
+  ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }

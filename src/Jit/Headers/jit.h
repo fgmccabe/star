@@ -11,6 +11,7 @@
 #include "term.h"
 #include "stack.h"
 #include "engine.h"
+#include "escape.h"
 
 typedef termPo (*jittedCode)();
 
@@ -22,7 +23,7 @@ typedef struct jit_compiler_ *jitCompPo;
 
 void initJit();
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
-retCode invokeJitMethod(processPo P, methodPo mtd);
+ReturnStatus invokeJitMethod(processPo P, methodPo mtd);
 
 #ifdef TRACEJIT
 extern tracingLevel traceJit;
