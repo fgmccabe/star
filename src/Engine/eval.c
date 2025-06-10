@@ -29,7 +29,6 @@ retCode run(processPo P) {
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
 
-
   for (;;) {
 #ifndef NDEBUG
     pcCount++; /* increment total number of executed */
@@ -73,22 +72,23 @@ retCode run(processPo P) {
           bail();
         }
 
+        FP++;
+        FP->prog = PROG;
+        FP->link = PC + 1;
+        FP->args = ARGS;
+
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
           if (traceJit) {
             logMsg(logFile, "entering jitted code %T", mtd);
           }
 #endif
+
           saveRegisters();
           invokeJitMethod(P, mtd);
           restoreRegisters();
           PC++;
         } else {
-          FP++;
-          FP->prog = PROG;
-          FP->link = PC + 1;
-          FP->args = ARGS;
-
           PROG = mtd;
           ARGS = SP;
           PC = entryPoint(mtd);
