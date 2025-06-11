@@ -12,8 +12,9 @@
 typedef struct single_rec_ {
   ClassRecord clss;             // == singleClass
   termPo content;               // Contents
-  integer hash;
 } SingleRecord;
+
+clssPo singleClass;
 
 #define SingleCellCount CellCount(sizeof(SingleRecord))
 
