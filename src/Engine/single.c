@@ -13,8 +13,6 @@ static integer singleHash(specialClassPo cl, termPo o);
 static retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo singleFinalizer(specialClassPo class, termPo o);
 
-static integer singleHashCount = 0;
-
 SpecialClass SingleClass = {
     .clss = Null,
     .sizeFun = singleSize,
@@ -44,8 +42,6 @@ singlePo singleVar(heapPo H) {
   single->content = Null;
   single->clss.clss = singleClass;
 
-  single->hash = hash61(singleHashCount++);
-
   return single;
 }
 
@@ -61,8 +57,9 @@ logical singleCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 static integer singleHash(specialClassPo cl, termPo o) {
-  singlePo single = C_SINGLE(o);
-  return single->hash;
+  logMsg(logFile,"not permitted to take hash of single assignment var");
+  star_exit(99);
+  return 0;
 }
 
 termPo singleCopy(specialClassPo cl, termPo dst, termPo src) {
