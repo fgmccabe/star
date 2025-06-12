@@ -690,8 +690,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo ok = newLabel(ctx);
 
         and(tmp, vl, IM(0b11));
-        tst(tmp, IM(0b00));
-        bne(fail);
+        cmp(tmp, IM(0b00));
+        beq(fail);
 
         ldr(tmp, OF(vl,0)); // pick up the class
         mov(vl, IM((integer)lbl));
