@@ -85,7 +85,7 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-codeLblPo currentPcLabel_(assemCtxPo ctx){
+codeLblPo here_(assemCtxPo ctx){
   return defineLabel(ctx,ctx->pc);
 }
 
@@ -105,13 +105,14 @@ codeLblPo newLabel(assemCtxPo ctx){
   return lbl;
 }
 
-void setLabel_(assemCtxPo ctx, codeLblPo lbl) {
+codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx=ctx, .lbl=lbl};
   if (lbl->refs != Null) {
     processArrayElements(lbl->refs, updateLblEntry, &info);
     lbl->refs = eraseArray(lbl->refs, NULL, NULL);
   }
+  return lbl;
 }
 
 retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdater updater) {

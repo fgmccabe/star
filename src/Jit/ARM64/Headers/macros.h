@@ -46,10 +46,11 @@ typedef void (*regProc)(armReg rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 codeLblPo newLabel(assemCtxPo ctx);
-codeLblPo currentPcLabel_(assemCtxPo ctx);
-#define defLbl() currentPcLabel_(ctx)
+codeLblPo here_(assemCtxPo ctx);
+#define here() here_(ctx)
 codeLblPo defineLabel(assemCtxPo ctx, integer pc);
-void setLabel_(assemCtxPo ctx, codeLblPo lbl);
+
+codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl);
 #define bind(lbl) setLabel_(ctx,lbl)
 
 logical isLabelDefined(codeLblPo lbl);

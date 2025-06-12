@@ -2,7 +2,8 @@
 // Created by Francis McCabe on 7/9/20.
 //
 #include <config.h>
-#include <assert.h>
+
+#include "cellP.h"
 #include "lowerP.h"
 #include "stackP.h"
 #include "labelsP.h"
@@ -11,6 +12,7 @@
 #include "constantsP.h"
 #include "jitP.h"
 #include "formioP.h"
+#include "closureP.h"
 #include "debug.h"
 #include "engineP.h"
 #include "errorCodes.h"
@@ -49,7 +51,7 @@ static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
-static retCode bail(jitCompPo jit, char *msg, ...);
+static retCode bailOut(jitCompPo jit, char *msg, ...);
 
 static retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity);
 
@@ -90,6 +92,7 @@ void stashRegisters(jitCompPo jit);
 void unstashRegisters(jitCompPo jit);
 
 static void reserveHeapSpace(jitCompPo jit, integer count, codeLblPo ok);
+
 static void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p);
 
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
@@ -101,25 +104,25 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm( "mov x27, %[stk]\n"
-       "ldr x28, %[ssp]\n"
-       "ldr x26, %[ag]\n"
-       "ldr x25, %[constants]\n"
-       "ldr x24, %[process]\n"
-       "ldr x16, %[code]\n"
-       "ldr x29, %[fp]\n"
-       "stp x8,x9, [sp, #-16]!\n"
-       "stp x10,x11, [sp, #-16]!\n"
-       "blr x16\n"
-       "ldp x10,x11, [sp], #16\n"
-       "ldp x8,x9, [sp], #16\n"
-       "str w0, %[ret]\n"
-       "str X26, %[ag]\n"
-       "str x28, %[ssp]\n"
-       "str x29, %[fp]\n"
-    : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp),  [ssp] "+m"(stk->sp)
-  : [process]"m"(p), [stk] "r"(stk),  [code] "m"(code),
-  [constants] "m"(constAnts), [heap] "m"(h)
-  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
+    "ldr x28, %[ssp]\n"
+    "ldr x26, %[ag]\n"
+    "ldr x25, %[constants]\n"
+    "ldr x24, %[process]\n"
+    "ldr x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "blr x16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "str w0, %[ret]\n"
+    "str X26, %[ag]\n"
+    "str x28, %[ssp]\n"
+    "str x29, %[fp]\n"
+    : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
+    : [process]"m"(p), [stk] "r"(stk), [code] "m"(code),
+    [constants] "m"(constAnts), [heap] "m"(h)
+    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "cc", "memory");
 
   return ret;
 }
@@ -177,16 +180,17 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Nop: // No operation
         pc++;
         continue;
-      case Abort: { // abort with message
-        reserveReg(jit,X1);
+      case Abort: {
+        // abort with message
+        reserveReg(jit, X1);
         reserveReg(jit, X2);
-        popStkOp(block,X1);
-        popStkOp(block,X2);
+        popStkOp(block, X1);
+        popStkOp(block, X2);
         stashRegisters(jit);
-        callIntrinsic(ctx,(runtimeFn)abort_star,3, RG(PR),RG(X1),RG(X2));
+        callIntrinsic(ctx, (runtimeFn) abort_star, 3, RG(PR),RG(X1),RG(X2));
         pc++;
-        releaseReg(jit,X1);
-        releaseReg(jit,X2);
+        releaseReg(jit, X1);
+        releaseReg(jit, X2);
         continue;
       }
       case Call: {
@@ -201,7 +205,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bail(jit, "Function %T not defined", getConstant(key));
+        bailOut(jit, "Function %T not defined", getConstant(key));
 
         bind(haveMtd);
 
@@ -228,7 +232,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bail(jit, "Function %T not defined", nProg);
+        bailOut(jit, "Function %T not defined", nProg);
 
         bind(haveMtd);
 
@@ -245,7 +249,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(LR, returnPc);
 
         br(X16);
-        codeLblPo brking = currentPcLabel_(ctx);
+        codeLblPo brking = here();
         ret = breakOut(block, pc + code[pc].alt + 1, True);
         b(brking); // step back to the break out code
         bind(returnPc);
@@ -266,7 +270,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X0, haveMtd);
 
-        bail(jit, "Function not defined");
+        bailOut(jit, "Function not defined");
 
         bind(haveMtd);
 
@@ -282,7 +286,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case XOCall:{
+      case XOCall: {
         popStkOp(block, X16); // Pick up the closure
         ldr(X17, OF(X16, 0)); // Pick up the label
         // pick up the pointer to the method
@@ -294,7 +298,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X0, haveMtd);
 
-        bail(jit, "Function not defined");
+        bailOut(jit, "Function not defined");
 
         bind(haveMtd);
 
@@ -310,7 +314,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(LR, returnPc);
 
         br(X16);
-        codeLblPo brking = currentPcLabel_(ctx);
+        codeLblPo brking = here();
         ret = breakOut(block, pc + code[pc].alt + 1, True);
         b(brking); // step back to the break out code
         bind(returnPc);
@@ -376,7 +380,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
             // Build a loop
             armReg cx = findFreeReg(jit);
             mov(cx, IM(locals));
-            codeLblPo start = currentPcLabel_(ctx);
+            codeLblPo start = here();
             pushStkOp(block, vd);
             sub(cx, cx, IM(1));
             bne(start);
@@ -448,7 +452,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           .valStk = block->valStk,
           .startPc = pc - 1,
           .breakLbl = brkLbl,
-          .loopLbl = currentPcLabel_(ctx),
+          .loopLbl = here(),
           .parent = block,
         };
 
@@ -625,7 +629,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         return Error;
       case TG: // copy into a global variable
         return Error;
-      case Sav: { // create a single assignment variable
+      case Sav: {
+        // create a single assignment variable
         armReg sng = findFreeReg(jit);
         allocSmallStruct(jit, singleClass, SingleCellCount, sng);
         armReg tmp = findFreeReg(jit);
@@ -645,11 +650,64 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         return Error;
       case TSav: // update single assignment variable leave value on stack
         return Error;
-      case Cell: // create R/W cell
-      case Get: // access a R/W cell
-      case Assign: // assign to a R/W cell
-      case CLbl: // T,Lbl --> test for a data term, break if not lbl
-        return Error;
+      case Cell: {
+        // create R/W cell
+        armReg cel = findFreeReg(jit);
+        allocSmallStruct(jit, cellClass, CellCellCount, cel);
+        armReg tmp = findFreeReg(jit);
+        popStkOp(block, tmp);
+        str(tmp, OF(cel, OffsetOf(CellRecord, content)));
+        releaseReg(jit, tmp);
+        pushStkOp(block, cel);
+        releaseReg(jit, cel);
+        pc++;
+        continue;
+      }
+      case Get: {
+        // access a R/W cell
+        armReg cel = popStkOp(block, findFreeReg(jit));
+        ldr(cel, OF(cel, OffsetOf(CellRecord, content)));
+        pushStkOp(block, cel);
+        pc++;
+        continue;
+      }
+      case Assign: {
+        // assign to a R/W cell
+        armReg cel = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(block, findFreeReg(jit));
+        str(cel, OF(cel, OffsetOf(CellRecord, content)));
+        pc++;
+        continue;
+      }
+      case CLbl: {
+        // T,Lbl --> test for a data term, break if not lbl
+        int32 key = code[pc].fst;
+        labelPo lbl = C_LBL(getConstant(key)); // Labels are not subject to GC
+        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg tmp = findFreeReg(jit);
+
+        codeLblPo fail = newLabel(ctx);
+        codeLblPo ok = newLabel(ctx);
+
+        and(tmp, vl, IM(0b11));
+        tst(tmp, IM(0b00));
+        bne(fail);
+
+        ldr(tmp, OF(vl,0)); // pick up the class
+        mov(vl, IM(lbl));
+        cmp(tmp,RG(vl));
+        beq(ok);
+
+        bind(fail);
+        ret = breakOut(block, pc + code[pc].alt + 1,False);
+
+        bind(ok);
+        pc++;
+        releaseReg(jit, tmp);
+        releaseReg(jit, vl);
+        continue;
+      }
+
       case CInt:
       case CChar:
       case CFlt: {
@@ -957,29 +1015,49 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case FLt: // L R --> L<R
       case FGe: // L R --> L>=R
       case FCmp: // L R --> branch if not same floating point
-      case Alloc: { // new structure, elements from stack
+      case Alloc: {
+        // new structure, elements from stack
         int32 key = code[pc].fst;
         labelPo label = C_LBL(getConstant(key));
         int32 arity = lblArity(label);
 
         armReg term = findFreeReg(jit);
-        allocSmallStruct(jit, (clssPo)label, NormalCellCount(arity), term);
+        allocSmallStruct(jit, (clssPo) label, NormalCellCount(arity), term);
 
         armReg tmp = findFreeReg(jit);
         for (int32 ix = 0; ix < arity; ix++) {
-          popStkOp(block,tmp);
-          str(tmp,OF(term,(ix+1)*pointerSize));
+          popStkOp(block, tmp);
+          str(tmp, OF(term,(ix+1)*pointerSize));
         }
         releaseReg(jit, tmp);
 
-        pushStkOp(block,term);
-        releaseReg(jit,term);
+        pushStkOp(block, term);
+        releaseReg(jit, term);
 
         pc++;
         continue;
       }
-      case Closure: // allocate a closure
-        return Error;
+      case Closure: {
+        int32 key = code[pc].fst;
+
+        armReg term = findFreeReg(jit);
+        allocSmallStruct(jit, closureClass, ClosureCellCount, term);
+
+        armReg tmp = findFreeReg(jit);
+        loadConstant(jit, key, tmp);
+        str(tmp, OF(term,OffsetOf(ClosureRecord,lbl)));
+
+        popStkOp(block, tmp); // pick up the free value
+        str(tmp, OF(term,OffsetOf(ClosureRecord, free)));
+
+        releaseReg(jit, tmp);
+
+        pushStkOp(block, term);
+        releaseReg(jit, term);
+
+        pc++;
+        continue;
+      }
       case Cmp: // t1 t2 --> , branch to offset if not same literal
         return Error;
       case Frame: {
@@ -1032,41 +1110,6 @@ retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity) {
   for (uint32 ix = 0; ix < arity; ix++) {
     ldr((armReg) (startRg + ix), PSX(SSP, pointerSize));
   }
-  return Ok;
-}
-
-retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
-  uint32 currOff = OffsetOf(HeapRecord, curr);
-  uint32 limitOff = OffsetOf(HeapRecord, limit);
-  assemCtxPo ctx = assemCtx(jit);
-  armReg glbHeap = findFreeReg(jit);
-  armReg scratch = findFreeReg(jit);
-  armReg limit = findFreeReg(jit);
-
-  codeLblPo okLbl = newLabel(ctx);
-  codeLblPo endLbl = newLabel(ctx);
-
-  ldr(glbHeap, IM((uinteger) globalHeap));
-  ldr(dst, OF(glbHeap, currOff)); // pick up current heap top
-  add(scratch, dst, amnt);
-  ldr(limit, OF(glbHeap, limitOff)); // check against limit
-  cmp(limit, RG(scratch));
-  bgt(okLbl);
-
-  // Invoke out of line allocator
-
-
-  b(endLbl);
-
-  bind(okLbl);
-  str(scratch, OF(glbHeap, currOff)); // record new heap top
-  mov(scratch, IM((uinteger) clss));
-  str(scratch, OF(dst, OffsetOf(TermRecord, clss))); // record class of new structure
-
-  releaseReg(jit, glbHeap);
-  releaseReg(jit, scratch);
-  releaseReg(jit, limit);
-  bind(endLbl);
   return Ok;
 }
 
@@ -1180,7 +1223,7 @@ retCode jitError(jitCompPo jit, char *msg, ...) {
   return Error;
 }
 
-retCode bail(jitCompPo jit, char *msg, ...) {
+retCode bailOut(jitCompPo jit, char *msg, ...) {
   return callIntrinsic(assemCtx(jit), (runtimeFn) star_exit, 1, IM(100));
 
   /* char buff[MAXLINE]; */
@@ -1280,24 +1323,24 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   armReg h = findFreeReg(jit);
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
-  codeLblPo again = currentPcLabel_(ctx);
+  codeLblPo again = here();
   ldr(h, OF(PR, OffsetOf(ProcessRec, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
   mov(p, RG(c));
   cmp(c, OF(l, -amnt * pointerSize));
   blt(ok);
-  stashRegisters(jit);
-  callIntrinsic(ctx, (runtimeFn) gcCollect, 2, RG(h), IM(amnt));
+  stashRegisters(jit); // Slow path
+  callIntrinsic(ctx, (runtimeFn) allocateObject, 2, IM(class), IM(amnt));
   unstashRegisters(jit);
+  mov(p,RG(X0));
   tst(X0, RG(X0));
-  beq(again);
+  bne(ok);
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
 
   bind(ok);
-
-  loadCGlobal(ctx, c, (void *) class);
-  str(c, OF(p, 0));
+  mov(c, IM(class));
+  str(c, OF(p, OffsetOf(TermRecord,clss)));
   releaseReg(jit, h);
   releaseReg(jit, c);
   releaseReg(jit, l);

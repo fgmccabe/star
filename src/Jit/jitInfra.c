@@ -125,7 +125,7 @@ codeLblPo defineJitLbl(jitCompPo jit, insPo pc) {
   } else {
     entry = (labelMarkerPo) allocPool(labelPool);
     entry->pc = pc;
-    entry->lbl = currentPcLabel_(jit->assemCtx);
+    entry->lbl = here_(jit->assemCtx);
     hashPut(jit->labels, entry->pc, entry);
     return entry->lbl;
   }
