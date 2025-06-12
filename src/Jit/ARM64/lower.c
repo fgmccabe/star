@@ -203,7 +203,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function %T not defined", getConstant(key));
 
-        setLabel_(ctx, haveMtd);
+        bind(haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -230,7 +230,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function %T not defined", nProg);
 
-        setLabel_(ctx, haveMtd);
+        bind(haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -248,7 +248,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo brking = currentPcLabel_(ctx);
         ret = breakOut(block, pc + code[pc].alt + 1, True);
         b(brking); // step back to the break out code
-        setLabel_(ctx, returnPc);
+        bind(returnPc);
         pc++;
         continue;
       }
@@ -268,7 +268,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function not defined");
 
-        setLabel_(ctx, haveMtd);
+        bind(haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -296,7 +296,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function not defined");
 
-        setLabel_(ctx, haveMtd);
+        bind(haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -349,7 +349,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         beq(next);
         ret = breakOut(block, pc + code[pc].alt + 1, False);
 
-        setLabel_(ctx, next);
+        bind(next);
         pc++;
         continue;
       }
@@ -455,7 +455,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         ret = jitBlock(&subBlock, pc, pc + blockLen);
 
         pc += blockLen;
-        setLabel_(ctx, brkLbl);
+        bind(brkLbl);
         add(SSP, AG, IM((lclCount(jit->mtd) + blockHeight) * pointerSize));
         continue;
       }
@@ -747,7 +747,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
         releaseReg(jit, gr);
-        setLabel_(ctx, jmpTbl);
+        bind(jmpTbl);
         pc++;
         continue;
       }
@@ -770,7 +770,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           releaseReg(jit, tgt);
           releaseReg(jit, quotient);
           releaseReg(jit, X0);
-          setLabel_(ctx, jmpTbl);
+          bind(jmpTbl);
           pc++;
           continue;
         } else {
@@ -797,7 +797,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
         releaseReg(jit, ix);
-        setLabel_(ctx, jmpTbl);
+        bind(jmpTbl);
         pc++;
       }
       case IAdd: {
@@ -881,7 +881,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
-        setLabel_(ctx, skip);
+        bind(skip);
         sdiv(a1, a1, a2);
         mkIntVal(jit, a1);
         pushStkOp(block, a1);
@@ -938,7 +938,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
-        setLabel_(ctx, skip);
+        bind(skip);
         fmov(FP(F0), RG(a1));
         fmov(FP(F1), RG(a2));
         fdiv(F0, F0, F1);
@@ -1058,7 +1058,7 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
 
   b(endLbl);
 
-  setLabel_(ctx, okLbl);
+  bind(okLbl);
   str(scratch, OF(glbHeap, currOff)); // record new heap top
   mov(scratch, IM((uinteger) clss));
   str(scratch, OF(dst, OffsetOf(TermRecord, clss))); // record class of new structure
@@ -1066,7 +1066,7 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
   releaseReg(jit, glbHeap);
   releaseReg(jit, scratch);
   releaseReg(jit, limit);
-  setLabel_(ctx, endLbl);
+  bind(endLbl);
   return Ok;
 }
 
@@ -1234,7 +1234,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
 
-  setLabel_(ctx, okLbl);
+  bind(okLbl);
   return Ok;
 }
 
@@ -1294,7 +1294,7 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   beq(again);
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
 
-  setLabel_(ctx, ok);
+  bind(ok);
 
   loadCGlobal(ctx, c, (void *) class);
   str(c, OF(p, 0));
