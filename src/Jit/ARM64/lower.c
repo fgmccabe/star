@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "engineP.h"
 #include "errorCodes.h"
+#include "threds.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -176,9 +177,18 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Nop: // No operation
         pc++;
         continue;
-      case Abort: // abort with message
+      case Abort: { // abort with message
+        reserveReg(jit,X1);
+        reserveReg(jit, X2);
+        popStkOp(block,X1);
+        popStkOp(block,X2);
+        stashRegisters(jit);
+        callIntrinsic(ctx,(runtimeFn)abort_star,3, RG(PR),RG(X1),RG(X2));
         pc++;
-        return Error;
+        releaseReg(jit,X1);
+        releaseReg(jit,X2);
+        continue;
+      }
       case Call: {
         // Call <prog>
         int32 key = code[pc].fst;
@@ -193,7 +203,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function %T not defined", getConstant(key));
 
-        setLabel(ctx, haveMtd);
+        setLabel_(ctx, haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -220,7 +230,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function %T not defined", nProg);
 
-        setLabel(ctx, haveMtd);
+        setLabel_(ctx, haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -235,18 +245,16 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(LR, returnPc);
 
         br(X16);
-        codeLblPo brking = currentPcLabel(ctx);
+        codeLblPo brking = currentPcLabel_(ctx);
         ret = breakOut(block, pc + code[pc].alt + 1, True);
         b(brking); // step back to the break out code
-        setLabel(ctx, returnPc);
+        setLabel_(ctx, returnPc);
         pc++;
         continue;
       }
 
       case OCall: {
         // OCall
-        int32 arity = code[pc].fst;
-
         popStkOp(block, X16); // Pick up the closure
         ldr(X17, OF(X16, 0)); // Pick up the label
         // pick up the pointer to the method
@@ -260,7 +268,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bail(jit, "Function not defined");
 
-        setLabel(ctx, haveMtd);
+        setLabel_(ctx, haveMtd);
 
         add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
         str(AG, OF(FP, fpArgs));
@@ -272,7 +280,42 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
         blr(X16);
         pc++;
-        return Error;
+        continue;
+      }
+      case XOCall:{
+        popStkOp(block, X16); // Pick up the closure
+        ldr(X17, OF(X16, 0)); // Pick up the label
+        // pick up the pointer to the method
+        ldr(X0, OF(X17, OffsetOf(LblRecord, mtd)));
+
+        ldr(X16, OF(X16, pointerSize)); // Pick up the free term
+        pushStkOp(block, X16); // The free term isthe first argument
+
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X0, haveMtd);
+
+        bail(jit, "Function not defined");
+
+        setLabel_(ctx, haveMtd);
+
+        add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
+        str(AG, OF(FP, fpArgs));
+        mov(X0, IM((integer) jit->mtd));
+        str(X0, OF(FP, fpProg)); // We know what program we are executing
+        str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
+
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        codeLblPo returnPc = newLabel(ctx);
+        adr(LR, returnPc);
+
+        br(X16);
+        codeLblPo brking = currentPcLabel_(ctx);
+        ret = breakOut(block, pc + code[pc].alt + 1, True);
+        b(brking); // step back to the break out code
+        bind(returnPc);
+        pc++;
+        continue;
       }
       case Escape: {
         // call C escape
@@ -306,11 +349,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         beq(next);
         ret = breakOut(block, pc + code[pc].alt + 1, False);
 
-        setLabel(ctx, next);
+        setLabel_(ctx, next);
         pc++;
         continue;
       }
-      case XOCall:
       case TCall: // TCall <prog>
       case TOCall: // TOCall
         return Error;
@@ -334,7 +376,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
             // Build a loop
             armReg cx = findFreeReg(jit);
             mov(cx, IM(locals));
-            codeLblPo start = currentPcLabel(ctx);
+            codeLblPo start = currentPcLabel_(ctx);
             pushStkOp(block, vd);
             sub(cx, cx, IM(1));
             bne(start);
@@ -406,14 +448,14 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           .valStk = block->valStk,
           .startPc = pc - 1,
           .breakLbl = brkLbl,
-          .loopLbl = currentPcLabel(ctx),
+          .loopLbl = currentPcLabel_(ctx),
           .parent = block,
         };
 
         ret = jitBlock(&subBlock, pc, pc + blockLen);
 
         pc += blockLen;
-        setLabel(ctx, brkLbl);
+        setLabel_(ctx, brkLbl);
         add(SSP, AG, IM((lclCount(jit->mtd) + blockHeight) * pointerSize));
         continue;
       }
@@ -705,7 +747,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
         releaseReg(jit, gr);
-        setLabel(ctx, jmpTbl);
+        setLabel_(ctx, jmpTbl);
         pc++;
         continue;
       }
@@ -728,7 +770,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           releaseReg(jit, tgt);
           releaseReg(jit, quotient);
           releaseReg(jit, X0);
-          setLabel(ctx, jmpTbl);
+          setLabel_(ctx, jmpTbl);
           pc++;
           continue;
         } else {
@@ -755,7 +797,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
         releaseReg(jit, ix);
-        setLabel(ctx, jmpTbl);
+        setLabel_(ctx, jmpTbl);
         pc++;
       }
       case IAdd: {
@@ -839,7 +881,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
-        setLabel(ctx, skip);
+        setLabel_(ctx, skip);
         sdiv(a1, a1, a2);
         mkIntVal(jit, a1);
         pushStkOp(block, a1);
@@ -896,7 +938,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
-        setLabel(ctx, skip);
+        setLabel_(ctx, skip);
         fmov(FP(F0), RG(a1));
         fmov(FP(F1), RG(a2));
         fdiv(F0, F0, F1);
@@ -1016,7 +1058,7 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
 
   b(endLbl);
 
-  setLabel(ctx, okLbl);
+  setLabel_(ctx, okLbl);
   str(scratch, OF(glbHeap, currOff)); // record new heap top
   mov(scratch, IM((uinteger) clss));
   str(scratch, OF(dst, OffsetOf(TermRecord, clss))); // record class of new structure
@@ -1024,7 +1066,7 @@ retCode allocateStructure(clssPo clss, FlexOp amnt, armReg dst, jitCompPo jit) {
   releaseReg(jit, glbHeap);
   releaseReg(jit, scratch);
   releaseReg(jit, limit);
-  setLabel(ctx, endLbl);
+  setLabel_(ctx, endLbl);
   return Ok;
 }
 
@@ -1192,7 +1234,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
 
-  setLabel(ctx, okLbl);
+  setLabel_(ctx, okLbl);
   return Ok;
 }
 
@@ -1238,7 +1280,7 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   armReg h = findFreeReg(jit);
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
-  codeLblPo again = currentPcLabel(ctx);
+  codeLblPo again = currentPcLabel_(ctx);
   ldr(h, OF(PR, OffsetOf(ProcessRec, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
@@ -1252,7 +1294,7 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   beq(again);
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
 
-  setLabel(ctx, ok);
+  setLabel_(ctx, ok);
 
   loadCGlobal(ctx, c, (void *) class);
   str(c, OF(p, 0));

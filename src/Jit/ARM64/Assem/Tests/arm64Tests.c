@@ -59,7 +59,7 @@ static retCode test_adr() {
   adr(X10, l0);
   adr(X12, l1);
 
-  setLabel(ctx, l1);
+  setLabel_(ctx, l1);
 
   uint8 tgt[] = {0x0a, 0x00, 0x00, 0x10, // adr x10, adc
                  0x2c, 0x00, 0x00, 0x10, // adr 12, 1f
@@ -138,14 +138,14 @@ static retCode test_b() {
   bnv(l0);
   bhi(l1);
   b(l1);
-  setLabel(ctx, l1);
+  setLabel_(ctx, l1);
   b(l1);
-  setLabel(ctx, l2);
+  setLabel_(ctx, l2);
   bl(l2);
   bl(l3);
   blr(X12);
   br(X13);
-  setLabel(ctx, l3);
+  setLabel_(ctx, l3);
   brk(1234);
 
   cbnz(X3, l3);
@@ -153,7 +153,7 @@ static retCode test_b() {
 
   tbnz(X3, 56, l4);
   tbz(X4, 23, l4);
-  setLabel(ctx, l4);
+  setLabel_(ctx, l4);
   tbnz(X3, 23, l4);
   tbz(X4, 56, l4);
 
@@ -355,7 +355,7 @@ static retCode test_ld() {
 
   codeLblPo l0 = defineLabel(ctx, undefinedPc);
   ldr(X19, PC(l0));
-  setLabel(ctx, l0);
+  setLabel_(ctx, l0);
   ldr(X21, EX2(X22, X7, S_XTX, 3));
 
   ldrb(X19, PSX(X3, 8));
@@ -384,7 +384,7 @@ static retCode test_ld() {
   codeLblPo l1 = defineLabel(ctx, undefinedPc);
   ldrsw(X19, PC(l1));
   ldrsw(X21, EX2(X22, X7, S_XTX, 3));
-  setLabel(ctx, l1);
+  setLabel_(ctx, l1);
 
   ldur(X29, X3, -8);
   ldurb(X29, X3, -8);
@@ -706,12 +706,12 @@ retCode test_factFun() {
   bne(l0);
   mov(X0, IM(1));
   b(lx);
-  setLabel(ctx, l0);
+  setLabel_(ctx, l0);
   sub(X0, X0, IM(1));  // f(x-1)
   bl(fct);
   ldtr(X1, X29, -8);
   mul(X0, X0, X1);
-  setLabel(ctx, lx);
+  setLabel_(ctx, lx);
   postamble(ctx);
 
   un_i64 fn = (un_i64) createCode(ctx);
