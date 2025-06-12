@@ -130,6 +130,8 @@ star.compiler.macro{
   examineAction(A) where (Lc,L,R) ?= isLbldAction(A) => 
     mkLbldAction(Lc,L,macroAction(R)).
   examineAction(A) where _ ?= isBreak(A) => A.
+  examineAction(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
+    mkTypeAnnotation(Lc,L,macroType(R)).
   examineAction(A) where (Lc,L,R) ?= isDefn(A) => 
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineAction(A) where (Lc,L,R) ?= isMatch(A) => 

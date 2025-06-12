@@ -681,6 +681,10 @@ examineAction(A,Ax) :-
 examineAction(A,A) :-
   isBreak(A,_,_),!.
 examineAction(A,Ax) :-
+  isTypeAnnotation(A,Lc,V,T),!,
+  macroType(T,Tx),
+  typeAnnotation(Lc,V,Tx,Ax).
+examineAction(A,Ax) :-
   isDefn(A,Lc,L,R),!,
   macroPtn(L,Lx),
   macroTerm(R,Rx),
