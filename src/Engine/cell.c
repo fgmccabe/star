@@ -14,8 +14,6 @@ static integer hashCell(specialClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static termPo cellFinalizer(specialClassPo class, termPo o);
 
-static integer cellHash = 0;
-
 SpecialClass CellClass = {
   .sizeFun = cellSize,
   .copyFun = cellCopy,
@@ -58,7 +56,9 @@ logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer hashCell(specialClassPo cl, termPo o) {
-  return C_CELL(o)->hash;
+  logMsg(logFile,"not permitted to take hash of assignment cell");
+  star_exit(99);
+  return 0; // unreachable
 }
 
 retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -92,7 +92,6 @@ cellPo C_CELL(termPo t) {
 cellPo newCell(heapPo H, termPo content) {
   int root = gcAddRoot(H, (ptrPo) (&content));
   cellPo cell = (cellPo) allocateObject(H, cellClass, CellCellCount);
-  cell->hash = hash61(cellHash++);
   cell->content = content;
   gcReleaseRoot(H, root);
   return cell;
