@@ -391,6 +391,8 @@ star.compiler.dependencies{
   collectDoRefs(A,All,Rf) where (_,_,In) ?= isLbldAction(A) =>
     collectDoRefs(In,All,Rf).
   collectDoRefs(A,_All,Rf) where _ ?= isBreak(A) => Rf.
+  collectDoRefs(A,All,Rf) where (_,_,Tp) ?= isTypeAnnotation(A) =>
+    collectTypeRefs(Tp,All,Rf).
   collectDoRefs(A,All,Rf) where (_,L,R) ?= isDefn(A) => 
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,R) ?= isMatch(A) =>
