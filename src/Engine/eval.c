@@ -12,8 +12,8 @@
 #include <math.h>
 #include "errorCodes.h"
 #include "escapeP.h"
-
 #include "evalP.h"
+#include "threds.h"
 
 logical collectStats = False;
 
@@ -53,11 +53,8 @@ retCode run(processPo P) {
       case Abort: {
         termPo lc = pop();
         termPo msg = pop();
-
-        logMsg(logFile, "Abort %T at %L", msg, lc);
         saveRegisters();
-        verifyProc(P, H);
-        stackTrace(P, logFile, P->stk, displayDepth, showArguments, 50);
+        abort_star(P,lc,msg);
 
         return Error;
       }

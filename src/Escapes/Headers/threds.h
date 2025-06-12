@@ -12,4 +12,6 @@
 #include "escapeP.h"
 #include "thrP.h"
 
+void abort_star(processPo P, termPo lc, termPo msg);
+
 #endif //STAR_THREDS_H

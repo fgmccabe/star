@@ -131,10 +131,8 @@ ReturnStatus g__waitfor(processPo P) {
 ReturnStatus g__abort(processPo P) {
   termPo lc = popVal(P);
   termPo msg = popVal(P);
-  logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, -1);
-  star_exit(99);
+  abort_star(P, lc, msg);
+
   pshVal(P, unitEnum);
   return Normal;
 }
@@ -148,4 +146,11 @@ ReturnStatus g__stackTrace(processPo P) {
   closeIo(O_IO(str));
 
   return Normal;
+}
+
+void abort_star(processPo P, termPo lc, termPo msg) {
+  logMsg(logFile, "Abort %T at %L", msg, lc);
+  verifyProc(P, processHeap(P));
+  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, -1);
+  star_exit(99);
 }
