@@ -694,7 +694,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         bne(fail);
 
         ldr(tmp, OF(vl,0)); // pick up the class
-        mov(vl, IM(lbl));
+        mov(vl, IM((integer)lbl));
         cmp(tmp,RG(vl));
         beq(ok);
 
@@ -1331,7 +1331,7 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   cmp(c, OF(l, -amnt * pointerSize));
   blt(ok);
   stashRegisters(jit); // Slow path
-  callIntrinsic(ctx, (runtimeFn) allocateObject, 2, IM(class), IM(amnt));
+  callIntrinsic(ctx, (runtimeFn) allocateObject, 2, IM((integer)class), IM(amnt));
   unstashRegisters(jit);
   mov(p,RG(X0));
   tst(X0, RG(X0));
@@ -1339,7 +1339,7 @@ void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
 
   bind(ok);
-  mov(c, IM(class));
+  mov(c, IM((integer)class));
   str(c, OF(p, OffsetOf(TermRecord,clss)));
   releaseReg(jit, h);
   releaseReg(jit, c);
