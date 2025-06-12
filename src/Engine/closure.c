@@ -40,7 +40,7 @@ termPo closureCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo closureScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   closurePo list = C_CLOSURE(o);
 
-  helper(&list->content, c);
+  helper(&list->free, c);
 
   return o + ClosureCellCount;
 }
@@ -52,12 +52,12 @@ termPo closureFinalizer(specialClassPo class, termPo o) {
 logical closureCmp(specialClassPo cl, termPo o1, termPo o2) {
   closurePo c1 = C_CLOSURE(o1);
   closurePo c2 = C_CLOSURE(o2);
-  return c1->lbl == c2->lbl && sameTerm(c1->content, c2->content);
+  return c1->lbl == c2->lbl && sameTerm(c1->free, c2->free);
 }
 
 integer closureHash(specialClassPo cl, termPo o) {
   closurePo clo = C_CLOSURE(o);
-  return hash61(((uniHash)("closure") * 37 + termHash(clo->content)) * 37 + labelHash(clo->lbl));
+  return hash61(((uniHash)("closure") * 37 + termHash(clo->free)) * 37 + labelHash(clo->lbl));
 }
 
 retCode closureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -73,7 +73,7 @@ retCode closureDisp(ioPo out, termPo t, integer precision, integer depth, logica
       }
 
       if (ret == Ok)
-        ret = dispTerm(out, closure->content, precision, depth - 1, alt);
+        ret = dispTerm(out, closure->free, precision, depth - 1, alt);
     } else
       ret = outStr(out, "..");
   }
@@ -86,10 +86,10 @@ void initClosure() {
   ClosureClass.clss.clss = specialClass;
 }
 
-closurePo newClosure(heapPo H, labelPo lbl, termPo content) {
-  int root = gcAddRoot(H, (ptrPo) (&content));
+closurePo newClosure(heapPo H, labelPo lbl, termPo free) {
+  int root = gcAddRoot(H, (ptrPo) (&free));
   closurePo closure = (closurePo) allocateObject(H, closureClass, ClosureCellCount);
-  closure->content = content;
+  closure->free = free;
   closure->lbl = lbl;
   gcReleaseRoot(H, root);
   return closure;
@@ -100,5 +100,5 @@ labelPo closureLabel(closurePo cl) {
 }
 
 termPo closureFree(closurePo cl) {
-  return cl->content;
+  return cl->free;
 }

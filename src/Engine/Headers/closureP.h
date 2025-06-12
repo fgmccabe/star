@@ -11,13 +11,13 @@
 typedef struct closure_record_ {
   ClassRecord clss;             // == closureClass
   labelPo lbl;
-  termPo content;               // Contents
+  termPo free;                  // Free variable Contents
 } ClosureRecord;
 
 #define ClosureCellCount CellCount(sizeof(ClosureRecord))
 
 void initClosure();
 
-closurePo newClosure(heapPo H, labelPo code,termPo content);
+closurePo newClosure(heapPo H, labelPo code, termPo free);
 
 #endif //STAR_CLOSUREP_H

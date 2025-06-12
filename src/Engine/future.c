@@ -35,7 +35,6 @@ futurePo C_FUTURE(termPo t) {
   return (futurePo) t;
 }
 
-static integer prHash = 0;
 
 futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
   int root = gcAddRoot(H, &vl);
@@ -46,7 +45,6 @@ futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
   pr->cl = cl;
   pr->cl2 = cl2;
 
-  pr->hash = hash61(prHash++);
   gcReleaseRoot(H, root);
   return pr;
 }
@@ -93,8 +91,9 @@ logical futureCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer futureHash(specialClassPo cl, termPo o) {
-  futurePo ft = C_FUTURE(o);
-  return (integer) ft->hash;
+  logMsg(logFile,"not permitted to take hash of future");
+  star_exit(99);
+  return 0; // unreachable
 }
 
 static char *stateName(futureState st) {
@@ -105,12 +104,14 @@ static char *stateName(futureState st) {
       return "set";
     case isRejected:
       return "rejected";
+    default:
+      return "?";
   }
 }
 
 static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   futurePo ft = C_FUTURE(t);
-  return outMsg(out, "<<future:0x%x[%s]%T>>", ft->hash, stateName(ft->state), ft->val);
+  return outMsg(out, "<<future:[%s]%T>>", stateName(ft->state), ft->val);
 }
 
 logical futureIsResolved(futurePo t, heapPo h) {
