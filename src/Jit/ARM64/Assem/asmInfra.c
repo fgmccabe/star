@@ -85,7 +85,7 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-codeLblPo currentPcLabel(assemCtxPo ctx){
+codeLblPo currentPcLabel_(assemCtxPo ctx){
   return defineLabel(ctx,ctx->pc);
 }
 
@@ -105,7 +105,7 @@ codeLblPo newLabel(assemCtxPo ctx){
   return lbl;
 }
 
-void setLabel(assemCtxPo ctx, codeLblPo lbl) {
+void setLabel_(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx=ctx, .lbl=lbl};
   if (lbl->refs != Null) {

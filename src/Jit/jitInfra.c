@@ -120,12 +120,12 @@ codeLblPo defineJitLbl(jitCompPo jit, insPo pc) {
   if (entry != Null) {
     assert(!isLabelDefined(entry->lbl));
     assert(entry->pc == pc);
-    setLabel(jit->assemCtx,entry->lbl);
+    setLabel_(jit->assemCtx, entry->lbl);
     return entry->lbl;
   } else {
     entry = (labelMarkerPo) allocPool(labelPool);
     entry->pc = pc;
-    entry->lbl = currentPcLabel(jit->assemCtx);
+    entry->lbl = currentPcLabel_(jit->assemCtx);
     hashPut(jit->labels, entry->pc, entry);
     return entry->lbl;
   }
@@ -144,7 +144,7 @@ codeLblPo newJitLbl(jitCompPo jit, insPo pc) {
   labelMarkerPo entry = (labelMarkerPo) hashGet(jit->labels, (void *) pc);
   if (entry != Null) {
     assert(entry->pc == pc);
-    setLabel(jit->assemCtx, entry->lbl);
+    setLabel_(jit->assemCtx, entry->lbl);
     return entry->lbl;
   } else {
     entry = (labelMarkerPo) allocPool(labelPool);
