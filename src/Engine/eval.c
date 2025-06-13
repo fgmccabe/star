@@ -54,7 +54,7 @@ retCode run(processPo P) {
         termPo lc = pop();
         termPo msg = pop();
         saveRegisters();
-        abort_star(P,lc,msg);
+        abort_star(P, lc, msg);
 
         return Error;
       }
@@ -74,6 +74,9 @@ retCode run(processPo P) {
         FP->link = PC + 1;
         FP->args = ARGS;
 
+        PROG = mtd;
+        ARGS = SP;
+
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
           if (traceJit) {
@@ -86,8 +89,6 @@ retCode run(processPo P) {
           restoreRegisters();
           PC++;
         } else {
-          PROG = mtd;
-          ARGS = SP;
           PC = entryPoint(mtd);
         }
         continue;

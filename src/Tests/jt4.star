@@ -11,6 +11,8 @@ test.jt4{
     L = (iota(1,C) : cons[integer]);
     M = iota(2,13);
 
+    show L;
+
     show conc(L,M);
 
     try{

@@ -34,6 +34,8 @@ termPo voidEnum;
 termPo canceledEnum;
 termPo unitEnum;
 
+int32 voidIndex;
+
 static hashPo globals;
 
 static GlobalRecord *glbVars;
@@ -95,6 +97,7 @@ void initGlobals() {
   defineConstantLiteral(trueEnum);
 
   voidEnum = declareEnum("void", 0, globalHeap);
+  voidIndex = defineConstantLiteral(voidEnum);
 
   canceledEnum = declareEnum("canceled", -1, globalHeap);
 
