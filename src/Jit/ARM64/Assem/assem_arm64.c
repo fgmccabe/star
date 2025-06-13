@@ -532,6 +532,9 @@ void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
       encodeSz2OpcImm3Reg((2 | w), 0x38, 1, 1, Sn.rgm, Sn.ext, (Sn.immediate != 0 ? one : zero), 2, Sn.reg,
                           Rt, ctx);
       return;
+    case reg:
+      encodeLdStUnPriv((2 | w), 0, 1, 0, Sn.reg, Rt, ctx);
+      return;
     default:
       check(False, "unsupported address mode in ldr");
   }

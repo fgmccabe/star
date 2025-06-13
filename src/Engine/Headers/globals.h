@@ -25,6 +25,7 @@ termPo setGlobalVar(globalPo v, termPo e);
 logical glbIsSet(globalPo glb);
 
 extern termPo voidEnum;
+extern int32 voidIndex;
 extern termPo canceledEnum;
 extern termPo unitEnum;
 
