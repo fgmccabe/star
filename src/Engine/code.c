@@ -101,7 +101,7 @@ integer mtdHash(specialClassPo cl, termPo o) {
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
-  return showLbl(out, mtdLabel(mtd), 0, precision, alt);
+  return outMsg(out,"%%%s/%d",mtd->lbl->lbl.name,mtd->lbl->lbl.arity);
 }
 
 labelPo mtdLabel(methodPo mtd) {
