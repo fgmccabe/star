@@ -85,9 +85,21 @@ retCode run(processPo P) {
 #endif
 
           saveRegisters();
-          invokeJitMethod(P, mtd);
+          ReturnStatus ret = invokeJitMethod(P, mtd);
           restoreRegisters();
-          PC++;
+
+          if (ret == Normal) {
+            PC++;
+            continue;
+          } else if (PC->op == XCall) {
+            termPo exception = pop();
+            breakOut();
+            push(exception);
+            continue;
+          } else {
+            logMsg(logFile, "invalid return from %L", nProg);
+            bail();
+          }
         } else {
           PC = entryPoint(mtd);
         }
@@ -738,9 +750,9 @@ retCode run(processPo P) {
           termPo Rs = (termPo) makeInteger(reslt);
 
           push(Rs);
-          PC++;
-          continue;
         }
+        PC++;
+        continue;
       }
       case IAbs: {
         termPo Trm = pop();

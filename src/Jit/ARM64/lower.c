@@ -209,6 +209,17 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
   releaseReg(jit, tgt);
 }
 
+static retCode tesResult(jitBlockPo block, int32 tgt) {
+  jitCompPo jit = block->jit;
+  assemCtxPo  ctx = assemCtx(jit);
+  codeLblPo next = newLabel(ctx);
+  tstw(X0, IM(Normal));
+  beq(next);
+  retCode ret = breakOut(block, tgt, True);
+  bind(next);
+  return ret;
+}
+
 static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
   retCode ret = Ok;
   jitCompPo jit = block->jit;
@@ -280,15 +291,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
-
-        codeLblPo returnPc = newLabel(ctx);
-        adr(LR, returnPc);
-        br(X16);
-
-        codeLblPo brking = here();
-        ret = breakOut(block, pc + code[pc].alt + 1, True);
-        b(brking); // step back to the breakout code
-        bind(returnPc);
+        blr(X16);
+        ret = tesResult(block,pc + block->code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -336,14 +340,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
-        codeLblPo returnPc = newLabel(ctx);
-        adr(LR, returnPc);
+        blr(X16);
 
-        br(X16);
-        codeLblPo brking = here();
-        ret = breakOut(block, pc + code[pc].alt + 1, True);
-        b(brking); // step back to the break out code
-        bind(returnPc);
+        ret = tesResult(block,pc + block->code[pc].alt + 1);
+
         pc++;
         continue;
       }
@@ -417,20 +417,11 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
 
-        loadStackIntoArgRegisters(jit, X1, arity);
-        loadCGlobal(ctx, X0, (void *) &globalHeap);
         stashRegisters(jit);
         callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
                       RG(X6), RG(X7), RG(X8));
         unstashRegisters(jit);
-        // X0 is the return code - which we ignore for normal escapes
-        codeLblPo next = newLabel(ctx);
-        pushStkOp(block, X1); // X1 is the return value
-        tstw(X0, RG(X0));
-        beq(next);
-        ret = breakOut(block, pc + code[pc].alt + 1, False);
-
-        bind(next);
+        ret = tesResult(block,pc + block->code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -483,6 +474,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Put return value on stack
         pushStkOp(block, vl);
         releaseReg(jit, vl);
+        mov(X0,IM(Normal));
         br(X16);
         pc++;
         continue;
@@ -505,8 +497,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Put return value on stack
         pushStkOp(block, vl);
         releaseReg(jit, vl);
-
-        sub(X16, X16, IM(pointerSize)); // Step back one instruction to get to the break
+        mov(X0,IM(Abnormal));
         br(X16);
         pc++;
         continue;
@@ -828,7 +819,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CLbl: {
         // T,Lbl --> test for a data term, break if not lbl
         int32 key = code[pc].fst;
-        labelPo lbl = C_LBL(getConstant(key)); // Labels are not subject to GC
         armReg vl = popStkOp(block, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
 
@@ -863,7 +853,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           cmp(st, IM(lit));
         else {
           armReg lt = findFreeReg(jit);
-          mov(lt, IM(lit));
+          loadConstant(jit,code[pc].fst,lt);
           cmp(st, RG(lt));
           releaseReg(jit, lt);
         }
@@ -913,7 +903,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // break if true
         armReg vl = popStkOp(block, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
-        mov(tr, IM((integer) trueEnum));
+        loadConstant(jit,trueIndex,tr);
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
@@ -925,7 +915,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // break if false
         armReg vl = popStkOp(block, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
-        mov(tr, IM((integer) trueEnum));
+        loadConstant(jit,trueIndex,tr);
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
@@ -1072,16 +1062,16 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a2);
 
         codeLblPo skip = newLabel(ctx);
-        tst(a2, IM(0));
+        cmp(a2, IM(0));
         bne(skip);
         int32 divZeroKey = defineConstantLiteral(divZero);
 
         loadConstant(jit, divZeroKey, a2);
-        pushStkOp(block, a2);
         jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
+          pushStkOp(block, a2);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1096,7 +1086,42 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case IMod: // L R --> L%R
+      case IMod: { // L R --> L%R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg divisor = popStkOp(block, findFreeReg(jit));
+        getIntVal(jit, a1);
+        getIntVal(jit, divisor);
+
+        codeLblPo skip = newLabel(ctx);
+        cmp(divisor, IM(0));
+        bne(skip);
+        int32 divZeroKey = defineConstantLiteral(divZero);
+
+        loadConstant(jit, divZeroKey, divisor);
+        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        codeLblPo lbl = breakLabel(tgtBlock);
+        if (lbl != Null) {
+          sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
+          pushStkOp(block, divisor);
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", tgtBlock);
+
+        bind(skip);
+
+        armReg quotient = findFreeReg(jit);
+        sdiv(quotient, a1, divisor);
+        msub(a1, divisor, quotient, a1);
+
+        mkIntVal(jit, a1);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, divisor);
+        releaseReg(jit, quotient);
+        pc++;
+        continue;
+      }
       case IAbs: // L --> abs(L)
       case IEq: // L R --> L==R
       case ILt: // L R --> L<R
