@@ -695,20 +695,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case Cmp:
-      case ICmp:
-      case CCmp:
-      case FCmp: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        else if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0) != Ok)
-          return Error;
-        else {
-          stackDepth -= 2;
-          pc++;
-          continue;
-        }
-      }
       case CEq:
       case CLt:
       case CGe:

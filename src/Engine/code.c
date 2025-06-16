@@ -3,7 +3,6 @@
 //
 
 #include <heapP.h>
-#include <memory.h>
 #include "codeP.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -175,6 +174,10 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
 
 integer callCount(methodPo mtd) {
   return mtd->entryCount;
+}
+
+logical hasJitCode(methodPo mtd) {
+  return (logical) (mtd->jit!=Null);
 }
 
 packagePo loadedPackage(const char *package) {

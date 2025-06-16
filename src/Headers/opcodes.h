@@ -75,33 +75,29 @@ typedef enum {
     IEq = 64,            // L R --> L==R
     ILt = 65,            // L R --> L<R
     IGe = 66,            // L R --> L>=R
-    ICmp = 67,            // L R --> break if not same integer
-    CEq = 68,            // L R --> L==R
-    CLt = 69,            // L R --> L<R
-    CGe = 70,            // L R --> L>=R
-    CCmp = 71,            // L R --> break if not same character
-    BAnd = 72,            // L R --> L&R
-    BOr = 73,            // L R --> L|R
-    BXor = 74,            // L R --> L^R
-    BLsl = 75,            // L R --> L<<R
-    BLsr = 76,            // L R --> L>>R
-    BAsr = 77,            // L R --> L>>>R
-    BNot = 78,            // L --> ~L
-    FAdd = 79,            // L R --> L+R
-    FSub = 80,            // L R --> L-R
-    FMul = 81,            // L R --> L*R
-    FDiv = 82,            // L R --> L/R
-    FMod = 83,            // L R --> L%R
-    FAbs = 84,            // L --> abs(L)
-    FEq = 85,            // L R e --> L==R
-    FLt = 86,            // L R --> L<R
-    FGe = 87,            // L R --> L>=R
-    FCmp = 88,            // L R --> branch if not same floating point
-    Alloc = 89,            // new structure, elements from stack
-    Closure = 90,            // allocate a closure
-    Cmp = 91,            // t1 t2 --> , branch to offset if not same literal
-    Frame = 92,            // frame instruction
-    dBug = 93,            // debugging prefix
+    CEq = 67,            // L R --> L==R
+    CLt = 68,            // L R --> L<R
+    CGe = 69,            // L R --> L>=R
+    BAnd = 70,            // L R --> L&R
+    BOr = 71,            // L R --> L|R
+    BXor = 72,            // L R --> L^R
+    BLsl = 73,            // L R --> L<<R
+    BLsr = 74,            // L R --> L>>R
+    BAsr = 75,            // L R --> L>>>R
+    BNot = 76,            // L --> ~L
+    FAdd = 77,            // L R --> L+R
+    FSub = 78,            // L R --> L-R
+    FMul = 79,            // L R --> L*R
+    FDiv = 80,            // L R --> L/R
+    FMod = 81,            // L R --> L%R
+    FAbs = 82,            // L --> abs(L)
+    FEq = 83,            // L R e --> L==R
+    FLt = 84,            // L R --> L<R
+    FGe = 85,            // L R --> L>=R
+    Alloc = 86,            // new structure, elements from stack
+    Closure = 87,            // allocate a closure
+    Frame = 88,            // frame instruction
+    dBug = 89,            // debugging prefix
 
   illegalOp,
   maxOpCode
@@ -176,11 +172,9 @@ static char *opNames[] = {
       "IEq",
       "ILt",
       "IGe",
-      "ICmp",
       "CEq",
       "CLt",
       "CGe",
-      "CCmp",
       "BAnd",
       "BOr",
       "BXor",
@@ -197,16 +191,14 @@ static char *opNames[] = {
       "FEq",
       "FLt",
       "FGe",
-      "FCmp",
       "Alloc",
       "Closure",
-      "Cmp",
       "Frame",
       "dBug"};
 #endif
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 424795499480556971
+#define OPCODE_SIGNATURE 174423395768789417
 #endif
 
 typedef enum {

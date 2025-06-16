@@ -28,4 +28,6 @@ int32 codeOffset(methodPo mtd, insPo pc);
 
 integer callCount(methodPo mtd);
 
+logical hasJitCode(methodPo mtd);
+
 #endif

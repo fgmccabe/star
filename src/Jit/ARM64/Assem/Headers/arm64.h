@@ -580,6 +580,9 @@ void fmul_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 #define fdiv(Rd, Rm, Rn) fdiv_(Double, Rd,Rm,Rn,ctx)
 
+void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx);
+#define fmsub(Rd,Rn,Rm,Ra) fmsub_(Double, Rd,Rn,Rm,Ra,ctx)
+
 void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx);
 #define fmov(D, S) fmov_(Double, D, S, ctx)
 

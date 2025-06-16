@@ -497,14 +497,6 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
       case IEq:
       case ILt:
       case IGe:
-        return Ok;
-      case Cmp:
-      case ICmp:
-      case CCmp:
-      case FCmp: {
-        (*count)--;
-        return decodeI32(in, &ins->alt);
-      }
       case CEq:
       case CLt:
       case CGe:
@@ -515,14 +507,11 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
       case BLsr:
       case BAsr:
       case BNot:
-        return Ok;
       case FAdd:
       case FSub:
       case FMul:
-        return Ok;
       case FDiv:
       case FMod:
-        return Ok;
       case FAbs:
       case FEq:
       case FLt:
