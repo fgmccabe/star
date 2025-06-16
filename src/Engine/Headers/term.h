@@ -18,6 +18,8 @@ integer hashTerm(termPo t);
 
 extern termPo falseEnum;
 extern termPo trueEnum;
+extern int32 trueIndex;
+extern int32 falseIndex;
 
 extern clssPo integerClass;
 extern clssPo charClass;

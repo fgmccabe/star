@@ -35,6 +35,8 @@ termPo canceledEnum;
 termPo unitEnum;
 
 int32 voidIndex;
+int32 trueIndex;
+int32 falseIndex;
 
 static hashPo globals;
 
@@ -92,9 +94,9 @@ void initGlobals() {
   noValue = declareEnum("noValue", 14, globalHeap);
 
   falseEnum = declareEnum("false", 0, globalHeap);
-  defineConstantLiteral(falseEnum);        // Ensure unique reference to false and true enums
+  falseIndex = defineConstantLiteral(falseEnum);        // Ensure unique reference to false and true enums
   trueEnum = declareEnum("true", 1, globalHeap);
-  defineConstantLiteral(trueEnum);
+  trueIndex = defineConstantLiteral(trueEnum);
 
   voidEnum = declareEnum("void", 0, globalHeap);
   voidIndex = defineConstantLiteral(voidEnum);
