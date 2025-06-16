@@ -37,6 +37,7 @@ termPo unitEnum;
 int32 voidIndex;
 int32 trueIndex;
 int32 falseIndex;
+int32 divZeroIndex;
 
 static hashPo globals;
 
@@ -78,6 +79,7 @@ void initGlobals() {
   numGlbVars = 0;
 
   divZero = declareEnum("divZero", 0, globalHeap);
+  divZeroIndex = defineConstantLiteral(divZero);
   eCONNECT = declareEnum("eCONNECT", 1, globalHeap);
   eDEAD = declareEnum("eDEAD", 2, globalHeap);
   eFAIL = declareEnum("eFAIL", 3, globalHeap);
