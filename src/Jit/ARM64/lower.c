@@ -211,7 +211,7 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
 
 static retCode tesResult(jitBlockPo block, int32 tgt) {
   jitCompPo jit = block->jit;
-  assemCtxPo  ctx = assemCtx(jit);
+  assemCtxPo ctx = assemCtx(jit);
   codeLblPo next = newLabel(ctx);
   tstw(X0, IM(Normal));
   beq(next);
@@ -292,7 +292,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
         blr(X16);
-        ret = tesResult(block,pc + block->code[pc].alt + 1);
+        ret = tesResult(block, pc + block->code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -342,7 +342,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
         blr(X16);
 
-        ret = tesResult(block,pc + block->code[pc].alt + 1);
+        ret = tesResult(block, pc + block->code[pc].alt + 1);
 
         pc++;
         continue;
@@ -421,7 +421,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         callIntrinsic(ctx, (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3), RG(X4), RG(X5),
                       RG(X6), RG(X7), RG(X8));
         unstashRegisters(jit);
-        ret = tesResult(block,pc + block->code[pc].alt + 1);
+        ret = tesResult(block, pc + block->code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -474,7 +474,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Put return value on stack
         pushStkOp(block, vl);
         releaseReg(jit, vl);
-        mov(X0,IM(Normal));
+        mov(X0, IM(Normal));
         br(X16);
         pc++;
         continue;
@@ -497,7 +497,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Put return value on stack
         pushStkOp(block, vl);
         releaseReg(jit, vl);
-        mov(X0,IM(Abnormal));
+        mov(X0, IM(Abnormal));
         br(X16);
         pc++;
         continue;
@@ -746,8 +746,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Assign to the global var's content field
         str(tmp, OF(glb, OffsetOf(GlobalRecord, content)));
-        releaseReg(jit,tmp);
-        releaseReg(jit,glb);
+        releaseReg(jit, tmp);
+        releaseReg(jit, glb);
         pc++;
         continue;
       }
@@ -761,8 +761,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Assign to the global var's content field
         str(vl, OF(glb, OffsetOf(GlobalRecord, content)));
-        releaseReg(jit,vl);
-        releaseReg(jit,glb);
+        releaseReg(jit, vl);
+        releaseReg(jit, glb);
         pc++;
         continue;
       }
@@ -853,7 +853,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           cmp(st, IM(lit));
         else {
           armReg lt = findFreeReg(jit);
-          loadConstant(jit,code[pc].fst,lt);
+          loadConstant(jit, code[pc].fst, lt);
           cmp(st, RG(lt));
           releaseReg(jit, lt);
         }
@@ -903,7 +903,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // break if true
         armReg vl = popStkOp(block, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
-        loadConstant(jit,trueIndex,tr);
+        loadConstant(jit, trueIndex, tr);
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
@@ -915,7 +915,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // break if false
         armReg vl = popStkOp(block, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
-        loadConstant(jit,trueIndex,tr);
+        loadConstant(jit, trueIndex, tr);
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
@@ -1062,11 +1062,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a2);
 
         codeLblPo skip = newLabel(ctx);
-        cmp(a2, IM(0));
-        bne(skip);
-        int32 divZeroKey = defineConstantLiteral(divZero);
+        cbnz(a2, skip);
 
-        loadConstant(jit, divZeroKey, a2);
+        loadConstant(jit, divZeroIndex, a2);
         jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
@@ -1093,11 +1091,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, divisor);
 
         codeLblPo skip = newLabel(ctx);
-        cmp(divisor, IM(0));
-        bne(skip);
-        int32 divZeroKey = defineConstantLiteral(divZero);
+        cbnz(divisor, skip);
 
-        loadConstant(jit, divZeroKey, divisor);
+        loadConstant(jit, divZeroIndex, divisor);
         jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
@@ -1122,25 +1118,169 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case IAbs: // L --> abs(L)
-      case IEq: // L R --> L==R
-      case ILt: // L R --> L<R
-      case IGe: // L R --> L>=R
-      case ICmp: // L R --> break if not same integer
-      case CEq: // L R --> L==R
-      case CLt: // L R --> L<R
-      case CGe: // L R --> L>=R
-      case CCmp: // L R --> break if not same character
-      case BAnd: // L R --> L&R
-      case BOr: // L R --> L|R
-      case BXor: // L R --> L^R
-      case BLsl: // L R --> L<<R
-      case BLsr: // L R --> L>>R
-      case BAsr: // L R --> L>>>R
+      case IAbs: { // L --> abs(L)
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+
+        cmp(a1, IM(0));
+        csneg(a1, a1, a1, GE);
+
+        mkIntVal(jit, a1);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+
+        pc++;
+        continue;
+      }
+      case CEq:
+      case IEq: {// L R --> L==R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        cmp(a1, RG(a2));
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, NE);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case CLt:
+      case ILt: { // L R --> L<R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        cmp(a1, RG(a2));
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, GE);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case CGe:
+      case IGe: {// L R --> L>=R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        cmp(a1, RG(a2));
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, LT);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case CCmp:
+      case ICmp: {// L R --> break if not same integer
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        codeLblPo ok = newLabel(ctx);
+
+        cmp(a1, RG(a2));
+        beq(ok);
+
+        ret = breakOut(block, pc + code[pc].alt + 1, False);
+
+        bind(ok);
+        pc++;
+        continue;
+      }
+
+      case BAnd: {// L R --> L&R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        and(a1, a2, RG(a1));
+
+        mkIntVal(jit, a1);
+
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case BOr: { // L R --> L|R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        orr(a1, a2, RG(a1));
+
+        mkIntVal(jit, a1);
+
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case BXor: { // L R --> L^R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        eor(a1, a2, RG(a1));
+
+        mkIntVal(jit, a1);
+
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+
+        pc++;
+        continue;
+      }
+      case BLsl: { // L R --> L<<R
+      }
+      case BLsr: { // L R --> L>>R
+      }
+      case BAsr: { // L R --> L>>>R
+      }
       case BNot: // L --> ~L
-      case FAdd: // L R --> L+R
-      case FSub: // L R --> L-R
-      case FMul: // L R --> L*R
+      case FAdd: {// L R --> L+R
+      }
+      case FSub: { // L R --> L-R
+      }
+      case FMul: {// L R --> L*R
+      }
       case FDiv: {
         // L R --> L/R
         armReg a1 = popStkOp(block, findFreeReg(jit));
@@ -1149,8 +1289,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getFltVal(jit, a2);
 
         codeLblPo skip = newLabel(ctx);
-        tst(a2, IM(0));
-        bne(skip);
+        cbnz(a2, skip);
         int32 divZeroKey = defineConstantLiteral(divZero);
 
         jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);

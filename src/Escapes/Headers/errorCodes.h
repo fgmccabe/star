@@ -23,6 +23,8 @@ extern termPo divZero;
 extern termPo noValue;
 extern termPo hasValue;
 
+extern int32 divZeroIndex;
+
 termPo ioErrorCode(retCode ret);
 
 #endif //STAR_ERRORCODES_H
