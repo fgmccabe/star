@@ -790,17 +790,6 @@ retCode run(processPo P) {
         PC++;
         continue;
       }
-      case ICmp: {
-        termPo i = pop();
-        termPo j = pop();
-
-        if (integerVal(i) != integerVal(j)) {
-          breakBlock();
-          continue;
-        }
-        PC++;
-        continue;
-      }
       case CEq: {
         termPo Lhs = pop();
         termPo Rhs = pop();
@@ -814,7 +803,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum);
+        termPo Rs = charVal(Lhs) < charVal(Rhs) ? trueEnum : falseEnum;
         push(Rs);
         PC++;
         continue;
@@ -823,24 +812,10 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum);
+        termPo Rs = charVal(Lhs) >= charVal(Rhs) ? trueEnum : falseEnum;
         push(Rs);
         PC++;
         continue;
-      }
-      case CCmp: {
-        termPo i = pop();
-        termPo j = pop();
-
-        if (charVal(i) != charVal(j)) {
-          PC += PC->alt + 1;
-          assert(validPC(PROG, PC));
-          PC += PC->alt + 1;
-          continue;
-        } else {
-          PC++;
-          continue;
-        }
       }
       case BAnd: {
         integer Lhs = integerVal(pop());
@@ -994,20 +969,6 @@ retCode run(processPo P) {
         PC++;
         continue;
       }
-      case FCmp: {
-        termPo x = pop();
-        termPo y = pop();
-
-        if (floatVal(x) != floatVal(y)) {
-          PC += PC->alt + 1;
-          assert(validPC(PROG, PC));
-          PC += PC->alt + 1;
-          continue;
-        } else {
-          PC++;
-          continue;
-        }
-      }
       case ICase: {
         int32 mx = PC->fst;
 
@@ -1069,21 +1030,6 @@ retCode run(processPo P) {
         push(cl); /* put the structure back on the stack */
         PC++;
         continue;
-      }
-
-      case Cmp: {
-        termPo i = pop();
-        termPo j = pop();
-
-        if (!sameTerm(i, j)) {
-          PC += PC->alt + 1;
-          assert(validPC(PROG, PC));
-          PC += PC->alt + 1;
-          continue;
-        } else {
-          PC++;
-          continue;
-        }
       }
 
       case If: {

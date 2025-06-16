@@ -110,14 +110,6 @@ star.compiler.peephole{
     [.iCFlt(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iCLit(Tgt,Lb),..Ins],Lbls) =>
     [.iCLit(Tgt,resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCmp(Lb),..Ins],Lbls) =>
-    [.iCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iICmp(Lb),..Ins],Lbls) =>
-    [.iICmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iFCmp(Lb),..Ins],Lbls) =>
-    [.iFCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
-  peep([.iCCmp(Lb),..Ins],Lbls) =>
-    [.iCCmp(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iBreak(Lb),.._],Lbls) =>
     [.iBreak(resolveLbl(Lb,Lbls))].
   peep([.iResult(Lb),.._],Lbls) => [.iResult(resolveLbl(Lb,Lbls))].
@@ -139,10 +131,6 @@ star.compiler.peephole{
   lblReferenced(Lb,[.iXEscape(_,Lb),.._]) => .true.
   lblReferenced(Lb,[.iIf(Lb),.._]) => .true.
   lblReferenced(Lb,[.iIfNot(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCmp(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iCCmp(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iICmp(Lb),.._]) => .true.
-  lblReferenced(Lb,[.iFCmp(Lb),.._]) => .true.
   lblReferenced(Lb,[.iCInt(_,Lb),.._]) => .true.
   lblReferenced(Lb,[.iCChar(_,Lb),.._]) => .true.
   lblReferenced(Lb,[.iCFlt(_,Lb),.._]) => .true.

@@ -96,12 +96,10 @@ instruction(IAbs, tOs, nOp, 0, "L --> abs(L)")
 instruction(IEq, tOs, tOs, -1, "L R --> L==R")
 instruction(ILt, tOs, tOs, -1, "L R --> L<R")
 instruction(IGe, tOs, tOs, -1, "L R --> L>=R")
-instruction(ICmp, tOs, lVl, -2, "L R --> break if not same integer")
 
 instruction(CEq, tOs, tOs, -1, "L R --> L==R")
 instruction(CLt, tOs, tOs, -1, "L R --> L<R")
 instruction(CGe, tOs, tOs, -1, "L R --> L>=R")
-instruction(CCmp, tOs, lVl, -2, "L R --> break if not same character")
 
 instruction(BAnd, tOs, tOs, -1, "L R --> L&R")
 instruction(BOr, tOs, tOs, -1, "L R --> L|R")
@@ -121,12 +119,9 @@ instruction(FAbs, tOs, nOp, 0, "L --> abs(L)")
 instruction(FEq, tOs, tOs, -1, "L R e --> L==R")
 instruction(FLt, tOs, tOs, -1, "L R --> L<R")
 instruction(FGe, tOs, tOs, -1, "L R --> L>=R")
-instruction(FCmp, tOs, lVl, -2, "L R --> branch if not same floating point")
 
 instruction(Alloc, sym, nOp, 1, "new structure, elements from stack")
 instruction(Closure, sym, tOs, 0, "allocate a closure")
-
-instruction(Cmp, tOs, lVl, -2, "t1 t2 --> , branch to offset if not same literal")
 
 instruction(Frame, i32, nOp, 0, "frame instruction")
 

@@ -9,7 +9,6 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
-#include "stack.h"
 #include "engine.h"
 #include "escape.h"
 

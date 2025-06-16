@@ -1245,6 +1245,13 @@ void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
   encodeScalarOp(p, 0b000110, Rm, Rn, Rd, ctx);
 }
 
+void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx) {
+  uint32 ins = ayt_bt(0b11111, 24) | two_bt(p, 22) | fiv_bt(Rm, 16) |
+             one_bt(1, 15) | fiv_bt(Ra,10) |
+             fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
 void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
   switch (d.mode) {
     case reg: {
