@@ -43,6 +43,9 @@ test.jt8{
   not:(integer)=>integer.
   not(X) => _bnot(X).
 
+  fabs:(float)=>float.
+  fabs(X) => _flt_abs(X).
+
   add:(float,float)=>float.
   add(X,Y) => _flt_plus(X,Y).
 
@@ -54,6 +57,15 @@ test.jt8{
 
   div:(float,float)=>float throws string.
   div(X,Y) => (try _flt_div(X,Y) catch { _ => throw "div zero"}).
+
+  feq:(float,float) => boolean.
+  feq(X,Y) => _flt_eq(X,Y).
+
+  flt:(float,float) => boolean.
+  flt(X,Y) => _flt_lt(X,Y).
+
+  fge:(float,float) => boolean.
+  fge(X,Y) => _flt_ge(X,Y).
 
   main:()=>().
   main() => valof{
@@ -88,6 +100,19 @@ test.jt8{
     show add(1.0,-1.0);
     show mul(2.0,4.0);
 
+    assert fabs(-4.0) == fabs(4.0);
+    assert fabs(4.0) == 4.0;
+
+    assert feq(4.0,4.0);
+    assert ~feq(4.0,5.0);
+
+    assert flt(4.0,5.0);
+    assert ~flt(5.0,4.0);
+    
+    assert fge(5.0,4.0);
+    assert fge(5.0,5.0);
+    assert ~fge(4.0,5.0);
+
     try{
       show mod(7,2);
       show mod(-7,2);
@@ -115,7 +140,12 @@ test.jt8{
       _jit_compile("#(__pkg__)@ilsr",2);
       _jit_compile("#(__pkg__)@iasr",2);
       _jit_compile("#(__pkg__)@abs",1);
+      _jit_compile("#(__pkg__)@fabs",1);
       _jit_compile("#(__pkg__)@not",1);
+      _jit_compile("#(__pkg__)@feq",2);
+      _jit_compile("#(__pkg__)@flt",2);
+      _jit_compile("#(__pkg__)@fge",2);
+      
     } catch {
       X => showMsg("$(X)")
     };
@@ -160,7 +190,20 @@ test.jt8{
     assert add(1.0,2.0)==3.0;
     assert add(1.0,-1.0)==2.0;
     assert mul(2.0,4.0)==8.0;
+
+    assert fabs(-4.0) == fabs(4.0);
+    assert fabs(4.0) == 4.0;
+
+    assert feq(4.0,4.0);
+    assert ~feq(4.0,5.0);
+
+    assert flt(4.0,5.0);
+    assert ~flt(5.0,4.0);
     
+    assert fge(5.0,4.0);
+    assert fge(5.0,5.0);
+    assert ~fge(4.0,5.0);
+
     valis ()
   }
 }
