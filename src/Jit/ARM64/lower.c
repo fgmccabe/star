@@ -1465,10 +1465,73 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case FAbs: // L --> abs(L)
-      case FEq: // L R e --> L==R
-      case FLt: // L R --> L<R
-      case FGe: // L R --> L>=R
+      case FAbs: { // L --> abs(L)
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        getFltVal(jit, a1);
+
+        fmov(FP(F0), RG(a1));
+        fabs(F0, F0);
+        fmov(RG(a1), FP(F0));
+        mkFltVal(jit, a1);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        pc++;
+        continue;
+      }
+      case FEq: {// L R --> L==
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, NE);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        pc++;
+        continue;
+      }
+      case FLt: {// L R --> L<R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        fmov(FP(F0), RG(a1));
+        fmov(FP(F1), RG(a2));
+
+        fcmp(F0,F1);
+
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, GE);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        pc++;
+        continue;
+      }
+      case FGe: {// L R --> L>=R
+        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a2 = popStkOp(block, findFreeReg(jit));
+
+        fmov(FP(F0), RG(a1));
+        fmov(FP(F1), RG(a2));
+
+        fcmp(F0,F1);
+
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, LT);
+        pushStkOp(block, a1);
+
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        pc++;
+        continue;
+
+      }
       case Alloc: {
         // new structure, elements from stack
         int32 key = code[pc].fst;
@@ -1580,14 +1643,14 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
 
 retCode getFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
-  bfc(rg,0,2);
+  bfc(rg, 0, 2);
   return Ok;
 }
 
 retCode mkFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
 
-  bfc(rg,0,2);
+  bfc(rg, 0, 2);
   orr(rg, rg, IM(fltTg));
   return Ok;
 }
