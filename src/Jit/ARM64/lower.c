@@ -6,7 +6,6 @@
 #include "cellP.h"
 #include "lowerP.h"
 #include "stackP.h"
-#include "labelsP.h"
 #include "singleP.h"
 #include "globalsP.h"
 #include "constantsP.h"
@@ -104,27 +103,27 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm( "mov x27, %[stk]\n"
-    "ldr x28, %[ssp]\n"
-    "ldr x26, %[ag]\n"
-    "mov x25, %[constants]\n"
-    "mov x24, %[process]\n"
-    "mov x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "stp x8,x9, [sp, #-16]!\n"
-    "stp x10,x11, [sp, #-16]!\n"
-    "stp x12,x13, [sp, #-16]!\n"
-    "blr x16\n"
-    "ldp x12,x13, [sp], #16\n"
-    "ldp x10,x11, [sp], #16\n"
-    "ldp x8,x9, [sp], #16\n"
-    "str w0, %[ret]\n"
-    "str X26, %[ag]\n"
-    "str x28, %[ssp]\n"
-    "str x29, %[fp]\n"
+       "ldr x28, %[ssp]\n"
+       "ldr x26, %[ag]\n"
+       "mov x25, %[constants]\n"
+       "mov x24, %[process]\n"
+       "mov x16, %[code]\n"
+       "ldr x29, %[fp]\n"
+       "stp x8,x9, [sp, #-16]!\n"
+       "stp x10,x11, [sp, #-16]!\n"
+       "stp x12,x13, [sp, #-16]!\n"
+       "blr x16\n"
+       "ldp x12,x13, [sp], #16\n"
+       "ldp x10,x11, [sp], #16\n"
+       "ldp x8,x9, [sp], #16\n"
+       "str w0, %[ret]\n"
+       "str X26, %[ag]\n"
+       "str x28, %[ssp]\n"
+       "str x29, %[fp]\n"
     : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
-    : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
-    [constants] "r"(constAnts)
-    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
+  : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
+  [constants] "r"(constAnts)
+  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
 
   return ret;
 }
@@ -1274,7 +1273,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
-        lsl(a1, a2, RG(a1));
+        lsl(a1, a1, RG(a2));
 
         mkIntVal(jit, a1);
 
@@ -1295,7 +1294,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
-        lsr(a1, a2, RG(a1));
+        lsr(a1, a1, RG(a2));
 
         mkIntVal(jit, a1);
 
@@ -1315,7 +1314,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
-        asr(a1, a2, RG(a1));
+        asr(a1, a1, RG(a2));
 
         mkIntVal(jit, a1);
 
@@ -1581,13 +1580,14 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
 
 retCode getFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
-  asr(rg, rg, IM(2));
+  bfc(rg,0,2);
   return Ok;
 }
 
 retCode mkFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
-  lsl(rg, rg, IM(2));
+
+  bfc(rg,0,2);
   orr(rg, rg, IM(fltTg));
   return Ok;
 }
