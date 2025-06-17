@@ -17,6 +17,10 @@ assemCtxPo assemCtx(jitCompPo jitCtx) {
   return jitCtx->assemCtx;
 }
 
+void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
+  //  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
+}
+
 void markEntry(jitCompPo jit, codeLblPo entry) {
   assert(jit->entry == Null);
   jit->entry = entry;

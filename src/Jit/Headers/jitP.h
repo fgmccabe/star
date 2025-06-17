@@ -62,12 +62,9 @@ typedef struct labelMarker {
 
 typedef struct jit_compiler_ {
   methodPo mtd;
-  int32 currSPOffset;
   registerMap freeRegs;
   assemCtxPo assemCtx;
   codeLblPo entry;
-  arrayPo locals;
-  hashPo labels;
   char *errMsg;
   integer msgLen;
 } JitCompilerContext;
@@ -88,14 +85,6 @@ codeLblPo jitEntry(jitCompPo jit);
 retCode reserveReg(jitCompPo jit, armReg rg);
 armReg findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, armReg rg);
-
-integer allocateLocal(jitCompPo jit, integer id, integer offset, localVarState state);
-integer findLocalOffset(jitCompPo jit, integer id);
-integer cancelLocal(jitCompPo jit, integer id);
-
-codeLblPo defineJitLbl(jitCompPo jit, insPo pc);
-codeLblPo newJitLbl(jitCompPo jit, insPo pc);
-codeLblPo getJitLbl(jitCompPo jit, insPo pc);
 
 typedef struct lbl_ref {
   lblRefUpdater updater;

@@ -103,41 +103,39 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm( "mov x27, %[stk]\n"
-       "ldr x28, %[ssp]\n"
-       "ldr x26, %[ag]\n"
-       "mov x25, %[constants]\n"
-       "mov x24, %[process]\n"
-       "mov x16, %[code]\n"
-       "ldr x29, %[fp]\n"
-       "stp x8,x9, [sp, #-16]!\n"
-       "stp x10,x11, [sp, #-16]!\n"
-       "stp x12,x13, [sp, #-16]!\n"
-       "blr x16\n"
-       "ldp x12,x13, [sp], #16\n"
-       "ldp x10,x11, [sp], #16\n"
-       "ldp x8,x9, [sp], #16\n"
-       "str w0, %[ret]\n"
-       "str X26, %[ag]\n"
-       "str x28, %[ssp]\n"
-       "str x29, %[fp]\n"
+    "ldr x28, %[ssp]\n"
+    "ldr x26, %[ag]\n"
+    "mov x25, %[constants]\n"
+    "mov x24, %[process]\n"
+    "mov x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "stp x12,x13, [sp, #-16]!\n"
+    "blr x16\n"
+    "ldp x12,x13, [sp], #16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "str w0, %[ret]\n"
+    "str X26, %[ag]\n"
+    "str x28, %[ssp]\n"
+    "str x29, %[fp]\n"
     : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
-  : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
-  [constants] "r"(constAnts)
-  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
+    : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
+    [constants] "r"(constAnts)
+    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
 
   return ret;
 }
 
-static armReg popStkOp(jitBlockPo block, armReg tgt) {
-  jitCompPo jit = block->jit;
+static armReg popStkOp(jitCompPo jit, armReg tgt) {
   assemCtxPo ctx = assemCtx(jit);
 
   ldr(tgt, PSX(SSP, pointerSize));
   return tgt;
 }
 
-static armReg topStkOp(jitBlockPo block) {
-  jitCompPo jit = block->jit;
+static armReg topStkOp(jitCompPo jit) {
   armReg tgt = findFreeReg(jit);
   assemCtxPo ctx = assemCtx(jit);
   ldr(tgt, RG(SSP));
@@ -145,8 +143,8 @@ static armReg topStkOp(jitBlockPo block) {
   return tgt;
 }
 
-static void pushStkOp(jitBlockPo block, armReg src) {
-  assemCtxPo ctx = assemCtx(block->jit);
+static void pushStkOp(jitCompPo jit, armReg src) {
+  assemCtxPo ctx = assemCtx(jit);
   str(src, PRX(SSP, -pointerSize));
 }
 
@@ -243,8 +241,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // abort with message
         reserveReg(jit, X1);
         reserveReg(jit, X2);
-        popStkOp(block, X1);
-        popStkOp(block, X2);
+        popStkOp(jit, X1);
+        popStkOp(jit, X2);
         stashRegisters(jit);
         callIntrinsic(ctx, (runtimeFn) abort_star, 3, RG(PR), RG(X1), RG(X2));
         pc++;
@@ -300,12 +298,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
       case OCall: {
         // Call closure
-        popStkOp(block, X16); // Pick up the closure
+        popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
         ldr(X16, OF(X16, OffsetOf(ClosureRecord, free))); // Pick up the free term
-        pushStkOp(block, X16); // The free term isthe first argument
+        pushStkOp(jit, X16); // The free term isthe first argument
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
@@ -324,12 +322,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case XOCall: {
         armReg tmp = findFreeReg(jit);
 
-        popStkOp(block, X16); // Pick up the closure
+        popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
         ldr(X16, OF(X16, OffsetOf(ClosureRecord, free))); // Pick up the free term
-        pushStkOp(block, X16); // The free term isthe first argument
+        pushStkOp(jit, X16); // The free term isthe first argument
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(tmp, haveMtd);
@@ -378,12 +376,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 arity = code[pc].fst;
 
         // Tail Call closure
-        popStkOp(block, X16); // Pick up the closure
+        popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
         ldr(X16, OF(X16, OffsetOf(ClosureRecord, free))); // Pick up the free term
-        pushStkOp(block, X16); // The free term isthe first argument
+        pushStkOp(jit, X16); // The free term isthe first argument
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
@@ -442,14 +440,14 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           loadConstant(jit, voidIndex, vd);
           if (locals < 8) {
             for (int32 ix = 0; ix < locals; ix++) {
-              pushStkOp(block, vd);
+              pushStkOp(jit, vd);
             }
           } else {
             // Build a loop
             armReg cx = findFreeReg(jit);
             mov(cx, IM(locals));
             codeLblPo start = here();
-            pushStkOp(block, vd);
+            pushStkOp(jit, vd);
             sub(cx, cx, IM(1));
             bne(start);
             releaseReg(jit, cx);
@@ -461,7 +459,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case Ret: {
         // return
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
 
         // Pick up the caller program
         ldr(X16, OF(FP, fpProg));
@@ -475,7 +473,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Drop frame
         sub(FP, FP, IM(sizeof(StackFrame)));
         // Put return value on stack
-        pushStkOp(block, vl);
+        pushStkOp(jit, vl);
         releaseReg(jit, vl);
         mov(X0, IM(Normal));
         br(X16);
@@ -484,7 +482,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case XRet: {
         // exception return
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
 
         // Pick up the caller program
         ldr(X16, OF(FP, fpProg));
@@ -498,7 +496,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Drop frame
         sub(FP, FP, IM(sizeof(StackFrame)));
         // Put return value on stack
-        pushStkOp(block, vl);
+        pushStkOp(jit, vl);
         releaseReg(jit, vl);
         mov(X0, IM(Abnormal));
         br(X16);
@@ -559,8 +557,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case Dup: {
         // duplicate top of stack
-        armReg tgt = topStkOp(block);
-        pushStkOp(block, tgt);
+        armReg tgt = topStkOp(jit);
+        pushStkOp(jit, tgt);
         releaseReg(jit, tgt);
         pc++;
         continue;
@@ -570,16 +568,19 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 rotationHeight = code[pc].fst;
         armReg swp = findFreeReg(jit);
         armReg src = findFreeReg(jit);
+        armReg tmp = findFreeReg(jit);
 
-        ldr(swp, OF(SSP, jit->currSPOffset));
+        mov(src, RG(SSP));
+        ldr(swp, PSX(src,-pointerSize));
 
         for (int32 ix = 1; ix <= rotationHeight; ix++) {
-          ldr(src, OF(SSP, jit->currSPOffset + (ix * sizeof(integer))));
-          str(src, OF(SSP, jit->currSPOffset + ((ix - 1) * sizeof(integer))));
+          ldr(tmp, PSX(src,-pointerSize));
+          str(tmp, OF(src,pointerSize));
         }
-        str(swp, OF(SSP, jit->currSPOffset + rotationHeight * sizeof(integer)));
+        str(swp, PRX(src, pointerSize));
         releaseReg(jit, swp);
         releaseReg(jit, src);
+        releaseReg(jit, tmp);
         pc++;
         continue;
       }
@@ -624,7 +625,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Place a void value on stack
         armReg vd = findFreeReg(jit);
         mov(vd, IM((integer) voidEnum));
-        pushStkOp(block, vd);
+        pushStkOp(jit, vd);
         releaseReg(jit, vd);
         pc++;
         continue;
@@ -634,7 +635,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 key = code[pc].fst;
         armReg cn = loadConstant(jit, key, findFreeReg(jit));
 
-        pushStkOp(block, cn);
+        pushStkOp(jit, cn);
         releaseReg(jit, cn);
 
         pc++;
@@ -645,7 +646,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 argNo = code[pc].fst;
         armReg rg = findFreeReg(jit);
         ldr(rg, OF(AG, argOffset(argNo)));
-        pushStkOp(block, rg);
+        pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
         continue;
@@ -656,7 +657,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 offset = -lclNo * pointerSize;
         armReg rg = findFreeReg(jit);
         ldur(rg, AG, offset);
-        pushStkOp(block, rg);
+        pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
         continue;
@@ -665,7 +666,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // store tos to local[xx]
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         stur(vl, AG, offset);
         releaseReg(jit, vl);
         pc++;
@@ -686,7 +687,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // copy tos to local[xx]
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
-        armReg vl = topStkOp(block);
+        armReg vl = topStkOp(jit);
         stur(vl, AG, offset);
         releaseReg(jit, vl);
         pc++;
@@ -731,7 +732,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         br(X16);
 
         bind(haveContent);
-        pushStkOp(block, content);
+        pushStkOp(jit, content);
         bind(returnPc);
         releaseReg(jit, glb);
         releaseReg(jit, content);
@@ -742,7 +743,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // store into a global variable
         armReg tmp = findFreeReg(jit);
         armReg glb = findFreeReg(jit);
-        popStkOp(block, tmp);
+        popStkOp(jit, tmp);
 
         globalPo glbVr = findGlobalVar(code[pc].fst);
 
@@ -758,7 +759,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case TG: {
         // copy into a global variable
         armReg glb = findFreeReg(jit);
-        armReg vl = topStkOp(block);
+        armReg vl = topStkOp(jit);
 
         globalPo glbVr = findGlobalVar(code[pc].fst);
 
@@ -779,44 +780,61 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         mov(tmp, IM(0));
         str(tmp, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, tmp);
-        pushStkOp(block, sng);
+        pushStkOp(jit, sng);
         releaseReg(jit, sng);
         pc++;
         continue;
       }
-      case LdSav: // derefence a sav, break if not set
+      case LdSav: {
+        // derefence a sav, break if not set
+        armReg sng = popStkOp(jit, findFreeReg(jit));
+
+        ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
+        codeLblPo skip = newLabel(ctx);
+
+        cbnz(sng, skip);
+        ret = breakOut(block, pc + code[pc].alt + 1, False);
+        bind(skip);
+        pushStkOp(jit, sng);
+        releaseReg(jit, sng);
+        pc++;
+        continue;
+      }
+      case TstSav: {
+        // test a sav, return a logical
         return Error;
-      case TstSav: // test a sav, return a logical
-        return Error;
+      }
       case StSav: // store a value into a single assignment variable
         return Error;
-      case TSav: // update single assignment variable leave value on stack
+      case TSav: {
+        // update single assignment variable leave value on stack
         return Error;
+      }
       case Cell: {
         // create R/W cell
         armReg cel = findFreeReg(jit);
         allocSmallStruct(jit, cellClass, CellCellCount, cel);
         armReg tmp = findFreeReg(jit);
-        popStkOp(block, tmp);
+        popStkOp(jit, tmp);
         str(tmp, OF(cel, OffsetOf(CellRecord, content)));
         releaseReg(jit, tmp);
-        pushStkOp(block, cel);
+        pushStkOp(jit, cel);
         releaseReg(jit, cel);
         pc++;
         continue;
       }
       case Get: {
         // access a R/W cell
-        armReg cel = popStkOp(block, findFreeReg(jit));
+        armReg cel = popStkOp(jit, findFreeReg(jit));
         ldr(cel, OF(cel, OffsetOf(CellRecord, content)));
-        pushStkOp(block, cel);
+        pushStkOp(jit, cel);
         pc++;
         continue;
       }
       case Assign: {
         // assign to a R/W cell
-        armReg cel = popStkOp(block, findFreeReg(jit));
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg cel = popStkOp(jit, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         str(vl, OF(cel, OffsetOf(CellRecord, content)));
         pc++;
         continue;
@@ -824,7 +842,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CLbl: {
         // T,Lbl --> test for a data term, break if not lbl
         int32 key = code[pc].fst;
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
 
         codeLblPo fail = newLabel(ctx);
@@ -852,7 +870,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CInt:
       case CChar:
       case CFlt: {
-        armReg st = popStkOp(block, findFreeReg(jit));
+        armReg st = popStkOp(jit, findFreeReg(jit));
         integer lit = (integer) getConstant(code[pc].fst);
         if (is12bit(lit))
           cmp(st, IM(lit));
@@ -874,7 +892,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         tryRet(reserveReg(jit, X0));
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
-        popStkOp(block, X1);
+        popStkOp(jit, X1);
         invokeCFunc2(jit, (Cfunc2) sameTerm);
         tst(X0, RG(X0));
         ret = breakOutEq(block, pc + code[pc].alt + 1);
@@ -886,17 +904,17 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
       case Nth: {
         // T --> el, pick up the nth element
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         ldr(vl, OF(vl, (code[pc].fst + 1) * pointerSize));
-        pushStkOp(block, vl);
+        pushStkOp(jit, vl);
         releaseReg(jit, vl);
         pc++;
         continue;
       }
       case StNth: {
         // T el --> store in nth element
-        armReg trm = popStkOp(block, findFreeReg(jit));
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg trm = popStkOp(jit, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         str(vl, OF(trm, (code[pc].fst + 1) * pointerSize));
 
         releaseReg(jit, vl);
@@ -906,7 +924,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case If: {
         // break if true
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
         loadConstant(jit, trueIndex, tr);
         cmp(vl, RG(tr));
@@ -918,7 +936,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IfNot: {
         // break if false
-        armReg vl = popStkOp(block, findFreeReg(jit));
+        armReg vl = popStkOp(jit, findFreeReg(jit));
         armReg tr = findFreeReg(jit);
         loadConstant(jit, trueIndex, tr);
         cmp(vl, RG(tr));
@@ -929,7 +947,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
       case ICase: {
-        armReg gr = popStkOp(block, findFreeReg(jit));
+        armReg gr = popStkOp(jit, findFreeReg(jit));
         getIntVal(jit, gr);
         and(gr, gr, IM(LARGE_INT61));
         armReg divisor = findFreeReg(jit);
@@ -953,7 +971,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Case: {
         // T --> T, case <Max>
         if (reserveReg(jit, X0) == Ok) {
-          popStkOp(block, X0);
+          popStkOp(jit, X0);
           callIntrinsic(ctx, (runtimeFn) hashTerm, 1, RG(X0));
           armReg divisor = findFreeReg(jit);
           mov(divisor, IM(code[pc].fst));
@@ -978,7 +996,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IxCase: {
         // check and jump on index
-        armReg tgt = popStkOp(block, findFreeReg(jit));
+        armReg tgt = popStkOp(jit, findFreeReg(jit));
         armReg ix = findFreeReg(jit);
         ldr(ix, OF(tgt, 0)); // Pick up the label
         ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
@@ -1002,8 +1020,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IAdd: {
         // L R --> L+R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1012,7 +1030,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1022,8 +1040,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case ISub: {
         // L R --> L-R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1031,7 +1049,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         sub(a1, a1, RG(a2));
 
         mkIntVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1041,8 +1059,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IMul: {
         // L R --> L*R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1051,7 +1069,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1061,8 +1079,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IDiv: {
         // L R --> L/R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
@@ -1074,7 +1092,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(block, a2);
+          pushStkOp(jit, a2);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1082,7 +1100,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         bind(skip);
         sdiv(a1, a1, a2);
         mkIntVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1091,8 +1109,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IMod: {
         // L R --> L%R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg divisor = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg divisor = popStkOp(jit, findFreeReg(jit));
         getIntVal(jit, a1);
         getIntVal(jit, divisor);
 
@@ -1104,7 +1122,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(block, divisor);
+          pushStkOp(jit, divisor);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1116,7 +1134,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         msub(a1, divisor, quotient, a1);
 
         mkIntVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, divisor);
@@ -1126,7 +1144,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case IAbs: {
         // L --> abs(L)
-        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
 
@@ -1134,7 +1152,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         csneg(a1, a1, a1, GE);
 
         mkIntVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
 
@@ -1144,8 +1162,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CEq:
       case IEq: {
         // L R --> L==R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1154,7 +1172,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, NE);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1165,8 +1183,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CLt:
       case ILt: {
         // L R --> L<R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1175,7 +1193,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, GE);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1186,8 +1204,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case CGe:
       case IGe: {
         // L R --> L>=R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1196,7 +1214,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, LT);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1207,8 +1225,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
       case BAnd: {
         // L R --> L&R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1217,7 +1235,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1227,8 +1245,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BOr: {
         // L R --> L|R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1237,7 +1255,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1247,8 +1265,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BXor: {
         // L R --> L^R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1257,7 +1275,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1267,8 +1285,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BLsl: {
         // L R --> L<<R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1277,7 +1295,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1288,8 +1306,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case BLsr: {
         // L R --> L>>R
 
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1298,7 +1316,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1308,8 +1326,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BAsr: {
         // L R --> L>>>R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         getIntVal(jit, a2);
@@ -1318,7 +1336,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         mkIntVal(jit, a1);
 
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1328,12 +1346,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BNot: {
         // L --> ~L
-        armReg a1 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
 
         getIntVal(jit, a1);
         mvn(a1, a1, LSL, 0);
         mkIntVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         pc++;
@@ -1341,8 +1359,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case FAdd: {
         // L R --> L+R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
         getFltVal(jit, a2);
 
@@ -1351,7 +1369,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         fadd(F0, F0, F1);
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1360,8 +1378,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case FSub: {
         // L R --> L-R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
         getFltVal(jit, a2);
 
@@ -1370,7 +1388,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         fsub(F0, F0, F1);
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1379,8 +1397,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case FMul: {
         // L R --> L*R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
         getFltVal(jit, a2);
 
@@ -1389,7 +1407,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         fmul(F0, F0, F1);
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1398,8 +1416,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case FDiv: {
         // L R --> L/R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
         getFltVal(jit, a2);
 
@@ -1412,7 +1430,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(block, a2);
+          pushStkOp(jit, a2);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1423,7 +1441,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         fdiv(F0, F0, F1);
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
@@ -1432,8 +1450,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case FMod: {
         // L R --> L%R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
         getFltVal(jit, a2);
 
@@ -1446,7 +1464,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(block, a2);
+          pushStkOp(jit, a2);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1458,79 +1476,82 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         fmsub(F2, F2, F1, F0);
         fmov(RG(a1), FP(F2));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
         pc++;
         continue;
       }
-      case FAbs: { // L --> abs(L)
-        armReg a1 = popStkOp(block, findFreeReg(jit));
+      case FAbs: {
+        // L --> abs(L)
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
         getFltVal(jit, a1);
 
         fmov(FP(F0), RG(a1));
         fabs(F0, F0);
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         pc++;
         continue;
       }
-      case FEq: {// L R --> L==
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+      case FEq: {
+        // L R --> L==
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, NE);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
         pc++;
         continue;
       }
-      case FLt: {// L R --> L<R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+      case FLt: {
+        // L R --> L<R
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         fmov(FP(F0), RG(a1));
         fmov(FP(F1), RG(a2));
 
-        fcmp(F0,F1);
+        fcmp(F0, F1);
 
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, GE);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
         pc++;
         continue;
       }
-      case FGe: {// L R --> L>=R
-        armReg a1 = popStkOp(block, findFreeReg(jit));
-        armReg a2 = popStkOp(block, findFreeReg(jit));
+      case FGe: {
+        // L R --> L>=R
+        armReg a1 = popStkOp(jit, findFreeReg(jit));
+        armReg a2 = popStkOp(jit, findFreeReg(jit));
 
         fmov(FP(F0), RG(a1));
         fmov(FP(F1), RG(a2));
 
-        fcmp(F0,F1);
+        fcmp(F0, F1);
 
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, LT);
-        pushStkOp(block, a1);
+        pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
         pc++;
         continue;
-
       }
       case Alloc: {
         // new structure, elements from stack
@@ -1543,12 +1564,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         armReg tmp = findFreeReg(jit);
         for (int32 ix = 0; ix < arity; ix++) {
-          popStkOp(block, tmp);
+          popStkOp(jit, tmp);
           str(tmp, OF(term, (ix + 1) * pointerSize));
         }
         releaseReg(jit, tmp);
 
-        pushStkOp(block, term);
+        pushStkOp(jit, term);
         releaseReg(jit, term);
 
         pc++;
@@ -1564,12 +1585,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadConstant(jit, key, tmp);
         str(tmp, OF(term, OffsetOf(ClosureRecord, lbl)));
 
-        popStkOp(block, tmp); // pick up the free value
+        popStkOp(jit, tmp); // pick up the free value
         str(tmp, OF(term, OffsetOf(ClosureRecord, free)));
 
         releaseReg(jit, tmp);
 
-        pushStkOp(block, term);
+        pushStkOp(jit, term);
         releaseReg(jit, term);
 
         pc++;
@@ -1691,9 +1712,9 @@ retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop) {
   if (lbl != Null) {
     if (keepTop) {
       armReg tp = findFreeReg(jit);
-      popStkOp(block, tp);
+      popStkOp(jit, tp);
       sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-      pushStkOp(block, tp);
+      pushStkOp(jit, tp);
       releaseReg(jit, tp);
     }
     b(lbl);
@@ -1797,6 +1818,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   return Ok;
 }
 
+// When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
 void stashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   stp(PR, CO, PRX(SP, -2 * pointerSize)); // stash process & constants
