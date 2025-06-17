@@ -48,12 +48,8 @@ uint32 currentPc(assemCtxPo ctx){
   return ctx->pc;
 }
 
-void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space) {
-//  check(jitCtx->vTop >= amnt && jitCtx->vTop < NumberOf(jitCtx->vStack) - space, "stack out of bounds");
-}
-
 retCode clearLbl(codeLblPo lbl) {
-  check(lbl->refs == Null, "label not defined");
+  check(isLabelDefined(lbl), "label not defined");
   if (lbl->refs != Null) {
     eraseArray(lbl->refs, NULL, NULL);
   }
@@ -62,12 +58,13 @@ retCode clearLbl(codeLblPo lbl) {
 }
 
 retCode clrLblProc(void *l, integer ix, void *cl) {
+  assemCtxPo ctx = (assemCtxPo) cl;
   return clearLbl((codeLblPo) l);
 }
 
 retCode cleanupLabels(assemCtxPo ctx) {
   if (ctx->lbls != Null) {
-    eraseArray(ctx->lbls, clrLblProc, NULL);
+    eraseArray(ctx->lbls, clrLblProc, ctx);
     ctx->lbls = Null;
   }
   return Ok;
