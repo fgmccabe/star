@@ -568,6 +568,10 @@ typedef enum {
   Double = 0b01
 } Precision;
 
+
+void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx);
+#define fabs(Rd, Rn) fabs_(Double, Rd, Rn, ctx)
+
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx);
 #define fadd(Rd, Rm, Rn) fadd_(Double, Rd,Rm,Rn,ctx)
 
@@ -585,6 +589,9 @@ void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx)
 
 void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx);
 #define fmov(D, S) fmov_(Double, D, S, ctx)
+
+void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx);
+#define fcmp(Rn,Rm) fcmp_(Double, Rn, Rm, ctx)
 
 void bfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);
 void sbfm_(uint1 w, armReg Rd, armReg Rn, uint8 immr, uint8 imms, assemCtxPo ctx);

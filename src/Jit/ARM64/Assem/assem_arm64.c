@@ -1229,6 +1229,10 @@ void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xdd, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
+void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx){
+  encodeScalarOp(p, 0b110000, 0, Rn, Rd, ctx);
+}
+
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
   encodeScalarOp(p, 0b001010, Rm, Rn, Rd, ctx);
 }
@@ -1249,6 +1253,12 @@ void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx)
   uint32 ins = ayt_bt(0b11111, 24) | two_bt(p, 22) | fiv_bt(Rm, 16) |
              one_bt(1, 15) | fiv_bt(Ra,10) |
              fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx){
+  uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | fiv_bt(Rm, 16) |
+               one_bt(1, 13) | fiv_bt(Rn, 5);
   emitU32(ctx, ins);
 }
 
