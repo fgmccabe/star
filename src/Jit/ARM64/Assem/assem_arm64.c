@@ -1257,7 +1257,7 @@ void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx)
 }
 
 void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx){
-  uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | one_bt(21,1) | fiv_bt(Rm, 16) |
+  uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | one_bt(1,21) | fiv_bt(Rm, 16) |
                one_bt(1, 13) | fiv_bt(Rn, 5);
   emitU32(ctx, ins);
 }
