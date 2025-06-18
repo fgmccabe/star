@@ -32,16 +32,29 @@ arrayPo allocArray(int elSize, integer initial, logical growable) {
   return ar;
 }
 
-arrayPo fixedArray(int elSize, integer initial, void *data, arrayGrow grow, arrayRelease release) {
+arrayPo fixedArray(int elSize, integer count, void *data, arrayRelease release) {
   initArray();
   arrayPo ar = (arrayPo) allocPool(arrayPool);
   ar->elSize = elSize;
   ar->data = data;
-  ar->dataLength = elSize * initial;
-  ar->count = 0;
-  ar->grow = grow;
+  ar->dataLength = elSize * count;
+  ar->count = count;
+  ar->grow = Null;
   ar->free = release;
   return ar;
+}
+
+arrayPo fixedCopy(arrayPo ar, arrayDataCopy copier, arrayRelease release) {
+  initArray();
+
+  arrayPo new = (arrayPo) allocPool(arrayPool);
+  new->elSize = ar->elSize;
+  new->data = copier(ar->data, ar->count*ar->elSize);
+  new->dataLength = ar->dataLength;
+  new->count = ar->count;
+  new->grow = Null;
+  new->free = release;
+  return new;
 }
 
 static retCode ensureRoom(arrayPo ar, integer request) {
@@ -76,6 +89,18 @@ retCode appendEntry(arrayPo ar, void *el) {
     assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     void *tgt = ar->data + (ar->count * ar->elSize);
     memcpy(tgt, el, ar->elSize);
+    ar->count++;
+    return Ok;
+  }
+  else
+    return Error;
+}
+
+retCode insertEntry(arrayPo ar, integer ix, void *el) {
+  if(ensureRoom(ar,1)==Ok){
+    assert((ar->count + 1) * ar->elSize <= ar->dataLength);
+    memmove(ar->data + ((ix+1) * ar->elSize), ar->data+(ix*ar->elSize), (ar->count-ix)*ar->elSize);
+    memcpy(ar->data+(ix*ar->elSize), el, ar->elSize);
     ar->count++;
     return Ok;
   }

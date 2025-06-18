@@ -10,7 +10,6 @@
 #include "ooio.h"
 #include "array.h"
 #include "macros.h"
-#include "array.h"
 #include "escape.h"
 #include "codeP.h"
 #include "asminfra.h"
@@ -60,6 +59,11 @@ typedef struct labelMarker {
   codeLblPo lbl;
 } LabelMarkerRecord, *labelMarkerPo;
 
+typedef struct {
+  int32 pc; // star pc offset
+  uint32 offset;     // code pc offset
+} PcMapEntry, *pcMapEntryPo;
+
 typedef struct jit_compiler_ {
   methodPo mtd;
   registerMap freeRegs;
@@ -67,6 +71,7 @@ typedef struct jit_compiler_ {
   codeLblPo entry;
   char *errMsg;
   integer msgLen;
+  arrayPo pcLocs;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
@@ -96,5 +101,6 @@ logical isI32(int64 x);
 
 retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 
+retCode recordPC(jitCompPo jit, int32 pc, uint32 offset);
 
 #endif //STAR_JITP_H

@@ -226,6 +226,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
   insPo code = block->code;
 
   for (int32 pc = from; ret == Ok && pc < endPc;) {
+    recordPC(jit,pc,currentPc(ctx));
     switch (code[pc].op) {
       case Halt: {
         // Stop execution

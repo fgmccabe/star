@@ -86,6 +86,7 @@ int main(int argc, char **argv) {
   initFuture();
   initClosure();
   initCell();
+  initJit();
   initCode();
   initTerm();
   initStacks();
@@ -93,7 +94,6 @@ int main(int argc, char **argv) {
   initThr();
   initTime();
   initIoOps();
-  initJit();
 
   char *rootWd = defltCWD();
   defltRepoDir();

@@ -44,7 +44,7 @@ void discardCtx(assemCtxPo ctx) {
   freePool(asmPool, ctx);
 }
 
-uint32 currentPc(assemCtxPo ctx){
+uint32 currentPc(assemCtxPo ctx) {
   return ctx->pc;
 }
 
@@ -64,8 +64,7 @@ retCode clrLblProc(void *l, integer ix, void *cl) {
 
 retCode cleanupLabels(assemCtxPo ctx) {
   if (ctx->lbls != Null) {
-    eraseArray(ctx->lbls, clrLblProc, ctx);
-    ctx->lbls = Null;
+    ctx->lbls = eraseArray(ctx->lbls, clrLblProc, ctx);
   }
   return Ok;
 }
@@ -82,8 +81,8 @@ static retCode updateLblEntry(void *entry, integer ix, void *cl) {
   return Ok;
 }
 
-codeLblPo here_(assemCtxPo ctx){
-  return defineLabel(ctx,ctx->pc);
+codeLblPo here_(assemCtxPo ctx) {
+  return defineLabel(ctx, ctx->pc);
 }
 
 codeLblPo defineLabel(assemCtxPo ctx, integer pc) {
@@ -94,7 +93,7 @@ codeLblPo defineLabel(assemCtxPo ctx, integer pc) {
   return lbl;
 }
 
-codeLblPo newLabel(assemCtxPo ctx){
+codeLblPo newLabel(assemCtxPo ctx) {
   codeLblPo lbl = (codeLblPo) allocPool(lblPool);
   lbl->refs = Null;
   lbl->pc = undefinedPc;
@@ -104,7 +103,7 @@ codeLblPo newLabel(assemCtxPo ctx){
 
 codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
-  ClInfo info = {.ctx=ctx, .lbl=lbl};
+  ClInfo info = {.ctx = ctx, .lbl = lbl};
   if (lbl->refs != Null) {
     processArrayElements(lbl->refs, updateLblEntry, &info);
     lbl->refs = eraseArray(lbl->refs, NULL, NULL);
@@ -117,7 +116,7 @@ retCode addLabelReference(assemCtxPo ctx, codeLblPo lbl, integer pc, lblRefUpdat
   if (lbl->refs == Null) {
     lbl->refs = allocArray(sizeof(AssemLblRefRecord), 4, True);
   }
-  AssemLblRefRecord ref = {.updater=updater, .pc=pc};
+  AssemLblRefRecord ref = {.updater = updater, .pc = pc};
   return appendEntry(lbl->refs, &ref);
 }
 
@@ -139,7 +138,7 @@ void labelConst(codeLblPo lbl, assemCtxPo ctx) {
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc) {
   check(readCtxAtPc(ctx, pc) == UNDEF_LBL_LANDING_PAD, "bad label reference");
 
-  uint32 delta = (uint32)((integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA));
+  uint32 delta = (uint32) ((integer) labelTgt(lbl) - (pc + PLATFORM_PC_DELTA));
   if (isI32(delta)) {
     updateU32(ctx, pc, delta);
   } else {
@@ -161,7 +160,7 @@ void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
       check(False, "label displacement too large");
       return;
     }
-    emitU32(ctx, (uint32)delta);
+    emitU32(ctx, (uint32) delta);
   } else {
     addLabelReference(ctx, tgt, ctx->pc, labelDisp32);
     emitU32(ctx, UNDEF_LBL_LANDING_PAD);
@@ -221,6 +220,7 @@ jittedCode createCode(assemCtxPo ctx) {
   switch (errno) {
     case 0:
       break;
+    default:
     case EACCES:
       syserr("could not allocate JIT memory");
 
@@ -254,5 +254,5 @@ jittedCode createCode(assemCtxPo ctx) {
 
   free(ctx->bytes);
   ctx->bytes = Null;
-  return (jittedCode)code;
+  return (jittedCode) code;
 }
