@@ -49,11 +49,17 @@ arrayPo fixedCopy(arrayPo ar, arrayDataCopy copier, arrayRelease release) {
 
   arrayPo new = (arrayPo) allocPool(arrayPool);
   new->elSize = ar->elSize;
-  new->data = copier(ar->data, ar->count*ar->elSize);
+  if (copier!=Null) {
+    new->data = copier(ar->data, ar->count * ar->elSize);
+    new->free = release;
+  }else {
+    new->data = malloc(ar->count * ar->elSize);
+    memcpy(new->data, ar->data, ar->count * ar->elSize);
+    new->free = free;
+  }
   new->dataLength = ar->dataLength;
   new->count = ar->count;
   new->grow = Null;
-  new->free = release;
   return new;
 }
 
