@@ -16,6 +16,7 @@
 #include "engineP.h"
 #include "errorCodes.h"
 #include "threds.h"
+#include "evalP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -616,11 +617,27 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case Fiber: // Create new fiber
-      case Suspend: // suspend fiber
-      case Resume: // resume fiber
-      case Retire: // retire a fiber
-      case Underflow: // underflow from current stack
+      case Fiber: { // Create new fiber
+      }
+      case Suspend: {// suspend fiber
+      }
+      case Resume: { // resume fiber
+      }
+      case Retire: { // retire a fiber
+        return Error;
+      }
+      case Underflow: {// underflow from current stack
+        armReg val = popStkOp(jit, findFreeReg(jit));
+        stp(val, XZR, PRX(SP, -2 * pointerSize));
+        stashRegisters(jit);
+        ret = callIntrinsic(ctx, (runtimeFn) dropStack, 1, RG(STK));
+        unstashRegisters(jit);
+        ldp(val, XZR, PSX(SP, 2 * pointerSize));
+        pushStkOp(jit,val);
+        releaseReg(jit,val);
+        pc++;
+        continue;
+      }
       case LdV: {
         // Place a void value on stack
         armReg vd = findFreeReg(jit);
@@ -719,7 +736,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit,26);
+        bailOut(jit, 26);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -776,7 +793,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // create a single assignment variable
         armReg sng = allocSmallStruct(jit, singleClass, SingleCellCount);
         armReg tmp = findFreeReg(jit);
-        mov(tmp, IM((integer)Null));
+        mov(tmp, IM((integer) Null));
         str(tmp, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, tmp);
         pushStkOp(jit, sng);
@@ -814,8 +831,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, sng);
         releaseReg(jit, tr);
         releaseReg(jit, fl);
-
-        return Error;
+        pc++;
+        continue;
       }
       case StSav: { // store a value into a single assignment
         armReg sng = popStkOp(jit, findFreeReg(jit));
@@ -1347,7 +1364,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case BLsr: {
         // L R --> L>>R
-
         armReg a1 = popStkOp(jit, findFreeReg(jit));
         armReg a2 = popStkOp(jit, findFreeReg(jit));
 
@@ -1898,7 +1914,7 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
 
   codeLblPo ok = newLabel(ctx);
 
-  reserveReg(jit,X0);
+  reserveReg(jit, X0);
   armReg h = findFreeReg(jit);
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
@@ -1917,8 +1933,8 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   stashRegisters(jit); // Slow path
   callIntrinsic(ctx, (runtimeFn) allocateObject, 2, IM((integer) class), IM(amnt));
   unstashRegisters(jit);
-  mov(reslt,RG(X0));
-  cmp(X0, IM((integer)Null));
+  mov(reslt, RG(X0));
+  cmp(X0, IM((integer) Null));
   bne(ok);
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
   bind(ok);
@@ -1927,6 +1943,6 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   releaseReg(jit, h);
   releaseReg(jit, c);
   releaseReg(jit, l);
-  releaseReg(jit,X0);
+  releaseReg(jit, X0);
   return reslt;
 }
