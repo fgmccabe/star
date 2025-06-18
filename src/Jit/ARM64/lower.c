@@ -16,7 +16,6 @@
 #include "engineP.h"
 #include "errorCodes.h"
 #include "threds.h"
-#include "evalP.h"
 
 /* Lower Star VM code to Arm64 code */
 
