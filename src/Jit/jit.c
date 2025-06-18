@@ -39,8 +39,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
 
   if (ret == Ok) {
     sortPcLocs(jit);
-    ret = setJitCode(mtd, createCode(jit->assemCtx), jit->pcLocs);
-    jit->pcLocs = Null;
+    ret = setJitCode(mtd, createCode(jit->assemCtx), fixedCopy(jit->pcLocs,Null,Null));
   }
   clearJitContext(jit);
 
@@ -78,4 +77,52 @@ comparison compLocs(arrayPo ar, integer ix, integer iy, void *cl) {
 
 void sortPcLocs(jitCompPo jit) {
   sortArray(jit->pcLocs, compLocs,Null);
+}
+
+insPo jitPc(methodPo mtd, void *address) {
+  if (mtd->jit!=Null) {
+    int32 start = 0;
+    int32 limit = termArity(locs) - 1;
+
+    int32 lowerPc = -1;
+    int32 upperPc = codeSize(mtd);
+
+    termPo lowerLoc = Null;
+    termPo upperLoc = Null;
+
+    while (limit >= start) {
+      int32 mid = start + (limit - start) / 2;
+
+      normalPo midEntry = C_NORMAL(nthArg(locs, mid));
+
+      int32 testPc = (int32) integerVal(nthArg(midEntry, 0));
+
+      if (testPc == pc)
+        return nthArg(midEntry, 1);
+      else if (testPc < pc) {
+        start = mid + 1;
+        if (testPc > lowerPc) {
+          lowerPc = testPc;
+          lowerLoc = nthArg(midEntry, 1);
+        }
+      } else {
+        limit = mid - 1;
+
+        if (testPc < upperPc) {
+          upperPc = testPc;
+          upperLoc = nthArg(midEntry, 1);
+        }
+      }
+    }
+    if (lowerLoc != Null)
+      return lowerLoc;
+    else if (upperLoc != Null)
+      return upperLoc;
+    else
+      return Null;
+  } else
+    return Null;
+  }
+  else
+    return Null;
 }
