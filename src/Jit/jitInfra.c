@@ -24,12 +24,16 @@ jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen) {
   jitComp->freeRegs = defltAvailRegSet();
   jitComp->errMsg = errMsg;
   jitComp->msgLen = msgLen;
+  jitComp->pcLocs = allocArray(sizeof(PcMapEntry), codeSize(mtd), True);
+
   return jitComp;
 }
 
 void clearJitContext(jitCompPo jit) {
   discardCtx(jit->assemCtx);
   freePool(contextPool, jit);
+  if (jit->pcLocs != Null)
+    jit->pcLocs = eraseArray(jit->pcLocs,Null,Null);
 }
 
 armReg findFreeReg(jitCompPo jit) {
@@ -42,12 +46,10 @@ retCode reserveReg(jitCompPo jit, armReg rg) {
   if (isRegInMap(jit->freeRegs, rg)) {
     jit->freeRegs = dropReg(jit->freeRegs, rg);
     return Ok;
-  }
-  else
+  } else
     return Error;
 }
 
 void releaseReg(jitCompPo jit, armReg rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }
-

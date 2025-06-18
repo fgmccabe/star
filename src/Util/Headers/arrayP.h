@@ -10,7 +10,7 @@
 typedef retCode (*arrayGrow)(arrayPo ar,integer request);
 typedef void (*arrayRelease)(arrayPo ar);
 
-arrayPo fixedArray(int elSize, integer initial, void *data, arrayGrow grow, arrayRelease release);
+arrayPo fixedArray(int elSize, integer count, void *data, arrayRelease release);
 
 typedef struct array_ {
   int elSize;           // Size of each element

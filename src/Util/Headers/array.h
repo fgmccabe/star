@@ -10,11 +10,15 @@
 
 typedef struct array_ *arrayPo;
 typedef retCode (*arrayElProc)(void *entry, integer ix, void *cl);
+typedef void * (*arrayDataCopy)(void *src, integer size);
 
 integer arrayCount(arrayPo ar);
 
 arrayPo allocArray(int elSize, integer initial, logical growable);
+
+arrayPo fixedCopy(arrayPo src, arrayDataCopy copier, void (*release)(arrayPo ar));
 retCode appendEntry(arrayPo ar,void *el);
+retCode insertEntry(arrayPo ar, integer ix, void *el);
 void *newEntry(arrayPo ar);
 void *nthEntry(arrayPo ar,integer ix);
 retCode dropEntry(arrayPo ar,integer ix);

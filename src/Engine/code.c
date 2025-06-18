@@ -268,7 +268,15 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 st
 labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  defineMtd(globalHeap, insCx, instructions, 0, 0, lbl, Null);
+  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, 0, lbl, Null);
+
+  char errMsg[MAXLINE];
+  retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
+  if (ret!=Ok) {
+    logMsg(logFile, "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
+    star_exit(200);
+  }
+
   return lbl;
 }
 
@@ -318,8 +326,9 @@ void showMtdCounts(ioPo out) {
   }
 }
 
-retCode setJitCode(methodPo mtd, jittedCode code) {
+retCode setJitCode(methodPo mtd, jittedCode code, arrayPo pcLocs) {
   assert(!hasJit(mtd));
   mtd->jit = code;
+  mtd->pcLocs = pcLocs;
   return Ok;
 }
