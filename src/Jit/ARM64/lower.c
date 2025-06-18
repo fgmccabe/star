@@ -50,7 +50,7 @@ static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
 
 static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
-static retCode bailOut(jitCompPo jit, char *msg, ...);
+static retCode bailOut(jitCompPo jit, int32 code);
 
 static retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity);
 
@@ -92,7 +92,7 @@ void unstashRegisters(jitCompPo jit);
 
 static void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok);
 
-static void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p);
+static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
@@ -261,7 +261,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Function %T not defined", getConstant(key));
+        bailOut(jit, 20);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -283,7 +283,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Function %T not defined", getConstant(key));
+        bailOut(jit, 21);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -308,7 +308,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Function not defined");
+        bailOut(jit, 22);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -332,7 +332,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(tmp, haveMtd);
 
-        bailOut(jit, "Function not defined");
+        bailOut(jit, 23);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -358,7 +358,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Function %T not defined", getConstant(key));
+        bailOut(jit, 24);
 
         bind(haveMtd);
         overrideFrame(jit, ctx, arity);
@@ -386,7 +386,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Function not defined");
+        bailOut(jit, 25);
 
         bind(haveMtd);
         overrideFrame(jit, ctx, arity);
@@ -719,7 +719,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
 
-        bailOut(jit, "Global %s not defined", globalVarName(glbVr));
+        bailOut(jit,26);
 
         bind(haveMtd);
         pshFrame(jit, ctx, X17);
@@ -774,10 +774,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case Sav: {
         // create a single assignment variable
-        armReg sng = findFreeReg(jit);
-        allocSmallStruct(jit, singleClass, SingleCellCount, sng);
+        armReg sng = allocSmallStruct(jit, singleClass, SingleCellCount);
         armReg tmp = findFreeReg(jit);
-        mov(tmp, IM(0));
+        mov(tmp, IM((integer)Null));
         str(tmp, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, tmp);
         pushStkOp(jit, sng);
@@ -827,7 +826,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
         cbnz(cont, ok);
 
-        bailOut(jit, "Single var already assigned");
+        bailOut(jit, 27);
         bind(ok);
         str(val, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, cont);
@@ -843,9 +842,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo ok = newLabel(ctx);
         armReg cont = findFreeReg(jit);
         ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
-        cbnz(cont, ok);
+        cbz(cont, ok);
 
-        bailOut(jit, "Single var already assigned");
+        bailOut(jit, 28);
         bind(ok);
         str(val, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, cont);
@@ -856,8 +855,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case Cell: {
         // create R/W cell
-        armReg cel = findFreeReg(jit);
-        allocSmallStruct(jit, cellClass, CellCellCount, cel);
+        armReg cel = allocSmallStruct(jit, cellClass, CellCellCount);
         armReg tmp = findFreeReg(jit);
         popStkOp(jit, tmp);
         str(tmp, OF(cel, OffsetOf(CellRecord, content)));
@@ -1603,8 +1601,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         labelPo label = C_LBL(getConstant(key));
         int32 arity = lblArity(label);
 
-        armReg term = findFreeReg(jit);
-        allocSmallStruct(jit, (clssPo) label, NormalCellCount(arity), term);
+        armReg term = allocSmallStruct(jit, (clssPo) label, NormalCellCount(arity));
 
         armReg tmp = findFreeReg(jit);
         for (int32 ix = 0; ix < arity; ix++) {
@@ -1622,8 +1619,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Closure: {
         int32 key = code[pc].fst;
 
-        armReg term = findFreeReg(jit);
-        allocSmallStruct(jit, closureClass, ClosureCellCount, term);
+        armReg term = allocSmallStruct(jit, closureClass, ClosureCellCount);
 
         armReg tmp = findFreeReg(jit);
         loadConstant(jit, key, tmp);
@@ -1804,8 +1800,8 @@ retCode jitError(jitCompPo jit, char *msg, ...) {
   return Error;
 }
 
-retCode bailOut(jitCompPo jit, char *msg, ...) {
-  return callIntrinsic(assemCtx(jit), (runtimeFn) star_exit, 1, IM(100));
+retCode bailOut(jitCompPo jit, int32 code) {
+  return callIntrinsic(assemCtx(jit), (runtimeFn) star_exit, 1, IM(code));
 
   /* char buff[MAXLINE]; */
   /* strBufferPo f = fixedStringBuffer(buff, NumberOf(buff)); */
@@ -1897,36 +1893,40 @@ void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok) {
   releaseReg(jit, l);
 }
 
-void allocSmallStruct(jitCompPo jit, clssPo class, integer amnt, armReg p) {
+armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   assemCtxPo ctx = assemCtx(jit);
 
   codeLblPo ok = newLabel(ctx);
 
+  reserveReg(jit,X0);
   armReg h = findFreeReg(jit);
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
+  armReg reslt = findFreeReg(jit);
   codeLblPo again = here();
   ldr(h, OF(PR, OffsetOf(ProcessRec, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
-  mov(p, RG(c));
+  mov(reslt, RG(c));
   add(c, c, IM(amnt * pointerSize));
   str(c, OF(h, OffsetOf(HeapRecord, curr)));
   cmp(c, RG(l));
   blt(ok);
   // Restore h->curr
-  str(p, OF(h, OffsetOf(HeapRecord, curr)));
+  str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
   stashRegisters(jit); // Slow path
   callIntrinsic(ctx, (runtimeFn) allocateObject, 2, IM((integer) class), IM(amnt));
   unstashRegisters(jit);
-  mov(p, RG(X0));
-  tst(X0, RG(X0));
+  mov(reslt,RG(X0));
+  cmp(X0, IM((integer)Null));
   bne(ok);
   callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(99)); // no return from this
   bind(ok);
   mov(c, IM((integer) class));
-  str(c, OF(p, OffsetOf(TermRecord, clss)));
+  str(c, OF(reslt, OffsetOf(TermRecord, clss)));
   releaseReg(jit, h);
   releaseReg(jit, c);
   releaseReg(jit, l);
+  releaseReg(jit,X0);
+  return reslt;
 }

@@ -50,3 +50,4 @@ retCode reserveReg(jitCompPo jit, armReg rg) {
 void releaseReg(jitCompPo jit, armReg rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }
+
