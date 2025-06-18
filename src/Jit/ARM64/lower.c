@@ -103,27 +103,27 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm( "mov x27, %[stk]\n"
-    "ldr x28, %[ssp]\n"
-    "ldr x26, %[ag]\n"
-    "mov x25, %[constants]\n"
-    "mov x24, %[process]\n"
-    "mov x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "stp x8,x9, [sp, #-16]!\n"
-    "stp x10,x11, [sp, #-16]!\n"
-    "stp x12,x13, [sp, #-16]!\n"
-    "blr x16\n"
-    "ldp x12,x13, [sp], #16\n"
-    "ldp x10,x11, [sp], #16\n"
-    "ldp x8,x9, [sp], #16\n"
-    "str w0, %[ret]\n"
-    "str X26, %[ag]\n"
-    "str x28, %[ssp]\n"
-    "str x29, %[fp]\n"
+       "ldr x28, %[ssp]\n"
+       "ldr x26, %[ag]\n"
+       "mov x25, %[constants]\n"
+       "mov x24, %[process]\n"
+       "mov x16, %[code]\n"
+       "ldr x29, %[fp]\n"
+       "stp x8,x9, [sp, #-16]!\n"
+       "stp x10,x11, [sp, #-16]!\n"
+       "stp x12,x13, [sp, #-16]!\n"
+       "blr x16\n"
+       "ldp x12,x13, [sp], #16\n"
+       "ldp x10,x11, [sp], #16\n"
+       "ldp x8,x9, [sp], #16\n"
+       "str w0, %[ret]\n"
+       "str X26, %[ag]\n"
+       "str x28, %[ssp]\n"
+       "str x29, %[fp]\n"
     : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
-    : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
-    [constants] "r"(constAnts)
-    : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
+  : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
+  [constants] "r"(constAnts)
+  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
 
   return ret;
 }
@@ -571,11 +571,11 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg tmp = findFreeReg(jit);
 
         mov(src, RG(SSP));
-        ldr(swp, PSX(src,-pointerSize));
+        ldr(swp, PSX(src, -pointerSize));
 
         for (int32 ix = 1; ix <= rotationHeight; ix++) {
-          ldr(tmp, PSX(src,-pointerSize));
-          str(tmp, OF(src,pointerSize));
+          ldr(tmp, PSX(src, -pointerSize));
+          str(tmp, OF(src, pointerSize));
         }
         str(swp, PRX(src, pointerSize));
         releaseReg(jit, swp);
@@ -802,13 +802,57 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case TstSav: {
         // test a sav, return a logical
+        armReg sng = popStkOp(jit, findFreeReg(jit));
+        armReg tr = findFreeReg(jit);
+        armReg fl = findFreeReg(jit);
+
+        ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
+        tst(sng, IM((integer) Null));
+        loadConstant(jit, falseIndex, fl);
+        loadConstant(jit, trueIndex, tr);
+        csel(sng, tr, fl, EQ);
+        pushStkOp(jit, sng);
+        releaseReg(jit, sng);
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
+
         return Error;
       }
-      case StSav: // store a value into a single assignment variable
-        return Error;
+      case StSav: { // store a value into a single assignment
+        armReg sng = popStkOp(jit, findFreeReg(jit));
+        armReg val = popStkOp(jit, findFreeReg(jit));
+
+        codeLblPo ok = newLabel(ctx);
+        armReg cont = findFreeReg(jit);
+        ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
+        cbnz(cont, ok);
+
+        bailOut(jit, "Single var already assigned");
+        bind(ok);
+        str(val, OF(sng, OffsetOf(SingleRecord, content)));
+        releaseReg(jit, cont);
+        releaseReg(jit, val);
+        releaseReg(jit, sng);
+        pc++;
+        continue;
+      }
       case TSav: {
-        // update single assignment variable leave value on stack
-        return Error;
+        armReg sng = popStkOp(jit, findFreeReg(jit));
+        armReg val = topStkOp(jit);
+
+        codeLblPo ok = newLabel(ctx);
+        armReg cont = findFreeReg(jit);
+        ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
+        cbnz(cont, ok);
+
+        bailOut(jit, "Single var already assigned");
+        bind(ok);
+        str(val, OF(sng, OffsetOf(SingleRecord, content)));
+        releaseReg(jit, cont);
+        releaseReg(jit, val);
+        releaseReg(jit, sng);
+        pc++;
+        continue;
       }
       case Cell: {
         // create R/W cell
