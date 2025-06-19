@@ -731,7 +731,7 @@ static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
 
 static void showCall(ioPo out, stackPo stk, termPo pr) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (isALabel(pr)) {
     methodPo callee = labelCode(C_LBL(pr));
@@ -748,7 +748,7 @@ static void showCall(ioPo out, stackPo stk, termPo pr) {
 
 static void showTCall(ioPo out, stackPo stk, termPo pr) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (isALabel(pr)) {
     methodPo callee = labelCode(C_LBL(pr));
@@ -765,7 +765,7 @@ static void showTCall(ioPo out, stackPo stk, termPo pr) {
 
 void showEntry(ioPo out, stackPo stk, termPo _call) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (showColors)
     outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16T", loc, mtd);
@@ -784,7 +784,7 @@ void showRet(ioPo out, stackPo stk, termPo val) {
 
 static void showAbort(ioPo out, stackPo stk, termPo reason) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (showColors)
     outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %L %T->%#,*T", loc, mtd, displayDepth, reason);
@@ -794,7 +794,7 @@ static void showAbort(ioPo out, stackPo stk, termPo reason) {
 
 void showAssign(ioPo out, stackPo stk, termPo vl) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
   termPo val = peekStack(stk, 1);
   termPo cell = topStack(stk);
 
@@ -806,7 +806,7 @@ void showAssign(ioPo out, stackPo stk, termPo vl) {
 
 void showSuspend(ioPo out, stackPo stk, termPo cont) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (showColors)
     outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T", loc, displayDepth, cont);
@@ -816,7 +816,7 @@ void showSuspend(ioPo out, stackPo stk, termPo cont) {
 
 void showResume(ioPo out, stackPo stk, termPo cont) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (showColors)
     outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T", loc, displayDepth, cont);
@@ -826,7 +826,7 @@ void showResume(ioPo out, stackPo stk, termPo cont) {
 
 void showRetire(ioPo out, stackPo stk, termPo cont) {
   methodPo mtd = stk->prog;
-  termPo loc = findPcLocation(mtd, codeOffset(mtd, stk->pc));
+  termPo loc = findLocation(mtd, codeOffset(mtd, stk->pc));
 
   if (showColors)
     outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%l %#,*T", loc, displayDepth, cont);

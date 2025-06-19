@@ -357,7 +357,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
                    StackTraceLevel level, methodPo prog, insPo pc) {
   assert(isMethod((termPo)prog));
 
-  termPo loc = findPcLocation(prog, codeOffset(prog, pc));
+  termPo loc = findLocation(prog, codeOffset(prog, pc));
 
   if (loc != Null)
     outMsg(out, "[%d] %L: %T", frameNo, loc, prog);

@@ -55,7 +55,7 @@ arrayPo fixedCopy(arrayPo ar, arrayDataCopy copier, arrayRelease release) {
   }else {
     new->data = malloc(ar->count * ar->elSize);
     memcpy(new->data, ar->data, ar->count * ar->elSize);
-    new->free = free;
+    new->free = freeArrayData;
   }
   new->dataLength = ar->dataLength;
   new->count = ar->count;
