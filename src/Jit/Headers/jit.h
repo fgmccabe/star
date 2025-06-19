@@ -11,7 +11,14 @@
 #include "engine.h"
 #include "escape.h"
 
-typedef termPo (*jittedCode)();
+
+typedef ReturnStatus (*jittedCode)();
+
+typedef struct {
+  jittedCode code;
+  uint32 codeSize;
+} CodeBlock;
+
 
 typedef integer (*Cfunc1)(integer arg1);
 typedef integer (*Cfunc2)(integer a1, integer a2);
@@ -23,7 +30,7 @@ void initJit();
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd);
 
-insPo jitPc(methodPo mtd, void *address);
+int32 jitPc(methodPo mtd, void *address);
 
 #ifdef TRACEJIT
 extern tracingLevel traceJit;

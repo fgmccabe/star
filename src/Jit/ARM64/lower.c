@@ -268,7 +268,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pshFrame(jit, ctx, X17);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         pc++;
         continue;
@@ -290,7 +290,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pshFrame(jit, ctx, X17);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         ret = tesResult(block, pc + block->code[pc].alt + 1);
         pc++;
@@ -315,7 +315,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pshFrame(jit, ctx, X17);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         pc++;
         continue;
@@ -339,7 +339,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pshFrame(jit, ctx, X17);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
 
         ret = tesResult(block, pc + block->code[pc].alt + 1);
@@ -365,7 +365,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         overrideFrame(jit, ctx, arity);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         ldr(X30, OF(FP, OffsetOf(StackFrame, link)));
         br(X16);
 
@@ -393,7 +393,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         overrideFrame(jit, ctx, arity);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         ldr(X30, OF(FP, OffsetOf(StackFrame, link)));
         br(X16);
 
@@ -742,7 +742,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pshFrame(jit, ctx, X17);
 
         // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit)));
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
 
         codeLblPo returnPc = newLabel(ctx);
         adr(LR, returnPc);
@@ -1251,7 +1251,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(a1, RG(a2));
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
-        csel(a1, a1, a2, GE);
+        csel(a1, a1, a2, LT);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
@@ -1272,7 +1272,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(a1, RG(a2));
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
-        csel(a1, a1, a2, LT);
+        csel(a1, a1, a2, GE);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);

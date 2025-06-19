@@ -22,9 +22,11 @@ int32 codeArity(methodPo mtd);
 labelPo mtdLabel(methodPo mtd);
 
 int32 codeSize(methodPo mtd);
-termPo findPcLocation(methodPo mtd, int32 pc);
+termPo findLocation(methodPo mtd, int32 pc);
 logical validPC(methodPo mtd, insPo pc);
 int32 codeOffset(methodPo mtd, insPo pc);
+
+termPo findLocationFromPc(methodPo mtd, void *address);
 
 integer callCount(methodPo mtd);
 

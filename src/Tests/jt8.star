@@ -150,49 +150,49 @@ test.jt8{
       X => showMsg("$(X)")
     };
 
-    -- assert isEven(2);
-    -- assert ~isEven(7);
+    assert isEven(2);
+    assert ~isEven(7);
 
-    -- try{
-    --   show mod(7,2);
-    --   show mod(-7,2);
-    --   show mod(7,-2);
-    --   show mod(6,0)
-    -- } catch {
-    --   Msg => showMsg("We got exception: #(Msg)")
-    -- };
+    try{
+      show mod(7,2);
+      show mod(-7,2);
+      show mod(7,-2);
+      show mod(6,0)
+    } catch {
+      Msg => showMsg("We got exception: #(Msg)")
+    };
 
-    -- assert abs(-4) == abs(4);
-    -- assert abs(4) == 4;
+    assert abs(-4) == abs(4);
+    assert abs(4) == 4;
 
-    -- assert ieq(4,4);
-    -- assert ~ieq(4,5);
+    assert ieq(4,4);
+    assert ~ieq(4,5);
 
-    -- assert ilt(4,5);
-    -- assert ~ilt(5,4);
+    assert ilt(4,5);
+    assert ~ilt(5,4);
     
-    -- assert ige(5,4);
-    -- assert ige(5,5);
-    -- assert ~ige(4,5);
+    assert ige(5,4);
+    assert ige(5,5);
+    assert ~ige(4,5);
 
-    -- assert iand(0x3434,0x4343) == 0x0;
-    -- assert ior(0x3434,0x4343) == 0x7777;
-    -- assert ixor(0x3434,0x4343) == 0x7777;
+    assert iand(0x3434,0x4343) == 0x0;
+    assert ior(0x3434,0x4343) == 0x7777;
+    assert ixor(0x3434,0x4343) == 0x7777;
 
-    -- assert ilsl(1,10)==1024;
-    -- assert ilsr(1024,10)==1;
-    -- assert iasr(1024,10)==1;
-    -- assert iasr(-1024,10)==-1;
+    assert ilsl(1,10)==1024;
+    assert ilsr(1024,10)==1;
+    assert iasr(1024,10)==1;
+    assert iasr(-1024,10)==-1;
 
-    -- assert not(56) == -57;
-    -- assert not(not(56)) == 56;
+    assert not(56) == -57;
+    assert not(not(56)) == 56;
 
-    -- assert add(1.0,2.0)==3.0;
-    -- assert add(1.0,-1.0)==2.0;
-    -- assert mul(2.0,4.0)==8.0;
+    assert add(1.0,2.0)==3.0;
+    assert add(1.0,-1.0)==2.0;
+    assert mul(2.0,4.0)==8.0;
 
-    -- assert fabs(-4.0) == fabs(4.0);
-    -- assert fabs(4.0) == 4.0;
+    assert fabs(-4.0) == fabs(4.0);
+    assert fabs(4.0) == 4.0;
 
     assert feq(4.0,4.0);
     assert ~feq(4.0,5.0);

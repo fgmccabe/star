@@ -19,8 +19,8 @@ typedef struct instruction_ {
 } Instruction;
 
 typedef struct method_ {
-  ClassRecord clss; // == specialClass
-  jittedCode jit;      // Jit'ed code
+  ClassRecord clss;   // == specialClass
+  CodeBlock jit;       // Jit'ed code
   arrayPo pcLocs;     // Location information
   integer entryCount;
   labelPo lbl;        // The label of this code
@@ -51,17 +51,17 @@ static inline void incEntryCount(methodPo mtd) { mtd->entryCount++; }
 
 static inline logical hasJit(methodPo mtd) {
   assert(mtd != Null);
-  return mtd->jit != Null;
+  return mtd->jit.code != Null;
 }
 
 static inline jittedCode jitCode(methodPo mtd) {
-  assert(mtd != Null && mtd->jit != Null);
-  return mtd->jit;
+  assert(mtd != Null && mtd->jit.code != Null);
+  return mtd->jit.code;
 }
 
 static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
 
-retCode setJitCode(methodPo mtd, jittedCode code, arrayPo pcLocs);
+retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize, arrayPo pcLocs);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 

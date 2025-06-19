@@ -39,7 +39,8 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
 
   if (ret == Ok) {
     sortPcLocs(jit);
-    ret = setJitCode(mtd, createCode(jit->assemCtx), fixedCopy(jit->pcLocs,Null,Null));
+    assemCtxPo ctx = jit->assemCtx;
+    ret = setJitCode(mtd, createCode(ctx), currentPc(ctx), fixedCopy(jit->pcLocs, Null, Null));
   }
   clearJitContext(jit);
 
@@ -76,53 +77,52 @@ comparison compLocs(arrayPo ar, integer ix, integer iy, void *cl) {
 }
 
 void sortPcLocs(jitCompPo jit) {
-  sortArray(jit->pcLocs, compLocs,Null);
+  sortArray(jit->pcLocs, compLocs, Null);
 }
 
-insPo jitPc(methodPo mtd, void *address) {
-  if (mtd->jit!=Null) {
+int32 jitPc(methodPo mtd, void *address) {
+  if (mtd->jit.code != Null) {
+    arrayPo locs = mtd->pcLocs;
     int32 start = 0;
-    int32 limit = termArity(locs) - 1;
+    int32 limit = (int32) arrayCount(locs) - 1;
+    uint32 offset = (uint32) (address - (void *) (mtd->jit.code));
 
-    int32 lowerPc = -1;
-    int32 upperPc = codeSize(mtd);
+    integer lowerPc = -1;
+    integer upperPc = mtd->jit.codeSize;
 
-    termPo lowerLoc = Null;
-    termPo upperLoc = Null;
+    pcMapEntryPo lowerEntry = Null;
+    pcMapEntryPo upperEntry = Null;
 
     while (limit >= start) {
       int32 mid = start + (limit - start) / 2;
 
-      normalPo midEntry = C_NORMAL(nthArg(locs, mid));
+      pcMapEntryPo midEntry = nthEntry(locs, mid);
 
-      int32 testPc = (int32) integerVal(nthArg(midEntry, 0));
+      int32 testPc = (int32) midEntry->offset;
 
-      if (testPc == pc)
-        return nthArg(midEntry, 1);
-      else if (testPc < pc) {
+      if (testPc == offset)
+        return midEntry->pc;
+      else if (testPc < offset) {
         start = mid + 1;
         if (testPc > lowerPc) {
           lowerPc = testPc;
-          lowerLoc = nthArg(midEntry, 1);
+          lowerEntry = midEntry;
         }
       } else {
         limit = mid - 1;
 
         if (testPc < upperPc) {
           upperPc = testPc;
-          upperLoc = nthArg(midEntry, 1);
+          upperEntry = midEntry;
         }
       }
     }
-    if (lowerLoc != Null)
-      return lowerLoc;
-    else if (upperLoc != Null)
-      return upperLoc;
+    if (lowerEntry != Null)
+      return (int32) lowerPc;
+    else if (upperEntry != Null)
+      return (int32) upperPc;
     else
-      return Null;
+      return -1;
   } else
-    return Null;
-  }
-  else
-    return Null;
+    return -1;
 }

@@ -100,7 +100,7 @@ integer mtdHash(specialClassPo cl, termPo o) {
 
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
-  return outMsg(out,"%%%s/%d",mtd->lbl->lbl.name,mtd->lbl->lbl.arity);
+  return outMsg(out, "%%%s/%d", mtd->lbl->lbl.name, mtd->lbl->lbl.arity);
 }
 
 labelPo mtdLabel(methodPo mtd) {
@@ -121,7 +121,7 @@ int32 codeOffset(methodPo mtd, insPo pc) {
   return (int32) (pc - mtd->instructions);
 }
 
-termPo findPcLocation(methodPo mtd, int32 pc) {
+termPo findLocation(methodPo mtd, int32 pc) {
   if (mtd->locs != Null && isNormalPo(mtd->locs)) {
     normalPo locs = C_NORMAL(mtd->locs);
 
@@ -168,6 +168,14 @@ termPo findPcLocation(methodPo mtd, int32 pc) {
     return Null;
 }
 
+termPo findLocationFromPc(methodPo mtd, void *address) {
+  int32 pc = jitPc(mtd, address);
+  if (pc >= 0)
+    return findLocation(mtd, pc);
+  else
+    return Null;
+}
+
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
   return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
@@ -177,7 +185,7 @@ integer callCount(methodPo mtd) {
 }
 
 logical hasJitCode(methodPo mtd) {
-  return (logical) (mtd->jit!=Null);
+  return (logical) (mtd->jit.code != Null);
 }
 
 packagePo loadedPackage(const char *package) {
@@ -252,7 +260,8 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 st
   mtd->entryCount = 0;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
-  mtd->jit = Null;
+  mtd->jit.code = Null;
+  mtd->jit.codeSize = 0;
   mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
   mtd->locs = locs;
@@ -272,7 +281,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
 
   char errMsg[MAXLINE];
   retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
-  if (ret!=Ok) {
+  if (ret != Ok) {
     logMsg(logFile, "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
     star_exit(200);
   }
@@ -326,9 +335,10 @@ void showMtdCounts(ioPo out) {
   }
 }
 
-retCode setJitCode(methodPo mtd, jittedCode code, arrayPo pcLocs) {
+retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize, arrayPo pcLocs) {
   assert(!hasJit(mtd));
-  mtd->jit = code;
+  mtd->jit.code = code;
+  mtd->jit.codeSize = codeSize;
   mtd->pcLocs = pcLocs;
   return Ok;
 }
