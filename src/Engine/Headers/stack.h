@@ -30,14 +30,15 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
 
 StackState stackState(stackPo tsk);
 
-stackPo newStack(heapPo H, termPo lam);
+stackPo newStack(heapPo H, logical execJit, termPo lam);
 stackPo attachStack(stackPo tsk, stackPo top);
 stackPo detachStack(stackPo base, stackPo top);
 stackPo dropStack(stackPo tsk);
+stackPo detachDropStack(stackPo base, stackPo top);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
-framePo pushFrame(stackPo stk, methodPo mtd);
+framePo pushFrame(stackPo stk, logical execJit, methodPo mtd);
 
 termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);

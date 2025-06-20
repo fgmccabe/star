@@ -168,6 +168,17 @@ void emitLblRef(assemCtxPo ctx, codeLblPo tgt) {
 }
 
 void emitU8(assemCtxPo ctx, uint8 byte) {
+  if (ctx->pc + 1 >= ctx->size) {
+    uint32 newSize = (ctx->size * 3) / 2;
+    void *newBuffer = realloc(ctx->bytes, newSize);
+    if (newBuffer != Null) {
+      ctx->bytes = newBuffer;
+      ctx->size = newSize;
+    } else {
+      logMsg(logFile, "Could not allocate buffer for code generation");
+      star_exit(100);
+    }
+  }
   assert(ctx->pc < ctx->size);
   ctx->bytes[ctx->pc++] = byte;
 }
