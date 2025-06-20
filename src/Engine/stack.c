@@ -163,7 +163,7 @@ void propagateHwm(stackPo tsk) {
   }
 }
 
-framePo pushFrame(stackPo stk, methodPo mtd) {
+framePo pushFrame(stackPo stk, logical execJit, methodPo mtd) {
   assert(stackHasSpace(stk, FrameCellCount));
   framePo f = stk->fp + 1;
 
@@ -171,7 +171,7 @@ framePo pushFrame(stackPo stk, methodPo mtd) {
   f->args = stk->args;
   f->link = stk->pc;
 
-  stk->pc = entryPoint(mtd);
+  stk->pc = (execJit?(insPo)jitCode(mtd):entryPoint(mtd));
   stk->prog = mtd;
   stk->args = stk->sp;
 
@@ -278,7 +278,7 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
   }
   totsk->sp = dst;
   fromtsk->sp += count;
-  pushFrame(totsk, fromtsk->prog);
+  pushFrame(totsk, False, fromtsk->prog);
   totsk->pc = fromtsk->pc;
 }
 
@@ -462,12 +462,12 @@ stackPo spinupStack(heapPo H, integer size) {
   return allocateStack(H, size, underflowProg, suspended, Null);
 }
 
-stackPo newStack(heapPo H, termPo lam) {
+stackPo newStack(heapPo H, logical execJit, termPo lam) {
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, labelCode(taskProg));
+  child->fp = pushFrame(child, execJit, labelCode(taskProg));
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -553,7 +553,13 @@ stackPo dropStack(stackPo tsk) {
   return previous;
 }
 
-logical isAttachedStack(stackPo base, stackPo tgt) {
+stackPo detachDropStack(stackPo base, stackPo top){
+  stackPo parent = detachStack(base,top);
+  dropStack(top);
+  return parent;
+}
+
+  logical isAttachedStack(stackPo base, stackPo tgt) {
   while (base != Null && base != tgt)
     base = base->attachment;
   return base == tgt;

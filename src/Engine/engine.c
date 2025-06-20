@@ -59,7 +59,7 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, active, Null);
 
   pushStack(stk, rootArg);
-  stk->fp = pushFrame(stk, mtd);
+  stk->fp = pushFrame(stk, False, mtd);
   P->tryCounter = 0;
 
   P->heap = h;

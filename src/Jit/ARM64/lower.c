@@ -226,7 +226,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
   insPo code = block->code;
 
   for (int32 pc = from; ret == Ok && pc < endPc;) {
-    recordPC(jit,pc,currentPc(ctx));
+    recordPC(jit, pc, currentPc(ctx));
     switch (code[pc].op) {
       case Halt: {
         // Stop execution
@@ -618,13 +618,116 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
       case Fiber: { // Create new fiber
+        ret = reserveReg(jit, X1);
+        if (ret == Ok) {
+          armReg lam = popStkOp(jit, X1);
+          ret = reserveReg(jit, X0);
+          if (ret == Ok) {
+            ldr(X0, OF(PR, OffsetOf(ProcessRec, heap)));
+            stashRegisters(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) newStack, 3, RG(X0),IM((integer)True), RG(X1));
+            if (ret == Ok) {
+              unstashRegisters(jit);
+              pushStkOp(jit, X0); // returned from newStack
+              releaseReg(jit, X0);
+              releaseReg(jit, X1);
+              pc++;
+              continue;
+            }
+          }
+        }
+        return jitError(jit, "could not reserve registers for FIber");
       }
       case Suspend: {// suspend fiber
+        armReg stk = popStkOp(jit, findFreeReg(jit));
+        armReg evt = popStkOp(jit, findFreeReg(jit));
+        armReg tmp = findFreeReg(jit);
+        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        codeLblPo skip = newLabel(ctx);
+        cmp(tmp, IM(active));
+        beq(skip);
+
+        bailOut(jit, 29);
+
+        bind(skip);
+        codeLblPo rtn = newLabel(ctx);
+        adr(X0, rtn);
+        stashRegisters(jit);
+        str(X0, OF(STK, OffsetOf(StackRecord, pc)));
+        stp(evt, XZR, PRX(SP, -2 * pointerSize));
+        callIntrinsic(ctx, (runtimeFn) detachStack, 2, RG(STK), RG(stk));
+        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
+        unstashRegisters(jit);
+        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
+        mov(STK, RG(X0));
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        pushStkOp(jit, evt);
+        br(X16);
+        bind(rtn);
+        pc++;
+        releaseReg(jit, tmp);
+        releaseReg(jit, evt);
+        releaseReg(jit, stk);
+        continue;
       }
       case Resume: { // resume fiber
+        armReg stk = popStkOp(jit, findFreeReg(jit));
+        armReg evt = popStkOp(jit, findFreeReg(jit));
+        armReg tmp = findFreeReg(jit);
+
+        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        codeLblPo skip = newLabel(ctx);
+        cmp(tmp, IM(suspended));
+        beq(skip);
+
+        bailOut(jit, 30);
+
+        bind(skip);
+        codeLblPo rtn = newLabel(ctx);
+        adr(X16, rtn);
+        str(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        stashRegisters(jit);
+        stp(evt, XZR, PRX(SP, -2 * pointerSize));
+        callIntrinsic(ctx, (runtimeFn) attachStack, 2, RG(STK), RG(stk));
+        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
+        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
+        mov(STK, RG(X0));
+        pushStkOp(jit, evt);
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        br(X16);
+        bind(rtn);
+        pc++;
+        continue;
       }
       case Retire: { // retire a fiber
-        return Error;
+        // Similar to suspend, except that we trash the suspending stack
+        armReg stk = popStkOp(jit, findFreeReg(jit));
+        armReg evt = popStkOp(jit, findFreeReg(jit));
+        armReg tmp = findFreeReg(jit);
+        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        codeLblPo skip = newLabel(ctx);
+        cmp(tmp, IM(active));
+        beq(skip);
+
+        bailOut(jit, 29);
+
+        bind(skip);
+        stashRegisters(jit);
+        str(X0, OF(STK, OffsetOf(StackRecord, pc)));
+        stp(evt, XZR, PRX(SP, -2 * pointerSize));
+        callIntrinsic(ctx, (runtimeFn) detachDropStack, 2, RG(STK), RG(stk));
+        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
+        unstashRegisters(jit);
+        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
+        mov(STK, RG(X0));
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        pushStkOp(jit, evt);
+        br(X16);
+        pc++;
+        releaseReg(jit, tmp);
+        releaseReg(jit, evt);
+        releaseReg(jit, stk);
+        continue;
       }
       case Underflow: {// underflow from current stack
         armReg val = popStkOp(jit, findFreeReg(jit));
@@ -633,8 +736,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         ret = callIntrinsic(ctx, (runtimeFn) dropStack, 1, RG(STK));
         unstashRegisters(jit);
         ldp(val, XZR, PSX(SP, 2 * pointerSize));
-        pushStkOp(jit,val);
-        releaseReg(jit,val);
+        pushStkOp(jit, val);
+        releaseReg(jit, val);
         pc++;
         continue;
       }
