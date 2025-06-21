@@ -2,7 +2,6 @@
 
 :-module(intrinsics,[isIntrinsic/4]).
 
-isIntrinsic("_abort",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("string")]),kVar("e")))),iAbort,noThrow).  % abort process
 isIntrinsic("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer")),iIAdd,noThrow).  % add two integers
 isIntrinsic("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer")),iISub,noThrow).  % subtract two integers
 isIntrinsic("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer")),iIMul,noThrow).  % multiply two integers

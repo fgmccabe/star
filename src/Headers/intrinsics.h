@@ -34,7 +34,6 @@
 #define ERR "t'errorCode'"
 
 /* Define the standard intrinsics */
-intrinsic(_abort,all(a,all(e,func(a str,e))),"Abort",False, "abort process")
 intrinsic(_int_plus, func(int int, int),"IAdd",True,"add two integers")
 intrinsic(_int_minus, func(int int, int),"ISub",True,"subtract two integers")
 intrinsic(_int_times, func(int int, int),"IMul",True,"multiply two integers")

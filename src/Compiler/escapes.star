@@ -7,7 +7,6 @@ star.compiler.escapes{
   public escapeType:(string)=>option[tipe].
   escapeType(Es) => case Es in {
     | "_exit" => .some(.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.kVar("e"))))
-    | "_abort" => .some(.allType(.kVar("a"),.allType(.kVar("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.kVar("a"),.nomnal("string")])),.kVar("e")))))
     | "_int_plus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_minus" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
     | "_int_times" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer"),.nomnal("integer")])),.nomnal("integer")))
@@ -251,7 +250,6 @@ star.compiler.escapes{
   public isEscape:(string)=>boolean.
   isEscape(Es) => case Es in {
     | "_exit" => .true
-    | "_abort" => .true
     | "_int_plus" => .true
     | "_int_minus" => .true
     | "_int_times" => .true

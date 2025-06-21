@@ -13,14 +13,13 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
     declareLocals(Lcls,LsMap,LcsTpl),
-    assemBlock(Ins,none,[],Ls1,Lts,Lns,[],0,_Pcx,LsMap,Cde,[]),
+    assemBlock(Ins,none,[],Ls1,Lts,0,_Pcx,LsMap,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     encPolicy(Pol,HP),
-    mkTpl(Lns,LnTpl),
     stackHwm(Ins,0,0,HWM),
     length(Lcls,Lx),
-    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),LtTpl,Code,LcsTpl,LnTpl],MTpl).
+    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),LtTpl,Code,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
@@ -43,14 +42,14 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
 stackHwm([],_,H,H).
 stackHwm([iLbl(_,I)|Ins],C,H,Hx) :-
   stackHwm([I|Ins],C,H,Hx).
-stackHwm([iLine(_)|Ins],C,H,Hx) :-
-  stackHwm(Ins,C,H,Hx).
 stackHwm([iHalt(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iNop|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
-stackHwm([iAbort|Ins],CH0,H0,Hwm) :-
-  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iAbort(_)|Ins],CH0,H0,Hwm) :-
+  CH1 is CH0-1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  stackHwm(Ins,CH1,H1,Hwm).
 stackHwm([iCall(_)|Ins],CH0,H0,Hwm) :-
   CH1 is CH0+1,
   (CH1>H0 -> H1 = CH1 ; H1 = H0),
@@ -342,7 +341,9 @@ stackHwm([iClosure(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
-stackHwm([iDBug|Ins],CH0,H0,Hwm) :-
+stackHwm([iLine(_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iDBug(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 
 
@@ -358,13 +359,11 @@ countLocal(Nm,Lcs,Lx,Hwm,H1) :-
 localHwm([],Cx,Cx,H,H).
 localHwm([iLbl(_,I)|Ins],C,Cx,H,Hx) :-
   localHwm([I|Ins],C,Cx,H,Hx).
-localHwm([iLine(_)|Ins],C,Cx,H,Hx) :-
-  localHwm(Ins,C,Cx,H,Hx).
 localHwm([iHalt(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iNop|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iAbort|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iAbort(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iCall(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
@@ -543,325 +542,330 @@ localHwm([iClosure(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iFrame(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
-localHwm([iDBug|Ins],C0,Cx,H0,Hwm) :-
+localHwm([iLine(_)|Ins],C0,Cx,H0,Hwm) :-
+  localHwm(Ins,C0,Cx,H0,Hwm).
+localHwm([iDBug(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 
 
-assemBlock(Ins,Lb,Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
-    mnem(Ins,[Lb|Lbs],Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx).
+assemBlock(Ins,Lb,Lbs,Lt,Lts,Pc,Pcx,LsMap,Code,Cdx) :-
+    mnem(Ins,[Lb|Lbs],Lt,Lts,Pc,Pcx,LsMap,Code,Cdx).
 
-mnem([],_,Lt,Lt,Lnx,Lnx,Pcx,Pcx,_LsMap,Cdx,Cdx).
-mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
+mnem([],_,Lt,Lt,Pcx,Pcx,_LsMap,Cdx,Cdx).
+mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Pc,Pcx,LsMap,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem([Inner],[(Lb,Base)|Lbs],Lt,Lt0,Ln,Ln1,Pc,Pc1,LsMap,Code,Cd0),
-      mnem(Ins,Lbs,Lt0,Lts,Ln1,Lnx,Pc1,Pcx,LsMap,Cd0,Cdx).
-mnem([iLine(Lne)|Ins],Lbs,Lt,Lts,[Line|Lns],Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
-  mkTpl([intgr(Pc),Lne],Line),
-  mnem(Ins,Lbs,Lt,Lts,Lns,Lnx,Pc,Pcx,LsMap,Code,Cdx).
-mnem([iHalt(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[0,V|M],Cdx) :-
+      mnem([Inner],[(Lb,Base)|Lbs],Lt,Lt0,Pc,Pc1,LsMap,Code,Cd0),
+      mnem(Ins,Lbs,Lt0,Lts,Pc1,Pcx,LsMap,Cd0,Cdx).
+mnem([iHalt(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[0,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iNop|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[1|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iNop|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[1|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iAbort|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[2|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[3,LtNo|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iAbort(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[2,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[4,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[3,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[5,V|M],Cdx) :-
+      findLit(Lt,V,LtNo,Lt1),
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[4,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iXCall(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[6,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[5,V|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iXCall(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[6,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iXOCall(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[7,V,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iXOCall(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[7,V,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iXEscape(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[8,V,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iXEscape(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[8,V,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[9,LtNo|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTCall(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[9,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTOCall(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[10,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTOCall(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[10,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iEntry(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[11,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iEntry(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[11,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iRet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[12|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iRet|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[12|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iXRet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[13|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iXRet|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[13|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[14,V,B|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBlock(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[14,V,B|M],Cdx) :-
       Pc1 is Pc+1,
-      assemBlock(W,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).
-mnem([iBreak(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[15,Lvl|M],Cdx) :-
-      Pc1 is Pc+1,
-      findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iResult(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[16,Lvl|M],Cdx) :-
+      assemBlock(W,none,Lbls,Lt,Lt1,Pc1,Pc2,LsMap,B,[]),
+      mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,M,Cdx).
+mnem([iBreak(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[15,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLoop(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[17,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iResult(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[16,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iDrop|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[18|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLoop(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[17,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iDup|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[19|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iDrop|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[18|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[20,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iDup|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[19|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iRst(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[21,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[20,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iPick(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[22,V,W|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iRst(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[21,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFiber|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[23|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iPick(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[22,V,W|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iSuspend|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[24|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFiber|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[23|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iResume|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[25|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iSuspend|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[24|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iRetire|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[26|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iResume|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[25|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iUnderflow|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[27|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iRetire|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[26|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdV|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[28|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iUnderflow|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[27|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[29,LtNo|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdV|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[28|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[29,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[30,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[30,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[31,Off|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[31,Off|M],Cdx) :-
       Pc1 is Pc+1,
       findLocal(V,LsMap,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[32,Off|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[32,Off|M],Cdx) :-
       Pc1 is Pc+1,
       findLocal(V,LsMap,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iStV(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[33,Off|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iStV(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[33,Off|M],Cdx) :-
       Pc1 is Pc+1,
       findLocal(V,LsMap,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[34,Off|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[34,Off|M],Cdx) :-
       Pc1 is Pc+1,
       findLocal(V,LsMap,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdG(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[35,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdG(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[35,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iStG(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[36,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iStG(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[36,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTG(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[37,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTG(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[37,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iSav|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[38|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iSav|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[38|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iLdSav(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[39,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLdSav(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[39,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTstSav|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[40|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTstSav|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[40|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iStSav|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[41|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iStSav|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[41|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iTSav|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[42|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iTSav|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[42|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCell|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[43|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCell|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[43|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iGet|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[44|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iGet|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[44|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iAssign|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[45|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iAssign|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[45|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCLbl(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[46,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCLbl(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[46,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCInt(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[47,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCInt(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[47,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCChar(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[48,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCChar(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[48,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCFlt(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[49,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCFlt(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[49,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCLit(V,W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[50,LtNo,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCLit(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[50,LtNo,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[51,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[51,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[52,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[52,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIf(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[53,Lvl|M],Cdx) :-
-      Pc1 is Pc+1,
-      findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIfNot(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[54,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIf(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[53,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iICase(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[55,V|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[56,V|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIxCase(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[57,V|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIAdd|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[58|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iISub|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[59|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIMul|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[60|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIDiv(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[61,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIfNot(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[54,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIMod(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[62,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iICase(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[55,V|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[56,V|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIxCase(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[57,V|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIAdd|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[58|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iISub|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[59|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIMul|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[60|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIDiv(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[61,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIAbs|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[63|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIEq|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[64|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iILt|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[65|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iIGe|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[66|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCEq|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[67|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCLt|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[68|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iCGe|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[69|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBAnd|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[70|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBOr|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[71|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBXor|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[72|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBLsl|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[73|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBLsr|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[74|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBAsr|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[75|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iBNot|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[76|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFAdd|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[77|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFSub|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[78|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFMul|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[79|M],Cdx) :-
-      Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFDiv(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[80,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIMod(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[62,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFMod(W)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[81,Lvl|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIAbs|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[63|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIEq|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[64|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iILt|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[65|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iIGe|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[66|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCEq|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[67|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCLt|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[68|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iCGe|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[69|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBAnd|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[70|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBOr|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[71|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBXor|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[72|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBLsl|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[73|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBLsr|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[74|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBAsr|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[75|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iBNot|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[76|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFAdd|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[77|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFSub|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[78|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFMul|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[79|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFDiv(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[80,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
       findLevel(W,Lbls,0,Lvl),
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFAbs|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[82|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFMod(W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[81,Lvl|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFEq|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[83|M],Cdx) :-
+      findLevel(W,Lbls,0,Lvl),
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFAbs|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[82|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFLt|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[84|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFEq|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[83|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFGe|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[85|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFLt|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[84|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[86,LtNo|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFGe|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[85|M],Cdx) :-
+      Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[86,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iClosure(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[87,LtNo|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iClosure(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[87,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[88,V|M],Cdx) :-
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[88,V|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iDBug|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[89|M],Cdx) :-
+      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[89,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).
+      findLit(Lt,V,LtNo,Lt1),
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iDBug(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[90,LtNo|M],Cdx) :-
+      Pc1 is Pc+1,
+      findLit(Lt,V,LtNo,Lt1),
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
 
 
 baseOffset([(_,Base)|_],Base).
@@ -953,10 +957,6 @@ showMnems([M|Ins],Pc,[MM|II]) :-
   showMnem(M,Pc,MM),
   bumpPc(Pc,Pc1),
   showMnems(Ins,Pc1,II).
-
-showMnem(iLine(U),Pc,sq([PcDx,ss(": "),ss("Line"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  ssTrm(U,0,UU).
 showMnem(iHalt(U),Pc,sq([PcDx,ss(": "),ss("Halt"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
@@ -964,8 +964,9 @@ showMnem(iHalt(U),Pc,sq([PcDx,ss(": "),ss("Halt"), ss(" "), UU])) :- !,
 showMnem(iNop,Pc,sq([PcDx,ss(": "),ss("Nop")])) :- !,
   showPc(Pc,PcDx),
   true.
-showMnem(iAbort,Pc,sq([PcDx,ss(": "),ss("Abort")])) :- !,
+showMnem(iAbort(U),Pc,sq([PcDx,ss(": "),ss("Abort"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
   true.
 showMnem(iCall(U),Pc,sq([PcDx,ss(": "),ss("Call"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
@@ -1283,12 +1284,17 @@ showMnem(iFrame(U),Pc,sq([PcDx,ss(": "),ss("Frame"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   UU=ix(U),
   true.
-showMnem(iDBug,Pc,sq([PcDx,ss(": "),ss("dBug")])) :- !,
+showMnem(iLine(U),Pc,sq([PcDx,ss(": "),ss("Line"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  true.
+showMnem(iDBug(U),Pc,sq([PcDx,ss(": "),ss("dBug"), ss(" "), UU])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
   true.
 
 
-opcodeHash(174423395768789417).
+opcodeHash(84721529136952277).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

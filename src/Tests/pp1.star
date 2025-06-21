@@ -33,7 +33,7 @@ test.pp1{
       | .eEOF => valis []
       | Other => {
 	showMsg("io error: $(Other)");
-	_abort(Other,"error")
+	_exit(9)
       }
     }
   }

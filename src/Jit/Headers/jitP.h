@@ -101,6 +101,4 @@ logical isI32(int64 x);
 
 retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 
-retCode recordPC(jitCompPo jit, int32 pc, uint32 offset);
-
 #endif //STAR_JITP_H

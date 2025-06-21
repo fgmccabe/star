@@ -14,19 +14,17 @@
 
 typedef struct instruction_ {
   OpCode op;
-  int32 fst; // First integer operand
-  int32 alt; // but some may also have a second operand
+  int32 fst; // First operand
+  int32 alt; // some may also have a second operand
 } Instruction;
 
 typedef struct method_ {
   ClassRecord clss;   // == specialClass
-  CodeBlock jit;       // Jit'ed code
-  arrayPo pcLocs;     // Location information
+  CodeBlock jit;      // Jit'ed code
   integer entryCount;
   labelPo lbl;        // The label of this code
   int32 lclcnt;       // How many locals in the environment
   int32 stackDelta;   // How much space to allocate for the stack
-  termPo locs;        // Sorted array of location information
   int32 insCount;     // How many instructions are there in the code?
   insPo instructions; // The actual instructions
 } MethodRec;
@@ -61,12 +59,11 @@ static inline jittedCode jitCode(methodPo mtd) {
 
 static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
 
-retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize, arrayPo pcLocs);
+retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
-methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
-                   int32 stackHeight, labelPo lbl, termPo locs);
+methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl);
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       insPo instructions, termPo sigTerm, int32 lcls);

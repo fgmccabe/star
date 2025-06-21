@@ -51,7 +51,7 @@ retCode run(processPo P) {
         continue;
       }
       case Abort: {
-        termPo lc = pop();
+        termPo lc = getConstant(PC->fst);
         termPo msg = pop();
         saveRegisters();
         abort_star(P, lc, msg);
@@ -1068,9 +1068,24 @@ retCode run(processPo P) {
 
       case dBug: {
         if (lineDebugging) {
+          termPo loc = getConstant(PC->fst);
           PC++; // We aim to continue at the next instruction
           saveRegisters();
-          enterDebug(P);
+          enterDebug(P, loc);
+          restoreRegisters();
+          continue;
+        } else {
+          PC++;
+          continue;
+        }
+      }
+
+      case Line: {
+        if (lineDebugging) {
+          termPo loc = getConstant(PC->fst);
+          PC++; // We aim to continue at the next instruction
+          saveRegisters();
+          lineDebug(P, loc);
           restoreRegisters();
           continue;
         } else {

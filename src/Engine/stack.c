@@ -7,6 +7,7 @@
 #include "stackP.h"
 #include <assert.h>
 #include <globals.h>
+#include "constants.h"
 
 #ifdef TRACESTACK
 tracingLevel traceStack = noTracing; // stack operation tracing
@@ -357,7 +358,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
                    StackTraceLevel level, methodPo prog, insPo pc) {
   assert(isMethod((termPo)prog));
 
-  termPo loc = findLocation(prog, codeOffset(prog, pc));
+  termPo loc = (pc-1)->op==dBug?getConstant((pc-1)->fst):Null;
 
   if (loc != Null)
     outMsg(out, "[%d] %L: %T", frameNo, loc, prog);

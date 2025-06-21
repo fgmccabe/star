@@ -39,8 +39,6 @@ static void genLocalHwm(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2
 
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
 
-static integer staropHash();
-
 int main(int argc, char **argv) {
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
@@ -128,7 +126,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Show", showCode);
 
     static char hashBuff[64];
-    strMsg(hashBuff, NumberOf(hashBuff), "%ld", staropHash());
+    strMsg(hashBuff, NumberOf(hashBuff), "%ld", OPCODE_SIGNATURE);
     hashPut(vars, "Hash", hashBuff);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
@@ -182,7 +180,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
   if (strcmp(sep, ",") == 0)
     outStr(out, ")");
 
-  outMsg(out, "|Ins],Lbls,Lt,Ltx,Ln,Lnx,Pc,Pcx,LsMap,[%d", op);
+  outMsg(out, "|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[%d", op);
 
   // Mega hack :(
   switch (A1) {
@@ -192,27 +190,27 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case i32: {
           outMsg(out, ",W|M],Cdx) :-\n");
           outMsg(out, "     Pc1 is Pc+1,\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case bLk: {
           outMsg(out, ",Lm|B],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      assemBlock(V,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      assemBlock(V,none,Lbls,Lt,Lt1,Pc1,Pc2,LsMap,B,[]),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case lVl: {
           outMsg(out, ",Lvl|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         default:
           outMsg(out, "|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
       }
       break;
@@ -225,7 +223,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",LtNo|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case i32:
         case art:
@@ -234,7 +232,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",LtNo,W|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lcs:
         case lcl: {
@@ -242,15 +240,15 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      findLocal(W,LsMap,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case bLk: {
           outMsg(out, ",LtNo,B|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-          outMsg(out, "      assemBlock(W,none,Lbls,Lt1,Lt2,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt2,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      assemBlock(W,none,Lbls,Lt1,Lt2,Pc1,Pc2,LsMap,B,[]),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt2,Ltx,Pc2,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case lVl:
@@ -258,7 +256,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
@@ -274,7 +272,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case tOs:
           outMsg(out, ",V|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case i32:
         case art:
@@ -283,26 +281,26 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case Es:
           outMsg(out, ",V,W|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case bLk: {
           outMsg(out, ",V,B|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      assemBlock(W,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      assemBlock(W,none,Lbls,Lt,Lt1,Pc1,Pc2,LsMap,B,[]),\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case lVl:
           outMsg(out, ",V,Lvl|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lit:
           outMsg(out, ",V,LtNo|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
@@ -316,7 +314,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",Off|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLocal(V,LsMap,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lcs:
         case lcl: {
@@ -324,21 +322,21 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      declareLocal(V,Lc,Lc0,VOff),\n");
           outMsg(out, "      findLocal(W,LsMap,WOff),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case lVl:
           outMsg(out, ",V,Lvl|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lit: // Special case: we know we are declaring the variable
           outMsg(out, ",Off,LtNo|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLocal(V,LsMap,Off),\n");
           outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbl0,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
@@ -353,7 +351,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, ",Off|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLocal(V,LsMap,Off),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lcl:
         case lcs: {
@@ -361,7 +359,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLocal(V,LsMap,VOff),\n");
           outMsg(out, "      findLocal(W,LsMap,WOff),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         case lVl:
@@ -375,7 +373,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLocal(V,LsMap,Off),\n");
           outMsg(out, "      findLit(Lt,W,LtNo,Lt1),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         default:
           check(False, "Cannot generate instruction");
@@ -389,13 +387,13 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
         case tOs:
           outMsg(out, ",V|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         case lVl:{
           outMsg(out, ",V,Lvl|M],Cdx) :-\n");
           outMsg(out, "      Pc1 is Pc+1,\n");
           outMsg(out, "      findLevel(W,Lbls,0,Lvl),\n");
-          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+          outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
           break;
         }
         default:
@@ -407,13 +405,13 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, opAndSpec A
       outMsg(out, ",Lvl|M],Cdx) :-\n");
       outMsg(out, "      Pc1 is Pc+1,\n");
       outMsg(out, "      findLevel(V,Lbls,0,Lvl),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Ln,Lnx,Pc1,Pcx,LsMap,M,Cdx).\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt,Ltx,Pc1,Pcx,LsMap,M,Cdx).\n");
       break;
     case bLk:
       outMsg(out, ",B|M],Cdx) :-\n");
       outMsg(out, "      Pc1 is Pc+1,\n");
-      outMsg(out, "      assemBlock(V,none,Lbls,Lt,Lt1,Ln,Ln1,Pc1,Pc2,LsMap,B,[]),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Ln1,Lnx,Pc2,Pcx,LsMap,M,Cdx).\n");
+      outMsg(out, "      assemBlock(V,none,Lbls,Lt,Lt1,Pc1,Pc2,LsMap,B,[]),\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,M,Cdx).\n");
     default:
       break;
       check(False, "Cannot generate instruction");

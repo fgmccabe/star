@@ -7,7 +7,6 @@ star.compiler.intrinsics{
 
   public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean)].
   intrinsic(Es) => case Es in {
-    | "_abort" => .some((.allType(.nomnal("a"),.allType(.nomnal("e"),.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("a"),strType])),.nomnal("e")))),(_)=>.iAbort, .false))  -- abort process
     | "_int_plus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),(_)=>.iIAdd, .true))  -- add two integers
     | "_int_minus" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),(_)=>.iISub, .true))  -- subtract two integers
     | "_int_times" => .some((.tpExp(.tpExp(.tpFun("=>",2),.tupleType([intType,intType])),intType),(_)=>.iIMul, .true))  -- multiply two integers

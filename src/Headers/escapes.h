@@ -37,7 +37,6 @@
 
 /* Define the standard escapes */
 escape(_exit, all(e, func(int, e)), "terminate engine")
-escape(_abort, all(a, all(e, func(a strng, e))), "abort process")
 
 escape(_int_plus, func(int int, int), "add two integers")
 escape(_int_minus, func(int int, int), "subtract two integers")

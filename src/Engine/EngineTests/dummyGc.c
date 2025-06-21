@@ -18,6 +18,3 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return Error;
 }
 
-int32 jitPc(methodPo mtd, void *address) {
-  return -1;
-}
