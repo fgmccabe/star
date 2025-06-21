@@ -226,7 +226,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
   insPo code = block->code;
 
   for (int32 pc = from; ret == Ok && pc < endPc;) {
-    recordPC(jit, pc, currentPc(ctx));
     switch (code[pc].op) {
       case Halt: {
         // Stop execution
@@ -242,7 +241,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // abort with message
         reserveReg(jit, X1);
         reserveReg(jit, X2);
-        popStkOp(jit, X1);
+        loadConstant(jit, code[pc].fst, X1);
         popStkOp(jit, X2);
         stashRegisters(jit);
         callIntrinsic(ctx, (runtimeFn) abort_star, 3, RG(PR), RG(X1), RG(X2));
@@ -625,7 +624,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           if (ret == Ok) {
             ldr(X0, OF(PR, OffsetOf(ProcessRec, heap)));
             stashRegisters(jit);
-            ret = callIntrinsic(ctx, (runtimeFn) newStack, 3, RG(X0),IM((integer)True), RG(X1));
+            ret = callIntrinsic(ctx, (runtimeFn) newStack, 3, RG(X0), IM((integer) True), RG(X1));
             if (ret == Ok) {
               unstashRegisters(jit);
               pushStkOp(jit, X0); // returned from newStack
@@ -925,10 +924,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg tr = findFreeReg(jit);
         armReg fl = findFreeReg(jit);
 
-        ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
-        tst(sng, IM((integer) Null));
         loadConstant(jit, falseIndex, fl);
         loadConstant(jit, trueIndex, tr);
+        ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
+        tst(sng, IM((integer) Null));
         csel(sng, tr, fl, EQ);
         pushStkOp(jit, sng);
         releaseReg(jit, sng);
@@ -1330,14 +1329,19 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
+        armReg fl = findFreeReg(jit);
+        armReg tr = findFreeReg(jit);
+        loadConstant(jit, falseIndex, fl);
+        loadConstant(jit, trueIndex, tr);
+
         cmp(a1, RG(a2));
-        loadConstant(jit, falseIndex, a1);
-        loadConstant(jit, trueIndex, a2);
-        csel(a1, a1, a2, NE);
+        csel(a1, fl, tr, NE);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
 
         pc++;
         continue;
@@ -1351,14 +1355,19 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
+        armReg fl = findFreeReg(jit);
+        armReg tr = findFreeReg(jit);
+        loadConstant(jit, falseIndex, fl);
+        loadConstant(jit, trueIndex, tr);
+
         cmp(a1, RG(a2));
-        loadConstant(jit, falseIndex, a1);
-        loadConstant(jit, trueIndex, a2);
-        csel(a1, a1, a2, LT);
+        csel(a1, tr, fl, LT);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
+        releaseReg(jit,fl);
+        releaseReg(jit,tr);
 
         pc++;
         continue;
@@ -1372,15 +1381,20 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         getIntVal(jit, a1);
         getIntVal(jit, a2);
 
+        armReg fl = findFreeReg(jit);
+        armReg tr = findFreeReg(jit);
+        loadConstant(jit, falseIndex, fl);
+        loadConstant(jit, trueIndex, tr);
+
         cmp(a1, RG(a2));
-        loadConstant(jit, falseIndex, a1);
-        loadConstant(jit, trueIndex, a2);
-        csel(a1, a1, a2, GE);
+        csel(a1, tr, fl, GE);
         pushStkOp(jit, a1);
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
-
+        releaseReg(jit,fl);
+        releaseReg(jit,tr);
+        
         pc++;
         continue;
       }
@@ -1761,6 +1775,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
       case dBug: // debugging prefix
+      case Line: {
+        pc++;
+        continue;
+      }
       case maxOpCode:
       case illegalOp:
         return Error;

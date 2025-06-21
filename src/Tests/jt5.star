@@ -41,4 +41,8 @@ test.jt5{
 
     valis ()
   }
+
+  _main:(cons[string]) => ().
+  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
+  _main(_) => main(10).
 }  

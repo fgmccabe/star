@@ -104,7 +104,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
       closeIo(file);
 
-      if(ret!=Ok){
+      if (ret != Ok) {
         logMsg(logFile, "package %P not loaded", pkg);
       }
       return ret;
@@ -256,7 +256,7 @@ static char *structPreamble = "n3o3\1struct\1";
 static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
-static char *funcPreamble = "n9o9\1func\1";
+static char *funcPreamble = "n8o8\1func\1";
 
 typedef enum {
   hardDef,
@@ -395,28 +395,22 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         ret = decode(in, &support, H, &locals, tmpBuffer);
 
         if (ret == Ok) {
-          termPo locs = voidEnum;
-          gcAddRoot(H, &locs);
-          ret = decode(in, &support, H, &locs, tmpBuffer);
+          labelPo lbl = declareLbl(prgName, arity, -1);
 
-          if (ret == Ok) {
-            labelPo lbl = declareLbl(prgName, arity, -1);
+          if (labelCode(lbl) != Null) {
+            if (redefine != softDef) {
+              strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+              ret = Error;
+            } // Otherwise don't redefine
+          } else {
+            gcAddRoot(H, (ptrPo) &lbl);
 
-            if (labelCode(lbl) != Null) {
-              if (redefine != softDef) {
-                strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-                ret = Error;
-              } // Otherwise don't redefine
-            } else {
-              gcAddRoot(H, (ptrPo) &lbl);
+            methodPo mtd = defineMtd(H, insCount, instructions, lclCount, stackHeight, lbl);
+            if (enableVerify)
+              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
-              methodPo mtd = defineMtd(H, insCount, instructions, lclCount, stackHeight, lbl, locs);
-              if (enableVerify)
-                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-
-              if (ret == Ok && jitOnLoad)
-                ret = jitMethod(mtd, errorMsg, msgSize);
-            }
+            if (ret == Ok && jitOnLoad)
+              ret = jitMethod(mtd, errorMsg, msgSize);
           }
         }
       }

@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include "quick.h"
 #include "pkgP.h"
-#include "arith.h"
 
 static poolPo pkgPool;
 static poolPo mtdPool;
@@ -70,14 +69,11 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   methodPo mtd = C_MTD(o);
 
   helper((ptrPo) &mtd->lbl, c);
-  helper((ptrPo) &mtd->locs, c);
 
   return ((termPo) o) + mtdSize(cl, o);
 }
 
 void markMethod(methodPo mtd, gcSupportPo G) {
-  if (mtd->locs != Null)
-    mtd->locs = markPtr(G, &mtd->locs);
 }
 
 termPo codeFinalizer(specialClassPo class, termPo o) {
@@ -119,61 +115,6 @@ logical validPC(methodPo mtd, insPo pc) {
 int32 codeOffset(methodPo mtd, insPo pc) {
   assert(validPC(mtd, pc));
   return (int32) (pc - mtd->instructions);
-}
-
-termPo findLocation(methodPo mtd, int32 pc) {
-  if (mtd->locs != Null && isNormalPo(mtd->locs)) {
-    normalPo locs = C_NORMAL(mtd->locs);
-
-    int32 start = 0;
-    int32 limit = termArity(locs) - 1;
-
-    int32 lowerPc = -1;
-    int32 upperPc = codeSize(mtd);
-
-    termPo lowerLoc = Null;
-    termPo upperLoc = Null;
-
-    while (limit >= start) {
-      int32 mid = start + (limit - start) / 2;
-
-      normalPo midEntry = C_NORMAL(nthArg(locs, mid));
-
-      int32 testPc = (int32) integerVal(nthArg(midEntry, 0));
-
-      if (testPc == pc)
-        return nthArg(midEntry, 1);
-      else if (testPc < pc) {
-        start = mid + 1;
-        if (testPc > lowerPc) {
-          lowerPc = testPc;
-          lowerLoc = nthArg(midEntry, 1);
-        }
-      } else {
-        limit = mid - 1;
-
-        if (testPc < upperPc) {
-          upperPc = testPc;
-          upperLoc = nthArg(midEntry, 1);
-        }
-      }
-    }
-    if (lowerLoc != Null)
-      return lowerLoc;
-    else if (upperLoc != Null)
-      return upperLoc;
-    else
-      return Null;
-  } else
-    return Null;
-}
-
-termPo findLocationFromPc(methodPo mtd, void *address) {
-  int32 pc = jitPc(mtd, address);
-  if (pc >= 0)
-    return findLocation(mtd, pc);
-  else
-    return Null;
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -250,8 +191,7 @@ int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
-methodPo
-defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl, termPo locs) {
+methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
 
   methodPo mtd = (methodPo) allocPool(mtdPool);
@@ -264,7 +204,6 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 st
   mtd->jit.codeSize = 0;
   mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
-  mtd->locs = locs;
   mtd->stackDelta = stackHeight;
 
   lbl->mtd = mtd;
@@ -277,7 +216,7 @@ defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 st
 labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, 0, lbl, Null);
+  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, 0, lbl);
 
   char errMsg[MAXLINE];
   retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
@@ -335,10 +274,9 @@ void showMtdCounts(ioPo out) {
   }
 }
 
-retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize, arrayPo pcLocs) {
+retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize) {
   assert(!hasJit(mtd));
   mtd->jit.code = code;
   mtd->jit.codeSize = codeSize;
-  mtd->pcLocs = pcLocs;
   return Ok;
 }

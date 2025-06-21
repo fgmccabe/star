@@ -3,7 +3,6 @@
 :-module(escapes,[isEscape/1,escapeType/2]).
 
 escapeType("_exit",allType(kVar("e"),funType(tplType([type("integer")]),kVar("e")))).
-escapeType("_abort",allType(kVar("a"),allType(kVar("e"),funType(tplType([kVar("a"),type("string")]),kVar("e"))))).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer"))).
 escapeType("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer"))).
@@ -244,7 +243,6 @@ escapeType("_jit_compile",funType(tplType([type("string"),type("integer")]),tplT
 
 
 isEscape("_exit").
-isEscape("_abort").
 isEscape("_int_plus").
 isEscape("_int_minus").
 isEscape("_int_times").

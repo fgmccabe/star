@@ -30,8 +30,6 @@ void initJit();
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd);
 
-int32 jitPc(methodPo mtd, void *address);
-
 #ifdef TRACEJIT
 extern tracingLevel traceJit;
 #endif

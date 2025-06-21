@@ -19,8 +19,7 @@ star.compiler.assem{
 
   public assemOp ::=
 #(OpCodes)
-    | .iLbl(string, assemOp)
-    | .iLine(data).
+    | .iLbl(string, assemOp).
 
   public assemLbl ~> string.
 
@@ -34,7 +33,7 @@ star.compiler.assem{
       valis mkCons("func",
           [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
           .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
-           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))),mkTpl(Lns::cons[data])])
+           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))))])
     }
     | .struct(Lbl,Tp,Ix) => mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
     | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
@@ -54,22 +53,21 @@ star.compiler.assem{
   lblLevel ~> option[assemLbl].
 
   private assemBlock:(multi[assemOp],multi[data],integer,
-                      cons[lblLevel],map[data,integer],map[string,integer],set[data]) =>
-                                        (multi[data],integer,map[data,integer],set[data]).
-  assemBlock([],Code,Pc,Lbls,Lts,_Lcx,Lns) => (Code,Pc,Lts,Lns).
-  assemBlock([I,..Ins],SoFar,Pc,Lbs,Lts,Lcx,Lns) => valof{
-    (Code,Pc1,Lt0,Ln0) = mnem(I,Pc,Lbs,Lts,Lcx,Lns);
-    valis assemBlock(Ins,SoFar++Code,Pc1,Lbs,Lt0,Lcx,Ln0)
+                      cons[lblLevel],map[data,integer],map[string,integer]) =>
+                                        (multi[data],integer,map[data,integer]).
+  assemBlock([],Code,Pc,Lbls,Lts,_Lcx) => (Code,Pc,Lts).
+  assemBlock([I,..Ins],SoFar,Pc,Lbs,Lts,Lcx) => valof{
+    (Code,Pc1,Lt0) = mnem(I,Pc,Lbs,Lts,Lcx);
+    valis assemBlock(Ins,SoFar++Code,Pc1,Lbs,Lt0,Lcx)
   }
 
-  private mnem:(assemOp,integer,cons[lblLevel],map[data,integer],map[string,integer],set[data]) =>
-    (multi[data],integer,map[data,integer],set[data]).
-  mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs,Lns) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs,Lns).
-  mnem(.iLine(Lne),Pc,Lbls,Lts,Lcs,Lns) => ([],Pc,Lts,Lns\+mkTpl([.intgr(Pc),Lne])).
+  private mnem:(assemOp,integer,cons[lblLevel],map[data,integer],map[string,integer]) =>
+    (multi[data],integer,map[data,integer]).
+  mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs).
 #(Mnem)
-  mnem(I,Pc,Lbls,Lts,Lcs,Lns) => valof{
+  mnem(I,Pc,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
-    valis ([],Pc,Lts,Lns)
+    valis ([],Pc,Lts)
   }.
 
   private stackHwm:(multi[assemOp]) => integer.
@@ -81,7 +79,6 @@ star.compiler.assem{
     (CH1,H1) = stkHwm([I],CH,Hwm);
     valis stkHwm(Ins,CH1,H1)
   }
-  stkHwm([.iLine(_),..Ins],CH,Hwm) => stkHwm(Ins,CH,Hwm).
 #(stackHwm)
 
   findLit:(map[data,integer],data) => (map[data,integer],integer).
@@ -123,7 +120,6 @@ star.compiler.assem{
 
   showIns:(assemOp,cons[integer]) => string.
   showIns(.iLbl(Lb,I),Pc) => "\#(Lb):  \#(showIns(I,Pc))".
-  showIns(.iLine(D),Pc) => "Line $(D)".
 #(Show)
 
   showPc:(cons[integer]) => string.

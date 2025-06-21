@@ -15,7 +15,6 @@
 char *templateFn = "opcodes.plate";
 char date[MAXLINE] = "";
 
-
 int getOptions(int argc, char **argv) {
   int opt;
 
@@ -85,7 +84,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "OpCodes", typeCode);
 
     static char hashBuff[64];
-    strMsg(hashBuff,NumberOf(hashBuff),"%ld",staropHash());
+    strMsg(hashBuff, NumberOf(hashBuff), "%ld", staropHash());
     hashPut(vars, "Hash", hashBuff);
 
     // Set up the names of the opcodes
@@ -95,7 +94,9 @@ int main(int argc, char **argv) {
 
 #undef instruction
 #define instruction(M, A1, A2, Dl, Cmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
+
 #include "instructions.h"
+
 #undef instruction
 
     integer nmLen;
@@ -111,19 +112,19 @@ int main(int argc, char **argv) {
 }
 
 void insOp(ioPo out, char *mnem, int op, char *cmt) {
-  outMsg(out, "    %s = %d,            // %s\n", mnem,op,cmt);
+  outMsg(out, "    %s = %d,            // %s\n", mnem, op, cmt);
 }
 
-static integer opHash(char *mnem,int op){
-  return hash61(strhash(mnem)*37+op);
+static integer opHash(char *mnem, int op, char *and1, char *and2) {
+  return hash61(((strhash(mnem) * 37 + op) * 39 + strhash(and1)) * 39 + strhash(and2));
 }
 
-integer staropHash(){
+integer staropHash() {
   integer hash = 0;
   int Op = 0;
 
 #undef instruction
-#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,Op)); Op++;
+#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,Op,#A1,#A2)); Op++;
 
 #include "instructions.h"
 

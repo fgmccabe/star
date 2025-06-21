@@ -141,10 +141,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         break;
       case Abort: {
+        int32 constant = code[pc].fst;
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Abort should be last instruction in block", pc);
         else {
-          if (stackDepth < 2)
+          if (stackDepth < 1)
             return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
           propagateVars(&ctx, parentCtx);
           return Ok;
@@ -544,7 +548,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case CLit:{
+      case CLit: {
         int32 key = code[pc].fst;
         if (!isDefinedConstant(key))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
@@ -556,11 +560,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case CInt:{
+      case CInt: {
         int32 key = code[pc].fst;
         termPo lit = getConstant(key);
 
-        if (lit==Null || !isInteger(lit))
+        if (lit == Null || !isInteger(lit))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
@@ -570,11 +574,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case CFlt:{
+      case CFlt: {
         int32 key = code[pc].fst;
         termPo lit = getConstant(key);
 
-        if (lit==Null || !isFloat(lit))
+        if (lit == Null || !isFloat(lit))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
@@ -584,11 +588,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case CChar:{
+      case CChar: {
         int32 key = code[pc].fst;
         termPo lit = getConstant(key);
 
-        if (lit==Null || !isChar(lit))
+        if (lit == Null || !isChar(lit))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
@@ -794,10 +798,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         pc++;
         continue;
       }
-      case dBug:
+      case Line:
+      case dBug: {
+        int32 constant = code[pc].fst;
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
         pc++;
         continue;
-
+      }
       default:
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }

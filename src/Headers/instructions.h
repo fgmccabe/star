@@ -17,7 +17,7 @@
 instruction(Halt, i32, nOp, 0, "Stop execution")
 instruction(Nop, nOp, nOp, 0, "No operation")
 
-instruction(Abort, tOs, tOs, 0, "abort with message")
+instruction(Abort, lit, tOs, -1, "abort with message")
 
 instruction(Call, sym, nOp, 1, "Call <prog>")
 instruction(OCall, art, tOs, 1, "OCall")
@@ -125,4 +125,5 @@ instruction(Closure, sym, tOs, 0, "allocate a closure")
 
 instruction(Frame, i32, nOp, 0, "frame instruction")
 
-instruction(dBug, nOp, nOp, 0, "debugging prefix")
+instruction(Line, lit, nOp, 0, "source line indicator")
+instruction(dBug, lit, nOp, 0, "debugging prefix")

@@ -13,14 +13,13 @@ assem(func(Nm,Pol,Sig,Lcls,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
     declareLocals(Lcls,LsMap,LcsTpl),
-    assemBlock(Ins,none,[],Ls1,Lts,Lns,[],0,_Pcx,LsMap,Cde,[]),
+    assemBlock(Ins,none,[],Ls1,Lts,0,_Pcx,LsMap,Cde,[]),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     encPolicy(Pol,HP),
-    mkTpl(Lns,LnTpl),
     stackHwm(Ins,0,0,HWM),
     length(Lcls,Lx),
-    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),LtTpl,Code,LcsTpl,LnTpl],MTpl).
+    mkCons("func",[Nm,HP,intgr(SgIx),intgr(HWM),intgr(Lx),LtTpl,Code,LcsTpl],MTpl).
 assem(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
 assem(tipe(Tp,Rl,Map),Tpl) :-
@@ -43,8 +42,6 @@ encMap([(Lbl,Ix)|Map],[E|MM]) :-
 stackHwm([],_,H,H).
 stackHwm([iLbl(_,I)|Ins],C,H,Hx) :-
   stackHwm([I|Ins],C,H,Hx).
-stackHwm([iLine(_)|Ins],C,H,Hx) :-
-  stackHwm(Ins,C,H,Hx).
 #(stackHwm)
 
 countLocal(Nm,Lcs,Lcs,Hwm,Hwm) :-
@@ -59,21 +56,16 @@ countLocal(Nm,Lcs,Lx,Hwm,H1) :-
 localHwm([],Cx,Cx,H,H).
 localHwm([iLbl(_,I)|Ins],C,Cx,H,Hx) :-
   localHwm([I|Ins],C,Cx,H,Hx).
-localHwm([iLine(_)|Ins],C,Cx,H,Hx) :-
-  localHwm(Ins,C,Cx,H,Hx).
 #(localHwm)
 
-assemBlock(Ins,Lb,Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
-    mnem(Ins,[Lb|Lbs],Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx).
+assemBlock(Ins,Lb,Lbs,Lt,Lts,Pc,Pcx,LsMap,Code,Cdx) :-
+    mnem(Ins,[Lb|Lbs],Lt,Lts,Pc,Pcx,LsMap,Code,Cdx).
 
-mnem([],_,Lt,Lt,Lnx,Lnx,Pcx,Pcx,_LsMap,Cdx,Cdx).
-mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Ln,Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
+mnem([],_,Lt,Lt,Pcx,Pcx,_LsMap,Cdx,Cdx).
+mnem([iLbl(Lb,Inner)|Ins],Lbs,Lt,Lts,Pc,Pcx,LsMap,Code,Cdx) :-
       baseOffset(Lbs,Base),
-      mnem([Inner],[(Lb,Base)|Lbs],Lt,Lt0,Ln,Ln1,Pc,Pc1,LsMap,Code,Cd0),
-      mnem(Ins,Lbs,Lt0,Lts,Ln1,Lnx,Pc1,Pcx,LsMap,Cd0,Cdx).
-mnem([iLine(Lne)|Ins],Lbs,Lt,Lts,[Line|Lns],Lnx,Pc,Pcx,LsMap,Code,Cdx) :-
-  mkTpl([intgr(Pc),Lne],Line),
-  mnem(Ins,Lbs,Lt,Lts,Lns,Lnx,Pc,Pcx,LsMap,Code,Cdx).
+      mnem([Inner],[(Lb,Base)|Lbs],Lt,Lt0,Pc,Pc1,LsMap,Code,Cd0),
+      mnem(Ins,Lbs,Lt0,Lts,Pc1,Pcx,LsMap,Cd0,Cdx).
 #(Mnem)
 
 baseOffset([(_,Base)|_],Base).
@@ -165,10 +157,6 @@ showMnems([M|Ins],Pc,[MM|II]) :-
   showMnem(M,Pc,MM),
   bumpPc(Pc,Pc1),
   showMnems(Ins,Pc1,II).
-
-showMnem(iLine(U),Pc,sq([PcDx,ss(": "),ss("Line"), ss(" "), UU])) :- !,
-  showPc(Pc,PcDx),
-  ssTrm(U,0,UU).
 #(Show)
 
 opcodeHash(#(Hash)).

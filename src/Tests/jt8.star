@@ -118,7 +118,7 @@ test.jt8{
       show mod(-7,2);
       show mod(7,-2);
       show mod(6,0);
-      show div(5.0,2.5);
+      show div(5.0,2.5);		
     } catch {
       Msg => showMsg("We got exception: #(Msg)")
     };
