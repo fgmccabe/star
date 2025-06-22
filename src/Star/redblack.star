@@ -218,6 +218,7 @@ star.redblack{
     private hd(.lf)=>.none.
     hd(.nd(_,.lf,K,V,_)) => .some(K->V).
     hd(.nd(_,L,_,_,_)) => hd(L).
+    hd(_) default => .none.
 
     drop(T,K->_) => delete(T,K)
     .} in {

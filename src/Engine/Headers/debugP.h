@@ -39,20 +39,8 @@ extern logical interactive;      /* interactive instruction tracing option */
 extern logical stackVerify;      // Are we dynamically verifying the stack
 
 DebugWaitFor insDebug(processPo p);
-DebugWaitFor enterDebug(processPo p, termPo lc);
-DebugWaitFor lineDebug(processPo p, termPo lc);
+DebugWaitFor enterDebugger(processPo p, termPo lc);
 
-DebugWaitFor abortDebug(processPo p, termPo lc);
-DebugWaitFor callDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor tcallDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor ocallDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor entryDebug(processPo p, termPo lc);
-DebugWaitFor retDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor assignDebug(processPo p, termPo lc);
-DebugWaitFor fiberDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor suspendDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor resumeDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor retireDebug(processPo p, termPo lc, termPo vl);
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
 #endif //STAR_DEBUGP_H

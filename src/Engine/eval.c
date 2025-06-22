@@ -1071,7 +1071,7 @@ retCode run(processPo P) {
           termPo loc = getConstant(PC->fst);
           PC++; // We aim to continue at the next instruction
           saveRegisters();
-          enterDebug(P, loc);
+          enterDebugger(P, loc);
           restoreRegisters();
           continue;
         } else {

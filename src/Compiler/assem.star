@@ -120,11 +120,11 @@ star.compiler.assem{
       funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
       (Lt1,tpIx) = findLit(Lt0,funSig);
-      (Code,_,Lts,Lns) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs),[]);
+      (Code,_,Lts) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs));
       valis mkCons("func",
           [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
           .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
-           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec]))))])
+           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec])))])
     }
     | .struct(Lbl,Tp,Ix) => mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
     | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])

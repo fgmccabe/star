@@ -80,8 +80,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   getLsMap(Dx,LsMap),
   length(LsMap,LclCnt),
-  genDbg(Opts,Lc,C,[iEntry(LclCnt)|C0]),
-  GenFunc = func(Nm,H,Sig,LsMap,C),
+  GenFunc = func(Nm,H,Sig,LsMap,[iEntry(LclCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispCode(PFunc);true ),
@@ -100,8 +99,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
   getLsMap(Dx,LsMap),
   length(LsMap,LclCnt),
-  genDbg(Opts,Lc,C,[iEntry(LclCnt)|C0]),
-  GenFunc = func(Nm,H,Sig,LsMap,C),
+  GenFunc = func(Nm,H,Sig,LsMap,[iEntry(LclCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispCode(PFunc);true ),
@@ -118,8 +116,7 @@ genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
   genRet(Opts,Lc,FC1,[],Stk0,_),
   getLsMap(Dx,LsMap),
   length(LsMap,LclCnt),
-  genDbg(Opts,Lc,C,[iEntry(LclCnt)|C0]),
-  GenGlb = func(lbl(Nm,0),hard,Sig,LsMap,C),
+  GenGlb = func(lbl(Nm,0),hard,Sig,LsMap,[iEntry(LclCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(GenGlb);true ),
   peepOptimize(GenGlb,PGlb),
   (is_member(showGenCode,Opts) -> dispCode(PGlb);true ),
@@ -165,10 +162,6 @@ defineVar(_Lc,Nm,Tp,_Opts,Mode,scope(Vrs,Tps),scope(NVrs,Tps)) :-
 defineTmpVar(Lc,TmpNm,Tp,Opts,D,Dx,C,Cx) :-
   genTmpVar(D,TmpNm),
   defineLclVar(Lc,TmpNm,Tp,Opts,D,Dx,C,Cx).
-
-genDebug(Opts,Debug,[Debug|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genDebug(_,_,Cx,Cx).
 
 defineGlbVar(Nm,Tp,_Opts,scope(Vrs,Tps),scope([(Nm,strg(Sig),g(Nm))|Vrs],Tps)) :-
   toLtipe(Tp,T),

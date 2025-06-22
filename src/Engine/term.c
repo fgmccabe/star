@@ -95,7 +95,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     if (isTplLabel(lblName(lbl))) {
       return showArgs(out, nml, precision, depth, alt);
     } else if (lblArity(lbl) == 0) {
-      return outMsg(out, (alt?"%#A":".%A"), lbl);
+      return showLbl(out, lbl, depth, precision, alt);
     } else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
     else if (isVector(t))
@@ -103,7 +103,7 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {
-      retCode ret = outMsg(out, (alt?"%#A":"%A"),lbl);
+      retCode ret = showLbl(out, lbl, depth, precision, alt);
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;

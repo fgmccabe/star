@@ -1091,7 +1091,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        ret = breakOutNe(block, pc + code[pc].alt + 1);
+        ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -1103,7 +1103,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        ret = breakOutEq(block, pc + code[pc].alt + 1);
+        ret = breakOutNe(block, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -1366,8 +1366,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
-        releaseReg(jit,fl);
-        releaseReg(jit,tr);
+        releaseReg(jit, fl);
+        releaseReg(jit, tr);
 
         pc++;
         continue;
@@ -1392,9 +1392,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         releaseReg(jit, a1);
         releaseReg(jit, a2);
-        releaseReg(jit,fl);
-        releaseReg(jit,tr);
-        
+        releaseReg(jit, fl);
+        releaseReg(jit, tr);
+
         pc++;
         continue;
       }
@@ -1774,8 +1774,94 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case dBug: // debugging prefix
+      case dBug: {
+        // enter the line debugger
+        int32 locKey = code[pc].fst;
+        armReg loc = findFreeReg(jit);
+        loadConstant(jit, locKey, loc);
+        pc++;
+        stashRegisters(jit);
+        switch (code[pc].op) {
+          case Abort: {
+            ret = callIntrinsic(ctx, (runtimeFn) abortDebug, 2, RG(PR), RG(loc));
+            break;
+          }
+          case Call:
+          case XCall: {
+            armReg lbl = findFreeReg(jit);
+            loadConstant(jit, code[pc].fst, lbl);
+            ret = callIntrinsic(ctx, (runtimeFn) callDebug, 3, RG(PR), RG(loc), RG(lbl));
+            releaseReg(jit, lbl);
+            break;
+          }
+          case TCall: {
+            armReg lbl = findFreeReg(jit);
+            loadConstant(jit, code[pc].fst, lbl);
+            ret = callIntrinsic(ctx, (runtimeFn) tcallDebug, 3, RG(PR), RG(loc), RG(lbl));
+            releaseReg(jit, lbl);
+            break;
+          }
+          case OCall:
+          case XOCall: {
+            armReg lbl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) ocallDebug, 3, RG(PR), RG(loc), RG(lbl));
+            releaseReg(jit, lbl);
+            break;
+          }
+          case Ret: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) retDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          case XRet: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) xretDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          case Assign: {
+            ret = callIntrinsic(ctx, (runtimeFn) assignDebug, 2, RG(PR), RG(loc));
+            break;
+          }
+          case Fiber: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) fiberDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          case Suspend: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) suspendDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          case Resume: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) resumeDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          case Retire: {
+            armReg vl = topStkOp(jit);
+            ret = callIntrinsic(ctx, (runtimeFn) retireDebug, 3, RG(PR), RG(loc), RG(vl));
+            releaseReg(jit, vl);
+            break;
+          }
+          default:
+            return jitError(jit,"invalid instruction following DBug");
+        }
+        unstashRegisters(jit);
+        releaseReg(jit,loc);
+        continue;
+      }
       case Line: {
+        int32 locKey = code[pc].fst;
+        armReg loc = findFreeReg(jit);
+        loadConstant(jit, locKey, loc);
+        stashRegisters(jit);
+        ret = callIntrinsic(ctx,(runtimeFn) lineDebug,2,RG(PR),RG(loc));
+        unstashRegisters(jit);
         pc++;
         continue;
       }
