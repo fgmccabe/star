@@ -64,7 +64,7 @@ star.compiler.peephole{
   dropUnreachable([.iXRet,.._]) => [.iXRet].
   dropUnreachable([.iTCall(Lb),.._]) => [.iTCall(Lb)].
   dropUnreachable([.iTOCall(Ar),.._]) => [.iTOCall(Ar)].
-  dropUnreachable([.iAbort,.._]) => [.iAbort].
+  dropUnreachable([.iAbort(Lc),.._]) => [.iAbort(Lc)].
   dropUnreachable([.iHalt(Ix),.._]) => [.iHalt(Ix)].
   dropUnreachable([.iRetire,.._]) => [.iRetire].
   dropUnreachable([.iCase(Mx),..Is]) => [.iCase(Mx),..copyN(Mx,Is)].
