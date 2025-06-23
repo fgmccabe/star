@@ -66,7 +66,7 @@ star.compiler.gencode{
     (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,Brks,Ctx,.some([]));
     (EC,Ct2,Stk1) = compExp(Val,Lc,Brks,.noMore,Ct1,Stk0);
     
-    C0 = genDbg(Lc,[.iEntry(size(varInfo(Ct2)))])++
+    C0 = [.iEntry(size(varInfo(Ct2)))]++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
 	  [.iLbl(ExLbl,.iBlock(1,FC++EC++genDbg(Lc,[.iRet])))]++genDbg(Lc,[.iXRet]))),..AbrtCde];
     
@@ -94,7 +94,7 @@ star.compiler.gencode{
 
     (EC,Ct2,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,.some([]));
     
-    C0 = genDbg(Lc,[.iEntry(size(varInfo(Ct2)))])++chLine(.none,Lc)++
+    C0 = [.iEntry(size(varInfo(Ct2)))]++chLine(.none,Lc)++
     [.iLbl(AbrtLbl,.iBlock(0,EC++[.iTG(Nm)]++genDbg(Lc,[.iRet])))]
       ++AbrtCde;
 
