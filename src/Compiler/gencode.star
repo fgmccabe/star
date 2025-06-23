@@ -1092,6 +1092,7 @@ star.compiler.gencode{
 
   genDbg:(option[locn],multi[assemOp]) => multi[assemOp].
   genDbg(.some(Lc),Ins) => (genDebug! ?? [.iDBug(Lc::data),..Ins] || Ins).
+  genDbg(.none,Ins) => Ins.
 
   flatSig = .funTipe([],.tplTipe([])).
   nearlyFlatSig(T) => .funTipe([],.tplTipe([T])).
