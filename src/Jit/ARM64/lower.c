@@ -21,9 +21,8 @@
 
 /* Register allocation for arm64:
  *
- * X0-X7 = integer parameters
  * X0 = return register
- * X8-X10 = scratch registers
+ * X0-X10 = argument registers & scratch registers
  * X11 = current process structure
  * X12 = Constants vector
  * AG = X13 = args pointer
