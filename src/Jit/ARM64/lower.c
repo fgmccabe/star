@@ -96,32 +96,30 @@ static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = processStack(P);
-  heapPo h = processHeap(P);
-  processPo p = P;
 
   ReturnStatus ret = Normal;
 
-  asm( "mov x15, %[stk]\n"
-       "ldr x14, %[ssp]\n"
-       "ldr x13, %[ag]\n"
-       "mov x12, %[constants]\n"
-       "mov x11, %[process]\n"
-       "mov x16, %[code]\n"
-       "ldr x29, %[fp]\n"
-       "stp x8,x9, [sp, #-16]!\n"
-       "stp x10,x11, [sp, #-16]!\n"
-       "stp x12,x13, [sp, #-16]!\n"
-       "blr x16\n"
-       "ldp x12,x13, [sp], #16\n"
-       "ldp x10,x11, [sp], #16\n"
-       "ldp x8,x9, [sp], #16\n"
-       "str w0, %[ret]\n"
-       "str X13, %[ag]\n"
-       "str x14, %[ssp]\n"
-       "str x29, %[fp]\n"
-    : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
-  : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
-  [constants] "r"(constAnts)
+  asm("stp x8,x9, [sp, #-16]!\n"
+      "stp x10,x11, [sp, #-16]!\n"
+      "stp x12,x13, [sp, #-16]!\n"
+      "mov x15, %[stk]\n"
+      "ldr x14, %[ssp]\n"
+      "ldr x13, %[ag]\n"
+      "mov x12, %[constants]\n"
+      "mov x11, %[process]\n"
+      "mov x16, %[code]\n"
+      "ldr x29, %[fp]\n"
+      "blr x16\n"
+      "str X13, [x15,#40]\n" // we will need to change these is stack structure changes
+      "str x14, [x15,#56]\n"
+      "str x29, [x15,#64]\n"
+      "ldp x12,x13, [sp], #16\n"
+      "ldp x10,x11, [sp], #16\n"
+      "ldp x8,x9, [sp], #16\n"
+      "str w0, %[ret]\n"
+    : [ret] "=&m"(ret)
+  : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
+  [constants] "r"(constAnts),[fp] "m"(stk->fp)
   : "x11", "x12", "x13", "x14", "x15", "x16", "memory");
 
   return ret;
