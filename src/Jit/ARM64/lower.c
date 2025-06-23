@@ -122,7 +122,7 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
     : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
   : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
   [constants] "r"(constAnts)
-  : "x0", "x1", "x2", "x3", "x11", "x12", "x13", "x15", "x14", "memory");
+  : "x11", "x12", "x13", "x14", "x15", "x16", "memory");
 
   return ret;
 }
