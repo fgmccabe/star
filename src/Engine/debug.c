@@ -588,7 +588,7 @@ DebugWaitFor insDebug(processPo p) {
     .deflt = Null
   };
 
-  logical stopping = shouldWeStop(p,p->stk->pc->op);
+  logical stopping = shouldWeStop(p, p->stk->pc->op);
   if (p->tracing || stopping) {
     stackPo stk = p->stk;
     outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
@@ -711,15 +711,13 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
     outMsg(out, "line: %#L", lc);
 }
 
-void showEntry(ioPo out, stackPo stk, termPo lc, termPo pr) {
-  methodPo mtd = C_MTD(pr);
-
+void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
   if (showColors)
-    outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, mtdLabel(mtd));
+    outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, lbl);
   else
-    outMsg(out, "entry: %#L %#.16A", lc, mtdLabel(mtd));
+    outMsg(out, "entry: %#L %#.16A", lc, lbl);
 
-  shArgs(out, displayDepth, stk->args, codeArity(mtd));
+  shArgs(out, displayDepth, stk->args, lblArity(C_LBL(lbl)));
 }
 
 void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
@@ -795,9 +793,9 @@ DebugWaitFor enterDebugger(processPo p, termPo lc) {
     case Abort:
       return abortDebug(p, lc);
     case Call:
-      return callDebug(p, lc, Call, getConstant(pc->fst));
+      return callDebug(p, Call, lc, getConstant(pc->fst));
     case XCall:
-      return callDebug(p, lc, XCall, getConstant(pc->fst));
+      return callDebug(p, XCall, lc, getConstant(pc->fst));
     case TCall:
       return tcallDebug(p, lc, getConstant(pc->fst));
     case OCall:
@@ -807,7 +805,7 @@ DebugWaitFor enterDebugger(processPo p, termPo lc) {
     case TOCall:
       return tocallDebug(p, lc, topStack(stk));
     case Entry:
-      return entryDebug(p, lc, (termPo) stk->prog);
+      return entryDebug(p, lc, mtdLabel(stk->prog));
     case Ret:
       return retDebug(p, lc, topStack(stk));
     case XRet:
@@ -836,7 +834,7 @@ DebugWaitFor abortDebug(processPo p, termPo lc) {
   return lnDebug(p, Abort, lc, topStack(stk), showAbort);
 }
 
-DebugWaitFor callDebug(processPo p, termPo lc, OpCode op, termPo pr) {
+DebugWaitFor callDebug(processPo p, OpCode op, termPo lc, termPo pr) {
   return lnDebug(p, op, lc, pr, showCall);
 }
 
@@ -853,8 +851,8 @@ DebugWaitFor tocallDebug(processPo p, termPo lc, termPo pr) {
 
 }
 
-DebugWaitFor entryDebug(processPo p, termPo lc, termPo pr) {
-  return lnDebug(p, Entry, lc, pr, showEntry);
+DebugWaitFor entryDebug(processPo p, termPo lc, labelPo lbl) {
+  return lnDebug(p, Entry, lc, (termPo)lbl, showEntry);
 }
 
 DebugWaitFor retDebug(processPo p, termPo lc, termPo vl) {

@@ -5,7 +5,8 @@
 #include "macros.h"
 
 registerMap defltAvailRegSet() {
-  return callerSaved() | scratchRegs();
+  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
+         1u << X10 | 1u << X18;
 }
 
 registerMap emptyRegSet() {
@@ -67,6 +68,7 @@ armReg nxtAvailReg(registerMap from) {
     if ((from & mask) != 0)
       return ix;
   }
+  check(False, "no available registers");
   return XZR;
 }
 
@@ -160,7 +162,7 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
         mov(X0, operands[0]);
     }
     case 0: {
-      mov(X16, IM((integer)fn));
+      mov(X16, IM((integer) fn));
       blr(X16);
       return Ok;
     }
@@ -170,7 +172,7 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
 }
 
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {
-  mov(reg,IM((integer) address));
-  ldr(reg,OF(reg,0));
+  mov(reg, IM((integer) address));
+  ldr(reg, OF(reg, 0));
   return Ok;
 }

@@ -19,11 +19,11 @@ retCode setupDebugChannels();
 
 DebugWaitFor lineDebug(processPo p, termPo lc);
 DebugWaitFor abortDebug(processPo p, termPo lc);
-DebugWaitFor callDebug(processPo p, termPo lc, OpCode op, termPo pr);
+DebugWaitFor callDebug(processPo p, OpCode op, termPo lc, termPo pr);
 DebugWaitFor tcallDebug(processPo p, termPo lc, termPo pr);
 DebugWaitFor ocallDebug(processPo p, OpCode op, termPo lc, termPo pr);
 DebugWaitFor tocallDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor entryDebug(processPo p, termPo lc, termPo pr);
+DebugWaitFor entryDebug(processPo p, termPo lc, labelPo lbl);
 DebugWaitFor retDebug(processPo p, termPo lc, termPo vl);
 DebugWaitFor xretDebug(processPo p, termPo lc, termPo vl);
 DebugWaitFor assignDebug(processPo p, termPo lc);
