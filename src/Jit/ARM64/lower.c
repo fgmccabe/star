@@ -23,14 +23,14 @@
  *
  * X0-X7 = integer parameters
  * X0 = return register
- * X8-X15 = caller saved scratch registers
+ * X8-X10 = scratch registers
+ * X11 = current process structure
+ * X12 = Constants vector
+ * AG = X13 = args pointer
+ * SSP = X14 = star stack pointer
+ * STK = X15 = current stack structure pointer
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
- * X24 = current process structure
- * X25 = Constants vector
- * AG = X26 = args pointer
- * STK = X27 = current stack structure pointer
- * SSP = X28 = star stack pointer
  * FP = X29 = frame pointer
  * LR = X30 = link register
  * SP = X31 = system stack pointer
@@ -62,11 +62,11 @@ static retCode getFltVal(jitCompPo jit, armReg rg);
 
 static retCode mkFltVal(jitCompPo jit, armReg rg);
 
-#define SSP (X28)
-#define AG  (X26)
-#define STK (X27)
-#define CO (X25)
-#define PR (X24)
+#define SSP (X14)
+#define AG  (X13)
+#define STK (X15)
+#define CO (X12)
+#define PR (X11)
 
 static int32 fpArgs = OffsetOf(StackFrame, args);
 static int32 fpProg = OffsetOf(StackFrame, prog);
@@ -102,11 +102,11 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
 
   ReturnStatus ret = Normal;
 
-  asm( "mov x27, %[stk]\n"
-       "ldr x28, %[ssp]\n"
-       "ldr x26, %[ag]\n"
-       "mov x25, %[constants]\n"
-       "mov x24, %[process]\n"
+  asm( "mov x15, %[stk]\n"
+       "ldr x14, %[ssp]\n"
+       "ldr x13, %[ag]\n"
+       "mov x12, %[constants]\n"
+       "mov x11, %[process]\n"
        "mov x16, %[code]\n"
        "ldr x29, %[fp]\n"
        "stp x8,x9, [sp, #-16]!\n"
@@ -117,13 +117,13 @@ ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
        "ldp x10,x11, [sp], #16\n"
        "ldp x8,x9, [sp], #16\n"
        "str w0, %[ret]\n"
-       "str X26, %[ag]\n"
-       "str x28, %[ssp]\n"
+       "str X13, %[ag]\n"
+       "str x14, %[ssp]\n"
        "str x29, %[fp]\n"
     : [ret] "=&m"(ret), [ag] "+m"(stk->args),[fp] "+m"(stk->fp), [ssp] "+m"(stk->sp)
   : [process]"r"(p), [stk] "r"(stk), [code] "r"(code),
   [constants] "r"(constAnts)
-  : "x0", "x1", "x2", "x3", "x24", "x25", "x26", "x27", "x28", "memory");
+  : "x0", "x1", "x2", "x3", "x11", "x12", "x13", "x15", "x14", "memory");
 
   return ret;
 }
@@ -1786,11 +1786,19 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
             ret = callIntrinsic(ctx, (runtimeFn) abortDebug, 2, RG(PR), RG(loc));
             break;
           }
+          case Entry: {
+            armReg lbl = findFreeReg(jit);
+            int32 lblKey = defineConstantLiteral((termPo) mtdLabel(jit->mtd));
+            loadConstant(jit, lblKey, lbl);
+            ret = callIntrinsic(ctx, (runtimeFn) entryDebug, 3, RG(PR), RG(loc), RG(lbl));
+            releaseReg(jit, lbl);
+            break;
+          }
           case Call:
           case XCall: {
             armReg lbl = findFreeReg(jit);
             loadConstant(jit, code[pc].fst, lbl);
-            ret = callIntrinsic(ctx, (runtimeFn) callDebug, 3, RG(PR), RG(loc), RG(lbl));
+            ret = callIntrinsic(ctx, (runtimeFn) callDebug, 4, RG(PR), IM(code[pc].op), RG(loc), RG(lbl));
             releaseReg(jit, lbl);
             break;
           }
@@ -1804,7 +1812,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           case OCall:
           case XOCall: {
             armReg lbl = topStkOp(jit);
-            ret = callIntrinsic(ctx, (runtimeFn) ocallDebug, 3, RG(PR), RG(loc), RG(lbl));
+            ret = callIntrinsic(ctx, (runtimeFn) ocallDebug, 4, RG(PR), IM(code[pc].op), RG(loc), RG(lbl));
             releaseReg(jit, lbl);
             break;
           }
@@ -1849,10 +1857,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
             break;
           }
           default:
-            return jitError(jit,"invalid instruction following DBug");
+            return jitError(jit, "invalid instruction following DBug");
         }
         unstashRegisters(jit);
-        releaseReg(jit,loc);
+        releaseReg(jit, loc);
         continue;
       }
       case Line: {
@@ -1860,8 +1868,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg loc = findFreeReg(jit);
         loadConstant(jit, locKey, loc);
         stashRegisters(jit);
-        ret = callIntrinsic(ctx,(runtimeFn) lineDebug,2,RG(PR),RG(loc));
+        ret = callIntrinsic(ctx, (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
         unstashRegisters(jit);
+        releaseReg(jit, loc);
         pc++;
         continue;
       }

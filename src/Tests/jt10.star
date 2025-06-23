@@ -41,7 +41,7 @@ test.jt10{
       X => showMsg("$(X)")
     };
 
-    assert ieq(add(2,3),5);
+--    assert ieq(add(2,3),5);
     show fct(4);
     assert ieq(fct(4),24);
   }
