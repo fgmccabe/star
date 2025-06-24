@@ -48,9 +48,10 @@ test.jt11{
     try{
       _jit_compile("#(__pkg__)@add",2);
       _jit_compile("#(__pkg__)@adder",2);
-      _jit_compile("#(__pkg__)@lt",2);
+      _jit_compile("#(__pkg__)@conc",2);
       _jit_compile("#(__pkg__)@genr",2);
       _jit_compile("#(__pkg__)@logM",1);
+      _jit_compile("#(__pkg__)@lt",2);
       _jit_compile("#(__pkg__)λ_0",3);
     } catch {
       X => logM(_stringOf(X,0))
