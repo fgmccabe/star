@@ -38,6 +38,7 @@ void clearJitContext(jitCompPo jit) {
 
 armReg findFreeReg(jitCompPo jit) {
   armReg rg = nxtAvailReg(jit->freeRegs);
+  check(rg!=XZR, "no available registers");
   jit->freeRegs = dropReg(jit->freeRegs, rg);
   return rg;
 }

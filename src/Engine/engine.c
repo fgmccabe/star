@@ -102,10 +102,6 @@ heapPo processHeap(processPo P) {
   return P->heap;
 }
 
-stackPo processStack(processPo p) {
-  return p->stk;
-}
-
 void pshVal(processPo p, termPo v) {
   pushStack(p->stk, v);
 }

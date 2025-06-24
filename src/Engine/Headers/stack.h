@@ -9,6 +9,7 @@
 #include "term.h"
 #include "code.h"
 #include "closure.h"
+#include "engine.h"
 
 typedef struct StackStructure *stackPo;
 
@@ -31,10 +32,10 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
 StackState stackState(stackPo tsk);
 
 stackPo newStack(heapPo H, logical execJit, termPo lam);
-stackPo attachStack(stackPo tsk, stackPo top);
-stackPo detachStack(stackPo base, stackPo top);
+void attachStack(processPo P, stackPo top, termPo evt);
+void detachStack(processPo P, stackPo top, termPo event);
 stackPo dropStack(stackPo tsk);
-stackPo detachDropStack(stackPo base, stackPo top);
+void detachDropStack(processPo P, stackPo top, termPo event);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);

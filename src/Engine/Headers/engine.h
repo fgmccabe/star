@@ -8,7 +8,6 @@
 #include "engineOptions.h"
 #include "code.h"
 #include "heap.h"
-#include "stack.h"
 
 typedef struct processRec_ *processPo;
 
@@ -37,7 +36,6 @@ retCode processProcesses(procProc p, void *cl);
 processPo getProcessOfThread(void);
 
 heapPo processHeap(processPo p);
-stackPo processStack(processPo p);
 
 char *processWd(processPo p);
 retCode setProcessWd(processPo p, char *wd, integer len);

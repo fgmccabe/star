@@ -172,7 +172,7 @@ framePo pushFrame(stackPo stk, logical execJit, methodPo mtd) {
   f->args = stk->args;
   f->link = stk->pc;
 
-  stk->pc = (execJit?(insPo)jitCode(mtd):entryPoint(mtd));
+  stk->pc = (execJit ? (insPo) jitCode(mtd) : entryPoint(mtd));
   stk->prog = mtd;
   stk->args = stk->sp;
 
@@ -197,14 +197,14 @@ void stackSanityCheck(stackPo stk) {
       assert(stk->stkMem == Null);
       return;
   }
-  assert(stk->fp >= baseFrame(stk) && ((ptrPo)(stk->fp + 1)) <= stk->sp);
-  assert((ptrPo)(stk->fp + 1) < stk->sp);
+  assert(stk->fp >= baseFrame(stk) && ((ptrPo) (stk->fp + 1)) <= stk->sp);
+  assert((ptrPo) (stk->fp + 1) < stk->sp);
   assert(!inFreeBlock(stackRegion, stk->stkMem));
 }
 
 void verifyStack(stackPo stk, heapPo H) {
   while (stk != Null) {
-    assert(classOf((termPo)stk) == stackClass);
+    assert(classOf((termPo) stk) == stackClass);
 
     if (stk->stkMem != Null) {
       stackSanityCheck(stk);
@@ -216,7 +216,7 @@ void verifyStack(stackPo stk, heapPo H) {
       ptrPo args = stk->args;
 
       do {
-        check(isMethod((termPo)prog), "expecting a code pointer");
+        check(isMethod((termPo) prog), "expecting a code pointer");
         check(args >= sp, "frame arg pointer invalid");
         sp = args + argCount(prog);
         prog = fp->prog;
@@ -290,7 +290,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   if (stk->stkMem != Null) {
     helper((ptrPo) &stk->prog, c);
-    assert(isMethod((termPo)stk->prog));
+    assert(isMethod((termPo) stk->prog));
 
     ptrPo spLimit = stackLimit(stk);
     framePo fp = stk->fp;
@@ -298,7 +298,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
     while (fp > fpLimit) {
       helper((ptrPo) &fp->prog, c);
-      assert(isMethod((termPo)fp->prog));
+      assert(isMethod((termPo) fp->prog));
       fp--;
     }
 
@@ -356,9 +356,9 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
                    StackTraceLevel level, methodPo prog, insPo pc) {
-  assert(isMethod((termPo)prog));
+  assert(isMethod((termPo) prog));
 
-  termPo loc = (pc-1)->op==dBug?getConstant((pc-1)->fst):Null;
+  termPo loc = (pc - 1)->op == dBug ? getConstant((pc - 1)->fst) : Null;
 
   if (loc != Null)
     outMsg(out, "[%d] %L: %T", frameNo, loc, prog);
@@ -445,7 +445,7 @@ stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
   assert(size >= minStackSize && stackState(stk) != moribund);
 
   stackPo newStack =
-      allocateStack(H, size, underflowProg, stackState(stk), stk);
+    allocateStack(H, size, underflowProg, stackState(stk), stk);
   moveStack2Stack(newStack, stk, saveArity);
   dropFrame(stk);
   propagateHwm(newStack);
@@ -476,17 +476,18 @@ stackPo newStack(heapPo H, logical execJit, termPo lam) {
   return child; // We return the new stack
 }
 
-stackPo attachStack(stackPo tsk, stackPo top) {
+void attachStack(processPo P, stackPo top, termPo evt) {
+  stackPo stk = P->stk;
   stackPo bottom = top->bottom;
   assert(bottom != Null && isAttachedStack(bottom, top));
 
 #ifdef TRACESTACK
   if (traceStack > noTracing)
-    outMsg(logFile, "attach stack %T to %T\n", top, tsk);
+    outMsg(logFile, "attach stack %T to %T\n", top, stk);
 #endif
 
-  assert(stackState(tsk) == active && stackState(top) == suspended &&
-    stackState(bottom) == suspended);
+  assert(stackState(stk) == active && stackState(top) == suspended &&
+         stackState(bottom) == suspended);
 
   stackPo f = bottom;
 
@@ -498,13 +499,16 @@ stackPo attachStack(stackPo tsk, stackPo top) {
   markActive(f);
 
   assert(f == top && top->attachment == Null);
-  top->attachment = tsk;
+  top->attachment = stk;
   top->bottom = Null;
-  return bottom;
+
+  pushStack(bottom, evt);
+  P->stk = bottom;
 }
 
 // Get the stack immediately below the identified parent
-stackPo detachStack(stackPo base, stackPo top) {
+void detachStack(processPo P, stackPo top, termPo event) {
+  stackPo base = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
     outMsg(logFile, "detach %T\n", base);
@@ -532,10 +536,11 @@ stackPo detachStack(stackPo base, stackPo top) {
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
     outMsg(logFile, "now at %T\n", parent);
-    assert(hasClass((termPo)parent, stackClass));
+    assert(hasClass((termPo) parent, stackClass));
   }
 #endif
-  return parent;
+  P->stk = parent;
+  pushStack(parent,event);
 }
 
 stackPo dropStack(stackPo tsk) {
@@ -554,13 +559,12 @@ stackPo dropStack(stackPo tsk) {
   return previous;
 }
 
-stackPo detachDropStack(stackPo base, stackPo top){
-  stackPo parent = detachStack(base,top);
+void detachDropStack(processPo P, stackPo top, termPo event) {
+  detachStack(P, top, event);
   dropStack(top);
-  return parent;
 }
 
-  logical isAttachedStack(stackPo base, stackPo tgt) {
+logical isAttachedStack(stackPo base, stackPo tgt) {
   while (base != Null && base != tgt)
     base = base->attachment;
   return base == tgt;

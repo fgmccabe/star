@@ -68,7 +68,6 @@ armReg nxtAvailReg(registerMap from) {
     if ((from & mask) != 0)
       return ix;
   }
-  check(False, "no available registers");
   return XZR;
 }
 
