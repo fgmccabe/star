@@ -7,12 +7,10 @@
 #include "jitP.h"
 
 static poolPo contextPool = Null;
-static poolPo labelPool = Null;
 
 void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
-    labelPool = newPool(sizeof(LabelMarkerRecord), 256);
   }
 }
 
@@ -24,16 +22,12 @@ jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen) {
   jitComp->freeRegs = defltAvailRegSet();
   jitComp->errMsg = errMsg;
   jitComp->msgLen = msgLen;
-  jitComp->pcLocs = allocArray(sizeof(PcMapEntry), codeSize(mtd), True);
-
   return jitComp;
 }
 
 void clearJitContext(jitCompPo jit) {
   discardCtx(jit->assemCtx);
   freePool(contextPool, jit);
-  if (jit->pcLocs != Null)
-    jit->pcLocs = eraseArray(jit->pcLocs,Null,Null);
 }
 
 armReg findFreeReg(jitCompPo jit) {

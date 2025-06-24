@@ -59,11 +59,6 @@ typedef struct labelMarker {
   codeLblPo lbl;
 } LabelMarkerRecord, *labelMarkerPo;
 
-typedef struct {
-  int32 pc; // star pc offset
-  uint32 offset;     // code pc offset
-} PcMapEntry, *pcMapEntryPo;
-
 typedef struct jit_compiler_ {
   methodPo mtd;
   registerMap freeRegs;
@@ -71,7 +66,6 @@ typedef struct jit_compiler_ {
   codeLblPo entry;
   char *errMsg;
   integer msgLen;
-  arrayPo pcLocs;
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);

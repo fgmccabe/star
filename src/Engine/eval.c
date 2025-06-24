@@ -236,7 +236,7 @@ retCode run(processPo P) {
         if (!stackRoom(stackDelta(PROG) + FrameCellCount)) {
           saveRegisters();
           integer Amnt = stackDelta(PROG) + FrameCellCount;
-          P->stk = glueOnStack(H, STK, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
+          glueOnStack(P, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
           restoreRegisters();
           if (!stackRoom(Amnt)) {
             logMsg(logFile, "cannot extend stack sufficiently");

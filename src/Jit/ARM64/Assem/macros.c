@@ -124,7 +124,7 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
+retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, integer arity, ...) {
   va_list args;
   va_start(args, arity);    /* start the variable argument sequence */
   FlexOp operands[arity];
@@ -133,6 +133,8 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
     operands[ix] = (FlexOp) va_arg(args, FlexOp);
   }
   va_end(args);
+
+  saveRegisters(ctx,saveMap);
 
   switch (arity) {
     case 8:
@@ -163,6 +165,7 @@ retCode callIntrinsic(assemCtxPo ctx, runtimeFn fn, integer arity, ...) {
     case 0: {
       mov(X16, IM((integer) fn));
       blr(X16);
+      restoreRegisters(ctx,saveMap);
       return Ok;
     }
     default:

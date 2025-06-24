@@ -60,7 +60,6 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
 
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, False, mtd);
-  P->tryCounter = 0;
 
   P->heap = h;
   P->state = quiescent;
