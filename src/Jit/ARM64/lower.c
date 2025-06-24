@@ -658,8 +658,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bind(skip);
         codeLblPo rtn = newLabel(ctx);
-        adr(X0, rtn);
-        str(X0, OF(STK, OffsetOf(StackRecord, pc)));
+        adr(tmp, rtn);
+        str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
         stashRegisters(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk),RG(evt));
         unstashRegisters(jit);
