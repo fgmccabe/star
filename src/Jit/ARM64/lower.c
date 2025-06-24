@@ -95,7 +95,7 @@ static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
 ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
-  stackPo stk = processStack(P);
+  stackPo stk = P->stk;
 
   ReturnStatus ret = Normal;
 
@@ -564,19 +564,18 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Pull up nth element of stack
         int32 rotationHeight = code[pc].fst;
         armReg swp = findFreeReg(jit);
-        armReg src = findFreeReg(jit);
         armReg tmp = findFreeReg(jit);
 
-        mov(src, RG(SSP));
-        ldr(swp, PSX(src, -pointerSize));
+        int32 offset = 0;
 
-        for (int32 ix = 1; ix <= rotationHeight; ix++) {
-          ldr(tmp, PSX(src, -pointerSize));
-          str(tmp, OF(src, pointerSize));
+        ldr(swp, OF(SSP, offset));
+
+        for (int32 ix = 1; ix <= rotationHeight; ix++, offset += pointerSize) {
+          ldr(tmp, OF(SSP, offset + pointerSize));
+          str(tmp, OF(SSP, offset));
         }
-        str(swp, PRX(src, pointerSize));
+        str(swp, OF(SSP, offset));
         releaseReg(jit, swp);
-        releaseReg(jit, src);
         releaseReg(jit, tmp);
         pc++;
         continue;
@@ -648,16 +647,11 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         bind(skip);
         codeLblPo rtn = newLabel(ctx);
         adr(X0, rtn);
-        stashRegisters(jit);
         str(X0, OF(STK, OffsetOf(StackRecord, pc)));
-        stp(evt, XZR, PRX(SP, -2 * pointerSize));
-        callIntrinsic(ctx, (runtimeFn) detachStack, 2, RG(STK), RG(stk));
-        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
+        stashRegisters(jit);
+        callIntrinsic(ctx, (runtimeFn) detachStack, 3, RG(PR), RG(stk), RG(evt));
         unstashRegisters(jit);
-        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
-        mov(STK, RG(X0));
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-        pushStkOp(jit, evt);
         br(X16);
         bind(rtn);
         pc++;
@@ -683,12 +677,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
         stashRegisters(jit);
-        stp(evt, XZR, PRX(SP, -2 * pointerSize));
-        callIntrinsic(ctx, (runtimeFn) attachStack, 2, RG(STK), RG(stk));
-        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
-        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
-        mov(STK, RG(X0));
-        pushStkOp(jit, evt);
+        callIntrinsic(ctx, (runtimeFn) attachStack, 3, RG(PR), RG(stk), RG(evt));
+        unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         bind(rtn);
@@ -709,15 +699,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bind(skip);
         stashRegisters(jit);
-        str(X0, OF(STK, OffsetOf(StackRecord, pc)));
-        stp(evt, XZR, PRX(SP, -2 * pointerSize));
-        callIntrinsic(ctx, (runtimeFn) detachDropStack, 2, RG(STK), RG(stk));
-        ldp(evt, XZR, PSX(SP, 2 * pointerSize));
+        callIntrinsic(ctx, (runtimeFn) detachDropStack, 2, RG(PR), RG(stk),RG(evt));
         unstashRegisters(jit);
-        str(X0, OF(PR, OffsetOf(ProcessRec, stk)));
-        mov(STK, RG(X0));
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-        pushStkOp(jit, evt);
         br(X16);
         pc++;
         releaseReg(jit, tmp);

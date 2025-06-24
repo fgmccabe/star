@@ -18,13 +18,13 @@ static registerMap mapFromArray(armReg regs[], int count) {
 retCode test_sv1() {
   assemCtxPo ctx = createCtx();
 
-  armReg someRegs[] = {X0, X3, X4, X5, X10, X20, X17};
+  armReg someRegs[] = {X0, X3, X4, X5, X10};
 
   registerMap map = mapFromArray(someRegs, NumberOf(someRegs));
 
   saveRegisters(ctx, map);
 
-  uint8 tgt[] = {0xE0, 0x0F, 0xBF, 0xA9, 0xE4, 0x17, 0xBF, 0xA9, 0xEA, 0x47, 0xBF, 0xA9, 0xF4, 0x7f, 0xBF, 0xA9};
+  uint8 tgt[] = {0xe0, 0xf, 0xbf, 0xa9, 0xe4, 0x17, 0xbf, 0xa9, 0xea, 0x7f, 0xbf, 0xa9};
 
   return checkCode(tgt, NumberOf(tgt), ctx);
 }

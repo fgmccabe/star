@@ -400,9 +400,8 @@ retCode run(processPo P) {
         } else {
           PC++;
           saveRegisters();
-          P->stk = detachStack(STK, stack);
+          detachStack(P, stack, event);
           restoreRegisters();
-          push(event);
           continue;
         }
       }
@@ -416,9 +415,8 @@ retCode run(processPo P) {
         } else {
           PC++;
           saveRegisters();
-          P->stk = attachStack(STK, stack);
+          attachStack(P, stack, event);
           restoreRegisters();
-          push(event);
           continue;
         }
       }
@@ -432,14 +430,13 @@ retCode run(processPo P) {
           bail();
         } else {
           saveRegisters();
-          P->stk = detachStack(STK, fiber);
+          detachStack(P, fiber, event);
           dropStack(fiber);
           restoreRegisters();
 #ifdef TRACESTACK
           if (traceStack > noTracing)
             verifyStack(STK, H);
 #endif
-          push(event);
           continue;
         }
       }
