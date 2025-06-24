@@ -14,25 +14,25 @@
 /* A Stack memory has a value stack growing down from the top, and
  * activation frames growing from the base.
  *
- * /-----------/
- * /           /
- * / Arg n     /
- * / Arg n-1   /
- * /  ...      /
- * / Arg 0     /   <- ARGS
- * / Local 1   /
- * / ...       /
- * / ......... /
- * / Stack 0   /
- * /  ..       /
- * /-----------/   <- SP
+ * |-----------|
+ * |           |
+ * | Arg n     |
+ * | Arg n-1   |
+ * |  ...      |
+ * | Arg 0     |   <- ARGS
+ * | Local 1   |
+ * | ...       |
+ * | ......... |
+ * | Stack 0   |
+ * |  ..       |
+ * |-----------|   <- SP
  *      ..
  *      ,,
- * /-----------/
- * /  ARGS     /
- * /  PROG     /
- * /  PC       /  <- FP
- * /===========/
+ * |-----------|
+ * |  ARGS     |
+ * |  PROG     |
+ * |  PC       |  <- FP
+ * |===========|
  *
  */
 typedef struct stack_frame_ *framePo;

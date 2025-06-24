@@ -45,12 +45,12 @@ termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
 
-stackPo handleStackOverflow(stackPo stk, integer delta, int32 arity);
+void handleStackOverflow(processPo P, integer delta, int32 arity);
 
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 
-stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity);
+void glueOnStack(processPo P, integer size, integer saveArity);
 stackPo spinupStack(heapPo H, integer size);
 
 integer stackHwm(stackPo stk);

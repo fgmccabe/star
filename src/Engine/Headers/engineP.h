@@ -21,7 +21,6 @@
 typedef struct processRec_ {
   stackPo stk;            // Current stack
   heapPo heap;            // Local heap for this process
-  integer tryCounter;     // A counter of the number of try instructions executed
   pthread_t threadID;     /* What is the posix thread ID? */
   char wd[MAXFILELEN];    // Each thread may have its own working directory.
   ProcessState state;     /* What is the status of this process? */

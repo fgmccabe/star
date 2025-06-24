@@ -39,7 +39,8 @@ void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm: {  // Immediate value
+    case imm: {
+      // Immediate value
       encodeAddSubImm(w, 0, 0, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
@@ -59,7 +60,8 @@ void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm: {  // Immediate value
+    case imm: {
+      // Immediate value
       encodeAddSubImm(w, 0, 1, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
@@ -87,7 +89,7 @@ void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm:  // Immediate value
+    case imm: // Immediate value
       encodeLogImm(w, 0, S2.immediate, Rn, Rd, ctx);
       return;
     case shft:
@@ -103,7 +105,7 @@ void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm:  // Immediate value
+    case imm: // Immediate value
       encodeLogImm(w, 3, S2.immediate, Rn, Rd, ctx);
       return;
     case shft:
@@ -1127,7 +1129,8 @@ void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
 
 void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm: {  // Immediate value
+    case imm: {
+      // Immediate value
       encodeAddSubImm(w, 1, 0, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
@@ -1147,7 +1150,8 @@ void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 
 void subs_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   switch (S2.mode) {
-    case imm: {  // Immediate value
+    case imm: {
+      // Immediate value
       encodeAddSubImm(w, 1, 1, 0x22, (int32) S2.immediate, Rn, Rd, ctx);
       return;
     }
@@ -1229,7 +1233,7 @@ void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
   encode4Reg(1, 0, 0xdd, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
-void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx){
+void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx) {
   encodeScalarOp(p, 0b110000, 0, Rn, Rd, ctx);
 }
 
@@ -1251,13 +1255,13 @@ void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
 
 void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx) {
   uint32 ins = ayt_bt(0b11111, 24) | two_bt(p, 22) | fiv_bt(Rm, 16) |
-             one_bt(1, 15) | fiv_bt(Ra,10) |
-             fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+               one_bt(1, 15) | fiv_bt(Ra, 10) |
+               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
-void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx){
-  uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | one_bt(1,21) | fiv_bt(Rm, 16) |
+void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | one_bt(1, 21) | fiv_bt(Rm, 16) |
                one_bt(1, 13) | fiv_bt(Rn, 5);
   emitU32(ctx, ins);
 }
@@ -1302,7 +1306,7 @@ void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
 
 logical sameFlexOp(FlexOp a, FlexOp b) {
   return a.mode == b.mode && a.rgm == b.rgm && a.ext == b.ext && a.shift == b.shift && a.immediate == b.immediate && a.
-    reg == b.reg;
+         reg == b.reg;
 }
 
 logical isRegisterOp(FlexOp a) {

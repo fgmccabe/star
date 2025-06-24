@@ -433,28 +433,30 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth,
     outMsg(out, "...\n");
 }
 
-stackPo glueOnStack(heapPo H, stackPo stk, integer size, integer saveArity) {
+void glueOnStack(processPo P, integer size, integer saveArity) {
+  stackPo stk = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
     outMsg(logFile, "glue on extension to %T\n", stk);
     verifyStack(stk, globalHeap);
   }
 #endif
-  int root = gcAddRoot(H, (ptrPo) &stk);
+  heapPo h = processHeap(P);
+  int root = gcAddRoot(h, (ptrPo) &stk);
 
   assert(size >= minStackSize && stackState(stk) != moribund);
 
   stackPo newStack =
-    allocateStack(H, size, underflowProg, stackState(stk), stk);
+    allocateStack(h, size, underflowProg, stackState(stk), stk);
   moveStack2Stack(newStack, stk, saveArity);
   dropFrame(stk);
   propagateHwm(newStack);
-  gcReleaseRoot(H, root);
-  return newStack;
+  gcReleaseRoot(h, root);
+  P->stk = newStack;
 }
 
-stackPo handleStackOverflow(stackPo stk, integer delta, int32 arity) {
-  return glueOnStack(globalHeap, stk, (stk->sze * 3) / 2 + delta, arity);
+void handleStackOverflow(processPo P, integer delta, int32 arity) {
+  glueOnStack(P, (P->stk->sze * 3) / 2 + delta, arity);
 }
 
 stackPo spinupStack(heapPo H, integer size) {
