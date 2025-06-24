@@ -713,7 +713,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bind(skip);
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 2, RG(PR), RG(stk),RG(evt));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk),RG(evt));
         unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
