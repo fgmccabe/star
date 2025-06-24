@@ -35,6 +35,17 @@
  * SP = X31 = system stack pointer
  */
 
+#define SSP (X14)
+#define AG  (X13)
+#define STK (X15)
+#define CO (X12)
+#define PR (X11)
+
+// We need these registers preserved at all costs
+static registerMap criticalRegs() {
+  return 1u << CO | 1u << PR;
+}
+
 static retCode stackCheck(jitCompPo jit, methodPo mtd);
 
 static int32 pointerSize = sizeof(integer);
@@ -61,11 +72,7 @@ static retCode getFltVal(jitCompPo jit, armReg rg);
 
 static retCode mkFltVal(jitCompPo jit, armReg rg);
 
-#define SSP (X14)
-#define AG  (X13)
-#define STK (X15)
-#define CO (X12)
-#define PR (X11)
+
 
 static int32 fpArgs = OffsetOf(StackFrame, args);
 static int32 fpProg = OffsetOf(StackFrame, prog);
