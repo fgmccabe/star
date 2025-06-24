@@ -90,12 +90,10 @@ retCode run(processPo P) {
 
           if (ret == Normal) {
             PC++;
-            continue;
           } else if (PC->op == XCall) {
             termPo exception = pop();
             breakOut();
             push(exception);
-            continue;
           } else {
             logMsg(logFile, "invalid return from %L", nProg);
             bail();
@@ -444,7 +442,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters(); // Seal off the current stack
         assert(stackState(STK) == active);
-        P->stk = dropStack(STK);
+        dropStack(STK);
         restoreRegisters();
         push(val);
         continue;
