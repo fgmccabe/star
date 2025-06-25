@@ -30,6 +30,7 @@
  * STK = X15 = current stack structure pointer
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
+ * X19-X28 = callee saved registers
  * FP = X29 = frame pointer
  * LR = X30 = link register
  * SP = X31 = system stack pointer
@@ -48,17 +49,11 @@ static registerMap criticalRegs() {
 
 static retCode stackCheck(jitCompPo jit, methodPo mtd);
 
-static int32 pointerSize = sizeof(integer);
+static const int32 pointerSize = sizeof(integer);
 
 static int32 argOffset(int32 argNo) {
   return argNo * pointerSize;
 }
-
-static retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun);
-
-static retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun);
-
-static retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun);
 
 static retCode bailOut(jitCompPo jit, int32 code);
 
@@ -87,7 +82,7 @@ static codeLblPo loopLabel(jitBlockPo block);
 
 retCode breakOutEq(jitBlockPo block, int32 tgt);
 
-retCode breakOutNe(jitBlockPo block, int32 tgt);
+retCode breakOutNe(jitBlockPo block, int32 tgt, logical keepTop);
 
 retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop);
 
@@ -217,11 +212,8 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
 static retCode tesResult(jitBlockPo block, int32 tgt) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
-  codeLblPo next = newLabel(ctx);
   tstw(X0, IM(Normal));
-  beq(next);
-  retCode ret = breakOut(block, tgt, True);
-  bind(next);
+  retCode ret = breakOutNe(block, tgt, True);
   return ret;
 }
 
@@ -264,16 +256,18 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
 
-        codeLblPo haveMtd = newLabel(ctx);
-        cbnz(X17, haveMtd);
-
-        bailOut(jit, 20);
-
-        bind(haveMtd);
-        pshFrame(jit, ctx, X17);
-
+        codeLblPo noMtd = newLabel(ctx);
+        cbz(X17, noMtd);
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        codeLblPo runMtd = newLabel(ctx);
+        cbnz(X16, runMtd);
+
+        bind(noMtd);
+        bailOut(jit, 20);
+
+        bind(runMtd);
+        pshFrame(jit, ctx, X17);
         blr(X16);
         pc++;
         continue;
@@ -1039,7 +1033,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           releaseReg(jit, lt);
         }
         releaseReg(jit, st);
-        ret = breakOutNe(block, pc + code[pc].alt + 1);
+        ret = breakOutNe(block, pc + code[pc].alt + 1, False);
         pc++;
         continue;
       }
@@ -1051,7 +1045,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
         popStkOp(jit, X1);
-        invokeCFunc2(jit, (Cfunc2) sameTerm);
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2,RG(X0),RG(X1));
         tst(X0, RG(X0));
         ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
@@ -1100,7 +1094,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        ret = breakOutNe(block, pc + code[pc].alt + 1);
+        ret = breakOutNe(block, pc + code[pc].alt + 1, False);
         pc++;
         continue;
       }
@@ -1873,8 +1867,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case maxOpCode:
-      case illegalOp:
+      default:
         return Error;
     }
   }
@@ -1896,18 +1889,6 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
   };
 
   return jitBlock(&block, 0, codeSize(mtd));
-}
-
-retCode invokeCFunc1(jitCompPo jit, Cfunc1 fun) {
-  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) fun, 1,RG(X0));
-}
-
-retCode invokeCFunc2(jitCompPo jit, Cfunc2 fun) {
-  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) fun, 2, RG(X0),RG(X1));
-}
-
-retCode invokeCFunc3(jitCompPo jit, Cfunc3 fun) {
-  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) fun, 3, RG(X0), RG(X1),RG(X2));
 }
 
 retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity) {
@@ -1960,17 +1941,25 @@ retCode breakOutEq(jitBlockPo block, int32 tgt) {
     return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-retCode breakOutNe(jitBlockPo block, int32 tgt) {
+retCode breakOutNe(jitBlockPo block, int32 tgt, logical keepTop) {
   jitBlockPo tgtBlock = breakBlock(block, tgt);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(block->jit);
+  insPo code = block->code;
 
   if (lbl != Null) {
+    if (keepTop) {
+      armReg tp = findFreeReg(jit);
+      popStkOp(jit, tp);
+      sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
+      pushStkOp(jit, tp);
+      releaseReg(jit, tp);
+    }
     bne(lbl);
     return Ok;
-  } else
-    return jitError(jit, "cannot find target label for %d", tgt);
+  }
+  return jitError(jit, "cannot find target label for %d", tgt);
 }
 
 retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop) {

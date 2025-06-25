@@ -84,7 +84,7 @@ retCode run(processPo P) {
           }
 #endif
 
-          insPo link = PC;
+          insPo link = PC; // Jit code can override this in the frame
           saveRegisters();
           ReturnStatus ret = invokeJitMethod(P, mtd);
           restoreRegisters();
