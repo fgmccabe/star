@@ -18,6 +18,7 @@ set(HEADER_FILES
         Headers/x86_64P.h
         Headers/lower.h
         Headers/lowerP.h
+        Headers/macros.h
         )
 
 set(SOURCE_FILES assemx86_64.c ins_x64.c ../ARM64/Assem/asmInfra.c lower.c )
