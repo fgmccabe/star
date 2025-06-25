@@ -22,7 +22,6 @@ include_directories("Headers"
 set(HEADER_FILES
         Headers/jit.h
         Headers/jitP.h
-        Headers/jitOps.h
         Common/Headers/regAlloc.h
         ARM64/Headers/asminfra.h
         Common/Headers/regAlloc.h
