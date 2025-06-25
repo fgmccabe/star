@@ -84,9 +84,11 @@ retCode run(processPo P) {
           }
 #endif
 
+          insPo link = PC;
           saveRegisters();
           ReturnStatus ret = invokeJitMethod(P, mtd);
           restoreRegisters();
+          PC = link;
 
           if (ret == Normal) {
             PC++;
@@ -442,7 +444,7 @@ retCode run(processPo P) {
         termPo val = pop();
         saveRegisters(); // Seal off the current stack
         assert(stackState(STK) == active);
-        dropStack(STK);
+        P->stk = dropStack(STK);
         restoreRegisters();
         push(val);
         continue;
