@@ -10,28 +10,28 @@
 #include "errorCodes.h"
 #include "arithmetic.h"
 
-ReturnStatus g__int_plus(processPo P) {
+ReturnStatus g__int_plus(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
   pshVal(P, makeInteger(lhs + rhs));
   return Normal;
 }
 
-ReturnStatus g__int_minus(processPo P) {
+ReturnStatus g__int_minus(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
   pshVal(P, makeInteger(lhs - rhs));
   return Normal;
 }
 
-ReturnStatus g__int_times(processPo P) {
+ReturnStatus g__int_times(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
   pshVal(P, makeInteger(lhs * rhs));
   return Normal;
 }
 
-ReturnStatus g__int_div(processPo P) {
+ReturnStatus g__int_div(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -44,7 +44,7 @@ ReturnStatus g__int_div(processPo P) {
   }
 }
 
-ReturnStatus g__int_mod(processPo P) {
+ReturnStatus g__int_mod(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -57,7 +57,7 @@ ReturnStatus g__int_mod(processPo P) {
   }
 }
 
-ReturnStatus g__int_gcd(processPo P) {
+ReturnStatus g__int_gcd(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -86,7 +86,7 @@ static integer intPow(integer x, integer y) {
   return result;
 }
 
-ReturnStatus g__int_pow(processPo P) {
+ReturnStatus g__int_pow(enginePo P) {
   integer x = integerVal(popVal(P));
   integer y = integerVal(popVal(P));
 
@@ -99,7 +99,7 @@ ReturnStatus g__int_pow(processPo P) {
   }
 }
 
-ReturnStatus g__band(processPo P) {
+ReturnStatus g__band(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -107,7 +107,7 @@ ReturnStatus g__band(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__basr(processPo P) {
+ReturnStatus g__basr(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -115,7 +115,7 @@ ReturnStatus g__basr(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__blsl(processPo P) {
+ReturnStatus g__blsl(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
   uint64 rhs = (uint64) integerVal(popVal(P));
 
@@ -123,7 +123,7 @@ ReturnStatus g__blsl(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__blsr(processPo P) {
+ReturnStatus g__blsr(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
   uint64 rhs = (uint64) integerVal(popVal(P));
 
@@ -131,7 +131,7 @@ ReturnStatus g__blsr(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__bor(processPo P) {
+ReturnStatus g__bor(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
   uint64 rhs = (uint64) integerVal(popVal(P));
 
@@ -139,7 +139,7 @@ ReturnStatus g__bor(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__bxor(processPo P) {
+ReturnStatus g__bxor(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
   uint64 rhs = (uint64) integerVal(popVal(P));
 
@@ -147,14 +147,14 @@ ReturnStatus g__bxor(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__bnot(processPo P) {
+ReturnStatus g__bnot(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
 
   pshVal(P, makeInteger((integer) (~lhs)));
   return Normal;
 }
 
-ReturnStatus g__nthb(processPo P) {
+ReturnStatus g__nthb(enginePo P) {
   uint64 lhs = (uint64) integerVal(popVal(P));
   uint64 rhs = (uint64) integerVal(popVal(P));
 
@@ -162,7 +162,7 @@ ReturnStatus g__nthb(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int_eq(processPo P) {
+ReturnStatus g__int_eq(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -170,7 +170,7 @@ ReturnStatus g__int_eq(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int_ge(processPo P) {
+ReturnStatus g__int_ge(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -178,7 +178,7 @@ ReturnStatus g__int_ge(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int_lt(processPo P) {
+ReturnStatus g__int_lt(enginePo P) {
   integer lhs = integerVal(popVal(P));
   integer rhs = integerVal(popVal(P));
 
@@ -186,20 +186,20 @@ ReturnStatus g__int_lt(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int_abs(processPo P) {
+ReturnStatus g__int_abs(enginePo P) {
   termPo arg = popVal(P);
   integer lhs = integerVal(arg);
   pshVal(P, (lhs < 0 ? makeInteger(-lhs) : arg));
   return Normal;
 }
 
-ReturnStatus g__int_hash(processPo P) {
+ReturnStatus g__int_hash(enginePo P) {
   integer lhs = integerVal(popVal(P));
   pshVal(P, makeInteger(hash61(lhs)));
   return Normal;
 }
 
-ReturnStatus g__int_lg2(processPo P) {
+ReturnStatus g__int_lg2(enginePo P) {
   integer lhs = integerVal(popVal(P));
 
   if (lhs <= 0) {
@@ -211,12 +211,12 @@ ReturnStatus g__int_lg2(processPo P) {
   }
 }
 
-ReturnStatus g__bcount(processPo P) {
+ReturnStatus g__bcount(enginePo P) {
   pshVal(P, makeInteger(countBits(integerVal(popVal(P)))));
   return Normal;
 }
 
-ReturnStatus g__int2str(processPo P) {
+ReturnStatus g__int2str(enginePo P) {
   integer ix = integerVal(popVal(P));
   char buff[64];
 
@@ -225,7 +225,7 @@ ReturnStatus g__int2str(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int_format(processPo P) {
+ReturnStatus g__int_format(enginePo P) {
   integer ix = integerVal(popVal(P));
   integer length;
   const char *fmt = strVal(popVal(P), &length);
@@ -243,27 +243,27 @@ ReturnStatus g__int_format(processPo P) {
   }
 }
 
-ReturnStatus g__int2flt(processPo P) {
+ReturnStatus g__int2flt(enginePo P) {
   integer ix = integerVal(popVal(P));
   termPo Rs = makeFloat((double) ix);
   pshVal(P,Rs);
   return Normal;
 }
 
-ReturnStatus g__irand(processPo P) {
+ReturnStatus g__irand(enginePo P) {
   integer ix = integerVal(popVal(P));
   integer rnd = randomInt();
   pshVal(P, makeInteger(rnd%ix));
   return Normal;
 }
 
-ReturnStatus g__random(processPo P) {
+ReturnStatus g__random(enginePo P) {
   double rnd = ((double) random()) / LARGE_INT32;
   pshVal(P, makeFloat(rnd));
   return Normal;
 }
 
-ReturnStatus g__seed(processPo P) {
+ReturnStatus g__seed(enginePo P) {
   unsigned int ix = (unsigned int)integerVal(popVal(P));
 
   srandom(ix);

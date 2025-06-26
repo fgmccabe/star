@@ -43,7 +43,7 @@ newAsyncTask(nextProc next, asyncAlloc alloc, asyncClose close, asyncCleanup cle
   return async;
 }
 
-ReturnStatus g__close(processPo P) {
+ReturnStatus g__close(enginePo P) {
   retCode ret = closeChannel(C_IO(popVal(P)));
   if (ret == Ok) {
     pshVal(P, unitEnum);
@@ -54,13 +54,13 @@ ReturnStatus g__close(processPo P) {
   }
 }
 
-ReturnStatus g__end_of_file(processPo P) {
+ReturnStatus g__end_of_file(enginePo P) {
   termPo Rs = (isFileAtEof(ioChannel(C_IO(popVal(P)))) == Eof ? trueEnum : falseEnum);
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g__inchar(processPo P) {
+ReturnStatus g__inchar(enginePo P) {
   codePoint cp;
   retCode ret = inChar(ioChannel(C_IO(popVal(P))), &cp);
   switch (ret) {
@@ -104,7 +104,7 @@ static retCode oneCleanup(asyncPo sync, retCode ret) {
   return Eof;
 }
 
-ReturnStatus g__inchar_async(processPo P) {
+ReturnStatus g__inchar_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   heapPo h = processHeap(P);
@@ -138,7 +138,7 @@ ReturnStatus g__inchar_async(processPo P) {
   }
 }
 
-ReturnStatus g__inchars(processPo P) {
+ReturnStatus g__inchars(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer limit = integerVal(popVal(P));
 
@@ -191,7 +191,7 @@ static termPo allocStr(heapPo h, asyncPo async) {
   return allocateFromStrBuffer(h, O_BUFFER(async->buffer));
 }
 
-ReturnStatus g__inchars_async(processPo P) {
+ReturnStatus g__inchars_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   integer limit = integerVal(popVal(P));
 
@@ -236,7 +236,7 @@ ReturnStatus g__inchars_async(processPo P) {
   }
 }
 
-ReturnStatus g__inbyte(processPo P) {
+ReturnStatus g__inbyte(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
 
   byte b;
@@ -271,7 +271,7 @@ static taskState oneByte(ioPo in, asyncPo async) {
   }
 }
 
-ReturnStatus g__inbyte_async(processPo P) {
+ReturnStatus g__inbyte_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
@@ -314,7 +314,7 @@ termPo makeByte(heapPo h, integer ix, void *cl) {
   return makeInteger(ch);
 }
 
-ReturnStatus g__inbytes(processPo P) {
+ReturnStatus g__inbytes(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer limit = integerVal(popVal(P));
 
@@ -383,7 +383,7 @@ static retCode bytesCleanup(asyncPo async, retCode ret) {
   }
 }
 
-ReturnStatus g__inbytes_async(processPo P) {
+ReturnStatus g__inbytes_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   integer limit = integerVal(popVal(P));
 
@@ -435,7 +435,7 @@ static retCode grabLine(ioPo io, strBufferPo buffer) {
   return ret;
 }
 
-ReturnStatus g__inline(processPo P) {
+ReturnStatus g__inline(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
 
   strBufferPo buffer = newStringBuffer();
@@ -495,7 +495,7 @@ static retCode lineCleanup(asyncPo async, retCode ret) {
   }
 }
 
-ReturnStatus g__inline_async(processPo P) {
+ReturnStatus g__inline_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
 
@@ -534,7 +534,7 @@ static retCode grabText(ioPo in, ioPo out) {
   return ret;
 }
 
-ReturnStatus g__get_file(processPo P) {
+ReturnStatus g__get_file(enginePo P) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
@@ -581,7 +581,7 @@ static void asyncFileCloser(ioPo io, asyncPo async) {
   freePool(asyncPool, async);
 }
 
-ReturnStatus g__logmsg(processPo P) {
+ReturnStatus g__logmsg(enginePo P) {
   integer length;
   const char *text = strVal(popVal(P), &length);
 
@@ -590,12 +590,12 @@ ReturnStatus g__logmsg(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__display_depth(processPo P) {
+ReturnStatus g__display_depth(enginePo P) {
   pshVal(P, makeInteger(displayDepth));
   return Normal;
 }
 
-ReturnStatus g__stdfile(processPo P) {
+ReturnStatus g__stdfile(enginePo P) {
   integer fNo = integerVal(popVal(P));
 
   heapPo h = processHeap(P);
@@ -613,13 +613,13 @@ ReturnStatus g__stdfile(processPo P) {
   }
 }
 
-ReturnStatus g__fposition(processPo P) {
+ReturnStatus g__fposition(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   pshVal(P, makeInteger(ioPos(io)));
   return Normal;
 }
 
-ReturnStatus g__fseek(processPo P) {
+ReturnStatus g__fseek(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer pos = integerVal(popVal(P));
 
@@ -634,14 +634,14 @@ ReturnStatus g__fseek(processPo P) {
   }
 }
 
-ReturnStatus g__fname(processPo P) {
+ReturnStatus g__fname(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
 
   pshVal(P, allocateCString(processHeap(P), fileName(io)));
   return Normal;
 }
 
-ReturnStatus g__setfileencoding(processPo P) {
+ReturnStatus g__setfileencoding(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer enc = integerVal(popVal(P));
   setEncoding(io, (ioEncoding) enc);
@@ -649,7 +649,7 @@ ReturnStatus g__setfileencoding(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flush(processPo P) {
+ReturnStatus g__flush(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok) {
     pshVal(P, unitEnum);
@@ -660,7 +660,7 @@ ReturnStatus g__flush(processPo P) {
   }
 }
 
-ReturnStatus g__flushall(processPo P) {
+ReturnStatus g__flushall(enginePo P) {
   flushOut();
   pshVal(P, unitEnum);
   return Normal;
@@ -693,7 +693,7 @@ static retCode populateFiles(termPo t, void *cl) {
   return Ok;
 }
 
-ReturnStatus g__waitIo(processPo P) {
+ReturnStatus g__waitIo(enginePo P) {
   // First count the length of the list
   termPo list = popVal(P);
   integer count = 0;

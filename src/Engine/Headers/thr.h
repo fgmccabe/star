@@ -17,10 +17,10 @@ void initThr(void);
 
 extern threadPo threadVal(termPo t);
 
-processPo getThreadProcess(threadPo t);
+enginePo getThreadProcess(threadPo t);
 
 void clearProcess(threadPo t);
 
-threadPo newThread(processPo p, heapPo h);
+threadPo newThread(enginePo p, heapPo h);
 
 #endif //STAR_THR_H

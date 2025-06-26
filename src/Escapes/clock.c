@@ -37,7 +37,7 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(processPo P) {
+ReturnStatus g__delay(enginePo P) {
   double dx = floatVal(popVal(P));
 
   struct timespec tm;
@@ -70,7 +70,7 @@ ReturnStatus g__delay(processPo P) {
   }
 }
 
-ReturnStatus g__sleep(processPo P) {
+ReturnStatus g__sleep(enginePo P) {
   double f = floatVal(popVal(P));
 
   struct timeval now;
@@ -123,18 +123,18 @@ ReturnStatus g__sleep(processPo P) {
 }
 
 /* Return the current time */
-ReturnStatus g__now(processPo P) {
+ReturnStatus g__now(enginePo P) {
   pshVal(P, makeFloat(get_time()));
   return Normal;
 }
 
 /* Return the time at midnight */
-ReturnStatus g__today(processPo P) {
+ReturnStatus g__today(enginePo P) {
   pshVal(P, makeFloat(get_date()));
   return Normal;
 }
 
-ReturnStatus g__ticks(processPo P) {
+ReturnStatus g__ticks(enginePo P) {
   pshVal(P, makeInteger((integer) clock()));
   return Normal;
 }

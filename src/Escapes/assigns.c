@@ -8,17 +8,17 @@
 #include "assigns.h"
 #include "cellP.h"
 
-ReturnStatus g__cell(processPo P) {
+ReturnStatus g__cell(enginePo P) {
   pshVal(P, (termPo) newCell(processHeap(P), popVal(P)));
   return Normal;
 }
 
-ReturnStatus g__get(processPo P) {
+ReturnStatus g__get(enginePo P) {
   pshVal(P, getCell(C_CELL(popVal(P))));
   return Normal;
 }
 
-ReturnStatus g__assign(processPo P) {
+ReturnStatus g__assign(enginePo P) {
   cellPo Cell = C_CELL(popVal(P));
   setCell(Cell, popVal(P));
   return Normal;

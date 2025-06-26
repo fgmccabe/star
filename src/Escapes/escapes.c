@@ -2,7 +2,6 @@
 #include <ooio.h>
 #include <assert.h>
 #include "term.h"
-#include <globals.h>
 #include "engine.h"
 #include "escapeP.h"
 #include "sysops.h"
@@ -19,7 +18,7 @@ static int installEscape(EscapeCode code, char *name, char *sig, escFun fun);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
-extern ReturnStatus g_##Fun(processPo P);\
+extern ReturnStatus g_##Fun(enginePo P);\
   installEscape(Esc##Fun,#Fun,Sig,g_##Fun);
 
 void installEscapes() {

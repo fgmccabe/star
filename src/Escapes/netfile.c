@@ -14,7 +14,7 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(processPo P) {
+ReturnStatus g__listen(enginePo P) {
   integer port = integerVal(popVal(P));
   char nBuff[MAXFILELEN];
   ioPo listen;
@@ -33,7 +33,7 @@ ReturnStatus g__listen(processPo P) {
   }
 }
 
-ReturnStatus g__accept(processPo P) {
+ReturnStatus g__accept(enginePo P) {
   ioPo listen = ioChannel(C_IO(popVal(P)));
   ioEncoding enc = pickEncoding(integerVal(popVal(P)));
   heapPo h = processHeap(P);
@@ -99,7 +99,7 @@ ReturnStatus g__accept(processPo P) {
   }
 }
 
-ReturnStatus g__connect(processPo P) {
+ReturnStatus g__connect(enginePo P) {
   integer hLen;
   const char *host = strVal(popVal(P), &hLen);
   integer port = integerVal(popVal(P));
@@ -137,7 +137,7 @@ ReturnStatus g__connect(processPo P) {
 
 /* Access host name functions */
 /* return IP addresses of a host */
-ReturnStatus g__hosttoip(processPo P) {
+ReturnStatus g__hosttoip(enginePo P) {
   char host[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
 
@@ -159,7 +159,7 @@ ReturnStatus g__hosttoip(processPo P) {
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(processPo P) {
+ReturnStatus g__iptohost(enginePo P) {
   char ip[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(popVal(P)), ip, NumberOf(ip));

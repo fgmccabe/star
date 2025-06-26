@@ -13,7 +13,7 @@
 #include "stack.h"
 #include "escape.h"
 
-ReturnStatus g__flt_eq(processPo P) {
+ReturnStatus g__flt_eq(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   double fuzz = rhs / 1.0e20;
@@ -22,7 +22,7 @@ ReturnStatus g__flt_eq(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_ge(processPo P) {
+ReturnStatus g__flt_ge(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = (lhs >= rhs ? trueEnum : falseEnum);
@@ -31,7 +31,7 @@ ReturnStatus g__flt_ge(processPo P) {
   return Normal;;
 }
 
-ReturnStatus g__flt_lt(processPo P) {
+ReturnStatus g__flt_lt(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = (lhs < rhs ? trueEnum : falseEnum);
@@ -40,7 +40,7 @@ ReturnStatus g__flt_lt(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_plus(processPo P) {
+ReturnStatus g__flt_plus(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = (termPo) makeFloat(lhs + rhs);
@@ -49,7 +49,7 @@ ReturnStatus g__flt_plus(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_minus(processPo P) {
+ReturnStatus g__flt_minus(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = makeFloat(lhs - rhs);
@@ -58,7 +58,7 @@ ReturnStatus g__flt_minus(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_times(processPo P) {
+ReturnStatus g__flt_times(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = makeFloat(lhs * rhs);
@@ -67,7 +67,7 @@ ReturnStatus g__flt_times(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_div(processPo P) {
+ReturnStatus g__flt_div(enginePo P) {
   double numer = floatVal(popVal(P));
   double denom = floatVal(popVal(P));
 
@@ -80,7 +80,7 @@ ReturnStatus g__flt_div(processPo P) {
   }
 }
 
-ReturnStatus g__flt_mod(processPo P) {
+ReturnStatus g__flt_mod(enginePo P) {
   double numer = floatVal(popVal(P));
   double denom = floatVal(popVal(P));
 
@@ -93,7 +93,7 @@ ReturnStatus g__flt_mod(processPo P) {
   }
 }
 
-ReturnStatus g__flt_pwr(processPo P) {
+ReturnStatus g__flt_pwr(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
   termPo Rs = makeFloat(pow(lhs, rhs));
@@ -102,7 +102,7 @@ ReturnStatus g__flt_pwr(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_abs(processPo P) {
+ReturnStatus g__flt_abs(enginePo P) {
   termPo arg = popVal(P);
   double Arg = floatVal(arg);
   termPo Rs = (Arg < 0 ? makeFloat(-Arg) : arg);
@@ -111,7 +111,7 @@ ReturnStatus g__flt_abs(processPo P) {
   return Normal;
 }
 
-ReturnStatus g_exp(processPo P) {
+ReturnStatus g_exp(enginePo P) {
   double x = floatVal(popVal(P));
 
   errno = 0; /* clear errno prior to computation */
@@ -131,14 +131,14 @@ ReturnStatus g_exp(processPo P) {
   }
 }
 
-ReturnStatus g__ldexp(processPo P) {
+ReturnStatus g__ldexp(enginePo P) {
   double x = floatVal(popVal(P));
   integer e = integerVal(popVal(P));
   pshVal(P, makeFloat(ldexp(x, (int) e)));
   return Normal;
 }
 
-ReturnStatus g__frexp(processPo P) {
+ReturnStatus g__frexp(enginePo P) {
   double Arg = floatVal(popVal(P));
   int exp;
   double frac = frexp(Arg, &exp);
@@ -154,7 +154,7 @@ ReturnStatus g__frexp(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__modf(processPo P) {
+ReturnStatus g__modf(enginePo P) {
   double Arg = floatVal(popVal(P));
   double intgrl;
   double frac = modf(Arg, &intgrl);
@@ -170,14 +170,14 @@ ReturnStatus g__modf(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt2int(processPo P) {
+ReturnStatus g__flt2int(enginePo P) {
   termPo Rs = makeInteger((integer) floatVal(popVal(P)));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g__bits_float(processPo P) {
+ReturnStatus g__bits_float(enginePo P) {
   union {
     integer Ix;
     double Dx;
@@ -189,7 +189,7 @@ ReturnStatus g__bits_float(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__float_bits(processPo P) {
+ReturnStatus g__float_bits(enginePo P) {
   union {
     integer Ix;
     double Dx;
@@ -201,7 +201,7 @@ ReturnStatus g__float_bits(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt2str(processPo P) {
+ReturnStatus g__flt2str(enginePo P) {
   double Arg = floatVal(popVal(P));
   int precision = (int) integerVal(popVal(P));
   codePoint mdc = charVal(popVal(P));
@@ -214,7 +214,7 @@ ReturnStatus g__flt2str(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__flt_format(processPo P) {
+ReturnStatus g__flt_format(enginePo P) {
   double arg = floatVal(popVal(P));
   integer length;
   const char *fmt = strVal(popVal(P), &length);
@@ -230,7 +230,7 @@ ReturnStatus g__flt_format(processPo P) {
   }
 }
 
-ReturnStatus g__flt_hash(processPo P) {
+ReturnStatus g__flt_hash(enginePo P) {
   double Arg = floatVal(popVal(P));
 
   termPo Rs = makeInteger(floatHash(Arg));
@@ -239,7 +239,7 @@ ReturnStatus g__flt_hash(processPo P) {
   return Normal;
 }
 
-ReturnStatus g_cos(processPo P) {
+ReturnStatus g_cos(enginePo P) {
   double Arg = floatVal(popVal(P));
   termPo Rs = makeFloat(cos(Arg));
 
@@ -247,69 +247,69 @@ ReturnStatus g_cos(processPo P) {
   return Normal;
 }
 
-ReturnStatus g_sin(processPo P) {
+ReturnStatus g_sin(enginePo P) {
   termPo Rs = makeFloat(sin(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_tan(processPo P) {
+ReturnStatus g_tan(enginePo P) {
   termPo Rs = makeFloat(tan(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_acos(processPo P) {
+ReturnStatus g_acos(enginePo P) {
   termPo Rs = makeFloat(acos(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_asin(processPo P) {
+ReturnStatus g_asin(enginePo P) {
   termPo Rs = makeFloat(asin(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_atan(processPo P) {
+ReturnStatus g_atan(enginePo P) {
   termPo Rs = makeFloat(atan(floatVal(popVal(P))));
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_floor(processPo P) {
+ReturnStatus g_floor(enginePo P) {
   termPo Rs = makeFloat(floor(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_ceil(processPo P) {
+ReturnStatus g_ceil(enginePo P) {
   termPo Rs = makeFloat(ceil(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_trunc(processPo P) {
+ReturnStatus g_trunc(enginePo P) {
   termPo Rs = makeFloat(trunc(floatVal(popVal(P))));
 
   pshVal(P, Rs);
   return Normal;
 }
 
-ReturnStatus g_integral(processPo P) {
+ReturnStatus g_integral(enginePo P) {
   double Arg = floatVal(popVal(P));
 
   pshVal(P, floor(Arg) == Arg ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g_log(processPo P) {
+ReturnStatus g_log(enginePo P) {
   double Arg = floatVal(popVal(P));
   termPo Rs = makeFloat(log(Arg));
 
@@ -317,7 +317,7 @@ ReturnStatus g_log(processPo P) {
   return Normal;
 }
 
-ReturnStatus g_log10(processPo P) {
+ReturnStatus g_log10(enginePo P) {
   double Arg = floatVal(popVal(P));
   termPo Rs = makeFloat(log10(Arg));
 
@@ -325,7 +325,7 @@ ReturnStatus g_log10(processPo P) {
   return Normal;
 }
 
-ReturnStatus g_sqrt(processPo P) {
+ReturnStatus g_sqrt(enginePo P) {
   double Arg = floatVal(popVal(P));
 
   if (Arg >= 0.0){
@@ -338,7 +338,7 @@ ReturnStatus g_sqrt(processPo P) {
   }
 }
 
-ReturnStatus g_pi(processPo P) {
+ReturnStatus g_pi(enginePo P) {
   termPo Rs = makeFloat(M_PI);
 
   pshVal(P, Rs);

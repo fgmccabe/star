@@ -332,6 +332,7 @@ escape(_shell, throws(strng lst(strng) lst(tpl(strng strng)), int, ERR), "Run a 
 
 escape(_ins_debug, func(/**/, unit), "set instruction-level")
 escape(_stackTrace, func(/**/, strng), "Print a stack trace")
+escape(_gc,throws(int, unit, ERR), "Force invokation of gc")
 
 escape(_jit_compile,throws(strng int, unit, ERR),"Jit compile function")
 

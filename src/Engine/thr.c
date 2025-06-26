@@ -76,11 +76,11 @@ static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, log
   return outMsg(out, "<<thread@0x%x>>", t);
 }
 
-processPo getThreadProcess(threadPo t) {
+enginePo getThreadProcess(threadPo t) {
   return t->process;
 }
 
-threadPo allocateThread(heapPo H, processPo pr) {
+threadPo allocateThread(heapPo H, enginePo pr) {
   threadPo thr = (threadPo) allocateObject(H, threadClass, ThreadCellCount);
 
   thr->clss.clss = threadClass;
@@ -89,6 +89,6 @@ threadPo allocateThread(heapPo H, processPo pr) {
   return thr;
 }
 
-threadPo newThread(processPo p, heapPo h) {
+threadPo newThread(enginePo p, heapPo h) {
   return allocateThread(h, p);
 }

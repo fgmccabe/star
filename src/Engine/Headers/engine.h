@@ -9,7 +9,7 @@
 #include "code.h"
 #include "heap.h"
 
-typedef struct processRec_ *processPo;
+typedef struct engineRecord_ *enginePo;
 
 typedef enum {
   stepInto, stepOver, stepOut, nextBreak, never, quitDbg, moreDebug
@@ -26,24 +26,24 @@ typedef enum {
   dead
 } ProcessState;
 
-processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
-void switchProcessState(processPo p, ProcessState state);
-void setProcessRunnable(processPo p);
-integer processNo(processPo p);
+enginePo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
+void switchProcessState(enginePo p, ProcessState state);
+void setProcessRunnable(enginePo p);
+integer processNo(enginePo p);
 
-typedef retCode (*procProc)(processPo p, void *cl);
+typedef retCode (*procProc)(enginePo p, void *cl);
 retCode processProcesses(procProc p, void *cl);
-processPo getProcessOfThread(void);
+enginePo getProcessOfThread(void);
 
-heapPo processHeap(processPo p);
+heapPo processHeap(enginePo p);
 
-char *processWd(processPo p);
-retCode setProcessWd(processPo p, char *wd, integer len);
+char *processWd(enginePo p);
+retCode setProcessWd(enginePo p, char *wd, integer len);
 
 termPo commandLine(heapPo h);
 
-void pshVal(processPo p,termPo v);
-termPo popVal(processPo p);
+void pshVal(enginePo p, termPo v);
+termPo popVal(enginePo p);
 
-extern __thread processPo currentProcess;
+extern __thread enginePo currentProcess;
 #endif

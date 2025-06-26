@@ -13,7 +13,7 @@
 #include "option.h"
 #include "consP.h"
 
-ReturnStatus g__big_plus(processPo P) {
+ReturnStatus g__big_plus(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -23,7 +23,7 @@ ReturnStatus g__big_plus(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_minus(processPo P) {
+ReturnStatus g__big_minus(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -33,7 +33,7 @@ ReturnStatus g__big_minus(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_bitand(processPo P) {
+ReturnStatus g__big_bitand(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
@@ -43,7 +43,7 @@ ReturnStatus g__big_bitand(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_bitor(processPo P) {
+ReturnStatus g__big_bitor(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
@@ -53,7 +53,7 @@ ReturnStatus g__big_bitor(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_bitxor(processPo P) {
+ReturnStatus g__big_bitxor(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
@@ -63,7 +63,7 @@ ReturnStatus g__big_bitxor(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_bitnot(processPo P) {
+ReturnStatus g__big_bitnot(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   integer cS = bigCount(lhs) + 1;
   uint32 sum[cS];
@@ -72,7 +72,7 @@ ReturnStatus g__big_bitnot(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_times(processPo P) {
+ReturnStatus g__big_times(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer pS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -82,7 +82,7 @@ ReturnStatus g__big_times(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_div(processPo P) {
+ReturnStatus g__big_div(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   uint32 qS = bigCount(lhs) + bigCount(rhs) + 1;
@@ -110,7 +110,7 @@ ReturnStatus g__big_div(processPo P) {
   }
 }
 
-ReturnStatus g__big_gcd(processPo P) {
+ReturnStatus g__big_gcd(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
   integer qS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
@@ -128,7 +128,7 @@ ReturnStatus g__big_gcd(processPo P) {
   }
 }
 
-ReturnStatus g__big_format(processPo P) {
+ReturnStatus g__big_format(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
@@ -149,7 +149,7 @@ ReturnStatus g__big_format(processPo P) {
   return Abnormal;
 }
 
-ReturnStatus g__big2str(processPo P) {
+ReturnStatus g__big2str(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
@@ -161,7 +161,7 @@ ReturnStatus g__big2str(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str2big(processPo P) {
+ReturnStatus g__str2big(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer gSize = ((len + 7) / 8) + 1;
@@ -178,13 +178,13 @@ ReturnStatus g__str2big(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_hash(processPo P) {
+ReturnStatus g__big_hash(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   pshVal(P, makeInteger(bignumHash(bg)));
   return Normal;
 }
 
-ReturnStatus g__big_eq(processPo P) {
+ReturnStatus g__big_eq(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
 
@@ -192,7 +192,7 @@ ReturnStatus g__big_eq(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_lt(processPo P) {
+ReturnStatus g__big_lt(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
 
@@ -206,7 +206,7 @@ ReturnStatus g__big_lt(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big_ge(processPo P) {
+ReturnStatus g__big_ge(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
 
@@ -220,7 +220,7 @@ ReturnStatus g__big_ge(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__int2big(processPo P) {
+ReturnStatus g__int2big(enginePo P) {
   uint64 U = (uint64) integerVal(popVal(P));
 
   uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
@@ -228,7 +228,7 @@ ReturnStatus g__int2big(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big2ints(processPo P) {
+ReturnStatus g__big2ints(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   uint32 count = bigCount(bg);
   uint32 digits[count];
@@ -254,7 +254,7 @@ ReturnStatus g__big2ints(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__ints2big(processPo P) {
+ReturnStatus g__ints2big(enginePo P) {
   termPo list = popVal(P);
   integer count = consLength(list);
   uint32 digits[count];
@@ -269,7 +269,7 @@ ReturnStatus g__ints2big(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__big2int(processPo P) {
+ReturnStatus g__big2int(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
   uint32 count = bigCount(bg);
   uint32 *digits = bigDigits(bg);

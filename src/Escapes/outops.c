@@ -17,7 +17,7 @@
 
 static retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2);
 
-ReturnStatus g__outchar(processPo P) {
+ReturnStatus g__outchar(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   codePoint cp = charVal(popVal(P));
 
@@ -52,7 +52,7 @@ static retCode wrCleanup(asyncPo async, retCode ret) {
   return ret;
 }
 
-ReturnStatus g__outchar_async(processPo P) {
+ReturnStatus g__outchar_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
@@ -74,7 +74,7 @@ ReturnStatus g__outchar_async(processPo P) {
   return Abnormal;
 }
 
-ReturnStatus g__outbyte(processPo P) {
+ReturnStatus g__outbyte(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer cp = integerVal(popVal(P));
 
@@ -101,7 +101,7 @@ static taskState wrByte(ioPo out, asyncPo async) {
   }
 }
 
-ReturnStatus g__outbyte_async(processPo P) {
+ReturnStatus g__outbyte_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
@@ -123,7 +123,7 @@ ReturnStatus g__outbyte_async(processPo P) {
   return Abnormal;
 }
 
-ReturnStatus g__outbytes(processPo P) {
+ReturnStatus g__outbytes(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   retCode ret = Ok;
   termPo a2 = popVal(P);
@@ -143,7 +143,7 @@ ReturnStatus g__outbytes(processPo P) {
   }
 }
 
-ReturnStatus g__outtext(processPo P) {
+ReturnStatus g__outtext(enginePo P) {
   ioPo io = ioChannel(C_IO(popVal(P)));
   integer length;
   const char *text = strVal(popVal(P), &length);
@@ -194,7 +194,7 @@ static void textCloser(ioPo io, asyncPo async) {
   asyncCloser(io, async);
 }
 
-ReturnStatus g__outtext_async(processPo P) {
+ReturnStatus g__outtext_async(enginePo P) {
   ioChnnlPo chnl = C_IO(popVal(P));
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
@@ -223,7 +223,7 @@ ReturnStatus g__outtext_async(processPo P) {
   return Abnormal;
 }
 
-ReturnStatus g__show(processPo P) {
+ReturnStatus g__show(enginePo P) {
   integer length;
   const char *text = strVal(popVal(P), &length);
   outMsg(logFile, "%S\n%_", text, length);
@@ -231,7 +231,7 @@ ReturnStatus g__show(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__put_file(processPo P) {
+ReturnStatus g__put_file(enginePo P) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));

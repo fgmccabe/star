@@ -23,7 +23,7 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus g__date2time(processPo P) {
+ReturnStatus g__date2time(enginePo P) {
   struct tm now;
 
   now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
@@ -46,7 +46,7 @@ ReturnStatus g__date2time(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__utc2time(processPo P) {
+ReturnStatus g__utc2time(enginePo P) {
   struct tm now;
 
   now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
@@ -69,7 +69,7 @@ ReturnStatus g__utc2time(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__time2date(processPo P) {
+ReturnStatus g__time2date(enginePo P) {
   double time = floatVal(popVal(P));
   time_t when = (time_t) time;
 
@@ -110,7 +110,7 @@ ReturnStatus g__time2date(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__time2utc(processPo P) {
+ReturnStatus g__time2utc(enginePo P) {
   double time = floatVal(popVal(P));
   time_t when = (time_t) time;
 
@@ -153,7 +153,7 @@ ReturnStatus g__time2utc(processPo P) {
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
-ReturnStatus g__formattime(processPo P) {
+ReturnStatus g__formattime(enginePo P) {
   time_t when = (time_t) floatVal(popVal(P));
   integer fmtLen;
   const char *fmt = strVal(popVal(P), &fmtLen);
@@ -570,7 +570,7 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
   return ret;
 }
 
-ReturnStatus g__parsetime(processPo P) {
+ReturnStatus g__parsetime(enginePo P) {
   integer srcLen;
   const char *src = strVal(popVal(P), &srcLen);
 

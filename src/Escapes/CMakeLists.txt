@@ -35,7 +35,7 @@ set(SOURCE_FILES
         fltops.c
         intops.c
         ioops.c
-        libEscapes.c
+        escapes.c
         system.c
         netfile.c
         stringops.c
@@ -44,6 +44,7 @@ set(SOURCE_FILES
         timeout.c
         futops.c
         outops.c
-        jitcompile.c)
+        jitcompile.c
+        meta.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})

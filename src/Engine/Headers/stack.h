@@ -32,10 +32,10 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
 StackState stackState(stackPo tsk);
 
 stackPo newStack(heapPo H, logical execJit, termPo lam);
-void attachStack(processPo P, stackPo top, termPo evt);
-void detachStack(processPo P, stackPo top, termPo event);
+void attachStack(enginePo P, stackPo top, termPo evt);
+void detachStack(enginePo P, stackPo top, termPo event);
 stackPo dropStack(stackPo tsk);
-void detachDropStack(processPo P, stackPo top, termPo event);
+void detachDropStack(enginePo P, stackPo top, termPo event);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);
@@ -45,12 +45,12 @@ termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
 
-void handleStackOverflow(processPo P, integer delta, int32 arity);
+void handleStackOverflow(enginePo P, integer delta, int32 arity);
 
 void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
 
-void glueOnStack(processPo P, integer size, integer saveArity);
+void glueOnStack(enginePo P, integer size, integer saveArity);
 stackPo spinupStack(heapPo H, integer size);
 
 integer stackHwm(stackPo stk);

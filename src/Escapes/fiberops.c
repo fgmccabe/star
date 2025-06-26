@@ -5,13 +5,13 @@
 #include "engineP.h"
 #include "escape.h"
 
-ReturnStatus g__fiber_eq(processPo P) {
+ReturnStatus g__fiber_eq(enginePo P) {
   termPo Rs = (C_STACK(popVal(P)) == C_STACK(popVal(P)) ? trueEnum : falseEnum);
   pshVal(P,Rs);
   return Normal;
 }
 
-ReturnStatus g__fiber(processPo P) {
+ReturnStatus g__fiber(enginePo P) {
   termPo fiberLambda = popVal(P);
   stackPo child = newStack(processHeap(P), False, fiberLambda);
   pshVal(P,(termPo)child);

@@ -12,7 +12,7 @@ typedef enum {
   Abnormal
 } ReturnStatus;
 
-typedef ReturnStatus (*escFun)(processPo p);
+typedef ReturnStatus (*escFun)(enginePo p);
 
 typedef struct escape_record_ *escapePo;
 

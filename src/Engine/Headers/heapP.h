@@ -26,7 +26,7 @@ typedef struct heap_ {
   allocMode allocMode;
   ptrPo roots[MAX_ROOT];
   int topRoot;
-  processPo owner;
+  enginePo owner;
 } HeapRecord;
 
 extern HeapRecord heap;

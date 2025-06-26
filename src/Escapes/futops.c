@@ -23,29 +23,29 @@ static retCode pollCellFuture(futurePo ft, heapPo h, void *cl, void *cl2) {
     return rejectFuture(ft, orValue(fv));
 }
 
-ReturnStatus g__cell_future(processPo P) {
+ReturnStatus g__cell_future(enginePo P) {
   termPo a1 = popVal(P);
   assert(isCell(a1));
   pshVal(P, (termPo) makeFuture(processHeap(P), a1, pollCellFuture, Null, Null));
   return Normal;
 }
 
-ReturnStatus g__futureIsResolved(processPo P) {
+ReturnStatus g__futureIsResolved(enginePo P) {
   pshVal(P, futureIsResolved(C_FUTURE(popVal(P)), processHeap(P)) ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__futureIsAccepted(processPo P) {
+ReturnStatus g__futureIsAccepted(enginePo P) {
   pshVal(P, futureIsAccepted(C_FUTURE(popVal(P))) ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__futureIsRejected(processPo P) {
+ReturnStatus g__futureIsRejected(enginePo P) {
   pshVal(P, futureIsRejected(C_FUTURE(popVal(P))) ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__resolveFuture(processPo P) {
+ReturnStatus g__resolveFuture(enginePo P) {
   futurePo ft = C_FUTURE(popVal(P));
   switch (resolveFuture(ft, popVal(P))) {
     case Ok: {
@@ -58,7 +58,7 @@ ReturnStatus g__resolveFuture(processPo P) {
   }
 }
 
-ReturnStatus g__rejectFuture(processPo P) {
+ReturnStatus g__rejectFuture(enginePo P) {
   futurePo ft = C_FUTURE(popVal(P));
   switch (rejectFuture(ft, popVal(P))) {
     case Ok: {
@@ -71,7 +71,7 @@ ReturnStatus g__rejectFuture(processPo P) {
   }
 }
 
-ReturnStatus g__futureVal(processPo P) {
+ReturnStatus g__futureVal(enginePo P) {
   futurePo ft = C_FUTURE(popVal(P));
 
   pshVal(P, futureValue(ft));

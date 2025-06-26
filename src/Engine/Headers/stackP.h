@@ -120,6 +120,6 @@ typedef enum {
 
 void
 showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, methodPo prog, insPo pc);
-void stackTrace(processPo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
+void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
 #endif //STAR_STACKP_H

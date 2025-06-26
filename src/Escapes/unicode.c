@@ -7,14 +7,14 @@
 #include "unicode.h"
 #include "errorCodes.h"
 
-ReturnStatus g__uniCodeCategory(processPo P) {
+ReturnStatus g__uniCodeCategory(enginePo P) {
   codePoint ch = (codePoint) charVal(popVal(P));
 
   pshVal(P, makeInteger(uniCharCategory(ch)));
   return Normal;
 }
 
-ReturnStatus g__isCcChar(processPo P) {
+ReturnStatus g__isCcChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCcChar(ch) ? trueEnum : falseEnum);
@@ -23,7 +23,7 @@ ReturnStatus g__isCcChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isCfChar(processPo P) {
+ReturnStatus g__isCfChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCfChar(ch) ? trueEnum : falseEnum);
@@ -32,7 +32,7 @@ ReturnStatus g__isCfChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isCnChar(processPo P) {
+ReturnStatus g__isCnChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCnChar(ch) ? trueEnum : falseEnum);
@@ -41,7 +41,7 @@ ReturnStatus g__isCnChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isCoChar(processPo P) {
+ReturnStatus g__isCoChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCoChar(ch) ? trueEnum : falseEnum);
@@ -50,7 +50,7 @@ ReturnStatus g__isCoChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isCsChar(processPo P) {
+ReturnStatus g__isCsChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isCsChar(ch) ? trueEnum : falseEnum);
@@ -59,7 +59,7 @@ ReturnStatus g__isCsChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLlChar(processPo P) {
+ReturnStatus g__isLlChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLlChar(ch) ? trueEnum : falseEnum);
@@ -68,7 +68,7 @@ ReturnStatus g__isLlChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLmChar(processPo P) {
+ReturnStatus g__isLmChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLmChar(ch) ? trueEnum : falseEnum);
@@ -77,7 +77,7 @@ ReturnStatus g__isLmChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLoChar(processPo P) {
+ReturnStatus g__isLoChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLoChar(ch) ? trueEnum : falseEnum);
@@ -86,7 +86,7 @@ ReturnStatus g__isLoChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLtChar(processPo P) {
+ReturnStatus g__isLtChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLtChar(ch) ? trueEnum : falseEnum);
@@ -95,7 +95,7 @@ ReturnStatus g__isLtChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLuChar(processPo P) {
+ReturnStatus g__isLuChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLuChar(ch) ? trueEnum : falseEnum);
@@ -104,7 +104,7 @@ ReturnStatus g__isLuChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isMcChar(processPo P) {
+ReturnStatus g__isMcChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMcChar(ch) ? trueEnum : falseEnum);
@@ -113,7 +113,7 @@ ReturnStatus g__isMcChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isMeChar(processPo P) {
+ReturnStatus g__isMeChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMeChar(ch) ? trueEnum : falseEnum);
@@ -122,7 +122,7 @@ ReturnStatus g__isMeChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isMnChar(processPo P) {
+ReturnStatus g__isMnChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isMnChar(ch) ? trueEnum : falseEnum);
@@ -131,7 +131,7 @@ ReturnStatus g__isMnChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isNdChar(processPo P) {
+ReturnStatus g__isNdChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNdChar(ch) ? trueEnum : falseEnum);
@@ -140,7 +140,7 @@ ReturnStatus g__isNdChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isNlChar(processPo P) {
+ReturnStatus g__isNlChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNlChar(ch) ? trueEnum : falseEnum);
@@ -149,7 +149,7 @@ ReturnStatus g__isNlChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isNoChar(processPo P) {
+ReturnStatus g__isNoChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isNoChar(ch) ? trueEnum : falseEnum);
@@ -158,7 +158,7 @@ ReturnStatus g__isNoChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPcChar(processPo P) {
+ReturnStatus g__isPcChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPcChar(ch) ? trueEnum : falseEnum);
@@ -167,7 +167,7 @@ ReturnStatus g__isPcChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPdChar(processPo P) {
+ReturnStatus g__isPdChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPdChar(ch) ? trueEnum : falseEnum);
@@ -176,7 +176,7 @@ ReturnStatus g__isPdChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPeChar(processPo P) {
+ReturnStatus g__isPeChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPeChar(ch) ? trueEnum : falseEnum);
@@ -185,7 +185,7 @@ ReturnStatus g__isPeChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPfChar(processPo P) {
+ReturnStatus g__isPfChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPfChar(ch) ? trueEnum : falseEnum);
@@ -194,7 +194,7 @@ ReturnStatus g__isPfChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPiChar(processPo P) {
+ReturnStatus g__isPiChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPiChar(ch) ? trueEnum : falseEnum);
@@ -203,7 +203,7 @@ ReturnStatus g__isPiChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPoChar(processPo P) {
+ReturnStatus g__isPoChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPoChar(ch) ? trueEnum : falseEnum);
@@ -212,7 +212,7 @@ ReturnStatus g__isPoChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isPsChar(processPo P) {
+ReturnStatus g__isPsChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isPsChar(ch) ? trueEnum : falseEnum);
@@ -221,7 +221,7 @@ ReturnStatus g__isPsChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isScChar(processPo P) {
+ReturnStatus g__isScChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isScChar(ch) ? trueEnum : falseEnum);
@@ -230,7 +230,7 @@ ReturnStatus g__isScChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isSkChar(processPo P) {
+ReturnStatus g__isSkChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSkChar(ch) ? trueEnum : falseEnum);
@@ -239,7 +239,7 @@ ReturnStatus g__isSkChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isSmChar(processPo P) {
+ReturnStatus g__isSmChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSmChar(ch) ? trueEnum : falseEnum);
@@ -248,7 +248,7 @@ ReturnStatus g__isSmChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isSoChar(processPo P) {
+ReturnStatus g__isSoChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isSoChar(ch) ? trueEnum : falseEnum);
@@ -257,7 +257,7 @@ ReturnStatus g__isSoChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isZlChar(processPo P) {
+ReturnStatus g__isZlChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZlChar(ch) ? trueEnum : falseEnum);
@@ -266,7 +266,7 @@ ReturnStatus g__isZlChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isZpChar(processPo P) {
+ReturnStatus g__isZpChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZpChar(ch) ? trueEnum : falseEnum);
@@ -275,7 +275,7 @@ ReturnStatus g__isZpChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isZsChar(processPo P) {
+ReturnStatus g__isZsChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isZsChar(ch) ? trueEnum : falseEnum);
@@ -284,7 +284,7 @@ ReturnStatus g__isZsChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isLetterChar(processPo P) {
+ReturnStatus g__isLetterChar(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   termPo Rs = (isLetterChar(ch) ? trueEnum : falseEnum);
@@ -293,7 +293,7 @@ ReturnStatus g__isLetterChar(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__digitCode(processPo P) {
+ReturnStatus g__digitCode(enginePo P) {
   codePoint ch = charVal(popVal(P));
 
   if (isNdChar(ch)) {
@@ -305,13 +305,13 @@ ReturnStatus g__digitCode(processPo P) {
   }
 }
 
-ReturnStatus g__codePoint(processPo P) {
+ReturnStatus g__codePoint(enginePo P) {
   codePoint ch = charVal(popVal(P));
   pshVal(P, makeInteger(ch));
   return Normal;
 }
 
-ReturnStatus g__char(processPo P) {
+ReturnStatus g__char(enginePo P) {
   codePoint ch = (codePoint) integerVal(popVal(P));
   pshVal(P, allocateCharacter(ch));
   return Normal;
