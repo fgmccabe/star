@@ -10,7 +10,7 @@
 #include "vector.h"
 #include "stack.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo lc, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, enginePo p, termPo lc, void *cl);
 
 typedef retCode (*completeCb)(strBufferPo, integer cx);
 
@@ -38,8 +38,8 @@ extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical stackVerify;      // Are we dynamically verifying the stack
 
-DebugWaitFor insDebug(processPo p);
-DebugWaitFor enterDebugger(processPo p, termPo lc);
+DebugWaitFor insDebug(enginePo p);
+DebugWaitFor enterDebugger(enginePo p, termPo lc);
 
 
 insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);

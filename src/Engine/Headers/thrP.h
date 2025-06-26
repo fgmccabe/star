@@ -12,13 +12,13 @@
 
 typedef struct _thread_record_ {
   ClassRecord clss;      /* == threadClass */
-  processPo process;
+  enginePo process;
 } ThreadRec;
 
 #define ThreadCellCount CellCount(sizeof(ThreadRec))
 
 void initThreads(void);
 
-extern threadPo allocateThread(heapPo H,processPo pr);
+extern threadPo allocateThread(heapPo H, enginePo pr);
 
 #endif //STAR_THRP_H

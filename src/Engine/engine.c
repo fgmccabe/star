@@ -26,7 +26,7 @@ static integer newProcessNumber();
 static Instruction haltCode[] = {Halt, 0};
 
 void initEngine() {
-  prPool = newPool(sizeof(ProcessRec), 32);
+  prPool = newPool(sizeof(EngineRecord), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
   haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, unitEnum, 0);
@@ -40,7 +40,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
 
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
-    processPo p = newProcess(h, mainMtd, rootWd, cmdLine);
+    enginePo p = newProcess(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
     integer ret = run(p);
     pauseTimer(runTimer);
@@ -53,8 +53,8 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
   }
 }
 
-processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
-  processPo P = (processPo) allocPool(prPool);
+enginePo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
+  enginePo P = (enginePo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
   stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, active, Null);
 
@@ -82,7 +82,7 @@ processPo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   return P;
 }
 
-void ps_kill(processPo p) {
+void ps_kill(enginePo p) {
   if (p != NULL) {
     p->stk = dropStack(p->stk);
 
@@ -97,27 +97,27 @@ void ps_kill(processPo p) {
   }
 }
 
-heapPo processHeap(processPo P) {
+heapPo processHeap(enginePo P) {
   return P->heap;
 }
 
-void pshVal(processPo p, termPo v) {
+void pshVal(enginePo p, termPo v) {
   pushStack(p->stk, v);
 }
 
-termPo popVal(processPo p) {
+termPo popVal(enginePo p) {
   return popStack(p->stk);
 }
 
-void switchProcessState(processPo p, ProcessState state) {
+void switchProcessState(enginePo p, ProcessState state) {
   p->state = state;
 }
 
-void setProcessRunnable(processPo p) {
+void setProcessRunnable(enginePo p) {
   switchProcessState(p, runnable);
 }
 
-integer processNo(processPo p) {
+integer processNo(enginePo p) {
   return p->processNo;
 }
 
@@ -129,7 +129,7 @@ typedef struct {
 static retCode prEntry(void *n, void *r, void *c) {
   Helper *h = (Helper *) c;
 
-  return h->pr((processPo) r, h->cl);
+  return h->pr((enginePo) r, h->cl);
 }
 
 retCode processProcesses(procProc p, void *cl) {
@@ -137,15 +137,15 @@ retCode processProcesses(procProc p, void *cl) {
   return processHashTable(prEntry, prTble, &h);
 }
 
-processPo getProcessOfThread(void) {
+enginePo getProcessOfThread(void) {
   exit(-1);
 }
 
-char *processWd(processPo p) {
+char *processWd(enginePo p) {
   return p->wd;
 }
 
-retCode setProcessWd(processPo p, char *wd, integer len) {
+retCode setProcessWd(enginePo p, char *wd, integer len) {
   return uniTrim(wd, len, "", "/", p->wd, NumberOf(p->wd));
 }
 
@@ -167,7 +167,7 @@ comparison sameProcess(void *a, void *b) {
     return different;
 }
 
-retCode markProcess(processPo P, gcSupportPo G) {
+retCode markProcess(enginePo P, gcSupportPo G) {
 #ifdef TRACEMEM
   if (traceMemory > noTracing)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
@@ -177,14 +177,14 @@ retCode markProcess(processPo P, gcSupportPo G) {
   return Ok;
 }
 
-void markProcesses(processPo owner, gcSupportPo G) {
+void markProcesses(enginePo owner, gcSupportPo G) {
   if (owner != Null)
     markProcess(owner, G);
   else
     processProcesses((procProc) markProcess, G);
 }
 
-void verifyProc(processPo P, heapPo H) {
+void verifyProc(enginePo P, heapPo H) {
   verifyStack(P->stk, H);
 }
 

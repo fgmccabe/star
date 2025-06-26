@@ -5,6 +5,6 @@
 #ifndef STAR_SYSOPS_H
 #define STAR_SYSOPS_H
 
-ReturnStatus g__exit(processPo P);
+ReturnStatus g__exit(enginePo P);
 
 #endif //STAR_SYSOPS_H

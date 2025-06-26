@@ -21,7 +21,7 @@ static void showRet(ioPo out, stackPo stk, termPo lc, termPo val);
 static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val);
 static void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl);
 static void showResume(ioPo out, stackPo stk, termPo lc, termPo cont);
-static void showRegisters(processPo p, heapPo h);
+static void showRegisters(enginePo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk);
 static void showTos(ioPo out, stackPo stk, integer offset);
 
@@ -78,7 +78,7 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-ReturnStatus g__ins_debug(processPo P) {
+ReturnStatus g__ins_debug(enginePo P) {
   insDebugging = tracing = True;
   P->waitFor = stepInto;
   P->tracing = True;
@@ -98,7 +98,7 @@ static integer cmdCount(char *cmdLine, integer deflt) {
     return parseInt(cmdLine, uniStrLen(cmdLine));
 }
 
-static processPo focus = NULL;
+static enginePo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
 __attribute__((unused)) void dC(termPo w) {
@@ -122,7 +122,7 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
 }
 
 // Figuring out if we should stop is surprisingly complicated
-static logical shouldWeStop(processPo p, OpCode op) {
+static logical shouldWeStop(enginePo p, OpCode op) {
   stackPo stk = p->stk;
   if (focus == NULL || focus == p) {
     framePo f = currFrame(stk);
@@ -212,7 +212,7 @@ static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
   }
 }
 
-static DebugWaitFor cmder(debugOptPo opts, processPo p, termPo lc) {
+static DebugWaitFor cmder(debugOptPo opts, enginePo p, termPo lc) {
   static strBufferPo cmdBuffer = Null;
 
   if (cmdBuffer == Null)
@@ -260,14 +260,14 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, termPo lc) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgSingle(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSingle(char *line, enginePo p, termPo lc, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->waterMark = Null;
   p->tracing = (logical) (p->traceCount == 0);
   return stepInto;
 }
 
-static DebugWaitFor dbgOver(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgOver(char *line, enginePo p, termPo lc, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->waterMark = p->stk->fp;
   p->tracing = False;
@@ -276,7 +276,7 @@ static DebugWaitFor dbgOver(char *line, processPo p, termPo lc, void *cl) {
   return stepOver;
 }
 
-static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgUntilRet(char *line, enginePo p, termPo lc, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->tracing = False;
   resetDeflt("n");
@@ -285,11 +285,11 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo lc, void *cl) {
   return stepOut;
 }
 
-static DebugWaitFor dbgQuit(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgQuit(char *line, enginePo p, termPo lc, void *cl) {
   return quitDbg;
 }
 
-static DebugWaitFor dbgTrace(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgTrace(char *line, enginePo p, termPo lc, void *cl) {
   p->tracing = True;
   p->traceCount = cmdCount(line, 0);
 
@@ -300,14 +300,14 @@ static DebugWaitFor dbgTrace(char *line, processPo p, termPo lc, void *cl) {
     return nextBreak;
 }
 
-static DebugWaitFor dbgCont(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgCont(char *line, enginePo p, termPo lc, void *cl) {
   p->tracing = False;
 
   resetDeflt("n");
   return nextBreak;
 }
 
-static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSetDepth(char *line, enginePo p, termPo lc, void *cl) {
   integer depth = cmdCount(line, -1);
   if (depth >= 0)
     displayDepth = cmdCount(line, 0);
@@ -318,14 +318,14 @@ static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowRegisters(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowRegisters(char *line, enginePo p, termPo lc, void *cl) {
   showRegisters(p, p->heap);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCall(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
   showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showLocalVars, stk->prog, stk->pc);
 
@@ -333,7 +333,7 @@ static DebugWaitFor dbgShowCall(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowArg(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
   integer argNo = cmdCount(line, 0);
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
@@ -347,7 +347,7 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowLocal(char *line, enginePo p, termPo lc, void *cl) {
   int32 lclNo = (int32) cmdCount(line, 0);
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
@@ -363,7 +363,7 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
   char buff[MAX_SYMB_LEN];
   integer pos = 0;
   integer ix = 0;
@@ -407,7 +407,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo lc, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowStack(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
   ptrPo limit = stackLcl(stk->args, lclCount(stk->prog));
   ptrPo sp = stk->sp;
@@ -430,7 +430,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
   if (line[0] == 'L') {
     integer count = cmdCount(line + 1, MAX_INT);
 
@@ -445,7 +445,7 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo lc, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCode(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
   insPo pc = stk->pc;
@@ -480,7 +480,7 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd) {
   flushOut();
 }
 
-static DebugWaitFor dbgDebug(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgDebug(char *line, enginePo p, termPo lc, void *cl) {
   debugDebugging = !debugDebugging;
 
   logMsg(Stderr(), "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
@@ -488,27 +488,27 @@ static DebugWaitFor dbgDebug(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgInsDebug(char *line, enginePo p, termPo lc, void *cl) {
   lineDebugging = False;
   insDebugging = True;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgSymbolDebug(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSymbolDebug(char *line, enginePo p, termPo lc, void *cl) {
   lineDebugging = True;
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgVerifyProcess(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgVerifyProcess(char *line, enginePo p, termPo lc, void *cl) {
   resetDeflt("n");
   verifyProc(p, processHeap(p));
   return moreDebug;
 }
 
-static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgAddBreakPoint(char *line, enginePo p, termPo lc, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
@@ -519,7 +519,7 @@ static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo lc, void *c
   return moreDebug;
 }
 
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo lc, void *cl) {
+DebugWaitFor dbgClearBreakPoint(char *line, enginePo p, termPo lc, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
@@ -530,7 +530,7 @@ DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo lc, void *cl) {
+DebugWaitFor dbgShowBreakPoints(char *line, enginePo p, termPo lc, void *cl) {
   retCode ret = showAllBreakPoints(debugOutChnnl);
 
   if (ret != Ok)
@@ -538,7 +538,7 @@ DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo lc, void *cl) {
+static DebugWaitFor dbgDropFrame(char *line, enginePo p, termPo lc, void *cl) {
   integer count = cmdCount(line, 0);
   stackPo stk = p->stk;
 
@@ -559,7 +559,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-DebugWaitFor insDebug(processPo p) {
+DebugWaitFor insDebug(enginePo p) {
   static DebugOptions opts = {
     .opts = {
       {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
@@ -783,9 +783,9 @@ void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo trm);
 
-static DebugWaitFor lnDebug(processPo p, OpCode op, termPo lc, termPo arg, showCmd show);
+static DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show);
 
-DebugWaitFor enterDebugger(processPo p, termPo lc) {
+DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
   insPo pc = stk->pc;
 
@@ -825,65 +825,65 @@ DebugWaitFor enterDebugger(processPo p, termPo lc) {
   }
 }
 
-DebugWaitFor lineDebug(processPo p, termPo lc) {
+DebugWaitFor lineDebug(enginePo p, termPo lc) {
   return lnDebug(p, Line, lc, Null, showLine);
 }
 
-DebugWaitFor abortDebug(processPo p, termPo lc) {
+DebugWaitFor abortDebug(enginePo p, termPo lc) {
   stackPo stk = p->stk;
   return lnDebug(p, Abort, lc, topStack(stk), showAbort);
 }
 
-DebugWaitFor callDebug(processPo p, OpCode op, termPo lc, termPo pr) {
+DebugWaitFor callDebug(enginePo p, OpCode op, termPo lc, termPo pr) {
   return lnDebug(p, op, lc, pr, showCall);
 }
 
-DebugWaitFor tcallDebug(processPo p, termPo lc, termPo pr) {
+DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr) {
   return lnDebug(p, TCall, lc, pr, showTCall);
 }
 
-DebugWaitFor ocallDebug(processPo p, OpCode op, termPo lc, termPo pr) {
+DebugWaitFor ocallDebug(enginePo p, OpCode op, termPo lc, termPo pr) {
   return lnDebug(p, op, lc, pr, showOCall);
 }
 
-DebugWaitFor tocallDebug(processPo p, termPo lc, termPo pr) {
+DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
   return lnDebug(p, TOCall, lc, pr, showOCall);
 
 }
 
-DebugWaitFor entryDebug(processPo p, termPo lc, labelPo lbl) {
+DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
   return lnDebug(p, Entry, lc, (termPo)lbl, showEntry);
 }
 
-DebugWaitFor retDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, Ret, lc, vl, showRet);
 }
 
-DebugWaitFor xretDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, XRet, lc, vl, showXRet);
 }
 
-DebugWaitFor assignDebug(processPo p, termPo lc) {
+DebugWaitFor assignDebug(enginePo p, termPo lc) {
   return lnDebug(p, Assign, lc, Null, showAssign);
 }
 
-DebugWaitFor fiberDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor fiberDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, Fiber, lc, vl, showFiber);
 }
 
-DebugWaitFor suspendDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, Suspend, lc, vl, showSuspend);
 }
 
-DebugWaitFor resumeDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, Assign, lc, vl, showResume);
 }
 
-DebugWaitFor retireDebug(processPo p, termPo lc, termPo vl) {
+DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl) {
   return lnDebug(p, Retire, lc, vl, showRetire);
 }
 
-DebugWaitFor lnDebug(processPo p, OpCode op, termPo lc, termPo arg, showCmd show) {
+DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show) {
   static DebugOptions opts = {.opts = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
     {.c = 'N', .cmd=dbgOver, .usage="N step over"},
@@ -1074,7 +1074,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
   }
 }
 
-void showRegisters(processPo p, heapPo h) {
+void showRegisters(enginePo p, heapPo h) {
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
   ptrPo limit = stackLcl(stk->args, lclCount(mtd));

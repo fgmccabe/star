@@ -7,7 +7,8 @@
 #include <labels.h>
 #include <errno.h>
 #include "threds.h"
-#include <globals.h>
+#include "globals.h"
+#include "arith.h"
 
 static const char *state_names[] = {"star.thread#quiescent",
                                     "star.thread#runnable",
@@ -21,7 +22,7 @@ static const char *state_names[] = {"star.thread#quiescent",
                                     "star.thread#dead"};
 
 void *forkThread(void *arg) {
-  processPo P = (processPo) arg;
+  enginePo P = (enginePo) arg;
 
   pthread_setspecific(processKey, P);
   P->state = runnable;
@@ -31,10 +32,10 @@ void *forkThread(void *arg) {
   return NULL;
 }
 
-ReturnStatus g__fork(processPo P) {
+ReturnStatus g__fork(enginePo P) {
   labelPo fn = C_LBL(popVal(P));
   heapPo h = processHeap(P);
-  processPo np = newProcess(h, labelCode(fn), P->wd, unitEnum);
+  enginePo np = newProcess(h, labelCode(fn), P->wd, unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 
@@ -51,10 +52,10 @@ ReturnStatus g__fork(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__kill(processPo P) {
+ReturnStatus g__kill(enginePo P) {
   threadPo th = C_THREAD(popVal(P));
 
-  processPo tgt = getThreadProcess(th);
+  enginePo tgt = getThreadProcess(th);
 
   if (tgt != NULL && tgt != P) {
     ps_kill(tgt);
@@ -66,14 +67,14 @@ ReturnStatus g__kill(processPo P) {
   }
 }
 
-ReturnStatus g__thread(processPo P) {
+ReturnStatus g__thread(enginePo P) {
   pshVal(P, (termPo) P->thread);
   return Normal;
 }
 
-ReturnStatus g__thread_state(processPo P) {
+ReturnStatus g__thread_state(enginePo P) {
   threadPo th = C_THREAD(popVal(P));
-  processPo tgt = getThreadProcess(th);
+  enginePo tgt = getThreadProcess(th);
 
   switchProcessState(P, in_exclusion);
 
@@ -88,9 +89,9 @@ ReturnStatus g__thread_state(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__waitfor(processPo P) {
+ReturnStatus g__waitfor(enginePo P) {
   threadPo th = C_THREAD(popVal(P));
-  processPo tgt = getThreadProcess(th);
+  enginePo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
     pshVal(P,unitEnum);
@@ -128,29 +129,3 @@ ReturnStatus g__waitfor(processPo P) {
   }
 }
 
-ReturnStatus g__abort(processPo P) {
-  termPo lc = popVal(P);
-  termPo msg = popVal(P);
-  abort_star(P, lc, msg);
-
-  pshVal(P, unitEnum);
-  return Normal;
-}
-
-ReturnStatus g__stackTrace(processPo P) {
-  strBufferPo str = newStringBuffer();
-
-  stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, -1);
-
-  pshVal(P, allocateFromStrBuffer(processHeap(P), str));
-  closeIo(O_IO(str));
-
-  return Normal;
-}
-
-void abort_star(processPo P, termPo lc, termPo msg) {
-  logMsg(logFile, "Abort %T at %L", msg, lc);
-  verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, -1);
-  star_exit(99);
-}

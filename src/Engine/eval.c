@@ -20,7 +20,7 @@ logical collectStats = False;
 /*
  * Execute program on a given process/thread structure
  */
-retCode run(processPo P) {
+retCode run(enginePo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;

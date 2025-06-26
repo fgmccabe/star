@@ -28,7 +28,7 @@ typedef struct jit_compiler_ *jitCompPo;
 
 void initJit();
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
-ReturnStatus invokeJitMethod(processPo P, methodPo mtd);
+ReturnStatus invokeJitMethod(enginePo P, methodPo mtd);
 
 #ifdef TRACEJIT
 extern tracingLevel traceJit;

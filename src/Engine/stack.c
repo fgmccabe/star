@@ -406,7 +406,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
   }
 }
 
-void stackTrace(processPo p, ioPo out, stackPo stk, integer depth,
+void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
                 StackTraceLevel level, integer maxDepth) {
   outMsg(out, "Stack trace for process %d\n", p->processNo);
 
@@ -433,7 +433,7 @@ void stackTrace(processPo p, ioPo out, stackPo stk, integer depth,
     outMsg(out, "...\n");
 }
 
-void glueOnStack(processPo P, integer size, integer saveArity) {
+void glueOnStack(enginePo P, integer size, integer saveArity) {
   stackPo stk = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
@@ -455,7 +455,7 @@ void glueOnStack(processPo P, integer size, integer saveArity) {
   P->stk = newStack;
 }
 
-void handleStackOverflow(processPo P, integer delta, int32 arity) {
+void handleStackOverflow(enginePo P, integer delta, int32 arity) {
   glueOnStack(P, (P->stk->sze * 3) / 2 + delta, arity);
 }
 
@@ -478,7 +478,7 @@ stackPo newStack(heapPo H, logical execJit, termPo lam) {
   return child; // We return the new stack
 }
 
-void attachStack(processPo P, stackPo top, termPo evt) {
+void attachStack(enginePo P, stackPo top, termPo evt) {
   stackPo stk = P->stk;
   stackPo bottom = top->bottom;
   assert(bottom != Null && isAttachedStack(bottom, top));
@@ -509,7 +509,7 @@ void attachStack(processPo P, stackPo top, termPo evt) {
 }
 
 // Get the stack immediately below the identified parent
-void detachStack(processPo P, stackPo top, termPo event) {
+void detachStack(enginePo P, stackPo top, termPo event) {
   stackPo base = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
@@ -561,7 +561,7 @@ stackPo dropStack(stackPo tsk) {
   return previous;
 }
 
-void detachDropStack(processPo P, stackPo top, termPo event) {
+void detachDropStack(enginePo P, stackPo top, termPo event) {
   detachStack(P, top, event);
   dropStack(top);
 }

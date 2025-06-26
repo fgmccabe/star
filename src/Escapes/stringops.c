@@ -14,34 +14,34 @@
 #include "charP.h"
 #include "errorCodes.h"
 
-ReturnStatus g__chr_eq(processPo P) {
+ReturnStatus g__chr_eq(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   codePoint rhs = charVal(popVal(P));
   pshVal(P, lhs == rhs ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__chr_lt(processPo P) {
+ReturnStatus g__chr_lt(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   codePoint rhs = charVal(popVal(P));
   pshVal(P, lhs < rhs ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__chr_ge(processPo P) {
+ReturnStatus g__chr_ge(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   codePoint rhs = charVal(popVal(P));
   pshVal(P, lhs >= rhs ? trueEnum : falseEnum);
   return Normal;
 }
 
-ReturnStatus g__chr_hash(processPo P) {
+ReturnStatus g__chr_hash(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   pshVal(P, makeInteger(lhs));
   return Normal;
 }
 
-ReturnStatus g__chr_quote(processPo P) {
+ReturnStatus g__chr_quote(enginePo P) {
   strBufferPo strb = newStringBuffer();
   qtChar(O_IO(strb), charVal(popVal(P)));
 
@@ -52,7 +52,7 @@ ReturnStatus g__chr_quote(processPo P) {
 }
 
 // Support formatting of char values
-ReturnStatus g__chr_format(processPo P) {
+ReturnStatus g__chr_format(enginePo P) {
   codePoint cp = charVal(popVal(P));
   integer fLen;
   const char *fmt = strVal(popVal(P), &fLen);
@@ -95,7 +95,7 @@ ReturnStatus g__chr_format(processPo P) {
   }
 }
 
-ReturnStatus g__str_eq(processPo P) {
+ReturnStatus g__str_eq(enginePo P) {
   stringPo s1 = C_STR(popVal(P));
   stringPo s2 = C_STR(popVal(P));
 
@@ -105,7 +105,7 @@ ReturnStatus g__str_eq(processPo P) {
 }
 
 // Lexicographic comparison
-ReturnStatus g__str_lt(processPo P) {
+ReturnStatus g__str_lt(enginePo P) {
   integer llen, rlen;
   const char *lhs = strVal(popVal(P), &llen);
   const char *rhs = strVal(popVal(P), &rlen);
@@ -134,7 +134,7 @@ ReturnStatus g__str_lt(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_ge(processPo P) {
+ReturnStatus g__str_ge(enginePo P) {
   integer llen, rlen;
   const char *lhs = strVal(popVal(P), &llen);
   const char *rhs = strVal(popVal(P), &rlen);
@@ -164,7 +164,7 @@ ReturnStatus g__str_ge(processPo P) {
   }
 }
 
-ReturnStatus g__str_hash(processPo P) {
+ReturnStatus g__str_hash(enginePo P) {
   termPo a1 = popVal(P);
   stringPo lhs = C_STR(a1);
 
@@ -178,12 +178,12 @@ ReturnStatus g__str_hash(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_len(processPo P) {
+ReturnStatus g__str_len(enginePo P) {
   pshVal(P, makeInteger(strLength(C_STR(popVal(P)))));
   return Normal;
 }
 
-ReturnStatus g__str2flt(processPo P) {
+ReturnStatus g__str2flt(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   double flt;
@@ -199,7 +199,7 @@ ReturnStatus g__str2flt(processPo P) {
   }
 }
 
-ReturnStatus g__str2int(processPo P) {
+ReturnStatus g__str2int(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer ix;
@@ -215,7 +215,7 @@ ReturnStatus g__str2int(processPo P) {
   }
 }
 
-ReturnStatus g__str_charat(processPo P) {
+ReturnStatus g__str_charat(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer ix = integerVal(popVal(P));
@@ -234,7 +234,7 @@ ReturnStatus g__str_charat(processPo P) {
   }
 }
 
-ReturnStatus g__str_gen(processPo P) {
+ReturnStatus g__str_gen(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   char rnd[MAXLINE];
@@ -245,7 +245,7 @@ ReturnStatus g__str_gen(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__stringOf(processPo P) {
+ReturnStatus g__stringOf(enginePo P) {
   termPo a1 = popVal(P);
   integer depth = integerVal(popVal(P));
 
@@ -261,7 +261,7 @@ ReturnStatus g__stringOf(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_quote(processPo P) {
+ReturnStatus g__str_quote(enginePo P) {
   strBufferPo strb = newStringBuffer();
   quoteStrg(O_IO(strb), C_STR(popVal(P)));
 
@@ -284,7 +284,7 @@ typedef enum {
   rightToLeft
 } SrcAlign;
 
-ReturnStatus g__str_format(processPo P) {
+ReturnStatus g__str_format(enginePo P) {
   termPo a1 = popVal(P);
   termPo a2 = popVal(P);
   integer fLen;
@@ -389,7 +389,7 @@ ReturnStatus g__str_format(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__explode(processPo P) {
+ReturnStatus g__explode(enginePo P) {
   stringPo str = C_STR(popVal(P));
   integer len = strLength(str);
   char buffer[len + 1];
@@ -432,7 +432,7 @@ void dS(termPo w) {
   flushOut();
 }
 
-ReturnStatus g__implode(processPo P) {
+ReturnStatus g__implode(enginePo P) {
   termPo list = popVal(P);
 
   integer size = 1;
@@ -460,7 +460,7 @@ ReturnStatus g__implode(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_find(processPo P) {
+ReturnStatus g__str_find(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer tlen;
@@ -472,7 +472,7 @@ ReturnStatus g__str_find(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__sub_str(processPo P) {
+ReturnStatus g__sub_str(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer start = integerVal(popVal(P));
@@ -486,7 +486,7 @@ ReturnStatus g__sub_str(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_hdtl(processPo P) {
+ReturnStatus g__str_hdtl(enginePo P) {
   stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
   char str[len + 1];
@@ -514,7 +514,7 @@ ReturnStatus g__str_hdtl(processPo P) {
   }
 }
 
-ReturnStatus g__str_cons(processPo P) {
+ReturnStatus g__str_cons(enginePo P) {
   codePoint ch = charVal(popVal(P));
   stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
@@ -526,7 +526,7 @@ ReturnStatus g__str_cons(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__code2str(processPo P) {
+ReturnStatus g__code2str(enginePo P) {
   codePoint ch = charVal(popVal(P));
   integer codeLength = 0;
   char str[16];
@@ -536,7 +536,7 @@ ReturnStatus g__code2str(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_apnd(processPo P) {
+ReturnStatus g__str_apnd(enginePo P) {
   stringPo src = C_STR(popVal(P));
   codePoint ch = charVal(popVal(P));
   integer len = strLength(src);
@@ -549,7 +549,7 @@ ReturnStatus g__str_apnd(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_back(processPo P) {
+ReturnStatus g__str_back(enginePo P) {
   stringPo src = C_STR(popVal(P));
   integer len = strLength(src);
   char str[len + 1];
@@ -577,7 +577,7 @@ ReturnStatus g__str_back(processPo P) {
   }
 }
 
-ReturnStatus g__str_split(processPo P) {
+ReturnStatus g__str_split(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
   integer start = integerVal(popVal(P));
@@ -599,7 +599,7 @@ heapPo h = processHeap(P);
   return Normal;
 }
 
-ReturnStatus g__str_concat(processPo P) {
+ReturnStatus g__str_concat(enginePo P) {
   integer llen;
   const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
@@ -614,7 +614,7 @@ ReturnStatus g__str_concat(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_splice(processPo P) {
+ReturnStatus g__str_splice(enginePo P) {
   integer llen;
   const char *lhs = strVal(popVal(P), &llen);
   integer from = integerVal(popVal(P));
@@ -642,7 +642,7 @@ ReturnStatus g__str_splice(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_start(processPo P) {
+ReturnStatus g__str_start(enginePo P) {
   integer llen;
   const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
@@ -651,7 +651,7 @@ ReturnStatus g__str_start(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_end(processPo P) {
+ReturnStatus g__str_end(enginePo P) {
   integer llen;
   const char *lhs = strVal(popVal(P), &llen);
   integer rlen;
@@ -661,7 +661,7 @@ ReturnStatus g__str_end(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_multicat(processPo P) {
+ReturnStatus g__str_multicat(enginePo P) {
   termPo t = popVal(P);
   strBufferPo strb = newStringBuffer();
 
@@ -680,7 +680,7 @@ ReturnStatus g__str_multicat(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__str_reverse(processPo P) {
+ReturnStatus g__str_reverse(enginePo P) {
   integer len;
   const char *lhs = strVal(popVal(P), &len);
 

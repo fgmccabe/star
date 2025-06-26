@@ -18,14 +18,14 @@
 #include "fileops.h"
 #include "tpl.h"
 
-ReturnStatus g__cwd(processPo P) {
+ReturnStatus g__cwd(enginePo P) {
   char cwBuffer[MAXFILELEN];
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(P));
   pshVal(P, allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
   return Normal;
 }
 
-ReturnStatus g__cd(processPo P) {
+ReturnStatus g__cd(enginePo P) {
   integer len;
   const char *cd = strVal(popVal(P), &len);
 
@@ -39,7 +39,7 @@ ReturnStatus g__cd(processPo P) {
   }
 }
 
-ReturnStatus g__rm(processPo P) {
+ReturnStatus g__rm(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -75,7 +75,7 @@ ReturnStatus g__rm(processPo P) {
 
 static char *const RMDIR = "__rmdir";
 
-ReturnStatus g__rmdir(processPo P) {
+ReturnStatus g__rmdir(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -111,7 +111,7 @@ ReturnStatus g__rmdir(processPo P) {
 
 static char *const MKDIR = "__mkdir";
 
-ReturnStatus g__mkdir(processPo P) {
+ReturnStatus g__mkdir(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -149,7 +149,7 @@ ReturnStatus g__mkdir(processPo P) {
 
 static char *const MV = "__mv";
 
-ReturnStatus g__mv(processPo P) {
+ReturnStatus g__mv(enginePo P) {
   integer sLen;
   const char *fn = strVal(popVal(P), &sLen);
   char srcBuff[MAXFILELEN];
@@ -188,7 +188,7 @@ ReturnStatus g__mv(processPo P) {
   }
 }
 
-ReturnStatus g__ls(processPo P) {
+ReturnStatus g__ls(enginePo P) {
   integer sLen;
   const char *fn = strVal(popVal(P), &sLen);
   char srcBuff[MAXFILELEN];
@@ -250,7 +250,7 @@ ReturnStatus g__ls(processPo P) {
   }
 }
 
-ReturnStatus g__file_mode(processPo P) {
+ReturnStatus g__file_mode(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -296,7 +296,7 @@ ReturnStatus g__file_mode(processPo P) {
   }
 }
 
-ReturnStatus g__file_chmod(processPo P) {
+ReturnStatus g__file_chmod(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -325,7 +325,7 @@ ReturnStatus g__file_chmod(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__file_present(processPo P) {
+ReturnStatus g__file_present(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -339,7 +339,7 @@ ReturnStatus g__file_present(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__isdir(processPo P) {
+ReturnStatus g__isdir(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -371,7 +371,7 @@ typedef enum {
 static char *const FILE_DATE = "__file_date";
 static char *const FILE_MODIFIED = "__file_modified";
 
-ReturnStatus g__file_type(processPo P) {
+ReturnStatus g__file_type(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -438,7 +438,7 @@ ReturnStatus g__file_type(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__file_size(processPo P) {
+ReturnStatus g__file_size(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -486,7 +486,7 @@ ReturnStatus g__file_size(processPo P) {
   }
 }
 
-ReturnStatus g__file_date(processPo P) {
+ReturnStatus g__file_date(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -546,7 +546,7 @@ ReturnStatus g__file_date(processPo P) {
   }
 }
 
-ReturnStatus g__file_modified(processPo P) {
+ReturnStatus g__file_modified(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
   char buff[MAXFILELEN];
@@ -594,7 +594,7 @@ ReturnStatus g__file_modified(processPo P) {
   }
 }
 
-ReturnStatus g__openInFile(processPo P) {
+ReturnStatus g__openInFile(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
 
@@ -615,7 +615,7 @@ ReturnStatus g__openInFile(processPo P) {
   }
 }
 
-ReturnStatus g__openOutFile(processPo P) {
+ReturnStatus g__openOutFile(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
 
@@ -635,7 +635,7 @@ ReturnStatus g__openOutFile(processPo P) {
   }
 }
 
-ReturnStatus g__openAppendFile(processPo P) {
+ReturnStatus g__openAppendFile(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
 
@@ -655,7 +655,7 @@ ReturnStatus g__openAppendFile(processPo P) {
   }
 }
 
-ReturnStatus g__openAppendIOFile(processPo P) {
+ReturnStatus g__openAppendIOFile(enginePo P) {
   integer fnLen;
   const char *fn = strVal(popVal(P), &fnLen);
 

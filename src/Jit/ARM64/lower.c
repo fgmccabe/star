@@ -94,7 +94,7 @@ static void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok);
 
 static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
-ReturnStatus invokeJitMethod(processPo P, methodPo mtd) {
+ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = P->stk;
 
@@ -202,8 +202,6 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
   mov(SSP, RG(tgt));
   mov(AG, RG(tgt));
 
-  mov(tmp, IM((integer) jit->mtd));
-  str(tmp, OF(FP, fpProg)); // We know what program we are executing
   releaseReg(jit, tmp);
   releaseReg(jit, src);
   releaseReg(jit, tgt);
@@ -623,7 +621,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           armReg lam = popStkOp(jit, X1);
           ret = reserveReg(jit, X0);
           if (ret == Ok) {
-            ldr(X0, OF(PR, OffsetOf(ProcessRec, heap)));
+            ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
             stashRegisters(jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(X0), IM((integer) True),RG(X1));
             if (ret == Ok) {
@@ -2079,7 +2077,7 @@ void stashRegisters(jitCompPo jit) {
 
 void unstashRegisters(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
-  ldr(STK, OF(PR, OffsetOf(ProcessRec, stk)));
+  ldr(STK, OF(PR, OffsetOf(EngineRecord, stk)));
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
   ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
@@ -2091,7 +2089,7 @@ void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok) {
   armReg h = findFreeReg(jit);
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
-  ldr(h, OF(PR, OffsetOf(ProcessRec, heap)));
+  ldr(h, OF(PR, OffsetOf(EngineRecord, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
   add(c, c, IM(amnt * pointerSize));
@@ -2113,7 +2111,7 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   armReg l = findFreeReg(jit);
   armReg reslt = findFreeReg(jit);
   codeLblPo again = here();
-  ldr(h, OF(PR, OffsetOf(ProcessRec, heap)));
+  ldr(h, OF(PR, OffsetOf(EngineRecord, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
   mov(reslt, RG(c));

@@ -18,7 +18,7 @@
 #include "thr.h"
 #include "timers.h"
 
-typedef struct processRec_ {
+typedef struct engineRecord_ {
   stackPo stk;            // Current stack
   heapPo heap;            // Local heap for this process
   pthread_t threadID;     /* What is the posix thread ID? */
@@ -30,36 +30,27 @@ typedef struct processRec_ {
   logical tracing;
   integer traceCount;     // How many are we waiting for?
   framePo waterMark;      // Used to decide when to start debugging again
-} ProcessRec;
+} EngineRecord;
 
 extern void initEngine();
-extern retCode run(processPo P);
+extern retCode run(enginePo P);
 
 retCode bootstrap(heapPo h, char *entry, char *rootWd);
 
 extern pthread_key_t processKey;
-pthread_t ps_threadID(processPo p);
-processPo ps_suspend(processPo p, ProcessState reason);
-processPo ps_resume(register processPo p, register logical fr); /* resume process */
-void ps_kill(processPo p);      /* kill process */
 
-void pauseAllThreads(pthread_t except);
-void resumeAllThreads(pthread_t except);
-logical checkForPause(processPo P);
+void ps_kill(enginePo p);      /* kill process */
 
-void *ps_client(processPo p);  /* Get the process's client information */
-void *ps_set_client(processPo p, void *cl);
 
-processPo runerr(processPo); /* non-fatal error */
+
 extern timerPo runTimer;
 
-void displayProcesses(void);
-void displayProcess(processPo p);
-
-void verifyProc(processPo P, heapPo H);
+void verifyProc(enginePo P, heapPo H);
 void verifyProcesses(heapPo H);
-retCode markProcess(processPo P, gcSupportPo G);
-void markProcesses(processPo owner, gcSupportPo G);
+retCode markProcess(enginePo P, gcSupportPo G);
+void markProcesses(enginePo owner, gcSupportPo G);
+
+void abort_star(enginePo P, termPo lc, termPo msg);
 
 extern logical collectStats;
 

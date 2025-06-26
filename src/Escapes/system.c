@@ -23,7 +23,7 @@
 // Number of nanos in a second
 #define NANOS 1000000000
 
-ReturnStatus g__exit(processPo P) {
+ReturnStatus g__exit(enginePo P) {
   integer ix = integerVal(popVal(P));
   exit((int) ix);
 }
@@ -58,7 +58,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(processPo P) {
+ReturnStatus g__envir(enginePo P) {
   integer cnt = countEnviron();
   termPo list = nilEnum;
 
@@ -90,7 +90,7 @@ ReturnStatus g__envir(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__getenv(processPo P) {
+ReturnStatus g__getenv(enginePo P) {
   char key[MAX_SYMB_LEN];
 
   copyChars2Buff(C_STR(popVal(P)), key, NumberOf(key));
@@ -106,7 +106,7 @@ ReturnStatus g__getenv(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__setenv(processPo P) {
+ReturnStatus g__setenv(enginePo P) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
@@ -122,7 +122,7 @@ ReturnStatus g__setenv(processPo P) {
   }
 }
 
-ReturnStatus g__repo(processPo P) {
+ReturnStatus g__repo(enginePo P) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer));
@@ -131,7 +131,7 @@ ReturnStatus g__repo(processPo P) {
   return Normal;
 }
 
-ReturnStatus g__shell(processPo P) {
+ReturnStatus g__shell(enginePo P) {
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
@@ -237,7 +237,7 @@ ReturnStatus g__shell(processPo P) {
   }
 }
 
-ReturnStatus g__popen(processPo P) {
+ReturnStatus g__popen(enginePo P) {
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];

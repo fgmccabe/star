@@ -17,19 +17,19 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd);
 
 retCode setupDebugChannels();
 
-DebugWaitFor lineDebug(processPo p, termPo lc);
-DebugWaitFor abortDebug(processPo p, termPo lc);
-DebugWaitFor callDebug(processPo p, OpCode op, termPo lc, termPo pr);
-DebugWaitFor tcallDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor ocallDebug(processPo p, OpCode op, termPo lc, termPo pr);
-DebugWaitFor tocallDebug(processPo p, termPo lc, termPo pr);
-DebugWaitFor entryDebug(processPo p, termPo lc, labelPo lbl);
-DebugWaitFor retDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor xretDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor assignDebug(processPo p, termPo lc);
-DebugWaitFor fiberDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor suspendDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor resumeDebug(processPo p, termPo lc, termPo vl);
-DebugWaitFor retireDebug(processPo p, termPo lc, termPo vl);
+DebugWaitFor lineDebug(enginePo p, termPo lc);
+DebugWaitFor abortDebug(enginePo p, termPo lc);
+DebugWaitFor callDebug(enginePo p, OpCode op, termPo lc, termPo pr);
+DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr);
+DebugWaitFor ocallDebug(enginePo p, OpCode op, termPo lc, termPo pr);
+DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr);
+DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl);
+DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl);
+DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl);
+DebugWaitFor assignDebug(enginePo p, termPo lc);
+DebugWaitFor fiberDebug(enginePo p, termPo lc, termPo vl);
+DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo vl);
+DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo vl);
+DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl);
 
 #endif //STAR_DEBUG_H

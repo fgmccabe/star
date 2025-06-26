@@ -10,7 +10,7 @@
 #include "arith.h"
 #include "escape.h"
 
-ReturnStatus g__jit_compile(processPo P) {
+ReturnStatus g__jit_compile(enginePo P) {
   stringPo mtdName = C_STR(popVal(P));
   integer mLen = strLength(mtdName) + 1;
   char buff[mLen];
