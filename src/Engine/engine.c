@@ -40,7 +40,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
 
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
-    enginePo p = newProcess(h, mainMtd, rootWd, cmdLine);
+    enginePo p = newEngine(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
     integer ret = run(p);
     pauseTimer(runTimer);
@@ -53,7 +53,7 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
   }
 }
 
-enginePo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
+enginePo newEngine(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
   enginePo P = (enginePo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
   stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, active, Null);

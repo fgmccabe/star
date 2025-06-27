@@ -26,7 +26,7 @@ typedef enum {
   dead
 } ProcessState;
 
-enginePo newProcess(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
+enginePo newEngine(heapPo h, methodPo mtd, char *rootWd, termPo rootArg);
 void switchProcessState(enginePo p, ProcessState state);
 void setProcessRunnable(enginePo p);
 integer processNo(enginePo p);

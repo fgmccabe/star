@@ -35,7 +35,7 @@ void *forkThread(void *arg) {
 ReturnStatus g__fork(enginePo P) {
   labelPo fn = C_LBL(popVal(P));
   heapPo h = processHeap(P);
-  enginePo np = newProcess(h, labelCode(fn), P->wd, unitEnum);
+  enginePo np = newEngine(h, labelCode(fn), P->wd, unitEnum);
 
   threadPo thread = newThread(np, globalHeap);
 
