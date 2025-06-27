@@ -67,7 +67,6 @@ static retCode getFltVal(jitCompPo jit, armReg rg);
 
 static retCode mkFltVal(jitCompPo jit, armReg rg);
 
-
 static int32 fpArgs = OffsetOf(StackFrame, args);
 static int32 fpProg = OffsetOf(StackFrame, prog);
 static int32 fpLink = OffsetOf(StackFrame, link);
@@ -90,8 +89,6 @@ void stashRegisters(jitCompPo jit);
 
 void unstashRegisters(jitCompPo jit);
 
-static void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok);
-
 static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
@@ -101,29 +98,29 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm("stp x29,x30, [sp, #-16]!\n"
-    "stp x8,x9, [sp, #-16]!\n"
-    "stp x10,x11, [sp, #-16]!\n"
-    "stp x12,x13, [sp, #-16]!\n"
-    "mov x15, %[stk]\n"
-    "ldr x14, %[ssp]\n"
-    "ldr x13, %[ag]\n"
-    "mov x12, %[constants]\n"
-    "mov x11, %[process]\n"
-    "mov x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
-    "str x14, [x15,#56]\n"
-    "str x29, [x15,#64]\n"
-    "ldp x12,x13, [sp], #16\n"
-    "ldp x10,x11, [sp], #16\n"
-    "ldp x8,x9, [sp], #16\n"
-    "ldp x29,x30, [sp], #16\n"
-    "str w0, %[ret]\n"
+      "stp x8,x9, [sp, #-16]!\n"
+      "stp x10,x11, [sp, #-16]!\n"
+      "stp x12,x13, [sp, #-16]!\n"
+      "mov x15, %[stk]\n"
+      "ldr x14, %[ssp]\n"
+      "ldr x13, %[ag]\n"
+      "mov x12, %[constants]\n"
+      "mov x11, %[process]\n"
+      "mov x16, %[code]\n"
+      "ldr x29, %[fp]\n"
+      "blr x16\n"
+      "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
+      "str x14, [x15,#56]\n"
+      "str x29, [x15,#64]\n"
+      "ldp x12,x13, [sp], #16\n"
+      "ldp x10,x11, [sp], #16\n"
+      "ldp x8,x9, [sp], #16\n"
+      "ldp x29,x30, [sp], #16\n"
+      "str w0, %[ret]\n"
     : [ret] "=&m"(ret)
-    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
-    [constants] "r"(constAnts),[fp] "m"(stk->fp)
-    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
+  : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
+  [constants] "r"(constAnts),[fp] "m"(stk->fp)
+  : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
     "memory");
 
   return ret;
@@ -193,7 +190,7 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
     ldr(tmp, PRX(src, -pointerSize));
     str(tmp, PRX(tgt, -pointerSize));
 
-    sub(cx, cx, IM(1));
+    subs(cx, cx, IM(1));
     bne(start);
     releaseReg(jit, cx);
   }
@@ -210,7 +207,7 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
 static retCode tesResult(jitBlockPo block, int32 tgt) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
-  tstw(X0, IM(Normal));
+  cmp(X0, IM(Normal));
   retCode ret = breakOutNe(block, tgt, True);
   return ret;
 }
@@ -226,7 +223,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Halt: {
         // Stop execution
         integer errCode = code[pc].fst;
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1,IM(errCode));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(errCode));
         pc++;
         continue;
       }
@@ -240,7 +237,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         loadConstant(jit, code[pc].fst, X1);
         popStkOp(jit, X2);
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(X1),RG(X2));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(X1), RG(X2));
         pc++;
         releaseReg(jit, X1);
         releaseReg(jit, X2);
@@ -347,7 +344,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case TCall: {
         // TCall <prog>
         int32 key = code[pc].fst;
-        int arity = codeArity(labelCode(C_LBL(getConstant(key))));
+        int arity = lblArity(C_LBL(getConstant(key)));
 
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
@@ -404,7 +401,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 arity = escapeArity(esc);
 
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1,RG(PR));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstashRegisters(jit);
         // X0 is the return code - which we ignore for normal escapes
         pc++;
@@ -417,9 +414,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 arity = escapeArity(esc);
 
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), arity + 1, RG(X0), RG(X1), RG(X2), RG(X3),
-                      RG(X4),
-                      RG(X5), RG(X6), RG(X7),RG(X8));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstashRegisters(jit);
         ret = tesResult(block, pc + block->code[pc].alt + 1);
         pc++;
@@ -447,7 +442,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
             mov(cx, IM(locals));
             codeLblPo start = here();
             pushStkOp(jit, vd);
-            sub(cx, cx, IM(1));
+            subs(cx, cx, IM(1));
             bne(start);
             releaseReg(jit, cx);
           }
@@ -623,7 +618,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           if (ret == Ok) {
             ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
             stashRegisters(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(X0), IM((integer) True),RG(X1));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(X0), IM((integer) True), RG(X1));
             if (ret == Ok) {
               unstashRegisters(jit);
               pushStkOp(jit, X0); // returned from newStack
@@ -653,7 +648,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(tmp, rtn);
         str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk),RG(evt));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk), RG(evt));
         unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
@@ -682,7 +677,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) attachStack, 3, RG(PR), RG(stk),RG(evt));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) attachStack, 3, RG(PR), RG(stk), RG(evt));
         unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
@@ -705,7 +700,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         bind(skip);
         stashRegisters(jit);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk),RG(evt));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk), RG(evt));
         unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
@@ -720,7 +715,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg val = popStkOp(jit, findFreeReg(jit));
         stp(val, XZR, PRX(SP, -2 * pointerSize));
         stashRegisters(jit);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) dropStack, 1,RG(STK));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) dropStack, 1, RG(STK));
         unstashRegisters(jit);
         ldp(val, XZR, PSX(SP, 2 * pointerSize));
         pushStkOp(jit, val);
@@ -1043,7 +1038,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
         popStkOp(jit, X1);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2,RG(X0),RG(X1));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(X0), RG(X1));
         tst(X0, RG(X0));
         ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
@@ -1122,7 +1117,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // T --> T, case <Max>
         if (reserveReg(jit, X0) == Ok) {
           popStkOp(jit, X0);
-          callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1,RG(X0));
+          callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(X0));
           armReg divisor = findFreeReg(jit);
           mov(divisor, IM(code[pc].fst));
           armReg quotient = findFreeReg(jit);
@@ -1772,14 +1767,14 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         stashRegisters(jit);
         switch (code[pc].op) {
           case Abort: {
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abortDebug, 2, RG(PR),RG(loc));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abortDebug, 2, RG(PR), RG(loc));
             break;
           }
           case Entry: {
             armReg lbl = findFreeReg(jit);
             int32 lblKey = defineConstantLiteral((termPo) mtdLabel(jit->mtd));
             loadConstant(jit, lblKey, lbl);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) entryDebug, 3, RG(PR), RG(loc),RG(lbl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) entryDebug, 3, RG(PR), RG(loc), RG(lbl));
             releaseReg(jit, lbl);
             break;
           }
@@ -1795,7 +1790,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           case TCall: {
             armReg lbl = findFreeReg(jit);
             loadConstant(jit, code[pc].fst, lbl);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) tcallDebug, 3, RG(PR), RG(loc),RG(lbl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) tcallDebug, 3, RG(PR), RG(loc), RG(lbl));
             releaseReg(jit, lbl);
             break;
           }
@@ -1809,41 +1804,41 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           }
           case Ret: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case XRet: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) xretDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) xretDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Assign: {
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) assignDebug, 2, RG(PR),RG(loc));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) assignDebug, 2, RG(PR), RG(loc));
             break;
           }
           case Fiber: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) fiberDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) fiberDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Suspend: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) suspendDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) suspendDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Resume: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) resumeDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) resumeDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Retire: {
             armReg vl = topStkOp(jit);
-            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retireDebug, 3, RG(PR), RG(loc),RG(vl));
+            ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retireDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
@@ -1859,7 +1854,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg loc = findFreeReg(jit);
         loadConstant(jit, locKey, loc);
         stashRegisters(jit);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR),RG(loc));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
         unstashRegisters(jit);
         releaseReg(jit, loc);
         pc++;
@@ -2019,7 +2014,7 @@ retCode jitError(jitCompPo jit, char *msg, ...) {
 }
 
 retCode bailOut(jitCompPo jit, int32 code) {
-  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) star_exit, 1,IM(code));
+  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) star_exit, 1, IM(code));
 
   /* char buff[MAXLINE]; */
   /* strBufferPo f = fixedStringBuffer(buff, NumberOf(buff)); */
@@ -2060,7 +2055,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
   stashRegisters(jit);
   tryRet(
-    callIntrinsic(ctx,criticalRegs(), (runtimeFn) handleStackOverflow, 3, RG(PR), IM(delta), IM(codeArity(mtd))));
+    callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 3, RG(PR), IM(delta), IM(codeArity(mtd))));
   unstashRegisters(jit);
 
   bind(okLbl);
@@ -2081,23 +2076,6 @@ void unstashRegisters(jitCompPo jit) {
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
   ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
-}
-
-void reserveHeapSpace(jitCompPo jit, integer amnt, codeLblPo ok) {
-  assemCtxPo ctx = assemCtx(jit);
-
-  armReg h = findFreeReg(jit);
-  armReg c = findFreeReg(jit);
-  armReg l = findFreeReg(jit);
-  ldr(h, OF(PR, OffsetOf(EngineRecord, heap)));
-  ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
-  ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
-  add(c, c, IM(amnt * pointerSize));
-  cmp(c, RG(l));
-  blt(ok);
-  releaseReg(jit, h);
-  releaseReg(jit, c);
-  releaseReg(jit, l);
 }
 
 armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
@@ -2122,12 +2100,11 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   // Restore h->curr
   str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
   stashRegisters(jit); // Slow path
-  callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 2, IM((integer) class),IM(amnt));
+  callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 2, IM((integer) class), IM(amnt));
   unstashRegisters(jit);
   mov(reslt, RG(X0));
-  cmp(X0, IM((integer) Null));
-  bne(ok);
-  callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1,IM(99)); // no return from this
+  cbnz(X0, ok);
+  callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(99)); // no return from this
   bind(ok);
   mov(c, IM((integer) class));
   str(c, OF(reslt, OffsetOf(TermRecord, clss)));

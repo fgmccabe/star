@@ -60,21 +60,24 @@ retCode reserveSpace(heapPo H, integer amnt) {
 }
 
 termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
-  if ((((ptrPo) h->curr) + amnt) < ((ptrPo) (h->limit))) {
-    termPo t = h->curr;
-    h->curr = h->curr + amnt;
-    t->clss = clss;
-#ifdef TRACEMEM
-    if (traceAllocs) {
-      numAllocated++;
-      totalAllocated += amnt;
+  if ((((ptrPo) h->curr) + amnt) >= ((ptrPo) (h->limit))) {
+    if (gcCollect(h, amnt) != Ok) {
+      logMsg(logFile, "Could not allocate %d cells on heap", amnt);
+      star_exit(99);
+      return Null;
     }
+  }
+
+  termPo t = h->curr;
+  h->curr = h->curr + amnt;
+  t->clss = clss;
+#ifdef TRACEMEM
+  if (traceAllocs) {
+    numAllocated++;
+    totalAllocated += amnt;
+  }
 #endif
-    return t;
-  } else if (gcCollect(h, amnt) == Ok)
-    return allocateObject(h, clss, amnt);
-  else
-    return Null;
+  return t;
 }
 
 normalPo allocateStruct(heapPo H, labelPo lbl) {
@@ -86,7 +89,7 @@ retCode enoughRoom(heapPo H, labelPo lbl) {
 }
 
 void validPtr(heapPo H, termPo t) {
-  if(isPointer(t))
+  if (isPointer(t))
     assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
 }
 
