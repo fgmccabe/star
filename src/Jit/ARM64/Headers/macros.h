@@ -45,6 +45,8 @@ typedef void (*regProc)(armReg rg, void *cl);
 
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
+void dRegisterMap(registerMap regs);
+
 codeLblPo newLabel(assemCtxPo ctx);
 codeLblPo here_(assemCtxPo ctx);
 #define here() here_(ctx)

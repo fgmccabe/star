@@ -19,29 +19,28 @@
 #include "timers.h"
 
 typedef struct engineRecord_ {
-  stackPo stk;            // Current stack
-  heapPo heap;            // Local heap for this process
-  pthread_t threadID;     /* What is the posix thread ID? */
-  char wd[MAXFILELEN];    // Each thread may have its own working directory.
-  ProcessState state;     /* What is the status of this process? */
-  threadPo thread;        // What is the thread associated with this process
-  integer processNo;      // What number process is this
+  stackPo stk; // Current stack
+  heapPo heap; // Local heap for this process
+  pthread_t threadID; /* What is the posix thread ID? */
+  char wd[MAXFILELEN]; // Each thread may have its own working directory.
+  ProcessState state; /* What is the status of this process? */
+  threadPo thread; // What is the thread associated with this process
+  integer processNo; // What number process is this
   DebugWaitFor waitFor;
   logical tracing;
-  integer traceCount;     // How many are we waiting for?
-  framePo waterMark;      // Used to decide when to start debugging again
+  integer traceCount; // How many are we waiting for?
+  framePo waterMark; // Used to decide when to start debugging again
 } EngineRecord;
 
 extern void initEngine();
-extern retCode run(enginePo P);
+ReturnStatus run(enginePo P);
+ReturnStatus exec(enginePo P);
 
-retCode bootstrap(heapPo h, char *entry, char *rootWd);
+ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd);
 
 extern pthread_key_t processKey;
 
-void ps_kill(enginePo p);      /* kill process */
-
-
+void ps_kill(enginePo p); /* kill process */
 
 extern timerPo runTimer;
 

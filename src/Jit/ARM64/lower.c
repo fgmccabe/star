@@ -98,29 +98,29 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
   ReturnStatus ret = Normal;
 
   asm("stp x29,x30, [sp, #-16]!\n"
-      "stp x8,x9, [sp, #-16]!\n"
-      "stp x10,x11, [sp, #-16]!\n"
-      "stp x12,x13, [sp, #-16]!\n"
-      "mov x15, %[stk]\n"
-      "ldr x14, %[ssp]\n"
-      "ldr x13, %[ag]\n"
-      "mov x12, %[constants]\n"
-      "mov x11, %[process]\n"
-      "mov x16, %[code]\n"
-      "ldr x29, %[fp]\n"
-      "blr x16\n"
-      "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
-      "str x14, [x15,#56]\n"
-      "str x29, [x15,#64]\n"
-      "ldp x12,x13, [sp], #16\n"
-      "ldp x10,x11, [sp], #16\n"
-      "ldp x8,x9, [sp], #16\n"
-      "ldp x29,x30, [sp], #16\n"
-      "str w0, %[ret]\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "stp x12,x13, [sp, #-16]!\n"
+    "mov x15, %[stk]\n"
+    "ldr x14, %[ssp]\n"
+    "ldr x13, %[ag]\n"
+    "mov x12, %[constants]\n"
+    "mov x11, %[process]\n"
+    "mov x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
+    "str x14, [x15,#56]\n"
+    "str x29, [x15,#64]\n"
+    "ldp x12,x13, [sp], #16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "ldp x29,x30, [sp], #16\n"
+    "str w0, %[ret]\n"
     : [ret] "=&m"(ret)
-  : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
-  [constants] "r"(constAnts),[fp] "m"(stk->fp)
-  : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
+    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
+    [constants] "r"(constAnts),[fp] "m"(stk->fp)
+    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
     "memory");
 
   return ret;
@@ -315,8 +315,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
       case XOCall: {
-        armReg tmp = findFreeReg(jit);
-
         popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
@@ -325,7 +323,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pushStkOp(jit, X16); // The free term isthe first argument
 
         codeLblPo haveMtd = newLabel(ctx);
-        cbnz(tmp, haveMtd);
+        cbnz(X17, haveMtd);
 
         bailOut(jit, 23);
 
@@ -683,6 +681,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         br(X16);
         bind(rtn);
         pc++;
+        releaseReg(jit, tmp);
+        releaseReg(jit, stk);
+        releaseReg(jit, evt);
         continue;
       }
       case Retire: {
@@ -808,7 +809,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo haveContent = newLabel(ctx);
         cbnz(content, haveContent);
 
-        labelPo glbLbl = findLbl(globalVarName(glbVr), 0);
+        labelPo glbLbl = declareLbl(globalVarName(glbVr), 0, 0);
         if (glbLbl == Null)
           return jitError(jit, "no label definition for global %s", globalVarName(glbVr));
 
@@ -973,6 +974,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg cel = popStkOp(jit, findFreeReg(jit));
         ldr(cel, OF(cel, OffsetOf(CellRecord, content)));
         pushStkOp(jit, cel);
+        releaseReg(jit, cel);
         pc++;
         continue;
       }
@@ -981,6 +983,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg cel = popStkOp(jit, findFreeReg(jit));
         armReg vl = popStkOp(jit, findFreeReg(jit));
         str(vl, OF(cel, OffsetOf(CellRecord, content)));
+        releaseReg(jit, cel);
+        releaseReg(jit, vl);
         pc++;
         continue;
       }
@@ -1159,6 +1163,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tgt);
         releaseReg(jit, quotient);
         releaseReg(jit, ix);
+        releaseReg(jit, divisor);
         bind(jmpTbl);
         pc++;
         continue;
@@ -1861,7 +1866,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         continue;
       }
       default:
-        return Error;
+        return jitError(jit, "unknown instruction: %s", opNames[code[pc].op]);
     }
   }
 
@@ -2009,7 +2014,7 @@ retCode jitError(jitCompPo jit, char *msg, ...) {
 
   closeIo(O_IO(f));
 
-  strMsg(jit->errMsg, jit->msgLen, RED_ESC_ON "%s"RED_ESC_OFF, buff);
+  strMsg(jit->errMsg, NumberOf(jit->errMsg), RED_ESC_ON "%s"RED_ESC_OFF, buff);
   return Error;
 }
 

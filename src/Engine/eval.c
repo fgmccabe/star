@@ -6,7 +6,7 @@
  */
 
 #include "config.h"
-#include <globals.h>
+#include "globals.h"
 #include "constants.h"
 #include "char.h"
 #include <math.h>
@@ -18,9 +18,9 @@
 logical collectStats = False;
 
 /*
- * Execute program on a given process/thread structure
+ * Execute program on a given engine structure
  */
-retCode run(enginePo P) {
+ReturnStatus run(enginePo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
@@ -43,8 +43,11 @@ retCode run(enginePo P) {
     switch (PC->op) {
       case Halt: {
         int32 exitCode = PC->fst;
-
-        return (retCode) exitCode;
+        if (exitCode != 0) {
+          star_exit(exitCode);
+          return Abnormal;
+        }
+        return Normal;
       }
       case Nop: {
         PC++;
@@ -56,7 +59,7 @@ retCode run(enginePo P) {
         saveRegisters();
         abort_star(P, lc, msg);
 
-        return Error;
+        return Abnormal;
       }
 
       case Call:
@@ -1097,4 +1100,31 @@ retCode run(enginePo P) {
     }
     syserr("PC case issues");
   }
+}
+
+// Directly enter jitted code
+ReturnStatus exec(enginePo P) {
+  heapPo H = P->heap;
+  stackPo STK = P->stk;
+  framePo FP = STK->fp;
+  register insPo PC = STK->pc; /* Program counter */
+  register ptrPo SP = STK->sp; /* Current 'top' of stack (grows down) */
+  register methodPo PROG = STK->prog;
+  register ptrPo ARGS = STK->args;
+
+  STK->fp = ++FP;
+  FP->prog = PROG;
+  FP->link = PC + 1;
+  FP->args = ARGS;
+
+#ifdef TRACEJIT
+  if (traceJit) {
+    logMsg(logFile, "entering jitted code %T", PROG);
+  }
+#endif
+
+  saveRegisters();
+  ReturnStatus ret = invokeJitMethod(P, PROG);
+  restoreRegisters();
+  return ret;
 }
