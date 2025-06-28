@@ -14,14 +14,12 @@ void initJit() {
   }
 }
 
-jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen) {
+jitCompPo jitContext(methodPo mtd) {
   jitCompPo jitComp = (jitCompPo) allocPool(contextPool);
 
   jitComp->mtd = mtd;
   jitComp->assemCtx = createCtx();
   jitComp->freeRegs = defltAvailRegSet();
-  jitComp->errMsg = errMsg;
-  jitComp->msgLen = msgLen;
   return jitComp;
 }
 

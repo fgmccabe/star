@@ -64,13 +64,12 @@ typedef struct jit_compiler_ {
   registerMap freeRegs;
   assemCtxPo assemCtx;
   codeLblPo entry;
-  char *errMsg;
-  integer msgLen;
+  char errMsg[MAXLINE];
 } JitCompilerContext;
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
 
-jitCompPo jitContext(methodPo mtd, char *errMsg, integer msgLen);
+jitCompPo jitContext(methodPo mtd);
 void clearJitContext(jitCompPo ctx);
 void clearCodeCtxMaps(assemCtxPo ctx);;
 

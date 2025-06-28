@@ -34,7 +34,7 @@ void initEngine() {
   runTimer = newTimer("running");
 }
 
-retCode bootstrap(heapPo h, char *entry, char *rootWd) {
+ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelCode(umain);
 
@@ -42,14 +42,14 @@ retCode bootstrap(heapPo h, char *entry, char *rootWd) {
     termPo cmdLine = commandLine(h);
     enginePo p = newEngine(h, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
-    integer ret = run(p);
+    ReturnStatus ret = run(p);
     pauseTimer(runTimer);
 
     ps_kill(p);
     return ret;
   } else {
     logMsg(logFile, "cannot find entry point %s\n", entry);
-    return Error;
+    return Abnormal;
   }
 }
 

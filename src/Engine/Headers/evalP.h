@@ -19,9 +19,9 @@
     saveRegisters();                   \
     retCode ret = gcCollect(H, Count); \
     if (ret != Ok)                     \
-      return ret;                      \
+      return Abnormal;                 \
     if (traceStack > noTracing){       \
-      verifyStack(P->stk, H);             \
+      verifyStack(P->stk, H);          \
       verifyHeap(H);                   \
     }                                  \
     restoreRegisters();                \
@@ -66,7 +66,7 @@
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars,100);\
-  return Error;\
+  return Abnormal;\
   })
 
 #define stackGrow(Amnt, SaveArity) STMT_WRAP({\
