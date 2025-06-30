@@ -104,7 +104,6 @@ typedef enum {
   maxOpCode
 } OpCode;
 
-#ifndef NDEBUG
 static char *opNames[] = {
       "Halt",
       "Nop",
@@ -197,7 +196,6 @@ static char *opNames[] = {
       "Frame",
       "Line",
       "dBug"};
-#endif
 
 #ifndef OPCODE_SIGNATURE
 #define OPCODE_SIGNATURE 84721529136952277

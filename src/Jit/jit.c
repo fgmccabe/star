@@ -33,8 +33,10 @@ codeLblPo jitEntry(jitCompPo jit) {
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   jitCompPo jit = jitContext(mtd);
 
+#ifdef TRACEJIT
   if (traceJit)
     dRegisterMap(jit->freeRegs);
+#endif
 
   retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
 

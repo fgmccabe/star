@@ -12,7 +12,7 @@
 #include "macros.h"
 #include "escape.h"
 #include "codeP.h"
-#include "asminfra.h"
+#include "infra.h"
 
 #define MAX_VSTACK 256
 

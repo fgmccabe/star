@@ -24,7 +24,6 @@ set(HEADER_FILES
         assem_encode.h
         Headers/macros.h
         ../Headers/infra.h
-        ../Common/Headers/asminfra.h
         Headers/disass.h
 )
 

@@ -26,7 +26,6 @@ set(HEADER_FILES
         Assem/Headers/assem_encode.h
         Headers/macros.h
         ../Headers/infra.h
-        Headers/asminfra.h
 )
 
 set(SOURCE_FILES
