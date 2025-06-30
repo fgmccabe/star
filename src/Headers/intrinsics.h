@@ -96,4 +96,3 @@ intrinsic(_fiber,all(r,all(s,func(func(fiber(r,s),r) s,fiber(r,s)))),"Fiber",Tru
 #undef b
 #undef r
 #undef s
-

@@ -24,6 +24,4 @@ sample.tree{
   mrge(T,.eTree) => T.
   mrge(.node(L1,(K1,V1),R1),T2) =>
     mrge(L1,mrge(R1,insrt(T2,(K1,V2)))).
-
-
 }
