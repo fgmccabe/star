@@ -30,7 +30,7 @@ set(TEST_HEADER_FILES ../Headers/arm64.h
         ../Headers/assem_encode.h
         ../../../../Util/Headers/unitTests.h
         ../../../Headers/jitP.h
-        ../../Headers/asminfra.h
+        ../../../Headers/infra.h
         armRegSetTest.h
         armFpTests.h)
 

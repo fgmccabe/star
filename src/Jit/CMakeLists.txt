@@ -22,17 +22,13 @@ include_directories("Headers"
 set(HEADER_FILES
         Headers/jit.h
         Headers/jitP.h
-        Common/Headers/regAlloc.h
-        ARM64/Headers/asminfra.h
-        Common/Headers/regAlloc.h
-        Common/Headers/codeScan.h
         ../Util/Headers/array.h
         ../Engine/Headers/escapeP.h
         ${JIT_ARCH}/Headers/lower.h
         )
 
 set(JIT_SOURCE_FILES jit.c jitInfra.c ARM64/Assem/asmInfra.c
-        ARM64/Headers/asminfra.h)
+)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})
