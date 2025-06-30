@@ -176,7 +176,7 @@ void emitU8(assemCtxPo ctx, uint8 byte) {
       ctx->size = newSize;
     } else {
       logMsg(logFile, "Could not allocate buffer for code generation");
-      star_exit(100);
+      star_exit(oomCode);
     }
   }
   assert(ctx->pc < ctx->size);

@@ -748,9 +748,9 @@ void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl) {
   termPo cell = topStack(stk);
 
   if (showColors)
-    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %T->%#,*T", lc, cell, displayDepth, val);
+    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %*T->%#,*T", lc, cell, displayDepth, val);
   else
-    outMsg(out, "assign: %L %T->%#,*T", lc, cell, displayDepth, val);
+    outMsg(out, "assign: %L %*T->%#,*T", lc, cell, displayDepth, val);
 }
 
 void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {

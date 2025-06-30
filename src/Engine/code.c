@@ -113,8 +113,15 @@ logical validPC(methodPo mtd, insPo pc) {
 }
 
 int32 codeOffset(methodPo mtd, insPo pc) {
-  assert(validPC(mtd, pc));
-  return (int32) (pc - mtd->instructions);
+  insPo instructions = mtd->instructions;
+  if (pc >= instructions && pc < instructions + mtd->insCount) {
+    return (int32) (pc - instructions);
+  }
+  void *address = pc;
+  void *jitCode = (void *) mtd->jit.code;
+  if (address >= jitCode && address < jitCode + mtd->jit.codeSize)
+    return (int32) (address - jitCode);
+  return -1;
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -222,7 +229,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
   retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
   if (ret != Ok) {
     logMsg(logFile, "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
-    star_exit(200);
+    star_exit(specialMethodCode);
   }
 
   return lbl;
@@ -230,7 +237,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
 
 static retCode showMtdCount(labelPo lbl, void *cl) {
   ioPo out = (ioPo) cl;
-  methodPo mtd = labelCode(lbl);
+  methodPo mtd = labelMtd(lbl);
   if (mtd != Null && callCount(mtd) > 0) {
     return outMsg(out, "%A %ld\n", lbl, callCount(mtd));
   } else
@@ -239,8 +246,8 @@ static retCode showMtdCount(labelPo lbl, void *cl) {
 
 static comparison cmpCount(integer i, integer j, void *cl) {
   integer *indices = (integer *) cl;
-  methodPo mi = labelCode(&labelTable[indices[i]]);
-  methodPo mj = labelCode(&labelTable[indices[j]]);
+  methodPo mi = labelMtd(&labelTable[indices[i]]);
+  methodPo mj = labelMtd(&labelTable[indices[j]]);
 
   integer iCount = (mi == Null ? 0 : callCount(mi));
   integer jCount = (mj == Null ? 0 : callCount(mj));

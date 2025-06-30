@@ -967,17 +967,6 @@ star.compiler.gencode{
     }.
   resetStack(_,.none) => [].
 
-  pickStack:(option[integer],stack) => multi[assemOp].
-  pickStack(.some(Dp),.some(Stk)) => case [|Stk|] in {
-    | Dp => []
-    | Dp1 where Dp1>Dp => [.iPick(Dp,1)]
-    | Dp1 default => valof{	
-	reportTrap("invalid stack height in $(Stk)\:$(Dp1)~$(Dp)");
-	valis []
-      }
-    }.
-  pickStack(_,.none) => [].
-
   frameIns:(stack)=>assemOp.
   frameIns(.some(Stk)) => .iFrame(size(Stk)).
 

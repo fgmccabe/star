@@ -82,7 +82,7 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state, stackPo attachment) {
+stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment) {
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
@@ -111,8 +111,8 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state
     outMsg(logFile, "new stack of %d words\n%_", sze);
 #endif
 
-  stk->prog = labelCode(underFlow);
-  stk->pc = entryPoint(stk->prog);
+  stk->prog = labelMtd(underFlow);
+  stk->pc = (execJit ? (void *) jitCode(stk->prog) : entryPoint(stk->prog));
   stk->args = stk->sp;
   gcReleaseRoot(H, root);
 
@@ -126,8 +126,7 @@ static retCode markActive(stackPo tsk) {
     case suspended:
       tsk->state = active;
       return Ok;
-    case active:
-    case moribund:
+    default:
       return Error;
   }
 }
@@ -268,7 +267,7 @@ void pushStack(stackPo stk, termPo ptr) {
   assert(validStkPtr(stk, stk->sp));
 }
 
-void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
+void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, integer count) {
   assert(validStkPtr(fromtsk, fromtsk->sp + count));
   assert(stackHasSpace(totsk, count));
 
@@ -279,7 +278,7 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, integer count) {
   }
   totsk->sp = dst;
   fromtsk->sp += count;
-  pushFrame(totsk, False, fromtsk->prog);
+  pushFrame(totsk, execJit, fromtsk->prog);
   totsk->pc = fromtsk->pc;
 }
 
@@ -433,7 +432,7 @@ void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
     outMsg(out, "...\n");
 }
 
-void glueOnStack(enginePo P, integer size, integer saveArity) {
+void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity) {
   stackPo stk = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
@@ -447,30 +446,30 @@ void glueOnStack(enginePo P, integer size, integer saveArity) {
   assert(size >= minStackSize && stackState(stk) != moribund);
 
   stackPo newStack =
-    allocateStack(h, size, underflowProg, stackState(stk), stk);
-  moveStack2Stack(newStack, stk, saveArity);
+    allocateStack(h, size, underflowProg, execJit, stackState(stk), stk);
+  moveStack2Stack(newStack, stk, execJit, saveArity);
   dropFrame(stk);
   propagateHwm(newStack);
   gcReleaseRoot(h, root);
   P->stk = newStack;
 }
 
-void handleStackOverflow(enginePo P, integer delta, int32 arity) {
-  glueOnStack(P, (P->stk->sze * 3) / 2 + delta, arity);
+void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 arity) {
+  glueOnStack(P, execJit, (P->stk->sze * 3) / 2 + delta, arity);
 }
 
-stackPo spinupStack(heapPo H, integer size) {
+stackPo spinupStack(heapPo H, logical execJit, integer size) {
   assert(size >= minStackSize);
 
-  return allocateStack(H, size, underflowProg, suspended, Null);
+  return allocateStack(H, size, underflowProg, execJit, suspended,Null);
 }
 
 stackPo newStack(heapPo H, logical execJit, termPo lam) {
   int root = gcAddRoot(H, (ptrPo) &lam);
-  stackPo child = spinupStack(H, minStackSize);
+  stackPo child = spinupStack(H, execJit, minStackSize);
   gcReleaseRoot(H, root);
 
-  child->fp = pushFrame(child, execJit, labelCode(taskProg));
+  child->fp = pushFrame(child, execJit, labelMtd(taskProg));
 
   pushStack(child, lam);
   pushStack(child, (termPo) child);
@@ -489,7 +488,7 @@ void attachStack(enginePo P, stackPo top, termPo evt) {
 #endif
 
   assert(stackState(stk) == active && stackState(top) == suspended &&
-         stackState(bottom) == suspended);
+    stackState(bottom) == suspended);
 
   stackPo f = bottom;
 
@@ -542,7 +541,7 @@ void detachStack(enginePo P, stackPo top, termPo event) {
   }
 #endif
   P->stk = parent;
-  pushStack(parent,event);
+  pushStack(parent, event);
 }
 
 stackPo dropStack(stackPo tsk) {

@@ -99,4 +99,20 @@ extern void check_(const char *func, const char *srcFile, int line, char *frag, 
 
 extern retCode homeDir(char *user, char *buffer, integer bufLen);
 
+typedef enum {
+  successCode = 0, /* Normal exit */
+  failCode, /* Failing exit */
+  errorCode,  // Error exit
+  oomCode, // Out of memory
+  undefinedCode, // tried to execute undefined code
+  fiberCode, // Something wrong with fiber code
+  singleCode, // something wrong with single assignment var
+  assignmentCode, // something wrong with assignment
+  specialMethodCode, // something wrong with a special method
+  invalidOperationCode, // tried an invalid operation
+  abortCode, // abort operation
+} ExitCode;
+
+void star_exit(ExitCode code);
+
 #endif

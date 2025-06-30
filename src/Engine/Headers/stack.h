@@ -27,7 +27,7 @@ typedef enum {
 
 typedef struct stack_frame_ *framePo;
 
-stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, StackState state, stackPo attachment);
+stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment);
 
 StackState stackState(stackPo tsk);
 
@@ -45,13 +45,13 @@ termPo popStack(stackPo stk);
 termPo peekStack(stackPo stk, integer delta);
 termPo topStack(stackPo stk);
 
-void handleStackOverflow(enginePo P, integer delta, int32 arity);
+void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 arity);
 
 void pushStack(stackPo stk, termPo ptr);
-void moveStack2Stack(stackPo toStk, stackPo fromStk, integer count);
+void moveStack2Stack(stackPo toStk, stackPo fromStk, logical execJit, integer count);
 
-void glueOnStack(enginePo P, integer size, integer saveArity);
-stackPo spinupStack(heapPo H, integer size);
+void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity);
+stackPo spinupStack(heapPo H, logical execJit, integer size);
 
 integer stackHwm(stackPo stk);
 integer stackNo(stackPo stk);

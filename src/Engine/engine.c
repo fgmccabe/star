@@ -36,13 +36,13 @@ void initEngine() {
 
 ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
-  methodPo mainMtd = labelCode(umain);
+  methodPo mainMtd = labelMtd(umain);
 
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
-    enginePo p = newEngine(h, mainMtd, rootWd, cmdLine);
+    enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
     resumeTimer(runTimer);
-    ReturnStatus ret = run(p);
+    ReturnStatus ret = (jitOnLoad?exec(p):run(p));
     pauseTimer(runTimer);
 
     ps_kill(p);
@@ -53,13 +53,13 @@ ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
   }
 }
 
-enginePo newEngine(heapPo h, methodPo mtd, char *rootWd, termPo rootArg) {
+enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo rootArg) {
   enginePo P = (enginePo) allocPool(prPool);
   integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
-  stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, active, Null);
+  stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, execJit, active,Null);
 
   pushStack(stk, rootArg);
-  stk->fp = pushFrame(stk, False, mtd);
+  stk->fp = pushFrame(stk, execJit, mtd);
 
   P->heap = h;
   P->state = quiescent;

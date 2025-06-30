@@ -123,11 +123,9 @@ int main(int argc, char **argv) {
   setupSignals();
 
   switch (bootstrap(globalHeap, mainEntry, rootWd)) {
-    case Ok:
-      return EXIT_SUCCEED;          /* exit the runtime system cleanly */
-    case Error:
-      return EXIT_ERROR;
+    case Normal:
+      return successCode;          /* exit the runtime system cleanly */
     default:
-      return EXIT_FAIL;
+      return failCode;
   }
 }

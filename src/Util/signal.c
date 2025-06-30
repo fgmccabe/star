@@ -29,14 +29,14 @@ static void aioSigHandler(int sig, siginfo_t *si, void *cl) {
 
 static void busErrorHandler(int sig) {
   outMsg(logFile, "bus error or segmentation fault\n");
-  star_exit(EXIT_FAIL);
+  star_exit(failCode);
 }
 
 static void interruptMe(int ignored) /* This one is invoked when user presses ^C */
 {
   outMsg(logFile, "control-C interrupt\n");
   gotControlC = 1;
-  star_exit(EXIT_FAIL);    /* We just abort everything */
+  star_exit(failCode);    /* We just abort everything */
 }
 
 logical controlC() {
@@ -49,7 +49,7 @@ void setupSimpleHandler(int signal, void (*handler)(int)) {
   sigemptyset(&sa.sa_mask);
   sa.sa_handler = handler;
   if (sigaction(signal, &sa, Null) == -1)
-    star_exit(EXIT_FAIL);
+    star_exit(failCode);
 }
 
 void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *)) {
@@ -58,7 +58,7 @@ void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *)) {
   sigemptyset(&sa.sa_mask);
   sa.sa_sigaction = handler;
   if (sigaction(signal, &sa, Null) == -1)
-    star_exit(EXIT_FAIL);
+    star_exit(failCode);
 }
 
 void setupSignals() {
@@ -86,18 +86,4 @@ sigset_t stopInterrupts(void)  /* stop control-C from generating a signal */
 void startInterrupts(sigset_t blocked)  /* enable interrupts again */
 {
   sigprocmask(SIG_SETMASK, &blocked, NULL);
-}
-
-/* 
- * Interrupt handling -- on a control^C we send a message to the monitor process
- */
-
-/* Warning --- important that SIGINT is blocked during this handler */
-
-
-void star_exit(int code) {
-  if (code != 0)
-    outMsg(logFile, "Terminating with code %d\n", code);
-
-  exit(code);
 }

@@ -14,7 +14,6 @@ void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *));
 
 void startInterrupts(sigset_t blocked);  /* enable control-C interrupts */
 sigset_t stopInterrupts(void);  /* stop control-C interruptes */
-void star_exit(int);    /* When we want to stop */
 void initSuspend(void);
 
 logical controlC();
