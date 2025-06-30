@@ -45,7 +45,7 @@ static inline int32 lblArity(labelPo lbl) {
   return lbl->lbl.arity;
 }
 
-static inline methodPo labelCode(labelPo lbl) {
+static inline methodPo labelMtd(labelPo lbl) {
   return lbl->mtd;
 }
 

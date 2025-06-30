@@ -397,7 +397,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
         if (ret == Ok) {
           labelPo lbl = declareLbl(prgName, arity, -1);
 
-          if (labelCode(lbl) != Null) {
+          if (labelMtd(lbl) != Null) {
             if (redefine != softDef) {
               strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
               ret = Error;

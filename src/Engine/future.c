@@ -92,7 +92,7 @@ logical futureCmp(specialClassPo cl, termPo o1, termPo o2) {
 
 integer futureHash(specialClassPo cl, termPo o) {
   logMsg(logFile,"not permitted to take hash of future");
-  star_exit(99);
+  star_exit(invalidOperationCode);
   return 0; // unreachable
 }
 

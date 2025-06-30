@@ -24,7 +24,7 @@ ReturnStatus g__jit_compile(enginePo P) {
     return Abnormal;
   }
 
-  methodPo mtd = labelCode(lbl);
+  methodPo mtd = labelMtd(lbl);
   if (mtd == Null) {
     pshVal(P, eNOTFND);
     return Abnormal;

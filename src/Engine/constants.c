@@ -54,3 +54,11 @@ void markConstants(gcSupportPo G) {
   for (int32 ix = 0; ix < nextConstant; ix++)
     constAnts[ix] = markPtr(G, &constAnts[ix]);
 }
+
+void dumpConstants() {
+  for (int32 ix = 0; ix < nextConstant; ix++) {
+    if (constAnts[ix] != Null)
+      outMsg(logFile, "constant %d: %T\n", ix, constAnts[ix]);
+  }
+  flushOut();
+}

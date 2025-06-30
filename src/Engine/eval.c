@@ -65,7 +65,7 @@ ReturnStatus run(enginePo P) {
       case Call:
       case XCall: {
         labelPo nProg = C_LBL(getConstant(PC->fst));
-        methodPo mtd = labelCode(nProg); // Which program do we want?
+        methodPo mtd = labelMtd(nProg); // Which program do we want?
 
         if (mtd == Null) {
           logMsg(logFile, "label %A not defined", nProg);
@@ -126,7 +126,7 @@ ReturnStatus run(enginePo P) {
           bail();
         }
 
-        methodPo mtd = labelCode(lb); /* set up for object call */
+        methodPo mtd = labelMtd(lb); /* set up for object call */
 
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lb);
@@ -181,7 +181,7 @@ ReturnStatus run(enginePo P) {
         /* Tail call of explicit program */
         labelPo lbl = C_LBL(getConstant(PC->fst));
         int32 arity = lblArity(lbl);
-        methodPo mtd = labelCode(lbl);
+        methodPo mtd = labelMtd(lbl);
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
@@ -216,7 +216,7 @@ ReturnStatus run(enginePo P) {
         }
 
         push(closureFree(obj)); // Put the free term back on the stack
-        methodPo mtd = labelCode(lb); /* set up for object call */
+        methodPo mtd = labelMtd(lb); /* set up for object call */
 
         if (mtd == Null) {
           logMsg(logFile, "no definition for %T", lb);
@@ -239,7 +239,7 @@ ReturnStatus run(enginePo P) {
         if (!stackRoom(stackDelta(PROG) + FrameCellCount)) {
           saveRegisters();
           integer Amnt = stackDelta(PROG) + FrameCellCount;
-          glueOnStack(P, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
+          glueOnStack(P, False, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
           restoreRegisters();
           if (!stackRoom(Amnt)) {
             logMsg(logFile, "cannot extend stack sufficiently");
@@ -494,7 +494,7 @@ ReturnStatus run(enginePo P) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
             bail();
           }
-          methodPo glbThnk = labelCode(glbLbl); /* set up for object call */
+          methodPo glbThnk = labelMtd(glbLbl); /* set up for object call */
 
           if (glbThnk == Null) {
             logMsg(logFile, "no definition for global %s", globalVarName(glb));
@@ -1104,17 +1104,15 @@ ReturnStatus run(enginePo P) {
 
 // Directly enter jitted code
 ReturnStatus exec(enginePo P) {
-  heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  register insPo PC = STK->pc; /* Program counter */
   register ptrPo SP = STK->sp; /* Current 'top' of stack (grows down) */
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
 
   STK->fp = ++FP;
   FP->prog = PROG;
-  FP->link = PC + 1;
+  FP->link = Null;
   FP->args = ARGS;
 
 #ifdef TRACEJIT
@@ -1123,8 +1121,5 @@ ReturnStatus exec(enginePo P) {
   }
 #endif
 
-  saveRegisters();
-  ReturnStatus ret = invokeJitMethod(P, PROG);
-  restoreRegisters();
-  return ret;
+  return invokeJitMethod(P, PROG);
 }

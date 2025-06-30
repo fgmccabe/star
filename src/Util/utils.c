@@ -113,7 +113,6 @@ static pthread_once_t prOnce = PTHREAD_ONCE_INIT;
    Not the fastest algorithm, but it isnt called very often
 */
 
-
 typedef struct primeHopper_ *primePo;
 
 typedef struct primeHopper_ {
@@ -131,7 +130,7 @@ static void initPrimes(void) {
     prpool = newPool(sizeof(primeHopper), 1024);
     primes = (primePo) allocPool(prpool);
 
-    primes->pr = 3;      /* We know that 3 is a prime! */
+    primes->pr = 3; /* We know that 3 is a prime! */
     primes->next = NULL;
   }
 }
@@ -140,25 +139,26 @@ integer nextPrime(integer min) {
   integer candidate = 0;
 
   pthread_once(&prOnce, initPrimes);
-  pthread_mutex_lock(&prMutex);
-
-  {
+  pthread_mutex_lock(&prMutex); {
     primePo soFar = primes;
 
-    while (candidate <= min && soFar != NULL) { // Look in the table we have so far
+    while (candidate <= min && soFar != NULL) {
+      // Look in the table we have so far
       candidate = soFar->pr;
       soFar = soFar->next;
     }
 
-    while (candidate <= min) {  // We have to extend the table
+    while (candidate <= min) {
+      // We have to extend the table
       candidate += 2;
 
-      again:
+    again:
       for (soFar = primes; soFar != NULL; soFar = soFar->next) {
         if (candidate % soFar->pr == 0) {
           candidate += 2;
           goto again;
-        } else if (soFar->next == NULL) {  // We have a new prime
+        } else if (soFar->next == NULL) {
+          // We have a new prime
           primePo new = (primePo) allocPool(prpool);
 
           new->pr = candidate;
@@ -177,13 +177,35 @@ integer nextPrime(integer min) {
 
 // Manage hwms
 
-integer hwmOf(hwmPo hwm){
+integer hwmOf(hwmPo hwm) {
   return hwm->max;
 }
 
-integer hwmBump(hwmPo hwm, integer delta){
-  hwm->current+=delta;
-  if(hwm->current>hwm->max)
+integer hwmBump(hwmPo hwm, integer delta) {
+  hwm->current += delta;
+  if (hwm->current > hwm->max)
     hwm->max = hwm->current;
   return hwm->current;
+}
+
+static char *exitCodes[] = {
+  "normal exit",
+  "failing exit",
+  "error",
+  "out of memory",
+  "tried to execute undefined code",
+  "something wrong with fiber",
+  "something wrong with single assignment variables",
+  "something wrong with assignment",
+  "something wrong with a special method",
+  "tried an invalid operation",
+  "execution aborted"
+};
+
+void star_exit(ExitCode code) {
+  if (code != successCode)
+    outMsg(logFile, "Terminating with code %s (%d)\n", (code <= abortCode ? exitCodes[code] : "unknown exit code"),
+           code);
+
+  exit(code);
 }

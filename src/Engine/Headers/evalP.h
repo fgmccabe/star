@@ -71,7 +71,7 @@
 
 #define stackGrow(Amnt, SaveArity) STMT_WRAP({\
   saveRegisters();\
-  P->stk = glueOnStack(H, STK, maximum(stackHwm(STK),(STK->sze * 3) / 2 + (Amnt)),SaveArity); \
+  P->stk = glueOnStack(H, False, STK, maximum(stackHwm(STK),(STK->sze * 3) / 2 + (Amnt)),SaveArity); \
   restoreRegisters();\
   if (!stackRoom(Amnt)) {\
     logMsg(logFile, "cannot extend stack sufficiently");\

@@ -63,7 +63,7 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
   if ((((ptrPo) h->curr) + amnt) >= ((ptrPo) (h->limit))) {
     if (gcCollect(h, amnt) != Ok) {
       logMsg(logFile, "Could not allocate %d cells on heap", amnt);
-      star_exit(99);
+      star_exit(oomCode);
       return Null;
     }
   }

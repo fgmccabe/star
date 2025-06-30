@@ -72,7 +72,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
 				       [iLbl(Lx,iBlock(1,
 						       [iLbl(Er,iBlock(1,FC)),
 							iXRet])),iRet]))|CA]),
-  BaseBrks = [("$try",gencode:throwOut,Er,none)],
+  BaseBrks = [("$try",gencode:result,Er,none)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D,D1,FC,FC0,some(0),Stk0),
   compExp(Value,Lc,[("$abort",gencode:breakOut,Abrt,none)|BaseBrks],notLast,
 	  Opts,L3,L4,D1,D3,FC0,FC1,Stk0,Stk1),
@@ -324,7 +324,7 @@ compAct(Next,A,Lc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 
 breakOut(Ok,Stk,Stkx,C,Cx) :-
   resetStack(Stkx,Stk,C,[iBreak(Ok)|Cx]).
-throwOut(Lbl,_Stk,_Stkx,[iResult(Lbl)|Cx],Cx).
+result(Lbl,_Stk,_Stkx,[iResult(Lbl)|Cx],Cx).
   
 frameIns(some(Depth),[iFrame(Depth)|Cx],Cx).
 frameIns(none,Cx,Cx).
@@ -757,7 +757,7 @@ compTryX(Lc,B,_ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :
   genLbl(L0,Tr,L1),
   stkNxtLvl(Stk,RLvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(RLvl,[iLbl(Tr,iBlock(RLvl,BC))|HC]))|Cz]),
-  compExp(B,Lc,[("$try",gencode:throwOut,Tr,Stk)|Brks],notLast,
+  compExp(B,Lc,[("$try",gencode:result,Tr,Stk)|Brks],notLast,
 	  Opts,L1,L2,D,D2,BC,[iResult(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D3,H1,[iStL(E)|H2]),
@@ -770,7 +770,7 @@ compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   stkLvl(Stk,Lvl),
   stkNxtLvl(Stk,ELvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(Tr,iBlock(ELvl,BC))|HC]))|Cz]),
-  compAction(B,Lc,[("$try",gencode:throwOut,Tr,Stk)|Brks],notLast,notLast,
+  compAction(B,Lc,[("$try",gencode:result,Tr,Stk)|Brks],notLast,notLast,
 	  Opts,L1,L2,D,D2,BC,[iBreak(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
   defineLclVar(Lc,E,ETp,Opts,D2,D3,H1,[iStL(E)|H2]),
