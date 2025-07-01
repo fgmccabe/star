@@ -946,7 +946,7 @@ ReturnStatus run(enginePo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Rhs) / 1.0e20) ? trueEnum : falseEnum);
+        termPo Rs = (Lhs==Rhs ? trueEnum : falseEnum);
         push(Rs);
         PC++;
         continue;

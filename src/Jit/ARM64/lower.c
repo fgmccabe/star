@@ -90,6 +90,7 @@ void stashRegisters(jitCompPo jit);
 void unstashRegisters(jitCompPo jit);
 
 void loadLocal(jitCompPo jit, armReg src, int32 lclNo);
+
 void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 
 static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
@@ -1031,7 +1032,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
         popStkOp(jit, X1);
+        stashRegisters(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(X0), RG(X1));
+        unstashRegisters(jit);
         tst(X0, RG(X0));
         ret = breakOutEq(block, pc + code[pc].alt + 1);
         pc++;
@@ -1110,7 +1113,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // T --> T, case <Max>
         if (reserveReg(jit, X0) == Ok) {
           popStkOp(jit, X0);
+          stashRegisters(jit);
           callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(X0));
+          unstashRegisters(jit);
           armReg divisor = findFreeReg(jit);
           mov(divisor, IM(code[pc].fst));
           armReg quotient = findFreeReg(jit);
@@ -2040,13 +2045,13 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   str(X0, OF(STK, OffsetOf(StackRecord, prog)));
 
   stashRegisters(jit);
-  tryRet(
-    callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta), IM(codeArity(mtd
-    ))));
+  retCode ret =
+      callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta),
+                    IM(codeArity(mtd)));
   unstashRegisters(jit);
 
   bind(okLbl);
-  return Ok;
+  return ret;
 }
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
@@ -2111,12 +2116,10 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   // Restore h->curr
   str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
   stashRegisters(jit); // Slow path
-  ldr(X0,OF(PR, OffsetOf(EngineRecord, heap)));
+  ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
   callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 3, RG(X0), IM((integer) class), IM(amnt));
   unstashRegisters(jit);
   mov(reslt, RG(X0));
-  cbnz(X0, ok);
-  callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(oomCode)); // no return from this
   bind(ok);
   mov(c, IM((integer) class));
   str(c, OF(reslt, OffsetOf(TermRecord, clss)));

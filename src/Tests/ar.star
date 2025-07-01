@@ -39,7 +39,7 @@ test.ar{
   }.
 
   implementation eqq[float] => {
-    eqq(X,Y) => _flt_eq(X,Y)
+    eqq(X,Y) => _flt_lt(_flt_abs(_flt_minus(X,Y)),1.0e-20)
   }
   
   person ::= someOne{

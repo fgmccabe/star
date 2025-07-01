@@ -112,8 +112,23 @@ star.arith{
     __minus(Dx) => _flt_minus(0.0,Dx).
   }
 
+  nearlyEqual:(float,float,float)=>boolean.
+  nearlyEqual(X,Y,epsilon) => valof{
+    if _flt_eq(X,Y) then
+      valis .true;
+
+    absX = _flt_abs(X);
+    absY = _flt_abs(Y);
+    diff = _flt_abs(absX-absY);
+
+    if _flt_lt(diff,_flt_times(epsilon,_flt_plus(absX,absY))) then
+      valis .true
+    else
+    valis .false
+  }
+
   public implementation equality[float] => {
-    X == Y => _flt_eq(X,Y).
+    X == Y => nearlyEqual(X,Y,1.0e-8)
   }
 
   public implementation hashable[float] => {

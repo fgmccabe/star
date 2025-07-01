@@ -16,8 +16,7 @@
 ReturnStatus g__flt_eq(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
-  double fuzz = rhs / 1.0e20;
-  termPo Rs = (nearlyEqual(lhs, rhs, fuzz) ? trueEnum : falseEnum);
+  termPo Rs = (lhs==rhs ? trueEnum : falseEnum);
   pshVal(P, Rs);
   return Normal;
 }

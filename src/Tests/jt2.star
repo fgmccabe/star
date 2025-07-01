@@ -16,14 +16,14 @@ test.jt2{
     showMsg("Fib of $(V) is $(F)");
 
     try{
-      _jit_compile("test.jt2@fib",1);
+      _jit_compile("#(__pkg__)@fib",1);
     } catch {
       X => showMsg("$(X)")
     };
 
-    timer = ref timer_start(((V::float)**2.0)::integer, "fib");
+    timer2 = ref timer_start(((V::float)**2.0)::integer, "jit fib");
     F = fib(V);
-    t2 = timer_finish(timer!)::float;
+    t2 = timer_finish(timer2!)::float;
     showMsg("Fib of $(V) is $(F)");
 
     try {

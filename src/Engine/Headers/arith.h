@@ -61,8 +61,6 @@ static inline integer floatHash(double dx) {
   return hash61((integer)float_bits(dx));
 }
 
-extern logical nearlyEqual(double dx1, double dx2, double eps);
-
 #define MIN_NORMAL ((double)0x0010000000000000L)
 
 extern void initArith();

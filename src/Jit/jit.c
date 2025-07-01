@@ -31,25 +31,25 @@ codeLblPo jitEntry(jitCompPo jit) {
 }
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
-  jitCompPo jit = jitContext(mtd);
+  if (!hasJit(mtd)) {
+    jitCompPo jit = jitContext(mtd);
 
 #ifdef TRACEJIT
-  if (traceJit)
-    dRegisterMap(jit->freeRegs);
+    if (traceJit)
+      dRegisterMap(jit->freeRegs);
 #endif
 
-  retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
+    retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
 
-  if (ret == Ok) {
-    assemCtxPo ctx = jit->assemCtx;
-    ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
+    if (ret == Ok) {
+      assemCtxPo ctx = jit->assemCtx;
+      ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
+    } else
+      strMsg(errMsg, msgLen, "error: %S in generating jit code", jit->errMsg, uniStrLen(jit->errMsg));
+
+    clearJitContext(jit);
+
+    return ret;
   }
-  else
-    strMsg(errMsg, msgLen, "error: %S in generating jit code",jit->errMsg,uniStrLen(jit->errMsg));
-
-  clearJitContext(jit);
-
-
-  return ret;
+  return Ok;
 }
-
