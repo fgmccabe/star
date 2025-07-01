@@ -641,6 +641,7 @@ void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  check(imm>=-256 && imm<=255,"immediate does not fit in nine bits");
   encodeLdStRegUnscaled((2 | w), 0, 1, imm, Rn, Rt, ctx);
 }
 

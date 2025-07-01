@@ -80,4 +80,8 @@ static inline logical is12bit(integer vl){
   return (vl&0xfffu)==vl;
 }
 
+static inline logical is9bit(integer vl) {
+  return vl>=-256 && vl<=255;
+}
+
 #endif //STAR_ARM64P_H

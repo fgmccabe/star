@@ -1105,15 +1105,7 @@ ReturnStatus run(enginePo P) {
 // Directly enter jitted code
 ReturnStatus exec(enginePo P) {
   stackPo STK = P->stk;
-  framePo FP = STK->fp;
-  register ptrPo SP = STK->sp; /* Current 'top' of stack (grows down) */
   register methodPo PROG = STK->prog;
-  register ptrPo ARGS = STK->args;
-
-  STK->fp = ++FP;
-  FP->prog = PROG;
-  FP->link = Null;
-  FP->args = ARGS;
 
 #ifdef TRACEJIT
   if (traceJit) {
