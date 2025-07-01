@@ -89,6 +89,9 @@ void stashRegisters(jitCompPo jit);
 
 void unstashRegisters(jitCompPo jit);
 
+void loadLocal(jitCompPo jit, armReg src, int32 lclNo);
+void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
+
 static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
@@ -468,7 +471,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Adjust Star stack and args register
         add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
-        ldr(AG, OF(FP, fpArgs));
+        ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
         // Pick up return address
         ldr(X16, OF(FP, fpLink));
         // Drop frame
@@ -491,7 +494,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         // Adjust Star stack and args register
         add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
-        ldr(AG, OF(FP, fpArgs));
+        ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
         // Pick up return address
         ldr(X16, OF(FP, fpLink));
         // Drop frame
@@ -766,7 +769,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // load stack from args[xx]
         int32 argNo = code[pc].fst;
         armReg rg = findFreeReg(jit);
-        ldr(rg, OF(AG, argOffset(argNo)));
+        loadLocal(jit, rg, argNo);
         pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
@@ -777,7 +780,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 lclNo = code[pc].fst;
         int32 offset = -lclNo * pointerSize;
         armReg rg = findFreeReg(jit);
-        ldur(rg, AG, offset);
+        loadLocal(jit, rg, -lclNo);
         pushStkOp(jit, rg);
         releaseReg(jit, rg);
         pc++;
@@ -787,7 +790,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // store tos to local[xx]
         int32 lclNo = code[pc].fst;
         armReg vl = popStkOp(jit, findFreeReg(jit));
-        stur(vl, AG, -lclNo * pointerSize);
+        storeLocal(jit, vl, -lclNo);
         releaseReg(jit, vl);
         pc++;
         continue;
@@ -795,10 +798,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case StV: {
         // clear a local to void
         int32 lclNo = code[pc].fst;
-        int32 offset = -lclNo * pointerSize;
         armReg vd = findFreeReg(jit);
         loadConstant(jit, voidIndex, vd);
-        stur(vd, AG, offset);
+        storeLocal(jit, vd, -lclNo);
         releaseReg(jit, vd);
         pc++;
         continue;
@@ -806,9 +808,8 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case TL: {
         // copy tos to local[xx]
         int32 lclNo = code[pc].fst;
-        int32 offset = -lclNo * pointerSize;
         armReg vl = topStkOp(jit);
-        stur(vl, AG, offset);
+        storeLocal(jit, vl, -lclNo);
         releaseReg(jit, vl);
         pc++;
         continue;
@@ -2093,6 +2094,30 @@ void unstashRegisters(jitCompPo jit) {
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
+void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
+  assemCtxPo ctx = assemCtx(jit);
+  int32 offset = lclNo * pointerSize;
+  if (is9bit(offset))
+    ldur(tgt, AG, offset);
+  else {
+    mov(tgt, IM(lclNo));
+    ldr(tgt, EX2(AG,tgt,U_XTX,3));
+  }
+}
+
+void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
+  assemCtxPo ctx = assemCtx(jit);
+  int32 offset = lclNo * pointerSize;
+  if (is9bit(offset))
+    stur(src, AG, offset);
+  else {
+    armReg tmp = findFreeReg(jit);
+    mov(tmp, IM(lclNo));
+    str(src, EX2(AG,tmp,U_XTX,3));
+    releaseReg(jit, tmp);
+  }
+}
+
 armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   assemCtxPo ctx = assemCtx(jit);
 
@@ -2115,7 +2140,8 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   // Restore h->curr
   str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
   stashRegisters(jit); // Slow path
-  callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 2, IM((integer) class), IM(amnt));
+  ldr(X0,OF(PR, OffsetOf(EngineRecord, heap)));
+  callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 3, RG(X0), IM((integer) class), IM(amnt));
   unstashRegisters(jit);
   mov(reslt, RG(X0));
   cbnz(X0, ok);
