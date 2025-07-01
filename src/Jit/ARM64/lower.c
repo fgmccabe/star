@@ -646,7 +646,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
-        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
         codeLblPo skip = newLabel(ctx);
         cmp(tmp, IM(active));
         beq(skip);
@@ -675,7 +675,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg evt = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
 
-        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
         codeLblPo skip = newLabel(ctx);
         cmp(tmp, IM(suspended));
         beq(skip);
@@ -704,7 +704,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
-        ldr(tmp, OF(stk, OffsetOf(StackRecord, state)));
+        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
         codeLblPo skip = newLabel(ctx);
         cmp(tmp, IM(active));
         beq(skip);
