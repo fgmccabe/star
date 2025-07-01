@@ -646,14 +646,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
-        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
-        codeLblPo skip = newLabel(ctx);
-        cmp(tmp, IM(active));
-        beq(skip);
-
-        bailOut(jit, fiberCode);
-
-        bind(skip);
         codeLblPo rtn = newLabel(ctx);
         adr(tmp, rtn);
         str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
@@ -673,16 +665,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // resume fiber
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
-        armReg tmp = findFreeReg(jit);
-
-        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
-        codeLblPo skip = newLabel(ctx);
-        cmp(tmp, IM(suspended));
-        beq(skip);
-
-        bailOut(jit, fiberCode);
-
-        bind(skip);
         codeLblPo rtn = newLabel(ctx);
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
@@ -693,7 +675,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         br(X16);
         bind(rtn);
         pc++;
-        releaseReg(jit, tmp);
         releaseReg(jit, stk);
         releaseReg(jit, evt);
         continue;
@@ -703,22 +684,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Similar to suspend, except that we trash the suspending stack
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
-        armReg tmp = findFreeReg(jit);
-        ldrb(tmp, OF(stk, OffsetOf(StackRecord, state)));
-        codeLblPo skip = newLabel(ctx);
-        cmp(tmp, IM(active));
-        beq(skip);
-
-        bailOut(jit, fiberCode);
-
-        bind(skip);
         stashRegisters(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk), RG(evt));
         unstashRegisters(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         pc++;
-        releaseReg(jit, tmp);
         releaseReg(jit, evt);
         releaseReg(jit, stk);
         continue;
