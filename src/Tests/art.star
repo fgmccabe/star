@@ -50,8 +50,8 @@ test.art{
     1.0).
 
   float_eqq:eqq[float].
-  float_eqq = (((X,Y)=>_flt_eq(X,Y))).
-  
+  float_eqq = (((X,Y) => _flt_lt(_flt_abs(_flt_minus(X,Y)),1.0e-7))).
+
   ff:all x ~~ (F:four[x]),(Q:eqq[x]) |:(x)=>x.
   ff(X) where eq(Q)(X,zer(F)) =>unum(F).
   ff(N) => times(F)(N,ff(minus(F)(N,unum(F)))).
@@ -74,7 +74,8 @@ test.art{
       Q=float_eqq
       } in ff(5.0));
     assert fi(5)==120;
-    assert ft(5.0)==120.0;
+    show ft(5.0)-120.0;
+    assert (float_eqq.0)(ft(5.0),120.0);
     valis ()
   }
 }

@@ -62,10 +62,10 @@ static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, log
 }
 
 logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
-  double ix1 = floatVal(t1);
-  double ix2 = floatVal(t2);
+  double dx1 = floatVal(t1);
+  double dx2 = floatVal(t2);
 
-  if (nearlyEqual(ix1, ix2, EPSILON))
+  if (dx1==dx2)
     return True;
   else
     return False;
@@ -73,20 +73,4 @@ logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
 
 integer fltHash(specialClassPo cl, termPo o) {
   return floatHash(floatVal(o));
-}
-
-logical nearlyEqual(double dx1, double dx2, double eps) {
-  if (dx1 == dx2)
-    return True;
-  else {
-    double abs1 = fabs(dx1);
-    double abs2 = fabs(dx2);
-    double diff = fabs(abs1 - abs2);
-    if (dx1 == 0 || dx2 == 0 || diff < MIN_NORMAL) {
-      if (diff < (eps * MIN_NORMAL))
-        return True;
-    } else if (diff / (abs1 + abs2) < eps)
-      return True;
-  }
-  return False;
 }
