@@ -42,7 +42,6 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
       extra++;
     } while (*p != '\0');
 
-
     /* We didn't find any delimiters */
     if (extra == 0)
       return;
@@ -84,7 +83,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 
     if (uniIsLit(opt, "--"))
       break;
-    else if (uniIsLitPrefix(opt, "-") && uniStrLen(opt) > 1) {
+    else if ((uniIsLitPrefix(opt, "-") || uniIsLitPrefix(opt, "+")) && uniStrLen(opt) > 1) {
+      logical enable = uniIsLit(opt, "-");
       char shortOpt = opt[1];
       for (int j = 0; j < optionCount; j++) {
         if (options[j].shortName == shortOpt) {
@@ -92,7 +92,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             case hasArgument: {
               if (uniStrLen(opt) == 2) {
                 if (argx < argc - 1) {
-                  if (options[j].setter(argv[++argx], True) != Ok)
+                  if (options[j].setter(argv[++argx], enable) != Ok)
                     goto failOptions;
                   else {
                     processedOptions[j] = True;
@@ -101,7 +101,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 } else
                   goto failOptions;
               } else {
-                if (options[j].setter(opt + 2, True) != Ok)
+                if (options[j].setter(opt + 2, enable) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -111,7 +111,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
             case noArgument: {
               if (uniStrLen(opt) == 2) {
-                if (options[j].setter(NULL, True) != Ok)
+                if (options[j].setter(NULL, enable) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -149,7 +149,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
       goto failOptions;
     } else
       break;
-    optionLoop:;
+  optionLoop:;
   }
 
   // Process environment variable alternatives
@@ -185,7 +185,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 
   return argx;
 
-  failOptions:
+failOptions:
   showUsage(argv[0], copyRight, options, optionCount);
   return -1;
 }
@@ -230,7 +230,7 @@ integer parseSize(char *text) {
       case 'G':
         scale = 1L << 30;
         break;
-      default:;
+      default: ;
     }
   }
   return parseInt(text, (integer) (p - text)) * scale;
