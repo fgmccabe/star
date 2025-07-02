@@ -1134,7 +1134,6 @@ static retCode swapIndex(integer i, integer j, void *cl) {
 
 void dumpStats() {
   dumpEscapes(debugOutChnnl);
-  showMtdCounts(debugOutChnnl);
   dumpStackStats(debugOutChnnl);
   dumpGcStats(debugOutChnnl);
 }

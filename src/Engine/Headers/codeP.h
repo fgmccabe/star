@@ -21,7 +21,6 @@ typedef struct instruction_ {
 typedef struct method_ {
   ClassRecord clss;   // == specialClass
   CodeBlock jit;      // Jit'ed code
-  integer entryCount;
   labelPo lbl;        // The label of this code
   int32 lclcnt;       // How many locals in the environment
   int32 stackDelta;   // How much space to allocate for the stack
@@ -45,8 +44,6 @@ static inline int32 argCount(methodPo mtd) {
   return lblArity(mtd->lbl);
 }
 
-static inline void incEntryCount(methodPo mtd) { mtd->entryCount++; }
-
 static inline logical hasJit(methodPo mtd) {
   assert(mtd != Null);
   return mtd->jit.code != Null;
@@ -69,6 +66,4 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       insPo instructions, termPo sigTerm, int32 lcls);
 
 void markMethod(methodPo mtd, gcSupportPo G);
-
-void showMtdCounts(ioPo out);
 #endif
