@@ -89,9 +89,12 @@ void stashRegisters(jitCompPo jit);
 
 void unstashRegisters(jitCompPo jit);
 
-void loadLocal(jitCompPo jit, armReg src, int32 lclNo);
+void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
+void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
 
-void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
+static void loadLocal(jitCompPo jit, armReg src, int32 lclNo);
+static void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
+static void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 
@@ -148,19 +151,6 @@ static armReg topStkOp(jitCompPo jit) {
 static void pushStkOp(jitCompPo jit, armReg src) {
   assemCtxPo ctx = assemCtx(jit);
   str(src, PRX(SSP, -pointerSize));
-}
-
-static armReg loadConstant(jitCompPo jit, int32 key, armReg tgt) {
-  assemCtxPo ctx = assemCtx(jit);
-  termPo lit = getConstant(key);
-
-  if (isSmall(lit))
-    mov(tgt, IM((integer) lit));
-  else {
-    ldr(tgt, OF(CO, key * pointerSize));
-  }
-
-  return tgt;
 }
 
 static void pshFrame(jitCompPo jit, assemCtxPo ctx, armReg mtdRg) {
@@ -729,7 +719,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case LdC: {
         // load literal from constant pool
         int32 key = code[pc].fst;
-        armReg cn = loadConstant(jit, key, findFreeReg(jit));
+        armReg cn = findFreeReg(jit);
+
+        loadConstant(jit, key, cn);
 
         pushStkOp(jit, cn);
         releaseReg(jit, cn);
@@ -1046,7 +1038,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Nth: {
         // T --> el, pick up the nth element
         armReg vl = popStkOp(jit, findFreeReg(jit));
-        ldr(vl, OF(vl, (code[pc].fst + 1) * pointerSize));
+        loadOffset(jit,vl,vl,code[pc].fst+1);
         pushStkOp(jit, vl);
         releaseReg(jit, vl);
         pc++;
@@ -1661,6 +1653,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg a1 = popStkOp(jit, findFreeReg(jit));
         armReg a2 = popStkOp(jit, findFreeReg(jit));
 
+        fmov(FP(F0), RG(a1));
+        fmov(FP(F1), RG(a2));
+
+        fcmp(F0, F1);
         loadConstant(jit, falseIndex, a1);
         loadConstant(jit, trueIndex, a2);
         csel(a1, a1, a2, NE);
@@ -2046,8 +2042,8 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
   stashRegisters(jit);
   retCode ret =
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta),
-                    IM(codeArity(mtd)));
+    callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta),
+                  IM(codeArity(mtd)));
   unstashRegisters(jit);
 
   bind(okLbl);
@@ -2071,25 +2067,43 @@ void unstashRegisters(jitCompPo jit) {
 }
 
 void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
-  assemCtxPo ctx = assemCtx(jit);
-  int32 offset = lclNo * pointerSize;
-  if (is9bit(offset))
-    ldur(tgt, AG, offset);
-  else {
-    mov(tgt, IM(lclNo));
-    ldr(tgt, EX2(AG,tgt,U_XTX,3));
-  }
+  loadOffset(jit, tgt,AG, lclNo);
 }
 
 void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
+  storeOffset(jit, src,AG, lclNo);
+}
+
+static void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
+  assemCtxPo ctx = assemCtx(jit);
+  termPo lit = getConstant(key);
+
+  if (isSmall(lit))
+    mov(tgt, IM((integer) lit));
+  else
+    loadOffset(jit, tgt,CO, key);
+}
+
+void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
+  assemCtxPo ctx = assemCtx(jit);
+  int32 offset = ix * pointerSize;
+  if (is9bit(offset))
+    ldur(tgt, base, offset);
+  else {
+    mov(tgt, IM(ix));
+    ldr(tgt, EX2(base,tgt,U_XTX,3));
+  }
+}
+
+void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo) {
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = lclNo * pointerSize;
   if (is9bit(offset))
-    stur(src, AG, offset);
+    stur(src, base, offset);
   else {
     armReg tmp = findFreeReg(jit);
     mov(tmp, IM(lclNo));
-    str(src, EX2(AG,tmp,U_XTX,3));
+    str(src, EX2(base,tmp,U_XTX,3));
     releaseReg(jit, tmp);
   }
 }
