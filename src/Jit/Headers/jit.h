@@ -26,6 +26,5 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd);
 #ifdef TRACEJIT
 extern tracingLevel traceJit;
 #endif
-extern integer jitThreshold;
 extern logical jitOnLoad;
 #endif //STAR_JIT_H

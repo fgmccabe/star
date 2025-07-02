@@ -256,8 +256,6 @@ ReturnStatus run(enginePo P) {
         for (int32 ix = 0; ix < height; ix++)
           push(voidEnum);
 
-        incEntryCount(PROG); // Increment number of times program called
-
         PC++;
         continue;
       };

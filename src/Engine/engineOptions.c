@@ -21,8 +21,8 @@
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
 
-PackageRec mainPkge = {.packageName="star.bboot", .version="*"};
-char mainEntry[MAX_SYMB_LEN] = "star.bboot#__boot";  // entry point
+PackageRec mainPkge = {.packageName = "star.bboot", .version = "*"};
+char mainEntry[MAX_SYMB_LEN] = "star.bboot#__boot"; // entry point
 static logical bootSet = False;
 
 static retCode displayVersion(char *option, logical enable) {
@@ -47,19 +47,19 @@ static retCode debugOption(char *option, logical enable) {
 
   while (*c) {
     switch (*c++) {
-      case 'd':    /* single step instruction tracing */
+      case 'd': /* single step instruction tracing */
         insDebugging = True;
         tracing = True;
         interactive = True;
         continue;
 
-      case 'D':    /*  instruction tracing */
+      case 'D': /*  instruction tracing */
         insDebugging = True;
         tracing = True;
         interactive = False;
         continue;
 
-      case 'u':    /*  debug the debugger */
+      case 'u': /*  debug the debugger */
 #ifdef TRACE_DBG
         debugDebugging = True;
         continue;
@@ -68,46 +68,47 @@ static retCode debugOption(char *option, logical enable) {
         return Error;
 #endif
 
-      case 'v':    /* turn on verify tracing */
+      case 'v': /* turn on verify tracing */
         if (traceVerify < detailedTracing)
           traceVerify++;
         logMsg(logFile, "Verification tracing enabled");
         continue;
 
-      case 'a':    /* trace memory allocations  */
+      case 'a': /* trace memory allocations  */
 #ifdef TRACEMEM
         traceAllocs = True;
 
         logMsg(logFile, "Memory allocation tracing enabled");
         continue;
 #else
-        logMsg(logFile,"memory tracing not enabled");
-              return -1;
+        logMsg(logFile, "memory tracing not enabled");
+        return -1;
 #endif
 
-      case 'm': {    /* trace memory activity  */
+      case 'm': {
+        /* trace memory activity  */
 #ifdef TRACEMEM
         if (traceMemory < detailedTracing)
           traceMemory++;
         logMsg(logFile, "GC tracing enabled");
         continue;
 #else
-        logMsg(logFile,"memory tracing not enabled");
-  return -1;
+        logMsg(logFile, "memory tracing not enabled");
+        return -1;
 #endif
       }
 
-      case 'H':    /* validate heap after allocations  */
+      case 'H': /* validate heap after allocations  */
 #ifdef TRACEMEM
         validateMemory = True;
         logMsg(logFile, "Heap validation enabled");
         continue;
 #else
-        logMsg(logFile,"memory validation not enabled");
+        logMsg(logFile, "memory validation not enabled");
         return -1;
 #endif
 
-      case 'S':    /* trace stack operations  */
+      case 'S': /* trace stack operations  */
 #ifdef TRACESTACK
         if (traceStack < detailedTracing)
           traceStack++;
@@ -116,11 +117,11 @@ static retCode debugOption(char *option, logical enable) {
         logMsg(logFile, "Stack tracing (level %d) enabled", traceStack);
         continue;
 #else
-        logMsg(logFile,"stack operation tracing not enabled");
+        logMsg(logFile, "stack operation tracing not enabled");
         return -1;
 #endif
 
-      case 'l':    /* trace synch locks */
+      case 'l': /* trace synch locks */
 #ifdef LOCKTRACE
         traceLock = True;
         continue;
@@ -129,14 +130,14 @@ static retCode debugOption(char *option, logical enable) {
         return Error;
 #endif
 
-      case 'G':    /* Internal symbolic tracing */
+      case 'G': /* Internal symbolic tracing */
         lineDebugging = True;
         interactive = False;
         tracing = True;
         logMsg(logFile, "Symbolic tracing enabled");
         continue;
 
-      case 'g':    /* Internal symbolic debugging */
+      case 'g': /* Internal symbolic debugging */
         lineDebugging = True;
         interactive = True;
         tracing = True;
@@ -159,7 +160,7 @@ static retCode debugOption(char *option, logical enable) {
         logMsg(logFile, "Statistics collection enabled");
         break;
 
-      case 'M':     /* Trace manifest mgt */
+      case 'M': /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
         if (traceManifest < detailedTracing)
           traceManifest++;
@@ -170,39 +171,39 @@ static retCode debugOption(char *option, logical enable) {
 #endif
         continue;
 
-      case 'P':    /* trace package operations  */
+      case 'P': /* trace package operations  */
 #ifdef TRACEPKG
         if (tracePkg < detailedTracing)
           tracePkg++;
         logMsg(logFile, "Package tracing enabled\n");
         continue;
 #else
-        logMsg(logFile,"package tracing not enabled");
+        logMsg(logFile, "package tracing not enabled");
         return -1;
 #endif
 
-      case 'Q':    /* trace decoding operations  */
+      case 'Q': /* trace decoding operations  */
 #ifdef TRACEDECODE
         if (traceDecode < detailedTracing)
           traceDecode++;
         logMsg(logFile, "Decoding tracing enabled\n");
         continue;
 #else
-        logMsg(logFile,"decode tracing not enabled");
+        logMsg(logFile, "decode tracing not enabled");
         return -1;
 #endif
 
-      case 'B':    /* trace stack memory allocations operations  */
+      case 'B': /* trace stack memory allocations operations  */
 #ifdef TRACE_BUDDY_MEMORY
         traceBuddyMemory = True;
         logMsg(logFile, "Buddy memory allocator tracing enabled\n");
         continue;
 #else
-        logMsg(logFile,"stack memory tracing not enabled");
+        logMsg(logFile, "stack memory tracing not enabled");
         return -1;
 #endif
 
-      case 'F':   // Show file name instead of package
+      case 'F': // Show file name instead of package
         showPkgFile = True;
         logMsg(logFile, "Show file names enabled\n");
         continue;
@@ -212,7 +213,7 @@ static retCode debugOption(char *option, logical enable) {
         logMsg(logFile, "Show colors %s\n", (showColors ? "enabled" : "disabled"));
         continue;
 
-      default:;
+      default: ;
     }
   }
 
@@ -221,41 +222,41 @@ static retCode debugOption(char *option, logical enable) {
 
 static retCode debugOptHelp(ioPo out, char opt, char *usage) {
   return outMsg(out, "    -d|--debug <"
-                     "d|D|"
-                     "v|"
-                     #ifdef TRACEMEM
+                "d|D|"
+                "v|"
+#ifdef TRACEMEM
                      "m|H|"
-                     #endif
-                     #ifdef LOCKTRACE
+#endif
+#ifdef LOCKTRACE
                      "l|"
-                     #endif
-                     "G|g|"
-                     #ifdef TRACESTACK
+#endif
+                "G|g|"
+#ifdef TRACESTACK
                      "O|"
-                     #endif
-                     #ifdef TRACEJIT
+#endif
+#ifdef TRACEJIT
                      "j|"
-                     #endif
-                     #ifdef TRACESTATS
+#endif
+#ifdef TRACESTATS
                      "s|"
-                     #endif
-                     #ifdef TRACEMANIFEST
+#endif
+#ifdef TRACEMANIFEST
                      "M|"
-                     #endif
-                     #ifdef TRACECAPABILITY
+#endif
+#ifdef TRACECAPABILITY
                      "C|"
-                     #endif
-                     #ifdef TRACEDECODE
+#endif
+#ifdef TRACEDECODE
                      "Q|"
-                     #endif
-                     #ifdef TRACEPKG
+#endif
+#ifdef TRACEPKG
                      "P|"
-                     #endif
-                     #ifdef TRACE_BUDDY_MEMORY
+#endif
+#ifdef TRACE_BUDDY_MEMORY
                      "B|"
-                     #endif
-                     "F"
-                     ">\n%_");
+#endif
+                "F"
+                ">\n%_");
 }
 
 static retCode setLogFile(char *option, logical enable) {
@@ -268,8 +269,8 @@ static retCode setRepoDir(char *option, logical enable) {
 }
 
 static retCode symbolDebug(char *option, logical enable) {
-  lineDebugging = True;  /* turn on symbolic insDebugging */
-  interactive = True;       // Initially its also interactive
+  lineDebugging = True; /* turn on symbolic insDebugging */
+  interactive = True; // Initially its also interactive
   return Ok;
 }
 
@@ -278,7 +279,7 @@ static retCode setDebuggerPort(char *option, logical enable) {
   if (debuggerPort <= 0)
     return Error;
   else {
-    lineDebugging = True;   /* set up for remote symbolic insDebugging */
+    lineDebugging = True; /* set up for remote symbolic insDebugging */
     interactive = True;
     showPkgFile = True;
     showColors = False;
@@ -308,10 +309,8 @@ static retCode setPkgMain(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setJitThreshold(char *option, logical enable) {
-  jitThreshold = parseInt(option, uniStrLen(option));
-  if (jitThreshold == 0)
-    jitOnLoad = True;
+static retCode setUseJit(char *option, logical enable) {
+  jitOnLoad = enable;
   return Ok;
 }
 
@@ -394,26 +393,26 @@ static retCode setEnableTimers(char *option, logical enable) {
 }
 
 Option options[] = {
-  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,        "-d|--debug <flags>", debugOptHelp},
-  {'p', "print-depth",   hasArgument, STAR_DBG_OPTS,      setDisplayDepth,    "-p|--print-depth <depth>"},
-  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,        "-g|--symbol-debug"},
-  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,    "-G|--debugger-port"},
-  {'v', "version",       noArgument,  Null,               displayVersion,     "-v|--version"},
-  {'b', "main-pkg",      hasArgument, STAR_BOOT,          setPkgMain,         "-b|--main-pkg <pkg>"},
-  {'j', "threshold",     hasArgument, STAR_JIT_THRESHOLD, setJitThreshold,    "-j|--threshold <count>"},
-  {'m', "main",          hasArgument, STAR_MAIN,          setBootEntry,       "-m|--main <entry>"},
-  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,         "-L|--logFile <path>"},
-  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,         "-r|--repository <path>"},
-  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,              "-w|--set-wd <dir>"},
-  {'W', "set-root-cap",  hasArgument, STAR_ROOT_WD,       setRootCapability,  "-W|--set-root-cap <dir>"},
-  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,          "-V|--toggle code verify"},
-  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,        "-h|--heap <size>"},
-  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,     "-H|--max-heap <size>"},
-  {'s', "min-stack",     hasArgument, STAR_MIN_STACK,     setMinStackSize,    "-s|--min-stack <size>"},
-  {'S', "dflt-stack",    hasArgument, STAR_DFLT_STACK,    setDefaultSize,     "-S|--default-stack <size>"},
-  {'R', "stack-region",  hasArgument, STAR_STACK_REGION,  setStackRegionSize, "-R|--stack-region <size>"},
-  {'l', "max-labels",    hasArgument, STAR_MAX_LABELS,    setMaxLabels,       "-l|--max-labels <size>"},
-  {'t', "enable-timers", noArgument,  Null,               setEnableTimers,    "-t|--enable-timers"},
+  {'d', "debug", hasArgument, STAR_DBG_OPTS, debugOption, "-d|--debug <flags>", debugOptHelp},
+  {'p', "print-depth", hasArgument, STAR_DBG_OPTS, setDisplayDepth, "-p|--print-depth <depth>"},
+  {'g', "symbol-debug", noArgument, SYMBOL_DEBUG, symbolDebug, "-g|--symbol-debug"},
+  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, "-G|--debugger-port"},
+  {'v', "version", noArgument, Null, displayVersion, "-v|--version"},
+  {'b', "main-pkg", hasArgument, STAR_BOOT, setPkgMain, "-b|--main-pkg <pkg>"},
+  {'j', "jit", noArgument, STAR_RUN_MODE, setUseJit, "-j|--jit"},
+  {'m', "main", hasArgument, STAR_MAIN, setBootEntry, "-m|--main <entry>"},
+  {'L', "logFile", hasArgument, STAR_LOGFILE, setLogFile, "-L|--logFile <path>"},
+  {'r', "repository", hasArgument, STAR_REPO, setRepoDir, "-r|--repository <path>"},
+  {'w', "set-wd", hasArgument, STAR_WD, setWD, "-w|--set-wd <dir>"},
+  {'W', "set-root-cap", hasArgument, STAR_ROOT_WD, setRootCapability, "-W|--set-root-cap <dir>"},
+  {'V', "verify", noArgument, STAR_VERIFY, setVerify, "-V|--toggle code verify"},
+  {'h', "heap", hasArgument, STAR_INIT_HEAP, setHeapSize, "-h|--heap <size>"},
+  {'H', "max-heap", hasArgument, STAR_MAX_HEAP, setMaxHeapSize, "-H|--max-heap <size>"},
+  {'s', "min-stack", hasArgument, STAR_MIN_STACK, setMinStackSize, "-s|--min-stack <size>"},
+  {'S', "dflt-stack", hasArgument, STAR_DFLT_STACK, setDefaultSize, "-S|--default-stack <size>"},
+  {'R', "stack-region", hasArgument, STAR_STACK_REGION, setStackRegionSize, "-R|--stack-region <size>"},
+  {'l', "max-labels", hasArgument, STAR_MAX_LABELS, setMaxLabels, "-l|--max-labels <size>"},
+  {'t', "enable-timers", noArgument, Null, setEnableTimers, "-t|--enable-timers"},
 };
 
 int getEngineOptions(int argc, char **argv) {
@@ -426,4 +425,3 @@ int getEngineOptions(int argc, char **argv) {
   } else
     return narg;
 }
-

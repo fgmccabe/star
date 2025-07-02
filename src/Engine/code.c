@@ -128,10 +128,6 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
   return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
 
-integer callCount(methodPo mtd) {
-  return mtd->entryCount;
-}
-
 logical hasJitCode(methodPo mtd) {
   return (logical) (mtd->jit.code != Null);
 }
@@ -204,7 +200,6 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   methodPo mtd = (methodPo) allocPool(mtdPool);
 
   mtd->clss.clss = methodClass;
-  mtd->entryCount = 0;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
   mtd->jit.code = Null;
@@ -233,52 +228,6 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
   }
 
   return lbl;
-}
-
-static retCode showMtdCount(labelPo lbl, void *cl) {
-  ioPo out = (ioPo) cl;
-  methodPo mtd = labelMtd(lbl);
-  if (mtd != Null && callCount(mtd) > 0) {
-    return outMsg(out, "%A %ld\n", lbl, callCount(mtd));
-  } else
-    return Ok;
-}
-
-static comparison cmpCount(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-  methodPo mi = labelMtd(&labelTable[indices[i]]);
-  methodPo mj = labelMtd(&labelTable[indices[j]]);
-
-  integer iCount = (mi == Null ? 0 : callCount(mi));
-  integer jCount = (mj == Null ? 0 : callCount(mj));
-
-  if (iCount < jCount)
-    return smaller;
-  else if (iCount == jCount)
-    return same;
-  else
-    return bigger;
-}
-
-static retCode swapIndex(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-  integer w = indices[i];
-  indices[i] = indices[j];
-  indices[j] = w;
-  return Ok;
-}
-
-void showMtdCounts(ioPo out) {
-  outMsg(out, "sorted method counts\n");
-
-  integer indices[lblTableTop];
-  for (int ix = 0; ix < lblTableTop; ix++)
-    indices[ix] = ix;
-
-  quick(0, lblTableTop - 1, cmpCount, swapIndex, (void *) indices);
-  for (integer ix = 0; ix < lblTableTop; ix++) {
-    showMtdCount(&labelTable[indices[ix]], out);
-  }
 }
 
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize) {

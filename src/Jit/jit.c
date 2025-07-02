@@ -6,7 +6,6 @@
 #include "codeP.h"
 #include "jitP.h"
 
-integer jitThreshold = 1000;
 logical jitOnLoad = False;
 
 #ifdef TRACEJIT
