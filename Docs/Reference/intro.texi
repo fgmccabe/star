@@ -9,12 +9,12 @@
 @Star{} is a high-level symbolic programming language oriented to
 general purpose programming.
 
-@Star{} is a @emph{functional-first} language -- in that functions
-and other programs are first class values. However, it is explicitly
-not a pure language: it has support for updatable variables and
-structures. However, its bias is definitely in favor of functional
-programming and in order to get the best value from programming in
-@Star{}, such side-effecting features should be used sparingly.
+@Star{} is a @emph{functional-first} language -- in that functions and
+other programs are first class values. While there is support for
+updatable variables and structures; the emphasis is on functional
+programming concepts and in order to get the best value from
+programming in @Star{}, such side-effecting features should be used
+sparingly.
 
 @Star{} is strongly, statically, typed. What this means is that
 all programs and all values have a single type that is determined by a
@@ -97,7 +97,7 @@ is a single action -- that is an assignment in this case.
 @item A sequence of several actions; each of which is separated by semi-colons. For example:
 @example
 @{
-  A .= 42;
+  A = 42;
   fooBar();
   valis A
 @}
