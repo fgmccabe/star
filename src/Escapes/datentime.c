@@ -512,7 +512,7 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
       case 'Z': {
         char znBuff[16];
         integer znLen = 0;
-        ret = rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, NumberOf(znBuff)), znBuff, &znLen, NumberOf(znBuff));
+        rdChars(src, &srcPos, srcLen, (int) clamp(1, fLen, NumberOf(znBuff)), znBuff, &znLen, NumberOf(znBuff));
         logical beforeGMT = False;
 
         integer znPos;
@@ -561,7 +561,7 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
   else
     time->tm_year = year - 1900;
 
-  time->tm_isdst = False;
+  time->tm_isdst = -1;
   time->tm_mon = month;
   time->tm_mday = day;
   time->tm_min = mins;

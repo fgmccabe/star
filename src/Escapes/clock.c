@@ -17,20 +17,23 @@
 
 long timezone_offset;    // offset in seconds from GMT
 
+static int time_offset()
+{
+  time_t gmt, rawtime = time(NULL);
+  struct tm *ptm;
+
+  struct tm gbuf;
+  ptm = gmtime_r(&rawtime, &gbuf);
+
+  // Request that mktime() lookup dst in timezone database
+  ptm->tm_isdst = -1;
+  gmt = mktime(ptm);
+
+  return (int)difftime(rawtime, gmt);
+}
+
 void initTime(void) {
-  struct timeval initial_time;    // Time when the engine started
-  time_t tloc;
-  struct tm *tmptr;
-
-  gettimeofday(&initial_time, NULL);
-
-  tloc = initial_time.tv_sec;
-  tmptr = localtime(&tloc);
-  tmptr->tm_hour = 0;
-  tmptr->tm_min = 0;
-  tmptr->tm_sec = 0;
-
-  timezone_offset = mktime(tmptr) - (tloc - tloc % SECSINDAY);
+  timezone_offset = time_offset();
 }
 
 /*
@@ -164,6 +167,7 @@ double get_date(void) {
     tmptr->tm_hour = 0;
     tmptr->tm_min = 0;
     tmptr->tm_sec = 0;
+    tmptr->tm_gmtoff = timezone_offset;
 
     return (double) mktime(tmptr);
   } else

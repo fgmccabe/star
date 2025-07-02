@@ -100,6 +100,10 @@ test.jt8{
     show add(1.0,-1.0);
     show mul(2.0,4.0);
 
+    assert add(1.0,2.0)==3.0;
+    assert add(1.0,-1.0)==0.0;
+    assert mul(2.0,4.0)==8.0;
+
     assert fabs(-4.0) == fabs(4.0);
     assert fabs(4.0) == 4.0;
 
@@ -188,7 +192,7 @@ test.jt8{
     assert not(not(56)) == 56;
 
     assert add(1.0,2.0)==3.0;
-    assert add(1.0,-1.0)==2.0;
+    assert add(1.0,-1.0)==0.0;
     assert mul(2.0,4.0)==8.0;
 
     assert fabs(-4.0) == fabs(4.0);
