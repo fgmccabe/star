@@ -225,9 +225,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         pc++;
         continue;
       }
-      case Nop: // No operation
-        pc++;
-        continue;
       case Abort: {
         // abort with message
         reserveReg(jit, X1);
@@ -585,28 +582,6 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 heightOffset = (lx + stkHeight) * pointerSize;
 
         sub(SSP, AG, IM(heightOffset));
-        pc++;
-        continue;
-      }
-      case Pick: {
-        // adjust stack to n depth, using top k elements
-        int32 height = code[pc].fst;
-        int32 keep = code[pc].alt;
-        armReg tgt = findFreeReg(jit);
-        armReg src = findFreeReg(jit);
-        armReg tmp = findFreeReg(jit);
-        sub(tgt, AG, IM(-(height - keep) * pointerSize));
-        add(src, STK, IM(keep * pointerSize));
-
-        for (int32 ix = 0; ix < keep; ix++) {
-          ldr(tmp, PRX(src, -pointerSize));
-          str(tmp, PRX(tgt, pointerSize));
-        }
-
-        mov(SSP, RG(tgt));
-        releaseReg(jit, tmp);
-        releaseReg(jit, src);
-        releaseReg(jit, tgt);
         pc++;
         continue;
       }

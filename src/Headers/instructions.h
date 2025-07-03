@@ -15,7 +15,6 @@
 */
 
 instruction(Halt, i32, nOp, 0, "Stop execution")
-instruction(Nop, nOp, nOp, 0, "No operation")
 
 instruction(Abort, lit, tOs, -1, "abort with message")
 
@@ -41,7 +40,6 @@ instruction(Drop, tOs, nOp, -1, "drop top of stack")
 instruction(Dup, tOs, nOp, 1, "duplicate top of stack")
 instruction(Rot, i32, nOp, 0, "Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
-instruction(Pick, i32, i32, 0, "adjust stack to n depth, using top k elements")
 
 instruction(Fiber, tOs, nOp, 0, "Create new fiber")
 instruction(Suspend, tOs, tOs, -1, "suspend fiber")

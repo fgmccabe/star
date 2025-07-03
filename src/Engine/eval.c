@@ -49,10 +49,6 @@ ReturnStatus run(enginePo P) {
         }
         return Normal;
       }
-      case Nop: {
-        PC++;
-        continue;
-      }
       case Abort: {
         termPo lc = getConstant(PC->fst);
         termPo msg = pop();
@@ -355,23 +351,6 @@ ReturnStatus run(enginePo P) {
         PC++;
         continue;
       }
-
-      case Pick: {
-        // Reset stack, keeping top elements
-        int32 depth = PC->fst;
-        int32 keep = PC->alt;
-
-        ptrPo src = &SP[keep];
-        ptrPo tgt = &SP[depth + keep];
-
-        for (int32 ix = 0; ix < keep; ix++) {
-          *--tgt = *--src;
-        }
-        SP = tgt;
-        PC++;
-        continue;
-      }
-
       case Rst: {
         int32 height = PC->fst;
         SP = &local(lclCount(PROG) + height);

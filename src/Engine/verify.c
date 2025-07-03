@@ -137,9 +137,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
           return Ok;
         }
       }
-      case Nop:
-        pc++;
-        break;
       case Abort: {
         int32 constant = code[pc].fst;
         if (!isDefinedConstant(constant))
@@ -367,21 +364,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         if (stackDepth < depth)
           return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
         stackDepth = depth;
-        pc++;
-        continue;
-      }
-      case Pick: {
-        int32 count = code[pc].fst;
-        int32 keep = code[pc].alt;
-
-        if (stackDepth < count || stackDepth < keep)
-          return verifyError(&ctx, ".%d: insufficient stack depth (%d) for stack keep %d of %d",
-                             pc, stackDepth, keep, count);
-
-        if (keep > count)
-          return verifyError(&ctx, ".%d: trying to keep more elements (%d) than depth (%d) ", pc, keep, count);
-
-        stackDepth = count;
         pc++;
         continue;
       }

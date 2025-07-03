@@ -342,7 +342,6 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         (*count)--;
         return ret;
       }
-      case Nop:
       case Abort: {
         return Ok;
       }
@@ -411,13 +410,6 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
       case Rst: {
         (*count)--;
         return decodeI32(in, &ins->fst);
-      }
-      case Pick: {
-        (*count) -= 2;
-        ret = decodeI32(in, &ins->fst);
-        if (ret == Ok)
-          ret = decodeI32(in, &ins->alt);
-        return ret;
       }
       case Fiber:
       case Resume:

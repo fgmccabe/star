@@ -50,6 +50,9 @@ test.idx0{
 
   main:()=>().
   main()=>valof{
+
+    show {1.0->"a",-1.0->"b"};
+    
     show t9;
     show a1;
     show a2;

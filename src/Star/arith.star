@@ -119,7 +119,7 @@ star.arith{
 
     absX = _flt_abs(X);
     absY = _flt_abs(Y);
-    diff = _flt_abs(absX-absY);
+    diff = _flt_abs(X-Y);
 
     if _flt_lt(diff,_flt_times(epsilon,_flt_plus(absX,absY))) then
       valis .true
