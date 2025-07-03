@@ -6,7 +6,7 @@
 #include "codeP.h"
 #include "jitP.h"
 
-logical jitOnLoad = False;
+logical jitOnLoad = True;
 
 #ifdef TRACEJIT
 tracingLevel traceJit = noTracing;

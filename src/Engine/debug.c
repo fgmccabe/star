@@ -1,4 +1,4 @@
-// Incremental instruction debugger
+// Built-in debugger
 
 #include "engineP.h"
 #include <stdlib.h>
@@ -28,32 +28,31 @@ static void showTos(ioPo out, stackPo stk, integer offset);
 static retCode showLcl(ioPo out, ptrPo args, int32 vr);
 static retCode showArg(ioPo out, ptrPo args, integer arg);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
-static void stackSummary(ioPo out, stackPo stk);
 
 static sockPo debuggerListener = Null;
 
 static ioPo debugInChnnl = Null;
 static ioPo debugOutChnnl = Null;
 
-logical insDebugging = False;     // instruction tracing option
+logical insDebugging = False; // instruction tracing option
 logical lineDebugging = False;
 logical debugDebugging = False;
-logical tracing = False;          /* tracing option */
-integer debuggerPort = 0;                // Debug port to establish listener on
-logical showPkgFile = False;      // True if we show file names instead of package names
-logical showColors = True;        // True if we want to show colored output
+logical tracing = False; /* tracing option */
+integer debuggerPort = 0; // Debug port to establish listener on
+logical showPkgFile = False; // True if we show file names instead of package names
+logical showColors = True; // True if we want to show colored output
 
-logical interactive = False;      /* interaction instruction tracing */
+logical interactive = False; /* interaction instruction tracing */
 logical stackVerify = False;
 
 /* Handle suspension reasonably ... */
 static void sig_suspend(int sig) {
   if (!interactive) {
-    reset_stdin();    /* Reset the standard input channel */
-    raise(SIGSTOP);             /* Actually suspend */
-    setup_stdin();              /* Put it back */
+    reset_stdin(); /* Reset the standard input channel */
+    raise(SIGSTOP); /* Actually suspend */
+    setup_stdin(); /* Put it back */
   } else
-    raise(SIGSTOP);             /* Actually suspend */
+    raise(SIGSTOP); /* Actually suspend */
 }
 
 retCode setupDebugChannels() {
@@ -78,18 +77,7 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-ReturnStatus g__ins_debug(enginePo P) {
-  insDebugging = tracing = True;
-  P->waitFor = stepInto;
-  P->tracing = True;
-  P->traceCount = 0;
-  P->waterMark = P->stk->fp;
-
-  pshVal(P, unitEnum);
-  return Normal;
-}
-
-static integer cmdCount(char *cmdLine, integer deflt) {
+static integer cmdCount(const char *cmdLine, integer deflt) {
   while (isSpaceChar((codePoint) *cmdLine))
     cmdLine++;
   if (uniStrLen(cmdLine) == 0)
@@ -97,9 +85,6 @@ static integer cmdCount(char *cmdLine, integer deflt) {
   else
     return parseInt(cmdLine, uniStrLen(cmdLine));
 }
-
-static enginePo focus = NULL;
-static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
 __attribute__((unused)) void dC(termPo w) {
   outMsg(logFile, "%,*T\n", displayDepth, w);
@@ -124,8 +109,7 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
 // Figuring out if we should stop is surprisingly complicated
 static logical shouldWeStop(enginePo p, OpCode op) {
   stackPo stk = p->stk;
-  if (focus == NULL || focus == p) {
-    framePo f = currFrame(stk);
+  framePo f = currFrame(stk);
 #ifdef TRACE_DBG
     if (debugDebugging) {
       outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, displayDepth=%d, ins: ",
@@ -134,38 +118,36 @@ static logical shouldWeStop(enginePo p, OpCode op) {
       outMsg(logFile, "\n%_");
     }
 #endif
-    switch (p->waitFor) {
-      case stepInto:
+  switch (p->waitFor) {
+    case stepInto:
+      if (p->traceCount > 0)
+        p->traceCount--;
+      return (logical) (p->traceCount == 0);
+
+    case stepOver:
+    case stepOut: {
+      if (p->waterMark == f) {
         if (p->traceCount > 0)
           p->traceCount--;
-        return (logical) (p->traceCount == 0);
-
-      case stepOver:
-      case stepOut: {
-        if (p->waterMark == f) {
-          if (p->traceCount > 0)
-            p->traceCount--;
-          if (p->traceCount == 0) {
-            p->waterMark = Null;
-            return True;
-          } else
-            return False;
+        if (p->traceCount == 0) {
+          p->waterMark = Null;
+          return True;
         } else
           return False;
-      }
-      case nextBreak: {
-        if (p->waterMark == Null && op == Entry && breakPointSet(mtdLabel(stk->prog))) {
-          p->waitFor = stepInto;
-          p->tracing = True;
-          return True;
-        }
-        return False;
-      }
-      default:
+      } else
         return False;
     }
-  } else
-    return False;
+    case nextBreak: {
+      if (p->waterMark == Null && op == Entry && breakPointSet(mtdLabel(stk->prog))) {
+        p->waitFor = stepInto;
+        p->tracing = True;
+        return True;
+      }
+      return False;
+    }
+    default:
+      return False;
+  }
 }
 
 static char *defltLine(char *src, integer srcLen, integer *actLen) {
@@ -413,7 +395,6 @@ static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
   ptrPo sp = stk->sp;
 
   if (line[0] == '\n') {
-
     for (integer vx = 0; sp < limit; vx++, sp++) {
       outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
@@ -562,28 +543,29 @@ static DebugWaitFor dbgDropFrame(char *line, enginePo p, termPo lc, void *cl) {
 DebugWaitFor insDebug(enginePo p) {
   static DebugOptions opts = {
     .opts = {
-      {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
-      {.c = 'N', .cmd=dbgOver, .usage="N step over"},
-      {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
-      {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
-      {.c = 'c', .cmd=dbgCont, .usage="c continue"},
-      {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
-      {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
-      {.c = 'a', .cmd=dbgShowArg, .usage="a show argument variable"},
-      {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
-      {.c = 'C', .cmd=dbgShowCall, .usage="C show current call"},
-      {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
-      {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
-      {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
-      {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
-      {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
-      {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
-      {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
-      {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
-      {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
-      {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
-      {.c = 'v', .cmd=dbgVerifyProcess, .usage="v verify process"},
-      {.c = '&', .cmd=dbgDebug, .usage="& flip debug debugging"}},
+      {.c = 'n', .cmd = dbgSingle, .usage = "n step into"},
+      {.c = 'N', .cmd = dbgOver, .usage = "N step over"},
+      {.c = 'q', .cmd = dbgQuit, .usage = "q stop execution"},
+      {.c = 't', .cmd = dbgTrace, .usage = "t trace mode"},
+      {.c = 'c', .cmd = dbgCont, .usage = "c continue"},
+      {.c = 'u', .cmd = dbgUntilRet, .usage = "u <count> until next <count> returns"},
+      {.c = 'r', .cmd = dbgShowRegisters, .usage = "r show registers"},
+      {.c = 'a', .cmd = dbgShowArg, .usage = "a show argument variable"},
+      {.c = 'l', .cmd = dbgShowLocal, .usage = "l show local variable"},
+      {.c = 'C', .cmd = dbgShowCall, .usage = "C show current call"},
+      {.c = 's', .cmd = dbgShowStack, .usage = "s show stack"},
+      {.c = 'S', .cmd = dbgStackTrace, .usage = "S show entire stack"},
+      {.c = 'D', .cmd = dbgDropFrame, .usage = "D <count> drop stack frame(s)"},
+      {.c = 'g', .cmd = dbgShowGlobal, .usage = "g <var> show global var"},
+      {.c = 'i', .cmd = dbgShowCode, .usage = "i show instructions"},
+      {.c = 'd', .cmd = dbgSetDepth, .usage = "d <dpth> set display depth"},
+      {.c = '+', .cmd = dbgAddBreakPoint, .usage = "+ add break point"},
+      {.c = '-', .cmd = dbgClearBreakPoint, .usage = "- clear break point"},
+      {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
+      {.c = 'y', .cmd = dbgSymbolDebug, .usage = "y turn on symbolic mode"},
+      {.c = 'v', .cmd = dbgVerifyProcess, .usage = "v verify process"},
+      {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
+    },
     .count = 22,
     .deflt = Null
   };
@@ -631,7 +613,6 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
   termPo ln = (termPo) data;
 
   if (ln != Null) {
-
     if (isNormalPo(ln)) {
       normalPo line = C_NORMAL(ln);
       char pkgNm[MAX_SYMB_LEN];
@@ -848,11 +829,10 @@ DebugWaitFor ocallDebug(enginePo p, OpCode op, termPo lc, termPo pr) {
 
 DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
   return lnDebug(p, TOCall, lc, pr, showOCall);
-
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
-  return lnDebug(p, Entry, lc, (termPo)lbl, showEntry);
+  return lnDebug(p, Entry, lc, (termPo) lbl, showEntry);
 }
 
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
@@ -884,28 +864,30 @@ DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl) {
 }
 
 DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show) {
-  static DebugOptions opts = {.opts = {
-    {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
-    {.c = 'N', .cmd=dbgOver, .usage="N step over"},
-    {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
-    {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
-    {.c = 'c', .cmd=dbgCont, .usage="c continue"},
-    {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
-    {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
-    {.c = 'C', .cmd=dbgShowCall, .usage="C show current call"},
-    {.c = 's', .cmd=dbgShowStack, .usage="s show stack", .cl=(void *) False},
-    {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
-    {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
-    {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
-    {.c = 'a', .cmd=dbgShowArg, .usage="a show argument variable"},
-    {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
-    {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
-    {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
-    {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
-    {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
-    {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
-    {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
-    {.c = '&', .cmd=dbgDebug, .usage="& flip debug debugging"}},
+  static DebugOptions opts = {
+    .opts = {
+      {.c = 'n', .cmd = dbgSingle, .usage = "n step into"},
+      {.c = 'N', .cmd = dbgOver, .usage = "N step over"},
+      {.c = 'q', .cmd = dbgQuit, .usage = "q stop execution"},
+      {.c = 't', .cmd = dbgTrace, .usage = "t trace mode"},
+      {.c = 'c', .cmd = dbgCont, .usage = "c continue"},
+      {.c = 'u', .cmd = dbgUntilRet, .usage = "u <count> until next <count> returns"},
+      {.c = 'r', .cmd = dbgShowRegisters, .usage = "r show registers"},
+      {.c = 'C', .cmd = dbgShowCall, .usage = "C show current call"},
+      {.c = 's', .cmd = dbgShowStack, .usage = "s show stack", .cl = (void *) False},
+      {.c = 'S', .cmd = dbgStackTrace, .usage = "S show entire stack"},
+      {.c = 'D', .cmd = dbgDropFrame, .usage = "D <count> drop stack frame(s)"},
+      {.c = 'g', .cmd = dbgShowGlobal, .usage = "g <var> show global var"},
+      {.c = 'a', .cmd = dbgShowArg, .usage = "a show argument variable"},
+      {.c = 'l', .cmd = dbgShowLocal, .usage = "l show local variable"},
+      {.c = 'i', .cmd = dbgShowCode, .usage = "i show instructions"},
+      {.c = 'd', .cmd = dbgSetDepth, .usage = "d <dpth> set display depth"},
+      {.c = '+', .cmd = dbgAddBreakPoint, .usage = "+ add break point"},
+      {.c = '-', .cmd = dbgClearBreakPoint, .usage = "- clear break point"},
+      {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
+      {.c = 'y', .cmd = dbgInsDebug, .usage = "y turn on instruction mode"},
+      {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
+    },
     .count = 21,
     .deflt = Null
   };
@@ -1104,23 +1086,23 @@ void showRegisters(enginePo p, heapPo h) {
 static char *anonPrefix = "__";
 
 retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
-//  normalPo locals = mtd->locals;
-//  int64 numLocals = termArity(locals);
-//  integer pcOffset = codeOffset(mtd, pc);
-//
-//  for (int32 ix = 0; ix < numLocals; ix++) {
-//    normalPo vr = C_NORMAL(nthArg(locals, ix));
-//    integer from = integerVal(nthArg(vr, 1));
-//    integer to = integerVal(nthArg(vr, 2));
-//
-//    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
-//      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
-//
-//      if (uniIsLitPrefix(buffer, anonPrefix))
-//        uniCpy(buffer, bufLen, "l");
-//      return Ok;
-//    }
-//  }
+  //  normalPo locals = mtd->locals;
+  //  int64 numLocals = termArity(locals);
+  //  integer pcOffset = codeOffset(mtd, pc);
+  //
+  //  for (int32 ix = 0; ix < numLocals; ix++) {
+  //    normalPo vr = C_NORMAL(nthArg(locals, ix));
+  //    integer from = integerVal(nthArg(vr, 1));
+  //    integer to = integerVal(nthArg(vr, 2));
+  //
+  //    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
+  //      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
+  //
+  //      if (uniIsLitPrefix(buffer, anonPrefix))
+  //        uniCpy(buffer, bufLen, "l");
+  //      return Ok;
+  //    }
+  //  }
   return Fail;
 }
 

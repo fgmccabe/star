@@ -241,7 +241,6 @@ star.compiler.escapes{
     | "_thread_state" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("star.thread*thread")])),.nomnal("star.thread*threadState")))
     | "_waitfor" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("star.thread*thread")])),.tupleType([])),.nomnal("errorCode")))
     | "_shell" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.tpExp(.tpFun("cons",1),.nomnal("string")),.tpExp(.tpFun("cons",1),.tupleType([.nomnal("string"),.nomnal("string")]))])),.nomnal("integer")),.nomnal("errorCode")))
-    | "_ins_debug" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.tupleType([])))
     | "_stackTrace" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([])),.nomnal("string")))
     | "_gc" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("integer")])),.tupleType([])),.nomnal("errorCode")))
     | "_jit_compile" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("string"),.nomnal("integer")])),.tupleType([])),.nomnal("errorCode")))
@@ -485,7 +484,6 @@ star.compiler.escapes{
     | "_thread_state" => .true
     | "_waitfor" => .true
     | "_shell" => .true
-    | "_ins_debug" => .true
     | "_stackTrace" => .true
     | "_gc" => .true
     | "_jit_compile" => .true

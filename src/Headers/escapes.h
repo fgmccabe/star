@@ -330,7 +330,6 @@ escape(_waitfor, throws(thread, unit, ERR), "wait for other thread to terminate"
 
 escape(_shell, throws(strng lst(strng) lst(tpl(strng strng)), int, ERR), "Run a shell cmd")
 
-escape(_ins_debug, func(/**/, unit), "set instruction-level")
 escape(_stackTrace, func(/**/, strng), "Print a stack trace")
 escape(_gc,throws(int, unit, ERR), "Force invokation of gc")
 
