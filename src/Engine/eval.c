@@ -235,7 +235,7 @@ ReturnStatus run(enginePo P) {
         if (!stackRoom(stackDelta(PROG) + FrameCellCount)) {
           saveRegisters();
           integer Amnt = stackDelta(PROG) + FrameCellCount;
-          glueOnStack(P, False, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), codeArity(PROG));
+          glueOnStack(P, False, maximum(stackHwm(STK), (STK->sze * 3) / 2 + (Amnt)), mtdArity(PROG));
           restoreRegisters();
           if (!stackRoom(Amnt)) {
             logMsg(logFile, "cannot extend stack sufficiently");

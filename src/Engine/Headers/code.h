@@ -18,7 +18,7 @@ methodPo C_MTD(termPo t);
 
 integer stackDelta(methodPo mtd);
 
-int32 codeArity(methodPo mtd);
+int32 mtdArity(methodPo mtd);
 labelPo mtdLabel(methodPo mtd);
 
 int32 codeSize(methodPo mtd);
