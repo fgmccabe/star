@@ -83,8 +83,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 
     if (uniIsLit(opt, "--"))
       break;
-    else if ((uniIsLitPrefix(opt, "-") || uniIsLitPrefix(opt, "+")) && uniStrLen(opt) > 1) {
-      logical enable = uniIsLit(opt, "-");
+    else if ((uniIsLitPrefix(opt, "-") || uniIsLitPrefix(opt, "+") || uniIsLitPrefix(opt, "!")) && uniStrLen(opt) > 1) {
+      OptionAction action = (uniIsLitPrefix(opt, "-") ? enable : uniIsLitPrefix(opt, "+") ? disable : toggle);
       char shortOpt = opt[1];
       for (int j = 0; j < optionCount; j++) {
         if (options[j].shortName == shortOpt) {
@@ -92,7 +92,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             case hasArgument: {
               if (uniStrLen(opt) == 2) {
                 if (argx < argc - 1) {
-                  if (options[j].setter(argv[++argx], enable) != Ok)
+                  if (options[j].setter(argv[++argx], action) != Ok)
                     goto failOptions;
                   else {
                     processedOptions[j] = True;
@@ -101,7 +101,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 } else
                   goto failOptions;
               } else {
-                if (options[j].setter(opt + 2, enable) != Ok)
+                if (options[j].setter(opt + 2, action) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -111,7 +111,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
             case noArgument: {
               if (uniStrLen(opt) == 2) {
-                if (options[j].setter(NULL, enable) != Ok)
+                if (options[j].setter(NULL, action) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -125,7 +125,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
           switch (options[j].hasArg) {
             case hasArgument: {
               if (argx < argc - 1) {
-                if (options[j].setter(argv[++argx], True) != Ok)
+                if (options[j].setter(argv[++argx], enable) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -135,7 +135,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 goto failOptions;
             }
             case noArgument: {
-              if (options[j].setter(Null, True) != Ok)
+              if (options[j].setter(Null, action) != Ok)
                 goto failOptions;
               else {
                 processedOptions[j] = True;
@@ -159,11 +159,12 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
       if (var != Null) {
         switch (options[ix].hasArg) {
           case noArgument: {
-            logical
-              setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same ||
-                                  uniCmp(var, "yes") == same ||
-                                  uniCmp(var, "YES") == same);
-            if (options[ix].setter(var, setOpt) == Ok)
+            OptionAction
+              action = (uniIsLit(var, "true") || uniIsLit(var, "TRUE") ||
+                        uniIsLit(var, "yes") || uniIsLit(var, "YES"))
+                         ? enable
+                         : disable;
+            if (options[ix].setter(var, action) == Ok)
               processedOptions[ix] = True;
             else {
               outMsg(Stderr(), "bad environment variable: %s=%s\n", options[ix].envVar, var);
@@ -171,7 +172,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
             }
           }
           case hasArgument: {
-            if (options[ix].setter(var, True) == Ok)
+            if (options[ix].setter(var, enable) == Ok)
               processedOptions[ix] = True;
             else {
               outMsg(Stderr(), "bad environment variable: %s=%s\n", options[ix].envVar, var);
@@ -211,7 +212,7 @@ static logical isDigit(char ch) {
   return (logical) (ch >= '0' && ch <= '9');
 }
 
-integer parseSize(char *text) {
+integer parseQuantity(char *text) {
   char *p = text;
   integer scale = 1;
   while (*p != '\0' && isDigit(*p))

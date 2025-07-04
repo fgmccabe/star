@@ -25,7 +25,7 @@ PackageRec mainPkge = {.packageName = "star.bboot", .version = "*"};
 char mainEntry[MAX_SYMB_LEN] = "star.bboot#__boot"; // entry point
 static logical bootSet = False;
 
-static retCode displayVersion(char *option, logical enable) {
+static retCode displayVersion(char *option, OptionAction action) {
   return outMsg(logFile, "star - %s", version);
 }
 
@@ -42,7 +42,7 @@ char *defltCWD() {
   return CWD;
 }
 
-static retCode debugOption(char *option, logical enable) {
+static retCode debugOption(char *option, OptionAction action) {
   char *c = option;
 
   while (*c) {
@@ -259,22 +259,37 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
                 ">\n%_");
 }
 
-static retCode setLogFile(char *option, logical enable) {
+static retCode setLogFile(char *option, OptionAction action) {
   return initLogfile(option);
 }
 
-static retCode setRepoDir(char *option, logical enable) {
+static retCode setRepoDir(char *option, OptionAction action) {
   setManifestPath(option);
   return Ok;
 }
 
-static retCode symbolDebug(char *option, logical enable) {
-  lineDebugging = True; /* turn on symbolic insDebugging */
-  interactive = True; // Initially its also interactive
-  return Ok;
+static retCode symbolDebug(char *option, OptionAction action) {
+  switch (action) {
+    case enable: {
+      lineDebugging = True; /* turn on symbolic insDebugging */
+      interactive = True; // Initially its also interactive
+      return Ok;
+    }
+    case disable: {
+      lineDebugging = False; /* turn off symbolic insDebugging */
+      interactive = False;
+      return Ok;
+    }
+    case toggle: {
+      lineDebugging = !lineDebugging; /* flip symbolic insDebugging */
+      interactive = !interactive;
+      return Ok;
+    }
+  }
+  return Error;
 }
 
-static retCode setDebuggerPort(char *option, logical enable) {
+static retCode setDebuggerPort(char *option, OptionAction action) {
   debuggerPort = parseInt(option, uniStrLen(option));
   if (debuggerPort <= 0)
     return Error;
@@ -287,66 +302,76 @@ static retCode setDebuggerPort(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setBootEntry(char *option, logical enable) {
+static retCode setBootEntry(char *option, OptionAction action) {
   uniCpy(mainEntry, NumberOf(mainEntry), option);
   return Ok;
 }
 
-static retCode setWD(char *option, logical enable) {
+static retCode setWD(char *option, OptionAction action) {
   uniCpy(CWD, NumberOf(CWD), option);
   return Ok;
 }
 
-static retCode setRootCapability(char *option, logical enable) {
+static retCode setRootCapability(char *option, OptionAction action) {
   uniCpy(rootCap, NumberOf(rootCap), option);
   return Ok;
 }
 
-static retCode setPkgMain(char *option, logical enable) {
+static retCode setPkgMain(char *option, OptionAction action) {
   tryRet(parsePkg(option, uniStrLen(option), &mainPkge));
   strMsg(mainEntry, NumberOf(mainEntry), "%s@_main", mainPkge.packageName);
   bootSet = True;
   return Ok;
 }
 
-static retCode setUseJit(char *option, logical enable) {
-  jitOnLoad = enable;
+static retCode setUseJit(char *option, OptionAction action) {
+  switch (action) {
+    case enable:
+      jitOnLoad = True;
+      break;
+    case disable:
+      jitOnLoad = False;
+      break;
+    case toggle:
+      jitOnLoad = !jitOnLoad;
+      break;
+  }
   return Ok;
 }
 
-static retCode setVerify(char *option, logical enable) {
+static retCode setVerify(char *option, OptionAction action) {
   enableVerify = (logical) !enableVerify;
   return Ok;
 }
 
-static retCode setHeapSize(char *option, logical enable) {
-  initHeapSize = parseSize(option);
+static retCode setHeapSize(char *option, OptionAction action) {
+  initHeapSize = parseQuantity(option);
   if (initHeapSize == 0)
     return Error;
   return Ok;
 }
 
-static retCode setMaxHeapSize(char *option, logical enable) {
-  maxHeapSize = parseSize(option);
+static retCode setMaxHeapSize(char *option, OptionAction action) {
+  maxHeapSize = parseQuantity(option);
   if (maxHeapSize == 0)
     return Error;
   return Ok;
 }
 
-static retCode setMaxLabels(char *option, logical enable) {
+static retCode setMaxLabels(char *option, OptionAction action) {
   maxLabels = parseInt(option, uniStrLen(option));
   if (maxLabels == 0)
     return Error;
   return Ok;
 }
 
-static retCode setDisplayDepth(char *option, logical enable) {
-  displayDepth = parseSize(option);
+static retCode setDisplayDepth(char *option, OptionAction action) {
+  displayDepth = parseQuantity(option);
   return Ok;
 }
 
-static retCode setDefaultSize(char *option, logical enable) {
-  integer size = parseSize(option);
+static retCode setDefaultSize(char *option, OptionAction action) {
+  integer size = parseQuantity(option);
   if (size < minStackSize) {
     outMsg(logFile, "default size should be at least %d\n", minStackSize);
     return Error;
@@ -363,8 +388,8 @@ static retCode setDefaultSize(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setMinStackSize(char *option, logical enable) {
-  minStackSize = parseSize(option);
+static retCode setMinStackSize(char *option, OptionAction action) {
+  minStackSize = parseQuantity(option);
   if (minStackSize < MINMINSTACKSIZE) {
     outMsg(logFile, "minimum stack size should be at least %d\n", MINMINSTACKSIZE);
     minStackSize = MINMINSTACKSIZE;
@@ -376,8 +401,8 @@ static retCode setMinStackSize(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setStackRegionSize(char *option, logical enable) {
-  stackRegionSize = parseSize(option);
+static retCode setStackRegionSize(char *option, OptionAction action) {
+  stackRegionSize = parseQuantity(option);
   if (stackRegionSize != (1 << lg2(stackRegionSize))) {
     outMsg(logFile, "maximum stack region size should be a power of 2, suggesting %d", 1 << lg2(stackRegionSize));
     stackRegionSize = 1 << lg2(stackRegionSize);
@@ -385,8 +410,8 @@ static retCode setStackRegionSize(char *option, logical enable) {
   return Ok;
 }
 
-static retCode setEnableTimers(char *option, logical enable) {
-  enableTimers = enable;
+static retCode setEnableTimers(char *option, OptionAction action) {
+  enableTimers = True;
   atexit(reportTimers);
 
   return Ok;
@@ -420,7 +445,7 @@ int getEngineOptions(int argc, char **argv) {
   int narg = processOptions(copyright, argc, argv, options, NumberOf(options));
 
   if (narg > 0 && narg < argc && !bootSet) {
-    setPkgMain(argv[narg], True);
+    setPkgMain(argv[narg], enable);
     return narg + 1;
   } else
     return narg;

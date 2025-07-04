@@ -11,7 +11,13 @@
 
 void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv);
 
-typedef retCode (*setOption)(char *option,logical enable);
+typedef enum {
+  enable,
+  disable,
+  toggle
+} OptionAction;
+
+typedef retCode (*setOption)(char *option,OptionAction action);
 typedef retCode (*helpOption)(ioPo out,char shortName,char *usage);
 
 typedef enum {
@@ -33,6 +39,6 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 
 void showUsage(char *name, char *copyRight, Option options[], int optionCount);
 
-integer parseSize(char *text);
+integer parseQuantity(char *text);
 
 #endif //STAR_OPTIONS_H
