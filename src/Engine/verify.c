@@ -408,7 +408,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       }
       case LdA: {
         int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo >= codeArity(ctx.mtd))
+        if (argNo < 0 || argNo >= mtdArity(ctx.mtd))
           return verifyError(&ctx, ".%d Out of bounds argument number: %d", pc, argNo);
         stackDepth++;
         pc++;

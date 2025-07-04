@@ -186,7 +186,7 @@ packagePo markLoaded(char *package, char *version) {
     return createPkg(package, version);
 }
 
-int32 codeArity(methodPo mtd) {
+int32 mtdArity(methodPo mtd) {
   return lblArity(mtd->lbl);
 }
 
