@@ -63,9 +63,15 @@ typedef struct jit_compiler_ {
   methodPo mtd;
   registerMap freeRegs;
   assemCtxPo assemCtx;
-  codeLblPo entry;
+  int32 minOffset;
+  int32 maxOffset;
+  int32 stackDepth;
   char errMsg[MAXLINE];
 } JitCompilerContext;
+
+logical jitStackHasRoom(jitCompPo jit, int32 amnt);
+int32 jitStackDepth(jitCompPo jit);
+int32 jitTrueStackDepth(jitCompPo jit);
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
 
@@ -76,9 +82,6 @@ void clearCodeCtxMaps(assemCtxPo ctx);;
 jittedCode createCode(assemCtxPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
-
-void markEntry(jitCompPo jit, codeLblPo entry);
-codeLblPo jitEntry(jitCompPo jit);
 
 retCode reserveReg(jitCompPo jit, armReg rg);
 armReg findFreeReg(jitCompPo jit);

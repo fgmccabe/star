@@ -26,7 +26,6 @@
  * X11 = current process structure
  * X12 = Constants vector
  * AG = X13 = args pointer
- * SSP = X14 = star stack pointer
  * STK = X15 = current stack structure pointer
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
@@ -36,7 +35,6 @@
  * SP = X31 = system stack pointer
  */
 
-#define SSP (X14)
 #define AG  (X13)
 #define STK (X15)
 #define CO (X12)
@@ -51,13 +49,7 @@ static retCode stackCheck(jitCompPo jit, methodPo mtd);
 
 static const int32 pointerSize = sizeof(integer);
 
-static int32 argOffset(int32 argNo) {
-  return argNo * pointerSize;
-}
-
 static retCode bailOut(jitCompPo jit, ExitCode code);
-
-static retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity);
 
 static retCode getIntVal(jitCompPo jit, armReg rg);
 
@@ -67,32 +59,28 @@ static retCode getFltVal(jitCompPo jit, armReg rg);
 
 static retCode mkFltVal(jitCompPo jit, armReg rg);
 
-static int32 fpArgs = OffsetOf(StackFrame, args);
-static int32 fpProg = OffsetOf(StackFrame, prog);
-static int32 fpLink = OffsetOf(StackFrame, link);
-
 static retCode jitError(jitCompPo jit, char *msg, ...);
 
-static jitBlockPo breakBlock(jitBlockPo block, int32 tgt);
+static jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt);
 
 static codeLblPo breakLabel(jitBlockPo block);
 
 static codeLblPo loopLabel(jitBlockPo block);
 
-retCode breakOutEq(jitBlockPo block, int32 tgt);
+retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 
-retCode breakOutNe(jitBlockPo block, int32 tgt);
+retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
 
-retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop);
+retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop);
 
-void stashRegisters(jitCompPo jit);
-
-void unstashRegisters(jitCompPo jit);
+void stash(jitCompPo jit);
+void stashRegisters(jitCompPo jit, int32 stackLevel);
+void unstash(jitCompPo jit);
 
 void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
 void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
 
-static void loadLocal(jitCompPo jit, armReg src, int32 lclNo);
+static void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo);
 static void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 static void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
@@ -101,6 +89,8 @@ static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = P->stk;
+  int32 arity = lblArity(mtdLabel(mtd));
+  ptrPo exitSP = stk->sp + arity - 1;
 
   ReturnStatus ret = Normal;
 
@@ -109,7 +99,6 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
     "stp x10,x11, [sp, #-16]!\n"
     "stp x12,x13, [sp, #-16]!\n"
     "mov x15, %[stk]\n"
-    "ldr x14, %[ssp]\n"
     "ldr x13, %[ag]\n"
     "mov x12, %[constants]\n"
     "mov x11, %[process]\n"
@@ -117,7 +106,6 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
     "ldr x29, %[fp]\n"
     "blr x16\n"
     "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
-    "str x14, [x15,#56]\n"
     "str x29, [x15,#64]\n"
     "ldp x12,x13, [sp], #16\n"
     "ldp x10,x11, [sp], #16\n"
@@ -125,41 +113,51 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
     "ldp x29,x30, [sp], #16\n"
     "str w0, %[ret]\n"
     : [ret] "=&m"(ret)
-    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [ssp] "m"(stk->sp),
+    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args),
     [constants] "r"(constAnts),[fp] "m"(stk->fp)
     : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
     "memory");
 
+  stk->sp = exitSP;
+
   return ret;
 }
 
-static armReg popStkOp(jitCompPo jit, armReg tgt) {
-  assemCtxPo ctx = assemCtx(jit);
+static void setStackDepth(jitCompPo jit, int32 depth) {
+  jit->stackDepth = depth;
+  check(jitStackHasRoom(jit,0), "Invalid jit stack depth");
+}
 
-  ldr(tgt, PSX(SSP, pointerSize));
+static armReg popStkOp(jitCompPo jit, armReg tgt) {
+  check(jitStackHasRoom(jit,1), "Insufficient stack depth for pop stack");
+  loadLocal(jit, tgt, -jitTrueStackDepth(jit));
+  jit->stackDepth--;
   return tgt;
 }
 
 static armReg topStkOp(jitCompPo jit) {
   armReg tgt = findFreeReg(jit);
-  assemCtxPo ctx = assemCtx(jit);
-  ldr(tgt, RG(SSP));
-
+  check(jitStackHasRoom(jit,1), "Invalid jit stack depth");
+  loadLocal(jit, tgt, -jitTrueStackDepth(jit));
   return tgt;
 }
 
 static void pushStkOp(jitCompPo jit, armReg src) {
-  assemCtxPo ctx = assemCtx(jit);
-  str(src, PRX(SSP, -pointerSize));
+  jit->stackDepth++;
+  storeLocal(jit, src, -jitTrueStackDepth(jit));
+}
+
+static void storeStack(jitCompPo jit, armReg src, int32 depth) {
+  storeLocal(jit, src, -(lclCount(jit->mtd) + depth));
 }
 
 static void pshFrame(jitCompPo jit, assemCtxPo ctx, armReg mtdRg) {
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
-  str(AG, OF(FP, fpArgs));
-  mov(AG, RG(SSP));
+  str(AG, OF(FP, OffsetOf(StackFrame, args)));
+  sub(AG, AG, IM(jitTrueStackDepth(jit)*pointerSize));
   armReg tmp = findFreeReg(jit);
   ldr(tmp, OF(STK, OffsetOf(StackRecord, prog)));
-  str(tmp, OF(FP, fpProg)); // We know what program we are executing
+  str(tmp, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
   str(mtdRg, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
   releaseReg(jit, tmp);
 }
@@ -168,7 +166,7 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
   armReg src = findFreeReg(jit);
   armReg tgt = findFreeReg(jit);
   armReg tmp = findFreeReg(jit); // Overwrite existing arguments and locals
-  add(src, SSP, IM(arity * pointerSize));
+  sub(src, AG, IM((jitTrueStackDepth(jit)-arity) * pointerSize));
   add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
   if (arity < 8) {
     for (int ix = 0; ix < arity; ix++) {
@@ -190,7 +188,6 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
   }
   // Update current frame
   str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-  mov(SSP, RG(tgt));
   mov(AG, RG(tgt));
 
   releaseReg(jit, tmp);
@@ -198,23 +195,22 @@ static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
   releaseReg(jit, tgt);
 }
 
-static retCode tesResult(jitBlockPo block, int32 tgt) {
+static retCode tesResult(jitBlockPo block, insPo code, int32 tgt) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo skip = newLabel(ctx);
   cmp(X0, IM(Normal));
   beq(skip);
-  retCode ret = breakOut(block, tgt, True);
+  retCode ret = breakOut(block, code, tgt, True);
 
   bind(skip);
   return ret;
 }
 
-static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
+static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
   retCode ret = Ok;
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
-  insPo code = block->code;
 
   for (int32 pc = from; ret == Ok && pc < endPc;) {
     switch (code[pc].op) {
@@ -231,7 +227,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         reserveReg(jit, X2);
         loadConstant(jit, code[pc].fst, X1);
         popStkOp(jit, X2);
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(X1), RG(X2));
         pc++;
         releaseReg(jit, X1);
@@ -241,7 +237,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Call: {
         // Call <prog>
         int32 key = code[pc].fst;
-
+        labelPo callee = C_LBL(getConstant(key));
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
@@ -259,12 +255,14 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         bind(runMtd);
         pshFrame(jit, ctx, X17);
         blr(X16);
+        jit->stackDepth -= lblArity(callee) - 1;
         pc++;
         continue;
       }
       case XCall: {
         // XCall <prog>
         int32 key = code[pc].fst;
+        labelPo callee = C_LBL(getConstant(key));
 
         // pick up the pointer to the method
         loadConstant(jit, key, X16);
@@ -286,13 +284,15 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
-        ret = tesResult(block, pc + block->code[pc].alt + 1);
+        jit->stackDepth -= lblArity(callee) - 1;
+        ret = tesResult(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
 
       case OCall: {
         // Call closure
+        int32 arity = code[pc].fst;
         popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
@@ -311,10 +311,12 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
+        jit->stackDepth -= arity - 1;
         pc++;
         continue;
       }
       case XOCall: {
+        int32 arity = code[pc].fst;
         popStkOp(jit, X16); // Pick up the closure
         ldr(X17, OF(X16, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
@@ -333,8 +335,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
+        jit->stackDepth -= arity - 1;
 
-        ret = tesResult(block, pc + block->code[pc].alt + 1);
+        ret = tesResult(block, code, pc + code[pc].alt + 1);
 
         pc++;
         continue;
@@ -398,9 +401,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
 
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
-        unstashRegisters(jit);
+        unstash(jit);
+        jit->stackDepth -= arity - 1;
         // X0 is the return code - which we ignore for normal escapes
         pc++;
         continue;
@@ -411,38 +415,29 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
 
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
-        unstashRegisters(jit);
-        ret = tesResult(block, pc + block->code[pc].alt + 1);
+        unstash(jit);
+        jit->stackDepth -= arity - 1;
+        ret = tesResult(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
       case Entry: {
         // locals definition
         int32 locals = code[pc].fst;
+        jit->stackDepth = 0;
         assert(locals >= 0);
 
-        str(LR, OF(FP, fpLink));
+        str(LR, OF(FP, OffsetOf(StackFrame, link)));
 
         tryRet(stackCheck(jit, jit->mtd));
 
         if (locals > 0) {
           armReg vd = findFreeReg(jit);
           loadConstant(jit, voidIndex, vd);
-          if (locals < 8) {
-            for (int32 ix = 0; ix < locals; ix++) {
-              pushStkOp(jit, vd);
-            }
-          } else {
-            // Build a loop
-            armReg cx = findFreeReg(jit);
-            mov(cx, IM(locals));
-            codeLblPo start = here();
-            pushStkOp(jit, vd);
-            subs(cx, cx, IM(1));
-            bne(start);
-            releaseReg(jit, cx);
+          for (int32 ix = 1; ix <= locals; ix++) {
+            storeLocal(jit, vd, -ix);
           }
           releaseReg(jit, vd);
         }
@@ -452,21 +447,20 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Ret: {
         // return
         armReg vl = popStkOp(jit, findFreeReg(jit));
+        // Put return value at top of args on stack
+        storeLocal(jit, vl, mtdArity(jit->mtd) - 1);
+        releaseReg(jit, vl);
 
         // Pick up the caller program
-        ldr(X16, OF(FP, fpProg));
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
-        // Adjust Star stack and args register
-        add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
+        // Adjust args register
         ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
         // Pick up return address
-        ldr(X16, OF(FP, fpLink));
+        ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
         // Drop frame
         sub(FP, FP, IM(sizeof(StackFrame)));
-        // Put return value on stack
-        pushStkOp(jit, vl);
-        releaseReg(jit, vl);
         mov(X0, IM(Normal));
         br(X16);
         pc++;
@@ -475,21 +469,20 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case XRet: {
         // exception return
         armReg vl = popStkOp(jit, findFreeReg(jit));
+        // Put exception value at top of args on stack
+        storeLocal(jit, vl, mtdArity(jit->mtd) - 1);
+        releaseReg(jit, vl);
 
         // Pick up the caller program
-        ldr(X16, OF(FP, fpProg));
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
-        // Adjust Star stack and args register
-        add(SSP, AG, IM(codeArity(jit->mtd) * pointerSize));
+        // Adjust args register
         ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
         // Pick up return address
-        ldr(X16, OF(FP, fpLink));
+        ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
         // Drop frame
         sub(FP, FP, IM(sizeof(StackFrame)));
-        // Put return value on stack
-        pushStkOp(jit, vl);
-        releaseReg(jit, vl);
         mov(X0, IM(Abnormal));
         br(X16);
         pc++;
@@ -504,46 +497,44 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
 
         JitBlock subBlock = {
           .jit = block->jit,
-          .code = code,
-          .valStk = block->valStk,
           .startPc = pc - 1,
           .breakLbl = brkLbl,
           .loopLbl = here(),
           .parent = block,
         };
 
-        ret = jitBlock(&subBlock, pc, pc + blockLen);
+        ret = jitBlock(&subBlock, code, pc, pc + blockLen);
 
         pc += blockLen;
         bind(brkLbl);
-        sub(SSP, AG, IM((lclCount(jit->mtd) + blockHeight) * pointerSize));
+        jit->stackDepth = blockHeight;
         continue;
       }
       case Break: {
         // leave block
-        ret = breakOut(block, pc + code[pc].alt + 1, False);
+        ret = breakOut(block, code, pc + code[pc].alt + 1, False);
         pc++;
         continue;
       }
       case Result: {
         // return value out of block
-        ret = breakOut(block, pc + code[pc].alt + 1, True);
+        ret = breakOut(block, code, pc + code[pc].alt + 1, True);
         pc++;
         continue;
       }
       case Loop: {
         // jump back to start of block
-        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo tgt = loopLabel(tgtBlock);
         assert(tgt != Null);
-        sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst) * pointerSize));
+        jit->stackDepth = code[tgtBlock->startPc].fst;
         b(tgt);
         pc++;
         continue;
       }
       case Drop: {
         // drop top of stack
-        add(SSP, SSP, IM(pointerSize));
+        jit->stackDepth--;
         pc++;
         continue;
       }
@@ -561,15 +552,13 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg swp = findFreeReg(jit);
         armReg tmp = findFreeReg(jit);
 
-        int32 offset = 0;
+        loadLocal(jit, swp, -jit->stackDepth);
 
-        ldr(swp, OF(SSP, offset));
-
-        for (int32 ix = 1; ix <= rotationHeight; ix++, offset += pointerSize) {
-          ldr(tmp, OF(SSP, offset + pointerSize));
-          str(tmp, OF(SSP, offset));
+        for (int32 ix = 0; ix < rotationHeight; ix++) {
+          loadLocal(jit, tmp, ix - jit->stackDepth + 1);
+          storeLocal(jit, tmp, ix - jit->stackDepth);
         }
-        str(swp, OF(SSP, offset));
+        storeLocal(jit, swp, rotationHeight - jit->stackDepth);
         releaseReg(jit, swp);
         releaseReg(jit, tmp);
         pc++;
@@ -577,11 +566,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       }
       case Rst: {
         // reset stack height to a fixed height
-        int32 stkHeight = code[pc].fst;
-        int32 lx = lclCount(jit->mtd);
-        int32 heightOffset = (lx + stkHeight) * pointerSize;
-
-        sub(SSP, AG, IM(heightOffset));
+        jit->stackDepth = code[pc].fst;
         pc++;
         continue;
       }
@@ -593,10 +578,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           ret = reserveReg(jit, X0);
           if (ret == Ok) {
             ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
-            stashRegisters(jit);
+            stash(jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(X0), IM(True), RG(X1));
             if (ret == Ok) {
-              unstashRegisters(jit);
+              unstash(jit);
               pushStkOp(jit, X0); // returned from newStack
               releaseReg(jit, X0);
               releaseReg(jit, X1);
@@ -608,16 +593,17 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         return jitError(jit, "could not reserve registers for FIber");
       }
       case Suspend: {
-        // suspend fiber
+        check(jitStackHasRoom(jit,2), "insufficent stack space for suspend");
+
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
         armReg tmp = findFreeReg(jit);
         codeLblPo rtn = newLabel(ctx);
         adr(tmp, rtn);
         str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk), RG(evt));
-        unstashRegisters(jit);
+        unstash(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         bind(rtn);
@@ -625,34 +611,37 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         releaseReg(jit, tmp);
         releaseReg(jit, evt);
         releaseReg(jit, stk);
+        setStackDepth(jit, 1);
         continue;
       }
       case Resume: {
-        // resume fiber
+        check(jitStackHasRoom(jit,2), "insufficent stack space for resume");
+
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
         codeLblPo rtn = newLabel(ctx);
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) attachStack, 3, RG(PR), RG(stk), RG(evt));
-        unstashRegisters(jit);
+        unstash(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         bind(rtn);
         pc++;
         releaseReg(jit, stk);
         releaseReg(jit, evt);
+        setStackDepth(jit, 1);
         continue;
       }
       case Retire: {
-        // retire a fiber
         // Similar to suspend, except that we trash the suspending stack
+        check(jitStackHasRoom(jit,2), "insufficent stack space for retire");
         armReg stk = popStkOp(jit, findFreeReg(jit));
         armReg evt = popStkOp(jit, findFreeReg(jit));
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk), RG(evt));
-        unstashRegisters(jit);
+        unstash(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         pc++;
@@ -663,23 +652,13 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Underflow: {
         // underflow from current stack
         armReg val = popStkOp(jit, findFreeReg(jit));
-        stp(val, XZR, PRX(SP, -2 * pointerSize));
-        stashRegisters(jit);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) dropStack, 1, RG(STK));
-        // Special version of unstashing registers
-        str(X0, OF(PR, OffsetOf(EngineRecord, stk)));
-        mov(STK, RG(X0));
-        ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
-        ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
-        ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
-
-        unstashRegisters(jit);
-        ldp(val, XZR, PSX(SP, 2 * pointerSize));
-        pushStkOp(jit, val);
-        releaseReg(jit, val);
+        stash(jit);
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(STK), RG(val));
+        unstash(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         pc++;
+        releaseReg(jit, val);
         continue;
       }
       case LdV: {
@@ -852,7 +831,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         codeLblPo skip = newLabel(ctx);
 
         cbnz(sng, skip);
-        ret = breakOut(block, pc + code[pc].alt + 1, False);
+        ret = breakOut(block, code, pc + code[pc].alt + 1, False);
         bind(skip);
         pushStkOp(jit, sng);
         releaseReg(jit, sng);
@@ -964,7 +943,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         beq(ok);
 
         bind(fail);
-        ret = breakOut(block, pc + code[pc].alt + 1, False);
+        ret = breakOut(block, code, pc + code[pc].alt + 1, False);
 
         bind(ok);
         pc++;
@@ -987,7 +966,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           releaseReg(jit, lt);
         }
         releaseReg(jit, st);
-        ret = breakOutNe(block, pc + code[pc].alt + 1);
+        ret = breakOutNe(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -999,11 +978,11 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         tryRet(reserveReg(jit, X1));
         loadConstant(jit, key, X0);
         popStkOp(jit, X1);
-        stashRegisters(jit);
+        stash(jit);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(X0), RG(X1));
-        unstashRegisters(jit);
+        unstash(jit);
         tst(X0, RG(X0));
-        ret = breakOutEq(block, pc + code[pc].alt + 1);
+        ret = breakOutEq(block, code, pc + code[pc].alt + 1);
         pc++;
         releaseReg(jit, X0);
         releaseReg(jit, X1);
@@ -1013,7 +992,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
       case Nth: {
         // T --> el, pick up the nth element
         armReg vl = popStkOp(jit, findFreeReg(jit));
-        loadOffset(jit,vl,vl,code[pc].fst+1);
+        loadOffset(jit, vl, vl, code[pc].fst + 1);
         pushStkOp(jit, vl);
         releaseReg(jit, vl);
         pc++;
@@ -1038,7 +1017,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        ret = breakOutEq(block, pc + code[pc].alt + 1);
+        ret = breakOutEq(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -1050,7 +1029,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
-        ret = breakOutNe(block, pc + code[pc].alt + 1);
+        ret = breakOutNe(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -1080,9 +1059,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         // T --> T, case <Max>
         if (reserveReg(jit, X0) == Ok) {
           popStkOp(jit, X0);
-          stashRegisters(jit);
+          stash(jit);
           callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(X0));
-          unstashRegisters(jit);
+          unstash(jit);
           armReg divisor = findFreeReg(jit);
           mov(divisor, IM(code[pc].fst));
           armReg quotient = findFreeReg(jit);
@@ -1199,11 +1178,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cbnz(a2, skip);
 
         loadConstant(jit, divZeroIndex, a2);
-        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(jit, a2);
+          storeStack(jit, a2, code[tgtBlock->startPc].fst);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1229,11 +1207,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         cbnz(divisor, skip);
 
         loadConstant(jit, divZeroIndex, divisor);
-        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(jit, divisor);
+          storeStack(jit, divisor, code[tgtBlock->startPc].fst);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1551,11 +1528,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 divZeroKey = defineConstantLiteral(divZero);
 
         loadConstant(jit, divZeroIndex, a2);
-        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(jit, a2);
+          storeStack(jit, a2, code[tgtBlock->startPc].fst);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1585,11 +1561,10 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 divZeroKey = defineConstantLiteral(divZero);
 
         loadConstant(jit, divZeroIndex, a2);
-        jitBlockPo tgtBlock = breakBlock(block, pc + code[pc].alt + 1);
+        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-          pushStkOp(jit, a2);
+          storeStack(jit, a2, code[tgtBlock->startPc].fst);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1734,7 +1709,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         armReg loc = findFreeReg(jit);
         loadConstant(jit, locKey, loc);
         pc++;
-        stashRegisters(jit);
+        stash(jit);
         switch (code[pc].op) {
           case Abort: {
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abortDebug, 2, RG(PR), RG(loc));
@@ -1815,7 +1790,7 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
           default:
             return jitError(jit, "invalid instruction following DBug");
         }
-        unstashRegisters(jit);
+        unstash(jit);
         releaseReg(jit, loc);
         continue;
       }
@@ -1823,9 +1798,9 @@ static retCode jitBlock(jitBlockPo block, int32 from, int32 endPc) {
         int32 locKey = code[pc].fst;
         armReg loc = findFreeReg(jit);
         loadConstant(jit, locKey, loc);
-        stashRegisters(jit);
+        stash(jit);
         ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
-        unstashRegisters(jit);
+        unstash(jit);
         releaseReg(jit, loc);
         pc++;
         continue;
@@ -1844,24 +1819,12 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     showMethodCode(logFile, "Jit method %L\n", mtd);
   }
 #endif
-  ValueStack valueStack = {.stackHeight = 0};
   JitBlock block = {
     .jit = jit,
-    .code = entryPoint(mtd),
-    .startPc = 0, .valStk = &valueStack, .breakLbl = Null, .loopLbl = Null, .parent = Null
+    .startPc = 0, .breakLbl = Null, .loopLbl = Null, .parent = Null
   };
 
-  return jitBlock(&block, 0, codeSize(mtd));
-}
-
-retCode loadStackIntoArgRegisters(jitCompPo jit, armReg startRg, uint32 arity) {
-  assemCtxPo ctx = assemCtx(jit);
-  assert(arity < 9);
-
-  for (uint32 ix = 0; ix < arity; ix++) {
-    ldr((armReg) (startRg + ix), PSX(SSP, pointerSize));
-  }
-  return Ok;
+  return jitBlock(&block, entryPoint(mtd), 0, codeSize(mtd));
 }
 
 retCode getIntVal(jitCompPo jit, armReg rg) {
@@ -1891,8 +1854,8 @@ retCode mkFltVal(jitCompPo jit, armReg rg) {
   return Ok;
 }
 
-retCode breakOutEq(jitBlockPo block, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, tgt);
+retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt) {
+  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(block->jit);
@@ -1904,8 +1867,8 @@ retCode breakOutEq(jitBlockPo block, int32 tgt) {
     return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-retCode breakOutNe(jitBlockPo block, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, tgt);
+retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
+  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
 
@@ -1917,31 +1880,32 @@ retCode breakOutNe(jitBlockPo block, int32 tgt) {
   return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-retCode breakOut(jitBlockPo block, int32 tgt, logical keepTop) {
-  jitBlockPo tgtBlock = breakBlock(block, tgt);
+retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop) {
+  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(block->jit);
-  insPo code = block->code;
 
   if (lbl != Null) {
     if (keepTop) {
-      armReg tp = findFreeReg(jit);
-      popStkOp(jit, tp);
-      sub(SSP, AG, IM((lclCount(jit->mtd) + code[tgtBlock->startPc].fst - 1) * pointerSize));
-      pushStkOp(jit, tp);
-      releaseReg(jit, tp);
+      int32 tgtOff = code[tgtBlock->startPc].fst;
+      if (tgtOff != jit->stackDepth) {
+        armReg tp = topStkOp(jit);
+        storeStack(jit, tp, tgtOff);
+        releaseReg(jit, tp);
+      }
     }
+
     b(lbl);
     return Ok;
   }
   return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-jitBlockPo breakBlock(jitBlockPo block, int32 tgt) {
+jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt) {
   while (block != Null) {
     if (block->startPc == tgt) {
-      assert(block->code[block->startPc].op == Block);
+      assert(code[block->startPc].op == Block);
       return block;
     } else
       block = block->parent;
@@ -2004,48 +1968,59 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   int32 delta = (int32) (stackDelta(mtd) + FrameCellCount) * pointerSize;
 
   if (is16bit(delta))
-    sub(X16, SSP, IM(delta));
+    sub(X16, AG, IM(delta));
   else {
     mov(X16, IM(delta));
-    sub(X16, SSP, RG(X16));
+    sub(X16, AG, RG(X16));
   }
   cmp(X16, RG(FP));
   bhi(okLbl);
 
   mov(X0, IM((integer) mtd));
   str(X0, OF(STK, OffsetOf(StackRecord, prog)));
+  adr(X0, okLbl);
+  str(X0, OF(STK,OffsetOf(StackRecord,pc)));
 
-  stashRegisters(jit);
+  stashRegisters(jit, 0);
   retCode ret =
     callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta),
-                  IM(codeArity(mtd)));
-  unstashRegisters(jit);
+                  IM(mtdArity(mtd)));
+  unstash(jit);
 
   bind(okLbl);
   return ret;
 }
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
-void stashRegisters(jitCompPo jit) {
+void stash(jitCompPo jit) {
+  stashRegisters(jit, jitTrueStackDepth(jit));
+}
+
+void stashRegisters(jitCompPo jit, int32 stackLevel) {
+  assert(stackLevel>=0);
   assemCtxPo ctx = assemCtx(jit);
   str(AG, OF(STK, OffsetOf(StackRecord, args)));
-  str(SSP, OF(STK, OffsetOf(StackRecord, sp)));
+  armReg currSP = findFreeReg(jit);
+  sub(currSP, AG, IM(stackLevel*pointerSize));
+  str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
+  releaseReg(jit, currSP);
   str(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
-void unstashRegisters(jitCompPo jit) {
+void unstash(jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   ldr(STK, OF(PR, OffsetOf(EngineRecord, stk)));
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
-  ldr(SSP, OF(STK, OffsetOf(StackRecord, sp)));
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
 void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
+  check(lclNo>=jit->minOffset && lclNo<jit->maxOffset, "Accessing out of bounds locals");
   loadOffset(jit, tgt,AG, lclNo);
 }
 
 void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
+  check(lclNo>=jit->minOffset && lclNo<jit->maxOffset, "Accessing out of bounds locals");
   storeOffset(jit, src,AG, lclNo);
 }
 
@@ -2104,10 +2079,10 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   blt(ok);
   // Restore h->curr
   str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
-  stashRegisters(jit); // Slow path
+  stash(jit); // Slow path
   ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
   callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 3, RG(X0), IM((integer) class), IM(amnt));
-  unstashRegisters(jit);
+  unstash(jit);
   mov(reslt, RG(X0));
   bind(ok);
   mov(c, IM((integer) class));

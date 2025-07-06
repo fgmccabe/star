@@ -20,7 +20,10 @@ typedef struct {
 
 typedef struct jit_compiler_ *jitCompPo;
 void initJit();
+
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
+retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen,int32 stackEntry);
+
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd);
 
 #ifdef TRACEJIT
