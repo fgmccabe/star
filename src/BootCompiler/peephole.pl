@@ -141,6 +141,7 @@ peep([iICase(Mx)|In],_Lbls,[iICase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).
 peep([iIxCase(Mx)|In],_Lbls,[iIxCase(Mx)|Inx]) :-
   copyN(Mx,In,[],Inx,[]).
+peep([iAbort(Lt)|_],_Lbls,[iAbort(Lt)]).
 peep([I|Is],Lbls, [I|Ins]) :- peep(Is,Lbls, Ins).
 
 lblReferenced(Lb,[iBreak(Lb)|_]).

@@ -290,7 +290,7 @@ compAction(whle(Lc,G,B),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   verify(gencode:consistentStack(Stk,Stkb),"while action not permitted to leave stuff on stack").
 compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Brks,Last,Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
+  defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,C1),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iStL(Nm)|C2],Stk,Stk1),
   verify(gencode:bumpStk(Stk,Stk1),"expecting a single bump in stack"),
   compAction(Act,Lc,Brks,Last,Next,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,Stkx).
@@ -659,7 +659,7 @@ compExp(tryX(Lc,B,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compTryX(Lc,B,ptrTipe,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
-  defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,[iStV(Nm)|C1]),
+  defineLclVar(Lc,Nm,Tp,Opts,D,D1,C0,C1),
   compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iStL(Nm)|C2],Stk,Stk1),
   verify(gencode:bumpStk(Stk,Stk1),"expecting a single bump in stack"),
   compExp(Exp,Lc,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,Stkx).
