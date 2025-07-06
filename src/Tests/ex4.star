@@ -104,5 +104,6 @@ test.ex4{
     } catch {
 	Msg => { _logmsg("get got an exception: #(Msg)") }
     };
+    valis ()
   }
 }

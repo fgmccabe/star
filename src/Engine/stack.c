@@ -46,7 +46,7 @@ static labelPo underflowProg;
 static labelPo taskProg;
 static labelPo spawnProg;
 
-static Instruction underflowCode[] = {Underflow, 0};
+static Instruction underflowCode[] = {Underflow};
 
 static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
 
@@ -63,9 +63,9 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss.clss = specialClass;
 
-  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0);
-  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0);
-  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0);
+  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0, 1);
+  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0, 3);
+  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0, 2);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 

@@ -7,6 +7,7 @@ test.ex2{
     } catch {
       ErrCode => { _logmsg("out with a #(dspEr(ErrCode))"); valis () }
     };
+    valis ()
   }
 
   dspEr(.eINTRUPT) => "eINTRUPT".

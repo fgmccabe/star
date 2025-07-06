@@ -11,5 +11,6 @@ test.ex1{
     } catch {
       .except(Msg) => { _logmsg("out with a #(Msg)"); valis () }
     };
+    valis ()
   }
 }

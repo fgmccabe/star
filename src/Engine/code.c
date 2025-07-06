@@ -194,7 +194,7 @@ int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
-methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackHeight, labelPo lbl) {
+methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
 
   methodPo mtd = (methodPo) allocPool(mtdPool);
@@ -206,7 +206,7 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   mtd->jit.codeSize = 0;
   mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
-  mtd->stackDelta = stackHeight;
+  mtd->stackDelta = stackLimit;
 
   lbl->mtd = mtd;
 
@@ -215,13 +215,14 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls,
+                      int32 stackEntry) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, 0, lbl);
+  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, stackEntry, lbl);
 
   char errMsg[MAXLINE];
-  retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
+  retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
   if (ret != Ok) {
     logMsg(logFile, "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
     star_exit(specialMethodCode);

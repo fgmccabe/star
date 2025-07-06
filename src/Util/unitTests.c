@@ -51,7 +51,7 @@ retCode checkReslt(int64 test, int64 verify, char *msg) {
     return Ok;
 }
 
-static retCode debugOption(char *option, logical enable) {
+static retCode debugOption(char *option, OptionAction action) {
   char *c = option;
 
   while (*c) {

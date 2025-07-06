@@ -149,7 +149,6 @@ test.jt8{
       _jit_compile("#(__pkg__)@feq",2);
       _jit_compile("#(__pkg__)@flt",2);
       _jit_compile("#(__pkg__)@fge",2);
-      
     } catch {
       X => showMsg("$(X)")
     };

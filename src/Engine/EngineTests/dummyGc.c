@@ -18,3 +18,6 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return Error;
 }
 
+retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen) {
+  return Error;
+}
