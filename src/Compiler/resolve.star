@@ -649,6 +649,9 @@ star.compiler.resolve{
 	    .fatal(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
+      else
+      valis (.tdot(Lc,Rc,Ix,Tp),
+	.fatal(Lc,"Index $(Ix) not in range of $(typeOf(Rc))"))
     } else if .faceType(Els,_) .= deRef(typeOf(Rc)) then{
       if (_,ElTp) ?= Els[Ix] then{
 	if sameType(ElTp,Tp,Dict) then{
@@ -658,6 +661,9 @@ star.compiler.resolve{
 	    .fatal(Lc,"type of $(Rc).$(Ix)\:$(ElTp) not consistent with required type $(Tp)"))
 	}
       }
+      else
+      valis (.tdot(Lc,Rc,Ix,Tp),
+	.fatal(Lc,"Index $(Ix) not in range of $(typeOf(Rc))"))
     }
     else{
       valis (.tdot(Lc,Rc,Ix,Tp),

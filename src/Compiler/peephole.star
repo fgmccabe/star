@@ -120,6 +120,7 @@ star.compiler.peephole{
   peep([.iICase(Mx),..Ins],Lbls) => [.iICase(Mx),..copyN(Mx,Ins)].
   peep([.iCase(Mx),..Ins],Lbls) => [.iCase(Mx),..copyN(Mx,Ins)].
   peep([.iIxCase(Mx),..Ins],Lbls) => [.iIxCase(Mx),..copyN(Mx,Ins)].
+  peep([.iAbort(Lc),.._],Lbls) => [.iAbort(Lc)].
   peep([I,..Ins],Lbls) => [I,..peep(Ins,Lbls)].
 
   lblReferenced(_,[]) => .false.
