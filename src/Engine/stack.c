@@ -63,9 +63,9 @@ static buddyRegionPo stackRegion;
 void initStacks() {
   StackClass.clss.clss = specialClass;
 
-  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, NULL, 0, 1);
-  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, NULL, 0, 3);
-  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, NULL, 0, 2);
+  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1);
+  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, 0, 3);
+  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, 0, 2);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 

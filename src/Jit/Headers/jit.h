@@ -7,7 +7,6 @@
 
 #include <code.h>
 #include "config.h"
-#include "term.h"
 #include "engine.h"
 #include "escape.h"
 
@@ -22,7 +21,7 @@ typedef struct jit_compiler_ *jitCompPo;
 void initJit();
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
-retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen,int32 stackEntry);
+retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 depth);
 
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd);
 

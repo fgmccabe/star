@@ -63,7 +63,7 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl);
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
-                      insPo instructions, termPo sigTerm, int32 lcls, int32 stackEntry);
+                      insPo instructions, int32 lcls, int32 stackEntry);
 
 void markMethod(methodPo mtd, gcSupportPo G);
 #endif
