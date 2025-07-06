@@ -20,6 +20,8 @@ jitCompPo jitContext(methodPo mtd) {
   jitComp->mtd = mtd;
   jitComp->assemCtx = createCtx();
   jitComp->freeRegs = defltAvailRegSet();
+  jitComp->minOffset = - stackDelta(mtd);
+  jitComp->maxOffset = mtdArity(mtd);
   return jitComp;
 }
 
