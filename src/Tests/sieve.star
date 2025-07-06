@@ -11,10 +11,8 @@ test.sieve{
 	Ix := Ix!+2;
 	post(Ix!,Chnnl)
       }
-    } catch { .canceled => {
-	retire .retired_
-    }
-    }
+    } catch { .canceled => {} };
+    retire .retired_
   }
 
   divides(X,Y) => (try X%Y==0 catch {_ => .false}).

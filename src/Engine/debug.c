@@ -687,7 +687,7 @@ static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
 
 static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
   if (showColors)
-    outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L", lc);
+    outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L%_", lc);
   else
     outMsg(out, "line: %#L", lc);
 }
@@ -856,7 +856,7 @@ DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo vl) {
 }
 
 DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Assign, lc, vl, showResume);
+  return lnDebug(p, Resume, lc, vl, showResume);
 }
 
 DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl) {

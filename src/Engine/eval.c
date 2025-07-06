@@ -285,8 +285,7 @@ ReturnStatus run(enginePo P) {
 
         PC += PC->alt + 1;
 
-        int32 height = PC->fst;
-        SP = &local(lclCount(PROG) + height - 1);
+        SP = &arg(argCount(PROG)); // Just above arguments to current call
         PC += PC->alt + 1;
 
         push(retVal); /* push return value */

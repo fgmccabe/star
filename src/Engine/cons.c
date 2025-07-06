@@ -6,7 +6,7 @@
 #include <strings.h>
 #include "consP.h"
 #include "assert.h"
-#include "debug.h"
+#include "constants.h"
 #include "termP.h"
 #include "labelsP.h"
 
@@ -15,6 +15,7 @@ labelPo consCons;
 
 void initCons() {
   nilEnum = declareEnum("nil", 1, globalHeap);
+  // defineConstantLiteral(nilEnum); // Ensure unique reference to nil
   consCons = declareLbl("cons", 2, 0);
 }
 
@@ -79,5 +80,5 @@ retCode dispCons(ioPo out, termPo t, integer precision, integer depth, logical a
   if (ret == Ok && isConsNil(t)) {
     return outMsg(out, "]");
   } else
-    return outMsg(out,"!%,*T!",displayDepth);
+    return outMsg(out, "!%,*T!", displayDepth);
 }

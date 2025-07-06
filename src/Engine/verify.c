@@ -13,23 +13,24 @@
 #include "stackP.h"
 #include "char.h"
 
-logical enableVerify = True;         // True if we verify code as it is loaded
-tracingLevel traceVerify = noTracing;      // Set if tracing code verification
+logical enableVerify = True; // True if we verify code as it is loaded
+tracingLevel traceVerify = noTracing; // Set if tracing code verification
 
 typedef struct {
-  logical inited;    //  True if cell has real value
-  logical read;      //  Has this cell been read?
+  logical inited; //  True if cell has real value
+  logical read; //  Has this cell been read?
 } Var, *varPo;
 
 typedef struct verify_context_ *verifyCtxPo;
+
 typedef struct verify_context_ {
   char *prefix;
   methodPo mtd;
   int32 from;
   int32 limit;
   int32 exitDepth;
-  verifyCtxPo propagated;    // Where have we propagated to?
-  logical tryBlock;      // Is this from a Try block?
+  verifyCtxPo propagated; // Where have we propagated to?
+  logical tryBlock; // Is this from a Try block?
   varPo locals;
   int32 lclCount;
   verifyCtxPo parent;
@@ -53,14 +54,16 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     locals[ix].read = False;
   }
 
-  VerifyContext mtdCtx = {.prefix = "", .errorMsg=errorMsg, .msgLen=msgLen,
-    .mtd=mtd, .from = 0, .limit=codeSize(mtd),
-    .parent=Null,
-    .exitDepth=1,
-    .locals=locals,
-    .lclCount=lclCnt,
-    .propagated=Null,
-    .tryBlock=False};
+  VerifyContext mtdCtx = {
+    .prefix = "", .errorMsg = errorMsg, .msgLen = msgLen,
+    .mtd = mtd, .from = 0, .limit = codeSize(mtd),
+    .parent = Null,
+    .exitDepth = 1,
+    .locals = locals,
+    .lclCount = lclCnt,
+    .propagated = Null,
+    .tryBlock = False
+  };
 
   return verifyBlock(0, 0, codeSize(mtd), False, &mtdCtx, 0, 1);
 }
@@ -109,8 +112,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
   for (integer ix = 0; ix < lclCnt; ix++)
     locals[ix] = parentCtx->locals[ix];
 
-  VerifyContext ctx = {.prefix=prefix,
-    .errorMsg=parentCtx->errorMsg, .msgLen=parentCtx->msgLen,
+  VerifyContext ctx = {
+    .prefix = prefix,
+    .errorMsg = parentCtx->errorMsg, .msgLen = parentCtx->msgLen,
     .mtd = parentCtx->mtd,
     .from = from,
     .limit = limit,
@@ -118,8 +122,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
     .exitDepth = exitDepth,
     .locals = locals,
     .lclCount = lclCnt,
-    .propagated=Null,
-    .tryBlock=tryBlock};
+    .propagated = Null,
+    .tryBlock = tryBlock
+  };
 
   while (pc < limit) {
     insPo ins = &code[pc];
@@ -208,7 +213,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
 
         propagateVars(&ctx, parentCtx);
         return Ok;
-
       }
       case OCall: {
         int arity = code[pc].fst;
@@ -292,9 +296,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case Ret:
       case XRet: {
         if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc);
+          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc-1);
+
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient args on stack for return: %d", pc-1, stackDepth);
         propagateVars(&ctx, parentCtx);
-        return Ok;   // No merge of locals here
+        return Ok; // No merge of locals here
       }
       case Block: {
         int32 exitDepth = code[pc].fst;
@@ -800,18 +807,16 @@ retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
   char buff[MAXLINE];
   strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
 
-  va_list args;      /* access the generic arguments */
-  va_start(args, msg);    /* start the variable argument sequence */
+  va_list args; /* access the generic arguments */
+  va_start(args, msg); /* start the variable argument sequence */
 
-
-  __voutMsg(O_IO(f), msg, args);  /* Display into the string buffer */
+  __voutMsg(O_IO(f), msg, args); /* Display into the string buffer */
 
   va_end(args);
-  outByte(O_IO(f), 0);                /* Terminate the string */
+  outByte(O_IO(f), 0); /* Terminate the string */
 
   closeIo(O_IO(f));
 
   strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "%s%s"RED_ESC_OFF, ctx->prefix, buff);
   return Error;
 }
-

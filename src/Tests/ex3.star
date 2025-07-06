@@ -58,7 +58,8 @@ test.ex3{
       };
       _logmsg(_stringOf(div(2,0),0));
     } catch {
-      Msg => { _logmsg("out with a #(Msg)"); valis () }
+      Msg => { _logmsg("out with a #(Msg)") }
     };
+    valis ()
   }
 }
