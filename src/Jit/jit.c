@@ -57,10 +57,10 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return Ok;
 }
 
-retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 stackEntry) {
+retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 depth) {
   if (!hasJit(mtd)) {
     jitCompPo jit = jitContext(mtd);
-    jit->stackDepth = stackEntry;
+    jit->stackDepth = depth;
 
 #ifdef TRACEJIT
     if (traceJit)

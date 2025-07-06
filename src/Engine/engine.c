@@ -29,7 +29,7 @@ void initEngine() {
   prPool = newPool(sizeof(EngineRecord), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, unitEnum, 0, 0);
+  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 0);
 
   runTimer = newTimer("running");
 }

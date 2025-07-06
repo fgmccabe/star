@@ -215,11 +215,10 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, termPo sigTerm, int32 lcls,
-                      int32 stackEntry) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, int32 lcls, int32 stackEntry) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  methodPo mtd = defineMtd(globalHeap, insCx, instructions, 0, stackEntry, lbl);
+  methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stackEntry, lbl);
 
   char errMsg[MAXLINE];
   retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
