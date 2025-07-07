@@ -1,14 +1,48 @@
 @node Lexical Syntax
 @chapter Lexical Syntax
 
+@node Lexical Tokens
+@section Lexical Tokens
 
-@menu
-* Characters::
-* Number Literals::
-* Characters and Strings::
-* Identifiers::
-* Punctuation::
-@end menu
+For the sake of exposition, we will use a simplified version of the
+@code{token} type that is used within the @Star{} compiler:
+
+@float Grammar,tokenType
+@caption{Lexical Token Type}
+@example
+tk ::= .idQTok(string)
+    | .idTok(string)
+    | .lftTok(string)
+    | .rgtTok(string)
+    | .intTok(integer)
+    | .bigTok(bigint)
+    | .fltTok(float)
+    | .chrTok(char)
+    | .strTok(cons[stringSegment]).
+
+stringSegment ::= .segment(string)
+    | .interpolate(cons[token],string)
+    | .evaluate(cons[token]).
+@end example
+@end float
+
+Using this type definition, it will be straightforward to be more
+precise when describing individual elements of the lexical syntax.
+
+The overall tule for tokenizing is given by @ref{tokenRule}.
+
+@float Grammar,tokenRule
+@caption{Lexical Token Grammar}
+@example
+token >> Tk --> skip, tk >> Tk.
+
+tk >> Tk --> numeric >> Tk.
+tk >> Tk --> character >> Tk.
+tk >> Tk --> stringLiteral >> Tk.
+tk >> Tk --> identifier >> Tk.
+tk >> Tk --> punctuation >> Tk.
+@end example
+@end float
 
 @node Characters
 @section Characters
@@ -48,13 +82,14 @@ characters. In addition, white space and comments serve as token
 boundaries; otherwise white space and comments are ignored by the
 higher-level semantics of the language.
 
-@float BNF,ignorableFig
+@float Grammar,ignorableFig
 @caption{Ignorable Characters}
-@display
-@anchored{Ignorable} ::= @refer{LineComment}
-  | @refer{BlockComment}
-  | @refer{WhiteSpace}
-@end display
+@example
+skip --> lineComment.
+skip --> blockComment.
+skip --> whiteSpace.
+skip --> [].
+@end example
 @end float
 
 There are two forms of comment: line comment and block comment.
@@ -67,11 +102,15 @@ A line comment consists of a @code{--@spce{}} or a @code{--\t} followed by all
 characters up to the next new-line. Here, @code{\t} refers to the
 Horizontal Tab.
 
-@float BNF,lineCommentFig
+@float Grammar,lineCommentFig
 @caption{Line Comment}
-@display
-@anchored{LineComment} ::= (@code{--@spce{}} | @code{--\t}) @refer{Char} @dots{} @refer{Char} @code{\n}
-@end display
+@example
+lineComment --> [`-`,`-`,` `], skipToEol.
+lineComment --> [`-`,`-`,`\\t`], skipToEol.
+
+skipToEol --> [`\n`].
+skipToEol --> [_], skipToEol.
+@end example
 @end float
 
 Note that any block comment markers are ignored in a line comment
@@ -85,11 +124,14 @@ start of a block comment).
 A block comment consists of the characters @code{/*} followed by any
 characters and terminated by the characters @code{*/}.
 
-@float BNF,blockCommentFig
+@float Grammar,blockCommentFig
 @caption{Block Comment}
-@display
-@anchored{BlockComment} ::= @code{/*} @refer{Char} @dots{} @refer{Char} @code{*/}
-@end display
+@example
+blockComment --> [`/`,`*`], skipBlock.
+
+skipBlock --> [`*`,`/`].
+skipBlock --> [_], skipBlock.
+@end example
 @end float
 
 Each form of comment overrides the other: a @code{/*} sequence in a
@@ -104,11 +146,11 @@ White space characters are used to help delimit other
 tokens. Except when they occur in a @refer{StringLiteral} or in a
 @refer{QuotedIdentifier} they serve no other purpose.
 
-@float BNF,whiteSpaceFig
+@float Grammar,whiteSpaceFig
 @caption{White Space}
-@display
-@anchored{WhiteSpace} ::= @code{ } | @code{\n} |@code{\r} | @code{\f} |@code{\t}
-@end display
+@example
+whiteSpace --> [` `] | [`\n`] | [`\r`] | [`\t`] | [`\f`].
+@end example
 @end float
 
 @node Number Literals
@@ -120,15 +162,15 @@ The numeric values include integer values, floating point values,
 decimal values and character codes. The latter are integers that
 represent the Unicode code points of particular characters.
 
-@float BNF,numericFig
+@float Grammar,numericFig
 @caption{Numeric Literals}
-@display
-@anchored{NumericLiteral} ::= @refer{Decimal}
-  | @refer{BigInteger}
-  | @refer{Hexadecimal}
-  | @refer{FloatingPoint}
-  | @refer{CharacterCode}
-@end display
+@example
+numeric >> .intTok(Dc) --> decimal >> Dc.
+numeric >> .bigTok(Bg) --> big >> Bg.
+numeric >> .intTok(Hx) --> hex >> Hx.
+numeric >> .fktTok(Dx) --> floating >> Dx.
+numeric >> .intTok(Ch) --> charCode >> Ch.
+@end example
 @end float
 
 @quotation TIP
@@ -154,13 +196,21 @@ The lexical syntax for integers does not include negative
 integers. Negative integers are accounted for at the grammar level.
 @end quotation
 
-@float BNF,decimalFig
+@float Grammar,decimalFig
 @caption{Decimal Literals}
-@display
-@anchored{Decimal} ::=@refer{Digit} @dots{} @refer{Digit}+
-@anchored{Digit} ::= @code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}
-@anchored{BigInteger} ::=@refer{Decimal} @code{b}
-@end display
+@example
+decimal >> Dc::integer --> digit* >> Ds.
+
+digit >> D --> [C] , @{ D ?= isDigit(C) @}.
+
+big >> Bg::bigint --> digits* >> Bg, [`b`].
+
+isDigit(`0`) => .some(0).
+isDigit(`1`) => .some(1).
+...
+isDigit(`9`) => .some(9).
+isDigit(_) => .none.
+@end example
 @end float
 
 Normal integers have limited (62bit) precision, whereas big integers
@@ -183,12 +233,20 @@ followed by a sequence of hex digits. For example,
 @end example
 are all hexadecimals.
 
-@float BNF,hexadecimalFig
+@float Grammar,hexadecimalFig
 @caption{Hexadecimal numbers}
-@display
-@anchored{Hexadecimal}::= @code{0x} @refer{Hex} @dots{} @refer{Hex}+
-@anchored{Hex}::= @code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}|@code{a}|@code{b}|@code{c}|@code{d}|@code{e}|@code{f}
-@end display
+@example
+hex >> Hx --> [`0`, `x`], hx(0).
+
+hx(N) >> Hx --> [D], @{ Dg ?= isHexDigit(D) @}, hx(N*16+Dg).
+hx(N) >> N --> [].
+
+isHexDigit(`0`) => .some(0).
+isHexDigit(`1`) => .some(1).
+...
+isHexDigit(`F`) => .some(15).
+isHexDigit(_) default => .none.
+@end example
 @end float
 
 @node Floating Point Numbers
@@ -206,11 +264,20 @@ familiar. For example,
 
 See @ref{floatingPointFig} for a complete syntax diagram for floating point numbers.
 
-@float BNF,floatingPointFig
+@float Grammar,floatingPointFig
 @caption{Floating Point numbers}
-@display
-@anchored{FloatingPoint} ::= @refer{Digit}@dots{}@refer{Digit}+ @code{.} @refer{Digit}@dots{}@refer{Digit}+ [@code{e}[@code{-}]@refer{Digit}@dots{}@refer{Digit}+]]
-@end display
+@example
+floating >> (Wh+Fr)*10**Exp -->
+  decimal >> Wh, [`.`], fraction >> Fr, exponent >> Exp.
+
+fraction >> Fr --> frac(0.1,0) >> Fr.
+
+frac(Scale,SoF) >> Fr --> digit >> D, frac(Scale*0.1,SoF+D*Scale).
+frac(_,Fr) >> Fr.
+
+exponent >> Exp --> decimal >> Exp.
+exponent >> -Exp --> [`-`], decimal >> Exp.
+@end example
 @end float
 
 @quotation NOTE
@@ -240,7 +307,7 @@ line character, i.e., its value is @code{10}.
 Unicode has the capability to represent up to one million character code points.
 @end quotation
 
-@float BNF,characterCodeFig
+@float Grammar,characterCodeFig
 @caption{Character Codes}
 @display
 @anchored{CharacterCode} ::= @code{0c} @refer{CharRef}
@@ -269,7 +336,7 @@ There are three forms of textual values: characters, strings and block strings.
 @noindent
 A @refer{CharRef} is a denotation of a single code point.
 
-@float BNF,charRefFig
+@float Grammar,charRefFig
 @caption{Character Literal}
 @display
 @anchored{CharRef} ::= @refer{Char} | @refer{Escape}
@@ -343,7 +410,7 @@ A @code{string} consists of a sequence of characters -- specifically
 There are two forms of @emph{string literal}: a
 @var{QuotedString} and a @var{BlockString}.
 
-@float BNF,quotedStringFig
+@float Grammar,quotedStringFig
 @caption{String Literals}
 @display
 @anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
@@ -384,7 +451,7 @@ supported control characters are mostly the usual suspects:
 In addition to the normal notation for strings, there is a block form
 of string that permits raw character data to be processed as a string.
 
-@float BNF,blockStringFig
+@float Grammar,blockStringFig
 @caption{Block String Literal}
 @display
 @anchored{BlockString} ::= @code{"""} @var{Char} @dots{} @var{Char} @code{"""}
@@ -442,7 +509,7 @@ form of identifier -- a letter followed by a sequence of digits and
 letters. However, non-ASCII characters are also permitted in an
 identifier.
 
-@float BNF,identifierFig
+@float Grammar,identifierFig
 @caption{Identifier Syntax}
 @display
 @anchored{Identifier} ::= @var{AlphaNumeric}
@@ -483,7 +550,7 @@ The standard operators often have a graphic form -- such as @code{+},
 and @code{=<}. @ref{standardOperatorsTbl} contains a complete listing
 of all the standard graphic-form identifiers.
 
-@float BNF,graphicIdentifierFig
+@float Grammar,graphicIdentifierFig
 @caption{Graphic Identifiers}
 @display
 @anchored{GraphicIdentifier} ::= @var{SymbolicChar}@dots{}@var{SymbolicChar}
@@ -511,7 +578,7 @@ identifier.
 A quoted identifiers is denoted by a sequence of @var{charRef}s enclosed
 in single quotes. Recall that strings are enclosed in double quotes.
 
-@float BNF quotedIdentFig
+@float Grammar quotedIdentFig
 @caption{Quoted Identifier}
 @display
 @anchored{QuotedIdentifier} ::= @code{'} @var{CharRef}@dots{}@var{CharRef} @code{'}
@@ -574,7 +641,7 @@ With a few exceptions, statements @footnote{A statement in @Star{}
 is not to be confused with statements in languages like C or Java:
 statements in @Star{} always declare some fact.} are terminated by the @var{Terminator} -- which consists of a period followed by white space character.
 
-@float BNF,terminatorFig
+@float Grammar,terminatorFig
 @caption{Statement Terminator}
 @display
 @anchored{Terminator} ::= @code{.} @refer{WhiteSpace}
@@ -618,7 +685,7 @@ Braces are used to delimit groups of statements.
 
 There are two forms of braces: with and without a period character.
 
-@float BNF bracesFig
+@float Grammar bracesFig
 @caption{Braces}
 @display
 @anchored{Brace} ::= @code{@{} | @code{@}} | @code{@{.} | @code{.@}}
@@ -634,7 +701,7 @@ subsequent @code{@}}; and similarly the @code{@{.} must be paired with
 
 There are several @emph{special} sets of brackets:
 
-@float BNF specialBrFig
+@float Grammar specialBrFig
 @caption{Special Brackets}
 @display
 @anchored{SpecialBracket} ::= @code{(|} | @code{|)} |

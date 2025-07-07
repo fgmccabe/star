@@ -37,9 +37,11 @@ patterns -- such as repeated sequences and interleaved sequences.
 @float BNF,grammarRuleFig
 @caption{Grammar Rule Notation}
 @display
-@anchored{Grammar Rule} ::= @refer{GrammarRuleHead} @code{-->} @refer{RuleBody}
+grammarRule --> grammarRuleHead, [.id("-->")], grammarBody.
 
-@anchored{GrammarRuleHead} ::= @refer{NonTerminal} @code{>>} @refer{Expression}
+grammarRuleHead --> nonTerminal [.id(">>")] expression.
+
+
 
 @anchored{RuleBody} ::= @refer{NonTerminal} |
   @refer{Terminal} |
