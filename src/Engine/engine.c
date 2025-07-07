@@ -44,8 +44,6 @@ ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
     resumeTimer(runTimer);
     ReturnStatus ret = (jitOnLoad?exec(p):run(p));
     pauseTimer(runTimer);
-
-    ps_kill(p);
     return ret;
   } else {
     logMsg(logFile, "cannot find entry point %s\n", entry);
