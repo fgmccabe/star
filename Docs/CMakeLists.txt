@@ -1,3 +1,3 @@
 add_subdirectory("Reference")
 add_subdirectory("Book")
-add_subdirectory("Thinking")
+# add_subdirectory("Thinking")

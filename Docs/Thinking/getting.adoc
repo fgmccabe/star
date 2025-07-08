@@ -1,0 +1,116 @@
+= Getting Star
+
+The Star language system is available on github at:
+@url{https://github.com/fgmccabe/star}
+
+== Building Star
+
+To build the Star language system from scratch requires a few
+dependencies; most notably SWI-Prolog -- which is used to build the
+bootstrap compiler -- and cmake. The latter should be at least version 3.20.
+
+Once dependencies are satisfied, and the source code has been
+downloaded from GitHub, building is straightforward: construct a
+`build` directory:
+
+
+[source, bash]
+----
+$ mkdir build
+$ cd build
+$ cmake ..
+----
+
+Once `cmake` has run, just `make`:
+
+[source, bash]
+----
+$ make
+----
+
+
+This builds the run-time, compiles the bootstrap compiler and compiles
+the standard library and runs the tests.
+
+Once completed without errors, install:
+
+[source,bash]
+----
+$ make install
+----
+
+==  Support
+
+There is a fairly rudimentary support for Star for Emacs. Installing
+Star should ensure that the compiled elisp files are in the correct
+location. To enable access to Star mode, add the following to your
+`.emacs` file:
+
+
+[source,lisp]
+----
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
+(autoload 'star-mode "star")
+(add-to-list 'auto-mode-alist '("\\.\\(star\\)$" . star-mode))
+----
+
+== Compiling Star Programs
+
+=== Catalogs and Repositories
+
+==== The `catalog`
+
+==== Star code repository
+
+=== Using the Star Compiler
+
+=== Using the Bootstrap Compiler
+
+The bootstrap compiler is intended purely for developing
+Star itself. In addition, it does not support the entire language
+
+NOTE: The bootstrap compiler is written in SWI-Prolog; and it requires that
+`swipl` is installed in your system.
+
+
+The command line usage for `sbc` is:
+
+[source,bash]
+----
+$ sbc -r @var{repo} -w @var{wd} -g --stdin -- @var{package}
+----
+
+`-r`:: The `-r` flag indicates the directory where the _code
+repository_ is. If it is not specified explicitly the compiler will
+search the current working directory for a sub-directory called
+`.star-repo`; and its parent directories until root, until it
+finds one.
++
+This represents a convenient method for establishing a project-wide
+repository somewhere near the root directory of your project.
+
+`-w`:: The `-w` flag indicates that the compiler should search the
+indicated directory for the appropriate catalog file for the package
+to compile.
+
+`-g`:: The `-g` flag enables the generation of additional code that
+will allow debuggers to debug the execution of the program. There is a
+built-in debugger within the Star engine; and it is possible to
+connect to an external debugger.
+
+`--stdin`:: The `--stdin` flag is used when the source of the file to
+compile is provided via `stdin` rather than an explicit file.  @end
+table
+
+== Documentation
+
+The documentation for Star is split into three documents: this
+document, the Star reference manual and a programming guide to
+Star. It is recommended that you read the latter as you familiarize
+yourself with the language.
+
+
+
+
+
+

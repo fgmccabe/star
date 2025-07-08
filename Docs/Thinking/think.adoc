@@ -20,13 +20,11 @@ solve problems.
 
 include::intro.adoc[leveloffset=1]
 
-include::functional.adoc[leveloffset=1]
+include::tour.adoc[leveloffset=1]
 
-// include::contracts.adoc[leveloffset=1]
+include::policy.adoc[leveloffset=1]
 
-// include::knowledge.adoc[leveloffset=1]
-
-// include::getting.adoc[leveloffset=1]
+include::getting.adoc[leveloffset=1]
 
 [bibliography]
 == Bibliography
