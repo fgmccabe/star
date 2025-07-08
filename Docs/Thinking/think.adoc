@@ -1,0 +1,36 @@
+= Thinking About Star
+Francis G. McCabe<francis.g.mccabe@gmail.com>; Michael Sperber
+:copyright: 2025 and beyond
+:source-highlighter: rouge
+:toc:
+:doctype: book
+:title-page:
+:pdf-page-size: Letter
+
+[preface]
+== Preface
+Star is a functional, multi-paradigm and extensible programming
+language. It is a full-scale language, capable of expressing many
+kinds of program. As such it is a rich language with many features.
+Star was originally developed as part of a framework for processing a
+range of real-time business applications such as factory scheduling
+and data analytics.  This white paper explores some of the basic
+features of the language and shows by example how it can be used to
+solve problems.
+
+include::intro.adoc[leveloffset=1]
+
+include::functional.adoc[leveloffset=1]
+
+// include::contracts.adoc[leveloffset=1]
+
+// include::knowledge.adoc[leveloffset=1]
+
+// include::getting.adoc[leveloffset=1]
+
+[bibliography]
+== Bibliography
+
+* [[[luckham:2012]]] Luckham, David, _Event Processing for Business:
+Organizing the Real-Time Enterprise_, John Wiley & Sons, 2012.
+
