@@ -15,6 +15,11 @@ static poolPo asmPool = Null;
 
 integer undefinedPc = -1;
 
+typedef struct lbl_ref {
+  lblRefUpdater updater;
+  integer pc;
+} AssemLblRefRecord;
+
 void initAssem() {
   if (asmPool == Null) {
     lblPool = newPool(sizeof(AssemLblRecord), 128);

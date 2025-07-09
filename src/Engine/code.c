@@ -103,7 +103,7 @@ labelPo mtdLabel(methodPo mtd) {
   return mtd->lbl;
 }
 
-integer stackDelta(methodPo mtd) {
+int32 stackDelta(methodPo mtd) {
   assert(mtd != Null);
   return mtd->stackDelta + mtd->lclcnt;
 }

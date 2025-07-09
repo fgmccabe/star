@@ -16,7 +16,7 @@ void initCode();
 
 methodPo C_MTD(termPo t);
 
-integer stackDelta(methodPo mtd);
+int32 stackDelta(methodPo mtd);
 
 int32 mtdArity(methodPo mtd);
 labelPo mtdLabel(methodPo mtd);
