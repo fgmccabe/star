@@ -1,0 +1,191 @@
+= Sieve of Erastosthenes
+
+The sieve of Erastothenes is a well-known technique for finding prime
+numbers. It is also reasonably efficient, especially for smaller
+primes and where you want a deterministic algorithm.
+
+This algorithm works by repeatedly removing multiples of primes from a
+list of natural numbers.
+
+We will explore two ways of implementing this algorithm in Star: the
+first using collections, and the second using tasks and coroutining.
+
+== A Sieve Collection
+
+The core step in the sieve algorithm is removing multiples of an
+existing prime from the list of candidates. We can express this using
+Star's filter notation; the expression that returns all the
+candidates of a collection that are not multiples of a given number looks like:
+
+[source,star]
+----
+candidates ^/ \((X)=> ~divides(X,P))
+----
+
+The `^/` function is actually specified in a contract:
+
+[source,star]
+----
+contract all c,e ~~ filter[c->>e] ::= {
+  (^/):(c,(e)=>boolean) => c.
+}
+----
+
+and Star also has a standard implementation of `^/` for `cons` lists:
+
+[source,star]
+----
+implementation all t ~~ filter[cons[t]->>t] => let{.
+  filter(L,F) => case L in {
+  | [] => []
+  | [E,..Es] where F(E) => [E,..filter(Es,F)]
+  | [_,..Es] => filter(Es,F)
+  }
+.} in {
+  (LL ^/ F) => filter(LL,F)
+}
+----
+
+Defining `divides` itself is straightforward, but is allows us to
+introduce Star's exception handling:
+
+[source,star]
+----
+divides(X,Y) => (try X%Y==0 catch {_ => .false}).
+----
+
+This states that `X` is a multiple of `Y` if X modulo Y is zero. Since
+modulo zero is equivalent to division by zero, Star requires that `%`
+expressions are protected by a `try` `catch` handler. Our catch
+handler simply returns `.false` -- because we dont believe that 0 is a
+divisor.
+
+Given this ground work, we can now give a complete definition of sieve
+-- for a finite upper bound:
+
+[source,star]
+----
+sieve:(integer) => cons[integer].
+sieve(Bound) => let{.
+  filter(Candidates,P) => Candidates^/nonMultiple(P).
+
+  nonMultiple(P) => (X)=>~divides(X,P).
+
+  primes([P,..Rest]) => [P,..primes(filter(Rest,P))].
+.} in primes(iota(2,Bound))
+----
+
+where `iota` is another standard function that returns a sequence of
+integers between a lower and upper bound.
+
+NOTE: how the `nonMultiple` function is set up to return a function
+rather than an individual decision. This makes the formulation of
+`filter` a little easier to read.footnote:[Unlike many functional
+languages, Star does not use so-called function currying.]
+
+We are not claiming here that our implementation of the sieve of
+Erastosthenes is the fastest: it is not. However, it is, we believe, a
+clear exposition of the algorithm.
+
+One limitation of this version is that it depends on a previously
+built list of integers -- hence the use of `iota`. Our next version,
+using tasks, removes this limitation -- and gives us an opportunity to
+introduce Star's coroutining features.
+
+== A Sieve Task
+
+Coroutines enable non-sequential forms of control. Star has several
+models of coroutining; in this example we will focus on one of the
+simpler models: generators.
+
+A generator is an expression that returns its values by performing a
+`yield` operation. Normally generators are paired with `for loops`:
+the yielded values are used in the body of the for loop.
+
+For example, this definition defines `genOdds` to be a generator of
+odd integers:
+
+[source, star]
+----
+genOdds = generator{
+  Ix := 1;
+  while .true do{
+    Ix := Ix!+2;
+    yield Ix!
+  }
+}
+----
+
+NOTE: The definition of `genOdds` also illustrates how assignment is done in Star.
+
+Another generator that we will need for generating prime numbers is
+one that reports on filtered numbered. For this we have a generator
+function: a function whose value is a generator:
+
+[source,star]
+----
+primeFilter:(integer,generator[integer]) => generator[integer].
+primeFilter(Prm,Gen) => generator{
+   for Nxt : Gen do{
+     if ~divides(Nxt,Prm) then
+       yield(Nxt)
+   }
+}
+----
+
+The `primeFilter` function takes a generator as an argument, and
+returns a new generator that filters the input generator's results.
+
+Our main function's role is to stitch together generators in a
+recursive fashion to actually generate prime numbers -- and to report
+the first prime larger than the requested minimum:
+
+[source,star]
+----
+primeSieve:(integer,generator[integer]) => integer
+primeSieve(Limit,Gen) => valof{
+  case Gen resume ._next in {
+  | ._yld(Nxt) => {
+      if Current<Limit then{
+        valis primeSieve(Limit,primeFilter(Nxt,Gen))
+      }
+      else
+        valis Nxt
+    }
+  }
+}
+----
+
+We put a limit on `primeSieve`: the highest prime that we are
+looking for. But, if we had not used this, `primeSieve` would keep
+going generating prime numbers.
+
+NOTE: The clause `case Gen resume ...` pokes a hole in the generator
+abstraction and exposes Star's underlying coroutining features --
+which are based on the concept of a reified coroutine: sometimes known
+as a fiber.
+
+To complete the program, we put a driver in a `main` program that
+looks for prime numbers up to some limit:
+
+[source,star]
+----
+main:(integer)=>().
+main(Min) => valof{
+  Prime = primeSieve(Min,genOdds);
+  show "first prime greater than $(Min) is $(Prime)"
+}
+----
+
+One of the minor features of Star is the typed nature of the `main`
+function. Specifying that `main` takes an integer as an argument is
+enforced on the command line. We can execute this sieve of
+erastosthenes as a command in a terminal using:
+
+[source, bash]
+----
+$ star eras 3000
+first prime greater than 3000 is ??
+----
+
+

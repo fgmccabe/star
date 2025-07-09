@@ -56,11 +56,48 @@ location. To enable access to Star mode, add the following to your
 
 == Compiling Star Programs
 
-=== Catalogs and Repositories
+The process for compiling and running Star programs is a little
+unusual. It involves the use of _catalog_ and _repositories_. In
+addition, there are two `sc` and `sbc` -- the first of these is the
+main Star compiler and the second is a bootstrap compiler that is
+primarily used for development of Star itself.
 
-==== The `catalog`
+=== Catalogs
+
+A catalog is a file that maps stack package names to individual
+files. Using this additional level of indirection means that we do not
+need to put explicit file names in Star sources, and it also enables
+systems that do not have a natural model of files and directories.
+
+==== The `catalog` File
+
+A `catalog` file is a JSON file that maps package names to file
+names. For example, this catalog:
+
+[source,json]
+----
+{
+  "content" : {
+    "sample.tree" : "tree.star",
+    "sample.factorial" : "factorial.star",
+    "sample.primes" : "primes.star",
+    "sample.sieve" : "sieve.star"
+  },
+  "default": "../Star/catalog"
+}
+----
+
+could denote a catalog of the Star programs that are used in this booklet.
+
+Catalogs can have other elements to them: they can designate
+sub-catalogs -- typically in other directories -- and versioning
+information. It is possible to have a catalog that supports multiple
+versions of a given Star package and the compiler will be able to pick
+out the appropriate versions of packages that are needed.
 
 ==== Star code repository
+
+
 
 === Using the Star Compiler
 
