@@ -22,7 +22,7 @@ include::intro.adoc[leveloffset=1]
 
 include::tour.adoc[leveloffset=1]
 
-include::policy.adoc[leveloffset=1]
+include::primes.adoc[leveloffset=1]
 
 include::getting.adoc[leveloffset=1]
 
