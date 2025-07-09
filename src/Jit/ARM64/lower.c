@@ -23,10 +23,10 @@
  *
  * X0 = return register
  * X0-X10 = argument registers & scratch registers
- * X11 = current process structure
  * X12 = Constants vector
  * AG = X13 = args pointer
- * STK = X15 = current stack structure pointer
+ * STK = X14 = current stack structure pointer
+ * X15 = current process structure
  * X16-X17 = intra procedure call scratch registers
  * X18 = platform register
  * X19-X28 = callee saved registers
@@ -35,10 +35,10 @@
  * SP = X31 = system stack pointer
  */
 
-#define AG  (X13)
-#define STK (X15)
 #define CO (X12)
-#define PR (X11)
+#define AG  (X13)
+#define STK (X14)
+#define PR (X15)
 
 // We need these registers preserved at all costs
 static registerMap criticalRegs() {
@@ -98,15 +98,15 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
     "stp x8,x9, [sp, #-16]!\n"
     "stp x10,x11, [sp, #-16]!\n"
     "stp x12,x13, [sp, #-16]!\n"
-    "mov x15, %[stk]\n"
+    "mov x14, %[stk]\n"
     "ldr x13, %[ag]\n"
     "mov x12, %[constants]\n"
-    "mov x11, %[process]\n"
+    "mov x15, %[process]\n"
     "mov x16, %[code]\n"
     "ldr x29, %[fp]\n"
     "blr x16\n"
-    "str X13, [x15,#40]\n" // we will need to change these if stack structure changes
-    "str x29, [x15,#64]\n"
+    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
+    "str x29, [x14,#64]\n"
     "ldp x12,x13, [sp], #16\n"
     "ldp x10,x11, [sp], #16\n"
     "ldp x8,x9, [sp], #16\n"
@@ -143,6 +143,8 @@ static armReg topStkOp(jitCompPo jit) {
 }
 
 static void pushStkOp(jitCompPo jit, armReg src) {
+  jit->stack[jit->stackDepth].state = inRegister;
+  jit->stack[jit->stackDepth].Rg = RG(src);
   jit->stackDepth++;
   storeLocal(jit, src, -jitTrueStackDepth(jit));
 }
@@ -1965,7 +1967,7 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
 retCode stackCheck(jitCompPo jit, methodPo mtd) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
-  int32 delta = (int32) (stackDelta(mtd) + FrameCellCount) * pointerSize;
+  int32 delta = (stackDelta(mtd) + (int32)FrameCellCount) * pointerSize;
 
   if (is16bit(delta))
     sub(X16, AG, IM(delta));

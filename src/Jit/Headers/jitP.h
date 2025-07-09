@@ -17,55 +17,29 @@
 #define MAX_VSTACK 256
 
 typedef enum {
-  int64Tp,
-  fltTp,
-  ptrTp
-} lType;
-
-typedef enum {
-  argument,
-  local,
-  constant,
-  mcReg,
-  global,
-  engineSymbol,
-  stackRelative,
-  noWhere
-} srcLoc;
-
-typedef struct {
-  lType type;
-  srcLoc loc;
-  int64 ix;
-  registerSpec mcLoc;
-  void *address;
-  escapePo escape;
-} vOperand, *operandPo;
-
-typedef enum {
   localVar,
   spilledVar,
+  inRegister,
   emptyVar
 } localVarState;
 
 typedef struct localSpec {
   integer offset;
   integer id;
+  registerSpec Rg;
   localVarState state;
 } LocalRecord, *localPo;
 
-typedef struct labelMarker {
-  insPo pc;
-  codeLblPo lbl;
-} LabelMarkerRecord, *labelMarkerPo;
-
 typedef struct jit_compiler_ {
   methodPo mtd;
+  int32 arity;
+  int32 lclCnt;
   registerMap freeRegs;
   assemCtxPo assemCtx;
   int32 minOffset;
   int32 maxOffset;
   int32 stackDepth;
+  LocalRecord stack[MAX_VSTACK];
   char errMsg[MAXLINE];
 } JitCompilerContext;
 
@@ -86,11 +60,6 @@ void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 retCode reserveReg(jitCompPo jit, armReg rg);
 armReg findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, armReg rg);
-
-typedef struct lbl_ref {
-  lblRefUpdater updater;
-  integer pc;
-} AssemLblRefRecord;
 
 logical isByte(int64 x);
 logical isI32(int64 x);

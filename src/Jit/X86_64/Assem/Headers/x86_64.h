@@ -24,7 +24,7 @@ typedef enum {
   R13 = 13,
   R14 = 14,
   R15 = 15
-} armReg;
+} x64Reg;
 
 typedef enum {
   Reg,
@@ -37,14 +37,14 @@ typedef enum {
 typedef struct {
   x64OpMode mode;
   union {
-    armReg reg;
+    x64Reg reg;
     struct {
-      armReg base;
+      x64Reg base;
       int disp;
     } based;
     struct {
-      armReg base;
-      armReg index;
+      x64Reg base;
+      x64Reg index;
       int8 scale;
       int64 disp;
     } indexed;
@@ -63,7 +63,7 @@ typedef x64Op registerSpec;
 #define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
 #define LB(l)  {.mode=Labeled, .op.lbl = (l)}
 
-void lea_(armReg dst, x64Op src, assemCtxPo ctx);
+void lea_(x64Reg dst, x64Op src, assemCtxPo ctx);
 #define lea(dst, src, ctx) do{ x64Op s=src; lea_(dst,s,ctx); } while(False)
 
 void mov_(x64Op dst, x64Op src, assemCtxPo ctx);
@@ -95,13 +95,13 @@ void leave_(assemCtxPo ctx);
 void cwd_(x64Op dst, assemCtxPo ctx);
 void cbw_(x64Op src, assemCtxPo ctx);
 
-void movsx_(armReg dst, x64Op src, uint8 scale, assemCtxPo ctx);
+void movsx_(x64Reg dst, x64Op src, uint8 scale, assemCtxPo ctx);
 #define movsx(dst, src, scale, ctx) do{ x64Op s = src; movsx_(dst,s,scale,ctx); } while(False)
 
-void movzx_(armReg dst, x64Op src, assemCtxPo ctx);
+void movzx_(x64Reg dst, x64Op src, assemCtxPo ctx);
 #define movzx(dst, src, ctx) do{ x64Op s = src; movzx_(dst,s,ctx); } while(False)
 
-void movzdx_(armReg dst, x64Op src, assemCtxPo ctx);
+void movzdx_(x64Reg dst, x64Op src, assemCtxPo ctx);
 #define movzdx(dst, src, ctx) do{ x64Op s = src; movzdx_(dst,s,ctx); } while(False)
 
 void fld(int i, assemCtxPo ctx);
@@ -122,7 +122,7 @@ void sub_(x64Op dst, x64Op src, assemCtxPo ctx);
 void sbb_(x64Op dst, x64Op src, assemCtxPo ctx);
 #define sbb(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; sbb_(d,s,ctx); } while(False)
 
-void imul_(armReg dst, x64Op src, assemCtxPo ctx);
+void imul_(x64Reg dst, x64Op src, assemCtxPo ctx);
 #define imul(dst, src, ctx) do{ x64Op s = src; imul_(dst,s,ctx); } while(False)
 
 void idiv_(x64Op src, assemCtxPo ctx);
@@ -185,7 +185,7 @@ void bsr_(x64Op dst, x64Op src, assemCtxPo ctx);
 #define S_CC 0x8
 #define NS_CC 0x9
 
-void setcc_(armReg dst, uint8 cc, assemCtxPo ctx);
+void setcc_(x64Reg dst, uint8 cc, assemCtxPo ctx);
 #define setne(dst, ctx) setcc_(dst,NE_CC,ctx)
 #define seta(dst, ctx) setcc_(dst,A_CC,ctx)
 #define setae(dst, ctx) setcc_(dst,AE_CC,ctx)
