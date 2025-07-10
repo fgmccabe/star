@@ -147,7 +147,7 @@ primeSieve(Limit,Gen) => valof{
   case Gen resume ._next in {
   | ._yld(Nxt) => {
       if Nxt<Limit then{
-        valis primeSieve(Limit,primeFilter(Nxt,Gen))
+        valinns primeSieve(Limit,primeFilter(Nxt,Gen))
       }
       else
         valis Nxt
@@ -163,7 +163,9 @@ going generating prime numbers.
 NOTE: The clause `case Gen resume ...` pokes a hole in the generator
 abstraction and exposes Star's underlying coroutining features --
 which are based on the concept of a reified coroutine: sometimes known
-as a fiber.
+asnn a fiber.
+
+== Main Sequence
 
 To complete the program, we put a driver in a `main` program that
 looks for prime numbers up to some limit:
@@ -185,7 +187,7 @@ erastosthenes as a command in a terminal using:
 [source, bash]
 ----
 $ star eras 3000
-first prime greater than 3000 is ??
+first prime greater than 3000 is 3001
 ----
 
 
