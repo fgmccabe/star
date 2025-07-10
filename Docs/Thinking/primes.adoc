@@ -51,10 +51,10 @@ introduce Star's exception handling:
 
 [source,star]
 ----
-divides(X,Y) => (try X%Y==0 catch {_ => .false}).
+divides(X,Y) => (try Y%X==0 catch {_ => .false}).
 ----
 
-This states that `X` is a multiple of `Y` if X modulo Y is zero. Since
+This states that `X` evenly divides `Y` if Y modulo X is zero. Since
 modulo zero is equivalent to division by zero, Star requires that `%`
 expressions are protected by a `try` `catch` handler. Our catch
 handler simply returns `.false` -- because we dont believe that 0 is a
@@ -128,7 +128,7 @@ primeFilter:(integer,generator[integer]) => generator[integer].
 primeFilter(Prm,Gen) => generator{
    for Nxt : Gen do{
      if ~divides(Nxt,Prm) then
-       yield(Nxt)
+       yield Nxt
    }
 }
 ----
@@ -146,7 +146,7 @@ primeSieve:(integer,generator[integer]) => integer
 primeSieve(Limit,Gen) => valof{
   case Gen resume ._next in {
   | ._yld(Nxt) => {
-      if Current<Limit then{
+      if Nxt<Limit then{
         valis primeSieve(Limit,primeFilter(Nxt,Gen))
       }
       else

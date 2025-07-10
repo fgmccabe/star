@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.20)
-include(../makeinfo.cmake)
+include(../asciidoc.cmake)
 
-add_info(think intro functional contracts knowledge)
+add_adoc(think intro tour primes)
