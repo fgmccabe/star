@@ -1,5 +1,8 @@
 = Thinking About Star
-Francis G. McCabe<francis.g.mccabe@gmail.com>; Michael Sperber
+:author_1: Francis G. McCabe
+:email_1: francis.g.mccabe@gmail.com
+:author_2: Michael Sperber
+:email_2: michael.sperber@active-group.de
 :copyright: 2025 and beyond
 :source-highlighter: rouge
 :toc:
@@ -24,7 +27,10 @@ include::tour.adoc[leveloffset=1]
 
 include::primes.adoc[leveloffset=1]
 
-include::getting.adoc[leveloffset=1]
+== In Conclusion
+
+We hope that you have enjoyed this short tour of Star. If you would like to try
+it out, it is available on github: https://github.com/fgmccabe/star.
 
 [bibliography]
 == Bibliography
