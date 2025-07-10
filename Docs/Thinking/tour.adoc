@@ -527,7 +527,7 @@ provided via contracts.
 
 == Other Features
 
-This tour is necessarily incomplete. Other notable features of Star
-include a built-in grammar notation -- for specifying parsers --,
-exceptions, yield-style generators, async functions, and actors.
+This tour is necessarily incomplete. Other notable features of Star include a
+built-in grammar notation, exceptions, yield-style generators, async functions,
+and actors.
 
