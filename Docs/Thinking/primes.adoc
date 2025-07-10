@@ -116,7 +116,8 @@ genOdds = generator{
 }
 ----
 
-NOTE: The definition of `genOdds` also illustrates how assignment is done in Star.
+NOTE: The definition of `genOdds` also illustrates how assignment is done in
+Star.
 
 Another generator that we will need for generating prime numbers is
 one that reports on filtered numbered. For this we have a generator
@@ -160,10 +161,10 @@ We put a limit on `primeSieve`: the highest prime that we are
 looking for. But, if we had not used this, `primeSieve` would keep
 going generating prime numbers.
 
-NOTE: The clause `case Gen resume ...` pokes a hole in the generator
-abstraction and exposes Star's underlying coroutining features --
-which are based on the concept of a reified coroutine: sometimes known
-asnn a fiber.
+NOTE: The clause `case Gen resume ...` pokes a hole in the generator abstraction
+and exposes Star's underlying coroutining features -- which are based on the
+concept of a reified coroutine: sometimes known as a fiber. Nearly always,
+generators are not used in the way that is shown here.
 
 == Main Sequence
 
