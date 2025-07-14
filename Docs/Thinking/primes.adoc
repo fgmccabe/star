@@ -157,8 +157,8 @@ primeSieve(Limit,Gen) => valof{
 }
 ----
 
-We put a limit on `primeSieve`: the highest prime that we are
-looking for. But, if we had not used this, `primeSieve` would keep
+We put a limit on `primeSieve`: the minimum prime that we are
+looking for. But, if we had not used this, `primeSieve` could keep
 going generating prime numbers.
 
 NOTE: The clause `case Gen resume ...` pokes a hole in the generator abstraction

@@ -1,4 +1,4 @@
-== Why be a Star programmer?
+= Why be a Star programmer?
 
 This book is about the programming language called Star. Why, you
 may ask, do you need to learn yet another language? We hope to answer
@@ -6,14 +6,14 @@ that question and more in the course of this book. We also aim to show
 you how to program effectively in Star to solve real world
 problems.
 
-=== Programming has changed
+== Programming has changed
 
 Many of the world's most popular languages are quite old: C/C++ date
 back to the 1970's and 1980's; Java dates back to 1995. Although it
 sometimes does not seem like it; quite a lot has changed since those
 days.
 
-==== Programs are huge
+=== Programs are huge
 
 If your program is 100 lines long, it does not actually matter what
 programming language you use to write it in -- unless you are learning

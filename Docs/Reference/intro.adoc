@@ -1,0 +1,64 @@
+= Introduction
+
+Star is a high-level symbolic programming language oriented to general
+purpose programming.
+
+Star is a _functional-first_ language -- in that functions and other
+programs are first class values. While there is support for updatable
+variables and structures; the emphasis is on functional programming
+concepts and in order to get the best value from programming in Star,
+such side-effecting features should be used sparingly.
+
+Star is strongly, statically, typed. What this means is that all
+programs and all values have a single type that is determined by a
+combination of type inference and explicit type annotations.
+
+While this can increase the initial burden of the programmer; we
+believe that correctness of programs is a long-term productivity gain
+-- especially for large programs developed by teams of programmers.
+
+The type language is very rich; including polymorphic types, type
+constraints and higher-rank and higher kinded types. Furthermore,
+except in cases where higher-ranked types are required, type inference
+is used extensively to reduce the burden of type bureaucracy on
+programmers.
+
+== About this reference
+
+This reference is the language definition of the Star language. It is
+intended to be thorough and as precise as possible in the features
+discussed. However, where appropriate, we give simple examples as
+illustrative background to the specification itself.
+
+=== Metagrammar
+
+Throughout this document we introduce many syntactic features of the
+language. We use Star's own grammar notation to do this; as
+described in <<grammar_rules>>.
+
+=== Typographical Conventions
+
+Any text on a programming language often has a significant number of
+examples of programs and program fragments. In this reference, we show
+these using a `typewriter`-like font, often broken out in a display
+form:
+
+[source,star]
+----
+...
+P : integer
+...
+----
+
+We use the `...` ((ellipsis)) to explicitly indicate a fragment of a
+program that is embedded in a context.
+
+TIP: Some parts of the text require more careful reading, or represent
+comments about potential implications of the main text. These notes
+are highlighted the way this note is.footnote:[Notes which are not
+really part of the main exposition, but still represent nuggets of
+wisdom are relegated to footnotes.]
+
+WARNING: Occasionally, there are areas where the programmer may
+accidentally `trip over' some feature of the language.
+
