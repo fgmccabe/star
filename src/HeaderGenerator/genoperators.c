@@ -15,7 +15,7 @@ static retCode procOperator(void *n, void *r, void *c);
 static retCode procToken(void *n, void *r, void *c);
 static retCode procBrackets(void *n, void *r, void *c);
 static retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt);
-
+static retCode genADocStr(ioPo f, void *data, long depth, long precision, logical alt);
 static char *pC(char *buff, long *ix, char c);
 
 static char *pS(char *buff, char *s) {
@@ -42,7 +42,7 @@ static char *pC(char *buff, long *ix, char c) {
 }
 
 enum {
-  genProlog, genStar, genTexi, genEmacs
+  genProlog, genStar, genTexi, genAdoc,genEmacs
 } genMode = genProlog;
 
 typedef struct {
@@ -79,7 +79,7 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "psiet:d:")) >= 0) {
+  while ((opt = getopt(argc, argv, "psieat:d:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
@@ -89,6 +89,9 @@ int getOptions(int argc, char **argv) {
         break;
       case 'i':
         genMode = genTexi;
+        break;
+      case 'a':
+        genMode = genAdoc;
         break;
       case 'e':
         genMode = genEmacs;
@@ -126,6 +129,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
 	outMsg(c->follow, "  follows(\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
+    case genAdoc:
     default:
       break;
   }
@@ -150,6 +154,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "    | \"%P\" => .true  /* %s */\n", op->name, op->cmt);
         break;
       case genTexi:
+      case genAdoc:
       default:
         break;
     }
@@ -175,6 +180,7 @@ int main(int argc, char **argv) {
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
   installMsgProc('I', genTexiStr);
+  installMsgProc('A', genADocStr);
 
   int narg = getOptions(argc, argv);
 
@@ -372,6 +378,7 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
           return Error;
       }
     case genTexi:
+    case genAdoc:
       return Ok;
     case genEmacs:
       switch (op->style) {
@@ -447,6 +454,37 @@ static retCode procOperator(void *n, void *r, void *c) {
       }
       return ret;
     }
+
+    case genAdoc: {
+      retCode ret = Ok;
+      while (p != NULL && ret == Ok) {
+        opPo op = p->op;
+        switch (op->style) {
+          case prefixOp: {
+            char *type = (op->right == op->prior ? "associative" : "non-associative");
+            ret = outMsg(out, "|`pass:[%A]` | %s prefix | %d | %I\n", nm, type, op->prior, op->cmt);
+            break;
+          }
+          case infixOp: {
+            char *type = (op->right == op->prior ? "right associative" :
+                          op->left == op->prior ? "left associative" : "non-associative");
+            ret = outMsg(out, "|`pass:[%A]` | %s infix | %d | %I\n", nm, type, op->prior, op->cmt);
+            break;
+          }
+          case postfixOp: {
+            char *type = (op->left == op->prior ? "associative" : "non-associative");
+            ret = outMsg(out, "|`pass:[%A]` | %s postfix | %d | %I\n", nm, type, op->prior, op->cmt);
+            break;
+          }
+          default:
+            return Error;
+        }
+        p = p->next;
+      }
+      return ret;
+    }
+
+      
     case genEmacs: {
       retCode ret = outMsg(out, "  (\"%P\" (", nm);
 
@@ -479,6 +517,8 @@ retCode procToken(void *n, void *r, void *c) {
     case genStar: {
       return outMsg(out, "  | token(\"%P\") => .true\n", sep, nm);
     }
+    case genAdoc:
+      return outMsg(out,"\n");
     case genTexi: {
       if (!isAlphaNumeric(nm)) {
         if (tokenCount++ % 5 == 0) {
@@ -521,6 +561,10 @@ retCode genKeyword(void *n, void *r, void *c) {
       } else
         return Ok;
     }
+    case genAdoc: {
+      return outMsg(out, "|`%A`\n", name);
+    }
+      
     case genEmacs: {
       if (isUniIdentifier(name, uniStrLen(name)))
         return outMsg(out, "\"%P\"\n", name);
@@ -605,14 +649,16 @@ static retCode quoteChar(ioPo f, codePoint ch) {
     case '\"':
       ret = outStr(f, "\\\"");
       break;
-    case '@':
-      ret = outStr(f, "@@");
+    case '|':
+      ret = outStr(f, "\\|");
       break;
     case '{':
-      ret = outStr(f, "@{");
-      break;
     case '}':
-      ret = outStr(f, "@}");
+    case '@':
+      if(genMode==genTexi)
+        ret = outMsg(f, "@%c",ch);
+      else
+        ret = outChar(f, ch);
       break;
     default:
       if (ch < ' ') {
@@ -630,6 +676,19 @@ static retCode quoteChar(ioPo f, codePoint ch) {
 }
 
 retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt) {
+  char *txt = (char *) data;
+  integer len = (integer) uniStrLen(txt);
+  integer pos = 0;
+
+  retCode ret = Ok;
+  while (ret == Ok && pos < len) {
+    codePoint cp = nextCodePoint(txt, &pos, len);
+    ret = quoteChar(f, cp);
+  }
+  return ret;
+}
+
+retCode genADocStr(ioPo f, void *data, long depth, long precision, logical alt) {
   char *txt = (char *) data;
   integer len = (integer) uniStrLen(txt);
   integer pos = 0;

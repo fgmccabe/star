@@ -1,0 +1,350 @@
+[#standardOperatorsTbl]
+.Standard Operators
+[cols="1,3,1,2"]
+|===
+|`pass:[retire]` | non-associative prefix | 899 | retire task
+|`pass:[retire]` | non-associative infix | 899 | retire task
+|`pass:[all]` | non-associative prefix | 1010 | universal quantifier
+|`pass:[.<.]` | non-associative infix | 700 | set membership
+|`pass:[&&]` | right associative infix | 910 | conjunction
+|`pass:[let]` | non-associative prefix | 899 | part of let def
+|`pass:[~=]` | non-associative infix | 900 | not equals
+|`pass:[~>]` | non-associative infix | 1231 | type function
+|`pass:[throw]` | non-associative prefix | 230 | throw an exception
+|`pass:[.\|.]` | left associative infix | 720 | bitwise or
+|`pass:[do]` | non-associative prefix | 200 | do {}
+|`pass:[do]` | non-associative infix | 1200 | while T do {}
+|`pass:[import]` | non-associative prefix | 900 | import module
+|`pass:[catch]` | non-associative infix | 1199 | try {...} catch Tp in {...}
+|`pass:[valis]` | non-associative prefix | 930 | return value from execution
+|`pass:[,..]` | non-associative infix | 1000 | list cons
+|`pass:[for]` | non-associative prefix | 1175 | for ... do {}
+|`pass:[••]` | left associative infix | 450 | binary function composition
+|`pass:[..<]` | non-associative infix | 750 | range increasing iterator expression
+|`pass:[**]` | left associative infix | 600 | exponentiation
+|`pass:[..>]` | non-associative infix | 750 | range decreasing iterator expression
+|`pass:[->]` | non-associative infix | 890 | map entry
+|`pass:[.+.]` | non-associative prefix | 700 | count of number of bits
+|`pass:[async]` | non-associative prefix | 1234 | async function type
+|`pass:[then]` | non-associative infix | 1180 | if ... then ... else
+|`pass:[ζ]` | non-associative prefix | 1 | interpret a symbol without dereferencing constraints
+|`pass:[!]` | non-associative postfix | 100 | pick up value from a ref cell
+|`pass:[!]` | non-associative infix | 100 | pick up value from a ref cell
+|`pass:[->>]` | non-associative infix | 1200 | dependent type marker
+|`pass:[?=]` | non-associative infix | 900 | optional decomposition match
+|`pass:[default]` | non-associative postfix | 940 | default value marker
+|`pass:[<*]` | left associative infix | 600 | left fold
+|`pass:[#]` | non-associative prefix | 1750 | Macro statement marker
+|`pass:[#]` | non-associative infix | 760 | package separator
+|`pass:[??]` | right associative infix | 920 | conditional operator
+|`pass:[??]` | non-associative prefix | 950 | pull together a failable cexpression
+|`pass:[%]` | left associative infix | 700 | modulo
+|`pass:[.>>>.]` | left associative infix | 600 | arithmetic shift right
+|`pass:[\\+]` | left associative infix | 700 | add element to set
+|`pass:[*]` | non-associative postfix | 700 | multicat
+|`pass:[*]` | left associative infix | 700 | multiplication
+|`pass:[\\-]` | left associative infix | 700 | remove element from set
+|`pass:[+]` | non-associative postfix | 700 | one or more repetitions
+|`pass:[+]` | left associative infix | 720 | addition
+|`pass:[.>>.]` | left associative infix | 600 | logical shift right
+|`pass:[*>]` | non-associative infix | 905 | for all
+|`pass:[*>]` | non-associative prefix | 905 | grammar skip
+|`pass:[resume]` | non-associative infix | 899 | resume task
+|`pass:[,]` | right associative infix | 1000 | tupling operator
+|`pass:[contract]` | non-associative prefix | 1560 | contract definition
+|`pass:[\\/]` | left associative infix | 720 | union
+|`pass:[-]` | non-associative prefix | 300 | arithmetic negation
+|`pass:[-]` | left associative infix | 720 | subtraction
+|`pass:[.]` | non-associative prefix | 10 | identify enumerator
+|`pass:[.]` | left associative infix | 100 | object access
+|`pass:[/]` | left associative infix | 700 | division
+|`pass:[try]` | non-associative prefix | 1200 | try {...} catch {...}
+|`pass:[exists]` | non-associative prefix | 1010 | existential quantifier
+|`pass:[if]` | non-associative prefix | 1175 | if ... then ... else
+|`pass:[$$]` | non-associative prefix | 305 | thunk expression
+|`pass:[:]` | non-associative infix | 1250 | type annotation
+|`pass:[;]` | non-associative postfix | 1251 | sequencing operator
+|`pass:[;]` | right associative infix | 1251 | sequencing operator
+|`pass:[-->]` | non-associative infix | 1249 | grammar rule arrow
+|`pass:[<]` | non-associative infix | 900 | less than
+|`pass:[.=]` | non-associative infix | 900 | pattern match
+|`pass:[=>>]` | right associative infix | 950 | continuation arrow
+|`pass:[=]` | non-associative infix | 975 | definition
+|`pass:[\|:]` | non-associative infix | 1235 | constrained type
+|`pass:[show]` | non-associative prefix | 1240 | display debug message
+|`pass:[++]` | right associative infix | 720 | concatenate
+|`pass:[>]` | non-associative infix | 900 | greater than
+|`pass:[return]` | non-associative prefix | 930 | wrap value in monad
+|`pass:[?]` | non-associative prefix | 300 | extract value from either/or
+|`pass:[@]` | non-associative prefix | 400 | meta annotation
+|`pass:[@]` | right associative infix | 400 | meta annotation
+|`pass:[\|=]` | non-associative infix | 999 | implicit variable
+|`pass:[in]` | right associative infix | 900 | membership
+|`pass:[break]` | non-associative prefix | 10 | break out of an action (loop or block)
+|`pass:[suspend]` | non-associative prefix | 899 | suspend task
+|`pass:[suspend]` | non-associative infix | 899 | suspend task
+|`pass:[trace]` | non-associative infix | 140 | display tracing message
+|`pass:[trace]` | non-associative prefix | 140 | display tracing message
+|`pass:[~~]` | right associative infix | 1240 | quantifier
+|`pass:[assert]` | non-associative prefix | 1240 | assert condition
+|`pass:[!!]` | non-associative postfix | 100 | pick up value from a thunk
+|`pass:[⊕]` | left associative infix | 720 | addition
+|`pass:[.^.]` | left associative infix | 720 | bitwise xor
+|`pass:[//]` | left associative infix | 960 | map over
+|`pass:[public]` | non-associative prefix | 1700 | public visibility
+|`pass:[ref]` | non-associative prefix | 899 | reference type/cell
+|`pass:[.~.]` | non-associative prefix | 650 | bitwise 1's complement
+|`pass:[where]` | non-associative infix | 911 | semantic guard
+|`pass:[=<]` | non-associative infix | 900 | less than or equal
+|`pass:[case]` | non-associative prefix | 901 | case expression
+|`pass:[==]` | non-associative infix | 900 | equality predicate
+|`pass:[\\]` | left associative infix | 700 | difference
+|`pass:[=>]` | right associative infix | 950 | function arrow
+|`pass:[<=>]` | non-associative infix | 950 | constructor arrow
+|`pass:[valof]` | non-associative prefix | 300 | evaluate an action expression
+|`pass:[yield]` | non-associative prefix | 300 | yield in a generator expression
+|`pass:[while]` | non-associative prefix | 1175 | while ... do {}
+|`pass:[private]` | non-associative prefix | 1700 | private visibility
+|`pass:[•]` | left associative infix | 450 | function composition
+|`pass:[.&.]` | left associative infix | 700 | bitwise and
+|`pass:[///]` | left associative infix | 960 | indexed map over
+|`pass:[::]` | non-associative infix | 400 | type coercion
+|`pass:[+++]` | right associative infix | 720 | choice
+|`pass:[:=]` | non-associative infix | 975 | assignment
+|`pass:[:?]` | non-associative infix | 400 | fallable type coercion
+|`pass:[.<<.]` | left associative infix | 600 | left shift
+|`pass:[implementation]` | non-associative prefix | 1260 | contract implementation
+|`pass:[>>=]` | right associative infix | 950 | monadic bind
+|`pass:[^/]` | left associative infix | 960 | filter
+|`pass:[<~]` | non-associative infix | 999 | type interface rule
+|`pass:[type]` | non-associative prefix | 1251 | type marker
+|`pass:[\|]` | non-associative prefix | 1548 | type union, case union
+|`pass:[\|]` | left associative infix | 1548 | type union, case union, abstraction
+|`pass:[.#.]` | left associative infix | 600 | test nth bit
+|`pass:[~]` | non-associative prefix | 905 | logical negation
+|`pass:[^//]` | left associative infix | 800 | filter map
+|`pass:[\|\|]` | right associative infix | 920 | disjunction
+|`pass:[else]` | right associative infix | 1200 | if ... then ... else
+|`pass:[::=]` | non-associative infix | 1550 | algebraic type definition
+|`pass:[/\\]` | left associative infix | 700 | intersection
+|`pass:[>=]` | non-associative infix | 900 | greater than or equal
+|`pass:[>>]` | right associative infix | 950 | grammar produce value
+|`pass:[throws]` | non-associative infix | 950 | can throw an exception
+
+|===
+
+[#keywordsTbl]
+.Keywords
+[cols="1,1,1"]
+|===
+|`retire`
+|`all`
+|`&&`
+|`let`
+|`~>`
+|`throw`
+|`{.`
+|`do`
+|`import`
+|`catch`
+|`valis`
+|`,..`
+|`for`
+|`..<`
+|`..>`
+|`{?`
+|`async`
+|`. `
+|`then`
+|`ζ`
+|`!`
+|`->>`
+|`?=`
+|`default`
+|`#`
+|`!}`
+|`??`
+|`(`
+|`)`
+|`*>`
+|`resume`
+|`,`
+|`contract`
+|`./`
+|`.`
+|`try`
+|`exists`
+|`if`
+|`$$`
+|`:`
+|`;`
+|`-->`
+|`.=`
+|`=>>`
+|`=`
+|`\|:`
+|`@`
+|`\|=`
+|`\|>`
+|`in`
+|`break`
+|`suspend`
+|`~~`
+|`!!`
+|`/.`
+|`public`
+|`[\|`
+|`ref`
+|`where`
+|`case`
+|`[`
+|`=>`
+|`]`
+|`<=>`
+|`\|]`
+|`generator`
+|`?}`
+|`valof`
+|`yield`
+|`while`
+|`private`
+|`::`
+|`:?`
+|`implementation`
+|`<\|`
+|`<~`
+|`{`
+|`type`
+|`.}`
+|`\|`
+|`}`
+|`~`
+|`\|\|`
+|`else`
+|`::=`
+|`>>`
+|`throws`
+|`{!`
+
+|===
+
+[#tokensTble]
+.Standard Graphical Tokens
+[cols="1,1,1,1,1,1"]
+|===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|===
+
