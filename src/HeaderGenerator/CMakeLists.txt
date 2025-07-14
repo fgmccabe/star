@@ -65,10 +65,13 @@ set(INTRINSIC_PL_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.pl.plate)
 set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
 set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
+set(OPERATORS_ADOC ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.adoc)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
 add_custom_target(texi.operators DEPENDS ops
-        COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate ${OPERATORS_TEXI}
+        COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate ${OPERATORS_TEXI})
+add_custom_target(adoc.operators DEPENDS ops
+        COMMAND ops -a -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.adoc.plate ${OPERATORS_ADOC}
 )
 
 add_custom_target(el.operators DEPENDS ops

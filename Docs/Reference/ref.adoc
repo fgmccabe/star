@@ -20,7 +20,7 @@ include::intro.adoc[leveloffset=1]
 
 include::lexical.adoc[leveloffset=1]
 
-@include opg.texi
+include::opg.adoc[leveloffset=1]
 
 include::programs.adoc[leveloffset=1]
 
