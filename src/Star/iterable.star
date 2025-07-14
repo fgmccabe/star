@@ -39,4 +39,16 @@ star.iterable{
 	  }
 	| ._cancel => ._all
       })).
+
+  public implementation all e ~~ iter[generator[e]->>e] => {
+    _iter:all x ~~ (generator[e],x,(e,x)=>x) => x.
+    _iter(G,X,Fn) => valof{
+      XX := X;
+      case G resume ._next in {
+	| ._yld(E) => { XX := Fn(E,XX!)}
+	| ._all => valis XX!
+      };
+      valis XX!
+    }
+  }
 }

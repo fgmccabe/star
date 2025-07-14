@@ -1,0 +1,642 @@
+= Lexical Syntax
+
+In this chapter we define the lexical syntax of Star: how characters are
+interpreted, the legal tokens and how they are parsed.
+
+== Lexical Tokens
+
+For the sake of exposition, we will use a simplified version of the
+`token` type that is used within the Star compiler:
+
+.Lexical Token Type
+[source,star]
+----
+tk ::= .idQTok(string)
+    | .idTok(string)
+    | .lftTok(string)
+    | .rgtTok(string)
+    | .intTok(integer)
+    | .bigTok(bigint)
+    | .fltTok(float)
+    | .chrTok(char)
+    | .strTok(cons[stringSegment])
+    | .puncTok(string).
+
+stringSegment ::= .segment(string)
+    | .interpolate(cons[token],string)
+    | .evaluate(cons[token]).
+----
+
+Using this type definition, it will be straightforward to be more
+precise when describing individual elements of the lexical syntax.
+
+The overall rule for tokenizing is given by <<tokenRule>>.
+
+[#tokenRule]
+.Lexical Token Grammar
+[source,star]
+----
+token >> Tk --> skip, tk >> Tk.
+
+tk >> Tk --> numeric >> Tk.
+tk >> Tk --> character >> Tk.
+tk >> Tk --> stringLiteral >> Tk.
+tk >> Tk --> identifier >> Tk.
+tk >> Tk --> punctuation >> Tk.
+----
+
+== Characters
+(((character set)))
+(((Unicode)))
+
+Star source text is based on the Unicode character set. This means
+that identifiers and string values may directly use any Unicode
+characters; specifically any _Unicode Scalar Value_.
+
+NOTE: We use the term _CodePoint_ to refer to a Unicode Scalar Value --
+the former being easier to say than the latter. However, Star does
+not support isolated surrogate codes; hence Star code points
+are technically Unicode Scalar Values.
+
+NOTE: However, nearly all the standard operators and keywords fall in he ASCII
+subset of Unicode.
+
+=== Comments and White Space
+(((white space)))
+
+Input is tokenized according to rules that are similar to most modern
+programming languages: contiguous sequences of characters are assumed to belong
+to the same token unless the class of character changes -- for example, a
+punctuation mark separates sequences of letter characters. In addition, white
+space and comments serve as token boundaries; otherwise white space and comments
+are ignored by the higher-level semantics of the language.
+
+[#ingoreableFig]
+.Ignorable Characters
+[source,star]
+----
+skip --> lineComment.
+skip --> blockComment.
+skip --> whiteSpace.
+skip --> [].
+----
+
+There are two forms of comment: line comment and block comment.
+
+==== Line Comment
+(((comment, line)))
+(((line comment)))
+
+A line comment consists of a `--` followed by a space character or tab, followed by all
+characters up to the next new-line. Here, `\t` refers to the
+Horizontal Tab.
+
+[#lineCommentFig
+.Line Comment
+[source,star]
+----
+lineComment --> [`-`,`-`,` `], skipToEol.
+lineComment --> [`-`,`-`,`\t`], skipToEol.
+
+skipToEol --> [`\n`].
+skipToEol --> [_], skipToEol.
+----
+
+Note that any block comment markers are ignored in a line comment
+(i.e., a `/*` sequence in a line comment does not signal the
+start of a block comment).
+
+==== Block Comment
+(((comment, block)))
+(((block comment)))
+A block comment consists of the characters `/*` followed by any
+characters and terminated by the characters `*/`.
+
+[#blockCommentFig]
+.Block Comment
+[source,star]
+----
+blockComment --> [`/`,`*`], skipBlock.
+
+skipBlock --> [`*`,`/`].
+skipBlock --> [_], skipBlock.
+----
+
+Each form of comment overrides the other: a `/*` sequence in a
+line comment is _not_ the start of a block comment, and a `-- `
+sequence in a block comment is similarly not the start of a
+line comment but the continuation of the block comment.
+
+==== White Space
+(((white space)))
+
+White space characters are used to help delimit other
+tokens. Except when they occur in a <<StringLiteral>> or in a
+<<QuotedIdentifier>> they serve no other purpose.
+
+[#whiteSpaceFig]
+.White Space
+[source,star]
+----
+whiteSpace --> [` `] | [`\n`] | [`\r`] | [`\t`] | [`\f`].
+----
+
+== Number Literals
+(((numeric literals)))
+(((literal,number)))
+
+The numeric values include integer values, floating point values,
+decimal values and character codes. The latter are integers that
+represent the Unicode code points of particular characters.
+
+[#numericFig]
+.Numeric Literals
+[source,star]
+----
+numeric >> .intTok(Dc) --> decimal >> Dc.
+numeric >> .bigTok(Bg) --> big >> Bg.
+numeric >> .intTok(Hx) --> hexadecimal >> Hx.
+numeric >> .fktTok(Dx) --> floating >> Dx.
+numeric >> .intTok(Ch) --> charCode >> Ch.
+----
+
+TIP: The lexical syntax for numeric values is for positive values only. The
+interpretation of negative numeric literals is part of the grammar not
+the lexical notation.
+@end quotation
+
+=== Decimal Integer Tokens
+(((integer)))
+(((number,integer)))
+(((syntax,integer)))
+
+
+An integer is written using the normal decimal notation (@pxref{decimalFig}):
+[source,star]
+----
+1  34 9999
+----
+
+TIP: The lexical syntax for integers does not include negative
+integers. Negative integers are accounted for at the grammar level.
+@end quotation
+
+[#decimalFig]
+.Decimal Literals
+[source,star]
+----
+decimal >> Dc::integer --> digit* >> Ds.
+
+digit >> D --> [C] , @{ D ?= isDigit(C) @}.
+
+big >> Bg::bigint --> digits* >> Bg, [`b`].
+
+isDigit(`0`) => .some(0).
+isDigit(`1`) => .some(1).
+...
+isDigit(`9`) => .some(9).
+isDigit(_) => .none.
+----
+
+Normal integers have limited (62bit) precision, whereas big integers
+have unlimited precision.
+
+=== Hexadecimal Integers 
+(((hexadecimal)))
+(((number,hexadecimal)))
+(((syntax,hexadecimal)))
+
+@noindent
+A hexadecimal number is an integer written using hexadecimal
+notation. A hexadecimal number consists of a leading `0x`
+followed by a sequence of hex digits. For example,
+
+[source,star]
+----
+0x0 0xff
+0x34fe
+----
+are all hexadecimals.
+
+[#hexadecimalFig]
+.Hexadecimal numbers
+[source,star]
+----
+hexadecimal >> Hx --> [`0`, `x`], hex >> Hx.
+
+hex >> H --> hx(0).
+
+hx(N) >> Hx --> [D], @{ Dg ?= isHexDigit(D) @}, hx(N*16+Dg).
+hx(N) >> N --> [].
+
+isHexDigit(`0`) => .some(0).
+isHexDigit(`1`) => .some(1).
+...
+isHexDigit(`F`) => .some(15).
+isHexDigit(_) default => .none.
+----
+
+=== Floating Point Numbers
+(((floating point)))
+(((number,floating point)))
+(((syntax,floating point number)))
+
+Floating point numbers are written using a notation that is familiar. For
+example,
+
+[source,star]
+----
+234.45  1.0e45
+----
+
+See <<floatingPointFig>> for a complete syntax diagram for floating point numbers.
+
+[#floatingPointFig]
+.Floating Point numbers
+[source,star]
+----
+floating >> (Wh+Fr)*10**Exp -->
+  decimal >> Wh, [`.`], fraction >> Fr, exponent >> Exp.
+
+fraction >> Fr --> frac(0.1,0) >> Fr.
+
+frac(Scale,SoF) >> Fr --> digit >> D, frac(Scale*0.1,SoF+D*Scale).
+frac(_,Fr) >> Fr.
+
+exponent >> Exp --> decimal >> Exp.
+exponent >> -Exp --> [`-`], decimal >> Exp.
+----
+
+NOTE: All floating point number are represented to a precision that is at
+least equal to 64-bit double precision. There is no equivalent of
+single-precision floating pointer numbers, nor is there an equivalent
+of arbitrary precision floating point numbers.
+
+=== Character Codes
+(((character code)))
+(((number,character code)))
+(((syntax,character code)))
+
+The character code notation allows a number to be based on the coding
+value of a character. Any Unicode character scalar value can be entered
+in this way:
+
+[source,star]
+----
+0cX 0c[ 0c\n 0c
+----
+
+For example, `0c\n` is the character associated with the new
+line character, i.e., its value is `10`.
+
+TIP: Unicode has the capability to represent up to one million character code points.
+@end quotation
+
+[#characterCodeFig]
+.Character Codes
+[source,star]
+----
+CharacterCode >> Cde::integer --> [`0`,`c`], charRef >> Cde.
+----
+
+A `CharacterCode` returns an `integer`, although `CharRef` returns a `char`.
+
+== Characters and Strings
+(((character reference)))
+
+There are three forms of textual values: characters, strings and block strings. 
+
+=== Character Literals
+(((character literal)))
+(((syntax, character literal)))
+
+A `charRef` is a denotation of a single code point.
+
+[#charRefFig]
+.Character Literal
+[source,star]
+----
+charRef >> Chr --> [Chr] | escape >> Chr.
+
+charLiteral >> .chrTok(Chr) --> [`\``], charRef >> Chr, [`\``].
+
+escape >> Chr --> [`\\`], escapeChar >> Chr.
+escape >> Hx::char --> [`\\`,`u`], hex >> Hx, [`;`]
+
+ecapeChar >> `\b` --> [`b`]. -- <1>
+ecapeChar >> `\d` --> [`d`].
+ecapeChar >> `\e` --> [`e`].
+ecapeChar >> `\f` --> [`f`].
+ecapeChar >> `\n` --> [`n`].
+ecapeChar >> `\r` --> [`r`].
+ecapeChar >> `\t` --> [`t`].
+ecapeChar >> `\v` --> [`v`].
+----
+<1> Standard escape char.
+
+For most characters, the character reference for that character is the
+character itself. For example, the string `"T"` contains the
+character `T`. However, certain standard characters are normally
+referenced by escape sequences consisting of a backslash character
+followed by other characters; for example, the new-line character is
+typically written `\n`.
+
+Apart from the standard character references, there is a hex encoding
+for directly encoding unicode characters that may not be available on
+a given keyboard:
+[source,star]
+----
+\u34ff;
+----
+
+This notation accommodates the Unicode's varying width of character
+codes -- from 8 bits through to 20 bits.
+
+=== String Literals
+(((string)))
+(((string literal)))
+(((syntax,string literal)))
+(((string,quoted)))
+
+A `string` consists of a sequence of characters -- specifically
+`charRef`'s.
+
+There are two forms of _string literal_: a quotedString and a blockString.
+
+[#quotedStringFig]
+.String Literals
+[source,star]
+----
+stringLiteral >> .strTok(Str) --> quotedString >> Str.
+stringLiteral >> .strTok([.segment(Seg)]) --> blockString >> Seg.
+
+quotedString >> Segs => [`"`], segment* >> Segs [`"`].
+
+segment >> Seg --> interpolation >> Seg.
+segment >> Seg --> embedding >> Seg.
+segment >> .segment(Chrs::string) --> stringCharRef* >> Chrs.
+
+interpolation >> .interpolate(Tks,Fmt::string) -->
+  [`$`, `{` ], token* >> Tks [`}`, `:` ], charRef* >> Fmt, [`;`].
+interpolation >> .interpolate(Tks,"") -->
+  [`$`, `{` ], token* >> Tks [`}`], ~ [`:`].
+
+embedding >> .evaluate(Tks) -->
+  [`#`, `{` ], token* >> Tks [`}`].
+
+stringCharRef >> Cher --> [Chr], { Chr ~= `$` && Chr ~= `#` && Chr ~= `\n` }.
+stringCharRef >> `$` --> [`\`,`$`].
+stringCharRef >> `#` --> [`\`,`#`].
+----
+
+TIP: Strings are _not_ permitted to contain the new-line character -- other
+than as a character reference.
+@end quotation
+
+Most string literals take the form of `quotedString`'s. Such
+string literals support special notation for control characters and
+also permit _interpolation_ of values embedded within them. The
+supported control characters are mostly the usual suspects:
+
+[source,star]
+----
+"This string has a \nnew line in the middle"
+----
+
+=== Block String
+(((strings,block form of)))
+(((block of data)))
+
+In addition to the normal notation for strings, there is a block form
+of string that permits raw character data to be processed as a string.
+
+[#blockStringFig]
+.Block String Literal
+[source,star]
+----
+blockString >> Chrs :: string --> [`"`,`"`,`"`], rawChar* >> Chrs, [`"`,`"`,`"`].
+
+rawChar >> Ch --> [Ch].
+----
+
+The block form of string allows any characters in the text and
+performs no interpretation of those characters.
+
+Block strings are written using triple quote characters at either
+end. Any new-line characters enclosed by the block quotes are
+considered to be part of the strings.
+
+The normal interpretation of `$` and `#` characters as interpolation
+markers is suppressed within a block string; as are any escape
+characters' interpretations.
+
+[source,star]
+----
+"""This is a block string with $ and
+uninterpreted \n characters"""
+----
+
+TIP: This form of string literal can be a convenient method for including
+block text into a program source.
+@end quotation
+
+== Identifiers
+(((identifier)))
+
+Identifiers are used to denote operators, keywords and variables. There are
+three main kinds of identifier: regular alpha-numeric identifiers, graphic
+identifiers and quoted identifiers. However, semantically, all these are
+essentially equivalent: they all identify some variable or some type.
+
+[#identifierFig]
+.Identifier Syntax
+[source,star]
+----
+identifier >> Id --> alphaNumeric >> Id.
+identifier >> Qt --> quotedIdentifier >> Qt.
+identifier >> Gr --> graphicIdentifier >> Gr.
+----
+
+
+=== Alphanumeric Identifiers
+(((alpha numeric identifier)))
+
+Alphanumeric identifiers are based on the Unicode definition of identifier. For
+the ASCII subset of characters, the definition corresponds to the common form of
+identifier -- a letter followed by a sequence of digits and letters. However,
+non-ASCII characters are also permitted in an identifier.
+
+[source,star]
+----
+alphaNumeric >> .idTok([Ch,..Bd]::string) --> leadChar >> Ch, bodyChar* >> Bd.
+
+leadChar >> Ch --> [Ch], { letterNumber(Ch) || lowerCase(Ch) ||
+  upperCase(Ch) || titleCase(Ch) || otherNumber(Ch) || otherLetter(Ch) ||
+  connectorPunctuation(Ch) }.
+
+bodyChar >> Ch --> leadChar >> Ch.
+bodyChar >> Ch --> [Ch], { digit(Ch) || modifierLetter(Ch) }
+----
+
+The predicates `letterNumber`, `lowerCase` etc. refer to standard character
+categories defined in Unicode.
+
+TIP: This definition of `alphaNumeric` identifier closely follows the standard
+definition of Identifier as contained in the Unicode specification.
+
+=== Graphic Identifiers
+(((graphic identifier)))
+(((indentifier, graphic)))
+
+The standard operators often have a graphic form -- such as `+`,
+and `=<`. <<standardOperatorsTbl>> contains a complete listing
+of all the standard graphic-form identifiers.
+
+[#graphicIdentifierFig]
+.Graphic Identifiers
+[source,star]
+----
+graphicIdentifier >> .idTok(Chrs::string) --> symbolicChar*>>Chrs.
+----
+
+The standard graphicIentifier`'s are listed in <<tokensTbl>>. I.e, such
+identifiers are normally also operators.
+
+TIP: Apart from their graphic form there is no particular semantic
+distinction between a graphic form identifier and a alphanumeric form
+identifier.
+
+=== Quoted Identifiers
+(((identifier,quoted)))
+(((quoted identifiers)))
+
+A quoted identifiers is denoted by a sequence of `charRef`'s enclosed
+in single quotes. Recall that strings are enclosed in double quotes.
+
+[#quotedIdentFig]
+.Quoted Identifier
+[source,star]
+----
+quotedIdentifier >> .idQTok(Chrs::string) --> `'` charRef * >> Chrs `'`.
+----
+
+A quoted identifier suppresses any operator or keyword interpretation that the
+identifier might otherwise have.
+
+TIP: This can be useful for external facing interfaces where, for example,
+the name of a field in a structure must have a particular form -- even
+if that would otherwise be a keyword.
+
+=== Standard Keywords
+(((standard keywords)))
+(((keywords)))
+
+There are a number of keywords which are reserved by the language --
+these may not be used as identifiers or in any other role.
+
+TIP: On those occasions where it is important to have an identifier that is
+a keyword it is possible to achieve this by enclosing the keyword in
+single quotes.
+
+For example, while `contract` is a keyword in the language; enclosing
+the word in parentheses: `contract` has the effect of suppressing
+the keyword interpretation -- even though the printed representations
+are the same.
+
+Enclosing a name in parentheses also has the effect of suppressing any
+operator information about the name.
+
+== Punctuation
+(((punctuation)))
+
+There are relatively few punctuation symbols; although it has a large
+number of graphical identifiers.
+
+=== End of Term
+
+With a few exceptions, statements footnote:[A statement in Star is not to be
+confused with statements in languages like C or Java: statements in Star always
+declare some fact.] are terminated by the `terminator` -- which consists of
+a period followed by white space character.
+
+[#terminatorFig]
+.Statement Terminator
+[source,star]
+----
+terminator --> [`.`], whiteSpace,
+----
+
+The exceptions are:
+* After a brace.
+If a statement's last character is a brace, then it does not need to
+be terminated with a @var{Terminator}. This mimics C-style
+conventions.
+* The last definition.
+If a statement is the last in a sequence of statements that are
+enclosed in braces, then it does not need termination.
+
+=== Parentheses
+(((parentheses)))
+
+Parentheses are _active_: they are not simply a
+means of grouping expressions and/or overriding precedences of
+operators. This is because parentheses have two distinct roles: to
+group and/or override precedences, and as a way of enclosing tuples of
+terms.
+
+=== Square Brackets
+(((square brackets)))
+
+Square brackets (`[` and `]`) are used to delimit certain
+kinds of list and sequence expressions.
+
+=== Braces
+(((braces)))
+
+Braces are used to delimit groups of statements.
+
+There are two forms of braces: with and without a period character.
+
+[#bracesFig]
+.Braces
+[source,star]
+----
+brace >> .puncTok("{") --> [`{`]. 
+brace >> .puncTok("}") --> [`}`]. 
+brace >> .puncTok("{.") --> [`{`,`.`]. 
+brace >> .puncTok(".}") --> [`.`,`}`]. 
+----
+
+They must be appropriately paired: a `{` must be paired with a
+subsequent `}`; and similarly the `{.` must be paired with
+`.}`.
+
+=== Special Brackets
+
+There are several _special_ sets of brackets:
+
+[#specialBrFig]
+.Special Brackets
+[source,star]
+----
+specialBr >> .puncTok("{!") --> [`{`,`!`]. 
+specialBr >> .puncTok("!}") --> [`!`,`}`]. 
+specialBr >> .puncTok("{?") --> [`{`,`?`]. 
+specialBr >> .puncTok("?}") --> [`?`,`}`]. 
+specialBr >> .puncTok("[|") --> [`[`,`|`]. 
+specialBr >> .puncTok("|]") --> [`|`,`]`]. 
+specialBr >> .puncTok("<|") --> [`<`,`|`]. 
+specialBr >> .puncTok("|>") --> [`|`,`>`].
+----
+
+As with other brackets, these must be appropriately paired. Each one
+of these special bracket pairs takes a single term as argument --
+unlike the `()` and `[]` brackets which take comma
+separated sequences.
+
+
+
+
+
+
+

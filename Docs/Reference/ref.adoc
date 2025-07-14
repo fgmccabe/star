@@ -1,0 +1,65 @@
+= Star Reference
+:author: Francis G. McCabe
+:email: francis.g.mccabe@gmail.com
+:copyright: 2025 and beyond
+:source-highlighter: rouge
+:toc:
+:doctype: book
+:title-page:
+:pdf-page-size: Letter
+
+This is the reference for the Star language, version @value{VERSION}.  
+
+This manual offers an in-depth and complete ((description)) of the Star
+language. However, it is not a tutorial on the language, and the order
+of presentation within the manual reflects that. For a more tutorial
+introduction, the reader is referred to _Star Programming_ (by
+F.G. McCabe).
+
+include::intro.adoc[leveloffset=1]
+
+include::lexical.adoc[leveloffset=1]
+
+@include opg.texi
+
+include::programs.adoc[leveloffset=1]
+
+@include types.texi
+
+@include patterns.texi
+
+@include expressions.texi
+
+@include conditions.texi
+
+@include queries.texi
+
+@include actions.texi
+
+@include grammar.texi
+
+@include coroutines.texi
+
+@include standard.texi
+
+@include numbers.texi
+
+@include strings.texi
+
+@include collections.texi
+
+@include io.texi
+
+@include date.texi
+
+@include rdf.texi
+
+@include system.texi
+
+@include catalog.texi
+
+[index]
+== Concept index
+
+
+
