@@ -462,18 +462,18 @@ static retCode procOperator(void *n, void *r, void *c) {
         switch (op->style) {
           case prefixOp: {
             char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "|`pass:[%A]` | %s prefix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %s prefix | %d | %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           case infixOp: {
             char *type = (op->right == op->prior ? "right associative" :
                           op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "|`pass:[%A]` | %s infix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %s infix | %d | %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           case postfixOp: {
             char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "|`pass:[%A]` | %s postfix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %s postfix | %d | %I\n", nm, type, op->prior, op->cmt);
             break;
           }
           default:
@@ -562,7 +562,7 @@ retCode genKeyword(void *n, void *r, void *c) {
         return Ok;
     }
     case genAdoc: {
-      return outMsg(out, "|`%A`\n", name);
+      return outMsg(out, "|`+++%A+++`\n", name);
     }
       
     case genEmacs: {
@@ -643,9 +643,6 @@ static retCode quoteChar(ioPo f, codePoint ch) {
     case '\v':
       ret = outStr(f, "\\v");
       break;
-    case '\\':
-      ret = outStr(f, "\\\\");
-      break;
     case '\"':
       ret = outStr(f, "\\\"");
       break;
@@ -655,6 +652,7 @@ static retCode quoteChar(ioPo f, codePoint ch) {
     case '{':
     case '}':
     case '@':
+    case '\\':
       if(genMode==genTexi)
         ret = outMsg(f, "@%c",ch);
       else
