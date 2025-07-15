@@ -38,7 +38,7 @@
 @tab non-associative prefix
 @tab 230
 @tab throw an exception
-@item @code{.|.}
+@item @code{.\|.}
 @tab left associative infix
 @tab 720
 @tab bitwise or
@@ -154,7 +154,7 @@
 @tab left associative infix
 @tab 600
 @tab arithmetic shift right
-@item @code{\\+}
+@item @code{@\+}
 @tab left associative infix
 @tab 700
 @tab add element to set
@@ -166,7 +166,7 @@
 @tab left associative infix
 @tab 700
 @tab multiplication
-@item @code{\\-}
+@item @code{@\-}
 @tab left associative infix
 @tab 700
 @tab remove element from set
@@ -202,7 +202,7 @@
 @tab non-associative prefix
 @tab 1560
 @tab contract definition
-@item @code{\\/}
+@item @code{@\/}
 @tab left associative infix
 @tab 720
 @tab union
@@ -274,7 +274,7 @@
 @tab non-associative infix
 @tab 975
 @tab definition
-@item @code{|:}
+@item @code{\|:}
 @tab non-associative infix
 @tab 1235
 @tab constrained type
@@ -306,7 +306,7 @@
 @tab right associative infix
 @tab 400
 @tab meta annotation
-@item @code{|=}
+@item @code{\|=}
 @tab non-associative infix
 @tab 999
 @tab implicit variable
@@ -386,7 +386,7 @@
 @tab non-associative infix
 @tab 900
 @tab equality predicate
-@item @code{\\}
+@item @code{@\}
 @tab left associative infix
 @tab 700
 @tab difference
@@ -466,11 +466,11 @@
 @tab non-associative prefix
 @tab 1251
 @tab type marker
-@item @code{|}
+@item @code{\|}
 @tab non-associative prefix
 @tab 1548
 @tab type union, case union
-@item @code{|}
+@item @code{\|}
 @tab left associative infix
 @tab 1548
 @tab type union, case union, abstraction
@@ -486,7 +486,7 @@
 @tab left associative infix
 @tab 800
 @tab filter map
-@item @code{||}
+@item @code{\|\|}
 @tab right associative infix
 @tab 920
 @tab disjunction
@@ -498,7 +498,7 @@
 @tab non-associative infix
 @tab 1550
 @tab algebraic type definition
-@item @code{/\\}
+@item @code{/@\}
 @tab left associative infix
 @tab 700
 @tab intersection
@@ -567,7 +567,7 @@
   @tab @code{&&}
   @tab @code{~=}
   @tab @code{~>}
-  @tab @code{.|.}
+  @tab @code{.\|.}
   @item @code{,..}
   @tab @code{••}
   @tab @code{..<}
@@ -584,14 +584,14 @@
   @tab @code{??}
   @tab @code{%}
   @item @code{.>>>.}
-  @tab @code{\\+}
+  @tab @code{@\+}
   @tab @code{*}
-  @tab @code{\\-}
+  @tab @code{@\-}
   @tab @code{+}
   @item @code{.>>.}
   @tab @code{*>}
   @tab @code{,}
-  @tab @code{\\/}
+  @tab @code{@\/}
   @tab @code{-}
   @item @code{.}
   @tab @code{/}
@@ -603,12 +603,12 @@
   @tab @code{.=}
   @tab @code{=>>}
   @tab @code{=}
-  @item @code{|:}
+  @item @code{\|:}
   @tab @code{++}
   @tab @code{>}
   @tab @code{?}
   @tab @code{@@}
-  @item @code{|=}
+  @item @code{\|=}
   @tab @code{~~}
   @tab @code{!!}
   @tab @code{⊕}
@@ -617,7 +617,7 @@
   @tab @code{.~.}
   @tab @code{=<}
   @tab @code{==}
-  @tab @code{\\}
+  @tab @code{@\}
   @item @code{=>}
   @tab @code{<=>}
   @tab @code{•}
@@ -631,13 +631,13 @@
   @item @code{>>=}
   @tab @code{^/}
   @tab @code{<~}
-  @tab @code{|}
+  @tab @code{\|}
   @tab @code{.#.}
   @item @code{~}
   @tab @code{^//}
-  @tab @code{||}
+  @tab @code{\|\|}
   @tab @code{::=}
-  @tab @code{/\\}
+  @tab @code{/@\}
   @item @code{>=}
   @tab @code{>>}
 
