@@ -193,7 +193,7 @@ star.compiler.escapes{
     | "_isLetterChar" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("boolean")))
     | "_digitCode" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("char")])),.nomnal("integer")),.nomnal("errorCode")))
     | "_codePoint" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("integer")))
-    | "_char" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("char")))
+    | "_int2chr" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("char")))
     | "_int2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("integer")])),.nomnal("string")))
     | "_flt2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("float"),.nomnal("integer"),.nomnal("char"),.nomnal("boolean")])),.nomnal("string")))
     | "_int_format" => .some(.tpExp(.tpExp(.tpExp(.tpFun("=>",3),.tupleType([.nomnal("integer"),.nomnal("string")])),.nomnal("string")),.nomnal("errorCode")))
@@ -436,7 +436,7 @@ star.compiler.escapes{
     | "_isLetterChar" => .true
     | "_digitCode" => .true
     | "_codePoint" => .true
-    | "_char" => .true
+    | "_int2chr" => .true
     | "_int2str" => .true
     | "_flt2str" => .true
     | "_int_format" => .true

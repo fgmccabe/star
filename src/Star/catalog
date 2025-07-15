@@ -42,6 +42,7 @@
     "star.promise": "promise.star",
     "star.q": "q.star",
     "star.quickcheck": "quickcheck.star",
+    "star.quote": "quote.star",
     "star.random": "random.star",
     "star.range": "range.star",
     "star.rdf": "rdf.star",

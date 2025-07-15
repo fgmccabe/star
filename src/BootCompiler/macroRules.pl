@@ -390,27 +390,35 @@ macroQuote(T,expression,Rp) :-
   quoteExp(A,Rp).
 
 quoteExp(A,I) :-
-  isUnary(A,_,"$",I),!.
+  isUnary(A,_,"?",I),!.
 quoteExp(name(Lc,Id),I) :-
-  unary(Lc,"_name",string(Lc,Id),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_name",Loc,string(Lc,Id),I).
 quoteExp(qnme(Lc,Id),I) :-
-  unary(Lc,"_qnme",string(Lc,Id),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_qnme",Loc,string(Lc,Id),I).
 quoteExp(integer(Lc,Ix),I) :-
-  unary(Lc,"_integer",integer(Lc,Ix),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_integer",Loc,integer(Lc,Ix),I).
 quoteExp(float(Lc,Dx),I) :-
-  unary(Lc,"_float",float(Lc,Dx),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_float",Loc,float(Lc,Dx),I).
 quoteExp(char(Lc,Cp),I) :-
-  unary(Lc,"_char",char(Lc,Cp),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_char",Loc,char(Lc,Cp),I).
 quoteExp(string(Lc,Sx),I) :-
-  unary(Lc,"_string",string(Lc,Sx),I).
+  mkLoc(Lc,Loc),
+  binary(Lc,"_string",Loc,string(Lc,Sx),I).
 quoteExp(tuple(Lc,Lb,Els),Rp) :-
+  mkLoc(Lc,Loc),
   map(Els,macroRules:quoteExp,QEls),
   macroListEntries(Lc,QEls,R,nilGen,consGen),
-  binary(Lc,"_tuple",string(Lc,Lb),R,Rp).
+  ternary(Lc,"_tuple",Loc,string(Lc,Lb),R,Rp).
 quoteExp(app(Lc,O,A),Rp) :-
+  mkLoc(Lc,Loc),
   quoteExp(O,Oq),
   quoteExp(A,Aq),
-  binary(Lc,"_apply",Oq,Aq,Rp).
+  ternary(Lc,"_apply",Loc,Oq,Aq,Rp).
 
 /*
   A![Ix]

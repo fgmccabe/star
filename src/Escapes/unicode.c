@@ -311,7 +311,7 @@ ReturnStatus g__codePoint(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g__char(enginePo P) {
+ReturnStatus g__int2chr(enginePo P) {
   codePoint ch = (codePoint) integerVal(popVal(P));
   pshVal(P, allocateCharacter(ch));
   return Normal;

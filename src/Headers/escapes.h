@@ -265,7 +265,7 @@ escape(_isLetterChar, func(chr, bool), "is letter char")
 escape(_digitCode, throws(chr, int, ERR), "convert char to num")
 
 escape(_codePoint, func(chr, int), "convert char to code point integer")
-escape(_char, func(int, chr), "convert integer code point to char")
+escape(_int2chr, func(int, chr), "convert integer code point to char")
 
 // String handling escapes
 escape(_int2str, func(int, strng), "format an integer as a string")

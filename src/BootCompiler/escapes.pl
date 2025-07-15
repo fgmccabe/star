@@ -189,7 +189,7 @@ escapeType("_isZsChar",funType(tplType([type("char")]),type("boolean"))).
 escapeType("_isLetterChar",funType(tplType([type("char")]),type("boolean"))).
 escapeType("_digitCode",funType(tplType([type("char")]),type("integer"),type("errorCode"))).
 escapeType("_codePoint",funType(tplType([type("char")]),type("integer"))).
-escapeType("_char",funType(tplType([type("integer")]),type("char"))).
+escapeType("_int2chr",funType(tplType([type("integer")]),type("char"))).
 escapeType("_int2str",funType(tplType([type("integer")]),type("string"))).
 escapeType("_flt2str",funType(tplType([type("float"),type("integer"),type("char"),type("boolean")]),type("string"))).
 escapeType("_int_format",funType(tplType([type("integer"),type("string")]),type("string"),type("errorCode"))).
@@ -429,7 +429,7 @@ isEscape("_isZsChar").
 isEscape("_isLetterChar").
 isEscape("_digitCode").
 isEscape("_codePoint").
-isEscape("_char").
+isEscape("_int2chr").
 isEscape("_int2str").
 isEscape("_flt2str").
 isEscape("_int_format").
