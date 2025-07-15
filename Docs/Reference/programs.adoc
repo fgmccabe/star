@@ -315,12 +315,13 @@ by checking or inference:
   quantified types.]
 * If a function is verified against a type declaration then some additional
   rules will be applied during type checking:
- * a universally bound type variable may not be constrained further by the text of the function definition: it is as though such types were fixed and unique in the program (i.e., not equalt to any other type).
- * an existentially bound type variable may be constrained by the text of the
+** a universally bound type variable may not be constrained further by the text of the function definition: it is as though such types were fixed and unique in the program (i.e., not equalt to any other type).
+** an existentially bound type variable may be constrained by the text of the
  function. However, such constraints are not permitted to further constrain the
  type of the function and applications of the function will only 'see' a new
  constant type.
- NOTE: Universally quantified and existentially quantified types
++
+NOTE: Universally quantified and existentially quantified types
  are mirror images of each other: when a universal type variable is fixed, the
  existential type is variable and vice-versa.
 
