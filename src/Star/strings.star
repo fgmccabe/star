@@ -84,7 +84,7 @@ star.strings{
   }
 
   public implementation coercion[integer,char] => {
-    _coerce(S) => .some(_char(S)).
+    _coerce(S) => .some(_int2chr(S)).
   }
 
   public implementation coercion[char,integer] => {

@@ -306,16 +306,16 @@ star.compiler.macro.rules{
 
   -- quoteAst creates an ast that checks to a quoted form of the ast itself
   quoteAst(E) where (_,X) ?= isUnary(E,"?") => X.
-  quoteAst(.nme(Lc,Nm)) => mkCon(Lc,"_name",[.str(Lc,Nm)]).
-  quoteAst(.qnm(Lc,Nm)) => mkCon(Lc,"_qnme",[.str(Lc,Nm)]).
-  quoteAst(.int(Lc,Nx)) => mkCon(Lc,"_integer",[.int(Lc,Nx)]).
-  quoteAst(.num(Lc,Nx)) => mkCon(Lc,"_float",[.num(Lc,Nx)]).
-  quoteAst(.chr(Lc,Cx)) => mkCon(Lc,"_char",[.chr(Lc,Cx)]).
-  quoteAst(.str(Lc,Sx)) => mkCon(Lc,"_string",[.str(Lc,Sx)]).
-  quoteAst(.tpl(Lc,Nm,Els)) => mkCon(Lc,"_tuple",[.str(Lc,Nm),
-      macroListEntries(Lc,Els//quoteAst,genNil,genCons)]).
-  quoteAst(.app(Lc,Op,Arg)) => mkCon(Lc,"_apply",[quoteAst(Op),quoteAst(Arg)]).
-
+  quoteAst(.nme(Lc,Nm)) => binary(Lc,"_name",mkLoc(Lc),.str(Lc,Nm)).
+  quoteAst(.qnm(Lc,Nm)) => binary(Lc,"_qnme",mkLoc(Lc),.str(Lc,Nm)).
+  quoteAst(.int(Lc,Nx)) => binary(Lc,"_integer",mkLoc(Lc),.int(Lc,Nx)).
+  quoteAst(.big(Lc,Bx)) => binary(Lc,"_biginteger",mkLoc(Lc),.big(Lc,Bx)).
+  quoteAst(.num(Lc,Nx)) => binary(Lc,"_float",mkLoc(Lc),.num(Lc,Nx)).
+  quoteAst(.chr(Lc,Cx)) => binary(Lc,"_char",mkLoc(Lc),.chr(Lc,Cx)).
+  quoteAst(.str(Lc,Sx)) => binary(Lc,"_string",mkLoc(Lc),.str(Lc,Sx)).
+  quoteAst(.tpl(Lc,Nm,Els)) => ternary(Lc,"_tuple",mkLoc(Lc),.str(Lc,Nm),
+      macroListEntries(Lc,Els//quoteAst,genNil,genCons)).
+  quoteAst(.app(Lc,Op,Arg)) => ternary(Lc,"_apply",mkLoc(Lc),quoteAst(Op),quoteAst(Arg)).
 
   /*
   for P : G do B

@@ -462,18 +462,18 @@ static retCode procOperator(void *n, void *r, void *c) {
         switch (op->style) {
           case prefixOp: {
             char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "|`+++%A+++` | %s prefix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %d | %s prefix | %I\n", nm, op->prior, type, op->cmt);
             break;
           }
           case infixOp: {
             char *type = (op->right == op->prior ? "right associative" :
                           op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "|`+++%A+++` | %s infix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %d | %s infix | %I\n", nm, op->prior, type, op->cmt);
             break;
           }
           case postfixOp: {
             char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "|`+++%A+++` | %s postfix | %d | %I\n", nm, type, op->prior, op->cmt);
+            ret = outMsg(out, "|`+++%A+++` | %d | %s postfix | %I\n", nm, op->prior, type, op->cmt);
             break;
           }
           default:

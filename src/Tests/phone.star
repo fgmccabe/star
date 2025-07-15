@@ -26,7 +26,7 @@ test.phone{
 
   sanitize(Word) => (((Word::cons[char])^/isLetter)//lowerCase).
 
-  lowerCase(C) where _isLuChar(C) => _char(_codePoint(C)+32).
+  lowerCase(C) where _isLuChar(C) => _int2chr(_codePoint(C)+32).
   lowerCase(X) default => X.
 
 /*  encode:(cons[integer],trie[integer,string]) => cons[cons[string]].
