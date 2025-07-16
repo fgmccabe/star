@@ -24,7 +24,7 @@ include::opg.adoc[leveloffset=1]
 
 include::programs.adoc[leveloffset=1]
 
-@include types.texi
+include::types.adoc[leveloffset=1]
 
 @include patterns.texi
 
