@@ -561,7 +561,9 @@ expressions enclosed in parentheses.
 ----
 tupleType --> ["()"].
 tupleType --> ["(("],type,["))"].
-tupleType --> ["("], type, ([","],type)*, [")"].
+tupleType --> ["("], types, [")"].
+
+types --> type | type, [","], types.
 ----
 
 A tuple type denotes a fixed grouping of elements. Each element of the
@@ -1243,11 +1245,11 @@ permissible to unify the constrained variable with an structural type
 
 [#contractConstraintFig]
 .Contract Constraint
-@display
-@anchored{Contract} ::= @refer{Identifier}`[`@refer{TypeArgument}`]`
-  | @refer{Identifier}`[`@refer{TypeArgument} ->> @refer{TypeArgument}`]`
-@end display
-@end float
+[source,star]
+----
+contractConstraint --> identifier ["["], types, ["]"].
+contractConstraint --> identifier ["["], types, ["->>"], types, ["]"].
+----
 
 It is possible for @refer{Contract}s to reference more than
 one type. For example, the standard `coercion` contract (see
@@ -1275,12 +1277,10 @@ The `->>` clause identifies which type(s) are dependent on the
 type argument(s) of the @refer{Contract}. (See
 @refer{ContractFunctionalDependency}).
 
-@node Implicit Binding Constraints
-@subsection Implicit Binding Constraints
+==== Implicit Binding Constraints
 (((type,constraints!implicit)))
 (((implicit binding constraint)))
 
-@noindent
 A @refer{ImplicitConstraint} is a requirement that a given variable of
 a specified type exists (i.e., is in scope).
 
@@ -1303,10 +1303,11 @@ variable; or, equivalently, a dynamically scoped variable.
 
 [#implicitConstraintFig]
 .Implicit Binding Constraint
-@display
-@anchored{ImplicitConstraint} ::= @refer{Identifier}`|=`@refer{Type}
-@end display
-@end float
+[source,star]
+----
+implicitConstraint --> typeVariable, ["|="], type.
+implicitConstraint --> ["("], typeVariable, [":"], type, [")"].
+----
 
 So, for example, in the function `clamp` below, there is an
 implicitly defined variable `limit`:
@@ -1331,77 +1332,7 @@ let{
 } in clamp(Z)
 ----
 
-@node Raises Constraint
-@subsection Raises Constraint
-(((raises constraint)))
-(((type,constraints!raises)))
-
-@noindent
-The `raises` constraint is used to indicate a type that may
-raise an exception.
-
-@float BNT,raisesConstraintFig
-.Raises Constraint
-@display
-@anchored{RaisesConstraint} ::= `raises` @refer{Type}
-
-@var{Type} +::= @refer{Type} `raises` @refer{Type}
-@end display
-@end float
-
-For example, an `integer` function may raise a `string`
-exception; this would be signaled using a type of the form:
-[source,star]
-----
-raises string |: (integer) => integer
-----
-
-Note that the second form of this:
-[source,star]
-----
-(integer) => integer raises string
-----
-
-is semantically equivalent to the first.
-
-If such a function is used in an expression, then it must either be in
-the lexical context of an appropriate @refer{TryCatchAction},
-@refer{TryCatchExpression} expression, or it must be within the
-definition of a function that is also declared to raise `string`
-exceptions.
-
-It is possible that a function may raise more than one type of
-exception. In which case, the type of the function must reflect all
-the different exceptions it can `raise`.
-
-Functions that do not have explicit type annotations have their types
-inferred. Automatically inferred types never include type
-constraints. Once consequence of this is that such functions should
-either not raise exceptions or be defined in a lexical scope which has
-an appropriate exception handler.
-
-An example of this can be seen in:
-
-[source,star]
-----
-innerRaise:(integer) => string.
-innerRaise(X) => (try
-  let{
-    inner(U) where U<0 => raise "$(U) is less than zero".
-    inner(U) => disp(U*U)
-  } in inner(X)
-  catch string in {
-    Msg => Msg
-  }).
-----
-
-Here the exception thrown by `inner` is caught in an outer
-@refer{TryCatchExpression}, even though `inner` is not declared
-to throw any exceptions. In effect, the handler is a kind of
-_free variable_ of the `inner` function.
-
-@node Field Constraints
-@subsection Field Constraints
+==== Field Constraints
 (((type,field)))
 (((type,constraints!field)))
 
@@ -1411,10 +1342,10 @@ defined for it.
 
 [#attributeConstraintFig]
 .Field Constraint
-@display
-@anchored{FieldConstraint} ::= @refer{Type} `<~` { @refer{Annotation} . @dots{}. @refer{Annotation} }
-@end display
-@end float
+[source,star]
+----
+fieldConstraint --> type, ["<~"], ["{"], annotation*, ["}"].
+----
 
 For example, in
 [source,star]
@@ -1438,12 +1369,10 @@ requires that any actual binding for type
 `s` must include the embedded type `elem`.
 @end quotation
 
-@node Type Semantics
-@section Type Semantics
+== Type Semantics
 (((semantics of types)))
 
-@node Type Rules
-@subsection Type Rules
+=== Type Rules
 (((type safety)))
 (((type rules)))
 
@@ -1513,16 +1442,14 @@ hiding: where a local definition of a value may obscure an outer
 definition.
 @end quotation
 
-@node Freshening and Skolemization
-@subsection Freshening and Skolemization
+=== Freshening and Skolemization
 (((skolemization)))
 
 In any logic with quantifiers, reasoning about terms can involves
 rewriting quantified expressions. The type system has two related
 operations over types: freshening and skolemization.
 
-@node Freshening
-@subsubsection Freshening
+==== Freshening
 
 Freshening refers to the process of copying a quantified type
 expression and replacing the bound type variable with a _new_
@@ -1545,8 +1472,7 @@ generic type may be used in many ways; and this is realized in type
 inference by freshening the recorded type of an identifier for each
 occurrence of the identifier in the program.
 
-@node Skolemization
-@subsubsection Skolemization
+==== Skolemization
 
 Skolemization refers to the process of copying a quantified type
 expression and replacing the bound type variable with a _new_
@@ -1567,11 +1493,9 @@ within the definition; or equivalently, by using a new type that does
 not appear anywhere and therefore has no knowledge of functions that
 may be defined for it.
 
-@node Type Unification
-@subsection Type Unification
+=== Type Unification
 (((type,unification)))
 
-@noindent
 The type system is based on the concept of type _equality_ --
 specifically two types are considered equal iff they are syntactically
 identical. Unification is an algorithm that can be used to determine
@@ -1636,8 +1560,7 @@ one -- is not a valid type expression. This is because it is not
 consistent with the type definition for `cons`.
 @end quotation
 
-@node Unifying Reference Types
-@subsubsection  Unifying Reference Types
+==== Unifying Reference Types
 
 Two reference types unify if their argument types unify
 
@@ -1657,8 +1580,7 @@ and
 ref integer @noteq list[integer]
 ----
 
-@node Unifying Tuple Types
-@subsubsection Unifying Tuple Types
+==== Unifying Tuple Types
 
 Two @ref{TupleType}s unify if they have the same number of elements,
 and those elements unify in a pairwise fashion.
@@ -1692,8 +1614,7 @@ because the second is actually a unary tuple containing a zero-tuple; and
 ----
 because elements must unify in a pairwise way.
 
-@node Unifying Face Types
-@subsubsection Unifying Face Types
+==== Unifying Face Types
 
 Fields in a record are not intrinsically ordered, but the spirit of
 unification for records is similar to that of tuples:
@@ -1732,8 +1653,7 @@ with `t` being bound to `integer`; whereas
 because the second record type does not have a `foo` field, and
 the first does not have a `bar` field.
 
-@node Unifying Function Types
-@subsubsection Unifying Function Types
+==== Unifying Function Types
 
 Two function types unify iff their arguments unify and the result
 unifies. Note that the simple function type does not unify with the
@@ -1755,8 +1675,7 @@ and
 (integer,string)=>integer @noteq{} (integer,string)<=>integer
 ----
 
-@node Unifying Type Variables
-@subsubsection Unifying Type Variables
+==== Unifying Type Variables
 
 There are two sub-cases for unifying type variables:
 @enumerate
@@ -1806,10 +1725,8 @@ the corresponding field constraint for `t@sub{b`}.
 @end enumerate
 @end enumerate
 
-@node Unifying Quantified Types
-@subsubsection Unifying Quantified Types
+==== Unifying Quantified Types
 
-@noindent
 Unifying quantified types is slightly more involved than that of other
 forms of type. Two quantified types are unifiable iff they can be made
 to be identical; however, a quantified type stands for all or some
@@ -1901,15 +1818,13 @@ all a~~(a)=>integer @noteq{} (@var{t})=>integer
 ----
 for any type @var{t} because the latter type is not quantified.
 
-@node Resolving Constraints
-@subsection Resolving Constraints
+=== Resolving Constraints
 
 Expressions involving constrained types must be _resolved_ in
 order to be type valid. Different constraints have different
 algorithms associated with their resolution.
 
-@node Resolving Contract Constraints
-@subsubsection Resolving Contract Constraints
+==== Resolving Contract Constraints
 
 Contract constraints are resolved by looking for implementations in
 scope.  For example, in the expression:
@@ -2020,14 +1935,9 @@ The formal rules for satisfying (and hence resolving) contract
 constraints are shown in @var{overloading}.
 @end quotation
 
-@node Resolving Implicit Constraints
-@subsubsection Resolving Implicit Constraints
+==== Resolving Implicit Constraints
 
 Implicit constraints are resolved by looking for an associated
 variable to be in scope.  For example, in the expression:
 
-@node Resolving `raises` Constraints
-@subsubsection Resolving `raises` Constraints
-
-@node Resolving Field Constraints
-@subsubsection Resolving Field Constraints
+==== Resolving Field Constraints
