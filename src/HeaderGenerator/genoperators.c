@@ -658,6 +658,25 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       else
         ret = outChar(f, ch);
       break;
+    case '<':
+      if(genMode==genAdoc)
+        ret = outStr(f,"&lt;");
+      else
+        ret = outChar(f,ch);
+      break;
+    case '>':
+      if(genMode==genAdoc)
+        ret = outStr(f,"&gt;");
+      else
+        ret = outChar(f,ch);
+      break;
+    case '&':
+      if(genMode==genAdoc)
+        ret = outStr(f,"&amp;");
+      else
+        ret = outChar(f,ch);
+      break;
+      
     default:
       if (ch < ' ') {
         ret = outChar(f, '\\');

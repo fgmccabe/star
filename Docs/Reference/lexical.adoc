@@ -103,14 +103,14 @@ skipToEol --> [_], skipToEol.
 ----
 
 Note that any block comment markers are ignored in a line comment
-(i.e., a `/*` sequence in a line comment does not signal the
+(i.e., a `++/*++` sequence in a line comment does not signal the
 start of a block comment).
 
 ==== Block Comment
 (((comment, block)))
 (((block comment)))
-A block comment consists of the characters `/*` followed by any
-characters and terminated by the characters `*/`.
+A block comment consists of the characters `++/*++` followed by any
+characters and terminated by the characters `++*/++`.
 
 [#blockCommentFig]
 .Block Comment

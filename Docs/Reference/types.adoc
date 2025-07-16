@@ -487,7 +487,7 @@ type expression:
 c[integer]
 ----
 
-denotes a type _something of `integer_`.
+denotes a type _something of `integer`_.
 
 A subsequent constraint on `c` may cause it to be bound to the
 <<TypeConstructor>> `cons` (say), in which case the type
@@ -557,20 +557,20 @@ expressions enclosed in parentheses.
 
 [#tupleTypeFig]
 .Tuple Type
-@display
-@anchored{TupleType} ::= `()`
-  | `((` @refer{Type} `))`
-  | `(`@refer{Type},@dots{},@refer{Type}`)`
-@end display
-@end float
+[source,star]
+----
+tupleType --> ["()"].
+tupleType --> ["(("],type,["))"].
+tupleType --> ["("], type, ([","],type)*, [")"].
+----
 
 A tuple type denotes a fixed grouping of elements. Each element of the
 tuple may have a different type.
 
-There are two special cases in @refer{TupleType}s: the empty tuple and
+There are two special cases in <<tupleTypeFig>>: the empty tuple and
 the singleton tuple type.
 
-@subsubsection Empty Tuple
+==== Empty Tuple
 (((tuple,empty tuple type)))
 (((empty tuple type)))
 
@@ -594,15 +594,13 @@ a void result:
 (integer)=>()
 ----
 
-@quotation TIP
-The `()` type -- sometimes referred to as the _unit type_ --
+TIP: The `()` type -- sometimes referred to as the _unit type_ --
 is also used to denote the return type of some actions.
 @end quotation
 
-@subsubsection Singleton Type Tuple
+==== Singleton Type Tuple
 (((tuple,singleton tuple type)))
 
-@noindent
 In some cases, a singleton tuple must be written with two
 parentheses. This is to disambiguate such terms from simple expression
 parentheses. A type expression of the form:
@@ -620,10 +618,9 @@ is equivalent to just the `integer` type; whereas
 denotes the single element tuple type whose element type is
 `integer`.
 
-@quotation NOTE
-The double set of parentheses is not needed, for example, in giving
+NOTE: The double set of parentheses is not needed, for example, in giving
 the type signature of a unary function.
-@end quotation
+
 For example, the type
 [source,star]
 ----
@@ -638,34 +635,33 @@ denotes a unary function type, whose _argument_ is a unary or
 singleton tuple.footnote:[This complexity arises because parentheses
 have a dual role: to group expressions and as a notation for tuples.]
 
-@node Record Types
-@subsection Record Types
+=== Record Types
 (((type,record type)))
 (((record type)))
-@noindent
-A @refer{FaceType} is a type expression that denotes a named
+
+A faceType is a type expression that denotes a named
 association of fields and types. A record type is written as a
 sequence of type annotations enclosed in braces.
 
 [#recordTypeFig]
 .Record Type
-@display
-@anchored{FaceType} ::= `{`@refer{Annotation} @dots{} @refer{Annotation} `@`}
+[source,star]
+----
+faceType --> ["{"], annotation*, ["}"].
 
-@anchored{Annotation} ::= @refer{TypeAnnotation}
-  | @refer{TypeRule}
+annotation --> typeAnnotation, dotSpace.
+annotation --> typeRule, dotSpace.
 
-@anchored{TypeRule} ::= @refer{TypeAliasStmt}.
-@end display
-@end float
-@quotation NOTE
-The various annotations in a record type are terminated by a dot-space
+typeRule --> typeAliasDefinition.
+
+dotSpace --> [". "].
+----
+
+NOTE: The various annotations in a record type are terminated by a dot-space
 terminator.
-@end quotation
 
-Record types are used as the basis of other features of the
-type language -- including the @refer{ConstructorType} and
-@refer{Contract}s.
+Face types are used as the basis of other features of the
+type language -- including record constructors and <<contract>>s.
 
 Two record types are equivalent if their elements are pair-wise
 equivalent. Note that the _order_ of elements is not
@@ -684,20 +680,10 @@ and
 these types unify -- assuming that `t` is a bound type variable --
 provided that `t` is unifiable with `string`.
 
-@quotation NOTE
-All nomimal types have a @refer{FaceType} interface associated with
-them. This, as is detailed in @refer{typeInterface}, defines a type
-for all of the fields in any of the constructors for the type. In
-turn, this permits a @refer{FieldAccess} expression to apply to a
-user-defined type as well as a @refer{FaceType}.
-@end quotation
-
-@node Function Types
-@subsection Function Types
+== Function Types
 (((function type)))
 (((type,function)))
 
-@noindent
 A function type denotes a function value. There are two forms of
 function type: a normal, non-throwing, form and a throwing form. The
 latter signals that the function may throw an exception, whereas the
@@ -706,16 +692,16 @@ non-throwing form is not permitted to throw an exception.
 It takes the form of a
 possibly empty sequence of argument types -- denoting the types of the
 arguments to the function -- enclosed in parentheses; followed by the
-result type of the function. @refer{functionTypeFig} highlights the form
+result type of the function. <<functionTypeFig>> highlights the form
 of the function type:
 
-@float BNT,functionTypeFig
+[#functionTypeFig]
 .Function Type
-@display
-@anchored{FunctionType} ::= @refer{TupleType} `=>` @refer{Type}
-  | @refer{TupleType} `=>` @refer{Type} `throws` @refer{Type}
-@end display
-@end float
+[source,star]
+----
+functionType --> tupleType, ["=>"], type.
+functionType --> tupleType, ["=>"], type, ["throws"], type.
+----
 
 For example, a function of two arguments -- an `integer` and a
 `string` that returns a list of `string`s has a type that
@@ -731,9 +717,9 @@ A throwing function type, such as:
 (integer,string) => cons[string] throws string
 ----
 
-signals that the function can throw an exception -- of type
-`string` in this case -- when called. It is possible for the
-exception type to be quantified, as in:
+signals that the function can throw an exception -- of type `string`
+in this case -- when called. It is possible for the exception type to
+be quantified, as in:
 
 [source,star]
 ----
@@ -743,72 +729,36 @@ all x,e ~~ (x) => integer throws e
 This is a generic function type that takes an `x` and either
 returns an `integer` or throws `e`.
 
-Exceptions and exception handling are further described in @ref{Try
-Catch}.
+Exceptions and exception handling are further described in <<try-catch>>.
 
-@node Constructor Type
-@subsubsection Constructor Type
+== Constructor Type
 (((constructor type)))
 (((type,constructor)))
 
 A constructor is a special function that is introduced in an
-@refer{AlgebraicTypeDefinition}.
+<<algebraicTypeDefinition>>.
 
-@quotation NOTE
-Constructors are special because they can be viewed simultaneously as
-a function and as a pattern. Hence the form of the constructor
-reflects that bidirectionality.
-@end quotation
+NOTE: Constructors are special because they can be viewed
+simultaneously as a function and as a pattern. Hence the form of the
+constructor reflects that bidirectionality.
 
 [#constructorTypeFig]
 .Constructor Type
-@display
-@anchored{ConstructorType} ::= @refer{Type} `<=>` @refer{Type}
-@end display
-@end float
+[source,star]
+----
+constructorType --> type, ["<=>"], type.
+----
 
 The left hand side of a constructor type should either be a
-@refer{TupleType} or an @refer{FaceType} -- depending on whether the
+<<tupleType>> or a <<faceType>> -- depending on whether the
 denoted constructor is a term constructor constructor or a record
 constructor.
 
-@quotation TIP
+TIP: Explicit <<constructorType>>s are most used in the context of the
+signatures of _abstract data types_: where a type and its constructors
+are _exported_ from a record.
 
-Explicit @refer{ConstructorType}s are most used in the context of the
-signatures of _abstract data types_: where a type and its
-constructors are _exported_ from a record.
-@end quotation
-
-@node Continuation Types
-@subsection Continuation Types
-(((continuation type)))
-(((type,continuation)))
-
-@noindent
-A continuation type denotes a continuation value. It takes the form of an argument type -- denoting the type of the
-argument to the continuation -- enclosed in parentheses; followed by the
-result type of the continuation. @refer{continuationTypeFig} highlights the form
-of the continuation type:
-
-@float BNT,continuationTypeFig
-.Continuation Type
-@display
-@anchored{ContinuationType} ::= (@refer{Type}) `=>>` @refer{Type}
-@end display
-@end float
-
-For example, a continuation of an `integer` and that returns a list of `string`s has a type that
-takes the form:
-[source,star]
-----
-(integer) =>> cons[string]
-----
-
-Note that, although the argument type is expected to parenthesized, continuations only ever
-expect a single value: the value that is passed to the continuation.
-
-@node Reference Type
-@subsection Reference Type
+=== Reference Type
 (((reference type)))
 (((type,var)))
 
@@ -816,28 +766,19 @@ A re-assignable variable is given a `ref`erence type.
 
 [#referenceTypeFig]
 .Reference Type
-@display
-@anchored{ReferenceType} ::= `ref` @refer{Type}
-@end display
-@end float
+[source,star]
+----
+referenceType --> ["ref"], type.
+----
 
-@noindent
 Reference types allow the programmer to distinguish re-assignable
 variables from other values; in particular they allow one to
 distinguish between binding to the _value_ of a re-assignable
 variable or to its _name_.
 
-@quotation NOTE
-The latter is not as common, but is important to support abstractions
+NOTE: The latter is not as common, but is important to support abstractions
 involving re-assignable variables.
-@end quotation
 
-The type of a re-assignable variable takes the form:
-
-[source,star]
-----
-ref @refer{Type}
-----
 For example, given the declaration for `ix` in the action:
 [source,star]
 ----
@@ -855,8 +796,7 @@ Jx = 0
 ----
 results in the variable `Jx` having type `integer`.
 
-@node Quantified Types
-@section Quantified Types
+=== Quantified Types
 (((quantified types)))
 (((type,quantified)))
 
@@ -874,8 +814,7 @@ known as a type variable. The permitted uses of a given bound type
 variable depend on whether it is universally bound or existentially
 bound.
 
-@node Universally Quantified Types
-@subsection Universally Quantified Types
+==== Universally Quantified Types
 (((type,universally quantified)))
 (((universally quantified type)))
 
@@ -884,14 +823,14 @@ substitutions of a type variable.
 
 [#universalTypeFig]
 .Universal Type Expression
-@display
-@anchored{UniversalType} ::= `all` @refer{BoundTypes}  `~~` @refer{Type}
+[source,star]
+----
+universalType --> ["all"], boundTypes, ["~~"], type.
 
-@anchored{BoundTypes} ::= @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType}
+boundTypes --> boundType, ([","], boundType)*.
 
-@anchored{BoundType} ::= @refer{Identifier} | @refer{Identifier} `/` @refer{Decimal}
-@end display
-@end float
+boundType --> identifier | identifier, ["/"], decimal.
+----
 
 For example, the type expression:
 [source,star]
@@ -901,12 +840,12 @@ all x ~~ (x,x)=>boolean
 denotes the generic function type of two arguments that returns a
 `boolean`.
 
-There are two forms of @refer{BoundType}, a simple type variable and a
+There are two forms of `boundType`, a simple type variable and a
 second form that includes an arity.
 
-The first form of @refer{BoundType} introduces a regular type variable
--- i.e., a variable which may be bound to any type. The second
-form is used to introduce a higher-kinded type variable.
+The first form of `boundType` introduces a regular type variable --
+i.e., a variable which may be bound to any type. The second form is
+used to introduce a higher-kinded type variable.
 
 For example, the quantification:
 
@@ -917,10 +856,8 @@ all c/1 ~~ ...
 denotes a variable which may only be bound to type constructors that
 take one argument -- for example `cons`.
 
-@quotation WARNING
-A regular type variable only unifies with regular types, and a type
+WARNING: A regular type variable only unifies with regular types, and a type
 constructor type variable only unifies with type constructors.
-@end quotation
 
 There is also a short hand form of the universally quantified type
 where there are multiple quantifiers. I.e., instead of writing
@@ -934,23 +871,21 @@ we can write
 all x,y ~~ (x,y)=>tp
 ----
 
-@quotation TIP
-Higher kinded type variables are most commonly used in the context of
-@refer{ContractDefinition}s. In particular, there are no values
+TIP: Higher kinded type variables are most commonly used in the
+context of `contractDefinition`s. In particular, there are no values
 directly associated with higher kinded types.
-@end quotation
 
 The compiler will infer the type of expressions; but does _not_
 infer any quantified type. Functions that are intended to be generic
 must have explicit type annotations associated with them.
 
-For example, the `dblFilter` function in @ref{dblFilter} applies
+For example, the `dblFilter` function in <<dblFilter>> applies
 a `map` function in two different situations -- one for each
 element of each pair in the input list. This requires that
 `dblFilter` be given an explicit universally quantified type
 annotation:
 
-@float Program,dblFilter
+[#dblFilter]
 .A `double` filter
 [source,star]
 ----
@@ -958,13 +893,12 @@ dblFilter:all u,v ~~ (all t~~(t)=>t, cons[(u,v)])=>cons[(u,v)].
 dblFilter(M,[]) => [].
 dblFilter(M,[(A,B),..L]) => [(M(A),M(B)),..dblFilter(M,L)].
 ----
-@end float     
-It is important to note that any actual function argument supplied to
-`dblFilter` will itself have to be generic -- i.e., its type will
-also be universally quantified.
 
-@node Existentially Quantified Types
-@subsection Existentially Quantified Types
+It is important to note that any actual function argument supplied to
+`dblFilter` will itself have to be generic -- i.e., its type will also
+be universally quantified.
+
+==== Existentially Quantified Types
 (((type,existentially quantified)))
 (((existentially quantified type)))
 (((exists`exists`)))
@@ -972,20 +906,18 @@ also be universally quantified.
 An existential type denotes an _abstract_ type. More formally, it
 denotes a specific -- but unknown -- type.
 
-@quotation NOTE
-The terms universally quantified and existentially quantified types
+NOTE: The terms universally quantified and existentially quantified types
 reflect the similar concepts in first order predicate logic. However,
 the domain is different: in logic, universal quantifiers refer to
 terms (values) and apply to formulae that have a truth value; whereas
 in type language, quantifiers apply to type expressions.
-@end quotation
 
 [#existentialTypeFig]
 .Existential Type Expression
-@display
-@anchored{ExistentialType} ::= `exists` @refer{BoundTypes} `~~` @refer{Type}
-@end display
-@end float
+[source,star]
+----
+existentialType --> ["exists"], boundTypes, ["~~"], type.
+----
 
 An existentially quantified type indicates an _abstract type_:
 i.e., the type exists but the expression is not explicit about which
@@ -995,7 +927,7 @@ Existential types are most often used in the type signatures of
 abstract data types. For example, the term in the statement:
 [source,star]
 ----
-R = { type el = integer. op(X,Y) => X+Y. }
+R = { el ~> integer. op(X,Y) => X+Y. }
 ----
 
 has type:
@@ -1004,37 +936,31 @@ has type:
 exists el ~~ { op:(el,el)=>el }
 ----
 
-@quotation NOTE
-Note that the fact that within the record the type `el` is
-identified as `integer` does not escape the record
-itself. Externally, the existence of the type is known but not what it
+NOTE: The fact that within the record the type `el` is identified as
+`integer` does not escape the record itself. Externally, the existence
+of the `el` type is known but not what it
 is.
 
 It is permissible to refer to the type within the record by a dot
 reference.
-@end quotation
 
-@node Bound Type Variables
-@subsection Bound Type Variables
+==== Bound Type Variables
 (((type,variable)))
 
-@noindent
 A type variable is a variable which may be bound to a type. Like other
 variables, type variables have a scope; and they have a context that
 determines the permissable values that the variable may be given.
 
-@quotation NOTE
-Although type variables have scope, they do not participate in any
+NOTE: Although type variables have scope, they do not participate in any
 computation of values in the program. It is not possible, for example,
 for a program to dynamically determine the type of a value.
-@end quotation
 
 [#typeVariableFig]
 .Type Variables
-@display
-@anchored{TypeVariable} ::= @refer{Identifier}
-@end display
-@end float
+[source,star]
+----
+typeVariable --> identifier.
+----
 
 Type variables are associated with an _arity_ -- which constrains
 the kinds (sic) of types that the type variables may be bound to. A
@@ -1060,68 +986,55 @@ _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
 The type variable `m` is specified with the arity `1` --
 making it a higher-kinded type that expects one type argument.
 
-@subsubsection Anonymous Type
+==== Anonymous Type
 
 The _anonymous_ type -- written with a simple `_` -- denotes
 a type variable where every occurrance is unique. The anonymous
 variable is used in situations where we don't care what the type is.
 
-@subsubsection Scope of Type Variables
+==== Scope of Type Variables
 (((type,variable!scope)))
 
 All type variables have a scope which generally follows the scoping
 rules for normal variables.
 
 There are two particular cases that are important: type variables
-introduced via @refer{TypeDefinition}s and those introduced via
+introduced via `typeDefinition` statements and those introduced via
 explicitly quantified type expressions.
 
-A variable introduced in the head of an @refer{AlgebraicTypeDefinition}
-definition, or in the head of a @refer{ContractDefinition} are in scope
+A variable introduced in the head of an `algebraicTypeDefinition`
+definition, or in the head of a `contractDefinition` are in scope
 throughout the definition or contract respectively.
 
-@node Encapsulated Types
-@subsection Encapsulated Types
+=== Encapsulated Types
 (((encapsulated type)))
 (((type,encapsulated in record)))
 (((existential type)))
 (((heterogenous types)))
 
-An @refer{EncapsulatedType} is a reference to a type that is embedded
+An `encapsulatedType` is a reference to a type that is embedded
 within a record.
 
 [#encapsulatedTypeFig]
 .Encapsulated Type
-@display
-@anchored{EncapsulatedType} ::= @refer{Expression}`.`@refer{Identifier}
-@end display
-@end float
+[source,star]
+----
+encapsulatedType --> field-reference, ["."], identifier.
+----
 
 As noted above, record literals may have types embedded within
 them. Such a record type is existentially quantified.
 
 It is possible to access the type embedded within such a record --
-albeit with some restrictions:
+albeit with some restrictions.
 
-The form of an @refer{EncapsulatedType} reference is limited to terms of
-the form:
-[source,star]
-----
-R.t
-----
-
-where `R` is a @refer{Variable} whose type interface contains the
-type `t`.
-
-@quotation Note
-To be more precise, types are not values. So, it is technically
+NOTE: To be more precise, types are not values. So, it is technically
 meaningless to discuss a type being embedded in a record value.
 
 However, we can use the encapsulated type notation to _identify_
 a type from a record value -- provided the reference is well formed.
-@end quotation
 
-More generally, an @refer{EncapsulatedType} reference may involve a
+More generally, an `encapsulatedType` reference may involve a
 sequence of field names where each intermediate field name varers to a
 sub-record:
 [source,star]
@@ -1147,20 +1060,18 @@ group ::= group{
 }
 ----
 
-@quotation TIP
-A `group` literal is analogous to a mathematical group: a
+TIP: A `group` literal is analogous to a mathematical group: a
 set which is closed under a binary operation and whose elements have
 an inverse.
 
 The contents of a `group` literal contain the definitions of the
 elements, the binary operation, the zero element and the inverse
 function.
-@end quotation
 
-The qualification of the `el` type that it supports
-`equality` allows convenient access to equality of group
-elements. Without such a qualification, equality would not be possible
-for programs using `group` values.
+The qualification of the `el` type that it supports `equality` allows
+convenient access to equality of group elements. Without such a
+qualification, equality would not be possible for programs using
+`group` values.
 
 An additional requirement for a group is that its operation is
 associative. Such a property cannot be expressed in terms of type
@@ -1169,18 +1080,17 @@ constraints.
 A `group` literal that implements the group for `integer`s
 is shown in:
 
-@float Program,groupTypeProg
+[#groupTypeProg]
 .The `group` Type
 [source,star]
 ----
 IG = group{
-  type el = integer.
+  el ~> integer.
   zero = 0.
   op = (+).
   inv(X) => -X.
 }
 ----
-@end float
 
 The `IG` value contains the elements of a group value. We can,
 for example, access the `zero` of `IG` using the statement:
@@ -1197,7 +1107,7 @@ It is possible to construct functions over `group`s that varer to
 encapsulated types. For example, the `invertGroup` function below
 constructs a new group by _inverting_ the operation.
 
-@float Program,invertGroupProgram
+[#invertGroupProgram]
 .A `group` Inverting Function
 [source,star]
 ----
@@ -1209,21 +1119,22 @@ invertGroup(G) => group{
   inv(X) => G.inv(X)
 }
 ----
-@end float
 
-@node Constrained Types
-@section Constrained Types
+=== Constrained Types
 (((contrained type)))
 
 A constrained type is one with additional constraints in the form of
-@ref{Type Constraints}.
+`typeConstraint`s.
 
 [#constrainedTypeFig]
 .Constrained Type
-@display
-@anchored{ConstrainedType} ::= @refer{TypeConstraint}`|:`@refer{Type}
-@end display
-@end float
+[source,star]
+----
+constrainedType --> typeConstraints, ["|:"], type.
+
+typeConstraints --> typeConstraint.
+typeConstraints --> typeConstraint, [","], typeConstraints.
+----
 
 Constrained types are generally either type variables or immediately
 enclosed by a quantifier.
@@ -1236,29 +1147,22 @@ all t ~~ comp[t], arith[t] |: (t)=>t
 
 denotes a generic unary function type for any type that implements
 both the `comp` and the `arith` contracts (see
-@refer{comparisonPredicates} and @refer{arithmeticContract}).
+<<comparisonPredicates>> and <<arithmeticContract>>).
 
-@xref{Type Constraints} for a description of the possible forms of
-type constraint.
-
-@node Type Constraints
-@section Type Constraints
+=== Type Constraints
 (((type,constraints)))
 
-@noindent
-A @refer{TypeConstraint} is a constraint on a @refer{Type}; usually
-implying a constraint on the possible binding of a @refer{TypeVariable}.
+A `typeConstraint` is a constraint on a `type`; usually
+implying a constraint on the possible binding of a `typeVariable`.
 
 [#typeConstraintFig]
 .Type Constraints
-@display
-@anchored{TypeConstraint} ::= @refer{Contract}
-  | @refer{FieldConstraint}
-  | @refer{ImplicitConstraint}
-  | @refer{RaisesConstraint}
-  | @refer{TypeConstraint} ,@comma{}, @refer{TypeConstraint}
-@end display
-@end float
+[source,star]
+----
+typeConstraint --> contractConstraint.
+typeConstraint --> fieldConstraint.
+typeConstraint --> implicitConstraint.
+----
 
 Generally, a @refer{TypeConstraint} on a @refer{TypeVariable}
 restricts in some sense the possible bindings for that type
