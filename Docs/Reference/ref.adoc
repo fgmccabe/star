@@ -8,7 +8,7 @@
 :title-page:
 :pdf-page-size: Letter
 
-This is the reference for the Star language, version @value{VERSION}.  
+This is the reference for the Star language, version {VERSION}.  
 
 This manual offers an in-depth and complete ((description)) of the Star
 language. However, it is not a tutorial on the language, and the order
@@ -26,9 +26,9 @@ include::programs.adoc[leveloffset=1]
 
 include::types.adoc[leveloffset=1]
 
-@include patterns.texi
+include::patterns.adoc[leveloffset=1]
 
-@include expressions.texi
+include::expressions.adoc[leveloffset=1]
 
 @include conditions.texi
 
@@ -36,7 +36,7 @@ include::types.adoc[leveloffset=1]
 
 @include actions.texi
 
-@include grammar.texi
+include::grammar.adoc[leveloffset=1]
 
 @include coroutines.texi
 

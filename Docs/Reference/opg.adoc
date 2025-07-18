@@ -116,4 +116,71 @@ interpretation.
 
 include::operators.adoc[]
 
+== The `quote` contract
+[#quoteContract]
+
+The `quote` contract, together with the `<||>` brackets, allows Star programs
+some mediated access to the underlying operator precedence grammar.
+
+The contract -- as defined in <<quoteContractProg>> -- has elements that
+correspond to major abstract syntax features.
+
+[#quoteContractProg]
+.The `quote` contract
+[source,star]
+----
+public contract all a ~~ quote[a] ::= {
+  _name : (option[locn],string) => a.
+  _qnme : (option[locn],string) => a.
+  _integer : (option[locn],integer) => a.
+  _biginteger : (option[locn],bigint) => a.
+  _float : (option[locn],float) => a.
+  _char : (option[locn],char) => a.
+  _string : (option[locn],string) => a.
+  _tuple : (option[locn],string,cons[a]) => a.
+  _apply : (option[locn],a,a) => a.
+}
+----
+
+Here, `locn` is a standard type that denotes a source location.  Of course, this
+is just a contract; to be useful, it has to be implemented. The Star compiler
+has its own implementation, but user implementations of the `quote` contract are
+certainly possible.
+
+The power of this contract becomes evident when combined with the `<||>` quote
+syntax: a Star fragment enclosed in `<|` ... `|>` quotes is translated into
+calls of the functions in the `quote` contract:
+
+[source,star]
+----
+foo() => <|A+B|>.
+----
+
+is equivalent to:
+[source,star,subs="quotes"]
+----
+foo() => _apply(_loc~1~_,_name(_loc~2~_,"+"),_tuple(_loc~3~_,"()",[_name(_loc~4~_,"A"),_name(_loc~5~_,"B")])).
+----
+where `_loc~i~_` are locations within the `foo` function's source.
+
+NOTE: There is also the equivalent of an anti-quote for the quote syntax. The
+`$` operator used within a quoted form acts as an escape:
+
+[source,star]
+----
+foo(X) => <|A+$X|>.
+----
+
+is equivalent to:
+
+[source,star,subs="quotes"]
+----
+foo(X) => _apply(_loc~1~_,_name(_loc~2~_,"+"),_tuple(_loc~3~_,"()",[_name(_loc~4~_,"A"),X])).
+----
+
+Of course, the variable `X` here must have the correct type -- which depends on
+the implementation of the `quote` contract that is in force.
+
+
+
 

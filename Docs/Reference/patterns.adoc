@@ -1,0 +1,356 @@
+= Patterns
+(((patterns))) Patterns are templates that are used to match against a value;
+possibly binding one or more variables to components of the matched
+value. Patterns are used as guards in equations, as filters in query expressions
+and in `for` loops. Patterns represent one of the fundamental mechanisms that
+can guide the course of a computation.
+
+[#patternsFig]
+.Patterns
+[source,star]
+----
+pattern --> scalarPattern.
+pattern --> variable.
+pattern --> constructorPattern.
+pattern --> tuplePattern.
+pattern --> guardedPattern.
+pattern --> sequencePattern.
+pattern --> annotatedPattern.
+----
+
+.Patterns and Types
+[sidebar]
+====
+(((patterns,type of))) Every pattern has a type associated with it. This is the
+type of values that the pattern is valid to match against. In the type safety
+productions involving patterns, we use the same meta predicate: _E ⊦ P:T_ as for
+expressions.
+====
+
+== Variables in Patterns
+(((pattern,variable pattern)))
+(((variables)))
+[#patternVariables]
+Variables in patterns are used to bind variables to elements of the
+input being matched against.
+
+A repeated occurrence of a variable in a pattern is equivalent to a
+call to the `==` predicate. For example, the pattern:
+[source,star]
+----
+(X,Y,X)
+----
+
+is equivalent to the <<guardedPattern>>:
+[source,star]
+----
+(X,Y,X1) where X==X1
+----
+
+The `==` predicate is defined in the standard `equality`
+contract (see <<EqualityContract>>); and therefore, the call and
+the pattern may not be valid if `equality` is not implemented for
+the type of `X`.
+
+=== Scope of Pattern Variables
+(((variables,scope of)))
+A pattern always occurs in the context of a _scope extension_ --
+a new potential scope for variables. For example, in the equation:
+[source,star]
+----
+fact(N) => N*fact(N-1)
+----
+the pattern on the left hand side of the equation:
+[source,star]
+----
+fact(N)
+----
+introduces variables that are in scope on the right hand side of the equation:
+[source,star]
+----
+N*fact(N-1)
+----
+
+=== Anonymous Variable Pattern
+The special identifier -- `++_++` -- is used on those occasions where
+a filler of some kind is needed. Every occurrence of `++_++` refers
+to a different variable. A match with `++_++` is always successful,
+but the value itself is ignored.
+
+== Scalar Literal Patterns
+Scalar patterns match against literal values -- such as integers and strings.
+
+[#scalarLiteralPtnFig]
+.Scalar Patterns
+[source,star]
+----
+scalarPattern --> stringLiteral.
+scalarPattern --> numericLiteral.
+scalarPattern --> charLiteral.
+----
+
+=== Literal String Patterns
+(((string,pattern)))
+(((patterns,literal string)))
+
+A literal string as a pattern matches exactly that string; the type of
+a string pattern is `string`.
+
+NOTE: The operators that are used to denoted string interpolation
+expressions (see <<stringInterpolation>>) are _not_ valid
+in string patterns. In particular, the dollar character
+_must_ be quoted in a string pattern.
+
+For example, in the function:
+[source,star]
+----
+hasDollar("has$") => true
+----
+the string pattern `"has$"` is not legal. You should use:
+[source,star]
+----
+hasDollar("has\$") => true
+----
+
+=== Literal Numbers
+(((number pattern)))
+(((patterns,literal number)))
+
+A literal number -- `integer`, `bigint` or `float` --
+as a pattern matches exactly that number.
+
+The type of the pattern depends on the type of the number literal:
+`integer` literals have type `integer`, `float`
+literals have type `float` and `bigint` literals have type
+`bigint`.
+
+== Constructor Patterns
+[#posConPattern]
+(((constructor,pattern)))
+(((patterns,constructor)))
+
+A constructor pattern denotes an occurrence of a value that has been
+declared within an algebraic type definition (see
+<<algebraicTypeDefinition>>).
+
+A constructor pattern mimics the form of <<positionalConstructorLiteral>>
+expressions.
+
+[#constructorPtnFig]
+.Constructor Pattern
+[source,star]
+----
+constructorPattern --> enumeratedSymbolPattern.
+constructorPattern --> positionalConstructorPattern.
+constructorPattern --> recordConstructorPattern.
+----
+
+NOTE: <<positionalConstructorPattern>>s are the only way that a
+constructor value may be inspected and elements of it extracted. There
+are no indexing operators over positional constructors.
+
+=== Enumerated Symbol Patterns
+(((patterns,enumerated symbol)))
+(((enumerated symbol pattern)))
+
+An enumerated symbol -- as a pattern -- matches the same symbol
+only.
+
+[#enumeratedPtnFig]
+.Enumerated Symbol Pattern
+[source,star]
+----
+enumeratedSymbolPattern --> ["."], identifier.
+----
+
+Note the use of the period in front of the Identifier: this signals
+the use of an enumerated symbol; and differentiates it from a
+variable.
+
+NOTE: The use of periods in front of enumerated symbols (and positional
+constructors) is somewhat verbose. However, mispelling an enumerated symbol is a
+reasonably common error; and without the period, such a mispelt enumerated
+symbol would be silently interpreted as a variable in a pattern.
+
+=== Positional Constructor Patterns
+(((patterns,positional constructor)))
+(((positional constructor patterns)))
+[#positionalConstructorPattern]
+A positional constructor pattern consists of a constructor label
+followed by the argument patterns -- as introduced in the appropriate
+<<algebraicTypeDefinition>>.
+
+[#positionalConstructorPtnFig]
+.Positional Constructor Pattern
+[source,star]
+----
+positionalConstructorPattern --> ["."], identifier, ["("], pattern * [","], [")"].
+----
+
+NOTE: Positional constructors, like the <<enumeratedSymbolPattern>>s, are marked
+by a leading `.` character. This helps to distinguish such patterns from normal
+function calls.
+
+=== Record Patterns
+(((patterns,record constructor)))
+(((record constructor pattern)))
+
+A record pattern consists of the record label, followed by attribute
+patterns enclosed in braces.
+
+[#recordConstructorPtnFig]
+.Record Constructor Pattern
+[source,star]
+----
+recordConstructorPattern --> identifier, ["{"], attributePattern * [". "], ["}"].
+
+attributePattern --> identifier, ["="], pattern.
+----
+
+Unlike positional constructor patterns, it is not required for all of
+the attributes to be mentioned in a record constructor pattern. At its
+limit, a pattern of the form:
+[source,star]
+----
+label{}
+----
+
+becomes a test that the `label` record literal is present -- with
+no constraints on the attributes of the record.
+
+=== Tuple Patterns
+(((patterns,tuple)))
+
+A tuple pattern consists of a tuple with patterns as the elements of the tuple.
+
+[#tuplePtnFig]
+.Tuple Pattern
+[source,star]
+----
+tuplePattern --> ["("], pattern * [","], [")"].
+----
+
+Such anonymous tuple patterns can be used to extract values from tuple
+values (<<tupleLiteral>>). For example, the pattern `(X,Y)`
+in the query condition:
+[source,star]
+----
+(X,Y) in R
+----
+matches against the elements of `R` and `binds' the local
+variables `X` and `Y` to the first and second tuple member
+of each successive elements of `R`.
+
+NOTE: As noted in <<tupleType>>, anonymous tuples are essentially
+syntactic sugar for automatically defined algebraic types. The above
+query is equivalent to:
+[source,star]
+----
+$2(X,Y) in R
+----
+Noting, of course, that `$2` is not a legal <<identifier>>.
+
+== Guarded Pattern
+[#guardedPattern]
+(((patterns,guarded)))
+(((guarded patterns)))
+
+A guarded pattern attaches a semantic condition on a pattern. It consists of a
+pattern, followed by the `where` keyword and a predication condition -- all
+enclosed in parentheses.
+
+Guarded patterns are useful in enhancing the specificity of patterns
+-- which apart from guarded patterns are purely syntactic in nature.
+
+[#guardedPtnFig]
+.Guarded Pattern
+[source,star]
+----
+guardedPattern --> pattern, ["where"], condition.
+----
+
+A guarded pattern has a type assignment based on the type of the left
+hand side, and the type safety of the condition.
+
+== Sequence Patterns
+
+A sequence pattern represents a use of the standard `stream`
+contract (see <<streamContractProg>>) to match sequences of values.
+
+(((sequence,patterns)))
+(((patterns,sequence)))
+
+=== Sequence Pattern Notation
+
+[#sequencePtnFig]
+.Sequence Pattern
+[source,star]
+----
+sequencePattern --> ["["], ptnSequence, ["]"].
+
+ptnSequence --> pattern * [","].
+ptnSequence --> pattern * [","], [",.."], pattern.
+----
+
+In a similar way to <<sequenceExpression>>s, sequencePatterns depend on the
+`stream` contract, In fact, a <<SequencePattern>> is syntactic sugar for terms
+involving the `stream` contract -- which is defined in <<streamContractProg>>.
+
+A pattern of the form:
+
+[source,star,subs="quotes"]
+----
+[ptn~1~,...,ptn~n~]
+----
+
+is equivalent to the pattern:
+[source,star]
+----
+Str where (ptn1,X1) ?= _hdtl(Str) &&
+  ...
+ (ptnn,Xn) ?= _hdtl(Xn-1) &&
+   _eof(Xn)
+----
+
+=== Annotated Patterns
+(((patterns,annotated)))
+
+An annotated pattern is a pattern with an explicit type annotation:
+
+[#annotatePtnFig]
+.Annotated Pattern
+[source,star]
+----
+annotatedPattern --> pattern, [":"], type
+----
+
+Annotated patterns are used to explicitly mark a pattern to be of a specific type.
+
+For example, in:
+
+[source,star]
+----
+foo(.cons(X:string,_)) => X
+----
+
+the `X` variable is identified to be a `string` variable.
+
+Normally, annotated patterns are not needed very often. This is
+because the compiler is able to infer the types of most expressions
+and patterns.
+
+However, there is an occasional need to connect the type of a variable
+with a type that is declared in an outer scope. For example, in:
+
+[source,star]
+----
+outer:all t ~~ (cons[t]) => option[t].
+outer(L) => let{
+  inner(.nil) => .none.
+  inner(.cons(U:t,_)) => .some(U).
+} in inner(L)
+----
+
+we mark the `U` var in the `inner` function to be of the
+same type as that declared for the `outer` function.
+

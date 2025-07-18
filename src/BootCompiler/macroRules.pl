@@ -390,7 +390,7 @@ macroQuote(T,expression,Rp) :-
   quoteExp(A,Rp).
 
 quoteExp(A,I) :-
-  isUnary(A,_,"?",I),!.
+  isUnary(A,_,"$",I),!.
 quoteExp(name(Lc,Id),I) :-
   mkLoc(Lc,Loc),
   binary(Lc,"_name",Loc,string(Lc,Id),I).

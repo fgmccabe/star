@@ -305,7 +305,7 @@ star.compiler.macro.rules{
   quoteMacro(_,_) => .inactive.
 
   -- quoteAst creates an ast that checks to a quoted form of the ast itself
-  quoteAst(E) where (_,X) ?= isUnary(E,"?") => X.
+  quoteAst(E) where (_,X) ?= isUnary(E,"$") => X.
   quoteAst(.nme(Lc,Nm)) => binary(Lc,"_name",mkLoc(Lc),.str(Lc,Nm)).
   quoteAst(.qnm(Lc,Nm)) => binary(Lc,"_qnme",mkLoc(Lc),.str(Lc,Nm)).
   quoteAst(.int(Lc,Nx)) => binary(Lc,"_integer",mkLoc(Lc),.int(Lc,Nx)).

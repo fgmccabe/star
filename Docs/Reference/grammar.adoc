@@ -1,0 +1,412 @@
+= Grammar Rules
+(((grammar rules)))
+
+There are many occasions when it is necessary to parse text. For example, the
+Star run-time has parsers for URIs, json files as well as for some internal
+formats.
+
+The grammar rule notation is intended to make it straightforward to develop
+parsers using a high level notation.
+
+== Grammar Rule Type
+
+The type of a grammar non-terminal written:
+
+[source,star,subs="quotes"]
+----
+(a~1~...a~n~) >> p --> s
+----
+
+where the tuple of types `(a~1~...a~n~)` represents the argument types
+to the non-terminal, `p` is the produced type of the non-terminal
+and `s` is the sequence of items that is parsed by the
+non-terminal.
+
+[NOTE]
+****
+This type is actually macro of the function type:
+
+[source,star,subs="quotes"]
+----
+(s,a~1~...a~n~) => option[(p,s)]
+----
+****
+
+== Grammar rule notation
+
+A grammar rule denotes a way of parsing a stream of elements. For example, the
+grammar rule:
+
+[source,star]
+----
+sumExp >> .sum(L,R) --> prodExp >> L, [`+`], sumExp >> R.
+----
+
+is a classic fragment from an expression parser. It states that a `sumExp` can
+be formed by a `prodExp`, a `+` character and a `sumExp`.
+
+The expressions following the chevrons denote output: the output of the rule as
+a whole is the expression
+
+[source,star]
+----
+.sum(L,R)
+----
+
+assuming that the `prodExp` returns the value `L` and the
+right hand side `sumExp` returns `R.`
+
+The language is quite expressive, including support for many common patterns --
+such as repeated sequences and interleaved sequences.
+
+[#grammarRuleFig]
+.Grammar Rule Notation
+[source,star]
+----
+grammarRule --> grammarRuleHead, ["-->"], grammarBody.
+
+grammarRuleHead --> nonTerminal [">>"] expression.
+
+grammarBody --> nonTerminal.
+grammarBody --> terminal.
+grammarBody --> grammarBody, [","], grammarBody.
+grammarBody --> grammarBody, ["|"], grammarBody.
+grammarBody --> grammarBody, ["*"].
+grammarBody --> grammarBody, ["*"], grammarBody.
+grammarBody --> ["~"], grammarBody.
+grammarBody --> grammarBody, [">>"], pattern.
+grammarBody --> ["{"], condition, ["}"].
+grammarBody --> ["fail"].
+grammarBody --> ["end"].
+grammarBody --> ["("], grammarBody, [")"].
+grammarBody --> ["*>"], terminal.
+----
+
+=== Terminal Symbols
+
+Terminal symbols are denoted by patterns, enclosed in square brackets,
+that are used to match successive tokens from the input stream.
+
+[#terminalSymbolFig]
+.Terminal Symbols
+[source,star]
+----
+terminal --> ["["], pattern * [","] , ["]"].
+terminal --> stringLiteral.
+----
+
+The <<pattern>> is used to match against a single token in the input.
+
+Sequences of terminals can be written enclosed within a common set of
+square brackets.
+
+In addition, a literal string -- without any interpolation -- may be
+used. A string literal is equivalent to an expanded sequence of
+character terminal symbols.
+
+For example, in the rule:
+
+[source,star]
+----
+isMine --> "mine".
+----
+
+is equivalent to the rule:
+
+[source,star]
+----
+isMine --> [`m`,`i`,`n`,`e`].
+----
+
+NOTE: The literal string form of terminal is useful when parsing text one
+character at a time. However, the grammar notation is actually neutral
+to parsing text: it can equally be used for parsing any finite
+sequence of items.
+
+=== Non Terminal Symbols
+
+Non terminal symbols refer to the application of a grammar rule. Non
+terminals are denoted by either by an identifier -- the name of the
+grammar being referred to -- or by an applicative expression.
+
+The latter are a useful means of introducing context sensitivity to a
+grammar. For example, in the rule:
+
+[source,star]
+----
+termLeft(Pr) >> (.app(Op,[A]),OPr) --> [O],
+  {(OPr,RP,Op)?=prefix(O) && OPr=<Pr }, term(RP)>>(A,_).
+----
+
+The argument `Pr` to the `termLeft` non-terminal is used to
+indicate the desired operator priority in a prefix operator
+combination.
+
+Non-terminals can produce values, as can be seen here, and within a
+rule, the value returned by a non-terminal can be matched against.
+  
+[#nonTerminalSymbolFig]
+.Non Terminal Symbols
+[source,star]
+----
+nonTerminal --> identifier | applicative.
+----
+
+=== Grammar Sequence
+
+A sequence of grammar terms is written using a `,` comma. A sequence `L,R` is
+satisfied if `L` followed by `R` is satsified.
+
+Note that if a `>>` is applied to a sequence, it is interpreted
+as having been applied to the last entry in the sequence. I.e.,
+
+[source,star]
+----
+A, (L,R)>>P, B
+----
+
+is interpreted as being the equivalent of:
+
+[source,star]
+----
+A, L, R>>P, B
+----
+
+=== Grammar Disjunction
+
+A disjunction of grammar terms is written using the `||`
+operator. A disjunctive grammar is satisfied if either arms are
+satisfied.
+
+A disjunction is equivalent to introducing a new non-terminal with two
+(or more) rules -- each corresponding to an arm of the disjunction.
+
+I.e.,
+
+[source,star]
+----
+A, (L | R), B
+----
+
+is equivalent to:
+
+[source,star]
+----
+A, N, B
+----
+where `N` is defined:
+
+[source,star]
+----
+N --> L.
+N --> R.
+----
+
+If a disjunction has an output `>>` applied, then it is applied
+to each of the arms:
+
+[source,star]
+----
+A, (L | R)>>P, B
+----
+
+is equivalent to:
+
+[source,star]
+----
+A, (L>>P | R>>P), B
+----
+
+which, in turn, is equivalent to:
+
+[source,star]
+----
+A, N >> P, B
+----
+
+with:
+
+[source,star]
+----
+N >> P --> L >> P.
+N >> P --> R >> P.
+----
+
+=== Kleene Star
+
+A starred grammar represents a repeated sequence of expressions.
+
+For example,
+
+[source,star]
+----
+A, B*, C
+----
+
+denotes zero or more occurrences of `B`, sandwiched between
+`A` and `C`.
+
+If the starred term has an output -- designated by `>>` -- then
+the output is a `cons` list. Specifically, if `B` produced a
+value of type `t`, then `B` produces `cons[t]`.
+
+For example, the following rule corresponds to a traditional
+definition of an identifier:
+
+[source,star]
+----
+ident >> [F,..S]::string --> letter >> F, alphaNum * >> S.
+----
+
+where `letter` and `alphaNum` have their expected definitions.
+
+Note that the value returned by `ident` above takes the
+`cons` list of `char`acters and creates a `string` from
+it using coercion.
+
+NOTE: The term _Kleene Star_ is a reference to regular expression
+grammars. However, the grammar notation is strictly more powerful than
+regular expressions.
+
+=== Interleaved Grammar
+
+An interleaved grammar is a variation of the Kleene star, where the
+intention is to parse a repeated sequence; but with a fragment
+separating each item.
+
+For example, the rule:
+
+[source,star]
+----
+args >> Args --> exp * [`,`] >> Args
+----
+
+is intended to capture the common case of a sequence of expression
+separated by commas.
+
+As with Kleene star, the produced value is a `cons` list;
+however, only the left hand side is used. For example, in the rule
+above, `Args` is a `cons` list of the values returned by
+`exp`.
+
+=== Negated Grammar
+
+A negated grammar is satisfied if the negated grammar is not. In
+addition, a negated grammar does not consume any of the input --
+although it does look ahead.
+
+For example, the grammar body:
+
+[source,star]
+----
+A, ~B, C
+----
+
+is satisfied if `A` is satisfied, with `C` being satisfied
+immediately after `A`. In addition, `B` must not be
+satisfiable following `A`.
+
+For example,
+
+[source,star]
+----
+integral --> digit*, ~ [`.`]
+----
+
+is a rule for parsing an integral number as a sequence of digits,
+providing that they are not followed by a period.
+
+=== Extract Value
+
+Non-terminals can _produce_ a value that
+can be used within a rule to help produce an overall value of the rule
+itself. This is marked using the chevron form:
+
+[source,star]
+----
+item >> pattern
+----
+
+The pattern pattern is matched against the value produced by the
+non terminal.
+
+=== Grammar Condition
+
+Occasionally, it is useful, in a grammar, to include _semantic_ guards. This can
+be done in a grammar rule by enclosing a <<condition>> within braces.
+
+A grammar condition does not consume any input: it is used to verify a
+condition based on the input consumed so far.
+
+=== Grammar Reject
+
+The `fail` grammar symbol is used to signal a non-parse. It will
+cause the current rule to fail to parse.
+
+This symbol is most often used implicitly: every rule set that does
+not have a `default` rule has a rule of the form:
+
+[source,star]
+----
+NT --> fail
+----
+
+added automatically.
+
+===  Grammar End
+
+The `end` grammar symbol only matches the end of the input. It is
+useful for cases where a grammar must parse the entire input.
+
+=== Skip
+
+The `*>` production is primarily used in aiding error recovery. It
+succeeds if there is a terminal that matches the argument in the
+input. In addition, it discards the input -- not including the target
+terminal itself.
+
+The form of a `skip` is:
+
+[source,star]
+----
+*> terminal
+----
+
+For example, to skip input up to (but not including) a semi-colon, one might use:
+[source,star]
+----
+*> [`;`]
+----
+
+NOTE: Like a negation condition, `skip` conditions cannot produce any values.
+
+Although the `*>` production can take any grammar form as its
+argument, one is recommend to restrict this to simple grammars -- such
+as terminals and/or the end of the input stream.
+
+=== Reporting Errors
+
+It can be important to continue parsing when the input is
+incorrect. The error production allows a grammar to display an error. In
+addition, to facilitate recovery, the error production also includes a
+_skip to_ terminal.
+
+For example, to report a missing bracket in an arithetic expression, one might use
+
+[source,star]
+----
+exp0 >> E --> [`(`], exp >> E, ([`)`] | { reportError("missing right paren")}).
+----
+
+However, this can lead to an unfortunate cascade of errors: for
+example, if the input has an extra punctuation mark.
+
+The `skip` grammar allows one to attempt to recover from the
+error by ignoring the input until some well known marker.
+
+[source,star]
+----
+exp0 >> E --> [`(`], exp >> E, ([`)`] | { reportError("missing right paren")}, *> [`;`]).
+----
+
+

@@ -1,6 +1,7 @@
 test.opg{
   import star.
   import star.assert.
+  import star.location.
   import star.quote.
 
   ast ::= .name_(string) |
@@ -13,7 +14,7 @@ test.opg{
     .string_(string) |
   .apply_(ast,ast).
 
-  implementation quote[ast->>locn] => {
+  implementation quote[ast] => {
     _name(_,N) => .name_(N).
     _qnme(_,N) => .qnme_(N).
     _integer(_,Ix) => .integer_(Ix).
