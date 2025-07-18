@@ -2,8 +2,8 @@
 
 This chapter focuses on the organization of programs using functions,
 types and other computational forms. Definitions occur at the
-top-level of a ((Package)), but also within functions in
-((Let Expressions)) and ((LetAction)).
+top-level of a <<Package>>, but also within functions in
+<<letExpression>>s and <<letAction>>s.
 
 == Package Structure
 (((package)))
@@ -112,8 +112,8 @@ consLength:all t ~~ (cons[t])=>integer
 
 A variable definition is a definition or an
 action that explicitly denotes the declaration of a
-variable. ((variableDefinition))s may appear in packages, 
-((letExpression))s and ((action))s.
+variable. <<variableDefinition>>s may appear in packages, 
+<<letExpression>>s and <<letAction>>s.
 
 [#variableDeclararionFig]
 .Variable Definition
@@ -163,7 +163,7 @@ context in which it is declared:
 
 let expression:: the scope of variables in a let expression includes the bound
 expression, _but not the other definitions in the let expression_
-let rec expression:: the scope of variables defined in a ((letRecExpression))
+let rec expression:: the scope of variables defined in a <<letRecExpression>>
 includes the other definitions in the let rec -- and, of course, the bound
 expression.
 action:: variables declared as part of an action sequence are in scope from
@@ -200,7 +200,7 @@ given action block.
 It is not permitted to define a variable with the same name as another
 variable that is already in scope. This applies to variables declared
 in patterns as well as variables declared in
-((LetExpression))s.
+<<letExpression>>s.
 
 For example, in the function:
 [source,star]
@@ -229,7 +229,7 @@ variables.
 
 (((ref type)))
 In particular, re-assignable variables have a distinguished type
-compared to single-valued variables -- they must be of ((ReferenceType)).
+compared to single-valued variables -- they must be <<referenceType>>.
 
 In addition to the different type, there are two operators that are
 associated with re-assignable variables: `ref` and `!`
@@ -258,7 +258,7 @@ ruleHead --> identifier, ["("], pattern, ([","], pattern)*, [")"].
 guardCondition --> ["where"], condition.
 ----
 
-NOTE: The rules in ((#functionFig)) are written assuming that the function's
+NOTE: The rules in <<#functionFig>> are written assuming that the function's
 name is not also an operator. If it is, then the head of the rule will take the
 infix form.
 
@@ -272,7 +272,7 @@ appear as a function literal in an expression.
 ==== Equations
 
 An equation is a rule for deciding how to rewrite an expression into a simpler
-expression. Each equation consists of a ((TuplePattern)) that is used to match
+expression. Each equation consists of a <<tuplePattern>> that is used to match
 the call to the function and a replacement expression. The left hand side of the
 function may also have a guard associated with it, this guard may use variables
 introduced in the pattern.
@@ -284,14 +284,14 @@ corresponding actual arguments to the function application.
 (((theta environment)))
 Functions are defined in the context of a scope --
 for example, in the body of a `let` expression (see
-((LetExpression))), or at the top-level of a `package`.
+<<letExpression>>), or at the top-level of a `package`.
 
 ==== Type of Functions
 
 There are two primary ways in which the type of a function is computed: by
 declaration or by inference.
 
-If a function's type has been declared -- by having a ((typeAnnotation)) for the
+If a function's type has been declared -- by having a <<typeAnnotation>> for the
 name of the function in the same scope -- then the equations are _checked_ for
 consistency with the type declaration. If the equations are not consistent with
 the declaration then an error will be displayed.
@@ -349,7 +349,7 @@ may be used to capture any remaining cases not covered by other equations.
 (((patterns,variable pattern)))
 A `default` equation may not have a `where` clause associated with
 it, and furthermore, the patterns in the left hand-side should be
-generally be variable patterns (see ((patternVariables))).
+generally be variable patterns (see <<patternVariable>>).
 
 NOTE: In particular, it _should_ be guaranteed that a `default`
 equation cannot fail to apply.
@@ -398,8 +398,7 @@ program will halt.
 NOTE: The programmer is advised to make functions _total_ by supplying
 an appropriate `default` equation. In the case of the
 `F`actorial function above, we can make the `default` case
-explicit as is shown in ((factorialFunProg)).
-
+explicit as is shown in <<factorialFunProg>>.
 
 [#factorialFunProg]
 .Factorial Function
@@ -457,6 +456,35 @@ around the returned function value.
 
 NOTE: Lambda expressions functions may reference free variables.
 
+==== Functions that throw exceptions
+[#throwingFunctions]
+(((exception, throwing function)))
+
+A function whose type is a throwing type, (see <<throwingFunctionType>>), may
+return an exceptional value rather than a normal value. For example, this
+definition of `check` will throw an exception -- encoded as a `string` -- when
+its argument is false:
+
+[source,star]
+----
+check:all t ~~ (boolean,t) => t throws string.
+check(X,Y) => (~X ?? throw "check exception" || Y).
+----
+
+NOTE: This definition has an explicit type signature; this is because we cannot
+reliably infer that a function should throw an exception.
+
+==== The standard `exception` type
+[#exceptionType]
+
+Although not essential, Star has a built-in type that may be convenient for
+reporting exceptions. The `exception` type is defined as:
+
+[source,star]
+----
+public exception ::= .exception(string).
+----
+
 == Contract Definition
 (((type,contracts)))
 
@@ -482,20 +510,20 @@ contractTypeArgs --> typeVariable*, ["->>"], typeVariable*.
 contractTypeArgs --> typeVariable*.
 ----
 
-For example, the contract that underlies ((TypeCoercion)) expressions is:
+For example, the contract that underlies a <<typeCoercion>> expressions is:
 [source,star]
 ----
 contract all s,t ~~ coercion[s,t] ::= { coerce:(s)=>option[t] }
 ----
 
-TIP: The type quantifier may be omitted from ((ContractDefinition))s -- _except_
+TIP: The type quantifier may be omitted from <<contractDefinition>>s -- _except_
 for the case that a higher-kinded type is being quantified.
 
 TIP: An important usage pattern for contracts is to represent
 _abstract types_. An abstract type is one defined by its contract
 rather than one defined by an explicit type definition.
 
-For example, the `arith` contract in ((arithContractProg)) defines a set of
+For example, the `arith` contract in <<arithContractProg>> defines a set of
 arithmetic functions. However, it can also be interpreted as a definition of an
 abstract type of arithmetic values -- the values that implement the `arith`
 contract.
@@ -554,7 +582,7 @@ implemented for a specific type combination.
 contractImplementation --> ["implementation"], contractSpec, ["=>"], expression.
 ----
 
-The ((Type))s mentioned in ((ContractSpec)) must be 
+The <<type>>s mentioned in <<contractSpec>> must be 
 ((NominalType))s.
 
 NOTE: In particular, it is not permitted to define an
@@ -700,15 +728,15 @@ implementation of `<` for their elements.
 (((import package)))
 (((package,import)))
 
-The ((ImportStatement)) is used to signal that this package
+The <<importStatement>> is used to signal that this package
 depends on other packages.footnote:[The `import` statement is
 only permitted at the top-level of a package.]
 
-A package may use another package by importing it. The ((ImportStatement))
+A package may use another package by importing it. The <<importStatement>>
 denotes a requirement that the types, programs and other elements of the
 imported package are made available to the importing package.
 
-The ((ImportStatement)) is used to denote that the exported
+The <<importStatement>> is used to denote that the exported
 elements of another package should be made available within this package.
 
 [#importStatementFig]
@@ -724,7 +752,7 @@ importStatement --> ["public", "import"], packageName.
 (((import,statement)))
 (((statement,import)))
 
-An ((ImportStatement)) of the form:
+An `import` statement of the form:
 [source,star]
 ----
 import sample.pkg
@@ -742,7 +770,7 @@ In addition to the regular functions and types defined in the imported package,
 any contracts, and contract implementations that are defined in the imported
 package are also in scope.
 
-If the ((OpenStatement)) is prefixed by a `public` keyword then, in addition to
+If the <<openStatement>> is prefixed by a `public` keyword then, in addition to
 importing the definitions, they are also implicitly _re-exported_ by thhis
 package.
 
@@ -756,8 +784,8 @@ but viewed as a single package externally.
 (((opening a record)))
 (((record,opening)))
 
-The ((OpenStatement)) takes a ((Record))-valued expression and
-opens its contents in a package.
+The `open` statement takes a <<Record>>-valued expression and
+opens its contents in a <<thetaEnvironment>> -- such as a package.
 
 [#openStatementFig]
 .Open Statement
@@ -766,7 +794,7 @@ opens its contents in a package.
 openStatement --> ["open"], expression.
 ----
 
-Any fields and types that are declared within the ((Expression))'s
+Any fields and types that are declared within the <<expression>>'s
 type become defined within the enclosing scope.
 
 NOTE: The existing scope rules continue to apply; in particular, if there is
@@ -774,7 +802,7 @@ a name that is duplicated already in scope then a duplicate definition
 error will be signaled.
 
 Normal type inference is not able to infer anything about the type of
-the `open`ed ((Expression)). Hence, this statement requires
+the `open`ed <<expression>>. Hence, this statement requires
 that the type of the expression is already known.
 
 For example, given the definition:
@@ -788,7 +816,7 @@ R = {
 }
 ----
 
-then we can `open` `R` in a ((LetExpression)):
+then we can `open` `R` in a <<letExpression>>:
 [source,star]
 ----
 let{

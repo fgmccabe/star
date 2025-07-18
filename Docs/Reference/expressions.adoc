@@ -1,0 +1,1639 @@
+= Expressions
+
+An expression is a form that denotes a _value_. Evaluation is the
+computational process of realizing the denoted value. Associated with
+all expressions is a <<type>> -- which governs the valid
+expressions and actions that the expression itself may be part of.
+
+[#expression]
+.Expression
+[source,star]
+----
+expression --> variable.
+expression --> numericLiteral.
+expression --> stringLiteral.
+expression --> algebraicLiteral.
+expression --> applicativeExpression.
+expression --> recordExpression.
+expression --> fieldAccess.
+expression --> recordUpdate.
+expression --> caseExpression.
+expression --> tryCatchExpression.
+expression --> throwExpression.
+expression --> conditionalExpression.
+expression --> condition.
+expression --> lambdaExpression.
+expression --> thunkExpression.
+expression --> letExpression.
+expression --> valofExpression.
+expression --> typedExpression.
+expression --> sequenceExpression.
+expression --> rangeExpression.
+expression --> indexExpression.
+expression --> sliceExpression.
+----
+
+== Variables
+(((variables)))
+
+A <<Variable>> is a placeholder that denotes a value. Variables
+may be used to denote many kinds of values -- arithmetic values,
+complex data structures and programs.
+
+[#variableFig]
+.Variable
+[source,star]
+----
+variable --> identifier.
+----
+
+Any given variable has a single type associated with it and may only
+be bound to values of that type.footnote:[We sometimes informally
+refer to a variable being `bound' to a value X (say). This means that
+the value associated with the variable is X.]
+
+Variables have a scope -- a syntactic range over which they are
+defined. Variables can be said to be free in a given scope --
+including functions that they are referenced within.
+
+Variables are _single-assignment_; i.e., once given a value, a
+variable may not be reassigned to. Furthermore, all variable
+introductions are in contexts where the variable is given a value.
+
+However, it is possible to give a variable a `ref` type; which
+permits the variable's value to be effectively re-assigned.
+
+NOTE: Technically, assigning to a `ref` variable is not changing the
+variable itself, but is changing the contents of the cell that denotes
+the `ref` variable's value.
+
+=== Re-assignable Variables in Expressions
+(((referring to re-assignable variables,in expressions)))
+There are two modes of referring to re-assignable variables in
+expressions: to access the value of the variable and to access the
+variable itself. The primary reason for the latter may be to assign to
+the variable, or to permit a later assignment.
+
+An undecorated occurrence of a variable denotes access to the variable
+itself, whereas if the access is decorated with a `!` then that
+refers to the variable's value. Thus, given a variable declaration:
+[source,star]
+----
+Cx := 0
+----
+
+then the reference to `Cx` in the expression:
+[source,star]
+----
+Cx+3
+----
+is not legal because `Cx` here does not refer to the variable's
+value. Instead use:
+[source,star]
+----
+Cx!+3
+----
+
+=== Modifying Fields of Records
+
+Assignability of variables does _not_ automatically imply that the
+value of the variable is itself modifiable. Thus, given a variable
+declaration such as:
+
+[source,star]
+----
+P := someone{ name="fred"; age=23 }
+----
+
+the assignment:
+[source,star]
+----
+P.age := 24
+----
+
+is not valid -- because, while we can assign a new value to `P`,
+that does not confer an ability to modify the value that `P` has.
+
+However, by marking a _field_ of a record type as a `ref`
+type, then we _can_ change that field of the record. Thus, for
+example, if the type of `person` were:
+[source,star]
+----
+person ::= person{
+  name : string.
+  age : ref integer.
+}
+----
+
+then the assignment:
+[source,star]
+----
+P.age := 24
+----
+is valid.
+
+[NOTE]
+****
+Note that one may change a suitably declared field of a record even
+when the variable 'holding' the record it not itself re-assignable.
+[source,star]
+----
+P = someone{ name="fred". age := 23 }
+----
+
+I.e., re-assignability depends only on whether the target is re-assignable.
+****
+
+In addition to modifying the contents of a re-assignable variable,
+there is a <<RecordUpdate>> expression which does not modify a
+record but can be used to construct a new record value by replacing a
+field in the record.
+
+== Numeric Literal Expressions
+(((numeric literal)))
+There are three forms of numeric literal expression: integers
+(<<integerLiteral>>), arbitrary precision integers
+(<<arbitraryPrecisionInteger>>) and floating point numbers (<<floatingPoint>>).
+
+=== Integer Literal
+(((integer)))
+[#integerLiteral]
+
+The `integer` type is used to denote integral values in the range
+-2305843009213693952..2305843009213693951.footnote:[I.e., 62 bit
+precision.]
+
+Integers may be written in a variety of styles (see
+<<decimal>>); the most common form is the simple decimal notation.
+
+=== Arbitrary Precision Integer
+[#arbitraryPrecisionInteger]
+(((integer)))
+(((arbitrary precision integer)))
+
+Arbitrary precision integers do not have a fixed upper limit in their
+range: in principle, a single number could take the entire memory of
+the computer.footnote:[Not recommended.]
+
+Arbitrary precision integers are written as a sequence of decimal
+digits prefixed by a `0b`:
+
+[source,star]
+----
+0b815915283247897734345611269596115894272000000000
+----
+
+It is possible to coerce between so-called _bigint_s and regular
+integers; although it is not guaranteed to be possible in all cases.
+
+=== Floating Point Literals
+(((float)))
+
+The `float` type is used to represent fractional values. Floating
+point numbers are represented as IEEE double precision -- i.e., 64
+bit.
+
+NOTE: In fact, the precision of floating numbers is limited to 62 bits. The
+least significant two bits are dropped.
+
+
+The syntax of floating point numbers is given in
+<<floatingPointFig>>.
+
+== String Literal Expressions
+(((string literals)))
+[#stringLiteral]
+
+The `string` type is used to denote string values. There are two
+main forms of `string` literal: the double-quoted string
+expression and the triple-quoted or block-quoted `string`
+literal.
+
+The syntax of `string` literals is given in <<quotedStringFig>>.
+The simplest form of `string` literal is a sequence of characters
+enclosed in double-quotes:
+
+[source,star]
+----
+"A string literal with 35 characters"
+----
+
+=== String Interpolation
+(((string interpolation)))
+[#stringInterpolation]
+String interpolation refers to the embedding of expressions in string
+literals. The actual string value of an interpolated `string`
+literal requires the evaluation of those expressions.
+
+For example, given a variable `X` with the value 24, then:
+[source,star]
+----
+"this has the value of X: $(X)"
+"$(X*X) people saw this"
+----
+
+would have values:
+[source,star]
+----
+"this has the value of X: 24"
+----
+and
+[source,star]
+----
+"576 people saw this"
+----
+respectively.
+
+There are three forms of interpolation expression: a display
+interpolation, a formatted interpolation and an embedded
+interpolation.
+
+[NOTE]
+****
+If a `string` interpolation expression itself contains a string,
+the various quoting mechanisms for strings apply to that string
+also. I.e., it is not necessary to `double-quote' strings within
+`string` interpolation expressions.
+
+For example, the `string` expression in:
+
+[source,star]
+----
+"The price of cheese is $(priceOf("cheese"))"
+----
+
+works as expected: the argument to the `priceOf` function is the
+string literal `"cheese"`. An even more nested example is:
+[source,star]
+----
+"The price of $(P) is $(priceOf("SKU$(P)"))"
+----
+
+In this example, we have a `string` interpolation expression embedded
+within another `string` interpolation expression.
+****
+
+An <<interpolation>> expression may be followed by a <<formattingSpec>>. If
+present, then this specification is used to guide how values are formatted.
+
+For example, the value of
+[source,star]
+----
+"--$(120345567):999,999,999,999;--"
+----
+
+is the string:
+[source,star]
+----
+"--120,345,567--"
+----
+
+Detailed formatting is controlled by the `format` contract -- see
+<<formatContractProg>> -- in particular the different
+implementations of that contract which in turn means that different
+types of expression will have type appropriate ways of specifying the
+formatting.
+
+==== Semantics of String Interpolation
+
+String interpolation expressions may refer to variables that are in
+scope at the location of the string literal itself.
+
+An expression such as
+[source,star]
+----
+"hello$(X)world"
+----
+
+is interpreted as: 
+[source,star]
+----
+_multicat(["hello",disp(X),"world"])
+----
+
+where `disp` is defined in the `display` contract (see <<displayContract>>).
+
+If a <<formattingSpec>> is present, then the translation takes
+that into account also. For example, the expression:
+
+[source,star]
+----
+"price $(X):99.99;c"
+----
+
+is equivalent to the expression: 
+[source,star]
+----
+_multicat(["price ",frmt(X,"99.99"),"c"])
+----
+
+where `frmt` is part of the `format` contract -- see <<formatContract>>.
+
+The standard `_multicat` function takes a list of `string`
+nnvalues and concatentates them into a single `string` value.
+
+NOTE: `_multicat` is itself defined via a contract specification: it is
+part of the `concat` contract. 
+
+==== String Embedding
+(((string embedding)))
+[#stringEmbedding]
+
+String embedding is a simpler form of string interpolation where the contents of
+the embedded expression are expected to be already `string`-valued and are
+simply subistituted in place.
+
+For example, given a variable `F` with the value `"foo"`, then:
+[source,star]
+----
+"#(F) is the complement of bar"
+----
+
+would have values:
+[source,star]
+----
+"foo is the complement of bar"
+----
+
+=== Block Strings
+(((block string)))
+
+A <<blockString>> is a string literal that consists of a sequence of
+characters enclosed in triple quotes.
+
+The principal difference between a block string and a regular
+<<quotedString>> is that no interpretation of characters in the text
+is made. I.e., there is no equivalent of string interpolation and nor
+are any escape characters interpreted.
+
+In addition, block strings can span multiple lines whereas
+quoted strings are not permitted to include new-line characters -- except by escaping.
+
+== Algebraic Constructor Expressions
+
+The constructor expressions are those that refer to
+constructors that are defined in an <<algebraicTypeDefinition>>.
+
+There are three primary forms of constructor literals:
+* enumerated symbols,
+* positional constructor literals, and
+* record literals.
+
+[#algebraicExpressionFig]
+.Algebraic Constructor Expressions
+[source,star]
+----
+constructorLiteral --> enumeratedSymbol.
+constructorLiteral --> positionalConstructorLiteral.
+constructorLiteral --> recorcLiteral.
+----
+
+=== Enumerated Symbols
+(((enumerated symbols)))
+
+Enumerated symbols are written using regular identifiers (see
+<<enumeratedSymbolFig>>) -- prefixed with a period. Such a symbol
+must first have been declared within a type definition statement which
+also determines the type of the symbol.
+
+[#enumeratedSymbolFig]
+.Enumerated Symbol
+[source,star]
+----
+enumeratedSymbol --> ["."], identifier.
+----
+
+For example, the `boolean` type definition looks like:
+[source,star]
+----
+boolean ::= .true | .false.
+----
+and the expressions `.true` and `.false` represent enumerated symbols from that
+definition.
+
+NOTE: It may seem a little odd that enumerated symbols -- especially these ones
+-- are prefixed with a marker. We chose to do this for reasons of clarity and
+transparency: enumerated symbols are _not_ the same as regular variables and
+using the marker helps to avoid confusion; especially in the face of errors in
+the program.
+
+Enumerated symbols have no internal structure; they are often used
+to define enumerations or for sentinels. For example, the
+standard cons-list type uses `nil` to mark the empty list:
+
+[source,star]
+----
+all e ~~ cons[e] ::=  .nil | .cons(e,cons[e])
+----
+
+=== Positional Constructor Literals
+(((positional constructor)))
+
+Positional Constructor Literal expressions denote data
+constructor values. In particular, it refers to positional
+constructors that are introduced in an algebraic
+<<typeDefinition>>.
+
+[#positionalConstructorFig]
+.Positional Constructor Literal
+[source,star]
+----
+positionalConstructorLiteral --> ["."], identifier, ["("], expression * [","], [")"].
+----
+
+The valid types of the arguments to a positional constructor literal are
+determined by its definition within the appropriate type definition.
+
+For example, in the type definition:
+[source,star]
+----
+address ::= .noWhere | .someWhere(string,integer,string)
+----
+
+`someWhere` as the identifier of a positional constructor and any instance must
+have exactly three arguments: a `string`, an `integer` and a `string`.
+
+NOTE: Positional constructors, like enumerated symbols, are marked by a leading
+`.` character. This helps to distinguish such expressions from normal function
+calls.
+
+==== Accessing Elements of a Positional Constructor Literal
+The only way that elements of a positional constructor literal 
+can be _accessed_ is via a pattern match -- see
+<<posConPattern>>. For example, given the definition of
+`address` above, we can 'unpack' its argument using a pattern
+such as in
+[source,star]
+----
+city(someWhere(City,_,_)) => City
+----
+
+Unlike positional constructors, records allow their fields to be
+addressed individually.
+
+=== Record Literals
+[#recordLiteral]
+A record literal is a collection of values identified by name.
+
+Like positional constructor literals, the record literal must have been defined
+with a <<typeDefinition>> statement -- specifically a
+<<structureTypeDefinition>>. This also constrains the types of the expressions
+associated with the fields.
+
+[#recordConstructorFig]
+.Record Literal
+[source,star]
+----
+recordLiteral --> record | recRecord.
+
+record --> identifier, ["{"], recordElement * [". "], ["}"].
+recRecord --> identifier, ["{."], recordElement * [". "], [".}"].
+
+recordElement --> identifier, ["="], expression.
+recordElement --> identifier, [":="], expression.
+recordElement --> typeAliasStatement.
+----
+
+There are two variants of the record literal: the `record` form and the
+`recRecord` form.  This section focuses on the former.
+
+For example, given the type definition: 
+[source,star]
+----
+employee ::= emp{
+  name : string.
+  hireDate : date.
+  salary : ref integer.
+  dept : ref string.
+}
+----
+       
+A literal `emp` value will look like: 
+[source,star]
+----
+E = emp{ name = "Fred Nice".
+  hireDate = today().
+  salary := 23000.
+  dept := "mail"
+}
+----
+  
+NOTE: Fields whose type is a <<referenceType>> are defined within the
+record using the `:=` operator. All other fields are defined
+using the `=` operator.
+
+For any given record literal _all_ the fields of the record must be associated
+with a value.
+
+Fields within a record literal are identified by name; and may
+be written in any order.
+
+=== Accessing Fields of a Record
+(((record access)))
+(((operator, `++.++`)))
+
+Record access expressions access the value associated with a field of
+a record value. 
+
+[#recordAccessFig]
+.Field Access
+[source,star]
+----
+fieldAccess --> expression, ["."], identifier.
+----
+
+An expression of the form 
+[source,star]
+----
+A.F
+----
+
+where `F` is the name of an attribute of the record `A` denotes the
+value of that attribute. For example, given the type definition
+
+[source,star]
+----
+person ::= someone{ name : string. age : integer }
+----
+
+and a `person` value bound to `P`: 
+[source,star]
+----
+P = someone{ name="fred". age=32 }
+----
+
+then the expression `P.name` has value `"fred"`.
+
+[NOTE]
+****
+The binding of the record access operator (`.`) is very strong. Thus,
+expressions such as `A.L[ix]` and `A.F(a,b*3)` are equivalent to
+
+[source,star]
+----
+(A.L)[ix]
+----
+and
+[source,star]
+----
+(A.F)(a,b*3)
+----
+respectively.
+****
+
+=== Updating Fields of a Record
+(((record update)))
+
+A record cannot be updated in the normal sense -- unless one or more
+of the fields of the record is marked as being a reference
+variable. However, there is a notation for constructing a new literal
+from an existing record, replacing one or more of the fields with new
+values.
+
+[#recordUpdateFig]
+.Record Update
+[source,star]
+----
+recordUpdate --> expression, ["."], identifier, ["="], expression.
+----
+
+An expression of the form 
+[source,star]
+----
+A.F=B
+----
+
+where `F` is the name of an attribute of the record `A`
+denotes a version of `A` with the `F` field replaced by
+`B`.
+
+The type of the overall expression is the same as the type of
+`A`; since we are essentially creating a variant of `A`.
+
+[source,star]
+----
+person ::= someone{ name : string. age : integer }
+----
+
+and a `person` value bound to `P`: 
+[source,star]
+----
+P = someone{ name="fred". age=32 }
+----
+
+then the expression `P.name="peter"` has value
+[source,star]
+----
+someone{ name="peter". age=32 }
+----
+
+NOTE: The old version of the record -- `P` -- is still available, if it
+is still accessible.
+
+=== Recursive Record Literals
+(((theta record)))
+[#recRecord]
+
+A recRecord is a record whose contents is specified by means
+of a sequence of <<definition>>s.
+
+[#thetaRecordFig]
+.Theta Record
+[source,star]
+----
+recRecord --> identifier, ["{."], definition * [". "], [".}"].
+----
+
+Externally, a recRecord is the same as a regular
+<<Record>>; internally, however, its fields are defined
+differently using <<definition>>s. Definitions include
+<<recordElement>> but may also include <<typeDefinition>>s and
+other forms of definition.
+
+Importantly, _within_ a <<RecRecord>>, definitions may be
+_mutually recursive_.
+
+<<RecRecord>>s are especially convenient when the fields of the
+record are program values. For example, assuming a type definition
+such as: 
+[source,star]
+----
+onewayQ[t] ::= onewayQ{
+  add : (t)=>action[(),()].
+  take : ()=>t.
+}
+----
+then the literal: 
+[source,star]
+----
+onewayQ{.
+  private Q := [].
+  add(X) => action {
+    Q := [Q..,X];
+    return ()
+  .}
+  take() => valof action{
+    H = head(Q);
+    Q := tail(Q);
+    return H
+  }
+}
+----
+defines a `onewayQ` record with two exposed values -- the
+functions `add` and `take`.
+
+NOTE: If there are extra definitions, they should be marked `private`
+which will exclude them from the record's type signature.
+
+A <<recRecord>> has many of the characteristics of an object in
+OO languages -- except that there is no concept of inheritance; nor is
+there a direct equivalence of the `self` or `this` keyword.
+
+A definition within a <<RecRecord>> that is marked
+`private` does _not_ 'contribute' to the external type of
+the record; and neither can such an attribute be accessed via the
+<<FieldAccess>> expression.
+
+== Tuples
+[#tuple]
+(((tuples)))
+A tuple consists of a sequence of expressions separated by commas and
+enclosed in parentheses. In effect, a tuple is a
+<<positionalConstructorLiteral>> where the <<Identifier>> is
+omitted.
+
+[#tupleFig]
+.Tuple Literal
+[source,star]
+----
+tupleLiteral --> ["(", expression * [","], [")"].
+----
+
+Tuples allow a straightforward and casual grouping of values
+together without requiring a specific type definition of a data
+structure.
+
+NOTE: Unlike <<positionalConstructorLiteral>>s, the set of possible tuples
+_cannot_ be defined using a <<typeDefinition>>. Instead, the tuple types form a
+_type schema_.
+
+Not a single type, because each arity of anonymous tuple type denotes a
+different type. However, all tuples are related by their tuple-ness.
+
+In that tuples can be used to group elements together, they are somewhat similar
+to arrays. However, unlike arrays, each element of a tuple may be of a different
+type, and also unlike arrays, tuple elements may not be accessed via an indexing
+operation: tuples can only be unwrapped by some form of pattern matching.
+
+For example, if the `split` function splits a list into a front half and back
+half, it may be used in a statement of the form: [source,star]
+----
+(F,B) = split(L)
+----
+which has the effect of unpacking the result of the `split` function
+call and binding the variables `F` and `B` to the front half and back
+half of the list `L`.
+
+The tuple notation is unremarkable except for two cases: the single
+element tuple and the zero element tuple.
+
+=== Zero-ary Tuples
+(((0-ary tuples)))
+Zero-element tuples _are_ permitted. A zero-element tuple, which
+is written
+
+[source,star]
+----
+()
+---- 
+is essentially a symbol.
+
+A tuple of no values is effectively the same as void and is used to
+signal void or empty arguments.
+
+=== Singleton Tuples
+Some special handling is required to represent tuples of one element.
+
+The principal issue is the potential ambiguity between a tuple with
+one element and a normal operator override expression.
+
+For example, 
+[source,star]
+----
+(a+b)*c
+----
+is such a case: the inner term `(a+b)` is not intended to denote a
+tuple but simply the sum of `a` and `b`.
+
+A singleton tuple _may_ be written; by doubly parenthesizing
+it. An expression of the form: 
+[source,star]
+----
+((34))
+----
+denotes a singleton tuple with the integer `34` in it.
+
+NOTE: Fortunately, singleton tuples are not often required in programs.
+
+=== Accessing Tuples
+We can access the elements of a tuple by pattern matching, as in:
+
+[source,star]
+----
+(A,B) .= Ex
+----
+
+We can also access a tuple by index:
+
+[source,star]
+----
+T.3
+----
+
+This type will access the fourth element of `T` (elements of a
+tuple start at index 0). The type of this element depends on the the
+type of `T`: which is constrained to be a tuple of at least four
+elements.
+
+The element being indexed must be identified by a literal
+integer. Star does not support dynamic access to tuple elements.
+
+== Function Application Expressions
+(((expressions,function application)))
+
+A function application expression applies a function to zero or more
+arguments.
+
+[#applicationFig]
+.Function Application Expression
+[source,star]
+----
+applicativeExpression --> expression, ["("], expression * [","], [")"].
+----
+
+It is quite normal for the function expression being applied to arguments itself
+to be the result of a function application. For example, given the function
+`double`:
+
+[source,star]
+----
+double : all s ~~ (((s)=>s))=>((s)=>s)
+double(F) => (X) => F(F(X))
+----
+
+we can apply `double` to `inc`: 
+[source,star]
+----
+inc : (integer)=>integer.
+inc(X) => X+1.
+----
+
+to get an expression such as: 
+[source,star]
+----
+double(inc)(3)
+----
+
+which has value 5.
+
+[NOTE]
+****
+The _syntax_ of the applicative expression described here assumes that the
+function identifier is not also an <<operator>>.
+
+If the function being applied is also an operator then the syntax of a function
+application follows the operator. For example, this expression:
+
+[source,star]
+----
+A * 4
+----
+
+is both a use of the `++*++` operator, *and* a function application: applying
+the `++*++` function to the arguments `A` and `4`.
+****
+
+
+== Control Expressions
+(((control expression)))
+
+The so-called control expressions involve and modify the meaning of
+other expressions and actions.
+
+=== Case Expressions
+(((case expression)))
+[#caseExpression]
+
+[#caseExpressionFig]
+.Case Expression
+[source,star]
+----
+caseExpression --> ["case"], expression, ["in"], caseHandler.
+
+caseHandler --> ["{"], caseRule * [". "], ["}"].
+
+caseRule --> ["|"], pattern, ["=>"], expression.
+caseRule --> ["|"], pattern, ["default", "=>"], expression.
+----
+
+The value of a case expression depends on which of the cases match its
+governing expression.
+
+For example, the expression: 
+[source,star]
+----
+case D in {
+  | .monday => 0
+  | .tuesday => 1
+  | _ => 10
+}
+----
+
+compares the value of the variable `D` against the symbols
+`monday` and `tuesday` and returns 0 or 1 if either of those
+match. Other values of `D` return `10`.
+
+NOTE: The cases of a case expression resemble syntactically the equations of a
+function definition. This is deliberate: a function definition expressed as
+equations is effectively a `case` expression.
+
+=== Try Catch
+(((try catch )))
+[#tryCatch]
+
+The <<tryCatchExpression>> expression is used to denote an expression which may
+need to respond to exception situations. 
+
+[#tryCatchFig]
+.Try Catch
+[source,star]
+----
+tryCatchExpression --> ["try"], expression, ["catch"], caseHandler.
+----
+
+The type of any exception thrown within the body of the `try` `catch` expression
+must be consistent with the handler. For example, in:
+
+[source,star]
+----
+try{
+  throw 10
+} catch {
+  | (E) => E+10
+}
+----
+the type of `E` is `integer`; which is consistent with the expression
+[source,star]
+----
+throw 10
+----
+The value of this overall expression is `20`.
+
+Exception handler expressions may be nested within one another; and
+their exception types may be different. However, when an exception is
+raised, only a single exception handler will be applied: there is no
+automatic cascading of exceptions from one handler to another.
+
+NOTE: Only one type of exception may be thrown in any given context -- either
+within a <<tryCatchExpression>> or within a throwing function definition. On the
+other hand, the type checker is able to _infer_ -- in many cases -- the type of
+the exception thrown. Furthermore, throwing functions may be _generic_ in the
+exception they throw. See <<throwingFunctionType>>.
+
+=== Throw Expression
+(((throw)))
+(((expression,throw)))
+
+[#throwFig]
+.Throw Expression
+[source,star]
+----
+throwExpression --> ["throw"], expression.
+----
+
+When a `throw` expression is evaluated, its expression is
+evaluated and that value is thrown as an exception. There must either
+be a <<tryCatchExpression>> form, a <<tryCatchAction>> form in
+the enclosing lexical scope, or the function in which it occurs must
+have been declared as raising a value of the appropriate type -- i.e.,
+it must have been declared as a throwing function.
+
+NOTE: The type of a `ThrowExpression` is unconstrained -- because its value is
+never consumed.
+
+WARNING: If evaluating the expression that denotes the exception to throw
+itself throws an exception, that is a fatal error and causes overall
+execution of the program to stop.
+
+There is no automatic search for an handling form: every `throw`
+must be lexically accounted for.
+
+=== Conditional Expressions
+(((conditional expression)))
+
+[#conditionalExpressionFig]
+.Conditional Expression
+[source,star]
+----
+conditionalExpression --> ["("], condition, ["??"], expression, ["||"], expression, [")"].
+----
+
+The value of a conditional expression depends on whether the <<condition>> is
+satisfiable or not. If it is satisfiable, then the expression is equivalent to
+the 'then' branch of the conditional expression; otherwise it is equivalent to
+the 'else' branch.
+
+For example, the expression: 
+[source,star]
+----
+(even(X) ?? X>Y || X<Y)
+----
+
+is equivalent to one of `X>Y` or `X<Y` depending on whether the condition `even(X)` is `.true` or not.
+
+The condition of a conditional expression may introduce variables, depending on
+the form of the condition -- for example, if the condition is a
+<<patternMatch>> condition, as in:
+
+[source,star]
+----
+(X ?= dict[Key] ?? X || throw "not found")
+----
+
+then the variable -- `++X++` -- introduced in the condition is in scope over the
+then part of the conditional expression.
+
+NOTE: Variables introduced by the condition part of a conditional expression are
+_not_ in scope for the 'else' part.
+
+=== Thunk Expressions
+(((thunk expression)))
+[#thunkExpression]
+
+[#thunkExpressionFig]
+.Thunk Expression
+[source,star]
+----
+thunkExpression --> ["$$"], expression.
+thunkExpression --> expression, ["!!"].
+----
+
+Thunk expressions are _delayed_ or _lazily evaluated_
+expressions: the value of a thunk expression is computed the first
+time it is needed.
+
+Thunk expressions have two flavors: the thunk expression -- which
+establishes a value to be computed at some point in the future -- and
+the thunk reference expression which accesses the value of the thunk,
+and, if not previously evaluated, evaluate the delayed expression.
+
+For example, a thunk to add two numbers might be:
+
+[source,star]
+----
+Thk = $$ (x+2)
+----
+
+The embedded expression is not immediately evaluated. However, the
+values of any _free_ variables (in this case `x`), are
+frozen at this time.
+
+To access the value of a thunk, we use the `!!` operator:
+
+[source,star]
+----
+Thk!!
+----
+
+This evaluates the embedded expression, if it was not prieviously
+evaluated. Otherwise, it returns the value computed. In this sense,
+thunks are effectively a means of _memoizing_ computations.
+
+We can see this by modifying the generic fibonacci function, whose
+naive definition is:
+
+[source,star]
+----
+fib(0) => 1.
+fib(1) => 1.
+fib(N) => fib(N-1)+fib(N-2)
+----
+
+to use thunks:
+[source,star]
+----
+memFib(N) => let{
+  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }:vector[thunk[integer]].
+  fb(0) => 1.
+  fb(1) => 1.
+  fb(ix) where F?=fibs[ix] => F!!
+} in fb(N-1)
+----
+
+This version of fibonacci is linear in `N`, whereas the
+recursive version is exponential in `N`.
+
+=== Let Expressions
+(((let expressions)))
+[#letExpression]
+[#letRecExpression]
+
+A `let` expression allows an expression to be defined in terms of auxiliary
+definitions. There are two varieties of let expression: recursive and
+non-recursive.
+
+[#letExpressionFig]
+.Let Expression
+[source,star]
+[#letEnvironment]
+----
+letExpression --> ["let"], letEnvironment, ["in"], expression.
+
+letEnvironment --> ["{"], recordElement * [". "], ["}"].
+letEnvironment --> ["{."], definition * [". "], [".}"].
+----
+
+A `let` expression consists of a body -- which is a let environment -- and a
+bound expression. The type of a `let` expression is the type of the bound
+expression.
+
+Non-recursive let environments follow the rules for a <<recordLiteral>>: the
+environment consists of a series of variables defined using equality statements.
+
+Recursive let environments allow any legal definition, including type
+definitions, contract implementations etc.
+
+Within a non-recursive let environment, the elements being defined are
+not themselves in scope: only variables and types that are defined
+outside the environment are in scope within the environment.
+
+[TIP]
+****
+`let` expressions are an important program structuring tool for
+programmers. It is worth emphasizing that `let` expressions are
+expressions! They can be used in many, perhaps unexpected, places.
+
+For example, a `sort` function may require a comparison predicate in
+order to operate. This can be supplied as a named function: 
+
+[source,star]
+----
+pComp : (person,person)=>boolean.
+pComp(someone{name=N1},someone{name=N2}) => N1<N2
+
+S = sort(L,myCompare)
+----
+
+Or, the same may be achieved where the call to `sort` is not so
+conveniently close to a definition environment: 
+[source,star]
+----
+sort(L, let{.
+  pComp(someone{name=N1},someone{name=N2}) => N1<N2
+.}
+in pComp)
+----
+
+Of course, in this case, the `sort` expression could equally have
+been written using a lambda expression:
+[source,star]
+----
+sort(L, (someone{name=N1},someone{name=N2}) => N1<N2)
+----
+****
+
+=== Optional Expressions
+(((optional expressions)))
+[#optionalExpression]
+
+An `option` expression is used to handle cases where a value is not
+always guaranteed. The `option` type is built-in but is defined as
+though by the algebraic type definition in:
+
+[#optionType]
+.`option Type Definition`
+[source,star]
+----
+all t ~~ option[t] ::= .none | .some(t)
+----
+
+The `option` type is intended to convey one of two possibilities:
+a given value exists -- in which case the `some` constructor is
+used -- or no value exists -- in which case `none` is used.
+
+For example, 
+[source,star]
+----
+.some("alpha")
+----
+
+signals the definite tring value `"alpha"`; whereas 
+[source,star]
+----
+.none
+----
+signals that there is no value.
+
+The `option` type is used as the return type of functions that
+must reliably signal whether or not a value exists.
+
+NOTE: The `option` type serves as a normal replacement for `null` that one sees
+in languages like Java.
+
+== Typed Expressions
+(((typed expressions)))
+A type annotation expression is an explicit declaration of the type of
+an expression. A type coercion expression denotes a conversion of a
+value so that it conforms to a particular type.
+
+[#typedExpressionFig]
+.Typed Expression
+[source,star]
+----
+typedExpression --> typeCoercionExpression.
+typedExpression --> typaAnnotatedExpression.
+typedExpression --> zetaExpression.
+----
+
+=== Type Annotation Expression
+[#typeAnnotatedExpression]
+(((type annotation expressions)))
+
+A type annotated expression is an expression that is annotated with a
+<<type>>. The annotation amounts to an assertion that the type of the expression
+is as annotated.
+
+[#typeAnnotationExpressionFig]
+.Type Annotated Expressions
+[source,star]
+----
+typeAnnotatedExpression --> ["("], expression, [":"], type, [")"].
+----
+
+NOTE: Type annotated expressions should not be confused with type casting as is
+found in some languages.footnote:[In fact, there is no equivalent of type
+casting in Star.] The annotation is a way for the programmer to communicate
+exactly what the expected type of an expression is -- there is no implied
+coversion of values from one type to another.
+
+
+=== Type Coercion
+(((type coercion)))
+[#typeCoercionExpression]
+
+[#typeCoercionFig]
+.Type Coercion
+[source,star]
+----
+typeCoercion --> expression, ["::"], type.
+typeCoercion --> expression, [":?"], type.
+----
+
+A type coercion expression amounts to a call to convert a value
+of one type to that of another.  For example, coercing a `float`
+value to an `integer` value. In general, type coercions have the potential to
+change the value (for example, by stripping any fractional part of the value).
+
+Type coercion is supported by a special `coercion`
+<<ContractDefinition>> shown in:
+
+[#coercionContract]
+[source,star]
+----
+all s,t ~~ contract coercion[s,t] ::= {
+  _coerce:(s) => option[t]
+}
+----
+
+Specifically, an expression of the form: 
+[source,star]
+----
+X :: integer
+----
+is equivalent to the expression: 
+[source,star]
+----
+(_optval(_coerce(X)) : integer)
+----
+which has the effect of declaring that the
+expression has type `integer` and the `_coerce` function is an
+overloaded function that references a type-specific implementation --
+based on the source type of `X` and `integer`.
+
+The `:?` form of coercion expression is used in situations where
+the coercion may _fail_. If the coercion fails then the value
+should be `.none`. For example, the coercions of `string`
+values to `integer` is not guaranteed -- it depends on whether
+the string denotes an integer or not:
+[source,star]
+----
+"fred" :? integer
+----
+has value `.none`; as does:
+[source,star]
+----
+"34ed" :? integer
+----
+The latter is `.none` because the coercion from strings to
+integers attempts to make the whole string an integer value.
+
+There are many standard coercions available.  However, it is also
+possible for a programmer to define their own type coercion by
+appropriately implementing the `coercion` contract.
+
+=== Type Zeta Expression
+(((type zeta expression)))
+(((suppression of type refreshing)))
+[#typeZetaExpression]
+
+A zeta expression is used in situations where it is necessary to suppress some of the normal
+type inference mechanisms:
+
+[#zetaExpression]
+[source,star]
+----
+zetaExpression --> ["ζ"], expression.
+----
+
+The standard semantics of types, particularly in a generic type system
+like that of Star, imply a process called _refreshing_ or
+_standardizing apart_ for quantified types. 
+
+For example, given the definition:
+
+[source,star]
+----
+id:all x ~~ (x)=>x
+----
+
+the recorded type for `id` is `all x ~~ (x)=>x`. However, an occurrance of `id`, as in:
+
+[source,star]
+----
+id("hello")
+----
+
+gets an initial type that is computed from its recorded type:
+
+[source,star]
+----
+(%x)=>%x
+----
+
+where `%x` is a new type variable not occurring anywhere else in the program.
+
+A similar process is used to move aside any constraints that are
+implied by the recorded type of the variable. (The constraints are
+subsequently applied to determine what runtime information to supply.)
+
+This is the process that allows different occurrances of `id` to
+have different types of arguments. For example, even though we might
+have a use of `id` with a `string`, as above, this does not
+prevent other uses with other argument types:
+
+[source,star]
+----
+id(45.3)
+----
+
+In nearly all situations, this process of refreshing the types of
+variables is very convenient and exactly mirrors the intuition of what
+it means to use generic functions.
+
+However, in some situations, automatically refreshing types can
+cause problems. For example, in the following function, the argument is
+intended to be a generic function:
+
+[source,star]
+----
+foo:(all a~~(a)=>a,integer)=>integer
+----
+
+The first argument to `foo` is supposed to be generic, not
+specialized to any particular type. The type of this argument is
+actually the same as that for `id`, and so, a call to `foo`
+along the lines of:
+
+[source,star]
+----
+foo(id,34)
+----
+
+should be expected to type correctly. However, the rule referred to
+above about refreshing types of occurrances will lead the type checker
+to try to match the types:
+
+[source,star]
+----
+(%x)=>%x
+----
+and
+[source,star]
+----
+all a ~~ (a)=>a
+----
+
+These two types are _not_ equivalent, they are not _unifiable_.
+
+The `ζ` operator -- as applied to an identifier -- allows us to
+resolve this by suppressing the normal type refresh. In particular, the call:
+
+[source,star]
+----
+foo(ζid,42)
+----
+
+_will_ be accepted by the type checker. This is because the type
+of the expression `ζid` is
+
+[source,star]
+----
+all x ~~ (x)=>x
+----
+
+and this does unify with `all a ~~ (a)=>a`.
+
+NOTE: We do not anticipate many uses of this operator; in addition, it's
+meaning is quite subtle, hence the use of a non-ascii operator for
+it. However, when needed, `ζ` can be a life saver!
+
+== Sequence Expressions
+(((sequence expressions)))
+(((expression,sequence)))
+
+Sequence expressions are a syntactic feature that make it
+straightforward to represent sequences and other forms of collection
+values. Some sequence forms embody a sequential ordering of
+the elements. A collection may have an ordering present; but
+that is not required by the contract and is not enforced in the
+notation.
+
+=== Sequence Expression Notation
+[#sequenceExpression]
+[#sequenceExpressionFig]
+.Sequence Expressions
+[source,star]
+----
+sequenceExpression --> ["["], expSequence, ["]"].
+
+expSequence --> expression * [","].
+expSequence --> expression * [","], [",.."], expression.
+----
+
+A sequence expression consists of a sequence of expressions separated by
+commas. In addition, the tail of the sequence may be denoted by an
+expression. Otherwise the sequence is nil-terminated.
+
+Sequence expressions are interpreted in terms of the `sequence` contract.
+
+An expression of the form: 
+[source,star,subs="quotes"]
+----
+[E~1~,...,E~n~]
+----
+
+is equivalent to the expression: 
+[source,star]
+----
+_cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
+----
+
+where `_cons` and `_nil` are elements of the `sequence` contract:
+
+[#sequenceContract]
+[source,star]
+----
+public contract all S,E ~~ sequence[S->>E] ::= {
+  _cons:(E,S) => S.
+  _nil:S.
+}
+----
+
+NOTE: There is a corresponding contract for sequence terms as patterns -- the `stream` contract -- instead of the `sequence` contract.
+
+=== Range Expressions
+((range expression))
+((expression, range))
+
+Range expressions are used to denote ranges of various forms.
+
+[#rangeExpressionFig]
+.Range Expressions
+[source,star]
+----
+rangeExpression --> expression, ["..<"], expression.
+rangeExpression --> expression, ["..>"], expression.
+----
+
+I.e., a range expression denotes a range of numbers. The range expression
+
+[source,star]
+----
+0..<100
+----
+
+denotes the integers in the range 0 .. 99 inclusive. The range expression
+
+[source,star]
+----
+100..>0
+----
+
+denotes a decreasing range of integers in the range 100 down to 1.
+
+Range expressions are most useful when used in `for` loops. For
+example, the traditional-looking action:
+
+[source,star]
+----
+for Ix in 0..<Mx do {
+  ...
+}
+----
+will repeat the body of the loop `Mx` times.
+
+==== The `range` term
+[#rangeType]
+Range expressions are syntactic sugar for terms involving the
+`range` constructor function. The `range` type is defined as though by:
+
+[source,star]
+----
+all i ~~ range[i] ::= .range(i,i,i).
+----
+
+An ascending range expression like that above is equivalent to
+
+[source,star]
+----
+.range(0,100,one)
+----
+
+and the descending range is:
+
+[source,star]
+----
+.range(100,0,-one)
+----
+
+What makes the `range` type interesting is the contracts that are implemented
+for it: the `stream` contract, the `sequence` contract, the `folding` contract,
+the `iter` contract, the `display` contract, and the `generate` contract.
+
+The last of these is what enables the use of range expressions in
+`for` loops.
+
+Range expressions work with `integer` values, but also with
+`float` and `bignum` values. In fact, range expressions can
+work with any type for which the `arith` contract is implemented
+-- including user-defined types.
+
+=== Index Expression
+[#indexExpression]
+
+[#indexExpressionFig]
+.Index Expressions
+[source,star]
+----
+indexExpression --> expression, ["["], expression, ["]"].
+indexExpression --> expression, ["["], expression, ["->"], expression, ["]"].
+indexExpression --> expression, ["[", "~"], expression, ["]"].
+----
+
+Index expressions are used to denote accessing elements of a collection. There
+are several variants of the notation -- corresponding to element selection,
+replacing an element in a collection and removing an element from a collection.
+
+There is a related similar notation -- the <<Slice Notation>> --
+that is used to denote sub-sequences.
+
+The index notation is based on the `indexed` contract (see <<indexContract>>).
+
+An expression of the form: 
+[source,star]
+----
+C[E]
+----
+
+is equivalent to: 
+[source,star]
+----
+_index(C,E)
+----
+
+NOTE: The result type of an index expression is `option`al. This reflects the
+fact that accessing a collection for an element may not be succesfull.
+
+The `indexed` contract (and therefore the index notation) is supported for cons
+lists, maps and vectors. It is also straightforward to implement this for
+user-defined types.
+
+Replacing elements in a collection is denoted using a variant of the
+index notation where the index takes the form of:
+
+[source,star]
+----
+C[K -> E]
+----
+
+which denotes the collection `C` with the element associated with
+`K` replaced (or set) with `E`. This expression is equivalent to
+the call:
+
+[source,star]
+----
+_put(C,K,E)
+----
+
+and the returned value is a new collection with the replacement made.
+
+NOTE: The original collection is generally _not_ updated by calls to `_put`.
+
+Removing an element is denoted using the variant:
+
+[source,star]
+----
+C[~K]
+----
+
+which denotes the collection `C` with the element `K` removed.
+
+NOTE: If the collection did not contain any value associated with the key
+`K` then the result is the original collection. Otherwise the value
+is the collection with any value associated with `K` removed.
+
+=== Slice Notation
+[#sliceNotation]
+
+Where the index notation is used where the focus is on individual elements of a
+collection, the slice notation refers to sub sets of ordered collections.
+
+[#sliceExpressionFig]
+.Slice Expressions
+[source,star]
+----
+sliceExpression --> expression, ["["], expression, [":"], exprssion, ["]"].
+----
+
+The slice notation is based on the `slice` contract (see <<sliceContract>>).
+
+An expression of the form: 
+[source,star]
+----
+C[F:T]
+----
+
+refers to the subset of the collection `C` that starts at element `F` and
+continues until element `T` (but does not include it).
+
+The above expression is actually equivalent to a call to the `_slice` function:
+[source,star]
+----
+_slice(C,F,T)
+----
+
+NOTE: The result type of a slice expression is the same as the collection type
+that is being sliced.
+
+
+

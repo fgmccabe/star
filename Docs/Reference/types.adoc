@@ -1,5 +1,6 @@
 = Types
 (((type system)))
+[#type]
 
 Star is a strongly, statically, typed language. That means that all
 values and all variables must have a unique well-defined type that is
@@ -47,9 +48,9 @@ example, the set of _function values_ is denoted not by a single type
 expression but a _schema_ of type expressions -- each taking a form
 such as:
 
-[source,star]
+[source,star,subs="quotes"]
 ----
-(t@sub{1},@dots{},t@sub{n})=>t
+(t~1~,..,t~n~)=>t
 ----
 
 For example, the type expression
@@ -445,12 +446,12 @@ such types.
 
 [#definedSimpleTypes]
 .Standard Pre-defined Types
-`boolean`::used for logical values and conditions
-`char`::used for character values
-`float`::type of floating point numbers
-`integer`::type of fixed precision integer values
-`bigint`::type of arbitrary precision integer values
-`string`::type of string values
+`boolean`:: used for logical values and conditions
+`char`:: used for character values
+`float`:: type of floating point numbers
+`integer`:: type of fixed precision integer values
+`bigint`:: type of arbitrary precision integer values
+`string`:: type of string values
 
 === Parameterized Types
 (((parameterized types)))
@@ -467,14 +468,13 @@ incorrect number of type arguments.
 Parameterized types may be defined using a <<TypeDefinition>>
 statement.
 
-@quotation NOTE
 (((type,variable constructor)))
 (((type constructor expression)))
 
 A type expression of the form:
-[source,star]
+[source,star,subs="quotes"]
 ----
-c[t1,@dots{},tn]
+c[t~1~,..,t~n~]
 ----
 
 where `c` is a type variable -- i.e., bound by a quantifier --
@@ -495,13 +495,11 @@ expression becomes ground to the parameterized type expression
 `cons[integer]`.
 
 Such type expressions are of most use in certain forms of
-<<Contract>> where the contract is about a certain form of
+<<contract>> where the contract is about a certain form of
 parameterized type.
-@end quotation
 
-@node Type Interface
-@subsection Type Interface
-@anchor{typeInterface}
+=== Face Type
+[#typeInterface]
 
 Nominal types are associated with a <<FaceType>> that denotes
 the _interface_ to the type.
@@ -526,20 +524,17 @@ the interface to `person` is determined to be the <<FaceType>>:
 }
 ----
 
-@quotation Note
-The interface of a @refer{NominalType} is formed from the union of all
-the fields defined in the @refer{RecordConstructor}s.
+The interface of a <<NominalType>> is formed from the union of all
+the fields defined in the <<RecordConstructor>>s.
 
 This is one reason why a given field occurring in multiple
-@refer{RecordConstructor}s must have the same type.
+<<RecordConstructor>>s must have the same type.
 
 However, it can also mean that it is syntactically possible to
 reference a field of a record that does not exist. This results in a
 run-time error.
-@end quotation
 
-@node Structural Types
-@section Structural Types
+== Structural Types
 (((types,structural)))
 (((structural types)))
 
@@ -547,8 +542,7 @@ A structural type is a type expression that looks like its
 purpose. There are three main forms of structural type: tuple types,
 program types and record types.
 
-@node Tuple Types
-@subsection Tuple Types
+=== Tuple Types
 (((tuple types)))
 (((type,tuple)))
 
@@ -561,9 +555,7 @@ expressions enclosed in parentheses.
 ----
 tupleType --> ["()"].
 tupleType --> ["(("],type,["))"].
-tupleType --> ["("], types, [")"].
-
-types --> type | type, [","], types.
+tupleType --> ["("], type * [","], [")"].
 ----
 
 A tuple type denotes a fixed grouping of elements. Each element of the
@@ -598,7 +590,6 @@ a void result:
 
 TIP: The `()` type -- sometimes referred to as the _unit type_ --
 is also used to denote the return type of some actions.
-@end quotation
 
 ==== Singleton Type Tuple
 (((tuple,singleton tuple type)))
@@ -713,6 +704,7 @@ takes the form:
 (integer,string) => cons[string]
 ----
 
+[#throwingFunctionType]
 A throwing function type, such as:
 [source,star]
 ----
@@ -761,6 +753,7 @@ signatures of _abstract data types_: where a type and its constructors
 are _exported_ from a record.
 
 === Reference Type
+[#referenceType]
 (((reference type)))
 (((type,var)))
 
@@ -1157,7 +1150,7 @@ both the `comp` and the `arith` contracts (see
 A `typeConstraint` is a constraint on a `type`; usually
 implying a constraint on the possible binding of a `typeVariable`.
 
-[#typeConstraintFig]
+[#typeConstraint]
 .Type Constraints
 [source,star]
 ----
@@ -1166,18 +1159,18 @@ typeConstraint --> fieldConstraint.
 typeConstraint --> implicitConstraint.
 ----
 
-Generally, a @refer{TypeConstraint} on a @refer{TypeVariable}
+Generally, a <<typeConstraint>> on a <<typeVariable>>
 restricts in some sense the possible bindings for that type
 variable.
 
-For example, a @refer{Contract} refers to a named
-collection of functions and a @refer{TypeVariable} constrained by a
-@refer{Contract} means that any concrete instantiation of
-the @refer{TypeVariable} must be to a @refer{Type} that implements the
-@refer{Contract}.
+For example, a <<Contract>> refers to a named
+collection of functions and a <<TypeVariable>> constrained by a
+<<Contract>> means that any concrete instantiation of
+the <<TypeVariable>> must be to a <<Type>> that implements the
+<<Contract>>.
 
-Similarly, a @refer{FieldConstraint} constrains the @refer{TypeVariable}
-so that any binding must be to a @refer{Type} that has the named field
+Similarly, a <<FieldConstraint>> constrains the <<TypeVariable>>
+so that any binding must be to a <<Type>> that has the named field
 in its definition.
 
 For example, using `arith` as a constraint allows us to say
@@ -1189,20 +1182,16 @@ arith[t] |: t
 ----
 denotes this kind of constrained type.
 
-@quotation NOTE
-It is possible to view a type variable binding itself as a form of
+NOTE: It is possible to view a type variable binding itself as a form of
 constraint: if we bind the type variable `t` to the type
 `integer` then we are constraining the type `t` to be equal
 to `integer`.
-@end quotation
 
-@quotation NOTE
-In many cases type inference will automatically result in constraints
+NOTE: In many cases type inference will automatically result in constraints
 being added to type expressions.
-@end quotation
 
-It is possible mix different forms of @refer{TypeConstraint}; for
-example, if a @refer{TypeVariable} must be bound to a type that
+It is possible mix different forms of <<TypeConstraint>>; for
+example, if a <<TypeVariable>> must be bound to a type that
 implements the `comp` contract as well as having the
 `integer`-typed `ident` attribute, the type expression:
 [source,star]
@@ -1224,10 +1213,10 @@ unification will fail.
 (((contract constraint)))
 
 @noindent
-A @refer{Contract} is a requirement on a @refer{Type} -- or
-tuple of @refer{Type}s -- that whatever type it is, that there must
-exist an `implementation` of the @refer{Contract} for the
-@refer{Type}.
+A <<Contract>> is a requirement on a <<Type>> -- or
+tuple of <<Type>>s -- that whatever type it is, that there must
+exist an `implementation` of the <<Contract>> for the
+<<Type>>.
 
 For example, the type constraint expression in the constrained type:
 [source,star]
@@ -1238,7 +1227,7 @@ means that the type variable `t` may only unify with concrete
 types that implement the `comp` contract.
 
 @quotation NOTE
-Since only named types may implement @refer{Contract}s, it is also not
+Since only named types may implement <<Contract>>s, it is also not
 permissible to unify the constrained variable with an structural type
 -- such as a function type.
 @end quotation
@@ -1251,10 +1240,10 @@ contractConstraint --> identifier ["["], types, ["]"].
 contractConstraint --> identifier ["["], types, ["->>"], types, ["]"].
 ----
 
-It is possible for @refer{Contract}s to reference more than
+It is possible for <<Contract>>s to reference more than
 one type. For example, the standard `coercion` contract (see
-@refer{coercionContractProg}) references two types. A `coercion`
-@refer{Contract} will therefore look like:
+<<coercionContractProg>>) references two types. A `coercion`
+<<Contract>> will therefore look like:
 [source,star]
 ----
 coercion[T1,T2]
@@ -1263,25 +1252,25 @@ coercion[T1,T2]
 where `T1` represents the source type of the coercion and
 `T2` represents the destination type.
 
-If the `->>` clause is used, then the @refer{Contract} being
+If the `->>` clause is used, then the <<Contract>> being
 referenced must have a _functional dependency_
 (((functional dependency)))
 associated with it.
 
 @quotation NOTE
-Conversely, if a @refer{Contract} has a functional dependency, then any
+Conversely, if a <<Contract>> has a functional dependency, then any
 constraint varerring to it must also have a @code{\->>} clause.
 @end quotation
 
 The `->>` clause identifies which type(s) are dependent on the
-type argument(s) of the @refer{Contract}. (See
-@refer{ContractFunctionalDependency}).
+type argument(s) of the <<Contract>>. (See
+<<ContractFunctionalDependency>>).
 
 ==== Implicit Binding Constraints
 (((type,constraints!implicit)))
 (((implicit binding constraint)))
 
-A @refer{ImplicitConstraint} is a requirement that a given variable of
+A <<ImplicitConstraint>> is a requirement that a given variable of
 a specified type exists (i.e., is in scope).
 
 For example, the constraint expression in the constrained type:
@@ -1354,12 +1343,12 @@ r <~ { alpha : string. beta : integer }
 ----
 
 if `r` is unified against a concrete type then that type's
-@refer{FaceType} interface (see @refer{typeInterface}) must contain
+`faceType` interface (see <<typeInterface>>) must contain
 both of `alpha` and `beta`. In addition, the fields must be
 of the right types.
 
 @quotation NOTE
-It is also possible to require that an @refer{EncapsulatedType}
+It is also possible to require that an <<EncapsulatedType>>
 exists. For example, the constraint:
 [source,star]
 ----
@@ -1427,7 +1416,7 @@ A type alias consists of a rule that maps a type expression to another type:
 @var{type} `~>` @var{type}
 ----
 @item
-A type constraint consists of an instance of a @ref{TypeConstraint}s:
+A type constraint consists of an instance of a <<TypeConstraint>>s:
 [source,star]
 ----
 @var{Constraint}
@@ -1508,7 +1497,7 @@ replacing variables with values.
 Two nominal types unify if they can be made identical:
 @itemize @bullet
 @item
-Two @ref{SimpleType}s unify if they are the same @ref{SimpleType}
+Two <<SimpleType>>s unify if they are the same <<SimpleType>>
 
 For example,
 [source,star]
@@ -1518,7 +1507,7 @@ integer = integer
 but,
 [source,star]
 ----
-integer @noteq{} string
+integer ≠ string
 ----
 
 @quotation Note
@@ -1528,8 +1517,8 @@ package will not unify.
 @end quotation
 
 @item
-Two @ref{ParameterizedType}s unify if their @refer{TypeConstructor}s
-unify, they have the same number of @ref{TypeArgument}s, and those
+Two <<ParameterizedType>>s unify if their <<TypeConstructor>>s
+unify, they have the same number of <<TypeArgument>>s, and those
 arguments pairwise unify.
 
 For example,
@@ -1540,17 +1529,17 @@ cons[integer] = cons[integer]
 but,
 [source,star]
 ----
-cons[integer] @noteq cons[string]
+cons[integer] ≠ cons[string]
 ----
 and
 [source,star]
 ----
-cons[integer] @noteq list[integer]
+cons[integer] ≠ list[integer]
 ----
 and
 [source,star]
 ----
-cons[integer] @noteq cons[integer,string]
+cons[integer] ≠ cons[integer,string]
 ----
 @end itemize
 
@@ -1570,19 +1559,19 @@ For example,
 ref integer = ref integer
 ----
 but,
-[source,star]
+[source,star,subs="quotes"]
 ----
-ref integer @noteq ref string
+ref integer ≠ ref string
 ----
 and
 [source,star]
 ----
-ref integer @noteq list[integer]
+ref integer ≠ list[integer]
 ----
 
 ==== Unifying Tuple Types
 
-Two @ref{TupleType}s unify if they have the same number of elements,
+Two <<tupleType>>s unify if they have the same number of elements,
 and those elements unify in a pairwise fashion.
 
 [source,star]
@@ -1605,12 +1594,12 @@ that `t` will be bound to the `string` type.
 However,
 [source,star]
 ----
-() @noteq{} (())
+() ≠ (())
 ----
 because the second is actually a unary tuple containing a zero-tuple; and
 [source,star]
 ----
-(string,integer) @noteq{} (integer,string)
+(string,integer) ≠ (integer,string)
 ----
 because elements must unify in a pairwise way.
 
@@ -1648,7 +1637,7 @@ and
 with `t` being bound to `integer`; whereas
 [source,star]
 ----
-{ foo:integer. } @noteq{} {bar:integer}
+{ foo:integer. } ≠ {bar:integer}
 ----
 because the second record type does not have a `foo` field, and
 the first does not have a `bar` field.
@@ -1667,12 +1656,12 @@ where `t` is a type variable that is subsequently bound to
 `integer`; whereas
 [source,star]
 ----
-(integer,string)=>integer @noteq{} (string,integer)=>integer
+(integer,string)=>integer ≠ (string,integer)=>integer
 ----
 and
 [source,star]
 ----
-(integer,string)=>integer @noteq{} (integer,string)<=>integer
+(integer,string)=>integer ≠ (integer,string)<=>integer
 ----
 
 ==== Unifying Type Variables
@@ -1809,14 +1798,14 @@ all c~~((cons[c])=>(c)) = all c~~((cons[c])=>(c))
 However
 [source,star]
 ----
-all a~~(a)=>integer @noteq{} exists b~~(b)=>integer
+all a~~(a)=>integer ≠ exists b~~(b)=>integer
 ----
 because of the different quantifiers, and
-[source,star]
+[source,star,subs="quotes"]
 ----
-all a~~(a)=>integer @noteq{} (@var{t})=>integer
+all a~~(a)=>integer ≠ (_t_)=>integer
 ----
-for any type @var{t} because the latter type is not quantified.
+for any type _t_ because the latter type is not quantified.
 
 === Resolving Constraints
 
@@ -1927,13 +1916,12 @@ Note that annotating a function to be constrained in this way results
 in new requirements for any uses of the function -- whenever
 `addSq` is used the `arith` constraint must be resolved in that context.
  
-@quotation NOTE
 It is an error for the top-level of a program -- i.e., package-level
 -- to contain unresolved references to contracts.
 
 The formal rules for satisfying (and hence resolving) contract
-constraints are shown in @var{overloading}.
-@end quotation
+constraints are shown in <<overloading>>.
+
 
 ==== Resolving Implicit Constraints
 

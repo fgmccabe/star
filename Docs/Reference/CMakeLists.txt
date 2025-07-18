@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(Reference)
 
-include(../makeinfo.cmake)
+include(../asciidoc.cmake)
 
-add_info(ref intro lexical opg grammar programs types patterns expressions conditions queries actions standard numbers strings collections date catalog)
+add_adoc(ref intro lexical opg programs types)
+
+#grammar patterns expressions conditions queries actions standard numbers strings collections date catalog)

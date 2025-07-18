@@ -22,13 +22,13 @@ function(add_adoc nm)
   if(ASCIIDOCTORPDF)
     message("adding asciidoctor-pdf")
     add_custom_target(${nm}.pdf ALL
-             COMMAND ${ASCIIDOCTORPDF} -o ${out_pdf} ${info_adoc}
+             COMMAND ${ASCIIDOCTORPDF} -a VERSION="${version}" -o ${out_pdf} ${info_adoc}
              DEPENDS ${adoc_deps})
   endif(ASCIIDOCTORPDF)
 
   if(ASCIIDOCTOR)
     add_custom_target(${nm}.html ALL
-       COMMAND ${ASCIIDOCTOR} -o ${out_html} ${info_adoc}    
+       COMMAND ${ASCIIDOCTOR} -a VERSION="${version}" -o ${out_html} ${info_adoc}    
        DEPENDS ${adoc_deps} )
     endif (ASCIIDOCTOR)
 endfunction(add_adoc)
