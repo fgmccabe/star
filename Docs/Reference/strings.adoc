@@ -1,0 +1,266 @@
+= Strings
+(((strings)))
+A string is a sequence of Unicode characters that denotes a fragment
+of text. This chapter focuses on the built-in functions that are based
+on the @code{string} type.
+
+== Text types
+
+=== The Character Type
+(((type,char)))
+
+The `char` type is the standard type that is used to denote character
+literals. A `char` value corresponds to a Unicode Code Point.
+
+=== The String Type
+
+The `string` type is the standard type that is used to denote
+string literals. A string literal is defined to be a sequence of
+characters.
+
+For most applications, the relationship between character literals and
+string literals remains implicit. Most applications manipulate strings
+by concatenating them or by splitting them. One common way is to use
+string interpolation expressions.
+
+However, there are coercions available between string values and lists
+of characters.
+
+== Implemented Contracts
+(((contract, implemented for string)))
+(((string contracts)))
+
+=== Sizeable for String
+
+<<sizeableContract>> is a specification of the `sizeable` contract.
+
+==== The `isEmpty` function
+
+The `isEmpty` function returns true if its argument is the empty
+string. It's definition is equivalent to:
+[source,star]
+----
+isEmpty(X) => X=="";
+----
+
+==== The `size` function
+The `size` function returns the number of Unicode characters in
+the `string`.
+
+NOTE: this is not always the same as the number of bytes in the string.
+
+=== Display for String
+
+The `disp` function for `string` values presents the string value in a quoted
+form: special and control characters are escaped; and the whole is surrounded by
+string quote characters:
+
+[source,star]
+----
+disp("hello\nworld") == "\"hello\\nworld\""
+----
+
+=== Format for String
+
+The format specification for `string` values is given in the
+regular expression:
+[source,star]
+----
+[LCR][0-9]+
+----
+
+where each control code is defined:
+
+[cols="1,9"]
+|===
+|`L`
+|The value is shown left-aligned in the text.
+
+The decimal value immediately after the `L` character is the size
+of the field.
+
+If the displayed length of the number or string is less than that
+permitted; then the value is shown left-aligned. If the length of the
+value is greater than the size of the field then the text is truncated
+-- i.e., the first N characters of the value are used.
+
+| `R`
+| The value is shown right-aligned in the text -- if the length of the
+value is less than the size of the field.
+
+If the length of the value is greater than the size of the field then
+the text is truncated.
+
+| `C`
+| The value is shown centered in the field.
+|===
+
+=== Equality for String
+
+=== Comp for String
+
+String comparison is based on a lexicographic comparison: one
+`string` is less than another if its first character is less than
+the first character of the second -- irrespective of the actual
+lengths of the strings. Thus
+[source,star]
+----
+Abbbbbbb < B
+----
+
+because `A` is less than `B`. Characters are compared based
+on their _code point_ within the Unicode encoding.
+
+
+=== Stream for String
+
+The <<streamContract>> implementation for `string` values extracts individual
+code points from a string.
+
+=== Index for String
+
+=== Concat for String
+
+The implementation of `++` for strings is realized as string
+concatenation.
+
+=== Reversible for String
+
+The `reverse` function -- which is part of the `reversible` contract
+-- is implemented in terms of the code points in the string.
+
+=== Index for String
+
+The `_index` function returns a CodePoint from a `string`
+value at a particular position.
+
+One can use the the normal indexing notation to access CodePoints from
+a `string` -- as with other kinds of indexable types:
+[source,star]
+----
+S[ix]
+----
+instead of
+[source,star]
+----
+_index(S,ix)
+----
+
+=== Slice for String
+
+The `_slice` function extracts a substring from its first
+argument. The first character of the extracted substring is identified
+by the second argument; and the end point of the substring is
+identified by the third argument. An expression of the form:
+[source,star]
+----
+_slice("this is a string",5,7)
+----
+returns the substring `"is"` -- corresponding to the two
+characters located at positions 5 and 6 in the source string.
+
+There is a special notation for this functionality: the slice notation
+(see @refer{sliceFunction}. For example, if the variable `S` is
+bound to the string `"this is a string"`, then the above
+expression may be written:
+[source,star]
+----
+S[5:7]
+----
+
+=== Splice for String
+the `_splice` function replaces a substring within its first
+argument. For example, the expression:
+[source,star]
+----
+_splice("this is a string",5,7,"was")
+----
+has, as its value:
+[source,star]
+----
+"this was a string"
+----
+
+Like the slice notation, there is special syntax for this function --
+when used as an action. The action:
+[source,star]
+----
+S[ix:tx] := U
+----
+is equivalent to the assignment:
+[source,star]
+----
+S := _splice(S!,ix,cx,U)
+----
+
+== Standard String Functions
+
+In addition to certain specific string functions -- such as string
+concatenation -- the `string` type implements the
+`comp`arable contract which enables string values to be
+compared. The `indexable` contract -- see
+Program~@ref{indexedContract} -- is also implemented for strings,
+which means that the normal `[]` notation may be used to access
+the characters of a string.
+
+=== `findstring` -- string search
+
+(((findStringFunction)))
+`findstring` is used to determine the
+(next) location of a search token within a `string`.
+[source,star]
+----
+findstring : (string,string,integer)=>integer;
+----
+
+(((string,search within)))
+(((finding substrings)))
+The `findstring` function searches a string for an occurrence of
+another string. The first argument is the string to search, the second
+is the search token, and the third is the integer offset where to
+start the search.
+
+For example, the result of the expression:
+[source,star]
+----
+findstring("the lazy dog jumped over the quick brown fox","the",5)
+----
+is `25`.
+
+If the search token is not present then `findstring` returns -1;
+
+=== `gensym` -- Generate Unique String
+[source,star]
+----
+gensym : (string)=>string
+----
+
+The `gensym` function is used to generate unique strings that
+have an arbitrarily high probability of being unique.
+
+The generated string has a prefix consisting of the single argument, a
+middle which is a unique string generated based on a globally unique
+identifier identifying the current process and a counter.
+
+The result is a string that has a high probability of being unique. It
+is guaranteed to be unique within the current processor.
+
+@node `spaces` -- Generate a string of spaces
+@subsection `spaces` -- Generate a string of spaces
+(((`spaces` standard function)))
+[source,star]
+----
+spaces : (integer)=>string
+----
+
+The `spaces` function generates a `string` containing only the space character. For example, the value of
+[source,star]
+----
+spaces(3)
+----
+is the string
+[source,star]
+----
+"   "
+----
+
