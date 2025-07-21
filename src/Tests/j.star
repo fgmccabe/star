@@ -1,7 +1,6 @@
 test.j{
   import star.
   import star.json.
---  import star.peg.
   import star.assert.
 
   main:()=>().
@@ -48,14 +47,34 @@ test.j{
     """;
 
     show disp(str::json);
-    assert str::json ==
-      .jColl({
+    JJ = .jColl({
 	  "star.core" -> .jColl({"1.0.0"->
 		.jColl({
 		    "source"->.jTxt("file:/Users/fgm/Projects/cafe/src/Star/core.star"),
 		    "code" -> .jTxt("star.core5751615246627866486.cafe")})
 	    })
-	});
+      });
+    assert str::json == JJ;
+    assert .jTxt(Fl) ?= JJ[[.jField("star.core"),.jField("1.0.0"),.jField("code")]];
+
+    I = .jColl({
+	"Image" -> .jColl({
+	    "Width" -> .jNum(800.0),
+	    "Height" -> .jNum(600.0),
+	    "Title" -> .jTxt("View from 15th Floor"),
+	    "Thumbnail" -> .jColl({
+		"Url" -> .jTxt("http://www.example.com/image/481989943"),
+		"Height" -> .jNum(125.0),
+		"Width" -> .jTxt("100")
+	      }),
+	    "IDs" -> .jSeq([
+		.jNum(116.0), .jNum(943.0), .jNum(234.0), .jNum(38793.0)
+	      ])
+	  })
+      });
+
+    _iter(I,(),(J,_) => valof{ showMsg(_stringOf(J,3)); valis ()});
+
     valis ()
   }
 }

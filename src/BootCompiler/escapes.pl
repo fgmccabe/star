@@ -226,6 +226,8 @@ escapeType("_str_cons",funType(tplType([type("char"),type("string")]),type("stri
 escapeType("_code2str",funType(tplType([type("char")]),type("string"))).
 escapeType("_str_apnd",funType(tplType([type("string"),type("char")]),type("string"))).
 escapeType("_str_charat",funType(tplType([type("string"),type("integer")]),tpExp(tpFun("option",1),type("char")))).
+escapeType("_str_set",funType(tplType([type("string"),type("integer"),type("char")]),type("string"))).
+escapeType("_str_drop",funType(tplType([type("string"),type("integer")]),type("string"))).
 escapeType("_str_quote",funType(tplType([type("string")]),type("string"))).
 escapeType("_str_format",funType(tplType([type("string"),type("string")]),type("string"))).
 escapeType("_getenv",funType(tplType([type("string")]),tpExp(tpFun("option",1),type("string")))).
@@ -466,6 +468,8 @@ isEscape("_str_cons").
 isEscape("_code2str").
 isEscape("_str_apnd").
 isEscape("_str_charat").
+isEscape("_str_set").
+isEscape("_str_drop").
 isEscape("_str_quote").
 isEscape("_str_format").
 isEscape("_getenv").

@@ -3,14 +3,14 @@ star.quote{
   import star.location.
 
   public contract all a ~~ quote[a] ::= {
-    _name : (option[locn],string) => a.
-    _qnme : (option[locn],string) => a.
-    _integer : (option[locn],integer) => a.
-    _biginteger : (option[locn],bigint) => a.
-    _float : (option[locn],float) => a.
-    _char : (option[locn],char) => a.
-    _string : (option[locn],string) => a.
-    _tuple : (option[locn],string,cons[a]) => a.
-    _apply : (option[locn],a,a) => a.
+    _name : (locn,string) => a.
+    _qnme : (locn,string) => a.
+    _integer : (locn,integer) => a.
+    _biginteger : (locn,bigint) => a.
+    _float : (locn,float) => a.
+    _char : (locn,char) => a.
+    _string : (locn,string) => a.
+    _tuple : (locn,string,cons[a]) => a.
+    _apply : (locn,a,a) => a.
   }
 }

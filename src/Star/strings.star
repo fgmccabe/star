@@ -57,6 +57,14 @@ star.strings{
     [|L|] => _str_len(L)
   }
 
+  public implementation indexed[string ->> integer,char] => {
+    _index(S,K) => _str_charat(S,K).
+    _put(S,K,C) => _str_set(S,K,C).
+    _remove(S,K) => _str_drop(S,K).
+    _empty = "".
+  }.
+
+
   public implementation concat[string] => {
     S1++S2 => _str_concat(S1,S2).
     _multicat(Els) => _str_multicat(Els).

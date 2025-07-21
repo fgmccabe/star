@@ -314,6 +314,8 @@ escape(_str_cons, func(chr strng, strng), "put a char in the front")
 escape(_code2str, func(chr, strng), "make a 1 char string")
 escape(_str_apnd, func(strng chr, strng), "put a char in the back")
 escape(_str_charat, func(strng int, option(chr)), "index into string")
+escape(_str_set, func(strng int chr,strng), "put a char in the string")
+escape(_str_drop, func(strng int,strng), "put a char in the string")
 escape(_str_quote, func(strng, strng), "construct a quoted version of a string")
 escape(_str_format, func(strng strng, strng), "apply formatting to a char sequence")
 

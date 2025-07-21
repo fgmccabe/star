@@ -1,9 +1,17 @@
 star.json{
   import star.
 
-  public json ::= .jTrue | .jFalse | .jNull |
-    .jTxt(string) | .jColl(map[string,json]) | .jSeq(cons[json]) |
-    .jNum(float).
+  public json ::= .jTrue
+  | .jFalse
+  | .jNull
+  | .jTxt(string)
+  | .jColl(map[string,json])
+  | .jSeq(cons[json])
+  | .jNum(float).
+
+  public jsonKey ::= .jField(string) | .jIndex(integer).
+
+  public infoPath ~> cons[jsonKey].
 
 
   public implementation display[json] => {
@@ -138,5 +146,60 @@ star.json{
 
   psEntry(L) where (Ky,L1) .= psString(skpBlnks(L)) &&
       [`:`,..L2].=skpBlnks(L1) &&
-      (Vl,LL) ?= pJ(skpBlnks(L2)) => (Ky,Vl,LL).
+	  (Vl,LL) ?= pJ(skpBlnks(L2)) => (Ky,Vl,LL).
+
+  findInJson:(json,infoPath)=>option[json].
+  findInJson(J,[]) => .some(J).
+  findInJson(.jColl(Flds),[.jField(Nm),..Key]) where
+      J ?= Flds[Nm] => findInJson(J,Key).
+  findInJson(.jSeq(Es),[.jIndex(Ix),..Key]) where
+      J ?= Es[Ix] => findInJson(J,Key).
+  findInJson(_,_) default => .none.
+
+  insertInJson:(json,infoPath,json)=>json.
+  insertInJson(.jColl(Flds),[.jField(Nm),..Key],Val) =>
+    (J ?= Flds[Nm] ??
+    .jColl(Flds[Nm->insertInJson(J,Key,Val)]) ||
+    .jColl(Flds[Nm->insertInJson(.jNull,Key,Val)])).
+  insertInJson(.jSeq(Es),[.jIndex(Ix),..Key],Val) =>
+    (J ?= Es[Ix] ??
+    .jSeq(Es[Ix->insertInJson(J,Key,Val)]) ||
+    .jSeq(Es[Ix->insertInJson(.jNull,Key,Val)])).
+  insertInJson(_,[],Val) => Val.
+  insertInJson(_,[.jField(Nm),..Key],Val) =>
+    .jColl([Nm->insertInJson(.jNull,Key,Val)]).
+  insertInJson(_,[.jIndex(Ix),..Key],Val) =>
+    .jSeq([insertInJson(.jNull,Key,Val)]).
+
+  removeJson:(json,infoPath)=>json.
+  removeJson(.jColl(Flds),[.jField(Nm)]) => .jColl(Flds[~Nm]).
+  removeJson(.jColl(Flds),[.jField(Nm),..Key]) =>
+    (J ?= Flds[Nm] ??
+    .jColl(Flds[Nm->removeJson(J,Key)]) ||
+    .jColl(Flds)).
+  removeJson(.jSeq(Es),[.jIndex(Ix)]) => .jSeq(Es[~Ix]).
+  removeJson(.jSeq(Es),[.jIndex(Ix),..Key]) => 
+    (J ?= Es[Ix] ??
+    .jSeq(Es[Ix->removeJson(J,Key)]) ||
+    .jSeq(Es)).
+  removeJson(J,[]) => J.
+  removeJson(_,_) => .jNull.
+
+  public implementation indexed[json->>infoPath,json] => {
+    _index(J,K) => findInJson(J,K).
+    _put(J,K,V) => insertInJson(J,K,V).
+    _remove(J,K) => removeJson(J,K).
+    _empty = .jNull.
+  }
+
+  public implementation iter[json->>json] => let{.
+    iterJ:all x ~~ (json,x,(json,x)=>x)=>x.
+    iterJ(.jColl(C),X,F) =>
+      _iter(C,X,(((_->V),XX) => iterJ(V,XX,F))).
+    iterJ(.jSeq(C),X,F) =>
+      _iter(C,X,((V,XX) => iterJ(V,XX,F))).
+    iterJ(El,X,F) => F(El,X).
+  .} in {
+    _iter = iterJ.
+  }
 }

@@ -12,6 +12,8 @@ test.chr{
     for Ch in "てすと test" do{
       show Ch
     };
-    valis ()
+    showMsg("hello\nworld");
+    showMsg(disp("hello\nworld"));
+    assert disp("hello\nworld") == "\"hello\\nworld\"";
   }
 }
