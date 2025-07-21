@@ -1,0 +1,93 @@
+= Concepts and Ontologies
+(((ontology)))
+
+Star offers a standard suite of features that permit applications
+to parse _ontology_ files using a variant of the N3 standard for
+describing triple-based ontologies.
+
+== RDF and N3
+RDF is a W3C standard for specifying simple ontologies using a very
+simple language: an RDF graph is a set of _triples_; each triple
+consists of a subject, a predicate and an object -- all of which are
+_concepts_. In the standard notation, RDF triples are written
+using an XML-based notation; however, there is a more convenient
+notation often used called `N3`.
+
+[#tripleFig]
+.N3 Triples
+[source,star]
+----
+triple --> subject predicate object.
+
+subject --> identifiedConcept.
+predicate --> identifiedConcept.
+object --> concept.
+----
+
+where _Subject_, _Predicate_ and _Object_ are all
+concepts. Such a statement is called a _Triple_. N3 supports
+several shortened forms of triples; for example, a statement such as:
+
+[source,star]
+----
+person:john family:parent-of person:jim, person:jane.
+----
+
+is equivalent to two triples:
+[source,star]
+----
+person:john family:parent-of person:jim.
+person:john family:parent-of person:jim.
+----
+
+and:
+[source,star]
+----
+person:john family:parent-of person:jim;
+            dc:has-name "john".
+----
+            
+is equivalent to:
+[source,star]
+----
+person:john family:parent-of person:jim.
+person:john dc:has-name "john".
+----
+
+The comma allows the same subject and predicate to refer to multiple
+objects and the semi-colon allows the same subject to have multiple
+predicate/objects associated with it.
+
+== Interpretation Layers
+
+There are four interpretation layers of concepts appearing in an
+ontology: concepts, triples, classes and application.
+
+=== RDF Concepts
+
+Concepts in RDF are identifiers that signify a concept of interest to
+the ontology modeler. There are two main kinds of concept:
+<<identifiedConcept>>s and literals. An identified concept
+gains its meaning solely from the sentences in which it occurs;
+typically that means its role as subject, predicate or object in one
+more sentences.
+
+Generally, identified concepts have no intrinsic meaning outside the graph.
+
+Literals, on the other hand, do not generally particate as a linking
+element across sentences: their meaning depends on external
+interpretations. As such, literal concepts may only be objects of
+sentences: never subjects nor predicates.
+
+NOTE:  The one exception to this is string text. String text may reference
+concepts using a special interpolation notation (see below).
+
+[#conceptFig]
+.N3 Concepts
+[source,star]
+----
+concept --> identifiedConcept.
+concept --> ["<"], uri, [">"].
+concept --> text.
+concept --> decimal.
+----

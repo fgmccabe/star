@@ -1,0 +1,246 @@
+= Conditions
+(((conditions)))
+[#condition]
+
+Conditions are used to express predicates. For example, a
+`where` pattern (<<guardedPattern>>) uses a condition to
+attach a semantic guard to a pattern. Conditions are also as guards on
+<<equation>>s and in other forms of rule.
+
+NOTE: Conditions should not be confused with `boolean`-valued
+expressions; the fundamental semantics of conditions is based on
+_satisfiability_ -- not _evaluation_.  However, a
+`boolean`-valued expression _may_ act as a degenerate
+example of a condition.
+
+One way in which the difference matters is that conditions may have
+the effect of defining variables. This is particularly true for
+matching conditions.
+
+[#conditionFormFig]
+.Condition
+[source,star]
+----
+condition --> matchesCondition.
+condition --> hasValueCondition.
+condition --> conjunctionCondition.
+condition --> disjunctionCondition.
+condition --> impliesCondition.
+condition --> negatedCondition.
+condition --> conditionalCondition.
+condition --> expression.
+condition --> ["("], condition, [")"].
+----
+
+== Matching Conditions
+[#matchesCondition]
+(((conditions,matches)))
+
+The matches condition is a special condition that applies a
+pattern to a value. The condition is satisfied if the pattern matches
+the expression.
+
+[#matchesPredicateFig]
+.Matches Condition
+[source,star]
+----
+matchesCondition --> pattern, [".="], expression.
+
+hasValueCondition --> pattern, ["?="], expression.
+----
+
+A matching condition is type safe if the types of the left hand
+side and right hand side are the same. Recall that the right hand side
+is an expression, whereas the left hand side is a pattern.
+
+The first form succeeds if the pattern exactly matches the
+Expression on the right hand side. For example,
+
+[source,star]
+----
+if (A,_,B) .= tplExp then ...
+----
+
+Patterns can bind variables: any such variables may form part of the scope
+extension of the condition -- depending on whether the matching condition is
+embedded in a deeper condition that masks the variables.
+
+The `hasValueCondition` variant can be used 
+to 'unwrap' an `option`al to access its
+contents in a safe way. I.e., a condition of the form:
+
+[source,star,subs="quotes"]
+----
+_pattern_ ?= _expression_
+----
+
+is equivalent to:
+[source,star,subs="quotes"]
+----
+.some(_pattern_) .= _expression_
+----
+
+One common use of the `?=` condition is to 'bring into scope' a
+variable which represents the wrapped content of an `option`al
+value.
+
+For example, suppose that `P` has the type given by
+
+[source,star]
+----
+P : option[Person]
+----
+then the condition in the equation:
+[source,star]
+----
+nameOf(P) where PP ?= P => PP.name
+----
+unwraps the optional value of `P` into the non-optional `PP`.
+
+== Logical Combinations
+
+=== Conjunction Condition
+(((condition, conjunction)))
+[#conjunctionCondition]
+A conjunction -- using the `++&&++` operator -- is satisfied iff both
+the left and right `arms' of the conjunction are satisfied.
+
+[#conjunctionConditionFig]
+.Conjunction Condition
+[source,star]
+----
+conjunctionCondition --> condition, ["&&"], condition.
+----
+
+A conjunction is satisfied if both the left and right
+arms are satisfied.
+
+NOTE: conjunctions are _short circuiting_: if the left
+arm is not satisfiable then the right arm will not be attempted.
+
+Any variables that are introduced into scope as a result of the left
+arm of the conjunction are also in scope for the right arm -- and for
+the extending scope the conjunction itself is part of.
+
+=== Disjunction Condition
+[#disjunction]
+(((disjunctive condition)))
+(((condition, dinjunction)))
+
+A disjunction -- using the `||` operator -- is satisfied if
+either the left or the right operands are satisfied.
+
+[#disjunctionConditionFig]
+.Disjunction Condition
+[source,star]
+----
+disjunctionCondition --> condition, ["||"], condition.
+----
+
+NOTE:  disjunctions are _short circuiting_: if the left
+arm is satisfiable then the right arm will not be attempted.
+
+Only those variables which are introduced in _both_ of the left
+and right arms of the disjunction will be part of the scope extension
+of the condition.
+
+=== Negated Condition
+[#negation]
+A negated condition is satisfied iff the condition operand is _not_ satisfied.
+
+[#negationConditionFig]
+.Negation Condition
+[source,star]
+----
+negatedCondition --> ["~"] condition.
+----
+
+NOTE: None of any variables that are introduced in the negated
+condition are part of the scope extension of the condition.
+
+=== Implies Condition
+[#impliesCondition]
+((condition,implies)
+An _implication_ condition -- using the `++*>++` operator
+-- is satisfied iff there is a solution to the right hand side for
+every solution to the left hand side.
+
+[#impliesConditionFig]
+.Implies Condition
+[source,star]
+----
+impliesCondition --> condition, ["*>"], condition.
+----
+
+For example, the state of having only sons can be defined as the
+condition that all ones children are male. This can be expressed using
+the condition:
+[source,star]
+----
+(P,X) in children *> X in male
+----
+
+NOTE: Like negation, an implies condition can never result
+in binding a variable to a value. It can only be used to verify a
+condition. Thus, to actually look for people who only have sons, a
+separate `generator' condition is needed.
+
+A query expression such as:
+[source,star]
+----
+(P,_) in children && (P,X) in children *> X in male
+----
+is effectively using the first ``(P,_) in children`' condition to
+find a person who has children, where the second implies condition
+verifies that `P` only has sons.
+
+=== Conditional Condition
+[#conditionalCondition]
+(((conditional condition)))
+
+A conditional condition is used when the actual condition to apply
+depends on a test.
+
+[#conditionConditionFig]
+.Conditional Condition
+[source,star]
+----
+conditionalCondition --> ["("], condition, ["??"], condition, ["||"], condition, [")"].
+----
+
+For example, if the salary of an employee may be gotten from two
+different relations depending on whether the employee was a manager or
+not, the salary may be retrieved using a query:
+[source,star]
+----
+{ S | ( isManager(P) ??
+            (P,S) in manager_salary ||
+            (P,S) in employee_salary )
+}
+----
+
+As with <<conditionalExpression>>s, the _test_ part of the
+<<conditionalCondition>> is evaluated and, depending on whether
+the test is _satisfiable_ or not, the _then_ branch or the
+_else_ branch is used in the query constraint.
+
+NOTE Only variables that are present in all three of _test_,
+_then_ and _else_ parts of the conditional condition
+form part of its scope extension.
+
+However, the scope extension of the _if_ part of the
+conditional Condition does extend to the _then_ part of the
+condition.
+
+In the case that the _test_ is satisfiable; then only solutions
+from the _then_ branch will be considered for the overall
+query. Conversely, if the _test_ is not satisfiable,footnote:[A normal
+`boolean`-valued expression is considered to be satisfiable iff
+it evaluates to `true`.] then only solutions from the _else_
+branch will be used for the overall query.
+
+For example, the conditional condition above defines the
+variable `S` in both the `then' and `else' branch. Depending on
+the `isManager` test, the result of the query will either contain
+the value of a `manager_salary` or an `employee_salary`.
+

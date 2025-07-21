@@ -1,0 +1,485 @@
+= Actions
+[#action]
+(((action)))
+
+An action is performed for the sake of its effect. Star has a
+normal complement of control flow operators; although there are
+a few departures from some common patterns.
+
+The <<valofExpression>> is used to denote that a value is to be
+computed by performing actions. Similarly, many actions involve the
+evaluation of expressions.
+
+== Actions and Types
+(((action types)))
+(((action!types)))
+
+Actions may have a type associated with them: their value type.
+This is the type of any returned value -- i.e., the type of the
+expression associated with any <<valisAction>>s within the action.
+
+== Basic Action Forms
+(((basic action expressions)))
+
+The basic actions include those in <<doFig>>.
+
+[#doFig]
+.Different forms of action
+[source,star]
+----
+action --> nullAction.
+action --> blockAction.
+action --> callAction.
+action --> valisAction.
+action --> defnAction.
+action --> assignAction.
+action --> conditionalAction.
+action --> whileAction.
+action --> forAction.
+action --> caseAction.
+action --> letAction.
+action --> tryCatchAction.
+action --> throwAction.
+action --> labeledAction.
+action --> breakAction.
+action --> nullAction.
+----
+
+[#nullAction]
+=== Null Action
+(((no operation)))
+(((action,null)))
+
+The `{}` action does nothing; and does not return a value.
+
+[#nothingFig]
+.No Operation
+[source,star]
+----
+nullAction --> ["{", "}"].
+----
+
+The `{}` does nothing. Useful when you don't want to do anything.
+
+[#blockAction]
+=== Block Action
+(((block action)))
+(((action,block)))
+
+An action block consists of a sequence of actions, enclosed in braces
+(`{`, `}`) and separated by semi-colons.
+
+[#blockActionFig]
+.Block Action
+[source,star]
+----
+blockAction --> ["{"], action * [";"], ["}"].
+----
+
+The empty action block -- `{}` -- is equivalent to the
+<<nullAction>>.
+
+[#callAction]
+=== Call Action
+(((call action)))
+(((action,call)))
+
+The call action denotes calling a function; typically
+also expressed in terms of actions. 
+[#callActionFig]
+.Call Action
+[source,star]
+----
+callAction --> applicativeExpression
+----
+
+Any value that is returned by the function call is discarded; however,
+if the function throws an exception then that exception is propagated
+to the enclosing exception handler.
+
+[#valisAction]
+=== Valis Action
+(((valis action)))
+(((action,valis)))
+
+The `valis` action denotes that the enclosing `valof` expression should terminate and
+return a value. Specifically, for a `valis` action to be valid,
+it must be textually enclosed in a <<valofExpression>>. The
+`valis` action returns its value as the value of the enclosed `valof` expression.
+
+[#valisActionFig]
+.Valis Action
+[source,star]
+----
+valisAction --> ["valis"], expression.
+----
+
+NOTE: It is possible that evaluating the expression of a `valis` action
+may cause an exception to be thrown. In that case, the exception is propagated to
+the designated handler.
+
+[#throwAction]
+=== Throw Action
+(((throw action)))
+(((action,throw)))
+
+The `throw` action signals that the action should terminate and raise an exception.
+
+[#throwActionFig]
+.Throw Action
+[source,star]
+----
+throwAction --> ["throw"], expression.
+----
+
+When a `throw` action is performed, its expression is evaluated and that value
+is raised as an exception. The action must be syntactically within either a
+<<tryCatchAction>>, a <<tryCatchExpression>> or the enclosing function must have
+been declared as throwing a value of the appropriate type.
+
+NOTE: If evaluating the expression that denotes the exception to raise
+itself raises an exception, that is a fatal error and causes overall
+execution of the program to stop.
+
+NOTE: There is no search for a handling form: every `throw`
+must be lexically accounted for.
+
+[#labeledAction]
+=== Labeled Action
+(((labeled action)))
+(((action,labeled)))
+
+The labeled action associates a _label_ with an
+action. Apart from that label, the semantics of the labeled action is
+not affected -- unless it lexically contains a <<breakAction>>.
+
+[#labeledActionFig]
+.Labeled Action
+[source,star]
+----
+labeledAction --> identifier, [":"], action
+----
+
+The scope of the label is limited to the text enclosed within the labeled action.
+
+[#breakAction]
+=== Break Action
+(((break action)))
+(((action,break)))
+
+The `break` denotes that the identified labeled action should
+terminate. The action that was labeled is terminated, and computation
+proceeds with its natural successor.
+
+[#breakActionFig]
+.Break Action
+[source,star]
+----
+breakAction --> ["break"], identifier.
+----
+
+When a `break` action is performed, it must refer to the label of
+a syntactically enclosing action. That action is ended -- with no
+further actions taking place within it -- and the labeled action's
+natural successor is entered.
+
+Labeled actions and labeled breaks are a straightforward mechanism for
+early exiting loops. For example, in the loop:
+[source,star]
+----
+firstMultiple(X,M) => valof{
+  L:{
+    for ix in 1..<X do{
+      if ix%M==0 then
+        break L
+    };
+    valis "not found"
+  };
+  valis "found"
+}
+----
+The `firstMultiple` function will return `"found"` if a
+multiple of some `M` is found in a range; and `"not found"`
+otherwise.
+
+This is because, when a multiple is found, we exit the composite
+action labeled `L`; which proceeds to the next action which
+returns the `"found"` value.
+
+If the loop ended normally, that is because no multiple was found, and
+the action after the loop signals that.
+
+NOTE: There is no run-time search for an enclosing label; nor are labels
+first class entities. A label is an identifier that is used to
+identify (sic) a specific action.
+
+Labeled actions can be nested, however. In the case that there are multiple
+occurrences of a label in scope, a `break` will always refer to
+the lexically innermost labeled action with the same label.
+
+[#defnAction]
+=== Definition Action
+(((definition action)))
+(((action,definition)))
+
+The definition action is used to define one or more variables and to give them a value -- that is
+available to subsequent actions. 
+
+[#defnActionFig]
+.Definition Action
+[source,star]
+----
+defnAction --> identifier, ["="], expression.
+defnAction --> identifier, [":="], expression.
+defnAction --> ["("], identifier * [","], [")"], ["="], expression.
+----
+
+There are three forms of definition action: defining the value of a
+single variable, defining a re-assignable variable or defining the value of a tuple of
+variables. Clearly, in the last case, the right hand side must also
+evaluate to a tuple of the same arity.
+
+The scope of any variable declared in a definition actions is from the
+declaration itself to the end of the containing <<blockAction>>.
+
+It is an error for a variable to be referenced within its own
+definition. Recursive definitions are not permitted within
+actions. However, it is possible to introduce functions, including
+recursive functions, within an action by using the <<letAction>>
+form of action.
+
+[#assignAction]
+=== Assignment Action
+(((assignment action)))
+
+The assignment action is replaces the
+value of a re-assignable variable with another value. The variable
+being re-assigned must have a `ref` type -- there is no
+`implicit' assignability of a variable or field.
+
+[#assignactionFig]
+.Assignment Action
+[source,star]
+----
+assignAction --> variable =, {":="], expression.
+----
+
+Reassignable variables are typically introduced with a
+<<defnAction>> of the form:
+
+[source,star]
+----
+V := Initial
+----
+
+where `V` is a new variable not otherwise in scope.footnote:[Otherwise, it would count as an assignment action.]
+
+[#conditionalAction]
+=== Conditional Action
+(((conditional action)))
+(((action,conditional)))
+(((action,if then else)))
+
+The two conditional forms of action are used to denote a conditional computation.
+
+[#condActionFig]
+.Conditional Action
+[source,star]
+----
+conditionalAction --> ["if"], condition, ["then"], action, ["else"], action.
+conditionalAction --> ["if"], condition, ["then"], action.
+----
+
+The second form of conditional action -- which omits the
+`else` branch -- is equivalent to one in which the else branch is
+replaced by the <<nullAction>>:
+
+[source,star]
+----
+if Test then
+  A
+else
+  {}
+----
+
+[#whileAction]
+=== While Action
+(((while action)))
+(((action,while)))
+
+The `while` action is used to denote an iterative computation that
+repeats for as long as some condition is satisfied.
+
+[#whileActionFig]
+.While Action
+[source,star]
+----
+whileAction --> ["while"], condition. ["do"], action.
+----
+
+The enclosed action will be repeated zero or more times, for so long
+as the test condition is satisfied.
+
+[#forAction]
+=== For Action
+(((for action)))
+(((action,for)))
+
+The `for` loop iterates over a collection and matches each element
+against _Pattern_; which will typically bind one or more variables
+that are in scope for the body of the loop.
+
+[#forActionFig]
+.For Action
+[source,star]
+----
+forAction --> ["for"], pattern, ["in"], expression, ["do"], action.
+forAction --> ["for"], pattern, [":"], expression, ["do"], action.
+----
+
+`for` loops are governed by the collection being iterated over; which in turn
+depends on the `generate` contract.  In fact, `for` loops are actually examples
+of concurrent programs.
+
+For example, the action:
+[source,star]
+----
+for (X,Y) in parent do {
+  for (Y,Z) in parent do {
+    gps := [(X,Z),..gps!]
+  }
+}
+----
+which collects grandparents into the re-assignable variable `gps` is
+equivalent to the double <<whileAction>>:
+[source,star]
+----
+{
+  gps := [];
+  G1 = _generate(parent);            -- establish a generator for parent
+  L1: while .true do {
+    G1 resume ._next in {
+      _yld((X,Y)) => {
+        G2 = _generate(parent);
+        L2: while .true do {
+          G2 resume ._next in {
+            _yld((Y,Z)) => {
+              gps := [(X,Z),..gps]
+            }
+            _yld(_) default => {}
+            ._end => {
+              break L2
+            }
+          }
+        }
+      }
+      _yld(_) default => {}
+      ._end => {
+        break L1
+      }
+    }
+  }
+}
+----
+
+[#letAction]
+=== Let Action
+(((let action)))
+(((action,let)))
+
+The `let` action allows an action to have local definitions
+embedded within it. It plays the same role as let expressions do (see <<letExpression>>).
+
+[#letActionFig]
+.Let Action
+[source,star]
+----
+letAction --> ["let"], letEnvironment, ["in"], action.
+----
+
+As with let expressions, there are two forms: the non-recursive form
+-- using regular braces `{}` -- and the recursive form -- using
+dot-braces `{..}`.
+
+[#caseAction]
+=== Case Action
+(((case action)))
+(((action,case)))
+
+The `case` action selects one of a set of arms depending on the value of a
+governing expression. It is the analog of the case expression (see
+<<caseExpression>>); oriented to performing actions.
+
+[#caseActionFig]
+.Case Action
+[source,star]
+----
+caseAction --> ["case"], expression, ["in"], caseActionHandler.
+
+caseActionHandler --> ["{"], caseActionRule *, ["}"].
+
+caseActionRule --> ["|"], pattern, ["=>"], action.
+caseActionRule --> ["|"], pattern, ["default", "=>"], action.
+----
+
+As with function definitions, the `default` case, if present, is
+intended to apply if no other case rules match the governing
+expression. As such, it should not be possible for the `default`
+rule's pattern to fail to apply.
+
+[#tryCatchAction]
+=== Try Catch Action
+(((try catch action)))
+(((action,try catch)))
+
+The `try` `catch` action is used to denote a computation which may
+need to respond to exception situations. 
+
+[#tryCatchActionFig]
+.Try Catch Action
+[source,star]
+----
+tryCatchAction --> ["try"], action, ["catch"], caseActionHandler.
+----
+
+The type of any exception thrown within the body of the `try` `catch` must be
+consistent with the handler. For example, in:
+
+[source,star]
+----
+try{
+  throw 10
+} catch {
+  | E => {
+     logMsg("We got error $(E)")
+  }
+}
+----
+the type of `E` is `integer`; which is consistent with the action
+[source,star]
+----
+throw 10
+----
+action.
+
+[#valofExpression]
+=== Valof Expression
+
+A `valof` expression allows an expression's value to be computed as a result of
+one or more actions.
+
+[#valofExpressionFig]
+.Valof Expression
+[source,star]
+----
+expression --> ["valof"], action.
+----
+
+The `valof` expression is applied to an action. The
+effect of this is to perform the action and return its
+value as the value of the `valof` expression.
+
+At least one of the actions executed within the action
+must be a <<valisAction>>. If the action completes with no
+`valis` action being executed, execution of the entire program
+halts.

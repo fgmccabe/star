@@ -202,7 +202,7 @@ patterns enclosed in braces.
 .Record Constructor Pattern
 [source,star]
 ----
-recordConstructorPattern --> identifier, ["{"], attributePattern * [". "], ["}"].
+recordConstructorPattern --> identifier, ["{"], attributePattern * [dotSpace], ["}"].
 
 attributePattern --> identifier, ["="], pattern.
 ----

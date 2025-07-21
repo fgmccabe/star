@@ -33,6 +33,7 @@ expression --> indexExpression.
 expression --> sliceExpression.
 ----
 
+[#variable]
 == Variables
 (((variables)))
 
@@ -155,9 +156,9 @@ There are three forms of numeric literal expression: integers
 (<<integerLiteral>>), arbitrary precision integers
 (<<arbitraryPrecisionInteger>>) and floating point numbers (<<floatingPoint>>).
 
+[#integerLiteral]
 === Integer Literal
 (((integer)))
-[#integerLiteral]
 
 The `integer` type is used to denote integral values in the range
 -2305843009213693952..2305843009213693951.footnote:[I.e., 62 bit
@@ -166,8 +167,8 @@ precision.]
 Integers may be written in a variety of styles (see
 <<decimal>>); the most common form is the simple decimal notation.
 
-=== Arbitrary Precision Integer
 [#arbitraryPrecisionInteger]
+=== Arbitrary Precision Integer
 (((integer)))
 (((arbitrary precision integer)))
 
@@ -186,6 +187,7 @@ digits prefixed by a `0b`:
 It is possible to coerce between so-called _bigint_s and regular
 integers; although it is not guaranteed to be possible in all cases.
 
+[#floatingPointLiteral]
 === Floating Point Literals
 (((float)))
 
@@ -218,9 +220,9 @@ enclosed in double-quotes:
 "A string literal with 35 characters"
 ----
 
+[#stringInterpolation]
 === String Interpolation
 (((string interpolation)))
-[#stringInterpolation]
 String interpolation refers to the embedding of expressions in string
 literals. The actual string value of an interpolated `string`
 literal requires the evaluation of those expressions.
@@ -335,9 +337,9 @@ nnvalues and concatentates them into a single `string` value.
 NOTE: `_multicat` is itself defined via a contract specification: it is
 part of the `concat` contract. 
 
+[#stringEmbedding]
 ==== String Embedding
 (((string embedding)))
-[#stringEmbedding]
 
 String embedding is a simpler form of string interpolation where the contents of
 the embedded expression are expected to be already `string`-valued and are
@@ -355,6 +357,7 @@ would have values:
 "foo is the complement of bar"
 ----
 
+[#blockString]
 === Block Strings
 (((block string)))
 
@@ -388,6 +391,7 @@ constructorLiteral --> positionalConstructorLiteral.
 constructorLiteral --> recorcLiteral.
 ----
 
+[#enumeratedSymbol]
 === Enumerated Symbols
 (((enumerated symbols)))
 
@@ -426,6 +430,7 @@ standard cons-list type uses `nil` to mark the empty list:
 all e ~~ cons[e] ::=  .nil | .cons(e,cons[e])
 ----
 
+[#positionalConstructorLiteral]
 === Positional Constructor Literals
 (((positional constructor)))
 
@@ -471,8 +476,9 @@ city(someWhere(City,_,_)) => City
 Unlike positional constructors, records allow their fields to be
 addressed individually.
 
-=== Record Literals
 [#recordLiteral]
+=== Record Literals
+
 A record literal is a collection of values identified by name.
 
 Like positional constructor literals, the record literal must have been defined
@@ -486,8 +492,8 @@ associated with the fields.
 ----
 recordLiteral --> record | recRecord.
 
-record --> identifier, ["{"], recordElement * [". "], ["}"].
-recRecord --> identifier, ["{."], recordElement * [". "], [".}"].
+record --> identifier, ["{"], recordElement * [dotSpace], ["}"].
+recRecord --> identifier, ["{."], definition * [dotSpace], [".}"].
 
 recordElement --> identifier, ["="], expression.
 recordElement --> identifier, [":="], expression.
@@ -530,7 +536,6 @@ be written in any order.
 
 === Accessing Fields of a Record
 (((record access)))
-(((operator, `++.++`)))
 
 Record access expressions access the value associated with a field of
 a record value. 
@@ -630,9 +635,9 @@ someone{ name="peter". age=32 }
 NOTE: The old version of the record -- `P` -- is still available, if it
 is still accessible.
 
+[#recRecord]
 === Recursive Record Literals
 (((theta record)))
-[#recRecord]
 
 A recRecord is a record whose contents is specified by means
 of a sequence of <<definition>>s.
@@ -641,7 +646,7 @@ of a sequence of <<definition>>s.
 .Theta Record
 [source,star]
 ----
-recRecord --> identifier, ["{."], definition * [". "], [".}"].
+recRecord --> identifier, ["{."], definition * [dotSpace], [".}"].
 ----
 
 Externally, a recRecord is the same as a regular
@@ -860,9 +865,9 @@ the `++*++` function to the arguments `A` and `4`.
 The so-called control expressions involve and modify the meaning of
 other expressions and actions.
 
+[#caseExpression]
 === Case Expressions
 (((case expression)))
-[#caseExpression]
 
 [#caseExpressionFig]
 .Case Expression
@@ -870,7 +875,7 @@ other expressions and actions.
 ----
 caseExpression --> ["case"], expression, ["in"], caseHandler.
 
-caseHandler --> ["{"], caseRule * [". "], ["}"].
+caseHandler --> ["{"], caseRule * , ["}"].
 
 caseRule --> ["|"], pattern, ["=>"], expression.
 caseRule --> ["|"], pattern, ["default", "=>"], expression.
@@ -897,9 +902,9 @@ NOTE: The cases of a case expression resemble syntactically the equations of a
 function definition. This is deliberate: a function definition expressed as
 equations is effectively a `case` expression.
 
+[#tryCatch]
 === Try Catch
 (((try catch )))
-[#tryCatch]
 
 The <<tryCatchExpression>> expression is used to denote an expression which may
 need to respond to exception situations. 
@@ -940,6 +945,7 @@ other hand, the type checker is able to _infer_ -- in many cases -- the type of
 the exception thrown. Furthermore, throwing functions may be _generic_ in the
 exception they throw. See <<throwingFunctionType>>.
 
+[#throwExpression]
 === Throw Expression
 (((throw)))
 (((expression,throw)))
@@ -968,6 +974,7 @@ execution of the program to stop.
 There is no automatic search for an handling form: every `throw`
 must be lexically accounted for.
 
+[#conditionalExpression]
 === Conditional Expressions
 (((conditional expression)))
 
@@ -1006,9 +1013,9 @@ then part of the conditional expression.
 NOTE: Variables introduced by the condition part of a conditional expression are
 _not_ in scope for the 'else' part.
 
+[#thunkExpression]
 === Thunk Expressions
 (((thunk expression)))
-[#thunkExpression]
 
 [#thunkExpressionFig]
 .Thunk Expression
@@ -1073,10 +1080,10 @@ memFib(N) => let{
 This version of fibonacci is linear in `N`, whereas the
 recursive version is exponential in `N`.
 
-=== Let Expressions
-(((let expressions)))
 [#letExpression]
 [#letRecExpression]
+=== Let Expressions
+(((let expressions)))
 
 A `let` expression allows an expression to be defined in terms of auxiliary
 definitions. There are two varieties of let expression: recursive and
@@ -1089,8 +1096,8 @@ non-recursive.
 ----
 letExpression --> ["let"], letEnvironment, ["in"], expression.
 
-letEnvironment --> ["{"], recordElement * [". "], ["}"].
-letEnvironment --> ["{."], definition * [". "], [".}"].
+letEnvironment --> ["{"], recordElement * [dotSpace], ["}"].
+letEnvironment --> ["{."], definition * [dotSpace], [".}"].
 ----
 
 A `let` expression consists of a body -- which is a let environment -- and a
@@ -1142,9 +1149,9 @@ sort(L, (someone{name=N1},someone{name=N2}) => N1<N2)
 ----
 ****
 
+[#optionalExpression]
 === Optional Expressions
 (((optional expressions)))
-[#optionalExpression]
 
 An `option` expression is used to handle cases where a value is not
 always guaranteed. The `option` type is built-in but is defined as
@@ -1195,8 +1202,8 @@ typedExpression --> typaAnnotatedExpression.
 typedExpression --> zetaExpression.
 ----
 
-=== Type Annotation Expression
 [#typeAnnotatedExpression]
+=== Type Annotation Expression
 (((type annotation expressions)))
 
 A type annotated expression is an expression that is annotated with a
@@ -1216,10 +1223,9 @@ casting in Star.] The annotation is a way for the programmer to communicate
 exactly what the expected type of an expression is -- there is no implied
 coversion of values from one type to another.
 
-
+[#typeCoercionExpression]
 === Type Coercion
 (((type coercion)))
-[#typeCoercionExpression]
 
 [#typeCoercionFig]
 .Type Coercion
@@ -1234,10 +1240,8 @@ of one type to that of another.  For example, coercing a `float`
 value to an `integer` value. In general, type coercions have the potential to
 change the value (for example, by stripping any fractional part of the value).
 
-Type coercion is supported by a special `coercion`
-<<ContractDefinition>> shown in:
+Type coercion is supported by a special `coercion` contract:
 
-[#coercionContract]
 [source,star]
 ----
 all s,t ~~ contract coercion[s,t] ::= {
@@ -1281,10 +1285,10 @@ There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by
 appropriately implementing the `coercion` contract.
 
+[#typeZetaExpression]
 === Type Zeta Expression
 (((type zeta expression)))
 (((suppression of type refreshing)))
-[#typeZetaExpression]
 
 A zeta expression is used in situations where it is necessary to suppress some of the normal
 type inference mechanisms:
@@ -1408,8 +1412,11 @@ the elements. A collection may have an ordering present; but
 that is not required by the contract and is not enforced in the
 notation.
 
-=== Sequence Expression Notation
 [#sequenceExpression]
+=== Sequence Expression Notation
+
+Sequence expressions are used to denote sequence literals.
+
 [#sequenceExpressionFig]
 .Sequence Expressions
 [source,star]
@@ -1440,7 +1447,6 @@ _cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
 
 where `_cons` and `_nil` are elements of the `sequence` contract:
 
-[#sequenceContract]
 [source,star]
 ----
 public contract all S,E ~~ sequence[S->>E] ::= {
@@ -1451,6 +1457,7 @@ public contract all S,E ~~ sequence[S->>E] ::= {
 
 NOTE: There is a corresponding contract for sequence terms as patterns -- the `stream` contract -- instead of the `sequence` contract.
 
+[#rangeExpression]
 === Range Expressions
 ((range expression))
 ((expression, range))
@@ -1492,8 +1499,8 @@ for Ix in 0..<Mx do {
 ----
 will repeat the body of the loop `Mx` times.
 
-==== The `range` term
 [#rangeType]
+==== The `range` term
 Range expressions are syntactic sugar for terms involving the
 `range` constructor function. The `range` type is defined as though by:
 
@@ -1528,8 +1535,8 @@ Range expressions work with `integer` values, but also with
 work with any type for which the `arith` contract is implemented
 -- including user-defined types.
 
-=== Index Expression
 [#indexExpression]
+=== Index Expression
 
 [#indexExpressionFig]
 .Index Expressions
@@ -1602,8 +1609,8 @@ NOTE: If the collection did not contain any value associated with the key
 `K` then the result is the original collection. Otherwise the value
 is the collection with any value associated with `K` removed.
 
+[#sliceExpression]
 === Slice Notation
-[#sliceNotation]
 
 Where the index notation is used where the focus is on individual elements of a
 collection, the slice notation refers to sub sets of ordered collections.

@@ -1,0 +1,293 @@
+= Coroutines
+
+(((coroutines)))
+(((execution,coroutines)))
+
+A coroutine is a suspendable computation. Analogous to function calls,
+except that a coroutine can be suspended -- allowing another
+computation to continue -- and then later resumed. Not to be confused
+with multi-threading, coroutines do give some of the same
+responsiveness that multiple threads offer; except that coroutines all
+operate on a single thread.
+
+There are two main syntactic structures that use coroutines at their
+foundation: tasks and generators. A `task` is an expression that
+computes a value, in the context of a `nursery`. The nursery's
+role is to _schedule_ one or more `task` expressions until a
+resolution is made.
+
+A generator is an expression that determines the sequence of values in
+a `for` loop iteration.
+
+[#task]
+== Tasks
+
+A `task` is an expression that inhabits a coroutine. Tasks can
+suspend themselves -- initiating another coroutine as they do so --
+they can communicate with each other -- via channels and futures --
+and are scheduled -- by an associated `nursery`.
+
+[#taskExpression]
+=== Task Expressions
+(((task expression)))
+(((expression,task)))
+
+A `task` expression consists of a `task`-labeled <<blockAction>>.
+
+[#taskExpressionFig]
+.Fiber Expression
+[source,star]
+----
+taskExpression --> ["task"], action.
+----
+
+Task expressions denote computations that are expected to be performed
+asynchronously. I.e., a task is a computation that can be suspended and then
+resumed -- under the application's control.
+
+A `task` is created with the `task` notation:
+[source,star]
+----
+T = task{ logMsg(info,"This is a task action") }
+----
+
+Task expressions may have values; and may be composed and constructed like other
+expressions. For example, the function:
+
+[source,star]
+----
+tt(X) => task{
+  Y = 2;
+  valis X+Y
+}
+----
+
+represents a rather elaborate way of adding 2 to a number. As with
+`T` above, the expression:
+[source,star]
+----
+I = tt(3)
+----
+
+is not an `integer` but an `integer`-valued
+task expression. The value returned may be extracted using
+`valof`:
+[source,star]
+----
+Five = valof I
+----
+
+As with all expressions, if there is a possibility
+that the task expression will fail, then it should be
+encapsulated in a `try`-`catch` block:
+
+[source,star]
+----
+ive = valof {
+  try I catch {
+    logMsg(info,"Was not expecting this");
+    valis 0
+  }
+}
+----
+
+=== The `task` type
+(((task type)))
+(((type,task)))
+
+The `task` type is a standard type that is used to represent
+task expressions. 
+
+[source,star]
+----
+task[e] <~ {}
+----
+
+NOTE: Although the `task' type is described here as a normal type, it's
+definition is hidden as its internals are not relevant to the
+programmer.
+
+
+NOTE: Star's coroutining features are based on the more primitive
+concepts around fibers.
+
+== Task-related Functions
+(((task functions)))
+
+
+== Channels and Messages
+[[channels]]
+
+A channel is a typed communications channel between `task`s. In
+order for a `task` to 'send a message' to another `task`,
+they would share the channel object itself and then the receiver would
+use `recvRv` to wait for the message and the sender would use
+`sendRv` to send the message.
+
+=== The `channel` Type
+
+[source,star]
+----
+channel[t]
+----
+
+
+Like the `task` type, the `channel` type is _opaque_.
+
+=== The `channel` Function
+
+The `channel` function is used to create channels.
+[source,star]
+----
+channel: all t ~~ ()=>channel[t]
+----
+
+Each created channel may be used for sending and receiving multiple
+messages. However, the channel is typed; i.e., only messages of that
+type may be communicated.
+
+Channels are multi-writer multi-reader channels: any number of tasks
+may be reading and writing to a channel. However, any given
+communication is between two tasks: one sender and one receiver.
+
+If more than one `task` is trying to send a message then it is
+non-deterministic which message is sent. If more than one `task`
+is trying to receive a message then only one will get the message.
+
+Message receives and sends may take place in either order. However,
+message communication is _synchronous_. I.e., both sender and receiver
+are blocked until a communication occurs.
+
+An immediate implication of synchronous communication is that there is
+no buffer of messages associated with `channel`s.
+
+== Fibers
+
+A fiber is a computation whose execution can be managed. Fibers can be
+created, suspended and resumed. Fibers also have identity which allows
+data structures to be created that contain fiber references.
+
+Fibers represent the _foundational_ concept underlying the coroutining
+features of Star -- they play a similar role as other
+comparable concepts such as shift/reset, prompt/control and effects:
+they are the basis of higher level features that programmers will more
+typically use.
+
+TIP: Although fibers are the foundation of coroutining, normally `fiber`
+features are not used directly in regular programs: they are used in libraries
+that, for example, implement features such as yield-style generators and green
+threads.
+
+(((type, fiber)))(((fiber type)))
+
+[#fiberType]
+=== Fiber Type
+
+The `fiber` type is used to characterize the type of fiber
+expressions. It takes the form:
+[#fiberTypeFig]
+.Fiber Type
+[source,star]
+----
+type --> fiberType.
+
+fiberType --> ["fiber", "["], resumeType, [","], suspendType, ["]"].
+
+resumeType --> type.
+
+suspendType --> type.
+----
+
+The `resumeType` refers to values that can be sent to the fiber -- as it is
+resumed -- and the `suspendType` type argument refers to values that the fiber
+may suspend with (see below) -- i.e., may return to the external computation.
+
+=== Create a `fiber`
+
+A `fiber` is created using the built-in function: `_fiber`. Its main argument is
+a _fiber function_.
+
+==== Fiber functions
+
+A fiber function is a function that denotes the computation that a fiber performs.
+The general form of the type of a fiber function is:
+
+[source,star]
+----
+all r,s ~~ (fiber[r,s],r) => s
+----
+
+The `r` type indicates the type of the value given to the fiber whenever it is
+resumed, and the `s` type indicates the type that the fiber will return and what
+it will yield should it suspend.
+
+Note the second occurrance of `r`: when a fiber is resumed for the first time,
+the value given during the corresponding `_resume` operation is modeled as the
+second argument to the fiber function.
+
+The `_fiber` function takes a fiber function and returns a new
+fiber that will execute that function -- when it is `resume`d.
+
+The type of `_fiber` is:
+
+[source,star]
+----
+_fiber: all r,s ~~ ((fiber[r,s],r)=>s)=>fiber[r,s]
+----
+
+I.e., it returns a new fiber.
+
+=== Suspend using `suspend`
+
+The `suspend` operator is used when a fiber wishes to suspend
+itself. There are two arguments to `suspend`: the
+identity of the fiber to be suspended and the value that determines the
+_suspension event_:
+
+[source,star]
+----
+(suspend): all r,s ~~ (fiber[r,s],s) => r
+----
+
+The returned value from a use of `suspend` is the value used
+when the fiber is resumed using `resume`.
+
+=== Resume using `resume`
+
+The `resume` operator is used when one wishes to resume a fiber.
+There are two arguments to `resume`: the
+identity of the fiber to be resumed, and a value that determines the
+_resumption event_:
+
+[source,star]
+----
+(resume): all r,s ~~ (fiber[r,s],r) => s
+----
+
+The second argument -- of type `r` -- is passed to the fiber
+being resumed. Since that fiber must be in a suspended state, the
+`resume` function suspends the current fiber and resumes the
+identified fiber.
+
+The `resume` operator returns when either the fiber function of
+the resumed fiber returns, or the resumed fiber suspends itself. In
+both cases the value returned by `resume` is the value returned
+by the fiber function -- or the value passed in a call to
+`suspend`.
+
+=== Retiring a fiber with `retire`
+
+The `retire` function can be used by a fiber when it wished to
+cease execution. This is an alternative method of exiting a fiber; the
+normal way is simply return from the fiber function.
+
+[source,star]
+----
+(retire): all r,s ~~ (fiber[r,s],s) => ()
+----
+
+The `retire` operator does not actually return. When invoked, the
+fiber it is running will be terminated and the corresponding
+`resume` expression will have as its value the second argument from the
+`retire` expression.
+

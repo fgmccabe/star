@@ -1,0 +1,245 @@
+= Queries
+[#queries]
+(((queries)))
+A <<queryExpression>> is an expression that denotes a value implicitly -- by
+operations and constraints on other identified values. Typically, the
+result of a query is a list but it may be of any <<type>> --
+provided that it implements the `build` contract.
+
+There are several flavors of query: comprehensions (see <<comprehensions>>)
+which compute collections of values; iota expressions (see <<iotaQuery>>) which
+compute a single value, <<foldQuery>> which apply a function over the results
+of a query and test queries (see <<testQuery>>) which check for the existence of
+a solution.
+
+[#queryExpression]
+.Query Expressions
+[source,star]
+----
+queryExpression --> comprehension.
+queryExpression --> iotaQuery.
+queryExpression --> testQuery.
+queryExpression --> foldQuery.
+----
+
+== Query Condition
+
+All query expressions depend on the notion of a query
+condition. A query condition is a predicate that may be
+_satisfied_ in zero or more ways.
+
+A predicate is satisfied if there is a binding for variables in the
+expression that make the expression evaluate to `.true`. This is
+a little different to normal evaluation because of the existence of
+these variables.
+
+There are many different kinds of query condition, including normal
+conditions, but the foundational query condition is the search condition
+(see <<searchCondition>>).
+
+=== Search Condition
+[#searchCondition]
+(((search)))
+(((query, search)))
+
+A search condition takes the form:
+
+[#searchConditionFig]
+.Search Condition
+[source,star]
+----
+searchCondition --> pattern, ["in"], expression.
+----
+
+where the pattern may have new variables that have not been defined
+in an outer scope and the expression results in a <<collection>> of the
+appropriate type -- in particular, the type of the pattern must
+correspond to the type of an element of the collection.
+
+A search condition is said to be _satisfied_ when there is an
+element of the collection that matches the pattern. In many queries
+this results in the binding of variables which are referenced in other
+parts of the query condition and/or in the bound expression of the
+query expression.
+
+For example, the search condition:
+[source,star]
+----
+(X,"john") in parent
+----
+is satisfied (potentially multiple times) if there is a pair of the form:
+[source,star,subs="quotes"]
+----
+(_Value_,"john")
+----
+in the collection identified as `parent`. If `parent` were
+defined as the list:
+[source,star]
+----
+[ ("alpha","john"), ("beta","peter"), ("gamma","john") ]
+----
+then the search condition has two solutions: one corresponding to
+`"alpha"` and the other to `"gamma"`.
+
+A search condition is type safe if the type of the pattern corresponds
+to an element of the type of the collection; and if the contract
+`iter` (see <<iterContract>>) has been implemented for the collection.
+
+This implies that one can search any type of data structure so long as
+there is an implementation of the `iter` contract available for
+it.
+
+Beyond the implementations for standard types such as `cons` and
+`map`, it is definitely feasible for user-defined types to have
+an implementation of `iter` defined.
+
+== Query Expression
+
+=== Comprehensions
+[#comprehension]
+(((comprehension)))
+(((query,comprehension)))
+
+A comprehension computes a collection of answers -- all of
+which satisfy a condition.
+
+The general form of a comprehension is shown in
+<<comprehensionFig>>: it consists of a _condition_ and a
+_generator_ expression; all enclosed in braces.
+
+[#comprehensionFig]
+.Comprehension Expressions
+[source,star]
+----
+comprehension --> ["{"], expression, ["|"], condition, ["}"].
+----
+
+For example, given a list bound to the variable `Tble`:
+[source,star]
+----
+Tble = [
+  ("john",23),
+  ("sam",19),
+  ("peter",21)
+]
+----
+then, the query
+[source,star]
+----
+{ Who | (Who,A) in Tble && A>20 }
+----
+is a comprehension over the `Tble` list with value:
+[source,star]
+----
+[
+  "john",
+  "peter"
+]
+----
+`"john"` and `"peter"` are in the result because both
+`("john",23)` and `("peter",21)` are in `Tble` and
+satisfy the condition that `A` is greater than 20.
+
+[NOTE]
+****
+The type of the comprehension above is _not_ necessarily a
+`cons` list. The overall type of a comprehension is governed by
+the `build` contract. Thus the actual type will depend on the
+context of the comprehension expression.
+
+In order to force the result to be a `cons` list, use a type annotation:
+[source,star]
+----
+{ Who | (Who,A) in Tble && A>20 }:cons[integer]
+----
+****
+
+=== Iota Query
+[#iotaQuery]
+(((query,iota)))
+
+An iota query is similar in form to a comprehension, it consists of a
+bound expression and a condition. The difference is that an iota
+expression returns a single instance of the bound expression: i.e.,
+the first time the query condition is satisfied the iota query will
+return the bound expression -- wrapped as an optional value.
+
+[#iotaQueryFig]
+.Iota Query
+[source,star]
+----
+iotaQuery --> ["{!"], expression, ["|"], condition, ["!}"].
+----
+
+If the condition has no answers then the iota expression returns `.none`.
+
+For example, to find a child of `P` one could use the expression:
+[source,star]
+----
+{! X | (P,X) in children !}
+----
+
+=== Test Query
+[#testQuery]
+(((query,test)))
+
+A test query is a form that allows a query to act as a normal
+condition. This is most useful when a condition requires some form of
+search in order to be satisfied.
+
+Test queries have a truth value -- allowing them to be used as normal
+conditions.
+
+[#testQueryFig]
+.Test Query
+[source,star]
+----
+testQuery --> ["{?"], condition, ["?}"].
+----
+
+If the condition has no answers then the test query is `.false`.
+
+=== Fold Query
+[#foldQuery]
+(((accumulating over a query)))
+(((applying a function to the results of a query)))
+(((query,fold)))
+
+A fold query differs from other forms of query in that the
+results of satisfying the <<condition>> are fed to a function
+rather than being returned as some form of collection.
+
+[#foldQueryFig]
+.Fold Query
+[source,star]
+----
+foldQuery -->  ["{"], reducer ["<*"] expression ["<*"] expression | condition ["}"].
+
+reducer --> expression.
+----
+
+The three expressions to the left of the guard are the reduction function, element
+expression and the zero expression respectively. The reduction function is applied to
+successive elements corresponding to each solution of the query condition. The zero
+expression is the initial seed of the computation.
+
+The reduction function should have the type:
+[source,star,subs="quotes"]
+----
+(t~E~,t~Z~)=>t~Z~
+----
+
+were `t~E~` is the type of the bound expression in the <<foldQuery>>
+and `t~Z~` is the type of the zero expression -- and also the type of the
+overall query.
+
+For example, to add up all the salaries in a department, one could use
+a query of the form:
+
+[source,star]
+----
+{ (+) <* E.salary <* zero | E in employees }
+----
+
+
+

@@ -405,7 +405,7 @@ supported control characters are mostly the usual suspects:
 In addition to the normal notation for strings, there is a block form
 of string that permits raw character data to be processed as a string.
 
-[#blockString]
+[#blockStringLiteral]
 .Block String Literal
 [source,star]
 ----

@@ -1,0 +1,107 @@
+= Collections
+
+This chapter defines the standard collection types. Note that many of
+the functions that are implemented over collection types are exposed
+via contract implementations.
+
+== Collection Types
+
+There are three basic collection types supported: `cons` lists,
+the `map` type and the `set` type.
+
+=== The Cons List
+
+The `cons` type is defined as though by the type definition:
+
+[#consType]
+.The `cons` List Type}
+[source,star]
+----
+all e ~~ cons[e] ::= .nil | .cons(e,cons[e]).
+----
+
+The standard contracts `equality`, `hashable`, `comp`,
+`stream`, `sequence`, `sizeable`, `measured`,
+`concat`, `head`, `iter`, `generate`,
+`display`, `format`, `functor`, `monad`,
+`mapping`, `folding`, `ixfold`, `searchable`,
+`filter` and `membership` are implemented for the
+`cons` type.
+
+In addition, the `coercion` contract is implemented from
+`cons` lists to `map`s, `string`s and `vect`ors.
+
+=== The Map Type
+
+The `map` type denotes a set of key/value pairs. Its type is only
+partially exposed:
+
+[#mapType]
+.The `map` Type
+[source,star]
+----
+all k,v ~~ equality[k], hash[k] |: map[k,v] <~ {}
+----
+
+All uses of the `map` type require that the key type supports
+both `equality` and `hash`.@footnote{This is because the
+underlying implementation requires it.}
+
+NOTE: The underlying implementation of `map` is based on 'Ideal Hash
+Trees'; which offer effectively constant time performance for
+accessing and modifying the `map`.
+
+The standard contracts `equality`, `sizeable`,
+`measured`, `display`, `indexed`, `ixfilter`,
+`ixfold`, `iter`, `generate`, `sequemce`,
+`stream` and `functor` are implemented for the `map`
+type.
+
+=== The Set Type
+
+The `set` type supports set membership style functions. Its type
+is partially exposed:
+
+[#setType]
+.The `set` Type
+[source,star]
+----
+all e ~~ equality[e], hash[e] |: set[e] <~ {}
+----
+
+Like the `map` type, using the `set` requires that element
+type supports `equality` and `hash`.
+
+The standard contracts `sequence`, `display`,
+`membership`, `setops`, `concat`, `sizeable`,
+`iter`, `folding` and `generate` are implemented for
+the `set` type.
+
+=== The Vector Type
+
+The `vect` type denotes a vector type, a list type that is
+oriented to random access.
+
+[#vectorType]
+.The `vect` Type
+[source,star]
+----
+all k ~~ vect[k] <~ {}
+----
+
+NOTE: The underlying implementation of `vect` is based on a similar
+strategy to the implementation of vectors in Clojure. Vectors are
+represented as a multi-way branching tree; which offer effectively
+constant time performance for accessing and modifying vectors up to a
+significant size.
+
+== Implemented Collection Contracts
+
+For the vast majority of cases, the built-in functions that
+are implemented for collections are mediated through contracts.
+
+=== Equality Contract For Collections
+
+The `equality` contract (<<equalityContract>>) is defined for
+all the collection types; usually with requirement that the element
+types also implement `equality`.

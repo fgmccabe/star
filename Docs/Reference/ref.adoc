@@ -2,7 +2,6 @@
 :author: Francis G. McCabe
 :email: francis.g.mccabe@gmail.com
 :copyright: 2025 and beyond
-:source-highlighter: rouge
 :toc:
 :doctype: book
 :title-page:
@@ -17,46 +16,27 @@ introduction, the reader is referred to _Star Programming_ (by
 F.G. McCabe).
 
 include::intro.adoc[leveloffset=1]
-
 include::lexical.adoc[leveloffset=1]
-
 include::opg.adoc[leveloffset=1]
-
 include::programs.adoc[leveloffset=1]
-
 include::types.adoc[leveloffset=1]
-
 include::patterns.adoc[leveloffset=1]
-
 include::expressions.adoc[leveloffset=1]
-
-@include conditions.texi
-
-@include queries.texi
-
-@include actions.texi
-
+include::conditions.adoc[leveloffset=1]
+include::queries.adoc[leveloffset=1]
+include::actions.adoc[leveloffset=1]
 include::grammar.adoc[leveloffset=1]
-
-@include coroutines.texi
-
-@include standard.texi
-
-@include numbers.texi
-
-@include strings.texi
-
-@include collections.texi
-
-@include io.texi
-
-@include date.texi
-
-@include rdf.texi
-
-@include system.texi
-
-@include catalog.texi
+include::coroutines.adoc[leveloffset=1]
+include::standard.adoc[leveloffset=1]
+include::numbers.adoc[leveloffset=1]
+include::strings.adoc[leveloffset=1]
+include::collections.adoc[leveloffset=1]
+include::io.adoc[leveloffset=1]
+include::date.adoc[leveloffset=1]
+include::json.adoc[leveloffset=1]
+include::rdf.adoc[leveloffset=1]
+include::system.adoc[leveloffset=1]
+include::catalog.adoc[leveloffset=1]
 
 [index]
 == Concept index

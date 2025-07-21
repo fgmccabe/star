@@ -1,4 +1,0 @@
-@set VERSION 2.0
-@set EDITION 1.0
-@set UPDATED Oct 22 2021
-@set UPDATED-MONTH Oct 2021
