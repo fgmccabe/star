@@ -230,6 +230,8 @@ star.compiler.escapes{
     | "_code2str" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("char")])),.nomnal("string")))
     | "_str_apnd" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("char")])),.nomnal("string")))
     | "_str_charat" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("integer")])),.tpExp(.tpFun("option",1),.nomnal("char"))))
+    | "_str_set" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("integer"),.nomnal("char")])),.nomnal("string")))
+    | "_str_drop" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("integer")])),.nomnal("string")))
     | "_str_quote" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.nomnal("string")))
     | "_str_format" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string"),.nomnal("string")])),.nomnal("string")))
     | "_getenv" => .some(.tpExp(.tpExp(.tpFun("=>",2),.tupleType([.nomnal("string")])),.tpExp(.tpFun("option",1),.nomnal("string"))))
@@ -473,6 +475,8 @@ star.compiler.escapes{
     | "_code2str" => .true
     | "_str_apnd" => .true
     | "_str_charat" => .true
+    | "_str_set" => .true
+    | "_str_drop" => .true
     | "_str_quote" => .true
     | "_str_format" => .true
     | "_getenv" => .true

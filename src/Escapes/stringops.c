@@ -220,7 +220,7 @@ ReturnStatus g__str_charat(enginePo P) {
   const char *str = strVal(popVal(P), &len);
   integer ix = integerVal(popVal(P));
 
-  if (ix >= len) {
+  if (ix<0 || ix >= len) {
     pshVal(P, noneEnum);
     return Normal;
   } else {
@@ -395,7 +395,7 @@ ReturnStatus g__explode(enginePo P) {
   char buffer[len + 1];
 
   copyChars2Buff(str, buffer, len + 1);
-heapPo h = processHeap(P);
+  heapPo h = processHeap(P);
   termPo list = (termPo) nilEnum;
   termPo el = voidEnum;
   int root = gcAddRoot(h, (ptrPo) &list);
@@ -546,6 +546,37 @@ ReturnStatus g__str_apnd(enginePo P) {
 
   appendCodePoint(str, &offset, len + 16, ch);
   pshVal(P, allocateString(processHeap(P), str, offset));
+  return Normal;
+}
+
+ReturnStatus g__str_set(enginePo P) {
+  integer len;
+  const char *src = strVal(popVal(P),&len);
+  integer off = integerVal(popVal(P));
+  codePoint ch = charVal(popVal(P));
+  integer offset = minimum(off,len+2);
+  char str[len + 16];
+  uniNCpy(str,len+16,src,offset);
+  integer srcOffset = offset;
+  appendCodePoint(str, &offset, len + 16, ch);
+  nextCodePoint(src, &srcOffset, len);
+  uniNCpy(&str[offset],len+16-offset,&src[srcOffset],len-srcOffset);
+  
+  pshVal(P, allocateCString(processHeap(P), str));
+  return Normal;
+}
+
+ReturnStatus g__str_drop(enginePo P) {
+  integer len;
+  const char *src = strVal(popVal(P),&len);
+  integer offset = integerVal(popVal(P));
+  char str[len + 16];
+  uniNCpy(str,len+16,src,offset);
+  integer srcOffset = offset;
+  nextCodePoint(src, &offset, len);
+  uniNCpy(&str[srcOffset],len+16-srcOffset,&src[offset],len-offset);
+  
+  pshVal(P, allocateCString(processHeap(P), str));
   return Normal;
 }
 
