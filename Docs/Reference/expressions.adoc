@@ -204,7 +204,7 @@ The syntax of floating point numbers is given in
 
 == String Literal Expressions
 (((string literals)))
-[#stringLiteral]
+[#stringLiteralExpression]
 
 The `string` type is used to denote string values. There are two
 main forms of `string` literal: the double-quoted string
@@ -1081,7 +1081,6 @@ This version of fibonacci is linear in `N`, whereas the
 recursive version is exponential in `N`.
 
 [#letExpression]
-[#letRecExpression]
 === Let Expressions
 (((let expressions)))
 
@@ -1107,6 +1106,7 @@ expression.
 Non-recursive let environments follow the rules for a <<recordLiteral>>: the
 environment consists of a series of variables defined using equality statements.
 
+[#letRecExpression]
 Recursive let environments allow any legal definition, including type
 definitions, contract implementations etc.
 

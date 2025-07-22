@@ -37,8 +37,8 @@ There are many different kinds of query condition, including normal
 conditions, but the foundational query condition is the search condition
 (see <<searchCondition>>).
 
-=== Search Condition
 [#searchCondition]
+=== Search Condition
 (((search)))
 (((query, search)))
 

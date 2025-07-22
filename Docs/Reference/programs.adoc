@@ -2,9 +2,10 @@
 
 This chapter focuses on the organization of programs using functions,
 types and other computational forms. Definitions occur at the
-top-level of a <<Package>>, but also within functions in
+top-level of a package, but also within functions in
 <<letExpression>>s and <<letAction>>s.
 
+[#package]
 == Package Structure
 (((package)))
 
@@ -82,6 +83,7 @@ definition  --> openStatement.
 definition  --> importStatement.
 ----
 
+[#typeAnnotation]
 === Type Annotations
 (((type, annotation)))
 
@@ -106,6 +108,7 @@ For example, a generic function `consLength` that takes a
 consLength:all t ~~ (cons[t])=>integer
 ----
 
+[#variableDefinition]
 === Variable Definition
 (((variable definition)))
 (((declaration, variable)))
@@ -485,6 +488,7 @@ reporting exceptions. The `exception` type is defined as:
 public exception ::= .exception(string).
 ----
 
+[#contract]
 == Contract Definition
 (((type,contracts)))
 
@@ -516,7 +520,7 @@ For example, the contract that underlies a <<typeCoercion>> expressions is:
 contract all s,t ~~ coercion[s,t] ::= { coerce:(s)=>option[t] }
 ----
 
-TIP: The type quantifier may be omitted from <<contractDefinition>>s -- _except_
+TIP: The type quantifier may be omitted from <<contract>> definitions -- _except_
 for the case that a higher-kinded type is being quantified.
 
 TIP: An important usage pattern for contracts is to represent
@@ -582,14 +586,11 @@ implemented for a specific type combination.
 contractImplementation --> ["implementation"], contractSpec, ["=>"], expression.
 ----
 
-The <<type>>s mentioned in <<contractSpec>> must be 
-((NominalType))s.
+NOTE: It is not permitted to define an `implementation` of a contract for
+_FunctionType_s.
 
-NOTE: In particular, it is not permitted to define an
-`implementation` of a contract for _FunctionType_s.
-
-It is permissible, however, to implement _Contract_s for
-_TupleType_s.
+It is permissible, however, to implement contracts for
+tuple types (see <<tupleType>>).
 
 The body of a contract `implementation` must be an expression
 that gives a definition for each of the elements of the

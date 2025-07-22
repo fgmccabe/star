@@ -131,8 +131,8 @@ line comment but the continuation of the block comment.
 (((white space)))
 
 White space characters are used to help delimit other
-tokens. Except when they occur in a <<StringLiteral>> or in a
-<<QuotedIdentifier>> they serve no other purpose.
+tokens. Except when they occur in a <<quotedString>>, <<blockString>> or in a
+<<quotedIdentifier>> they serve no other purpose.
 
 [#whiteSpaceFig]
 .White Space
@@ -493,13 +493,14 @@ of all the standard graphic-form identifiers.
 graphicIdentifier >> .idTok(Chrs::string) --> symbolicChar*>>Chrs.
 ----
 
-The standard graphicIentifier`'s are listed in <<tokensTbl>>. I.e, such
+The standard graphicIentifier`'s are listed in <<standardOperatorsTbl>>. I.e, such
 identifiers are normally also operators.
 
 TIP: Apart from their graphic form there is no particular semantic
 distinction between a graphic form identifier and a alphanumeric form
 identifier.
 
+[#quotedIdentifier]
 === Quoted Identifiers
 (((identifier,quoted)))
 (((quoted identifiers)))

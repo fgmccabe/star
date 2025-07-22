@@ -27,10 +27,10 @@ productions involving patterns, we use the same meta predicate: _E ⊦ P:T_ as f
 expressions.
 ====
 
+[#patternVariable]
 == Variables in Patterns
 (((pattern,variable pattern)))
 (((variables)))
-[#patternVariables]
 Variables in patterns are used to bind variables to elements of the
 input being matched against.
 
@@ -218,6 +218,7 @@ label{}
 becomes a test that the `label` record literal is present -- with
 no constraints on the attributes of the record.
 
+[#tuplePattern]
 === Tuple Patterns
 (((patterns,tuple)))
 

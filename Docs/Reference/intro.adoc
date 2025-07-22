@@ -34,7 +34,7 @@ illustrative background to the specification itself.
 
 Throughout this document we introduce many syntactic features of the
 language. We use Star's own grammar notation to do this; as
-described in <<grammar_rules>>.
+described in <<grammarRules>>.
 
 === Typographical Conventions
 
