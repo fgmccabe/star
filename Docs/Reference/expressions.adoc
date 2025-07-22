@@ -35,8 +35,8 @@ expression --> sliceExpression.
 
 [#variable]
 == Variables
-(((variables)))
 
+(((variables)))
 A <<Variable>> is a placeholder that denotes a value. Variables
 may be used to denote many kinds of values -- arithmetic values,
 complex data structures and programs.
@@ -69,6 +69,7 @@ variable itself, but is changing the contents of the cell that denotes
 the `ref` variable's value.
 
 === Re-assignable Variables in Expressions
+
 (((referring to re-assignable variables,in expressions)))
 There are two modes of referring to re-assignable variables in
 expressions: to access the value of the variable and to access the
@@ -151,6 +152,7 @@ record but can be used to construct a new record value by replacing a
 field in the record.
 
 == Numeric Literal Expressions
+
 (((numeric literal)))
 There are three forms of numeric literal expression: integers
 (<<integerLiteral>>), arbitrary precision integers
@@ -158,8 +160,8 @@ There are three forms of numeric literal expression: integers
 
 [#integerLiteral]
 === Integer Literal
-(((integer)))
 
+(((integer)))
 The `integer` type is used to denote integral values in the range
 -2305843009213693952..2305843009213693951.footnote:[I.e., 62 bit
 precision.]
@@ -169,9 +171,9 @@ Integers may be written in a variety of styles (see
 
 [#arbitraryPrecisionInteger]
 === Arbitrary Precision Integer
+
 (((integer)))
 (((arbitrary precision integer)))
-
 Arbitrary precision integers do not have a fixed upper limit in their
 range: in principle, a single number could take the entire memory of
 the computer.footnote:[Not recommended.]
@@ -189,8 +191,8 @@ integers; although it is not guaranteed to be possible in all cases.
 
 [#floatingPointLiteral]
 === Floating Point Literals
-(((float)))
 
+(((float)))
 The `float` type is used to represent fractional values. Floating
 point numbers are represented as IEEE double precision -- i.e., 64
 bit.
@@ -198,14 +200,13 @@ bit.
 NOTE: In fact, the precision of floating numbers is limited to 62 bits. The
 least significant two bits are dropped.
 
-
 The syntax of floating point numbers is given in
 <<floatingPointFig>>.
 
-== String Literal Expressions
-(((string literals)))
 [#stringLiteralExpression]
+== String Literal Expressions
 
+(((string literals)))
 The `string` type is used to denote string values. There are two
 main forms of `string` literal: the double-quoted string
 expression and the triple-quoted or block-quoted `string`
@@ -222,6 +223,7 @@ enclosed in double-quotes:
 
 [#stringInterpolation]
 === String Interpolation
+
 (((string interpolation)))
 String interpolation refers to the embedding of expressions in string
 literals. The actual string value of an interpolated `string`
@@ -339,8 +341,8 @@ part of the `concat` contract.
 
 [#stringEmbedding]
 ==== String Embedding
-(((string embedding)))
 
+(((string embedding)))
 String embedding is a simpler form of string interpolation where the contents of
 the embedded expression are expected to be already `string`-valued and are
 simply subistituted in place.
@@ -359,8 +361,8 @@ would have values:
 
 [#blockString]
 === Block Strings
-(((block string)))
 
+(((block string)))
 A <<blockString>> is a string literal that consists of a sequence of
 characters enclosed in triple quotes.
 
@@ -393,8 +395,8 @@ constructorLiteral --> recorcLiteral.
 
 [#enumeratedSymbol]
 === Enumerated Symbols
-(((enumerated symbols)))
 
+(((enumerated symbols)))
 Enumerated symbols are written using regular identifiers (see
 <<enumeratedSymbolFig>>) -- prefixed with a period. Such a symbol
 must first have been declared within a type definition statement which
@@ -432,8 +434,8 @@ all e ~~ cons[e] ::=  .nil | .cons(e,cons[e])
 
 [#positionalConstructorLiteral]
 === Positional Constructor Literals
-(((positional constructor)))
 
+(((positional constructor)))
 Positional Constructor Literal expressions denote data
 constructor values. In particular, it refers to positional
 constructors that are introduced in an algebraic
@@ -535,8 +537,8 @@ Fields within a record literal are identified by name; and may
 be written in any order.
 
 === Accessing Fields of a Record
-(((record access)))
 
+(((record access)))
 Record access expressions access the value associated with a field of
 a record value. 
 
@@ -587,8 +589,8 @@ respectively.
 ****
 
 === Updating Fields of a Record
-(((record update)))
 
+(((record update)))
 A record cannot be updated in the normal sense -- unless one or more
 of the fields of the record is marked as being a reference
 variable. However, there is a notation for constructing a new literal
@@ -637,8 +639,8 @@ is still accessible.
 
 [#recRecord]
 === Recursive Record Literals
-(((theta record)))
 
+(((theta record)))
 A recRecord is a record whose contents is specified by means
 of a sequence of <<definition>>s.
 
@@ -699,8 +701,9 @@ A definition within a <<RecRecord>> that is marked
 the record; and neither can such an attribute be accessed via the
 <<FieldAccess>> expression.
 
-== Tuples
 [#tuple]
+== Tuples
+
 (((tuples)))
 A tuple consists of a sequence of expressions separated by commas and
 enclosed in parentheses. In effect, a tuple is a
@@ -743,6 +746,7 @@ The tuple notation is unremarkable except for two cases: the single
 element tuple and the zero element tuple.
 
 === Zero-ary Tuples
+
 (((0-ary tuples)))
 Zero-element tuples _are_ permitted. A zero-element tuple, which
 is written
@@ -804,8 +808,8 @@ The element being indexed must be identified by a literal
 integer. Star does not support dynamic access to tuple elements.
 
 == Function Application Expressions
-(((expressions,function application)))
 
+(((expressions,function application)))
 A function application expression applies a function to zero or more
 arguments.
 
@@ -858,18 +862,17 @@ is both a use of the `++*++` operator, *and* a function application: applying
 the `++*++` function to the arguments `A` and `4`.
 ****
 
-
+[#controlExpression]
 == Control Expressions
-(((control expression)))
 
+(((control expression)))
 The so-called control expressions involve and modify the meaning of
 other expressions and actions.
 
 [#caseExpression]
 === Case Expressions
-(((case expression)))
 
-[#caseExpressionFig]
+(((case expression)))
 .Case Expression
 [source,star]
 ----
@@ -904,8 +907,8 @@ equations is effectively a `case` expression.
 
 [#tryCatch]
 === Try Catch
-(((try catch )))
 
+(((try catch)))
 The <<tryCatchExpression>> expression is used to denote an expression which may
 need to respond to exception situations. 
 
@@ -947,16 +950,15 @@ exception they throw. See <<throwingFunctionType>>.
 
 [#throwExpression]
 === Throw Expression
-(((throw)))
-(((expression,throw)))
 
-[#throwFig]
 .Throw Expression
 [source,star]
 ----
 throwExpression --> ["throw"], expression.
 ----
 
+(((throw)))
+(((expression,throw)))
 When a `throw` expression is evaluated, its expression is
 evaluated and that value is thrown as an exception. There must either
 be a <<tryCatchExpression>> form, a <<tryCatchAction>> form in
@@ -976,15 +978,14 @@ must be lexically accounted for.
 
 [#conditionalExpression]
 === Conditional Expressions
-(((conditional expression)))
 
-[#conditionalExpressionFig]
 .Conditional Expression
 [source,star]
 ----
 conditionalExpression --> ["("], condition, ["??"], expression, ["||"], expression, [")"].
 ----
 
+(((conditional expression)))
 The value of a conditional expression depends on whether the <<condition>> is
 satisfiable or not. If it is satisfiable, then the expression is equivalent to
 the 'then' branch of the conditional expression; otherwise it is equivalent to
@@ -1015,9 +1016,9 @@ _not_ in scope for the 'else' part.
 
 [#thunkExpression]
 === Thunk Expressions
-(((thunk expression)))
 
-[#thunkExpressionFig]
+(((thunk expression)))
+(((expression,thunk)))
 .Thunk Expression
 [source,star]
 ----
@@ -1082,8 +1083,8 @@ recursive version is exponential in `N`.
 
 [#letExpression]
 === Let Expressions
-(((let expressions)))
 
+(((let expressions)))
 A `let` expression allows an expression to be defined in terms of auxiliary
 definitions. There are two varieties of let expression: recursive and
 non-recursive.
@@ -1151,8 +1152,8 @@ sort(L, (someone{name=N1},someone{name=N2}) => N1<N2)
 
 [#optionalExpression]
 === Optional Expressions
-(((optional expressions)))
 
+(((optional expressions)))
 An `option` expression is used to handle cases where a value is not
 always guaranteed. The `option` type is built-in but is defined as
 though by the algebraic type definition in:
@@ -1188,6 +1189,7 @@ NOTE: The `option` type serves as a normal replacement for `null` that one sees
 in languages like Java.
 
 == Typed Expressions
+
 (((typed expressions)))
 A type annotation expression is an explicit declaration of the type of
 an expression. A type coercion expression denotes a conversion of a
@@ -1204,8 +1206,8 @@ typedExpression --> zetaExpression.
 
 [#typeAnnotatedExpression]
 === Type Annotation Expression
-(((type annotation expressions)))
 
+(((type annotation expressions)))
 A type annotated expression is an expression that is annotated with a
 <<type>>. The annotation amounts to an assertion that the type of the expression
 is as annotated.
@@ -1225,9 +1227,8 @@ coversion of values from one type to another.
 
 [#typeCoercionExpression]
 === Type Coercion
-(((type coercion)))
 
-[#typeCoercionFig]
+(((type coercion)))
 .Type Coercion
 [source,star]
 ----
@@ -1287,9 +1288,9 @@ appropriately implementing the `coercion` contract.
 
 [#typeZetaExpression]
 === Type Zeta Expression
+
 (((type zeta expression)))
 (((suppression of type refreshing)))
-
 A zeta expression is used in situations where it is necessary to suppress some of the normal
 type inference mechanisms:
 
@@ -1402,9 +1403,9 @@ meaning is quite subtle, hence the use of a non-ascii operator for
 it. However, when needed, `ζ` can be a life saver!
 
 == Sequence Expressions
+
 (((sequence expressions)))
 (((expression,sequence)))
-
 Sequence expressions are a syntactic feature that make it
 straightforward to represent sequences and other forms of collection
 values. Some sequence forms embody a sequential ordering of
