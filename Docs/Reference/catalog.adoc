@@ -126,9 +126,9 @@ is:
 ----
 
 === Accessing Packages Using Catalogs
+
 (((accessing packages with catalogs)))
 (((catalog,accessing packages with)))
-
 The purpose of the catalog is to resolve package names to URIs. This
 is primarily used by the Star compiler, but is also a general
 capability.
@@ -165,6 +165,7 @@ resolve references within the target resource.
 _exploring_ the space around the target URI.
 
 === Multiple Versions of a Package
+
 (((package,multiple versions)))
 A source and/or code repository may contain multiple versions of a
 package. However, only one version of a given package may be imported

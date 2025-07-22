@@ -7,6 +7,7 @@ types and type combinations; these are outlined in separate chapters.
 
 [#equalityContract]
 == The `equality` contract
+
 (((equality contract)))
 Equality in Star is based on the `equality` contract. This defines the
 `boolean`-valued function: `==`. The complementary function
@@ -22,9 +23,9 @@ contract all t ~~ equality[t] ::= {
 ----
 @end float
 
+[#equalsPredicate]
 ===  `==` -- equals
 
-[#equalsPredicate]
 (((equality predicate)))
 `==` is part of the standard `equality` contract.
 
@@ -66,7 +67,6 @@ the standard language provides implementations for the arithmetic
 types (`integer`'s, `float`'s etc.) and for the `string`
 type.
 
-[#comparisonPredicates]
 [#comparableContract]
 .The Standard `comp` Contract
 [source,star]

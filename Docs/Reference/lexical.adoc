@@ -46,9 +46,9 @@ tk >> Tk --> punctuation >> Tk.
 ----
 
 == Characters
+
 (((character set)))
 (((Unicode)))
-
 Star source text is based on the Unicode character set. This means
 that identifiers and string values may directly use any Unicode
 characters; specifically any _Unicode Scalar Value_.
@@ -62,8 +62,8 @@ NOTE: However, nearly all the standard operators and keywords fall in he ASCII
 subset of Unicode.
 
 === Comments and White Space
-(((white space)))
 
+(((white space)))
 Input is tokenized according to rules that are similar to most modern
 programming languages: contiguous sequences of characters are assumed to belong
 to the same token unless the class of character changes -- for example, a
@@ -83,10 +83,11 @@ skip --> [].
 
 There are two forms of comment: line comment and block comment.
 
+[#lineComment]
 ==== Line Comment
+
 (((comment, line)))
 (((line comment)))
-
 A line comment consists of a `--` followed by a space character or tab, followed by all
 characters up to the next new-line. Here, `\t` refers to the
 Horizontal Tab.
@@ -106,7 +107,10 @@ Note that any block comment markers are ignored in a line comment
 (i.e., a `++/*++` sequence in a line comment does not signal the
 start of a block comment).
 
+
+[#blockComment]
 ==== Block Comment
+
 (((comment, block)))
 (((block comment)))
 A block comment consists of the characters `++/*++` followed by any
@@ -127,9 +131,10 @@ line comment is _not_ the start of a block comment, and a `-- `
 sequence in a block comment is similarly not the start of a
 line comment but the continuation of the block comment.
 
+[#whiteSpace]
 ==== White Space
-(((white space)))
 
+(((white space)))
 White space characters are used to help delimit other
 tokens. Except when they occur in a <<quotedString>>, <<blockString>> or in a
 <<quotedIdentifier>> they serve no other purpose.
@@ -141,10 +146,11 @@ tokens. Except when they occur in a <<quotedString>>, <<blockString>> or in a
 whiteSpace --> [` `] | [`\n`] | [`\r`] | [`\t`] | [`\f`].
 ----
 
+[#numberLiteral]
 == Number Literals
+
 (((numeric literals)))
 (((literal,number)))
-
 The numeric values include integer values, floating point values,
 decimal values and character codes. The latter are integers that
 represent the Unicode code points of particular characters.
@@ -164,12 +170,12 @@ TIP: The lexical syntax for numeric values is for positive values only. The
 interpretation of negative numeric literals is part of the grammar not
 the lexical notation.
 
+[#decimal]
 === Decimal Integer Tokens
+
 (((integer)))
 (((number,integer)))
 (((syntax,integer)))
-
-
 An integer is written using the normal decimal notation (<<decimalFig>>):
 [source,star]
 ----
@@ -199,11 +205,12 @@ isDigit(_) => .none.
 Normal integers have limited (62bit) precision, whereas big integers
 have unlimited precision.
 
+[#hexadecimal]
 === Hexadecimal Integers 
+
 (((hexadecimal)))
 (((number,hexadecimal)))
 (((syntax,hexadecimal)))
-
 A hexadecimal number is an integer written using hexadecimal
 notation. A hexadecimal number consists of a leading `0x`
 followed by a sequence of hex digits. For example,
@@ -233,11 +240,12 @@ isHexDigit(`F`) => .some(15).
 isHexDigit(_) default => .none.
 ----
 
+[#floatingPoint]
 === Floating Point Numbers
+
 (((floating point)))
 (((number,floating point)))
 (((syntax,floating point number)))
-
 Floating point numbers are written using a notation that is familiar. For
 example,
 
@@ -269,11 +277,12 @@ least equal to 64-bit double precision. There is no equivalent of
 single-precision floating pointer numbers, nor is there an equivalent
 of arbitrary precision floating point numbers.
 
+[#charCode]
 === Character Codes
+
 (((character code)))
 (((number,character code)))
 (((syntax,character code)))
-
 The character code notation allows a number to be based on the coding
 value of a character. Any Unicode character scalar value can be entered
 in this way:
@@ -298,14 +307,15 @@ CharacterCode >> Cde::integer --> [`0`,`c`], charRef >> Cde.
 A `CharacterCode` returns an `integer`, although `CharRef` returns a `char`.
 
 == Characters and Strings
-(((character reference)))
 
+(((character reference)))
 There are three forms of textual values: characters, strings and block strings. 
 
+[#charLiteral]
 === Character Literals
+
 (((character literal)))
 (((syntax, character literal)))
-
 A `charRef` is a denotation of a single code point.
 
 [#charRefFig]
@@ -348,12 +358,13 @@ a given keyboard:
 This notation accommodates the Unicode's varying width of character
 codes -- from 8 bits through to 20 bits.
 
+[#textLiteral]
 === String Literals
+
 (((string)))
 (((string literal)))
 (((syntax,string literal)))
 (((string,quoted)))
-
 A `string` consists of a sequence of characters -- specifically
 `charRef`'s.
 
@@ -398,10 +409,11 @@ supported control characters are mostly the usual suspects:
 "This string has a \nnew line in the middle"
 ----
 
+[#blockString]
 === Block String
+
 (((strings,block form of)))
 (((block of data)))
-
 In addition to the normal notation for strings, there is a block form
 of string that permits raw character data to be processed as a string.
 
@@ -434,9 +446,10 @@ uninterpreted \n characters"""
 TIP: This form of string literal can be a convenient method for including
 block text into a program source.
 
+[#identifier]
 == Identifiers
-(((identifier)))
 
+(((identifier)))
 Identifiers are used to denote operators, keywords and variables. There are
 three main kinds of identifier: regular alpha-numeric identifiers, graphic
 identifiers and quoted identifiers. However, semantically, all these are
@@ -451,10 +464,10 @@ identifier >> Qt --> quotedIdentifier >> Qt.
 identifier >> Gr --> graphicIdentifier >> Gr.
 ----
 
-
+[#alphaIdentifier]
 === Alphanumeric Identifiers
-(((alpha numeric identifier)))
 
+(((alpha numeric identifier)))
 Alphanumeric identifiers are based on the Unicode definition of identifier. For
 the ASCII subset of characters, the definition corresponds to the common form of
 identifier -- a letter followed by a sequence of digits and letters. However,
@@ -478,10 +491,11 @@ categories defined in Unicode.
 TIP: This definition of `alphaNumeric` identifier closely follows the standard
 definition of Identifier as contained in the Unicode specification.
 
+[#graphIdentifier]
 === Graphic Identifiers
+
 (((graphic identifier)))
 (((indentifier, graphic)))
-
 The standard operators often have a graphic form -- such as `+`,
 and `=<`. <<standardOperatorsTbl>> contains a complete listing
 of all the standard graphic-form identifiers.
@@ -502,9 +516,9 @@ identifier.
 
 [#quotedIdentifier]
 === Quoted Identifiers
+
 (((identifier,quoted)))
 (((quoted identifiers)))
-
 A quoted identifiers is denoted by a sequence of `charRef`'s enclosed
 in single quotes. Recall that strings are enclosed in double quotes.
 
@@ -522,10 +536,11 @@ TIP: This can be useful for external facing interfaces where, for example,
 the name of a field in a structure must have a particular form -- even
 if that would otherwise be a keyword.
 
+[#keyword]
 === Standard Keywords
+
 (((standard keywords)))
 (((keywords)))
-
 There are a number of keywords which are reserved by the language --
 these may not be used as identifiers or in any other role.
 
@@ -541,12 +556,14 @@ are the same.
 Enclosing a name in parentheses also has the effect of suppressing any
 operator information about the name.
 
+[#punctuation]
 == Punctuation
-(((punctuation)))
 
+(((punctuation)))
 There are relatively few punctuation symbols; although it has a large
 number of graphical identifiers.
 
+[#endOfTerm]
 === End of Term
 
 With a few exceptions, statements footnote:[A statement in Star is not to be
@@ -570,24 +587,27 @@ conventions.
 If a statement is the last in a sequence of statements that are
 enclosed in braces, then it does not need termination.
 
+[#parentheses]
 === Parentheses
-(((parentheses)))
 
+(((parentheses)))
 Parentheses are _active_: they are not simply a
 means of grouping expressions and/or overriding precedences of
 operators. This is because parentheses have two distinct roles: to
 group and/or override precedences, and as a way of enclosing tuples of
 terms.
 
+[#squareBracket]
 === Square Brackets
-(((square brackets)))
 
+(((square brackets)))
 Square brackets (`[` and `]`) are used to delimit certain
 kinds of list and sequence expressions.
 
+[#braces]
 === Braces
-(((braces)))
 
+(((braces)))
 Braces are used to delimit groups of statements.
 
 There are two forms of braces: with and without a period character.

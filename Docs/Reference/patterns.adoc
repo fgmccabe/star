@@ -1,5 +1,7 @@
 = Patterns
-(((patterns))) Patterns are templates that are used to match against a value;
+
+(((patterns)))
+Patterns are templates that are used to match against a value;
 possibly binding one or more variables to components of the matched
 value. Patterns are used as guards in equations, as filters in query expressions
 and in `for` loops. Patterns represent one of the fundamental mechanisms that
@@ -29,6 +31,7 @@ expressions.
 
 [#patternVariable]
 == Variables in Patterns
+
 (((pattern,variable pattern)))
 (((variables)))
 Variables in patterns are used to bind variables to elements of the

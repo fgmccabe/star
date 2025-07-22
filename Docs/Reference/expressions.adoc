@@ -147,7 +147,7 @@ I.e., re-assignability depends only on whether the target is re-assignable.
 ****
 
 In addition to modifying the contents of a re-assignable variable,
-there is a <<RecordUpdate>> expression which does not modify a
+there is a <<recordUpdate>> expression which does not modify a
 record but can be used to construct a new record value by replacing a
 field in the record.
 
@@ -588,6 +588,7 @@ and
 respectively.
 ****
 
+[#recordUpdate]
 === Updating Fields of a Record
 
 (((record update)))

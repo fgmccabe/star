@@ -1,7 +1,8 @@
+[#coroutine]
 = Coroutines
+
 (((coroutines)))
 (((execution,coroutines)))
-
 A coroutine is a suspendable computation. Analogous to function calls,
 except that a coroutine can be suspended -- allowing another
 computation to continue -- and then later resumed. Not to be confused
@@ -168,9 +169,9 @@ and are scheduled -- by an associated `nursery`.
 
 [#taskExpression]
 === Task Expressions
+
 (((task expression)))
 (((expression,task)))
-
 A `task` expression consists of a `task`-labeled <<blockAction>>.
 
 [#taskExpressionFig]
@@ -230,10 +231,11 @@ ive = valof {
 }
 ----
 
+[#taskType]
 === The `task` type
+
 (((task type)))
 (((type,task)))
-
 The `task` type is a standard type that is used to represent
 task expressions. 
 
@@ -251,25 +253,26 @@ NOTE: Star's coroutining features are based on the more primitive
 concepts around fibers.
 
 == Task-related Functions
+
 (((task functions)))
 
 
 == Channels and Messages
-[[channels]]
 
+(((channels)))
 A channel is a typed communications channel between `task`s. In
 order for a `task` to 'send a message' to another `task`,
 they would share the channel object itself and then the receiver would
 use `recvRv` to wait for the message and the sender would use
 `sendRv` to send the message.
 
+[#channelType]
 === The `channel` Type
 
 [source,star]
 ----
 channel[t]
 ----
-
 
 Like the `task` type, the `channel` type is _opaque_.
 
@@ -317,11 +320,11 @@ features are not used directly in regular programs: they are used in libraries
 that, for example, implement features such as yield-style generators and green
 threads.
 
-(((type, fiber)))(((fiber type)))
-
 [#fiberType]
 === Fiber Type
 
+(((type, fiber)))
+(((fiber type)))
 The `fiber` type is used to characterize the type of fiber
 expressions. It takes the form:
 [#fiberTypeFig]
@@ -348,8 +351,8 @@ a _fiber function_.
 
 ==== Fiber functions
 
-A fiber function is a function that denotes the computation that a fiber performs.
-The general form of the type of a fiber function is:
+A fiber function is a function that denotes the computation that a
+fiber performs.  The general form of the type of a fiber function is:
 
 [source,star]
 ----

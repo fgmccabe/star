@@ -63,9 +63,10 @@ are marked `public` will be exported.footnote:[An element in a
 package may be marked `private` -- which will also ensure that it
 is not visible outside the package.]
 
+[#definition]
 == Definitions
-(((program, declaration)))
 
+(((program, declaration)))
 The contents of a package consists of a set of definitions of types,
 programs and variables.
 
@@ -85,8 +86,8 @@ definition  --> importStatement.
 
 [#typeAnnotation]
 === Type Annotations
-(((type, annotation)))
 
+(((type, annotation)))
 In most cases it is not necessary to explicitly declare the type of a
 variable -- or any expression. However, it is good practice to declare
 explicitly the types of programs; especially at the top level of a
@@ -110,9 +111,9 @@ consLength:all t ~~ (cons[t])=>integer
 
 [#variableDefinition]
 === Variable Definition
+
 (((variable definition)))
 (((declaration, variable)))
-
 A variable definition is a definition or an
 action that explicitly denotes the declaration of a
 variable. <<variableDefinition>>s may appear in packages, 
@@ -158,9 +159,9 @@ NOTE: It is not possible to declare a variable without also giving it a
 value.
 
 ==== Variable Scope
+
 (((variable, scope)))
 (((scope of variable)))
-
 In general, the scope of a variable extends to include the 
 context in which it is declared:
 
@@ -218,8 +219,8 @@ test that the the `X` that occurs in the head of the function is
 equal to `1`.
 
 === Re-assignable Variables
-(((variable, re-assignable)))
 
+(((variable, re-assignable)))
 Re-assignable variables serve two primary roles within programs: to
 hold and represent state and to facilitate several classes of
 algorithms that rely on the manipulation of temporary state in order
@@ -242,8 +243,8 @@ its value. The latter is the converse: where an expression denotes a
 reference value that must be `dereferenced'.
 
 === Functions and Equations
-(((function)))
 
+(((function)))
 A function is a program for computing values; organized as a set of equations.
 
 [#functionFig]
@@ -329,8 +330,8 @@ NOTE: Universally quantified and existentially quantified types
  existential type is variable and vice-versa.
 
 ==== Evaluation Order of Equations
-(((equations,evaluation order)))
 
+(((equations,evaluation order)))
 Using multiple equations to define a function permits a case-base approach to
 function design -- each equation relates to a single case in the function. When
 such a function is _applied_ to actual arguments then only one of the equations
@@ -341,9 +342,9 @@ any equation that is marked `default`. If two equations overlap
 in their patterns then the first equation to apply is the one used.
 
 ==== Default Equations
+
 (((default equation`default` equation)))
 (((functions,default`default` equation)))
-
 It is permitted to assign one of the equations in a function definition to be
 the `default` equation. An equation marked as `default` is guaranteed _not_ to
 be used if any of the non-default equations apply. Thus, a `default` equation
@@ -358,8 +359,8 @@ NOTE: In particular, it _should_ be guaranteed that a `default`
 equation cannot fail to apply.
 
 ==== Evaluation Order of Arguments
-(((function application,evaluation order)))
 
+(((function application,evaluation order)))
 There is _no_ guarantee as to the order of evaluation of
 arguments to a function application. In fact, there is no guarantee
 that a given expression will, in fact, be evaluated.
@@ -370,10 +371,10 @@ will _not_ be evaluated!
 In general, the programmer should make the fewest possible assumptions
 about order of evaluation.
 
-==== Pattern Coverage
 [#patternCoverage]
-(((patterns,coverage of)))
+==== Pattern Coverage
 
+(((patterns,coverage of)))
 Any given equation in a function definition need not completely cover
 the possible arguments to the function. For example, in
 [source,star]
@@ -459,8 +460,8 @@ around the returned function value.
 
 NOTE: Lambda expressions functions may reference free variables.
 
-==== Functions that throw exceptions
 [#throwingFunctions]
+==== Functions that throw exceptions
 (((exception, throwing function)))
 
 A function whose type is a throwing type, (see <<throwingFunctionType>>), may
@@ -477,8 +478,8 @@ check(X,Y) => (~X ?? throw "check exception" || Y).
 NOTE: This definition has an explicit type signature; this is because we cannot
 reliably infer that a function should throw an exception.
 
-==== The standard `exception` type
 [#exceptionType]
+==== The standard `exception` type
 
 Although not essential, Star has a built-in type that may be convenient for
 reporting exceptions. The `exception` type is defined as:
@@ -541,11 +542,11 @@ defines a dictionary of sorts -- of the elements defined within the
 contract.
 ****
 
-=== Functional Dependencies
 [#ContractFunctionalDependency]
+=== Functional Dependencies
+
 (((type,contracts!functional dependencies)))
 (((functional dependencies in contracts)))
-
 For certain forms of contract, it may be that the type parameters may
 not all be independent of each other. For example, consider the
 standard `stream` contract (defined in
@@ -617,10 +618,10 @@ implementation all e ~~ sizeable[cons[e]] => {
 }
 ----
 
-=== Implementing Contracts with Functional Dependencies
 [#implContractFunctionalDependency]
-(((type,contracts!functional dependencies)))
+=== Implementing Contracts with Functional Dependencies
 
+(((type,contracts!functional dependencies)))
 Implementing a contract which has a functional dependency is exactly analogous
 to implementing a regular contract. The dependent type(s) must be identified in
 the `implementation` statement. For example, the initial part of the
@@ -726,9 +727,9 @@ to separately define inequality for `cons` lists while depending on the
 implementation of `<` for their elements.
 
 == Importing Packages
+
 (((import package)))
 (((package,import)))
-
 The <<importStatement>> is used to signal that this package
 depends on other packages.footnote:[The `import` statement is
 only permitted at the top-level of a package.]
@@ -748,11 +749,11 @@ importStatement --> ["import"], packageName.
 importStatement --> ["public", "import"], packageName.
 ----
 
-=== The `import` Statement
 [#importStatement]
+=== The `import` Statement
+
 (((import,statement)))
 (((statement,import)))
-
 An `import` statement of the form:
 [source,star]
 ----
@@ -779,12 +780,12 @@ NOTE: By using `public` package imports it is possible to construct the
 equivalent of a library -- consisting of multiple packages internally
 but viewed as a single package externally.
 
-=== Open Statement
 [#openStatement]
+=== Open Statement
+
 (((open statement)))
 (((opening a record)))
 (((record,opening)))
-
 The `open` statement takes a <<Record>>-valued expression and
 opens its contents in a <<thetaEnvironment>> -- such as a package.
 
