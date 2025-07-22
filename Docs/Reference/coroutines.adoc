@@ -1,5 +1,4 @@
 = Coroutines
-
 (((coroutines)))
 (((execution,coroutines)))
 
@@ -19,8 +18,148 @@ resolution is made.
 A generator is an expression that determines the sequence of values in
 a `for` loop iteration.
 
+Underlying both tasks and generators is the concept of a fiber. A fiber is
+essentially a reified coroutine: it has an identity that is persistent through
+the computation of the coroutine itself.footnote:[Although fibers have identity,
+that identity is only available directly: when the fiber is created. Functions
+running as part of the coroutine cannot discover the fiber's identity.]
+
+[#generator]
+== Generators
+
+A `generator` is an expression that represents a computation that iterates over
+a data value. Typically, the generator performs a `yield` action (or expression)
+that signals to the generator's consumer that an element has been found.
+
+Generator consumers are either a `for` loop (<<forAction>>) or a search query
+(<<searchCondition>>).
+
+A `generator` is a kind of expression:
+
+[source,star]
+----
+expression --> generator.
+
+generator --> ["generator"], action
+----
+
+For example, this expression:
+
+[source,star]
+----
+intGen = generator{
+  Ix := 1;
+  while .true do{
+    Ix := Ix!+2;
+    yield Ix!
+  }
+}
+----
+defines the variable `intGen` to be a generator of odd integers: everytime it
+`yields`, it will be with an add integer greater than one.
+
+The type of a generator expression is `generator` of the type of elements it
+yields:
+
+[source,star]
+----
+type --> ["generator", "["], type, ["]"].
+----
+
+As noted above, generator expressions are typically not written explicitly. Many
+types implement the `generate` contract that is used to create generators:
+
+[source,star]
+----
+public contract all c,e ~~ generate[c->>e] ::= {
+  _generate:(c)=> generator[e]
+}
+----
+
+Generate contracts are implemented for `cons`, `map`, `range`, `string`,
+`vector` and many other types.footnote:[If the reader implements their own
+collection type, implementing `generate` allows their type to participate in
+`for` loops and search queries.]
+
+In addition, the standard `iterGenerator` function can be used to lift any
+implementation of the `iter` contract into a generator.
+
+=== Structure of a generator
+
+A generator's body is an action. Within the action the `yield` operator is used
+to yield to the consumer of the generator.
+
+[#thisVariable]
+In addition, the variable `this` is defined -- to be the
+identity of the generator itself. This allows the generator action to call a
+function that itself yeilds:
+
+[source,star]
+----
+treeGen(T) => generator{
+  walkTree(T,(El) => valof{
+    this yield El;
+    valis ()} )
+}
+----
+
+==== The `yield` operator
+
+There are two variants of yield:
+unary and binary:
+
+[source,star]
+----
+action --> ["yield"], expression.
+action --> expression, ["yield"], expression.
+----
+
+The unary form is equivalent to the binary form, with the left hand argument
+being the special variable `this`.
+
+The result of performing a `yield` is to pause the generator -- identified by
+`this` or the left hand argument -- and 'return' a value to the consumer.
+
+When the `generator` action completes, it is taken as a signal to the consumer that there are no more elements to be yielded, and the for loop will terminate.
+
+[#iterGenerator]
+=== Creating a `generator` with `iterGenerator`
+
+The `iterGenerator` function is a standard function that can be used to
+implement generators:
+
+[source,star]
+----
+public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generator[e].
+----
+
+It takes as argument a collection, for which type the `iter` contract has been
+implemented.
+
+[source,star]
+----
+public contract all s,t ~~ iter[s->>t] ::= {
+  _iter:all x ~~ (s,x,(t,x)=>x) => x
+}
+----
+
+The `iter` contract defined a general fold over the type. For example, the
+implementation of `iter` for binary trees might look like:
+
+[source,star]
+----
+implementation all e ~~ iter[tree[e]->>e] => let{.
+  treeWalk(.empty,X,F) => X.
+  treeWalk(.node(L,Lb,R),X,F) => treeWalk(R,F(Lb,treeWalk(L,X,F))).
+.} in {
+  _iter = treeWalk
+}
+----
+
+TIP: Using `iterGenerator` is by far the simplest method to create generators.
+
 [#task]
-== Tasks
+== Tasks and Nurseries
 
 A `task` is an expression that inhabits a coroutine. Tasks can
 suspend themselves -- initiating another coroutine as they do so --

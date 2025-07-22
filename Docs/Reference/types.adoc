@@ -28,8 +28,8 @@ Viewed as collections, types have some particular properties: no value
 may be a member of more than one type collection; all values are
 members of exactly one type collection.
 
-A <<TypeDefinition>> introduces a new type and defines what values
-belong to the type. A <<TypeAnnotation>> is an assertion that a
+A <<typeDefinition>> introduces a new type and defines what values
+belong to the type. A <<typeAnnotation>> is an assertion that a
 particular expression -- usually a variable -- has a certain type.
 
 For many simple cases, a type is denoted by an identifier. For
@@ -97,13 +97,13 @@ Technically, the `cons` symbol in:
 cons[integer]
 ----
 (((type function)))
-is a <<TypeConstructor>>: it takes a type as an argument and
+is a <<typeConstructor>>: it takes a type as an argument and
 returns another type as result.
 ====
 
 Often it is convenient to be able to refer to types without
 being specific about the type itself; for this purpose we use
-<<TypeVariable>>s.
+<<typeVariable>>s.
 
 A type variable a type identifier that is distinguished by being
 introduced using an explicit quantifier -- either `all` or
@@ -127,14 +127,14 @@ there are three possibilities: the type variable may be identified
 with (equal to) another type; the type variable may be bound by a
 universal quantifier or by an existential quantifier.
 
-A universally quantified type (see <<UniversalType>>) denotes a type
+A universally quantified type (see <<universalType>>) denotes a type
 that allows all possible instantiations for the type variable. For
 example, function types often involve universal types. A universally
 typed function is expected to work _for all values_ of the type
 variable -- which, in turn, means that the function definition can
 make no assumptions about the actual type.
 
-Existentially quantified types (see <<ExistentialType>>) are used to
+Existentially quantified types (see <<existentialType>>) are used to
 denote _abstract types_; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque _black
 box_.
@@ -150,7 +150,7 @@ There are two main kinds of type expressions -- so-called
 _structural_ type expressions and _named_ type expression. A
 structural type expression encodes by convention the permitted
 _forms_ of values of that type. By contrast, a named type
-expression is defined via some form of <<TypeDefinition>>.
+expression is defined via some form of <<typeDefinition>>.
 
 A classic example of a structural type expression is the function
 type. A function type expression defines both the types of the
@@ -465,7 +465,7 @@ arguments it expects. This is defined when the type itself is
 defined. It is an error to write a type expression involving an
 incorrect number of type arguments.
 
-Parameterized types may be defined using a <<TypeDefinition>>
+Parameterized types may be defined using a <<typeDefinition>>
 statement.
 
 (((type,variable constructor)))
@@ -501,7 +501,7 @@ parameterized type.
 === Face Type
 [#typeInterface]
 
-Nominal types are associated with a <<FaceType>> that denotes
+Nominal types are associated with a <<faceType>> that denotes
 the _interface_ to the type.
 
 This interface contains all the fields that are defined in any of the
@@ -514,7 +514,7 @@ For example, given the type definition:
 person ::= layPerson{name : string. address:string }
   | student{name:string. study:string }
 ----
-the interface to `person` is determined to be the <<FaceType>>:
+the interface to `person` is determined to be the <<faceType>>:
 [source,star]
 ----
 {
@@ -542,6 +542,7 @@ A structural type is a type expression that looks like its
 purpose. There are three main forms of structural type: tuple types,
 program types and record types.
 
+[#tupleType]
 === Tuple Types
 (((tuple types)))
 (((type,tuple)))
@@ -628,6 +629,7 @@ denotes a unary function type, whose _argument_ is a unary or
 singleton tuple.footnote:[This complexity arises because parentheses
 have a dual role: to group expressions and as a notation for tuples.]
 
+[#faceType]
 === Record Types
 (((type,record type)))
 (((record type)))
@@ -1163,14 +1165,14 @@ Generally, a <<typeConstraint>> on a <<typeVariable>>
 restricts in some sense the possible bindings for that type
 variable.
 
-For example, a <<Contract>> refers to a named
-collection of functions and a <<TypeVariable>> constrained by a
-<<Contract>> means that any concrete instantiation of
-the <<TypeVariable>> must be to a <<Type>> that implements the
-<<Contract>>.
+For example, a <<contract>> refers to a named
+collection of functions and a <<typeVariable>> constrained by a
+<<contract>> means that any concrete instantiation of
+the <<typeVariable>> must be to a <<type>> that implements the
+<<contract>>.
 
-Similarly, a <<FieldConstraint>> constrains the <<TypeVariable>>
-so that any binding must be to a <<Type>> that has the named field
+Similarly, a <<fieldConstraint>> constrains the <<typeVariable>>
+so that any binding must be to a <<type>> that has the named field
 in its definition.
 
 For example, using `arith` as a constraint allows us to say
@@ -1200,23 +1202,20 @@ comp[t], t <~ { ident:integer }
 ----
 captures this.
 
-@quotation NOTE
-If a constrained type variable is unified with another type variable,
+NOTE: If a constrained type variable is unified with another type variable,
 then the constraints of the two variables are merged. It may be that
 such a merging of constraints is not possible; in such a case, the
 unification will fail.
-@end quotation
 
-@node Contract Constraints
-@subsection Constract Constraints
+[#contractConstraint]
+=== Contract Constraints
 (((type,constraints!contract)))
 (((contract constraint)))
 
-@noindent
-A <<Contract>> is a requirement on a <<Type>> -- or
+A <<contract>> is a requirement on a <<Type>> -- or
 tuple of <<Type>>s -- that whatever type it is, that there must
-exist an `implementation` of the <<Contract>> for the
-<<Type>>.
+exist an `implementation` of the contract for the
+<<type>>.
 
 For example, the type constraint expression in the constrained type:
 [source,star]
@@ -1226,12 +1225,6 @@ comp[t] |: t
 means that the type variable `t` may only unify with concrete
 types that implement the `comp` contract.
 
-@quotation NOTE
-Since only named types may implement <<Contract>>s, it is also not
-permissible to unify the constrained variable with an structural type
--- such as a function type.
-@end quotation
-
 [#contractConstraintFig]
 .Contract Constraint
 [source,star]
@@ -1240,10 +1233,10 @@ contractConstraint --> identifier ["["], types, ["]"].
 contractConstraint --> identifier ["["], types, ["->>"], types, ["]"].
 ----
 
-It is possible for <<Contract>>s to reference more than
+It is possible for <<contract>>s to reference more than
 one type. For example, the standard `coercion` contract (see
 <<coercionContractProg>>) references two types. A `coercion`
-<<Contract>> will therefore look like:
+`contract` will therefore look like:
 [source,star]
 ----
 coercion[T1,T2]
@@ -1252,15 +1245,13 @@ coercion[T1,T2]
 where `T1` represents the source type of the coercion and
 `T2` represents the destination type.
 
-If the `->>` clause is used, then the <<Contract>> being
+If the `->>` clause is used, then the <<contract>> being
 referenced must have a _functional dependency_
 (((functional dependency)))
 associated with it.
 
-@quotation NOTE
-Conversely, if a <<Contract>> has a functional dependency, then any
-constraint varerring to it must also have a @code{\->>} clause.
-@end quotation
+NOTE: Conversely, if a contract has a functional dependency, then any
+constraint referring to it must also have a `->>` clause.
 
 The `->>` clause identifies which type(s) are dependent on the
 type argument(s) of the <<Contract>>. (See
@@ -1347,8 +1338,9 @@ if `r` is unified against a concrete type then that type's
 both of `alpha` and `beta`. In addition, the fields must be
 of the right types.
 
-@quotation NOTE
-It is also possible to require that an <<EncapsulatedType>>
+[NOTE]
+****
+It is also possible to require that an <<encapsulatedType>>
 exists. For example, the constraint:
 [source,star]
 ----
@@ -1356,7 +1348,8 @@ s <~ { type elem }
 ----
 requires that any actual binding for type
 `s` must include the embedded type `elem`.
-@end quotation
+****
+
 
 == Type Semantics
 (((semantics of types)))
