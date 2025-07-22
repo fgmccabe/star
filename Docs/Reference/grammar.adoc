@@ -1,7 +1,7 @@
 [#grammarRules]
 = Grammar Rules
-(((grammar rules)))
 
+(((grammar rules)))
 There are many occasions when it is necessary to parse text. For example, the
 Star run-time has parsers for URIs, json files as well as for some internal
 formats.
@@ -407,7 +407,8 @@ error by ignoring the input until some well known marker.
 
 [source,star]
 ----
-exp0 >> E --> [`(`], exp >> E, ([`)`] | { reportError("missing right paren")}, *> [`;`]).
+exp0 >> E --> [`(`], exp >> E, ([`)`] |
+    { reportError("missing right paren")}, *> [`;`]).
 ----
 
 

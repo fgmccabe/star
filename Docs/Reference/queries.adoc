@@ -1,5 +1,6 @@
-= Queries
 [#queries]
+= Queries
+
 (((queries)))
 A <<queryExpression>> is an expression that denotes a value implicitly -- by
 operations and constraints on other identified values. Typically, the
@@ -22,6 +23,7 @@ queryExpression --> testQuery.
 queryExpression --> foldQuery.
 ----
 
+[#queryCondition]
 == Query Condition
 
 All query expressions depend on the notion of a query
@@ -39,12 +41,11 @@ conditions, but the foundational query condition is the search condition
 
 [#searchCondition]
 === Search Condition
+
 (((search)))
 (((query, search)))
-
 A search condition takes the form:
 
-[#searchConditionFig]
 .Search Condition
 [source,star]
 ----
@@ -95,11 +96,11 @@ an implementation of `iter` defined.
 
 == Query Expression
 
-=== Comprehensions
 [#comprehension]
+=== Comprehensions
+
 (((comprehension)))
 (((query,comprehension)))
-
 A comprehension computes a collection of answers -- all of
 which satisfy a condition.
 
@@ -154,10 +155,10 @@ In order to force the result to be a `cons` list, use a type annotation:
 ----
 ****
 
-=== Iota Query
 [#iotaQuery]
-(((query,iota)))
+=== Iota Query
 
+(((query,iota)))
 An iota query is similar in form to a comprehension, it consists of a
 bound expression and a condition. The difference is that an iota
 expression returns a single instance of the bound expression: i.e.,
@@ -179,10 +180,10 @@ For example, to find a child of `P` one could use the expression:
 {! X | (P,X) in children !}
 ----
 
-=== Test Query
 [#testQuery]
-(((query,test)))
+=== Test Query
 
+(((query,test)))
 A test query is a form that allows a query to act as a normal
 condition. This is most useful when a condition requires some form of
 search in order to be satisfied.
@@ -199,12 +200,12 @@ testQuery --> ["{?"], condition, ["?}"].
 
 If the condition has no answers then the test query is `.false`.
 
-=== Fold Query
 [#foldQuery]
+=== Fold Query
+
 (((accumulating over a query)))
 (((applying a function to the results of a query)))
 (((query,fold)))
-
 A fold query differs from other forms of query in that the
 results of satisfying the <<condition>> are fed to a function
 rather than being returned as some form of collection.

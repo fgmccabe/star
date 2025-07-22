@@ -1,7 +1,7 @@
-= Actions
 [#action]
-(((action)))
+= Actions
 
+(((action)))
 An action is performed for the sake of its effect. Star has a
 normal complement of control flow operators; although there are
 a few departures from some common patterns.
@@ -11,16 +11,16 @@ computed by performing actions. Similarly, many actions involve the
 evaluation of expressions.
 
 == Actions and Types
+
 (((action types)))
 (((action!types)))
-
 Actions may have a type associated with them: their value type.
 This is the type of any returned value -- i.e., the type of the
 expression associated with any <<valisAction>>s within the action.
 
 == Basic Action Forms
-(((basic action expressions)))
 
+(((basic action expressions)))
 The basic actions include those in <<doFig>>.
 
 [#doFig]
@@ -47,9 +47,9 @@ action --> nullAction.
 
 [#nullAction]
 === Null Action
+
 (((no operation)))
 (((action,null)))
-
 The `{}` action does nothing; and does not return a value.
 
 [#nothingFig]
@@ -63,9 +63,9 @@ The `{}` does nothing. Useful when you don't want to do anything.
 
 [#blockAction]
 === Block Action
+
 (((block action)))
 (((action,block)))
-
 An action block consists of a sequence of actions, enclosed in braces
 (`{`, `}`) and separated by semi-colons.
 
@@ -81,9 +81,9 @@ The empty action block -- `{}` -- is equivalent to the
 
 [#callAction]
 === Call Action
+
 (((call action)))
 (((action,call)))
-
 The call action denotes calling a function; typically
 also expressed in terms of actions. 
 [#callActionFig]
@@ -99,9 +99,9 @@ to the enclosing exception handler.
 
 [#valisAction]
 === Valis Action
+
 (((valis action)))
 (((action,valis)))
-
 The `valis` action denotes that the enclosing `valof` expression should terminate and
 return a value. Specifically, for a `valis` action to be valid,
 it must be textually enclosed in a <<valofExpression>>. The
@@ -120,9 +120,9 @@ the designated handler.
 
 [#throwAction]
 === Throw Action
+
 (((throw action)))
 (((action,throw)))
-
 The `throw` action signals that the action should terminate and raise an exception.
 
 [#throwActionFig]
@@ -146,9 +146,9 @@ must be lexically accounted for.
 
 [#labeledAction]
 === Labeled Action
+
 (((labeled action)))
 (((action,labeled)))
-
 The labeled action associates a _label_ with an
 action. Apart from that label, the semantics of the labeled action is
 not affected -- unless it lexically contains a <<breakAction>>.
@@ -164,9 +164,9 @@ The scope of the label is limited to the text enclosed within the labeled action
 
 [#breakAction]
 === Break Action
+
 (((break action)))
 (((action,break)))
-
 The `break` denotes that the identified labeled action should
 terminate. The action that was labeled is terminated, and computation
 proceeds with its natural successor.
@@ -219,9 +219,9 @@ the lexically innermost labeled action with the same label.
 
 [#defnAction]
 === Definition Action
+
 (((definition action)))
 (((action,definition)))
-
 The definition action is used to define one or more variables and to give them a value -- that is
 available to subsequent actions. 
 
@@ -250,8 +250,8 @@ form of action.
 
 [#assignAction]
 === Assignment Action
-(((assignment action)))
 
+(((assignment action)))
 The assignment action is replaces the
 value of a re-assignable variable with another value. The variable
 being re-assigned must have a `ref` type -- there is no
@@ -276,10 +276,10 @@ where `V` is a new variable not otherwise in scope.footnote:[Otherwise, it would
 
 [#conditionalAction]
 === Conditional Action
+
 (((conditional action)))
 (((action,conditional)))
 (((action,if then else)))
-
 The two conditional forms of action are used to denote a conditional computation.
 
 [#condActionFig]
@@ -304,9 +304,9 @@ else
 
 [#whileAction]
 === While Action
+
 (((while action)))
 (((action,while)))
-
 The `while` action is used to denote an iterative computation that
 repeats for as long as some condition is satisfied.
 
@@ -322,9 +322,9 @@ as the test condition is satisfied.
 
 [#forAction]
 === For Action
+
 (((for action)))
 (((action,for)))
-
 The `for` loop iterates over a collection and matches each element
 against _Pattern_; which will typically bind one or more variables
 that are in scope for the body of the loop.
@@ -384,9 +384,9 @@ equivalent to the double <<whileAction>>:
 
 [#letAction]
 === Let Action
+
 (((let action)))
 (((action,let)))
-
 The `let` action allows an action to have local definitions
 embedded within it. It plays the same role as let expressions do (see <<letExpression>>).
 
@@ -403,6 +403,7 @@ dot-braces `{..}`.
 
 [#caseAction]
 === Case Action
+
 (((case action)))
 (((action,case)))
 
@@ -429,9 +430,9 @@ rule's pattern to fail to apply.
 
 [#tryCatchAction]
 === Try Catch Action
+
 (((try catch action)))
 (((action,try catch)))
-
 The `try` `catch` action is used to denote a computation which may
 need to respond to exception situations. 
 

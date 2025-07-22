@@ -1,7 +1,7 @@
-= Conditions
-(((conditions)))
 [#condition]
+= Conditions
 
+(((conditions)))
 Conditions are used to express predicates. For example, a
 `where` pattern (<<guardedPattern>>) uses a condition to
 attach a semantic guard to a pattern. Conditions are also as guards on
@@ -32,10 +32,10 @@ condition --> expression.
 condition --> ["("], condition, [")"].
 ----
 
-== Matching Conditions
 [#matchesCondition]
-(((conditions,matches)))
+== Matching Conditions
 
+(((conditions,matches)))
 The matches condition is a special condition that applies a
 pattern to a value. The condition is satisfied if the pattern matches
 the expression.
@@ -99,9 +99,10 @@ unwraps the optional value of `P` into the non-optional `PP`.
 
 == Logical Combinations
 
-=== Conjunction Condition
-(((condition, conjunction)))
 [#conjunctionCondition]
+=== Conjunction Condition
+
+(((condition, conjunction)))
 A conjunction -- using the `++&&++` operator -- is satisfied iff both
 the left and right `arms' of the conjunction are satisfied.
 
@@ -115,18 +116,18 @@ conjunctionCondition --> condition, ["&&"], condition.
 A conjunction is satisfied if both the left and right
 arms are satisfied.
 
-NOTE: conjunctions are _short circuiting_: if the left
-arm is not satisfiable then the right arm will not be attempted.
+NOTE: conjunctions are _short circuiting_: if the left arm is not
+satisfiable then the right arm will not be attempted.
 
 Any variables that are introduced into scope as a result of the left
 arm of the conjunction are also in scope for the right arm -- and for
 the extending scope the conjunction itself is part of.
 
-=== Disjunction Condition
 [#disjunction]
+=== Disjunction Condition
+
 (((disjunctive condition)))
 (((condition, dinjunction)))
-
 A disjunction -- using the `||` operator -- is satisfied if
 either the left or the right operands are satisfied.
 
@@ -194,10 +195,10 @@ is effectively using the first ``(P,_) in children`' condition to
 find a person who has children, where the second implies condition
 verifies that `P` only has sons.
 
-=== Conditional Condition
 [#conditionalCondition]
-(((conditional condition)))
+=== Conditional Condition
 
+(((conditional condition)))
 A conditional condition is used when the actual condition to apply
 depends on a test.
 

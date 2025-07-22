@@ -1,6 +1,6 @@
 = Numbers
-(((expressions,arithmetic)))
 
+(((expressions,arithmetic)))
 The basis of arithmetic expressions are several contracts: the
 `arith` contract which provides definitions of the familiar
 _calculator_ functions of `+`, `-`, `*` and
@@ -199,6 +199,7 @@ For example, this can be used to display the Unicode equivalent of a character:
 "Unicode: $(C)/$(C::integer):XXXXX;"
 ----
 |===
+
 === Display for `float`
 
 === Format for `float`

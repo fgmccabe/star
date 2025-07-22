@@ -1,6 +1,6 @@
 = JSON
-(((json, Using the json type)))
 
+(((json, Using the json type)))
 The JSON Infoset type, or just `json` type, allows values to be represented in a
 way that is easily digestible by many web-based tools -- including browsers. The
 `json` type is semantically equivalent to the JSON structure defined in
@@ -18,8 +18,8 @@ import star.json.
 
 [#jsonType]
 == The `json` Type
-(((json type)))
 
+(((json type)))
 The `json` type is defined as:
 
 .The `json` type
@@ -80,8 +80,8 @@ choose to represent numeric values as `float`.
 
 [#infoPath]
 == Infoset paths
-(((path access to json@path access to `json`)))
 
+(((path access to json@path access to `json`)))
 Infoset values are typically deeply nested structures involving both accessing
 dictionary-like collections and arrays. In order to make working with `json`
 values simpler we introduce the concept of an json path -- an `infoPath`.
