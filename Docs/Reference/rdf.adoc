@@ -91,3 +91,48 @@ concept --> ["<"], uri, [">"].
 concept --> text.
 concept --> decimal.
 ----
+
+[#identifiedConcept]
+==== Identified Concept
+
+An identified concept is one that is given a name. In comparison with other
+kinds of concepts -- uri, text and decimal -- the only way of interpreting an
+identified concept is in its relationship to other concepts.
+
+.Identified Concept
+[source,star]
+----
+identifiedConcept --> prefix, [":"], name.
+
+prefix --> name * [":"].
+
+name --> identifier.
+----
+
+Identified concpets are ubiquitous in any sized RDF graph: they form the
+backbone of the graph structure.
+
+[#uriConcept]
+==== URI Concept
+
+A uri concept is a uri. Uri concepts serve two roles in typical RDF graphs: they
+identify an entity that is outside the graph; such as a Web page or an external
+resource.
+
+Uri concepts are also sometimes used when a more precise meaning is attached to the concept -- again, typically outside the graph.
+
+[#textConcept]
+==== Text Concept
+
+Syntactically, a text concept is simply a string. As a concept, text concepts
+'stand for themselves': i.e., there is no intended relationship with any other
+concept.
+
+In practice, text concepts are used as a way of communicating with human users:
+they are sometimes used, for example, to give human-readable names of concepts.
+
+Another use for text concepts is as 'bulk text' that can be used as part of a
+graph application.
+
+
+

@@ -134,7 +134,7 @@ throwAction --> ["throw"], expression.
 
 When a `throw` action is performed, its expression is evaluated and that value
 is raised as an exception. The action must be syntactically within either a
-<<tryCatchAction>>, a <<tryCatchExpression>> or the enclosing function must have
+<<tryCatchAction>>, a <<tryCatch>> expression or the enclosing function must have
 been declared as throwing a value of the appropriate type.
 
 NOTE: If evaluating the expression that denotes the exception to raise

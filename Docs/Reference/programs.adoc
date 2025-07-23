@@ -786,7 +786,7 @@ but viewed as a single package externally.
 (((open statement)))
 (((opening a record)))
 (((record,opening)))
-The `open` statement takes a <<Record>>-valued expression and
+The `open` statement takes a record-valued expression and
 opens its contents in a <<thetaEnvironment>> -- such as a package.
 
 [#openStatementFig]
