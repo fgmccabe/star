@@ -359,7 +359,6 @@ would have values:
 "foo is the complement of bar"
 ----
 
-[#blockString]
 === Block Strings
 
 (((block string)))
@@ -653,15 +652,15 @@ recRecord --> identifier, ["{."], definition * [dotSpace], [".}"].
 ----
 
 Externally, a recRecord is the same as a regular
-<<Record>>; internally, however, its fields are defined
+record; internally, however, its fields are defined
 differently using <<definition>>s. Definitions include
 <<recordElement>> but may also include <<typeDefinition>>s and
 other forms of definition.
 
-Importantly, _within_ a <<RecRecord>>, definitions may be
+Importantly, _within_ a <<recRecord>>, definitions may be
 _mutually recursive_.
 
-<<RecRecord>>s are especially convenient when the fields of the
+Recursive records are especially convenient when the fields of the
 record are program values. For example, assuming a type definition
 such as: 
 [source,star]
@@ -697,10 +696,9 @@ A <<recRecord>> has many of the characteristics of an object in
 OO languages -- except that there is no concept of inheritance; nor is
 there a direct equivalence of the `self` or `this` keyword.
 
-A definition within a <<RecRecord>> that is marked
-`private` does _not_ 'contribute' to the external type of
-the record; and neither can such an attribute be accessed via the
-<<FieldAccess>> expression.
+A definition within a recursive record that is marked `private` does _not_
+'contribute' to the external type of the record; and neither can such an
+attribute be accessed via the <<FieldAccess>> expression.
 
 [#tuple]
 == Tuples
@@ -910,8 +908,8 @@ equations is effectively a `case` expression.
 === Try Catch
 
 (((try catch)))
-The <<tryCatchExpression>> expression is used to denote an expression which may
-need to respond to exception situations. 
+The `try`..`catch` expression is used to denote an expression which may need to
+respond to exception situations.
 
 [#tryCatchFig]
 .Try Catch
@@ -944,7 +942,7 @@ raised, only a single exception handler will be applied: there is no
 automatic cascading of exceptions from one handler to another.
 
 NOTE: Only one type of exception may be thrown in any given context -- either
-within a <<tryCatchExpression>> or within a throwing function definition. On the
+within a <<tryCatch>> expression or within a throwing function definition. On the
 other hand, the type checker is able to _infer_ -- in many cases -- the type of
 the exception thrown. Furthermore, throwing functions may be _generic_ in the
 exception they throw. See <<throwingFunctionType>>.
@@ -962,7 +960,7 @@ throwExpression --> ["throw"], expression.
 (((expression,throw)))
 When a `throw` expression is evaluated, its expression is
 evaluated and that value is thrown as an exception. There must either
-be a <<tryCatchExpression>> form, a <<tryCatchAction>> form in
+be a <<tryCatch>> expression form, a <<tryCatchAction>> form in
 the enclosing lexical scope, or the function in which it occurs must
 have been declared as raising a value of the appropriate type -- i.e.,
 it must have been declared as a throwing function.
@@ -1226,7 +1224,7 @@ casting in Star.] The annotation is a way for the programmer to communicate
 exactly what the expected type of an expression is -- there is no implied
 coversion of values from one type to another.
 
-[#typeCoercionExpression]
+[#typeCoercion]
 === Type Coercion
 
 (((type coercion)))

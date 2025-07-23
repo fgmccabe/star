@@ -407,13 +407,13 @@ For example, the statement:
 time ~> integer.
 ----
 
+[#nominalType]
 == Nominal Types
 
-(((nomical types)))
-(((types,nominal)))
-A <<mominalType>> is a term that identifies a class of values by
-name. The name may or may not have type arguments -- in which
-case, the type is said to be _parameterized_.
+(((nomical types))) (((types,nominal))) A nominal type is a term that identifies
+a class of values by name. The name may or may not have type arguments -- in
+which case, the type is said to be _parameterized_ and the name itself is
+referred to as a _type constructor_.
 
 A good example of a named type (or, more formally, nominal type) is
 the standard `integer` type. The word `integer` does not
@@ -421,15 +421,13 @@ signal by itself that the allowable operations on integer values
 include arithmetic, comparison and so on. That information must come
 from additional statements and declarations.
 
-One of the other differences between structural and named type
-expressions is that the latter may be used to denote _recursive_
-types, whereas the former cannot.
+One of the other differences between structural and nominal types is that the
+latter may be used to denote _recursive_ types, whereas the former cannot.
 
 TIP: A recursive type is one whose values may contain elements that are
 themselves of the same type. For example, in a `tree` type: the
 nodes of the tree are typically themselves trees.
 
-[#typeExpressionFig]
 .Nominal Type Expressions
 [source,star]
 ----
@@ -437,11 +435,12 @@ nominal --> identifier.
 nominal --> identifier, ["[", type, ([","],type)*, ["]"].
 ----
 
-=== Predefined Simple Types
+[#simpleType]
+=== Simple Types
 
 (((simple type)))
 A simple type is a nominal type with no type arguments. Some
-simple types are pre-defined, <<predefinedSimpleTypes>> gives a table of
+simple types are pre-defined, <<definedSimpleTypes>> gives a table of
 such types.
 
 [#definedSimpleTypes]
@@ -453,18 +452,21 @@ such types.
 `bigint`:: type of arbitrary precision integer values
 `string`:: type of string values
 
+[#parameterizedType]
 === Parameterized Types
 
 (((parameterized types)))
 A parameterized type expression consists of a
-<<TypeConstructor>> applied to one of more <<Type>> arguments. For
+type constructor applied to one of more <<type>> arguments. For
 example, the standard `cons` type constructor has one type
 argument -- the type of elements of the `cons`.
 
-A parameterized type has a _type arity_ -- the number of type
-arguments it expects. This is defined when the type itself is
-defined. It is an error to write a type expression involving an
-incorrect number of type arguments.
+[#typeConstructor]
+A type constructor is a function over types. It is a mapping
+from types to types.  Type constructors have a _type arity_ -- the number of
+type arguments it expects. This is defined when the type itself is defined. It
+is an error to write a type expression involving an incorrect number of type
+arguments.
 
 Parameterized types may be defined using a <<typeDefinition>>
 statement.
@@ -490,7 +492,7 @@ c[integer]
 denotes a type _something of `integer`_.
 
 A subsequent constraint on `c` may cause it to be bound to the
-<<TypeConstructor>> `cons` (say), in which case the type
+<<typeConstructor>> `cons` (say), in which case the type
 expression becomes ground to the parameterized type expression
 `cons[integer]`.
 
@@ -498,7 +500,7 @@ Such type expressions are of most use in certain forms of
 <<contract>> where the contract is about a certain form of
 parameterized type.
 
-=== Face Type
+=== Record Type
 [#typeInterface]
 
 Nominal types are associated with a <<faceType>> that denotes
@@ -506,7 +508,7 @@ the _interface_ to the type.
 
 This interface contains all the fields that are defined in any of the
 <<RecordConstructor>>s that are part of the
-<<StructureTypeDefinition>> that defines the <<NominalType>>.
+<<StructureTypeDefinition>> that defines the <<nominalType>>.
 
 For example, given the type definition:
 [source,star]
@@ -524,7 +526,7 @@ the interface to `person` is determined to be the <<faceType>>:
 }
 ----
 
-The interface of a <<NominalType>> is formed from the union of all
+The interface of a <<nominalType>> is formed from the union of all
 the fields defined in the <<RecordConstructor>>s.
 
 This is one reason why a given field occurring in multiple
@@ -630,7 +632,7 @@ singleton tuple.footnote:[This complexity arises because parentheses
 have a dual role: to group expressions and as a notation for tuples.]
 
 [#faceType]
-=== Record Types
+=== Face Types
 
 (((type,record type)))
 (((record type)))
@@ -639,7 +641,7 @@ association of fields and types. A record type is written as a
 sequence of type annotations enclosed in braces.
 
 [#recordTypeFig]
-.Record Type
+.Face Type
 [source,star]
 ----
 faceType --> ["{"], annotation*, ["}"].
@@ -725,7 +727,7 @@ all x,e ~~ (x) => integer throws e
 This is a generic function type that takes an `x` and either
 returns an `integer` or throws `e`.
 
-Exceptions and exception handling are further described in <<try-catch>>.
+Exceptions and exception handling are further described in <<tryCatch>>.
 
 == Constructor Type
 
@@ -1149,7 +1151,7 @@ all t ~~ comp[t], arith[t] |: (t)=>t
 
 denotes a generic unary function type for any type that implements
 both the `comp` and the `arith` contracts (see
-<<comparisonPredicates>> and <<arithmeticContract>>).
+<<comparisonPredicates>> and <<arithContract>>).
 
 [#typeConstraint]
 === Type Constraints
@@ -1215,12 +1217,10 @@ unification will fail.
 [#contractConstraint]
 === Contract Constraints
 
-(((type,constraints!contract)))
-(((contract constraint)))
-A <<contract>> is a requirement on a <<Type>> -- or
-tuple of <<Type>>s -- that whatever type it is, that there must
-exist an `implementation` of the contract for the
-<<type>>.
+(((type,constraints!contract))) (((contract constraint)))
+A <<contract>> is a requirement on a <<type>> -- or tuple of types -- that
+whatever type it is, that there must exist an `implementation` of the contract
+for the type.
 
 For example, the type constraint expression in the constrained type:
 [source,star]
@@ -1371,57 +1371,51 @@ inference rule_. Type inference rules are rules for relating
 expressions and statements in the language to the types associated
 with that statement. For example, the rule:
 
-@display
-@typeprod{E,@var{El},@var{T}}
-@result{}
-@typeprod{E,`cons(@var{El`,.nil)},`cons[@var{T`]}}
-@end display
-says that if the expression @var{El}
-has type @var{T}, then the expression
-[source,star]
+[source,subs="quotes"]
 ----
-cons(_El@sub{1_},.nil)
+E ⊢ E~1~ : T ⇒ E ⊢ .cons(E~1~,.nil) : cons[T]
 ----
-has type `cons[@var{T`]}. This is the formal way of stating that
+says that if the expression `E~1~`
+has type `T`, then the expression
+[source,star,subs="quotes"]
+----
+.cons(_E~1~.nil)
+----
+has type `cons[T]`. This is the formal way of stating that
 all elements of a `cons` list must have the same type.
 
 The general form of a type inference rule that is determining a type
 (sometimes called a type judgment) is:
-@display
-@var{Condition}
-@result{}
-@typeprod{E,@var{X},@var{T}}
-@end display
-@quotation
-If _Condition_ is satisfied, then we can infer from the context
-@var{E} that @var{X} has type @var{T}
-@end quotation
-where the symbol @turnstile{} can be read as _type
-implication_. In general, the type of an expression depends on the
-context that it is found.
+[source,subs="quotes"]
+----
+_Condition_ ⇒ E ⊢ X : T
+----
+Which states that if _Condition_ is satisfied, then we can infer from the context
+`E` that `X` has type `T`.
+
+where the symbol ⊢ can be read as _type implication_ and ⇒ can be read as
+`implies`. In general, the type of an expression depends on the context that it
+is found.
 
 The _environment_ part of the type judgement consists of a sequence of
 type bindings, type equalities and type constraints:
-@itemize
-@item
-A type binding consists of a type annotation:
-[source,star]
+
+* A type binding consists of a type annotation:
+[source,subs="quotes"]
 ----
-@var{var} : @var{type}
+var : type
 ----
-@item
-A type alias consists of a rule that maps a type expression to another type:
-[source,star]
+* A type alias consists of a rule that maps a type expression to another type:
+[source,subs="quotes"]
 ----
-@var{type} `~>` @var{type}
+type ~> type
 ----
-@item
-A type constraint consists of an instance of a <<TypeConstraint>>s:
-[source,star]
+* A type constraint consists of an instance of a <<typeConstraint>>s:
+[source,subs="quotes"]
 ----
-@var{Constraint}
+Constraint
 ----
-@end itemize
+
 The environment's primary purpose is to establish the context of a
 type judgement.
 

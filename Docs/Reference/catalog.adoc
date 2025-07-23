@@ -84,7 +84,7 @@ public catalog ::= catalog{
 }
 ----
 
-The elements of the `catalog` <<recordConstructor>> are:
+The elements of the `catalog` <<recordLiteral>> are:
 
 [cols="1,5"]
 |===

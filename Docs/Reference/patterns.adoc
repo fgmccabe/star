@@ -51,7 +51,7 @@ is equivalent to the <<guardedPattern>>:
 ----
 
 The `==` predicate is defined in the standard `equality`
-contract (see <<EqualityContract>>); and therefore, the call and
+contract (see <<equalityContract>>); and therefore, the call and
 the pattern may not be valid if `equality` is not implemented for
 the type of `X`.
 

@@ -7,7 +7,7 @@ operations and constraints on other identified values. Typically, the
 result of a query is a list but it may be of any <<type>> --
 provided that it implements the `build` contract.
 
-There are several flavors of query: comprehensions (see <<comprehensions>>)
+There are several flavors of query: comprehensions (see <<comprehension>>)
 which compute collections of values; iota expressions (see <<iotaQuery>>) which
 compute a single value, <<foldQuery>> which apply a function over the results
 of a query and test queries (see <<testQuery>>) which check for the existence of
