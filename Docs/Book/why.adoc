@@ -50,6 +50,42 @@ advantages. Furthermore, contrary to many programmers' expectations, a
 modern type system is quite capable of dealing statically with
 scenarios that require dynamic programming in languages like Java.
 
+=== If you are already a Python programmer
+
+The biggest difference between a language like Star and Python is the strict
+type system. All Star programs are strictly type checked. In addition, there is
+no escape from the type system: you cannot pretend that a variable has the right
+type: it either does or it doesnt.
+
+That said, this could be viewed as an advantage to the serious Python
+programmer: all those type errors that you have to run your Python program to
+find out will be discovered by the compiler. Indeed, it is quite common that,
+once Star programs pass the compiler's type checking system, they 'just
+work™'.footnote:[Star is not speical here, it is true of many programming
+languages with similarly strict type systems.]
+
+Some of the reasons that proponents of dynamically typed languages quote as
+benefits are conciseness (no need to tell the compiler what the programmer
+already knows) and flexibility (the programmer can do what they want, without
+persuading the type system that they know what they are doing).
+
+These justifications used to have some merit -- and still do wrt languages like
+Java. However, modern type systems are quite powerful and enable the programmer
+to express quite subtle requirements. Star's type system is based on the concept
+of _constrained types_; and is able to express programming paradigms such as
+having records with generic functions in them, or to express the idea of a
+function that throws an exception, but the type of the exception is itself
+dependent on other types.
+
+In addition, Star uses _type inference_ to avoid the need to explicit type
+annotations. Type inference is able to eliminate nearly all the boilerplate
+needed to declare variables and functions. Star does require some type
+declarations; but these are constrained to areas that legitimately merit
+documentation: for example, when a function is intended to be universally
+generic, then you need to say that explicitly. Similarly, when installing a
+generic function in a data structure -- or passing it as an argument to a
+function -- then, there too, the programmer needs to be explicit.
+
 === If you are already a C++ programmer
 
 Moving to a language like Star is a radically different programming
@@ -269,7 +305,7 @@ sequence notation is grounded in two contracts: `stream` and `sequence`. This
 allows the sequence notation to be used on a wide variety of types of
 collections.
 
-=== About this book
+== About this book
 
 This book acts as an introduction to the language and to its use. The
 basic features of the language are introduced; however, this is not a
@@ -310,11 +346,7 @@ typewriter-like font, often broken out in a display form:
 [source, star]
 ----
 P:integer;
-...
 ----
-
-We use the ... ellipsis to explicitly indicate a fragment of a
-program that may not be syntactically correct as it stands.
 
 NOTE: As we noted above, Star is a rich language with many features. As a
 result, some parts of the text may require more careful reading, or
@@ -332,17 +364,16 @@ omissions.
 
 Of particular significance, I would like to thank Michael Sperber for
 our many discussions on the finer topics of language design; and for
-his not insignificant contributions to the implementation itself.
+his not insignificant contributions to the early implementation effort.
 
-I would also like to thank my old colleagues at Starview inc., in
-particular Steve Baunach and Bob Riemenschneider who were the world's
-first Star programmers! In addition, I would like to thank Michael
-Sperber, David Frese and Andreas Bernauer who helped with crucial
-parts of the implementation of the concurrency features. I would also
-like to thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack
-Mackenzie, and Kevin Twidle for their help and advice. I would like to
-acknowledge the support of Thomas Sulzbacher who originated the
-project and Jerry Meerkatz for keeping the faith.
+I would also like to thank my old colleagues at Starview inc., in particular
+Steve Baunach and Bob Riemenschneider who were the world's first Star
+programmers! In addition, I would like to thank David Frese and Andreas Bernauer
+who helped with crucial parts of the implementation of the early versions of the
+concurrency. I would also like to thank Keith Clark, Kevin Cory, Prasenjit Dey,
+Chris Gray, Mack Mackenzie, and Kevin Twidle for their help and advice. I would
+like to acknowledge the support of Thomas Sulzbacher who originated the project
+and Jerry Meerkatz for keeping the faith.
 
 Last, but definitely not least, I would like to acknowledge the love
 and support of my family; without whom none of this makes sense.
