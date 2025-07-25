@@ -1,4 +1,4 @@
-== A tour of Star
+= A tour of Star
 
 Our first task is to introduce you to the Star language. It is
 difficult to find the right order in which to present a programming
@@ -14,10 +14,9 @@ reasonably workable subset of the complete language.
 Since a layered approach means that any given description may be
 incomplete or slightly inaccurate, there is a temptation to use
 footnote annotations which declare '`but there is
-alsofootnote:[Please forgive these pedantic notes when you see them.]
-...`'.
+also...`'.footnote:[Please forgive these pedantic notes when you see them.]
 
-=== A first Star program
+== A first Star program
 
 It is traditional to introduce a new programming language with
 something like the hello world example. Which we will do in a
@@ -41,36 +40,37 @@ smaller modules which come together to make the application. This
 program is small, but already introduces many of the key elements of
 the language.
 
-In this module, we see the name of the module --
-`sample.factorial` -- an import statement and a function
-definition -- of the `fact` function.
+In this program, we see the name of the package -- `sample.factorial` -- an
+`import` statement and a function definition -- of the `fact` function. By
+marking `fact` as `public` we make the function available to other packages when
+they import this one.
 
-==== Compiling Factorial
+=== Compiling Factorial
 
-Source code can be in any form of textual container. There is, for
+Star source code can be in any form of textual container. There is, for
 example, no specific requirement that this `sample.factorial`
 package be in a file called `factorial.star`; although that may
-be good advice. Instead, the compiler relies on a @emph{catalog based}
+be good advice. Instead, the compiler relies on a _catalog based_
 system that maps package names to text entities -- specifically
 resources with a URI. The catalog system also serves as an anchor
 point in the version management of packages. We will cover this, and
-the related repository system for generated artifacts, in @refer{ocean}.
+the related repository system for generated artifacts, in <<ocean>>.
 
 In this case, we can create -- alongside the `factorial.star`
 file -- the `catalog` file which is a JSON-style file containing:
 
-[source, star]
+[source, star,subs="quotes"]
 ----
 {
   "content" : {
     "sample.factorial" : "factorial.star"
    },
-  "default" : "@emph{path to installation}"
+  "default" : "_path to installation_"
 }
 ----
 
-The Star compiler is called `sc`, and is invoked @emph{using
-the package name} of the file we want to compile:
+The Star compiler is called `sc`, and is invoked using
+the package name of the file we want to compile:
 
 [source, star]
 ----
@@ -90,9 +90,11 @@ your home directory.footnote:[The search terminates at the home directory to
 avoid trying to access areas of the file system you do not own.]
 
 As we noted above, `sample.factorial` is not a complete
-executable package. To use it we need to import it into one that has a
+executable program. To use it we need to import it into one that has a
 `main` function defined, say:
 
+[#sampleFactorial]
+.A Factorial `main` Program
 [source, star]
 ----
 sample.main{
@@ -119,9 +121,11 @@ $
 If you are used to other programming languages, you might have spotted something
 a little unusual here: the type signature for `main` denotes a function that
 accepts an `integer` and returns an empty tuple.  We will explore actions
-further in @ref{Actions}; but we should point something else out here: `main`
+further in <<Actions>>; but we should point something else out here: `main`
 accepts an `integer` whereas the main program in most other programming
-languages looks like an array of string values.
+languages looks like an array of string values.footnote:[It is still possible to
+access all the command line arguments, like a traditional command line tool --
+just define the function `_main` instead.]
 
 Star takes the signature for `main` and makes sure that the command line
 arguments can be coerced to the appropriate types. If the actual argument is not
@@ -134,12 +138,7 @@ $ star sample.main fred
 cannot coerce "fred" to integer
 ----
 
-NOTE: It is still possible to access all the command line arguments, like a
-traditional command line tool -- just define the function `_main`
-instead.
-
-
-=== Texture
+== Texture
 
 All programming languages can be said to have a particular
 _style_ or _texture_. This is often so strong that it is
@@ -168,7 +167,7 @@ public factorial: all x ~~ arith[x] |: (x)=>x.
 which introduces a function `factorial` that will work on any
 type that has an implementation for `arith`metic.
 
-==== Lexical style
+=== Lexical style
 
 It can be difficult for language designers to decide when to use a
 keyword and when to use a special operator. We use special operators
@@ -204,7 +203,7 @@ familiar to you: it is the almost universally used grammar that
 underpins arithmetic expressions. We take the OPG and stretch its use
 to include the whole language.
 
-==== Types
+=== Types
 Star is a strongly, statically typed language. This means that all
 variables and expressions have a single type; and that all type
 constraints are enforceable at compile-time. This is a fairly strong
@@ -220,33 +219,27 @@ fact : (integer)=>integer.
 is a statement that declares that the type of `fact` is a
 function of one `integer` argument and which returns an `integer` result.
 
-Programmers are encouraged, but not required to, attach explicit type
-annotations to most programs. The precise rule is a little subtle:
-variables whose type are not quantified _may_ have their type
-automatically inferred. For top-level functions, that annotation is
-often contiguous in the text; but in other cases that may not be the
-case.
+Programmers are encouraged, but not generally required to, attach explicit type
+annotations to most programs.:footnote:[The precise rule is a little subtle:
+variables whose type are not quantified _may_ have their type automatically
+inferred.] For top-level functions, that annotation is often contiguous in the
+text; but in other cases that may not be the case.
 
 Other variables -- like the variable `N` which is part of the
 second recursive equation -- do not need type annotations. This is
-possible because underlying the type system is a powerful _type
-inference_ system that can actually infer most types.
+possible because underlying the type system uses _type
+inference_ to determine most types.
 
 The result is that a lot of the clutter that can pervade a strongly
 typed language is just not necessary; but the use of explicit type
 annotations for top-level definitions provides useful structure and
 documentation.
 
-Note that the requirement is that quantified _definitions_ have
-explicit type annotations. We don’t distinguish functions in any way
-here. In particular, functions which are _not_ generic -- for
-example lambda functions -- do not need type annotations.
+=== Rules
 
-==== Rules
-
-Most programs are defined using _rules_. In this case, `fact` is defined using
-_equations_. The equations that make up a function definition (or any program
-definition for that matter) are statements that are written in order.
+Most Star entities are defined using _rules_. In this case, `fact` is defined
+using _equations_. The equations that make up a function definition are rules
+about mapping inputs to outputs.
 
 Rule-based programs support a _case driven_ approach to programming: a program
 is defined in terms of the different cases or situations that apply. Using rules
@@ -258,9 +251,9 @@ like this is very helpful in supporting large-scale issues such as code
 annotations, versioning and life-cycle management.
 
 There are various kinds of rules, including function definitions, case rules,
-variable definitions and type definitions.
+grammar rules, variable definitions and type definitions.
 
-==== Patterns
+=== Patterns
 
 Patterns are ubiquitous in Star: they form the basis of many rules: including,
 most importantly, to define equations. In fact, _all_ variables are introduced
@@ -308,66 +301,7 @@ no cases for `fact` for negative numbers. This means that the
 function is _partial_; and if called with a negative number will
 result in a run-time trap.
 
-
-==== Packages
-
-The normal compilation unit is a _package_. The `sample.factorial`
-package contains just the function `fact`, but packages can contain
-functions, type definitions, import statements and many other elements
-that we will encounter.
-
-Package names and references to packages do not refer to file names;
-package names are symbolic -- in general a package name consists of a
-sequence of identifiers separated by periods.
-
-The _catalog_ and _repository_ system explored in Chapter 7
-that supports the language ensures a proper connection between files
-and packages.
-
-////
-==== Worksheets
-
-The other main kind of compilation unit is the
-_worksheet_. Worksheets are a modern replacement for the
-REPLfootnote:[Read-Eval-Print-Loop] that you see in many functional
-programming languages.
-
-We say a _modern_ replacement for REPLs because worksheets fit
-much better in the typical environment of an IDE.
-
-A worksheet can be used to implement the infamous hello world example
-in just a few lines:
-
-[source, star]
-----
-worksheet{
-  show "hello world".
-}
-----
-
-We can also use a worksheet to display the results of using and
-testing our fact function:
-
-[source, star]
-----
-worksheet{
-  import sample.factorial.
-  show "fact(10) is $(fact(10))".
-  assert fact(5) == 120.
-}
-----
-
-Worksheets are like a combination of a module and the transcript of a
-session. In an IDE, the ideal mode of displaying a worksheet is via an
-interactive editor that responds to edit changes by recomputing the
-transcript and displaying the results in-line.
-
-The key features of a worksheet that we will use are the ability to
-import packages, define elements, show the results of computations and
-define assertions.
-////
-
-==== String interpolation
+=== String interpolation
 
 The expression
 [source, star]
@@ -393,7 +327,6 @@ The most basic question to ask about types is
 [quote]
 What is a type?
 
-
 There is some surprising variability to the answer to this question;
 for example, in many OO languages, types are conflated with
 classes. Star types are terms -- i.e., names -- that denote
@@ -415,43 +348,28 @@ We distinguish two basic styles of type: so-called _structural_ or transparent
 types and _nominal_ or opaque types. A structural type term echoes the values it
 models, whereas a nominal type typically does not.
 
-For example, the standard type `integer` is nominal --- its name gives no hint
-as to the representation, structure or kinds of values that are modeled by
-integer.footnote:[I.e., everything you thought you knew about integers may or
-may not apply to the values denoted by integer.] However, a nominal type often
-_names_ some actual entity being modeled -- in this case integer values. Two
-nominal types which have different names always denote distinct values, whereas
-two structural types that look the same are actually identical.
-
 ==== Nominal types
 
-A nominal type is normally defined using an _algebraic type
-definition_. This both introduces a type and defines all the legal
-values that belong to the type. For example, we might introduce a
-`Person` type with the type definition:
+A nominal type is normally defined using a _type definition_. This both
+introduces a type and defines all the legal values that belong to the type. For
+example, we might introduce a `Person` type with the type definition:
 
 [source, star]
 ----
-Person ::= .noOne
-         | someOne{
+Person ::= someOne{
              name : string.
              dob : date.
            }
 ----
 
-This statement tells us that there are two kinds of `Person`: a `someOne` who
-has a `name` and date of birth (`dob`) associated with them; and a distinguished
-individual we identify as `.noOne`. The no-one individual _does not_ have a name
-or date of birth.
-
-NOTE: The `.noOne` symbol has a period in front of it. This
-is used to distinguish enumerated symbols from other variables.
+This statement tells us that a `Person`: is `someOne` who has a `name` and date
+of birth (`dob`) associated with them.
 
 TIP: Notice how the type annotation statement we saw for declaring the type
 of `fact` is also used for defining the types of fields in the
 `someOne` record.
 
-We can _make_ a `Person` value with a labeled record expression:
+We can _make_ a `Person` value with a record expression:
 
 [source, star]
 ----
@@ -461,15 +379,32 @@ S = someOne{
 }
 ----
 
-The equality symbol is used to introduce a new single-assignment variable. In
-this case the variable `S` is defined to be a `someOne` record.
-
 Recall that variables do not always require an explicit type annotation. In this
 case we can infer that `S` is a `Person` (because `someOne` marks it
 so). Furthermore, we do not need to explicitly give types to the `name` and
 `dob` fields because their type is constrained by the type declaration for
 `Person`.
 
+A second form of type definition allows alternative forms of a value. For
+example, the definition for `tree` in:
+
+[source,star]
+----
+tree ::= .empty
+       | .node(tree,string,tree).
+----
+declares that there are two forms of `tree` values:
+
+* The empty tree -- denoted by `.empty`
+* The non-empty tree -- denoted by `.node` which has three elements: two
+  sub-`tree` values and a `string` label.
+
+NOTE: The `.empty` symbol has a period in front of it. This
+is used to distinguish enumerated symbols from other variables.
+
+This kind of type definition is called an _algebraic type definition_; whereas
+the type definition for `Person` above is called a _structure type definition_
+-- because it defines a record structure.
 
 ==== Reference Type
 
@@ -493,7 +428,7 @@ modifiable -- although the employee's name is still fixed.
 Only fields that have a `ref` type are modifiable in records. This is even true
 when a record is assigned to a reassignable variable.
 
-A reassignable variable is declared using the `:=` operator:
+A reassignable variable is defined using the `:=` operator:
 
 [source, star]
 ----
@@ -521,10 +456,11 @@ We can also modify the `dept` field of `N`:
 N.dept := "new department".
 ----
 However, we cannot modify the `name` field -- because it is not
-re-assignable within the `Person` type.
+re-assignable within the `employee` type.
 
+////
 [NOTE]
-====
+****
 The `name` field is not re-assignable; however, it is _replaceable_. We can construct a new record from the existing value of `N` using the _field replacement operator_:
 
 [source, star]
@@ -535,7 +471,8 @@ N := N.name="new name"
 This will replace `N` with a new record whose fields come from the previous
 value, but with the `name` field replaced with `"new name"`. The '`old`' value
 of `N` will still exist -- if there are any other references to it.
-====
+****
+////
 
 Notice that the re-assignability of variables and fields does not
 inherit: each field or variable is separate. So, for example, if we
@@ -567,7 +504,7 @@ operator. For example:
 D.dept!
 ----
 
-will retrieve the actual department @var{D} is assigned to. The expression
+will retrieve the actual department _D_ is assigned to. The expression
 `D.dept` actually means something different -- it denotes the _container_ for
 the department.
 
@@ -590,8 +527,8 @@ are also tuples; for example:
 (3,"fred",employee{name="peter". dept:="sales"})
 ----
 
-There are several forms of structural type, the tuple type is one of
-them; others include _record types_ and _function types_.
+There are several forms of structural type; others include _record types_ and
+_function types_.
 
 We shall see more of these as we introduce the rest of the language. However, it
 is worth pausing to ask the question __Why do we have both structural and
@@ -610,9 +547,10 @@ employees. On the other hand, the function type in the annotation:
 f : (integer)=>string
 ----
 
-clearly indicates what one can use `f` for, but it does not
-indicate anything about why you would want to (except, perhaps, to
-convert an `integer` to a `string`).
+clearly indicates what one can use `f` for, but it does not indicate anything
+about why you would want to. For example, this `f` might be used to convert an
+`integer` to a `string`; it could equally be used to look up an error message
+from an `integer` code.
 
 In summary, use nominal types when you are modeling real world
 entities and structural types when the focus is on operations and
@@ -621,9 +559,9 @@ you will use both in some combination.
 
 ==== Optional values
 
-Notice that we identified a special case of `.noOne` in our
-`Person` type. One reason for including this in a type is to be
-able to cope with non-existent people. However, this approach is not
+Notice that we identified a special case of `.empty` in our
+`tree` type. One reason for including this in a type is to be
+able to cope with non-existent tree. However, this approach is not
 always the most effective one when modeling situations where a
 variable or field may not have a value.
 
@@ -634,12 +572,11 @@ a variable to be null but the compiler must discover those for itself;
 and there is often a consequent tendency in defensive programming to
 test for null.
 
-There is no direct equivalent of a global _null_ value. However,
-the standard `option` type allows the equivalent of selective
-nullability. Any variable that might not have a proper value can be
-marked with the option type rather than the underlying type. And you
-can use `.none` in those cases to indicate the equivalent of no
-value.
+There is no direct equivalent of a global _null_ value in Star. However, the
+standard `option` type allows the equivalent of selective nullability. Any
+variable that might not have a proper value can be marked with the option type
+rather than the underlying type. And you can use `.none` in those cases to
+indicate the equivalent of no value.
 
 So, for example, suppose that a `Person` might have a
 `spouse` --- who is also a `Person` --- but is not
@@ -654,9 +591,8 @@ Person ::= someOne{
 }
 ----
 
-Here we have done two things: we have eliminated the `.noOne` case
-for `Person` and we have marked the `spouse` as being both
-read-write and `option`al.
+Here we have given `Person` a `spouse` which is marked as being both read-write
+and ``option``al.
 
 Someone with no spouse would be written:
 
@@ -676,7 +612,7 @@ whereas someone who has a spouse would be written:
 someOne{
   name = "Lisa".
   dob = lastYear.
-  spouse := some(johnny)
+  spouse := .some(johnny)
 }
 ----
 
@@ -685,20 +621,26 @@ an assignment:
 
 [source, star]
 ----
-freddy.spouse := some(lisa)
+freddy.spouse := .some(lisa)
 
-lisa.spouse := some(freddy)
+lisa.spouse := .some(freddy)
 ----
-although such circular structures should be avoided where possible.
 
-==== The flavors of equality
+[NOTE]: We used the cross assignment between the `lisa` and `freddy` variables
+to create a circular structure. Circular structures in Star can only be created
+using updateable variables.footnote:[There are other ways to create circular
+structures but they are significantly more obscure.]
+
+=== The flavors of equality
 
 Equality in programming languages is typically a very subtle
 topic. The issues can range from the approximate nature of floating
 point numbers, the difference between integers and long values and the
 multiple potential concepts of equality for objects.
 
-Equality is always between values of the _same type_ and it is
+==== Type safe equality
+
+In Star, equality is always between values of the _same type_ and it is
 always _semantic_. So, for example, an equality condition such
 as:
 
@@ -706,6 +648,7 @@ as:
 ----
 3==3.0
 ----
+
 is not considered type safe --- because `3` is an `integer`
 literal and `3.0` is a `float` literal. If you need to
 compare an integer and a floating point number for equality you will
@@ -727,10 +670,12 @@ value raises the possibility of spurious accuracy as a result of losing
 information. The intended effect of the coercion is to make explicit the nature
 of equality being relied on.
 
+==== Semantic equality
+
 The second principle is that equality is semantic. What that means is that the
 `==` symbol is the name of a `boolean`-valued function. The precise type of `==`
 is quite interesting, we shall, however, leave it to later when we have covered
-some of the core type features around contracts.
+some of the other type features, especially contracts.
 
 In effect, equality is _not_ considered to be privileged; and it is definable by
 the programmer --- albeit with some important useful default implementations.
@@ -749,7 +694,7 @@ for(Integer ix:L)
   total += ix;
 ----
 
-However, this code is also full of pitfalls. For one thing we have a
+However, this code is also full of issues. For one thing we have a
 lot of extra detail in this code that represents additional
 commitments beyond those we might be comfortable with:
 
@@ -771,12 +716,11 @@ total = valof{
 ----
 
 The `valof`/`valis` combination is a neat way of segueing from the '`world
-of expressions`' into the '`world of actions'.
+of expressions`' into the '`world of actions'. (See <<Actions>> for a little more detail.)
 
 Some special features of this notation may not be familiar:
 
-* A reassignable variable is declared in an action sequence using the form:
-+
+* We declared the `tot` variable as a reassignable variable using the action:
 --
 [source, star]
 ----
@@ -800,11 +744,12 @@ optional: they denote a sequence of actions.
 
 * The action `for ix in L do ...` is an _iterative_ action
 that performs the action for every element of `L` that matches
-the pattern `ix`. I.e., it is entirely possible to use a more
+the pattern `ix`.
++
+I.e., it is entirely possible to use a more
 complex pattern here -- which would have the effect of filtering the
 source. For example, we could total up positive numbers in `L`
 using:
-
 +
 [source, star]
 ----
@@ -815,13 +760,12 @@ for (ix where ix>0) in L do
 * The value of the `action` expression is denoted by the action
 `valis tot`. This may appear anywhere in an action sequence --
 with the proviso that it always denotes the end of the action: no
-actions may logically follow the `valis`.
+actions are performed after executing `valis`.
 
-+
 This program is essentially equivalent to the Java loop; although
 there are some subtleties about the nature of valof/valis that go
 beyond Java. As a result, it has similar architectural issues.
-+
+
 While one loop is not going to hurt anyone; real code in languages
 like Java typically has many such loops. Especially when nesting loops
 to any depth, such code quickly becomes impossible to follow.
@@ -835,22 +779,39 @@ to use a function. For example, we can write:
 ----
 let{
   total:(cons[integer])=>integer.
-  total(nil) => 0.
-  total(cons(E,L)) => total(L)+E
+  total(.nil) => 0.
+  total(.cons(E,L)) => total(L)+E
 } in total(L)
 ----
 while short, this code too has some of the same drawbacks as the for iteration.
 
 The type expression `cons[integer]` refers to the standard type
-of ``cons lists`'. Similarly, `nil` refers to the empty list and
-`cons(E,L)` refers to the list obtained by prepending ``E`` to
-the list ``L``. We will explore this in more detail in
-@pxref{Functional Programming}.
+of ``cons lists`. Similarly, `nil` refers to the empty list and
+`cons(E,L)` refers to the list obtained by prepending ``E` to
+the list ``L`. We will explore this in more detail in
+<<Functional Programming>>.
 
 Even if it is more declarative, there is still a lot of extra detail
 and architectural commitments here --- like the commitment to
-`cons` lists and the commitment to `integer`s. These result in a
+`cons` lists and the commitment to ``integer``s. These result in a
 function that is needlessly restricted.
+
+We can relax the commitment to ``integer``s by using the `arith` contract
+constraint:
+
+[source, star]
+----
+let{
+  total:all i ~~ arith[i] |: (cons[i])=>i.
+  total(.nil) => zero.
+  total(.cons(E,L)) => total(L)+E
+} in total(L)
+----
+
+This replaces the specific dependency on integer arithmetic with a more general
+constraint -- that the type of the collection has ``arith``metic defined for
+it.footnote:[`zero` is the type independent way of denoting the zero value of an
+``arith``metic type.]
 
 Like other functional languages, Star has a range of higher-order
 operators that may come to the rescue. For example, we can avoid the
@@ -858,15 +819,15 @@ explicit recursion altogether by using `leftFold`:
 
 [source, star]
 ----
-total = leftFold((+),0,L)
+total = leftFold((+),zero,L)
 ----
 where `leftFold` means
 
-[quote]
-----
+[aside]
+****
 apply a left associative accumulating function to the elements of the
 data, assuming that the applied operator is left associative.
-----
+****
 
 This expression is clearly both more concise and higher-level than
 either the explicit loop or the explicit recursion; and it begins to
@@ -879,7 +840,7 @@ the problem at a more holistic level. This is one of the hallmarks of
 functional programming -- it is possible to eliminate many instances
 of explicit loops and recursions.
 
-==== A totalizer query
+=== A totalizer query
 
 While concise, expressions involving much use of `leftFold` (and
 the analogous `rightFold`) can be difficult to follow. An even
@@ -887,7 +848,7 @@ clearer way of adding up numbers is to use a _query expression_:
 
 [source, star]
 ----
-total = { (+) <* X <* 0 | X in L}
+total = { (+) <* X <* zero | X in L}
 ----
 This query expression frees us from most of the commitments we endured
 before: it can add up the elements of any kind of collection --- not
@@ -898,23 +859,19 @@ a parallel algorithm for the computation should it be more optimal.
 
 The query expression is also very close to the natural specification:
 
-@quotation
+[aside]
 Add up the numbers in L
-@end quotation
 
 Query expressions --- which are similar to but also more expressive
 than LINQ --- can be used to encapsulate a wide range of such
 computations.
 
-@quotation
 Of course, SQL programmers have long had access to this kind of
 conciseness and declarative expressiveness. However, SQL is
 constrained by the fact that it is intended to represent queries and
 actions over a very particular form of data --- the relational table.
-@end quotation
 
-@node The homunculus in the machine
-==== The homunculus in the machine
+=== The homunculus in the machine
 
 Programming is often taught in terms of constructing sequences of
 steps that must be followed. What does that imply for the programmer?
@@ -933,7 +890,6 @@ abstractions significantly reduces the programmer’s burden ---
 precisely by being able to take a more declarative approach to
 programming.
 
-@node Contracts and constrained types
 == Contracts and constrained types
 
 The concepts of interface and contract are foundational in modern
@@ -961,10 +917,9 @@ contract all t ~~ four[t] ::= {
 }
 ----
 
-This contract defines --- but does not implement --- the four
-calculator functions `plus`, `sub`, `mul` and
-`div`. All these functions have a similar type, the type for
-`plus` is:
+This contract defines --- but does not implement --- the four calculator
+functions `plus`, `sub`, `mul` and `div`. All these functions have a similar
+type, the type for `plus` is:
 
 [source, star]
 ----
@@ -997,16 +952,13 @@ I.e., it inherits the same constraint as the function `plus`
 has. There are several kinds of type constraint; but the
 _contract constraint_ is the most significant of them.
 
-@quotation
 Notice that we have to give an explicit type annotation for
 `double`. The reason is that we want to have it have a quantified
 type.footnote:[More accurately, there is a restriction/design choice
 that type inference can be used to infer _monomorphic_ types but
 not _polymorphic_ types.]
-@end quotation
 
-@node Implementing contracts
-==== Implementing contracts
+=== Implementing contracts
 
 Defining a contract is a big step, but it is not generally sufficient
 to produce working programs. If we had a package containing
@@ -1098,8 +1050,7 @@ numeric types using a common set of operators: there are standard
 implementations of arithmetic for integers, and floating point
 numbers.
 
-@node Coercion not casting
-==== Coercion, not casting
+=== Coercion, not casting
 
 Star does not support type casting, as found in languages like Java
 and C/C++. This is for many reasons, not the least of which is safety
@@ -1184,66 +1135,53 @@ itself: for example, parsing JSON can be viewed as coercion from
 string values to `json` values. Thus the interface to parsers can
 be standard across all types and parsers.
 
-@node Actions
 == Actions
 
 Star is primarily intended to be a functional programming
 language. The preferred phrase is _functional first_. However,
 even in functional programming, sequence can be important.
 
-The way that we handle sequential computation is a little
-idiosynctratic: actions are entities that are created separately from
-being performed. This is based on the standard `execution`
-contractfootnote:[Which is actually a richer version of the
-`monad] contract.`
+An action is entered into using the `valof` expression. The value of an action
+is determined by performing a `valis` action within the sequence. The type of
+the action is determined by the type of the expression in the `valis` action,
 
-The basic concept is that one uses expressions to build up an action
-entity and then evaluates that entity -- and often also extract a
-returned value from the computation.
-
-Actions can be constructed from primitive elements, but the normal
-method is to use the `do` notation. For example, this `do`
-expression can be used to compute factorial (somewhat laboriously):
+We actually saw an example of a `valof` expression earlier (see
+<<sampleFactorial>>). Of course, action sequences usually also involve other
+forms of actions, such as `for` loops, assignments and so on. For example, we
+can implement an iterative style of `factorial` with:
 
 [source, star]
 ----
-AA = do{
-    Cx := 1;
-    Fx := 1;
-    while Cx!=<Lx do {
-      Fx := Fx! * Cx!;
-      Cx := Cx! + 1
-    @};
-    valis Fx!
-  @}
+public iterFact:(integer)=>integer.
+iterFact(N) => valof{
+  Fx := 1;
+  for Ix in 0..< N do{
+    Fx := Fx!*Ix
+  };
+  valis Fx!
+}
 ----
 
-Not all `do` expressions will involve using re-assignable
+Not all `valof` expressions will involve using re-assignable
 variables, but nearly all use of re-assignable variables is in the
-context of `do` expressions.
+context of actions.
 
-It is important to note that a `do` expression does not directly
-compute its value: instead, it is an expression that _denotes_ a
-computation. So, `AA` above is not an `integer` but a
-computation that will produce an integer.
+=== Packages
 
-To run a computation and to get its value we use the `valof` operator:
+The normal compilation unit is a _package_. The `sample.factorial`
+package contains just the function `fact`, but packages can contain
+functions, type definitions, import statements and many other elements
+that we will encounter.
 
-[source, star]
-----
-FF = valof AA
-----
+Package names and references to packages do not refer to file names;
+package names are symbolic -- in general a package name consists of a
+sequence of identifiers separated by periods.
 
-There are actually several variants of computation expressions, all
-based on the same fundamental structure; two of the most important are
-the `action` expression and the `task` expression.
+The _catalog_ and _repository_ system explored in Chapter 7
+that supports the language ensures a proper connection between files
+and packages.
 
-`action` expressions are used to represent normal sequential
-computations and `task` expressions are used to represent
-concurrent computations; both of which we will explore later on in the
-book.
 
-@node There is more
 == There is more
 
 As we have noted, Star is a rich language and it would be
@@ -1251,5 +1189,5 @@ impossible to try to cover it in a short introduction. Later chapters
 will look at some of the other features such as a deeper look at
 contracts, queries & query rules, actors, concurrency, existential
 types, and extending Star with domain specific languages. The next
-chapter (@refer{Functional Programming}) starts this process by looking
+chapter (<<Functional Programming>>) starts this process by looking
 at functional programming.

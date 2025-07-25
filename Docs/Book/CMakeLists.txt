@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(Book)
 
-include(../makeinfo.cmake)
+include(../asciidoc.cmake)
 
-add_info(book intro tour func collections rules ocean arewedone)
+add_adoc(book why tour)
+
+#func collections rules ocean arewedone)

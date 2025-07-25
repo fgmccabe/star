@@ -9,7 +9,7 @@
 
 This is the reference for the Star language, version {VERSION}.  
 
-This manual offers an in-depth and complete ((description)) of the Star
+This manual offers an in-depth and complete description of the Star
 language. However, it is not a tutorial on the language, and the order
 of presentation within the manual reflects that. For a more tutorial
 introduction, the reader is referred to _Star Programming_ (by
