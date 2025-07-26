@@ -212,7 +212,6 @@ main forms of `string` literal: the double-quoted string
 expression and the triple-quoted or block-quoted `string`
 literal.
 
-The syntax of `string` literals is given in <<quotedStringFig>>.
 The simplest form of `string` literal is a sequence of characters
 enclosed in double-quotes:
 
@@ -277,8 +276,10 @@ In this example, we have a `string` interpolation expression embedded
 within another `string` interpolation expression.
 ****
 
-An <<interpolation>> expression may be followed by a <<formattingSpec>>. If
-present, then this specification is used to guide how values are formatted.
+[#formattingSpec]
+A string interpolation expression may be followed by a
+formatting specification string. If present, then this specification is used to
+guide how values are formatted.
 
 For example, the value of
 [source,star]
@@ -293,7 +294,7 @@ is the string:
 ----
 
 Detailed formatting is controlled by the `format` contract -- see
-<<formatContractProg>> -- in particular the different
+<<formatContract>> -- in particular the different
 implementations of that contract which in turn means that different
 types of expression will have type appropriate ways of specifying the
 formatting.
@@ -484,7 +485,7 @@ A record literal is a collection of values identified by name.
 
 Like positional constructor literals, the record literal must have been defined
 with a <<typeDefinition>> statement -- specifically a
-<<structureTypeDefinition>>. This also constrains the types of the expressions
+<<recordTypeDefinition>>. This also constrains the types of the expressions
 associated with the fields.
 
 [#recordConstructorFig]
@@ -502,8 +503,11 @@ recordElement --> typeAliasStatement.
 ----
 
 There are two variants of the record literal: the `record` form and the
-`recRecord` form.  This section focuses on the former.
+`recRecord` form. A non-recursive record literal consists of a collection of
+record elements.
 
+[#recordElement]
+A record element is either an equality, an assignment or a type alias statement.
 For example, given the type definition: 
 [source,star]
 ----
@@ -515,7 +519,7 @@ employee ::= emp{
 }
 ----
        
-A literal `emp` value will look like: 
+A non-recursive record literal instance of `emp` might look like: 
 [source,star]
 ----
 E = emp{ name = "Fred Nice".
@@ -529,8 +533,10 @@ NOTE: Fields whose type is a <<referenceType>> are defined within the
 record using the `:=` operator. All other fields are defined
 using the `=` operator.
 
-For any given record literal _all_ the fields of the record must be associated
-with a value.
+For any given record literal, there must be a record element corresponding to
+all the fields in the record type. Conversely, there must be a type entry for
+each of the record elements in the literal.footnote:[This rule is for
+non-recursive record literals.]
 
 Fields within a record literal are identified by name; and may
 be written in any order.
@@ -541,7 +547,7 @@ be written in any order.
 Record access expressions access the value associated with a field of
 a record value. 
 
-[#recordAccessFig]
+[#fieldAccess]
 .Field Access
 [source,star]
 ----
@@ -698,7 +704,7 @@ there a direct equivalence of the `self` or `this` keyword.
 
 A definition within a recursive record that is marked `private` does _not_
 'contribute' to the external type of the record; and neither can such an
-attribute be accessed via the <<FieldAccess>> expression.
+attribute be accessed via the <<fieldAccess>> expression.
 
 [#tuple]
 == Tuples
@@ -706,10 +712,10 @@ attribute be accessed via the <<FieldAccess>> expression.
 (((tuples)))
 A tuple consists of a sequence of expressions separated by commas and
 enclosed in parentheses. In effect, a tuple is a
-<<positionalConstructorLiteral>> where the <<Identifier>> is
+<<positionalConstructorLiteral>> where the <<identifier>> is
 omitted.
 
-[#tupleFig]
+[#tupleLiteral]
 .Tuple Literal
 [source,star]
 ----
@@ -1000,7 +1006,7 @@ is equivalent to one of `X>Y` or `X<Y` depending on whether the condition `even(
 
 The condition of a conditional expression may introduce variables, depending on
 the form of the condition -- for example, if the condition is a
-<<patternMatch>> condition, as in:
+<<matchesCondition>>, as in:
 
 [source,star]
 ----
@@ -1554,7 +1560,7 @@ replacing an element in a collection and removing an element from a collection.
 There is a related similar notation -- the <<Slice Notation>> --
 that is used to denote sub-sequences.
 
-The index notation is based on the `indexed` contract (see <<indexContract>>).
+The index notation is based on the `indexed` contract (see <<indexedContract>>).
 
 An expression of the form: 
 [source,star]

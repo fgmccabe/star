@@ -1058,7 +1058,7 @@ type cons[t] is nil or cons(t,cons[t])
 .The Standard `cons` Type[[consTypeProg]]
 \end{program}
 
-The <<SequenceExpression>> and <<SequencePattern>> notations also apply to `cons` terms. So, an expression of the form
+The <<SequenceExpression>> and <<sequencePattern>> notations also apply to `cons` terms. So, an expression of the form
 [listing]
 cons of ["alpha", "beta", "gamma"]
 

@@ -1,5 +1,6 @@
 = Collections
 
+[#collection]
 This chapter defines the standard collection types. Note that many of
 the functions that are implemented over collection types are exposed
 via contract implementations.

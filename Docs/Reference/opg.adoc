@@ -92,6 +92,7 @@ Note that the grammar in <<srOpPrecGrammar>> is based on Star's
 grammar notation (see <<Grammar Rules>>) but is presented here for
 illustative purposes: it is not an executable grammar.
 
+[#operator]
 == Standard Operators
 
 A key input to the grammar is the table of operators. There are a

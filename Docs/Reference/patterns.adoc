@@ -7,7 +7,7 @@ value. Patterns are used as guards in equations, as filters in query expressions
 and in `for` loops. Patterns represent one of the fundamental mechanisms that
 can guide the course of a computation.
 
-[#patternsFig]
+[#pattern]
 .Patterns
 [source,star]
 ----
@@ -152,6 +152,7 @@ NOTE: <<positionalConstructorPattern>>s are the only way that a
 constructor value may be inspected and elements of it extracted. There
 are no indexing operators over positional constructors.
 
+[#enumeratedSymbolPattern]
 === Enumerated Symbol Patterns
 (((patterns,enumerated symbol)))
 (((enumerated symbol pattern)))
@@ -281,12 +282,9 @@ hand side, and the type safety of the condition.
 A sequence pattern represents a use of the standard `stream`
 contract (see <<streamContractProg>>) to match sequences of values.
 
-(((sequence,patterns)))
-(((patterns,sequence)))
-
 === Sequence Pattern Notation
 
-[#sequencePtnFig]
+[#sequencePattern]
 .Sequence Pattern
 [source,star]
 ----
@@ -296,8 +294,10 @@ ptnSequence --> pattern * [","].
 ptnSequence --> pattern * [","], [",.."], pattern.
 ----
 
+(((sequence,patterns)))
+(((patterns,sequence)))
 In a similar way to <<sequenceExpression>>s, sequencePatterns depend on the
-`stream` contract, In fact, a <<SequencePattern>> is syntactic sugar for terms
+`stream` contract, In fact, a <<sequencePattern>> is syntactic sugar for terms
 involving the `stream` contract -- which is defined in <<streamContractProg>>.
 
 A pattern of the form:
