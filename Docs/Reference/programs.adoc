@@ -42,7 +42,7 @@ may also include import statements.
 .Package Structure
 [source,star]
 ----
-package --> packageName , ["{"], definition* >> Defs, ["}"].
+package --> packageName , ["{"], thetaEnvironment, ["}"].
 
 packageName --> identifier, packageSuffix*.
 
@@ -63,17 +63,24 @@ are marked `public` will be exported.footnote:[An element in a
 package may be marked `private` -- which will also ensure that it
 is not visible outside the package.]
 
-[#definition]
-== Definitions
+[#thetaEnvironment]
+== Environments and Definitions
 
+The various types, functions, contracts and implementations
+that make up a package are defined in the context of a _theta environment_. A
+theta environment is a potentially mutually recursive collection of definitions.
+
+[#definition]
 (((program, declaration)))
 The contents of a package consists of a set of definitions of types,
 programs and variables.
 
 [#statementFig]
-.Definition
+.Theta Environment
 [source,star]
 ----
+thetaEnvironment --> definition * [dotSpace].
+
 definition  --> typeAnnotation.
 definition  --> typeDefinition.
 definition  --> variableDefinition.
@@ -83,6 +90,17 @@ definition  --> contractImplementation.
 definition  --> openStatement.
 definition  --> importStatement.
 ----
+
+NOTE: Theta environments also form the body of recursive let expressions and
+actions and also form the contents of a recursive record.
+
+There are a few differences between a package's theta environment and that of
+recursive let expressions etc. In particular, the `importStatement` is only
+valid at the package level.
+
+Another difference is notational: recursive theta environments in expressions
+are marked by special braces: `{.` and `.}`; whereas a package just uses regular
+braces.
 
 [#typeAnnotation]
 === Type Annotations
@@ -273,6 +291,7 @@ assigned as attributes of records.
 Functions can be defined in a let expression -- or they may be _anonymous_ -- i.e.,
 appear as a function literal in an expression.
 
+[#equation]
 ==== Equations
 
 An equation is a rule for deciding how to rewrite an expression into a simpler

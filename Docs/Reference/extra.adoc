@@ -1,0 +1,174 @@
+
+
+
+
+
+
+=== Type Variables
+
+A type variable a type identifier that is distinguished by being
+introduced using an explicit quantifier -- either `all` or
+`exists`.  The type expression:
+[source,star]
+----
+all t ~~ cons[t]
+----
+denotes a list type of some unspecified element type -- identified by
+the type variable `t`.
+
+TIP: The collection of values associated with this type expression is a little
+more difficult to visualize than the set of lists of integers (say). `cons[t]`
+denotes a set of `cons` values; but without more information _we cannot say_
+what the complete values look like -- it is dependent on the meaning of the type
+variable `t`.
+
+In order to properly understand the interpretation of a type variable
+one must understand how the type variable is _bound_. In general,
+there are three possibilities: the type variable may be identified
+with (equal to) another type; the type variable may be bound by a
+universal quantifier or by an existential quantifier.
+
+
+
+
+
+
+A universally quantified type (see <<universalType>>) denotes a type
+that allows all possible instantiations for the type variable. For
+example, function types often involve universal types. A universally
+typed function is expected to work _for all values_ of the type
+variable -- which, in turn, means that the function definition can
+make no assumptions about the actual type.
+
+Existentially quantified types (see <<existentialType>>) are used to
+denote _abstract types_; i.e., the existential quantifier signals
+that there is a type that should be treated as an opaque _black
+box_.
+
+[source,star]
+----
+type --> quantifiedType.
+
+quantifiedType --> quantifier*, type.
+
+quantifier --> ["all", quantifierVar, ([","], quantifierVar)*, ["~~"].
+quantifier --> ["exists", quantifierVar, ([","], quantifierVar)*, ["~~"].
+
+quantifierVar --> identifier.
+quantifierVar --> identifier, ["/"], decimal.
+----
+
+[#universalType]
+==== Universally Quantified Types
+
+(((type,universally quantified)))
+(((universally quantified type)))
+A universally quantified type denotes a type that is valid for all
+substitutions of a type variable.
+
+.Universal Type Expression
+[source,star]
+----
+universalType --> ["all"], boundTypes, ["~~"], type.
+
+boundTypes --> boundType, ([","], boundType)*.
+
+boundType --> identifier | identifier, ["/"], decimal.
+----
+
+For example, the type expression:
+[source,star]
+----
+all x ~~ (x,x)=>boolean
+----
+denotes the generic function type of two arguments that returns a
+`boolean`.
+
+There are two forms of `boundType`, a simple type variable and a
+second form that includes an arity.
+
+The first form of `boundType` introduces a regular type variable --
+i.e., a variable which may be bound to any type. The second form is
+used to introduce a higher-kinded type variable.
+
+For example, the quantification:
+
+[source,star]
+----
+all c/1 ~~ ...
+----
+denotes a variable which may only be bound to type constructors that
+take one argument -- for example `cons`.
+
+For example, consider the `group` type defined in:
+
+[source,star]
+----
+group ::= group{
+  type el = quality[el].
+  zero : el.
+  op : (el,el)=>el.
+  inv : (el)=>el.
+}
+----
+
+TIP: A `group` literal is analogous to a mathematical group: a
+set which is closed under a binary operation and whose elements have
+an inverse.
+
+The contents of a `group` literal contain the definitions of the
+elements, the binary operation, the zero element and the inverse
+function.
+
+The qualification of the `el` type that it supports `equality` allows
+convenient access to equality of group elements. Without such a
+qualification, equality would not be possible for programs using
+`group` values.
+
+An additional requirement for a group is that its operation is
+associative. Such a property cannot be expressed in terms of type
+constraints.
+
+A `group` literal that implements the group for `integer`s
+is shown in:
+
+[#groupTypeProg]
+.The `group` Type
+[source,star]
+----
+IG = group{
+  el ~> integer.
+  zero = 0.
+  op = (+).
+  inv(X) => -X.
+}
+----
+
+The `IG` value contains the elements of a group value. We can,
+for example, access the `zero` of `IG` using the statement:
+[source,star]
+----
+IZ : IG.el.
+IZ = IG.zero.
+----
+
+This asserts that `IZ`'s type is whatever the encapsulated type
+within `IG` is -- without being explicit about what that type is.
+
+It is possible to construct functions over `group`s that varer to
+encapsulated types. For example, the `invertGroup` function below
+constructs a new group by _inverting_ the operation.
+
+[#invertGroupProgram]
+.A `group` Inverting Function
+[source,star]
+----
+invertGroup : (group)=>group.
+invertGroup(G) => group{
+  type el = G.el.
+  zero = G.zero.
+  op(X,Y) => G.op(G.inv(X),G.inv(Y)).
+  inv(X) => G.inv(X)
+}
+----
+
