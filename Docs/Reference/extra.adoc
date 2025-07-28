@@ -172,3 +172,144 @@ invertGroup(G) => group{
 }
 ----
 
+
+
+[#task]
+== Tasks and Managers
+
+A `task` is an expression that inhabits a coroutine. Tasks can
+suspend themselves -- initiating another coroutine as they do so --
+they can communicate with each other -- via channels and futures --
+and are scheduled -- by an associated `taskManager`.
+
+[#taskExpression]
+=== Task Expressions
+
+(((task expression)))
+(((expression,task)))
+A `task` expression consists of a `task`-labeled <<blockAction>>.
+
+[#taskExpressionFig]
+.Fiber Expression
+[source,star]
+----
+taskExpression --> ["task"], action.
+----
+
+Task expressions denote computations that are expected to be performed
+asynchronously. I.e., a task is a computation that can be suspended and then
+resumed -- under the application's control.
+
+A `task` is created with the `task` notation:
+[source,star]
+----
+T = task{ logMsg(info,"This is a task action") }
+----
+
+Task expressions may have values; and may be composed and constructed like other
+expressions. For example, the function:
+
+[source,star]
+----
+tt(X) => task{
+  Y = 2;
+  valis X+Y
+}
+----
+
+represents a rather elaborate way of adding 2 to a number. As with `T` above,
+the expression:
+
+[source,star]
+----
+I = tt(3)
+----
+
+is not an `integer` but an `integer`-valued task expression. The value returned
+may be extracted using `waitfor`:
+
+[source,star]
+----
+Five = waitfor(I)
+----
+
+As with all expressions, if there is a possibility that the task expression will
+fail, then it should be encapsulated in a `try`-`catch` block:
+
+[source,star]
+----
+ive = valof {
+  try waitfor(I) catch {
+    _ => {
+      logMsg(info,"Was not expecting this");
+      valis 0
+    }
+  }
+}
+----
+
+[#taskType]
+=== The `task` type
+
+(((task type))) (((type,task)))
+The `task` type is a standard type that is used to represent task expressions.
+
+[source,star]
+----
+task[e] <~ {}
+----
+
+NOTE: Although the `task` type is described here as a normal type, it's
+definition is hidden as its internals are not relevant to the programmer.
+
+
+== Task-related Functions
+
+(((task functions)))
+
+
+== Channels and Messages
+
+(((channels)))
+A channel is a typed communications channel between `task`s. In
+order for a `task` to 'send a message' to another `task`,
+they would share the channel object itself and then the receiver would
+use `recvRv` to wait for the message and the sender would use
+`sendRv` to send the message.
+
+[#channelType]
+=== The `channel` Type
+
+[source,star]
+----
+channel[t]
+----
+
+Like the `task` type, the `channel` type is _opaque_.
+
+=== The `channel` Function
+
+The `channel` function is used to create channels.
+[source,star]
+----
+channel: all t ~~ ()=>channel[t]
+----
+
+Each created channel may be used for sending and receiving multiple
+messages. However, the channel is typed; i.e., only messages of that
+type may be communicated.
+
+Channels are multi-writer multi-reader channels: any number of tasks
+may be reading and writing to a channel. However, any given
+communication is between two tasks: one sender and one receiver.
+
+If more than one `task` is trying to send a message then it is
+non-deterministic which message is sent. If more than one `task`
+is trying to receive a message then only one will get the message.
+
+Message receives and sends may take place in either order. However,
+message communication is _synchronous_. I.e., both sender and receiver
+are blocked until a communication occurs.
+
+An immediate implication of synchronous communication is that there is
+no buffer of messages associated with `channel`s.
