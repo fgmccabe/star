@@ -4,6 +4,7 @@
 :copyright: 2025 and beyond
 :toc:
 :doctype: book
+:sectnums:
 :title-page:
 :pdf-page-size: Letter
 
@@ -15,11 +16,18 @@ include::why.adoc[leveloffset=1]
 
 include::tour.adoc[leveloffset=1]
 
-// = Programming in Star
+include::func.adoc[leveloffset=1]
 
-\include::collections.adoc[]
+include::collections.adoc[leveloffset=1]
 
 \include::choices.adoc[]
 
 \include::boiling.adoc[]
+
+include::arewedone.adoc[leveloffset=1]
+
+
+[index]
+== Index
+
 
