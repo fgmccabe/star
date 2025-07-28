@@ -1,5 +1,5 @@
 test.ct1{
-  -- Some simple nursery tests
+  -- Some simple taskManager tests
 
   import star.
   import star.assert.
@@ -42,7 +42,7 @@ test.ct1{
     T2 = pong(E);
 
     try{
-      Rs = nursery([T1,T2]);
+      Rs = taskManager([T1,T2]);
       showMsg("final result $(Rs)");
     } catch {
       Ex => showMsg(disp(Ex))

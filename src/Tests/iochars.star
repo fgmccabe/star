@@ -29,7 +29,7 @@ test.iochars{
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
-	nursery([Rd]);
+	taskManager([Rd]);
 	showMsg("reader done");
       } catch {
 	| .deadlock => showMsg("Reader got deadlocked")

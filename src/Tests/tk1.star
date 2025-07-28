@@ -32,7 +32,7 @@ test.tk1{
 	}
       };
 	
-      nursery([Tsk]);
+      taskManager([Tsk]);
 
     } catch {
       E => showMsg("$(E)")

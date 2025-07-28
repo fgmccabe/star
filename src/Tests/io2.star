@@ -31,7 +31,7 @@ test.io2{
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
 	  
-	Text = nursery([Rd]);
+	Text = taskManager([Rd]);
 	showMsg("output: $(Text)");
       } catch {
 	.deadlock => showMsg("Reader got deadlocked")
