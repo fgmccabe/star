@@ -8,32 +8,34 @@ except that a coroutine can be suspended -- allowing another
 computation to continue -- and then later resumed. Not to be confused
 with multi-threading, coroutines do give some of the same
 responsiveness that multiple threads offer; except that coroutines all
-operate on a single thread.
+operate on a single CPU thread.
 
 There are two main syntactic structures that use coroutines at their
 foundation: tasks and generators. A `task` is an expression that
-computes a value, in the context of a `nursery`. The nursery's
+computes a value, in the context of a `taskManager`. The taskManager's
 role is to _schedule_ one or more `task` expressions until a
 resolution is made.
 
 A generator is an expression that determines the sequence of values in
-a `for` loop iteration.
+an iteration.
 
 Underlying both tasks and generators is the concept of a fiber. A fiber is
 essentially a reified coroutine: it has an identity that is persistent through
 the computation of the coroutine itself.footnote:[Although fibers have identity,
-that identity is only available directly: when the fiber is created. Functions
-running as part of the coroutine cannot discover the fiber's identity.]
+that identity is only available when provided: when the fiber is
+created. Functions running as part of the coroutine cannot discover the fiber's
+identity.]
 
 [#generator]
 == Generators
 
 A `generator` is an expression that represents a computation that iterates over
-a data value. Typically, the generator performs a `yield` action (or expression)
+a data value. Typically, the generator performs a `yield` action 
 that signals to the generator's consumer that an element has been found.
 
-Generator consumers are either a `for` loop (<<forAction>>) or a search query
-(<<searchCondition>>).
+Although it is possible to craft a consumer for a generator explicitly, in most
+cases generator consumers are either a `for` loop (<<forAction>>) or a search
+query (<<searchCondition>>).
 
 A `generator` is a kind of expression:
 
@@ -67,8 +69,8 @@ yields:
 type --> ["generator", "["], type, ["]"].
 ----
 
-As noted above, generator expressions are typically not written explicitly. Many
-types implement the `generate` contract that is used to create generators:
+Generator expressions are typically not written explicitly. Many types implement
+the `generate` contract that can be used to create generators:
 
 [source,star]
 ----
@@ -77,7 +79,7 @@ public contract all c,e ~~ generate[c->>e] ::= {
 }
 ----
 
-Generate contracts are implemented for `cons`, `map`, `range`, `string`,
+The `generate` contract is implemented for `cons`, `map`, `range`, `string`,
 `vector` and many other types.footnote:[If the reader implements their own
 collection type, implementing `generate` allows their type to participate in
 `for` loops and search queries.]
@@ -91,9 +93,9 @@ A generator's body is an action. Within the action the `yield` operator is used
 to yield to the consumer of the generator.
 
 [#thisVariable]
-In addition, the variable `this` is defined -- to be the
-identity of the generator itself. This allows the generator action to call a
-function that itself yeilds:
+Within the action body of a `generator` expression, the variable
+`this` is bound -- to the generator itself. This allows the generator action to
+call a function that itself yields:
 
 [source,star]
 ----
@@ -121,7 +123,8 @@ being the special variable `this`.
 The result of performing a `yield` is to pause the generator -- identified by
 `this` or the left hand argument -- and 'return' a value to the consumer.
 
-When the `generator` action completes, it is taken as a signal to the consumer that there are no more elements to be yielded, and the for loop will terminate.
+When the `generator` action completes, it is taken as a signal to the consumer
+that there are no more elements to be yielded, and the for loop will terminate.
 
 [#iterGenerator]
 === Creating a `generator` with `iterGenerator`
@@ -144,7 +147,7 @@ public contract all s,t ~~ iter[s->>t] ::= {
 }
 ----
 
-The `iter` contract defined a general fold over the type. For example, the
+The `iter` contract defines a general fold over the type. For example, the
 implementation of `iter` for binary trees might look like:
 
 [source,star]
@@ -159,150 +162,11 @@ implementation all e ~~ iter[tree[e]->>e] => let{.
 
 TIP: Using `iterGenerator` is by far the simplest method to create generators.
 
-[#task]
-== Tasks and Nurseries
+== Tasks, Task Groups, Async functions and Futures
 
-A `task` is an expression that inhabits a coroutine. Tasks can
-suspend themselves -- initiating another coroutine as they do so --
-they can communicate with each other -- via channels and futures --
-and are scheduled -- by an associated `nursery`.
+TBD.
 
-[#taskExpression]
-=== Task Expressions
-
-(((task expression)))
-(((expression,task)))
-A `task` expression consists of a `task`-labeled <<blockAction>>.
-
-[#taskExpressionFig]
-.Fiber Expression
-[source,star]
-----
-taskExpression --> ["task"], action.
-----
-
-Task expressions denote computations that are expected to be performed
-asynchronously. I.e., a task is a computation that can be suspended and then
-resumed -- under the application's control.
-
-A `task` is created with the `task` notation:
-[source,star]
-----
-T = task{ logMsg(info,"This is a task action") }
-----
-
-Task expressions may have values; and may be composed and constructed like other
-expressions. For example, the function:
-
-[source,star]
-----
-tt(X) => task{
-  Y = 2;
-  valis X+Y
-}
-----
-
-represents a rather elaborate way of adding 2 to a number. As with
-`T` above, the expression:
-[source,star]
-----
-I = tt(3)
-----
-
-is not an `integer` but an `integer`-valued
-task expression. The value returned may be extracted using
-`valof`:
-[source,star]
-----
-Five = valof I
-----
-
-As with all expressions, if there is a possibility
-that the task expression will fail, then it should be
-encapsulated in a `try`-`catch` block:
-
-[source,star]
-----
-ive = valof {
-  try I catch {
-    logMsg(info,"Was not expecting this");
-    valis 0
-  }
-}
-----
-
-[#taskType]
-=== The `task` type
-
-(((task type)))
-(((type,task)))
-The `task` type is a standard type that is used to represent
-task expressions. 
-
-[source,star]
-----
-task[e] <~ {}
-----
-
-NOTE: Although the `task' type is described here as a normal type, it's
-definition is hidden as its internals are not relevant to the
-programmer.
-
-
-NOTE: Star's coroutining features are based on the more primitive
-concepts around fibers.
-
-== Task-related Functions
-
-(((task functions)))
-
-
-== Channels and Messages
-
-(((channels)))
-A channel is a typed communications channel between `task`s. In
-order for a `task` to 'send a message' to another `task`,
-they would share the channel object itself and then the receiver would
-use `recvRv` to wait for the message and the sender would use
-`sendRv` to send the message.
-
-[#channelType]
-=== The `channel` Type
-
-[source,star]
-----
-channel[t]
-----
-
-Like the `task` type, the `channel` type is _opaque_.
-
-=== The `channel` Function
-
-The `channel` function is used to create channels.
-[source,star]
-----
-channel: all t ~~ ()=>channel[t]
-----
-
-Each created channel may be used for sending and receiving multiple
-messages. However, the channel is typed; i.e., only messages of that
-type may be communicated.
-
-Channels are multi-writer multi-reader channels: any number of tasks
-may be reading and writing to a channel. However, any given
-communication is between two tasks: one sender and one receiver.
-
-If more than one `task` is trying to send a message then it is
-non-deterministic which message is sent. If more than one `task`
-is trying to receive a message then only one will get the message.
-
-Message receives and sends may take place in either order. However,
-message communication is _synchronous_. I.e., both sender and receiver
-are blocked until a communication occurs.
-
-An immediate implication of synchronous communication is that there is
-no buffer of messages associated with `channel`s.
-
+[#fiber]
 == Fibers
 
 A fiber is a computation whose execution can be managed. Fibers can be
@@ -325,8 +189,8 @@ threads.
 
 (((type, fiber)))
 (((fiber type)))
-The `fiber` type is used to characterize the type of fiber
-expressions. It takes the form:
+The `fiber` type is used to characterize the type of fiber expressions. It
+takes the form:
 [#fiberTypeFig]
 .Fiber Type
 [source,star]
