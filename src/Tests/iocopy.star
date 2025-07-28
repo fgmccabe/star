@@ -27,7 +27,7 @@ test.iocopy{
       try{
 	Rd = (Tsk) => copyFl(Tsk,S,D);
 	
-	Eras = nursery([Rd]);
+	Eras = taskManager([Rd]);
 	showMsg("file copy done");
       } catch {
 	.deadlock => showMsg("Writer got deadlocked")

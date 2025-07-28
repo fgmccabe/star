@@ -57,7 +57,7 @@ test.sieve{
     };
 
     try{
-      Eras = nursery([Gn,Sv]);
+      Eras = taskManager([Gn,Sv]);
       showMsg("final result $(Eras)");
     } catch {
       .deadlock => showMsg("Sieve got deadlocked")

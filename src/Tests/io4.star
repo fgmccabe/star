@@ -28,7 +28,7 @@ test.io4{
       try{
 	Rd = (Tsk) => readFile(Tsk,Fl);
 	  
-	Text = nursery([Rd]);
+	Text = taskManager([Rd]);
 	showMsg("reader done: $(Text)");
       } catch {
 	| .deadlock => showMsg("Reader got deadlocked")

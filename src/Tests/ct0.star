@@ -1,5 +1,5 @@
 test.ct0{
-  -- Some simple nursery tests
+  -- Some simple task manager tests
 
   import star.
   import star.assert.
@@ -56,7 +56,7 @@ test.ct0{
   main:()=>().
   main() => valof{
     try{
-      Rs = nursery([tt(10),tt(20)]);
+      Rs = taskManager([tt(10),tt(20)]);
       showMsg("final result $(Rs)");
     } catch {
       E => showMsg(disp(E))

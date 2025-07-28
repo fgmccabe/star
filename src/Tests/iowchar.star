@@ -33,7 +33,7 @@ test.iowchar{
 	  valis ()
 	};
 	  
-	nursery([Rd]);
+	taskManager([Rd]);
 	showMsg("writer done");
       } catch {
 	.deadlock => showMsg("Writer got deadlocked")
