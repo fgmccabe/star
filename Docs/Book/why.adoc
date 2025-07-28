@@ -228,7 +228,6 @@ Some features are missing from Star's type system -- by design:
 * There is no notion of subtyping, and by extension, no equivalent of an `any`
   type. In effect, the type system does _not_ have any escape hatch into the
   untyped world.
-+
   Originally, this was an experiment: to see if it was
   possible. However, today, the author is convinced that subtypes and both
   unnecessary and confusing.
@@ -261,12 +260,11 @@ Two examples might illustrate our point:
 * Enumerated symbols and data constructor values are distinguished from
   variables and function calls with a syntactic marker -- a leading period. This
   includes the symbols for `.true` and `.false`!
-  +
-  The reason for this is that
-  variables are very powerful in Star and without some form of syntactic marker
-  it becomes too easy for the programmer to make mistakes that may not be
-  obvious.
-
++
+The reason for this is that variables are very powerful in Star and without some
+  form of syntactic marker it becomes too easy for the programmer to make
+  mistakes that may not be obvious.
++
 * So-called generic types -- types with quantified variables -- must have their
   quantifiers explicitly written. For example, a function type that returns its
   argument (the so-called identity function) has a type written as:
@@ -276,7 +274,7 @@ Two examples might illustrate our point:
 id:all x ~~ (x)=>x.
 ----
 +
-  The reason for this, apart from the additional clarity, is that Star allows
+The reason for this, apart from the additional clarity, is that Star allows
 generic functions to be 'stored' in structures and passed as arguments to
 functions. In such cases, it becomes imperative to be able to properly identify the scope of type vairables.
 
