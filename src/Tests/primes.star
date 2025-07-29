@@ -7,14 +7,29 @@ test.primes{
 
   sieve:(integer)=>cons[integer].
   sieve(Bound) => let{.
-    primes([]) => [].
-    primes([P,..Rest]) => [P,..primes(filter(Rest,P))].
-  .} in primes(iota(2,Bound)).
+    prmes([]) => [].
+    prmes([P,..Rest]) => [P,..prmes(filter(Rest,P))].
+  .} in prmes(iota(2,Bound)).
 
   filter:(cons[integer],integer)=>cons[integer].
   filter(Candidates,P) => (Candidates ^/ nonMultiple(P)).
 
   nonMultiple(P) => (X)=>~divides(P,X).
+
+  -- Sieve of erastosthenes using fold
+
+  primes:(integer) => cons[integer].
+  primes(Max) => let{.
+    cascade:((integer)=>boolean,integer) => ((integer)=>boolean).
+    cascade(F,K) => (X)=>(F(X) && ~divides(K,X)).
+
+    step:(integer,(cons[integer],(integer)=>boolean)) => (cons[integer],(integer)=>boolean).
+    step(X,(P,F)) where F(X) => ([X,..P],cascade(F,X)).
+    step(_,(P,F)) => (P,F).
+
+    sieve:(range[integer])=>cons[integer].
+    sieve(R) => fst(foldRight(step,([],(K)=>.true),R)).
+  .} in sieve(.range(3,Max,2)).
   
   -- Sieve of Erastosthenes, using generators
 
@@ -54,8 +69,9 @@ test.primes{
 
   main:(integer)=>().
   main(Cnt) => valof{
-    show sieve(Cnt);
-    show primeSieve(Cnt,genOdds)
+    show "$(Cnt) sieve = $(sieve(Cnt))";
+    show "$(Cnt) primes = $(primes(Cnt))";
+    show "$(Cnt) prime sieve = $(primeSieve(Cnt,genOdds))"
   }
 }
 

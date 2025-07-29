@@ -1458,15 +1458,82 @@ some("P_spouse_name")
 (assuming that ``nameOf`` is defined for ``Person``s.)
 
 Overall, the ``option`` type is part of an elegant approach to
-nullability that is easily incorporated into the type system.
+nullability that is easily incorporated into the type system. However, it is not the only Star feature oriented to _failable_ computation.
+
+== Exceptions and short circuits
+
+Not all computation goes according to plan; some computations can fail. The
+simplest examples of this are in arithmetic: division by zero is not defined,
+and taking the square root of a negative number is not defined over the real
+numbers. Other examples typically involve something to do with input/output.
+
+Star has a so-called exception handling mechanism. However, the inspiration of
+it owes more to using optional values than the recovery from errors.
+
+A `try` `catch` expression looks like:
+
+[source,star,subs="quotes"]
+----
+(try _Exp~1~_ catch { _Ptn_ => _Exp~2~_})
+----
+
+For example, we can define a _safe_ divide as:
+[source,star]
+----
+safeDivide(X,Y) => (try X/Y catch { _ => 0}).
+----
+
+Some special features of this:
+
+* The type checker is able to verify that the type of the `_Ptn_` in the catch
+  handler is consistent with exceptions that might be thrown in `_Exp~1~_`.
+* Furthermore, the type of `_Exp~2~_` must be the same as that of `_Exp~1~_` and
+  is the type of the whole expression.
+* Only one type of exception may be thrown within `_Exp~1~_`.
+
+The way to think about expression forms like `try` catch` (and their analogous
+actions) is that the form allows a kind of short circuit evaluation: if the body
+of the `try` `catch` throws an alternate value then the overall evaluation if
+short circuited and evaluation continues with the catch handler.
+
+NOTE: This is somewhat restricted compared to exception handling found in other
+languages. However, this restriction has benefits also.
+
+One benefit is that exceptions are fully integrated into the type system. We
+can, for example, have functions that throw exceptions, as in the definition of the division operator itself:
+
+[source,star]
+----
+(/):(x,x) throws exception
+----
+
+(This is part of the standard `arith` contract.)
+
+We can also have function signatures that are generic in the type thrown:
+
+[source,star]
+----
+consMap:all x,y,e ~~ (cons[x],(x)=>y throws e) => cons[y] throws e
+----
+
+This type signature expresses the type of a `consMap` function that takes a
+function that throws _something_ and lifts that to a function over `cons` lists
+that may also throw that same _something_.
+
+Exceptions in Star are intentionally simple and lightweight: exception types can
+be of any Star type (there is no special designated exception
+type).footnote:[There is a standard `exception` type, but it is not required to
+be used.] In addition, there are no additional features -- such as stack
+traces. This results in a mechanism that is very efficient and has very minimal
+implementation footprint.
 
 == A word about type inference
 
-We have seen some powerful forms of types in this chapter: recursive
-types defined using algebraic type definitions, generic types and even
-function types. Recall also that we only require programmers to
-explicitly declare the types of quantified variables and functions. It
-is worth pausing a little to see how this might be done.
+We have seen some powerful forms of types in this chapter: recursive types
+defined using algebraic type definitions, generic types, function types and even
+function types that can throw. Recall also that we only require programmers to
+explicitly declare the types of quantified variables and functions. It is worth
+pausing a little to see how this might be done.
 
 Recall our original ``fact`` function:
 [source,star]
