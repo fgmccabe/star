@@ -1063,15 +1063,16 @@ value itself; and coercion involves converting a value from one type
 to another.
 
 For example, the Java cast expression:
-[source, star]
+
+[source, java]
 ----
 (Person)X
 ----
-amounts to a request to verify that `X` is actually a
-`Person` object. In particular, this only checks the value of
-`X` to see if it is a `Person`. On the other hand, casting
-an integer to a floating point number involves changing the value to
-conform to the floating point representation.
+
+amounts to a request to verify that `X` is actually a `Person` object. In
+particular, this checks the value of `X` to see if it is an instance of the
+`Person` class. On the other hand, casting an integer to a floating point number
+involves changing the value to conform to the floating point representation.
 
 However, coercion in Star is never silent or implicit -- as it can
 be in Java and C/C++. An expression of the form:
@@ -1101,7 +1102,7 @@ denotes the explicit coercion of the integer `3` to a
 `float` and type checks as expected.
 
 In fact, type coercion is mediated via a contract and this expression
-is equivalent to
+is approximately equivalent to
 [source, star]
 ----
 (_coerce(3):float)+4.5
@@ -1116,15 +1117,17 @@ contract all s,t ~~ coercion[s,t] ::= {
 }
 ----
 
-The `coercion` contract is an interface, but has no analog in
-most OO languages: it involves two types -- the source type and the
-destination type. Each implementation of coercion specifies both
-types. For example, the implementation of coercion between integers
-and floating point is explicitly given:
+The `coercion` contract is an interface, but has no analog in most OO languages:
+it is an interface across two types -- the source type and the destination
+type. Each implementation of coercion specifies both types. For example, the
+implementation of coercion between integers and floating point is explicitly
+given:
+
 [source, star]
 ----
 implementation coercion[integer,float] => { ... }
 ----
+
 This statement gives the implementation for coercing integers to
 floats. Other implementation statements give the definitions for other
 forms of coercion.
@@ -1177,7 +1180,7 @@ Package names and references to packages do not refer to file names;
 package names are symbolic -- in general a package name consists of a
 sequence of identifiers separated by periods.
 
-The _catalog_ and _repository_ system explored in Chapter 7
+The _catalog_ and _repository_ system explored in <<ocean>>
 that supports the language ensures a proper connection between files
 and packages.
 
