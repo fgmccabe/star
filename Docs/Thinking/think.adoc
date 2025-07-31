@@ -9,6 +9,8 @@
 :doctype: book
 :title-page:
 :pdf-page-size: Letter
+:imagesdir: images
+:front-cover-image: image:front.png[Front Cover, 353, 496]
 
 [preface]
 == Preface

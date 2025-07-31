@@ -21,12 +21,10 @@ values.footnote:[Not a set of values: some collections are not sets.]
 Viewed as collections, types have a particular property: all values are members
 of exactly one type collection. This is the foundation of type checking.
 
-== Types of Types
-
 There are two kinds of type terms: nominal types and structural types. Nominal,
 or named, types have names but do not otherwise expose the nature of their
-values. Structural types, in Star, do not have word-like names, but they do
-'look like' the values associated with them.
+values. Structural types do not have word-like names, but they do 'look like'
+the values associated with them.
 
 In addition, type expressions are combinations of types and type constructors.
 
@@ -45,7 +43,7 @@ type --> constrainedType.
 type --> encapsulatedType.
 ----
 
-=== Nominal Types
+== Nominal Types
 
 [#simpleType]
 For many simple cases, a type is denoted by an identifier. For example, the type
@@ -101,7 +99,7 @@ returns another type as result.
 ****
 
 [#structuralTypes]
-=== Structural Types
+== Structural Types
 
 Formally, a structural type term is an instance of a predefined schema of type
 terms. However, informally, structural type terms are terms that mirror
@@ -110,8 +108,11 @@ syntactically the values that they represent.
 There are three main forms of structural type: tuple types,
 program types and record types.
 
+NOTE: Structural types are inherently _non-recursive_: only nominal types can
+have definitions that imply a recursive type.
+
 [#tupleType]
-==== Tuple Types
+=== Tuple Type
 
 (((tuple types)))
 (((type,tuple)))
@@ -133,7 +134,7 @@ tuple may have a different type.
 There are two special cases in <<tupleTypeFig>>: the empty tuple and
 the singleton tuple type.
 
-===== Empty Tuple
+==== Empty Tuple
 
 (((tuple,empty tuple type)))
 (((empty tuple type)))
@@ -160,7 +161,7 @@ a void result:
 TIP: The `()` type -- sometimes referred to as the _unit type_ --
 is also used to denote the return type of some actions.
 
-===== Singleton Type Tuple
+==== Singleton Type Tuple
 
 (((tuple,singleton tuple type)))
 In some cases, a singleton tuple must be written with two
@@ -198,7 +199,7 @@ singleton tuple.footnote:[This complexity arises because parentheses
 have a dual role: to group expressions and as a notation for tuples.]
 
 [#recordType]
-==== Record Types
+=== Record Type
 
 (((type,record type)))
 (((record type)))
@@ -240,6 +241,8 @@ and
 
 these types unify -- assuming that `t` is a type variable --
 provided that `t` is unifiable with `string`.
+
+
 
 [#referenceType]
 ==== Reference Type
@@ -304,7 +307,7 @@ functionType --> tupleType, ["=>"], type, ["throws"], type.
 ----
 
 For example, a function of two arguments -- an `integer` and a
-`string` that returns a list of `string`s has a type that
+`string` that returns a list of ``string``s has a type that
 takes the form:
 [source,star]
 ----
@@ -436,7 +439,7 @@ It is possible combine different type constraints; for
 example, a type variable could be constrained to implement multiple contracts, and even be combined with a field constraint.
 
 [#contractConstraint]
-===== Contract Constraints
+===== Contract Constraint
 
 (((type,constraints!contract))) (((contract constraint)))
 A <<contract>> constraint is a requirement on a type -- or a tuple of types --
@@ -471,15 +474,15 @@ coercion[T1,T2] |: Tp
 where `T1` represents the source type of the coercion and
 `T2` represents the destination type.
 
-If the `->>` clause is used, then the contract being
+If the `-{zwsp}>>` clause is used, then the contract being
 referenced must have a _functional dependency_
 (((functional dependency)))
 associated with it.
 
 NOTE: Conversely, if a contract has a functional dependency, then any
-constraint referring to it must also have a `->>` clause.
+constraint referring to it must also have a `-{zwsp}>>` clause.
 
-The `->>` clause identifies which type(s) are dependent on the
+The `-{zwsp}>>` clause identifies which type(s) are dependent on the
 type argument(s) of the <<contract>>. (See
 <<ContractFunctionalDependency>>).
 
@@ -518,7 +521,7 @@ implicitly defined variable `limit`:
 
 [source,star]
 ----
-clamp : limit |: integer |: (integer)=>integer.
+clamp : (limit : integer) |: (integer)=>integer.
 clamp(X) => valof{
   if X>limit then
     valis limit
@@ -537,7 +540,7 @@ let{
 ----
 
 [#fieldConstraint]
-===== Field Constraints
+===== Field Constraint
 
 (((type,field)))
 (((type,constraints!field)))
@@ -566,7 +569,7 @@ It is also possible to require that an <<encapsulatedType>>
 exists. For example, the constraint:
 [source,star]
 ----
-s <~ { type elem }
+s <~ { elem ~> _ }
 ----
 requires that any actual binding for type
 `s` must include the embedded type `elem`.
@@ -652,17 +655,19 @@ has type:
 exists el ~~ { op:(el,el)=>el }
 ----
 
-NOTE: The fact that within the record the type `el` is identified as
+[NOTE]
+****
+The fact that within the record the type `el` is identified as
 `integer` does not escape the record itself. Externally, the existence
 of the `el` type is known but not what it
 is.
-+
+
 It is permissible to refer to the type within the record by a dot
 reference.
-
+****
 
 [#encapsulatedType]
-===== Encapsulated Types
+===== Encapsulated Type
 
 (((encapsulated type)))
 (((type,encapsulated in record)))
@@ -710,7 +715,7 @@ used in conjunction.
 (((type,variable)))
 A bound type variable is a variable which may be bound to a type. Like other
 variables, type variables have a scope; and they have a context that
-determines the permissable values that the variable may be given.
+determines the permissible values that the variable may be given.
 
 .Bound Type Variables
 [source,star]
@@ -859,7 +864,7 @@ a type with type parameters) may omit the explicit quantifiers. I.e., instead of
 ----
 all e ~~ cons[e] ::= .nil | .cons(e,cons[e])
 ----
-it is permissable to write:
+it is permissible to write:
 [source,star]
 ----
 cons[e] ::= .nil | .cons(e,cons[e])
@@ -905,7 +910,7 @@ of
 ----
 all e ~~ person[e] ::= person{ name:string. interest: a }
 ----
-it is permissable to write:
+it is permissible to write:
 [source,star]
 ----
 person[e] ::= person{ name:string. interest: a }

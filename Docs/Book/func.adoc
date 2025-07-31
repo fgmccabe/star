@@ -623,7 +623,7 @@ example:
 denotes the tree in:
 
 .A Binary string Tree
-image::images/stree.png[pdfwidth="50%"]
+image::stree.png[pdfwidth="50%"]
 
 [aside]
 One of the hallmarks of languages like Star is that _every_
@@ -1594,7 +1594,7 @@ function; which we can do by making them _the same_. There is a
 particular process used to do this -- called _unification_.
 
 .Inferring the Type of N-1
-image::images/minustype
+image::minustype.png[]
 
 _Unification_:: An algorithm that replaces variables with values in such a way as to
 make two terms identical.

@@ -10,6 +10,7 @@ difference to the programmer's productivity, often by hiding many of
 the recursions and iterations required to process collections.
 
 The collections architecture has four main components:
+
 . a range of standard collection types -- including cons lists, first-in
 first-out queues, ideal hash trees and sets;
 . a range of standard functions -- mostly defined in contracts -- that
@@ -20,7 +21,7 @@ independent way more straightforward; and
 _queries_. There is a simple yet powerful set of features aimed at
 simplifying querying collections.
 
-The query component is sufficiently involved to merit a chapter of its
+The query component is sufficiently involved to merit a chapter of its own:
 <<choices>>.
 
 == Sequence notation
@@ -40,6 +41,7 @@ collection type, we can write instead:
 ----
 [1, 2, 3, 4, 5]
 ----
+
 This term -- it could be either an expression or a pattern -- denotes
 the sequence _without_ specifying the underlying collection
 type. The difference in the types of the two terms is telling:
@@ -139,7 +141,7 @@ contract stream[t->>e] ::= {
 The entries in the ``sequence`` contract should be fairly self-evident:
 
 ``_nil``:: is the empty sequence;
-``_cons``:: is a function that `glues' a new element to the front of
+``_cons``:: is a function that `'glues'` a new element to the front of
 the sequence.
 
 The compiler uses these functions to transform sequence expressions
@@ -692,23 +694,27 @@ into the second:
 divides(K,X) => (try X%K==0 catch { _ => .false}).
 ----
 
-NOTE: We wrap the modulo check in an exception handler because the modulo operator ``%`` can fail (if dividing by zero).
+[NOTE]
+****
+We wrap the modulo check in an exception handler because the modulo operator ``%`` can fail (if dividing by zero).
 
 Although we known that that can never happen, that kind of semantic knowledge
 cannot be built into Star's type system.
+****
 
 The ``^/`` operator allows us to represent many filtering
 algorithms whilst not making any recursion explicit. However, not all
 filters are easily handled in this way; for example, a prime number
 filter _can_ be written
+
 [source,star]
 ----
 N^/isPrime
 ----
 but such an expression is likely to be very expensive (the
-``isPrime`` test is difficult to do well).
+`isPrime` test is difficult to do well).
 
-=== The ``filter`` contract
+==== The ``filter`` contract
 
 As noted above, the ``^/`` function is governed by a contract, the
 ``filter`` contract:
@@ -772,15 +778,14 @@ increment of ``2``. We start the ``sieve`` with ``2`` and the
 list of integers with ``3`` since we are making use of our prior
 knowledge that ``2`` is prime.
 
-It should be emphasized that this sieve of Eratosthenes hardly counts
-as an efficient algorithm for finding primes. For one thing, it
+It should be emphasized that this implementation of the sieve of Eratosthenes
+hardly counts as an efficient algorithm for finding primes. For one thing, it
 requires that we start with a list of integers; most of which will be
-discarded. In fact, each `sweep' of the list of numbers results in a
-new list of numbers; many of which too will eventually be
-discarded. Furthermore, the ``filterMultiples`` function examines
-every integer in the list; it does not make effective use of the fact
-that successive multiples occupy predictable slots in the list of
-integers.
+discarded. In fact, each `'sweep'` of the list of numbers results in a new list of
+numbers; many of which too will eventually be discarded. Furthermore, the
+``filterMultiples`` function examines every integer in the list; it does not
+make effective use of the fact that successive multiples occupy predictable
+slots in the list of integers.
 
 In fact, building a highly optimized version of the sieve of
 Eratosthenes is not actually the main point here -- our purpose is to
@@ -863,9 +868,9 @@ It is not all that common that we need to construct a list of sizes of
 strings. A much more realistic use of ``fmap`` is for
 _projection_.
 
-For example, if we wanted to compute the average
-age of a collection of people, which is characterized by the type
-definition:
+For example, suppose we wanted to compute the average age of a collection of
+people, which is characterized by the type definition:
+
 [source,star]
 ----
 person ::= someOne{
@@ -873,14 +878,17 @@ person ::= someOne{
   age:()=>float.
 }
 ----
+
 Suppose that we already had a function ``average`` that could
 average a collection of numbers; but which (of course) does not
 understand people. We can use our average by first of all projecting
 out the ages and then applying the average function:
+
 [source,star]
 ----
 average(fmap((X)=>X.age(),People))
 ----
+
 In this expression we project out from the ``People`` collection
 the ages of the people and then use that as input to the average
 function.
@@ -888,7 +896,7 @@ function.
 ==== More Type Inference Magic
 
 There is something a little magic about the lambda function in the above
-expression: how does the type checker `know' that ``X`` can have a
+expression: how does the type checker '`know`' that ``X`` can have a
 field ``age`` in it? How much does the type checker know about
 types anyway?
 
@@ -938,7 +946,10 @@ contract:
 
 [source,star]
 ----
-average(C) is foldLeft((+),0,C)::float/size(C)::float
+average(C) => (try
+    foldLeft((+),0,C)::float/size(C)::float
+  catch
+    {_ => 0.0})
 ----
 
 This definition of the ``average`` function is about as close to a
@@ -946,7 +957,7 @@ specification of average as is possible in a programming language.
 
 NOTE: the use of coercion here -- coercing both the result of the
 ``foldLeft`` and ``size`` to float. The reason for doing this is
-that functions like ``average`` are `naturally' real
+that functions like ``average`` are '`naturally`' real
 functions.footnote:[Real as in the ℝeal numbers.] Without the explicit
 coercion, averaging a list of integers will also result in an integer
 value -- which is likely to be inaccurate.
@@ -955,17 +966,20 @@ Of course, in our definition of ``average`` we need to coerce
 _both_ the numerator and denominator of the division because
 Star does not have implicit coercion.
 
+Note also our use of a ``try``-``catch`` expression to catch (sic) the case
+where we attempt to take the average of an empty collection.
+
 The ``foldLeft`` function applies a binary function to a
 collection: starting from the first element and successively `adding
 up' each of the elements in the collection using the supplied
 operator.
 
 .Left Folding a Collection
-image::images/leftfold.png[]
+image::leftfold.png[]
 
 As we noted above, ``foldLeft`` is part of the ``folding``
 contract. Like the ``functor`` contract, this uses some more subtle
-type constraints:
+type expressions:
 [source,star]
 ----
 contract all c,e ~~ folding[c->>e] ::= {
@@ -980,7 +994,7 @@ here is that any implementation of ``folding`` must allow for a
 generic function to process the collection.
 
 The ``foldLeft`` (and ``foldRight``) functions have an
-`accumulator' (of type ``x``) which need not be the same as the
+'`accumulator`' (of type ``x``) which need not be the same as the
 type of the elements of the collection.footnote:[We saw something
 similar with the visitor pattern.] This argument acts as a kind of
 linking thread during the entire computation -- and represents the
@@ -991,7 +1005,7 @@ that when we realized the sieve of Eratosthenes, we still had a
 recursive structure to the program. Furthermore, the way our original
 program was written each filter results in a new list of numbers being
 produced. Instead of doing this, we can construct a cascade of filter
-functions - each level in the cascade is responsible for eliminating
+functions - each level in the cascade being responsible for eliminating
 multiples of a specific prime.
 
 The complete cascade filters by checking each level of the cascade:
@@ -1017,7 +1031,7 @@ This is a truly higher-order function: it takes a function as argument
 and returns another function.
 
 Given ``cascade``, we can reformulate the ``sieve`` function
-itself as a ``foldRight`` -- at each new prime step we `accumulate'
+itself as a ``foldRight`` -- at each new prime step we '`accumulate`'
 a new cascaded filter function:
 [source,star]
 ----
@@ -1029,18 +1043,20 @@ At each step in the fold we want to know whether to continue to
 propagate the existing filter or whether to construct a new filter.
 
 The ``sieve`` function itself is now very short: we simply invoke
-``foldRight`` using ``stp`` and an initial `state' consisting of
+``foldRight`` using ``stp`` and an initial '`state`' consisting of
 a function that checks for odd numbers:
 [source,star]
 ----
 sieve(C) => foldRight(stp,(K)=>K%2=!=0,C).
 ----
-This version of ``sieve`` is not quite satisfactory as, while it
-does find prime numbers, it does not report them. A more complete
-version has to also accumulate a list of primes that are found. We can
-do this by expanding the accumulated state to include both the
-cascaded filter function and the list of found primes. The main
-alteration is to the ``step`` function:
+
+This version of ``sieve`` is not quite satisfactory as, while it does find prime
+numbers, it does not report them. A more complete version has to also accumulate
+a list of primes that are found. We can do this by expanding the accumulated
+state to include both the cascaded filter function and the list of found
+primes. Instead of the previous ``stp`` function, we modify it to create the
+``step`` function:
+
 [source,star]
 ----
 step:((list[integer],(integer)=>boolean),integer) => (list[integer],(integer)=>boolean).
@@ -1072,7 +1088,7 @@ represented in a very compact form -- as a ``range`` term.
 of numeric values. For example, the expression
 [source,star]
 ----
-range(0,100,2)
+.range(0,100,2)
 ----
 denotes the sequence of integers starting at zero, not including 100,
 each succesive integer being incremented by 2.
@@ -1124,32 +1140,29 @@ techniques for collections tend to favor some operations at the cost
 of others. Hence, there are different types of collection that favor
 different patterns of use.
 
-@node The ``cons`` type
-@subsection The ``cons`` type
+=== The ``cons`` type
 
-@noindent
 This is the simplest collection type; and is perhaps the original
 collection type used in functional programming languages. It is
 defined by the type declaration:
+
 [source,star]
 ----
-all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
 ----
-Cons lists have the property that adding an element to the front of a
-list is a constant-time operation; similarly, splitting a ``cons``
-list into its head and tail is also a constant time
-operation. However, almost every other operation is significantly more
-expensive: putting an element on to the end of a ``cons`` list is
-linear in the length of the list.
+
+Cons lists have the property that adding an element to the front of a list is a
+constant-time operation; similarly, splitting a ``cons`` list into its head and
+tail is also a constant time operation. However, almost every other operation is
+significantly more expensive: putting an element on to the end of a ``cons``
+list is linear in the length of the list.
 
 The main merit of the ``cons`` list is the sheer simplicity of its
-definition. Also, for small collections, its simple implementation may
-outweigh the advantages that more complex collections offer.
+definition. Also, for small collections, its simple implementation may outweigh
+the advantages that more complex collections offer.
 
-@node The ``map`` type
-@subsection The ``map`` type
+===  The ``map`` type
 
-@noindent
 Unlike the ``cons`` or ``list`` type, the ``map`` type is
 oriented for access by arbitrary keys. The ``map`` is also quite
 different to hash maps as found in Java (say), the ``map`` type is
@@ -1159,52 +1172,32 @@ modifying a single shared structure. However, the efficiency of
 ``map`` is quite comparable to Java's HashMap.
 
 The template for the ``map`` type is:
+
 [source,star]
 ----
 all k,v ~~ equality[k], hash[k] |: map[k,v]
 ----
+
 Notice that there is an implied constraint here: the ``map``
 assumes that the keys in the map can be compared for equality, and
 that they are hashable -- have a ``hash`` function.
 
-A ``map`` value can be written using the sequence notation, using
-tuple pairs for the key-value pairs:
-[source,star]
-----
-map of [(1,"alpha"),(2,"beta”)]
-----
-As we saw before, ``map``s also have a special variant of the
-sequence notation; instead of writing the pairs as tuples we can use
-an arrow notation for ``map`` terms:
-[source,star]
-----
-map of [1->"alpha", 2->"beta"]
-----
-Maps also have their own special variant of a _query search
-condition_. A condition of the form
-[source,star]
-----
-K->V in D
-----
-where D is a ``map`` will be satisfied if there is a key/value pair
-in D corresponding to K and V. For example, the condition:
-[source,star]
-----
-K->V in map of [1->"alpha", 2->"beta"] && V=="alpha"
-----
-is satisfied for only one pair of ``K`` and ``V``: namely
-``1`` and ``"alpha"`` respectively.
+A ``map`` value is written as a sequence of key/value pairs -- using a special
+arrow term -- enclosed in braces:
 
-For the curious, dictionaries are implemented using techniques similar
-to, as described by Bagwell in @cite{Ideal Hash Trees, P. Bagwell}. This
+[source,star]
+----
+{1->"alpha",2->"beta”}
+----
+
+[NOTE]: For the curious, dictionaries are implemented using techniques similar
+to, as described by Bagwell in <<bagwell:2001>>. This
 results in a structure with an effective O(1) cost for accessing
 elements _and_ for modifying the ``map`` -- all the while
 offering an applicative data structure.
 
-@node The ``set`` type
-@subsection The ``set`` type
+=== The ``set`` type
 
-@noindent
 There are many instances where a programmer needs a collection but
 does not wish specify any ordering or mapping relationship. The
 standard ``set`` type allows you to construct such entities.
@@ -1218,15 +1211,30 @@ like set union are implemented efficiently.
 Like ``map``, the ``set`` type is not publicly defined using an
 algebraic type definition: its implementation is private. It's type is
 given by the template:
+
 [source,star]
 ----
 all t ~~ equality[t] |: set[t]
 ----
 
-@node Collecting it together
-@section Collecting it together
+=== Other collection types
 
-@noindent
+Apart from these collection types, the standard library has a range of types
+that can be treated as collections:
+
+``heap``:: The `heap` type implements a priority queue. It is based on the binomial heap described in <<okasaki:1999>>.
+``multi``:: The ``multi`` tree implements a multi-level binary tree. This data
+structure has teh feature that concatenation of two ``multi`` trees is a
+constant time operation.
+``redblack``:: The `redblack` tree implements a self-balancing binary tree.
+``string``:: String values can also be interpreted as collections -- of ``char`` code points.
+``vect``:: The ``vect``or type implements a so-called wide tree. The maximum
+branching factor for the standard implementation is four. This has the effect of
+reducing the depth of a given tree structure by half -- compared to a normal
+balanced binary tree.
+
+== Collecting it together
+
 Collections form an important part of any modern programming
 language. The suite of features that make up the collections
 architecture consists of a number of data types, contracts and special

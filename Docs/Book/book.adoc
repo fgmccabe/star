@@ -7,25 +7,20 @@
 :sectnums:
 :title-page:
 :pdf-page-size: Letter
+:imagesdir: images
+:front-cover-image: image:front.png[Front Cover, 1850, 2464]
 
 This book gives an introduction into the form and usage of the
-Star programming language. However, it is not a definitive reference to the
-language.
+Star programming language. 
 
 include::why.adoc[leveloffset=1]
-
 include::tour.adoc[leveloffset=1]
-
 include::func.adoc[leveloffset=1]
-
 include::collections.adoc[leveloffset=1]
-
-\include::choices.adoc[]
-
+include::choices.adoc[leveloffset=1]
 include::ocean.adoc[leveloffset=1]
-
 include::arewedone.adoc[leveloffset=1]
-
+include::bibliography.adoc[leveloffset=1]
 
 [index]
 == Index

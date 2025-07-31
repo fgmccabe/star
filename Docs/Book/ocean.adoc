@@ -6,9 +6,6 @@ chew'. However, it _is_ possible to build very large scale
 systems if you approach it in the right way. This is the purview of
 architecture and of software development teams.
 
-The 'right' way to boil an ocean is one cup at a time. The 'smart' way
-to do it is to build a machine that makes cups that boil the ocean.
-
 Building software in the context of a team is quite different to
 writing individual functions in a program. It is not enough for your
 code to compute the correct function; it must also interact properly
@@ -132,10 +129,8 @@ special kind of function.
 
 On the other hand, having a type in a record is quite different.
 
-@node Existential types
-@section Existential types
+== Existential types
 
-@noindent
 What does it mean to have a type in a record? From a programmer's
 point of view it is actually quite a natural extension of the concept
 of a record; there does not seem to be any intrinsic reason why a
@@ -144,11 +139,12 @@ deeper look.
 
 The declaration of the ``foo`` type involves the use of an
 _existential_ quantifier:
+
 [source,star]
 ----
-simple:exists foo/1 ~~ @{
-  @dots{}
-@}
+simple:exists foo/1 ~~ {
+  ...
+}
 ----
 The meaning of an existentially quantified type is complementary to
 the universally quantified type. An existential type quantification is
@@ -170,10 +166,8 @@ X:simple.foo
 means to use the type that is embedded in the simple record (actually
 package) and assign ``X``'s type to that embedded type.
 
-@node Use and evidence
-@subsection Use and evidence
+=== Use and evidence
 
-@noindent
 To get a better grip on type quantification in general and
 existentially quantified types in particular it can be helpful to see
 what the rules and expectations are for a universally quantified
@@ -214,13 +208,9 @@ any type for ``t``.
 We can summarize this by stating that, for a universally quantified
 type,
 
-@itemize
-@item
-we can _use_ it for any type, but
-@item
-we can make no assumptions about it when giving _evidence_ for a
+* we can _use_ it for any type, but
+* we can make no assumptions about it when giving _evidence_ for a
 correct implementation.
-@end itemize
 
 For existentially quantified types the situation is reversed: when
 giving evidence in an implementation involving an existential type we
@@ -242,13 +232,15 @@ right type.
 The existential quantifier means that within an instance of this
 record we can instantiate foo to any type that meets the
 constraints. The simplest way is to provide a type definition for it:
+
 [source,star]
 ----
-simple = @{
-  all t ~~ foo[t] ::= foo(t) | bar.
+simple = {
+  all t ~~ foo[t] ::= .foo(t) | .bar.
   fooMe(X) => foo(X).
-@}
+}
 ----
+
 We can do this because, within the implementing expression, we can do
 whatever we like for the type ``foo`` -- so long as it exists.
 
@@ -302,10 +294,8 @@ implementing it we have to give evidence for the constraint being
 satisfied and when using it we could rely on that implementation --
 without knowledge of the actual implementation.
 
-@node Using existentially quantified types
-@subsection Using existentially quantified types
+=== Using existentially quantified types
 
-@noindent
 So, what _are_ the rules for existentially quantified types? The
 first is one that we have already been looking at:
 
@@ -316,26 +306,29 @@ in its type.
 
 The second is related to this:
 
-@quotation
+[aside]
 Each occurrence of an existentially quantified type is potentially
 different.
-@end quotation
 
 Think about a function with the type:
+
 [source,star]
 ----
 exFn:for all t ~~ (t)=>exists e ~~ R[e,t]
 ----
+
 For the moment, we don't much care about ``R``. Now, consider how
 we might use ``exFn``:
+
 [source,star]
 ----
 X1 = exFn("alpha")
 @dots{}
 X2 = exFn("alpha")
 ----
-An important question is `what is the relationship between the type of
-``X1`` and the type of ``X2``?'. Unfortunately, the fundamental
+
+An important question is `'what is the relationship between the type of
+``X1`` and the type of ``X2``?'`. Unfortunately, the fundamental
 answer is `we cannot know in general' --- because we cannot assume
 that ``exFn`` is without side-effects in its implementation ---
 which in type terms means effectively there is no relationship: they
@@ -347,12 +340,14 @@ cannot assume _any_ link between the types of ``X1`` and
 how we use existentially quantified types.
 
 On the other hand, consider the similar sequence of definitions:
+
 [source,star]
 ----
 Y1 = exFn("alpha")
-@dots{}
+...
 Y2 = Y1
 ----
+
 In this case we _do_ know that the type of ``Y1`` is identical
 to the type of ``Y2``. This leads us to the third rule:
 
@@ -369,46 +364,48 @@ the additional constraint on the immutable values of ``Y1`` and
 
 We can see this a little clearly by looking at the effective type
 annotations of ``Y1`` and ``Y2``:
+
 [source,star]
 ----
 Y1:R[e345,string]
 Y1 = exFn("alpha")
-@dots{}
+...
 Y2:R[e345,string]
 Y2 = Y1
 ----
+
 where ``e345`` is the skolemized variant of the existential type
 ``e``.
 
 The effective annotations for ``X1`` and ``X2`` will have
 different skolem constants:
+
 [source,star]
 ----
 X1:R[e235,string]
 X1 = exFn("alpha")
-@dots{}
+...
 X2:R[e678,string]
 X2 = exFn("alpha")
 ----
+
 If ``Y1`` or ``Y2`` were declared to be re-assignable variables
 then, once again, we would not be able to connect the types of
 ``Y1`` and ``Y2`` together.
 
-@node Wrapping up packages
-@subsection Wrapping up packages
+=== Wrapping up packages
 
-@noindent
 Our original simple package record had the type
 
 [source,star]
 ----
-simple: exists foo/1 ~~ @{
+simple: exists foo/1 ~~ {
   type foo/1.
   foo:all t ~~ (t) <=> foo[t].
   bar:all t ~~ foo[t].
 
   fooMe:all t ~~ (t)=>foo[t].
-@}
+}
 ----
 
 The type signature has a type ``foo`` and a constructor ``foo``
@@ -428,20 +425,17 @@ become a major headache if not semantized (sic) correctly. However, we
 shall see an application of this for much smaller systems in Chapter 8
 when we discuss building platforms rather than simple applications.
 
-@node Abstract data types
-@section Abstract data types
+== Abstract data types
 
-@noindent
 Abstract data types can be viewed as the mathematics behind object
 oriented programming.footnote:[Not to be confused with Algebraic Data
 Types --- which represent the mathematical foundation for enumerations
 and other non-object values.]
 
-@table @emph
-@item Abstract Data Type
+.Abstract Data Type
+[aside]
 An abstract data type is a mathematical model of a set of related
 values that share a common set of semantics.
-@end table
 
 In programming, it is the _common_ semantics that defines the
 structure; but, of course, programming languages are not able to
@@ -460,12 +454,12 @@ One might start with a type definition that defines some operators over sets:
 
 [source,star]
 ----
-exists coll/1 ~~ genSet ::= genSet@{
+exists coll/1 ~~ genSet ::= genSet{
   type coll/1.
   z:all t ~~ coll[t].
   addElement:all t ~~ (t,coll[t])=>coll[t].
   present:all t ~~ (t,coll[t])=>boolean.
-@}
+}
 ----
 
 The essence of this type declaration is a collection of operators that
@@ -479,27 +473,28 @@ represent the set structure itself:
 
 [source,star]
 ----
-LS = genSet@{
-  all t ~~ coll[t] <~ list[t].
-  z = list of [].
+LS = genSet{
+  all t ~~ coll[t] ~> cons[t].
+  z = [].
   addElement(X,L) where X in L => L.
   addElement(X,L) => list of [X,..L].
   present(X,L) => X in L
-@}
+}
 ----
 
 The statement:
 [source,star]
 ----
-all t ~~ coll[t] <~ list[t].
+all t ~~ coll[t] ~> cons[t].
 ----
+
 which is a type alias statement, represents one of the ways that we
 can give evidence for the existence (sic) of the coll type. We could
 also have simply declared that:
 
 [source,star]
 ----
-type coll = list
+type coll = cons
 ----
 
 Given ``LS``, we can use it like a set generator --- ``LS``
@@ -534,10 +529,10 @@ when we assign a type to LS. In effect, LS is a module that exports
 the set type and associated operators; this module is referenced by
 name and is used to construct particular sets.
 
-A reasonable question here is `where is the Abstract Data Type?'. What
+A reasonable question here is `'where is the Abstract Data Type?'`. What
 we have is a record with a type and some functions in it. Recall that
-an ADT is a `model of a set of related values that share a common set
-of semantics'. The semantics in common are the functions in the
+an ADT is a `'model of a set of related values that share a common set
+of semantics`'. The semantics in common are the functions in the
 record; and the type itself is the existentially quantified type in
 that record --- coll.
 
@@ -545,10 +540,8 @@ Notice how we index off the ``LS`` variable to access the operators
 for this set; even while passing into it instances of sets created and
 modified by LS. This is one of the hallmarks of a module system.
 
-@node Opening up
-@subsection Opening up
+=== Opening up
 
-@noindent
 One of the reasons that we are so interested in establishing a
 `normal' semantics for modules and ADTs is that we can develop systems
 where the contents of a module depends on some additional computation;
@@ -578,7 +571,7 @@ of a record type:
 
 [source,star]
 ----
-fractionals ::= exists fraction ~~ fracts@{
+fractionals ::= exists fraction ~~ fracts{
   type fraction.
 
   frPlus:(fraction,fraction)=>fraction.
@@ -586,7 +579,7 @@ fractionals ::= exists fraction ~~ fracts@{
 
   frParse:(string)=>fraction.
   fraction:(integer,integer)=>fraction
-@}
+}
 ----
 
 One of the first things to note here is that fraction is existentially
@@ -627,13 +620,13 @@ allows us to unwrap a record like ``FR`` in a binding environment
 
 [source,star]
 ----
-let@{
+let{
   open FR
 
   F0 = frParse("3/4").
   F1 = fraction(1,2).
   F2 = frPlus(F0,F1).
-@} in 
+} in 
   show frToString(F2)   -- results in 5/4
 ----
 
@@ -648,20 +641,20 @@ implementing the arith contract:
 
 [source,star]
 ----
-let@{
+let{
   open FR.
 
-  implementation arith[fraction] => @{
+  implementation arith[fraction] => {
     X+Y => frPlus(X,Y)
-    @dots{} -- more operators needed
-  @}
-@} in @{
+    ...             -- more operators needed
+  }
+} in {
   F0 = frParse("3/4").
   F1 = fraction(1,2).
   F2 = F0+F1.
 
   show frString(F2)
-@}
+}
 ----
 
 We can improve this further by also implementing the coercion contract
@@ -669,21 +662,21 @@ between ``strings`` and ``fractions``:
 
 [source,star]
 ----
-let@{
+let{
   open FR.
 
-  implementation arith[fraction] => @{
+  implementation arith[fraction] => {
     X+Y => frPlus(X,Y)
-    @dots{} -- more operators needed
-  @}
-  implementation coercion[string,fraction] => @{
+    ...  -- more operators needed
+  }
+  implementation coercion[string,fraction] => {
     _coerce(S) => frParse(S)
-  @}
+  }
 
-  implementation coercion[fraction,string] => @{
+  implementation coercion[fraction,string] => {
     _coerce(F) => frToString(F)
-  @}
-@}
+  }
+}
 ----
 
 This allows us to use a more natural notation for expressions
@@ -691,15 +684,15 @@ involving our fractions:
 
 [source,star]
 ----
-let@{
+let{
   open FR.
-  @dots{}
-@} in @{
+  ...
+} in {
   F0 = "3/4" :: fraction.
   F1 = fraction(1,2).
 
   show F0+F1
-@}
+}
 ----
 
 While much better than our original, we still have too much code to
@@ -716,38 +709,36 @@ the type definition for ``fractionals``:
 
 [source,star]
 ----
-fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts@{
+fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
   type fraction.
 
   frPlus:(fraction,fraction)=>fraction.
   fraction:(integer,integer)=>fraction.
-@}
+}
 ----
 
-Since we are using contracts we do not need the explicit
-``frParse`` and ``frToString`` functions in the signature any
-more.
+Since we are using contracts we do not need the explicit ``frParse`` and
+``frToString`` functions in the signature any more.
 
-When we instantiate a ``fracts`` record we must provide --- within
-the record itself --- appropriate implementations of ``arith`` and
-``coercion``:
+When we instantiate a ``fracts`` record we must provide --- within the record
+itself --- appropriate implementations of ``arith`` and ``coercion``:
 
 [source,star]
 ----
-FX = fracts@{
+FX = fracts{
   fraction <~ myFraction.
-  implementation arith[myFraction] => @{
+  implementation arith[myFraction] => {
     X+Y => frPlus(X,Y).
-    @dots{} --- more operators needed
-  @}
-  implementation coercion[string,myFraction] => @{
+    ... --- more operators needed
+  }
+  implementation coercion[string,myFraction] => {
     _coerce(S) => frParse(S)
-  @}
-  implementation coercion[myFraction,string] => @{
+  }
+  implementation coercion[myFraction,string] => {
     _coerce(F) => frToString(F)
-  @}
-  @dots{}
-@}
+  }
+  ...
+}
 ----
 
 Notice that we implemented arithmetic for the internal
@@ -762,13 +753,13 @@ indeed we can write programs like:
 
 [source,star]
 ----
-let@{
+let{
   open FX.
-@} in @{
+} in {
   F0 = "3/4" :: fraction.
   F1 = fraction(1,2).
   show F0+F1.
-@}
+}
 ----
 
 This is virtually equivalent to the code we might have written if we
@@ -776,16 +767,13 @@ were importing a package with the definition of the ``fraction``
 type in it. The difference is that we have access to the full
 expressive power of the language in computing ``FX``.
 
-@node Injection
-@subsection Injection
+=== Injection
 
-@noindent
 Injection is a technique where we specialize a program with additional
-information; especially where that additional information is not part
-of the normal argument flow. Of course, it can be hard to be crisp
-about `not part of the normal argument flow'; but injection is an
-architectural technique to apply if and when it makes a difference in
-the readability of your code.
+information; especially where that additional information is not part of the
+normal argument flow. Of course, it can be hard to be crisp about `not part of
+the normal argument flow'; but injection is an architectural technique to apply
+if and when it makes a difference in the readability of your code.
 
 Injection is often used to manage _configuration_ of code: the
 configuration is injected into the main program; for example, we might
@@ -803,7 +791,7 @@ exam. The function itself is pretty simple:
 [source,star]
 ----
 passes(L) => fraction(
-  size(list of @{ X | X in L && X.score>Pass@}),
+  size(list of { X | X in L && X.score>Pass}),
   size(L))
 ----
   
@@ -819,7 +807,7 @@ value of ``Pass``:
 ----
 passes(Pass) =>
   (L)=>fraction(
-    size(list of @{ X | X in L && X.score>Pass@}),
+    size(list of { X | X in L && X.score>Pass}),
     size(L))
 ----
 Using this passes is a two-step process; we first use a specific
@@ -830,15 +818,13 @@ measure performance on groups of students:
 ----
 HS = passes(60)
 
-allPass = list of @{ C | C in Courses && HS(C)>0.80 @}
+allPass = list of { C | C in Courses && HS(C)>0.80 }
 ----
 
 The two-step process is a key part of the injection technique.
 
-@node Extensible types
-@subsection Extensible types
+=== Extensible types
 
-@noindent
 Sometimes, rather than configuring a program with a numeric value (or
 any other value for that matter), we need to configure it with a
 _type_. This does not happen that often, and Star's type
@@ -858,10 +844,10 @@ maintenance. You might keep track of this in a record:
 
 [source,star]
 ----
-maint ::= maint@{
+maint ::= maint{
   date:date.
   units:integer.
-@}
+}
 ----
 
 And you will also probably have a description of each piece of
@@ -869,11 +855,11 @@ equipment:
 
 [source,star]
 ----
-equip ::= equip@{
+equip ::= equip{
   id:string.
   eqpType:string.
   nextMaint:date.
-@}
+}
 ----
 
 Using this, and similar records, together with some clever algorithms,
@@ -909,11 +895,11 @@ variant of that record:
 
 [source,star]
 ----
-updateEquip(E,W) => equip@{
+updateEquip(E,W) => equip{
   id = E.id.
   eqpType = E.eqpType.
   nextMaint = W.
-@}
+}
 ----
 
 with the result that the customer data is lost. An alternative
@@ -922,12 +908,12 @@ special extra field:
 
 [source,star]
 ----
-equip[t] ::= equip@{
+equip[t] ::= equip{
   id:string.
   eqpType:string.
   nextMaint:date.
   extra:t.
-@}
+}
 ----
 
 Since we do not want to constrain the kind of information our
@@ -937,12 +923,12 @@ we can carry the data with us:
 
 [source,star]
 ----
-updateEquip(E,W) => equip@{
+updateEquip(E,W) => equip{
   id = E.id.
   eqpType = E.eqpType.
   nextMaint = W.
   extra = E.extra.
-@}
+}
 ----
 
 The problem with adding such an extra field is its type: this version
@@ -960,14 +946,14 @@ for the extra field:
 
 [source,star]
 ----
-equip ::= exists t ~~ equip@{
+equip ::= exists t ~~ equip{
   id:string.
   eqpType:string.
   nextMaint:date.
 
   type t.
   extra:t.
-@}
+}
 ----
 
 This has the effect of permitting a local extension to a record type
@@ -987,14 +973,14 @@ itself:
 
 [source,star]
 ----
-equip ::= exists t ~~ equip@{
+equip ::= exists t ~~ equip{
   id:string.
   eqpType:string.
   nextMaint:date.
   type t.
   extra:t.
   extraDate:(t,date)=>date.
-@}
+}
 ----
 
 Then, our ``updateEquip`` function calls this ``extraDate``
@@ -1002,14 +988,14 @@ function when computing the new maintenance schedule:
 
 [source,star]
 ----
-updateEquip(E,W) => equip@{
+updateEquip(E,W) => equip{
   id = E.id.
   eqpType = E.eqpType.
   nextMaint = E.extraDate(E.extra,W).
   type t = E.t.     --- note evidence for type
   extra = E.extra.
   extraDate = E.extraDate.
-@}
+}
 ----
 
 Of course, the customer has to provide functions that create the
@@ -1019,24 +1005,22 @@ software, will offer a default implementation:
 
 [source,star]
 ----
-equip(Id,Tp,Maint) => equip@{
+equip(Id,Tp,Maint) => equip{
   id = Id.
   eqpType = Tp.
   nextMaint = Maint.
   type t = ().  -- () is Star's void type
   extra = ().
   extraDate = (_,W) => W.
-@}
+}
 ----
 
 This approach meets our goals: we can allow customers of our software
 access to key data structures in a safe way that does not require use
 to modify our code for each customer or even to recompile it.
 
-@node Phew
-@section Phew
+== Phew
 
-@noindent
 This Chapter covers some difficult material! We start with a
 requirement to scale --- to be able to scale code from a single module
 through to applications built by assembling libraries. Along the way
