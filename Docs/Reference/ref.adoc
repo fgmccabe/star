@@ -1,4 +1,4 @@
-= Star Reference
+= Star Reference Manual
 :author: Francis G. McCabe
 :email: francis.g.mccabe@gmail.com
 :copyright: 2025 and beyond
@@ -6,6 +6,9 @@
 :doctype: book
 :title-page:
 :pdf-page-size: Letter
+:imagesdir: images
+:front-cover-image: image:front.png[Front Cover, 2883, 4029]
+
 
 This is the reference for the Star language, version {VERSION}.  
 

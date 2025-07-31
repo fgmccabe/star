@@ -509,7 +509,7 @@ public exception ::= .exception(string).
 ----
 
 [#contract]
-== Contract Definition
+== Contract
 (((type,contracts)))
 
 A contract definition is a statement that defines the functions and

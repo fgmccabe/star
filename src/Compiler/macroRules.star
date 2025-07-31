@@ -39,7 +39,7 @@ star.compiler.macro.rules{
     "<||>" -> [(.expression,quoteMacro)],
     "::" -> [(.expression,coercionMacro)],
     ":?" -> [(.expression,coercionMacro)],
-    ":" -> [(.actn,forLoopMacro)],
+    ":" -> [(.actn,forLoopMacro),(.expression,rangeMacro)],
     "*" -> [(.expression,multicatMacro)],
     ":" -> [(.rule,caseRuleMacro)],
     "{}" -> [(.expression,comprehensionMacro),
@@ -363,15 +363,32 @@ star.compiler.macro.rules{
 */
   incRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..<") =>
     .active(mkCon(Lc,"range",[Lb,Up,.nme(Lc,"one")])).
+  incRangeMacro(_,_) default => .inactive.
   
 /*
    Lb..>Up
    becomes
-   .range(Lc,Up,-one)
+   .range(Lb,Up,-one)
 */
-  decRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..<") =>
+  decRangeMacro(T,.expression) where (Lc,Lb,Up) ?= isBinary(T,"..>") =>
     .active(mkCon(Lc,"range",[Lb,Up,unary(Lc,"-",.nme(Lc,"one"))])).
+  decRangeMacro(_,_) default => .inactive.
 
+/*
+  Lb..<Up:Step
+  becomes
+  .range(Lb,Up,Step)
+  */
+  rangeMacro(T,.expression) where
+      (Lc,L,Stp) ?= isBinary(T,":") &&
+	  (_,Lb,Up) ?= isBinary(L,"..<") =>
+    .active(mkCon(Lc,"range",[Lb,Up,Step])).
+  rangeMacro(T,.expression) where
+      (Lc,L,Stp) ?= isBinary(T,":") &&
+	  (_,Lb,Up) ?= isBinary(L,"..>") =>
+    .active(mkCon(Lc,"range",[Lb,Up,unary(Lc,"-",Step)])).
+  rangeMacro(_,.expression) => .inactive.
+  
   /*
   for P in C do B
   becomes
