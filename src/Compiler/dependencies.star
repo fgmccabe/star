@@ -351,6 +351,8 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectTermRefs(A,All,Rf) where (_,L,H) ?= isTry(A) =>
     collectCasesRefs(H,collectTermRefs,All,collectTermRefs(L,All,Rf)).
+  collectTermRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
+    collectTermRefs(H,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ?= isResume(A) =>
     collectTermRefs(L,All,collectTermRefs(R,All,Rf)).
   collectTermRefs(A,All,Rf) where (_,L,R) ?= isSuspend(A) =>
@@ -405,6 +407,8 @@ star.compiler.dependencies{
     collectTermRefs(R,All,Rf).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isTry(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectDoRefs(L,All,Rf)).
+  collectDoRefs(A,All,Rf) where (_,L,H) ?= isTryCatch(A) =>
+    collectDoRefs(H,All,collectDoRefs(L,All,Rf)).
   collectDoRefs(A,All,Rf) where (_,L,H) ?= isCase(A) =>
     collectCasesRefs(H,collectDoRefs,All,collectTermRefs(L,All,Rf)).
   collectDoRefs(T,All,Rf) where (_,Env,Bnd) ?= isLetDef(T) =>

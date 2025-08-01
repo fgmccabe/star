@@ -146,6 +146,8 @@ star.compiler.macro{
     mkIfThen(Lc,macroCond(T),macroAction(L)).
   examineAction(A) where (Lc,B,Hs) ?= isTry(A) =>
     mkTry(Lc,macroAction(B),Hs//macroCaseAction).
+  examineAction(A) where (Lc,B,H) ?= isTryCatch(A) =>
+    mkTryCatch(Lc,macroAction(B),macroTerm(H)).
   examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
     mkWhileDo(Lc,macroCond(C),macroAction(B)).
   examineAction(A) where (Lc,El,C,B) ?= isForIn(A) =>
@@ -259,6 +261,8 @@ star.compiler.macro{
     mkTaskExp(Lc,macroAction(As)).
   examineTerm(A) where (Lc,B,Hs) ?= isTry(A) =>
     mkTry(Lc,macroTerm(B),Hs//macroLambda).
+  examineTerm(A) where (Lc,B,H) ?= isTryCatch(A) =>
+    mkTryCatch(Lc,macroTerm(B),macroTerm(H)).
   examineTerm(A) where (Lc,T) ?= isThrow(A) =>
     mkThrow(Lc,macroTerm(T)).
   examineTerm(A) where (Lc,L,R) ?= isResume(A) =>

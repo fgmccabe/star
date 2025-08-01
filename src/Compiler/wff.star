@@ -845,6 +845,15 @@ star.compiler.wff{
   public mkTry(Lc,B,Hs) =>
     unary(Lc,"try",binary(Lc,"catch",B,brTuple(Lc,[reBar(Hs)]))).
 
+  public isTryCatch:(ast) => option[(option[locn],ast,ast)].
+  isTryCatch(A) where (Lc,I) ?= isUnary(A,"try") &&
+      (_,B,H) ?= isBinary(I,"catch") =>
+    .some((Lc,B,H)).
+  isTryCatch(_) default => .none.
+
+  public mkTryCatch(Lc,B,H) =>
+    unary(Lc,"try",binary(Lc,"catch",B,H)).
+
   public isResume(A) => isBinary(A,"resume").
   public mkResume(Lc,L,R) => binary(Lc,"resume",L,R).
 
