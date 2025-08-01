@@ -288,8 +288,9 @@ TIP: Functions and other program values are first class values; as a result
 they may be passed as arguments to other functions as well as being
 assigned as attributes of records.
 
-Functions can be defined in a let expression -- or they may be _anonymous_ -- i.e.,
-appear as a function literal in an expression.
+Functions can be defined in a let expression, in recursive records, in packages
+-- or <<lambdaExpression>> can be used to craft a function literal directly as
+an expression.
 
 [#equation]
 ==== Equations
@@ -432,52 +433,6 @@ fact(X) where X>0 => X*fact(X-1).
 fact(X) default => 1
 ----
 
-=== Anonymous Function
-(((anonymous function)))
-(((expressions,function)))
-
-Anonymous functions -- or lambda expressions -- are expressions of the form:
-[source,star]
-----
-(X) => X+Y
-----
-Lambda expressions may appear anywhere a function value is permitted.
-
-[#anonymousFunctionFig]
-.Anonymous Function
-[source,star]
-----
-lambdaExpression --> tuplePattern, ["=>"], expression.
-----
-
-NOTE: If it desired to have a single-argument anonymous function that takes
-a tuple pattern then use double parentheses:
-[source,star]
-----
-((X,Y)) => X+Y
-----
-
-For example, a lambda expression to add 1 to its single argument would
-be:
-[source,star]
-----
-(X) => X+1
-----
-
-Lambda expressions are often used in function-valued functions. For example in:
-[source,star]
-----
-addX:(integer)=>((integer)=>integer).
-addX(X) => ((Y) => X+Y)
-----
-
-the value returned by `addX` is another function -- a single
-argument function that adds a fixed number to its argument.
-
-NOTE: the extra set of parentheses around both the embedded function type and
-around the returned function value.
-
-NOTE: Lambda expressions functions may reference free variables.
 
 [#throwingFunctions]
 ==== Functions that throw exceptions

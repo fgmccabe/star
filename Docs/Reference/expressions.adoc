@@ -10,6 +10,7 @@ expressions and actions that the expression itself may be part of.
 [source,star]
 ----
 expression --> variable.
+expression --> variableReference.
 expression --> numericLiteral.
 expression --> stringLiteral.
 expression --> algebraicLiteral.
@@ -68,7 +69,7 @@ NOTE: Technically, assigning to a `ref` variable is not changing the
 variable itself, but is changing the contents of the cell that denotes
 the `ref` variable's value.
 
-=== Re-assignable Variables in Expressions
+=== Re-assignable Variables
 
 (((referring to re-assignable variables,in expressions)))
 There are two modes of referring to re-assignable variables in
@@ -76,9 +77,16 @@ expressions: to access the value of the variable and to access the
 variable itself. The primary reason for the latter may be to assign to
 the variable, or to permit a later assignment.
 
+.Variable Reference
+[source,star]
+----
+variableReference --> expression, ["!"].
+----
+
 An undecorated occurrence of a variable denotes access to the variable
 itself, whereas if the access is decorated with a `!` then that
 refers to the variable's value. Thus, given a variable declaration:
+
 [source,star]
 ----
 Cx := 0
@@ -91,10 +99,14 @@ Cx+3
 ----
 is not legal because `Cx` here does not refer to the variable's
 value. Instead use:
+
 [source,star]
 ----
 Cx!+3
 ----
+
+NOTE: It is possible to 'dereference' an expression -- if the value of the
+expression is a re-assignable variable.
 
 === Modifying Fields of Records
 
@@ -1019,6 +1031,59 @@ then part of the conditional expression.
 NOTE: Variables introduced by the condition part of a conditional expression are
 _not_ in scope for the 'else' part.
 
+[#lambdaExpression]
+=== Lambda Expression
+(((lambda expression)))
+(((expression,lambda)))
+
+Lambda expressions are expressions of the form:
+[source,star]
+----
+(X) => X+Y
+----
+Lambda expressions may appear anywhere a function value is permitted.
+
+.Lambda Expression
+[source,star]
+----
+lambdaExpression --> tuplePattern, ["=>"], expression.
+----
+
+NOTE: If it desired to have a single-argument anonymous function that takes
+a tuple pattern then use double parentheses:
+[source,star]
+----
+((X,Y)) => X+Y
+----
+
+For example, a lambda expression to add 1 to its single argument would
+be:
+[source,star]
+----
+(X) => X+1
+----
+
+Lambda expressions are often used in function-valued functions. For example in:
+[source,star]
+----
+addX:(integer)=>((integer)=>integer).
+addX(X) => ((Y) => X+Y)
+----
+
+the value returned by `addX` is another function -- a single
+argument function that adds a fixed number to its argument.
+
+NOTE: the extra set of parentheses around both the embedded function type and
+around the returned function value.
+
+NOTE: Lambda expressions functions may reference free variables.
+
+NOTE: For the most part, it is not necessary to directly annotate a lambda
+expression with a type. However, the normal restrictions on automatically
+inferred types apply: in particular, if it is required that a lambda expression
+denote a generic or constrained type then an explicit type annotation will be
+necessary.
+
 [#thunkExpression]
 === Thunk Expressions
 
@@ -1047,11 +1112,8 @@ For example, a thunk to add two numbers might be:
 Thk = $$ (x+2)
 ----
 
-The embedded expression is not immediately evaluated. However, the
-values of any _free_ variables (in this case `x`), are
-frozen at this time.
-
-To access the value of a thunk, we use the `!!` operator:
+The embedded expression is not immediately evaluated. To access the value of a
+thunk, we use the `!!` operator:
 
 [source,star]
 ----
@@ -1256,15 +1318,18 @@ all s,t ~~ contract coercion[s,t] ::= {
 ----
 
 Specifically, an expression of the form: 
+
 [source,star]
 ----
 X :: integer
 ----
+
 is equivalent to the expression: 
 [source,star]
 ----
 (_optval(_coerce(X)) : integer)
 ----
+
 which has the effect of declaring that the
 expression has type `integer` and the `_coerce` function is an
 overloaded function that references a type-specific implementation --
@@ -1439,19 +1504,32 @@ expression. Otherwise the sequence is nil-terminated.
 
 Sequence expressions are interpreted in terms of the `sequence` contract.
 
-An expression of the form: 
-[source,star,subs="quotes"]
-----
-[E~1~,...,E~n~]
-----
-
-is equivalent to the expression: 
+Expressions such as: 
 [source,star]
 ----
-_cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
+[E1,E2,E3]
 ----
 
-where `_cons` and `_nil` are elements of the `sequence` contract:
+and
+[source,star]
+----
+[E1,E2,..R]
+----
+
+are equivalent to the expressions: 
+
+[source,star]
+----
+_cons(E1, _cons(E2, _cons(E3, _nil)))
+----
+
+and
+
+[source,star]
+----
+_cons(E1, _cons(E2, R))
+----
+respectively; where `_cons` and `_nil` are elements of the `sequence` contract:
 
 [source,star]
 ----
@@ -1621,7 +1699,6 @@ is the collection with any value associated with `K` removed.
 Where the index notation is used where the focus is on individual elements of a
 collection, the slice notation refers to sub sets of ordered collections.
 
-[#sliceExpressionFig]
 .Slice Expressions
 [source,star]
 ----
