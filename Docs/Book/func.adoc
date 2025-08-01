@@ -1646,7 +1646,7 @@ type inference system would infer from these equations:
 conc(.nil,x)=>x.
 conc(cons(h,tl),x) => cons(h,conc(tl,x))
 ----
-the generalized type for ``conc``:
+a generalized type for ``conc``:
 [source,star]
 ----
 conc:all t ~~ (cons[t],cons[t])=>cons[t].
@@ -1670,9 +1670,9 @@ this policy would require the ``conc`` program above to be written:
 ----
 conc:all t ~~ (cons[t],cons[t])=>cons[t].
 conc(.nil,x:list[t])=>x.
-conc(cons(h:t,tl:list[t]),x:list[t]) => cons(h,conc(t,x))
+conc(cons(h:t,tl:cons[t]),x:cons[t]) => cons(h,conc(t,x))
 ----
-The design of Star strikes a balance between useability and rigor:
+The design of Star aims to strike a balance between useability and rigor:
 most variables do not require explicit type annotations. We require
 them only when something 'special' is being indicated; one of those
 special circumstances is when defining a generic function.
@@ -1696,15 +1696,13 @@ true that -- like many modern functional languages -- Star's type system is
 complex and subtle. The primary motivation for this complexity is to reduce the
 burden for the programmer: by being able to infer types automatically, and by
 being able to address many programming subtleties, the type system comes to be
-seen as the programmer's friend rather than as an obstacle to be `gotten
-around'.
+seen as the programmer's friend rather than as an obstacle to be `'gotten
+around`'.
 
 == Are we there yet?
 
 The straightforward answer to this is no. There is a great deal more to
-functional programming than can be captured in a few pages. In particular, we
-have not touched on one of the foundations of modern functional programming --
-_Category Theory_.
+functional programming than can be captured in a few pages. 
 
 However, we have covered some of the key features of functional programming --
 particularly as it applies to Star. In subsequent chapters we will take a closer
