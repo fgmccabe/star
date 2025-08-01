@@ -646,17 +646,15 @@ Existential types are most often used in the type signatures of
 abstract data types. For example, the term in the statement:
 [source,star]
 ----
-R = { el ~> integer. op(X,Y) => X+Y. }
+R = { e ~> integer. op(X,Y) => X+Y. }
 ----
 
-has type:
+is consistent with the type:
 [source,star]
 ----
-exists el ~~ { op:(el,el)=>el }
+exists el ~~ { e ~> el. op:(e,e)=>e }
 ----
 
-[NOTE]
-****
 The fact that within the record the type `el` is identified as
 `integer` does not escape the record itself. Externally, the existence
 of the `el` type is known but not what it
@@ -664,7 +662,6 @@ is.
 
 It is permissible to refer to the type within the record by a dot
 reference.
-****
 
 [#encapsulatedType]
 ===== Encapsulated Type
@@ -882,8 +879,8 @@ named record with named fields:
 .Record Type Definition
 [source,star]
 ----
-recordTypeDefinition --> identifier, faceType.
-recordTypeDefinition --> quantifiers, identifier, faceType.
+recordTypeDefinition --> identifier, recordType.
+recordTypeDefinition --> quantifiers, identifier, recordType.
 ----
 
 For example, the type definition:
@@ -1228,15 +1225,15 @@ because the second is actually a unary tuple containing a zero-tuple; and
 ----
 because elements must unify in a pairwise way.
 
-==== Unifying Face Types
+==== Unifying Record Types
 
 Fields in a record are not intrinsically ordered, but the spirit of
 unification for records is similar to that of tuples:
 
-Two face types unify iff:
+Two record types unify iff:
 * they have the same fields and embedded types
-* each field's type in one face type unifies with the corresponding
-field of the other face type
+* each field's type in one record type unifies with the corresponding
+field of the other record type
 * each embedded type in one record unifies with the corresponding
 embedded type of the other record type.
 
@@ -1290,10 +1287,9 @@ where `t` is a type variable that is subsequently bound to
 `integer` and `e` is bound to `string`; whereas
 [source,star]
 ----
-(integer,string)=>integer throws string≠ (integer,string)=>integer
+(integer,string)=>integer throws string ≠ (integer,string)=>integer
 ----
 because non-throwing function types do not unify with throwing function types.
-
 
 ==== Unifying Type Variables
 
@@ -1418,21 +1414,27 @@ for any type _t_ because the latter type is not quantified.
 
 === Resolving Constraints
 
-Expressions involving constrained types must be _resolved_ in
-order to be type valid. Different constraints have different
-algorithms associated with their resolution.
+Expressions involving constrained types must be _resolved_ in order to be type
+valid. Different constraints have different algorithms associated with their
+resolution. However, in all cases, resolving a constraint typically involves a
+combination of unifying two or more types and creating a value expression that
+embodies the resolved constraint.
 
 ==== Resolving Contract Constraints
 
 Contract constraints are resolved by looking for implementations in
-scope.  For example, in the expression:
+scope.
+
+
+For example, in the expression:
 
 [source,star]
 ----
 X+34
 ----
 
-the arithmetic `+` operator comes from the `arith` contract:
+the arithmetic `+` operator is actually the name of a function, whose type from
+the `arith` contract:
 
 [source,star]
 ----
@@ -1449,23 +1451,51 @@ which means that the type of `+` takes the form:
 all x ~~ arith[x] |: (x,x) => x
 ----
 
-In the `X+34` the `arith` constraint associated with the
-occurrence of `+` must be resolved for it to be valid.
+For a given occurrance of ``+``, the identifier will have a type associated with
+it of the form:
+
+[source,star,subs="quotes"]
+----
+arith[_N~t~_] |: (_N~t~_,_N~t~_)=>_N~t~_
+----
+
+although in many cases, the type `_N~t~_` will be non-variable.
+
+Resolving a contract constraint involves examining the effective environment and
+looking for an appropriate implementation in that environment.
 
 Arithmetic is implemented for a wide variety of types, including
 potentially user defined types. Resolving the `arith` contract
 constraint amounts to identifying the correct implementation that is
 defined in the scope that the expression occurs in.
 
-Type inference allows us to determine that the actual contract constraint is
+Each implementation of the `arith` contract takes the form
 
-[source,star]
+[source,star,subs="quotes"]
 ----
-arith[integer]
+implementation arith[_type_] => _record_.
 ----
 
-and so the resolution process requires that an implementation of
-`arith[integer]` is in scope.
+To resolve the `arith` constraint in the context of a use of ``+`` we perform
+the following steps:
+
+. Assuming that the type associated with the occurrence is as above: `_N~t~_`,
+ * Let `NT` be the name of the type constructor of `_N~t~_`;
+ * If there is no such type constructor (e.g., if the type is not bound to a non-type variable), then this algorithm stops.
+. Let `A_N~t~_` be the type associated with an `implementation` of `arith` that is in the effective environment that has the same type constructor: `NT`.
+ * If there is no such `implementation` then a type error results, and the algorithm stops.
+. If `A_N~t~_` unifies with `_N~t~_` then the contract may be resolved, and the occurrence of the `+` identifier is rewritten to:
+[source,star,subs="quotes"]
+----
+V_N~t~_.(+)
+----
+where `V_N~t~_` is the expression that is on the right hand side of the `implementation` statement.
+
+To type check a whole program, the checker must systematically attempt to
+resolve all the contract constraints discovered. If the checker cannot make
+progress, i.e., if one or more of the constraints is insufficiently instantiated
+to be able to identify a potential `implementation`, then the checker fails with
+a type error.
 
 Implementations can be viewed as functions whose value is a record of
 all the elements of the defined contract. For example, the
@@ -1521,13 +1551,12 @@ the `arith` contract. This allows the contract constraints associated
 with `X+X*Y` to be resolved by the function constraints rather than
 looking for an explicit implementation of `arith`.
 
-Note that annotating a function to be constrained in this way results
+Note that annotating a function to be constrained in this way may result
 in new requirements for any uses of the function -- whenever `addSq`
 is used the `arith` constraint must be resolved in that context.
  
 It is an error for the top-level of a program -- i.e., package-level
 -- to contain unresolved references to contracts.
-
 
 ==== Resolving Implicit Constraints
 

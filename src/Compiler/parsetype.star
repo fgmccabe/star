@@ -237,19 +237,6 @@ star.compiler.typeparse{
     
     valis .some(.typeLambda(Tp,RTp))
   }
-  parseTypeFun(St,Env) where (Lc,V,C,H,B) ?= isTypeExistsStmt(St) => valof{
-    if traceCanon! then{
-      showMsg("parse type exists $(St)")
-    };
-
-    Q = parseBoundTpVars(V);
-    QEnv = declareTypeVars(Q,Env);
-    (Tp,_) = parseTypeHead(H,QEnv,id);
-    Cx = parseConstraints(C,Env);
-    Fce = parseType(B,declareType(tpName(Tp),Lc,Tp,.typeExists(Tp,.faceType([],[])),QEnv));
-    TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),Fce),Q);
-    valis .some(TpRl)
-  }
   parseTypeFun(St,Env) where (Lc,V,B) ?= isQuantified(St) => valof{
     Q = parseBoundTpVars(V);
     QEnv = declareTypeVars(Q,Env);
