@@ -392,12 +392,12 @@ both the `comp` and the `arith` contracts (see
 <<compContract>> and <<arithContract>>).
 
 [#typeConstraint]
-==== Type Constraints
+==== Type Constraint
 
 (((type,constraints)))
 There are three kinds of type constraint: contract constraints, field constraints and binding constraints.
 
-.Type Constraints
+.Type Constraint
 [source,star]
 ----
 typeConstraint --> contractConstraint.
@@ -538,6 +538,17 @@ let{
   limit = 1000;
 } in clamp(Z)
 ----
+
+(((dynamic binding))) Implicit binding constraints are a useful alternative to
+so-called _dynamic binding_. Except that, unlike similar mechanisms in languages
+like LISP, implicit binding constraints are statically type checked. Futhermore,
+some safety is guaranteed: a call to a function that has an implicit binding
+constraint will not type check if the required variable is not in scope. This,
+in turn, means that access to the variable is guaranteed.
+
+Implicit binding constraints have an additional role in `async` functions. The
+`async` function form is a macro that uses an implicit binding constraint to
+ensure that the `async` function is invoked in an appropriate context.
 
 [#fieldConstraint]
 ===== Field Constraint
@@ -742,7 +753,7 @@ WARNING: A regular type variable only unifies with regular types, and a type
 constructor type variable only unifies with type constructors.
 
 TIP: Higher kinded type variables are most commonly used in the
-context of `contractDefinition`s. In particular, there are no values
+context of ``contractDefinition``s. In particular, there are no values
 directly associated with higher kinded types.
 
 For example, given:
@@ -774,6 +785,9 @@ a type variable where every occurrance is unique. The anonymous
 variable is used in situations where we don't care what the type is.
 
 == Type Definitions
+
+A <<typeDefinition>> introduces a new type and defines what values
+belong to the type.
 
 (((type definition)))
 There are several ways that a type may be defined in a scope.
@@ -871,8 +885,8 @@ The reason is that the quantifiers in such a definition may be
 reliably inferred without being explicitly identified.
 ****
 
-=== Record Type Definition
 [#recordTypeDefinition]
+=== Record Type Definition
 A record type definition is a statement that defines a type associated with a
 named record with named fields:
 
@@ -899,7 +913,7 @@ positional constructor or a record constructor can be defined only
 once. I.e., it is not permitted to _share_ constructor labels across different
 types. Nor may such a label be used as the name of a variable in the same scope.
 
-NOTE: As with algebraicTypeDefinition statements, a record type definition may
+NOTE: As with <<algebraicTypeDefinition>> statements, a record type definition may
 be quantified. In addition, we may omit the explicit quantifiers. I.e., instead
 of
 
@@ -973,13 +987,13 @@ hand side.
 [#typeExistsDefinition]
 
 A type exists statement is a declaration of a type --
-without committing to the nature of teh type itself.
+without committing to the nature of the type itself.
 
 [#typeExitsFig]
 .Type Exists Statement
 [source,star]
 ----
-typeExistsDefinition --> typeTemplate, ["<~"], type.
+typeExistsDefinition --> typeTemplate, ["<~"], ["{}"].
 typeExistsDefinition --> quantifier*, typeExistsDefinition.
 ----
 
@@ -989,8 +1003,11 @@ type without overly committing to its form:
 For example, the statement:
 [source,star]
 ----
-time ~> integer.
+time <~ {}.
 ----
+
+declares the existence of the `time` type without giving any indication of its
+actual form.
 
 [#typeSemantics]
 == Type Semantics
@@ -1045,7 +1062,7 @@ var : type
 ----
 type ~> type
 ----
-* A type constraint consists of an instance of a <<typeConstraint>>s:
+* A type constraint consists of an instance of a <<typeConstraint>>:
 [source,subs="quotes"]
 ----
 Constraint
@@ -1126,8 +1143,9 @@ replacing variables with values.
 (((type,unification,nominal)))
 Two nominal types unify if they can be made identical:
 
-* Two <<simpleType>>s unify if they are the same <<simpleType>>
+* Two simple types unify if they are the same simple type.
 +
+--
 For example,
 [source,star]
 ----
@@ -1138,13 +1156,15 @@ but,
 ----
 integer ≠ string
 ----
-+
+
 NOTE: Star distinguishes between types declared in different scopes. So,
 two types in different packages or in different scopes within the same
 package will not unify.
+--
 * Two <<parameterizedType>>s unify if their type constructors unify, they have
 the same number of type arguments, and those arguments pairwise unify.
 +
+--
 For example,
 [source,star]
 ----
@@ -1165,7 +1185,7 @@ and
 ----
 cons[integer] ≠ cons[integer,string]
 ----
-
+--
 
 NOTE: In fact, the `cons` example -- with two type arguments instead of
 one -- is not a valid type expression. This is because it is not
@@ -1231,6 +1251,7 @@ Fields in a record are not intrinsically ordered, but the spirit of
 unification for records is similar to that of tuples:
 
 Two record types unify iff:
+
 * they have the same fields and embedded types
 * each field's type in one record type unifies with the corresponding
 field of the other record type
@@ -1258,8 +1279,8 @@ the first does not have a `bar` field.
 ==== Unifying Function Types
 
 Two function types unify iff their arguments unify and the result
-unifies. Note that the simple function type does not unify with the
-constructor function type.
+unifies. Note that simple function types do not unify with the
+throwing function types.
 
 [source,star]
 ----
@@ -1294,16 +1315,17 @@ because non-throwing function types do not unify with throwing function types.
 ==== Unifying Type Variables
 
 There are two sub-cases for unifying type variables:
+
 . if either the left or the right terms are not type variables, then
 _provided that_:
 * the type variable does not itself appear in the non-variable type; and
+(((Occurs check)))
 * any type constraints on the type variable are satisfied by the
 non-variable type;
 then the two
 types are unifiable.
 +
 NOTE: The first condition is known as an _occurs check_.
-(((Occurs check)))
 +
 In addition, the fact of the unification is recorded as a binding for
 the variable type. Thereafter, when unifying types, this binding must
@@ -1313,24 +1335,27 @@ is permitted; and the fact of the unification is recorded as a binding
 for the variable that is bound. As for non-variable bindings, the
 binding must be applied to all occurrences of the same type variable.
 +
+--
 In addition, any type constraints on the type variables are
 _merged_. If this merging is not possible then the two type
 variables do not unify.
-+
+
 Type constraints are merged as follows, assuming that `t~a~`
 is bound to `t~b~`:
-.. for every contract constraint in `t~a~`, if a contract
+
+* for every contract constraint in `t~a~`, if a contract
 contraint exists for `t~b~` with the same contract name, then
 the two contracts must unify, otherwise it is appended to the
 contraints for `t~b~`.
-.. if there is a field constraint in `t~a~`, it is merged with
+* if there is a field constraint in `t~a~`, it is merged with
 the corresponding field constraint for `t~b~`.
+--
 
 ==== Unifying Quantified Types
 
 Unifying quantified types is slightly more involved than that of other
 forms of type. Two quantified types are unifiable iff they can be made
-to be identical; however, a uantified type stands for all or some
+to be identical; however, a quantified type stands for all or some
 type. In particular, two quantified types are considered to be
 identical if they differ only in the name of the bound variable.
 
@@ -1348,14 +1373,17 @@ all y ~~ cons[y]
 Our rule for unifying two quantified types reflects this:
 
 Two quantified types are unifiable if
+
 * they are the same form of quantifier (`all` vs `exists`
 * for some type name `t` that does not occur in either of them,
++
+--
 [source,star,subs="quotes"]
 ----
 all x~~_T1_
 ----
 is renamed to
-[source,star]
+[source,star,subs="+quotes"]
 ----
 all t~~_T1'_
 ----
@@ -1374,19 +1402,20 @@ is rewritten to
 ----
 all t~~_T2'_
 ----
-+
-NOTE: Both `_T1_` and `_T2_` are rewritten using the same target name `t`.
 
-Finally, the two quantified types unify iff
+NOTE: Both `_T1_` and `_T2_` are rewritten using the same target name `t`.
+--
+* Finally, the two quantified types unify iff
++
 [source,star,subs="quotes"]
 ----
 _T1'_ = _T2'_
 ----
 
-NOTE: Because both `x` and `y` are bound type variables, they
-cannot occur in any outer type terms -- should the quantified types be
-part of larger type terms that are being unified there cannot be any
-binding 'side effect' by rewriting either of `x` or `y`.
+NOTE: Because both `x` and `y` are bound type variables, they are logically
+distinct from other occurrences of `x` or `y` in any outer type terms -- should
+the quantified types be part of larger type terms that are being unified there
+is no binding 'side effect' by rewriting either of `x` or `y`.
 
 Some examples:
 [source,star]
@@ -1412,6 +1441,19 @@ all a~~(a)=>integer ≠ (_t_)=>integer
 ----
 for any type _t_ because the latter type is not quantified.
 
+WARNING: This definition of unification of quantified type terms is not _complete_, from a logical point of view. In particular, the two type expression:
+[source,star]
+----
+all x ~~ (all y ~~ (x)=>y)
+----
+and
+[source,star]
+----
+all y ~~ (all x ~~ (x)=>y)
+----
+will _not_ unify under this algorithm: because the order of quantifiers is
+different.footnote:[We adopted this restriction for two reasons: it encourages consistency in writing quantified type expressions and it avoids a costly quadratic algorithm for unification.]
+
 === Resolving Constraints
 
 Expressions involving constrained types must be _resolved_ in order to be type
@@ -1422,9 +1464,8 @@ embodies the resolved constraint.
 
 ==== Resolving Contract Constraints
 
-Contract constraints are resolved by looking for implementations in
-scope.
-
+Contract constraints are resolved by looking for appropriate contract
+implementations in scope.
 
 For example, in the expression:
 
@@ -1459,17 +1500,14 @@ it of the form:
 arith[_N~t~_] |: (_N~t~_,_N~t~_)=>_N~t~_
 ----
 
-although in many cases, the type `_N~t~_` will be non-variable.
-
-Resolving a contract constraint involves examining the effective environment and
-looking for an appropriate implementation in that environment.
+for some type `_N~t~_`.
 
 Arithmetic is implemented for a wide variety of types, including
 potentially user defined types. Resolving the `arith` contract
 constraint amounts to identifying the correct implementation that is
 defined in the scope that the expression occurs in.
 
-Each implementation of the `arith` contract takes the form
+Implementations of the `arith` contract take the form
 
 [source,star,subs="quotes"]
 ----
@@ -1481,10 +1519,11 @@ the following steps:
 
 . Assuming that the type associated with the occurrence is as above: `_N~t~_`,
  * Let `NT` be the name of the type constructor of `_N~t~_`;
- * If there is no such type constructor (e.g., if the type is not bound to a non-type variable), then this algorithm stops.
-. Let `A_N~t~_` be the type associated with an `implementation` of `arith` that is in the effective environment that has the same type constructor: `NT`.
+ * If there is no such type constructor (e.g., if the type `_N~t~_` is a type variable), then this algorithm stops.
+. Let `AN~t~` be the type associated with an `implementation` of `arith` that is in the effective environment that has the same type constructor: `NT`.
  * If there is no such `implementation` then a type error results, and the algorithm stops.
-. If `A_N~t~_` unifies with `_N~t~_` then the contract may be resolved, and the occurrence of the `+` identifier is rewritten to:
+. If `AN~t~` unifies with `N~t~` then the contract may be resolved, and the occurrence of the `+` identifier is rewritten to:
+
 [source,star,subs="quotes"]
 ----
 V_N~t~_.(+)
@@ -1520,7 +1559,7 @@ and when a contract constraint appears in a generic function.
 
 When a contract is implemented for a generic type, only the generic
 type name itself is used to identify potential implementations. Thus,
-it would not be possible, for example, to have two or more
+it is not permittede, for example, to have two or more
 implementations of `arith` for `cons[integer]` and
 `cons[float]` in scope.
 
@@ -1561,14 +1600,92 @@ It is an error for the top-level of a program -- i.e., package-level
 ==== Resolving Implicit Constraints
 
 Implicit constraints are resolved by looking for an associated
-variable to be in scope.  For example, in the expression:
+variable to be in scope.  For example, given the function:
+
+[source,star]
+----
+needsI:(I:integer)|:(integer)=>integer.
+needsI(X)=>X+I.
+----
+
+calls to `needsI` such as
+
+[source,star]
+needsI(34)
+
+are modified during constraint resolution to the equivalent of:
+
+[source,star]
+needsI(I,34)
+
+I.e., the missing variable is inserted into the call.
+
+Type checking and resolve a call to a function with an implicit binding
+constraint involves the steps:
+
+* Ensure that, for every implicit binding constraint of the form `(_V_:_T_)` a variable `_V_` of type `_V_~t~` is in scope,
+* unify `_V_~t~` with `_T_`, if they do not unify then abort and report a type error
+* replace the call `F(A~1~,..,A~n~)` with `F(_V_,A~1~,..,A~n~)`
 
 ==== Resolving Field Constraints
 
+A field constraint is a requirement that a given type has a particular named
+field associated with it.
 
-A <<typeDefinition>> introduces a new type and defines what values
-belong to the type.
+As with other type constraints, resolving a field constraint has two parts:
+identifying that a type has to correct properties and providing an
+implementation for the feature.
 
-A <<typeAnnotation>> is an assertion that a particular expression -- usually a
-variable -- has a certain type.
+(((accessor function))) Foundational to accessing fields is the accessor
+function. Accessor functions are unary functions that are tailored to access a
+field from a record. For example, given the record type declaration:
+
+[source,star]
+----
+type person ::= someOne{
+  name : string.
+  spouse : option[person]
+}
+----
+
+we construct two functions: `person.name` and `person.spouse` whose definitions
+are:footnote:[Since records are translated by the compiler into positional
+constructor functions, the actual accessor functions constructor by the compiler
+is slightly different.]
+
+[source,star]
+----
+'person.name'(someOne{name=N}) => N.
+'person.spouse'(someOne{spouse=S}) => S.
+----
+
+Given such functions, resolving field constraints amounts to:
+
+* verifying that the constrained type is of a record type (and that the type has
+  the required field)
+* insert a reference to the correct accessor function
+* replace field access expressions with calls to the argument accessor function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

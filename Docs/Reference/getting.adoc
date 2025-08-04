@@ -1,17 +1,17 @@
+[appendix]
 = Getting Star
 
 The Star language system is available on github at:
-@url{https://github.com/fgmccabe/star}
+<<https://github.com/fgmccabe/star>>
 
 == Building Star
 
-To build the Star language system from scratch requires a few
-dependencies; most notably SWI-Prolog -- which is used to build the
-bootstrap compiler -- and cmake. The latter should be at least version 3.20.
+To build the Star language system from scratch requires a few dependencies; most
+notably SWI-Prolog -- which is used to build the bootstrap compiler -- and
+cmake. The latter should be at least version 3.20.
 
-Once dependencies are satisfied, and the source code has been
-downloaded from GitHub, building is straightforward: construct a
-`build` directory:
+Once dependencies are satisfied, and the source code has been downloaded from
+GitHub, building is straightforward: construct a `build` directory:
 
 
 [source, bash]
@@ -28,9 +28,8 @@ Once `cmake` has run, just `make`:
 $ make
 ----
 
-
-This builds the run-time, compiles the bootstrap compiler and compiles
-the standard library and runs the tests.
+This builds the run-time, compiles the bootstrap compiler, the star compiler
+(written in Star) and compiles the standard library and runs the tests.
 
 Once completed without errors, install:
 

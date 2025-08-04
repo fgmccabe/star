@@ -4,6 +4,7 @@
 :copyright: 2025 and beyond
 :toc:
 :doctype: book
+:sectnums:
 :title-page:
 :pdf-page-size: Letter
 :imagesdir: images

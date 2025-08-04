@@ -81,7 +81,8 @@ choose to represent numeric values as `float`.
 [#infoPath]
 == Infoset paths
 
-(((path access to json@path access to `json`)))
+(((path access to json)))
+(((json,path access)))
 Infoset values are typically deeply nested structures involving both accessing
 dictionary-like collections and arrays. In order to make working with `json`
 values simpler we introduce the concept of an json path -- an `infoPath`.
@@ -116,18 +117,15 @@ and the path that denotes the first id from the `IDs` sequence is:
 Infoset paths are used in several of the functions that are defined on `json`
 values.
 
-(((json@`json`,standard functions)))
-
 == Standard Functions on Json Values
 
 Several contracts are implemented for `json` values; including `indexed`,
 `iter`, `display` and `coercion` (to and from `string` values).
 
-(((json@`json`,standard functions!_index@`\_index`)))
-(((_index@`_index`)))
-
 === `_index` access to `json`
 
+(((json,_index)))
+(((_index,json)))
 The `_index` function applies an `infoPath` to an `json` to obtain a portion of the `json` value. It's type is:
 [source,star]
 ----
@@ -136,8 +134,8 @@ _index:(infoPath)=>option[json].
 
 `_index` is part of the `indexed` contract -- see <<indexedContract>>.
 
-(((json@`json`,standard functions!_put@`\_put`)))
-(((_put@`_put`)))
+(((json,standard functions)))
+(((_put,json)))
 
 === `_put` -- Set a Value in an `json`
 
@@ -163,8 +161,8 @@ NOTE: If the path prescribed by the `infoPath` expression does not go through
 `.jColl` and `.jSeq` elements of the `json` structure, those elements will be
 overwritten with the new value.
 
-(((json@`json`,standard functions!_remove@`_remove`)))
-(((_remove@`_remove`)))
+(((json,_remove)))
+(((_remove,json)))
 === `_remove` -- Remove a Value from an `json`
 
 The `_remove` function removes a value in an `json` -- depending on a path --
@@ -178,8 +176,8 @@ The type of `_remove` for `json` values is given by:
 _remove:(json,infoPath)=>json
 ----
 
-(((json@`json`,standard functions!_iter@`_iter`)))
-(((_iter@`_iter`)))
+(((json,_iter)))
+(((_iter,json)))
 
 === `_iter` -- Iterate Over an `json`
 

@@ -20,9 +20,9 @@ import star.system.
 ----
 ****
 
-
 === `getenv`
 
+(((getenv)))
 The `getenv` function retrieves the value of an environment
 variable, as an optional string:
 
@@ -61,7 +61,7 @@ envir:()=>cons[(string,string)].
 
 === `_exit`
 
-The `_exit` function terminates the @Star{} application with a numeric code:
+The `_exit` function terminates the Star application with a numeric code:
 
 [source,star]
 ----
@@ -104,9 +104,10 @@ retaining the ability to interact with it -- via I/O.
 An application may log output to standard logging facilities using the `logMsg` action procedure.
 
 === `level` -- type
-(((level type@`level` type)))
 
+(((level type)))
 The `level` type defines a set of logging levels that may be used to indicate the severity of the logged message.
+
 [source,star]
 ----
 public logLevel ::=

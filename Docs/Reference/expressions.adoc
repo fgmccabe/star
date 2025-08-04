@@ -402,7 +402,7 @@ There are three primary forms of constructor literals:
 ----
 constructorLiteral --> enumeratedSymbol.
 constructorLiteral --> positionalConstructorLiteral.
-constructorLiteral --> recorcLiteral.
+constructorLiteral --> recordLiteral.
 ----
 
 [#enumeratedSymbol]
@@ -1242,7 +1242,8 @@ For example,
 .some("alpha")
 ----
 
-signals the definite tring value `"alpha"`; whereas 
+signals the definite tring value `"alpha"`; whereas
+
 [source,star]
 ----
 .none
@@ -1543,9 +1544,9 @@ NOTE: There is a corresponding contract for sequence terms as patterns -- the `s
 
 [#rangeExpression]
 === Range Expressions
-((range expression))
-((expression, range))
 
+(((range expression)))
+(((expression, range)))
 Range expressions are used to denote ranges of various forms.
 
 [#rangeExpressionFig]
@@ -1553,8 +1554,10 @@ Range expressions are used to denote ranges of various forms.
 [source,star]
 ----
 rangeExpression --> expression, ["..<"], expression.
+rangeExpression --> expression, ["..<"], expression, [":"] expression.
 rangeExpression --> expression, ["..>"], expression.
-----
+rangeExpression --> expression, ["..>"], expression, [":"] expression.
+---
 
 I.e., a range expression denotes a range of numbers. The range expression
 
@@ -1571,6 +1574,21 @@ denotes the integers in the range 0 .. 99 inclusive. The range expression
 ----
 
 denotes a decreasing range of integers in the range 100 down to 1.
+
+It is possible to specify a step in the range:
+
+[source,star]
+----
+0..<100:2
+----
+
+denotes all the even integers less than 100. The range expression `100..>0` is
+equivalent to:
+
+[source,star]
+----
+100..<0:-one
+----
 
 Range expressions are most useful when used in `for` loops. For
 example, the traditional-looking action:
@@ -1593,18 +1611,25 @@ Range expressions are syntactic sugar for terms involving the
 all i ~~ range[i] ::= .range(i,i,i).
 ----
 
-An ascending range expression like that above is equivalent to
+An ascending range expression like `0..<100` is equivalent to
 
 [source,star]
 ----
 .range(0,100,one)
 ----
 
-and the descending range is:
+and the descending range `100..>0` is equivalent to:
 
 [source,star]
 ----
 .range(100,0,-one)
+----
+
+Specifying a step in the range expression, as in `0..<100:2` maps to
+
+[source,star]
+----
+.range(0,100,2)
 ----
 
 What makes the `range` type interesting is the contracts that are implemented

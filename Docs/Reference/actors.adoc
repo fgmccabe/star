@@ -1,19 +1,33 @@
-%!TEX root = reference.tex
+[#actors]
 = Actors
-[[actors]]
+
 (((actors)))
+An `actor` is an encapsulation of behavior and state that is capable of
+interacting with other `actor`s. footnote:[Actors in *Star* should not be
+confused with Hewitt actors <<agha-hew:87>>. Although both Hewitt actors and
+*Star* actors are a paradigm for distributed computing; *Star* actors are
+somewhat higher-level in that their primary mode of interaction is based on
+speech actions. *Star* actors are like actors in a play: they recite lines to
+each other and are choreographed by the author.] Actors represent a way of
+expressing multiple loci of computation that can interact and collaborate.
 
-An `actor` is an encapsulation of behavior and state that is capable of interacting with other `actor`s. footnote:[Actors in *Star* should not be confused with Hewitt actors \cite{agha-hew:87}. Although both Hewitt actors and *Star* actors are a paradigm for distributed computing; *Star* actors are somewhat higher-level in that their primary mode of interaction is based on speech actions. *Star* actors are like actors in a play: they recite lines to each other and are choreographed by the author.] Actors represent a way of expressing multiple loci of computation that can interact and collaborate.
+From a programming methodology perspective, there is some correspondence between
+actors and objects in `Object Oriented Programming'.  It is useful to view an
+actor as being an active entity that is responsible for some aspect of the
+overall problem being addressed in the application.
 
-\begin{aside}
-From a programming methodology perspective, there is some correspondence between actors and objects in `Object Oriented Programming'.  It is useful to view an actor as being an active entity that is responsible for some aspect of the overall problem being addressed in the application.
-\end{aside}
-
-The core of actors in *Star* is the interaction protocol that they support. This protocol is based on three _speech actions_: `notify` which is used to notify an actor that some event has happened; `request` which is used to request an actor to perform an action; and `query` which is used to ask an actor a question.
+The core of actors in *Star* is the interaction protocol that they support. This
+protocol is based on three _speech actions_: `notify` which is used to notify an
+actor that some event has happened; `request` which is used to request an actor
+to perform an action; and `query` which is used to ask an actor a question.
 
 == A Chatty actor Example
-[[talkers]]
-By way of introduction, we first demonstrate `actor`s with a simple scenario -- a `chatty' situation involving two `actor`s talking to each other in an endless cycle footnote:[We shall see that the length of the conversation is limited by the available stack depth.] -- illustrated in <<pingPongProg>>.
+
+By way of introduction, we first demonstrate `actor`s with a simple
+scenario -- a `chatty' situation involving two `actor`s talking to each other in
+an endless cycle footnote:[We shall see that the length of the conversation is
+limited by the available stack depth.] -- illustrated in <<pingPongProg>>.
+
 \begin{figure}[htbp]
 \begin{center}
 \includegraphics[width=0.6\textwidth]{diagrams/PingAndPong.pdf}
@@ -22,7 +36,11 @@ By way of introduction, we first demonstrate `actor`s with a simple scenario -- 
 \end{center}
 \end{figure}
 
-Each of `ping` and `pong` have an `ear` by which they `hear' events. This is signaled by their type which is an `actor` type that references `ear` as an `occurrence` of `string`s. Program~\vref{chattySchema} shows a `type` `alias` definition that captures this in a `type alias`.
+Each of `ping` and `pong` have an `ear` by which they `hear' events. This is
+signaled by their type which is an `actor` type that references `ear` as an
+`occurrence` of `string`s. Program~\vref{chattySchema} shows a `type` `alias`
+definition that captures this in a `type alias`.
+
 \begin{program}
 [listing]
 type talker is alias of actor of \{
