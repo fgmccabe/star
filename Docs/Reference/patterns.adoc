@@ -1,3 +1,4 @@
+[#pattern]
 = Patterns
 
 (((patterns)))
@@ -7,8 +8,6 @@ value. Patterns are used as guards in equations, as filters in query expressions
 and in `for` loops. Patterns represent one of the fundamental mechanisms that
 can guide the course of a computation.
 
-[#pattern]
-.Patterns
 [source,star]
 ----
 pattern --> scalarPattern.
@@ -20,14 +19,10 @@ pattern --> sequencePattern.
 pattern --> annotatedPattern.
 ----
 
-.Patterns and Types
-[sidebar]
-====
 (((patterns,type of))) Every pattern has a type associated with it. This is the
 type of values that the pattern is valid to match against. In the type safety
 productions involving patterns, we use the same meta predicate: _E ⊦ P:T_ as for
 expressions.
-====
 
 [#patternVariable]
 == Variables in Patterns
@@ -73,6 +68,19 @@ introduces variables that are in scope on the right hand side of the equation:
 ----
 N*fact(N-1)
 ----
+
+The scope extension of a pattern depends on where the pattern occurs. However,
+as a general rule, variables defined in a pattern extend outward and to the
+right of where the pattern variable occurs -- so long as the pattern
+necessitates the extension: i.e., control flow _must_ flow from the pattern
+variable throughout the scope extension.
+
+For example, if the variable pattern is part of a constructor pattern, then the
+concstructor pattern is part of the scope extension of the variable. Similarly, a variable in a pattern on the left of a conjuction is also in scope in the right hand part of the conjunction.
+
+On the other hand, if the variable occurs on the laft hand side of a disjuction,
+then the variable's scope extension does not include the right hand part of the
+disjunction.
 
 === Anonymous Variable Pattern
 The special identifier -- `++_++` -- is used on those occasions where
@@ -255,11 +263,11 @@ $2(X,Y) in R
 ----
 Noting, of course, that `$2` is not a legal <<identifier>>.
 
-== Guarded Pattern
 [#guardedPattern]
+== Guarded Pattern
+
 (((patterns,guarded)))
 (((guarded patterns)))
-
 A guarded pattern attaches a semantic condition on a pattern. It consists of a
 pattern, followed by the `where` keyword and a predication condition -- all
 enclosed in parentheses.
