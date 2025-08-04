@@ -29,7 +29,7 @@ test.primes{
 
     sieve:(range[integer])=>cons[integer].
     sieve(R) => fst(foldRight(step,([],(K)=>.true),R)).
-  .} in sieve(.range(3,Max,2)).
+  .} in sieve(3..<Max:2).
   
   -- Sieve of Erastosthenes, using generators
 
