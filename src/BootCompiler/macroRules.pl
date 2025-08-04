@@ -39,6 +39,7 @@ macroRl("=>",statement,macroRules:curryMacro).
 macroRl("=>",expression,macroRules:curryMacro).
 macroRl("do",action,macroRules:forLoopMacro).
 macroRl(":",action,macroRules:forMacro).
+macroRl(":",expression,macroRules:rangeMacro).
 macroRl("->",expression,macroRules:arrowMacro).
 macroRl("->",pattern,macroRules:arrowMacro).
 macroRl("..<",expression,macroRules:incRangeMacro).
@@ -448,6 +449,16 @@ incRangeMacro(T,expression,Rp) :-
 decRangeMacro(T,expression,Rp) :-
   isBinary(T,Lc,"..>",Lb,Up),!,
   mkConApply(Lc,name(Lc,"range"),[Lb,Up,unary(Lc,"-",name(Lc,"one"))],Rp).
+
+/*
+   Lb..<Up:St
+  becomes
+  .range(Lb,Up,St)
+*/
+rangeMacro(T,expression,Rp) :-
+  isBinary(T,Lc,":",L,St),
+  isBinary(L,_,"..<",Lb,Up),!,
+  mkConApply(Lc,name(Lc,"range"),[Lb,Up,St],Rp).
 
 /*
   for P in C do B

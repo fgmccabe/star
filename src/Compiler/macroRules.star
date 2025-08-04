@@ -383,10 +383,6 @@ star.compiler.macro.rules{
       (Lc,L,Step) ?= isBinary(T,":") &&
 	  (_,Lb,Up) ?= isBinary(L,"..<") =>
     .active(mkCon(Lc,"range",[Lb,Up,Step])).
-  rangeMacro(T,.expression) where
-      (Lc,L,Step) ?= isBinary(T,":") &&
-	  (_,Lb,Up) ?= isBinary(L,"..>") =>
-    .active(mkCon(Lc,"range",[Lb,Up,unary(Lc,"-",Step)])).
   rangeMacro(_,.expression) => .inactive.
   
   /*

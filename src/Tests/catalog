@@ -95,6 +95,7 @@
     "test.h": "h.star",
     "test.i": "i.star",
     "test.idx0": "idx0.star",
+    "test.impl0": "impl0.star",
     "test.implies": "implies.star",
     "test.inc": "inc.star",
     "test.incopy": "incopy.star",
