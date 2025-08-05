@@ -164,7 +164,84 @@ TIP: Using `iterGenerator` is by far the simplest method to create generators.
 
 == Tasks, Task Groups, Async functions and Futures
 
-TBD.
+A `task` is a suspendable computation. Tasks are executed in the context of a
+task group -- whose implementation combines aspects of task scheduling and
+returning the value of tasks.
+
+A task can invoke any function, but some functions require the services of a
+task group manager and can only be invoked by task computations. These functions
+are marked as `async`.
+
+
+
+[#future]
+=== Future
+
+A `future` is a value that represents a value that may not be immediately
+available. Futures are used, for example, with many I/O functions to 
+represent the result of a delayed I/O operation.
+
+The `future` type itself is opaque, but has two type arguments:
+
+[source,star]
+----
+all x,e ~~ future[x,e] <~ {}
+----
+
+The standard way of accessing a `future` value is the `waitfor` function. The
+signature for `waitfor` is:
+
+[source,star]
+----
+waitfor:all x,e ~~ async (future[x,e]) => x throws e
+----
+
+The `async` modifier indicates that `waitfor` must be invoked in the context of
+a `task`. As the signature suggests, `waitfor` either returns the ``future``s
+value -- in the case that it was resolved successfully -- or throws an exception
+-- in the case that the `future` was resolved with a rejection.
+
+`waitfor` must be invoked in the context of a `task` because the `task` may be
+suspended -- if the `futures` has not yet been resolved.
+
+`future` values are returned by many of the standard I/O functions. However, it
+is also possible for user code to create `future` values. The primary means for
+creating a `future` is the `_cell_future` escape:
+
+[source,star]
+----
+_cell_future:all x,e ~~ (ref either[x,e]) => future[x,e]
+----
+
+This standard function takes a reference to a cell whose type is `either[x,e]`
+and creates a future from it. The `either` type is a standard type defined as:
+
+[source,star]
+----
+public all a,b ~~ either[a,b] ::= .either(a) | .neither | .other(b).
+----
+
+I.e., an `either` value can be given an `a` value, a `b` value or no value.
+
+Normally, a `future`is initialized with a reference to a `.neither` value:
+
+[source,star]
+----
+makeAFuture:all x,e ~~ () => (future[x,e],ref either[x,e]).
+makeAFuture() => valof{
+  C = ref .neither;
+  valis (_cell_future(C),C)
+}
+----
+
+The future created this way will only beome resolved by setting the `C` to one
+of the non-trivial values of the `either` type. On the other hand, the `future`
+itself is typically returned as part of teh client function's API.
+
+Note that setting the reference to `.either(V)` has the effect of resolving the
+future, and setting it to `.other(E)` has the effect of rejecting the future: it
+will cause `waitfor` to throw the value of the rejection as an exception.
+
 
 [#fiber]
 == Fibers
