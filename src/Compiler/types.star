@@ -503,6 +503,9 @@ star.compiler.types{
 
   funRes(.tpExp(O,R)) where .tpExp(O2,_) .= deRef(O) &&
       .tpFun("=>",2).=deRef(O2) => deRef(R).
+  funRes(.tpExp(O,E)) where .tpExp(O2,R) .= deRef(O) &&
+      .tpExp(O3,A) .= deRef(O2) &&
+	  .tpFun("=>",3).=deRef(O3) => deRef(R).
   funRes(.tpExp(O,R)) where .tpExp(O2,A) .= deRef(O) &&
       .tpFun("<=>",2).=deRef(O2) => deRef(R).
   funRes(.allType(_,Tp)) => funTypeRes(Tp).

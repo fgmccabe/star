@@ -199,4 +199,7 @@ star.strings{
 
   public strPrefix:(string,string) => boolean.
   strPrefix(Pr,Txt) => _str_start(Pr,Txt).
+
+  public explode:(string)=>cons[char].
+  explode(S) => _explode(S).
 }
