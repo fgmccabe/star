@@ -36,14 +36,14 @@ void clearJitContext(jitCompPo jit) {
   freePool(contextPool, jit);
 }
 
-armReg findFreeReg(jitCompPo jit) {
-  armReg rg = nxtAvailReg(jit->freeRegs);
+registerSpec findFreeReg(jitCompPo jit) {
+  registerSpec rg = nxtAvailReg(jit->freeRegs);
   check(rg!=XZR, "no available registers");
   jit->freeRegs = dropReg(jit->freeRegs, rg);
   return rg;
 }
 
-retCode reserveReg(jitCompPo jit, armReg rg) {
+retCode reserveReg(jitCompPo jit, registerSpec rg) {
   if (isRegInMap(jit->freeRegs, rg)) {
     jit->freeRegs = dropReg(jit->freeRegs, rg);
     return Ok;
@@ -51,6 +51,6 @@ retCode reserveReg(jitCompPo jit, armReg rg) {
     return Error;
 }
 
-void releaseReg(jitCompPo jit, armReg rg) {
+void releaseReg(jitCompPo jit, registerSpec rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }
