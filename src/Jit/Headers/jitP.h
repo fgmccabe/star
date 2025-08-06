@@ -57,9 +57,9 @@ jittedCode createCode(assemCtxPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
-retCode reserveReg(jitCompPo jit, armReg rg);
-armReg findFreeReg(jitCompPo jit);
-void releaseReg(jitCompPo jit, armReg rg);
+retCode reserveReg(jitCompPo jit, registerSpec rg);
+registerSpec findFreeReg(jitCompPo jit);
+void releaseReg(jitCompPo jit, registerSpec rg);
 
 logical isByte(int64 x);
 logical isI32(int64 x);
