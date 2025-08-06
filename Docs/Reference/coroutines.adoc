@@ -162,6 +162,13 @@ implementation all e ~~ iter[tree[e]->>e] => let{.
 
 TIP: Using `iterGenerator` is by far the simplest method to create generators.
 
+Given this implementation, a generator the ``MyTree` value becomes:
+
+[source,star]
+----
+iterGenerator(MyTree)
+----
+
 == Tasks, Task Groups, Async functions and Futures
 
 A `task` is a suspendable computation. Tasks are executed in the context of a
@@ -171,6 +178,21 @@ returning the value of tasks.
 A task can invoke any function, but some functions require the services of a
 task group manager and can only be invoked by task computations. These functions
 are marked as `async`.
+
+Tasks are `future`-valued (see <<future>>). This means that a coroutine can
+`waitfor` another task to complete and access the result.
+
+A task group is a collection of ``tasks`s -- with an associated scheduler. The
+scheduler is responsible for
+
+* scheduling (i.e., performing) the tasks in its group
+* implementing certain task services -- for example to allow new tasks to be added to the task group
+* deciding when to terminate.
+
+A program starts a coroutining session by invoking a task manager with a seed
+collection of tasks. The call to the task manager does not complete until the
+conditions set by the particular manager have been met. This typically involves
+ensuring that all the tasks in the group have completed.
 
 
 
