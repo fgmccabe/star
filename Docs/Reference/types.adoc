@@ -95,7 +95,7 @@ cons[integer]
 ----
 (((type function)))
 is a type constructor: it takes a type as an argument and
-returns another type as result.
+returns another type as a result.
 ****
 
 [#structuralTypes]
@@ -108,7 +108,7 @@ syntactically the values that they represent.
 There are three main forms of structural type: tuple types,
 program types and record types.
 
-NOTE: Structural types are inherently _non-recursive_: only nominal types can
+NOTE: Star's structural types are inherently _non-recursive_: only nominal types can
 have definitions that imply a recursive type.
 
 [#tupleType]

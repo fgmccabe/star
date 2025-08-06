@@ -23,7 +23,8 @@
     "test.sy0": "sy0.star",
     "test.sy1": "sy1.star",
     "test.record": "record.star",
-    "test.throwing" : "thrwin.star"
+    "test.throwing" : "thrwin.star",
+    "test.lib.text" : "text.star"
   },
   "version": "1.0.0",
   "default": "../../Star/catalog"

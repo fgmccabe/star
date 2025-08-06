@@ -55,7 +55,8 @@ termPo ioFinalizer(specialClassPo class, termPo o) {
   ioChnnlPo chnl = C_IO(o);
 
   // close the channel
-  closeIo(chnl->io);
+  if (chnl->io != Null)
+    closeIo(chnl->io);
 
   return (termPo) (o + IOChnnlCellCount);
 }
