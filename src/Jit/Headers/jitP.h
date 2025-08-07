@@ -26,7 +26,7 @@ typedef enum {
 typedef struct localSpec {
   integer offset;
   integer id;
-  registerSpec Rg;
+  mcRegister Rg;
   localVarState state;
 } LocalRecord, *localPo;
 
@@ -57,9 +57,9 @@ jittedCode createCode(assemCtxPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
-retCode reserveReg(jitCompPo jit, registerSpec rg);
-registerSpec findFreeReg(jitCompPo jit);
-void releaseReg(jitCompPo jit, registerSpec rg);
+retCode reserveReg(jitCompPo jit, mcRegister rg);
+mcRegister findFreeReg(jitCompPo jit);
+void releaseReg(jitCompPo jit, mcRegister rg);
 
 logical isByte(int64 x);
 logical isI32(int64 x);

@@ -144,7 +144,7 @@ static armReg topStkOp(jitCompPo jit) {
 
 static void pushStkOp(jitCompPo jit, armReg src) {
   jit->stack[jit->stackDepth].state = inRegister;
-  jit->stack[jit->stackDepth].Rg = RG(src);
+  jit->stack[jit->stackDepth].Rg = src;
   jit->stackDepth++;
   storeLocal(jit, src, -jitTrueStackDepth(jit));
 }
