@@ -148,7 +148,7 @@ typedef struct {
   codeLblPo lbl;
 } FlexOp;
 
-typedef armReg registerSpec;
+typedef armReg mcRegister;
 
 logical sameFlexOp(FlexOp a, FlexOp b);
 
