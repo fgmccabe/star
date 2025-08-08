@@ -7,12 +7,8 @@ test.wordle{
 
   import test.lib.text.
 
-  parseWordFile:(string)=>cons[cons[char]] throws ioException.
-  parseWordFile(Fn) => valof{
-    Lns = readLines(Fn);
-
-    valis (Lns//explode)
-  }
+  parseWordFile:(string)=>cons[string] throws ioException.
+  parseWordFile(Fn) => readLines(Fn).
 
   result ::= .grey(char,integer) | .yellow(char,integer) | .green(char,integer).
 
@@ -23,20 +19,18 @@ test.wordle{
   compResult(R1,R2) => indexOf(R1)<indexOf(R2).
 
   implementation display[result] => {
-    disp(.grey(Ch,Ix)) => "Grey\e[47m#(Ch::string)\e[0m($(Ix))".
-    disp(.yellow(Ch,Ix)) => "Yellow\e[43m#(Ch::string)\e[0m($(Ix))".
-    disp(.green(Ch,Ix)) => "Green\e[42m#(Ch::string)\e[0m($(Ix))".
+    disp(.grey(Ch,Ix)) => "\e[47m #(Ch::string) \e[0m".
+    disp(.yellow(Ch,Ix)) => "\e[43m #(Ch::string) \e[0m".
+    disp(.green(Ch,Ix)) => "\e[42m #(Ch::string) \e[0m".
   }
 
-  score:(cons[char],cons[char])=>cons[result].
+  showScore:(cons[result])=>string.
+  showScore(Sc) => (Sc//disp)*.
+
+  score:(cons[char],cons[char])=>string.
   score(S,G) => valof{
     (Gn,Ss,Gs) = greenScore(S,zip(G,iota(0,size(G))),[],[],[]);
-    show Gn;
-    show Ss;
-    show Gs;
-    Score = sort(yellowScore(Gs,Ss,Gn),compResult);
-    show Score;
-    valis Score
+    valis showScore(sort(yellowScore(Gs,Ss,Gn),compResult));
   }
 
   greenScore:(cons[char],cons[(char,integer)],cons[result],cons[char],cons[(char,integer)]) =>
@@ -54,18 +48,49 @@ test.wordle{
   yellowScore([(C,Ix),..Gs],S,Sc) =>
     yellowScore(Gs,S,[.grey(C,Ix),..Sc]).
   yellowScore([],_,Sc) => Sc.
+
+  filterGuesses:(string,string,cons[string])=>cons[string].
+  filterGuesses(Guess,Score,Words) => 
+    { C | C in Words && score(C::cons[char],Guess::cons[char])==Score }.
+
+  makeAGuess(Words) => _optval(Words[_irand([|Words|])]).
+
+  play:(string,cons[string]) => ().
+  play(Secret,Words) => valof{
+    _seed(_ticks());
+    WordCnt = [|Words|];
+    SecretChars = Secret::cons[char];
+      
+    Cnt := 0;
+    Possibles := Words;
+    while Cnt!<6 && ~isEmpty(Possibles!) do{
+      Cnt := Cnt!+1;
+      Guess = makeAGuess(Possibles!);
+      Score = score(SecretChars,Guess::cons[char]);
+      showMsg("Guess $(Cnt!)\: #(Score)");
+      if Guess==Secret then{
+	showMsg("Success in $(Cnt!) goes");
+	valis ()
+      }
+      else{
+	Possibles := filterGuesses(Guess,Score,Possibles!);
+      }
+    };
+    showMsg("Failed after $(Cnt!) goes");
+    valis ()
+  }
       
   main:()=>().
   main() => valof{
     try{
       Words = parseWordFile("wordle.txt");
+      _seed(_ticks());
       Cnt = [|Words|];
-      if Guess ?= Words[_irand(Cnt)] &&
-	  Secret ?= Words[_irand(Cnt)] then{
-	show Guess;
+      
+      if Secret ?= Words[_irand(Cnt)] then{
 	show Secret;
-	show score(Secret,Guess);
-	  }
+	play(Secret,Words);
+      }
     } catch {
       M => showMsg("We got an exception: $(M)")
     };
