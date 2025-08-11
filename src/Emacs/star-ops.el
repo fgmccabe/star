@@ -104,7 +104,6 @@
   (">>=" ( (infix 949 950 950)))
   ("^/" ( (infix 960 960 959)))
   ("<~" ( (infix 998 999 998)))
-  ("type" ( (prefix 1251 1250)))
   ("|" ( (prefix 1548 1547) (infix 1548 1548 1547)))
   (".#." ( (infix 600 600 599)))
   ("~" ( (prefix 905 904)))
@@ -166,7 +165,6 @@
 "while"
 "private"
 "implementation"
-"type"
 "else"
 "throws"
 )

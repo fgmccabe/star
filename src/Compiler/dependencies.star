@@ -546,8 +546,6 @@ star.compiler.dependencies{
     valis collectFaceTypes(Ds,All,R1)
   }
 
-  collectFaceType(P,All,R) where (_,I) ?= isUnary(P,"type") =>
-    collectFaceType(I,All,R).
   collectFaceType(P,All,R) where (_,L,T) ?= isTypeAnnotation(P) =>
     collectTypeRefs(T,All,R).
   collectFaceType(P,All,R) where (_,L,T) ?= isTypeLambda(P) =>

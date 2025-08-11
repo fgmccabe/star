@@ -6,14 +6,14 @@ star.compiler.token{
   public token ::= .tok(locn,tk) | .endTok(locn).
 
   public tk ::= .idQTok(string)
-    | .idTok(string)
-    | .lftTok(string)
-    | .rgtTok(string)
-    | .intTok(integer)
-    | .bigTok(bigint)
-    | .fltTok(float)
-    | .chrTok(char)
-    | .strTok(cons[stringSegment]).
+  | .idTok(string)
+  | .lftTok(string)
+  | .rgtTok(string)
+  | .intTok(integer)
+  | .bigTok(bigint)
+  | .fltTok(float)
+  | .chrTok(char)
+  | .strTok(cons[stringSegment]).
 
   public stringSegment ::= .segment(locn,string)
     | .interpolate(locn,cons[token],string)
@@ -28,8 +28,8 @@ star.compiler.token{
       | .fltTok(Dx) => disp(Dx)
       | .chrTok(Ch) => disp(Ch)
       | .strTok(S) => "\"#(dispSegments(S)*)\""
-      | .lftTok(Id) where .bkt(LId,_,_,_,_) ?= isBracket(Id) => "#(LId)"
-      | .rgtTok(Id) where .bkt(_,_,RId,_,_) ?= isBracket(Id) => "#(RId)"
+      | .lftTok(Lft) => "#(Lft)"
+      | .rgtTok(Rgt) => "#(Rgt)"
     }
   }
 
@@ -61,8 +61,8 @@ star.compiler.token{
       | .fltTok(Dx1) => .fltTok(Dx2).=Tk2 && Dx1==Dx2
       | .chrTok(C1) => .chrTok(C2).=Tk2 && C1==C2
       | .strTok(S1) => .strTok(S2).=Tk2 && S1==S2
-      | .lftTok(S1) => .lftTok(S2).=Tk2 && S1==S2
-      | .rgtTok(S1) => .rgtTok(S2).=Tk2 && S1==S2
+      | .lftTok(L1) => .lftTok(L2).=Tk2 && L1==L2
+      | .rgtTok(R1) => .rgtTok(R2).=Tk2 && R1==R2
     }
   }
 

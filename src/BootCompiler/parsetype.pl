@@ -274,7 +274,7 @@ parseTypeField(F,Env,Q,Flds,[(Fld,FldTp)|Flds],Types,Types) :-
   isIden(Nm,_,Fld),
   parseType(FT,Env,Q,FldTp).
 parseTypeField(S,Env,Q,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
-  isTypeField(S,_,Nm,T),
+  isTypeLambda(S,_,Nm,T),
   isIden(Nm,_,Fld),
   parseType(T,Env,Q,FldTp).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-

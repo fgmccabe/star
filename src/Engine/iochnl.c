@@ -115,12 +115,12 @@ ioChnnlPo stdOutChnl(heapPo h) {
   if (outChnl == Null) {
     outChnl = allocateIOChnnl(h, Stdout());
   }
-  return inChnl;
+  return outChnl;
 }
 
 ioChnnlPo stdErrChnl(heapPo h) {
   if (errChnl == Null) {
     errChnl = allocateIOChnnl(h, Stderr());
   }
-  return inChnl;
+  return errChnl;
 }

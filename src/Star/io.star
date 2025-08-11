@@ -196,5 +196,14 @@ star.io{
       | _ => retire .retired_
     }
   }
+
+  public stdin:ioHandle.
+  stdin = _stdfile(0).
+
+  public stdout:ioHandle.
+  stdout = _stdfile(1).
+
+  public stderr:ioHandle.
+  stderr = _stdfile(2).
   
 }
