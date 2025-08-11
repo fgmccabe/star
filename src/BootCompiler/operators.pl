@@ -122,7 +122,6 @@
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(998, 999, 998)]).
-  operator("type", [prefixOp(1251, 1250)]).
   operator("|", [prefixOp(1548, 1547), infixOp(1548, 1548, 1547)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [prefixOp(905, 904)]).
@@ -434,7 +433,6 @@
   keyword("<|").
   keyword("<~").
   keyword("{").
-  keyword("type").
   keyword(".}").
   keyword("|").
   keyword("}").

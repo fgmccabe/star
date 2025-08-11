@@ -139,7 +139,6 @@ star.compiler.operators{
     | ">>=" => [.infixOp(949,950,950)]
     | "^/" => [.infixOp(960,960,959)]
     | "<~" => [.infixOp(998,999,998)]
-    | "type" => [.prefixOp(1251,1250)]
     | "|" => [.prefixOp(1548,1547), .infixOp(1548,1548,1547)]
     | ".#." => [.infixOp(600,600,599)]
     | "~" => [.prefixOp(905,904)]
@@ -494,7 +493,6 @@ star.compiler.operators{
     | "<|" => .true
     | "<~" => .true
     | "{" => .true
-    | "type" => .true
     | ".}" => .true
     | "|" => .true
     | "}" => .true

@@ -84,9 +84,11 @@ star.compiler.lexer{
     graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-      (Str,(.bkt(SoFr,Lbl,_,_,_) ?= isBracket(SoFr) ?? .some(.tok(makeLoc(St0,Str),.lftTok(Lbl))) ||
-	  .bkt(_,Lbl,SoFr,_,_) ?= isBracket(SoFr) ?? .some(.tok(makeLoc(St0,Str),.rgtTok(Lbl))) ||
-	  .some(.tok(makeLoc(St0,Str),.idTok(SoFr))))).
+      (Str,(.bkt(SoFr,Lbl,_,_,_) ?= isBracket(SoFr) ??
+	.some(.tok(makeLoc(St0,Str),.lftTok(SoFr))) ||
+	.bkt(_,Lbl,SoFr,_,_) ?= isBracket(SoFr) ??
+	.some(.tok(makeLoc(St0,Str),.rgtTok(SoFr))) ||
+	.some(.tok(makeLoc(St0,Str),.idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
   .} in graphFollow(St,Ld,finalist(Ld,St,(St,.none))).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).

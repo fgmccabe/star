@@ -32,7 +32,7 @@ In addition, type expressions are combinations of types and type constructors.
 .Types of Types
 [source,star]
 ----
-type --> nominal.
+type --> nominalType.
 type --> typeVariable.
 type --> tupleType.
 type --> recordType.

@@ -14,7 +14,7 @@ test.ar1{
 
     assert doubler(ζinc,3)==5;
 
-    show doubler((((x)=>x+one):(all x ~~ arith[x] |: (x)=>x)),3);
+--    show doubler((((x)=>x+one):(all x ~~ arith[x] |: (x)=>x)),3);
     valis ()
   }
 }

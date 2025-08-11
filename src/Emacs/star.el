@@ -110,7 +110,7 @@
 	  (star-one-of
 	   '(
 	     "boolean" "float" "integer" "bigint" "char" "string" "ref"
-	     "fiber" "set" "cons" "option"
+	     "fiber" "set" "cons" "option" "future"
 	     )) "\\>")
   "Regular expression matching the standard types to highlight in Star mode.")
 
@@ -118,7 +118,7 @@
   (concat "[^-+*/<>=!]"
 	  (star-one-of
 	   '(
-	     "+" "-" "*" "/" ">" "<" "=<" ">=" "==" ">>=" "!"
+	     "+" "-" "*" "/" ">" "<" "=<" ">=" "==" 
 	     ))
 	  "[^-+*/<>=!]")
   "Regular expression matching some of the standard builtins.")

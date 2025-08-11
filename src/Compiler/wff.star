@@ -248,13 +248,6 @@ star.compiler.wff{
   public mkTypeFunStmt(Lc,Q,C,L,R) =>
     reUQuant(Lc,Q,reConstrain(C,binary(Lc,"~>",L,R))).
 
-  public isTypeStatement:(ast) => option[(option[locn],ast,ast)].
-  isTypeStatement(A) where (Lc,R) ?= isUnary(A,"type") &&
-      (_,V,T) ?= isTypeAnnotation(R) => .some((Lc,V,T)).
-  isTypeStatement(_) default => .none.
-
-  public mkTypeStatement(Lc,V,T) => unary(Lc,"type",mkTypeAnnotation(Lc,V,T)).
-
   public isAlgebraicTypeStmt:(ast) => 
     option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isAlgebraicTypeStmt(A) => isAlgebraic(A).
