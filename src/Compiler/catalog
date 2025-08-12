@@ -1,5 +1,6 @@
 {
   "content": {
+    "star.compiler.abstract" : "abstract.star",
     "star.compiler.asm" : "asm.star",
     "star.compiler.assem" : "assem.star",
     "star.compiler.ast": "ast.star",
@@ -50,6 +51,7 @@
     "star.compiler.peephole": "peephole.star",
     "star.compiler.re": "re.star",
     "star.compiler.resolve": "resolve.star",
+    "star.compiler.syntax" : "syntax.star",
     "star.compiler.term.repo" : "termrepo.star",
     "star.compiler.token": "token.star",
     "star.compiler.typeparse": "parsetype.star",
