@@ -2,7 +2,7 @@ test.impl0{
   import star.
   import star.assert.
 
-  needsI:(I:integer)|:(integer)=>integer.
+  needsI:I|=integer|:(integer)=>integer.
   needsI(X)=>X+I.
 
   main:()=>().

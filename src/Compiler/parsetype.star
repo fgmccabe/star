@@ -206,7 +206,7 @@ star.compiler.typeparse{
   }
 
   parseTypeField:(ast,tipes,rules,dict) => (tipes,rules).
-  parseTypeField(F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeAnnotation(F) => valof{
+  parseTypeField(F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeDecl(F) => valof{
     if (ILc,Nm) ?= isName(Lhs) then {
       FTp=parseType(Rhs,Env);
       valis ([(Nm,FTp),..Flds],Tps)
@@ -870,17 +870,17 @@ star.compiler.typeparse{
     updaterEqns(_,_,_,Eqns) default => Eqns.
   .} in collapsePairs(Fields//((Fld,FTp))=>makeUpdater(Fld,FTp,B)).
 
-  isFieldOfFc([F,..Els],Fld) where (_,Fld) ?= isTypeAnnot(F) => .true.
+  isFieldOfFc([F,..Els],Fld) where (_,Fld) ?= isTypeDecl(F) => .true.
   isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).
   isFieldOfFc([],_) default => .false.
 
-  isTypeAnnot(A) where (Lc,V,_) ?= isTypeAnnotation(A) && (_,Id) ?= isName(V) => .some((Lc,Id)).
-  isTypeAnnot(_) default => .none.
+  isTypeDecl(A) where (Lc,V,_) ?= isTypeDeclaration(A) && (_,Id) ?= isName(V) => .some((Lc,Id)).
+  isTypeDecl(_) default => .none.
 
   projectArgTypes([],_,_,_,_,_) => [].
-  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeAnnot(A) && F == V =>
+  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeDecl(A) && F == V =>
     [X,..projectArgTypes(As,Ix+1,Fn,X,F,Fs)].
-  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeAnnot(A) && Tp?=pickFldTp(V,Fs) =>
+  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeDecl(A) && Tp?=pickFldTp(V,Fs) =>
     [Fn(Lc,Ix,Tp),..projectArgTypes(As,Ix+1,Fn,X,F,Fs)].
   projectArgTypes([_,..As],Ix,Fn,X,F,Fs) => projectArgTypes(As,Ix,Fn,X,F,Fs).
 
@@ -888,7 +888,7 @@ star.compiler.typeparse{
   pickFldTp(Id,Tps) => {! Tp | (Id,Tp) in Tps !}.
 
   compEls:(ast,ast)=>boolean.
-  compEls(E1,E2) where (_,K1) ?= isTypeAnnot(E1) && (_,K2) ?= isTypeAnnot(E2) => K1<K2.
+  compEls(E1,E2) where (_,K1) ?= isTypeDecl(E1) && (_,K2) ?= isTypeDecl(E2) => K1<K2.
   compEls(_,_) default => .false.
 
   implementation all t ~~ reQuant[t] |: reQuant[cons[t]] => let{.
