@@ -1,6 +1,6 @@
 star.compiler.syntax{
   import star.
-  import star.compiler.abstract.
+  import star.compiler.ast.
   import star.compiler.location.
   import star.compiler.misc.
   import star.compiler.token.
@@ -9,6 +9,7 @@ star.compiler.syntax{
   identifier >> (Lc,Nm) --> [.tok(Lc,.idTok(Nm))], { ~ keyword(Nm) }.
   identifier >> (Lc,Nm) --> [.tok(Lc,.idQTok(Nm))].
 
+  type:() >> ast --> cons[token].
   type --> nominalType.
   type --> typeVariable.
   type --> tupleType.

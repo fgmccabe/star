@@ -216,6 +216,12 @@ star.compiler.wff{
   public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
   mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
 
+  public isTypeDeclaration:(ast)=>option[(option[locn],ast,ast)].
+  isTypeDeclaration(A) => isBinary(A,":").
+
+  public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
+  mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
+
   public isTypeExistsStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isTypeExistsStmt(A) where
       (Lc,Q,I) ?= isQuantified(A) &&

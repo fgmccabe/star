@@ -50,7 +50,7 @@
   operator("?=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("<*", [infixOp(600, 600, 599)]).
-  operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
+  operator("#", [infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920), prefixOp(950, 949)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
@@ -85,7 +85,7 @@
   operator("return", [prefixOp(930, 929)]).
   operator("?", [prefixOp(300, 299)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
-  operator("|=", [infixOp(998, 999, 998)]).
+  operator("|=", [infixOp(1234, 1235, 1234)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(899, 898), infixOp(898, 899, 898)]).
@@ -306,7 +306,7 @@
   final('|]',"|]").	 /* measure brackets */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
-  final('|=',"|=").	 /* implicit variable */
+  final('|=',"|=").	 /* constrained type */
   final('|>',"|>").	 /* meta quote */
   final('}',"}").	 /* non-recursive braces */
   final('~',"~").	 /* logical negation */
@@ -322,7 +322,7 @@
   final(']',"]").	 /* square brackets */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
-  final(':',":").	 /* type annotation */
+  final(':',":").	 /* type declaration */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
@@ -353,7 +353,7 @@
   final('⊕',"⊕").	 /* addition */
   final('•',"•").	 /* function composition */
   final('••',"••").	 /* binary function composition */
-  final('#',"#").	 /* Macro statement marker */
+  final('#',"#").	 /* package separator */
   final('$$',"$$").	 /* thunk expression */
 
   keyword("retire").

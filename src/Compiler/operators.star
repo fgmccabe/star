@@ -67,7 +67,7 @@ star.compiler.operators{
     | "?=" => [.infixOp(899,900,899)]
     | "default" => [.postfixOp(939,940)]
     | "<*" => [.infixOp(600,600,599)]
-    | "#" => [.prefixOp(1750,1749), .infixOp(759,760,759)]
+    | "#" => [.infixOp(759,760,759)]
     | "??" => [.infixOp(919,920,920), .prefixOp(950,949)]
     | "%" => [.infixOp(700,700,699)]
     | ".>>>." => [.infixOp(600,600,599)]
@@ -102,7 +102,7 @@ star.compiler.operators{
     | "return" => [.prefixOp(930,929)]
     | "?" => [.prefixOp(300,299)]
     | "@" => [.prefixOp(400,399), .infixOp(399,400,400)]
-    | "|=" => [.infixOp(998,999,998)]
+    | "|=" => [.infixOp(1234,1235,1234)]
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
     | "suspend" => [.prefixOp(899,898), .infixOp(898,899,898)]
@@ -362,7 +362,7 @@ star.compiler.operators{
     | "|]" => .true  /* measure brackets */
     | "|:" => .true  /* constrained type */
     | "||" => .true  /* disjunction */
-    | "|=" => .true  /* implicit variable */
+    | "|=" => .true  /* constrained type */
     | "|>" => .true  /* meta quote */
     | "}" => .true  /* non-recursive braces */
     | "~" => .true  /* logical negation */
@@ -378,7 +378,7 @@ star.compiler.operators{
     | "]" => .true  /* square brackets */
     | "^/" => .true  /* filter */
     | "^//" => .true  /* filter map */
-    | ":" => .true  /* type annotation */
+    | ":" => .true  /* type declaration */
     | ":?" => .true  /* fallable type coercion */
     | "::" => .true  /* type coercion */
     | "::=" => .true  /* algebraic type definition */
@@ -409,7 +409,7 @@ star.compiler.operators{
     | "⊕" => .true  /* addition */
     | "•" => .true  /* function composition */
     | "••" => .true  /* binary function composition */
-    | "#" => .true  /* Macro statement marker */
+    | "#" => .true  /* package separator */
     | "$$" => .true  /* thunk expression */
     | _ default => .false
   }
