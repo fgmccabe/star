@@ -9,7 +9,7 @@ of Star, this line might be (we will explain what it means a bit later on):
 
 [source, star]
 ----
-factorial:all t ~~ arith[t] |: (t)=>t.
+factorial:all t ~~ arith[t] |= (t)=>t.
 ----
 
 This is a _type annotation_: a description of the type of a
@@ -116,7 +116,7 @@ better, albeit more complex, version of this would be:
 
 [source, star]
 ----
-factorial:all t ~~ arith[t] |: (t)=>t.
+factorial:all t ~~ arith[t] |= (t)=>t.
 factorial(zero) => one.
 factorial(n) where n > zero => n * factorial(n-one)
 ----
@@ -171,7 +171,7 @@ For example, we can define functions over collections that allow us to
 
 [source, star]
 ----
-maximum:all t ~~ arith[t] |: (list[t],t)=>t.
+maximum:all t ~~ arith[t] |= (list[t],t)=>t.
 maximum([H,..T]) => let {
   max([],Mx) => Mx.
   max([F,..R],Mx) where F>Mx => max(R,F).
@@ -217,10 +217,10 @@ Notice that the type annotation for `maximum` has a special
 
 [source, star]
 ----
-maximum:all t ~~ arith[t] |: (cons[t],t)=>t.
+maximum:all t ~~ arith[t] |= (cons[t],t)=>t.
 ----
 
-The clause `arith[t] |:` means that the type variable `t` is
+The clause `arith[t] |=` means that the type variable `t` is
 _constrained_ -- it must be a type that _implements_ the
 arithmetic contract -- `arith`.
 
@@ -405,7 +405,7 @@ constraint to the variable's type:
 
 [source,star]
 ----
-F : arith[t] |: t
+F : arith[t] |= t
 ----
 
 This has the effect to declaring that `F`'s type is a type variable —
@@ -449,7 +449,7 @@ The type signature for this version of `factorial` is given by:
 
 [source,star]
 ----
-factorial: all t ~~ arith[t] |: (t)=>t.
+factorial: all t ~~ arith[t] |= (t)=>t.
 ----
 
 which declares that `factorial` is a function over any `t`, provided

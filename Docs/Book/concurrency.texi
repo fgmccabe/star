@@ -289,7 +289,7 @@ collection type and use the standard fmap function to allow for any
 collection type:
 
 @example
-parmap:all s,t,c/1 ~~ functor[c] |: ((s)=>t,c[s])=>task[c[t]].
+parmap:all s,t,c/1 ~~ functor[c] |= ((s)=>t,c[s])=>task[c[t]].
 parmap(F,L) => let@{
   spread:()=>list[task[t]].
   spread() => map((X)=>background task@{valis F(X)@},L).

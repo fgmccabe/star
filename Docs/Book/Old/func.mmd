@@ -239,10 +239,10 @@ To capture this, we need to be able to constrain the scope of the quantifier; sp
 We can do this by adding a *contract constraint* to the type – the constraint states that `equality` must be defined for the type. We do this by prepending a constraint clause to the type:
 
 ```
-all x ~~ equality[x] |: (x,x)=>boolean
+all x ~~ equality[x] |= (x,x)=>boolean
 ```
 
-The `equality[x] |:` clause states that the type variable `x` must satisfy the equality.
+The `equality[x] |=` clause states that the type variable `x` must satisfy the equality.
 
 What is implied when we state this? This is captured in the definition of the contract itself, in this case the `equality` contract.
 
@@ -594,7 +594,7 @@ I.e., `check` can be used to find any type of element in a tree — providing th
 >Actually, this is not the correct the type for `check`. This is because we do not, in general, know that the type can support equality. The precise type for `check` should take this into account:
 >
 ```
-check:all t ~~ equality[t] |: (tree[t],t) => boolean
+check:all t ~~ equality[t] |= (tree[t],t) => boolean
 ```
 
 ## Going Further[going-further]
@@ -736,7 +736,7 @@ count(T) => visit(T, (A,X)=>A+1,0)
 These functions will apply to _any_ type that satisfies — or implements — the `visitor` contract. This is made visible in the revised type signature for `count`:
 
 ```
-count:all c,t ~~ visitor[c->>t] |: (c)=>integer
+count:all c,t ~~ visitor[c->>t] |= (c)=>integer
 ```
 
 This type is an example of a _constrained type_. It is generic in `c` and `t` but that generality is constrained by the requirement that the `visitor` contract is appropriately implemented. The eagled-eyed reader will notice that `count` does not actually depend on the type of the elements in the collection: this is what we should expect since `count` does not actually care about the elements themselves.
@@ -745,7 +745,7 @@ The type signature for `check`, however, does care about the types of the elemen
 
 ```
 check:all c,t ~~
-    visitor[c->>t], equality[c] |: (c,t)=>boolean
+    visitor[c->>t], equality[c] |= (c,t)=>boolean
 ```
 
 This type annotation now has two contract constraints associated with it: the collection must be something that is visitable and the elements of the collection must support equality.
@@ -801,7 +801,7 @@ What type should `double` have? In particular, what should the type of `+` be? M
 The result is that the type computed for `double` is exquisitely tuned:
 
 ```
-double:all t ~~ arithmetic[t] |: (t)=>t
+double:all t ~~ arithmetic[t] |= (t)=>t
 ```
 
 This type is precisely the minimal type that `double` could have. Any further constraints result in making a potentially premature choice for the numeric type.
@@ -816,7 +816,7 @@ fact(N) => N*fact(N-1)
 this is constrained to be a function from `integer` to `integer` because we introduced the literal integers `0` and `1`. However, the `arithmetic` contract contains synonyms for these very common literals. Using `zero` and `one` allow us to be abstract in many arithmetic functions:
 
 ```
-genFact:all a ~~ arithmetic[a] |: (a)=>a.
+genFact:all a ~~ arithmetic[a] |= (a)=>a.
 genFact(zero) => one.
 genFact(N) => N*genFact(N-one).
 ```
@@ -827,7 +827,7 @@ We can actually introduce other numeric literals without compromising our type b
 
 ```
 factorialC:all t ~~
-    arithmetic[t],coercion[integer,t] |: (t)=>t.
+    arithmetic[t],coercion[integer,t] |= (t)=>t.
 factorialC(N) where N==0 :: t => 1 :: t.
 factorialC(N) => N*factorialC(N-1 :: t).
 ```
@@ -860,7 +860,7 @@ which is buried within the recursive call in `fact`. Although it looks like a sp
 The type of arithmetic subtraction is given by:
 
   ```
-  (-) : all t ~~ arithmetic[t] |: (t,t)=>t
+  (-) : all t ~~ arithmetic[t] |= (t,t)=>t
   ```
  However, we should simplify this a little in order to make the explanation of type inference a little simpler:
 

@@ -179,7 +179,7 @@ evidence for it.
 Consider the simple function ``d`` with its type annotation:
 [source,star]
 ----
-d:all t ~~ arith[t] |: (t)=>t.
+d:all t ~~ arith[t] |= (t)=>t.
 d(X) => X+X.
 ----
 In the equation that defines ``d`` the rules of type inference lead
@@ -709,7 +709,7 @@ the type definition for ``fractionals``:
 
 [source,star]
 ----
-fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
+fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |= fracts{
   type fraction.
 
   frPlus:(fraction,fraction)=>fraction.

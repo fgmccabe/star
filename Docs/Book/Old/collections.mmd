@@ -34,7 +34,7 @@ cons[integer]
 and
 
 ```
-sequence[c->>integer] |: c
+sequence[c->>integer] |= c
 ```
 
 respectively — where `c` is a type variable. The first is a concrete type expression, the second is a constrained type — a type variable that may only be instantiated with a type that is known to satisfy one or more constraints, in this case to implement the `sequence` contract.
@@ -80,8 +80,7 @@ The major benefit of general sequence notation is that it allows us to construct
 For example, we can use sequence notation to write functions over sequences; such as the `concat` function that concatenates two sequences:
 
 ```
-concat:all c,e ~~ sequence[c->>e] |:
-  (c,c)=>c.
+concat:all c,e ~~ sequence[c->>e] |= (c,c)=>c.
 concat([],X) => X.
 concat([E,..X],Y) => [E,..concat(X,Y)].
 ```

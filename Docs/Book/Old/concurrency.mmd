@@ -177,7 +177,7 @@ A good rule of thumb is:
 So, a more idiomatic way of writing the `parmap` function is to make it a `task` valued function; we also generalize away from the specific `list` collection type and use the standard `map` function to allow for any collection type:
 
 ```
-parmap:all s,t,c/1 ~~ mappable[c] |: ((s)=>t,c[s])=>task[c[t]].
+parmap:all s,t,c/1 ~~ mappable[c] |= ((s)=>t,c[s])=>task[c[t]].
 parmap(F,L) => let{
   spread:()=>list[task[t]].
   spread() => map((X)=>background task{valis F(X)},L).

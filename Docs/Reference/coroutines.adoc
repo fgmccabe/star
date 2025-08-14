@@ -134,7 +134,7 @@ implement generators:
 
 [source,star]
 ----
-public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generator[e].
+public iterGenerator:all c,e ~~ iter[c->>e] |= (c) => generator[e].
 ----
 
 It takes as argument a collection, for which type the `iter` contract has been

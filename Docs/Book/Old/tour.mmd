@@ -464,10 +464,10 @@ contract all t ~~ four[t] ::= {
 This contract defines — but does not implement — the four functions `plus`, `sub`, `mul` and `div`. All these functions have a similar type:
 
 ```
-plus :  all t ~~ four[T] |: (t,t)=>t.
+plus :  all t ~~ four[T] |= (t,t)=>t.
 ```
 
-The clause ` four[t] |: ` is a  _type constraint_, specifically a  _contract constraint_. So, these functions are generic (universally quantified) but the bound type (`t`) has the additional constraint that there is an `implementation` for it.
+The clause ` four[t] |= ` is a  _type constraint_, specifically a  _contract constraint_. So, these functions are generic (universally quantified) but the bound type (`t`) has the additional constraint that there is an `implementation` for it.
 
 The `four` contract defines a set of functions that can be used without necessarily knowing the type(s) that are involved. For example, we can define the `double` function in terms of `plus`:
 
@@ -478,7 +478,7 @@ double(X) => plus(X,X).
 Its type is also interesting:
 
 ```
-double : all t ~~ four[t] |: (t)=>t.
+double : all t ~~ four[t] |= (t)=>t.
 ```
 
 I.e., it inherits the same constraint as the function `plus` has. There are several kinds of type constraint in **Star**'s type system; but the  _contract constraint_ is the most significant of them.
@@ -494,7 +494,7 @@ worksheet{
     mul : (t,t)=>t.
     div : (t,t)=>t.
   }
-  double : all t ~~ four[t] |: (t)=>t.
+  double : all t ~~ four[t] |= (t)=>t.
   double(X) => plus(X,X).
 
   show double(2)
@@ -506,7 +506,7 @@ we would get a compiler error along the lines of:
 ```
 2:integer
   which is not consistent with
-    pPrint[t_12] , four[t_12] |: t_12
+    pPrint[t_12] , four[t_12] |= t_12
   because four[integer] not known to be implemented
 ```
 This error message is effectively warning us that we have defined the `four` contract but we have not implemented it. Until we do, the program is not complete. However, if we do supply an `implementation` of `four` over `integer`s:
@@ -519,7 +519,7 @@ worksheet{
     mul : (t,t)=>t.
     div : (t,t)=>t.
   }
-  double : all t ~~ four[t] |: (t)=>t.
+  double : all t ~~ four[t] |= (t)=>t.
   double(X) => plus(X,X).
 
   implementation four[integer] => {
@@ -537,7 +537,7 @@ then everything works as expected.
 Notice that the error message above shows that type `t_12` actually has two type constraints:
 
 ```
-pPrint[t_12] , four[t_12] |: t_12
+pPrint[t_12] , four[t_12] |= t_12
 ```
 
 This is because the `show` action also results in a type constraint being involved. The `pPrint` contract is used to display values in a number of circumstances; including the string formatting we saw [above][string-formatting].

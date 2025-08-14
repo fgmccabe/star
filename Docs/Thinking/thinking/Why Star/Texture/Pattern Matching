@@ -1,6 +1,6 @@
 Patterns and pattern matching are ubiquitous in Star. Nearly all literal forms have a pattern equivalent that allows matching and, most importantly, de-structuring such values.
 For example, we can define functions over collections that allow us to (say) compute the maximum element in a collection:
-maximum:all t ~~ arith[t] |: (list[t],t)=>t.
+maximum:all t ~~ arith[t] |= (list[t],t)=>t.
 maximum([H,..T]) => let{
   max([],Mx) => Mx.
   max([F,..R],Mx) where F>Mx => max(R,F).

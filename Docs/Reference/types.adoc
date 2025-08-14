@@ -375,7 +375,7 @@ A constrained type is one with additional constraints in the form of
 .Constrained Type
 [source,star]
 ----
-constrainedType --> typeConstraints, ["|:"], type.
+constrainedType --> typeConstraints, ["|="], type.
 
 typeConstraints --> typeConstraint.
 typeConstraints --> typeConstraint, [","], typeConstraints.
@@ -384,7 +384,7 @@ typeConstraints --> typeConstraint, [","], typeConstraints.
 For example, a type expression of the form:
 [source,star]
 ----
-all t ~~ comp[t], arith[t] |: (t)=>t
+all t ~~ comp[t], arith[t] |= (t)=>t
 ----
 
 denotes a generic unary function type for any type that implements
@@ -420,7 +420,7 @@ _the type can be anything that implements the standard arithmetic
 functions_. The type expression:
 [source,star]
 ----
-arith[t] |: t
+arith[t] |= t
 ----
 denotes this kind of constrained type.
 
@@ -449,7 +449,7 @@ the contract for the type combination.
 For example, the type constraint expression in the constrained type:
 [source,star]
 ----
-comp[t] |: t
+comp[t] |= t
 ----
 means that the type variable `t` may only unify with 
 types where an implementation of the `comp` for that type is in scope.
@@ -468,7 +468,7 @@ one type. For example, the standard `coercion` contract (see
 `contract` constraint will therefore look like:
 [source,star]
 ----
-coercion[T1,T2] |: Tp
+coercion[T1,T2] |= Tp
 ----
 
 where `T1` represents the source type of the coercion and
@@ -497,7 +497,7 @@ a specified type exists (i.e., is in scope).
 For example, the constraint expression in the constrained type:
 [source,star]
 ----
-(foo : t) |: (integer) => t
+(foo : t) |= (integer) => t
 ----
 means that, for any variable of this type, there must also be a
 variable called `foo` in scope, of type `t`. Typically, the
@@ -521,7 +521,7 @@ implicitly defined variable `limit`:
 
 [source,star]
 ----
-clamp : (limit : integer) |: (integer)=>integer.
+clamp : (limit : integer) |= (integer)=>integer.
 clamp(X) => valof{
   if X>limit then
     valis limit
@@ -769,7 +769,7 @@ The type variable `t` may be bound to a type expression such as
 On the other hand, given:
 [source,star]
 ----
-_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
+_iter:all x,m/1,e ~~ execution[m->>e] |= (s,m[x],(t,x)=>m[x]) => m[x]
 ----
 The type variable `m` is specified with the arity `1` --
 making it a higher-kinded type that expects one type argument.
@@ -1489,7 +1489,7 @@ which means that the type of `+` takes the form:
 
 [source,star]
 ----
-all x ~~ arith[x] |: (x,x) => x
+all x ~~ arith[x] |= (x,x) => x
 ----
 
 For a given occurrance of ``+``, the identifier will have a type associated with
@@ -1497,7 +1497,7 @@ it of the form:
 
 [source,star,subs="quotes"]
 ----
-arith[_N~t~_] |: (_N~t~_,_N~t~_)=>_N~t~_
+arith[_N~t~_] |= (_N~t~_,_N~t~_)=>_N~t~_
 ----
 
 for some type `_N~t~_`.
@@ -1581,7 +1581,7 @@ generic function must itself be appropriately constrained. For example, in
 
 [source,star]
 ----
-addSq : all t ~~ arith[t] |: (t,t)=>t.
+addSq : all t ~~ arith[t] |= (t,t)=>t.
 addSq(X,Y)=>X+X*Y
 ----
 
@@ -1604,7 +1604,7 @@ variable to be in scope.  For example, given the function:
 
 [source,star]
 ----
-needsI:(I:integer)|:(integer)=>integer.
+needsI:(I:integer)|=(integer)=>integer.
 needsI(X)=>X+I.
 ----
 

@@ -623,7 +623,7 @@ contract for `cons` values:
 .Implementation of `comp` for `cons`
 [source,star]
 ----
-public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let{.
+public implementation all x ~~ comp[x],equality[x] |= comp[cons[x]] => let{.
   consLess(nil,_) => .true.
   consLess(cons(H1,T1),cons(H2,T2)) where H1<H2 => .true.
   consLess(cons(H1,T1),cons(H2,T2)) where H1==H2 => consLess(T1,T2).
@@ -642,7 +642,7 @@ compared. Hence the clause
 
 [source,star]
 ----
-comp[x],equality[x] |: comp[cons[x]]
+comp[x],equality[x] |= comp[cons[x]]
 ----
 
 in the head of the contract `implementation` statement. The
