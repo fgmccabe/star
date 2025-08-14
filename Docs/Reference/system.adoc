@@ -134,7 +134,7 @@ severe:: is used to report an unrecoverable error.
 === `logMsg` -- log an event
 [source,star]
 ----
-public logMsg:all l ~~ loggable[l] |: (l,string)=>().
+public logMsg:all l ~~ loggable[l] |= (l,string)=>().
 ----
 For example, to log an `info` level message one can use
 [source,star]

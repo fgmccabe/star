@@ -1066,15 +1066,12 @@ be:
 Lambda expressions are often used in function-valued functions. For example in:
 [source,star]
 ----
-addX:(integer)=>((integer)=>integer).
-addX(X) => ((Y) => X+Y)
+addX:(integer)=>(integer)=>integer.
+addX(X) => (Y) => X+Y.
 ----
 
 the value returned by `addX` is another function -- a single
 argument function that adds a fixed number to its argument.
-
-NOTE: the extra set of parentheses around both the embedded function type and
-around the returned function value.
 
 NOTE: Lambda expressions functions may reference free variables.
 
@@ -1138,7 +1135,7 @@ to use thunks:
 [source,star]
 ----
 memFib(N) => let{
-  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }:vector[thunk[integer]].
+  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }|:vector[thunk[integer]].
   fb(0) => 1.
   fb(1) => 1.
   fb(ix) where F?=fibs[ix] => F!!
@@ -1268,12 +1265,12 @@ value so that it conforms to a particular type.
 [source,star]
 ----
 typedExpression --> typeCoercionExpression.
-typedExpression --> typaAnnotatedExpression.
+typedExpression --> typeAnnotatedExpression.
 typedExpression --> zetaExpression.
 ----
 
 [#typeAnnotatedExpression]
-=== Type Annotation Expression
+=== Type Annotated Expression
 
 (((type annotation expressions)))
 A type annotated expression is an expression that is annotated with a
@@ -1284,14 +1281,21 @@ is as annotated.
 .Type Annotated Expressions
 [source,star]
 ----
-typeAnnotatedExpression --> ["("], expression, [":"], type, [")"].
+typeAnnotatedExpression --> expression, ["|:"], type.
 ----
 
 NOTE: Type annotated expressions should not be confused with type casting as is
 found in some languages.footnote:[In fact, there is no equivalent of type
-casting in Star.] The annotation is a way for the programmer to communicate
+casting in Star.] The type annotation is a way for the programmer to communicate
 exactly what the expected type of an expression is -- there is no implied
 coversion of values from one type to another.
+
+NOTE: Type annotations are not commonly required; with the major exception being
+<<sequenceliteral>>s. Sequence literals require explicit type information
+because, without that the `sequence` contract that is used to construct sequence
+literals cannot be properly resolved.
++
+However, in many cases the type of a sequence literal expression can be properly inferred -- due to the context surrounding the expression.
 
 [#typeCoercion]
 === Type Coercion
@@ -1362,8 +1366,8 @@ appropriately implementing the `coercion` contract.
 
 (((type zeta expression)))
 (((suppression of type refreshing)))
-A zeta expression is used in situations where it is necessary to suppress some of the normal
-type inference mechanisms:
+A zeta expression is used in situations where it is necessary to suppress some
+of the normal type inference mechanisms:
 
 [#zetaExpression]
 [source,star]
@@ -1382,7 +1386,8 @@ For example, given the definition:
 id:all x ~~ (x)=>x
 ----
 
-the recorded type for `id` is `all x ~~ (x)=>x`. However, an occurrance of `id`, as in:
+the recorded type for `id` is `all x ~~ (x)=>x`. However, an occurrance of `id`,
+as in:
 
 [source,star]
 ----
@@ -1489,8 +1494,8 @@ notation.
 
 Sequence expressions are used to denote sequence literals.
 
-[#sequenceExpressionFig]
-.Sequence Expressions
+[#sequenceLiterals]
+.Sequence Literal
 [source,star]
 ----
 sequenceExpression --> ["["], expSequence, ["]"].

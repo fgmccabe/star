@@ -366,7 +366,7 @@ are additional numeric functions:
 
 [source,star]
 ----
-abs : all t ~~ arith[t],comp[t] |: (t)=>t.
+abs : all t ~~ arith[t],comp[t] |= (t)=>t.
 ----
 
 The `abs` function returns the absolute value of its argument. It
@@ -376,7 +376,7 @@ is implemented for both `integer` and `float` values.
 === `max` -- maximum value
 [source,star]
 ----
-max: all t ~~ comp[t] |: (t,t)=>t.
+max: all t ~~ comp[t] |= (t,t)=>t.
 ----
 
 The `max` function returns the larger of its two arguments.
@@ -384,7 +384,7 @@ The `max` function returns the larger of its two arguments.
 === `min` -- minimum value
 [source,star]
 ----
-min: all t ~~ comp[t] |: (t,t)=>t.
+min: all t ~~ comp[t] |= (t,t)=>t.
 ----
 
 The `min` function returns the smaller of its two arguments. It

@@ -32,7 +32,7 @@ contract all t ~~ equality[t] ::= {
 Its type is given by:
 [source,star]
 ----
-(==) : all t ~~ equality[t] |: (t,t) => boolean
+(==) : all t ~~ equality[t] |= (t,t) => boolean
 ----
 
 In general, equality is _not_ defined for all values. In particular, equality is
@@ -47,7 +47,7 @@ is, in general, not effectively decidable.]
 The type signature for `=~=` is:
 [source,star]
 ----
-(=~=) : all t ~~ equality[t] |: (t,t) => boolean
+(=~=) : all t ~~ equality[t] |= (t,t) => boolean
 ----
 
 The `=~=` predicate has a standard definition that makes it
@@ -81,7 +81,7 @@ contract all t ~~ comp[t] ::= {
 The type signature for `<` is:
 [source,star]
 ----
-(<) : all t ~~ comp[t] |: (t,t)=>boolean
+(<) : all t ~~ comp[t] |=: (t,t)=>boolean
 ----
 
 The `<` predicate is satisfied if the left argument is less than
@@ -96,7 +96,7 @@ of strings.
 The type signature for `>=` is:
 [source,star]
 ----
-(>=) : all t ~~ comp[t] |: (t,t)=>boolean
+(>=) : all t ~~ comp[t] |= (t,t)=>boolean
 ----
 
 The `>=` predicate is true if the left argument is greater
@@ -107,7 +107,7 @@ implementation of the `comp` contract.
 The type signature for `=<` is:
 [source,star]
 ----
-(=<) : all t ~~ comp[t] |: (t,t)=>boolean
+(=<) : all t ~~ comp[t] |= (t,t)=>boolean
 ----
 
 The `=<` predicate is satisfied if the left argument is less than or equals to
@@ -125,7 +125,7 @@ X =< Y => Y >= X.
 The type signature for `>` is:
 [source,star]
 ----
-(>) : all t ~~ comp[t] |: (t,t)=>boolean
+(>) : all t ~~ comp[t] |= (t,t)=>boolean
 ----
 
 The `>` predicate is satisfied if the left argument is strictly greater than the
@@ -181,7 +181,7 @@ then the following implementation of `display` would ensure that
 such trees were displayed more conveniently:
 [source,star]
 ----
-implementation all t ~~ display[t] |: display[tree[t]] => let{.
+implementation all t ~~ display[t] |= display[tree[t]] => let{.
   treeDisp(empty) => " ".
   treeDisp(node(L,Lb,R)) => "#(treeDisp(L)) $(Lb) #(treeDisp(R))".
 .} in {
@@ -278,7 +278,7 @@ public contract all t ~~ concat[t] ::= {
 The type signature for `++` is:
 [source,star]
 ----
-(++) : all t ~~ concat[t] |: (t,t) => t
+(++) : all t ~~ concat[t] |= (t,t) => t
 ----
 
 The `++` function concatenates two sequences to form their conjunction.
@@ -302,7 +302,7 @@ public contract all s,k ~~ slice[s->>k] ::= {
 The type signature for `_slice` is:
 [source,star]
 ----
-_slice : all s,k ~~ _slice[s->>k] |: (s,k,k) => s
+_slice : all s,k ~~ _slice[s->>k] |= (s,k,k) => s
 ----
 
 The `_slice` function extracts a subsequence from a source
@@ -331,7 +331,7 @@ last entry in the collection.
 The type signature for `_splice` is:
 [source,star]
 ----
-_splice : all s,k ~~ _slice[s->>k] |: (s,k,k,s) => s
+_splice : all s,k ~~ _slice[s->>k] |= (s,k,k,s) => s
 ----
 
 The `_splice` function replaces a subsequence from a source
@@ -374,7 +374,7 @@ empty stream.
 .The `_eof` Function
 [source,star]
 ----
-_eof : all s,e ~~ stream[s->>e] |: (s) => boolean.
+_eof : all s,e ~~ stream[s->>e] |= (s) => boolean.
 ----
 
 ===  `_hdtl` -- Head of Stream
@@ -386,7 +386,7 @@ consisting of that head and the remainder of the stream.
 .The `_hdtl` Function
 [source,star]
 ----
-_hdtl : all s,e ~~ stream[s->>e] |: (s) => option[(e,s)].
+_hdtl : all s,e ~~ stream[s->>e] |= (s) => option[(e,s)].
 ----
 
 NOTE: The return value of `_hdtl` is a `option` value -- because
@@ -417,7 +417,7 @@ This is a constant value that denotes the empty sequence.
 .The `_nil` sequence
 [source,star]
 ----
-_nil : all S,E ~~ sequence[S->>E] |: S
+_nil : all S,E ~~ sequence[S->>E] |= S
 ----
 
 ===  `_cons` -- Add to Front of Sequence
@@ -426,7 +426,7 @@ _nil : all S,E ~~ sequence[S->>E] |: S
 .The `_cons` Function
 [source,star]
 ----
-_cons : all S,E ~~ sequence[S->>E] |: (E,S) => S
+_cons : all S,E ~~ sequence[S->>E] |= (E,S) => S
 ----
 
 This function puts an element onto the front of the sequence; and
@@ -455,7 +455,7 @@ contract all t ~~ sizeable[t] ::= {
 
 [source,star]
 ----
-size : all t ~~ sizeable[t] |: (t)=>integer
+size : all t ~~ sizeable[t] |= (t)=>integer
 ----
 
 The `size` function returns the number of elements of a
@@ -468,7 +468,7 @@ characters in the string.
 
 [source,star]
 ----
-isEmpty : all t ~~ sizeable[t] |: (t)=>boolean
+isEmpty : all t ~~ sizeable[t] |= (t)=>boolean
 ----
 
 The `isEmpty` function returns `true` if the entity is empty, i.e., has size zero.
@@ -500,7 +500,7 @@ a key-value collection:
 .The `_index` Function
 [source,star]
 ----
-_index : all m,k,v ~~ indexed[m ->> k,v] |: (m,k) => option[v].
+_index : all m,k,v ~~ indexed[m ->> k,v] |= (m,k) => option[v].
 ----
 
 NOTE: The `_index` function returns an `option`al value since it
@@ -517,7 +517,7 @@ association):
 .The `_put` Function
 [source,star]
 ----
-_put : all m,k,v ~~ indexed[m ->> k,v] |: (m,k,v) => m.
+_put : all m,k,v ~~ indexed[m ->> k,v] |= (m,k,v) => m.
 ----
 
 NOTE: The `_put` function returns a new collection with the modified
@@ -536,7 +536,7 @@ new key-value pair from a collection.
 .The `_remove` Function
 [source,star]
 ----
-_remove : all m,k,v ~~ indexed[m ->> k,v] |: (m,k) => m.
+_remove : all m,k,v ~~ indexed[m ->> k,v] |= (m,k) => m.
 ----
 
 NOTE: Like the `_put` function, `_remove` returns a new
@@ -551,7 +551,7 @@ appropriate sort.
 .The `_empty` Value
 [source,star]
 ----
-_empty : all m,k,v ~~ indexed[m ->> k,v] |: m.
+_empty : all m,k,v ~~ indexed[m ->> k,v] |= m.
 ----
 
 NOTE: The `_empty` value is often used as the starting point for
@@ -691,7 +691,7 @@ The `+` function defines the addition of two elements:
 .The `+` Function
 [source,star]
 ----
-(+) : all t ~~ arith[t] |: (t,t) => t.
+(+) : all t ~~ arith[t] |= (t,t) => t.
 ----
 
 NOTEL The `(+)` function takes two arguments of the same type and
@@ -708,7 +708,7 @@ The `-` function defines the subtraction of one element from another.
 .The `-` Function
 [source,star]
 ----
-(-) : all t ~~ arith[t] |: (t,t) => t.
+(-) : all t ~~ arith[t] |= (t,t) => t.
 ----
 
 NOTE: The `(-)` is a binary function. A separate function -- `_uminus` -- is
@@ -722,7 +722,7 @@ The `_uminus` function defines the unary negation of a number.
 .The `_uminus` Function
 [source,star]
 ----
-_uminus : all t ~~ arith[t] |: (t) => t.
+_uminus : all t ~~ arith[t] |= (t) => t.
 ----
 
 NOTE:  The `_uminus` function is automatically substituted for
@@ -737,7 +737,7 @@ The `zero` value denotes the 0 value of the arithmetic type.
 .The `zero` Value
 [source,star]
 ----
-zero : all t ~~ arith[t] |: t. 
+zero : all t ~~ arith[t] |= t. 
 ----
 @end float
 
@@ -754,7 +754,7 @@ The `*` function defines the multiplication of one element by another.
 .The `*` Function
 [source,star]
 ----
-(*) : all t ~~ arith[t] |: (t,t) => t.
+(*) : all t ~~ arith[t] |= (t,t) => t.
 ----
 
 === The `/` Function
@@ -765,7 +765,7 @@ The `/` function defines the division of one element by another.
 .The `/` Function
 [source,star]
 ----
-(/) : all t ~~ arith[t] |: (t,t) => t throws exception.
+(/) : all t ~~ arith[t] |= (t,t) => t throws exception.
 ----
 
 NOTE: The `/` function (and the `%` function) are defined to throw an
@@ -780,7 +780,7 @@ to another.
 .The `%` Function
 [source,star]
 ----
-(%) : all t ~~ arith[t] |: (t,t) => t throws exception.
+(%) : all t ~~ arith[t] |= (t,t) => t throws exception.
 ----
 
 ===  The `one` Value
@@ -792,7 +792,7 @@ the _unit_ of multiplication.
 .The `one` Value
 [source,star]
 ----
-one : all t ~~ arith[t] |: t. 
+one : all t ~~ arith[t] |= t. 
 ----
 
 NOTE: Like the `zero`, the `one` value is particularly useful when
@@ -823,7 +823,7 @@ of one type to another.
 .The `_coerce` Function
 [source,star]
 ----
-_coerce : all s,d ~~ coercion[s,d] |: (s) => option[d].
+_coerce : all s,d ~~ coercion[s,d] |= (s) => option[d].
 ----
 
 The `_coerce` function is defined to return an optional values -- because

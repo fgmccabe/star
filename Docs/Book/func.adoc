@@ -447,9 +447,9 @@ do this by prepending an ``equality`` constraint clause to the
 type:
 [source,star]
 ----
-all x ~~ equality[x] |: (x,x)=>boolean
+all x ~~ equality[x] |= (x,x)=>boolean
 ----
-The ``equality[x] |:`` clause states that the type variable
+The ``equality[x] |=`` clause states that the type variable
 ``x`` must satisfy the ``equality`` contract.
 
 What is implied when we state this? This is captured in the definition
@@ -956,7 +956,7 @@ equality. The precise type for ``check`` should take this into
 account:
 [source,star]
 ----
-check:all t ~~ equality[t] |: (tree[t],t) => boolean
+check:all t ~~ equality[t] |= (tree[t],t) => boolean
 ----
 
 == Going further
@@ -1187,7 +1187,7 @@ implements -- the ``visitor`` contract. This is made visible in the
 revised type signature for ``count``:
 [source,star]
 ----
-count:all c,t ~~ visitor[c->>t] |: (c)=>integer.
+count:all c,t ~~ visitor[c->>t] |= (c)=>integer.
 ----
 This type is an example of a _constrained type_. It is generic in
 ``c`` and ``t`` but that generality is constrained by the
@@ -1202,7 +1202,7 @@ types of the elements:
 [source,star]
 ----
 check:all c,t ~~
-  visitor[c->>t], equality[c] |: (c,t)=>boolean
+  visitor[c->>t], equality[c] |= (c,t)=>boolean
 ----
 This type annotation now has two contract constraints associated with
 it: the collection must be something that is visitable and the
@@ -1294,7 +1294,7 @@ The result is that the most appropriate type signature for
 ``double`` is exquisitely tuned:
 [source,star]
 ----
-double:all t ~~ arith[t] |: (t)=>t
+double:all t ~~ arith[t] |= (t)=>t
 ----
 This type is precisely the most general type that ``double`` could
 have. Any further constraints result in making a potentially premature
@@ -1313,7 +1313,7 @@ these very common literals. Using ``zero`` and ``one`` allow us
 to be abstract in many arithmetic functions:
 [source,star]
 ----
-genFact:all a ~~ arith[a] |: (a)=>a.
+genFact:all a ~~ arith[a] |= (a)=>a.
 genFact(zero) => one.
 genFact(N) => N*genFact(N-one).
 ----
@@ -1324,7 +1324,7 @@ _coercion_; although it is more clumsy:
 [source,star]
 ----
 factorialC:all t ~~
-  arith[t],coercion[integer,t] |: (t)=>t.
+  arith[t],coercion[integer,t] |= (t)=>t.
 factorialC(N) where N==0::t => 1::t.
 factorialC(N) => N*factorialC(N-1::t).
 ----
@@ -1556,7 +1556,7 @@ type is given by:footnote:[We put the (-) in parentheses to highlight
 the use of an operator as a normal symbol.]
 [source,star]
 ----
-(-) : all t ~~ arith[t] |: (t,t)=>t
+(-) : all t ~~ arith[t] |= (t,t)=>t
 ----
 However, we should simplify this type a little in order to make the
 explanation of type inference a little simpler. In what follows, we

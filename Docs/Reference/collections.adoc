@@ -41,7 +41,7 @@ partially exposed:
 .The `map` Type
 [source,star]
 ----
-all k,v ~~ equality[k], hash[k] |: map[k,v] <~ {}
+all k,v ~~ equality[k], hash[k] |= map[k,v] <~ {}
 ----
 
 All uses of the `map` type require that the key type supports
@@ -68,7 +68,7 @@ is partially exposed:
 .The `set` Type
 [source,star]
 ----
-all e ~~ equality[e], hash[e] |: set[e] <~ {}
+all e ~~ equality[e], hash[e] |= set[e] <~ {}
 ----
 
 Like the `map` type, using the `set` requires that element

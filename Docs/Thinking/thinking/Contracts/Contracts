@@ -13,7 +13,7 @@ Once defined, a contract can be used simply by mentioning one of its members. Th
 fact(0) => 1.
 fact(X) => X*fact(X-1)
 Furthermore, if we want to state that the type of a variable is `something' that implements a contract we can do so by adding a constraint to the variable's type:
-F : arith[t] |: t
+F : arith[t] |= t
 This has the effect to declaring that F's type is a type variable — but one that is constrained such that whatever concrete type it eventually gets, it must be one that is defined for arith.12
 In fact, however, this version of factorial is not the most paradigmatic (sic) version. The reason is that the type signature for fact is not generic but tied to integer:
 fact:(integer)=>integer
@@ -23,7 +23,7 @@ Using these, we can write a much more paradigmatic version of the factorial func
 factorial(zero) => one.
 factorial(N) => factorial(N-one)*N.
 This function is quite generic, and its type signature is given by:
-factorial: all t ~~ arith[t] |: (t)=>t.[^fn2]
+factorial: all t ~~ arith[t] |= (t)=>t.[^fn2]
 
 [^fn1]: There is some Mathematical justification for this: the arith contract defines a Field which requires zero elements for the two operators (+ and *).
 

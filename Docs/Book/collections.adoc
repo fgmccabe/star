@@ -52,7 +52,7 @@ cons[integer]
 and
 [source,star]
 ----
-sequence[c->>integer] |: c
+sequence[c->>integer] |= c
 ----
 respectively -- where ``c`` is a type variable. The first is a
 concrete type expression, the second is a constrained type -- in this
@@ -99,7 +99,7 @@ sequences; such as the ``concat`` function that concatenates two
 sequences:
 [source,star]
 ----
-concat:all c,e ~~ stream[c->>e], sequence[c->>e] |: (c,c)=>c.
+concat:all c,e ~~ stream[c->>e], sequence[c->>e] |= (c,c)=>c.
 concat([],X) => X.
 concat([E,..X],Y) => [E,..concat(X,Y)].
 ----
@@ -487,7 +487,7 @@ We can define an implementation for the ``indexed`` contract for this type
 [source,star]
 ----
 implementation all k,v ~~
-    comp[k], equality[k] |: indexed[tree[(k,v)]->>k,v] => {
+    comp[k], equality[k] |= indexed[tree[(k,v)]->>k,v] => {
   _index(T,K) => findInTree(T,K).
   _put(T,K,V) => setKinTree(T,K,V).
   _remove(T,K) => removeKfromTree(T,K).
@@ -519,7 +519,7 @@ This is captured in the contract clause of the implementation
 statement:
 [source,star]
 ----
-implementation all k,v ~~ comp[k], equality[k] |:
+implementation all k,v ~~ comp[k], equality[k] |=
       indexed[tree[(k,v)]->>k,v] => ...
 ----
 This implementation contract qualifier is fairly long, and the type
@@ -535,7 +535,7 @@ functions: ``findInTree``, ``setKinTree`` and
 straightforward:
 [source,star]
 ----
-findInTree:all k,v ~~ equality[k], comp[k] |: (tree[(k,v)],k)=>option[v].
+findInTree:all k,v ~~ equality[k], comp[k] |= (tree[(k,v)],k)=>option[v].
 findInTree(.tEmpty,_) => .none.
 findInTree(.tNode(_,(K,V),_),K) => .some(V).
 findInTree(.tNode(L,(K1,_),_),K) where K1>K => findInTree(L,K).
@@ -916,7 +916,7 @@ that we have seen so far:footnote:[Note that the type system
 will not _infer_ this generalized type.]
 [source,star]
 ----
-nameOf:all r,n ~~ r <~ {name:n} |: (r)=>n
+nameOf:all r,n ~~ r <~ {name:n} |= (r)=>n
 ----
 This is another example of a _constrained type_: in this case,
 the constraint on ``r`` is that it has a field called ``name``
@@ -1175,7 +1175,7 @@ The template for the ``map`` type is:
 
 [source,star]
 ----
-all k,v ~~ equality[k], hash[k] |: map[k,v]
+all k,v ~~ equality[k], hash[k] |= map[k,v]
 ----
 
 Notice that there is an implied constraint here: the ``map``
@@ -1214,7 +1214,7 @@ given by the template:
 
 [source,star]
 ----
-all t ~~ equality[t] |: set[t]
+all t ~~ equality[t] |= set[t]
 ----
 
 === Other collection types

@@ -333,7 +333,7 @@ An annotated pattern is a pattern with an explicit type annotation:
 .Annotated Pattern
 [source,star]
 ----
-annotatedPattern --> pattern, [":"], type
+annotatedPattern --> pattern, ["|:"], type
 ----
 
 Annotated patterns are used to explicitly mark a pattern to be of a specific type.
@@ -342,7 +342,7 @@ For example, in:
 
 [source,star]
 ----
-foo(.cons(X:string,_)) => X
+foo(.cons(X|:string,_)) => X
 ----
 
 the `X` variable is identified to be a `string` variable.
@@ -359,7 +359,7 @@ with a type that is declared in an outer scope. For example, in:
 outer:all t ~~ (cons[t]) => option[t].
 outer(L) => let{
   inner(.nil) => .none.
-  inner(.cons(U:t,_)) => .some(U).
+  inner(.cons(U|:t,_)) => .some(U).
 } in inner(L)
 ----
 
