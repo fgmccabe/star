@@ -14,7 +14,7 @@ test.mm{
   main() => valof{
     showMsg(disp(conc([1,2,3],[4,5]))::string);
 
-    assert conc([1,2,3],[4,5])==([1,2,3,4,5]:cons[integer]);
+    assert conc([1,2,3],[4,5])==([1,2,3,4,5]|:cons[integer]);
     
     valis ()
   }

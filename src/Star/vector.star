@@ -418,7 +418,7 @@ star.vector{
     _generate(V) => iterGenerator(V)
   }
 
-  public implementation all x ~~ display[x] |: display[vect[x]] => let{.
+  public implementation all x ~~ display[x] |= display[vect[x]] => let{.
     dv(.e) => "ε".
     dv(.lf1(L0)) => "{$(L0)}".
     dv(.lf2(L0,L1)) => "{$(L0) $(L1)}".
@@ -496,7 +496,7 @@ star.vector{
     isEmpty(_) => .false.
   }
 
-  public implementation all x ~~ equality[x] |: equality[vect[x]] => let{.
+  public implementation all x ~~ equality[x] |= equality[vect[x]] => let{.
     eq(.e,.e) => .true.
     eq(.lf1(L0),.lf1(R0)) => L0==R0.
     eq(.lf2(L0,L1),.lf2(R0,R1)) => L0==R0 && L1==R1.

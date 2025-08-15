@@ -3,7 +3,7 @@ test.dy2{
   import star.assert.
 
   -- Commented out due to bug in boot compiler
-  dyntype[e] ::= .dyn(/*(foo:integer)|:*/(e)=>integer).
+  dyntype[e] ::= .dyn(/*(foo:integer)|=*/(e)=>integer).
 
   undyn(.dyn(F),A) => F(A).
 

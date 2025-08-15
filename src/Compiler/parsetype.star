@@ -206,14 +206,9 @@ star.compiler.typeparse{
   }
 
   parseTypeField:(ast,tipes,rules,dict) => (tipes,rules).
-  parseTypeField(F,Flds,Tps,Env) where (_,Lhs,Rhs) ?= isTypeDecl(F) => valof{
-    if (ILc,Nm) ?= isName(Lhs) then {
-      FTp=parseType(Rhs,Env);
-      valis ([(Nm,FTp),..Flds],Tps)
-    } else{
-      reportError("invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs));
-      valis ([],[])
-    }
+  parseTypeField(F,Flds,Tps,Env) where (_,Nm,Rhs) ?= isTypeDecl(F) => valof{
+    FTp=parseType(Rhs,Env);
+    valis ([(Nm,FTp),..Flds],Tps)
   }
   parseTypeField(F,Flds,Tps,Env) where Rl ?= parseTypeFun(F,Env) =>
     (Flds,[(tpRuleName(Rl),Rl),..Tps]).
@@ -223,16 +218,7 @@ star.compiler.typeparse{
   }.
 
   parseTypeFun(St,Env) where (Lc,H,B) ?= isTypeLambda(St) => valof{
-    if traceCanon! then{
-      showMsg("parse type fun $(St)")
-    };
-    
     (Tp,_) = parseTypeHead(H,Env,id);
-
-    if traceCanon! then{
-      showMsg("parse type $(B)")
-    };
-    
     RTp = parseType(B,Env);
     
     valis .some(.typeLambda(Tp,RTp))
@@ -247,7 +233,6 @@ star.compiler.typeparse{
     } else
     valis .none
   }
-  
   parseTypeFun(St,_) default => valof{
     reportError("cant parse $(St)",locOf(St));
     valis .none
@@ -318,10 +303,10 @@ star.compiler.typeparse{
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,.constrainedType(Tp,Cx)).
     
-  public reQ:all t ~~ reQuant[t] |: (tipes,t) => t.
+  public reQ:all t ~~ reQuant[t] |= (tipes,t) => t.
   reQ(QV,X) => reQuant(QV//snd,X).
 
-  public reQX:all t ~~ reQuant[t] |: (tipes,t) => t.
+  public reQX:all t ~~ reQuant[t] |= (tipes,t) => t.
   reQX(QV,X) => reQuantX(QV//snd,X).
 
   public parseContractConstraint:(ast,dict) => constraint.
@@ -532,7 +517,7 @@ star.compiler.typeparse{
       showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
-    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
+    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),([]|:map[string,integer],0),Css).0;
 
     if traceCanon! then
       showMsg("algebraic CMP $(CMap)");
@@ -576,7 +561,7 @@ star.compiler.typeparse{
       showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
-    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
+    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),([]|:map[string,integer],0),Css).0;
 
     (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
     (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Path);
@@ -870,17 +855,17 @@ star.compiler.typeparse{
     updaterEqns(_,_,_,Eqns) default => Eqns.
   .} in collapsePairs(Fields//((Fld,FTp))=>makeUpdater(Fld,FTp,B)).
 
-  isFieldOfFc([F,..Els],Fld) where (_,Fld) ?= isTypeDecl(F) => .true.
+  isFieldOfFc([F,..Els],Fld) where (_,Fld,_) ?= isTypeDecl(F) => .true.
   isFieldOfFc([_,..Els],Fld) => isFieldOfFc(Els,Fld).
   isFieldOfFc([],_) default => .false.
 
-  isTypeDecl(A) where (Lc,V,_) ?= isTypeDeclaration(A) && (_,Id) ?= isName(V) => .some((Lc,Id)).
+  isTypeDecl(A) where (Lc,V,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(V) => .some((Lc,Id,T)).
   isTypeDecl(_) default => .none.
 
   projectArgTypes([],_,_,_,_,_) => [].
-  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeDecl(A) && F == V =>
+  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V,_) ?= isTypeDecl(A) && F == V =>
     [X,..projectArgTypes(As,Ix+1,Fn,X,F,Fs)].
-  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V) ?= isTypeDecl(A) && Tp?=pickFldTp(V,Fs) =>
+  projectArgTypes([A,..As],Ix,Fn,X,F,Fs) where (Lc,V,_) ?= isTypeDecl(A) && Tp?=pickFldTp(V,Fs) =>
     [Fn(Lc,Ix,Tp),..projectArgTypes(As,Ix+1,Fn,X,F,Fs)].
   projectArgTypes([_,..As],Ix,Fn,X,F,Fs) => projectArgTypes(As,Ix,Fn,X,F,Fs).
 
@@ -888,10 +873,10 @@ star.compiler.typeparse{
   pickFldTp(Id,Tps) => {! Tp | (Id,Tp) in Tps !}.
 
   compEls:(ast,ast)=>boolean.
-  compEls(E1,E2) where (_,K1) ?= isTypeDecl(E1) && (_,K2) ?= isTypeDecl(E2) => K1<K2.
+  compEls(E1,E2) where (_,K1,_) ?= isTypeDecl(E1) && (_,K2,_) ?= isTypeDecl(E2) => K1<K2.
   compEls(_,_) default => .false.
 
-  implementation all t ~~ reQuant[t] |: reQuant[cons[t]] => let{.
+  implementation all t ~~ reQuant[t] |= reQuant[cons[t]] => let{.
     reQ:(cons[tipe],cons[t])=>cons[t].
     reQ(Qs,[]) => [].
     reQ(Qs,[X,..Xs]) => [reQuant(Qs,X),..reQ(Qs,Xs)].

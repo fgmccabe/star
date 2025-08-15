@@ -27,7 +27,7 @@ test.str1{
   main()=>valof{
     show subString("foo.bar.star",4,5);
 
-    show ({ Pr| Fl in ls(cwd()) && Pr ?= pkgFileName(Fl) } :cons[(string,string)]);
+    show { Pr| Fl in ls(cwd()) && Pr ?= pkgFileName(Fl) }|:cons[(string,string)];
 
     valis ()
   }

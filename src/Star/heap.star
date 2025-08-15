@@ -13,19 +13,19 @@ star.heap{
   root:all x ~~ (tree[x]) => x.
   root(.eNode(X,_,_)) => X.
 
-  link:all x ~~ (leq:(x,x)=>boolean) |: (tree[x],tree[x]) => tree[x].
+  link:all x ~~ leq|:(x,x)=>boolean |= (tree[x],tree[x]) => tree[x].
   link(.eNode(X1,K,C1),.eNode(X2,_,C2)) =>
     (leq(X1,X2) ?? .eNode(X1,K+1,[.eNode(X2,K,C2),..C1]) ||
       .eNode(X2,K+1,[.eNode(X1,K,C1),..C2])).
 
-  insTree:all x ~~ (leq:(x,x)=>boolean) |: (tree[x],cons[tree[x]]) => cons[tree[x]].
+  insTree:all x ~~ leq|:(x,x)=>boolean |= (tree[x],cons[tree[x]]) => cons[tree[x]].
   insTree(t,[]) => [t].
   insTree(t,[f,..ts]) => (rank(t)<rank(f) ?? [t,f,..ts] || insTree(link(t,f),ts)).
 
-  insert:all x ~~ (leq:(x,x)=>boolean) |: (x,cons[tree[x]]) => cons[tree[x]].
+  insert:all x ~~ leq|:(x,x)=>boolean |= (x,cons[tree[x]]) => cons[tree[x]].
   insert(x,ts) => insTree(.eNode(x,0,[]),ts).
 
-  merge:all x ~~ (leq:(x,x)=>boolean) |: (cons[tree[x]],cons[tree[x]]) => cons[tree[x]].
+  merge:all x ~~ leq|:(x,x)=>boolean |= (cons[tree[x]],cons[tree[x]]) => cons[tree[x]].
   merge(T,[]) => T.
   merge([],T) => T.
   merge([T1,..Ts1],[T2,..Ts2]) => valof{
@@ -37,7 +37,7 @@ star.heap{
     valis insTree(link(T1,T2),merge(Ts1,Ts2))
   }
 
-  removeMinTree:all x ~~ (leq:(x,x)=>boolean) |: (cons[tree[x]]) => (tree[x],cons[tree[x]]).
+  removeMinTree:all x ~~ leq|:(x,x)=>boolean |= (cons[tree[x]]) => (tree[x],cons[tree[x]]).
   removeMinTree([T]) => (T,[]).
   removeMinTree([T,..Ts]) => valof{
     (T1,Ts1) = removeMinTree(Ts);
@@ -47,20 +47,20 @@ star.heap{
     valis (T1,[T,..Ts1])
   }
 
-  findMin:all x ~~ (leq:(x,x)=>boolean) |: (heap[x]) => option[x].
+  findMin:all x ~~ leq|:(x,x)=>boolean |= (heap[x]) => option[x].
   findMin(.h([])) => .none.
   findMin(.h(Ts)) => valof{
     (T,_) = removeMinTree(Ts);
     valis .some(root(T))
   }
 
-  deleteMin:all x ~~ (leq:(x,x)=>boolean) |: (heap[x]) => heap[x].
+  deleteMin:all x ~~ leq|:(x,x)=>boolean |= (heap[x]) => heap[x].
   deleteMin(.h(Ts)) => valof{
     (.eNode(_,_,Ts1),Ts2) = removeMinTree(Ts);
     valis .h(merge(reverse(Ts1),Ts2))
   }
 
-  public showHeap: all x ~~ display[x] |: (heap[x])=>string.
+  public showHeap: all x ~~ display[x] |= (heap[x])=>string.
   showHeap(.h(Hs)) => let{.
     sh(H) => interleave(H//shT,", ")*.
 
@@ -69,7 +69,7 @@ star.heap{
 
   -- Implement some contracts
 
-  public implementation all x ~~ display[x] |: display[heap[x]] => let{.
+  public implementation all x ~~ display[x] |= display[heap[x]] => let{.
     sh(H) => (H//shT)*.
 
     shT(.eNode(X,_,C)) => [disp(X),..sh(C)].
@@ -77,17 +77,17 @@ star.heap{
     disp(.h(H)) => "[#(interleave(sh(H),", ")*)]".
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: build[heap[x]->>x] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= build[heap[x]->>x] => {
     _null = .h([]).
     _push(E,.h(C)) => .h(insert(E,C))
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: sequence[heap[x]->>x] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= sequence[heap[x]->>x] => {
     _nil = .h([]).
     _cons(E,.h(C)) => .h(insert(E,C))
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: stream[heap[x]->>x] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= stream[heap[x]->>x] => {
     _eof(.h(.nil)) => .true.
     _eof(_) default => .false.
 
@@ -98,7 +98,7 @@ star.heap{
     }
   }
 
-  walk:all x,s ~~ (leq:(x,x)=>boolean) |: (heap[x],(x,s)=>s,s) => s.
+  walk:all x,s ~~ leq|:(x,x)=>boolean |= (heap[x],(x,s)=>s,s) => s.
   walk(.h(Ts),F,Sinit) => let{.
     w([],St) => St.
     w(Cs,St) => valof{
@@ -107,11 +107,11 @@ star.heap{
     }
   .} in w(Ts,Sinit).
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: iter[heap[x] ->> x] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= iter[heap[x] ->> x] => {
     _iter(H,Z,F) => walk(H,F,Z)
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: generate[heap[x]->>x] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= generate[heap[x]->>x] => {
     _generate(Ts) => generator{
       TT := Ts;
       while [H,..T] .= TT! do{
@@ -121,7 +121,7 @@ star.heap{
     }
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |: concat[heap[x]] => {
+  public implementation all x ~~ leq|:(x,x)=>boolean |= concat[heap[x]] => {
     .h(L) ++ .h(R) => .h(merge(L,R)).
     _multicat(Hs) => let{.
       m([]) => [].

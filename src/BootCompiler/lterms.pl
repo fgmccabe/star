@@ -117,7 +117,7 @@ ssTrm(xocall(_,Op,Args,_,ErTp),Dp,sq([OO,ss("°°"),lp,AA,rp, ss(" throws "),EE]
 ssTrm(ecll(_,Es,Args,_),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(xecll(_,Es,Args,_,ErTp),Dp,sq([ss("throws "),EE,ss("|:"),ss("ε"),ss(Es),ss("("),AA,ss(")")])) :-!,
+ssTrm(xecll(_,Es,Args,_,ErTp),Dp,sq([ss("ε"),ss(Es),ss("("),AA,ss(")"),ss(" throws "),EE])) :-!,
   ssType(ErTp,false,Dp,EE),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).

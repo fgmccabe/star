@@ -14,7 +14,7 @@ star.statistics{
     count : integer.
   } | .emptyidentity.
 
-  implementation all t ~~ arith[t],comp[t] |: WindowedFun[identityState[t]->>t, t] => {
+  implementation all t ~~ arith[t],comp[t] |= WindowedFun[identityState[t]->>t, t] => {
     getResult(statisticsIdentity{res=r})=>r.
     getResult(emptyidentity)=>zero.
     validResult(emptyidentity)=>.false.
@@ -31,7 +31,7 @@ star.statistics{
     c : integer.
   } | .emptycount.
 
-  implementation all t ~~ arith[t] |: WindowedFun[countState[t] ->> t, integer]=>{
+  implementation all t ~~ arith[t] |= WindowedFun[countState[t] ->> t, integer]=>{
     getResult(emptycount)=>0.
     getResult(cnt{c=c})=>c.
     validResult(x)=>.true.
@@ -45,7 +45,7 @@ star.statistics{
     res : t.
   } | .emptysum.
 
-  implementation all t ~ arith[t] |: WindowedFun[sumState[t] ->>t,t] =>{
+  implementation all t ~ arith[t] |= WindowedFun[sumState[t] ->>t,t] =>{
     getResult(emptysum)=>zero.
     getResult(sum{res=r})=>r.
     validResult(x)=>.true.
@@ -60,7 +60,7 @@ star.statistics{
     total : sumState[t].
   } | .emptyaverage.
 
-  implementation all t ~~ coercion[t,float],arith[t],comp[t] |:
+  implementation all t ~~ coercion[t,float],arith[t],comp[t] |=
     WindowedFun[averageState[t]->>t,float] =>  let{.
       getRes(.emptyaverage)=>0.0.
       getRes(avg{count=c. total=t})=>(getResult(t)::float) / (c::float).
@@ -82,7 +82,7 @@ star.statistics{
     removalHeap : heap[t].
   } | .emptymax.
 
-  implementation all t ~~ arith[t], comp[t],equality[t] |: WindowedFun[maxState[t]->>t,t] => {.
+  implementation all t ~~ arith[t], comp[t],equality[t] |= WindowedFun[maxState[t]->>t,t] => {.
     getResult(.emptymax)=>zero.
     getResult(statisticsMax{resHeap=rh})=>peek(rh).
     validResult(.emptymax)=>.false.

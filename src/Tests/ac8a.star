@@ -7,7 +7,7 @@ test.ac8a{
   -- Experiments in throwing
 
 
-  ff:throwable[integer] |: (integer)=>integer.
+  ff:throwable[integer] |= (integer)=>integer.
   ff(X) => valof{
     if X>5 then
       _throw(10)

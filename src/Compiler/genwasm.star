@@ -244,7 +244,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  compCase:all e ~~ display[e] |:
+  compCase:all e ~~ display[e] |=
     (option[locn],cExp,cons[cCase[e]],e,(e,Cont)=>Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCase(Lc,Gv,Cases,Deflt,Comp,Cont,Ctx,Stk) => valof{
     if traceCodegen! then
@@ -263,7 +263,7 @@ star.compiler.wasm.gen{
       GCode++[.iLbl(Nxt),.iCase(Max)]++TCode++CCode++[.iLbl(DLbl)]++DCode)
   }
 
-  compCases:all e ~~ display[e] |: (cons[csEntry[e]],integer,integer,
+  compCases:all e ~~ display[e] |= (cons[csEntry[e]],integer,integer,
     (e,Cont)=>Cont,Cont,Cont,wasmLbl,codeCtx,stack) =>(stack,multi[wOp],multi[wOp]).
   compCases(Cs,Ix,Mx,Comp,Succ,Fail,Deflt,Ctx,Stk) => case Cs in {
     | [] => valof{
@@ -287,7 +287,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  compCaseBranch:all e ~~ display[e] |: (cons[cCase[e]],
+  compCaseBranch:all e ~~ display[e] |= (cons[cCase[e]],
     (e,Cont)=>Cont,Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
 
   compCaseBranch(Cs,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
@@ -304,7 +304,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  compMoreCase:all e ~~ display[e] |: (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
+  compMoreCase:all e ~~ display[e] |= (cons[(option[locn],cExp,e)],integer,(e,Cont)=>Cont,
     Cont,Cont,codeCtx,stack) => (stack,multi[wOp]).
   compMoreCase(Cs,Off,Comp,Succ,Fail,Ctx,Stk) => case Cs in {
     | [] => Fail.C(Ctx,.none,[])
@@ -317,7 +317,7 @@ star.compiler.wasm.gen{
     }
   }
   
-  compCnsCase:all e ~~ display[e] |: (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
+  compCnsCase:all e ~~ display[e] |= (option[locn],cExp,cons[cCase[e]],(e,Cont)=>Cont,
     Cont,codeCtx,stack) => (stack,multi[wOp]).
   compCnsCase(Lc,Gv,Cs,Comp,Cont,Ctx,Stk) => case Cs in {
     | [(_,Ptn,Exp)] => compExp(Gv,.notLast, ptnCont(Ptn,Comp(Exp,Cont),
@@ -328,7 +328,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  cnsCaseCont:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont) => Cont.
+  cnsCaseCont:all e ~~ display[e] |= (cons[cCase[e]],(e,Cont)=>Cont,Cont) => Cont.
   cnsCaseCont(Cases,Comp,Cont) => cont{
     C(Ctx,AStk,GCde) => valof{
       (Stk2,JCde,CCde) = compCnsCases(Cases,Comp,Cont,Ctx,AStk);
@@ -337,7 +337,7 @@ star.compiler.wasm.gen{
     }
   }
 
-  compCnsCases:all e ~~ display[e] |: (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
+  compCnsCases:all e ~~ display[e] |= (cons[cCase[e]],(e,Cont)=>Cont,Cont,codeCtx,stack) =>
     (stack,multi[wOp],multi[wOp]).
   compCnsCases(Cs,Comp,Succ,Ctx,Stk) => case Cs in {
     | [] => (.none,[],[])
@@ -798,7 +798,7 @@ star.compiler.wasm.gen{
     valis foldLeft((.cV(Nm,Tp),Cx)=>snd(defineLclVar(Nm,Tp,Cx)),Ctx,CommonVrs)
   }
 
-  drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
+  drop:all x,e ~~ stream[x->>e] |= (x,integer)=>x.
   drop(S,0)=>S.
   drop([_,..S],N)=>drop(S,N-1).
 

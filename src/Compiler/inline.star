@@ -45,7 +45,7 @@ star.compiler.inline{
   -- There are three possibilities of a match ...
   match[e] ::= .noMatch | .insufficient | .matching(e).
 
-  implementation all e ~~ display[e] |: display[match[e]] => {
+  implementation all e ~~ display[e] |= display[match[e]] => {
     disp(.noMatch) => "noMatch".
     disp(.insufficient) => "insufficient".
     disp(.matching(X)) => "matching $(X)"
@@ -218,7 +218,7 @@ star.compiler.inline{
   applyNeg(_,.cTerm(Lc,"true",[],Tp)) => .cTerm(Lc,"false",[],Tp).
   applyNeg(Lc,Inner) => .cNeg(Lc,Inner).
 
-  applyCnd:all e ~~ rewrite[e], reform[e] |: (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
+  applyCnd:all e ~~ rewrite[e], reform[e] |= (option[locn],cExp,e,e,map[defnSp,cDefn],integer) => e.
   applyCnd(_,.cTerm(_,"false",[],_),_L,R,_,_) => R.
   applyCnd(_,.cTerm(_,"true",[],_),L,_R,_,_) => L.
   applyCnd(Lc,.cMatch(_,V,E),L,R,Map,Dep) where .cVar(_,.cV(Vr,_)) .= V =>
@@ -248,7 +248,7 @@ star.compiler.inline{
   makeSubMatches(Lc,[T1],[T2]) => .cMatch(Lc,T1,T2).
   makeSubMatches(Lc,[P1,..P1s],[T2,..T2s]) => .cCnj(Lc,.cMatch(Lc,P1,T2),makeSubMatches(Lc,P1s,T2s)).
 
-  simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
+  simplifyCase:all e ~~ rewrite[e], reform[e], simplify[e] |=
     (cCase[e],map[defnSp,cDefn],integer) => cCase[e].
   simplifyCase((Lc,Ptn,Rep),Map,Dp) => (Lc,Ptn,simplify(Rep,Map,Dp)).
 
@@ -256,14 +256,14 @@ star.compiler.inline{
   isSingletonType(Nm,Map) where .tpDef(_,_,_,CMp)?=Map[.tpSp(Nm)] => [|CMp|]==1.
   isSingletonType(_,_) default => .false.
 
-  inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
+  inlineCase:all e ~~ rewrite[e], reform[e], simplify[e] |=
     (option[locn],cExp,cons[cCase[e]],e,map[defnSp,cDefn],integer) => e.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) where
       .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
 
-  matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |:
+  matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |=
     (cExp,cons[cCase[e]],map[defnSp,cDefn],integer) => match[e].
   matchingCase(_,[],_,_) => .noMatch.
   matchingCase(Gov,[C,..Cs],Map,Depth) => case candidate(Gov,C) in {
@@ -272,14 +272,14 @@ star.compiler.inline{
     | .matching(Rep) => .matching(simplify(Rep,Map,Depth))
   }.
 
-  candidate:all e ~~ rewrite[e] |: (cExp,cCase[e]) => match[e].
+  candidate:all e ~~ rewrite[e] |= (cExp,cCase[e]) => match[e].
   candidate(E,(_,Ptn,Rep)) => case ptnMatch(Ptn,E,[]) in {
     | .matching(Theta) => .matching(rewrite(Rep,rwVar(Theta)))
     | .noMatch => .noMatch
     | .insufficient => .insufficient
   }
 
-  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |:
+  inlineLtt:all e ~~ simplify[e],reform[e],present[e],rewrite[e] |=
     (option[locn],cV,cExp,e,map[defnSp,cDefn],integer) => e.
   inlineLtt(Lc,.cV(Vr,Tp),Bnd,Exp,Map,Depth) where isGround(Bnd) =>
     simplify(rewrite(Exp,rwVar({Vr->Bnd})),Map,Depth).

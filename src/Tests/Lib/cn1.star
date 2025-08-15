@@ -9,7 +9,7 @@ test.cn1{
   dblCons:(cons[integer])=>cons[integer].
   dblCons(X) => plus(X,X).
 
-  dbl:all x ~~ ar[x] |: (x)=>x.
+  dbl:all x ~~ ar[x] |= (x)=>x.
   dbl(X) => plus(X,X).
 
   ddbl:((integer,cons[integer]))=>(integer,cons[integer]).

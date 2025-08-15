@@ -140,19 +140,19 @@ star.arith{
     X>=Y => _flt_ge(X,Y).
   }
 
-  public (>) : all t ~~ comp[t] |: (t,t)=>boolean.
+  public (>) : all t ~~ comp[t] |= (t,t)=>boolean.
   X > Y => Y<X.
 
-  public (=<): all t ~~ comp[t] |: (t,t)=>boolean.
+  public (=<): all t ~~ comp[t] |= (t,t)=>boolean.
   X =< Y => Y>=X.
 
-  public min: all t ~~ comp[t] |: (t,t)=>t.
+  public min: all t ~~ comp[t] |= (t,t)=>t.
   min(X,Y) => X<Y ?? X || Y.
 
-  public max: all t ~~ comp[t] |: (t,t)=>t.
+  public max: all t ~~ comp[t] |= (t,t)=>t.
   max(X,Y) => X>Y ?? X || Y.
 
-  public abs: all t ~~ comp[t],arith[t] |: (t)=>t.
+  public abs: all t ~~ comp[t],arith[t] |= (t)=>t.
   abs(X) => X<zero ?? __minus(X) || X.
 
   public implementation display[float] => {

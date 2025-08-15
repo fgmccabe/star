@@ -239,7 +239,7 @@ star.compiler.canon{
     | .anon(_,_) => "_"
     | .vr(_,Nm,Tp) => Nm
     | .mtd(_,Fld,_) => "µ#(Fld)"
-    | .over(_,V,Cx) => "$(Cx)|:#(showCanon(V,Pr,Sp))"
+    | .over(_,V,Cx) => "$(Cx)|=#(showCanon(V,Pr,Sp))"
     | .intr(_,Lt) => disp(Lt)
     | .bintr(_,Lt) => disp(Lt)
     | .kar(_,Ch) => disp(Ch)
@@ -355,7 +355,7 @@ star.compiler.canon{
     | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
-    | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |: $(Exp)"
+    | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |= $(Exp)"
   }
 
   showRls:all x ~~ (string,cons[rule[x]],(x,integer,string)=>string,string) => string.
@@ -390,7 +390,7 @@ star.compiler.canon{
   public displayDefs:(cons[canonDef]) => string.
   displayDefs(Dfs) => interleave(Dfs//disp,"\n")*.
 
-  public implementation all x ~~ display[x] |: display[rule[x]] => {
+  public implementation all x ~~ display[x] |= display[rule[x]] => {
     disp(Eq) => showRl("λ",Eq,(X,_,_)=>disp(X),"").
   }
 

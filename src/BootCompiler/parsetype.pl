@@ -270,7 +270,7 @@ parseTypeFields([F|L],Env,Bound,Flds,Fields,Tps,Types) :-
   parseTypeFields(L,Env,Bound,F0,Fields,T0,Types).
 
 parseTypeField(F,Env,Q,Flds,[(Fld,FldTp)|Flds],Types,Types) :-
-  isTypeAnnotation(F,_,Nm,FT),
+  isTypeDecl(F,_,Nm,FT),
   isIden(Nm,_,Fld),
   parseType(FT,Env,Q,FldTp).
 parseTypeField(S,Env,Q,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
@@ -531,7 +531,7 @@ findCons(Body,[lbl(Id,Ar)|Cnx],Cnx,Path) :-
 
 braceConArity([],Ar,Ar).
 braceConArity([E|Es],Ar,Ax) :-
-  isTypeAnnotation(E,_,_,_),!,
+  isTypeDecl(E,_,_,_),!,
   Ar1 is Ar+1,
   braceConArity(Es,Ar1,Ax).
 braceConArity([_E|Es],Ar,Ax) :-
@@ -601,13 +601,13 @@ mergeFields([A|As],B,[A|Fs]) :-
   mergeFields(As,B1,Fs).
 
 mergeField(A,B,Bx) :-
-  isTypeAnnotation(A,_,N,Tp),
+  isTypeDecl(A,_,N,Tp),
   isIden(N,_,Nm),
   checkFields(Nm,Tp,B,Bx),!.
 
 checkFields(_,_,[],[]).
 checkFields(Nm,Tp,[B|Bs],Bx) :-
-  isTypeAnnotation(B,_,N,Tp2),
+  isTypeDecl(B,_,N,Tp2),
   (isIden(N,Lc,Nm) ->
    Bs=Bx,
    (sameTerm(Tp,Tp2);

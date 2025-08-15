@@ -588,7 +588,7 @@ star.compiler.term{
   public rewriteTerm:(cExp,(cExp)=>option[cExp])=>cExp.
   rewriteTerm(T,F) => rwTerm(T,F).
 
-  public rewriteTerms:all e ~~ rewrite[e] |: (cons[e],(cExp)=>option[cExp])=>cons[e].
+  public rewriteTerms:all e ~~ rewrite[e] |= (cons[e],(cExp)=>option[cExp])=>cons[e].
   rewriteTerms(Els,F) => (Els//(E)=>rewrite(E,F)).
 
   public freshenE:(cExp,map[termLbl,cExp])=>cExp.
@@ -1041,7 +1041,7 @@ star.compiler.term{
   public lblUsed:(aAction,string) => boolean.
   lblUsed(A,Lb) => presentInA(A,(T)=>isBreak(T,Lb),(_)=>.false).
 
-  public varUsed:all T ~~ present[T] |: (T,cV) => boolean.
+  public varUsed:all T ~~ present[T] |= (T,cV) => boolean.
   varUsed(T,V) => present(T,(Ex)=>(.cVar(_,VV).=Ex ?? VV==V || .false)).
 
   isBreak(.aBreak(_,Lb),Lb) => .true.
@@ -1306,7 +1306,7 @@ star.compiler.term{
     | .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T))
   }
 
-  thawLoc(L:data) => L::option[locn].
+  thawLoc(L|:data) => L::option[locn].
 
   thawCases:all e ~~ (data,(data)=>e) => cons[cCase[e]].
   thawCases(.term(_,Args),T) => (Args//(.term(_,[Lc,P,E]))=>
@@ -1350,8 +1350,8 @@ star.compiler.term{
 
   public sortDefs:(cons[cDefn]) => cons[cons[cDefn]].
   sortDefs(Defs) => valof{
-    Globals = ({ nameOf(Df)->Df | Df in Defs }:map[string,cDefn]);
-    AllRefs = foldRight((Df,A)=>[(nameOf(Df),Df,findRefs(Df,Globals)),..A],([]:cons[glSpec]),Defs);
+    Globals = { nameOf(Df)->Df | Df in Defs }|:map[string,cDefn];
+    AllRefs = foldRight((Df,A)=>[(nameOf(Df),Df,findRefs(Df,Globals)),..A],[]|:cons[glSpec],Defs);
     valis (topsort(AllRefs) // ((G) => (G//(((_,Df,_))=>Df))));
   }
 

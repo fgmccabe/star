@@ -161,7 +161,7 @@ A more paradigmatic type annotation would be:
 
 [source, star]
 ----
-public factorial: all x ~~ arith[x] |: (x)=>x.
+public factorial: all x ~~ arith[x] |= (x)=>x.
 ----
 
 which introduces a function `factorial` that will work on any
@@ -802,7 +802,7 @@ constraint:
 [source, star]
 ----
 let{
-  total:all i ~~ arith[i] |: (cons[i])=>i.
+  total:all i ~~ arith[i] |= (cons[i])=>i.
   total(.nil) => zero.
   total(.cons(E,L)) => total(L)+E
 } in total(L)
@@ -923,10 +923,10 @@ type, the type for `plus` is:
 
 [source, star]
 ----
-plus :  all t ~~ four[t] |: (t,t)=>t.
+plus :  all t ~~ four[t] |= (t,t)=>t.
 ----
 
-The clause `four[t] |:` is a _type constraint_, specifically
+The clause `four[t] |=` is a _type constraint_, specifically
 a _contract constraint_. So, these functions are generic
 (universally quantified) but the bound type (`t`) has the
 additional constraint that there must be an implementation for
@@ -946,7 +946,7 @@ The type of `double` reflects the fact that we are using elements
 from the `four` contract:
 [source, star]
 ----
-double : all t ~~ four[t] |: (t)=>t.
+double : all t ~~ four[t] |= (t)=>t.
 ----
 I.e., it inherits the same constraint as the function `plus`
 has. There are several kinds of type constraint; but the
@@ -977,7 +977,7 @@ some.pkg{
     div : (t,t)=>t.
   }
 
-  double : all t ~~ four[t] |: (t)=>t.
+  double : all t ~~ four[t] |= (t)=>t.
   double(X) => plus(X,X).
 
   main()=> action{
@@ -992,7 +992,7 @@ we would get a compiler error along the lines of:
 ----
 2:integer
   which is not consistent with
-  display[t_12] , four[t_12] |: t_12
+  display[t_12] , four[t_12] |= t_12
   because four[integer] not known to be implemented
 ----
 
@@ -1013,7 +1013,7 @@ some.pkg{
     div : (t,t)=>t.
   }
 
-  double : all t ~~ four[t] |: (t)=>t.
+  double : all t ~~ four[t] |= (t)=>t.
   double(X) => plus(X,X).
 
   implementation four[integer] => {
@@ -1036,7 +1036,7 @@ actually has two type constraints:
 
 [source, star]
 ----
-display[t_12] , four[t_12] |: t_12
+display[t_12] , four[t_12] |= t_12
 ----
 
 This is because the `show` action also results in a type

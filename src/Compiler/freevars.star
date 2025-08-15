@@ -126,7 +126,7 @@ star.compiler.freevars{
   freeVarsInCond(.neg(Lc,R),Q,Fv) => freeVarsInCond(R,Q,Fv).
   freeVarsInCond(T,Q,Fv) => freeVarsInExp(T,Q,Fv).
 
-  public freeVarsInRule:all e ~~ freevars[e] |:
+  public freeVarsInRule:all e ~~ freevars[e] |=
     (rule[e],set[cV],set[cV])=>set[cV].
   freeVarsInRule(.rule(_,Ptn,.none,Exp),Q,Fv) => valof{
     Q1 = dropVars(Ptn,Q);

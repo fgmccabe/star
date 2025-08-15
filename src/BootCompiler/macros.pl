@@ -35,9 +35,9 @@ examinePkg(A,Rp) :-
 macroStmt(S,Rp) :- macroAst(S,statement,macros:examineStmt,Rp).
 
 examineStmt(S,Rp) :-
-  isTypeAnnotation(S,Lc,V,T),!,
+  isTypeDecl(S,Lc,V,T),!,
   macroType(T,Tx),
-  typeAnnotation(Lc,V,Tx,Rp).
+  mkTypeDecl(Lc,V,Tx,Rp).
 examineStmt(S,Rp) :-
   isPublic(S,Lc,I),!,
   macroStmt(I,II),
@@ -220,13 +220,15 @@ examineTypeVar(T,T) :-
   reportError("cannot figure out type variable %s",[ast(T)],Lc).
 
 braceTypeMacro(S,Sx) :-
-  isTypeAnnotation(S,Lc,L,R),!,
+  isTypeDecl(S,Lc,L,R),!,
   macroType(R,Rx),
-  typeAnnotation(Lc,L,Rx,Sx).
+  mkTypeDecl(Lc,L,Rx,Sx).
 braceTypeMacro(S,Sx) :-
-  isTypeExists(S,Lc,L,R),
+  isTypeFunStmt(S,Lc,Q,C,L,R),!,
+  macroType(L,Lx),
   macroType(R,Rx),
-  mkTypeExists(Lc,L,Rx,Sx).
+  map(C,macros:macroType,Cx),
+  typeFunStmt(Lc,Q,Cx,Lx,Rx,Sx).
 
 macroConstraint(T,Tx) :-
   macroAst(T,constraint,macros:examineConstraint,Tx).
@@ -681,7 +683,7 @@ examineAction(A,Ax) :-
 examineAction(A,A) :-
   isBreak(A,_,_),!.
 examineAction(A,Ax) :-
-  isTypeAnnotation(A,Lc,V,T),!,
+  isTypeDecl(A,Lc,V,T),!,
   macroType(T,Tx),
   typeAnnotation(Lc,V,Tx,Ax).
 examineAction(A,Ax) :-

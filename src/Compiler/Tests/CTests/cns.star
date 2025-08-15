@@ -17,7 +17,7 @@ test.cns{
     _nil = .nil.
   }
 
-  public implementation all e ~~ display[e] |: display[cons[e]] => let{.
+  public implementation all e ~~ display[e] |= display[cons[e]] => let{.
     consDisp(.nil) => ss("").
     consDisp(cons(X,.nil)) => disp(X).
     consDisp(cons(X,R)) => ssSeq([disp(X), ss(","), consDisp(R)]).

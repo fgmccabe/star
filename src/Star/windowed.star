@@ -16,7 +16,7 @@ star.windowed{
     count : integer.
   }.
 
-  implementation all t ~~ arith[t],comp[t] |: WindowState[identityState[t]->>t, t] => {
+  implementation all t ~~ arith[t],comp[t] |= WindowState[identityState[t]->>t, t] => {
     getResult(S) where S.count>0 =>.some(S.res).
     getResult(_)=>.none.
     validResult(S)=> S.count>0.
@@ -30,7 +30,7 @@ star.windowed{
     c : integer.
   }
 
-  implementation all t ~~ arith[t] |: WindowState[countState[t]->>t,integer]=>{
+  implementation all t ~~ arith[t] |= WindowState[countState[t]->>t,integer]=>{
     getResult(cnt{c=c})=> c>0 ?? .some(c) || .none.
     validResult(_)=> .true
     addElement(elt, cnt{c=c})=>cnt{c=c + 1}.
@@ -41,7 +41,7 @@ star.windowed{
     res : t.
   }
 
-  implementation all t ~ arith[t] |: WindowState[sumState[t]->>t,t] =>{
+  implementation all t ~ arith[t] |= WindowState[sumState[t]->>t,t] =>{
     getResult(S)=> .some(S.res).
     validResult(_)=>.true.
     addElement(elt, sum{res=r})=>sum{res=r + elt}.
@@ -53,7 +53,7 @@ star.windowed{
     total : sumState[t].
   }
 
-  implementation all t ~~ coercion[t,float],arith[t],comp[t] |:
+  implementation all t ~~ coercion[t,float],arith[t],comp[t] |=
     WindowState[averageState[t]->>t,float] =>  let{
       getRes(avg{count=c. total=t})=> c==0 ?? .none || .some((getResult(t)::float)/(c::float)).
       validRes(avg{count=c})=> c > 0.
@@ -70,7 +70,7 @@ star.windowed{
     removalHeap : heap[t].
   }
 
-  implementation all t ~~ arith[t], comp[t],equality[t] |: WindowState[maxState[t]->>t,t] => {.
+  implementation all t ~~ arith[t], comp[t],equality[t] |= WindowState[maxState[t]->>t,t] => {.
     getResult(maxState{resHeap=rh})=>head(rh).
     validResult(maxState{resHeap=rh})=>~isEmpty(rh).
 

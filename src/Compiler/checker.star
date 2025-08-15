@@ -27,7 +27,7 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast) =>
+  public checkPkg:all r ~~ repo[r],display[r]|=(r,pkg,ast) =>
     (pkgSpec,cons[canonDef],cons[decl],cons[decl]).
   checkPkg(Repo,Pkge,P) => valof{
     if (Lc,Pk,Els) ?= isQBrTerm(P) && Pkg .= pkgeName(Pk) then{
@@ -213,8 +213,9 @@ star.compiler.checker{
       valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs,declareDecls(Dcs,Ev))
     }.
 
-    typeLambdas = ({ Lc | S in Specs &&
-	    .defnSpec(.tpSp(_),Lc,[St]) .= S && _ ?= isTypeFunStmt(St)}:cons[_]).
+    typeLambdas = { Lc | S in Specs &&
+	  .defnSpec(.tpSp(_),Lc,[St]) .= S &&
+	      _ ?= isTypeFunStmt(St)}|:cons[_].
   .} in valof{
     if [|typeLambdas|] > 0 then{
       -- A poor man fixed point. Will not happen often.

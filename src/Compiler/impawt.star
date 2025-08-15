@@ -16,7 +16,7 @@ star.compiler.impawt{
   import star.compiler.term.
   import star.compiler.types.
 
-  public importAll:all r ~~ repo[r]|:
+  public importAll:all r ~~ repo[r]|=
     (cons[importSpec],r,cons[importSpec], cons[decl]) => (cons[importSpec],cons[decl]).
   importAll([],_,Imported,Decls) => (Imported,Decls).
   importAll([.pkgImp(Lc,Viz,Pkg),..Imports],Repo,Imported,Decls) => valof{
@@ -35,7 +35,7 @@ star.compiler.impawt{
   publicImports:(cons[importSpec]) => cons[importSpec].
   publicImports(Imps) => (Imps ^/ ((.pkgImp(_,Vis,_)) => Vis>=.transItive)).
 
-  public importPkg:all r ~~ repo[r] |: (pkg,option[locn],r) => option[pkgSpec].
+  public importPkg:all r ~~ repo[r] |= (pkg,option[locn],r) => option[pkgSpec].
   importPkg(Pkg,Lc,Repo) where Sig ?= pkgSignature(Repo,Pkg) => 
     pickupPkgSpec(Sig,Lc).
   importPkg(Pkg,Lc,_) default => .none.
@@ -160,7 +160,7 @@ star.compiler.impawt{
     _coerce(.pkgImp(_,Vz,Pk)) => .some(.term("import",[Vz::data,Pk::data]))
   }
 
-  implementation all e ~~ coercion[e,data] |: coercion[cons[e],data] => {
+  implementation all e ~~ coercion[e,data] |= coercion[cons[e],data] => {
     _coerce(L)=>.some(mkTpl(L//(e)=>e::data))
   }
 

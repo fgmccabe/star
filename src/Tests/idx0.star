@@ -88,7 +88,7 @@ test.idx0{
 
     show unzip(["a","b","c"],0,4,u1);
 
-    show ({12->"d"}:map[integer,string]);
+    show {12->"d"}|:map[integer,string];
     valis ()
   }
 

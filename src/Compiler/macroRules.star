@@ -41,7 +41,7 @@ star.compiler.macro.rules{
     ":?" -> [(.expression,coercionMacro)],
     ":" -> [(.actn,forLoopMacro),(.expression,rangeMacro)],
     "*" -> [(.expression,multicatMacro)],
-    ":" -> [(.rule,caseRuleMacro)],
+    "|:" -> [(.rule,caseRuleMacro)],
     "{}" -> [(.expression,comprehensionMacro),
       (.expression,totalizerMacro),
       (.expression,mapLiteralMacro)],
@@ -203,7 +203,7 @@ star.compiler.macro.rules{
 
   lyfted[a] ::= .lyfted(a) | .grounded(a).
 
-  implementation all e ~~ display[e] |: display[lyfted[e]] => {
+  implementation all e ~~ display[e] |= display[lyfted[e]] => {
     disp(.lyfted(X)) => "lifted $(X)".
     disp(.grounded(X)) => "grounded $(X)"
   }
@@ -492,7 +492,7 @@ star.compiler.macro.rules{
     Empty = rndTuple(Lc,[]);
     -- Build type annotation:
     -- tk:async () => _ throws _.
-    TkTp = mkTypeAnnotation(Lc,Tk,mkAsync(Lc,mkThrowingFunType(Lc,Empty,Anon,Anon)));
+    TkTp = mkTypeDeclaration(Lc,Tk,mkAsync(Lc,mkThrowingFunType(Lc,Empty,Anon,Anon)));
 
     -- Build function:
     -- tk() => valof { A }
@@ -533,16 +533,15 @@ star.compiler.macro.rules{
   arrowMacro(_,_) default => .inactive.
 
   caseRuleMacro(A,_) where
-      (Lc,P,R) ?= isBinary(A,":") && (LLc,T,E) ?= isBinary(R,"=>") =>
-    .active(binary(Lc,"=>",binary(Lc,":",P,T),E)).
+      (Lc,P,R) ?= isBinary(A,"|:") && (LLc,T,E) ?= isBinary(R,"=>") =>
+    .active(binary(Lc,"=>",binary(Lc,"|:",P,T),E)).
   caseRuleMacro(A,_) default => .inactive.
 
-  -- Convert async T to (this:task[_]) |: T.
+  -- Convert async T to (this:task[_]) |= T.
   asyncMacro(A,.typeterm) where
       (Lc,R) ?= isAsync(A) =>
-    .active(binary(Lc,"|:",
-	mkTypeAnnotation(Lc,.nme(Lc,"this"),
-	  squareTerm(Lc,.nme(Lc,"task"),[.nme(Lc,"_")])),
-	R)).
+    .active(reConstrain([mkTypeAnnotation(Lc,.nme(Lc,"this"),
+	  squareTerm(Lc,.nme(Lc,"task"),[.nme(Lc,"_")]))],
+      R)).
   asyncMacro(_,_) default => .inactive.
 }

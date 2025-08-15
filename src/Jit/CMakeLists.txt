@@ -27,8 +27,7 @@ set(HEADER_FILES
         ${JIT_ARCH}/Headers/lower.h
         )
 
-set(JIT_SOURCE_FILES jit.c jitInfra.c ARM64/Assem/asmInfra.c
-)
+set(JIT_SOURCE_FILES jit.c jitInfra.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})

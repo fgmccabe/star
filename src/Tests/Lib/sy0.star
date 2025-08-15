@@ -38,23 +38,23 @@ test.sy0{
     small=-10.
   .}
 
-  largest:all x ~~ lS[x] |: ()=>x.
+  largest:all x ~~ lS[x] |= ()=>x.
   largest() => large.
 
   contract all x ~~ ar[x] ::= {
     plus:(x,x)=>x.
   }
 
-  double:all x ~~ ar[x] |: (x)=>x.
+  double:all x ~~ ar[x] |= (x)=>x.
   double(X) => plus(X,X).
 
-  quad:all  x ~~ ar[x] |: (x)=>x.
+  quad:all  x ~~ ar[x] |= (x)=>x.
   quad(X) => double(double(X)).
 
   dbl:all x ~~ ((x)=>x)=>(x)=>x.
   dbl(F) => (X)=>F(F(X)).
 
-  qd:all  x ~~ ar[x] |: (x)=>x.
+  qd:all  x ~~ ar[x] |= (x)=>x.
   qd(X) => dbl(double)(X).
 
   implementation ar[integer] => {

@@ -29,7 +29,7 @@ macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("?=",expression,macroRules:optionMatchMacro).
 macroRl("!",expression,macroRules:binRefMacro).
-macroRl(":",rule,macroRules:caseRuleMacro).
+macroRl("|:",rule,macroRules:caseRuleMacro).
 macroRl(":",actionRule,macroRules:caseRuleMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).
@@ -62,8 +62,8 @@ build_main(As,Bs) :-
 build_main(A,A).
 
 look_for_signature([St|_],Nm,Lc,Ms) :-
-  (isTypeAnnotation(St,Lc,V,T) ;
-   (isPublic(St,_,I),isTypeAnnotation(I,Lc,V,T))),
+  (isTypeDecl(St,Lc,V,T) ;
+   (isPublic(St,_,I),isTypeDecl(I,Lc,V,T))),
   isIden(V,_,Nm),
   isFuncType(T,_,L,_),
   isTuple(L,_,Ms),!.
@@ -80,7 +80,7 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),
   binary(Lc,"=>",T3,Unit,TU),
-  binary(Lc,":",name(Lc,"_main"),TU,MainTp).
+  mkTypeDecl(Lc,name(Lc,"_main"),TU,MainTp).
 %  dispAst(Main).
   
 synthesize_coercions([],[],[]).
@@ -254,12 +254,12 @@ coercionMacro(Term,expression,N) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
   unary(Lc,"_optval",LT,OLT),
-  binary(Lc,":",OLT,R,N).
+  typeAnnotation(Lc,OLT,R,N).
 coercionMacro(Term,expression,N) :-
   isOptCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
   sqUnary(Lc,"option",R,OR),
-  binary(Lc,":",LT,OR,N).
+  typeAnnotation(Lc,LT,OR,N).
 
 multicatMacro(T,expression,Tx) :-
   isUnary(T,Lc,"*",I),!,
@@ -641,7 +641,7 @@ yieldMacro(E,action,Ax) :-
     funcType(Lc,Empty,Rslt,FnT),
     unary(Lc,"async",FnT,FnTp),
 
-    typeAnnotation(Lc,Tk,FnTp,St1),
+    mkTypeDecl(Lc,Tk,FnTp,St1),
 
     % Build function:
     % tk() => valof { A }
@@ -689,13 +689,13 @@ curryMacro(T,Mode,Tx) :-
 */
 
 caseRuleMacro(T,_,Tx) :-
-  isBinary(T,Lc,":",L,R),
+  isTypeAnnotation(T,Lc,L,R),
   isBinary(R,LLc,"=>",A,B),!,
-  binary(Lc,":",L,A,Ptn),
+  typeAnnotation(Lc,L,A,Ptn),
   binary(LLc,"=>",Ptn,B,Tx).
 
 asyncMacro(T,type,Tx) :-
   isUnary(T,Lc,"async",R),!,
   mkSqType(Lc,"task",[name(Lc,"_")],TTp),
   typeAnnotation(Lc,name(Lc,"this"),TTp,CTp),
-  binary(Lc,"|:",CTp,R,Tx).
+  binary(Lc,"|=",CTp,R,Tx).

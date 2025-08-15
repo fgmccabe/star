@@ -141,7 +141,7 @@ test.ralist{
     } in foldDRight(ff,[],L)
   }
   
-  public implementation all e ~~ display[e] |: display[ra[e]] => let{.
+  public implementation all e ~~ display[e] |= display[ra[e]] => let{.
     dispList:(cons[digit[e]],cons[string])=>cons[string].
     dispList(.nil,L) => L.
     dispList(.cons(.zer,ts),L)=>dispList(ts,L).

@@ -6,7 +6,7 @@ test.dte{
   time2Date(.time(N)) => _time2date(N).
 
   -- 7-tuples
-  public implementation all s,t,u,v,w,x,y,z ~~ display[s],display[t],display[u],display[v],display[w],display[x], display[y], display[z] |: display[(s,t,u,v,w,x,y,z)] => {
+  public implementation all s,t,u,v,w,x,y,z ~~ display[s],display[t],display[u],display[v],display[w],display[x], display[y], display[z] |= display[(s,t,u,v,w,x,y,z)] => {
     disp((a,b,c,d,e,f,g,h)) => "($(a),$(b),$(c),$(d),$(e),$(f),$(g),$(h))".
   }
 

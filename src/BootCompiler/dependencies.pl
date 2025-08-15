@@ -25,7 +25,7 @@ conRefs(N,St,R,Rfs) :-
   rfold(Els,dependencies:conRef(N),R,Rfs).
 
 conRef(N,St,Rfs,[(var(Nm),N)|Rfs]) :-
-  isTypeAnnotation(St,_,V,_),!,
+  isTypeDecl(St,_,V,_),!,
   isIden(V,Nm).
 conRef(_,_,Rfs,Rfs).
 
@@ -43,7 +43,7 @@ collectStmtRefs([St|Stmts],All,Annots,R,Refs) :-
   collectStmtRefs(Stmts,All,Annots,R0,Refs).
 
 collStmtRefs(St,All,_,R,Rfs) :-
-  isTypeAnnotation(St,_,_,Tp),!,
+  isTypeDecl(St,_,_,Tp),!,
   collectTypeRefs(Tp,All,R,Rfs).
 collStmtRefs(St,All,Annots,R,Rx) :-
   isPublic(St,_,I),!,
@@ -406,7 +406,7 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,_,Rfx,Rfx) :-
   isBreak(T,_,_),!.
 collectDoRefs(T,All,Rf,Rfx) :-
-  isTypeAnnotation(T,_,_,Tp),!,
+  isTypeDecl(T,_,_,Tp),!,
   collectTypeRefs(Tp,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isDefn(T,_,L,R),!,
@@ -485,7 +485,7 @@ collectTypeRefs(T,All,SoFar,Rx) :-
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rest) :-
-  isBinary(T,_,"|:",L,R),
+  isBinary(T,_,"|=",L,R),
   collConstraint(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
 collectTypeRefs(T,All,SoFar,Rest) :-
@@ -562,10 +562,10 @@ collectFaceTypes([T|List],All,R,Rx) :-
   collectFaceTypes(List,All,R0,Rx).
 
 collectFaceType(T,All,R,Rx) :-
-  isUnary(T,_,"type",I),
-  collectFaceType(I,All,R,Rx).
+  isTypeDecl(T,_,_,Tp),
+  collectTypeRefs(Tp,All,R,Rx).
 collectFaceType(T,All,R,Rx) :-
-  isTypeAnnotation(T,_,_,Tp),
+  isTypeFunStmt(T,_,_,_,_,Tp),
   collectTypeRefs(Tp,All,R,Rx).
 collectFaceType(_,_,R,R).
 

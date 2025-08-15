@@ -8,7 +8,7 @@ test.jt4{
 
   main:(integer)=>().
   main(C) => valof{
-    L = (iota(1,C) : cons[integer]);
+    L = iota(1,C) |: cons[integer];
     M = iota(2,13);
 
     show L;

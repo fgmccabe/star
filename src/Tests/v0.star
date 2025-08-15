@@ -6,7 +6,7 @@ test.v0{
   main:()=>().
   main()=>valof{
     VV := nullV();
-    AA = (["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"]:cons[string]);
+    AA = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"]|:cons[string];
     for A in AA do{
       VV := appnd(VV!,A);
       showMsg("After adding #(A), VV=$(VV!) $(isFullVect(VV!))")
@@ -75,7 +75,7 @@ test.v0{
 
     show TT//((X)=>X++X);
 
-    show ({ Ix | Ix in 0..<100 }:vect[integer]);
+    show { Ix | Ix in 0..<100 }|:vect[integer];
 
     valis ()
   }

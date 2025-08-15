@@ -84,7 +84,7 @@ star.compiler.misc{
 
   divides(X,Y) => (try X%Y==0 catch {_ => .false}).
 
-  public drop:all e ~~ equality[e] |: (e,cons[e])=>cons[e].
+  public drop:all e ~~ equality[e] |= (e,cons[e])=>cons[e].
   drop(_,[]) => [].
   drop(X,[X,..R]) => R.
   drop(X,[E,..R]) => [E,..drop(X,R)].

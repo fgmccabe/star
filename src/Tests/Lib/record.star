@@ -13,7 +13,7 @@ test.record{
 
   peteAge = someone{name="fred". age=23}.age.
 
-  nameOf:all k ~~ k<~{name:string} |:(k)=>string.
+  nameOf:all k ~~ k<~{name:string} |=(k)=>string.
   nameOf(R) => R.name.
 
   samsName = nameOf(foo(34)).

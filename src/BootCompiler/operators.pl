@@ -78,7 +78,7 @@
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
-  operator("|:", [infixOp(1234, 1235, 1234)]).
+  operator("|:", [infixOp(950, 951, 950)]).
   operator("show", [prefixOp(1240, 1239)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
@@ -304,7 +304,7 @@
   final('{!',"{!").	 /* iota comprehension */
   final('|',"|").	 /* type union, case union */
   final('|]',"|]").	 /* measure brackets */
-  final('|:',"|:").	 /* constrained type */
+  final('|:',"|:").	 /* type annotation */
   final('||',"||").	 /* disjunction */
   final('|=',"|=").	 /* constrained type */
   final('|>',"|>").	 /* meta quote */

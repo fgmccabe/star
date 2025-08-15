@@ -16,20 +16,20 @@ test.p{
   public parse:all e,s ~~ (parser[s,e],s) => cons[(e,s)].
   parse(parser(P),S) => P(S).
 
-  pick:all s,t ~~ stream[s->>t] |: (s) => cons[(t,s)].
+  pick:all s,t ~~ stream[s->>t] |= (s) => cons[(t,s)].
   pick([C,..L]) => [(C,L)].
   pick([]) => [].
 
-  public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
+  public _tk:all s,t ~~ stream[s->>t], equality[t]|=(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
 
-  public _item:all s,t ~~ stream[s->>t] |: parser[s,t].
+  public _item:all s,t ~~ stream[s->>t] |= parser[s,t].
   _item=parser(pick).
 
   epsilon : all e,t ~~ parser[e,t].
   epsilon = parser((_)=>[]).
 
-  public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
+  public _sat:all s,t ~~ stream[s->>t] |= ((t)=>boolean) => parser[s,t].
   _sat(T) => _item >>= (Ch) => (T(Ch) ?? (return Ch) || epsilon).
 
   public real:parser[cons[integer],float].

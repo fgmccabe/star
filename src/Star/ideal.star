@@ -19,24 +19,24 @@ star.ideal{
     .ihLeaf(integer,cons[keyval[k,v]]) | 
     .ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
 
-  findIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k) => option[v].
+  findIdeal: all k,v ~~ equality[k],hashable[k] |= (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
 
-  findInTree:all k,v ~~ equality[k] |: (integer,integer,k,map[k,v]) => option[v].
+  findInTree:all k,v ~~ equality[k] |= (integer,integer,k,map[k,v]) => option[v].
   findInTree(_,Hash,Ky,.ihLeaf(Hash,Els)) => findMember(Ky,Els).
   findInTree(Dpth,Hash,Ky,Sub) where .ihNode(_,_,_,_) .= Sub =>
     findInTree(Dpth+2,Hash,Ky,pickSub(Sub,subKey(Hash,Dpth))).
   findInTree(_,_,_,_) default => .none.
 
-  findMember:all k,v ~~ equality[k] |: (k,cons[keyval[k,v]])=>option[v].
+  findMember:all k,v ~~ equality[k] |= (k,cons[keyval[k,v]])=>option[v].
   findMember(K,.cons(Ky->V,_)) where K==Ky => .some(V).
   findMember(K,.cons(_,L)) => findMember(K,L).
   findMember(_,.nil) => .none.
 
-  insertIdeal:all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v)=>map[k,v].
+  insertIdeal:all k,v ~~ equality[k],hashable[k] |= (map[k,v],k,v)=>map[k,v].
   insertIdeal(Tr,K,V) => insertTree(0,hash(K),Tr,K,V).
 
-  insertTree:all k,v ~~ equality[k] |: (integer,integer,map[k,v],k,v) => map[k,v].
+  insertTree:all k,v ~~ equality[k] |= (integer,integer,map[k,v],k,v) => map[k,v].
   insertTree(Dpth,Hash,.ihNil,Ky,Vl) => .ihLeaf(Hash,.cons(Ky->Vl,.nil)).
   insertTree(Dpth,Hash,.ihLeaf(Hash,Els),Ky,Vl) => .ihLeaf(Hash,mergeLf(Els,Ky,Vl)).
   insertTree(Dpth,Hash,.ihLeaf(H,Els),Ky,Vl) =>
@@ -44,22 +44,22 @@ star.ideal{
   insertTree(Dpth,Hash,Sub,Ky,Vl) where Dpth<maxDepth && Ix.=subKey(Hash,Dpth) =>
     patchVec(Sub,Ix,(Sb)=>insertTree(Dpth+2,Hash,Sb,Ky,Vl)).
 
-  mergeLf:all k,v ~~ equality[k] |: (cons[keyval[k,v]],k,v)=>cons[keyval[k,v]].
+  mergeLf:all k,v ~~ equality[k] |= (cons[keyval[k,v]],k,v)=>cons[keyval[k,v]].
   mergeLf(.nil,K,V) => .cons(K->V,.nil).
   mergeLf(.cons(K->V,T),K,Vl) => .cons(K->Vl,T).
   mergeLf(.cons(Pr,T),Ky,Vl) => .cons(Pr,mergeLf(T,Ky,Vl)).
 
-  removeIdeal:all k,v ~~ equality[k],hashable[k] |: (map[k,v],k)=>map[k,v].
+  removeIdeal:all k,v ~~ equality[k],hashable[k] |= (map[k,v],k)=>map[k,v].
   removeIdeal(Tr,K) => deleteTree(Tr,0,hash(K),K).
 
-  deleteTree:all k,v ~~ equality[k] |: (map[k,v],integer,integer,k)=>map[k,v].
+  deleteTree:all k,v ~~ equality[k] |= (map[k,v],integer,integer,k)=>map[k,v].
   deleteTree(.ihNil,_,_,_) => .ihNil.
   deleteTree(.ihLeaf(Hash,Els),_,Hash,K) => reformTree(.ihLeaf(Hash,removeMember(K,Els))).
   deleteTree(.ihLeaf(Hash,Els),_,Hsh,K) => reformTree(.ihLeaf(Hash,Els)).
   deleteTree(Sub,Dpth,Hash,K) where Ix.=subKey(Hash,Dpth) =>
     reformTree(patchVec(Sub,Ix,(Sb)=>deleteTree(Sb,Dpth+2,Hash,K))).
 
-  removeMember:all k,v ~~ equality[k] |: (k,cons[keyval[k,v]])=>cons[keyval[k,v]].
+  removeMember:all k,v ~~ equality[k] |= (k,cons[keyval[k,v]])=>cons[keyval[k,v]].
   removeMember(K,.cons(Ky->_,T)) where K==Ky => T.
   removeMember(K,.cons(El,L)) => .cons(El,removeMember(K,L)).
   removeMember(_,.nil) => .nil.
@@ -75,7 +75,7 @@ star.ideal{
     | _ default => T
   }
 
-  replaceIdeal: all k,v ~~ equality[k],hashable[k] |: (map[k,v],k,v) => map[k,v].
+  replaceIdeal: all k,v ~~ equality[k],hashable[k] |= (map[k,v],k,v) => map[k,v].
   replaceIdeal(Tr,Ky,Vl) => let{.
     replaceInTree(.ihNil,_,Hash) => .ihLeaf(Hash,.cons(Ky->Vl,.nil)).
     replaceInTree(.ihLeaf(Hash,Els),_,Hash) => .ihLeaf(Hash,replaceInCons(Els)).
@@ -114,7 +114,7 @@ star.ideal{
 
   -- Implement some standard contracts
 
-  public implementation all k,v ~~ equality[k],equality[v] |: equality[map[k,v]] => let {.
+  public implementation all k,v ~~ equality[k],equality[v] |= equality[map[k,v]] => let {.
     mapPairs(.ihNil,L) => L.
     mapPairs(.ihLeaf(_,Lf),L) => Lf++L.
     mapPairs(.ihNode(A1,A2,A3,A4),L) => mapPairs(A4,mapPairs(A3,mapPairs(A2,mapPairs(A1,L)))).
@@ -139,7 +139,7 @@ star.ideal{
     '[||]'(M) => size(M)
   }
 
-  public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{.
+  public implementation all k,v ~~ display[k],display[v] |= display[map[k,v]] => let{.
     dispTree:(map[k,v],cons[string])=>cons[string].
     dispTree(.ihNil,SS) => SS.
     dispTree(.ihLeaf(_,Els),SS) => dispEls(Els,SS).
@@ -152,14 +152,14 @@ star.ideal{
     disp(Tr) => "{#(interleave(dispTree(Tr,[]),", ")*)}".
   }
 
-  public implementation all k,v ~~ equality[k],hashable[k] |: indexed[map[k,v]->>k,v] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |= indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).
     _put(Tr,Ky,Vl) => insertIdeal(Tr,Ky,Vl).
     _remove(Tr,Ky) => removeIdeal(Tr,Ky).
     _empty = .ihNil.
   }
 
-  public implementation all k,v ~~ equality[k],hashable[k] |: coercion[cons[(k,v)],map[k,v]] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |= coercion[cons[(k,v)],map[k,v]] => {
     _coerce(L) => .some(foldRight(((K,V),M)=>insertIdeal(M,K,V),.ihNil,L)).
   }
 
@@ -198,14 +198,14 @@ star.ideal{
     (M///f) => ixMap(M,f).
   }
 
-  public implementation all k,v ~~ equality[k],hashable[k] |: ixfilter[map[k,v]->>k,v] => {
+  public implementation all k,v ~~ equality[k],hashable[k] |= ixfilter[map[k,v]->>k,v] => {
     M^//p => ixFilter(M,p).
   }
 
-  ixFilter:all k,v ~~ equality[k],hashable[k] |: (map[k,v],(k,v)=>boolean) => map[k,v].
+  ixFilter:all k,v ~~ equality[k],hashable[k] |= (map[k,v],(k,v)=>boolean) => map[k,v].
   ixFilter(M,P) => idealFold((k,v,N)=>checkEntry(k,v,N,P),.ihNil,M).
 
-  checkEntry:all k,v ~~ equality[k],hashable[k] |: (k,v,map[k,v],(k,v)=>boolean) => map[k,v].
+  checkEntry:all k,v ~~ equality[k],hashable[k] |= (k,v,map[k,v],(k,v)=>boolean) => map[k,v].
   checkEntry(K,V,So,P) where P(K,V) => insertIdeal(So,K,V).
   checkEntry(_,_,So,_) => So.
 
@@ -246,17 +246,17 @@ star.ideal{
     _generate(T) => iterGenerator(T)
   }
 
-  public implementation all k,v ~~ hashable[k], equality[k] |: build[map[k,v] ->> keyval[k,v]] => {
+  public implementation all k,v ~~ hashable[k], equality[k] |= build[map[k,v] ->> keyval[k,v]] => {
     _null = .ihNil.
     _push(K->V,Tr) => insertIdeal(Tr,K,V).
   }
 
-  public implementation all k,v ~~ hashable[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
+  public implementation all k,v ~~ hashable[k], equality[k] |= sequence[map[k,v] ->> keyval[k,v]] => {
     _nil = .ihNil.
     _cons(K->V,Tr) => insertIdeal(Tr,K,V).
   }
 
-  public implementation all k ~~ hashable[k],equality[k] |: functor[map[k]] => let{.
+  public implementation all k ~~ hashable[k],equality[k] |= functor[map[k]] => let{.
     fm:all a,b ~~ ((a)=>b,map[k,a]) => map[k,b].
     fm(_,.ihNil) => .ihNil.
     fm(F,.ihLeaf(H,Els)) => .ihLeaf(H,Els//((K->V)=>(K->F(V)))).

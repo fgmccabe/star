@@ -8,7 +8,7 @@ test.f0{
   }
 
   (~=)@"semantic inequality defined in terms of equality".
-  public (~=):all x ~~ equality[x] |: (x,x)=>boolean.
+  public (~=):all x ~~ equality[x] |= (x,x)=>boolean.
   x ~= y => ~x==y.
   
   -- Compile fact without core

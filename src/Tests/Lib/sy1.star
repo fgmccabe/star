@@ -13,7 +13,7 @@ test.sy1{
     small=-10.
   }
 
-  nameOf:all x,y ~~ x<~{name:y} |: (x)=>y.
+  nameOf:all x,y ~~ x<~{name:y} |= (x)=>y.
   nameOf(X)=>X.name.
 
   personName:(person)=>string.
@@ -29,21 +29,21 @@ test.sy1{
   sp:(person)=>ref option[person].
   sp(P)=>P.spouse.
 
-  largest:all x ~~ lS[x] |: ()=>x.
+  largest:all x ~~ lS[x] |= ()=>x.
   largest() => large.
 
   public contract all x ~~ cmp[x] ::= {
     less:(x,x)=>boolean.
   }
 
-  public find:all x~~cmp[x] |: (tree[x],x)=>boolean.
+  public find:all x~~cmp[x] |= (tree[x],x)=>boolean.
   find(.empty,_) => .false.
   find(node(L,X,R),K) =>
     less(X,K) ?? find(L,K) ||
     less(K,X) ?? find(R,K) ||
     .true.
 
-  fnd:all x~~cmp[x] |: (tree[x],x)=>boolean.
+  fnd:all x~~cmp[x] |= (tree[x],x)=>boolean.
   fnd(T,K) => case T in {
     | .empty => .false
     | .node(L,X,R) where less(X,K) => fnd(L,K)

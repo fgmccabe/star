@@ -22,7 +22,7 @@ test.j{
 
     assert "{\"beta\":2}"::json == .jColl({"beta"->.jNum(2.0)});
 
-    assert ({"alpha"->.jNum(1.0),"beta"->.jNum(2.0)}:map[string,json]) ==
+    assert ({"alpha"->.jNum(1.0),"beta"->.jNum(2.0)}|:map[string,json]) ==
       {"alpha"->.jNum(1.0),"beta"->.jNum(2.0)};
 
     show disp("{\"alpha\":1,\"beta\":2}"::json);

@@ -15,7 +15,7 @@ test.cn0{
     div(x,y) => _int_div(x,y).
   }
 
-  public implementation all e ~~ ar[e] |: ar[cons[e]] => let{.
+  public implementation all e ~~ ar[e] |= ar[cons[e]] => let{.
     pl(.nil,.nil) => .nil.
     pl(cons(H1,T1),cons(H2,T2)) => cons(plus(H1,H2),pl(T1,T2)).
 
@@ -34,7 +34,7 @@ test.cn0{
     div(L1,L2) => dv(L1,L2).
   }
 
-  public implementation all e,f ~~ ar[e],ar[f] |: ar[(e,f)] => {.
+  public implementation all e,f ~~ ar[e],ar[f] |= ar[(e,f)] => {.
     plus((L1,R1),(L2,R2)) => (plus(L1,L2),plus(R1,R2)).
     minus((L1,R1),(L2,R2)) => (minus(L1,L2),minus(R1,R2)).
     times((L1,R1),(L2,R2)) => (times(L1,L2),times(R1,R2)).

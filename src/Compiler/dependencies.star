@@ -28,7 +28,7 @@ star.compiler.dependencies{
 
   private collectRef:(defnSpec,map[defnSp,defnSp])=>map[defnSp,defnSp].
   collectRef(.defnSpec(.conSp(Nm),_,[St]),M) where (_,_,Els) ?= isContractStmt(St) =>
-    foldLeft((El,MM) => ((_,N,_) ?= isTypeAnnotation(El) && (_,Id)?=isName(N) ??
+    foldLeft((El,MM) => ((_,N,_) ?= isTypeDeclaration(El) && (_,Id)?=isName(N) ??
 	  MM[.varSp(Id)->.conSp(Nm)] || MM),
       M[.conSp(Nm)->.conSp(Nm)],Els).
   collectRef(.defnSpec(N,_,_),M) => M[N->N].
@@ -67,7 +67,7 @@ star.compiler.dependencies{
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_) where
       (_,Ai) ?= isPrivate(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.priVate).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where (Lc,V,T) ?= isTypeAnnotation(A) => valof{
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz) where (Lc,V,T) ?= isTypeDeclaration(A) => valof{
     if(ILc,Id) ?= isName(V) then{
       valis (Stmts,Defs,[(.varSp(Id),Vz),..Pb],As[Id->T],Opn)
     }
@@ -170,7 +170,7 @@ star.compiler.dependencies{
     map[string,ast].
   generateAnnotations([],_,_,As) => As.
   generateAnnotations([A,..Ss],Qs,Cs,As) where
-      (Lc,V,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(V) =>
+      (Lc,V,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(V) =>
     generateAnnotations(Ss,Qs,Cs,As[Id->reUQuant(Lc,Qs,reConstrain(Cs,T))]).
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
@@ -206,7 +206,7 @@ star.compiler.dependencies{
   }
 
   collectStmtRefs:(ast,map[defnSp,defnSp],map[string,ast],cons[defnSp]) => cons[defnSp].
-  collectStmtRefs(A,All,Annots,Rf) where (_,_,Tp) ?= isTypeAnnotation(A) =>
+  collectStmtRefs(A,All,Annots,Rf) where (_,_,Tp) ?= isTypeDeclaration(A) =>
     collectTypeRefs(Tp,All,Rf).
   collectStmtRefs(A,All,Annots,Rf) where (_,I) ?= isPublic(A) =>
     collectStmtRefs(I,All,Annots,Rf).
@@ -393,7 +393,7 @@ star.compiler.dependencies{
   collectDoRefs(A,All,Rf) where (_,_,In) ?= isLbldAction(A) =>
     collectDoRefs(In,All,Rf).
   collectDoRefs(A,_All,Rf) where _ ?= isBreak(A) => Rf.
-  collectDoRefs(A,All,Rf) where (_,_,Tp) ?= isTypeAnnotation(A) =>
+  collectDoRefs(A,All,Rf) where (_,_,Tp) ?= isTypeDeclaration(A) =>
     collectTypeRefs(Tp,All,Rf).
   collectDoRefs(A,All,Rf) where (_,L,R) ?= isDefn(A) => 
     collectTermRefs(R,All,collectTermRefs(L,All,Rf)).
@@ -546,11 +546,9 @@ star.compiler.dependencies{
     valis collectFaceTypes(Ds,All,R1)
   }
 
-  collectFaceType(P,All,R) where (_,L,T) ?= isTypeAnnotation(P) =>
+  collectFaceType(P,All,R) where (_,L,T) ?= isTypeDeclaration(P) =>
     collectTypeRefs(T,All,R).
   collectFaceType(P,All,R) where (_,L,T) ?= isTypeLambda(P) =>
-    collectTypeRefs(T,All,collectTypeRefs(L,All,R)).
-  collectFaceType(P,All,R) where (_,L,T) ?= isTypeExists(P) =>
     collectTypeRefs(T,All,collectTypeRefs(L,All,R)).
   collectFaceType(_,All,R) => R.
 

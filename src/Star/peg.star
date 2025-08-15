@@ -8,11 +8,11 @@ star.peg{
   public parse:all e,s ~~ (parser[s,e],s) => cons[(e,s)].
   parse(.parser(P),S) => P(S).
 
-  pick:all s,t ~~ stream[s->>t] |: (s) => cons[(t,s)].
+  pick:all s,t ~~ stream[s->>t] |= (s) => cons[(t,s)].
   pick([C,..L]) => [(C,L)].
   pick([]) => [].
 
-  public _item:all s,t ~~ stream[s->>t] |: parser[s,t].
+  public _item:all s,t ~~ stream[s->>t] |= parser[s,t].
   _item=.parser(pick).
 
   public _hed:all e,t ~~ (parser[t,e])=>parser[t,e].
@@ -21,32 +21,32 @@ star.peg{
     hd([(F,_),.._],S) => [(F,S)].
   } in .parser((S)=>hd(parse(P,S),S)).
 
-  public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
+  public _sat:all s,t ~~ stream[s->>t] |= ((t)=>boolean) => parser[s,t].
   _sat(T) => _item >>= (Ch) => (T(Ch) ?? (return Ch) || epsilon).
 
-  public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
+  public _test:all p,s,t ~~ stream[s->>t] |= ((t)=>option[p]) => parser[s,p].
   _test(P) => _item >>= (Ch) => (X?=P(Ch) ?? (return X) || epsilon).
 
-  public _pred:all p,s,t ~~ stream[s->>t] |: (()=>option[p]) => parser[s,p].
+  public _pred:all p,s,t ~~ stream[s->>t] |= (()=>option[p]) => parser[s,p].
   _pred(P) => let{
     check(S) where X?=P() => [(X,S)].
     check(_) => [].
   } in .parser(check).
 
-  public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
+  public _tk:all s,t ~~ stream[s->>t], equality[t]|=(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
 
-  public _literal:all s,t ~~ stream[s->>t], equality[t] |: (cons[t]) => parser[s,()].
+  public _literal:all s,t ~~ stream[s->>t], equality[t] |= (cons[t]) => parser[s,()].
   _literal([]) => return ().
   _literal([Cx,..L]) => _tk(Cx) >>= (_) => _literal(L).
 
-  public _ahead:all s,t,v ~~ stream[s->>t] |: (parser[s,v]) => parser[s,v].
+  public _ahead:all s,t,v ~~ stream[s->>t] |= (parser[s,v]) => parser[s,v].
   _ahead(P) => let{
     hd([],_) => [].
     hd([(F,_),.._],S) => [(F,S)].
     } in .parser((S)=>hd(parse(P,S),S)).
 
-  public _neg:all s,t,v ~~ stream[s->>t] |: (parser[s,v]) => parser[s,()].
+  public _neg:all s,t,v ~~ stream[s->>t] |= (parser[s,v]) => parser[s,()].
   _neg(P) => let{
     ng([],S) => [((),S)].
     ng([_,.._],S) => [].

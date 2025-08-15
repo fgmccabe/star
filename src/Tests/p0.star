@@ -7,20 +7,20 @@ test.p0{
   public parse:all e,s ~~ (parser[s,e],s) => cons[(e,s)].
   parse(.parser(P),S) => P(S).
 
-  pick:all s,t ~~ stream[s->>t] |: (s) => cons[(t,s)].
+  pick:all s,t ~~ stream[s->>t] |= (s) => cons[(t,s)].
   pick([C,..L]) => [(C,L)].
   pick([]) => [].
 
-  public _item:all s,u ~~ stream[s->>u] |: parser[s,u].
+  public _item:all s,u ~~ stream[s->>u] |= parser[s,u].
   _item= .parser(pick).
 
-  aa = parse(_item,([0]:cons[integer])).
+  aa = parse(_item,[0]|:cons[integer]).
 
   main:() => ().
   main() => valof{
     show aa;
 
-    show parse(_item,([0]:cons[integer]));
+    show parse(_item,[0]|:cons[integer]);
 
     valis ()
   }

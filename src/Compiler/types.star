@@ -229,7 +229,7 @@ star.compiler.types{
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
     | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
-    | .constrainedType(T,C) => "(#(showConstraint(C,Dp))) |: #(showType(T,Dp))"
+    | .constrainedType(T,C) => "(#(showConstraint(C,Dp))) |= #(showType(T,Dp))"
   }
 
   shContract(Nm,Tps,[],Dp) => "#(Nm)[#(showTypes(Tps,Dp)*)]".
@@ -283,7 +283,7 @@ star.compiler.types{
   showAllConstraints([C,..Cs],Dp) => "#(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
 
   showMoreConstraints:(cons[constraint],integer) => string.
-  showMoreConstraints([],_) => "|:".
+  showMoreConstraints([],_) => "|=".
   showMoreConstraints([C,..Cs],Dp) => ", #(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
 
   showMoreQuantified(.allType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Dp))".
@@ -296,7 +296,7 @@ star.compiler.types{
 
   showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,Dp).
   showConstraint(.hasField(Tp,Fld,Fc),Dp) => "#(showType(Tp,Dp)) <~ {#(Fld):#(showType(Fc,Dp))}".
-  showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) : #(showType(Tp,Dp))".
+  showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) |: #(showType(Tp,Dp))".
 
   showDeps([],_) => "".
   showDeps(Els,Dp) => "->>#(showTypes(Els,Dp)*)".
@@ -317,7 +317,7 @@ star.compiler.types{
 	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps)
       | .allType(V,T) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T))
       | .existType(V,T) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T))
-      | .constrainedType(T,C) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C)
+      | .constrainedType(T,C) => (hash("|=")*37+hsh(deRef(T)))*37+hshCon(C)
     }
 
     hshCon(.conTract(N,T,D)) => hshEls(hshEls(hash(N)*37,T),D).
@@ -415,7 +415,7 @@ star.compiler.types{
     typeOf(.implicit(_,Tp)) => Tp.
   }
 
-  public implementation all t ~~ hasType[t] |: hasType[cons[t]] => {
+  public implementation all t ~~ hasType[t] |= hasType[cons[t]] => {
     typeOf(L) => .tupleType(L//typeOf)
   }
 
@@ -465,7 +465,7 @@ star.compiler.types{
   funTypeArg(Tp) where (A,_) ?= isConsType(Tp) => .some(A).
   funTypeArg(_) default => .none.
 
-  extendArgType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  extendArgType:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
   extendArgType(Tp,.none) => Tp.
   extendArgType(Tp,.some(C))
       where .tupleType(Els).=deRef(Tp) => .tupleType([typeOf(C),..Els]).
@@ -484,7 +484,7 @@ star.compiler.types{
     thrFnTp(_) default => .none.
   .} in thrFnTp(deRef(Tp)).
 
-  public extendFunTp:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  public extendFunTp:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
   extendFunTp(Tp,.none) => Tp.
   extendFunTp(Tp,Vs) => case deRef(Tp) in {
     | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
@@ -495,7 +495,7 @@ star.compiler.types{
     Tp).
   }
 
-  public extendTplType:all x ~~ hasType[x] |: (tipe,option[x])=>tipe.
+  public extendTplType:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
   extendTplType(Es,.none) => Es.
   extendTplType(.tupleType(Es),.some(E)) => .tupleType([typeOf(E),..Es]).
 

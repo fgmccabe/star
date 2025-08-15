@@ -11,7 +11,7 @@ star.core {
   }
 
   (~=)@"semantic inequality defined in terms of equality".
-  public (~=):all x ~~ equality[x] |: (x,x)=>boolean.
+  public (~=):all x ~~ equality[x] |= (x,x)=>boolean.
   x ~= y => ~x==y.
 
   public implementation equality[boolean] => {
@@ -40,7 +40,7 @@ star.core {
     isEmpty:(c) => boolean.
   }
 
-  public implementation all c ~~ sizeable[c] |: sizeable[ref c] => {
+  public implementation all c ~~ sizeable[c] |= sizeable[ref c] => {
     size(M) => size(M!).
     isEmpty(M) => isEmpty(M!)
   }

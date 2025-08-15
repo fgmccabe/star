@@ -2,7 +2,7 @@ test.rn{
   import star.
   import star.assert.
 
-  nameOf:all r,n ~~ r <~ {name:n} |: (r)=>n.
+  nameOf:all r,n ~~ r <~ {name:n} |= (r)=>n.
   nameOf(R) => R.name.
 
   nmeOf:((pp)=>string,pp)=>string.

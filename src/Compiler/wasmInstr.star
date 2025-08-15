@@ -295,7 +295,7 @@ star.compiler.wasm.instr{
     disp(.ZX) => "zx"
   }
 
-  public implementation all t,p ~~ display[t], display[p] |: display[memop[t,p]] => {
+  public implementation all t,p ~~ display[t], display[p] |= display[memop[t,p]] => {
     disp(memop{ty=T. align=A. offset=O. pack=P}) => "($(T) $(A) $(O) $(P))"
   }
 }

@@ -47,7 +47,7 @@ rdf.parser{
   markup() >> .str(Str) --> [.segment(_,Str)].
   markup() >> .link(C,S) --> [.interpolate(_,Tks,S)], {C ?= parseTks(concept,Tks)}.
 
-  parseTks:all t,r ~~ stream[t->>_] |: ((()>>r-->t),t) => option[r].
+  parseTks:all t,r ~~ stream[t->>_] |= ((()>>r-->t),t) => option[r].
   parseTks(P,T) => ( (R,[]) ?= P(T) ?? .some(R) || .none).
 
   trP(Msg) => valof{

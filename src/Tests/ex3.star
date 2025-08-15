@@ -15,7 +15,7 @@ test.ex3{
     disp(X) => _int2str(X).
   }
 
-  implementation all e ~~ display[e] |: display[cns[e]] => let{.
+  implementation all e ~~ display[e] |= display[cns[e]] => let{.
     consDisp(.nl,L) => L.
     consDisp(.cns(X,.nl),L) => .cons(disp(X), L).
     consDisp(.cns(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
@@ -39,10 +39,10 @@ test.ex3{
     one = 1.
   }
 
-  foo:all x,y ~~ ar[x->>y] |: (x) => x throws y.
+  foo:all x,y ~~ ar[x->>y] |= (x) => x throws y.
   foo(x) => div(x,x).
 
-  bar:all x,y ~~ ar[x->>y], ar[integer->>y] |: (x) => (x,integer) throws y.
+  bar:all x,y ~~ ar[x->>y], ar[integer->>y] |= (x) => (x,integer) throws y.
   bar(x) => (foo(x),foo(3)).
 
   main:()=>().

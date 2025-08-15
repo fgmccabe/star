@@ -160,10 +160,10 @@ star.compiler.resolve{
 
   defineArg(.cV(Nm,Tp),D) => declareVar(Nm,Nm,.none,Tp,.none,D).
 
-  overload:all e ~~ resolve[e] |: (e,dict) => e.
+  overload:all e ~~ resolve[e] |= (e,dict) => e.
   overload(C,D) => resolveAgain(.inactive,C,resolve(C,D,.inactive),D).
 
-  resolveAgain:all e ~~ resolve[e] |: (resolveState,e,(e,resolveState),dict) => e.
+  resolveAgain:all e ~~ resolve[e] |= (resolveState,e,(e,resolveState),dict) => e.
   resolveAgain(_,_,(T,.resolved),D) =>
     resolveAgain(.inactive,T,resolve(T,D,.inactive),D).
   resolveAgain(_,_,(T,.inactive),_) => T.
@@ -487,11 +487,11 @@ star.compiler.resolve{
     valis (.doExp(Lc,EE),St1)
   }
     
-  implementation all e ~~ resolve[e] |: resolve[rule[e]] => {
+  implementation all e ~~ resolve[e] |= resolve[rule[e]] => {
     resolve(T,D,S) => overloadRule([],T,D,S)
   }
 
-  overloadRule:all e ~~ resolve[e] |: (cons[canon],rule[e],dict,resolveState) =>
+  overloadRule:all e ~~ resolve[e] |= (cons[canon],rule[e],dict,resolveState) =>
     (rule[e],resolveState).
   overloadRule(Extra,.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
@@ -509,7 +509,7 @@ star.compiler.resolve{
 
   addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
   
-  overloadRules:all x ~~ resolve[x] |: (cons[canon],cons[rule[x]],dict,resolveState)=>
+  overloadRules:all x ~~ resolve[x] |= (cons[canon],cons[rule[x]],dict,resolveState)=>
     (cons[rule[x]],resolveState).
   overloadRules(_,[],Dict,St) => ([],St).
   overloadRules(Extra,[Rl,..Rls],Dict,St) => valof{
@@ -518,14 +518,14 @@ star.compiler.resolve{
     valis ([ORl,..ORls],Stx)
   }
 
-  overloadTerms:all e ~~ resolve[e] |: (cons[e],cons[e],dict,resolveState) => (cons[e],resolveState).
+  overloadTerms:all e ~~ resolve[e] |= (cons[e],cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTerms([],Els,Dict,St) => (reverse(Els),St).
   overloadTerms([T,..Ts],Els,Dict,St) => valof{
     (RT,St1) = resolve(T,Dict,St);
     valis overloadTerms(Ts,[RT,..Els],Dict,St1)
   }
 
-  overloadTplEls:all e ~~ resolve[e] |: (cons[e],dict,resolveState) => (cons[e],resolveState).
+  overloadTplEls:all e ~~ resolve[e] |= (cons[e],dict,resolveState) => (cons[e],resolveState).
   overloadTplEls(Els,Dict,St) => overloadTerms(Els,[],Dict,St).
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).

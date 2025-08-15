@@ -7,7 +7,7 @@ test.wlk{
   -- Tree type
   public tree[x] ::= .empty | .node(tree[x],x,tree[x]).
 
-  implementation all e ~~ display[e] |: display[tree[e]] => let{.
+  implementation all e ~~ display[e] |= display[tree[e]] => let{.
     dispT(.empty) => "ε".
     dispT(.node(L,E,R)) => "<#(dispT(L)),$(E),#(dispT(R))>".
   .} in {

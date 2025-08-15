@@ -10,6 +10,7 @@
 	      isContractStmt/6,contractStmt/6,
 	      isImplementationStmt/6,implementationStmt/6,
 	      implementedContractName/2,
+	      isTypeDecl/4,mkTypeDecl/4,
 	      isTypeExists/4,typeExists/4,
 	      isTypeExistsStmt/6,typeExistsStmt/6,isTypeFunStmt/6,typeFunStmt/6,
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
@@ -122,10 +123,10 @@ mkPublic(Lc,E,Ex) :-
   unary(Lc,"public",E,Ex).
 
 isTypeAnnotation(St,Lc,V,T) :-
-  isBinary(St,Lc,":",V,T),!.
+  isBinary(St,Lc,"|:",V,T),!.
 
 typeAnnotation(Lc,V,T,St) :-
-  binary(Lc,":",V,T,St).
+  binary(Lc,"|:",V,T,St).
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),
@@ -275,7 +276,7 @@ isContractSpec(S,Quants,Constraints,Con) :-
   isQuantified(S,Quants,B),
   isContractSpec(B,_,Constraints,Con).
 isContractSpec(S,[],Constraints,Con) :-
-  isBinary(S,_,"|:",L,R),
+  isBinary(S,_,"|=",L,R),
   deComma(L,Constraints),
   isContractSpec(R,_,_,Con).
 isContractSpec(S,[],[],S) :-
@@ -295,7 +296,7 @@ isImplSpec(S,Quants,Constraints,Con,Body) :-
   isQuantified(S,Quants,B),
   isImplSpec(B,_,Constraints,Con,Body).
 isImplSpec(S,[],Constraints,Con,Body) :-
-  isBinary(S,_,"|:",L,R),
+  isBinary(S,_,"|=",L,R),
   deComma(L,Constraints),
   isImplSpec(R,_,_,Con,Body).
 isImplSpec(S,[],[],Con,Body) :-
@@ -349,14 +350,11 @@ surfaceName(T,"ref") :-
   isRef(T,_,_),!.
 
 isDynamic(A,Lc,Nm,Tp) :-
-  isBinary(A,Lc,"|=",L,Tp),!,
-  isIden(L,Nm).
-isDynamic(A,Lc,Nm,Tp) :-
-  isBinary(A,Lc,":",L,Tp),!,
-  isIden(L,Nm).
+  isBinary(A,Lc,"|:",L,Tp),
+  isIden(L,Nm),!.
 
 mkDynamic(Lc,Nm,Tp,D) :-
-  binary(Lc,":",name(Lc,Nm),Tp,D).
+  binary(Lc,"|:",name(Lc,Nm),Tp,D).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
@@ -425,14 +423,14 @@ pair(Lc,L,R,T) :-
   binary(Lc,"->",L,R,T).
 
 isConstrained(Tp,T,Cx) :-
-  isBinary(Tp,_,"|:",L,T),
+  isBinary(Tp,_,"|=",L,T),
   deComma(L,Cx).
 
 reConstrain([],Tp,Tp).
 reConstrain(Cx,T,CT) :-
   reComma(Cx,C),
   locOfAst(T,Lc),
-  binary(Lc,"|:",C,T,CT).
+  binary(Lc,"|=",C,T,CT).
 
 isSuppress(A,Lc,I) :-
   isUnary(A,Lc,"ζ",I).
@@ -442,6 +440,12 @@ mkSuppress(Lc,I,A) :-
 
 isUnaryMinus(T,Lc,A) :-
   isUnary(T,Lc,"-",A).
+
+isTypeDecl(A,Lc,L,R) :-
+  isBinary(A,Lc,":",L,R).
+
+mkTypeDecl(Lc,L,R,A) :-
+  binary(Lc,":",L,R,A).
 
 isTypeExists(A,Lc,L,R) :-
   isBinary(A,Lc,"<~",L,R).
@@ -482,9 +486,6 @@ mkTypeField(Lc,L,R,St) :-
   binary(Lc,":",L,R,S0),
   unary(Lc,"type",S0,St).
 
-typeName(Tp,Nm) :-
-  isBinary(Tp,_,"|:",_,R),
-  typeName(R,Nm).
 typeName(Tp,Nm) :- isSquare(Tp,Nm,_).
 typeName(Tp,Nm) :- isName(Tp,Nm).
 typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).

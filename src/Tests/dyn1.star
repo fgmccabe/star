@@ -4,7 +4,7 @@ test.dyn1{
 
   -- Experiments in throwing
 
-  fa: _throw|=(all e ~~ (integer)=>e) |: (integer)=>integer.
+  fa: _throw|:(all e ~~ (integer)=>e) |= (integer)=>integer.
   fa(X) => valof{
     if X>5 then
       _throw(10)
@@ -12,7 +12,7 @@ test.dyn1{
     valis 3*X
   }
 
-  fe: _throw|=(integer)=>_ |: (integer)=>integer.
+  fe: _throw|:(integer)=>_ |= (integer)=>integer.
   fe(X) => (X>5 ?? _throw(10) || 3*X).
 
   /*
@@ -30,7 +30,7 @@ test.dyn1{
 
   all e,v ~~ rslt[e,v] ::= .ok(v) | .err(e).
   
-  implementation all e,v ~~ display[e],display[v] |: display[rslt[e,v]] => {
+  implementation all e,v ~~ display[e],display[v] |= display[rslt[e,v]] => {
     disp(.ok(V)) => "ok $(V)".
     disp(.err(E)) => "bad $(E)"
   }

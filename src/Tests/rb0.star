@@ -97,7 +97,7 @@ test.rb0{
 
     show unzip(["a","b","c"],0,4,u1);
 
-    show ([12->"d"]:rbtree[integer,string]);
+    show [12->"d"]|:rbtree[integer,string];
 
     valis ()
   }

@@ -6,7 +6,7 @@ test.ts{
   
   import test.lib.fact.
 
-  implementation all a,b ~~ coercion[a,string],coercion[b,string] |: coercion[(a,b),string] =>{
+  implementation all a,b ~~ coercion[a,string],coercion[b,string] |= coercion[(a,b),string] =>{
     _coerce((X,Y)) => .some("("++X::string++","++Y::string++")")
   }
 
