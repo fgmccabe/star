@@ -20,7 +20,7 @@ test.rc{
     ll(pP{C=XX}) => XX.
   }
 
-  implementation all a ~~ display[a] |: display[pp[a]] => {
+  implementation all a ~~ display[a] |= display[pp[a]] => {
     disp(pP{C=Ix}) => "pP{C=$(Ix)}".
   }
 

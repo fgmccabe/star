@@ -52,7 +52,7 @@ star.collection{
     _update:(r,(t)=>option[t]) => r.
   }
 
-  public interleave: all c,t ~~ stream[c->>t],sequence[c->>t] |: (c,t) => c.
+  public interleave: all c,t ~~ stream[c->>t],sequence[c->>t] |= (c,t) => c.
   interleave([],_) => [].
   interleave([F,..R],I) => let{.
     inter([]) => [].
@@ -123,7 +123,7 @@ star.collection{
     (LL ^/ F) => filter(LL,F)
   }
 
-  public implementation all e ~~ equality[e] |: membership[cons[e]->>e] => let{.
+  public implementation all e ~~ equality[e] |= membership[cons[e]->>e] => let{.
     _mem(K,Ls) => case Ls in {
       | .cons(K,_) => .true
       | .cons(_,L) => _mem(K,L)
@@ -142,7 +142,7 @@ star.collection{
     E .<. L => _mem(E,L)
   }
 
-  public implementation all e ~~ equality[e] |: setops[cons[e]] => let{.
+  public implementation all e ~~ equality[e] |= setops[cons[e]] => let{.
     merge(L,R) => case L in {
       | .nil => R
       | .cons(H,T) where H.<.R => merge(T,R)
@@ -166,7 +166,7 @@ star.collection{
     L1 \ L2 => diff(L1,L2)
   }
 
-  public iota: all c ~~ sequence[c->>integer] |: (integer,integer)=>c.
+  public iota: all c ~~ sequence[c->>integer] |= (integer,integer)=>c.
   iota(Ix,Mx) => Ix==Mx ?? [] || [Ix,..iota(Ix+1,Mx)].
 
 }

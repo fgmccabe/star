@@ -15,7 +15,7 @@ test.incopy{
     }
   }
 
-  readAll:all x ~~ stream[x->>char] |: (x) => cons[char].
+  readAll:all x ~~ stream[x->>char] |= (x) => cons[char].
   readAll([]) => [].
   readAll([H,..T]) => [H,..readAll(T)].
 

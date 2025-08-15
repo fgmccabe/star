@@ -14,7 +14,7 @@ test.cns{
 --  strFind(Txt,Ky,Ix) where Lc.= _str_find(Txt,Ky,Ix) && Lc>=0 => ?Lc.
 --  strFind(_,_,_) default => .none.
 
-  ne:all x ~~ equality[x] |: (x,x)=>boolean.
+  ne:all x ~~ equality[x] |= (x,x)=>boolean.
   ne(x,y) => ~x==y.
   
   main:()=>().

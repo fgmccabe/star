@@ -44,12 +44,12 @@ collectDefinitions([St|Stmts],Defs,V,Vx,A) :-
 collectDefinitions([],[],Vz,Vz,[]).
 
 collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[T])|Defs],Defs,P,Px,[(V,T)|A],A,Export) :-
-  isTypeAnnotation(St,Lc,L,T),
+  isTypeDecl(St,Lc,L,T),
   isConstructorType(T,_,_,_,_,_),!,
   (isIden(L,V) -> call(Export,cns(V),P,Px);
    isPrivate(L,_,V1),isIden(V1,V),prvteViz(P,cns(V),Px)).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,Export) :-
-  isTypeAnnotation(St,Lc,L,T),
+  isTypeDecl(St,Lc,L,T),
   (isIden(L,V) ->
    call(Export,var(V),P,Px) ;
    reportError("cannot understand type annotation %s",[ast(St)],Lc),
@@ -120,7 +120,7 @@ collectDefines([St|Stmts],Kind,[St|OSt],Nm,Defn) :-
 collectDefines(Stmts,_,Stmts,_,[]).
 
 tpeFldViz(TpNm,Export,Entry,Vz,Vx) :-
-  isTypeAnnotation(Entry,_,N,_), isIden(N,Fld),
+  isTypeDecl(Entry,_,N,_), isIden(N,Fld),
   call(Export,fld(TpNm,Fld),Vz,Vx).
 tpeFldViz(_TpNm,_Export,_Entry,Vz,Vz).
 
@@ -135,7 +135,7 @@ defltVz(_,Viz,Viz).
 % project contract members out
 generateAnnotations([],_,_,Ax,Ax).
 generateAnnotations([Def|Els],Quants,Constraints,[(Nm,MTp)|A],Ax) :-
-  isTypeAnnotation(Def,_,N,Tp),
+  isTypeDecl(Def,_,N,Tp),
   isIden(N,_,Nm),
   reConstrain(Constraints,Tp,CTp),
   reUQuant(Quants,CTp,MTp),
@@ -1178,7 +1178,7 @@ typeOfExps([A|_],[],_ErTp,Env,Env,_,[],_,_) :-
 typeOfExps([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Opts,Path) :-
   evidence(ETp,Env,_Q,ElTp),
   typeOfExp(A,ElTp,ErTp,Env,E0,Term,Opts,Path),
-  % reportMsg("type of argument %s |= %s",[A,ETp]),
+  % reportMsg("type of argument %s |: %s",[A,ETp]),
   % dispEnv(Env),
   locOfAst(A,Lc),
   typeOfExps(As,ElTypes,ErTp,E0,Ev,Lc,Els,Opts,Path).

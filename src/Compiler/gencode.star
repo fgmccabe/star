@@ -633,7 +633,7 @@ star.compiler.gencode{
 
   all e ~~ caseHandler[e] ~> (e,option[locn],breakLvls,tailMode,codeCtx,stack)=>compReturn.
 
-  compCase:all e ~~ display[e] |:
+  compCase:all e ~~ display[e] |=
     (option[locn],cExp,integer,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
   compCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) => valof{
@@ -660,7 +660,7 @@ star.compiler.gencode{
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
 
-  compIndexCase:all e ~~ display[e] |:
+  compIndexCase:all e ~~ display[e] |=
     (option[locn],cExp,integer,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
   compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) where hasIndexMap(Ctx,tpName(typeOf(Gv))) => valof{
@@ -698,7 +698,7 @@ star.compiler.gencode{
     valis (.cV(V,VTp),GC++[.iTL(V)],Ctx1,Stkx)
   }
 
-  compCases:all e ~~ display[e] |:
+  compCases:all e ~~ display[e] |=
     (cons[csEntry[e]],integer,integer,cV,assemLbl,assemLbl,caseHandler[e],
     breakLvls,tailMode,multi[assemOp],codeCtx,stack) => compReturn.
 
@@ -716,7 +716,7 @@ star.compiler.gencode{
   compCases([(Iy,Case),..Cs],Ix,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) where Ix<Iy =>
     compCases([(Iy,Case),..Cs],Ix+1,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(Df)],Ctx,Stk).
 
-  compCaseBranch:all e ~~ display[e] |:
+  compCaseBranch:all e ~~ display[e] |=
     (cons[cCase[e]],cV,caseHandler[e],assemLbl,assemLbl,
     breakLvls,tailMode,codeCtx,stack) => compReturn.
   compCaseBranch([(Lc,P,E)],Gv,Hndlr,Ok,Df,Brks,Last,Ctx,Stk) => valof{
@@ -986,7 +986,7 @@ star.compiler.gencode{
     valis Ctx
   }
 
-  drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
+  drop:all x,e ~~ stream[x->>e] |= (x,integer)=>x.
   drop(S,0)=>S.
   drop([_,..S],N)=>drop(S,N-1).
 

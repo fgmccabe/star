@@ -44,7 +44,7 @@ test.opg{
 
   main:()=>().
   main() => valof{
-    show (<|'+'(5,a)|>:ast);
+    show <|'+'(5,a)|>|:ast;
     valis ()
   }
 }

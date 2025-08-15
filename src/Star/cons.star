@@ -6,8 +6,8 @@ star.cons{
   import star.coerce.
   import star.strings.
 
-  public implementation all x ~~ equality[x] |: equality[cons[x]] => let{.
-    smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
+  public implementation all x ~~ equality[x] |= equality[cons[x]] => let{.
+    smList:all x ~~ equality[x] |= (cons[x],cons[x]) => boolean.
     smList(.nil,.nil) => .true.
     smList(.cons(x,xr),.cons(y,yr)) => x==y && smList(xr,yr).
     smList(_,_) default => .false.
@@ -15,15 +15,15 @@ star.cons{
     L1 == L2 => smList(L1,L2).
   }
 
-  public implementation all x ~~ hashable[x] |: hashable[cons[x]] => {
+  public implementation all x ~~ hashable[x] |= hashable[cons[x]] => {
     hash(L) => cHash(L,0).
   }
 
-  cHash:all x ~~ hashable[x] |: (cons[x],integer) => integer.
+  cHash:all x ~~ hashable[x] |= (cons[x],integer) => integer.
   cHash(.nil,X) => X.
   cHash(.cons(x,xr),H) => cHash(xr,(H+hash(x))*37).
 
-  public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let{.
+  public implementation all x ~~ comp[x],equality[x] |= comp[cons[x]] => let{.
     consLess(.nil,.cons(_,_)) => .true.
     consLess(.cons(H1,T1),.cons(H2,T2)) where H1<H2 => .true.
     consLess(.cons(H,T1),.cons(H,T2)) => consLess(T1,T2).
@@ -135,7 +135,7 @@ star.cons{
     }
   }
     
-  public implementation all e ~~ display[e] |: display[cons[e]] => let{.
+  public implementation all e ~~ display[e] |= display[cons[e]] => let{.
     consDisp(.nil,L) => L.
     consDisp(.cons(X,.nil),L) => .cons(disp(X), L).
     consDisp(.cons(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).
@@ -149,7 +149,7 @@ star.cons{
   -- post is displayed after the list
   -- sep is displayed between each element
   -- fmt is used to format each element
-  public implementation all e ~~ format[e] |: format[cons[e]] => let{.
+  public implementation all e ~~ format[e] |= format[cons[e]] => let{.
     splitFormat(F) => valof{
       if Ix ?= strFind(F,"[",0) && Iz ?= strFind(F,"]",Ix) && Iy ?= strFind(F,",..",Ix) then{
 	Pre = subString(F,0,Ix);

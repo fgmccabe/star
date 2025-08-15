@@ -5,7 +5,7 @@ test.fmt{
   TstStr = "theBeginningTheMiddleTheEnd".
   Middle = "theMiddle".
 
-  List = (["alpha","beta","gamma"]:cons[string]).
+  List = ["alpha","beta","gamma"]|:cons[string].
 
   main:()=>().
   main()=>valof{

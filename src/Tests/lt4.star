@@ -52,7 +52,7 @@ test.lt4{
     Group = [.defn("A","AA"),.defn("B","BB")];
     show checkGroup(Group,[]);
 
-    assert {? D in ([.decl("B","BB"),.decl("A","AA")]:cons[decl]) *>D in checkGroup(Group,[]) ?};
+    assert {? D in ([.decl("B","BB"),.decl("A","AA")]|:cons[decl]) *>D in checkGroup(Group,[]) ?};
     valis ()
   }
 }

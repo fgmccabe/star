@@ -153,12 +153,12 @@ star.skew{
     fmap = fmp.
   }
   
-  public implementation all e ~~ display[e] |: display[sk[e]] => let{.
-    dispList:all a ~~ display[a] |: (rlist[a],cons[string]) => cons[string].
+  public implementation all e ~~ display[e] |= display[sk[e]] => let{.
+    dispList:all a ~~ display[a] |= (rlist[a],cons[string]) => cons[string].
     dispList(.nil,L) => L.
     dispList(.cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
 
-    dispTree:all a ~~ display[a] |: (tree[a],cons[string]) => cons[string].
+    dispTree:all a ~~ display[a] |= (tree[a],cons[string]) => cons[string].
     dispTree(.eTree,L) => L.
     dispTree(.node(X,t1,t2),L) => [disp(X),..dispTree(t1,dispTree(t2,L))].
 
@@ -170,7 +170,7 @@ star.skew{
     disp(.rl(L)) => "[#(rollup(dispList(L,.nil)))]".
   }
 
-  public implementation all e ~~ equality[e] |: equality[sk[e]] => let{.
+  public implementation all e ~~ equality[e] |= equality[sk[e]] => let{.
     equalList(.nil,.nil) => .true.
     equalList(.cons((W1,T1),L1),.cons((W2,T2),L2)) =>
       W1==W2 && equalTree(T1,T2) && equalList(L1,L2).

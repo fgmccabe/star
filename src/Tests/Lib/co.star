@@ -6,7 +6,7 @@ test.co{
     _coerce:(s)=>option[d].
   }
 
-  public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: coercion[(a,e),(b,f)] => let{
+  public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |= coercion[(a,e),(b,f)] => let{
     coercePair(.some(A),.some(B)) => .some((A,B)).
     coercePair(_,_) default => .none
   } in {

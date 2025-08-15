@@ -46,7 +46,7 @@ test.ar{
     name:string
   }
 
-  ff:all x ~~ four[x],eqq[x] |:(x)=>x.
+  ff:all x ~~ four[x],eqq[x] |=(x)=>x.
   ff(X) where eqq(X,zer) =>unum.
   ff(N) => times(N,ff(minus(N,unum))).
 

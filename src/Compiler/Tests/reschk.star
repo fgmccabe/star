@@ -80,7 +80,7 @@ test{
     _nil = nil.
   }
 
-  public conc:all s,e ~~ stream[s->>e], sequence[s->>e] |: (s,s)=>s.
+  public conc:all s,e ~~ stream[s->>e], sequence[s->>e] |= (s,s)=>s.
   conc([],T) => T.
   conc([E,..Es],T) => [E,..conc(Es,T)].
 }

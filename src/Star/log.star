@@ -2,14 +2,14 @@ star.log{
   import star.core.
   import star.coerce.
 
-  public traceCall:all x ~~ display[x] |: (string,boolean,x) => x.
+  public traceCall:all x ~~ display[x] |= (string,boolean,x) => x.
   traceCall(M,Flg,X) => valof{
     if Flg then
       _show("\e[34m#(M)\e[0m - $(X)");
     valis X
   }
 
-  public logMsg:all l ~~ loggable[l] |: (l,string)=>().
+  public logMsg:all l ~~ loggable[l] |= (l,string)=>().
   logMsg(Lvl,Msg) where isLogging(Lvl) => _logmsg(Msg).
 
   public showMsg:(string)=>().

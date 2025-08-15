@@ -138,7 +138,7 @@ star.compiler.normalize{
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
-  transformRules:all e,t ~~ transform[e->>t], display[e], display[t] |:
+  transformRules:all e,t ~~ transform[e->>t], display[e], display[t] |=
     (cons[rule[e]],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
       (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
   transformRules([],_,_,_,_,Ex) => ([],Ex).
@@ -148,7 +148,7 @@ star.compiler.normalize{
     valis ([Trple,..Rest],Exx)
   }
 
-  transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|:
+  transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|=
     (rule[e],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
   transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
@@ -561,7 +561,7 @@ star.compiler.normalize{
     valis (Closure,[LamDefn,..Ex1])
   }
 
-  liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |:
+  liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |=
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],cons[cDefn]) =>
       crFlow[x].
   liftLet(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
@@ -640,7 +640,7 @@ star.compiler.normalize{
     }
   }
 
-  liftLetRec:all e,x ~~ transform[e->>x],letify[x] |:
+  liftLetRec:all e,x ~~ transform[e->>x],letify[x] |=
     (option[locn],cons[canonDef],cons[decl],e,nameMap,set[cV],set[cV],
       cons[cDefn]) => crFlow[x].
   liftLetRec(Lc,Grp,Decls,Bnd,Outer,Q,Free,Ex) => valof{
@@ -729,7 +729,7 @@ star.compiler.normalize{
 
   fixUp ~> (string,integer,cExp).
 
-  computeFixups:all e ~~ letify[e] |: (cons[fixUp],option[locn],cV,cExp,e) => e.
+  computeFixups:all e ~~ letify[e] |= (cons[fixUp],option[locn],cV,cExp,e) => e.
   computeFixups([],Lc,Vr,Fr,Bnd) => letify(Lc,Vr,Fr,Bnd).
   computeFixups([(Nm,Ix,Up),..Fx],Lc,Vr,Fr,Bnd) => valof{
     if traceNormalize! then{

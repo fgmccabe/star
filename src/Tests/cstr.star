@@ -2,7 +2,7 @@ test.cstream{
   import star.
   import star.assert.
 
-  aa = ([0]:cons[_]).
+  aa = [0]|:cons[_].
 
   bb = disp(aa).
 
@@ -12,7 +12,7 @@ test.cstream{
   main()=>valof{
     show cc::string;
 
-    show disp([0]:cons[_])::string;
+    show disp([0]|:cons[_])::string;
     valis ()
   }
 }

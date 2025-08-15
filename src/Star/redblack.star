@@ -29,16 +29,16 @@ star.redblack{
     .blf |
     .nd(color,rbtree[k,v],k,v,rbtree[k,v]).
 
-  find:all k,v ~~ comp[k], equality[k] |:(rbtree[k,v],k)=> option[v].
+  find:all k,v ~~ comp[k], equality[k] |=(rbtree[k,v],k)=> option[v].
   find(.lf,_) => .none.
   find(.nd(_,_,K,V,_),K) => .some(V).
   find(.nd(_,L,K1,_,_),K) where K<K1 => find(L,K).
   find(.nd(_,_,_,_,R),K) => find(R,K).
 
-  insert:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].
+  insert:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k,v) => rbtree[k,v].
   insert(T,K,V) => blacken(ins(T,K,V)).
 
-  ins:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k,v) => rbtree[k,v].
+  ins:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k,v) => rbtree[k,v].
   ins(.blf,K,V) => .nd(.Red,.lf,K,V,.lf).
   ins(.lf,K,V) => .nd(.Red,.lf,K,V,.lf).
   ins(.nd(C,L,K,_,R),K,V) => .nd(C,L,K,V,R).
@@ -69,10 +69,10 @@ star.redblack{
 
   balance(C,L,K,V,R) => .nd(C,L,K,V,R).
 
-  delete:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k)=>rbtree[k,v].
+  delete:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k)=>rbtree[k,v].
   delete(T,K) => del(redden(T),K).
   
-  del:all k,v ~~ comp[k],equality[k] |: (rbtree[k,v],k)=>rbtree[k,v].
+  del:all k,v ~~ comp[k],equality[k] |= (rbtree[k,v],k)=>rbtree[k,v].
   del(.lf,_) => .lf.
   del(.nd(.Red,.lf,ky,vy,.lf),k) => (ky==k ?? .lf || .nd(.Red,.lf,ky,vy,.lf)).
   del(.nd(.Blk,.lf,ky,vy,.lf),k) => (ky==k ?? .blf || .nd(.Blk,.lf,ky,vy,.lf)).
@@ -143,7 +143,7 @@ star.redblack{
   pairs(.blf,Ps) => Ps.
   pairs(.nd(_,L,K,V,R),Ps) => pairs(L,[K->V,..pairs(R,Ps)]).
 
-  dispTree:all k,v ~~ display[k], display[v] |: (rbtree[k,v])=>string.
+  dispTree:all k,v ~~ display[k], display[v] |= (rbtree[k,v])=>string.
   dispTree(.lf)=>"leaf".
   dispTree(.blf)=>"bleaf".
   dispTree(.nd(Cl,L,K,V,R)) => "($(Cl) #(dispTree(L))\:$(disp(K))->$(V)\:#(dispTree(R)))".
@@ -180,17 +180,17 @@ star.redblack{
     sme(_) default => .false
  .} in sme(Is).
   
-  public implementation all k,v ~~ display[k],display[v] |:
+  public implementation all k,v ~~ display[k],display[v] |=
     display[rbtree[k,v]] => {
       disp(T) => disp(pairs(T,[]))
     }.
 
-  public implementation all k,v ~~ equality[k],equality[v] |:
+  public implementation all k,v ~~ equality[k],equality[v] |=
     equality[rbtree[k,v]] => {
       T1==T2 => pairs(T1,[])==pairs(T2,[])
     }.
 
-  public implementation all k,v ~~ equality[k],comp[k] |:
+  public implementation all k,v ~~ equality[k],comp[k] |=
     indexed[rbtree[k,v]->>k,v] => {
       _index(Tr,Ky) => find(Tr,Ky).
       _put(Tr,Ky,Vl) => insert(Tr,Ky,Vl).
@@ -198,19 +198,19 @@ star.redblack{
       _empty = .lf.
     }.
 
-  public implementation all k,v ~~ comp[k], equality[k] |:
+  public implementation all k,v ~~ comp[k], equality[k] |=
     build[rbtree[k,v] ->> keyval[k,v]] => {
       _null = .lf.
       _push(K->V,Tr) => insert(Tr,K,V).
     }.
 
-  public implementation all k,v ~~ comp[k], equality[k] |:
+  public implementation all k,v ~~ comp[k], equality[k] |=
     sequence[rbtree[k,v] ->> keyval[k,v]] => {
       _nil = .lf.
       _cons(K->V,Tr) => insert(Tr,K,V).
     }.
 
-  public implementation all k,v ~~ equality[k],comp[k] |:
+  public implementation all k,v ~~ equality[k],comp[k] |=
     stream[rbtree[k,v]->>keyval[k,v]] => let{.
     hdtl(T) where H?=hd(T) => .some((H,drop(T,H))).
     hdtl(_) default => .none.
@@ -275,12 +275,12 @@ star.redblack{
     isEmpty(_) default => .false
   }
 
-  public implementation all k,v ~~ equality[k],comp[k] |:
+  public implementation all k,v ~~ equality[k],comp[k] |=
     coercion[cons[keyval[k,v]],rbtree[k,v]] => {
       _coerce(L) => .some(foldRight((K->V,M)=>insert(M,K,V),.lf,L)).
     }.
 
-  public implementation all k,v ~~ equality[k],comp[k] |:
+  public implementation all k,v ~~ equality[k],comp[k] |=
     coercion[rbtree[k,v],cons[keyval[k,v]]] => {
       _coerce(T) => .some(pairs(T,[]))
     }.
@@ -293,7 +293,7 @@ star.redblack{
     (M///f) => ixMap(M,f).
   }
 
-  public implementation all k,v ~~ equality[k],comp[k] |:
+  public implementation all k,v ~~ equality[k],comp[k] |=
     ixfilter[rbtree[k,v]->>k,v] => let{
       ixFilter(T,P) => ixLeft((K,V,A)=>(P(K,V) ?? insert(A,K,V) || A),.lf,T).
     } in {

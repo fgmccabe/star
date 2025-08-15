@@ -140,12 +140,12 @@ star.compiler.data{
       .some(.locn(P,L,C,O,N)).
   }
 
-  public implementation all e ~~ coercion[e,data] |: coercion[option[e],data] => {
+  public implementation all e ~~ coercion[e,data] |= coercion[option[e],data] => {
     _coerce(.none) => .some(.symb(.tLbl("none",0))).
     _coerce(.some(E)) => .some(mkCons("some",[E::data]))
   }
 
-  public implementation all e ~~ coercion[data,e] |: coercion[data,option[e]] => {
+  public implementation all e ~~ coercion[data,e] |= coercion[data,option[e]] => {
     _coerce(.symb(.tLbl("none",0))) => .some(.none).
     _coerce(.term("some",[T])) => .some(.some(T::e))
   }

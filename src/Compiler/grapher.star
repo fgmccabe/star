@@ -70,7 +70,7 @@ star.compiler.grapher{
   scanForImports:(ast) => cons[pkg].
   scanForImports(Term) => valof{
     if (Lc,_,Els) ?= isBrTerm(Term) then {
-      Imps = ref ([]:cons[pkg]);
+      Imps = ref ([]|:cons[pkg]);
       for St in Els do{
 	if .pkgImp(_,_,Imp) ?= isImport(St) then{
 	  Imps := [Imp,..Imps!]

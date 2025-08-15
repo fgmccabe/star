@@ -12,7 +12,7 @@ test.h{
 
   main:()=>().
   main() => valof{
-    HH = ([10,20,5]:heap[integer]);
+    HH = [10,20,5]|:heap[integer];
 
     showMsg(showHeap(HH));
 

@@ -40,7 +40,7 @@ test.act0{
     };
 
     try{
-      Rs = _query(png,(P:pingBody)=>P.ping());
+      Rs = _query(png,(P|:pingBody)=>P.ping());
     
       showMsg("$(Rs)");
 

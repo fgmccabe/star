@@ -21,6 +21,6 @@ test.i{
     .ihE |
     .ihL(integer,cons[(k,v)]).
 
-  foo = .ihL(3,([("al",2)]:cons[_])).
+  foo = .ihL(3,[("al",2)]|:cons[_]).
   ef = .ihE.
 }

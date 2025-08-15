@@ -9,7 +9,7 @@ star.lex.nfa{
     .one(c) |
     .star(nfa[c]).
 
-  public implementation all c ~~ display[c] |: display[nfa[c]] => let{.
+  public implementation all c ~~ display[c] |= display[nfa[c]] => let{.
     dispNfa(.epsilon) => "ε".
     dispNfa(.choice(L)) => interleave(L//dispNfa,"|")*.
     dispNfa(.one(C)) => disp(C).

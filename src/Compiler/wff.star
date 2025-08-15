@@ -128,12 +128,12 @@ star.compiler.wff{
 
   public isConstrained:(ast) => option[(option[locn],cons[ast],ast)].
   isConstrained(T) where
-      (Lc,Lh,B) ?= isBinary(T,"|:") => .some((Lc,deComma(Lh),B)).
+      (Lc,Lh,B) ?= isBinary(T,"|=") => .some((Lc,deComma(Lh),B)).
   isConstrained(_) default => .none.
 
   public reConstrain:(cons[ast],ast) => ast.
   reConstrain([],T) => T.
-  reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma([C,..Cs]),T).
+  reConstrain([C,..Cs],T) => binary(locOf(T),"|=",reComma([C,..Cs]),T).
 
   public isSuppress:(ast)=>option[(option[locn],ast)].
   isSuppress(A) => isUnary(A,"ζ").
@@ -211,23 +211,23 @@ star.compiler.wff{
   public mkTypeExists(Lc,L,R) => binary(Lc,"<~",L,R).
 
   public isTypeAnnotation:(ast)=>option[(option[locn],ast,ast)].
-  isTypeAnnotation(A) => isBinary(A,":").
+  isTypeAnnotation(A) => isBinary(A,"|:").
 
   public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
-  mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
+  mkTypeAnnotation(Lc,V,T) => binary(Lc,"|:",V,T).
 
   public isTypeDeclaration:(ast)=>option[(option[locn],ast,ast)].
   isTypeDeclaration(A) => isBinary(A,":").
 
-  public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
-  mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
+  public mkTypeDeclaration:(option[locn],ast,ast)=>ast.
+  mkTypeDeclaration(Lc,V,T) => binary(Lc,":",V,T).
 
   public isTypeExistsStmt:(ast) => option[(option[locn],cons[ast],cons[ast],ast,ast)].
   isTypeExistsStmt(A) where
       (Lc,Q,I) ?= isQuantified(A) &&
       (_,_,Cx,L,R) ?= isTypeExistsStmt(I) => .some((Lc,Q,Cx,L,R)).
   isTypeExistsStmt(A) where
-      (Lc,C,I) ?= isBinary(A,"|:") &&
+      (Lc,C,I) ?= isBinary(A,"|=") &&
       (_,Q,_,L,R) ?= isTypeExistsStmt(I) => .some((Lc,Q,deComma(C),L,R)).
   isTypeExistsStmt(A) where
       (Lc,H,I) ?= isBinary(A,"<~") &&
@@ -243,7 +243,7 @@ star.compiler.wff{
       (Lc,Q,I) ?= isQuantified(A) &&
       (_,_,Cx,L,R) ?= isTypeFunStmt(I) => .some((Lc,Q,Cx,L,R)).
   isTypeFunStmt(A) where
-      (Lc,C,I) ?= isBinary(A,"|:") &&
+      (Lc,C,I) ?= isBinary(A,"|=") &&
       (_,Q,_,L,R) ?= isTypeFunStmt(I) => .some((Lc,Q,deComma(C),L,R)).
   isTypeFunStmt(A) where
       (Lc,H,I) ?= isBinary(A,"~>") &&
@@ -263,7 +263,7 @@ star.compiler.wff{
       (Lc,Q,I) ?= isQuantified(A) &&
       (_,_,Cx,L,R) ?= isAlgebraic(I) => .some((Lc,Q,Cx,L,R)).
   isAlgebraic(A) where
-      (Lc,C,I) ?= isBinary(A,"|:") &&
+      (Lc,C,I) ?= isBinary(A,"|=") &&
       (_,Q,_,L,R) ?= isAlgebraic(I) => .some((Lc,Q,deComma(C),L,R)).
   isAlgebraic(A) where
       (Lc,H,I) ?= isBinary(A,"::=") &&
@@ -291,7 +291,7 @@ star.compiler.wff{
       (Lc,Q,I) ?= isQuantified(A) &&
       (_,_,Cx,L,R) ?= isStruct(I) => .some((Lc,Q,Cx,L,R)).
   isStruct(A) where
-      (Lc,C,I) ?= isBinary(A,"|:") &&
+      (Lc,C,I) ?= isBinary(A,"|=") &&
       (_,Q,_,L,R) ?= isStruct(I) => .some((Lc,Q,deComma(C),L,R)).
   isStruct(A) where
       (Lc,H,I) ?= isBinary(A,"::=") &&
@@ -567,7 +567,7 @@ star.compiler.wff{
       (Lc,Q,I) ?= isQuantified(A) &&
 	  (_,_,C,Nm,As,Ds) ?= isContractSpec(I) => .some((Lc,Q,C,Nm,As,Ds)).
   isContractSpec(A) where
-      (Lc,Lhs,Rhs) ?= isBinary(A,"|:") &&
+      (Lc,Lhs,Rhs) ?= isBinary(A,"|=") &&
 	  (_,Q,_,Nm,As,Ds) ?= isContractSpec(Rhs) => .some((Lc,Q,deComma(Lhs),Nm,As,Ds)).
   isContractSpec(A) where
       (Lc,Nm,[E]) ?= isSquareTerm(A) &&
@@ -589,7 +589,7 @@ star.compiler.wff{
       (_,Qs,In) ?= isQuantified(T) =>
     isImplSpec(Lc,Qs,Cs,In).
   isImplSpec(Lc,Qs,_,T) where
-      (_,Lhs,Rhs) ?= isBinary(T,"|:") =>
+      (_,Lhs,Rhs) ?= isBinary(T,"|=") =>
     isImplSpec(Lc,Qs,deComma(Lhs),Rhs).
   isImplSpec(_,Qs,Cs,T) where
       (Lc,Cn,Exp) ?= isBinary(T,"=>") =>
@@ -618,11 +618,10 @@ star.compiler.wff{
   mkImplementationStmt(Lc,Q,Cx,T,E) =>
     unary(Lc,"implementation",reUQuant(Lc,Q,reConstrain(Cx,binary(Lc,"=>",T,E)))).
 
-  public isImplicit(A) where (Lc,L,R) ?= isBinary(A,"|=") && (_,Id)?=isName(L) => .some((Lc,Id,R)).
-  isImplicit(A) where (Lc,L,R) ?= isBinary(A,":") && (_,Id)?=isName(L) => .some((Lc,Id,R)).
+  public isImplicit(A) where (Lc,L,R) ?= isBinary(A,"|:") && (_,Id)?=isName(L) => .some((Lc,Id,R)).
   isImplicit(A) default => .none.
 
-  public mkImplicit(Lc,N,T) => binary(Lc,":",.nme(Lc,N),T).
+  public mkImplicit(Lc,N,T) => binary(Lc,"|:",.nme(Lc,N),T).
 
   public typeName:(ast)=>string.
   typeName(Tp) where (_,Id) ?= isName(Tp) => Id.

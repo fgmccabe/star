@@ -8,7 +8,7 @@ star.bintree{
 
   public bin[k,v] ::= .e | .n(bin[k,v],k,v,integer,bin[k,v]).
 
-  findInTree:all k,v ~~ equality[k], comp[k] |: (bin[k,v],k)=>option[v].
+  findInTree:all k,v ~~ equality[k], comp[k] |= (bin[k,v],k)=>option[v].
   findInTree(T,Ky) => case T in {
     | .n(_,Ky,V,_,_) => .some(V)
     | .n(L,K,_,_,_) where Ky<K => findInTree(L,Ky)
@@ -19,17 +19,17 @@ star.bintree{
   depth(.e) => 0.
   depth(.n(_,_,_,D,_)) => D.
 
-  rotateRight:all k,v ~~ equality[k],comp[k] |: (bin[k,v])=>bin[k,v].
+  rotateRight:all k,v ~~ equality[k],comp[k] |= (bin[k,v])=>bin[k,v].
   rotateRight(.n(.n(L1,Kx,Vx,_,R1),Ky,Vy,_,R2)) where
       Dr .= max(depth(R1),depth(R2))+1 =>
     .n(L1,Kx,Vx,max(depth(L1),Dr)+1,.n(L2,Ky,Vy,Dr,R2)).
 
-  rotateLeft:all k,v ~~ equality[k],comp[k] |: (bin[k,v])=>bin[k,v].
+  rotateLeft:all k,v ~~ equality[k],comp[k] |= (bin[k,v])=>bin[k,v].
   rotateLeft(n(L1,Kx,Ky,_,n(L2,Ky,Vy,_,R2))) where
     Dl .= max(depth(L1),depth(L2))+1 =>
     n(n(L1,Kx,Vx,Dl,L2),Ky,Vy,max(Dl,depth(R2))+1,R2).
 
-  insert:all k,v ~~ equality[k],comp[k] |: (bin[k,v],k,v)=>bin[k,v].
+  insert:all k,v ~~ equality[k],comp[k] |= (bin[k,v],k,v)=>bin[k,v].
   insert(.e,K,V) => n(.e,K,V,1,.e).
   insert(n(L1,K,D,R1),K,V) => n(L1,K,V,D,R1).
   insert(n(L1,Kl,Vl,_,R1),K,V) where Kl>K => valof{

@@ -207,7 +207,7 @@ ssType(typeLambda(Hd,Bd),ShCon,Dp,sq([HH,ss("~>"),BB])) :-
 ssType(contractExists(Hd,Bd),ShCon,Dp,sq([HH,ss("<~"),BB])) :-
   ssConstraint(ShCon,Dp,Hd,HH),
   ssType(Bd,ShCon,Dp,BB).
-ssType(constrained(Tp,Con),_ShCon,Dp,sq([CC,ss("|:"),TT])) :-
+ssType(constrained(Tp,Con),_ShCon,Dp,sq([CC,ss("|="),TT])) :-
   ssConstraint(false,Dp,Con,CC),
   ssType(Tp,false,Dp,TT).
 
@@ -266,7 +266,7 @@ ssVarConstraints([C1|Cx],Dp,[CC,ss(",")|Cs]) :-
   nonvar(Cx),!,
   ssConstraint(false,Dp,C1,CC),
   ssVarConstraints(Cx,Dp,Cs).
-ssVarConstraints([C|_],Dp,[CC,ss("|:")]) :-
+ssVarConstraints([C|_],Dp,[CC,ss("|=")]) :-
   ssConstraint(false,Dp,C,CC).
 
 ssTypeEls(Tps,ShCon,Dp,TT) :-

@@ -2,7 +2,7 @@ test.ms{
   import star.
   import star.assert.
   
-  mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m],reversible[s[b]] |:
+  mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m],reversible[s[b]] |=
     ((a)=>m[b],s[a])=>m[s[b]].
   mapOver(F,S)=>let{.
     mpOver([],Sf)=> return reverse(Sf).
@@ -37,7 +37,7 @@ test.ms{
 
     assert mapOver(doubleOrQuits,LL)==.none;
 
-    show (([1.0,2.0,-3.0]//sq):cons[option[float]]);
+    show (([1.0,2.0,-3.0]//sq)|:cons[option[float]]);
     valis ()
   }
 }

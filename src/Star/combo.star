@@ -22,6 +22,6 @@ star.combo{
     tt(_) => .none.
   } in tt.
 
-  public isK:all x ~~ equality[x] |: (x)=>((x) => boolean).
+  public isK:all x ~~ equality[x] |= (x)=>((x) => boolean).
   isK(C) => ((Ch)=>Ch==C).
 }

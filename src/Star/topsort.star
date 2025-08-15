@@ -6,7 +6,7 @@ star.topsort{
     defined:(d,t)=>boolean.
   }
 
-  public topsort:all d,t ~~ depends[d->>t] |: (cons[d]) => cons[cons[d]].
+  public topsort:all d,t ~~ depends[d->>t] |= (cons[d]) => cons[cons[d]].
   topsort(Defs) => let{.
     defEntry::= dE{ df:d. stackPt : integer. }
 

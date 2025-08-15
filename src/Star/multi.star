@@ -66,7 +66,7 @@ star.multi{
     _coerce(M) => .some(flatten(M,.nil))
   }
 
-  public implementation all e ~~ display[e] |: display[multi[e]] => {
+  public implementation all e ~~ display[e] |= display[multi[e]] => {
     disp(M) => disp(M::cons[e])
   }
 

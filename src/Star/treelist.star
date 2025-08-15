@@ -44,7 +44,7 @@ star.treelist{
     _empty = tlEmpty.
   }
 
-  public implementation all e ~~ display[e] |: display[tl[e]] => let{.
+  public implementation all e ~~ display[e] |= display[tl[e]] => let{.
     dispTl(tlEmpty) => ss("").
     dispTl(tlLeaf(E)) => disp(E).
     dispTl(tlRed(L,_,R)) => ssSeq([dispTl(L),ss(","),dispTl(R)]).

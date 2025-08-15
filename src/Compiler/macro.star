@@ -43,8 +43,8 @@ star.compiler.macro{
   macroStmt(A) => macroAst(A,.statement,examineStmt).
 
   examineStmt:(ast) => ast.
-  examineStmt(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
-    mkTypeAnnotation(Lc,L,macroType(R)).
+  examineStmt(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
   examineStmt(A) where (Lc,R) ?= isPublic(A) => 
     mkPublic(Lc,macroStmt(R)).
   examineStmt(A) where (Lc,R) ?= isPrivate(A) =>
@@ -105,8 +105,8 @@ star.compiler.macro{
   macroTypeDef(A) => macroAst(A,.statement,examineTypeStmt).
 
   examineTypeStmt:(ast) => ast.
-  examineTypeStmt(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
-    mkTypeAnnotation(Lc,L,macroType(R)).
+  examineTypeStmt(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
   examineTypeStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
     mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineTypeStmt(A) where (Lc,L,R) ?= isTypeExists(A) => 
@@ -130,8 +130,8 @@ star.compiler.macro{
   examineAction(A) where (Lc,L,R) ?= isLbldAction(A) => 
     mkLbldAction(Lc,L,macroAction(R)).
   examineAction(A) where _ ?= isBreak(A) => A.
-  examineAction(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
-    mkTypeAnnotation(Lc,L,macroType(R)).
+  examineAction(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
   examineAction(A) where (Lc,L,R) ?= isDefn(A) => 
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineAction(A) where (Lc,L,R) ?= isMatch(A) => 
@@ -433,14 +433,14 @@ star.compiler.macro{
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(option[locn],ast)].
-  lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)?=isTypeAnnot(El)}.
+  lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)?=isTypeDecl(El)}.
 
-  isTypeAnnot(A) where (Lc,N,Tp) ?= isBinary(A,":") && (Nm,Vz) .= visibilityOf(N) && (_,Id)?=isName(Nm) =>
+  isTypeDecl(A) where (Lc,N,Tp) ?= isTypeDeclaration(A) && (Nm,Vz) .= visibilityOf(N) && (_,Id)?=isName(Nm) =>
     .some((Lc,Id,Vz,Tp)).
-  isTypeAnnot(A) where (Lc,I) ?= isPublic(A) &&
-      (_,N,Tp) ?= isBinary(I,":") &&
+  isTypeDecl(A) where (Lc,I) ?= isPublic(A) &&
+      (_,N,Tp) ?= isTypeDeclaration(I) &&
       (_,Id) ?= isName(N) => .some((Lc,Id,.pUblic,Tp)).
-  isTypeAnnot(_) default => .none.
+  isTypeDecl(_) default => .none.
 
   /*
   _main([A1,..,An]) => valof{
@@ -462,7 +462,6 @@ star.compiler.macro{
     
     MLhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
---    showMsg("main action $(Action)");
     Valof = mkValof(Lc,[Action]);
     Main = equation(Lc,MLhs,Valof);
     XX = genName(Lc,"XX");
@@ -470,7 +469,7 @@ star.compiler.macro{
       mkValof(Lc,[
 	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
 	  mkValis(Lc,unit(Lc))]));
-    Annot = mkTypeAnnotation(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
+    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }

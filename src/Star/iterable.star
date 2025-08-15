@@ -21,7 +21,7 @@ star.iterable{
     _generate:(c)=> generator[e]
   }
 
-  public iterGenerator:all c,e ~~ iter[c->>e] |: (c) => generator[e].
+  public iterGenerator:all c,e ~~ iter[c->>e] |= (c) => generator[e].
   iterGenerator(L) => _fiber((this,first) => 
       let{
 	yieldFn:(e,())=>().

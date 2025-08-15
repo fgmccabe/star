@@ -34,7 +34,7 @@ test.br{
     unum = 0b1.
   }
 
-  ff:all x ~~ four[x],equality[x] |:(x)=>x.
+  ff:all x ~~ four[x],equality[x] |=(x)=>x.
   ff(zer)=>unum.
   ff(N) => times(N,ff(minus(N,unum))).
 

@@ -18,7 +18,7 @@
 
   The type of such a rule looks like:
 
-  all s,t ~~ stream[s->>t],hasLoc[t] |: (s,Ptypes) => (s,option[Valtype])
+  all s,t ~~ stream[s->>t],hasLoc[t] |= (s,Ptypes) => (s,option[Valtype])
 */
 
 

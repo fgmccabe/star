@@ -35,7 +35,7 @@ star.compiler.matcher{
     }
   }
 
-  public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |: (option[locn],nameMap,cExp,e,
+  public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |= (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{
     Trpls = makeTriples(Cs);
@@ -48,7 +48,7 @@ star.compiler.matcher{
     genV([T,..Ts]) => [.cVar(Lc,.cV(genId("_"),T)),..genV(Ts)].
   .} in genV(L).
 
-  makeTriples:all e ~~ reform[e] |: (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
+  makeTriples:all e ~~ reform[e] |= (cons[(option[locn],cons[cExp],option[cExp],e)]) => cons[triple[e]].
   makeTriples(Eqns) => ixRight((Ix,(Lc,Args,Wh,Exp),Ts)=> valof{
       (Vl,Cnd) = pullWhere(Exp);
       valis [(Args,(Lc,[],mergeGoal(Lc,Cnd,Wh),Vl),Ix),..Ts]
@@ -56,7 +56,7 @@ star.compiler.matcher{
 
   genRaise(Lc,Msg,Tp) => .cAbort(Lc,Msg,Tp).
 
-  matchTriples:all e~~reform[e],rewrite[e],display[e] |: (option[locn],cons[cExp],cons[triple[e]],e,integer,nameMap) => e.
+  matchTriples:all e~~reform[e],rewrite[e],display[e] |= (option[locn],cons[cExp],cons[triple[e]],e,integer,nameMap) => e.
   matchTriples(_,[],Triples,Deflt,_,_) => conditionalize(Triples,Deflt).
   matchTriples(Lc,Vrs,Triples,Deflt,Depth,Map) => valof{
     Parts = partitionTriples(Triples);
@@ -110,13 +110,13 @@ star.compiler.matcher{
   argMode(.cTerm(_,Op,_,_)) where isTplLbl(Op) => .inTuples.
   argMode(.cTerm(_,_,_,_)) => .inConstructors.
 
-  matchSegments:all e ~~ reform[e],rewrite[e],display[e] |:
+  matchSegments:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[(argMode,cons[triple[e]])],cons[cExp],option[locn],e,integer,nameMap) => e.
   matchSegments([],_,_,Deflt,_,_) => Deflt.
   matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt,Depth,Map) =>
     compileMatch(M,Seg,Vrs,Lc,matchSegments(Segs,Vrs,Lc,Deflt,Depth,Map),Depth,Map).
 
-  compileMatch:all e ~~ reform[e],rewrite[e],display[e] |:
+  compileMatch:all e ~~ reform[e],rewrite[e],display[e] |=
     (argMode,cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   compileMatch(_,Seg,Vrs,Lc,Deflt,Depth,_Map) where tooDeep(Depth) => valof{
     valis conditionMatch(Seg,Vrs,Deflt)
@@ -132,7 +132,7 @@ star.compiler.matcher{
 
   -- We use this to convert rules into a conditional expression
   -- when regular match too expensive
-  conditionMatch:all e ~~ reform[e],rewrite[e],display[e] |:
+  conditionMatch:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],e) => e.
   conditionMatch([],_,Deflt) => Deflt.
   conditionMatch([(Args,(Lc,Bnds,Test,Val),_),..M],Vrs,Deflt) => valof{
@@ -147,7 +147,7 @@ star.compiler.matcher{
     valis Res
   }
 
-  mkMatchCond:all e ~~ display[e], rewrite[e] |: (cons[cExp],cons[cExp],option[cExp],option[locn],e) =>
+  mkMatchCond:all e ~~ display[e], rewrite[e] |= (cons[cExp],cons[cExp],option[cExp],option[locn],e) =>
     (option[cExp],e).
   mkMatchCond([],[],Test,_,Val) => (Test,Val).
   mkMatchCond([.cAnon(_,_),..Args],[_,..Vars],Test,Lc,Val) =>
@@ -162,7 +162,7 @@ star.compiler.matcher{
   mkMatchCond([A,..Args],[V,..Vars],Test,Lc,Val) =>
     mkMatchCond(Args,Vars,mergeGoal(Lc,.some(.cMatch(Lc,A,V)),Test),Lc,Val).
 
-  matchScalars:all e ~~ reform[e],rewrite[e],display[e] |:
+  matchScalars:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchScalars(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     ST = sort(Seg,compareScalarTriple);
@@ -172,7 +172,7 @@ star.compiler.matcher{
     valis mkCase(Lc,V,Cases,Deflt)
   }
 
-  matchConstructors:all e ~~ reform[e],rewrite[e],display[e] |:
+  matchConstructors:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
@@ -180,7 +180,7 @@ star.compiler.matcher{
     valis mkIndex(Lc,V,Cases,Deflt)
   }
 
-  matchTuples:all e ~~ reform[e],rewrite[e],display[e] |:
+  matchTuples:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchTuples(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
@@ -188,12 +188,12 @@ star.compiler.matcher{
     valis mkCase(Lc,V,Cases,Deflt)
   }
 
-  matchVars:all e ~~ reform[e],rewrite[e],display[e] |:
+  matchVars:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.
   matchVars(Triples,[V,..Vrs],Lc,Deflt,Depth,Map) =>
     matchTriples(Lc,Vrs,applyVar(V,Triples),Deflt,Depth,Map).
 
-  applyVar:all e ~~ rewrite[e], display[e] |: (cExp,cons[triple[e]]) => cons[triple[e]].
+  applyVar:all e ~~ rewrite[e], display[e] |= (cExp,cons[triple[e]]) => cons[triple[e]].
   applyVar(V,Triples) => let{
     applyToTriple:(triple[e])=>triple[e].
     applyToTriple(([.cAnon(VLc,VTp),..Args],(CLc,B,Gl,Exp),Ix)) => valof{
@@ -211,7 +211,7 @@ star.compiler.matcher{
   } in (Triples//applyToTriple).
 
   -- we need to be careful to preserve the original order of equations
-  formCases:all e ~~ reform[e],rewrite[e],display[e] |: (cons[triple[e]],(triple[e],triple[e])=>boolean,
+  formCases:all e ~~ reform[e],rewrite[e],display[e] |= (cons[triple[e]],(triple[e],triple[e])=>boolean,
     option[locn],cons[cExp],e,integer,nameMap) => cons[cCase[e]].
   formCases([],_,_,_,_,_,_) => [].
   formCases([Tr,..Triples],Eq,Lc,Vrs,Deflt,Depth,Map) => valof{
@@ -221,7 +221,7 @@ star.compiler.matcher{
     valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt,Depth,Map)].
   }
 
-  formCase:all e ~~ reform[e],rewrite[e],display[e] |: (triple[e],cons[triple[e]],option[locn],cons[cExp],e,integer,nameMap) => cCase[e].
+  formCase:all e ~~ reform[e],rewrite[e],display[e] |= (triple[e],cons[triple[e]],option[locn],cons[cExp],e,integer,nameMap) => cCase[e].
   formCase(([.cInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
     (LLc,.cInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt,Depth,Map)).
   formCase(([.cFlt(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt,Depth,Map) =>
@@ -253,7 +253,7 @@ star.compiler.matcher{
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
-  conditionalize:all e ~~ reform[e],display[e] |: (cons[triple[e]],e)=>e.
+  conditionalize:all e ~~ reform[e],display[e] |= (cons[triple[e]],e)=>e.
   conditionalize([],Deflt) => Deflt.
   conditionalize([(_,(Lc,Bnds,Test,Val),_),..Triples],Deflt) => valof{
     (Vl,Cnd) = pullWhere(Val);
@@ -265,7 +265,7 @@ star.compiler.matcher{
     valis applyBindings(Lc,Bnds,Vl)
   }
 
-  applyBindings:all e ~~ reform[e] |: (option[locn],cons[(string,cV)],e) => e.
+  applyBindings:all e ~~ reform[e] |= (option[locn],cons[(string,cV)],e) => e.
   applyBindings(Lc,Bnds,Val) => valof{
     VBnds = (Bnds^/(((Nm,_))=>~isUnderscoreName(Nm)));
     if isEmpty(VBnds) then

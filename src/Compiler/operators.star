@@ -95,7 +95,7 @@ star.compiler.operators{
     | ".=" => [.infixOp(899,900,899)]
     | "=>>" => [.infixOp(949,950,950)]
     | "=" => [.infixOp(974,975,974)]
-    | "|:" => [.infixOp(1234,1235,1234)]
+    | "|:" => [.infixOp(950,951,950)]
     | "show" => [.prefixOp(1240,1239)]
     | "++" => [.infixOp(719,720,720)]
     | ">" => [.infixOp(899,900,899)]
@@ -360,7 +360,7 @@ star.compiler.operators{
     | "{!" => .true  /* iota comprehension */
     | "|" => .true  /* type union, case union */
     | "|]" => .true  /* measure brackets */
-    | "|:" => .true  /* constrained type */
+    | "|:" => .true  /* type annotation */
     | "||" => .true  /* disjunction */
     | "|=" => .true  /* constrained type */
     | "|>" => .true  /* meta quote */

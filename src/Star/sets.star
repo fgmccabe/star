@@ -11,31 +11,31 @@ star.sets{
 
   public all e ~~ set[e] ::= .set(map[e,()]).
 
-  public implementation all e ~~ equality[e],hashable[e] |: build[set[e]->>e] => {
+  public implementation all e ~~ equality[e],hashable[e] |= build[set[e]->>e] => {
     _null = .set([]).
 
     _push(E,.set(M)) => .set(M[E->()]).
   }
 
-  public implementation all e ~~ equality[e],hashable[e] |: sequence[set[e]->>e] => {
+  public implementation all e ~~ equality[e],hashable[e] |= sequence[set[e]->>e] => {
     _nil = .set([]).
 
     _cons(E,.set(M)) => .set(M[E->()]).
   }
 
-  public implementation all e ~~ equality[e], hashable[e] |: membership[set[e] ->> e] => {
+  public implementation all e ~~ equality[e], hashable[e] |= membership[set[e] ->> e] => {
     .set(M)\+e => .set(M[e->()]).
     .set(M)\-e => .set(M[~e]).
     e.<. .set(M) => .some(()).=_index(M,e).
   }
 
-  public implementation all e ~~ equality[e], hashable[e] |: setops[set[e]] => {
+  public implementation all e ~~ equality[e], hashable[e] |= setops[set[e]] => {
     .set(m1)\/.set(m2) => .set(ixLeft(((k,_,mm) => mm[k->()]),m2,m1)).
     .set(m1)/\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]??mm[k->()]||mm),[],m1)).
     .set(m1)\.set(m2) => .set(ixLeft((k,_,mm) => (.some(_).=m2[k]??mm||mm[k->()]),[],m1)).
   }
 
-  public implementation all e ~~ equality[e], hashable[e] |: concat[set[e]] => {
+  public implementation all e ~~ equality[e], hashable[e] |= concat[set[e]] => {
     S1 ++ S2 => S1\/S2.
     _multicat(Sin) => let{.
       _multi([],Ss) => Ss.
@@ -44,7 +44,7 @@ star.sets{
     .} in .set(_multi(Sin,[]))
   }
 
-  public implementation all e ~~ display[e] |: display[set[e]] => let{
+  public implementation all e ~~ display[e] |= display[set[e]] => let{
     dispEntry:(e,(),cons[string])=>cons[string].
     dispEntry(K,_,[]) => [disp(K)].
     dispEntry(K,_,L) default => [disp(K),..L].
@@ -76,11 +76,11 @@ star.sets{
   }
 
   public implementation all e,f ~~ equality[e],equality[f],
-  hashable[e],hashable[f] |: mapping[set->>e,f] => {
+  hashable[e],hashable[f] |= mapping[set->>e,f] => {
     (.set(C)//F) => .set(ixRight((E,_,X)=>X[F(E)->()],[],C))
   }
 
-  public implementation all e ~~ equality[e] |: membership[cons[e] ->> e] => let{.
+  public implementation all e ~~ equality[e] |= membership[cons[e] ->> e] => let{.
     add_mem([],X) => [X].
     add_mem([X,..Xs],X) => [X,..Xs].
     add_mem([U,..Xs],X) => [U,..add_mem(Xs,X)].

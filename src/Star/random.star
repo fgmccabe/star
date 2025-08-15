@@ -22,11 +22,11 @@ star.random{
   }
 
   public contract all a ~~ Random[a] ::= {
-    randomR : all g ~~ RandomGen[g] |: (a,a,g) => (a,g).
-    random : all g ~~ RandomGen[g] |: (g) => (a,g).
+    randomR : all g ~~ RandomGen[g] |= (a,a,g) => (a,g).
+    random : all g ~~ RandomGen[g] |= (g) => (a,g).
   }
 
-  randomIVal:all g ~~ RandomGen[g] |: (integer,integer,g) => (integer,g).
+  randomIVal:all g ~~ RandomGen[g] |= (integer,integer,g) => (integer,g).
   randomIVal(l,h,rng) where l>h => randomIVal(h,l,rng).
   randomIVal(l,h,rng) => valof{
     k = h - l + 1;

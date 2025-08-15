@@ -43,7 +43,7 @@ test.y{
       M => showMsg("fooG throws $(M)")
     };
 
-    show fooC((()=>"world"):(()=>string throws ()));
+    show fooC(()=>"world"|:()=>string throws ());
 
     try{
       show fooG(()=>42)

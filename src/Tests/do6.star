@@ -11,9 +11,9 @@ test.do6{
 
   main:()=> ().
   main() => valof{
-    show ({ (X,Y) | (X,Z) in parent && (Z,Y) in parent}:cons[(string,string)]);
+    show { (X,Y) | (X,Z) in parent && (Z,Y) in parent}|:cons[(string,string)];
 
-    show ({ (X,Y) | (X,Y) in parent || (Y,X) in parent }:cons[(string,string)]);
+    show { (X,Y) | (X,Y) in parent || (Y,X) in parent }|:cons[(string,string)];
     valis ()
   }
 }

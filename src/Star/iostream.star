@@ -21,7 +21,7 @@ star.iostream{
     _hdtl = hdtl_
   }
 
-  public implementation all e ~~ display[e] |: display[inputStream[e]] => let{.
+  public implementation all e ~~ display[e] |= display[inputStream[e]] => let{.
     strmDisp(.endStream,L) => L.
     strmDisp(.streamPair(X,.endStream),L) => .cons(disp(X), L).
     strmDisp(.streamThunk(_),L) => .cons("thunk", L).
@@ -40,7 +40,7 @@ star.iostream{
     foldRight = fold.
   }
 
-  public inStream:all t ~~ display[t] |:
+  public inStream:all t ~~ display[t] |=
     (string,((ioHandle)=>t throws ioException))=>inputStream[t] throws ioException.
   inStream(Fl,Fn) => valof{
     Io = openInFile(Fl);

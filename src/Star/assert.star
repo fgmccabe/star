@@ -23,7 +23,7 @@ star.assert{
     valis ()
   }
 
-  public shwMsg:all t ~~ display[t] |: (t,string,string) => ().
+  public shwMsg:all t ~~ display[t] |= (t,string,string) => ().
   shwMsg(Vl,Msg,Lc) => valof{
     showMsg("#(Msg) = $(Vl) at #(Lc)");
     valis ()

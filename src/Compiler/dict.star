@@ -49,7 +49,7 @@ star.compiler.dict{
   } in "dict: #(shLvls())\n$(Br!)".
 
   public implementation display[vrEntry] => {
-    disp(.vrEntry(Lc,Mk,Tp,_)) => "|=$(Tp)".
+    disp(.vrEntry(Lc,Mk,Tp,_)) => "|:$(Tp)".
   }
 
   public implementation display[tpDef] => {

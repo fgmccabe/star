@@ -63,7 +63,7 @@ test.ex4{
     disp(X) => _int2str(X).
   }
 
-  implementation all e ~~ display[e] |: display[cns[e]] => let{.
+  implementation all e ~~ display[e] |= display[cns[e]] => let{.
     consDisp(.nl,L) => L.
     consDisp(.cns(X,.nl),L) => .cons(disp(X), L).
     consDisp(.cns(X,R),L) => .cons(disp(X), .cons(",", consDisp(R,L))).

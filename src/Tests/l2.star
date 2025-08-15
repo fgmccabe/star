@@ -4,7 +4,7 @@ test.l2{
 
   all a ~~ tree[a] ::= .empty | .node(tree[a],a,tree[a]).
 
-  implementation all e ~~ display[e] |: display[tree[e]] => let {.
+  implementation all e ~~ display[e] |= display[tree[e]] => let {.
     dTree(.empty) => "e".
     dTree(.node(L,Lb,R)) => "<#(dTree(L))$(Lb)#(dTree(R))>".
   .} in {

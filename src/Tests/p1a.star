@@ -16,7 +16,7 @@ test.p1a{
   q:parser[cons[char],()].
   q = _tk(`(`) >>= (_) => _tk(`)`) >>= (_) => return ().
 
-  listMem:all e ~~ equality[e] |: (e,cons[e])=>boolean.
+  listMem:all e ~~ equality[e] |= (e,cons[e])=>boolean.
   listMem(E,L) => E .<. L.
 
   symb:(string)=>parser[cons[char],()].
@@ -54,7 +54,7 @@ test.p1a{
 
     assert parse(_str("alpha"),"alpha0"::cons[char]) == [((),[`0`])];
 
-    assert listMem((([(),()]:cons[()]),[]),parse(_plus(_str("a")),"aa"::cons[char]));
+    assert listMem((([(),()]|:cons[()]),[]),parse(_plus(_str("a")),"aa"::cons[char]));
 
     show disp(parse(_star(_str("a")),"aab"::cons[char]))::string;
 

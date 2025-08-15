@@ -6,7 +6,7 @@ test.ac8{
 
   all e,v ~~ rslt[e,v] ::= .ok(v) | .err(e).
 
-  implementation all e,v ~~ display[e],display[v] |: display[rslt[e,v]] => {
+  implementation all e,v ~~ display[e],display[v] |= display[rslt[e,v]] => {
     disp(.ok(V)) => "ok $(V)".
     disp(.err(E)) => "bad $(E)"
   }

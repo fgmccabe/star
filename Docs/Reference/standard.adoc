@@ -81,7 +81,7 @@ contract all t ~~ comp[t] ::= {
 The type signature for `<` is:
 [source,star]
 ----
-(<) : all t ~~ comp[t] |=: (t,t)=>boolean
+(<) : all t ~~ comp[t] |= (t,t)=>boolean
 ----
 
 The `<` predicate is satisfied if the left argument is less than

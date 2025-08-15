@@ -8,10 +8,10 @@ test.dyn2{
     raiz:all r ~~ (e)=>r
   }
 
-  fe: raising[integer] |: (integer)=>integer.
+  fe: raising[integer] |= (integer)=>integer.
   fe(X) => (X>5 ?? raiz(10) || 3*X).
 
-  fs: raising[string], raising[integer] |: (integer) => integer.
+  fs: raising[string], raising[integer] |= (integer) => integer.
   fs(X) => (X<0 ?? raiz("negative arg") || X>100 ?? raiz(10) || X*4).
 
   f:(integer) => integer.

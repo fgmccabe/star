@@ -92,8 +92,8 @@ star.mbox{
   public taskManager:all e ~~ (cons[taskFun[e]]) => e throws mboxException.
   taskManager(Ts) => valof{
     Q := (Ts//spawnTask)::qc[task[e]];
-    BlockQ := ([]:cons[(()=>boolean,task[e])]);
-    IoQ := ([]:cons[(ioHandle,()=>boolean,task[e])]);
+    BlockQ := []|:cons[(()=>boolean,task[e])];
+    IoQ := []|:cons[(ioHandle,()=>boolean,task[e])];
 
     while ~isEmpty(Q!) || ~isEmpty(BlockQ!) || ~isEmpty(IoQ!) do{
       while ~isEmpty(Q!) do{
@@ -156,7 +156,7 @@ star.mbox{
   testIoQ([(Io,P,T),..Q],BQ,Ws) =>
     testIoQ(Q,[(Io,P,T),..BQ],Ws).
   
-  public pause:all e ~~ this |= task[e] |: () => () throws mboxException.
+  public pause:all e ~~ this |: task[e] |= () => () throws mboxException.
   pause() => valof{
     case this suspend .yield_ in {
       | .go_ahead => valis ()
@@ -177,7 +177,7 @@ star.mbox{
     disp(.shut_down_) => "shut down".
   }
 
-  implementation all d ~~ display[d] |: display[channelState[d]] => {
+  implementation all d ~~ display[d] |= display[channelState[d]] => {
     disp(.quiescent) => "quiescent".
     disp(.hasData(D)) => "hasData($(D))".
   }
