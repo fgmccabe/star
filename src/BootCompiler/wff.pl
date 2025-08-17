@@ -982,11 +982,11 @@ mkBreak(Lc,Lb,A) :-
   unary(Lc,"break",Lb,A).
 
 isLbldAction(A,Lc,L,Ac) :-
-  isBinary(A,Lc,":",L,Ac),
+  isBraceTerm(A,Lc,L,Ac),
   isIden(L,_).
 
 mkLbldAction(Lc,Lb,Ac,A) :-
-  binary(Lc,":",Lb,Ac,A).
+  braceTerm(Lc,Lb,Ac,A).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-
   isBinary(A,Lc,"else",Lhs,El),!,

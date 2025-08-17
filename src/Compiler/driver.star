@@ -225,13 +225,15 @@ star.compiler{
   processPkgs(Pks,Repo,Cat) => valof{
     Repp = ref Repo;
 
-    pkgLoop: for (P,Imps) in Pks do{
-      if traceDependencies! then
-	showMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
-      if ~pkgOkInRepo(Repo,P,Imps) then{
-	Repp := processPkg(P,Repp!,Cat);
-	if ~errorFree() then{
-	  break pkgLoop
+    pkgLoop{
+      for (P,Imps) in Pks do{
+	if traceDependencies! then
+	  showMsg("$(P) #(pkgOkInRepo(Repo,P,Imps) ?? "does not" || "needs") recompiling");
+	if ~pkgOkInRepo(Repo,P,Imps) then{
+	  Repp := processPkg(P,Repp!,Cat);
+	  if ~errorFree() then{
+	    break pkgLoop
+	  }
 	}
       }
     };
@@ -242,11 +244,13 @@ star.compiler{
   forceProcessPkgs:(cons[pkg],termRepo,catalog) => ().
   forceProcessPkgs(Pks,Repo,Cat) => valof{
     Repp := Repo;
-    pkgLoop:for P in Pks do{
-      resetErrors();
-      Repp := processPkg(P,Repp!,Cat);
-      if ~errorFree() then{
-	break pkgLoop
+    pkgLoop{
+      for P in Pks do{
+	resetErrors();
+	Repp := processPkg(P,Repp!,Cat);
+	if ~errorFree() then{
+	  break pkgLoop
+	}
       }
     };
     flushRepo(Repp!);

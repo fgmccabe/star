@@ -337,7 +337,7 @@ ssTerm(try(_,A,_,Hs),Dp,sq([ss("try "),AA,ss(" catch "),lb,HH,nl(Dp),rb])) :-!,
   Dp2 is Dp+2,
   ssTerm(A,Dp2,AA),
   ssRls("",Hs,Dp2,canon:ssTerm,HH).
-ssTerm(lbld(_,Lb,E),Dp,sq([ss(Lb),ss(":"),EE])) :-
+ssTerm(lbld(_,Lb,E),Dp,sq([ss(Lb),lb,EE,rb])) :-
   ssTerm(E,Dp,EE).
 
 ssTerms([],_,[]).

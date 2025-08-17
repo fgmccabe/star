@@ -113,10 +113,19 @@ star.cons{
   zip([],[]) => [].
   zip([E,..Es],[F,..Fs]) => [(E,F),..zip(Es,Fs)].
 
+  public zip3: all e,f,g ~~ (cons[e],cons[f],cons[g])=>cons[(e,f,g)].
+  zip3([],[],[]) => [].
+  zip3([E,..Es],[F,..Fs],[G,..Gs]) => [(E,F,G),..zip3(Es,Fs,Gs)].
+
   public unzip:all e,f ~~ (cons[(e,f)])=>(cons[e],cons[f]).
   unzip([]) => ([],[]).
   unzip([(A,B),..Ls]) where
       (L,R) .= unzip(Ls) => ([A,..L],[B,..R]).
+
+  public unzip3:all e,f,g ~~ (cons[(e,f,g)])=>(cons[e],cons[f],cons[g]).
+  unzip3([]) => ([],[],[]).
+  unzip3([(A,B,C),..Ls]) where
+      (L,R,S) .= unzip3(Ls) => ([A,..L],[B,..R],[C,..S]).
 
   -- Implement iteration over a cons list
   public implementation all t ~~ iter[cons[t]->>t] => {.

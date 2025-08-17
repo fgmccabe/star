@@ -390,8 +390,8 @@ star.compiler.dependencies{
   collectDoRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectDoRefs(A,All,Rf) where (_,L,R) ?= isActionSeq(A) =>
     collectDoRefs(R,All,collectDoRefs(L,All,Rf)).
-  collectDoRefs(A,All,Rf) where (_,_,In) ?= isLbldAction(A) =>
-    collectDoRefs(In,All,Rf).
+  collectDoRefs(A,All,Rf) where (_,_,As) ?= isLbldAction(A) =>
+    foldLeft((Ac,R) => collectDoRefs(Ac,All,R),Rf,deSequence(As)).
   collectDoRefs(A,_All,Rf) where _ ?= isBreak(A) => Rf.
   collectDoRefs(A,All,Rf) where (_,_,Tp) ?= isTypeDeclaration(A) =>
     collectTypeRefs(Tp,All,Rf).

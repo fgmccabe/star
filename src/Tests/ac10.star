@@ -6,20 +6,24 @@ test.ac10{
 
   labeled:(integer) => integer.
   labeled(X) => valof{
-    a:if X>=0 then {
-      a:if X>0 then{
-	break a;
-	logMsg(.severe,"should not be here");
-      } else
-        valis 0;
-      valis 1
+    a{
+      if X>=0 then {
+	a{
+	  if X>0 then{
+	    break a;
+	    logMsg(.severe,"should not be here");
+	  } else
+	  valis 0;
+	};
+	valis 1
+      }
     };
     valis -1
   }
 
   firstMultiple:(integer,integer)=>string throws exception.
   firstMultiple(X,M) => valof{
-    L:{
+    L{
       for ix in 1..<X do{
 	if ix%M==0 then
 	  break L

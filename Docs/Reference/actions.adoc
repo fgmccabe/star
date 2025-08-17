@@ -157,7 +157,7 @@ not affected -- unless it lexically contains a <<breakAction>>.
 .Labeled Action
 [source,star]
 ----
-labeledAction --> identifier, [":"], action
+labeledAction --> identifier, blockAction
 ----
 
 The scope of the label is limited to the text enclosed within the labeled action.

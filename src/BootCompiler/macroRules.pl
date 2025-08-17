@@ -465,7 +465,7 @@ rangeMacro(T,expression,Rp) :-
   becomes
   {
     I .= _generate(C);
-    lb:while .true do{
+    lb{ while .true do{
       case I resume ._next in {
         _yld(P) => B.
         _yld(_) default => {}.
@@ -473,98 +473,99 @@ rangeMacro(T,expression,Rp) :-
       }
     }
   }
+  }
 */
- forLoopMacro(A,action,Ax) :-
-   isForDo(A,Lc,P,C,Bd),!,
-   genIden(Lc,I),
-   genIden(Lc,Lb),
+forLoopMacro(A,action,Ax) :-
+  isForDo(A,Lc,P,C,Bd),!,
+  genIden(Lc,I),
+  genIden(Lc,Lb),
 
-   mkEnum(Lc,"true",True),
+  mkEnum(Lc,"true",True),
 
-   /* Build :_all => break Lb */
-   mkBreak(Lc,Lb,Brk),
-   mkEnum(Lc,"_all",All),
-   mkEquation(Lc,All,none,Brk,EndEq),
+  /* Build :_all => break Lb */
+  mkBreak(Lc,Lb,Brk),
+  mkEnum(Lc,"_all",All),
+  mkEquation(Lc,All,none,Brk,EndEq),
 
-   /* build :_yld(P) => B */
-   mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
-   mkEquation(Lc,BYld,none,Bd,YldEqn),
+  /* build :_yld(P) => B */
+  mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
+  mkEquation(Lc,BYld,none,Bd,YldEqn),
 
-   /* build :_yld(_) default => {} */
-   braceTuple(Lc,[],Nop),
-   mkAnon(Lc,Anon),
-   mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
-   mkDefault(Lc,DYld,Dflt),
-   mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+  /* build :_yld(_) default => {} */
+  braceTuple(Lc,[],Nop),
+  mkAnon(Lc,Anon),
+  mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
+  mkDefault(Lc,DYld,Dflt),
+  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
-   /* build case I resume ._next in .. */
-   mkEnum(Lc,"_next",Next),
-   mkResume(Lc,I,Next,G),
-   caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
-   braceTuple(Lc,[Rsme],Resume),
+  /* build case I resume ._next in .. */
+  mkEnum(Lc,"_next",Next),
+  mkResume(Lc,I,Next,G),
+  caseExp(Lc,G,[YldEqn,DefltEqn,EndEq],Rsme),
+  braceTuple(Lc,[Rsme],Resume),
 
-   /* Build while .true loop */
-   mkWhileDo(Lc,True,Resume,Loop),
+  /* Build while .true loop */
+  mkWhileDo(Lc,True,Resume,Loop),
 
-   /* Build Lb:while .true do .. */
-   mkLbldAction(Lc,Lb,Loop,Lbld),
+  /* Build Lb:while .true do .. */
+  mkLbldAction(Lc,Lb,[Loop],Lbld),
 
-   /* Build call to _generate */
-   roundTerm(Lc,name(Lc,"_generate"),[C],IT),
-   mkDefn(Lc,I,IT,S1),
+  /* Build call to _generate */
+  roundTerm(Lc,name(Lc,"_generate"),[C],IT),
+  mkDefn(Lc,I,IT,S1),
 
-   mkSequence(Lc,[S1,Lbld],Ax).
+  mkSequence(Lc,[S1,Lbld],Ax).
 
-  /*
+/*
   for P : G do B
   becomes
-  {
-    lb:while .true do{
+  lb{
+  while .true do{
   case G resume ._next in {
     | _yld(P) => B
     | _yld(_) default => {}
     | ._all => break lb
   }
-    }
+  }
   }
   */
 
- forMacro(A,action,Ax) :-
-   isBinary(A,Lc,":",LL,RR),
-   isUnary(LL,_,"for",P),
-   isBinary(RR,_,"do",G,B),!,
+forMacro(A,action,Ax) :-
+  isBinary(A,Lc,":",LL,RR),
+  isUnary(LL,_,"for",P),
+  isBinary(RR,_,"do",G,B),!,
 
-   genIden(Lc,Lb),
+  genIden(Lc,Lb),
 
-   mkEnum(Lc,"true",True),
+  mkEnum(Lc,"true",True),
 
-   /* Build :_all => break Lb */
-   mkBreak(Lc,Lb,Brk),
-   mkEnum(Lc,"_all",All),
-   mkEquation(Lc,All,none,Brk,EndEq),
+  /* Build :_all => break Lb */
+  mkBreak(Lc,Lb,Brk),
+  mkEnum(Lc,"_all",All),
+  mkEquation(Lc,All,none,Brk,EndEq),
 
-   /* build :_yld(P) => B */
-   mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
-   mkEquation(Lc,BYld,none,B,YldEqn),
+  /* build :_yld(P) => B */
+  mkConApply(Lc,name(Lc,"_yld"),[P],BYld),
+  mkEquation(Lc,BYld,none,B,YldEqn),
 
-   /* build :_yld(_) default => {} */
-   braceTuple(Lc,[],Nop),
-   mkAnon(Lc,Anon),
-   mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
-   mkDefault(Lc,DYld,Dflt),
-   mkEquation(Lc,Dflt,none,Nop,DefltEqn),
+  /* build :_yld(_) default => {} */
+  braceTuple(Lc,[],Nop),
+  mkAnon(Lc,Anon),
+  mkConApply(Lc,name(Lc,"_yld"),[Anon],DYld),
+  mkDefault(Lc,DYld,Dflt),
+  mkEquation(Lc,Dflt,none,Nop,DefltEqn),
 
-   /* build case _resume(G,._next) in .. */
-   mkEnum(Lc,"_next",Next),
-   mkResume(Lc,G,Next,GV),
-   caseExp(Lc,GV,[YldEqn,DefltEqn,EndEq],Rsme),
-   braceTuple(Lc,[Rsme],Resume),
+  /* build case _resume(G,._next) in .. */
+  mkEnum(Lc,"_next",Next),
+  mkResume(Lc,G,Next,GV),
+  caseExp(Lc,GV,[YldEqn,DefltEqn,EndEq],Rsme),
+  braceTuple(Lc,[Rsme],Resume),
 
-   /* Build while .true loop */
-   mkWhileDo(Lc,True,Resume,Loop),
+  /* Build while .true loop */
+  mkWhileDo(Lc,True,Resume,Loop),
 
-   /* Build Lb:while .true do .. */
-   mkLbldAction(Lc,Lb,Loop,Ax).
+  /* Build Lb { while .true do .. } */
+  mkLbldAction(Lc,Lb,[Loop],Ax).
 
 /* generator{A}
    becomes
@@ -616,7 +617,7 @@ yieldMacro(E,action,Ax) :-
   mkSuspend(Lc,name(Lc,"this"),Yld,SS),
   caseExp(Lc,SS,[NxtRl,Cancel],Ax).
 
-  /* task { A }
+/* task { A }
 
   becomes
 
@@ -628,35 +629,75 @@ yieldMacro(E,action,Ax) :-
   where tsk is a library function defined in mbox.
   */
 
-  taskMacro(E,expression,Rp) :-
-    isTask(E,Lc,A),!,
-    genIden(Lc,"tk",Tk),
-    Anon = name(Lc,"_"),
-    roundTuple(Lc,[],Empty),
+taskMacro(E,expression,Rp) :-
+  isTask(E,Lc,A),!,
+  genIden(Lc,"tk",Tk),
+  Anon = name(Lc,"_"),
+  roundTuple(Lc,[],Empty),
 
-    % Build type annotation:
-    % tk:async () => _ throws _.
+  % Build type annotation:
+  % tk:async () => _ throws _.
 
-    mkThrows(Lc,Anon,Anon,Rslt),
-    funcType(Lc,Empty,Rslt,FnT),
-    unary(Lc,"async",FnT,FnTp),
+  mkThrows(Lc,Anon,Anon,Rslt),
+  funcType(Lc,Empty,Rslt,FnT),
+  unary(Lc,"async",FnT,FnTp),
 
-    mkTypeDecl(Lc,Tk,FnTp,St1),
+  mkTypeDecl(Lc,Tk,FnTp,St1),
 
     % Build function:
     % tk() => valof { A }
 
-    braceTuple(Lc,[A],AB),
-    mkValof(Lc,AB,V),
-    buildEquation(Lc,Tk,[],none,false,V,St2),
+  braceTuple(Lc,[A],AB),
+  mkValof(Lc,AB,V),
+  buildEquation(Lc,Tk,[],none,false,V,St2),
 
     % Build let defn
-    mkSuppress(Lc,Tk,Bnd),
-    mkLetDef(Lc,[St1,St2],Bnd,LetFn),
+  mkSuppress(Lc,Tk,Bnd),
+  mkLetDef(Lc,[St1,St2],Bnd,LetFn),
 
     % Build call to tsk
-    roundTerm(Lc,name(Lc,"tsk"),[name(Lc,"this"),LetFn],Rp).
+  roundTerm(Lc,name(Lc,"tsk"),[name(Lc,"this"),LetFn],Rp).
 %    dispAst(Rp).
+
+
+/* collect { A }
+
+  becomes
+
+    valof{
+     $result := _null;
+     A;
+     valis $result
+     }
+ */
+
+     
+collectMacro(E,expression,Rp) :-
+  isCollect(E,Lc,A),!,
+  genIden(Lc,"result",Res),
+
+  /* Build $result := _null */
+  assignment(Lc,Res,name(Lc,"_null"),A1),
+
+  foldOverAction(macroRules:replaceElemis(Res),A,A2),
+
+  /* Build valis $result! */
+  cellRef(Lc,Res,Final),
+  mkValis(Lc,Final,A3),
+
+  braceTuple(Lc,[A1,A2,A3],B),
+  mkValof(Lc,B,Rp).
+
+/* elemis E is replaced by
+
+   Res := _cons(E,Res!)
+*/
+
+replaceElemis(Res,A,Ax) :-
+  isElemis(A,Lc,E),
+  cellRef(Lc,Res,Rf),
+  binary(Lc,"_push",E,Rf,NRes),
+  assignment(Lc,Res,NRes,Ax).
 
 /*
   K -> V

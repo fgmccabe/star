@@ -677,8 +677,8 @@ examineAction(A,Ax) :-
   reSequence(Axs,A1),
   braceTuple(Lc,[A1],Ax).
 examineAction(A,Ax) :-
-  isLbldAction(A,Lc,Lb,B),!,
-  macroAction(B,Bx),
+  isLbldAction(A,Lc,Lb,Bs),!,
+  map(Bs,macros:macroAction,Bx),
   mkLbldAction(Lc,Lb,Bx,Ax).
 examineAction(A,A) :-
   isBreak(A,_,_),!.
