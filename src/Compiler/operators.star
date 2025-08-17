@@ -42,6 +42,7 @@ star.compiler.operators{
     | "all" => [.prefixOp(1010,1009)]
     | ".<." => [.infixOp(699,700,699)]
     | "&&" => [.infixOp(909,910,910)]
+    | "elemis" => [.prefixOp(930,929)]
     | "let" => [.prefixOp(899,898)]
     | "~=" => [.infixOp(899,900,899)]
     | "~>" => [.infixOp(1230,1231,1230)]
@@ -72,6 +73,7 @@ star.compiler.operators{
     | "%" => [.infixOp(700,700,699)]
     | ".>>>." => [.infixOp(600,600,599)]
     | "\\+" => [.infixOp(700,700,699)]
+    | "collect" => [.prefixOp(300,299)]
     | "*" => [.postfixOp(699,700), .infixOp(700,700,699)]
     | "\\-" => [.infixOp(700,700,699)]
     | "+" => [.postfixOp(699,700), .infixOp(720,720,719)]
@@ -419,6 +421,7 @@ star.compiler.operators{
     | "retire" => .true
     | "all" => .true
     | "&&" => .true
+    | "elemis" => .true
     | "let" => .true
     | "~>" => .true
     | "throw" => .true
@@ -445,6 +448,7 @@ star.compiler.operators{
     | "??" => .true
     | "(" => .true
     | ")" => .true
+    | "collect" => .true
     | "*>" => .true
     | "resume" => .true
     | "," => .true

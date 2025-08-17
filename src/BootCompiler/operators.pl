@@ -25,6 +25,7 @@
   operator("all", [prefixOp(1010, 1009)]).
   operator(".<.", [infixOp(699, 700, 699)]).
   operator("&&", [infixOp(909, 910, 910)]).
+  operator("elemis", [prefixOp(930, 929)]).
   operator("let", [prefixOp(899, 898)]).
   operator("~=", [infixOp(899, 900, 899)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
@@ -55,6 +56,7 @@
   operator("%", [infixOp(700, 700, 699)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
+  operator("collect", [prefixOp(300, 299)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("\\-", [infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
@@ -359,6 +361,7 @@
   keyword("retire").
   keyword("all").
   keyword("&&").
+  keyword("elemis").
   keyword("let").
   keyword("~>").
   keyword("throw").
@@ -385,6 +388,7 @@
   keyword("??").
   keyword("(").
   keyword(")").
+  keyword("collect").
   keyword("*>").
   keyword("resume").
   keyword(",").

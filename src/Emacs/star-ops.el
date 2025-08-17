@@ -7,6 +7,7 @@
   ("all" ( (prefix 1010 1009)))
   (".<." ( (infix 699 700 699)))
   ("&&" ( (infix 909 910 910)))
+  ("elemis" ( (prefix 930 929)))
   ("let" ( (prefix 899 898)))
   ("~=" ( (infix 899 900 899)))
   ("~>" ( (infix 1230 1231 1230)))
@@ -37,6 +38,7 @@
   ("%" ( (infix 700 700 699)))
   (".>>>." ( (infix 600 600 599)))
   ("\\+" ( (infix 700 700 699)))
+  ("collect" ( (prefix 300 299)))
   ("*" ( (postfix 699 700) (infix 700 700 699)))
   ("\\-" ( (infix 700 700 699)))
   ("+" ( (postfix 699 700) (infix 720 720 719)))
@@ -136,6 +138,7 @@
 (defconst star-keywords
   '("retire"
 "all"
+"elemis"
 "let"
 "throw"
 "do"
@@ -147,6 +150,7 @@
 "then"
 "ζ"
 "default"
+"collect"
 "resume"
 "contract"
 "try"

@@ -50,6 +50,7 @@ macroRl("trace",expression,macroRules:traceMacro).
 macroRl("generator{}",expression,macroRules:generatorMacro).
 macroRl("yield",action,macroRules:yieldMacro).
 macroRl("task{}",expression,macroRules:taskMacro).
+macroRl("collect",expression,macroRules:collectMacro).
 macroRl("-->",statement,macroRules:grammarMacro).
 macroRl("-->",expression,macroRules:grammarCallMacro).
 macroRl("-->",type,macroRules:grammarTypeMacro).

@@ -511,6 +511,29 @@ star.compiler.macro.rules{
   }
   taskMacro(_,_) default => .inactive.
 
+
+  /* collect { A }
+
+  becomes
+
+    valof{
+     $result := _null;
+     A*;
+     valis $result
+     }
+  */
+
+  collectMacro(E,.expression) where (Lc,Acts) ?= isCollect(E) => let{.
+    Res = genName(Lc,"reslt").
+
+    replaceElemis(A) where (Elc,Vl) ?= isElemis(A) =>
+      .active(mkAssignment(Elc,Res,binary(Elc,"_push",Vl,refCell(Elc,Res)))).
+    replaceElemis(_) default => .inactive.
+  .} in .active(mkValof(Lc,[
+	mkAssignment(Lc,Res,.nme(Lc,"_null"))]++
+	foldOverAction(Acts,replaceElemis)++
+      [mkValis(Lc,refCell(Lc,Res))])).
+
   implementationMacro(A,.statement) where
       (Lc,Q,C,H,E) ?= isImplementationStmt(A) &&
       (_,Nm,_) ?= isSquareTerm(H) &&

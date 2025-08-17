@@ -33,12 +33,12 @@ star.mbox{
     valis (.emitter(Ch),.receiver(Ch))
   }
 
-  public post:all d ~~ async (d,receiver[d])=>() throws mboxException.
-  post(D,Ch where .receiver(St).=Ch) => valof{
+  public postMsg:all d ~~ async (d,receiver[d])=>() throws mboxException.
+  postMsg(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
       | .hasData(_) => {
 	case this suspend .blocked(()=>.hasData(_).=St!) in {
-	  | .go_ahead => valis post(D,Ch)
+	  | .go_ahead => valis postMsg(D,Ch)
 	  | .shut_down_ => throw .canceled
 	}
       }
@@ -52,8 +52,8 @@ star.mbox{
     }
   }
 
-  public collect:all d ~~ async (emitter[d]) => d throws mboxException.
-  collect(Ch where .emitter(St).=Ch) => valof{
+  public collectMsg:all d ~~ async (emitter[d]) => d throws mboxException.
+  collectMsg(Ch where .emitter(St).=Ch) => valof{
     case St! in {
       | .hasData(D) => {
 	St := .quiescent;
@@ -64,7 +64,7 @@ star.mbox{
       }
       | .quiescent => {
 	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
-	  | .go_ahead => valis collect(Ch)
+	  | .go_ahead => valis collectMsg(Ch)
 	  | .shut_down_ => throw .canceled
 	}
       }

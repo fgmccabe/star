@@ -11,71 +11,76 @@ test.wordle{
   parseWordFile:(string)=>cons[string] throws ioException.
   parseWordFile(Fn) => readLines(Fn).
 
-  result ::= .grey(char,integer) | .yellow(char,integer) | .green(char,integer).
+  color ::= .grey | .yellow | .green.
 
-  indexOf(.grey(_,Ix)) => Ix.
-  indexOf(.yellow(_,Ix)) => Ix.
-  indexOf(.green(_,Ix)) => Ix.
+  coloredChar:(color,char)=>string.
+  coloredChar(.grey,Ch) => "\e[107m #(Ch::string) \e[0m".
+  coloredChar(.green,Ch) => "\e[102m #(Ch::string) \e[0m".
+  coloredChar(.yellow,Ch) => "\e[103m #(Ch::string) \e[0m".
 
-  compResult(R1,R2) => indexOf(R1)<indexOf(R2).
+  result ::= result{
+    ch:char.
+    index:integer.
+    col:color
+  }.
 
   implementation display[result] => {
-    disp(.grey(Ch,Ix)) => "\e[107m #(Ch::string) \e[0m".
-    disp(.yellow(Ch,Ix)) => "\e[103m #(Ch::string) \e[0m".
-    disp(.green(Ch,Ix)) => "\e[102m #(Ch::string) \e[0m".
+    disp(result{ch=Ch. col=Col}) => coloredChar(Col,Ch)
   }
 
   showScore:(cons[result])=>string.
   showScore(Sc) => (Sc//disp)*.
 
-  score:(cons[char],cons[char])=>string.
-  score(S,G) => valof{
-    (Gn,Ss,Gs) = greenScore(S,zip(G,iota(0,size(G))),[],[],[]);
-    valis showScore(sort(yellowScore(Gs,Ss,Gn),compResult));
+  score:(string,string)=>string.
+  score(Secret,Guess) => valof{
+    S = explode(Secret);
+    G = explode(Guess);
+    Ix = iota(0,size(G));
+    Grns = greens(S,G,Ix);
+    (RestSecret,RestGuess,RestIx) = unzip3(nongreens(S,G,Ix));
+    Ylws = yellows(RestSecret,RestGuess,RestIx);
+    Score = sort(Grns++Ylws,compResult);
+    valis showScore(Score)
   }
 
-  greenScore:(cons[char],cons[(char,integer)],cons[result],cons[char],cons[(char,integer)]) =>
-    (cons[result],cons[char],cons[(char,integer)]).
-  greenScore([],[],Grn,Ss,Gs) => (Grn,Ss,Gs).
-  greenScore([C,..Cs],[(C,Ix),..Rs],Grn,Ss,Gs) =>
-    greenScore(Cs,Rs,[.green(C,Ix),..Grn],Ss,Gs).
-  greenScore([S,..Sx],[G,..Gx],Grn,Ss,Gs) =>
-    greenScore(Sx,Gx,Grn,[S,..Ss],[G,..Gs]).
+  compResult:(result,result)=>boolean.
+  compResult(R1,R2) => R1.index<R2.index.
 
-  yellowScore:(cons[(char,integer)],cons[char],cons[result]) =>
-    (cons[result]).
-  yellowScore([(Ch,Ix),..Gs],S,Sc) where Ch .<. S =>
-    yellowScore(Gs,S\-Ch,[.yellow(Ch,Ix),..Sc]).
-  yellowScore([(C,Ix),..Gs],S,Sc) =>
-    yellowScore(Gs,S,[.grey(C,Ix),..Sc]).
-  yellowScore([],_,Sc) => Sc.
+  greens:(cons[char],cons[char],cons[integer]) => cons[result].
+  greens(Secret,Guess,Index) =>
+    { result{index=X. col=.green. ch=C} | (C,C,X) in zip3(Secret,Guess,Index)}.
 
-  -- yellows:(cons[(char,integer)],cons[char],cons[result]) => cons[result].
-  -- yellows(GCodes,SChars,SoFar) =>
-  --   foldLeft((((Ch,Ix),(SChrs,Sc)) =>
-  --     (Ch.<.SChrs ??
-  --     (SChrs\-Ch,[.yellow(Ch,Ix),..Sc]) ||
-  -- 	(SChrs,[.grey(Ch,Ix),..Sc]))),
-  --   (SChars,SoFar),
-  --   GCodes).
+  nongreens:(cons[char],cons[char],cons[integer]) => cons[(char,char,integer)].
+  nongreens(Secret,Guess,Index) =>
+    { (S,G,X) | (S,G,X) in zip3(Secret,Guess,Index) && S~=G}.
+
+  yellows:(cons[char],cons[char],cons[integer]) => cons[result].
+  yellows(Se,Gu,Ix) => collect{
+    SecretChars := Se;
+    for (Ch,X) in zip(Gu,Ix) do{
+      if Ch.<.SecretChars! then{
+	SecretChars := SecretChars!\-Ch;
+	elemis result{col=.yellow. ch=Ch. index=X}
+      } else
+      elemis result{col=.grey. ch=Ch. index=X}
+    }}
 
   filterGuesses:(string,string,cons[string])=>cons[string].
   filterGuesses(Guess,Score,Words) => 
-    { C | C in Words && score(C::cons[char],Guess::cons[char])==Score }.
+    { C | C in Words && score(C,Guess)==Score }.
 
   makeAGuess(Words) => _optval(Words[_irand([|Words|])]).
 
   autoplay:(string,cons[string]) => integer.
   autoplay(Secret,Words) => valof{
     WordCnt = [|Words|];
-    SecretChars = Secret::cons[char];
       
     Cnt := 0;
     Possibles := Words;
     while Cnt!<6 && ~isEmpty(Possibles!) do{
       Cnt := Cnt!+1;
       Guess = makeAGuess(Possibles!);
-      Score = score(SecretChars,Guess::cons[char]);
+      Score = score(Secret,Guess);
       showMsg("Guess $(Cnt!)\: #(Score)");
       if Guess==Secret then{
 	showMsg("Success in $(Cnt!) goes");
@@ -99,13 +104,12 @@ test.wordle{
   play:(string,cons[string]) => integer.
   play(Secret,Words) => valof{
     Cnt := 0;
-    SecretChars = Secret::cons[char];
-    while Cnt! < 7 do{
+    while Cnt! < 6 do{
       try{
 	Guess = readGuess();
-	Score = score(SecretChars,Guess::cons[char]);
+	Score = score(Secret,Guess);
 	Cnt := Cnt!+1;
-	showMsg("Guess: $(Cnt!)\:#(Score)");
+	showMsg("$(Cnt!)\:#(Score)");
 	if Guess==Secret then{
 	  showMsg("Success in $(Cnt!) goes");
 	  valis Cnt!
@@ -121,7 +125,7 @@ test.wordle{
 	}
       }
     };
-    showMsg("Failed after $(Cnt!) goes");
+    showMsg("Failed after $(Cnt!) goes\nSecret was #(Secret)");
     valis Cnt!
   }
          

@@ -824,6 +824,18 @@ star.compiler.wff{
   reSequence([A,..As]) =>
     binary(locOf(A),";",A,reSequence(As)).
 
+  public isCollect:(ast) => option[(option[locn],cons[ast])].
+  isCollect(A) where (Lc,B) ?= isUnary(A,"collect") && (_,Els) ?= isBrTuple(B) =>
+    .some((Lc,deSequence(Els))).
+  isCollect(_) default => .none.
+
+  public mkCollect(Lc,I) => unary(Lc,"collect",brTuple(Lc,[reSequence(I)])).
+
+  public isElemis:(ast) => option[(option[locn],ast)].
+  isElemis(A) => isUnary(A,"elemis").
+
+  public mkElemis(Lc,I) => unary(Lc,"elemis",I).
+
   public isThrow:(ast) => option[(option[locn],ast)].
   isThrow(A) => isUnary(A,"throw").
 

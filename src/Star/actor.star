@@ -15,8 +15,8 @@ star.actor{
   actorHead(mBox,body) => (this) => valof{
     while .true do{
       try{
-	case collect(mBox) in {
-	  | .query(Q,Reply) => { post(Q(body),Reply) }
+	case collectMsg(mBox) in {
+	  | .query(Q,Reply) => { postMsg(Q(body),Reply) }
 	  | .tell(A) => {
 	    A(body);
 	  }
@@ -30,11 +30,11 @@ star.actor{
   public implementation all i ~~ sa[actor[i]->>i] => {
     _query(.actor(this,Ch),Q) => valof{
       (P,R) = newSlot();
-      post(.query(Q,R),Ch);
-      valis collect(P)
+      postMsg(.query(Q,R),Ch);
+      valis collectMsg(P)
     }
     _tell(.actor(this,Ch),A) => valof{
-      post(.tell(A),Ch);
+      postMsg(.tell(A),Ch);
       valis ()
     }
   }

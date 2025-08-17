@@ -291,6 +291,9 @@ collectTermRefs(T,A,R0,Rx) :-
   isValof(T,_,E),!,
   collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,A,R0,Rx) :-
+  isCollect(T,_,E),!,
+  collectDoRefs(E,A,R0,Rx).
+collectTermRefs(T,A,R0,Rx) :-
   isTask(T,_,E),!,
   collectDoRefs(E,A,R0,Rx).
 collectTermRefs(T,All,Rf,Rfx) :-
@@ -450,6 +453,9 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isValis(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isElemis(T,_,E),!,
   collectTermRefs(E,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isAssignment(T,_,L,R),!,
