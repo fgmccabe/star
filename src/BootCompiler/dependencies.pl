@@ -401,7 +401,7 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,_,Rf,Rf) :-
   isBraceTuple(T,_,[]),!.
 collectDoRefs(T,All,Rf,Rfx) :-
-  isLbldAction(T,_,_,A),!,
+  isLbldAction(T,_,_,[A]),!,
   collectDoRefs(A,All,Rf,Rfx).
 collectDoRefs(T,_,Rfx,Rfx) :-
   isBreak(T,_,_),!.

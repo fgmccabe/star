@@ -967,7 +967,7 @@ checkAction(A,Tp,ErTp,HasVal,Env,Ev,Ax,Opts,Path) :-
   isActionSeq(A,_,A1),!,
   checkAction(A1,Tp,ErTp,HasVal,Env,Ev,Ax,Opts,Path).
 checkAction(A,Tp,ErTp,HasVal,Env,Env,doLbld(Lc,Lb,Ax),Opts,Path) :-
-  isLbldAction(A,Lc,L,AA),!,isIden(L,_,Lb),
+  isLbldAction(A,Lc,L,[AA]),!,isIden(L,_,Lb),
   checkAction(AA,Tp,ErTp,HasVal,Env,_,Ax,Opts,Path).
 checkAction(A,_,_,_,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
   isBreak(A,Lc,L),!,isIden(L,_,Lb).

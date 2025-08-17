@@ -1030,7 +1030,7 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,Env,Path) where (_,L) ?= isSoloSeq(A) =>
     checkAction(L,Tp,ErTp,Env,Path).
   checkAction(A,Tp,ErTp,Env,Path) where (Lc,Lb,Ac) ?= isLbldAction(A) => valof{
-    (RR,E1) = checkAction(Ac,Tp,ErTp,Env,Path);
+    (RR,E1) = checkActions(Lc,Ac,Tp,ErTp,Env,Path);
     valis (.doLbld(Lc,Lb,RR),E1)
   }
   checkAction(A,_Tp,_ErTp,Env,_Path) where (Lc,Lb) ?= isBreak(A) =>

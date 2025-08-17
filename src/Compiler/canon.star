@@ -305,7 +305,7 @@ star.compiler.canon{
     | .doNop(_) => "{}"
     | .doSeq(Lc,L,R)  where (Lp,OPr,Rp) ?= isInfixOp(";") =>
       "{\n#(Sp++"  ")#(showActSeq(.doSeq(Lc,L,R),Rp,Sp++"  "))\n#(Sp)}"
-    | .doLbld(_,Lb,A) => "#(Lb)\:#(showAct(A,Pr,Sp))"
+    | .doLbld(_,Lb,A) => "#(Lb){#(showAct(A,Pr,Sp))}"
     | .doBrk(_,Lb) => "break #(Lb)"
     | .doValis(_,E) where (OPr,Rp) ?= isPrefixOp("valis") =>
       "valis #(showCanon(E,Rp,Sp))"

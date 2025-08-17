@@ -12,20 +12,24 @@ test.jt15{
 
   labeled:(integer) => integer.
   labeled(X) => valof{
-    a:if ige(X,0) then {
-      a:if ilt(0,X) then{
-	break a;
-	logM("should not be here");
-      } else
-        valis 0;
-      valis 1
+    a{
+      if ige(X,0) then {
+	a{
+	  if ilt(0,X) then{
+	    break a;
+	    logM("should not be here");
+	  } else
+	  valis 0;
+	};
+	valis 1
+      }
     };
     valis -1
   }
 
   firstMultiple:(cons[integer],integer)=>string throws string.
   firstMultiple(X,M) => valof{
-    L:{
+    L{
       for ix in X do{
 	if ieq(imod(ix,M),0) then
 	  break L

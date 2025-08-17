@@ -128,7 +128,7 @@ star.compiler.macro{
     brTuple(Lc,[macroAction(As)]).
   examineAction(A) where (Lc,[]) ?= isBrTuple(A) => A.
   examineAction(A) where (Lc,L,R) ?= isLbldAction(A) => 
-    mkLbldAction(Lc,L,macroAction(R)).
+    mkLbldAction(Lc,L,R//macroAction).
   examineAction(A) where _ ?= isBreak(A) => A.
   examineAction(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
     mkTypeDeclaration(Lc,L,macroType(R)).

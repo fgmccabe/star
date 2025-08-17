@@ -53,6 +53,7 @@ star.compiler.macro.rules{
     "?=" -> [(.expression, optionMatchMacro)],
     "!" -> [(.expression,binRefMacro)],
     "do" -> [(.actn,forInLoopMacro)],
+    "collect" -> [(.expression,collectMacro)],
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
     "show" -> [(.actn,showMacro)],
@@ -320,15 +321,16 @@ star.compiler.macro.rules{
   /*
   for P : G do B
   becomes
-  {
-    lb:while .true do{
+
+  lb{ while .true do{
   case G resume ._next in {
     | _yld(P) => B
     | _yld(_) default => {}
     | ._all => break lb
   }
-    }
   }
+  }
+
   */
 
   forLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForDo(A) => valof{
@@ -349,8 +351,8 @@ star.compiler.macro.rules{
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
 
-   /* Build Lb:while .true do .. */
-    Lbld = mkLbldAction(Lc,Lb,Loop);
+  /* Build Lb{ while .true do .. } */
+    Lbld = mkLbldAction(Lc,Lb,[Loop]);
 
     valis .active(Lbld)
   }
@@ -388,13 +390,13 @@ star.compiler.macro.rules{
   /*
   for P in C do B
   becomes
-  {
-    I .= _generate(C);
-    lb:while .true do{
-       case I resume ._next in {
-       | _yld(P) => B
-       | _yld(_) default => {}
-       | ._all => break lb
+  I .= _generate(C);
+  lb {
+    while .true do{
+      case I resume ._next in {
+	| _yld(P) => B
+	| _yld(_) default => {}
+	| ._all => break lb
       }
     }
   }
@@ -419,8 +421,8 @@ star.compiler.macro.rules{
     /* Build while .true loop */
     Loop = mkWhileDo(Lc,enum(Lc,"true"),brTuple(Lc,[Resume]));
 
-   /* Build Lb:while .true do .. */
-    Lbld = mkLbldAction(Lc,Lb,Loop);
+  /* Build Lb{while .true do .. }*/
+    Lbld = mkLbldAction(Lc,Lb,[Loop]);
 
     /* Build call to _generate */
     IT = roundTerm(Lc,.nme(Lc,"_generate"),[C]);

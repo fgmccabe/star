@@ -933,12 +933,12 @@ star.compiler.wff{
 
   public mkSequence(Lc,L,R) => binary(Lc,";",L,R).
 
-  public isLbldAction:(ast)=>option[(option[locn],string,ast)].
+  public isLbldAction:(ast)=>option[(option[locn],string,cons[ast])].
   isLbldAction(A) where
-      (Lc,L,R) ?= isBinary(A,":") && (_,Lbl) ?= isName(L) => .some((Lc,Lbl,R)).
+      (Lc,L,R) ?= isBrTerm(A)  && (_,Lbl) ?= isName(L) => .some((Lc,Lbl,R)).
   isLbldAction(_) default => .none.
 
-  public mkLbldAction(Lc,Lb,R) => binary(Lc,":",.nme(Lc,Lb),R).
+  public mkLbldAction(Lc,Lb,R) => mkBrTerm(Lc,.nme(Lc,Lb),R).
 
   public isBreak(A) where (Lc,L) ?= isUnary(A,"break") && (_,Lbl) ?= isName(L) =>
     .some((Lc,Lbl)).
