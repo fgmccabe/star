@@ -432,6 +432,48 @@ _cons : all S,E ~~ sequence[S->>E] |= (E,S) => S
 This function puts an element onto the front of the sequence; and
 returns the resulting extended sequence.
 
+
+[#buildContract]
+== The `build` Contract
+
+The `build` contract is used to build collections, specifically for
+comprehension expressions (see <<comprehension>>) and `collect` expressions (see
+<<collectExpression>>).
+
+.The `build` contract
+[source,star]
+----
+public contract all S,E ~~ build[S->>E] ::= {
+  _push:(E,S) => S.
+  _null:S
+}
+----
+
+The `build` contract has a similar type signature to the `sequence` contract;
+however, it is intended that calls to `push` elements would do so at the _end_
+of the collection -- in the case that the collection is ordered.
+
+=== `_null` -- Empty collection
+
+This is a constant value that denotes the empty collection.
+
+.The `_null` collection
+[source,star]
+----
+_null : all S,E ~~ build[S->>E] |= S
+----
+
+===  `_push` -- Add to end of collection
+
+.The `_push` Function
+[source,star]
+----
+_push : all S,E ~~ build[S->>E] |= (E,S) => S
+----
+
+This function puts an element onto the end of the collection; and
+returns the resulting extended collection.
+
 [#sizeableContract]
 == The `sizeable` Contract
 

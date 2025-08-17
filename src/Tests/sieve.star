@@ -9,7 +9,7 @@ test.sieve{
     try{
       while .true do{
 	Ix := Ix!+2;
-	post(Ix!,Chnnl)
+	postMsg(Ix!,Chnnl)
       }
     } catch { .canceled => {} };
     retire .retired_
@@ -19,9 +19,9 @@ test.sieve{
 
   filter:this |: task[integer] |= (integer,emitter[integer],receiver[integer]) => () throws mboxException.
   filter(Prm,Chnl,Next) => valof{
-    while Nxt .= collect(Chnl) do{
+    while Nxt .= collectMsg(Chnl) do{
       if ~divides(Nxt,Prm) then
-	post(Nxt,Next)
+	postMsg(Nxt,Next)
     };
     valis ()
   }
@@ -29,7 +29,7 @@ test.sieve{
   sieve:(task[integer],integer,integer,emitter[integer]) => integer.
   sieve(this,Cnt,Mx,Chnnl) => valof{
     try{
-      Nxt = collect(Chnnl);
+      Nxt = collectMsg(Chnnl);
       if Cnt<Mx then{
 	showMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	(PChnl,NChnl) = newSlot();

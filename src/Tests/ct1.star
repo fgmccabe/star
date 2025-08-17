@@ -13,7 +13,7 @@ test.ct1{
     try{
       while Count!>=0 do{
 	showMsg("posting $(Count!)");
-	post(Count!>0,Chnnl);
+	postMsg(Count!>0,Chnnl);
 	Count := Count!-1
       }
     } catch { _ => showMsg("something went wrong") };
@@ -25,7 +25,7 @@ test.ct1{
     Count := 0;
 
     try{
-      while collect(Chnnl) do{
+      while collectMsg(Chnnl) do{
 	showMsg("received ping");
 	Count := Count!+1
       }

@@ -31,6 +31,7 @@ action --> nullAction.
 action --> blockAction.
 action --> callAction.
 action --> valisAction.
+action --> elemisAction.
 action --> defnAction.
 action --> assignAction.
 action --> conditionalAction.
@@ -117,6 +118,44 @@ valisAction --> ["valis"], expression.
 NOTE: It is possible that evaluating the expression of a `valis` action
 may cause an exception to be thrown. In that case, the exception is propagated to
 the designated handler.
+
+
+[#elemisAction]
+=== Elemis Action
+
+(((elemis action))) (((action,elemis))) The `elemis` action is used to append
+elements of a collection being constructed via the `collect` expression (see
+<<collectExpression>>).
+
+Specifically, for an `elemis` action to be valid, it must be textually enclosed
+in a `collect` expression. Each execution of an `elemis` action results in a new
+element being added to the collection.
+
+.Elemis Action
+[source,star]
+----
+elemisAction --> ["elemis"], expression.
+----
+
+NOTE: It is possible that evaluating the expression of a `elemis` action
+may cause an exception to be thrown. In that case, the exception is propagated to
+the designated handler.
+
+An `elemis` action such as
+
+[source,star,subs="quotes"]
+----
+elemis _Vl_
+----
+
+is equivalent to an action of the form:
+
+[source,star,subs="quotes"]
+----
+$Coll := _push(_Vl_,$Coll!)
+----
+where `$Coll` is the collection being built as the valof of the enclosing
+`collect` expression.
 
 [#throwAction]
 === Throw Action
@@ -484,3 +523,28 @@ At least one of the actions executed within the action
 must be a <<valisAction>>. If the action completes with no
 `valis` action being executed, execution of the entire program
 halts.
+
+[#collectExpression]
+=== Collect Expression
+
+A `collect` expression allows a expression's value to be computed as a result of
+one or more actions.
+
+[#collectExpressionFig]
+.Collect Expression
+[source,star]
+----
+expression --> ["collect"], action.
+----
+
+The `collect` expression is applied to an action. The
+effect of this is to perform the action and to return a collection of elements -- one for each time the <<elemisAction>> is performed.
+
+If no `elemis` actions are performed, the result is an empty collection.
+
+The collection is built in terms of the `build` standard contract (see
+<<buildContract>>) -- the same contract as is used for comprehension
+expressions.
+
+
+

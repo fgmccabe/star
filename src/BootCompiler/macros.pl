@@ -450,6 +450,16 @@ examineTerm(T,Tx) :-
    reportError("cannot figure out valof expression %s",[ast(T)],Lc),
    T=Tx).
 examineTerm(T,Tx) :-
+  isCollect(T,Lc,A),
+  isBraceTuple(A,_,Els),!,
+  deSequence(Els,As),
+  map(As,macros:macroAction,Axs),
+  (reSequence(Axs,A1),
+   braceTuple(Lc,[A1],Ax),
+   mkCollect(Lc,Ax,Tx);
+   reportError("cannot figure out collectexpression %s",[ast(T)],Lc),
+   T=Tx).
+examineTerm(T,Tx) :-
   isFieldAcc(T,Lc,L,F),!,
   macroTerm(L,Lx),
   fieldAcc(Lc,Lx,name(Lc,F),Tx).
@@ -742,6 +752,10 @@ examineAction(A,Ax) :-
   isValis(A,Lc,V),!,
   macroTerm(V,Vx),
   mkValis(Lc,Vx,Ax).
+examineAction(A,Ax) :-
+  isElemis(A,Lc,V),!,
+  macroTerm(V,Vx),
+  mkElemis(Lc,Vx,Ax).
 examineAction(A,Ax) :-
   isLetDef(A,Lc,D,B),!,
   map(D,macros:macroStmt,Dx),

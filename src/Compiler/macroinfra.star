@@ -6,6 +6,7 @@ star.compiler.macro.infra{
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.location.
+  import star.compiler.wff.
 
   -- infrastructure for macro processing
 
@@ -75,4 +76,45 @@ star.compiler.macro.infra{
   reveal(A,.priVate) => unary(locOf(A),"private",A).
   reveal(A,.pUblic) => unary(locOf(A),"public",A).
   reveal(A,_) default => A.
+
+  -- Action walk only recurses into composite actions
+
+  public foldOverAction:(cons[ast],(ast)=>macroState)=>cons[ast].
+  foldOverAction(Acts,Op) => let{.
+    actionFold(A) => (.active(Rx) .= Op(A) ?? Rx || actionWalk(A)).
+
+    actionWalk(A) where (Lc,L,R) ?= isActionSeq(A) =>
+      actionSeq(Lc,actionFold(L),actionFold(R)).
+    actionWalk(A) where (Lc,L) ?= isUnary(A,";") =>
+      actionFold(L).
+    actionWalk(A) where (Lc,[As]) ?= isBrTuple(A) =>
+      brTuple(Lc,[actionFold(As)]).
+    actionWalk(A) where (_,[]) ?= isBrTuple(A) => A.
+    actionWalk(A) where (Lc,L,R) ?= isLbldAction(A) =>
+      mkLbldAction(Lc,L,R//actionFold).
+    actionWalk(A) where (Lc,T,L,R) ?= isIfThenElse(A) =>
+      mkIfThenElse(Lc,T,actionFold(L),actionFold(R)).
+    actionWalk(A) where (Lc,T,L) ?= isIfThen(A) =>
+      mkIfThen(Lc,T,actionFold(L)).
+    actionWalk(A) where (Lc,B,Hs) ?= isTry(A) =>
+      mkTry(Lc,actionFold(B),Hs//actionCaseFold).
+    actionWalk(A) where (Lc,B,H) ?= isTryCatch(A) =>
+      mkTryCatch(Lc,actionFold(B),H).
+    actionWalk(A) where (Lc,C,B) ?= isWhileDo(A) =>
+      mkWhileDo(Lc,C,actionFold(B)).
+    actionWalk(A) where (Lc,El,C,B) ?= isForIn(A) =>
+      mkForIn(Lc,El,C,actionFold(B)).
+    actionWalk(A) where (Lc,El,C,B) ?= isForDo(A) =>
+      mkForDo(Lc,El,C,actionFold(B)).
+    actionWalk(A) where (Lc,D,B) ?= isLetDef(A) =>
+      mkLetDef(Lc,D,actionFold(B)).
+    actionWalk(A) where (Lc,D,B) ?= isLetRecDef(A) =>
+      mkLetRecDef(Lc,D,actionFold(B)).
+    actionWalk(A) where (Lc,G,Cs) ?= isCase(A) =>
+      mkCaseExp(Lc,G,Cs//actionCaseFold).
+    actionWalk(A) default => A.
+
+    actionCaseFold(A) where (Lc,Dflt,L,C,R) ?= isLambda(A) =>
+      mkLambda(Lc,Dflt,L,C,actionFold(R)).
+  .} in (Acts//actionFold).
 }

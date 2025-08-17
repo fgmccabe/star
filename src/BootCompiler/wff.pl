@@ -55,6 +55,7 @@
 	      isTask/3,mkTask/3,
 	      isCaseExp/4,caseExp/4,
 	      isValof/3,mkValof/3,isValis/3,mkValis/3,
+	      isCollect/3,mkCollect/3,isElemis/3,mkElemis/3,
 	      isTry/4,mkTry/4,
 	      isThrow/3,mkThrow/3,
 	      isThrows/4,mkThrows/4,
@@ -74,7 +75,8 @@
 	      isCons/4,mkCons/4,
 	      isPair/4,pair/4,
 	      isUnaryMinus/3,
-	      unitTpl/2]).
+	      unitTpl/2,
+	      foldOverAction/3]).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(operators).
@@ -904,17 +906,29 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-isValis(A,Lc,E) :-
-  (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
-
-mkValis(Lc,A,E) :-
-  unary(Lc,"valis",A,E).
-
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
 
 mkValof(Lc,A,E) :-
   unary(Lc,"valof",A,E).
+
+isValis(A,Lc,E) :-
+  isUnary(A,Lc,"valis",E).
+
+mkValis(Lc,A,E) :-
+  unary(Lc,"valis",A,E).
+
+isCollect(A,Lc,E) :-
+  isUnary(A,Lc,"collect",E).
+
+mkCollect(Lc,A,E) :-
+  unary(Lc,"collect",A,E).
+
+isElemis(A,Lc,E) :-
+  isUnary(A,Lc,"elemis",E).
+
+mkElemis(Lc,A,E) :-
+  unary(Lc,"elemis",A,E).
 
 isThrow(A,Lc,E) :-
   isUnary(A,Lc,"throw",E).
@@ -1052,3 +1066,97 @@ unitTpl(Lc,Unit) :-
   roundTuple(Lc,[],Unit).
 
 
+foldOverAction(Op,A,Ax) :-
+  call(Op,A,Ax),!.
+foldOverAction(Op,A,Ax) :-
+  actionFold(A,Op,Ax).
+
+actionFold(A,Op,Ax) :-
+  isActionSeq(A,Lc,L,R),!,
+  foldOverAction(Op,L,Lx),
+  foldOverAction(Op,R,Rx),
+  mkActionSeq(Lc,Lx,Rx,Ax).
+actionFold(A,Op,Ax) :-
+  isActionSeq(A,_,L),!,
+  foldOverAction(Op,L,Ax).
+actionFold(A,_,A) :-
+  isBraceTuple(A,_,[]),!.
+actionFold(A,Op,Ax) :-
+  isBraceTuple(A,Lc,Els),!,
+  deSequence(Els,As),
+  map(As,wff:foldOverAction(Op),Axs),
+  reSequence(Axs,A1),
+  braceTuple(Lc,[A1],Ax).
+actionFold(A,Op,Ax) :-
+  isLbldAction(A,Lc,Lb,B),!,
+  foldOverAction(Op,B,Bx),
+  mkLbldAction(Lc,Lb,Bx,Ax).
+actionFold(A,_,A) :-
+  isBreak(A,_,_),!.
+actionFold(A,_,A) :-
+  isDefn(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isMatch(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isOptionMatch(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isAssignment(A,_,_,_),!.
+actionFold(A,Op,Ax) :-
+  isIfThenElse(A,Lc,T,L,R),!,
+  foldOverAction(Op,L,Lx),
+  foldOverAction(Op,R,Rx),
+  mkIfThenElse(Lc,T,Lx,Rx,Ax).
+actionFold(A,Op,Ax) :-
+  isIfThen(A,Lc,T,L),!,
+  foldOverAction(Op,L,Lx),
+  mkIfThen(Lc,T,Lx,Ax).
+actionFold(A,Op,Ax) :-
+  isTry(A,Lc,B,C),!,
+  foldOverAction(Op,B,Bx),
+  map(C,wff:actionCaseFold(Op),Cs),
+  mkTry(Lc,Bx,Cs,Ax).
+actionFold(A,_,A) :-
+  isThrow(A,_,_),!.
+actionFold(A,Op,Ax) :-
+  isWhileDo(A,Lc,T,B),!,
+  foldOverAction(Op,B,Bx),
+  mkWhileDo(Lc,T,Bx,Ax).
+actionFold(A,Op,Ax) :-
+  isForDo(A,Lc,E,T,B),!,
+  foldOverAction(Op,B,Bx),
+  mkForDo(Lc,E,T,Bx,Ax).
+actionFold(A,_,A) :-
+  isValis(A,_,_),!.
+actionFold(A,_,A) :-
+  isElemis(A,_,_),!.
+actionFold(A,Op,Ax) :-
+  isLetDef(A,Lc,D,B),!,
+  foldOverAction(Op,B,Bx),
+  mkLetDef(Lc,D,Bx,Ax).
+actionFold(A,Op,Ax) :-
+  isLetRec(A,Lc,D,B),!,
+  foldOverAction(Op,B,Bx),
+  mkLetRec(Lc,D,Bx,Ax).
+actionFold(T,Op,Tx) :-
+  isCaseExp(T,Lc,E,C),!,
+  map(C,wff:actionCaseFold(Op),Cx),
+  caseExp(Lc,E,Cx,Tx).
+actionFold(A,_,A) :-
+  isResume(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isSuspend(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isRetire(A,_,_,_),!.
+actionFold(A,_,A) :-
+  isRoundTerm(A,_,_,_),!.
+actionFold(T,_,T) :-
+  locOfAst(T,Lc),
+  reportError("cannot figure out action %s",[ast(T)],Lc).
+
+actionCaseFold(Op,A,Ax) :-
+  isEquation(A,Lc,P,G,V),!,
+  foldOverAction(Op,V,VV),
+  mkEquation(Lc,P,G,VV,Ax).
+actionCaseFold(_,T,T) :-
+  locOfAst(T,Lc),
+  reportError("'%s' should be an action case",[ast(T)],Lc).
