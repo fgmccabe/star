@@ -40,19 +40,19 @@ static retCode asyncFileFlush(filePo f);
 
 FileClassRec FileClass = {
   .objectPart={
-    .parent = (classPo) &IoClass,                   // parent class is io object
-    .className = "file",                               // this is the file class
-    .classInit = initFileClass,                        // File class initializer, phase I
+    .parent = (classPo) &IoClass,                 // parent class is io object
+    .className = "file",                          // this is the file class
+    .classInit = initFileClass,                   // File class initializer, phase I
     .classInherit = inheritFileClass,
-    .create = O_INHERIT_DEF,                        // File object element creation
-    .destroy = NULL,                                 // File objectdestruction
-    .erase = O_INHERIT_DEF,                        // erasure
+    .create = O_INHERIT_DEF,                      // File object element creation
+    .destroy = NULL,                              // File objectdestruction
+    .erase = O_INHERIT_DEF,                       // erasure
     .init = fileInit,                             // initialization of a file object
     .size = sizeof(FileObject),                   // size of a file object
-    .hashCode = O_INHERIT_DEF,                        // Hashcode for files
-    .equality = O_INHERIT_DEF,                        // Equality for files
+    .hashCode = O_INHERIT_DEF,                    // Hashcode for files
+    .equality = O_INHERIT_DEF,                    // Equality for files
     .pool = NULL,                                 // pool of file values
-    .inited = PTHREAD_ONCE_INIT,                    // not yet initialized
+    .inited = PTHREAD_ONCE_INIT,                  // not yet initialized
     .mutex = PTHREAD_MUTEX_INITIALIZER
   },
   .lockPart={},
@@ -494,10 +494,6 @@ retCode fileFill(filePo f) {
     int lerrno;                         // local copy of errno
 
     stopAlarm();      // Stop the time interrupt
-
-//    if (lseek(f->file.fno, f->file.file_pos, SEEK_SET) == -1)
-//      return ioErrorMsg(f, "problem %s (%d) in positioning %s", strerror(errno), errno,
-//                        fileName(O_IO(f)));
 
     f->file.file_pos += f->file.line_len;
     len = read(f->file.fno, f->file.line, (size_t) MAXLINE);
