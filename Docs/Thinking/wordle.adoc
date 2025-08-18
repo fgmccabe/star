@@ -1,0 +1,227 @@
+[#wordleGame]
+= The Wordle Game
+
+Wordle is a popular word game recently developed by Josh Wardle
+<<wardle:2021>>. It is a two player asymmetric game: player one constructs a
+secret five letter word and player two attempts to guess the secret -- within 6
+tries.
+
+== Scoring
+
+When player two makes a guess, player one computes a score for the guess. This score is presented back to player two by coloring the letters of the guess:
+
+* a green letter means that the letter is correct, and in the right place,
+* a yellow letter means that the letter is correct, but not in the right place, and
+* a grey letter means that the letter does not appear in the secret.
+
+For example, if the secret word is `ROMAN`, and the guess is `MORAL`, then the
+score would be: image:score.png[].
+
+Computing such scores is rather subtle; in particular for the yellow letters. We
+must ensure that a given secret letter cannot be used more than once.
+
+On the other hand, the scoring for green letters is straightforward:
+
+[source,star]
+----
+greens:(cons[char],cons[char],cons[integer]) => cons[result].
+greens(Secret,Guess,Index) =>
+  { result{index=X. col=.green. ch=C} | (C,C,X) in zip3(Secret,Guess,Index)}.
+----
+
+This function computes a collection of `result` values, each is represented
+using a record type:
+
+[source,star]
+----
+result ::= result{
+  ch:char.
+  index:integer.
+  col:color
+}
+----
+
+where `color` is just an enumeration:
+
+[source,star]
+----
+color ::= .grey | .yellow | .green.
+----
+
+
+Note the use of a repeated pattern variable in computing the green score:
+
+[source,star]
+----
+(C,C,X) in zip3(Secret,Guess,Index)
+----
+
+This is equivalent to the condition:
+
+[source,star]
+----
+(C,C1,X) where C==C1 in zip3(Secret,Guess,Index)
+----
+
+To compute the yellow scores, it is convenient to first of all strip out from
+both the secret and the guess the letters that scored green. We do this with the
+`nongreens` function:
+
+[source,star]
+----
+nongreens:(cons[char],cons[char],cons[integer]) => cons[(char,char,integer)].
+nongreens(Secret,Guess,Index) =>
+  { (S,G,X) | (S,G,X) in zip3(Secret,Guess,Index) && S~=G}.
+----
+
+As noted above, computing the yellow score involves making sure that a given
+secret letter cannot be used more than once. It turns out that expressing this
+kind of logic is arguably clearer if we use explicit assignments and
+sequences. We keep a list of the secret letters and, for every yellow letter
+found in the guess, we drop the corresponding letter from the secret.
+
+We use a `collect` expression to gather all the yellow (and grey) scores:
+
+[source,star]
+----
+yellows:(cons[char],cons[char],cons[integer]) => cons[result].
+yellows(Se,Gu,Ix) => collect{
+  SecretChars := Se;
+  for (Ch,X) in zip(Gu,Ix) do{
+    if Ch.<.SecretChars! then{
+      secretChars := SecretChars!\-Ch;
+      elemis result{col=.yellow. ch=Ch. index=X}
+    } else
+      elemis result{col=.grey. ch=Ch. index=X}
+    }
+  }
+----
+
+When we find a yellow letter, expressed by the predicate:
+
+[source,star]
+----
+Ch.<.SecretChars!
+----
+
+we drop it from our stash of secret letters using:
+
+[source,star]
+----
+secretChars := SecretChars!\-Ch;
+----
+
+NOTE: It is quite possible to express this function in a more purely functional
+style. However, Star is multi-paradigm for a reason: some algorithms are simply
+more natural in the action oriented style.
+
+To present the complete score we append the green scores to the yellow/grey
+scores and sort them by the index stored in the `result`:
+
+[source,star]
+----
+sort(Grns++Ylws,compResult)
+----
+
+where `compResult` is defined as a comparison over the index of the elements:
+
+[source,star]
+----
+compResult:all x,y ~~ x<~{index:integer}, y<~{index:integer} |= (x,y)=>boolean.
+compResult(X,Y) => X.index<Y.index
+----
+
+This uses another feature of the Star constrained type system: field
+constraints. A field constraint is a requirement that the constrained type has a
+particular field of a particular type in it.
+
+A type declaration such as:
+
+[source,star]
+----
+nameOf:all p ~~ p <~ {name:string}.
+----
+
+declares the `nameOf` function to apply to any types that have a `name` field in
+them (and that the type of the `name` field is `string`).
+
+Given these definitions, we can construct our scoring function:
+
+[source,star]
+----
+score:(string,string)=>string.
+score(Secret,Guess) => valof{
+  S = Secret::cons[char];
+  G = Guess::cons[char];
+  Ix = iota(0,size(G));
+  Grns = greens(S,G,Ix);
+  (RestSecret,RestGuess,RestIx) = unzip3(nongreens(S,G,Ix));
+  Ylws = yellows(RestSecret,RestGuess,RestIx);
+  Score = sort(Grns++Ylws,compIndex);
+  valis showScore(Score)
+}
+----
+
+The `showScore` function is tasked with constructing a colored string that will
+display the green, yellow and grey letters. The version in <<wordleProgram>>
+displays the score as a VT100 color escape sequence that will show colors on
+most terminal programs.
+
+== Playing a game
+
+The conventional game is driven by player one: it finds a secret and scores the
+guesses made by player two. It is a convention that the letter sequences are
+actual words (of the English language). The simplest way of ensuring this is to
+use an actual list of five letter English words.
+
+Our code for reading the user's guesses and displaying the score is fairly
+straightforward:
+
+[source,star]
+----
+Guess = readGuess(Words);
+Score = score(Secret,Guess);
+showMsg("$(Cnt!)\:#(Score)");
+----
+
+In addition to reading the input -- a line from `stdin` -- we have to check it
+against the list of words:
+
+[source,star]
+----
+readGuess:(cons[string]) => string throws ioException.
+readGuess(Words) => valof{
+  while .true do{
+    wrText(stdout,"Next: ");
+    if W.=rdLine(stdin) && W.<.Words then
+      valis W
+    else
+      wrText(stdout,"Not a known word\n");
+  }
+}
+----
+Again, we use the set membership predicate to verify that we have a legitimate
+guess:
+
+[source,star]
+----
+if W.=rdLine(stdin) && W.<.Words then
+  valis W
+----
+
+The complete function that plays the part of player one: checking guesses and
+keeping score is the `play` function in <<wordleProgram>>.
+
+== Automating player two
+
+
+Since we are not planning to make a releasable game from our code, we can
+experiment a little. To automate player two, we have to make guesses. A set of
+random guesses is unlikely to solve the secret in six tries. However, there is a
+simple strategy that can be effective: we take our list of words, and filter it
+so that all the guesses remaining 'fit' the scores we have gotten so far.
+
+
+
+
+
