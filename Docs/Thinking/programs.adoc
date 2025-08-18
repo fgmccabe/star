@@ -1,3 +1,13 @@
+[appendix]
+= Example Programs
+
+[#wordleProgram]
+== The Wordle game
+
+This game is explained in <<wordleGame>>.
+
+[source,star]
+----
 test.wordle{
   import star.
   import star.io.
@@ -94,16 +104,11 @@ test.wordle{
     valis Cnt!
   }
 
-  readGuess:(cons[string]) => string throws ioException.
-  readGuess(Words) => valof{
-    while .true do{
-      wrText(stdout,"Next: ");
-      _flushall();
-      if W.=rdLine(stdin) && W.<.Words then
-	valis W
-      else
-	wrText(stdout,"Not a known word\n");
-    }
+  readGuess:() => string throws ioException.
+  readGuess() => valof{
+    wrText(stdout,"Next: ");
+    _flushall();
+    valis rdLine(stdin)
   }
 
   play:(string,cons[string]) => integer.
@@ -111,7 +116,7 @@ test.wordle{
     Cnt := 0;
     while Cnt! < 6 do{
       try{
-	Guess = readGuess(Words);
+	Guess = readGuess();
 	Score = score(Secret,Guess);
 	Cnt := Cnt!+1;
 	showMsg("$(Cnt!)\:#(Score)");
@@ -135,35 +140,25 @@ test.wordle{
   }
 
   _main:(cons[string])=>().
-  _main([S,G]) => showMsg(score(S,G)).
-  _main([S]) => playertwo(S).
-  _main([]) => playerone().
-
-  playerone:()=>().
-  playerone() => valof{
+  _main([S,G]) => 
+    showMsg(score(S,G)).
+  _main([]) => main().
+         
+  main:()=>().
+  main() => valof{
     try{
       Words = parseWordFile("wordle.txt");
       _seed(_ticks());
       Cnt = [|Words|];
       
       if Secret ?= Words[_irand(Cnt)] then{
-	play(Secret,Words);
+	autoplay(Secret,Words);
+--	play(Secret,Words);
       }
     } catch {
       M => showMsg("We got an exception: $(M)")
     };
     valis ()
   }
-  
-  playertwo:(string)=>().
-  playertwo(Secret) => valof{
-    try{
-      Words = parseWordFile("wordle.txt");
-      autoplay(Secret,Words)
-    } catch {
-      M => showMsg("We got an exception: $(M)")
-    };
-    valis ()
-  }
 }
-    
+----

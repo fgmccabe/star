@@ -29,6 +29,10 @@ include::tour.adoc[leveloffset=1]
 
 include::primes.adoc[leveloffset=1]
 
+include::wordle.adoc[leveloffset=1]
+
+include::programs.adoc[leveloffset=1]
+
 == In Conclusion
 
 We hope that you have enjoyed this short tour of Star. If you would like to try
@@ -40,3 +44,4 @@ it out, it is available on github: https://github.com/fgmccabe/star.
 * [[[luckham:2012]]] Luckham, David, _Event Processing for Business:
 Organizing the Real-Time Enterprise_, John Wiley & Sons, 2012.
 
+* [[[wardle:2021]]] The Wordle Game, https://en.wikipedia.org/wiki/Wordle. 
