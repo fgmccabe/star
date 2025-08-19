@@ -8,6 +8,10 @@ star.monad{
     (return): all a ~~ (a) => m[a].
   }
 
+  public contract all m,a,e ~~ extract[m->>a,e] ::= {
+    _valof : (m)=>a throws e
+  }
+
   public contract all e ~~ monoid[e] ::= {
     zed : e.
     (⊕):(e,e)=>e.

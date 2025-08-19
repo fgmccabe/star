@@ -44,6 +44,11 @@ star.option{
     (.some(X) >>= F) => F(X)
   }
 
+  public implementation all x ~~ extract[option[x]->>x,exception] => {
+    _valof(.some(X)) => X.
+    _valof(.none) => throw .exception("none")
+  }
+
   public implementation functor[option] => {.
     fmap(_,.none) => .none.
     fmap(F,.some(A)) => .some(F(A)).

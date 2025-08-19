@@ -54,6 +54,7 @@
   operator("#", [infixOp(759, 760, 759)]).
   operator("??", [infixOp(919, 920, 920), prefixOp(950, 949)]).
   operator("%", [infixOp(700, 700, 699)]).
+  operator("<-", [infixOp(974, 975, 974)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [infixOp(700, 700, 699)]).
   operator("collect", [prefixOp(300, 299)]).
@@ -243,6 +244,7 @@
   follows('::','=','::=').
   follows('<','*','<*').
   follows('<','~','<~').
+  follows('<','-','<-').
   follows('<','|','<|').
   follows('<','=','<=').
   follows('<=','>','<=>').
@@ -333,6 +335,7 @@
   final('<',"<").	 /* less than */
   final('<*',"<*").	 /* left fold */
   final('<~',"<~").	 /* type interface rule */
+  final('<-',"<-").	 /* monadic valof */
   final('<|',"<|").	 /* meta quote */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
@@ -386,6 +389,7 @@
   keyword("#").
   keyword("!}").
   keyword("??").
+  keyword("<-").
   keyword("(").
   keyword(")").
   keyword("collect").

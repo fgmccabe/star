@@ -52,7 +52,8 @@ star.compiler.macro.rules{
     "-" -> [(.expression, uMinusMacro),(.pattern, uMinusMacro)],
     "?=" -> [(.expression, optionMatchMacro)],
     "!" -> [(.expression,binRefMacro)],
-    "do" -> [(.actn,forInLoopMacro)],
+    "do" -> [(.actn,forInLoopMacro),(.expression,doMacro)],
+    "valof" -> [(.expression,valofMacro)],
     "collect" -> [(.expression,collectMacro)],
     "implementation" -> [(.statement,implementationMacro)],
     "assert" -> [(.actn,assertMacro)],
@@ -431,6 +432,31 @@ star.compiler.macro.rules{
     valis .active(mkSequence(Lc,S1,Lbld))
   }
   forInLoopMacro(_,.actn) default => .inactive.
+
+  /* Do notation ... converting to monad calls */
+  doMacro(E,.expression) where (ELc,As) ?= isDo(E) => let{.
+    monadAction([Act,..Suff]) where (Lc,Lhs,Rhs) ?= isLift(Act) => valof{
+      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,monadAction(Suff));
+      valis binary(Lc,">>=",Rhs,Lam)
+    }
+    monadAction([Act,..Suff]) where (Lc,Lhs,Rhs) ?= isDefn(Act) => valof{
+      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,monadAction(Suff));
+      valis roundTerm(Lc,Lam,[Rhs]).
+    }
+    monadAction([Act]) where (Lc,Rhs) ?= isValis(Act) =>
+      unary(Lc,"return",Rhs).
+    monadAction([Act]) => Act.
+    monadAction([Act,..Suff]) where Lc.=locOf(Act) =>
+      binary(locOf(Act),">>=",Act,
+      mkLambda(Lc,.false,rndTuple(Lc,[mkAnon(Lc)]),.none,monadAction(Suff))).
+  .} in .active(monadAction(trace As)).
+  doMacro(_,.expression) default => .inactive.
+
+  /* valof E where E is not an explicit action block ... */
+  valofMacro(E,.expression) where (Lc,A) ?= isUnary(E,"valof") &&
+      ~ _?= isBrTuple(A) =>
+    .active(unary(Lc,"_valof",A)).
+  valofMacro(_,_) default => .inactive.
 
   /* generator{A}
   becomes
