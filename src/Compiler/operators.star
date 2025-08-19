@@ -71,6 +71,7 @@ star.compiler.operators{
     | "#" => [.infixOp(759,760,759)]
     | "??" => [.infixOp(919,920,920), .prefixOp(950,949)]
     | "%" => [.infixOp(700,700,699)]
+    | "<-" => [.infixOp(974,975,974)]
     | ".>>>." => [.infixOp(600,600,599)]
     | "\\+" => [.infixOp(700,700,699)]
     | "collect" => [.prefixOp(300,299)]
@@ -296,6 +297,7 @@ star.compiler.operators{
   follows("::",`=`) => .some("::=").
   follows("<",`*`) => .some("<*").
   follows("<",`~`) => .some("<~").
+  follows("<",`-`) => .some("<-").
   follows("<",`|`) => .some("<|").
   follows("<",`=`) => .some("<=").
   follows("<=",`>`) => .some("<=>").
@@ -389,6 +391,7 @@ star.compiler.operators{
     | "<" => .true  /* less than */
     | "<*" => .true  /* left fold */
     | "<~" => .true  /* type interface rule */
+    | "<-" => .true  /* monadic valof */
     | "<|" => .true  /* meta quote */
     | "<=>" => .true  /* constructor arrow */
     | "=" => .true  /* definition */
@@ -446,6 +449,7 @@ star.compiler.operators{
     | "#" => .true
     | "!}" => .true
     | "??" => .true
+    | "<-" => .true
     | "(" => .true
     | ")" => .true
     | "collect" => .true

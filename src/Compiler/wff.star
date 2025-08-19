@@ -655,6 +655,11 @@ star.compiler.wff{
 
   public mkDefn(Lc,L,R) => binary(Lc,"=",L,R).
 
+  public isLift:(ast) => option[(option[locn],ast,ast)].
+  isLift(A) => isBinary(A,"<-").
+
+  public mkLift(Lc,L,R) => binary(Lc,"<-",L,R).
+
   public isAssignment:(ast) => option[(option[locn],ast,ast)].
   isAssignment(A) => isBinary(A,":=").
 
@@ -878,6 +883,11 @@ star.compiler.wff{
   isRetire(_) default => .none.
 
   public mkRetire(Lc,L,R) => binary(Lc,"retire",L,R).
+
+  public isDo:(ast) => option[(option[locn],cons[ast])].
+  isDo(E) where (Lc,A) ?= isUnary(E,"do") && (_,Els) ?= isBrTuple(A) =>
+    .some((Lc,deSequence(Els))).
+  isDo(_) default => .none.
 
   public isIfThenElse:(ast) => option[(option[locn],ast,ast,ast)].
   isIfThenElse(A) where
