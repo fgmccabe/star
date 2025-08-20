@@ -435,21 +435,42 @@ star.compiler.macro.rules{
 
   /* Do notation ... converting to monad calls */
   doMacro(E,.expression) where (ELc,As) ?= isDo(E) => let{.
-    monadAction([Act,..Suff]) where (Lc,Lhs,Rhs) ?= isLift(Act) => valof{
-      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,monadAction(Suff));
+    monadActions([]) => .none.
+    monadActions([Act,..Suff]) where (_,Blk) ?= isBrTuple(Act) =>
+      monadActions(deSequence(Blk)++Suff).
+    monadActions([Act,..Suff]) =>
+      .some(monadAction(Act,monadActions(Suff))).
+
+    monadAction(Act,.some(Rest)) where (Lc,Lhs,Rhs) ?= isLift(Act) => valof{
+      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,Rest);
       valis binary(Lc,">>=",Rhs,Lam)
     }
-    monadAction([Act,..Suff]) where (Lc,Lhs,Rhs) ?= isDefn(Act) => valof{
-      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,monadAction(Suff));
+    monadAction(Act,.none) where (Lc,Lhs,Rhs) ?= isLift(Act) => valof{
+      reportError("$(Act) may not be last action",Lc);
+      valis Rhs
+    }
+    monadAction(Act,.some(Rest)) where (Lc,Lhs,Rhs) ?= isDefn(Act) => valof{
+      Lam = mkLambda(Lc,.false,rndTuple(Lc,[Lhs]),.none,Rest);
       valis roundTerm(Lc,Lam,[Rhs]).
     }
-    monadAction([Act]) where (Lc,Rhs) ?= isValis(Act) =>
-      unary(Lc,"return",Rhs).
-    monadAction([Act]) => Act.
-    monadAction([Act,..Suff]) where Lc.=locOf(Act) =>
-      binary(locOf(Act),">>=",Act,
-      mkLambda(Lc,.false,rndTuple(Lc,[mkAnon(Lc)]),.none,monadAction(Suff))).
-  .} in .active(monadAction(trace As)).
+    monadAction(Act,.none) where (Lc,_,_) ?= isDefn(Act) => valof{
+      reportError("$(Act) may not be last action",Lc);
+      valis Act
+    }
+    monadAction(Act,Rest) where (Lc,Rhs) ?= isValis(Act) =>
+      combine(unary(Lc,"return",Rhs),Lc,Rest).
+    monadAction(Act,Rest) where (Lc,_,_) ?= isRoundTerm(Act) =>
+      combine(Act,Lc,Rest).
+    monadAction(Act,Rest) where (Lc,C,Th,El) ?= isIfThenElse(Act) => valof{
+      A1 = _optval(monadActions([Th]));
+      A2 = _optval(monadActions([El]));
+      valis combine(mkConditional(Lc,C,A1,A2),Lc,Rest).
+    }
+
+    combine(Act,_,.none) => Act.
+    combine(Act,Lc,.some(Rest)) =>
+      binary(Lc,">>=",Act,mkLambda(Lc,.false,rndTuple(Lc,[mkAnon(Lc)]),.none,Rest)).
+  .} in .active(_optval(monadActions(As))).
   doMacro(_,.expression) default => .inactive.
 
   /* valof E where E is not an explicit action block ... */

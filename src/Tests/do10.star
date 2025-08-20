@@ -7,8 +7,8 @@ test.do10{
   main() => valof{
     YY = do{
       N1 <- .some(42);
-      N2 <- .some(N1+34);
-      valis N2
+      { N2 <- .some(N1+34);
+	valis N2 }
     };
 
     try{
