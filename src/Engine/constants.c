@@ -30,13 +30,16 @@ int32 defineConstantLiteral(termPo t) {
     if (nextConstant == constantPoolSize) {
       constantPoolSize *= 2;
       constAnts = (termPo *) realloc(constAnts, sizeof(termPo) * constantPoolSize);
+      if (constAnts == Null) {
+        syserr("Could not reallocate constants vector");
+      }
     }
-    integer cx = (integer) nextConstant++;
+    int32 cx = nextConstant++;
     constAnts[cx] = t;
 
-    hashPut(constantKeys, t, (void *) cx);
+    hashPut(constantKeys, t, (void *) (integer) cx);
 
-    return (int32) cx;
+    return cx;
   }
 
   return (int32) tx;

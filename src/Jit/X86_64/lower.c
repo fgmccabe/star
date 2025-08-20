@@ -3,7 +3,6 @@
 //
 #include <config.h>
 #include "lowerP.h"
-#include "jitOps.h"
 #include "x86_64.h"
 
 /* Lower Star VM code to X64 code */
