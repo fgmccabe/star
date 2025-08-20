@@ -148,7 +148,7 @@ primeSieve(Limit,Gen) => valof{
   case Gen resume ._next in {
   | ._yld(Nxt) => {
       if Nxt<Limit then{
-        valinns primeSieve(Limit,primeFilter(Nxt,Gen))
+        valis primeSieve(Limit,primeFilter(Nxt,Gen))
       }
       else
         valis Nxt
