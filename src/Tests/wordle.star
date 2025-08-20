@@ -43,6 +43,15 @@ test.wordle{
     valis showScore(Score)
   }
 
+  winningScore:(cons[result]) => boolean.
+  winningScore([]) => .true.
+  winningScore([result{col=.green},..Rest]) =>
+    winningScore(Rest).
+  winningScore(_) default => .false.
+
+  scoreWord:(cons[result])=>string.
+  scoreWord(Sc) => (Sc//((result{ch=C})=>C))::string.
+
   compIndex:all x,y ~~ x<~{index:integer}, y<~{index:integer} |= (x,y)=>boolean.
   compIndex(X,Y) => X.index<Y.index.
 
@@ -73,8 +82,6 @@ test.wordle{
 
   autoplay:(string,cons[string]) => integer.
   autoplay(Secret,Words) => valof{
-    WordCnt = [|Words|];
-      
     Cnt := 0;
     Possibles := Words;
     while Cnt!<6 && ~isEmpty(Possibles!) do{
@@ -134,11 +141,6 @@ test.wordle{
     valis Cnt!
   }
 
-  _main:(cons[string])=>().
-  _main([S,G]) => showMsg(score(S,G)).
-  _main([S]) => playertwo(S).
-  _main([]) => playerone().
-
   playerone:()=>().
   playerone() => valof{
     try{
@@ -165,5 +167,71 @@ test.wordle{
     };
     valis ()
   }
+
+  askNextGuess:() => cons[char] throws ioException.
+  askNextGuess() => valof{
+    wrText(stdout,"Score? ");
+    _flushall();
+    valis rdLine(stdin)::cons[char]
+  }
+
+  -- Parse a score from user input
+  parseScore:(integer) >> cons[result] --> cons[char].
+  parseScore(_) >> [] --> end.
+  parseScore(Cx) >> [Sc,..Rest] --> letterScore(Cx) >> Sc, parseScore(Cx+1)>>Rest.
+
+  letterScore(Cx) >> result{ch=C. col=.yellow. index=Cx} -->
+    [`.`,`y`], [C], {isLetter(C)}.
+  letterScore(Cx) >> result{ch=C. col=.green. index=Cx} -->
+    [`.`,`g`], [C], {isLetter(C)}.
+  letterScore(Cx) >> result{ch=C. col=.grey. index=Cx} --> [C], {isLetter(C)}.
+
+  makeGuesses:(cons[string])=>integer.
+  makeGuesses(Words) => valof{
+    Cnt := 0;
+    Possibles := Words;
+    while Cnt!<6 && ~isEmpty(Possibles!) do{
+      try{
+	if Score ?= (parseScore(0) --> askNextGuess()) then{
+	  Cnt := Cnt!+1;
+	  word = scoreWord(Score);
+	  if winningScore(Score) then{
+	    showMsg("Success in $(Cnt!) goes");
+	    valis Cnt!
+	  }
+	  else{
+	    Possibles := filterGuesses(word,showScore(Score),Possibles!);
+	    showMsg("$([|Possibles!|]) choices left");
+	    showMsg("I suggest #(makeAGuess(Possibles!))");
+	  }
+	}
+      } catch{
+	_ => showMsg("some kind of error")
+      }
+    };
+    showMsg("Failed after $(Cnt!) goes");
+    valis Cnt!
+  }
+
+  coach:()=>().
+  coach() => valof{
+    try{
+      Words = parseWordFile("wordle.txt");
+      makeGuesses(Words)
+    } catch {
+      M => showMsg("We got an exception: $(M)")
+    };
+    valis ()
+  }    
+
+  _main:(cons[string])=>().
+  _main(["--coach"]) => coach().
+  _main([S,G]) => showMsg(score(S,G)).
+  _main([S]) => playertwo(S).
+  _main([]) => playerone().
+
+    
+    
+
 }
     

@@ -31,12 +31,12 @@ include::primes.adoc[leveloffset=1]
 
 include::wordle.adoc[leveloffset=1]
 
-include::programs.adoc[leveloffset=1]
-
 == In Conclusion
 
 We hope that you have enjoyed this short tour of Star. If you would like to try
 it out, it is available on github: https://github.com/fgmccabe/star.
+
+include::programs.adoc[leveloffset=1]
 
 [bibliography]
 == Bibliography

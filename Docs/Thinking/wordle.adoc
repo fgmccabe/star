@@ -214,14 +214,160 @@ keeping score is the `play` function in <<wordleProgram>>.
 
 == Automating player two
 
+Since we are not focusing on making a releasable game from our code, we can
+experiment a little. For example, we can try to construct an automatic Wordle
+player.
 
-Since we are not planning to make a releasable game from our code, we can
-experiment a little. To automate player two, we have to make guesses. A set of
-random guesses is unlikely to solve the secret in six tries. However, there is a
-simple strategy that can be effective: we take our list of words, and filter it
-so that all the guesses remaining 'fit' the scores we have gotten so far.
+To automate player two, we have to make guesses. A set of random guesses is
+unlikely to solve the secret in six tries. However, there is a simple strategy
+that can be effective: we take our list of words, and filter it so that all the
+guesses remaining 'fit' the scores we have gotten so far.
 
+As each score is computed, the list of possible words will shrink and the
+chances of a correct guess increase.
 
+The core of this strategy is embodied in the `filterGuesses` function:
 
+[source,star]
+----
+filterGuesses:(string,string,cons[string])=>cons[string].
+filterGuesses(Guess,Score,Words) => 
+    { C | C in Words && score(C,Guess)==Score }.
+----
+
+This uses a _comprehension_ expression to express the appropriate condition:
+that the new list of possible words is constructed from the current list by
+checking that the score is the same as we actually got from the last guess.
+
+The complete `autoplay` function is not much more complex than the version that
+uses input from the user:
+
+[source,star]
+----
+autoplay:(string,cons[string]) => integer.
+autoplay(Secret,Words) => valof{
+  WordCnt = size(Words);
+      
+  Cnt := 0;
+  Possibles := Words;
+  while Cnt!<6 && ~isEmpty(Possibles!) do{
+    Cnt := Cnt!+1;
+    Guess = makeAGuess(Possibles!);
+    Score = score(Secret,Guess);
+    showMsg("Guess $(Cnt!)\: #(Score)");
+    if Guess==Secret then{
+     showMsg("Success in $(Cnt!) goes");
+     valis Cnt!
+   }
+   else{
+     Possibles := filterGuesses(Guess,Score,Possibles!);
+   }
+ };
+ showMsg("Failed after $(Cnt!) goes");
+ valis Cnt!
+}
+----
+
+The actual next guess is made using the `makeAGuess` function:
+
+[source,star]
+----
+makeAGuess(Words) where Guess ?= Words[_irand(size(Words))] => Guess.
+----
+
+This function simply picks one of the available words at random.
+
+NOTE: One might think that this is an unsatisfactory way of making
+guesses. Surely, we should try to weigh the best choice? However, in testing,
+this strategy consistently wins the Wordle game in about four tries; well short
+of the six tries allowed and only slightly worse than the _optimal_ strategy
+which attempts to use entropy to make the next guess.
+
+== A Wordle coach
+
+Several sites publish a daily wordle game for people to test their skills on. We
+can test the skills of our player too!
+
+In this variant of our game, the program does not know the secret -- until the
+end! Instead, what we do is ask the human to enter a guess on our behalf. The
+'wordle coach' then suggests a word for the human to try our on the actual
+game. The user reports the results back to the coach and the cycle continues.
+
+Reading a score from the user is not quite the same as reading a single word: we
+have to construct a grammar in which the score can be communicated.
+
+We will choose an extremely simple grammar here:
+
+* a grey letter is entered just using the letter itself,
+* a yellow letter is entered using the sequence `.y` followed by the letter itself, and
+* a green letter is entered using `.g` followed by the letter.
+
+For example, if the score reported by the web site was:  image:score.png[], then we should enter that as
+
+[source,text]
+----
+.ym.go.yr.gal
+----
+
+(Yellow `m`, green `o`, yellow `r`, green `a` and grey `l`).
+
+=== Parsing scores
+
+Parsing input strings is a reasonably common requirement in building
+applications. In addition, the particular syntax for the string may not be
+defined by the programmer.
+
+Star has a built-in notation for writing grammars. The rules for parsing the
+grammar above are fairly near to the English specification itself:
+
+[source,star]
+----
+parseScore:(integer) >> cons[result] --> cons[char].
+parseScore(_) >> [] --> end.
+parseScore(Cx) >> [Sc,..Rest] --> letterScore(Cx) >> Sc, parseScore(Cx+1)>>Rest.
+
+letterScore(Cx) >> result{ch=C. col=.yellow. index=Cx} -->
+  [`.`,`y`], [C], {isLetter(C)}.
+letterScore(Cx) >> result{ch=C. col=.green. index=Cx} -->
+  [`.`,`g`], [C], {isLetter(C)}.
+letterScore(Cx) >> result{ch=C. col=.grey. index=Cx} --> [C], {isLetter(C)}.
+----
+
+This says that we can parse a score into a list of `result` values -- from a
+list of ``char``s -- by parsing each individual letter score. Note that
+`parseScore` is parameterized: by the index of the letter in the score.
+
+An individual letter score results in a `yellow` result if the input contains
+the characters `.y` followed by a letter character. Similarly for `green`
+results. The `grey` rule simply looks for a letter character.
+
+The general form of a grammar rule is
+
+[source,star,subs="quotes"]
+----
+_nonTerminal_(_args_) >> _result_ --> _grammar body_
+----
+I.e., given some arguments, we get the _result_ by parsing with the _grammar
+body_.
+
+There are many kinds of grammar body supported in Star; we have shown the
+simplest and most common ones for our `parseScore` grammar.
+
+Alongside the grammar rules themselves, we can invoke our grammar using a parse
+expression:
+
+[source,star]
+----
+if Score ?= (parseScore(0) --> askNextGuess()) then ...
+----
+
+This condition succeeds if the parse of the next guess was successful. Parsing
+in inherently tentative, and we express that here with the optional match
+condition:
+
+[source,star]
+----
+if Score ?= ... then ...
+----
 
 
