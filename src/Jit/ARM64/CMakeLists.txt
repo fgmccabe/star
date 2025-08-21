@@ -29,7 +29,10 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-        lower.c)
+        lower.c
+        lowerStack.c
+        lowerFrame.c
+        lowerFFI.c)
 
 add_library(ARM64 STATIC ${SOURCE_FILES})
 target_link_libraries(ARM64 assem)

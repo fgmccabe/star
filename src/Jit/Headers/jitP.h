@@ -18,17 +18,17 @@
 
 typedef enum {
   localVar,
-  spilledVar,
   inRegister,
-  emptyVar
+  emptyVar,
+  globalConst,
 } localVarState;
 
 typedef struct localSpec {
-  integer offset;
-  integer id;
+  int32 offset;
+  int32 id;
   mcRegister Rg;
   localVarState state;
-} LocalRecord, *localPo;
+} VarRecord, *localVarPo;
 
 typedef struct jit_compiler_ {
   methodPo mtd;
@@ -39,7 +39,7 @@ typedef struct jit_compiler_ {
   int32 minOffset;
   int32 maxOffset;
   int32 stackDepth;
-  LocalRecord stack[MAX_VSTACK];
+  VarRecord stack[MAX_VSTACK];
   char errMsg[MAXLINE];
 } JitCompilerContext;
 

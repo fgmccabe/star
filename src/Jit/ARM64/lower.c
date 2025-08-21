@@ -10,204 +10,12 @@
 #include "globalsP.h"
 #include "constantsP.h"
 #include "jitP.h"
-#include "formioP.h"
 #include "closureP.h"
 #include "debug.h"
 #include "engineP.h"
 #include "errorCodes.h"
-#include "threds.h"
 
 /* Lower Star VM code to Arm64 code */
-
-/* Register allocation for arm64:
- *
- * X0 = return register
- * X0-X10 = argument registers & scratch registers
- * X12 = Constants vector
- * AG = X13 = args pointer
- * STK = X14 = current stack structure pointer
- * X15 = current process structure
- * X16-X17 = intra procedure call scratch registers
- * X18 = platform register
- * X19-X28 = callee saved registers
- * FP = X29 = frame pointer
- * LR = X30 = link register
- * SP = X31 = system stack pointer
- */
-
-#define CO (X12)
-#define AG  (X13)
-#define STK (X14)
-#define PR (X15)
-
-// We need these registers preserved at all costs
-static registerMap criticalRegs() {
-  return 1u << CO | 1u << PR;
-}
-
-static retCode stackCheck(jitCompPo jit, methodPo mtd);
-
-static const int32 pointerSize = sizeof(integer);
-
-static retCode bailOut(jitCompPo jit, ExitCode code);
-
-static retCode getIntVal(jitCompPo jit, armReg rg);
-
-static retCode mkIntVal(jitCompPo jit, armReg rg);
-
-static retCode getFltVal(jitCompPo jit, armReg rg);
-
-static retCode mkFltVal(jitCompPo jit, armReg rg);
-
-static retCode jitError(jitCompPo jit, char *msg, ...);
-
-static jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt);
-
-static codeLblPo breakLabel(jitBlockPo block);
-
-static codeLblPo loopLabel(jitBlockPo block);
-
-retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
-
-retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
-
-retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop);
-
-void stash(jitCompPo jit);
-void stashRegisters(jitCompPo jit, int32 stackLevel);
-void unstash(jitCompPo jit);
-
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
-
-static void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo);
-static void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
-static void loadConstant(jitCompPo jit, int32 key, armReg tgt);
-
-static armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
-
-ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
-  jittedCode code = jitCode(mtd);
-  stackPo stk = P->stk;
-  int32 arity = lblArity(mtdLabel(mtd));
-  ptrPo exitSP = stk->sp + arity - 1;
-
-  ReturnStatus ret = Normal;
-
-  asm("stp x29,x30, [sp, #-16]!\n"
-    "stp x8,x9, [sp, #-16]!\n"
-    "stp x10,x11, [sp, #-16]!\n"
-    "stp x12,x13, [sp, #-16]!\n"
-    "mov x14, %[stk]\n"
-    "ldr x13, %[ag]\n"
-    "mov x12, %[constants]\n"
-    "mov x15, %[process]\n"
-    "mov x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
-    "str x29, [x14,#64]\n"
-    "ldp x12,x13, [sp], #16\n"
-    "ldp x10,x11, [sp], #16\n"
-    "ldp x8,x9, [sp], #16\n"
-    "ldp x29,x30, [sp], #16\n"
-    "str w0, %[ret]\n"
-    : [ret] "=&m"(ret)
-    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args),
-    [constants] "r"(constAnts),[fp] "m"(stk->fp)
-    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
-    "memory");
-
-  stk->sp = exitSP;
-
-  return ret;
-}
-
-static void setStackDepth(jitCompPo jit, int32 depth) {
-  jit->stackDepth = depth;
-  check(jitStackHasRoom(jit,0), "Invalid jit stack depth");
-}
-
-static armReg popStkOp(jitCompPo jit, armReg tgt) {
-  check(jitStackHasRoom(jit,1), "Insufficient stack depth for pop stack");
-  loadLocal(jit, tgt, -jitTrueStackDepth(jit));
-  jit->stackDepth--;
-  return tgt;
-}
-
-static armReg topStkOp(jitCompPo jit) {
-  armReg tgt = findFreeReg(jit);
-  check(jitStackHasRoom(jit,1), "Invalid jit stack depth");
-  loadLocal(jit, tgt, -jitTrueStackDepth(jit));
-  return tgt;
-}
-
-static void pushStkOp(jitCompPo jit, armReg src) {
-  jit->stack[jit->stackDepth].state = inRegister;
-  jit->stack[jit->stackDepth].Rg = src;
-  jit->stackDepth++;
-  storeLocal(jit, src, -jitTrueStackDepth(jit));
-}
-
-static void storeStack(jitCompPo jit, armReg src, int32 depth) {
-  storeLocal(jit, src, -(lclCount(jit->mtd) + depth));
-}
-
-static void pshFrame(jitCompPo jit, assemCtxPo ctx, armReg mtdRg) {
-  add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
-  str(AG, OF(FP, OffsetOf(StackFrame, args)));
-  sub(AG, AG, IM(jitTrueStackDepth(jit)*pointerSize));
-  armReg tmp = findFreeReg(jit);
-  ldr(tmp, OF(STK, OffsetOf(StackRecord, prog)));
-  str(tmp, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
-  str(mtdRg, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-  releaseReg(jit, tmp);
-}
-
-static void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity) {
-  armReg src = findFreeReg(jit);
-  armReg tgt = findFreeReg(jit);
-  armReg tmp = findFreeReg(jit); // Overwrite existing arguments and locals
-  sub(src, AG, IM((jitTrueStackDepth(jit)-arity) * pointerSize));
-  add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
-  if (arity < 8) {
-    for (int ix = 0; ix < arity; ix++) {
-      ldr(tmp, PRX(src, -pointerSize));
-      str(tmp, PRX(tgt, -pointerSize));
-    }
-  } else {
-    // Build a loop
-    armReg cx = findFreeReg(jit);
-    mov(cx, IM(arity));
-    codeLblPo start = here();
-
-    ldr(tmp, PRX(src, -pointerSize));
-    str(tmp, PRX(tgt, -pointerSize));
-
-    subs(cx, cx, IM(1));
-    bne(start);
-    releaseReg(jit, cx);
-  }
-  // Update current frame
-  str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-  mov(AG, RG(tgt));
-
-  releaseReg(jit, tmp);
-  releaseReg(jit, src);
-  releaseReg(jit, tgt);
-}
-
-static retCode tesResult(jitBlockPo block, insPo code, int32 tgt) {
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(jit);
-  codeLblPo skip = newLabel(ctx);
-  cmp(X0, IM(Normal));
-  beq(skip);
-  retCode ret = breakOut(block, code, tgt, True);
-
-  bind(skip);
-  return ret;
-}
 
 static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
   retCode ret = Ok;
@@ -287,7 +95,7 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         jit->stackDepth -= lblArity(callee) - 1;
-        ret = tesResult(block, code, pc + code[pc].alt + 1);
+        ret = testResult(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -339,7 +147,7 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         blr(X16);
         jit->stackDepth -= arity - 1;
 
-        ret = tesResult(block, code, pc + code[pc].alt + 1);
+        ret = testResult(block, code, pc + code[pc].alt + 1);
 
         pc++;
         continue;
@@ -421,7 +229,7 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstash(jit);
         jit->stackDepth -= arity - 1;
-        ret = tesResult(block, code, pc + code[pc].alt + 1);
+        ret = testResult(block, code, pc + code[pc].alt + 1);
         pc++;
         continue;
       }
@@ -576,7 +384,7 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Create new fiber
         ret = reserveReg(jit, X1);
         if (ret == Ok) {
-          armReg lam = popStkOp(jit, X1);
+          popStkOp(jit, X1);
           ret = reserveReg(jit, X0);
           if (ret == Ok) {
             ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
@@ -698,7 +506,6 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case LdL: {
         // load stack from local[xx]
         int32 lclNo = code[pc].fst;
-        int32 offset = -lclNo * pointerSize;
         armReg rg = findFreeReg(jit);
         loadLocal(jit, rg, -lclNo);
         pushStkOp(jit, rg);
@@ -1527,7 +1334,6 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo skip = newLabel(ctx);
         cbnz(a2, skip);
-        int32 divZeroKey = defineConstantLiteral(divZero);
 
         loadConstant(jit, divZeroIndex, a2);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
@@ -1560,7 +1366,6 @@ static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo skip = newLabel(ctx);
         cbnz(a2, skip);
-        int32 divZeroKey = defineConstantLiteral(divZero);
 
         loadConstant(jit, divZeroIndex, a2);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
@@ -1829,236 +1634,6 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
   return jitBlock(&block, entryPoint(mtd), 0, codeSize(mtd));
 }
 
-retCode getIntVal(jitCompPo jit, armReg rg) {
-  assemCtxPo ctx = assemCtx(jit);
-  asr(rg, rg, IM(2));
-  return Ok;
-}
-
-retCode mkIntVal(jitCompPo jit, armReg rg) {
-  assemCtxPo ctx = assemCtx(jit);
-  lsl(rg, rg, IM(2));
-  orr(rg, rg, IM(intTg));
-  return Ok;
-}
-
-retCode getFltVal(jitCompPo jit, armReg rg) {
-  assemCtxPo ctx = assemCtx(jit);
-  bfc(rg, 0, 2);
-  return Ok;
-}
-
-retCode mkFltVal(jitCompPo jit, armReg rg) {
-  assemCtxPo ctx = assemCtx(jit);
-
-  bfc(rg, 0, 2);
-  orr(rg, rg, IM(fltTg));
-  return Ok;
-}
-
-retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-  codeLblPo lbl = breakLabel(tgtBlock);
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(block->jit);
-
-  if (lbl != Null) {
-    beq(lbl);
-    return Ok;
-  } else
-    return jitError(jit, "cannot find target label for %d", tgt);
-}
-
-retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-  codeLblPo lbl = breakLabel(tgtBlock);
-  jitCompPo jit = block->jit;
-
-  if (lbl != Null) {
-    assemCtxPo ctx = assemCtx(jit);
-    bne(lbl);
-    return Ok;
-  }
-  return jitError(jit, "cannot find target label for %d", tgt);
-}
-
-retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-  codeLblPo lbl = breakLabel(tgtBlock);
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(block->jit);
-
-  if (lbl != Null) {
-    if (keepTop) {
-      int32 tgtOff = code[tgtBlock->startPc].fst;
-      if (tgtOff != jit->stackDepth) {
-        armReg tp = topStkOp(jit);
-        storeStack(jit, tp, tgtOff);
-        releaseReg(jit, tp);
-      }
-    }
-
-    b(lbl);
-    return Ok;
-  }
-  return jitError(jit, "cannot find target label for %d", tgt);
-}
-
-jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt) {
-  while (block != Null) {
-    if (block->startPc == tgt) {
-      assert(code[block->startPc].op == Block);
-      return block;
-    } else
-      block = block->parent;
-  }
-  return Null;
-}
-
-codeLblPo breakLabel(jitBlockPo block) {
-  return block->breakLbl;
-}
-
-codeLblPo loopLabel(jitBlockPo block) {
-  return block->loopLbl;
-}
-
-retCode jitError(jitCompPo jit, char *msg, ...) {
-  char buff[MAXLINE];
-  strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
-
-  va_list args; /* access the generic arguments */
-  va_start(args, msg); /* start the variable argument sequence */
-
-  __voutMsg(O_IO(f), msg, args); /* Display into the string buffer */
-
-  va_end(args);
-  outByte(O_IO(f), 0); /* Terminate the string */
-
-  closeIo(O_IO(f));
-
-  strMsg(jit->errMsg, NumberOf(jit->errMsg), RED_ESC_ON "%s"RED_ESC_OFF, buff);
-  return Error;
-}
-
-retCode bailOut(jitCompPo jit, ExitCode code) {
-  return callIntrinsic(assemCtx(jit), criticalRegs(), (runtimeFn) star_exit, 1, IM(code));
-
-  /* char buff[MAXLINE]; */
-  /* strBufferPo f = fixedStringBuffer(buff, NumberOf(buff)); */
-
-  /* va_list args;      /\* access the generic arguments *\/ */
-  /* va_start(args, msg);    /\* start the variable argument sequence *\/ */
-
-  /* __voutMsg(O_IO(f), msg, args);  /\* Display into the string buffer *\/ */
-
-  /* va_end(args); */
-  /* outByte(O_IO(f), 0);                /\* Terminate the string *\/ */
-
-  /* closeIo(O_IO(f)); */
-
-  /* assemCtxPo ctx = assemCtx(jit);   */
-  /* integer conString = stringConstant(ctx,buff,uniStrlen(buff)); */
-  /* ldr(X0,IM(conString)); */
-
-  /* return callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(conString)); */
-}
-
-retCode stackCheck(jitCompPo jit, methodPo mtd) {
-  assemCtxPo ctx = assemCtx(jit);
-  codeLblPo okLbl = newLabel(ctx);
-  int32 delta = (stackDelta(mtd) + (int32)FrameCellCount) * pointerSize;
-
-  if (is16bit(delta))
-    sub(X16, AG, IM(delta));
-  else {
-    mov(X16, IM(delta));
-    sub(X16, AG, RG(X16));
-  }
-  cmp(X16, RG(FP));
-  bhi(okLbl);
-
-  mov(X0, IM((integer) mtd));
-  str(X0, OF(STK, OffsetOf(StackRecord, prog)));
-  adr(X0, okLbl);
-  str(X0, OF(STK,OffsetOf(StackRecord,pc)));
-
-  stashRegisters(jit, 0);
-  retCode ret =
-    callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4, RG(PR), IM(True), IM(delta),
-                  IM(mtdArity(mtd)));
-  unstash(jit);
-
-  bind(okLbl);
-  return ret;
-}
-
-// When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
-void stash(jitCompPo jit) {
-  stashRegisters(jit, jitTrueStackDepth(jit));
-}
-
-void stashRegisters(jitCompPo jit, int32 stackLevel) {
-  assert(stackLevel>=0);
-  assemCtxPo ctx = assemCtx(jit);
-  str(AG, OF(STK, OffsetOf(StackRecord, args)));
-  armReg currSP = findFreeReg(jit);
-  sub(currSP, AG, IM(stackLevel*pointerSize));
-  str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
-  releaseReg(jit, currSP);
-  str(FP, OF(STK, OffsetOf(StackRecord, fp)));
-}
-
-void unstash(jitCompPo jit) {
-  assemCtxPo ctx = assemCtx(jit);
-  ldr(STK, OF(PR, OffsetOf(EngineRecord, stk)));
-  ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
-  ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
-}
-
-void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
-  check(lclNo>=jit->minOffset && lclNo<jit->maxOffset, "Accessing out of bounds locals");
-  loadOffset(jit, tgt,AG, lclNo);
-}
-
-void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
-  check(lclNo>=jit->minOffset && lclNo<jit->maxOffset, "Accessing out of bounds locals");
-  storeOffset(jit, src,AG, lclNo);
-}
-
-static void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
-  assemCtxPo ctx = assemCtx(jit);
-  termPo lit = getConstant(key);
-
-  if (isSmall(lit))
-    mov(tgt, IM((integer) lit));
-  else
-    loadOffset(jit, tgt,CO, key);
-}
-
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
-  assemCtxPo ctx = assemCtx(jit);
-  int32 offset = ix * pointerSize;
-  if (is9bit(offset))
-    ldur(tgt, base, offset);
-  else {
-    mov(tgt, IM(ix));
-    ldr(tgt, EX2(base,tgt,U_XTX,3));
-  }
-}
-
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo) {
-  assemCtxPo ctx = assemCtx(jit);
-  int32 offset = lclNo * pointerSize;
-  if (is9bit(offset))
-    stur(src, base, offset);
-  else {
-    armReg tmp = findFreeReg(jit);
-    mov(tmp, IM(lclNo));
-    str(src, EX2(base,tmp,U_XTX,3));
-    releaseReg(jit, tmp);
-  }
-}
 
 armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   assemCtxPo ctx = assemCtx(jit);
@@ -2070,7 +1645,6 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   armReg c = findFreeReg(jit);
   armReg l = findFreeReg(jit);
   armReg reslt = findFreeReg(jit);
-  codeLblPo again = here();
   ldr(h, OF(PR, OffsetOf(EngineRecord, heap)));
   ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
   ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
@@ -2095,3 +1669,41 @@ armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt) {
   releaseReg(jit, X0);
   return reslt;
 }
+
+ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
+  jittedCode code = jitCode(mtd);
+  stackPo stk = P->stk;
+  int32 arity = lblArity(mtdLabel(mtd));
+  ptrPo exitSP = stk->sp + arity - 1;
+
+  ReturnStatus ret = Normal;
+
+  asm("stp x29,x30, [sp, #-16]!\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "stp x12,x13, [sp, #-16]!\n"
+    "mov x14, %[stk]\n"
+    "ldr x13, %[ag]\n"
+    "mov x12, %[constants]\n"
+    "mov x15, %[process]\n"
+    "mov x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
+    "str x29, [x14,#64]\n"
+    "ldp x12,x13, [sp], #16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "ldp x29,x30, [sp], #16\n"
+    "str w0, %[ret]\n"
+    : [ret] "=&m"(ret)
+    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args),
+    [constants] "r"(constAnts),[fp] "m"(stk->fp)
+    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
+    "memory");
+
+  stk->sp = exitSP;
+
+  return ret;
+}
+
