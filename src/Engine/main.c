@@ -2,6 +2,7 @@
  * main program for the run-time
  */
 #include "utils.h"
+#include "abort.h"
 #include <stdlib.h>
 #include <engineP.h>
 #include <globals.h>

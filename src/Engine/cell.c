@@ -56,8 +56,7 @@ logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 integer hashCell(specialClassPo cl, termPo o) {
-  logMsg(logFile,"not permitted to take hash of assignment cell");
-  star_exit(assignmentCode);
+  syserr("not permitted to take hash of assignment cell");
   return 0; // unreachable
 }
 

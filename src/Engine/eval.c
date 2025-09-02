@@ -6,6 +6,7 @@
  */
 
 #include "config.h"
+#include "abort.h"
 #include "globals.h"
 #include "constants.h"
 #include "char.h"

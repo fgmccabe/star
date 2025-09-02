@@ -223,8 +223,9 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
   char errMsg[MAXLINE];
   retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
   if (ret != Ok) {
-    logMsg(logFile, "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
-    star_exit(specialMethodCode);
+    char msg[MAX_SYMB_LEN];
+    strMsg(msg,NumberOf(msg),"could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
+    syserr(msg);
   }
 
   return lbl;

@@ -41,6 +41,13 @@ static integer inline minimum(integer a, integer b) {
     return b;
 }
 
+static int32 inline min(int32 a, int32 b) {
+  if (a < b)
+    return a;
+  else
+    return b;
+}
+
 static integer inline maximum(integer a, integer b) {
   if (a > b)
     return a;
@@ -98,21 +105,5 @@ extern void syserr(const char *msg);
 extern void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
 
 extern retCode homeDir(char *user, char *buffer, integer bufLen);
-
-typedef enum {
-  successCode = 0, /* Normal exit */
-  failCode, /* Failing exit */
-  errorCode,  // Error exit
-  oomCode, // Out of memory
-  undefinedCode, // tried to execute undefined code
-  fiberCode, // Something wrong with fiber code
-  singleCode, // something wrong with single assignment var
-  assignmentCode, // something wrong with assignment
-  specialMethodCode, // something wrong with a special method
-  invalidOperationCode, // tried an invalid operation
-  abortCode, // abort operation
-} ExitCode;
-
-void star_exit(ExitCode code);
 
 #endif

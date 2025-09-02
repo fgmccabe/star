@@ -57,8 +57,7 @@ logical singleCmp(specialClassPo cl, termPo o1, termPo o2) {
 }
 
 static integer singleHash(specialClassPo cl, termPo o) {
-  logMsg(logFile,"not permitted to take hash of single assignment var");
-  star_exit(invalidOperationCode);
+  syserr("not permitted to take hash of single assignment var");
   return 0;
 }
 
