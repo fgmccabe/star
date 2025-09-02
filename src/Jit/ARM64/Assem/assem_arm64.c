@@ -9,6 +9,10 @@
 #include "assem_encode.h"
 #include "macros.h"
 
+#ifdef TRACEASSEM
+#define TRACE(Op) { if(traceAssem>noTracing) Op; }
+#endif
+
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
   codeLblPo entry = defineLabel(ctx, ctx->pc);
   int32 stkAdjustment = ALIGNVALUE(lclSize, 16);
@@ -38,6 +42,7 @@ void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
 }
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"add %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: {
       // Immediate value
@@ -59,6 +64,7 @@ void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"adds %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: {
       // Immediate value
@@ -80,14 +86,17 @@ void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"adr %R,%X\n%_",Rd,lbl));
   encodePCRel(0, lbl, Rd, ctx);
 }
 
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"adrp %R,%X\n%_",Rd,lbl));
   encodePCRel(1, lbl, Rd, ctx);
 }
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"and %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: // Immediate value
       encodeLogImm(w, 0, S2.immediate, Rn, Rd, ctx);
@@ -104,6 +113,7 @@ void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ands %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: // Immediate value
       encodeLogImm(w, 3, S2.immediate, Rn, Rd, ctx);
@@ -120,6 +130,7 @@ void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"asr %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm:
       encodeImmRegReg(w, 0, w, S2.immediate, 0x1f | (w << 5), Rn, Rd, ctx);
@@ -132,11 +143,19 @@ void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   }
 }
 
+#ifdef TRACEASSEM
+static char *armCondNames[] = {
+  "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "al", "nv"
+};
+#endif
+
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"b%s %X\n%_",armCondNames[cond],lbl));
   encodeCondBrnch(0x2a, 0, lbl, cond, ctx);
 }
 
 void b_(codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"b %X\n%_",lbl));
   encodeBranchImm(0, lbl, ctx);
 }
 
@@ -183,18 +202,22 @@ void bics_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void bl_(codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"blr %X\n%_",lbl));
   encodeBranchImm(1, lbl, ctx);
 }
 
 void blr_(armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"blr %R\n%_",Rn));
   encodeBranch(1, 0x1f, 0, Rn, 0, ctx);
 }
 
 void br_(armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"br %R\n%_",Rn));
   encodeBranch(0, 0x1f, 0, Rn, 0, ctx);
 }
 
 void brk_(uint16 bkpt, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"brk %d\n%_",bkpt));
   uint32 ins = ayt_bt(0xd4, 24) | one_bt(1, 21) |
                sxt_bt(bkpt, 5);
   emitU32(ctx, ins);
@@ -265,10 +288,12 @@ void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cbnz %R,%X\n%_",Rt,lbl));
   encodeCmpBr(w, 1, lbl, Rt, ctx);
 }
 
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cbz %R,%X\n%_",Rt,lbl));
   encodeCmpBr(w, 0, lbl, Rt, ctx);
 }
 
@@ -292,6 +317,7 @@ void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ct
 }
 
 void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ccmp%s %R, %F\n%_",armCondNames[cnd],Rn, &S2));
   switch (S2.mode) {
     case imm: {
       uint32 ins = one_bt(w, 31) | two_bt(3, 29) | ayt_bt(0xd2, 21) | fiv_bt(imm, 16) |
@@ -315,6 +341,7 @@ static uint8 twistCond(armCond cond) {
 }
 
 void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cinc%s %R, %R\n%_",armCondNames[cond],Rd, Rn));
   check(Rn != XZR, "invalid register");
   check((cond & 0xe0) != 0xe0, "invalid condition");
 
@@ -322,6 +349,7 @@ void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
 }
 
 void cinv_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cinv%s %R, %R\n%_",armCondNames[cond],Rd, Rn));
   check(Rn != XZR, "invalid register");
   check((cond & 0xe0) != 0xe0, "invalid condition");
 
@@ -329,18 +357,21 @@ void cinv_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
 }
 
 void cls_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cls %R, %R\n%_",Rd,Rn));
   uint32 ins = one_bt(w, 31) | two_bt(2, 29) | ayt_bt(0xd6, 21) | thr_bt(5, 10) |
                fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
 void clz_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"clz %R, %R\n%_",Rd,Rn));
   uint32 ins = one_bt(w, 31) | two_bt(2, 29) | ayt_bt(0xd6, 21) | thr_bt(4, 10) |
                fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
 void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cmn %R, %F\n%_",Rn,&S2));
   switch (S2.mode) {
     case reg:
       encode3Reg7Imm(w, 0, 1, 0xb, 0, 0, S2.reg, 0, Rn, 0x1f, ctx);
@@ -362,6 +393,7 @@ void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cmp %R,%F\n%_",Rn,&S2));
   switch (S2.mode) {
     case reg:
       encode3Reg7Imm(w, 1, 1, 0xb, 0, 0, S2.reg, 0, Rn, 0x1f, ctx);
@@ -383,34 +415,42 @@ void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void cmpp_(armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cmpp %R,%R\n%_",Rn,Rm));
   encodeReg2Src(1, 0, 1, 0xd6, Rn, 0, Rm, 0x1f, ctx);
 }
 
 void cneg_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cneg%s %R, %R\n%_",armCondNames[cond],Rd, Rn));
   encodeCnd3Reg(w, 1, 0, 0xd4, Rn, twistCond(cond), 1, Rn, Rd, ctx);
 }
 
 void csel_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"csel%s %R, %R\n%_",armCondNames[cond],Rd, Rn));
   encodeCnd3Reg(w, 0, 0, 0xd4, Rm, cond, 0, Rn, Rd, ctx);
 }
 
 void cset_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"cset%s %R\n%_",armCondNames[cond],Rd));
   encodeCnd3Reg(w, 0, 0, 0xd4, 0x1f, twistCond(cond), 1, 0x1f, Rd, ctx);
 }
 
 void csetm_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"csetm%s %R\n%_",armCondNames[cond],Rd));
   encodeCnd3Reg(w, 1, 0, 0xd4, 0x1f, twistCond(cond), 0, 0x1f, Rd, ctx);
 }
 
 void csinc_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"csinc%s %R,%R,%R\n%_",armCondNames[cond],Rd,Rn,Rm));
   encodeCnd3Reg(w, 0, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
 }
 
 void csinv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"csinv%s %R,%R,%R\n%_",armCondNames[cond],Rd,Rn,Rm));
   encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 0, Rn, Rd, ctx);
 }
 
 void csneg_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"csneg%s %R,%R,%R\n%_",armCondNames[cond],Rd,Rn,Rm));
   encodeCnd3Reg(w, 1, 0, 0xd4, Rm, cond, 1, Rn, Rd, ctx);
 }
 
@@ -419,6 +459,7 @@ void eon_sh_(uint1 w, armReg Rd, armReg Rm, armReg Rn, armShift sh, uint8 imm, a
 }
 
 void eor_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"eor %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm:
       encodeLogImm(w, 2, S2.immediate, Rn, Rd, ctx);
@@ -481,6 +522,7 @@ void ldnp(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) 
 }
 
 void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldp %R, %R, %F\n%_",Rt,Rt2,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeLd3Reg(w, 0, 0x5, 0, 1, 1, Sn.immediate >> (w + 2), Rt2, Sn.reg, Rt, ctx);
@@ -497,6 +539,7 @@ void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldpsw %R,%R,%F\n%_",Rt,Rt2,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeLd3Reg(0, 1, 0x5, 0, 1, 1, Sn.immediate >> 2, Rt2, Sn.reg, Rt, ctx);
@@ -513,6 +556,7 @@ void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldr %R, %F\n%_",Rt,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeLdStRegX((2 | w), 0, 1, (int16) (Sn.immediate), 1, Sn.reg, Rt, ctx);
@@ -543,6 +587,7 @@ void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldrb_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldrb %R,%F\n%_",Rt,&S2));
   switch (S2.mode) {
     case postX:
       encode2SrcIxImmPrePost(0, 0xe, 0x1, postIndex, S2.immediate, S2.reg, Rt, ctx);
@@ -562,6 +607,7 @@ void ldrb_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldrh_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldrh %R,%F\n%_",Rt,&S2));
   switch (S2.mode) {
     case postX:
       encode2SrcIxImmPrePost(1, 0xe, 0x1, postIndex, S2.immediate, S2.reg, Rt, ctx);
@@ -581,6 +627,7 @@ void ldrh_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldrsb_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldrsb %R,%F\n%_",Rt,&S2));
   switch (S2.mode) {
     case postX:
       encode2SrcIxImmPrePost(0, 0xe, (2 | w), postIndex, S2.immediate, S2.reg, Rt, ctx);
@@ -600,6 +647,7 @@ void ldrsb_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldrsh_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldrsh %R,%F\n%_",Rt,&S2));
   switch (S2.mode) {
     case postX:
       encode2SrcIxImmPrePost(1, 0xe, (2 | w), postIndex, S2.immediate, S2.reg, Rt, ctx);
@@ -619,6 +667,7 @@ void ldrsh_(uint1 w, armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldrsw %R,%F\n%_",Rt,&S2));
   switch (S2.mode) {
     case postX:
       encode2SrcIxImmPrePost(2, 0xe, 0x2, postIndex, S2.immediate, S2.reg, Rt, ctx);
@@ -641,39 +690,48 @@ void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx) {
 }
 
 void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
-  check(imm>=-256 && imm<=255,"immediate does not fit in nine bits");
+  TRACE(outMsg(logFile,"ldur %R, %R[%d]\n%_",Rt,Rn,imm));
+  check(imm>=-256 && imm<=255, "immediate does not fit in nine bits");
   encodeLdStRegUnscaled((2 | w), 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldurb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldurb %R, %R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(0, 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldurh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldurh %R, %R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(1, 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldursb_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldursb %R, %R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(0, 0, (2 | ~w), imm, Rn, Rt, ctx);
 }
 
 void ldursh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldursh %R, %R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(1, 0, (2 | ~w), imm, Rn, Rt, ctx);
 }
 
 void ldursw_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldursw %R, %R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(2, 0, 2, imm, Rn, Rt, ctx);
 }
 
 void ldxap_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldxap %R, %R, %R\n%_",Rd,Rt2,Rn));
   encodeExLdStPr(w, 1, one, XZR, 1, Rt2, Rn, Rd, ctx);
 }
 
 void ldxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldxp %R, %R, %R\n%_",Rd,Rt2,Rn));
   encodeExLdStPr(w, 1, one, XZR, 0, Rt2, Rn, Rd, ctx);
 }
 
 void ldxr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldxr %R, %R\n%_",Rd,Rn));
   encodeExLdStPr(w, 1, 0, XZR, 0, XZR, Rn, Rd, ctx);
 }
 
@@ -742,6 +800,7 @@ void ldlarh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void lsl_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"lsl %R, %R, %F\n%_",Rd,Rn, &S2));
   switch (S2.mode) {
     case reg:
       encodeReg2Src(w, 0, 0, 0xd6, S2.reg, 0x8, Rn, Rd, ctx);
@@ -757,6 +816,7 @@ void lsl_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void lsr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"lsr %R, %R, %F\n%_",Rd,Rn, &S2));
   switch (S2.mode) {
     case reg:
       encodeReg2Src(w, 0, 0, 0xd6, S2.reg, 0x9, Rn, Rd, ctx);
@@ -771,14 +831,17 @@ void lsr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void madd_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"madd %R, %R, %R, %R\n%_",Rd, Rn, Rm, Ra));
   encode4Reg(w, 0, 0xd8, Rm, 0, Ra, Rn, Rd, ctx);
 }
 
 void mneg_(uint1 w, armReg Rd, armReg Rm, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"mneg %R, %R, %R\n%_",Rd, Rn, Rm));
   encode4Reg(w, 0, 0xd8, Rm, 1, XZR, Rn, Rd, ctx);
 }
 
 void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"mov %R, %F\n%_",Rd,&S1));
   switch (S1.mode) {
     case reg:
       encodeDPRegImm(1, 0, 0x22, 0, 0, S1.reg, Rd, ctx);
@@ -823,10 +886,12 @@ void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
 }
 
 void msub_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"msub %R, %R, %R, %R\n%_",Rd, Rm, Rn,Ra));
   encode4Reg(w, 0, 0xd8, Rm, 1, Ra, Rn, Rd, ctx);
 }
 
 void mul_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"mul %R, %R, %R\n%_",Rd, Rm, Rn));
   encode4Reg(w, 0, 0xd8, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
@@ -984,38 +1049,47 @@ void stlrh_(armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void stlur_(uint1 w, armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlur %R, %R[%d]\n%_",Rd,Rn,imm));
   encodeLdRegLit((2 | w), 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlurb_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlurb %R, %R[%d]\n%_",Rd,Rn,imm));
   encodeLdRegLit(0, 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlurh_(armReg Rd, armReg Rn, uint16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlurh %R, %R[%d]\n%_",Rd,Rn,imm));
   encodeLdRegLit(1, 0, (int16) imm, Rn, Rd, ctx);
 }
 
 void stlxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlxr %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeSz4Reg((2 | w), 0x8, 0, Rs, 1, 0x1f, Rn, Rt, ctx);
 }
 
 void stlxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlxrb %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeExLdStPr(0, 0, one, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
 void stxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stxrh %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeExLdStPr(1, 0, one, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void stlxrh_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlxrh %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeExLdStPr(1, 0, one, Rs, 1, XZR, Rn, Rt, ctx);
 }
 
 void stnp_(uint1 w, armReg Rt, armReg Rt2, armReg Rn, uint8 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stnp %R, %R, %R, #%d\n%_",Rt,Rt2,Rn,imm));
   encodeLd3Reg(0, one_bt(w, 1), 0, 0, 0, 0, imm, Rt2, Rn, Rt, ctx);
 }
 
 void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stp %R, %R, %F\n%_",Rt,Rt2,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeLdStPrPostIx(one, 0, 0, 0, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
@@ -1032,6 +1106,7 @@ void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"str %R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
     case extnd:
       encodeSz2OpcImm3Reg((2 | w), 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
@@ -1051,6 +1126,7 @@ void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void strb_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"strb %R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
     case extnd:
       encodeSz2OpcImm3Reg(0, 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
@@ -1070,6 +1146,7 @@ void strb_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"strh %R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
     case extnd:
       encodeSz2OpcImm3Reg(1, 0x38, 0, 1, Sn.rgm, Sn.ext, Sn.immediate != 0, 2, Sn.reg, Rt, ctx);
@@ -1089,46 +1166,57 @@ void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldtr %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv((2 | w), 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldtrb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldtrb %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv(0, 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldtrh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldtrh %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv(1, 0, 1, imm, Rn, Rt, ctx);
 }
 
 void ldtrsh_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"ldtrsh %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv(1, 0, (2 | ~w), imm, Rn, Rt, ctx);
 }
 
 void sttr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sttr %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv((2 | w), 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sttrb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sttrb %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv(0, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sttrh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sttrh %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv(1, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void stur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stur %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled((2 | w), 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sturb_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sturb %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(0, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sturh %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStRegUnscaled(1, 0, 0, imm, Rn, Rt, ctx);
 }
 
 void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sub %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: {
       // Immediate value
@@ -1150,6 +1238,7 @@ void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void subs_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"subs %R,%R,%F\n%_",Rd,Rn,&S2));
   switch (S2.mode) {
     case imm: {
       // Immediate value
@@ -1171,90 +1260,112 @@ void subs_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void sxtb(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sxtb %R,%R\n%_",Rd,Rn));
   sbfm_(w, Rd, Rn, 0, 7, ctx);
 }
 
 void sxth(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sxth %R,%R\n%_",Rd,Rn));
   sbfm_(w, Rd, Rn, 0, 15, ctx);
 }
 
 void sxtw(armReg Rd, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"sxtw %R,%R\n%_",Rd,Rn));
   sbfm_(1, Rd, Rn, 0, 31, ctx);
 }
 
 void stlxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stlxp %R, %R, %R\n%_",Rd,Rt2,Rn));
   encodeExLdStPr(w, 0, one, XZR, 1, Rt2, Rn, Rd, ctx);
 }
 
 void stxp_(uint1 w, armReg Rd, armReg Rt2, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stxp %R, %R, %R\n%_",Rd,Rt2,Rn));
   encodeExLdStPr(w, 0, one, XZR, 0, Rt2, Rn, Rd, ctx);
 }
 
 void stxr_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stxr %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeExLdStPr((2 | w), 0, one, Rs, 0, Rn, Rn, Rt, ctx);
 }
 
 void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stxrb %R, %R, %R\n%_",Rs,Rt,Rn));
   encodeExLdStPr(0, 0, one, Rs, 0, XZR, Rn, Rt, ctx);
 }
 
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"tbnz %R, %d, %X\n%_",Rt,pos,lbl));
   encodeTstBr(w, 1, pos, lbl, Rt, ctx);
 }
 
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"tbz %R, %d, %X\n%_",Rt,pos,lbl));
   encodeTstBr(w, 0, pos, lbl, Rt, ctx);
 }
 
 void tst_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"tst %R,%F\n%_",Rn,&S2));
   ands_(w, XZR, Rn, S2, ctx);
 }
 
 void udiv_(uint1 w, armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"udiv %R,%R,%R\n%_",Rd,Rn,Rm));
   encodeReg2Src(w, 0, 0, 0xd6, Rm, 2, Rn, Rd, ctx);
 }
 
 void umaddl_(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"umaddl %R, %R, %R, %R\n%_",Rd,Rn,Rm,Ra));
   encode4Reg(1, 0, 0xdd, Rm, 0, Ra, Rn, Rd, ctx);
 }
 
 void umnegl_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"umnegl %R, %R, %R\n%_",Rd,Rn,Rm));
   encode4Reg(1, 0, 0xdd, Rm, 1, XZR, Rn, Rd, ctx);
 }
 
 void umsubl_(armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"umsubl %R, %R, %R, %R\n%_",Rd,Rn,Rm,Ra));
   encode4Reg(1, 0, 0xdd, Rm, 1, Ra, Rn, Rd, ctx);
 }
 
 void umulh_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"umulh %R, %R, %R\n%_",Rd,Rn,Rm));
   encode4Reg(1, 0, 0xde, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
 void umull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"umull %R, %R, %R\n%_",Rd,Rn,Rm));
   encode4Reg(1, 0, 0xdd, Rm, 0, XZR, Rn, Rd, ctx);
 }
 
 void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fabs %#R, %#R\n%_",Rd,Rn));
   encodeScalarOp(p, 0b110000, 0, Rn, Rd, ctx);
 }
 
 void fadd_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fadd %#R, %#R, %#R\n%_",Rd,Rn,Rm));
   encodeScalarOp(p, 0b001010, Rm, Rn, Rd, ctx);
 }
 
 void fsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fsub %#R, %#R, %#R\n%_",Rd,Rn,Rm));
   encodeScalarOp(p, 0b001110, Rm, Rn, Rd, ctx);
 }
 
 void fmul_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"mul %#R, %#R, %#R\n%_",Rd,Rn,Rm));
   encodeScalarOp(p, 0b000010, Rm, Rn, Rd, ctx);
 }
 
 void fdiv_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fdiv %#R, %#R, %#R\n%_",Rd,Rn,Rm));
   encodeScalarOp(p, 0b000110, Rm, Rn, Rd, ctx);
 }
 
 void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fmsub %#R, %#R, %#R, %#R\n%_",Rd,Rn,Rm,Ra));
   uint32 ins = ayt_bt(0b11111, 24) | two_bt(p, 22) | fiv_bt(Rm, 16) |
                one_bt(1, 15) | fiv_bt(Ra, 10) |
                fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
@@ -1262,12 +1373,14 @@ void fmsub_(Precision p, fpReg Rd, fpReg Rn, fpReg Rm, fpReg Ra, assemCtxPo ctx)
 }
 
 void fcmp_(Precision p, fpReg Rn, fpReg Rm, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fcmp %#R, %#R\n%_",Rn,Rm));
   uint32 ins = ayt_bt(0b11110, 24) | two_bt(p, 22) | one_bt(1, 21) | fiv_bt(Rm, 16) |
                one_bt(1, 13) | fiv_bt(Rn, 5);
   emitU32(ctx, ins);
 }
 
 void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"fmov %F, %F\n%_",&d,&s));
   switch (d.mode) {
     case reg: {
       switch (s.mode) {

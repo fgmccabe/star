@@ -82,22 +82,22 @@ typedef enum {
 } fpReg;
 
 typedef enum {
-  EQ = 0,    // Equal
-  NE = 0x1,  // Note equal
-  CS = 0x2,  // Carry set or Higher condition
-  CC = 0x3,  // Carry clear or less than
-  MI = 0x4,  // Negative, or less then
-  PL = 0x5,  // Plus, positive or zero
-  VS = 0x6,  // Overflow
-  VC = 0x7,  // No overflow
-  HI = 0x8,  // Unsigned higher
-  LS = 0x9,  // Unsigned lower or same
-  GE = 0xa,  // Signed greater than or equal
-  LT = 0xb,  // Signed less than
-  GT = 0xc,  // Signed greater than
-  LE = 0xd,  // Signed less than or equal
-  AL = 0xe,  // Always
-  NV = 0xf   // Always
+  EQ = 0, // Equal
+  NE = 0x1, // Note equal
+  CS = 0x2, // Carry set or Higher condition
+  CC = 0x3, // Carry clear or less than
+  MI = 0x4, // Negative, or less then
+  PL = 0x5, // Plus, positive or zero
+  VS = 0x6, // Overflow
+  VC = 0x7, // No overflow
+  HI = 0x8, // Unsigned higher
+  LS = 0x9, // Unsigned lower or same
+  GE = 0xa, // Signed greater than or equal
+  LT = 0xb, // Signed less than
+  GT = 0xc, // Signed greater than
+  LE = 0xd, // Signed less than or equal
+  AL = 0xe, // Always
+  NV = 0xf // Always
 } armCond;
 
 typedef enum {
@@ -112,11 +112,11 @@ typedef enum {
 } armExtent;
 
 typedef enum {
-  imm,  // Immediate value
+  imm, // Immediate value
   shft, // Shifting mode
   reg, // register
-  fp,  // floating point register
-  extnd,  // extended
+  fp, // floating point register
+  extnd, // extended
   postX, // post increment
   preX, // predecrement
   sOff, // signed offset
@@ -567,7 +567,6 @@ typedef enum {
   Single = 0b00,
   Double = 0b01
 } Precision;
-
 
 void fabs_(Precision p, fpReg Rd, fpReg Rn, assemCtxPo ctx);
 #define fabs(Rd, Rn) fabs_(Double, Rd, Rn, ctx)
