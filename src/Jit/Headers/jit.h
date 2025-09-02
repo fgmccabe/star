@@ -25,6 +25,10 @@ retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 depth);
 
 ReturnStatus invokeJitMethod(enginePo P, methodPo mtd);
 
+#ifdef TRACEASSEM
+extern tracingLevel traceAssem; // Set if tracing assembler
+#endif // TRACEASSEM
+
 #ifdef TRACEJIT
 extern tracingLevel traceJit;
 #endif

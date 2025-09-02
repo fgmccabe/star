@@ -10,6 +10,12 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "formioP.h"
+
+#ifdef TRACEASSEM
+tracingLevel traceAssem = noTracing;
+#endif
+
 static poolPo lblPool = Null;
 static poolPo asmPool = Null;
 
@@ -20,11 +26,90 @@ typedef struct lbl_ref {
   integer pc;
 } AssemLblRefRecord;
 
+static retCode showFlexOp(ioPo f, void *data, long depth, long precision, logical alt) {
+  FlexOp *flex = (FlexOp *) data;
+  switch (flex->mode) {
+    case imm: // Immediate value
+      return outMsg(f, "#%d", flex->immediate);
+    case shft: {
+      switch (flex->shift) {
+        case LSL:
+          return outMsg(f, "%R lsl #%d", flex->reg, flex->immediate);
+        case LSR:
+          return outMsg(f, "%R lsr #%d", flex->reg, flex->immediate);
+        case ASR:
+          return outMsg(f, "%R asr #%d", flex->reg, flex->immediate);
+        case ROR:
+          return outMsg(f, "%R ror #%d", flex->reg, flex->immediate);
+      }
+    }
+    case reg: // register
+      return outMsg(f, "X%d", flex->reg);
+    case fp: // floating point register
+      return outMsg(f, "F%d", flex->reg);
+    case extnd: {
+      switch (flex->ext) {
+        case U_XTB:
+          return outMsg(f, "[%R, %R, uxtb]", flex->reg, flex->rgm);
+        case U_XTH:
+          return outMsg(f, "[%R, %R, uxth]", flex->reg, flex->rgm);
+        case U_XTW:
+          return outMsg(f, "[%R, %R, uxtw]", flex->reg, flex->rgm);
+        case U_XTX:
+          return outMsg(f, "[%R, %R, lsl]", flex->reg, flex->rgm);
+        case S_XTB:
+          return outMsg(f, "[%R, %R, sxtb]", flex->reg, flex->rgm);
+        case S_XTH:
+          return outMsg(f, "[%R, %R, sxth]", flex->reg, flex->rgm);
+        case S_XTW:
+          return outMsg(f, "[%R, %R, sxtw]", flex->reg, flex->rgm);
+        case S_XTX:
+          return outMsg(f, "[%R, %R, sxtx]", flex->reg, flex->rgm);
+      }
+      return outMsg(f, "[%R, %R, unknown]", flex->reg, flex->rgm);
+    }
+    case postX: // post increment
+      return outMsg(f, "[%R], #%d", flex->reg, flex->immediate);
+    case preX: // predecrement
+      return outMsg(f, "[%R, #%d]!", flex->reg, flex->immediate);
+    case sOff: // signed offset
+      return outMsg(f, "X%d[%d]", flex->reg, flex->immediate);
+    case pcRel: // relative to PC
+      return outMsg(f, "[pc, #%x]", flex->immediate);
+    default:
+      return outMsg(f, "unknown addressing mode");
+  }
+}
+
+static retCode showAssemLbl(ioPo f, void *data, long depth, long precision, logical alt) {
+  codeLblPo lbl = (codeLblPo) data;
+  if (isLabelDefined(lbl)) {
+    return outMsg(f, "@%x", lbl->pc);
+  }
+  return outMsg(f, "unknown label");
+}
+
+retCode showArmReg(ioPo f, void *data, long depth, long precision, logical alt) {
+  int reg = (int) (long) data;
+  if (alt)
+    return outMsg(f, "D%d", reg);
+  else
+    return outMsg(f, "X%d", reg);
+}
+
 void initAssem() {
   if (asmPool == Null) {
     lblPool = newPool(sizeof(AssemLblRecord), 128);
     asmPool = newPool(sizeof(AssemCtxRecord), 128);
+
+#ifdef TRACEASSEM
+    if (traceAssem > noTracing) {
+      installMsgProc('F', showFlexOp);
+      installMsgProc('R', showArmReg);
+      installMsgProc('X', showAssemLbl);
+    }
   }
+#endif
 }
 
 assemCtxPo createCtx() {
@@ -180,8 +265,7 @@ void emitU8(assemCtxPo ctx, uint8 byte) {
       ctx->bytes = newBuffer;
       ctx->size = newSize;
     } else {
-      logMsg(logFile, "Could not allocate buffer for code generation");
-      star_exit(oomCode);
+      syserr("Could not allocate buffer for code generation");
     }
   }
   assert(ctx->pc < ctx->size);

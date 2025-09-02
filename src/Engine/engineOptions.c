@@ -47,6 +47,15 @@ static retCode debugOption(char *option, OptionAction action) {
 
   while (*c) {
     switch (*c++) {
+      case 'a': // Trace assembler
+#ifdef TRACEASSEM
+        if (traceAssem < detailedTracing)
+          traceAssem++;
+#else
+        logMsg(logFile, "Assembler tracing not enabled\n");
+        return Error;
+#endif
+
       case 'd': /* single step instruction tracing */
         insDebugging = True;
         tracing = True;
@@ -74,7 +83,7 @@ static retCode debugOption(char *option, OptionAction action) {
         logMsg(logFile, "Verification tracing enabled");
         continue;
 
-      case 'a': /* trace memory allocations  */
+      case 'A': /* trace memory allocations  */
 #ifdef TRACEMEM
         traceAllocs = True;
 
