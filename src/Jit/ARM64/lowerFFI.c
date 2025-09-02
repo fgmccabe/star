@@ -3,6 +3,7 @@
 //
 #include <config.h>
 
+#include "abort.h"
 #include "cellP.h"
 #include "lowerP.h"
 #include "stackP.h"
@@ -94,8 +95,8 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
 
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
-void stash(jitCompPo jit) {
-  stashRegisters(jit, jitTrueStackDepth(jit));
+void stash(jitBlockPo block) {
+  stashRegisters(block->jit, trueStackDepth(block));
 }
 
 void stashRegisters(jitCompPo jit, int32 stackLevel) {

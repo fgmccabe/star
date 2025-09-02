@@ -25,9 +25,6 @@ jitCompPo jitContext(methodPo mtd) {
   jitComp->lclCnt = lclCount(mtd);
   jitComp->arity = mtdArity(mtd);
 
-  for (int ix = 0; ix < NumberOf(jitComp->stack); ix++)
-    jitComp->stack[ix].state = emptyVar;
-
   return jitComp;
 }
 
