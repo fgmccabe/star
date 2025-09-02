@@ -17,10 +17,11 @@ ReturnStatus g__abort(enginePo P) {
 }
 
 void abort_star(enginePo P, termPo lc, termPo msg) {
-  logMsg(logFile, "Abort %T at %L", msg, lc);
+  char msgStr[MAX_SYMB_LEN];
+  strMsg(msgStr,NumberOf(msgStr), "Abort %T at %L", msg, lc);
   verifyProc(P, processHeap(P));
   stackTrace(P, logFile, P->stk, displayDepth, showPrognames, -1);
-  star_exit(abortCode);
+  syserr(msgStr);
 }
 
 ReturnStatus g__stackTrace(enginePo P) {

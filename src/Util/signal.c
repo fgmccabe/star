@@ -4,7 +4,6 @@
 */
 #include <stdlib.h>
 #include "ooio.h"      /* Main header file */
-#include "starOptions.h"
 #include "signals.h"
 
 /* 
@@ -28,15 +27,13 @@ static void aioSigHandler(int sig, siginfo_t *si, void *cl) {
 }
 
 static void busErrorHandler(int sig) {
-  outMsg(logFile, "bus error or segmentation fault\n");
-  star_exit(failCode);
+  syserr("bus error or segmentation fault");
 }
 
 static void interruptMe(int ignored) /* This one is invoked when user presses ^C */
 {
-  outMsg(logFile, "control-C interrupt\n");
   gotControlC = 1;
-  star_exit(failCode);    /* We just abort everything */
+  syserr("control-C interrupt");    /* We just abort everything */
 }
 
 logical controlC() {
@@ -49,7 +46,7 @@ void setupSimpleHandler(int signal, void (*handler)(int)) {
   sigemptyset(&sa.sa_mask);
   sa.sa_handler = handler;
   if (sigaction(signal, &sa, Null) == -1)
-    star_exit(failCode);
+    syserr("error in setting up simple handler");
 }
 
 void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *)) {
@@ -58,7 +55,7 @@ void setupIOHandler(int signal, void (*handler)(int, siginfo_t *, void *)) {
   sigemptyset(&sa.sa_mask);
   sa.sa_sigaction = handler;
   if (sigaction(signal, &sa, Null) == -1)
-    star_exit(failCode);
+    syserr("error in setting up I/O handler");
 }
 
 void setupSignals() {

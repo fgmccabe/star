@@ -62,8 +62,9 @@ retCode reserveSpace(heapPo H, integer amnt) {
 termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
   if ((((ptrPo) h->curr) + amnt) >= ((ptrPo) (h->limit))) {
     if (gcCollect(h, amnt) != Ok) {
-      logMsg(logFile, "Could not allocate %d cells on heap", amnt);
-      star_exit(oomCode);
+      char msg[MAX_SYMB_LEN];
+      strMsg(msg,NumberOf(msg), "Could not allocate %d cells on heap", amnt);
+      syserr(msg);
       return Null;
     }
   }
