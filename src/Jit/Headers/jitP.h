@@ -14,22 +14,6 @@
 #include "codeP.h"
 #include "infra.h"
 
-#define MAX_VSTACK 256
-
-typedef enum {
-  localVar,
-  inRegister,
-  emptyVar,
-  globalConst,
-} localVarState;
-
-typedef struct localSpec {
-  int32 offset;
-  int32 id;
-  mcRegister Rg;
-  localVarState state;
-} VarRecord, *localVarPo;
-
 typedef struct jit_compiler_ {
   methodPo mtd;
   int32 arity;
@@ -38,14 +22,8 @@ typedef struct jit_compiler_ {
   assemCtxPo assemCtx;
   int32 minOffset;
   int32 maxOffset;
-  int32 stackDepth;
-  VarRecord stack[MAX_VSTACK];
   char errMsg[MAXLINE];
 } JitCompilerContext;
-
-logical jitStackHasRoom(jitCompPo jit, int32 amnt);
-int32 jitStackDepth(jitCompPo jit);
-int32 jitTrueStackDepth(jitCompPo jit);
 
 assemCtxPo assemCtx(jitCompPo jitCtx);
 
@@ -65,5 +43,6 @@ logical isByte(int64 x);
 logical isI32(int64 x);
 
 retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
+retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) ;
 
 #endif //STAR_JITP_H

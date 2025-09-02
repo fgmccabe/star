@@ -38,6 +38,4 @@ void emitU64(assemCtxPo ctx, uint64 word);
 void updateU32(assemCtxPo ctx, integer pc, uint32 word);
 uint32 readCtxAtPc(assemCtxPo ctx, integer pc);
 
-
-
 #endif //STAR_INFRA_H

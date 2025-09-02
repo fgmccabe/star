@@ -5,7 +5,7 @@
 #ifndef STAR_LOWERP_H
 #define STAR_LOWERP_H
 
-#include "hash.h"
+#include "abort.h"
 #include "lower.h"
 #include "arm64P.h"
 #include "macros.h"
@@ -13,34 +13,6 @@
 #include "arith.h"
 #include "char.h"
 #include "jitP.h"
-
-static inline logical isSmall(termPo x) {
-  if (isInteger(x))
-    return is16bit(integerVal(x));
-  else if (isChar(x))
-    return is16bit((integer) charVal(x));
-  else
-    return False;
-}
-
-typedef struct {
-  FlexOp src;
-} StackEntry;
-
-typedef struct {
-  StackEntry valueStack[128];
-  int32 stackHeight;
-} ValueStack, *valueStackPo;
-
-typedef struct jitBlock_ *jitBlockPo;
-
-typedef struct jitBlock_ {
-  jitCompPo jit;
-  int32 startPc;
-  codeLblPo breakLbl;
-  codeLblPo loopLbl;
-  jitBlockPo parent;
-} JitBlock;
 
 /* Register allocation for arm64:
  *
@@ -62,6 +34,40 @@ typedef struct jitBlock_ {
 #define AG  (X13)
 #define STK (X14)
 #define PR (X15)
+
+typedef enum {
+  inRegister,
+  isLocal,
+  inStack,
+  isConstant
+} valueKind;
+
+typedef struct {
+  valueKind kind;
+  armReg Rg;
+  int32 stkOff;
+  int32 key;
+} LocalEntry, *localVarPo;
+
+typedef struct {
+  LocalEntry local[128];
+  int32 argPnt;
+  int32 stackPnt;
+  int32 vTop;
+  int32 stackDepth;
+} ValueStack, *valueStackPo;
+
+typedef struct jitBlock_ *jitBlockPo;
+
+typedef struct jitBlock_ {
+  jitCompPo jit;
+  int32 startPc;
+  int32 exitHeight;
+  codeLblPo breakLbl;
+  codeLblPo loopLbl;
+  ValueStack stack;
+  jitBlockPo parent;
+} JitBlock;
 
 retCode stackCheck(jitCompPo jit, methodPo mtd);
 
@@ -85,7 +91,7 @@ retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop);
 
-void stash(jitCompPo jit);
+void stash(jitBlockPo block);
 void stashRegisters(jitCompPo jit, int32 stackLevel);
 void unstash(jitCompPo jit);
 
@@ -96,21 +102,36 @@ void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo);
 void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
-armReg allocSmallStruct(jitCompPo jit, clssPo class, integer amnt);
+int32 trueStackDepth(jitBlockPo block);
+void setStackDepth(jitBlockPo block, int32 depth);
+void mergeBlockStacks(jitBlockPo parent, jitBlockPo block);
 
-void setStackDepth(jitCompPo jit, int32 depth);
-armReg popStkOp(jitCompPo jit, armReg tgt);
-armReg topStkOp(jitCompPo jit);
-void pushStkOp(jitCompPo jit, armReg src);
-void pushStk(jitCompPo jit, VarRecord var);
-armReg popStk(jitCompPo jit);
+void pushBlank(jitBlockPo block);
+void pushValue(jitBlockPo block, LocalEntry var);
+void pushRegister(jitBlockPo block, armReg rg);
+armReg popValue(jitBlockPo block);
+armReg topValue(jitBlockPo block);
+void dropValue(jitBlockPo block);
+void dropValues(jitBlockPo block, int32 count);
+void spillStack(jitBlockPo block);
+void frameOverride(jitBlockPo block, int arity);
+
+localVarPo argSlot(jitBlockPo block, int32 slot);
+localVarPo localSlot(jitBlockPo block, int32 slot);
+localVarPo stackSlot(jitBlockPo block, int32 slot);
 
 void storeStack(jitCompPo jit, armReg src, int32 depth);
 
-void pshFrame(jitCompPo jit, assemCtxPo ctx, armReg mtdRg);
-void overrideFrame(jitCompPo jit, assemCtxPo ctx, int arity);
-
 retCode testResult(jitBlockPo block, insPo code, int32 tgt);
 registerMap criticalRegs();
+
+static inline logical isSmall(termPo x) {
+  if (isInteger(x))
+    return is16bit(integerVal(x));
+  else if (isChar(x))
+    return is16bit((integer) charVal(x));
+  else
+    return False;
+}
 
 #endif //STAR_LOWERP_H
