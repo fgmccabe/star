@@ -51,6 +51,7 @@ static retCode debugOption(char *option, OptionAction action) {
 #ifdef TRACEASSEM
         if (traceAssem < detailedTracing)
           traceAssem++;
+        continue;
 #else
         logMsg(logFile, "Assembler tracing not enabled\n");
         return Error;

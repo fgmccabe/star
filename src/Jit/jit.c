@@ -56,7 +56,7 @@ retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 depth) {
 
     retCode ret = jitSpecialInstructions(jit, mtd, depth);
 
-    if (ret == Ok) {
+    if (ret == Ok || ret == Switch) {
       assemCtxPo ctx = jit->assemCtx;
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
     } else

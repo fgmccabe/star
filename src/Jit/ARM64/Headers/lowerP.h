@@ -102,6 +102,7 @@ void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo);
 void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
+void dumpStack(valueStackPo stack);
 int32 trueStackDepth(jitBlockPo block);
 void setStackDepth(jitBlockPo block, int32 depth);
 void mergeBlockStacks(jitBlockPo parent, jitBlockPo block);
@@ -113,12 +114,14 @@ armReg popValue(jitBlockPo block);
 armReg topValue(jitBlockPo block);
 void dropValue(jitBlockPo block);
 void dropValues(jitBlockPo block, int32 count);
-void spillStack(jitBlockPo block);
+void spillLocals(jitBlockPo block);
+void spillCallArgs(jitBlockPo block, int32 arity);
+void spillStack(jitBlockPo block, int32 arity);
 void frameOverride(jitBlockPo block, int arity);
 
-localVarPo argSlot(jitBlockPo block, int32 slot);
-localVarPo localSlot(jitBlockPo block, int32 slot);
-localVarPo stackSlot(jitBlockPo block, int32 slot);
+localVarPo argSlot(valueStackPo stack, int32 slot);
+localVarPo localSlot(valueStackPo stack, int32 slot);
+localVarPo stackSlot(valueStackPo stack, int32 slot);
 
 void storeStack(jitCompPo jit, armReg src, int32 depth);
 

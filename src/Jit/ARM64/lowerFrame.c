@@ -18,7 +18,6 @@ retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt) {
   assemCtxPo ctx = assemCtx(block->jit);
 
   if (lbl != Null) {
-    mergeBlockStacks(tgtBlock, block); // make sure state of stack is consistent
     beq(lbl);
     return Ok;
   } else
@@ -31,7 +30,6 @@ retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
   jitCompPo jit = block->jit;
 
   if (lbl != Null) {
-    mergeBlockStacks(tgtBlock, block); // make sure state of stack is consistent
     assemCtxPo ctx = assemCtx(jit);
     bne(lbl);
     return Ok;
@@ -55,7 +53,6 @@ retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop) {
         block->stack.local[tgtOff - 1] = top;
       }
     }
-    mergeBlockStacks(tgtBlock, block); // make sure state of stack is consistent
 
     b(lbl);
     return Ok;

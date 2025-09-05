@@ -20,39 +20,26 @@ registerMap criticalRegs() {
   return 1u << CO | 1u << PR;
 }
 
-localVarPo stackSlot(jitBlockPo block, int32 slot) {
-  return &block->stack.local[block->stack.stackPnt - block->stack.vTop + slot];
+localVarPo stackSlot(valueStackPo stack, int32 slot) {
+  return &stack->local[stack->stackPnt - stack->vTop + slot];
 }
 
-localVarPo localSlot(jitBlockPo block, int32 slot) {
-  return &block->stack.local[block->stack.argPnt - slot];
+localVarPo localSlot(valueStackPo stack, int32 slot) {
+  return &stack->local[stack->argPnt - slot];
 }
 
-localVarPo argSlot(jitBlockPo block, int32 slot) {
-  return &block->stack.local[block->stack.argPnt + slot];
+localVarPo argSlot(valueStackPo stack, int32 slot) {
+  return &stack->local[stack->argPnt + slot];
 }
 
 int32 trueStackDepth(jitBlockPo block) {
   return lclCount(block->jit->mtd) + block->stack.stackDepth;
 }
 
-void setStackDepth(jitBlockPo block, int32 depth) {
-  assert(depth<=block->stack.vTop);
-  jitCompPo jit = block->jit;
-  for (int32 i = depth; i < block->stack.vTop; i++) {
-    localVarPo var = stackSlot(block, i);
-    if (var->kind == inRegister)
-      releaseReg(jit, var->Rg);
-    var->kind = isConstant;
-    var->key = voidIndex;
-  }
-  block->stack.vTop = depth;
-}
-
 armReg popValue(jitBlockPo block) {
   jitCompPo jit = block->jit;
   check(block->stack.vTop>0, "Insufficient stack depth for pop stack");
-  localVarPo var = stackSlot(block, 0);
+  localVarPo var = stackSlot(&block->stack, 0);
   switch (var->kind) {
     case isLocal: {
       armReg tmp = findFreeReg(jit);
@@ -63,7 +50,7 @@ armReg popValue(jitBlockPo block) {
     case inStack: {
       armReg tmp = findFreeReg(jit);
       loadLocal(jit, tmp, var->stkOff);
-      if (var->stkOff == block->stack.stackDepth)
+      if (var->stkOff == -trueStackDepth(block))
         block->stack.stackDepth--;
       block->stack.vTop--;
       return tmp;
@@ -90,7 +77,7 @@ armReg topValue(jitBlockPo block) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   check(block->stack.vTop>0, "Insufficient stack depth for pop stack");
-  localVarPo var = stackSlot(block, 0);
+  localVarPo var = stackSlot(&block->stack, 0);
   switch (var->kind) {
     case isLocal:
     case inStack: {
@@ -118,14 +105,15 @@ armReg topValue(jitBlockPo block) {
 
 void pushValue(jitBlockPo block, LocalEntry entry) {
   block->stack.vTop++;
-  localVarPo var = stackSlot(block, 0);
+  localVarPo var = stackSlot(&block->stack, 0);
   *var = entry;
 }
 
 void pushBlank(jitBlockPo block) {
+  assert(block->stack.vTop>=block->stack.stackDepth);
   block->stack.vTop++;
   block->stack.stackDepth++;
-  localVarPo var = stackSlot(block, 0);
+  localVarPo var = stackSlot(&block->stack, 0);
   *var = (LocalEntry){.kind = inStack, .stkOff = -(block->stack.stackDepth + lclCount(block->jit->mtd))};
 }
 
@@ -133,17 +121,26 @@ void pushRegister(jitBlockPo block, armReg rg) {
   pushValue(block, (LocalEntry){.kind = inRegister, .Rg = rg});
 }
 
+void setStackDepth(jitBlockPo block, int32 depth) {
+  assert(depth<=block->stack.vTop);
+  while (block->stack.vTop > depth)
+    dropValue(block);
+}
+
 void dropValue(jitBlockPo block) {
   jitCompPo jit = block->jit;
-  localVarPo var = stackSlot(block, 0);
+  localVarPo var = stackSlot(&block->stack, 0);
   switch (var->kind) {
     case inRegister: {
       releaseReg(jit, var->Rg);
       break;
     }
-    default:
-      if (var->stkOff == block->stack.stackDepth)
+    case inStack: {
+      if (var->stkOff == -trueStackDepth(block))
         block->stack.stackDepth--;
+      break;
+    }
+    default: ;
   }
   block->stack.vTop--;
 }
@@ -187,22 +184,76 @@ static void spillVar(jitBlockPo block, localVarPo var) {
   }
 }
 
-void spillStack(jitBlockPo block) {
+void spillLocals(jitBlockPo block) {
   jitCompPo jit = block->jit;
 
   for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
-    localVarPo var = argSlot(block, ax);
+    localVarPo var = argSlot(&block->stack, ax);
     spillVar(block, var);
   }
   for (int32 v = 0; v < lclCount(jit->mtd); v++) {
-    localVarPo var = localSlot(block, v);
+    localVarPo var = localSlot(&block->stack, v);
+    spillVar(block, var);
+  }
+}
+
+void spillCallArgs(jitBlockPo block, int32 arity) {
+  jitCompPo jit = block->jit;
+
+  for (int32 v = arity; v > 0; v--) {
+    localVarPo var = stackSlot(&block->stack, v - 1);
+    block->stack.stackDepth++;
+    int32 stkOff = -trueStackDepth(block);
+
+    switch (var->kind) {
+      case isLocal: {
+        armReg tmp = findFreeReg(jit);
+        loadLocal(jit, tmp, var->stkOff);
+        storeLocal(jit, tmp, stkOff);
+        releaseReg(jit, tmp);
+        continue;
+      }
+      case inStack: {
+        if (var->stkOff != stkOff) {
+          armReg tmp = findFreeReg(jit);
+          loadLocal(jit, tmp, var->stkOff);
+          storeLocal(jit, tmp, stkOff);
+          releaseReg(jit, tmp);
+        }
+        continue;
+      }
+      case inRegister: {
+        storeLocal(jit, var->Rg, stkOff);
+        releaseReg(jit, var->Rg);
+        var->stkOff = stkOff;
+        var->kind = inStack;
+        continue;
+      }
+      case isConstant: {
+        armReg tmp = findFreeReg(jit);
+        loadConstant(jit, var->key, tmp);
+        storeLocal(jit, tmp, stkOff);
+        var->kind = inStack;
+        var->stkOff = stkOff;
+        releaseReg(jit, tmp);
+        continue;
+      }
+      default: {
+        bailOut(jit, errorCode);
+      }
+    }
+  }
+}
+
+void spillStack(jitBlockPo block, int32 arity) {
+  spillLocals(block);
+
+  for (int32 v = block->stack.vTop - arity; v > 0; v--) {
+    localVarPo var = stackSlot(&block->stack, v);
     spillVar(block, var);
   }
 
-  for (int32 v = 0, stkOff = trueStackDepth(block); v < block->stack.vTop; v++, stkOff--) {
-    localVarPo var = stackSlot(block, v);
-    spillVar(block, var);
-  }
+  spillCallArgs(block, arity);
 }
 
 void mergeBlockStacks(jitBlockPo parent, jitBlockPo block) {
@@ -212,10 +263,9 @@ void mergeBlockStacks(jitBlockPo parent, jitBlockPo block) {
   setStackDepth(parent, parent->exitHeight);
 
   int32 vTop = parent->stack.vTop = min(block->stack.vTop, parent->stack.vTop);
-  parent->stack.stackDepth = min(parent->stack.stackDepth, block->stack.stackDepth);
   for (int32 i = 0; i < vTop; i++) {
-    localVarPo blockVar = stackSlot(block, i);
-    localVarPo parentVar = stackSlot(parent, i);
+    localVarPo blockVar = stackSlot(&block->stack, i);
+    localVarPo parentVar = stackSlot(&parent->stack, i);
     switch (blockVar->kind) {
       case isLocal:
       case inStack: {
@@ -278,7 +328,7 @@ void frameOverride(jitBlockPo block, int arity) {
   add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
 
   for (int32 i = 0; i < arity; i++) {
-    localVarPo var = stackSlot(block, i);
+    localVarPo var = stackSlot(&block->stack, i);
     switch (var->kind) {
       case inRegister: {
         armReg vrReg = var->Rg;
@@ -309,7 +359,7 @@ void frameOverride(jitBlockPo block, int arity) {
 
   // Release any tied up registers
   for (int32 i = 0; i < block->stack.vTop - arity; i++) {
-    localVarPo var = stackSlot(block, i);
+    localVarPo var = stackSlot(&block->stack, i);
     switch (var->kind) {
       case inRegister: {
         releaseReg(jit, var->Rg);
@@ -400,4 +450,49 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
   bind(okLbl);
   return ret;
+}
+
+static void dumpSlot(ioPo out, localVarPo var) {
+  switch (var->kind) {
+    case inRegister:
+      outMsg(out, "register X%d", var->Rg);
+      return;
+    case inStack:
+      outMsg(out, "on stack %d", var->stkOff);
+      return;
+    case isLocal:
+      outMsg(out, "local vr %d", var->stkOff);
+      return;
+    case isConstant: {
+      outMsg(out, "constant %T", getConstant(var->key));
+      return;
+    }
+    default:
+      outMsg(out, "unknown type of slot");
+  }
+}
+
+void dumpStack(valueStackPo stack) {
+  outMsg(logFile, "Stack: top=%d, depth = %d\n",stack->vTop, stack->stackDepth);
+  // for (int ax = 0; ax + stack->argPnt < NumberOf(stack->local); ax++) {
+  //   localVarPo var = argSlot(stack, ax);
+  //   outMsg(logFile, "arg %d ",ax);
+  //   dumpSlot(logFile, var);
+  //   outStr(logFile, "\n");
+  // }
+  //
+  // for (int lx=1;lx<=stack->argPnt-stack->stackPnt;lx++) {
+  //   localVarPo var = localSlot(stack, lx);
+  //   outMsg(logFile, "lcl %d ",lx);
+  //   dumpSlot(logFile, var);
+  //   outStr(logFile, "\n");
+  // }
+
+  for (int sx=0;sx<stack->vTop;sx++) {
+    localVarPo var = stackSlot(stack, sx);
+    outMsg(logFile, "stk %d ",sx);
+    dumpSlot(logFile, var);
+    outStr(logFile, "\n");
+  }
+  flushOut();
 }
