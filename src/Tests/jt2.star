@@ -11,9 +11,9 @@ test.jt2{
   main:(integer)=>().
   main(V) => valof{
     timer = ref timer_start(((V::float)**2.0)::integer, "fib");
-    F = fib(V);
+    F1 = fib(V);
     t1 = timer_finish(timer!)::float;
-    showMsg("Fib of $(V) is $(F)");
+    showMsg("Fib of $(V) is $(F1)");
 
     try{
       _jit_compile("#(__pkg__)@fib",1);
@@ -22,9 +22,10 @@ test.jt2{
     };
 
     timer2 = ref timer_start(((V::float)**2.0)::integer, "jit fib");
-    F = fib(V);
+    F2 = fib(V);
     t2 = timer_finish(timer2!)::float;
-    showMsg("Fib of $(V) is $(F)");
+    showMsg("Fib of $(V) is $(F2)");
+    assert F1==F2;
 
     try {
       showMsg("Factor = $(_flt_div(t1,t2))")

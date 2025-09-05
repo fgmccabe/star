@@ -15,6 +15,7 @@
 #include "engineP.h"
 #include "errorCodes.h"
 #include "abort.h"
+#include "debugP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -88,12 +89,25 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
   assemCtxPo ctx = assemCtx(jit);
 
   for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
+    assert(block->stack.vTop>=block->stack.stackDepth);
+
+#ifdef TRACEJIT
+    if (traceJit >= detailedTracing) {
+      disass(logFile, Null, jit->mtd, &code[pc]);
+      outMsg(logFile, "\n%_");
+      outMsg(logFile, "block vTop = %d\n%_", block->stack.vTop);
+      dRegisterMap(jit->freeRegs);
+      dumpStack(&block->stack);
+    }
+#endif
+
     switch (code[pc].op) {
       case Halt: {
         // Stop execution
         ExitCode errCode = (ExitCode) code[pc].fst;
         ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(errCode));
-        continue;
+
+        return Switch; // We don't merge stacks after a halt
       }
       case Abort: {
         // abort with message
@@ -104,12 +118,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(codeReg), RG(val));
         releaseReg(jit, codeReg);
         releaseReg(jit, val);
-        continue;
+
+        return Switch; // We don't merge stacks after an abort
       }
       case Call: {
-        // Call <prog>
-        spillStack(block); // Make sure everything is stashed
         int32 key = code[pc].fst;
+        int32 arity = lblArity(C_LBL(getConstant(key)));
+        spillStack(block, arity);
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
@@ -127,14 +142,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         bind(runMtd);
         pshFrame(block, X17);
         blr(X16);
-        dropArgs(block, lblArity(C_LBL(getConstant(key))));
+        dropArgs(block, arity);
         continue;
       }
       case XCall: {
-        // XCall <prog>
-        spillStack(block); // Make sure everything is stashed
         int32 key = code[pc].fst;
         labelPo callee = C_LBL(getConstant(key));
+        int32 arity = lblArity(callee);
+
+        spillStack(block, arity); // Make sure everything is stashed
 
         // pick up the pointer to the method
         loadConstant(jit, key, X16);
@@ -156,13 +172,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
-        dropArgs(block, lblArity(callee));
+        dropArgs(block, arity);
         ret = testResult(block, code, pc + code[pc].alt + 1);
         continue;
       }
 
       case OCall: {
-        // Call closure
         int32 arity = code[pc].fst;
         armReg clos = popValue(block); // Pick up the closure
         ldr(X17, OF(clos, OffsetOf(ClosureRecord, lbl))); // Pick up the label
@@ -172,7 +187,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(freeReg, OF(clos, OffsetOf(ClosureRecord, free))); // Pick up the free term
         releaseReg(jit, clos);
         pushRegister(block, freeReg); // The free term is the first argument
-        spillStack(block); // Make sure everything is stashed
+        spillStack(block, arity); // Make sure everything is stashed
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
@@ -198,7 +213,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(freeReg, OF(clos, OffsetOf(ClosureRecord, free))); // Pick up the free term
         releaseReg(jit, clos);
         pushRegister(block, freeReg); // The free term is the first argument
-        spillStack(block); // Make sure everything is stashed
+        spillStack(block, arity); // Make sure everything is stashed
 
         codeLblPo haveMtd = newLabel(ctx);
         cbnz(X17, haveMtd);
@@ -238,7 +253,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
         br(X16);
-        continue;
+
+        return Switch; // We don't merge stacks after a return
       }
       case TOCall: {
         // TOCall
@@ -267,14 +283,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
         br(X16);
-        continue;
+
+        return Switch; // We don't merge stacks after a return
       }
       case Escape: {
-        // call C escape
-        spillStack(block);
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
+
+        spillStack(block, arity);
 
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
@@ -284,11 +301,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         continue;
       }
       case XEscape: {
-        // call C escape, with possible exception return
-        spillStack(block);
         int32 escNo = code[pc].fst;
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
+        spillStack(block, arity);
 
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
@@ -310,7 +326,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         if (lclCnt > 0) {
           for (int32 ix = 1; ix <= lclCnt; ix++) {
-            localVarPo lcl = localSlot(block, ix);
+            localVarPo lcl = localSlot(&block->stack, ix);
             *lcl = (LocalEntry){.kind = isConstant, .key = voidIndex, .stkOff = -ix};
           }
         }
@@ -335,7 +351,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         sub(FP, FP, IM(sizeof(StackFrame)));
         mov(X0, IM(Normal));
         br(X16);
-        setStackDepth(block, 0);
         continue;
       }
       case XRet: {
@@ -379,7 +394,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         pc += blockLen; // Skip over the block
         bind(brkLbl);
-        mergeBlockStacks(block,&subBlock);
+        mergeBlockStacks(block, &subBlock);
+
+#ifdef TRACEJIT
+        if (traceJit)
+          dRegisterMap(jit->freeRegs);
+#endif
+
         continue;
       }
       case Break: {
@@ -416,11 +437,11 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Pull up nth element of stack
         int32 delta = code[pc].fst;
         if (delta > 0) {
-          LocalEntry first = *stackSlot(block, delta);
+          LocalEntry first = *stackSlot(&block->stack, delta);
 
           for (int32 ix = delta; ix > 0; ix--)
-            *stackSlot(block, ix) = *stackSlot(block, ix - 1);
-          *stackSlot(block, 0) = first;
+            *stackSlot(&block->stack, ix) = *stackSlot(&block->stack, ix - 1);
+          *stackSlot(&block->stack, 0) = first;
         }
         continue;
       }
@@ -435,7 +456,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg heapReg = findFreeReg(jit);
         ldr(heapReg, OF(PR, OffsetOf(EngineRecord, heap)));
 
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(heapReg), IM(True), RG(lamReg));
         if (ret == Ok) {
@@ -455,7 +476,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo rtn = newLabel(ctx);
         adr(tmp, rtn);
         str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk), RG(evt));
         unstash(jit);
@@ -474,7 +495,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo rtn = newLabel(ctx);
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) attachStack, 3, RG(PR), RG(stk), RG(evt));
         unstash(jit);
@@ -490,7 +511,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Similar to suspend, except that we trash the suspending stack
         armReg stk = popValue(block);
         armReg evt = popValue(block);
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk), RG(evt));
         unstash(jit);
@@ -535,7 +556,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         continue;
       }
       case StL: {
-        // store tos to local[xx]
+        // copy tos to local[xx]
         int32 lclNo = -code[pc].fst;
         armReg vl = popValue(block);
         storeLocal(jit, vl, lclNo);
@@ -554,7 +575,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case TL: {
         // copy tos to local[xx]
         int32 lclNo = -code[pc].fst;
-        armReg vl = popValue(block);
+        armReg vl = topValue(block);
         storeLocal(jit, vl, lclNo);
         releaseReg(jit, vl);
         continue;
@@ -564,7 +585,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg glb = findFreeReg(jit);
         armReg content = findFreeReg(jit);
         globalPo glbVr = findGlobalVar(code[pc].fst);
-        spillStack(block); // We spill because we may have to call the global function
+        spillStack(block, 0); // We spill because we may have to call the global function
 
         mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
 
@@ -636,7 +657,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Sav: {
         // create a single assignment variable
-        spillStack(block);
+        spillStack(block, 0);
         armReg sng = allocSmallStruct(block, singleClass, SingleCellCount);
         armReg tmp = findFreeReg(jit);
         mov(tmp, IM((integer) Null));
@@ -711,7 +732,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Cell: {
         // create R/W cell
-        spillStack(block);
+        spillStack(block, 1);
         armReg cel = allocSmallStruct(block, cellClass, CellCellCount);
         armReg tmp = popValue(block);
         str(tmp, OF(cel, OffsetOf(CellRecord, content)));
@@ -787,7 +808,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg lit = findFreeReg(jit);
         loadConstant(jit, key, lit);
         armReg vl = popValue(block);
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(lit), RG(vl));
         unstash(jit);
@@ -861,7 +882,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Case: {
         // T --> T, case <Max>
         armReg vl = popValue(block);
-        spillStack(block);
+        spillStack(block, 0);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(vl));
         releaseReg(jit, vl);
@@ -1381,7 +1402,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 key = code[pc].fst;
         labelPo label = C_LBL(getConstant(key));
         int32 arity = lblArity(label);
-        spillStack(block);
+        spillStack(block,0);
         armReg term = allocSmallStruct(block, (clssPo) label, NormalCellCount(arity));
 
         for (int32 ix = 0; ix < arity; ix++) {
@@ -1396,6 +1417,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Closure: {
         int32 key = code[pc].fst;
 
+        spillStack(block,0);
         armReg term = allocSmallStruct(block, closureClass, ClosureCellCount);
 
         armReg tmp = findFreeReg(jit);
@@ -1418,8 +1440,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 locKey = code[pc].fst;
         armReg loc = findFreeReg(jit);
         loadConstant(jit, locKey, loc);
-        int32 npc = pc+1;
-        spillStack(block);
+        int32 npc = pc + 1;
+        spillStack(block, 0);
         stash(block);
         switch (code[npc].op) {
           case Abort: {
