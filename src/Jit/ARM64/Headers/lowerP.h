@@ -54,7 +54,6 @@ typedef struct {
   int32 argPnt;
   int32 stackPnt;
   int32 vTop;
-  int32 stackDepth;
 } ValueStack, *valueStackPo;
 
 typedef struct jitBlock_ *jitBlockPo;
@@ -103,21 +102,21 @@ void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 void dumpStack(valueStackPo stack);
-int32 trueStackDepth(jitBlockPo block);
-void setStackDepth(jitBlockPo block, int32 depth);
+int32 trueStackDepth(valueStackPo stack);
+void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
 void mergeBlockStacks(jitBlockPo parent, jitBlockPo block);
 
-void pushBlank(jitBlockPo block);
-void pushValue(jitBlockPo block, LocalEntry var);
-void pushRegister(jitBlockPo block, armReg rg);
-armReg popValue(jitBlockPo block);
-armReg topValue(jitBlockPo block);
-void dropValue(jitBlockPo block);
-void dropValues(jitBlockPo block, int32 count);
-void spillLocals(jitBlockPo block);
-void spillCallArgs(jitBlockPo block, int32 arity);
-void spillStack(jitBlockPo block, int32 arity);
+void pushBlank(valueStackPo stack);
+void pushValue(valueStackPo stack, LocalEntry var);
+void pushRegister(valueStackPo stack, armReg rg);
+armReg popValue(valueStackPo stack, jitCompPo jit);
+armReg topValue(jitCompPo jit, valueStackPo stack);
+void dropValue(valueStackPo stack, jitCompPo jit);
+void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
+void spillLocals(valueStackPo stack, jitCompPo jit);
+void spillStack(valueStackPo stack, jitCompPo jit, int32 arity);
 void frameOverride(jitBlockPo block, int arity);
+void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry);
 
 localVarPo argSlot(valueStackPo stack, int32 slot);
 localVarPo localSlot(valueStackPo stack, int32 slot);
