@@ -90,10 +90,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
   for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
 #ifdef TRACEJIT
-    if (traceJit >= detailedTracing) {
+    if (traceJit >= generalTracing) {
       disass(logFile, Null, jit->mtd, &code[pc]);
       outMsg(logFile, "\n%_");
-      // dRegisterMap(jit->freeRegs);
+    }
+    if (traceJit >= detailedTracing) {
+      dRegisterMap(jit->freeRegs);
+      outMsg(logFile, "vTop = %d\n%_",stack->vTop);
     }
 #endif
 
@@ -375,12 +378,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 blockLen = code[pc].alt;
         codeLblPo brkLbl = newLabel(ctx);
 
+        int32 exitHeight = code[pc].fst;
         JitBlock subBlock = {
           .jit = block->jit,
           .startPc = pc,
           .breakLbl = brkLbl,
           .loopLbl = here(),
-          .exitHeight = (code[pc].fst),
+          .exitHeight = exitHeight,
           .parent = block,
           .stack = block->stack,
         };
@@ -389,6 +393,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         pc += blockLen; // Skip over the block
         bind(brkLbl);
+        block->stack.vTop = exitHeight;
+        spillStack(&subBlock.stack, jit, exitHeight);
+
         mergeBlockStacks(block, &subBlock);
 
 #ifdef TRACEJIT
@@ -414,6 +421,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo tgt = loopLabel(tgtBlock);
         assert(tgt != Null);
         setStackDepth(stack, jit, code[tgtBlock->startPc].fst);
+        restoreStackState(tgtBlock,stack);
         b(tgt);
         continue;
       }
@@ -424,7 +432,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Dup: {
         // duplicate top of stack
-        armReg tgt = topValue(jit, stack);
+        armReg tgt = topValue(stack, jit);
         pushRegister(stack, tgt);
         continue;
       }
@@ -572,7 +580,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case TL: {
         // copy tos to local[xx]
         int32 lclNo = code[pc].fst;
-        armReg vl = topValue(jit, stack);
+        armReg vl = topValue(stack, jit);
         storeLocal(jit, vl, -lclNo);
         setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo});
         releaseReg(jit, vl);
@@ -641,7 +649,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case TG: {
         // copy into a global variable
         armReg glb = findFreeReg(jit);
-        armReg vl = popValue(stack, jit);
+        armReg vl = topValue(stack, jit);
 
         globalPo glbVr = findGlobalVar(code[pc].fst);
 
@@ -713,7 +721,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case TSav: {
         armReg sng = popValue(stack, jit);
-        armReg val = topValue(jit, stack);
+        armReg val = topValue(stack, jit);
 
         codeLblPo ok = newLabel(ctx);
         armReg cont = findFreeReg(jit);
@@ -1472,20 +1480,20 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           }
           case OCall:
           case XOCall: {
-            armReg lbl = topValue(jit, stack);
+            armReg lbl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) ocallDebug, 4, RG(PR), IM(code[npc].op), RG(loc),
                                 RG(lbl));
             releaseReg(jit, lbl);
             break;
           }
           case Ret: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case XRet: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) xretDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
@@ -1495,25 +1503,25 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
             break;
           }
           case Fiber: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) fiberDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Suspend: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) suspendDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Resume: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) resumeDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
           }
           case Retire: {
-            armReg vl = topValue(jit, stack);
+            armReg vl = topValue(stack, jit);
             ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retireDebug, 3, RG(PR), RG(loc), RG(vl));
             releaseReg(jit, vl);
             break;
