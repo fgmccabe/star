@@ -69,7 +69,7 @@ armReg popValue(valueStackPo stack, jitCompPo jit) {
   }
 }
 
-armReg topValue(jitCompPo jit, valueStackPo stack) {
+armReg topValue(valueStackPo stack, jitCompPo jit) {
   assemCtxPo ctx = assemCtx(jit);
   check(stack->vTop>0, "Insufficient stack depth for pop stack");
   localVarPo var = stackSlot(stack, 0);

@@ -105,12 +105,13 @@ void dumpStack(valueStackPo stack);
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
 void mergeBlockStacks(jitBlockPo parent, jitBlockPo block);
+void restoreStackState(jitBlockPo block, valueStackPo stack);
 
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);
 armReg popValue(valueStackPo stack, jitCompPo jit);
-armReg topValue(jitCompPo jit, valueStackPo stack);
+armReg topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
 void spillLocals(valueStackPo stack, jitCompPo jit);
