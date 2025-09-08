@@ -278,15 +278,13 @@ ReturnStatus run(enginePo P) {
         termPo retVal = *SP; /* return value */
 
         assert(FP > baseFrame(STK));
-
         PROG = FP->prog;
         ARGS = FP->args;
         PC = FP->link - 1;
         FP--;
 
         PC += PC->alt + 1;
-
-        SP = &arg(argCount(PROG)); // Just above arguments to current call
+        SP = &local(lclCount(PROG) + PC->fst-1);
         PC += PC->alt + 1;
 
         push(retVal); /* push return value */
