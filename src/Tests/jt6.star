@@ -27,6 +27,8 @@ test.jt6{
     };
 
     show map(dbl,L);
+
+    assert map(dbl,L) == [2,4,6,8,10,12,14,16,18];
     valis ()
   }
 
