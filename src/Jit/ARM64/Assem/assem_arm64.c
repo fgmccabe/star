@@ -11,6 +11,8 @@
 
 #ifdef TRACEASSEM
 #define TRACE(Op) { if(traceAssem>noTracing) Op; }
+#else
+#define TRACE(Op)
 #endif
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
