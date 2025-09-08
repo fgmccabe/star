@@ -64,7 +64,7 @@ typedef struct jitBlock_ {
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
-  ValueStack stack;
+  valueStackPo stack;
   jitBlockPo parent;
 } JitBlock;
 
@@ -104,8 +104,6 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 void dumpStack(valueStackPo stack);
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
-void mergeBlockStacks(jitBlockPo parent, jitBlockPo block);
-void restoreStackState(jitBlockPo block, valueStackPo stack);
 
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
@@ -115,7 +113,7 @@ armReg topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
 void spillLocals(valueStackPo stack, jitCompPo jit);
-void spillStack(valueStackPo stack, jitCompPo jit, int32 arity);
+void spillStack(valueStackPo stack, jitCompPo jit);
 void frameOverride(jitBlockPo block, int arity);
 void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry);
 
