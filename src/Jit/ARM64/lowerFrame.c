@@ -46,11 +46,11 @@ retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop) {
   if (lbl != Null) {
     if (keepTop) {
       int32 tgtOff = tgtBlock->exitHeight;
-      if (tgtOff != block->stack.vTop) {
+      if (tgtOff != block->stack->vTop) {
         // already at the right height?
-        LocalEntry top = *stackSlot(&block->stack,0);
-        block->stack.vTop = tgtOff;
-        block->stack.local[tgtOff - 1] = top;
+        LocalEntry top = *stackSlot(block->stack,0);
+        block->stack->vTop = tgtOff;
+        block->stack->local[tgtOff - 1] = top;
       }
     }
 

@@ -184,7 +184,7 @@ void spillLocals(valueStackPo stack, jitCompPo jit) {
   }
 }
 
-void spillStack(valueStackPo stack, jitCompPo jit, int32 arity) {
+void spillStack(valueStackPo stack, jitCompPo jit) {
   spillLocals(stack, jit);
 
   for (int32 v = 0; v < stack->vTop; v++) {
@@ -230,79 +230,18 @@ void spillStack(valueStackPo stack, jitCompPo jit, int32 arity) {
   }
 }
 
-void mergeBlockStacks(jitBlockPo parent, jitBlockPo block) {
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(jit);
-
-  setStackDepth(&parent->stack, jit, parent->exitHeight);
-
-  int32 vTop = parent->stack.vTop = min(block->stack.vTop, parent->stack.vTop);
-  for (int32 i = 0; i < vTop; i++) {
-    localVarPo blockVar = stackSlot(&block->stack, i);
-    localVarPo parentVar = stackSlot(&parent->stack, i);
-    switch (blockVar->kind) {
-      case isLocal:
-      case inStack: {
-        switch (parentVar->kind) {
-          case isLocal:
-          case inStack: {
-            if (blockVar->stkOff != parentVar->stkOff) {
-              armReg tmp = findFreeReg(jit);
-              loadLocal(jit, tmp, blockVar->stkOff);
-              storeLocal(jit, tmp, parentVar->stkOff);
-              releaseReg(jit, tmp);
-            }
-            continue;
-          }
-          case inRegister: {
-            loadLocal(jit, parentVar->Rg, blockVar->stkOff);
-            continue;
-          }
-          default: {
-            *parentVar = *blockVar;
-            continue;
-          }
-        }
-      }
-      case inRegister: {
-        switch (parentVar->kind) {
-          case isLocal:
-          case inStack: {
-            storeLocal(jit, blockVar->Rg, parentVar->stkOff);
-            releaseReg(jit, blockVar->Rg);
-            continue;
-          }
-          case inRegister: {
-            if (parentVar->Rg != blockVar->Rg) {
-              mov(parentVar->Rg, RG(blockVar->Rg));
-              releaseReg(jit, blockVar->Rg);
-            }
-            continue;
-          }
-          default: {
-            *parentVar = *blockVar;
-            continue;
-          }
-        }
-      }
-      default: {
-        *parentVar = *blockVar;
-      }
-    }
-  }
-}
-
 // Put the top arity elements of the stack over caller
 
 void frameOverride(jitBlockPo block, int arity) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
+  valueStackPo stack = block->stack;
 
   armReg tgt = findFreeReg(jit);
   add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
 
   for (int32 i = 0; i < arity; i++) {
-    localVarPo var = stackSlot(&block->stack, i);
+    localVarPo var = stackSlot(stack, i);
     switch (var->kind) {
       case inRegister: {
         armReg vrReg = var->Rg;
@@ -332,8 +271,8 @@ void frameOverride(jitBlockPo block, int arity) {
   }
 
   // Release any tied up registers
-  for (int32 i = 0; i < block->stack.vTop - arity; i++) {
-    localVarPo var = stackSlot(&block->stack, i);
+  for (int32 i = 0; i < stack->vTop - arity; i++) {
+    localVarPo var = stackSlot(stack, i);
     switch (var->kind) {
       case inRegister: {
         releaseReg(jit, var->Rg);
