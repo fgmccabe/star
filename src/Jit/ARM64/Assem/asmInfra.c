@@ -108,8 +108,8 @@ void initAssem() {
       installMsgProc('R', showArmReg);
       installMsgProc('X', showAssemLbl);
     }
-  }
 #endif
+  }
 }
 
 assemCtxPo createCtx() {
