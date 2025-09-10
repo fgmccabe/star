@@ -30,7 +30,6 @@ typedef struct verify_context_ {
   int32 limit;
   int32 exitDepth;
   verifyCtxPo propagated; // Where have we propagated to?
-  logical tryBlock; // Is this from a Try block?
   varPo locals;
   int32 lclCount;
   verifyCtxPo parent;
@@ -39,7 +38,7 @@ typedef struct verify_context_ {
 } VerifyContext;
 
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
-static retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx,
+static retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx,
                            int32 currDepth, int32 exitDepth);
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
@@ -62,10 +61,9 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     .locals = locals,
     .lclCount = lclCnt,
     .propagated = Null,
-    .tryBlock = False
   };
 
-  return verifyBlock(0, 0, codeSize(mtd), False, &mtdCtx, 0, 1);
+  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, 0, 1);
 }
 
 static void propagateVars(verifyCtxPo ctx, verifyCtxPo tgtCtx) {
@@ -99,8 +97,7 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyCtxPo parentCtx,
-                    int32 currDepth, int32 exitDepth) {
+retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, int32 currDepth, int32 exitDepth) {
   int32 stackDepth = currDepth;
   insPo code = parentCtx->mtd->instructions;
 
@@ -123,7 +120,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
     .locals = locals,
     .lclCount = lclCnt,
     .propagated = Null,
-    .tryBlock = tryBlock
   };
 
   while (pc < limit) {
@@ -296,10 +292,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
       case Ret:
       case XRet: {
         if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc-1);
+          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc - 1);
 
         if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack for return: %d", pc-1, stackDepth);
+          return verifyError(&ctx, ".%d: insufficient args on stack for return: %d", pc - 1, stackDepth);
         propagateVars(&ctx, parentCtx);
         return Ok; // No merge of locals here
       }
@@ -308,7 +304,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, logical tryBlock, verifyC
         int32 blockLen = code[pc].alt;
         pc++;
 
-        if (verifyBlock(pc - 1, pc, pc + blockLen, False, &ctx, stackDepth, exitDepth) == Ok) {
+        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, exitDepth) == Ok) {
           stackDepth = exitDepth;
           pc += blockLen;
           continue;
