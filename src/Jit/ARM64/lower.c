@@ -39,17 +39,17 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     .jit = jit,
     .startPc = 0, .breakLbl = Null, .loopLbl = Null, .parent = Null,
     .exitHeight = 0,
-    .stack = &stack
+    .stack = stack, .propagated = False
   };
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    stack.local[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax};
+    stack.local[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
   }
   for (int32 lx = 1; lx <= lclCount(mtd); lx++) {
-    stack.local[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx};
+    stack.local[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = False};
   }
   for (int32 i = 0; i < stack.stackPnt; i++) {
-    stack.local[i] = (LocalEntry){.kind = isConstant, .key = voidIndex, .stkOff = i - stack.stackPnt};
+    stack.local[i] = (LocalEntry){.kind = isConstant, .key = voidIndex, .stkOff = i - stack.stackPnt, .inited = False};
   }
 
   return jitBlock(&block, entryPoint(mtd), 0, codeSize(mtd));
@@ -70,7 +70,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
   JitBlock block = {
     .jit = jit,
     .startPc = 0, .breakLbl = Null, .loopLbl = Null, .parent = Null,
-    .stack = &stack
+    .stack = stack, .propagated = False
   };
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
@@ -90,7 +90,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
   retCode ret = Ok;
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
-  valueStackPo stack = block->stack;
+  valueStackPo stack = &block->stack;
 
   for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
 #ifdef TRACEJIT
@@ -100,7 +100,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
     }
     if (traceJit >= detailedTracing) {
       dRegisterMap(jit->freeRegs);
-      outMsg(logFile, "vTop = %d\n%_",stack->vTop);
+      outMsg(logFile, "vTop = %d\n%_", stack->vTop);
     }
 #endif
 
@@ -108,9 +108,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Halt: {
         // Stop execution
         ExitCode errCode = (ExitCode) code[pc].fst;
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(errCode));
-
-        return ret; // We don't merge stacks after a halt
+        return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(errCode));
       }
       case Abort: {
         // abort with message
@@ -118,11 +116,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         loadConstant(jit, code[pc].fst, codeReg);
         armReg val = popValue(stack, jit);
         stash(block);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(codeReg), RG(val));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(codeReg), RG(val));
         releaseReg(jit, codeReg);
         releaseReg(jit, val);
-
-        return ret; // We don't merge stacks after an abort
+        return ret;
       }
       case Call: {
         int32 key = code[pc].fst;
@@ -353,7 +350,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         sub(FP, FP, IM(sizeof(StackFrame)));
         mov(X0, IM(Normal));
         br(X16);
-        continue;
+
+        return ret;
       }
       case XRet: {
         // exception return
@@ -374,8 +372,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         sub(FP, FP, IM(sizeof(StackFrame)));
         mov(X0, IM(Abnormal));
         br(X16);
-        setStackDepth(stack, jit, 0);
-        continue;
+
+        return ret;
       }
       case Block: {
         // block of instructions
@@ -391,14 +389,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           .exitHeight = exitHeight,
           .parent = block,
           .stack = block->stack,
+          .propagated = False
         };
 
         ret = jitBlock(&subBlock, code, pc + 1, pc + blockLen + 1);
-
+        propagateStack(&subBlock);
         pc += blockLen; // Skip over the block
         bind(brkLbl);
-        setStackDepth(stack, jit, exitHeight);
-        spillStack(stack, jit);
 
 #ifdef TRACEJIT
         if (traceJit)
@@ -409,11 +406,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Break: {
         // leave block
+        propagateStack(block);
         ret = breakOut(block, code, pc + code[pc].alt + 1, False);
         continue;
       }
       case Result: {
         // return value out of block
+        propagateStack(block);
         ret = breakOut(block, code, pc + code[pc].alt + 1, True);
         continue;
       }
@@ -523,7 +522,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         br(X16);
         releaseReg(jit, evt);
         releaseReg(jit, stk);
-        continue;
+
+        return ret;
       }
       case Underflow: {
         // underflow from current stack
@@ -680,6 +680,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
         codeLblPo skip = newLabel(ctx);
 
+        propagateStack(block);
         cbnz(sng, skip);
         ret = breakOut(block, code, pc + code[pc].alt + 1, False);
         bind(skip);
@@ -783,6 +784,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         beq(ok);
 
         bind(fail);
+        propagateStack(block);
         ret = breakOut(block, code, pc + code[pc].alt + 1, False);
 
         bind(ok);
@@ -795,6 +797,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case CChar:
       case CFlt: {
         armReg st = popValue(stack, jit);
+
         integer lit = (integer) getConstant(code[pc].fst);
         if (is12bit(lit))
           cmp(st, IM(lit));
@@ -805,6 +808,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           releaseReg(jit, lt);
         }
         releaseReg(jit, st);
+        propagateStack(block);
         ret = breakOutNe(block, code, pc + code[pc].alt + 1);
         continue;
       }
@@ -815,11 +819,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg lit = findFreeReg(jit);
         loadConstant(jit, key, lit);
         armReg vl = popValue(stack, jit);
-        spillStack(stack, jit);
+
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(lit), RG(vl));
         unstash(jit);
         tst(X0, RG(X0));
+        propagateStack(block);
         ret = breakOutEq(block, code, pc + code[pc].alt + 1);
         releaseReg(jit, vl);
         releaseReg(jit, lit);
@@ -851,6 +856,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
+        propagateStack(block);
         ret = breakOutEq(block, code, pc + code[pc].alt + 1);
         continue;
       }
@@ -862,6 +868,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         cmp(vl, RG(tr));
         releaseReg(jit, tr);
         releaseReg(jit, vl);
+        propagateStack(block);
         ret = breakOutNe(block, code, pc + code[pc].alt + 1);
         continue;
       }
@@ -992,6 +999,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         cbnz(a2, skip);
 
         loadConstant(jit, divZeroIndex, a2);
+        propagateStack(block);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
@@ -1018,6 +1026,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         cbnz(divisor, skip);
 
         loadConstant(jit, divZeroIndex, divisor);
+        propagateStack(block);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
@@ -1288,6 +1297,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         cbnz(a2, skip);
 
         loadConstant(jit, divZeroIndex, a2);
+        propagateStack(block);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
@@ -1317,6 +1327,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo skip = newLabel(ctx);
         cbnz(a2, skip);
 
+        propagateStack(block);
         loadConstant(jit, divZeroIndex, a2);
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
@@ -1630,7 +1641,7 @@ void pshFrame(jitBlockPo block, armReg mtdRg) {
   assemCtxPo ctx = assemCtx(jit);
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
   str(AG, OF(FP, OffsetOf(StackFrame, args)));
-  sub(AG, AG, IM(trueStackDepth(block->stack)*pointerSize));
+  sub(AG, AG, IM(trueStackDepth(&block->stack)*pointerSize));
   armReg tmp = findFreeReg(jit);
   ldr(tmp, OF(STK, OffsetOf(StackRecord, prog)));
   str(tmp, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing

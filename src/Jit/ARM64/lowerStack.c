@@ -32,7 +32,7 @@ localVarPo argSlot(valueStackPo stack, int32 slot) {
 }
 
 int32 trueStackDepth(valueStackPo stack) {
-  return stack->argPnt-stack->stackPnt+stack->vTop;
+  return stack->argPnt - stack->stackPnt + stack->vTop;
 }
 
 armReg popValue(valueStackPo stack, jitCompPo jit) {
@@ -185,11 +185,9 @@ void spillLocals(valueStackPo stack, jitCompPo jit) {
 }
 
 void spillStack(valueStackPo stack, jitCompPo jit) {
-  spillLocals(stack, jit);
-
   for (int32 v = 0; v < stack->vTop; v++) {
     localVarPo var = stackSlot(stack, v);
-    int32 stkOff = -(stack->argPnt-stack->stackPnt+stack->vTop-v);
+    int32 stkOff = -(stack->argPnt - stack->stackPnt + stack->vTop - v);
 
     switch (var->kind) {
       case isLocal: {
@@ -235,7 +233,7 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
 void frameOverride(jitBlockPo block, int arity) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
-  valueStackPo stack = block->stack;
+  valueStackPo stack = &block->stack;
 
   armReg tgt = findFreeReg(jit);
   add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
@@ -410,4 +408,46 @@ void dumpStack(valueStackPo stack) {
     outStr(logFile, "\n");
   }
   flushOut();
+}
+
+retCode propagateStack(jitBlockPo block) {
+  jitBlockPo tgtBlock = block->parent;
+
+  check(tgtBlock!=Null, "parent of block must not be null");
+
+  if (tgtBlock != Null) {
+    valueStackPo tgtStack = &tgtBlock->stack;
+    valueStackPo srcStack = &block->stack;
+    jitCompPo jit = tgtBlock->jit;
+
+    if (!tgtBlock->propagated) {
+
+      // Should be a nop at the moment.
+      for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
+        localVarPo var = argSlot(tgtStack, ax);
+        spillVar(jit, tgtStack, var);
+      }
+
+      for (int32 v = 0; v < lclCount(jit->mtd); v++) {
+        localVarPo var = localSlot(srcStack, v);
+        spillVar(jit, tgtStack, var);
+      }
+      int32 minStackEntry = min(tgtStack->vTop, block->exitHeight);
+
+      for (int32 v = 0; v < minStackEntry; v++) {
+        localVarPo var = localSlot(srcStack, v);
+        spillVar(jit, tgtStack, var);
+      }
+
+      setStackDepth(tgtStack, jit, block->exitHeight);
+      tgtBlock->propagated = True;
+    } else {
+      for (int32 v = 0; v < tgtStack->vTop; v++) {
+        localVarPo var = localSlot(srcStack, v);
+        spillVar(jit, tgtStack, var);
+      }
+    }
+    return Ok;
+  }
+  return Error;
 }
