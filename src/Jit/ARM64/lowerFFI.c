@@ -96,7 +96,7 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
 void stash(jitBlockPo block) {
-  stashRegisters(block->jit, trueStackDepth(block->stack));
+  stashRegisters(block->jit, trueStackDepth(&block->stack));
 }
 
 void stashRegisters(jitCompPo jit, int32 stackLevel) {
