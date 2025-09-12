@@ -40,9 +40,17 @@ ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
 
   if (mainMtd != Null) {
     termPo cmdLine = commandLine(h);
+#ifndef NOJIT
     enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
+
     resumeTimer(runTimer);
     ReturnStatus ret = (jitOnLoad?exec(p):run(p));
+#else
+    enginePo p = newEngine(h, False, mainMtd, rootWd, cmdLine);
+
+    resumeTimer(runTimer);
+    ReturnStatus ret = run(p);
+#endif
     pauseTimer(runTimer);
     return ret;
   } else {

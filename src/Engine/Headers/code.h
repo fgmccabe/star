@@ -25,6 +25,8 @@ int32 codeSize(methodPo mtd);
 logical validPC(methodPo mtd, insPo pc);
 int32 codeOffset(methodPo mtd, insPo pc);
 
+#ifndef NOJIT
 logical hasJitCode(methodPo mtd);
+#endif
 
 #endif

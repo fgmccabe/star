@@ -4,7 +4,7 @@ project(jit)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 if (NOT DEFINED JIT_ARCH)
-    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
+  string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
 endif ()
 
 add_subdirectory(${JIT_ARCH})
@@ -31,3 +31,4 @@ set(JIT_SOURCE_FILES jit.c jitInfra.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})
+

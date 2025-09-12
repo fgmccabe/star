@@ -87,7 +87,9 @@ int main(int argc, char **argv) {
   initFuture();
   initClosure();
   initCell();
+#ifndef NOJIT
   initJit();
+#endif
   initCode();
   initTerm();
   initStacks();

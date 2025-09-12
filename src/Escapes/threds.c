@@ -35,8 +35,11 @@ void *forkThread(void *arg) {
 ReturnStatus g__fork(enginePo P) {
   labelPo fn = C_LBL(popVal(P));
   heapPo h = processHeap(P);
+#ifndef NOJIT
   enginePo np = newEngine(h, jitOnLoad, labelMtd(fn), P->wd, unitEnum);
-
+#else
+  enginePo np = newEngine(h, False, labelMtd(fn), P->wd, unitEnum);
+#endif
   threadPo thread = newThread(np, globalHeap);
 
   pthread_attr_t detach;

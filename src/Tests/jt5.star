@@ -30,7 +30,8 @@ test.jt5{
       _jit_compile("#(__pkg__)@dbl",1);
       _jit_compile("#(__pkg__)@dbl^",2);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     show "lift A=$(lift(A,dbl))";

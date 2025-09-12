@@ -100,6 +100,13 @@ set(SOURCE_FILES
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star escapes infra ooio jit)
+if (NOT DEFINED NOJIT)
+  SET(JIT jit)
+else()
+  target_compile_definitions(star PUBLIC NOJIT)
+  SET(JIT )
+endif()
+
+target_link_libraries(star escapes infra ooio ${JIT})
 
 install(TARGETS star DESTINATION bin)

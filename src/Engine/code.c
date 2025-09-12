@@ -117,10 +117,12 @@ int32 codeOffset(methodPo mtd, insPo pc) {
   if (pc >= instructions && pc < instructions + mtd->insCount) {
     return (int32) (pc - instructions);
   }
+#ifndef NOJIT
   void *address = pc;
   void *jitCode = (void *) mtd->jit.code;
   if (address >= jitCode && address < jitCode + mtd->jit.codeSize)
     return (int32) (address - jitCode);
+#endif
   return -1;
 }
 
@@ -128,9 +130,11 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
   return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
 
+#ifndef NOJIT
 logical hasJitCode(methodPo mtd) {
   return (logical) (mtd->jit.code != Null);
 }
+#endif
 
 packagePo loadedPackage(const char *package) {
   return (packagePo) hashGet(packages, (void *) package);
@@ -202,8 +206,10 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   mtd->clss.clss = methodClass;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
+#ifndef NOJIT
   mtd->jit.code = Null;
   mtd->jit.codeSize = 0;
+#endif
   mtd->lbl = lbl;
   mtd->lclcnt = lclCount;
   mtd->stackDelta = stackLimit;
@@ -220,6 +226,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
 
   methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stackEntry, lbl);
 
+#ifndef NOJIT
   char errMsg[MAXLINE];
   retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
   if (ret != Ok) {
@@ -227,13 +234,16 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
     strMsg(msg,NumberOf(msg),"could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
     syserr(msg);
   }
+#endif
 
   return lbl;
 }
 
+#ifndef NOJIT
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize) {
   assert(!hasJit(mtd));
   mtd->jit.code = code;
   mtd->jit.codeSize = codeSize;
   return Ok;
 }
+#endif

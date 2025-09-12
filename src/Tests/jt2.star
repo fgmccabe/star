@@ -18,7 +18,8 @@ test.jt2{
     try{
       _jit_compile("#(__pkg__)@fib",1);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     timer2 = ref timer_start(((V::float)**2.0)::integer, "jit fib");

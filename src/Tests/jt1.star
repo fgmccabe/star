@@ -13,7 +13,8 @@ test.jt1{
     try{
       _jit_compile("test.jt1@fct",1);
     } catch {
-      Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     assert fct(4)==24;

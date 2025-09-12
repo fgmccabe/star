@@ -10,6 +10,7 @@
 #include "arith.h"
 #include "escape.h"
 
+#ifndef NOJIT
 ReturnStatus g__jit_compile(enginePo P) {
   stringPo mtdName = C_STR(popVal(P));
   integer mLen = strLength(mtdName) + 1;
@@ -41,3 +42,11 @@ ReturnStatus g__jit_compile(enginePo P) {
     return Normal;
   }
 }
+#else
+ReturnStatus g__jit_compile(enginePo P) {
+  popVal(P); // Drop arity & method name
+  popVal(P);
+  pshVal(P, eNOPERM);
+  return Abnormal;
+}
+#endif

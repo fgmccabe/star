@@ -22,7 +22,8 @@ test.jt9{
       _jit_compile("#(__pkg__)@Γ_0@H",1);
       _jit_compile("#(__pkg__)@there",1);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     assert there("world") == "hello world";

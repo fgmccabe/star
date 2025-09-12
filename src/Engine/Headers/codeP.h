@@ -20,7 +20,9 @@ typedef struct instruction_ {
 
 typedef struct method_ {
   ClassRecord clss;   // == specialClass
+#ifndef NOJIT
   CodeBlock jit;      // Jit'ed code
+#endif
   labelPo lbl;        // The label of this code
   int32 lclcnt;       // How many locals in the environment
   int32 stackDelta;   // How much space to allocate for the stack
@@ -44,6 +46,7 @@ static inline int32 argCount(methodPo mtd) {
   return lblArity(mtd->lbl);
 }
 
+#ifndef NOJIT
 static inline logical hasJit(methodPo mtd) {
   assert(mtd != Null);
   return mtd->jit.code != Null;
@@ -54,9 +57,10 @@ static inline jittedCode jitCode(methodPo mtd) {
   return mtd->jit.code;
 }
 
-static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
-
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
+#endif
+
+static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 

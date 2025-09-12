@@ -9,15 +9,9 @@ find_package(FLEX)
 add_subdirectory("UnicodeStuff")
 add_subdirectory("UnitTests")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
-
-if (NOT DEFINED JIT_ARCH)
-    string(TOUPPER "${CMAKE_HOST_SYSTEM_PROCESSOR}" JIT_ARCH)
-endif ()
-
-add_subdirectory(${JIT_ARCH})
-
 include_directories("../Headers" "Headers")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
 set(UNITABLE.C ${CMAKE_CURRENT_BINARY_DIR}/unitable.c)
 set(UNICODE ${CMAKE_CURRENT_SOURCE_DIR}/UnicodeStuff/UnicodeData.txt)

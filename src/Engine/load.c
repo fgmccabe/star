@@ -409,8 +409,10 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             if (enableVerify)
               ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
+#ifndef NOJIT
             if (ret == Ok && jitOnLoad)
               ret = jitMethod(mtd, errorMsg, msgSize);
+#endif
           }
         }
       }
