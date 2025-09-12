@@ -124,6 +124,7 @@ void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
     dropValue(stack, jit);
 }
 
+
 void dropValue(valueStackPo stack, jitCompPo jit) {
   localVarPo var = stackSlot(stack, 0);
   switch (var->kind) {
@@ -413,15 +414,12 @@ void dumpStack(valueStackPo stack) {
 retCode propagateStack(jitBlockPo block) {
   jitBlockPo tgtBlock = block->parent;
 
-  check(tgtBlock!=Null, "parent of block must not be null");
-
   if (tgtBlock != Null) {
     valueStackPo tgtStack = &tgtBlock->stack;
     valueStackPo srcStack = &block->stack;
     jitCompPo jit = tgtBlock->jit;
 
     if (!tgtBlock->propagated) {
-
       // Should be a nop at the moment.
       for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
         localVarPo var = argSlot(tgtStack, ax);
@@ -447,7 +445,6 @@ retCode propagateStack(jitBlockPo block) {
         spillVar(jit, tgtStack, var);
       }
     }
-    return Ok;
   }
-  return Error;
+  return Ok;
 }

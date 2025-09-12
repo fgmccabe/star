@@ -55,6 +55,13 @@ static integer inline maximum(integer a, integer b) {
     return b;
 }
 
+static int32 inline max(int32 a, int32 b) {
+  if (a > b)
+    return a;
+  else
+    return b;
+}
+
 static integer inline clamp(integer min, integer ix, integer max) {
   if (ix < min)
     return min;
