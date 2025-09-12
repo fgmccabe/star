@@ -335,6 +335,7 @@ static retCode setPkgMain(char *option, OptionAction action) {
 }
 
 static retCode setUseJit(char *option, OptionAction action) {
+#ifndef NOJIT
   switch (action) {
     case enable:
       jitOnLoad = True;
@@ -346,6 +347,9 @@ static retCode setUseJit(char *option, OptionAction action) {
       jitOnLoad = !jitOnLoad;
       break;
   }
+#else
+  return Error;
+#endif
   return Ok;
 }
 

@@ -14,7 +14,7 @@ typedef struct single_rec_ {
   termPo content;               // Contents
 } SingleRecord;
 
-clssPo singleClass;
+extern clssPo singleClass;
 
 #define SingleCellCount CellCount(sizeof(SingleRecord))
 

@@ -48,3 +48,8 @@ set(SOURCE_FILES
         meta.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})
+
+if (DEFINED NOJIT)
+  target_compile_definitions(escapes PUBLIC NOJIT)
+endif()
+

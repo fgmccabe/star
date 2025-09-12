@@ -160,7 +160,6 @@ logical sameTerm(termPo t1, termPo t2) {
         if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
           return False;
       }
-      __attribute__((musttail))
       return sameTerm(lastArg(n1), lastArg(n2));
     }
   }

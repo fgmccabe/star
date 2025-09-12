@@ -6,7 +6,11 @@ add_subdirectory("Escapes")
 add_subdirectory("BootCompiler")
 add_subdirectory("Infra")
 add_subdirectory("Engine")
-add_subdirectory("Jit")
+
+if (NOT DEFINED NOJIT)
+  add_subdirectory("Jit")
+endif()
+
 #add_subdirectory("Star")
 add_subdirectory("Compiler")
 add_subdirectory("Tests")

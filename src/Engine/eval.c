@@ -77,6 +77,7 @@ ReturnStatus run(enginePo P) {
         PROG = mtd;
         ARGS = SP;
 
+#ifndef NOJIT
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
           if (traceJit) {
@@ -100,9 +101,9 @@ ReturnStatus run(enginePo P) {
             logMsg(logFile, "invalid return from %L", nProg);
             bail();
           }
-        } else {
+        } else
+#endif
           PC = entryPoint(mtd);
-        }
         continue;
       }
 
@@ -1077,6 +1078,7 @@ ReturnStatus run(enginePo P) {
   }
 }
 
+#ifndef NOJIT
 // Directly enter jitted code
 ReturnStatus exec(enginePo P) {
   stackPo STK = P->stk;
@@ -1090,3 +1092,4 @@ ReturnStatus exec(enginePo P) {
 
   return invokeJitMethod(P, PROG);
 }
+#endif

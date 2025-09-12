@@ -150,7 +150,8 @@ test.jt8{
       _jit_compile("#(__pkg__)@flt",2);
       _jit_compile("#(__pkg__)@fge",2);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     assert isEven(2);

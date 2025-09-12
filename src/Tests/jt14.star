@@ -53,7 +53,8 @@ test.jt14{
       _jit_compile("#(__pkg__)@concat",2);
       _jit_compile("#(__pkg__)@conc",2);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
     logM(dispTree(Itree,dInt));
 

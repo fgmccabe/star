@@ -30,7 +30,8 @@ test.jt7{
       _jit_compile("#(__pkg__)@doGlb",0);
       _jit_compile("#(__pkg__)@conc",2);
     } catch {
-      X => showMsg("$(X)")
+      | .eNOPERM => showMsg("JIT not enabled")
+      | Cde => showMsg("We got errr: $(Cde)")
     };
 
     doGlb();
