@@ -21,6 +21,7 @@ def main(argv):
                                            "help",
                                            "tester=",
                                            "all",
+					   "filter=",
                                            "ignore-failures",
                                            "tracing"])
     except getopt.GetoptError as e:
@@ -41,6 +42,12 @@ def main(argv):
                 
                 for pk in catalog["content"]:
                     pkgs.append(pk)
+        elif opt == "--filter":
+            print ("Open ",testDir+'catalog')
+            with open(testDir+'catalog') as cat:
+                catalog = json.load(cat)
+                
+                pkgs = [pk for pk in catalog["content"] if re.search(arg,pk)]
         elif opt == "--ignore-failures":
             ignore_failures = True
         elif opt in ['-d','--tracing']:

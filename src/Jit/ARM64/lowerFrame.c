@@ -37,27 +37,23 @@ retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
   return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
+retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock) {
   codeLblPo lbl = breakLabel(tgtBlock);
-  jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(block->jit);
 
-  if (lbl != Null) {
-    if (keepTop) {
-      int32 tgtOff = tgtBlock->exitHeight;
-      if (tgtOff != block->stack.vTop) {
-        // already at the right height?
-        LocalEntry top = *stackSlot(&block->stack,0);
-        block->stack.vTop = tgtOff;
-        block->stack.local[tgtOff - 1] = top;
-      }
-    }
+  propagateStack(block, tgtBlock);
+  b(lbl);
+  return Ok;
+}
 
-    b(lbl);
-    return Ok;
-  }
-  return jitError(jit, "cannot find target label for %d", tgt);
+codeLblPo getABreakLbl(jitBlockPo block, const int32 pc) {
+  jitBlockPo tgtBlock = block;
+  while (tgtBlock!=Null && tgtBlock->endPc < pc)
+    tgtBlock = tgtBlock->parent;
+  if (tgtBlock!=Null)
+    return tgtBlock->breakLbl;
+  else
+    return Null;
 }
 
 jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt) {

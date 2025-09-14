@@ -130,6 +130,10 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
   return mtdDisp(f, (termPo) data, precision, depth, alt);
 }
 
+int32 lclCount(methodPo mtd) {
+  return mtd->lclcnt;
+}
+
 #ifndef NOJIT
 logical hasJitCode(methodPo mtd) {
   return (logical) (mtd->jit.code != Null);
@@ -231,7 +235,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instruct
   retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
   if (ret != Ok) {
     char msg[MAX_SYMB_LEN];
-    strMsg(msg,NumberOf(msg),"could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
+    strMsg(msg,NumberOf(msg), "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);
     syserr(msg);
   }
 #endif

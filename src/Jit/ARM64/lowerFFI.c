@@ -13,14 +13,13 @@
 #include "engineP.h"
 
 
-retCode testResult(jitBlockPo block, insPo code, int32 tgt) {
+retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo skip = newLabel(ctx);
   cmp(X0, IM(Normal));
   beq(skip);
-  retCode ret = breakOut(block, code, tgt, True);
-
+  retCode ret = breakOut(block, tgtBlock);
   bind(skip);
   return ret;
 }

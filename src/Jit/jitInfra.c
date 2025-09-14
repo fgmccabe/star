@@ -3,7 +3,7 @@
 //
 
 #include "jit.h"
-#include <lower.h>
+#include "lower.h"
 #include "jitP.h"
 
 static poolPo contextPool = Null;
