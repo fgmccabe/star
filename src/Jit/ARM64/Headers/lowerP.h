@@ -62,6 +62,7 @@ typedef struct jitBlock_ *jitBlockPo;
 typedef struct jitBlock_ {
   jitCompPo jit;
   int32 startPc;
+  int32 endPc;
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
@@ -85,12 +86,13 @@ retCode mkFltVal(jitCompPo jit, armReg rg);
 retCode jitError(jitCompPo jit, char *msg, ...);
 
 jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt);
+codeLblPo getABreakLbl(jitBlockPo block, int32 pc);
 codeLblPo breakLabel(jitBlockPo block);
 codeLblPo loopLabel(jitBlockPo block);
 
 retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
-retCode breakOut(jitBlockPo block, insPo code, int32 tgt, logical keepTop);
+retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock);
 
 void stash(jitBlockPo block);
 void stashRegisters(jitCompPo jit, int32 stackLevel);
@@ -106,7 +108,7 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 void dumpStack(valueStackPo stack);
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
-retCode propagateStack(jitBlockPo block);
+retCode propagateStack(jitBlockPo block, jitBlockPo tgtBlock);
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);
@@ -125,7 +127,7 @@ localVarPo stackSlot(valueStackPo stack, int32 slot);
 
 void storeStack(jitCompPo jit, armReg src, int32 depth);
 
-retCode testResult(jitBlockPo block, insPo code, int32 tgt);
+retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
 registerMap criticalRegs();
 
 static inline logical isSmall(termPo x) {

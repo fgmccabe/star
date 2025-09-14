@@ -13,6 +13,7 @@ repoDir = f"{starBuild}/.star-repo/"
 usage = "runtests.py [-t <testpkg>|--all] --tracing --repo <dir>"
 
 tracing = False
+filter = ""
 
 def main(argv):
     global tracing,starExec,sbc,repoDir,testDir,cflags,rflags
@@ -25,7 +26,7 @@ def main(argv):
     compile_failures = []
     run_failures = []
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag=","inline"])
+        opts,args = getopt.getopt(argv,"dhct:",["sc","test=","help","tracing","all","ignore_failures","starexec=","sbc","testdir=","repo=","cflag=","rflag=","inline","filter="])
     except getopt.GetoptError as e:
         print (e.msg)
         sys.exit(2)
@@ -49,6 +50,8 @@ def main(argv):
             starExec = arg
         elif opt=="--sbc":
             compiler=bootCompile
+	elif opt=="--filter":
+	    filter=arg
         elif opt=="--repo":
             repoDir = arg
         elif opt=="--testdir":
@@ -62,6 +65,7 @@ def main(argv):
         elif opt=="--inline":
             cflags = cflags+["-O","inline"]
 
+    pkgs = [ x for x in pkgs if re.search(filter,x) ]
     print ("Run tests on ",pkgs)
     for pkg in pkgs:
         print ("Testing:",pkg)

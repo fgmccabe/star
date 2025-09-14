@@ -60,8 +60,6 @@ static inline jittedCode jitCode(methodPo mtd) {
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
 #endif
 
-static inline int32 lclCount(methodPo mtd) { return mtd->lclcnt; }
-
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl);

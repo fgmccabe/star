@@ -54,8 +54,8 @@ test.jt11{
       _jit_compile("#(__pkg__)@lt",2);
       _jit_compile("#(__pkg__)λ_0",3);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM => logM("JIT not enabled")
+      | Cde => logM(_stringOf(Cde,0))
     };
 
     logM(_int2str(adder(0,10)));
