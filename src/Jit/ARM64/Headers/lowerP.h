@@ -63,6 +63,7 @@ typedef struct jitBlock_ {
   jitCompPo jit;
   int32 startPc;
   int32 endPc;
+  int32 lclCnt;
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
