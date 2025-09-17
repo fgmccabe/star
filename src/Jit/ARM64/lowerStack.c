@@ -432,12 +432,12 @@ retCode propagateStack(jitBlockPo block, jitBlockPo tgtBlock) {
         spillVar(jit, tgtStack, var, ax);
       }
 
-      for (int32 v = 1; v <= lclCount(jit->mtd); v++) {
+      for (int32 v = 1; v <= block->lclCnt; v++) {
         localVarPo var = localSlot(srcStack, v);
         spillVar(jit, tgtStack, var, -v);
       }
       int32 minStackEntry = min(tgtStack->vTop, tgtBlock->exitHeight);
-      int32 slotNo = lclCount(jit->mtd);
+      int32 slotNo = block->lclCnt;
 
       for (int32 v = 1; v <= minStackEntry; v++) {
         localVarPo var = varSlot(srcStack, slotNo++);
@@ -452,7 +452,7 @@ retCode propagateStack(jitBlockPo block, jitBlockPo tgtBlock) {
       tgtBlock->propagated = True;
     } else {
       for (int32 v = 1; v <= tgtStack->vTop; v++) {
-        int32 slotNo = lclCount(jit->mtd) + v;
+        int32 slotNo = block->lclCnt + v;
         localVarPo var = localSlot(srcStack, v);
         spillVar(jit, tgtStack, var, -slotNo);
       }

@@ -50,6 +50,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
   JitBlock block = {
     .jit = jit,
     .startPc = 0, .endPc = codeSize(mtd),
+    .lclCnt = lclCount(mtd),
     .breakLbl = Null, .loopLbl = Null,
     .parent = Null,
     .exitHeight = 0,
@@ -84,6 +85,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
   JitBlock block = {
     .jit = jit,
     .startPc = 0, .endPc = codeSize(mtd), .breakLbl = Null, .loopLbl = Null, .parent = Null,
+    .lclCnt = lclCount(mtd),
     .stack = stack, .propagated = False
   };
 
@@ -96,6 +98,11 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
   assemCtxPo ctx = assemCtx(jit);
   valueStackPo stack = &block->stack;
 
+#ifdef TRACEJIT
+  if (traceJit >= generalTracing) {
+    outMsg(logFile, "Jit block %d -> %d\n", from, endPc);
+  }
+#endif
   for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
 #ifdef TRACEJIT
     if (traceJit >= generalTracing) {
@@ -396,6 +403,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 exitHeight = code[pc].fst;
         JitBlock subBlock = {
           .jit = jit,
+          .lclCnt = block->lclCnt,
           .startPc = pc,
           .endPc = pc + blockLen + 1,
           .breakLbl = brkLbl,
@@ -409,6 +417,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ret = jitBlock(&subBlock, code, pc + 1, pc + blockLen + 1);
         pc += blockLen; // Skip over the block
         bind(brkLbl);
+        setStackDepth(stack, jit, exitHeight);
+        propagateStack(&subBlock,block);
 
 #ifdef TRACEJIT
         if (traceJit)
@@ -1618,9 +1628,14 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         return jitError(jit, "unknown instruction: %s", opNames[code[pc].op]);
     }
   }
+#ifdef TRACEJIT
+  if (traceJit >= generalTracing) {
+    outMsg(logFile, "Non-breaking exit from block %d -> %d\n", from, endPc);
+  }
+#endif
+
   // We only come here if the block does not have a breaking
   setStackDepth(stack, jit, block->exitHeight);
-  propagateStack(block, block);
 
   return ret;
 }
@@ -1722,7 +1737,7 @@ void handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count) {
   for (int ix = 0; ix < count; ix++, pc++) {
     check(code[pc].op==Break, "Expecting a Break instruction");
     jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
-    setStackDepth(&tgtBlock->stack,jit,tgtBlock->exitHeight);
+    setStackDepth(&tgtBlock->stack, jit, tgtBlock->exitHeight);
     codeLblPo lbl = breakLabel(tgtBlock);
     b(lbl);
   }
