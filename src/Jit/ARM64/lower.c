@@ -429,15 +429,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Break: {
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-        spillStack(stack, jit);
+        jitBlockPo tgtBlock = breakBlock(block, code, tgt); 
+        propagateStack(block, tgtBlock);
         return breakOut(block, tgtBlock);
       }
       case Result: {
         // return value out of block
         int32 tgt = pc + code[pc].alt + 1;
         jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-        spillStack(stack, jit);
+        propagateStack(block, tgtBlock);
 
         int32 tgtOff = tgtBlock->exitHeight;
         if (tgtOff != block->stack.vTop) {
@@ -457,6 +457,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         assert(loop != Null);
         setStackDepth(stack, jit, code[tgtBlock->startPc].fst);
         spillStack(stack, jit);
+        propagateStack(block, tgtBlock);
         b(loop);
         return ret;
       }
