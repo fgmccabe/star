@@ -31,10 +31,6 @@ localVarPo argSlot(valueStackPo stack, int32 slot) {
   return &stack->local[stack->argPnt + slot];
 }
 
-static localVarPo varSlot(valueStackPo stack, int32 slot) {
-  return &stack->local[stack->stackPnt - slot];
-}
-
 int32 trueStackDepth(valueStackPo stack) {
   return stack->argPnt - stack->stackPnt + stack->vTop;
 }
@@ -421,96 +417,89 @@ void dumpStack(valueStackPo stack) {
 
 #define combineKind(S,K) ((S)<<3|(K))
 
-static void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
+void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
   assemCtxPo ctx = assemCtx(jit);
-  
-  switch (combineKind(src->kind,dst->kind)) {
-    case combineKind(inStack,inStack):
-    case combineKind(inStack,isLocal):
-    case combineKind(isLocal,inStack):
-    case combineKind(isLocal,isLocal):{
-      if(src->stkOff != dst->stkOff){
+
+  switch (combineKind(src->kind, dst->kind)) {
+    case combineKind(inStack, inStack):
+    case combineKind(inStack, isLocal):
+    case combineKind(isLocal, inStack):
+    case combineKind(isLocal, isLocal): {
+      if (src->stkOff != dst->stkOff) {
         armReg tmp = findFreeReg(jit);
         loadLocal(jit, tmp, src->stkOff);
         storeLocal(jit, dst->stkOff, tmp);
-        releaseReg(jit,tmp);
+        releaseReg(jit, tmp);
       }
       return;
     }
-    case combineKind(inRegister,isLocal):
-    case combineKind(inRegister,inStack):{
+    case combineKind(inRegister, isLocal):
+    case combineKind(inRegister, inStack): {
       storeLocal(jit, src->Rg, dst->stkOff);
       releaseReg(jit, src->Rg);
       return;
     }
-    case combineKind(inRegister,inRegister):{
-      if(src->Rg!=dst->Rg){
-        mov(dst->Rg,RG(src->Rg));
-        releaseReg(jit,src->Rg);
+    case combineKind(inRegister, inRegister): {
+      if (src->Rg != dst->Rg) {
+        mov(dst->Rg, RG(src->Rg));
+        releaseReg(jit, src->Rg);
       }
       return;
     }
-    case combineKind(isConstant,inRegister): {
-      loadConstant(jit,src->key,dst->Rg);
+    case combineKind(isConstant, inRegister): {
+      loadConstant(jit, src->key, dst->Rg);
       return;
     }
 
-    case combineKind(isConstant,inStack):
-    case combineKind(isConstant,isLocal):{
+    case combineKind(isConstant, inStack):
+    case combineKind(isConstant, isLocal): {
       armReg tmp = findFreeReg(jit);
       loadConstant(jit, src->key, tmp);
       storeLocal(jit, tmp, dst->stkOff);
       releaseReg(jit, tmp);
       return;
     }
-      
+
     default: {
       bailOut(jit, errorCode);
     }
   }
 }
 
-retCode propagateStack(jitBlockPo block, jitBlockPo tgtBlock) {
-  if (tgtBlock->parent != Null) {
-    valueStackPo tgtStack = &tgtBlock->parent->stack;
-    valueStackPo srcStack = &block->stack;
-    jitCompPo jit = tgtBlock->jit;
+retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight) {
+  if (!tgtStack->propagated) {
+    // Should be a nop at the moment.
+    for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
+      localVarPo src = argSlot(srcStack, ax);
+      localVarPo dst = argSlot(tgtStack, ax);
+      propagateVar(jit, src, dst);
+    }
 
-    if (!tgtBlock->parent->propagated) {
-      // Should be a nop at the moment.
-      for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
-        localVarPo src = argSlot(srcStack, ax);
-        localVarPo dst = argSlot(dstStack, ax);
-        propagateVar(jit,src,dst);
-      }
+    for (int32 v = 1; v <= srcStack->argPnt - srcStack->stackPnt; v++) {
+      localVarPo src = localSlot(srcStack, v);
+      localVarPo dst = localSlot(tgtStack, v);
+      propagateVar(jit, src, dst);
+    }
 
-      for (int32 v = 1; v <= block->lclCnt; v++) {
-        localVarPo src = localSlot(srcStack, v);
-        localVarPo dst = localSlot(dstStack, v);
-        propagateVar(jit,src,dst);
-      }
+    int32 minStackEntry = min(tgtStack->vTop, tgtHeight);
 
-      int32 minStackEntry = min(tgtStack->vTop, tgtBlock->exitHeight);
+    for (int32 v = minStackEntry; v > 0; v--) {
+      localVarPo src = stackSlot(srcStack, v);
+      localVarPo dst = stackSlot(tgtStack, v);
+      propagateVar(jit, src, dst);
+    }
 
-      for (int32 v = minStackEntry; v > 0; v--) {
-        localVarPo src = stackSlot(srcStack, v);
-        localVarPo dst = stackSlot(dstStack, v);
-        propagateVar(jit,src,dst);
-      }
-
-      for (int32 v = tgtBlock->exitHeight; v > minStackEntry; v--) {
-        localVarPo src = stackSlot(srcStack, v);
-        pushValue(tgtStack, *var);
-      }
-      setStackDepth(tgtStack, jit, tgtBlock->exitHeight);
-      tgtBlock->propagated = True;
-    } else {
-      setStackDepth(srcStack,jit,tgtBlock->exitHeight);
-      for (int32 v = 0; v < tgtStack->vTop; v++) {
-        localVarPo src = localSlot(srcStack, v);
-        localVarPo dst = localSlot(dstStack, v);
-        propagateVar(jit,src,dst);
-      }
+    for (int32 v = tgtHeight; v > minStackEntry; v--) {
+      localVarPo src = stackSlot(srcStack, v - 1);
+      pushValue(tgtStack, *src);
+    }
+    tgtStack->propagated = True;
+  } else {
+    check(srcStack->vTop >= tgtStack->vTop, "Stack depth mismatch");
+    for (int32 v = 0; v < tgtStack->vTop; v++) {
+      localVarPo src = localSlot(srcStack, v);
+      localVarPo dst = localSlot(tgtStack, v);
+      propagateVar(jit, src, dst);
     }
   }
   return Ok;
