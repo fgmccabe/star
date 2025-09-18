@@ -55,6 +55,7 @@ typedef struct {
   int32 argPnt;
   int32 stackPnt;
   int32 vTop;
+  logical propagated; // Has a child stack been propagated?
 } ValueStack, *valueStackPo;
 
 typedef struct jitBlock_ *jitBlockPo;
@@ -68,7 +69,6 @@ typedef struct jitBlock_ {
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   ValueStack stack;
-  logical propagated; // Has a child stack been propagated?
   jitBlockPo parent;
 } JitBlock;
 
@@ -109,7 +109,8 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 void dumpStack(valueStackPo stack);
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
-retCode propagateStack(jitBlockPo block, jitBlockPo tgtBlock);
+retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight);
+void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst);
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);

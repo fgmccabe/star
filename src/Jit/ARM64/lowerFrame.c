@@ -40,8 +40,6 @@ retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
 retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock) {
   codeLblPo lbl = breakLabel(tgtBlock);
   assemCtxPo ctx = assemCtx(block->jit);
-
-  propagateStack(block, tgtBlock);
   b(lbl);
   return Ok;
 }
