@@ -3,6 +3,8 @@
 //
 
 #include "macros.h"
+#include "topsort.h"
+#include "vector.h"
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
@@ -140,7 +142,12 @@ void dRegisterMap(registerMap regs) {
   flushOut();
 }
 
-void sortArgs(FlexOp *args, int32 *index, int32 arity) {
+
+
+
+void sortArgs(FlexOp *args, int32 arity) {
+  vector regDefs = vector(arity);
+  
   for (int32 ix=0;ix<arity;ix++)
     index[ix] = ix;
 
