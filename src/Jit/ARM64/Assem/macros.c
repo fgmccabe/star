@@ -140,6 +140,20 @@ void dRegisterMap(registerMap regs) {
   flushOut();
 }
 
+void sortArgs(FlexOp *args, int32 *index, int32 arity) {
+  for (int32 ix=0;ix<arity;ix++)
+    index[ix] = ix;
+
+  for (int32 ix=0;ix<arity;ix++) {
+armReg Rx = (armReg)ix;
+    for (int32 jx=ix+1;jx<arity;jx++){
+      if (sameFlexOp(args[index[jx]], RG(Rx))) {
+
+      }
+    }
+  }
+}
+
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, integer arity, ...) {
   va_list args;
   va_start(args, arity); /* start the variable argument sequence */
