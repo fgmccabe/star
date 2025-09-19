@@ -11,7 +11,7 @@
 
 #include "object.h"
 
-typedef struct _vector_record_ *vectorPo;
+typedef struct vector_record_ *vectorPo;
 
 objectPo getVectEl(vectorPo v, integer ix);
 retCode addVectEl(vectorPo v, integer off, objectPo el);

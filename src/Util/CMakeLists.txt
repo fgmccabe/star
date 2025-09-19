@@ -35,7 +35,6 @@ set(PUBLIC_HEADERS
         Headers/pipe.h
         Headers/byteBuffer.h
         Headers/wordBuffer.h
-        Headers/singleton.h
         Headers/stringBuffer.h
         Headers/timer.h
         Headers/unistr.h
@@ -66,7 +65,6 @@ set(HEADER_FILES
         Headers/pipeP.h
         Headers/byteBufferP.h
         Headers/wordBufferP.h
-        Headers/singletonP.h
         Headers/stringBufferP.h
         Headers/topSort.h
         Headers/unistrP.h
@@ -115,7 +113,6 @@ set(SOURCE_FILES
         quick.c
         signal.c
         sockets.c
-	singleton.c
         wordBuffer.c
         stringBuffer.c
         strng.c

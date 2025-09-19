@@ -5,10 +5,10 @@
 #ifndef STAR_TOPSORT_H
 #define STAR_TOPSORT_H
 
-#include "object.h"
-#include "vector.h"
+#include "lifo.h"
 
-typedef vectorPo (*findRefs)(objectPo def, void *cl);
-vectorPo topSort(vectorPo defs, findRefs ref, void *cl);
+typedef objectPo (*findRefProc)(void * def, void *cl, integer ix);
+
+lifoPo topSort(lifoPo defs, findRefProc findRef, void *cl);
 
 #endif //STAR_TOPSORT_H

@@ -8,29 +8,52 @@
 
 static poolPo elementPool = Null;
 
-void initLifo(){
-  elementPool = newPool(sizeof(LifoElementRec),64);
+void initLifo() {
+  elementPool = newPool(sizeof(LifoElementRec), 64);
 }
 
-lifoPo pushElement(void *el,lifoPo stk){
+lifoPo pushElement(void *el, lifoPo stk) {
   lifoPo new = (lifoPo) allocPool(elementPool);
   new->el = el;
   new->prev = stk;
   return new;
 }
 
-lifoPo popElement(void **top, lifoPo stk){
+lifoPo popElement(void **top, lifoPo stk) {
   assert(stk!=Null);
   *top = stk->el;
   lifoPo prev = stk->prev;
-  freePool(elementPool,stk);
+  freePool(elementPool, stk);
   return prev;
 }
 
-void *peekElement(lifoPo stk, int32 ix){
-  while(ix>0){
+void *peekElement(lifoPo stk, int32 ix) {
+  while (ix > 0) {
     assert(stk!=Null);
     stk = stk->prev;
   }
   return stk->el;
+}
+
+lifoPo dropElement(lifoPo stk, int32 ix) {
+  if (stk != Null) {
+    if (ix <= 0) {
+      lifoPo prev = stk->prev;
+      freePool(elementPool, stk);
+      return prev;
+    } else {
+        stk->prev = dropElement(stk->prev, ix - 1);
+      return stk;
+    }
+  } else
+    return Null;
+}
+
+integer lifoCount(lifoPo stk) {
+  integer count = 0;
+  while (stk != Null) {
+    count++;
+    stk = stk->prev;
+  }
+  return count;
 }
