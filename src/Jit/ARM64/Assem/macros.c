@@ -3,8 +3,10 @@
 //
 
 #include "macros.h"
-#include "topsort.h"
-#include "vector.h"
+
+#include "jitP.h"
+#include "topSort.h"
+#include "lifo.h"
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
@@ -44,29 +46,29 @@ registerMap nonSpillSet(integer arity) {
 
 registerMap allocReg(registerMap from, armReg Rg) {
   check((from & ((uint64)1u << Rg)) != 0, "register not free");
-  return (from & (~((uint64)1u << Rg)));
+  return (from & (~((uint64) 1u << Rg)));
 }
 
 registerMap freeReg(registerMap from, armReg Rg) {
   check((from & ((uint64)1u << Rg)) == 0, "register already free");
-  return (from | ((uint64)1u << Rg));
+  return (from | ((uint64) 1u << Rg));
 }
 
 registerMap dropReg(registerMap map, armReg Rg) {
-  return (map & (~((uint64)1u << Rg)));
+  return (map & (~((uint64) 1u << Rg)));
 }
 
 registerMap addReg(registerMap from, armReg Rg) {
-  return (from | ((uint64)1u << Rg));
+  return (from | ((uint64) 1u << Rg));
 }
 
 logical isRegInMap(registerMap from, armReg Rg) {
-  return ((from & ((uint64)1u << Rg)) != 0);
+  return ((from & ((uint64) 1u << Rg)) != 0);
 }
 
 armReg nxtAvailReg(registerMap from) {
   for (uint32 ix = 0; ix < 64u; ix++) {
-    uint64 mask = (uint64)1u << ix;
+    uint64 mask = (uint64) 1u << ix;
     if ((from & mask) != 0)
       return ix;
   }
@@ -75,7 +77,7 @@ armReg nxtAvailReg(registerMap from) {
 
 void processRegisterMap(registerMap set, regProc proc, void *cl) {
   for (uint32 ix = 0; ix < 64u; ix++) {
-    uint64 mask = (uint64)1u << ix;
+    uint64 mask = (uint64) 1u << ix;
     if ((set & mask) != 0)
       proc((armReg) ix, cl);
   }
@@ -84,7 +86,7 @@ void processRegisterMap(registerMap set, regProc proc, void *cl) {
 void revProcessRegisterMap(registerMap set, regProc proc, void *cl) {
   for (uint32 ix = 64u; ix > 0;) {
     ix--;
-    uint64 mask = (uint64)1u << ix;
+    uint64 mask = (uint64) 1u << ix;
     if ((set & mask) != 0)
       proc((armReg) ix, cl);
   }
@@ -135,6 +137,16 @@ void showReg(armReg rg, void *cl) {
   outMsg((ioPo) cl, "%s ", regNames[(uint8) rg]);
 }
 
+static armReg flexOpReg(FlexOp op) {
+  switch (op.mode) {
+    case reg:
+    case sOff:
+      return op.reg;
+    default:
+      return XZR;
+  }
+}
+
 void dRegisterMap(registerMap regs) {
   outMsg(logFile, "registers: {");
   processRegisterMap(regs, showReg, logFile);
@@ -142,72 +154,77 @@ void dRegisterMap(registerMap regs) {
   flushOut();
 }
 
+typedef struct {
+  FlexOp op;
+  int32 ax;
+} ArgSpec, *argSpecPo;
 
+typedef struct {
+  argSpecPo args;
+  integer arity;
+} SortInfo;
 
+static objectPo findRegisterRef(void * def, void *cl, integer ix) {
+  SortInfo *info = (SortInfo *) cl;
+  ArgSpec *src = (argSpecPo) def;
+  armReg Rg = flexOpReg(src->op);
+  if (Rg == XZR)
+    return Null;
 
-void sortArgs(FlexOp *args, int32 arity) {
-  vector regDefs = vector(arity);
-  
-  for (int32 ix=0;ix<arity;ix++)
-    index[ix] = ix;
+  for (int32 rx = 0; rx < info->arity; rx++) {
+    if (rx >= (int32) ix) {
+      if (flexOpReg(info->args[rx].op) == Rg)
+        return O_OBJECT(&info->args[rx]);
+    }
+  }
+  return Null;
+}
 
-  for (int32 ix=0;ix<arity;ix++) {
-armReg Rx = (armReg)ix;
-    for (int32 jx=ix+1;jx<arity;jx++){
-      if (sameFlexOp(args[index[jx]], RG(Rx))) {
+static void intrinsicArgs(assemCtxPo ctx, argSpecPo args, int32 arity) {
+  lifoPo regDefs = Null;
 
-      }
+  for (int32 ix = 0; ix < arity; ix++) {
+    regDefs = pushElement(&args[ix],regDefs);
+  }
+
+  SortInfo regInfo = {args, arity};
+  lifoPo groups = topSort(regDefs, findRegisterRef, &regInfo);
+
+  while (groups!=Null) {
+    lifoPo group;
+    groups = popElement((void**)&group, groups);
+
+    if (lifoCount(group) == 1) {
+      argSpecPo src;
+      popElement((void**)&src,group);
+      armReg destReg = (armReg) (src->ax + 1);
+      if (!sameFlexOp(RG(destReg), src->op))
+        mov(destReg, src->op);
+    } else {
+      check(False, "not implemented");
     }
   }
 }
 
-retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, integer arity, ...) {
+retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
   va_list args;
   va_start(args, arity); /* start the variable argument sequence */
-  FlexOp operands[arity];
+
+  ArgSpec operands[arity];
 
   for (integer ix = 0; ix < arity; ix++) {
-    operands[ix] = (FlexOp) va_arg(args, FlexOp);
+    operands[ix] = (ArgSpec){.op = (FlexOp) va_arg(args, FlexOp), .ax = ix};
   }
   va_end(args);
 
   saveRegisters(ctx, saveMap);
 
-  switch (arity) {
-    case 8:
-      if (!sameFlexOp(RG(X7), operands[7]))
-        mov(X7, operands[7]);
-    case 7:
-      if (!sameFlexOp(RG(X6), operands[6]))
-        mov(X6, operands[6]);
-    case 6:
-      if (!sameFlexOp(RG(X5), operands[5]))
-        mov(X5, operands[5]);
-    case 5:
-      if (!sameFlexOp(RG(X4), operands[4]))
-        mov(X4, operands[4]);
-    case 4:
-      if (!sameFlexOp(RG(X3), operands[3]))
-        mov(X3, operands[3]);
-    case 3:
-      if (!sameFlexOp(RG(X2), operands[2]))
-        mov(X2, operands[2]);
-    case 2:
-      if (!sameFlexOp(RG(X1), operands[1]))
-        mov(X1, operands[1]);
-    case 1: {
-      if (!sameFlexOp(RG(X0), operands[0]))
-        mov(X0, operands[0]);
-    }
-    case 0: {
-      mov(X16, IM((integer) fn));
-      blr(X16);
-      restoreRegisters(ctx, saveMap);
-      return Ok;
-    }
-    default:
-      return Error;
-  }
+  intrinsicArgs(ctx, operands, arity);
+
+  mov(X16, IM((integer) fn));
+  blr(X16);
+  restoreRegisters(ctx, saveMap);
+  return Ok;
 }
 
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {

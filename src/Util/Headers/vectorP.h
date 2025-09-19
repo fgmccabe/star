@@ -14,7 +14,7 @@ typedef struct {
   integer size;
 } VectorObjectRec;
 
-typedef struct _vector_record_ {
+typedef struct vector_record_ {
   ObjectRec object;                     /* object level of the vector structure */
   VectorObjectRec vect;
 } VectorObjRecord;
@@ -22,7 +22,7 @@ typedef struct _vector_record_ {
 typedef struct {
 } VectorClassPart;
 
-typedef struct _vector_class_ {
+typedef struct vector_class_ {
   ObjectClassRec objectPart;
   VectorClassPart vectorPart;
 } VectorClassRec;

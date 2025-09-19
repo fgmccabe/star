@@ -4,54 +4,58 @@
 
 #include "topSortP.h"
 
-static integer analyseDef(objectPo def, vectorPo defs, vectorPo stack, vectorPo groups, findRefs getRefs, void *cl);
+static integer analyseDef(void *def, lifoPo *defs, lifoPo *stack, lifoPo *groups, findRefProc findRef, void *cl);
 
-static integer
-analyseRef(objectPo ref, vectorPo defs, vectorPo stack, vectorPo groups, findRefs getRefs, void *cl, integer low) {
-// Is this reference already in the stack?
-  for (integer ix = 0; ix < vectLength(stack); ix++) {
-    if (getVectEl(stack, ix) == ref)
+static integer analyseRef(void *ref, lifoPo *defs, lifoPo *stack, lifoPo *groups, findRefProc findRef, void *cl,
+                          integer low) {
+  // Is this reference already in the stack?
+  for (int32 ix = 0; ix < lifoCount(*stack); ix++) {
+    if (peekElement(*stack, ix) == ref)
       return minimum(low, ix);
   }
-// look in definitions
-  for (integer ix = 0; ix < vectLength(defs); ix++) {
-    objectPo def = getVectEl(defs, ix);
+  // look in definitions
+  for (int32 ix = 0; ix < lifoCount(*defs); ix++) {
+    void *def = peekElement(*defs, ix);
     if (def == ref) {
-      removeVectEl(defs, ix);
-      return minimum(low, analyseDef(def, defs, stack, groups, getRefs, cl));
+      *defs = dropElement(*defs, ix);
+      return minimum(low, analyseDef(def, defs, stack, groups, findRef, cl));
     }
-  }
-  return
-    low;
-}
-
-integer analyseDef(objectPo def, vectorPo defs, vectorPo stack, vectorPo groups, findRefs getRefs, void *cl) {
-  integer pt = vectLength(stack);
-  pushVectEl(stack, O_OBJECT(def));
-
-  integer low = pt;
-  vectorPo refs = getRefs(def, cl);
-
-  for (integer ix = 0; ix < vectLength(refs); ix++) {
-    low = analyseRef(getVectEl(refs, ix), defs, stack, groups, getRefs, cl, low);
-  }
-  if (low < vectLength(stack)) {
-    vectorPo group = vector(0);
-    while (low < vectLength(stack)) {
-      objectPo d = popVectEl(stack);
-      pushVectEl(group, d);
-    }
-    pushVectEl(groups, O_OBJECT(group));
   }
   return low;
 }
 
-vectorPo topSort(vectorPo defs, findRefs getRefs, void *cl) {
-  vectorPo groups = vector(0);
-  vectorPo stack = vector(0);
+integer analyseDef(void *def, lifoPo *defs, lifoPo *stack, lifoPo *groups, findRefProc findRef, void *cl) {
+  integer pt = lifoCount(*stack);
+  *stack = pushElement(def, *stack);
 
-  while (!vectIsEmpty(defs))
-    analyseDef(popVectEl(defs), defs, stack, groups, getRefs, cl);
+  integer low = pt;
+  objectPo ref = findRef(def, cl, 0);
+
+  for (integer ix = 0; ref != Null; ix++, ref = findRef(def, cl, ix)) {
+    low = analyseRef(ref, defs, stack, groups, findRef, cl, low);
+  }
+
+  if (low < lifoCount(*stack)) {
+    lifoPo group = Null;
+    while (low < lifoCount(*stack)) {
+      void *d = Null;
+      *stack = popElement(&d, *stack);
+      group = pushElement(d, group);
+    }
+    *groups = pushElement(group, *groups);
+  }
+  return low;
+}
+
+lifoPo topSort(lifoPo defs, findRefProc findRef, void *cl) {
+  lifoPo groups = Null;
+  lifoPo stack = Null;
+
+  while (defs != Null) {
+    void *d = Null;
+    defs = popElement(&d, defs);
+    analyseDef(d, &defs, &stack, &groups, findRef, cl);
+  }
 
   decReference(O_OBJECT(stack));
   return groups;
