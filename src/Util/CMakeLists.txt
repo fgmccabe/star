@@ -66,13 +66,11 @@ set(HEADER_FILES
         Headers/byteBufferP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
-        Headers/topSort.h
         Headers/unistrP.h
         Headers/vector.h
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        Headers/topSortP.h
         Headers/buddyP.h
         Headers/multi.h
         Headers/formatted.h
@@ -118,7 +116,6 @@ set(SOURCE_FILES
         strng.c
         template.c
         timer.c
-        topSort.c
         unichar.c
         unistr.c
         utils.c

@@ -7,7 +7,6 @@
 
 #include <config.h>
 #include "jit.h"
-#include "ooio.h"
 #include "array.h"
 #include "macros.h"
 #include "code.h"
