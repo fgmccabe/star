@@ -52,7 +52,7 @@ test.jt11{
       _jit_compile("#(__pkg__)@genr",2);
       _jit_compile("#(__pkg__)@logM",1);
       _jit_compile("#(__pkg__)@lt",2);
-      _jit_compile("#(__pkg__)λ_0",3);
+      _jit_compile("#(__pkg__)@λ1",3);
     } catch {
       | .eNOPERM => logM("JIT not enabled")
       | Cde => logM(_stringOf(Cde,0))
