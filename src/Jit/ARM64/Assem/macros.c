@@ -159,7 +159,7 @@ retCode showFlexOp(ioPo out, FlexOp op) {
     case shft:
       return outMsg(out, "[%s, %s %s #%x]", regNames[op.reg], regNames[op.rgm], shiftModeName[op.shift], op.immediate);
     case fp:
-      return outMsg(out, "%s", regNames[(uint8) op.reg]);
+      return outMsg(out, "F%s", regNames[(uint8) op.reg]);
     case pcRel:
       return outMsg(out, "pc+", op.immediate);
   }
@@ -186,12 +186,15 @@ void dRegisterMap(registerMap regs) {
 
 // Implement a specific topological sort for register references
 
-typedef struct {
+typedef struct argSpec_ *argSpecPo;
+
+typedef struct argSpec_ {
   FlexOp op;
   armReg argReg;
   logical mark;
   int32 group;
-} ArgSpec, *argSpecPo;
+  argSpecPo dominates;
+} ArgSpec;
 
 typedef struct {
   int32 top;
@@ -228,7 +231,7 @@ static argSpecPo nextDef(ArgSpec defs[], int32 arity) {
   return Null;
 }
 
-static logical dependsOn(argSpecPo def, argSpecPo ref) {
+static logical clobbers(argSpecPo def, argSpecPo ref) {
   return usesReg(ref->op, def->argReg);
 }
 
@@ -237,12 +240,12 @@ static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack,
 static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
   // Is this reference already in the stack?
   for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    if (dependsOn(ref, stackPeek(stack, ix)))
+    if (clobbers(ref, stackPeek(stack, ix)))
       return min(low, ix);
   }
   // look in definitions
   for (integer ix = 0; ix < arity; ix++) {
-    if (defs[ix].mark && dependsOn(ref, &defs[ix])) {
+    if (defs[ix].mark && clobbers(ref, &defs[ix])) {
       return min(low, analyseDef(&defs[ix], defs, arity, stack, groups));
     }
   }
@@ -251,7 +254,7 @@ static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack,
 
 argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
   for (int32 ix = from; ix < arity; ix++) {
-    if (defs[ix].mark && dependsOn(&defs[ix], def)) {
+    if (defs[ix].mark && clobbers(&defs[ix], def)) {
       return &defs[ix];
     }
   }
@@ -282,20 +285,18 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   return low;
 }
 
+static void showDef(argSpecPo def) {
+  outMsg(logFile, "arg %s: ", regNames[def->argReg]);
+  showFlexOp(logFile, def->op);
+  outMsg(logFile, "\n");
+}
+
 static void showRegGroups(ArgSpec defs[], int32 groups, int32 arity) {
   for (int32 gx = 0; gx < groups; gx++) {
     outMsg(logFile, "group %d: ", gx);
-    char *sep = "";
     for (int32 ax = 0; ax < arity; ax++) {
       if (defs[ax].group == gx) {
-        outMsg(logFile, "%s %s", sep, regNames[(uint8) defs[ax].argReg]);
-        for (int32 ix = 0; ix < arity; ix++) {
-          argSpecPo def = &defs[ix];
-          if (dependsOn(def, &defs[ax])) {
-            outMsg(logFile, " <- %s ", regNames[(uint8) def->argReg]);
-          }
-        }
-        sep = ",";
+        showDef(&defs[ax]);
       }
     }
     outMsg(logFile, "\n");
@@ -358,7 +359,9 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
   ArgSpec operands[arity];
 
   for (int32 ix = 0; ix < arity; ix++) {
-    operands[ix] = (ArgSpec){.op = (FlexOp) va_arg(args, FlexOp), .argReg = argRegs[ix], .mark = True, .group = -1};
+    operands[ix] = (ArgSpec){
+      .op = (FlexOp) va_arg(args, FlexOp), .argReg = argRegs[ix], .mark = True, .group = -1, .dominates = Null
+    };
   }
   va_end(args);
 
