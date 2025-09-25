@@ -193,7 +193,6 @@ typedef struct argSpec_ {
   armReg argReg;
   logical mark;
   int32 group;
-  argSpecPo dominates;
 } ArgSpec;
 
 typedef struct {
@@ -244,17 +243,12 @@ static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack,
       return min(low, ix);
   }
   // look in definitions
-  for (integer ix = 0; ix < arity; ix++) {
-    if (defs[ix].mark && clobbers(ref, &defs[ix])) {
-      return min(low, analyseDef(&defs[ix], defs, arity, stack, groups));
-    }
-  }
-  return low;
+  return min(low, analyseDef(ref, defs, arity, stack, groups));
 }
 
 argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
   for (int32 ix = from; ix < arity; ix++) {
-    if (defs[ix].mark && clobbers(&defs[ix], def)) {
+    if (defs[ix].mark && clobbers(def, &defs[ix])) {
       return &defs[ix];
     }
   }
@@ -360,7 +354,7 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
 
   for (int32 ix = 0; ix < arity; ix++) {
     operands[ix] = (ArgSpec){
-      .op = (FlexOp) va_arg(args, FlexOp), .argReg = argRegs[ix], .mark = True, .group = -1, .dominates = Null
+      .op = (FlexOp) va_arg(args, FlexOp), .argReg = argRegs[ix], .mark = True, .group = -1
     };
   }
   va_end(args);
