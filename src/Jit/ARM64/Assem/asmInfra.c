@@ -12,7 +12,7 @@
 
 #include "formioP.h"
 
-#ifdef TRACEASSEM
+#ifdef TRACEJIT
 tracingLevel traceAssem = noTracing;
 #endif
 
@@ -102,8 +102,8 @@ void initAssem() {
     lblPool = newPool(sizeof(AssemLblRecord), 128);
     asmPool = newPool(sizeof(AssemCtxRecord), 128);
 
-#ifdef TRACEASSEM
-    if (traceAssem > noTracing) {
+#ifdef TRACEJIT
+    if (traceAssem > noTracing || traceJit > noTracing) {
       installMsgProc('F', showFlexOp);
       installMsgProc('R', showArmReg);
       installMsgProc('X', showAssemLbl);

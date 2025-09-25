@@ -9,7 +9,7 @@
 #include "assem_encode.h"
 #include "macros.h"
 
-#ifdef TRACEASSEM
+#ifdef TRACEJIT
 #define TRACE(Op) { if(traceAssem>noTracing) Op; }
 #else
 #define TRACE(Op)
@@ -145,7 +145,7 @@ void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
   }
 }
 
-#ifdef TRACEASSEM
+#ifdef TRACEJIT
 static char *armCondNames[] = {
   "eq", "ne", "cs", "cc", "mi", "pl", "vs", "vc", "hi", "ls", "ge", "lt", "gt", "le", "al", "nv"
 };

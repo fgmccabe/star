@@ -126,42 +126,10 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-static char *regNames[] = {
-  "X0", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "X12", "X13", "X14", "X15",
-  "X16", "X17", "X18", "X19", "X20", "X21", "X22", "X23", "X24", "X25", "X26", "X27", "X28", "FP", "LR", "SP"
-};
-
-static char *extentNames[] = {"uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw", "sxtx"};
-
-static char *shiftModeName[] = {"lsl", "lsr", "asr", "ror"};
-
 static armReg argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
 
 void showReg(armReg rg, void *cl) {
-  outMsg((ioPo) cl, "%s ", regNames[(uint8) rg]);
-}
-
-retCode showFlexOp(ioPo out, FlexOp op) {
-  switch (op.mode) {
-    case reg:
-      return outMsg(out, "%s", regNames[(uint8) op.reg]);
-    case sOff:
-      return outMsg(out, "%s[%d]", regNames[op.reg], op.immediate);
-    case preX:
-      return outMsg(out, "[%s, #%x]!", regNames[op.reg], op.immediate);
-    case postX:
-      return outMsg(out, "[%s], #%x", regNames[op.reg], op.immediate);
-    case extnd:
-      return outMsg(out, "[%s, %s %s], #%x", regNames[op.reg], regNames[op.rgm], extentNames[op.ext], op.immediate);
-    case imm:
-      return outMsg(out, "%x", op.immediate);
-    case shft:
-      return outMsg(out, "[%s, %s %s #%x]", regNames[op.reg], regNames[op.rgm], shiftModeName[op.shift], op.immediate);
-    case fp:
-      return outMsg(out, "F%s", regNames[(uint8) op.reg]);
-    case pcRel:
-      return outMsg(out, "pc+", op.immediate);
-  }
+  outMsg((ioPo) cl, "%R ", rg);
 }
 
 static logical usesReg(FlexOp op, armReg Rg) {
@@ -279,9 +247,7 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
 }
 
 static void showDef(argSpecPo def) {
-  outMsg(logFile, "arg %s: ", regNames[def->argReg]);
-  showFlexOp(logFile, def->op);
-  outMsg(logFile, "\n");
+  outMsg(logFile, "arg %R: %F\n", def->argReg,def->op);
 }
 
 static void showRegGroups(ArgSpec defs[], int32 groups, int32 arity) {
@@ -340,8 +306,18 @@ static void intrinsicArgs(assemCtxPo ctx, argSpecPo args, int32 arity) {
           args[ax].group = -1;
         }
       }
-    } else
-      check(False, "invalid register group size");
+    } else{
+      // Use X16 as a temporary register
+      for (int32 ax = 0; ax < arity; ax++) {
+        if (args[ax].group == gx) {
+          armReg destReg = args[ax].argReg;
+
+          if (!sameFlexOp(RG(destReg), args[ax].op))
+            mov(args[ax].argReg, args[ax].op);
+          args[ax].group = -1;
+        }
+      }
+    }
   }
 }
 

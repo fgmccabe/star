@@ -17,10 +17,6 @@
 #include "codeP.h"
 #include "escapeP.h"
 
-#ifdef TRACEDECODE
-tracingLevel traceDecode = noTracing;
-#endif
-
 /*
  Warning: caller assumes responsibility for ensuring that tgt is a valid root
  */
