@@ -11,7 +11,6 @@
 #include "buddy.h"
 
 #ifdef ALLTRACE
-#define TRACEASSEM
 #define TRACEMEM
 #define TRACESTACK
 #define TRACEJIT
@@ -21,7 +20,6 @@
 #define TRACESTATS
 #define TRACELOCK
 #define TRACE_DBG
-#define TRACEDECODE
 #define TRACE_BUDDY_MEMORY
 #endif
 

@@ -48,7 +48,7 @@ static retCode debugOption(char *option, OptionAction action) {
   while (*c) {
     switch (*c++) {
       case 'a': // Trace assembler
-#ifdef TRACEASSEM
+#ifdef TRACEJIT
         if (traceAssem < detailedTracing)
           traceAssem++;
         continue;
@@ -192,17 +192,6 @@ static retCode debugOption(char *option, OptionAction action) {
         return -1;
 #endif
 
-      case 'Q': /* trace decoding operations  */
-#ifdef TRACEDECODE
-        if (traceDecode < detailedTracing)
-          traceDecode++;
-        logMsg(logFile, "Decoding tracing enabled\n");
-        continue;
-#else
-        logMsg(logFile, "decode tracing not enabled");
-        return -1;
-#endif
-
       case 'B': /* trace stack memory allocations operations  */
 #ifdef TRACE_BUDDY_MEMORY
         traceBuddyMemory = True;
@@ -255,9 +244,6 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
 #endif
 #ifdef TRACECAPABILITY
                      "C|"
-#endif
-#ifdef TRACEDECODE
-                     "Q|"
 #endif
 #ifdef TRACEPKG
                      "P|"
