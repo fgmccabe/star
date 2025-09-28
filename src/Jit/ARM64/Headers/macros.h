@@ -12,6 +12,7 @@ typedef uint64 registerMap;
 
 registerMap defltAvailRegSet();
 registerMap emptyRegSet();
+registerMap fixedRegSet(armReg Rg);
 
 static inline registerMap scratchRegs() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3;
@@ -22,7 +23,8 @@ static inline registerMap callerSaved() {
 }
 
 static inline registerMap calleeSaved() {
-  return 1u << X19 | 1u << X20 | 1u << X21 | 1u << X22 | 1u << X23 | 1u << X24 | 1u << X25 | 1u << X26 | 1u << X27 | 1u << X28;
+  return 1u << X19 | 1u << X20 | 1u << X21 | 1u << X22 | 1u << X23 | 1u << X24 | 1u << X25 | 1u << X26 | 1u << X27 | 1u
+         << X28;
 }
 
 static inline registerMap stackControlRegs() {
@@ -65,6 +67,11 @@ void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
 void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
 typedef integer (*runtimeFn)();
+
+void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset);
+void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs);
+
+void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...);
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address);

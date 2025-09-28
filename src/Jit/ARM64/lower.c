@@ -476,7 +476,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Pull up nth element of stack
         int32 cnt = code[pc].fst;
         if (cnt > 0) {
-          LocalEntry tmp = *stackSlot(stack,0);
+          LocalEntry tmp = *stackSlot(stack, 0);
           for (int32 ix = 0; ix < cnt; ix++) {
             *stackSlot(stack, ix) = *stackSlot(stack, ix + 1);
           }

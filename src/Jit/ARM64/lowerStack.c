@@ -12,6 +12,7 @@
 #include "jitP.h"
 #include "debug.h"
 #include "engineP.h"
+#include "shuffle.h"
 
 // We need these registers preserved at all costs
 
@@ -187,50 +188,46 @@ void spillLocals(valueStackPo stack, jitCompPo jit) {
   }
 }
 
-void spillStack(valueStackPo stack, jitCompPo jit) {
-  spillLocals(stack, jit);
-
-  for (int32 v = 0; v < stack->vTop; v++) {
-    localVarPo var = stackSlot(stack, v);
-    int32 stkOff = -(stack->argPnt - stack->stackPnt + stack->vTop - v);
+retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count, int32 tgtOff) {
+  for (int32 ix = 0; ix < count; ix++) {
+    localVarPo var = &stack[ix];
 
     switch (var->kind) {
-      case isLocal: {
-        assert(var->stkOff >= stkOff);
-        armReg tmp = findFreeReg(jit);
-        loadLocal(jit, tmp, var->stkOff);
-        storeLocal(jit, tmp, stkOff);
-        releaseReg(jit, tmp);
-        break;
-      }
-      case inStack: {
-        if (var->stkOff != stkOff) {
-          assert(var->stkOff >= stkOff);
-          armReg tmp = findFreeReg(jit);
-          loadLocal(jit, tmp, var->stkOff);
-          storeLocal(jit, tmp, stkOff);
-          releaseReg(jit, tmp);
-        }
-        break;
-      }
       case inRegister: {
-        storeLocal(jit, var->Rg, stkOff);
-        releaseReg(jit, var->Rg);
+        newArgs[ix] = (ArgSpec){.src = RG(var->Rg), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1};
         break;
       }
-
-      case isConstant: {
-        armReg tmp = findFreeReg(jit);
-        loadConstant(jit, var->key, tmp);
-        storeLocal(jit, tmp, stkOff);
-        releaseReg(jit, tmp);
+      case isLocal:
+      case inStack: {
+        newArgs[ix] = (ArgSpec){
+          .src = OF(AG, var->stkOff*pointerSize), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1
+        };
         break;
+      }
+      case isConstant: {
+        newArgs[ix] = (ArgSpec){
+          .src = OF(CO, var->key*pointerSize), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1
+        };
+        break;
+      }
+      default: {
+        return Error;
       }
     }
-
-    var->kind = inStack;
-    var->stkOff = stkOff;
+    var->kind = isLocal;
+    var->stkOff = tgtOff;
+    tgtOff++;
   }
+  return Ok;
+}
+
+void spillStack(valueStackPo stack, jitCompPo jit) {
+  int32 size = stack->vTop + jit->arity + jit->lclCnt;
+
+  ArgSpec newArgs[size];
+  setupLocals(&stack->local[stack->stackPnt - stack->vTop], &newArgs[0], size, -(jit->lclCnt + stack->vTop));
+
+  shuffleVars(jit->assemCtx, newArgs, size, jit->freeRegs);
 }
 
 // Put the top arity elements of the stack over caller
@@ -240,36 +237,64 @@ void frameOverride(jitBlockPo block, int arity) {
   assemCtxPo ctx = assemCtx(jit);
   valueStackPo stack = &block->stack;
 
-  armReg tgt = findFreeReg(jit);
-  add(tgt, AG, IM(argCount(jit->mtd) * pointerSize));
+  int32 tgtOff = argCount(jit->mtd);
 
-  for (int32 i = 0; i < arity; i++) {
-    localVarPo var = stackSlot(stack, i);
+  ArgSpec newArgs[arity];
+  for (int32 ax = arity - 1; ax >=0 ; ax--) {
+    localVarPo var = stackSlot(stack, ax);
     switch (var->kind) {
       case inRegister: {
-        armReg vrReg = var->Rg;
-        str(vrReg, PRX(tgt, -pointerSize));
-        releaseReg(jit, vrReg);
+        tgtOff--;
+        newArgs[ax] = (ArgSpec){.src = RG(var->Rg), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1};
         continue;
       }
       case isLocal:
       case inStack: {
-        armReg vrReg = findFreeReg(jit);
-        loadLocal(jit, vrReg, var->stkOff);
-        str(vrReg, PRX(tgt, -pointerSize));
-        releaseReg(jit, vrReg);
+        tgtOff--;
+        newArgs[ax] = (ArgSpec){
+          .src = OF(AG, var->stkOff*pointerSize), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1
+        };
         continue;
       }
       case isConstant: {
-        armReg vrReg = findFreeReg(jit);
-        loadConstant(jit, vrReg, var->key);
-        str(vrReg, PRX(tgt, -pointerSize));
-        releaseReg(jit, vrReg);
+        tgtOff--;
+        newArgs[ax] = (ArgSpec){
+          .src = OF(CO, var->key*pointerSize), .dst = OF(AG, tgtOff*pointerSize), .mark = True, .group = -1
+        };
         continue;
       }
       default: {
         bailOut(jit, 47);
       }
+    }
+  }
+
+  armReg tmp = findFreeReg(jit);
+  mov(tmp, IM((integer) jit->mtd));
+  str(tmp, OF(FP, OffsetOf(StackFrame,prog))); // We know what program we are executing
+  releaseReg(jit, tmp);
+
+  shuffleVars(ctx, newArgs, arity, jit->freeRegs);
+
+  if (tgtOff > 0) {
+    int32 delta = tgtOff * pointerSize;
+    if (is12bit(delta))
+      add(AG, AG, IM(delta));
+    else {
+      armReg tmp = findFreeReg(jit);
+      mov(tmp, IM(delta));
+      add(AG, AG, RG(tmp));
+      releaseReg(jit, tmp);
+    }
+  } else {
+    int32 delta = -tgtOff * pointerSize;
+    if (is12bit(delta))
+      sub(AG, AG, IM(delta));
+    else {
+      armReg tmp = findFreeReg(jit);
+      mov(tmp, IM(delta));
+      sub(AG, AG, RG(tmp));
+      releaseReg(jit, tmp);
     }
   }
 
@@ -285,10 +310,6 @@ void frameOverride(jitBlockPo block, int arity) {
         break;
     }
   }
-
-  mov(AG, RG(tgt));
-
-  releaseReg(jit, tgt);
 }
 
 void storeStack(jitCompPo jit, armReg src, int32 depth) {

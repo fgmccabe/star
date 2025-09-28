@@ -24,10 +24,10 @@ test.jt12{
 
     try{
       _jit_compile("#(__pkg__)@showCons",1);
-      _jit_compile("#(__pkg__)@Γ_1@consDisp",3);
+      _jit_compile("#(__pkg__)@Γ2@consDisp",3);
       _jit_compile("#(__pkg__)@iShow",1);
       _jit_compile("#(__pkg__)@iota",1);
-      _jit_compile("#(__pkg__)@Γ_0@io",2);
+      _jit_compile("#(__pkg__)@Γ1@io",2);
       _jit_compile("#(__pkg__)@ieq",2);
       _jit_compile("#(__pkg__)@ilt",2);
       _jit_compile("#(__pkg__)@iadd",2);
