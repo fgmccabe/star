@@ -5,6 +5,8 @@
 #include "macros.h"
 
 #include "jitP.h"
+#include "lowerP.h"
+#include "shuffle.h"
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
@@ -13,6 +15,10 @@ registerMap defltAvailRegSet() {
 
 registerMap emptyRegSet() {
   return 0;
+}
+
+registerMap fixedRegSet(armReg Rg) {
+  return 1u << Rg;
 }
 
 registerMap nonSpillSet(integer arity) {
@@ -132,193 +138,11 @@ void showReg(armReg rg, void *cl) {
   outMsg((ioPo) cl, "%R ", rg);
 }
 
-static logical usesReg(FlexOp op, armReg Rg) {
-  switch (op.mode) {
-    case reg:
-    case sOff:
-      return op.reg == Rg;
-    case preX:
-      return op.reg == Rg || op.rgm == Rg;
-    default:
-      return False;
-  }
-}
-
 void dRegisterMap(registerMap regs) {
   outMsg(logFile, "registers: {");
   processRegisterMap(regs, showReg, logFile);
   outMsg(logFile, "}\n");
   flushOut();
-}
-
-// Implement a specific topological sort for register references
-
-typedef struct argSpec_ *argSpecPo;
-
-typedef struct argSpec_ {
-  FlexOp op;
-  armReg argReg;
-  logical mark;
-  int32 group;
-} ArgSpec;
-
-typedef struct {
-  int32 top;
-  argSpecPo *stack;
-} Stack, *stkPo;
-
-static int32 stackCount(stkPo stack) {
-  return stack->top;
-}
-
-static argSpecPo stackPeek(stkPo stack, int32 ix) {
-  if (ix >= stack->top)
-    return Null;
-  return stack->stack[stack->top - ix - 1];
-}
-
-static argSpecPo stackPop(stkPo stack) {
-  if (stack->top == 0)
-    return Null;
-  return stack->stack[--stack->top];
-}
-
-static void stackPush(argSpecPo spec, stkPo stack) {
-  stack->stack[stack->top++] = spec;
-}
-
-static argSpecPo nextDef(ArgSpec defs[], int32 arity) {
-  for (int32 ix = 0; ix < arity; ix++) {
-    argSpecPo def = &defs[ix];
-    if (def->mark) {
-      return def;
-    }
-  }
-  return Null;
-}
-
-static logical clobbers(argSpecPo def, argSpecPo ref) {
-  return usesReg(ref->op, def->argReg);
-}
-
-static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups);
-
-static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
-  // Is this reference already in the stack?
-  for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    if (clobbers(ref, stackPeek(stack, ix)))
-      return min(low, ix);
-  }
-  // look in definitions
-  return min(low, analyseDef(ref, defs, arity, stack, groups));
-}
-
-argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
-  for (int32 ix = from; ix < arity; ix++) {
-    if (defs[ix].mark && clobbers(def, &defs[ix])) {
-      return &defs[ix];
-    }
-  }
-
-  return Null;
-}
-
-int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups) {
-  int32 pt = stackCount(stack);
-  stackPush(def, stack);
-  def->mark = False;
-
-  int32 low = pt;
-  argSpecPo ref = findRef(def, defs, arity, 0);
-
-  for (int32 ix = 0; ref != Null; ix++, ref = findRef(def, defs, arity, ix)) {
-    low = analyseRef(ref, defs, arity, stack, groups, low);
-  }
-
-  if (low < stackCount(stack)) {
-    int32 group = (*groups)++;
-
-    while (low < stackCount(stack)) {
-      argSpecPo spec = stackPop(stack);
-      spec->group = group;
-    }
-  }
-  return low;
-}
-
-static void showDef(argSpecPo def) {
-  outMsg(logFile, "arg %R: %F\n", def->argReg,def->op);
-}
-
-static void showRegGroups(ArgSpec defs[], int32 groups, int32 arity) {
-  for (int32 gx = 0; gx < groups; gx++) {
-    outMsg(logFile, "group %d: ", gx);
-    for (int32 ax = 0; ax < arity; ax++) {
-      if (defs[ax].group == gx) {
-        showDef(&defs[ax]);
-      }
-    }
-    outMsg(logFile, "\n");
-  }
-  flushOut();
-}
-
-static int32 sortArgSpecs(ArgSpec defs[], int32 arity) {
-  int32 groups = 0;
-  argSpecPo stackData[arity];
-  Stack stack = {.top = 0, .stack = stackData};
-
-  argSpecPo def;
-  while ((def = nextDef(defs, arity)) != Null) {
-    analyseDef(def, defs, arity, &stack, &groups);
-  }
-
-  return groups;
-}
-
-// This is horrendous, but does not matter
-static int32 groupSize(argSpecPo specs, int32 arity, int32 group) {
-  int32 size = 0;
-  for (int32 ix = 0; ix < arity; ix++) {
-    if (specs[ix].group == group)
-      size++;
-  }
-  return size;
-}
-
-static void intrinsicArgs(assemCtxPo ctx, argSpecPo args, int32 arity) {
-  int32 groups = sortArgSpecs(args, arity);
-
-#ifdef TRACEJIT
-  if (traceJit >= generalTracing) {
-    showRegGroups(args, groups, arity);
-  }
-#endif
-
-  for (int32 gx = 0; gx < groups; gx++) {
-    if (groupSize(args, arity, gx) == 1) {
-      for (int32 ax = 0; ax < arity; ax++) {
-        if (args[ax].group == gx) {
-          armReg destReg = args[ax].argReg;
-
-          if (!sameFlexOp(RG(destReg), args[ax].op))
-            mov(args[ax].argReg, args[ax].op);
-          args[ax].group = -1;
-        }
-      }
-    } else{
-      // Use X16 as a temporary register
-      for (int32 ax = 0; ax < arity; ax++) {
-        if (args[ax].group == gx) {
-          armReg destReg = args[ax].argReg;
-
-          if (!sameFlexOp(RG(destReg), args[ax].op))
-            mov(args[ax].argReg, args[ax].op);
-          args[ax].group = -1;
-        }
-      }
-    }
-  }
 }
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
@@ -329,14 +153,14 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
 
   for (int32 ix = 0; ix < arity; ix++) {
     operands[ix] = (ArgSpec){
-      .op = (FlexOp) va_arg(args, FlexOp), .argReg = argRegs[ix], .mark = True, .group = -1
+      .src = (FlexOp) va_arg(args, FlexOp), .dst = RG(argRegs[ix]), .mark = True, .group = -1
     };
   }
   va_end(args);
 
   saveRegisters(ctx, saveMap);
 
-  intrinsicArgs(ctx, operands, arity);
+  shuffleVars(ctx, operands, arity, fixedRegSet(X16));
 
   mov(X16, IM((integer) fn));
   blr(X16);
@@ -348,4 +172,69 @@ retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {
   mov(reg, IM((integer) address));
   ldr(reg, OF(reg, 0));
   return Ok;
+}
+
+void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
+  if (is9bit(offset))
+    ldur(dst, src, offset);
+  else {
+    mov(dst, IM(offset));
+    ldr(dst, EX2(src, dst, U_XTX, 0));
+  }
+}
+
+void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs) {
+  if (is9bit(offset))
+    stur(src, dst, offset);
+  else {
+    armReg tmp = nxtAvailReg(freeRegs);
+    mov(tmp, IM(offset));
+    str(src, EX2(dst, tmp, U_XTX, 0));
+  }
+}
+
+void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
+  switch (dst.mode) {
+    case reg: {
+      switch (src.mode) {
+        case reg:
+        case imm:
+          mov(dst.reg, src);
+          return;
+        case sOff:
+          load(ctx, dst.reg, src.reg, src.immediate);
+          return;
+        default:
+          check(False, "unsupported source mode");
+          return;
+      }
+    }
+    case sOff: {
+      switch (src.mode) {
+        case reg:
+          store(ctx, src.reg, dst.reg, dst.immediate, freeRegs);
+          return;
+        case sOff: {
+          if (src.immediate != dst.immediate || src.reg != dst.reg) {
+            armReg tmp = nxtAvailReg(freeRegs);
+            load(ctx, tmp, src.reg, src.immediate);
+            store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
+          }
+          return;
+        }
+        case imm: {
+          armReg tmp = nxtAvailReg(freeRegs);
+          mov(tmp, src);
+          store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
+          return;
+        }
+        default: {
+          check(False, "unsupported source mode");
+          return;
+        }
+      }
+    }
+    default:
+      check(False, "unsupported destination mode");
+  }
 }
