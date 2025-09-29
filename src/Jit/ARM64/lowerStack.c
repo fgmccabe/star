@@ -269,11 +269,6 @@ void frameOverride(jitBlockPo block, int arity) {
     }
   }
 
-  armReg tmp = findFreeReg(jit);
-  mov(tmp, IM((integer) jit->mtd));
-  str(tmp, OF(FP, OffsetOf(StackFrame,prog))); // We know what program we are executing
-  releaseReg(jit, tmp);
-
   shuffleVars(ctx, newArgs, arity, jit->freeRegs);
 
   if (tgtOff > 0) {

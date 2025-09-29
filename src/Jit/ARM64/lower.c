@@ -418,7 +418,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         pc += blockLen; // Skip over the block
         bind(brkLbl);
 #ifdef TRACEJIT
-        if (traceJit)
+        if (traceJit>=detailedTracing)
           dRegisterMap(jit->freeRegs);
 #endif
 
@@ -1744,7 +1744,7 @@ void handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count) {
   for (int ix = 0; ix < count; ix++, pc++) {
     check(code[pc].op==Break, "Expecting a Break instruction");
     jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
-    setStackDepth(&tgtBlock->stack, jit, tgtBlock->exitHeight);
+    setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
     codeLblPo lbl = breakLabel(tgtBlock);
     b(lbl);
   }
