@@ -11,7 +11,7 @@
 #include "formioP.h"
 #include "debug.h"
 #include "engineP.h"
-
+#include "shuffle.h"
 
 retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   jitCompPo jit = block->jit;
@@ -92,6 +92,30 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
   /* return callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(conString)); */
 }
 
+static armReg argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
+
+retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
+  va_list args;
+  va_start(args, arity); /* start the variable argument sequence */
+
+  ArgSpec operands[arity];
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    operands[ix] = (ArgSpec){
+      .src = (FlexOp) va_arg(args, FlexOp), .dst = RG(argRegs[ix]), .mark = True, .group = -1
+    };
+  }
+  va_end(args);
+
+  saveRegisters(ctx, saveMap);
+
+  shuffleVars(ctx, operands, arity, fixedRegSet(X16));
+
+  mov(X16, IM((integer) fn));
+  blr(X16);
+  restoreRegisters(ctx, saveMap);
+  return Ok;
+}
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
 void stash(jitBlockPo block) {
