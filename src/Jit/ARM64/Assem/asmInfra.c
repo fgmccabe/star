@@ -103,11 +103,9 @@ void initAssem() {
     asmPool = newPool(sizeof(AssemCtxRecord), 128);
 
 #ifdef TRACEJIT
-    if (traceAssem > noTracing || traceJit > noTracing) {
-      installMsgProc('F', showFlexOp);
-      installMsgProc('R', showArmReg);
-      installMsgProc('X', showAssemLbl);
-    }
+    installMsgProc('F', showFlexOp);
+    installMsgProc('R', showArmReg);
+    installMsgProc('E', showAssemLbl);
 #endif
   }
 }
