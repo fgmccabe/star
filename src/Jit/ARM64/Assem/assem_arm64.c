@@ -88,12 +88,12 @@ void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"adr %R,%X\n%_",Rd,lbl));
+  TRACE(outMsg(logFile,"adr %R,%E\n%_",Rd,lbl));
   encodePCRel(0, lbl, Rd, ctx);
 }
 
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"adrp %R,%X\n%_",Rd,lbl));
+  TRACE(outMsg(logFile,"adrp %R,%E\n%_",Rd,lbl));
   encodePCRel(1, lbl, Rd, ctx);
 }
 
@@ -152,12 +152,12 @@ static char *armCondNames[] = {
 #endif
 
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"b%s %X\n%_",armCondNames[cond],lbl));
+  TRACE(outMsg(logFile,"b%s %E\n%_",armCondNames[cond],lbl));
   encodeCondBrnch(0x2a, 0, lbl, cond, ctx);
 }
 
 void b_(codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"b %X\n%_",lbl));
+  TRACE(outMsg(logFile,"b %E\n%_",lbl));
   encodeBranchImm(0, lbl, ctx);
 }
 
@@ -204,7 +204,7 @@ void bics_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void bl_(codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"blr %X\n%_",lbl));
+  TRACE(outMsg(logFile,"blr %E\n%_",lbl));
   encodeBranchImm(1, lbl, ctx);
 }
 
@@ -290,12 +290,12 @@ void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"cbnz %R,%X\n%_",Rt,lbl));
+  TRACE(outMsg(logFile,"cbnz %R,%E\n%_",Rt,lbl));
   encodeCmpBr(w, 1, lbl, Rt, ctx);
 }
 
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"cbz %R,%X\n%_",Rt,lbl));
+  TRACE(outMsg(logFile,"cbz %R,%E\n%_",Rt,lbl));
   encodeCmpBr(w, 0, lbl, Rt, ctx);
 }
 
@@ -1297,12 +1297,12 @@ void stxrb_(armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx) {
 }
 
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"tbnz %R, %d, %X\n%_",Rt,pos,lbl));
+  TRACE(outMsg(logFile,"tbnz %R, %d, %E\n%_",Rt,pos,lbl));
   encodeTstBr(w, 1, pos, lbl, Rt, ctx);
 }
 
 void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"tbz %R, %d, %X\n%_",Rt,pos,lbl));
+  TRACE(outMsg(logFile,"tbz %R, %d, %E\n%_",Rt,pos,lbl));
   encodeTstBr(w, 0, pos, lbl, Rt, ctx);
 }
 
