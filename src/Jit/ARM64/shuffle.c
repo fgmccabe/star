@@ -163,7 +163,7 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRe
   int32 groups = sortArgSpecs(args, arity);
 
 #ifdef TRACEJIT
-  if (traceJit >= generalTracing) {
+  if (traceJit >= detailedTracing) {
     showRegGroups(args, groups, arity);
   }
 #endif

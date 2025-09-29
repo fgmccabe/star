@@ -101,7 +101,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
 #ifdef TRACEJIT
   if (traceJit >= generalTracing) {
-    outMsg(logFile, "Jit block %d -> %d\n", from, endPc);
+    outMsg(logFile, "Jit block %d -> %d, exit height %d\n", from, endPc, block->exitHeight);
   }
 #endif
   for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
@@ -115,6 +115,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       outMsg(logFile, "vTop = %d\n%_", stack->vTop);
     }
 #endif
+    check(stack->vTop>=0,"negative stack depth");
 
     switch (code[pc].op) {
       case Halt: {
