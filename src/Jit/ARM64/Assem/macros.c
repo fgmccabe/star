@@ -2,11 +2,9 @@
 // Created by Francis McCabe on 9/8/24.
 //
 
+#include "arm64P.h"
 #include "macros.h"
-
 #include "jitP.h"
-#include "lowerP.h"
-#include "shuffle.h"
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
@@ -132,8 +130,6 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-static armReg argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
-
 void showReg(armReg rg, void *cl) {
   outMsg((ioPo) cl, "%R ", rg);
 }
@@ -143,29 +139,6 @@ void dRegisterMap(registerMap regs) {
   processRegisterMap(regs, showReg, logFile);
   outMsg(logFile, "}\n");
   flushOut();
-}
-
-retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
-  va_list args;
-  va_start(args, arity); /* start the variable argument sequence */
-
-  ArgSpec operands[arity];
-
-  for (int32 ix = 0; ix < arity; ix++) {
-    operands[ix] = (ArgSpec){
-      .src = (FlexOp) va_arg(args, FlexOp), .dst = RG(argRegs[ix]), .mark = True, .group = -1
-    };
-  }
-  va_end(args);
-
-  saveRegisters(ctx, saveMap);
-
-  shuffleVars(ctx, operands, arity, fixedRegSet(X16));
-
-  mov(X16, IM((integer) fn));
-  blr(X16);
-  restoreRegisters(ctx, saveMap);
-  return Ok;
 }
 
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {
