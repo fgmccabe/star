@@ -52,7 +52,7 @@ test.jt15{
     show iota(3);
 
     try{
-    show firstMultiple(iota(10),3);
+      show firstMultiple(iota(10),3);
       show firstMultiple(iota(3),10);
 
       assert firstMultiple(iota(10),3) == "found";
