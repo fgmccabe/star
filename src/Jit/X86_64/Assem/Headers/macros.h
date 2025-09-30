@@ -6,30 +6,17 @@
 #define STAR_MACROS_H
 
 #include "jit.h"
-#include "assem.h"
-#include "arm64.h"
+#include "x64-64.h"
 
 typedef uint64 registerMap;
 
 registerMap defltAvailRegSet();
 registerMap emptyRegSet();
+registerMap allRegisters();
 registerMap fixedRegSet(armReg Rg);
 
 static inline registerMap scratchRegs() {
-  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3;
-}
-
-static inline registerMap callerSaved() {
-  return 1u << X8 | 1u << X9 | 1u << X10 | 1u << X11 | 1u << X12 | 1u << X13 | 1u << X14 | 1u << X15;
-}
-
-static inline registerMap calleeSaved() {
-  return 1u << X19 | 1u << X20 | 1u << X21 | 1u << X22 | 1u << X23 | 1u << X24 | 1u << X25 | 1u << X26 | 1u << X27 | 1u
-         << X28;
-}
-
-static inline registerMap stackControlRegs() {
-  return 1u << X26 | 1u << X27 | 1u << X28 | 1u << X29 | 1u << X30;
+  return 1u << RAX | 1u << RCX;
 }
 
 registerMap allocReg(registerMap from, armReg Rg);
@@ -48,6 +35,23 @@ typedef void (*regProc)(armReg rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 void dRegisterMap(registerMap regs);
+
+codeLblPo newLabel(assemCtxPo ctx);
+codeLblPo here_(assemCtxPo ctx);
+#define here() here_(ctx)
+codeLblPo defineLabel(assemCtxPo ctx, integer pc);
+
+codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl);
+#define bind(lbl) setLabel_(ctx,lbl)
+
+logical isLabelDefined(codeLblPo lbl);
+uint64 labelTgt(codeLblPo lbl);
+retCode cleanupLabels(assemCtxPo ctx);
+
+static retCode updateLblEntry(void *entry, integer ix, void *cl);
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
+void emitLblRef(assemCtxPo ctx, codeLblPo tgt);
+void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
 typedef integer (*runtimeFn)();
 

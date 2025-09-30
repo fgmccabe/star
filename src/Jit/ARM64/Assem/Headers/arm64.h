@@ -46,6 +46,8 @@ typedef enum {
   SP = 31
 } armReg;
 
+typedef armReg mcRegister;
+
 typedef enum {
   F0 = 0,
   F1 = 1,
@@ -147,8 +149,6 @@ typedef struct {
   armExtent ext;
   codeLblPo lbl;
 } FlexOp;
-
-typedef armReg mcRegister;
 
 logical sameFlexOp(FlexOp a, FlexOp b);
 

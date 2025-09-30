@@ -29,7 +29,6 @@ static inline registerMap stackControlRegs() {
   return 1u << RSP;
 }
 
-registerMap nonSpillSet(integer arity);
 registerMap allocReg(registerMap from, x64Reg Rg);
 registerMap freeReg(registerMap from, x64Reg Rg);
 registerMap dropReg(registerMap map, x64Reg Rg);

@@ -18,6 +18,7 @@ include_directories("Headers"
 set(HEADER_FILES
         arm64.h
         arm64P.h
+        Headers/assem.h
         Headers/assem_encode.h
         ../../Util/Headers/array.h
         ../../Escapes/Headers/libEscapes.h

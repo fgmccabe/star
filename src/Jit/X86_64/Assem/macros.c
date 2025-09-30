@@ -1,23 +1,22 @@
 //
-// Created by Francis McCabe on 9/8/24.
+// Created by Francis McCabe on 9/30/25.
 //
 
-#include "arm64P.h"
+#include "x86-64P.h"
 #include "macros.h"
-#include "jitP.h"
-
-registerMap defltAvailRegSet() {
-  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
-         1u << X10;
-}
 
 registerMap emptyRegSet() {
   return 0;
 }
 
 registerMap allRegisters(){
-    return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8
-  | 1u << X9 | 1u << X10;
+    1u << RAX | 1u << RCX | 1u << RDX | 1u << RBX | 1u<< RSP | 1u << RBP | 1u << RSI | 1u << RDI
+  | 1u << R8 | 1u << R9 | 1u << R10  | 1u << R11 | 1u << R12 | 1u << R13 | 1u << R14 | 1u << R15
+}
+
+registerMap defltAvailRegSet() {
+  return 1u << RAX | 1u << R | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
+         1u << X10;
 }
 
 registerMap fixedRegSet(armReg Rg) {

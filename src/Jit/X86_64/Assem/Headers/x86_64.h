@@ -34,7 +34,7 @@ typedef enum {
   Labeled
 } x64OpMode;
 
-typedef struct {
+typedef struct x640p {
   x64OpMode mode;
   union {
     x64Reg reg;
@@ -52,9 +52,12 @@ typedef struct {
     uint8 fpReg;
     codeLblPo lbl;
   } op;
-} x64Op;
+} FlexOp;
 
 typedef x64Reg mcRegister;
+
+logical sameFlexOp(FlexOp a, FlexOp b);
+
 #define PLATFORM_PC_DELTA 4
 
 #define RG(Rg) {.mode=Reg, .op.reg=(Rg)}
