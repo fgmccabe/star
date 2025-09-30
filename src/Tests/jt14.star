@@ -52,6 +52,7 @@ test.jt14{
       _jit_compile("#(__pkg__)@Γ_0@dTree",2);
       _jit_compile("#(__pkg__)@concat",2);
       _jit_compile("#(__pkg__)@conc",2);
+      _jit_compile("#(__pkg__)@logM",1);
     } catch {
       | .eNOPERM => showMsg("JIT not enabled")
       | Cde => showMsg("We got errr: $(Cde)")
