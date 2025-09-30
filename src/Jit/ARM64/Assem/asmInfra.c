@@ -9,6 +9,7 @@
 #include "jitP.h"
 #include <stdlib.h>
 #include <assert.h>
+#include "assem.h"
 
 #include "formioP.h"
 
