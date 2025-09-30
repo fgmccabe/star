@@ -500,19 +500,19 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
     for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
       localVarPo src = argSlot(srcStack, ax);
       localVarPo dst = argSlot(tgtStack, ax);
-      propagateVar(jit, src, dst);
+      *dst = *src;
     }
 
     for (int32 v = 1; v <= srcStack->argPnt - srcStack->stackPnt; v++) {
       localVarPo src = localSlot(srcStack, v);
       localVarPo dst = localSlot(tgtStack, v);
-      propagateVar(jit, src, dst);
+      *dst = *src;
     }
 
     for (int32 v = tgtHeight; v > 0; v--) {
       localVarPo src = stackSlot(srcStack, v);
       localVarPo dst = stackSlot(tgtStack, v);
-      propagateVar(jit, src, dst);
+      *dst = *src;
     }
 
     for (int32 v = tgtHeight; v > tgtHeight; v--) {
@@ -524,7 +524,7 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
     for (int32 v = 0; v < tgtStack->vTop; v++) {
       localVarPo src = localSlot(srcStack, v);
       localVarPo dst = localSlot(tgtStack, v);
-      propagateVar(jit, src, dst);
+      *dst = *src;
     }
   }
   return Ok;
