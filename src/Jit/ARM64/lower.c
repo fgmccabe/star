@@ -115,7 +115,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       outMsg(logFile, "vTop = %d\n%_", stack->vTop);
     }
 #endif
-    check(stack->vTop>=0,"negative stack depth");
+    check(stack->vTop>=0, "negative stack depth");
 
     switch (code[pc].op) {
       case Halt: {
@@ -189,6 +189,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         dropArgs(stack, jit, arity);
+        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         ret = testResult(block, tgtBlock);
         continue;
       }
@@ -246,6 +247,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         dropArgs(stack, jit, arity);
+        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         ret = testResult(block, tgtBlock);
         continue;
       }
@@ -332,6 +334,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstash(jit);
         dropArgs(stack, jit, arity);
+        reserveReg(jit, X0);
+        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+        releaseReg(jit, X0);
         ret = testResult(block, tgtBlock);
         continue;
       }
@@ -419,7 +424,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         pc += blockLen; // Skip over the block
         bind(brkLbl);
 #ifdef TRACEJIT
-        if (traceJit>=detailedTracing)
+        if (traceJit >= detailedTracing)
           dRegisterMap(jit->freeRegs);
 #endif
 
@@ -428,9 +433,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Break: {
         int32 tgt = pc + code[pc].alt + 1;
         jitBlockPo tgtBlock = breakBlock(block, code, tgt);
-        setStackDepth(stack, jit, tgtBlock->exitHeight);
+        setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
         spillStack(stack, jit);
-        propagateStack(jit, stack, &tgtBlock->stack, tgtBlock->exitHeight);
+        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         return breakOut(block, tgtBlock);
       }
       case Result: {
@@ -1716,7 +1721,7 @@ ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
     : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
     "memory");
 
-  stk->sp = exitSP;
+  P->stk->sp = exitSP;
 
   return ret;
 }

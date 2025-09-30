@@ -240,7 +240,7 @@ void frameOverride(jitBlockPo block, int arity) {
   int32 tgtOff = argCount(jit->mtd);
 
   ArgSpec newArgs[arity];
-  for (int32 ax = arity - 1; ax >=0 ; ax--) {
+  for (int32 ax = arity - 1; ax >= 0; ax--) {
     localVarPo var = stackSlot(stack, ax);
     switch (var->kind) {
       case inRegister: {
@@ -476,6 +476,15 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
       return;
     }
 
+    case combineKind(isLocal, isConstant): {
+      armReg tmp = findFreeReg(jit);
+      loadLocal(jit, tmp, src->stkOff);
+      storeLocal(jit, dst->stkOff, tmp);
+      releaseReg(jit, tmp);
+      dst->kind = isLocal;
+      return;
+    }
+
     default: {
       bailOut(jit, errorCode);
     }
@@ -484,6 +493,9 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
 
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight) {
   if (!tgtStack->propagated) {
+    tgtStack->propagated = True;
+    tgtStack->vTop = tgtHeight;
+
     // Should be a nop at the moment.
     for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
       localVarPo src = argSlot(srcStack, ax);
@@ -497,19 +509,16 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
       propagateVar(jit, src, dst);
     }
 
-    int32 minStackEntry = min(tgtStack->vTop, tgtHeight);
-
-    for (int32 v = minStackEntry; v > 0; v--) {
+    for (int32 v = tgtHeight; v > 0; v--) {
       localVarPo src = stackSlot(srcStack, v);
       localVarPo dst = stackSlot(tgtStack, v);
       propagateVar(jit, src, dst);
     }
 
-    for (int32 v = tgtHeight; v > minStackEntry; v--) {
+    for (int32 v = tgtHeight; v > tgtHeight; v--) {
       localVarPo src = stackSlot(srcStack, v - 1);
       pushValue(tgtStack, *src);
     }
-    tgtStack->propagated = True;
   } else {
     check(srcStack->vTop >= tgtStack->vTop, "Stack depth mismatch");
     for (int32 v = 0; v < tgtStack->vTop; v++) {
