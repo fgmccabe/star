@@ -84,4 +84,6 @@ static inline logical is9bit(integer vl) {
   return vl>=-256 && vl<=255;
 }
 
+integer lblDeltaRef(assemCtxPo ctx, codeLblPo tgt);
+
 #endif //STAR_ARM64P_H

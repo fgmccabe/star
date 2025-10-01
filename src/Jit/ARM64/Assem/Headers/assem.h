@@ -2,6 +2,9 @@
 // Created F.G. McCabe 9/30/2025.
 //
 
+#ifndef STAR_ASSEM_H
+#define STAR_ASSEM_H
+
 #include "config.h"
 #include "arm64.h"
 
@@ -16,3 +19,5 @@ codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl);
 logical isLabelDefined(codeLblPo lbl);
 uint64 labelTgt(codeLblPo lbl);
 retCode cleanupLabels(assemCtxPo ctx);
+
+#endif //STAR_ASSEM_H
