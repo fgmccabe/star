@@ -48,12 +48,17 @@ static retCode debugOption(char *option, OptionAction action) {
   while (*c) {
     switch (*c++) {
       case 'a': // Trace assembler
+#ifndef NOJIT
 #ifdef TRACEJIT
         if (traceAssem < detailedTracing)
           traceAssem++;
         continue;
 #else
         logMsg(logFile, "Assembler tracing not enabled\n");
+        return Error;
+#endif
+#else
+        logMsg(logFile, "jit not enabled");
         return Error;
 #endif
 
@@ -154,6 +159,7 @@ static retCode debugOption(char *option, OptionAction action) {
         continue;
 
       case 'j':
+#ifndef NOJIT
 #ifdef TRACEJIT
         if (traceJit < detailedTracing)
           traceJit++;
@@ -161,6 +167,10 @@ static retCode debugOption(char *option, OptionAction action) {
         continue;
 #else
         logMsg(logFile, "jit tracing not enabled");
+        return Error;
+#endif
+#else
+        logMsg(logFile, "jit not enabled");
         return Error;
 #endif
 
