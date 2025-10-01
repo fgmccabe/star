@@ -15,8 +15,8 @@ registerMap allRegisters(){
 }
 
 registerMap defltAvailRegSet() {
-  return 1u << RAX | 1u << R | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
-         1u << X10;
+  return 1u << RAX | 1u << RCX | 1u << RDX | 1u << RBX | 1u << RSI | 1u << RDI | 1u << R8 | 1u << R9 |
+         1u << R10 | 1u << R11 | 1u << R12 | 1u << R13 | 1u << R14 | 1u << R15;
 }
 
 registerMap fixedRegSet(armReg Rg) {

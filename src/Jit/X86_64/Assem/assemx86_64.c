@@ -5,9 +5,6 @@
 
 #include <assert.h>
 #include <utils.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <string.h>
 
 #include "x86_64P.h"
 #include "jitP.h"

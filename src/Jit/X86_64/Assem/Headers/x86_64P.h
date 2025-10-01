@@ -5,7 +5,6 @@
 #ifndef STAR_X86_64P_H
 #define STAR_X86_64P_H
 
-#include "jitP.h"
 #include "x86_64.h"
 #include "ooio.h"
 #include "array.h"

@@ -54,12 +54,12 @@ void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 
 typedef integer (*runtimeFn)();
 
-void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset);
-void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs);
+void load(assemCtxPo ctx, x64Reg dst, x64Reg src, int64 offset);
+void store(assemCtxPo ctx, x64Reg src, x64Reg dst, int64 offset, registerMap freeRegs);
 
 void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...);
-retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address);
+retCode loadCGlobal(assemCtxPo ctx, x64Reg reg, void *address);
 
 #endif //STAR_MACROS_H
