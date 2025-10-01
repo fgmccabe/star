@@ -271,7 +271,7 @@ void frameOverride(jitBlockPo block, int arity) {
 
   shuffleVars(ctx, newArgs, arity, jit->freeRegs);
 
-  if (tgtOff > 0) {
+  if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
     if (is12bit(delta))
       add(AG, AG, IM(delta));
@@ -279,16 +279,6 @@ void frameOverride(jitBlockPo block, int arity) {
       armReg tmp = findFreeReg(jit);
       mov(tmp, IM(delta));
       add(AG, AG, RG(tmp));
-      releaseReg(jit, tmp);
-    }
-  } else {
-    int32 delta = -tgtOff * pointerSize;
-    if (is12bit(delta))
-      sub(AG, AG, IM(delta));
-    else {
-      armReg tmp = findFreeReg(jit);
-      mov(tmp, IM(delta));
-      sub(AG, AG, RG(tmp));
       releaseReg(jit, tmp);
     }
   }

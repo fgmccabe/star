@@ -307,6 +307,22 @@ static DebugWaitFor dbgShowRegisters(char *line, enginePo p, termPo lc, void *cl
   return moreDebug;
 }
 
+static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) {
+  stackPo stk = p->stk;
+
+  outMsg(debugOutChnnl, "MTD=%A\n", mtdLabel(stk->prog));
+  outMsg(debugOutChnnl, "PROG=%lx\n", stk->prog);
+  outMsg(debugOutChnnl, "PC=%lx\n", stk->pc);
+  outMsg(debugOutChnnl, "SP=%lx\n", stk->sp);
+  outMsg(debugOutChnnl, "FP=%lx\n", stk->fp);
+  outMsg(debugOutChnnl, "AG=%lx\n", stk->args);
+  outMsg(debugOutChnnl, "SDP=%lx\n", stk->args-stk->sp);
+  outMsg(debugOutChnnl, "%_");
+
+  resetDeflt("n");
+  return moreDebug;
+}
+
 static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
   showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showLocalVars, stk->prog, stk->pc);
@@ -873,6 +889,7 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       {.c = 'c', .cmd = dbgCont, .usage = "c continue"},
       {.c = 'u', .cmd = dbgUntilRet, .usage = "u <count> until next <count> returns"},
       {.c = 'r', .cmd = dbgShowRegisters, .usage = "r show registers"},
+      {.c = 'R', .cmd = dbgMcRegisters, .usage = "R show mc registers"},
       {.c = 'C', .cmd = dbgShowCall, .usage = "C show current call"},
       {.c = 's', .cmd = dbgShowStack, .usage = "s show stack", .cl = (void *) False},
       {.c = 'S', .cmd = dbgStackTrace, .usage = "S show entire stack"},
@@ -880,15 +897,13 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       {.c = 'g', .cmd = dbgShowGlobal, .usage = "g <var> show global var"},
       {.c = 'a', .cmd = dbgShowArg, .usage = "a show argument variable"},
       {.c = 'l', .cmd = dbgShowLocal, .usage = "l show local variable"},
-      {.c = 'i', .cmd = dbgShowCode, .usage = "i show instructions"},
       {.c = 'd', .cmd = dbgSetDepth, .usage = "d <dpth> set display depth"},
       {.c = '+', .cmd = dbgAddBreakPoint, .usage = "+ add break point"},
       {.c = '-', .cmd = dbgClearBreakPoint, .usage = "- clear break point"},
       {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
-      {.c = 'y', .cmd = dbgInsDebug, .usage = "y turn on instruction mode"},
       {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
     },
-    .count = 21,
+    .count = 20,
     .deflt = Null
   };
 

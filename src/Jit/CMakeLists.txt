@@ -27,7 +27,7 @@ set(HEADER_FILES
         ${JIT_ARCH}/Headers/lower.h
         )
 
-set(JIT_SOURCE_FILES jit.c jitInfra.c)
+set(JIT_SOURCE_FILES jit.c jitInfra.c shuffle.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})
