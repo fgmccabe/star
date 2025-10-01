@@ -13,12 +13,12 @@ include_directories("Headers"
         "../../Escapes/Headers"
         "../../Headers"
         "Common/Headers"
-        "Assem/Headers"
-        "./Headers")
+        "Assem/Headers")
 
 set(HEADER_FILES
         arm64.h
         arm64P.h
+        assem.h
         Headers/lower.h
         Headers/lowerP.h
         ../../Util/Headers/array.h
