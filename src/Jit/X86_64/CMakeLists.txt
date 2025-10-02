@@ -18,6 +18,7 @@ set(HEADER_FILES
         lower.h
         lowerP.h
         macros.h
+        config.h
         )
 
 set(SOURCE_FILES lower.c lowerFFI.c lowerFrame.c lowerStack.c)

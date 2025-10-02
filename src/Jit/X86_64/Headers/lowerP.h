@@ -106,9 +106,9 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
 void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst);
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
-void pushRegister(valueStackPo stack, armReg rg);
-armReg popValue(valueStackPo stack, jitCompPo jit);
-armReg topValue(valueStackPo stack, jitCompPo jit);
+void pushRegister(valueStackPo stack, x64Reg rg);
+x64Reg popValue(valueStackPo stack, jitCompPo jit);
+x64Reg topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
 void spillLocals(valueStackPo stack, jitCompPo jit);
@@ -120,7 +120,7 @@ localVarPo argSlot(valueStackPo stack, int32 slot);
 localVarPo localSlot(valueStackPo stack, int32 slot);
 localVarPo stackSlot(valueStackPo stack, int32 slot);
 
-void storeStack(jitCompPo jit, armReg src, int32 depth);
+void storeStack(jitCompPo jit, x64Reg src, int32 depth);
 
 retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
 registerMap criticalRegs();
