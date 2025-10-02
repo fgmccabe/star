@@ -1590,6 +1590,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
               releaseReg(jit, lbl);
               break;
             }
+            case TOCall: {
+              armReg lbl = topValue(stack, jit);
+              ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) tocallDebug, 4, RG(PR), IM(code[npc].op), RG(loc),
+                                  RG(lbl));
+              releaseReg(jit, lbl);
+              break;
+            }
             case Ret: {
               armReg vl = topValue(stack, jit);
               ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) retDebug, 3, RG(PR), RG(loc), RG(vl));
@@ -1640,10 +1647,19 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Line: {
         if (lineDebugging) {
+          int32 stackLevel = trueStackDepth(stack);
+
+#ifdef TRACEJIT
+          if (traceJit >= detailedTracing)
+            outMsg(logFile, "True stack depth: %d\n%_", stackLevel);
+#endif
+
           int32 locKey = code[pc].fst;
           armReg loc = findFreeReg(jit);
           loadConstant(jit, locKey, loc);
-          stash(block);
+
+	  stash(block);
+
           ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
           unstash(jit);
           releaseReg(jit, loc);
