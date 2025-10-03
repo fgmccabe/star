@@ -1654,12 +1654,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
             outMsg(logFile, "True stack depth: %d\n%_", stackLevel);
 #endif
 
+          spillStack(stack, jit);
           int32 locKey = code[pc].fst;
           armReg loc = findFreeReg(jit);
           loadConstant(jit, locKey, loc);
 
-	  stash(block);
-
+          stash(block);
           ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
           unstash(jit);
           releaseReg(jit, loc);
