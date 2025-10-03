@@ -174,8 +174,10 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRe
         if (args[ax].group == gx) {
           FlexOp dst = args[ax].dst;
 
-          if (!sameFlexOp(dst, args[ax].src))
+          if (!sameFlexOp(dst, args[ax].src)) {
             move(ctx, args[ax].dst, args[ax].src, freeRegs);
+            args[ax].dst = args[ax].src;
+          }
           args[ax].group = -1;
         }
       }
