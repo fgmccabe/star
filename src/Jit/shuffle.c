@@ -159,7 +159,7 @@ static int32 groupSize(argSpecPo specs, int32 arity, int32 group) {
   return size;
 }
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRegs) {
+void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, void *cl) {
   int32 groups = sortArgSpecs(args, arity);
 
 #ifdef TRACEJIT
@@ -175,8 +175,7 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRe
           FlexOp dst = args[ax].dst;
 
           if (!sameFlexOp(dst, args[ax].src)) {
-            move(ctx, args[ax].dst, args[ax].src, freeRegs);
-            args[ax].dst = args[ax].src;
+            mover(ctx, args[ax].dst, args[ax].src, cl);
           }
           args[ax].group = -1;
         }
