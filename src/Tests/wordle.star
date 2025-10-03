@@ -226,12 +226,9 @@ test.wordle{
 
   _main:(cons[string])=>().
   _main(["--coach"]) => coach().
+  _main(["--play"]) => playerone().
   _main([S,G]) => showMsg(score(S,G)).
   _main([S]) => playertwo(S).
-  _main([]) => playerone().
-
-    
-    
-
+  _main([]) => showMsg(score("skate","melon")).
 }
     

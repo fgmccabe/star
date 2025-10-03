@@ -94,6 +94,12 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
 
 static armReg argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
 
+static void moveArg(assemCtxPo ctx, FlexOp dst, FlexOp src, void *cl) {
+ registerMap freeRegs = (registerMap) cl;
+
+  move(ctx, dst, src, freeRegs);
+}
+
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
   va_list args;
   va_start(args, arity); /* start the variable argument sequence */
@@ -109,7 +115,7 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
 
   saveRegisters(ctx, saveMap);
 
-  shuffleVars(ctx, operands, arity, fixedRegSet(X16));
+  shuffleVars(ctx, operands, arity, moveArg, (void*)fixedRegSet(X16));
 
   mov(X16, IM((integer) fn));
   blr(X16);

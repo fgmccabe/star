@@ -120,7 +120,6 @@ void pushRegister(valueStackPo stack, armReg rg) {
 }
 
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
-  assert(depth<=stack->vTop);
   while (stack->vTop > depth)
     dropValue(stack, jit);
 }
@@ -221,13 +220,21 @@ retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count, int32 tgtO
   return Ok;
 }
 
+void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, void *cl) {
+  jitCompPo jit = (jitCompPo) cl;
+
+  move(ctx, dst, src, jit->freeRegs);
+  if (src.mode==reg)
+    releaseReg(jit,src.reg);
+}
+
 void spillStack(valueStackPo stack, jitCompPo jit) {
   int32 size = stack->vTop + jit->arity + jit->lclCnt;
 
   ArgSpec newArgs[size];
   setupLocals(&stack->local[stack->stackPnt - stack->vTop], &newArgs[0], size, -(jit->lclCnt + stack->vTop));
 
-  shuffleVars(jit->assemCtx, newArgs, size, jit->freeRegs);
+  shuffleVars(jit->assemCtx, newArgs, size, spillVr, (void*)jit);
 }
 
 // Put the top arity elements of the stack over caller
@@ -269,7 +276,7 @@ void frameOverride(jitBlockPo block, int arity) {
     }
   }
 
-  shuffleVars(ctx, newArgs, arity, jit->freeRegs);
+  shuffleVars(ctx, newArgs, arity, spillVr, (void*)jit);
 
   if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
