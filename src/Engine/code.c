@@ -103,6 +103,10 @@ labelPo mtdLabel(methodPo mtd) {
   return mtd->lbl;
 }
 
+logical mtdHasName(methodPo mtd,char *name) {
+  return uniIsLit(lblName(mtdLabel(mtd)),name);
+}
+
 int32 stackDelta(methodPo mtd) {
   assert(mtd != Null);
   return mtd->stackDelta + mtd->lclcnt;

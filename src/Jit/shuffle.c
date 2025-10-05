@@ -119,19 +119,17 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   return low;
 }
 
-static void showDef(argSpecPo def) {
-  outMsg(logFile, "arg %F: %F\n", def->dst, def->src);
-}
-
-static void showRegGroups(ArgSpec defs[], int32 groups, int32 arity) {
+static void showGroups(ArgSpec defs[], int32 groups, int32 arity) {
   for (int32 gx = 0; gx < groups; gx++) {
     outMsg(logFile, "group %d: ", gx);
+    char *sep = "";
     for (int32 ax = 0; ax < arity; ax++) {
       if (defs[ax].group == gx) {
-        showDef(&defs[ax]);
+        outMsg(logFile, "%sarg %F: %F", sep, defs[ax].dst, defs[ax].src);
+        sep = ", ";
       }
     }
-    outMsg(logFile, "\n");
+    outStr(logFile, "\n");
   }
   flushOut();
 }
@@ -164,7 +162,7 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, vo
 
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
-    showRegGroups(args, groups, arity);
+    showGroups(args, groups, arity);
   }
 #endif
 

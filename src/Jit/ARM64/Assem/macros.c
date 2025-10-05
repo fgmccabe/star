@@ -30,7 +30,7 @@ registerMap allocReg(registerMap from, armReg Rg) {
 }
 
 registerMap freeReg(registerMap from, armReg Rg) {
-  check((from & ((uint64)1u << Rg)) == 0, "register already free");
+  // check((from & ((uint64)1u << Rg)) == 0, "register already free");
   return (from | ((uint64) 1u << Rg));
 }
 

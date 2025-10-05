@@ -20,6 +20,7 @@ int32 stackDelta(methodPo mtd);
 
 int32 mtdArity(methodPo mtd);
 labelPo mtdLabel(methodPo mtd);
+logical mtdHasName(methodPo mtd,char *name);
 
 int32 codeSize(methodPo mtd);
 logical validPC(methodPo mtd, insPo pc);

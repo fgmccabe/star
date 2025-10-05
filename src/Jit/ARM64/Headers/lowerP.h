@@ -47,11 +47,11 @@ typedef struct {
   armReg Rg;
   int32 stkOff;
   int32 key;
-  logical inited;
 } LocalEntry, *localVarPo;
 
 typedef struct {
-  LocalEntry local[128];
+  localVarPo locals;
+  int32 lclCount;
   int32 argPnt;
   int32 stackPnt;
   int32 vTop;
@@ -64,7 +64,6 @@ typedef struct jitBlock_ {
   jitCompPo jit;
   int32 startPc;
   int32 endPc;
-  int32 lclCnt;
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
