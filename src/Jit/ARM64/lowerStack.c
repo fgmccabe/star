@@ -21,15 +21,15 @@ registerMap criticalRegs() {
 }
 
 localVarPo stackSlot(valueStackPo stack, int32 slot) {
-  return &stack->local[stack->stackPnt - stack->vTop + slot];
+  return &stack->locals[stack->stackPnt - stack->vTop + slot];
 }
 
 localVarPo localSlot(valueStackPo stack, int32 slot) {
-  return &stack->local[stack->argPnt - slot];
+  return &stack->locals[stack->argPnt - slot];
 }
 
 localVarPo argSlot(valueStackPo stack, int32 slot) {
-  return &stack->local[stack->argPnt + slot];
+  return &stack->locals[stack->argPnt + slot];
 }
 
 int32 trueStackDepth(valueStackPo stack) {
@@ -224,17 +224,17 @@ void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, void *cl) {
   jitCompPo jit = (jitCompPo) cl;
 
   move(ctx, dst, src, jit->freeRegs);
-  if (src.mode==reg)
-    releaseReg(jit,src.reg);
+  if (src.mode == reg)
+    releaseReg(jit, src.reg);
 }
 
 void spillStack(valueStackPo stack, jitCompPo jit) {
   int32 size = stack->vTop + jit->arity + jit->lclCnt;
 
   ArgSpec newArgs[size];
-  setupLocals(&stack->local[stack->stackPnt - stack->vTop], &newArgs[0], size, -(jit->lclCnt + stack->vTop));
+  setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size, -(jit->lclCnt + stack->vTop));
 
-  shuffleVars(jit->assemCtx, newArgs, size, spillVr, (void*)jit);
+  shuffleVars(jit->assemCtx, newArgs, size, spillVr, (void *) jit);
 }
 
 // Put the top arity elements of the stack over caller
@@ -276,7 +276,7 @@ void frameOverride(jitBlockPo block, int arity) {
     }
   }
 
-  shuffleVars(ctx, newArgs, arity, spillVr, (void*)jit);
+  shuffleVars(ctx, newArgs, arity, spillVr, (void *) jit);
 
   if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
@@ -387,10 +387,10 @@ static void dumpSlot(ioPo out, localVarPo var) {
       outMsg(out, "register X%d", var->Rg);
       return;
     case inStack:
-      outMsg(out, "on stack %d", var->stkOff);
+      outMsg(out, "stack at %d", var->stkOff);
       return;
     case isLocal:
-      outMsg(out, "local vr %d", var->stkOff);
+      outMsg(out, "%s %d", (var->stkOff>=0?"arg":"local"), var->stkOff);
       return;
     case isConstant: {
       outMsg(out, "constant %T", getConstant(var->key));
@@ -402,26 +402,31 @@ static void dumpSlot(ioPo out, localVarPo var) {
 }
 
 void dumpStack(valueStackPo stack) {
-  outMsg(logFile, "Stack: top=%d, arity=%d, locals=%d\n", stack->vTop,
-         NumberOf(stack->local) - stack->argPnt, stack->argPnt - stack->stackPnt);
+  int32 arity = stack->lclCount - stack->argPnt;
+  int32 lclCnt = stack->argPnt - stack->stackPnt;
+  int32 top = stack->vTop;
 
-  // for (int ax = 0; ax + stack->argPnt < NumberOf(stack->local); ax++) {
-  //   localVarPo var = argSlot(stack, ax);
-  //   outMsg(logFile, "arg %d ",ax);
-  //   dumpSlot(logFile, var);
-  //   outStr(logFile, "\n");
-  // }
-  //
-  // for (int lx=1;lx<=stack->argPnt-stack->stackPnt;lx++) {
-  //   localVarPo var = localSlot(stack, lx);
-  //   outMsg(logFile, "lcl %d ",lx);
-  //   dumpSlot(logFile, var);
-  //   outStr(logFile, "\n");
-  // }
+  outMsg(logFile, "Stack: top=%d, arity=%d, locals=%d\n", top, arity, lclCnt);
 
-  for (int sx = 0; sx < stack->vTop; sx++) {
+  check(top+arity+lclCnt<=stack->lclCount, "inconsistent stack state");
+
+  for (int ax = 0; ax < arity; ax++) {
+    localVarPo var = argSlot(stack, ax);
+    outMsg(logFile, "arg %d ", ax);
+    dumpSlot(logFile, var);
+    outStr(logFile, "\n");
+  }
+
+  for (int32 lx = 1; lx <= lclCnt; lx++) {
+    localVarPo var = localSlot(stack, lx);
+    outMsg(logFile, "local %d ", lx);
+    dumpSlot(logFile, var);
+    outStr(logFile, "\n");
+  }
+
+  for (int32 sx = 0; sx < top; sx++) {
     localVarPo var = stackSlot(stack, sx);
-    outMsg(logFile, "stk %d ", sx);
+    outMsg(logFile, "stack %d ", sx);
     dumpSlot(logFile, var);
     outStr(logFile, "\n");
   }
@@ -506,13 +511,13 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
       *dst = *src;
     }
 
-    for (int32 v = tgtHeight; v > 0; v--) {
+    for (int32 v = tgtHeight - 1; v >= 0; v--) {
       localVarPo src = stackSlot(srcStack, v);
       localVarPo dst = stackSlot(tgtStack, v);
       *dst = *src;
     }
 
-    for (int32 v = tgtHeight; v > tgtHeight; v--) {
+    for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
       localVarPo src = stackSlot(srcStack, v - 1);
       pushValue(tgtStack, *src);
     }

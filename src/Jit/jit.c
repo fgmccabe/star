@@ -27,7 +27,6 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
 #ifdef TRACEJIT
     if (traceJit) {
       outMsg(logFile, "Jit method %L\n", mtd);
-      dRegisterMap(jit->freeRegs);
     }
 #endif
 
