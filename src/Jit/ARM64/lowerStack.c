@@ -4,15 +4,14 @@
 
 #include <config.h>
 
-#include "cellP.h"
 #include "lowerP.h"
 #include "stackP.h"
-#include "singleP.h"
-#include "constantsP.h"
 #include "jitP.h"
-#include "debug.h"
-#include "engineP.h"
 #include "shuffle.h"
+#include "constants.h"
+#include "codeP.h"
+
+
 
 // We need these registers preserved at all costs
 
