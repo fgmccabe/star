@@ -55,7 +55,6 @@ typedef struct {
   int32 argPnt;
   int32 stackPnt;
   int32 vTop;
-  logical propagated; // Has a child stack been propagated?
 } ValueStack, *valueStackPo;
 
 typedef struct jitBlock_ *jitBlockPo;
@@ -117,7 +116,6 @@ armReg popValue(valueStackPo stack, jitCompPo jit);
 armReg topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
-void spillLocals(valueStackPo stack, jitCompPo jit);
 void spillStack(valueStackPo stack, jitCompPo jit);
 void frameOverride(jitBlockPo block, int arity);
 void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry);
