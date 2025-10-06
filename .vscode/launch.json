@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Star test.jt",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/src/Engine/star",
+            "args": ["+j","-ddjj", "-r", "${workspaceFolder}/src/Tests/test-repo/", "test.jt"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src/Tests",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        }
+
+
+
+
+    ]
+}
