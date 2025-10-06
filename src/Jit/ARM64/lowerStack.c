@@ -142,51 +142,6 @@ void dropValues(valueStackPo stack, jitCompPo jit, int32 count) {
   }
 }
 
-static void spillVar(jitCompPo jit, valueStackPo stack, localVarPo var, int32 stkOff) {
-  switch (var->kind) {
-    case inStack:
-    case isLocal: {
-      if (var->stkOff != stkOff) {
-        armReg tmp = findFreeReg(jit);
-        loadLocal(jit, tmp, var->stkOff);
-        storeLocal(jit, stkOff, tmp);
-        var->stkOff = stkOff;
-      }
-      return;
-    }
-    case inRegister: {
-      storeLocal(jit, var->Rg, stkOff);
-      releaseReg(jit, var->Rg);
-      var->stkOff = stkOff;
-      var->kind = inStack;
-      return;
-    }
-    case isConstant: {
-      armReg tmp = findFreeReg(jit);
-      loadConstant(jit, var->key, tmp);
-      storeLocal(jit, tmp, stkOff);
-      var->kind = inStack;
-      var->stkOff = stkOff;
-      releaseReg(jit, tmp);
-      return;
-    }
-    default: {
-      bailOut(jit, errorCode);
-    }
-  }
-}
-
-void spillLocals(valueStackPo stack, jitCompPo jit) {
-  for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
-    localVarPo var = argSlot(stack, ax);
-    spillVar(jit, stack, var, ax);
-  }
-  for (int32 v = 1; v <= lclCount(jit->mtd); v++) {
-    localVarPo var = localSlot(stack, v);
-    spillVar(jit, stack, var, -v);
-  }
-}
-
 retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count, int32 tgtOff) {
   for (int32 ix = 0; ix < count; ix++) {
     localVarPo var = &stack[ix];
@@ -390,7 +345,7 @@ static void dumpSlot(ioPo out, localVarPo var) {
       outMsg(out, "stack at %d", var->stkOff);
       return;
     case isLocal:
-      outMsg(out, "%s %d", (var->stkOff>=0?"arg":"local"), var->stkOff);
+      outMsg(out, "%s %d", (var->stkOff >= 0 ? "arg" : "local"), var->stkOff);
       return;
     case isConstant: {
       outMsg(out, "constant %T", getConstant(var->key));
@@ -494,40 +449,37 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
 }
 
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight) {
-  if (!tgtStack->propagated) {
-    tgtStack->propagated = True;
-    tgtStack->vTop = tgtHeight;
+  tgtStack->vTop = tgtHeight;
 
-    // Should be a nop at the moment.
-    for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
-      localVarPo src = argSlot(srcStack, ax);
-      localVarPo dst = argSlot(tgtStack, ax);
-      *dst = *src;
-    }
-
-    for (int32 v = 1; v <= srcStack->argPnt - srcStack->stackPnt; v++) {
-      localVarPo src = localSlot(srcStack, v);
-      localVarPo dst = localSlot(tgtStack, v);
-      *dst = *src;
-    }
-
-    for (int32 v = tgtHeight - 1; v >= 0; v--) {
-      localVarPo src = stackSlot(srcStack, v);
-      localVarPo dst = stackSlot(tgtStack, v);
-      *dst = *src;
-    }
-
-    for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
-      localVarPo src = stackSlot(srcStack, v - 1);
-      pushValue(tgtStack, *src);
-    }
-  } else {
-    check(srcStack->vTop >= tgtStack->vTop, "Stack depth mismatch");
-    for (int32 v = 0; v < tgtStack->vTop; v++) {
-      localVarPo src = localSlot(srcStack, v);
-      localVarPo dst = localSlot(tgtStack, v);
-      *dst = *src;
-    }
+  // Should be a nop at the moment.
+  for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
+    localVarPo src = argSlot(srcStack, ax);
+    localVarPo dst = argSlot(tgtStack, ax);
+    *dst = *src;
   }
+
+  for (int32 v = 1; v <= srcStack->argPnt - srcStack->stackPnt; v++) {
+    localVarPo src = localSlot(srcStack, v);
+    localVarPo dst = localSlot(tgtStack, v);
+    *dst = *src;
+  }
+
+  for (int32 v = 0; v < srcStack->vTop; v++) {
+    localVarPo src = stackSlot(srcStack, v);
+    localVarPo dst = stackSlot(tgtStack, v);
+    propagateVar(jit, src, dst);
+  }
+
+  for (int32 v = tgtHeight - 1; v >= srcStack->vTop; v--) {
+    localVarPo src = stackSlot(srcStack, v);
+    localVarPo dst = stackSlot(tgtStack, v);
+    *dst = *src;
+  }
+
+  for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
+    localVarPo src = stackSlot(srcStack, v - 1);
+    pushValue(tgtStack, *src);
+  }
+
   return Ok;
 }

@@ -35,8 +35,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
     .lclCount = numLcls,
     .argPnt = numLcls - mtdArity(mtd),
     .stackPnt = numLcls - mtdArity(mtd) - lclCount(mtd),
-    .vTop = 0,
-    .propagated = False
+    .vTop = 0
   };
 
 #ifdef TRACEJIT
@@ -82,8 +81,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
     .lclCount = numLcls,
     .argPnt = numLcls - mtdArity(mtd),
     .stackPnt = numLcls - mtdArity(mtd) - mtdArity(mtd) - lclCount(mtd),
-    .vTop = depth,
-    .propagated = False
+    .vTop = depth
   };
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
@@ -451,8 +449,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
             .lclCount = block->stack.lclCount,
             .argPnt = block->stack.argPnt,
             .stackPnt = block->stack.stackPnt,
-            .vTop = block->stack.vTop,
-            .propagated = False
+            .vTop = block->stack.vTop
           }
         };
 
@@ -468,7 +465,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         if (traceJit >= detailedTracing)
           dRegisterMap(jit->freeRegs);
 #endif
-        setStackDepth(stack, jit, exitHeight);
+        // setStackDepth(stack, jit, exitHeight);
         continue;
       }
       case Break: {
@@ -488,11 +485,14 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         // already at the right height?
         if (tgtHeight != block->stack.vTop) {
-          propagateVar(jit, stackSlot(stack, 0), stackSlot(stack, stack->vTop - tgtHeight));
-        }
-        setStackDepth(stack, jit, tgtHeight);
-        spillStack(stack, jit);
-        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+          armReg val = popValue(stack, jit);
+          setStackDepth(&tgtBlock->parent->stack, jit, tgtHeight - 1);
+          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight - 1);
+          pushRegister(&tgtBlock->parent->stack, val);
+        } else
+          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight);
+
+        dumpStack(&tgtBlock->parent->stack);
 
         return breakOut(block, tgtBlock);
       }
@@ -714,7 +714,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         pushBlank(stack); // This one is from the call to load global
 
         bind(haveContent);
-        storeStack(jit, content,stack->vTop);
+        storeStack(jit, content, stack->vTop);
         bind(returnPc);
         releaseReg(jit, glb);
         releaseReg(jit, content);
@@ -1015,7 +1015,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(vl));
-        mov(ix,RG(X0));
+        mov(ix, RG(X0));
         releaseReg(jit, vl);
         unstash(jit);
         armReg divisor = findFreeReg(jit);
@@ -1123,10 +1123,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
-          spillStack(stack, jit);
-          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+          setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
+          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          // spillStack(stack, jit);
+          //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1134,7 +1134,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         bind(skip);
         sdiv(a1, a1, a2);
         mkIntVal(jit, a1);
-        setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1152,10 +1152,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          setStackDepth(&tgtBlock->stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(&tgtBlock->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
-          spillStack(stack, jit);
-          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+          setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
+          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          // spillStack(stack, jit);
+          //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1167,7 +1167,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         msub(a1, divisor, quotient, a1);
 
         mkIntVal(jit, a1);
-        setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
         pushRegister(stack, a1);
 
         releaseReg(jit, divisor);
@@ -1425,10 +1425,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
-          spillStack(stack, jit);
-          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+          setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
+          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          // spillStack(stack, jit);
+          //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1440,7 +1440,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(RG(a1), FP(F0));
         mkFltVal(jit, a1);
 
-        setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1458,10 +1458,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
-          setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
-          spillStack(stack, jit);
-          propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+          setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
+          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          // spillStack(stack, jit);
+          //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
         } else
           return jitError(jit, "cannot find target label for %d", tgtBlock);
@@ -1474,7 +1474,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(RG(a1), FP(F2));
         mkFltVal(jit, a1);
 
-        setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
