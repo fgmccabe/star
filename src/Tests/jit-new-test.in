@@ -1,0 +1,2 @@
+#!/bin/bash
+sc -R test-repo/ $1 && @STAR_UNDER_TEST@ -j -r test-repo/ $*
