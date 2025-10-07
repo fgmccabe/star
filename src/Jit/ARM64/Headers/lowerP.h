@@ -38,15 +38,14 @@
 typedef enum {
   inRegister,
   isLocal,
-  inStack,
-  isConstant
+  inStack
 } valueKind;
 
 typedef struct {
   valueKind kind;
   armReg Rg;
   int32 stkOff;
-  int32 key;
+  logical inited;
 } LocalEntry, *localVarPo;
 
 typedef struct {
@@ -112,6 +111,7 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst);
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);
+void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
 armReg popValue(valueStackPo stack, jitCompPo jit);
 armReg topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);

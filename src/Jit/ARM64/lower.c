@@ -45,13 +45,13 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
 #endif
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax};
+    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
   }
   for (int32 lx = 1; lx <= lclCount(mtd); lx++) {
-    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx};
+    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = True};
   }
   for (int32 i = 0; i < stack.stackPnt; i++) {
-    stack.locals[i] = (LocalEntry){.kind = isConstant, .key = voidIndex, .stkOff = i - stack.stackPnt};
+    stack.locals[i] = (LocalEntry){.kind = inStack, .stkOff = i - stack.stackPnt, .inited = False};
   }
 
   JitBlock block = {
@@ -85,13 +85,13 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
   };
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax};
+    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
   }
   for (int32 lx = 1; lx <= lclCount(mtd); lx++) {
-    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx};
+    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = True};
   }
   for (int32 sx = 1; sx <= depth; sx++) {
-    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx)};
+    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx), .inited = False};
   }
 
   JitBlock block = {
@@ -364,12 +364,17 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         tryRet(stackCheck(jit, jit->mtd));
 
+        armReg ixReg = findFreeReg(jit);
+        loadConstant(jit, voidIndex, ixReg);
+
         if (lclCnt > 0) {
           for (int32 ix = 1; ix <= lclCnt; ix++) {
             localVarPo lcl = localSlot(stack, ix);
-            *lcl = (LocalEntry){.kind = isConstant, .key = voidIndex, .stkOff = -ix};
+            storeLocal(jit, ixReg, -ix);
+            *lcl = (LocalEntry){.kind = isLocal, .stkOff = -ix, .inited = True};
           }
         }
+        releaseReg(jit, ixReg);
         continue;
       }
       case Ret: {
@@ -482,6 +487,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         jitBlockPo tgtBlock = breakBlock(block, code, tgt);
 
         int32 tgtHeight = tgtBlock->exitHeight;
+
+        dumpStack(&tgtBlock->parent->stack);
 
         // already at the right height?
         if (tgtHeight != block->stack.vTop) {
@@ -623,25 +630,24 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case LdV: {
         // Place a void value on stack
-        pushValue(stack, (LocalEntry){.kind = isConstant, .key = voidIndex});
+        pushConstant(jit, stack, voidIndex);
         continue;
       }
       case LdC: {
         // load literal from constant pool
-        int32 key = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isConstant, .key = key});
+        pushConstant(jit, stack, code[pc].fst);
         continue;
       }
       case LdA: {
         // load stack from args[xx]
         int32 argNo = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = argNo});
+        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = argNo, .inited = True});
         continue;
       }
       case LdL: {
         // load stack from local[xx]
         int32 lclNo = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = -lclNo});
+        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
         continue;
       }
       case StL: {
@@ -649,7 +655,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 lclNo = code[pc].fst;
         armReg vl = popValue(stack, jit);
         storeLocal(jit, vl, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo});
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
         releaseReg(jit, vl);
         continue;
       }
@@ -659,7 +665,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg vd = findFreeReg(jit);
         loadConstant(jit, voidIndex, vd);
         storeLocal(jit, vd, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isConstant, .key = voidIndex});
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
         releaseReg(jit, vd);
         continue;
       }
@@ -668,7 +674,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 lclNo = code[pc].fst;
         armReg vl = popValue(stack, jit);
         storeLocal(jit, vl, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo});
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
         pushRegister(stack, vl);
         continue;
       }
@@ -1124,7 +1130,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          pushConstant(jit, stack, divZeroIndex);
           // spillStack(stack, jit);
           //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
@@ -1153,7 +1159,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          pushConstant(jit, stack, divZeroIndex);
           // spillStack(stack, jit);
           //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
@@ -1426,7 +1432,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          pushConstant(jit, stack, divZeroIndex);
           // spillStack(stack, jit);
           //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
@@ -1459,7 +1465,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-          pushValue(&tgtBlock->parent->stack, (LocalEntry){.kind = isConstant, .key = divZeroIndex});
+          pushConstant(jit, stack, divZeroIndex);
           // spillStack(stack, jit);
           //propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
           b(lbl);
