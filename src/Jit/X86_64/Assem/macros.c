@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 9/30/25.
 //
 
-#include "x86-64P.h"
+#include "x86_64P.h"
 #include "macros.h"
 
 registerMap emptyRegSet() {
@@ -19,33 +19,33 @@ registerMap defltAvailRegSet() {
          1u << R10 | 1u << R11 | 1u << R12 | 1u << R13 | 1u << R14 | 1u << R15;
 }
 
-registerMap fixedRegSet(armReg Rg) {
+registerMap fixedRegSet(mcRegister Rg) {
   return 1u << Rg;
 }
 
-registerMap allocReg(registerMap from, armReg Rg) {
+registerMap allocReg(registerMap from, mcRegister Rg) {
   check((from & ((uint64)1u << Rg)) != 0, "register not free");
   return (from & (~((uint64) 1u << Rg)));
 }
 
-registerMap freeReg(registerMap from, armReg Rg) {
+registerMap freeReg(registerMap from, mcRegister Rg) {
   check((from & ((uint64)1u << Rg)) == 0, "register already free");
   return (from | ((uint64) 1u << Rg));
 }
 
-registerMap dropReg(registerMap map, armReg Rg) {
+registerMap dropReg(registerMap map, mcRegister Rg) {
   return (map & (~((uint64) 1u << Rg)));
 }
 
-registerMap addReg(registerMap from, armReg Rg) {
+registerMap addReg(registerMap from, mcRegister Rg) {
   return (from | ((uint64) 1u << Rg));
 }
 
-logical isRegInMap(registerMap from, armReg Rg) {
+logical isRegInMap(registerMap from, mcRegister Rg) {
   return ((from & ((uint64) 1u << Rg)) != 0);
 }
 
-armReg nxtAvailReg(registerMap from) {
+mcRegister nxtAvailReg(registerMap from) {
   for (uint32 ix = 0; ix < 64u; ix++) {
     uint64 mask = (uint64) 1u << ix;
     if ((from & mask) != 0)
@@ -58,7 +58,7 @@ void processRegisterMap(registerMap set, regProc proc, void *cl) {
   for (uint32 ix = 0; ix < 64u; ix++) {
     uint64 mask = (uint64) 1u << ix;
     if ((set & mask) != 0)
-      proc((armReg) ix, cl);
+      proc((mcRegister) ix, cl);
   }
 }
 
@@ -67,12 +67,12 @@ void revProcessRegisterMap(registerMap set, regProc proc, void *cl) {
     ix--;
     uint64 mask = (uint64) 1u << ix;
     if ((set & mask) != 0)
-      proc((armReg) ix, cl);
+      proc((mcRegister) ix, cl);
   }
 }
 
-static void svRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
-  armReg nxt = nxtAvailReg(regs);
+static void svRegisters(assemCtxPo ctx, registerMap regs, mcRegister Rg) {
+  mcRegister nxt = nxtAvailReg(regs);
 
   if (nxt == XZR) {
     if (Rg != XZR)
@@ -89,8 +89,8 @@ void saveRegisters(assemCtxPo ctx, registerMap regs) {
   svRegisters(ctx, regs, XZR);
 }
 
-static void restRegisters(assemCtxPo ctx, registerMap regs, armReg Rg) {
-  armReg nxt = nxtAvailReg(regs);
+static void restRegisters(assemCtxPo ctx, registerMap regs, mcRegister Rg) {
+  mcRegister nxt = nxtAvailReg(regs);
 
   if (nxt == XZR) {
     if (Rg != XZR)
@@ -107,7 +107,7 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-void showReg(armReg rg, void *cl) {
+void showReg(mcRegister rg, void *cl) {
   outMsg((ioPo) cl, "%R ", rg);
 }
 
@@ -118,13 +118,13 @@ void dRegisterMap(registerMap regs) {
   flushOut();
 }
 
-retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {
+retCode loadCGlobal(assemCtxPo ctx, mcRegister reg, void *address) {
   mov(reg, IM((integer) address));
   ldr(reg, OF(reg, 0));
   return Ok;
 }
 
-void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
+void load(assemCtxPo ctx, mcRegister dst, mcRegister src, int64 offset) {
   if (is9bit(offset))
     ldur(dst, src, offset);
   else {
@@ -133,11 +133,11 @@ void load(assemCtxPo ctx, armReg dst, armReg src, int64 offset) {
   }
 }
 
-void store(assemCtxPo ctx, armReg src, armReg dst, int64 offset, registerMap freeRegs) {
+void store(assemCtxPo ctx, mcRegister src, mcRegister dst, int64 offset, registerMap freeRegs) {
   if (is9bit(offset))
     stur(src, dst, offset);
   else {
-    armReg tmp = nxtAvailReg(freeRegs);
+    mcRegister tmp = nxtAvailReg(freeRegs);
     mov(tmp, IM(offset));
     str(src, EX2(dst, tmp, U_XTX, 0));
   }
@@ -166,14 +166,14 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
           return;
         case sOff: {
           if (src.immediate != dst.immediate || src.reg != dst.reg) {
-            armReg tmp = nxtAvailReg(freeRegs);
+            mcRegister tmp = nxtAvailReg(freeRegs);
             load(ctx, tmp, src.reg, src.immediate);
             store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
           }
           return;
         }
         case imm: {
-          armReg tmp = nxtAvailReg(freeRegs);
+          mcRegister tmp = nxtAvailReg(freeRegs);
           mov(tmp, src);
           store(ctx, tmp, dst.reg, dst.immediate, dropReg(freeRegs, tmp));
           return;

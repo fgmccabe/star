@@ -60,22 +60,22 @@ logical sameFlexOp(FlexOp a, FlexOp b);
 
 #define PLATFORM_PC_DELTA 4
 
-#define RG(Rg) {.mode=Reg, .op.reg=(Rg)}
-#define IM(Vl) {.mode=Immediate, .op.imm=(Vl)}
-#define BS(Rg, Off) {.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)}
-#define IX(Rg, Ix, Sc, Off) {.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)}
-#define LB(l)  {.mode=Labeled, .op.lbl = (l)}
+#define RG(Rg) ((FlexOp){.mode=Reg, .op.reg=(Rg)})
+#define IM(Vl) ((FlexOp){.mode=Immediate, .op.imm=(Vl)})
+#define BS(Rg, Off) ((FlexOp){.mode=Based, .op.based.base=(Rg), .op.based.disp=(Off)})
+#define IX(Rg, Ix, Sc, Off) ((FlexOp){.mode=Indexed, .op.indexed.base = (Rg), .op.indexed.index=(Ix), .op.indexed.disp=(Off), .op.indexed.scale=(Sc)})
+#define LB(l)  ((FlexOp){.mode=Labeled, .op.lbl = (l)})
 
 void lea_(x64Reg dst, FlexOp src, assemCtxPo ctx);
-#define lea(dst, src, ctx) lea_(dst,(FlexOp)(src),ctx)
+#define lea(dst, src) lea_(dst,(src),ctx)
 
 void mov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define mov(dst, src, ctx) mov_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define mov(dst, src) mov_((dst),(src),ctx)
 
 void cmov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void xchg_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define xchg(dst, src, ctx) xchg_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define xchg(dst, src) xchg_((dst),(src),ctx)
 
 void bswap_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void xadd_(FlexOp dst, FlexOp src, assemCtxPo ctx);
@@ -88,10 +88,10 @@ void cqo_(assemCtxPo ctx); // sign extend rax into rdx:rax
 void cdq_(assemCtxPo ctx); // sign extend eax into edx:eax
 
 void push_(FlexOp src, assemCtxPo ctx);
-#define push(src, ctx) =push_((FlexOp)(src),ctx)
+#define push(src) =push_((src),ctx)
 
 void pop_(FlexOp dst, assemCtxPo ctx);
-#define pop(dst, ctx) pop_((FlexOp)(dst),ctx)
+#define pop(dst) pop_((dst),ctx)
 
 void leave_(assemCtxPo ctx);
 
@@ -99,10 +99,10 @@ void cwd_(FlexOp dst, assemCtxPo ctx);
 void cbw_(FlexOp src, assemCtxPo ctx);
 
 void movzx_(x64Reg dst, FlexOp src, assemCtxPo ctx);
-#define movzx(dst, src, ctx) movzx_(dst,(FlexOp)(src),ctx)
+#define movzx(dst, src) movzx_(dst,(src),ctx)
 
 void movzdx_(x64Reg dst, FlexOp src, assemCtxPo ctx);
-#define movzdx(dst, src, ctx) movzdx_(dst,(FlexOp)(src),ctx)
+#define movzdx(dst, src) movzdx_(dst,src,ctx)
 
 void fld(int i, assemCtxPo ctx);
 
@@ -112,42 +112,46 @@ void fmul_(assemCtxPo ctx);
 void fdiv_(assemCtxPo ctx);
 
 void add_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define add(dst, src, ctx) add_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define add(dst, src) add_((dst),(src),ctx)
+
 void adc_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define adc(dst, src, ctx) adc_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define adc(dst, src, ctx) adc_((dst),(src),ctx)
+
 void cmp_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define cmp(dst, src, ctx) cmp_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define cmp(dst, src) cmp_((dst),(src),ctx)
+
 void sub_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define sub(dst, src, ctx) sub_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define sub(dst, src) sub_((dst),(src),ctx)
+
 void sbb_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define sbb(dst, src, ctx) sbb_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define sbb(dst, src) sbb_((dst),(src),ctx)
 
 void imul_(x64Reg dst, FlexOp src, assemCtxPo ctx);
-#define imul(dst, src, ctx) imul_(dst,(FlexOp)(src),ctx)
+#define imul(dst, src) imul_(dst,(src),ctx)
 
 void idiv_(FlexOp src, assemCtxPo ctx);
-#define idiv(src, ctx) idiv_((FlexOp)(src),ctx)
+#define idiv(src) idiv_((src),ctx)
 
 void inc_(FlexOp dst, assemCtxPo ctx);
-#define inc(dst, ctx) inc_((FlexOp)(dst),ctx)
+#define inc(dst) inc_((dst),ctx)
 
 void dec_(FlexOp dst, assemCtxPo ctx);
-#define dec(dst, ctx) dec_((FlexOp)(dst),ctx)
+#define dec(dst) dec_((dst),ctx)
 
 void and_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define and(dst, src, ctx) and_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define and(dst, src) and_((dst),(src),ctx)
 
 void or_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define or(dst, src, ctx) or_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define or(dst, src) or_((dst),(src),ctx)
 
 void xor_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define xor(dst, src, ctx) xor_((FlexOp)(dst),(FlexOp)(src),ctx)
+#define xor(dst, src) xor_((dst),(src),ctx)
 
 void neg_(FlexOp dst, assemCtxPo ctx);
-#define neg(dst, ctx) neg_((FlexOp)(dst),ctx)
+#define neg(dst) neg_((dst),ctx)
 
 void not_(FlexOp dst, assemCtxPo ctx);
-#define not(dst, ctx) not_((FlexOp)(dst),ctx)
+#define not(dst) not_((dst),ctx)
 
 void sar_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void shr_(FlexOp dst, FlexOp src, assemCtxPo ctx);
@@ -201,41 +205,41 @@ void setcc_(x64Reg dst, uint8 cc, assemCtxPo ctx);
 #define setpo(dst, ctx) setcc_(dst,PO_CC,ctx)
 
 void test_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define test(dst, src, ctx) do{ x64Op d=dst; x64Op s = src; test_(d,s,ctx); } while(False)
+#define test(dst, src) test_(dst,src,ctx)
 
 void jmp_(FlexOp dst, assemCtxPo ctx);
-#define jmp(dst, ctx) do{ x64Op d=dst; jmp_(d,ctx); } while(False)
+#define jmp(dst) jmp_(dst,ctx)
 
 void j_cc_(codeLblPo dst, uint8 cc, assemCtxPo ctx);
-#define je(dst, cxt) j_cc_(dst,EQ_CC,ctx)
-#define jne(dst, cxt) j_cc_(dst,NE_CC,ctx)
-#define ja(dst, cxt) j_cc_(dst,A_CC,ctx)
-#define jna(dst, cxt) j_cc_(dst,NA_CC,ctx)
-#define jae(dst, cxt) j_cc_(dst,AE_CC,ctx)
-#define jg(dst, cxt) j_cc_(dst,G_CC,ctx)
-#define jge(dst, cxt) j_cc_(dst,GE_CC,ctx)
-#define jnge(dst, cxt) j_cc_(dst,GE_CC,ctx)
-#define jl(dst, cxt) j_cc_(dst,LT_CC,ctx)
-#define jle(dst, cxt) j_cc_(dst,LE_CC,ctx)
-#define jc(dst, cxt) j_cc_(dst,C_CC,ctx)
-#define jnc(dst, cxt) j_cc_(dst,AE_CC,ctx)
-#define jo(dst, cxt) j_cc_(dst,OV_CC,ctx)
-#define jno(dst, cxt) j_cc_(dst,NO_CC,ctx)
-#define jpe(dst, cxt) j_cc_(dst,PE_CC,ctx)
-#define jpo(dst, cxt) j_cc_(dst,PO_CC,ctx)
-#define js(dst, cxt) j_cc_(dst,S_CC,ctx)
-#define jns(dst, cxt) j_cc_(dst,NS_CC,ctx)
+#define je(dst) j_cc_(dst,EQ_CC,ctx)
+#define jne(dst) j_cc_(dst,NE_CC,ctx)
+#define ja(dst) j_cc_(dst,A_CC,ctx)
+#define jna(dst) j_cc_(dst,NA_CC,ctx)
+#define jae(dst) j_cc_(dst,AE_CC,ctx)
+#define jg(dst) j_cc_(dst,G_CC,ctx)
+#define jge(dst) j_cc_(dst,GE_CC,ctx)
+#define jnge(dst) j_cc_(dst,GE_CC,ctx)
+#define jl(dst) j_cc_(dst,LT_CC,ctx)
+#define jle(dst) j_cc_(dst,LE_CC,ctx)
+#define jc(dst) j_cc_(dst,C_CC,ctx)
+#define jnc(dst) j_cc_(dst,AE_CC,ctx)
+#define jo(dst) j_cc_(dst,OV_CC,ctx)
+#define jno(dst) j_cc_(dst,NO_CC,ctx)
+#define jpe(dst) j_cc_(dst,PE_CC,ctx)
+#define jpo(dst) j_cc_(dst,PO_CC,ctx)
+#define js(dst) j_cc_(dst,S_CC,ctx)
+#define jns(dst) j_cc_(dst,NS_CC,ctx)
 
 void loop_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void loopz_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void loopnz_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void call_(FlexOp src, assemCtxPo ctx);
-#define call(dst, ctx) do{ x64Op d=dst; call_(d,ctx); } while(False)
+#define call(dst) do{ x64Op d=dst; call_(d,ctx); } while(False)
 
 void ret_(int16 disp, assemCtxPo ctx);
-#define ret(disp, ctx) ret_(disp,ctx)
-#define rtn(ctx) ret_(0,ctx)
+#define ret(disp) ret_(disp,ctx)
+#define rtn() ret_(0,ctx)
 
 void stc_(assemCtxPo ctx);
 void clc_(assemCtxPo ctx);
