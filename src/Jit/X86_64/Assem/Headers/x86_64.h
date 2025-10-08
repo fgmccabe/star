@@ -74,6 +74,9 @@ void mov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void cmov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
+void movsx_(x64Reg dst, x64Op src, uint8 scale, assemCtxPo ctx);
+#define movsx(dst, src, scale) movsx_(dst, src, scale, ctx)
+
 void xchg_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define xchg(dst, src) xchg_((dst),(src),ctx)
 
@@ -88,7 +91,7 @@ void cqo_(assemCtxPo ctx); // sign extend rax into rdx:rax
 void cdq_(assemCtxPo ctx); // sign extend eax into edx:eax
 
 void push_(FlexOp src, assemCtxPo ctx);
-#define push(src) =push_((src),ctx)
+#define push(src) push_(src,ctx)
 
 void pop_(FlexOp dst, assemCtxPo ctx);
 #define pop(dst) pop_((dst),ctx)
@@ -115,7 +118,7 @@ void add_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define add(dst, src) add_((dst),(src),ctx)
 
 void adc_(FlexOp dst, FlexOp src, assemCtxPo ctx);
-#define adc(dst, src, ctx) adc_((dst),(src),ctx)
+#define adc(dst, src) adc_((dst),(src),ctx)
 
 void cmp_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define cmp(dst, src) cmp_((dst),(src),ctx)
@@ -190,19 +193,19 @@ void bsr_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define NS_CC 0x9
 
 void setcc_(x64Reg dst, uint8 cc, assemCtxPo ctx);
-#define setne(dst, ctx) setcc_(dst,NE_CC,ctx)
-#define seta(dst, ctx) setcc_(dst,A_CC,ctx)
-#define setae(dst, ctx) setcc_(dst,AE_CC,ctx)
-#define setg(dst, ctx) setcc_(dst,G_CC,ctx)
-#define setge(dst, ctx) setcc_(dst,GE_CC,ctx)
-#define setl(dst, ctx) setcc_(dst,LT_CC,ctx)
-#define setle(dst, ctx) setcc_(dst,LE_CC,ctx)
-#define sets(dst, ctx) setcc_(dst,S_CC,ctx)
-#define setns(dst, ctx) setcc_(dst,NS_CC,ctx)
-#define seto(dst, ctx) setcc_(dst,OV_CC,ctx)
-#define setno(dst, ctx) setcc_(dst,NO_CC,ctx)
-#define setpe(dst, ctx) setcc_(dst,PE_CC,ctx)
-#define setpo(dst, ctx) setcc_(dst,PO_CC,ctx)
+#define setne(dst) setcc_(dst,NE_CC,ctx)
+#define seta(dst) setcc_(dst,A_CC,ctx)
+#define setae(dst) setcc_(dst,AE_CC,ctx)
+#define setg(dst) setcc_(dst,G_CC,ctx)
+#define setge(dst) setcc_(dst,GE_CC,ctx)
+#define setl(dst) setcc_(dst,LT_CC,ctx)
+#define setle(dst) setcc_(dst,LE_CC,ctx)
+#define sets(dst) setcc_(dst,S_CC,ctx)
+#define setns(dst) setcc_(dst,NS_CC,ctx)
+#define seto(dst) setcc_(dst,OV_CC,ctx)
+#define setno(dst) setcc_(dst,NO_CC,ctx)
+#define setpe(dst) setcc_(dst,PE_CC,ctx)
+#define setpo(dst) setcc_(dst,PO_CC,ctx)
 
 void test_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 #define test(dst, src) test_(dst,src,ctx)
@@ -235,7 +238,7 @@ void loopz_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 void loopnz_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void call_(FlexOp src, assemCtxPo ctx);
-#define call(dst) do{ x64Op d=dst; call_(d,ctx); } while(False)
+#define call(dst) call_((dst),ctx)
 
 void ret_(int16 disp, assemCtxPo ctx);
 #define ret(disp) ret_(disp,ctx)

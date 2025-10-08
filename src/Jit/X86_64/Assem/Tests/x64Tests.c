@@ -10,24 +10,24 @@ static retCode checkCode(uint8 *src, integer srcLen, assemCtxPo ctx);
 static retCode test_adc() {
   assemCtxPo ctx = createCtx();
 
-  adc(RG(R10), RG(RAX), ctx);
-  adc(RG(RAX), RG(R10), ctx);
-  adc(RG(R10), RG(R9), ctx);
-  adc(RG(R9), RG(R10), ctx);
+  adc(RG(R10), RG(RAX));
+  adc(RG(RAX), RG(R10));
+  adc(RG(R10), RG(R9));
+  adc(RG(R9), RG(R10));
 
-  adc(RG(R10), IM(0x11223344), ctx);
-  adc(RG(RCX), IM(0x55667788), ctx);
+  adc(RG(R10), IM(0x11223344));
+  adc(RG(RCX), IM(0x55667788));
 
-  adc(RG(R10), BS(RAX, 0x11223344), ctx);
-  adc(BS(RAX, 0x11223344), RG(R10), ctx);
-  adc(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  adc(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  adc(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  adc(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  adc(RG(R10), BS(RAX, 0x11223344));
+  adc(BS(RAX, 0x11223344), RG(R10));
+  adc(BS(RCX, 0x11223344), IM(0x55667788));
+  adc(BS(R10, 0x11223344), IM(0x55667788));
+  adc(BS(R9, 0x11223344), IM(0x55667788));
+  adc(BS(RAX, 0x11223344), IM(0x55667788));
 
-  adc(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  adc(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  adc(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  adc(RG(R10), IX(RDX, R10, 8, 0x55));
+  adc(IX(RDX, R10, 8, 0x55), RG(R10));
+  adc(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x11, 0xc2, // adc r10,rax
                  0x4c, 0x11, 0xd0, // adc rax,r10
@@ -51,24 +51,24 @@ static retCode test_adc() {
 static retCode test_add() {
   assemCtxPo ctx = createCtx();
 
-  add(RG(R10), RG(RAX), ctx);
-  add(RG(RAX), RG(R10), ctx);
-  add(RG(R10), RG(R9), ctx);
-  add(RG(R9), RG(R10), ctx);
+  add(RG(R10), RG(RAX));
+  add(RG(RAX), RG(R10));
+  add(RG(R10), RG(R9));
+  add(RG(R9), RG(R10));
 
-  add(RG(R10), IM(0x11223344), ctx);
-  add(RG(RCX), IM(0x55667788), ctx);
+  add(RG(R10), IM(0x11223344));
+  add(RG(RCX), IM(0x55667788));
 
-  add(RG(R10), BS(RAX, 0x11223344), ctx);
-  add(BS(RAX, 0x11223344), RG(R10), ctx);
-  add(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  add(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  add(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  add(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  add(RG(R10), BS(RAX, 0x11223344));
+  add(BS(RAX, 0x11223344), RG(R10));
+  add(BS(RCX, 0x11223344), IM(0x55667788));
+  add(BS(R10, 0x11223344), IM(0x55667788));
+  add(BS(R9, 0x11223344), IM(0x55667788));
+  add(BS(RAX, 0x11223344), IM(0x55667788));
 
-  add(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  add(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  add(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  add(RG(R10), IX(RDX, R10, 8, 0x55));
+  add(IX(RDX, R10, 8, 0x55), RG(R10));
+  add(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x01, 0xc2, // add r10,rax
                  0x4c, 0x01, 0xd0, // add rax,r10
@@ -92,24 +92,24 @@ static retCode test_add() {
 static retCode test_and() {
   assemCtxPo ctx = createCtx();
 
-  and(RG(R10), RG(RAX), ctx);
-  and(RG(RAX), RG(R10), ctx);
-  and(RG(R10), RG(R9), ctx);
-  and(RG(R9), RG(R10), ctx);
+  and(RG(R10), RG(RAX));
+  and(RG(RAX), RG(R10));
+  and(RG(R10), RG(R9));
+  and(RG(R9), RG(R10));
 
-  and(RG(R10), IM(0x11223344), ctx);
-  and(RG(RCX), IM(0x55667788), ctx);
+  and(RG(R10), IM(0x11223344));
+  and(RG(RCX), IM(0x55667788));
 
-  and(RG(R10), BS(RAX, 0x11223344), ctx);
-  and(BS(RAX, 0x11223344), RG(R10), ctx);
-  and(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  and(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  and(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  and(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  and(RG(R10), BS(RAX, 0x11223344));
+  and(BS(RAX, 0x11223344), RG(R10));
+  and(BS(RCX, 0x11223344), IM(0x55667788));
+  and(BS(R10, 0x11223344), IM(0x55667788));
+  and(BS(R9, 0x11223344), IM(0x55667788));
+  and(BS(RAX, 0x11223344), IM(0x55667788));
 
-  and(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  and(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  and(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  and(RG(R10), IX(RDX, R10, 8, 0x55));
+  and(IX(RDX, R10, 8, 0x55), RG(R10));
+  and(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x21, 0xc2, // and r10,rax
                  0x4c, 0x21, 0xd0, // and rax,r10
@@ -133,13 +133,13 @@ static retCode test_and() {
 static retCode test_call() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
-  call(LB(l0), ctx);
-  call(LB(l1), ctx);
-  call(RG(R12), ctx);
-  call(RG(RAX), ctx);
-  setLabel(ctx, l1);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
+  call(LB(l0));
+  call(LB(l1));
+  call(RG(R12));
+  call(RG(RAX));
+  bind(l1);
 
   uint8 tgt[] = {0xe8, 0xfb, 0xff, 0xff, 0xff,
                  0xe8, 0x5, 0x0, 0x0, 0x0,
@@ -152,8 +152,8 @@ static retCode test_call() {
 static retCode test_ret() {
   assemCtxPo ctx = createCtx();
 
-  ret(0, ctx);
-  ret(0x3344, ctx);
+  ret(0);
+  ret(0x3344);
 
   uint8 tgt[] = {0xc3,
                  0xc2, 0x44, 0x33
@@ -165,24 +165,24 @@ static retCode test_ret() {
 static retCode test_cmp() {
   assemCtxPo ctx = createCtx();
 
-  cmp(RG(R10), RG(RAX), ctx);
-  cmp(RG(RAX), RG(R10), ctx);
-  cmp(RG(R10), RG(R9), ctx);
-  cmp(RG(R9), RG(R10), ctx);
+  cmp(RG(R10), RG(RAX));
+  cmp(RG(RAX), RG(R10));
+  cmp(RG(R10), RG(R9));
+  cmp(RG(R9), RG(R10));
 
-  cmp(RG(R10), IM(0x11223344), ctx);
-  cmp(RG(RCX), IM(0x55667788), ctx);
+  cmp(RG(R10), IM(0x11223344));
+  cmp(RG(RCX), IM(0x55667788));
 
-  cmp(RG(R10), BS(RAX, 0x11223344), ctx);
-  cmp(BS(RAX, 0x11223344), RG(R10), ctx);
-  cmp(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  cmp(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  cmp(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  cmp(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  cmp(RG(R10), BS(RAX, 0x11223344));
+  cmp(BS(RAX, 0x11223344), RG(R10));
+  cmp(BS(RCX, 0x11223344), IM(0x55667788));
+  cmp(BS(R10, 0x11223344), IM(0x55667788));
+  cmp(BS(R9, 0x11223344), IM(0x55667788));
+  cmp(BS(RAX, 0x11223344), IM(0x55667788));
 
-  cmp(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  cmp(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  cmp(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  cmp(RG(R10), IX(RDX, R10, 8, 0x55));
+  cmp(IX(RDX, R10, 8, 0x55), RG(R10));
+  cmp(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x39, 0xc2, // cmp r10,rax
                  0x4c, 0x39, 0xd0, // cmp rax,r10
@@ -206,17 +206,17 @@ static retCode test_cmp() {
 static retCode test_dec() {
   assemCtxPo ctx = createCtx();
 
-  dec(RG(RAX), ctx);
-  dec(RG(R10), ctx);
-  dec(RG(RCX), ctx);
+  dec(RG(RAX));
+  dec(RG(R10));
+  dec(RG(RCX));
 
-  dec(BS(RAX, 0x11223344), ctx);
-  dec(BS(R10, 0x11223344), ctx);
-  dec(BS(RCX, 0x11223344), ctx);
+  dec(BS(RAX, 0x11223344));
+  dec(BS(R10, 0x11223344));
+  dec(BS(RCX, 0x11223344));
 
-  dec(IX(RAX, R10, 8, 0x55), ctx);
-  dec(IX(R10, R10, 8, 0x55), ctx);
-  dec(IX(RCX, R9, 8, 0x55), ctx);
+  dec(IX(RAX, R10, 8, 0x55));
+  dec(IX(R10, R10, 8, 0x55));
+  dec(IX(RCX, R9, 8, 0x55));
 
   uint8 tgt[] = {0x48, 0xff, 0xc8,  // dec	%rax
                  0x49, 0xff, 0xca,  // dec	%r10
@@ -234,16 +234,16 @@ static retCode test_dec() {
 static retCode test_idiv() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
 
-  idiv(RG(RAX), ctx);
-  idiv(RG(R10), ctx);
+  idiv(RG(RAX));
+  idiv(RG(R10));
 
-  idiv(BS(R9, 0x11223344), ctx);
+  idiv(BS(R9, 0x11223344));
 
-  idiv(IX(RDX, R10, 8, 0x55), ctx);
+  idiv(IX(RDX, R10, 8, 0x55));
 
-  idiv(LB(l0), ctx);
+  idiv(LB(l0));
 
   uint8 tgt[] = {0x48, 0xf7, 0xf8,  // idivq	%rax
                  0x49, 0xf7, 0xfa,  // idivq	%r10
@@ -256,21 +256,21 @@ static retCode test_idiv() {
 
 static retCode test_imul() {
   assemCtxPo ctx = createCtx();
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
 
-  imul(R10, RG(RAX), ctx);
-  imul(RAX, RG(R10), ctx);
-  imul(R10, RG(R9), ctx);
-  imul(R9, RG(R10), ctx);
+  imul(R10, RG(RAX));
+  imul(RAX, RG(R10));
+  imul(R10, RG(R9));
+  imul(R9, RG(R10));
 
-  imul(R10, IM(0x55667788), ctx);
-  imul(RCX, IM(0x55667788), ctx);
+  imul(R10, IM(0x55667788));
+  imul(RCX, IM(0x55667788));
 
-  imul(R10, BS(RAX, 0x11223344), ctx);
+  imul(R10, BS(RAX, 0x11223344));
 
-  imul(R10, IX(RDX, R10, 8, 0x55), ctx);
+  imul(R10, IX(RDX, R10, 8, 0x55));
 
-  imul(R10, LB(l0), ctx);
+  imul(R10, LB(l0));
 
   uint8 tgt[] = {0x4c, 0x0f, 0xaf, 0xd0, //                  	imulq	%rax, %r10
                  0x49, 0x0f, 0xaf, 0xc2, //                	imulq	%r10, %rax
@@ -288,17 +288,17 @@ static retCode test_imul() {
 static retCode test_inc() {
   assemCtxPo ctx = createCtx();
 
-  inc(RG(RAX), ctx);
-  inc(RG(R10), ctx);
-  inc(RG(RCX), ctx);
+  inc(RG(RAX));
+  inc(RG(R10));
+  inc(RG(RCX));
 
-  inc(BS(RAX, 0x11223344), ctx);
-  inc(BS(R10, 0x11223344), ctx);
-  inc(BS(RCX, 0x11223344), ctx);
+  inc(BS(RAX, 0x11223344));
+  inc(BS(R10, 0x11223344));
+  inc(BS(RCX, 0x11223344));
 
-  inc(IX(RAX, R10, 8, 0x55), ctx);
-  inc(IX(R10, R10, 8, 0x55), ctx);
-  inc(IX(RCX, R9, 8, 0x55), ctx);
+  inc(IX(RAX, R10, 8, 0x55));
+  inc(IX(R10, R10, 8, 0x55));
+  inc(IX(RCX, R9, 8, 0x55));
 
   uint8 tgt[] = {0x48, 0xff, 0xc0,  // inc	%rax
                  0x49, 0xff, 0xc2,  // inc	%r10
@@ -316,11 +316,11 @@ static retCode test_inc() {
 static retCode test_jcc() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
-  ja(l0, ctx);
-  ja(l1, ctx);
-  setLabel(ctx, l1);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
+  ja(l0);
+  ja(l1);
+  bind(l1);
 
   uint8 tgt[] = {0x0f, 0x87, 0xfa, 0xff, 0xff, 0xff,
                  0x0f, 0x87, 0x0, 0x0, 0x0, 0x0};
@@ -331,12 +331,12 @@ static retCode test_jcc() {
 static retCode test_jmp() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "l0", ctx->pc);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
-  jmp(LB(l0), ctx);
-  jmp(LB(l1), ctx);
-  jmp(RG(R12), ctx);
-  setLabel(ctx, l1);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
+  jmp(LB(l0));
+  jmp(LB(l1));
+  jmp(RG(R12));
+  bind(l1);
 
   uint8 tgt[] = {0xe9, 0xfb, 0xff, 0xff, 0xff,
                  0xe9, 0x3, 0x0, 0x0, 0x0,
@@ -348,8 +348,8 @@ static retCode test_jmp() {
 static retCode test_lea() {
   assemCtxPo ctx = createCtx();
 
-  lea(R12, BS(RAX, 0x11223344), ctx);       // lea %r12,0x123344(%rax)
-  lea(R10, IX(RAX, R10, 8, 0x34), ctx);    // lea %r10,0x34(rax,r10*8)
+  lea(R12, BS(RAX, 0x11223344));       // lea %r12,0x123344(%rax)
+  lea(R10, IX(RAX, R10, 8, 0x34));    // lea %r10,0x34(rax,r10*8)
   uint8 tgt[] = {0x4c, 0x8d, 0xa0, 0x44, 0x33, 0x22, 0x11,
                  0x4e, 0x8d, 0x54, 0xd0, 0x34};
   return checkCode(tgt, NumberOf(tgt), ctx);
@@ -358,11 +358,11 @@ static retCode test_lea() {
 static retCode test_lbl_lea() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "l0", 0);
-  codeLblPo l1 = defineLabel(ctx, "l1", undefinedPc);
-  lea(R12, LB(l1), ctx); // lea %r12,l1(%rip)
-  lea(R10, LB(l0), ctx); // lea %r10,l0(%rip)
-  setLabel(ctx, l1);
+  codeLblPo l0 = defineLabel(ctx, 0);
+  codeLblPo l1 = defineLabel(ctx, undefinedPc);
+  lea(R12, LB(l1)); // lea %r12,l1(%rip)
+  lea(R10, LB(l0)); // lea %r10,l0(%rip)
+  bind(l1);
   uint8 tgt[] = {0x4c, 0x8d, 0x25, 0x07, 0x0, 0x0, 0x0,
                  0x4c, 0x8d, 0x15, 0xf2, 0xff, 0xff, 0xff};
   return checkCode(tgt, NumberOf(tgt), ctx);
@@ -371,39 +371,39 @@ static retCode test_lbl_lea() {
 static retCode test_mov() {
   assemCtxPo ctx = createCtx();
 
-  mov(RG(RSI), RG(RAX), ctx);
-  mov(RG(RAX), RG(RSI), ctx);
-  mov(RG(R12), RG(RSI), ctx);
-  mov(RG(RSI), RG(R12), ctx);
-  mov(RG(R12), RG(R10), ctx);
+  mov(RG(RSI), RG(RAX));
+  mov(RG(RAX), RG(RSI));
+  mov(RG(R12), RG(RSI));
+  mov(RG(RSI), RG(R12));
+  mov(RG(R12), RG(R10));
 
-  mov(RG(R12), IM(0x55), ctx);
-  mov(RG(R12), IM(0x1122334455667788), ctx);
+  mov(RG(R12), IM(0x55));
+  mov(RG(R12), IM(0x1122334455667788));
 
-  mov(RG(RAX), BS(RAX, 0x55), ctx);
-  mov(RG(RAX), BS(RSI, 0), ctx);
+  mov(RG(RAX), BS(RAX, 0x55));
+  mov(RG(RAX), BS(RSI, 0));
 
-  mov(RG(RAX), IX(RAX, R12, 4, 0x55), ctx);
-  mov(RG(RAX), IX(RAX, RDX, 8, 0x55), ctx);
-  mov(RG(RAX), IX(RBX, RDX, 8, 0x55), ctx);
-  mov(RG(RAX), IX(RBX, R12, 4, 0x55), ctx);
+  mov(RG(RAX), IX(RAX, R12, 4, 0x55));
+  mov(RG(RAX), IX(RAX, RDX, 8, 0x55));
+  mov(RG(RAX), IX(RBX, RDX, 8, 0x55));
+  mov(RG(RAX), IX(RBX, R12, 4, 0x55));
 
-  mov(BS(RDX, 0x0), RG(R12), ctx); // mov (rdx),r12
-  mov(BS(RDX, 0x55), RG(R12), ctx); // mov 0x55(rdx),r12
-  mov(BS(RDX, 0x11223344), RG(R12), ctx); // mov 0x11223344(rdx),r12
+  mov(BS(RDX, 0x0), RG(R12)); // mov (rdx),r12
+  mov(BS(RDX, 0x55), RG(R12)); // mov 0x55(rdx),r12
+  mov(BS(RDX, 0x11223344), RG(R12)); // mov 0x11223344(rdx),r12
 
-  mov(BS(R12, 0x22), IM(0x11), ctx);
-  mov(BS(RAX, 0x55), IM(0x11223344), ctx);
+  mov(BS(R12, 0x22), IM(0x11));
+  mov(BS(RAX, 0x55), IM(0x11223344));
 
-  mov(IX(RAX, RDX, 8, 0x11223344), RG(RAX), ctx);
-  mov(IX(R11, RDX, 8, 0x11223344), RG(RAX), ctx);
-  mov(IX(R11, RDX, 4, 0x11223344), RG(RAX), ctx);
-  mov(IX(RAX, R12, 4, 0x55), RG(RAX), ctx); // mov 0x55(rax,r12*4),rax
-  mov(IX(RBX, RDX, 8, 0x55), RG(RAX), ctx); // mov 0x55(rbx, rdx*8),rax
-  mov(IX(RBX, R12, 4, 0x55), RG(RAX), ctx); // mov 0x55(rbx, r12*4), rax
+  mov(IX(RAX, RDX, 8, 0x11223344), RG(RAX));
+  mov(IX(R11, RDX, 8, 0x11223344), RG(RAX));
+  mov(IX(R11, RDX, 4, 0x11223344), RG(RAX));
+  mov(IX(RAX, R12, 4, 0x55), RG(RAX)); // mov 0x55(rax,r12*4),rax
+  mov(IX(RBX, RDX, 8, 0x55), RG(RAX)); // mov 0x55(rbx, rdx*8),rax
+  mov(IX(RBX, R12, 4, 0x55), RG(RAX)); // mov 0x55(rbx, r12*4), rax
 
-  mov(IX(R11, RDX, 8, 0x11223344), IM(0x55), ctx); // mov $0x55,0x11223344(r11,rdx*8)
-  mov(IX(RAX, R11, 8, 0x11223344), IM(0x55), ctx); // mov $0x55,0x11223344(rax,rax*8)
+  mov(IX(R11, RDX, 8, 0x11223344), IM(0x55)); // mov $0x55,0x11223344(r11,rdx*8)
+  mov(IX(RAX, R11, 8, 0x11223344), IM(0x55)); // mov $0x55,0x11223344(rax,rax*8)
 
 
   uint8 tgt[] = {0x48, 0x89, 0xc6,
@@ -440,19 +440,19 @@ static retCode test_mov() {
 static retCode test_movsx() {
   assemCtxPo ctx = createCtx();
 
-  codeLblPo l0 = defineLabel(ctx, "", ctx->pc);
-  movsx(RSI, RG(RAX), 1, ctx);
-  movsx(RAX, RG(RSI), 2, ctx);
-  movsx(R12, RG(RSI), 4, ctx);
+  codeLblPo l0 = defineLabel(ctx, ctx->pc);
+  movsx(RSI, RG(RAX), 1);
+  movsx(RAX, RG(RSI), 2);
+  movsx(R12, RG(RSI), 4);
 
-  movsx(R12, BS(RAX, 0x55), 2, ctx);
-  movsx(RAX, BS(RSI, 0), 4, ctx);
+  movsx(R12, BS(RAX, 0x55), 2);
+  movsx(RAX, BS(RSI, 0), 4);
 
-  movsx(RAX, IX(RAX, R12, 4, 0x55), 1, ctx);
-  movsx(R10, IX(RAX, RDX, 8, 0x55), 4, ctx);
+  movsx(RAX, IX(RAX, R12, 4, 0x55), 1);
+  movsx(R10, IX(RAX, RDX, 8, 0x55), 4);
 
-  movsx(RAX, LB(l0), 4, ctx);
-  movsx(R9, LB(l0), 2, ctx);
+  movsx(RAX, LB(l0), 4);
+  movsx(R9, LB(l0), 2);
 
   uint8 tgt[] = {0x48, 0x0f, 0xbe, 0xf0,
                  0x48, 0x0f, 0xbf, 0xc6,
@@ -471,16 +471,16 @@ static retCode test_movsx() {
 static retCode test_neg() {
   assemCtxPo ctx = createCtx();
 
-  neg(RG(RAX), ctx);
-  neg(RG(R10), ctx);
+  neg(RG(RAX));
+  neg(RG(R10));
 
-  neg(BS(RAX, 0x11223344), ctx);
-  neg(BS(R10, 0x11223344), ctx);
+  neg(BS(RAX, 0x11223344));
+  neg(BS(R10, 0x11223344));
 
-  neg(IX(RDX, R10, 8, 0x55), ctx);
-  neg(IX(RAX, R10, 8, 0x55), ctx);
-  neg(IX(RDX, RAX, 8, 0x55), ctx);
-  neg(IX(RDX, RCX, 8, 0x55), ctx);
+  neg(IX(RDX, R10, 8, 0x55));
+  neg(IX(RAX, R10, 8, 0x55));
+  neg(IX(RDX, RAX, 8, 0x55));
+  neg(IX(RDX, RCX, 8, 0x55));
 
   uint8 tgt[] = {0x48, 0xf7, 0xd8, // neg rax
                  0x49, 0xf7, 0xda, // neg r10
@@ -497,16 +497,16 @@ static retCode test_neg() {
 static retCode test_not() {
   assemCtxPo ctx = createCtx();
 
-  not(RG(RAX), ctx);
-  not(RG(R10), ctx);
+  not(RG(RAX));
+  not(RG(R10));
 
-  not(BS(RAX, 0x11223344), ctx);
-  not(BS(R10, 0x11223344), ctx);
+  not(BS(RAX, 0x11223344));
+  not(BS(R10, 0x11223344));
 
-  not(IX(RDX, R10, 8, 0x55), ctx);
-  not(IX(RAX, R10, 8, 0x55), ctx);
-  not(IX(RDX, RAX, 8, 0x55), ctx);
-  not(IX(RDX, RCX, 8, 0x55), ctx);
+  not(IX(RDX, R10, 8, 0x55));
+  not(IX(RAX, R10, 8, 0x55));
+  not(IX(RDX, RAX, 8, 0x55));
+  not(IX(RDX, RCX, 8, 0x55));
 
   uint8 tgt[] = {0x48, 0xf7, 0xd0, // not rax
                  0x49, 0xf7, 0xd2, // not r10
@@ -523,24 +523,24 @@ static retCode test_not() {
 static retCode test_or() {
   assemCtxPo ctx = createCtx();
 
-  or(RG(R10), RG(RAX), ctx);
-  or(RG(RAX), RG(R10), ctx);
-  or(RG(R10), RG(R9), ctx);
-  or(RG(R9), RG(R10), ctx);
+  or(RG(R10), RG(RAX));
+  or(RG(RAX), RG(R10));
+  or(RG(R10), RG(R9));
+  or(RG(R9), RG(R10));
 
-  or(RG(R10), IM(0x11223344), ctx);
-  or(RG(RCX), IM(0x55667788), ctx);
+  or(RG(R10), IM(0x11223344));
+  or(RG(RCX), IM(0x55667788));
 
-  or(RG(R10), BS(RAX, 0x11223344), ctx);
-  or(BS(RAX, 0x11223344), RG(R10), ctx);
-  or(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  or(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  or(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  or(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  or(RG(R10), BS(RAX, 0x11223344));
+  or(BS(RAX, 0x11223344), RG(R10));
+  or(BS(RCX, 0x11223344), IM(0x55667788));
+  or(BS(R10, 0x11223344), IM(0x55667788));
+  or(BS(R9, 0x11223344), IM(0x55667788));
+  or(BS(RAX, 0x11223344), IM(0x55667788));
 
-  or(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  or(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  or(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  or(RG(R10), IX(RDX, R10, 8, 0x55));
+  or(IX(RDX, R10, 8, 0x55), RG(R10));
+  or(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x09, 0xc2, // or r10,rax
                  0x4c, 0x09, 0xd0, // or rax,r10
@@ -564,9 +564,9 @@ static retCode test_or() {
 static retCode test_popr() {
   assemCtxPo ctx = createCtx();
 
-  pop(RG(RAX), ctx);
-  pop(RG(RSI), ctx);
-  pop(RG(R12), ctx);
+  pop(RG(RAX));
+  pop(RG(RSI));
+  pop(RG(R12));
 
   uint8 tgt[] = {0x58,
                  0x5e,
@@ -577,11 +577,11 @@ static retCode test_popr() {
 static retCode test_popb() {
   assemCtxPo ctx = createCtx();
 
-  pop(BS(RAX, 0x55), ctx);
-  pop(BS(RAX, 0x11223344), ctx);
+  pop(BS(RAX, 0x55));
+  pop(BS(RAX, 0x11223344));
 
-  pop(BS(R10, 0x55), ctx);
-  pop(BS(R10, 0x11223344), ctx);
+  pop(BS(R10, 0x55));
+  pop(BS(R10, 0x11223344));
 
   uint8 tgt[] = {0x8f, 0x40, 0x55,
                  0x8f, 0x80, 0x44, 0x33, 0x22, 0x11,
@@ -593,11 +593,11 @@ static retCode test_popb() {
 static retCode test_popx() {
   assemCtxPo ctx = createCtx();
 
-  pop(IX(RAX, RDX, 4, 0x55), ctx); // pop 0x55(rax,r10*4)
-  pop(IX(RDX, RAX, 4, 0x11223344), ctx); // pop 0x11223344(rdx,rax*4)
-  pop(IX(RAX, R10, 4, 0x55), ctx); // pop 0x55(rax,r10*4)
-  pop(IX(R12, R10, 4, 0x55), ctx); // pop 055(r12,r10*4)
-  pop(IX(R12, RAX, 4, 0x55), ctx); // pop 0x55(r12,rax*4)
+  pop(IX(RAX, RDX, 4, 0x55)); // pop 0x55(rax,r10*4)
+  pop(IX(RDX, RAX, 4, 0x11223344)); // pop 0x11223344(rdx,rax*4)
+  pop(IX(RAX, R10, 4, 0x55)); // pop 0x55(rax,r10*4)
+  pop(IX(R12, R10, 4, 0x55)); // pop 055(r12,r10*4)
+  pop(IX(R12, RAX, 4, 0x55)); // pop 0x55(r12,rax*4)
 
   uint8 tgt[] = {0x8f, 0x44, 0x90, 0x55,
                  0x8f, 0x84, 0x82, 0x44, 0x33, 0x22, 0x11,
@@ -611,12 +611,12 @@ static retCode test_popx() {
 static retCode test_pushri() {
   assemCtxPo ctx = createCtx();
 
-  push(RG(RAX), ctx);
-  push(RG(RSI), ctx);
-  push(RG(R12), ctx);
+  push(RG(RAX));
+  push(RG(RSI));
+  push(RG(R12));
 
-  push(IM(0x55), ctx);
-  push(IM(0x11223344), ctx);
+  push(IM(0x55));
+  push(IM(0x11223344));
 
   uint8 tgt[] = {0x50,
                  0x56,
@@ -629,11 +629,11 @@ static retCode test_pushri() {
 static retCode test_pushb() {
   assemCtxPo ctx = createCtx();
 
-  push(BS(RAX, 0x55), ctx);
-  push(BS(RAX, 0x11223344), ctx);
+  push(BS(RAX, 0x55));
+  push(BS(RAX, 0x11223344));
 
-  push(BS(R10, 0x55), ctx);
-  push(BS(R10, 0x11223344), ctx);
+  push(BS(R10, 0x55));
+  push(BS(R10, 0x11223344));
 
   uint8 tgt[] = {0xff, 0x70, 0x55,
                  0xff, 0xb0, 0x44, 0x33, 0x22, 0x11,
@@ -645,11 +645,11 @@ static retCode test_pushb() {
 static retCode test_pushx() {
   assemCtxPo ctx = createCtx();
 
-  push(IX(RAX, RDX, 4, 0x55), ctx);
-  push(IX(RAX, RDX, 4, 0x11223344), ctx);
-  push(IX(RAX, R10, 4, 0x55), ctx);
-  push(IX(R12, R10, 4, 0x55), ctx);
-  push(IX(R12, RAX, 4, 0x55), ctx);
+  push(IX(RAX, RDX, 4, 0x55));
+  push(IX(RAX, RDX, 4, 0x11223344));
+  push(IX(RAX, R10, 4, 0x55));
+  push(IX(R12, R10, 4, 0x55));
+  push(IX(R12, RAX, 4, 0x55));
 
   uint8 tgt[] = {0xff, 0x74, 0x90, 0x55,
                  0xff, 0xb4, 0x90, 0x44, 0x33, 0x22, 0x11,
@@ -663,9 +663,9 @@ static retCode test_pushx() {
 static retCode test_setcc() {
   assemCtxPo ctx = createCtx();
 
-  setne(RAX, ctx);
-  setne(RCX, ctx);
-  sets(RDX, ctx);
+  setne(RAX);
+  setne(RCX);
+  sets(RDX);
 
   uint8 tgt[] = {0x0f, 0x95, 0xc0,
                  0x0f, 0x95, 0xc1,
@@ -677,24 +677,24 @@ static retCode test_setcc() {
 static retCode test_sbb() {
   assemCtxPo ctx = createCtx();
 
-  sbb(RG(R10), RG(RAX), ctx);
-  sbb(RG(RAX), RG(R10), ctx);
-  sbb(RG(R10), RG(R9), ctx);
-  sbb(RG(R9), RG(R10), ctx);
+  sbb(RG(R10), RG(RAX));
+  sbb(RG(RAX), RG(R10));
+  sbb(RG(R10), RG(R9));
+  sbb(RG(R9), RG(R10));
 
-  sbb(RG(R10), IM(0x11223344), ctx);
-  sbb(RG(RCX), IM(0x55667788), ctx);
+  sbb(RG(R10), IM(0x11223344));
+  sbb(RG(RCX), IM(0x55667788));
 
-  sbb(RG(R10), BS(RAX, 0x11223344), ctx);
-  sbb(BS(RAX, 0x11223344), RG(R10), ctx);
-  sbb(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  sbb(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  sbb(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  sbb(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  sbb(RG(R10), BS(RAX, 0x11223344));
+  sbb(BS(RAX, 0x11223344), RG(R10));
+  sbb(BS(RCX, 0x11223344), IM(0x55667788));
+  sbb(BS(R10, 0x11223344), IM(0x55667788));
+  sbb(BS(R9, 0x11223344), IM(0x55667788));
+  sbb(BS(RAX, 0x11223344), IM(0x55667788));
 
-  sbb(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  sbb(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  sbb(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  sbb(RG(R10), IX(RDX, R10, 8, 0x55));
+  sbb(IX(RDX, R10, 8, 0x55), RG(R10));
+  sbb(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x19, 0xc2, // sbb r10,rax
                  0x4c, 0x19, 0xd0, // sbb rax,r10
@@ -718,24 +718,24 @@ static retCode test_sbb() {
 static retCode test_sub() {
   assemCtxPo ctx = createCtx();
 
-  sub(RG(R10), RG(RAX), ctx);
-  sub(RG(RAX), RG(R10), ctx);
-  sub(RG(R10), RG(R9), ctx);
-  sub(RG(R9), RG(R10), ctx);
+  sub(RG(R10), RG(RAX));
+  sub(RG(RAX), RG(R10));
+  sub(RG(R10), RG(R9));
+  sub(RG(R9), RG(R10));
 
-  sub(RG(R10), IM(0x11223344), ctx);
-  sub(RG(RCX), IM(0x55667788), ctx);
+  sub(RG(R10), IM(0x11223344));
+  sub(RG(RCX), IM(0x55667788));
 
-  sub(RG(R10), BS(RAX, 0x11223344), ctx);
-  sub(BS(RAX, 0x11223344), RG(R10), ctx);
-  sub(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  sub(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  sub(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  sub(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  sub(RG(R10), BS(RAX, 0x11223344));
+  sub(BS(RAX, 0x11223344), RG(R10));
+  sub(BS(RCX, 0x11223344), IM(0x55667788));
+  sub(BS(R10, 0x11223344), IM(0x55667788));
+  sub(BS(R9, 0x11223344), IM(0x55667788));
+  sub(BS(RAX, 0x11223344), IM(0x55667788));
 
-  sub(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  sub(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  sub(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  sub(RG(R10), IX(RDX, R10, 8, 0x55));
+  sub(IX(RDX, R10, 8, 0x55), RG(R10));
+  sub(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x29, 0xc2, // sub r10,rax
                  0x4c, 0x29, 0xd0, // sub rax,r10
@@ -759,12 +759,12 @@ static retCode test_sub() {
 static retCode test_testr() {
   assemCtxPo ctx = createCtx();
 
-  test(RG(RAX), RG(RAX), ctx);
-  test(RG(RCX), RG(RAX), ctx);
-  test(RG(RDX), RG(RCX), ctx);
-  test(RG(R10), RG(RAX), ctx);
-  test(RG(RAX), RG(R10), ctx);
-  test(RG(R12), RG(R10), ctx);
+  test(RG(RAX), RG(RAX));
+  test(RG(RCX), RG(RAX));
+  test(RG(RDX), RG(RCX));
+  test(RG(R10), RG(RAX));
+  test(RG(RAX), RG(R10));
+  test(RG(R12), RG(R10));
 
   uint8 tgt[] = {0x48, 0x85, 0xc0,
                  0x48, 0x85, 0xc1,
@@ -779,15 +779,15 @@ static retCode test_testr() {
 static retCode test_testrm() {
   assemCtxPo ctx = createCtx();
 
-  test(RG(RAX), BS(RAX, 0x11223344), ctx);
-  test(RG(RCX), BS(RAX, 0x11223344), ctx);
-  test(RG(RDX), IX(RCX, RAX, 4, 0x55), ctx);
-  test(RG(R10), IX(RCX, RAX, 4, 0x55), ctx);
-  test(RG(RDX), IX(RCX, R10, 4, 0x55), ctx);
+  test(RG(RAX), BS(RAX, 0x11223344));
+  test(RG(RCX), BS(RAX, 0x11223344));
+  test(RG(RDX), IX(RCX, RAX, 4, 0x55));
+  test(RG(R10), IX(RCX, RAX, 4, 0x55));
+  test(RG(RDX), IX(RCX, R10, 4, 0x55));
 
-  test(RG(RAX), IM(0x11223344), ctx);
-  test(RG(RDX), IM(0x55667788), ctx);
-  test(RG(R10), IM(0x55667788), ctx);
+  test(RG(RAX), IM(0x11223344));
+  test(RG(RDX), IM(0x55667788));
+  test(RG(R10), IM(0x55667788));
 
   uint8 tgt[] = {0x48, 0x85, 0x80, 0x44, 0x33, 0x22, 0x11,
                  0x48, 0x85, 0x88, 0x44, 0x33, 0x22, 0x11,
@@ -804,14 +804,14 @@ static retCode test_testrm() {
 static retCode test_testmr() {
   assemCtxPo ctx = createCtx();
 
-  test(BS(RAX, 0x11223344), RG(RAX), ctx);
-  test(BS(RAX, 0x11223344), RG(RCX), ctx);
-  test(IX(RCX, RAX, 4, 0x55), RG(RDX), ctx);
-  test(IX(RCX, RAX, 4, 0x55), RG(R10), ctx);
-  test(IX(RCX, R10, 4, 0x55), RG(RDX), ctx);
+  test(BS(RAX, 0x11223344), RG(RAX));
+  test(BS(RAX, 0x11223344), RG(RCX));
+  test(IX(RCX, RAX, 4, 0x55), RG(RDX));
+  test(IX(RCX, RAX, 4, 0x55), RG(R10));
+  test(IX(RCX, R10, 4, 0x55), RG(RDX));
 
-  test(IM(0x11223344), RG(RAX), ctx);
-  test(IM(0x55667788), RG(R10), ctx);
+  test(IM(0x11223344), RG(RAX));
+  test(IM(0x55667788), RG(R10));
 
   uint8 tgt[] = {0x48, 0x85, 0x80, 0x44, 0x33, 0x22, 0x11, // testq	%rax, 287454020(%rax)
                  0x48, 0x85, 0x88, 0x44, 0x33, 0x22, 0x11,
@@ -827,16 +827,16 @@ static retCode test_testmr() {
 static retCode test_xchg() {
   assemCtxPo ctx = createCtx();
 
-  xchg(RG(R10), RG(RAX), ctx);
-  xchg(RG(RAX), RG(R10), ctx);
-  xchg(RG(R10), RG(R9), ctx);
-  xchg(RG(R9), RG(R10), ctx);
+  xchg(RG(R10), RG(RAX));
+  xchg(RG(RAX), RG(R10));
+  xchg(RG(R10), RG(R9));
+  xchg(RG(R9), RG(R10));
 
-  xchg(RG(R10), BS(RAX, 0x11223344), ctx);
-  xchg(BS(RAX, 0x11223344), RG(R10), ctx);
+  xchg(RG(R10), BS(RAX, 0x11223344));
+  xchg(BS(RAX, 0x11223344), RG(R10));
 
-  xchg(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  xchg(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
+  xchg(RG(R10), IX(RDX, R10, 8, 0x55));
+  xchg(IX(RDX, R10, 8, 0x55), RG(R10));
 
   uint8 tgt[] = {0x49, 0x92,
                  0x49, 0x92,
@@ -853,24 +853,24 @@ static retCode test_xchg() {
 static retCode test_xor() {
   assemCtxPo ctx = createCtx();
 
-  xor(RG(R10), RG(RAX), ctx);
-  xor(RG(RAX), RG(R10), ctx);
-  xor(RG(R10), RG(R9), ctx);
-  xor(RG(R9), RG(R10), ctx);
+  xor(RG(R10), RG(RAX));
+  xor(RG(RAX), RG(R10));
+  xor(RG(R10), RG(R9));
+  xor(RG(R9), RG(R10));
 
-  xor(RG(R10), IM(0x11223344), ctx);
-  xor(RG(RCX), IM(0x55667788), ctx);
+  xor(RG(R10), IM(0x11223344));
+  xor(RG(RCX), IM(0x55667788));
 
-  xor(RG(R10), BS(RAX, 0x11223344), ctx);
-  xor(BS(RAX, 0x11223344), RG(R10), ctx);
-  xor(BS(RCX, 0x11223344), IM(0x55667788), ctx);
-  xor(BS(R10, 0x11223344), IM(0x55667788), ctx);
-  xor(BS(R9, 0x11223344), IM(0x55667788), ctx);
-  xor(BS(RAX, 0x11223344), IM(0x55667788), ctx);
+  xor(RG(R10), BS(RAX, 0x11223344));
+  xor(BS(RAX, 0x11223344), RG(R10));
+  xor(BS(RCX, 0x11223344), IM(0x55667788));
+  xor(BS(R10, 0x11223344), IM(0x55667788));
+  xor(BS(R9, 0x11223344), IM(0x55667788));
+  xor(BS(RAX, 0x11223344), IM(0x55667788));
 
-  xor(RG(R10), IX(RDX, R10, 8, 0x55), ctx);
-  xor(IX(RDX, R10, 8, 0x55), RG(R10), ctx);
-  xor(IX(RDX, R10, 8, 0x55), IM(0x11223344), ctx);
+  xor(RG(R10), IX(RDX, R10, 8, 0x55));
+  xor(IX(RDX, R10, 8, 0x55), RG(R10));
+  xor(IX(RDX, R10, 8, 0x55), IM(0x11223344));
 
   uint8 tgt[] = {0x49, 0x31, 0xc2, // xor r10,rax
                  0x4c, 0x31, 0xd0, // xor rax,r10
@@ -898,8 +898,8 @@ retCode test_addFun() {
   assemCtxPo ctx = createCtx();
 
   preamble(ctx, 0);
-  mov(RG(RAX), RG(RDI), ctx);
-  add(RG(RAX), RG(RSI), ctx);
+  mov(RG(RAX), RG(RDI));
+  add(RG(RAX), RG(RSI));
   postamble(ctx);
 
   bin_i64 fn = (bin_i64) createCode(ctx);
@@ -911,19 +911,19 @@ retCode test_factFun() {
   assemCtxPo ctx = createCtx();
 
   codeLblPo fct = preamble(ctx, 0);
-  codeLblPo l0 = defineLabel(ctx, "nonZero", undefinedPc);
-  codeLblPo lx = defineLabel(ctx, "exit", undefinedPc);
-  cmp(RG(RDI), IM(1), ctx);
-  jg(l0, ctx);
-  mov(RG(RAX), IM(1), ctx);
-  jmp(LB(lx), ctx);
-  setLabel(ctx, l0);
-  push(RG(RDI), ctx);
-  dec(RG(RDI), ctx);
-  call(LB(fct), ctx);
-  pop(RG(RDI), ctx);
-  imul(RAX, RG(RDI), ctx);
-  setLabel(ctx, lx);
+  codeLblPo l0 = defineLabel(ctx, undefinedPc);
+  codeLblPo lx = defineLabel(ctx, undefinedPc);
+  cmp(RG(RDI), IM(1));
+  jg(l0);
+  mov(RG(RAX), IM(1));
+  jmp(LB(lx));
+  bind(l0);
+  push(RG(RDI));
+  dec(RG(RDI));
+  call(LB(fct));
+  pop(RG(RDI));
+  imul(RAX, RG(RDI));
+  bind(lx);
   postamble(ctx);
 
   un_i64 fn = (un_i64) createCode(ctx);
