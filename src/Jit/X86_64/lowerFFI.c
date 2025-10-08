@@ -1,7 +1,7 @@
 //
-// Created by Francis McCabe on 10/1/25.
+// Created by Francis McCabe on 8/20/25.
 //
-#include "config.h"
+#include <config.h>
 
 #include "abort.h"
 #include "cellP.h"
@@ -24,26 +24,26 @@ retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   return ret;
 }
 
-retCode getIntVal(jitCompPo jit, x64Reg rg) {
+retCode getIntVal(jitCompPo jit, mcRegister rg) {
   assemCtxPo ctx = assemCtx(jit);
   asr(rg, rg, IM(2));
   return Ok;
 }
 
-retCode mkIntVal(jitCompPo jit, x64Reg rg) {
+retCode mkIntVal(jitCompPo jit, mcRegister rg) {
   assemCtxPo ctx = assemCtx(jit);
   lsl(rg, rg, IM(2));
   orr(rg, rg, IM(intTg));
   return Ok;
 }
 
-retCode getFltVal(jitCompPo jit, x64Reg rg) {
+retCode getFltVal(jitCompPo jit, mcRegister rg) {
   assemCtxPo ctx = assemCtx(jit);
   bfc(rg, 0, 2);
   return Ok;
 }
 
-retCode mkFltVal(jitCompPo jit, x64Reg rg) {
+retCode mkFltVal(jitCompPo jit, mcRegister rg) {
   assemCtxPo ctx = assemCtx(jit);
 
   bfc(rg, 0, 2);
@@ -92,7 +92,13 @@ retCode bailOut(jitCompPo jit, ExitCode code) {
   /* return callIntrinsic(ctx, (runtimeFn) star_exit, 1, IM(conString)); */
 }
 
-static x64Reg argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
+static mcRegister argRegs[] = {X0, X1, X2, X3, X4, X5, X6, X7};
+
+static void moveArg(assemCtxPo ctx, FlexOp dst, FlexOp src, void *cl) {
+ registerMap freeRegs = (registerMap) cl;
+
+  move(ctx, dst, src, freeRegs);
+}
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...) {
   va_list args;
@@ -109,7 +115,7 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
 
   saveRegisters(ctx, saveMap);
 
-  shuffleVars(ctx, operands, arity, fixedRegSet(X16));
+  shuffleVars(ctx, operands, arity, moveArg, (void*)fixedRegSet(X16));
 
   mov(X16, IM((integer) fn));
   blr(X16);
@@ -126,7 +132,7 @@ void stashRegisters(jitCompPo jit, int32 stackLevel) {
   assert(stackLevel>=0);
   assemCtxPo ctx = assemCtx(jit);
   str(AG, OF(STK, OffsetOf(StackRecord, args)));
-  x64Reg currSP = findFreeReg(jit);
+  mcRegister currSP = findFreeReg(jit);
   sub(currSP, AG, IM(stackLevel*pointerSize));
   str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
   releaseReg(jit, currSP);

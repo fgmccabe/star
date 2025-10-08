@@ -9,8 +9,9 @@ include_directories(
         "../../Headers"
         "../../Util/Headers"
         "../../Engine/Headers"
+        "../../Escapes/Headers"
         "../../Infra/Headers"
-        "Assem/Headers")
+        "./Assem/Headers")
 
 set(HEADER_FILES
         assem.h

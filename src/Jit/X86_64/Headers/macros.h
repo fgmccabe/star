@@ -29,18 +29,18 @@ static inline registerMap stackControlRegs() {
   return 1u << RSP;
 }
 
-registerMap allocReg(registerMap from, x64Reg Rg);
-registerMap freeReg(registerMap from, x64Reg Rg);
-registerMap dropReg(registerMap map, x64Reg Rg);
-registerMap addReg(registerMap from, x64Reg Rg);
-logical isRegInMap(registerMap from, x64Reg Rg);
+registerMap allocReg(registerMap from, mcRegister Rg);
+registerMap freeReg(registerMap from, mcRegister Rg);
+registerMap dropReg(registerMap map, mcRegister Rg);
+registerMap addReg(registerMap from, mcRegister Rg);
+logical isRegInMap(registerMap from, mcRegister Rg);
 
-x64Reg nxtAvailReg(registerMap from);
+mcRegister nxtAvailReg(registerMap from);
 
 void saveRegisters(assemCtxPo ctx, registerMap regs);
 void restoreRegisters(assemCtxPo ctx, registerMap regs);
 
-typedef void (*regProc)(x64Reg rg, void *cl);
+typedef void (*regProc)(mcRegister rg, void *cl);
 
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
@@ -66,7 +66,7 @@ void labelDisp32(assemCtxPo ctx, codeLblPo lbl, integer pc);
 typedef integer (*runtimeFn)();
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, integer arity, ...);
-retCode loadCGlobal(assemCtxPo ctx, x64Reg reg, void *address);
+retCode loadCGlobal(assemCtxPo ctx, mcRegister reg, void *address);
 
 
 #endif //MACROS_H

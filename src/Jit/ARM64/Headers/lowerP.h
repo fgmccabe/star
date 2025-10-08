@@ -137,5 +137,4 @@ static inline logical isSmall(termPo x) {
   else
     return False;
 }
-
 #endif //STAR_LOWERP_H

@@ -1,5 +1,5 @@
 //
-// Created by Francis McCabe on 10/11/21.
+// Created by Francis McCabe on 10/08/25.
 //
 
 #ifndef STAR_LOWERP_H
@@ -10,6 +10,8 @@
 #include "lower.h"
 #include "macros.h"
 #include "x86_64P.h"
+#include "arith.h"
+#include "char.h"
 
 /* Register allocation for x64:
  *
@@ -35,24 +37,22 @@
 typedef enum {
   inRegister,
   isLocal,
-  inStack,
-  isConstant
+  inStack
 } valueKind;
 
 typedef struct {
   valueKind kind;
-  x64Reg Rg;
+  mcRegister Rg;
   int32 stkOff;
-  int32 key;
   logical inited;
 } LocalEntry, *localVarPo;
 
 typedef struct {
-  LocalEntry local[128];
+  localVarPo locals;
+  int32 lclCount;
   int32 argPnt;
   int32 stackPnt;
   int32 vTop;
-  logical propagated; // Has a child stack been propagated?
 } ValueStack, *valueStackPo;
 
 typedef struct jitBlock_ *jitBlockPo;
@@ -61,7 +61,6 @@ typedef struct jitBlock_ {
   jitCompPo jit;
   int32 startPc;
   int32 endPc;
-  int32 lclCnt;
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
@@ -75,10 +74,10 @@ retCode stackCheck(jitCompPo jit, methodPo mtd);
 
 retCode bailOut(jitCompPo jit, ExitCode code);
 
-retCode getIntVal(jitCompPo jit, x64Reg rg);
-retCode mkIntVal(jitCompPo jit, x64Reg rg);
-retCode getFltVal(jitCompPo jit, x64Reg rg);
-retCode mkFltVal(jitCompPo jit, x64Reg rg);
+retCode getIntVal(jitCompPo jit, mcRegister rg);
+retCode mkIntVal(jitCompPo jit, mcRegister rg);
+retCode getFltVal(jitCompPo jit, mcRegister rg);
+retCode mkFltVal(jitCompPo jit, mcRegister rg);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 
@@ -95,9 +94,9 @@ void stash(jitBlockPo block);
 void stashRegisters(jitCompPo jit, int32 stackLevel);
 void unstash(jitCompPo jit);
 
-void loadLocal(jitCompPo jit, x64Reg tgt, int32 lclNo);
-void storeLocal(jitCompPo jit, x64Reg src, int32 lclNo);
-void loadConstant(jitCompPo jit, int32 key, x64Reg tgt);
+void loadLocal(jitCompPo jit, mcRegister tgt, int32 lclNo);
+void storeLocal(jitCompPo jit, mcRegister src, int32 lclNo);
+void loadConstant(jitCompPo jit, int32 key, mcRegister tgt);
 
 void dumpStack(valueStackPo stack);
 int32 trueStackDepth(valueStackPo stack);
@@ -106,9 +105,9 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtSta
 void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst);
 void pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
-void pushRegister(valueStackPo stack, x64Reg rg);
-x64Reg popValue(valueStackPo stack, jitCompPo jit);
-x64Reg topValue(valueStackPo stack, jitCompPo jit);
+void pushRegister(valueStackPo stack, mcRegister rg);
+mcRegister popValue(valueStackPo stack, jitCompPo jit);
+mcRegister topValue(valueStackPo stack, jitCompPo jit);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
 void spillLocals(valueStackPo stack, jitCompPo jit);
@@ -120,7 +119,7 @@ localVarPo argSlot(valueStackPo stack, int32 slot);
 localVarPo localSlot(valueStackPo stack, int32 slot);
 localVarPo stackSlot(valueStackPo stack, int32 slot);
 
-void storeStack(jitCompPo jit, x64Reg src, int32 depth);
+void storeStack(jitCompPo jit, mcRegister src, int32 depth);
 
 retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
 registerMap criticalRegs();
@@ -133,6 +132,4 @@ static inline logical isSmall(termPo x) {
   else
     return False;
 }
-
-
 #endif //STAR_LOWERP_H
