@@ -160,11 +160,11 @@ static int32 groupSize(argSpecPo specs, int32 arity, int32 group) {
 void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, void *cl) {
   int32 groups = sortArgSpecs(args, arity);
 
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
-    showGroups(args, groups, arity);
-  }
-#endif
+// #ifdef TRACEJIT
+//   if (traceJit >= detailedTracing) {
+//     showGroups(args, groups, arity);
+//   }
+// #endif
 
   for (int32 gx = 0; gx < groups; gx++) {
     if (groupSize(args, arity, gx) == 1) {

@@ -96,7 +96,7 @@ void pushValue(valueStackPo stack, LocalEntry entry) {
 void pushBlank(valueStackPo stack) {
   stack->vTop++;
   localVarPo var = stackSlot(stack, 0);
-  *var = (LocalEntry){.kind = inStack, .stkOff = -trueStackDepth(stack) - 1, .inited = True};
+  *var = (LocalEntry){.kind = inStack, .stkOff = -trueStackDepth(stack), .inited = True};
 }
 
 void pushRegister(valueStackPo stack, armReg rg) {
@@ -104,10 +104,9 @@ void pushRegister(valueStackPo stack, armReg rg) {
 }
 
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
-  armReg vdReg = findFreeReg(jit);
-  loadConstant(jit, key, vdReg);
-  storeStack(jit, vdReg, 0);
-  pushValue(stack, (LocalEntry){.kind = inRegister, .Rg = vdReg, .stkOff = -trueStackDepth(stack) - 1, .inited = True});
+  armReg conRg = findFreeReg(jit);
+  loadConstant(jit, key, conRg);
+  pushRegister(stack, conRg);
 }
 
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
@@ -231,13 +230,25 @@ void frameOverride(jitBlockPo block, int arity) {
 
   if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
-    if (is12bit(delta))
-      add(AG, AG, IM(delta));
-    else {
-      armReg tmp = findFreeReg(jit);
-      mov(tmp, IM(delta));
-      add(AG, AG, RG(tmp));
-      releaseReg(jit, tmp);
+    if (delta > 0) {
+      if (is12bit(delta))
+        add(AG, AG, IM(delta));
+      else {
+        armReg tmp = findFreeReg(jit);
+        mov(tmp, IM(delta));
+        add(AG, AG, RG(tmp));
+        releaseReg(jit, tmp);
+      }
+    } else {
+      delta = -delta;
+      if (is12bit(delta))
+        sub(AG, AG, IM(delta));
+      else {
+        armReg tmp = findFreeReg(jit);
+        mov(tmp, IM(delta));
+        sub(AG, AG, RG(tmp));
+        releaseReg(jit, tmp);
+      }
     }
   }
 
@@ -337,13 +348,13 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 static void dumpSlot(ioPo out, localVarPo var) {
   switch (var->kind) {
     case inRegister:
-      outMsg(out, "register X%d", var->Rg);
+      outMsg(out, "=X%d", var->Rg);
       return;
     case inStack:
-      outMsg(out, "%sstack at %d", (var->inited ? "" : "not inited "), var->stkOff);
+      outMsg(out, "=%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
       return;
     case isLocal:
-      outMsg(out, "%s%s %d", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "arg" : "local"), var->stkOff);
+      outMsg(out, "=%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["), var->stkOff);
       return;
     default:
       outMsg(out, "unknown type of slot");
@@ -359,27 +370,28 @@ void dumpStack(valueStackPo stack) {
 
   check(top + arity + lclCnt <= stack->lclCount, "inconsistent stack state");
 
+  char *sep = "";
   for (int ax = 0; ax < arity; ax++) {
     localVarPo var = argSlot(stack, ax);
-    outMsg(logFile, "a[%d] ", ax);
+    outMsg(logFile, "%sa[%d]", sep, ax);
     dumpSlot(logFile, var);
-    outStr(logFile, "\n");
+    sep = ", ";
   }
-
+  sep = "\n";
   for (int32 lx = 1; lx <= lclCnt; lx++) {
     localVarPo var = localSlot(stack, lx);
-    outMsg(logFile, "l[%d] ", lx);
+    outMsg(logFile, "%sl[%d]", sep, lx);
     dumpSlot(logFile, var);
-    outStr(logFile, "\n");
+    sep = ", ";
   }
-
+  sep = "\n";
   for (int32 sx = 0; sx < top; sx++) {
     localVarPo var = stackSlot(stack, sx);
-    outMsg(logFile, "s[%d]/%d ", sx, var->stkOff);
+    outMsg(logFile, "%ss[%d]/%d", sep, sx, var->stkOff);
     dumpSlot(logFile, var);
-    outStr(logFile, "\n");
+    sep = ", ";
   }
-  flushOut();
+  outStr(logFile, "\n%_");
 }
 
 #define combineKind(S, K) ((S) << 3 | (K))

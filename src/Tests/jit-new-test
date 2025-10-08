@@ -1,2 +1,2 @@
 #!/bin/bash
-sc -R test-repo/ $1 && /Users/fgm/Sources/star/build/src/Engine/star -j -r test-repo/ $*
+sc -R test-repo/ $1 && /Users/fgm/Projects/star/cmake-build-debug/src/Engine/star -j -r test-repo/ $*
