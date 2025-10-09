@@ -200,7 +200,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         dropArgs(stack, jit, arity);
-        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         ret = testResult(block, tgtBlock);
         continue;
       }

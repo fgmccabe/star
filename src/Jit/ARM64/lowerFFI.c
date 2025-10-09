@@ -19,6 +19,7 @@ retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   codeLblPo skip = newLabel(ctx);
   cmp(X0, IM(Normal));
   beq(skip);
+  propagateStack(jit, &block->stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
   retCode ret = breakOut(block, tgtBlock);
   bind(skip);
   return ret;
