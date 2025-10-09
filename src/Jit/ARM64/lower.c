@@ -387,7 +387,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
         // Only need this for debugging
-        add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
+        if (mtdArity(jit->mtd) != 1)
+          add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
         str(AG, OF(STK, OffsetOf(StackRecord,sp)));
 
         // Adjust args register
@@ -409,7 +410,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         releaseReg(jit, vl);
 
         // Only need this for debugging
-        add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
+        if (mtdArity(jit->mtd) != 1)
+          add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
         stur(AG, STK, OffsetOf(StackRecord,sp));
 
         // Pick up the caller program
@@ -683,7 +685,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         globalPo glbVr = findGlobalVar(code[pc].fst);
         spillStack(stack, jit); // We spill because we may have to call the global function
 
-        mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
+        mov(glb, IM((integer) glbVr));
 
         // Check if global is set
         ldr(content, OF(glb, OffsetOf(GlobalRecord, content)));

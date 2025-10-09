@@ -124,6 +124,7 @@ localVarPo argSlot(valueStackPo stack, int32 slot);
 localVarPo localSlot(valueStackPo stack, int32 slot);
 localVarPo stackSlot(valueStackPo stack, int32 slot);
 
+void loadStack(jitCompPo jit, armReg tgt, int32 depth);
 void storeStack(jitCompPo jit, armReg src, int32 depth);
 
 retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);

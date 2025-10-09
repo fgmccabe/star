@@ -266,6 +266,10 @@ void frameOverride(jitBlockPo block, int arity) {
   }
 }
 
+void loadStack(jitCompPo jit, armReg tgt, int32 depth) {
+  loadLocal(jit, tgt, -(lclCount(jit->mtd) + depth));
+}
+
 void storeStack(jitCompPo jit, armReg src, int32 depth) {
   storeLocal(jit, src, -(lclCount(jit->mtd) + depth));
 }
@@ -438,6 +442,12 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
         releaseReg(jit, src->Rg);
         *src = *dst; // back propagate
       }
+      return;
+    }
+    case combineKind(inStack, inRegister):
+    case combineKind(isLocal, inRegister): {
+      loadLocal(jit, dst->Rg, src->stkOff);
+      *src = *dst; // back propagate
       return;
     }
     default: {
