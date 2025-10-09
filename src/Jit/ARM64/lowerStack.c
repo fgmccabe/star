@@ -395,7 +395,8 @@ void dumpStack(valueStackPo stack) {
     dumpSlot(logFile, var);
     sep = ", ";
   }
-  outStr(logFile, "\n%_");
+  outStr(logFile, "\n");
+  flushFile(O_FILE(logFile));
 }
 
 #define combineKind(S, K) ((S) << 3 | (K))
@@ -424,15 +425,13 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
     }
     case combineKind(inRegister, isLocal):
     case combineKind(inRegister, inStack): {
-      if (src->stkOff != dst->stkOff) {
-        if (!dst->inited) {
-          check(src->inited, "attempted to propagate non-initialized var");
-          *dst = (LocalEntry){.kind = inRegister, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
-        } else {
-          storeLocal(jit, src->Rg, dst->stkOff);
-          releaseReg(jit, src->Rg);
-          *src = (LocalEntry){.kind = dst->kind, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
-        }
+      if (!dst->inited) {
+        check(src->inited, "attempted to propagate non-initialized var");
+        *dst = (LocalEntry){.kind = inRegister, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
+      } else {
+        storeLocal(jit, src->Rg, dst->stkOff);
+        releaseReg(jit, src->Rg);
+        *src = (LocalEntry){.kind = dst->kind, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
       }
       return;
     }
