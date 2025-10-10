@@ -487,7 +487,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         int32 tgtHeight = tgtBlock->exitHeight;
 
-        // dumpStack(&tgtBlock->parent->stack);
+#ifdef TRACEJIT
+        if (traceJit >= detailedTracing)
+          dumpStack(&tgtBlock->parent->stack);
+#endif
 
         // already at the right height?
         if (tgtHeight != block->stack.vTop) {
@@ -495,10 +498,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtHeight - 1);
           propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight - 1);
           pushRegister(&tgtBlock->parent->stack, val);
-        } else
+        } else {
+          setStackDepth(&tgtBlock->stack, jit, tgtHeight);
           propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight);
+        }
 
-        // dumpStack(&tgtBlock->parent->stack);
+#ifdef TRACEJIT
+        if (traceJit >= detailedTracing)
+          dumpStack(&tgtBlock->parent->stack);
+#endif
 
         return breakOut(block, tgtBlock);
       }
@@ -775,8 +783,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
         codeLblPo skip = newLabel(ctx);
         cbnz(sng, skip);
-        setStackDepth(stack, jit, tgtBlock->exitHeight);
-        spillStack(stack, jit);
         propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         ret = breakOut(block, tgtBlock);
         bind(skip);
