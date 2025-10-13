@@ -375,20 +375,24 @@ void dumpStack(valueStackPo stack) {
   check(top + arity + lclCnt <= stack->lclCount, "inconsistent stack state");
 
   char *sep = "";
-  for (int ax = 0; ax < arity; ax++) {
-    localVarPo var = argSlot(stack, ax);
-    outMsg(logFile, "%sa[%d]", sep, ax);
-    dumpSlot(logFile, var);
-    sep = ", ";
+  if (arity > 0) {
+    for (int ax = 0; ax < arity; ax++) {
+      localVarPo var = argSlot(stack, ax);
+      outMsg(logFile, "%sa[%d]", sep, ax);
+      dumpSlot(logFile, var);
+      sep = ", ";
+    }
+    sep = "\n";
   }
-  sep = "\n";
-  for (int32 lx = 1; lx <= lclCnt; lx++) {
-    localVarPo var = localSlot(stack, lx);
-    outMsg(logFile, "%sl[%d]", sep, lx);
-    dumpSlot(logFile, var);
-    sep = ", ";
+  if (lclCnt > 0) {
+    for (int32 lx = 1; lx <= lclCnt; lx++) {
+      localVarPo var = localSlot(stack, lx);
+      outMsg(logFile, "%sl[%d]", sep, lx);
+      dumpSlot(logFile, var);
+      sep = ", ";
+    }
+    sep = "\n";
   }
-  sep = "\n";
   for (int32 sx = 0; sx < top; sx++) {
     localVarPo var = stackSlot(stack, sx);
     outMsg(logFile, "%ss[%d]/%d", sep, sx, var->stkOff);
@@ -401,39 +405,39 @@ void dumpStack(valueStackPo stack) {
 
 #define combineKind(S, K) ((S) << 3 | (K))
 
-void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
+// Not all combinations of propagation can be reliably supported.
+static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32 lclOff) {
   assemCtxPo ctx = assemCtx(jit);
 
   switch (combineKind(src->kind, dst->kind)) {
-    case combineKind(inStack, inStack):
     case combineKind(inStack, isLocal):
-    case combineKind(isLocal, inStack):
-    case combineKind(isLocal, isLocal): {
-      if (src->stkOff != dst->stkOff) {
-        if (!dst->inited) {
-          check(src->inited, "attempted to propagate non-initialized var");
-          *dst = *src;
-        } else {
-          armReg tmp = findFreeReg(jit);
-          loadLocal(jit, tmp, src->stkOff);
-          storeLocal(jit, tmp, dst->stkOff);
-          releaseReg(jit, tmp);
-          *src = (LocalEntry){.kind = dst->kind, .stkOff = dst->stkOff, .inited = True};
-        }
-      }
-      return;
+    case combineKind(isLocal, isLocal):
+    case combineKind(inRegister, isLocal): {
+      if (!dst->inited) {
+        *dst = *src;
+      } else if (src->stkOff != dst->stkOff)
+        return jitError(jit, "cannot propagate from %x to %x", src, dst);
+      return Ok;
     }
-    case combineKind(inRegister, isLocal):
+    case combineKind(inStack, inStack):
+    case combineKind(isLocal, inStack): {
+      if (!dst->inited) {
+        check(src->inited, "attempted to propagate non-initialized var");
+        *dst = *src;
+      } else if (src->stkOff != dst->stkOff)
+        return jitError(jit, "cannot propagate from %x to %x", src, dst);
+      return Ok;
+    }
     case combineKind(inRegister, inStack): {
       if (!dst->inited) {
         check(src->inited, "attempted to propagate non-initialized var");
         *dst = (LocalEntry){.kind = inRegister, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
       } else {
-        storeLocal(jit, src->Rg, dst->stkOff);
+        storeLocal(jit, src->Rg, lclOff);
         releaseReg(jit, src->Rg);
-        *src = (LocalEntry){.kind = dst->kind, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
+        *src = (LocalEntry){.kind = dst->kind, .stkOff = lclOff, .inited = True}; // back propagate for sanity
       }
-      return;
+      return Ok;
     }
     case combineKind(inRegister, inRegister): {
       if (src->Rg != dst->Rg) {
@@ -441,48 +445,99 @@ void propagateVar(jitCompPo jit, localVarPo src, localVarPo dst) {
         releaseReg(jit, src->Rg);
         *src = *dst; // back propagate
       }
-      return;
+      return Ok;
     }
     case combineKind(inStack, inRegister):
     case combineKind(isLocal, inRegister): {
       loadLocal(jit, dst->Rg, src->stkOff);
       *src = *dst; // back propagate
-      return;
+      return Ok;
     }
     default: {
-      bailOut(jit, errorCode);
+      return jitError(jit, "unknown combination for propagating variables");
     }
+  }
+}
+
+retCode propVar(jitCompPo jit, localVarPo var, int32 lclOff) {
+  assemCtxPo ctx = assemCtx(jit);
+
+  if (!var->inited)
+    return jitError(jit, "attempted to propagate non-initialized var");
+
+  switch (var->kind) {
+    case inStack: {
+      if (var->stkOff != lclOff) {
+        armReg tmp = findFreeReg(jit);
+        loadLocal(jit, tmp, var->stkOff);
+        storeLocal(jit, tmp, lclOff);
+        releaseReg(jit, tmp);
+        *var = (LocalEntry){.kind = inStack, .stkOff = lclOff, .inited = True};
+      }
+      return Ok;
+    }
+    case isLocal: {
+      if (var->stkOff != lclOff) {
+        armReg tmp = findFreeReg(jit);
+        loadLocal(jit, tmp, var->stkOff);
+        storeLocal(jit, tmp, lclOff);
+        releaseReg(jit, tmp);
+        *var = (LocalEntry){.kind = isLocal, .stkOff = lclOff, .inited = True};
+      }
+      return Ok;
+    }
+    case inRegister:
+      return Ok;
+    default:
+      return jitError(jit, "unknown kind of propagated variable");
   }
 }
 
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
                        valueStackPo tgtStack, int32 tgtHeight) {
+  retCode ret = Ok;
+
+
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    dumpStack(tgtStack);
+  }
+#endif
+
+
   // Should be a nop at the moment.
-  for (int32 ax = 0; ax < mtdArity(jit->mtd); ax++) {
+  for (int32 ax = 0; ret == Ok && ax < mtdArity(jit->mtd); ax++) {
     localVarPo src = argSlot(srcStack, ax);
     localVarPo dst = argSlot(tgtStack, ax);
-    propagateVar(jit, src, dst);
+    ret = propagateVar(jit, src, dst, ax);
   }
 
-  for (int32 v = 1; v <= srcStack->argPnt - srcStack->stackPnt; v++) {
+  int32 noLcls = srcStack->argPnt - srcStack->stackPnt;
+  for (int32 v = 1; ret == Ok && v <= noLcls; v++) {
     localVarPo src = localSlot(srcStack, v);
     localVarPo dst = localSlot(tgtStack, v);
-    propagateVar(jit, src, dst);
+    ret = propagateVar(jit, src, dst, -v);
   }
 
-  int32 top = min(srcStack->vTop, tgtStack->vTop);
+  int32 stackDiff = srcStack->vTop - tgtStack->vTop;
 
-  for (int32 v = top; v > 0; v--) {
-    localVarPo src = stackSlot(srcStack, v - 1);
+  for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
+    localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
     localVarPo dst = stackSlot(tgtStack, v - 1);
-    propagateVar(jit, src, dst);
+    ret = propagateVar(jit, src, dst, -(noLcls + v));
   }
 
-  for (int32 v = tgtHeight; v > top; v--) {
-    localVarPo src = stackSlot(srcStack, v - 1);
+  for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
+    localVarPo src = stackSlot(srcStack, v - 1 - tgtStack->vTop);
     pushValue(tgtStack, *src);
   }
 
-  tgtStack->vTop = tgtHeight;
-  return Ok;
+  setStackDepth(tgtStack, jit, tgtHeight);
+
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    dumpStack(tgtStack);
+  }
+#endif
+  return ret;
 }
