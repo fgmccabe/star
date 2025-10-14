@@ -365,6 +365,13 @@ static void dumpSlot(ioPo out, localVarPo var) {
   }
 }
 
+retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt) {
+  localVarPo slot = (localVarPo) data;
+
+  dumpSlot(f, slot);
+  return Ok;
+}
+
 void dumpStack(valueStackPo stack) {
   int32 arity = stack->lclCount - stack->argPnt;
   int32 lclCnt = stack->argPnt - stack->stackPnt;
@@ -416,7 +423,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
       if (!dst->inited) {
         *dst = *src;
       } else if (src->stkOff != dst->stkOff)
-        return jitError(jit, "cannot propagate from %x to %x", src, dst);
+        return jitError(jit, "cannot propagate from %X to %X", src, dst);
       return Ok;
     }
     case combineKind(inStack, inStack):
@@ -425,7 +432,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
         check(src->inited, "attempted to propagate non-initialized var");
         *dst = *src;
       } else if (src->stkOff != dst->stkOff)
-        return jitError(jit, "cannot propagate from %x to %x", src, dst);
+        return jitError(jit, "cannot propagate from %X to %X", src, dst);
       return Ok;
     }
     case combineKind(inRegister, inStack): {
@@ -497,13 +504,11 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
                        valueStackPo tgtStack, int32 tgtHeight) {
   retCode ret = Ok;
 
-
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
     dumpStack(tgtStack);
   }
 #endif
-
 
   // Should be a nop at the moment.
   for (int32 ax = 0; ret == Ok && ax < mtdArity(jit->mtd); ax++) {
