@@ -104,6 +104,7 @@ void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 void dumpStack(valueStackPo stack);
+retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt);
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight);

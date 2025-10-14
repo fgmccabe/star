@@ -17,6 +17,7 @@
 #include "errorCodes.h"
 #include "abort.h"
 #include "debugP.h"
+#include "formioP.h"
 
 /* Lower Star VM code to Arm64 code */
 
@@ -41,6 +42,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit method %L\n", mtd);
+    reinstallMsgProc('X',showStackSlot);
   }
 #endif
 
@@ -135,12 +137,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case Abort: {
         // abort with message
-        armReg codeReg = findFreeReg(jit);
-        loadConstant(jit, code[pc].fst, codeReg);
         armReg val = popValue(stack, jit);
         stash(block);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(codeReg), RG(val));
-        releaseReg(jit, codeReg);
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), OF(CO,code[pc].fst), RG(val));
         releaseReg(jit, val);
         return ret;
       }
@@ -639,7 +638,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case LdA: {
         // load stack from args[xx]
         int32 argNo = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = argNo, .inited = True});
+        armReg rg = findFreeReg(jit);
+        loadLocal(jit,rg,argNo);
+        pushRegister(stack, rg);
         continue;
       }
       case LdL: {
@@ -911,12 +912,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 tgt = pc + code[pc].alt + 1;
         jitBlockPo tgtBlock = breakBlock(block, code, tgt);
 
-        armReg lit = findFreeReg(jit);
-        loadConstant(jit, key, lit);
         armReg vl = popValue(stack, jit);
 
         stash(block);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(lit), RG(vl));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(vl), OF(CO,key*pointerSize));
         unstash(jit);
         tst(X0, RG(X0));
 
@@ -931,7 +930,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           return jitError(jit, "cannot find target label for %d", tgt);
 
         releaseReg(jit, vl);
-        releaseReg(jit, lit);
         continue;
       }
 

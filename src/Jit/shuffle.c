@@ -79,11 +79,14 @@ static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack,
 static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
   // Is this reference already in the stack?
   for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    if (clobbers(ref, stackPeek(stack, ix)))
+    if (clobbers(ref, stackPeek(stack, ix))) {
+      ref->mark = False;
+      stackPush(ref, stack);
       return min(low, ix);
+    }
   }
   // look in definitions
-  return min(low, analyseDef(ref, defs, arity, stack, groups));
+  return analyseDef(ref, defs, arity, stack, groups);
 }
 
 argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
@@ -102,10 +105,11 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   def->mark = False;
 
   int32 low = pt;
-  argSpecPo ref = findRef(def, defs, arity, 0);
 
-  for (int32 ix = 0; ref != Null; ix++, ref = findRef(def, defs, arity, ix)) {
-    low = analyseRef(ref, defs, arity, stack, groups, low);
+  argSpecPo ref;
+
+  for (int32 ix = 0; (ref = findRef(def, defs, arity, ix)) != Null; ix++) {
+    low = min(low, analyseRef(ref, defs, arity, stack, groups, low));
   }
 
   if (low < stackCount(stack)) {
@@ -160,11 +164,11 @@ static int32 groupSize(argSpecPo specs, int32 arity, int32 group) {
 void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, void *cl) {
   int32 groups = sortArgSpecs(args, arity);
 
-// #ifdef TRACEJIT
-//   if (traceJit >= detailedTracing) {
-//     showGroups(args, groups, arity);
-//   }
-// #endif
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showGroups(args, groups, arity);
+  }
+#endif
 
   for (int32 gx = 0; gx < groups; gx++) {
     if (groupSize(args, arity, gx) == 1) {
