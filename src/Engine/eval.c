@@ -361,9 +361,8 @@ ReturnStatus run(enginePo P) {
         // The top of a stack should be a binary lambda
         termPo fiberLambda = pop();
         saveRegisters();
-        stackPo child = newStack(H, False, fiberLambda);
+        newStack(P, False, fiberLambda);
         restoreRegisters();
-        push(child); // We return the new stack
         PC++;
         continue;
       }

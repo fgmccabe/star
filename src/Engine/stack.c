@@ -471,7 +471,10 @@ stackPo spinupStack(heapPo H, logical execJit, integer size) {
   return allocateStack(H, size, underflowProg, execJit, suspended,Null);
 }
 
-stackPo newStack(heapPo H, logical execJit, termPo lam) {
+void newStack(enginePo P, logical execJit, termPo lam) {
+  heapPo H = processHeap(P);
+  stackPo stk = P->stk;
+
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(H, execJit, minStackSize);
   gcReleaseRoot(H, root);
@@ -481,7 +484,7 @@ stackPo newStack(heapPo H, logical execJit, termPo lam) {
   pushStack(child, lam);
   pushStack(child, (termPo) child);
 
-  return child; // We return the new stack
+  pushStack(stk, (termPo) child);
 }
 
 void attachStack(enginePo P, stackPo top, termPo evt) {
