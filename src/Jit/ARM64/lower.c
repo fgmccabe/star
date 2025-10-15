@@ -42,7 +42,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLe
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit method %L\n", mtd);
-    reinstallMsgProc('X',showStackSlot);
+    reinstallMsgProc('X', showStackSlot);
   }
 #endif
 
@@ -123,7 +123,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       outMsg(logFile, "\n%_");
     }
     if (traceJit >= detailedTracing) {
-      // dRegisterMap(jit->freeRegs);
+      dRegisterMap(jit->freeRegs);
       dumpStack(stack);
     }
 #endif
@@ -139,7 +139,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // abort with message
         armReg val = popValue(stack, jit);
         stash(block);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), OF(CO,code[pc].fst), RG(val));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), OF(CO, code[pc].fst), RG(val));
         releaseReg(jit, val);
         return ret;
       }
@@ -256,7 +256,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
         dropArgs(stack, jit, arity);
-        propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
         ret = testResult(block, tgtBlock);
         continue;
       }
@@ -385,8 +384,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
         // Only need this for debugging
-        if (mtdArity(jit->mtd) != 1)
-          add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
+        if (mtdArity(jit->mtd) != 1) {
+          int32 delta = mtdArity(jit->mtd) - 1;
+          if (delta < 0)
+            sub(AG, AG, IM(-delta*pointerSize));
+          else
+            add(AG, AG, IM(delta*pointerSize));
+        }
         str(AG, OF(STK, OffsetOf(StackRecord,sp)));
 
         // Adjust args register
@@ -408,8 +412,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         releaseReg(jit, vl);
 
         // Only need this for debugging
-        if (mtdArity(jit->mtd) != 1)
-          add(AG, AG, IM((mtdArity(jit->mtd)-1)*pointerSize));
+        if (mtdArity(jit->mtd) != 1) {
+          int32 delta = mtdArity(jit->mtd) - 1;
+          if (delta < 0)
+            sub(AG, AG, IM(-delta*pointerSize));
+          else
+            add(AG, AG, IM(delta*pointerSize));
+        }
         stur(AG, STK, OffsetOf(StackRecord,sp));
 
         // Pick up the caller program
@@ -541,24 +550,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         continue;
       }
       case Fiber: {
-        // Create new fiber
-        if (reserveReg(jit, X0) != Ok)
-          bailOut(jit, fiberCode);
         armReg lamReg = popValue(stack, jit);
-        armReg heapReg = findFreeReg(jit);
-        ldr(heapReg, OF(PR, OffsetOf(EngineRecord, heap)));
         spillStack(stack, jit);
         stash(block);
-
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(heapReg), IM(True), RG(lamReg));
-        if (ret == Ok) {
-          unstash(jit);
-          pushRegister(stack, X0);
-          releaseReg(jit, lamReg);
-          releaseReg(jit, heapReg);
-        } else {
-          bailOut(jit, fiberCode);
-        }
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(PR), IM(True), RG(lamReg));
+        unstash(jit);
+        pushBlank(stack);
+        releaseReg(jit, lamReg);
         continue;
       }
       case Suspend: {
@@ -639,7 +637,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // load stack from args[xx]
         int32 argNo = code[pc].fst;
         armReg rg = findFreeReg(jit);
-        loadLocal(jit,rg,argNo);
+        loadLocal(jit, rg, argNo);
         pushRegister(stack, rg);
         continue;
       }
@@ -915,7 +913,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg vl = popValue(stack, jit);
 
         stash(block);
-        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(vl), OF(CO,key*pointerSize));
+        callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(vl), OF(CO, key*pointerSize));
         unstash(jit);
         tst(X0, RG(X0));
 

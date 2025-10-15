@@ -13,7 +13,6 @@ ReturnStatus g__fiber_eq(enginePo P) {
 
 ReturnStatus g__fiber(enginePo P) {
   termPo fiberLambda = popVal(P);
-  stackPo child = newStack(processHeap(P), False, fiberLambda);
-  pshVal(P,(termPo)child);
+  newStack(P, False, fiberLambda);
   return Normal;
 }
