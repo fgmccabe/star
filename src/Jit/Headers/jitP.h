@@ -36,6 +36,7 @@ void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 retCode reserveReg(jitCompPo jit, mcRegister rg);
 mcRegister findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, mcRegister rg);
+logical haveFreeReg(jitCompPo jit);
 
 logical isByte(int64 x);
 logical isI32(int64 x);

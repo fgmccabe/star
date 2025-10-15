@@ -635,6 +635,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case LdA: {
         // load stack from args[xx]
+        if (!haveFreeReg(jit))
+          spillStack(stack, jit);
         int32 argNo = code[pc].fst;
         armReg rg = findFreeReg(jit);
         loadLocal(jit, rg, argNo);
@@ -677,13 +679,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case LdG: {
         // load a global variable
+        spillStack(stack, jit); // We spill because we may have to call the global function
         armReg glb = findFreeReg(jit);
         armReg content = findFreeReg(jit);
         globalPo glbVr = findGlobalVar(code[pc].fst);
-        spillStack(stack, jit); // We spill because we may have to call the global function
 
         mov(glb, IM((integer) glbVr));
-
         // Check if global is set
         ldr(content, OF(glb, OffsetOf(GlobalRecord, content)));
         codeLblPo haveContent = newLabel(ctx);

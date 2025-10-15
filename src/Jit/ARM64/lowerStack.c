@@ -104,6 +104,8 @@ void pushRegister(valueStackPo stack, armReg rg) {
 }
 
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
+  if (!haveFreeReg(jit))
+    spillStack(stack,jit);
   armReg conRg = findFreeReg(jit);
   loadConstant(jit, key, conRg);
   pushRegister(stack, conRg);

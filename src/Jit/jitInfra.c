@@ -51,3 +51,7 @@ retCode reserveReg(jitCompPo jit, mcRegister rg) {
 void releaseReg(jitCompPo jit, mcRegister rg) {
   jit->freeRegs = freeReg(jit->freeRegs, rg);
 }
+
+logical haveFreeReg(jitCompPo jit) {
+  return jit->freeRegs!=emptyRegSet();
+}
