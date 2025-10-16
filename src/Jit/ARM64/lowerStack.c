@@ -105,7 +105,7 @@ void pushRegister(valueStackPo stack, armReg rg) {
 
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
   if (!haveFreeReg(jit))
-    spillStack(stack,jit);
+    spillStack(stack, jit);
   armReg conRg = findFreeReg(jit);
   loadConstant(jit, key, conRg);
   pushRegister(stack, conRg);
@@ -185,7 +185,7 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
   setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size,
               -(jit->lclCnt + stack->vTop));
 
-  shuffleVars(jit->assemCtx, newArgs, size, spillVr, (void *) jit);
+  shuffleVars(jit->assemCtx, newArgs, size, jit->freeRegs, spillVr, (void *) jit);
 }
 
 // Put the top arity elements of the stack over caller
@@ -228,7 +228,7 @@ void frameOverride(jitBlockPo block, int arity) {
     }
   }
 
-  shuffleVars(ctx, newArgs, arity, spillVr, (void *) jit);
+  shuffleVars(ctx, newArgs, arity, jit->freeRegs, spillVr, (void *) jit);
 
   if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
@@ -351,27 +351,19 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   return ret;
 }
 
-static void dumpSlot(ioPo out, localVarPo var) {
+retCode showStackSlot(ioPo out, void *data, long depth, long precision, logical alt) {
+  localVarPo var = (localVarPo) data;
+
   switch (var->kind) {
     case inRegister:
-      outMsg(out, "=X%d", var->Rg);
-      return;
+      return outMsg(out, "X%d", var->Rg);
     case inStack:
-      outMsg(out, "=%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
-      return;
+      return outMsg(out, "%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
     case isLocal:
-      outMsg(out, "=%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["), var->stkOff);
-      return;
+      return outMsg(out, "%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["), var->stkOff);
     default:
-      outMsg(out, "unknown type of slot");
+      return outMsg(out, "unknown type of slot");
   }
-}
-
-retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt) {
-  localVarPo slot = (localVarPo) data;
-
-  dumpSlot(f, slot);
-  return Ok;
 }
 
 void dumpStack(valueStackPo stack) {
@@ -387,8 +379,7 @@ void dumpStack(valueStackPo stack) {
   if (arity > 0) {
     for (int ax = 0; ax < arity; ax++) {
       localVarPo var = argSlot(stack, ax);
-      outMsg(logFile, "%sa[%d]", sep, ax);
-      dumpSlot(logFile, var);
+      outMsg(logFile, "%sa[%d]=%X", sep, ax, var);
       sep = ", ";
     }
     sep = "\n";
@@ -396,16 +387,14 @@ void dumpStack(valueStackPo stack) {
   if (lclCnt > 0) {
     for (int32 lx = 1; lx <= lclCnt; lx++) {
       localVarPo var = localSlot(stack, lx);
-      outMsg(logFile, "%sl[%d]", sep, lx);
-      dumpSlot(logFile, var);
+      outMsg(logFile, "%sl[%d]=%X", sep, lx, var);
       sep = ", ";
     }
     sep = "\n";
   }
   for (int32 sx = 0; sx < top; sx++) {
     localVarPo var = stackSlot(stack, sx);
-    outMsg(logFile, "%ss[%d]/%d", sep, sx, var->stkOff);
-    dumpSlot(logFile, var);
+    outMsg(logFile, "%ss[%d]=%X", sep, sx, var);
     sep = ", ";
   }
   outStr(logFile, "\n");
@@ -420,8 +409,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
 
   switch (combineKind(src->kind, dst->kind)) {
     case combineKind(inStack, isLocal):
-    case combineKind(isLocal, isLocal):
-    case combineKind(inRegister, isLocal): {
+    case combineKind(isLocal, isLocal):{
       if (!dst->inited) {
         *dst = *src;
       } else if (src->stkOff != dst->stkOff)
@@ -437,6 +425,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
         return jitError(jit, "cannot propagate from %X to %X", src, dst);
       return Ok;
     }
+    case combineKind(inRegister, isLocal):
     case combineKind(inRegister, inStack): {
       if (!dst->inited) {
         check(src->inited, "attempted to propagate non-initialized var");
@@ -526,13 +515,13 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
     ret = propagateVar(jit, src, dst, -v);
   }
 
-  int32 stackDiff = srcStack->vTop - tgtStack->vTop;
-
-  for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
-    localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
-    localVarPo dst = stackSlot(tgtStack, v - 1);
-    ret = propagateVar(jit, src, dst, -(noLcls + v));
-  }
+  // int32 stackDiff = srcStack->vTop - tgtStack->vTop;
+  //
+  // for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
+  //   localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
+  //   localVarPo dst = stackSlot(tgtStack, v - 1);
+  //   ret = propagateVar(jit, src, dst, -(noLcls + v));
+  // }
 
   for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
     localVarPo src = stackSlot(srcStack, v - 1 - tgtStack->vTop);

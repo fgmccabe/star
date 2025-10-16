@@ -161,7 +161,16 @@ static int32 groupSize(argSpecPo specs, int32 arity, int32 group) {
   return size;
 }
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, void *cl) {
+static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *group) {
+  int32 pt = 0;
+  for (int32 ix = 0; ix < arity; ix++) {
+    if (args[ix].group == groupNo) {
+      group[pt++] = &args[ix];
+    }
+  }
+}
+
+void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRegs, moveFunc mover, void *cl) {
   int32 groups = sortArgSpecs(args, arity);
 
 #ifdef TRACEJIT
@@ -171,19 +180,29 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, moveFunc mover, vo
 #endif
 
   for (int32 gx = 0; gx < groups; gx++) {
-    if (groupSize(args, arity, gx) == 1) {
-      for (int32 ax = 0; ax < arity; ax++) {
-        if (args[ax].group == gx) {
-          FlexOp dst = args[ax].dst;
+    int32 grpSize = groupSize(args, arity, gx);
+    argSpecPo group[grpSize];
 
-          if (!sameFlexOp(dst, args[ax].src)) {
-            mover(ctx, args[ax].dst, args[ax].src, cl);
-          }
-          args[ax].group = -1;
-        }
+    collectGroup(args, arity, gx, group);
+
+    if (grpSize == 1) {
+      FlexOp dst = group[0]->dst;
+
+      if (!sameFlexOp(dst, group[0]->src)) {
+        mover(ctx, group[0]->dst, group[0]->src, cl);
       }
+      group[0]->group = -1;
     } else {
-      check(False, "unsupported circular dependency");
+      mcRegister tmp = nxtAvailReg(freeRegs);
+      FlexOp dst = group[0]->dst;
+
+      mover(ctx,RG(tmp),dst,cl);
+
+      for (int32 ix = 0; ix < grpSize-1; ix++) {
+        mover(ctx,group[ix]->dst,group[ix]->src,cl);
+      }
+
+      mover(ctx,group[grpSize-1]->dst,RG(tmp),cl);
     }
   }
 }
