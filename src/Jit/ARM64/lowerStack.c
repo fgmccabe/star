@@ -360,7 +360,8 @@ retCode showStackSlot(ioPo out, void *data, long depth, long precision, logical 
     case inStack:
       return outMsg(out, "%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
     case isLocal:
-      return outMsg(out, "%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["), var->stkOff);
+      return outMsg(out, "%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["),
+                    var->stkOff);
     default:
       return outMsg(out, "unknown type of slot");
   }
@@ -409,7 +410,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
 
   switch (combineKind(src->kind, dst->kind)) {
     case combineKind(inStack, isLocal):
-    case combineKind(isLocal, isLocal):{
+    case combineKind(isLocal, isLocal): {
       if (!dst->inited) {
         *dst = *src;
       } else if (src->stkOff != dst->stkOff)
@@ -515,13 +516,15 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
     ret = propagateVar(jit, src, dst, -v);
   }
 
-  // int32 stackDiff = srcStack->vTop - tgtStack->vTop;
-  //
-  // for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
-  //   localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
-  //   localVarPo dst = stackSlot(tgtStack, v - 1);
-  //   ret = propagateVar(jit, src, dst, -(noLcls + v));
-  // }
+  int32 stackDiff = srcStack->vTop - tgtStack->vTop;
+
+  if (stackDiff >= 0) {
+    for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
+      localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
+      localVarPo dst = stackSlot(tgtStack, v - 1);
+      ret = propagateVar(jit, src, dst, -(noLcls + v));
+    }
+  }
 
   for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
     localVarPo src = stackSlot(srcStack, v - 1 - tgtStack->vTop);
