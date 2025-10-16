@@ -1,2 +1,2 @@
 #!/bin/bash
-sc -R test-repo/ $1 && star +j -r test-repo/ $1
+sc -R test-repo/ $1 && star  -r test-repo/ $1
