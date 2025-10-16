@@ -2,7 +2,7 @@
 #define X86_64_H_
 
 #include "config.h"
-#include "utils.h"
+#include "logical.h"
 
 typedef struct assem_ctx *assemCtxPo;
 typedef struct assem_lbl *codeLblPo;
@@ -74,7 +74,7 @@ void mov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
 void cmov_(FlexOp dst, FlexOp src, assemCtxPo ctx);
 
-void movsx_(x64Reg dst, x64Op src, uint8 scale, assemCtxPo ctx);
+void movsx_(x64Reg dst, FlexOp src, uint8 scale, assemCtxPo ctx);
 #define movsx(dst, src, scale) movsx_(dst, src, scale, ctx)
 
 void xchg_(FlexOp dst, FlexOp src, assemCtxPo ctx);
