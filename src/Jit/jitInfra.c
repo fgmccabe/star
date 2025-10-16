@@ -2,8 +2,9 @@
 // Created by Francis McCabe on 4/1/20.
 //
 
+#include "formioP.h"
 #include "jit.h"
-#include "lower.h"
+#include "lowerP.h"
 #include "jitP.h"
 
 static poolPo contextPool = Null;
@@ -11,6 +12,8 @@ static poolPo contextPool = Null;
 void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
+
+    reinstallMsgProc('X',showStackSlot);
   }
 }
 
