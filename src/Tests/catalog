@@ -210,7 +210,6 @@
     "test.y": "y.star",
     "test.mutual": "mutual.star",
     "test.hof": "hof.star",
-    "test.pattern_match": "pattern_match.star"
   },
   "version": "1.0.0",
   "default": "../Star/catalog",

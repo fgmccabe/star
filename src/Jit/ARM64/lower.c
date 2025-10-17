@@ -500,6 +500,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           setStackDepth(stack, jit, tgtHeight - 1);
           pushRegister(stack, val);
         }
+        spillStack(stack,jit);
+
         tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight));
 
 #ifdef TRACEJIT
