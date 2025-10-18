@@ -640,9 +640,11 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         if (!haveFreeReg(jit))
           spillStack(stack, jit);
         int32 argNo = code[pc].fst;
-        armReg rg = findFreeReg(jit);
-        loadLocal(jit, rg, argNo);
-        pushRegister(stack, rg);
+//        armReg rg = findFreeReg(jit);
+//        loadLocal(jit, rg, argNo);
+//        pushRegister(stack, rg);
+        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = argNo, .inited = True});
+
         continue;
       }
       case LdL: {

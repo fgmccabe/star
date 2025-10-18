@@ -114,6 +114,7 @@ void pushRegister(valueStackPo stack, armReg rg);
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
 armReg popValue(valueStackPo stack, jitCompPo jit);
 armReg topValue(valueStackPo stack, jitCompPo jit);
+armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth);
 void dropValue(valueStackPo stack, jitCompPo jit);
 void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
 void spillStack(valueStackPo stack, jitCompPo jit);
