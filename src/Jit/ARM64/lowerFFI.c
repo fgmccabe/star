@@ -13,18 +13,6 @@
 #include "engineP.h"
 #include "shuffle.h"
 
-retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(jit);
-  codeLblPo skip = newLabel(ctx);
-  cmp(X0, IM(Normal));
-  beq(skip);
-  propagateStack(jit, &block->stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
-  retCode ret = breakOut(block, tgtBlock);
-  bind(skip);
-  return ret;
-}
-
 retCode getIntVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
   asr(rg, rg, IM(2));
