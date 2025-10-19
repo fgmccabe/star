@@ -2,7 +2,6 @@
 // Created by Francis McCabe on 1/6/18.
 //
 
-
 #include <math.h>
 #include <strings.h>
 #include <tpl.h>
@@ -16,7 +15,7 @@
 ReturnStatus g__flt_eq(enginePo P) {
   double lhs = floatVal(popVal(P));
   double rhs = floatVal(popVal(P));
-  termPo Rs = (lhs==rhs ? trueEnum : falseEnum);
+  termPo Rs = (lhs == rhs ? trueEnum : falseEnum);
   pshVal(P, Rs);
   return Normal;
 }
@@ -327,12 +326,11 @@ ReturnStatus g_log10(enginePo P) {
 ReturnStatus g_sqrt(enginePo P) {
   double Arg = floatVal(popVal(P));
 
-  if (Arg >= 0.0){
-    pshVal(P,makeFloat(sqrt(Arg)));
+  if (Arg >= 0.0) {
+    pshVal(P, makeFloat(sqrt(Arg)));
     return Normal;
-  }
-  else{
-    pshVal(P,eRANGE);
+  } else {
+    pshVal(P, eRANGE);
     return Abnormal;
   }
 }

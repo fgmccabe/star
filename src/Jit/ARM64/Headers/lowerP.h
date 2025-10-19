@@ -108,7 +108,7 @@ retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical al
 int32 trueStackDepth(valueStackPo stack);
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight);
-void pushBlank(valueStackPo stack);
+localVarPo pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
@@ -128,7 +128,6 @@ localVarPo stackSlot(valueStackPo stack, int32 slot);
 void loadStack(jitCompPo jit, armReg tgt, int32 depth);
 void storeStack(jitCompPo jit, armReg src, int32 depth);
 
-retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
 registerMap criticalRegs();
 
 static inline logical isSmall(termPo x) {
