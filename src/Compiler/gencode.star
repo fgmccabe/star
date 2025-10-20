@@ -1,6 +1,5 @@
 star.compiler.gencode{
   import star.
-  import star.assert.
   import star.multi.
   import star.pkg.
   import star.sort.
@@ -642,6 +641,7 @@ star.compiler.gencode{
     Df = defineLbl(Ctx,"Df");
     Ok = defineLbl(Ctx,"Ok");
     Lvl = stkLvl(Stk);
+
     (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
     
     (Table,Max) = genCaseTable(Cases);
@@ -650,13 +650,13 @@ star.compiler.gencode{
 
     CaseIns = (intType==deRef(typeOf(Gv)) ?? .iICase(Max) || .iCase(Max));
 
-    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,[CaseIns],Ctx,Stk);
+    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,GC++[CaseIns],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
 
     valis ([.iLbl(Ok,.iBlock(OkLvl,
-	    GC++[.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
+	    [.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
 
@@ -676,13 +676,12 @@ star.compiler.gencode{
 
     (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
 
-    (CC,Ctxc,Stkc) = compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,[.iIxCase(Mx+1)],Ctx,Stk);
+    (CC,Ctxc,Stkc) = compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,GC++[.iIxCase(Mx+1)],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(OkLvl,
-	    GC++[.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
+    valis ([.iLbl(Ok,.iBlock(OkLvl, [.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
       mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
   compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) =>

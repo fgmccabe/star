@@ -790,12 +790,17 @@ compCase(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
   stkLvl(Stk,Lvl),
-  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
+
+  C0 = [iLbl(Df,iBlock(Lvl,CC))|DC],
+
   genCaseTable(Cases,Mx,Table),
+  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,CG,[Case|CB],Stk,_Stk1),
+
   ((tipeOf(GVar,GTp),isIntegerType(GTp)) ->
      Case = iICase(Mx) ;
    Case = iCase(Mx)),
-  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[Case|CB],Stk,Stka),
+
+  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,CG,Stk,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
@@ -896,11 +901,12 @@ compUnpack(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBloc
   stkLvl(Stk,Lvl),
   tipeOf(Gv,Tp),
   getTypeIndex(Tp,D,Index),
-  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,C0,[iLbl(Df,iBlock(Lvl,CC))|DC],Stk,_Stk1),
+  C0 = [iLbl(Df,iBlock(Lvl,CC))|DC],
   genUnpackTable(Cases,Index,Table),
   maxTableEntry(Table,Mx),
   checkOpt(Opts,traceGenCode,showMsg(Lc,"unpack table %s size %s",[Table,ix(Mx)])),
-  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,[iIxCase(Mx)|CB],Stk,Stka),
+  compGvExp(Gv,GVar,Lc,Brks,Opts,L1,L2,D,D1,CG,[iIxCase(Mx)|CB],Stk,_Stk1),
+  compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,Opts,L2,L3,D1,D2,CB,[],CC,CG,Stk,Stka),
   call(Hndlr,Deflt,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,DC,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"case exp").
 
