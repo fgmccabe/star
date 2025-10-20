@@ -5,11 +5,11 @@
 
 #include "abort.h"
 #include "cellP.h"
+#include "constantsP.h"
 #include "lowerP.h"
 #include "stackP.h"
 #include "jitP.h"
 #include "formioP.h"
-#include "debug.h"
 #include "engineP.h"
 #include "shuffle.h"
 
@@ -133,4 +133,42 @@ void unstash(jitCompPo jit) {
   ldr(STK, OF(PR, OffsetOf(EngineRecord, stk)));
   ldr(AG, OF(STK, OffsetOf(StackRecord, args)));
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
+}
+
+
+ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
+  jittedCode code = jitCode(mtd);
+  stackPo stk = P->stk;
+  int32 arity = lblArity(mtdLabel(mtd));
+  ptrPo exitSP = stk->sp + arity - 1;
+
+  ReturnStatus ret = Normal;
+
+  asm("stp x29,x30, [sp, #-16]!\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "stp x12,x13, [sp, #-16]!\n"
+    "mov x14, %[stk]\n"
+    "ldr x13, %[ag]\n"
+    "mov x12, %[constants]\n"
+    "mov x15, %[process]\n"
+    "mov x16, %[code]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
+    "str x29, [x14,#64]\n"
+    "ldp x12,x13, [sp], #16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "ldp x29,x30, [sp], #16\n"
+    "str w0, %[ret]\n"
+    : [ret] "=&m"(ret)
+    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args),
+    [constants] "r"(constAnts),[fp] "m"(stk->fp)
+    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
+    "memory");
+
+  P->stk->sp = exitSP;
+
+  return ret;
 }

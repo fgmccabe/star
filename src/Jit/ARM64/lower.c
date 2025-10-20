@@ -94,7 +94,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
     stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = True};
   }
   for (int32 sx = 1; sx <= depth; sx++) {
-    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx), .inited = False};
+    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx), .inited = True};
   }
 
   JitBlock block = {
@@ -193,8 +193,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         bind(runMtd);
         pshFrame(block, X17);
         blr(X16);
-        testResult(block, tgtBlock);
         dropArgs(stack, jit, arity);
+        testResult(block, tgtBlock);
         continue;
       }
 
@@ -250,8 +250,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
         blr(X16);
-        testResult(block, tgtBlock);
         dropArgs(stack, jit, arity);
+        testResult(block, tgtBlock);
         continue;
       }
       case TCall: {
@@ -338,8 +338,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
         unstash(jit);
-        testResult(block, tgtBlock);
         dropArgs(stack, jit, arity);
+        testResult(block, tgtBlock);
         continue;
       }
       case Entry: {
@@ -492,7 +492,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           setStackDepth(stack, jit, tgtHeight - 1);
           pushRegister(stack, val);
         }
-        spillStack(stack,jit);
+        spillStack(stack, jit);
 
         tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtHeight));
 
@@ -1745,43 +1745,6 @@ armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   return reslt;
 }
 
-ReturnStatus invokeJitMethod(enginePo P, methodPo mtd) {
-  jittedCode code = jitCode(mtd);
-  stackPo stk = P->stk;
-  int32 arity = lblArity(mtdLabel(mtd));
-  ptrPo exitSP = stk->sp + arity - 1;
-
-  ReturnStatus ret = Normal;
-
-  asm("stp x29,x30, [sp, #-16]!\n"
-    "stp x8,x9, [sp, #-16]!\n"
-    "stp x10,x11, [sp, #-16]!\n"
-    "stp x12,x13, [sp, #-16]!\n"
-    "mov x14, %[stk]\n"
-    "ldr x13, %[ag]\n"
-    "mov x12, %[constants]\n"
-    "mov x15, %[process]\n"
-    "mov x16, %[code]\n"
-    "ldr x29, %[fp]\n"
-    "blr x16\n"
-    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
-    "str x29, [x14,#64]\n"
-    "ldp x12,x13, [sp], #16\n"
-    "ldp x10,x11, [sp], #16\n"
-    "ldp x8,x9, [sp], #16\n"
-    "ldp x29,x30, [sp], #16\n"
-    "str w0, %[ret]\n"
-    : [ret] "=&m"(ret)
-    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args),
-    [constants] "r"(constAnts),[fp] "m"(stk->fp)
-    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
-    "memory");
-
-  P->stk->sp = exitSP;
-
-  return ret;
-}
-
 void pshFrame(jitBlockPo block, armReg mtdRg) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -1820,7 +1783,11 @@ retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   codeLblPo skip = newLabel(ctx);
   cmp(X0, IM(Normal));
   beq(skip);
-  propagateStack(jit, &block->stack, &tgtBlock->parent->stack, tgtBlock->exitHeight);
+  armReg er = topValue(&block->stack, jit);
+  valueStackPo tgtStack = &tgtBlock->parent->stack;
+  valueStackPo srcStack = &block->stack;
+  propagateStack(jit, srcStack, tgtStack, tgtBlock->exitHeight-1 );
+  forcePush(jit, tgtStack, er);
   retCode ret = breakOut(block, tgtBlock);
   bind(skip);
   return ret;
