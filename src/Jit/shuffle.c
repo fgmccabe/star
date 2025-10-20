@@ -71,7 +71,7 @@ static logical affects(FlexOp src, FlexOp dst) {
 }
 
 static logical clobbers(argSpecPo def, argSpecPo ref) {
-  return affects(ref->src, def->dst);
+  return affects(def->dst, ref->src);
 }
 
 static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups);
@@ -79,9 +79,9 @@ static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack,
 static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
   // Is this reference already in the stack?
   for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    if (clobbers(ref, stackPeek(stack, ix))) {
+    if (ref == stackPeek(stack, ix)) {
+      // reference already in stack
       ref->mark = False;
-      stackPush(ref, stack);
       return min(low, ix);
     }
   }
@@ -91,7 +91,8 @@ static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack,
 
 argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
   for (int32 ix = from; ix < arity; ix++) {
-    if (defs[ix].mark && clobbers(def, &defs[ix])) {
+    argSpecPo ref = &defs[ix];
+    if (ref->group == -1 && clobbers(def, ref)) {
       return &defs[ix];
     }
   }
@@ -138,16 +139,39 @@ static void showGroups(ArgSpec defs[], int32 groups, int32 arity) {
   flushOut();
 }
 
+static void showDefs(ArgSpec defs[], int32 arity) {
+  char *sep = "";
+  for (int32 ax = 0; ax < arity; ax++) {
+    outMsg(logFile, "%sarg %F: %F", sep, defs[ax].dst, defs[ax].src);
+    sep = ", ";
+  }
+  outStr(logFile, "\n");
+  flushOut();
+}
+
 static int32 sortArgSpecs(ArgSpec defs[], int32 arity) {
   int32 groups = 0;
   argSpecPo stackData[arity];
   Stack stack = {.top = 0, .stack = stackData};
+
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showDefs(defs, arity);
+  }
+#endif
 
   argSpecPo def;
   while ((def = nextDef(defs, arity)) != Null) {
     analyseDef(def, defs, arity, &stack, &groups);
   }
 
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showGroups(defs, groups, arity);
+  }
+#endif
+
+  assert(stack.top==0);
   return groups;
 }
 
@@ -173,12 +197,6 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *
 void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRegs, moveFunc mover, void *cl) {
   int32 groups = sortArgSpecs(args, arity);
 
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
-    showGroups(args, groups, arity);
-  }
-#endif
-
   for (int32 gx = 0; gx < groups; gx++) {
     int32 grpSize = groupSize(args, arity, gx);
     argSpecPo group[grpSize];
@@ -196,13 +214,13 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRe
       mcRegister tmp = nxtAvailReg(freeRegs);
       FlexOp dst = group[0]->dst;
 
-      mover(ctx,RG(tmp),dst,cl);
+      mover(ctx,RG(tmp), dst, cl);
 
-      for (int32 ix = 0; ix < grpSize-1; ix++) {
-        mover(ctx,group[ix]->dst,group[ix]->src,cl);
+      for (int32 ix = 0; ix < grpSize - 1; ix++) {
+        mover(ctx, group[ix]->dst, group[ix + 1]->src, cl);
       }
 
-      mover(ctx,group[grpSize-1]->dst,RG(tmp),cl);
+      mover(ctx, group[grpSize - 1]->src,RG(tmp), cl);
     }
   }
 }

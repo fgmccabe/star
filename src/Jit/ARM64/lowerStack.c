@@ -117,7 +117,7 @@ void pushRegister(valueStackPo stack, armReg rg) {
 void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) {
   localVarPo tgt = pushBlank(stack);
   storeLocal(jit, rg, tgt->stkOff);
-  releaseReg(jit,rg);
+  releaseReg(jit, rg);
 }
 
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
@@ -125,7 +125,7 @@ void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
     spillStack(stack, jit);
   armReg conRg = findFreeReg(jit);
   loadConstant(jit, key, conRg);
-  pushRegister(stack, conRg);
+  forcePush(jit, stack, conRg);
 }
 
 void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
@@ -213,6 +213,14 @@ void frameOverride(jitBlockPo block, int arity) {
   valueStackPo stack = &block->stack;
 
   int32 tgtOff = argCount(jit->mtd);
+
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    outMsg(logFile, "override frame in: ");
+    dumpStack(stack);
+    outMsg(logFile, "targetoffset = %d\n%_",tgtOff);
+  }
+#endif
 
   ArgSpec newArgs[arity];
   for (int32 ax = arity - 1; ax >= 0; ax--) {

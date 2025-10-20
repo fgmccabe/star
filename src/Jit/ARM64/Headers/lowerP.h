@@ -112,6 +112,7 @@ localVarPo pushBlank(valueStackPo stack);
 void pushValue(valueStackPo stack, LocalEntry var);
 void pushRegister(valueStackPo stack, armReg rg);
 void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
+void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) ;
 armReg popValue(valueStackPo stack, jitCompPo jit);
 armReg topValue(valueStackPo stack, jitCompPo jit);
 armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth);
