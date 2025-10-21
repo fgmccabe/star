@@ -16,11 +16,4 @@ test.i{
     show kk["delta"->4];
     valis ()
   }
-
-  public all k,v ~~ mp[k,v] ::=
-    .ihE |
-    .ihL(integer,cons[(k,v)]).
-
-  foo = .ihL(3,[("al",2)]|:cons[_]).
-  ef = .ihE.
 }
