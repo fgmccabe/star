@@ -69,8 +69,8 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLbl(L0,Lx,L1),
   genLbl(L1,Er,L2),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
-				       [iLbl(Lx,iBlock(1,
-						       [iLbl(Er,iBlock(1,FC)),
+				       [iLbl(Lx,iValof(1,
+						       [iLbl(Er,iValof(1,FC)),
 							iXRet])),iRet]))|CA]),
   BaseBrks = [("$try",gencode:result,Er,none)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D,D1,FC,FC0,some(0),Stk0),
@@ -91,7 +91,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLbl([],Abrt,L0),
   genLbl(L0,Lx,L1),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
-				       [iLbl(Lx,iBlock(1,FC)),iRet]))|CA]),
+				       [iLbl(Lx,iValof(1,FC)),iRet]))|CA]),
   compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D,D1,FC,FC0,some(0),Stk0),
   compExp(Value,Lc,[("$abort",gencode:breakOut,Abrt,none)],last,
 	  Opts,L3,L4,D1,D3,FC0,FC1,Stk0,Stk1),
@@ -264,12 +264,12 @@ compAction(asgn(Lc,Cll,Exp),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-
 compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Last,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   stkLvl(Stk,Lvl),
-  compCase(T,Lc,Lvl,Cases,Deflt,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx),
+  compCase(T,Lc,gencode:wrapAction(Lvl),Cases,Deflt,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx),
   verify(gencode:consistentStack(Stk,Stkx),"case action not permitted to leave stuff on stack").
 compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Last,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   stkNxtLvl(Stk,Lvl),
-  compCase(T,Lc,Lvl,Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+  compCase(T,Lc,gencode:wrapExpr(Lvl),Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   stkLvl(Stk,Lvl),
@@ -650,7 +650,7 @@ compExp(savSet(Lc,Sv,Val),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   stkNxtLvl(Stk,Lvl),
-  compCase(T,Lc,Lvl,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+  compCase(T,Lc,gencode:wrapExpr(Lvl),Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   stkNxtLvl(Stk,Lvl),
@@ -674,7 +674,7 @@ compExp(thrw(Lc,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
 compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkNxtLvl(Stk,CLvl),
   stkLvl(Stk,Lvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(CLvl,[iLbl(Fl,iBlock(Lvl,AC))|BC]))|Cx]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(CLvl,[iLbl(Fl,iBlock(Lvl,AC))|BC]))|Cx]),
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
   compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
@@ -688,8 +688,8 @@ compExp(seqD(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   resetStack(Stk,Stk1,C1,C2),
   compExp(B,Lc,Brks,Last,Opts,L1,Lx,D1,Dx,C2,Cx,Stk,Stkx).
 compExp(vlof(Lc,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  stkNxtLvl(Stk,Lvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,CA))|Cx]),
+  stkNxtLvl(Stk,NxtLvl),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(NxtLvl,CA))|Cx]),
   genLbl(L,Ok,L0),
   bumpStk(Stk,Stkx),
   compAction(A,Lc,[("$valof",gencode:breakOut,Ok,Stkx)|Brks],Last,last,Opts,L0,Lx,D,Dx,CA,[],Stk,_Stkx).
@@ -714,7 +714,7 @@ compExp(resme(Lc,T,M,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,C2,Stk1,_Stka),
   genDbg(Opts,Lc,C2,[iResume|C3]),
   genLastReturn(Last,Opts,Lc,C3,Cx,Stk1,Stkx).
-compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(NLvl,[iLbl(Fl,iBlock(Lvl,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
+compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(NLvl,[iLbl(Fl,iBlock(Lvl,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
   isCond(Cond),!,
   isTrueSymb(True),
   isFalseSymb(False),
@@ -756,7 +756,7 @@ compTryX(Lc,B,_ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
   stkNxtLvl(Stk,RLvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(RLvl,[iLbl(Tr,iBlock(RLvl,BC))|HC]))|Cz]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(RLvl,[iLbl(Tr,iValof(RLvl,BC))|HC]))|Cz]),
   compExp(B,Lc,[("$try",gencode:result,Tr,Stk)|Brks],notLast,
 	  Opts,L1,L2,D,D2,BC,[iResult(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
@@ -769,7 +769,7 @@ compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genLbl(L0,Tr,L1),
   stkLvl(Stk,Lvl),
   stkNxtLvl(Stk,ELvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(Tr,iBlock(ELvl,BC))|HC]))|Cz]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(Tr,iValof(ELvl,BC))|HC]))|Cz]),
   compAction(B,Lc,[("$try",gencode:result,Tr,Stk)|Brks],notLast,notLast,
 	  Opts,L1,L2,D,D2,BC,[iBreak(Ok)],Stk,Stka),
   genLine(Opts,Lc,HC,H1),
@@ -786,10 +786,14 @@ isCond(mtch(_,_,_)).
 isTrueSymb("true").
 isFalseSymb("false").
 
-compCase(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(OkLvl,C0))|Cx],Cx,Stk,Stkx) :-
+wrapAction(Lvl,C,iBLock(Lvl,C)).
+wrapExpr(Lvl,C,iValof(Lvl,C)).
+
+compCase(Gv,Lc,Wrap,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx,Stk,Stkx) :-
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
   stkLvl(Stk,Lvl),
+  call(Wrap,C0,OC),
 
   C0 = [iLbl(Df,iBlock(Lvl,CC))|DC],
 
@@ -895,13 +899,13 @@ compCaseCond([(P,E,Lc)|More],GV,Ok,Dflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,
   compCaseCond(More,GV,Ok,Dflt,Hndlr,Brks,Last,Opts,L3,Lx,D3,Dx,BC,[],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"disjunction").
 
-compUnpack(Gv,Lc,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock(OkLvl,C0))|Cx],Cx,Stk,Stkx) :-
+compUnpack(Gv,Lc,Wrap,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx,Stk,Stkx) :-
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
   stkLvl(Stk,Lvl),
   tipeOf(Gv,Tp),
   getTypeIndex(Tp,D,Index),
-  C0 = [iLbl(Df,iBlock(Lvl,CC))|DC],
+  call(Wrap,[iLbl(Df,iBlock(Lvl,CC))|DC],OC),
   genUnpackTable(Cases,Index,Table),
   maxTableEntry(Table,Mx),
   checkOpt(Opts,traceGenCode,showMsg(Lc,"unpack table %s size %s",[Table,ix(Mx)])),
