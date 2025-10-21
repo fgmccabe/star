@@ -14,8 +14,8 @@ typedef struct argSpec_ {
   int32 group;
 } ArgSpec, *argSpecPo;
 
-typedef void (*moveFunc)(assemCtxPo ctx, FlexOp src, FlexOp dst, void *cl);
+typedef void (*moveFunc)(assemCtxPo ctx, FlexOp src, FlexOp dst, registerMap *freeRegs);
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRegs, moveFunc move, void *cl);
+void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs, moveFunc move);
 
 #endif //STAR_SHUFFLE_H

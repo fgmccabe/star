@@ -6,6 +6,7 @@
 
 typedef struct {
   int32 top;
+  int32 size;
   argSpecPo *stack;
 } Stack, *stkPo;
 
@@ -26,6 +27,7 @@ static argSpecPo stackPop(stkPo stack) {
 }
 
 static void stackPush(argSpecPo spec, stkPo stack) {
+  assert(stack->top < stack->size);
   stack->stack[stack->top++] = spec;
 }
 
@@ -79,20 +81,23 @@ static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack,
 static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
   // Is this reference already in the stack?
   for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    if (ref == stackPeek(stack, ix)) {
-      // reference already in stack
-      ref->mark = False;
-      return min(low, ix);
-    }
+    argSpecPo stkRef = stackPeek(stack, ix);
+
+    if (affects(ref->dst, stkRef->src))
+      low = min(low, ix);
   }
   // look in definitions
-  return analyseDef(ref, defs, arity, stack, groups);
+
+  if (ref->mark)
+    return min(low, analyseDef(ref, defs, arity, stack, groups));
+  else
+    return low;
 }
 
-argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity, int32 from) {
-  for (int32 ix = from; ix < arity; ix++) {
-    argSpecPo ref = &defs[ix];
-    if (ref->group == -1 && clobbers(def, ref)) {
+argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity) {
+  for (int32 ix = 0; ix < arity; ix++) {
+    argSpecPo candidate = &defs[ix];
+    if (candidate->group == -1 && clobbers(candidate, def)) {
       return &defs[ix];
     }
   }
@@ -105,13 +110,9 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   stackPush(def, stack);
   def->mark = False;
 
-  int32 low = pt;
+  argSpecPo ref = findRef(def, defs, arity);
 
-  argSpecPo ref;
-
-  for (int32 ix = 0; (ref = findRef(def, defs, arity, ix)) != Null; ix++) {
-    low = min(low, analyseRef(ref, defs, arity, stack, groups, low));
-  }
+  int32 low = (ref != Null && ref != def ? analyseRef(ref, defs, arity, stack, groups, pt) : pt);
 
   if (low < stackCount(stack)) {
     int32 group = (*groups)++;
@@ -152,7 +153,7 @@ static void showDefs(ArgSpec defs[], int32 arity) {
 static int32 sortArgSpecs(ArgSpec defs[], int32 arity) {
   int32 groups = 0;
   argSpecPo stackData[arity];
-  Stack stack = {.top = 0, .stack = stackData};
+  Stack stack = {.top = 0, .stack = stackData, .size = arity};
 
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
@@ -194,33 +195,37 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *
   }
 }
 
-void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap freeRegs, moveFunc mover, void *cl) {
+void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs, moveFunc mover) {
   int32 groups = sortArgSpecs(args, arity);
 
-  for (int32 gx = 0; gx < groups; gx++) {
-    int32 grpSize = groupSize(args, arity, gx);
+  for (int32 gx = groups; gx > 0; gx--) {
+    int32 grpSize = groupSize(args, arity, gx-1);
     argSpecPo group[grpSize];
 
-    collectGroup(args, arity, gx, group);
+    collectGroup(args, arity, gx-1, group);
 
     if (grpSize == 1) {
       FlexOp dst = group[0]->dst;
 
       if (!sameFlexOp(dst, group[0]->src)) {
-        mover(ctx, group[0]->dst, group[0]->src, cl);
+        mover(ctx, group[0]->dst, group[0]->src, freeRegs);
       }
       group[0]->group = -1;
     } else {
-      mcRegister tmp = nxtAvailReg(freeRegs);
+      mcRegister tmp = nxtAvailReg(*freeRegs);
+      check(tmp!=XZR, "no available registers");
+      *freeRegs = dropReg(*freeRegs, tmp);
+
       FlexOp dst = group[0]->dst;
 
-      mover(ctx,RG(tmp), dst, cl);
-
+      mover(ctx,RG(tmp), dst, freeRegs);
       for (int32 ix = 0; ix < grpSize - 1; ix++) {
-        mover(ctx, group[ix]->dst, group[ix + 1]->src, cl);
+        mover(ctx, group[ix]->dst, group[ix + 1]->dst, freeRegs);
       }
 
-      mover(ctx, group[grpSize - 1]->src,RG(tmp), cl);
+      mover(ctx, group[grpSize - 1]->dst,RG(tmp), freeRegs);
+
+      *freeRegs = addReg(*freeRegs, tmp);
     }
   }
 }

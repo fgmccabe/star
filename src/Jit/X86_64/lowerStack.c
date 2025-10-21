@@ -183,7 +183,7 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
   setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size,
               -(jit->lclCnt + stack->vTop));
 
-  shuffleVars(jit->assemCtx, newArgs, size, spillVr, (void *) jit);
+  shuffleVars(jit->assemCtx, newArgs, size, & jit->freeRegs, spillVr);
 }
 
 // Put the top arity elements of the stack over caller
