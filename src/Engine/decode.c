@@ -375,7 +375,8 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
       case Ret: {
         return Ok;
       }
-      case Block: {
+      case Block:
+      case Valof:{
         (*count) -= 2;
 
         ret = decodeConstant(in, &ins->fst, brk);

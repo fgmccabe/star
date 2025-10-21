@@ -292,7 +292,8 @@ ReturnStatus run(enginePo P) {
         continue; /* and carry on regardless */
       }
 
-      case Block: {
+      case Block:
+      case Valof:{
         PC++;
         continue;
       }
