@@ -34,6 +34,7 @@ varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
+vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iLdL(Vr)).
 vrRead(Vr,iLdA(Vr)).
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
@@ -43,6 +44,9 @@ dropVar(Vr,[iTL(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStV(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
+  dropVar(Vr,In,Inx),
+  dropVar(Vr,Is,Isx).
+dropVar(Vr,[iValof(Sig,In)|Is],[iValof(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
   dropVar(Vr,Is,Isx).
 dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
@@ -100,6 +104,16 @@ peep([iLbl(Lb,iBlock(Tps,IB))|Is],Lbls, Ins) :-!,
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
    Ins=[iLbl(Lb,iBlock(Tps,IB0))|Is0];
+   concat(IB0,Is0,Is1),
+   peepCode(Is1,Lbls,Ins)).
+peep([iValof(Lvl,IB)|Is],Lbls, [iValof(Lvl,IBs)|Ins]) :-!,
+  peepCode(IB,Lbls,IBs),
+  peep(Is,Lbls, Ins).
+peep([iLbl(Lb,iValof(Lvl,IB))|Is],Lbls, Ins) :-!,
+  peepCode(IB,[(Lb,Is)|Lbls],IB0),
+  peep(Is,Lbls,Is0),
+  (lblReferenced(Lb,IB0) ->
+   Ins=[iLbl(Lb,iValof(Tps,IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
 peep([iLbl(Lb,iTry(Tp,IB))|Is],Lbls, Ins) :-!,
@@ -161,6 +175,8 @@ lblReferenced(Lb,[iFMod(Lb)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(_,I)|_]) :-
+  lblReferenced(Lb,I).
+lblReferenced(Lb,[iValof(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(Lb)|_]).
 lblReferenced(Lb,[iXCall(_,Lb)|_]).
