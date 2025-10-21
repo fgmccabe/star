@@ -29,6 +29,7 @@ typedef struct verify_context_ {
   int32 from;
   int32 limit;
   int32 exitDepth;
+  logical hasResult;
   verifyCtxPo propagated; // Where have we propagated to?
   varPo locals;
   int32 lclCount;
@@ -38,8 +39,13 @@ typedef struct verify_context_ {
 } VerifyContext;
 
 static retCode verifyError(verifyCtxPo ctx, char *msg, ...);
-static retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx,
-                           int32 currDepth, int32 exitDepth);
+static retCode verifyBlock(int32 from,
+                           int32 pc,
+                           int32 limit,
+                           verifyCtxPo parentCtx,
+                           int32 currDepth,
+                           int32 exitDepth,
+                           logical hasValue);
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (traceVerify > noTracing)
@@ -61,9 +67,10 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     .locals = locals,
     .lclCount = lclCnt,
     .propagated = Null,
+    .hasResult = True
   };
 
-  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, 0, 1);
+  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, 0, 1, True);
 }
 
 static void propagateVars(verifyCtxPo ctx, verifyCtxPo tgtCtx) {
@@ -97,7 +104,8 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, int32 currDepth, int32 exitDepth) {
+retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, int32 currDepth, int32 exitDepth, logical
+                    hasValue) {
   int32 stackDepth = currDepth;
   insPo code = parentCtx->mtd->instructions;
 
@@ -117,6 +125,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
     .limit = limit,
     .parent = parentCtx,
     .exitDepth = exitDepth,
+    .hasResult = hasValue,
     .locals = locals,
     .lclCount = lclCnt,
     .propagated = Null,
@@ -300,21 +309,35 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         return Ok; // No merge of locals here
       }
       case Block: {
-        int32 exitDepth = code[pc].fst;
+        int32 blockExitDepth = code[pc].fst;
         int32 blockLen = code[pc].alt;
         pc++;
 
-        if (stackDepth > exitDepth)
-          return verifyError(&ctx, ".%d: block exit depth %d may not be less than current depth: %d", pc - 1, exitDepth, stackDepth);
+        if (stackDepth != blockExitDepth)
+          return verifyError(&ctx, ".%d: block exit depth %d must be current depth: %d", pc - 1, blockExitDepth, stackDepth);
 
-        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, exitDepth) == Ok) {
-          stackDepth = exitDepth;
+        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, blockExitDepth, False) == Ok) {
+          stackDepth = blockExitDepth;
           pc += blockLen;
           continue;
         } else
           return Error;
       }
+      case Valof: {
+        int32 blockExitDepth = code[pc].fst;
+        int32 blockLen = code[pc].alt;
+        pc++;
 
+        if (stackDepth+1 != blockExitDepth)
+          return verifyError(&ctx, ".%d: block exit depth %d must be current depth+1: %d", pc - 1, blockExitDepth, stackDepth);
+
+        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, blockExitDepth, True) == Ok) {
+          stackDepth = blockExitDepth;
+          pc += blockLen;
+          continue;
+        } else
+          return Error;
+      }
       case Loop: {
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
