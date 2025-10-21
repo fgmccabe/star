@@ -187,12 +187,10 @@ retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count,
   return Ok;
 }
 
-void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, void *cl) {
-  jitCompPo jit = (jitCompPo) cl;
-
-  move(ctx, dst, src, jit->freeRegs);
+void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
+  move(ctx, dst, src, *freeRegs);
   if (src.mode == reg)
-    releaseReg(jit, src.reg);
+    *freeRegs = freeReg(*freeRegs, src.reg);
 }
 
 void spillStack(valueStackPo stack, jitCompPo jit) {
@@ -202,7 +200,7 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
   setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size,
               -(jit->lclCnt + stack->vTop));
 
-  shuffleVars(jit->assemCtx, newArgs, size, jit->freeRegs, spillVr, (void *) jit);
+  shuffleVars(jit->assemCtx, newArgs, size, &jit->freeRegs, spillVr);
 }
 
 // Put the top arity elements of the stack over caller
@@ -218,7 +216,7 @@ void frameOverride(jitBlockPo block, int arity) {
   if (traceJit >= detailedTracing) {
     outMsg(logFile, "override frame in: ");
     dumpStack(stack);
-    outMsg(logFile, "targetoffset = %d\n%_",tgtOff);
+    outMsg(logFile, "targetoffset = %d\n%_", tgtOff);
   }
 #endif
 
@@ -253,7 +251,7 @@ void frameOverride(jitBlockPo block, int arity) {
     }
   }
 
-  shuffleVars(ctx, newArgs, arity, jit->freeRegs, spillVr, (void *) jit);
+  shuffleVars(ctx, newArgs, arity, &jit->freeRegs, spillVr);
 
   if (tgtOff != 0) {
     int32 delta = tgtOff * pointerSize;
