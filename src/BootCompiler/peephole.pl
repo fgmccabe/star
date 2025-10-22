@@ -113,7 +113,7 @@ peep([iLbl(Lb,iValof(Lvl,IB))|Is],Lbls, Ins) :-!,
   peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
-   Ins=[iLbl(Lb,iValof(Tps,IB0))|Is0];
+   Ins=[iLbl(Lb,iValof(Lvl,IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
 peep([iLbl(Lb,iTry(Tp,IB))|Is],Lbls, Ins) :-!,

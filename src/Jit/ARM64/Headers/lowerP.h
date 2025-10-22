@@ -62,6 +62,7 @@ typedef struct jitBlock_ {
   jitCompPo jit;
   int32 startPc;
   int32 endPc;
+  int32 entryHeight;
   int32 exitHeight;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
@@ -83,7 +84,7 @@ retCode mkFltVal(jitCompPo jit, armReg rg);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 
-jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt);
+jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt, OpCode blockType);
 codeLblPo getABreakLbl(jitBlockPo block, int32 pc);
 codeLblPo breakLabel(jitBlockPo block);
 codeLblPo loopLabel(jitBlockPo block);
