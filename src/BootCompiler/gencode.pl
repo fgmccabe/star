@@ -679,8 +679,8 @@ compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   genLbl(L0,Ok,L1),
   compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
   verify(Stk=Stk0,"conditions should not increase stack"),
-  compExp(A,Lc,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iBreak(Ok)],Stk,Stka),
-  compExp(B,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iBreak(Ok)],Stk,Stkb),
+  compExp(A,Lc,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iResult(Ok)],Stk,Stka),
+  compExp(B,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iResult(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"conditional expression stack").
 compExp(seqD(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
@@ -714,7 +714,7 @@ compExp(resme(Lc,T,M,_Tp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(T,Lc,Brks,notLast,Opts,L1,Lx,D1,Dx,C1,C2,Stk1,_Stka),
   genDbg(Opts,Lc,C2,[iResume|C3]),
   genLastReturn(Last,Opts,Lc,C3,Cx,Stk1,Stkx).
-compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(NLvl,[iLbl(Fl,iBlock(Lvl,C1)),iLdC(enum(False)),iBreak(Ok)]))|Cx],Cx,Stk,Stkx) :-
+compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(NLvl,[iLbl(Fl,iBlock(Lvl,C1)),iLdC(enum(False)),iResult(Ok)]))|Cx],Cx,Stk,Stkx) :-
   isCond(Cond),!,
   isTrueSymb(True),
   isFalseSymb(False),
@@ -722,7 +722,7 @@ compExp(Cond,Lc,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(NLvl,[iLbl(Fl,iBlock(Lv
   stkLvl(Stk,Lvl),
   genLbl(L,Ok,L0),
   genLbl(L0,Fl,L1),
-  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,Lx,D,Dx,C1,[iLdC(enum(True)),iBreak(Ok)|C2],Stk,_Stka),
+  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,Lx,D,Dx,C1,[iLdC(enum(True)),iResult(Ok)|C2],Stk,_Stka),
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,Lc,C2,Cx,Stka,Stkx).
 compExp(T,Lc,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,C,C,Stk,Stk) :-

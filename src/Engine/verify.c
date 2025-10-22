@@ -92,11 +92,13 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 margin, lo
   }
 
   if (tgtCtx != Null) {
-    if (tgtCtx->exitDepth - tgtCtx->entryDepth != margin)
-      return verifyError(ctx, ".%d: block margin %d does not match expected margin %d", pc,
-                         tgtCtx->exitDepth - tgtCtx->entryDepth, margin);
-    else if (tgtCtx->hasResult != hasValue)
-      return verifyError(ctx, "%d: %sexpecting a value in target block", pc, (hasValue ? "" : "not "));
+    if (hasValue) {
+      if (!tgtCtx->hasResult)
+        return verifyError(tgtCtx, ".%d: exiting non-valof block with value", pc);
+    } else {
+      if (tgtCtx->hasResult)
+        return verifyError(tgtCtx, ".%d: exiting valof block without value", pc);
+    }
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
 
