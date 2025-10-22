@@ -201,7 +201,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (code[pc + 1].op != Frame)
           return verifyError(&ctx, ".%d: expecting a frame instruction after call", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
           return Error;
         pc++;
         continue;
@@ -243,7 +243,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (code[pc + 1].op != Frame)
           return verifyError(&ctx, ".%d: expecting a frame instruction after xocall", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
           return Error;
         pc++;
         continue;
@@ -288,7 +288,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
           stackDepth -= arity - 1;
           if (code[pc + 1].op != Frame)
             return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
-          if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, TODO) != Ok)
+          if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
             return Error;
 
           pc++;
@@ -350,7 +350,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         return Ok;
       }
@@ -358,7 +358,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         return Ok;
       }
@@ -368,7 +368,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
 
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
           return Error;
         return Ok;
       }
@@ -528,7 +528,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
 
         pc++;
@@ -574,7 +574,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -588,7 +588,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -602,7 +602,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -616,7 +616,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -632,7 +632,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -655,7 +655,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
         stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, TODO) != Ok)
+        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
           return Error;
         pc++;
         continue;
@@ -673,7 +673,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
           switch (caseIns->op) {
             case Break:
             case Loop:
-              if (checkBreak(&ctx, casePc, casePc + code[casePc].alt + 1, 0, TODO) != Ok)
+              if (checkBreak(&ctx, casePc, casePc + code[casePc].alt + 1, 0, False) != Ok)
                 return Error;
               continue;
             default:
