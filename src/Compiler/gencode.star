@@ -67,7 +67,7 @@ star.compiler.gencode{
     
     C0 = [.iEntry(size(varInfo(Ct2)))]++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
-	  [.iLbl(ExLbl,.iBlock(1,FC++EC++genDbg(Lc,[.iRet])))]++genDbg(Lc,[.iXRet]))),..AbrtCde];
+	  [.iLbl(ExLbl,.iValof(1,FC++EC++genDbg(Lc,[.iRet])))]++genDbg(Lc,[.iXRet]))),..AbrtCde];
     
     Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
 
@@ -234,9 +234,9 @@ star.compiler.gencode{
       (RC,_,Stk2) = compExp(R,Lc,Brks,Last,Ctx,Stk);
       Lvl = stkLvl(Stk);
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(Lvl+1,
-	      [.iLbl(Fl,.iBlock(Lvl,CC++LC++[.iBreak(Ok)]))]++
-	      RC++[.iBreak(Ok)]))],Ctx,reconcileStack(Stk1,Stk2))
+	[.iLbl(Ok,.iValof(Lvl+1,
+	      [.iLbl(Fl,.iBlock(Lvl,CC++LC++[.iResult(Ok)]))]++
+	      RC++[.iResult(Ok)]))],Ctx,reconcileStack(Stk1,Stk2))
     }
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       compCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
@@ -270,8 +270,8 @@ star.compiler.gencode{
       RLvl = stkLvl(Stk)+1;
 
       valis (chLine(OLc,Lc)++
-	[.iLbl(Ok,.iBlock(RLvl,
-	      [.iLbl(TrX,.iBlock(RLvl,BC++[.iResult(Ok)])),
+	[.iLbl(Ok,.iValof(RLvl,
+	      [.iLbl(TrX,.iValof(RLvl,BC++[.iResult(Ok)])),
 		.iStL(Er)]++HC++[.iResult(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
@@ -306,7 +306,7 @@ star.compiler.gencode{
 	Brks["$valof"->(((C,S)=>([.iResult(Vlbl)],C,Stkx)),Vlbl)],
 	Last,.noMore,Ctx,Stk);
       
-      valis (chLine(OLc,Lc)++[.iLbl(Vlbl,.iBlock(stkLvl(Stkx),AC))],Ctx,Stkx)
+      valis (chLine(OLc,Lc)++[.iLbl(Vlbl,.iValof(stkLvl(Stkx),AC))],Ctx,Stkx)
     }
     |  C where isCond(C) => valof{
       Ok = defineLbl(Ctx,"Ok");
@@ -314,10 +314,10 @@ star.compiler.gencode{
       Stk0 = pshStack(boolType,Stk);
       (CC,_Ctx1) = compCond(C,OLc,Fl,Brks,Ctx,Stk);
       Lvl = stkLvl(Stk);
-      valis ([.iLbl(Ok,.iBlock(Lvl+1,
+      valis ([.iLbl(Ok,.iValof(Lvl+1,
 	      [.iLbl(Fl,.iBlock(Lvl,
-		    CC++[.iLdC(trueEnum),.iBreak(Ok)])),
-		.iLdC(falseEnum),.iBreak(Ok)]))],Ctx,Stk0)
+		    CC++[.iLdC(trueEnum),.iResult(Ok)])),
+		.iLdC(falseEnum),.iResult(Ok)]))],Ctx,Stk0)
     }
     | C => valof{
       reportError("cannot compile expression $(C)",locOf(C));
@@ -607,7 +607,7 @@ star.compiler.gencode{
       Stkx = pshStack(ETp,Stk);
       Ctx1 = defineLclVar(Er,ETp,Ctx);
 
-      TBrks = Brks["$try" -> (((C,S)=>([.iBreak(TrX)],C,.none)),TrX)];
+      TBrks = Brks["$try" -> (((C,S)=>([.iResult(TrX)],C,.none)),TrX)];
 
       (BC,_,Stka) = compAction(B,Lc,TBrks,.notLast,.notLast,Ctx1,Stk);
       (HC,_,Stkb) = compAction(H,Lc,Brks,Last,.notLast,Ctx,Stk);
@@ -619,7 +619,7 @@ star.compiler.gencode{
 
       valis (chLine(OLc,Lc)++
 	[.iLbl(Ok,.iBlock(RLvl,
-	      [.iLbl(TrX,.iBlock(RLvl+1,BC++[.iBreak(Ok)])),
+	      [.iLbl(TrX,.iValof(RLvl+1,BC++[.iBreak(Ok)])),
 		.iStL(Er)]++HC++[.iBreak(Ok)]))],
 	Ctx,reconcileStack(Stka,Stkb))
     }
