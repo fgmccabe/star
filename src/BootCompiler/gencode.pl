@@ -273,12 +273,12 @@ compAction(case(Lc,T,Cases,Deflt),OLc,Brks,Last,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk
 compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   stkLvl(Stk,Lvl),
-  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx),
+  compUnpack(T,Lc,gencode:wrapAction(Lvl),Cases,Deflt,gencode:compAct(notLast),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx),
   verify(gencode:consistentStack(Stk,Stkx),"case action not permitted to leave stuff on stack").
 compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   stkNxtLvl(Stk,Lvl),
-  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+  compUnpack(T,Lc,gencode:wrapExpr(Lvl),Cases,Deflt,gencode:compAct(last),Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compAction(whle(Lc,G,B),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   stkLvl(Stk,Lvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock(Lvl,[iLbl(Lp,iBlock(Lvl,LC))]))|Cx]),!,
@@ -654,7 +654,7 @@ compExp(case(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compExp(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   stkNxtLvl(Stk,Lvl),
-  compUnpack(T,Lc,Lvl,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
+  compUnpack(T,Lc,gencode:wrapExpr(Lvl),Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
 compExp(tryX(Lc,B,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compTryX(Lc,B,ptrTipe,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,

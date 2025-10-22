@@ -81,7 +81,7 @@ retCode mkFltVal(jitCompPo jit, mcRegister rg);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 
-jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt);
+jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt, OpCode blockType);
 codeLblPo getABreakLbl(jitBlockPo block, int32 pc);
 codeLblPo breakLabel(jitBlockPo block);
 codeLblPo loopLabel(jitBlockPo block);

@@ -12,7 +12,7 @@
 #include "engineP.h"
 
 retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
+  jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(block->jit);
@@ -25,7 +25,7 @@ retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt) {
 }
 
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
-  jitBlockPo tgtBlock = breakBlock(block, code, tgt);
+  jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
   codeLblPo lbl = breakLabel(tgtBlock);
   jitCompPo jit = block->jit;
 
@@ -46,18 +46,18 @@ retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock) {
 
 codeLblPo getABreakLbl(jitBlockPo block, const int32 pc) {
   jitBlockPo tgtBlock = block;
-  while (tgtBlock!=Null && tgtBlock->endPc < pc)
+  while (tgtBlock != Null && tgtBlock->endPc < pc)
     tgtBlock = tgtBlock->parent;
-  if (tgtBlock!=Null)
+  if (tgtBlock != Null)
     return tgtBlock->breakLbl;
   else
     return Null;
 }
 
-jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt) {
+jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt, OpCode blockType) {
   while (block != Null) {
     if (block->startPc == tgt) {
-      assert(code[block->startPc].op == Block);
+      assert(code[block->startPc].op == blockType);
       return block;
     }
     block = block->parent;
