@@ -17,7 +17,7 @@ static int32 stackCount(stkPo stack) {
 static argSpecPo stackPeek(stkPo stack, int32 ix) {
   if (ix >= stack->top)
     return Null;
-  return stack->stack[stack->top - ix - 1];
+  return stack->stack[ix];
 }
 
 static argSpecPo stackPop(stkPo stack) {
@@ -80,11 +80,11 @@ static int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack,
 
 static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack, int32 *groups, int32 low) {
   // Is this reference already in the stack?
-  for (int32 ix = 0; ix < stackCount(stack); ix++) {
-    argSpecPo stkRef = stackPeek(stack, ix);
+  for (int32 ix = stackCount(stack); ix > 0; ix--) {
+    argSpecPo stkRef = stackPeek(stack, ix - 1);
 
     if (affects(ref->dst, stkRef->src))
-      low = min(low, ix);
+      return min(low, ix);
   }
   // look in definitions
 
@@ -110,9 +110,17 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   stackPush(def, stack);
   def->mark = False;
 
+  // Is this reference already in the stack?
+  for (int32 ix = stackCount(stack); ix > 0; ix--) {
+    argSpecPo stkRef = stackPeek(stack, ix - 1);
+
+    if (affects(def->dst, stkRef->src))
+      return ix;
+  }
+
   argSpecPo ref = findRef(def, defs, arity);
 
-  int32 low = (ref != Null && ref != def ? analyseRef(ref, defs, arity, stack, groups, pt) : pt);
+  int32 low = (ref != Null ? min(analyseDef(ref, defs, arity, stack, groups),pt) : pt);
 
   if (low < stackCount(stack)) {
     int32 group = (*groups)++;
@@ -195,16 +203,37 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *
   }
 }
 
+static logical marked(argSpecPo args, int32 arity, logical mark) {
+  for (int32 ix = 0; ix < arity; ix++) {
+    if (args[ix].mark != mark)
+      return False;
+  }
+  return True;
+}
+
+static logical isClobbered(argSpecPo args, int32 arity, argSpecPo ref) {
+  for (int32 ix = 0; ix < arity; ix++) {
+    if (args[ix].mark && clobbers(&args[ix], ref))
+      return True;
+  }
+  return False;
+}
+
 void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeRegs, moveFunc mover) {
   int32 groups = sortArgSpecs(args, arity);
 
-  for (int32 gx = groups; gx > 0; gx--) {
-    int32 grpSize = groupSize(args, arity, gx-1);
+  assert(marked(args,arity,False));
+
+  for (int32 gx = groups; gx < 0; gx--) {
+    int32 grpSize = groupSize(args, arity, gx - 1);
     argSpecPo group[grpSize];
 
-    collectGroup(args, arity, gx-1, group);
+    collectGroup(args, arity, gx - 1, group);
 
     if (grpSize == 1) {
+      assert(!group[0]->mark);
+      assert(!isClobbered(args,arity,group[0]));
+      group[0]->mark = True;
       FlexOp dst = group[0]->dst;
 
       if (!sameFlexOp(dst, group[0]->src)) {
@@ -221,6 +250,9 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       mover(ctx,RG(tmp), dst, freeRegs);
       for (int32 ix = 0; ix < grpSize - 1; ix++) {
         mover(ctx, group[ix]->dst, group[ix + 1]->dst, freeRegs);
+        assert(!group[ix]->mark);
+        assert(!isClobbered(args,arity,group[ix]));
+        group[ix]->mark = True;
       }
 
       mover(ctx, group[grpSize - 1]->dst,RG(tmp), freeRegs);
@@ -228,4 +260,5 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
       *freeRegs = addReg(*freeRegs, tmp);
     }
   }
+  assert(marked(args,arity,True));
 }
