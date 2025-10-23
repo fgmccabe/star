@@ -34,9 +34,12 @@ test.tsort{
   a2 = [.df("1",["2"]),.df("2",["4"]),.df("3",["1"]),.df("4",["3"])].
 
   -- group with a tail
-
   a3:cons[df[string,string]].
   a3 = [.df("alpha",["beta"]),.df("beta",["gamma"]),.df("gamma",["alpha"]),.df("delta",["gamma"])].
+
+  -- test from compiler
+  a4:cons[df[string,string]].
+  a4 = [.df("-8",["0"]),.df("0",["16"]),.df("8",["-24"]),.df("16",["-16"]),df("24",["-8"])].
 
   main:()=>().
   main() => valof{
@@ -51,6 +54,10 @@ test.tsort{
     show topsort(a3);
 
     assert size(topsort(a3)) == 2;
+
+    show topsort(a4);
+    assert size(topsort(a4)) == 5;
+
     valis ()
   }
 }
