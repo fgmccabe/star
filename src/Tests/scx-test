@@ -1,2 +1,2 @@
 #!/bin/bash
-star star.compiler -R test-repo/ $1 && star -r test-repo/ $1
+../../cmake-build-release/src/Engine/star -r ../../cmake-build-debug/.temp-repo/ star.compiler -R test-repo/ $1 && ../../cmake-build-debug/src/Engine/star -r ./test-repo/ $1
