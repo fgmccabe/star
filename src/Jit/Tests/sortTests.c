@@ -81,8 +81,6 @@ static retCode test_double_grp() {
   int32 count = NumberOf(specs);
   int32 groups = sortSpecs(specs, count);
 
-  showGroups(specs, groups, count);
-
   tryRet(checkResult(groups==2,"expecting 2 groups"));
   checkResult(groupSize(specs, count, 0) == 2, "first group should have two elements");
 
