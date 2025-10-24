@@ -8,8 +8,9 @@ if (NOT DEFINED JIT_ARCH)
 endif ()
 
 add_subdirectory(${JIT_ARCH})
+add_subdirectory(Tests)
 
-include_directories("Headers"
+include_directories("./Headers"
         "../Headers"
         "../Util/Headers"
         "../Escapes/Headers"
@@ -27,7 +28,7 @@ set(HEADER_FILES
         ${JIT_ARCH}/Headers/lower.h
         )
 
-set(JIT_SOURCE_FILES jit.c jitInfra.c shuffle.c)
+set(JIT_SOURCE_FILES jit.c jitInfra.c regsort.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
 target_link_libraries(jit ${JIT_ARCH})

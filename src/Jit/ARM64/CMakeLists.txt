@@ -32,7 +32,9 @@ set(SOURCE_FILES
         lower.c
         lowerStack.c
         lowerFrame.c
-        lowerFFI.c)
+        lowerFFI.c
+        shuffle.c
+        Headers/shuffle.h)
 
 add_library(ARM64 STATIC ${SOURCE_FILES})
 target_link_libraries(ARM64 assem)

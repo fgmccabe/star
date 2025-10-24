@@ -8,96 +8,114 @@
 #include "constants.h"
 #include "jitP.h"
 #include "lowerP.h"
-#include "shuffle.h"
+#include "sort.h"
 #include "stackP.h"
+#include "shuffle.h"
 
 // We need these registers preserved at all costs
 
 registerMap criticalRegs() { return 1u << CO | 1u << PR; }
 
-localVarPo stackSlot(valueStackPo stack, int32 slot) {
+localVarPo stackSlot(valueStackPo stack, int32 slot)
+{
   return &stack->locals[stack->stackPnt - stack->vTop + slot];
 }
 
-localVarPo localSlot(valueStackPo stack, int32 slot) {
+localVarPo localSlot(valueStackPo stack, int32 slot)
+{
   return &stack->locals[stack->argPnt - slot];
 }
 
-localVarPo argSlot(valueStackPo stack, int32 slot) {
+localVarPo argSlot(valueStackPo stack, int32 slot)
+{
   return &stack->locals[stack->argPnt + slot];
 }
 
-int32 trueStackDepth(valueStackPo stack) {
+int32 trueStackDepth(valueStackPo stack)
+{
   return stack->argPnt - stack->stackPnt + stack->vTop;
 }
 
-armReg popValue(valueStackPo stack, jitCompPo jit) {
+armReg popValue(valueStackPo stack, jitCompPo jit)
+{
   check(stack->vTop > 0, "Insufficient stack depth for pop stack");
   localVarPo var = stackSlot(stack, 0);
-  switch (var->kind) {
-    case isLocal: {
+  switch (var->kind){
+  case isLocal:
+    {
       armReg tmp = findFreeReg(jit);
       loadLocal(jit, tmp, var->stkOff);
       stack->vTop--;
       return tmp;
     }
-    case inStack: {
+  case inStack:
+    {
       armReg tmp = findFreeReg(jit);
       loadLocal(jit, tmp, var->stkOff);
       stack->vTop--;
       return tmp;
     }
-    case inRegister: {
+  case inRegister:
+    {
       armReg tmp = var->Rg;
       stack->vTop--;
       return tmp;
     }
-    default: {
+  default:
+    {
       bailOut(jit, errorCode);
       return XZR;
     }
   }
 }
 
-armReg topValue(valueStackPo stack, jitCompPo jit) {
+armReg topValue(valueStackPo stack, jitCompPo jit)
+{
   return stackValue(stack, jit, 0);
 }
 
-armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth) {
+armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth)
+{
   assemCtxPo ctx = assemCtx(jit);
   check(stack->vTop > depth, "Insufficient stack depth for pop stack");
   localVarPo var = stackSlot(stack, depth);
-  switch (var->kind) {
-    case isLocal:
-    case inStack: {
+  switch (var->kind){
+  case isLocal:
+  case inStack:
+    {
       armReg tmp = findFreeReg(jit);
       loadLocal(jit, tmp, var->stkOff);
       return tmp;
     }
-    case inRegister: {
+  case inRegister:
+    {
       armReg tmp = findFreeReg(jit);
       armReg rst = var->Rg;
       mov(tmp, RG(rst));
       return tmp;
     }
-    default: {
+  default:
+    {
       bailOut(jit, errorCode);
       return XZR;
     }
   }
 }
 
-void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry) {
+void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry)
+{
   *localSlot(stack, lclNo) = entry;
 }
 
-void pushValue(valueStackPo stack, LocalEntry entry) {
+void pushValue(valueStackPo stack, LocalEntry entry)
+{
   stack->vTop++;
   localVarPo var = stackSlot(stack, 0);
   *var = entry;
 }
 
-localVarPo pushBlank(valueStackPo stack) {
+localVarPo pushBlank(valueStackPo stack)
+{
   stack->vTop++;
   localVarPo var = stackSlot(stack, 0);
   *var =
@@ -105,7 +123,8 @@ localVarPo pushBlank(valueStackPo stack) {
   return var;
 }
 
-void pushRegister(valueStackPo stack, armReg rg) {
+void pushRegister(valueStackPo stack, armReg rg)
+{
   pushValue(stack,
             (LocalEntry){
               .kind = inRegister, .Rg = rg, .stkOff =
@@ -114,13 +133,15 @@ void pushRegister(valueStackPo stack, armReg rg) {
             });
 }
 
-void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) {
+void forcePush(jitCompPo jit, valueStackPo stack, armReg rg)
+{
   localVarPo tgt = pushBlank(stack);
   storeLocal(jit, rg, tgt->stkOff);
   releaseReg(jit, rg);
 }
 
-void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
+void pushConstant(jitCompPo jit, valueStackPo stack, int32 key)
+{
   if (!haveFreeReg(jit))
     spillStack(stack, jit);
   armReg conRg = findFreeReg(jit);
@@ -128,37 +149,43 @@ void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
   forcePush(jit, stack, conRg);
 }
 
-void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
+void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth)
+{
   while (stack->vTop > depth)
     dropValue(stack, jit);
 }
 
-void dropValue(valueStackPo stack, jitCompPo jit) {
+void dropValue(valueStackPo stack, jitCompPo jit)
+{
   localVarPo var = stackSlot(stack, 0);
-  switch (var->kind) {
-    case inRegister: {
+  switch (var->kind){
+  case inRegister:
+    {
       releaseReg(jit, var->Rg);
       break;
     }
-    default: ;
+  default: ;
   }
   stack->vTop--;
 }
 
-void dropValues(valueStackPo stack, jitCompPo jit, int32 count) {
-  for (int32 i = 0; i < count; i++) {
+void dropValues(valueStackPo stack, jitCompPo jit, int32 count)
+{
+  for (int32 i = 0; i < count; i++){
     dropValue(stack, jit);
   }
 }
 
 int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity,
-                  int32 tgtOff) {
+                  int32 tgtOff)
+{
   int32 count = 0;
-  for (int32 ix = 0; ix < arity; ix++) {
+  for (int32 ix = 0; ix < arity; ix++){
     localVarPo var = &stack[ix];
 
-    switch (var->kind) {
-      case inRegister: {
+    switch (var->kind){
+    case inRegister:
+      {
         newArgs[count++] = (ArgSpec){
           .src = RG(var->Rg),
           .dst = OF(AG, tgtOff * pointerSize),
@@ -167,9 +194,10 @@ int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity,
         };
         break;
       }
-      case isLocal:
-      case inStack: {
-        if (var->stkOff != tgtOff) {
+    case isLocal:
+    case inStack:
+      {
+        if (var->stkOff != tgtOff){
           newArgs[count++] = (ArgSpec){
             .src = OF(AG, var->stkOff * pointerSize),
             .dst = OF(AG, tgtOff * pointerSize),
@@ -179,7 +207,8 @@ int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity,
         }
         break;
       }
-      default: {
+    default:
+      {
         continue;
       }
     }
@@ -190,17 +219,19 @@ int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity,
   return count;
 }
 
-void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
+void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs)
+{
   move(ctx, dst, src, *freeRegs);
   if (src.mode == reg)
     *freeRegs = freeReg(*freeRegs, src.reg);
 }
 
-void spillStack(valueStackPo stack, jitCompPo jit) {
+void spillStack(valueStackPo stack, jitCompPo jit)
+{
   int32 size = stack->vTop + jit->arity + jit->lclCnt;
 
 #ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
+  if (traceJit >= detailedTracing){
     outMsg(logFile, "spill stack: ");
     dumpStack(stack);
   }
@@ -213,7 +244,7 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
   shuffleVars(jit->assemCtx, newArgs, count, &jit->freeRegs, spillVr);
 
 #ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
+  if (traceJit >= detailedTracing){
     outMsg(logFile, "new state of stack: ");
     dumpStack(stack);
   }
@@ -221,7 +252,8 @@ void spillStack(valueStackPo stack, jitCompPo jit) {
 }
 
 // Put the top arity elements of the stack over caller
-void frameOverride(jitBlockPo block, int arity) {
+void frameOverride(jitBlockPo block, int arity)
+{
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   valueStackPo stack = &block->stack;
@@ -229,7 +261,7 @@ void frameOverride(jitBlockPo block, int arity) {
   int32 tgtOff = argCount(jit->mtd);
 
 #ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
+  if (traceJit >= detailedTracing){
     outMsg(logFile, "override frame in: ");
     dumpStack(stack);
     outMsg(logFile, "targetoffset = %d\n%_", tgtOff);
@@ -237,10 +269,11 @@ void frameOverride(jitBlockPo block, int arity) {
 #endif
 
   ArgSpec newArgs[arity];
-  for (int32 ax = arity - 1; ax >= 0; ax--) {
+  for (int32 ax = arity - 1; ax >= 0; ax--){
     localVarPo var = stackSlot(stack, ax);
-    switch (var->kind) {
-      case inRegister: {
+    switch (var->kind){
+    case inRegister:
+      {
         tgtOff--;
         newArgs[ax] = (ArgSpec){
           .src = RG(var->Rg),
@@ -250,8 +283,9 @@ void frameOverride(jitBlockPo block, int arity) {
         };
         continue;
       }
-      case isLocal:
-      case inStack: {
+    case isLocal:
+    case inStack:
+      {
         tgtOff--;
         newArgs[ax] = (ArgSpec){
           .src = OF(AG, var->stkOff * pointerSize),
@@ -261,7 +295,8 @@ void frameOverride(jitBlockPo block, int arity) {
         };
         continue;
       }
-      default: {
+    default:
+      {
         bailOut(jit, 47);
       }
     }
@@ -269,22 +304,23 @@ void frameOverride(jitBlockPo block, int arity) {
 
   shuffleVars(ctx, newArgs, arity, &jit->freeRegs, spillVr);
 
-  if (tgtOff != 0) {
+  if (tgtOff != 0){
     int32 delta = tgtOff * pointerSize;
-    if (delta > 0) {
+    if (delta > 0){
       if (is12bit(delta))
         add(AG, AG, IM(delta));
-      else {
+      else{
         armReg tmp = findFreeReg(jit);
         mov(tmp, IM(delta));
         add(AG, AG, RG(tmp));
         releaseReg(jit, tmp);
       }
-    } else {
+    }
+    else{
       delta = -delta;
       if (is12bit(delta))
         sub(AG, AG, IM(delta));
-      else {
+      else{
         armReg tmp = findFreeReg(jit);
         mov(tmp, IM(delta));
         sub(AG, AG, RG(tmp));
@@ -294,40 +330,46 @@ void frameOverride(jitBlockPo block, int arity) {
   }
 
   // Release any tied up registers
-  for (int32 i = 0; i < stack->vTop - arity; i++) {
+  for (int32 i = 0; i < stack->vTop - arity; i++){
     localVarPo var = stackSlot(stack, i);
-    switch (var->kind) {
-      case inRegister: {
+    switch (var->kind){
+    case inRegister:
+      {
         releaseReg(jit, var->Rg);
         break;
       }
-      default:
-        break;
+    default:
+      break;
     }
   }
 }
 
-void loadStack(jitCompPo jit, armReg tgt, int32 depth) {
+void loadStack(jitCompPo jit, armReg tgt, int32 depth)
+{
   loadLocal(jit, tgt, -(lclCount(jit->mtd) + depth));
 }
 
-void storeStack(jitCompPo jit, armReg src, int32 depth) {
+void storeStack(jitCompPo jit, armReg src, int32 depth)
+{
   storeLocal(jit, src, -(lclCount(jit->mtd) + depth));
 }
 
-void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
+void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo)
+{
   check(lclNo >= jit->minOffset && lclNo < jit->maxOffset,
         "Accessing out of bounds locals");
   loadOffset(jit, tgt, AG, lclNo);
 }
 
-void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
+void storeLocal(jitCompPo jit, armReg src, int32 lclNo)
+{
   check(lclNo >= jit->minOffset && lclNo < jit->maxOffset,
         "Accessing out of bounds locals");
   storeOffset(jit, src, AG, lclNo);
 }
 
-void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
+void loadConstant(jitCompPo jit, int32 key, armReg tgt)
+{
   assemCtxPo ctx = assemCtx(jit);
   termPo lit = getConstant(key);
 
@@ -337,23 +379,25 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
     loadOffset(jit, tgt, CO, key);
 }
 
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
+void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix)
+{
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = ix * pointerSize;
   if (is9bit(offset))
     ldur(tgt, base, offset);
-  else {
+  else{
     mov(tgt, IM(ix));
     ldr(tgt, EX2(base, tgt, U_XTX, 3));
   }
 }
 
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo) {
+void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo)
+{
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = lclNo * pointerSize;
   if (is9bit(offset))
     stur(src, base, offset);
-  else {
+  else{
     armReg tmp = findFreeReg(jit);
     mov(tmp, IM(lclNo));
     str(src, EX2(base, tmp, U_XTX, 3));
@@ -361,14 +405,15 @@ void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo) {
   }
 }
 
-retCode stackCheck(jitCompPo jit, methodPo mtd) {
+retCode stackCheck(jitCompPo jit, methodPo mtd)
+{
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
-  int32 delta = (stackDelta(mtd) + (int32) FrameCellCount) * pointerSize;
+  int32 delta = (stackDelta(mtd) + (int32)FrameCellCount) * pointerSize;
 
   if (is16bit(delta))
     sub(X16, AG, IM(delta));
-  else {
+  else{
     mov(X16, IM(delta));
     sub(X16, AG, RG(X16));
   }
@@ -382,7 +427,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
 
   stashRegisters(jit, 0);
   retCode ret =
-    callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4,
+    callIntrinsic(ctx, criticalRegs(), (runtimeFn)handleStackOverflow, 4,
                   RG(PR), IM(True), IM(delta), IM(mtdArity(mtd)));
   unstash(jit);
 
@@ -390,23 +435,25 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   return ret;
 }
 
-retCode showStackSlot(ioPo out, void *data, long depth, long precision, logical alt) {
-  localVarPo var = (localVarPo) data;
+retCode showStackSlot(ioPo out, void* data, long depth, long precision, logical alt)
+{
+  localVarPo var = (localVarPo)data;
 
-  switch (var->kind) {
-    case inRegister:
-      return outMsg(out, "X%d", var->Rg);
-    case inStack:
-      return outMsg(out, "%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
-    case isLocal:
-      return outMsg(out, "%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["),
-                    var->stkOff);
-    default:
-      return outMsg(out, "unknown type of slot");
+  switch (var->kind){
+  case inRegister:
+    return outMsg(out, "X%d", var->Rg);
+  case inStack:
+    return outMsg(out, "%s sx[%d]", (var->inited ? "" : "not inited "), var->stkOff);
+  case isLocal:
+    return outMsg(out, "%s%s%d]", (var->inited ? "" : "not inited "), (var->stkOff >= 0 ? "ax[" : "lx["),
+                  var->stkOff);
+  default:
+    return outMsg(out, "unknown type of slot");
   }
 }
 
-void dumpStack(valueStackPo stack) {
+void dumpStack(valueStackPo stack)
+{
   int32 arity = stack->lclCount - stack->argPnt;
   int32 lclCnt = stack->argPnt - stack->stackPnt;
   int32 top = stack->vTop;
@@ -415,24 +462,24 @@ void dumpStack(valueStackPo stack) {
 
   check(top + arity + lclCnt <= stack->lclCount, "inconsistent stack state");
 
-  char *sep = "";
-  if (arity > 0) {
-    for (int ax = 0; ax < arity; ax++) {
+  char* sep = "";
+  if (arity > 0){
+    for (int ax = 0; ax < arity; ax++){
       localVarPo var = argSlot(stack, ax);
       outMsg(logFile, "%sa[%d]=%X", sep, ax, var);
       sep = ", ";
     }
     sep = "\n";
   }
-  if (lclCnt > 0) {
-    for (int32 lx = 1; lx <= lclCnt; lx++) {
+  if (lclCnt > 0){
+    for (int32 lx = 1; lx <= lclCnt; lx++){
       localVarPo var = localSlot(stack, lx);
       outMsg(logFile, "%sl[%d]=%X", sep, lx, var);
       sep = ", ";
     }
     sep = "\n";
   }
-  for (int32 sx = 0; sx < top; sx++) {
+  for (int32 sx = 0; sx < top; sx++){
     localVarPo var = stackSlot(stack, sx);
     outMsg(logFile, "%ss[%d]=%X", sep, sx, var);
     sep = ", ";
@@ -444,65 +491,76 @@ void dumpStack(valueStackPo stack) {
 #define combineKind(S, K) ((S) << 3 | (K))
 
 // Not all combinations of propagation can be reliably supported.
-static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32 lclOff) {
+static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32 lclOff)
+{
   assemCtxPo ctx = assemCtx(jit);
 
-  switch (combineKind(src->kind, dst->kind)) {
-    case combineKind(inStack, isLocal):
-    case combineKind(isLocal, isLocal): {
-      if (!dst->inited) {
+  switch (combineKind(src->kind, dst->kind)){
+  case combineKind(inStack, isLocal):
+  case combineKind(isLocal, isLocal):
+    {
+      if (!dst->inited){
         *dst = *src;
-      } else if (src->stkOff != dst->stkOff)
+      }
+      else if (src->stkOff != dst->stkOff)
         return jitError(jit, "cannot propagate from %X to %X", src, dst);
       return Ok;
     }
-    case combineKind(inStack, inStack):
-    case combineKind(isLocal, inStack): {
-      if (!dst->inited) {
+  case combineKind(inStack, inStack):
+  case combineKind(isLocal, inStack):
+    {
+      if (!dst->inited){
         check(src->inited, "attempted to propagate non-initialized var");
         *dst = *src;
-      } else if (src->stkOff != dst->stkOff)
+      }
+      else if (src->stkOff != dst->stkOff)
         return jitError(jit, "cannot propagate from %X to %X", src, dst);
       return Ok;
     }
-    case combineKind(inRegister, isLocal):
-    case combineKind(inRegister, inStack): {
-      if (!dst->inited) {
+  case combineKind(inRegister, isLocal):
+  case combineKind(inRegister, inStack):
+    {
+      if (!dst->inited){
         check(src->inited, "attempted to propagate non-initialized var");
         *dst = (LocalEntry){.kind = inRegister, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
-      } else {
+      }
+      else{
         storeLocal(jit, src->Rg, lclOff);
         releaseReg(jit, src->Rg);
         *src = (LocalEntry){.kind = dst->kind, .stkOff = lclOff, .inited = True}; // back propagate for sanity
       }
       return Ok;
     }
-    case combineKind(inRegister, inRegister): {
-      if (src->Rg != dst->Rg) {
+  case combineKind(inRegister, inRegister):
+    {
+      if (src->Rg != dst->Rg){
         mov(dst->Rg, RG(src->Rg));
         releaseReg(jit, src->Rg);
         *src = *dst; // back propagate
       }
       return Ok;
     }
-    case combineKind(inStack, inRegister):
-    case combineKind(isLocal, inRegister): {
+  case combineKind(inStack, inRegister):
+  case combineKind(isLocal, inRegister):
+    {
       loadLocal(jit, dst->Rg, src->stkOff);
       *src = *dst; // back propagate
       return Ok;
     }
-    default: {
+  default:
+    {
       return jitError(jit, "unknown combination for propagating variables");
     }
   }
 }
 
 retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
-                       valueStackPo tgtStack, int32 tgtHeight) {
+                       valueStackPo tgtStack, int32 tgtHeight)
+{
   retCode ret = Ok;
 
 #ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
+  if (traceJit >= detailedTracing){
     outMsg(logFile, "propagate Stack from: ");
     dumpStack(srcStack);
     outMsg(logFile, "to: ");
@@ -511,14 +569,14 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
 #endif
 
   // Should be a nop at the moment.
-  for (int32 ax = 0; ret == Ok && ax < mtdArity(jit->mtd); ax++) {
+  for (int32 ax = 0; ret == Ok && ax < mtdArity(jit->mtd); ax++){
     localVarPo src = argSlot(srcStack, ax);
     localVarPo dst = argSlot(tgtStack, ax);
     ret = propagateVar(jit, src, dst, ax);
   }
 
   int32 noLcls = srcStack->argPnt - srcStack->stackPnt;
-  for (int32 v = 1; ret == Ok && v <= noLcls; v++) {
+  for (int32 v = 1; ret == Ok && v <= noLcls; v++){
     localVarPo src = localSlot(srcStack, v);
     localVarPo dst = localSlot(tgtStack, v);
     ret = propagateVar(jit, src, dst, -v);
@@ -526,24 +584,26 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
 
   int32 stackDiff = srcStack->vTop - tgtStack->vTop;
 
-  if (stackDiff >= 0) {
-    for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--) {
+  if (stackDiff >= 0){
+    for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--){
       localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
       localVarPo dst = stackSlot(tgtStack, v - 1);
       ret = propagateVar(jit, src, dst, -(noLcls + v));
     }
   }
 
-  for (int32 v = tgtHeight; v > tgtStack->vTop; v--) {
+  for (int32 v = tgtHeight; v > tgtStack->vTop; v--){
     localVarPo src = stackSlot(srcStack, v - tgtHeight);
-    switch (src->kind) {
-      case inRegister:
-      case isLocal: {
+    switch (src->kind){
+    case inRegister:
+    case isLocal:
+      {
         pushValue(tgtStack, *src);
         continue;
       }
-      case inStack: {
-        if (src->stkOff != -(trueStackDepth(tgtStack) + 1)) {
+    case inStack:
+      {
+        if (src->stkOff != -(trueStackDepth(tgtStack) + 1)){
           armReg tmp = findFreeReg(jit);
           loadLocal(jit, tmp, src->stkOff);
           storeStack(jit, tmp, tgtStack->vTop + 1);
@@ -558,7 +618,7 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
   setStackDepth(tgtStack, jit, tgtHeight);
 
 #ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
+  if (traceJit >= detailedTracing){
     dumpStack(tgtStack);
   }
 #endif
