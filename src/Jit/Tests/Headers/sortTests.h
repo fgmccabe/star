@@ -5,11 +5,14 @@
 #ifndef STAR_SHUFFLETESTS_H
 #define STAR_SHUFFLETESTS_H
 
+#include "ooio.h"
 #include "macros.h"
 #include "sort.h"
 
 void showGroups(ArgSpec defs[], int32 groups, int32 arity);
 void showDefs(ArgSpec defs[], int32 arity);
 void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo* group);
+
+retCode showFlexOp(ioPo f, void *data, long depth, long precision, logical alt);
 
 #endif //STAR_SHUFFLETESTS_H
