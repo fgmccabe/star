@@ -151,14 +151,15 @@ void dropValues(valueStackPo stack, jitCompPo jit, int32 count) {
   }
 }
 
-retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count,
-                    int32 tgtOff) {
-  for (int32 ix = 0; ix < count; ix++) {
+int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity,
+                  int32 tgtOff) {
+  int32 count = 0;
+  for (int32 ix = 0; ix < arity; ix++) {
     localVarPo var = &stack[ix];
 
     switch (var->kind) {
       case inRegister: {
-        newArgs[ix] = (ArgSpec){
+        newArgs[count++] = (ArgSpec){
           .src = RG(var->Rg),
           .dst = OF(AG, tgtOff * pointerSize),
           .mark = True,
@@ -168,23 +169,25 @@ retCode setupLocals(localVarPo stack, argSpecPo newArgs, int32 count,
       }
       case isLocal:
       case inStack: {
-        newArgs[ix] = (ArgSpec){
-          .src = OF(AG, var->stkOff * pointerSize),
-          .dst = OF(AG, tgtOff * pointerSize),
-          .mark = True,
-          .group = -1
-        };
+        if (var->stkOff != tgtOff) {
+          newArgs[count++] = (ArgSpec){
+            .src = OF(AG, var->stkOff * pointerSize),
+            .dst = OF(AG, tgtOff * pointerSize),
+            .mark = True,
+            .group = -1
+          };
+        }
         break;
       }
       default: {
-        return Error;
+        continue;
       }
     }
     var->kind = inStack;
     var->stkOff = tgtOff;
     tgtOff++;
   }
-  return Ok;
+  return count;
 }
 
 void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
@@ -196,15 +199,28 @@ void spillVr(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
 void spillStack(valueStackPo stack, jitCompPo jit) {
   int32 size = stack->vTop + jit->arity + jit->lclCnt;
 
-  ArgSpec newArgs[size];
-  setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size,
-              -(jit->lclCnt + stack->vTop));
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    outMsg(logFile, "spill stack: ");
+    dumpStack(stack);
+  }
+#endif
 
-  shuffleVars(jit->assemCtx, newArgs, size, &jit->freeRegs, spillVr);
+  ArgSpec newArgs[size];
+  int32 count = setupLocals(&stack->locals[stack->stackPnt - stack->vTop], &newArgs[0], size,
+                            -(jit->lclCnt + stack->vTop));
+
+  shuffleVars(jit->assemCtx, newArgs, count, &jit->freeRegs, spillVr);
+
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    outMsg(logFile, "new state of stack: ");
+    dumpStack(stack);
+  }
+#endif
 }
 
 // Put the top arity elements of the stack over caller
-
 void frameOverride(jitBlockPo block, int arity) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);

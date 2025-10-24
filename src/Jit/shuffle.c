@@ -97,7 +97,7 @@ static int32 analyseRef(argSpecPo ref, ArgSpec defs[], int32 arity, stkPo stack,
 argSpecPo findRef(argSpecPo def, ArgSpec defs[], int32 arity) {
   for (int32 ix = 0; ix < arity; ix++) {
     argSpecPo candidate = &defs[ix];
-    if (candidate->group == -1 && clobbers(candidate, def)) {
+    if (candidate->mark && clobbers(candidate, def)) {
       return &defs[ix];
     }
   }
@@ -111,16 +111,19 @@ int32 analyseDef(argSpecPo def, ArgSpec defs[], int32 arity, stkPo stack, int32 
   def->mark = False;
 
   // Is this reference already in the stack?
-  for (int32 ix = stackCount(stack); ix > 0; ix--) {
+  for (int32 ix = pt; ix > 0; ix--) {
+    // We dont need to check the definition we just pushed
     argSpecPo stkRef = stackPeek(stack, ix - 1);
 
     if (affects(def->dst, stkRef->src))
       return ix;
   }
 
-  argSpecPo ref = findRef(def, defs, arity);
-
-  int32 low = (ref != Null ? min(analyseDef(ref, defs, arity, stack, groups),pt) : pt);
+  int low = pt;
+  argSpecPo ref;
+  while ((ref = findRef(def, defs, arity)) != Null) {
+    low = min(low, analyseDef(ref, defs, arity, stack, groups));
+  }
 
   if (low < stackCount(stack)) {
     int32 group = (*groups)++;
@@ -151,7 +154,8 @@ static void showGroups(ArgSpec defs[], int32 groups, int32 arity) {
 static void showDefs(ArgSpec defs[], int32 arity) {
   char *sep = "";
   for (int32 ax = 0; ax < arity; ax++) {
-    outMsg(logFile, "%sarg %F: %F", sep, defs[ax].dst, defs[ax].src);
+    argSpecPo arg = &defs[ax];
+    outMsg(logFile, "%sarg %F%s: %F", sep, arg->dst, (arg->mark ? "✓" : ""), arg->src);
     sep = ", ";
   }
   outStr(logFile, "\n");
@@ -224,7 +228,7 @@ void shuffleVars(assemCtxPo ctx, argSpecPo args, int32 arity, registerMap *freeR
 
   assert(marked(args,arity,False));
 
-  for (int32 gx = groups; gx < 0; gx--) {
+  for (int32 gx = groups; gx > 0; gx--) {
     int32 grpSize = groupSize(args, arity, gx - 1);
     argSpecPo group[grpSize];
 
