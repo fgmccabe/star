@@ -96,6 +96,52 @@ static retCode test_double_grp() {
   return Ok;
 }
 
+static retCode test_fake_cycle() {
+  ArgSpec specs[] = {Arg(RG(R2), RG(R1)),Arg(RG(R3), RG(R2)),Arg(RG(R4), RG(R3))};
+  int32 count = NumberOf(specs);
+  int32 groups = sortSpecs(specs, count);
+
+  tryRet(checkResult(groups==3,"expecting 3 groups"));
+
+  tryRet(checkResult(checkUseBeforeOverride(specs, count,groups), "register overridden before use"));
+
+  return Ok;
+}
+
+// From actual example: X13[-8](R3) <- X13[0](R1), X13[0] <- X13[8](R2), X13[8] <- X13[-8]
+static retCode test_cycle() {
+  ArgSpec specs[] = {Arg(RG(R1), RG(R3)),Arg(RG(R2), RG(R1)),Arg(RG(R3), RG(R2))};
+  int32 count = NumberOf(specs);
+  showDefs(specs, count);
+
+  int32 groups = sortSpecs(specs, count);
+
+  showGroups(specs, groups, count);
+
+  tryRet(checkResult(groups==1,"expecting 1 group"));
+
+  return Ok;
+}
+
+// Double cycle: R1<-R2, R2<-R3, R4<-R5, R3<-R1, R5<-R4
+static retCode double_cycle() {
+  ArgSpec specs[] = {Arg(RG(R2), RG(R1)),Arg(RG(R3), RG(R2)),Arg(RG(R5), RG(R4)), Arg(RG(R1),RG(R3)), Arg(RG(R4),RG(R5))};
+  int32 count = NumberOf(specs);
+  showDefs(specs, count);
+
+  int32 groups = sortSpecs(specs, count);
+
+  showGroups(specs, groups, count);
+
+  tryRet(checkResult(groups==2,"expecting 2 group2"));
+  tryRet(checkResult(checkUseBeforeOverride(specs, count,groups), "register override"));
+
+  tryRet(checkResult(groupSize(specs, count,0) == 3, "group size should be 3"));
+  tryRet(checkResult(groupSize(specs, count,1) == 2, "group size should be 2"));
+
+  return Ok;
+}
+
 retCode all_tests() {
   tests_run = 0;
 
@@ -107,6 +153,9 @@ retCode all_tests() {
   tryRet(run_test(test_triple));
   tryRet(run_test(test_pair));
   tryRet(run_test(test_double_grp));
+  tryRet(run_test(test_fake_cycle));
+  tryRet(run_test(test_cycle));
+  tryRet(run_test(double_cycle));
 
   return Ok;
 }

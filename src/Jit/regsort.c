@@ -103,10 +103,10 @@ int32 analyseDef(argSpecPo def,
   // Is this reference already in the stack?
   for (int32 ix = pt; ix > 0; ix--){
     // We dont need to check the definition we just pushed
-    argSpecPo stkRef = stackPeek(stack, ix - 1);
+    argSpecPo stkRef = stackPeek(stack, ix-1);
 
-    if (affects(def->dst, stkRef->src))
-      return ix;
+    if (affects(stkRef->dst, def->src))
+      return ix-1;
   }
 
   int low = pt;
@@ -133,7 +133,7 @@ static void showGroups(ArgSpec defs[], int32 groups, int32 arity)
     char* sep = "";
     for (int32 ax = 0; ax < arity; ax++){
       if (defs[ax].group == gx){
-        outMsg(logFile, "%sarg %F: %F", sep, defs[ax].dst, defs[ax].src);
+        outMsg(logFile, "%s%F <- %F", sep, defs[ax].dst, defs[ax].src);
         sep = ", ";
       }
     }
@@ -142,17 +142,12 @@ static void showGroups(ArgSpec defs[], int32 groups, int32 arity)
   flushOut();
 }
 
-static void showDefs(ArgSpec defs[], int32 arity)
+static void showDefs(ArgSpec defs[], int32 count)
 {
   char* sep = "";
-  for (int32 ax = 0; ax < arity; ax++){
+  for (int32 ax = 0; ax < count; ax++){
     argSpecPo arg = &defs[ax];
-    outMsg(logFile,
-           "%sarg %F%s: %F",
-           sep,
-           arg->dst,
-           (arg->mark ? "✓" : ""),
-           arg->src);
+    outMsg(logFile,"%s%F <- %F",sep,arg->dst,arg->src);
     sep = ", ";
   }
   outStr(logFile, "\n");
