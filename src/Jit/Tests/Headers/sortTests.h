@@ -10,8 +10,9 @@
 #include "sort.h"
 
 void showGroups(ArgSpec defs[], int32 groups, int32 arity);
-void showDefs(ArgSpec defs[], int32 arity);
+void showDefs(ArgSpec defs[], int32 count);
 void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo* group);
+logical checkUseBeforeOverride(argSpecPo specs, int32 count, int32 groups);
 
 retCode showFlexOp(ioPo f, void *data, long depth, long precision, logical alt);
 

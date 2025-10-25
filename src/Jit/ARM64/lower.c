@@ -907,6 +907,8 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         armReg vl = popValue(stack, jit);
 
+        spillStack(stack, jit);
+
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(vl), OF(CO, key*pointerSize));
         unstash(jit);
@@ -916,7 +918,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(tgtStack, jit, tgtBlock->exitHeight);
-          spillStack(stack, jit);
           tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
           beq(lbl);
         } else

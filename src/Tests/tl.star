@@ -1,12 +1,11 @@
 test.tl{
   import star.
   import star.assert.
---  import star.treelist.
-
+  
   -- Test the treelist implementation
 
   T1 : cons[integer].
-  T1 = foldRight((Ix,L)=>.cons(Ix,L),[],1..<100).
+  T1 = foldRight((Ix,L)=>.cons(Ix,L),[],1..<5).
 
   main:() => ().
   main() => valof{

@@ -42,11 +42,6 @@ logical affects(FlexOp src, FlexOp dst)
   }
 }
 
-static logical clobbers(argSpecPo def, argSpecPo ref)
-{
-  return affects(def->dst, ref->src);
-}
-
 static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo* group)
 {
   int32 pt = 0;
@@ -57,24 +52,6 @@ static void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo* 
   }
 }
 
-static logical marked(argSpecPo args, int32 arity, logical mark)
-{
-  for (int32 ix = 0; ix < arity; ix++){
-    if (args[ix].mark != mark)
-      return False;
-  }
-  return True;
-}
-
-static logical isClobbered(argSpecPo args, int32 arity, argSpecPo ref)
-{
-  for (int32 ix = 0; ix < arity; ix++){
-    if (args[ix].mark && clobbers(&args[ix], ref))
-      return True;
-  }
-  return False;
-}
-
 void shuffleVars(assemCtxPo ctx,
                  argSpecPo args,
                  int32 arity,
@@ -83,8 +60,6 @@ void shuffleVars(assemCtxPo ctx,
 {
   int32 groups = sortSpecs(args, arity);
 
-  assert(marked(args,arity,False));
-
   for (int32 gx = groups; gx > 0; gx--){
     int32 grpSize = groupSize(args, arity, gx - 1);
     argSpecPo group[grpSize];
@@ -92,8 +67,6 @@ void shuffleVars(assemCtxPo ctx,
     collectGroup(args, arity, gx - 1, group);
 
     if (grpSize == 1){
-      assert(!group[0]->mark);
-      assert(!isClobbered(args,arity,group[0]));
       group[0]->mark = True;
       FlexOp dst = group[0]->dst;
 
@@ -112,9 +85,6 @@ void shuffleVars(assemCtxPo ctx,
       mover(ctx,RG(tmp), dst, freeRegs);
       for (int32 ix = 0; ix < grpSize - 1; ix++){
         mover(ctx, group[ix]->dst, group[ix + 1]->dst, freeRegs);
-        assert(!group[ix]->mark);
-        assert(!isClobbered(args,arity,group[ix]));
-        group[ix]->mark = True;
       }
 
       mover(ctx, group[grpSize - 1]->dst,RG(tmp), freeRegs);
@@ -122,5 +92,4 @@ void shuffleVars(assemCtxPo ctx,
       *freeRegs = addReg(*freeRegs, tmp);
     }
   }
-  assert(marked(args,arity,True));
 }

@@ -61,16 +61,10 @@ void showGroups(ArgSpec defs[], int32 groups, int32 arity) {
   flushOut();
 }
 
-void showDefs(ArgSpec defs[], int32 arity) {
+void showDefs(ArgSpec defs[], int32 count) {
   char *sep = "";
-  for (int32 ax = 0; ax < arity; ax++) {
-    argSpecPo arg = &defs[ax];
-    outMsg(logFile,
-           "%sarg %F%s: %F",
-           sep,
-           arg->dst,
-           (arg->mark ? "✓" : ""),
-           arg->src);
+  for (int32 ax = 0; ax < count; ax++) {
+    outMsg(logFile, "%s%F <- %F", sep, &defs[ax].dst, &defs[ax].src);
     sep = ", ";
   }
   outStr(logFile, "\n");
@@ -84,4 +78,28 @@ void collectGroup(argSpecPo args, int32 arity, int32 groupNo, argSpecPo *group) 
       group[pt++] = &args[ix];
     }
   }
+}
+
+logical checkUseBeforeOverride(argSpecPo specs, int32 count, int32 groups) {
+  for (int32 gx = groups - 1; gx >= 0; gx--) {
+    int32 gpCount = groupSize(specs, count, gx);
+    argSpecPo gp[gpCount];
+    collectGroup(specs, count, gx, gp);
+    for (int32 ix = 0; ix < gpCount; ix++) {
+      FlexOp dst = gp[ix]->dst;
+
+      for (int32 gy = gx - 1; gy >= 0; gy--) {
+        int32 gpyCount = groupSize(specs, count, gy);
+        argSpecPo gpy[gpCount];
+        collectGroup(specs, count, gy, gpy);
+        for (int32 iy = 0; iy < gpyCount; iy++) {
+          FlexOp src = gpy[iy]->src;
+          if (affects(dst, src)) {
+            return False;
+          }
+        }
+      }
+    }
+  }
+  return True;
 }
