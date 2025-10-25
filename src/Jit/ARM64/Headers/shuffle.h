@@ -7,7 +7,7 @@
 
 #include "sort.h"
 
-typedef void (*moveFunc)(assemCtxPo ctx, FlexOp src, FlexOp dst, registerMap *freeRegs);
+typedef void (*moveFunc)(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
 void shuffleVars(assemCtxPo ctx,
                  argSpecPo args,
                  int32 arity,
