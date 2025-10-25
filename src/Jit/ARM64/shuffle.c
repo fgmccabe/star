@@ -76,23 +76,21 @@ void shuffleVars(assemCtxPo ctx,
 
       FlexOp dst = group[0]->dst;
       FlexOp src = group[0]->src;
-      int32 grpIx = 0;
 
       mover(ctx,RG(tmp), dst, freeRegs);
+      mover(ctx, dst, src, freeRegs);
       do {
         for (int32 ix = 0; ix < grpSize; ix++) {
           if (sameFlexOp(src, group[ix]->dst)) {
-            mover(ctx, group[ix]->dst, RG(tmp), freeRegs);
-            mover(ctx, RG(tmp), group[ix]->src, freeRegs);
+            if (sameFlexOp(group[ix]->src, dst))
+              mover(ctx,group[ix]->dst,RG(tmp),freeRegs);
+            else
+              mover(ctx, group[ix]->dst, group[ix]->src, freeRegs);
             src = group[ix]->src;
-            grpIx = ix;
             break;
           }
         }
-      } while (!sameFlexOp(src, group[0]->src));
-
-      mover(ctx, dst,RG(tmp), freeRegs);
-
+      } while (!sameFlexOp(src, dst));
       *freeRegs = addReg(*freeRegs, tmp);
     }
   }
