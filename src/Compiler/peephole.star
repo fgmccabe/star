@@ -104,7 +104,7 @@ star.compiler.peephole{
     if lblReferenced(Lb,Is0) then
       valis [.iLbl(Lb,.iValof(Lvl,Is0)),..peep(Ins,Lbls)]
     else
-    valis peepCode(Is0++Ins,Lbls)
+    valis [.iValof(Lvl,Is0),..peep(Ins,Lbls)]
   }
   peep([.iIf(Lb),..Ins],Lbls) =>
     [.iIf(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
