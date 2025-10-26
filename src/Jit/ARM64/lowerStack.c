@@ -582,39 +582,6 @@ retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
     ret = propagateVar(jit, src, dst, -v);
   }
 
-  int32 stackDiff = srcStack->vTop - tgtStack->vTop;
-
-  if (stackDiff >= 0){
-    for (int32 v = tgtStack->vTop; ret == Ok && v > 0; v--){
-      localVarPo src = stackSlot(srcStack, v + stackDiff - 1);
-      localVarPo dst = stackSlot(tgtStack, v - 1);
-      ret = propagateVar(jit, src, dst, -(noLcls + v));
-    }
-  }
-
-  for (int32 v = tgtHeight; v > tgtStack->vTop; v--){
-    localVarPo src = stackSlot(srcStack, v - tgtHeight);
-    switch (src->kind){
-    case inRegister:
-    case isLocal:
-      {
-        pushValue(tgtStack, *src);
-        continue;
-      }
-    case inStack:
-      {
-        if (src->stkOff != -(trueStackDepth(tgtStack) + 1)){
-          armReg tmp = findFreeReg(jit);
-          loadLocal(jit, tmp, src->stkOff);
-          storeStack(jit, tmp, tgtStack->vTop + 1);
-          releaseReg(jit, tmp);
-        }
-        pushBlank(tgtStack);
-        continue;
-      }
-    }
-  }
-
   setStackDepth(tgtStack, jit, tgtHeight);
 
 #ifdef TRACEJIT
