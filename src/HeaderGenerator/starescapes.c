@@ -37,7 +37,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static void genStarEsc(ioPo out, char *name, char *sig, char *cmt);
-static void genStarIsEsc(ioPo out, char *name);
+static void genStarIsEsc(ioPo out, char *name, char *sig);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     strBufferPo isEscBuffer = newStringBuffer();
 
 #undef escape
-#define escape(name, type, cmt) genStarIsEsc(O_IO(isEscBuffer),#name);
+#define escape(name, type, cmt) genStarIsEsc(O_IO(isEscBuffer),#name,type);
 
 #include "escapes.h"
 
@@ -105,8 +105,11 @@ void genStarEsc(ioPo out, char *name, char *sig, char *cmt) {
   outStr(O_IO(out), ")\n");
 }
 
-void genStarIsEsc(ioPo out, char *name) {
+void genStarIsEsc(ioPo out, char *name, char *sig) {
+  int32 arity;
+
+  funSigArity(sig,uniStrLen(sig),&arity);
   outStr(O_IO(out), "    | ");
   dumpStr(name, out);
-  outMsg(O_IO(out), " => .true\n");
+  outMsg(O_IO(out), " => .some(%d)\n",arity);
 }

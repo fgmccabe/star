@@ -46,6 +46,7 @@
 	      isForall/4,mkForall/4,isNegation/3,negation/3,
 	      isMatch/4,match/4,isSearch/4,search/4,
 	      isMapLiteral/3,mkMapLiteral/3,
+	      isDo/3,
 	      isComprehension/4,mkComprehension/4,
 	      isIotaComprehension/4,
 	      isTotalizerComprehension/6,mkTotalizerComprehension/6,
@@ -806,6 +807,11 @@ mkMapLiteral(Lc,Prs,M) :-
 
 collectPair(T,(F,E)) :-
   isPair(T,_,F,E).
+
+isDo(E,Lc,Ax) :-
+  isUnary(E,Lc,"do",A),
+  isBraceTuple(A,_,As),
+  deSequence(As,Ax).
 
 isComprehension(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),

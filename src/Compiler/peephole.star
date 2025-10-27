@@ -104,7 +104,7 @@ star.compiler.peephole{
     if lblReferenced(Lb,Is0) then
       valis [.iLbl(Lb,.iValof(Lvl,Is0)),..peep(Ins,Lbls)]
     else
-    valis [.iValof(Lvl,Is0),..peep(Ins,Lbls)]
+    valis peepCode(Is0++Ins,Lbls)
   }
   peep([.iIf(Lb),..Ins],Lbls) =>
     [.iIf(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
@@ -126,6 +126,8 @@ star.compiler.peephole{
   peep([.iLdSav(Lb),..Ins],Lbls) =>
     [.iLdSav(resolveLbl(Lb,Lbls)),..peep(Ins,Lbls)].
   peep([.iLoop(Lb),.._],_Lbls) => [.iLoop(Lb)].
+  peep([.iRet,.._],_Lbls) => [.iRet].
+  peep([.iXRet,.._],_Lbls) => [.iXRet].
   peep([.iRetire,.._],_Lbls) => [.iRetire].
   peep([.iICase(Mx),..Ins],Lbls) => [.iICase(Mx),..copyN(Mx,Ins)].
   peep([.iCase(Mx),..Ins],Lbls) => [.iCase(Mx),..copyN(Mx,Ins)].

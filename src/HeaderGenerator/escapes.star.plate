@@ -9,8 +9,11 @@ star.compiler.escapes{
 #(Escapes)    | _ default => .none
   }
 
-  public isEscape:(string)=>boolean.
-  isEscape(Es) => case Es in {
-#(IsEscape)    | _ default => .false
+  public escapeArity:(string) => option[integer].
+  escapeArity(Es) => case Es in {
+   #(IsEscape)    | _ default => .none
   }
+
+  public isEscape:(string)=>boolean.
+  isEscape(Es) => .some(_) .= escapeArity(Es).
 }
