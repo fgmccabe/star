@@ -91,9 +91,7 @@ stackHwm([iValof(_,W)|Ins],CH0,H0,Hwm) :-
 stackHwm([iBreak(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iResult(_)|Ins],CH0,H0,Hwm) :-
-  CH1 is CH0-1,
-  (CH1>H0 -> H1 = CH1 ; H1 = H0),
-  stackHwm(Ins,CH1,H1,Hwm).
+  stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iLoop(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iDrop|Ins],CH0,H0,Hwm) :-
@@ -159,7 +157,9 @@ stackHwm([iStG(_)|Ins],CH0,H0,Hwm) :-
 stackHwm([iTG(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iSav|Ins],CH0,H0,Hwm) :-
-  stackHwm(Ins,CH0,H0,Hwm).
+  CH1 is CH0+1,
+  (CH1>H0 -> H1 = CH1 ; H1 = H0),
+  stackHwm(Ins,CH1,H1,Hwm).
 stackHwm([iLdSav(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iTstSav|Ins],CH0,H0,Hwm) :-
