@@ -24,7 +24,8 @@ set(STARESC_SOURCE_FILES
         starescapes.c
         starsig.c
         starsig.h
-        starescapes.h)
+        starescapes.h
+        ../Infra/signature.c)
 add_executable(genstaresc ${STARESC_SOURCE_FILES})
 target_link_libraries(genstaresc ooio)
 

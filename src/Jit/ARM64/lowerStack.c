@@ -554,8 +554,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
   }
 }
 
-retCode propagateStack(jitCompPo jit, valueStackPo srcStack,
-                       valueStackPo tgtStack, int32 tgtHeight)
+retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight)
 {
   retCode ret = Ok;
 

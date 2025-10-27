@@ -228,7 +228,7 @@ star.compiler.gencode{
     }
     | .cCnd(Lc,G,L,R) => valof{
       Fl = defineLbl(Ctx,"Fl");
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"CnOk");
       (CC,Ctx1) = compCond(G,Lc,Fl,Brks,Ctx,Stk);
       (LC,_,Stk1) = compExp(L,Lc,Brks,Last,Ctx1,Stk);
       (RC,_,Stk2) = compExp(R,Lc,Brks,Last,Ctx,Stk);
@@ -238,10 +238,18 @@ star.compiler.gencode{
 	      [.iLbl(Fl,.iBlock(Lvl,CC++LC++[.iResult(Ok)]))]++
 	      RC++[.iResult(Ok)]))],Ctx,reconcileStack(Stk1,Stk2))
     }
-    | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
-      compCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
-    | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
-      compIndexCase(Lc,Gov,stkLvl(Stk)+1,Cases,Deflt,compExp,Brks,Last,Ctx,Stk)
+    | .cCase(Lc,Gov,Cases,Deflt,Tp) => valof{
+      Ok = defineLbl(Ctx,"CsOk");
+
+      (CC,Ctxx,Stka) = compCase(Lc,Gov,.iResult(Ok),Cases,Deflt,compExp,Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stka)
+    }
+    | .cIxCase(Lc,Gov,Cases,Deflt,Tp) => valof{
+      Ok = defineLbl(Ctx,"CsOk");
+
+      (CC,Ctxx,Stka) = compIndexCase(Lc,Gov,.iResult(Ok),Cases,Deflt,compExp,Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stka)
+    }
     | .cLtt(Lc,.cV(Vr,VTp),Val,Bnd) => valof{
       Ctx1 = defineLclVar(Vr,VTp,Ctx);
       (VV,_,Stk1) = compExp(Val,Lc,Brks,.notLast,Ctx,Stk);
@@ -309,7 +317,7 @@ star.compiler.gencode{
       valis (chLine(OLc,Lc)++[.iLbl(Vlbl,.iValof(stkLvl(Stkx),AC))],Ctx,Stkx)
     }
     |  C where isCond(C) => valof{
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"CndOk");
       Fl = defineLbl(Ctx,"Fl");
       Stk0 = pshStack(boolType,Stk);
       (CC,_Ctx1) = compCond(C,OLc,Fl,Brks,Ctx,Stk);
@@ -408,7 +416,7 @@ star.compiler.gencode{
     }
     | .cDsj(Lc,L,R) => valof{
       Fl = defineLbl(Ctx,"Fl");
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"DsjOk");
       (LC,Ctxa) = compCond(L,Lc,Fl,Brks,Ctx,Stk);
       (RC,Ctxb) = compCond(R,Lc,Fail,Brks,Ctx,Stk);
 
@@ -420,7 +428,7 @@ star.compiler.gencode{
     }
     | .cNeg(Lc,R) => compNegated(R,OLc,Fail,Brks,Ctx,Stk)
     | .cCnd(Lc,T,L,R) => valof{
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"CCndOk");
       Fl = defineLbl(Ctx,"El");
       (TC,Ctx1) = compCond(T,Lc,Fl,Brks,Ctx,Stk);
       (LC,Ctxa) = compCond(L,Lc,Fail,Brks,Ctx1,Stk);
@@ -451,7 +459,7 @@ star.compiler.gencode{
     | .cNeg(_Lc,I) => compCond(I,OLc,Fail,Brks,Ctx,Stk)
     | .cCnd(Lc,T,L,R) => compCond(.cCnd(Lc,T,R,L),OLc,Fail,Brks,Ctx,Stk)
     | .cMatch(Lc,Ptn,Exp) => valof{
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"NegOk");
       (EC,_,Stk0) = compExp(Exp,Lc,Brks,.notLast,Ctx,Stk);
       (PC,Ctx1,_) = compPtn(Ptn,Lc,Ok,Brks,Ctx,Stk0);
       valis (chLine(OLc,Lc)++
@@ -524,7 +532,7 @@ star.compiler.gencode{
 	valis (chLine(OLc,Lc)++EC++[.iStL(Nm)],Ctx1,Stk)
       } else{
 	Ab = defineLbl(Ctx,"Ab");
-	Ok = defineLbl(Ctx,"Ok");
+	Ok = defineLbl(Ctx,"DfnOk");
 	(PC,Ctx1,_) = compPtn(P,Lc,Ab,Brks,Ctx,Stk0);
 	valis (chLine(OLc,Lc)++[.iLbl(Ok,
 	      .iBlock(stkLvl(Stk),[.iLbl(Ab,
@@ -535,7 +543,7 @@ star.compiler.gencode{
     | .aMatch(Lc,P,E) => valof{
       (EC,_,Stk0) = compExp(E,Lc,Brks,.notLast,Ctx,Stk);
       Ab = defineLbl(Ctx,"Ab");
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"MtchOk");
       (PC,Ctx1,_) = compPtn(P,Lc,Ab,Brks,Ctx,Stk0);
       valis (chLine(OLc,Lc)++[.iLbl(Ok,
 	    .iBlock(stkLvl(Stk),[.iLbl(Ab,
@@ -552,25 +560,38 @@ star.compiler.gencode{
       (TC,_,Stk1) = compExp(T,Lc,Brks,.notLast,Ctx,Stk0);
       valis (chLine(OLc,Lc)++EC++TC++[.iStNth(Ix)],Ctx,Stk)
     }
-    | .aCase(Lc,G,Cs,D) => case Next in {
-      | .noMore => compCase(Lc,G,stkLvl(Stk)+1,Cs,D,
+    | .aCase(Lc,G,Cs,D) where .noMore.= Next => valof{
+      Ok = defineLbl(Ctx,"ACsOk");
+      (CC,Ctxx,Stkx) = compCase(Lc,G,.iResult(Ok),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk)
-      | .notLast => compCase(Lc,G,stkLvl(Stk),Cs,D,
-	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk)
+	Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stkx)
     }
-    | .aIxCase(Lc,G,Cs,D) => case Next in {
-      | .noMore => compIndexCase(Lc,G,stkLvl(Stk)+1,Cs,D,
+    
+    | .aCase(Lc,G,Cs,D) where .notLast.= Next => valof{
+      Ok = defineLbl(Ctx,"ACsOk");
+      (CC,Ctxx,Stkx) = compCase(Lc,G,.iBreak(Ok),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk)
-      | .notLast => compIndexCase(Lc,G,stkLvl(Stk),Cs,D,
+	Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iBlock(stkLvl(Stk),CC))],Ctxx,Stkx)
+    }
+    | .aIxCase(Lc,G,Cs,D) where .noMore.= Next => valof{
+      Ok = defineLbl(Ctx,"AIsOk");
+      (CC,Ctxx,Stkx) = compIndexCase(Lc,G,.iResult(Ok),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk)
+	Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stkx)
+    }
+    | .aIxCase(Lc,G,Cs,D) where .notLast.= Next => valof{
+      Ok = defineLbl(Ctx,"AIsOk");
+      (CC,Ctxx,Stkx) = compIndexCase(Lc,G,.iBreak(Ok),Cs,D,
+	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
+	Brks,Last,Ctx,Stk);
+      valis ([.iLbl(Ok,.iBlock(stkLvl(Stk),CC))],Ctxx,Stkx)
     }
     | .aIftte(Lc,G,L,R) => valof{
       Fl = defineLbl(Ctx,"Fl");
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"IfOk");
       (CC,Ctx1) = compCond(G,Lc,Fl,Brks,Ctx,Stk);
       (LC,Ctxa,Stka) = compAction(L,Lc,Brks,Last,Next,Ctx1,Stk);
       (RC,Ctxb,Stkb) = compAction(R,Lc,Brks,Last,Next,Ctx,Stk);
@@ -602,7 +623,7 @@ star.compiler.gencode{
       if traceCodegen! then
 	showMsg("compiling try catch @$(Lc), Er=$(Er)");
 
-      Ok = defineLbl(Ctx,"Ok");
+      Ok = defineLbl(Ctx,"ATrOk");
       TrX = defineLbl(Ctx,"TrX");
       Stkx = pshStack(ETp,Stk);
       Ctx1 = defineLclVar(Er,ETp,Ctx);
@@ -633,13 +654,12 @@ star.compiler.gencode{
   all e ~~ caseHandler[e] ~> (e,option[locn],breakLvls,tailMode,codeCtx,stack)=>compReturn.
 
   compCase:all e ~~ display[e] |=
-    (option[locn],cExp,integer,cons[cCase[e]],e,
+    (option[locn],cExp,assemOp,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) => valof{
+  compCase(Lc,Gv,Rtn,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) => valof{
     if traceCodegen! then
       showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Df = defineLbl(Ctx,"Df");
-    Ok = defineLbl(Ctx,"Ok");
     Lvl = stkLvl(Stk);
 
     (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
@@ -650,24 +670,21 @@ star.compiler.gencode{
 
     CaseIns = (intType==deRef(typeOf(Gv)) ?? .iICase(Max) || .iCase(Max));
 
-    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Ok,Df,Hndlr,Brks,Last,GC++[CaseIns],Ctx,Stk);
+    (CC,Ctxc,Stkc) = compCases(Table,0,Max,GVar,Rtn,Df,Hndlr,Brks,Last,GC++[CaseIns],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(OkLvl,
-	    [.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
-      mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
+    valis ([.iLbl(Df,.iBlock(Lvl,CC))]++DC++[Rtn],mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
 
   compIndexCase:all e ~~ display[e] |=
-    (option[locn],cExp,integer,cons[cCase[e]],e,
+    (option[locn],cExp,assemOp,cons[cCase[e]],e,
     caseHandler[e],breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) where hasIndexMap(Ctx,tpName(typeOf(Gv))) => valof{
+  compIndexCase(Lc,Gv,Return,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) where hasIndexMap(Ctx,tpName(typeOf(Gv))) => valof{
     if traceCodegen! then
       showMsg("compiling case @$(Lc), Gov=$(Gv), Deflt=$(Deflt), Cases=$(Cases)");
     Df = defineLbl(Ctx,"Df");
-    Ok = defineLbl(Ctx,"Ok");
     Lvl = stkLvl(Stk);
     (GVar,GC,Ctx0,Stk0) = compGVExp(Gv,Lc,Brks,Ctx,Stk);
 
@@ -676,16 +693,15 @@ star.compiler.gencode{
 
     (DC,Ctxd,Stkd) = Hndlr(Deflt,Lc,Brks,Last,Ctx,Stk);
 
-    (CC,Ctxc,Stkc) = compCases(Table,0,Mx,GVar,Ok,Df,Hndlr,Brks,Last,GC++[.iIxCase(Mx+1)],Ctx,Stk);
+    (CC,Ctxc,Stkc) = compCases(Table,0,Mx,GVar,Return,Df,Hndlr,Brks,Last,GC++[.iIxCase(Mx+1)],Ctx,Stk);
 
     if ~reconcileable(Stkc,Stkd) then
       reportError("cannot reconcile cases' stack $(Cases) with default $(Deflt)",Lc);
 
-    valis ([.iLbl(Ok,.iBlock(OkLvl, [.iLbl(Df,.iBlock(Lvl,CC))]++DC++[.iBreak(Ok)]))],
-      mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
+    valis ([.iLbl(Df,.iBlock(Lvl,CC))]++DC++[Return],mergeCtx(Ctxc,Ctxd),reconcileStack(Stkd,Stkc))
   }
-  compIndexCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) =>
-    compCase(Lc,Gv,OkLvl,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk).
+  compIndexCase(Lc,Gv,Return,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk) =>
+    compCase(Lc,Gv,Return,Cases,Deflt,Hndlr,Brks,Last,Ctx,Stk).
   
   compGVExp(.cVar(Lc,V),OLc,Brks,Ctx,Stk) => 
     (V,chLine(OLc,Lc)++loadSrc(V)(Lc,Ctx),Ctx,pshStack(typeOf(V),Stk)).
@@ -698,41 +714,40 @@ star.compiler.gencode{
   }
 
   compCases:all e ~~ display[e] |=
-    (cons[csEntry[e]],integer,integer,cV,assemLbl,assemLbl,caseHandler[e],
+    (cons[csEntry[e]],integer,integer,cV,assemOp,assemLbl,caseHandler[e],
     breakLvls,tailMode,multi[assemOp],codeCtx,stack) => compReturn.
 
-  compCases([],Ix,Mx,_GVar,_Ok,_Df,_Hndlr,_Brks,_Last,CaseCode,Ctx,Stk) where
+  compCases([],Ix,Mx,_GVar,_Rtn,_Df,_Hndlr,_Brks,_Last,CaseCode,Ctx,Stk) where
       Ix>=Mx => (CaseCode,Ctx,.none).
-  compCases([],Ix,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) =>
-    compCases([],Ix+1,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(Df)],Ctx,Stk).
-  compCases([(Ix,Case),..Cs],Ix,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) => valof{
+  compCases([],Ix,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) =>
+    compCases([],Ix+1,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(Df)],Ctx,Stk).
+  compCases([(Ix,Case),..Cs],Ix,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) => valof{
     El = defineLbl(Ctx,"El");
-    (CSC,Ctxb,Stkb) = compCases(Cs,Ix+1,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(El)],Ctx,Stk);
-    (CC,Ctxa,Stka) = compCaseBranch(Case,GVar,Hndlr,Ok,Df,Brks,Last,Ctx,Stk);
+    (CSC,Ctxb,Stkb) = compCases(Cs,Ix+1,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(El)],Ctx,Stk);
+    (CC,Ctxa,Stka) = compCaseBranch(Case,GVar,Hndlr,Rtn,Df,Brks,Last,Ctx,Stk);
 
-    valis ([.iLbl(El,.iBlock(stkLvl(Stk),CSC))]++CC++[.iBreak(Ok)],mergeCtx(Ctxa,Ctxb),reconcileStack(Stka,Stkb))
+    valis ([.iLbl(El,.iBlock(stkLvl(Stk),CSC))]++CC++[Rtn],mergeCtx(Ctxa,Ctxb),reconcileStack(Stka,Stkb))
   }
-  compCases([(Iy,Case),..Cs],Ix,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) where Ix<Iy =>
-    compCases([(Iy,Case),..Cs],Ix+1,Mx,GVar,Ok,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(Df)],Ctx,Stk).
+  compCases([(Iy,Case),..Cs],Ix,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode,Ctx,Stk) where Ix<Iy =>
+    compCases([(Iy,Case),..Cs],Ix+1,Mx,GVar,Rtn,Df,Hndlr,Brks,Last,CaseCode++[.iBreak(Df)],Ctx,Stk).
 
   compCaseBranch:all e ~~ display[e] |=
-    (cons[cCase[e]],cV,caseHandler[e],assemLbl,assemLbl,
+    (cons[cCase[e]],cV,caseHandler[e],assemOp,assemLbl,
     breakLvls,tailMode,codeCtx,stack) => compReturn.
-  compCaseBranch([(Lc,P,E)],Gv,Hndlr,Ok,Df,Brks,Last,Ctx,Stk) => valof{
+  compCaseBranch([(Lc,P,E)],Gv,Hndlr,Rtn,Df,Brks,Last,Ctx,Stk) => valof{
     (PC,Ctx1,Stk1) = compPttrn(P,Lc,loadSrc(Gv),Df,Brks,Ctx,Stk);
     (EC,Ctx2,Stk2) = Hndlr(E,Lc,Brks,Last,Ctx1,Stk1);
 
-    valis (chLine(.none,Lc)++PC++EC++[.iBreak(Ok)],Ctx2,Stk2)
+    valis (chLine(.none,Lc)++PC++EC++[Rtn],Ctx2,Stk2)
   }
-  compCaseBranch([],_Gv,_Hndlr,_Ok,Df,_Brks,_Last,Ctx,_Stk) =>
+  compCaseBranch([],_Gv,_Hndlr,_Return,Df,_Brks,_Last,Ctx,_Stk) =>
     ([.iBreak(Df)],Ctx,.none).
-  compCaseBranch([(Lc,P,E),..Cs],Gv,Hndlr,Ok,Df,Brks,Last,Ctx,Stk) => valof{
+  compCaseBranch([(Lc,P,E),..Cs],Gv,Hndlr,Return,Df,Brks,Last,Ctx,Stk) => valof{
     Fl = defineLbl(Ctx,"Fl");
     (PC,Ctx1,Stk1) = compPttrn(P,Lc,loadSrc(Gv),Fl,Brks,Ctx,Stk);
     (EC,Ctx2,Stk2) = Hndlr(E,Lc,Brks,Last,Ctx1,Stk1);
-    (CC,CCtx,Stkx) = compCaseBranch(Cs,Gv,Hndlr,Ok,Df,Brks,Last,Ctx,Stk);
-    valis (chLine(.none,Lc)++[.iLbl(Fl,.iBlock(stkLvl(Stk),
-	    PC++EC++[.iBreak(Ok)]))]++CC,
+    (CC,CCtx,Stkx) = compCaseBranch(Cs,Gv,Hndlr,Return,Df,Brks,Last,Ctx,Stk);
+    valis (chLine(.none,Lc)++[.iLbl(Fl,.iBlock(stkLvl(Stk),PC++EC++[Return]))]++CC,
       mergeCtx(CCtx,Ctx2),
       reconcileStack(Stk2,Stkx))
   }

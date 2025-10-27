@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
   char errMsg[MAXLINE];
 
   {
-    timerPo loadTimer = startTimer("load");
+    timerPo loadTimer = startTimer("loading");
     if (loadPackage(&mainPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
       logMsg(logFile, "Problem in loading program %P: %S", &mainPkge, errMsg, uniStrLen(errMsg));
       exit(99);
