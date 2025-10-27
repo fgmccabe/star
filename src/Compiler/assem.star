@@ -326,8 +326,7 @@ star.compiler.assem{
     valis stkHwm(Ins,CH0,H0)
   }
   stkHwm([.iResult(_),..Ins],CH0,H0) => valof{
-    CH1 = CH0-1;
-    valis stkHwm(Ins,CH1,H0)
+    valis stkHwm(Ins,CH0,H0)
   }
   stkHwm([.iLoop(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
@@ -402,7 +401,8 @@ star.compiler.assem{
     valis stkHwm(Ins,CH0,H0)
   }
   stkHwm([.iSav,..Ins],CH0,H0) => valof{
-    valis stkHwm(Ins,CH0,H0)
+    CH1 = CH0+1;
+    valis stkHwm(Ins,CH1,(CH1>H0??CH1||H0))
   }
   stkHwm([.iLdSav(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
@@ -585,8 +585,9 @@ star.compiler.assem{
     valis stkHwm(Ins,CH1,H0)
   }
   stkHwm([.iAlloc(.tLbl(VN,VA)),..Ins],CH0,H0) => valof{
-    CH1 = CH0+1;
-    valis stkHwm(Ins,CH1,(CH1>H0??CH1||H0))
+    CH1 = CH0-VA;
+    CH2 = CH1+1;
+    valis stkHwm(Ins,CH2,(CH2>H0??CH2||H0))
   }
   stkHwm([.iClosure(.tLbl(VN,VA)),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)

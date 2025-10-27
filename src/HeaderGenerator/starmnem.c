@@ -645,6 +645,7 @@ static void genStackHwm(ioPo out, char* mnem, OpCode op, int delta, opAndSpec A1
   integer currCH = 0;
 
   switch (op){
+  case Alloc:
   case Call:
   case XCall: {
     outMsg(out, "    CH%d = CH%d-VA;\n", currCH + 1, currCH, currCH);
