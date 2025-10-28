@@ -79,6 +79,7 @@
     "test.ex3": "ex3.star",
     "test.ex4": "ex4.star",
     "test.f": "f.star",
+    "test.ffib": "ffib.star",
     "test.fg": "fg.star",
     "test.fi": "fi.star",
     "test.fib": "fib.star",

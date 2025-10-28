@@ -140,6 +140,10 @@ star.core {
 
   public exception ::= .exception(string).
 
+  public implementation display[exception] => {
+    disp(.exception(M)) => "Exception: #(M)"
+  }
+
   public implementation display[errorCode] => {
     disp(.eINTRUPT) => "eINTRUPT".
     disp(.eNOFILE) => "eNOFIL".
