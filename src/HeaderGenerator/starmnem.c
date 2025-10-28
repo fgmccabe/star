@@ -670,9 +670,15 @@ static void genStackHwm(ioPo out, char* mnem, OpCode op, int delta, opAndSpec A1
     currCH++;
     break;
   }
-  case Block:
-  case Valof: {
+  case Block:{
     outMsg(out, "    (CH%d,H%d) = stkHwm(W,CH%d,H%d);\n", currCH + 1, currCH + 1, currCH, currH);
+    currCH++;
+    currH++;
+    break;
+  }
+  case Valof: {
+    outMsg(out, "    (_,H%d) = stkHwm(W,CH%d,H%d);\n", currCH + 1, currCH, currH);
+    outMsg(out, "    CH%d = CH%d+1;\n", currCH + 1, currCH);
     currCH++;
     currH++;
     break;

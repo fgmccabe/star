@@ -319,7 +319,8 @@ star.compiler.assem{
     valis stkHwm(Ins,CH1,(CH1>H1??CH1||H1))
   }
   stkHwm([.iValof(_,W),..Ins],CH0,H0) => valof{
-    (CH1,H1) = stkHwm(W,CH0,H0);
+    (_,H1) = stkHwm(W,CH0,H0);
+    CH1 = CH0+1;
     valis stkHwm(Ins,CH1,(CH1>H1??CH1||H1))
   }
   stkHwm([.iBreak(_),..Ins],CH0,H0) => valof{
