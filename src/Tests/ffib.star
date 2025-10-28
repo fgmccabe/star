@@ -6,13 +6,13 @@ test.ffib{
   -- Micro benchmark to enable counting of functions
 
   ffib:(integer)=>integer.
-  ffib(0) => 0.
-  ffib(1) => 0.
+  ffib(0) => 1.
+  ffib(1) => 1.
   ffib(N) => _int_plus(_int_plus(ffib(_int_minus(N,1)),ffib(_int_minus(N,2))),1).
 
   tfib:(integer,integer)=>integer.
-  tfib(C,0) => C.
-  tfib(C,1) => C.
+  tfib(C,0) => _int_plus(C,1).
+  tfib(C,1) => _int_plus(C,1).
   tfib(C,N) => tfib(tfib(_int_plus(C,1),_int_minus(N,1)),_int_minus(N,2)).
 
   main:(integer)=>().

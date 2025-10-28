@@ -9,8 +9,8 @@ test.lib.timer{
     try{
       stop = _ticks();
       elapsed = ((stop - start)::float)/1.0e6;
-      secs_per_op = (elapsed/(count::float));
-      showMsg("$(count)\t#(msg)\t$(elapsed) s\t$(secs_per_op) secs/op");
+      ops_per_sec = ((count::float) / elapsed)::integer;
+      showMsg("$(count)\t#(msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
       valis stop-start
     } catch {
       .exception(M) => showMsg("exception: $(M)")
