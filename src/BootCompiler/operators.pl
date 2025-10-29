@@ -434,6 +434,7 @@
   keyword("valof").
   keyword("yield").
   keyword("while").
+  keyword("void").
   keyword("private").
   keyword("::").
   keyword(":?").

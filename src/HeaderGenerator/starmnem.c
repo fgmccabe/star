@@ -665,7 +665,7 @@ static void genStackHwm(ioPo out, char* mnem, OpCode op, int delta, opAndSpec A1
   }
   case Escape:
   case XEscape: {
-    outMsg(out, "    CH%d = (Ar ?= escapeArity(V) ?? CH%d-Ar+1 || CH%d);\n", currCH + 1, currCH);
+    outMsg(out, "    CH%d = (Ar ?= escapeArity(V) ?? CH%d-Ar+1 || CH%d);\n", currCH + 1, currCH, currCH);
 
     currCH++;
     break;

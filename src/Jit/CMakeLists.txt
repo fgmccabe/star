@@ -16,7 +16,6 @@ include_directories("./Headers"
         "../Escapes/Headers"
         "../Engine/Headers"
         "../Infra/Headers"
-        "Common/Headers"
         "${JIT_ARCH}/Headers"
         "${JIT_ARCH}/Assem/Headers")
 

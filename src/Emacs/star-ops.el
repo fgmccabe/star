@@ -168,6 +168,7 @@
 "valof"
 "yield"
 "while"
+"void"
 "private"
 "implementation"
 "else"

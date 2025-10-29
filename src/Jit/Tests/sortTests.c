@@ -112,11 +112,11 @@ static retCode test_fake_cycle() {
 static retCode test_cycle() {
   ArgSpec specs[] = {Arg(RG(R1), RG(R3)),Arg(RG(R2), RG(R1)),Arg(RG(R3), RG(R2))};
   int32 count = NumberOf(specs);
-  showDefs(specs, count);
+  // showDefs(specs, count);
 
   int32 groups = sortSpecs(specs, count);
 
-  showGroups(specs, groups, count);
+  // showGroups(specs, groups, count);
 
   tryRet(checkResult(groups==1,"expecting 1 group"));
 
@@ -127,11 +127,11 @@ static retCode test_cycle() {
 static retCode double_cycle() {
   ArgSpec specs[] = {Arg(RG(R2), RG(R1)),Arg(RG(R3), RG(R2)),Arg(RG(R5), RG(R4)), Arg(RG(R1),RG(R3)), Arg(RG(R4),RG(R5))};
   int32 count = NumberOf(specs);
-  showDefs(specs, count);
+  // showDefs(specs, count);
 
   int32 groups = sortSpecs(specs, count);
 
-  showGroups(specs, groups, count);
+  // showGroups(specs, groups, count);
 
   tryRet(checkResult(groups==2,"expecting 2 group2"));
   tryRet(checkResult(checkUseBeforeOverride(specs, count,groups), "register override"));
