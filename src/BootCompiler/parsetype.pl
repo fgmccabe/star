@@ -118,7 +118,6 @@ fieldInFace(_,Nm,RcTp,Lc,anonType) :-
   reportError("type %s not declared in %s",[id(Nm),tpe(RcTp)],Lc).
 
 parseTypeName(_,"_",_,_,Tp) :- newTypeVar("_",Tp).
-parseTypeName(_,"void",_,_,voidType).
 parseTypeName(_,Id,_,Q,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,Tp) :-
   isType(Id,Env,tpDef(_,T,TpDf,_)),

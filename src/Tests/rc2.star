@@ -8,7 +8,7 @@ test.rc2{
 
   typeRule ::= .tpRule(tipe,tipe).
 
-  canon ::= .void.
+  canon ::= .voidValue.
 
   dict ~> map[string,locn].
 

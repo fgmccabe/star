@@ -494,6 +494,7 @@ star.compiler.operators{
     | "valof" => .true
     | "yield" => .true
     | "while" => .true
+    | "void" => .true
     | "private" => .true
     | "::" => .true
     | ":?" => .true

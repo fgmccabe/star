@@ -60,8 +60,8 @@ star.compiler.inline{
   ptnMatch(.cChar(_,Cx),.cChar(_,Cx),Map) => .matching(Map).
   ptnMatch(.cString(_,Sx),.cString(_,Sx),Map) => .matching(Map).
   ptnMatch(.cTerm(_,N,A1,_),.cTerm(_,N,A2,_),Map) => ptnMatchArgs(A1,A2,Map).
-  ptnMatch(.cVoid(_,_),_,_) => .insufficient.  -- void on left does not match anything
-  ptnMatch(_,.cVoid(_,_),_) => .insufficient.  -- void on right does not match anything
+  ptnMatch(.cVoid(_),_,_) => .insufficient.  -- void on left does not match anything
+  ptnMatch(_,.cVoid(_),_) => .insufficient.  -- void on right does not match anything
   ptnMatch(_,_,_) default => .noMatch.
 
   ptnMatchArgs([],[],Map) => .matching(Map).
@@ -85,7 +85,7 @@ star.compiler.inline{
   simplifyExp(E,_,_) => E.
 
   simExp(Exp,Map,Depth) => case Exp in {
-    | .cVoid(Lc,Tp) => .cVoid(Lc,Tp)
+    | .cVoid(Lc) => .cVoid(Lc)
     | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
     | .cVar(Lc,V) => inlineVar(Lc,V,Map,Depth)
     | .cInt(Lc,Ix) => .cInt(Lc,Ix)

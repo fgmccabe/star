@@ -1,5 +1,5 @@
 test.ex4{
-  tipe ::= .void
+  tipe ::= .voidType
   | .anon
   | .v(string)
   | .f(string,integer)
@@ -12,7 +12,7 @@ test.ex4{
   | .face(cns[(string,tipe)]).
   
   ar:(tipe)=>integer throws string.
-  ar(.void) => throw "no ar for void".
+  ar(.voidType) => throw "no ar for void".
   ar(.anon) => throw "no ar for anon".
   ar(.n(_)) => 0.
   ar(.tpExp(_,A)) => ar(A).
@@ -23,7 +23,7 @@ test.ex4{
   ar(.face(Els)) => length(Els).
 
   implementation display[tipe] => let{.
-    dsp(.void) => "void".
+    dsp(.voidType) => "void".
     dsp(.anon) => "_".
     dsp(.v(Nm)) => _str_concat("_",Nm).
     dsp(.f(Nm,Ar)) => _str_multicat(.cons(Nm,.cons("/",.cons(disp(Ar),.nil)))).

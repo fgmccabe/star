@@ -214,7 +214,7 @@ star.compiler.normalize{
   liftPtn(Cn,_,_,Ex) => valof{
     Lc = locOf(Cn);
     reportError("may not have $(Cn) as a pattern",Lc);
-    valis (.cVoid(Lc,typeOf(Cn)),Ex)
+    valis (.cVoid(Lc),Ex)
   }
   
   liftPtns:(cons[canon],nameMap,set[cV],cons[cDefn]) => (cons[cExp],cons[cDefn]).
@@ -246,7 +246,7 @@ star.compiler.normalize{
     (.cTerm(Lc,Enum,[.cVar(Lc,Vr)],Tp),Ex).
   implementVarPtn(Lc,Nm,.some(V),Tp,_Map,Ex) => valof{
     reportError("not permitted to match against $(Nm)\:$(V)",Lc);
-    valis (.cVoid(Lc,Tp),Ex)
+    valis (.cVoid(Lc),Ex)
   }.
 
   liftExp:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
@@ -278,7 +278,7 @@ star.compiler.normalize{
   }
   liftExp(.dot(Lc,Rc,Fld,Tp),Map,Q,Ex) => valof{
     reportError("unexpected dot expression $(.dot(Lc,Rc,Fld,Tp))",Lc);
-    valis (.cVoid(Lc,Tp),Ex)
+    valis (.cVoid(Lc),Ex)
   }
   liftExp(.tdot(Lc,Rc,Ix,Tp),Map,Q,Ex) => valof{
     (LRc,Ex1) = liftExp(Rc,Map,Q,Ex);
@@ -432,7 +432,7 @@ star.compiler.normalize{
   implementVarExp(Lc,.globalVar(Nm,GTp),_,Tp) => .cVar(Lc,.cV(Nm,GTp)).
   implementVarExp(Lc,E,_,Tp) => valof{
     reportError("cannot transform variable $(E)",Lc);
-    valis .cVoid(Lc,Tp)
+    valis .cVoid(Lc)
   }
 
   liftExpCallOp:(option[locn],canon,cons[cExp],tipe,nameMap,set[cV],cons[cDefn]) =>
@@ -449,7 +449,7 @@ star.compiler.normalize{
   }
   liftExpCallOp(Lc,Op,Args,Tp,_,_,_) => valof{
     reportError("cannot compile function $(Op) applied to $(Args)",Lc);
-    valis (.cVoid(Lc,Tp),[])
+    valis (.cVoid(Lc),[])
   }.
 
   implementFunCall:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
@@ -474,7 +474,7 @@ star.compiler.normalize{
     (.cOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp),Ex).
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
-    valis (.cVoid(Lc,Tp),[])
+    valis (.cVoid(Lc),[])
   }
 
   liftThrowingOp:(option[locn],canon,cons[cExp],tipe,tipe,nameMap,set[cV],cons[cDefn]) =>
@@ -501,7 +501,7 @@ star.compiler.normalize{
     | .globalVar(Nm,GTp) => (.cXOCall(Lc,.cVar(Lc,.cV(Nm,GTp)),Args,Tp,ErTp),Ex)
     | _ default => valof{
       reportError("illegal call variable $(Nm)",Lc);
-      valis (.cVoid(Lc,Tp),[])
+      valis (.cVoid(Lc),[])
     }
     }.
   liftThrowingOp(Lc,Op,Args,Tp,ErTp,Map,Q,Ex) => valof{
@@ -510,7 +510,7 @@ star.compiler.normalize{
   }
   liftThrowingOp(Lc,Op,Args,Tp,_,_,_,_) => valof{
     reportError("cannot compile function $(Op) applied to $(Args)",Lc);
-    valis (.cVoid(Lc,Tp),[])
+    valis (.cVoid(Lc),[])
   }.
 
   implConstructor:(option[locn],nameMapEntry,string,cons[cExp],tipe,nameMap,cons[cDefn]) =>
@@ -523,7 +523,7 @@ star.compiler.normalize{
   }
   implConstructor(Lc,V,Vr,Args,Tp,Map,Ex) => valof{
     reportError("illegal variable $(Vr) - $(V)",Lc);
-    valis (.cVoid(Lc,Tp),[])
+    valis (.cVoid(Lc),[])
   }
 
   liftLambda:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
@@ -621,7 +621,7 @@ star.compiler.normalize{
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
 
-      cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
+      cellVoids = (glDefs//(E)=>.cVoid(Lc));
       GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
       if traceNormalize! then{
@@ -684,7 +684,7 @@ star.compiler.normalize{
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
 
-      cellVoids = (glDefs//(E)=>.cVoid(Lc,typeOf(E)));
+      cellVoids = (glDefs//(E)=>.cVoid(Lc));
       GrpFree = crTpl(Lc,freeArgs++cellVoids);
 
       if traceNormalize! then{

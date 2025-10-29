@@ -115,7 +115,7 @@ star.compiler.gencode{
     | E where isGround(E) =>
       genReturn(Last,locOf(E),[.iLdC(Exp::data)],Ctx,pshStack(typeOf(Exp),Stk))
     | .cVar(Lc,Vr) => compVar(Vr,Lc,Last,Ctx,Stk)
-    | .cVoid(Lc,Tp) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(Tp,Stk))
+    | .cVoid(Lc) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(.voidType,Stk))
     | .cAnon(Lc,Tp) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(Tp,Stk))
     | .cTerm(Lc,Nm,Args,Tp) => valof{
       (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
@@ -820,7 +820,7 @@ star.compiler.gencode{
 	  valis (VC++storeVar(.lclVar(Vr,Tp::ltipe)),Ctx1,Stk)
 	}
       }
-      | .cVoid(Lc,_) => valis ([],Ctx,Stk)
+      | .cVoid(Lc) => valis ([],Ctx,Stk)
       | .cAnon(Lc,_) => valis ([],Ctx,Stk)
       | .cTerm(Lc,Nm,Args,Tp) => {
 	(SCde,Ctx2,Stk2) = compPttrnArgs(Args,Lc,0,Src,Fail,Brks,Ctx,Stk);
@@ -865,7 +865,7 @@ star.compiler.gencode{
 	valis (storeVar(.lclVar(Vr,Tp::ltipe)),Ctx1,Stk)
       }
     }
-    | .cVoid(Lc,_) => ([.iDrop],Ctx,dropStack(Stk))
+    | .cVoid(Lc) => ([.iDrop],Ctx,dropStack(Stk))
     | .cAnon(Lc,_) => ([.iDrop],Ctx,dropStack(Stk))
     | .cTerm(Lc,Nm,Args,Tp) where canFail(Nm,Tp,Ctx) => valof{
       Stk0 = dropStack(Stk);

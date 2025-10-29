@@ -13,7 +13,7 @@ star.compiler.term{
   import star.compiler.types.
   import star.pkg.
   
-  public cExp ::= .cVoid(option[locn],tipe)
+  public cExp ::= .cVoid(option[locn])
   | .cAnon(option[locn],tipe)
   | .cVar(option[locn],cV)
   | .cCel(option[locn],cExp,tipe)
@@ -99,7 +99,7 @@ star.compiler.term{
 
   dspExp:(cExp,string) => string.
   dspExp(Exp,Off) => case Exp in {
-    | .cVoid(_,_) => "void"
+    | .cVoid(_) => "void"
     | .cAnon(_,_) => "_"
     | .cVar(_,.cV(V,VTp)) => "%#(V)"
     | .cInt(_,Ix) => disp(Ix)
@@ -243,7 +243,7 @@ star.compiler.term{
 
   eqTerm(E1,E2) => case E1 in {
     | .cAnon(_,T1) => .cAnon(_,T2).=E2 && T1==T2
-    | .cVoid(_,T1) => .cVoid(_,T2).=E2 && T1==T2
+    | .cVoid(_) => .cVoid(_).=E2
     | .cVar(_,V1) => .cVar(_,V2).=E2 && V1==V2
     | .cInt(_,N1) => .cInt(_,N2).=E2 && N1==N2
     | .cChar(_,N1) => .cChar(_,N2).=E2 && N1==N2
@@ -345,7 +345,7 @@ star.compiler.term{
 
   public implementation hasLoc[cExp] => {
     locOf(Tr) => case Tr in {
-      | .cVoid(Lc,_) => Lc
+      | .cVoid(Lc) => Lc
       | .cAnon(Lc,_) => Lc
       | .cVar(Lc,_) => Lc
       | .cInt(Lc,_) => Lc
@@ -388,7 +388,7 @@ star.compiler.term{
 
   public implementation hasType[cExp] => let{.
     tpOf(Tr) => case Tr in {
-      | .cVoid(_,Tp) => Tp
+      | .cVoid(_) => .voidType
       | .cAnon(_,Tp) => Tp
       | .cVar(_,V) => typeOf(V)
       | .cInt(_,_) => intType
@@ -478,7 +478,7 @@ star.compiler.term{
       | .cChar(_,Cx) => .some(.chr(Cx))
       | .cFlt(_,Dx) => .some(.flot(Dx))
       | .cString(_,Sx) => .some(.strg(Sx))
-      | .cVoid(_,_) => .some(.symb(.tLbl("void",0)))
+      | .cVoid(_) => .some(.symb(.tLbl("void",0)))
       | .cInt(_,Ix) => .some(.intgr(Ix))
       | .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
 	.some(.term(Nm,NArgs))
@@ -500,7 +500,7 @@ star.compiler.term{
 
   rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
   rwTerm(Trm,Tst) => Vl ?= Tst(Trm) ?? Vl || case Trm in {
-    | .cVoid(Lc,Tp) => .cVoid(Lc,Tp)
+    | .cVoid(Lc) => .cVoid(Lc)
     | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
     | .cVar(Lc,V) => .cVar(Lc,V)
     | .cInt(Lc,Ix) => .cInt(Lc,Ix)
@@ -598,7 +598,7 @@ star.compiler.term{
 
   frshnE:(cExp,scope)=>cExp.
   frshnE(Trm,Sc) => case Trm in {
-    | .cVoid(Lc,Tp) => Trm
+    | .cVoid(Lc) => Trm
     | .cAnon(Lc,Tp) => Trm
     | .cVar(Lc,V) => (Rp ?= hasBinding(lName(V),Sc) ?? Rp || Trm)
     | .cInt(Lc,Ix) => Trm
@@ -863,7 +863,7 @@ star.compiler.term{
 
   validE:(cExp,set[cV]) => boolean.
   validE(Exp,Vrs) => case Exp in {
-    | .cVoid(Lc,Tp) => .true
+    | .cVoid(Lc) => .true
     | .cAnon(Lc,_) => valof{
       reportError("anons not allowed in expressions",Lc);
       valis .false
@@ -922,7 +922,7 @@ star.compiler.term{
 
   validPtn:(cExp,set[cV]) => boolean.
   validPtn(Exp,Vrs) => case Exp in {
-    | .cVoid(Lc,Tp) => .true
+    | .cVoid(Lc) => .true
     | .cAnon(_,_) => .true
     | .cVar(Lc,V) => .true
     | .cInt(_,_) => .true
@@ -989,7 +989,7 @@ star.compiler.term{
 
   public ptnVrs:(cExp,set[cV]) => set[cV].
   ptnVrs(E,Vrs) => case E in {
-    | .cVoid(_,_) => Vrs
+    | .cVoid(_) => Vrs
     | .cAnon(_,_) => Vrs
     | .cVar(_,V) => Vrs\+V
     | .cInt(_,_) => Vrs
@@ -1075,7 +1075,7 @@ star.compiler.term{
 
   presentInE:(cExp,(aAction)=>boolean,(cExp)=>boolean) => boolean.
   presentInE(T,A,C) => C(T) ?? .true || case T in {
-    | .cVoid(_,_) => .false
+    | .cVoid(_) => .false
     | .cAnon(_,_) => .false
     | .cVar(_,_) => .false
     | .cInt(_,_) => .false
@@ -1143,7 +1143,7 @@ star.compiler.term{
 
   frzeExp:(cExp)=>data.
   frzeExp(Ex) => case Ex in {
-    | .cVoid(Lc,Tp) => mkCons("void",[Lc::data,encodeSig(Tp)])
+    | .cVoid(Lc) => mkCons("void",[Lc::data])
     | .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)])
     | .cVar(Lc,.cV(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)])
     | .cInt(Lc,Ix) => mkCons("int",[Lc::data,.intgr(Ix)])
@@ -1247,8 +1247,7 @@ star.compiler.term{
 
   thwTrm:(data) => cExp.
   thwTrm(D) => case D in {
-    | .term("void",[Lc,Sig]) =>
-      .cVoid(thawLoc(Lc),decodeSig(Sig))
+    | .term("void",[Lc]) => .cVoid(thawLoc(Lc))
     | .term("anon",[Lc,Sig]) => .cAnon(thawLoc(Lc),decodeSig(Sig))
     | .term("var",[Lc,.strg(V),Sig]) => .cVar(thawLoc(Lc),.cV(V,decodeSig(Sig)))
     | .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix)
@@ -1376,7 +1375,7 @@ star.compiler.term{
 
   public foldV:all a ~~ (cExp,vMode,(cExp,vMode,a)=>a,a) => a.
   foldV(Ex,Mode,Fn,SoF) => case Ex in {
-    | .cVoid(_,_) => SoF
+    | .cVoid(_) => SoF
     | .cAnon(_,_) => SoF
     | .cVar(_,_) => Fn(Ex,Mode,SoF)
     | .cInt(_,Ix) => SoF
