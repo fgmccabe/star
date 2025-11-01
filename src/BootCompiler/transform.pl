@@ -156,6 +156,8 @@ transformModuleDefs([Def|Defs],Pkg,Map,Opts,Ex,Exx) :-
 
 transformMdlDef(funDef(Lc,Nm,ExtNm,H,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Map,Opts,Dx,Dxx).
+transformMdlDef(prcDef(Lc,Nm,ExtNm,Tp,Cx,Args,Act),_,Map,Opts,Dx,Dxx) :-
+  transformProcedure(Lc,Nm,ExtNm,Tp,Cx,Args,Act,Map,Opts,Dx,Dxx).
 transformMdlDef(varDef(Lc,_Nm,ExtNm,[],Tp,Val),_Pkg,Map,Opts,Dx,Dxx) :-
   transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,Dx,Dxx).
 transformMdlDef(typeDef(Lc,_Nm,Tp,Rl,IxMap),_Pkg,Map,_,D,Dx) :-
@@ -182,6 +184,20 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   lookupTypeIndex(Map,TpNm,IxMap),
   progTypeArity(Tp,Ar),
   is_member((lbl(Nm,_),Ix),IxMap).
+
+transformProcedure(Lc,Nm,LclName,Tp,Extra,A,Act,Map,Opts,[Prc|Ex],Exx) :-
+  progTypeArity(Tp,Arity),
+  extraArity(Arity,Extra,Ar),
+  extendFunType(Tp,Extra,ATp),
+  filterVars(Extra,Q0),
+  ptnVars(A,Q0,Q0a),
+  declarePtnVars(Q0a,Map,LMap),
+  liftArgPtn(A,AA,Q0a,Q1,LMap,Opts,Ex,Ex0), % head args
+  concat(Extra,AA,Args),
+  liftAction(Act,RAct,Q1,_,Map,Opts,Ex,Ex0),
+  Prc = prDef(Lc,lbl(LclName,Ar),ATp,Args,RAct),
+  closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
+  (is_member(traceNormalize,Opts) -> dispRuleSet(Prc);true).
 
 transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispFunction(LclName,Tp,Eqns);true),
@@ -227,6 +243,14 @@ extendFunTp(funType(AT,Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
   deRef(AT,tplType(Els)),
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
+extendFunTp(procType(AT),Extra,procType(tplType(NEls))) :-!,
+  deRef(AT,tplType(Els)),
+  extendTplTp(Extra,Anons),!,
+  concat(Anons,Els,NEls).
+extendFunTp(procType(AT,Et),Extra,procType(tplType(NEls),Et)) :-!,
+  deRef(AT,tplType(Els)),
+  extendTplTp(Extra,Anons),!,
+  concat(Anons,Els,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
   extendFunType(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-
@@ -264,6 +288,8 @@ transformLetDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
 
 transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
+transformLetDef(prcDef(Lc,Nm,ExtNm,Tp,_,A,Act),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
+  transformProcedure(Lc,Nm,ExtNm,Tp,Extra,A,Act,Map,Opts,Dx,Dxx).
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)),
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).

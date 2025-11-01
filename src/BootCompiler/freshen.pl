@@ -81,13 +81,18 @@ frshn(tpFun(Nm,Ar),_,_,_,tpFun(Nm,Ar)).
 frshn(funType(A,R),E,B,Ex,funType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
-frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
-  rewriteType(A,E,B,Ex,FA),
-  rewriteType(R,E,B,Ex,FR).
 frshn(funType(A,R,Er),E,B,Ex,funType(FA,FR,FEr)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR),
   rewriteType(Er,E,B,Ex,FEr).
+frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
+  rewriteType(A,E,B,Ex,FA),
+  rewriteType(R,E,B,Ex,FR).
+frshn(procType(A),E,B,Ex,procType(FA)) :-
+  rewriteType(A,E,B,Ex,FA).
+frshn(procType(A,R),E,B,Ex,procType(FA,FR)) :-
+  rewriteType(A,E,B,Ex,FA),
+  rewriteType(R,E,B,Ex,FR).
 frshn(tplType(L),E,B,Ex,tplType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
 frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :-
   rewriteType(O,E,B,Ex,FO),

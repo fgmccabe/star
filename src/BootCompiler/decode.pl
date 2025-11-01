@@ -96,6 +96,8 @@ decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(T
 decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
 decodeType(funType(A,T,E)) --> ['T'], decodeType(A), decodeType(T), decodeType(E).
+decodeType(procType(A)) --> ['p'], decodeType(A).
+decodeType(procType(A,E)) --> ['P'], decodeType(A), decodeType(E).
 decodeType(tplType(Tps)) --> decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).
 decodeType(typeLambda(L,R)) --> ['y'], decodeType(L), decodeType(R).

@@ -160,6 +160,7 @@
     "test.pp1": "pp1.star",
     "test.pr": "pr.star",
     "test.primes": "primes.star",
+    "test.proc": "proc.star",
     "test.q0": "q0.star",
     "test.q1": "q1.star",
     "test.qd": "qd.star",

@@ -100,6 +100,9 @@ logical validSig(char *sig, integer *start, integer end) {
       } else
         return False;
     }
+    case prcSig:
+      return validSig(sig, start,end);
+    case thrSig:
     case funSig:        /* Function signature */
     case conSig:        /* Constructor function */
     case contSig:       // Continuation
@@ -152,6 +155,8 @@ static retCode funArity(const char *sig, int32 *arity, integer *start, integer e
         return Error;
     }
     case funSig:        /* Function signature */
+    case prcSig:
+    case thrSig:
     case conSig:
     case throwSig:
       return tplArity(sig, arity, start, end);
@@ -182,6 +187,11 @@ retCode funSigReturns(const char *sig, integer length, int32 *count) {
     *count = 1;
     return Ok;
   }
+}
+
+retCode prcSigArity(const char *sig, integer length, int32 *arity) {
+  integer pos = 0;
+  return funArity(sig, arity, &pos, length);
 }
 
 static retCode constraintArity(const char *sig, int32 *arity, integer *start, integer end) {
@@ -283,6 +293,9 @@ retCode skipSig(const char *sig, integer *start, integer end) {
         } else
           return Error;
       }
+      case prcSig:
+        return skipSig(sig, start, end);
+      case thrSig:
       case funSig:        /* Function signature */
       case conSig:        /* Constructor function */
       case contSig:       // Continuation
@@ -443,6 +456,9 @@ retCode skipSignature(ioPo in) {
           ret = skipFields(in);
         return ret;
       }
+      case prcSig:
+        return skipSignature(in);
+      case thrSig:
       case funSig:        /* Function signature */
       case conSig:        /* Constructor function */
       case contSig:       // Continuation
@@ -582,6 +598,14 @@ retCode showSignature(ioPo out, const char *sig, integer *start, integer end) {
     case funSig:        /* Function signature */
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, "=>"));
+      return showSignature(out, sig, start, end);
+    case prcSig:
+      tryRet(showSignature(out, sig, start, end));
+      return outStr(out, "{}");
+    case thrSig: /* Throwing function signature */
+      tryRet(showSignature(out, sig, start, end));
+      tryRet(outStr(out, "{}"));
+      tryRet(outStr(out, " throws "));
       return showSignature(out, sig, start, end);
     case conSig:        /* Constructor function */
       tryRet(showSignature(out, sig, start, end));

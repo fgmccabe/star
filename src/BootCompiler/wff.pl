@@ -16,6 +16,7 @@
 	      isTypeAnnotation/4,typeAnnotation/4,isTypeField/4,mkTypeField/4,
 	      isTypeLambda/4,typeLambda/4,typeName/2,
 	      isFuncType/4,funcType/4,
+	      isProcType/4,mkProcType/4,
 	      isTaskType/3,mkTaskType/3,
 	      mkSqType/4,
 	      isEnum/3,mkEnum/3,isAnon/2,mkAnon/2,
@@ -30,6 +31,7 @@
 	      isParseCall/4,mkParseCall/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
+	      isProcedure/4,mkProcedure/4,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -369,6 +371,19 @@ isFuncType(T,Lc,Lh,Rh) :-
 funcType(Lc,L,R,Tp) :-
   binary(Lc,"=>",L,R,Tp).
 
+isProcType(T,Lc,ATp,some(Tr)) :-
+  isThrows(T,Lc,L,Tr),
+  isProcType(L,_,ATp,_).
+isProcType(T,Lc,ATp,none) :-
+  braceTerm(Lc,ATp,[],T),
+  isTuple(ATp,_,_).
+
+mkProcType(Lc,ATp,none,Tp) :-!,
+  braceTerm(Lc,ATp,[],Tp).
+mkProcType(Lc,ATp,some(ThTp),Tp) :-
+  braceTerm(Lc,ATp,[],PrTp),
+  mkThrows(Lc,PrTp,ThTp,Tp).
+
 mkSqType(Lc,Nm,Els,Tp) :-
   squareTerm(Lc,name(Lc,Nm),Els,Tp).
 
@@ -555,6 +570,8 @@ headOfRule(St,Hd) :-
   isAssignment(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
   isEquation(St,_,Hd,_,_),!.
+headOfRule(St,Hd) :-
+  isProcedure(St,_,Hd,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),
@@ -590,6 +607,13 @@ buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
   roundTerm(Lc,Nm,Args,T),
   mkDefault(Lc,T,H),
   mkEquation(Lc,H,Cond,Exp,Eqn).
+
+isProcedure(Trm,Lc,Hd,As) :-
+  isBraceTerm(Trm,Lc,Hd,Bd),
+  deSequence(Bd,As).
+
+mkProcedure(Lc,Hd,Bd,Trm) :-
+  braceTerm(Lc,Hd,Bd,Trm).
 
 mergeCond(_,none,C,C) :-!.
 mergeCond(_,C,none,C) :-!.

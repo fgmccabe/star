@@ -16,9 +16,26 @@ overload(Defs,Dict,Opts,RDefs) :-
 
 overloadDef(Dict,Opts,funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns),RF) :-!,
   overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,Opts,RF).
+overloadDef(Dict,Opts,prcDef(Lc,Nm,ExtNm,Tp,Cx,H,A),RF) :-!,
+  overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,H,A,Dict,Opts,RF).
 overloadDef(Dict,Opts,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,Opts,RD).
 overloadDef(_,_,Def,Def).
+
+overloadProcedure(Lc,Nm,ExtNm,Tp,[],A,Act,Dict,Opts,Reslt) :-
+  defineArgVars(A,Dict,RDict),
+  resolveTerm(A,RDict,Opts,RA),
+  resolveAction(Act,Dict,Opts,RAct),
+  Reslt = prcDef(Lc,Nm,ExtNm,Tp,[],RA,RAct),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overloaded procedure %s",[canDef(Reslt)])).
+overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,A,Act,Dict,Opts,Reslt) :-
+  defineCVars(Lc,Cx,Dict,CVars,FDict),
+  defineArgVars(A,FDict,RDict),
+  resolveTerm(A,RDict,Opts,RA),
+  addExtra(CVars,RA,RArgs),
+  resolveAction(Act,Dict,Opts,RAct),
+  Reslt = prcDef(Lc,Nm,ExtNm,Tp,[],RArgs,RAct),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overloaded procedure %s",[canDef(Reslt)])).
 
 overloadFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Dict,Opts,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,Opts,[],REqns),!.
@@ -100,21 +117,42 @@ resolveTerm(Term,Dict,Opts,Resolved) :-
   traceCheck(Opts,Lc,"resolve %s",[can(Term)]),
   overloadTerm(Term,Dict,Opts,inactive,St,RTerm),!,
   traceCheck(Opts,Lc,"resolved term %s",[can(RTerm)]),
-  resolveAgain(inactive,St,Term,RTerm,Dict,Opts,Resolved).
+  resolveTermAgain(inactive,St,Term,RTerm,Dict,Opts,Resolved).
 
 % Somewhat complex logic to allow multiple iterations unless it will not help
-resolveAgain(_Prior,resolved,Term,T,Dict,Opts,R) :- !,
+resolveTermAgain(_Prior,resolved,Term,T,Dict,Opts,R) :- !,
   overloadTerm(T,Dict,Opts,inactive,St,T0),
-  resolveAgain(inactive,St,Term,T0,Dict,Opts,R).
-resolveAgain(_,inactive,_,T,_,_,T) :- !.
-resolveAgain(active(_,Msg),active(Lc,Msg1),Term,_,_,_,Term) :-
+  resolveTermAgain(inactive,St,Term,T0,Dict,Opts,R).
+resolveTermAgain(_,inactive,_,T,_,_,T) :- !.
+resolveTermAgain(active(_,Msg),active(Lc,Msg1),_,Term,_,_,Term) :-
   similarStrings(Msg,Msg1),
   reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
-resolveAgain(_,fatal(Lc,Msg),Term,_,_,_,Term) :-
+resolveTermAgain(_,fatal(Lc,Msg),_,Term,_,_,Term) :-
   reportError("cannot resolve %s because %s",[can(Term),ss(Msg)],Lc).
-resolveAgain(_,active(Lc,Msg),Orig,_,Dict,Opts,R) :-
+resolveTermAgain(_,active(Lc,Msg),Orig,_,Dict,Opts,R) :-
   overloadTerm(Orig,Dict,Opts,inactive,St,T0),!,
-  resolveAgain(active(Lc,Msg),St,Orig,T0,Dict,Opts,R).
+  resolveTermAgain(active(Lc,Msg),St,Orig,T0,Dict,Opts,R).
+
+resolveAction(Act,Dict,Opts,Resolved) :-
+  locOfCanon(Act,Lc),
+  traceCheck(Opts,Lc,"resolve %s",[cnact(Act)]),
+  overloadAction(Act,Dict,Opts,inactive,St,RAct),!,
+  traceCheck(Opts,Lc,"resolved action %s",[cnact(RAct)]),
+  resolveActAgain(inactive,St,Act,RAct,Dict,Opts,Resolved).
+
+% Somewhat complex logic to allow multiple iterations unless it will not help
+resolveActAgain(_Prior,resolved,Term,T,Dict,Opts,R) :- !,
+  overloadAction(T,Dict,Opts,inactive,St,T0),
+  resolveActAgain(inactive,St,Term,T0,Dict,Opts,R).
+resolveActAgain(_,inactive,_,T,_,_,T) :- !.
+resolveActAgain(active(_,Msg),active(Lc,Msg1),_,Term,_,_,Term) :-
+  similarStrings(Msg,Msg1),
+  reportError("cannot resolve %s because %s",[cnact(Term),ss(Msg)],Lc).
+resolveActAgain(_,fatal(Lc,Msg),_,Term,_,_,Term) :-
+  reportError("cannot resolve %s because %s",[cnact(Term),ss(Msg)],Lc).
+resolveActAgain(_,active(Lc,Msg),Orig,_,Dict,Opts,R) :-
+  overloadAction(Orig,Dict,Opts,inactive,St,T0),!,
+  resolveActAgain(active(Lc,Msg),St,Orig,T0,Dict,Opts,R).
 
 markActive(_,Lc,Msg,active(Lc,Msg)).
 

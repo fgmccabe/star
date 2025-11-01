@@ -161,6 +161,11 @@ freeVarsInDefs(L,Ex,Q,F,Fv) :-
 
 freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,_,Eqns),F,Fv) :-
   freeVarsInRules(Eqns,Ex,Q,freevars:freeVars,F,Fv).
+freeVarsInDef(Ex,Q,prcDef(_,_,_,_,_,H,Act),F,Fv) :-!,
+  ptnVars(H,Ex,Ex1),
+  freeVars(H,Ex1,Q,F,F0),
+  freeVarsInAction(Act,Ex1,Q,F0,Fv).
+
 freeVarsInDef(Ex,Q,varDef(_,_,_,_,_Tp,Value),F,Fv) :-
   freeVars(Value,Ex,Q,F,Fv).
 freeVarsInDef(_,_,_,F,F).

@@ -81,9 +81,6 @@ term0([lftTok("{..}",Lcx)|Tks],tuple(Lc,"{..}",Seq),Toks,rbrce) :-!,
   terms(Tks,rgtTok("{..}",_),Tks2,Seq),!,
   checkToken(Tks2,Toks,rgtTok("{..}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
   mergeLoc(Lcx,Lcy,Lc).
-term0([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc2)|Toks],Term,Toks,rbrce) :-
-  mergeLoc(Lc0,Lc2,Lc),!,
-  emptyBkt(Lc,Bkt,Term).
 term0(Tks,T,Toks,Lst) :- term00(Tks,Op,RTks,LLst), termArgs(RTks,Op,T,Toks,LLst,Lst).
 
 emptyBkt(Lc,"[]",tuple(Lc,"[]",[])).

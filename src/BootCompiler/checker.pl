@@ -319,6 +319,11 @@ formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,
   Decl = varDec(Nm,LclNm,Tp),
   declareVr(Lc,Nm,Tp,none,Env,Ev),
   call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
+formDefn([Defn],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
+  Defn = prcDef(Lc,Nm,LclNm,Tp,Cx,_Arg,_Act),
+  Decl = funDec(Nm,LclNm,Tp),
+  declareVr(Lc,Nm,Tp,none,Env,Ev),
+  call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
 
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Opts,Path) :-
@@ -332,6 +337,10 @@ processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path) :-
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Opts,Path) :-
   isDefn(St,Lc,L,R),
   checkDefn(Lc,L,R,Tp,Def,Env,Opts,Path),!.
+processStmt(St,ProgramType,[Def|Defs],Defs,Df,Df,E,Opts,Path) :-
+  isProcedure(St,Lc,L,As),!,
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"check procedure %s\nagainst %s",[ast(St),tpe(ProgramType)])),
+  checkProcedure(Lc,L,As,ProgramType,Def,E,Opts,Path).
 processStmt(St,_,Defs,Defs,Df,Df,_,_,_) :-
   locOfAst(St,Lc),
   reportError("Invalid statement %s",[ast(St)],Lc).
@@ -356,6 +365,10 @@ guessType(St,_,_,funType(tplType(AT),RTp)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
+guessType(St,_,_,procType(tpleType(AT))) :-
+  isProcedure(St,_,H,_),!,
+  splitHead(H,_,tuple(_,_,Args),_),
+  genTpVars(Args,AT).
 guessType(_,N,Lc,GTp) :- !,
   reportError("%s not declared",[N],Lc),
   newTypeVar("_",GTp).
@@ -377,6 +390,35 @@ checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
+
+checkProcedure(Lc,H,As,PTp,Proc,E,Opts,Path) :-
+  splitUpProcedureType(Lc,E,PTp,AT,ErTp),
+  splitHead(H,Nm,A,_IsDeflt),
+  pushScope(E,Env),
+  typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
+  isVarTuple(Args),
+  checkActions(As,Lc,ErTp,E0,_,Act,Opts,Path),
+  qualifiedName(Path,Nm,ExtNm),
+  Proc = prcDef(Lc,Nm,ExtNm,PTp,[],Args,Act),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"procedure: %s",[canDef(Proc)])).
+
+isVarTuple(tple(_,Els)) :-
+  foreach(Els,checker:isVr).
+isVarTuple(C) :-
+  locOfCanon(C,Lc),
+  reportError("procedure arguments should be a tuple of variables, not %s",[can(C)],Lc).
+
+isVr(v(_,_,_)).
+isVr(C) :-
+  locOfCanon(C,Lc),
+  reportError("procedure arguments must be identifier, not %s",[can(C)],Lc).
+
+splitUpProcedureType(Lc,Env,Tp,AT,ET) :-
+  newTypeVar("A",AT),
+  newTypeVar("E",ET),
+  (sameType(Tp,procType(AT,ET),Lc,Env);
+   sameType(Tp,procType(AT),Lc,Env)->sameType(ET,voidType,Lc,Env);
+   reportError("Expecting a procedure type, not %s",[tpe(Tp)],Lc)).
 
 splitUpProgramType(Lc,Env,FTp,AT,RT,ET) :-
   newTypeVar("A",AT),
@@ -824,7 +866,7 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
-  checkAction(Ac,Tp,ErTp,hasVal,Env,Ev,Act,Opts,Path),
+  checkAction(Ac,Tp,ErTp,mustVal,Env,Ev,Act,Opts,Path),
   (is_member(traceCheck,Opts) -> 
    reportMsg("action %s:%s/%s",[cnact(Act),tpe(Tp),tpe(ErTp)],Lc);
    true).
@@ -953,126 +995,166 @@ typeOfThunk(Lc,Term,Tp,Env,
   verifyType(Lc,ast(Term),ThTp,Tp,ThnkEnv),
   typeOfExp(Term,VlTp,voidType,ThnkEnv,_,Exp,Opts,Path).
 
-checkAction(A,Tp,ErTp,HasVal,Env,Ev,As,Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,As,Opts,Path) :-
   isBraceTuple(A,_,[S]),!,
-  checkAction(S,Tp,ErTp,HasVal,Env,Ev,As,Opts,Path).
-checkAction(A,_Tp,_ErTp,HasVal,Env,Env,doNop(Lc),_,_) :-
+  checkAction(S,Tp,ErTp,Last,Env,Ev,As,Opts,Path).
+checkAction(A,Tp,_ErTp,Last,Env,Env,doNop(Lc),_,_) :-
   isBraceTuple(A,Lc,[]),!,
-  validLastAct(A,Lc,HasVal).
-checkAction(A,Tp,ErTp,HasVal,Env,Ev,doSeq(Lc,L,R),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Ev,doSeq(Lc,L,R),Opts,Path) :-
   isActionSeq(A,Lc,A1,A2),!,
-  checkAction(A1,Tp,ErTp,noVal,Env,E0,L,Opts,Path),
-  checkAction(A2,Tp,ErTp,HasVal,E0,Ev,R,Opts,Path).
-checkAction(A,Tp,ErTp,HasVal,Env,Ev,Ax,Opts,Path) :-
+  checkAction(A1,Tp,ErTp,notLast,Env,E0,L,Opts,Path),
+  checkAction(A2,Tp,ErTp,Last,E0,Ev,R,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Ax,Opts,Path) :-
   isActionSeq(A,_,A1),!,
-  checkAction(A1,Tp,ErTp,HasVal,Env,Ev,Ax,Opts,Path).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doLbld(Lc,Lb,Ax),Opts,Path) :-
+  checkAction(A1,Tp,ErTp,Last,Env,Ev,Ax,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Env,doLbld(Lc,Lb,Ax),Opts,Path) :-
   isLbldAction(A,Lc,L,[AA]),!,isIden(L,_,Lb),
-  checkAction(AA,Tp,ErTp,HasVal,Env,_,Ax,Opts,Path).
-checkAction(A,_,_,_,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
-  isBreak(A,Lc,L),!,isIden(L,_,Lb).
-checkAction(A,Tp,ErTp,_HasVal,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
+  checkAction(AA,Tp,ErTp,Last,Env,_,Ax,Opts,Path).
+checkAction(A,Tp,_,Last,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
+  isBreak(A,Lc,L),!,isIden(L,_,Lb),
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,_Last,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,ErTp,_HasVal,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
+checkAction(A,Tp,ErTp,_Last,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
+  isValis(A,Lc,E),!,
+  typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
+checkAction(A,_Tp,ErTp,_Last,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
-checkAction(A,_Tp,ErTp,HasVal,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Opts,Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
   newTypeVar("V",TV),
   typeOfExp(R,TV,ErTp,Env,_,Exp,Opts,Path),
   declareVr(NLc,Nm,TV,none,Env,Ev),
-  validLastAct(A,Lc,HasVal).
-checkAction(A,_Tp,ErTp,HasVal,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isDefn(A,Lc,P,E),
   isTuple(P,_,_),!,
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Opts,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Opts,Path),
-  validLastAct(A,Lc,HasVal).
-checkAction(A,_Tp,ErTp,HasVal,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isMatch(A,Lc,P,E),!,
   reportWarning("Use of .= in actions is deprecated",[],Lc),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Opts,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Opts,Path),
-  validLastAct(A,Lc,HasVal).
-checkAction(A,_Tp,ErTp,HasVal,Env,Ev,Act,Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Act,Opts,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,ErTp,Env,Ev,Act,Opts,Path),
-  validLastAct(A,Lc,HasVal).
-checkAction(A,Tp,OErTp,HasVal,Env,Env,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,OErTp,Last,Env,Env,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
   isTry(A,Lc,B,H),!,
-  checkTry(B,H,ErTp,Tp,OErTp,Env,checker:tryAction(HasVal),Body,Hndlr,Opts,Path).
-checkAction(A,Tp,ErTp,HasVal,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
+  checkTry(B,H,ErTp,Tp,OErTp,Env,checker:tryAction(Last),Body,Hndlr,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(T,Tp,ErTp,HasVal,E0,E1,Thn,Opts,Path),
-  checkAction(E,Tp,ErTp,HasVal,Env,E2,Els,Opts,Path),
+  checkAction(T,Tp,ErTp,Last,E0,E1,Thn,Opts,Path),
+  checkAction(E,Tp,ErTp,Last,Env,E2,Els,Opts,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(A,Tp,ErTp,_HasVal,Env,Env,doIfThenElse(Lc,Tst,Thn,doNop(Lc)),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,doIfThenElse(Lc,Tst,Thn,doNop(Lc)),Opts,Path) :-
   isIfThen(A,Lc,G,T),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(T,Tp,ErTp,noVal,E0,_,Thn,Opts,Path).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doWhile(Lc,Tst,Bdy),Opts,Path) :-
+  checkAction(T,Tp,ErTp,Last,E0,_,Thn,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Env,doWhile(Lc,Tst,Bdy),Opts,Path) :-
   isWhileDo(A,Lc,G,B),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(B,Tp,ErTp,noVal,E0,_,Bdy,Opts,Path),
-  validLastAct(A,Lc,HasVal).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doLet(Lc,Decls,Defs,Ac),Opts,Path) :-
+  checkAction(B,Tp,ErTp,notLast,E0,_,Bdy,Opts,Path),
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Env,doLet(Lc,Decls,Defs,Ac),Opts,Path) :-
   isLetDef(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   recordEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,ErTp,HasVal,OEnv,_,Ac,Opts,ThPath).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Opts,Path) :-
+  checkAction(B,Tp,ErTp,Last,OEnv,_,Ac,Opts,ThPath).
+checkAction(A,Tp,ErTp,Last,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Opts,Path) :-
   isLetRec(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   thetaEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,ErTp,HasVal,OEnv,_,Ac,Opts,ThPath).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
+  checkAction(B,Tp,ErTp,Last,OEnv,_,Ac,Opts,ThPath).
+checkAction(A,Tp,ErTp,Last,Env,Env,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
   isCaseExp(A,Lc,Bnd,Cases),
   newTypeVar("B",BVr),
   typeOfExp(Bnd,BVr,ErTp,Env,_,Bound,Opts,Path),
-  checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:tryAction(HasVal),Opts,Path),!.
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
+  checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:tryAction(Last),Opts,Path),!.
+checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
   isSuspend(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
   fiberType(TTp,MTp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
-  checkLastAction(A,Lc,HasVal,Tp,TTp,Env).
-checkAction(A,Tp,ErTp,_HasVal,Env,Env,doExp(Lc,retire(Lc,T,M,Tp)),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,_Last,Env,Env,doExp(Lc,retire(Lc,T,M,Tp)),Opts,Path) :-
   isRetire(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
   fiberType(TTp,MTp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
   fiberType(MTp,TTp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
-  checkLastAction(A,Lc,HasVal,Tp,TTp,Env).
-checkAction(A,Tp,ErTp,HasVal,Env,Env,doExp(Lc,Exp),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
-  newTypeVar("_",RTp),
-  typeOfRoundTerm(Lc,F,Args,RTp,ErTp,Env,Exp,Opts,Path),
-  checkLastAction(A,Lc,HasVal,Tp,RTp,Env).
-checkAction(A,Tp,_ErTp,_HasVal,Env,Env,doNop(Lc),_,_) :-
+  checkProcCall(Lc,F,Args,ErTp,Env,Exp,Opts,Path),
+  validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,_ErTp,_Last,Env,Env,doNop(Lc),_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
 
-tryAction(HasVal,A,Tp,ErTp,Env,Ev,Act,Opts,Path) :-
-  checkAction(A,Tp,ErTp,HasVal,Env,Ev,Act,Opts,Path).
+checkProcCall(Lc,F,A,ErTp,Env,Call,Opts,Path) :-
+  newTypeVar("F",FnTp),
+  newTypeVar("R",Tp),
+  genTpVars(A,Vrs),
+  newTypeVar("_E",ETp),
+  At = tplType(Vrs),
+  typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of function %s:%s",[can(Fun),tpe(FnTp)])),
+  (sameType(funType(At,Tp),FnTp,Lc,E0) ->
+     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+     Call=apply(Lc,Fun,Args,Tp);
+   sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
+     (sameType(ETp,ErTp,Lc,Env) ->
+	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+	Call=tapply(Lc,Fun,Args,Tp,ErTp);
+      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
+      Call=void);
+   sameType(procType(At),FnTp,Lc,E0) ->
+     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+     Call=apply(Lc,Fun,Args,Tp);
+   sameType(procType(At,ETp),FnTp,Lc,E0) ->
+     (sameType(ETp,ErTp,Lc,Env) ->
+	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+	Call=tapply(Lc,Fun,Args,Tp,ErTp);
+      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
+      Call=void);
+   reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
+   Call=void).
+
+checkActions([],Lc,_ErTp,Env,Env,doNop(Lc),_Opts,_Path).
+checkActions([A],_,ErTp,Env,Ev,Ax,Opts,Path) :-
+  checkAction(A,voidType,ErTp,notLast,Env,Ev,Ax,Opts,Path).
+checkActions([A|As],_,ErTp,Env,Ev,doSeq(Lc,A1,A2),Opts,Path) :-
+  checkAction(A,voidType,ErTp,notLast,Env,E0,A1,Opts,Path),
+  locOfAst(A,Lc),
+  checkActions(As,Lc,ErTp,E0,Ev,A2,Opts,Path).
+
+tryAction(Last,A,Tp,ErTp,Env,Ev,Act,Opts,Path) :-
+  checkAction(A,Tp,ErTp,Last,Env,Ev,Act,Opts,Path).
 
 checkAssignment(Lc,P,E,ErTp,Env,Ev,doDefn(Lc,Ptn,cell(Lc,Exp)),Opts,Path) :-
   isIden(P,Nm),
@@ -1087,13 +1169,9 @@ checkAssignment(Lc,P,E,ErTp,Env,Ev,doAssign(Lc,Ptn,Exp),Opts,Path) :-
   typeOfExp(P,RTp,ErTp,Env,Ev,Ptn,Opts,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Opts,Path).
 
-validLastAct(A,Lc,hasVal(_)) :-!,
-  reportError("%s not permitted to be last action",[ast(A)],Lc).
-validLastAct(_,_,_).
-
-checkLastAction(_,_,noVal,_,_,_) :-!.
-checkLastAction(A,Lc,hasVal,ETp,ATp,Env) :-
-  verifyType(Lc,ast(A),ATp,ETp,Env).
+validLastAct(A,Lc,Tp,mustVal) :-!,
+  reportError("missing valis of type %s, after %s",[tpe(Tp),ast(A)],Lc).
+validLastAct(_,_,_,_).
 
 checkGuard(none,_ErTp,Env,Env,none,_,_) :-!.
 checkGuard(some(G),ErTp,Env,Ev,some(Goal),Opts,Path) :-

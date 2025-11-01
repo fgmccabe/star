@@ -108,6 +108,20 @@ char *dumpStarSig(char *sig, ioPo out) {
       outStr(out, ")");
       return sig;
     }
+    case prcSig: {
+      outStr(out, ".tpExp(.tpFun(\"{}\",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
+    case thrSig: {
+      outStr(out, ".tpExp(.tpExp(.tpFun(\"{}\",2),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    }
     case conSig: {
       outStr(out, ".tpExp(.tpExp(.tpFun(\"<=>\",2),");
       sig = dumpStarSig(sig, out);

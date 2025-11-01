@@ -66,7 +66,7 @@ look_for_signature([St|_],Nm,Lc,Ms) :-
   (isTypeDecl(St,Lc,V,T) ;
    (isPublic(St,_,I),isTypeDecl(I,Lc,V,T))),
   isIden(V,_,Nm),
-  isFuncType(T,_,L,_),
+  (isFuncType(T,_,L,_) ; isProcType(T,_,L,_)),
   isTuple(L,_,Ms),!.
 look_for_signature([_|As],Nm,Lc,Ms) :-
   look_for_signature(As,Nm,Lc,Ms).
@@ -76,7 +76,12 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
   roundTerm(Lc,name(Lc,"main"),Cs,MnCall),
-  eqn(Lc,Lhs,MnCall,Main),
+  unitTpl(Lc,U),
+  mkValis(Lc,U,Vl),
+  mkSequence(Lc,MnCall,Vl,MnSeq),
+  braceTuple(Lc,[MnSeq],MnAct),
+  mkValof(Lc,MnAct,MnReslt),
+  eqn(Lc,Lhs,MnReslt,Main),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),

@@ -64,6 +64,11 @@ examineStmt(S,Rp) :-
   macroTerm(V,VV),
   mkEquation(Lc,PP,GG,VV,Rp).
 examineStmt(S,Rp) :-
+  isProcedure(S,Lc,P,G),!,
+  macroHead(P,PP),
+  map(G,macros:macroAction,GG),
+  mkProcedure(Lc,PP,GG,Rp).
+examineStmt(S,Rp) :-
   isTypeFunStmt(S,Lc,Q,C,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
@@ -145,6 +150,11 @@ examineType(T,Tx) :- isFuncType(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),
   funcType(Lc,Lx,Rx,Tx).
+examineType(T,Tx) :-
+  isProcType(T,Lc,L,R),!,
+  macroType(L,Lx),
+  macroOpt(R,macros:macroType,Rx),
+  mkProcType(Lc,Lx,Rx,Tx).
 examineType(T,Tx) :- isThrows(T,Lc,L,R),!,
   macroType(L,Lx),
   macroType(R,Rx),

@@ -158,6 +158,19 @@ star.compiler.wff{
 
   public mkThrowingFunType(Lc,L,R,E) => binary(Lc,"=>",L,binary(Lc,"throws",R,E)).
 
+  public isProcType:(ast) => option[(option[locn],cons[ast],option[ast])].
+  isProcType(A) where
+      (Lc,L,T) ?= isBinary(A,"throws") &&
+	  (_,Els,_) ?= isProcType(L) =>
+    .some((Lc,Els,.some(T))).
+  isProcType(A) where
+      (Lc,Ag,[]) ?= isBraceTerm(A) && (_,Els) ?= isTuple(Ag) =>
+    .some((Lc,Els,.none)).
+  isProcType(_) default => .none.
+
+  public mkProcType(Lc,L,.none) => braceTerm(Lc,L,[]).
+  mkProcType(Lc,L,.some(T)) => binary(Lc,"throws",braceTerm(Lc,L,[]),T).
+
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
   isConstructorStmt(A) where (_,_,I) ?= isXQuantified(A) =>
