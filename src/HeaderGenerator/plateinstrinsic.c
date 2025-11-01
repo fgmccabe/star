@@ -222,6 +222,18 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
+    case prcSig:
+      outStr(out, ".tpExp(.tpFun(\"{}\",1),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
+    case thrSig:
+      outStr(out, ".tpExp(.tpExp(.tpFun(\"{}\",2),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, "),");
+      sig = dumpStarSig(sig, out);
+      outStr(out, ")");
+      break;
     case throwSig:
       outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
       sig = dumpStarSig(sig, out);
@@ -451,6 +463,11 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       outStr(out, "funType(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(out, ")");
+      return sig;
+    case prcSig:
+      outStr(out, "procType(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;

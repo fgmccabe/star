@@ -35,6 +35,10 @@ ssRuleSet(fnDef(_Lc,Nm,H,_Tp,Args,Value),sq([ss(HH),ss("Fn: "),NN,lp,AA,rp,ss(" 
   showArgs(Args,0,AA),
   ssTrm(Value,0,VV),
   (H=soft -> HH="soft ";HH="").
+ssRuleSet(prDef(_Lc,Nm,_Tp,Args,Act),sq([ss("Pr: "),NN,lp,AA,rp,ss("{"),AS,ss("}")])) :-
+  ssTrm(Nm,0,NN),
+  showArgs(Args,0,AA),
+  ssAct(Act,2,AS).
 ssRuleSet(glbDef(_Lc,Nm,_Tp,Value),sq([ss("Gl: "),id(Nm),ss(" = "),VV])) :-
   ssTrm(Value,0,VV).
 ssRuleSet(typDef(_Lc,Tp,_Rl,IxMap),
@@ -735,6 +739,9 @@ validDfs([D|Dfs],Dct) :-
 validDf(fnDef(Lc,_,_,_Tp,Args,Value),Dct) :-!,
   declareArgs(Args,Dct,D0),
   validTerm(Value,Lc,D0),!.
+validDf(prDef(Lc,_,_Tp,Args,Act),Dct) :-!,
+  declareArgs(Args,Dct,D0),
+  validAction(Act,Lc,D0,_),!.
 validDf(glbDef(Lc,_Nm,_Tp,Value),Dct) :-
   validTerm(Value,Lc,Dct).
 validDf(typDef(_Lc,_Tp,_Rl,_IxMap),_) :-!.

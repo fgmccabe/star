@@ -118,6 +118,8 @@ showTrm(cons(T),O) :-
   ss_to_chrs(iv(ss(", "),TT),O,[]).
 showTrm(dcl(D),O) :-
   ss_to_chrs(canon:ssDecl(D),O,[]).
+showTrm(prc(D),O) :-
+  ss_to_chrs(canon:ssProc(D),O,[]).
 showTrm(ldef(D),O) :-
   ss_to_chrs(lterms:ssRuleSet(D),O,[]).
 showTrm(ltrm(L),O) :-

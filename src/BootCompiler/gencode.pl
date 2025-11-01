@@ -50,18 +50,23 @@ decl(_,_,D,D).
 genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
-genDef(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[Cde|O]) :-
+genDef(D,Opts,Def,O,Ox) :-
+  (is_member(traceGenCode,Opts) -> dispRuleSet(Def) ; true),
+  genDf(D,Opts,Def,O,Ox).
+
+genDf(D,Opts,fnDef(Lc,Nm,H,Tp,Args,Value),O,[Cde|O]) :-
   genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,Cde).
-genDef(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cde|O]) :-
+genDf(D,Opts,prDef(Lc,Nm,Tp,Args,Act),O,[Cde|O]) :-
+  genPrc(Lc,Nm,Tp,Args,Act,D,Opts,Cde).
+genDf(D,Opts,glbDef(Lc,Nm,Tp,Value),O,[Cde|O]) :-
   genGlb(Lc,Nm,Tp,Value,D,Opts,Cde).
-genDef(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
+genDf(_,_,lblDef(_,Lbl,Tp,Ix),O,[LblTrm|O]) :-
   encType(Tp,Sig),
   assem(struct(Lbl,strg(Sig),Ix),LblTrm).
-genDef(_,_,typDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
+genDf(_,_,typDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
   assem(tipe(Tp,Rl,IxMap),TpTrm).
 
 genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
-  (is_member(traceGenCode,Opts) -> dispRuleSet(fnDef(Lc,Nm,H,Tp,Args,Value)) ; true),
   isThrowingType(Tp,_RsTp,_ErTp),!,
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
@@ -100,6 +105,48 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   getLsMap(Dx,LsMap),
   length(LsMap,LclCnt),
   GenFunc = func(Nm,H,Sig,LsMap,[iEntry(LclCnt)|C0]),
+  (is_member(traceGenCode,Opts) -> dispCode(GenFunc);true ),
+  peepOptimize(GenFunc,PFunc),
+  (is_member(showGenCode,Opts) -> dispCode(PFunc);true ),
+  assem(PFunc,CdTrm).
+
+genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
+  isThrowingType(Tp,_RsTp,_ErTp),!,
+  toLtipe(Tp,LTp),
+  encLtp(LTp,Sig),
+  genLbl([],Abrt,L0),
+  genLbl(L0,Lx,L1),
+  genLbl(L1,Er,L2),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
+				       [iLbl(Lx,iBlock(0,
+						       [iLbl(Er,iValof(1,FC)),
+							iXRet])),iLdV,iRet]))|CA]),
+  BaseBrks = [("$try",gencode:result,Er,none)],
+  compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D,D1,FC,FC0,some(0),Stk0),
+  compAction(Act,Lc,[("$abort",gencode:breakOut,Abrt,none)|BaseBrks],
+	     notLast,notLast,Opts,L3,L4,D1,D3,FC0,[iBreak(Lx)],Stk0,_),
+  compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
+  getLsMap(Dx,LsMap),
+  length(LsMap,LclCnt),
+  GenFunc = func(Nm,hard,Sig,LsMap,[iEntry(LclCnt)|C0]),
+  (is_member(traceGenCode,Opts) -> dispCode(GenFunc);true ),
+  peepOptimize(GenFunc,PFunc),
+  (is_member(showGenCode,Opts) -> dispCode(PFunc);true ),
+  assem(PFunc,CdTrm).
+genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
+  toLtipe(Tp,LTp),
+  encLtp(LTp,Sig),
+  genLbl([],Abrt,L0),
+  genLbl(L0,Lx,L1),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
+				       [iLbl(Lx,iBlock(0,FC)),iLdV,iRet]))|CA]),
+  compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D,D1,FC,FC0,some(0),Stk0),
+  compAction(Act,Lc,[("$abort",gencode:breakOut,Abrt,none)],
+	     notLast,notLast,Opts,L3,L4,D1,D3,FC0,[iBreak(Lx)],Stk0,_),
+  compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[iHalt(10)],Stk0,_),
+  getLsMap(Dx,LsMap),
+  length(LsMap,LclCnt),
+  GenFunc = func(Nm,hard,Sig,LsMap,[iEntry(LclCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispCode(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispCode(PFunc);true ),
@@ -599,7 +646,7 @@ compExp(xocall(Lc,O,A,_Tp,_ErTp),OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) 
    bumpStk(Stk,Stkx),
    frameIns(Stkx,C3,Cx);
    reportError("not in scope of try",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+   D=Dx,C=Cx,L=Lx,Stkx=Stk).
 compExp(clos(Lb,Ar,Free,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(Free,OLc,Brks,notLast,Opts,L,Lx,D,Dx,C,[iClosure(lbl(Lb,Ar))|C1],Stk,_Stka),
   bumpStk(Stk,Stka),

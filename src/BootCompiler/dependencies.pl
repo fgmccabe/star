@@ -62,6 +62,12 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectGuardRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
+collStmtRefs(St,All,Annots,SoFar,Refs) :-
+  isProcedure(St,_,H,As),
+  collectAnnotRefs(H,All,Annots,SoFar,R0),
+  collectHeadRefs(H,All,R0,R1),
+  reSequence(As,A),
+  collectDoRefs(A,All,R1,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,Body),
   collConstraints(Cx,All,R,Rf0),
@@ -486,6 +492,13 @@ collectTypeRefs(T,All,SoFar,Rx) :-
   isThrows(T,_,L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
+  isProcType(T,_,AT,none),!,
+  collectTypeRefs(AT,All,SoFar,Rx).
+collectTypeRefs(T,All,SoFar,Rx) :-
+  isProcType(T,_,AT,some(ET)),!,
+  collectTypeRefs(AT,All,SoFar,R0),
+  collectTypeRefs(ET,All,R0,Rx).
 collectTypeRefs(T,All,SoFar,Rx) :-
   isBinary(T,_,"<=>",L,R),
   collectTypeRefs(L,All,SoFar,R0),

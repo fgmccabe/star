@@ -1,4 +1,5 @@
-:- module(canon,[dispFunction/3,dispDef/1,dispCanon/1,dispAction/1,dispCanonProg/1,
+:- module(canon,[dispFunction/3,dispDef/1,
+		 dispCanon/1,dispAction/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,ssRule/3,ssDecl/2,
 		 dispDecls/1,
 		 typeOfCanon/2,typesOf/2,locOfCanon/2,
@@ -14,6 +15,7 @@
 :- use_module(location).
 
 isCanonDef(funDef(_,_,_,_,_,_,_)).
+isCanonDef(prcDef(_,_,_,_,_,_)).
 isCanonDef(varDef(_,_,_,_,_,_)).
 isCanonDef(cnsDef(_,_,_)).
 isCanonDef(typeDef(_,_,_,_,_)).
@@ -431,6 +433,12 @@ ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,Tp,_Cx,Eqns),
   ssRls(ExtNm,Eqns,Dp,canon:ssTerm,Rs),
   ssLoc(Lc,Lcs),
   (Sft=soft -> SS="soft " ; SS="").
+ssDef(Dp,prcDef(Lc,Nm,ExtNm,Tp,_Cx,Args,Act),
+      sq([ss("prc "),id(Nm),ss(":"),TT,ss(" @"),Lcs,nl(Dp),Rs])) :-
+  ssType(Tp,true,Dp,TT),
+  Rs = sq([id(ExtNm),canon:ssTerm(Args,Dp),ss("{"),nl(4),AA,nl(0),ss("}")]),
+  ssAction(Act,Dp,AA),
+  ssLoc(Lc,Lcs).
 ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,Tp,Value),
       sq([ss("var "),id(Nm),ss(":"),TT,ss(" = "),V])) :-
   ssType(Tp,true,Dp,TT),
@@ -467,13 +475,13 @@ ssFunction(Dp,Nm,Type,Eqns,
   ssRls(Nm,Eqns,Dp,canon:ssTerm,Rs).
 
 ssRls(Nm,Eqns,Dp,Dsp,iv(nl(Dp),EE)) :-
-  map(Eqns,canon:ssEqn(Nm,Dp,Dsp),EE).
+  map(Eqns,canon:ssRle(Nm,Dp,Dsp),EE).
 
-ssEqn("",Dp,Dsp,rule(_,Args,Guard,Value),
+ssRle("",Dp,Dsp,rule(_,Args,Guard,Value),
       sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" => "),
 	  VV])) :-
   call(Dsp,Value,Dp,VV).
-ssEqn(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
+ssRle(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
       sq([id(Nm),
 	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" => "),
 	  VV])) :-
