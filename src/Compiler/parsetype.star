@@ -75,7 +75,7 @@ star.compiler.typeparse{
       }
     }
   }
-  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFunctionType(T) => valof{
+  parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFuncType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
     valis fnType(A,R)
@@ -85,6 +85,15 @@ star.compiler.typeparse{
     R = parseType(Rhs,Env);
     E = parseType(Ehs,Env);
     valis throwingType(A,R,E)
+  }
+  parseType(T,Env) where (Lc,Lhs,.none) ?= isPrcType(T) => valof{
+    A = parseArgType(Lhs,Env);
+    valis procType(A,.none)
+  }
+  parseType(T,Env) where (Lc,Lhs,.some(Rhs)) ?= isPrcType(T) => valof{
+    A = parseArgType(Lhs,Env);
+    R = parseType(Rhs,Env);
+    valis procType(A,.some(R))
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);

@@ -363,7 +363,7 @@ star.compiler.macro.grammar{
 
   public grammarTypeMacro:(ast,macroContext) => macroState.
   grammarTypeMacro(A,.typeterm) where (Lc,L,R) ?= isBinary(A,"-->") && (_,G,P) ?= isBinary(L,">>") && (_,Els) ?= isTuple(G) => valof{
-    Ft = mkFunctionType(Lc,rndTuple(Lc,[R,..Els]),
+    Ft = mkFuncType(Lc,rndTuple(Lc,[R,..Els]),
       squareApply(Lc,"option",[rndTuple(Lc,[P,R])]));
 
     valis .active(Ft)

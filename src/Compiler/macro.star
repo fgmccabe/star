@@ -54,6 +54,8 @@ star.compiler.macro{
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineStmt(A) where (Lc,L,R) ?= isProcedure(A) => 
+    mkProcedure(Lc,macroPtn(L),macroAction(R)).
   examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
     mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineStmt(A) where (Lc,L,Els) ?= isContractStmt(A) => 
@@ -362,10 +364,12 @@ star.compiler.macro{
     mkDepends(Lc,L//macroType,R//macroType).
   examineType(A) where (Lc,L,R) ?= isConstructorType(A) =>
     mkConstructorType(Lc,macroType(L),macroType(R)).
-  examineType(A) where (Lc,L,R) ?= isFunctionType(A) =>
-    mkFunctionType(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R) ?= isFuncType(A) =>
+    mkFuncType(Lc,macroType(L),macroType(R)).
   examineType(A) where (Lc,L,R,E) ?= isThrwFunctionType(A) =>
     mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
+  examineType(A) where (Lc,L,R) ?= isPrcType(A) =>
+    mkPrcType(Lc,macroType(L),fmap(macroType,R)).
   examineType(A) where (Lc,R) ?= isRef(A) =>
     mkRef(Lc,macroType(R)).
   examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>
@@ -457,9 +461,9 @@ star.compiler.macro{
 */
 
   synthesizeMain:(option[locn],ast,cons[ast])=>cons[ast].
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFunctionType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFuncType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
     (Action,As) = synthCoercion(Lc,ElTps,[]);
-    
+
     MLhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,As)]);
 
     Valof = mkValof(Lc,[Action]);
@@ -472,6 +476,21 @@ star.compiler.macro{
     Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
+  }
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isPrcType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
+    (Action,As) = synthArgCoercion(Lc,ElTps,[],(Xs)=>roundTerm(Lc,.nme(Lc,"main"),Xs));
+
+    XX = genName(Lc,"XX");
+
+    Test = mkIfThenElse(Lc,mkMatch(Lc,mkConsPtn(Lc,As),XX),
+      Action,
+      unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")));
+
+    Main = mkProcedure(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),Test);
+    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),
+      mkPrcType(Lc,rndTuple(Lc,
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.none));
+    valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 
 /*
@@ -494,6 +513,19 @@ star.compiler.macro{
   }
   synthCoercion(Lc,[],Xs) => 
     (mkValis(Lc,roundTerm(Lc,.nme(Lc,"main"),reverse(Xs))),[]).
+
+  synthArgCoercion:(option[locn],cons[ast],cons[ast],(cons[ast])=>ast)=>(ast,cons[ast]).
+  synthArgCoercion(_,[Tp,..Ts],Xs,G)  => valof{
+    Lc = locOf(Tp);
+    X = genName(Lc,"X");
+    A = genName(Lc,"A");    
+    PRhs = binary(Lc,":?",A,Tp);
+    Tst = binary(Lc,"?=",X,PRhs); -- .some(X).=_coerce(A):T
+    Emsg = unary(Lc,"showMsg",.str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
+    (Inner,As) = synthArgCoercion(Lc,Ts,[X,..Xs],G);
+    valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
+  }
+  synthArgCoercion(Lc,[],Xs,G) => (G(Xs),[]).
 
   mkConsPtn:(option[locn],cons[ast]) => ast.
   mkConsPtn(Lc,[]) => enum(Lc,"nil").
