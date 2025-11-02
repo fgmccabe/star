@@ -41,9 +41,9 @@ test.proc{
     valis 43
   }
 
-  main:(){}.
-  main(){
-    do1(23);
+  main:(integer){}.
+  main(Ix){
+    do1(Ix);
 
     try{
       do2("hello",42);

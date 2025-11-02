@@ -455,10 +455,12 @@ star.compiler.dependencies{
     collectTypeList(Els,All,collectTypeRefs(Op,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isConstructorType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
-  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFunctionType(T) =>
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isFuncType(T) =>
     collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,L,R,E) ?= isThrwFunctionType(T) =>
     collectTypeRefs(E,All,collectTypeRefs(R,All,collectTypeRefs(L,All,SoFar))).
+  collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isPrcType(T) =>
+    collectTypeRefs(L,All,collectOptType(R,All,SoFar)).
   collectTypeRefs(T,All,SoFar) where (_,R) ?= isGeneratorType(T) =>
     collectTypeRefs(R,All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,L,R) ?= isBinary(T,"->>") =>
@@ -498,6 +500,10 @@ star.compiler.dependencies{
   collectTypeList([],_,Rf) => Rf.
   collectTypeList([T,..Ts],All,Rf) =>
     collectTypeList(Ts,All,collectTypeRefs(T,All,Rf)).
+
+  collectOptType:(option[ast],map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
+  collectOptType(.none,_,Rf) => Rf.
+  collectOptType(.some(T),All,Rf) => collectTypeRefs(T,All,Rf).
 
   collectConstraintRefs:(cons[ast],map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectConstraintRefs([],_,Rf) => Rf.

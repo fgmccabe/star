@@ -1,6 +1,7 @@
 star.compiler.macro.rules{
   import star.
   import star.sort.
+  import star.quote.
 
   import star.compiler.ast.
   import star.compiler.errors.
@@ -318,6 +319,18 @@ star.compiler.macro.rules{
   quoteAst(.tpl(Lc,Nm,Els)) => ternary(Lc,"_tuple",mkLoc(Lc),.str(Lc,Nm),
       macroListEntries(Lc,Els//quoteAst,genNil,genCons)).
   quoteAst(.app(Lc,Op,Arg)) => ternary(Lc,"_apply",mkLoc(Lc),quoteAst(Op),quoteAst(Arg)).
+
+  implementation quote[ast] => {
+    _name(Lc,N) => .nme(.some(Lc),N).
+    _qnme(Lc,N) => .qnm(.some(Lc),N).
+    _integer(Lc,Ix) => .int(.some(Lc),Ix).
+    _biginteger(Lc,Bx) => .big(.some(Lc),Bx).
+    _float(Lc,Dx) => .num(.some(Lc),Dx).
+    _char(Lc,Cx) => .chr(.some(Lc),Cx).
+    _string(Lc,Sx) => .str(.some(Lc),Sx).
+    _tuple(Lc,Nm,As) => .tpl(.some(Lc),Nm,As).
+    _apply(Lc,Nm,A) => .app(.some(Lc),Nm,A).
+  }
 
   /*
   for P : G do B

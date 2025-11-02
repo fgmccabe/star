@@ -6,30 +6,30 @@ star.compiler.types{
   import star.compiler.location.
   import star.compiler.misc.
 
-  public tipe ::= .voidType |
-    .anonType |
-    .kVar(string) |
-    .kFun(string,integer) |
-    .tVar(tv,string) |
-    .tFun(tv,integer,string) |
-    .nomnal(string) |
-    .tpFun(string,integer) |
-    .tpExp(tipe,tipe) |
-    .tupleType(cons[tipe]) |
-    .allType(tipe,tipe) |
-    .existType(tipe,tipe) |
-    .faceType(cons[(string,tipe)],cons[(string,typeRule)]) |
-    .constrainedType(tipe,constraint).
+  public tipe ::= .voidType
+  | .anonType
+  | .kVar(string)
+  | .kFun(string,integer)
+  | .tVar(tv,string)
+  | .tFun(tv,integer,string)
+  | .nomnal(string)
+  | .tpFun(string,integer)
+  | .tpExp(tipe,tipe)
+  | .tupleType(cons[tipe])
+  | .allType(tipe,tipe)
+  | .existType(tipe,tipe)
+  | .faceType(cons[(string,tipe)],cons[(string,typeRule)])
+  | .constrainedType(tipe,constraint).
 
-  public typeRule ::= .typeExists(tipe,tipe) |
-    .contractExists(string,cons[tipe],cons[tipe],tipe) |
-    .typeLambda(tipe,tipe) |
-    .allRule(tipe,typeRule).
+  public typeRule ::= .typeExists(tipe,tipe)
+  | .contractExists(string,cons[tipe],cons[tipe],tipe)
+  | .typeLambda(tipe,tipe)
+  | .allRule(tipe,typeRule).
 
   public constraint ::=
-    .conTract(string,cons[tipe],cons[tipe]) |
-    .hasField(tipe,string,tipe) |
-    .implicit(string,tipe).
+  | .conTract(string,cons[tipe],cons[tipe])
+  | .hasField(tipe,string,tipe)
+  | .implicit(string,tipe).
 
   tv ::= tv{
     binding : ref option[tipe].
@@ -367,7 +367,8 @@ star.compiler.types{
     tName(.existType(_,T)) => tName(deRef(T)).
     tName(.constrainedType(T,_)) => tName(deRef(T)).
     tName(.tupleType(A)) => "!()$(size(A))".
-    tName(.faceType(_,_)) => "{}".
+    tName(.faceType(Flds,_)) =>
+      "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
   .} in tName(deRef(Tp)).
 
   public conTractName:(constraint)=>string.
@@ -434,6 +435,7 @@ star.compiler.types{
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(Tp) where (A,_) ?= isFnType(Tp) => arity(A).
   ar(Tp) where (A,_,_) ?= isThrowingFunType(Tp) => arity(A).
+  ar(Tp) where (A,_) ?= isPrType(Tp) => arity(A).
   ar(Tp) where (A,_) ?= isCnType(Tp) => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
@@ -445,6 +447,8 @@ star.compiler.types{
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
   public throwingType(A,B,E) => .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),B),E).
+  public procType(A,.none) => .tpExp(.tpFun("{}",1),A).
+  procType(A,.some(R)) => .tpExp(.tpExp(.tpFun("{}",2),A),R).
   public thrType(A,B,E) => throwingType(.tupleType(A),B,E).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
@@ -513,14 +517,10 @@ star.compiler.types{
   funRes(.constrainedType(T,_))=>funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
-  isFunType(Tp) where
-      .tpExp(O,B).=deRef(Tp) &&
-	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
   isFunType(.allType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.existType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.constrainedType(T,_))=>isFunType(T).
-  isFunType(_) default => .none.
+  isFunType(Tp) default => isFnType(Tp).
 
   public isFnType:(tipe) => option[(tipe,tipe)].
   isFnType(Tp) where
@@ -528,8 +528,17 @@ star.compiler.types{
 	  .tpExp(O2,A) .= deRef(O) &&
 	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
   isFnType(_) default => .none.
-  
 
+  public isPrType:(tipe) => option[(tipe,option[tipe])].
+  isPrType(Tp) where
+      .tpExp(O,B).=deRef(Tp) &&
+	  .tpExp(O2,A) .= deRef(O) &&
+	      .tpFun("{}",2).=deRef(O2) => .some((A,.some(B))).
+  isPrType(Tp) where
+      .tpExp(O,A).=deRef(Tp) &&
+	  .tpFun("{}",1).=deRef(O) => .some((A,.none)).
+  isPrType(_) default => .none.
+  
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&

@@ -144,11 +144,13 @@ star.compiler.wff{
   public isConstructorType:(ast) => option[(option[locn],ast,ast)].
   isConstructorType(A) => isBinary(A,"<=>").
 
-  public isFunctionType:(ast) => option[(option[locn],ast,ast)].
-  isFunctionType(A) where
+  public isFuncType:(ast) => option[(option[locn],ast,ast)].
+  isFuncType(A) where
       (Lc,L,R) ?= isBinary(A,"=>") && ~ _ ?= isBinary(R,"throws") =>
     .some((Lc,L,R)).
-  isFunctionType(_) default => .none.
+  isFuncType(_) default => .none.
+
+  public mkFuncType(Lc,L,R) => binary(Lc,"=>",L,R).
 
   public isThrwFunctionType:(ast) => option[(option[locn],ast,ast,ast)].
   isThrwFunctionType(A) where
@@ -158,18 +160,19 @@ star.compiler.wff{
 
   public mkThrowingFunType(Lc,L,R,E) => binary(Lc,"=>",L,binary(Lc,"throws",R,E)).
 
-  public isProcType:(ast) => option[(option[locn],cons[ast],option[ast])].
-  isProcType(A) where
+  public isPrcType:(ast) => option[(option[locn],ast,option[ast])].
+  isPrcType(A) where
       (Lc,L,T) ?= isBinary(A,"throws") &&
-	  (_,Els,_) ?= isProcType(L) =>
+	  (_,Els,_) ?= isPrcType(L) =>
     .some((Lc,Els,.some(T))).
-  isProcType(A) where
-      (Lc,Ag,[]) ?= isBraceTerm(A) && (_,Els) ?= isTuple(Ag) =>
+  isPrcType(A) where
+      (Lc,Els,[]) ?= isBraceTerm(A) && _ ?= isTuple(Els) =>
     .some((Lc,Els,.none)).
-  isProcType(_) default => .none.
+   isPrcType(_) default => .none.
 
-  public mkProcType(Lc,L,.none) => braceTerm(Lc,L,[]).
-  mkProcType(Lc,L,.some(T)) => binary(Lc,"throws",braceTerm(Lc,L,[]),T).
+  public mkPrcType:(option[locn],ast,option[ast])=>ast.
+  mkPrcType(Lc,L,.none) => braceTerm(Lc,L,[]).
+  mkPrcType(Lc,L,.some(T)) => binary(Lc,"throws",braceTerm(Lc,L,[]),T).
 
   public isConstructorStmt(A) where (_,_,I) ?= isQuantified(A) =>
     isConstructorStmt(I).
@@ -183,8 +186,6 @@ star.compiler.wff{
 
   public mkConstructorType(Lc,L,R) => binary(Lc,"<=>",L,R).
 
-  public mkFunctionType(Lc,L,R) => binary(Lc,"=>",L,R).
-  
   public deComma:(ast) => cons[ast].
   deComma(Trm) => deTree(Trm,",").
 
@@ -623,7 +624,7 @@ star.compiler.wff{
   surfaceName(T) where (_,Id,_) ?= isSquareApply(T) => Id.
   surfaceName(T) where (_,_,I) ?= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ?= isTuple(T) => "()$(size(Els))".
-  surfaceName(T) where _ ?= isFunctionType(T) => "=>".
+  surfaceName(T) where _ ?= isFuncType(T) => "=>".
   surfaceName(T) where _ ?= isThrwFunctionType(T) => "=>".
   surfaceName(T) where _ ?= isRef(T) => "ref".
 
@@ -650,6 +651,7 @@ star.compiler.wff{
 
   public ruleName:(ast) => option[(option[locn],string)].
   ruleName(A) where (_,.some(Nm),_,_,_,_) ?= isEquation(A) && (Lc,Id)?=isName(Nm) => .some((Lc,Id)).
+  ruleName(A) where (_,H,_) ?= isProcedure(A) && (_,N,_) ?= isRoundTerm(H) && (Lc,Id)?=isName(N) => .some((Lc,Id)).
   ruleName(_) default => .none.
 
   public headName:(ast) => option[string].
@@ -682,6 +684,12 @@ star.compiler.wff{
   isEquation(A) where (Lc,L,R) ?= isBinary(A,"=>") &&
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isEquation(_) default => .none.
+
+  public isProcedure:(ast) => option[(option[locn],ast,ast)].
+  isProcedure(A) where (Lc,H,Acs) ?= isBraceTerm(A) => .some((Lc,H,reSequence(deSequence(Acs)))).
+  isProcedure(_) default => .none.
+
+  public mkProcedure(Lc,H,A) => braceTerm(Lc,H,[A]).
 
   public mkEquation:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.
   mkEquation(Lc,Nm,Deflt,Args,Cond,Rep) =>
@@ -736,6 +744,8 @@ star.compiler.wff{
 
   public equation:(option[locn],ast,ast)=>ast.
   equation(Lc,Hd,Rep) => binary(Lc,"=>",Hd,Rep).
+
+  
 
   public isCase:(ast) => option[(option[locn],ast,cons[ast])].
   isCase(A) where (Lc,L) ?= isUnary(A,"case") &&
