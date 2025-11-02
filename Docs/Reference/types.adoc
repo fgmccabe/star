@@ -304,6 +304,8 @@ of the function type:
 ----
 functionType --> tupleType, ["=>"], type.
 functionType --> tupleType, ["=>"], type, ["throws"], type.
+functionType --> tupleType, ["{}"].
+functionType --> tupleType, ["{}"], ["throws"], type.
 ----
 
 For example, a function of two arguments -- an `integer` and a
@@ -334,6 +336,16 @@ This is a generic function type that takes an `x` and either
 returns an `integer` or throws `e`.
 
 Exceptions and exception handling are further described in <<tryCatch>>.
+
+There are variants of the function type for procedures -- where there is no return type. A type of the form:
+
+[source,star]
+----
+(integer,string){}
+----
+
+corresponds to the type of a two-argument procedure that takes an `integer` and
+`string` argument -- and does not return anything.
 
 [#constructorType]
 ==== Constructor Type
