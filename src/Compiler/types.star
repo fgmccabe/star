@@ -447,8 +447,8 @@ star.compiler.types{
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
   public throwingType(A,B,E) => .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),B),E).
-  public procType(A,.none) => .tpExp(.tpFun("{}",1),A).
-  procType(A,.some(R)) => .tpExp(.tpExp(.tpFun("{}",2),A),R).
+  public procType(A,.voidType) => .tpExp(.tpFun("{}",1),A).
+  procType(A,R) => .tpExp(.tpExp(.tpFun("{}",2),A),R).
   public thrType(A,B,E) => throwingType(.tupleType(A),B,E).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
@@ -529,14 +529,14 @@ star.compiler.types{
 	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
   isFnType(_) default => .none.
 
-  public isPrType:(tipe) => option[(tipe,option[tipe])].
+  public isPrType:(tipe) => option[(tipe,tipe)].
   isPrType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
 	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("{}",2).=deRef(O2) => .some((A,.some(B))).
+	      .tpFun("{}",2).=deRef(O2) => .some((A,B)).
   isPrType(Tp) where
       .tpExp(O,A).=deRef(Tp) &&
-	  .tpFun("{}",1).=deRef(O) => .some((A,.none)).
+	  .tpFun("{}",1).=deRef(O) => .some((A,.voidType)).
   isPrType(_) default => .none.
   
   public isConsType:(tipe) => option[(tipe,tipe)].

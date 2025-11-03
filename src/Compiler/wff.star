@@ -704,7 +704,7 @@ star.compiler.wff{
   mkLhs(Lc,Nm,.false,Args,.none) => mkHed(Lc,Nm,Args).
   mkLhs(Lc,Nm,.false,Args,.some(C)) => binary(Lc,"where",mkHed(Lc,Nm,Args),C).
 
-  splitHead:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
+  public splitHead:(ast,option[ast],option[ast],boolean) => option[(option[ast],ast,option[ast],boolean)].
   splitHead(A,N,C,_) where (_,I) ?= isDefault(A) => splitHead(I,N,C,.true).
   splitHead(A,_,C,D) where (Lc,Nm,As) ?= isRoundTerm(A) => .some((.some(Nm),rndTuple(Lc,As),C,D)).
   splitHead(A,N,C,D) where (Lc,[E]) ?= isTuple(A) => splitHead(E,N,C,D).
@@ -744,8 +744,6 @@ star.compiler.wff{
 
   public equation:(option[locn],ast,ast)=>ast.
   equation(Lc,Hd,Rep) => binary(Lc,"=>",Hd,Rep).
-
-  
 
   public isCase:(ast) => option[(option[locn],ast,cons[ast])].
   isCase(A) where (Lc,L) ?= isUnary(A,"case") &&
@@ -980,7 +978,7 @@ star.compiler.wff{
 
   public isLbldAction:(ast)=>option[(option[locn],string,cons[ast])].
   isLbldAction(A) where
-      (Lc,L,R) ?= isBrTerm(A)  && (_,Lbl) ?= isName(L) => .some((Lc,Lbl,R)).
+      (Lc,L,R) ?= isBrTerm(A)  && (_,Lbl) ?= isName(L) => .some((Lc,Lbl,deSequence(R))).
   isLbldAction(_) default => .none.
 
   public mkLbldAction(Lc,Lb,R) => mkBrTerm(Lc,.nme(Lc,Lb),R).
