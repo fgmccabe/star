@@ -69,6 +69,7 @@ star.compiler.canon{
   public canonDef ::=
     .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
     .funDef(option[locn],string,cons[rule[canon]],cons[constraint],tipe) |
+    .prcDef(option[locn],string,cons[rule[canonAction]],cons[constraint],tipe) |
     .typeDef(option[locn],string,tipe,typeRule) |
     .cnsDef(option[locn],string,integer,tipe) |
     .implDef(option[locn],string,string,canon,cons[constraint],tipe).
@@ -188,6 +189,7 @@ star.compiler.canon{
     locOf(Df) => case Df in {
       | .varDef(Lc,_,_,_,_,_) => Lc
       | .funDef(Lc,_,_,_,_) => Lc
+      | .prcDef(Lc,_,_,_,_) => Lc
       | .typeDef(Lc,_,_,_) => Lc
       | .cnsDef(Lc,_,_,_) => Lc
       | .implDef(Lc,_,_,_,_,_) => Lc
@@ -198,6 +200,7 @@ star.compiler.canon{
     reQuant(Qs,Df) => case Df in {
       | .varDef(Lc,Nm,LongNm,Vl,Cx,Tp) => .varDef(Lc,Nm,LongNm,Vl,Cx,reQuant(Qs,Tp))
       | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuant(Qs,Tp))
+      | .prcDef(Lc,Nm,Rls,Cx,Tp) => .prcDef(Lc,Nm,Rls,Cx,reQuant(Qs,Tp))
       | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuant(Qs,Tp),reQuant(Qs,Rl))
       | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuant(Qs,Tp))
       | .implDef(Lc,Nm,FlNm,Vl,Cx,Tp) => .implDef(Lc,Nm,FlNm,Vl,Cx,reQuant(Qs,Tp))
@@ -205,6 +208,7 @@ star.compiler.canon{
     reQuantX(Qs,Df) => case Df in {
       | .varDef(Lc,Nm,LongNm,Vl,Cx,Tp) => .varDef(Lc,Nm,LongNm,Vl,Cx,reQuantX(Qs,Tp))
       | .funDef(Lc,Nm,Rls,Cx,Tp) => .funDef(Lc,Nm,Rls,Cx,reQuantX(Qs,Tp))
+      | .prcDef(Lc,Nm,Rls,Cx,Tp) => .prcDef(Lc,Nm,Rls,Cx,reQuantX(Qs,Tp))
       | .typeDef(Lc,Nm,Tp,Rl) => .typeDef(Lc,Nm,reQuantX(Qs,Tp),reQuantX(Qs,Rl))
       | .cnsDef(Lc,Nm,Ix,Tp) => .cnsDef(Lc,Nm,Ix,reQuantX(Qs,Tp))
       | .implDef(Lc,Nm,FlNm,Vl,Cx,Tp) => .implDef(Lc,Nm,FlNm,Vl,Cx,reQuantX(Qs,Tp))
@@ -352,6 +356,7 @@ star.compiler.canon{
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
     | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(showRls(Nm,Rls,showCanon,Sp))"
+    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(showRls(Nm,Rls,showAct,Sp))"
     | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
@@ -408,9 +413,9 @@ star.compiler.canon{
 
   public isFunDef:(canon)=>boolean.
   isFunDef(Df) => case Df in {
-   | .lambda(_,_,_,_) => .true
-   | .letExp(_,_,_,Exp) => isFunDef(Exp)
-   | .letRec(_,_,_,Exp) => isFunDef(Exp)
-   | _ default => .false
+    | .lambda(_,_,_,_) => .true
+    | .letExp(_,_,_,Exp) => isFunDef(Exp)
+    | .letRec(_,_,_,Exp) => isFunDef(Exp)
+    | _ default => .false
   }
 }
