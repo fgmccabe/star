@@ -101,10 +101,9 @@ sample.main{
   import star.
   import sample.factorial.
 
-  main:(integer)=>().
-  main(Ix) => valof{
+  main:(integer){}.
+  main(Ix)
     logMsg("Factorial of $(Ix) is $(fact(Ix))");
-    valis ()
   }
 }
 ----
@@ -119,9 +118,9 @@ $
 ----
 
 If you are used to other programming languages, you might have spotted something
-a little unusual here: the type signature for `main` denotes a function that
-accepts an `integer` and returns an empty tuple.  We will explore actions
-further in <<Actions>>; but we should point something else out here: `main`
+a little unusual here: the type signature for `main` denotes a procedure that
+accepts an `integer`.  We will explore actions
+further in <<Actions>>; but we should point something out here: `main`
 accepts an `integer` whereas the main program in most other programming
 languages looks like an array of string values.footnote:[It is still possible to
 access all the command line arguments, like a traditional command line tool --
@@ -137,6 +136,9 @@ program:
 $ star sample.main fred
 cannot coerce "fred" to integer
 ----
+
+[aside]
+You will also get an error if you don't give exactly argument.
 
 == Texture
 
