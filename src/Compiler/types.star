@@ -265,6 +265,8 @@ star.compiler.types{
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("=>",3),[A,R,E],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1)) throws #(showType(E,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
+  showTpExp(.tpFun("{}",2),[A,R],Dp) => "#(showType(A,Dp-1)){} throws #(showType(R,Dp-1))".
+  showTpExp(.tpFun("{}",1),[A],Dp) => "#(showType(A,Dp-1)){}".
   showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
