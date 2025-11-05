@@ -64,7 +64,8 @@ star.compiler.canon{
   .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
   .doExp(option[locn],canon).
 
-  public rule[t] ::= .rule(option[locn],canon,option[canon],t).
+  public rule[t] ::= .rule(option[locn],canon,option[canon],t)
+  | .proc(option[locn],canon,canonAction).
     
   public canonDef ::=
     .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
@@ -162,6 +163,7 @@ star.compiler.canon{
 
   public implementation all x ~~ hasLoc[rule[x]] => {
     locOf(.rule(Lc,_,_,_)) => Lc.
+    locOf(.proc(Lc,_,_)) => Lc.
   }
 
   public implementation hasLoc[canonAction] => {
@@ -371,6 +373,8 @@ star.compiler.canon{
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
   showRl(Nm,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
+  showRl(Nm,.proc(_,Ptn,Act),Shw,Sp) =>
+    "#(Nm)#(showCanon(Ptn,0,Sp)){ #(showAct(Act,0,Sp)) }".
 
   showDecs:(cons[decl],string) => string.
   showDecs(Dcs,Sp) => interleave(Dcs//disp,"\n"++Sp)*.

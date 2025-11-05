@@ -1225,8 +1225,14 @@ star.compiler.checker{
     RtTp = newTypeVar("R");
     Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
+    if traceCanon! then
+      showMsg("Check call $(Op)$(As) against $(procType(AtTp,ErTp))");
+
     if sameType(FnTp,procType(AtTp,ErTp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
+      valis .apply(Lc,Fun,Args,.voidType)
+    } else if sameType(FnTp,procType(AtTp,.voidType),Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
       valis .apply(Lc,Fun,Args,.voidType)
     } else if sameType(FnTp,fnType(AtTp,RtTp),Env) then {
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
