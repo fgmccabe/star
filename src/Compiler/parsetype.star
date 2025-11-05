@@ -88,12 +88,12 @@ star.compiler.typeparse{
   }
   parseType(T,Env) where (Lc,Lhs,.none) ?= isPrcType(T) => valof{
     A = parseArgType(Lhs,Env);
-    valis procType(A,.none)
+    valis procType(A,.voidType)
   }
   parseType(T,Env) where (Lc,Lhs,.some(Rhs)) ?= isPrcType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
-    valis procType(A,.some(R))
+    valis procType(A,R)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);

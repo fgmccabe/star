@@ -1023,12 +1023,18 @@ checkAction(A,Tp,ErTp,_Last,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
 checkAction(A,_Tp,ErTp,_Last,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,v(NLc,Nm,TV),Exp),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,Vr,Exp),Opts,Path) :-
   isDefn(A,Lc,L,R),
   isIden(L,NLc,Nm),!,
   newTypeVar("V",TV),
+  (getVar(NLc,Nm,Env,_,_) ->
+   reportError("May not redeclare variable %s",[ast(L)],NLc),
+   genNewName(Nm,"Σ",XNm),
+   Vr = v(NLc,XNm,TV),
+   Env=Ev;
+   Vr = v(NLc,Nm,TV),
+   declareVr(NLc,Nm,TV,none,Env,Ev)),
   typeOfExp(R,TV,ErTp,Env,_,Exp,Opts,Path),
-  declareVr(NLc,Nm,TV,none,Env,Ev),
   validLastAct(A,Lc,Tp,Last).
 checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isDefn(A,Lc,P,E),

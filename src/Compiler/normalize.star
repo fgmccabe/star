@@ -610,13 +610,13 @@ star.compiler.normalize{
       ThV = genVar("_ThVr",typeOf(freeVars++lVars));
       ThVr = .cVar(Lc,ThV);
 
-      CM = makeConsMap(Decls);
+      CM0 = makeConsMap(Decls);
 
       L = collectThunkVars(lVars,ThV,size(freeVars),collectLabelVars(freeVars,ThV,0,[]));
 
-      MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM),..Outer];
+      MM = [.lyr(.some(ThV),foldRight((D,LL)=>collectMtd(D,.some(ThV),LL),L,Decls),CM0),..Outer];
 
-      M = [.lyr(.some(ThV),L,CM),..Outer];
+      M = [.lyr(.some(ThV),L,CM0),..Outer];
 
       freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
       GrpQ = foldLeft(collectQ,foldLeft((V,QQ)=>QQ\+V,Q\+ThV,lVars),Grp);
