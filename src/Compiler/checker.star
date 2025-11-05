@@ -316,7 +316,7 @@ star.compiler.checker{
 	  Es = declareConstraints(Lc,Cx,declareTypeVars(Q,E0));
 	  (Body,_) = checkAction(A,.voidType,ErTp,.noVal,Es,Path);
 	  FullNm = qualifiedName(Path,.valMark,Nm);
-	  Rule = .rule(Lc,Args,.none,Body);
+	  Rule = .proc(Lc,Args,.none,Body);
 	  if traceCanon! then
 	    showMsg("procedure $(.prcDef(Lc,FullNm,[Rule],Cx,Tp))");
 	  valis ([.prcDef(Lc,FullNm,[Rule],Cx,Tp)],[funDec(Lc,Nm,FullNm,Tp)])
