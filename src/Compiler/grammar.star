@@ -237,8 +237,7 @@ star.compiler.macro.grammar{
     Eqb2 = mkEquation(Lc,.some(c),.true,rndTuple(Lc,[S0]),.none,enum(Lc,"none"));
 
     BB = mkLetRecDef(Lc,[Eqf1,Eqf2,Eq1,Eq2,Eqb1,Eqb2],roundTerm(Lc,c,[Str]));
-    Val = (VV ?= V ?? VV || mkAnon(Lc));
-    valis mkOptionMatch(Lc,rndTuple(Lc,[Val,Nxt]),BB);
+    valis mkOptionMatch(Lc,rndTuple(Lc,[(VV ?= V ?? VV || mkAnon(Lc)),Nxt]),BB);
   }
   makeBody(.skip(Lc,R),Str,Nxt,V) => valof{
     /*

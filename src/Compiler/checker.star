@@ -914,8 +914,7 @@ star.compiler.checker{
     Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
 
     if .tupleType(Tps) .= deRef(ArgTp) then{
-      Args = typeOfExps(Args,Tps,ErTp,Lc,[],Base,Path);
-      valis .apply(Lc,Fun,Args,Tp)
+      valis .apply(Lc,Fun,typeOfExps(Args,Tps,ErTp,Lc,[],Base,Path),Tp)
     } else{
       reportError("expecting argument type $(At) to be a tuple type",Lc);
       valis .anon(Lc,Tp)
@@ -1082,13 +1081,18 @@ star.compiler.checker{
     Thrw = typeOfExp(E,ErTp,.voidType,Env,Path);
     valis (.doThrow(Lc,Thrw),Env)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
-    isValidLastAct(Lc,Tp,Mode);
+  checkAction(A,VTp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
+    isValidLastAct(Lc,VTp,Mode);
     if (ILc,Id) ?= isName(Lhs) then{
-      Tp = newTypeVar("_VD");
-      Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
-      Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-      valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
+      if varDefined(Id,Env) then{
+	reportError("may not redeclare $(Lhs)",ILc);
+	valis (.doNop(Lc),Env)
+      } else{
+	Tp = newTypeVar("_VD");
+	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
+	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
+	valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
+      }
     } else if (ILc,Els) ?= isTuple(Lhs) then {
       TTp = newTypeVar("_T");
       (Ptn,PCond,Ev) = typeOfPtn(Lhs,TTp,ErTp,Env,Path);
