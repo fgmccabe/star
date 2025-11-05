@@ -506,11 +506,18 @@ star.compiler.resolve{
     (RC,St3) = resolve(C,RDict,St2);
     valis (.rule(Lc,addExtra(RPtn,Extra),.some(RC),RExp),St3)
   }
-  overloadRule(Extra,.proc(Lc,Ptn,Act),Dict,St) => valof{
+  overloadRule(Extra,.proc(Lc,Ptn,.none,Act),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RAct,St2) = resolve(Act,RDict,St1);
-    valis (.proc(Lc,addExtra(RPtn,Extra),RAct),St2)
+    valis (.proc(Lc,addExtra(RPtn,Extra),.none,RAct),St2)
+  }
+  overloadRule(Extra,.proc(Lc,Ptn,.some(C),Act),Dict,St) => valof{
+    RDict = defineArgVars(Ptn,Dict);
+    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
+    (RAct,St2) = resolve(Act,RDict,St1);
+    (RC,St3) = resolve(C,RDict,St2);
+    valis (.proc(Lc,addExtra(RPtn,Extra),.some(RC),RAct),St3)
   }
 
   addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
