@@ -50,7 +50,7 @@ star.compiler.macro{
   examineStmt(A) where (Lc,R) ?= isPrivate(A) =>
     mkPrivate(Lc,macroStmt(R)).
   examineStmt(A) where _ ?= isImport(A) => A.
-  examineStmt(A) where (Lc,L,R) ?= isDefn(A) => 
+  examineStmt(A) where (Lc,L,R) ?= isDefn(A) =>
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
@@ -486,7 +486,7 @@ star.compiler.macro{
       Action,
       unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")));
 
-    Main = mkProcedure(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),Test);
+    Main = mkProcedure(Lc,.some(.nme(Lc,"_main")),.true,rndTuple(Lc,[XX]),.none,Test);
     Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),
       mkPrcType(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.none));
