@@ -136,6 +136,14 @@ star.compiler.freevars{
     Q1 = dropVars(Ptn,Q);
     valis freeVarsInExp(Ptn,Q1,freeVarsInCond(Wh,Q1,Fv)) \/ findFree(Exp,Q1)
   }
+  freeVarsInRule(.proc(_,Ptn,.none,Act),Q,Fv) => valof{
+    Q1 = dropVars(Ptn,Q);
+    valis freeVarsInAct(Act,Q1,freeVarsInExp(Ptn,Q1,Fv))
+  }
+  freeVarsInRule(.proc(_,Ptn,.some(Wh),Act),Q,Fv) =>valof{
+    Q1 = dropVars(Ptn,Q);
+    valis freeVarsInAct(Act,Q1,freeVarsInExp(Ptn,Q1,freeVarsInCond(Wh,Q1,Fv)))
+  }
 
   public freeVarsInGroup:(cons[canonDef],set[cV])=>set[cV].
   freeVarsInGroup(Defs,Q) => let{
