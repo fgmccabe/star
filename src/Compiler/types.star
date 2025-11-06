@@ -449,6 +449,8 @@ star.compiler.types{
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
   public throwingType(A,B,E) => .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),B),E).
+  public funcType(A,B,.voidType) => fnType(A,B).
+  funcType(A,B,E) => throwingType(A,B,E).
   public procType(A,.voidType) => .tpExp(.tpFun("{}",1),A).
   procType(A,R) => .tpExp(.tpExp(.tpFun("{}",2),A),R).
   public thrType(A,B,E) => throwingType(.tupleType(A),B,E).

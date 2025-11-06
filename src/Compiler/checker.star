@@ -712,7 +712,9 @@ star.compiler.checker{
     GTp = newTypeVar("_e");
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = checkRules(Cases,GTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
+    Rules = processRules(Cases,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
+
+--    Rules = checkRules(Cases,GTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
     checkPtnCoverage(Rules//((.eqn(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
   }
@@ -1191,11 +1193,8 @@ star.compiler.checker{
     ETp = newTypeVar("_e");
     Gv = typeOfExp(G,ETp,ErTp,Env,Path);
 
-    Rules = checkRules(Cases,ETp,Tp,ErTp,Env,Path,
-      (Ac,_,_,E,Path) => valof{
-	(Act,_) = checkAction(Ac,Tp,ErTp,Mode,E,Path);
-	valis Act
-      },[],.none);
+    Rules = processRules(Cases,procType(ETp,ErTp),[],.none,Env,Env,Path);
+
     valis (.doCase(Lc,Gv,Rules),Env)
   }
   checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
@@ -1306,23 +1305,6 @@ star.compiler.checker{
     valis checkRules(Ps,ATp,Tp,ErTp,Env,Path,Chk,SoFar,Deflt)
   }
 
-  checkRule(St,ATp,RTp,ErTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
-    (Q,EATp) = evidence(ATp,Env);
-    (Cx,PtnTp) = deConstrain(EATp);
-    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-
-    (Arg,ACnd,E0) = typeOfPtn(Lhs,PtnTp,ErTp,Es,Path);
-
-    if Wh?=Cnd then{
-      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
-      Rep = Chk(R,RTp,ErTp,E1,Path);
-      valis .some((.eqn(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
-    }
-    else{
-      Rep = Chk(R,RTp,ErTp,E0,Path);
-      valis .some((.eqn(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
-    }
-  }
   checkRule(St,ATp,RTp,ErTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
     (Q,EATp) = evidence(ATp,Env);
     (Cx,PtnTp) = deConstrain(EATp);
