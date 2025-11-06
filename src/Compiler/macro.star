@@ -54,8 +54,8 @@ star.compiler.macro{
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
-  examineStmt(A) where (Lc,L,R) ?= isProcedure(A) => 
-    mkProcedure(Lc,macroPtn(L),macroAction(R)).
+  examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isProcedure(A) =>
+    mkProcedure(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
   examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
     mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
   examineStmt(A) where (Lc,L,Els) ?= isContractStmt(A) => 

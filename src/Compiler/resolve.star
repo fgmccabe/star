@@ -80,7 +80,7 @@ star.compiler.resolve{
 
   resolveEqn(Rl,Extra,Dict) => 
     case overload(Rl,Dict) in {
-    | .rule(Lc,A,C,V) => .rule(Lc,addExtra(A,Extra),C,V)
+    | .eqn(Lc,A,C,V) => .eqn(Lc,addExtra(A,Extra),C,V)
     | .proc(Lc,A,C,Ac) => .proc(Lc,addExtra(A,Extra),C,Ac)
     | _ default => valof{
       reportError("not a rule: $(Rl)",locOf(Rl));
@@ -102,7 +102,7 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
 
-    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp);
+    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp);
 
     if traceResolve! then
       showMsg("overloaded definition $(ODefn)");
@@ -128,7 +128,7 @@ star.compiler.resolve{
       valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp),Dict)
     }
   }
 
@@ -407,7 +407,7 @@ star.compiler.resolve{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
-      .rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
+      .eqn(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
       funType(ArgTps,Tp))
   }
 
@@ -494,18 +494,18 @@ star.compiler.resolve{
 
   overloadRule:all e ~~ resolve[e] |= (cons[canon],rule[e],dict,resolveState) =>
     (rule[e],resolveState).
-  overloadRule(Extra,.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
+  overloadRule(Extra,.eqn(Lc,Ptn,.none,Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RExp,St2) = resolve(Exp,RDict,St1);
-    valis (.rule(Lc,addExtra(RPtn,Extra),.none,RExp),St2)
+    valis (.eqn(Lc,addExtra(RPtn,Extra),.none,RExp),St2)
   }
-  overloadRule(Extra,.rule(Lc,Ptn,.some(C),Exp),Dict,St) => valof{
+  overloadRule(Extra,.eqn(Lc,Ptn,.some(C),Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RExp,St2) = resolve(Exp,RDict,St1);
     (RC,St3) = resolve(C,RDict,St2);
-    valis (.rule(Lc,addExtra(RPtn,Extra),.some(RC),RExp),St3)
+    valis (.eqn(Lc,addExtra(RPtn,Extra),.some(RC),RExp),St3)
   }
   overloadRule(Extra,.proc(Lc,Ptn,.none,Act),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);

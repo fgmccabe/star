@@ -221,9 +221,10 @@ star.compiler.dependencies{
     Rf1 = collectHeadRefs(H,C,All,Rf0);
     valis collectTermRefs(R,All,Rf1)
   }
-  collectStmtRefs(A,All,Annots,Rf) where (_,H,R) ?= isProcedure(A) => valof{
-    Rf0 = collectAnnotRefs(H,All,Annots,Rf);
-    valis collectDoRefs(R,All,Rf0)
+  collectStmtRefs(A,All,Annots,Rf) where (_,.some(Nm),_,H,C,R) ?= isProcedure(A) => valof{
+    Rf0 = collectAnnotRefs(Nm,All,Annots,Rf);
+    Rf1 = collectHeadRefs(H,C,All,Rf0);
+    valis collectDoRefs(R,All,Rf1)
   }
   collectStmtRefs(A,All,Annots,Rf) where (Lc,Q,Cx,L,R) ?= isAlgebraicTypeStmt(A) => valof{
     A0 = filterOut(All,Q);
@@ -345,8 +346,8 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,collectCondRefs(T,All,Rf))).
   collectTermRefs(T,All,Rf) where (_,_,L,C,R) ?= isLambda(T) =>
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,L,R) ?= isProcedure(T) =>
-    collectDoRefs(R,All,collectTermRefs(L,All,Rf)).
+  collectTermRefs(T,All,Rf) where (_,_,H,C,R) ?= isProcedure(T) =>
+    collectDoRefs(R,All,collectHeadRefs(H,C,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,As) ?= isValof(T) =>

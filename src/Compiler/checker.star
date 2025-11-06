@@ -297,71 +297,6 @@ star.compiler.checker{
     valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
 
-  checkProcedure:(string,tipe,option[locn],ast,dict,dict,string) =>
-    (cons[canonDef],cons[decl]).
-  checkProcedure(Nm,Tp,Lc,Stmt,Env,Outer,Path) => valof{
-    if (_,H,A) ?= isProcedure(Stmt) then{
-      if traceCanon! then
-	showMsg("check procedure $(Stmt)\:$(Tp)");
-
-      (Q,ETp) = evidence(Tp,Env);
-      (Cx,ProgramType) = deConstrain(ETp);
-      
-      if traceCanon! then
-	showMsg("constraints $(Cx)");
-
-      if (ATp,ErTp) ?= isPrType(ProgramType) then{
-	if (.some(N),Arg,_,_) ?= splitHead(H,.none,.none,.false) && (_,Nm) ?= isName(N) then{
-	  (Args,ACnd,E0) = typeOfArgPtn(Arg,ATp,ErTp,Outer,Path);
-	  Es = declareConstraints(Lc,Cx,declareTypeVars(Q,E0));
-	  (Body,_) = checkAction(A,.voidType,ErTp,.noVal,Es,Path);
-	  FullNm = qualifiedName(Path,.valMark,Nm);
-	  Rule = .proc(Lc,Args,.none,Body);
-	  if traceCanon! then
-	    showMsg("procedure $(.prcDef(Lc,FullNm,[Rule],Cx,Tp))");
-	  valis ([.prcDef(Lc,FullNm,[Rule],Cx,Tp)],[funDec(Lc,Nm,FullNm,Tp)])
-	}
-	else{
-	  reportError("head of procedure $(H) not well formed",Lc);
-	  valis ([],[])
-	}
-      }
-      else{
-	reportError("Program type $(ProgramType) is not a procedure type",Lc);
-	valis ([],[])
-      }
-    }
-    reportError("expecting a procedure, not $(Stmt)",Lc);
-    valis ([],[])
-  }
-
-  checkVar:(string,tipe,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
-  checkVar(Nm,Tp,ErTp,Lc,Stmt,Env,Outer,Path) => valof{
-    if traceCanon! then
-      showMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
-
-    (Q,ETp) = evidence(Tp,Env);
-    (Cx,VarTp) = deConstrain(ETp);
-    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
-    if (_,Lhs,R) ?= isDefn(Stmt) then{
-      Val = typeOfExp(R,VarTp,ErTp,Es,Path);
-      FullNm = qualifiedName(Path,.valMark,Nm);
-      if traceCanon! then
-	showMsg("definition $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp))");
-
-      if .lambda(_,_,Rl,_).=Val then
-	valis ([.funDef(Lc,FullNm,[Rl],Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
-      else if ~isEmpty(Cx) then
-	valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
-      else
-      valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
-    }
-    else{
-      reportError("bad definition $(Stmt)",Lc);
-      valis ([],[])
-    }
-  }
-
   processEqns:(cons[ast],tipe,cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
     cons[rule[canon]].
   processEqns([],_,Rls,.none,_,_,_) => reverse(Rls).
@@ -390,9 +325,95 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 
-      valis (.rule(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
+      valis (.eqn(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt)
     } else{
-      valis (.rule(Lc,Args,ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+      valis (.eqn(Lc,Args,ACnd,typeOfExp(R,RTp,ErTp,E0,Path)),IsDeflt)
+    }
+  }
+
+  checkProcedure:(string,tipe,option[locn],ast,dict,dict,string) =>
+    (cons[canonDef],cons[decl]).
+  checkProcedure(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
+    if traceCanon! then
+      showMsg("check procedure $(Stmts)\:$(Tp)");
+
+    (Q,ETp) = evidence(Tp,Env);
+    (Cx,ProgramType) = deConstrain(ETp);
+
+    if traceCanon! then
+      showMsg("constraints $(Cx)");
+
+    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+    Rls = processRules(Stmts,ProgramType,[],.none,Es,
+      declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
+    FullNm = qualifiedName(Path,.valMark,Nm);
+
+    if traceCanon! then
+      showMsg("function $(.funDef(Lc,FullNm,Rls,Cx,Tp))");
+
+    valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
+  }
+
+  processRules:(cons[ast],tipe,cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
+    cons[rule[canon]].
+  processRules([],_,Rls,.none,_,_,_) => reverse(Rls).
+  processRules([],_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
+  processRules([St,..Ss],ProgramType,Rls,Deflt,Env,Outer,Path) => valof{
+    (Rl,IsDeflt) = processRule(St,ProgramType,Env,Outer,Path);
+    if IsDeflt then{
+      if DRl ?= Deflt then{
+	reportError("cannot have more than one default, other one at $(locOf(DRl))",
+	  locOf(St));
+	valis []
+      } else{
+	valis processRules(Ss,ProgramType,Rls,.some(Rl),Env,Outer,Path)
+      }
+    }
+    else{
+      valis processRules(Ss,ProgramType,[Rl,..Rls],Deflt,Env,Outer,Path)
+    }
+  }
+
+  processRule(Nm,Tp,Lc,Stmt,Env,Outer,Path) where
+      (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(St) => valof{
+    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
+    (Args,ACnd,E0) = typeOfArgPtn(Arg,ATp,ErTp,Outer,Path);
+
+    if Wh?=Cnd then{
+      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
+      (Body,_) = checkAction(R,.voidType,ErTp,.noVal,E1,Path);
+
+      valis (.proc(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Body),IsDeflt)
+    } else{
+      (Body,_) = checkAction(R,.voidType,ErTp,.noVal,E0,Path);
+      valis (.proc(Lc,Args,ACnd,Body),IsDeflt)
+    }
+  }
+
+  checkVar:(string,tipe,tipe,option[locn],ast,dict,dict,string) => (cons[canonDef],cons[decl]).
+  checkVar(Nm,Tp,ErTp,Lc,Stmt,Env,Outer,Path) => valof{
+    if traceCanon! then
+      showMsg("check definition $(Stmt)\:$(Tp)@$(Lc)");
+
+    (Q,ETp) = evidence(Tp,Env);
+    (Cx,VarTp) = deConstrain(ETp);
+    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Outer));
+    if (_,Lhs,R) ?= isDefn(Stmt) then{
+      Val = typeOfExp(R,VarTp,ErTp,Es,Path);
+      FullNm = qualifiedName(Path,.valMark,Nm);
+      if traceCanon! then
+	showMsg("definition $(.varDef(Lc,Nm,FullNm,Val,Cx,Tp))");
+
+      if .lambda(_,_,Rl,_).=Val then
+	valis ([.funDef(Lc,FullNm,[Rl],Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
+      else if ~isEmpty(Cx) then
+	valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
+      else
+      valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
+    }
+    else{
+      reportError("bad definition $(Stmt)",Lc);
+      valis ([],[])
     }
   }
 
@@ -692,7 +713,7 @@ star.compiler.checker{
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
     Rules = checkRules(Cases,GTp,Tp,ErTp,Env,Path,typeOfExp,[],.none);
-    checkPtnCoverage(Rules//((.rule(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,GTp);
+    checkPtnCoverage(Rules//((.eqn(_,.tple(_,[Ptn]),_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
@@ -738,10 +759,10 @@ star.compiler.checker{
       (Cond,E1) = checkCond(Cnd,ErTp,E0,Path);
       Rep = typeOfExp(R,RTp,ErTp,E1,Path);
 
-      valis .lambda(Lc,LName,.rule(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
+      valis .lambda(Lc,LName,.eqn(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
     } else{
       Rep = typeOfExp(R,RTp,ErTp,E0,Path);
-      valis .lambda(Lc,LName,.rule(Lc,As,ACnd,Rep),Tp);
+      valis .lambda(Lc,LName,.eqn(Lc,As,ACnd,Rep),Tp);
     }
   }
   typeOfExp(A,Tp,_ErTp,Env,Path) where (Lc,E) ?= isThunk(A) =>
@@ -857,7 +878,7 @@ star.compiler.checker{
 	  Rc = .vr(Lc,"XX",Tp);
 	  AccTp = funType([Tp],FTp);
 	  Acc = .varDef(Lc,AccNm,AccNm,.lambda(Lc,lambdaLbl(Lc),
-	      .rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
+	      .eqn(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
 	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
@@ -1042,7 +1063,7 @@ star.compiler.checker{
 	  .doDefn(Lc,SavVr,.newSav(Lc,VlTp)),
 	  .doValis(Lc,
 	    .lambda(Lc,lambdaLbl(Lc),
-	      .rule(Lc,.tple(Lc,[]),.none,
+	      .eqn(Lc,.tple(Lc,[]),.none,
 		.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
 		  XVr,
 		  .svSet(Lc,SavVr,
@@ -1295,11 +1316,28 @@ star.compiler.checker{
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
       Rep = Chk(R,RTp,ErTp,E1,Path);
-      valis .some((.rule(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
+      valis .some((.eqn(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
     }
     else{
       Rep = Chk(R,RTp,ErTp,E0,Path);
-      valis .some((.rule(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
+      valis .some((.eqn(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
+    }
+  }
+  checkRule(St,ATp,RTp,ErTp,Env,Chk,Path) where (Lc,IsDeflt,Lhs,Cnd,R) ?= isLambda(St) => valof{
+    (Q,EATp) = evidence(ATp,Env);
+    (Cx,PtnTp) = deConstrain(EATp);
+    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+
+    (Arg,ACnd,E0) = typeOfPtn(Lhs,PtnTp,ErTp,Es,Path);
+
+    if Wh?=Cnd then{
+      (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
+      Rep = Chk(R,RTp,ErTp,E1,Path);
+      valis .some((.eqn(Lc,.tple(Lc,[Arg]),mergeGoal(Lc,ACnd,.some(Cond)),Rep),IsDeflt))
+    }
+    else{
+      Rep = Chk(R,RTp,ErTp,E0,Path);
+      valis .some((.eqn(Lc,.tple(Lc,[Arg]),ACnd,Rep),IsDeflt))
     }
   }
   checkRule(St,_,_,_,_,_,_) default => valof{

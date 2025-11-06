@@ -45,7 +45,7 @@ star.compiler.normalize{
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,[.rule(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
+    transformFunction(Lc,FullNm,[.eqn(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -151,7 +151,7 @@ star.compiler.normalize{
   transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|=
     (rule[e],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
+  transformRule(.eqn(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnVars(Arg,Q,[]);
     if traceNormalize! then
       showMsg("Pattern vars $(EQ)");
