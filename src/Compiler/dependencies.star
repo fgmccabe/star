@@ -346,7 +346,7 @@ star.compiler.dependencies{
     collectTermRefs(R,All,collectTermRefs(L,All,collectCondRefs(T,All,Rf))).
   collectTermRefs(T,All,Rf) where (_,_,L,C,R) ?= isLambda(T) =>
     collectTermRefs(R,All,collectHeadRefs(L,C,All,Rf)).
-  collectTermRefs(T,All,Rf) where (_,_,H,C,R) ?= isProcedure(T) =>
+  collectTermRefs(T,All,Rf) where (_,_,_,H,C,R) ?= isProcedure(T) =>
     collectDoRefs(R,All,collectHeadRefs(H,C,All,Rf)).
   collectTermRefs(T,All,Rf) where (_,L,R) ?= isWhere(T) =>
     collectCondRefs(R,All,collectTermRefs(L,All,Rf)).

@@ -241,7 +241,7 @@ star.compiler.checker{
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
     | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) && _ ?= isProcedure(Stmt) => valof{
-      (Defs,Decls) = checkProcedure(Nm,Tp,Lc,Stmt,Env,Outer,Path);
+      (Defs,Decls) = checkProcedure(Nm,Tp,Lc,[Stmt],Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
     | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
@@ -331,7 +331,7 @@ star.compiler.checker{
     }
   }
 
-  checkProcedure:(string,tipe,option[locn],ast,dict,dict,string) =>
+  checkProcedure:(string,tipe,option[locn],cons[ast],dict,dict,string) =>
     (cons[canonDef],cons[decl]).
   checkProcedure(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
     if traceCanon! then
@@ -374,8 +374,8 @@ star.compiler.checker{
     }
   }
 
-  processRule(Nm,Tp,Lc,Stmt,Env,Outer,Path) where
-      (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(St) => valof{
+  processRule(Stmt,ProgramType,Env,Outer,Path) where
+      (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(Stmt) => valof{
     (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
     (Args,ACnd,E0) = typeOfArgPtn(Arg,ATp,ErTp,Outer,Path);
 
