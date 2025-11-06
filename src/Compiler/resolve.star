@@ -78,10 +78,11 @@ star.compiler.resolve{
     }
   }
 
-  resolveEqn(Rl,Extra,Dict) => valof{
-    if .rule(Lc,A,C,V) .= overload(Rl,Dict) then{
-      valis .rule(Lc,addExtra(A,Extra),C,V)
-    } else{
+  resolveEqn(Rl,Extra,Dict) => 
+    case overload(Rl,Dict) in {
+    | .rule(Lc,A,C,V) => .rule(Lc,addExtra(A,Extra),C,V)
+    | .proc(Lc,A,C,Ac) => .proc(Lc,addExtra(A,Extra),C,Ac)
+    | _ default => valof{
       reportError("not a rule: $(Rl)",locOf(Rl));
       valis Rl
     }
