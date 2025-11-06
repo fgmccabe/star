@@ -651,7 +651,7 @@ star.compiler.wff{
 
   public ruleName:(ast) => option[(option[locn],string)].
   ruleName(A) where (_,.some(Nm),_,_,_,_) ?= isEquation(A) && (Lc,Id)?=isName(Nm) => .some((Lc,Id)).
-  ruleName(A) where (_,H,_) ?= isProcedure(A) && (_,N,_) ?= isRoundTerm(H) && (Lc,Id)?=isName(N) => .some((Lc,Id)).
+  ruleName(A) where (_,.some(Nm),_,_,_,_) ?= isProcedure(A) && (Lc,Id)?=isName(Nm) => .some((Lc,Id)).
   ruleName(_) default => .none.
 
   public headName:(ast) => option[string].
@@ -685,11 +685,17 @@ star.compiler.wff{
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isEquation(_) default => .none.
 
-  public isProcedure:(ast) => option[(option[locn],ast,ast)].
-  isProcedure(A) where (Lc,H,Acs) ?= isBraceTerm(A) => .some((Lc,H,reSequence(deSequence(Acs)))).
+  public isProcedure:(ast) => option[(option[locn],option[ast],boolean,ast,option[ast],ast)].
+  isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) &&
+      (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,reSequence(deSequence(Acs)))).
+  isProcedure(A) where (Lc,L,R) ?= isBinary(A,"do") &&
+      (_,Acs) ?= isBrTuple(R) &&
+	  (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isProcedure(_) default => .none.
 
-  public mkProcedure(Lc,H,A) => braceTerm(Lc,H,[A]).
+  public mkProcedure:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.
+  mkProcedure(Lc,Nm,Deflt,Args,Cond,Rep) =>
+    binary(Lc,"do",mkLhs(Lc,Nm,Deflt,Args,Cond),Rep).
 
   public mkEquation:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.
   mkEquation(Lc,Nm,Deflt,Args,Cond,Rep) =>

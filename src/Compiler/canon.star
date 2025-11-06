@@ -64,7 +64,7 @@ star.compiler.canon{
   .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
   .doExp(option[locn],canon).
 
-  public rule[t] ::= .rule(option[locn],canon,option[canon],t)
+  public rule[t] ::= .eqn(option[locn],canon,option[canon],t)
   | .proc(option[locn],canon,option[canon],canonAction).
     
   public canonDef ::=
@@ -162,7 +162,7 @@ star.compiler.canon{
   }
 
   public implementation all x ~~ hasLoc[rule[x]] => {
-    locOf(.rule(Lc,_,_,_)) => Lc.
+    locOf(.eqn(Lc,_,_,_)) => Lc.
     locOf(.proc(Lc,_,_,_)) => Lc.
   }
 
@@ -369,9 +369,9 @@ star.compiler.canon{
   showRls(Nm,Rls,Shw,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Shw,Sp),"\n"++Sp++"| ")*.
 
   showRl:all x ~~ (string,rule[x],(x,integer,string)=>string,string) => string.
-  showRl(Nm,.rule(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+  showRl(Nm,.eqn(_,Ptn,.none,Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
-  showRl(Nm,.rule(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+  showRl(Nm,.eqn(_,Ptn,.some(C),Val),Shw,Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
     "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) => #(Shw(Val,Rp,Sp))".
   showRl(Nm,.proc(_,Ptn,.none,Act),Shw,Sp) =>
     "#(Nm)#(showCanon(Ptn,0,Sp)){ #(showAct(Act,0,Sp)) }".

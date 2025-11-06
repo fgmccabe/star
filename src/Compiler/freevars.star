@@ -128,11 +128,11 @@ star.compiler.freevars{
 
   public freeVarsInRule:all e ~~ freevars[e] |=
     (rule[e],set[cV],set[cV])=>set[cV].
-  freeVarsInRule(.rule(_,Ptn,.none,Exp),Q,Fv) => valof{
+  freeVarsInRule(.eqn(_,Ptn,.none,Exp),Q,Fv) => valof{
     Q1 = dropVars(Ptn,Q);
     valis freeVarsInExp(Ptn,Q1,Fv) \/ findFree(Exp,Q1)
   }
-  freeVarsInRule(.rule(_,Ptn,.some(Wh),Exp),Q,Fv) =>valof{
+  freeVarsInRule(.eqn(_,Ptn,.some(Wh),Exp),Q,Fv) =>valof{
     Q1 = dropVars(Ptn,Q);
     valis freeVarsInExp(Ptn,Q1,freeVarsInCond(Wh,Q1,Fv)) \/ findFree(Exp,Q1)
   }
