@@ -5,8 +5,8 @@ test.chr{
   C1 = `a`.
   C2 = `\n`.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show C1;
     assert C2==`\n`;
     for Ch in "てすと test" do{

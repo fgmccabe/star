@@ -10,8 +10,8 @@ test.ac8a{
   ff:throwable[integer] |= (integer)=>integer.
   ff(X) => valof{
     if X>5 then
-      _throw(10)
-    else
+      _throw(10);
+
     valis 3*X
   }
 

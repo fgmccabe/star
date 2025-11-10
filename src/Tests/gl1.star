@@ -12,8 +12,8 @@ test.gl1{
   g3 = fact(4).
   g4 = 1.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show g1;
     assert g1 == 49
   }

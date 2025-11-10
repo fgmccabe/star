@@ -41,8 +41,8 @@ test.jt11{
     }
   }
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     logM(_int2str(adder(0,10)));
 
     try{

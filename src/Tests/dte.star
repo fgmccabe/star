@@ -10,8 +10,8 @@ test.dte{
     disp((a,b,c,d,e,f,g,h)) => "($(a),$(b),$(c),$(d),$(e),$(f),$(g),$(h))".
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     showMsg("$(time2Date(now()))");
 
     D = _date2time(2025,5,21,20,28,45.2,-25200);

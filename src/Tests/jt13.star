@@ -18,8 +18,8 @@ test.jt13{
   dbl:(integer)=>integer.
   dbl(X)=>add(X,X).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert add(2,3) == 5;
     show o(dbl,inc)(2);
     show o(inc,dbl)(2);

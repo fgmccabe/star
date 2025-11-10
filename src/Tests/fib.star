@@ -8,8 +8,8 @@ test.fib{
   fib(1) => 1.
   fib(N) => _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2))).
 
-  main:(integer)=>().
-  main(V) => valof{
+  main:(integer){}.
+  main(V){
     timer = ref timer_start((2.0**(V::float))::integer, "fib");
     F = fib(V);
     timer_finish(timer!);
@@ -21,15 +21,13 @@ test.fib{
       X => showMsg("$(X)")
     };
 
-    timer = ref timer_start((2.0**(V::float))::integer, "fib");
-    F = fib(V);
-    timer_finish(timer!);
-
-    valis ()
+    timer2 = ref timer_start((2.0**(V::float))::integer, "fib");
+    fib(V);
+    timer_finish(timer2!)
   }
 
-  public _main:(cons[string])=>().
-  _main([]) => main(30).
-  _main([Count]) => main(Count::integer).
+  public _main:(cons[string]){}.
+  _main([]) do main(30).
+  _main([Count]) do main(Count::integer).
 }
   
