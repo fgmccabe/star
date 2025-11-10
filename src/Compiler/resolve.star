@@ -43,6 +43,8 @@ star.compiler.resolve{
   overloadDef:(canonDef,dict)=>(canonDef,dict).
   overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
+  overloadDef(.prcDef(Lc,Nm,Rls,Cx,Tp),Dict) =>
+    overloadProcedure(Dict,Lc,Nm,Rls,Cx,Tp).
   overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqn,_),Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,FullNm,[Eqn],Cx,Tp).
   overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
@@ -80,13 +82,45 @@ star.compiler.resolve{
 
   resolveEqn(Rl,Extra,Dict) => 
     case overload(Rl,Dict) in {
-    | .eqn(Lc,A,C,V) => .eqn(Lc,addExtra(A,Extra),C,V)
-    | .proc(Lc,A,C,Ac) => .proc(Lc,addExtra(A,Extra),C,Ac)
+    | .rule(Lc,A,C,V) => .rule(Lc,addExtra(A,Extra),C,V)
     | _ default => valof{
       reportError("not a rule: $(Rl)",locOf(Rl));
       valis Rl
     }
   }
+ 
+  overloadProcedure:(dict,option[locn],string,cons[rule[canonAction]],cons[constraint],tipe)=>
+    (canonDef,dict).
+  overloadProcedure(Dict,Lc,Nm,Rls,Cx,Tp) => valof{
+    if traceResolve! then
+      showMsg("overload procedure $(Nm) = $(Rls), Cx=$(Cx)");
+    (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
+
+    RRls = Rls//(Eq)=>resolveRule(Eq,Extra,CDict);
+    (Qx,Qt) = deQuant(Tp);
+    (_,ITp) = deConstrain(Qt);
+    if (ATp,ETp) ?= isPrType(ITp) then{
+      if .tupleType(AITp).=deRef(ATp) then {
+	CTp = reQuant(Qx,procType(.tupleType((Cx//typeOf)++AITp),ETp));
+	if traceResolve! then
+	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
+	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
+      } else{
+	CTp = reQuant(Qx,procType(.tupleType((Cx//typeOf)++[ATp]),ETp));
+	if traceResolve! then
+	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
+	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
+      }
+    } else{
+      reportError("type of $(Nm) not a procedure type",Lc);
+      valis (.prcDef(Lc,Nm,RRls,[],Tp),Dict)
+    }
+  }
+
+  resolveRule(Rl,Extra,Dict) => 
+    case overload(Rl,Dict) in {
+    | .rule(Lc,A,C,V) => .rule(Lc,addExtra(A,Extra),C,V)
+    }
  
   overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
     (canonDef,dict).
@@ -102,7 +136,7 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
 
-    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp);
+    ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp);
 
     if traceResolve! then
       showMsg("overloaded definition $(ODefn)");
@@ -128,7 +162,7 @@ star.compiler.resolve{
       valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
       CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
-      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp),Dict)
+      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.rule(Lc,.tple(Lc,Cvrs),.none,RVal),CTp),[],Tp),Dict)
     }
   }
 
@@ -407,7 +441,7 @@ star.compiler.resolve{
     Vrs = { .vr(Lc,genSym("A"),ArgTp) | ArgTp in ArgTps};
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
-      .eqn(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
+      .rule(Lc,.tple(Lc,Vrs),.none,.apply(Lc,OverOp,NArgs,Tp)),
       funType(ArgTps,Tp))
   }
 
@@ -494,34 +528,22 @@ star.compiler.resolve{
 
   overloadRule:all e ~~ resolve[e] |= (cons[canon],rule[e],dict,resolveState) =>
     (rule[e],resolveState).
-  overloadRule(Extra,.eqn(Lc,Ptn,.none,Exp),Dict,St) => valof{
+  overloadRule(Extra,.rule(Lc,Ptn,.none,Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RExp,St2) = resolve(Exp,RDict,St1);
-    valis (.eqn(Lc,addExtra(RPtn,Extra),.none,RExp),St2)
+    valis (.rule(Lc,addExtra(RPtn,Extra),.none,RExp),St2)
   }
-  overloadRule(Extra,.eqn(Lc,Ptn,.some(C),Exp),Dict,St) => valof{
+  overloadRule(Extra,.rule(Lc,Ptn,.some(C),Exp),Dict,St) => valof{
     RDict = defineArgVars(Ptn,Dict);
     (RPtn,St1) = overloadTerm(Ptn,RDict,St);
     (RExp,St2) = resolve(Exp,RDict,St1);
     (RC,St3) = resolve(C,RDict,St2);
-    valis (.eqn(Lc,addExtra(RPtn,Extra),.some(RC),RExp),St3)
-  }
-  overloadRule(Extra,.proc(Lc,Ptn,.none,Act),Dict,St) => valof{
-    RDict = defineArgVars(Ptn,Dict);
-    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
-    (RAct,St2) = resolve(Act,RDict,St1);
-    valis (.proc(Lc,addExtra(RPtn,Extra),.none,RAct),St2)
-  }
-  overloadRule(Extra,.proc(Lc,Ptn,.some(C),Act),Dict,St) => valof{
-    RDict = defineArgVars(Ptn,Dict);
-    (RPtn,St1) = overloadTerm(Ptn,RDict,St);
-    (RAct,St2) = resolve(Act,RDict,St1);
-    (RC,St3) = resolve(C,RDict,St2);
-    valis (.proc(Lc,addExtra(RPtn,Extra),.some(RC),RAct),St3)
+    valis (.rule(Lc,addExtra(RPtn,Extra),.some(RC),RExp),St3)
   }
 
   addExtra(.tple(Lc,Els),Extra) => .tple(Lc,Extra++Els).
+  addExtra(P,Extra) => .tple(locOf(P),Extra++[P]).
   
   overloadRules:all x ~~ resolve[x] |= (cons[canon],cons[rule[x]],dict,resolveState)=>
     (cons[rule[x]],resolveState).
@@ -710,6 +732,10 @@ star.compiler.resolve{
       valis (ATp,RTp,ETp)
     else if sameType(throwingType(ATp,RTp,ETp),PTp,Env) then
       valis (ATp,RTp,ETp)
+    else if sameType(procType(ATp,ETp),PTp,Env) then
+      valis (ATp,.voidType,ETp)
+    else if sameType(procType(ATp,.voidType),PTp,Env) then
+      valis (ATp,.voidType,.voidType)
     else{
       reportError("expecting a function type, not $(PTp)",Lc);
       valis (ATp,RTp,ETp)

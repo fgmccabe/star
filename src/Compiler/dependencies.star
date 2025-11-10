@@ -445,8 +445,10 @@ star.compiler.dependencies{
 
   collectCaseRefs(Cse,F,All,Rf) where (_,_,A,C,Rhs) ?= isLambda(Cse) =>
     F(Rhs,All,collectHeadRefs(A,C,All,Rf)).
+  collectCaseRefs(Cse,F,All,Rf) where (_,_,_,A,C,Rhs) ?= isProcedure(Cse) =>
+    F(Rhs,All,collectHeadRefs(A,C,All,Rf)).
   collectCaseRefs(Cse,_,_,Rf) => valof{
-    reportError("invalid case in case expression $(Cse)",locOf(Cse));
+    reportError("cannot fathm case rule $(Cse)",locOf(Cse));
     valis Rf
   }.
     

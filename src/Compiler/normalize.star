@@ -38,6 +38,8 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) => cons[cDefn].
   transformDef(.funDef(Lc,FullNm,Eqns,_,Tp),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,Eqns,Tp,Map,Outer,Q,Extra,Ex).
+  transformDef(.prcDef(Lc,FullNm,Rls,_,Tp),Map,Outer,Q,Extra,Ex) =>
+    transformProcedure(Lc,FullNm,Rls,Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,.lambda(_,LNm,Eqn,Tp),_,_),Map,Outer,Q,Extra,Ex) =>
     transformFunction(Lc,FullNm,[Eqn],Tp,Map,Outer,Q,Extra,Ex).
   transformDef(.varDef(Lc,_,FullNm,Val,Cx,Tp),Map,Outer,Q,.none,Ex) => valof{
@@ -45,7 +47,7 @@ star.compiler.normalize{
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,[.eqn(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
+    transformFunction(Lc,FullNm,[.rule(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -89,6 +91,50 @@ star.compiler.normalize{
     } catch {
       _ => {
 	reportError("cannot build matcher for function $(FullNm)",Lc);
+	valis Ex
+      }
+    }
+  }
+
+  transformProcedure(Lc,FullNm,Rls,Tp,Map,Outer,Q,Extra,Ex) => valof{
+    if traceNormalize! then{
+      showMsg("transform procedure $(.prcDef(Lc,FullNm,Rls,[],Tp)) @ $(Lc)");
+    };
+    ATp = extendPrTp(deRef(Tp),Extra);
+    if traceNormalize! then
+      showMsg("extended procedure type $(ATp)");
+    
+    (Eqs,Ex1) = transformRules(Rls,Map,Outer,Q,Extra,Ex);
+
+    if traceNormalize! then
+      showMsg("transformed rules $(Eqs)");
+
+    try{
+      Proc = ? procMatcher(Lc,FullNm,ATp,Map,Eqs);
+
+      if traceNormalize! then
+	showMsg("transformed procedure $(Proc)");
+
+      ClosureNm = closureNm(FullNm);
+      ClVar = (.cVar(_,Exv)?=Extra ?? Exv || .cV("_",unitTp));
+      ClVars = makeFunVars(Tp);
+      ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
+
+      ClosTp = extendPrTp(deRef(Tp),.some(ClVar));
+
+      if Exv?=Extra then {
+	ClosEntry =
+	  .prDef(Lc,ClosureNm,ClosTp,ClArgs,.aDo(Lc,.cCall(Lc,FullNm,ClArgs,.voidType)));
+	valis [Proc,ClosEntry,..Ex1]
+      } else {
+	ClosEntry =
+	  .prDef(Lc,ClosureNm,ClosTp,
+	  ClArgs,.aDo(Lc,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
+	valis [Proc,ClosEntry,..Ex1]
+      }
+    } catch {
+      _ => {
+	reportError("cannot build matcher for procedure $(FullNm)",Lc);
 	valis Ex
       }
     }
@@ -139,8 +185,8 @@ star.compiler.normalize{
   }
 
   transformRules:all e,t ~~ transform[e->>t], display[e], display[t] |=
-    (cons[rule[e]],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
-      (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
+  (cons[rule[e]],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+    (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
   transformRules([],_,_,_,_,Ex) => ([],Ex).
   transformRules([Eqn,..Eqns],Map,Outer,Q,Extra,Ex) => valof{
     (Trple,Ex1) = transformRule(Eqn,Map,Outer,Q,Extra,Ex);
@@ -151,7 +197,7 @@ star.compiler.normalize{
   transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|=
     (rule[e],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.eqn(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
+  transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnVars(Arg,Q,[]);
     if traceNormalize! then
       showMsg("Pattern vars $(EQ)");
@@ -961,4 +1007,5 @@ star.compiler.normalize{
 
   makeFunVars:(tipe)=>cons[cV].
   makeFunVars(Tp) where .tupleType(Es)?=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
+  makeFunVars(Tp) where .tupleType(Es)?=prTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
 }

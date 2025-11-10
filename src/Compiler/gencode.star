@@ -25,9 +25,6 @@ star.compiler.gencode{
     Vars = foldLeft(declGlobal,[],Decls);
     Tps = foldLeft(declType,foldLeft(declType,[],Decls),stdTypes);
 
-    if traceCodegen! then
-      showMsg("Compilation dictionary vars: $(Vars), types: $(Tps)");
-    
     valis compDefs(Defs,Vars,Tps)
   }
 
@@ -44,6 +41,7 @@ star.compiler.gencode{
 
   genDef:(cDefn,map[string,(tipe,srcLoc)],map[string,indexMap]) => codeSegment.
   genDef(.fnDef(Lc,Nm,Tp,Args,Val),Glbs,Tps) => genFun(Lc,Nm,Tp,Args,Val,Glbs,Tps).
+  genDef(.prDef(Lc,Nm,Tp,Args,Val),Glbs,Tps) => genPrc(Lc,Nm,Tp,Args,Val,Glbs,Tps).
   genDef(.glDef(Lc,Nm,Tp,Val),Glbs,Tps) => genGlb(Lc,Nm,Tp,Val,Glbs,Tps).
   genDef(.tpDef(Lc,Tp,TpRl,Index),_,_) => .tipe(Tp,TpRl,Index).
   genDef(.lblDef(_Lc,Lbl,Tp,Ix),_,_) => .struct(Lbl,Tp,Ix).
@@ -68,6 +66,38 @@ star.compiler.gencode{
     C0 = [.iEntry(size(varInfo(Ct2)))]++
     chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
 	  [.iLbl(ExLbl,.iValof(1,FC++EC++genDbg(Lc,[.iRet])))]++genDbg(Lc,[.iXRet]))),..AbrtCde];
+    
+    Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
+
+    if traceCodegen! then
+      showMsg("non-peep code is $(Code)");
+    Peeped = peepOptimize(Code);
+    if traceCodegen! then
+      showMsg("peeped code is $(Peeped)");
+
+    valis Peeped;
+  }
+
+  genPrc:(option[locn],string,tipe,cons[cExp],aAction,map[string,(tipe,srcLoc)],map[string,indexMap]) => codeSegment.
+  genPrc(Lc,Nm,Tp,Args,Act,Glbs,Tps) => valof{
+    Ctx = emptyCtx(Glbs,Tps);
+
+    if traceCodegen! then
+      showMsg("Compile $(.prDef(Lc,Nm,Tp,Args,Act))\n");
+
+    AbrtCde = compAbort(Lc,"procedure: $(Nm) aborted",Ctx);
+    AbrtLbl = defineLbl(Ctx,"Abrt");
+    ExLbl = defineLbl(Ctx,"TrExit");
+
+    Brks = ["$abort" -> (((C,S)=>(AbrtCde,C,.none)),AbrtLbl),
+      "$try" -> (((C,S)=>([.iResult(ExLbl)],C,.none)),ExLbl)];
+
+    (FC,Ct1,Stk0) = compArgs(Args,0,AbrtLbl,Brks,Ctx,.some([]));
+    (EC,Ct2,Stk1) = compAction(Act,Lc,Brks,.noMore,.noMore,Ct1,Stk0);
+    
+    C0 = [.iEntry(size(varInfo(Ct2)))]++
+    chLine(.none,Lc)++[.iLbl(AbrtLbl,.iBlock(0,
+	  [.iLbl(ExLbl,.iValof(1,FC++EC++[.iLdV]++genDbg(Lc,[.iRet])))]++genDbg(Lc,[.iXRet]))),..AbrtCde];
     
     Code = .func(.tLbl(Nm,arity(Tp)),.hardDefinition,Tp::ltipe,varInfo(Ct2),C0);
 
@@ -131,7 +161,7 @@ star.compiler.gencode{
 	Stk1 = pshStack(Tp,Stk);
 	if .noMore.=Last then
 	  valis (chLine(OLc,Lc)++ArgCode++
-	  genDbg(Lc,[.iTCall(.tLbl(Nm,[|Args|]))]),Ctx,Stk1)
+	  genDbg(Lc,[.iTCall(.tLbl(Nm,[|Args|]))]),Ctx,.none)
 	else
 	valis (chLine(OLc,Lc)++ArgCode++
 	  genDbg(Lc,[.iCall(.tLbl(Nm,[|Args|])),frameIns(Stk1)]),Ctx,Stk1)
@@ -176,10 +206,6 @@ star.compiler.gencode{
       (ArgCode,_,Stk0) = compExps(Args,Lc,Brks,Ctx,Stk);
       (OCode,_,_) = compExp(Op,Lc,Brks,.notLast,Ctx,Stk0);
       Stk1 = pshStack(Tp,Stk);
-
-      if traceCodegen! then{
-	showMsg("compiling throwing call @$(Op)\:$(typeOf(Op))");
-      }
 
       if (_,XLbl) ?= Brks["$try"] then{
 	valis genReturn(Last,Lc,chLine(OLc,Lc)++ArgCode++OCode++
@@ -476,8 +502,8 @@ star.compiler.gencode{
     | .aNop(_Lc) => ([],Ctx,Stk)
     | .aSeq(Lc,L,R) => valof{
       (LC,Ctx0,_) = compAction(L,Lc,Brks,.notLast,.notLast,Ctx,Stk);
-      (RC,Ctx1,_) = compAction(R,Lc,Brks,Last,Next,Ctx0,Stk);
-      valis (LC++RC,Ctx1,Stk)
+      (RC,Ctx1,Stka) = compAction(R,Lc,Brks,Last,Next,Ctx0,Stk);
+      valis (LC++RC,Ctx1,Stka)
     }
     | .aLbld(Lc,Lb,LbldA) => valof{
       Ex = defineLbl(Ctx,Lb);

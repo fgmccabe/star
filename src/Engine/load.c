@@ -55,7 +55,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           ret = decodeText(file, sigBuffer);
         if (ret != Ok) {
           closeIo(O_IO(sigBuffer));
-          strMsg(errorMsg, msgSize, "invalid package signature %P\n", &lddPkg, pkg);
+          strMsg(errorMsg, msgSize, "invalid package text %P\n", &lddPkg, pkg);
         } else {
           rewindStrBuffer(sigBuffer);
           ioPo pkgIn = O_IO(sigBuffer);

@@ -76,10 +76,11 @@ star.compiler.term{
   | .aVarNmes(option[locn],cons[(string,cV)],aAction)
   | .aAbort(option[locn],string).
 
-  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp) |
-  .glDef(option[locn],string,tipe,cExp) |
-  .tpDef(option[locn],tipe,typeRule,indexMap) |
-  .lblDef(option[locn],termLbl,tipe,integer).
+  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp)
+  | .prDef(option[locn],string,tipe,cons[cExp],aAction)
+  | .glDef(option[locn],string,tipe,cExp)
+  | .tpDef(option[locn],tipe,typeRule,indexMap)
+  | .lblDef(option[locn],termLbl,tipe,integer).
 
   public dispCrProg:(cons[cDefn])=>string.
   dispCrProg(Defs) => interleave(Defs//disp,".\n")*.
@@ -92,6 +93,8 @@ star.compiler.term{
   dspDef(Df,Off) => case Df in {
     | .fnDef(_Lc,Nm,Tp,Args,Rep) =>
       "fn: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspExp(Rep,Off))"
+    | .prDef(_Lc,Nm,Tp,Args,Act) =>
+      "pr: #(Nm)(#(interleave(Args//disp,",")*)) => #(dspAct(Act,Off))"
     | .glDef(_Lc,Nm,Tp,Rep) => "vr: #(Nm)=#(dspExp(Rep,Off))"
     | .tpDef(_Lc,Tp,TpRl,Map) => "tp: $(TpRl) with $(Map)"
     | .lblDef(_Lc,Lbl,Tp,Ix) => "lb: $(Lbl)\:$(Tp)@$(Ix)"
@@ -721,6 +724,7 @@ star.compiler.term{
   public implementation hasLoc[cDefn] => {
     locOf(Df) => case Df in {
       | .fnDef(Lc,_,_,_,_) => Lc
+      | .prDef(Lc,_,_,_,_) => Lc
       | .glDef(Lc,_,_,_) => Lc
       | .tpDef(Lc,_,_,_) => Lc
       | .lblDef(Lc,_,_,_) => Lc
@@ -822,6 +826,7 @@ star.compiler.term{
 
   dfVars:(cons[cDefn],set[cV])=>set[cV].
   dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
+  dfVars([.prDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
   dfVars([.glDef(_,Nm,Tp,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
   dfVars([_,..Ds],D) => dfVars(Ds,D).
   dfVars([],D) => D.
@@ -847,12 +852,18 @@ star.compiler.term{
 	| .fnDef(Lc,Nm,Tp,Args,Val) => {
 	  D1 = foldLeft(ptnVrs,D,Args);
 	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validE(Val,D1) then{
-	    reportError("$(.fnDef(Lc,Nm,Tp,Args,Val)) not valid",Lc)
+	    reportError("$(Df) not valid",Lc)
+	  }
+	}
+	| .prDef(Lc,Nm,Tp,Args,Act) => {
+	  D1 = foldLeft(ptnVrs,D,Args);
+	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validA(Act,D1) then{
+	    reportError("$(Df) not valid",Lc)
 	  }
 	}
 	| .glDef(Lc,Nm,Tp,Val) => {
 	  if ~validE(Val,D) then{
-	    reportError("$(.glDef(Lc,Nm,Tp,Val)) not valid",Lc)
+	    reportError("$(Df) not valid",Lc)
 	  }
 	}
 	| _ default => {}
@@ -1034,6 +1045,7 @@ star.compiler.term{
 
   public implementation present[cDefn] => {
     present(.fnDef(_,_,_,_,E),F) => presentInE(E,(_)=>.false,F).
+    present(.prDef(_,_,_,_,A),F) => presentInA(A,(_)=>.false,F).
     present(.glDef(_,_,_,E),F) => presentInE(E,(_)=>.false,F).
     present(_,_) default => .false
   }
@@ -1131,6 +1143,9 @@ star.compiler.term{
     | .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
 	mkTpl(Vrs//frzeExp),
 	frzeExp(Vl)])
+    | .prDef(Lc,Nm,Tp,Vrs,Act) => mkCons("prc",[Lc::data,.strg(Nm),encodeSig(Tp),
+	mkTpl(Vrs//frzeExp),
+	frzeAct(Act)])
     | .glDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
 	frzeExp(Vl)])
     | .tpDef(Lc,Tp,TpRl,Map) => mkCons("tpe",[Lc::data,encodeSig(Tp),
@@ -1234,6 +1249,8 @@ star.compiler.term{
   thawDefn(D) => case D in {
     | .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
       .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thwTrm,thwTrm(Vl))
+    | .term("prc",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
+      .prDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thwTrm,thawAct(Vl))
     | .term("glb",[Lc,.strg(V),Sig,Vl]) =>
       .glDef(thawLoc(Lc),V,decodeSig(Sig),thwTrm(Vl))
     | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>
@@ -1343,6 +1360,7 @@ star.compiler.term{
   glSpec ~> (string,cDefn,cons[string]).
 
   nameOf(.fnDef(_,Nm,_,_,_)) => Nm.
+  nameOf(.prDef(_,Nm,_,_,_)) => Nm.
   nameOf(.glDef(_,Nm,_,_)) => Nm.
   nameOf(.tpDef(_,Tp,_,_)) => tpName(Tp).
   nameOf(.lblDef(_,.tLbl(Nm,_),_,_)) => Nm.
@@ -1367,6 +1385,7 @@ star.compiler.term{
   } in let{
     findD:(cDefn)=> cons[string].
     findD(.fnDef(_,_,_,_,Vl)) => foldV(Vl,.inExp,findVRef,[]).
+    findD(.prDef(_,_,_,_,A)) => foldA(A,findVRef,[]).
     findD(.glDef(_,_,_,Vl)) => foldV(Vl,.inExp,findVRef,[]).
     findD(_) default => [].
   } in findD(Df).
