@@ -39,6 +39,10 @@ test.proc{
     valis 43
   }
 
+  _main:(cons[string]){}.
+  _main([]) do main(41).
+  _main([A,.._]) do main(A::integer).
+
   main:(integer){}.
   main(Ix){
     do1(Ix);
@@ -47,7 +51,7 @@ test.proc{
       do2("hello",42);
       do1(43)
     } catch {
-      X do logMsg(.info,"$(X)")
+    | .exception(M) do logMsg(.info,"we got an exception: #(M)")
     }
   }
 }

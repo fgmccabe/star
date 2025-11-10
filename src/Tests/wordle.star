@@ -110,7 +110,8 @@ test.wordle{
 	valis W
       else
 	wrText(stdout,"Not a known word\n");
-    }
+    };
+    throw .ioError
   }
 
   play:(string,cons[string]) => integer.
