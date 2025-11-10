@@ -343,10 +343,10 @@ static retCode setUseJit(char *option, OptionAction action) {
       jitOnLoad = !jitOnLoad;
       break;
   }
+  return Ok;
 #else
   return Error;
 #endif
-  return Ok;
 }
 
 static retCode setVerify(char *option, OptionAction action) {

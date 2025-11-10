@@ -503,6 +503,15 @@ star.compiler.types{
     Tp).
   }
 
+  public extendPrTp:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
+  extendPrTp(Tp,.none) => Tp.
+  extendPrTp(Tp,Vs) => case deRef(Tp) in {
+    | .allType(V,B) => .allType(V,extendPrTp(B,Vs))
+    | .existType(V,B) => .existType(V,extendPrTp(B,Vs))
+    | .constrainedType(T,C) => .constrainedType(extendPrTp(T,Vs),C)
+    | _ => ((A,B)?=isPrType(Tp) ?? procType(extendTplType(deRef(A),Vs),B) || Tp)
+  }
+
   public extendTplType:all x ~~ hasType[x] |= (tipe,option[x])=>tipe.
   extendTplType(Es,.none) => Es.
   extendTplType(.tupleType(Es),.some(E)) => .tupleType([typeOf(E),..Es]).
@@ -542,6 +551,13 @@ star.compiler.types{
       .tpExp(O,A).=deRef(Tp) &&
 	  .tpFun("{}",1).=deRef(O) => .some((A,.voidType)).
   isPrType(_) default => .none.
+
+  public prTypeArg:(tipe) => option[tipe].
+  prTypeArg(.allType(_,T)) => prTypeArg(deRef(T)).
+  prTypeArg(.constrainedType(T,C)) where FTp ?= prTypeArg(deRef(T)) =>
+    .some(extendArgType(FTp,.some(C))).
+  prTypeArg(Tp) where (A,_) ?= isPrType(deRef(Tp)) => .some(A).
+  prTypeArg(_) default => .none.
   
   public isConsType:(tipe) => option[(tipe,tipe)].
   isConsType(Tp) where

@@ -107,6 +107,20 @@ star.tuples{
     hash((A,B,C,D,E)) => (((hash(A)*37+hash(B))*37+hash(C))*37+hash(D))*37+hash(E).
   }
 
+  -- 6-tuples
+  public implementation all u,v,w,x,y,z ~~ display[u],display[v],display[w], display[x], display[y], display[z] |= display[(u,v,w,x,y,z)] => {
+    disp((a,b,c,d,e,f)) => "($(a),$(b),$(c),$(d),$(e),$(f))".
+  }
+
+  public implementation all u,v,w,x,y,z ~~ equality[u], equality[v], equality[w], equality[x], equality[y],equality[z] |= equality[(u,v,w,x,y,z)] => {
+    (A1,A2,A3,A4,A5,A6)==(B1,B2,B3,B4,B5,B6) =>
+      A1==B1 && A2==B2 && A3==B3 && A4==B4 && A5==B5 && A6==B6.
+  }
+
+  public implementation all u,v,w,x,y,z ~~ hashable[u], hashable[v], hashable[w], hashable[x], hashable[y],hashable[z] |= hashable[(u,v,w,x,y,z)] => {
+    hash((A,B,C,D,E,F)) => ((((hash(A)*37+hash(B))*37+hash(C))*37+hash(D))*37+hash(E))*37+hash(F).
+  }
+
   public all K,V ~~ keyval[K,V] ::= .kv(K,V).
   
   public implementation all k,v ~~ display[k],display[v] |=

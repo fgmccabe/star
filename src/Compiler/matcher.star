@@ -35,6 +35,25 @@ star.compiler.matcher{
     }
   }
 
+  public procMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],aAction)]) => option[cDefn].
+  procMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
+    if ATp ?= prTypeArg(Tp) then{
+      NVrs = genVars(Lc,ATp);
+      Trpls = makeTriples(Eqns);
+
+      if traceNormalize! then
+	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+
+      Error = .aAbort(Lc,"function match failure #(Nm)");
+      Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
+      valis .some(.prDef(Lc,Nm,Tp,NVrs,Reslt))
+    }
+    else{
+      reportError("Cant create a match for non procedure type $(Tp)",Lc);
+      valis .none
+    }
+  }
+
   public caseMatcher:all e ~~ reform[e],rewrite[e],display[e] |= (option[locn],nameMap,cExp,e,
     cons[(option[locn],cons[cExp],option[cExp],e)])=>e.
   caseMatcher(Lc,Map,Gov,Deflt,Cs) => valof{

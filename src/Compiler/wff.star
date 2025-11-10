@@ -689,8 +689,7 @@ star.compiler.wff{
   isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) &&
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,reSequence(deSequence(Acs)))).
   isProcedure(A) where (Lc,L,R) ?= isBinary(A,"do") &&
-      (_,Acs) ?= isBrTuple(R) &&
-	  (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
+      (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isProcedure(_) default => .none.
 
   public mkProcedure:(option[locn],option[ast],boolean,ast,option[ast],ast)=>ast.

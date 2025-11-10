@@ -182,8 +182,10 @@ star.compiler.macro{
 
   examineCaseAction(A) where (Lc,Dflt,L,C,R) ?= isLambda(A) =>
     mkLambda(Lc,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
+  examineCaseAction(A) where (Lc,.none,Dflt,L,C,R) ?= isProcedure(A) =>
+    mkProcedure(Lc,.none,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
   examineCaseAction(A) => valof{
-    reportError("cannot figure out case action $(A)",locOf(A));
+    reportError("cannot figure out case $(A)",locOf(A));
     valis A}
 
   macroTerm(A) => macroAst(A,.expression,examineTerm).

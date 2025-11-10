@@ -13,11 +13,9 @@ test.proc{
   -- A procedure type with a throws clause
   do2: (string,integer){} throws exception.
   do2(Msg,Code){
-    show "Try to divide: $(Code/0)";
+    show "Try to divide";
 
-    do1(Code);
-
-    throw .exception(Msg)
+    do1(Code/0);
   }
 
   /*
@@ -36,7 +34,7 @@ test.proc{
     try{
       do2("there",42)
     } catch {
-      _ => valis 42
+      _ do valis 42
     };
     valis 43
   }
@@ -49,7 +47,7 @@ test.proc{
       do2("hello",42);
       do1(43)
     } catch {
-      X => logMsg(.info,"$(X)")
+      X do logMsg(.info,"$(X)")
     }
   }
 }
