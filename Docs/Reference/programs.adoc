@@ -463,6 +463,116 @@ reporting exceptions. The `exception` type is defined as:
 public exception ::= .exception(string).
 ----
 
+=== Procedures and Rules
+
+(((procedure)))
+A procedure is a program for performing effects; organized as a set of rules.
+
+[#procedureFig]
+.Procedures
+[source,star]
+----
+procedureDefinition --> rule*.
+
+rule --> ruleHead, ["{"], action, ["}"].
+rule --> ruleHead, ["do"], action.
+rule --> ruleHead, guardCondition, ["do"], action.
+rule --> ruleHead, ["default"], ["do"], action.
+
+----
+
+NOTE: The rules in <<#procedureFig>> are written assuming that the procedure's
+name is not also an operator. If it is, then the head of the rule will take the
+infix form.
+
+TIP: Like functions, procedures are first class values; as a result
+they may be passed as arguments to other procedures as well as being
+assigned as attributes of records.
+
+Procedures can be defined in a let expression, in recursive records, in packages
+-- or a <<lambdaRule>> can be used to craft a procedure literal directly as
+an expression.
+
+[#rule]
+==== Rules
+
+An rule is a rule for deciding how to perform an action.
+Each rule consists of a <<tuplePattern>> that is used to match
+the call to the procedure and an action to perform. The left hand side of the
+procedure may also have a guard associated with it, this guard may use variables
+introduced in the pattern.
+
+NOTE: An rule is said to apply iff the patterns in the left hand side of
+the rule (including any `where` clauses) all match the
+corresponding actual arguments to the procedure application.
+
+(((theta environment)))
+Procedures are defined in the context of a scope -- for example, in the body of
+a `let` expression (see <<letExpression>>), or at the top-level of a `package`.
+
+==== Type of Procedures
+
+
+Like functions, a procedure may be given an explicit type -- via a
+<<typeAnnotation>> -- its type may be inferred.
+
+Similar constraints are applied to inferring the type of a procedure:
+
+* An inferred procedure type will never be quantified.
+* Type inference will not result in a generalized
+  contract constraint. 
+* If a procedure is verified against a type declaration then some additional
+  rules will be applied during type checking:
+** a universally bound type variable may not be constrained further by the text of the procedure definition.
+** an existentially bound type variable may be constrained by the text of the
+ procedure. 
+
+==== Evaluation Order of Rules
+
+(((rules,evaluation order)))
+As with functions and equations, a procedure may be defined with multiple rules.
+Only one of the rules in the definition may apply.
+
+Rules are applied in the order that they are written -- apart from
+any rule that is marked `default`. If two rules overlap
+in their patterns then the first rule to apply is the one used.
+
+==== Default Rules
+
+(((default rule`default` rule)))
+(((procedures,default`default` rule)))
+It is permitted to assign one of the rules in a procedure definition to be
+the `default` rule. An rule marked as `default` is guaranteed _not_ to
+be used if any of the non-default rules apply. Thus, a `default` rule
+may be used to capture any remaining cases not covered by other rules.
+
+==== Evaluation Order of Arguments
+
+(((procedure application,evaluation order)))
+As with function calls, there is _no_ guarantee as to the order of evaluation of
+arguments to a procedure application.
+
+[#throwingProcedures]
+==== Procedures that throw exceptions
+(((exception, throwing procedure)))
+
+A procedure whose type is a throwing type, (see <<throwingProcedureType>>), may
+return an exceptional value rather return normally. For example, this
+definition of `check` will throw an exception -- encoded as a `string` -- when
+its argument is false:
+
+[source,star]
+----
+check:all t ~~ (boolean){} throws string.
+check(X){
+  if ~X then
+    throw "check exception"
+}
+----
+
+NOTE: Like functions that throw, we must use explicit type signature to indicate
+that `check` throws an `exception`.
+
 [#contract]
 == Contract
 (((type,contracts)))
