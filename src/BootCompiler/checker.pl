@@ -398,7 +398,6 @@ checkRule(Lc,H,G,A,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"head nm: %s, Args: %s",[Nm,ast(Ags)])),
   pushScope(E,Env),
   typeOfArgPtn(Ags,AT,ErTp,Env,E0,Args,Opts,Path),
-  isVarTuple(Args),
   checkGuard(G,ErTp,E0,E1,Guard,Opts,Path),
   checkAction(A,voidType,ErTp,notLast,E1,_,Body,Opts,Path),
   Rle = prle(Lc,Args,Guard,Body),
