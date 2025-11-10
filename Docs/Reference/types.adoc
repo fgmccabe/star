@@ -38,6 +38,7 @@ type --> tupleType.
 type --> recordType.
 type --> referenceType.
 type --> functionType.
+type --> procedureType.
 type --> constructorType.
 type --> constrainedType.
 type --> encapsulatedType.
@@ -152,14 +153,14 @@ types where the function has no arguments:
 ----
 
 When used as the return type of a function, the `()` type denotes
-a void result:
+a unit result:
 [source,star]
 ----
 (integer)=>()
 ----
 
-TIP: The `()` type -- sometimes referred to as the _unit type_ --
-is also used to denote the return type of some actions.
+NOTE: a function that returns `()` is not the same as a procedure -- which does
+not return anything.
 
 ==== Singleton Type Tuple
 
@@ -292,11 +293,10 @@ function type: a normal, non-throwing, form and a throwing form. The
 latter signals that the function may throw an exception, whereas the
 non-throwing form is not permitted to throw an exception.
 
-It takes the form of a
-possibly empty sequence of argument types -- denoting the types of the
-arguments to the function -- enclosed in parentheses; followed by the
-result type of the function. <<functionTypeFig>> highlights the form
-of the function type:
+It takes the form of a possibly empty sequence of argument types -- denoting the
+types of the arguments to the function -- enclosed in parentheses; followed by
+the result type of the function. <<functionTypeFig>> highlights the form of the
+function type:
 
 [#functionTypeFig]
 .Function Type
@@ -304,8 +304,6 @@ of the function type:
 ----
 functionType --> tupleType, ["=>"], type.
 functionType --> tupleType, ["=>"], type, ["throws"], type.
-functionType --> tupleType, ["{}"].
-functionType --> tupleType, ["{}"], ["throws"], type.
 ----
 
 For example, a function of two arguments -- an `integer` and a
@@ -337,15 +335,58 @@ returns an `integer` or throws `e`.
 
 Exceptions and exception handling are further described in <<tryCatch>>.
 
-There are variants of the function type for procedures -- where there is no return type. A type of the form:
+==== Procedure Types
+
+(((procedure type)))
+(((type,procedure)))
+A procedure type denotes a procedure value. There are two forms of
+procedure type: a normal, non-throwing, form and a throwing form. The
+latter signals that the procedure may throw an exception, whereas the
+non-throwing form is not permitted to throw an exception.
+
+A procedure type takes the form of a possibly empty sequence of argument types
+-- denoting the types of the arguments to the procedure -- enclosed in
+parentheses; followed by a pair of empty braces. This syntax emphasizes the fact
+that procedures do not return values.
+
+<<procedureTypeFig>> highlights the form of the procedure type:
+
+[#procedureTypeFig]
+.Procedure Type
+[source,star]
+----
+procedureType --> tupleType, ["{}"].
+procedureType --> tupleType, ["{}"], ["throws"], type.
+----
+
+For example, a procedure of two arguments -- an `integer` and a
+`float` has a type that
+takes the form:
+[source,star]
+----
+(integer,float){}
+----
+
+[#throwingProcedureType]
+A throwing procedure type, such as:
+[source,star]
+----
+(integer,string){} throws string
+----
+
+signals that the procedure can throw an exception -- of type `string`
+in this case -- when called. As with function types, it is possible for the exception type to
+be quantified, as in:
 
 [source,star]
 ----
-(integer,string){}
+all x,e ~~ (x){} throws e
 ----
 
-corresponds to the type of a two-argument procedure that takes an `integer` and
-`string` argument -- and does not return anything.
+This is a generic procedure type that takes an `x` and which potentially throws
+an `e`.
+
+Exceptions and exception handling are further described in <<tryCatch>>.
 
 [#constructorType]
 ==== Constructor Type
@@ -366,14 +407,13 @@ constructor reflects that bidirectionality.
 constructorType --> type, ["<=>"], type.
 ----
 
-The left hand side of a constructor type should either be a
-<<tupleType>> or a <<recordType>> -- depending on whether the
-denoted constructor is a term constructor constructor or a record
-constructor.
+The left hand side of a constructor type should either be a <<tupleType>> or a
+<<recordType>> -- depending on whether the denoted constructor is a term
+constructor constructor or a record constructor.
 
 TIP: Explicit <<constructorType>>s are most used in the context of the
-signatures of _abstract data types_: where a type and its constructors
-are _exported_ from a record.
+signatures of _abstract data types_: where a type and its constructors are
+_exported_ from a record.
 
 
 [#constrainedType]
