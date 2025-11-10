@@ -18,8 +18,8 @@ test.jt12{
   .} in 
   _str_multicat(.cons("[",consDisp(Ls,.cons("]",.nil)))).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     logM(showCons(iota(10)));
 
     try{

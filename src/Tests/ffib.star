@@ -15,8 +15,8 @@ test.ffib{
   tfib(C,1) => _int_plus(C,1).
   tfib(C,N) => tfib(tfib(_int_plus(C,1),_int_minus(N,1)),_int_minus(N,2)).
 
-  main:(integer)=>().
-  main(V) => valof{
+  main:(integer){}.
+  main(V){
     OpCount = ffib(V);
     timer = ref timer_start(OpCount, "ffib");
     F = ffib(V);
@@ -30,8 +30,8 @@ test.ffib{
   }
     
 
-  public _main:(cons[string])=>().
-  _main([]) => main(30).
-  _main([Count]) => main(Count::integer).
+  public _main:(cons[string]){}.
+  _main([]) do main(30).
+  _main([Count]) do main(Count::integer).
 }
   

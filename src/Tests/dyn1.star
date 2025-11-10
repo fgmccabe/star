@@ -7,8 +7,8 @@ test.dyn1{
   fa: _throw|:(all e ~~ (integer)=>e) |= (integer)=>integer.
   fa(X) => valof{
     if X>5 then
-      _throw(10)
-    else
+      _throw(10);
+
     valis 3*X
   }
 

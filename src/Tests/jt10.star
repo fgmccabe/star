@@ -25,8 +25,8 @@ test.jt10{
     valis F!
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert add(2,3) == 5;
     show fct(4);
     assert fct(4) == 24;

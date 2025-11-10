@@ -5,8 +5,8 @@ test.impl0{
   needsI:I|:integer|=(integer)=>integer.
   needsI(X)=>X+I.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     let{
       I = 42
     } in {

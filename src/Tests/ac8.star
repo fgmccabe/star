@@ -30,7 +30,8 @@ test.ac8{
 	    _throw(10)
 	  else
 	  TryTsk retire .ok(3*X)
-	}
+	};
+	valis .err(0);  -- Never used.
 	});
     case TT resume () in {
       | .err(E) => {
