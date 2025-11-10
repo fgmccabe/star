@@ -16,26 +16,28 @@ overload(Defs,Dict,Opts,RDefs) :-
 
 overloadDef(Dict,Opts,funDef(Lc,Nm,ExtNm,H,Tp,Cx,Eqns),RF) :-!,
   overloadFunction(Lc,Nm,ExtNm,H,Tp,Cx,Eqns,Dict,Opts,RF).
-overloadDef(Dict,Opts,prcDef(Lc,Nm,ExtNm,Tp,Cx,H,A),RF) :-!,
-  overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,H,A,Dict,Opts,RF).
+overloadDef(Dict,Opts,prcDef(Lc,Nm,ExtNm,Tp,Cx,Rls),RF) :-!,
+  overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,Opts,RF).
 overloadDef(Dict,Opts,varDef(Lc,Nm,ExtNm,Cx,Tp,Value),RD) :-!,
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,Opts,RD).
 overloadDef(_,_,Def,Def).
 
-overloadProcedure(Lc,Nm,ExtNm,Tp,[],A,Act,Dict,Opts,Reslt) :-
-  defineArgVars(A,Dict,RDict),
-  resolveTerm(A,RDict,Opts,RA),
-  resolveAction(Act,Dict,Opts,RAct),
-  Reslt = prcDef(Lc,Nm,ExtNm,Tp,[],RA,RAct),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overloaded procedure %s",[canDef(Reslt)])).
-overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,A,Act,Dict,Opts,Reslt) :-
+overloadProcedure(Lc,Nm,ExtNm,Tp,[],Rls,Dict,Opts,prcDef(Lc,Nm,ExtNm,Tp,[],RRls)) :-
+  overloadRules(Rls,Dict,Opts,[],RRls),!.
+overloadProcedure(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,Opts,prcDef(Lc,Nm,ExtNm,Tp,[],RRls)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
-  defineArgVars(A,FDict,RDict),
-  resolveTerm(A,RDict,Opts,RA),
-  addExtra(CVars,RA,RArgs),
-  resolveAction(Act,Dict,Opts,RAct),
-  Reslt = prcDef(Lc,Nm,ExtNm,Tp,[],RArgs,RAct),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overloaded procedure %s",[canDef(Reslt)])).
+  overloadRules(Rls,FDict,Opts,CVars,RRls),!.
+
+overloadRules(Rls,Dict,Opts,Extra,RRls) :-
+  overloadList(Rls,overloadRule(Extra),Dict,Opts,RRls).
+
+overloadRule(Extra,prle(Lc,Args,G,Act),Dict,Opts,prle(Lc,RArgs,RG,RAct)) :-
+  defineArgVars(Args,Dict,RDict),
+  resolveTerm(Args,RDict,Opts,RA),
+  addExtra(Extra,RA,RArgs),
+  resolveGuard(G,RDict,Opts,RG),
+  resolveAction(Act,RDict,Opts,RAct),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overloaded rule %s",[rle(prle(Lc,RArgs,RG,RAct))])).
 
 overloadFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Dict,Opts,funDef(Lc,Nm,ExtNm,H,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,Opts,[],REqns),!.
@@ -59,11 +61,16 @@ resolveGuard(some(G),Dict,Opts,some(RG)) :-
   resolveTerm(G,Dict,Opts,RG).
 
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
-overloadRule(Over,rule(Lc,Args,G,Exp),Dict,Opts,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
+overloadCaseRule(Over,rule(Lc,Args,G,Exp),Dict,Opts,St,Stx,rule(Lc,RArgs,RG,RExp)) :-
   defineArgVars(Args,Dict,RDict),
   overloadTerm(Args,RDict,Opts,St,St0,RArgs),
   overloadGuard(G,RDict,Opts,St0,St1,RG),
   call(Over,Exp,RDict,Opts,St1,Stx,RExp).
+overloadCaseRule(_Over,prle(Lc,Args,G,Exp),Dict,Opts,St,Stx,prle(Lc,RArgs,RG,RExp)) :-
+  defineArgVars(Args,Dict,RDict),
+  overloadTerm(Args,RDict,Opts,St,St0,RArgs),
+  overloadGuard(G,RDict,Opts,St0,St1,RG),
+  overloadAction(Exp,RDict,Opts,St1,Stx,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,Opts,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,Opts,RExp).
@@ -385,7 +392,7 @@ overloadAccess(ALc,Lc,T,RcTp,Fld,Tp,Args,ATp,Dict,Opts,St,Stx,
   resolveRef(T,[AccessOp],RArgs,Dict,Opts,St2,Stx,Op,NArgs).
   
 overloadCases(Cses,Resolver,Dict,Opts,St,Stx,RCases) :-
-  overloadLst(Cses,resolve:overloadRule(Resolver),Dict,Opts,St,Stx,RCases).
+  overloadLst(Cses,resolve:overloadCaseRule(Resolver),Dict,Opts,St,Stx,RCases).
 
 overApply(_,OverOp,[],_,_,OverOp) :- !.
 overApply(Lc,OverOp,Args,Tp,Make,Over) :- \+isProgramType(Tp),!,

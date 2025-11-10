@@ -1,5 +1,5 @@
 :- module(lterms,[ssTransformed/2,
-		  ssRuleSet/3,dispRuleSet/1,dispProg/1,dispEquations/1,
+		  ssRuleSet/3,dispRuleSet/1,dispProg/1,dispEquations/1,dispRules/1,
 		  substTerm/3,substGoal/3,substAction/3,
 		  substTerms/3,rewriteTerm/3,
 		  rewriteAction/3,
@@ -60,6 +60,15 @@ ssEqn(Dsp,(_Lc,Args,Grd,Val),sq([ss("("),AA,ss(")=>"),GG,VV])) :-
   showArgs(Args,0,AA),
   ssGuard(Grd,GG),
   call(Dsp,Val,0,VV).
+
+dispRules(Eqs) :-
+  map(Eqs,lterms:ssRle,EE),
+  displayln(iv(nl(0),EE)).
+
+ssRle((_Lc,Args,Grd,A),sq([ss("("),RR,ss(") do "),GG,AA])) :-
+  showArgs(Args,0,RR),
+  ssGuard(Grd,GG),
+  ssAct(A,2,AA).
 
 ssGuard(none,ss("")).
 ssGuard(some(G),sq([ss(" where "),GG])) :-
@@ -279,7 +288,6 @@ ssAct(aTry(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
   Dp2 is Dp+2,
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
-
 ssAct(perf(_,E),Dp,sq([ss("call "),EE])) :-
   ssTrm(E,Dp,EE).
 

@@ -156,8 +156,8 @@ transformModuleDefs([Def|Defs],Pkg,Map,Opts,Ex,Exx) :-
 
 transformMdlDef(funDef(Lc,Nm,ExtNm,H,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,[],Eqns,Map,Opts,Dx,Dxx).
-transformMdlDef(prcDef(Lc,Nm,ExtNm,Tp,Cx,Args,Act),_,Map,Opts,Dx,Dxx) :-
-  transformProcedure(Lc,Nm,ExtNm,Tp,Cx,Args,Act,Map,Opts,Dx,Dxx).
+transformMdlDef(prcDef(Lc,Nm,ExtNm,Tp,[],Rls),_,Map,Opts,Dx,Dxx) :-
+  transformProcedure(Lc,Nm,ExtNm,Tp,[],Rls,Map,Opts,Dx,Dxx).
 transformMdlDef(varDef(Lc,_Nm,ExtNm,[],Tp,Val),_Pkg,Map,Opts,Dx,Dxx) :-
   transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,Dx,Dxx).
 transformMdlDef(typeDef(Lc,_Nm,Tp,Rl,IxMap),_Pkg,Map,_,D,Dx) :-
@@ -185,18 +185,14 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   progTypeArity(Tp,Ar),
   is_member((lbl(Nm,_),Ix),IxMap).
 
-transformProcedure(Lc,Nm,LclName,Tp,Extra,A,Act,Map,Opts,[Prc|Ex],Exx) :-
+transformProcedure(Lc,Nm,LclName,Tp,Extra,Rls,Map,Opts,[Prc|Ex],Exx) :-
+  (is_member(traceNormalize,Opts) -> dispProcedure(LclName,Tp,Rls);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
   extendFunType(Tp,Extra,ATp),
-  filterVars(Extra,Q0),
-  ptnVars(A,Q0,Q0a),
-  declarePtnVars(Q0a,Map,LMap),
-  liftArgPtn(A,AA,Q0a,Q1,LMap,Opts,Ex,Ex0), % head args
-  concat(Extra,AA,Args),
-  liftAction(Act,RAct,Q1,_,Map,Opts,Ex,Ex0),
-  Prc = prDef(Lc,lbl(LclName,Ar),ATp,Args,RAct),
-  closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
+  transformRules(Map,Extra,Opts,Rls,Rules,[],Ex,Ex0),
+  closureProc(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
+  procMatcher(Lc,lbl(LclName,Ar),ATp,Rules,Map,Prc),!,
   (is_member(traceNormalize,Opts) -> dispRuleSet(Prc);true).
 
 transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
@@ -228,6 +224,25 @@ closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
    ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,Call)),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"closure rule %s",[ldef(ClEntry)])).
 closureEntry(_,_,_Name,_Tp,_,_,_,L,L).
+%  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
+
+closureProc(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
+  lookupVar(Map,Name,Reslt),
+  programAccess(Reslt,Prog,Closure),!,
+  extendFunType(Tp,Extra,ATp),
+  realArgTypes(ATp,Tps),
+  genVars(Tps,Args),
+  length(Args,Ar),
+  (isThrowingType(Tp,_,ErTp) ->
+   Call = perf(Lc,xcll(Lc,lbl(Prog,Ar),Args,voidType,ErTp));
+   Call = perf(Lc,cll(Lc,lbl(Prog,Ar),Args,voidType))),
+  (Extra = [] ->
+   genVar("ϕ",tplType([]),FrVr),
+   Ar1 is Ar+1,
+   ClEntry = prDef(Lc,lbl(Closure,Ar1),ATp,[FrVr|Args],Call);
+   ClEntry = prDef(Lc,lbl(Closure,Ar),ATp,Args,Call)),
+  checkOpt(Opts,traceNormalize,showMsg(Lc,"closure rule %s",[ldef(ClEntry)])).
+closureProc(_,_,_Name,_Tp,_,_,_,L,L).
 %  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
 extendFunType(Tp,Extra,ETp) :-
@@ -277,6 +292,20 @@ transformEqn(rule(Lc,A,G,Value),Map,Extra,Opts,[(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx
   concat(Extra,AA,Args),
   liftExp(Value,Rep,Q2,_Q3,LMap,Opts,Ex1,Exx). % replacement expression
 
+transformRules(_,_,_,[],Rules,Rules,Ex,Ex).
+transformRules(Map,Extra,Opts,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
+  transformRl(Eqn,Map,Extra,Opts,Rules,R0,Ex,Ex0),
+  transformRules(Map,Extra,Opts,Defs,R0,Rx,Ex0,Exx).
+
+transformRl(prle(Lc,A,G,Act),Map,Extra,Opts,[(Lc,Args,Test,Action)|Rx],Rx,Ex,Exx) :-
+  filterVars(Extra,Q0),
+  ptnVars(A,Q0,Q0a),
+  declarePtnVars(Q0a,Map,LMap),
+  liftArgPtn(A,AA,Q0a,Q1,LMap,Opts,Ex,Ex0), % head args
+  liftGuard(G,Test,Q1,Q2,LMap,Opts,Ex0,Ex1),
+  concat(Extra,AA,Args),
+  liftAction(Act,Action,Q2,_Q3,LMap,Opts,Ex1,Exx).
+
 liftGuard(none,none,Q,Q,_,_,Ex,Ex) :-!.
 liftGuard(some(G),some(LG),Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(G,LG,Q,Qx,Map,Opts,Ex,Exx).
@@ -288,8 +317,8 @@ transformLetDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
 
 transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
-transformLetDef(prcDef(Lc,Nm,ExtNm,Tp,_,A,Act),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
-  transformProcedure(Lc,Nm,ExtNm,Tp,Extra,A,Act,Map,Opts,Dx,Dxx).
+transformLetDef(prcDef(Lc,Nm,ExtNm,Tp,_,A,G,Act),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
+  transformProcedure(Lc,Nm,ExtNm,Tp,Extra,A,G,Act,Map,Opts,Dx,Dxx).
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)),
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).
@@ -697,6 +726,12 @@ liftCase(rule(Lc,P,G,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Lifter,Ex,Exx) :-
   liftGuard(G,Test,Q0,Q1,LMap,Opts,Ex0,Ex1), % condition goals
   declarePtnVars(Q1,LMap,BMap),
   call(Lifter,Value,Rep,Q1,Qx,BMap,Opts,Ex1,Exx).
+liftCase(prle(Lc,P,G,Act),(Lc,[Ptn],Test,Action),Q,Qx,Map,Opts,_Lifter,Ex,Exx) :-
+  liftPtn(P,Ptn,Q,Q0,Map,Opts,Ex,Ex0),
+  declarePtnVars(Q0,Map,LMap),
+  liftGuard(G,Test,Q0,Q1,LMap,Opts,Ex0,Ex1), % condition goals
+  declarePtnVars(Q1,LMap,BMap),
+  liftAction(Act,Action,Q1,Qx,BMap,Opts,Ex1,Exx).
 
 liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[LamFun|Ex],Exx) :-
   progTypeArity(Tp,Arity),
@@ -743,6 +778,7 @@ liftEls([(_,P)|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
 
 letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTerm,CellVars) :-
   findFreeVars(letRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
+  (is_member(traceNormalize,Opts) -> reportMsg("Free vars %s",[ltrm(ThFree)]);true),
   makeConstructorMap(Decls,consMap{},ConsMap),
   collectThunkVars(Defs,ThVr,0,FIx,varMap{},V0,CellVars),
   collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),

@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/7,caseMatcher/5,actionCaseMatcher/5]).
+:- module(matcher,[functionMatcher/7,procMatcher/6,caseMatcher/5,actionCaseMatcher/5]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -16,6 +16,16 @@ functionMatcher(Lc,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
   genRaise(Lc,LclNm,Error),
   matchTriples(Lc,lterms:substTerm,matcher:mkCond,NVrs,Tpls,Error,Map,0,Reslt),!.
 functionMatcher(Lc,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
+  reportError("(internal) failed to construct function for %s",[ltrm(Nm)],Lc).
+
+procMatcher(Lc,Nm,Tp,Rles,Map,prDef(Lc,Nm,Tp,NVrs,Reslt)) :-
+  realArgTypes(Tp,Tps),
+  genVars(Tps,NVrs),
+  makeTriples(Rles,0,Tpls),
+  getLocalLblName(Nm,LclNm),
+  genRaise(Lc,LclNm,Error),
+  matchTriples(Lc,lterms:substAction,matcher:mkIfThenElse,NVrs,Tpls,Error,Map,0,Reslt),!.
+procMatcher(Lc,Nm,Tp,_Rles,_,prDef(Lc,Nm,Tp,[],doNop(Lc))) :-
   reportError("(internal) failed to construct function for %s",[ltrm(Nm)],Lc).
 
 eqnArgTypes([(_Lc,Args,_Test,_Val)|_],Tps) :-

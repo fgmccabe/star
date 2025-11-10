@@ -31,7 +31,7 @@
 	      isParseCall/4,mkParseCall/4,
 	      isEquation/4,isEquation/5,mkEquation/5,
 	      buildEquation/7,
-	      isProcedure/4,mkProcedure/4,
+	      isProcedure/5,mkProcedure/5,
 	      isDefn/4,isAssignment/4,isRef/3,mkRef/3,isCellRef/3,cellRef/3,
 	      isSequence/4,mkSequence/3,mkSequence/4,
 	      assignment/4,eqn/4,eqn/5,
@@ -571,7 +571,7 @@ headOfRule(St,Hd) :-
 headOfRule(St,Hd) :-
   isEquation(St,_,Hd,_,_),!.
 headOfRule(St,Hd) :-
-  isProcedure(St,_,Hd,_),!.
+  isProcedure(St,_,Hd,_,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),
@@ -608,12 +608,19 @@ buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
   mkDefault(Lc,T,H),
   mkEquation(Lc,H,Cond,Exp,Eqn).
 
-isProcedure(Trm,Lc,Hd,As) :-
-  isBraceTerm(Trm,Lc,Hd,Bd),
-  deSequence(Bd,As).
+isProcedure(Trm,Lc,Hd,none,A) :-
+  isBraceTerm(Trm,Lc,Hd,Bd),!,
+  deSequence(Bd,As),
+  reSequence(As,A).
+isProcedure(Trm,Lc,Hd,Cond,A) :-
+  isBinary(Trm,Lc,"do",Lhs,A),
+  (isWhere(Lhs,_,Hd,G), Cond=some(G) ; Hd=Lhs, Cond=none).
 
-mkProcedure(Lc,Hd,Bd,Trm) :-
-  braceTerm(Lc,Hd,Bd,Trm).
+mkProcedure(Lc,Hd,none,Bd,Trm) :-!,
+  braceTerm(Lc,Hd,[Bd],Trm).
+mkProcedure(Lc,Hd,some(C),Bd,Trm) :-
+  whereTerm(Lc,Hd,C,Lhs),
+  binary(Lc,"do",Lhs,Bd,Trm).
 
 mergeCond(_,none,C,C) :-!.
 mergeCond(_,C,none,C) :-!.
