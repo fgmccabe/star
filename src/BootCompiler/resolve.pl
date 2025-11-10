@@ -106,12 +106,15 @@ defineCVars(Lc,[Con|Cx],Dict,[v(Lc,CVarNm,ConTp)|CVars],FDict) :-
 
 fieldVars(_,_,[],CVars,CVars,Dict,Dict).
 fieldVars(Lc,Tp,[(FldNm,FldTp)|Flds],[NV|CVrs],XVrs,Dict,CDict) :-
-  genVar(FldNm,Lc,funType(tplType([Tp]),FldTp),NV),
-  fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(FldNm,NV)|Dict],CDict).
+    genVar(FldNm,Lc,funType(tplType([Tp]),FldTp),NV),
+    tpName(Tp,TpNm),
+    makeKey(TpNm,Key),
+    fieldVars(Lc,Tp,Flds,CVrs,XVrs,[access(Key,FldNm,NV)|Dict],CDict).
 
 defineArgVars(tple(_,Args),Dict,RDict) :-
   rfold(Args,resolve:defineArg,Dict,RDict).
-defineArgVars(_,Dict,Dict).
+defineArgVars(Arg,Dict,RDict) :-
+  defineArg(Arg,Dict,RDict).
 
 defineArg(v(Lc,Nm,Tp),Dict,RDict) :-!,
   declareVr(Lc,Nm,Tp,none,Dict,RDict).
@@ -555,12 +558,14 @@ genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
 findAccess(Tp,FldNm,Dict,AccTp,FunNm) :-
-  getFieldAccess(Tp,FldNm,FunNm,AccTp,Dict).
-findAccess(_Tp,FldNm,Dict,AccTp,FunNm) :-
-  is_member(access(FldNm,v(_,FunNm,AccTp)),Dict),!.
+    getFieldAccess(Tp,FldNm,FunNm,AccTp,Dict).
+findAccess(Tp,FldNm,Dict,AccTp,FunNm) :-
+    tpName(Tp,TpNm),
+    makeKey(TpNm,Key),
+    is_member(access(Key,FldNm,v(_,FunNm,AccTp)),Dict),!.
 
 findUpdate(Tp,FldNm,Dict,AccTp,FunNm) :-
-  getFieldUpdater(Tp,FldNm,FunNm,AccTp,Dict).
+  getFieldUpdater(Tp,FldNm,FunNm,AccTp,Dict),!.
 findUpdate(_Tp,FldNm,Dict,AccTp,FunNm) :-
   is_member(update(FldNm,v(_,FunNm,AccTp)),Dict),!.
 
