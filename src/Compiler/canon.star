@@ -401,8 +401,11 @@ star.compiler.canon{
   public displayDefs:(cons[canonDef]) => string.
   displayDefs(Dfs) => interleave(Dfs//disp,"\n")*.
 
-  public implementation all x ~~ display[x] |= display[rule[x]] => {
-    disp(Eq) => showRl("λ",Eq,(X,_,_)=>disp(X),"").
+  public implementation all x ~~ display[x] |= display[rule[x]] => let{
+    showRule(.rule(_,Ptn,.none,Val)) => "λ$(Ptn) is $(Val)".
+    showRule(.rule(_,Ptn,.some(Cond),Val)) => "λ$(Ptn) where $(Cond) is $(Val)".
+  } in {
+    disp = showRule
   }
 
   public isGoal:(canon)=>boolean.

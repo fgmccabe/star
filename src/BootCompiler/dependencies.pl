@@ -63,11 +63,11 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectGuardRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isProcedure(St,_,H,As),
+  isProcedure(St,_,H,G,A),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  reSequence(As,A),
-  collectDoRefs(A,All,R1,Refs).
+  collectGuardRefs(G,All,R1,R2),
+  collectDoRefs(A,All,R2,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,Body),
   collConstraints(Cx,All,R,Rf0),
@@ -391,6 +391,12 @@ collectCaseRefs([E|Cs],C,A,Rf,Rx) :-
   collectTermRefs(L,A,Rf,R0),
   collectGuardRefs(Cond,A,R0,R1),
   call(C,R,A,R1,R2),
+  collectCaseRefs(Cs,C,A,R2,Rx).
+collectCaseRefs([E|Cs],C,A,Rf,Rx) :-
+  isProcedure(E,_,L,Cond,R),!,
+  collectTermRefs(L,A,Rf,R0),
+  collectGuardRefs(Cond,A,R0,R1),
+  collectDoRefs(R,A,R1,R2),
   collectCaseRefs(Cs,C,A,R2,Rx).
 collectCaseRefs([C|Cs],C,A,R,Rf) :-
   locOfAst(C,Lc),

@@ -319,8 +319,9 @@ formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,
   Decl = varDec(Nm,LclNm,Tp),
   declareVr(Lc,Nm,Tp,none,Env,Ev),
   call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
-formDefn([Defn],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
-  Defn = prcDef(Lc,Nm,LclNm,Tp,Cx,_Arg,_Act),
+formDefn([Rl|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[Defn|Dx],Dx,Publish,Viz,Dc,Dcx) :-
+  Rl = prle(Lc,_,_,_),
+  Defn = prcDef(Lc,Nm,LclNm,Tp,Cx,[Rl|Eqns]),
   Decl = funDec(Nm,LclNm,Tp),
   declareVr(Lc,Nm,Tp,none,Env,Ev),
   call(Publish,Viz,var(Nm),Decl,Dc,Dcx).
@@ -337,10 +338,10 @@ processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path) :-
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Opts,Path) :-
   isDefn(St,Lc,L,R),
   checkDefn(Lc,L,R,Tp,Def,Env,Opts,Path),!.
-processStmt(St,ProgramType,[Def|Defs],Defs,Df,Df,E,Opts,Path) :-
-  isProcedure(St,Lc,L,As),!,
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"check procedure %s\nagainst %s",[ast(St),tpe(ProgramType)])),
-  checkProcedure(Lc,L,As,ProgramType,Def,E,Opts,Path).
+processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path) :-
+  isProcedure(St,Lc,H,G,A),!,
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"check rule %s\nagainst %s",[ast(St),tpe(ProgramType)])),
+  checkRule(Lc,H,G,A,ProgramType,Defs,Defx,Df,Dfx,E,Opts,Path).
 processStmt(St,_,Defs,Defs,Df,Df,_,_,_) :-
   locOfAst(St,Lc),
   reportError("Invalid statement %s",[ast(St)],Lc).
@@ -366,7 +367,7 @@ guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
 guessType(St,_,_,procType(tpleType(AT))) :-
-  isProcedure(St,_,H,_),!,
+  isProcedure(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT).
 guessType(_,N,Lc,GTp) :- !,
@@ -391,16 +392,20 @@ checkEquation(Lc,H,C,R,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
-checkProcedure(Lc,H,As,PTp,Proc,E,Opts,Path) :-
-  splitUpProcedureType(Lc,E,PTp,AT,ErTp),
-  splitHead(H,Nm,A,_IsDeflt),
+checkRule(Lc,H,G,A,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
+  splitUpProcedureType(Lc,E,ProgramType,AT,ErTp),
+  splitHead(H,Nm,Ags,IsDeflt),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"head nm: %s, Args: %s",[Nm,ast(Ags)])),
   pushScope(E,Env),
-  typeOfArgPtn(A,AT,ErTp,Env,E0,Args,Opts,Path),
+  typeOfArgPtn(Ags,AT,ErTp,Env,E0,Args,Opts,Path),
   isVarTuple(Args),
-  checkActions(As,Lc,ErTp,E0,_,Act,Opts,Path),
-  qualifiedName(Path,Nm,ExtNm),
-  Proc = prcDef(Lc,Nm,ExtNm,PTp,[],Args,Act),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"procedure: %s",[canDef(Proc)])).
+  checkGuard(G,ErTp,E0,E1,Guard,Opts,Path),
+  checkAction(A,voidType,ErTp,notLast,E1,_,Body,Opts,Path),
+  Rle = prle(Lc,Args,Guard,Body),
+  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"rule: %s",[rle(Rle)])),
+  (IsDeflt=isDeflt -> Defs=Defsx, Df=[Rle|Dfx]; Defs=[Rle|Defsx],Df=Dfx).
+checkRule(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
+  reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
 isVarTuple(tple(_,Els)) :-
   foreach(Els,checker:isVr).
@@ -1014,10 +1019,7 @@ checkAction(A,Tp,ErTp,Last,Env,Env,doLbld(Lc,Lb,Ax),Opts,Path) :-
 checkAction(A,Tp,_,Last,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
   isBreak(A,Lc,L),!,isIden(L,_,Lb),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,_Last,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
-  isValis(A,Lc,E),!,
-  typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
-checkAction(A,Tp,ErTp,_Last,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
+checkAction(A,Tp,ErTp,_,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
 checkAction(A,_Tp,ErTp,_Last,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
@@ -1233,6 +1235,10 @@ checkCases([C|Ss],LhsTp,Tp,ErTp,Env,Eqns,Eqx,Df,Dfx,Checker,Opts,Path) :-
   isEquation(C,Lc,L,G,R),!,
   checkCase(Lc,L,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqs,Df,Df0,Checker,Opts,Path),
   checkCases(Ss,LhsTp,Tp,ErTp,Env,Eqs,Eqx,Df0,Dfx,Checker,Opts,Path).
+checkCases([C|Ss],LhsTp,Tp,ErTp,Env,Eqns,Eqx,Df,Dfx,Checker,Opts,Path) :-
+  isProcedure(C,Lc,L,G,R),!,
+  checkPrCase(Lc,L,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqs,Df,Df0,Opts,Path),
+  checkCases(Ss,LhsTp,Tp,ErTp,Env,Eqs,Eqx,Df0,Dfx,Checker,Opts,Path).
 
 checkCase(Lc,Lhs,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqns,Df,Defx,Checker,Opts,Path) :-
   isDefault(Lhs,_,DLhs),!,
@@ -1242,6 +1248,15 @@ checkCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
   typeOfPtn(H,LhsTp,ErTp,Env,E1,Arg,Opts,Path),
   checkGuard(G,ErTp,E1,E2,Guard,Opts,Path),
   call(Checker,R,Tp,ErTp,E2,_,Exp,Opts,Path).
+
+checkPrCase(Lc,Lhs,G,R,LhsTp,Tp,ErTp,Env,Eqns,Eqns,Df,Defx,Opts,Path) :-
+  isDefault(Lhs,_,DLhs),!,
+  checkPrCase(Lc,DLhs,G,R,LhsTp,Tp,ErTp,Env,Df,Defx,_,_,Opts,Path).
+checkPrCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
+	  [prle(Lc,Arg,Guard,Body)|Eqns],Eqns,Dfx,Dfx,Opts,Path) :-
+  typeOfPtn(H,LhsTp,ErTp,Env,E1,Arg,Opts,Path),
+  checkGuard(G,ErTp,E1,E2,Guard,Opts,Path),
+  checkAction(R,Tp,ErTp,notLast,E2,_,Body,Opts,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-

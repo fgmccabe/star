@@ -161,10 +161,8 @@ freeVarsInDefs(L,Ex,Q,F,Fv) :-
 
 freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,_,Eqns),F,Fv) :-
   freeVarsInRules(Eqns,Ex,Q,freevars:freeVars,F,Fv).
-freeVarsInDef(Ex,Q,prcDef(_,_,_,_,_,H,Act),F,Fv) :-!,
-  ptnVars(H,Ex,Ex1),
-  freeVars(H,Ex1,Q,F,F0),
-  freeVarsInAction(Act,Ex1,Q,F0,Fv).
+freeVarsInDef(Ex,Q,prcDef(_,_,_,_,_,Rls),F,Fv) :-!,
+  freeVarsInRules(Rls,Ex,Q,freevars:freeVars,F,Fv).
 
 freeVarsInDef(Ex,Q,varDef(_,_,_,_,_Tp,Value),F,Fv) :-
   freeVars(Value,Ex,Q,F,Fv).
@@ -173,16 +171,21 @@ freeVarsInDef(_,_,_,F,F).
 freeVarsInRules(Eqns,Ex,Q,C,F,Fv) :-
   varsInList(Eqns,freevars:freeVarsInRule(Ex,Q,C),F,Fv).
 
-freeVarsInRule(Ex,Q,C,rule(_,H,none,Exp),F,FV) :-!,
+freeVarsInRule(Ex,Q,C,rule(_,H,G,Exp),F,FV) :-!,
   ptnVars(H,Ex,Ex1),
   freeVars(H,Ex1,Q,F,F0),
-  call(C,Exp,Ex1,Q,F0,FV).
-freeVarsInRule(Ex,Q,C,rule(_,H,some(Cond),Exp),F,FV) :-
+  freeVarsInGuard(G,Ex1,Ex2,Q,F0,F1),
+  call(C,Exp,Ex2,Q,F1,FV).
+freeVarsInRule(Ex,Q,_C,prle(_,H,G,Act),F,FV) :-!,
   ptnVars(H,Ex,Ex1),
-  ptnGoalVars(Cond,Ex1,Ex2),
-  freeVars(H,Ex2,Q,F,F0),
-  call(C,Exp,Ex2,Q,F0,F1),
-  freeVars(Cond,Ex2,Q,F1,FV).
+  freeVars(H,Ex1,Q,F,F0),
+  freeVarsInGuard(G,Ex1,Ex2,Q,F0,F1),
+  freeVarsInAction(Act,Ex2,Q,F1,FV).
+
+freeVarsInGuard(none,Ex,Ex,_,Fv,Fv) :-!.
+freeVarsInGuard(some(G),Ex,Exx,Q,F,Fv) :-
+  ptnGoalVars(G,Ex,Exx),
+  freeVars(G,Exx,Q,F,Fv).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 

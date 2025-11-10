@@ -64,10 +64,11 @@ examineStmt(S,Rp) :-
   macroTerm(V,VV),
   mkEquation(Lc,PP,GG,VV,Rp).
 examineStmt(S,Rp) :-
-  isProcedure(S,Lc,P,G),!,
+  isProcedure(S,Lc,P,G,B),!,
   macroHead(P,PP),
-  map(G,macros:macroAction,GG),
-  mkProcedure(Lc,PP,GG,Rp).
+  macroOpt(G,macros:macroTerm,GG),
+  macroAction(B,BB),
+  mkProcedure(Lc,PP,GG,BB,Rp).
 examineStmt(S,Rp) :-
   isTypeFunStmt(S,Lc,Q,C,L,R),!,
   macroType(L,Lx),
@@ -812,6 +813,12 @@ examineActionCase(A,Ax) :-
   macroOpt(G,macros:macroTerm,GG),
   macroAction(V,VV),
   mkEquation(Lc,PP,GG,VV,Ax).
+examineActionCase(A,Ax) :-
+  isProcedure(A,Lc,P,G,V),!,
+  macroHead(P,PP),
+  macroOpt(G,macros:macroTerm,GG),
+  macroAction(V,VV),
+  mkProcedure(Lc,PP,GG,VV,Ax).
 examineActionCase(T,T) :-
   locOfAst(T,Lc),
   reportError("'%s' should be an action case",[ast(T)],Lc).

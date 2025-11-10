@@ -1,4 +1,4 @@
-:- module(canon,[dispFunction/3,dispDef/1,
+:- module(canon,[dispFunction/3,dispProcedure/3,dispDef/1,
 		 dispCanon/1,dispAction/1,dispCanonProg/1,
 		 ssCanonProg/2,ssTerm/3,ssPkg/2,ssContract/3,ssRule/3,ssDecl/2,
 		 dispDecls/1,
@@ -415,6 +415,10 @@ ssRule(Nm,Dp,rule(_,Args,Guard,Value),sq([id(Nm),A,G,ss(" => "),V])) :-
   ssTerm(Args,Dp,A),
   ssGuard(Guard,Dp,G),
   ssTerm(Value,Dp,V).
+ssRule(Nm,Dp,prle(_,Args,Guard,Act),sq([id(Nm),A,G,ss(" do "),V])) :-
+  ssTerm(Args,Dp,A),
+  ssGuard(Guard,Dp,G),
+  ssAction(Act,Dp,V).
 
 ssGuard(none,_,sq([])) :- !.
 ssGuard(some(C),Dp,sq([ss(" where "),CC])) :-
@@ -433,11 +437,10 @@ ssDef(Dp,funDef(Lc,Nm,ExtNm,Sft,Tp,_Cx,Eqns),
   ssRls(ExtNm,Eqns,Dp,canon:ssTerm,Rs),
   ssLoc(Lc,Lcs),
   (Sft=soft -> SS="soft " ; SS="").
-ssDef(Dp,prcDef(Lc,Nm,ExtNm,Tp,_Cx,Args,Act),
+ssDef(Dp,prcDef(Lc,Nm,ExtNm,Tp,_Cx,Rls),
       sq([ss("prc "),id(Nm),ss(":"),TT,ss(" @"),Lcs,nl(Dp),Rs])) :-
   ssType(Tp,true,Dp,TT),
-  Rs = sq([id(ExtNm),canon:ssTerm(Args,Dp),ss("{"),nl(4),AA,nl(0),ss("}")]),
-  ssAction(Act,Dp,AA),
+  ssRls(ExtNm,Rls,Dp,canon:ssAction,Rs),
   ssLoc(Lc,Lcs).
 ssDef(Dp,varDef(_Lc,Nm,_ExtNm,_Cx,Tp,Value),
       sq([ss("var "),id(Nm),ss(":"),TT,ss(" = "),V])) :-
@@ -474,6 +477,11 @@ ssFunction(Dp,Nm,Type,Eqns,
   ssType(Type,true,Dp,Ts),
   ssRls(Nm,Eqns,Dp,canon:ssTerm,Rs).
 
+ssProcedure(Dp,Nm,Type,Eqns,
+	   sq([ss("prc "),id(Nm),ss(" : "),Ts,nl(Dp),Rs])) :-
+  ssType(Type,true,Dp,Ts),
+  ssRls(Nm,Eqns,Dp,canon:ssAction,Rs).
+
 ssRls(Nm,Eqns,Dp,Dsp,iv(nl(Dp),EE)) :-
   map(Eqns,canon:ssRle(Nm,Dp,Dsp),EE).
 
@@ -486,6 +494,15 @@ ssRle(Nm,Dp,Dsp,rule(_,Args,Guard,Value),
 	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" => "),
 	  VV])) :-
   call(Dsp,Value,Dp,VV).
+ssRle("",Dp,_Dsp,prle(_,Args,Guard,Action),
+      sq([canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" do "),
+	  VV])) :-
+  ssAction(Action,Dp,VV).
+ssRle(Nm,Dp,_Dsp,prle(_,Args,Guard,Action),
+      sq([id(Nm),
+	  canon:ssTerm(Args,Dp),canon:ssGuard(Guard,Dp),ss(" do "),
+	  VV])) :-
+  ssAction(Action,Dp,VV).
 
 dispDecls(Decls) :-
   map(Decls,canon:ssDecl(0,ss("")),DD),
@@ -567,6 +584,9 @@ ssVisibility(transitive,ss("transitive ")).
 
 dispFunction(Nm,Type,Eqns) :-
   displayln(canon:ssFunction(0,Nm,Type,Eqns)).
+
+dispProcedure(Nm,Type,Rls) :-
+  displayln(canon:ssProcedure(0,Nm,Type,Rls)).
 
 dispDef(Def) :-
   displayln(canon:ssDef(0,Def)).
