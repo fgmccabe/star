@@ -824,6 +824,11 @@ star.compiler.term{
     mkLtt(Lc,V,E,X) => .aLtt(Lc,V,E,X).
   }
 
+  public pullWheres: all e ~~ reform[e],hasLoc[e] |= (cons[e])=>(cons[e],option[cExp]).
+  pullWheres([]) => ([],.none).
+  pullWheres([A,..As]) where (NA,NG).=pullWhere(A) && (NAs,Gx) .= pullWheres(As) =>
+      ([NA,..NAs],mergeGoal(locOf(A),NG,Gx)).
+
   dfVars:(cons[cDefn],set[cV])=>set[cV].
   dfVars([.fnDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
   dfVars([.prDef(_,Nm,Tp,_,_),..Ds],D) => dfVars(Ds,D\+.cV(Nm,Tp)).
