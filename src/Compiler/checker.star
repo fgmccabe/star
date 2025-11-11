@@ -292,7 +292,7 @@ star.compiler.checker{
       showMsg("constraints $(Cx)");
 
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-    Rls = processEqns(Stmts,ProgramType,[],.none,Es,
+    Rls = processEqns(Stmts,typeOfArgPtn,ProgramType,[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
     FullNm = qualifiedName(Path,.valMark,Nm);
 
@@ -302,29 +302,31 @@ star.compiler.checker{
     valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
 
-  processEqns:(cons[ast],tipe,cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
+  argTyper ~> (ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
+
+  processEqns:(cons[ast],argTyper,tipe,cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
     cons[rule[canon]].
-  processEqns([],_,Rls,.none,_,_,_) => reverse(Rls).
-  processEqns([],_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
-  processEqns([St,..Ss],ProgramType,Rls,Deflt,Env,Outer,Path) => valof{
-    (Rl,IsDeflt) = processEqn(St,ProgramType,Env,Outer,Path);
+  processEqns([],_,_,Rls,.none,_,_,_) => reverse(Rls).
+  processEqns([],_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
+  processEqns([St,..Ss],Typer,ProgramType,Rls,Deflt,Env,Outer,Path) => valof{
+    (Rl,IsDeflt) = processEqn(St,Typer,ProgramType,Env,Outer,Path);
     if IsDeflt then{
       if DRl ?= Deflt then{
 	reportError("cannot have more than one default, other one at $(locOf(DRl))",
 	  locOf(St));
 	valis []
       } else{
-	valis processEqns(Ss,ProgramType,Rls,.some(Rl),Env,Outer,Path)
+	valis processEqns(Ss,Typer,ProgramType,Rls,.some(Rl),Env,Outer,Path)
       }
     }
     else{
-      valis processEqns(Ss,ProgramType,[Rl,..Rls],Deflt,Env,Outer,Path)
+      valis processEqns(Ss,Typer,ProgramType,[Rl,..Rls],Deflt,Env,Outer,Path)
     }
   }
 
-  processEqn(St,ProgramType,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
+  processEqn(St,Typer,ProgramType,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
     (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
-    (Args,ACnd,E0) = typeOfArgPtn(Arg,ATp,ErTp,Outer,Path);
+    (Args,ACnd,E0) = Typer(Arg,ATp,ErTp,Outer,Path);
 
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
@@ -350,7 +352,7 @@ star.compiler.checker{
 
     if (ArgTp,ErTp) ?= isPrType(ProgramType) then{
       Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-      Rls = processRules(Stmts,ArgTp,.voidType,ErTp,[],.none,Es,
+      Rls = processRules(Stmts,typeOfArgPtn,ArgTp,.voidType,ErTp,[],.none,Es,
 	declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
       FullNm = qualifiedName(Path,.valMark,Nm);
 
@@ -365,28 +367,28 @@ star.compiler.checker{
     }
   }
 
-  processRules:(cons[ast],tipe,tipe,tipe,cons[rule[canonAction]],option[rule[canonAction]],dict,dict,string) =>
+  processRules:(cons[ast],argTyper,tipe,tipe,tipe,cons[rule[canonAction]],option[rule[canonAction]],dict,dict,string) =>
     cons[rule[canonAction]].
-  processRules([],_,_,_,Rls,.none,_,_,_) => reverse(Rls).
-  processRules([],_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
-  processRules([St,..Ss],ArgType,ResltTp,ErTp,Rls,Deflt,Env,Outer,Path) => valof{
-    (Rl,IsDeflt) = processRule(St,ArgType,ResltTp,ErTp,Env,Outer,Path);
+  processRules([],_,_,_,_,Rls,.none,_,_,_) => reverse(Rls).
+  processRules([],_,_,_,_,Rls,.some(Dflt),_,_,_) => reverse([Dflt,..Rls]).
+  processRules([St,..Ss],Typer,ArgType,ResltTp,ErTp,Rls,Deflt,Env,Outer,Path) => valof{
+    (Rl,IsDeflt) = processRule(St,Typer,ArgType,ResltTp,ErTp,Env,Outer,Path);
     if IsDeflt then{
       if DRl ?= Deflt then{
 	reportError("cannot have more than one default, other one at $(locOf(DRl))",
 	  locOf(St));
 	valis []
       } else{
-	valis processRules(Ss,ArgType,ResltTp,ErTp,Rls,.some(Rl),Env,Outer,Path)
+	valis processRules(Ss,Typer,ArgType,ResltTp,ErTp,Rls,.some(Rl),Env,Outer,Path)
       }
     }
     else
-      valis processRules(Ss,ArgType,ResltTp,ErTp,[Rl,..Rls],Deflt,Env,Outer,Path)
+    valis processRules(Ss,Typer,ArgType,ResltTp,ErTp,[Rl,..Rls],Deflt,Env,Outer,Path)
   }
 
-  processRule:(ast,tipe,tipe,tipe,dict,dict,string) => (rule[canonAction],boolean).
-  processRule(Stmt,ArgType,ResltTp,ErTp,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(Stmt) => valof{
-    (Args,ACnd,E0) = typeOfArgPtn(Arg,ArgType,ErTp,Outer,Path);
+  processRule:(ast,argTyper,tipe,tipe,tipe,dict,dict,string) => (rule[canonAction],boolean).
+  processRule(Stmt,Typer,ArgType,ResltTp,ErTp,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isProcedure(Stmt) => valof{
+    (Args,ACnd,E0) = Typer(Arg,ArgType,ErTp,Outer,Path);
 
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
@@ -398,8 +400,8 @@ star.compiler.checker{
       valis (.rule(Lc,Args,ACnd,Body),IsDeflt)
     }
   }
-  processRule(Stmt,ArgType,ResltTp,ErTp,Env,Outer,Path) where (Lc,IsDeflt,Arg,Cnd,R) ?= isLambda(Stmt) => valof{
-    (Args,ACnd,E0) = typeOfArgPtn(Arg,ArgType,ErTp,Outer,Path);
+  processRule(Stmt,Typer,ArgType,ResltTp,ErTp,Env,Outer,Path) where (Lc,IsDeflt,Arg,Cnd,R) ?= isLambda(Stmt) => valof{
+    (Args,ACnd,E0) = Typer(Arg,ArgType,ErTp,Outer,Path);
 
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
@@ -734,7 +736,7 @@ star.compiler.checker{
     GTp = newTypeVar("_e");
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = processEqns(Cases,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
+    Rules = processEqns(Cases,typeOfPtn,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
 
     checkPtnCoverage(Rules//((.rule(_,Ptn,_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
@@ -1217,7 +1219,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("handle action case $(A)\:$(Tp)");
 
-    Rules = processRules(Cases,ETp,Tp,ErTp,[],.none,Env,Env,Path);
+    Rules = processRules(Cases,typeOfPtn,ETp,Tp,ErTp,[],.none,Env,Env,Path);
 
     valis (.doCase(Lc,Gv,Rules),Env)
   }
