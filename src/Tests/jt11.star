@@ -38,7 +38,8 @@ test.jt11{
 	}
 	| .end => valis Tl!
       }
-    }
+    };
+    valis TL!
   }
 
   main:(){}.

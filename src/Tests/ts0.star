@@ -20,7 +20,7 @@ test.ts0{
       
 	Ix := Ix! + 1;
       };
-      Gen retire .end
+      valis .end
     }).
 
   adder:(integer,integer) => integer.
@@ -36,7 +36,8 @@ test.ts0{
 	}
 	| .end => valis Tl!
       }
-    }
+    };
+    valis Tl!
   }
 
   main:() => ().
