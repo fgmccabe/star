@@ -2,8 +2,8 @@ test.str2{
   import star.
   import star.assert.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     HW = "helloworld";
     show HW[1];
     show HW[0];

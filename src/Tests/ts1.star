@@ -35,7 +35,8 @@ test.ts1{
 	case suspend .yild(E) in {
 	  | .next => valis ()
 	  | .cancel => retire .end
-	}
+	};
+	valis ()
       }
     } in valof{
       consIter(L,(),yildFn);
@@ -60,6 +61,7 @@ test.ts1{
 	| .end => valis Tl!
       }
     };
+    valis Tl!
   }
 
   odds:(cons[integer]) => integer.
@@ -78,16 +80,17 @@ test.ts1{
 	| .end => valis Tl!
       }
     };
+    valis Tl!
   }
 
   iota:(integer,integer)=>cons[integer].
   iota(F,F) => .nil.
   iota(F,T) => .cons(F,iota(F+1,T)).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     LL = iota(1,12);
     showMsg(disp(odds(LL)));
-    valis showMsg(disp(evens(LL)));
+    showMsg(disp(evens(LL)));
   }
 }

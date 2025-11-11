@@ -24,26 +24,24 @@ test.ts{
     valis ()
   }
 
-  testl5 = valof{
+  testl5(){
     try{
       assert fact(3)==6;
       show fact(5);
       assert ~fact(2)==fact(4);
-      valis ()
     } catch {
       _ => showMsg("something went wrong")
     }
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       assert fact(3)==6;
       show fact(5);
       assert fact(2)~=fact(4)
     } catch {
       _ => showMsg("something went wrong")
-    };
-    valis ()
+    }
   }
 }
