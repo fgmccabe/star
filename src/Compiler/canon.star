@@ -64,7 +64,7 @@ star.compiler.canon{
   .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
   .doExp(option[locn],canon).
 
-  public rule[t] ::= .rule(option[locn],canon,option[canon],t).
+  public rule[t] ::= .rule(option[locn],cons[canon],option[canon],t).
     
   public canonDef ::=
     .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
@@ -364,19 +364,19 @@ star.compiler.canon{
   showEqs(Nm,Eqs,Sp) => interleave(Eqs//(Eq)=>showEq(Nm,Eq,Sp),"\n"++Sp++"| ")*.
 
   showEq:(string,rule[canon],string) => string.
-  showEq(Nm,.rule(_,Ptn,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) => #(showCanon(Val,Rp,Sp))".
-  showEq(Nm,.rule(_,Ptn,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) => #(showCanon(Val,Rp,Sp))".
+  showEq(Nm,.rule(_,Ptns,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) => #(showCanon(Val,Rp,Sp))".
+  showEq(Nm,.rule(_,Ptns,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) where #(showCanon(C,Lp,Sp)) => #(showCanon(Val,Rp,Sp))".
 
   showRls:(string,cons[rule[canonAction]],string) => string.
   showRls(Nm,Rls,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),"\n"++Sp++"| ")*.
 
   showRl:(string,rule[canonAction],string) => string.
-  showRl(Nm,.rule(_,Ptn,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) do #(showAct(Val,Rp,Sp))".
-  showRl(Nm,.rule(_,Ptn,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
-    "#(Nm)#(showCanon(Ptn,Lp,Sp)) where #(showCanon(C,Lp,Sp)) do #(showAct(Val,Rp,Sp))".
+  showRl(Nm,.rule(_,Ptns,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) do #(showAct(Val,Rp,Sp))".
+  showRl(Nm,.rule(_,Ptns,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) where #(showCanon(C,Lp,Sp)) do #(showAct(Val,Rp,Sp))".
 
   showDecs:(cons[decl],string) => string.
   showDecs(Dcs,Sp) => interleave(Dcs//disp,"\n"++Sp)*.
@@ -402,8 +402,8 @@ star.compiler.canon{
   displayDefs(Dfs) => interleave(Dfs//disp,"\n")*.
 
   public implementation all x ~~ display[x] |= display[rule[x]] => let{
-    showRule(.rule(_,Ptn,.none,Val)) => "λ$(Ptn) is $(Val)".
-    showRule(.rule(_,Ptn,.some(Cond),Val)) => "λ$(Ptn) where $(Cond) is $(Val)".
+    showRule(.rule(_,Ptns,.none,Val)) => "λ#(showTuple(Ptns,"")) is $(Val)".
+    showRule(.rule(_,Ptns,.some(Cond),Val)) => "λ#(showTuple(Ptns,"")) where $(Cond) is $(Val)".
   } in {
     disp = showRule
   }

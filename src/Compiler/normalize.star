@@ -47,7 +47,7 @@ star.compiler.normalize{
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,[.rule(Lc,.tple(Lc,[]),.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
+    transformFunction(Lc,FullNm,[.rule(Lc,[],.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -197,29 +197,20 @@ star.compiler.normalize{
   transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|=
     (rule[e],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
       ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.rule(Lc,Arg,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
-    EQ = ptnVars(Arg,Q,[]);
-    if traceNormalize! then
-      showMsg("Pattern vars $(EQ)");
-    (APtn,Ex1) = liftPtn(Arg,Outer,EQ,Ex);
+  transformRule(.rule(Lc,Args,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
+    EQ = ptnTplVars(Args,Q,[]);
+    (APtn,Ex1) = liftPtns(Args,Outer,EQ,Ex);
 
     if traceNormalize! then
-      showMsg("lifted pattern $(APtn)");
+      showMsg("lifted patterns $(APtn)");
 
-    (TPtn, WC) = pullWhere(APtn);
+    (TPtns, WC) = pullWheres(APtn);
 
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
     (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
-    if traceNormalize! then
-      showMsg("Val $(Val) lifted to $(Rep)");
     
-    if .cTerm(_,_,Ptns,_).=TPtn then
-      valis ((Lc,addExtra(Extra,Ptns),mergeGoal(Lc,WC,NG),Rep),Exx)
-    else{
-      reportError("cannot transform invalid rule args $(Arg)",Lc);
-      valis ((Lc,addExtra(Extra,[]),.none,Rep),Exx)
-    }
+    valis ((Lc,addExtra(Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
   }
 
   liftGoal(.none,_,_,Ex) => (.none,Ex).
@@ -402,6 +393,10 @@ star.compiler.normalize{
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
     (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
+
+    if traceNormalize! then
+      showMsg("case rules: $(Cs)");
+
     if .cVar(_,_).=LGov then{
       Reslt = caseMatcher(Lc,Map,LGov,.cAbort(Lc,"no matches",Tp),Cs);
       valis (Reslt,Ex2)
