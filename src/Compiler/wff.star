@@ -685,6 +685,9 @@ star.compiler.wff{
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,R)).
   isEquation(_) default => .none.
 
+  public areRules:(cons[ast]) => boolean.
+  areRules(L) => {? E in L *> _ ?= isProcedure(E) ?}.
+
   public isProcedure:(ast) => option[(option[locn],option[ast],boolean,ast,option[ast],ast)].
   isProcedure(A) where (Lc,L,Acs) ?= isBraceTerm(A) && _ ?= isRoundTerm(L) &&
       (N,H,C,D) ?= splitHead(L,.none,.none,.false) => .some((Lc,N,D,H,C,reSequence(deSequence(Acs)))).
