@@ -14,6 +14,7 @@ typedef uint64 registerMap;
 registerMap defltAvailRegSet();
 registerMap emptyRegSet();
 registerMap fixedRegSet(armReg Rg);
+registerMap mapUnion(registerMap a, registerMap b);
 
 static inline registerMap scratchRegs() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3;
