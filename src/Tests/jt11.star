@@ -39,7 +39,7 @@ test.jt11{
 	| .end => valis Tl!
       }
     };
-    valis TL!
+    valis Tl!
   }
 
   main:(){}.

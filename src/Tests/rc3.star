@@ -4,8 +4,8 @@ test.rc3{
 
   -- Test anonymous brace tuples
 
-  public main:()=>().
-  main() => valof{
+  public main:(){}.
+  main(){
     AA = {A=10. ii={1->.false, 2->.true}. private b="hi". c=.nil};
 
     show AA.A;

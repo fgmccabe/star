@@ -63,12 +63,12 @@ test.primes{
 
   divides(X,Y) => (try Y%X==0 catch {_ => .false}).
 
-  _main:(cons[string]) => ().
-  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
-  _main(_) => main(100).
+  _main:(cons[string]){}.
+  _main([C,.._]) where Cnt?=(C:?integer) do main(Cnt).
+  _main(_) do main(100).
 
-  main:(integer)=>().
-  main(Cnt) => valof{
+  main:(integer){}.
+  main(Cnt){
     show "$(Cnt) sieve = $(sieve(Cnt))";
     show "$(Cnt) primes = $(primes(Cnt))";
     show "$(Cnt) prime sieve = $(primeSieve(Cnt,genOdds))"
