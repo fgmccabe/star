@@ -24,6 +24,11 @@ registerMap fixedRegSet(armReg Rg) {
   return 1u << Rg;
 }
 
+registerMap mapUnion(registerMap a, registerMap b)
+{
+  return a | b;
+}
+
 registerMap allocReg(registerMap from, armReg Rg) {
   check((from & ((uint64)1u << Rg)) != 0, "register not free");
   return (from & (~((uint64) 1u << Rg)));

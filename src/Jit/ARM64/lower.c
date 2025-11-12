@@ -141,9 +141,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Abort: {
         // abort with message
         armReg val = popValue(stack, jit);
+        armReg loc = findFreeReg(jit);
+        loadConstant(jit,code[pc].fst, loc);
         stash(block);
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), OF(CO, code[pc].fst), RG(val));
+        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(loc), RG(val));
         releaseReg(jit, val);
+        releaseReg(jit, loc);
         return ret;
       }
       case Call: {
