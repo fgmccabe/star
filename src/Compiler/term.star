@@ -792,10 +792,6 @@ star.compiler.term{
       (.cTerm(Lc,Lbl,NArgs,Tp),Gx).
     pullWhere(Exp) default => (Exp,.none).
 
-    pullWheres([]) => ([],.none).
-    pullWheres([A,..As]) where (NA,NG).=pullWhere(A) && (NAs,Gx) .= pullWheres(As) =>
-      ([NA,..NAs],mergeGoal(locOf(A),NG,Gx)).
-
 --    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 

@@ -22,7 +22,8 @@ star.actor{
 	  }
 	}
       } catch { (_) => { showMsg("Problem in actor"); valis () }}
-    }
+    };
+    valis ()
   }
 
   public actor[i] ::= .actor(task[()],receiver[actorProtocol[i]]).

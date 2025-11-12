@@ -391,6 +391,8 @@ star.compiler.normalize{
     valis (.cGet(Lc,VV,Tp),Ex1)
   }
   liftExp(.csexp(Lc,Gov,Cses,Tp),Map,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift case: $(.csexp(Lc,Gov,Cses,Tp))");
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
     (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
 

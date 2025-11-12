@@ -292,6 +292,7 @@ star.compiler.checker{
       showMsg("constraints $(Cx)");
 
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+
     Rls = processEqns(Stmts,typeOfArgPtn,ProgramType,[],.none,Es,
       declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
     FullNm = qualifiedName(Path,.valMark,Nm);
@@ -301,8 +302,6 @@ star.compiler.checker{
     
     valis ([.funDef(Lc,FullNm,Rls,Cx,Tp)],[.funDec(Lc,Nm,FullNm,Tp)])
   }
-
-  argTyper ~> (ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
 
   processEqns:(cons[ast],argTyper,tipe,cons[rule[canon]],option[rule[canon]],dict,dict,string) =>
     cons[rule[canon]].
@@ -324,6 +323,7 @@ star.compiler.checker{
     }
   }
 
+  processEqn:(ast,argTyper,tipe,dict,dict,string) => (rule[canon],boolean).
   processEqn(St,Typer,ProgramType,Env,Outer,Path) where (Lc,_,IsDeflt,Arg,Cnd,R) ?= isEquation(St) => valof{
     (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgramType);
     (Args,ACnd,E0) = Typer(Arg,ATp,ErTp,Outer,Path);
@@ -366,6 +366,8 @@ star.compiler.checker{
       valis ([],[])
     }
   }
+
+  argTyper ~> (ast,tipe,tipe,dict,string) => (cons[canon],option[canon],dict).
 
   processRules:(cons[ast],argTyper,tipe,tipe,tipe,cons[rule[canonAction]],option[rule[canonAction]],dict,dict,string) =>
     cons[rule[canonAction]].
@@ -589,15 +591,24 @@ star.compiler.checker{
     valis (.anon(Lc,Tp),.none,Env)    
   }
 
-  typeOfArgPtn:(ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
+  typeOfArgPtn:argTyper.
   typeOfArgPtn(A,Tp,ErTp,Env,Path) where (Lc,Els) ?= isTuple(A) => valof{
     Tvs = genTpVars(Els);
     checkType(A,.tupleType(Tvs),Tp,Env);
     (Ptns,Cond,Ev) = typeOfPtns(Els,Tvs,ErTp,Lc,.none,[],Env,Path);
 
-    valis (.tple(Lc,Ptns),Cond,Ev)
+    valis (Ptns,Cond,Ev)
   }
-  typeOfArgPtn(A,Tp,ErTp,Env,Path) => typeOfPtn(A,Tp,ErTp,Env,Path).
+  typeOfArgPtn(A,Tp,ErTp,Env,Path) => valof{
+    (Pt, Cond, Ev) = typeOfPtn(A,Tp,ErTp,Env,Path);
+    valis ([Pt], Cond, Ev)
+  }
+
+  caseArgType:argTyper.
+  caseArgType(A,Tp,ErTp,Env,Path) => valof{
+    (Ptn,Cond,Ev) = typeOfPtn(A,Tp,ErTp,Env,Path);
+    valis ([Ptn],Cond,Ev)
+  }
 
   typeOfArgsPtn:(cons[ast],cons[tipe],tipe,option[locn],dict,string) =>
     (cons[canon],option[canon],dict).
@@ -736,9 +747,9 @@ star.compiler.checker{
     GTp = newTypeVar("_e");
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = processEqns(Cases,typeOfPtn,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
+    Rules = processEqns(Cases,caseArgType,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
 
-    checkPtnCoverage(Rules//((.rule(_,Ptn,_,_))=>Ptn),Env,GTp);
+--    checkPtnCoverage(Rules//((.rule(_,Ptn,_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,C) ?= isCellRef(A) => valof{
@@ -903,7 +914,7 @@ star.compiler.checker{
 	  Rc = .vr(Lc,"XX",Tp);
 	  AccTp = funType([Tp],FTp);
 	  Acc = .varDef(Lc,AccNm,AccNm,.lambda(Lc,lambdaLbl(Lc),
-	      .rule(Lc,.tple(Lc,[Rc]),.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
+	      .rule(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
 	    [],AccTp);
 	  Dec = .funDec(Lc,AccNm,AccNm,AccTp);
 	  ADec = .accDec(Lc,Tp,Fld,AccNm,AccTp);
@@ -1088,8 +1099,7 @@ star.compiler.checker{
 	  .doDefn(Lc,SavVr,.newSav(Lc,VlTp)),
 	  .doValis(Lc,
 	    .lambda(Lc,lambdaLbl(Lc),
-	      .rule(Lc,.tple(Lc,[]),.none,
-		.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
+	      .rule(Lc,[],.none,.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
 		  XVr,
 		  .svSet(Lc,SavVr,
 		    typeOfExp(E,VlTp,.voidType,Env,Path)))),funType([],Tp)))),Tp),Tp)
@@ -1219,7 +1229,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("handle action case $(A)\:$(Tp)");
 
-    Rules = processRules(Cases,typeOfPtn,ETp,Tp,ErTp,[],.none,Env,Env,Path);
+    Rules = processRules(Cases,caseArgType,ETp,Tp,ErTp,[],.none,Env,Env,Path);
 
     valis (.doCase(Lc,Gv,Rules),Env)
   }
