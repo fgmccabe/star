@@ -243,8 +243,8 @@ star.compiler.checker{
       (Defs,Decls) = checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
-    | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) && _ ?= isProcedure(Stmt) => valof{
-      (Defs,Decls) = checkProcedure(Nm,Tp,Lc,[Stmt],Env,Outer,Path);
+    | .defnSpec(.varSp(Nm),Lc,Stmts) where Tp ?= varType(Nm,Env) && areRules(Stmts) => valof{
+      (Defs,Decls) = checkProcedure(Nm,Tp,Lc,Stmts,Env,Outer,Path);
       valis (Defs,Publish(.varSp(Nm),Decls),Decls)
     }
     | .defnSpec(.varSp(Nm),Lc,[Stmt]) where Tp ?= varType(Nm,Env) => valof{
