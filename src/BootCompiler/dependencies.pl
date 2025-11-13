@@ -327,9 +327,6 @@ collectTermRefs(T,All,R,Rx) :-
 collectTermRefs(T,All,R,Rx) :-
   isThunkRef(T,_,V),!,
   collectTermRefs(V,All,R,Rx).
-collectTermRefs(app(_,Op,Args),All,R,Rx) :-
-  collectTermRefs(Op,All,R,R0),
-  collectTermRefs(Args,All,R0,Rx).
 collectTermRefs(T,All,R,Rx) :-
   isQBraceTuple(T,_,Els),
   collectClassRefs(Els,All,R,Rx).
@@ -337,7 +334,7 @@ collectTermRefs(T,All,R,Rx) :-
   isBraceTuple(T,_,Els),
   collectStmtRefs(Els,All,[],R,Rx).
 collectTermRefs(T,All,R,Rx) :-
-  isQBraceTerm(T,_,Op,Els),
+  isBraceTerm(T,_,Op,Els),
   collectTermRefs(Op,All,R,R0),
   collectClassRefs(Els,All,R0,Rx).
 collectTermRefs(T,All,R,Rx) :-
@@ -364,6 +361,9 @@ collectTermRefs(T,All,R,Rx) :-
 collectTermRefs(T,All,R,Rx) :-
   isCellRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
+collectTermRefs(app(_,Op,Args),All,R,Rx) :-
+  collectTermRefs(Op,All,R,R0),
+  collectTermRefs(Args,All,R0,Rx).
 collectTermRefs(_,_,Rx,Rx).
 
 collectTermListRefs([],_,Rx,Rx).
