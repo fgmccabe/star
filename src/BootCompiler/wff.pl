@@ -609,15 +609,17 @@ buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
   mkEquation(Lc,H,Cond,Exp,Eqn).
 
 isProcedure(Trm,Lc,Hd,none,A) :-
-  isBraceTerm(Trm,Lc,Hd,Bd),isRoundTerm(Hd,_,_,_),!,
+  isBraceTerm(Trm,Lc,Hd,Bd), isRoundTerm(Hd,_,_,_),!,
   deSequence(Bd,As),
   reSequence(As,A).
 isProcedure(Trm,Lc,Hd,Cond,A) :-
   isBinary(Trm,Lc,"do",Lhs,A),
   (isWhere(Lhs,_,Hd,G), Cond=some(G) ; Hd=Lhs, Cond=none).
 
-mkProcedure(Lc,Hd,none,Bd,Trm) :-!,
+mkProcedure(Lc,Hd,none,Bd,Trm) :- isRoundTerm(Hd,_,_,_),!,
   braceTerm(Lc,Hd,[Bd],Trm).
+mkProcedure(Lc,Hd,none,Bd,Trm) :-
+  binary(Lc,"do",Hd,Bd,Trm).
 mkProcedure(Lc,Hd,some(C),Bd,Trm) :-
   whereTerm(Lc,Hd,C,Lhs),
   binary(Lc,"do",Lhs,Bd,Trm).

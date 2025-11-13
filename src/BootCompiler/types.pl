@@ -6,7 +6,7 @@
 	   progTypeArity/2,progArgTypes/2,realArgTypes/2,
 	   funResType/2,funExType/2,
 	   isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
-	   isFunctionType/1,isFunctionType/2,isCnsType/3,
+	   isFunctionType/1,isFunctionType/2,isCnsType/3,isProcedureType/1,
 	   isProgramType/1,isRefTp/2,mkRefTp/2,fiberType/3,
 	   isThrowingType/3,
 	   isIntegerType/1,
@@ -383,6 +383,12 @@ isFunctionType(funType(A,_),Ar) :- progTypeArity(A,Ar).
 isFunctionType(funType(A,_,_),Ar) :- progTypeArity(A,Ar).
 isFunctionType(procType(A),Ar) :- progTypeArity(A,Ar).
 isFunctionType(procType(A,_),Ar) :- progTypeArity(A,Ar).
+
+isProcedureType(T) :- deRef(T,Tp), isProcedureType(Tp,_).
+
+isProcedureType(allType(_,T),Ar) :- deRef(T,Tp),isProcedureType(Tp,Ar).
+isProcedureType(procType(A),Ar) :- progTypeArity(A,Ar).
+isProcedureType(procType(A,_),Ar) :- progTypeArity(A,Ar).
 
 isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg,Rep).
 
