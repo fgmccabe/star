@@ -609,7 +609,7 @@ buildEquation(Lc,Nm,Args,Cond,true,Exp,Eqn) :-
   mkEquation(Lc,H,Cond,Exp,Eqn).
 
 isProcedure(Trm,Lc,Hd,none,A) :-
-  isBraceTerm(Trm,Lc,Hd,Bd), isRoundTerm(Hd,_,_,_),!,
+  isBraceTerm(Trm,Lc,Hd,Bd), (isRoundTerm(Hd,_,_,_);isTuple(Hd,_,_)),!,
   deSequence(Bd,As),
   reSequence(As,A).
 isProcedure(Trm,Lc,Hd,Cond,A) :-
