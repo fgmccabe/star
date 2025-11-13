@@ -451,6 +451,12 @@ examineTerm(T,Tx) :-
   macroOpt(G,macros:macroTerm,Gx),
   mkEquation(Lc,Lx,Gx,Rx,Tx).
 examineTerm(T,Tx) :-
+  isProcedure(T,Lc,P,G,V),!,
+  macroHead(P,PP),
+  macroOpt(G,macros:macroTerm,GG),
+  macroAction(V,VV),
+  mkProcedure(Lc,PP,GG,VV,Tx).
+examineTerm(T,Tx) :-
   isValof(T,Lc,A),
   isBraceTuple(A,_,Els),!,
   deSequence(Els,As),
