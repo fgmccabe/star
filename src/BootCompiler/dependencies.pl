@@ -353,6 +353,11 @@ collectTermRefs(T,All,R0,Rx) :-
   collectTermRefs(L,All,R0,R1),
   collectGuardRefs(C,All,R1,R2),
   collectTermRefs(R,All,R2,Rx).
+collectTermRefs(T,All,R0,Refs) :-
+  isProcedure(T,_,H,G,A),
+  collectHeadRefs(H,All,R0,R1),
+  collectGuardRefs(G,All,R1,R2),
+  collectDoRefs(A,All,R2,Refs).
 collectTermRefs(T,All,R,Rx) :-
   isRef(T,_,A),!,
   collectTermRefs(A,All,R,Rx).
