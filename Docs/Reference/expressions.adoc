@@ -24,6 +24,7 @@ expression --> throwExpression.
 expression --> conditionalExpression.
 expression --> condition.
 expression --> lambdaExpression.
+expression --> lambdaRule.
 expression --> thunkExpression.
 expression --> letExpression.
 expression --> valofExpression.
