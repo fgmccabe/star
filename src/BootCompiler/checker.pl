@@ -966,6 +966,18 @@ typeOfLambda(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Pa
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Opts,Path).
 
+typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
+  checkOpt(Opts,traceCheck,showMsg(Lc,"expected type of rule %s:%s",[ast(Term),tpe(Tp)])),
+  pushScope(Env,LEnv),
+  getConstraints(Tp,Cx,LambdaTp),
+  declareConstraints(Lc,Cx,LEnv,EvL),
+  splitUpProcedureType(Lc,Env,LambdaTp,AT,ErTp),
+  isProcedure(Term,Lc,H,C,R),
+  typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
+  checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
+  lambdaLbl(Path,"λ",Lbl),
+  checkAction(R,voidType,ErTp,E1,_,Exp,Opts,Path).
+
 %% Translate thunks into uses of SAVars & lambda
 % $$ E becomes
 %
@@ -1149,7 +1161,9 @@ checkProcCall(Lc,F,A,ErTp,Env,Call,Opts,Path) :-
 	Call=tapply(Lc,Fun,Args,Tp,ErTp);
       reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
       Call=void);
-   reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
+   (isProcedureType(FnTp) ->
+	reportError("type of %s:\n%s\nnot consistent with:\n%s{}",[Fun,FnTp,At],Lc);
+	reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc)),
    Call=void).
 
 checkActions([],Lc,_ErTp,Env,Env,doNop(Lc),_Opts,_Path).

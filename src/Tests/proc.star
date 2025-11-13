@@ -4,6 +4,7 @@ test.proc{
 
   -- Test the new procedure notation
 
+
   -- A simple procedure type
   do1: (integer){}.
   do1(Ix){
@@ -39,6 +40,22 @@ test.proc{
     valis 43
   }
 
+  v:all e ~~ ((e){}) => (e)=>().
+  v(P) => (X)=> valof{
+    P(X);
+    valis ()
+  }
+
+  p:all e ~~ ((e)=>()) => (e){}.
+  p(F) => (X){ F(X) }
+
+  visitList:all e ~~ (cons[e],(e){}){}.
+  visitList([],_) do {}.
+  visitList([E,..Es],P) do{
+    P(E);
+    visitList(Es,P)
+  }
+
   _main:(cons[string]){}.
   _main([]) do main(41).
   _main([A,.._]) do main(A::integer).
@@ -52,6 +69,8 @@ test.proc{
       do1(43)
     } catch {
     | .exception(M) do logMsg(.info,"we got an exception: #(M)")
-    }
+    };
+
+    visitList([1,2,10,-10],do1)
   }
 }
