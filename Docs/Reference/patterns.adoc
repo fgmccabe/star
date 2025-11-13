@@ -2,11 +2,11 @@
 = Patterns
 
 (((patterns)))
-Patterns are templates that are used to match against a value;
-possibly binding one or more variables to components of the matched
-value. Patterns are used as guards in equations, as filters in query expressions
-and in `for` loops. Patterns represent one of the fundamental mechanisms that
-can guide the course of a computation.
+Patterns are templates that are used to match against a value; possibly binding
+one or more variables to components of the matched value. Patterns are used as
+guards in equations and rules, as filters in query expressions and in `for`
+loops. Patterns represent one of the fundamental mechanisms that can guide the
+course of a computation.
 
 [source,star]
 ----

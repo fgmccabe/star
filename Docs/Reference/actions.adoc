@@ -398,25 +398,25 @@ equivalent to the double <<whileAction>>:
   G1 = _generate(parent);            -- establish a generator for parent
   L1: while .true do {
     G1 resume ._next in {
-      _yld((X,Y)) => {
+      | ._yld((X,Y)) do {
         G2 = _generate(parent);
         L2: while .true do {
           G2 resume ._next in {
-            _yld((Y,Z)) => {
-              gps := [(X,Z),..gps]
+            | ._yld((Y,Z)) do {
+                gps := [(X,Z),..gps!]
             }
-            _yld(_) default => {}
-            ._end => {
-              break L2
+  	    | .f_yld(_) default do {}
+            | ._end do {
+                break L2
+              }
             }
-          }
         }
       }
-      _yld(_) default => {}
-      ._end => {
-        break L1
+      | ._yld(_) default do {}
+      | ._end do {
+          break L1
+        }
       }
-    }
   }
 }
 ----
@@ -458,8 +458,8 @@ caseAction --> ["case"], expression, ["in"], caseActionHandler.
 
 caseActionHandler --> ["{"], caseActionRule *, ["}"].
 
-caseActionRule --> ["|"], pattern, ["=>"], action.
-caseActionRule --> ["|"], pattern, ["default", "=>"], action.
+caseActionRule --> ["|"], pattern, ["do"], action.
+caseActionRule --> ["|"], pattern, ["default", "do"], action.
 ----
 
 As with function definitions, the `default` case, if present, is
@@ -490,7 +490,7 @@ consistent with the handler. For example, in:
 try{
   throw 10
 } catch {
-  | E => {
+  | E do {
      logMsg("We got error $(E)")
   }
 }
