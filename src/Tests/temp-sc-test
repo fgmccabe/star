@@ -1,0 +1,2 @@
+#!/bin/bash
+star star.compiler -R test-repo/ $1 && star -r ./test-repo/ $1

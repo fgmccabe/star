@@ -48,10 +48,16 @@ star.compiler.opg{
     termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Needs),Priority).
   termRight((Lhs,LeftPriority,[.tok(Lc,.idTok(Op)),..Toks],LeftNeed),Priority) where
       (PLft,PPr) ?= isPostfixOp(Op) &&
-      PPr=<Priority && PLft>=LeftPriority &&
-      ~legalNextRight(Toks,PPr) =>
+	  PPr=<Priority && PLft>=LeftPriority &&
+	      canFollowPostfix(Toks,PPr) =>
     termRight((unary(mergeLoc(locOf(Lhs),.some(Lc)),Op,Lhs),PPr,Toks,.needOne),Priority).
   termRight(Left,_) => Left.
+
+  canFollowPostfix(Toks,PPr) where ~legalNextRight(Toks,PPr) => .true.
+  canFollowPostfix([.tok(_,.idTok(Op)),.._],Pr) where
+      (((ILft,_,_) ?= isInfixOp(Op) && ILft>=Pr) ||
+    ((PLft,_) ?= isPostfixOp(Op) && PLft>=Pr)) => .true.
+  canFollowPostfix(_,_) default => .false.
 
   legalNextRight:(cons[token],integer) => boolean.
   legalNextRight([.tok(_,Tk),.._],Priority) => legalRight(Tk,Priority).
