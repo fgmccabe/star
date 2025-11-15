@@ -38,30 +38,29 @@ test.dyn1{
   f:(integer) => integer.
   f(X) => valof{
     case _fiber((TryTsk,_) =>valof{
-	  let{
-	    _throw(E) => valof{
-	      showMsg("retiring...");
-	      TryTsk retire .err(E)
-	    }
-	  } in {
-	    showMsg("starting f($(X))");
-	    TryTsk retire .ok(fe(X))
+	let{
+	  _throw(E) => valof{
+	    showMsg("retiring...");
+	    TryTsk retire .err(E)
 	  }
-	}) resume () in {
-      | .err(E) => {
+	} in {
+	  showMsg("starting f($(X))");
+	  TryTsk retire .ok(fe(X))
+	}
+      }) resume () in {
+      | .err(E) do {
 	showMsg("We got exception $(E)");
 	valis -E
       }
-      | .ok(V) =>
+      | .ok(V) do
 	valis 5*V
-	}
+      }
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show f(1);
     show f(10);
-    valis ()
   }
 }
     

@@ -45,8 +45,8 @@ test.ex3{
   bar:all x,y ~~ ar[x->>y], ar[integer->>y] |= (x) => (x,integer) throws y.
   bar(x) => (foo(x),foo(3)).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     _logmsg("$(conc(.cns(3,.cns(2,.cns(1,.nl))),.cns(-1,.cns(-2,.nl))))");
     
     try{
@@ -54,12 +54,11 @@ test.ex3{
 	Dv = div;
 	_logmsg(_stringOf(Dv(3,0),0));
       } catch {
-	Msg => { _logmsg("get got an exception: #(Msg)") }
+	Msg do { _logmsg("get got an exception: #(Msg)") }
       };
       _logmsg(_stringOf(div(2,0),0));
     } catch {
-      Msg => { _logmsg("out with a #(Msg)") }
-    };
-    valis ()
+      Msg do { _logmsg("out with a #(Msg)") }
+    }
   }
 }

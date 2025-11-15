@@ -13,7 +13,7 @@ test.ac3{
       else
       valis 3*X
     } catch {
-      (I) => {
+      (I) do {
 	logM(disp(I))
       }
     };
@@ -31,7 +31,7 @@ test.ac3{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
 }

@@ -36,17 +36,17 @@ star.mbox{
   public postMsg:all d ~~ async (d,receiver[d])=>() throws mboxException.
   postMsg(D,Ch where .receiver(St).=Ch) => valof{
     case St! in {
-      | .hasData(_) => {
+      | .hasData(_) do {
 	case this suspend .blocked(()=>.hasData(_).=St!) in {
-	  | .go_ahead => valis postMsg(D,Ch)
-	  | .shut_down_ => throw .canceled
+	  | .go_ahead do valis postMsg(D,Ch)
+	  | .shut_down_ do throw .canceled
 	}
       }
-      | .quiescent => {
+      | .quiescent do {
 	St := .hasData(D);
 	case this suspend .yield_ in {
-	  | .go_ahead => valis ()
-	  | .shut_down_ => throw .canceled
+	  | .go_ahead do valis ()
+	  | .shut_down_ do throw .canceled
 	}
       }
     }
@@ -55,17 +55,17 @@ star.mbox{
   public collectMsg:all d ~~ async (emitter[d]) => d throws mboxException.
   collectMsg(Ch where .emitter(St).=Ch) => valof{
     case St! in {
-      | .hasData(D) => {
+      | .hasData(D) do {
 	St := .quiescent;
 	case this suspend .yield_ in {
-	  | .go_ahead => valis D
-	  | .shut_down_ => throw .canceled
+	  | .go_ahead do valis D
+	  | .shut_down_ do throw .canceled
 	}
       }
-      | .quiescent => {
+      | .quiescent do {
 	case this suspend .blocked(()=> ~.hasData(_).=St!) in {
-	  | .go_ahead => valis collectMsg(Ch)
-	  | .shut_down_ => throw .canceled
+	  | .go_ahead do valis collectMsg(Ch)
+	  | .shut_down_ do throw .canceled
 	}
       }
     }
@@ -84,8 +84,8 @@ star.mbox{
     Fn = _fiber((Tsk,_)=>.result_(F(Tsk)));
 
     case Schd suspend .schedule(Fn) in {
-      | .go_ahead => valis ()
-      | .shut_down_ => throw .canceled
+      | .go_ahead do valis ()
+      | .shut_down_ do throw .canceled
     }
   }
 
@@ -100,10 +100,10 @@ star.mbox{
 	if [T,..Rs] .= Q! then{
 	  Q := Rs;
 	  case T resume .go_ahead in {
-	    | .yield_ => {
+	    | .yield_ do {
 	      Q:=Q!++[T];
 	    }
-	    | .result_(Rslt) => {
+	    | .result_(Rslt) do {
 	      while [C,..Cs] .= Q! do{
 		Q := Cs;
 		C resume .shut_down_;
@@ -111,14 +111,14 @@ star.mbox{
 		
 	      valis Rslt
 	    }
-	    | .retired_ => { }
-	    | .schedule(Fb) => {
+	    | .retired_ do { }
+	    | .schedule(Fb) do {
 	      Q := Q! ++ [Fb,T]
 	    }
-	    | .blocked(P) => {
+	    | .blocked(P) do {
 	      BlockQ := [(P,T),..BlockQ!]
 	    }
-	    | .requestIO(Io,Rdy) => {
+	    | .requestIO(Io,Rdy) do {
 	      IoQ := [(Io,Rdy,T),..IoQ!];
 	    }
 	  }
@@ -159,8 +159,8 @@ star.mbox{
   public pause:all e ~~ this |: task[e] |= () => () throws mboxException.
   pause() => valof{
     case this suspend .yield_ in {
-      | .go_ahead => valis ()
-      | .shut_down_ => throw .canceled
+      | .go_ahead do valis ()
+      | .shut_down_ do throw .canceled
     }
   }
 
@@ -185,13 +185,13 @@ star.mbox{
   public waitfor:all k,e ~~ async (future[k,e])=>k throws e.
   waitfor(Ft) => valof{
     case this suspend .blocked(()=>~_futureIsResolved(Ft)) in {
-      | .go_ahead => {
+      | .go_ahead do {
 	if _futureIsResolved(Ft) then{
 	  valis _futureVal(Ft)
 	} else
 	retire .retired_
       }
-      | _ =>
+      | _ do
 	retire .retired_
     }
   }
@@ -206,7 +206,7 @@ star.mbox{
 	    C := .either(TFn());	-- this marks the future as resolved
 	    retire .retired_
 	  } catch {
-	    Ex => {
+	    Ex do {
 	      C := .other(Ex);
 	      retire .retired_
 	    }

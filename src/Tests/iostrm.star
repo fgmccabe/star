@@ -31,7 +31,7 @@ test.iostrm{
       assert countCPs(Fl)==foldLeft((_,Ix)=>Ix+1,0,inCharStream(Fl));
 
     } catch {
-      | Cde => showMsg("error code $(Cde)")
+      | Cde do showMsg("error code $(Cde)")
     };
     valis ()
   }

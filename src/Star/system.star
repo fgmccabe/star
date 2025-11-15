@@ -11,7 +11,7 @@ star.system{
     try{
       valis _setenv(Ky,Vl);
     } catch {
-      _ => valis () -- ignore errors
+      _ do valis () -- ignore errors
     }
   }
 

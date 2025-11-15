@@ -58,7 +58,7 @@ test.jt15{
       assert firstMultiple(iota(10),3) == "found";
       assert firstMultiple(iota(3),10) == "not found";
     } catch {
-      _ => logM("we got an exception")
+      _ do logM("we got an exception")
     };
     valis ()
   }
@@ -67,7 +67,7 @@ test.jt15{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
 

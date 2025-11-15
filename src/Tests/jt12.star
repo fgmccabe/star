@@ -33,8 +33,8 @@ test.jt12{
       _jit_compile("#(__pkg__)@iadd",2);
       _jit_compile("#(__pkg__)@logM",1);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     logM(showCons(iota(10)));
@@ -45,7 +45,7 @@ test.jt12{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
 

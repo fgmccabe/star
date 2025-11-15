@@ -51,7 +51,7 @@ star.iostream{
 	  Nxt = Fn(Io);
 	  valis .streamPair(Nxt,.streamThunk($$next()))
 	} catch {
-	  _ => {
+	  _ do {
 	    close(Io);
 	    valis .endStream
 	  }

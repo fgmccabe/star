@@ -35,7 +35,7 @@ test.tk0{
 	  
 	  valis ()
 	} catch {
-	  Msg => {
+	  Msg do {
 	    showMsg(Msg);
 	    retire .retired_
 	  }
@@ -45,7 +45,7 @@ test.tk0{
       taskManager([Tsk]);
 
     } catch {
-      E => showMsg("$(E)")
+      E do showMsg("$(E)")
     };
     valis ()
   }

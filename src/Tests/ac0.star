@@ -20,7 +20,7 @@ test.ac0{
   main() => valof{
     try{
       valis _logmsg(disp(ff(10)))
-    } catch {_ => {_logmsg("error")}};
+    } catch {_ do {_logmsg("error")}};
     valis ();
   }
 }

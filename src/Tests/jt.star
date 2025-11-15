@@ -12,8 +12,8 @@ test.jt{
     try{
       _jit_compile("test.jt@inc42",1);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     assert inc42(3)==45;

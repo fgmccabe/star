@@ -13,7 +13,7 @@ test.lib.timer{
       showMsg("$(count)\t#(msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
       valis stop-start
     } catch {
-      .exception(M) => showMsg("exception: $(M)")
+      .exception(M) do showMsg("exception: $(M)")
     };
     valis -1;
   }
@@ -29,7 +29,7 @@ test.lib.timer{
       showMsg("#(Msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
       valis Stop-Start
     } catch {
-      .exception(M) => showMsg("exception: $(M)")
+      .exception(M) do showMsg("exception: $(M)")
     };
     valis -1;
   }

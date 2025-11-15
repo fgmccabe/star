@@ -21,18 +21,18 @@ test.ct0{
 	      try{
 		showMsg("We were spawned $(Cnt)");
 		case Tsk suspend .yield_ in {
-		  | .go_ahead => {}
-		  | .shut_down_ => throw .canceled
+		  | .go_ahead do {}
+		  | .shut_down_ do throw .canceled
 		};
 		showMsg("After 1 pause $(Cnt)");
 		case Tsk suspend .yield_ in {
-		  | .go_ahead => {}
-		  | .shut_down_ => throw .canceled
+		  | .go_ahead do {}
+		  | .shut_down_ do throw .canceled
 		};
 		showMsg("After 2 pauses $(Cnt)");
 		Tsk retire .blocked(()=>.false)
 	      } catch {
-		| _ => {
+		| _ do {
 		  showMsg("we were canceled");
 		  Tsk retire .retired_
 		}
@@ -43,7 +43,7 @@ test.ct0{
       };
       showMsg("end of try");
     } catch {
-      | .canceled => {
+      | .canceled do {
 	showMsg("$(K) shutting down");
       }
     };
@@ -53,14 +53,13 @@ test.ct0{
 
   dividesBy(X,Y) => (try X%Y==0 catch { _ => .false}).
   
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       Rs = taskManager([tt(10),tt(20)]);
       showMsg("final result $(Rs)");
     } catch {
-      E => showMsg(disp(E))
+      E do showMsg(disp(E))
     };
-    valis ()
   }
 }

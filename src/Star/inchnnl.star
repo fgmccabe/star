@@ -12,7 +12,7 @@ star.inchnnl{
 	  _fseek(Io,Pos)
 	}
       } catch {
-	_ => {}
+	_ do {}
       };
       valis ()
     }
@@ -28,7 +28,7 @@ star.inchnnl{
 	Ch = _inchar(Io);
 	valis .some((Ch,.inChnnl(Io,_fposition(Io))))
       } catch {
-	_ => valis .none
+	_ do valis .none
       }
     }
   .} in {

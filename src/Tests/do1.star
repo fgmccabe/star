@@ -14,13 +14,12 @@ test.do1{
     valis ()
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       doFirst();
     } catch {
-      _ => {}
+      _ do {}
     };
-    valis ();
   }
 }

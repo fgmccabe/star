@@ -11,7 +11,7 @@ test.sieve{
 	Ix := Ix!+2;
 	postMsg(Ix!,Chnnl)
       }
-    } catch { .canceled => {} };
+    } catch { .canceled do {} };
     retire .retired_
   }
 
@@ -39,7 +39,7 @@ test.sieve{
 	showMsg("collected $(Mx) primes");
 	valis Nxt
       }
-    } catch { .canceled => {}};
+    } catch { .canceled do {}};
     retire .retired_
   }
 
@@ -60,10 +60,8 @@ test.sieve{
       Eras = taskManager([Gn,Sv]);
       showMsg("final result $(Eras)");
     } catch {
-      .deadlock => showMsg("Sieve got deadlocked")
+      .deadlock do showMsg("Sieve got deadlocked")
     };
     valis ()
   }
 }
-
-  

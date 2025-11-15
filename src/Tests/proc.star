@@ -30,24 +30,28 @@ test.proc{
   }
   */
 
-  v2:(string)=>integer.
-  v2(S) => valof{
-    try{
-      do2("there",42)
-    } catch {
-      _ do valis 42
-    };
-    valis 43
-  }
+  -- v2:(string)=>integer.
+  -- v2(S) => valof{
+  --   try{
+  --     do2("there",42)
+  --   } catch {
+  --     _ do valis 42
+  --   };
+  --   valis 43
+  -- }
 
-  v:all e ~~ ((e){}) => (e)=>().
-  v(P) => (X)=> valof{
-    P(X);
-    valis ()
-  }
+  -- v:all e ~~ ((e){}) => (e)=>().
+  -- v(P) => (X)=> valof{
+  --   P(X);
+  --   valis ()
+  -- }
 
-  p:all e ~~ ((e)=>()) => (e){}.
-  p(F) => (X){ F(X) }
+  -- p:all e ~~ ((e)=>()) => (e){}.
+  -- p(F) => (X){ F(X) }
+
+  -- q:all e ~~ ((e)=>()) => (e,e){}.
+  -- q(F) => (X,_){ F(X) }
+  
 
   visitList:all e ~~ (cons[e],(e){}){}.
   visitList([],_) do {}.
@@ -64,13 +68,15 @@ test.proc{
   main(Ix){
     do1(Ix);
 
-    try{
-      do2("hello",42);
-      do1(43)
-    } catch {
-    | .exception(M) do logMsg(.info,"we got an exception: #(M)")
-    };
+    -- try{
+    --   do2("hello",42);
+    --   do1(43)
+    -- } catch {
+    -- | .exception(M) do logMsg(.info,"we got an exception: #(M)")
+    -- };
 
-    visitList([1,2,10,-10],do1)
+    visitList([1,2,10,-10],do1);
+    visitList([3,5,7],(X){ show "$(X)" });
+    visitList([3,5,7],(X){ assert X > 0 })
   }
 }

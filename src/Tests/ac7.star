@@ -19,7 +19,7 @@ test.ac7{
       F10 = f(10);
       show F10;
     } catch {
-      E => {
+      E do {
 	logMsg(.warning,E)
       }
     };

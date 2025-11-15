@@ -11,8 +11,8 @@ test.io3{
 	showMsg("line: $(Ln)");
       }
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis ()
   }
@@ -31,12 +31,12 @@ test.io3{
 	taskManager([Rd]);
 	showMsg("reader done");
       } catch {
-	.deadlock => showMsg("Reader got deadlocked")
+	.deadlock do showMsg("Reader got deadlocked")
       };
       valis ()
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

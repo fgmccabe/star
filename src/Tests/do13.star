@@ -10,8 +10,8 @@ test.do13{
       valis X
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       AA = maybeFail(5);
       show AA;
@@ -22,11 +22,10 @@ test.do13{
       XX = maybeFail(10);
       assert .false  -- never get here
     } catch {
-      (Ix) => {
+      (Ix) do {
 	assert Ix==10
       }
-    };
-    valis ()
+    }
   }
 }
     

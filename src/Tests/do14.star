@@ -7,15 +7,13 @@ test.do14{
   isEven(X) where (try X%2==0 catch {_ => .false}) => .true.
   isEven(X) default => throw "$(X) not even".
 
-  main:()=>().
-  main()=>valof{
-      try{
-	assert isEven(2);
-	assert ~ isEven(3);
-      } catch {
-	M => showMsg("We got #(M)")
-      };
-    valis ()
+  main:(){}.
+  main(){
+    try{
+      assert isEven(2);
+      assert ~ isEven(3);
+    } catch {
+      M do showMsg("We got #(M)")
+    }
   }
-  
 }

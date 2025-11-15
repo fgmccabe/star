@@ -93,8 +93,8 @@ test.ex4{
     one = 1.
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     TV = .awl(.v("x"),.fn(.tuple(.cns(.n("int"),.cns(.v("x"),.nl))),.n("int")));
 
     _logmsg(disp(TV));
@@ -102,8 +102,7 @@ test.ex4{
     try{
       _logmsg(disp(ar(TV)));
     } catch {
-	Msg => { _logmsg("get got an exception: #(Msg)") }
-    };
-    valis ()
+	Msg do { _logmsg("get got an exception: #(Msg)") }
+    }
   }
 }

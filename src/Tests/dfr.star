@@ -14,7 +14,7 @@ test.dfr{
       };
       valis Cx!
     } catch {
-      (E) => {
+      (E) do {
 	showMsg(E);
 	throw E
       }
@@ -23,13 +23,12 @@ test.dfr{
    
   IS = [1,2,-3,5,-2,56,10,0].
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       show CX(IS,2);
     } catch {
-      _ => showMsg("something went bad")
+      _ do showMsg("something went bad")
     };
-    valis ()
   }
 }

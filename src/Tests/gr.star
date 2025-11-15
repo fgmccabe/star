@@ -67,14 +67,14 @@ test.gr{
       show evalStr("(1+a)/(1-a)",{`a`->1});
 
     } catch {
-      .exception(M) => {
+      .exception(M) do {
 	showMsg("arithmetic went wrong: #(M)");
       }
     };
     try{
       show evalStr("(1+a)/(1-a",{`a`->1});
     } catch {
-      .exception(M) => {
+      .exception(M) do {
 	showMsg("arithmetic went wrong: #(M)");
       }
     };

@@ -32,7 +32,7 @@ test.y{
     try{
       show fooE()
     } catch {
-      .exception(M) => {
+      .exception(M) do {
 	showMsg("fooE threw #(M)")
       }
     };
@@ -40,7 +40,7 @@ test.y{
     try{
       show fooG(()=>"test string")
     } catch {
-      M => showMsg("fooG throws $(M)")
+      M do showMsg("fooG throws $(M)")
     };
 
     show fooC(()=>"world"|:()=>string throws ());
@@ -48,7 +48,7 @@ test.y{
     try{
       show fooG(()=>42)
     } catch {
-      M => showMsg("fooG throws $(M)")
+      M do showMsg("fooG throws $(M)")
     };
 
     valis ()

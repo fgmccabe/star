@@ -16,8 +16,8 @@ test.jt11{
       Ix = ref F;
       while lt(Ix!,T) do{
 	case Gen suspend .yild(Ix!) in {
-	  | .next => {}
-	  | .cancel => Gen retire .end
+	  | .next do {}
+	  | .cancel do Gen retire .end
 	};
       
 	Ix := add(Ix!,1);
@@ -32,11 +32,11 @@ test.jt11{
 
     while .true do {
       case TT resume .next in {
-	| .yild(X) => {
+	| .yild(X) do {
 	  logM(conc("add ",conc(_int2str(X),conc(" to ",_int2str(Tl!)))));
 	  Tl := add(Tl!,X)
 	}
-	| .end => valis Tl!
+	| .end do valis Tl!
       }
     };
     valis Tl!
@@ -55,8 +55,8 @@ test.jt11{
       _jit_compile("#(__pkg__)@lt",2);
       _jit_compile("#(__pkg__)@λ1",3);
     } catch {
-      | .eNOPERM => logM("JIT not enabled")
-      | Cde => logM(_stringOf(Cde,0))
+      | .eNOPERM do logM("JIT not enabled")
+      | Cde do logM(_stringOf(Cde,0))
     };
 
     logM(_int2str(adder(0,10)));
@@ -69,7 +69,7 @@ test.jt11{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
   

@@ -45,11 +45,11 @@ test.ac8a{
       });
 
     case Tsk resume () in {
-      | .err(E) => {
+      | .err(E) do {
 	showMsg("We got exception $(E)");
 	valis -E
       }
-      | .ok(V) =>
+      | .ok(V) do
 	  valis 5*V
       }
   }

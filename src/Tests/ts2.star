@@ -40,7 +40,7 @@ test.ts2{
 	  throw ()
       }
     } catch {
-      _ => {
+      _ do {
 	showMsg("caught")
       }
     };

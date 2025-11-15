@@ -8,11 +8,10 @@ test.iocopy{
   copyFl(this,src,dest) => valof{
     try{
       Text = rdFileAsync(src);
---      showMsg("File text: #(Text)");
       wrFileAsync(dest,Text);
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis ()
   }
@@ -30,12 +29,11 @@ test.iocopy{
 	Eras = taskManager([Rd]);
 	showMsg("file copy done");
       } catch {
-	.deadlock => showMsg("Writer got deadlocked")
-      };
-      valis ()
+	.deadlock do showMsg("Writer got deadlocked")
+      }
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

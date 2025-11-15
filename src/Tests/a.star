@@ -24,7 +24,7 @@ test.a{
       
       throw .exception("bong");
     } catch {
-      .exception(Msg) => { showMsg("out with a #(Msg)"); valis () }
+      .exception(Msg) do { showMsg("out with a #(Msg)"); valis () }
     };
   }
 }

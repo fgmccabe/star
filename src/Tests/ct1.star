@@ -16,7 +16,7 @@ test.ct1{
 	postMsg(Count!>0,Chnnl);
 	Count := Count!-1
       }
-    } catch { _ => showMsg("something went wrong") };
+    } catch { _ do showMsg("something went wrong") };
     retire .retired_
   }
 
@@ -29,14 +29,14 @@ test.ct1{
 	showMsg("received ping");
 	Count := Count!+1
       }
-    } catch { _ => showMsg("something went wrong") };
+    } catch { _ do showMsg("something went wrong") };
 
     showMsg("received $(Count!) pings");
     valis ()
   }
   
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     (E,R) = newSlot();
     T1 = ping(10,R);
     T2 = pong(E);
@@ -45,8 +45,7 @@ test.ct1{
       Rs = taskManager([T1,T2]);
       showMsg("final result $(Rs)");
     } catch {
-      Ex => showMsg(disp(Ex))
+      Ex do showMsg(disp(Ex))
     };
-    valis ()
   }
 }

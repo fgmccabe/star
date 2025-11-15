@@ -1,13 +1,12 @@
 test.ex2{
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       _logmsg(_stringOf(sqrt(10.4),0));
       _logmsg(_stringOf(sqrt(-1.0),0));
     } catch {
-      ErrCode => { _logmsg("out with a #(dspEr(ErrCode))"); valis () }
-    };
-    valis ()
+      ErrCode do { _logmsg("out with a #(dspEr(ErrCode))") }
+    }
   }
 
   dspEr(.eINTRUPT) => "eINTRUPT".

@@ -12,8 +12,8 @@ test.iowchar{
 	wrCharAsync(IO,Ch);
       }
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis ()
   }
@@ -36,12 +36,11 @@ test.iowchar{
 	taskManager([Rd]);
 	showMsg("writer done");
       } catch {
-	.deadlock => showMsg("Writer got deadlocked")
-      };
-      valis ()
+	.deadlock do showMsg("Writer got deadlocked")
+      }
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

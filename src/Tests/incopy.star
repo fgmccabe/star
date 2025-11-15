@@ -11,7 +11,7 @@ test.incopy{
 
       valis .some(readAll(Ch))
     } catch {
-      _ => valis .none
+      _ do valis .none
     }
   }
 
