@@ -47,7 +47,7 @@ star.compiler.normalize{
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,[.rule(Lc,[],.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
+    transformFunction(Lc,FullNm,[.eqn(Lc,[],.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -63,7 +63,7 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("extended function function type $(ATp)");
     
-    (Eqs,Ex1) = transformRules(Eqns,Map,Outer,Q,Extra,Ex);
+    (Eqs,Ex1) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex);
     if traceNormalize! then
       showMsg("transformed equations: $(Eqs)");
     try{
@@ -89,7 +89,7 @@ star.compiler.normalize{
 	valis [Func,ClosEntry,..Ex1]
       }
     } catch {
-      _ => {
+      _ do {
 	reportError("cannot build matcher for function $(FullNm)",Lc);
 	valis Ex
       }
@@ -133,7 +133,7 @@ star.compiler.normalize{
 	valis [Proc,ClosEntry,..Ex1]
       }
     } catch {
-      _ => {
+      _ do {
 	reportError("cannot build matcher for procedure $(FullNm)",Lc);
 	valis Ex
       }
@@ -184,20 +184,18 @@ star.compiler.normalize{
     freeUpdate(Lc,Vr,Ix,Vl,SoFar) => .aSeq(Lc,.aSetNth(Lc,Vr,Ix,Vl),SoFar).
   }
 
-  transformRules:all e,t ~~ transform[e->>t], display[e], display[t] |=
-  (cons[rule[e]],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
-    (cons[(option[locn],cons[cExp],option[cExp],t)],cons[cDefn]).
-  transformRules([],_,_,_,_,Ex) => ([],Ex).
-  transformRules([Eqn,..Eqns],Map,Outer,Q,Extra,Ex) => valof{
-    (Trple,Ex1) = transformRule(Eqn,Map,Outer,Q,Extra,Ex);
-    (Rest,Exx) = transformRules(Eqns,Map,Outer,Q,Extra,Ex1);
+  transformEqns:(cons[eqn],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+    (cons[(option[locn],cons[cExp],option[cExp],cExp)],cons[cDefn]).
+  transformEqns([],_,_,_,_,Ex) => ([],Ex).
+  transformEqns([Eqn,..Eqns],Map,Outer,Q,Extra,Ex) => valof{
+    (Trple,Ex1) = transformEqn(Eqn,Map,Outer,Q,Extra,Ex);
+    (Rest,Exx) = transformEqns(Eqns,Map,Outer,Q,Extra,Ex1);
     valis ([Trple,..Rest],Exx)
   }
 
-  transformRule:all e,t ~~ transform[e->>t], display[e], display[t]|=
-    (rule[e],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
-      ((option[locn],cons[cExp],option[cExp],t),cons[cDefn]).
-  transformRule(.rule(Lc,Args,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
+  transformEqn:(eqn,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+      ((option[locn],cons[cExp],option[cExp],cExp),cons[cDefn]).
+  transformEqn(.eqn(Lc,Args,Test,Val),Map,Outer,Q,Extra,Ex) => valof{
     EQ = ptnTplVars(Args,Q,[]);
     (APtn,Ex1) = liftPtns(Args,Outer,EQ,Ex);
 
@@ -208,7 +206,34 @@ star.compiler.normalize{
 
     GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
     (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
-    (Rep,Exx) = transform(Val,Map,GEQ,Ex2);
+    (Rep,Exx) = liftExp(Val,Map,GEQ,Ex2);
+    
+    valis ((Lc,addExtra(Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
+  }
+
+  transformRules:(cons[prle],nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+    (cons[(option[locn],cons[cExp],option[cExp],aAction)],cons[cDefn]).
+  transformRules([],_,_,_,_,Ex) => ([],Ex).
+  transformRules([Rl,..Rs],Map,Outer,Q,Extra,Ex) => valof{
+    (Trple,Ex1) = transformRule(Rl,Map,Outer,Q,Extra,Ex);
+    (Rest,Exx) = transformRules(Rs,Map,Outer,Q,Extra,Ex1);
+    valis ([Trple,..Rest],Exx)
+  }
+
+  transformRule:(prle,nameMap,nameMap,set[cV],option[cExp],cons[cDefn]) =>
+    ((option[locn],cons[cExp],option[cExp],aAction),cons[cDefn]).
+  transformRule(.prle(Lc,Args,Test,Act),Map,Outer,Q,Extra,Ex) => valof{
+    EQ = ptnTplVars(Args,Q,[]);
+    (APtn,Ex1) = liftPtns(Args,Outer,EQ,Ex);
+
+    if traceNormalize! then
+      showMsg("lifted patterns $(APtn)");
+
+    (TPtns, WC) = pullWheres(APtn);
+
+    GEQ = (Tst?=Test ?? condVars(Tst,EQ) || EQ);
+    (NG,Ex2) = liftGoal(Test,Map,GEQ,Ex1);
+    (Rep,Exx) = liftAction(Act,Map,GEQ,Ex2);
     
     valis ((Lc,addExtra(Extra,TPtns),mergeGoal(Lc,WC,NG),Rep),Exx)
   }
@@ -356,15 +381,13 @@ star.compiler.normalize{
   liftExp(.letRec(Lc,Grp,Decs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.letRec(Lc,Grp,Decs,Bnd),Q);
     if traceNormalize! then
-      showMsg("lift let rec exp $(.letRec(Lc,Grp,Decs,Bnd))");
+      showMsg("free vars in let rec exp $(Free)");
     valis liftLetRec(Lc,Grp,Decs,Bnd,Map,Q,Free,Ex).
   }
-  liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) => valof{
-    valis liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex)
-    -- valis liftExp(.letExp(Lc,[.funDef(Lc,FullNm,[Eqn],[],Tp)],
-    -- 	[.funDec(Lc,FullNm,FullNm,Tp)],
-    -- 	.vr(Lc,FullNm,Tp)),Map,Q,Ex)
-  }
+  liftExp(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex) => 
+    liftLambda(.lambda(Lc,FullNm,Eqn,Tp),Map,Q,Ex).
+  liftExp(.prc(Lc,FullNm,Rl,Tp),Map,Q,Ex) => 
+    liftPrc(Lc,FullNm,Rl,Tp,Map,Q,Ex).
   liftExp(.thunk(Lc,Lm,Tp),Map,Q,Ex) => valof{
     if traceNormalize! then
       showMsg("lift thunk $(.thunk(Lc,Lm,Tp))\:$(Tp)");
@@ -394,7 +417,7 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("lift case: $(.csexp(Lc,Gov,Cses,Tp))");
     (LGov,Ex1) = liftExp(Gov,Map,Q,Ex);
-    (Cs,Ex2) = transformRules(Cses,Map,Map,Q,.none,Ex1);
+    (Cs,Ex2) = transformEqns(Cses,Map,Map,Q,.none,Ex1);
 
     if traceNormalize! then
       showMsg("case rules: $(Cs)");
@@ -591,11 +614,46 @@ star.compiler.normalize{
     freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
     LamFree = crTpl(Lc,freeArgs);
 
-    ((_,NArgs,NG,NBody),Ex1) = transformRule(Eqn,M,Outer,Q\+ThV,.some(ThVr),Ex);
+    ((_,NArgs,NG,NBody),Ex1) = transformEqn(Eqn,M,Outer,Q\+ThV,.some(ThVr),Ex);
 
     Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
     LamDefn = .fnDef(Lc,FullNm,ATp,NArgs,(G ?= NG ??
 	.cCnd(Lc,G,NBody,.cAbort(Lc,"lambda args failed",Tp)) ||
+	NBody));
+
+    if traceNormalize! then
+      showMsg("lambda lifted to $(Closure), new defn: $(LamDefn)");
+
+    valis (Closure,[LamDefn,..Ex1])
+  }
+
+  liftPrc:(option[locn],string,prle,tipe,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
+  liftPrc(Lc,FullNm,Rl,Tp,Outer,Q,Ex) => valof{
+    if traceNormalize! then
+      showMsg("lift lambda proc $(.prc(Lc,FullNm,Rl,Tp))\:$(Tp)");
+
+    Free = findFree(.prc(Lc,FullNm,Rl,Tp),Q);
+    rawFree = freeLabelVars(Free,Outer)::cons[cV];
+    varParents = freeParents(rawFree,Outer);
+    freeVars = reduceFreeArgs(varParents,Outer);
+
+    ThV = genVar("_ThVr",typeOf(freeVars));
+    ThVr = .cVar(Lc,ThV);
+
+    ATp = extendPrTp(deRef(Tp),.some(ThVr));
+    
+    L = collectLabelVars(freeVars,ThV,0,[]);
+
+    M = [.lyr(.some(ThV),L,[]),..Outer];
+
+    freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
+    LamFree = crTpl(Lc,freeArgs);
+
+    ((_,NArgs,NG,NBody),Ex1) = transformRule(Rl,M,Outer,Q\+ThV,.some(ThVr),Ex);
+
+    Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
+    LamDefn = .prDef(Lc,FullNm,ATp,NArgs,(G ?= NG ??
+	.aIftte(Lc,G,NBody,.aAbort(Lc,"lambda args failed")) ||
 	NBody));
 
     if traceNormalize! then
@@ -911,6 +969,8 @@ star.compiler.normalize{
   }
   liftAction(.doLetRec(Lc,Grp,Dcs,Bnd),Map,Q,Ex) => valof{
     Free = findFree(.doLetRec(Lc,Grp,Dcs,Bnd),Q);
+    if traceNormalize! then
+      showMsg("free vars in let rec act $(Free)");
     valis liftLetRec(Lc,Grp,Dcs,Bnd,Map,Q,Free,Ex)
   }
   
@@ -995,8 +1055,8 @@ star.compiler.normalize{
   thunkIndex(Nm,Map) => valof{
     if E?=lookupVarName(Map,Nm) then{
       case E in {
-	| .thunkArg(Thv,_,Ix) => valis .some((Thv,Ix))
-	| _ default => valis .none
+	| .thunkArg(Thv,_,Ix) do valis .some((Thv,Ix))
+	| _ do valis .none
       }
     } else
     valis .none

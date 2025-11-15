@@ -7,6 +7,7 @@ star.compiler.freevars{
   import star.compiler.location.
   import star.compiler.escapes.
   import star.compiler.misc.
+  import star.compiler.opts.
   import star.compiler.term.
   import star.compiler.types.
 
@@ -35,7 +36,7 @@ star.compiler.freevars{
     | .mtd(_,_,_) => Fv
     | .over(_,V,_) => freeVarsInExp(V,Q,Fv)
     | .csexp(_,G,Cs,_) =>
-      foldLeft((Rl,F)=>freeVarsInRule(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs)
+      foldLeft((Rl,F)=>freeVarsInEqn(Rl,Q,F), freeVarsInExp(G,Q,Fv), Cs)
     | .cond(_,T,L,R) => valof{
       Q1 = Q\condVars(T,[]);
       valis freeVarsInExp(L,Q1,freeVarsInExp(R,Q,freeVarsInCond(T,Q1,Fv)))
@@ -49,7 +50,8 @@ star.compiler.freevars{
     | .neg(_,R) => freeVarsInCond(Exp,Q,Fv)
     | .trycatch(_,B,E,H,_) => freeVarsInExp(B,Q,freeVarsInExp(H,dropVars([E],Q),Fv))
     | .thrw(_,E,_) => freeVarsInExp(E,Q,Fv)
-    | .lambda(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv)
+    | .lambda(_,_,Rl,_) => freeVarsInEqn(Rl,Q,Fv)
+    | .prc(_,_,Rl,_) => freeVarsInRule(Rl,Q,Fv)
     | .thunk(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .thRef(_,E,_) => freeVarsInExp(E,Q,Fv)
     | .newSav(_,_) => Fv
@@ -113,7 +115,7 @@ star.compiler.freevars{
 
   freeVarsInTuple(Els,Q,Fv) =>
     foldRight((E,F)=>freeVarsInExp(E,Q,F),Fv,Els).
-  
+
   freeVarsInCond:(canon,set[cV],set[cV]) => set[cV].
   freeVarsInCond(.cond(_,T,L,R),Q,Fv) =>
     freeVarsInCond(T,Q,freeVarsInExp(L,Q,freeVarsInExp(R,Q,Fv))).
@@ -126,15 +128,24 @@ star.compiler.freevars{
   freeVarsInCond(.neg(Lc,R),Q,Fv) => freeVarsInCond(R,Q,Fv).
   freeVarsInCond(T,Q,Fv) => freeVarsInExp(T,Q,Fv).
 
-  public freeVarsInRule:all e ~~ freevars[e] |=
-    (rule[e],set[cV],set[cV])=>set[cV].
-  freeVarsInRule(.rule(_,Ptns,.none,Exp),Q,Fv) => valof{
+  public freeVarsInEqn:(eqn,set[cV],set[cV])=>set[cV].
+  freeVarsInEqn(.eqn(_,Ptns,.none,Exp),Q,Fv) => valof{
     Q1 = dropVars(Ptns,Q);
-    valis freeVarsInTuple(Ptns,Q1,Fv) \/ findFree(Exp,Q1)
+    valis freeVarsInExp(Exp,Q1,freeVarsInTuple(Ptns,Q1,Fv))
   }
-  freeVarsInRule(.rule(_,Ptns,.some(Wh),Exp),Q,Fv) =>valof{
+  freeVarsInEqn(.eqn(_,Ptns,.some(Wh),Exp),Q,Fv) =>valof{
+    Q1 = (Q\ptnTplVars(Ptns,[],Fv))\condVars(Wh,[]);
+    valis freeVarsInExp(Exp,Q1,freeVarsInTuple(Ptns,Q1,freeVarsInCond(Wh,Q1,Fv)))
+  }
+
+  public freeVarsInRule:(prle,set[cV],set[cV])=>set[cV].
+  freeVarsInRule(.prle(_,Ptns,.none,Act),Q,Fv) => valof{
     Q1 = dropVars(Ptns,Q);
-    valis freeVarsInTuple(Ptns,Q1,freeVarsInCond(Wh,Q1,Fv)) \/ findFree(Exp,Q1)
+    valis freeVarsInAct(Act,Q1,freeVarsInTuple(Ptns,Q1,Fv))
+  }
+  freeVarsInRule(.prle(_,Ptns,.some(Wh),Act),Q,Fv) =>valof{
+    Q1 = (Q\ptnTplVars(Ptns,[],Fv))\condVars(Wh,[]);
+    valis freeVarsInAct(Act,Q1,freeVarsInTuple(Ptns,Q1,Fv))
   }
 
   public freeVarsInGroup:(cons[canonDef],set[cV])=>set[cV].
@@ -155,6 +166,8 @@ star.compiler.freevars{
 
   public freeVarsInDef:(canonDef,set[cV],set[cV])=>set[cV].
   freeVarsInDef(.funDef(_,_,Rls,_,_),Q,Fv) =>
+    foldRight((Rl,F)=>freeVarsInEqn(Rl,Q,F),Fv,Rls).
+  freeVarsInDef(.prcDef(_,_,Rls,_,_),Q,Fv) =>
     foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),Fv,Rls).
   freeVarsInDef(.varDef(_,_,_,E,_,_),Q,Fv) => freeVarsInExp(E,Q,Fv).
   freeVarsInDef(.implDef(_,_,_,Val,_,_),Q,Fv) => freeVarsInExp(Val,Q,Fv).

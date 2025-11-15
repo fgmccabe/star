@@ -543,8 +543,8 @@ star.compiler.gencode{
     }
     | .aDo(Lc,E) => valof{
       case Next in {
-	| .noMore => valis compExp(E,Lc,Brks,Last,Ctx,Stk)
-	| .notLast => {
+	| .noMore do valis compExp(E,Lc,Brks,Last,Ctx,Stk)
+	| .notLast do {
 	  (EC,_,Stk0) = compExp(E,Lc,Brks,Last,Ctx,Stk);
 	  valis (EC++resetStack([|Stk|],Stk0),Ctx,Stk)
 	}
@@ -836,8 +836,8 @@ star.compiler.gencode{
   compPttrn(Ptn,OLc,Src,Fail,Brks,Ctx,Stk) => valof{
     VC = Src(OLc,Ctx);
     case Ptn in {
-      | .cVar(_,.cV("_",_)) => valis ([],Ctx,Stk)
-      | .cVar(Lc,.cV(Vr,Tp)) => {
+      | .cVar(_,.cV("_",_)) do valis ([],Ctx,Stk)
+      | .cVar(Lc,.cV(Vr,Tp)) do {
 	if Loc ?= locateVar(Vr,Ctx) then{
 	  valis (VC++storeVar(Loc),Ctx,Stk)
 	}
@@ -846,17 +846,17 @@ star.compiler.gencode{
 	  valis (VC++storeVar(.lclVar(Vr,Tp::ltipe)),Ctx1,Stk)
 	}
       }
-      | .cVoid(Lc) => valis ([],Ctx,Stk)
-      | .cAnon(Lc,_) => valis ([],Ctx,Stk)
-      | .cTerm(Lc,Nm,Args,Tp) => {
+      | .cVoid(Lc) do valis ([],Ctx,Stk)
+      | .cAnon(Lc,_) do valis ([],Ctx,Stk)
+      | .cTerm(Lc,Nm,Args,Tp) do {
 	(SCde,Ctx2,Stk2) = compPttrnArgs(Args,Lc,0,Src,Fail,Brks,Ctx,Stk);
 
 	valis (chLine(OLc,Lc)++VC++[.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
       }
-      | .cInt(_,Ix) => valis (VC++[.iCInt(Ptn::data,Fail)],Ctx,Stk)
-      | .cChar(_,Cx) => valis (VC++[.iCChar(Ptn::data,Fail)],Ctx,Stk)
-      | .cFlt(_,Dx) => valis (VC++[.iCFlt(Ptn::data,Fail)],Ctx,Stk)
-      | _ default => {
+      | .cInt(_,Ix) do valis (VC++[.iCInt(Ptn::data,Fail)],Ctx,Stk)
+      | .cChar(_,Cx) do valis (VC++[.iCChar(Ptn::data,Fail)],Ctx,Stk)
+      | .cFlt(_,Dx) do valis (VC++[.iCFlt(Ptn::data,Fail)],Ctx,Stk)
+      | _ do {
 	if isGround(Ptn) then
 	  valis (VC++[.iCLit(Ptn::data,Fail)],Ctx,Stk)
 	else {

@@ -338,9 +338,9 @@ star.compiler.macro.rules{
 
   lb{ while .true do{
   case G resume ._next in {
-    | _yld(P) => B
-    | _yld(_) default => {}
-    | ._all => break lb
+    | _yld(P) do B
+    | _yld(_) default do {}
+    | ._all do break lb
   }
   }
   }
@@ -350,14 +350,14 @@ star.compiler.macro.rules{
   forLoopMacro(A,.actn) where (Lc,P,G,B) ?= isForDo(A) => valof{
     Lb = genId("Lb");
 
-    /* Build ._all => break Lb */
-    End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
+    /* Build ._all do break Lb */
+    End = mkProcedure(Lc,.none,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
-    /* build _yld(P) => B */
-    Yld = mkLambda(Lc,.false,mkCon(Lc,"_yld",[P]),.none,B);
+    /* build _yld(P) do B */
+    Yld = mkProcedure(Lc,.none,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
-    /* build _yld(_) default => {} */
-    Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
+    /* build _yld(_) default do {} */
+    Deflt = mkProcedure(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case G resume ._next in .. */
     Resume = mkCaseExp(Lc,mkResume(Lc,G,enum(Lc,"_next")),[Yld,Deflt,End]);
@@ -408,9 +408,9 @@ star.compiler.macro.rules{
   lb {
     while .true do{
       case I resume ._next in {
-	| _yld(P) => B
-	| _yld(_) default => {}
-	| ._all => break lb
+	| _yld(P) do B
+	| _yld(_) default do {}
+	| ._all do break lb
       }
     }
   }
@@ -420,14 +420,14 @@ star.compiler.macro.rules{
     I = genName(Lc,"I");
     Lb = genId("Lb");
 
-    /* Build ._all => break Lb */
-    End = mkLambda(Lc,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
+    /* Build ._all do break Lb */
+    End = mkProcedure(Lc,.none,.false,enum(Lc,"_all"),.none,mkBreak(Lc,Lb));
 
-    /* build _yld(P) => B */
-    Yld = mkLambda(Lc,.false,mkCon(Lc,"_yld",[P]),.none,B);
+    /* build _yld(P) do B */
+    Yld = mkProcedure(Lc,.none,.false,mkCon(Lc,"_yld",[P]),.none,B);
 
-    /* build _yld(_) default => {} */
-    Deflt = mkLambda(Lc,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
+    /* build _yld(_) default do {} */
+    Deflt = mkProcedure(Lc,.none,.true,mkCon(Lc,"_yld",[mkAnon(Lc)]),.none,brTuple(Lc,[]));
 
     /* build case I resume ._next in .. */
     Resume = mkCaseExp(Lc,mkResume(Lc,I,enum(Lc,"_next")),[Yld,Deflt,End]);
@@ -520,17 +520,17 @@ star.compiler.macro.rules{
   /* yield E
   becomes
   case this suspend ._yld(E) in {
-    | ._next => {}
-    | ._cancel => retire._all
+    | ._next do {}
+    | ._cancel do retire._all
   }
   */
   yieldMacro(A,.actn) where (Lc,E) ?= isUnary(A,"yield") => valof{
     This = .nme(Lc,"this");
-    /* build ._next => {} */
-    Nxt = mkLambda(Lc,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
+    /* build ._next do {} */
+    Nxt = mkProcedure(Lc,.none,.false,enum(Lc,"_next"),.none,brTuple(Lc,[]));
 
-    /* build ._cancel => retire ._all */
-    Cancel = mkLambda(Lc,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
+    /* build ._cancel do retire ._all */
+    Cancel = mkProcedure(Lc,.none,.false,enum(Lc,"_cancel"),.none,mkRetire(Lc,This,enum(Lc,"_all")));
 
     /* Build suspend */
     valis .active(mkCaseExp(Lc,mkSuspend(Lc,This,mkCon(Lc,"_yld",[E])),[Nxt,Cancel]))

@@ -850,24 +850,24 @@ star.compiler.term{
 
     for Df in Defs do{
       case Df in {
-	| .fnDef(Lc,Nm,Tp,Args,Val) => {
+	| .fnDef(Lc,Nm,Tp,Args,Val) do {
 	  D1 = foldLeft(ptnVrs,D,Args);
 	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validE(Val,D1) then{
 	    reportError("$(Df) not valid",Lc)
 	  }
 	}
-	| .prDef(Lc,Nm,Tp,Args,Act) => {
+	| .prDef(Lc,Nm,Tp,Args,Act) do {
 	  D1 = foldLeft(ptnVrs,D,Args);
 	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validA(Act,D1) then{
 	    reportError("$(Df) not valid",Lc)
 	  }
 	}
-	| .glDef(Lc,Nm,Tp,Val) => {
+	| .glDef(Lc,Nm,Tp,Val) do {
 	  if ~validE(Val,D) then{
 	    reportError("$(Df) not valid",Lc)
 	  }
 	}
-	| _ default => {}
+	| _ do {}
       }
     };
     valis ()

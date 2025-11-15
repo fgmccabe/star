@@ -742,9 +742,15 @@ liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[L
    dispMap("Lambda map: ",1,LMap);true),
   extraArity(Arity,[ThVr],Ar),
   extendFunType(Tp,[ThVr],ATp),
-  transformEqn(Eqn,LMap,[ThVr],Opts,Rls,[],Ex,Exx),
-  functionMatcher(Lc,lbl(LamLbl,Ar),hard,ATp,Rls,Map,LamFun),
+  transformLambdaRule(Eqn,lbl(LamLbl,Ar),LMap,[ThVr],ATp,Opts,LamFun,Ex,Exx),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"Lifted Lambda: %s",[ldef(LamFun)])).
+
+transformLambdaRule(rule(Lc,A,G,Value),Lbl,Map,Extra,ATp,Opts,LamFun,Ex,Exx) :-
+  transformEqn(rule(Lc,A,G,Value),Map,Extra,Opts,Rls,[],Ex,Exx),
+  functionMatcher(Lc,Lbl,hard,ATp,Rls,Map,LamFun).
+transformLambdaRule(prle(Lc,A,G,Act),Lbl,Map,Extra,ATp,Opts,LamPrc,Ex,Exx) :-
+  transformRl(prle(Lc,A,G,Act),Map,Extra,Opts,Rls,[],Ex,Exx),
+  procMatcher(Lc,Lbl,ATp,Rls,Map,LamPrc).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).

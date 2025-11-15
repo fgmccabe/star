@@ -20,7 +20,7 @@ star.compiler.canon{
   .dot(option[locn],canon,string,tipe) |
   .tdot(option[locn],canon,integer,tipe) |
   .update(option[locn],canon,string,canon) |
-  .csexp(option[locn],canon,cons[rule[canon]],tipe) |
+  .csexp(option[locn],canon,cons[eqn],tipe) |
   .trycatch(option[locn],canon,canon,canon,tipe) |
   .thrw(option[locn],canon,tipe) |
   .match(option[locn],canon,canon) |
@@ -31,7 +31,8 @@ star.compiler.canon{
   .apply(option[locn],canon,cons[canon],tipe) |
   .tapply(option[locn],canon,cons[canon],tipe,tipe) |
   .tple(option[locn],cons[canon]) |
-  .lambda(option[locn],string,rule[canon],tipe) |
+  .lambda(option[locn],string,eqn,tipe) |
+  .prc(option[locn],string,prle,tipe) |
   .thunk(option[locn],canon,tipe) |
   .thRef(option[locn],canon,tipe) |
   .newSav(option[locn],tipe) |
@@ -58,18 +59,20 @@ star.compiler.canon{
   .doTry(option[locn],canonAction,canon,canonAction) |
   .doThrow(option[locn],canon) |
   .doIfThen(option[locn],canon,canonAction,canonAction) |
-  .doCase(option[locn],canon,cons[rule[canonAction]]) |
+  .doCase(option[locn],canon,cons[prle]) |
   .doWhile(option[locn],canon,canonAction) |
   .doLet(option[locn],cons[canonDef],cons[decl],canonAction) |
   .doLetRec(option[locn],cons[canonDef],cons[decl],canonAction) |
   .doExp(option[locn],canon).
 
-  public rule[t] ::= .rule(option[locn],cons[canon],option[canon],t).
+  public eqn ::= .eqn(option[locn],cons[canon],option[canon],canon).
+
+  public prle ::= .prle(option[locn],cons[canon],option[canon],canonAction).
     
   public canonDef ::=
     .varDef(option[locn],string,string,canon,cons[constraint],tipe) |
-    .funDef(option[locn],string,cons[rule[canon]],cons[constraint],tipe) |
-    .prcDef(option[locn],string,cons[rule[canonAction]],cons[constraint],tipe) |
+    .funDef(option[locn],string,cons[eqn],cons[constraint],tipe) |
+    .prcDef(option[locn],string,cons[prle],cons[constraint],tipe) |
     .typeDef(option[locn],string,tipe,typeRule) |
     .cnsDef(option[locn],string,integer,tipe) |
     .implDef(option[locn],string,string,canon,cons[constraint],tipe).
@@ -91,6 +94,7 @@ star.compiler.canon{
       | .trycatch(_,_,_,_,Tp) => Tp
       | .thrw(_,_,Tp) => Tp
       | .lambda(_,_,_,Tp) => Tp
+      | .prc(_,_,_,Tp) => Tp
       | .thunk(_,_,Tp) => Tp
       | .thRef(_,_,Tp) => Tp
       | .newSav(_,Tp) => Tp
@@ -151,6 +155,7 @@ star.compiler.canon{
       | .tapply(Lc,_,_,_,_) => Lc
       | .tple(Lc,_) => Lc
       | .lambda(Lc,_,_,_) => Lc
+      | .prc(Lc,_,_,_) => Lc
       | .letExp(Lc,_,_,_) => Lc
       | .letRec(Lc,_,_,_) => Lc
       | .vlof(Lc,_,_) => Lc
@@ -160,8 +165,12 @@ star.compiler.canon{
     }
   }
 
-  public implementation all x ~~ hasLoc[rule[x]] => {
-    locOf(.rule(Lc,_,_,_)) => Lc.
+  public implementation hasLoc[eqn] => {
+    locOf(.eqn(Lc,_,_,_)) => Lc.
+  }
+
+  public implementation hasLoc[prle] => {
+    locOf(.prle(Lc,_,_,_)) => Lc.
   }
 
   public implementation hasLoc[canonAction] => {
@@ -274,6 +283,7 @@ star.compiler.canon{
     | .tapply(_,L,R,_,ETp) => "#(showApply(L,R,Pr,Sp)) throws $(ETp)"
     | .tple(_,Els) => "#(showTuple(Els,Sp))"
     | .lambda(_,Nm,Rl,_) => "(#(showEq(Nm,Rl,Sp++"  ")))"
+    | .prc(_,Nm,Rl,_) => "(#(showPRl(Nm,Rl,Sp++"  ")))"
     | .thunk(_,E,Tp) => "$$#(showCanon(E,0,Sp))"
     | .thRef(_,E,Tp) => "#(showCanon(E,0,Sp))!!"
     | .newSav(_,Tp) => "^$(Tp)"
@@ -325,7 +335,7 @@ star.compiler.canon{
     | .doIfThen(_,T,Th,El) where (Lp,OPr,Rp) ?= isInfixOp("then") =>
       "if #(showCanon(T,Lp,Sp)) then #(showAct(Th,Pr,Sp)) else #(showAct(El,Pr,Sp))"
     | .doCase(Lc,G,C) where (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "case #(showCanon(G,Lp,Sp)) in {#(showRls("",C,Sp))}"
+      "case #(showCanon(G,Lp,Sp)) in {#(showPRls("",C,Sp))}"
     | .doWhile(_,G,B) where (OPr,Rp) ?= isPrefixOp("while") =>
       "while #(showCanon(G,Rp,Sp)) do #(showAct(B,0,Sp))"
     | .doLet(Lc,Defs,_Decs,B) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
@@ -353,30 +363,29 @@ star.compiler.canon{
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
     | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(showEqs(Nm,Rls,Sp))"
-    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(showRls(Nm,Rls,Sp))"
+    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(showPRls(Nm,Rls,Sp))"
     | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
     | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |= $(Exp)"
   }
 
-  showEqs:(string,cons[rule[canon]],string) => string.
+  showEqs:(string,cons[eqn],string) => string.
   showEqs(Nm,Eqs,Sp) => interleave(Eqs//(Eq)=>showEq(Nm,Eq,Sp),"\n"++Sp++"| ")*.
 
-  showEq:(string,rule[canon],string) => string.
-  showEq(Nm,.rule(_,Ptns,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
-    "#(Nm)#(showTuple(Ptns,Sp)) => #(showCanon(Val,Rp,Sp))".
-  showEq(Nm,.rule(_,Ptns,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
-    "#(Nm)#(showTuple(Ptns,Sp)) where #(showCanon(C,Lp,Sp)) => #(showCanon(Val,Rp,Sp))".
+  showEq:(string,eqn,string) => string.
+  showEq(Nm,.eqn(_,Ptns,G,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("=>") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) #(showGuard(G,Sp))=> #(showCanon(Val,Rp,Sp))".
 
-  showRls:(string,cons[rule[canonAction]],string) => string.
-  showRls(Nm,Rls,Sp) => interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),"\n"++Sp++"| ")*.
+  showPRls:(string,cons[prle],string) => string.
+  showPRls(Nm,Eqs,Sp) => interleave(Eqs//(Eq)=>showPRl(Nm,Eq,Sp),"\n"++Sp++"| ")*.
 
-  showRl:(string,rule[canonAction],string) => string.
-  showRl(Nm,.rule(_,Ptns,.none,Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
-    "#(Nm)#(showTuple(Ptns,Sp)) do #(showAct(Val,Rp,Sp))".
-  showRl(Nm,.rule(_,Ptns,.some(C),Val),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
-    "#(Nm)#(showTuple(Ptns,Sp)) where #(showCanon(C,Lp,Sp)) do #(showAct(Val,Rp,Sp))".
+  showPRl:(string,prle,string) => string.
+  showPRl(Nm,.prle(_,Ptns,G,Act),Sp) where (Lp,OPr,Rp) ?= isInfixOp("do") =>
+    "#(Nm)#(showTuple(Ptns,Sp)) #(showGuard(G,Sp))do #(showAct(Act,Rp,Sp))".
+
+  showGuard(.none,_) => "".
+  showGuard(.some(C),Sp) => "where #(showCanon(C,900,Sp)) ".
 
   showDecs:(cons[decl],string) => string.
   showDecs(Dcs,Sp) => interleave(Dcs//disp,"\n"++Sp)*.
@@ -401,11 +410,12 @@ star.compiler.canon{
   public displayDefs:(cons[canonDef]) => string.
   displayDefs(Dfs) => interleave(Dfs//disp,"\n")*.
 
-  public implementation all x ~~ display[x] |= display[rule[x]] => let{
-    showRule(.rule(_,Ptns,.none,Val)) => "λ#(showTuple(Ptns,"")) is $(Val)".
-    showRule(.rule(_,Ptns,.some(Cond),Val)) => "λ#(showTuple(Ptns,"")) where $(Cond) is $(Val)".
-  } in {
-    disp = showRule
+  public implementation display[eqn] => {
+    disp(Eq) => showEq("λ",Eq,"")
+  }
+
+  public implementation display[prle] => {
+    disp(R) => showPRl("λ",R,"")
   }
 
   public isGoal:(canon)=>boolean.
@@ -423,6 +433,7 @@ star.compiler.canon{
   public isFunDef:(canon)=>boolean.
   isFunDef(Df) => case Df in {
     | .lambda(_,_,_,_) => .true
+    | .prc(_,_,_,_) => .true
     | .letExp(_,_,_,Exp) => isFunDef(Exp)
     | .letRec(_,_,_,Exp) => isFunDef(Exp)
     | _ default => .false

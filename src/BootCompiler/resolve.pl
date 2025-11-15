@@ -302,6 +302,12 @@ overloadLambda(Lc,Lbl,[],rule(Lc,Args,G,Exp),Tp,Dict,Opts,St,Stx,
   overloadTerm(Args,RDict,Opts,St,St0,RArgs),
   overloadGuard(G,RDict,Opts,St0,St1,RG),
   overloadTerm(Exp,RDict,Opts,St1,Stx,RExp).
+overloadLambda(Lc,Lbl,[],prle(Lc,Args,G,Exp),Tp,Dict,Opts,St,Stx,
+	       lambda(Lc,Lbl,[],prle(Lc,RArgs,RG,RExp),Tp)) :-!,
+  defineArgVars(Args,Dict,RDict),
+  overloadTerm(Args,RDict,Opts,St,St0,RArgs),
+  overloadGuard(G,RDict,Opts,St0,St1,RG),
+  overloadAction(Exp,RDict,Opts,St1,Stx,RExp).
 overloadLambda(Lc,Lbl,Cx,Eqn,Tp,Dict,Opts,Stx,Stx,lambda(Lc,Lbl,[],OEqn,Tp)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquation(CVars,Eqn,FDict,Opts,OEqn).
