@@ -867,6 +867,9 @@ typeOfExp(Term,Tp,ErTp,Env,Env,capply(Lc,Fun,Args,Tp),Opts,Path) :-
 typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
   isEquation(Term,Lc,_H,_R),
   typeOfLambda(Lc,Term,Tp,Env,Lam,Opts,Path).
+typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
+  isProcedure(Term,Lc,_H,_G,_R),
+  typeOfRule(Lc,Term,Tp,Env,Lam,Opts,Path).
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
@@ -966,7 +969,7 @@ typeOfLambda(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Pa
   lambdaLbl(Path,"λ",Lbl),
   typeOfExp(R,RT,ErTp,E1,_,Exp,Opts,Path).
 
-typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
+typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,prle(Lc,Args,Guard,Act),Tp),Opts,Path) :-
   checkOpt(Opts,traceCheck,showMsg(Lc,"expected type of rule %s:%s",[ast(Term),tpe(Tp)])),
   pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
@@ -976,7 +979,8 @@ typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path
   typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   lambdaLbl(Path,"λ",Lbl),
-  checkAction(R,voidType,ErTp,E1,_,Exp,Opts,Path).
+  checkAction(R,voidType,ErTp,noMore,E1,_,Act,Opts,Path).
+
 
 %% Translate thunks into uses of SAVars & lambda
 % $$ E becomes

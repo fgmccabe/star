@@ -259,6 +259,8 @@ star.compiler.macro{
     mkImplies(Lc,macroTerm(L),macroTerm(R)).
   examineTerm(A) where (Lc,D,L,C,R) ?= isLambda(A) => 
     mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineTerm(A) where (Lc,Nm,D,L,C,R) ?= isProcedure(A) => 
+    mkProcedure(Lc,Nm,D,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
   examineTerm(A) where (Lc,S) ?= isValof(A) =>
     mkValof(Lc,S//macroAction).
   examineTerm(A) where (Lc,As) ?= isTask(A) =>

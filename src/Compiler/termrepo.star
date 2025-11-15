@@ -47,7 +47,7 @@ star.compiler.term.repo{
       putResource(FU,Text);
       valis flushRepo(.repo(Root,addToManifest(Man,.pkg(Pk,Vr),Kind,Fn)))
     } catch {
-      _ => {
+      _ do {
 	showMsg("cannot resolve #(Fn)");
 	valis .repo(Root,Man)
       }

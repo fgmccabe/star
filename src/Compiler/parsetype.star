@@ -784,7 +784,7 @@ star.compiler.typeparse{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
       AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funType([RcTp],FTp))));
       Lc = locOf(B);
---      DefltEqn = .rule(Lc,[.anon(Lc,RcTp)],.none,.enm(Lc,"none",optType(FldTp)));
+--      DefltEqn = .eqn(Lc,[.anon(Lc,RcTp)],.none,.enm(Lc,"none",optType(FldTp)));
       AcEqs = accessorEqns(B,Fld,FTp,[/*DefltEqn*/]);
 
       if isEmpty(AcEqs) then
@@ -799,7 +799,7 @@ star.compiler.typeparse{
     }
     makeAccessor(_,_,_) default => ([],[]).
 
-    accessorEqns:(ast,string,tipe,cons[rule[canon]]) => cons[rule[canon]].
+    accessorEqns:(ast,string,tipe,cons[eqn]) => cons[eqn].
     accessorEqns(TB,Fld,FldTp,SoFar) where (_,L,R)?=isBinary(TB,"|") =>
       accessorEqns(R,Fld,FldTp,accessorEqns(L,Fld,FldTp,SoFar)).
     accessorEqns(TB,Fld,FldTp,SoFar) where (_,R)?=isUnary(TB,"|") =>
@@ -809,7 +809,7 @@ star.compiler.typeparse{
       XX = .vr(Lc,"X",FldTp);
       ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
       
-      Eqn = .rule(Lc,[
+      Eqn = .eqn(Lc,[
 	    .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)],
 	.none,XX);
       valis [Eqn,..SoFar]
@@ -841,7 +841,7 @@ star.compiler.typeparse{
     }
     makeUpdater(_,_,_) default => ([],[]).
 
-    updaterEqns:(ast,string,tipe,cons[rule[canon]]) => cons[rule[canon]].
+    updaterEqns:(ast,string,tipe,cons[eqn]) => cons[eqn].
     updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,L,R)?=isBinary(TB,"|") =>
       updaterEqns(R,Fld,FldTp,updaterEqns(L,Fld,FldTp,SoFar)).
     updaterEqns(TB,Fld,FldTp,SoFar) where (Lc,R)?=isUnary(TB,"|") =>
@@ -853,7 +853,7 @@ star.compiler.typeparse{
       RepArgs = projectArgTypes(Sorted,0,(FLc,Ix,FTp)=>.vr(FLc,"X$(Ix)",FTp),XX,Fld,Fields);
       ConsTp = consType(.tupleType(ConArgs//typeOf),RcTp);
       
-      Eqn = .rule(Lc,[.apply(Lc,.enm(Lc,CnNm,ConsTp),ConArgs,RcTp),XX],
+      Eqn = .eqn(Lc,[.apply(Lc,.enm(Lc,CnNm,ConsTp),ConArgs,RcTp),XX],
 	.none,.apply(Lc,.enm(Lc,CnNm,ConsTp),RepArgs,RcTp));
       valis [Eqn,..SoFar]
     }.

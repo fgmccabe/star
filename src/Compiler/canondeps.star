@@ -58,6 +58,10 @@ star.compiler.canondeps{
   findRefs:(canonDef,canonDef,set[cV],set[defnSp])=>defSpec.
   findRefs(Df,D,Q,All) => case Df in {
     | .funDef(_,Nm,Rls,_,Tp) => valof{
+      Free = foldRight((Rl,F)=>freeVarsInEqn(Rl,Q,F),[],Rls);
+      valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cV(V,T) in Free},D)
+    }
+    | .prcDef(_,Nm,Rls,_,Tp) => valof{
       Free = foldRight((Rl,F)=>freeVarsInRule(Rl,Q,F),[],Rls);
       valis .defSpec(.varSp(Nm,Tp),{ .varSp(V,T) | .cV(V,T) in Free},D)
     }

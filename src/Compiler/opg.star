@@ -60,6 +60,7 @@ star.compiler.opg{
   legalRight:(tk,integer) => boolean.
   legalRight(.idTok(". "),_) => .false.
   legalRight(.idTok(Op),Pr) where (PPr,_) ?= isPrefixOp(Op) => PPr=<Pr.
+  legalRight(.idTok(Op),Pr) where (PPr,_,_) ?= isInfixOp(Op) => PPr=<Pr.
   legalRight(.idTok(Op),_) => ~ isOperator(Op).
   legalRight(.idQTok(_),_) => .true.
   legalRight(.intTok(_),_) => .true.

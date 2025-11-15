@@ -70,13 +70,13 @@ star.compiler{
 	    defltOptions(WI,RI)
 	  ))
       } catch {
-	Msg => {
+	Msg do {
 	  logMsg(.severe,Msg);
 	  valis ()
 	}
       }
     } catch {
-      .exception(Msg) => {
+      .exception(Msg) do {
 	logMsg(.severe,Msg);
 	valis ()
       }

@@ -49,7 +49,7 @@ star.compiler.impawt{
 	Decls = pickupDeclarations(Ds,Lc);
 	valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
       } catch {
-	_ => {
+	_ do {
 	  reportError("could not decode package spec",Lc);
 	  valis .none
 	}

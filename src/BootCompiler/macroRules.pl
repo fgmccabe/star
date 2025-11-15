@@ -599,8 +599,8 @@ generatorMacro(E,expression,Ex) :-
 /* yield E
    becomes
    case this suspend ._yld(E) in {
-     ._next => {}.
-     ._cancel => retire ._all
+     ._next do {}.
+     ._cancel do retire ._all
    }
 */
 yieldMacro(E,action,Ax) :-
@@ -611,13 +611,13 @@ yieldMacro(E,action,Ax) :-
   /* build ._next => {} */
   braceTuple(Lc,[],Nop),
   mkEnum(Lc,"_next",Nxt),
-  mkEquation(Lc,Nxt,none,Nop,NxtRl),
+  mkProcedure(Lc,Nxt,none,Nop,NxtRl),
 
   /* build ._cancel => _retire(this,._all) */
   mkEnum(Lc,"_cancel",Can),
   mkEnum(Lc,"_all",All),
   mkRetire(Lc,name(Lc,"this"),All,Rs),
-  mkEquation(Lc,Can,none,Rs,Cancel),
+  mkProcedure(Lc,Can,none,Rs,Cancel),
 
   /* Build suspend */
   mkSuspend(Lc,name(Lc,"this"),Yld,SS),
