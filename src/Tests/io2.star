@@ -13,8 +13,8 @@ test.io2{
 	out := [Ln,..out!]
       }
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis reverse(out!)
   }
@@ -34,12 +34,12 @@ test.io2{
 	Text = taskManager([Rd]);
 	showMsg("output: $(Text)");
       } catch {
-	.deadlock => showMsg("Reader got deadlocked")
+	.deadlock do showMsg("Reader got deadlocked")
       };
       valis ()
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

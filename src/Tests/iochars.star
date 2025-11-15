@@ -11,8 +11,8 @@ test.iochars{
 	showMsg("file data: $(Data)");
       }
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis ()
   }
@@ -32,13 +32,12 @@ test.iochars{
 	taskManager([Rd]);
 	showMsg("reader done");
       } catch {
-	| .deadlock => showMsg("Reader got deadlocked")
-	| .canceled => showMsg("Everything got canceled")
-      };
-      valis ()
+	| .deadlock do showMsg("Reader got deadlocked")
+	| .canceled do showMsg("Everything got canceled")
+      }
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

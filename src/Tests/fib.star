@@ -18,7 +18,7 @@ test.fib{
     try{
       _jit_compile("#(__pkg__)@fib",1);
     } catch {
-      X => showMsg("$(X)")
+      X do showMsg("$(X)")
     };
 
     timer2 = ref timer_start((2.0**(V::float))::integer, "fib");

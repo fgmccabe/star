@@ -12,7 +12,7 @@ test.jt14{
 
   splits:(tree[(integer,string)]) => (tree[integer],cons[string]).
   splits(T) => let{.
-    spl(.empty) => valof{ try{_gc(64)} catch {_ => logM("gc raised error")}; valis (.empty,.nil)}.
+    spl(.empty) => valof{ try{_gc(64)} catch {_ do logM("gc raised error")}; valis (.empty,.nil)}.
     spl(.node(L,(X,S),R)) => valof{
       (LL,LX) = spl(L);
       (RR,RX) = spl(R);
@@ -34,12 +34,12 @@ test.jt14{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
 
-  main:()=>().
-  main()=> valof{
+  main:(){}.
+  main(){
     (Itree,Stree) = splits(.node(.node(.empty,(1,"a"),.empty),(2,"b"),.empty));
     show dispTree(Itree,dInt);
 
@@ -54,13 +54,11 @@ test.jt14{
       _jit_compile("#(__pkg__)@conc",2);
       _jit_compile("#(__pkg__)@logM",1);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
     logM(dispTree(Itree,dInt));
 
     logM(dispTree(splits(.node(.node(.empty,(1,"a"),.empty),(2,"b"),.empty)).0,dInt));
-
-    valis ()
   }
 }

@@ -76,7 +76,7 @@ string\n
     try{
       assert o == 1;		-- End comment
     } catch {
-      _ => {
+      _ do {
 	showMsg("valof exception")
       }
     };

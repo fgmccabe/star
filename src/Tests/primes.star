@@ -52,7 +52,7 @@ test.primes{
   primeSieve:(integer,generator[integer]) => integer.
   primeSieve(Limit,Gen) => valof{
     case Gen resume ._next in {
-      | ._yld(Nxt) => {
+      | ._yld(Nxt) do {
 	if Nxt < Limit then
 	  valis primeSieve(Limit,primeFilter(Nxt,Gen))
 	else

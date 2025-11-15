@@ -14,8 +14,8 @@ test.ts0{
       Ix = ref F;
       while Ix! < T do{
 	case Gen suspend .yild(Ix!) in {
-	  | .next => {}
-	  | .cancel => Gen retire .end
+	  | .next do {}
+	  | .cancel do Gen retire .end
 	};
       
 	Ix := Ix! + 1;
@@ -30,11 +30,11 @@ test.ts0{
 
     while .true do {
       case TT resume .next in {
-	| .yild(X) => {
+	| .yild(X) do {
 --	  _logmsg("add $(X) to $(Tl!)");
 	  Tl := Tl! + X
 	}
-	| .end => valis Tl!
+	| .end do valis Tl!
       }
     };
     valis Tl!
@@ -49,7 +49,7 @@ test.ts0{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
   

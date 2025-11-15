@@ -49,7 +49,7 @@ test.ac10{
       assert firstMultiple(10,3) == "found";
       assert firstMultiple(3,10) == "not found";
     } catch {
-      .exception(M) => logMsg(.warning,"we got an exception: $(M)")
+      .exception(M) do logMsg(.warning,"we got an exception: $(M)")
     };
     valis ()
   }

@@ -38,8 +38,8 @@ test.jt10{
       _jit_compile("#(__pkg__)@ieq",2);
       _jit_compile("#(__pkg__)@fct",1);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     assert ieq(add(2,3),5);

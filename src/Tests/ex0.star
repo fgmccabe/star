@@ -1,12 +1,12 @@
 test.ex0{
   except ::= .except(string).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       throw .except("bong");
     } catch {
-      .except(Msg) => { _logmsg("out with a #(Msg)"); valis () }
+      .except(Msg) do { _logmsg("out with a #(Msg)") }
     };
   }
 }

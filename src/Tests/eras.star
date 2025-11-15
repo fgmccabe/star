@@ -26,7 +26,7 @@ test.eras{
   sieve:(integer,integer,integer,generator[integer]) => integer.
   sieve(Cnt,Mx,Pr,Gen) => valof{
     case Gen resume ._next in {
-      | ._yld(Nxt) => {
+      | ._yld(Nxt) do {
 	if Cnt<Mx then{
 --	  showMsg("Next prime is $(Nxt), $(Cnt) out of $(Mx)");
 	  valis sieve(Cnt+1,Mx,Nxt,filter(Nxt,Gen))
@@ -36,15 +36,14 @@ test.eras{
     valis Pr
   }
 
-  _main:(cons[string]) => ().
-  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
-  _main(_) => main(100).
+  _main:(cons[string]){}.
+  _main([C,.._]) where Cnt?=(C:?integer) do main(Cnt).
+  _main(_) do main(100).
 
-  main:(integer)=>().
-  main(Cnt) => valof{
+  main:(integer){}.
+  main(Cnt){
     MxPrime = sieve(0,Cnt,1,intGen);
     showMsg("final result $(MxPrime)");
-    valis ()
   }
 }
 

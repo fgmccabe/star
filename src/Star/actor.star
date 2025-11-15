@@ -16,12 +16,12 @@ star.actor{
     while .true do{
       try{
 	case collectMsg(mBox) in {
-	  | .query(Q,Reply) => { postMsg(Q(body),Reply) }
-	  | .tell(A) => {
+	  | .query(Q,Reply) do { postMsg(Q(body),Reply) }
+	  | .tell(A) do {
 	    A(body);
 	  }
 	}
-      } catch { (_) => { showMsg("Problem in actor"); valis () }}
+      } catch { _ do { showMsg("Problem in actor"); valis () }}
     };
     valis ()
   }

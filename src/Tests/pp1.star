@@ -8,7 +8,7 @@ test.pp1{
       (StdIn,StdOut,StdErr) = _popen(Cmd,Args,[]);
 
       valis readLines(StdOut)
-    } catch { C => {
+    } catch { C do {
 	showMsg("Error in popen: $(C)");
 	valis []
     }
@@ -30,8 +30,8 @@ test.pp1{
     try{
       valis rdLns()
     } catch {
-      | .eEOF => valis []
-      | Other => {
+      | .eEOF do valis []
+      | Other do {
 	showMsg("io error: $(Other)");
 	_exit(9)
       }
@@ -46,10 +46,9 @@ test.pp1{
     valis ()
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     readSomething();
-    valis ()
   }
 }
     

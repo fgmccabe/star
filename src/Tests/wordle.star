@@ -128,11 +128,11 @@ test.wordle{
 	  valis Cnt!
 	}
       } catch {
-	| .pastEof => {
+	| .pastEof do {
 	  showMsg("Ending after $(Cnt!) moves");
 	  exit(0)
 	}
-	| E => {
+	| E do {
 	  showMsg("IO error: $(E)");
 	  valis 0
 	}
@@ -153,7 +153,7 @@ test.wordle{
 	play(Secret,Words);
       }
     } catch {
-      M => showMsg("We got an exception: $(M)")
+      M do showMsg("We got an exception: $(M)")
     };
     valis ()
   }
@@ -164,7 +164,7 @@ test.wordle{
       Words = parseWordFile("wordle.txt");
       autoplay(Secret,Words)
     } catch {
-      M => showMsg("We got an exception: $(M)")
+      M do showMsg("We got an exception: $(M)")
     };
     valis ()
   }
@@ -207,7 +207,7 @@ test.wordle{
 	  }
 	}
       } catch{
-	_ => showMsg("some kind of error")
+	_ do showMsg("some kind of error")
       }
     };
     showMsg("Failed after $(Cnt!) goes");
@@ -220,7 +220,7 @@ test.wordle{
       Words = parseWordFile("wordle.txt");
       makeGuesses(Words)
     } catch {
-      M => showMsg("We got an exception: $(M)")
+      M do showMsg("We got an exception: $(M)")
     };
     valis ()
   }    

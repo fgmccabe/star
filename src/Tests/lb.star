@@ -20,7 +20,7 @@ test.lb{
       try{
 	inc();
       } catch {
-	_ => {}
+	_ do {}
       };
       valis .true
     }
@@ -30,10 +30,9 @@ test.lb{
     }
   .} in ii(A).
 
-  main:()=>().
-  main()=>valof{
-    assert count(10,0);
-    valis ()
+  main:(){}.
+  main(){
+    assert count(10,0)
   }
 }
   

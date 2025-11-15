@@ -18,8 +18,8 @@ test.jt4{
     try{
       _jit_compile("#(__pkg__)@conc",2);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     show conc(L,M);

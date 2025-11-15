@@ -2,15 +2,14 @@ test.either{
   import star.
   import star.assert.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       assert ? .either("fred") == "fred";
 
-      valis ? (.other(34)|:either[(),integer])
+      ? (.other(34)|:either[(),integer])
     } catch {
-      XX => {assert XX == 34}
-    };
-    valis ()
+      XX do {assert XX == 34}
+    }
   }
 }

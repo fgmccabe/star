@@ -44,7 +44,7 @@ test.as2{
       assert ~checkLists()([],[1]);
       show notMuch();
     } catch {
-      _ => showMsg("as expected")
+      _ do showMsg("as expected")
     };
     valis ()
   }

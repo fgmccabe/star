@@ -37,7 +37,7 @@ test.dd{
       B = ff(7);
       throw ()
     } catch {
-      _ => valis 10
+      _ do valis 10
     }
   }
 
@@ -59,13 +59,13 @@ test.dd{
       try {
         throw "fred"
       } catch {
-	(F) => {
+	(F) do {
 	  showMsg("we got an exception $(F)");
 	  throw ()
 	}
       }
     } catch {
-      (E) => {
+      (E) do {
 	showMsg("we got exception $(E), returning $(R)");
 	valis R
       }
@@ -80,8 +80,8 @@ test.dd{
     throw "Negative $(U)"
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       show AA;
       show XX;
@@ -98,8 +98,7 @@ test.dd{
       assert TT(1)==1;
       show TT(-1)			-- never finish this
     } catch {
-      M => showMsg("Huh: #(M)")
+      M do showMsg("Huh: #(M)")
     };
-    valis ()
   }
 }

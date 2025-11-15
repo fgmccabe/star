@@ -32,8 +32,8 @@ test.act0{
     _tell(B,Q) => Q(B)
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     png = pingBody{
       ping() => .pong.
       pong() => .ping.
@@ -45,9 +45,8 @@ test.act0{
       showMsg("$(Rs)");
 
       assert Rs==.pong;
-    } catch { _ => showMsg("huh?")
-    };
-    valis ()
+    } catch { _ do showMsg("huh?")
+    }
   }
 
   -- pingA:(task[()])=>actor[pingBody].

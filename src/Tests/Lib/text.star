@@ -27,7 +27,7 @@ test.lib.text{
 	out := [Ln,..out!]
       }
     } catch {
-      .pastEof => {}
+      .pastEof do {}
     };
 
     close(In);

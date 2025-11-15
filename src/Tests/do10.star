@@ -15,7 +15,7 @@ test.do10{
       showMsg("YY = $(valof YY)");
       assert valof YY == 76;
     } catch {
-      _ => showMsg("We got an exception, instead of YY")
+      _ do showMsg("We got an exception, instead of YY")
     };
     
     valis ()

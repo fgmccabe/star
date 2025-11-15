@@ -27,8 +27,8 @@ star.iterable{
 	yieldFn:(e,())=>().
 	yieldFn(E,_) => valof{
 	  case this suspend ._yld(E) in {
-	  | ._next => {}
-	  | ._cancel => retire ._all
+	  | ._next do {}
+	  | ._cancel do retire ._all
 	  };
 	  valis ()
 	}
@@ -45,8 +45,8 @@ star.iterable{
     _iter(G,X,Fn) => valof{
       XX := X;
       case G resume ._next in {
-	| ._yld(E) => { XX := Fn(E,XX!)}
-	| ._all => valis XX!
+	| ._yld(E) do { XX := Fn(E,XX!)}
+	| ._all do valis XX!
       };
       valis XX!
     }

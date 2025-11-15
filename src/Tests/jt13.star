@@ -35,8 +35,8 @@ test.jt13{
       _jit_compile("#(__pkg__)@o^",3);
       _jit_compile("#(__pkg__)λ_0",2);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     assert o(dbl,inc)(2)==5;

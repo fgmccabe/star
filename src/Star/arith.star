@@ -59,7 +59,7 @@ star.arith{
 	(p,_) = _big_div(X,Y);
 	valis p
       } catch {
-	.divZero => throw .exception("divide by zero")
+	.divZero do throw .exception("divide by zero")
       }
     }
     X%Y => valof{
@@ -67,7 +67,7 @@ star.arith{
 	(_,q) = _big_div(X,Y);
 	valis q
       } catch {
-	.divZero => throw .exception("divide by zero")
+	.divZero do throw .exception("divide by zero")
       }
     }
     one = 0b1.

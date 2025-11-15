@@ -28,14 +28,14 @@ test.tk1{
 	  
 	  valis ()
 	} catch {
-	  _ => retire .retired_
+	  _ do retire .retired_
 	}
       };
 	
       taskManager([Tsk]);
 
     } catch {
-      E => showMsg("$(E)")
+      E do showMsg("$(E)")
     };
     valis ()
   }

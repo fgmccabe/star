@@ -7,7 +7,7 @@ star.file{
     try{
       valis .some(_get_file(Fl))
     } catch {
-      .eNOTFND => valis .none
+      .eNOTFND do valis .none
     }
   }
   getFile(_) default => .none.
@@ -27,7 +27,7 @@ star.file{
 	valis _file_modified(F1) > _file_modified(F2)
       else
       valis .false
-    } catch {_ => valis .false }
+    } catch {_ do valis .false }
   }
 
   public isDir:(string) => boolean.

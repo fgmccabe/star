@@ -12,8 +12,8 @@ test.io4{
 	valis Txt
       }
     } catch {
-      | .ioError => showMsg("bad io")
-      | .pastEof => showMsg("all done")
+      | .ioError do showMsg("bad io")
+      | .pastEof do showMsg("all done")
     };
     valis ""
   }
@@ -31,13 +31,13 @@ test.io4{
 	Text = taskManager([Rd]);
 	showMsg("reader done: $(Text)");
       } catch {
-	| .deadlock => showMsg("Reader got deadlocked")
-	| .canceled => showMsg("Everything got canceled")
+	| .deadlock do showMsg("Reader got deadlocked")
+	| .canceled do showMsg("Everything got canceled")
       };
       valis ()
     } catch {
-      | .eEOF => showMsg("end of file")
-      | Cde => showMsg("error code $(Cde)")
+      | .eEOF do showMsg("end of file")
+      | Cde do showMsg("error code $(Cde)")
     };
 
     valis ()

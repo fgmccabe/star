@@ -14,7 +14,7 @@ test.ts{
     try{
       assert fact(3)==5
     } catch {
-      _ => showMsg("fact(3)!=5")
+      _ do showMsg("fact(3)!=5")
     };
     valis ()
   }
@@ -30,7 +30,7 @@ test.ts{
       show fact(5);
       assert ~fact(2)==fact(4);
     } catch {
-      _ => showMsg("something went wrong")
+      _ do showMsg("something went wrong")
     }
   }
 
@@ -41,7 +41,7 @@ test.ts{
       show fact(5);
       assert fact(2)~=fact(4)
     } catch {
-      _ => showMsg("something went wrong")
+      _ do showMsg("something went wrong")
     }
   }
 }

@@ -34,11 +34,11 @@ test.ac8{
 	valis .err(0);  -- Never used.
 	});
     case TT resume () in {
-      | .err(E) => {
+      | .err(E) do {
 	showMsg("err $(E)");
 	valis -E
       }
-      | .ok(V) =>
+      | .ok(V) do
 	valis 5*V
     }
   }

@@ -124,7 +124,7 @@ test.jt8{
       show mod(6,0);
       show div(5.0,2.5);		
     } catch {
-      Msg => showMsg("We got exception: #(Msg)")
+      Msg do showMsg("We got exception: #(Msg)")
     };
     
     try{
@@ -150,8 +150,8 @@ test.jt8{
       _jit_compile("#(__pkg__)@flt",2);
       _jit_compile("#(__pkg__)@fge",2);
     } catch {
-      | .eNOPERM => showMsg("JIT not enabled")
-      | Cde => showMsg("We got errr: $(Cde)")
+      | .eNOPERM do showMsg("JIT not enabled")
+      | Cde do showMsg("We got errr: $(Cde)")
     };
 
     assert isEven(2);
@@ -163,7 +163,7 @@ test.jt8{
       show mod(7,-2);
       show mod(6,0)
     } catch {
-      Msg => showMsg("We got exception: #(Msg)")
+      Msg do showMsg("We got exception: #(Msg)")
     };
 
     assert abs(-4) == abs(4);

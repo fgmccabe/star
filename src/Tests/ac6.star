@@ -19,7 +19,7 @@ test.ac6{
       ops_per_sec = ((count::float) / elapsed)::integer;
       showMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     } catch {
-      .exception(Msg) => {
+      .exception(Msg) do {
 	logMsg(.severe,"we got exception $(Msg)");
       }
     };

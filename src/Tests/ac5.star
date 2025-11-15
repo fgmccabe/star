@@ -24,7 +24,7 @@ test.ac5{
       F = f(-10);
       logM(disp(F))
     } catch {
-      E => {
+      E do {
 	logM(E)
       }
     };
@@ -35,7 +35,7 @@ test.ac5{
   logM(M) => valof{
     try{
       _logmsg(M)
-    } catch {_ => {}};
+    } catch {_ do {}};
     valis ()
   }
   
