@@ -149,6 +149,7 @@ definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
 
 defVar(funDef(_,Nm,_,_,Tp,_,_),Q,[idnt(Nm,Tp)|Q]) :- !.
+defVar(prcDef(_,Nm,_,Tp,_,_),Q,[idnt(Nm,Tp)|Q]) :- !.
 defVar(varDef(_,Nm,_,_,Tp,_),Q,[idnt(Nm,Tp)|Q]) :- !.
 defVar(_,Q,Q).
 

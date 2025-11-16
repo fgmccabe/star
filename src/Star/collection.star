@@ -36,8 +36,18 @@ star.collection{
   }
 
   public contract all c,t ~~ visitor[c->>t] ::= {
-    visit:all a ~~ (c,(t,a)=>a,a) => a
+    visit:(c,(t){}){}
   }
+
+  -- public implementation all x ~~ visitor[cons[x]->>x] => let{.
+  --   visitCons(.nil,_) do {}.
+  --   visitCons(.cons(E,..C),P) do {
+  --     P(E);
+  --     visitCons(C,P)
+  --   }
+  -- .} in {
+  --   visit(L,P) do visitCons(L,P)
+  -- }
 
   public contract all k ~~ setops[k] ::= {
     (\/) : (k,k)=>k.
