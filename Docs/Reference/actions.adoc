@@ -14,14 +14,16 @@ evaluation of expressions.
 
 (((action types)))
 (((action!types)))
-Actions may have a type associated with them: their value type.
-This is the type of any returned value -- i.e., the type of the
-expression associated with any <<valisAction>>s within the action.
+
+The <<procedureType>> captures the intended shape of an action: an action is
+performed for effect and does not return any value. However, actions _may_
+return a value if they are syntactically part of a <<valofExpression>> -- or
+part of a <<collectExpression>>.
 
 == Basic Action Forms
 
 (((basic action expressions)))
-The basic actions include those in <<doFig>>.
+The basic actions include:
 
 [#doFig]
 .Different forms of action

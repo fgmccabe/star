@@ -24,7 +24,7 @@ expression --> throwExpression.
 expression --> conditionalExpression.
 expression --> condition.
 expression --> lambdaExpression.
-expression --> lambdaRule.
+expression --> procedureRule.
 expression --> thunkExpression.
 expression --> letExpression.
 expression --> valofExpression.
@@ -1081,6 +1081,57 @@ expression with a type. However, the normal restrictions on automatically
 inferred types apply: in particular, if it is required that a lambda expression
 denote a generic or constrained type then an explicit type annotation will be
 necessary.
+
+
+[#procedureRuleExpression]
+=== Procedure Rule
+(((procedure rule)))
+(((rule)))
+
+Procedure rules are the procedure analog of lambda expressions: they denote an anonymous procedure. Procedure rules take the form:
+
+.Procedure Rule
+[source,star]
+----
+procedureRule --> tuplePattern, ["do"], action |
+  tuplePattern, blockAction.
+----
+
+[source,star]
+----
+(X) do X+Y
+----
+Procedure rules may appear anywhere a procedure value is permitted.
+
+For example, a procedure rule to accumulate to an accumulator would
+be:
+[source,star]
+----
+(X) do { Acc := Acc! + X
+----
+
+Procedure rules are somtimes used as part of a visitor pattern. For example,
+given the `visitCons` procedure in:
+
+[source,star]
+----
+visitCons:all e ~~ (cons[e],(e){}){}.
+visitCons([],_) do {}.
+visitCons([E,..Es],P) do{
+  P(E);
+  visitCons(Es,P)
+}
+----
+
+we can show all the elements of a list with the procedure call:
+
+[source,star]
+----
+visitCons(L,(X){ show X })
+----
+
+NOTE: Like lambda expressions, procedure rules may reference free variables.
+
 
 [#thunkExpression]
 === Thunk Expressions
