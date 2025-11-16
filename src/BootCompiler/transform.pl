@@ -54,7 +54,6 @@
 transformProg(PkgDecls,prog(pkg(Pkg,Vers),Imports,Decls,LDecls,Defs),
 	      Opts,mdule(pkg(Pkg,Vers),Imports,Decls,LDecls,Dfs)) :-
   makePkgMap(PkgDecls,Map),
-%  (is_member(traceNormalize,Opts) -> dispMap("Package map: ",0,Map);true),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,[]).
 
 makePkgMap(PkgDecls,[lyr(VarMap,TpMap,ConsMap,void)]) :-
@@ -317,8 +316,8 @@ transformLetDefs(Map,OMap,Extra,Opts,[Def|Defs],F,Fx,Ex,Exx) :-
 
 transformLetDef(funDef(Lc,Nm,ExtNm,H,Tp,_,Eqns),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,H,Tp,Extra,Eqns,Map,Opts,Dx,Dxx).
-transformLetDef(prcDef(Lc,Nm,ExtNm,Tp,_,A,G,Act),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
-  transformProcedure(Lc,Nm,ExtNm,Tp,Extra,A,G,Act,Map,Opts,Dx,Dxx).
+transformLetDef(prcDef(Lc,Nm,ExtNm,Tp,_,Rls),Extra,Map,_OMap,Opts,Fx,Fx,Dx,Dxx) :-
+  transformProcedure(Lc,Nm,ExtNm,Tp,Extra,Rls,Map,Opts,Dx,Dxx).
 transformLetDef(varDef(_Lc,Nm,_LclNm,_,_Tp,Exp),_,Map,OMap,Opts,F,[(Nm,Ix,Rep)|F],Dx,Dxx) :-
   lookupVar(Map,Nm,labelArg(_,Ix,_ThVr,_)),
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx).

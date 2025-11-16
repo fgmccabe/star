@@ -366,7 +366,7 @@ guessType(St,_,_,funType(tplType(AT),RTp)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
-guessType(St,_,_,procType(tpleType(AT))) :-
+guessType(St,_,_,procType(tplType(AT))) :-
   isProcedure(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT).
