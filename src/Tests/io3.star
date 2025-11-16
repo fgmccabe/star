@@ -4,10 +4,10 @@ test.io3{
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
-  readAll(this,IO) => valof{
+  readAll:(task[()],inHandle) => ().
+  readAll(this,I) => valof{
     try{
-      while Ln.=rdLineAsync(IO) do{
+      while Ln.=rdLineAsync(I) do{
 	showMsg("line: $(Ln)");
       }
     } catch {
@@ -24,7 +24,7 @@ test.io3{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
+      In = openInFile(Fl,.utf8Encoding);
 
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
@@ -35,8 +35,7 @@ test.io3{
       };
       valis ()
     } catch {
-      | .eEOF do showMsg("end of file")
-      | Cde do showMsg("error code $(Cde)")
+      | Cde do showMsg("error $(Cde)")
     };
 
     valis ()

@@ -4,7 +4,7 @@ test.iowchar{
   import star.io.
   import star.mbox.
 
-  writeAll:(task[()],ioHandle,string) => ().
+  writeAll:(task[()],outHandle,string) => ().
   writeAll(this,IO,txt) => valof{
     try{
       for Ch in txt do{
@@ -25,7 +25,7 @@ test.iowchar{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openOutFile(Fl,3);
+      In = openOutFile(Fl,.utf8Encoding);
 
       try{
 	Rd = (Tsk) => valof{
@@ -39,7 +39,6 @@ test.iowchar{
 	.deadlock do showMsg("Writer got deadlocked")
       }
     } catch {
-      | .eEOF do showMsg("end of file")
       | Cde do showMsg("error code $(Cde)")
     };
 

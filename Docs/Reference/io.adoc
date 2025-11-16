@@ -10,10 +10,21 @@ of data.
 == I/O Types
 
 [#ioHandleType]
-=== The `ioHandle` Type
+=== The io Handle Types
 
-The `ioHandle` type is used to denote active i/o connections to a source or
-sink. This is a system defined type that is not represented by a type
+There are two so-called handle types associated with the I/O operations:
+`inHandle` and `outHandle`.
+
+[source,star]
+----
+public inHandle <~ {}.
+public outHandle <~ {}.
+----
+
+The `inHandle` type is used to denote an active connection to a file source, and
+`outHandle` is used to denote a connection to a file sink.
+
+These are system defined types that are not represented by a type
 definition.
 
 [#ioExceptionType]
@@ -24,26 +35,105 @@ When an i/o operation results in an error, an `ioException` is thrown.
 [#ioException]
 [source,star]
 ----
-public ioException ::= .ioError | .pastEof .
+public ioException ::= .ioError | .pastEof | .notFound | .noPerm.
 ----
 
+=== The `textEncoding` Type
 
-== File `ioHandle` functions
+(((text encoding)))
+Accessing a file is associated with a text encoding. The available encodings are
+defined in:
+
+[#textEncoding]
+[source,star]
+----
+public textEncoding ::= .rawEncoding | .utf8Encoding.
+----
+
+==== Raw Encoding
+The `.rawEncoding` encoding is used when accessing a file with raw bytes.
+
+==== Utf8 Encoding
+
+The standard text encoding used by Star is UTF8. Tbis is signaled with the
+`.utf8Encoding` enumerated symbol.
+
+NOTE: Other encodings may be introduced in the future. This will be reflected in
+the definition of the standard `textEncoding` type.
+
+
+== File Handle functions
 
 === The `openInFile` function
 
+The `openInFile` returns an `inHandle` if it is able to open the identified file.
+
+[source,star]
+----
+openInFile:(string,textEncoding) => inHandle throw ioException.
+----
+
+If the file is present, and if it is possible to open the named file for
+reading, then an `inHandle` bound to the file is returned. Otherwise, an
+`ioException` will be thrown.
+
 === The `openOutFile` function
 
-=== The `close` function
+The `openOutFile` returns an `outHandle` if it is able to open the identified
+file -- for output.
 
+[source,star]
+----
+openOutFile:(string,textEncoding) => outHandle throw ioException.
+----
+
+If it is possible to create the identified file, then an `outHandle` bound to
+the file is returned. Otherwise, an `ioException` will be thrown.
+
+
+=== The `close` procedure
+
+The `close` procedure can be used to close either an input connection or an
+output connection:
+
+[source,star]
+----
+close: all h ~~ closer[h->>e] |= (h){} throws e
+----
+
+The above definition depends on an internally defined contract -- `closer`. In
+practice, this procedure has two definitions -- depending on whether an output
+handle or an input handle is being closed.
 
 == Input functions
 
 === The `rdChar` function
 
-=== The `rdChars` function
+The `rdChar` function reads a single _character_ from the identified input channel:
+
+[source,star]
+----
+public rdChar:(inHandle) => char throws ioException.
+----
+
+NOTE: If the encoding on the input is set to `.utf8Encoding`, then this will
+read as many bytes as required (up to four) to read a single UTF scalar
+value. If the encoding is `.rawEncoding` then only one byte will be read.
+
 
 === The `rdLine` function
+
+The `rdLine` function reads a single line from the identified input channel, and returns it (not including the new-line character(s) itself):
+
+[source,star]
+----
+public rdLine:(inHandle) => string throws ioException.
+----
+
+NOTE: If the encoding on the input is set to `.utf8Encoding`, then this will
+read characters as UTF8 scalar values. If the encoding is `.rawEncoding` then the input is treated as a byte sequence.
++
+In the latter case, the function still terminates when a new-line sequence is detected.
 
 === The `rdBytes` function
 

@@ -4,10 +4,10 @@ test.iochars{
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
-  readAll(this,Io) => valof{
+  readAll:(task[()],inHandle) => ().
+  readAll(this,I) => valof{
     try{
-      while Data.=rdCharsAsync(Io,25) do{
+      while Data.=rdCharsAsync(I,25) do{
 	showMsg("file data: $(Data)");
       }
     } catch {
@@ -24,7 +24,7 @@ test.iochars{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
+      In = openInFile(Fl,.utf8Encoding);
       
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
@@ -36,8 +36,7 @@ test.iochars{
 	| .canceled do showMsg("Everything got canceled")
       }
     } catch {
-      | .eEOF do showMsg("end of file")
-      | Cde do showMsg("error code $(Cde)")
+      | Cde do showMsg("error $(Cde)")
     };
 
     valis ()
