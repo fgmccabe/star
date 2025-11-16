@@ -3,15 +3,27 @@ star.io{
   import star.mbox.
   import star.file.
 
-  public ioException ::= .ioError | .pastEof .
+  public ioException ::= .ioError | .pastEof | .notFound | .noPerm.
 
   public implementation display[ioException] => {
     disp(.ioError) => "ioError".
-    disp(.pastEof) => "pastEof"
+    disp(.pastEof) => "pastEof".
+    disp(.notFound) => "notFound".
+    disp(.noPerm) => "noPerm".
   }
 
-  public rdChar:(ioHandle) => char throws ioException.
-  rdChar(H) => valof{
+  public textEncoding ::= .rawEncoding | .utf8Encoding.
+
+  pickEncoding:(textEncoding) => integer.
+  pickEncoding(.rawEncoding) => 0.
+  pickEncoding(.utf8Encoding) => 3.
+
+  public inHandle ::= .inHandle(ioHandle).
+
+  public outHandle ::= .outHandle(ioHandle).
+
+  public rdChar:(inHandle) => char throws ioException.
+  rdChar(.inHandle(H)) => valof{
     try{
       valis _inchar(H)
     } catch {
@@ -20,18 +32,18 @@ star.io{
     }
   }
 
-  public rdCharAsync:async (ioHandle)=>char throws ioException.
-  rdCharAsync(IO) => valof{
+  public rdCharAsync:async (inHandle)=>char throws ioException.
+  rdCharAsync(.inHandle(I)) => valof{
     try{
-      valis waitforIO(IO,_inchar_async(IO))
+      valis waitforIO(I,_inchar_async(I))
     } catch {
       | .eEOF do throw .pastEof
       | _ do throw .ioError
     }
   }
 
-  public rdChars:(ioHandle,integer) => string throws ioException.
-  rdChars(H,Cx) => valof{
+  public rdChars:(inHandle,integer) => string throws ioException.
+  rdChars(.inHandle(H),Cx) => valof{
     try{
       valis _inchars(H,Cx)
     } catch {
@@ -40,38 +52,38 @@ star.io{
     }
   }
 
-  public rdCharsAsync:async (ioHandle,integer)=>string throws ioException.
-  rdCharsAsync(IO,Cx) => valof{
+  public rdCharsAsync:async (inHandle,integer)=>string throws ioException.
+  rdCharsAsync(.inHandle(I),Cx) => valof{
     try{
-      valis waitforIO(IO,_inchars_async(IO,Cx))
+      valis waitforIO(I,_inchars_async(I,Cx))
     } catch {
       | .eEOF do throw .pastEof
       | _ do throw .ioError
     }
   }
 
-  public rdLine:(ioHandle) => string throws ioException.
-  rdLine(H) => valof{
+  public rdLine:(inHandle) => string throws ioException.
+  rdLine(.inHandle(I)) => valof{
     try{
-      valis _inline(H)
+      valis _inline(I)
     } catch {
       | .eEOF do throw .pastEof
       | _ do throw .ioError
     }
   }
 
-  public rdLineAsync:async (ioHandle)=> string throws ioException.
-  rdLineAsync(IO) => valof{
+  public rdLineAsync:async (inHandle)=> string throws ioException.
+  rdLineAsync(.inHandle(I)) => valof{
     try{
-      valis waitforIO(IO,_inline_async(IO))
+      valis waitforIO(I,_inline_async(I))
     } catch {
       | .eEOF do throw .pastEof
       | _ do throw .ioError
     }
   }
 
-  public rdBytes:(ioHandle,integer) => vect[integer] throws ioException.
-  rdBytes(H,Cx) => valof{
+  public rdBytes:(inHandle,integer) => vect[integer] throws ioException.
+  rdBytes(.inHandle(H),Cx) => valof{
     try{
       valis _inbytes(H,Cx)
     } catch {
@@ -80,10 +92,10 @@ star.io{
     }
   }
 
-  public rdBytesAsync:async (ioHandle,integer)=> vect[integer] throws ioException.
-  rdBytesAsync(IO,Cx) => valof{
+  public rdBytesAsync:async (inHandle,integer)=> vect[integer] throws ioException.
+  rdBytesAsync(.inHandle(I),Cx) => valof{
     try{
-      valis waitforIO(IO,_inbytes_async(IO,Cx))
+      valis waitforIO(I,_inbytes_async(I,Cx))
     } catch {
       | .eEOF do throw .pastEof
       | _ do throw .ioError
@@ -100,25 +112,42 @@ star.io{
     }
   }
 
-  public close:(ioHandle)=>().
-  close(FH) => valof{
-    try{
-      valis _close(FH);
-    } catch {
-      | _ do valis ()
+  public contract all i,e ~~ closer[i->>e] ::= {
+    close:(i){} throws e
+  }
+
+  public implementation closer[inHandle->>ioException] => {
+    close(.inHandle(I)) {
+      try{
+	_close(I)
+      } catch {
+	_ do throw .ioError
+      }
     }
   }
 
-  public openInFile:(string) => ioHandle throws ioException.
-  openInFile(Fl) => (try
-    _openInFile(Fl,3)
-    catch {
-      _ => throw .ioError
-    }).
+  public implementation closer[outHandle->>ioException] => {
+    close(.outHandle(O)) {
+      try{
+	_close(O)
+      } catch {
+	_ do throw .ioError
+      }
+    }
+  }
+
+  public openInFile:(string,textEncoding) => inHandle throws ioException.
+  openInFile(Fn,Enc) => valof{
+    try{
+      valis .inHandle(_openInFile(Fn,pickEncoding(Enc)))
+    } catch {
+      _ do throw .notFound
+    }
+  }
 
   public rdFileAsync:async (string)=> string throws ioException.
   rdFileAsync(Fl) => valof{
-    In = openInFile(Fl);
+    In = openInFile(Fl,.utf8Encoding);
     Txt := [];
 
     while Ln.=rdCharsAsync(In,1024) do{
@@ -128,63 +157,64 @@ star.io{
     valis reverse(Txt!)*
   }
 
-  public wrChar:(ioHandle,char) => () throws ioException.
-  wrChar(H,C) => valof{
+  public wrChar:(outHandle,char){} throws ioException.
+  wrChar(.outHandle(O),C){
     try{
-      valis _outchar(H,C)
+      _outchar(O,C)
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrCharAsync:async (ioHandle,char)=> () throws ioException.
-  wrCharAsync(IO,C) => valof{
+  public wrCharAsync:async (outHandle,char) => () throws ioException.
+  wrCharAsync(.outHandle(O),C) => valof{
     try{
-      valis waitforIO(IO,_outchar_async(IO,C))
+      valis waitforIO(O,_outchar_async(O,C))
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrText:(ioHandle,string) => () throws ioException.
-  wrText(H,S) => valof{
+  public wrText:(outHandle,string) => () throws ioException.
+  wrText(.outHandle(O),S) => valof{
     try{
-      valis _outtext(H,S)
+      valis _outtext(O,S)
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrTextAsync:async (ioHandle,string)=>() throws ioException.
-  wrTextAsync(IO,S) => valof{
+  public wrTextAsync:async (outHandle,string)=>() throws ioException.
+  wrTextAsync(.outHandle(O),S) => valof{
     try{
-      valis waitforIO(IO,_outtext_async(IO,S))
+      valis waitforIO(O,_outtext_async(O,S))
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrFile:(string,string) => () throws ioException.
-  wrFile(F,S) => valof{
+  public wrFile:(string,string){} throws ioException.
+  wrFile(F,S){
     try{
-      valis _put_file(F,S)
+      _put_file(F,S)
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public openOutFile:(string) => ioHandle throws ioException.
-  openOutFile(Fl) => (try
-    _openOutFile(Fl,3)
+  public openOutFile:(string,textEncoding) => outHandle throws ioException.
+  openOutFile(Fl,E) => (try
+    .outHandle(_openOutFile(Fl,pickEncoding(E)))
     catch {
       _ => throw .ioError
     }).
 
   public wrFileAsync:async (string,string)=> () throws ioException.
   wrFileAsync(F,S) => valof{
-    Ot = openOutFile(F);
+    Ot = openOutFile(F,.utf8Encoding);
     wrTextAsync(Ot,S);
-    valis close(Ot)
+    close(Ot);
+    valis ()
   }
 
   waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k throws e.
@@ -197,13 +227,12 @@ star.io{
     }
   }
 
-  public stdin:ioHandle.
-  stdin = _stdfile(0).
+  public stdin:inHandle.
+  stdin = .inHandle(_stdfile(0)).
 
-  public stdout:ioHandle.
-  stdout = _stdfile(1).
+  public stdout:outHandle.
+  stdout = .outHandle(_stdfile(1)).
 
-  public stderr:ioHandle.
-  stderr = _stdfile(2).
-  
+  public stderr:outHandle.
+  stderr = .outHandle(_stdfile(2)).
 }

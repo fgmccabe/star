@@ -4,10 +4,10 @@ test.io1{
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
-  readAll(this,IO) => valof{
+  readAll:(task[()],inHandle) => ().
+  readAll(this,I) => valof{
     try{
-      while Ch.=rdCharAsync(IO) do{
+      while Ch.=rdCharAsync(I) do{
 	showMsg("char: $(Ch)");
       }
     } catch {
@@ -17,14 +17,14 @@ test.io1{
     valis ()
   }
 
-  _main:(cons[string])=>().
-  _main([Fl,.._]) => main(Fl).
-  _main([]) => main("test.txt").
+  _main:(cons[string]){}.
+  _main([Fl,.._]) do main(Fl).
+  _main([]) do main("test.txt").
 
-  main:(string)=>().
-  main(Fl) => valof{
+  main:(string){}.
+  main(Fl){
     try{
-      In = _openInFile(Fl,3);
+      In = openInFile(Fl,.utf8Encoding);
 
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
@@ -33,13 +33,9 @@ test.io1{
 	showMsg("reader done");
       } catch {
 	.deadlock do showMsg("Reader got deadlocked")
-      };
-      valis ()
+      }
     } catch {
-      | .eEOF do showMsg("end of file")
-      | Cde do showMsg("error code $(Cde)")
-    };
-
-    valis ()
+      | Cde do showMsg("error $(Cde)")
+    }
   }
 }

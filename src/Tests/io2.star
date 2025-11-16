@@ -4,11 +4,11 @@ test.io2{
   import star.io.
   import star.mbox.
 
-  readAll:(task[cons[string]],ioHandle) => cons[string].
-  readAll(this,IO) => valof{
+  readAll:(task[cons[string]],inHandle) => cons[string].
+  readAll(this,I) => valof{
     out := [];
     try{
-      while Ln.=rdLine(IO) do{
+      while Ln.=rdLine(I) do{
 	showMsg("Ln: $(Ln)");
 	out := [Ln,..out!]
       }
@@ -26,7 +26,7 @@ test.io2{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
+      In = openInFile(Fl,.utf8Encoding);
 
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
@@ -38,8 +38,7 @@ test.io2{
       };
       valis ()
     } catch {
-      | .eEOF do showMsg("end of file")
-      | Cde do showMsg("error code $(Cde)")
+      | Cde do showMsg("error $(Cde)")
     };
 
     valis ()

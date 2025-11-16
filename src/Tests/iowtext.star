@@ -4,7 +4,7 @@ test.iowtext{
   import star.io.
   import star.mbox.
 
-  writeAll:(task[()],ioHandle,string) => ().
+  writeAll:(task[()],outHandle,string) => ().
   writeAll(this,IO,txt) => valof{
     try{
       wrTextAsync(IO,txt);
@@ -22,7 +22,7 @@ test.iowtext{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openOutFile(Fl,3);
+      In = openOutFile(Fl,.utf8Encoding);
 
       try{
 	Rd = (Tsk) => valof{
@@ -36,8 +36,7 @@ test.iowtext{
 	.deadlock do showMsg("Writer got deadlocked")
       }
     } catch {
-      | .eEOF do showMsg("end of file")
-      | Cde do showMsg("error code $(Cde)")
+      | Cde do showMsg("error $(Cde)")
     };
 
     valis ()

@@ -586,29 +586,14 @@ star.compiler.gencode{
       (TC,_,Stk1) = compExp(T,Lc,Brks,.notLast,Ctx,Stk0);
       valis (chLine(OLc,Lc)++EC++TC++[.iStNth(Ix)],Ctx,Stk)
     }
-    | .aCase(Lc,G,Cs,D) where .noMore.= Next => valof{
-      Ok = defineLbl(Ctx,"ACsOk");
-      (CC,Ctxx,Stkx) = compCase(Lc,G,.iResult(Ok),Cs,D,
-	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk);
-      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stkx)
-    }
-    
-    | .aCase(Lc,G,Cs,D) where .notLast.= Next => valof{
+    | .aCase(Lc,G,Cs,D) => valof{
       Ok = defineLbl(Ctx,"ACsOk");
       (CC,Ctxx,Stkx) = compCase(Lc,G,.iBreak(Ok),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
 	Brks,Last,Ctx,Stk);
       valis ([.iLbl(Ok,.iBlock(stkLvl(Stk),CC))],Ctxx,Stkx)
     }
-    | .aIxCase(Lc,G,Cs,D) where .noMore.= Next => valof{
-      Ok = defineLbl(Ctx,"AIsOk");
-      (CC,Ctxx,Stkx) = compIndexCase(Lc,G,.iResult(Ok),Cs,D,
-	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),
-	Brks,Last,Ctx,Stk);
-      valis ([.iLbl(Ok,.iValof(stkLvl(Stk)+1,CC))],Ctxx,Stkx)
-    }
-    | .aIxCase(Lc,G,Cs,D) where .notLast.= Next => valof{
+    | .aIxCase(Lc,G,Cs,D) => valof{
       Ok = defineLbl(Ctx,"AIsOk");
       (CC,Ctxx,Stkx) = compIndexCase(Lc,G,.iBreak(Ok),Cs,D,
 	(AA,LL,BB,RR,CC,SS) => compAction(AA,LL,BB,RR,.notLast,CC,SS),

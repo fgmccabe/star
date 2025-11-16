@@ -41,9 +41,9 @@ star.iostream{
   }
 
   public inStream:all t ~~ display[t] |=
-    (string,((ioHandle)=>t throws ioException))=>inputStream[t] throws ioException.
+    (string,((inHandle)=>t throws ioException))=>inputStream[t] throws ioException.
   inStream(Fl,Fn) => valof{
-    Io = openInFile(Fl);
+    Io = openInFile(Fl,.utf8Encoding);
 
     let{.
       next() => valof{
@@ -52,7 +52,11 @@ star.iostream{
 	  valis .streamPair(Nxt,.streamThunk($$next()))
 	} catch {
 	  _ do {
-	    close(Io);
+	    try{
+	      close(Io)
+	    } catch {
+	      _ do {}
+	    };
 	    valis .endStream
 	  }
 	}

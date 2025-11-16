@@ -4,10 +4,10 @@ test.iobytes{
   import star.io.
   import star.mbox.
 
-  readAll:(task[()],ioHandle) => ().
-  readAll(this,Io) => valof{
+  readAll:(task[()],inHandle) => ().
+  readAll(this,I) => valof{
     try{
-      while Data.=rdBytesAsync(Io,25) do{
+      while Data.=rdBytesAsync(I,25) do{
 	showMsg("file data: $(Data)");
       }
     } catch {
@@ -24,7 +24,7 @@ test.iobytes{
   main:(string)=>().
   main(Fl) => valof{
     try{
-      In = _openInFile(Fl,3);
+      In = openInFile(Fl,.rawEncoding);
       
       try{
 	Rd = (Tsk) => readAll(Tsk,In);
@@ -36,7 +36,6 @@ test.iobytes{
 	| .canceled do showMsg("Everything got canceled")
       }
     } catch {
-      | .eEOF do showMsg("end of file")
       | Cde do showMsg("error code $(Cde)")
     };
 

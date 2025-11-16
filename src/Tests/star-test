@@ -1,0 +1,2 @@
+#!/bin/bash
+star -r test-repo/ $1
