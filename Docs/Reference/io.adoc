@@ -137,7 +137,16 @@ In the latter case, the function still terminates when a new-line sequence is de
 
 === The `rdBytes` function
 
+The `rdBytes` function returns a vector of bytes (using the `integer` type).
+
+[source,star]
+----
+rdBytes:(inHandle,integer) => vect[integer] throws ioException.
+----
+
 === The `rdFile` function
+
+
 
 == Async input function
 
