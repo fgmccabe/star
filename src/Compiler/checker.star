@@ -802,7 +802,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("expected arg type $(ATp)");
 
-    (As,ACnd,E0) = typeOfArgPtn(Ar,ATp,ErTp,Es,Path);
+    (As,ACnd,E0) = typeOfArgPtn( Ar,ATp,ErTp,Es,Path);
 
     if traceCanon! then
       showMsg("lambda arg ptn $(As)\:$(As//typeOf)");
@@ -1303,13 +1303,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("Check call $(Op)\:$(FnTp) against $(procType(AtTp,ErTp))");
 
-    if sameType(FnTp,procType(AtTp,.voidType),Env) then{
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
-      valis .apply(Lc,Fun,Args,.voidType)
-    } else if sameType(FnTp,procType(AtTp,ErTp),Env) then{
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
-      valis .tapply(Lc,Fun,Args,.voidType,ErTp)
-    } else if sameType(FnTp,fnType(AtTp,RtTp),Env) then {
+    if sameType(FnTp,fnType(AtTp,RtTp),Env) then {
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
       valis .apply(Lc,Fun,Args,RtTp)
     } else if sameType(FnTp,throwingType(AtTp,RtTp,ErTp),Env) then {

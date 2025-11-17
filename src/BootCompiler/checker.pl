@@ -366,7 +366,7 @@ guessType(St,_,_,funType(tplType(AT),RTp)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
-guessType(St,_,_,procType(tplType(AT))) :-
+guessType(St,_,_,funType(tplType(AT),voidType)) :-
   isProcedure(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT).
@@ -393,7 +393,9 @@ checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
 checkRule(Lc,H,G,A,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
-  splitUpProcedureType(Lc,E,ProgramType,AT,ErTp),
+  splitUpProgramType(Lc,E,ProgramType,AT,RT,ErTp),
+  (deRef(RT,voidType);
+   reportError("rule should have a procedure type, not %s",[tpe(ProgramType)],Lc)),
   splitHead(H,Nm,Ags,IsDeflt),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"head nm: %s, Args: %s",[Nm,ast(Ags)])),
   pushScope(E,Env),
@@ -416,13 +418,6 @@ isVr(v(_,_,_)).
 isVr(C) :-
   locOfCanon(C,Lc),
   reportError("procedure arguments must be identifier, not %s",[can(C)],Lc).
-
-splitUpProcedureType(Lc,Env,Tp,AT,ET) :-
-  newTypeVar("A",AT),
-  newTypeVar("E",ET),
-  (sameType(Tp,procType(AT,ET),Lc,Env);
-   sameType(Tp,procType(AT),Lc,Env)->sameType(ET,voidType,Lc,Env);
-   reportError("Expecting a procedure type, not %s",[tpe(Tp)],Lc)).
 
 splitUpProgramType(Lc,Env,FTp,AT,RT,ET) :-
   newTypeVar("A",AT),
@@ -974,8 +969,10 @@ typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,prle(Lc,Args,Guard,Act),Tp),Opts,Path
   pushScope(Env,LEnv),
   getConstraints(Tp,Cx,LambdaTp),
   declareConstraints(Lc,Cx,LEnv,EvL),
-  splitUpProcedureType(Lc,Env,LambdaTp,AT,ErTp),
+  splitUpProgramType(Lc,Env,LambdaTp,AT,RT,ErTp),
   isProcedure(Term,Lc,H,C,R),
+  (deRef(RT,voidType) ;
+   reportError("procedure rule should have a procedure type, not %s",[tpe(Tp)],Lc)),
   typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   lambdaLbl(Path,"λ",Lbl),
@@ -1151,15 +1148,6 @@ checkProcCall(Lc,F,A,ErTp,Env,Call,Opts,Path) :-
      typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
      Call=apply(Lc,Fun,Args,Tp);
    sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
-     (sameType(ETp,ErTp,Lc,Env) ->
-	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-	Call=tapply(Lc,Fun,Args,Tp,ErTp);
-      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
-      Call=void);
-   sameType(procType(At),FnTp,Lc,E0) ->
-     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-     Call=apply(Lc,Fun,Args,Tp);
-   sameType(procType(At,ETp),FnTp,Lc,E0) ->
      (sameType(ETp,ErTp,Lc,Env) ->
 	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
 	Call=tapply(Lc,Fun,Args,Tp,ErTp);

@@ -97,6 +97,7 @@ star.compiler.decode{
 
   public decodeType:(cons[char]) => (tipe,cons[char]).
   decodeType([Ch,..Ts]) => case Ch in {
+    | `v` => (.voidType,Ts)
     | `i` => (.nomnal("integer"),Ts)
     | `b` => (.nomnal("bigint"),Ts)
     | `f` => (.nomnal("float"),Ts)

@@ -42,6 +42,7 @@ star.compiler.unify{
 
     smT(.anonType,_,_) => .true.
     smT(_,.anonType,_) => .true.
+    smT(.voidType,.voidType,_) => .true.
     smT(.kVar(Nm),.kVar(Nm),_) => .true.
     smT(.nomnal(Nm),.nomnal(Nm),_) => .true.
     smT(.tpFun(Nm,Ar),.tpFun(Nm,Ar),_) => .true.
@@ -141,6 +142,7 @@ star.compiler.unify{
   rewriteType(Tp,Env) => rewr(deRef(Tp),Env).
   
   rewr(.anonType,_) => .anonType.
+  rewr(.voidType,_) => .voidType.
   rewr(.kFun(Nm,Ar),Env) where T?=Env[.kFun(Nm,Ar)] => T.
   rewr(.kVar(Nm),Env) where T?=Env[.kVar(Nm)] => T.
   rewr(V,_) where isUnbound(V) => V.

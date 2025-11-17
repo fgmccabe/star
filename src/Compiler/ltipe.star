@@ -110,7 +110,7 @@ star.compiler.ltipe{
     | .nomnal("float") => .flt64
     | .nomnal("boolean") => .bool
     | .nomnal(_) => .ptr
-    | _ where (A,R) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
+    | _ where (A,R,_) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
       .funTipe(As//reduceTp,reduceTp(R))
     | .tupleType(A) => .tplTipe(A//reduceTp)
     | .voidType => .voidTipe
