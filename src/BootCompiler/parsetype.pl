@@ -49,10 +49,10 @@ parseType(F,Env,Q,FT) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,Q,AT),
   parseResultType(R,Env,Q,AT,FT).
-parseType(F,Env,Q,procType(AT)) :-
+parseType(F,Env,Q,funType(AT,voidType)) :-
   isProcType(F,_,L,none),!,
   parseArgType(L,Env,Q,AT).
-parseType(F,Env,Q,procType(AT,TT)) :-
+parseType(F,Env,Q,funType(AT,voidType,TT)) :-
   isProcType(F,_,L,some(R)),
   parseArgType(L,Env,Q,AT),
   parseType(R,Env,Q,TT).

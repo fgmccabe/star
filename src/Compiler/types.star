@@ -262,11 +262,11 @@ star.compiler.types{
       { shTipeRule(Rl,Dp) | (Nm,Rl) in Tps},".\n")*.
 
   showTpExp:(tipe,cons[tipe],integer) => string.
+  showTpExp(.tpFun("=>",2),[A,R],Dp) where .voidType.=deRef(R) => "#(showType(A,Dp-1)){}".
+  showTpExp(.tpFun("=>",3),[A,R,E],Dp) where .voidType .= deRef(R) => "#(showType(A,Dp-1)){} throws #(showType(E,Dp-1))".
   showTpExp(.tpFun("=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1))".
   showTpExp(.tpFun("=>",3),[A,R,E],Dp) => "#(showType(A,Dp-1)) => #(showType(R,Dp-1)) throws #(showType(E,Dp-1))".
   showTpExp(.tpFun("<=>",2),[A,R],Dp) => "#(showType(A,Dp-1)) <=> #(showType(R,Dp-1))".
-  showTpExp(.tpFun("{}",2),[A,R],Dp) => "#(showType(A,Dp-1)){} throws #(showType(R,Dp-1))".
-  showTpExp(.tpFun("{}",1),[A],Dp) => "#(showType(A,Dp-1)){}".
   showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
@@ -435,9 +435,7 @@ star.compiler.types{
   public arity:(tipe)=>integer.
   arity(Tp) => ar(deRef(Tp)).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
-  ar(Tp) where (A,_) ?= isFnType(Tp) => arity(A).
-  ar(Tp) where (A,_,_) ?= isThrowingFunType(Tp) => arity(A).
-  ar(Tp) where (A,_) ?= isPrType(Tp) => arity(A).
+  ar(Tp) where (A,_,_) ?= isFnType(Tp) => arity(A).
   ar(Tp) where (A,_) ?= isCnType(Tp) => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
@@ -448,11 +446,11 @@ star.compiler.types{
 
   public funType(A,B) => fnType(.tupleType(A),B).
   public fnType(A,B) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
-  public throwingType(A,B,E) => .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),B),E).
-  public funcType(A,B,.voidType) => fnType(A,B).
+  public throwingType(A,B,E) where .voidType.=deRef(E) => .tpExp(.tpExp(.tpFun("=>",2),A),B).
+  throwingType(A,B,E) => .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),B),E).
+  public funcType(A,B,V) where .voidType .= deRef(V) => fnType(A,B).
   funcType(A,B,E) => throwingType(A,B,E).
-  public procType(A,.voidType) => .tpExp(.tpFun("{}",1),A).
-  procType(A,R) => .tpExp(.tpExp(.tpFun("{}",2),A),R).
+  public procType(A,E) => funcType(A,.voidType,E).
   public thrType(A,B,E) => throwingType(.tupleType(A),B,E).
   public consType(A,B) => .tpExp(.tpExp(.tpFun("<=>",2),A),B).
   public enumType(A) => .tpExp(.tpExp(.tpFun("<=>",2),.tupleType([])),A).
@@ -468,8 +466,7 @@ star.compiler.types{
   funTypeArg(.allType(_,T)) => funTypeArg(deRef(T)).
   funTypeArg(.constrainedType(T,C)) where FTp ?= funTypeArg(deRef(T)) =>
     .some(extendArgType(FTp,.some(C))).
-  funTypeArg(Tp) where (A,_) ?= isFunType(deRef(Tp)) => .some(A).
-  funTypeArg(Tp) where (A,_,_) ?= isThrowingFunType(Tp) => .some(A).
+  funTypeArg(Tp) where (A,_,_) ?= isFunType(deRef(Tp)) => .some(A).
   funTypeArg(Tp) where (A,_) ?= isConsType(Tp) => .some(A).
   funTypeArg(_) default => .none.
 
@@ -498,7 +495,7 @@ star.compiler.types{
     | .allType(V,B) => .allType(V,extendFunTp(B,Vs))
     | .existType(V,B) => .existType(V,extendFunTp(B,Vs))
     | .constrainedType(T,C) => .constrainedType(extendFunTp(T,Vs),C)
-    | _ => ((A,B)?=isFunType(Tp) ?? fnType(extendTplType(deRef(A),Vs),B) ||
+    | _ => ((A,B,E)?=isFunType(Tp) ?? fnType(extendTplType(deRef(A),Vs),B) ||
       (A,B,E) ?= isThrowingFunType(Tp) ?? throwingType(extendTplType(deRef(A),Vs),B,E) ||
     Tp).
   }
@@ -529,27 +526,26 @@ star.compiler.types{
   funRes(.existType(_,Tp)) => funTypeRes(Tp).
   funRes(.constrainedType(T,_))=>funTypeRes(T).
 
-  public isFunType:(tipe) => option[(tipe,tipe)].
+  public isFunType:(tipe) => option[(tipe,tipe,tipe)].
   isFunType(.allType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.existType(_,Tp)) => isFunType(deRef(Tp)).
   isFunType(.constrainedType(T,_))=>isFunType(T).
   isFunType(Tp) default => isFnType(Tp).
 
-  public isFnType:(tipe) => option[(tipe,tipe)].
+  isFnType:(tipe) => option[(tipe,tipe,tipe)].
   isFnType(Tp) where
       .tpExp(O,B).=deRef(Tp) &&
 	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("=>",2).=deRef(O2) => .some((A,B)).
+	      .tpFun("=>",2).=deRef(O2) => .some((A,B,.voidType)).
+  isFnType(Tp) where
+      .tpExp(O,E).=deRef(Tp) &&
+	  .tpExp(O1,B).=deRef(O) &&
+	      .tpExp(O2,A) .= deRef(O1) &&
+		  .tpFun("=>",3).=deRef(O2) => .some((A,B,E)).
   isFnType(_) default => .none.
 
   public isPrType:(tipe) => option[(tipe,tipe)].
-  isPrType(Tp) where
-      .tpExp(O,B).=deRef(Tp) &&
-	  .tpExp(O2,A) .= deRef(O) &&
-	      .tpFun("{}",2).=deRef(O2) => .some((A,B)).
-  isPrType(Tp) where
-      .tpExp(O,A).=deRef(Tp) &&
-	  .tpFun("{}",1).=deRef(O) => .some((A,.voidType)).
+  isPrType(Tp) where (A,R,E) ?= isFunType(Tp) && .voidType.=deRef(R) => .some((A,E)).
   isPrType(_) default => .none.
 
   public prTypeArg:(tipe) => option[tipe].

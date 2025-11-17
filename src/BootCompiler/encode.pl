@@ -102,11 +102,12 @@ encodeT(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeT(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeT(tpExp(tpFun("ref",1),Arg),['r'|O],Ox) :- !, encodeType(Arg,O,Ox).
 encodeT(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeType(Arg,O1,Ox).
+encodeT(funType(AT,RT),['p'|O],Ox) :- deRef(RT,voidType),!,encodeType(AT,O,Ox).
+encodeT(funType(AT,RT,ETp),['P'|O],Ox) :- deRef(RT,voidType),!,
+  encodeType(AT,O,O1), encodeType(ETp,O1,Ox).
 encodeT(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(funType(AT,Tp,ErTp),['T'|O],Ox) :-
   encodeType(AT,O,O1), encodeType(Tp,O1,O2), encodeType(ErTp,O2,Ox).
-encodeT(procType(AT),['p'|O],Ox) :- encodeType(AT,O,Ox).
-encodeT(procType(AT,ETp),['P'|O],Ox) :- encodeType(AT,O,O1), encodeType(ETp,O1,Ox).
 encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeT(tplType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
