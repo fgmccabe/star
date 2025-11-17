@@ -166,28 +166,28 @@ star.io{
     }
   }
 
-  public wrCharAsync:async (outHandle,char) => () throws ioException.
-  wrCharAsync(.outHandle(O),C) => valof{
+  public wrCharAsync:async (outHandle,char){} throws ioException.
+  wrCharAsync(.outHandle(O),C){
     try{
-      valis waitforIO(O,_outchar_async(O,C))
+      waitforIO(O,_outchar_async(O,C))
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrText:(outHandle,string) => () throws ioException.
-  wrText(.outHandle(O),S) => valof{
+  public wrText:(outHandle,string){} throws ioException.
+  wrText(.outHandle(O),S){
     try{
-      valis _outtext(O,S)
+      _outtext(O,S)
     } catch {
       | _ do throw .ioError
     }
   }
 
-  public wrTextAsync:async (outHandle,string)=>() throws ioException.
-  wrTextAsync(.outHandle(O),S) => valof{
+  public wrTextAsync:async (outHandle,string){} throws ioException.
+  wrTextAsync(.outHandle(O),S){
     try{
-      valis waitforIO(O,_outtext_async(O,S))
+      waitforIO(O,_outtext_async(O,S))
     } catch {
       | _ do throw .ioError
     }
@@ -209,19 +209,18 @@ star.io{
       _ => throw .ioError
     }).
 
-  public wrFileAsync:async (string,string)=> () throws ioException.
-  wrFileAsync(F,S) => valof{
+  public wrFileAsync:async (string,string){} throws ioException.
+  wrFileAsync(F,S){
     Ot = openOutFile(F,.utf8Encoding);
     wrTextAsync(Ot,S);
-    close(Ot);
-    valis ()
+    close(Ot)
   }
 
   waitforIO:all k,e ~~ async (ioHandle,future[k,e])=>k throws e.
   waitforIO(IO,Ft) => valof{
     case this suspend .requestIO(IO,()=>~_futureIsResolved(Ft)) in {
       | .go_ahead do {
-	valis _futureVal(Ft)
+	_futureVal(Ft)
       }
       | _ do retire .retired_
     }
