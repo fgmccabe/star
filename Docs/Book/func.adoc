@@ -724,8 +724,8 @@ case the lambda encapsulates the free variable so that the
 If a function is an expression, what is the value of the function
 expression? The conventional name for this value is _closure_:
 
-Closure:: A closure is a structure that is the value of a function expression
-and which may be applied to arguments.
+Closure:: A closure is a structure that is the value of a function
+expression and which may be applied to arguments.
 
 It is important to note that, as a programmer, you will never `see' a
 closure in your program. It is an implementation artifact in the same
@@ -748,17 +748,18 @@ function that captures one or more free variables.
 
 === Let binding
 
-We noted that it is difficult to achieve the effect of the ``(X)=>X==S`` lambda
-expression with named functions. The reason is that the lambda is _not_ defined
-in the same way that named functions are defined -- because it occurs as an
-expression not as a statement. If we wanted to define a named function which
-also captures ``S``, we would have to be able to define functions inside
+We noted that it is difficult to achieve the effect of the
+``(X)=>X==S`` lambda expression with named functions. The reason is
+that the lambda is _not_ defined in the same way that named functions
+are defined -- because it occurs as an expression not as a
+statement. If we wanted to define a named function which also captures
+``S``, we would have to be able to define functions inside
 expressions.
 
-There is an expression that allows us to do this: the ``let`` expression. A
-``let`` expression allows us to introduce local definitions anywhere within an
-expression. We can define our lambda as the named function ``isS`` using the
-``let`` expression:
+There is an expression that allows us to do this: the ``let``
+expression. A ``let`` expression allows us to introduce local
+definitions anywhere within an expression. We can define our lambda as
+the named function ``isS`` using the ``let`` expression:
 
 [source,star]
 ----
@@ -814,8 +815,8 @@ Assembling functions in this way, either by using anonymous lambdas or
 by using ``let`` expressions, is one of the hallmarks of functional
 programming.
 
-Star actually has _two_ forms of let expressions -- the one we
-have used so far does not allow function definitions to be recursive -- and
+Star actually has _two_ forms of let expressions -- the one we have
+used so far does not allow function definitions to be recursive -- and
 a potentially mutually recursive form.
 
 Sometimes, it is useful to have let expressions which allow recursive
@@ -1462,13 +1463,15 @@ nullability that is easily incorporated into the type system. However, it is not
 
 == Exceptions and short circuits
 
-Not all computation goes according to plan; some computations can fail. The
-simplest examples of this are in arithmetic: division by zero is not defined,
-and taking the square root of a negative number is not defined over the real
-numbers. Other examples typically involve something to do with input/output.
+Not all computation goes according to plan; some computations can
+fail. The simplest examples of this are in arithmetic: division by
+zero is not defined, and taking the square root of a negative number
+is not defined over the real numbers. Other examples typically involve
+something to do with input/output.
 
-Star has a so-called exception handling mechanism. However, the inspiration of
-it owes more to using optional values than the recovery from errors.
+Star has a so-called exception handling mechanism. However, the
+inspiration of it owes more to using optional values than the recovery
+from errors.
 
 A `try` `catch` expression looks like:
 
@@ -1485,22 +1488,25 @@ safeDivide(X,Y) => (try X/Y catch { _ => 0}).
 
 Some special features of this:
 
-* The type checker is able to verify that the type of the `_Ptn_` in the catch
-  handler is consistent with exceptions that might be thrown in `_Exp~1~_`.
-* Furthermore, the type of `_Exp~2~_` must be the same as that of `_Exp~1~_` and
-  is the type of the whole expression.
+* The type checker is able to verify that the type of the `_Ptn_` in
+  the catch handler is consistent with exceptions that might be thrown
+  in `_Exp~1~_`.
+* Furthermore, the type of `_Exp~2~_` must be the same as that of
+  `_Exp~1~_` and is the type of the whole expression.
 * Only one type of exception may be thrown within `_Exp~1~_`.
 
-The way to think about expression forms like `try` catch` (and their analogous
-actions) is that the form allows a kind of short circuit evaluation: if the body
-of the `try` `catch` throws an alternate value then the overall evaluation if
-short circuited and evaluation continues with the catch handler.
+The way to think about expression forms like `try` catch` (and their
+analogous actions) is that the form allows a kind of short circuit
+evaluation: if the body of the `try` `catch` throws an alternate value
+then the overall evaluation if short circuited and evaluation
+continues with the catch handler.
 
-NOTE: This is somewhat restricted compared to exception handling found in other
-languages. However, this restriction has benefits also.
+NOTE: This is somewhat restricted compared to exception handling found
+in other languages. However, this restriction has benefits also.
 
-One benefit is that exceptions are fully integrated into the type system. We
-can, for example, have functions that throw exceptions, as in the definition of the division operator itself:
+One benefit is that exceptions are fully integrated into the type
+system. We can, for example, have functions that throw exceptions, as
+in the definition of the division operator itself:
 
 [source,star]
 ----
@@ -1529,11 +1535,12 @@ implementation footprint.
 
 == A word about type inference
 
-We have seen some powerful forms of types in this chapter: recursive types
-defined using algebraic type definitions, generic types, function types and even
-function types that can throw. Recall also that we only require programmers to
-explicitly declare the types of quantified variables and functions. It is worth
-pausing a little to see how this might be done.
+We have seen some powerful forms of types in this chapter: recursive
+types defined using algebraic type definitions, generic types,
+function types and even function types that can throw. Recall also
+that we only require programmers to explicitly declare the types of
+quantified variables and functions. It is worth pausing a little to
+see how this might be done.
 
 Recall our original ``fact`` function:
 [source,star]
@@ -1596,60 +1603,64 @@ particular process used to do this -- called _unification_.
 .Inferring the Type of N-1
 image::minustype.png[]
 
-_Unification_:: An algorithm that replaces variables with values in such a way as to
-make two terms identical.
+_Unification_:: An algorithm that replaces variables with values in
+such a way as to make two terms identical.
 
 Unification matches equals with equals and handles (type) variables by
-substitutions -- for example, we can make these two type expressions equal by
-_binding_ the type variable _t~N~_ to ``integer``.
+substitutions -- for example, we can make these two type expressions
+equal by _binding_ the type variable _t~N~_ to ``integer``.
 
-We initially picked the type of ``N`` to be an arbitrary type variable, but the
-process of checking consistency leads us to refine this and make the type
-concrete. I.e., the use of ``N`` in a context where an integer is expected is
-enough to allow the compiler to infer that the type of ``N`` is indeed
-``integer`` and not _t~N~_.
+We initially picked the type of ``N`` to be an arbitrary type
+variable, but the process of checking consistency leads us to refine
+this and make the type concrete. I.e., the use of ``N`` in a context
+where an integer is expected is enough to allow the compiler to infer
+that the type of ``N`` is indeed ``integer`` and not _t~N~_.
 
-Of course, if there are multiple occurrences of ``N`` then each of those
-occurrences must also be consistent with integer; and if an occurrence is not
-consistent then the compiler will report an error -- a given expression may only
-have one type.
+Of course, if there are multiple occurrences of ``N`` then each of
+those occurrences must also be consistent with integer; and if an
+occurrence is not consistent then the compiler will report an error --
+a given expression may only have one type.
 
-The bottom line is that types are based on a combination of unification for
-comparing types and a series of type rules that have the effect of introducing
-_constraints_ on types based on which language features are present in the
-text. The type checker is really a constraint solver: if the constraints are not
-satisfiable (for example by trying to `call' a variable and add a number to it)
-then there is a type error in the program.
+The bottom line is that types are based on a combination of
+unification for comparing types and a series of type rules that have
+the effect of introducing _constraints_ on types based on which
+language features are present in the text. The type checker is really
+a constraint solver: if the constraints are not satisfiable (for
+example by trying to `call' a variable and add a number to it) then
+there is a type error in the program.
 
 The magic of type inference arises because it turns out that solving
 these constraints is sufficient for robustly type checking programs.
 
-A sharp-eyed reader will notice that Star's type system is different in nature
-to that found (say) in OO languages. In Star's type system, types are considered
-to be consistent only if they are _equal_. This is quite different to the notion
-of consistency in OO languages where an argument to a function is consistent if
-its type is a _sub-type_ of the expected type.
+A sharp-eyed reader will notice that Star's type system is different
+in nature to that found (say) in OO languages. In Star's type system,
+types are considered to be consistent only if they are _equal_. This
+is quite different to the notion of consistency in OO languages where
+an argument to a function is consistent if its type is a _sub-type_ of
+the expected type.
 
-However, we would note that the apparent restriction to the type system imposed
-by type equality is much less severe in practice than in theory -- and that OO
-languages' type systems also often incorporate some of the same restrictions.
+However, we would note that the apparent restriction to the type
+system imposed by type equality is much less severe in practice than
+in theory -- and that OO languages' type systems also often
+incorporate some of the same restrictions.
 
 === Why is type inference restricted?
 
-We have stated a few times that the type system only infers types of variables
-that are _not_ quantified. In fact, it is fairly straightforward to build a type
-inference system that can infer quantified types. For example, such a complete
-type inference system would infer from these equations:
+We have stated a few times that the type system only infers types of
+variables that are _not_ quantified. In fact, it is fairly
+straightforward to build a type inference system that can infer
+quantified types. For example, such a complete type inference system
+would infer from these equations:
 
 [source,star]
 ----
-conc(.nil,x)=>x.
-conc(cons(h,tl),x) => cons(h,conc(tl,x))
+concat(.nil,x)=>x.
+concat(.cons(h,tl),x) => .cons(h,concat(tl,x))
 ----
-a generalized type for ``conc``:
+a generalized type for ``concat``:
 [source,star]
 ----
-conc:all t ~~ (cons[t],cons[t])=>cons[t].
+concat:all t ~~ (cons[t],cons[t])=>cons[t].
 ----
 However, several technical and non-technical considerations stay our
 hand at building such a type inference system:
@@ -1664,13 +1675,13 @@ types simpler and more reliable.
 
 On the other hand, requiring type annotations for _every_
 variable would be extremely tedious and verbose. An extreme version of
-this policy would require the ``conc`` program above to be written:
+this policy would require the ``concat`` program above to be written:
 
 [source,star]
 ----
-conc:all t ~~ (cons[t],cons[t])=>cons[t].
-conc(.nil,x:list[t])=>x.
-conc(cons(h:t,tl:cons[t]),x:cons[t]) => cons(h,conc(t,x))
+concat:all t ~~ (cons[t],cons[t])=>cons[t].
+concat(.nil,x:list[t])=>x.
+concat(cons(h:t,tl:cons[t]),x:cons[t]) => cons(h,concat(t,x))
 ----
 The design of Star aims to strike a balance between useability and rigor:
 most variables do not require explicit type annotations. We require
@@ -1685,35 +1696,36 @@ that the type system can use to verify the program.
 So, the precise rule for type inference is:
 
 [aside]
-If the type of a variable is known from context, then use that type to
-verify the type of any value the variable may be bound to. Otherwise,
-use type inference on the value to infer a type for the variable but
-do not attempt to generalize it by adding quantifiers to the inferred
-type.
+If the type of a variable is known from context, then use that
+type to verify the type of any value the variable may be
+bound to. Otherwise, use type inference on the value to infer a type
+for the variable but do not attempt to generalize it by adding
+quantifiers to the inferred type.
 
-We are only able to scratch the surface of the type system here. It is certainly
-true that -- like many modern functional languages -- Star's type system is
-complex and subtle. The primary motivation for this complexity is to reduce the
-burden for the programmer: by being able to infer types automatically, and by
-being able to address many programming subtleties, the type system comes to be
-seen as the programmer's friend rather than as an obstacle to be `'gotten
+We are only able to scratch the surface of the type system here. It is
+certainly true that -- like many modern functional languages -- Star's
+type system is complex and subtle. The primary motivation for this
+complexity is to reduce the burden for the programmer: by being able
+to infer types automatically, and by being able to address many
+programming subtleties, the type system comes to be seen as the
+programmer's friend rather than as an obstacle to be `'gotten
 around`'.
 
 == Are we there yet?
 
-The straightforward answer to this is no. There is a great deal more to
-functional programming than can be captured in a few pages. 
+The straightforward answer to this is no. There is a great deal more
+to functional programming than can be captured in a few pages.
 
-However, we have covered some of the key features of functional programming --
-particularly as it applies to Star. In subsequent chapters we will take a closer
-look at collections, at modular programming, at concurrency and even take a pot
-shot at Monads.
+However, we have covered some of the key features of functional
+programming -- particularly as it applies to Star. In subsequent
+chapters we will take a closer look at collections, at modular
+programming, at concurrency and even take a pot shot at Monads.
 
-If there is a single idea to take away from this chapter it should be that
-functional programming is natural. If there is a single piece of advice for the
-budding functional Star programmer, it should be to _hide the recursion_. If
-there is a single bit of comfort to offer programmers it should be that _Rome
-was not built in a day_.
+If there is a single idea to take away from this chapter it should be
+that functional programming is natural. If there is a single piece of
+advice for the budding functional Star programmer, it should be to
+_hide the recursion_. If there is a single bit of comfort to offer
+programmers it should be that _Rome was not built in a day_.
 
-In the next chapter we look at collections, one of the richest topics in
-programming.
+In the next chapter we look at collections, one of the richest topics
+in programming.

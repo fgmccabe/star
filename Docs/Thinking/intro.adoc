@@ -86,7 +86,6 @@ address. The same pressures for generality in the platform lead to a
 greater interest in extensibility and generality in the programming
 language.
 
-
 In the chapters that follow, we will focus on three major features of
 Star that define much of the essence of Star: actors, contracts and
 features that are useful in representing complex information, such as
