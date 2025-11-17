@@ -52,30 +52,33 @@ scenarios that require dynamic programming in languages like Java.
 
 === If you are already a Python programmer
 
-The biggest difference between a language like Star and Python is the strict
-type system. All Star programs are strictly type checked. In addition, there is
-no escape from the type system: you cannot pretend that a variable has the right
-type: it either does or it doesnt.
+The biggest difference between a language like Star and Python is the
+strict type system. All Star programs are strictly type checked. In
+addition, there is no escape from the type system: you cannot pretend
+that a variable has the right type: it either does or it doesnt.
 
 That said, this could be viewed as an advantage to the serious Python
-programmer: all those type errors that you have to run your Python program to
-find out will be discovered by the compiler. Indeed, it is quite common that,
-once Star programs pass the compiler's type checking system, they 'just
-work™'.footnote:[Star is not speical here, it is true of many programming
-languages with similarly strict type systems.]
+programmer: all those type errors that you have to run your Python
+program to find out will be discovered by the compiler. Indeed, it is
+quite common that, once Star programs pass the compiler's type
+checking system, they 'just work™'.footnote:[Star is not speical here,
+it is true of many programming languages with similarly strict type
+systems.]
 
-Some of the reasons that proponents of dynamically typed languages quote as
-benefits are conciseness (no need to tell the compiler what the programmer
-already knows) and flexibility (the programmer can do what they want, without
-persuading the type system that they know what they are doing).
+Some of the reasons that proponents of dynamically typed languages
+quote as benefits are conciseness (no need to tell the compiler what
+the programmer already knows) and flexibility (the programmer can do
+what they want, without persuading the type system that they know what
+they are doing).
 
-These justifications used to have some merit -- and still do wrt languages like
-Java. However, modern type systems are quite powerful and enable the programmer
-to express quite subtle requirements. Star's type system is based on the concept
-of _constrained types_; and is able to express programming paradigms such as
-having records with generic functions in them, or to express the idea of a
-function that throws an exception, but the type of the exception is itself
-dependent on other types.
+These justifications used to have some merit -- and still do wrt
+languages like Java. However, modern type systems are quite powerful
+and enable the programmer to express quite subtle requirements. Star's
+type system is based on the concept of _constrained types_; and is
+able to express programming paradigms such as having records with
+generic functions in them, or to express the idea of a function that
+throws an exception, but the type of the exception is itself dependent
+on other types.
 
 In addition, Star uses _type inference_ to avoid the need to explicit type
 annotations. Type inference is able to eliminate nearly all the boilerplate
@@ -209,17 +212,6 @@ Generally, the _stronger_ the type system, the more the language
 system can detect errors before programs are run. In addition, the
 more _expressive_ the type system is, the less the temptation to
 try to subvert or bypass the type system.
-
-However, even though it is technically feasible to completely
-eliminate type declarations of functions; doing so is in conflict with
-some of the other goals behind Star. For example, type declarations
-act as a form of documentation; and when there is a type error in your
-program, having _no_ explicit type declarations can make tracking
-the culprit of the error very difficult. So all top-level variable
-definitions (typically functions) are required in Star to have
-explicit type _annotations_.footnote:[The term _type
-declaration_ is reserved for defining a new type. Variable types are
-defined through _type annotations_.]
 
 [NOTE]
 ****

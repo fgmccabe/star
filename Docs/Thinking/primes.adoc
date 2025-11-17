@@ -14,12 +14,12 @@ first using collections, and the second using tasks and coroutining.
 
 The core step in the sieve algorithm is removing multiples of an
 existing prime from the list of candidates. We can express this using
-Star's filter notation; the expression that returns all the
-candidates of a collection that are not multiples of a given number looks like:
+Star's filter notation; the expression that returns all the candidates
+of a collection that are not multiples of a given number looks like:
 
 [source,star]
 ----
-candidates ^/ \((X)=> ~divides(X,P))
+candidates ^/ ((X)=> ~divides(X,P))
 ----
 
 The `^/` function is actually specified in a contract:

@@ -6,9 +6,16 @@ specifically, any outward facing system will receive requests that the
 system must decide whether they are legitimate or not. Before acting
 on a request, we must decide whether or not to trust it.
 
+We can draw an extremely simplistic view of a large class of @emph{online}
+applications:
 
+@float Figure,onlineApp
+@caption{Simplistic Online Application}
+@image{images/online}
+@end float
 
-
+This diagram illustrates the four main elements of an online
+application: a @emph{source} of events, a @emph{processor} which processes
 events, a _Sink_ which represents externally visible actions being
 taken by the system, and, finally, a _Store_.
 
