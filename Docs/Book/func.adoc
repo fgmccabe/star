@@ -1441,25 +1441,36 @@ head(X) where .some(1).=first(X) => "alpha"
 We will see more examples of this when we look more closely at
 sequences and collections processing.
 
-Finally, we can promote an optional expression into an enclosing
-expression (which is therefore also optional). For example, in the
-expression:
+Finally, we can pull the value out of an optional value using the
+unary form of `"^"`:
 
 [source,star]
 ----
-nameOf(^P.spouse)
+^P
 ----
-if ``P.spouse`` is ``none``, then the value returned by the
-``nameOf`` expression is also ``none``, otherwise it takes the
-form:
+
+For example,
+
 [source,star]
 ----
-some("P_spouse_name")
+^ .some(42)
 ----
-(assuming that ``nameOf`` is defined for ``Person``s.)
+is just `42`.
+
+NOTE: that this is actually mediated via the `pull` contract. The
+intermediate step in this reduction is:
+
+[source,star]
+----
+pull(.some(43))
+----
+and `pull` is defined for `option` values to extract the content. In
+the case of pulling from option values, an attempt to pull from
+`.none` results in an `exception` being thrown.
 
 Overall, the ``option`` type is part of an elegant approach to
-nullability that is easily incorporated into the type system. However, it is not the only Star feature oriented to _failable_ computation.
+nullability that is easily incorporated into the type system. However,
+it is not the only Star feature oriented to _failable_ computation.
 
 == Exceptions and short circuits
 
