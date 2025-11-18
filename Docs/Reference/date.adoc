@@ -15,7 +15,7 @@ public time ::= .time(float). -- Time since 1st Jan 1970
 The underlying representation of time values is `float`; this
 allows us to represent time values that are a fractional number of
 seconds. However, the actual precision of time values depends on the
-operating system; typically we expect at least microsecond precision.
+operating system; typically, we expect at least microsecond precision.
 
 == Date and Time Functions
 
