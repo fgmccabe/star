@@ -1037,11 +1037,13 @@ _not_ in scope for the 'else' part.
 (((lambda expression)))
 (((expression,lambda)))
 
-Lambda expressions are expressions of the form:
+Lambda expressions denote so-called anonymous functions. For example, the expression:
 [source,star]
 ----
 (X) => X+Y
 ----
+is an anonymous function that doubles its argument.
+
 Lambda expressions may appear anywhere a function value is permitted.
 
 .Lambda Expression
@@ -1083,12 +1085,13 @@ denote a generic or constrained type then an explicit type annotation will be
 necessary.
 
 
-[#procedureRuleExpression]
+[#procedureRule]
 === Procedure Rule
 (((procedure rule)))
 (((rule)))
 
-Procedure rules are the procedure analog of lambda expressions: they denote an anonymous procedure. Procedure rules take the form:
+Procedure rules are the procedure analog of lambda expressions: they denote an
+anonymous procedure. Procedure rules take the form:
 
 .Procedure Rule
 [source,star]
