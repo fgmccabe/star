@@ -490,13 +490,13 @@ they may be passed as arguments to other procedures as well as being
 assigned as attributes of records.
 
 Procedures can be defined in a let expression, in recursive records, in packages
--- or a <<lambdaRule>> can be used to craft a procedure literal directly as
+-- or a <<procedureRule>> can be used to craft a procedure literal directly as
 an expression.
 
 [#rule]
-==== Rules
+==== Procedure Rules
 
-An rule is a rule for deciding how to perform an action.
+A procedure rule is a rule for deciding how to perform an action.
 Each rule consists of a <<tuplePattern>> that is used to match
 the call to the procedure and an action to perform. The left hand side of the
 procedure may also have a guard associated with it, this guard may use variables
@@ -511,7 +511,6 @@ Procedures are defined in the context of a scope -- for example, in the body of
 a `let` expression (see <<letExpression>>), or at the top-level of a `package`.
 
 ==== Type of Procedures
-
 
 Like functions, a procedure may be given an explicit type -- via a
 <<typeAnnotation>> -- its type may be inferred.
