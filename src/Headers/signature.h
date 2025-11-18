@@ -42,10 +42,8 @@ typedef enum {
   constrainedSig = '|',                /* A constrained type */
 
   funSig = 'F', /* Function signature */
-  prcSig = 'P', /* Procedure signature */
   conSig = 'C', /* constructor */
   throwSig = 'T', /* A throwing function signature */
-  thrSig = 'p', // A throwing procedure signature
   contSig = 'x', // Continuation signature
 
   tpruleSig = 'Y',  /* Type rule -- aka type alias or existential type assignment */

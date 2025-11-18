@@ -222,18 +222,6 @@ static char *dumpStarSig(char *sig, ioPo out) {
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       break;
-    case prcSig:
-      outStr(out, ".tpExp(.tpExp(.tpFun(\"=>\",2),");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ",.voidType)");
-      break;
-    case thrSig:
-      outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
-      sig = dumpStarSig(sig, out);
-      outStr(out, "),.voidType),");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ")");
-      break;
     case throwSig:
       outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
       sig = dumpStarSig(sig, out);
@@ -466,24 +454,12 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;
-    case prcSig:
-      outStr(out, "funType(");
-      sig = dumpPrologSig(sig, out);
-      outStr(out, ",voidType)");
-      return sig;
     case throwSig:
       outStr(out, "funType(");
       sig = dumpPrologSig(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);
       outStr(out, ",");
-      sig = dumpPrologSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    case thrSig:
-      outStr(out, "funType(");
-      sig = dumpPrologSig(sig, out);
-      outStr(out, ",voidType,");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
       return sig;

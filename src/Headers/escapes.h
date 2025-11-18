@@ -15,9 +15,12 @@
 #define fiber(R, S) "UUz2'fiber'" R S
 #define throws(A, R, E) "T" tpl(A) R E
 #define func(A, R) "F" tpl(A) R
+#define proc(A) "F" func(A,vd)
+#define tproc(A, E) "T" tpl(A) vd E
 #define tpl(E) "(" E ")"
 #define vec(E) "V" E
 #define ref(E) "r" E
+#define vd "v"
 #define bool "l"
 #define chr "c"
 #define int "i"
@@ -346,6 +349,7 @@ escape(_jit_compile,throws(strng int, unit, ERR),"Jit compile function")
 #undef future
 #undef fiber
 #undef func
+#undef proc
 #undef throws
 #undef tpl
 #undef bool
@@ -356,6 +360,7 @@ escape(_jit_compile,throws(strng int, unit, ERR),"Jit compile function")
 #undef strng
 #undef lst
 #undef all
+#undef vd
 #undef vr
 #undef e
 #undef a
