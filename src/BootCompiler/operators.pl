@@ -86,10 +86,9 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
-  operator("?", [prefixOp(300, 299)]).
+  operator("?", [infixOp(299, 300, 299), prefixOp(300, 299)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("|=", [infixOp(1234, 1235, 1234)]).
-  operator("^|", [infixOp(960, 960, 959)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(899, 898), infixOp(898, 899, 898)]).
@@ -109,8 +108,8 @@
   operator("==", [infixOp(899, 900, 899)]).
   operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).
-  operator("^", [prefixOp(150, 149), infixOp(149, 150, 149)]).
   operator("<=>", [infixOp(949, 950, 949)]).
+  operator("?|", [infixOp(960, 960, 959)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
   operator("while", [prefixOp(1175, 1174)]).
@@ -238,7 +237,6 @@
   follows('\\','+','\\+').
   follows('\\','-','\\-').
   follows('\\','/','\\/').
-  follows('^','|','^|').
   follows('^','/','^/').
   follows('^/','/','^//').
   follows(':','?',':?').
@@ -259,6 +257,7 @@
   follows('>','>','>>').
   follows('>>','=','>>=').
   follows('?','?','??').
+  follows('?','|','?|').
   follows('?','=','?=').
   follows('?','}','?}').
   follows('!','!','!!').
@@ -327,8 +326,6 @@
   final('\\-',"\\-").	 /* remove element from set */
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
-  final('^',"^").	 /* pull */
-  final('^|',"^|").	 /* optional conditional */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final(':',":").	 /* type declaration */
@@ -352,8 +349,9 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* grammar produce value */
   final('>>=',">>=").	 /* monadic bind */
-  final('?',"?").	 /* extract value from either/or */
+  final('?',"?").	 /* option match */
   final('??',"??").	 /* conditional operator */
+  final('?|',"?|").	 /* optional conditional */
   final('?=',"?=").	 /* optional decomposition match */
   final('?}',"?}").	 /* test comprehension */
   final('@',"@").	 /* meta annotation */

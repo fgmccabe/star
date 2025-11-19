@@ -561,7 +561,7 @@ star.compiler.checker{
 
     (Q,ETp) = evidence(deRef(At),Env);
     try{
-      FaceTp = ^ faceOfType(ETp,Env);
+      FaceTp = ? faceOfType(ETp,Env);
       (Cx,Face) = deConstrain(FaceTp);
       Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
       (Els,Cond,Ev) = typeOfElementPtns(Ss,Face,ErTp,Base,Path,.none,[]);
@@ -845,7 +845,7 @@ star.compiler.checker{
     Fun = typeOfExp(Op,ConTp,ErTp,Env,Pth);
     (Q,ETp) = evidence(FceTp,Env);
     try{
-      FaceTp = ^ faceOfType(ETp,Env);
+      FaceTp = ? faceOfType(ETp,Env);
       (Cx,Face) = deConstrain(FaceTp);
       Base = declareConstraints(Lc,Cx,declareTypeVars(Q,pushScope(Env)));
     
