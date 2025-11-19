@@ -2,19 +2,39 @@ star.file{
   import star.
   import star.capabilities.
 
+  public ioException ::= .ioError | .pastEof | .notFound | .noPerm.
+
+  public implementation display[ioException] => {
+    disp(.ioError) => "ioError".
+    disp(.pastEof) => "pastEof".
+    disp(.notFound) => "notFound".
+    disp(.noPerm) => "noPerm".
+  }
+
+  public textEncoding ::= .rawEncoding | .utf8Encoding.
+
+  public pickEncoding:(textEncoding) => integer.
+  pickEncoding(.rawEncoding) => 0.
+  pickEncoding(.utf8Encoding) => 3.
+
   public getFile:(string) => option[string].
   getFile(Fn) where Fl .= Fn && _file_present(Fl) => valof{
     try{
-      valis .some(_get_file(Fl))
+      valis .some(_get_file(Fl,pickEncoding(.utf8Encoding)))
     } catch {
-      .eNOTFND do valis .none
+      _ do valis .none
     }
   }
   getFile(_) default => .none.
 
-  public putFile:(string,string)=>().
-  putFile(Fn,Content) =>
-    (try _put_file(Fn,Content) catch {_ => ()}).
+  public putFile:(string,string){}.
+  putFile(Fn,Content){
+    try{
+      _put_file(Fn,pickEncoding(.utf8Encoding),Content)
+    } catch {
+      | _ do {}
+    }
+  }
 
   public filePresent:(string) => boolean.
   filePresent(Fn) => _file_present(Fn).
@@ -38,5 +58,4 @@ star.file{
 
   public cwd:()=>string.
   cwd() => _cwd().
-  
 }

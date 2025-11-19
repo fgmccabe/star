@@ -14,6 +14,7 @@
 #include "errorCodes.h"
 #include "arith.h"
 #include "escape.h"
+#include "fileops.h"
 
 static retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2);
 
@@ -235,8 +236,9 @@ ReturnStatus g__put_file(enginePo P) {
   char fn[MAXFILELEN];
 
   copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
+  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
 
-  ioPo io = openOutFile(fn, utf8Encoding);
+  ioPo io = openOutFile(fn, enc);
   if (io != Null) {
     integer tLen;
     const char *txt = strVal(popVal(P), &tLen);
@@ -245,16 +247,14 @@ ReturnStatus g__put_file(enginePo P) {
     closeIo(O_IO(io));
 
     if (ret == Ok) {
-      pshVal(P, unitEnum);
+      pshVal(P, voidEnum);
       return Normal;
-    } else {
-      pshVal(P, eIOERROR);
-      return Abnormal;
     }
-  } else {
-    pshVal(P, eNOTFND);
+    pshVal(P, eIOERROR);
     return Abnormal;
   }
+  pshVal(P, eNOPERM);
+  return Abnormal;
 }
 
 static taskState pushAsync(ioPo io, AsyncStruct *async) {
@@ -309,7 +309,6 @@ retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2) {
         case running:
           return Ok;
       }
-
     }
     case canceled: {
       async->close(O_IO(f), async);

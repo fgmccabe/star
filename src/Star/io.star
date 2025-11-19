@@ -1,26 +1,14 @@
 star.io{
   import star.
   import star.mbox.
-  import star.file.
-
-  public ioException ::= .ioError | .pastEof | .notFound | .noPerm.
-
-  public implementation display[ioException] => {
-    disp(.ioError) => "ioError".
-    disp(.pastEof) => "pastEof".
-    disp(.notFound) => "notFound".
-    disp(.noPerm) => "noPerm".
-  }
-
-  public textEncoding ::= .rawEncoding | .utf8Encoding.
-
-  pickEncoding:(textEncoding) => integer.
-  pickEncoding(.rawEncoding) => 0.
-  pickEncoding(.utf8Encoding) => 3.
+  public import star.file.
 
   public inHandle ::= .inHandle(ioHandle).
 
   public outHandle ::= .outHandle(ioHandle).
+
+  public atEof:(inHandle) => boolean.
+  atEof(.inHandle(I)) => _end_of_file(I).
 
   public rdChar:(inHandle) => char throws ioException.
   rdChar(.inHandle(H)) => valof{
@@ -102,12 +90,13 @@ star.io{
     }
   }
 
-  public rdFile:(string)=> string throws ioException.
-  rdFile(F) => valof{
+  public rdFile:(string, textEncoding)=> string throws ioException.
+  rdFile(Fn,Enc) => valof{
     try{
-      valis _get_file(F);
+      valis _get_file(Fn,pickEncoding(Enc));
     } catch {
-      .eEOF do throw .pastEof
+      | .eNOTFND do throw .notFound
+      | .eNOPERM do throw .noPerm
       | _ do throw .ioError
     }
   }
@@ -193,10 +182,10 @@ star.io{
     }
   }
 
-  public wrFile:(string,string){} throws ioException.
-  wrFile(F,S){
+  public wrFile:(string,textEncoding,string){} throws ioException.
+  wrFile(F,Enc,S){
     try{
-      _put_file(F,S)
+      _put_file(F,pickEncoding(Enc),S)
     } catch {
       | _ do throw .ioError
     }

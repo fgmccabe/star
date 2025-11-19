@@ -202,8 +202,8 @@ escape(_fname,func(io, strng),"the channel file name")
 escape(_waitIo,all(e, func(lst(tpl(io func(/**/, bool) e)) int, bool)), "Poll for IO ready")
 escape(_setfileencoding, func(io int, unit), "set file encoding on file")
 
-escape(_get_file, throws(strng, strng, ERR), "file into a char sequence")
-escape(_put_file, throws(strng strng, unit, ERR), "write string into file")
+escape(_get_file, throws(strng int, strng, ERR), "file into a char sequence")
+escape(_put_file, throws(strng int strng, unit, ERR), "write string into file")
 escape(_show, func(strng, unit), "show something on console")
 
 escape(_logmsg, func(strng, unit), "log a message in logfile or console")
