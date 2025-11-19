@@ -106,6 +106,7 @@ star.compiler.operators{
     | "?" => [.prefixOp(300,299)]
     | "@" => [.prefixOp(400,399), .infixOp(399,400,400)]
     | "|=" => [.infixOp(1234,1235,1234)]
+    | "^|" => [.infixOp(960,960,959)]
     | "in" => [.infixOp(899,900,900)]
     | "break" => [.prefixOp(10,9)]
     | "suspend" => [.prefixOp(899,898), .infixOp(898,899,898)]
@@ -125,6 +126,7 @@ star.compiler.operators{
     | "==" => [.infixOp(899,900,899)]
     | "\\" => [.infixOp(700,700,699)]
     | "=>" => [.infixOp(949,950,950)]
+    | "^" => [.prefixOp(150,149), .infixOp(149,150,149)]
     | "<=>" => [.infixOp(949,950,949)]
     | "valof" => [.prefixOp(300,299)]
     | "yield" => [.prefixOp(300,299)]
@@ -289,6 +291,7 @@ star.compiler.operators{
   follows("\\",`+`) => .some("\\+").
   follows("\\",`-`) => .some("\\-").
   follows("\\",`/`) => .some("\\/").
+  follows("^",`|`) => .some("^|").
   follows("^",`/`) => .some("^/").
   follows("^/",`/`) => .some("^//").
   follows(":",`?`) => .some(":?").
@@ -380,6 +383,8 @@ star.compiler.operators{
     | "\\-" => .true  /* remove element from set */
     | "\\/" => .true  /* union */
     | "]" => .true  /* square brackets */
+    | "^" => .true  /* pull */
+    | "^|" => .true  /* optional conditional */
     | "^/" => .true  /* filter */
     | "^//" => .true  /* filter map */
     | ":" => .true  /* type declaration */

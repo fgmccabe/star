@@ -58,8 +58,8 @@ star.option{
   _optval(.some(X)) => X.
 
   public implementation all e ~~ pull[option[e]->>e,exception] => {
-      ? .some(X) => X.
-      ? .none => throw .exception("cannot pull from none")
+    pull_(.some(X)) => X.
+    pull_(.none) => throw .exception("cannot pull from none")
   }
 
   public implementation all a,b ~~ measured[a->>b] |= measured[option[a]->>option[b]] => {

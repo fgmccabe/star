@@ -126,7 +126,7 @@ star.compiler.macro.rules{
   optionLiftMacro(_,_) default => .inactive.
 
 -- Convert ^E to pull(E)
-  pullMacro(A,.expression) where (Lc,P) ?= isPull(A) => .active(unary(Lc,"pull",P)).
+  pullMacro(A,.expression) where (Lc,P) ?= isPull(A) => .active(unary(Lc,"pull_",P)).
   pullMacro(_,_) default => .inactive.
 
   mkLoc(Lc) where .locn(P,Line,Col,Off,Ln)?=Lc =>

@@ -44,7 +44,7 @@ star.compiler.impawt{
   pickupPkgSpec(Txt,Lc) => valof{
     if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
       try{
-	Pkg = ? pickupPkg(Pk);
+	Pkg = ^ pickupPkg(Pk);
 	Imports = pickupImports(Imps,Lc);
 	Decls = pickupDeclarations(Ds,Lc);
 	valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})

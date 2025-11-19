@@ -89,6 +89,7 @@
   operator("?", [prefixOp(300, 299)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("|=", [infixOp(1234, 1235, 1234)]).
+  operator("^|", [infixOp(960, 960, 959)]).
   operator("in", [infixOp(899, 900, 900)]).
   operator("break", [prefixOp(10, 9)]).
   operator("suspend", [prefixOp(899, 898), infixOp(898, 899, 898)]).
@@ -108,6 +109,7 @@
   operator("==", [infixOp(899, 900, 899)]).
   operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).
+  operator("^", [prefixOp(150, 149), infixOp(149, 150, 149)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("yield", [prefixOp(300, 299)]).
@@ -236,6 +238,7 @@
   follows('\\','+','\\+').
   follows('\\','-','\\-').
   follows('\\','/','\\/').
+  follows('^','|','^|').
   follows('^','/','^/').
   follows('^/','/','^//').
   follows(':','?',':?').
@@ -324,6 +327,8 @@
   final('\\-',"\\-").	 /* remove element from set */
   final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
+  final('^',"^").	 /* pull */
+  final('^|',"^|").	 /* optional conditional */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final(':',":").	 /* type declaration */

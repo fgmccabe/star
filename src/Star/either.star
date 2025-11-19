@@ -27,7 +27,7 @@ star.either{
   }
 
   public implementation all e,o ~~ pull[either[e,o]->>e,o] => {
-      ? .either(A) => A.
-      ? .other(B) => throw B
+    pull_(.either(A)) => A.
+    pull_(.other(B)) => throw B
   }
 }
