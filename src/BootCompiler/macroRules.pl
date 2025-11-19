@@ -28,7 +28,8 @@ macroRl("__pkg__",expression,macroRules:pkgNameMacro).
 macroRl("__loc__",expression,macroRules:macroLocationExp).
 macroRl("-",expression,macroRules:uminusMacro).
 macroRl("?=",expression,macroRules:optionMatchMacro).
-macroRl("^",expression,macroRules:pullMacro).
+macroRl("?|",expression,macroRules:optionCondMacro).
+macroRl("?",expression,macroRules:pullMacro).
 macroRl("!",expression,macroRules:binRefMacro).
 macroRl("|:",rule,macroRules:caseRuleMacro).
 macroRl(":",actionRule,macroRules:caseRuleMacro).
@@ -295,6 +296,13 @@ optionMatchMacro(T,expression,Tx) :-
   isOptionMatch(T,Lc,P,E),!,
   mkConApply(Lc,name(Lc,"some"),[P],SP),
   match(Lc,SP,E,Tx).
+
+optionCondMacro(T,expression,Tx) :-
+  isOptionCond(T,Lc,P,E),!,
+  genIden(Lc,X),
+  mkConApply(Lc,name(Lc,"some"),[X],SP),
+  match(Lc,SP,P),
+  conditional(Lc,P,X,E,Tx).
 
 pullMacro(T,expression,Tx) :-
   isOptVal(T,Lc,E),!,

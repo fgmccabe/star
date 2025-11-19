@@ -39,8 +39,8 @@ star.compiler{
   public _main:(cons[string])=>().
   _main(Args) => valof{
     try{
-      WI= ^ parseUri("file:"++_cwd());
-      RI= ^ parseUri("file:"++_repo());
+      WI= ? parseUri("file:"++_cwd());
+      RI= ? parseUri("file:"++_repo());
       try{
 	valis handleCmds(processOptions(Args,[wdOption,
 	      stdinOption,

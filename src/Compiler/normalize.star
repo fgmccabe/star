@@ -67,7 +67,7 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("transformed equations: $(Eqs)");
     try{
-      Func = ^ functionMatcher(Lc,FullNm,ATp,Map,Eqs);
+      Func = ? functionMatcher(Lc,FullNm,ATp,Map,Eqs);
       if traceNormalize! then
 	showMsg("transformed function $(Func)");
 
@@ -110,7 +110,7 @@ star.compiler.normalize{
       showMsg("transformed rules $(Eqs)");
 
     try{
-      Proc = ^ procMatcher(Lc,FullNm,ATp,Map,Eqs);
+      Proc = ?procMatcher(Lc,FullNm,ATp,Map,Eqs);
 
       if traceNormalize! then
 	showMsg("transformed procedure $(Proc)");

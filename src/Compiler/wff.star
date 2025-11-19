@@ -438,10 +438,10 @@ star.compiler.wff{
 
   public mkOptionMatch(Lc,L,R) => mkMatch(Lc,mkOption(Lc,L),R).
 
-  public isOptionCond(A) where R ?=isBinary(A,"^|") => .some(R).
-  isOptionCond(A) => isBinary(A,"^|").
+  public isOptionCond(A) where R ?=isBinary(A,"?|") => .some(R).
+  isOptionCond(A) => isBinary(A,"?|").
 
-  public mkOptionCond(Lc,L,R) => binary(Lc,"^|",L,R).
+  public mkOptionCond(Lc,L,R) => binary(Lc,"?|",L,R).
 
   public isEnumSymb(A) where (Lc,.nme(_,N))?=isUnary(A,".") => .some((Lc,N)).
   isEnumSymb(_) default => .none.
@@ -796,10 +796,10 @@ star.compiler.wff{
     binary(Lc,"where",V,binary(Lc,".=",mkOption(Lc,Ptn),roundTerm(Lc,Op,[V]))).
 
   public isPull:(ast) => option[(option[locn],ast)].
-  isPull(A) => isUnary(A,"^").
+  isPull(A) => isUnary(A,"?").
 
   public isHat:(ast) => option[(option[locn],ast,ast)].
-  isHat(A) => isBinary(A,"^").
+  isHat(A) => isBinary(A,"?").
     
   public isDefault:(ast) => option[(option[locn],ast)].
   isDefault(A) => isUnary(A,"default").

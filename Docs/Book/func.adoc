@@ -1414,7 +1414,7 @@ The meaning of ``?=`` is similar to the pattern match condition
 value.
 
 While the ``?=`` operatorfootnote:[Read as `has a value'.] is very
-useful in unpacking an optional value, the ``^|`` operator allows
+useful in unpacking an optional value, the ``?|`` operator allows
 us to handle cases where we always need to be able to give some kind
 of value. For example, normally a ``map`` returns none if an entry
 is not present. However, a _cache_ is structured differently: if
@@ -1422,16 +1422,16 @@ a value is not present in a cache then we must go fetch it:
 
 [source,star]
 ----
-cacheValue(K) => cache[K] ^| fetch(K)
+cacheValue(K) => cache[K] ?| fetch(K)
 ----
 
 We can also apply a match _in line_ to an ``option``al value. The
-``^`` operator allows a pattern to be formed by applying a
+``?`` operator allows a pattern to be formed by applying a
 ``option`` valued function directly in place. For example, the
 equation:
 [source,star]
 ----
-head(first^(1)) => "alpha"
+head(first?(1)) => "alpha"
 ----
 is equivalent to:
 [source,star]
@@ -1442,18 +1442,18 @@ We will see more examples of this when we look more closely at
 sequences and collections processing.
 
 Finally, we can pull the value out of an optional value using the
-unary form of `"^"`:
+unary form of `"?"`:
 
 [source,star]
 ----
-^P
+?P
 ----
 
 For example,
 
 [source,star]
 ----
-^ .some(42)
+? .some(42)
 ----
 is just `42`.
 
@@ -1462,10 +1462,10 @@ intermediate step in this reduction is:
 
 [source,star]
 ----
-pull(.some(43))
+pull_(.some(43))
 ----
-and `pull` is defined for `option` values to extract the content. In
-the case of pulling from option values, an attempt to pull from
+and `pull_` is defined for `option` values to extract the content.footnote:[The `pull` contract is also defined for `either` values.] In
+the case of pulling from `option` values, any attempt to pull from
 `.none` results in an `exception` being thrown.
 
 Overall, the ``option`` type is part of an elegant approach to
