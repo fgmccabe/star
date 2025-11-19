@@ -10,7 +10,7 @@ of data.
 == I/O Types
 
 [#ioHandleType]
-=== The io Handle Types
+=== The I/O Handle Types
 
 There are two so-called handle types associated with the I/O operations:
 `inHandle` and `outHandle`.
@@ -107,6 +107,19 @@ handle or an input handle is being closed.
 
 == Input functions
 
+=== The `atEof` function
+
+The `atEof` function can be used to determine if the input is already at its end
+of file.
+
+[source,star]
+----
+atEof:(inHandle) => boolean.
+----
+
+If `atEof` is true for a given input handle, then any subsequent read on the
+handle will result in an `.pastEof` `ioException`.
+
 === The `rdChar` function
 
 The `rdChar` function reads a single _character_ from the identified input channel:
@@ -120,6 +133,13 @@ NOTE: If the encoding on the input is set to `.utf8Encoding`, then this will
 read as many bytes as required (up to four) to read a single UTF scalar
 value. If the encoding is `.rawEncoding` then only one byte will be read.
 
+The `rdChar` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Already at end of file at start of read
+| `.ioError` | Unspecified I/O error
+|===
 
 === The `rdLine` function
 
@@ -131,9 +151,18 @@ public rdLine:(inHandle) => string throws ioException.
 ----
 
 NOTE: If the encoding on the input is set to `.utf8Encoding`, then this will
-read characters as UTF8 scalar values. If the encoding is `.rawEncoding` then the input is treated as a byte sequence.
+read characters as UTF8 scalar values. If the encoding is `.rawEncoding` then
+the input is treated as a byte sequence.
 +
 In the latter case, the function still terminates when a new-line sequence is detected.
+
+The `rdLine` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Last line in file not well formed
+| `.ioError` | Unspecified I/O error
+|===
 
 === The `rdBytes` function
 
@@ -144,7 +173,32 @@ The `rdBytes` function returns a vector of bytes (using the `integer` type).
 rdBytes:(inHandle,integer) => vect[integer] throws ioException.
 ----
 
+The `rdBytes` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Not enough bytes in input
+| `.ioError` | Unspecified I/O error
+|===
+
+
 === The `rdFile` function
+
+The `rdFile` function reads an entire file into a `string`:
+
+[source,star]
+----
+public rdFile:(string,textEncoding) => string throws ioException.
+----
+
+The `rdFile` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.notFound` | File not present
+| `.noPerm` | No permission to access
+| `.ioError` | Unspecified I/O error
+|===
 
 
 
@@ -166,7 +220,7 @@ rdBytes:(inHandle,integer) => vect[integer] throws ioException.
 
 === The `wrText` function
 
-=== The `wrFile` function
+=== The `wrFile` procedure
 
 == Async output functions
 

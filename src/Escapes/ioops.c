@@ -14,6 +14,7 @@
 #include "vectP.h"
 #include "futureP.h"
 #include "byteBuffer.h"
+#include "fileops.h"
 
 static poolPo asyncPool = Null;
 
@@ -539,7 +540,9 @@ ReturnStatus g__get_file(enginePo P) {
 
   copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
 
-  ioPo io = openInFile(fn, utf8Encoding);
+  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+
+  ioPo io = openInFile(fn, enc);
   if (io != Null) {
     strBufferPo buffer = newStringBuffer();
 

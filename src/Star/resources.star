@@ -8,8 +8,8 @@ star.resources{
   getResource(U) where Fn .= getUriPath(U) => getFile(Fn).
   getResource(_) default => .none.
 
-  public putResource:(uri,string)=>().
-  putResource(U,Content) => putFile(getUriPath(U),Content).
+  public putResource:(uri,string){}.
+  putResource(U,Content) do putFile(getUriPath(U),Content).
 
   public resourcePresent:(uri)=>boolean.
   resourcePresent(U) => filePresent(getUriPath(U)).

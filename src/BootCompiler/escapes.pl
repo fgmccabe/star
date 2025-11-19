@@ -134,8 +134,8 @@ escapeType("_flushall",funType(tplType([]),tplType([]))).
 escapeType("_fname",funType(tplType([type("ioHandle")]),type("string"))).
 escapeType("_waitIo",allType(kVar("e"),funType(tplType([tpExp(tpFun("cons",1),tplType([type("ioHandle"),funType(tplType([]),type("boolean")),kVar("e")])),type("integer")]),type("boolean")))).
 escapeType("_setfileencoding",funType(tplType([type("ioHandle"),type("integer")]),tplType([]))).
-escapeType("_get_file",funType(tplType([type("string")]),type("string"),type("errorCode"))).
-escapeType("_put_file",funType(tplType([type("string"),type("string")]),tplType([]),type("errorCode"))).
+escapeType("_get_file",funType(tplType([type("string"),type("integer")]),type("string"),type("errorCode"))).
+escapeType("_put_file",funType(tplType([type("string"),type("integer"),type("string")]),tplType([]),type("errorCode"))).
 escapeType("_show",funType(tplType([type("string")]),tplType([]))).
 escapeType("_logmsg",funType(tplType([type("string")]),tplType([]))).
 escapeType("_display_depth",funType(tplType([]),type("integer"))).
