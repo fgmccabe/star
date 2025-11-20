@@ -248,7 +248,42 @@ read:
 
 === The `rdBytesAsync` function
 
+The `rdBytesAsync` function is an asynchronous function to read a vector of bytes.
+
+[source,star]
+----
+rdBytesAsync:async (inHandle,integer) => vect[integer] throws ioException.
+----
+
+The vector of bytes is returned as a `vect` of `integer` values: one per byte read.
+
+The `rdBytesAsync` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Not enough bytes in input
+| `.ioError` | Unspecified I/O error
+|===
+
+
 === The `rdFileAsync` function
+
+The `rdFileAsync` function reads an entire file into a `string` asynchronously.
+
+[source,star]
+----
+public rdFileAsync:async (string,textEncoding) => string throws ioException.
+----
+
+The `rdFileAsync` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.notFound` | File not present
+| `.noPerm` | No permission to access
+| `.ioError` | Unspecified I/O error
+|===
+
 
 == Output functions
 
