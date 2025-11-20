@@ -30,17 +30,7 @@ star.io{
     }
   }
 
-  public rdChars:(inHandle,integer) => string throws ioException.
-  rdChars(.inHandle(H),Cx) => valof{
-    try{
-      valis _inchars(H,Cx)
-    } catch {
-      | .eEOF do throw .pastEof
-      | _ do throw .ioError
-    }
-  }
-
-  public rdCharsAsync:async (inHandle,integer)=>string throws ioException.
+  rdCharsAsync:async (inHandle,integer)=>string throws ioException.
   rdCharsAsync(.inHandle(I),Cx) => valof{
     try{
       valis waitforIO(I,_inchars_async(I,Cx))

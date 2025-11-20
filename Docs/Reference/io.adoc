@@ -90,6 +90,18 @@ openOutFile:(string,textEncoding) => outHandle throw ioException.
 If it is possible to create the identified file, then an `outHandle` bound to
 the file is returned. Otherwise, an `ioException` will be thrown.
 
+=== The `atEof` function
+
+The `atEof` function can be used to determine if the input is already at its end
+of file.
+
+[source,star]
+----
+atEof:(inHandle) => boolean.
+----
+
+If `atEof` is true for a given input handle, then any subsequent read on the
+handle will result in an `.pastEof` `ioException`.
 
 === The `close` procedure
 
@@ -106,19 +118,6 @@ practice, this procedure has two definitions -- depending on whether an output
 handle or an input handle is being closed.
 
 == Input functions
-
-=== The `atEof` function
-
-The `atEof` function can be used to determine if the input is already at its end
-of file.
-
-[source,star]
-----
-atEof:(inHandle) => boolean.
-----
-
-If `atEof` is true for a given input handle, then any subsequent read on the
-handle will result in an `.pastEof` `ioException`.
 
 === The `rdChar` function
 
@@ -201,14 +200,51 @@ read:
 |===
 
 
-
 == Async input function
+
+In addition to the synchronous I/O functions, there are asynchronous analogs also.
+
+NOTE: asynchronous functions may only be invoked in the context of a <<task>>.
 
 === The `rdCharAsync` function
 
-=== The `rdCharsAsync` function
+The `rdCharAsync` function is an asynchronous function that returns the next
+`char` from the input handle:
+
+[source,star]
+----
+public rdCharAsync:async (inHandle)=>char throws ioException.
+----
+
+The `rdCharAsync` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Already at end of file at start of read
+| `.ioError` | Unspecified I/O error
+|===
+
+
+As noted above, `rdCharAsync` may only be invoked in the context of a `task`, or
+another `async` function.
 
 === The `rdLineAsync` function
+
+The `rdLineAsync` function reads a line from the input:
+
+[source,star]
+----
+public rdLineAsync:async (inHandle)=> string throws ioException.
+----
+
+The `rdLineAsync` function returns an `ioException` if something went wrong with the
+read:
+[cols="1,3"]
+|===
+| `.pastEof` | Already at end of file at start of read
+| `.ioError` | Unspecified I/O error
+|===
+
 
 === The `rdBytesAsync` function
 
