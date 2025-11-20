@@ -735,13 +735,13 @@ isOptVal(Trm,Lc,E) :-
   isUnary(Trm,Lc,"?",E).
 
 mkOptVal(Lc,E,Trm) :-
-    unary(Lc,"?",E,Trm).
+  unary(Lc,"?",E,Trm).
 
 isOptionCond(Ptn,Lc,Lhs,Rhs) :-
-    isBinary(Ptn,"?|",Lhs,Rhs).
+  isBinary(Ptn,Lc,"?|",Lhs,Rhs).
 
 mkOptionCond(Lc,Lhs,Rhs,Exp) :-
-    binary(Lc,"?|",Lhs,Rhs,Exp).
+  binary(Lc,"?|",Lhs,Rhs,Exp).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
 
