@@ -52,14 +52,21 @@ static inline integer ptrPayload(termPo t) {
   }
 }
 
+typedef struct class_record {
+  int32 clssIndex;
+  int32 count;
+} ClassRecord;
+
 typedef struct term_record {
-  clssPo clss;
+  ClassRecord clss;
 } TermRecord;
+
+extern clssPo *classIndex;
 
 static inline clssPo classOf(termPo obj) {
   switch (pointerTag(obj)) {
     case ptrTg:
-      return obj->clss;
+      return classIndex[obj->clss.clssIndex];
     case intTg:
       return integerClass;
     case chrTg:

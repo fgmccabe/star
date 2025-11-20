@@ -26,8 +26,11 @@ SpecialClass BignumClass = {
 
 clssPo bignumClass = (clssPo) &BignumClass;
 
+int32 bignumIndex = -1;
+
 void initBignum() {
   BignumClass.clss.clss = specialClass;
+  bignumIndex = installSpecialClass(&BignumClass);
 }
 
 logical isBignum(termPo t) {
@@ -48,7 +51,7 @@ uint32 *bigDigits(bignumPo b) {
 }
 
 termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
-  bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
+  bignumPo big = (bignumPo) allocateObject(H, bignumIndex, BignumCellCount(count));
 
   big->clss.clss = bignumClass;
   big->count = count;

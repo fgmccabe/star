@@ -9,10 +9,6 @@
 #include "term.h"
 #include "code.h"
 
-typedef struct class_record {
-  clssPo clss;
-} ClassRecord;
-
 // Some typedefs to help with working with classes
 typedef struct special_class *specialClassPo;
 
@@ -48,6 +44,8 @@ extern clssPo specialClass;
 extern integer displayDepth;   // Global limit on how deep to display things
 
 void initTerm();
+
+int32 installSpecialClass(SpecialClass *cl);
 
 logical isSpecialClass(clssPo p);
 
