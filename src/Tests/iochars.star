@@ -6,14 +6,16 @@ test.iochars{
 
   readAll:(task[()],inHandle) => ().
   readAll(this,I) => valof{
+    count := 0;
     try{
-      while Data.=rdCharsAsync(I,25) do{
-	showMsg("file data: $(Data)");
+      while ~ atEof(I) && Ch.=rdCharAsync(I) do{
+	count := count!+1;
       }
     } catch {
       | .ioError do showMsg("bad io")
-      | .pastEof do showMsg("all done")
+      | .pastEof do showMsg("past eof")
     };
+    showMsg("We got $(count!) chars");
     valis ()
   }
 
