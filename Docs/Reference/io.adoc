@@ -119,6 +119,10 @@ handle or an input handle is being closed.
 
 == Input functions
 
+Input functions typically use an `inHandle` value as the source of data. Before
+any input can be performed from a source, an `inhandle` must be generated using
+a file open function.
+
 === The `rdChar` function
 
 The `rdChar` function reads a single _character_ from the identified input channel:
@@ -287,15 +291,68 @@ read:
 
 == Output functions
 
-=== The `wrChar` function
+Outputting to a sink requires the use of an `outHandle` value, typically
+generated using the `openOutFile` function.
 
-=== The `wrText` function
+=== The `wrChar` procedure
+
+The `wrChar` procedure writes a character to an `outHandle`:
+
+[source,star]
+----
+public wrChar:(outHandle,char){} throws ioException.
+----
+
+This procedure writes a character according to the text encoding used when
+opening the file.
+
+NOTE: If `.rawEncoding` is used and a character that would normally require more
+than one byte to encode, only the least significant byte will be written to the
+output.
+
+=== The `wrText` procedure
+
+The `wrText` writes a `string` to an `outHandle`:
+
+[source,star]
+----
+public wrText:(outHandle,string){} throws ioException.
+----
 
 === The `wrFile` procedure
 
-== Async output functions
+The `wrFile` procedure does not require an open `outHandle`, it writes a
+`string` as the contents of the output file.
 
-=== The `wrCharAsync` function
+[source,star]
+----
+public wrFile:(string,textEncoding,string){} throws ioException.
+----
 
-=== The `wrTextAsync` function
+The `wrFile` procedure results in an `ioException` if something went wrong with
+the file creation or write: [cols="1,3"]
 
+|===
+| `.noPerm` | No permission to access
+| `.ioError` | Unspecified I/O error
+|===
+
+== Async output procedures
+
+These procedures write to output sinks asynchronously. That is, other <<task>>s
+may be scheduled while the output operation completes.
+
+=== The `wrCharAsync` procedure
+
+This procedure writes a `char` value asynchronously to the output:
+
+[source,star]
+----
+public wrCharAsync:async (outHandle,char){} throws ioException.
+----
+
+
+
+=== The `wrTextAsync` procedure
+
+=== The `wrFileAsync` procedure

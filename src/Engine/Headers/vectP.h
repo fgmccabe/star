@@ -15,8 +15,6 @@ extern labelPo vct1,vct2,vct3,vct4,vectorLbl;
 void initVect();
 void scanVect(gcSupportPo G);
 
-logical isVector(termPo t);
-
 retCode dispVect(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 typedef termPo (*makeCB)(heapPo h,integer ix,void *cl);
