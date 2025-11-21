@@ -9,6 +9,7 @@
 
 #include "normal.h"
 
+logical isVector(termPo t);
 termPo vectElement(normalPo v,integer ix);
 normalPo buildVector(integer count, ptrPo els);
 integer vectorLength(normalPo v);

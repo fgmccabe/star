@@ -177,6 +177,7 @@ star.io{
     try{
       _put_file(F,pickEncoding(Enc),S)
     } catch {
+      | .eNOPERM do throw .noPerm
       | _ do throw .ioError
     }
   }

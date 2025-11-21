@@ -146,10 +146,8 @@ retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
 
 retCode putBackByte(ioPo f, byte b) {
   objectPo o = O_OBJECT(f);
-  retCode ret;
-
   lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.backByte(f, b);
+  retCode ret = ((IoClassRec *) f->object.class)->ioPart.backByte(f, b);
 
   unlock(O_LOCKED(o));
   return ret;
@@ -159,10 +157,8 @@ retCode putBackByte(ioPo f, byte b) {
 
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
   objectPo o = O_OBJECT(f);
-  retCode ret;
-
   lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.write(f, data, len, actual);
+  retCode ret = ((IoClassRec *) f->object.class)->ioPart.write(f, data, len, actual);
   unlock(O_LOCKED(o));
   return ret;
 }
@@ -249,10 +245,10 @@ retCode inChar(ioPo io, codePoint *ch) {
   }
 }
 
-retCode unGetChar(ioPo io, codePoint ch)   /* put a single character back */
+retCode unGetChar(ioPo io, codePoint ch) /* put a single character back */
 {
   if (ch != uniEOF) {
-    char chbuff[8];                       /* We are going to re-encode the byte */
+    char chbuff[8]; /* We are going to re-encode the byte */
     integer len = 0;
     retCode ret = Ok;
 
@@ -307,7 +303,8 @@ retCode inLine(ioPo f, strBufferPo buffer, char *term) {
   lock(O_LOCKED(o));
 
   if ((f->io.mode & ioREAD) != 0) {
-    while (ret == Ok) { /* we need at least one char for the NULL */
+    while (ret == Ok) {
+      /* we need at least one char for the NULL */
       codePoint ch;
       ret = inChar(f, &ch);
 
@@ -316,7 +313,7 @@ retCode inLine(ioPo f, strBufferPo buffer, char *term) {
           return Error;
         ret = outChar(O_IO(buffer), ch);
 
-        if (uniIndexOf(term, tlen, 0, ch) >= 0)  /* have we found a terminating byte? */
+        if (uniIndexOf(term, tlen, 0, ch) >= 0) /* have we found a terminating byte? */
           break;
       }
     }
@@ -356,14 +353,37 @@ retCode outText(ioPo f, const char *text, integer len) {
   integer pos = 0;
   retCode ret = Ok;
 
-  while (ret == Ok && remaining > 0) {
-    integer count;
-    ret = ((IoClassRec *) f->object.class)->ioPart.write(f, (byte *) &text[pos], remaining, &count);
-    remaining -= count;
-    pos += count;
-  }
+  switch (f->io.encoding) {
+    case utf8Encoding: {
+      while (ret == Ok && remaining > 0) {
+        integer count;
+        ret = ((IoClassRec *) f->object.class)->ioPart.write(f, (byte *) &text[pos], remaining, &count);
+        remaining -= count;
+        pos += count;
+      }
+      return ret;
+    }
+    case rawEncoding: {
+      byte outBuffer[len];
+      integer opos = 0;
 
-  return ret;
+      while (pos < len) {
+        codePoint ch = nextCodePoint(text, &pos, len);
+        outBuffer[opos++] = (char) ch;
+      }
+
+      remaining = opos;
+      while (ret == Ok && remaining > 0) {
+        integer count;
+        ret = ((IoClassRec *) f->object.class)->ioPart.write(f, &outBuffer[pos], remaining, &count);
+        remaining -= count;
+        pos += count;
+      }
+      return ret;
+    }
+    default:
+      return Error;
+  }
 }
 
 retCode outStr(ioPo f, char *str) {
@@ -415,7 +435,7 @@ retCode nullIsReady(ioPo f, integer cs) {
   return Error;
 }
 
-retCode isFileAtEof(ioPo f)    /* Eof if at end of file */
+retCode isFileAtEof(ioPo f) /* Eof if at end of file */
 {
   objectPo o = O_OBJECT(f);
 
@@ -428,11 +448,10 @@ retCode isFileAtEof(ioPo f)    /* Eof if at end of file */
 }
 
 retCode fileStatus(ioPo f) {
-  retCode ret;
   objectPo o = O_OBJECT(f);
 
   lock(O_LOCKED(o));
-  ret = f->io.status;
+  retCode ret = f->io.status;
   unlock(O_LOCKED(o));
 
   return ret;
@@ -449,10 +468,8 @@ retCode setBufferStatus(ioPo f, retCode status) {
 
 ioDirection fileMode(ioPo f) {
   objectPo o = O_OBJECT(f);
-  ioDirection mode;
-
   lock(O_LOCKED(o));
-  mode = f->io.mode;
+  ioDirection mode = f->io.mode;
   unlock(O_LOCKED(o));
   return mode;
 }
