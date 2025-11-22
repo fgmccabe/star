@@ -358,7 +358,7 @@ guessStmtType([],N,Lc,VTp) :- !,
 guessStmtType([St|_],N,Lc,Guess) :-
   guessType(St,N,Lc,Guess).
 
-guessType(St,_,_,funType(tplType(AT),RTp)) :-
+guessType(St,_,_,funType(tplType(AT),RTp,voidType)) :-
   isEquation(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT),
@@ -366,7 +366,7 @@ guessType(St,_,_,funType(tplType(AT),RTp)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
-guessType(St,_,_,funType(tplType(AT),voidType)) :-
+guessType(St,_,_,funType(tplType(AT),voidType,voidType)) :-
   isProcedure(St,_,H,_,_),!,
   splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT).
@@ -423,9 +423,7 @@ splitUpProgramType(Lc,Env,FTp,AT,RT,ET) :-
   newTypeVar("A",AT),
   newTypeVar("R",RT),
   newTypeVar("E",ET),
-  (sameType(FTp,funType(AT,RT),Lc,Env) ->
-   sameType(ET,voidType,Lc,Env);
-   sameType(FTp,funType(AT,RT,ET),Lc,Env);
+  (sameType(FTp,funType(AT,RT,ET),Lc,Env);
    reportError("Expecting a function type, not %s",[tpe(FTp)],Lc)).
 
 checkDefn(Lc,L,R,VlTp,varDef(Lc,Nm,ExtNm,[],VlTp,Value),Env,Opts,Path) :-
@@ -899,7 +897,7 @@ typeOfExp(A,Tp,ErTp,Env,Env,resume(Lc,T,M,Tp),Opts,Path) :-
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
 typeOfExp(Term,Tp,ErTp,Env,Env,Exp,Opts,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Exp,Opts,Path).
+  checkFunCall(Lc,F,A,Tp,ErTp,Env,Exp,Opts,Path).
 typeOfExp(Term,Tp,_ErTp,Env,Env,void,_,_) :-!,
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -930,26 +928,23 @@ typeOfTupleAcc(Lc,Rc,Fld,Tp,ErTp,Env,Ev,tdot(Lc,Rec,Fld,Tp),Opts,Path) :-
   newTypeVar("_R",AT),
   typeOfExp(Rc,AT,ErTp,Env,Ev,Rec,Opts,Path).
 
-typeOfRoundTerm(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
+checkFunCall(Lc,F,A,Tp,ErTp,Env,Call,Opts,Path) :-
   newTypeVar("F",FnTp),
+  newTypeVar("E",ETp),
   genTpVars(A,Vrs),
   At = tplType(Vrs),
   typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of function %s:%s",[can(Fun),tpe(FnTp)])),
-  (sameType(funType(At,Tp),FnTp,Lc,E0) ->
-   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-   Call=apply(Lc,Fun,Args,Tp);
-   newTypeVar("_E",ETp),
-   sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
-     (sameType(ETp,ErTp,Lc,Env) ->
-	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-	Call=tapply(Lc,Fun,Args,Tp,ErTp);
-      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
-      Call=void);
-   sameType(consType(At,Tp),FnTp,Lc,E0) ->
-   typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-   Call=capply(Lc,Fun,Args,Tp);
-   reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc),
+
+  (sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
+     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
+     (deRef(ETp,voidType) ->
+	Call=apply(Lc,Fun,Args,Tp);
+      (sameType(ETp,ErTp,Lc,E0) ->
+	 Call=tapply(Lc,Fun,Args,Tp,ErTp);
+       reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
+       Call=void));
+   reportError("type of %s:\n%s\nnot consistent with:%s",[Fun,FnTp,tpe(funType(At,Tp,ErTp))],Lc),
    Call=void).
 
 typeOfLambda(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,rule(Lc,Args,Guard,Exp),Tp),Opts,Path) :-
@@ -999,7 +994,7 @@ typeOfThunk(Lc,Term,Tp,Env,
 					       cond(Lc, match(Lc,svGet(Lc,XVar,SvTp),SavVar),
 						    XVar,
 						    svSet(Lc,SavVar,Exp),VlTp)),
-					  funType(tplType([]),VlTp)))),Tp),Opts,Path) :-
+					  funType(tplType([]),VlTp,voidType)))),Tp),Opts,Path) :-
   newTypeVar("υ",VlTp),
   savType(VlTp,SvTp),
   genNewName(Path,"Σ",SavNm),
@@ -1130,33 +1125,12 @@ checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
   validLastAct(A,Lc,Tp,Last).
 checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
-  checkProcCall(Lc,F,Args,ErTp,Env,Exp,Opts,Path),
+  newTypeVar("R",RTp),
+  checkFunCall(Lc,F,Args,RTp,ErTp,Env,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
 checkAction(A,Tp,_ErTp,_Last,Env,Env,doNop(Lc),_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
-
-checkProcCall(Lc,F,A,ErTp,Env,Call,Opts,Path) :-
-  newTypeVar("F",FnTp),
-  newTypeVar("R",Tp),
-  genTpVars(A,Vrs),
-  newTypeVar("_E",ETp),
-  At = tplType(Vrs),
-  typeOfExp(F,FnTp,ErTp,Env,E0,Fun,Opts,Path),
-  checkOpt(Opts,traceCheck,meta:showMsg(Lc,"type of function %s:%s",[can(Fun),tpe(FnTp)])),
-  (sameType(funType(At,Tp),FnTp,Lc,E0) ->
-     typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-     Call=apply(Lc,Fun,Args,Tp);
-   sameType(funType(At,Tp,ETp),FnTp,Lc,E0) ->
-     (sameType(ETp,ErTp,Lc,Env) ->
-	typeOfArgTerm(tuple(Lc,"()",A),At,ErTp,E0,_Ev,Args,Opts,Path),
-	Call=tapply(Lc,Fun,Args,Tp,ErTp);
-      reportError("%s throws %s which is not consistent with %s",[Fun,ETp,ErTp],Lc),
-      Call=void);
-   (isProcedureType(FnTp) ->
-	reportError("type of %s:\n%s\nnot consistent with:\n%s{}",[Fun,FnTp,At],Lc);
-	reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FnTp,At,Tp],Lc)),
-   Call=void).
 
 checkActions([],Lc,_ErTp,Env,Env,doNop(Lc),_Opts,_Path).
 checkActions([A],_,ErTp,Env,Ev,Ax,Opts,Path) :-

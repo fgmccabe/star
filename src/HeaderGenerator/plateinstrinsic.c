@@ -452,7 +452,7 @@ static char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);
-      outStr(out, ")");
+      outStr(out, ",voidType)");
       return sig;
     case throwSig:
       outStr(out, "funType(");
@@ -466,13 +466,6 @@ static char *dumpPrologSig(char *sig, ioPo out) {
     case conSig:
       outStr(out, "consType(");
       sig = dPrologTple(sig, out);
-      outStr(out, ",");
-      sig = dumpPrologSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    case contSig:
-      outStr(out, "continType(");
-      sig = dumpPrologSig(sig, out);
       outStr(out, ",");
       sig = dumpPrologSig(sig, out);
       outStr(out, ")");
