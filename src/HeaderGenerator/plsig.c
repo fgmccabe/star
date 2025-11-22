@@ -61,14 +61,15 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), "voidType");
       break;
     }
-
+    case thisSig:
+      outStr(out, "thisType");
+      break;
     case tpeSig: {
       outMsg(O_IO(out), "type(");
       sig = dName(sig, out);
       outMsg(O_IO(out), ")");
       return sig;
     }
-
     case refSig: {
       outMsg(O_IO(out), "tpExp(tpFun(\"ref\",1),");
       sig = dumpPrologSig(sig, out);
@@ -93,7 +94,6 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), ")");
       break;
     }
-
     case tplSig: {
       outStr(O_IO(out), "tplType(");
       sig = dSequence(sig, out);
@@ -105,17 +105,7 @@ char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
-      outStr(O_IO(out), ")");
-      return sig;
-    case conSig:
-      outStr(O_IO(out), "consType(");
-
-      assert(*sig == tplSig);
-      dSequence(++sig, out);
-
-      outStr(O_IO(out), ",");
-      sig = dumpPrologSig(sig, out);
-      outStr(O_IO(out), ")");
+      outStr(O_IO(out), ",voidType)");
       return sig;
     case throwSig:
       outStr(O_IO(out), "funType(");
@@ -126,9 +116,10 @@ char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
-    case contSig:
-      outStr(O_IO(out), "continType(");
-      sig = dumpPrologSig(sig, out);
+    case conSig:
+      outStr(O_IO(out), "consType(");
+      assert(*sig == tplSig);
+      dSequence(++sig, out);
       outStr(O_IO(out), ",");
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
@@ -165,7 +156,6 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), ")");
       return sig;
     }
-
     case xstSig: {
       outStr(O_IO(out), "existType(");
       sig = dumpPrologSig(sig, out);
@@ -174,7 +164,6 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), ")");
       return sig;
     }
-
     case constrainedSig: {
       outStr(O_IO(out), "constrained(");
       sig = dumpPrologSig(sig, out);
@@ -183,7 +172,6 @@ char *dumpPrologSig(char *sig, ioPo out) {
       outStr(O_IO(out), ")");
       return sig;
     }
-
     default:
       fprintf(stderr, "illegal signature %s\n", sig);
       exit(99);

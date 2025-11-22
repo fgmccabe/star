@@ -49,7 +49,7 @@ parseType(F,Env,Q,FT) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,Q,AT),
   parseResultType(R,Env,Q,AT,FT).
-parseType(F,Env,Q,funType(AT,voidType)) :-
+parseType(F,Env,Q,funType(AT,voidType,voidType)) :-
   isProcType(F,_,L,none),!,
   parseArgType(L,Env,Q,AT).
 parseType(F,Env,Q,funType(AT,voidType,TT)) :-
@@ -116,7 +116,7 @@ parseResultType(A,Env,Q,AT,funType(AT,RT,ET)) :-
   isThrows(A,_,L,R),
   parseType(L,Env,Q,RT),
   parseType(R,Env,Q,ET).
-parseResultType(A,Env,Q,AT,funType(AT,RT)) :-
+parseResultType(A,Env,Q,AT,funType(AT,RT,voidType)) :-
   parseType(A,Env,Q,RT).
 
 fieldInFace(Fields,Nm,_,_,Tp) :-
@@ -124,6 +124,7 @@ fieldInFace(Fields,Nm,_,_,Tp) :-
 fieldInFace(_,Nm,RcTp,Lc,anonType) :-
   reportError("type %s not declared in %s",[id(Nm),tpe(RcTp)],Lc).
 
+parseTypeName(_,"void",_,_,voidType) :- !.
 parseTypeName(_,"_",_,_,Tp) :- newTypeVar("_",Tp).
 parseTypeName(_,Id,_,Q,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,Tp) :-
@@ -437,7 +438,7 @@ genBraceAccessor(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 Publish,Viz,ExNm,Dc,Dcx) :-
   tpName(Tp,TpNm),
   mangleName(TpNm,field,Fld,AccName),
-  putConstraints(Cx,funType(tplType([Tp]),FldTp),CxFunTp),
+  putConstraints(Cx,funType(tplType([Tp]),FldTp,voidType),CxFunTp),
   reUQnt(Q,CxFunTp,AccFunTp),
   XX = v(Lc,"XX",FldTp),  
   fillinElementPtns([(Fld,XX)],Lc,AllElTps,ArgPtns,ArgTps),
@@ -462,7 +463,7 @@ genBraceUpdater(Lc,Q,Cx,ConNm,Tp,Fld,FldTp,Tp,AllElTps,
 		 Publish,Viz,ExNm,Dc,Dcx) :-
   tpName(Tp,TpNm),
   mangleName(TpNm,over,Fld,AccName),
-  putConstraints(Cx,funType(tplType([Tp,FldTp]),Tp),CxFunTp),
+  putConstraints(Cx,funType(tplType([Tp,FldTp]),Tp,voidType),CxFunTp),
   reUQnt(Q,CxFunTp,AccFunTp),
 
   XX = v(Lc,"XX",FldTp),

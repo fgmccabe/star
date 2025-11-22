@@ -1,6 +1,7 @@
 {
   "content": {
     "test.a": "a.star",
+    "test.a0": "a0.star",
     "test.a1": "a1.star",
     "test.ac0": "ac0.star",
     "test.ac1": "ac1.star",
@@ -17,6 +18,7 @@
     "test.ac11": "ac11.star",
     "test.act0": "act0.star",
     "test.ar": "ar.star",
+    "test.are": "are.star",
     "test.ar1": "ar1.star",
     "test.art": "art.star",
     "test.as": "as.star",

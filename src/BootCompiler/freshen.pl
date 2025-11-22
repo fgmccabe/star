@@ -78,9 +78,6 @@ frshn(kFun(TV,Ar),E,B,Ex,Tp) :-
 frshn(V,_,_,_,V) :- isUnbound(V),!.
 frshn(type(Nm),_,_,_,type(Nm)).
 frshn(tpFun(Nm,Ar),_,_,_,tpFun(Nm,Ar)).
-frshn(funType(A,R),E,B,Ex,funType(FA,FR)) :-
-  rewriteType(A,E,B,Ex,FA),
-  rewriteType(R,E,B,Ex,FR).
 frshn(funType(A,R,Er),E,B,Ex,funType(FA,FR,FEr)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR),

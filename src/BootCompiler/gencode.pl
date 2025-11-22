@@ -153,7 +153,7 @@ genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
   assem(PFunc,CdTrm).
 
 genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
-  toLtipe(funType(tplType([]),Tp),LTp),
+  toLtipe(funType(tplType([]),Tp,voidType),LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
   genLbl(L0,_Lx,L1),
