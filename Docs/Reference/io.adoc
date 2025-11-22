@@ -330,8 +330,9 @@ public wrFile:(string,textEncoding,string){} throws ioException.
 ----
 
 The `wrFile` procedure results in an `ioException` if something went wrong with
-the file creation or write: [cols="1,3"]
+the file creation or write:
 
+[cols="1,3"]
 |===
 | `.noPerm` | No permission to access
 | `.ioError` | Unspecified I/O error
@@ -351,8 +352,38 @@ This procedure writes a `char` value asynchronously to the output:
 public wrCharAsync:async (outHandle,char){} throws ioException.
 ----
 
+This procedure writes a single character to the output channel. Note that if the
+text encoding of the output is set to `.rawEncoding`, then only the least
+significant byte of the UTF scalar value will be written. If the encoding is
+`.utf8Encoding` then the character is written out as a UTF8 sequence.
 
+The write operation is not necessarily performed immediately; and this operation
+must be performed in the context of a <<task>> or `async` function.
 
 === The `wrTextAsync` procedure
 
+The `wrTextAsync` procedure writes out a `string` to the output channel.
+
+NOTE: This is currently only supported for channels that have `utf8Encoding`.
+
+The write is not necessarily performed immediately; and this operation must be
+performed in the context of a <<task>> or `async` function. The caller will
+resume when the operation has completed.
+
 === The `wrFileAsync` procedure
+
+The `wrFileAsync` procedure writes a `string` as the entire contents of an
+output file -- it takes a file name as an argument rather than an `outHandle`.
+
+The file write is performed asynchronously; the caller is continued once the
+file operation has been completed.
+
+The `wrFileAsync` procedure results in an `ioException` if something went wrong with
+the file creation or write:
+
+[cols="1,3"]
+|===
+| `.noPerm` | Not permitted to write to file
+| `.ioError` | Unspecified I/O error
+|===
+
