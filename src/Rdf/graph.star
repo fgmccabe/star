@@ -13,10 +13,10 @@ rdf.graph{
   public nullGraph = graph{triples=nullV(). subjects=[]. predicates=[]. objects=[]}.
 
   public implementation display[graph] => {
-    disp(G) => "{$(G.triples)}".
+    disp(G) => showGraph(G)
   }
 
-  showGraph:(graph) => string.
+  public showGraph:(graph) => string.
   showGraph(G) => ixRight((C,Sx,Txt)=>Txt++showSubject(C,Sx,G),"",G.subjects).
 
   showSubject:(concept,set[integer],graph)=>string.

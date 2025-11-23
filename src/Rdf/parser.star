@@ -12,7 +12,7 @@ rdf.parser{
   parseGraph >> Gr* --> rdfTriple * >> Gr, [.endTok(_)], {trP("grs $(Gr)")}.
 
   public rdfTriple:() >> set[triple] --> cons[token].
-  rdfTriple >> Ss --> triple >> Ss.
+  rdfTriple >> Ss --> triple >> Ss, {trP("triple: $(Ss)")}.
 
   concept >> C --> symbolic >> C, {trP("Symbolic $(C)") }.
   concept >> L --> literal >> L, {trP("Literal $(L)") }.

@@ -1102,7 +1102,7 @@ star.compiler.checker{
 	valis .vr(Lc,"_",Tp)
       }
     } else{
-      reportError("type of $(Op)\:$(FnTp) not consistent with $(AtTp) => $(Tp)",Lc);
+      reportError("type of $(Op)\:$(FnTp) not consistent with $(.funType(AtTp,Tp,ErTp))",Lc);
       valis .vr(Lc,"_",Tp)
     }
   }

@@ -17,24 +17,26 @@ rdf.driver{
   import rdf.triple.
   import rdf.graph.
 
-  public _main:(cons[string])=>().
-  _main(Args) => valof{
-    WI= ? parseUri("file:"++_cwd());
-    RI= ? parseUri("file:"++_repo());
+  public _main:(cons[string]){}.
+  _main(Args){
     try{
-      valis handleCmds(processOptions(Args,[wdOption,
-	    stdinOption,
-	    traceLexOption,
-	    showLexOption,
-	    traceParseOption,
-	    showParseOption],
-	  defltOptions(WI,RI)
-	))
-    } catch {
-      Msg => { logMsg(Msg);
-	valis ()
+      WI= ? parseUri("file:"++_cwd());
+      RI= ? parseUri("file:"++_repo());
+      try{
+	handleCmds(processOptions(Args,[wdOption,
+	      stdinOption,
+	      traceLexOption,
+	      showLexOption,
+	      traceParseOption,
+	      showParseOption],
+	    defltOptions(WI,RI)
+	  ))
+      } catch {
+	Msg do logMsg(.severe,Msg)
       }
-    };
+    } catch {
+      .exception(Msg) do logMsg(.severe,Msg)
+    }
   }
 
   handleCmds:((rdfOptions,cons[string]))=>().
@@ -47,24 +49,24 @@ rdf.driver{
 	  (Toks) = allTokens(startLoc(O),Txt::cons[char]);
 
 	  if showLex! then
-	    logMsg("tokens from $(O)\: $(Toks)");
+	    logMsg(.fine,"tokens from $(O)\: $(Toks)");
 
 	  if Trpls ?= (parseGraph() --> Toks) then{
 	    if showParse! then
-	      logMsg("Triples: $(Trpls)");
+	      logMsg(.fine,"Triples: $(Trpls)");
 
 	    Graph = foldRight((Tr,Gx)=>addTriple(Gx,Tr),nullGraph,Trpls);
 
-	    logMsg("Graph is $(Graph)");
+	    logMsg(.info,"Graph is $(Graph)");
 
 	    assert validGraph(Graph);
 	  } else{
-	    logMsg("something went wrong with parsing triples")
+	    logMsg(.warning,"something went wrong with parsing triples")
 	  }
 	} else
-	logMsg("cant find ontology source text at $(SrcUri)");
+	logMsg(.severe,"cant find ontology source text at $(SrcUri)");
       } else
-	logMsg("cant resolve ontology source uri for $(O)");
+      logMsg(.severe,"cant resolve ontology source uri for $(O)");
     };
     valis ()
   }
