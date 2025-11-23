@@ -57,6 +57,3 @@ rdf.parser{
       valis .true
   }
 }
-
-
-

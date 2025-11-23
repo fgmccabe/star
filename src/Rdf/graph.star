@@ -1,7 +1,14 @@
 rdf.graph{
   import star.
+  import star.assert.
+  import star.location.
   import star.vector.
+  import star.resources.
+  import star.uri.
 
+  import rdf.lexer.
+  import rdf.token.
+  import rdf.parser.
   import rdf.triple.
 
   public graph ::= graph{
@@ -90,4 +97,21 @@ rdf.graph{
   subjectTriples:(graph,concept)=>set[option[triple]].
   subjectTriples(G,C) where Sx?=G.subjects[C] => (Sx//(Ix)=> G.triples[Ix]).
   subjectTriples(_,_) default => [].
+
+  public parseN3:(uri,string) => option[graph].
+  parseN3(Cwd,Fn) => valof{
+    if OUri ?= parseUri(Fn) && SrcUri ?= resolveUri(Cwd,OUri) then{
+      if Txt ?= getResource(SrcUri) then{
+	(Toks) = allTokens(startLoc(Fn),Txt::cons[char]);
+
+	if Trpls ?= (parseGraph() --> Toks) then{
+	  Graph = foldRight((Tr,Gx)=>addTriple(Gx,Tr),nullGraph,Trpls);
+	  assert validGraph(Graph);
+	  valis .some(Graph)
+	}
+      }
+    }
+    logMsg(.severe,"something went wrong with parsing #(Fn)");
+    valis .none
+  }
 }
