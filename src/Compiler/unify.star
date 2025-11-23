@@ -48,6 +48,10 @@ star.compiler.unify{
     smT(.tpFun(Nm,Ar),.tpFun(Nm,Ar),_) => .true.
     smT(.tpExp(O1,A1),.tpExp(O2,A2),Env) =>
       same(O1,O2,Env) && same(A1,A2,Env).
+    smT(.funType(O1,A1,E1),.funType(O2,A2,E2),Env) =>
+      same(O1,O2,Env) && same(A1,A2,Env) && same(E1,E2,Env).
+    smT(.conType(O1,A1),.conType(O2,A2),Env) =>
+      same(O1,O2,Env) && same(A1,A2,Env).
     smT(.tupleType(A1),.tupleType(A2),Env) =>
       size(A1)==size(A2) && smTypes(A1,A2,Env).
     smT(.faceType(E1,T1),.faceType(E2,T2),Env)
@@ -151,6 +155,8 @@ star.compiler.unify{
   rewr(.tpFun(Nm,Ar),_) => .tpFun(Nm,Ar).
   rewr(.tpExp(Op,A),Env) => .tpExp(rewriteType(Op,Env),rewriteType(A,Env)).
   rewr(.tupleType(Els),Env) => .tupleType(rewriteTps(Els,Env)).
+  rewr(.funType(A,R,E),Env) => .funType(rewriteType(A,Env),rewriteType(R,Env),rewriteType(E,Env)).
+  rewr(.conType(A,R),Env) => .conType(rewriteType(A,Env),rewriteType(R,Env)).
   rewr(.allType(V,B),Env) => _ ?= Env[V] ?? .allType(V,B) || .allType(V,rewriteType(B,Env)).
   rewr(.existType(V,B),Env) => _ ?= Env[V] ?? .existType(V,B) || .existType(V,rewriteType(B,Env)).
   rewr(.faceType(Flds,Rls),Env) =>

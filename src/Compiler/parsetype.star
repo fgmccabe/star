@@ -39,6 +39,7 @@ star.compiler.typeparse{
     Inn = parseType(B,Env);
     valis wrapConstraints(Cx,Inn)
   }
+  parseType(Tp,Env) where isVoid(Tp) => .voidType.
   parseType(Tp,Env) where (Lc,Nm) ?= isName(Tp) => valof{
     if Nm=="_" then
       valis newTypeVar("_")
@@ -78,27 +79,27 @@ star.compiler.typeparse{
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFuncType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
-    valis fnType(A,R)
+    valis .funType(A,R,.voidType)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs,Ehs) ?= isThrwFunctionType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
     E = parseType(Ehs,Env);
-    valis throwingType(A,R,E)
+    valis .funType(A,R,E)
   }
   parseType(T,Env) where (Lc,Lhs,.none) ?= isPrcType(T) => valof{
     A = parseArgType(Lhs,Env);
-    valis procType(A,.voidType)
+    valis .funType(A,.voidType,.voidType)
   }
   parseType(T,Env) where (Lc,Lhs,.some(Rhs)) ?= isPrcType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
-    valis procType(A,R)
+    valis .funType(A,.voidType,R)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
-    valis consType(A,R)
+    valis .conType(A,R)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
     R = parseType(Lhs,Env);
@@ -782,7 +783,7 @@ star.compiler.typeparse{
     makeAccessor:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeAccessor(Fld,FldTp,B) => valof{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
-      AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funType([RcTp],FTp))));
+      AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funcType([RcTp],FTp))));
       Lc = locOf(B);
 --      DefltEqn = .eqn(Lc,[.anon(Lc,RcTp)],.none,.enm(Lc,"none",optType(FldTp)));
       AcEqs = accessorEqns(B,Fld,FTp,[/*DefltEqn*/]);
@@ -825,7 +826,7 @@ star.compiler.typeparse{
     makeUpdater:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeUpdater(Fld,FldTp,B) => valof{
       (XQ,ITp) = deQuantX(FldTp); -- special rule for existentials
-      UpdFnTp = reQ(Q, reQuant(XQ,wrapConstraints(Cx,funType([RcTp,ITp],RcTp))));
+      UpdFnTp = reQ(Q, reQuant(XQ,wrapConstraints(Cx,funcType([RcTp,ITp],RcTp))));
       Lc = locOf(B);
       AcEqs = updaterEqns(B,Fld,FldTp,[]);
 

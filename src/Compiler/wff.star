@@ -17,6 +17,8 @@ star.compiler.wff{
   isName(.tpl(_,"()",[.qnm(Lc,Id)])) => .some((Lc,Id)).
   isName(_) default => .none.
 
+  public isVoid(A) => .nme(_,"void").=A.
+
   public dollarName:(ast) => ast.
   dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 

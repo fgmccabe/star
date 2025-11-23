@@ -101,35 +101,27 @@ char *dumpStarSig(char *sig, ioPo out) {
       return sig;
     }
     case funSig: {
-      outStr(out, ".tpExp(.tpExp(.tpFun(\"=>\",2),");
+      outStr(out, ".funType(");
       sig = dumpStarSig(sig, out);
-      outStr(out, "),");
+      outStr(out, ",");
       sig = dumpStarSig(sig, out);
-      outStr(out, ")");
+      outStr(out, ",.voidType)");
       return sig;
     }
     case conSig: {
-      outStr(out, ".tpExp(.tpExp(.tpFun(\"<=>\",2),");
+      outStr(out, ".conType(");
       sig = dumpStarSig(sig, out);
-      outStr(out, "),");
+      outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       return sig;
     }
     case throwSig: {
-      outStr(out, ".tpExp(.tpExp(.tpExp(.tpFun(\"=>\",3),");
+      outStr(out, ".funType(");
       sig = dumpStarSig(sig, out);
-      outStr(out, "),");
+      outStr(out, ",");
       sig = dumpStarSig(sig, out);
-      outStr(out, "),");
-      sig = dumpStarSig(sig, out);
-      outStr(out, ")");
-      return sig;
-    }
-    case contSig: {
-      outStr(out, ".tpExp(.tpExp(.tpFun(\"=>>\",2),");
-      sig = dumpStarSig(sig, out);
-      outStr(out, "),");
+      outStr(out, ",");
       sig = dumpStarSig(sig, out);
       outStr(out, ")");
       return sig;

@@ -48,16 +48,17 @@ set(STAR_ASM_SOURCE_FILES starmnem.c )
 add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
 target_link_libraries(starmnem ooio infra)
 
-set(INTRINSIC_SOURCE_FILES plateinstrinsic.c
-        starsig.h)
-add_executable(intrinsic ${INTRINSIC_SOURCE_FILES})
-target_link_libraries(intrinsic ooio infra)
-
-set(PLINTRINSIC_SOURCE_FILES plinstrinsic.c
+set(PLINTRINSIC_SOURCE_FILES plintrinsic.c
   plsig.c
   starsig.h)
 add_executable(plintrinsic ${PLINTRINSIC_SOURCE_FILES})
 target_link_libraries(plintrinsic ooio infra)
+
+set(STINTRINSIC_SOURCE_FILES stinstrinsic.c
+        starsig.c
+        starsig.h)
+add_executable(stintrinsic ${STINTRINSIC_SOURCE_FILES})
+target_link_libraries(stintrinsic ooio infra)
 
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
 set(ESCAPES_ST_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/escapes.star.plate)
@@ -97,7 +98,7 @@ add_custom_target(pl.escapes DEPENDS genplesc ${ESCAPES_PL}
 )
 
 add_custom_target(star.intrinsics DEPENDS intrinsic
-        COMMAND intrinsic -s -t ${INTRINSIC_ST_PLATE} ${INTRINSIC_ST}
+        COMMAND stintrinsic -t ${INTRINSIC_ST_PLATE} ${INTRINSIC_ST}
 )
 
 add_custom_target(pl.intrinsics DEPENDS plintrinsic

@@ -47,7 +47,7 @@ star.compiler.normalize{
     valis [.glDef(Lc,FullNm,Tp,Vl),..Defs]
   }
   transformDef(.varDef(Lc,_,FullNm,Val,_,Tp),Map,Outer,Q,Extra,Ex) =>
-    transformFunction(Lc,FullNm,[.eqn(Lc,[],.none,Val)],funType([],Tp),Map,Outer,Q,Extra,Ex).
+    transformFunction(Lc,FullNm,[.eqn(Lc,[],.none,Val)],funcType([],Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex) =>
     transformDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Outer,Q,Extra,Ex).
   transformDef(.typeDef(Lc,Nm,Tp,TpRl),Map,_,_,_,Ex) =>
@@ -100,7 +100,7 @@ star.compiler.normalize{
     if traceNormalize! then{
       showMsg("transform procedure $(.prcDef(Lc,FullNm,Rls,[],Tp)) @ $(Lc)");
     };
-    ATp = extendPrTp(deRef(Tp),Extra);
+    ATp = extendFunTp(deRef(Tp),Extra);
     if traceNormalize! then
       showMsg("extended procedure type $(ATp)");
     
@@ -120,7 +120,7 @@ star.compiler.normalize{
       ClVars = makeFunVars(Tp);
       ClArgs = ([ClVar,..ClVars]//(V)=>.cVar(Lc,V));
 
-      ClosTp = extendPrTp(deRef(Tp),.some(ClVar));
+      ClosTp = extendFunTp(deRef(Tp),.some(ClVar));
 
       if Exv?=Extra then {
 	ClosEntry =
@@ -640,7 +640,7 @@ star.compiler.normalize{
     ThV = genVar("_ThVr",typeOf(freeVars));
     ThVr = .cVar(Lc,ThV);
 
-    ATp = extendPrTp(deRef(Tp),.some(ThVr));
+    ATp = extendFunTp(deRef(Tp),.some(ThVr));
     
     L = collectLabelVars(freeVars,ThV,0,[]);
 
@@ -817,7 +817,7 @@ star.compiler.normalize{
     X = .cVar(Lc,genVar("ϕ",Tp));
     TV = .cVar(Lc,ThVr);
 
-    ThDf = .fnDef(Lc,Nm,funType([typeOf(ThVr)],Tp),
+    ThDf = .fnDef(Lc,Nm,funcType([typeOf(ThVr)],Tp),
       [TV],
       .cValof(Lc,
 	.aSeq(Lc,
@@ -1064,5 +1064,4 @@ star.compiler.normalize{
 
   makeFunVars:(tipe)=>cons[cV].
   makeFunVars(Tp) where .tupleType(Es)?=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
-  makeFunVars(Tp) where .tupleType(Es)?=prTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
 }

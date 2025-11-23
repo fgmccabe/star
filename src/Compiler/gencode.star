@@ -366,6 +366,9 @@ star.compiler.gencode{
     Stk1 = pshStack(Tp,Stk);
 
     if (ITp,Ins,Frm)?=intrinsic(Nm) then{
+      if traceCodegen! then
+	showMsg("Compile intrinsic #(Nm)$(Args)\:$(ITp)");
+
       if isThrowingType(ITp) then{
 	if (_,XLbl) ?= Brks["$try"] then{
 	  valis genReturn(Last,Lc,chLine(OLc,Lc)++ArgCode++

@@ -44,7 +44,6 @@ typedef enum {
   funSig = 'F', /* Function signature */
   conSig = 'C', /* constructor */
   throwSig = 'T', /* A throwing function signature */
-  contSig = 'x', // Continuation signature
 
   tpruleSig = 'Y',  /* Type rule -- aka type alias or existential type assignment */
   tplambdaSig = 'Z', /* Type function */
