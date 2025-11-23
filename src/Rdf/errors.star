@@ -42,20 +42,18 @@ rdf.errors{
   countWarning(.warnMsg(_,_),Ix)=>Ix+1.
   countWarning(_,Ix) default => Ix.
 
-  public reportError:(string,option[locn]) => ().
-  reportError(Msg,Lc) => valof{
-    logMsg("\e[31merror $(countErrors()+1)\e[0m - #(Msg) #(showLc(Lc))");
+  public reportError:(string,option[locn]){}.
+  reportError(Msg,Lc){
+    logMsg(.severe,"\e[31merror $(countErrors()+1)\e[0m - #(Msg) #(showLc(Lc))");
     reports := [.errorMsg(Lc,Msg),..reports!];
-    valis ()
   }
 
   showLc(.none) => "".
   showLc(.some(Lc)) => "at $(Lc)".
 
-  public reportWarning:(string,option[locn]) => ().
-  reportWarning(Msg,Lc) => valof{
-    logMsg(disp(.warnMsg(Lc,Msg)));
+  public reportWarning:(string,option[locn]){}.
+  reportWarning(Msg,Lc){
+    logMsg(.warning,disp(.warnMsg(Lc,Msg)));
     reports := [.warnMsg(Lc,Msg),..reports!];
-    valis ()
   }
 }

@@ -32,17 +32,14 @@ star.compiler{
   import star.compiler.types.
   import star.compiler.normalize.
   import star.compiler.data.
---  import star.compiler.wasm.types.
---  import star.compiler.wasm.gentypes.
---  import star.compiler.wasm.gen.
 
-  public _main:(cons[string])=>().
-  _main(Args) => valof{
+  public _main:(cons[string]){}.
+  _main(Args){
     try{
       WI= ? parseUri("file:"++_cwd());
       RI= ? parseUri("file:"++_repo());
       try{
-	valis handleCmds(processOptions(Args,[wdOption,
+	handleCmds(processOptions(Args,[wdOption,
 	      stdinOption,
 	      repoOption,
 	      graphOption,
@@ -72,13 +69,11 @@ star.compiler{
       } catch {
 	Msg do {
 	  logMsg(.severe,Msg);
-	  valis ()
 	}
       }
     } catch {
       .exception(Msg) do {
 	logMsg(.severe,Msg);
-	valis ()
       }
     }
   }
