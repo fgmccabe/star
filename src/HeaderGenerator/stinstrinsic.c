@@ -7,11 +7,12 @@
 #include "formioP.h"
 #include "template.h"
 #include "formexts.h"
-#include "plsig.h"
+#include "starsig.h"
 
-/* Generate a Prolog module that describes the intrinsic escapes */
+/* Generate a Star module, that knows about the intrinsics */
 
-char *templateFn = "intrinsics.pl.plate";
+char *prefix = "star.comp.intrinsics";
+char *templateFn = "intrinsics.star.plate";
 char date[MAXLINE] = "";
 
 int getOptions(int argc, char **argv) {
@@ -31,7 +32,7 @@ int getOptions(int argc, char **argv) {
   return optind;
 }
 
-static void genIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -71,7 +72,7 @@ int main(int argc, char **argv) {
     strBufferPo mnemBuff = newStringBuffer();
 
 #undef intrinsic
-#define intrinsic(NM, Tp, Op, Alloc, cmt) genIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,cmt);
+#define intrinsic(NM, Tp, Op, Alloc, cmt) genStarIntrinsic(O_IO(mnemBuff),#NM,Tp,Op,Alloc, cmt);
 
 #include "intrinsics.h"
 
@@ -88,13 +89,13 @@ int main(int argc, char **argv) {
 
 static char *capitalize(char *str);
 
-void genIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt) {
-  outMsg(out, "isIntrinsic(\"%P\",", name);
-  dumpPrologSig(tipe, out);
+static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, logical Alloc, char *cmt) {
+  outMsg(out, "    | \"%s\" => .some((", name);
+  dumpStarSig(tipe, out);
   if (tipe[0] == throwSig)
-    outMsg(out, ",i%s,throwing).  %% %s\n", capitalize(op), cmt);
+    outMsg(out, ",(Lb)=>.i%s(Lb), %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
   else
-    outMsg(out, ",i%s,noThrow).  %% %s\n", capitalize(op), cmt);
+    outMsg(out, ",(_)=>.i%s, %s))  -- %s\n", capitalize(op), (Alloc ? ".true" : ".false"), cmt);
 }
 
 static char *capitalize(char *str) {

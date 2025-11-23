@@ -361,6 +361,7 @@ star.compiler.macro{
   macroType(A) => macroAst(A,.typeterm,examineType).
 
   examineType(A) where _ ?= isName(A) => A.
+  examineType(A) where isVoid(A) => A.
   examineType(A) where (Lc,Op,Els) ?= isSquareTerm(A) => 
     squareTerm(Lc,Op,Els//macroType).
   examineType(A) where _ ?= isTypeFunVar(A) => A.

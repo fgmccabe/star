@@ -56,9 +56,9 @@ star.compiler.encode{
     | .tpFun(Nm,Ar) => [`z`]++encodeNat(Ar)++encodeText(Nm)
     | .tpExp(.tpFun("cons",1),El) => [`L`]++encodeType(El)
     | .tpExp(.tpFun("ref",1),El) => [`r`]++encodeType(El)
-    | .tpExp(.tpExp(.tpFun("=>",2),A),R) => [`F`]++encodeType(A)++encodeType(R)
-    | .tpExp(.tpExp(.tpExp(.tpFun("=>",3),A),R),E) => [`T`]++encodeType(A)++encodeType(R)++encodeType(E)
-    | .tpExp(.tpExp(.tpFun("<=>",2),A),R) => [`C`]++encodeType(A)++encodeType(R)
+    | .funType(A,R,E) where .voidType.=deRef(E) => [`F`]++encodeType(A)++encodeType(R)
+    | .funType(A,R,E) => [`T`]++encodeType(A)++encodeType(R)++encodeType(E)
+    | .conType(A,R) => [`C`]++encodeType(A)++encodeType(R)
     | .tpExp(Op,A) => [`U`]++encodeType(Op)++encodeType(A)
     | .tupleType(Els) => [`(`]++encodeTypes(Els)++[`)`]
     | .allType(V,T) => [`:`]++encodeType(V)++encodeType(T)

@@ -35,9 +35,6 @@ star.compiler.checker{
 	(Imports,Stmts) = collectImports(Els,[],[]);
 	(AllImports,IDecls) = importAll(Imports,Repo,[],[]);
 
-	-- if traceCanon! then
-	--   showMsg("Import declarations $(IDecls)");
-
 	PkgEnv = declareDecls(IDecls,declareDecls(stdTypes,emptyDict));
 	PkgPth = packageName(Pkg);
 
@@ -48,9 +45,6 @@ star.compiler.checker{
     
 	(Defs,ThDecls,ThEnv) = checkGroups(Gps,pkgExport(Vis),emptyFace,Annots,PkgEnv,PkgPth);
 	
-	if traceCanon! then
-	  showMsg("declarations $(ThDecls)");
-
 	(BrDfs,BrDcs) = pullBrDefs(ThEnv);
 	(AllX,All) = squashDecls(ThDecls);
 
@@ -197,11 +191,11 @@ star.compiler.checker{
   }
   guessStmtType([St,.._],Nm,Lc) => valof{
     if (_,_,_,Args,_,_) ?= isEquation(St) then
-      valis funType(genArgTps(Args),newTypeVar("_R"))
+      valis funcType(genArgTps(Args),newTypeVar("_R"))
     else if (_,_,_) ?= isAssignment(St) then
       valis refType(newTypeVar("R"))
     else if (_,_,_,Args,_,_) ?= isProcedure(St) then
-      valis procType(.tupleType(genArgTps(Args)),.voidType)
+      valis procType(genArgTps(Args),.voidType)
     else
       valis newTypeVar("_D")
   }
@@ -738,7 +732,7 @@ star.compiler.checker{
     GTp = newTypeVar("_e");
     Gv = typeOfExp(G,GTp,ErTp,Env,Path);
 
-    Rules = processEqns(Cases,caseArgType,funcType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
+    Rules = processEqns(Cases,caseArgType,.funType(GTp,Tp,ErTp),[],.none,Env,Env,Path);
 
 --    checkPtnCoverage(Rules//((.eqn(_,Ptn,_,_))=>Ptn),Env,GTp);
     valis .csexp(Lc,Gv,Rules,Tp)
@@ -792,8 +786,8 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("check lambda proc$(A), expected type $(Tp) @ $(Lc)");
 
-    if ~ _ ?= isPrType(Tp) then{
-      reportError("Expecting a $(Tp) value, not $(A)",Lc);
+    if ~ _ ?= isPrType(ProgTp) then{
+      reportError("Expecting a $(Tp) value, not $(A)\:$(ProgTp)",Lc);
       valis .anon(Lc,Tp)
     };
 
@@ -931,7 +925,7 @@ star.compiler.checker{
       Accessors = foldLeft( ((Fld,(VNm,FTp)),(Ix,ADfs,ADcs)) => valof{
 	  AccNm = qualifiedName(brTplNm,.fldMark,Fld);
 	  Rc = .vr(Lc,"XX",Tp);
-	  AccTp = funType([Tp],FTp);
+	  AccTp = funcType([Tp],FTp);
 	  Acc = .varDef(Lc,AccNm,AccNm,.lambda(Lc,lambdaLbl(Lc),
 	      .eqn(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FTp)),AccTp),
 	    [],AccTp);
@@ -1074,19 +1068,39 @@ star.compiler.checker{
     valis reverse(Els)
   }
 
+  -- This is intricate because we want to be careful about exception types
   typeOfRoundTerm:(option[locn],ast,cons[ast],tipe,tipe,dict,string) => canon.
   typeOfRoundTerm(Lc,Op,As,Tp,ErTp,Env,Path) => valof{
     Vrs = genTpVars(As);
     AtTp = .tupleType(Vrs);
     FnTp = newTypeVar("F");
+    FETp = newTypeVar("E");
     Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
-    if sameType(FnTp,fnType(AtTp,Tp),Env) then {
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
-      valis .apply(Lc,Fun,Args,Tp)
-    } else if sameType(FnTp,throwingType(AtTp,Tp,ErTp),Env) then {
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
+    if traceCanon! then
+      showMsg("Round term: $(Op)($(As))\:$(Tp) Op:$(FnTp)");
+
+    if sameType(FnTp,.funType(AtTp,Tp,FETp),Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
+
+      if traceCanon! then
+	showMsg("Round term type: $(Op)\:$(FnTp), ErTp=$(ErTp), FETp=$(FETp) ");
+
+      if ErTp==.voidType then{
+	if sameType(FETp,.voidType,Env) then
+	  valis .apply(Lc,Fun,Args,Tp)
+	else{
+	  reportError("$(Op)\:$(FnTp) throws $(FETp) outside a try/catch",Lc);
+	  valis .vr(Lc,"_",Tp)
+	}
+      } else if .voidType == FETp then
+	valis .apply(Lc,Fun,Args,Tp)
+      else if sameType(FETp,ErTp,Env) then
 	valis .tapply(Lc,Fun,Args,Tp,ErTp)
+      else{
+	reportError("$(Op) throws $(FETp), which not consistent with $(ErTp)",Lc);
+	valis .vr(Lc,"_",Tp)
+      }
     } else{
       reportError("type of $(Op)\:$(FnTp) not consistent with $(AtTp) => $(Tp)",Lc);
       valis .vr(Lc,"_",Tp)
@@ -1121,7 +1135,7 @@ star.compiler.checker{
 	      .eqn(Lc,[],.none,.cond(Lc,.match(Lc,.svGet(Lc,XVr,SvTp),SavVr),
 		  XVr,
 		  .svSet(Lc,SavVr,
-		    typeOfExp(E,VlTp,.voidType,Env,Path)))),funType([],Tp)))),Tp),Tp)
+		    typeOfExp(E,VlTp,.voidType,Env,Path)))),funcType([],Tp)))),Tp),Tp)
   }
 
   actionMode ::= .mustVal | .noVal | .notLast.
@@ -1283,36 +1297,13 @@ star.compiler.checker{
       showMsg("Check action $(A)\:$(Tp)");
     isValidLastAct(Lc,Tp,Mode);
 
-    Call = checkProcCall(Lc,Op,Args,ErTp,Env,Path);
+    Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_"),ErTp,Env,Path);
     valis (.doExp(Lc,Call),Env)
   }
   checkAction(A,_Tp,_ErTp,_Mode,Env,_Path) default => valof{
     Lc = locOf(A);
     reportError("invalid action $(A)",Lc);
     valis (.doNop(Lc),Env)
-  }
-
-  checkProcCall:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
-  checkProcCall(Lc,Op,As,ErTp,Env,Path) => valof{
-    Vrs = genTpVars(As);
-    AtTp = .tupleType(Vrs);
-    FnTp = newTypeVar("F");
-    RtTp = newTypeVar("R");
-    Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
-
-    if traceCanon! then
-      showMsg("Check call $(Op)\:$(FnTp) against $(procType(AtTp,ErTp))");
-
-    if sameType(FnTp,fnType(AtTp,RtTp),Env) then {
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
-      valis .apply(Lc,Fun,Args,RtTp)
-    } else if sameType(FnTp,throwingType(AtTp,RtTp,ErTp),Env) then {
-      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);      
-	valis .tapply(Lc,Fun,Args,RtTp,ErTp)
-    } else{
-      reportError("type of $(Op)\:$(FnTp) not consistent with $(AtTp){}",Lc);
-      valis .vr(Lc,"_",.voidType)
-    }
   }
 
   checkActions:(option[locn],cons[ast],tipe,tipe,actionMode,dict,string) => (canonAction,dict).

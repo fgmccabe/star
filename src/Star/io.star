@@ -200,7 +200,7 @@ star.io{
   waitforIO(IO,Ft) => valof{
     case this suspend .requestIO(IO,()=>~_futureIsResolved(Ft)) in {
       | .go_ahead do {
-	_futureVal(Ft)
+	valis _futureVal(Ft)
       }
       | _ do retire .retired_
     }

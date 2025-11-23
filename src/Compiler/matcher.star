@@ -37,7 +37,7 @@ star.compiler.matcher{
 
   public procMatcher:(option[locn],string,tipe,nameMap,cons[(option[locn],cons[cExp],option[cExp],aAction)]) => option[cDefn].
   procMatcher(Lc,Nm,Tp,Map,Eqns) => valof{
-    if ATp ?= prTypeArg(Tp) then{
+    if ATp ?= funTypeArg(Tp) then{
       NVrs = genVars(Lc,ATp);
       Trpls = makeTriples(Eqns);
 

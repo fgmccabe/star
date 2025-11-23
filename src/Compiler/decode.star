@@ -163,18 +163,18 @@ star.compiler.decode{
     | `F` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
-      valis (fnType(A,R),T1)
+      valis (.funType(A,R,.voidType),T1)
     }
     | `T` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
       (E,T2) = decodeType(T1);
-      valis (throwingType(A,R,E),T2)
+      valis (.funType(A,R,E),T2)
     }
     | `C` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
-      valis (consType(A,R),T1)
+      valis (.conType(A,R),T1)
     }
   }
 

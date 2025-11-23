@@ -458,6 +458,7 @@ star.compiler.dependencies{
     collectTermListRefs(Ts,All,collectTermRefs(T,All,Rf)).
 
   collectTypeRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
+  collectTypeRefs(V,_All,SoFar) where isVoid(V) => SoFar.
   collectTypeRefs(V,All,SoFar) where (_,Id) ?= isName(V) =>
     collectName(.tpSp(Id),All,SoFar).
   collectTypeRefs(T,All,SoFar) where (_,Op,Els) ?= isSquareTerm(T) => 

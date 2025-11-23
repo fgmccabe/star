@@ -208,16 +208,16 @@ ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("{}"),TE])) :-
   deRef(R,voidType),!,
   ssType(A,ShCon,Dp,AA),
   (deRef(E,voidType) ->
-     ssType(E,ShCon,Dp,EE),
-     TE = sq([ss(" throws "),EE]);
-   TE = ss("")).
+   TE = ss("");
+   ssType(E,ShCon,Dp,EE),
+   TE = sq([ss(" throws "),EE])).
 ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("=>"),RR,TE])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR),
   (deRef(E,voidType) ->
-     ssType(E,ShCon,Dp,EE),
-     TE = sq([ss(" throws "),EE]);
-   TE = ss("")).
+   TE = ss("");
+   ssType(E,ShCon,Dp,EE),
+   TE = sq([ss(" throws "),EE])).
 
 ssABound(allType(V,T),ShCon,Dp,[types:tvr(V)|Vs],TT) :-
   deRef(T,T0),

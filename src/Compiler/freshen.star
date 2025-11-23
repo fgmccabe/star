@@ -122,6 +122,8 @@ star.compiler.freshen{
   frshn(.tpFun(N,A),_) => .tpFun(N,A).
   frshn(.tpExp(O,A),Env) => .tpExp(frshnD(O,Env),frshnD(A,Env)).
   frshn(.tupleType(Els),Env) => .tupleType(frshnList(Els,Env)).
+  frshn(.funType(A,R,E),Env) => .funType(frshnD(A,Env),frshnD(R,Env),frshnD(E,Env)).
+  frshn(.conType(A,R),Env) => .conType(frshnD(A,Env),frshnD(R,Env)).
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).

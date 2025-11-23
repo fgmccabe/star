@@ -70,7 +70,7 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     (Atp,Rtp,Etp) = splitupProgramType(Lc,CDict,ITp);
     if .tupleType(AITp).=deRef(Atp) && RITp .= deRef(Rtp) then {
-      CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,Etp));
       if traceResolve! then
 	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
       valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
@@ -98,12 +98,12 @@ star.compiler.resolve{
     (_,ITp) = deConstrain(Qt);
     if (ATp,ETp) ?= isPrType(ITp) then{
       if .tupleType(AITp).=deRef(ATp) then {
-	CTp = reQuant(Qx,procType(.tupleType((Cx//typeOf)++AITp),ETp));
+	CTp = reQuant(Qx,procType((Cx//typeOf)++AITp,ETp));
 	if traceResolve! then
 	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
 	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
       } else{
-	CTp = reQuant(Qx,procType(.tupleType((Cx//typeOf)++[ATp]),ETp));
+	CTp = reQuant(Qx,procType((Cx//typeOf)++[ATp],ETp));
 	if traceResolve! then
 	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
 	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
@@ -131,7 +131,7 @@ star.compiler.resolve{
     RVal = overload(Val,CDict);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
-    CTp = reQuant(Qx,funType(Cx//typeOf,ITp));
+    CTp = reQuant(Qx,funcType(Cx//typeOf,ITp));
 
     ODefn = .varDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp);
 
@@ -158,7 +158,7 @@ star.compiler.resolve{
       CTp = reQuant(Qx,ITp);
       valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
     } else {
-      CTp = reQuant(Qx,funType(Cx//genContractType,ITp));
+      CTp = reQuant(Qx,funcType(Cx//genContractType,ITp));
       valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp),Dict)
     }
   }
@@ -177,7 +177,7 @@ star.compiler.resolve{
   }
   defineCVars(Lc,[.hasField(Tp,Nm,FTp),..Tps],Vrs,D) => valof{
     Vnm = genId("Nm");
-    Vtp = funType([Tp],FTp);
+    Vtp = funcType([Tp],FTp);
     valis defineCVars(Lc,Tps,[.vr(Lc,Vnm,Vtp),..Vrs],
       declareVar(Vnm,Vnm,Lc,Vtp,.none,
 	declareAccessor(Lc,Tp,Nm,Vnm,Vtp,D)))
@@ -352,8 +352,8 @@ star.compiler.resolve{
       Eqn = resolveEqn(Rl,Extra,CDict);
       (Qx,Qt) = deQuant(Tp);
       (_,ITp) = deConstrain(Qt);
-      if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
-	CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      if .funType(.tupleType(AITp),RITp,EITp).=deRef(ITp) then {
+	CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,EITp));
 	if traceResolve! then
 	  showMsg("overloaded constrained lambda $(.lambda(Lc,Nm,Eqn,CTp))");
 	valis (.lambda(Lc,Nm,Eqn,CTp),St)
@@ -384,8 +384,8 @@ star.compiler.resolve{
       RRle = resolveRule(Rl,Extra,CDict);
       (Qx,Qt) = deQuant(Tp);
       (_,ITp) = deConstrain(Qt);
-      if .tupleType(AITp)?=funTypeArg(ITp) && RITp .= funTypeRes(ITp) then {
-	CTp = reQuant(Qx,funType((Cx//typeOf)++AITp,RITp));
+      if .funType(.tupleType(AITp),RITp,EITp).=deRef(ITp) then {
+	CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,EITp));
 	if traceResolve! then
 	  showMsg("overloaded constrained rule $(.prc(Lc,Nm,RRle,CTp))");
 	valis (.prc(Lc,Nm,RRle,CTp),St)
@@ -471,7 +471,7 @@ star.compiler.resolve{
     NArgs = Args++Vrs;
     valis .lambda(Lc,lambdaLbl(Lc),
       .eqn(Lc,Vrs,.none,.apply(Lc,OverOp,NArgs,Tp)),
-      funType(ArgTps,Tp))
+      funcType(ArgTps,Tp))
   }
 
   implementation resolve[canonAction] => {
@@ -656,7 +656,7 @@ star.compiler.resolve{
   resolveAccess(Lc,RcTp,Fld,Tp,Dict,St) => valof{
     if AccFn ?= findAccess(Lc,RcTp,Fld,Dict) then{
       Ft = newTypeVar("F");
-      if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
+      if sameType(typeOf(AccFn),funcType([RcTp],Ft),Dict) then{
 	if sameType(Tp,snd(freshen(Ft,Dict)),Dict) then{
 	  valis .some((AccFn,markResolved(St)))
 	} else{
@@ -680,7 +680,7 @@ star.compiler.resolve{
 	showMsg("access function $(AccFn)\:$(typeOf(AccFn))");
       
       Ft = newTypeVar("F");
-      if sameType(typeOf(AccFn),funType([RcTp],Ft),Dict) then{
+      if sameType(typeOf(AccFn),funcType([RcTp],Ft),Dict) then{
 	FrFt = snd(freshen(Ft,Dict));
 	(Cx,FldT) = deConstrain(FrFt);
 
@@ -709,7 +709,7 @@ star.compiler.resolve{
     RcTp = typeOf(Rc);
     if AccFn ?= findUpdate(Lc,RcTp,Fld,Dict) then{
       Ft = newTypeVar("F");
-      if sameType(typeOf(AccFn),funType([RcTp,Ft],RcTp),Dict) then{
+      if sameType(typeOf(AccFn),funcType([RcTp,Ft],RcTp),Dict) then{
 	if sameType(typeOf(Vl),snd(freshen(Ft,Dict)),Dict) then{
 	  valis overloadTerm(.apply(Lc,AccFn,[Rc,Vl],RcTp),Dict,markResolved(St))
 	} else{
@@ -781,14 +781,8 @@ star.compiler.resolve{
     RTp = newTypeVar("_R");
     ETp = newTypeVar("_E");
 
-    if sameType(fnType(ATp,RTp),PTp,Env) && sameType(.voidType,ETp,Env) then
+    if sameType(.funType(ATp,RTp,ETp),PTp,Env) then
       valis (ATp,RTp,ETp)
-    else if sameType(throwingType(ATp,RTp,ETp),PTp,Env) then
-      valis (ATp,RTp,ETp)
-    else if sameType(procType(ATp,ETp),PTp,Env) then
-      valis (ATp,.voidType,ETp)
-    else if sameType(procType(ATp,.voidType),PTp,Env) then
-      valis (ATp,.voidType,.voidType)
     else{
       reportError("expecting a function type, not $(PTp)",Lc);
       valis (ATp,RTp,ETp)
