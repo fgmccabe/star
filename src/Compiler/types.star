@@ -317,6 +317,7 @@ star.compiler.types{
   public implementation hashable[tipe] => let{.
     hsh(Tp) => case Tp in {
       | .voidType => 0
+      | .anonType => -1
       | .kVar(Nm) => hash(Nm)
       | .kFun(Nm,Ar) => Ar*37+hash(Nm)
       | .tVar(_,Nm) => hash("V")+hash(Nm)

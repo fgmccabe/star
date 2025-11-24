@@ -39,11 +39,10 @@ star.compiler.typeparse{
     Inn = parseType(B,Env);
     valis wrapConstraints(Cx,Inn)
   }
+  parseType(Tp,Env) where isAnon(Tp) => newTypeVar("_").
   parseType(Tp,Env) where isVoid(Tp) => .voidType.
   parseType(Tp,Env) where (Lc,Nm) ?= isName(Tp) => valof{
-    if Nm=="_" then
-      valis newTypeVar("_")
-    else if (_,T,TpRl,_) ?= findType(Env,Nm) then{
+    if (_,T,TpRl,_) ?= findType(Env,Nm) then{
       if isLambdaRule(TpRl) then{
 	(_,.typeLambda(_,Rhs)) = freshen(TpRl,Env);
 	valis Rhs
@@ -246,7 +245,6 @@ star.compiler.typeparse{
     valis .none
   }
   
-  parseTypeName(_,"_",_) => (.anonType,.none).
   parseTypeName(_,Nm,Env) where (_,T,TpRl,_) ?= findType(Env,Nm) => valof{
     if isLambdaRule(TpRl) then 
       valis (T,.some(TpRl))

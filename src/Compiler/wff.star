@@ -19,6 +19,8 @@ star.compiler.wff{
 
   public isVoid(A) => .nme(_,"void").=A.
 
+  public isAnon(A) => .nme(_,"_").=A.
+
   public dollarName:(ast) => ast.
   dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 
