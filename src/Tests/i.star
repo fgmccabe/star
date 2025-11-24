@@ -8,12 +8,11 @@ test.i{
   ll:map[string,integer].
   ll = _put(kk,"delta",4).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert 1?=kk["alpha"];
     assert .some(1).=_index(ll,"alpha");
     show kk[~"alpha"];
     show kk["delta"->4];
-    valis ()
   }
 }

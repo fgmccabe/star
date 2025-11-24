@@ -469,7 +469,7 @@ star.compiler.checker{
   }
 
   typeOfPtn:(ast,tipe,tipe,dict,string) => (canon,option[canon],dict).
-  typeOfPtn(A,Tp,_,Env,_) where Lc?=isAnon(A) => (.anon(Lc,Tp),.none,Env).
+  typeOfPtn(A,Tp,_,Env,_) where isAnon(A) => (.anon(locOf(A),Tp),.none,Env).
   typeOfPtn(A,Tp,ErTp,Env,Path) where (Lc,Id) ?= isName(A) && varDefined(Id,Env) => valof{
     V = genName(Lc,Id);
     (Ptn,PCond,Ev0) = typeOfPtn(V,Tp,ErTp,Env,Path);
@@ -644,7 +644,8 @@ star.compiler.checker{
   }
   
   typeOfExp:(ast,tipe,tipe,dict,string) => canon.
-  typeOfExp(A,Tp,_,Env,Path) where Lc ?= isAnon(A) => valof{
+  typeOfExp(A,Tp,_,Env,Path) where isAnon(A) => valof{
+    Lc = locOf(A);
     reportError("anonymous variable not permitted in expression",Lc);
     valis .anon(Lc,Tp)
   }
