@@ -17,6 +17,7 @@
 #include "debugP.h"
 #include "engineP.h"
 #include "buddyP.h"
+#include "ssaP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
@@ -348,7 +349,7 @@ static retCode setPkgMain(char *option, OptionAction action) {
   return Ok;
 }
 
-static retCode setUseJit(char *option, OptionAction action) {
+static retCode enableJit(char *option, OptionAction action) {
 #ifndef NOJIT
   switch (action) {
     case enable:
@@ -360,6 +361,28 @@ static retCode setUseJit(char *option, OptionAction action) {
     case toggle:
       jitOnLoad = !jitOnLoad;
       break;
+  }
+  return Ok;
+#else
+  return Error;
+#endif
+}
+
+static retCode enableSSAOption(char *option, OptionAction action) {
+#ifndef NOJIT
+  switch (action) {
+    case enable: {
+      enableSSA = True;
+      break;
+    }
+    case disable: {
+      enableSSA = False;
+      break;
+    }
+    case toggle: {
+      enableSSA = !enableSSA;
+      break;
+    }
   }
   return Ok;
 #else
@@ -452,7 +475,8 @@ Option options[] = {
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, "-G|--debugger-port"},
   {'v', "version", noArgument, Null, displayVersion, "-v|--version"},
   {'b', "main-pkg", hasArgument, STAR_BOOT, setPkgMain, "-b|--main-pkg <pkg>"},
-  {'j', "jit", noArgument, STAR_RUN_MODE, setUseJit, "-j|--jit"},
+  {'j', "jit", noArgument, STAR_RUN_MODE, enableJit, "-j|--jit"},
+  {'A', "enable-ssa", noArgument, STAR_ENABLE_SSA, enableSSAOption, "-A|--enable-ssa"},
   {'m', "main", hasArgument, STAR_MAIN, setBootEntry, "-m|--main <entry>"},
   {'L', "logFile", hasArgument, STAR_LOGFILE, setLogFile, "-L|--logFile <path>"},
   {'r', "repository", hasArgument, STAR_REPO, setRepoDir, "-r|--repository <path>"},

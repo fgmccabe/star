@@ -29,6 +29,7 @@
 #define STAR_DEBUGGER_PORT "STAR_DEBUGGER_PORT"
 #define SYMBOL_DEBUG "STAR_DEBUG"
 #define STAR_RUN_MODE "STAR_RUN_MODE"
+#define STAR_ENABLE_SSA "STAR_ENABLE_SSA"
 
 extern char *copyright;
 

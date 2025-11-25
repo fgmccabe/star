@@ -30,14 +30,14 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
     if (traceJit) {
       showMethodCode(logFile, "Jit method %L\n", mtd);
     }
+#endif
 
-    if (traceSSA) {
+    if (enableSSA) {
       codeSegPo segments = segmentMethod(mtd);
       showSegs(logFile, segments);
       flushIo(logFile);
       tearDownSegs(segments);
     }
-#endif
 
     retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
 

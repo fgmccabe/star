@@ -12,16 +12,23 @@ typedef struct code_seg_ {
   int32 segNo;
   int32 start;                  // Starting pc
   int32 end;                    // ending pc
+  segLinkPo incoming;
   codeSegPo altLink;            // Out of line exit to
   codeSegPo fallthrough;        // Fall through to
   codeSegPo nextByPc;
 } CodeSegment;
 
+typedef struct seg_link_ {
+  codeSegPo seg;
+  segLinkPo next;
+} SegLinkRecord;
+
 codeSegPo findSeg(codeSegPo root, int32 pc);
 codeSegPo splitAtPC(codeSegPo root,int32 pc);
 codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);
-codeSegPo bumpSeg(codeSegPo seg, int32 pc);
 
 codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
+
+void linkIncoming(codeSegPo tgt, codeSegPo incoming);
 
 #endif

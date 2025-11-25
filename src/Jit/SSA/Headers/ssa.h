@@ -10,8 +10,11 @@
 #include "starOptions.h"
 
 typedef struct code_seg_ *codeSegPo;
+typedef struct seg_link_ *segLinkPo;
 
 extern tracingLevel traceSSA;
+
+extern logical enableSSA;
 
 void showSegs(ioPo out, codeSegPo segs);
 
