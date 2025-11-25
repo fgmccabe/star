@@ -4,7 +4,9 @@
 
 #include "config.h"
 #include "codeP.h"
+#include "debug.h"
 #include "jitP.h"
+#include "ssaP.h"
 
 logical jitOnLoad = True;
 
@@ -26,7 +28,14 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
 
 #ifdef TRACEJIT
     if (traceJit) {
-      outMsg(logFile, "Jit method %L\n", mtd);
+      showMethodCode(logFile, "Jit method %L\n", mtd);
+    }
+
+    if (traceSSA) {
+      codeSegPo segments = segmentMethod(mtd);
+      showSegs(logFile, segments);
+      flushIo(logFile);
+      tearDownSegs(segments);
     }
 #endif
 

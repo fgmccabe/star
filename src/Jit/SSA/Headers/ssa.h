@@ -5,8 +5,17 @@
 #ifndef STAR_SSA_H
 #define STAR_SSA_H
 
-#include "config.h"
+#include "ooio.h"
+#include "code.h"
+#include "starOptions.h"
 
-typedef struct code_block_ *codeSegPo;
+typedef struct code_seg_ *codeSegPo;
+
+extern tracingLevel traceSSA;
+
+void showSegs(ioPo out, codeSegPo segs);
+
+codeSegPo segmentMethod(methodPo mtd);
+void tearDownSegs(codeSegPo segs);
 
 #endif

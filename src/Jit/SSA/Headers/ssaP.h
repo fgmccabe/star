@@ -7,11 +7,21 @@
 
 #include "ssa.h"
 #include "code.h"
-#include "engine.h"
 
-typedef struct code_block_ {
+typedef struct code_seg_ {
+  int32 segNo;
   int32 start;                  // Starting pc
   int32 end;                    // ending pc
-} CodeBlock;
+  codeSegPo altLink;            // Out of line exit to
+  codeSegPo fallthrough;        // Fall through to
+  codeSegPo nextByPc;
+} CodeSegment;
+
+codeSegPo findSeg(codeSegPo root, int32 pc);
+codeSegPo splitAtPC(codeSegPo root,int32 pc);
+codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);
+codeSegPo bumpSeg(codeSegPo seg, int32 pc);
+
+codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
 
 #endif
