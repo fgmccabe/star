@@ -10,6 +10,8 @@
 tracingLevel traceSSA = noTracing;
 #endif
 
+logical enableSSA = False;
+
 typedef struct block_scope_ *scopePo;
 
 typedef struct block_scope_ {
@@ -24,8 +26,8 @@ typedef enum {
   breakOut
 } breakType;
 
-static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 tgt);
-static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 tgt);
+static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
+static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 
 retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int32 pc, int32 limit, int32 next) {
   ScopeBlock scope = {.start = start, .limit = limit, .next = next, .parent = parent};
@@ -43,7 +45,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case Call:
         continue;
       case XCall: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -55,7 +57,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case OCall:
         continue;
       case XOCall: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -67,7 +69,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       }
       case XEscape: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -89,13 +91,13 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       }
       case Loop: {
-        codeSegPo alt = checkLoop(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkLoop(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
       case Break:
       case Result: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -127,7 +129,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case TstSav:
         continue;
       case LdSav: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -142,7 +144,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case CFlt:
       case CChar:
       case CLbl: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -152,26 +154,30 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
 
       case If:
       case IfNot: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
       case ICase:
       case Case:
       case IxCase: {
-        splitNextPC(root, pc, Null);
+        splitAtPC(root, pc + 1);
+        codeSegPo curr = findSeg(root, pc);
+        curr->fallthrough = Null;
+        curr->altLink = Null;
+
         int32 mx = code[pc].fst;
         for (int32 ix = 0; ix < mx; ix++) {
           int32 casePc = pc + 1 + ix;
           insPo caseIns = &code[casePc];
           switch (caseIns->op) {
             case Break: {
-              codeSegPo alt = checkBreak(&scope, root, casePc + code[casePc].alt + 1);
+              codeSegPo alt = checkBreak(&scope, root, pc, casePc + code[casePc].alt + 1);
               splitNextPC(root, casePc, alt);
               continue;
             }
             case Loop: {
-              codeSegPo alt = checkLoop(&scope, root, casePc + code[casePc].alt + 1);
+              codeSegPo alt = checkLoop(&scope, root, pc, casePc + code[casePc].alt + 1);
               splitNextPC(root, casePc, alt);
               continue;
             }
@@ -188,7 +194,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       case IDiv:
       case IMod: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -212,7 +218,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       case FDiv:
       case FMod: {
-        codeSegPo alt = checkBreak(&scope, root, pc + code[pc].alt + 1);
+        codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
         continue;
       }
@@ -235,20 +241,26 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
   return ret;
 }
 
-codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 tgt) {
+codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt) {
   while (scope != Null) {
     if (tgt == scope->start) {
-      return splitAtPC(root, scope->limit);
+      codeSegPo tgtSeg = splitAtPC(root, scope->limit);
+      codeSegPo seg = findSeg(root, pc);
+      linkIncoming(tgtSeg, seg);
+      return tgtSeg;
     }
     scope = scope->parent;
   }
   return Null;
 }
 
-codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 tgt) {
+codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt) {
   while (scope != Null) {
     if (tgt == scope->start) {
-      return splitAtPC(root, tgt);
+      codeSegPo tgtSeg = splitAtPC(root, tgt);
+      codeSegPo seg = findSeg(root, pc);
+      linkIncoming(tgtSeg, seg);
+      return tgtSeg;
     }
     scope = scope->parent;
   }

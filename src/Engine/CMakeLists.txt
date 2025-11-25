@@ -2,7 +2,8 @@ project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
-include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers")
+include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers"
+        "../Jit/SSA/Headers")
 add_subdirectory("EngineTests")
 
 set(HEADER_FILES
@@ -101,11 +102,11 @@ set(SOURCE_FILES
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
 if (NOT DEFINED NOJIT)
-  SET(JIT jit)
-else()
-  target_compile_definitions(star PUBLIC NOJIT)
-  SET(JIT )
-endif()
+    SET(JIT jit)
+else ()
+    target_compile_definitions(star PUBLIC NOJIT)
+    SET(JIT)
+endif ()
 
 target_link_libraries(star escapes infra ooio ${JIT})
 

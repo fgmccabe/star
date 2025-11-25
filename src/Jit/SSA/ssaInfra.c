@@ -7,12 +7,14 @@
 #include "assert.h"
 
 static poolPo segmentPool = Null;
+static poolPo linkPool = Null;
 
 static int32 segNo = 0;
 
 static void initSegs() {
   if (segmentPool == Null) {
     segmentPool = newPool(sizeof(CodeSegment), 1024);
+    linkPool = newPool(sizeof(SegLinkRecord), 1024);
   }
 }
 
@@ -27,12 +29,19 @@ codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg) {
   seg->altLink = Null;
   seg->fallthrough = Null;
   seg->nextByPc = nextSeg;
+  seg->incoming = Null;
   return seg;
 }
 
 void tearDownSegs(codeSegPo root) {
   while (root != Null) {
     codeSegPo nextSeg = root->nextByPc;
+    segLinkPo link = root->incoming;
+    while (link != Null) {
+      segLinkPo nextLink = link->next;
+      freePool(linkPool, link);
+      link = nextLink;
+    }
     freePool(segmentPool, root);
     root = nextSeg;
   }
@@ -78,17 +87,43 @@ codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt) {
   return next;
 }
 
-codeSegPo bumpSeg(codeSegPo seg, int32 pc) {
-  while (seg != Null && !pcInSeg(seg, pc)) {
-    seg = seg->nextByPc;
+void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
+  segLinkPo link = tgt->incoming;
+  while (link != Null) {
+    if (link->seg == incoming) {
+      return;
+    }
+    link = link->next;
   }
-  return seg;
+
+  link = allocPool(linkPool);
+  link->seg = incoming;
+  link->next = tgt->incoming;
+  tgt->incoming = link;
 }
 
 retCode showSeg(ioPo out, codeSegPo seg) {
-  return outMsg(out, "seg: %d [%d -> %d] alt: %d, fall: %d\n%_", seg->segNo, seg->start, seg->end,
-                seg->altLink != Null ? seg->altLink->segNo : -1,
-                seg->fallthrough != Null ? seg->fallthrough->segNo : -1);
+  tryRet(outMsg(out, "seg: %d [%d -> %d]",seg->segNo, seg->start, seg->end));
+  if (seg->altLink != Null) {
+    tryRet(outMsg(out," alt: %d",seg->altLink->segNo));
+  }
+  if (seg->fallthrough != Null) {
+    tryRet(outMsg(out," fall: %d",seg->fallthrough->segNo));
+  }
+
+  if (seg->incoming != Null) {
+    tryRet(outStr(out,", incoming: ["));
+    segLinkPo link = seg->incoming;
+    char *sep = "";
+    while (link != Null) {
+      tryRet(outMsg(out,"%s%d",sep,link->seg->segNo));
+      sep = ", ";
+      link = link->next;
+    }
+    tryRet(outMsg(out,"]"));
+  }
+
+  return outMsg(out, "\n%_");
 }
 
 void showSegs(ioPo out, codeSegPo segs) {
