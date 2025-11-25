@@ -174,6 +174,24 @@ static retCode debugOption(char *option, OptionAction action) {
         return Error;
 #endif
 
+      case 'J': {
+#ifndef NOJIT
+#ifdef TRACEJIT
+        extern tracingLevel traceSSA;
+
+        if (traceSSA < detailedTracing)
+          traceSSA++;
+        logMsg(logFile, "SSA tracing enabled");
+        continue;
+#else
+        logMsg(logFile, "SSA tracing not enabled");
+        return Error;
+#endif
+#else
+        logMsg(logFile, "ssa not enabled");
+        return Error;
+#endif
+      }
       case 's':
         collectStats = True;
         atexit(dumpStats);
@@ -234,32 +252,32 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage) {
                 "d|D|"
                 "v|"
 #ifdef TRACEMEM
-                     "m|H|"
+                "m|H|"
 #endif
 #ifdef LOCKTRACE
-                     "l|"
+                "l|"
 #endif
                 "G|g|"
 #ifdef TRACESTACK
-                     "O|"
+                "O|"
 #endif
 #ifdef TRACEJIT
-                     "j|"
+                "j|"
 #endif
 #ifdef TRACESTATS
-                     "s|"
+                "s|"
 #endif
 #ifdef TRACEMANIFEST
-                     "M|"
+                "M|"
 #endif
 #ifdef TRACECAPABILITY
-                     "C|"
+                "C|"
 #endif
 #ifdef TRACEPKG
-                     "P|"
+                "P|"
 #endif
 #ifdef TRACE_BUDDY_MEMORY
-                     "B|"
+                "B|"
 #endif
                 "F"
                 ">\n%_");

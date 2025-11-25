@@ -9,6 +9,7 @@ endif ()
 
 add_subdirectory(${JIT_ARCH})
 add_subdirectory(Tests)
+add_subdirectory(SSA)
 
 include_directories("./Headers"
         "../Headers"
@@ -16,6 +17,7 @@ include_directories("./Headers"
         "../Escapes/Headers"
         "../Engine/Headers"
         "../Infra/Headers"
+        "SSA/Headers"
         "${JIT_ARCH}/Headers"
         "${JIT_ARCH}/Assem/Headers")
 
@@ -30,5 +32,5 @@ set(HEADER_FILES
 set(JIT_SOURCE_FILES jit.c jitInfra.c regsort.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
-target_link_libraries(jit ${JIT_ARCH})
+target_link_libraries(jit ${JIT_ARCH} ssa)
 
