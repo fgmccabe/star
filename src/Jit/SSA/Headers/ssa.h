@@ -11,6 +11,7 @@
 
 typedef struct code_seg_ *codeSegPo;
 typedef struct seg_link_ *segLinkPo;
+typedef struct var_seg_ *varSegPo;
 
 extern tracingLevel traceSSA;
 
@@ -20,5 +21,11 @@ void showSegs(ioPo out, codeSegPo segs);
 
 codeSegPo segmentMethod(methodPo mtd);
 void tearDownSegs(codeSegPo segs);
+
+typedef enum {
+  argument,
+  local,
+  stack
+} VarKind;
 
 #endif
