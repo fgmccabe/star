@@ -23,6 +23,14 @@ typedef struct seg_link_ {
   segLinkPo next;
 } SegLinkRecord;
 
+typedef struct var_seg_ {
+  int32 varNo;                  // Variable number, first numbers are locals
+  VarKind kind;
+  int32 start;                  // PC where its value is established
+  int32 end;                    // Last location where it is referenced
+  varSegPo next;
+} VarSegRecord;
+
 codeSegPo findSeg(codeSegPo root, int32 pc);
 codeSegPo splitAtPC(codeSegPo root,int32 pc);
 codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);

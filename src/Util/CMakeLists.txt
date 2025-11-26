@@ -49,7 +49,6 @@ set(PUBLIC_HEADERS
         Headers/base64.h
         Headers/multi.h
         Headers/signals.h
-        Headers/fiber.h
         Headers/lifo.h)
 
 set(HEADER_FILES
@@ -78,7 +77,6 @@ set(HEADER_FILES
         Headers/match.h
         Headers/quick.h
         Headers/byteBufferP.h
-        Headers/fiberP.h
         Headers/lifo.h
         Headers/lifoP.h)
 
@@ -90,7 +88,6 @@ set(SOURCE_FILES
         class.c
         cmdOptions.c
         editline.c
-        fiber.c
         file.c
         formatted.c
         formin.c
