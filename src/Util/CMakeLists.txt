@@ -49,7 +49,7 @@ set(PUBLIC_HEADERS
         Headers/base64.h
         Headers/multi.h
         Headers/signals.h
-        Headers/lifo.h)
+)
 
 set(HEADER_FILES
         Headers/arrayP.h
@@ -68,7 +68,6 @@ set(HEADER_FILES
         Headers/unistrP.h
         Headers/vector.h
         Headers/vectorP.h
-        Headers/integerP.h
         Headers/strngP.h
         Headers/buddyP.h
         Headers/multi.h
@@ -77,8 +76,7 @@ set(HEADER_FILES
         Headers/match.h
         Headers/quick.h
         Headers/byteBufferP.h
-        Headers/lifo.h
-        Headers/lifoP.h)
+)
 
 set(SOURCE_FILES
         arrays.c
@@ -94,10 +92,8 @@ set(SOURCE_FILES
         formout.c
         hash.c
         hosts.c
-        integer.c
         io.c
         formexts.c
-        lifo.c
         locked.c
         managed.c
         match.c

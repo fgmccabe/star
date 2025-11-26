@@ -6,6 +6,7 @@
 #define STAR_BUDDY_H
 
 #include "integer.h"
+#include "logical.h"
 #include "retcode.h"
 
 typedef struct buddy_memory_ *buddyRegionPo;

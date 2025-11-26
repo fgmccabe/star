@@ -14,6 +14,7 @@
 #include <string.h>
 #include <file.h>
 #include <assert.h>
+#include <unistd.h>
 
 #define DEFAULT_HISTORY_MAX_LEN 100
 

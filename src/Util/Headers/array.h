@@ -5,8 +5,7 @@
 #ifndef STAR_ARRAY_H
 #define STAR_ARRAY_H
 
-#include "integer.h"
-#include "retcode.h"
+#include "utils.h"
 
 typedef struct array_ *arrayPo;
 typedef retCode (*arrayElProc)(void *entry, integer ix, void *cl);

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "unistrP.h"
+#include "utils.h"
 
 char *retCodeNames[MaxRetCode] = {"Ok", "Fail", "Switch", "Interrupt", "Error", "Eof", "Space"};
 
