@@ -5,6 +5,8 @@
 #ifndef STAR_TIMERS_H
 #define STAR_TIMERS_H
 
+#include "utils.h"
+
 typedef struct timer_record *timerPo;
 
 extern logical enableTimers;

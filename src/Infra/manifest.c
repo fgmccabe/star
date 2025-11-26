@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <pkgP.h>
 #include <decode.h>
+#include <unistd.h>
+
 #include "manifestP.h"
 #include "debug.h"
 

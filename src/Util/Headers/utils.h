@@ -2,6 +2,8 @@
 #define UTILS_H_
 
 #include "integer.h"
+#include "logical.h"
+#include "retcode.h"
 
 #ifndef Null
 #define Null ((void*)0)

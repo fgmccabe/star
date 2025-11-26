@@ -17,8 +17,6 @@ typedef enum {
   negative
 } sign;
 
-#include "object.h"
-
 #define LARGE_INT64 ((integer)(((uinteger)-1)>>1u))
 #define LARGE_INT61 ((integer)(((uinteger)-1)>>3u))
 #define LARGE_INT62 ((integer)(((uinteger)-1)>>2u))
@@ -27,20 +25,4 @@ typedef enum {
 #define INT32_DIGITS (10)
 #define INT64_DIGITS (19)
 
-typedef struct ix_object_ *ixPo;
-
-extern integer ixVal(ixPo i);
-extern ixPo newInteger(integer ix);
-
-extern classPo ixClass;
-
-static inline logical isInt32(integer ix){
-  return (integer)((int32)ix) == ix;
-}
-
-#ifdef VERIFY_OBJECT
-#define O_IX(c) ((ixPo)(checkCast((c),ixClass)))
-#else
-#define O_IX(c) ((ixPo)(c))
-#endif
 #endif // INTEGER_H_

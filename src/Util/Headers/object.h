@@ -21,11 +21,7 @@ typedef struct _object_ *objectPo;
 typedef struct _class_ *classPo;
 
 #include "config.h"
-#include "logical.h"
-#include "retcode.h"
-#include "integer.h"
 #include "utils.h"
-#include <unistd.h>
 #include <pthread.h>
 #include <stdarg.h>
 
