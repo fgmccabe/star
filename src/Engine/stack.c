@@ -7,6 +7,7 @@
 #include "stackP.h"
 #include <assert.h>
 #include <globals.h>
+#include "abort.h"
 #include "constants.h"
 
 #ifdef TRACESTACK
@@ -82,7 +83,9 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment) {
+stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment) {
+  heapPo H = processHeap(P);
+
   if (sze > stackRegionSize)
     syserr("tried to allocate too large a stack");
 
@@ -94,7 +97,8 @@ stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, logical execJit,
   stk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
 
   if (stk->stkMem == Null) {
-    syserr("Ran out of stack space");
+    stackTrace(P,logFile,P->stk,5,showArguments,25);
+    star_exit(P, oomCode);
   }
 
   stk->sze = sze;
@@ -453,7 +457,7 @@ void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity) {
   assert(size >= minStackSize && stackState(stk) != moribund);
 
   stackPo newStack =
-    allocateStack(h, size, underflowProg, execJit, stackState(stk), stk);
+    allocateStack(P, size, underflowProg, execJit, stackState(stk), stk);
   moveStack2Stack(newStack, stk, execJit, saveArity);
   dropFrame(stk);
   propagateHwm(newStack);
@@ -465,10 +469,10 @@ void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 arity
   glueOnStack(P, execJit, (P->stk->sze * 3) / 2 + delta, arity);
 }
 
-stackPo spinupStack(heapPo H, logical execJit, integer size) {
+stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size) {
   assert(size >= minStackSize);
 
-  return allocateStack(H, size, underflowProg, execJit, suspended,Null);
+  return allocateStack(P, size, underflowProg, execJit, suspended, Null);
 }
 
 void newStack(enginePo P, logical execJit, termPo lam) {
@@ -476,7 +480,7 @@ void newStack(enginePo P, logical execJit, termPo lam) {
   stackPo stk = P->stk;
 
   int root = gcAddRoot(H, (ptrPo) &lam);
-  stackPo child = spinupStack(H, execJit, minStackSize);
+  stackPo child = spinupStack(P, H, execJit, minStackSize);
   gcReleaseRoot(H, root);
 
   child->fp = pushFrame(child, execJit, labelMtd(taskProg));

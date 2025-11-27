@@ -5,6 +5,8 @@
 #ifndef STAR_ABORT_H
 #define STAR_ABORT_H
 
+#include "engine.h"
+
 typedef enum {
   successCode = 0, /* Normal exit */
   failCode, /* Failing exit */
@@ -19,6 +21,6 @@ typedef enum {
   abortCode, // abort operation
 } ExitCode;
 
-void star_exit(ExitCode code);
+void star_exit(enginePo p,ExitCode code);
 
 #endif //STAR_ABORT_H

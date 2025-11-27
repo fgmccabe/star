@@ -27,7 +27,7 @@ typedef enum {
 
 typedef struct stack_frame_ *framePo;
 
-stackPo allocateStack(heapPo H, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment);
+stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment);
 
 StackState stackState(stackPo tsk);
 
@@ -51,7 +51,7 @@ void pushStack(stackPo stk, termPo ptr);
 void moveStack2Stack(stackPo toStk, stackPo fromStk, logical execJit, integer count);
 
 void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity);
-stackPo spinupStack(heapPo H, logical execJit, integer size);
+stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size);
 
 integer stackHwm(stackPo stk);
 integer stackNo(stackPo stk);

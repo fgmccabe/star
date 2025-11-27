@@ -5,6 +5,7 @@
 #include "ssaP.h"
 #include "opcodes.h"
 #include "codeP.h"
+#include "array.h"
 
 #ifdef TRACEJIT
 tracingLevel traceSSA = noTracing;
@@ -28,8 +29,10 @@ typedef enum {
 
 static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
+static void recordVariable(arrayPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc);
 
-retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int32 pc, int32 limit, int32 next) {
+retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int32 pc, int32 limit, int32 next,
+                   arrayPo vars) {
   ScopeBlock scope = {.start = start, .limit = limit, .next = next, .parent = parent};
 
   retCode ret = Ok;
@@ -86,7 +89,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         int32 blockLen = code[pc].alt;
 
         ret = splitBlock(&scope, root, code, pc, pc + 1, pc + blockLen + 1,
-                         pc + blockLen + 1 < limit ? pc + blockLen + 1 : limit);
+                         pc + blockLen + 1 < limit ? pc + blockLen + 1 : limit, vars);
         pc += blockLen;
         continue;
       }
@@ -267,9 +270,20 @@ codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt) {
   return Null;
 }
 
+void recordVariable(arrayPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc) {
+  VarSegRecord arg = {.varNo = varNo, .kind = kind, .start = startPc, .end = endPc};
+  appendEntry(vars, &arg);
+}
+
 codeSegPo segmentMethod(methodPo mtd) {
   codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
-  if (splitBlock(Null, root, entryPoint(mtd), 0, 0, codeSize(mtd), -1) == Ok)
+  arrayPo vars = allocArray(sizeof(VarSegRecord), 100, True);
+
+  for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
+    recordVariable(vars,ax,argument,0,-1);
+  }
+
+  if (splitBlock(Null, root, entryPoint(mtd), 0, 0, codeSize(mtd), -1, vars) == Ok)
     return root;
   logMsg(logFile, "Could not segment code for %M", mtd);
   return Null;

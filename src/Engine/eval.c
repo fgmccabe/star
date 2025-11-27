@@ -45,7 +45,7 @@ ReturnStatus run(enginePo P) {
       case Halt: {
         int32 exitCode = PC->fst;
         if (exitCode != 0) {
-          star_exit(exitCode);
+          star_exit(P, exitCode);
           return Abnormal;
         }
         return Normal;
@@ -293,7 +293,7 @@ ReturnStatus run(enginePo P) {
       }
 
       case Block:
-      case Valof:{
+      case Valof: {
         PC++;
         continue;
       }
@@ -922,7 +922,7 @@ ReturnStatus run(enginePo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (Lhs==Rhs ? trueEnum : falseEnum);
+        termPo Rs = (Lhs == Rhs ? trueEnum : falseEnum);
         push(Rs);
         PC++;
         continue;

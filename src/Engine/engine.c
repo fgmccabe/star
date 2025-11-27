@@ -61,11 +61,6 @@ ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
 
 enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo rootArg) {
   enginePo P = (enginePo) allocPool(prPool);
-  integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
-  stackPo stk = P->stk = allocateStack(h, stackSize, haltProg, execJit, active,Null);
-
-  pushStack(stk, rootArg);
-  stk->fp = pushFrame(stk, execJit, mtd);
 
   P->heap = h;
   P->state = quiescent;
@@ -83,6 +78,12 @@ enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo roo
   setProcessWd(P, rootWd, uniStrLen(rootWd));
 
   P->processNo = newProcessNumber();
+
+  integer stackSize = maximum(stackDelta(mtd) * 2, defaultStackSize);
+  stackPo stk = P->stk = allocateStack(P, stackSize, haltProg, execJit, active, Null);
+
+  pushStack(stk, rootArg);
+  stk->fp = pushFrame(stk, execJit, mtd);
 
   hashPut(prTble, (void *) P->processNo, P);
   return P;
