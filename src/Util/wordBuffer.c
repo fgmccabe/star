@@ -6,7 +6,6 @@
 #include "wordBufferP.h"
 
 #include <stdlib.h>
-#include <starOptions.h>
 #include <ooio.h>
 #include <string.h>
 #include <assert.h>

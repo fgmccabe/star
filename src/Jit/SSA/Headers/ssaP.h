@@ -28,7 +28,6 @@ typedef struct var_seg_ {
   VarKind kind;
   int32 start;                  // PC where its value is established
   int32 end;                    // Last location where it is referenced
-  varSegPo next;
 } VarSegRecord;
 
 codeSegPo findSeg(codeSegPo root, int32 pc);

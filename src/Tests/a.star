@@ -7,11 +7,6 @@ test.a{
     valis 1
   }
 
-  double:(integer) => integer.
-  double(I) => valof{
-    valis I+I
-  }
-
   main:()=>().
   main()=>valof{
     try{
