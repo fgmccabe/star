@@ -15,7 +15,7 @@ star.compiler.freshen{
   public implementation fresh[tipe] => {
     freshen(Tp,Env) where (T,Q,Ev) .= freshQuants(deRef(Tp),[],Env) =>
       (Q,frshn(deRef(T),declareTypeVars(Q,Ev))).
-    freshen(Tp,_) default => ([],Tp).
+    freshen(Tp,Env) default => ([],frshn(deRef(Tp),Env)).
 
     refresh(Q,T,Env) => frshn(deRef(T),declareTypeVars(Q,Env)).
   }
@@ -86,7 +86,7 @@ star.compiler.freshen{
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
   evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) =>
     (Q,frshn(deRef(T),Ev)).
-  evidence(Tp,_) default => ([],Tp).
+  evidence(Tp,Env) default => ([],frshn(deRef(Tp),Env)).
 
   skolemQuants(.allType(.kVar(V),T),B,Env) where .none.=findType(Env,V) =>
     skolemQuants(deRef(T),[(V,.kVar(V)),..B],Env).
@@ -143,12 +143,6 @@ star.compiler.freshen{
   frshnList(As,Env) => (As//(E)=>frshn(deRef(E),Env)).
 
   frshnD(Tp,Env) => frshn(deRef(Tp),Env).
-
-  public refreshConstraint:(cons[(string,tipe)],constraint,dict) => constraint.
-  refreshConstraint(Q,T,Env) =>
-    frshnConstraint(T,
-      foldLeft(((QNm,QTp),E)=>declareType(QNm,.none,QTp,
-	  .typeExists(QTp,emptyFace),E),Env,Q)).
 
   frshnConstraint(.conTract(N,T,D),Env) =>
     .conTract(N,frshnList(T,Env),frshnList(D,Env)).

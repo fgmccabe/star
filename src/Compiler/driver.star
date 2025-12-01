@@ -43,6 +43,7 @@ star.compiler{
 	      stdinOption,
 	      repoOption,
 	      graphOption,
+	      n3Option,
 	      forceCompileOption,
 	      traceDependencyOption,
 	      traceAstOption,
