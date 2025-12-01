@@ -180,6 +180,7 @@ void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define add(rd, s1, s2) do{ FlexOp s=s2; add_(1, rd, s1, s, ctx); } while(False)
+#define addw(rd, s1, s2) do{ FlexOp s=s2; add_(0, rd, s1, s, ctx); } while(False)
 
 void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
@@ -376,6 +377,7 @@ void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 
 void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx);
 #define ldr(Rt, S2) do{FlexOp s=S2;  ldr_(1, Rt, s, ctx); } while(False)
+#define ldrw(Rt, S2) do{FlexOp s=S2;  ldr_(0, Rt, s, ctx); } while(False)
 
 void ldrb_(armReg Rt, FlexOp S2, assemCtxPo ctx);
 #define ldrb(Rt, S2) do{FlexOp s=S2; ldrb_(Rt,s,ctx); } while(False)

@@ -49,6 +49,7 @@ star.compiler.opts{
   public genWasm = ref .false.
   public traceWasm = ref .false.
   public genDebug = ref .false.
+  public genN3 = ref .false.
 
   public compilerOptions ::=
     compilerOptions{
@@ -75,6 +76,18 @@ star.compiler.opts{
     setOption(_,Opts) => valof{
       forceCompile := .true;
       
+      valis Opts
+    }
+  }
+
+  public n3Option:cmdOption[compilerOptions].
+  n3Option = cmdOption{
+    shortForm = "-N3".
+    alternatives = [].
+    usage = "-N3 -- generate N3".
+    validator = .none.
+    setOption(_,Opts) => valof{
+      genN3 := .true;
       valis Opts
     }
   }

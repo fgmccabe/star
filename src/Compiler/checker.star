@@ -343,7 +343,7 @@ star.compiler.checker{
     if traceCanon! then
       showMsg("constraints $(Cx)");
 
-    if (ArgTp,ErTp) ?= isPrType(ProgramType) then{
+    if (ArgTp,ErTp) ?= isPrType(ProgramType) then {
       Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
       Rls = processRules(Stmts,typeOfArgPtn,ArgTp,.voidType,ErTp,[],.none,Es,
 	declareConstraints(Lc,Cx,declareTypeVars(Q,Outer)),Path);
@@ -1170,6 +1170,17 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
     Thrw = typeOfExp(E,ErTp,.voidType,Env,Path);
     valis (.doThrow(Lc,Thrw),Env)
+  }
+  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
+    if traceCanon! then
+      showMsg("type annotated var $(Id)\:$(T)");
+    ETp = parseType(T,Env);
+
+    if traceCanon! then
+      showMsg("type  $(ETp), expected type $(Tp)");
+
+    Ev = declareVr(Id,Lc,Tp,(OLc,_,D) => .vr(OLc,Id,Tp),.none,Env);
+    valis (.doNop(Lc),Ev)
   }
   checkAction(A,VTp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     isValidLastAct(Lc,VTp,Mode);

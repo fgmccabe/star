@@ -14,6 +14,7 @@ include_directories("./Headers"
 set(HEADER_FILES
         Headers/ssa.h
         Headers/ssaP.h
+        Headers/ssaInstructions.h
         )
 
 set(SSA_SOURCE_FILES split.c ssaInfra.c)
