@@ -2,7 +2,7 @@ test.cstream{
   import star.
   import star.assert.
 
-  aa = [0]|:cons[_].
+  aa = ([0]:cons[_]).
 
   bb = disp(aa).
 

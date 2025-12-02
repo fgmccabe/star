@@ -52,7 +52,7 @@ test.art{
   float_eqq:eqq[float].
   float_eqq = (((X,Y) => _flt_lt(_flt_abs(_flt_minus(X,Y)),1.0e-7))).
 
-  ff:all x ~~ F|:four[x], Q|:eqq[x] |=(x)=>x.
+  ff:all x ~~ (F:four[x]), (Q:eqq[x]) |=(x)=>x.
   ff(X) where eq(Q)(X,zer(F)) =>unum(F).
   ff(N) => times(F)(N,ff(minus(F)(N,unum(F)))).
 

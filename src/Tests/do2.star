@@ -17,6 +17,7 @@ test.do2{
   
   doIf:(integer)=>boolean.
   doIf(X) => valof{
+    Alpha : integer;
     Alpha = 3;
 
     if Alpha < X then{
