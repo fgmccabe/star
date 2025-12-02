@@ -82,6 +82,9 @@ add_custom_target(el.operators DEPENDS ops
 add_custom_target(pl.operators DEPENDS ops
         COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate ${OPERATORS_PL})
 
+add_custom_target(adoc.operators DEPENDS ops
+        COMMAND ops -a -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.adoc.plate ${OPERATORS_ADOC})
+
 add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS}
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate ${OPERATORS_ST}
         COMMENT "Creating star operators in  ${OPERATORS_ST}"
@@ -116,5 +119,5 @@ add_custom_target(star.memnonics DEPENDS starmnem
 
 add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics
         pl.operators pl.escapes pl.intrinsics pl.memnonics
-        el.operators)
+        el.operators adoc.operators)
 

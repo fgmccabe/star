@@ -73,7 +73,7 @@ test.are{
 
       -- show div(10,0);
 
-      show (((X,Y)=>add(X,Y))|:(string,string)=>string)("hello","again");
+      show (((X,Y)=>add(X,Y)):(string,string)=>string)("hello","again");
     } catch {
       E do { show E}
     }

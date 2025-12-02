@@ -27,7 +27,7 @@ test.ac11{
   ff:dynamic[integer] |= (integer)=>integer.
   ff(U) where isEven(U) => f(U-1).
   ff(U) where U>1 => valof{
-    showMsg("dynamic = $(_dynamic|:integer)");
+    showMsg("dynamic = $(_dynamic:integer)");
     valis ff(U-1)*_dynamic
   }
   ff(_) default => _dynamic.

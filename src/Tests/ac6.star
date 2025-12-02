@@ -31,7 +31,8 @@ test.ac6{
 
   large(Count) => valof {
     timer = ref timer_start(Count, "");
-    idxes = iota(0, Count)|:cons[_];
+    idxes : cons[_];
+    idxes = iota(0, Count);
 --    showMsg("Indices: $(idxes)");
 
     showMsg("******* red/black trees ******");
