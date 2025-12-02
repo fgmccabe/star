@@ -355,11 +355,11 @@ surfaceName(T,"ref") :-
   isRef(T,_,_),!.
 
 isDynamic(A,Lc,Nm,Tp) :-
-  isBinary(A,Lc,"|:",L,Tp),
+  isBinary(A,Lc,":",L,Tp),
   isIden(L,Nm),!.
 
 mkDynamic(Lc,Nm,Tp,D) :-
-  binary(Lc,"|:",name(Lc,Nm),Tp,D).
+  binary(Lc,":",name(Lc,Nm),Tp,D).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.

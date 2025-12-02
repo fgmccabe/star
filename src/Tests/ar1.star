@@ -8,14 +8,11 @@ test.ar1{
   inc:all e ~~ arith[e] |= (e)=>e.
   inc(X) => X+one.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show doubler(ζ inc,3);
 
     assert doubler(ζ inc,3)==5;
-
---    show doubler((((x)=>x+one)|:(all x ~~ arith[x] |= (x)=>x)),3);
-    valis ()
   }
 }
   

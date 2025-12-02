@@ -753,5 +753,5 @@ caseRuleMacro(T,_,Tx) :-
 asyncMacro(T,type,Tx) :-
   isUnary(T,Lc,"async",R),!,
   mkSqType(Lc,"task",[name(Lc,"_")],TTp),
-  typeAnnotation(Lc,name(Lc,"this"),TTp,CTp),
+  mkDynamic(Lc,"this",TTp,CTp),
   binary(Lc,"|=",CTp,R,Tx).

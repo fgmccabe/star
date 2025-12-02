@@ -391,11 +391,11 @@ star.compiler.checker{
 
     if Wh?=Cnd then{
       (Cond,E1) = checkCond(Wh,ErTp,E0,Path);
-      (Body,_) = checkAction(B,ResltTp,ErTp,.noVal,E1,Path);
+      (Body,_,_) = checkAction(B,ResltTp,ErTp,.noVal,E1,[],Path);
 
       valis .prle(Lc,Args,mergeGoal(Lc,ACnd,.some(Cond)),Body)
     } else{
-      (Body,_) = checkAction(B,ResltTp,ErTp,.noVal,E0,Path);
+      (Body,_,_) = checkAction(B,ResltTp,ErTp,.noVal,E0,[],Path);
       valis .prle(Lc,Args,ACnd,Body)
     }
   }
@@ -806,11 +806,11 @@ star.compiler.checker{
 
     if Cnd ?= C then {
       (Cond,E1) = checkCond(Cnd,ErTp,E0,Path);
-      (Rep,_) = checkAction(R,.voidType,ErTp,.noVal,E1,Path);
+      (Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E1,[],Path);
 
       valis .prc(Lc,LName,.prle(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
     } else{
-      (Rep,_) = checkAction(R,.voidType,ErTp,.noVal,E0,Path);
+      (Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E0,[],Path);
       valis .prc(Lc,LName,.prle(Lc,As,ACnd,Rep),Tp);
     }
   }
@@ -994,7 +994,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,ErTp,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Ac) ?= isValof(A) => valof{
-    (Act,_) = checkActions(Lc,Ac,Tp,ErTp,.mustVal,Env,Path);
+    (Act,_,_) = checkActions(Lc,Ac,Tp,ErTp,.mustVal,Env,[],Path);
     valis .vlof(Lc,Act,Tp)
   }
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Body,Rls) ?= isTry(A) => valof{
@@ -1174,21 +1174,23 @@ star.compiler.checker{
   checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,E,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(E) => valof{
     if traceCanon! then
       showMsg("type annotated var $(Id)\:$(T)");
-    valis (.doNop(Lc),Env,[.varDec(Lc,Id,parseType(T,Env)),..Dcls])
+    valis (.doNop(Lc),Env,[.varDec(Lc,Id,Id,parseType(T,Env)),..Dcls])
   }
-  checkAction(A,VTp,ErTp,Mode,Env,Dcls,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
-    isValidLastAct(Lc,VTp,Mode);
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
+    isValidLastAct(Lc,Tp,Mode);
     if (ILc,Id) ?= isName(Lhs) then{
-      if 
-      if Tp ?= varType(Id,Env) then{
-	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
-	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-	valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
+      if varDefined(Id,Env) then{
+        reportError("May not redefine variable: #(Id)",Lc);
+	valis (.doNop(Lc),Env,Dcls)
+      } else if VTp ?= {! VTp | .varDec(_,Id,_,VTp) in Dcls !} then{
+	Val = typeOfExp(Rhs,VTp,ErTp,Env,Path);
+	Ev = declareVar(Id,Id,Lc,VTp,faceOfType(VTp,Env),Env);
+	valis (.doDefn(Lc,.vr(ILc,Id,VTp),Val),Ev,Dcls)
       } else {
-	Tp = newTypeVar("_VD");
-	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
-	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
-	valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
+	VTp = newTypeVar("_VD");
+	Val = typeOfExp(Rhs,VTp,ErTp,Env,Path);
+	Ev = declareVar(Id,Id,Lc,VTp,faceOfType(Tp,Env),Env);
+	valis (.doDefn(Lc,.vr(ILc,Id,VTp),Val),Ev,Dcls)
       }
     } else if (ILc,Els) ?= isTuple(Lhs) then {
       TTp = newTypeVar("_T");
@@ -1196,55 +1198,55 @@ star.compiler.checker{
       if C?=PCond then
 	reportError("Not permitted to have where clauses in action $(A)",Lc);
       Val = typeOfExp(Rhs,TTp,ErTp,Env,Path);
-      valis (.doMatch(Lc,Ptn,Val),Ev)
+      valis (.doMatch(Lc,Ptn,Val),Ev,Dcls)
     } else{
       reportError("invalid lhs $(Lhs) of definition",locOf(Lhs));
-      valis (.doNop(Lc),Env)
+      valis (.doNop(Lc),Env,Dcls)
     }
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Lhs,Rhs) ?= isAssignment(A) => valof{
     isValidLastAct(Lc,Tp,Mode);
     XTp = newTypeVar("_VA");
     RfTp = refType(XTp);
     if (ILc,Id) ?= isName(Lhs) && ~ varDefined(Id,Env) then {
       Val = typeOfExp(Rhs,XTp,ErTp,Env,Path);
       Ev = declareVar(Id,Id,ILc,RfTp,.none,Env);
-      valis (.doDefn(Lc,.vr(ILc,Id,RfTp),.cell(Lc,Val,RfTp)),Ev)
+      valis (.doDefn(Lc,.vr(ILc,Id,RfTp),.cell(Lc,Val,RfTp)),Ev,Dcls)
     } else{
       Val = typeOfExp(Rhs,XTp,ErTp,Env,Path);
       Var = typeOfExp(Lhs,RfTp,ErTp,Env,Path);
-      valis (.doAssign(Lc,Var,Val),Env)
+      valis (.doAssign(Lc,Var,Val),Env,Dcls)
     }
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Body,Rls) ?= isTry(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Body,Rls) ?= isTry(A) => valof{
     ETp = newTypeVar("_E");
     ErNm = genNewName(Path,"δ");
-    (NB,_) = checkAction(Body,Tp,ETp,Mode,Env,Path);
+    (NB,_,_) = checkAction(Body,Tp,ETp,Mode,Env,Dcls,Path);
     HEnv = declareVar(ErNm,ErNm,Lc,ETp,.none,Env);
 
     HandlerCase = mkCaseExp(Lc,.nme(Lc,ErNm),Rls);
-    (Handler,_) = checkAction(HandlerCase,Tp,ErTp,Mode,HEnv,Path);
-    valis (.doTry(Lc,NB,.vr(Lc,ErNm,ETp),Handler),Env)
+    (Handler,_,_) = checkAction(HandlerCase,Tp,ErTp,Mode,HEnv,Dcls,Path);
+    valis (.doTry(Lc,NB,.vr(Lc,ErNm,ETp),Handler),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,C,T,E) ?= isIfThenElse(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
-    (TT,_) = checkAction(T,Tp,ErTp,Mode,E0,Path);
-    (EE,_) = checkAction(E,Tp,ErTp,Mode,Env,Path);
-    valis (.doIfThen(Lc,CC,TT,EE),Env)
+    (TT,_,_) = checkAction(T,Tp,ErTp,Mode,E0,Dcls,Path);
+    (EE,_,_) = checkAction(E,Tp,ErTp,Mode,Env,Dcls,Path);
+    valis (.doIfThen(Lc,CC,TT,EE),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,C,T) ?= isIfThen(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,C,T) ?= isIfThen(A) => valof{
     isValidLastAct(Lc,Tp,Mode);
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
-    (TT,_) = checkAction(T,Tp,ErTp,Mode,E0,Path);
-    valis (.doIfThen(Lc,CC,TT,.doNop(Lc)),Env)
+    (TT,_,_) = checkAction(T,Tp,ErTp,Mode,E0,Dcls,Path);
+    valis (.doIfThen(Lc,CC,TT,.doNop(Lc)),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,C,B) ?= isWhileDo(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,C,B) ?= isWhileDo(A) => valof{
     (CC,E0) = checkGoal(C,ErTp,Env,Path);
-    (BB,_) = checkAction(B,Tp,ErTp,.notLast,E0,Path);
+    (BB,_,_) = checkAction(B,Tp,ErTp,.notLast,E0,Dcls,Path);
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doWhile(Lc,CC,BB),Env)
+    valis (.doWhile(Lc,CC,BB),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Ds,B) ?= isLetDef(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Ds,B) ?= isLetDef(A) => valof{
     (Defs,XDecls,Decls)=recordEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env,Env);
 
     if traceCanon! then{
@@ -1252,18 +1254,18 @@ star.compiler.checker{
       showMsg("exported decls: $(XDecls)");
     };
 
-    (Ac,_) = checkAction(B,Tp,ErTp,Mode,declareDecls(XDecls,Env),Path);
+    (Ac,_,_) = checkAction(B,Tp,ErTp,Mode,declareDecls(XDecls,Env),Dcls,Path);
     Sorted = sortDefs(Defs);
 
-    valis (foldRight((Gp,I)=>.doLet(Lc,Gp,Decls,I),Ac,Sorted),Env)
+    valis (foldRight((Gp,I)=>.doLet(Lc,Gp,Decls,I),Ac,Sorted),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Ds,B) ?= isLetRecDef(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Ds,B) ?= isLetRecDef(A) => valof{
     (Defs,Decls,ThEnv)=thetaEnv(Lc,genNewName(Path,"Γ"),Ds,.faceType([],[]),Env);
-    (Ac,_) = checkAction(B,Tp,ErTp,Mode,ThEnv,Path);
+    (Ac,_,_) = checkAction(B,Tp,ErTp,Mode,ThEnv,Dcls,Path);
 
-    valis (genLetRec(Defs,Decls,(G,D,E)=>.doLetRec(Lc,G,D,E),Ac),Env)
+    valis (genLetRec(Defs,Decls,(G,D,E)=>.doLetRec(Lc,G,D,E),Ac),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,G,Cases) ?= isCase(A) => valof{
     ETp = newTypeVar("_e");
     Gv = typeOfExp(G,ETp,ErTp,Env,Path);
 
@@ -1272,58 +1274,58 @@ star.compiler.checker{
 
     Rules = processRules(Cases,caseArgType,ETp,Tp,ErTp,[],.none,Env,Env,Path);
 
-    valis (.doCase(Lc,Gv,Rules),Env)
+    valis (.doCase(Lc,Gv,Rules),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isSuspend(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
     FTp = fiberType(TTp,MsgTp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doExp(Lc,.susp(Lc,Tsk,Msg,TTp)),Env)
+    valis (.doExp(Lc,.susp(Lc,Tsk,Msg,TTp)),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,L,R) ?= isRetire(A) => valof{
+  checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,L,R) ?= isRetire(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
     FTp = fiberType(TTp,MsgTp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
-    valis (.doExp(Lc,.retyre(Lc,Tsk,Msg,Tp)),Env)
+    valis (.doExp(Lc,.retyre(Lc,Tsk,Msg,Tp)),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,L,R) ?= isResume(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isResume(A) => valof{
     TTp = newTypeVar("_T");
     MsgTp = newTypeVar("_M");
     FTp = fiberType(MsgTp,TTp);
     Tsk = typeOfExp(L,FTp,ErTp,Env,Path);
     Msg = typeOfExp(R,MsgTp,ErTp,Env,Path);
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env)
+    valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
     if traceCanon! then
       showMsg("Check action $(A)\:$(Tp)");
     isValidLastAct(Lc,Tp,Mode);
 
     Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_"),ErTp,Env,Path);
-    valis (.doExp(Lc,Call),Env)
+    valis (.doExp(Lc,Call),Env,Dcls)
   }
-  checkAction(A,_Tp,_ErTp,_Mode,Env,_Path) default => valof{
+  checkAction(A,_Tp,_ErTp,_Mode,Env,Dcls,_Path) default => valof{
     Lc = locOf(A);
     reportError("invalid action $(A)",Lc);
-    valis (.doNop(Lc),Env)
+    valis (.doNop(Lc),Env,Dcls)
   }
 
-  checkActions:(option[locn],cons[ast],tipe,tipe,actionMode,dict,string) => (canonAction,dict).
-  checkActions(Lc,[],Tp,_ErTp,Mode,Env,_Path) => valof{
+  checkActions:(option[locn],cons[ast],tipe,tipe,actionMode,dict,cons[decl],string) => (canonAction,dict,cons[decl]).
+  checkActions(Lc,[],Tp,_ErTp,Mode,Env,Dcls,_Path) => valof{
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doNop(Lc),Env)
+    valis (.doNop(Lc),Env,Dcls)
   }
-  checkActions(_,[A],Tp,ErTp,Mode,Env,Path) => checkAction(A,Tp,ErTp,Mode,Env,Path).
-  checkActions(Lc,[A,..As],Tp,ErTp,Mode,Env,Path) => valof{
-    (LL,E1) = checkAction(A,Tp,ErTp,.notLast,Env,Path);
-    (RR,Ex) = checkActions(locOf(A),As,Tp,ErTp,Mode,E1,Path);
-    valis (.doSeq(Lc,LL,RR),Ex)
+  checkActions(_,[A],Tp,ErTp,Mode,Env,Dcls,Path) => checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path).
+  checkActions(Lc,[A,..As],Tp,ErTp,Mode,Env,Dcls,Path) => valof{
+    (LL,E1,D1) = checkAction(A,Tp,ErTp,.notLast,Env,Dcls,Path);
+    (RR,Ex,Dx) = checkActions(locOf(A),As,Tp,ErTp,Mode,E1,D1,Path);
+    valis (.doSeq(Lc,LL,RR),Ex,Dx)
   }
 
   isValidLastAct:(option[locn],tipe,actionMode){}.

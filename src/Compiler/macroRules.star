@@ -646,7 +646,7 @@ star.compiler.macro.rules{
   -- Convert async T to (this:task[_]) |= T.
   asyncMacro(A,.typeterm) where
       (Lc,R) ?= isAsync(A) =>
-    .active(reConstrain([mkTypeAnnotation(Lc,.nme(Lc,"this"),
+    .active(reConstrain([mkDynamic(Lc,.nme(Lc,"this"),
 	  squareTerm(Lc,.nme(Lc,"task"),[.nme(Lc,"_")]))],
       R)).
   asyncMacro(_,_) default => .inactive.
