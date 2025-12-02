@@ -401,7 +401,7 @@ checkRule(Lc,H,G,A,ProgramType,Defs,Defsx,Df,Dfx,E,Opts,Path) :-
   pushScope(E,Env),
   typeOfArgPtn(Ags,AT,ErTp,Env,E0,Args,Opts,Path),
   checkGuard(G,ErTp,E0,E1,Guard,Opts,Path),
-  checkAction(A,voidType,ErTp,notLast,E1,_,Body,Opts,Path),
+  checkAction(A,voidType,ErTp,notLast,E1,_,[],_,Body,Opts,Path),
   Rle = prle(Lc,Args,Guard,Body),
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"rule: %s",[rle(Rle)])),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Rle|Dfx]; Defs=[Rle|Defsx],Df=Dfx).
@@ -866,7 +866,7 @@ typeOfExp(Term,Tp,_ErTp,Env,Env,Lam,Opts,Path) :-
 typeOfExp(Term,Tp,ErTp,Env,Ev,valof(Lc,Act,Tp),Opts,Path) :-
   isValof(Term,Lc,A),
   isBraceTuple(A,_,[Ac]),!,
-  checkAction(Ac,Tp,ErTp,mustVal,Env,Ev,Act,Opts,Path),
+  checkAction(Ac,Tp,ErTp,mustVal,Env,Ev,[],_,Act,Opts,Path),
   (is_member(traceCheck,Opts) -> 
    reportMsg("action %s:%s/%s",[cnact(Act),tpe(Tp),tpe(ErTp)],Lc);
    true).
@@ -971,7 +971,7 @@ typeOfRule(Lc,Term,Tp,Env,lambda(Lc,Lbl,Cx,prle(Lc,Args,Guard,Act),Tp),Opts,Path
   typeOfArgPtn(H,AT,ErTp,EvL,E0,Args,Opts,Path),
   checkGuard(C,ErTp,E0,E1,Guard,Opts,Path),
   lambdaLbl(Path,"λ",Lbl),
-  checkAction(R,voidType,ErTp,noMore,E1,_,Act,Opts,Path).
+  checkAction(R,voidType,ErTp,noMore,E1,_,[],_,Act,Opts,Path).
 
 
 %% Translate thunks into uses of SAVars & lambda
@@ -1007,100 +1007,103 @@ typeOfThunk(Lc,Term,Tp,Env,
   verifyType(Lc,ast(Term),ThTp,Tp,ThnkEnv),
   typeOfExp(Term,VlTp,voidType,ThnkEnv,_,Exp,Opts,Path).
 
-checkAction(A,Tp,ErTp,Last,Env,Ev,As,Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dx,As,Opts,Path) :-
   isBraceTuple(A,_,[S]),!,
-  checkAction(S,Tp,ErTp,Last,Env,Ev,As,Opts,Path).
-checkAction(A,Tp,_ErTp,Last,Env,Env,doNop(Lc),_,_) :-
+  checkAction(S,Tp,ErTp,Last,Env,Ev,Dcls,Dx,As,Opts,Path).
+checkAction(A,Tp,_ErTp,Last,Env,Env,Dx,Dx,doNop(Lc),_,_) :-
   isBraceTuple(A,Lc,[]),!,
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doSeq(Lc,L,R),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dx,doSeq(Lc,L,R),Opts,Path) :-
   isActionSeq(A,Lc,A1,A2),!,
-  checkAction(A1,Tp,ErTp,notLast,Env,E0,L,Opts,Path),
-  checkAction(A2,Tp,ErTp,Last,E0,Ev,R,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Ev,Ax,Opts,Path) :-
+  checkAction(A1,Tp,ErTp,notLast,Env,E0,Dcls,D0,L,Opts,Path),
+  checkAction(A2,Tp,ErTp,Last,E0,Ev,D0,Dx,R,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dx,Ax,Opts,Path) :-
   isActionSeq(A,_,A1),!,
-  checkAction(A1,Tp,ErTp,Last,Env,Ev,Ax,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Env,doLbld(Lc,Lb,Ax),Opts,Path) :-
+  checkAction(A1,Tp,ErTp,Last,Env,Ev,Dcls,Dx,Ax,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doLbld(Lc,Lb,Ax),Opts,Path) :-
   isLbldAction(A,Lc,L,[AA]),!,isIden(L,_,Lb),
-  checkAction(AA,Tp,ErTp,Last,Env,_,Ax,Opts,Path).
-checkAction(A,Tp,_,Last,Env,Env,doBrk(Lc,Lb),_Opts,_Path) :-
+  checkAction(AA,Tp,ErTp,Last,Env,_,Dcls,_,Ax,Opts,Path).
+checkAction(A,Tp,_,Last,Env,Env,Dx,Dx,doBrk(Lc,Lb),_Opts,_Path) :-
   isBreak(A,Lc,L),!,isIden(L,_,Lb),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,_,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
+checkAction(A,Tp,ErTp,_,Env,Env,Dx,Dx,doValis(Lc,ValExp),Opts,Path) :-
   isValis(A,Lc,E),!,
   typeOfExp(E,Tp,ErTp,Env,_,ValExp,Opts,Path).
-checkAction(A,_Tp,ErTp,_Last,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
+checkAction(A,_Tp,ErTp,_Last,Env,Env,Dx,Dx,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
-checkAction(A,_Tp,_ErTp,_Last,Env,Ev,doNop(Lc),_Opts,_Path) :-
-  isTypeAnnotation(A,Lc,L,R),isIden(L,_,Id),!,
-  parseType(R,Env,VT),
-  declareVr(Lc,Id,VT,none,Env,Ev).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,v(Lc,Nm,VTp),Exp),Opts,Path) :-
+checkAction(A,_Tp,_ErTp,_Last,Env,Env,Dcls,[Decl|Dcls],doNop(Lc),_Opts,_Path) :-
+  isTypeAnnotation(A,Lc,L,R),
+  isIden(L,_,Id),!,
+  parseType(R,Env,VTp),
+  Decl = varDec(Id,Id,VTp).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,Actn,Opts,Path) :-
   isDefn(A,Lc,L,R), % This needs a fix. Should not be allowed to redefine
   isIden(L,_,Nm),!,
-  (getVar(_,Nm,Env,_,VTp) ->
-   Env=Ev;
-   newTypeVar("V",VTp),
-   declareVr(Lc,Nm,VTp,none,Env,Ev)),
-  typeOfExp(R,VTp,ErTp,Env,_,Exp,Opts,Path),
-  validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
+  validLastAct(A,Lc,Tp,Last),
+  (is_member((Nm,VTp),Dcls) ; newTypeVar("V",VTp)),
+  (getVar(VLc,Nm,Env,_,_) ->
+     reportError("May not redefine variable %s, previously at %s",[id(Nm),loc(VLc)],Lc),
+     Env=Ev, Actn=doNop(Lc);
+   declareVr(Lc,Nm,VTp,none,Env,Ev),
+   typeOfExp(R,VTp,ErTp,Env,_,Exp,Opts,Path),
+   Actn = doDefn(Lc,v(Lc,Nm,VTp),Exp)).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isDefn(A,Lc,P,E),
   isTuple(P,_,_),!,
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Opts,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isMatch(A,Lc,P,E),!,
   reportWarning("Use of .= in actions is deprecated",[],Lc),
   newTypeVar("V",TV),
   typeOfPtn(P,TV,ErTp,Env,Ev,Ptn,Opts,Path),
   typeOfExp(E,TV,ErTp,Env,_,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Ev,Act,Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,Act,Opts,Path) :-
   isAssignment(A,Lc,P,E),!,
   checkAssignment(Lc,P,E,ErTp,Env,Ev,Act,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,OErTp,Last,Env,Env,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
+checkAction(A,Tp,OErTp,Last,Env,Env,Dcls,Dcls,doTry(Lc,Body,ErTp,Hndlr),Opts,Path) :-
   isTry(A,Lc,B,H),!,
-  checkTry(B,H,ErTp,Tp,OErTp,Env,checker:tryAction(Last),Body,Hndlr,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
+  checkTry(B,H,ErTp,Tp,OErTp,Env,checker:tryAction(Last,Dcls),Body,Hndlr,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,doIfThenElse(Lc,Tst,Thn,Els),Opts,Path) :-
   isIfThenElse(A,Lc,G,T,E),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(T,Tp,ErTp,Last,E0,E1,Thn,Opts,Path),
-  checkAction(E,Tp,ErTp,Last,Env,E2,Els,Opts,Path),
+  checkAction(T,Tp,ErTp,Last,E0,E1,Dcls,D0,Thn,Opts,Path),
+  checkAction(E,Tp,ErTp,Last,Env,E2,D0,_,Els,Opts,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(A,Tp,ErTp,Last,Env,Env,doIfThenElse(Lc,Tst,Thn,doNop(Lc)),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doIfThenElse(Lc,Tst,Thn,doNop(Lc)),Opts,Path) :-
   isIfThen(A,Lc,G,T),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(T,Tp,ErTp,Last,E0,_,Thn,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Env,doWhile(Lc,Tst,Bdy),Opts,Path) :-
+  checkAction(T,Tp,ErTp,Last,E0,_,Dcls,_,Thn,Opts,Path).
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doWhile(Lc,Tst,Bdy),Opts,Path) :-
   isWhileDo(A,Lc,G,B),!,
   checkGoal(G,ErTp,Env,E0,Tst,Opts,Path),
-  checkAction(B,Tp,ErTp,notLast,E0,_,Bdy,Opts,Path),
+  checkAction(B,Tp,ErTp,notLast,E0,_,Dcls,_,Bdy,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Env,doLet(Lc,Decls,Defs,Ac),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doLet(Lc,Decls,Defs,Ac),Opts,Path) :-
   isLetDef(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   recordEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,ErTp,Last,OEnv,_,Ac,Opts,ThPath).
-checkAction(A,Tp,ErTp,Last,Env,Env,doLetRec(Lc,Decls,Defs,Ac),Opts,Path) :-
+  checkAction(B,Tp,ErTp,Last,OEnv,_,Dcls,_,Ac,Opts,ThPath).
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doLetRec(Lc,Decls,Defs,Ac),Opts,Path) :-
   isLetRec(A,Lc,D,B),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   thetaEnv(checker:letExport,Opts,ThPath,Lc,D,faceType([],[]),ThEnv,OEnv,Defs,ThDecls),
   mergeDecls(ThDecls,Decls),
-  checkAction(B,Tp,ErTp,Last,OEnv,_,Ac,Opts,ThPath).
-checkAction(A,Tp,ErTp,Last,Env,Env,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
+  checkAction(B,Tp,ErTp,Last,OEnv,_,Dcls,_,Ac,Opts,ThPath).
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doCase(Lc,Bound,Eqns,Tp),Opts,Path) :-
   isCaseExp(A,Lc,Bnd,Cases),
   newTypeVar("B",BVr),
   typeOfExp(Bnd,BVr,ErTp,Env,_,Bound,Opts,Path),
-  checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:tryAction(Last),Opts,Path),!.
-checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
+  checkCases(Cases,BVr,Tp,ErTp,Env,Eqns,Eqx,Eqx,[],checker:tryAction(Last,Dcls),Opts,Path),!.
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
   isSuspend(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
@@ -1108,14 +1111,14 @@ checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,suspend(Lc,T,M,TTp)),Opts,Path) :-
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,_Last,Env,Env,doExp(Lc,retire(Lc,T,M,Tp)),Opts,Path) :-
+checkAction(A,Tp,ErTp,_Last,Env,Env,Dcls,Dcls,doExp(Lc,retire(Lc,T,M,Tp)),Opts,Path) :-
   isRetire(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
   fiberType(TTp,MTp,FTp),
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
   isResume(A,Lc,L,R),!,
   newTypeVar("T",TTp),
   newTypeVar("M",MTp),
@@ -1123,25 +1126,25 @@ checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,resume(Lc,T,M,TTp)),Opts,Path) :-
   typeOfExp(L,FTp,ErTp,Env,_,T,Opts,Path),
   typeOfExp(R,MTp,ErTp,Env,_,M,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,ErTp,Last,Env,Env,doExp(Lc,Exp),Opts,Path) :-
+checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   newTypeVar("R",RTp),
   checkFunCall(Lc,F,Args,RTp,ErTp,Env,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
-checkAction(A,Tp,_ErTp,_Last,Env,Env,doNop(Lc),_,_) :-
+checkAction(A,Tp,_ErTp,_Last,Env,Env,Dcls,Dcls,doNop(Lc),_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).
 
-checkActions([],Lc,_ErTp,Env,Env,doNop(Lc),_Opts,_Path).
-checkActions([A],_,ErTp,Env,Ev,Ax,Opts,Path) :-
-  checkAction(A,voidType,ErTp,notLast,Env,Ev,Ax,Opts,Path).
-checkActions([A|As],_,ErTp,Env,Ev,doSeq(Lc,A1,A2),Opts,Path) :-
-  checkAction(A,voidType,ErTp,notLast,Env,E0,A1,Opts,Path),
+checkActions([],Lc,_ErTp,Env,Env,Dcls,Dcls,doNop(Lc),_Opts,_Path).
+checkActions([A],_,ErTp,Env,Ev,Dcls,Dx,Ax,Opts,Path) :-
+  checkAction(A,voidType,ErTp,notLast,Env,Ev,Dcls,Dx,Ax,Opts,Path).
+checkActions([A|As],_,ErTp,Env,Ev,Dcls,Dx,doSeq(Lc,A1,A2),Opts,Path) :-
+  checkAction(A,voidType,ErTp,notLast,Env,E0,Dcls,D0,A1,Opts,Path),
   locOfAst(A,Lc),
-  checkActions(As,Lc,ErTp,E0,Ev,A2,Opts,Path).
+  checkActions(As,Lc,ErTp,E0,Ev,D0,Dx,A2,Opts,Path).
 
-tryAction(Last,A,Tp,ErTp,Env,Ev,Act,Opts,Path) :-
-  checkAction(A,Tp,ErTp,Last,Env,Ev,Act,Opts,Path).
+tryAction(Last,Dcls,A,Tp,ErTp,Env,Ev,Act,Opts,Path) :-
+  checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,_,Act,Opts,Path).
 
 checkAssignment(Lc,P,E,ErTp,Env,Ev,doDefn(Lc,Ptn,cell(Lc,Exp)),Opts,Path) :-
   isIden(P,Nm),
@@ -1235,7 +1238,7 @@ checkPrCase(Lc,H,G,R,LhsTp,Tp,ErTp,Env,
 	  [prle(Lc,Arg,Guard,Body)|Eqns],Eqns,Dfx,Dfx,Opts,Path) :-
   typeOfPtn(H,LhsTp,ErTp,Env,E1,Arg,Opts,Path),
   checkGuard(G,ErTp,E1,E2,Guard,Opts,Path),
-  checkAction(R,Tp,ErTp,notLast,E2,_,Body,Opts,Path).
+  checkAction(R,Tp,ErTp,notLast,E2,_,[],_,Body,Opts,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
