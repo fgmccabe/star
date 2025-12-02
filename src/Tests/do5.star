@@ -11,9 +11,9 @@ test.do5{
 
   main:()=>().
   main() => valof{
-    show { fst(X) | X in parent}|:cons[string];
-    show { snd(X) | X in parent}|:cons[string];
-    assert size({ X | X in parent}|:cons[(string,string)])==size(parent);
+    show ({ fst(X) | X in parent}:cons[string]);
+    show ({ snd(X) | X in parent}:cons[string]);
+    assert size({ X | X in parent}:cons[(string,string)])==size(parent);
     valis ()
   }
 }

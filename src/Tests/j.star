@@ -3,8 +3,8 @@ test.j{
   import star.json.
   import star.assert.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert "11"::json == .jNum(11.0);
 
     assert "[1]"::json == .jSeq([.jNum(1.0)]);
@@ -22,7 +22,7 @@ test.j{
 
     assert "{\"beta\":2}"::json == .jColl({"beta"->.jNum(2.0)});
 
-    assert ({"alpha"->.jNum(1.0),"beta"->.jNum(2.0)}|:map[string,json]) ==
+    assert ({"alpha"->.jNum(1.0),"beta"->.jNum(2.0)}:map[string,json]) ==
       {"alpha"->.jNum(1.0),"beta"->.jNum(2.0)};
 
     show disp("{\"alpha\":1,\"beta\":2}"::json);
@@ -74,7 +74,5 @@ test.j{
       });
 
     _iter(I,(),(J,_) => valof{ showMsg(_stringOf(J,3)); valis ()});
-
-    valis ()
   }
 }

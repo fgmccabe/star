@@ -12,7 +12,8 @@ test.jt6{
 
   main:(integer)=>().
   main(C) => valof{
-    L = iota(1,C) |: cons[integer];
+    L : cons[integer];
+    L = iota(1,C);
 
     show L;
 

@@ -27,10 +27,11 @@ test.implies{
       checkSon(_,So) => So.
     } in checkSon,.none,pars).
 
-  maleSons = {X | (X,_) in pars && (X,C) in pars *> C in ms}|:cons[string].
+  maleSons : cons[string].
+  maleSons = {X | (X,_) in pars && (X,C) in pars *> C in ms}.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show hasD("a");
     show hasD("f");
   
@@ -45,11 +46,10 @@ test.implies{
 
     assert .none.=onlySons("f");
 
-    show {X | (X,_) in pars && (X,C) in pars *> C in ms}|:cons[string];
+    show ({X | (X,_) in pars && (X,C) in pars *> C in ms}:cons[string]);
     show maleSons;
 
     show foldOnlySons("a");
     show foldOnlySons("f");
-    valis ()
   }
 }

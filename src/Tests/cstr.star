@@ -12,7 +12,7 @@ test.cstream{
   main()=>valof{
     show cc::string;
 
-    show disp([0]|:cons[_])::string;
+    show disp([0]:cons[_])::string;
     valis ()
   }
 }

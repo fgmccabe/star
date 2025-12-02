@@ -36,7 +36,7 @@ test.fm{
 
     C = `\u22a6;` ;
 
-    show "Unicode: $(([C]|:cons[char])::string)/$(_codePoint(C)):XXXXX;";
+    show "Unicode: $(([C]:cons[char])::string)/$(_codePoint(C)):XXXXX;";
 
     bar = "bar";
     show "Foo#(bar)";
