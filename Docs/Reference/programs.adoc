@@ -7,8 +7,8 @@ top-level of a package, but also within functions in
 
 [#package]
 == Package Structure
-(((package)))
 
+(((package)))
 Packages represent compilation units for the Star compiler: a
 source file should contain exactly one package.
 
@@ -91,16 +91,17 @@ definition  --> openStatement.
 definition  --> importStatement.
 ----
 
-NOTE: Theta environments also form the body of recursive let expressions and
-actions and also form the contents of a recursive record.
+NOTE: Theta environments also form the body of recursive let
+expressions and actions and also form the contents of a recursive
+record.
 
-There are a few differences between a package's theta environment and that of
-recursive let expressions etc. In particular, the `importStatement` is only
-valid at the package level.
+There are a few differences between a package's theta environment and
+that of recursive let expressions etc. In particular, the
+`importStatement` is only valid at the package level.
 
-Another difference is notational: recursive theta environments in expressions
-are marked by special braces: `{.` and `.}`; whereas a package just uses regular
-braces.
+Another difference is notational: recursive theta environments in
+expressions are marked by special braces: `{.` and `.}`; whereas a
+package just uses regular braces.
 
 [#typeAnnotation]
 === Type Annotations
@@ -280,82 +281,89 @@ ruleHead --> identifier, ["("], pattern, ([","], pattern)*, [")"].
 guardCondition --> ["where"], condition.
 ----
 
-NOTE: The rules in <<#functionFig>> are written assuming that the function's
-name is not also an operator. If it is, then the head of the rule will take the
-infix form.
+NOTE: The rules in <<#functionFig>> are written assuming that the
+function's name is not also an operator. If it is, then the head of
+the rule will take the infix form.
 
-TIP: Functions and other program values are first class values; as a result
-they may be passed as arguments to other functions as well as being
-assigned as attributes of records.
+TIP: Functions and other program values are first class values; as a
+result they may be passed as arguments to other functions as well as
+being assigned as attributes of records.
 
-Functions can be defined in a let expression, in recursive records, in packages
--- or <<lambdaExpression>> can be used to craft a function literal directly as
-an expression.
+Functions can be defined in a let expression, in recursive records, in
+packages -- or <<lambdaExpression>> can be used to craft a function
+literal directly as an expression.
 
 [#equation]
 ==== Equations
 
-An equation is a rule for deciding how to rewrite an expression into a simpler
-expression. Each equation consists of a <<tuplePattern>> that is used to match
-the call to the function and a replacement expression. The left hand side of the
-function may also have a guard associated with it, this guard may use variables
-introduced in the pattern.
+An equation is a rule for deciding how to rewrite an expression into a
+simpler expression. Each equation consists of a <<tuplePattern>> that
+is used to match the call to the function and a replacement
+expression. The left hand side of the function may also have a guard
+associated with it, this guard may use variables introduced in the
+pattern.
 
-NOTE: An equation is said to apply iff the patterns in the left hand side of
-the equation (including any `where` clauses) all match the
+NOTE: An equation is said to apply iff the patterns in the left hand
+side of the equation (including any `where` clauses) all match the
 corresponding actual arguments to the function application.
 
-(((theta environment)))
-Functions are defined in the context of a scope --
-for example, in the body of a `let` expression (see
+(((theta environment))) Functions are defined in the context of a
+scope -- for example, in the body of a `let` expression (see
 <<letExpression>>), or at the top-level of a `package`.
 
 ==== Type of Functions
 
-There are two primary ways in which the type of a function is computed: by
-declaration or by inference.
+There are two primary ways in which the type of a function is
+computed: by declaration or by inference.
 
-If a function's type has been declared -- by having a <<typeAnnotation>> for the
-name of the function in the same scope -- then the equations are _checked_ for
-consistency with the type declaration. If the equations are not consistent with
-the declaration then an error will be displayed.
+If a function's type has been declared -- by having a
+<<typeAnnotation>> for the name of the function in the same scope --
+then the equations are _checked_ for consistency with the type
+declaration. If the equations are not consistent with the declaration
+then an error will be displayed.
 
-If a function has no explicit type declaration then the type is inferred from
-the shape of the equations. If no consistent type can be inferred -- for example
-if the equations have differring arguments, or if the return values of the
-equations are not consistent -- then a compiler error will be displayed.
+If a function has no explicit type declaration then the type is
+inferred from the shape of the equations. If no consistent type can be
+inferred -- for example if the equations have differring arguments, or
+if the return values of the equations are not consistent -- then a
+compiler error will be displayed.
 
-Apart from the algorithms involved, there are other differences in types derived
-by checking or inference:
+Apart from the algorithms involved, there are other differences in
+types derived by checking or inference:
 
-* An inferred type will never be quantified. Any underspecified types arising as
-  part of the inference process will be left unspecified. This may result in the
-  unspecified types becoming bound by other elements of the program.
-* As with quantification, type inference will not result in a generalized
-  contract constraint. Any contract constraints that arise in the text of any
-  equations will have to be resolved at the point of the function definition.
+* An inferred type will never be quantified. Any underspecified types
+  arising as part of the inference process will be left
+  unspecified. This may result in the unspecified types becoming bound
+  by other elements of the program.
+* As with quantification, type inference will not result in a
+  generalized contract constraint. Any contract constraints that arise
+  in the text of any equations will have to be resolved at the point
+  of the function definition.
 * Type inference cannot result in arguments to the function be assigned
   quantified types.footnote:[However, arguments can have type annotations of
   quantified types.]
-* If a function is verified against a type declaration then some additional
-  rules will be applied during type checking:
-** a universally bound type variable may not be constrained further by the text of the function definition: it is as though such types were fixed and unique in the program (i.e., not equalt to any other type).
-** an existentially bound type variable may be constrained by the text of the
- function. However, such constraints are not permitted to further constrain the
- type of the function and applications of the function will only 'see' a new
- constant type.
+* If a function is verified against a type declaration then some
+  additional rules will be applied during type checking:
+** a universally bound type variable may not be constrained further by
+   the text of the function definition: it is as though such types
+   were fixed and unique in the program (i.e., not equalt to any other
+   type).
+** an existentially bound type variable may be constrained by the text
+ of the function. However, such constraints are not permitted to
+ further constrain the type of the function and applications of the
+ function will only 'see' a new constant type.
 +
-NOTE: Universally quantified and existentially quantified types
- are mirror images of each other: when a universal type variable is fixed, the
- existential type is variable and vice-versa.
+NOTE: Universally quantified and existentially quantified types are
+ mirror images of each other: when a universal type variable is fixed,
+ the existential type is variable and vice-versa.
 
 ==== Evaluation Order of Equations
 
-(((equations,evaluation order)))
-Using multiple equations to define a function permits a case-base approach to
-function design -- each equation relates to a single case in the function. When
-such a function is _applied_ to actual arguments then only one of the equations
-in the definition may apply.
+(((equations,evaluation order))) Using multiple equations to define a
+function permits a case-base approach to function design -- each
+equation relates to a single case in the function. When such a
+function is _applied_ to actual arguments then only one of the
+equations in the definition may apply.
 
 Equations are applied in the order that they are written -- apart from
 any equation that is marked `default`. If two equations overlap
@@ -365,10 +373,11 @@ in their patterns then the first equation to apply is the one used.
 
 (((default equation`default` equation)))
 (((functions,default`default` equation)))
-It is permitted to assign one of the equations in a function definition to be
-the `default` equation. An equation marked as `default` is guaranteed _not_ to
-be used if any of the non-default equations apply. Thus, a `default` equation
-may be used to capture any remaining cases not covered by other equations.
+It is permitted to assign one of the equations in a function
+definition to be the `default` equation. An equation marked as
+`default` is guaranteed _not_ to be used if any of the non-default
+equations apply. Thus, a `default` equation may be used to capture any
+remaining cases not covered by other equations.
 
 (((patterns,variable pattern)))
 A `default` equation may not have a `where` clause associated with
@@ -436,12 +445,12 @@ fact(X) default => 1
 
 [#throwingFunctions]
 ==== Functions that throw exceptions
-(((exception, throwing function)))
 
-A function whose type is a throwing type, (see <<throwingFunctionType>>), may
-return an exceptional value rather than a normal value. For example, this
-definition of `check` will throw an exception -- encoded as a `string` -- when
-its argument is false:
+(((exception, throwing function))) A function whose type is a throwing
+type, (see <<throwingFunctionType>>), may return an exceptional value
+rather than a normal value. For example, this definition of `check`
+will throw an exception -- encoded as a `string` -- when its argument
+is false:
 
 [source,star]
 ----
@@ -455,8 +464,9 @@ reliably infer that a function should throw an exception.
 [#exceptionType]
 ==== The standard `exception` type
 
-Although not essential, Star has a built-in type that may be convenient for
-reporting exceptions. The `exception` type is defined as:
+Although not essential, Star has a built-in type that may be
+convenient for reporting exceptions. The `exception` type is defined
+as:
 
 [source,star]
 ----
@@ -481,34 +491,34 @@ rule --> ruleHead, ["default"], ["do"], action.
 
 ----
 
-NOTE: The rules in <<#procedureFig>> are written assuming that the procedure's
-name is not also an operator. If it is, then the head of the rule will take the
-infix form.
+NOTE: The rules in <<#procedureFig>> are written assuming that the
+procedure's name is not also an operator. If it is, then the head of
+the rule will take the infix form.
 
 TIP: Like functions, procedures are first class values; as a result
 they may be passed as arguments to other procedures as well as being
 assigned as attributes of records.
 
-Procedures can be defined in a let expression, in recursive records, in packages
--- or a <<procedureRule>> can be used to craft a procedure literal directly as
-an expression.
+Procedures can be defined in a let expression, in recursive records,
+in packages -- or a <<procedureRule>> can be used to craft a procedure
+literal directly as an expression.
 
 [#rule]
 ==== Procedure Rules
 
 A procedure rule is a rule for deciding how to perform an action.
-Each rule consists of a <<tuplePattern>> that is used to match
-the call to the procedure and an action to perform. The left hand side of the
-procedure may also have a guard associated with it, this guard may use variables
-introduced in the pattern.
+Each rule consists of a <<tuplePattern>> that is used to match the
+call to the procedure and an action to perform. The left hand side of
+the procedure may also have a guard associated with it, this guard may
+use variables introduced in the pattern.
 
 NOTE: An rule is said to apply iff the patterns in the left hand side of
 the rule (including any `where` clauses) all match the
 corresponding actual arguments to the procedure application.
 
-(((theta environment)))
-Procedures are defined in the context of a scope -- for example, in the body of
-a `let` expression (see <<letExpression>>), or at the top-level of a `package`.
+(((theta environment))) Procedures are defined in the context of a
+scope -- for example, in the body of a `let` expression (see
+<<letExpression>>), or at the top-level of a `package`.
 
 ==== Type of Procedures
 
@@ -520,17 +530,18 @@ Similar constraints are applied to inferring the type of a procedure:
 * An inferred procedure type will never be quantified.
 * Type inference will not result in a generalized
   contract constraint. 
-* If a procedure is verified against a type declaration then some additional
-  rules will be applied during type checking:
-** a universally bound type variable may not be constrained further by the text of the procedure definition.
+* If a procedure is verified against a type declaration then some
+  additional rules will be applied during type checking:
+** a universally bound type variable may not be constrained further by
+   the text of the procedure definition.
 ** an existentially bound type variable may be constrained by the text of the
  procedure. 
 
 ==== Evaluation Order of Rules
 
-(((rules,evaluation order)))
-As with functions and equations, a procedure may be defined with multiple rules.
-Only one of the rules in the definition may apply.
+(((rules,evaluation order))) As with functions and equations, a
+procedure may be defined with multiple rules.  Only one of the rules
+in the definition may apply.
 
 Rules are applied in the order that they are written -- apart from
 any rule that is marked `default`. If two rules overlap
@@ -547,18 +558,18 @@ may be used to capture any remaining cases not covered by other rules.
 
 ==== Evaluation Order of Arguments
 
-(((procedure application,evaluation order)))
-As with function calls, there is _no_ guarantee as to the order of evaluation of
-arguments to a procedure application.
+(((procedure application,evaluation order))) As with function calls,
+there is _no_ guarantee as to the order of evaluation of arguments to
+a procedure application.
 
 [#throwingProcedures]
 ==== Procedures that throw exceptions
 (((exception, throwing procedure)))
 
-A procedure whose type is a throwing type, (see <<throwingProcedureType>>), may
-return an exceptional value rather return normally. For example, this
-definition of `check` will throw an exception -- encoded as a `string` -- when
-its argument is false:
+A procedure whose type is a throwing type, (see
+<<throwingProcedureType>>), may return an exceptional value rather
+return normally. For example, this definition of `check` will throw an
+exception -- encoded as a `string` -- when its argument is false:
 
 [source,star]
 ----
@@ -569,13 +580,30 @@ check(X){
 }
 ----
 
-NOTE: Like functions that throw, we must use explicit type signature to indicate
-that `check` throws an `exception`.
+NOTE: Like functions that throw, we must use explicit type signature
+to indicate that `check` throws an `exception`.
+
+[#mainFunction]
+=== Main function
+
+(((main function))) (((procedure, main))) If a package has defined a
+main function, then the package can be invoked as though it were an
+executable program.
+
+There are two kinds of main function: a function or procedure with
+name `main` that may have zero or more arguments; or a function or
+procedure with name `_main` with one argument that is a `cons` list of
+`string`s.
+
+[source,star]
+----
+main:(string,integer){}.
+----
 
 [#contract]
 == Contract
-(((type,contracts)))
 
+(((type,contracts)))
 A contract definition is a statement that defines the functions and
 action procedures associated with a contract. As can be seen in
 _contractFig_, a contract statement associates a contract name --
@@ -911,13 +939,14 @@ let{
 } in Z
 ----
 
-NOTE: Although the `open` statement makes available the types and fields
-embedded in a record; existential abstraction still applies. In particular, in
-this case the fact that the `elem` type is manifest as `integer` within the
-record expression `R` is hidden.
+NOTE: Although the `open` statement makes available the types and
+fields embedded in a record; existential abstraction still applies. In
+particular, in this case the fact that the `elem` type is manifest as
+`integer` within the record expression `R` is hidden.
 
-The `elem` type (and the `zero` and `op` fields) are available within the `let`;
-but no information about what `elem` actually is is available.
+The `elem` type (and the `zero` and `op` fields) are available within
+the `let`; but no information about what `elem` actually is is
+available.
 
 
 
