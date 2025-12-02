@@ -81,7 +81,6 @@
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=>>", [infixOp(949, 950, 950)]).
   operator("=", [infixOp(974, 975, 974)]).
-  operator("|:", [infixOp(950, 951, 950)]).
   operator("show", [prefixOp(1240, 1239)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
@@ -226,7 +225,6 @@
   follows('{','.','{.').
   follows('{','!','{!').
   follows('|',']','|]').
-  follows('|',':','|:').
   follows('|','|','||').
   follows('|','=','|=').
   follows('|','>','|>').
@@ -310,7 +308,6 @@
   final('{!',"{!").	 /* iota comprehension */
   final('|',"|").	 /* type union, case union */
   final('|]',"|]").	 /* measure brackets */
-  final('|:',"|:").	 /* type annotation */
   final('||',"||").	 /* disjunction */
   final('|=',"|=").	 /* constrained type */
   final('|>',"|>").	 /* meta quote */
@@ -328,7 +325,7 @@
   final(']',"]").	 /* square brackets */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
-  final(':',":").	 /* type declaration */
+  final(':',":").	 /* type declaration/annotation */
   final(':?',":?").	 /* fallable type coercion */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
@@ -412,7 +409,6 @@
   keyword(".=").
   keyword("=>>").
   keyword("=").
-  keyword("|:").
   keyword("@").
   keyword("|=").
   keyword("|>").

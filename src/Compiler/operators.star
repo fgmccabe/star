@@ -98,7 +98,6 @@ star.compiler.operators{
     | ".=" => [.infixOp(899,900,899)]
     | "=>>" => [.infixOp(949,950,950)]
     | "=" => [.infixOp(974,975,974)]
-    | "|:" => [.infixOp(950,951,950)]
     | "show" => [.prefixOp(1240,1239)]
     | "++" => [.infixOp(719,720,720)]
     | ">" => [.infixOp(899,900,899)]
@@ -279,7 +278,6 @@ star.compiler.operators{
   follows("{",`.`) => .some("{.").
   follows("{",`!`) => .some("{!").
   follows("|",`]`) => .some("|]").
-  follows("|",`:`) => .some("|:").
   follows("|",`|`) => .some("||").
   follows("|",`=`) => .some("|=").
   follows("|",`>`) => .some("|>").
@@ -366,7 +364,6 @@ star.compiler.operators{
     | "{!" => .true  /* iota comprehension */
     | "|" => .true  /* type union, case union */
     | "|]" => .true  /* measure brackets */
-    | "|:" => .true  /* type annotation */
     | "||" => .true  /* disjunction */
     | "|=" => .true  /* constrained type */
     | "|>" => .true  /* meta quote */
@@ -384,7 +381,7 @@ star.compiler.operators{
     | "]" => .true  /* square brackets */
     | "^/" => .true  /* filter */
     | "^//" => .true  /* filter map */
-    | ":" => .true  /* type declaration */
+    | ":" => .true  /* type declaration/annotation */
     | ":?" => .true  /* fallable type coercion */
     | "::" => .true  /* type coercion */
     | "::=" => .true  /* algebraic type definition */
@@ -472,7 +469,6 @@ star.compiler.operators{
     | ".=" => .true
     | "=>>" => .true
     | "=" => .true
-    | "|:" => .true
     | "@" => .true
     | "|=" => .true
     | "|>" => .true

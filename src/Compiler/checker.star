@@ -210,9 +210,9 @@ star.compiler.checker{
       valis checkDefs(Ds,Dfs++Defs,XDcs++Xpts,Decls++Dcs,declareDecls(Dcs,Ev))
     }.
 
-    typeLambdas = { Lc | S in Specs &&
-	  .defnSpec(.tpSp(_),Lc,[St]) .= S &&
-	      _ ?= isTypeFunStmt(St)}|:cons[_].
+    typeLambdas = ({ Lc | S in Specs &&
+	    .defnSpec(.tpSp(_),Lc,[St]) .= S &&
+		_ ?= isTypeFunStmt(St)}:cons[_]).
   .} in valof{
     if [|typeLambdas|] > 0 then{
       -- A poor man fixed point. Will not happen often.
@@ -1171,24 +1171,20 @@ star.compiler.checker{
     Thrw = typeOfExp(E,ErTp,.voidType,Env,Path);
     valis (.doThrow(Lc,Thrw),Env)
   }
-  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E,T) ?= isTypeAnnotation(A) && (_,Id) ?= isName(E) => valof{
+  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(E) => valof{
     if traceCanon! then
       showMsg("type annotated var $(Id)\:$(T)");
     ETp = parseType(T,Env);
-
-    if traceCanon! then
-      showMsg("type  $(ETp), expected type $(Tp)");
-
-    Ev = declareVr(Id,Lc,Tp,(OLc,_,D) => .vr(OLc,Id,Tp),.none,Env);
-    valis (.doNop(Lc),Ev)
+    valis (.doNop(Lc),declareVr(Id,Lc,ETp,(OLc,_,D) => .vr(OLc,Id,ETp),.none,Env))
   }
   checkAction(A,VTp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     isValidLastAct(Lc,VTp,Mode);
     if (ILc,Id) ?= isName(Lhs) then{
-      if varDefined(Id,Env) then{
-	reportError("may not redeclare $(Lhs)",ILc);
-	valis (.doNop(Lc),Env)
-      } else{
+      if Tp ?= varType(Id,Env) then{
+	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
+	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
+	valis (.doDefn(Lc,.vr(ILc,Id,Tp),Val),Ev)
+      } else {
 	Tp = newTypeVar("_VD");
 	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
 	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);

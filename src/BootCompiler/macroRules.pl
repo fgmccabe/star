@@ -31,7 +31,7 @@ macroRl("?=",expression,macroRules:optionMatchMacro).
 macroRl("?|",expression,macroRules:optionCondMacro).
 macroRl("?",expression,macroRules:pullMacro).
 macroRl("!",expression,macroRules:binRefMacro).
-macroRl("|:",rule,macroRules:caseRuleMacro).
+macroRl(":",rule,macroRules:caseRuleMacro).
 macroRl(":",actionRule,macroRules:caseRuleMacro).
 macroRl(":=",action,macroRules:spliceAssignMacro).
 macroRl(":=",action,macroRules:indexAssignMacro).

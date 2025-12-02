@@ -229,10 +229,10 @@ star.compiler.wff{
   public mkTypeExists(Lc,L,R) => binary(Lc,"<~",L,R).
 
   public isTypeAnnotation:(ast)=>option[(option[locn],ast,ast)].
-  isTypeAnnotation(A) => isBinary(A,"|:").
+  isTypeAnnotation(A) => isBinary(A,":").
 
   public mkTypeAnnotation:(option[locn],ast,ast)=>ast.
-  mkTypeAnnotation(Lc,V,T) => binary(Lc,"|:",V,T).
+  mkTypeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
 
   public isTypeDeclaration:(ast)=>option[(option[locn],ast,ast)].
   isTypeDeclaration(A) => isBinary(A,":").
