@@ -1323,7 +1323,7 @@ star.compiler.term{
     | .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T))
   }
 
-  thawLoc(L|:data) => L::option[locn].
+  thawLoc(L:data) => L::option[locn].
 
   thawCases:all e ~~ (data,(data)=>e) => cons[cCase[e]].
   thawCases(.term(_,Args),T) => (Args//(.term(_,[Lc,P,E]))=>
@@ -1368,8 +1368,9 @@ star.compiler.term{
 
   public sortDefs:(cons[cDefn]) => cons[cons[cDefn]].
   sortDefs(Defs) => valof{
-    Globals = { nameOf(Df)->Df | Df in Defs }|:map[string,cDefn];
-    AllRefs = foldRight((Df,A)=>[(nameOf(Df),Df,findRefs(Df,Globals)),..A],[]|:cons[glSpec],Defs);
+    Globals : map[string,cDefn];
+    Globals = { nameOf(Df)->Df | Df in Defs };
+    AllRefs = foldRight((Df,A)=>[(nameOf(Df),Df,findRefs(Df,Globals)),..A],([]:cons[glSpec]),Defs);
     valis (topsort(AllRefs) // ((G) => (G//(((_,Df,_))=>Df))));
   }
 

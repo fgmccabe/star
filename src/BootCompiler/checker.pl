@@ -1032,18 +1032,18 @@ checkAction(A,Tp,ErTp,_,Env,Env,doValis(Lc,ValExp),Opts,Path) :-
 checkAction(A,_Tp,ErTp,_Last,Env,Env,doThrow(Lc,Thrw),Opts,Path) :-
   isThrow(A,Lc,E),!,
   typeOfExp(E,ErTp,voidType,Env,_,Thrw,Opts,Path).
-checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,Vr,Exp),Opts,Path) :-
-  isDefn(A,Lc,L,R),
-  isIden(L,NLc,Nm),!,
-  newTypeVar("V",TV),
-  (getVar(NLc,Nm,Env,_,_) ->
-   reportError("May not redeclare variable %s",[ast(L)],NLc),
-   genNewName(Nm,"Σ",XNm),
-   Vr = v(NLc,XNm,TV),
+checkAction(A,_Tp,_ErTp,_Last,Env,Ev,doNop(Lc),_Opts,_Path) :-
+  isTypeAnnotation(A,Lc,L,R),isIden(L,_,Id),!,
+  parseType(R,Env,VT),
+  declareVr(Lc,Id,VT,none,Env,Ev).
+checkAction(A,Tp,ErTp,Last,Env,Ev,doDefn(Lc,v(Lc,Nm,VTp),Exp),Opts,Path) :-
+  isDefn(A,Lc,L,R), % This needs a fix. Should not be allowed to redefine
+  isIden(L,_,Nm),!,
+  (getVar(_,Nm,Env,_,VTp) ->
    Env=Ev;
-   Vr = v(NLc,Nm,TV),
-   declareVr(NLc,Nm,TV,none,Env,Ev)),
-  typeOfExp(R,TV,ErTp,Env,_,Exp,Opts,Path),
+   newTypeVar("V",VTp),
+   declareVr(Lc,Nm,VTp,none,Env,Ev)),
+  typeOfExp(R,VTp,ErTp,Env,_,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
 checkAction(A,Tp,ErTp,Last,Env,Ev,doMatch(Lc,Ptn,Exp),Opts,Path) :-
   isDefn(A,Lc,P,E),
@@ -1256,7 +1256,7 @@ typeOfExps([A|_],[],_ErTp,Env,Env,_,[],_,_) :-
 typeOfExps([A|As],[ETp|ElTypes],ErTp,Env,Ev,_,[Term|Els],Opts,Path) :-
   evidence(ETp,Env,_Q,ElTp),
   typeOfExp(A,ElTp,ErTp,Env,E0,Term,Opts,Path),
-  % reportMsg("type of argument %s |: %s",[A,ETp]),
+  % reportMsg("type of argument %s : %s",[A,ETp]),
   % dispEnv(Env),
   locOfAst(A,Lc),
   typeOfExps(As,ElTypes,ErTp,E0,Ev,Lc,Els,Opts,Path).

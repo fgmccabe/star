@@ -7,6 +7,7 @@
 |`+++all+++` | 1010 | non-associative prefix | universal quantifier
 |`+++.&lt;.+++` | 700 | non-associative infix | set membership
 |`+++&amp;&amp;+++` | 910 | right associative infix | conjunction
+|`+++elemis+++` | 930 | non-associative prefix | element of built sequence
 |`+++let+++` | 899 | non-associative prefix | part of let def
 |`+++~=+++` | 900 | non-associative infix | not equals
 |`+++~&gt;+++` | 1231 | non-associative infix | type function
@@ -34,13 +35,14 @@
 |`+++?=+++` | 900 | non-associative infix | optional decomposition match
 |`+++default+++` | 940 | non-associative postfix | default value marker
 |`+++&lt;*+++` | 600 | left associative infix | left fold
-|`+++#+++` | 1750 | non-associative prefix | Macro statement marker
 |`+++#+++` | 760 | non-associative infix | package separator
 |`+++??+++` | 920 | right associative infix | conditional operator
 |`+++??+++` | 950 | non-associative prefix | pull together a failable cexpression
 |`+++%+++` | 700 | left associative infix | modulo
+|`+++&lt;-+++` | 975 | non-associative infix | monadic valof
 |`+++.&gt;&gt;&gt;.+++` | 600 | left associative infix | arithmetic shift right
 |`+++\++++` | 700 | left associative infix | add element to set
+|`+++collect+++` | 300 | non-associative prefix | build a sequence from an action expression
 |`+++*+++` | 700 | non-associative postfix | multicat
 |`+++*+++` | 700 | left associative infix | multiplication
 |`+++\-+++` | 700 | left associative infix | remove element from set
@@ -62,7 +64,7 @@
 |`+++exists+++` | 1010 | non-associative prefix | existential quantifier
 |`+++if+++` | 1175 | non-associative prefix | if ... then ... else
 |`+++$$+++` | 305 | non-associative prefix | thunk expression
-|`+++:+++` | 1250 | non-associative infix | type annotation
+|`+++:+++` | 1250 | non-associative infix | type declaration/annotation
 |`+++;+++` | 1251 | non-associative postfix | sequencing operator
 |`+++;+++` | 1251 | right associative infix | sequencing operator
 |`+++--&gt;+++` | 1249 | non-associative infix | grammar rule arrow
@@ -70,15 +72,15 @@
 |`+++.=+++` | 900 | non-associative infix | pattern match
 |`+++=&gt;&gt;+++` | 950 | right associative infix | continuation arrow
 |`+++=+++` | 975 | non-associative infix | definition
-|`+++\|:+++` | 1235 | non-associative infix | constrained type
 |`+++show+++` | 1240 | non-associative prefix | display debug message
 |`++++++++` | 720 | right associative infix | concatenate
 |`+++&gt;+++` | 900 | non-associative infix | greater than
 |`+++return+++` | 930 | non-associative prefix | wrap value in monad
-|`+++?+++` | 300 | non-associative prefix | extract value from either/or
+|`+++?+++` | 300 | non-associative infix | option match
+|`+++?+++` | 300 | non-associative prefix | pull value
 |`+++@+++` | 400 | non-associative prefix | meta annotation
 |`+++@+++` | 400 | right associative infix | meta annotation
-|`+++\|=+++` | 999 | non-associative infix | implicit variable
+|`+++\|=+++` | 1235 | non-associative infix | constrained type
 |`+++in+++` | 900 | right associative infix | membership
 |`+++break+++` | 10 | non-associative prefix | break out of an action (loop or block)
 |`+++suspend+++` | 899 | non-associative prefix | suspend task
@@ -101,6 +103,7 @@
 |`+++\+++` | 700 | left associative infix | difference
 |`+++=&gt;+++` | 950 | right associative infix | function arrow
 |`+++&lt;=&gt;+++` | 950 | non-associative infix | constructor arrow
+|`+++?\|+++` | 960 | left associative infix | optional conditional
 |`+++valof+++` | 300 | non-associative prefix | evaluate an action expression
 |`+++yield+++` | 300 | non-associative prefix | yield in a generator expression
 |`+++while+++` | 1175 | non-associative prefix | while ... do {}
@@ -117,7 +120,6 @@
 |`+++&gt;&gt;=+++` | 950 | right associative infix | monadic bind
 |`+++^/+++` | 960 | left associative infix | filter
 |`+++&lt;~+++` | 999 | non-associative infix | type interface rule
-|`+++type+++` | 1251 | non-associative prefix | type marker
 |`+++\|+++` | 1548 | non-associative prefix | type union, case union
 |`+++\|+++` | 1548 | left associative infix | type union, case union, abstraction
 |`+++.#.+++` | 600 | left associative infix | test nth bit
@@ -139,6 +141,7 @@
 |`+++retire+++`
 |`+++all+++`
 |`+++&amp;&amp;+++`
+|`+++elemis+++`
 |`+++let+++`
 |`+++~&gt;+++`
 |`+++throw+++`
@@ -163,8 +166,10 @@
 |`+++#+++`
 |`+++!}+++`
 |`+++??+++`
+|`+++&lt;-+++`
 |`+++(+++`
 |`+++)+++`
+|`+++collect+++`
 |`+++*&gt;+++`
 |`+++resume+++`
 |`+++,+++`
@@ -181,7 +186,6 @@
 |`+++.=+++`
 |`+++=&gt;&gt;+++`
 |`+++=+++`
-|`+++\|:+++`
 |`+++@+++`
 |`+++\|=+++`
 |`+++\|&gt;+++`
@@ -206,6 +210,7 @@
 |`+++valof+++`
 |`+++yield+++`
 |`+++while+++`
+|`+++void+++`
 |`+++private+++`
 |`+++::+++`
 |`+++:?+++`
@@ -213,7 +218,6 @@
 |`+++&lt;\|+++`
 |`+++&lt;~+++`
 |`+++{+++`
-|`+++type+++`
 |`+++.}+++`
 |`+++\|+++`
 |`+++}+++`

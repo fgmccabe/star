@@ -1190,7 +1190,8 @@ to use thunks:
 [source,star]
 ----
 memFib(N) => let{
-  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }|:vector[thunk[integer]].
+  fibs : vector[thunk[integer]].
+  fibs = { $$(fb(ix-1)+fb(ix-2)) | ix in range(2,N,1) }.
   fb(0) => 1.
   fb(1) => 1.
   fb(ix) where F?=fibs[ix] => F!!
@@ -1336,7 +1337,7 @@ is as annotated.
 .Type Annotated Expressions
 [source,star]
 ----
-typeAnnotatedExpression --> expression, ["|:"], type.
+typeAnnotatedExpression --> ["("], expression, [":"], type, [")"].
 ----
 
 NOTE: Type annotated expressions should not be confused with type casting as is
@@ -1350,7 +1351,12 @@ NOTE: Type annotations are not commonly required; with the major exception being
 because, without that the `sequence` contract that is used to construct sequence
 literals cannot be properly resolved.
 +
-However, in many cases the type of a sequence literal expression can be properly inferred -- due to the context surrounding the expression.
+However, in many cases the type of a sequence literal expression can be properly
+inferred -- due to the context surrounding the expression.
+
+NOTE: The type annoted expression is shown as being enclosed in
+parentheses. This is actually an artifact of the priority of the colon operator
+relative to other commonly used operators in type expressions.
 
 [#typeCoercion]
 === Type Coercion

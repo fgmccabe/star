@@ -128,10 +128,10 @@ mkPublic(Lc,E,Ex) :-
   unary(Lc,"public",E,Ex).
 
 isTypeAnnotation(St,Lc,V,T) :-
-  isBinary(St,Lc,"|:",V,T),!.
+  isBinary(St,Lc,":",V,T),!.
 
 typeAnnotation(Lc,V,T,St) :-
-  binary(Lc,"|:",V,T,St).
+  binary(Lc,":",V,T,St).
 
 isAlgebraicTypeStmt(Stmt,Lc,Q,Cx,Head,Body) :-
   isBinary(Stmt,Lc,"::=",Lhs,Body),

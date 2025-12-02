@@ -523,7 +523,7 @@ star.compiler.typeparse{
       showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
-    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),([]|:map[string,integer],0),Css).0;
+    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
 
     if traceCanon! then
       showMsg("algebraic CMP $(CMap)");
@@ -567,7 +567,7 @@ star.compiler.typeparse{
       showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
-    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),([]|:map[string,integer],0),Css).0;
+    CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
 
     (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
     (ADefs,ADecs) = buildAccessors(Fs,B,Q,Cx,Tp,Path);
