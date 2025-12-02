@@ -3,10 +3,11 @@ test.v0{
   import star.vector.
   import star.assert.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     VV := nullV();
-    AA = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"]|:cons[string];
+    AA : cons[string];
+    AA = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"];
     for A in AA do{
       VV := appnd(VV!,A);
       showMsg("After adding #(A), VV=$(VV!) $(isFullVect(VV!))")
@@ -75,8 +76,6 @@ test.v0{
 
     show TT//((X)=>X++X);
 
-    show { Ix | Ix in 0..<100 }|:vect[integer];
-
-    valis ()
+    show ({ Ix | Ix in 0..<100 }:vect[integer]);
   }
 }

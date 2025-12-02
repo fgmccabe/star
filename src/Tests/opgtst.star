@@ -42,10 +42,9 @@ test.opg{
     disp(A) => dsp(A)
   }
 
-  main:()=>().
-  main() => valof{
-    show <|'+'(5,a)|>|:ast;
-    valis ()
+  main:(){}.
+  main(){
+    show (<|'+'(5,a)|>:ast);
   }
 }
  

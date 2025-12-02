@@ -20,10 +20,8 @@ test.vis{
 
   main:(){}.
   main(){
-    visit([1,2,10,-10]|:cons[integer],do1);
-    visit([3,5,7]|:cons[integer],(X){ show "$(X)" });
-    visit([3,5,7]|:cons[integer],(X){ assert X > 0 })
+    visit(([1,2,10,-10]:cons[integer]),do1);
+    visit(([3,5,7]:cons[integer]),(X){ show "$(X)" });
+    visit(([3,5,7]:cons[integer]),(X){ assert X > 0 })
   }
 }
-
-  

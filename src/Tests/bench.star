@@ -24,11 +24,13 @@ test.bench{
 
   benchNativeList(Count) => valof {
     timer = ref timer_start(Count, "");
-    idxes = iota(0, Count)|:cons[integer];
+    idxes : cons[integer];
+    idxes = iota(0, Count);
 
     showMsg("******* cons lists ******");
     timer := timer_start(Count, "Creating cons list");
-    cn_list = ref (iota(0,Count)|:cons[integer]);
+    cn_list : ref cons[integer];
+    cn_list = ref iota(0,Count);
     timer_finish(timer!);
 
     timer := timer_start(Count, "Iterating over all elements in cons list");
@@ -116,7 +118,8 @@ test.bench{
   
     showMsg("******* skew trees ******");
     timer := timer_start(Count, "Creating skew tree");
-    sk_list = ref (iota(0,Count)|:sk[integer]);
+    sk_list : ref sk[integer];
+    sk_list = ref iota(0,Count);
     timer_finish(timer!);
 --    showMsg("finger tree: $(fn_list!)");
 

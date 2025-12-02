@@ -11,12 +11,11 @@ test.th1{
     valis 2
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert vv!;
     assert thunk!! == 2;
     assert ~vv!;
     assert thunk!! == 2;
-    valis ()
   }
 }

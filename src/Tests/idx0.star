@@ -48,9 +48,8 @@ test.idx0{
   unzip:all e ~~ (cons[e],integer,integer,map[integer,e])=>map[integer,e].
   unzip(L,Ix,Inc,T0) => snd(foldLeft((E,(I,T))=>(I+Inc,T[~I]),(Ix,T0),L)).
 
-  main:()=>().
-  main()=>valof{
-
+  main:(){}.
+  main(){
     show {1.0->"a",-1.0->"b"};
     
     show t9;
@@ -88,8 +87,6 @@ test.idx0{
 
     show unzip(["a","b","c"],0,4,u1);
 
-    show {12->"d"}|:map[integer,string];
-    valis ()
+    show ({12->"d"}:map[integer,string]);
   }
-
 }

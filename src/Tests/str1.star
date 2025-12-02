@@ -23,12 +23,10 @@ test.str1{
     valis .none
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show subString("foo.bar.star",4,5);
 
-    show { Pr| Fl in ls(cwd()) && Pr ?= pkgFileName(Fl) }|:cons[(string,string)];
-
-    valis ()
+    show ({ Pr| Fl in ls(cwd()) && Pr ?= pkgFileName(Fl) }:cons[(string,string)]);
   }
 }

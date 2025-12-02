@@ -47,12 +47,11 @@ test.lt4{
   isTFS("yes") => .some("yes").
   isTFS(_) default => .none.
   
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     Group = [.defn("A","AA"),.defn("B","BB")];
     show checkGroup(Group,[]);
 
-    assert {? D in ([.decl("B","BB"),.decl("A","AA")]|:cons[decl]) *>D in checkGroup(Group,[]) ?};
-    valis ()
+    assert {? D in ([.decl("B","BB"),.decl("A","AA")]:cons[decl]) *>D in checkGroup(Group,[]) ?};
   }
 }

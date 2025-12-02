@@ -7,7 +7,7 @@ test.either{
     try{
       assert ? .either("fred") == "fred";
 
-      show ? (.other(34)|:either[(),integer])
+      show ? (.other(34):either[(),integer])
     } catch {
       XX do {assert XX == 34}
     }

@@ -37,7 +37,7 @@ test.ms{
 
     assert mapOver(doubleOrQuits,LL)==.none;
 
-    show (([1.0,2.0,-3.0]//sq)|:cons[option[float]]);
+    show (([1.0,2.0,-3.0]//sq):cons[option[float]]);
     valis ()
   }
 }

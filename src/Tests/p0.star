@@ -14,14 +14,12 @@ test.p0{
   public _item:all s,u ~~ stream[s->>u] |= parser[s,u].
   _item= .parser(pick).
 
-  aa = parse(_item,[0]|:cons[integer]).
+  aa = parse(_item,([0]:cons[integer])).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show aa;
 
-    show parse(_item,[0]|:cons[integer]);
-
-    valis ()
+    show parse(_item,([0]:cons[integer]));
   }
 }

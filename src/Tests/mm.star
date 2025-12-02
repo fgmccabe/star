@@ -10,12 +10,10 @@ test.mm{
   .} in cc(x).
   
   
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     showMsg(disp(conc([1,2,3],[4,5]))::string);
 
-    assert conc([1,2,3],[4,5])==([1,2,3,4,5]|:cons[integer]);
-    
-    valis ()
+    assert conc([1,2,3],[4,5])==([1,2,3,4,5]:cons[integer]);
   }
 }
