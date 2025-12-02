@@ -1141,45 +1141,45 @@ star.compiler.checker{
 
   actionMode ::= .mustVal | .noVal | .notLast.
 
-  checkAction:(ast,tipe,tipe,actionMode,dict,string) => (canonAction,dict).
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,[St]) ?= isBrTuple(A) =>
-    checkAction(St,Tp,ErTp,Mode,Env,Path).
-  checkAction(A,Tp,_,Mode,Env,Path) where (Lc,[]) ?= isBrTuple(A) => valof{
+  checkAction:(ast,tipe,tipe,actionMode,dict,cons[decl],string) => (canonAction,dict,cons[decl]).
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,[St]) ?= isBrTuple(A) =>
+    checkAction(St,Tp,ErTp,Mode,Env,Dcls,Path).
+  checkAction(A,Tp,_,Mode,Env,Dcls,Path) where (Lc,[]) ?= isBrTuple(A) => valof{
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doNop(Lc),Env)
+    valis (.doNop(Lc),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,L,R) ?= isActionSeq(A) => valof{
-    (LL,E0) = checkAction(L,Tp,ErTp,.notLast,Env,Path);
-    (RR,E1) = checkAction(R,Tp,ErTp,Mode,E0,Path);
-    valis (.doSeq(Lc,LL,RR),E1)
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,L,R) ?= isActionSeq(A) => valof{
+    (LL,E0,D0) = checkAction(L,Tp,ErTp,.notLast,Env,Dcls,Path);
+    (RR,E1,D1) = checkAction(R,Tp,ErTp,Mode,E0,D0,Path);
+    valis (.doSeq(Lc,LL,RR),E1,D1)
   }
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (_,L) ?= isSoloSeq(A) =>
-    checkAction(L,Tp,ErTp,Mode,Env,Path).
-  checkAction(A,Tp,ErTp,Mode,Env,Path) where (Lc,Lb,Ac) ?= isLbldAction(A) => valof{
-    (RR,E1) = checkActions(Lc,Ac,Tp,ErTp,Mode,Env,Path);
-    valis (.doLbld(Lc,Lb,RR),E1)
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (_,L) ?= isSoloSeq(A) =>
+    checkAction(L,Tp,ErTp,Mode,Env,Dcls,Path).
+  checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Lb,Ac) ?= isLbldAction(A) => valof{
+    (RR,E1,_) = checkActions(Lc,Ac,Tp,ErTp,Mode,Env,Dcls,Path);
+    valis (.doLbld(Lc,Lb,RR),E1,Dcls)
   }
-  checkAction(A,Tp,_ErTp,Mode,Env,_Path) where (Lc,Lb) ?= isBreak(A) => valof{
+  checkAction(A,Tp,_ErTp,Mode,Env,Dcls,_Path) where (Lc,Lb) ?= isBreak(A) => valof{
     isValidLastAct(Lc,Tp,Mode);
-    valis (.doBrk(Lc,Lb),Env)
+    valis (.doBrk(Lc,Lb),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E) ?= isValis(A) => valof{
+  checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,E) ?= isValis(A) => valof{
     V = typeOfExp(E,Tp,ErTp,Env,Path);
-    valis (.doValis(Lc,V),Env)
+    valis (.doValis(Lc,V),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E) ?= isThrow(A) => valof{
+  checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,E) ?= isThrow(A) => valof{
     Thrw = typeOfExp(E,ErTp,.voidType,Env,Path);
-    valis (.doThrow(Lc,Thrw),Env)
+    valis (.doThrow(Lc,Thrw),Env,Dcls)
   }
-  checkAction(A,Tp,ErTp,_Mode,Env,Path) where (Lc,E,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(E) => valof{
+  checkAction(A,Tp,ErTp,_Mode,Env,Dcls,Path) where (Lc,E,T) ?= isTypeDeclaration(A) && (_,Id) ?= isName(E) => valof{
     if traceCanon! then
       showMsg("type annotated var $(Id)\:$(T)");
-    ETp = parseType(T,Env);
-    valis (.doNop(Lc),declareVr(Id,Lc,ETp,(OLc,_,D) => .vr(OLc,Id,ETp),.none,Env))
+    valis (.doNop(Lc),Env,[.varDec(Lc,Id,parseType(T,Env)),..Dcls])
   }
-  checkAction(A,VTp,ErTp,Mode,Env,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
+  checkAction(A,VTp,ErTp,Mode,Env,Dcls,Path) where (Lc,Lhs,Rhs) ?= isDefn(A) => valof{
     isValidLastAct(Lc,VTp,Mode);
     if (ILc,Id) ?= isName(Lhs) then{
+      if 
       if Tp ?= varType(Id,Env) then{
 	Val = typeOfExp(Rhs,Tp,ErTp,Env,Path);
 	Ev = declareVar(Id,Id,Lc,Tp,faceOfType(Tp,Env),Env);
