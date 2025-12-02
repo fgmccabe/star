@@ -42,7 +42,7 @@ star.meta{
   showConstraint(.hasType(Tp,Fld,Fc),Dp) =>
     "#(shTipe(Tp,.false,Dp)) <~ {#(Fld):#(shTipe(Fc,.false,Dp))}".
   showConstraint(.implicit(Fld,Tp),Dp) =>
-    "#(Fld) |: #(shTipe(Tp,.false,Dp))".
+    "#(Fld) : #(shTipe(Tp,.false,Dp))".
 
   shContract(Nm,Tps,[],Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)]".
   shContract(Nm,Tps,Dps,Sh,Dp) => "#(Nm)[#(showTypes(Tps,Sh,Dp)*)->>#(showTypes(Dps,Sh,Dp)*)]".

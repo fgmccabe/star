@@ -130,6 +130,12 @@ star.compiler.wff{
   public mkTypeFunVar:(option[locn],ast,ast)=>ast.
   mkTypeFunVar(Lc,N,A) => binary(Lc,"/",N,A).
 
+  public isDynamic:(ast)=>option[(option[locn],ast,ast)].
+  isDynamic(A) => isBinary(A,":").
+
+  public mkDynamic:(option[locn],ast,ast)=>ast.
+  mkDynamic(Lc,V,T) => binary(Lc,":",V,T).
+
   public isConstrained:(ast) => option[(option[locn],cons[ast],ast)].
   isConstrained(T) where
       (Lc,Lh,B) ?= isBinary(T,"|=") => .some((Lc,deComma(Lh),B)).

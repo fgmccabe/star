@@ -1041,7 +1041,7 @@ checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,Actn,Opts,Path) :-
   isDefn(A,Lc,L,R), % This needs a fix. Should not be allowed to redefine
   isIden(L,_,Nm),!,
   validLastAct(A,Lc,Tp,Last),
-  (is_member((Nm,VTp),Dcls) ; newTypeVar("V",VTp)),
+  (is_member(varDec(Nm,_,VTp),Dcls) ; newTypeVar("V",VTp)),
   (getVar(VLc,Nm,Env,_,_) ->
      reportError("May not redefine variable %s, previously at %s",[id(Nm),loc(VLc)],Lc),
      Env=Ev, Actn=doNop(Lc);
