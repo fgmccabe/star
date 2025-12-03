@@ -17,7 +17,7 @@ test.sieve{
 
   divides(X,Y) => (try X%Y==0 catch {_ => .false}).
 
-  filter:(this : task[integer]) |= (integer,emitter[integer],receiver[integer]) => () throws mboxException.
+  filter:(this:task[integer]) |= (integer,emitter[integer],receiver[integer]) => () throws mboxException.
   filter(Prm,Chnl,Next) => valof{
     while Nxt .= collectMsg(Chnl) do{
       if ~divides(Nxt,Prm) then
