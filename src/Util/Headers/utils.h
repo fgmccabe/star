@@ -111,8 +111,10 @@ extern void syserr(const char *msg);
 #define check(Tst, Msg)
 #endif
 
-extern void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
+void check_(const char *func, const char *srcFile, int line, char *frag, char *msg);
 
-extern retCode homeDir(char *user, char *buffer, integer bufLen);
+retCode homeDir(char *user, char *buffer, integer bufLen);
+
+comparison intCompare(const int32 lhs, int32 rhs);
 
 #endif

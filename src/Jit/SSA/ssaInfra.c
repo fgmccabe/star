@@ -2,12 +2,17 @@
 // Created by Francis McCabe on 11/23/25.
 //
 
+#include "hash.h"
 #include "ooio.h"
+#include "pool.h"
+#include "retcode.h"
+#include "ssa.h"
 #include "ssaP.h"
 #include "assert.h"
 
 static poolPo segmentPool = Null;
 static poolPo linkPool = Null;
+static poolPo varPool = Null;
 
 static int32 segNo = 0;
 
@@ -15,6 +20,7 @@ static void initSegs() {
   if (segmentPool == Null) {
     segmentPool = newPool(sizeof(CodeSegment), 1024);
     linkPool = newPool(sizeof(SegLinkRecord), 1024);
+    varPool = newPool(sizeof(VarSegRecord), 1024);
   }
 }
 
@@ -132,3 +138,41 @@ void showSegs(ioPo out, codeSegPo segs) {
     segs = segs->nextByPc;
   }
 }
+
+static integer varHash(void *c){
+  varSegPo var = (varSegPo)c;
+  return var->varNo;
+}
+
+static comparison varComp(void *l, void *r){
+  varSegPo v1 = (varSegPo)l;
+  varSegPo v2 = (varSegPo)2;
+
+  return intCompare(v1->varNo,v2->varNo);
+}
+
+hashPo newVarTable(){
+  return newHash(256, varHash, varComp, Null);
+}
+
+varSegPo recordNewVariable(hashPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc) {
+  varSegPo var = allocPool(varPool);
+
+  var->varNo = varNo;
+  var->kind = kind;
+  var->start = startPc;
+  var->end = endPc;
+
+  hashPut(vars, (void*)var, var);
+  return var;
+}
+
+void recordVariableUse(hashPo vars, codeSegPo root, int32 varNo, int32 pc){
+  VarSegRecord tmp = {.varNo = varNo};
+  varSegPo var = hashGet(vars, &tmp);
+
+  assert(var!=Null);
+  codeSegPo seg = findSeg(root,pc);
+  
+}
+

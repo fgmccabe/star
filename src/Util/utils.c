@@ -187,3 +187,12 @@ integer hwmBump(hwmPo hwm, integer delta) {
     hwm->max = hwm->current;
   return hwm->current;
 }
+
+comparison intCompare(const int32 lhs, int32 rhs) {
+  if (lhs<rhs)
+    return smaller;
+  else if (lhs==rhs)
+    return same;
+  else
+    return bigger;
+}
