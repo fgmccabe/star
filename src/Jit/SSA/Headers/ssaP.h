@@ -21,13 +21,14 @@ typedef struct code_seg_ {
 typedef struct seg_link_ {
   codeSegPo seg;
   segLinkPo next;
-} SegLinkRecord;
+} SegLinkRecord, *segLinkPo;
 
 typedef struct var_seg_ {
   int32 varNo;                  // Variable number, first numbers are locals
   VarKind kind;
   int32 start;                  // PC where its value is established
   int32 end;                    // Last location where it is referenced
+  segLinkPo uses;
 } VarSegRecord;
 
 codeSegPo findSeg(codeSegPo root, int32 pc);
@@ -37,5 +38,8 @@ codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);
 codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
 
 void linkIncoming(codeSegPo tgt, codeSegPo incoming);
+
+varSegPo recordNewVariable(hashPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc);
+void recordVarUsage(hashPo vars, codeSegPo root, int32 pc);
 
 #endif

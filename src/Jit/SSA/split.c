@@ -2,10 +2,13 @@
 // Created by Francis McCabe on 11/4/25.
 //
 
+#include "code.h"
+#include "ssa.h"
 #include "ssaP.h"
 #include "opcodes.h"
 #include "codeP.h"
 #include "array.h"
+#include "hash.h"
 
 #ifdef TRACEJIT
 tracingLevel traceSSA = noTracing;
@@ -29,10 +32,12 @@ typedef enum {
 
 static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
-static void recordVariable(arrayPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc);
+static void recordNewVariable(hashPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc);
+
+static int32 tempVarNo = 0;
 
 retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int32 pc, int32 limit, int32 next,
-                   arrayPo vars) {
+                   hashPo vars) {
   ScopeBlock scope = {.start = start, .limit = limit, .next = next, .parent = parent};
 
   retCode ret = Ok;
@@ -119,9 +124,11 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case LdC:
       case LdA:
       case LdL:
+        continue;
       case StL:
       case StV:
       case TL:
+        recordNewVariable(vars, code[pc].fst, local, pc+1, -1);
         continue;
       case LdG:
         splitNextPC(root, pc, Null);
@@ -270,17 +277,16 @@ codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt) {
   return Null;
 }
 
-void recordVariable(arrayPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc) {
-  VarSegRecord arg = {.varNo = varNo, .kind = kind, .start = startPc, .end = endPc};
-  appendEntry(vars, &arg);
-}
-
 codeSegPo segmentMethod(methodPo mtd) {
   codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
-  arrayPo vars = allocArray(sizeof(VarSegRecord), 100, True);
+  hashPo vars = newHash(long size, hashFun hash, compFun cmp, destFun dest)
+      allocArray(sizeof(VarSegRecord),
+                 mtdArity(mtd) + lclCount(mtd) + stackDelta(mtd), True);
+
+  tempVarNo = -lclCount(mtd);
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    recordVariable(vars,ax,argument,0,-1);
+    recordNewVariable(vars,ax,argument,0,-1);
   }
 
   if (splitBlock(Null, root, entryPoint(mtd), 0, 0, codeSize(mtd), -1, vars) == Ok)
