@@ -63,6 +63,48 @@ are marked `public` will be exported.footnote:[An element in a
 package may be marked `private` -- which will also ensure that it
 is not visible outside the package.]
 
+[#mainFunction]
+=== Main function
+
+(((main function))) (((procedure, main))) If a package has defined a
+main function, then the package can be invoked as though it were an
+executable program.
+
+There are two kinds of main function: a function or procedure with
+name `main` that may have zero or more arguments; or a function or
+procedure with name `_main` with one argument that is a `cons` list of
+``string``s.
+
+The `_main` function must have the type signature:
+
+[source,star]
+----
+_main:(cons[string])=>()
+----
+
+When the package is invoked at the command line, the command line
+arguments (not including program name) are passed as string values to
+the `_main` function.
+
+If a package has a definition for `main`, but does not have one for
+`_main`, then the command line arguments are coerced according to the
+explicit type signature for `main`.
+
+For example, if `main` is defined with explicit type signature:
+
+[source,star]
+----
+main:(string,integer){}.
+----
+
+then, when the package is invoked as a program, the run-time checks
+for exactly two arguments, and it attempts to coerce the second
+argument to an `integer`. It then passes the command line values
+(after coercion) to the `main` program.
+
+If the coercion fails, then `main` is not invoked and an error is
+displayed on the terminal.
+
 [#thetaEnvironment]
 == Environments and Definitions
 
@@ -583,23 +625,6 @@ check(X){
 NOTE: Like functions that throw, we must use explicit type signature
 to indicate that `check` throws an `exception`.
 
-[#mainFunction]
-=== Main function
-
-(((main function))) (((procedure, main))) If a package has defined a
-main function, then the package can be invoked as though it were an
-executable program.
-
-There are two kinds of main function: a function or procedure with
-name `main` that may have zero or more arguments; or a function or
-procedure with name `_main` with one argument that is a `cons` list of
-`string`s.
-
-[source,star]
-----
-main:(string,integer){}.
-----
-
 [#contract]
 == Contract
 
@@ -619,7 +644,7 @@ type(s) in the contract head.
 ----
 contractDefinition --> ["contract"], contractSpec, ["::="], faceType.
 
-contractSpec --> ["all","~~"], identifier, ["["], contractTypeArgs, ["]"].
+contractSpec --> ["all"],boundTypes,["~~"], identifier, ["["], contractTypeArgs, ["]"].
 contractSpec --> identifier, ["["], contractTypeArgs, ["]"].
 
 contractTypeArgs --> typeVariable*, ["->>"], typeVariable*.

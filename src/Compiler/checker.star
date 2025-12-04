@@ -48,6 +48,8 @@ star.compiler.checker{
 	(BrDfs,BrDcs) = pullBrDefs(ThEnv);
 	(AllX,All) = squashDecls(ThDecls);
 
+	checkMain(Defs,ThEnv);
+
 	RDefs = (errorFree() ??
 	  overloadProgram([BrDfs,..Defs],declareDecls(All++BrDcs,PkgEnv))* || []);
 
@@ -1394,5 +1396,14 @@ star.compiler.checker{
   genArgTps(A) where (_,Ar,_) ?= isWhere(A) =>
     genArgTps(Ar).
   genArgTps(A) where (_,Els) ?= isTuple(A) =>
-      genTpVars(Els).
+    genTpVars(Els).
+
+  checkMain:(cons[cons[canonDef]],dict){}.
+  checkMain(Gps,Env){
+    if (Lc,Tp) ?= {! (Lc,funTypeRes(MnTp)) | Gp in Gps && .funDef(Lc,"_main",_,_,MnTp) in Gp !} then{
+      if ~sameType(unitTp,Tp,Env) then{
+        reportError("Main program should return (), not $(Tp)",Lc);
+    }
+  }
+  }
 }
