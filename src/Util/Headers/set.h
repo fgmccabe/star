@@ -9,7 +9,7 @@ typedef struct set_record_ *setPo;
 
 typedef retCode (*setElProc)(setPo s, int32 el, void *cl);
 
-setPo createEmptySet(int32 min, int32 max, logical growable);
+setPo createSet(int32 min);
 void deleteSet(setPo s);
 
 retCode addToSet(setPo set, int32 k);

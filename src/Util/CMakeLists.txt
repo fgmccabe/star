@@ -32,6 +32,7 @@ set(PUBLIC_HEADERS
         Headers/object.h
         Headers/pool.h
         Headers/retcode.h
+        Headers/set.h
         Headers/pipe.h
         Headers/byteBuffer.h
         Headers/wordBuffer.h
@@ -63,6 +64,7 @@ set(HEADER_FILES
         Headers/objectP.h
         Headers/pipeP.h
         Headers/byteBufferP.h
+        Headers/setP.h
         Headers/wordBufferP.h
         Headers/stringBufferP.h
         Headers/unistrP.h
@@ -102,6 +104,7 @@ set(SOURCE_FILES
         pipe.c
         pool.c
         quick.c
+        set.c
         signal.c
         sockets.c
         wordBuffer.c
