@@ -12,6 +12,7 @@ set(TEST_HEADER_FILES
         Headers/buddyTest.h
         Headers/multiTests.h
         Headers/matchTests.h
+        Headers/setTests.h
         Headers/timertests.h)
 
 set(TEST_SOURCE_FILES

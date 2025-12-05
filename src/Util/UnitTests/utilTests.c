@@ -3,6 +3,13 @@
 //
 
 #include "utilTests.h"
+#include "buddyTest.h"
+#include "unitTests.h"
+#include "multiTests.h"
+#include "miscTest.h"
+#include "matchTests.h"
+#include "setTests.h"
+#include "timertests.h"
 
 retCode all_tests() {
   tryRet(run_test(test_buddy));
@@ -10,5 +17,7 @@ retCode all_tests() {
   tryRet(run_test(multiTests));
   tryRet(run_test(miscTests));
   tryRet(run_test(matchTests));
+  tryRet(run_test(setTests));
+  tryRet(run_test(timerTests));
   return Ok;
 }
