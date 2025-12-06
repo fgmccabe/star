@@ -19,7 +19,7 @@ set(TEST_SOURCE_FILES
         buddyTest.c
         utilTests.c
         ../unitTests.c
-        multiTest.c miscTest.c Headers/miscTest.h matchTests.c)
+        multiTest.c miscTest.c timerTests.c matchTests.c setTests.c)
 
 set(TEST_TIMER_SOURCE_FILES
 	timerTests.c
@@ -30,9 +30,6 @@ target_link_libraries(utilTest ooio)
 
 add_executable(aioTest aioTest.c)
 target_link_libraries(aioTest ${AIO_LIBRARIES})
-
-add_executable(timerTest ${TEST_TIMER_SOURCE_FILES})
-target_link_libraries(timerTest ooio)
 
 add_custom_target(testUtils ALL DEPENDS utilTest
         COMMAND utilTest)
