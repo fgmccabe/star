@@ -101,7 +101,7 @@ static retCode removeABunch() {
   for (int32 ix = 0; ix < 128; ix++)
     addToSet(set, ix * 3);
 
-  showSet(logFile, set);
+  // showSet(logFile, set);
 
   for (int32 ix = 0; ix < 128; ix++) {
     assert(inSet(set,ix*3));
@@ -110,7 +110,7 @@ static retCode removeABunch() {
     assert(!inSet(set,ix*3));
   }
 
-  showSet(logFile, set);
+  // showSet(logFile, set);
 
   assert(setIsEmpty(set));
 

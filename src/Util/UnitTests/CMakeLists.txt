@@ -18,12 +18,9 @@ set(TEST_HEADER_FILES
 set(TEST_SOURCE_FILES
         buddyTest.c
         utilTests.c
+		timerTests.c
         ../unitTests.c
-        multiTest.c miscTest.c timerTests.c matchTests.c setTests.c)
-
-set(TEST_TIMER_SOURCE_FILES
-	timerTests.c
-	../unitTests.c)
+        multiTest.c miscTest.c matchTests.c setTests.c)
 
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio)
