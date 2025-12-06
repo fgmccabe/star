@@ -122,7 +122,3 @@ retCode timerTests() {
   tearDownTests();
   return Ok;
 }
-
-retCode all_tests() {
-  return timerTests();
-}
