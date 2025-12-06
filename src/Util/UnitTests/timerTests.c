@@ -38,18 +38,16 @@ static void ping(logical *done) {
 }
 
 retCode singleTimerTest() {
-  if (debugUnitTests)
-    outMsg(logFile, "single timer\n%_");
+  outMsg(logFile, "single timer\n%_");
 
   struct timeval when, next;
   gettimeofday(&when, Null);
 
-  logical done = False;
+  volatile logical done = False;
 
-  tryRet(setTimer(0.0001, (timeFun) ping, &done));
+  tryRet(setTimer(0.0001, (timeFun) ping, (void*)&done));
 
-  while (!done)
-    outMsg(logFile, "%\r%_");
+  while (!done) {}
 
   gettimeofday(&next, Null);
   return boolRet(cmpTime(&next, &when));
@@ -80,12 +78,11 @@ retCode ascendingTimerTest() {
     tryRet(setTimer((double) ix * 0.001, (timeFun) tCheck, (void *) ix));
   }
 
-  logical done = False;
+  volatile logical done = False;
 
-  tryRet(setTimer(1.0, (timeFun) ping, &done));
+  tryRet(setTimer(1.0, (timeFun) ping, (void*)&done));
 
-  while (!done);
-//    outMsg(logFile, "&\r%_");
+  while (!done) {}
 
   gettimeofday(&next, Null);
   return boolRet(cmpTime(&next, &start));
@@ -99,16 +96,14 @@ retCode descendingTimerTest() {
   next = start;
 
   for (integer ix = 100; ix > 0; ix--) {
-//    tryRet(setTimer(ix * 0.001, (timeFun) ascendCheck, &next));
     tryRet(setTimer((double)ix * 0.001, (timeFun) tCheck, (void*)ix));
   }
 
-  logical done = False;
+  volatile logical done = False;
 
-  setTimer(1.0, (timeFun) ping, &done);
+  setTimer(1.0, (timeFun) ping, (void*)&done);
 
-  while (!done);
-//    outMsg(logFile, "*\r%_");
+  while (!done) {}
 
   gettimeofday(&next, Null);
   return boolRet(cmpTime(&next, &start));
