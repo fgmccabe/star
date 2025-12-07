@@ -118,6 +118,56 @@ static retCode removeABunch() {
   return Ok;
 }
 
+setPo iota(int32 min, int32 max, int32 step) {
+  setPo set = createSet(0);
+  for (int32 ix = min; ix <= max; ix += step)
+    addToSet(set, ix);
+  return set;
+}
+
+logical isDense(setPo set, int32 min, int32 max) {
+  for (int32 ix = min; ix <= max; ix++)
+    if (!inSet(set, ix))
+      return False;
+  return True;
+}
+
+static retCode unionTest() {
+  setPo lhs = iota(0, 256, 2);
+  setPo rhs = iota(1, 255, 2);
+
+  setPo unSets = unionSet(lhs, rhs);
+
+  check(isDense(unSets, 0, 256), "incorrect union");
+  deleteSet(unSets);
+
+  setPo selSet = unionSet(lhs, lhs);
+  check(equalSets(lhs,selSet), "self union should be same");
+  deleteSet(selSet);
+
+  deleteSet(lhs);
+  deleteSet(rhs);
+  return Ok;
+}
+
+static retCode sectTest() {
+  setPo lhs = iota(0, 256, 2);
+  setPo rhs = iota(1, 255, 2);
+
+  setPo unSets = intersectSet(lhs, rhs);
+
+  check(setIsEmpty(unSets), "incorrect intersection");
+  deleteSet(unSets);
+
+  setPo selSet = intersectSet(lhs, lhs);
+  check(equalSets(lhs,selSet), "self intersection should be same");
+  deleteSet(selSet);
+
+  deleteSet(lhs);
+  deleteSet(rhs);
+  return Ok;
+}
+
 retCode setTests() {
   setupTests();
   tryRet(run_test(createAndDestroy));
@@ -126,6 +176,8 @@ retCode setTests() {
   tryRet(run_test(addABunch));
   tryRet(run_test(addANegativeBunch));
   tryRet(run_test(removeABunch));
+  tryRet(run_test(unionTest));
+  tryRet(run_test(sectTest));
   tearDownTests();
   return Ok;
 }

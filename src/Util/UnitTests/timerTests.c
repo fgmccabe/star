@@ -74,7 +74,6 @@ retCode ascendingTimerTest() {
   next = start;
 
   for (integer ix = 0; ix < 100; ix++) {
-    // tryRet(setTimer((double)ix * 0.001, (timeFun) ascendCheck, &next));
     tryRet(setTimer((double) ix * 0.001, (timeFun) tCheck, (void *) ix));
   }
 
