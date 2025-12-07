@@ -57,18 +57,18 @@ retCode addToSet(setPo set, int32 k) {
   }
 
   if (k < set->min) {
-    int32 newBase = align64(k-64);
+    int32 newBase = align64(k - 64);
     int32 oldMax = set->count * 64 + set->min;
     int32 newCount = (oldMax - newBase) / 64;
 
     assert(k>=newBase && k<newBase+64);
 
     uinteger *newData = (uinteger *) malloc(sizeof(uinteger) * newCount);
-    for (int32 ix = 0; ix < newCount-set->count; ix++) {
+    for (int32 ix = 0; ix < newCount - set->count; ix++) {
       newData[ix] = 0;
     }
     for (int32 ix = 0; ix < set->count; ix++) {
-      newData[ix+(newCount-set->count)] = set->data[ix]; // We have to copy the old data across
+      newData[ix + (newCount - set->count)] = set->data[ix]; // We have to copy the old data across
     }
     free(set->data);
     set->data = newData;
@@ -125,6 +125,79 @@ logical inSet(setPo set, int32 k) {
   int32 el = base >> 6;
   uinteger mask = 1ul << (((uinteger) base) & 63u);
   return (set->data[el] & mask) == mask;
+}
+
+setPo duplicateSet(setPo set) {
+  setPo newSet = (setPo) allocPool(setPool);
+  newSet->data = malloc(sizeof(uinteger) * set->count);
+  for (int32 ix = 0; ix < set->count; ix++) {
+    newSet->data[ix] = set->data[ix];
+  }
+  newSet->min = set->min;
+  newSet->count = set->count;
+  return newSet;
+}
+
+static retCode unionEl(setPo set, int32 el, void *cl) {
+  setPo info = (setPo) cl;
+  return addToSet(info, el);
+}
+
+setPo unionSet(setPo lhs, setPo rhs) {
+  setPo newSet = duplicateSet(rhs);
+
+  processSet(lhs, unionEl, newSet);
+  return newSet;
+}
+
+typedef struct {
+  setPo oth;
+  setPo tgt;
+} SectInfo;
+
+static retCode sectEl(setPo set, int32 el, void *cl) {
+  SectInfo *info = (SectInfo *) cl;
+  if (inSet(info->oth, el))
+    addToSet(info->tgt, el);
+  else
+    removeFromSet(info->tgt, el);
+  return Ok;
+}
+
+setPo intersectSet(setPo lhs, setPo rhs) {
+  setPo newSet = createSet(0);
+  SectInfo info = {.oth = rhs, .tgt = newSet};
+  processSet(lhs, sectEl, &info);
+  info.oth = lhs;
+  processSet(rhs, sectEl, &info);
+  return newSet;
+}
+
+static retCode diffEl(setPo set, int32 el, void *cl) {
+  setPo info = (setPo) cl;
+  return removeFromSet(info, el);
+}
+
+setPo differenceSet(setPo lhs, setPo rhs) {
+  setPo newSet = duplicateSet(lhs);
+
+  processSet(rhs, diffEl, newSet);
+  return newSet;
+}
+
+retCode checkEl(setPo el, int32 ix, void *cl) {
+  setPo info = (setPo) cl;
+  if (inSet(info, ix))
+    return Ok;
+  else
+    return Error;
+}
+
+logical equalSets(setPo lhs, setPo rhs) {
+  retCode ret = processSet(lhs, checkEl, rhs);
+  if (ret == Ok)
+    ret = processSet(rhs, checkEl, lhs);
+  return ret == Ok;
 }
 
 retCode processSet(setPo set, setElProc proc, void *cl) {

@@ -18,6 +18,13 @@ retCode removeFromSet(setPo set, int32 k);
 logical inSet(setPo set, int32 k);
 logical setIsEmpty(setPo set);
 
+setPo duplicateSet(setPo set);
+setPo unionSet(setPo lhs,setPo rhs);
+setPo intersectSet(setPo lhs,setPo rhs);
+setPo differenceSet(setPo lhs,setPo rhs);
+
+logical equalSets(setPo lhs,setPo rhs);
+
 retCode processSet(setPo set, setElProc proc, void *cl);
 
 retCode showSet(ioPo out,setPo set);
