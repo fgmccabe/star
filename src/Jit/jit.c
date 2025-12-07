@@ -34,8 +34,7 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
 
     if (enableSSA) {
       codeSegPo segments = segmentMethod(mtd);
-      showSegs(logFile, segments);
-      flushIo(logFile);
+      showSegmented(logFile, mtd, segments);
       tearDownSegs(segments);
     }
 

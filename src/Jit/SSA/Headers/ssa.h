@@ -17,10 +17,9 @@ extern tracingLevel traceSSA;
 
 extern logical enableSSA;
 
-void showSegs(ioPo out, codeSegPo segs);
-
 codeSegPo segmentMethod(methodPo mtd);
 void tearDownSegs(codeSegPo segs);
+void showSegmented(ioPo out, methodPo mtd, codeSegPo root);
 
 typedef enum {
   argument,
