@@ -7,8 +7,10 @@
 #include "ssaP.h"
 #include "opcodes.h"
 #include "codeP.h"
+#include "debugP.h"
 #include "array.h"
 #include "hash.h"
+#include "set.h"
 
 #ifdef TRACEJIT
 tracingLevel traceSSA = noTracing;
@@ -32,7 +34,6 @@ typedef enum {
 
 static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
-static void recordNewVariable(hashPo vars,int32 varNo,VarKind kind, int32 startPc, int32 endPc);
 
 static int32 tempVarNo = 0;
 
@@ -122,13 +123,17 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         return Error;
       case LdV:
       case LdC:
+        continue;
       case LdA:
+        recordVariableUse(root, ins->fst, pc);
+        continue;
       case LdL:
+        recordVariableUse(root, -ins->fst, pc);
         continue;
       case StL:
       case StV:
       case TL:
-        recordNewVariable(vars, code[pc].fst, local, pc+1, -1);
+        recordNewVariable(root, -code[pc].fst, local, pc + 1);
         continue;
       case LdG:
         splitNextPC(root, pc, Null);
@@ -279,14 +284,12 @@ codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt) {
 
 codeSegPo segmentMethod(methodPo mtd) {
   codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
-  hashPo vars = newHash(long size, hashFun hash, compFun cmp, destFun dest)
-      allocArray(sizeof(VarSegRecord),
-                 mtdArity(mtd) + lclCount(mtd) + stackDelta(mtd), True);
+  hashPo vars = newVarTable();
 
   tempVarNo = -lclCount(mtd);
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    recordNewVariable(vars,ax,argument,0,-1);
+    recordNewVariable(root, ax, argument, 0);
   }
 
   if (splitBlock(Null, root, entryPoint(mtd), 0, 0, codeSize(mtd), -1, vars) == Ok)
