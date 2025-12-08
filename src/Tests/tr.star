@@ -14,14 +14,13 @@ test.tr{
       _ => .false
     }).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show checkMe(3);
     show checkMe(4);
 
     assert checkMe(3);
     assert ~checkMe(4);
-    valis ()
   }
 }
   
