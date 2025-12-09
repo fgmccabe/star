@@ -58,7 +58,7 @@ star.strings{
   }
 
   public implementation indexed[string ->> integer,char] => {
-    _index(S,K) => _str_charat(S,K).
+    _index(S,K) => (try .some(_str_charat(S,K)) catch { _ => .none}).
     _put(S,K,C) => _str_set(S,K,C).
     _remove(S,K) => _str_drop(S,K).
     _empty = "".
@@ -119,9 +119,9 @@ star.strings{
   }
 
   public implementation iter[string->>char] => let{.
+    strIter:all x ~~ (string,integer,integer,x,(char,x)=>x)=>x.
     strIter(S,P,P,X,F) => X.
-    strIter(S,P,L,X,F) where P<L && Ch?=_str_charat(S,P) =>
-      strIter(S,P+1,L,F(Ch,X),F).
+    strIter(S,P,L,X,F) where P<L => (try strIter(S,P+1,L,F(_str_charat(S,P),X),F) catch { _ => X}).
     strIter(_,_,_,X,_) => X.
   .} in {
     _iter(Txt,X,F) => strIter(Txt,0,size(Txt),X,F)

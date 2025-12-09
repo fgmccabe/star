@@ -583,10 +583,10 @@ ReturnStatus g__parsetime(enginePo P) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    pshVal(P,(termPo) wrapSome(processHeap(P), makeFloat((double)tm)));
+    pshVal(P, makeFloat((double)tm));
     return Normal;
   } else {
-    pshVal(P,noneEnum);
-    return Normal;
+    pshVal(P,eINVAL);
+    return Abnormal;
   }
 }

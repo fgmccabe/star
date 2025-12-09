@@ -45,10 +45,10 @@ escapeType("_big_eq",funType(tplType([type("bigint"),type("bigint")]),type("bool
 escapeType("_big_lt",funType(tplType([type("bigint"),type("bigint")]),type("boolean"),voidType)).
 escapeType("_big_ge",funType(tplType([type("bigint"),type("bigint")]),type("boolean"),voidType)).
 escapeType("_int2big",funType(tplType([type("integer")]),type("bigint"),voidType)).
-escapeType("_big2int",funType(tplType([type("bigint")]),tpExp(tpFun("option",1),type("integer")),voidType)).
+escapeType("_big2int",funType(tplType([type("bigint")]),type("integer"),type("errorCode"))).
 escapeType("_ints2big",funType(tplType([tpExp(tpFun("cons",1),type("integer"))]),type("bigint"),voidType)).
 escapeType("_big2ints",funType(tplType([type("bigint")]),tpExp(tpFun("cons",1),type("integer")),voidType)).
-escapeType("_str2big",funType(tplType([type("string")]),tpExp(tpFun("option",1),type("bigint")),voidType)).
+escapeType("_str2big",funType(tplType([type("string")]),type("bigint"),type("errorCode"))).
 escapeType("_big2str",funType(tplType([type("bigint")]),type("string"),voidType)).
 escapeType("_big_format",funType(tplType([type("bigint"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean"),voidType)))).
@@ -154,7 +154,7 @@ escapeType("_time2utc",funType(tplType([type("float")]),tplType([type("integer")
 escapeType("_date2time",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),type("float"),voidType)).
 escapeType("_utc2time",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),type("float"),voidType)).
 escapeType("_formattime",funType(tplType([type("float"),type("string")]),type("string"),type("errorCode"))).
-escapeType("_parsetime",funType(tplType([type("string"),type("string")]),tpExp(tpFun("option",1),type("float")),voidType)).
+escapeType("_parsetime",funType(tplType([type("string"),type("string")]),type("float"),type("errorCode"))).
 escapeType("_uniCodeCategory",funType(tplType([type("char")]),type("integer"),voidType)).
 escapeType("_isCcChar",funType(tplType([type("char")]),type("boolean"),voidType)).
 escapeType("_isCfChar",funType(tplType([type("char")]),type("boolean"),voidType)).
@@ -225,7 +225,7 @@ escapeType("_str_back",funType(tplType([type("string")]),tplType([type("string")
 escapeType("_str_cons",funType(tplType([type("char"),type("string")]),type("string"),voidType)).
 escapeType("_code2str",funType(tplType([type("char")]),type("string"),voidType)).
 escapeType("_str_apnd",funType(tplType([type("string"),type("char")]),type("string"),voidType)).
-escapeType("_str_charat",funType(tplType([type("string"),type("integer")]),tpExp(tpFun("option",1),type("char")),voidType)).
+escapeType("_str_charat",funType(tplType([type("string"),type("integer")]),type("char"),type("errorCode"))).
 escapeType("_str_set",funType(tplType([type("string"),type("integer"),type("char")]),type("string"),voidType)).
 escapeType("_str_drop",funType(tplType([type("string"),type("integer")]),type("string"),voidType)).
 escapeType("_str_quote",funType(tplType([type("string")]),type("string"),voidType)).

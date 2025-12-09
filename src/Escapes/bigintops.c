@@ -171,11 +171,12 @@ ReturnStatus g__str2big(enginePo P) {
 
   if (bgSize > 0) {
     heapPo h = processHeap(P);
-    pshVal(P, (termPo) wrapSome(h, allocateBignum(h, bgSize, digits)));
-  }else
-    pshVal(P, noneEnum);
-
-  return Normal;
+    pshVal(P, (termPo) allocateBignum(h, bgSize, digits));
+    return Normal;
+  }else{
+    pshVal(P, eINVAL);
+    return Abnormal;
+  }
 }
 
 ReturnStatus g__big_hash(enginePo P) {
@@ -277,21 +278,20 @@ ReturnStatus g__big2int(enginePo P) {
 
   switch (count) {
     case 0: {
-      pshVal(P, (termPo) wrapSome(h, makeInteger(0)));
-      break;
+      pshVal(P, makeInteger(0));
+      return Normal;
     }
     case 1: {
-      pshVal(P, (termPo) wrapSome(h, makeInteger((integer) digits[0])));
-      break;
+      pshVal(P, makeInteger((integer) digits[0]));
+      return Normal;
     }
     case 2: {
       uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
-      pshVal(P, (termPo) wrapSome(h, makeInteger((integer) lge)));
-      break;
+      pshVal(P, makeInteger((integer) lge));
+      return Normal;
     }
     default:
-      pshVal(P, noneEnum);
-      break;
+      pshVal(P, eRANGE);
+      return Abnormal;
   }
-  return Normal;
 }

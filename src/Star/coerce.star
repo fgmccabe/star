@@ -42,7 +42,7 @@ star.coerce{
   }
 
   public implementation coercion[string,bigint] => {
-    _coerce(S) => _str2big(S)
+    _coerce(S) => (try .some(_str2big(S)) catch { _ => .none}).
   }
 
   public implementation coercion[integer,bigint] => {
@@ -50,7 +50,7 @@ star.coerce{
   }
 
   public implementation coercion[bigint,integer] => {
-    _coerce(Bx) => _big2int(Bx).
+    _coerce(Bx) => (try .some(_big2int(Bx)) catch { _ => .none}).
   }
 
   public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |= coercion[(a,e),(b,f)] => let{
