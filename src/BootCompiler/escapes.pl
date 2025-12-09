@@ -194,8 +194,8 @@ escapeType("_int2str",funType(tplType([type("integer")]),type("string"),voidType
 escapeType("_flt2str",funType(tplType([type("float"),type("integer"),type("char"),type("boolean")]),type("string"),voidType)).
 escapeType("_int_format",funType(tplType([type("integer"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_flt_format",funType(tplType([type("float"),type("string")]),type("string"),type("errorCode"))).
-escapeType("_str2flt",funType(tplType([type("string")]),tpExp(tpFun("option",1),type("float")),voidType)).
-escapeType("_str2int",funType(tplType([type("string")]),tpExp(tpFun("option",1),type("integer")),voidType)).
+escapeType("_str2flt",funType(tplType([type("string")]),type("float"),type("errorCode"))).
+escapeType("_str2int",funType(tplType([type("string")]),type("integer"),type("errorCode"))).
 escapeType("_chr_eq",funType(tplType([type("char"),type("char")]),type("boolean"),voidType)).
 escapeType("_chr_lt",funType(tplType([type("char"),type("char")]),type("boolean"),voidType)).
 escapeType("_chr_ge",funType(tplType([type("char"),type("char")]),type("boolean"),voidType)).

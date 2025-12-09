@@ -276,8 +276,8 @@ escape(_flt2str, func(flt int chr bool, strng), "format a floating as a string")
 escape(_int_format, throws(int strng, strng, ERR), "format an integer using picture format")
 escape(_flt_format, throws(flt strng, strng, ERR), "format a floating point using picture format")
 
-escape(_str2flt, func(strng, option(flt)), "parse a string as a float")
-escape(_str2int, func(strng, option(int)), "parse a string as an integer")
+escape(_str2flt, throws(strng, flt, ERR), "parse a string as a float")
+escape(_str2int, throws(strng, int, ERR), "parse a string as an integer")
 
 escape(_chr_eq, func(chr chr, bool), "Character equality")
 escape(_chr_lt, func(chr chr, bool), "Character 1 is less than character 2")

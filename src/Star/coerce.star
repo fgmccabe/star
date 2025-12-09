@@ -14,11 +14,11 @@ star.coerce{
   }
 
   public implementation coercion[string,float] => {
-    _coerce(Sx) => _str2flt(Sx).
+    _coerce(Sx) => (try .some(_str2flt(Sx)) catch { _ => .none}).
   }
 
   public implementation coercion[string,integer] => {
-    _coerce(Sx) => _str2int(Sx).
+    _coerce(Sx) => (try .some(_str2int(Sx)) catch { _ => .none}).
   }
 
   public implementation coercion[integer,integer] => {

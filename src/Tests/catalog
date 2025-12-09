@@ -31,6 +31,7 @@
     "test.chr": "chr.star",
     "test.co": "co.star",
     "test.c": "c.star",
+    "test.ce": "ce.star",
     "test.c2": "c2.star",
     "test.cc": "cc.star",
     "test.compose": "compose.star",
