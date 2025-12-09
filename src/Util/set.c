@@ -5,7 +5,6 @@
 #include "ooio.h"
 #include "utils.h"
 #include <stdlib.h>
-#include <arm/param.h>
 
 static poolPo setPool = Null;
 
