@@ -96,11 +96,11 @@ escape(_big_lt, func(big big, bool), "bigint less than")
 escape(_big_ge, func(big big, bool), "bigint greater or equal")
 
 escape(_int2big, func(int, big), "convert integer to bigint")
-escape(_big2int, func(big, option(int)), "convert bigint to integer")
+escape(_big2int, throws(big, int, ERR), "convert bigint to integer")
 escape(_ints2big, func(lst(int), big), "convert list of integers to bigint")
 escape(_big2ints, func(big, lst(int)), "convert bigint to list of integers")
 
-escape(_str2big, func(strng, option(big)), "convert string to bigint")
+escape(_str2big, throws(strng, big, ERR), "convert string to bigint")
 escape(_big2str, func(big, strng), "convert bigint to string")
 
 escape(_big_format, throws(big strng, strng, ERR), "format a big integer")
@@ -228,7 +228,7 @@ escape(_time2utc, func(flt, tpl(int int int int int int flt int)), "convert a ti
 escape(_date2time, func(int int int int int flt int, flt), "convert a date to a time")
 escape(_utc2time, func(int int int int int flt int, flt), "convert a UTC date to a time")
 escape(_formattime,throws(flt strng, strng, ERR),"format a time value")
-escape(_parsetime,func(strng strng, option(flt)),"parse a date expression guided by format string")
+escape(_parsetime,throws(strng strng, flt, ERR),"parse a date expression guided by format string")
 
 // Character class escapes
 escape(_uniCodeCategory, func(chr, int), "unicode category")
@@ -316,7 +316,7 @@ escape(_str_back, throws(strng, tpl(strng chr), ERR), "pick up the last characte
 escape(_str_cons, func(chr strng, strng), "put a char in the front")
 escape(_code2str, func(chr, strng), "make a 1 char string")
 escape(_str_apnd, func(strng chr, strng), "put a char in the back")
-escape(_str_charat, func(strng int, option(chr)), "index into string")
+escape(_str_charat, throws(strng int, chr, ERR), "index into string")
 escape(_str_set, func(strng int chr,strng), "put a char in the string")
 escape(_str_drop, func(strng int,strng), "put a char in the string")
 escape(_str_quote, func(strng, strng), "construct a quoted version of a string")

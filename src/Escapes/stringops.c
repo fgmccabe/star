@@ -237,11 +237,14 @@ ReturnStatus g__str_charat(enginePo P) {
   } else {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
-    if (ret == Ok)
-      pshVal(P, (termPo) wrapSome(processHeap(P), allocateCharacter(cp)));
-    else
-      pshVal(P, noneEnum);
-    return Normal;
+    if (ret == Ok){
+      pshVal(P, allocateCharacter(cp));
+      return Normal;
+    }
+    else{
+      pshVal(P, eRANGE);
+      return Abnormal;
+    }
   }
 }
 

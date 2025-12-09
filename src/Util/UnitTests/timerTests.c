@@ -63,7 +63,7 @@ static void ascendCheck(struct timeval *last) {
 }
 
 static void tCheck(integer ix) {
-  outMsg(logFile, "woke up %ld\n%_", ix);
+  outMsg(logFile, ".", ix);
 }
 
 retCode ascendingTimerTest() {
@@ -84,6 +84,7 @@ retCode ascendingTimerTest() {
   while (!done) {}
 
   gettimeofday(&next, Null);
+  outMsg(logFile, "\n%_");
   return boolRet(cmpTime(&next, &start));
 }
 
@@ -105,6 +106,7 @@ retCode descendingTimerTest() {
   while (!done) {}
 
   gettimeofday(&next, Null);
+  outMsg(logFile, "\n%_");
   return boolRet(cmpTime(&next, &start));
 }
 
