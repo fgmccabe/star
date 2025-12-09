@@ -5,6 +5,7 @@
 #include <stringsP.h>
 #include <arithP.h>
 #include <assert.h>
+#include <ctype.h>
 #include <tpl.h>
 #include <globals.h>
 #include <stdlib.h>
@@ -183,6 +184,14 @@ ReturnStatus g__str_len(enginePo P) {
   return Normal;
 }
 
+static retCode skipBlanks(const char *txt, integer len, integer*pos) {
+  while ((*pos)<len && isspace(txt[*pos])) (*pos)++;
+  if (*pos == len)
+    return Ok;
+  else
+    return Error;
+}
+
 ReturnStatus g__str2flt(enginePo P) {
   integer len;
   const char *str = strVal(popVal(P), &len);
@@ -190,12 +199,12 @@ ReturnStatus g__str2flt(enginePo P) {
 
   switch (parseDouble(str, len, &flt)) {
     case Ok:
-      pshVal(P, (termPo) wrapSome(processHeap(P), makeFloat(flt)));
+      pshVal(P, makeFloat(flt));
       return Normal;
     default:
     case Error:
-      pshVal(P, noneEnum);
-      return Normal;
+      pshVal(P, eINVAL);
+      return Abnormal;
   }
 }
 
@@ -207,11 +216,13 @@ ReturnStatus g__str2int(enginePo P) {
   integer pos = 0;
   switch (parseInteger(str, &pos, len, &ix)) {
     case Ok:
-      pshVal(P, (termPo) wrapSome(processHeap(P), makeInteger(ix)));
-      return Normal;
+      if (skipBlanks(str, len, &pos) == Ok) {
+        pshVal(P, makeInteger(ix));
+        return Normal;
+      }
     default:
-      pshVal(P, noneEnum);
-      return Normal;
+      pshVal(P, eINVAL);
+      return Abnormal;
   }
 }
 
@@ -561,7 +572,7 @@ ReturnStatus g__str_set(enginePo P) {
   appendCodePoint(str, &offset, len + 16, ch);
   nextCodePoint(src, &srcOffset, len);
   uniNCpy(&str[offset],len+16-offset,&src[srcOffset],len-srcOffset);
-  
+
   pshVal(P, allocateCString(processHeap(P), str));
   return Normal;
 }
@@ -575,7 +586,7 @@ ReturnStatus g__str_drop(enginePo P) {
   integer srcOffset = offset;
   nextCodePoint(src, &offset, len);
   uniNCpy(&str[srcOffset],len+16-srcOffset,&src[offset],len-offset);
-  
+
   pshVal(P, allocateCString(processHeap(P), str));
   return Normal;
 }
