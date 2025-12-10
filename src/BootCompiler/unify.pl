@@ -184,7 +184,7 @@ smpTp(funType(L,R,E),Lc,Env,C,Cx,funType(Ls,Rs,Es)) :-
   simplifyType(E,Lc,Env,C1,Cx,Es).
 smpTp(prcType(L,E),Lc,Env,C,Cx,prcType(Ls,Es)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
-  simplifyType(E,Lc,Env,C1,Cx,Es).
+  simplifyType(E,Lc,Env,C0,Cx,Es).
 smpTp(consType(L,R),Lc,Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
