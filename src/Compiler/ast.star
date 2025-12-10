@@ -126,7 +126,7 @@ star.compiler.ast{
     .cons(dePolate(L),deConsPolate(R)).
 
   dePolate(A) where (_,D) ?= isUnary(A,"disp") => "$"++dispAst(D,0,"").
-  dePolate(A) where (_,D,.str(_,F)) ?= trace isBinary(A,"_format") => "$"++dispAst(trace D,0,"")++":"++F++";".
+  dePolate(A) where (_,D,.str(_,F)) ?= isBinary(A,"_format") => "$"++dispAst(D,0,"")++":"++F++";".
   dePolate(A) where (_,D,F) ?= isBinary(A,"_format") => "_format($(D),$(F))".
   dePolate(A) where (_,S) ?= isStr(A) => S.
   dePolate(A) default => "#"++dispAst(A,0,"").
