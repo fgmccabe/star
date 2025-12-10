@@ -14,15 +14,14 @@ test.ce{
     coer(Txt) => (try _str2flt(Txt) catch {_ => throw .exception("Cannot parse #(Txt) as float")}).
   }
 
-  implementation corc[char,integer->>void] => {
-    coer(Ch) => _codePoint(Ch)
+  implementation corc[char,integer->>_] => {
+    coer(Ch) => throw .exception(""). -- _codePoint(Ch)
   }
 
   main:(){}
   main(){
-    show (coer(`$`):integer);
-    
     try{
+      show (coer(`$`):integer);
       assert (coer("23"):integer)==23;
       show (coer("2.3"):float);
       show (coer("alpha"):integer);
