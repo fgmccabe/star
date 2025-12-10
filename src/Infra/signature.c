@@ -106,6 +106,7 @@ logical validSig(char *sig, integer *start, integer end) {
     case allSig:        /* Universal quantifier */
     case tpruleSig:
     case tplambdaSig:
+    case prcSig:        // Procedure signature
       if (validSig(sig, start, end))
         return validSig(sig, start, end);
       else
@@ -151,6 +152,7 @@ static retCode funArity(const char *sig, int32 *arity, integer *start, integer e
         return Error;
     }
     case funSig:        /* Function signature */
+    case prcSig:
     case conSig:
     case throwSig:
       return tplArity(sig, arity, start, end);
@@ -293,6 +295,7 @@ retCode skipSig(const char *sig, integer *start, integer end) {
       case allSig:        /* Universal quantifier */
       case tpruleSig:
       case tplambdaSig:
+      case prcSig:
         tryRet(skipSig(sig, start, end));
         return skipSig(sig, start, end);
       case throwSig:       /*  throwing function, has three arg types */
@@ -447,6 +450,7 @@ retCode skipSignature(ioPo in) {
         return ret;
       }
       case funSig:        /* Function signature */
+      case prcSig:
       case conSig:        /* Constructor function */
       case xstSig:        /* Existential quantifier */
       case allSig:        /* Universal quantifier */
@@ -594,6 +598,10 @@ retCode showSignature(ioPo out, const char *sig, integer *start, integer end) {
       tryRet(outStr(out, "=>"));
       tryRet(showSignature(out, sig, start, end));
       tryRet(outStr(out, " throws "));
+      return showSignature(out, sig, start, end);
+    case prcSig:        /* Procedure signature */
+      tryRet(showSignature(out, sig, start, end));
+      tryRet(outStr(out, "{} throws "));
       return showSignature(out, sig, start, end);
     case xstSig:        /* Existential quantifier */
       tryRet(outStr(out, "exists "));

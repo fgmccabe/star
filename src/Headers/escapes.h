@@ -15,8 +15,7 @@
 #define fiber(R, S) "UUz2'fiber'" R S
 #define throws(A, R, E) "T" tpl(A) R E
 #define func(A, R) "F" tpl(A) R
-#define proc(A) "F" func(A,vd)
-#define tproc(A, E) "T" tpl(A) vd E
+#define proc(A) "P" tpl(A) vd
 #define tpl(E) "(" E ")"
 #define vec(E) "V" E
 #define ref(E) "r" E

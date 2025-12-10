@@ -107,6 +107,8 @@ encodeT(funType(AT,Tp,ETp),['F'|O],Ox) :-
   encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeT(funType(AT,Tp,ErTp),['T'|O],Ox) :-
   encodeType(AT,O,O1), encodeType(Tp,O1,O2), encodeType(ErTp,O2,Ox).
+encodeT(prcType(AT,ETp),['P'|O],Ox) :-
+  encodeType(AT,O,O1), encodeType(ETp,O1,Ox).
 encodeT(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeT(tplType(Args),['('|O],Ox) :- encodeTypes(Args,O,[')'|Ox]).
 encodeT(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
@@ -154,8 +156,9 @@ encodeLtipe(vdTipe,['v'|O],O).
 encodeLtipe(fnTipe(As,R),['F'|O],Ox) :-
   encodeLtipe(As,O,O1),
   encodeLtipe(R,O1,Ox).
-encodeLtipe(prTipe(As),['P'|O],Ox) :-
-  encodeLtipe(As,O,Ox).
+encodeLtipe(prTipe(As,E),['P'|O],Ox) :-
+  encodeLtipe(As,O,O1),
+  encodeLtipe(E,O1,Ox).
 encodeLtipe(tplTipe(As),['('|O],Ox) :-
   rfold(As,encode:encodeLtipe,O,[')'|Ox]).
 

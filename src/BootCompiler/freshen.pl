@@ -82,6 +82,9 @@ frshn(funType(A,R,Er),E,B,Ex,funType(FA,FR,FEr)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR),
   rewriteType(Er,E,B,Ex,FEr).
+frshn(prcType(A,Er),E,B,Ex,prcType(FA,FEr)) :-
+  rewriteType(A,E,B,Ex,FA),
+  rewriteType(Er,E,B,Ex,FEr).
 frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
