@@ -84,9 +84,8 @@ star.compiler.freshen{
 --  skolemFun(Nm,Ar) => .kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,dict) => (cons[(string,tipe)],tipe).
-  evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) =>
-    (Q,frshn(deRef(T),Ev)).
-  evidence(Tp,Env) default => ([],frshn(deRef(Tp),Env)).
+  evidence(Tp,Env) where (T,Q,Ev).= skolemQuants(deRef(Tp),[],Env) => (Q,skol( deRef(T),Ev)).
+  evidence(Tp,Env) default => ([],skolD(Tp,Env)).
 
   skolemQuants(.allType(.kVar(V),T),B,Env) where .none.=findType(Env,V) =>
     skolemQuants(deRef(T),[(V,.kVar(V)),..B],Env).
@@ -150,4 +149,48 @@ star.compiler.freshen{
     .hasField(frshnD(V,Env),F,frshnD(T,Env)).
   frshnConstraint(.implicit(N,T),Env) =>
     .implicit(N,frshn(T,Env)).
+
+  skol:(tipe,dict)=>tipe.
+  skol(.anonType,_) => newTypeVar("_").
+  skol(.voidType,_) => .voidType.
+  skol(.nomnal("_"),_) => newTypeVar("_").
+  skol(.kVar(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
+  skol(.kVar(Nm),_) => .kVar(Nm).
+  skol(.kFun(Nm,Ar),Env) where  (_,Tp,_,_)?=findType(Env,Nm) => Tp.
+  skol(.kFun(Nm,Ar),_) => .kFun(Nm,Ar).
+  skol(.tVar(T,N),_) => .tVar(T,N).
+  skol(.nomnal(Nm),Env) where (_,Tp,_,_)?=findType(Env,Nm) => Tp.
+  skol(.nomnal(Nm),_) => .nomnal(Nm).
+  skol(.tFun(T,A,N),_) => .tFun(T,A,N).
+  skol(.tpFun(N,A),_) => .tpFun(N,A).
+  skol(.tpExp(O,A),Env) => .tpExp(skolD(O,Env),skolD(A,Env)).
+  skol(.tupleType(Els),Env) => .tupleType(skolList(Els,Env)).
+  skol(.funType(A,R,E),Env) => .funType(skolD(A,Env),skolD(R,Env),skolD(E,Env)).
+  skol(.conType(A,R),Env) => .conType(skolD(A,Env),skolD(R,Env)).
+  skol(.faceType(Els,Tps),Env) =>
+    .faceType(Els//(((Nm,E))=>(Nm,skolD(E,Env))),
+      Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
+  skol(.allType(K,T),Env) => valof{
+    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
+    FrTp = skol(T,declareTypeVars(Q,Ev));
+    valis foldLeft(((_,VT),Tp)=>.allType(VT,Tp),FrTp,Q)
+  }
+  skol(.existType(K,T),Env) => valof{
+    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
+    FrTp = skol(T,declareTypeVars(Q,Ev));
+    valis foldLeft(((_,VT),Tp)=>.existType(VT,Tp),FrTp,Q)
+  }
+  skol(.constrainedType(T,C),Env) => .constrainedType(skolD(T,Env),skolConstraint(C,Env)).
+
+  skolList:(cons[tipe],dict) => cons[tipe].
+  skolList(As,Env) => (As//(E)=>skol(deRef(E),Env)).
+
+  skolD(Tp,Env) => skol(deRef(Tp),Env).
+
+  skolConstraint(.conTract(N,T,D),Env) =>
+    .conTract(N,skolList(T,Env),skolList(D,Env)).
+  skolConstraint(.hasField(V,F,T),Env) =>
+    .hasField(skolD(V,Env),F,skolD(T,Env)).
+  skolConstraint(.implicit(N,T),Env) =>
+    .implicit(N,skol(T,Env)).
 }
