@@ -238,7 +238,7 @@ star.compiler.types{
     | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
     | .tupleType(A) => "(#(showTypes(A,Dp)*))"
     | .funType(A,R,E) => "#(showType(A,Dp))=>#(showType(R,Dp))#(showEType(E,Dp))"
-    | .prcType(A,E) => "#(showType(A,Dp)){}#(showEType(R,E,Dp))"
+    | .prcType(A,E) => "#(showType(A,Dp)){}#(showEType(E,Dp))"
     | .conType(A,R) => "#(showType(A,Dp)) <=> #(showType(R,Dp))"
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
     | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
@@ -539,7 +539,7 @@ star.compiler.types{
   isFunType(_) default => .none.
 
   public isPrType:(tipe) => option[(tipe,tipe)].
-  isPrType(Tp) where .prType(A,E) .= deRef(Tp) => .some((A,E)).
+  isPrType(Tp) where .prcType(A,E) .= deRef(Tp) => .some((A,E)).
   isPrType(_) default => .none.
 
   public isConsType:(tipe) => option[(tipe,tipe)].

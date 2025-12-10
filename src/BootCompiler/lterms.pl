@@ -113,7 +113,7 @@ ssTrm(cll(_,Op,Args,_Tp),Dp,sq([OO,lp,AA,rp])) :- !,
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,AA).
-ssTrm(xcll(_,Op,Args,_Tp,ErTp),Dp,sq([OO,lp,AA,ss(" throws "),EE,rp])) :- !,
+ssTrm(xcll(_,Op,Args,_Tp,ErTp),Dp,sq([OO,lp,AA,rp,ss(" throws "),EE])) :- !,
   ssType(ErTp,false,Dp,EE),
   ssTrm(Op,Dp,OO),
   Dp1 is Dp+2,

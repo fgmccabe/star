@@ -116,7 +116,9 @@ star.compiler.ltipe{
     | .nomnal("boolean") => .bool
     | .nomnal(_) => .ptr
     | _ where (A,R,_) ?= isFunType(Tp) && .tupleType(As).=deRef(A) =>
-      .funTipe(As//reduceTp,reduceTp(R))
+      .fnTipe(As//reduceTp,reduceTp(R))
+    | _ where (A,E) ?= isPrType(Tp) && .tupleType(As).=deRef(A) =>
+      .prTipe(As//reduceTp,reduceTp(E))
     | .tupleType(A) => .tplTipe(A//reduceTp)
     | .voidType => .vdTipe
     | _ default => .ptr

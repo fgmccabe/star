@@ -1309,7 +1309,7 @@ star.compiler.checker{
       showMsg("Check action $(A)\:$(Tp)");
     isValidLastAct(Lc,Tp,Mode);
 
-    Call = typeOfRoundTerm(Lc,Op,Args,newTypeVar("_"),ErTp,Env,Path);
+    Call = checkProcCall(Lc,Op,Args,ErTp,Env,Path);
     valis (.doExp(Lc,Call),Env,Dcls)
   }
   checkAction(A,_Tp,_ErTp,_Mode,Env,Dcls,_Path) default => valof{
@@ -1317,6 +1317,69 @@ star.compiler.checker{
     reportError("invalid action $(A)",Lc);
     valis (.doNop(Lc),Env,Dcls)
   }
+
+
+  -- This is intricate because we want to be careful about exception types
+  checkProcCall:(option[locn],ast,cons[ast],tipe,dict,string) => canon.
+  checkProcCall(Lc,Op,As,ErTp,Env,Path) => valof{
+    Vrs = genTpVars(As);
+    AtTp = .tupleType(Vrs);
+    FnTp = newTypeVar("F");
+    FETp = newTypeVar("E");
+    Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
+
+    if traceCanon! then
+      showMsg("Check call: $(Op)($(As)) Op:$(FnTp)");
+
+    if sameType(FnTp,.funType(AtTp,newTypeVar("_"),FETp),Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
+
+      if traceCanon! then
+	showMsg("Round term type: $(Op)\:$(FnTp), ErTp=$(ErTp), FETp=$(FETp) ");
+
+      if ErTp==.voidType then{
+	if sameType(FETp,.voidType,Env) then
+	  valis .apply(Lc,Fun,Args,.voidType)
+	else{
+	  reportError("$(Op)\:$(FnTp) throws $(FETp) outside a try/catch",Lc);
+	  valis .vr(Lc,"_",.voidType)
+	}
+      } else if .voidType == FETp then
+	valis .apply(Lc,Fun,Args,.voidType)
+      else if sameType(FETp,ErTp,Env) then
+	valis .tapply(Lc,Fun,Args,.voidType,ErTp)
+      else{
+	reportError("$(Op) throws $(FETp), which not consistent with $(ErTp)",Lc);
+	valis .vr(Lc,"_",.voidType)
+      }
+    }
+    else if sameType(FnTp,.prcType(AtTp,FETp),Env) then{
+      Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
+
+      if traceCanon! then
+	showMsg("Round term type: $(Op)\:$(FnTp), ErTp=$(ErTp), FETp=$(FETp) ");
+
+      if ErTp==.voidType then{
+	if sameType(FETp,.voidType,Env) then
+	  valis .apply(Lc,Fun,Args,.voidType)
+	else{
+	  reportError("$(Op)\:$(FnTp) throws $(FETp) outside a try/catch",Lc);
+	  valis .vr(Lc,"_",.voidType)
+	}
+      } else if .voidType == FETp then
+	valis .apply(Lc,Fun,Args,.voidType)
+      else if sameType(FETp,ErTp,Env) then
+	valis .tapply(Lc,Fun,Args,.voidType,ErTp)
+      else{
+	reportError("$(Op) throws $(FETp), which not consistent with $(ErTp)",Lc);
+	valis .vr(Lc,"_",.voidType)
+      }
+    } else{
+      reportError("type of $(Op)\:$(FnTp) not consistent with $(.prcType(AtTp,ErTp))",Lc);
+      valis .vr(Lc,"_",.voidType)
+    }
+  }
+  
 
   checkActions:(option[locn],cons[ast],tipe,tipe,actionMode,dict,cons[decl],string) => (canonAction,dict,cons[decl]).
   checkActions(Lc,[],Tp,_ErTp,Mode,Env,Dcls,_Path) => valof{

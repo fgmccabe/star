@@ -1111,9 +1111,9 @@ star.compiler.gencode{
   genDbg(.some(Lc),Ins) => (genDebug! ?? [.iDBug(Lc::data),..Ins] || Ins).
   genDbg(.none,Ins) => Ins.
 
-  flatSig = .funTipe([],.tplTipe([])).
-  nearlyFlatSig(T) => .funTipe([],.tplTipe([T])).
-  blockSig(Args,Rs) => .funTipe(Args,Rs).
+  flatSig = .fnTipe([],.tplTipe([])).
+  nearlyFlatSig(T) => .fnTipe([],.tplTipe([T])).
+  blockSig(Args,Rs) => .fnTipe(Args,Rs).
 
   tailMode ::= .noMore | .notLast.
 

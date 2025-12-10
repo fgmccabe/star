@@ -206,13 +206,6 @@ ssType(constrained(Tp,Con),_ShCon,Dp,sq([CC,ss("|="),TT])) :-
   ssConstraint(false,Dp,Con,CC),
   ssType(Tp,false,Dp,TT).
 
-ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("{}"),TE])) :-
-  deRef(R,voidType),!,
-  ssType(A,ShCon,Dp,AA),
-  (deRef(E,voidType) ->
-   TE = ss("");
-   ssType(E,ShCon,Dp,EE),
-   TE = sq([ss(" throws "),EE])).
 ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("=>"),RR,TE])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR),
@@ -646,8 +639,9 @@ toLtp(type("boolean"),blTipe) :- !.
 toLtp(funType(Args,Res,_),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
-toLtp(prcType(Args,_),plTipe(As)) :-!,
-  toLtipe(Args,As).
+toLtp(prcType(Args,E),prTipe(As,EE)) :-!,
+  toLtipe(Args,As),
+  toLtipe(E,EE).
 toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
 toLtp(voidType,vdTipe) :-!.
@@ -674,8 +668,9 @@ ssTipe(tplTipe(Tps),sq([ss("("),iv(ss(","),SS),ss(")")])) :-
 ssTipe(fnTipe(A,R),sq([AA,ss(" => "),RR])) :-
   ssTipe(A,AA),
   ssTipe(R,RR).
-ssTipe(plTipe(A),sq([AA,ss("{}")])) :-
-  ssTipe(A,AA).
+ssTipe(prTipe(A,E),sq([AA,ss("{}"),ss("throws"),EE])) :-
+  ssTipe(A,AA),
+  ssTipe(E,EE).
 
 unitTp(tplType([])).
 

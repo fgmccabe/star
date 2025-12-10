@@ -152,7 +152,7 @@ star.compiler.term.repo{
     _coerce(M)=>.some(manTerm(M)).
   }
 
-  flushManifest(Url,Man) => putResource(Url,(Man::data)::string).
+  flushManifest(Url,Man) do putResource(Url,(Man::data)::string).
 
   readManifest(Url) where
       Txt ?= getResource(Url) &&
