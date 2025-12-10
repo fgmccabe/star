@@ -116,6 +116,13 @@ char *dumpPrologSig(char *sig, ioPo out) {
       sig = dumpPrologSig(sig, out);
       outStr(O_IO(out), ")");
       return sig;
+    case prcSig:
+      outStr(O_IO(out), "prcType(");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpPrologSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
     case conSig:
       outStr(O_IO(out), "consType(");
       assert(*sig == tplSig);

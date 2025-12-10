@@ -17,6 +17,7 @@ star.compiler.types{
   | .tpExp(tipe,tipe)
   | .tupleType(cons[tipe])
   | .funType(tipe,tipe,tipe)
+  | .prcType(tipe,tipe)
   | .conType(tipe,tipe)
   | .allType(tipe,tipe)
   | .existType(tipe,tipe)
@@ -50,6 +51,7 @@ star.compiler.types{
     | .tpExp(Op,_) => hasKind(Op)-1
     | .tupleType(_) => 0
     | .funType(_,_,_) => 0
+    | .prcType(_,_) => 0
     | .conType(_,_) => 0
     | .allType(_,T) => hasKind(T)
     | .existType(_,T) => hasKind(T)
@@ -153,6 +155,8 @@ star.compiler.types{
   identType(.tupleType(E1),.tupleType(E2),Q) where size(E1)==size(E2) => identTypes(E1,E2,Q).
   identType(.funType(A1,R1,E1),.funType(A2,R2,E2),Q) =>
     identType(A1,A2,Q) && identType(R1,R2,Q) && identType(E1,E2,Q).
+  identType(.prcType(A1,E1),.prcType(A2,E2),Q) =>
+    identType(A1,A2,Q) && identType(E1,E2,Q).
   identType(.conType(A1,R1),.conType(A2,R2),Q) => identType(A1,A2,Q) && identType(R1,R2,Q).
   identType(.allType(V1,T1),.allType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
@@ -233,16 +237,14 @@ star.compiler.types{
     | .tpFun(Nm,Ar) => "#(Nm)/$(Ar)"
     | .tpExp(O,A) => showTpExp(deRef(O),[A],Dp)
     | .tupleType(A) => "(#(showTypes(A,Dp)*))"
-    | .funType(A,R,E) => "#(showType(A,Dp))#(showFunResType(R,E,Dp))"
+    | .funType(A,R,E) => "#(showType(A,Dp))=>#(showType(R,Dp))#(showEType(E,Dp))"
+    | .prcType(A,E) => "#(showType(A,Dp)){}#(showEType(R,E,Dp))"
     | .conType(A,R) => "#(showType(A,Dp)) <=> #(showType(R,Dp))"
     | .allType(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Dp))"
     | .existType(A,T) => "exists #(showBound(A,Dp))#(showMoreXQuantified(T,Dp))"
     | .faceType(Els,Tps) => "{#(showTypeEls(Els,Tps,Dp))}"
     | .constrainedType(T,C) => "(#(showConstraint(C,Dp))) |= #(showType(T,Dp))"
   }
-
-  showFunResType(R,E,Dp) where .voidType == R => "{}#(showEType(E,Dp))".
-  showFunResType(R,E,Dp) => "=> #(showType(R,Dp))#(showEType(E,Dp))".
 
   showEType(E,Dp) where .voidType .= deRef(E) => "".
   showEType(E,Dp) => " throws #(showType(E,Dp))".
@@ -327,6 +329,7 @@ star.compiler.types{
       | .tpExp(O,A) => hsh(deRef(O))*37+hsh(deRef(A))
       | .tupleType(Els) => hshEls((hash("()")*37+size(Els))*37,Els)
       | .funType(A,R,E) => (((hsh(A)*37)+hsh(R))*37+hsh(E))*37+hash("=>")
+      | .prcType(A,E) => ((hsh(A)*37)+hsh(E))*37+hash("{}")
       | .conType(A,R) => ((hsh(A)*37)+hsh(R))*37+hash("<=>")
       | .faceType(Els,Tps) =>
 	hshRules(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps)
@@ -383,6 +386,7 @@ star.compiler.types{
     tName(.constrainedType(T,_)) => tName(deRef(T)).
     tName(.tupleType(A)) => "!()$(size(A))".
     tName(.funType(_,_,_)) => "=>".
+    tName(.prcType(_,_)) => "{}".
     tName(.conType(_,_)) => "<=>".
     tName(.faceType(Flds,_)) => "{}$(hash(interleave(sort(Flds,cmpFlds)//fst,"|")*))".
   .} in tName(deRef(Tp)).
@@ -409,7 +413,7 @@ star.compiler.types{
     tpSfNm(.existType(_,T)) => tpSfNm(deRef(T)).
     tpSfNm(.constrainedType(T,_)) => tpSfNm(deRef(T)).
     tpSfNm(.tupleType(A)) => "()$(size(A))".
-    tpSfNm(.funType(A,R,E)) where .voidType .= deRef(R) => "#(tpSfNm(A)){}#(tpErNm(E))".
+    tpSfNm(.prcType(A,E)) => "#(tpSfNm(A)){}#(tpErNm(E))".
     tpSfNm(.funType(A,R,E)) => "#(tpSfNm(A))=>#(tpSfNm(R))#(tpErNm(E))".
     tpSfNm(.conType(A,R)) => "#(tpSfNm(A))<=>#(tpSfNm(R))".
     tpSfNm(.faceType(Flds,_)) =>
@@ -456,6 +460,7 @@ star.compiler.types{
   arity(Tp) => ar(deRef(Tp)).
   ar(Tp) where .constrainedType(T,_).=Tp => arity(T)+1.
   ar(Tp) where .funType(A,_,_).=Tp => arity(A).
+  ar(Tp) where .prcType(A,_).=Tp => arity(A).
   ar(Tp) where .conType(A,_).=Tp => arity(A).
   ar(Tp) where .tupleType(A).=Tp => size(A).
   ar(Tp) where .allType(_,I) .= Tp => arity(I).
@@ -465,7 +470,7 @@ star.compiler.types{
   public emptyFace = .faceType([],[]).
 
   public funcType(A,B) => .funType(.tupleType(A),B,.voidType).
-  public procType(A,E) => .funType(.tupleType(A),.voidType,E).
+  public procType(A,E) => .prcType(.tupleType(A),E).
   public consType(A,B) => .conType(A,B).
   public enumType(A) => .conType(.tupleType([]),A).
   public lstType(Tp) => .tpExp(.tpFun("cons",1),Tp).
@@ -481,6 +486,7 @@ star.compiler.types{
   funTypeArg(.constrainedType(T,C)) where FTp ?= funTypeArg(deRef(T)) =>
     .some(extendArgType(FTp,.some(C))).
   funTypeArg(Tp) where .funType(A,_,_) .= deRef(Tp) => .some(A).
+  funTypeArg(Tp) where .prcType(A,_) .= deRef(Tp) => .some(A).
   funTypeArg(Tp) where .conType(A,_) .= deRef(Tp) => .some(A).
   funTypeArg(_) default => .none.
 
@@ -506,6 +512,7 @@ star.compiler.types{
     thrFnTp(.existType(_,T)) => thrFnTp(deRef(T)).
     thrFnTp(.constrainedType(T,E)) => thrFnTp(deRef(T)).
     thrFnTp(.funType(A,R,E)) where ~ .voidType==E => .some((deRef(A),deRef(R),deRef(E))).
+    thrFnTp(.prcType(A,E)) where ~ .voidType==E => .some((deRef(A),.voidType,deRef(E))).
     thrFnTp(_) default => .none.
   .} in thrFnTp(deRef(Tp)).
 
@@ -516,6 +523,7 @@ star.compiler.types{
     | .existType(V,B) => .existType(V,extendFunTp(B,Vs))
     | .constrainedType(T,C) => .constrainedType(extendFunTp(T,Vs),C)
     | .funType(A,R,E) => .funType(extendTplType(deRef(A),Vs),R,E)
+    | .prcType(A,E) => .prcType(extendTplType(deRef(A),Vs),E)
     | .conType(A,R) => .conType(extendTplType(deRef(A),Vs),R)
   }
 
@@ -531,7 +539,7 @@ star.compiler.types{
   isFunType(_) default => .none.
 
   public isPrType:(tipe) => option[(tipe,tipe)].
-  isPrType(Tp) where (A,R,E) ?= isFunType(Tp) && .voidType==R => .some((A,E)).
+  isPrType(Tp) where .prType(A,E) .= deRef(Tp) => .some((A,E)).
   isPrType(_) default => .none.
 
   public isConsType:(tipe) => option[(tipe,tipe)].
@@ -682,6 +690,7 @@ star.compiler.types{
   occIn(Id,.kFun(Nm,_)) => Id==Nm.
   occIn(Id,.tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
   occIn(Id,.funType(A,R,E)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)) || occIn(Id,deRef(E)).
+  occIn(Id,.prcType(A,E)) => occIn(Id,deRef(A)) || occIn(Id,deRef(E)).
   occIn(Id,.conType(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
   occIn(Id,.tupleType(Els)) => occInTps(Id,Els).
   occIn(Id,.allType(.nomnal(Id),_)) => .false.

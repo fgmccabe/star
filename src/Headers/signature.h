@@ -42,6 +42,7 @@ typedef enum {
   constrainedSig = '|',                /* A constrained type */
 
   funSig = 'F', /* Function signature */
+  prcSig = 'P', /* Procedure signature */
   conSig = 'C', /* constructor */
   throwSig = 'T', /* A throwing function signature */
 
@@ -71,6 +72,7 @@ typedef enum {
 } starDecodeKey;
 
 retCode funSigArity(const char *sig, integer length, int32 *arity);
+retCode prcSigArity(const char *sig, integer length, int32 *arity);
 retCode funSigReturns(const char *sig, integer length, int32 *count);
 retCode skipSig(const char *sig, integer *start, integer end);
 retCode showSignature(ioPo out, const char *sig, integer *start, integer end);

@@ -253,6 +253,10 @@ extendFunTp(funType(AT,Rt,ErTp),Extra,funType(tplType(NEls),Rt,ErTp)) :-!,
   deRef(AT,tplType(Els)),
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
+extendFunTp(prcType(AT,ErTp),Extra,prcType(tplType(NEls),ErTp)) :-!,
+  deRef(AT,tplType(Els)),
+  extendTplTp(Extra,Anons),!,
+  concat(Anons,Els,NEls).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-!,
   extendFunType(T,Extra,NT).
 extendFunTp(existType(V,T),Extra,existType(V,NT)) :-

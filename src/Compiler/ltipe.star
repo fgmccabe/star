@@ -8,7 +8,8 @@ star.compiler.ltipe{
   .flt64 |
   .bool |
   .ptr |
-  .funTipe(cons[ltipe],ltipe) |
+  .fnTipe(cons[ltipe],ltipe) |
+  .prTipe(cons[ltipe],ltipe) |
   .tplTipe(cons[ltipe]) |
   .vdTipe.
 
@@ -19,7 +20,8 @@ star.compiler.ltipe{
       | .flt64 => "flt64"
       | .bool => "bool"
       | .ptr => "ptr"
-      | .funTipe(As,R) => "(#(showTp(.tplTipe(As))))->#(showTp(R))"
+      | .fnTipe(As,R) => "(#(showTp(.tplTipe(As))))->#(showTp(R))"
+      | .prTipe(As,E) => "(#(showTp(.tplTipe(As)))){} throws #(showTp(E))"
       | .tplTipe(As) => "(#(interleave(As//showTp,",")*))"
       | .vdTipe => "v"
     }
@@ -33,8 +35,9 @@ star.compiler.ltipe{
       | .flt64 => .flt64.=Tp2
       | .bool => .bool.=Tp2
       | .ptr => .ptr.=Tp2
-      | .funTipe(A1,R1) => .funTipe(A2,R2).=Tp2 &&
+      | .fnTipe(A1,R1) => .fnTipe(A2,R2).=Tp2 &&
 	  eqs(A1,A2) && eq(R1,R2)
+      | .prTipe(A1,E1) => .prTipe(A2,E2).=Tp2 && eqs(A1,A2) && eq(E1,E2)
       | .tplTipe(A1) => .tplTipe(A2).=Tp2 &&eqs(A1,A2)
       | .vdTipe => .vdTipe.=Tp2
     }
@@ -51,7 +54,8 @@ star.compiler.ltipe{
       | .flt64 => hash("flt64")
       | .bool => hash("bool")
       | .ptr => hash("ptr")
-      | .funTipe(A1,R1)=> hshs(A1,hash("=>"))*37+hsh(R1)
+      | .fnTipe(A1,R1)=> hshs(A1,hash("=>"))*37+hsh(R1)
+      | .prTipe(A1,E1)=> hshs(A1,hash("{}"))*37+hsh(E1)
       | .tplTipe(A1)=>hshs(A1,hash("()"))
       | .vdTipe => hash("v")
     }
@@ -80,7 +84,8 @@ star.compiler.ltipe{
     | .flt64 => [`f`]
     | .bool => [`l`]
     | .ptr => [`p`]
-    | .funTipe(As,R) => [`F`,..encTp(.tplTipe(As))]++encTp(R)
+    | .fnTipe(As,R) => [`F`,..encTp(.tplTipe(As))]++encTp(R)
+    | .prTipe(As,E) => [`P`,..encTp(.tplTipe(As))]++encTp(E)
     | .tplTipe(As) => [`(`]++.multi(As//encTp)++[`)`]
     | .vdTipe => [`v`]
   }
@@ -98,7 +103,7 @@ star.compiler.ltipe{
       decTps(C,So) where (E,C1)?=decTp(Cs) => decTps(C1,So++[E]).
     .} in decTps(Cs,[])
     | `F` where (.tplTipe(As),C0)?=decTp(Cs) && (Rt,Cx) ?= decTp(C0) =>
-      .some((.funTipe(As,Rt),Cx))
+      .some((.fnTipe(As,Rt),Cx))
     | `v` => .some((.vdTipe,Cs))
   }
 

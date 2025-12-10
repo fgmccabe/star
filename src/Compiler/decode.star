@@ -165,6 +165,11 @@ star.compiler.decode{
       (R,T1) = decodeType(T0);
       valis (.funType(A,R,.voidType),T1)
     }
+    | `P` => valof{
+      (A,T0) = decodeType(Ts);
+      (R,T1) = decodeType(T0);
+      valis (.prcType(A,R),T1)
+    }
     | `T` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);

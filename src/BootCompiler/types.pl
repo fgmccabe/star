@@ -35,6 +35,7 @@ isType(type(_)).
 isType(tpExp(_,_)).
 isType(tplType(_)).
 isType(funType(_,_,_)).
+isType(prcType(_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
@@ -176,6 +177,7 @@ ssType(tpExp(Nm,A),ShCon,Dp,S) :- ssTypeExp(tpExp(Nm,A),ShCon,Dp,S).
 ssType(tplType(A),ShCon,Dp,sq([lp,iv(ss(","),AA),rp])) :-
   ssTypeEls(A,ShCon,Dp,AA).
 ssType(funType(A,R,E),ShCon,Dp,SS) :- !, ssFunType(A,R,E,ShCon,Dp,SS).
+ssType(prcType(A,E),ShCon,Dp,SS) :- !, ssPrcType(A,E,ShCon,Dp,SS).
 ssType(consType(A,R),ShCon,Dp,sq([AA,ss("<=>"),RR])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR).
@@ -214,6 +216,13 @@ ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("{}"),TE])) :-
 ssFunType(A,R,E,ShCon,Dp,sq([AA,ss("=>"),RR,TE])) :-
   ssType(A,ShCon,Dp,AA),
   ssType(R,ShCon,Dp,RR),
+  (deRef(E,voidType) ->
+   TE = ss("");
+   ssType(E,ShCon,Dp,EE),
+   TE = sq([ss(" throws "),EE])).
+
+ssPrcType(A,E,ShCon,Dp,sq([AA,ss("{}"),TE])) :-
+  ssType(A,ShCon,Dp,AA),
   (deRef(E,voidType) ->
    TE = ss("");
    ssType(E,ShCon,Dp,EE),
@@ -303,6 +312,8 @@ tpArity(constrained(Tp,Constraint),Ar) :- !,
   progTypeArity(Tp,A), Ar is A+Extra.
 tpArity(funType(A,_,_),Ar) :- !,
   progTypeArity(A,Ar).
+tpArity(prcType(A,_),Ar) :- !,
+  progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- !,
   tpArity(A,Ar).
 tpArity(tplType(A),Ar) :- !,length(A,Ar).
@@ -321,6 +332,8 @@ rlArgTypes(constrained(Tp,C),As) :- !,
   constraintArgType(C,As,Ax),
   realArgTypes(Tp,Ax).
 rlArgTypes(funType(A,_,_),As) :- !,
+  realArgTypes(A,As).
+rlArgTypes(prcType(A,_),As) :- !,
   realArgTypes(A,As).
 rlArgTypes(consType(A,_),As) :- !,
   realArgTypes(A,As).
@@ -341,6 +354,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(Tp,_),ArTps) :- progArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_,_),ArTps) :- progArgTypes(A,ArTps).
+tpArgTypes(prcType(A,_),ArTps) :- progArgTypes(A,ArTps).
 tpArgTypes(tplType(ArTps),ArTps).
 
 funResType(Tp,ResTp) :- deRef(Tp,TT), resType(TT,ResTp).
@@ -366,7 +380,7 @@ isFunctionType(funType(A,_,_),Ar) :- progTypeArity(A,Ar).
 isProcedureType(T) :- deRef(T,Tp), isProcedureType(Tp,_).
 
 isProcedureType(allType(_,T),Ar) :- deRef(T,Tp),isProcedureType(Tp,Ar).
-isProcedureType(funType(A,R,_),Ar) :- deRef(R,voidType), progTypeArity(A,Ar).
+isProcedureType(prcType(A,_),Ar) :- progTypeArity(A,Ar).
 
 isCnsType(Tp,Arg,Rep) :- deRef(Tp,T), isCnsTp(T,Arg,Rep).
 
@@ -379,6 +393,7 @@ isProgramType(Tp) :- deRef(Tp,TT), isProgType(TT).
 isProgType(allType(_,Tp)) :- !, isProgType(Tp).
 isProgType(constrained(Tp,_)) :- isProgType(Tp).
 isProgType(Tp) :- isFunctionType(Tp),!.
+isProgType(Tp) :- isProcedureType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_,_),!.
 
 isThrowingType(Tp,ResTp,ErTp) :- deRef(Tp,TT), isThrowsType(TT,ResTp,ErTp).
@@ -512,7 +527,7 @@ tpNm(typeLambda(_,R),Nm) :-
 tpNm(tplType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
-tpNm(funType(_,R,_),"{}") :- deRef(R,voidType),!.
+tpNm(prcType(_,_),"{}").
 tpNm(funType(_,_,_),"=>").
 tpNm(faceType(Flds,_),Nm) :-
   sort(Flds,types:cmpFld,SFlds),
@@ -631,6 +646,8 @@ toLtp(type("boolean"),blTipe) :- !.
 toLtp(funType(Args,Res,_),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
+toLtp(prcType(Args,_),plTipe(As)) :-!,
+  toLtipe(Args,As).
 toLtp(tplType(Args),tplTipe(As)) :-!,
   map(Args,types:toLtipe,As).
 toLtp(voidType,vdTipe) :-!.
@@ -657,6 +674,8 @@ ssTipe(tplTipe(Tps),sq([ss("("),iv(ss(","),SS),ss(")")])) :-
 ssTipe(fnTipe(A,R),sq([AA,ss(" => "),RR])) :-
   ssTipe(A,AA),
   ssTipe(R,RR).
+ssTipe(plTipe(A),sq([AA,ss("{}")])) :-
+  ssTipe(A,AA).
 
 unitTp(tplType([])).
 
@@ -684,6 +703,8 @@ occIn(V,funType(_,R,_)) :- deRef(R,RR),occIn(V,RR).
 occIn(V,funType(_,_,E)) :- deRef(E,EE),occIn(V,EE).
 occIn(V,consType(L,_)) :- deRef(L,LL),occIn(V,LL).
 occIn(V,consType(_,R)) :- deRef(R,RR),occIn(V,RR).
+occIn(V,prcType(A,_)) :- deRef(A,AA),occIn(V,AA).
+occIn(V,prcType(_,E)) :- deRef(E,EE),occIn(V,EE).
 occIn(V,constrained(_,C)) :- deRef(C,CC),occIn(V,CC),!.
 occIn(V,constrained(T,_)) :- deRef(T,TT),occIn(V,TT),!.
 occIn(V,typeLambda(A,_)) :- deRef(A,AA),occIn(V,AA).

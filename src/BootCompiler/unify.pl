@@ -26,6 +26,9 @@ sm(funType(A1,R1,E1),funType(A2,R2,E2),Lc,Env) :-
   sameType(R1,R2,Lc,Env),
   sameType(A2,A1,Lc,Env),
   sameType(E1,E2,Lc,Env).
+sm(prcType(A1,E1),prcType(A2,E2),Lc,Env) :-
+  sameType(A2,A1,Lc,Env),
+  sameType(E1,E2,Lc,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A2,A1,Lc,Env).
 sm(consType(A1,R1),consType(A2,R2),Lc,Env) :- sameType(R1,R2,Lc,Env), sameType(A1,A2,Lc,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Lc,Env) :- sameLength(E1,E2),
@@ -179,6 +182,9 @@ smpTp(funType(L,R,E),Lc,Env,C,Cx,funType(Ls,Rs,Es)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,C1,Rs),
   simplifyType(E,Lc,Env,C1,Cx,Es).
+smpTp(prcType(L,E),Lc,Env,C,Cx,prcType(Ls,Es)) :-
+  simplifyType(L,Lc,Env,C,C0,Ls),
+  simplifyType(E,Lc,Env,C1,Cx,Es).
 smpTp(consType(L,R),Lc,Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Lc,Env,C,C0,Ls),
   simplifyType(R,Lc,Env,C0,Cx,Rs).
@@ -254,6 +260,7 @@ occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
 occIn(Id,valType(I)) :- occIn(Id,I).
 occIn(Id,tplType(L)) :- is_member(A,L), occIn(Id,A).
 occIn(Id,funType(A,R,E)) :- occIn(Id,A);occIn(Id,R);occIn(Id,E).
+occIn(Id,prcType(A,E)) :- occIn(Id,A);occIn(Id,E).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).

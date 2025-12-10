@@ -94,6 +94,7 @@ decodeType(existType(TV,Tp)) --> ['e'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).
 decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(Tps).
 decodeType(funType(A,T,voidType)) --> ['F'], decodeType(A), decodeType(T).
+decodeType(prcType(A,E)) --> ['P'], decodeType(A), decodeType(E).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
 decodeType(funType(A,T,E)) --> ['T'], decodeType(A), decodeType(T), decodeType(E).
 decodeType(tplType(Tps)) --> decodeTypes(Tps).

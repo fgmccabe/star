@@ -49,13 +49,13 @@ parseType(F,Env,Q,FT) :-
   isFuncType(F,_,L,R),
   parseArgType(L,Env,Q,AT),
   parseResultType(R,Env,Q,AT,FT).
-parseType(F,Env,Q,funType(AT,voidType,voidType)) :-
+parseType(F,Env,Q,prcType(AT,voidType)) :-
   isProcType(F,_,L,none),!,
   parseArgType(L,Env,Q,AT).
-parseType(F,Env,Q,funType(AT,voidType,TT)) :-
-  isProcType(F,_,L,some(R)),
+parseType(F,Env,Q,prcType(AT,ET)) :-
+  isProcType(F,_,L,some(E)),
   parseArgType(L,Env,Q,AT),
-  parseType(R,Env,Q,TT).
+  parseType(E,Env,Q,ET).
 parseType(F,Env,Q,consType(AT,RT)) :-
   isConstructorType(F,_,_,_,L,R),!, % should be no quantifiers
   parseArgType(L,Env,Q,AT),!,
