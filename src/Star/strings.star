@@ -64,11 +64,15 @@ star.strings{
     _empty = "".
   }.
 
-
   public implementation concat[string] => {
     S1++S2 => _str_concat(S1,S2).
     _multicat(Els) => _str_multicat(Els).
   }.
+
+  public implementation glue[string->>char] => {
+    prepend(C,S) => _str_cons(C,S).
+    append(S,C) => _str_apnd(S,C).
+  }
 
   public implementation slice[string->>integer] => {
     _slice(S,F,T) => _sub_str(S,F,T-F).
