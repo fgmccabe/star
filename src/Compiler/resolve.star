@@ -269,9 +269,9 @@ star.compiler.resolve{
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
     valis (.apply(lc,ROp,RArgs,Tp),St2)
   }
-  overloadTerm(.tapply(lc,.over(OLc,T,Cx),Args,Tp,ErTp),Dict,St) => valof{
+  overloadTerm(.tapply(Lc,.over(OLc,T,Cx),Args,Tp,ErTp),Dict,St) => valof{
     if traceResolve! then
-      showMsg("$(lc)\: overload $(.over(OLc,T,Cx)) in call");
+      showMsg("$(Lc)\: overload $(.over(OLc,T,Cx)) in call");
 
     (DArg,St1) = resolveConstraint(OLc,Cx,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
@@ -280,12 +280,12 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
 
-    valis (makeTApply(Lc,OverOp,NArgs,Tp,ErTp).tapply(lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
+    valis (makeTApply(Lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
   }
   overloadTerm(.tapply(lc,Op,Args,Tp,ErTp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);
     (RArgs,St2) = overloadTplEls(Args,Dict,St1);
-    valis (.tapply(lc,ROp,RArgs,Tp,ErTp),St2)
+    valis (makeTApply(lc,ROp,RArgs,Tp,ErTp),St2)
   }
   overloadTerm(.match(Lc,Ptn,Src),Dict,St) => valof{
     (RPtn,St1) = overloadTerm(Ptn,Dict,St);
@@ -459,6 +459,9 @@ star.compiler.resolve{
     valis (OverOp,Args,St1)
   }
   resolveRef(C,DArg,Args,_,St) default => (C,[DArg,..Args],St).
+
+  makeTApply(Lc,Op,Args,Tp,ErTp) where .voidType.=deRef(ErTp) => .apply(Lc,Op,Args,Tp).
+  makeTApply(Lc,Op,Args,Tp,ErTp) => .tapply(Lc,Op,Args,Tp,ErTp).
 
   overApply(_,OverOp,[],_) => OverOp.
   overApply(Lc,OverOp,Args,Tp) where ~ _ ?= isFunType(Tp) =>

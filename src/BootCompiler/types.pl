@@ -397,7 +397,8 @@ isThrowsType(existType(_,Tp),RsTp,ErTp) :- !,
   isThrowingType(Tp,RsTp,ErTp).
 isThrowsType(constrained(Tp,_),RsTp,ErTp) :- !,
   isThrowingType(Tp,RsTp,ErTp).
-isThrowsType(funType(_,RsTp,ErTp),RsTp,ErTp) :-!.
+isThrowsType(funType(_,RsTp,ErTp),RsTp,ErTp) :- \+deRef(ErTp,voidType),!.
+isThrowsType(prcType(_,ErTp),voidType,ErTp) :- \+deRef(ErTp,voidType),!.
 
 isIntegerType(Tp) :- deRef(Tp,type("integer")).
 

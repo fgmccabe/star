@@ -232,8 +232,8 @@ ReturnStatus g__str_charat(enginePo P) {
   integer ix = integerVal(popVal(P));
 
   if (ix<0 || ix >= len) {
-    pshVal(P, noneEnum);
-    return Normal;
+    pshVal(P, eRANGE);
+    return Abnormal;
   } else {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
