@@ -11,7 +11,7 @@ types and type combinations; these are outlined in separate chapters.
 (((equality contract)))
 Equality in Star is based on the `equality` contract. This defines the
 `boolean`-valued function: `==`. The complementary function
-`=!=` is not defined as part of the `equality` contract; but
+`~=` is not defined as part of the `equality` contract; but
 is defined in terms of `==`.
 
 .The Standard `equality` Contract
@@ -21,7 +21,6 @@ contract all t ~~ equality[t] ::= {
   (==) : (t,t)=>boolean
 }
 ----
-@end float
 
 [#equalsPredicate]
 ===  `==` -- equals
@@ -41,20 +40,20 @@ two expressions that denote functions of the same type denote the same function
 is, in general, not effectively decidable.]
 
 [#notEqualsPredicate]
-===  `=~=` -- not equals
+===  `~=` -- not equals
 (((inequality predicate)))
 
-The type signature for `=~=` is:
+The type signature for `~=` is:
 [source,star]
 ----
-(=~=) : all t ~~ equality[t] |= (t,t) => boolean
+(~=) : all t ~~ equality[t] |= (t,t) => boolean
 ----
 
-The `=~=` predicate has a standard definition that makes it
+The `~=` predicate has a standard definition that makes it
 equivalent to a negated equality:
 [source,star]
 ----
-X =~= Y => ~ X==Y
+X ~= Y => ~ X==Y
 ----
 
 [#compContract]
@@ -137,6 +136,36 @@ This predicate is not directly part of the `comp` contract, instead it is define
 ----
 X > Y => Y < X.
 ----
+
+[#hashableContract]
+== The `hashable` contract
+
+(((hashable contract))) The `hashable` contract defines a standard `hash`
+function. It is often used for collections -- such as `map` -- that need a
+better way to index values.
+
+.The Standard `hashable` Contract
+[source,star]
+----
+contract all t ~~ hashable[t] ::= {
+  hash : (t)=>integer
+}
+----
+
+[#hashFunction]
+===  `hash` -- hash
+
+The `hash` function defines a function that maps values into ``integer``s,
+hopefully with minimal collisions.
+
+Its type is given by:
+[source,star]
+----
+hash : all t ~~ hashable[t] |= (t) => integer
+----
+
+The `hashable` contract is implemented for `char`, `integer`, `bigint`, `float`,
+`string`, `cons` lists, `option`, `either`, and various length tuple types.
 
 [#displayContract]
 == The `display` contract
@@ -283,6 +312,49 @@ The type signature for `++` is:
 
 The `++` function concatenates two sequences to form their conjunction.
 
+
+[#glueContract]
+== The `glue` Contract
+
+The `glue` contract is analgous to the `concat` contract, except that it allows
+the concatenation of elements to sequences.
+
+[#glueContractProg]
+.The Standard `gloue` Contract
+[source,star]
+----
+public contract all c,e ~~ glue[c->>e] ::= {
+  prepend:(e,c) => c.
+  append:(c,e) => c.
+}
+----
+
+There are two functions: one to add to the beginning of a term and one to add to the end.
+
+The `glue` contract is implemented for the `multi`, `q` and `string` types.
+
+=== The `prepend` Function
+[#prependFunction]
+
+The type signature for `prepend` is:
+[source,star]
+----
+prepend : all t,e ~~ glue[t->>e] |= (e,t) => t
+----
+
+The `prepend` function prepends an element to the front of a sequence.
+
+=== The `append` Function
+[#appendFunction]
+
+The type signature for `append` is:
+[source,star]
+----
+append : all t,e ~~ glue[t->>e] |= (t,e) => t
+----
+
+The `append` function appends an element to the end of a sequence.
+
 [#sliceContract]
 == The slice Contract
 
@@ -336,10 +408,12 @@ _splice : all s,k ~~ _slice[s->>k] |= (s,k,k,s) => s
 
 The `_splice` function replaces a subsequence from a source
 sequence. A call of the form:
+
 [source,star]
 ----
 _splice(S,F,T,N)
 ----
+
 returns a new sequence consisting of `S` with the subsequence
 starting from (and including) `F` and ending with (but not
 including) `T` replaced by `N`.
@@ -599,6 +673,138 @@ _empty : all m,k,v ~~ indexed[m ->> k,v] |= m.
 NOTE: The `_empty` value is often used as the starting point for
 building up a key-value collection.
 
+[#membershipContract]
+== The membership Contract
+
+The `membership` contract provides functions that define what it
+means to be a member of a collection.
+
+[#membershipContractProg]
+.The Standard `membership` Contract
+[source,star]
+----
+public contract all c,e ~~ membership[c->>e] ::= {
+  (\+):(c,e)=>c.
+  (\-):(c,e)=>c.
+  (.<.):(e,c)=>boolean.
+}
+----
+
+=== The `.<.` Member Function
+
+The `.<.` contract function specifies what it means to be a member of a collection:
+
+[#memberFunctionProg]
+.The `.<.` Function
+[source,star]
+----
+(.<.) : all c,e ~~ membership[s ->> e] |= (c,e) => boolean.
+----
+
+NOTE: The `.<.` symbol is an infix operator.
+
+For example, given a `cons` list `L` such as `[1,2,10]`, then
+
+[source,star]
+----
+2 .<. L
+----
+
+evaluates to `.true`.
+
+[#addmemberFunctionProg]
+.The `\+` Function
+[source,star]
+----
+(\+) : all c,e ~~ membership[s ->> e] |= (c,e) => c.
+----
+
+NOTE: The `\+` symbol is an infix operator.
+
+The `\+` function returns a new collection with an element added.
+
+For example, given a `set` `L` such as `{1,2,10}`, then
+
+[source,star]
+----
+L \+ 5
+----
+
+has value `{1,2,5,10}`.
+
+NOTE: Implementations should honor the condition that duplicates are eliminted in collections.
+
+[#dropmemberFunctionProg]
+.The `\-` Function
+[source,star]
+----
+(\-) : all c,e ~~ membership[s ->> e] |= (c,e) => c.
+----
+
+NOTE: The `\-` symbol is an infix operator.
+
+The `\-` function returns a new collection with an element removed.
+
+For example, given a `set` `L` such as `{1,2,10}`, then
+
+[source,star]
+----
+L \- 2
+----
+
+has value `{1,10}`.
+
+NOTE: Implementations should honor the condition that duplicates are eliminted in collections.
+
+
+[#pullContract]
+== The pull Contract
+
+The `pull` contract provides a function that can be used to extract an element
+from a wrapped value.
+
+[#pullContractProg]
+.The Standard `pull` Contract
+[source,star]
+----
+public contract all x->>y,e ~~ pull[x->>y,e] ::= {
+  pull_:(x)=>y throws e
+}
+----
+
+=== The `pull_` Function
+
+The `pull_` contract function is used to 'unwrap' a value
+
+[#pullFunctionProg]
+.The `pull_` Function
+[source,star]
+----
+pull_ : all x,y,e ~~ pull[x ->> y,e] |= (x) => y throws e
+----
+
+NOTE: The `?` unary operator is mapped to a call to the `pull_` function.
+
+Since it is not always guaranteed that it is possible to extract a wrapped
+value, the `pull_` function can throw an exception. However, the type of the
+exception is determined by the implementation of the contract.
+
+The `pull` contract is defined for the `either` type and the `option` type. For
+example, the implementation for `either` looks like:
+
+[#eitherPullProg]
+.The `pull` implementation for `either`
+[source,star]
+----
+public implementation all e,o ~~ pull[either[e,o]->>e,o] => {
+  pull_(.either(A)) => A.
+  pull_(.other(B)) => throw B
+}
+----
+
+NOTE: In this case the `other` arm of the `either` value is used when `pull_`
+fails to unwrap an `either` value.
+
 [#mappingContract]
 == The `mapping` Contract
 
@@ -781,7 +987,6 @@ The `zero` value denotes the 0 value of the arithmetic type.
 ----
 zero : all t ~~ arith[t] |= t. 
 ----
-@end float
 
 NOTE: The `zero` value is particularly useful when defining arithmetic
 functions that should be neutral with respect to the actual type of

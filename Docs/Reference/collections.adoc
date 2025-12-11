@@ -108,3 +108,5 @@ are implemented for collections are mediated through contracts.
 The `equality` contract (<<equalityContract>>) is defined for
 all the collection types; usually with requirement that the element
 types also implement `equality`.
+
+

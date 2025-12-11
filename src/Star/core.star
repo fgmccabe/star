@@ -91,8 +91,6 @@ star.core {
     _null:S
   }
 
---  public all t ~~ cons[t] ::= .nil | .cons(t,cons[t]).
-
   -- Displayable contract
   public contract all t ~~ display[t] ::= {
     disp:(t)=>string.
