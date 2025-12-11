@@ -280,7 +280,7 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("overloaded $(.over(OLc,T,Cx)) is $(OverOp)");
 
-    valis (.tapply(lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
+    valis (makeTApply(Lc,OverOp,NArgs,Tp,ErTp).tapply(lc,OverOp,NArgs,Tp,ErTp),markResolved(St3))
   }
   overloadTerm(.tapply(lc,Op,Args,Tp,ErTp),Dict,St) => valof{
     (ROp,St1) = overloadTerm(Op,Dict,St);

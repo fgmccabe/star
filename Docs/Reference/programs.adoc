@@ -75,7 +75,7 @@ name `main` that may have zero or more arguments; or a function or
 procedure with name `_main` with one argument that is a `cons` list of
 ``string``s.
 
-The `_main` function must have the type signature:
+If defined, the `_main` function must have the type signature:
 
 [source,star]
 ----
@@ -90,7 +90,7 @@ If a package has a definition for `main`, but does not have one for
 `_main`, then the command line arguments are coerced according to the
 explicit type signature for `main`.
 
-For example, if `main` is defined with explicit type signature:
+For example, if `main` is defined with the explicit type signature:
 
 [source,star]
 ----

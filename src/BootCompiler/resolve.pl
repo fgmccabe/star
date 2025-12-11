@@ -411,6 +411,7 @@ overApply(Lc,OverOp,Args,Tp,Make,Lam) :-
 
 makeApply(Lc,Op,Args,Tp,apply(Lc,Op,tple(Lc,Args),Tp)).
 
+makeTApply(ErTp,Lc,Op,Args,Tp,apply(Lc,Op,tple(Lc,Args),Tp)) :- deRef(ErTp,voidType).
 makeTApply(ErTp,Lc,Op,Args,Tp,tapply(Lc,Op,tple(Lc,Args),Tp,ErTp)).
 
 curryOver(Lc,OverOp,Cx,Tp,Make,
