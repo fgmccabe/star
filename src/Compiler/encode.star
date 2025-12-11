@@ -58,6 +58,7 @@ star.compiler.encode{
     | .tpExp(.tpFun("ref",1),El) => [`r`]++encodeType(El)
     | .funType(A,R,E) where .voidType.=deRef(E) => [`F`]++encodeType(A)++encodeType(R)
     | .funType(A,R,E) => [`T`]++encodeType(A)++encodeType(R)++encodeType(E)
+    | .prcType(A,E) => [`P`]++encodeType(A)++encodeType(E)
     | .conType(A,R) => [`C`]++encodeType(A)++encodeType(R)
     | .tpExp(Op,A) => [`U`]++encodeType(Op)++encodeType(A)
     | .tupleType(Els) => [`(`]++encodeTypes(Els)++[`)`]
