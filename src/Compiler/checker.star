@@ -784,36 +784,34 @@ star.compiler.checker{
     (Q,ETp) = evidence(Tp,Env);
     (Cx,ProgTp) = deConstrain(ETp);
 
-    (ATp,RTp,ErTp) = splitupProgramType(Lc,Env,ProgTp);
-
     if traceCanon! then
       showMsg("check lambda proc$(A), expected type $(Tp) @ $(Lc)");
 
-    if ~ _ ?= isPrType(ProgTp) then{
+    if (ATp,ErTp) ?= isPrType(ProgTp) then{
+      Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
+
+      if traceCanon! then
+	showMsg("expected arg type $(ATp)");
+
+      (As,ACnd,E0) = typeOfArgPtn( Ar,ATp,ErTp,Es,Path);
+
+      if traceCanon! then
+	showMsg("lambda arg ptn $(As)\:$(As//typeOf)");
+
+      LName = genId(Path++"λ");
+
+      if Cnd ?= C then {
+	(Cond,E1) = checkCond(Cnd,ErTp,E0,Path);
+	(Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E1,[],Path);
+
+	valis .prc(Lc,LName,.prle(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
+      } else{
+	(Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E0,[],Path);
+	valis .prc(Lc,LName,.prle(Lc,As,ACnd,Rep),Tp);
+      }
+    } else{
       reportError("Expecting a $(Tp) value, not $(A)\:$(ProgTp)",Lc);
       valis .anon(Lc,Tp)
-    };
-
-    Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
-
-    if traceCanon! then
-      showMsg("expected arg type $(ATp)");
-
-    (As,ACnd,E0) = typeOfArgPtn( Ar,ATp,ErTp,Es,Path);
-
-    if traceCanon! then
-      showMsg("lambda arg ptn $(As)\:$(As//typeOf)");
-
-    LName = genId(Path++"λ");
-
-    if Cnd ?= C then {
-      (Cond,E1) = checkCond(Cnd,ErTp,E0,Path);
-      (Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E1,[],Path);
-
-      valis .prc(Lc,LName,.prle(Lc,As,mergeGoal(Lc,ACnd,.some(Cond)),Rep),Tp);
-    } else{
-      (Rep,_,_) = checkAction(R,.voidType,ErTp,.noVal,E0,[],Path);
-      valis .prc(Lc,LName,.prle(Lc,As,ACnd,Rep),Tp);
     }
   }
   
