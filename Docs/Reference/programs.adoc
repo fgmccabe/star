@@ -90,7 +90,8 @@ If a package has a definition for `main`, but does not have one for
 `_main`, then the command line arguments are coerced according to the
 explicit type signature for `main`.
 
-For example, if `main` is defined with the explicit type signature:
+For example, if `main` is defined with the
+explicit type signature:
 
 [source,star]
 ----
@@ -173,12 +174,10 @@ consLength:all t ~~ (cons[t])=>integer
 [#variableDefinition]
 === Variable Definition
 
-(((variable definition)))
-(((declaration, variable)))
-A variable definition is a definition or an
-action that explicitly denotes the declaration of a
-variable. <<variableDefinition>>s may appear in packages, 
-<<letExpression>>s and <<letAction>>s.
+(((variable definition))) (((declaration, variable))) A variable
+definition is a definition or an action that explicitly denotes the
+declaration of a variable. <<variableDefinition>>s may appear in
+packages, <<letExpression>>s and <<letAction>>s.
 
 [#variableDeclararionFig]
 .Variable Definition
@@ -191,13 +190,13 @@ variableDefition >> (V := E) --> variable >> V, [`:=`], expression>>E.
 varTuple >> Vs --> [`(`], variable* >> Vs, [`)`].
 ----
 
-The left-hand side of a variable declaration may be a tuple
-of variables. This permits multiple variables to be declared
-in a single statement. This, in turn, facilitates the handling of
-functions that return more than one value.
+The left-hand side of a variable declaration may be a tuple of
+variables. This permits multiple variables to be declared in a single
+statement. This, in turn, facilitates the handling of functions that
+return more than one value.
 
-For example, assuming that `split` partitions a `list` into a front half and a
-back half, returning both in a 2-tuple, the declaration:
+For example, assuming that `split` partitions a `list` into a front
+half and a back half, returning both in a 2-tuple, the declaration:
 
 [source,star]
 ----

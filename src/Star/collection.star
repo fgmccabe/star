@@ -74,6 +74,14 @@ star.collection{
     foldLeft(F,U,.cons(H,T)) => foldLeft(F,F(H,U),T).
   .}
 
+  public implementation all e ~~ visitor[cons[e]->>e] => {.
+    visit(.nil,_) do {}.
+    visit(.cons(E,L),P) do{
+      P(E);
+      visit(L,P)
+    }
+  .}
+
   public implementation all e,f ~~ mapping[option->>e,f] => {
     (.none // _) => .none.
     (.some(X) // F) => .some(F(X))
