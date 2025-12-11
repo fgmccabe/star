@@ -356,7 +356,7 @@ append : all t,e ~~ glue[t->>e] |= (t,e) => t
 The `append` function appends an element to the end of a sequence.
 
 [#sliceContract]
-== The slice Contract
+== The `slice` Contract
 
 [#sliceContractProg]
 .The `slice` contract
@@ -674,7 +674,7 @@ NOTE: The `_empty` value is often used as the starting point for
 building up a key-value collection.
 
 [#membershipContract]
-== The membership Contract
+== The `membership` Contract
 
 The `membership` contract provides functions that define what it
 means to be a member of a collection.
@@ -712,6 +712,10 @@ For example, given a `cons` list `L` such as `[1,2,10]`, then
 
 evaluates to `.true`.
 
+=== The `\+` Add Member Function
+
+`\+` is used to denote a set with an additional element.
+
 [#addmemberFunctionProg]
 .The `\+` Function
 [source,star]
@@ -732,7 +736,12 @@ L \+ 5
 
 has value `{1,2,5,10}`.
 
-NOTE: Implementations should honor the condition that duplicates are eliminted in collections.
+NOTE: Implementations should honor the condition that duplicates are
+eliminated in collections.
+
+=== The `\-` Remove Member Function
+
+`\-` is used to denote a set where an element is dropped.
 
 [#dropmemberFunctionProg]
 .The `\-` Function
@@ -743,8 +752,6 @@ NOTE: Implementations should honor the condition that duplicates are eliminted i
 
 NOTE: The `\-` symbol is an infix operator.
 
-The `\-` function returns a new collection with an element removed.
-
 For example, given a `set` `L` such as `{1,2,10}`, then
 
 [source,star]
@@ -754,14 +761,99 @@ L \- 2
 
 has value `{1,10}`.
 
-NOTE: Implementations should honor the condition that duplicates are eliminted in collections.
+NOTE: Implementations should honor the condition that duplicates are
+eliminated in collections.
 
+[#setOperationsContract]
+== The `setops` Contract
+
+The `setops` contract provides functions that define what it
+means to combine set valued collections.
+
+[#setopsContractProg]
+.The Standard `setops` Contract
+[source,star]
+----
+public contract all k ~~ setops[k] ::= {
+  (\/) : (k,k)=>k.
+  (/\) : (k,k)=>k.
+  (\) : (k,k)=>k.
+}
+----
+
+=== The `\/` Set Union Function
+
+The `\/` contract function specifies a set union over collections:
+
+[#unionFunctionProg]
+.The `\/` Function
+[source,star]
+----
+(\/) : all k ~~ setops[k] |= (k,k) => k.
+----
+
+NOTE: The `\/` symbol is an infix operator.
+
+For example, given `cons` lists such as `[1,2,10]` and `[2,5]`, then
+
+[source,star]
+----
+[1,2,10] \/ [2,5]
+----
+
+evaluates to `[1,2,5,10]` -- not necessarily in that precise order.
+
+
+=== The `/\` Set Intersection Function
+
+The `/\` contract function specifies a set intersection over collections:
+
+[#intersectionFunctionProg]
+.The `/\` Function
+[source,star]
+----
+(/\) : all k ~~ setops[k] |= (k,k) => k.
+----
+
+NOTE: The `/\` symbol is an infix operator.
+
+For example, given `cons` lists such as `[1,2,10]` and `[2,5]`, then
+
+[source,star]
+----
+[1,2,10] /\ [2,5]
+----
+
+evaluates to `[2]`.
+
+
+=== The `\` Set Difference Function
+
+The `\` contract function specifies a set difference over collections:
+
+[#differenceFunctionProg]
+.The `\` Function
+[source,star]
+----
+(\) : all k ~~ setops[k] |= (k,k) => k.
+----
+
+NOTE: The `\` symbol is an infix operator.
+
+For example, given `cons` lists such as `[1,2,10]` and `[2,5]`, then
+
+[source,star]
+----
+[1,2,10] \ [2,5]
+----
+
+evaluates to `[1,10]`.
 
 [#pullContract]
 == The pull Contract
 
-The `pull` contract provides a function that can be used to extract an element
-from a wrapped value.
+The `pull` contract provides a function that can be used to extract an
+element from a wrapped value.
 
 [#pullContractProg]
 .The Standard `pull` Contract
@@ -785,12 +877,13 @@ pull_ : all x,y,e ~~ pull[x ->> y,e] |= (x) => y throws e
 
 NOTE: The `?` unary operator is mapped to a call to the `pull_` function.
 
-Since it is not always guaranteed that it is possible to extract a wrapped
-value, the `pull_` function can throw an exception. However, the type of the
-exception is determined by the implementation of the contract.
+Since it is not always guaranteed that it is possible to extract a
+wrapped value, the `pull_` function can throw an exception. However,
+the type of the exception is determined by the implementation of the
+contract.
 
-The `pull` contract is defined for the `either` type and the `option` type. For
-example, the implementation for `either` looks like:
+The `pull` contract is defined for the `either` type and the `option`
+type. For example, the implementation for `either` looks like:
 
 [#eitherPullProg]
 .The `pull` implementation for `either`
@@ -802,8 +895,8 @@ public implementation all e,o ~~ pull[either[e,o]->>e,o] => {
 }
 ----
 
-NOTE: In this case the `other` arm of the `either` value is used when `pull_`
-fails to unwrap an `either` value.
+NOTE: In this case the `other` arm of the `either` value is used when
+`pull_` fails to unwrap an `either` value.
 
 [#mappingContract]
 == The `mapping` Contract
@@ -823,6 +916,33 @@ public contract all m/1,e,f ~~ mapping[m->>e,f] ::= {
 
 The `//` function specifies a map over a collection: it creates a
 new collection based on a function being applied to each element.
+
+[#filterContract]
+== The `filter` Contract
+
+The `filter` contract represents a filter over collections:
+
+[#filterContractProg]
+.The Standard `filter` Contract
+[source,star]
+----
+public contract all c,e ~~ filter[c->>e] ::= {
+  (^/):(c,(e)=>boolean) => c.
+}
+----
+
+=== The `^/` Function
+
+The `^/` function specifies a collection filter. The result is a 
+new collection based on a predicate applied to an existing collection.
+
+[#filterFunctionProg]
+.The Standard `^/` Function
+[source,star]
+----
+(^/):all c,e ~~ filter[c->>e] |= (c,(e)=>boolean) => c.
+}
+----
 
 [#foldingContract]
 == The `folding` Contract
@@ -908,6 +1028,36 @@ public contract all s,k,v ~~ indexed_iter[s->>k,v] ::= {
 
 The `_ix_iter` function specifies a key part of iteration over key-value
 collections: how individual elements of the collection should be handled.
+
+
+[#visitorContract]
+== The `visitor` Contract
+
+The `visitor` contract embodies a walk across a data value.
+
+[#visitorContractProg]
+.The Standard `visitor` Contract
+[source,star]
+----
+public contract all c,t ~~ visitor[c->>t] ::= {
+  visit:(c,(t){}){}
+}
+----
+
+=== The `visit` Function
+
+The `visit` procedure calls a client procedure on a data value:
+
+[#visitFunctionProg]
+.The Standard `visit` Procedure
+[source,star]
+----
+visit:all c,t ~~ visit[c->>t] |= (c,(t){}){}
+}
+----
+
+Any implementation of `visitor` over a collection should invoke the
+client procedure on invididual elements of the collection.
 
 [#arithContract]
 == The `arith` Contract
@@ -1045,6 +1195,72 @@ one : all t ~~ arith[t] |= t.
 NOTE: Like the `zero`, the `one` value is particularly useful when
 defining arithmetic functions that should be neutral with respect to
 the actual type of numeric value.
+
+[#bitArithmeticContract]
+== The `bits` Contract
+
+The `bits` contract encodes a suite of bitwise arithmetic.
+
+[#bitsContractProg]
+.The Standard `bits` Contract
+[source,star]
+----
+public contract all x ~~ bits[x] ::= {
+  (.|.):(x,x)=>x.
+  (.&.):(x,x)=>x.
+  (.^.):(x,x)=>x.
+  (.~.):(x)=>x.
+}
+----
+
+The various operations focus on a bitstring interpretation of numeric
+values.
+
+The `bits` contract has been implemented for ``integer``s.
+
+=== The `.|.` bitwise or Function
+
+The `.|.` function embodies bitwise union:
+
+[#bitorFunctionProg]
+.The `.|.` Function
+[source,star]
+----
+(.|.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+=== The `.&.` bitwise and Function
+
+The `.&.` function embodies bitwise union:
+
+[#bitandFunctionProg]
+.The `.&.` Function
+[source,star]
+----
+(.&.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+=== The `.^.` bitwise exclusive or Function
+
+The `.^.` function embodies bitwise union:
+
+[#bitxorFunctionProg]
+.The `.^.` Function
+[source,star]
+----
+(.^.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+=== The `.~.` bitwise negation Function
+
+The `.~.` function embodies unary negation:
+
+[#bitnotFunctionProg]
+.The `.~.` Function
+[source,star]
+----
+(.~.) : all x ~~ bits[x] |= (x) => x.
+----
 
 [#coercionContract]
 == The `coercion` Contract
