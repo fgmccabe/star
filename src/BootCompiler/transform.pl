@@ -213,7 +213,7 @@ closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
   genVars(Tps,Args),
   length(Args,Ar),
   funResType(ATp,ResTp),
-  (funExType(Tp,ErTp) ->
+  (funExType(Tp,ErTp), \+deRef(ErTp,voidType) ->
    Call = xcll(Lc,lbl(Prog,Ar),Args,ResTp,ErTp);
    Call = cll(Lc,lbl(Prog,Ar),Args,ResTp)),
   (Extra = [] ->

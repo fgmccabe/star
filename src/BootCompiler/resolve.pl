@@ -240,9 +240,10 @@ overloadTerm(capply(Lc,Op,Args,Tp),Dict,Opts,St,Stx,capply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
 overloadTerm(tapply(ALc,over(Lc,T,Cx),Args,Tp,ErTp),Dict,Opts,St,Stx,Term) :-
   overloadMethod(ALc,Lc,T,Cx,Args,Tp,makeTApply(ErTp),Dict,Opts,St,Stx,Term).
-overloadTerm(tapply(Lc,Op,Args,Tp,ErTp),Dict,Opts,St,Stx,tapply(Lc,ROp,RArgs,Tp,ErTp)) :-
+overloadTerm(tapply(Lc,Op,Args,Tp,ErTp),Dict,Opts,St,Stx,Call) :-
   overloadTerm(Op,Dict,Opts,St,St0,ROp),
-  overloadTerm(Args,Dict,Opts,St0,Stx,RArgs).
+  overloadTerm(Args,Dict,Opts,St0,Stx,tple(_,RArgs)),
+  makeTApply(ErTp,Lc,ROp,RArgs,Tp,Call).
 overloadTerm(over(Lc,mtd(MLc,Nm,Tp),Cx),Dict,Opts,St,Stx,Term) :-
   checkOpt(Opts,traceCheck,meta:showMsg(Lc,"overload %s",[can(over(Lc,mtd(MLc,Nm,Tp),Cx))])),
   overloadField(Lc,MLc,Nm,Tp,Cx,Tp,makeApply,Dict,Opts,St,Stx,Term).
