@@ -3,121 +3,121 @@
 (require 'star-util)
 
 (defconst star-ops
-  '(  ("retire" ( (prefix 899 898) (infix 898 899 898)))
-  ("all" ( (prefix 1010 1009)))
-  (".<." ( (infix 699 700 699)))
-  ("&&" ( (infix 909 910 910)))
-  ("elemis" ( (prefix 930 929)))
-  ("let" ( (prefix 899 898)))
-  ("~=" ( (infix 899 900 899)))
-  ("~>" ( (infix 1230 1231 1230)))
-  ("throw" ( (prefix 230 229)))
-  (".|." ( (infix 720 720 719)))
-  ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
-  ("import" ( (prefix 900 899)))
-  ("catch" ( (infix 1198 1199 1198)))
-  ("valis" ( (prefix 930 929)))
-  (",.." ( (infix 999 1000 999)))
-  ("for" ( (prefix 1175 1174)))
-  ("••" ( (infix 450 450 449)))
-  ("..<" ( (infix 749 750 749)))
-  ("**" ( (infix 600 600 599)))
-  ("..>" ( (infix 749 750 749)))
-  ("->" ( (infix 889 890 889)))
-  (".+." ( (prefix 700 699)))
-  ("async" ( (prefix 1234 1233)))
-  ("then" ( (infix 1179 1180 1179)))
-  ("ζ" ( (prefix 1 0)))
-  ("!" ( (postfix 99 100) (infix 99 100 99)))
-  ("->>" ( (infix 1199 1200 1199)))
-  ("?=" ( (infix 899 900 899)))
-  ("default" ( (postfix 939 940)))
-  ("<*" ( (infix 600 600 599)))
-  ("#" ( (infix 759 760 759)))
-  ("??" ( (infix 919 920 920) (prefix 950 949)))
-  ("%" ( (infix 700 700 699)))
-  ("<-" ( (infix 974 975 974)))
-  (".>>>." ( (infix 600 600 599)))
-  ("\\+" ( (infix 700 700 699)))
-  ("collect" ( (prefix 300 299)))
-  ("*" ( (postfix 699 700) (infix 700 700 699)))
-  ("\\-" ( (infix 700 700 699)))
-  ("+" ( (postfix 699 700) (infix 720 720 719)))
-  (".>>." ( (infix 600 600 599)))
-  ("*>" ( (infix 904 905 904) (prefix 905 904)))
-  ("resume" ( (infix 898 899 898)))
-  ("," ( (infix 999 1000 1000)))
-  ("contract" ( (prefix 1560 1559)))
-  ("\\/" ( (infix 720 720 719)))
-  ("-" ( (prefix 300 299) (infix 720 720 719)))
-  ("." ( (prefix 10 9) (infix 100 100 99)))
-  ("/" ( (infix 700 700 699)))
-  ("try" ( (prefix 1200 1199)))
-  ("exists" ( (prefix 1010 1009)))
-  ("if" ( (prefix 1175 1174)))
-  ("$$" ( (prefix 305 304)))
-  (":" ( (infix 1249 1250 1249)))
-  (";" ( (postfix 1250 1251) (infix 1250 1251 1251)))
-  ("-->" ( (infix 1248 1249 1248)))
-  ("<" ( (infix 899 900 899)))
-  (".=" ( (infix 899 900 899)))
-  ("=>>" ( (infix 949 950 950)))
-  ("=" ( (infix 974 975 974)))
-  ("show" ( (prefix 1240 1239)))
-  ("++" ( (infix 719 720 720)))
-  (">" ( (infix 899 900 899)))
-  ("return" ( (prefix 930 929)))
-  ("?" ( (infix 299 300 299) (prefix 300 299)))
-  ("@" ( (prefix 400 399) (infix 399 400 400)))
-  ("|=" ( (infix 1234 1235 1234)))
-  ("in" ( (infix 899 900 900)))
-  ("break" ( (prefix 10 9)))
-  ("suspend" ( (prefix 899 898) (infix 898 899 898)))
-  ("trace" ( (infix 139 140 139) (prefix 140 139)))
-  ("~~" ( (infix 1239 1240 1240)))
-  ("assert" ( (prefix 1240 1239)))
+  '(  ("!" ( (postfix 99 100) (infix 99 100 99)))
   ("!!" ( (postfix 99 100)))
-  ("⊕" ( (infix 720 720 719)))
-  (".^." ( (infix 720 720 719)))
-  ("//" ( (infix 960 960 959)))
-  ("public" ( (prefix 1700 1699)))
-  ("ref" ( (prefix 899 898)))
-  (".~." ( (prefix 650 649)))
-  ("where" ( (infix 910 911 910)))
-  ("=<" ( (infix 899 900 899)))
-  ("case" ( (prefix 901 900)))
-  ("==" ( (infix 899 900 899)))
-  ("\\" ( (infix 700 700 699)))
-  ("=>" ( (infix 949 950 950)))
-  ("<=>" ( (infix 949 950 949)))
-  ("?|" ( (infix 960 960 959)))
-  ("valof" ( (prefix 300 299)))
-  ("yield" ( (prefix 300 299)))
-  ("while" ( (prefix 1175 1174)))
-  ("private" ( (prefix 1700 1699)))
-  ("•" ( (infix 450 450 449)))
-  (".&." ( (infix 700 700 699)))
-  ("///" ( (infix 960 960 959)))
-  ("::" ( (infix 399 400 399)))
+  ("#" ( (infix 759 760 759)))
+  ("$$" ( (prefix 305 304)))
+  ("%" ( (infix 700 700 699)))
+  ("&&" ( (infix 909 910 910)))
+  ("*" ( (postfix 699 700) (infix 700 700 699)))
+  ("**" ( (infix 600 600 599)))
+  ("*>" ( (infix 904 905 904) (prefix 905 904)))
+  ("+" ( (postfix 699 700) (infix 720 720 719)))
+  ("++" ( (infix 719 720 720)))
   ("+++" ( (infix 719 720 720)))
+  ("," ( (infix 999 1000 1000)))
+  (",.." ( (infix 999 1000 999)))
+  ("-" ( (prefix 300 299) (infix 720 720 719)))
+  ("-->" ( (infix 1248 1249 1248)))
+  ("->" ( (infix 889 890 889)))
+  ("->>" ( (infix 1199 1200 1199)))
+  ("." ( (prefix 10 9) (infix 100 100 99)))
+  (".#." ( (infix 600 600 599)))
+  (".&." ( (infix 700 700 699)))
+  (".+." ( (prefix 700 699)))
+  ("..<" ( (infix 749 750 749)))
+  ("..>" ( (infix 749 750 749)))
+  (".<." ( (infix 699 700 699)))
+  (".<<." ( (infix 600 600 599)))
+  (".=" ( (infix 899 900 899)))
+  (".>>." ( (infix 600 600 599)))
+  (".>>>." ( (infix 600 600 599)))
+  (".^." ( (infix 720 720 719)))
+  (".|." ( (infix 720 720 719)))
+  (".~." ( (prefix 650 649)))
+  ("/" ( (infix 700 700 699)))
+  ("//" ( (infix 960 960 959)))
+  ("///" ( (infix 960 960 959)))
+  ("/\\" ( (infix 700 700 699)))
+  (":" ( (infix 1249 1250 1249)))
+  ("::" ( (infix 399 400 399)))
+  ("::=" ( (infix 1549 1550 1549)))
   (":=" ( (infix 974 975 974)))
   (":?" ( (infix 399 400 399)))
-  (".<<." ( (infix 600 600 599)))
-  ("implementation" ( (prefix 1260 1259)))
-  (">>=" ( (infix 949 950 950)))
-  ("^/" ( (infix 960 960 959)))
+  (";" ( (postfix 1250 1251) (infix 1250 1251 1251)))
+  ("<" ( (infix 899 900 899)))
+  ("<*" ( (infix 600 600 599)))
+  ("<-" ( (infix 974 975 974)))
+  ("<=>" ( (infix 949 950 949)))
   ("<~" ( (infix 998 999 998)))
-  ("|" ( (prefix 1548 1547) (infix 1548 1548 1547)))
-  (".#." ( (infix 600 600 599)))
-  ("~" ( (prefix 905 904)))
-  ("^//" ( (infix 800 800 799)))
-  ("||" ( (infix 919 920 920)))
-  ("else" ( (infix 1199 1200 1200)))
-  ("::=" ( (infix 1549 1550 1549)))
-  ("/\\" ( (infix 700 700 699)))
+  ("=" ( (infix 974 975 974)))
+  ("=<" ( (infix 899 900 899)))
+  ("==" ( (infix 899 900 899)))
+  ("=>" ( (infix 949 950 950)))
+  ("=>>" ( (infix 949 950 950)))
+  (">" ( (infix 899 900 899)))
   (">=" ( (infix 899 900 899)))
   (">>" ( (infix 949 950 950)))
+  (">>=" ( (infix 949 950 950)))
+  ("?" ( (infix 299 300 299) (prefix 300 299)))
+  ("?=" ( (infix 899 900 899)))
+  ("??" ( (infix 919 920 920) (prefix 950 949)))
+  ("?|" ( (infix 960 960 959)))
+  ("@" ( (prefix 400 399) (infix 399 400 400)))
+  ("\\" ( (infix 700 700 699)))
+  ("\\+" ( (infix 700 700 699)))
+  ("\\-" ( (infix 700 700 699)))
+  ("\\/" ( (infix 720 720 719)))
+  ("^/" ( (infix 960 960 959)))
+  ("^//" ( (infix 800 800 799)))
+  ("all" ( (prefix 1010 1009)))
+  ("assert" ( (prefix 1240 1239)))
+  ("async" ( (prefix 1234 1233)))
+  ("break" ( (prefix 10 9)))
+  ("case" ( (prefix 901 900)))
+  ("catch" ( (infix 1198 1199 1198)))
+  ("collect" ( (prefix 300 299)))
+  ("contract" ( (prefix 1560 1559)))
+  ("default" ( (postfix 939 940)))
+  ("do" ( (prefix 200 199) (infix 1199 1200 1199)))
+  ("elemis" ( (prefix 930 929)))
+  ("else" ( (infix 1199 1200 1200)))
+  ("exists" ( (prefix 1010 1009)))
+  ("for" ( (prefix 1175 1174)))
+  ("if" ( (prefix 1175 1174)))
+  ("implementation" ( (prefix 1260 1259)))
+  ("import" ( (prefix 900 899)))
+  ("in" ( (infix 899 900 900)))
+  ("let" ( (prefix 899 898)))
+  ("private" ( (prefix 1700 1699)))
+  ("public" ( (prefix 1700 1699)))
+  ("ref" ( (prefix 899 898)))
+  ("resume" ( (infix 898 899 898)))
+  ("retire" ( (prefix 899 898) (infix 898 899 898)))
+  ("return" ( (prefix 930 929)))
+  ("show" ( (prefix 1240 1239)))
+  ("suspend" ( (prefix 899 898) (infix 898 899 898)))
+  ("then" ( (infix 1179 1180 1179)))
+  ("throw" ( (prefix 230 229)))
   ("throws" ( (infix 949 950 949)))
+  ("trace" ( (infix 139 140 139) (prefix 140 139)))
+  ("try" ( (prefix 1200 1199)))
+  ("valis" ( (prefix 930 929)))
+  ("valof" ( (prefix 300 299)))
+  ("where" ( (infix 910 911 910)))
+  ("while" ( (prefix 1175 1174)))
+  ("yield" ( (prefix 300 299)))
+  ("|" ( (prefix 1548 1547) (infix 1548 1548 1547)))
+  ("|=" ( (infix 1234 1235 1234)))
+  ("||" ( (infix 919 920 920)))
+  ("~" ( (prefix 905 904)))
+  ("~=" ( (infix 899 900 899)))
+  ("~>" ( (infix 1230 1231 1230)))
+  ("~~" ( (infix 1239 1240 1240)))
+  ("ζ" ( (prefix 1 0)))
+  ("•" ( (infix 450 450 449)))
+  ("••" ( (infix 450 450 449)))
+  ("⊕" ( (infix 720 720 719)))
 )
   "Table of standard star operators"
 )
@@ -137,42 +137,42 @@
 )
 
 (defconst star-keywords
-  '("retire"
-"all"
-"elemis"
-"let"
-"throw"
-"do"
-"import"
-"catch"
-"valis"
-"for"
+  '("all"
 "async"
-"then"
-"ζ"
-"default"
-"collect"
-"resume"
-"contract"
-"try"
-"exists"
-"if"
-"in"
 "break"
-"suspend"
+"case"
+"catch"
+"collect"
+"contract"
+"default"
+"do"
+"elemis"
+"else"
+"exists"
+"for"
+"generator"
+"if"
+"implementation"
+"import"
+"in"
+"let"
+"private"
 "public"
 "ref"
-"where"
-"case"
-"generator"
-"valof"
-"yield"
-"while"
-"void"
-"private"
-"implementation"
-"else"
+"resume"
+"retire"
+"suspend"
+"then"
+"throw"
 "throws"
+"try"
+"valis"
+"valof"
+"void"
+"where"
+"while"
+"yield"
+"ζ"
 )
   "Table of standard keywords"
 )

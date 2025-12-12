@@ -8,6 +8,7 @@
 #include "formioP.h"
 #include "template.h"
 #include "formexts.h"
+#include "tree.h"
 
 #include "genoperators.h"
 
@@ -16,33 +17,9 @@ static retCode procToken(void *n, void *r, void *c);
 static retCode procBrackets(void *n, void *r, void *c);
 static retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt);
 static retCode genADocStr(ioPo f, void *data, long depth, long precision, logical alt);
-static char *pC(char *buff, long *ix, char c);
-
-static char *pS(char *buff, char *s) {
-  long ix = 0;
-
-  while (*s != '\0') {
-    pC(buff, &ix, *s++);
-  }
-  buff[ix] = '\0';
-  return buff;
-}
-
-static char *pC(char *buff, long *ix, char c) {
-  switch (c) {
-    case '\'':
-    case '"':
-    case '\\':
-      buff[(*ix)++] = '\\';
-    default:
-      buff[(*ix)++] = c;
-      buff[*ix] = '\0';
-  }
-  return buff;
-}
 
 enum {
-  genProlog, genStar, genTexi, genAdoc,genEmacs
+  genProlog, genStar, genAdoc, genEmacs
 } genMode = genProlog;
 
 typedef struct {
@@ -63,17 +40,17 @@ typedef struct {
 
 static stringTriePo tokenTrie;
 static poolPo opPool;
-static hashPo operators;
+static treePo operators;
 static hashPo bracketTbl;
-static hashPo keywords;
+static treePo keywords;
 
 static void initTries() {
   tokenTrie = emptyStringTrie();
 
   opPool = newPool(sizeof(TokenRecord), 128);
-  operators = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  operators = newTree((compFun) uniCmp, NULL);
   bracketTbl = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
-  keywords = newHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  keywords = newTree((compFun) uniCmp, NULL);
 }
 
 int getOptions(int argc, char **argv) {
@@ -87,9 +64,6 @@ int getOptions(int argc, char **argv) {
       case 's':
         genMode = genStar;
         break;
-      case 'i':
-        genMode = genTexi;
-        break;
       case 'a':
         genMode = genAdoc;
         break;
@@ -102,7 +76,7 @@ int getOptions(int argc, char **argv) {
       case 'd':
         uniCpy(date, NumberOf(date), optarg);
         break;
-      default:;
+      default: ;
     }
   }
   return optind;
@@ -126,9 +100,8 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       if (uniCmp(prefix, "") == same)
         outMsg(c->first, "    | `%#c` => .some(\"%P%#c\")\n", last, prefix, last);
       else
-	outMsg(c->follow, "  follows(\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
+        outMsg(c->follow, "  follows(\"%P\",`%#c`) => .some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
-    case genTexi:
     case genAdoc:
     default:
       break;
@@ -153,7 +126,6 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
       case genStar:
         outMsg(out, "    | \"%P\" => .true  /* %s */\n", op->name, op->cmt);
         break;
-      case genTexi:
       case genAdoc:
       default:
         break;
@@ -167,7 +139,8 @@ static void genFinal(ioPo out) {
 
 logical isAlphaNumeric(char *p) {
   if (*p != '\0' && isalpha(*p++)) {
-    while (*p != '\0' && isalnum(*p++));
+    while (*p != '\0' && isalnum(*p++)) {
+    }
     return True;
   }
   return False;
@@ -188,7 +161,6 @@ int main(int argc, char **argv) {
     fprintf(stdout, "bad args");
     exit(1);
   } else {
-
 #define infixOp(Op,LPr,Pr,RPr,Desc,IsKw)  genInfix(Op, LPr, Pr, RPr, IsKw,Desc);
 #define prefixOp(Op,Pr,RPr,Desc,IsKw)  genPrefix(Op, Pr, RPr, IsKw,Desc);
 #define postfixOp(Op,LPr,Pr,Desc,IsKw)  genPostfix(Op, LPr, Pr, IsKw,Desc);
@@ -220,7 +192,7 @@ int main(int argc, char **argv) {
 
     // Load up the variable table
     strBufferPo operBuff = newStringBuffer();
-    processHashTable(procOperator, operators, operBuff);
+    processTree(procOperator, operators, operBuff);
 
     integer len;
     char *allOps = getTextFromBuffer(operBuff, &len);
@@ -229,7 +201,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Operators", allOps);
 
     strBufferPo tokenBuff = newStringBuffer();
-    processHashTable(procToken, operators, tokenBuff);
+    processTree(procToken, operators, tokenBuff);
     char *allTokens = getTextFromBuffer(tokenBuff, &len);
 
     hashPut(vars, "Tokens", allTokens);
@@ -241,7 +213,7 @@ int main(int argc, char **argv) {
     hashPut(vars, "Brackets", allBkts);
 
     strBufferPo keywordsBuff = newStringBuffer();
-    processHashTable(genKeyword, keywords, keywordsBuff);
+    processTree(genKeyword, keywords, keywordsBuff);
     char *allKeywords = getTextFromBuffer(keywordsBuff, &len);
     hashPut(vars, "Keywords", allKeywords);
 
@@ -297,7 +269,7 @@ void genToken(char *op, char *cmt, logical isKeyword) {
   uniCpy(tk->cmt, NumberOf(tk->cmt), cmt);
 
   if (isKeyword)
-    hashPut(keywords, tk->name, tk->name);
+    treePut(keywords, tk->name, tk->name);
 
   if (!isAlphaNumeric(op))
     addToStringTrie(op, tk, tokenTrie);
@@ -314,12 +286,12 @@ static opPo genOper(char *op, char *cmt, OperatorStyle style, int left, int prio
 
   pairPo p = (pairPo) malloc(sizeof(Pair));
   p->op = oper;
-  p->next = (pairPo) hashGet(operators, oper->name);
+  p->next = (pairPo) treeGet(operators, oper->name);
 
-  hashPut(operators, oper->name, p);
+  treePut(operators, oper->name, p);
 
   if (isKeyword)
-    hashPut(keywords, oper->name, oper->name);
+    treePut(keywords, oper->name, oper->name);
   return oper;
 }
 
@@ -377,7 +349,6 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
         default:
           return Error;
       }
-    case genTexi:
     case genAdoc:
       return Ok;
     case genEmacs:
@@ -426,34 +397,6 @@ static retCode procOperator(void *n, void *r, void *c) {
         ret = outStr(out, "]\n");
       return ret;
     }
-    case genTexi: {
-      retCode ret = Ok;
-      while (p != NULL && ret == Ok) {
-        opPo op = p->op;
-        switch (op->style) {
-          case prefixOp: {
-            char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
-            break;
-          }
-          case infixOp: {
-            char *type = (op->right == op->prior ? "right associative" :
-                          op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
-            break;
-          }
-          case postfixOp: {
-            char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n@tab %I\n", nm, type, op->prior, op->cmt);
-            break;
-          }
-          default:
-            return Error;
-        }
-        p = p->next;
-      }
-      return ret;
-    }
 
     case genAdoc: {
       retCode ret = Ok;
@@ -466,8 +409,11 @@ static retCode procOperator(void *n, void *r, void *c) {
             break;
           }
           case infixOp: {
-            char *type = (op->right == op->prior ? "right associative" :
-                          op->left == op->prior ? "left associative" : "non-associative");
+            char *type = (op->right == op->prior
+                            ? "right associative"
+                            : op->left == op->prior
+                                ? "left associative"
+                                : "non-associative");
             ret = outMsg(out, "|`+++%A+++` | %d | %s infix | %I\n", nm, op->prior, type, op->cmt);
             break;
           }
@@ -484,7 +430,6 @@ static retCode procOperator(void *n, void *r, void *c) {
       return ret;
     }
 
-      
     case genEmacs: {
       retCode ret = outMsg(out, "  (\"%P\" (", nm);
 
@@ -518,18 +463,7 @@ retCode procToken(void *n, void *r, void *c) {
       return outMsg(out, "  | token(\"%P\") => .true\n", sep, nm);
     }
     case genAdoc:
-      return outMsg(out,"\n");
-    case genTexi: {
-      if (!isAlphaNumeric(nm)) {
-        if (tokenCount++ % 5 == 0) {
-          sep = "  @item";
-        } else {
-          sep = "  @tab";
-        }
-        return outMsg(out, "%s @code{%I}\n", sep, nm);
-      } else
-        return Ok;
-    }
+      return outMsg(out, "\n");
     case genEmacs: {
       return outMsg(out, "  \"%P\" ", nm);
     }
@@ -547,24 +481,10 @@ retCode genKeyword(void *n, void *r, void *c) {
       return outMsg(out, "  keyword(\"%P\").\n", name);
     case genStar:
       return outMsg(out, "    | \"%P\" => .true\n", name);
-    case genTexi: {
-      static int col = 0;
-      char *tag = "tab";
-
-      if (isUniIdentifier(name, uniStrLen(name))) {
-        if (col % 3 == 0) {
-          col = 0;
-          tag = "item";
-        }
-        col++;
-        return outMsg(out, "@%s @code{%I}\n", tag, name);
-      } else
-        return Ok;
-    }
     case genAdoc: {
       return outMsg(out, "|`+++%A+++`\n", name);
     }
-      
+
     case genEmacs: {
       if (isUniIdentifier(name, uniStrLen(name)))
         return outMsg(out, "\"%P\"\n", name);
@@ -653,30 +573,27 @@ static retCode quoteChar(ioPo f, codePoint ch) {
     case '}':
     case '@':
     case '\\':
-      if(genMode==genTexi)
-        ret = outMsg(f, "@%c",ch);
+      ret = outChar(f, ch);
+      break;
+    case '<':
+      if (genMode == genAdoc)
+        ret = outStr(f, "&lt;");
       else
         ret = outChar(f, ch);
       break;
-    case '<':
-      if(genMode==genAdoc)
-        ret = outStr(f,"&lt;");
-      else
-        ret = outChar(f,ch);
-      break;
     case '>':
-      if(genMode==genAdoc)
-        ret = outStr(f,"&gt;");
+      if (genMode == genAdoc)
+        ret = outStr(f, "&gt;");
       else
-        ret = outChar(f,ch);
+        ret = outChar(f, ch);
       break;
     case '&':
-      if(genMode==genAdoc)
-        ret = outStr(f,"&amp;");
+      if (genMode == genAdoc)
+        ret = outStr(f, "&amp;");
       else
-        ret = outChar(f,ch);
+        ret = outChar(f, ch);
       break;
-      
+
     default:
       if (ch < ' ') {
         ret = outChar(f, '\\');

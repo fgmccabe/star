@@ -4,7 +4,6 @@
 #include "term.h"
 #include "engine.h"
 #include "escapeP.h"
-#include "sysops.h"
 #include "signature.h"
 #include "quick.h"
 

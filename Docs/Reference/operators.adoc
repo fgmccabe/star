@@ -2,232 +2,235 @@
 .Standard Operators
 [cols="1,1,2,3"]
 |===
-|`+++retire+++` | 899 | non-associative prefix | retire task
-|`+++retire+++` | 899 | non-associative infix | retire task
-|`+++all+++` | 1010 | non-associative prefix | universal quantifier
-|`+++.&lt;.+++` | 700 | non-associative infix | set membership
-|`+++&amp;&amp;+++` | 910 | right associative infix | conjunction
-|`+++elemis+++` | 930 | non-associative prefix | element of built sequence
-|`+++let+++` | 899 | non-associative prefix | part of let def
-|`+++~=+++` | 900 | non-associative infix | not equals
-|`+++~&gt;+++` | 1231 | non-associative infix | type function
-|`+++throw+++` | 230 | non-associative prefix | throw an exception
-|`+++.\|.+++` | 720 | left associative infix | bitwise or
-|`+++do+++` | 200 | non-associative prefix | do {}
-|`+++do+++` | 1200 | non-associative infix | while T do {}
-|`+++import+++` | 900 | non-associative prefix | import module
-|`+++catch+++` | 1199 | non-associative infix | try {...} catch Tp in {...}
-|`+++valis+++` | 930 | non-associative prefix | return value from execution
-|`+++,..+++` | 1000 | non-associative infix | list cons
-|`+++for+++` | 1175 | non-associative prefix | for ... do {}
-|`+++••+++` | 450 | left associative infix | binary function composition
-|`+++..&lt;+++` | 750 | non-associative infix | range increasing iterator expression
-|`+++**+++` | 600 | left associative infix | exponentiation
-|`+++..&gt;+++` | 750 | non-associative infix | range decreasing iterator expression
-|`+++-&gt;+++` | 890 | non-associative infix | map entry
-|`+++.+.+++` | 700 | non-associative prefix | count of number of bits
-|`+++async+++` | 1234 | non-associative prefix | async function type
-|`+++then+++` | 1180 | non-associative infix | if ... then ... else
-|`+++ζ+++` | 1 | non-associative prefix | interpret a symbol without dereferencing constraints
 |`+++!+++` | 100 | non-associative postfix | pick up value from a ref cell
 |`+++!+++` | 100 | non-associative infix | pick up value from a ref cell
-|`+++-&gt;&gt;+++` | 1200 | non-associative infix | dependent type marker
-|`+++?=+++` | 900 | non-associative infix | optional decomposition match
-|`+++default+++` | 940 | non-associative postfix | default value marker
-|`+++&lt;*+++` | 600 | left associative infix | left fold
+|`+++!!+++` | 100 | non-associative postfix | pick up value from a thunk
 |`+++#+++` | 760 | non-associative infix | package separator
-|`+++??+++` | 920 | right associative infix | conditional operator
-|`+++??+++` | 950 | non-associative prefix | pull together a failable cexpression
+|`+++$$+++` | 305 | non-associative prefix | thunk expression
 |`+++%+++` | 700 | left associative infix | modulo
-|`+++&lt;-+++` | 975 | non-associative infix | monadic valof
-|`+++.&gt;&gt;&gt;.+++` | 600 | left associative infix | arithmetic shift right
-|`+++\++++` | 700 | left associative infix | add element to set
-|`+++collect+++` | 300 | non-associative prefix | build a sequence from an action expression
+|`+++&amp;&amp;+++` | 910 | right associative infix | conjunction
 |`+++*+++` | 700 | non-associative postfix | multicat
 |`+++*+++` | 700 | left associative infix | multiplication
-|`+++\-+++` | 700 | left associative infix | remove element from set
-|`+++++++` | 700 | non-associative postfix | one or more repetitions
-|`+++++++` | 720 | left associative infix | addition
-|`+++.&gt;&gt;.+++` | 600 | left associative infix | logical shift right
+|`+++**+++` | 600 | left associative infix | exponentiation
 |`+++*&gt;+++` | 905 | non-associative infix | for all
 |`+++*&gt;+++` | 905 | non-associative prefix | grammar skip
-|`+++resume+++` | 899 | non-associative infix | resume task
+|`+++++++` | 700 | non-associative postfix | one or more repetitions
+|`+++++++` | 720 | left associative infix | addition
+|`++++++++` | 720 | right associative infix | concatenate
+|`+++++++++` | 720 | right associative infix | choice
 |`+++,+++` | 1000 | right associative infix | tupling operator
-|`+++contract+++` | 1560 | non-associative prefix | contract definition
-|`+++\/+++` | 720 | left associative infix | union
+|`+++,..+++` | 1000 | non-associative infix | list cons
 |`+++-+++` | 300 | non-associative prefix | arithmetic negation
 |`+++-+++` | 720 | left associative infix | subtraction
+|`+++--&gt;+++` | 1249 | non-associative infix | grammar rule arrow
+|`+++-&gt;+++` | 890 | non-associative infix | map entry
+|`+++-&gt;&gt;+++` | 1200 | non-associative infix | dependent type marker
 |`+++.+++` | 10 | non-associative prefix | identify enumerator
 |`+++.+++` | 100 | left associative infix | object access
-|`+++/+++` | 700 | left associative infix | division
-|`+++try+++` | 1200 | non-associative prefix | try {...} catch {...}
-|`+++exists+++` | 1010 | non-associative prefix | existential quantifier
-|`+++if+++` | 1175 | non-associative prefix | if ... then ... else
-|`+++$$+++` | 305 | non-associative prefix | thunk expression
-|`+++:+++` | 1250 | non-associative infix | type declaration/annotation
-|`+++;+++` | 1251 | non-associative postfix | sequencing operator
-|`+++;+++` | 1251 | right associative infix | sequencing operator
-|`+++--&gt;+++` | 1249 | non-associative infix | grammar rule arrow
-|`+++&lt;+++` | 900 | non-associative infix | less than
-|`+++.=+++` | 900 | non-associative infix | pattern match
-|`+++=&gt;&gt;+++` | 950 | right associative infix | continuation arrow
-|`+++=+++` | 975 | non-associative infix | definition
-|`+++show+++` | 1240 | non-associative prefix | display debug message
-|`++++++++` | 720 | right associative infix | concatenate
-|`+++&gt;+++` | 900 | non-associative infix | greater than
-|`+++return+++` | 930 | non-associative prefix | wrap value in monad
-|`+++?+++` | 300 | non-associative infix | option match
-|`+++?+++` | 300 | non-associative prefix | pull value
-|`+++@+++` | 400 | non-associative prefix | meta annotation
-|`+++@+++` | 400 | right associative infix | meta annotation
-|`+++\|=+++` | 1235 | non-associative infix | constrained type
-|`+++in+++` | 900 | right associative infix | membership
-|`+++break+++` | 10 | non-associative prefix | break out of an action (loop or block)
-|`+++suspend+++` | 899 | non-associative prefix | suspend task
-|`+++suspend+++` | 899 | non-associative infix | suspend task
-|`+++trace+++` | 140 | non-associative infix | display tracing message
-|`+++trace+++` | 140 | non-associative prefix | display tracing message
-|`+++~~+++` | 1240 | right associative infix | quantifier
-|`+++assert+++` | 1240 | non-associative prefix | assert condition
-|`+++!!+++` | 100 | non-associative postfix | pick up value from a thunk
-|`+++⊕+++` | 720 | left associative infix | addition
-|`+++.^.+++` | 720 | left associative infix | bitwise xor
-|`+++//+++` | 960 | left associative infix | map over
-|`+++public+++` | 1700 | non-associative prefix | public visibility
-|`+++ref+++` | 899 | non-associative prefix | reference type/cell
-|`+++.~.+++` | 650 | non-associative prefix | bitwise 1's complement
-|`+++where+++` | 911 | non-associative infix | semantic guard
-|`+++=&lt;+++` | 900 | non-associative infix | less than or equal
-|`+++case+++` | 901 | non-associative prefix | case expression
-|`+++==+++` | 900 | non-associative infix | equality predicate
-|`+++\+++` | 700 | left associative infix | difference
-|`+++=&gt;+++` | 950 | right associative infix | function arrow
-|`+++&lt;=&gt;+++` | 950 | non-associative infix | constructor arrow
-|`+++?\|+++` | 960 | left associative infix | optional conditional
-|`+++valof+++` | 300 | non-associative prefix | evaluate an action expression
-|`+++yield+++` | 300 | non-associative prefix | yield in a generator expression
-|`+++while+++` | 1175 | non-associative prefix | while ... do {}
-|`+++private+++` | 1700 | non-associative prefix | private visibility
-|`+++•+++` | 450 | left associative infix | function composition
+|`+++.#.+++` | 600 | left associative infix | test nth bit
 |`+++.&amp;.+++` | 700 | left associative infix | bitwise and
+|`+++.+.+++` | 700 | non-associative prefix | count of number of bits
+|`+++..&lt;+++` | 750 | non-associative infix | range increasing iterator expression
+|`+++..&gt;+++` | 750 | non-associative infix | range decreasing iterator expression
+|`+++.&lt;.+++` | 700 | non-associative infix | set membership
+|`+++.&lt;&lt;.+++` | 600 | left associative infix | left shift
+|`+++.=+++` | 900 | non-associative infix | pattern match
+|`+++.&gt;&gt;.+++` | 600 | left associative infix | logical shift right
+|`+++.&gt;&gt;&gt;.+++` | 600 | left associative infix | arithmetic shift right
+|`+++.^.+++` | 720 | left associative infix | bitwise xor
+|`+++.\|.+++` | 720 | left associative infix | bitwise or
+|`+++.~.+++` | 650 | non-associative prefix | bitwise 1's complement
+|`+++/+++` | 700 | left associative infix | division
+|`+++//+++` | 960 | left associative infix | map over
 |`+++///+++` | 960 | left associative infix | indexed map over
+|`+++/\+++` | 700 | left associative infix | intersection
+|`+++:+++` | 1250 | non-associative infix | type declaration/annotation
 |`+++::+++` | 400 | non-associative infix | type coercion
-|`+++++++++` | 720 | right associative infix | choice
+|`+++::=+++` | 1550 | non-associative infix | algebraic type definition
 |`+++:=+++` | 975 | non-associative infix | assignment
 |`+++:?+++` | 400 | non-associative infix | fallable type coercion
-|`+++.&lt;&lt;.+++` | 600 | left associative infix | left shift
-|`+++implementation+++` | 1260 | non-associative prefix | contract implementation
-|`+++&gt;&gt;=+++` | 950 | right associative infix | monadic bind
-|`+++^/+++` | 960 | left associative infix | filter
+|`+++;+++` | 1251 | non-associative postfix | sequencing operator
+|`+++;+++` | 1251 | right associative infix | sequencing operator
+|`+++&lt;+++` | 900 | non-associative infix | less than
+|`+++&lt;*+++` | 600 | left associative infix | left fold
+|`+++&lt;-+++` | 975 | non-associative infix | monadic valof
+|`+++&lt;=&gt;+++` | 950 | non-associative infix | constructor arrow
 |`+++&lt;~+++` | 999 | non-associative infix | type interface rule
-|`+++\|+++` | 1548 | non-associative prefix | type union, case union
-|`+++\|+++` | 1548 | left associative infix | type union, case union, abstraction
-|`+++.#.+++` | 600 | left associative infix | test nth bit
-|`+++~+++` | 905 | non-associative prefix | logical negation
-|`+++^//+++` | 800 | left associative infix | filter map
-|`+++\|\|+++` | 920 | right associative infix | disjunction
-|`+++else+++` | 1200 | right associative infix | if ... then ... else
-|`+++::=+++` | 1550 | non-associative infix | algebraic type definition
-|`+++/\+++` | 700 | left associative infix | intersection
+|`+++=+++` | 975 | non-associative infix | definition
+|`+++=&lt;+++` | 900 | non-associative infix | less than or equal
+|`+++==+++` | 900 | non-associative infix | equality predicate
+|`+++=&gt;+++` | 950 | right associative infix | function arrow
+|`+++=&gt;&gt;+++` | 950 | right associative infix | continuation arrow
+|`+++&gt;+++` | 900 | non-associative infix | greater than
 |`+++&gt;=+++` | 900 | non-associative infix | greater than or equal
 |`+++&gt;&gt;+++` | 950 | right associative infix | grammar produce value
+|`+++&gt;&gt;=+++` | 950 | right associative infix | monadic bind
+|`+++?+++` | 300 | non-associative infix | option match
+|`+++?+++` | 300 | non-associative prefix | pull value
+|`+++?=+++` | 900 | non-associative infix | optional decomposition match
+|`+++??+++` | 920 | right associative infix | conditional operator
+|`+++??+++` | 950 | non-associative prefix | pull together a failable cexpression
+|`+++?\|+++` | 960 | left associative infix | optional conditional
+|`+++@+++` | 400 | non-associative prefix | meta annotation
+|`+++@+++` | 400 | right associative infix | meta annotation
+|`+++\+++` | 700 | left associative infix | difference
+|`+++\++++` | 700 | left associative infix | add element to set
+|`+++\-+++` | 700 | left associative infix | remove element from set
+|`+++\/+++` | 720 | left associative infix | union
+|`+++^/+++` | 960 | left associative infix | filter
+|`+++^//+++` | 800 | left associative infix | filter map
+|`+++all+++` | 1010 | non-associative prefix | universal quantifier
+|`+++assert+++` | 1240 | non-associative prefix | assert condition
+|`+++async+++` | 1234 | non-associative prefix | async function type
+|`+++break+++` | 10 | non-associative prefix | break out of an action (loop or block)
+|`+++case+++` | 901 | non-associative prefix | case expression
+|`+++catch+++` | 1199 | non-associative infix | try {...} catch Tp in {...}
+|`+++collect+++` | 300 | non-associative prefix | build a sequence from an action expression
+|`+++contract+++` | 1560 | non-associative prefix | contract definition
+|`+++default+++` | 940 | non-associative postfix | default value marker
+|`+++do+++` | 200 | non-associative prefix | do {}
+|`+++do+++` | 1200 | non-associative infix | while T do {}
+|`+++elemis+++` | 930 | non-associative prefix | element of built sequence
+|`+++else+++` | 1200 | right associative infix | if ... then ... else
+|`+++exists+++` | 1010 | non-associative prefix | existential quantifier
+|`+++for+++` | 1175 | non-associative prefix | for ... do {}
+|`+++if+++` | 1175 | non-associative prefix | if ... then ... else
+|`+++implementation+++` | 1260 | non-associative prefix | contract implementation
+|`+++import+++` | 900 | non-associative prefix | import module
+|`+++in+++` | 900 | right associative infix | membership
+|`+++let+++` | 899 | non-associative prefix | part of let def
+|`+++private+++` | 1700 | non-associative prefix | private visibility
+|`+++public+++` | 1700 | non-associative prefix | public visibility
+|`+++ref+++` | 899 | non-associative prefix | reference type/cell
+|`+++resume+++` | 899 | non-associative infix | resume task
+|`+++retire+++` | 899 | non-associative prefix | retire task
+|`+++retire+++` | 899 | non-associative infix | retire task
+|`+++return+++` | 930 | non-associative prefix | wrap value in monad
+|`+++show+++` | 1240 | non-associative prefix | display debug message
+|`+++suspend+++` | 899 | non-associative prefix | suspend task
+|`+++suspend+++` | 899 | non-associative infix | suspend task
+|`+++then+++` | 1180 | non-associative infix | if ... then ... else
+|`+++throw+++` | 230 | non-associative prefix | throw an exception
 |`+++throws+++` | 950 | non-associative infix | can throw an exception
+|`+++trace+++` | 140 | non-associative infix | display tracing message
+|`+++trace+++` | 140 | non-associative prefix | display tracing message
+|`+++try+++` | 1200 | non-associative prefix | try {...} catch {...}
+|`+++valis+++` | 930 | non-associative prefix | return value from execution
+|`+++valof+++` | 300 | non-associative prefix | evaluate an action expression
+|`+++where+++` | 911 | non-associative infix | semantic guard
+|`+++while+++` | 1175 | non-associative prefix | while ... do {}
+|`+++yield+++` | 300 | non-associative prefix | yield in a generator expression
+|`+++\|+++` | 1548 | non-associative prefix | type union, case union
+|`+++\|+++` | 1548 | left associative infix | type union, case union, abstraction
+|`+++\|=+++` | 1235 | non-associative infix | constrained type
+|`+++\|\|+++` | 920 | right associative infix | disjunction
+|`+++~+++` | 905 | non-associative prefix | logical negation
+|`+++~=+++` | 900 | non-associative infix | not equals
+|`+++~&gt;+++` | 1231 | non-associative infix | type function
+|`+++~~+++` | 1240 | right associative infix | quantifier
+|`+++ζ+++` | 1 | non-associative prefix | interpret a symbol without dereferencing constraints
+|`+++•+++` | 450 | left associative infix | function composition
+|`+++••+++` | 450 | left associative infix | binary function composition
+|`+++⊕+++` | 720 | left associative infix | addition
 |===
 
 [#keywordsTbl]
 .Keywords
 [cols="1,1,1,1"]
 |===
-|`+++retire+++`
-|`+++all+++`
-|`+++&amp;&amp;+++`
-|`+++elemis+++`
-|`+++let+++`
-|`+++~&gt;+++`
-|`+++throw+++`
-|`+++{.+++`
-|`+++do+++`
-|`+++import+++`
-|`+++catch+++`
-|`+++valis+++`
-|`+++,..+++`
-|`+++for+++`
-|`+++..&lt;+++`
-|`+++..&gt;+++`
-|`+++{?+++`
-|`+++async+++`
-|`+++. +++`
-|`+++then+++`
-|`+++ζ+++`
 |`+++!+++`
-|`+++-&gt;&gt;+++`
-|`+++?=+++`
-|`+++default+++`
-|`+++#+++`
+|`+++!!+++`
 |`+++!}+++`
-|`+++??+++`
-|`+++&lt;-+++`
+|`+++#+++`
+|`+++$$+++`
+|`+++&amp;&amp;+++`
 |`+++(+++`
 |`+++)+++`
-|`+++collect+++`
 |`+++*&gt;+++`
-|`+++resume+++`
 |`+++,+++`
-|`+++contract+++`
-|`+++./+++`
-|`+++.+++`
-|`+++try+++`
-|`+++exists+++`
-|`+++if+++`
-|`+++$$+++`
-|`+++:+++`
-|`+++;+++`
+|`+++,..+++`
 |`+++--&gt;+++`
+|`+++-&gt;&gt;+++`
+|`+++.+++`
+|`+++. +++`
+|`+++..&lt;+++`
+|`+++..&gt;+++`
+|`+++./+++`
 |`+++.=+++`
-|`+++=&gt;&gt;+++`
-|`+++=+++`
-|`+++@+++`
-|`+++\|=+++`
-|`+++\|&gt;+++`
-|`+++in+++`
-|`+++break+++`
-|`+++suspend+++`
-|`+++~~+++`
-|`+++!!+++`
+|`+++.}+++`
 |`+++/.+++`
-|`+++public+++`
-|`+++[\|+++`
-|`+++ref+++`
-|`+++where+++`
-|`+++case+++`
-|`+++[+++`
-|`+++=&gt;+++`
-|`+++]+++`
-|`+++&lt;=&gt;+++`
-|`+++\|]+++`
-|`+++generator+++`
-|`+++?}+++`
-|`+++valof+++`
-|`+++yield+++`
-|`+++while+++`
-|`+++void+++`
-|`+++private+++`
+|`+++:+++`
 |`+++::+++`
+|`+++::=+++`
 |`+++:?+++`
-|`+++implementation+++`
+|`+++;+++`
+|`+++&lt;-+++`
+|`+++&lt;=&gt;+++`
 |`+++&lt;\|+++`
 |`+++&lt;~+++`
+|`+++=+++`
+|`+++=&gt;+++`
+|`+++=&gt;&gt;+++`
+|`+++&gt;&gt;+++`
+|`+++?=+++`
+|`+++??+++`
+|`+++?}+++`
+|`+++@+++`
+|`+++[+++`
+|`+++[\|+++`
+|`+++]+++`
+|`+++all+++`
+|`+++async+++`
+|`+++break+++`
+|`+++case+++`
+|`+++catch+++`
+|`+++collect+++`
+|`+++contract+++`
+|`+++default+++`
+|`+++do+++`
+|`+++elemis+++`
+|`+++else+++`
+|`+++exists+++`
+|`+++for+++`
+|`+++generator+++`
+|`+++if+++`
+|`+++implementation+++`
+|`+++import+++`
+|`+++in+++`
+|`+++let+++`
+|`+++private+++`
+|`+++public+++`
+|`+++ref+++`
+|`+++resume+++`
+|`+++retire+++`
+|`+++suspend+++`
+|`+++then+++`
+|`+++throw+++`
+|`+++throws+++`
+|`+++try+++`
+|`+++valis+++`
+|`+++valof+++`
+|`+++void+++`
+|`+++where+++`
+|`+++while+++`
+|`+++yield+++`
 |`+++{+++`
-|`+++.}+++`
+|`+++{!+++`
+|`+++{.+++`
+|`+++{?+++`
 |`+++\|+++`
+|`+++\|=+++`
+|`+++\|&gt;+++`
+|`+++\|]+++`
+|`+++\|\|+++`
 |`+++}+++`
 |`+++~+++`
-|`+++\|\|+++`
-|`+++else+++`
-|`+++::=+++`
-|`+++&gt;&gt;+++`
-|`+++throws+++`
-|`+++{!+++`
+|`+++~&gt;+++`
+|`+++~~+++`
+|`+++ζ+++`
+
+|
+|
 |===
 
 

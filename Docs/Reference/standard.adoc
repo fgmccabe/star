@@ -426,7 +426,7 @@ _splice(S,K,K,_empty_) == S
 where `_empty_` is the empty sequence for the type `s`.
 
 [#streamContract]
-== The stream Contract
+== The `stream` Contract
 
 [#streamContractProg]
 .The `stream` contract
@@ -590,7 +590,7 @@ isEmpty : all t ~~ sizeable[t] |= (t)=>boolean
 The `isEmpty` function returns `true` if the entity is empty, i.e., has size zero.
 
 [#indexedContract]
-== The indexed Contract
+== The `indexed` Contract
 
 The `indexed` contract provides functions that define what it
 means to access and modify key-value collections.
@@ -672,6 +672,8 @@ _empty : all m,k,v ~~ indexed[m ->> k,v] |= m.
 
 NOTE: The `_empty` value is often used as the starting point for
 building up a key-value collection.
+
+
 
 [#membershipContract]
 == The `membership` Contract
@@ -850,7 +852,7 @@ For example, given `cons` lists such as `[1,2,10]` and `[2,5]`, then
 evaluates to `[1,10]`.
 
 [#pullContract]
-== The pull Contract
+== The `pull` Contract
 
 The `pull` contract provides a function that can be used to extract an
 element from a wrapped value.
