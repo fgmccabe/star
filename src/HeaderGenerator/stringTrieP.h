@@ -2,13 +2,13 @@
 #define _TRIE_P_H_
 
 #include "stringTrie.h"
-#include "hash.h"
+#include "tree.h"
 #include "logical.h"
 
 typedef struct stringTrie_ {
   char *prefix;
   void *value;
-  hashPo follows;
+  treePo follows;
 } StringTrieRec;
 
 #endif

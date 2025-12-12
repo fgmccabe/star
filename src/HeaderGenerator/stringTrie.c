@@ -32,11 +32,6 @@ stringTriePo emptyStringTrie() {
   return emptyTr("");
 }
 
-static integer charHash(void *data) {
-  char ch = (char) ((long) data);
-  return (integer) ch;
-}
-
 static comparison charComp(void *l, void *r) {
   char left = (char) ((long) l);
   char right = (char)((long) r);
@@ -54,19 +49,19 @@ static void addToTr(char *key, integer pos, integer limit, void *value, stringTr
     trie->value = value;
   } else {
     if (trie->follows == NULL) {
-      trie->follows = newHash(6, charHash, charComp, NULL);
+      trie->follows = newTree(charComp, NULL);
     }
     integer xp = pos;
     codePoint cp = nextCodePoint(key, &pos, limit);
 
-    stringTriePo follows = (stringTriePo) hashGet(trie->follows, (void *) (integer) cp);
+    stringTriePo follows = (stringTriePo) treeGet(trie->follows, (void *) (integer) cp);
     if (follows == NULL) {
-      char *prefix = (char *) calloc((size_t) (pos + 1), sizeof(byte));
+      char prefix[pos + 1];
       for (int ix = 0; ix < xp; ix++)
         prefix[ix] = key[ix];
       prefix[xp] = '\0';
       follows = emptyTr(strdup(prefix));
-      hashPut(trie->follows, (void *) (integer) cp, follows);
+      treePut(trie->follows, (void *) (integer) cp, follows);
     }
     addToTr(key, pos, limit, value, follows);
   }
@@ -84,7 +79,7 @@ static void *trieFind(char *key, integer pos, integer limit, stringTriePo trie) 
   else {
     codePoint cp = nextCodePoint(key, &pos, limit);
 
-    stringTriePo next = (stringTriePo) hashGet(trie->follows, (void *) (integer) cp);
+    stringTriePo next = (stringTriePo) treeGet(trie->follows, (void *) (integer) cp);
     if (next != NULL)
       return trieFind(key, pos, limit, next);
     else
@@ -110,7 +105,7 @@ static retCode trieEntryProc(void *n, void *v, void *cl) {
 
   P->proc(T->prefix, (codePoint)((long)n), T->value, P->cl);
   if (T->follows != NULL) {
-    return processHashTable(trieEntryProc, T->follows, cl);
+    return processTree(trieEntryProc, T->follows, cl);
   }
   return Ok;
 }
@@ -121,13 +116,6 @@ static retCode procEntries(void *n, void *v, void *cl) {
   clPo P = (clPo) cl;
 
   P->proc(T->prefix, cp, T->value, P->cl);
-  return Ok;
-}
-
-static retCode procTree(void *n, void *v, void *cl) {
-  stringTriePo T = (stringTriePo) v;
-  clPo P = (clPo) cl;
-  processStringTrie(T, P->proc, P->cl, P->breadthFirst);
   return Ok;
 }
 
@@ -147,11 +135,11 @@ void processStringTrie(stringTriePo trie, stringTrieProc proc, void *cl, logical
 
     if (breadthFirst) {
       if (trie->follows != NULL) {
-        processHashTable(procEntries, trie->follows, &Cl);
-        processHashTable(procDeeper, trie->follows, &Cl);
+        processTree(procEntries, trie->follows, &Cl);
+        processTree(procDeeper, trie->follows, &Cl);
       }
     } else {
-      processHashTable(trieEntryProc, trie->follows, (void *) &Cl);
+      processTree(trieEntryProc, trie->follows, (void *) &Cl);
     }
   }
 }

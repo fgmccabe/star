@@ -47,10 +47,7 @@ static poolPo bpool = NULL;
 
 /* Create a new table */
 hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest) {
-  long i;
-  hashPo hp;
-
-  hp = (hashPo) malloc(sizeof(HashTableRec));
+  hashPo hp = (hashPo) malloc(sizeof(HashTableRec));
 
   size = nextPrime(size);
 
@@ -70,7 +67,7 @@ hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest) {
     hp->compare = cmp;
   hp->destroy = dest;
 
-  for (i = 0; i < size; i++)
+  for (long i = 0; i < size; i++)
     hp->table[i] = NULL;
 
   initRecursiveMutex(&hp->mutex);
@@ -79,14 +76,13 @@ hashPo newHash(long size, hashFun hash, compFun cmp, destFun dest) {
 }
 
 static retCode delBuckets(hashPo ht, bucketPo *b) {
-  bucketPo old;
   retCode stat = Ok;
 
   while (stat == Ok) {
     if (*b == NULL)
       return Ok;
     else {
-      old = *b;      /* unlink the bucket from the chain */
+      bucketPo old = *b;      /* unlink the bucket from the chain */
       *b = old->link;
 
       if (ht->destroy != NULL && (stat = (ht->destroy)(old->nme, old->r)) != Ok) {
@@ -232,7 +228,6 @@ void unlockHash(hashPo tbl) {
 static void rehash(hashPo tbl) {
   long old_size = tbl->size;
   register integer new_size = nextPrime(old_size * 2);
-  register long i;
   register bucketPo *old = tbl->table;
 
   tbl->size = new_size;
@@ -242,7 +237,7 @@ static void rehash(hashPo tbl) {
     exit(-1);
   }
 
-  for (i = 0; i < old_size; i++) {
+  for (long i = 0; i < old_size; i++) {
     if (old[i] != NULL) {
       bucketPo b = old[i];
 
@@ -270,10 +265,9 @@ retCode processHashTable(procFun pr, hashPo htbl, void *c) {
   pthread_mutex_lock(&htbl->mutex);
 
   {
-    register int i;
     register long size = htbl->size;
 
-    for (i = 0; stat == Ok && i < size; i++) {
+    for (int i = 0; stat == Ok && i < size; i++) {
       if (htbl->table[i] != NULL) {
         bucketPo b = htbl->table[i];
         while (stat == Ok && b != NULL) {
@@ -323,10 +317,9 @@ integer hashSize(hashPo htbl) {
   pthread_mutex_lock(&htbl->mutex);
 
   {
-    register int i;
     register integer size = htbl->size;
 
-    for (i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       if (htbl->table[i] != NULL)
         count++;
     }
@@ -376,4 +369,3 @@ comparison ptrCmp(void *p1, void *p2){
   else
     return different;
 }
-

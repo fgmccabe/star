@@ -123,7 +123,10 @@ set(SOURCE_FILES
 #        ${FLEX_JsonTokeniser_OUTPUTS}
 
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES})
+        ${HEADER_FILES}
+        tree.c
+        Headers/tree.h
+        Headers/treeP.h)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
