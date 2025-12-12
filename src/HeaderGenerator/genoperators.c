@@ -56,7 +56,7 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "psieat:d:")) >= 0) {
+  while ((opt = getopt(argc, argv, "pseat:d:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
