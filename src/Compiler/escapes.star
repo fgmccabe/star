@@ -6,7 +6,7 @@ star.compiler.escapes{
 
   public escapeType:(string)=>option[tipe].
   escapeType(Es) => case Es in {
-    | "_exit" => .some(.allType(.kVar("e"),.funType(.tupleType([.nomnal("integer")]),.kVar("e"),.voidType)))
+    | "_exit" => .some(.prcType(.tupleType([.nomnal("integer")]),.voidType))
     | "_int_plus" => .some(.funType(.tupleType([.nomnal("integer"),.nomnal("integer")]),.nomnal("integer"),.voidType))
     | "_int_minus" => .some(.funType(.tupleType([.nomnal("integer"),.nomnal("integer")]),.nomnal("integer"),.voidType))
     | "_int_times" => .some(.funType(.tupleType([.nomnal("integer"),.nomnal("integer")]),.nomnal("integer"),.voidType))

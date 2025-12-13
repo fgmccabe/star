@@ -357,6 +357,16 @@ atan : (float) => float.
 The `atan` function returns the Arc Tangent of its argument --
 expressed in radians.
 
+=== `pi` -- Pi function
+
+[source,star]
+----
+pi:()=>float
+----
+
+The `pi` function returns π -- as accurately representable as a floating point
+number.
+
 == Misc Arithmetic Functions
 
 In addition to the standard arithmetic contract (see <<arithContract>>), there
@@ -426,6 +436,19 @@ trunc : (float)=>float
 The `trunc` function returns the nearest integral value to its argument.
 NOTE: The value returned by `trunc` is integral, but still of type `float`.
 
+=== `integral` -- test for integral flot
+[source,star]
+----
+integral: (float) => boolean
+----
+
+The `integral` predicate is true when the argument floating point number is
+integral.
+
+NOTE: This does not mean that the number can be coerced to an `integer` value:
+the number may be integral and also larger than can be represented as a 61 bit
+integer.
+
 === `log` -- Natural Logarithm
 [source,star]
 ----
@@ -441,14 +464,6 @@ log10 : (float)=>float
 ----
 
 The `log10` function returns the base 10 logarithm of its argument.
-
-===  `exp` -- Natural Exponentiation
-[source,star]
-----
-exp has type for all t such that (t)=>t where math over t
-----
-
-The `exp` function returns the value $e^X$.
 
 === `random` -- random number generation
 

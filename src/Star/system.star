@@ -21,7 +21,7 @@ star.system{
   public shell:(string,cons[string],cons[(string,string)])=>integer throws errorCode.
   shell(Cmd,Args,Env) => _shell(Cmd,Args,Env).
 
-  public exit:(integer) => ().
-  exit(Code) => _exit(Code).
+  public exit:(integer){}.
+  exit(Code) do _exit(Code).
 
 }

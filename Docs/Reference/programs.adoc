@@ -64,13 +64,13 @@ package may be marked `private` -- which will also ensure that it
 is not visible outside the package.]
 
 [#mainFunction]
-=== Main function
+=== Main program
 
 (((main function))) (((procedure, main))) If a package has defined a
-main function, then the package can be invoked as though it were an
+main program, then the package can be invoked as though it were an
 executable program.
 
-There are two kinds of main function: a function or procedure with
+There are two kinds of main: a function or procedure with
 name `main` that may have zero or more arguments; or a function or
 procedure with name `_main` with one argument that is a `cons` list of
 ``string``s.
@@ -90,8 +90,7 @@ If a package has a definition for `main`, but does not have one for
 `_main`, then the command line arguments are coerced according to the
 explicit type signature for `main`.
 
-For example, if `main` is defined with the
-explicit type signature:
+For example, if `main` is defined with the explicit type signature:
 
 [source,star]
 ----
