@@ -2,7 +2,7 @@
 
 :-module(escapes,[isEscape/1,escapeType/2]).
 
-escapeType("_exit",allType(kVar("e"),funType(tplType([type("integer")]),kVar("e"),voidType))).
+escapeType("_exit",prcType(tplType([type("integer")]),voidType)).
 escapeType("_int_plus",funType(tplType([type("integer"),type("integer")]),type("integer"),voidType)).
 escapeType("_int_minus",funType(tplType([type("integer"),type("integer")]),type("integer"),voidType)).
 escapeType("_int_times",funType(tplType([type("integer"),type("integer")]),type("integer"),voidType)).

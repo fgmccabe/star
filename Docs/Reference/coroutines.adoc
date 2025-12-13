@@ -194,8 +194,6 @@ collection of tasks. The call to the task manager does not complete until the
 conditions set by the particular manager have been met. This typically involves
 ensuring that all the tasks in the group have completed.
 
-
-
 [#future]
 === Future
 
@@ -263,7 +261,6 @@ itself is typically returned as part of teh client function's API.
 Note that setting the reference to `.either(V)` has the effect of resolving the
 future, and setting it to `.other(E)` has the effect of rejecting the future: it
 will cause `waitfor` to throw the value of the rejection as an exception.
-
 
 [#fiber]
 == Fibers

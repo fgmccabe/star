@@ -99,6 +99,8 @@ is a type constructor: it takes a type as an argument and
 returns another type as a result.
 ****
 
+
+
 [#structuralTypes]
 == Structural Types
 

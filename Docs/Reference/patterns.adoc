@@ -45,10 +45,9 @@ is equivalent to the <<guardedPattern>>:
 (X,Y,X1) where X==X1
 ----
 
-The `==` predicate is defined in the standard `equality`
-contract (see <<equalityContract>>); and therefore, the call and
-the pattern may not be valid if `equality` is not implemented for
-the type of `X`.
+The `==` predicate is defined in the standard `equality` contract (see
+<<equalityContract>>); and therefore, the call and the pattern may not be valid
+if `equality` is not implemented for the type of `X`.
 
 === Scope of Pattern Variables
 (((variables,scope of)))
@@ -76,7 +75,9 @@ necessitates the extension: i.e., control flow _must_ flow from the pattern
 variable throughout the scope extension.
 
 For example, if the variable pattern is part of a constructor pattern, then the
-concstructor pattern is part of the scope extension of the variable. Similarly, a variable in a pattern on the left of a conjuction is also in scope in the right hand part of the conjunction.
+concstructor pattern is part of the scope extension of the variable. Similarly,
+a variable in a pattern on the left of a conjuction is also in scope in the
+right hand part of the conjunction.
 
 On the other hand, if the variable occurs on the laft hand side of a disjuction,
 then the variable's scope extension does not include the right hand part of the

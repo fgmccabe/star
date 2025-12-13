@@ -38,7 +38,7 @@
 #define ERR "t'errorCode'"
 
 /* Define the standard escapes */
-escape(_exit, all(e, func(int, e)), "terminate engine")
+escape(_exit, proc(int), "terminate engine")
 
 escape(_int_plus, func(int int, int), "add two integers")
 escape(_int_minus, func(int int, int), "subtract two integers")

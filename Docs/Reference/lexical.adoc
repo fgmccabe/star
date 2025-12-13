@@ -649,9 +649,3 @@ of these special bracket pairs takes a single term as argument --
 unlike the `()` and `[]` brackets which take comma
 separated sequences.
 
-
-
-
-
-
-
