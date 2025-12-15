@@ -4,8 +4,8 @@ test.tk1{
   import star.mbox.
 
   -- Test tasks & futures
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       Tsk = (this) => valof{
 	try{
@@ -37,6 +37,5 @@ test.tk1{
     } catch {
       E do showMsg("$(E)")
     };
-    valis ()
   }
 }

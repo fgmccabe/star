@@ -6,8 +6,8 @@ test.jt1{
   fct(0)=>1.
   fct(N)=>_int_times(N,fct(_int_minus(N,1))).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert fct(3)==6;
 
     try{
@@ -18,7 +18,6 @@ test.jt1{
     };
 
     assert fct(4)==24;
-    valis ()
   }
 }
     

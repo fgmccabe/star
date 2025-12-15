@@ -437,12 +437,15 @@ star.compiler.macro{
 
   buildMain:(cons[ast])=>cons[ast].
   buildMain(Els) where (Lc,Tp) ?= head(lookForSignature(Els,"main")) &&
-      ~_?=head(lookForSignature(Els,"_main")) =>
+      ~_?=head(lookForDefinition(Els,"_main")) =>
     synthesizeMain(Lc,Tp,Els).
   buildMain(Els) default => Els.
 
   lookForSignature:(cons[ast],string)=>cons[(option[locn],ast)].
   lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)?=isTypeDecl(El)}.
+
+  lookForDefinition:(cons[ast],string)=>cons[(option[locn],ast)].
+  lookForDefinition(Els,Nm) => {(Lc,El) | El in Els && (Lc,Nm) ?= ruleName(El)}.
 
   isTypeDecl(A) where (Lc,N,Tp) ?= isTypeDeclaration(A) && (Nm,Vz) .= visibilityOf(N) && (_,Id)?=isName(Nm) =>
     .some((Lc,Id,Vz,Tp)).
@@ -477,9 +480,9 @@ star.compiler.macro{
     FallBack = equation(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),
       mkValof(Lc,[
 	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
-	  mkValis(Lc,unit(Lc))]));
+	  mkValis(Lc,.int(Lc,99))]));
     Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
-	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),rndTuple(Lc,[])));
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isPrcType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
@@ -487,14 +490,15 @@ star.compiler.macro{
 
     XX = genName(Lc,"XX");
 
-    Test = mkIfThenElse(Lc,mkMatch(Lc,mkConsPtn(Lc,As),XX),
-      Action,
-      unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")));
+    Test = mkValof(Lc,[mkIfThenElse(Lc,mkMatch(Lc,mkConsPtn(Lc,As),XX),
+	  Action,
+	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)"))),
+	mkValis(Lc,.int(Lc,0))]);
 
-    Main = mkProcedure(Lc,.some(.nme(Lc,"_main")),.true,rndTuple(Lc,[XX]),.none,Test);
+    Main = mkEquation(Lc,.some(.nme(Lc,"_main")),.true,rndTuple(Lc,[XX]),.none,Test);
     Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),
-      mkPrcType(Lc,rndTuple(Lc,
-	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.none));
+      mkFuncType(Lc,rndTuple(Lc,
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
     valis [unary(Lc,"public",Annot),Main,..Defs].
   }
 

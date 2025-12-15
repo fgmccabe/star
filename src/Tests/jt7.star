@@ -21,8 +21,8 @@ test.jt7{
     valis ()
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert ~ triggered!;
     try{
       _jit_compile("#(__pkg__)@glb",0);
@@ -43,7 +43,5 @@ test.jt7{
     doGlb();
 
     assert ~ triggered!;
-    
-    valis ()
   }
 }

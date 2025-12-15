@@ -13,11 +13,10 @@ test.di{
     valis Fx!
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show Fc(Is);
 
     assert Fc(Is) == 24;
-    valis ()
   }
 }

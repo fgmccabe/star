@@ -19,14 +19,12 @@ test.e{
   yy : xx.ee.
   yy = xx.get(.false).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert xx.test;
 
     -- assert yy==0; -- should report a syntax error
 
     assert ~ xx.check(yy);
-    
-    valis ()
   }
 }

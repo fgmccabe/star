@@ -41,8 +41,8 @@ test.tsort{
   a4:cons[df[string,string]].
   a4 = [.df("-8",["0"]),.df("0",["16"]),.df("8",["-24"]),.df("16",["-16"]),.df("24",["-8"])].
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show topsort(a1);
 
     assert size(topsort(a1)) == 4;
@@ -57,7 +57,5 @@ test.tsort{
 
     show topsort(a4);
     assert size(topsort(a4)) == 5;
-
-    valis ()
   }
 }

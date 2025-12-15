@@ -15,10 +15,9 @@ test.trec{
 
   stack ~> option[cons[integer]].
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     showMsg("Just for show");
-    valis ()
   }
 }
 

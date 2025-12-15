@@ -34,10 +34,9 @@ test.qv{
       "wednesday" -> (.dinner,3)]
   }.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show info(menu);
-    valis ()
   }
 }
     

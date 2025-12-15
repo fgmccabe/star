@@ -5,13 +5,13 @@ test.cnx{
   import test.lib.fib.
 
   -- Test growing stacks
-  main:(integer)=>().
+  main:(integer)=>integer.
   main(Ix)=>valof{
     show fib(Ix);
-    valis ()
+    valis 0
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[string])=>integer.
   _main([]) => main(10).
   _main([Count]) => main(Count::integer).
   

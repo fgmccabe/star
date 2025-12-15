@@ -15,8 +15,8 @@ test.ac5{
     valis F!
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     logM(disp(f(10)));
     try{
       F10 = f(10);
@@ -27,8 +27,7 @@ test.ac5{
       E do {
 	logM(E)
       }
-    };
-    valis ()
+    }
   }
 
   logM:(string)=>().

@@ -17,11 +17,11 @@ test.io3{
     valis ()
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string]) => integer.
   _main([Fl,.._]) => main(Fl).
   _main([]) => main("test.txt").
 
-  main:(string)=>().
+  main:(string) => integer.
   main(Fl) => valof{
     try{
       In = openInFile(Fl,.utf8Encoding);
@@ -33,11 +33,11 @@ test.io3{
       } catch {
 	.deadlock do showMsg("Reader got deadlocked")
       };
-      valis ()
+      valis 0
     } catch {
       | Cde do showMsg("error $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }

@@ -23,11 +23,10 @@ test.al{
     '$name'(P) => P.name.
   }
   
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert Pete.name=="peter";
     assert '$name'(Pete)=="peter";
     assert Pete.age(3)==33;
-    valis ()
   }
 }

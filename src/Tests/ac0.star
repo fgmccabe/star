@@ -16,12 +16,12 @@ test.ac0{
     valis F!
   }
 
-  main:()=>().
+  main:()=>integer.
   main() => valof{
     try{
-      valis _logmsg(disp(ff(10)))
+      _logmsg(disp(ff(10)))
     } catch {_ do {_logmsg("error")}};
-    valis ();
+    valis 0;
   }
 }
     

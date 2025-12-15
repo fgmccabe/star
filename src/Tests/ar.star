@@ -60,11 +60,11 @@ test.ar{
 
 --  sample = times(plus(2,3),unum).
 
-  public main:()=>().
-  main()=>valof{
---    Peter = someOne{name="peter"};
---    show Peter.name;
---    assert sample==5;
+  public main:(){}.
+  main(){
+    Peter = someOne{name="peter"};
+    show Peter.name;
+
     show fi(5);
     show ff(5.0);
 
@@ -72,6 +72,5 @@ test.ar{
 
     start := 123.0e10;
     show start!;
-    valis ()
   }
 }

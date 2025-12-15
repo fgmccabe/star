@@ -16,9 +16,8 @@ test.ac9{
     valis count!
   }
 
-  main:()=>().
-  main()=>valof{
-    assert large([1,2,3,4])==0;
-    valis ()
+  main:(){}.
+  main(){
+    assert large([1,2,3,4])==0
   }
 }  

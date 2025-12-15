@@ -40,9 +40,9 @@ test.ts0{
     valis Tl!
   }
 
-  main:() => ().
-  main() => valof{
-    valis logM(disp(adder(0,10)));
+  main:(){}.
+  main(){
+    logM(disp(adder(0,10)));
   }
 
   logM:(string)=>().

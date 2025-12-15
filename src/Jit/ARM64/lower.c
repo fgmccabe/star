@@ -135,8 +135,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
     switch (code[pc].op) {
       case Halt: {
         // Stop execution
-        ExitCode errCode = (ExitCode) code[pc].fst;
-        return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, IM(errCode));
+        armReg a1 = popValue(stack, jit);
+        return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, RG(a1));
+        releaseReg(jit,a1);
       }
       case Abort: {
         // abort with message

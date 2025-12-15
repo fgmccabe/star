@@ -5,15 +5,15 @@ test.coe{
   public _main(L) =>
     logStrs(L).
 
-  logMsg:(string)=>().
+  logMsg:(string)=>integer.
   logMsg(M) => valof{
     try{
       _logmsg(M)
     } catch {_ do {}};
-    valis ()
+    valis 0
   }
 
-  logStrs(.nil) => ().
+  logStrs(.nil) => 0.
   logStrs(.cons(H,T)) =>
     (_ .= logMsg(H) ??
 	logStrs(T) ||

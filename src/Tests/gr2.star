@@ -14,8 +14,8 @@ test.gr2{
   path:() >> cons[string] --> cons[char].
   path >> P --> ident*"/">>P.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     Txt = "iden45 "::cons[char];
 
     show ident(Txt);
@@ -26,6 +26,5 @@ test.gr2{
     show path("alpha/beta/gamma"::cons[char]);
 
     assert (["alpha","beta","gamma"],[]) ?= path("alpha/beta/gamma"::cons[char]);
-    valis ()
   }
 }

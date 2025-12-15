@@ -103,7 +103,6 @@ int main(int argc, char **argv) {
 
 
   /* IMPORTANT -- Keep the order of these set up calls */
-
   installEscapes();
   initEngine();
 
@@ -125,10 +124,5 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  switch (bootstrap(globalHeap, mainEntry, rootWd)) {
-    case Normal:
-      return successCode;          /* exit the runtime system cleanly */
-    default:
-      return failCode;
-  }
+  return bootstrap(globalHeap, mainEntry, rootWd);
 }

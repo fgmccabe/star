@@ -56,8 +56,8 @@ test.gr{
     throw .exception("Cannot parse #(T)")
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show parseExp([`a`,`*`,`(`,`1`,`+`,`a`,`)`]);
 
     try{
@@ -77,8 +77,7 @@ test.gr{
       .exception(M) do {
 	showMsg("arithmetic went wrong: #(M)");
       }
-    };
-    valis ()
+    }
   }
 }
 

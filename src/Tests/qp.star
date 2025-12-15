@@ -12,11 +12,10 @@ test.qp{
 
   fatherOf(X) => {! F | (F,X) in parent && F in m!}.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show fatherOf("ab");
     assert "a"?=fatherOf("ab");
-    valis ()
   }
 }
 

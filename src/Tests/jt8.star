@@ -67,8 +67,8 @@ test.jt8{
   fge:(float,float) => boolean.
   fge(X,Y) => _flt_ge(X,Y).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert isEven(2);
     assert ~isEven(7);
 
@@ -207,7 +207,5 @@ test.jt8{
     assert fge(5.0,4.0);
     assert fge(5.0,5.0);
     assert ~fge(4.0,5.0);
-
-    valis ()
   }
 }

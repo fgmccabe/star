@@ -15,12 +15,11 @@ test.cnf{
   ms : cons[string].
   ms = ["b","c"].
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     for (P,C) in parent do{
       showMsg("Parent is $(P), child is $(C)")
-    };
-    valis ()
+    }
   }
 
 }  

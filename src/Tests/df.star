@@ -19,13 +19,12 @@ test.df{
 
   CC = CX(IS,4).
     
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show CX(IS,2);
 
     show CC;
     
     assert CC == CC;
-    valis ()
   }
 }

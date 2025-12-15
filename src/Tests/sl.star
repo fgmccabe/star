@@ -5,10 +5,9 @@ test.sl{
   -- test slice and splice operators
   F = "foobar".
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show F[3:6];
     assert F[3:6] == "bar";
-    valis ()
   }
 }

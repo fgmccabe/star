@@ -21,13 +21,12 @@ test.cse{
     | _ default => .none
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert "TT" ?= sVal(.foo("TT"));
 
     show sVal(.foo("beta"));
 
-    assert sVal(.foo("beta")) == .some("two");
-    valis ()
+    assert sVal(.foo("beta")) == .some("two")
   }
 }

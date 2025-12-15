@@ -39,8 +39,8 @@ test.jt15{
     valis "found"
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show labeled(1);
     show labeled(-1);
     show labeled(0);
@@ -59,8 +59,7 @@ test.jt15{
       assert firstMultiple(iota(3),10) == "not found";
     } catch {
       _ do logM("we got an exception")
-    };
-    valis ()
+    }
   }
 
   logM:(string)=>().

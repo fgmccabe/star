@@ -34,8 +34,8 @@ test.qs{
   ff:cons[integer].
   ff = { fact(X) | X in someInts && X>=0}
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show parent;
     show gp;
 
@@ -47,7 +47,5 @@ test.qs{
 
     show pos;
     show pm;
-
-    valis ()
   }
 }

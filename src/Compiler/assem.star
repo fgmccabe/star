@@ -18,7 +18,7 @@ star.compiler.assem{
     .tipe(tipe,typeRule,map[termLbl,integer]).
 
   public assemOp ::=
-    | .iHalt(integer)
+    | .iHalt
     | .iAbort(data)
     | .iCall(termLbl)
     | .iOCall(integer)
@@ -154,7 +154,7 @@ star.compiler.assem{
   private mnem:(assemOp,integer,cons[lblLevel],map[data,integer],map[string,integer]) =>
     (multi[data],integer,map[data,integer]).
   mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs).
-  mnem(.iHalt(U),Pc,Lbls,Lts,Lcs) => ([.intgr(0),.intgr(U)],Pc+1,Lts).
+  mnem(.iHalt,Pc,Lbls,Lts,Lcs) => ([.intgr(0)],Pc+1,Lts).
   mnem(.iAbort(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(1),.intgr(LtNo)],Pc+1,Lt1).
   mnem(.iCall(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(2),.intgr(LtNo)],Pc+1,Lt1).
   mnem(.iOCall(U),Pc,Lbls,Lts,Lcs) => ([.intgr(3),.intgr(U)],Pc+1,Lts).
@@ -261,7 +261,7 @@ star.compiler.assem{
     (CH1,H1) = stkHwm([I],CH,Hwm);
     valis stkHwm(Ins,CH1,H1)
   }
-  stkHwm([.iHalt(_),..Ins],CH0,H0) => valof{
+  stkHwm([.iHalt,..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
   stkHwm([.iAbort(_),..Ins],CH0,H0) => valof{
@@ -643,7 +643,7 @@ star.compiler.assem{
 
   showIns:(assemOp,cons[integer]) => string.
   showIns(.iLbl(Lb,I),Pc) => "#(Lb):  #(showIns(I,Pc))".
-  showIns(.iHalt(U),Pc) => "Halt $(U)".
+  showIns(.iHalt,Pc) => "Halt".
   showIns(.iAbort(U),Pc) => "Abort $(U)".
   showIns(.iCall(U),Pc) => "Call $(U)".
   showIns(.iOCall(U),Pc) => "OCall $(U)".
@@ -747,5 +747,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1157978942296785718.
+  public opcodeHash = 2046821511147272278.
 }

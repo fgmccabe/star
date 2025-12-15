@@ -43,11 +43,11 @@ test.sieve{
     retire .retired_
   }
 
-  _main:(cons[string]) => ().
+  _main:(cons[string]) => integer.
   _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
   _main(_) => main(100).
 
-  main:(integer)=>().
+  main:(integer)=>integer.
   main(Cnt) => valof{
     (FstCh,IChnnl) = newSlot();
     Gn = gen(IChnnl);
@@ -62,6 +62,6 @@ test.sieve{
     } catch {
       .deadlock do showMsg("Sieve got deadlocked")
     };
-    valis ()
+    valis 0
   }
 }

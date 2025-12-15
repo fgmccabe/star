@@ -17,11 +17,11 @@ test.iobytes{
     valis ()
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string]) => integer.
   _main([Fl,.._]) => main(Fl).
   _main([]) => main("test.txt").
 
-  main:(string)=>().
+  main:(string) => integer.
   main(Fl) => valof{
     try{
       In = openInFile(Fl,.rawEncoding);
@@ -39,6 +39,6 @@ test.iobytes{
       | Cde do showMsg("error code $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }

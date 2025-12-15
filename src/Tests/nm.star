@@ -7,8 +7,8 @@ test.nm{
   first([])=>.none.
   first([(E,_),.._])=>.some(E).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show first(parse(real(),"34.56e10"::cons[char]));
 
     assert R ?= first(parse(real(),"34.56e10"::cons[char])) && R==34.56e10;
@@ -33,7 +33,6 @@ test.nm{
     assert XX ?= optInt(first(parse(real(),"-34"::cons[char]))) && -XX==34;
 
     show first(parse(decimal,"-34"::cons[char]));
-    valis ()
   }
   
   optInt:(option[float])=>option[integer].

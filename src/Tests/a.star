@@ -7,7 +7,7 @@ test.a{
     valis 1
   }
 
-  main:()=>().
+  main:()=>integer.
   main()=>valof{
     try{
       assert 3~=2;
@@ -19,7 +19,8 @@ test.a{
       
       throw .exception("bong");
     } catch {
-      .exception(Msg) do { showMsg("out with a #(Msg)"); valis () }
+      .exception(Msg) do { showMsg("out with a #(Msg)") }
     };
+    valis 0;
   }
 }

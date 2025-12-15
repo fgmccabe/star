@@ -16,9 +16,8 @@ test.do3{
     valis Rs!
   }
 
-  main:()=> ().
-  main() => valof{
+  main:(){}.
+  main(){
     assert doDupl(3,"ab") == "ababab";
-    valis ()
   }
 }

@@ -69,7 +69,7 @@ dropUnreachable([iXRet|_],[iXRet]) :-!.
 dropUnreachable([iTCall(Lb)|_],[iTCall(Lb)]) :-!.
 dropUnreachable([iTOCall(Lb)|_],[iTOCall(Lb)]) :-!.
 dropUnreachable([iAbort(Lc)|_],[iAbort(Lc)]) :-!.
-dropUnreachable([iHalt(Ix)|_],[iHalt(Ix)]) :-!.
+dropUnreachable([iHalt|_],[iHalt]) :-!.
 dropUnreachable([iRetire|_],[iRetire]) :-!.
 dropUnreachable([iCase(Mx)|I],[iCase(Mx)|Is]) :-
   copyN(Mx,I,_,Is,[]).

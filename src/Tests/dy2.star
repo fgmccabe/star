@@ -13,16 +13,17 @@ test.dy2{
 
   EE = undyn(DD,"out").
 
-  main:()=>().
-  main() => let{
-    foo = 3
-  } in valof{
-    show undyn(.dyn((_)=>foo),"test");
-    show EE;
-
-    assert undyn(.dyn((_)=>foo),"test")==3;
-    assert EE == 10;
-    valis ()
+  main:(){}.
+  main(){
+    let{
+      foo = 3
+    } in {
+      show undyn(.dyn((_)=>foo),"test");
+      show EE;
+      
+      assert undyn(.dyn((_)=>foo),"test")==3;
+      assert EE == 10;
+    }
   }
 }
     

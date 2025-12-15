@@ -19,12 +19,11 @@ test.ac2{
     valis gs!
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show gps(parent);
     show [|gps(parent)|];
     assert [|gps(parent)|]=<[|parent|];
-    valis ()
   }
 }
 

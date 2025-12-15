@@ -17,8 +17,8 @@ test.assign{
     name = "fred" ++ "'s friend".
   .} in someone{name= ref name. age=23 }.
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show fred.name!;
     
     show peter.name!;
@@ -43,6 +43,5 @@ test.assign{
     assert checkInc();
 
     assert peter.name!=="fred's friend" && peter.age==23;
-    valis ()
   }
 }

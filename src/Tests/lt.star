@@ -22,11 +22,10 @@ test.lt{
   }.
 
   
-  main:()=> ().
-  main()=> valof{
+  main:(){}.
+  main(){
     show ll(1);
     show ll(2);
     show pl(zero,1);
-    valis ()
   }
 }  

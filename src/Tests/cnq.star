@@ -23,13 +23,12 @@ test.cnq{
   fatherOf:(string)=>cons[string].
   fatherOf(A) => { F | (F,A) in parent && F in ms}.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     showMsg("gp(abc)=$(gp("abc"))");
     showMsg("sibs = $(sibs())");
     showMsg("father(ab) = $(fatherOf("ab"))");
     showMsg("hasD(a) = $(hasD("a"))");
-    valis ()
   }
 }  
 

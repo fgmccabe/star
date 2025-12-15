@@ -10,10 +10,9 @@ test.mutual {
   is_odd(0) => .false.
   is_odd(n) => is_even(n - 1).
 
-  main: () => ().
-  main() => valof {
+  main:(){}.
+  main() {
     assert is_even(4);
     assert is_odd(5);
-    valis ()
   }
 }

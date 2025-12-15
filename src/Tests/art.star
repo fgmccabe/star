@@ -64,10 +64,8 @@ test.art{
   ft(X) where eq(float_eqq)(X,zer(float_four)) =>unum(float_four).
   ft(N) => times(float_four)(N,ft(minus(float_four)(N,unum(float_four)))).
 
---  sample = times(plus(2,3),unum).
-
-  public main:()=>().
-  main()=>valof{
+  public main:(){}.
+  main(){
     show fi(5);
     show (let{
       F=float_four.
@@ -76,7 +74,6 @@ test.art{
     assert fi(5)==120;
     show ft(5.0)-120.0;
     assert (float_eqq.0)(ft(5.0),120.0);
-    valis ()
   }
 }
   

@@ -33,8 +33,8 @@ test.ac10{
     valis "found"
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show labeled(1);
     show labeled(-1);
     show labeled(0);
@@ -51,6 +51,5 @@ test.ac10{
     } catch {
       .exception(M) do logMsg(.warning,"we got an exception: $(M)")
     };
-    valis ()
   }
 }  

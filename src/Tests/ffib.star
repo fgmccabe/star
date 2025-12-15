@@ -15,8 +15,8 @@ test.ffib{
   tfib(C,1) => _int_plus(C,1).
   tfib(C,N) => tfib(tfib(_int_plus(C,1),_int_minus(N,1)),_int_minus(N,2)).
 
-  main:(integer){}.
-  main(V){
+  main:(integer) => integer.
+  main(V) => valof{
     OpCount = ffib(V);
     timer = ref timer_start(OpCount, "ffib");
     F = ffib(V);
@@ -26,12 +26,13 @@ test.ffib{
     ttimer = ref timer_start(OpCount, "tfib");
     Cnt = tfib(0,V);
     ttime = timer_finish(ttimer!);
-    showMsg("TFib of $(V) is $(Cnt)")
+    showMsg("TFib of $(V) is $(Cnt)");
+    valis 0
   }
     
 
-  public _main:(cons[string]){}.
-  _main([]) do main(30).
-  _main([Count]) do main(Count::integer).
+  public _main:(cons[string]) => integer.
+  _main([]) => main(30).
+  _main([Count]) => main(Count::integer).
 }
   

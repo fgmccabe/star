@@ -24,9 +24,8 @@ test.lt2a{
 
   runner(F) => F().
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert test();
-    valis ()
   }
 }

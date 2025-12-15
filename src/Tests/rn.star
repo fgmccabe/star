@@ -19,8 +19,8 @@ test.rn{
   ppName:(pp)=>string.
   ppName(P) => P.name.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     P = person{name="fred"};
     C = chair{name="aaron"};
 
@@ -35,6 +35,5 @@ test.rn{
 
     assert nmeOf(nameOf,P) == nameOf(P);
     assert nmeOf(nameOf,P) == P.name;
-    valis ()
   }
 }

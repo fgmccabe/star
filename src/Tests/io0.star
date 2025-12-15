@@ -3,12 +3,12 @@ test.io0{
   import star.assert.
   import star.io.
 
-  _main:(cons[string]){}.
-  _main([Fl,.._]) do main(Fl).
-  _main([]) do main("test.txt").
+  _main:(cons[string]) => integer.
+  _main([Fl,.._]) => main(Fl).
+  _main([]) => main("test.txt").
 
-  main:(string){}.
-  main(Fl){
+  main:(string) => integer.
+  main(Fl) => valof{
     try{
       In = _openInFile(Fl,3);
       while Ch.=_inchar(In) do{
@@ -17,6 +17,7 @@ test.io0{
     } catch {
       | .eEOF do showMsg("end of file")
       | Cde do showMsg("error code $(Cde)")
-    }
+    };
+    valis 0
   }
 }

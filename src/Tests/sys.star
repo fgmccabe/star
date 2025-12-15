@@ -3,8 +3,8 @@ test.sys{
   import star.assert.
   import star.system.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show envir();
 
     assert ~ ("$$","$$") .<. envir();
@@ -14,7 +14,5 @@ test.sys{
     assert "$$" ?= getenv("$$");
 
     assert ("$$","$$") .<. envir();
-    
-    valis ()
   }
 }

@@ -196,7 +196,7 @@ static char *opNames[] = {
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1157978942296785718
+#define OPCODE_SIGNATURE 2046821511147272278
 #endif
 
 typedef enum {

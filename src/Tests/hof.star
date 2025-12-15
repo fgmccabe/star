@@ -9,13 +9,12 @@ test.hof {
   double: (integer) => integer.
   double(x) => x * 2.
 
-  main: () => ().
-  main() => valof {
+  main:(){}.
+  main() {
     original = .cons(1, .cons(2, .cons(3, .nil)));
     expected = .cons(2, .cons(4, .cons(6, .nil)));
     doubled = map(double, original);
 
     assert doubled == expected;
-    valis ()
   }
 }

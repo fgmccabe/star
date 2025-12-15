@@ -50,12 +50,11 @@ test.do2{
   }
   
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     doFirst();
     assert doIf(4);
     assert doIf2(4);
     assert doIf3(4);
-    valis ()
   }
 }

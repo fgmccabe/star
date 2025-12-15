@@ -32,8 +32,8 @@ test.dyn2{
 	  }
 	} in fs(X)) resume ().
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show f(-1);
     show f(10);
     show f(210);
@@ -41,7 +41,6 @@ test.dyn2{
     assert f(-1) == -1;
     assert f(10) == 40;
     assert f(200) == 10;
-    valis ()
   }
 }
     

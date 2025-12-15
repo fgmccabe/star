@@ -27,13 +27,14 @@ checkProgram(Prg,Pkg,Repo,Opts,PkgDecls,Canon) :-
   importAll(Imports,Repo,AllImports),
   collectImportDecls(AllImports,Repo,[],IDecls),
   declareAllDecls(IDecls,Lc,Base,Env0),
-  thetaEnv(checker:pkgExport,Opts,Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,decls(ThEx,ThL)),
+  thetaEnv(checker:pkgExport,Opts,Pk,Lc,Stmts,faceType([],[]),Env0,OEnv,Defs,decls(ThEx,ThL)),
   (is_member(traceCheck,Opts) ->
    reportMsg("type check before resolving overloads %s",[defs(Defs)],Lc);
    true),
   declareAllDecls(ThEx,Lc,Env0,Env1),
   declareAllDecls(ThL,Lc,Env1,Env2),
   overload(Defs,Env2,Opts,ODefs),
+  checkMainDefn(OEnv),
   Canon=prog(Pkg,Imports,ThEx,ThL,ODefs),
   concat(ThEx,ThL,D0),
   concat(D0,IDecls,PkgDecls).
@@ -1378,4 +1379,11 @@ exportAcc(Tp,Export) :-
    splitLocalName(TpNm,CnMrkr,_,Nm),
    call(Export,con(Nm))),!.
 
+checkMainDefn(Env) :-
+  varLoc("_main",Env,MnTp,Lc),!,
+  MainType = funType(tplType([tpExp(tpFun("cons",1),type("string"))]),
+		      type("integer"),voidType),
+  (sameType(MnTp,MainType,Lc,Env) -> true;
+   reportError("main_ should have type %s, not %s",[tpe(MainType),tpe(MnTp)],Lc)).
+checkMainDefn(_Env).
 

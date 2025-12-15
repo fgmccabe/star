@@ -21,7 +21,7 @@ logical collectStats = False;
 /*
  * Execute program on a given engine structure
  */
-ReturnStatus run(enginePo P) {
+int32 run(enginePo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
@@ -42,14 +42,8 @@ ReturnStatus run(enginePo P) {
 #endif
 
     switch (PC->op) {
-      case Halt: {
-        int32 exitCode = PC->fst;
-        if (exitCode != 0) {
-          star_exit(P, exitCode);
-          return Abnormal;
-        }
-        return Normal;
-      }
+      case Halt:
+        return (int32) integerVal(pop());
       case Abort: {
         termPo lc = getConstant(PC->fst);
         termPo msg = pop();

@@ -13,10 +13,9 @@ test.do4{
     valis Fx!
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show doFact(4);
     assert doFact(4) == 24;
-    valis ()
   }
 }

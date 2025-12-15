@@ -9,6 +9,8 @@ test.do8a{
   showMsg:(string)=>().
   showMsg(_)=>().
 
-  public _main(_) =>
-    foo().
+  public _main(_) => valof{
+    foo();
+    valis 0
+  }
 }

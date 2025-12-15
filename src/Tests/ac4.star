@@ -15,8 +15,8 @@ test.ac4{
     throw "illegal arg of f"
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       F10 = f(10);
       logM(disp(F10));
@@ -27,8 +27,7 @@ test.ac4{
       E do {
 	logM(E)
       }
-    };
-    valis ()
+    }
   }
 
   logM:(string)=>().

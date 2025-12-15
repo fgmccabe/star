@@ -26,9 +26,8 @@ test.q1{
 --  fp(P) => (P,pub) in status.
   fp(P) => {? (P,.pUblic) in status ?}.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show "$(fp("ab"))";
-    valis ()
   }
 }

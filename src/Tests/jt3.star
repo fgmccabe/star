@@ -6,7 +6,7 @@ test.jt3{
   conc:(string,string)=>string.
   conc(A,B) => _str_concat(A,B).
 
-  main:(string,string)=>().
+  main:(string,string)=>integer.
   main(A,B) => valof{
     showMsg(conc(A,B));
 
@@ -20,10 +20,10 @@ test.jt3{
     showMsg(conc(A,B));
     
     assert conc("hello","there")=="hellothere";
-    valis ()
+    valis 0
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[string])=>integer.
   _main([]) => main("hello ","world").
   _main([A,B]) => main(A,B).
 }

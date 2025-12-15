@@ -59,35 +59,35 @@ macroRl("-->",type,macroRules:grammarTypeMacro).
 macroRl("async",type,macroRules:asyncMacro).
 
 build_main(As,Bs) :-
-  look_for_signature(As,"main",Lc,Ms),
-  \+look_for_signature(As,"_main",_,_),!,
-  synthesize_main(Lc,Ms,As,Bs).
+  look_for_signature(As,"main",Lc,Ms,Tp),
+  \+look_for_signature(As,"_main",_,_,_),!,
+  synthesize_main(Lc,Ms,Tp,As,Bs).
 build_main(A,A).
 
-look_for_signature([St|_],Nm,Lc,Ms) :-
+look_for_signature([St|_],Nm,Lc,Ms,T) :-
   (isTypeDecl(St,Lc,V,T) ;
    (isPublic(St,_,I),isTypeDecl(I,Lc,V,T))),
   isIden(V,_,Nm),
   (isFuncType(T,_,L,_) ; isProcType(T,_,L,_)),
   isTuple(L,_,Ms),!.
-look_for_signature([_|As],Nm,Lc,Ms) :-
-  look_for_signature(As,Nm,Lc,Ms).
+look_for_signature([_|As],Nm,Lc,Ms,Tp) :-
+  look_for_signature(As,Nm,Lc,Ms,Tp).
 
-synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
+synthesize_main(Lc,Ts,Tp,As,[MainTp,Main|As]) :-
   synthesize_coercions(Ts,Vs,Cs),
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
   roundTerm(Lc,name(Lc,"main"),Cs,MnCall),
-  unitTpl(Lc,U),
-  mkValis(Lc,U,Vl),
-  mkSequence(Lc,MnCall,Vl,MnSeq),
+  (isFuncType(Tp,_,_,_) ->
+   mkValis(Lc,MnCall,MnSeq);
+   mkValis(Lc,integer(Lc,0),Vl),
+   mkSequence(Lc,MnCall,Vl,MnSeq)),
   braceTuple(Lc,[MnSeq],MnAct),
   mkValof(Lc,MnAct,MnReslt),
   eqn(Lc,Lhs,MnReslt,Main),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
-  roundTuple(Lc,[],Unit),
-  binary(Lc,"=>",T3,Unit,TU),
+  binary(Lc,"=>",T3,name(Lc,"integer"),TU),
   mkTypeDecl(Lc,name(Lc,"_main"),TU,MainTp).
 %  dispAst(Main).
   
