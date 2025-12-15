@@ -2,9 +2,11 @@ star.meta{
   -- Implement a mirror interface
   import star.core.
 
-  public tipe ::= .nomimal(string) |
+  public tipe ::= .voidTp |
+    .nomimal(string) |
     .tupleTp(cons[tipe]) |
-    .funTp(cons[tipe],tipe) |
+    .funTp(cons[tipe],tipe,tipe) |
+    .prcTp(cons[tipe],tipe) |
     .faceTp(cons[(string,tipe)]) |
     .sqTp(tipe,tipe) |
     .tpFun(string,integer) |
@@ -22,16 +24,19 @@ star.meta{
 
   shTipe:(tipe,boolean,integer) => string.
   shTipe(Tp,Sh,Dp) => case Tp in {
+    | .voidTp => "void"
     | .nominal(Nm) => Nm
     | .tupleType(A) => "(#(showTypes(A,Sh,Dp)*))"
-    | .funTp(As,R) => "(#(showTypes(As,Sh,Dp)*))=>#(shTipe(R,Sh,Dp))"
+    | .funTp(As,R,.voidTp) => "(#(showTypes(As,Sh,Dp)*))=>#(shTipe(R,Sh,Dp))"
+    | .funTp(As,R,Th) => "(#(showTypes(As,Sh,Dp)*))=>#(shTipe(R,Sh,Dp)) throws #(shTipe(Th,Sh,Dp))"
+    | .prcTp(As,.voidTp) => "(#(showTypes(As,Sh,Dp)*)){}"
+    | .prcTp(As,Th) => "(#(showTypes(As,Sh,Dp)*)){} throws #(shTipe(Th,Sh,Dp))"
     | .faceTp(Els,Tps) => "{#(showTypeEls(Els,Tps,Sh,Dp))}"
     | .sqTp(O,A) => showTpExp(O,[A],Sh,Dp)
     | .tpFun(Nm,Ar) => "#(Nm)/$(Ar)"
     | .allTp(A,T) => "all #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))"
     | .exTp(A,T) => "exists #(showBound(A,Dp))#(showMoreQuantified(T,Sh,Dp))"
-    | .constrainedTp(C,T) =>
-      "#(showConstraint(C,Dp))#(showConstrained(T,Dp))"
+    | .constrainedTp(C,T) => "#(showConstraint(C,Dp))#(showConstrained(T,Dp))"
   }
 
   showTypes:(cons[tipe],boolean,integer) => cons[string].
@@ -50,11 +55,9 @@ star.meta{
   showConstrained(.constrainedTp(C,T),Dp) => "#(showConstraint(C,Dp)),#(showConstrained(T,Dp))".
   showConstrained(T,Dp) => "|=#(shTipe(T,.false,Dp))".
 
-
   public contract all e ~~ mirror[e] ::= {
     hasType:(e) => tipe.
   }
-
 }
 
 

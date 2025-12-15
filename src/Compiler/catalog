@@ -37,6 +37,7 @@
     "star.compiler.macro.infra" : "macroinfra.star",
     "star.compiler.macro.rules" : "macroRules.star",
     "star.compiler.meta" : "meta.star",
+    "star.compiler.mirror" : "mirror.star",
     "star.compiler.opg": "opg.star",
     "star.compiler.opts": "opts.star",
     "star.compiler.parser": "parser.star",
