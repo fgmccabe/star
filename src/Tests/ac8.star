@@ -43,11 +43,10 @@ test.ac8{
     }
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     showMsg("f(1) = $(f(1))");
-    showMsg("f(10) = $(f(10))");
-    valis ()
+    showMsg("f(10) = $(f(10))")
   }
 }
     

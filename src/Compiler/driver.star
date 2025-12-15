@@ -33,8 +33,8 @@ star.compiler{
   import star.compiler.normalize.
   import star.compiler.data.
 
-  public _main:(cons[string]){}.
-  _main(Args){
+  public _main:(cons[string]) => integer.
+  _main(Args) => valof{
     try{
       WI= ? parseUri("file:"++_cwd());
       RI= ? parseUri("file:"++_repo());
@@ -70,13 +70,16 @@ star.compiler{
       } catch {
 	Msg do {
 	  logMsg(.severe,Msg);
+	  valis -99;
 	}
       }
     } catch {
       .exception(Msg) do {
 	logMsg(.severe,Msg);
+	  valis -99;
       }
-    }
+    };
+    valis 0
   }
 
   handleCmds:((compilerOptions,cons[string]))=>().

@@ -5,8 +5,8 @@ test.jt{
   inc42:(integer)=>integer.
   inc42(X) => _int_plus(X,42).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     assert inc42(0)==42;
 
     try{
@@ -17,7 +17,6 @@ test.jt{
     };
 
     assert inc42(3)==45;
-    valis ()
   }
 }
     

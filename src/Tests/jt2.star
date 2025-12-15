@@ -8,8 +8,8 @@ test.jt2{
   fib(1) => 1.
   fib(N) => _int_plus(fib(_int_minus(N,1)),fib(_int_minus(N,2))).
 
-  main:(integer)=>().
-  main(V) => valof{
+  main:(integer){}.
+  main(V){
     timer = ref timer_start(((V::float)**2.0)::integer, "fib");
     F1 = fib(V);
     t1 = timer_finish(timer!)::float;
@@ -31,12 +31,10 @@ test.jt2{
     try {
       showMsg("Factor = $(_flt_div(t1,t2))")
     } catch { M do showMsg("Exception ") }
-    
-    valis ()
   }
 
-  public _main:(cons[string])=>().
-  _main([]) => main(3).
-  _main([Count]) => main(Count::integer).
+  public _main:(cons[string])=>integer.
+  _main([]) => valof{ main(3); valis 0}
+  _main([Count]) => valof{ main(Count::integer); valis 0}
 }
     

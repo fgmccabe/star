@@ -19,16 +19,15 @@ test.incopy{
   readAll([]) => [].
   readAll([H,..T]) => [H,..readAll(T)].
 
-  _main:(cons[string])=>().
-  _main([S,.._]) => main(S).
-  _main([]) => main("incopy.star").
+  _main:(cons[string])=>integer.
+  _main([S,.._]) => valof{ main(S); valis 0}.
+  _main([]) => valof{ main("incopy.star"); valis 0}
 
-  main:(string)=>().
-  main(S) => valof{
+  main:(string){}.
+  main(S){
     Text = readFl(S);
 
     showMsg("read of #(S) is $(Text)");
-    valis ()
   }
 }
   

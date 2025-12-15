@@ -33,10 +33,9 @@ test.phone{
   encode([],_) => [].
   encode([C,..W],Tr) =>
   */
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show sanitize("TrusC");
-    valis ()
   }
   
 }

@@ -10,11 +10,11 @@ test.iostrm{
    count([_,..Rst],Cx) => count(Rst,Cx+1)
   .} in count(inCharStream(Fl),0).
 
-  _main:(cons[string])=>().
-  _main([S,.._]) => main(S).
+  _main:(cons[string]) => integer.
+  _main([Fl,.._]) => main(Fl).
   _main([]) => main("iocopy.star").
 
-  main:(string)=>().
+  main:(string)=>integer.
   main(Fl) => valof{
     try{
       Strm = inCharStream(Fl);
@@ -33,7 +33,7 @@ test.iostrm{
     } catch {
       | Cde do showMsg("error code $(Cde)")
     };
-    valis ()
+    valis 0
   }
 }
   

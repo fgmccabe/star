@@ -5,10 +5,9 @@ test.tm{
 
   -- Test some date & time operations
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show now();
     show today();
-    valis ()
   }
 }

@@ -11,7 +11,7 @@ test.jt5{
   dbl:(integer)=>integer.
   dbl(X) => _int_plus(X,X).
 
-  main:(integer)=>().
+  main:(integer)=>integer.
   main(C) => valof{
     A = .none;
     B = .some(3);
@@ -40,10 +40,10 @@ test.jt5{
     assert lift(B,dbl) == .some(6);
     assert lift(lift(B,dbl),dbl) == .some(12);
 
-    valis ()
+    valis 0
   }
 
-  _main:(cons[string]) => ().
+  _main:(cons[string]) => integer.
   _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
   _main(_) => main(10).
 }  

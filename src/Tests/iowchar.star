@@ -18,11 +18,11 @@ test.iowchar{
     valis ()
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string])=>integer.
   _main([Fl,.._]) => main(Fl).
   _main([]) => main("output").
 
-  main:(string)=>().
+  main:(string)=>integer.
   main(Fl) => valof{
     try{
       In = openOutFile(Fl,.utf8Encoding);
@@ -42,7 +42,7 @@ test.iowchar{
       | Cde do showMsg("error code $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }
   

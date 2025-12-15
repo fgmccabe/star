@@ -3,8 +3,8 @@ test.do10{
   import star.assert.
   import star.io.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     YY = do{
       N1 <- .some(42);
       { N2 <- .some(N1+34);
@@ -16,8 +16,6 @@ test.do10{
       assert valof YY == 76;
     } catch {
       _ do showMsg("We got an exception, instead of YY")
-    };
-    
-    valis ()
+    }
   }
 }

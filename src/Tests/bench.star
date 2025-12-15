@@ -201,17 +201,16 @@ test.bench{
     };
     timer_finish(timer!);
     
-    valis ()
+    valis 0
   }
 
-  main : (integer,string) => ().
+  main : (integer,string) => integer.
   main(Count,Msg) => valof {
     showMsg("Do #(Msg) for $(Count) times");
-    benchNativeList(Count);
-    valis ()
+    valis benchNativeList(Count);
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[string])=> integer.
   _main([]) => main(10,"test").
   _main([Count]) => main(Count::integer,"test").
 }

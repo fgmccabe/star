@@ -32,10 +32,9 @@ test.co{
   
   trpl(([A,.._],_,_)) => A.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert Pete.name=="peter";
     assert Pete.age(3)==33;
-    valis ()
   }
 }

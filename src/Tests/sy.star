@@ -64,8 +64,8 @@ test.sy{
     ff(X,F) where X>zero => ff(X-one,F*X).
   .} in ff(N,one).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show "fact(3) = $(fact(3))";
     
     show """a multi
@@ -80,7 +80,5 @@ string\n
 	showMsg("valof exception")
       }
     };
-
-    valis ()
   }
 }

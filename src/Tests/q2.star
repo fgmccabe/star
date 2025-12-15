@@ -11,9 +11,8 @@ test.q2{
   pm:cons[string].
   pm = {X | (X,Y) in parent && "ab".=Y}.
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show pm;
-    valis ()
   }
 }

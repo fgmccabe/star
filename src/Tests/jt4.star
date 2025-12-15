@@ -26,8 +26,8 @@ test.jt4{
     show conc(L,M);
   }
 
-  _main:(cons[string]){}.
-  _main([C,.._]) where Cnt?=(C:?integer) do main(Cnt).
-  _main(_) do main(10).
+  _main:(cons[string]) => integer.
+  _main([C,.._]) where Cnt?=(C:?integer) => valof{ main(Cnt); valis 0}.
+  _main(_) => valof{ main(10); valis 0}.
 }
     

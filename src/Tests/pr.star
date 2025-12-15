@@ -12,8 +12,8 @@ test.pr{
     role = Rl
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     joe = mkPr("fred","janitor");
 
     show joe.name!;
@@ -35,7 +35,6 @@ test.pr{
 
     assert tom.role == "manager";
     assert joe.role == "janitor";
-    valis ()
   }
 }
     

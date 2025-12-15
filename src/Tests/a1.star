@@ -12,8 +12,8 @@ test.a1{
     valis I+I
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       assert 3~=2;
       show o;
@@ -24,7 +24,7 @@ test.a1{
       
       throw .exception("bong");
     } catch {
-      .exception(Msg) do { showMsg("out with a #(Msg)"); valis () }
-    };
+      .exception(Msg) do { showMsg("out with a #(Msg)") }
+    }
   }
 }

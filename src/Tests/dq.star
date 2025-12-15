@@ -16,11 +16,10 @@ test.dq{
   ggp : (cons[(string,string)])=>cons[(string,string)].
   ggp(parents) => { (X,Y) | (X,Z) in parents && (Z,W) in parents && (W,Y) in parents}
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show Ps;
     show gp(Ps);
     show ggp(Ps);
-    valis ()
   }
 }

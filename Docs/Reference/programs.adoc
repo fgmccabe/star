@@ -79,12 +79,15 @@ If defined, the `_main` function must have the type signature:
 
 [source,star]
 ----
-_main:(cons[string])=>()
+_main:(cons[string])=>integer
 ----
 
 When the package is invoked at the command line, the command line
-arguments (not including program name) are passed as string values to
+arguments (not including program name) are passed as `string` values to
 the `_main` function.
+
+The value returned by `_main` counts as the value returned by the program
+overall -- to the operating system.
 
 If a package has a definition for `main`, but does not have one for
 `_main`, then the command line arguments are coerced according to the
@@ -104,6 +107,10 @@ argument to an `integer`. It then passes the command line values
 
 If the coercion fails, then `main` is not invoked and an error is
 displayed on the terminal.
+
+NOTE: In the case that `main` is defined as a procedure, then the program will
+always return 0 to the operating system -- unless the program invokes the
+`_exit` standard function.
 
 [#thetaEnvironment]
 == Environments and Definitions

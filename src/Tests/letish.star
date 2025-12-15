@@ -23,11 +23,10 @@ test.letish{
     g(N)=>f(N-1)*N
   .} in g.
 
-  main:()=> ().
-  main()=> valof{
+  main:(){}.
+  main(){
     assert inc(2)(3) == 5 && k.=kk(3) && k() == 3;
 
     assert fg()(3) == 6;
-    valis ()
   }
 }

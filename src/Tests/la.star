@@ -17,10 +17,9 @@ test.la{
     valis 5
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     FF = fooBar(6);
     assert FF == 5;
-    valis ()
   }
 }

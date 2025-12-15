@@ -29,14 +29,13 @@ test.c {
   tfct(0,X) => X.
   tfct(N,A) => tfct(_int_minus(N,1),_int_times(N,A)).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert fp.name == "";
     assert fp.spouse == .none;
 
     assert fper("fred").name == "fred";
 
     assert fct(3)==tfct(3,1);
-    valis ()
   }
 }

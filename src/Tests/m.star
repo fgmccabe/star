@@ -11,9 +11,8 @@ test.m{
   double:(integer)=>integer.
   double(x)=>x+x.
   
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert fog(id,double)(4) == double(4);
-    valis ()
   }
 }

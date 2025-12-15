@@ -11,8 +11,8 @@ test.tk0{
     valis "hello"
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       Tsk = (this) => valof{
 	try{
@@ -47,6 +47,5 @@ test.tk0{
     } catch {
       E do showMsg("$(E)")
     };
-    valis ()
   }
 }

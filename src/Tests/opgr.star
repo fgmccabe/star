@@ -105,8 +105,8 @@ test.opgr{
     valis .none
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show term("alpha*1+alpha"::cons[char],2000);
 
     show evalStr("alpha*1+alpha",{"alpha"->10});
@@ -114,8 +114,6 @@ test.opgr{
     show evalStr("alpha*(beta+gamma)",{"alpha"->2, "beta"->3, "gamma"->4});
 
     assert 14?=evalStr("alpha*(beta+gamma)",{"alpha"->2, "beta"->3, "gamma"->4});
-
-    valis ()
   }
   
 }  

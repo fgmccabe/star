@@ -26,8 +26,8 @@ test.fib{
     timer_finish(timer2!)
   }
 
-  public _main:(cons[string]){}.
-  _main([]) do main(30).
-  _main([Count]) do main(Count::integer).
+  public _main:(cons[string]) => integer.
+  _main([]) => valof{ main(30); valis 0}
+  _main([Count]) => valof{ main(Count::integer); valis 0}
 }
   

@@ -3,8 +3,8 @@ test.cons{
   import star.assert.
 
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show .cons(5,.cons(6,.nil));
     
     -- Test equality over cons lists
@@ -12,7 +12,5 @@ test.cons{
 
     -- Test concat
     assert .cons(1,.cons(2,.nil)) ++ .cons(3,.nil) == .cons(1,.cons(2,.cons(3,.nil)));
-
-    valis ()
   }
 }

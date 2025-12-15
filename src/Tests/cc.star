@@ -7,9 +7,8 @@ test.cc{
   foo(X,Y) where X<Y => .true.
   foo(X,Y) => X==Y.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert foo("alpha","beta");
-    valis ()
   }
 }

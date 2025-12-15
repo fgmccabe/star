@@ -33,10 +33,10 @@ typedef struct engineRecord_ {
 } EngineRecord;
 
 extern void initEngine();
-ReturnStatus run(enginePo P);
+int32 run(enginePo P);
 ReturnStatus exec(enginePo P);
 
-ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd);
+int32 bootstrap(heapPo h, char *entry, char *rootWd);
 
 extern pthread_key_t processKey;
 

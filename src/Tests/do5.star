@@ -9,11 +9,10 @@ test.do5{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show ({ fst(X) | X in parent}:cons[string]);
     show ({ snd(X) | X in parent}:cons[string]);
     assert size({ X | X in parent}:cons[(string,string)])==size(parent);
-    valis ()
   }
 }

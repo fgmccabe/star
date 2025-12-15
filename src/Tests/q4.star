@@ -7,10 +7,9 @@ test.q4{
 
   SS = [("a",1), ("b",2), ("c",3)].
 
-  main:()=>().
-  main()=> valof{
+  main:(){}.
+  main(){
     show looking("a",SS);
     assert looking("c",SS) == 3;
-    valis ()
   }
 }

@@ -14,8 +14,8 @@ test.do7{
   check(X) where _ ?= {! () | (X,_) in parent !} => .true.
   check(_) default => .false.
   
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show parentOf("ab");
     show parentOf("a");
 
@@ -24,6 +24,5 @@ test.do7{
 
     assert check("a");
     assert ~check("z");
-    valis ()
   }
 }

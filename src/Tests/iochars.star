@@ -19,11 +19,11 @@ test.iochars{
     valis ()
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string]) => integer.
   _main([Fl,.._]) => main(Fl).
   _main([]) => main("test.txt").
 
-  main:(string)=>().
+  main:(string) => integer.
   main(Fl) => valof{
     try{
       In = openInFile(Fl,.utf8Encoding);
@@ -41,6 +41,6 @@ test.iochars{
       | Cde do showMsg("error $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }

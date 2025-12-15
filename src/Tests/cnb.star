@@ -26,12 +26,11 @@ test.cnb{
     valis factFF(F+1,T,S*F)
   }
   
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show factW(6);
     show factF(6);
     assert factW(10)==factF(10);
-    valis ()
   }
 }
   

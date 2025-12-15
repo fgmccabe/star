@@ -9,11 +9,10 @@ test.fl{
   acc:(cons[integer],integer) => integer.
   acc(Ls,Cx) => foldRight((+),Cx,Ls).
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show count([[1],[2,3],[4,5]]);
 
     assert count([[1],[2,3],[4,5]]) == 15;
-    valis ()
   }
 }

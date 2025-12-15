@@ -6,8 +6,8 @@ test.fn{
   S : fingerTree[string].
   S = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert "one"?=head(S);
     assert "ten"?=last(S);
 
@@ -16,6 +16,5 @@ test.fn{
     show last(S);
     show head(S);
     show tail(S);
-    valis ()
   }
 }

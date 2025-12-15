@@ -142,7 +142,7 @@ test.wordle{
     valis Cnt!
   }
 
-  playerone:()=>().
+  playerone:()=>integer.
   playerone() => valof{
     try{
       Words = parseWordFile("wordle.txt");
@@ -155,10 +155,10 @@ test.wordle{
     } catch {
       M do showMsg("We got an exception: $(M)")
     };
-    valis ()
+    valis 0
   }
   
-  playertwo:(string)=>().
+  playertwo:(string)=>integer.
   playertwo(Secret) => valof{
     try{
       Words = parseWordFile("wordle.txt");
@@ -166,7 +166,7 @@ test.wordle{
     } catch {
       M do showMsg("We got an exception: $(M)")
     };
-    valis ()
+    valis 0
   }
 
   askNextGuess:() => cons[char] throws ioException.
@@ -214,7 +214,7 @@ test.wordle{
     valis Cnt!
   }
 
-  coach:()=>().
+  coach:()=>integer.
   coach() => valof{
     try{
       Words = parseWordFile("wordle.txt");
@@ -222,14 +222,14 @@ test.wordle{
     } catch {
       M do showMsg("We got an exception: $(M)")
     };
-    valis ()
+    valis 0
   }    
 
-  _main:(cons[string])=>().
+  _main:(cons[string])=>integer.
   _main(["--coach"]) => coach().
   _main(["--play"]) => playerone().
-  _main([S,G]) => showMsg(score(S,G)).
+  _main([S,G]) => valof{ showMsg(score(S,G)); valis 0}.
   _main([S]) => playertwo(S).
-  _main([]) => showMsg(score("skate","melon")).
+  _main([]) => valof{ showMsg(score("skate","melon")); valis 0}.
 }
     

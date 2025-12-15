@@ -16,10 +16,9 @@ test.mp{
   double:(integer)=>integer.
   double(X) => X+X.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     assert map(.cons("a",.cons("b",.nil)),(X)=>X++"*")==["a*","b*"];
     assert map(.cons(1,.cons(2,.nil)),double)==[2,4];
-    valis ()
   }
 }

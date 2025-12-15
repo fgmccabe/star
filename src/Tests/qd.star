@@ -14,14 +14,12 @@ test.qd{
     filterOut(As,Q).
   filterOut([Sp,..As],Q) => [Sp,..filterOut(As,Q)].
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show filterOut(["alpha","beta","one","gamma","two"],
       [.nme(1,"one"),.nme(2,"two"),.nme(3,"three")]);
 
     assert filterOut(["alpha","beta","one","gamma","two"],
       [.nme(1,"one"),.nme(2,"two"),.nme(3,"three")]) == ["alpha","beta","gamma"];
-
-    valis ()
   }
 }

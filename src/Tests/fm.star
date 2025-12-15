@@ -2,8 +2,8 @@ test.fm{
   import star.
   import star.assert.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show "--$(-15):-   0;--";
 
     assert "-- -115--" == "--$(-115):-   0;--"; -- 
@@ -40,6 +40,5 @@ test.fm{
 
     bar = "bar";
     show "Foo#(bar)";
-    valis ()
   }
 }

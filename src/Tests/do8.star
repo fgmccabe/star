@@ -1,8 +1,8 @@
 test.do8{
   import star.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     A = "alpha";
     B = "beta";
 
@@ -10,6 +10,5 @@ test.do8{
       showMsg("A wins")
     else
     showMsg("B wins");
-    valis ()
   }
 }

@@ -6,8 +6,8 @@ test.rl{
   T:sk[string].
   T = ["zero","one","two","three","four","five","six","seven","eight","nine","ten"].
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show T;
 
     show T[0];
@@ -54,7 +54,6 @@ test.rl{
     for El in (XX!::cons[string]) do{
       showMsg("El: $(El)")
     };
-    valis ()
   }
 
   SS = ["zero",..T].

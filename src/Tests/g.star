@@ -15,11 +15,10 @@ test.g{
   txt:cons[char].
   txt = "fred"::cons[char].
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show txt;
     assert .some(_).=isTerm(txt,`f`);
-    assert .none.=isTerm(txt,`r`);
-    valis ()
+    assert .none.=isTerm(txt,`r`)
   }
 }

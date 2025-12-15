@@ -37,15 +37,14 @@ test.as2{
     throw ()
   }
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     try{
       assert checkLists()([1,2],[1,2]);
       assert ~checkLists()([],[1]);
       show notMuch();
     } catch {
       _ do showMsg("as expected")
-    };
-    valis ()
+    }
   }
 }

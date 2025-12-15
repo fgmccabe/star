@@ -333,14 +333,9 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
     (*pc)++;
     (*count)--;                 // Increment decode counter
     switch (ins->op) {
-      case Halt: {
-        ret = decodeI32(in, &ins->fst);
-        (*count)--;
-        return ret;
-      }
-      case Abort: {
+      case Halt:
+      case Abort:
         return Ok;
-      }
       case Call:
       case TCall: {
         ret = decodeConstant(in, &ins->fst, brk);

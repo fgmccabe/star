@@ -13,12 +13,11 @@ test.ac1{
     valis f1(X-1)*X
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       _logmsg(disp(f1(10)))
     } catch {_ do {}};
-    valis ()
   }
 }
     

@@ -32,13 +32,12 @@ test.ac11{
   }
   ff(_) default => _dynamic.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show f(1);
     show f(10);
 
     assert f(10)==945;
-    valis ()
   }
 }
     

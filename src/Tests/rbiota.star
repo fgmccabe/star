@@ -8,8 +8,8 @@ test.rbiota{
   rbiota(Mx,Mx) => [].
   rbiota(Ix,Mx) where Ix<Mx => [Ix->Ix,..rbiota(Ix+1,Mx)].
 
-  main:(integer)=>().
-  main(Count)=>valof{
+  main:(integer){}.
+  main(Count){
     rb_list = ref rbiota(0,Count);
     showMsg("red/black tree: $(rb_list!)");
 --    showMsg("red/black tree: #(_stringOf(rb_list!,1000))");
@@ -41,14 +41,11 @@ test.rbiota{
     };
     showMsg("$(size(del_list!)) elements in random deleted tree: $(del_list!)");
     assert validRb(del_list!);
-
-    valis ()
   }
 
-  public _main:(cons[string])=>().
-  _main([]) => main(10).
-  _main([Count]) => main(Count::integer).
-  
+  _main:(cons[string]) => integer.
+  _main([]) => valof{ main(10) ; valis 0}
+  _main([Count]) => valof{ main(Count::integer); valis 0}
 }
     
   

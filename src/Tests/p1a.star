@@ -44,8 +44,8 @@ test.p1a{
   digit:parser[cons[char],char].
   digit = _sat(isDigit).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     assert parse(p,[`1`,`2`,`3`]) == [((`1`,`3`),[])];
 
     show parse(a,"1"::cons[char]);
@@ -61,7 +61,5 @@ test.p1a{
     assert listMem((([(),()]),[`b`]),parse(_star(_str("a")),"aab"::cons[char]));
 
     assert parse(expr,"(3+5*3)"::cons[char]) == [(18,[])];
-
-    valis ()
   }
 }

@@ -16,11 +16,11 @@ test.iocopy{
     valis ()
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string])=>integer.
   _main([S,D,.._]) => main(S,D).
   _main([]) => main("iocopy.star","output").
 
-  main:(string,string)=>().
+  main:(string,string)=>integer.
   main(S,D) => valof{
     try{
       try{
@@ -36,7 +36,7 @@ test.iocopy{
       | Cde do showMsg("error code $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }
   

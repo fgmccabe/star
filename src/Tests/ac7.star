@@ -13,8 +13,8 @@ test.ac7{
     throw "illegal arg"
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       F10 = f(10);
       show F10;
@@ -22,8 +22,7 @@ test.ac7{
       E do {
 	logMsg(.warning,E)
       }
-    };
-    valis ()
+    }
   }
 }
   

@@ -12,8 +12,8 @@ test.jt9{
     H = hello()
   } in _str_concat(H,_str_concat(" ",Th)).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show there("world");
 
     assert there("there")=="hello there";
@@ -27,6 +27,5 @@ test.jt9{
     };
 
     assert there("world") == "hello world";
-    valis ()
   }
 }

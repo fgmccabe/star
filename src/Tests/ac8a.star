@@ -54,11 +54,10 @@ test.ac8a{
       }
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show f(1);
-    show f(10);
-    valis ()
+    show f(10)
   }
 }
     

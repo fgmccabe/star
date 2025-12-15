@@ -27,8 +27,8 @@ test.ms{
   sqr:(float)=>either[float,string].
   sqr(X) => (try .either(sqrt(X)) catch {_ => .other("negative")}).
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show mapOver(doubleOrQuits,KK);
 
     show mapOver(doubleOrQuits,LL);
@@ -38,6 +38,5 @@ test.ms{
     assert mapOver(doubleOrQuits,LL)==.none;
 
     show (([1.0,2.0,-3.0]//sq):cons[option[float]]);
-    valis ()
   }
 }

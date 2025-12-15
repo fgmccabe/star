@@ -38,15 +38,13 @@ test.wlk{
     valis ()
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     T = .node(.node(.empty,"A",.empty),"B",.node(.empty,"C",.node(.empty,"D",.empty)));
 
     show T;
 
     driver(T);
-
-    valis ()
   }
 }
     

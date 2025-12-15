@@ -10,8 +10,8 @@ test.h{
   leq:(integer,integer)=>boolean.
   leq(X,Y)=>X=<Y.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     HH : heap[integer];
     HH = [10,20,5];
 
@@ -31,8 +31,6 @@ test.h{
 
     for M in iota(12) do{
       show M
-    };
-    
-    valis ()
+    }
   }
 }

@@ -42,13 +42,12 @@ test.br{
 
   gcd(A,B) => (try _big_gcd(A,B) catch {_ => A}).
 
-  public main:()=>().
-  main()=>valof{
+  public main:(){}.
+  main(){
     assert sample==5;
     show ff(5);
     show ff(0b50);
     assert ff(0b50) == 0b30414093201713378043612608166064768844377641568960512000000000000;
     assert gcd(0b1071,0b462)==0b21;
-    valis ()
   }
 }

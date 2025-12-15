@@ -21,9 +21,8 @@ test.l2{
     }
   .} in spl(T).
 
-  main:()=>().
-  main()=> valof{
+  main:(){}.
+  main(){
     show "splits $(splits(.node(.node(.empty,(1,"a"),.empty),(2,"b"),.empty)))";
-    valis ()
   }
 }

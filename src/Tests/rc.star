@@ -29,8 +29,8 @@ test.rc{
     C=C
   }
 
-  public main:()=>().
-  main()=>valof{
+  public main:(){}.
+  main(){
     show cont(2).C;
     AA = aA{A=10. ii=[1->.false, 2->.true]. b="hi". c=[]};
 
@@ -44,8 +44,6 @@ test.rc{
     show ll(CC);
 
     assert CC.C==20;
-
-    valis ()
   }
 
 }

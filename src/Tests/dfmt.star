@@ -3,8 +3,8 @@ test.dfmt{
   import star.assert.
   import star.date.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     show today();
     show now();
 
@@ -18,6 +18,5 @@ test.dfmt{
     show "$(today())";			
 
     assert Today.=today() && parseTime("$(Today):yyyy-mm-dd;","yyyy-mm-dd") == .some(Today);
-    valis ()
   }
 }

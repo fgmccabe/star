@@ -18,11 +18,11 @@ test.io4{
     valis ""
   }
 
-  _main:(cons[string])=>().
+  _main:(cons[string]) => integer.
   _main([Fl,.._]) => main(Fl).
   _main([]) => main("test.txt").
 
-  main:(string)=>().
+  main:(string) => integer.
   main(Fl) => valof{
     try{
       try{
@@ -34,12 +34,12 @@ test.io4{
 	| .deadlock do showMsg("Reader got deadlocked")
 	| .canceled do showMsg("Everything got canceled")
       };
-      valis ()
+      valis 0
     } catch {
       | .eEOF do showMsg("end of file")
       | Cde do showMsg("error code $(Cde)")
     };
 
-    valis ()
+    valis 0
   }
 }

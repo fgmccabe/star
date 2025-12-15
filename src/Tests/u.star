@@ -9,13 +9,11 @@ test.u{
 
   tt() => loop(() where _.= "http://foo.bar.com?query"::uri => (),100).
 
-  main:()=> ().
-  main() => valof{
+  main:(){}.
+  main(){
     tt();
 
     assert "http://foo.bar.com?query"::uri ==
       .absUri("http",.netRsrc(.server(.none,.host("foo.bar.com")),.relPath([""])),.qry("query"));
-
-    valis ()
   }
 }

@@ -12,11 +12,10 @@ test.as{
   fred = pTrm{.
     name = "fred". age=45 .}.
 
-  main:()=> ().
-  main() => valof{
+  main:(){}.
+  main(){
     show peter.name;
 
     assert peter.name=="fred's friend" && peter.age==23;
-    valis ()
   }
 }

@@ -20,11 +20,10 @@ test.ac3{
     valis 5*X
   } * 2.
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     logM(disp(f(1)));
     logM(disp(f(10)));
-    valis ()
   }
 
   logM:(string)=>().

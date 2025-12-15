@@ -27,8 +27,7 @@ test.rc2{
     labels:map[string,(option[locn],string)]
   }.
 
-  main:()=>().
-  main()=>valof{
-    valis ()
+  main:(){}.
+  main() do {
   }
 }

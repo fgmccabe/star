@@ -65,16 +65,16 @@ test.ac6{
       timer_finish(timer!)
     };
 
-    valis ()
+    valis 0
   }
 
-  main : (integer,string) => ().
-  main(Count,Msg) => valof {
+  main:(integer,string) => integer.
+  main(Count,Msg) => valof{
     showMsg("Do #(Msg) for $(Count) times");
     valis large(Count);
   }
 
-  public _main:(cons[string])=>().
+  public _main:(cons[string])=>integer.
   _main([]) => main(10,"test").
   _main([Count]) => main(Count::integer,"test").
 }

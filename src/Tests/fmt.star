@@ -8,8 +8,8 @@ test.fmt{
   List : cons[string].
   List = ["alpha","beta","gamma"].
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     bar = "bar";
     show "Foo#(bar)";
     show "ten = $(10):9.9;";
@@ -27,6 +27,5 @@ test.fmt{
     assert "$(Middle):-5R15;" == "          iddle";
 
     assert "$(List):<[L10*,..##]>;" == "<alpha*****##beta******##gamma*****>";
-    valis ()
   }
 }

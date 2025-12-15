@@ -17,12 +17,12 @@ test.io1{
     valis ()
   }
 
-  _main:(cons[string]){}.
-  _main([Fl,.._]) do main(Fl).
-  _main([]) do main("test.txt").
+  _main:(cons[string]) => integer.
+  _main([Fl,.._]) => main(Fl).
+  _main([]) => main("test.txt").
 
-  main:(string){}.
-  main(Fl){
+  main:(string) => integer.
+  main(Fl) => valof{
     try{
       In = openInFile(Fl,.utf8Encoding);
 
@@ -36,6 +36,7 @@ test.io1{
       }
     } catch {
       | Cde do showMsg("error $(Cde)")
-    }
+    };
+    valis 0
   }
 }

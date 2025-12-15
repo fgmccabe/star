@@ -1,6 +1,8 @@
 /*
  * top-level run-time functions
  */
+#include <constants.h>
+
 #include "star.h"
 #include <stdlib.h>
 #include <strings.h>
@@ -23,18 +25,21 @@ static comparison sameProcess(void *, void *);
 
 static integer newProcessNumber();
 
-static Instruction haltCode[] = {Halt, 0};
+static Instruction haltCode[] = {Halt};
 
 void initEngine() {
   prPool = newPool(sizeof(EngineRecord), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
+  termPo zero = makeInteger(0);
+  int32 zeroIndex = defineConstantLiteral(zero);
+  haltCode[0].fst = zeroIndex;
 
-  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 0);
+  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 1, 1);
 
   runTimer = newTimer("running");
 }
 
-ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
+int32 bootstrap(heapPo h, char *entry, char *rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelMtd(umain);
 
@@ -44,12 +49,12 @@ ReturnStatus bootstrap(heapPo h, char *entry, char *rootWd) {
     enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
-    ReturnStatus ret = (jitOnLoad?exec(p):run(p));
+    int32 ret = (jitOnLoad ? exec(p) : run(p));
 #else
     enginePo p = newEngine(h, False, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
-    ReturnStatus ret = run(p);
+    int32 ret = run(p);
 #endif
     pauseTimer(runTimer);
     return ret;

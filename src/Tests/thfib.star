@@ -14,18 +14,13 @@ test.thfib{
     fb(ix) where F?=fibs[ix] => F!!
   .} in fb(N-1).
 
-  main:(integer)=>().
-  main(Ix)=>valof{
+  main:(integer){}.
+  main(Ix){
     show memoFib(Ix);
-    valis ()
   }
 
-  public _main:(cons[string])=>().
-  _main([]) => main(10).
-  _main([Count]) => main(Count::integer).
+  public _main:(cons[string])=>integer.
+  _main([]) => valof{ main(10); valis 0}.
+  _main([Count]) => valof{ main(Count::integer); valis 0}.
   
 }
-    
-    
-
-  

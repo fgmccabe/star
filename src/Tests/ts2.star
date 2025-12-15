@@ -47,10 +47,10 @@ test.ts2{
     valis ()
   }
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     LL = iota(1,12);
     showMsg(disp(LL));
-    valis showMsg(disp(odds(LL)));
+    showMsg(disp(odds(LL)))
   }
 }

@@ -6,12 +6,10 @@ test.st{
   hs([H,..T]) => .some(H).
   hs(_) default => .none.
 
-  main:() => ().
-  main() => valof{
+  main:(){}.
+  main(){
     show hs("fred");
 
     assert [`h`,`o`,`l`,`l`,`o`] == "hollo";
-
-    valis ()
   }
 }

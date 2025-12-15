@@ -12,10 +12,9 @@ test.lx{
     'fre$' : string
   }.
 
-  main:()=>().
-  main()=>valof{
+  main:(){}.
+  main(){
     F = foo{ 'fre$' = "fred" };
     assert F.'fre$' == "fred";
-    valis ()
   }
 }

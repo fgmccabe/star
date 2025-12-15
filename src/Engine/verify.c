@@ -150,10 +150,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
       case Halt: {
         if (!isLastPC(pc++, limit))
           return verifyError(&ctx, ".%d: Halt should be last instruction in block", pc);
-        else {
-          propagateVars(&ctx, parentCtx);
-          return Ok;
-        }
+
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
+        stackDepth -= 1;
+        propagateVars(&ctx, parentCtx);
+        return Ok;
       }
       case Abort: {
         int32 constant = code[pc].fst;

@@ -60,12 +60,12 @@ test.proc{
     visitList(Es,P)
   }
 
-  _main:(cons[string]){}.
-  _main([]) do main(41).
-  _main([A,.._]) do main(A::integer).
+  _main:(cons[string]) => integer.
+  _main([]) => main(41).
+  _main([A,.._]) => main(A::integer).
 
-  main:(integer){}.
-  main(Ix){
+  main:(integer)=>integer.
+  main(Ix) => valof{
     do1(Ix);
 
     -- try{
@@ -77,6 +77,7 @@ test.proc{
 
     visitList([1,2,10,-10],do1);
     visitList([3,5,7],(X){ show "$(X)" });
-    visitList([3,5,7],(X){ assert X > 0 })
+    visitList([3,5,7],(X){ assert X > 0 });
+    valis 0
   }
 }

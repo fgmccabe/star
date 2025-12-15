@@ -11,12 +11,10 @@ test.wh{
     valis F!
   }
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     show fct(3);
     assert fct(3)==6;
-    assert fct(10) == 3628800;
-
-    valis ()
+    assert fct(10) == 3628800
   }
 }  

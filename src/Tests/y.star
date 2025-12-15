@@ -27,8 +27,8 @@ test.y{
 	}
       }).
 
-  main:()=>().
-  main() => valof{
+  main:(){}.
+  main(){
     try{
       show fooE()
     } catch {
@@ -50,7 +50,5 @@ test.y{
     } catch {
       M do showMsg("fooG throws $(M)")
     };
-
-    valis ()
   }
 }
