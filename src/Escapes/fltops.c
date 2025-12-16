@@ -307,7 +307,7 @@ ReturnStatus g_integral(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g_log(enginePo P) {
+ReturnStatus g__ln(enginePo P) {
   double Arg = floatVal(popVal(P));
   termPo Rs = makeFloat(log(Arg));
 
@@ -315,7 +315,7 @@ ReturnStatus g_log(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g_log10(enginePo P) {
+ReturnStatus g__lg10(enginePo P) {
   double Arg = floatVal(popVal(P));
   termPo Rs = makeFloat(log10(Arg));
 

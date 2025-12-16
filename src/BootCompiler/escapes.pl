@@ -55,8 +55,8 @@ escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpEx
 escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"),voidType)]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),voidType)))).
 escapeType("sqrt",funType(tplType([type("float")]),type("float"),type("errorCode"))).
 escapeType("exp",funType(tplType([type("float")]),type("float"),type("errorCode"))).
-escapeType("log",funType(tplType([type("float")]),type("float"),voidType)).
-escapeType("log10",funType(tplType([type("float")]),type("float"),voidType)).
+escapeType("_ln",funType(tplType([type("float")]),type("float"),voidType)).
+escapeType("_lg10",funType(tplType([type("float")]),type("float"),voidType)).
 escapeType("pi",funType(tplType([]),type("float"),voidType)).
 escapeType("sin",funType(tplType([type("float")]),type("float"),voidType)).
 escapeType("cos",funType(tplType([type("float")]),type("float"),voidType)).
@@ -297,8 +297,8 @@ isEscape("_fiber_eq").
 isEscape("_fiber").
 isEscape("sqrt").
 isEscape("exp").
-isEscape("log").
-isEscape("log10").
+isEscape("_ln").
+isEscape("_lg10").
 isEscape("pi").
 isEscape("sin").
 isEscape("cos").

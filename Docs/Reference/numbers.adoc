@@ -1,12 +1,11 @@
 = Numbers
 
 (((expressions,arithmetic)))
-The basis of arithmetic expressions are several contracts: the
-`arith` contract which provides definitions of the familiar
-_calculator_ functions of `+`, `-`, `*` and
-`/`.
+The basis of arithmetic expressions are several contracts: the `arith` contract
+which provides definitions of the familiar _calculator_ functions of `+`, `-`,
+`*` and `/`.
 
-In addition, there is an extended set of mathematical functions for
+In addition, there are extended sets of mathematical functions for
 trigonometry, bit string manipulation and so on.
 
 == Numeric Types
@@ -52,13 +51,18 @@ values (see <<arithContract>>).
 
 === Arithmetic for Floating Points
 
+The `arith` contract is implemented for `float`
+values (see <<arithContract>>).
+
 === Display for `integer`
+
+The `display` contract is implemented for `integer` values (see <<displayContract>>).
 
 === Format for `integer`
 
-The format string for `integer` values determines how the number is
-formatted. For example, the result of
-[source,star]
+The `format` contract is implemented for `integer` values (see
+<<formatContract>>). The format string determines how the number is
+formatted. For example, the result of [source,star]
 ----
 "--$(-15):-   0;--"
 ----
@@ -68,8 +72,9 @@ is
 "--  -15--"
 ----
 
-The grammar for legal formatting codes for integral values may be
-given in the regular expression:
+The grammar for legal formatting codes for integral values is given in the
+regular expression:
+
 [source,star]
 ----
 [P+-]?([09 ,.])+[P+-]
@@ -79,7 +84,7 @@ I.e., a sign specification, followed by digit specifications
 optionally mixed with thousands markers and periods, terminated by an
 optional sign specification.
 
-The complete formatting codes for formatting numeric values are:
+The complete set of formatting codes for formatting numeric values are:
 
 [cols="1,10"]
 |===
@@ -153,7 +158,9 @@ is the string:
 "--120,345,567--"
 ----
 | `-`
-a| Is used to control how signed values are presented. If the value is negative then a `-` character is displayed; if the value is positive then a space is displayed.
+a| Is used to control how signed values are presented. If the value is negative
+then a `-` character is displayed; if the value is positive then a space is
+displayed.
 
 NOTE: The `-` format code may appear at either end of the display. A
 leading `-` results in the sign being displayed at the beginning
@@ -202,6 +209,14 @@ For example, this can be used to display the Unicode equivalent of a character:
 
 === Display for `float`
 
+The `display` contract for `float` values is implemented. Floating point numbers
+are displayed in the so-called `g` format:
+
+[source,star]
+----
+23.45e-99
+----
+
 === Format for `float`
 
 The grammar for legal formatting codes for `float` values is a little more
@@ -219,89 +234,17 @@ precision without an exponent then an exception will be thrown.
 [#bitString]
 == Bit Manipulation Functions
 
-The bit manipulation functions treat `integer` values as 62-bit
-bit strings.
-
-===  `.&.` Bit-wise Conjunction
-[source,star]
-----
-(.&.) : (integer,integer)=>integer.
-----
-
-The `.&.` operator returns the bit-wise conjunction of two
-`integer` values.
-
-===  `.|.` Bit-wise Disjunction
-[source,star]
-----
-(.|.)  : (integer,integer)=>integer.
-----
-
-The `.|.` operator returns the bit-wise disjunction of two
-`integer` values.
-
-=== `.^.` Bit-wise Exclusive-or
-[source,star]
-----
-(.^.)  : (integer,integer)=>integer.
-----
-
-The `.^.` operator returns the bit-wise exclusive of two
-`integer` values.
-
-=== `.<<.` Bit-wise Left Shift
-
-[source,star]
-----
-(.<<.) : (integer,integer)=>integer.
-----
-
-The `.<<.` operator left-shifts the left hand argument by the
-number of bits indicated in the right argument. It is effectively
-multiplication by a power of 2.
-
-=== `.>>.` Bit-wise Arithmetic Right Shift
-[source,star]
-----
-(.>>.) : (integer,integer)=>integer.
-----
-
-The `.>>.` operator right-shifts the left hand argument by the
-number of bits indicated in the right argument. The most significant
-bit is replicated in the shift. It is effectively division by a power
-of 2.
-
-=== `.>>>.` Bit-wise Logical Right Shift
-[source,star]
-----
-(.>>>.) : (integer,integer)=>integer.
-----
-
-The `.>>>.` operator right-shifts the left hand argument by the
-number of bits indicated in the right argument. The most significant
-bits of the result are replaced by zero. This operator is sometimes
-known as logical right shift.
-
-===  `.~.` Bit-wise Logical Complement
-[source,star]
-----
-(.~.) : (integer)=>integer.
-----
-
-The `.~.` operator forms the logical or 1s complement of its argument.
-
-===  `.#.` Bit Count
-[source,star]
-----
-(.#.) : (integer)=>integer.
-----
-
-The `.#.` operator computes the number of non-zero bits in its argument.
+The bit manipulation functions treat `integer` values as 62-bit bit strings. The
+`bits` contract is implemented for both `integer` values and `bigint` values
+(see <<bitArithmeticContract>>).
 
 == Trigonometry Functions
 
 NOTE: All the trig functions assume that the angles that they accept (or
 return) are expressed in radians.
+
+Unlike other arithmetic functions, trigonometric functions are only supported
+for `float` values -- hence there is no contract for them.
 
 ===  `sin` -- Sine Function
 [source,star]
@@ -370,7 +313,7 @@ number.
 == Misc Arithmetic Functions
 
 In addition to the standard arithmetic contract (see <<arithContract>>), there
-are additional numeric functions:
+are some additional numeric functions:
 
 ===  `abs` -- absolute value
 
@@ -449,21 +392,21 @@ NOTE: This does not mean that the number can be coerced to an `integer` value:
 the number may be integral and also larger than can be represented as a 61 bit
 integer.
 
-=== `log` -- Natural Logarithm
+=== `ln` -- Natural Logarithm
 [source,star]
 ----
-log : (float)=>float
+ln : (float)=>float
 ----
 
 The `log` function returns the natural logarithm of its argument.
 
-===  `log10` -- Logarithm Base 10
+===  `lg10` -- Logarithm Base 10
 [source,star]
 ----
-log10 : (float)=>float
+lg10 : (float)=>float
 ----
 
-The `log10` function returns the base 10 logarithm of its argument.
+The `lg10` function returns the base 10 logarithm of its argument.
 
 === `random` -- random number generation
 
