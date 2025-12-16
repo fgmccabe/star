@@ -279,7 +279,6 @@ star.compiler.types{
       { shTipeRule(Rl,Dp) | (Nm,Rl) in Tps},".\n")*.
 
   showTpExp:(tipe,cons[tipe],integer) => string.
-  showTpExp(.tpFun("tag",1),[R],Dp) => "tag #(showType(R,Dp-1))".
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(showType(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(showTypes(A,Dp-1)*)]".    
   showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
