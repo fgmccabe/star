@@ -109,8 +109,8 @@ escape(_fiber,all(r, all(s, func(func(fiber(r, s) r, s), fiber(r, s)))),"create 
 
 escape(sqrt, throws(flt, flt, ERR), "square root")
 escape(exp, throws(flt, flt, ERR), "exponential")
-escape(log, func(flt, flt), "logarithm")
-escape(log10, func(flt, flt), "10-based logarithm")
+escape(_ln, func(flt, flt), "natural logarithm")
+escape(_lg10, func(flt, flt), "10-based logarithm")
 escape(pi, func(/**/, flt), "return PI")
 escape(sin, func(flt, flt), "sine")
 escape(cos, func(flt, flt), "cosine")

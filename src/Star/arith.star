@@ -170,4 +170,13 @@ star.arith{
   public implementation pwr[float] => {
     X**Y => _flt_pwr(X,Y)
   }
+
+  public ln:(float)=>float.
+  ln(X) => _ln(X).
+
+  public lg10:(float)=>float.
+  lg10(X) => _lg10(X).
+
+  -- public lg2:(integer)=>integer.
+  -- lg2(X) => _int_lg2(X).
 }
