@@ -6,12 +6,12 @@ star.compiler.mirror{
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.macro.infra.
-  import star.compiler.meta.
+  import star.meta.
 
   -- generate a mirror implementation from a type definition
 
   generateMirror:(ast,macroContext) => macroState.
-  generateMirror(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) => .
+--  generateMirror(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) => .
 
   /*
   The type meta language
@@ -43,11 +43,11 @@ star.compiler.mirror{
   reflectType(A) where (Lc,L,R,T) ?= isThrwFunctionType(A) && (ALc,As) ?= isTuple(L) =>
     mkCon(Lc,"funTp",[typeElems(Lc,As),reflectType(R),reflectType(T)]).
   reflectType(A) where (Lc,L,T) ?= isPrcType(A) && (ALc,As) ?= isTuple(L) =>
-    mkCon(Lc,"prcTp",[typeElems(Lc,As,reflectType),(Th?=T ?? reflectType(Th)||enum(Lc,"voidTp")]).
+    mkCon(Lc,"prcTp",[typeElems(Lc,As,reflectType),(Th?=T ?? reflectType(Th)||enum(Lc,"voidTp"))]).
   reflectType(A) where (Lc,Els) ?= isBrTuple(A) =>
     mkCon(Lc,"faceTp",[typeElems(Lc,Els,typeField)]).
   reflectType(A) where (Lc,Op,Arg) ?= isSquareTerm(A) && (NLc,Nm)?=isName(Op) =>
-    
+    reflectTypeExp(Lc,mkCon(Lc,"tpFun",[.str(NLc,Nm),.int(NLc,argCount(Arg))]),Arg).
     
 
   typeElems(Lc,[],_) => enum(Lc,"nil").
