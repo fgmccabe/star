@@ -176,19 +176,18 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case ICase:
       case Case:
       case IxCase: {
-        splitAtPC(root, pc + 1);
+        int32 mx = code[pc].fst;
+        splitAtPC(root, pc + 1 + mx);
         codeSegPo curr = findSeg(root, pc);
         curr->fallthrough = Null;
-        curr->altLink = Null;
 
-        int32 mx = code[pc].fst;
         for (int32 ix = 0; ix < mx; ix++) {
           int32 casePc = pc + 1 + ix;
           insPo caseIns = &code[casePc];
           switch (caseIns->op) {
             case Break: {
               codeSegPo alt = checkBreak(&scope, root, pc, casePc + code[casePc].alt + 1);
-              splitNextPC(root, casePc, alt);
+	      newOutgoing(root,casePc,alt);
               continue;
             }
             case Loop: {

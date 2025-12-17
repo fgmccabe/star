@@ -833,6 +833,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
+
+  if(hasValue)
+    return verifyError(&ctx,".%d: not permitted to fall out of Valof block",pc);
+
   propagateVars(&ctx, parentCtx);
   return Ok;
 }

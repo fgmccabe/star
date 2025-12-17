@@ -34,7 +34,7 @@ codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg) {
   seg->segNo = segNo++;
   seg->start = start;
   seg->end = end;
-  seg->altLink = Null;
+  seg->altLinks = Null;
   seg->fallthrough = Null;
   seg->next = nextSeg;
   seg->incoming = Null;
@@ -60,11 +60,20 @@ void tearDownSegs(codeSegPo root) {
       deleteSet(root->defined);
       root->defined = Null;
     }
+    link = root->altLinks;
+    while (link != Null) {
+      segLinkPo nextLink = link->next;
+      freePool(linkPool, link);
+      link = nextLink;
+    }
     freePool(segmentPool, root);
     root = nextSeg;
   }
   segNo = 0;
 }
+
+static segLinkPo newLink(codeSegPo seg, segLinkPo rest);
+static retCode showLinks(ioPo out,char *msg,segLinkPo link);
 
 static logical pcInSeg(codeSegPo seg, int32 pc) {
   return pc >= seg->start && pc < seg->end;
@@ -100,9 +109,16 @@ codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt) {
   if (next != Null) {
     codeSegPo curr = findSeg(root, pc);
     curr->fallthrough = next;
-    curr->altLink = alt;
+    curr->altLinks = newLink(alt,curr->altLinks);
   }
   return next;
+}
+
+segLinkPo newLink(codeSegPo seg, segLinkPo rest){
+  link = allocPool(linkPool);
+  link->seg = seg;
+  link->next = rest;
+  return link;
 }
 
 void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
@@ -114,26 +130,32 @@ void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
     link = link->next;
   }
 
-  link = allocPool(linkPool);
-  link->seg = incoming;
-  link->next = tgt->incoming;
-  tgt->incoming = link;
+  tgt->incoming = newLink(incoming,tgt->incoming);
 }
 
-static retCode showSeg(ioPo out, methodPo mtd, codeSegPo seg) {
-  tryRet(outMsg(out, "seg: %d [%d -> %d]",seg->segNo, seg->start, seg->end));
+void newOutgoing(codeSegPo root, int32 pc,codeSegPo alt){
+  codeSegPo curr = findSeg(root,pc);
+  curr->altLinks = newLink(alt,curr->altLinks);
+}
 
-  if (seg->incoming != Null) {
-    tryRet(outStr(out,", incoming: ["));
-    segLinkPo link = seg->incoming;
+retCode showLinks(ioPo out,char *msg,segLinkPo link){
+  if(link!=Null){
+    tryRet(outMsg(out,"%s: [",msg));
     char *sep = "";
     while (link != Null) {
       tryRet(outMsg(out,"%s%d",sep,link->seg->segNo));
       sep = ", ";
       link = link->next;
     }
-    tryRet(outMsg(out,"]"));
+    tryRet(outMsg(out,"]\n"));
   }
+  return Ok;
+}
+
+static retCode showSeg(ioPo out, methodPo mtd, codeSegPo seg) {
+  tryRet(outMsg(out, "seg: %d [%d -> %d]",seg->segNo, seg->start, seg->end));
+
+  tryRet(showLinks(out,", incoming",seg->incoming));
   outMsg(out, "\n");
 
   for (int32 pc = seg->start; pc < seg->end; pc++) {
@@ -153,9 +175,8 @@ static retCode showSeg(ioPo out, methodPo mtd, codeSegPo seg) {
     outMsg(out, "\n");
   }
 
-  if (seg->altLink != Null) {
-    tryRet(outMsg(out,"alt exit: %d ",seg->altLink->segNo));
-  }
+  tryRet(showLinks(out,"alt exits",seg->altLinks));
+
   if (seg->fallthrough != Null) {
     tryRet(outMsg(out,"fall through: %d",seg->fallthrough->segNo));
   }
