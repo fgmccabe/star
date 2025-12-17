@@ -1,7 +1,7 @@
 star.meta{
-  -- Implement a mirror interface
-  import star.core.
-  import star.arith.
+  import star.
+
+  -- The type meta language
 
   public tipe ::= .voidTp
   | .nominal(string)
@@ -11,14 +11,14 @@ star.meta{
   | .faceTp(cons[(string,tipe)],cons[(string,tipeRule)])
   | .sqTp(tipe,tipe)
   | .tpFun(string,integer)
-  | .allTp(string,tipe)
-  | .exTp(string,tipe)
+  | .allTp(tipe,tipe)
+  | .exTp(tipe,tipe)
   | .constrainedTp(constraint,tipe).
 
   public tipeRule ::= .tipeExists(tipe,tipe)
   | .conExists(string,cons[tipe],cons[tipe],tipe)
   | .tipeLambda(tipe,tipe)
-  | .allType(tipe,typeRule).
+  | .allRle(tipe,tipeRule).
 
   public constraint ::= .conTract(string,cons[tipe],cons[tipe]) |
     .implicit(string,tipe) |
@@ -62,15 +62,12 @@ star.meta{
   showTpExp:(tipe,cons[tipe],integer) => string.
   showTpExp(.tpFun("ref",1),[R],Dp) => "ref #(shTipe(R,Dp-1))".
   showTpExp(.tpFun(Nm,Ar),A,Dp) where size(A)==Ar => "#(Nm)[#(shTipes(A,Dp-1)*)]".    
-  showTpExp(.tpExp(O,A),R,Dp) => showTpExp(deRef(O),[A,..R],Dp).
+  showTpExp(.sqTp(O,A),R,Dp) => showTpExp(O,[A,..R],Dp).
   showTpExp(Op,A,Dp) => "#(shTipe(Op,Dp-1))[#(shTipes(A,Dp-1)*)]".    
 
   shTpExp:(tipe,string,string,integer) => string.
-  shTpExp(.tpExp(T,A),Sep,R,Dp) => shTpExp(deRef(T),",","#(shTipe(A,Dp))#(Sep)#(R)",Dp).
+  shTpExp(.sqTp(T,A),Sep,R,Dp) => shTpExp(T,",","#(shTipe(A,Dp))#(Sep)#(R)",Dp).
   shTpExp(.tpFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
-  shTpExp(.kVar(Nm),Sep,R,Dp) => "#(Nm)[#(R)".
-  shTpExp(.kFun(Nm,_),Sep,R,Dp) => "#(Nm)[#(R)".
-  shTpExp(.tFun(_,_,Nm),Sep,R,Dp) => "#(Nm)[#(R)".
   shTpExp(T,Sep,R,Dp) => "#(shTipe(T,Dp))[#(R)".
 
   showAllConstraints([],Dp) => "".
@@ -80,10 +77,10 @@ star.meta{
   showMoreConstraints([],_) => "|=".
   showMoreConstraints([C,..Cs],Dp) => ", #(showConstraint(C,Dp))#(showMoreConstraints(Cs,Dp))".
 
-  showMoreQuantified(.allType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Dp))".
+  showMoreQuantified(.allTp(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreQuantified(T,Dp))".
   showMoreQuantified(T,Dp) => " ~~ #(shTipe(T,Dp))".
 
-  showMoreXQuantified(.existType(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreXQuantified(T,Dp))".
+  showMoreXQuantified(.exTp(V,T),Dp) => ", #(showBound(V,Dp))#(showMoreXQuantified(T,Dp))".
   showMoreXQuantified(T,Dp) => " ~~ #(shTipe(T,Dp))".
 
   showBound(V,Dp) => shTipe(V,Dp).
@@ -92,27 +89,30 @@ star.meta{
   showConstraint(.hasField(Tp,Fld,Fc),Dp) => "#(shTipe(Tp,Dp)) <~ {#(Fld):#(shTipe(Fc,Dp))}".
   showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) |: #(shTipe(Tp,Dp))".
 
-  showDeps([],_) => "".
-  showDeps(Els,Dp) => "->>#(shTipes(Els,Dp)*)".
-  
+  showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,Dp).
+  showConstraint(.hasField(Tp,Fld,Fc),Dp) => "#(shTipe(Tp,Dp)) <~ {#(Fld):#(shTipe(Fc,Dp))}".
+  showConstraint(.implicit(Fld,Tp),Dp) => "#(Fld) : #(shTipe(Tp,Dp))".
 
-  showConstraint(.conTract(Nm,T,D),Dp) => shContract(Nm,T,D,.false,Dp).
-  showConstraint(.hasField(Tp,Fld,Fc),Dp) =>
-    "#(shTipe(Tp,.false,Dp)) <~ {#(Fld):#(shTipe(Fc,.false,Dp))}".
-  showConstraint(.implicit(Fld,Tp),Dp) =>
-    "#(Fld) : #(shTipe(Tp,.false,Dp))".
-
-  shContract(Nm,Tps,[],Sh,Dp) => "#(Nm)[#(shTipes(Tps,Sh,Dp)*)]".
-  shContract(Nm,Tps,Dps,Sh,Dp) => "#(Nm)[#(shTipes(Tps,Sh,Dp)*)->>#(shTipes(Dps,Sh,Dp)*)]".
+  shContract(Nm,Tps,[],Dp) => "#(Nm)[#(shTipes(Tps,Dp)*)]".
+  shContract(Nm,Tps,Dps,Dp) => "#(Nm)[#(shTipes(Tps,Dp)*)->>#(shTipes(Dps,Dp)*)]".
   
   showConstrained(.constrainedTp(C,T),Dp) => "#(showConstraint(C,Dp)),#(showConstrained(T,Dp))".
-  showConstrained(T,Dp) => "|=#(shTipe(T,.false,Dp))".
+  showConstrained(T,Dp) => "|=#(shTipe(T,Dp))".
+
+  shTipeRule(.tipeExists(A,T),Dp) =>
+    "#(shTipe(A,Dp)) <~ #(shTipe(T,Dp))".
+  shTipeRule(.conExists(N,A,D,T),Dp) => "#(shContract(N,A,D,Dp)) ::= #(shTipe(T,Dp))".
+  shTipeRule(.allRle(Q,R),Dp) =>
+    "all #(showBound(Q,Dp)) #(showMoreQRule(R,Dp))".
+  shTipeRule(.tipeLambda(A,T),Dp) =>
+    "#(shTipe(A,Dp)) ~> #(shTipe(T,Dp))".
+
+  showMoreQRule(.allRle(Q,R),Dp) =>
+    ", #(showBound(Q,Dp))#(showMoreQRule(R,Dp))".
+  showMoreQRule(R,Dp) =>
+    " ~~ #(shTipeRule(R,Dp))".
 
   public contract all e ~~ mirror[e] ::= {
     hasType:(e) => tipe.
   }
 }
-
-
-
-  
