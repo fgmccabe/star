@@ -14,7 +14,7 @@ typedef struct code_seg_ {
   int32 start; // Starting pc
   int32 end; // ending pc
   segLinkPo incoming;
-  codeSegPo altLink; // Out of line exit to
+  segLinkPo altLinks; // used when there is more than one outgoing
   codeSegPo fallthrough; // Fall through to
   codeSegPo next;
   setPo defined;
@@ -34,6 +34,7 @@ typedef struct var_seg_ {
   segLinkPo uses;
 } VarSegRecord;
 
+void newOutgoing(codeSegPo root, int32 pc,codeSegPo alt);
 codeSegPo findSeg(codeSegPo root, int32 pc);
 codeSegPo splitAtPC(codeSegPo root, int32 pc);
 codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);
