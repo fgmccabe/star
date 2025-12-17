@@ -1,4 +1,5 @@
 star.compiler.mirror{
+  -- Implement a mirror interface
   import star.
 
   import star.compiler.ast.
@@ -6,32 +7,13 @@ star.compiler.mirror{
   import star.compiler.misc.
   import star.compiler.location.
   import star.compiler.macro.infra.
+  import star.compiler.wff.
   import star.meta.
 
   -- generate a mirror implementation from a type definition
 
   generateMirror:(ast,macroContext) => macroState.
 --  generateMirror(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) => .
-
-  /*
-  The type meta language
-
-    tipe ::= .voidTp |
-    .nomimal(string) |
-    .tupleTp(cons[tipe]) |
-    .funTp(cons[tipe],tipe,tipe) |
-    .prcTp(cons[tipe],tipe) |
-    .faceTp(cons[(string,tipe)]) |
-    .sqTp(tipe,tipe) |
-    .tpFun(string,integer) |
-    .allTp(string,tipe) |
-    .exTp(string,tipe) |
-    .constrainedTp(constraint,tipe).
-
-  constraint ::= .conTract(string,cons[tipe],cons[tipe]) |
-    .implicit(string,tipe) |
-    .hasType(tipe,string,tipe).
-  */
 
   reflectType:(ast)=>ast.
   reflectType(A) where (Lc,"void") ?= isName(A) => enum(Lc,"voidTp").
