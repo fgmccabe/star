@@ -18,15 +18,17 @@ static poolPo varPool = Null;
 
 static int32 segNo = 0;
 
-static void initSegs() {
-  if (segmentPool == Null) {
+static void initSegs()
+{
+  if (segmentPool == Null){
     segmentPool = newPool(sizeof(CodeSegment), 1024);
     linkPool = newPool(sizeof(SegLinkRecord), 1024);
-    varPool = newPool(sizeof(VarSegRecord), 1024);
+    varPool = newPool(sizeof(VarDescRecord), 1024);
   }
 }
 
-codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg) {
+codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg)
+{
   initSegs();
 
   codeSegPo seg = allocPool(segmentPool);
@@ -38,30 +40,21 @@ codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg) {
   seg->fallthrough = Null;
   seg->next = nextSeg;
   seg->incoming = Null;
-  seg->defined = Null;
-  seg->used = Null;
   return seg;
 }
 
-void tearDownSegs(codeSegPo root) {
-  while (root != Null) {
+void tearDownSegs(codeSegPo root)
+{
+  while (root != Null){
     codeSegPo nextSeg = root->next;
     segLinkPo link = root->incoming;
-    while (link != Null) {
+    while (link != Null){
       segLinkPo nextLink = link->next;
       freePool(linkPool, link);
       link = nextLink;
     }
-    if (root->used != Null) {
-      deleteSet(root->used);
-      root->used = Null;
-    }
-    if (root->defined != Null) {
-      deleteSet(root->defined);
-      root->defined = Null;
-    }
     link = root->altLinks;
-    while (link != Null) {
+    while (link != Null){
       segLinkPo nextLink = link->next;
       freePool(linkPool, link);
       link = nextLink;
@@ -69,31 +62,35 @@ void tearDownSegs(codeSegPo root) {
     freePool(segmentPool, root);
     root = nextSeg;
   }
-  segNo = 0;
+  segNo = -1;
 }
 
 static segLinkPo newLink(codeSegPo seg, segLinkPo rest);
-static retCode showLinks(ioPo out, char *msg, segLinkPo link);
+static retCode showLinks(ioPo out, char* msg, segLinkPo link);
+static retCode showVars(ioPo out, hashPo vars);
 
-static logical pcInSeg(codeSegPo seg, int32 pc) {
+static logical pcInSeg(codeSegPo seg, int32 pc)
+{
   return pc >= seg->start && pc < seg->end;
 }
 
-codeSegPo findSeg(codeSegPo root, int32 pc) {
-  for (codeSegPo seg = root; seg != Null; seg = seg->next) {
-    if (pcInSeg(seg, pc)) {
+codeSegPo findSeg(codeSegPo root, int32 pc)
+{
+  for (codeSegPo seg = root; seg != Null; seg = seg->next){
+    if (pcInSeg(seg, pc)){
       return seg;
     }
   }
   return Null;
 }
 
-codeSegPo splitAtPC(codeSegPo root, int32 pc) {
+codeSegPo splitAtPC(codeSegPo root, int32 pc)
+{
   codeSegPo seg = root;
   while (seg != Null && !pcInSeg(seg, pc))
     seg = seg->next;
 
-  if (seg != Null) {
+  if (seg != Null){
     if (seg->start == pc)
       return seg;
     codeSegPo newSeg = newCodeSeg(pc, seg->end, seg->next);
@@ -104,27 +101,31 @@ codeSegPo splitAtPC(codeSegPo root, int32 pc) {
   return Null; // Special case - tried to split end of code
 }
 
-codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt) {
+codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt)
+{
   codeSegPo next = splitAtPC(root, pc + 1);
-  if (next != Null) {
+  if (next != Null){
     codeSegPo curr = findSeg(root, pc);
     curr->fallthrough = next;
-    curr->altLinks = newLink(alt, curr->altLinks);
+    if (alt != Null)
+      curr->altLinks = newLink(alt, curr->altLinks);
   }
   return next;
 }
 
-segLinkPo newLink(codeSegPo seg, segLinkPo rest) {
+segLinkPo newLink(codeSegPo seg, segLinkPo rest)
+{
   segLinkPo link = allocPool(linkPool);
   link->seg = seg;
   link->next = rest;
   return link;
 }
 
-void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
+void linkIncoming(codeSegPo tgt, codeSegPo incoming)
+{
   segLinkPo link = tgt->incoming;
-  while (link != Null) {
-    if (link->seg == incoming) {
+  while (link != Null){
+    if (link->seg == incoming){
       return;
     }
     link = link->next;
@@ -133,16 +134,18 @@ void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
   tgt->incoming = newLink(incoming, tgt->incoming);
 }
 
-void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt) {
+void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt)
+{
   codeSegPo curr = findSeg(root, pc);
   curr->altLinks = newLink(alt, curr->altLinks);
 }
 
-retCode showLinks(ioPo out, char *msg, segLinkPo link) {
-  if (link != Null) {
+retCode showLinks(ioPo out, char* msg, segLinkPo link)
+{
+  if (link != Null){
     tryRet(outMsg(out,"%s: [",msg));
-    char *sep = "";
-    while (link != Null) {
+    char* sep = "";
+    while (link != Null){
       tryRet(outMsg(out,"%s%d",sep,link->seg->segNo));
       sep = ", ";
       link = link->next;
@@ -152,152 +155,186 @@ retCode showLinks(ioPo out, char *msg, segLinkPo link) {
   return Ok;
 }
 
-static retCode showSeg(ioPo out, methodPo mtd, codeSegPo seg) {
+static retCode showSeg(ioPo out, methodPo mtd, codeSegPo seg)
+{
   tryRet(outMsg(out, "seg: %d [%d -> %d]",seg->segNo, seg->start, seg->end));
 
   tryRet(showLinks(out,", incoming",seg->incoming));
   outMsg(out, "\n");
 
-  for (int32 pc = seg->start; pc < seg->end; pc++) {
+  for (int32 pc = seg->start; pc < seg->end; pc++){
     disass(out,Null, mtd, &entryPoint(mtd)[pc]);
-    outMsg(out, "\n");
-  }
-
-  if (seg->defined != Null) {
-    outMsg(out, "defined vars: ");
-    showSet(out, seg->defined);
-    outMsg(out, "\n");
-  }
-
-  if (seg->used != Null) {
-    outMsg(out, "referenced vars: ");
-    showSet(out, seg->used);
     outMsg(out, "\n");
   }
 
   tryRet(showLinks(out,"alt exits",seg->altLinks));
 
-  if (seg->fallthrough != Null) {
+  if (seg->fallthrough != Null){
     tryRet(outMsg(out,"fall through: %d",seg->fallthrough->segNo));
   }
 
   return outMsg(out, "\n%_");
 }
 
-void showSegmented(ioPo out, methodPo mtd, codeSegPo root) {
+void showSegmented(ioPo out, methodPo mtd, codeSegPo root, hashPo vars)
+{
   codeSegPo seg = root;
-  while (seg != Null) {
+  while (seg != Null){
     showSeg(out, mtd, seg);
     seg = seg->next;
   }
+  showVars(out, vars);
+  flushOut();
 }
 
-static integer varHash(void *c) {
-  varSegPo var = (varSegPo) c;
+static integer varHash(void* c)
+{
+  varSegPo var = (varSegPo)c;
   return var->varNo;
 }
 
-static comparison varComp(void *l, void *r) {
-  varSegPo v1 = (varSegPo) l;
-  varSegPo v2 = (varSegPo) r;
+static comparison varComp(void* l, void* r)
+{
+  varSegPo v1 = (varSegPo)l;
+  varSegPo v2 = (varSegPo)r;
 
   return intCompare(v1->varNo, v2->varNo);
 }
 
-hashPo newVarTable() {
+hashPo newVarTable()
+{
   return newHash(256, varHash, varComp, Null);
 }
 
-void recordVariableStart(codeSegPo root, hashPo vars, int32 varNo, VarKind kind, int32 pc) {
-  codeSegPo seg = findSeg(root, pc);
-
-  if (seg->defined == Null)
-    seg->defined = createSet(0);
-
-  addToSet(seg->defined, varNo);
-  varSegmentPo var = findVar(vars, varNo);
+void recordVariableStart(hashPo vars, int32 varNo, VarKind kind, int32 pc)
+{
+  varDescPo var = findVar(vars, varNo);
   assert(var != Null && var->start==-1);
   var->start = pc;
 }
 
-void recordVariableUse(codeSegPo root, int32 varNo, int32 pc) {
-  codeSegPo seg = findSeg(root, pc);
+void recordVariableUse(hashPo vars, int32 varNo, int32 pc)
+{
+  varDescPo var = findVar(vars, varNo);
 
-  if (seg->used == Null)
-    seg->used = createSet(0);
-  addToSet(seg->used, varNo);
+  if (var->end < pc)
+    var->end = pc;
 }
 
-varSegmentPo newVar(hashPo vars, int32 varNo, VarKind kind, int32 pc) {
-  varSegmentPo var = (varSegmentPo) allocPool(varPool);
+varDescPo newVar(hashPo vars, int32 varNo, VarKind kind, int32 pc)
+{
+  varDescPo var = (varDescPo)allocPool(varPool);
+
+  assert(kind==argument ? (varNo>=0):True);
 
   var->varNo = varNo;
   var->kind = kind;
   var->start = pc;
   var->end = -1;
-  var->uses = Null;
 
   hashPut(vars, var, var);
   return var;
 }
 
-varSegmentPo findVar(hashPo vars, int32 varNo) {
-  VarSegRecord nme = {.varNo = varNo};
+varDescPo findVar(hashPo vars, int32 varNo)
+{
+  VarDescRecord nme = {.varNo = varNo};
   return hashGet(vars, &nme);
 }
 
-varSegmentPo newArgVar(hashPo vars, int32 varNo) {
+varDescPo newArgVar(hashPo vars, int32 varNo)
+{
   return newVar(vars, varNo, argument, 0);
 }
 
-varSegmentPo newLocalVar(hashPo vars, int32 varNo) {
-  return newVar(vars, varNo, argument, -1);
+varDescPo newLocalVar(hashPo vars, int32 varNo)
+{
+  return newVar(vars, varNo, local, -1);
 }
 
-varSegmentPo newStackVar(scopePo scope, hashPo vars, int32 pc) {
-  int stackVarNo = (int32) hashSize(vars);
+varDescPo newStackVar(scopePo scope, hashPo vars, int32 pc)
+{
+  int stackVarNo = (int32)hashSize(vars);
 
-  varSegmentPo var = newVar(vars, stackVarNo, stack, pc + 1);
-  var->next = scope->stack;
+  varDescPo var = newVar(vars, stackVarNo, stack, pc + 1);
+  var->stackLink = scope->stack;
   scope->stack = var;
   return var;
 }
 
-void retireStackVar(scopePo scope, int32 pc) {
-  varSegmentPo var = scope->stack;
+void retireStackVar(scopePo scope, int32 pc)
+{
+  varDescPo var = scope->stack;
 
   assert(var!=Null);
 
   var->end = pc + 1;
-  scope->stack = var->next;
+  scope->stack = var->stackLink;
 }
 
-static varSegmentPo rotateStack(varSegmentPo stack, varSegmentPo bottom, int32 depth) {
-  if (depth == 0) {
-    bottom->next = stack;
+void retireScopeStack(scopePo scope, int32 pc)
+{
+  while (scope->stack != Null){
+    retireStackVar(scope, pc);
+  }
+}
+
+static varDescPo rotateStack(varDescPo stack, varDescPo bottom, int32 depth)
+{
+  if (depth == 0){
+    bottom->stackLink = stack;
     return bottom;
-  } else {
-    stack->next = rotateStack(stack->next, bottom, depth - 1);
+  }
+  else{
+    stack->stackLink = rotateStack(stack->stackLink, bottom, depth - 1);
     return stack;
   }
 }
 
-void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
+void rotateStackVars(scopePo scope, int32 pc, int32 depth)
+{
   assert(depth<=stackDepth(scope));
 
-  if (depth > 0) {
-    varSegmentPo var = scope->stack;
-    scope->stack = rotateStack(var->next, var, depth - 1);
+  if (depth > 0){
+    varDescPo var = scope->stack;
+    scope->stack = rotateStack(var->stackLink, var, depth - 1);
   }
 }
 
-int32 stackDepth(scopePo scope) {
+static char* varType(VarKind kind)
+{
+  switch (kind){
+  case argument:
+    return "argument";
+  case local:
+    return "local";
+  case stack:
+    return "stack";
+  }
+}
+
+static retCode showVar(void* n, void* r, void* c)
+{
+  varDescPo var = (varDescPo)r;
+  ioPo out = (ioPo)c;
+
+  outMsg(out, "%d: %s [%d .. %d]\n", var->varNo, varType(var->kind), var->start, var->end);
+  return Ok;
+}
+
+retCode showVars(ioPo out, hashPo vars)
+{
+  return processHashTable(showVar, vars, (void*)out);
+}
+
+int32 stackDepth(scopePo scope)
+{
   int32 count = 0;
-  while (scope != Null) {
-    varSegmentPo top = scope->stack;
-    while (top != Null) {
+  while (scope != Null){
+    varDescPo top = scope->stack;
+    while (top != Null){
       count++;
-      top = top->next;
+      top = top->stackLink;
     }
     scope = scope->parent;
   }

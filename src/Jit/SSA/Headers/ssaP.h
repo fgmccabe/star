@@ -17,8 +17,6 @@ typedef struct code_seg_ {
   segLinkPo altLinks; // used when there is more than one outgoing
   codeSegPo fallthrough; // Fall through to
   codeSegPo next;
-  setPo defined;
-  setPo used;
 } CodeSegment;
 
 typedef struct seg_link_ {
@@ -26,25 +24,23 @@ typedef struct seg_link_ {
   segLinkPo next;
 } SegLinkRecord, *segLinkPo;
 
-typedef struct var_seg_ *varSegmentPo;
+typedef struct var_description_ *varDescPo;
 
-typedef struct var_seg_ {
+typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
   VarKind kind;
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
-  segLinkPo uses;
-  varSegmentPo next;
-} VarSegRecord;
+  varDescPo stackLink;
+} VarDescRecord;
 
 typedef struct block_scope_ *scopePo;
 
 typedef struct block_scope_ {
   int32 start;
   int32 limit;
-  int32 next;
   scopePo parent;
-  varSegmentPo stack;
+  varDescPo stack;
 } ScopeBlock;
 
 void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt);
@@ -57,16 +53,16 @@ codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
 void linkIncoming(codeSegPo tgt, codeSegPo incoming);
 
 hashPo newVarTable();
-void recordVariableStart(codeSegPo root, hashPo vars, int32 varNo, VarKind kind, int32 pc);
-void recordVariableUse(codeSegPo root, int32 varNo, int32 pc);
+void recordVariableStart(hashPo vars, int32 varNo, VarKind kind, int32 pc);
+void recordVariableUse(hashPo vars, int32 varNo, int32 pc);
 
-varSegmentPo newStackVar(scopePo scope, hashPo vars, int32 pc);
-varSegmentPo newLocalVar(hashPo vars, int32 varNo);
-varSegmentPo newArgVar(hashPo vars, int32 varNo);
-varSegmentPo findVar(hashPo vars, int32 varNo);
-
+varDescPo newStackVar(scopePo scope, hashPo vars, int32 pc);
+varDescPo newLocalVar(hashPo vars, int32 varNo);
+varDescPo newArgVar(hashPo vars, int32 varNo);
+varDescPo findVar(hashPo vars, int32 varNo);
 
 void retireStackVar(scopePo scope, int32 pc);
+void retireScopeStack(scopePo scope, int32 pc);
 void rotateStackVars(scopePo scope, int32 pc, int32 depth);
 int32 stackDepth(scopePo scope);
 
