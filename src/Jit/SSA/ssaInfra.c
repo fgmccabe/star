@@ -73,7 +73,7 @@ void tearDownSegs(codeSegPo root) {
 }
 
 static segLinkPo newLink(codeSegPo seg, segLinkPo rest);
-static retCode showLinks(ioPo out,char *msg,segLinkPo link);
+static retCode showLinks(ioPo out, char *msg, segLinkPo link);
 
 static logical pcInSeg(codeSegPo seg, int32 pc) {
   return pc >= seg->start && pc < seg->end;
@@ -109,13 +109,13 @@ codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt) {
   if (next != Null) {
     codeSegPo curr = findSeg(root, pc);
     curr->fallthrough = next;
-    curr->altLinks = newLink(alt,curr->altLinks);
+    curr->altLinks = newLink(alt, curr->altLinks);
   }
   return next;
 }
 
-segLinkPo newLink(codeSegPo seg, segLinkPo rest){
-  link = allocPool(linkPool);
+segLinkPo newLink(codeSegPo seg, segLinkPo rest) {
+  segLinkPo link = allocPool(linkPool);
   link->seg = seg;
   link->next = rest;
   return link;
@@ -130,16 +130,16 @@ void linkIncoming(codeSegPo tgt, codeSegPo incoming) {
     link = link->next;
   }
 
-  tgt->incoming = newLink(incoming,tgt->incoming);
+  tgt->incoming = newLink(incoming, tgt->incoming);
 }
 
-void newOutgoing(codeSegPo root, int32 pc,codeSegPo alt){
-  codeSegPo curr = findSeg(root,pc);
-  curr->altLinks = newLink(alt,curr->altLinks);
+void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt) {
+  codeSegPo curr = findSeg(root, pc);
+  curr->altLinks = newLink(alt, curr->altLinks);
 }
 
-retCode showLinks(ioPo out,char *msg,segLinkPo link){
-  if(link!=Null){
+retCode showLinks(ioPo out, char *msg, segLinkPo link) {
+  if (link != Null) {
     tryRet(outMsg(out,"%s: [",msg));
     char *sep = "";
     while (link != Null) {
@@ -199,7 +199,7 @@ static integer varHash(void *c) {
 
 static comparison varComp(void *l, void *r) {
   varSegPo v1 = (varSegPo) l;
-  varSegPo v2 = (varSegPo) 2;
+  varSegPo v2 = (varSegPo) r;
 
   return intCompare(v1->varNo, v2->varNo);
 }
@@ -208,13 +208,16 @@ hashPo newVarTable() {
   return newHash(256, varHash, varComp, Null);
 }
 
-void recordNewVariable(codeSegPo root, int32 varNo, VarKind kind, int32 pc) {
+void recordVariableStart(codeSegPo root, hashPo vars, int32 varNo, VarKind kind, int32 pc) {
   codeSegPo seg = findSeg(root, pc);
 
   if (seg->defined == Null)
     seg->defined = createSet(0);
 
   addToSet(seg->defined, varNo);
+  varSegmentPo var = findVar(vars, varNo);
+  assert(var != Null && var->start==-1);
+  var->start = pc;
 }
 
 void recordVariableUse(codeSegPo root, int32 varNo, int32 pc) {
@@ -222,6 +225,81 @@ void recordVariableUse(codeSegPo root, int32 varNo, int32 pc) {
 
   if (seg->used == Null)
     seg->used = createSet(0);
-
   addToSet(seg->used, varNo);
+}
+
+varSegmentPo newVar(hashPo vars, int32 varNo, VarKind kind, int32 pc) {
+  varSegmentPo var = (varSegmentPo) allocPool(varPool);
+
+  var->varNo = varNo;
+  var->kind = kind;
+  var->start = pc;
+  var->end = -1;
+  var->uses = Null;
+
+  hashPut(vars, var, var);
+  return var;
+}
+
+varSegmentPo findVar(hashPo vars, int32 varNo) {
+  VarSegRecord nme = {.varNo = varNo};
+  return hashGet(vars, &nme);
+}
+
+varSegmentPo newArgVar(hashPo vars, int32 varNo) {
+  return newVar(vars, varNo, argument, 0);
+}
+
+varSegmentPo newLocalVar(hashPo vars, int32 varNo) {
+  return newVar(vars, varNo, argument, -1);
+}
+
+varSegmentPo newStackVar(scopePo scope, hashPo vars, int32 pc) {
+  int stackVarNo = (int32) hashSize(vars);
+
+  varSegmentPo var = newVar(vars, stackVarNo, stack, pc + 1);
+  var->next = scope->stack;
+  scope->stack = var;
+  return var;
+}
+
+void retireStackVar(scopePo scope, int32 pc) {
+  varSegmentPo var = scope->stack;
+
+  assert(var!=Null);
+
+  var->end = pc + 1;
+  scope->stack = var->next;
+}
+
+static varSegmentPo rotateStack(varSegmentPo stack, varSegmentPo bottom, int32 depth) {
+  if (depth == 0) {
+    bottom->next = stack;
+    return bottom;
+  } else {
+    stack->next = rotateStack(stack->next, bottom, depth - 1);
+    return stack;
+  }
+}
+
+void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
+  assert(depth<=stackDepth(scope));
+
+  if (depth > 0) {
+    varSegmentPo var = scope->stack;
+    scope->stack = rotateStack(var->next, var, depth - 1);
+  }
+}
+
+int32 stackDepth(scopePo scope) {
+  int32 count = 0;
+  while (scope != Null) {
+    varSegmentPo top = scope->stack;
+    while (top != Null) {
+      count++;
+      top = top->next;
+    }
+    scope = scope->parent;
+  }
+  return count;
 }
