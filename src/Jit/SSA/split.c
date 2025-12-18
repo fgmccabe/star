@@ -51,11 +51,25 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         splitNextPC(root, pc, Null);
         continue;
       }
-      case Call:
+      case Call:{
+        labelPo fn = C_LBL(getConstant(code[pc].fst));
+	int32 arity = lblArity(fn);
+
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
+      }
       case XCall: {
         codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
+
+        labelPo fn = C_LBL(getConstant(code[pc].fst));
+	int32 arity = lblArity(fn);
+
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
       }
 
@@ -63,11 +77,20 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         splitNextPC(root, pc, Null);
         continue;
       }
-      case OCall:
+      case OCall:{
+	int32 arity = code[pc].fst;
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
+      }
       case XOCall: {
         codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
+	int32 arity = code[pc].fst;
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
       }
       case TOCall: {
@@ -75,11 +98,28 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       }
       case Escape: {
+        int32 escNo = PC->fst; /* escape number */
+        escapePo esc = getEscape(escNo);
+	int32 arity = escapeArity(esc);
+
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+	
         continue;
       }
       case XEscape: {
         codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
+
+        int32 escNo = PC->fst; /* escape number */
+        escapePo esc = getEscape(escNo);
+	int32 arity = escapeArity(esc);
+
+	for(int32 ax = 0; ax<arity; ax++)
+	  retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+	
         continue;
       }
       case Entry: {
@@ -111,49 +151,111 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
         continue;
       }
       case Drop:
+	retireStackVar(&scope,pc);
+	continue;
       case Dup:
-      case Rot:
-      case Rst:
-      case Fiber:
+	newStackVariable(&scope,pc);
+	continue;
+      case Rot:{
+	int32 depth = code[pc].fst;
+
+	if (depth > 0)
+	  rotateStackVars(&scope,depth);
+
+	continue;
+      }
+      case Rst:{
+        int32 depth = code[pc].fst;
+	while(scopeDepth(&scope)>depth)
+	  retireStackVar(&scope,pc);
+	continue;
+      }      
+      case Fiber:{
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+	continue;
+      }	
       case Resume:
-      case Suspend:
+      case Suspend:{
+	retireStackVar(&scope,pc);
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+	continue;
+      }
       case Retire:
         continue;
       case Underflow:
         return Error;
       case LdV:
       case LdC:
+	newStackVariable(&scope,pc);
         continue;
       case LdA:
         recordVariableUse(root, ins->fst, pc);
+	newStackVariable(&scope,pc);
         continue;
       case LdL:
         recordVariableUse(root, -ins->fst, pc);
+	newStackVariable(&scope,pc);
         continue;
       case StL:
-      case StV:
+	retireStackVar(&scope,pc);
+        recordVariableStart(root, -ins->fst, pc);
+	continue;
       case TL:
-        recordNewVariable(root, -code[pc].fst, local, pc + 1);
+	retireStackVar(&scope,pc);
+        recordVariableStart(root, -code[pc].fst, local, pc + 1);
+        continue;
+      case StV:
+        recordVariableStart(root, -code[pc].fst, local, pc + 1);
         continue;
       case LdG:
         splitNextPC(root, pc, Null);
+	newStackVariable(&scope,pc);
         continue;
       case StG:
+	retireStackVar(&scope,pc);
+	continue;
       case TG:
+	continue;
       case Sav:
+	newStackVariable(&scope,pc);
+	continue;
       case TstSav:
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
       case LdSav: {
         codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
         continue;
       }
-      case StSav:
-      case TSav:
-      case Cell:
-      case Get:
-      case Assign:
+      case StSav:{
+	retireStackVar(&scope,pc);
+	retireStackVar(&scope,pc);
         continue;
+      }
+      case TSav:{
+	retireStackVar(&scope,pc);
+        continue;
+      }
+      case Cell:{
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+        continue;
+      }	
+      case Get:{
+	retireStackVar(&scope,pc);
+	newStackVariable(&scope,pc);
+        continue;
+      }	
+      case Assign:{
+	retireStackVar(&scope,pc);
+	retireStackVar(&scope,pc);
+        continue;
+      }
       case CLit:
       case CInt:
       case CFlt:
@@ -161,6 +263,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, insPo code, int32 start, int3
       case CLbl: {
         codeSegPo alt = checkBreak(&scope, root, pc, pc + code[pc].alt + 1);
         splitNextPC(root, pc, alt);
+	retireStackVar(&scope,pc);
         continue;
       }
       case Nth:
