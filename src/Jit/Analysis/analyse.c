@@ -3,8 +3,8 @@
 //
 
 #include "code.h"
-#include "ssa.h"
-#include "ssaP.h"
+#include "analyse.h"
+#include "analyseP.h"
 #include "opcodes.h"
 #include "codeP.h"
 #include "array.h"

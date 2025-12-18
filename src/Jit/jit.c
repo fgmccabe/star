@@ -6,7 +6,7 @@
 #include "codeP.h"
 #include "debug.h"
 #include "jitP.h"
-#include "ssaP.h"
+#include "analyseP.h"
 
 logical jitOnLoad = True;
 

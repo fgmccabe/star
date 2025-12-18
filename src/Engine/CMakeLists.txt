@@ -3,7 +3,7 @@ project(star)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers" "../Jit/Headers"
-        "../Jit/SSA/Headers")
+        "../Jit/Analysis/Headers")
 add_subdirectory("EngineTests")
 
 set(HEADER_FILES

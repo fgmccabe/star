@@ -12,12 +12,11 @@ include_directories("./Headers"
         "../../Infra/Headers")
 
 set(HEADER_FILES
-        Headers/ssa.h
-        Headers/ssaP.h
-        Headers/ssaInstructions.h
-        )
+        Headers/analyse.h
+        Headers/analyseP.h
+)
 
-set(SSA_SOURCE_FILES split.c ssaInfra.c)
+set(SSA_SOURCE_FILES analyse.c infra.c)
 
 add_library(ssa STATIC ${SSA_SOURCE_FILES})
 
