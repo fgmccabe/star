@@ -10,6 +10,7 @@ typedef struct set_record_ *setPo;
 
 typedef retCode (*setElProc)(setPo s, int32 el, void *cl);
 
+setPo newSet();
 setPo createSet(int32 min);
 void deleteSet(setPo s);
 
