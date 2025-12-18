@@ -11,7 +11,7 @@
 
 typedef struct code_seg_ *codeSegPo;
 typedef struct seg_link_ *segLinkPo;
-typedef struct var_seg_ *varSegPo;
+typedef struct var_description_ *varSegPo;
 
 extern tracingLevel traceSSA;
 
@@ -19,7 +19,7 @@ extern logical enableSSA;
 
 codeSegPo segmentMethod(methodPo mtd);
 void tearDownSegs(codeSegPo segs);
-void showSegmented(ioPo out, methodPo mtd, codeSegPo root);
+void showSegmented(ioPo out, methodPo mtd, codeSegPo root, hashPo vars);
 
 typedef enum {
   argument,
