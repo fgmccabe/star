@@ -14,6 +14,10 @@ static void initSets() {
   }
 }
 
+setPo newSet(){
+  return createSet(0);
+}
+
 setPo createSet(int32 min) {
   initSets();
 

@@ -9,6 +9,7 @@
 #include "codeP.h"
 #include "array.h"
 #include "hash.h"
+#include "set.h"
 #include "constants.h"
 
 #ifdef TRACEJIT
@@ -27,7 +28,7 @@ static codeSegPo checkBreak(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 static codeSegPo checkLoop(scopePo scope, codeSegPo root, int32 pc, int32 tgt);
 static logical isLastPC(scopePo scope, int32 pc);
 
-retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int32 start, int32 pc, int32 limit)
+retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, setPo safes, insPo code, int32 start, int32 pc, int32 limit)
 {
   ScopeBlock scope = {
     .start = start, .limit = limit, .parent = parent, .stack = Null
@@ -51,6 +52,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case XCall: {
@@ -63,6 +65,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
 
@@ -76,6 +79,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case XOCall: {
@@ -85,6 +89,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case TOCall: {
@@ -100,7 +105,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
-
+      addToSet(safes,pc);
       continue;
     }
     case XEscape: {
@@ -114,7 +119,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
-
+      addToSet(safes,pc);
       continue;
     }
     case Entry: {
@@ -134,8 +139,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
     case Valof: {
       int32 blockLen = code[pc].alt;
 
-      ret = splitBlock(&scope, root, vars, code, pc, pc + 1,
-                       pc + blockLen + 1);
+      ret = splitBlock(&scope, root, vars, safes, code, pc, pc + 1, pc + blockLen + 1);
       pc += blockLen;
       continue;
     }
@@ -178,6 +182,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
     case Fiber: {
       retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Resume:
@@ -185,12 +190,14 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       retireStackVar(&scope, pc);
       retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Retire: {
       retireStackVar(&scope, pc);
       retireStackVar(&scope, pc);
       retireScopeStack(&scope, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Underflow:
@@ -221,6 +228,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
     case LdG:
       splitNextPC(root, pc, Null);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     case StG:
       retireStackVar(&scope, pc);
@@ -229,6 +237,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       continue;
     case Sav:
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     case TstSav:
       retireStackVar(&scope, pc);
@@ -253,6 +262,7 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
     case Cell: {
       retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Get: {
@@ -398,11 +408,13 @@ retCode splitBlock(scopePo parent, codeSegPo root, hashPo vars, insPo code, int3
       for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Closure: {
       retireStackVar(&scope, pc);
       newStackVar(&scope, vars, pc);
+      addToSet(safes,pc);
       continue;
     }
     case Frame:
@@ -455,13 +467,15 @@ codeSegPo segmentMethod(methodPo mtd)
 {
   codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
   hashPo vars = newVarTable();
+  setPo safes = newSet();
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++){
     newArgVar(vars, ax);
   }
 
-  if (splitBlock(Null, root, vars, entryPoint(mtd), 0, 0, codeSize(mtd)) == Ok){
+  if (splitBlock(Null, root, vars, safes, entryPoint(mtd), 0, 0, codeSize(mtd)) == Ok){
     showSegmented(logFile, mtd, root, vars);
+    showSet(logFile,safes);
     return root;
   }
   logMsg(logFile, "Could not segment code for %M", mtd);
