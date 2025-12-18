@@ -5,7 +5,7 @@
 #ifndef STAR_SSA_P_H
 #define STAR_SSA_P_H
 
-#include "ssa.h"
+#include "analyse.h"
 #include "code.h"
 #include "set.h"
 

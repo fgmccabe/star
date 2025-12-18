@@ -9,7 +9,7 @@ endif ()
 
 add_subdirectory(${JIT_ARCH})
 add_subdirectory(Tests)
-add_subdirectory(SSA)
+add_subdirectory(Analysis)
 
 include_directories("./Headers"
         "../Headers"
@@ -17,7 +17,7 @@ include_directories("./Headers"
         "../Escapes/Headers"
         "../Engine/Headers"
         "../Infra/Headers"
-        "SSA/Headers"
+        "Analysis/Headers"
         "${JIT_ARCH}/Headers"
         "${JIT_ARCH}/Assem/Headers")
 

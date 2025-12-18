@@ -17,7 +17,7 @@
 #include "debugP.h"
 #include "engineP.h"
 #include "buddyP.h"
-#include "ssaP.h"
+#include "analyseP.h"
 
 char CWD[MAXFILELEN] = "";
 char rootCap[MAXFILELEN] = "/";
