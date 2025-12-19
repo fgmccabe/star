@@ -24,8 +24,6 @@ typedef struct seg_link_ {
   segLinkPo next;
 } SegLinkRecord, *segLinkPo;
 
-typedef struct var_description_ *varDescPo;
-
 typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
   VarKind kind;

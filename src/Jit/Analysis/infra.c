@@ -43,8 +43,9 @@ codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg)
   return seg;
 }
 
-void tearDownSegs(codeSegPo root)
+void tearDownAnalysis(AnalysisRecord *results)
 {
+  codeSegPo root = results->segments;
   while (root != Null){
     codeSegPo nextSeg = root->next;
     segLinkPo link = root->incoming;
@@ -63,6 +64,8 @@ void tearDownSegs(codeSegPo root)
     root = nextSeg;
   }
   segNo = -1;
+  deleteSet(results->safes);
+  eraseHash(results->vars);
 }
 
 static segLinkPo newLink(codeSegPo seg, segLinkPo rest);
@@ -189,21 +192,27 @@ void showSegmented(ioPo out, methodPo mtd, codeSegPo root, hashPo vars)
 
 static integer varHash(void* c)
 {
-  varSegPo var = (varSegPo)c;
+  varDescPo var = (varDescPo)c;
   return var->varNo;
 }
 
 static comparison varComp(void* l, void* r)
 {
-  varSegPo v1 = (varSegPo)l;
-  varSegPo v2 = (varSegPo)r;
+  varDescPo v1 = (varDescPo)l;
+  varDescPo v2 = (varDescPo)r;
 
   return intCompare(v1->varNo, v2->varNo);
 }
 
+static retCode freeVarRecord(void *r, void *cl)
+{
+  freePool(varPool, (varDescPo)r);
+  return Ok;
+}
+
 hashPo newVarTable()
 {
-  return newHash(256, varHash, varComp, Null);
+  return newHash(256, varHash, varComp, freeVarRecord);
 }
 
 void recordVariableStart(hashPo vars, int32 varNo, VarKind kind, int32 pc)
