@@ -137,13 +137,13 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // Stop execution
         armReg a1 = popValue(stack, jit);
         return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, RG(a1));
-        releaseReg(jit,a1);
+        releaseReg(jit, a1);
       }
       case Abort: {
         // abort with message
         armReg val = popValue(stack, jit);
         armReg loc = findFreeReg(jit);
-        loadConstant(jit,code[pc].fst, loc);
+        loadConstant(jit, code[pc].fst, loc);
         stash(block);
         ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) abort_star, 3, RG(PR), RG(loc), RG(val));
         releaseReg(jit, val);
