@@ -39,7 +39,7 @@ test.ac6{
     timer := timer_start(Count, "Creating red/black tree");
     rb_list = ref rbiota(0,Count);
     timer_finish(timer!);
-    showMsg("red/black tree: $(rb_list!)");
+--    showMsg("red/black tree: $(rb_list!)");
 
     timer := timer_start(Count, "Iterating over all elements in red/black list");
     for i->_ in rb_list! do {

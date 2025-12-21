@@ -7,7 +7,6 @@ test.ar{
     plus:(a,a)=>a.
     minus:(a,a)=>a.
     times:(a,a)=>a.
-    div:(a,a)=>a.
     zer:a.
     unum:a.
   }
@@ -20,7 +19,6 @@ test.ar{
     plus(X,Y) => _int_plus(X,Y).
     minus(X,Y) => _int_minus(X,Y).
     times(X,Y) => _int_times(X,Y).
-    div(X,Y) => (try _int_div(X,Y) catch {_ => 0}).
     zer = 0.
     unum = 1.
   }.
@@ -33,7 +31,6 @@ test.ar{
     plus(X,Y) => _flt_plus(X,Y).
     minus(X,Y) => _flt_minus(X,Y).
     times(X,Y) => _flt_times(X,Y).
-    div(X,Y) => (try _flt_div(X,Y) catch {_ => 0.0}).
     zer = 0.0.
     unum = 1.0.
   }.
@@ -58,7 +55,7 @@ test.ar{
   ft(X) where eqq(X,zer) =>unum.
   ft(N) => times(N,ft(minus(N,unum))).
 
---  sample = times(plus(2,3),unum).
+ sample = times(plus(2,3),unum).
 
   public main:(){}.
   main(){
