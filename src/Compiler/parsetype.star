@@ -530,7 +530,6 @@ star.compiler.typeparse{
 
     (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
 
-
     TDef = .typeDef(Lc,Nm,Tmplte,TpRl);
     TDec = .tpeDec(Lc,Nm,Tmplte,TpRl,Index);
 
@@ -776,15 +775,13 @@ star.compiler.typeparse{
 
   buildAccessors:(tipes,ast,tipes,cons[constraint],tipe,string)=>(cons[canonDef],cons[decl]).
   buildAccessors(Fields,B,Q,Cx,RcTp,Path) => let{.
-    -- TODO: make result optional
-    
     makeAccessor:(string,tipe,ast)=> (cons[canonDef],cons[decl]).
     makeAccessor(Fld,FldTp,B) => valof{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
       AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funcType([RcTp],FTp))));
       Lc = locOf(B);
---      DefltEqn = .eqn(Lc,[.anon(Lc,RcTp)],.none,.enm(Lc,"none",optType(FldTp)));
-      AcEqs = accessorEqns(B,Fld,FTp,[/*DefltEqn*/]);
+
+      AcEqs = accessorEqns(B,Fld,FTp,[]);
 
       if isEmpty(AcEqs) then
 	reportWarning("no accessor for $(Fld)",locOf(B));
@@ -805,12 +802,23 @@ star.compiler.typeparse{
       accessorEqns(R,Fld,FldTp,SoFar).
     accessorEqns(TB,Fld,FldTp,SoFar) where (Lc,CN,Els)?=isBrTerm(TB) && (_,CnNm)?=isName(CN) && isFieldOfFc(Els,Fld) => valof{
       Sorted = sort(Els,compEls);
-      XX = .vr(Lc,"X",FldTp);
-      ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
+
+      Eqn = valof{
+	-- if Ix ?= accessorIndex(Sorted,0,Fld) then{
+	--   Rc = .vr(Lc,"R",RcTp);
+	--   valis .eqn(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FldTp))
+	-- } else{
+	  XX = .vr(Lc,"X",FldTp);
+	  ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
+	  valis .eqn(Lc,[
+	      .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)],
+	    .none,XX);
+	-- }
+      };
+
+      if traceCanon! then
+	showMsg("accessor equation: $(Eqn)");
       
-      Eqn = .eqn(Lc,[
-	    .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)],
-	.none,XX);
       valis [Eqn,..SoFar]
     }.
     accessorEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>
@@ -875,6 +883,10 @@ star.compiler.typeparse{
     [Fn(Lc,Ix,Tp),..projectArgTypes(As,Ix+1,Fn,X,F,Fs)].
   projectArgTypes([_,..As],Ix,Fn,X,F,Fs) => projectArgTypes(As,Ix,Fn,X,F,Fs).
 
+  accessorIndex:(cons[ast],integer,string) => option[integer].
+  accessorIndex([],Ix,_) => .none.
+  accessorIndex([A,..As],Ix,Fld) where (Lc,Fld,_) ?= isTypeDecl(A) => .some(Ix).
+  accessorIndex([_,..As],Ix,Fld) => accessorIndex(As,Ix+1,Fld).
 
   pickFldTp(Id,Tps) => {! Tp | (Id,Tp) in Tps !}.
 
