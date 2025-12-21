@@ -7,7 +7,7 @@
 
 #include "analyse.h"
 #include "code.h"
-#include "set.h"
+#include "engineOptions.h"
 
 typedef struct code_seg_ {
   int32 segNo;
@@ -29,7 +29,7 @@ typedef struct var_description_ {
   VarKind kind;
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
-  varDescPo stackLink;
+  varDescPo link;
 } VarDescRecord;
 
 typedef struct block_scope_ *scopePo;
@@ -39,25 +39,33 @@ typedef struct block_scope_ {
   int32 limit;
   scopePo parent;
   varDescPo stack;
+  varDescPo phiVar;
 } ScopeBlock;
 
 void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt);
 codeSegPo findSeg(codeSegPo root, int32 pc);
 codeSegPo splitAtPC(codeSegPo root, int32 pc);
-codeSegPo splitNextPC(codeSegPo root, int32 pc, codeSegPo alt);
+codeSegPo splitNextPC(analysisPo analysis, int32 pc, codeSegPo alt);
 
 codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
 
 void linkIncoming(codeSegPo tgt, codeSegPo incoming);
 
 hashPo newVarTable();
-void recordVariableStart(hashPo vars, int32 varNo, VarKind kind, int32 pc);
-void recordVariableUse(hashPo vars, int32 varNo, int32 pc);
+hashPo newVarIndex();
+void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc);
+void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
 
-varDescPo newStackVar(scopePo scope, hashPo vars, int32 pc);
-varDescPo newLocalVar(hashPo vars, int32 varNo);
-varDescPo newArgVar(hashPo vars, int32 varNo);
-varDescPo findVar(hashPo vars, int32 varNo);
+varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
+varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);
+void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt);
+varDescPo newLocalVar(analysisPo analysis, int32 varNo);
+varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
+varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);
+
+#ifdef TRACEJIT
+void checkIndex(ioPo out, hashPo index);
+#endif
 
 void retireStackVar(scopePo scope, int32 pc);
 void retireScopeStack(scopePo scope, int32 pc);

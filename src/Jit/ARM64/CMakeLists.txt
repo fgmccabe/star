@@ -12,13 +12,14 @@ include_directories("Headers"
         "../../Infra/Headers"
         "../../Escapes/Headers"
         "../../Headers"
+        "../Analysis/Headers"
         "Common/Headers"
         "Assem/Headers")
 
 set(HEADER_FILES
-        arm64.h
-        arm64P.h
-        assem.h
+        Assem/Headers/arm64.h
+        Assem/Headers/arm64P.h
+        Assem/Headers/assem.h
         Headers/lower.h
         Headers/lowerP.h
         ../../Util/Headers/array.h
@@ -26,6 +27,7 @@ set(HEADER_FILES
         Assem/Headers/assem_encode.h
         Headers/macros.h
         ../Headers/infra.h
+        ../Analysis/Headers/analyse.h
 )
 
 set(SOURCE_FILES
@@ -36,7 +38,7 @@ set(SOURCE_FILES
         shuffle.c
         Headers/shuffle.h)
 
-add_library(ARM64 STATIC ${SOURCE_FILES})
-target_link_libraries(ARM64 assem)
+add_library(ARM64 STATIC ${SOURCE_FILES} ${HEADER_FILES})
+target_link_libraries(ARM64 assem ssa)
 
 

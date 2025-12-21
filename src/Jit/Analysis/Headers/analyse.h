@@ -22,19 +22,21 @@ extern logical enableSSA;
 typedef struct analysis_ {
   codeSegPo segments;
   hashPo vars;
+  hashPo index;
   setPo safes;
-} AnalysisRecord;
+} AnalysisRecord, *analysisPo;
 
-AnalysisRecord* analyseMethod(methodPo mtd, AnalysisRecord* results);
-void tearDownAnalysis(AnalysisRecord *results);
+analysisPo analyseMethod(methodPo mtd, analysisPo results);
+void tearDownAnalysis(analysisPo results);
 
 void tearDownSegs(codeSegPo segs);
-void showSegmented(ioPo out, methodPo mtd, codeSegPo root, hashPo vars);
+void showSegmented(ioPo out, methodPo mtd, codeSegPo root);
 
 typedef enum {
   argument,
   local,
-  stack
+  stack,
+  phi
 } VarKind;
 
 #endif
