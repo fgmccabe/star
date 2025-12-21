@@ -194,7 +194,7 @@ codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx = ctx, .lbl = lbl};
   if (lbl->refs != Null) {
-    processArrayElements(lbl->refs, updateLblEntry, &info);
+    processArray(lbl->refs, updateLblEntry, &info);
     lbl->refs = eraseArray(lbl->refs, NULL, NULL);
   }
   return lbl;
