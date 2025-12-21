@@ -100,6 +100,13 @@ star.compiler.term{
     | .lblDef(_Lc,Lbl,Tp,Ix) => "lb: $(Lbl)\:$(Tp)@$(Ix)"
   }
 
+  public defName:(cDefn)=>string.
+  defName(.fnDef(_Lc,Nm,_Tp,_Args,_Rep)) => "Fn: #(Nm)".
+  defName(.prDef(_Lc,Nm,_Tp,_Args,_Act)) => "Pr: #(Nm)".
+  defName(.glDef(_Lc,Nm,_Tp,_Rep)) => "Gb: #(Nm)".
+  defName(.tpDef(_Lc,Tp,_Rl,_Map)) => "Tp: #(tpName(Tp))".
+  defName(.lblDef(_Lc,Nm,_Tp,_Ix)) => "Lb: $(Nm)".
+
   dspExp:(cExp,string) => string.
   dspExp(Exp,Off) => case Exp in {
     | .cVoid(_) => "void"

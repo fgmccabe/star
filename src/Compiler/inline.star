@@ -37,7 +37,9 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
-    .fnDef(Lc,Nm,Tp,Args,simplifyExp(FnBody,Map[~.varSp(Nm)],10)).
+    .fnDef(Lc,Nm,Tp,Args,trace simplifyExp(trace FnBody,Map[~.varSp(Nm)],10)).
+  simplifyDefn(.prDef(Lc,Nm,Tp,Args,Act),Map) =>
+    .prDef(Lc,Nm,Tp,Args,trace simplifyAct(trace Act,Map[~.varSp(Nm)],10)).
   simplifyDefn(.glDef(Lc,Nm,Tp,GVal),Map) =>
     .glDef(Lc,Nm,Tp,simplifyExp(GVal,Map,4)).
   simplifyDefn(D,_) default => D.
@@ -97,7 +99,10 @@ star.compiler.inline{
     | .cCall(Lc,Nm,Args,Tp) where isEscape(Nm) =>
       inlineECall(Lc,Nm,Args//(A)=>simplifyExp(A,Map,Depth),Tp,Depth)
     | .cCall(Lc,Fn,Args,Tp) => inlineCall(Lc,Fn,Args,Tp,Map,Depth)
+    | .cXCall(Lc,Fn,Args,Tp,ErTp) => inlineXCall(Lc,Fn,Args,Tp,ErTp,Map,Depth)
     | .cOCall(Lc,Op,Args,Tp) => inlineOCall(Lc,simExp(Op,Map,Depth),Args,Tp,Map,Depth)
+    | .cXOCall(Lc,Op,Args,Tp,ErTp) => inlineXOCall(Lc,simExp(Op,Map,Depth),Args,Tp,ErTp,Map,Depth)
+    | .cXOCall(Lc,Op,Args,Tp,ErTp) => .cXOCall(Lc,simExp(Op,Map,Depth),Args//(A)=>simExp(A,Map,Depth),Tp,ErTp)
     | .cNth(Lc,T,Ix,Tp) => inlineTplOff(Lc,simExp(T,Map,Depth),Ix,Tp)
     | .cSetNth(Lc,T,Ix,Vl) => applyTplUpdate(Lc,simExp(T,Map,Depth),Ix,simExp(Vl,Map,Depth))
     | .cClos(Lc,Lb,Ar,Fr,Tp) => .cClos(Lc,Lb,Ar,simExp(Fr,Map,Depth),Tp)
@@ -114,6 +119,8 @@ star.compiler.inline{
     | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
+    | .cIxCase(Lc,Gov,Cases,Deflt,Tp) =>
+      inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
     | .cMatch(Lc,Ptn,Val) =>
       applyMatch(Lc,simplifyExp(Ptn,Map,Depth),simplifyExp(Val,Map,Depth),Map,Depth)
     | .cAbort(Lc,Txt,Tp) => .cAbort(Lc,Txt,Tp)
@@ -173,6 +180,8 @@ star.compiler.inline{
     .aSetNth(Lc,simplifyExp(T,Map,Depth),Ix,simplifyExp(E,Map,Depth)).
   simAct(.aCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
     inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyAct(Deflt,Map,Depth),Map,Depth).
+  simAct(.aIxCase(Lc,Gov,Cases,Deflt),Map,Depth) =>
+    inlineIndex(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyAct(Deflt,Map,Depth),Map,Depth).
   simAct(.aIftte(Lc,T,L,R),Map,Depth) =>
     applyCnd(Lc,simplifyExp(T,Map,Depth),
       simplifyAct(L,Map,Depth-1),simplifyAct(R,Map,Depth-1),Map,Depth).
@@ -263,6 +272,13 @@ star.compiler.inline{
   inlineCase(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkCase(Lc,Gov,Cases,Deflt).
 
+  inlineIndex:all e ~~ rewrite[e], reform[e], simplify[e], display[e] |=
+    (option[locn],cExp,cons[cCase[e]],e,map[defnSp,cDefn],integer) => e.
+  inlineIndex(Lc,Gov,Cases,Deflt,Map,Depth) where
+      .matching(Exp) .= trace matchingCase(Gov,Cases,Map,Depth) => Exp.
+  inlineIndex(Lc,Gov,Cases,Deflt,Map,Depth) =>
+    mkIndex(Lc,Gov,Cases,Deflt).
+
   matchingCase:all e ~~ rewrite[e], reform[e], simplify[e] |=
     (cExp,cons[cCase[e]],map[defnSp,cDefn],integer) => match[e].
   matchingCase(_,[],_,_) => .noMatch.
@@ -296,6 +312,14 @@ star.compiler.inline{
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
 
+  inlineXCall:(option[locn],string,cons[cExp],tipe,tipe,map[defnSp,cDefn],integer) => cExp.
+  inlineXCall(Lc,Nm,Args,_Tp,_ErTp,Map,Depth) where Depth>0 &&
+      .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
+    RwMap = { lName(V)->A | (.cVar(_,V),A) in zip(Vrs,Args)};
+    valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
+      }.
+  inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
+
   inlineECall:(option[locn],string,cons[cExp],tipe,integer) => cExp.
   inlineECall(Lc,Nm,Args,Tp,Depth) where Depth>0 && {? A in Args *> isGround(A) ?} =>
     rewriteECall(Lc,Nm,Args,Tp).
@@ -307,6 +331,12 @@ star.compiler.inline{
     simplifyExp(.cCall(Lc,Nm,[Fr,..Args],Tp),Map,Depth).
   inlineOCall(Lc,Op,Args,Tp,Map,Depth) => .cOCall(Lc,Op,Args//(A)=>simExp(A,Map,Depth),Tp).
   
+  inlineXOCall(Lc,.cTerm(OLc,Nm,OArgs,ATp),Args,Tp,ErTp,Map,Depth) =>
+    simplifyExp(.cXCall(Lc,Nm,[.cTerm(OLc,Nm,OArgs,ATp),..Args],Tp,ErTp),Map,Depth).
+  inlineXOCall(Lc,.cClos(OLc,Nm,_,Fr,_),Args,Tp,ErTp,Map,Depth) =>
+    simplifyExp(.cXCall(Lc,Nm,[Fr,..Args],Tp,ErTp),Map,Depth).
+  inlineXOCall(Lc,Op,Args,Tp,ErTp,Map,Depth) => .cXOCall(Lc,Op,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
+
   rewriteECall(Lc,"_int_plus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A+B).
   rewriteECall(Lc,"_int_minus",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A-B).
   rewriteECall(Lc,"_int_times",[.cInt(_,A),.cInt(_,B)],_) => .cInt(Lc,A*B).
