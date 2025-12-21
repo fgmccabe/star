@@ -35,13 +35,6 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     }
 #endif
 
-    if (enableSSA){
-      AnalysisRecord analysis;
-
-      if (analyseMethod(mtd, &analysis) != Null)
-        tearDownAnalysis(&analysis);
-    }
-
     retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
 
     if (ret == Ok){
