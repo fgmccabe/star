@@ -15,15 +15,11 @@ static void initSets() {
 }
 
 setPo newSet(){
-  return createSet(0);
-}
-
-setPo createSet(int32 min) {
   initSets();
 
   setPo set = allocPool(setPool);
   set->count = 0;
-  set->min = min;
+  set->min = -1;
   set->data = Null;
 
   return set;
@@ -168,12 +164,12 @@ static retCode sectEl(setPo set, int32 el, void *cl) {
 }
 
 setPo intersectSet(setPo lhs, setPo rhs) {
-  setPo newSet = createSet(0);
-  SectInfo info = {.oth = rhs, .tgt = newSet};
+  setPo sect = newSet();
+  SectInfo info = {.oth = rhs, .tgt = sect};
   processSet(lhs, sectEl, &info);
   info.oth = lhs;
   processSet(rhs, sectEl, &info);
-  return newSet;
+  return sect;
 }
 
 static retCode diffEl(setPo set, int32 el, void *cl) {

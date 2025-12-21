@@ -142,7 +142,7 @@ retCode dropEntry(arrayPo ar, integer ix) {
 
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
   if (eraser != Null)
-    processArrayElements(ar, eraser, cl);
+    processArray(ar, eraser, cl);
 
   if (ar->free!=Null)
     ar->free(ar);
@@ -150,7 +150,7 @@ arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
   return Null;
 }
 
-retCode processArrayElements(arrayPo ar, arrayElProc proc, void *cl) {
+retCode processArray(arrayPo ar, arrayElProc proc, void *cl) {
   retCode ret = Ok;
   if (ar != Null) {
     for (integer ix = 0; ret == Ok && ix < ar->count; ix++) {

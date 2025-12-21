@@ -10,7 +10,7 @@
 static setPo testSet = Null;
 
 static void setupTests() {
-  testSet = createSet(0);
+  testSet = newSet();
 }
 
 static void tearDownTests() {
@@ -18,14 +18,14 @@ static void tearDownTests() {
 }
 
 static retCode createAndDestroy() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
   deleteSet(set);
   return Ok;
 }
 
 static retCode addABunch() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
 
   for (int32 ix = 0; ix < 1024; ix++)
@@ -39,7 +39,7 @@ static retCode addABunch() {
 }
 
 static retCode add64() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
 
   for (int32 ix = 0; ix < 64; ix++)
@@ -56,7 +56,7 @@ static retCode add64() {
 }
 
 static retCode addEvens() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
 
   for (int32 ix = 0; ix < 32; ix++)
@@ -74,7 +74,7 @@ static retCode addEvens() {
 }
 
 static retCode addANegativeBunch() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
 
   assert(setIsEmpty(set));
@@ -95,7 +95,7 @@ static retCode addANegativeBunch() {
 }
 
 static retCode removeABunch() {
-  setPo set = createSet(0);
+  setPo set = newSet();
   assert(set!=Null);
 
   for (int32 ix = 0; ix < 128; ix++)
@@ -119,7 +119,7 @@ static retCode removeABunch() {
 }
 
 setPo iota(int32 min, int32 max, int32 step) {
-  setPo set = createSet(0);
+  setPo set = newSet();
   for (int32 ix = min; ix <= max; ix += step)
     addToSet(set, ix);
   return set;
