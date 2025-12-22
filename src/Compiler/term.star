@@ -799,9 +799,10 @@ star.compiler.term{
       (.cTerm(Lc,Lbl,NArgs,Tp),Gx).
     pullWhere(Exp) default => (Exp,.none).
 
---    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
+    mkCase(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkCase(Lc,V,Cases,Deflt) => .cCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
+    mkIndex(Lc,Tst,[(PLc,Ptn,Val)],Deflt) => mkCond(Lc,.cMatch(PLc,Ptn,Tst),Val,Deflt).
     mkIndex(Lc,V,Cases,Deflt) => .cIxCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
     mkLtt(Lc,V,E,X) => .cLtt(Lc,V,E,X).
