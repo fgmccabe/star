@@ -154,15 +154,6 @@ star.compiler{
 	    };
 	    if .base .= optimization! then
 	      validProg(Inlined,AllDecls);
-	    -- if errorFree() && genWasm! then{
-	    --   (Imported,Merged) = mergePkgs(
-	    -- 	PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg
-	    -- 	,.some(pkgLoc(P)),Repo,[P],Inlined);
-	    --   tpMap = buildWasmTypeMap(Merged);
-	    --   if traceWasm! then{
-	    -- 	showMsg("wasm type map: $(tpMap)");
-	    --   };
-	    -- };
 	    if errorFree() && genCode! then{
 	      Segs = compProg(P,Inlined,AllDecls);
 	      
