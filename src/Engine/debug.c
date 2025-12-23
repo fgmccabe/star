@@ -898,6 +898,7 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       {.c = 'a', .cmd = dbgShowArg, .usage = "a show argument variable"},
       {.c = 'l', .cmd = dbgShowLocal, .usage = "l show local variable"},
       {.c = 'd', .cmd = dbgSetDepth, .usage = "d <dpth> set display depth"},
+      {.c = 'y', .cmd = dbgInsDebug, .usage = "y turn on instruction debugging"},
       {.c = '+', .cmd = dbgAddBreakPoint, .usage = "+ add break point"},
       {.c = '-', .cmd = dbgClearBreakPoint, .usage = "- clear break point"},
       {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},

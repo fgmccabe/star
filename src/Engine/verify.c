@@ -385,14 +385,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         continue;
       }
 
-      case Dup: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: stack depth %d does not permit a Dup", pc, stackDepth);
-        stackDepth++;
-        pc++;
-        continue;
-      }
-
       case Rot: {
         int32 count = code[pc].fst;
         if (stackDepth < count)
