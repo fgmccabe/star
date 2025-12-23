@@ -1027,8 +1027,8 @@ star.compiler.normalize{
   }
   collectMtd(.varDec(Lc,Nm,Val,Tp),.none,LL) => LL[Nm->.globalVar(Nm,Tp)].
   collectMtd(.varDec(Lc,Nm,Val,Tp),.some(ThVr),LL) => LL.
-  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.none,LL) => LL[Nm->.moduleCons(FullNm,Tp)].
-  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => LL[Nm->.localCons(FullNm,Tp,ThVr)].
+  collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),_,LL) => LL[Nm->.moduleCons(FullNm,Tp)].
+  -- collectMtd(.cnsDec(Lc,Nm,FullNm,Tp),.some(ThVr),LL) => LL[Nm->.localCons(FullNm,Tp,ThVr)].
   collectMtd(_,_,LL) default => LL.
 
   collectQ:(canonDef,set[cV]) => set[cV].
