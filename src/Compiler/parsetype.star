@@ -804,16 +804,16 @@ star.compiler.typeparse{
       Sorted = sort(Els,compEls);
 
       Eqn = valof{
-	-- if Ix ?= accessorIndex(Sorted,0,Fld) then{
-	--   Rc = .vr(Lc,"R",RcTp);
-	--   valis .eqn(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FldTp))
-	-- } else{
+	if Ix ?= accessorIndex(Sorted,0,Fld) then{
+	  Rc = .vr(Lc,"R",RcTp);
+	  valis .eqn(Lc,[Rc],.none,.tdot(Lc,Rc,Ix,FldTp))
+	} else{
 	  XX = .vr(Lc,"X",FldTp);
 	  ConArgs = projectArgTypes(Sorted,0,(FLc,_,ATp) => .anon(FLc,ATp),XX,Fld,Fields);
 	  valis .eqn(Lc,[
 	      .apply(Lc,.enm(Lc,CnNm,consType(.tupleType(ConArgs//typeOf),RcTp)),ConArgs,RcTp)],
 	    .none,XX);
-	-- }
+	  }
       };
 
       if traceCanon! then
@@ -886,7 +886,8 @@ star.compiler.typeparse{
   accessorIndex:(cons[ast],integer,string) => option[integer].
   accessorIndex([],Ix,_) => .none.
   accessorIndex([A,..As],Ix,Fld) where (Lc,Fld,_) ?= isTypeDecl(A) => .some(Ix).
-  accessorIndex([_,..As],Ix,Fld) => accessorIndex(As,Ix+1,Fld).
+  accessorIndex([A,..As],Ix,Fld) where _ ?= isTypeDecl(A) => accessorIndex(As,Ix+1,Fld).
+  accessorIndex([_,..As],Ix,Fld) => accessorIndex(As,Ix,Fld).
 
   pickFldTp(Id,Tps) => {! Tp | (Id,Tp) in Tps !}.
 

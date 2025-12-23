@@ -97,13 +97,6 @@ star.compiler.normalize.meta{
     collectTypeMaps([_,..Ds],Map) => collectTypeMaps(Ds,Map).
   .} in collectTypeMaps(Decls,[]).
 
-  collectibleConsType:(tipe) => option[string].
-  collectibleConsType(Tp) where
-      (_,I) .= deQuant(Tp) && (A,R) ?= isConsType(I) &&
-      ~ _ ?= fieldTypes(A) => -- Leave out record constructors
-    .some(tpName(R)).
-  collectibleConsType(_) default => .none.
-
   mkConsLbl(Nm,Tp) => .tLbl(Nm,arity(Tp)).
 
   declMdlGlobal(.funDec(Lc,Nm,FullNm,Tp),Map) => valof{

@@ -758,8 +758,8 @@ star.compiler.resolve{
 	.fatal(Lc,"Index $(Ix) not in range of $(typeOf(Rc))"))
     }
     else{
-      valis (.tdot(Lc,Rc,Ix,Tp),
-	.active(Lc,"type of $(Rc)\:$(typeOf(Rc)) not known to be a tuple type of length > $(Ix)"))
+      valis (.tdot(Lc,Rc,Ix,Tp), St)
+	-- .active(Lc,"type of $(Rc)\:$(typeOf(Rc)) not known to be a tuple type of length > $(Ix)"))
     }
   }
 
