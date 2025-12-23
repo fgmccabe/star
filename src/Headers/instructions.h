@@ -37,7 +37,6 @@ instruction(Result, nOp, lVl, 0, "return value out of block")
 instruction(Loop, nOp, lVl, 0, "jump back to start of block")
 
 instruction(Drop, tOs, nOp, -1, "drop top of stack")
-instruction(Dup, tOs, nOp, 1, "duplicate top of stack")
 instruction(Rot, i32, nOp, 0, "Pull up nth element of stack")
 instruction(Rst, i32, nOp, 0, "reset stack height to a fixed height")
 

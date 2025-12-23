@@ -524,12 +524,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         dropValue(stack, jit);
         continue;
       }
-      case Dup: {
-        // duplicate top of stack
-        armReg tgt = topValue(stack, jit);
-        pushRegister(stack, tgt);
-        continue;
-      }
       case Rot: {
         // Pull up nth element of stack
         int32 cnt = code[pc].fst;

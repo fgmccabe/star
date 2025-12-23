@@ -325,14 +325,6 @@ int32 run(enginePo P) {
         continue;
       }
 
-      case Dup: {
-        /* duplicate tos */
-        termPo tos = *SP;
-        *--SP = tos;
-        PC++;
-        continue;
-      }
-
       case Rot: {
         // Pull up nth element of stack
         int32 cnt = PC->fst;

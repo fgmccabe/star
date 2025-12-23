@@ -393,8 +393,7 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return ret;
       }
 
-      case Drop:
-      case Dup: {
+      case Drop:{
         return Ok;
       }
 

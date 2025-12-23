@@ -164,8 +164,6 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       case Drop:
         retireStackVar(&scope, pc);
         continue;
-      case Dup:
-        return Error;
       case Rot: {
         int32 depth = code[pc].fst;
 
