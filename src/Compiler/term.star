@@ -786,10 +786,21 @@ star.compiler.term{
     mkLtt:(option[locn],cV,cExp,e) => e.
   }
 
+  isTrue(.cTerm(_,"true",[],_)) => .true.
+  isTrue(_) default => .false.
+
+  isFalse(.cTerm(_,"false",[],_)) => .true.
+  isFalse(_) default => .false.
+
   public implementation reform[cExp] => {.
     mkCond(Lc,Tst,Th,El) => valof{
       if .cCnd(_,T1,Th1,El1).=Th && El1==El then
-	valis .cCnd(Lc,.cCnj(Lc,Tst,T1),Th1,El1) else
+	valis .cCnd(Lc,.cCnj(Lc,Tst,T1),Th1,El1)
+      else if isTrue(Th) && isFalse(El) then
+	valis Tst
+      else if isFalse(Th) && isTrue(El) then
+	valis .cNeg(Lc,Tst)
+      else
       valis .cCnd(Lc,Tst,Th,El).
     }
 

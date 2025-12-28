@@ -17,6 +17,7 @@ star.compiler.normalize.meta{
   | .moduleCons(string,tipe)
   | .localCons(string,tipe,cV)
   | .labelArg(cV,integer)
+  | .localArg(cExp,integer)
   | .thunkArg(cV,string,integer)
   | .globalVar(string,tipe).
 
@@ -38,6 +39,7 @@ star.compiler.normalize.meta{
       | .localFun(Nm,ClNm,_,V) => "local fun #(Nm), closure $(ClNm), ThV $(V)"
       | .localVar(Vr) => "local var $(Vr)"
       | .labelArg(Base,Ix) => "label arg $(Base)[$(Ix)]"
+      | .localArg(Base,Ix) => "local arg $(Base)[$(Ix)]"
       | .thunkArg(Base,Lbl,Ix) => "thunk arg $(Base)[$(Ix)], $(Lbl)"
       | .globalVar(Nm,Tp) => "global #(Nm)"
     }
@@ -82,17 +84,17 @@ star.compiler.normalize.meta{
 
   public pkgMap:(cons[decl],nameMap) => nameMap.
   pkgMap(Decls,M) => valof{
-    CMap = makeConsMap(Decls);
+    CMap = makeTypeMap(Decls);
     valis [.lyr(.none,foldRight((Dcl,D)=>declMdlGlobal(Dcl,D),[],Decls),CMap),..M]
   }
 
-  public makeConsMap:(cons[decl]) => map[string,typeMapEntry].
-  makeConsMap(Decls) => let{.
+  public makeTypeMap:(cons[decl]) => map[string,typeMapEntry].
+  makeTypeMap(Decls) => let{.
     collectTypeMaps:(cons[decl],map[string,typeMapEntry]) => map[string,typeMapEntry].
     collectTypeMaps([],Map) => Map.
     collectTypeMaps([.tpeDec(_,Nm,Tp,_,IxMap),..Ds],Map) => valof{
       FullNm = tpName(Tp);
-      valis collectTypeMaps(Ds,Map[Nm->.moduleType(FullNm,Tp,IxMap)])
+      valis collectTypeMaps(Ds,Map[FullNm->.moduleType(FullNm,Tp,IxMap)])
     }
     collectTypeMaps([_,..Ds],Map) => collectTypeMaps(Ds,Map).
   .} in collectTypeMaps(Decls,[]).
