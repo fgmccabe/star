@@ -821,13 +821,23 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         pc++;
         continue;
       }
+      case Bind: {
+        int32 constant = code[pc].fst;
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+        int32 lcl = code[pc].alt;
+        if (lcl <= 0 || lcl > lclCount(ctx.mtd))
+          return verifyError(&ctx, ".%d: invalid variable offset: %d", pc, lcl);
+        pc++;
+        continue;
+      }
       default:
         return verifyError(&ctx, ".%d: illegal instruction", pc);
     }
   }
 
-  if(hasValue)
-    return verifyError(&ctx,".%d: not permitted to fall out of Valof block",pc);
+  if (hasValue)
+    return verifyError(&ctx, ".%d: not permitted to fall out of Valof block", pc);
 
   propagateVars(&ctx, parentCtx);
   return Ok;

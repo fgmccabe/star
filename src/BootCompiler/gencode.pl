@@ -295,7 +295,8 @@ compAction(mtch(Lc,P,E),OLc,Brks,_Return,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !
 compAction(defn(Lc,idnt(Nm,Tp),E),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :- !,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,D1,C0,[iStL(Nm)|C1],Stk,Stk0),
-  defineLclVar(Lc,Nm,Tp,Opts,D1,Dx,C1,Cx),
+  genBind(Opts,Nm,C1,C2),
+  defineLclVar(Lc,Nm,Tp,Opts,D1,Dx,C2,Cx),
   dropStk(Stk0,1,Stk).
 compAction(setix(Lc,Trm,Off,Vl),OLc,Brks,_Last,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),
@@ -426,6 +427,10 @@ genDbg(Opts,Lc,[iDBug(Loc)|Cx],Cx) :-
   locTerm(Lc,Loc).
 genDbg(_,_,Cx,Cx).
 
+genBind(Opts,Vr,[iBind(strg(Vr),Vr)|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genBind(_,_,Cx,Cx).
+
 bumpStk(some(Stk),some(Stk1)) :- Stk1 is Stk+1.
 dropStk(some(Stk),Cnt,some(Stk1)) :- !, Stk1 is Stk-Cnt.
 dropStk(none,_,none).
@@ -462,7 +467,8 @@ compPtn(Lit,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail)|Cx],Cx,Stk,Stkx) :
   isLiteral(Lit),!,
   dropStk(Stk,1,Stkx).
 compPtn(idnt(Nm,Tp),Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,C,Cx,Stk,Stkx) :-
-  defineLclVar(Lc,Nm,Tp,Opts,D,Dx,C,[iStL(Nm)|Cx]),
+  defineLclVar(Lc,Nm,Tp,Opts,D,Dx,C,[iStL(Nm)|C1]),
+  genBind(Opts,Nm,C1,Cx),
   dropStk(Stk,1,Stkx).
 compPtn(ctpl(St,Args),Lc,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   tipeOf(ctpl(St,Args),Tp),

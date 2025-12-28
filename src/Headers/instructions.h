@@ -123,4 +123,5 @@ instruction(Closure, sym, tOs, 0, "allocate a closure")
 instruction(Frame, i32, nOp, 0, "frame instruction")
 
 instruction(Line, lit, nOp, 0, "source line indicator")
+instruction(Bind, lit, lcl, 0, "bind a variable")
 instruction(dBug, lit, nOp, 0, "debugging prefix")

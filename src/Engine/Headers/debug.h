@@ -18,6 +18,7 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd);
 retCode setupDebugChannels();
 
 DebugWaitFor lineDebug(enginePo p, termPo lc);
+DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset);
 DebugWaitFor abortDebug(enginePo p, termPo lc);
 DebugWaitFor callDebug(enginePo p, OpCode op, termPo lc, termPo pr);
 DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr);

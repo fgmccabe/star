@@ -1056,6 +1056,20 @@ int32 run(enginePo P) {
         }
       }
 
+      case Bind: {
+        if (lineDebugging) {
+          termPo var = getConstant(PC->fst);
+          PC++; // We aim to continue at the next instruction
+          saveRegisters();
+          bindDebug(P, var, PC->alt);
+          restoreRegisters();
+          continue;
+        } else {
+          PC++;
+          continue;
+        }
+      }
+
       case maxOpCode:
       case illegalOp:
         syserr("Illegal instruction");

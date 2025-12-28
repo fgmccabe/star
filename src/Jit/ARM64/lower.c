@@ -1691,6 +1691,21 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         }
         continue;
       }
+      case Bind: {
+        if (lineDebugging) {
+          spillStack(stack, jit);
+          int32 varKey = code[pc].fst;
+          armReg var = findFreeReg(jit);
+          loadConstant(jit, varKey, var);
+
+          stash(block);
+          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) bindDebug, 3, RG(PR), RG(var), IM(code[pc].alt));
+          unstash(jit);
+          releaseReg(jit, var);
+        }
+        continue;
+      }
+
       default:
         return jitError(jit, "unknown instruction: %s", opNames[code[pc].op]);
     }

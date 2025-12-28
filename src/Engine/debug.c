@@ -15,7 +15,8 @@
 integer pcCount = 0;
 
 static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore);
-static void showEntry(ioPo out, stackPo stk, termPo lc, termPo call);
+static void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl);
+static void showBind(ioPo out, stackPo stk, termPo name, termPo val);
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason);
 static void showRet(ioPo out, stackPo stk, termPo lc, termPo val);
 static void showXRet(ioPo out, stackPo stk, termPo lc, termPo val);
@@ -111,12 +112,12 @@ static logical shouldWeStop(enginePo p, OpCode op) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
 #ifdef TRACE_DBG
-    if (debugDebugging) {
-      outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, displayDepth=%d, ins: ",
-             p->waterMark, f, p->traceCount, (p->tracing ? "yes" : "no"), displayDepth);
-      disass(logFile, stk, stk->prog, stk->pc);
-      outMsg(logFile, "\n%_");
-    }
+  if (debugDebugging) {
+    outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, displayDepth=%d, ins: ",
+           p->waterMark, f, p->traceCount, (p->tracing ? "yes" : "no"), displayDepth);
+    disass(logFile, stk, stk->prog, stk->pc);
+    outMsg(logFile, "\n%_");
+  }
 #endif
   switch (p->waitFor) {
     case stepInto:
@@ -316,7 +317,7 @@ static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) 
   outMsg(debugOutChnnl, "SP=%lx\n", stk->sp);
   outMsg(debugOutChnnl, "FP=%lx\n", stk->fp);
   outMsg(debugOutChnnl, "AG=%lx\n", stk->args);
-  outMsg(debugOutChnnl, "SDP=%lx\n", stk->args-stk->sp);
+  outMsg(debugOutChnnl, "SDP=%lx\n", stk->args - stk->sp);
   outMsg(debugOutChnnl, "%_");
 
   resetDeflt("n");
@@ -708,6 +709,13 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
     outMsg(out, "line: %#L", lc);
 }
 
+void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
+  if (showColors)
+    outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %T = %#,*T", name, displayDepth, val);
+  else
+    outMsg(out, "return: %T->%#,*T", name, displayDepth, val);
+}
+
 void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
   if (showColors)
     outMsg(out, GREEN_ESC_ON"entry:"GREEN_ESC_OFF" %#L %#.16A", lc, lbl);
@@ -824,6 +832,12 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
 
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
   return lnDebug(p, Line, lc, Null, showLine);
+}
+
+DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset) {
+  ptrPo args = p->stk->args;
+
+  return lnDebug(p, Bind, name, args[-offset], showBind);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {

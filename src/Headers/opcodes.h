@@ -96,7 +96,8 @@ typedef enum {
     Closure = 85,            // allocate a closure
     Frame = 86,            // frame instruction
     Line = 87,            // source line indicator
-    dBug = 88,            // debugging prefix
+    Bind = 88,            // bind a variable
+    dBug = 89,            // debugging prefix
 
   illegalOp,
   maxOpCode
@@ -191,10 +192,11 @@ static char *opNames[] = {
       "Closure",
       "Frame",
       "Line",
+      "Bind",
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1036067013812094029
+#define OPCODE_SIGNATURE 1207279009152735333
 #endif
 
 typedef enum {

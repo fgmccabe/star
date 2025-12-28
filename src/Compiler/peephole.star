@@ -35,6 +35,7 @@ star.compiler.peephole{
 
   vrRead(Vr,.iBlock(_,Is)) => varRead(Vr,Is).
   vrRead(Vr,.iValof(_,Is)) => varRead(Vr,Is).
+  vrRead(Vr,.iBind(_,V)) => V==Vr.
   vrRead(Vr,.iLdL(V)) => V==Vr.
   vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
   vrRead(_,_) default => .false.
