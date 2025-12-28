@@ -22,8 +22,8 @@ star.compiler.matcher{
       NVrs = genVars(Lc,FTp);
       Trpls = makeTriples(Eqns);
 
-      if traceNormalize! then
-	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+      -- if traceNormalize! then
+      -- 	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
       Error = genRaise(Lc,"function match failure #(Nm)",funTypeRes(Tp));
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
@@ -41,8 +41,8 @@ star.compiler.matcher{
       NVrs = genVars(Lc,ATp);
       Trpls = makeTriples(Eqns);
 
-      if traceNormalize! then
-	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
+      -- if traceNormalize! then
+      -- 	showMsg("generate matcher for #(Nm), new args = $(NVrs), initial triples $(Trpls)");
 
       Error = .aAbort(Lc,"function match failure #(Nm)");
       Reslt = matchTriples(Lc,NVrs,Trpls,Error,0,Map);
@@ -196,8 +196,27 @@ star.compiler.matcher{
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt,Depth,Map) => valof{
     Cases = formCases(sort(Seg,compareConstructorTriple),
       sameConstructorTriple,Lc,Vrs,Deflt,Depth+1,Map);
+
+    if Index ?= findIndexMap(tpName(typeOf(V)),Map) then{
+      -- if traceNormalize! then{
+      -- 	showMsg("Map type entry for $(typeOf(V)) is $(Index)");
+      -- 	showMsg("Cases: $(Cases)");
+      -- };
+
+      if indexCovered(Index,Cases//snd) then
+	valis mkIndex(Lc,V,Cases,Deflt)
+      else{
+	reportWarning("Not all cases covered",Lc);
+	valis mkIndex(Lc,V,Cases,Deflt)
+      }
+    };
+
     valis mkIndex(Lc,V,Cases,Deflt)
   }
+
+  indexCovered:(indexMap,cons[cExp]) => boolean.
+  indexCovered(Map,Trms) => {? T in Trms *>
+    ( .cTerm(_,Nm,Args,_) .= T && _ ?= Map[.tLbl(Nm,size(Args))] ) ?}.
 
   matchTuples:all e ~~ reform[e],rewrite[e],display[e] |=
     (cons[triple[e]],cons[cExp],option[locn],e,integer,nameMap)=>e.

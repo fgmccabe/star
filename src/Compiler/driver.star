@@ -140,12 +140,12 @@ star.compiler{
 	    N = normalize(PkgSpec,Defs,AllDecls);
 	    
 	    Inlined = valof{
-	      if optimization! ==.inlining && mainDefined(AllDecls) then{
+	      if optimization! ==.inlining /* && mainDefined(AllDecls) */ then{
 		(Imported,Merged) = mergePkgs(
 		  PkgSpec.imports//(.pkgImp(_,_,IPkg))=>IPkg,
 		  .some(pkgLoc(P)),Repo,[P],[]);
 		if traceInline! then
-		  showMsg("Merged definitions $(Merged)");
+		  showMsg("$([|Merged|]) definitions for inlining");
 		valis simplifyDefs(Merged,N)
 	      } else
 	      valis N};

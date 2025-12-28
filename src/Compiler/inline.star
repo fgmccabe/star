@@ -24,16 +24,20 @@ star.compiler.inline{
   simplifyGroups([],_) => [].
   simplifyGroups([Gp,..Gps],Map) => valof{
     SGp = Gp//(D)=>simplifyDefn(D,Map);
+    if traceInline! then
+      showMsg("Group simplifies to $(SGp)");
+
     valis [SGp,..simplifyGroups(Gps,foldLeft(pickupDefn,Map,SGp))]
   }
 
   pickupDefn:(cDefn,map[defnSp,cDefn])=>map[defnSp,cDefn].
-  pickupDefn(Df,Map) => (isLeafDef(Df) ?? case Df in {
+  pickupDefn(Df,Map) => case Df in {
     | .fnDef(_,Nm,_,_,_) => Map[.varSp(Nm)->Df]
+    | .prDef(_,Nm,_,_,_) => Map[.varSp(Nm)->Df]
     | .glDef(_,Nm,_,_) => Map[.varSp(Nm)->Df]
     | .tpDef(_,Tp,_,_) => Map[.tpSp(tpName(Tp))->Df]
     | .lblDef(_,_,_,_) => Map
-    } || Map).
+    }.
 
   simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
@@ -112,10 +116,10 @@ star.compiler.inline{
     | .cSvDrf(Lc,Th,Tp) => .cSvDrf(Lc,simExp(Th,Map,Depth),Tp)
     | .cSvSet(Lc,T,V) => .cSvSet(Lc,simExp(T,Map,Depth),simExp(V,Map,Depth))
     | .cSeq(Lc,L,R) => .cSeq(Lc,simExp(L,Map,Depth),simExp(R,Map,Depth))
-    | .cCnj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
+    | .cCnj(_,_,_) => simCond(Exp,Map,Depth)
     | .cDsj(_,_,_) => simCond(Exp,Map,Depth.>>.1)
     | .cNeg(_,_) => simCond(Exp,Map,Depth)
-    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth.>>.1)
+    | .cCnd(_,_,_,_) => simCond(Exp,Map,Depth)
     | .cLtt(Lc,Vr,Bnd,Inn) => inlineLtt(Lc,Vr,simplifyExp(Bnd,Map,Depth),Inn,Map,Depth)
     | .cCase(Lc,Gov,Cases,Deflt,Tp) =>
       inlineCase(Lc,simplifyExp(Gov,Map,Depth),Cases,simplifyExp(Deflt,Map,Depth),Map,Depth)
@@ -158,6 +162,19 @@ star.compiler.inline{
   simplifyAct(A,P,D) => simAct(A,P,D).
 
   simAct(.aNop(Lc),_,_) => .aNop(Lc).
+  simAct(.aSeq(Lc,.aDefn(DLc,.cVar(VLc,.cV(VNm,VTp)),E),A2),Map,Depth) where
+      ~ isRefType(VTp) => valof{
+    if traceInline! then{
+      showMsg("attempt to inline var definition for #(VNm) = $(E)");
+    };
+    EE = simplifyExp(E,Map,Depth);
+    AA = simplifyAct(A2,Map[.varSp(VNm)->.glDef(VLc,VNm,VTp,EE)],Depth);
+
+    if ~present(AA,(Exp)=>(.cVar(_,.cV(VNm,_)).=Exp)) then
+      valis AA
+    else
+    valis .aSeq(Lc,.aDefn(DLc,.cVar(VLc,.cV(VNm,VTp)),EE),AA)
+  }
   simAct(.aSeq(Lc,A1,A2),Map,Depth) =>
     dropNops(Lc,simplifyAct(A1,Map,Depth),simplifyAct(A2,Map,Depth)).
   simAct(.aLbld(Lc,Lb,A),Map,Depth) => valof{
@@ -209,7 +226,7 @@ star.compiler.inline{
       .glDef(_,_,_,Vl) ?= Map[.varSp(Id)] && isGround(Vl) => valof{
     Sim = simplify(Vl,Map,Depth);
     if traceInline! then
-      showMsg("Replace var #(Id)\:$(Tp) with $(Sim)");
+      showMsg("Replace global var #(Id) with $(Sim)");
     valis Sim
       }
   inlineVar(Lc,V,_,_) => .cVar(Lc,V).
@@ -275,7 +292,7 @@ star.compiler.inline{
   inlineIndex:all e ~~ rewrite[e], reform[e], simplify[e], display[e] |=
     (option[locn],cExp,cons[cCase[e]],e,map[defnSp,cDefn],integer) => e.
   inlineIndex(Lc,Gov,Cases,Deflt,Map,Depth) where
-      .matching(Exp) .= trace matchingCase(Gov,Cases,Map,Depth) => Exp.
+      .matching(Exp) .= matchingCase(Gov,Cases,Map,Depth) => Exp.
   inlineIndex(Lc,Gov,Cases,Deflt,Map,Depth) =>
     mkIndex(Lc,Gov,Cases,Deflt).
 
