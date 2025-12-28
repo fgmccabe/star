@@ -227,7 +227,7 @@ static void genStarMnem(ioPo out, char* mnem, int op, opAndSpec A, opAndSpec B, 
              op);
       return;
     case lcl:
-      outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1).\n", cond, op);
+      outMsg(out, "%s && Off ?= findLocal(V,Lcs) => ([.intgr(%d),.intgr(LtNo),.intgr(Off)],Pc+1,Lt1).\n", cond, op);
       return;
     default:
       check(False, "Cannot generate instruction code");
@@ -235,6 +235,7 @@ static void genStarMnem(ioPo out, char* mnem, int op, opAndSpec A, opAndSpec B, 
   }
   case lit: {
     char* cond = "where (Lt1,LtNo) .= findLit(Lts,U)";
+
     switch (B){
     case nOp:
     case tOs:
@@ -245,7 +246,7 @@ static void genStarMnem(ioPo out, char* mnem, int op, opAndSpec A, opAndSpec B, 
              op);
       return;
     case lcl:
-      outMsg(out, "%s => ([.intgr(%d),.intgr(LtNo),.intgr(V)],Pc+1,Lt1).\n", cond, op);
+      outMsg(out, "%s && Off ?= findLocal(V,Lcs) => ([.intgr(%d),.intgr(LtNo),.intgr(Off)],Pc+1,Lt1).\n", cond, op);
       return;
     default:
       check(False, "Cannot generate instruction code");

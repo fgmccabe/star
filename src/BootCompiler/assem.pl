@@ -338,6 +338,8 @@ stackHwm([iFrame(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iLine(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
+stackHwm([iBind(_,_)|Ins],CH0,H0,Hwm) :-
+  stackHwm(Ins,CH0,H0,Hwm).
 stackHwm([iDBug(_)|Ins],CH0,H0,Hwm) :-
   stackHwm(Ins,CH0,H0,Hwm).
 
@@ -536,6 +538,9 @@ localHwm([iFrame(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 localHwm([iLine(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
+localHwm([iBind(_,W)|Ins],C0,Cx,H0,Hwm) :-
+  countLocal(W,C0,C1,H0,H1),
+  localHwm(Ins,C1,Cx,H1,Hwm).
 localHwm([iDBug(_)|Ins],C0,Cx,H0,Hwm) :-
   localHwm(Ins,C0,Cx,H0,Hwm).
 
@@ -849,7 +854,12 @@ mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[87,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
-mnem([iDBug(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[88,LtNo|M],Cdx) :-
+mnem([iBind(V,W)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[88,LtNo,Off|M],Cdx) :-
+      Pc1 is Pc+1,
+      findLit(Lt,V,LtNo,Lt1),
+      findLocal(W,LsMap,Off),
+      mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
+mnem([iDBug(V)|Ins],Lbls,Lt,Ltx,Pc,Pcx,LsMap,[89,LtNo|M],Cdx) :-
       Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,M,Cdx).
@@ -1271,13 +1281,18 @@ showMnem(iLine(U),Pc,sq([PcDx,ss(": "),ss("Line"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
+showMnem(iBind(U,V),Pc,sq([PcDx,ss(": "),ss("Bind"), ss(" "), UU, ss(","), VV])) :- !,
+  showPc(Pc,PcDx),
+  ssTrm(U,0,UU),
+  VV=ss(V),
+  true.
 showMnem(iDBug(U),Pc,sq([PcDx,ss(": "),ss("dBug"), ss(" "), UU])) :- !,
   showPc(Pc,PcDx),
   ssTrm(U,0,UU),
   true.
 
 
-opcodeHash(1036067013812094029).
+opcodeHash(1207279009152735333).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

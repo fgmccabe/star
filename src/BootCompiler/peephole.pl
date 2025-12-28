@@ -35,6 +35,7 @@ varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
+vrRead(Vr,iBind(_,Vr)).
 vrRead(Vr,iLdL(Vr)).
 vrRead(Vr,iLdA(Vr)).
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).

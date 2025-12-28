@@ -106,6 +106,7 @@ star.compiler.assem{
     | .iClosure(termLbl)
     | .iFrame(integer)
     | .iLine(data)
+    | .iBind(data,string)
     | .iDBug(data)
 
     | .iLbl(string, assemOp).
@@ -243,7 +244,8 @@ star.compiler.assem{
   mnem(.iClosure(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,.symb(U)) => ([.intgr(85),.intgr(LtNo)],Pc+1,Lt1).
   mnem(.iFrame(U),Pc,Lbls,Lts,Lcs) => ([.intgr(86),.intgr(U)],Pc+1,Lts).
   mnem(.iLine(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(87),.intgr(LtNo)],Pc+1,Lt1).
-  mnem(.iDBug(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(88),.intgr(LtNo)],Pc+1,Lt1).
+  mnem(.iBind(U,V),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) && Off ?= findLocal(V,Lcs) => ([.intgr(88),.intgr(LtNo),.intgr(Off)],Pc+1,Lt1).
+  mnem(.iDBug(U),Pc,Lbls,Lts,Lcs) where (Lt1,LtNo) .= findLit(Lts,U) => ([.intgr(89),.intgr(LtNo)],Pc+1,Lt1).
 
   mnem(I,Pc,Lbls,Lts,Lcs) => valof{
     reportTrap("Cannot assemble instruction $(I)");
@@ -593,6 +595,9 @@ star.compiler.assem{
   stkHwm([.iLine(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
+  stkHwm([.iBind(_,_),..Ins],CH0,H0) => valof{
+    valis stkHwm(Ins,CH0,H0)
+  }
   stkHwm([.iDBug(_),..Ins],CH0,H0) => valof{
     valis stkHwm(Ins,CH0,H0)
   }
@@ -725,6 +730,7 @@ star.compiler.assem{
   showIns(.iClosure(U),Pc) => "Closure $(U)".
   showIns(.iFrame(U),Pc) => "Frame $(U)".
   showIns(.iLine(U),Pc) => "Line $(U)".
+  showIns(.iBind(U,V),Pc) => "Bind $(U) #(V)".
   showIns(.iDBug(U),Pc) => "dBug $(U)".
 
 
@@ -740,5 +746,5 @@ star.compiler.assem{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1036067013812094029.
+  public opcodeHash = 1207279009152735333.
 }

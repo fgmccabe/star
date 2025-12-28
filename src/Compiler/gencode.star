@@ -558,7 +558,7 @@ star.compiler.gencode{
 
       if .cVar(_,.cV(Nm,Tp)).=P then{
 	Ctx1 = defineLclVar(Nm,Tp,Ctx);
-	valis (chLine(OLc,Lc)++EC++[.iStL(Nm)],Ctx1,Stk)
+	valis (chLine(OLc,Lc)++EC++[.iStL(Nm)]++genBind(Nm),Ctx1,Stk)
       } else{
 	Ab = defineLbl(Ctx,"Ab");
 	Ok = defineLbl(Ctx,"DfnOk");
@@ -827,11 +827,11 @@ star.compiler.gencode{
       | .cVar(_,.cV("_",_)) do valis ([],Ctx,Stk)
       | .cVar(Lc,.cV(Vr,Tp)) do {
 	if Loc ?= locateVar(Vr,Ctx) then{
-	  valis (VC++storeVar(Loc),Ctx,Stk)
+	  valis (VC++storeVar(Loc)++genBind(Vr),Ctx,Stk)
 	}
 	else{
 	  Ctx1 = defineLclVar(Vr,Tp,Ctx);
-	  valis (VC++storeVar(.lclVar(Vr,Tp::ltipe)),Ctx1,Stk)
+	  valis (VC++storeVar(.lclVar(Vr,Tp::ltipe))++genBind(Vr),Ctx1,Stk)
 	}
       }
       | .cVoid(Lc) do valis ([],Ctx,Stk)
@@ -873,10 +873,10 @@ star.compiler.gencode{
     | .cVar(_,.cV("_",_)) => ([.iDrop],Ctx,dropStack(Stk))
     | .cVar(Lc,.cV(Vr,Tp)) => valof{
       if Loc ?= locateVar(Vr,Ctx) then 
-	valis (storeVar(Loc),Ctx,Stk)
+	valis (storeVar(Loc)++genBind(Vr),Ctx,Stk)
       else{
 	Ctx1 = defineLclVar(Vr,Tp,Ctx);
-	valis (storeVar(.lclVar(Vr,Tp::ltipe)),Ctx1,Stk)
+	valis (storeVar(.lclVar(Vr,Tp::ltipe))++genBind(Vr),Ctx1,Stk)
       }
     }
     | .cVoid(Lc) => ([.iDrop],Ctx,dropStack(Stk))
@@ -1110,6 +1110,9 @@ star.compiler.gencode{
   genDbg:(option[locn],multi[assemOp]) => multi[assemOp].
   genDbg(.some(Lc),Ins) => (genDebug! ?? [.iDBug(Lc::data),..Ins] || Ins).
   genDbg(.none,Ins) => Ins.
+
+  genBind:(string) => multi[assemOp].
+  genBind(Nm) => (genDebug! ?? [.iBind(.strg(Nm),Nm)] || []).
 
   flatSig = .fnTipe([],.tplTipe([])).
   nearlyFlatSig(T) => .fnTipe([],.tplTipe([T])).
