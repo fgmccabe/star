@@ -324,7 +324,7 @@ star.compiler.inline{
   inlineCall:(option[locn],string,cons[cExp],tipe,map[defnSp,cDefn],integer) => cExp.
   inlineCall(Lc,Nm,Args,_Tp,Map,Depth) where Depth>0 &&
       .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
-    RwMap = { lName(V)->A | (.cVar(_,V),A) in zip(Vrs,Args)};
+    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
     valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineCall(Lc,Nm,Args,Tp,Map,Depth) default => .cCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp).
@@ -332,7 +332,7 @@ star.compiler.inline{
   inlineXCall:(option[locn],string,cons[cExp],tipe,tipe,map[defnSp,cDefn],integer) => cExp.
   inlineXCall(Lc,Nm,Args,_Tp,_ErTp,Map,Depth) where Depth>0 &&
       .fnDef(_,_,_,Vrs,Rep) ?= Map[.varSp(Nm)] => valof{
-    RwMap = { lName(V)->A | (.cVar(_,V),A) in zip(Vrs,Args)};
+    RwMap = { lName(V)->A | (V,A) in zip(Vrs,Args)};
     valis simplifyExp(freshenE(Rep,RwMap),Map[~.varSp(Nm)],Depth-1)
       }.
   inlineXCall(Lc,Nm,Args,Tp,ErTp,Map,Depth) default => .cXCall(Lc,Nm,Args//(A)=>simExp(A,Map,Depth),Tp,ErTp).
