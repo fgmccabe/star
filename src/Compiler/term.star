@@ -76,8 +76,8 @@ star.compiler.term{
   | .aVarNmes(option[locn],cons[(string,cV)],aAction)
   | .aAbort(option[locn],string).
 
-  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cExp],cExp)
-  | .prDef(option[locn],string,tipe,cons[cExp],aAction)
+  public cDefn ::= .fnDef(option[locn],string,tipe,cons[cV],cExp)
+  | .prDef(option[locn],string,tipe,cons[cV],aAction)
   | .glDef(option[locn],string,tipe,cExp)
   | .tpDef(option[locn],tipe,typeRule,indexMap)
   | .lblDef(option[locn],termLbl,tipe,integer).
@@ -870,14 +870,14 @@ star.compiler.term{
     for Df in Defs do{
       case Df in {
 	| .fnDef(Lc,Nm,Tp,Args,Val) do {
-	  D1 = foldLeft(ptnVrs,D,Args);
-	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validE(Val,D1) then{
+	  D1 = foldLeft(((V,DD)=>DD\+V),D,Args);
+	  if ~validE(Val,D1) then{
 	    reportError("$(Df) not valid",Lc)
 	  }
 	}
 	| .prDef(Lc,Nm,Tp,Args,Act) do {
-	  D1 = foldLeft(ptnVrs,D,Args);
-	  if ~{? E in Args *> validPtn(E,D1) ?} || ~validA(Act,D1) then{
+	  D1 = foldLeft(((V,DD)=>DD\+V),D,Args);
+	  if ~validA(Act,D1) then{
 	    reportError("$(Df) not valid",Lc)
 	  }
 	}
@@ -1018,7 +1018,7 @@ star.compiler.term{
     | .aAbort(_,_) => .true
   }
 
-  public ptnVrs:(cExp,set[cV]) => set[cV].
+  ptnVrs:(cExp,set[cV]) => set[cV].
   ptnVrs(E,Vrs) => case E in {
     | .cVoid(_) => Vrs
     | .cAnon(_,_) => Vrs
@@ -1161,10 +1161,10 @@ star.compiler.term{
   public freezeDefn:(cDefn) => data.
   freezeDefn(D) => case D in {
     | .fnDef(Lc,Nm,Tp,Vrs,Vl) => mkCons("fun",[Lc::data,.strg(Nm),encodeSig(Tp),
-	mkTpl(Vrs//frzeExp),
+	mkTpl(Vrs//frzeVar),
 	frzeExp(Vl)])
     | .prDef(Lc,Nm,Tp,Vrs,Act) => mkCons("prc",[Lc::data,.strg(Nm),encodeSig(Tp),
-	mkTpl(Vrs//frzeExp),
+	mkTpl(Vrs//frzeVar),
 	frzeAct(Act)])
     | .glDef(Lc,Nm,Tp,Vl) => mkCons("glb",[Lc::data,.strg(Nm),encodeSig(Tp),
 	frzeExp(Vl)])
@@ -1268,9 +1268,9 @@ star.compiler.term{
   public thawDefn:(data) => cDefn.
   thawDefn(D) => case D in {
     | .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
-      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thwTrm,thwTrm(Vl))
+      .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thawVr,thwTrm(Vl))
     | .term("prc",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
-      .prDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thwTrm,thawAct(Vl))
+      .prDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thawVr,thawAct(Vl))
     | .term("glb",[Lc,.strg(V),Sig,Vl]) =>
       .glDef(thawLoc(Lc),V,decodeSig(Sig),thwTrm(Vl))
     | .term("tpe",[Lc,Sig,.strg(RlSig),.term(_,Map)]) =>

@@ -76,12 +76,12 @@ star.compiler.normalize{
 
       if Exv?=Extra then {
 	ClosEntry =
-	  .fnDef(Lc,ClosureNm,ClosTp,ClArgs,.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
+	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.cCall(Lc,FullNm,ClArgs,funTypeRes(Tp)));
 	valis [Func,ClosEntry,..Ex1]
       } else {
 	ClosEntry =
-	  .fnDef(Lc,ClosureNm,ClosTp,
-	  ClArgs,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
+	  .fnDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
+	  .cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),funTypeRes(Tp)));
 	valis [Func,ClosEntry,..Ex1]
       }
     } catch {
@@ -117,12 +117,12 @@ star.compiler.normalize{
 
       if Exv?=Extra then {
 	ClosEntry =
-	  .prDef(Lc,ClosureNm,ClosTp,ClArgs,.aDo(Lc,.cCall(Lc,FullNm,ClArgs,.voidType)));
+	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],.aDo(Lc,.cCall(Lc,FullNm,ClArgs,.voidType)));
 	valis [Proc,ClosEntry,..Ex1]
       } else {
 	ClosEntry =
-	  .prDef(Lc,ClosureNm,ClosTp,
-	  ClArgs,.aDo(Lc,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
+	  .prDef(Lc,ClosureNm,ClosTp,[ClVar,..ClVars],
+	  .aDo(Lc,.cCall(Lc,FullNm,ClVars//(V)=>.cVar(Lc,V),.voidType)));
 	valis [Proc,ClosEntry,..Ex1]
       }
     } catch {
@@ -411,15 +411,15 @@ star.compiler.normalize{
     if traceNormalize! then
       showMsg("case rules: $(Cs)");
 
-    if .cVar(_,_).=LGov then{
-      Reslt = caseMatcher(Lc,Map,LGov,.cAbort(Lc,"no matches",Tp),Cs);
+    if .cVar(_,GVr).=LGov then{
+      Reslt = caseMatcher(Lc,Map,GVr,.cAbort(Lc,"no matches",Tp),Cs);
       valis (Reslt,Ex2)
     } else {
-      V = .cVar(Lc,genVar("C",typeOf(LGov)));
+      V = genVar("C",typeOf(LGov));
       Res = caseMatcher(Lc,Map,V,.cAbort(Lc,"no matches",Tp),Cs);
       valis (.cValof(Lc,
 	  .aSeq(Lc,
-	    .aDefn(Lc,V,LGov),
+	    .aDefn(Lc,.cVar(Lc,V),LGov),
 	    .aValis(Lc,Res)),Tp),Ex2)
     }
   }
@@ -604,17 +604,14 @@ star.compiler.normalize{
     freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
     LamFree = crTpl(Lc,freeArgs);
 
-    ((_,NArgs,NG,NBody),Ex1) = transformEqn(Eqn,M,Outer,Q\+ThV,.some(ThVr),Ex);
+    Exx = transformFunction(Lc,FullNm,[Eqn],Tp,M,Outer,Q\+ThV,.some(ThVr),Ex);
 
     Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
-    LamDefn = .fnDef(Lc,FullNm,ATp,NArgs,(G ?= NG ??
-	.cCnd(Lc,G,NBody,.cAbort(Lc,"lambda args failed",Tp)) ||
-	NBody));
 
     if traceNormalize! then
-      showMsg("lambda lifted to $(Closure), new defn: $(LamDefn)");
+      showMsg("lambda lifted to $(Closure)");
 
-    valis (Closure,[LamDefn,..Ex1])
+    valis (Closure,Exx)
   }
 
   liftPrc:(option[locn],string,prle,tipe,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
@@ -639,17 +636,15 @@ star.compiler.normalize{
     freeArgs = (freeVars//(.cV(VNm,VTp))=>liftVarExp(Lc,VNm,VTp,Outer));
     LamFree = crTpl(Lc,freeArgs);
 
-    ((_,NArgs,NG,NBody),Ex1) = transformRule(Rl,M,Outer,Q\+ThV,.some(ThVr),Ex);
+    Exx = transformProcedure(Lc,FullNm,[Rl],Tp,M,Outer,Q\+ThV,.some(ThVr),Ex);
+    
 
     Closure = .cClos(Lc,FullNm,arity(ATp),LamFree,Tp);
-    LamDefn = .prDef(Lc,FullNm,ATp,NArgs,(G ?= NG ??
-	.aIftte(Lc,G,NBody,.aAbort(Lc,"lambda args failed")) ||
-	NBody));
 
     if traceNormalize! then
-      showMsg("lambda lifted to $(Closure), new defn: $(LamDefn)");
+      showMsg("lambda lifted to $(Closure)");
 
-    valis (Closure,[LamDefn,..Ex1])
+    valis (Closure,Exx)
   }
 
   liftLet:all e,x ~~ transform[e->>x],letify[x], display[x] |=
@@ -799,7 +794,7 @@ star.compiler.normalize{
     TV = .cVar(Lc,ThVr);
 
     ThDf = .fnDef(Lc,Nm,funcType([typeOf(ThVr)],Tp),
-      [TV],
+      [ThVr],
       .cValof(Lc,
 	.aSeq(Lc,
 	  .aDefn(Lc,SV,.cNth(Lc,TV,Ix,savType(Tp))),
@@ -928,13 +923,13 @@ star.compiler.normalize{
   liftAction(.doCase(Lc,Gv,Cs),Map,Q,Ex) => valof{
     (LGv,Ex1) = liftExp(Gv,Map,Q,Ex);
     (CCs,Ex2) = transformRules(Cs,Map,Map,Q,.none,Ex1);
-    if .cVar(_,_).=LGv then{
-      Reslt = caseMatcher(Lc,Map,LGv,.aAbort(Lc,"no matches"),CCs);
+    if .cVar(_,GVr).=LGv then{
+      Reslt = caseMatcher(Lc,Map,GVr,.aAbort(Lc,"no matches"),CCs);
       valis (Reslt,Ex2)
     } else {
-      V = .cVar(Lc,genVar("C",typeOf(Gv)));
+      V = genVar("C",typeOf(Gv));
       Res = caseMatcher(Lc,Map,V,.aAbort(Lc,"no matches"),CCs);
-      valis (.aSeq(Lc,.aDefn(Lc,V,LGv),Res),Ex2)
+      valis (.aSeq(Lc,.aDefn(Lc,.cVar(Lc,V),LGv),Res),Ex2)
     }
   }
   liftAction(.doTry(Lc,B,E,H),Map,Q,Ex) => valof{
@@ -1073,5 +1068,5 @@ star.compiler.normalize{
   }
 
   makeFunVars:(tipe)=>cons[cV].
-  makeFunVars(Tp) where .tupleType(Es)?=funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
+  makeFunVars(Tp) where .tupleType(Es)?= funTypeArg(deRef(Tp)) => (Es//(E)=>genVar("_",E)).
 }

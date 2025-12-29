@@ -484,9 +484,9 @@ star.compiler.types{
   funTypeArg(.allType(_,T)) => funTypeArg(deRef(T)).
   funTypeArg(.constrainedType(T,C)) where FTp ?= funTypeArg(deRef(T)) =>
     .some(extendArgType(FTp,.some(C))).
-  funTypeArg(Tp) where .funType(A,_,_) .= deRef(Tp) => .some(A).
-  funTypeArg(Tp) where .prcType(A,_) .= deRef(Tp) => .some(A).
-  funTypeArg(Tp) where .conType(A,_) .= deRef(Tp) => .some(A).
+  funTypeArg(Tp) where .funType(A,_,_) .= deRef(Tp) => .some(deRef(A)).
+  funTypeArg(Tp) where .prcType(A,_) .= deRef(Tp) => .some(deRef(A)).
+  funTypeArg(Tp) where .conType(A,_) .= deRef(Tp) => .some(deRef(A)).
   funTypeArg(_) default => .none.
 
   public funTypeRes(Tp) => funRes(deRef(Tp)).
