@@ -9,7 +9,7 @@
 :- use_module(gensig).
 :- use_module(location).
 
-peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
+peepOptimize(func(Nm,H,Sig,AgMap,LsMap,Ins),func(Nm,H,Sig,AgMap,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
   findUnusedVars(LsMap,PIns,LsMx,Ins0),!,
   peepCode(Ins0,[],Ins1),  % We need to peep twice, cos droping vars gives us a chance for more
@@ -36,13 +36,12 @@ varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 vrRead(Vr,iBlock(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iBind(_,Vr)).
-vrRead(Vr,iLdL(Vr)).
-vrRead(Vr,iLdA(Vr)).
+vrRead(Vr,iLd(Vr)).
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
 dropVar(_,[],[]).
-dropVar(Vr,[iTL(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
-dropVar(Vr,[iStL(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
+dropVar(Vr,[iTee(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
+dropVar(Vr,[iSt(Vr)|Ins],[iDrop|Ix]) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iStV(Vr)|Ins],Ix) :- dropVar(Vr,Ins,Ix).
 dropVar(Vr,[iBlock(Sig,In)|Is],[iBlock(Sig,Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
@@ -84,12 +83,12 @@ dropUnreachable([I|Ins],[I|DIns]) :-
 peep([],_,[]) :-!.
 peep([iLine(_),iLine(Lne)|Ins],Lbls,Inx) :-!,
   peep([iLine(Lne)|Ins],Lbls,Inx).
-peep([iStL(Off),iLdL(Off),iRet|_], _, [iRet]) :-!.
-peep([iStL(Off),iLdL(Off)|Is], Lbls, Ins) :-!,
-  peep([iTL(Off)|Is],Lbls, Ins).
-peep([iLdL(_),iDrop|Is],Lbls,Ins) :- !,
+peep([iSt(Off),iLd(Off),iRet|_], _, [iRet]) :-!.
+peep([iSt(Off),iLd(Off)|Is], Lbls, Ins) :-!,
+  peep([iTee(Off)|Is],Lbls, Ins).
+peep([iLd(_),iDrop|Is],Lbls,Ins) :- !,
   peep(Is,Lbls,Ins).
-peep([iLdL(_),iNth(_),iDrop|Is],Lbls,Ins) :- !,
+peep([iLd(_),iNth(_),iDrop|Is],Lbls,Ins) :- !,
   peep(Is,Lbls,Ins).
 peep([iLdA(_),iDrop|Is],Lbls,Ins) :- !,
   peep(Is,Lbls,Ins).

@@ -205,24 +205,20 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       case LdC:
         newStackVar(analysis, &scope, pc);
         continue;
-      case LdA:
+      case Ld:
         recordVariableUse(analysis, ins->fst, pc);
         newStackVar(analysis, &scope, pc);
         continue;
-      case LdL:
-        recordVariableUse(analysis, -ins->fst, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      case StL:
+      case St:
         retireStackVar(&scope, pc);
-        recordVariableStart(analysis, -ins->fst, local, pc);
+        recordVariableStart(analysis, ins->fst, local, pc);
         continue;
-      case TL:
+      case Tee:
         retireStackVar(&scope, pc);
-        recordVariableStart(analysis, -code[pc].fst, local, pc + 1);
+        recordVariableStart(analysis, code[pc].fst, local, pc + 1);
         continue;
       case StV:
-        recordVariableStart(analysis, -code[pc].fst, local, pc + 1);
+        recordVariableStart(analysis, code[pc].fst, local, pc + 1);
         continue;
       case LdG:
         splitNextPC(analysis, pc, Null);

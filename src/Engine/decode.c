@@ -1,6 +1,4 @@
-
 #include <unistd.h>
-#include <hash.h>
 #include "decode.h"
 #include <globals.h>
 #include "constants.h"
@@ -103,11 +101,9 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if ((res = decode(in, S, H, &lbl, tmpBuffer)) != Ok)
         return res;
 
-      if (res == Ok) {
-        if (lblArity(C_LBL(lbl)) != arity) {
-          strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
-          res = Error;
-        }
+      if (lblArity(C_LBL(lbl)) != arity) {
+        strMsg(S->errorMsg, S->msgSize, "invalid label arity: expecting %d", arity);
+        res = Error;
       }
 
       if (res == Ok) {
@@ -141,10 +137,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
         return res;
 
-      if (res == Ok)
-        res = decodeList(in, S, count, H, tgt, tmpBuffer);
-
-      return res;
+      return decodeList(in, S, count, H, tgt, tmpBuffer);
     }
 
     case cloTrm: {
@@ -228,7 +221,7 @@ static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
 retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool) {
   arrayPo ar = allocArray(sizeof(Instruction), 256, True);
-  BreakLevel brk = {.pc=0, .parent=Null, .pool=C_NORMAL(constantPool), .errorMsg=errorMsg, .msgSize=msgSize};
+  BreakLevel brk = {.pc = 0, .parent = Null, .pool = C_NORMAL(constantPool), .errorMsg = errorMsg, .msgSize = msgSize};
   int32 pc = 0;
 
   tryRet(decodeBlock(in, ar, &pc, insCount, &brk));
@@ -271,7 +264,7 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 
   if ((ret = decodeOp(in, &ins->op)) == Ok) {
     (*pc)++;
-    (*count)--;                 // Increment decode counter
+    (*count)--; // Increment decode counter
     switch (ins->op) {
 #define sznOp(Tgt) {(Tgt) = 0x55555555; }
 #define sztOs(Tgt) {(Tgt) = 0x7e7e7e7e; }
@@ -331,7 +324,7 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
 
   if ((ret = decodeOp(in, &ins->op)) == Ok) {
     (*pc)++;
-    (*count)--;                 // Increment decode counter
+    (*count)--; // Increment decode counter
     switch (ins->op) {
       case Halt:
       case Abort:
@@ -371,7 +364,7 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return Ok;
       }
       case Block:
-      case Valof:{
+      case Valof: {
         (*count) -= 2;
 
         ret = decodeConstant(in, &ins->fst, brk);
@@ -393,7 +386,7 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return ret;
       }
 
-      case Drop:{
+      case Drop: {
         return Ok;
       }
 
@@ -416,11 +409,10 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         (*count)--;
         return decodeConstant(in, &ins->fst, brk);
       }
-      case LdA:
-      case LdL:
-      case StL:
+      case Ld:
+      case St:
       case StV:
-      case TL: {
+      case Tee: {
         (*count)--;
         return decodeI32(in, &ins->fst);
       }
@@ -516,7 +508,9 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
 }
 
 retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
-  BreakLevel blkBrk = {.pc=(*pc), .parent=brk, .pool=brk->pool, .errorMsg=brk->errorMsg, .msgSize=brk->msgSize};
+  BreakLevel blkBrk = {
+    .pc = (*pc), .parent = brk, .pool = brk->pool, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
+  };
   int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
@@ -539,4 +533,3 @@ int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
   } else
     return 0;
 }
-

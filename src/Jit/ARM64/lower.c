@@ -363,7 +363,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           loadConstant(jit, voidIndex, ixReg);
           for (int32 ix = 1; ix <= lclCnt; ix++) {
             localVarPo lcl = localSlot(stack, ix);
-            storeLocal(jit, ixReg, -ix);
+            storeVarble(jit, ixReg, -ix);
             *lcl = (LocalEntry){.kind = isLocal, .stkOff = -ix, .inited = True};
           }
           releaseReg(jit, ixReg);
@@ -374,7 +374,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // return
         armReg vl = popValue(stack, jit);
         // Put return value at top of args on stack
-        storeLocal(jit, vl, mtdArity(jit->mtd) - 1);
+        storeVarble(jit, vl, mtdArity(jit->mtd) - 1);
         releaseReg(jit, vl);
 
         // Pick up the caller program
@@ -406,7 +406,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         // exception return
         armReg vl = popValue(stack, jit);
         // Put exception value at top of args on stack
-        storeLocal(jit, vl, mtdArity(jit->mtd) - 1);
+        storeVarble(jit, vl, mtdArity(jit->mtd) - 1);
         releaseReg(jit, vl);
 
         // Only need this for debugging
@@ -626,27 +626,21 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         pushConstant(jit, stack, code[pc].fst);
         continue;
       }
-      case LdA: {
+      case Ld: {
         // load stack from args[xx]
         if (!haveFreeReg(jit))
           spillStack(stack, jit);
-        int32 argNo = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = argNo, .inited = True});
+        int32 varNo = code[pc].fst;
+        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = varNo, .inited = True});
 
         continue;
       }
-      case LdL: {
-        // load stack from local[xx]
-        int32 lclNo = code[pc].fst;
-        pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
-        continue;
-      }
-      case StL: {
+      case St: {
         // copy tos to local[xx]
         int32 lclNo = code[pc].fst;
         armReg vl = popValue(stack, jit);
-        storeLocal(jit, vl, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
+        storeVarble(jit, vl, lclNo);
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
         releaseReg(jit, vl);
         continue;
       }
@@ -655,17 +649,17 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         int32 lclNo = code[pc].fst;
         armReg vd = findFreeReg(jit);
         loadConstant(jit, voidIndex, vd);
-        storeLocal(jit, vd, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
+        storeVarble(jit, vd, lclNo);
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
         releaseReg(jit, vd);
         continue;
       }
-      case TL: {
+      case Tee: {
         // copy tos to local[xx]
         int32 lclNo = code[pc].fst;
         armReg vl = popValue(stack, jit);
-        storeLocal(jit, vl, -lclNo);
-        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = -lclNo, .inited = True});
+        storeVarble(jit, vl, lclNo);
+        setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
         pushRegister(stack, vl);
         continue;
       }

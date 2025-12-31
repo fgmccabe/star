@@ -6,7 +6,6 @@
  */
 
 #include "config.h"
-#include "abort.h"
 #include "globals.h"
 #include "constants.h"
 #include "char.h"
@@ -180,7 +179,7 @@ int32 run(enginePo P) {
         }
 
         // Overwrite existing arguments and locals
-        ptrPo tgt = &arg(argCount(PROG));
+        ptrPo tgt = &varble(argCount(PROG));
         ptrPo src = SP + arity; /* base of argument vector */
 
         for (int ix = 0; ix < arity; ix++)
@@ -216,7 +215,7 @@ int32 run(enginePo P) {
         }
 
         // Overwrite existing arguments and locals
-        ptrPo tgt = &arg(argCount(PROG));
+        ptrPo tgt = &varble(argCount(PROG));
         ptrPo src = SP + arity; /* base of argument vector */
 
         for (int ix = 0; ix < arity; ix++)
@@ -258,7 +257,7 @@ int32 run(enginePo P) {
 
         assert(FP > baseFrame(STK));
 
-        SP = &arg(argCount(PROG)); // Just above arguments to current call
+        SP = &varble(argCount(PROG)); // Just above arguments to current call
         PROG = FP->prog;
         ARGS = FP->args;
         PC = FP->link;
@@ -279,7 +278,7 @@ int32 run(enginePo P) {
         FP--;
 
         PC += PC->alt + 1;
-        SP = &local(lclCount(PROG) + PC->fst-1);
+        SP = &varble(-(lclCount(PROG) + PC->fst-1));
         PC += PC->alt + 1;
 
         push(retVal); /* push return value */
@@ -295,7 +294,7 @@ int32 run(enginePo P) {
       case Break: {
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(PROG) + height);
+        SP = &varble(-(lclCount(PROG) + height));
         PC += PC->alt + 1;
         continue;
       }
@@ -303,7 +302,7 @@ int32 run(enginePo P) {
       case Loop: {
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(PROG) + height);
+        SP = &varble(-(lclCount(PROG) + height));
         PC++;
         continue;
       }
@@ -313,7 +312,7 @@ int32 run(enginePo P) {
         termPo reslt = pop();
         PC += PC->alt + 1;
         int32 height = PC->fst;
-        SP = &local(lclCount(PROG) + height - 1);
+        SP = &varble(-(lclCount(PROG) + height - 1));
         PC += PC->alt + 1;
         push(reslt);
         continue; /* and carry after reset block */
@@ -339,7 +338,7 @@ int32 run(enginePo P) {
       }
       case Rst: {
         int32 height = PC->fst;
-        SP = &local(lclCount(PROG) + height);
+        SP = &varble(-(lclCount(PROG) + height));
         PC++;
         continue;
       }
@@ -426,14 +425,8 @@ int32 run(enginePo P) {
         PC++;
         continue;
 
-      case LdA: {
-        push(arg(PC->fst)); /* load argument */
-        PC++;
-        continue;
-      }
-
-      case LdL: {
-        push(local(PC->fst)); /* load local */
+      case Ld: {
+        push(varble(PC->fst)); /* load variable */
         PC++;
         continue;
       }
@@ -527,19 +520,19 @@ int32 run(enginePo P) {
         continue;
       }
 
-      case StL: {
-        local(PC->fst) = pop();
+      case St: {
+        varble(PC->fst) = pop();
         PC++;
         continue;
       }
 
       case StV: {
-        local(PC->fst) = voidEnum;
+        varble(PC->fst) = voidEnum;
         PC++;
         continue;
       }
-      case TL: {
-        local(PC->fst) = top();
+      case Tee: {
+        varble(PC->fst) = top();
         PC++;
         continue;
       }
@@ -1023,7 +1016,7 @@ int32 run(enginePo P) {
       }
 
       case Frame: {
-        assert(SP == &local(lclCount(PROG) + PC->fst));
+        assert(SP == &varble(-(lclCount(PROG) + PC->fst)));
         PC++;
         continue;
       }

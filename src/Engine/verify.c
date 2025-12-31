@@ -153,7 +153,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
 
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
         propagateVars(&ctx, parentCtx);
         return Ok;
       }
@@ -439,38 +438,40 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         pc++;
         continue;
       }
-      case LdA: {
-        int32 argNo = code[pc].fst;
-        if (argNo < 0 || argNo >= mtdArity(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds argument number: %d", pc, argNo);
+      case Ld: {
+        int32 varNo = code[pc].fst;
+        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
         stackDepth++;
         pc++;
         continue;
       }
-      case LdL: {
-        int32 lclNo = code[pc].fst - 1;
-        if (lclNo < 0 || lclNo >= lclCount(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
-        locals[lclNo].read = True;
-        if (!locals[lclNo].inited)
-          return verifyError(&ctx, ".%d Read from uninitialized local %d", pc, lclNo);
-        stackDepth++;
-        pc++;
-        continue;
-      }
-      case StL: {
-        int32 lclNo = code[pc].fst - 1;
-        if (lclNo < 0 || lclNo >= ctx.lclCount)
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
+      case St: {
+        int32 varNo = code[pc].fst;
+        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        locals[lclNo].inited = True;
         stackDepth--;
+        if (varNo < 0) {
+          locals[-varNo].inited = True;
+        }
         pc++;
         continue;
       }
-      case StV:
-      case TL: {
+      case Tee: {
+        int32 varNo = code[pc].fst;
+        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
+          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
+        if (stackDepth < 1)
+          return verifyError(&ctx, ".%d: insufficient value on stack: %d", pc, stackDepth);
+        if (varNo < 0) {
+          locals[-varNo].inited = True;
+        }
+        pc++;
+        continue;
+      }
+      case StV: {
         int32 lclNo = code[pc].fst - 1;
         if (lclNo < 0 || lclNo >= ctx.lclCount)
           return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
@@ -662,7 +663,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         int32 mx = code[pc].fst;
         if (stackDepth < 1)
           return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth--;
         for (int32 ix = 0; ix < mx; ix++) {
           int32 casePc = pc + 1 + ix;
           insPo caseIns = &code[casePc];
@@ -825,7 +825,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         int32 constant = code[pc].fst;
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-        int32 lcl = code[pc].alt;
+        int32 lcl = -code[pc].alt;
         if (lcl <= 0 || lcl > lclCount(ctx.mtd))
           return verifyError(&ctx, ".%d: invalid variable offset: %d", pc, lcl);
         pc++;

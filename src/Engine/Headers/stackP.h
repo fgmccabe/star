@@ -100,12 +100,8 @@ void stackSanityCheck(stackPo stk);
 void verifyStack(stackPo stk, heapPo H);
 logical isAttachedStack(stackPo base, stackPo tgt);
 
-static inline ptrPo stackArg(ptrPo args, integer arg) {
+static inline ptrPo stackVarble(ptrPo args, integer arg) {
   return &args[arg];
-}
-
-static inline ptrPo stackLcl(ptrPo args, int32 lcl) {
-  return &args[-lcl];
 }
 
 char *stackStateName(StackState ste);

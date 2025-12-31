@@ -389,7 +389,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
         outMsg(out, "(");
         char *sep = "";
         for (integer ix = 0; ix < count; ix++) {
-          outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(args, ix));
+          outMsg(out, "%s%,*T", sep, depth - 1, *stackVarble(args, ix));
           sep = ", ";
         }
         outMsg(out, ")\n");
@@ -401,14 +401,14 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
       outMsg(out, "(");
       char *sep = "";
       for (int32 ix = 0; ix < count; ix++) {
-        outMsg(out, "%s%,*T", sep, depth - 1, *stackArg(args, ix));
+        outMsg(out, "%s%,*T", sep, depth - 1, *stackVarble(args, ix));
         sep = ", ";
       }
       outMsg(out, ")\n");
       count = lclCount(prog);
 
       for (int32 vx = 1; vx <= count; vx++) {
-        ptrPo var = stackLcl(args, vx);
+        ptrPo var = stackVarble(args, -vx);
         if (*var != Null && *var != voidEnum)
           outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
       }
