@@ -38,13 +38,13 @@ armReg popValue(valueStackPo stack, jitCompPo jit) {
   switch (var->kind) {
     case isLocal: {
       armReg tmp = findFreeReg(jit);
-      loadLocal(jit, tmp, var->stkOff);
+      loadVarble(jit, tmp, var->stkOff);
       stack->vTop--;
       return tmp;
     }
     case inStack: {
       armReg tmp = findFreeReg(jit);
-      loadLocal(jit, tmp, var->stkOff);
+      loadVarble(jit, tmp, var->stkOff);
       stack->vTop--;
       return tmp;
     }
@@ -72,7 +72,7 @@ armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth) {
     case isLocal:
     case inStack: {
       armReg tmp = findFreeReg(jit);
-      loadLocal(jit, tmp, var->stkOff);
+      loadVarble(jit, tmp, var->stkOff);
       return tmp;
     }
     case inRegister: {
@@ -89,7 +89,8 @@ armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth) {
 }
 
 void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry) {
-  *localSlot(stack, lclNo) = entry;
+  assert(lclNo<0);
+  *localSlot(stack, -lclNo) = entry;
 }
 
 void pushValue(valueStackPo stack, LocalEntry entry) {
@@ -117,7 +118,7 @@ void pushRegister(valueStackPo stack, armReg rg) {
 
 void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) {
   localVarPo tgt = pushBlank(stack);
-  storeLocal(jit, rg, tgt->stkOff);
+  storeVarble(jit, rg, tgt->stkOff);
   releaseReg(jit, rg);
 }
 
@@ -310,23 +311,23 @@ void frameOverride(jitBlockPo block, int arity) {
 }
 
 void loadStack(jitCompPo jit, armReg tgt, int32 depth) {
-  loadLocal(jit, tgt, -(lclCount(jit->mtd) + depth));
+  loadVarble(jit, tgt, -(lclCount(jit->mtd) + depth));
 }
 
 void storeStack(jitCompPo jit, armReg src, int32 depth) {
-  storeLocal(jit, src, -(jit->lclCnt + depth));
+  storeVarble(jit, src, -(jit->lclCnt + depth));
 }
 
-void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo) {
-  check(lclNo >= jit->minOffset && lclNo < jit->maxOffset,
-        "Accessing out of bounds locals");
-  loadOffset(jit, tgt, AG, lclNo);
+void loadVarble(jitCompPo jit, armReg tgt, int32 varNo) {
+  check(varNo >= jit->minOffset && varNo < jit->maxOffset,
+        "Accessing out of bounds variable");
+  loadOffset(jit, tgt, AG, varNo);
 }
 
-void storeLocal(jitCompPo jit, armReg src, int32 lclNo) {
-  check(lclNo >= jit->minOffset && lclNo < jit->maxOffset,
-        "Accessing out of bounds locals");
-  storeOffset(jit, src, AG, lclNo);
+void storeVarble(jitCompPo jit, armReg src, int32 varNo) {
+  check(varNo >= jit->minOffset && varNo < jit->maxOffset,
+        "Accessing out of bounds variable");
+  storeOffset(jit, src, AG, varNo);
 }
 
 void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
@@ -475,7 +476,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
         check(src->inited, "attempted to propagate non-initialized var");
         *dst = (LocalEntry){.kind = inRegister, .stkOff = dst->stkOff, .inited = True}; // back propagate for sanity
       } else {
-        storeLocal(jit, src->Rg, lclOff);
+        storeVarble(jit, src->Rg, lclOff);
         releaseReg(jit, src->Rg);
         *src = (LocalEntry){.kind = dst->kind, .stkOff = lclOff, .inited = True}; // back propagate for sanity
       }
@@ -491,7 +492,7 @@ static retCode propagateVar(jitCompPo jit, localVarPo src, localVarPo dst, int32
     }
     case combineKind(inStack, inRegister):
     case combineKind(isLocal, inRegister): {
-      loadLocal(jit, dst->Rg, src->stkOff);
+      loadVarble(jit, dst->Rg, src->stkOff);
       *src = *dst; // back propagate
       return Ok;
     }

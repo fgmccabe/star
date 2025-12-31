@@ -12,10 +12,10 @@ star.compiler.peephole{
   import star.compiler.data.
 
   public peepOptimize:(codeSegment)=>codeSegment.
-  peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
+  peepOptimize(.func(Lbl,Pol,Tp,Ags,LcMap,Ins)) => valof{
     Ins0 = peepCode(Ins,[]);
     (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
-    valis .func(Lbl,Pol,Tp,LcMp1,adjustEntry(peepCode(Ins1,[]),size(LcMp1)))
+    valis .func(Lbl,Pol,Tp,Ags,LcMp1,adjustEntry(peepCode(Ins1,[]),size(LcMp1)))
   }
   peepOptimize(Df) default => Df.
 
@@ -36,13 +36,13 @@ star.compiler.peephole{
   vrRead(Vr,.iBlock(_,Is)) => varRead(Vr,Is).
   vrRead(Vr,.iValof(_,Is)) => varRead(Vr,Is).
   vrRead(Vr,.iBind(_,V)) => V==Vr.
-  vrRead(Vr,.iLdL(V)) => V==Vr.
+  vrRead(Vr,.iLd(V)) => V==Vr.
   vrRead(Vr,.iLbl(_,I)) => vrRead(Vr,I).
   vrRead(_,_) default => .false.
 
   dropVar(Vr,[]) => [].
-  dropVar(Vr,[.iTL(Vr),..Is]) => dropVar(Vr,Is).
-  dropVar(Vr,[.iStL(Vr),..Is]) => [.iDrop,..dropVar(Vr,Is)].
+  dropVar(Vr,[.iTee(Vr),..Is]) => dropVar(Vr,Is).
+  dropVar(Vr,[.iSt(Vr),..Is]) => [.iDrop,..dropVar(Vr,Is)].
   dropVar(Vr,[.iStV(Vr),..Is]) => dropVar(Vr,Is).
   dropVar(Vr,[.iBlock(Tp,Bs),..Is]) => [.iBlock(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
   dropVar(Vr,[.iValof(Tp,Bs),..Is]) => [.iValof(Tp,dropVar(Vr,Bs)),..dropVar(Vr,Is)].
@@ -82,14 +82,12 @@ star.compiler.peephole{
   peep:(multi[assemOp],cons[(string,multi[assemOp])])=>multi[assemOp].
   peep([],_) => [].
   peep([.iLine(Lc),.iLine(_),..Ins],Lbls) => peep([.iLine(Lc),..Ins],Lbls).
-  peep([.iStL(Off),.iLdL(Off),.iRet,.._],_) => [.iRet].
-  peep([.iStL(Off),.iLdL(Off),.iXRet,.._],_) => [.iXRet].
-  peep([.iStL(Off),.iLdL(Off),..Ins],Lbls) => peep([.iTL(Off),..Ins],Lbls).
+  peep([.iSt(Off),.iLd(Off),.iRet,.._],_) => [.iRet].
+  peep([.iSt(Off),.iLd(Off),.iXRet,.._],_) => [.iXRet].
+  peep([.iSt(Off),.iLd(Off),..Ins],Lbls) => peep([.iTee(Off),..Ins],Lbls).
   peep([.iRot(0),..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iLdL(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iLdL(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iLdA(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
-  peep([.iLdA(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLd(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
+  peep([.iLd(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iNth(_),.iDrop,..Ins],Lbls) => peep([.iDrop,..Ins],Lbls).
   peep([.iBlock(L,Is),..Ins],Lbls) => [.iBlock(L,peepCode(Is,Lbls)),..peep(Ins,Lbls)].
   peep([.iLbl(Lb,.iBlock(Lvl,Is)),..Ins],Lbls) => valof{

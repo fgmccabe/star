@@ -13,7 +13,7 @@ star.compiler.assem{
   import star.compiler.encode.
   import star.compiler.ltipe.
 
-  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],multi[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[(string,data)],multi[assemOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,map[termLbl,integer]).
 
@@ -25,25 +25,41 @@ star.compiler.assem{
 
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
-    | .func(Nm,H,Sig,Lcs,Ins) => valof{
+    | .func(Nm,H,Sig,Ags,Lcs,Ins) => valof{
       funSig = .strg(Sig::string);
       (Lt0,_) = findLit([],.symb(Nm));
       (Lt1,tpIx) = findLit(Lt0,funSig);
-      (Code,_,Lts) = assemBlock(Ins,[],0,[],Lt1,declareLocals(Lcs));
-      valis mkCons("func",
-          [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
-          .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
-           mkTpl(Lcs//(((Vnm,Spec))=>mkTpl([.strg(Vnm),Spec])))])
+      LclMap = declareArgs(Ags,declareLocals(Lcs,{}));
+      (Code,_,Lts) = assemBlock(Ins,[],0,[],Lt1,LclMap);
+       valis mkCons("func",
+              [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
+              .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
+    	  mkTpl(sortVInfo(varInfos(Ags,LclMap)++varInfos(Lcs,LclMap)))])
     }
     | .struct(Lbl,Tp,Ix) => mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
     | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
   }.
 
-  declareLocals:(cons[(string,data)]) => map[string,integer].
-  declareLocals(Lcs) => let{.
-    decl([],_) => {}.
-    decl([(Vr,_),..Ls],Lc) => [Vr -> Lc,..decl(Ls,Lc+1)].
-  .} in decl(Lcs,1).             -- First local is #1
+  varInfos:(cons[(string,data)],map[string,integer])=>cons[data].
+  varInfos(Lcs,Map) => (try
+    (Lcs//(((V,Spec))=>mkTpl([.strg(V),.intgr(_optval(Map[V])),Spec])))
+    catch { _ => valof{ reportTrap("Invalid map"); valis []}}
+  ).
+
+  sortVInfo:(cons[data])=>cons[data].
+  sortVInfo(Els) => sort(Els,((.term(_,[_,.intgr(I1),_]),.term(_,[_,.intgr(I2),_])) => I1<I2)).
+
+  declareLocals:(cons[(string,data)],map[string,integer]) => map[string,integer].
+  declareLocals(Lcs,Map) => let{.
+    decl([],_,Mp) => Mp.
+    decl([(Vr,_),..Ls],Ix,Mp) => decl(Ls,Ix-1,Mp[Vr -> Ix]).
+  .} in decl(Lcs,-1,Map).             -- First local is -1
+
+  declareArgs:(cons[(string,data)],map[string,integer]) => map[string,integer].
+  declareArgs(Lcs,Map) => let{.
+    decl([],_,Mp) => Mp.
+    decl([(Vr,_),..Ls],Ix,Mp) => decl(Ls,Ix+1,Mp[Vr -> Ix]).
+  .} in decl(Lcs,0,Map).             -- First arg is 0
 
   encodeMap(Entries) => mkTpl(ixRight((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Entries)).
 
@@ -98,8 +114,12 @@ star.compiler.assem{
   litTbl:(map[data,integer]) => data.
   litTbl(Lts) => mkTpl(sort(Lts::cons[(data,integer)],((T1,Ix1), (T2,Ix2)) => Ix1<Ix2)//fst).
 
+  showMap:(string,cons[(string,data)])=>string.
+  showMap(_,[]) => "".
+  showMap(Msg,Map) => "\#(Msg)\: \#((Map//((Nm,_))=>Nm++"\n")*)".
+
   public implementation display[codeSegment] => {
-    disp(.func(Nm,_,Tp,_,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMnem(Ins).
+    disp(.func(Nm,_,Tp,Ags,Lcs,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMap("args",Ags)++showMap("locals",Lcs)++showMnem(Ins).
     disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
     disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
   }

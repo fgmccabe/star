@@ -26,8 +26,7 @@ static void showRegisters(enginePo p, heapPo h);
 static void showAllLocals(ioPo out, stackPo stk);
 static void showTos(ioPo out, stackPo stk, integer offset);
 
-static retCode showLcl(ioPo out, ptrPo args, int32 vr);
-static retCode showArg(ioPo out, ptrPo args, integer arg);
+static retCode showVarble(ioPo out, ptrPo args, int32 varNo);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 
 static sockPo debuggerListener = Null;
@@ -218,9 +217,8 @@ static DebugWaitFor cmder(debugOptPo opts, enginePo p, termPo lc) {
 
         cmdLine = defltLine(cmdLine, cmdLen, &cmdLen);
 
-        codePoint cmd;
         integer nxt = 0;
-        cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
+        codePoint cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
 
         if (isNdChar((codePoint) cmd)) {
           cmd = 'n';
@@ -338,7 +336,7 @@ static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
   methodPo mtd = stk->prog;
 
   if (argNo >= 0 && argNo < argCount(mtd))
-    showArg(debugOutChnnl, stk->args, argNo);
+    showVarble(debugOutChnnl, stk->args, argNo);
   else
     outMsg(debugOutChnnl, "invalid argument: %d", argNo);
 
@@ -354,7 +352,7 @@ static DebugWaitFor dbgShowLocal(char *line, enginePo p, termPo lc, void *cl) {
   if (lclNo == 0)
     showAllLocals(debugOutChnnl, stk);
   else if (lclNo > 0 && lclNo <= lclCount(mtd))
-    showLcl(debugOutChnnl, stk->args, lclNo);
+    showVarble(debugOutChnnl, stk->args, -lclNo);
   else
     outMsg(debugOutChnnl, "invalid local number: %d", lclNo);
 
@@ -408,7 +406,7 @@ static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
 
 static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
-  ptrPo limit = stackLcl(stk->args, lclCount(stk->prog));
+  ptrPo limit = stackVarble(stk->args, -lclCount(stk->prog));
   ptrPo sp = stk->sp;
 
   if (line[0] == '\n') {
@@ -837,7 +835,7 @@ DebugWaitFor lineDebug(enginePo p, termPo lc) {
 DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset) {
   ptrPo args = p->stk->args;
 
-  return lnDebug(p, Bind, name, args[-offset], showBind);
+  return lnDebug(p, Bind, name, args[offset], showBind);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
@@ -969,11 +967,12 @@ void stackSummary(ioPo out, stackPo stk) {
   outMsg(out, "used: %l, free:%5.2g%%", used, ((double) freeCount) / (double) stk->sze);
 }
 
-retCode showArg(ioPo out, ptrPo args, integer arg) {
+retCode showVarble(ioPo out, ptrPo args, int32 varNo) {
+  char *kind = (varNo >= 0 ? "A" : "L");
   if (args != Null) {
-    return outMsg(out, " A[%d] = %,*T", arg, displayDepth, *stackArg(args, arg));
+    return outMsg(out, " %s[%d] = %,*T", kind, varNo, displayDepth, *stackVarble(args, varNo));
   } else
-    return outMsg(out, " A[%d]", arg);
+    return outMsg(out, " %s[%d]", kind, varNo);
 }
 
 void showAllLocals(ioPo out, stackPo stk) {
@@ -981,13 +980,13 @@ void showAllLocals(ioPo out, stackPo stk) {
   for (int32 vx = 1; vx <= lclCount(mtd); vx++) {
     char vName[MAX_SYMB_LEN];
     if (localVName(mtd, stk->pc, vx, vName, NumberOf(vName)) == Ok) {
-      ptrPo var = stackLcl(stk->args, vx);
+      ptrPo var = stackVarble(stk->args, -vx);
       if (*var != Null && *var != voidEnum)
         outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
     } else {
-      ptrPo var = stackLcl(stk->args, vx);
+      ptrPo var = stackVarble(stk->args, -vx);
       if (*var != Null)
         outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
     }
@@ -996,7 +995,7 @@ void showAllLocals(ioPo out, stackPo stk) {
 
 retCode showLcl(ioPo out, ptrPo args, int32 vr) {
   if (args != Null)
-    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *stackLcl(args, vr));
+    return outMsg(out, " l[%d] = %,*T", vr, displayDepth, *stackVarble(args, vr));
   else
     return outMsg(out, " l[%d]", vr);
 }
@@ -1059,8 +1058,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 #define show_tOs(Tgt) showTos(out,stk,delta++)
 #define show_art(Tgt) outMsg(out," /%d",(Tgt))
 #define show_i32(Tgt) outMsg(out," #%d",(Tgt))
-#define show_arg(Tgt) showArg(out,args,(Tgt))
-#define show_lcl(Tgt) showLcl(out,args,(Tgt))
+#define show_lcl(Tgt) showVarble(out,args,(Tgt))
 #define show_lcs(Tgt) outMsg(out," l[%d]",(Tgt))
 #define show_bLk(Tgt) showPcTgt(out,offset,(Tgt)+1)
 #define show_lVl(Tgt) showBlkLvl(out,offset,(Tgt))
@@ -1089,7 +1087,7 @@ insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
 void showRegisters(enginePo p, heapPo h) {
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
-  ptrPo limit = stackLcl(stk->args, lclCount(mtd));
+  ptrPo limit = stackVarble(stk->args, -lclCount(mtd));
   ptrPo sp = stk->sp;
   ptrPo args = stk->args;
 
@@ -1099,7 +1097,7 @@ void showRegisters(enginePo p, heapPo h) {
 
   integer count = argCount(mtd);
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackArg(args, ix));
+    outMsg(debugOutChnnl, "A[%d]=%,*T\n", ix, displayDepth, *stackVarble(args, ix));
   }
 
   showAllLocals(debugOutChnnl, stk);
@@ -1116,32 +1114,24 @@ void showRegisters(enginePo p, heapPo h) {
 static char *anonPrefix = "__";
 
 retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
-  //  normalPo locals = mtd->locals;
-  //  int64 numLocals = termArity(locals);
-  //  integer pcOffset = codeOffset(mtd, pc);
+  // normalPo locals = mtd->locals;
+  // int64 numLocals = termArity(locals);
+  // integer pcOffset = codeOffset(mtd, pc);
   //
-  //  for (int32 ix = 0; ix < numLocals; ix++) {
-  //    normalPo vr = C_NORMAL(nthArg(locals, ix));
-  //    integer from = integerVal(nthArg(vr, 1));
-  //    integer to = integerVal(nthArg(vr, 2));
+  // for (int32 ix = 0; ix < numLocals; ix++) {
+  //   normalPo vr = C_NORMAL(nthArg(locals, ix));
+  //   integer from = integerVal(nthArg(vr, 1));
+  //   integer to = integerVal(nthArg(vr, 2));
   //
-  //    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
-  //      copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
+  //   if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
+  //     copyChars2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
   //
-  //      if (uniIsLitPrefix(buffer, anonPrefix))
-  //        uniCpy(buffer, bufLen, "l");
-  //      return Ok;
-  //    }
-  //  }
+  //     if (uniIsLitPrefix(buffer, anonPrefix))
+  //       uniCpy(buffer, bufLen, "l");
+  //     return Ok;
+  //   }
+  // }
   return Fail;
-}
-
-static retCode swapIndex(integer i, integer j, void *cl) {
-  integer *indices = (integer *) cl;
-  integer w = indices[i];
-  indices[i] = indices[j];
-  indices[j] = w;
-  return Ok;
 }
 
 void dumpStats() {

@@ -20,8 +20,8 @@ star.compiler.ltipe{
       | .flt64 => "flt64"
       | .bool => "bool"
       | .ptr => "ptr"
-      | .fnTipe(As,R) => "(#(showTp(.tplTipe(As))))->#(showTp(R))"
-      | .prTipe(As,E) => "(#(showTp(.tplTipe(As)))){} throws #(showTp(E))"
+      | .fnTipe(As,R) => "#(showTp(.tplTipe(As)))->#(showTp(R))"
+      | .prTipe(As,E) => "#(showTp(.tplTipe(As))){} throws #(showTp(E))"
       | .tplTipe(As) => "(#(interleave(As//showTp,",")*))"
       | .vdTipe => "v"
     }

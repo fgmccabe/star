@@ -44,8 +44,7 @@
 #define pop() (*SP++)
 #define top() (*SP)
 #define push(T) STMT_WRAP({*--SP=(termPo)(T);})
-#define local(lcl) (ARGS[-(lcl)])
-#define arg(aix) (ARGS[aix])
+#define varble(aix) (ARGS[aix])
 #define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ \
   STK->prog = PROG;                 \
@@ -81,7 +80,7 @@
 
 #define breakOut() STMT_WRAP({               \
   PC += PC->alt + 1;                         \
-  SP = &local(lclCount(PROG) + PC->fst - 1); \
+  SP = &varble(-(lclCount(PROG) + PC->fst - 1)); \
   PC += PC->alt + 1;                         \
   })
 

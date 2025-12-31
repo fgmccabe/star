@@ -100,8 +100,9 @@ void unstash(jitCompPo jit);
 void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
 void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
 
-void loadLocal(jitCompPo jit, armReg tgt, int32 lclNo);
-void storeLocal(jitCompPo jit, armReg src, int32 lclNo);
+void loadVarble(jitCompPo jit, armReg tgt, int32 varNo);
+void storeVarble(jitCompPo jit, armReg src, int32 varNo);
+
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 void dumpStack(valueStackPo stack);
