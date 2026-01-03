@@ -221,7 +221,7 @@ ReturnStatus g__int2str(enginePo P) {
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  pshVal(P,allocateString(processHeap(P), buff, len));
+  pshVal(P, allocateString(processHeap(P), buff, len));
   return Normal;
 }
 
@@ -235,25 +235,30 @@ ReturnStatus g__int_format(enginePo P) {
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    pshVal(P,allocateString(processHeap(P), buff, pos));
+    pshVal(P, allocateString(processHeap(P), buff, pos));
     return Normal;
-  } else{
-    pshVal(P,eINVAL);
+  } else {
+    pshVal(P, eINVAL);
     return Abnormal;
   }
 }
 
 ReturnStatus g__int2flt(enginePo P) {
   integer ix = integerVal(popVal(P));
-  termPo Rs = makeFloat((double) ix);
-  pshVal(P,Rs);
-  return Normal;
+  double dx = (double) ix;
+  if ((integer) dx == ix) { // Check coercion was safe
+    termPo Rs = makeFloat((double) ix);
+    pshVal(P, Rs);
+    return Normal;
+  }
+  pshVal(P, eRANGE);
+  return Abnormal;
 }
 
 ReturnStatus g__irand(enginePo P) {
   integer ix = integerVal(popVal(P));
   integer rnd = randomInt();
-  pshVal(P, makeInteger(rnd%ix));
+  pshVal(P, makeInteger(rnd % ix));
   return Normal;
 }
 
@@ -264,10 +269,10 @@ ReturnStatus g__random(enginePo P) {
 }
 
 ReturnStatus g__seed(enginePo P) {
-  unsigned int ix = (unsigned int)integerVal(popVal(P));
+  unsigned int ix = (unsigned int) integerVal(popVal(P));
 
   srandom(ix);
-  pshVal(P,unitEnum);
+  pshVal(P, unitEnum);
   return Normal;
 }
 

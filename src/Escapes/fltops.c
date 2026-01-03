@@ -169,10 +169,21 @@ ReturnStatus g__modf(enginePo P) {
 }
 
 ReturnStatus g__flt2int(enginePo P) {
-  termPo Rs = makeInteger((integer) floatVal(popVal(P)));
+  double dx = floatVal(popVal(P));
 
-  pshVal(P, Rs);
-  return Normal;
+  if (floor(dx) == dx) {
+    integer ix = (integer) dx;
+    if ((double) ix == dx) {
+      pshVal(P, makeInteger(ix));
+      return Normal;
+    } else {
+      pshVal(P, eRANGE);
+      return Abnormal;
+    }
+  } else {
+    pshVal(P, eINVAL);
+    return Abnormal;
+  }
 }
 
 ReturnStatus g__bits_float(enginePo P) {

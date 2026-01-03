@@ -69,8 +69,8 @@ escape(_flt_eq, func(flt flt, bool), "float equality")
 escape(_flt_lt, func(flt flt, bool), "float less than")
 escape(_flt_ge, func(flt flt, bool), "float greater or equal")
 
-escape(_int2flt, func(int, flt), "convert integer to float")
-escape(_flt2int, func(flt, int), "convert float to integer")
+escape(_int2flt, throws(int, flt, ERR), "convert integer to float")
+escape(_flt2int, throws(flt, int, ERR), "convert float to integer")
 
 escape(_bits_float, func(int, flt), "convert a bit pattern to a float")
 escape(_float_bits, func(flt, int), "convert a float into a bit pattern")

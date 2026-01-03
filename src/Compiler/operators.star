@@ -491,6 +491,7 @@ star.compiler.operators{
     | "throw" => .true
     | "throws" => .true
     | "try" => .true
+    | "unreachable" => .true
     | "valis" => .true
     | "valof" => .true
     | "void" => .true
