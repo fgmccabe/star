@@ -290,6 +290,7 @@ star.compiler.dependencies{
     
   collectTermRefs:(ast,map[defnSp,defnSp],cons[defnSp]) => cons[defnSp].
   collectTermRefs(V,All,Rf) where isAnon(V) => Rf.
+  collectTermRefs(V,All,Rf) where isUnreachable(V) => Rf.
   collectTermRefs(V,All,Rf) where (_,Id) ?= isName(V) => 
     collectName(.cnsSp(Id),All,collectName(.varSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf) where (_,Id) ?= isEnumSymb(T) =>

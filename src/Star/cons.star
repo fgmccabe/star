@@ -196,4 +196,12 @@ star.cons{
     (return X) => .cons(X,.nil).
     (XS >>= F) => multicat(fmap(F,XS)).
   }
+
+  public implementation all e,f,x ~~ pull[e->>f,x] |= pull[cons[e]->>cons[f],x] => let{.
+    pl:(cons[e]) => cons[f] throws x.
+    pl(.nil)=>.nil.
+    pl(.cons(H,T)) => .cons(pull_(H),pl(T)).
+  .} in {
+    pull_ = pl
+  }
 }

@@ -12,6 +12,7 @@ freeVars(v(_,Nm,Tp),Ex,Q,F,Fv) :-
   call(Q,Ex,Nm,Tp,F,Fv),!.
 freeVars(v(_,_,_),_Ex,_Q,Fv,Fv).
 freeVars(anon(_,_),_,_,F,F).
+freeVars(abort(_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
 freeVars(intLit(_,_),_,_,F,F).
 freeVars(bigLit(_,_),_,_,F,F).

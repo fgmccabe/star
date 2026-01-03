@@ -27,6 +27,7 @@ isCanonDef(updDec(_,_,_,_)).
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
 isCanon(anon(_,_)).
+isCanon(abort(_,_)).
 isCanon(deref(_,_)).
 isCanon(cell(_,_)).
 isCanon(over(_,_,_)).
@@ -90,6 +91,7 @@ isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
 typeOfCanon(anon(_,Tp),Tp) :- !.
+typeOfCanon(abort(_,Tp),Tp) :- !.
 typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(tdot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(update(_,Rc,_,_),Tp) :- !, typeOfCanon(Rc,Tp).
@@ -146,6 +148,7 @@ typesOf([C|Cs],[Tp|Tps]) :-
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(anon(Lc,_),Lc) :- !.
+locOfCanon(abort(Lc,_),Lc) :- !.
 locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(update(Lc,_,_,_),Lc) :- !.
 locOfCanon(tdot(Lc,_,_,_),Lc) :- !.
@@ -234,6 +237,7 @@ dispCanon(T) :-
 
 ssTerm(v(_,Nm,_),_,id(Nm)).
 ssTerm(anon(_,_),_,ss("_")).
+ssTerm(abort(_,_),_,ss("unreachable")).
 ssTerm(void,_,ss("void")).
 ssTerm(intLit(_,Ix),_,ix(Ix)).
 ssTerm(bigLit(_,Bx),_,ss(Bx)).

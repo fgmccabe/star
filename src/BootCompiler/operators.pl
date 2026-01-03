@@ -431,6 +431,7 @@
   keyword("throw").
   keyword("throws").
   keyword("try").
+  keyword("unreachable").
   keyword("valis").
   keyword("valof").
   keyword("void").

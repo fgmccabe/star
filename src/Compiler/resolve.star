@@ -216,6 +216,7 @@ star.compiler.resolve{
 
   overloadTerm:(canon,dict,resolveState) => (canon,resolveState).
   overloadTerm(.anon(Lc,Tp),_,St) => (.anon(Lc,Tp),St).
+  overloadTerm(.unreach(Lc,Tp),_,St) => (.unreach(Lc,Tp),St).
   overloadTerm(.vr(Lc,Nm,Tp),_,St) => (.vr(Lc,Nm,Tp),St).
   overloadTerm(.intr(Lc,Ix),_,St) => (.intr(Lc,Ix),St).
   overloadTerm(.bintr(Lc,Ix),_,St) => (.bintr(Lc,Ix),St).

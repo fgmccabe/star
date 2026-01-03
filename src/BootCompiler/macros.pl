@@ -295,6 +295,8 @@ examineTerm(T,T) :-
 examineTerm(T,T) :-
   isEnum(T,_,N),isIden(N,_,_),!.
 examineTerm(T,T) :-
+  isUnreachable(T,_),!.
+examineTerm(T,T) :-
   isInteger(T,_,_),!.
 examineTerm(T,T) :-
   isBigInt(T,_,_),!.
@@ -806,6 +808,8 @@ examineAction(A,Ax) :-
 examineAction(A,Ax) :-
   isRoundTerm(A,_,_,_),!,
   macroTerm(A,Ax).
+examineAction(A,A) :-
+  isUnreachable(A,_),!.
 examineAction(T,T) :-
   locOfAst(T,Lc),
   reportError("cannot figure out action %s",[ast(T)],Lc).

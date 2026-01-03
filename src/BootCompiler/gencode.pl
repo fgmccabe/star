@@ -567,6 +567,8 @@ compCond(E,Lc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
 compExp(voyd,Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,Lc,C,Cx,Stka,Stkx).
+compExp(unreach(Lc,_),_Lc,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,[iLdC(strg("unreachable")),iAbort(Loc)|C],C,_Stk,none) :-
+  locTerm(Lc,Loc),!.
 compExp(ann(_),Lc,_Brks,Last,Opts,Lx,Lx,Dx,Dx,[iLdV|C],Cx,Stk,Stkx) :-!,
   bumpStk(Stk,Stka),
   genLastReturn(Last,Opts,Lc,C,Cx,Stka,Stkx).

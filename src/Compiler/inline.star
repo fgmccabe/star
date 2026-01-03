@@ -91,8 +91,9 @@ star.compiler.inline{
   simplifyExp(E,_,_) => E.
 
   simExp(Exp,Map,Depth) => case Exp in {
-    | .cVoid(Lc) => .cVoid(Lc)
-    | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
+    | .cVoid(_) => Exp
+    | .cAnon(_,_) => Exp
+    | .cUnrch(_,_) => Exp
     | .cVar(Lc,V) => inlineVar(Lc,V,Map,Depth)
     | .cInt(Lc,Ix) => .cInt(Lc,Ix)
     | .cBig(Lc,Bx) => .cBig(Lc,Bx)

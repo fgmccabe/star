@@ -700,6 +700,8 @@ typeOfArgTerm(T,Tp,ErTp,Env,Ev,Exp,Opts,Path) :-
 typeOfExp(V,Tp,_ErTp,Env,Env,anon(Lc,Tp),_,_) :-
   isAnon(V,Lc),
   reportError("anonymous variable not permitted as expression",[],Lc).
+typeOfExp(V,Tp,_ErTp,Env,Env,abort(Lc,Tp),_,_) :-
+  isUnreachable(V,Lc),!.
 typeOfExp(V,Tp,_ErTp,Env,Env,Term,_Opts,_Path) :-
   isIden(V,Lc,N),!,
   (getVar(Lc,N,Env,Term,VTp) ->
@@ -1132,6 +1134,8 @@ checkAction(A,Tp,ErTp,Last,Env,Env,Dcls,Dcls,doExp(Lc,Exp),Opts,Path) :-
   isRoundTerm(A,Lc,F,Args),!,
   checkProcCall(Lc,F,Args,ErTp,Env,Exp,Opts,Path),
   validLastAct(A,Lc,Tp,Last).
+checkAction(A,Tp,_ErTp,_Last,Env,Env,Dcls,Dcls,doExp(Lc,abort(Lc,Tp)),_Opts,_Path) :-
+  isUnreachable(A,Lc),!.
 checkAction(A,Tp,_ErTp,_Last,Env,Env,Dcls,Dcls,doNop(Lc),_,_) :-
   locOfAst(A,Lc),
   reportError("%s:%s illegal form of action",[ast(A),tpe(Tp)],Lc).

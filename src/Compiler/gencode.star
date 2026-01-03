@@ -147,6 +147,7 @@ star.compiler.gencode{
     | .cVar(Lc,Vr) => compVar(Vr,Lc,Last,Ctx,Stk)
     | .cVoid(Lc) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(.voidType,Stk))
     | .cAnon(Lc,Tp) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(Tp,Stk))
+    | .cUnrch(Lc,_) => (compAbort(Lc,"unreachable",Ctx),Ctx,.none)
     | .cTerm(Lc,Nm,Args,Tp) => valof{
       (ArgCode,_,_) = compExps(Args,Lc,Brks,Ctx,Stk);
       Stk1 = pshStack(Tp,Stk);
