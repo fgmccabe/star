@@ -26,11 +26,11 @@ star.coerce{
   }
 
   public implementation coercion[integer,float] => {
-    _coerce(Ix) => .some(_int2flt(Ix)).
+    _coerce(Ix) => (try .some(_int2flt(Ix)) catch { _ => .none}).
   }
 
   public implementation coercion[float,integer] => {
-    _coerce(Dx) => .some(_flt2int(Dx)).
+    _coerce(Dx) => (try .some(_flt2int(Dx)) catch { _ => .none}).
   }
 
   public implementation coercion[float,float] => {

@@ -25,8 +25,8 @@ escapeType("_int_pow",funType(tplType([type("integer"),type("integer")]),type("i
 escapeType("_flt_eq",funType(tplType([type("float"),type("float")]),type("boolean"),voidType)).
 escapeType("_flt_lt",funType(tplType([type("float"),type("float")]),type("boolean"),voidType)).
 escapeType("_flt_ge",funType(tplType([type("float"),type("float")]),type("boolean"),voidType)).
-escapeType("_int2flt",funType(tplType([type("integer")]),type("float"),voidType)).
-escapeType("_flt2int",funType(tplType([type("float")]),type("integer"),voidType)).
+escapeType("_int2flt",funType(tplType([type("integer")]),type("float"),type("errorCode"))).
+escapeType("_flt2int",funType(tplType([type("float")]),type("integer"),type("errorCode"))).
 escapeType("_bits_float",funType(tplType([type("integer")]),type("float"),voidType)).
 escapeType("_float_bits",funType(tplType([type("float")]),type("integer"),voidType)).
 escapeType("_flt_hash",funType(tplType([type("float")]),type("integer"),voidType)).
