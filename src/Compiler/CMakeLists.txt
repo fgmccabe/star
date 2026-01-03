@@ -56,10 +56,3 @@ add_custom_target(sc)
 
 install(PROGRAMS  ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sc DESTINATION bin)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/.star-repo DESTINATION share/star)
-  
-	
-
-
-
-
-

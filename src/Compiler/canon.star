@@ -8,6 +8,7 @@ star.compiler.canon{
   import star.compiler.operators.
 
   public canon ::= .anon(option[locn],tipe) |
+  .unreach(option[locn],tipe) |
   .vr(option[locn],string,tipe) |
   .mtd(option[locn],string,tipe) |
   .over(option[locn],canon,constraint) |
@@ -81,6 +82,7 @@ star.compiler.canon{
   public implementation hasType[canon] => {.
     typeOf(Cn) => case Cn in {
       | .anon(_,T) => T
+      | .unreach(_,T) => T
       | .vr(_,_,T) => T
       | .mtd(_,_,T) => T
       | .over(_,T,_) => typeOf(T)
@@ -124,6 +126,7 @@ star.compiler.canon{
   public implementation hasLoc[canon] => {
     locOf(Cn) => case Cn in {
       | .anon(Lc,_) => Lc
+      | .unreach(Lc,_) => Lc
       | .vr(Lc,_,_) => Lc
       | .mtd(Lc,_,_) => Lc
       | .over(Lc,_,_) => Lc
@@ -250,6 +253,7 @@ star.compiler.canon{
   showCanon:(canon,integer,string)=>string.
   showCanon(Cn,Pr,Sp) => case Cn in {
     | .anon(_,_) => "_"
+    | .unreach(_,_) => "unreachable"
     | .vr(_,Nm,Tp) => Nm
     | .mtd(_,Fld,_) => "µ#(Fld)"
     | .over(_,V,Cx) => "$(Cx)|=#(showCanon(V,Pr,Sp))"

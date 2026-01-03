@@ -302,6 +302,7 @@ star.compiler.normalize{
 
   liftExp:(canon,nameMap,set[cV],cons[cDefn]) => crFlow[cExp].
   liftExp(.anon(Lc,Tp),Map,Q,Ex) => (.cAnon(Lc,Tp),Ex).
+  liftExp(.unreach(Lc,Tp),Map,Q,Ex) => (.cUnrch(Lc,Tp),Ex).
   liftExp(.vr(Lc,Nm,Tp),Map,Q,Ex) => valof{
     VV = liftVarExp(Lc,Nm,Tp,Map);
     valis (VV,Ex)

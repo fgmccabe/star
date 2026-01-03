@@ -97,6 +97,7 @@ showTerm(Trm,Dp,O,Ox) :-
   ss_to_chrs(lterms:ssTrm(Trm,Dp),O,Ox).
 
 ssTrm(voyd,_,ss("void")) :-!.
+ssTrm(unreach(_,_),_,ss("unreachable")) :-!.
 ssTrm(idnt(Nm,_T),_Dp,sq([id(Nm)])) :-!.
 %% ssTrm(idnt(Nm,T),Dp,sq([id(Nm),ss(":"),STp])) :-!,
 %%       ssType(T,false,Dp,STp).
@@ -342,6 +343,7 @@ rewriteTerm(QTst,T,T1) :-
   call(QTst,T,T1),!.
 rewriteTerm(_,idnt(Nm,Tp),idnt(Nm,Tp)).
 rewriteTerm(_,voyd,voyd).
+rewriteTerm(_,unreach(Lc,Tp),unreach(Lc,Tp)).
 rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,bigx(Ix),bigx(Ix)).
 rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
@@ -545,6 +547,7 @@ isLiteral(clos(_,_,F,_)) :-
   isLiteral(F).
 
 termHash(voyd,0).
+termHash(unreach,0).
 termHash(intgr(Ix),Ix).
 termHash(bigx(Bx),Hx) :- bigHash(Bx,Hx).
 termHash(float(Dx),Hx) :- Ix is round(Dx), hashSixtyOne(Ix,Hx).
@@ -689,6 +692,7 @@ isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
 
 tipeOf(voyd,voidType).
+tipeOf(unreach(_,Tp),Tp).
 tipeOf(ann(Tp),Tp).
 tipeOf(idnt(_,T),T).
 tipeOf(chr(_),type("char")).
@@ -788,6 +792,7 @@ validTerm(idnt(Nm,_),Lc,D) :-
    reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
 validTerm(ann(_),_,_).
 validTerm(voyd,_,_).
+validTerm(unreach(_,_),_,_).
 validTerm(intgr(_),_,_).
 validTerm(bigx(_),_,_).
 validTerm(float(_),_,_).

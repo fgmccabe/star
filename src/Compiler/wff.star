@@ -21,6 +21,8 @@ star.compiler.wff{
 
   public isAnon(A) => .nme(_,"_").=A.
 
+  public isUnreachable(A) => .nme(_,"unreachable").=A.
+
   public dollarName:(ast) => ast.
   dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 

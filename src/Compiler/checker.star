@@ -651,6 +651,7 @@ star.compiler.checker{
     reportError("anonymous variable not permitted in expression",Lc);
     valis .anon(Lc,Tp)
   }
+  typeOfExp(A,Tp,_,Env,_) where isUnreachable(A) => .unreach(locOf(A),Tp).
   typeOfExp(A,Tp,_,Env,Path) where (Lc,Id) ?= isName(A) =>
     typeOfVar(Lc,Id,Tp,.true,Env,Path).
   typeOfExp(A,Tp,ErTp,Env,Path) where (Lc,Nm) ?= isEnumSymb(A) => valof{
@@ -1309,6 +1310,10 @@ star.compiler.checker{
 
     Call = checkProcCall(Lc,Op,Args,ErTp,Env,Path);
     valis (.doExp(Lc,Call),Env,Dcls)
+  }
+  checkAction(A,Tp,_ErTp,_Mode,Env,Dcls,_Path) where isUnreachable(A) => valof{
+    Lc = locOf(A);
+    valis (.doExp(Lc,.unreach(Lc,Tp)),Env,Dcls)
   }
   checkAction(A,_Tp,_ErTp,_Mode,Env,Dcls,_Path) default => valof{
     Lc = locOf(A);

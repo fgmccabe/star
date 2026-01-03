@@ -4,6 +4,7 @@
 	      isConstructorType/6,constructorType/6,
 	      isRoundCon/6,isBraceCon/6,
 	      isAnonBrace/3,mkAnonBrace/3,
+	      isUnreachable/2,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
 	      isSuppress/3,mkSuppress/3,
@@ -998,6 +999,8 @@ mkTry(Lc,B,Cases,A) :-
   braceTuple(Lc,[Cs],Hs),
   binary(Lc,"catch",B,Hs,A0),
   unary(Lc,"try",A0,A).
+
+isUnreachable(name(Lc,"unreachable"),Lc).
 
 isResume(A,Lc,T,M) :-
   isBinary(A,Lc,"resume",T,M).

@@ -15,6 +15,7 @@ star.compiler.term{
   
   public cExp ::= .cVoid(option[locn])
   | .cAnon(option[locn],tipe)
+  | .cUnrch(option[locn],tipe)
   | .cVar(option[locn],cV)
   | .cCel(option[locn],cExp,tipe)
   | .cGet(option[locn],cExp,tipe)
@@ -111,6 +112,7 @@ star.compiler.term{
   dspExp(Exp,Off) => case Exp in {
     | .cVoid(_) => "void"
     | .cAnon(_,_) => "_"
+    | .cUnrch(_,_) => "unreachable"
     | .cVar(_,.cV(V,VTp)) => "%#(V)"
     | .cInt(_,Ix) => disp(Ix)
     | .cChar(_,Ix) => disp(Ix)
@@ -253,6 +255,7 @@ star.compiler.term{
 
   eqTerm(E1,E2) => case E1 in {
     | .cAnon(_,T1) => .cAnon(_,T2).=E2 && T1==T2
+    | .cUnrch(_,T1) => .cUnrch(_,T2).=E2 && T1==T2
     | .cVoid(_) => .cVoid(_).=E2
     | .cVar(_,V1) => .cVar(_,V2).=E2 && V1==V2
     | .cInt(_,N1) => .cInt(_,N2).=E2 && N1==N2
@@ -357,6 +360,7 @@ star.compiler.term{
     locOf(Tr) => case Tr in {
       | .cVoid(Lc) => Lc
       | .cAnon(Lc,_) => Lc
+      | .cUnrch(Lc,_) => Lc
       | .cVar(Lc,_) => Lc
       | .cInt(Lc,_) => Lc
       | .cBig(Lc,_) => Lc
@@ -400,6 +404,7 @@ star.compiler.term{
     tpOf(Tr) => case Tr in {
       | .cVoid(_) => .voidType
       | .cAnon(_,Tp) => Tp
+      | .cUnrch(_,Tp) => Tp
       | .cVar(_,V) => typeOf(V)
       | .cInt(_,_) => intType
       | .cBig(_,_) => bigintType
@@ -510,8 +515,9 @@ star.compiler.term{
 
   rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
   rwTerm(Trm,Tst) => Vl ?= Tst(Trm) ?? Vl || case Trm in {
-    | .cVoid(Lc) => .cVoid(Lc)
-    | .cAnon(Lc,Tp) => .cAnon(Lc,Tp)
+    | .cVoid(_) => Trm
+    | .cAnon(_,_) => Trm
+    | .cUnrch(_,_) => Trm
     | .cVar(Lc,V) => .cVar(Lc,V)
     | .cInt(Lc,Ix) => .cInt(Lc,Ix)
     | .cBig(Lc,Ix) => .cBig(Lc,Ix)
@@ -608,8 +614,9 @@ star.compiler.term{
 
   frshnE:(cExp,scope)=>cExp.
   frshnE(Trm,Sc) => case Trm in {
-    | .cVoid(Lc) => Trm
-    | .cAnon(Lc,Tp) => Trm
+    | .cVoid(_) => Trm
+    | .cAnon(_,_) => Trm
+    | .cUnrch(_,_) => Trm
     | .cVar(Lc,V) => (Rp ?= hasBinding(lName(V),Sc) ?? Rp || Trm)
     | .cInt(Lc,Ix) => Trm
     | .cBig(Lc,Ix) => Trm
@@ -895,6 +902,7 @@ star.compiler.term{
   validE:(cExp,set[cV]) => boolean.
   validE(Exp,Vrs) => case Exp in {
     | .cVoid(Lc) => .true
+    | .cUnrch(_,_) => .true
     | .cAnon(Lc,_) => valof{
       reportError("anons not allowed in expressions",Lc);
       valis .false
@@ -955,7 +963,7 @@ star.compiler.term{
   validPtn(Exp,Vrs) => case Exp in {
     | .cVoid(Lc) => .true
     | .cAnon(_,_) => .true
-    | .cVar(Lc,V) => .true
+    | .cVar(_,_) => .true
     | .cInt(_,_) => .true
     | .cBig(_,_) => .true
     | .cChar(_,_) => .true
@@ -1109,6 +1117,7 @@ star.compiler.term{
   presentInE(T,A,C) => C(T) ?? .true || case T in {
     | .cVoid(_) => .false
     | .cAnon(_,_) => .false
+    | .cUnrch(_,_) => .false
     | .cVar(_,_) => .false
     | .cInt(_,_) => .false
     | .cBig(_,_) => .false
@@ -1180,6 +1189,7 @@ star.compiler.term{
   frzeExp(Ex) => case Ex in {
     | .cVoid(Lc) => mkCons("void",[Lc::data])
     | .cAnon(Lc,Tp) => mkCons("anon",[Lc::data,encodeSig(Tp)])
+    | .cUnrch(Lc,Tp) => mkCons("unreachable",[Lc::data,encodeSig(Tp)])
     | .cVar(Lc,.cV(V,Tp)) => mkCons("var",[Lc::data,.strg(V),encodeSig(Tp)])
     | .cInt(Lc,Ix) => mkCons("int",[Lc::data,.intgr(Ix)])
     | .cChar(Lc,Cx) => mkCons("chr",[Lc::data,.chr(Cx)])
@@ -1286,6 +1296,7 @@ star.compiler.term{
   thwTrm(D) => case D in {
     | .term("void",[Lc]) => .cVoid(thawLoc(Lc))
     | .term("anon",[Lc,Sig]) => .cAnon(thawLoc(Lc),decodeSig(Sig))
+    | .term("unreachable",[Lc,Sig]) => .cUnrch(thawLoc(Lc),decodeSig(Sig))
     | .term("var",[Lc,.strg(V),Sig]) => .cVar(thawLoc(Lc),.cV(V,decodeSig(Sig)))
     | .term("int",[Lc,.intgr(Ix)]) => .cInt(thawLoc(Lc),Ix)
     | .term("chr",[Lc,.chr(Ix)]) => .cChar(thawLoc(Lc),Ix)
@@ -1417,6 +1428,7 @@ star.compiler.term{
   foldV(Ex,Mode,Fn,SoF) => case Ex in {
     | .cVoid(_) => SoF
     | .cAnon(_,_) => SoF
+    | .cUnrch(_,_) => SoF
     | .cVar(_,_) => Fn(Ex,Mode,SoF)
     | .cInt(_,Ix) => SoF
     | .cChar(_,Cx) => SoF

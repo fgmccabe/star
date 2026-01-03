@@ -22,6 +22,7 @@ star.compiler.freevars{
   public freeVarsInExp:(canon,set[cV],set[cV]) => set[cV].
   freeVarsInExp(Exp,Q,Fv) => case Exp in {
     | .anon(_,_) => Fv
+    | .unreach(_,_) => Fv
     | .vr(Lc,Nm,Tp) where {? .cV(Nm,_) in Fv ?} => Fv
     | .vr(_,Nm,_) where isEscape(Nm) => Fv
     | .vr(Lc,Nm,Tp) => ({? .cV(Nm,_) in Q ?} ?? Fv\+.cV(Nm,Tp) || Fv)

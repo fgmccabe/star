@@ -174,6 +174,7 @@ markResolved(St,St).
 overloadTerm(void,_,_,St,St,void).
 overloadTerm(v(Lc,Nm,Tp),_,_,St,St,v(Lc,Nm,Tp)).
 overloadTerm(anon(Lc,Tp),_,_,St,St,anon(Lc,Tp)).
+overloadTerm(abort(Lc,Tp),_,_,St,St,abort(Lc,Tp)).
 overloadTerm(intLit(Lc,Ix),_,_,St,St,intLit(Lc,Ix)).
 overloadTerm(bigLit(Lc,Ix),_,_,St,St,bigLit(Lc,Ix)).
 overloadTerm(floatLit(Lc,Dx),_,_,St,St,floatLit(Lc,Dx)).

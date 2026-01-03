@@ -166,6 +166,7 @@
 "throw"
 "throws"
 "try"
+"unreachable"
 "valis"
 "valof"
 "void"

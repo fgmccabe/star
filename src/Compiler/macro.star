@@ -172,6 +172,7 @@ star.compiler.macro{
     mkRetire(Lc,macroTerm(T),macroTerm(M)).
   examineAction(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
     roundTerm(Lc,macroTerm(O),Els//macroTerm).
+  examineAction(A) where isUnreachable(A) => A.
   examineAction(A) default => valof{
     reportError("cannot figure out action\n$(A)",locOf(A));
     valis A
@@ -192,6 +193,7 @@ star.compiler.macro{
 
   examineTerm(A) where _ ?= isName(A) && ~_ ?= isTuple(A) => A.
   examineTerm(A) where _ ?= isEnumSymb(A) => A.
+  examineTerm(A) where isUnreachable(A) => A.
   examineTerm(A) where .int(_,_) .= A => A.
   examineTerm(A) where .big(_,_) .= A => A.
   examineTerm(A) where .chr(_,_) .= A => A.

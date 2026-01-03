@@ -413,6 +413,7 @@ liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
 
 liftExp(v(Lc,Nm,Tp),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
   trVarExp(Lc,Nm,Tp,Vr,Map,Opts,Q,Qx).
+liftExp(abort(Lc,Tp),unreach(Lc,Tp),Qx,Qx,_Map,_Opts,Ex,Ex) :-!.
 liftExp(enm(Lc,Nm,Tp),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Tp,Exp,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
