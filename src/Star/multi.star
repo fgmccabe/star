@@ -71,10 +71,13 @@ star.multi{
   }
 
   public implementation all e,f ~~ mapping[multi->>e,f] => let{.
+    mapOver:all xx ~~ (multi[e],(e)=>f throws xx)=>multi[f] throws xx.
     mapOver(.null,F) => .null.
     mapOver(.single(X),F) => .single(F(X)).
     mapOver(.multi(L),F) => mform(multiMapOver(L,F)).
 
+    
+    multiMapOver:all x ~~ (cons[multi[e]],(e)=>f throws x)=>cons[multi[f]] throws x.
     multiMapOver(.nil,F) => .nil.
     multiMapOver(.cons(H,T),F) => .cons(mapOver(H,F),multiMapOver(T,F)).
   .} in {

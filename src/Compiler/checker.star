@@ -282,10 +282,16 @@ star.compiler.checker{
       showMsg("check function $(Stmts)\:$(Tp)");
 
     (Q,ETp) = evidence(Tp,Env);
-    (Cx,ProgramType) = deConstrain(ETp);
 
     if traceCanon! then
+      showMsg("function type :$(ETp)");
+    
+    (Cx,ProgramType) = deConstrain(ETp);
+
+    if traceCanon! then{
       showMsg("constraints $(Cx)");
+      showMsg("program type $(ProgramType)");
+    };
 
     Es = declareConstraints(Lc,Cx,declareTypeVars(Q,Env));
 
@@ -444,8 +450,16 @@ star.compiler.checker{
     
     if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
+
+      if traceCanon! then
+	showMsg("contract face type $(ConFaceTp)");
+      
       ConTp = mkConType(CnNm,CnTps,CnDps);
       if sameType(ConTp,typeOf(Cn),Env) then {
+	if traceCanon! then{
+	  showMsg("contract vars $(BV), Constraints = $(Cx), net type $(ConTp)");
+	};
+	
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 	Impl = typeOfExp(B,ConTp,.voidType,Es,Path);
 	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));

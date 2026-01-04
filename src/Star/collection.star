@@ -5,8 +5,8 @@ star.collection{
   import star.arith.
 
   public contract all c,e ~~ folding[c->>e] ::= {
-    foldRight:all x ~~ (((e,x)=>x),x,c) => x.
-    foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
+    foldRight:all x,xx ~~ (((e,x)=>x throws xx),x,c) => x throws xx.
+    foldLeft:all x,xx ~~ (((e,x)=>x throws xx),x,c) => x throws xx.
   }
 
   public contract all c,e ~~ filter[c->>e] ::= {
@@ -19,11 +19,11 @@ star.collection{
   }
 
   public contract all m/1,e,f ~~ mapping[m->>e,f] ::= {
-    (//):(m[e],(e)=>f) => m[f].
+    (//):all xx ~~ (m[e],(e)=>f throws xx) => m[f] throws xx.
   }
 
   public contract all m/2 ~~ ixmap[m] ::= {
-    (///):all k,e,f ~~ (m[k,e],(k,e)=>f)=>m[k,f].
+    (///):all k,e,f,xx ~~ (m[k,e],(k,e)=>f throws xx)=>m[k,f] throws xx.
   }
 
   public contract all k,v,m ~~ ixfilter[m->>k,v] ::= {
@@ -31,8 +31,8 @@ star.collection{
   }
 
   public contract all c,k,v ~~ ixfold[c->>k,v] ::= {
-    ixRight:all x ~~ (((k,v,x)=>x),x,c) => x.
-    ixLeft:all x ~~ (((k,v,x)=>x),x,c) => x.
+    ixRight:all x,xx ~~ (((k,v,x)=>x throws xx),x,c) => x throws xx.
+    ixLeft:all x,xx ~~ (((k,v,x)=>x throws xx),x,c) => x throws xx.
   }
 
   public contract all c,t ~~ visitor[c->>t] ::= {
@@ -59,12 +59,13 @@ star.collection{
     inter([E,..L]) => [I,E,..inter(L)].
  .} in [F,..inter(R)].
 
-  public implementation all e,f ~~ mapping[cons->>e,f] => {.
-    (L//F) => mapOverList(L,F).
-
+  public implementation all e,f ~~ mapping[cons->>e,f] => let{.
+    mapOverList:all x ~~ (cons[e],(e)=>f throws x)=>cons[f] throws x.
     mapOverList(.nil,_) => .nil.
     mapOverList(.cons(H,T),F) => .cons(F(H),mapOverList(T,F)).
- .}
+  .} in {
+    (//) = mapOverList
+  }
 
   public implementation all e ~~ folding[cons[e]->>e] => {.
     foldRight(F,U,.nil) => U.
@@ -88,7 +89,7 @@ star.collection{
   }
 
   public implementation all x ~~ folding[option[x]->>x] => let{
-    fold:all a ~~ ((x,a)=>a,a,option[x])=>a.
+    fold:all a,xx ~~ ((x,a)=>a throws xx,a,option[x])=>a throws xx.
     fold(F,A,.some(X)) => F(X,A).
     fold(F,A,.none) => A.
   } in {
@@ -98,11 +99,13 @@ star.collection{
 
   public implementation all e ~~ ixfold[cons[e] ->> integer,e] => {
     ixRight(F,Z,L) => let{.
+      fdr:(cons[e], integer) => x throws xx.
       fdr(.nil,_) => Z.
       fdr(.cons(H,T),Ix) => F(Ix,H,fdr(T,Ix+1)).
    .} in fdr(L,0).
 
     ixLeft(F,Z,L) => let{.
+      fdl:(cons[e], integer, x) => x throws xx.
       fdl(.nil,Ix,Ac) => Ac.
       fdl(.cons(H,T),Ix,Ac) => fdl(T,Ix+1,F(Ix,H,Ac)).
    .} in fdl(L,0,Z).

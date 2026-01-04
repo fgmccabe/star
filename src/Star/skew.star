@@ -102,19 +102,19 @@ star.skew{
     _empty = .rl(.nil).
   }
 
-  foldDLeft:all e,x ~~ ((e,x)=>x,x,rlist[e]) => x.
+  foldDLeft:all e,x,xx ~~ (((e,x)=>x throws xx),x,rlist[e]) => x throws xx.
   foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,.cons((_,T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
 
-  foldTLeft:all e,x ~~ ((e,x)=>x,x,tree[e]) => x.
+  foldTLeft:all e,x,xx ~~ (((e,x)=>x throws xx),x,tree[e]) => x throws xx.
   foldTLeft(F,X,.eTree) => X.
   foldTLeft(F,X,.node(W,L,R)) => foldTLeft(F,foldTLeft(F,F(W,X),L),R).
 
-  foldDRight:all e,x ~~ ((e,x)=>x,x,rlist[e])=>x.
+  foldDRight:all e,x,xx ~~ (((e,x)=>x throws xx),x,rlist[e])=>x throws xx.
   foldDRight(_,X,.nil) => X.
   foldDRight(F,X,.cons((_,T),R)) => foldTRight(F,foldDRight(F,X,R),T).
 
-  foldTRight:all e,x ~~ ((e,x)=>x,x,tree[e])=>x.
+  foldTRight:all e,x,xx ~~ (((e,x)=>x throws xx),x,tree[e])=>x throws xx.
   foldTRight(F,A,.eTree) => A.
   foldTRight(F,A,.node(X,L,R)) => F(X,foldTRight(F,foldTRight(F,A,R),L)).
 

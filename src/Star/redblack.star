@@ -229,10 +229,12 @@ star.redblack{
     }.
 
   public implementation all k,v ~~ ixfold[rbtree[k,v]->>k,v] => let{.
+    right:all x,xx ~~ (((k,v,x)=>x throws xx),x,rbtree[k,v]) => x throws xx.
     right(F,U,.lf) => U.
     right(F,U,.blf) => U.
     right(F,U,.nd(_,L,K,V,R)) => right(F,F(K,V,right(F,U,R)),L).
 
+    left:all x,xx ~~ (((k,v,x)=>x throws xx),x,rbtree[k,v]) => x throws xx.
     left(F,U,.lf) => U.
     left(F,U,.nd(_,L,K,V,R)) => left(F,F(K,V,left(F,U,L)),R).
   .} in {
@@ -286,7 +288,7 @@ star.redblack{
     }.
 
   public implementation ixmap[rbtree] => let{.
-    ixMap:all k,v,w ~~ (rbtree[k,v],(k,v)=>w) => rbtree[k,w].
+    ixMap:all k,v,w,xx ~~ (rbtree[k,v],((k,v)=>w throws xx)) => rbtree[k,w] throws xx.
     ixMap(.lf,_) => .lf.
     ixMap(.nd(Cl,L,K,V,R),f) => .nd(Cl,ixMap(L,f),K,f(K,V),ixMap(R,f)).
   .} in{

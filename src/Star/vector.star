@@ -513,7 +513,7 @@ star.vector{
   }
 
   public implementation all e ~~ folding[vect[e]->>e] => let{.
-    foldL:all x,a ~~ ((x,a)=>a,a,vct[x])=>a.
+    foldL:all x,a,xx ~~ (((x,a)=>a throws xx),a,vct[x])=>a throws xx.
     foldL(_,A,.e) => A.
     foldL(F,A,.lf1(L0)) => F(L0,A).
     foldL(F,A,.lf2(L0,L1)) => F(L1,F(L0,A)).
@@ -525,7 +525,7 @@ star.vector{
     foldL(F,A,.vct4(L0,L1,L2,L3)) =>
       foldL(F,foldL(F,foldL(F,foldL(F,A,L0),L1),L2),L3).
 
-    foldR:all x,a ~~ ((x,a)=>a,a,vct[x])=>a.
+    foldR:all x,a,xx ~~ (((x,a)=>a throws xx),a,vct[x])=>a throws xx.
     foldR(_,A,.e) => A.
     foldR(F,A,.lf1(E0)) => F(E0,A).
     foldR(F,A,.lf2(E0,E1)) => F(E0,F(E1,A)).
@@ -542,7 +542,7 @@ star.vector{
   }
 
   public implementation all e ~~ ixfold[vect[e]->>integer,e] => let{.
-    fold:all x,a ~~ ((integer,x,a)=>a,integer,a,vct[x])=>(integer,a).
+    fold:all x,a,xx ~~ (((integer,x,a)=>a throws xx),integer,a,vct[x])=>(integer,a) throws xx.
     fold(_,Ix,A,.e) => (Ix,A).
     fold(F,Ix,A,.lf1(L0)) => (Ix+1,F(Ix,L0,A)).
     fold(F,Ix,A,.lf2(L0,L1)) => (Ix+2,F(Ix+1,L1,F(Ix,L0,A))).
@@ -595,7 +595,7 @@ star.vector{
   }
 
   public implementation all e,f ~~ mapping[vect->>e,f] => let{.
-    mpVct:(vct[e],(e)=>f)=>vct[f].
+    mpVct:all xx ~~ (vct[e],((e)=>f throws xx))=>vct[f] throws xx.
     mpVct(.e,_) => .e.
     mpVct(.lf1(x),F) => .lf1(F(x)).
     mpVct(.lf2(x1,x2),F) => .lf2(F(x1),F(x2)).

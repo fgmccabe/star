@@ -31,7 +31,7 @@ star.iostream{
   }
 
   public implementation all e ~~ folding[inputStream[e]->>e] => let{.
-    fold:all u ~~ ((e,u)=>u,u,inputStream[e])=>u.
+    fold:all u,xx ~~ (((e,u)=>u throws xx),u,inputStream[e])=>u throws xx.
     fold(F,U,.endStream) => U.
     fold(F,U,.streamThunk(Th)) => fold(F,U,Th!!).
     fold(F,U,.streamPair(x,Rst)) => fold(F,F(x,U),Rst).

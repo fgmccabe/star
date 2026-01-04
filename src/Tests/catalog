@@ -217,6 +217,7 @@
     "test.wlk": "wlk.star",
     "test.w": "w.star",
     "test.wordle": "wordle.star",
+    "test.x": "x.star",
     "test.y": "y.star"
   },
   "version": "1.0.0",
