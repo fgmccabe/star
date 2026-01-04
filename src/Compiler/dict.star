@@ -73,6 +73,10 @@ star.compiler.dict{
   declareType(Nm,Lc,Tp,TpRl,.dict([Level,..Rest],Br)) =>
     .dict([Level.types=Level.types[Nm->.tpDefn(Lc,Nm,Tp,TpRl,[])],..Rest],Br).
 
+  public hideType:(option[locn],tipe,dict) => dict.
+  hideType(Lc,Tp,.dict([Level,..Rest],Br)) =>
+    .dict([Level.types=Level.types[tpName(Tp)->.tpDefn(Lc,tpName(Tp),Tp,.typeExists(Tp,Tp),[])],..Rest],Br).
+
   public findType:(dict,string) => option[(option[locn],tipe,typeRule,map[string,tipe])].
   findType(.dict(Scs,_),Nm) => let{.
     findTp([]) => .none.

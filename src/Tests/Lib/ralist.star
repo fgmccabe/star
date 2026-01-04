@@ -74,21 +74,21 @@ test.ralist{
     foldRight(F,U,.ra(Ds)) => foldDRight(F,U,Ds).
   }
 
-  foldDLeft:all e,x ~~ ((e,x)=>x,x,cons[digit[e]]) => x.
+  foldDLeft:all e,x,xx ~~ (((e,x)=>x throws xx),x,cons[digit[e]]) => x throws xx.
   foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,.cons(.one(T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
   foldDLeft(F,X,.cons(.zer,R)) => foldDLeft(F,X,R).
 
-  foldTLeft:all e,x ~~ ((e,x)=>x,x,tree[e]) => x.
+  foldTLeft:all e,x,xx ~~ ((e,x)=>x throws xx,x,tree[e]) => x throws xx.
   foldTLeft(F,X,.leaf(E)) => F(E,X).
   foldTLeft(F,X,.node(W,L,R)) => foldTLeft(F,foldTLeft(F,X,L),R).
 
-  foldDRight:all e,x ~~ ((e,x)=>x,x,cons[digit[e]])=>x.
+  foldDRight:all e,x,xx ~~ ((e,x)=>x throws xx,x,cons[digit[e]])=>x throws xx.
   foldDRight(_,X,.nil) => X.
   foldDRight(F,X,.cons(.zer,R)) => foldDRight(F,X,R).
   foldDRight(F,X,.cons(.one(T),R)) => foldTRight(F,foldDRight(F,X,R),T).
 
-  foldTRight:all e,x ~~ ((e,x)=>x,x,tree[e])=>x.
+  foldTRight:all e,x,xx ~~ ((e,x)=>x throws xx,x,tree[e])=>x throws xx.
   foldTRight(F,X,.leaf(E)) => F(E,X).
   foldTRight(F,X,.node(_,L,R)) => foldTRight(F,foldTRight(F,X,R),L).
 

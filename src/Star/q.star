@@ -73,14 +73,16 @@ star.q{
     foldRight(F,U,.qc(.nil,B)) => foldLeftR(F,U,B).
     foldRight(F,U,.qc(.cons(H,T),B)) => F(H,foldRight(F,U,.qc(T,B))).
 
-    private foldLeftR(F,U,.nil) => U.
+    private foldLeftR:all x,xx ~~ (((e,x)=>x throws xx),x,cons[e]) => x throws xx.
+    foldLeftR(F,U,.nil) => U.
     foldLeftR(F,U,.cons(H,T)) => foldLeftR(F,F(H,U),T).
 
     foldLeft(F,U,.qc(.nil,.nil)) => U.
     foldLeft(F,U,.qc(.nil,B)) => foldRightR(F,U,B).
     foldLeft(F,U,.qc(.cons(H,T),B)) => foldLeft(F,F(H,U),.qc(T,B)).
 
-    private foldRightR(F,U,.nil) => U.
+    private foldRightR:all x,xx ~~ (((e,x)=>x throws xx),x,cons[e]) => x throws xx.
+    foldRightR(F,U,.nil) => U.
     foldRightR(F,U,.cons(H,T)) => F(H,foldRightR(F,U,T)).
  .}
 

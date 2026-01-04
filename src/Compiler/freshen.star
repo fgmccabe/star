@@ -127,16 +127,8 @@ star.compiler.freshen{
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
-  frshn(.allType(K,T),Env) => valof{
-    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
-    FrTp = frshn(T,declareTypeVars(Q,Ev));
-    valis foldLeft(((_,VT),Tp)=>.allType(VT,Tp),FrTp,Q)
-  }
-  frshn(.existType(K,T),Env) => valof{
-    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
-    FrTp = frshn(T,declareTypeVars(Q,Ev));
-    valis foldLeft(((_,VT),Tp)=>.existType(VT,Tp),FrTp,Q)
-  }
+  frshn(.allType(K,T),Env) => .allType(K,frshnD(T,hideType(.none,K,Env))).
+  frshn(.existType(K,T),Env) => .existType(K,frshnD(T,hideType(.none,K,Env))).
   frshn(.constrainedType(T,C),Env) => .constrainedType(frshnD(T,Env),frshnConstraint(C,Env)).
 
   frshnList:(cons[tipe],dict) => cons[tipe].
@@ -149,7 +141,7 @@ star.compiler.freshen{
   frshnConstraint(.hasField(V,F,T),Env) =>
     .hasField(frshnD(V,Env),F,frshnD(T,Env)).
   frshnConstraint(.implicit(N,T),Env) =>
-    .implicit(N,frshn(T,Env)).
+    .implicit(N,frshnD(T,Env)).
 
   skol:(tipe,dict)=>tipe.
   skol(.anonType,_) => newTypeVar("_").
@@ -171,17 +163,9 @@ star.compiler.freshen{
   skol(.conType(A,R),Env) => .conType(skolD(A,Env),skolD(R,Env)).
   skol(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,skolD(E,Env))),
-      Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
-  skol(.allType(K,T),Env) => valof{
-    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
-    FrTp = skol(T,declareTypeVars(Q,Ev));
-    valis foldLeft(((_,VT),Tp)=>.allType(VT,Tp),FrTp,Q)
-  }
-  skol(.existType(K,T),Env) => valof{
-    (Inn,Q,Ev) = skolemQuants(.allType(K,T),[],Env);
-    FrTp = skol(T,declareTypeVars(Q,Ev));
-    valis foldLeft(((_,VT),Tp)=>.existType(VT,Tp),FrTp,Q)
-  }
+    Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
+  skol(.allType(K,T),Env) => .allType(K,skolD(T,hideType(.none,K,Env))).
+  skol(.existType(K,T),Env) => .existType(K,skolD(T,hideType(.none,K,Env))).
   skol(.constrainedType(T,C),Env) => .constrainedType(skolD(T,Env),skolConstraint(C,Env)).
 
   skolList:(cons[tipe],dict) => cons[tipe].
@@ -194,5 +178,5 @@ star.compiler.freshen{
   skolConstraint(.hasField(V,F,T),Env) =>
     .hasField(skolD(V,Env),F,skolD(T,Env)).
   skolConstraint(.implicit(N,T),Env) =>
-    .implicit(N,skol(T,Env)).
+    .implicit(N,skolD(T,Env)).
 }

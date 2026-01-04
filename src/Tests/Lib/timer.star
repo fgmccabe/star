@@ -9,7 +9,7 @@ test.lib.timer{
     try{
       stop = _ticks();
       elapsed = ((stop - start)::float)/1.0e6;
-      ops_per_sec = ((count::float) / elapsed)::integer;
+      ops_per_sec = trunc((count::float) / elapsed)::integer;
       showMsg("$(count)\t#(msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
       valis stop-start
     } catch {
@@ -25,7 +25,7 @@ test.lib.timer{
       Fn();
       Stop = _ticks();
       elapsed = ((Stop - Start)::float)/1.0e6;
-      ops_per_sec = ((Cx::float) / elapsed)::integer;
+      ops_per_sec = trunc((Cx::float) / elapsed)::integer;
       showMsg("#(Msg)\t$(elapsed) s\t$(ops_per_sec) ops/sec");
       valis Stop-Start
     } catch {

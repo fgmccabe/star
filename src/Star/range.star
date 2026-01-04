@@ -19,14 +19,16 @@ star.range{
   }
 
   public implementation all a~~arith[a],comp[a] |= folding[range[a]->>a] => {.
+    foldLeft:all x,xx ~~ (((a,x)=>x throws xx),x,range[a]) => x throws xx.
     foldLeft(F,X,.range(Fr,To,St)) => rangeLeft(F,X,Fr,To,St).
+    foldRight:all x,xx ~~ (((a,x)=>x throws xx),x,range[a]) => x throws xx.
     foldRight(F,X,.range(Fr,To,St)) => rangeRight(F,X,Fr,To,St).
 
-    private rangeLeft:all x ~~ (((a,x)=>x),x,a,a,a) => x.
+    private rangeLeft:all x,xx ~~ (((a,x)=>x throws xx),x,a,a,a) => x throws xx.
     rangeLeft(F,Z,Fr,To,_) where Fr>=To => Z.
     rangeLeft(F,Z,Fr,To,St) => rangeLeft(F,F(To,Z),Fr,To-St,St).
 
-    private rangeRight:all x ~~ (((a,x)=>x),x,a,a,a) => x.
+    private rangeRight:all x,xx ~~ (((a,x)=>x throws xx),x,a,a,a) => x throws xx.
     rangeRight(_,Z,Fr,To,_) where Fr>=To => Z.
     rangeRight(F,Z,Fr,To,St) => rangeRight(F,F(Fr,Z),Fr+St,To,St).
  .}

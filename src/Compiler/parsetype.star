@@ -458,6 +458,9 @@ star.compiler.typeparse{
   public parseContract:(ast,dict,string) => (cons[canonDef],cons[decl]).
   parseContract(St,Env,Path) where (Lc,Lhs,Els) ?= isContractStmt(St) &&
       (_,Q,C,Id,As,Ds) ?= isContractSpec(Lhs) => valof{
+    if traceCanon! then
+      showMsg("parse contract defn $(St)");
+    
     Qv = parseBoundTpVars(Q);
     QEnv = declareTypeVars(Qv,Env);
 
@@ -465,7 +468,12 @@ star.compiler.typeparse{
     ArgTps = parseHeadArgs(As,[],QEnv);
     DepTps = parseHeadArgs(Ds,[],QEnv);
     (Flds,Tps) = parseTypeFields(Els,[],[],QEnv);
+
     Face = .faceType(sort(Flds,cmpField),Tps);
+
+    if traceCanon! then
+      showMsg("contract type vars $(Qv), contract fields $(Face)");
+    
     FullNm = qualifiedName(Path,.typeMark,Id);
     
     ConRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.contractExists(FullNm,ArgTps,DepTps,Face),Qv);
@@ -478,6 +486,9 @@ star.compiler.typeparse{
     Tmplte = .tpFun(FullNm,[|ArgTps|]+[|DepTps|]);
     
     ConConTp = reQ(Qv,wrapConstraints(Cx,consType(.faceType(Flds,Tps),DlTp)));
+
+    if traceCanon! then
+      showMsg("contract constructor type $(ConConTp)");
     
     ConFullNm = qualifiedName(Path,.typeMark,DlId);
     ConCns = .cnsDec(Lc,DlId,ConFullNm,ConConTp);
@@ -780,6 +791,9 @@ star.compiler.typeparse{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
       AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funcType([RcTp],FTp))));
       Lc = locOf(B);
+
+      if traceCanon! then
+	showMsg("accessor type for $(Fld) is $(AccFnTp)");
 
       AcEqs = accessorEqns(B,Fld,FTp,[]);
 

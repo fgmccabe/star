@@ -19,12 +19,10 @@ test.pp1{
     rdLns:()=>cons[string] throws errorCode.
     rdLns() => valof{
       if _end_of_file(Fl) then
-	valis []
-      else{
-	Ln = _inline(Fl);
-	Rst = rdLns();
-	  valis [Ln,..Rst]
-      }
+	valis [];
+      Ln = _inline(Fl);
+      Rst = rdLns();
+      valis [Ln,..Rst]
     }
   .} in valof{
     try{
@@ -33,7 +31,7 @@ test.pp1{
       | .eEOF do valis []
       | Other do {
 	showMsg("io error: $(Other)");
-	_exit(9)
+	unreachable
       }
     }
   }

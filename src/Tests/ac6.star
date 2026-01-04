@@ -16,7 +16,7 @@ test.ac6{
     try{
       stop = _ticks();
       elapsed = ((stop - start)::float)/1.0e6;
-      ops_per_sec = ((count::float) / elapsed)::integer;
+      ops_per_sec = trunc((count::float) / elapsed)::integer;
       showMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     } catch {
       .exception(Msg) do {
