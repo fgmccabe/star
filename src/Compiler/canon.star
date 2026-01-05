@@ -256,7 +256,7 @@ star.compiler.canon{
     | .unreach(_,_) => "unreachable"
     | .vr(_,Nm,Tp) => Nm
     | .mtd(_,Fld,_) => "µ#(Fld)"
-    | .over(_,V,Cx) => "$(Cx)|=#(showCanon(V,Pr,Sp))"
+    | .over(_,V,Cx) => "($(Cx)|=#(showCanon(V,Pr,Sp)))"
     | .intr(_,Lt) => disp(Lt)
     | .bintr(_,Lt) => disp(Lt)
     | .kar(_,Ch) => disp(Ch)
@@ -366,8 +366,8 @@ star.compiler.canon{
 
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-    | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(showEqs(Nm,Rls,Sp))"
-    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(showPRls(Nm,Rls,Sp))"
+    | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(Nm)\:$(Tp)\n#(showEqs(Nm,Rls,Sp))"
+    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(Nm)\:$(Tp)\n#(showPRls(Nm,Rls,Sp))"
     | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
