@@ -123,22 +123,10 @@ star.compiler.typeparse{
     valis .faceType(Flds,Tps)
   }
   parseType(T,Env) where (Lc,Lhs,Fld) ?= isFieldAcc(T) => valof{
-    if traceCanon! then
-      showMsg("field access: $(T)");
     if (_,Id) ?= isName(Lhs) then{
-      if traceCanon! then
-	showMsg("record id : $(Id)");
       if RcType ?= findVarFace(Id,Env) && .faceType(_,Tps).=deRef(RcType) then{
-	if traceCanon! then
-	  showMsg("record type: $(RcType)");
 	if Rl ?= {! Rl | (Fld,Rl) in Tps !} then{
-	  if traceCanon! then
-	    showMsg("record type rulw: $(Rl)");
-
 	  if (_,FrshRl) .= freshen(Rl,Env) then{
-	    if traceCanon! then
-	      showMsg("freshened rule: $(FrshRl)");
-
 	    valis applyTypeRule(Lc,FrshRl,.nomnal(Fld),Env)
 	  } else{
 	    reportError("Could not freshen type rule $(Rl)",Lc);
@@ -510,12 +498,7 @@ star.compiler.typeparse{
 
   public parseAlgebraicType:(option[locn],string,cons[ast],cons[ast],ast,ast,dict,string) => (cons[canonDef],cons[decl]).
   parseAlgebraicType(Lc,Nm,V,C,H,B,Env,Path) => valof{
-    if traceCanon! then
-      showMsg("parse algebraic type defn at $(Lc)");
-    
     Q = parseBoundTpVars(V);
-    if traceCanon! then
-      showMsg("bound vars $(Q)");
     QEnv = declareTypeVars(Q,Env);
 
     (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
@@ -524,20 +507,11 @@ star.compiler.typeparse{
 
     Cs = collectConstructors(B);
 
-    if traceCanon! then
-      showMsg("Cs=$(Cs)");
-    
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),
 	.faceType([],[])),Q);
 
-    if traceCanon! then
-      showMsg("type rule $(TpRl)");
-
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
-
-    if traceCanon! then
-      showMsg("algebraic CMP $(CMap)");
 
     (CDefs,CDecs,Index) = buildConstructors(B,CMap,[],Cx,Tp,QEnv,Path);
 
@@ -560,8 +534,6 @@ star.compiler.typeparse{
       showMsg("parse struct type defn at $(Lc)");
     
     Q = parseBoundTpVars(V);
-    if traceCanon! then
-      showMsg("bound vars $(Q)");
     QEnv = declareTypeVars(Q,Env);
 
     (Tp,_) = parseTypeHead(H,QEnv,(Nme)=>qualifiedName(Path,.typeMark,Nme));
@@ -572,9 +544,6 @@ star.compiler.typeparse{
     
     TpRl = foldLeft(((_,QV),Rl)=>.allRule(QV,Rl),.typeExists(reConstrainType(Cx,Tp),
 	foldLeft(((_,XV),F)=>.existType(XV,F),.faceType(Fs,Ts),Xs)),Q);
-
-    if traceCanon! then
-      showMsg("type rule $(TpRl)");
 
     Css = sort(Cs,((F1,_),(F2,_))=>F1<F2);
     CMap = foldLeft(((F,_),(M,Ix))=>(M[F->Ix],Ix+1),(([]:map[string,integer]),0),Css).0;
@@ -766,13 +735,7 @@ star.compiler.typeparse{
     (Df,Dc,Indx) = buildConstructor(C,Mp,Idx,Cx,Tp,XEnv,Path);
     if [.cnsDef(LLc,ConNm,Ix,ConTp)] .= Df && [.cnsDec(LLc2,Nm,ConNm,CTp)] .= Dc then{
 
-    if traceCanon! then
-      showMsg("X vars in constructor $(BV)");
-      
       CnTp = reQX(BV,ConTp);
-      if traceCanon! then
-	showMsg("reconstructed $(ConTp) is $(CnTp)");
-
       valis ([.cnsDef(LLc,ConNm,Ix,CnTp)],[.cnsDec(LLc2,Nm,ConNm,CnTp)],Indx)
     } else{
       reportError("invalid constructor case $(A)",locOf(A));
@@ -791,9 +754,6 @@ star.compiler.typeparse{
       (XQ,FTp) = deQuantX(FldTp); -- special rule for existentials
       AccFnTp = reQ(Q,reQuant(XQ,wrapConstraints(Cx,funcType([RcTp],FTp))));
       Lc = locOf(B);
-
-      if traceCanon! then
-	showMsg("accessor type for $(Fld) is $(AccFnTp)");
 
       AcEqs = accessorEqns(B,Fld,FTp,[]);
 
@@ -830,9 +790,6 @@ star.compiler.typeparse{
 	  }
       };
 
-      if traceCanon! then
-	showMsg("accessor equation: $(Eqn)");
-      
       valis [Eqn,..SoFar]
     }.
     accessorEqns(TB,Fld,FldTp,Eqns) where (_,_,I) ?= isXQuantified(TB) =>

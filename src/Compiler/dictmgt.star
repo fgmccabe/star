@@ -133,8 +133,6 @@ star.compiler.dict.mgt{
 
   pickupEnum(Lc,Nm,.true,Tp,Env) => valof{
     (_,VrTp) = freshen(Tp,Env);
-    if traceCanon! then
-      showMsg("pick up type of $(Nm);\nraw type $(Tp),\nFrshnd: $(VrTp)");
     valis manageConstraints(VrTp,Lc,(ETp)=>.enm(Lc,Nm,ETp))
   }
   pickupEnum(Lc,Nm,.false,Tp,Env) => .enm(Lc,Nm,Tp).

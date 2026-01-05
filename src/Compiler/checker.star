@@ -280,6 +280,10 @@ star.compiler.checker{
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
     if traceCanon! then
       showMsg("check function $(Stmts)\:$(Tp)");
+    if traceCanon! then{
+      showMsg("leq? #(showVar("leq",Env))");
+      showMsg("x? $(findType(Env,"x"))");
+    };
 
     (Q,ETp) = evidence(Tp,Env);
 
@@ -446,21 +450,35 @@ star.compiler.checker{
     QEnv = declareTypeVars(BV,Env);
     Cx = parseConstraints(C,QEnv);
     Cn = parseContractConstraint(H,QEnv);
+
+    if traceCanon! then{
+      showMsg("contractConstraint $(Cx) |= $(Cn)");
+    };
+
     ConName = localName(conTractName(Cn),.typeMark);
     
-    if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
+    if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= trace findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
 
       if traceCanon! then
-	showMsg("contract face type $(ConFaceTp)");
+	showMsg("contract $(CnDps), face type $(ConFaceTp)");
       
       ConTp = mkConType(CnNm,CnTps,CnDps);
+
+      if traceCanon! then
+	showMsg("prototype contract $(ConTp)");
+      
       if sameType(ConTp,typeOf(Cn),Env) then {
 	if traceCanon! then{
 	  showMsg("contract vars $(BV), Constraints = $(Cx), net type $(ConTp)");
 	};
 	
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
+
+	if traceCanon! then{
+	  showMsg("leq? #(showVar("leq",Es))");
+	};
+	
 	Impl = typeOfExp(B,ConTp,.voidType,Es,Path);
 	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
@@ -468,7 +486,7 @@ star.compiler.checker{
 	if traceCanon! then
 	  showMsg("implementation definition $(.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp))");
 	
-	valis ([.varDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
+	valis ([.implDef(Lc,ImplNm,ImplVrNm,Impl,Cx,ImplTp)],
 	  [.implDec(Lc,ImplNm,ImplVrNm,ImplTp),
 	    (~isEmpty(Cx) ??
 	      .funDec(Lc,ImplVrNm,ImplVrNm,ImplTp) ||
@@ -1055,8 +1073,6 @@ star.compiler.checker{
 
   typeOfVar(Lc,Id,Tp,Refresh,Env,Path) => valof{
     if Var ?= findVar(Lc,Id,Refresh,Env) then{
-      if traceCanon! then
-	showMsg("var found: $(Id)\:$(typeOf(Var))");
       if sameType(Tp,typeOf(Var),Env) then {
 	valis Var
       } else{

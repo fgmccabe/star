@@ -60,46 +60,46 @@ star.heap{
     valis .h(merge(reverse(Ts1),Ts2))
   }
 
-  public showHeap: all x ~~ display[x] |= (heap[x])=>string.
-  showHeap(.h(Hs)) => let{.
-    sh(H) => interleave(H//shT,", ")*.
+  -- public showHeap: all x ~~ display[x] |= (heap[x])=>string.
+  -- showHeap(.h(Hs)) => let{.
+  --   sh(H) => interleave(H//shT,", ")*.
 
-    shT(.eNode(X,_,C)) => "$(X) [#(sh(C))]".
-  .} in "[#(sh(Hs))]".
+  --   shT(.eNode(X,_,C)) => "$(X) [#(sh(C))]".
+  -- .} in "[#(sh(Hs))]".
 
   -- Implement some contracts
 
-  public implementation all x ~~ display[x] |= display[heap[x]] => let{.
-    sh(H) => (H//shT)*.
+  -- public implementation all x ~~ display[x] |= display[heap[x]] => let{.
+  --   sh(H) => (H//shT)*.
 
-    shT(.eNode(X,_,C)) => [disp(X),..sh(C)].
-  .} in {
-    disp(.h(H)) => "[#(interleave(sh(H),", ")*)]".
-  }
+  --   shT(.eNode(X,_,C)) => [disp(X),..sh(C)].
+  -- .} in {
+  --   disp(.h(H)) => "[#(interleave(sh(H),", ")*)]".
+  -- }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |= build[heap[x]->>x] => {
-    _null = .h([]).
-    _push(E,.h(C)) => .h(insert(E,C))
-  }
+  -- public implementation all x ~~ (leq:(x,x)=>boolean) |= build[heap[x]->>x] => {
+  --   _null = .h([]).
+  --   _push(E,.h(C)) => .h(insert(E,C))
+  -- }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |= sequence[heap[x]->>x] => {
-    _nil = .h([]).
-    _cons(E,.h(C)) => .h(insert(E,C))
-  }
+  -- public implementation all x ~~ (leq:(x,x)=>boolean) |= sequence[heap[x]->>x] => {
+  --   _nil = .h([]).
+  --   _cons(E,.h(C)) => .h(insert(E,C))
+  -- }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |= stream[heap[x]->>x] => {
-    _eof(.h(.nil)) => .true.
-    _eof(_) default => .false.
+  -- public implementation all x ~~ (leq:(x,x)=>boolean) |= stream[heap[x]->>x] => {
+  --   _eof(.h(.nil)) => .true.
+  --   _eof(_) default => .false.
 
-    _hdtl(.h(.nil)) => .none.
-    _hdtl(.h(Ts)) => valof{
-      (.eNode(R,_,Ts1),Ts2) = removeMinTree(Ts);
-      valis .some((R,.h(merge(reverse(Ts1),Ts2))))
-    }
-  }
+  --   _hdtl(.h(.nil)) => .none.
+  --   _hdtl(.h(Ts)) => valof{
+  --     (.eNode(R,_,Ts1),Ts2) = removeMinTree(Ts);
+  --     valis .some((R,.h(merge(reverse(Ts1),Ts2))))
+  --   }
+  -- }
 
-  walk:all x,s ~~ (leq:(x,x)=>boolean) |= (heap[x],(x,s)=>s,s) => s.
-  walk(.h(Ts),F,Sinit) => let{.
+  walk:all e,s ~~ (leq:(e,e)=>boolean) |= (heap[e],s,(e,s)=>s) => s.
+  walk(.h(Ts),Sinit,F) => let{.
     w([],St) => St.
     w(Cs,St) => valof{
       (.eNode(X,_,Rs),Ts2) = removeMinTree(Cs);
@@ -108,24 +108,24 @@ star.heap{
   .} in w(Ts,Sinit).
 
   public implementation all x ~~ (leq:(x,x)=>boolean) |= iter[heap[x] ->> x] => {
-    _iter(H,Z,F) => walk(H,F,Z)
+    _iter(H,Z,F) => walk(H,Z,F)
   }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |= generate[heap[x]->>x] => {
-    _generate(Ts) => generator{
-      TT := Ts;
-      while [H,..T] .= TT! do{
-	yield H;
-	TT := T
-      }
-    }
-  }
+  -- public implementation all x ~~ (leq:(x,x)=>boolean) |= generate[heap[x]->>x] => {
+  --   _generate(Ts) => generator{
+  --     TT := Ts;
+  --     while [H,..T] .= TT! do{
+  -- 	yield H;
+  -- 	TT := T
+  --     }
+  --   }
+  -- }
 
-  public implementation all x ~~ (leq:(x,x)=>boolean) |= concat[heap[x]] => {
-    .h(L) ++ .h(R) => .h(merge(L,R)).
-    _multicat(Hs) => let{.
-      m([]) => [].
-      m([.h(T),..Ts]) => merge(T,m(Ts)).
-    .} in .h(m(Hs))
-  }
+  -- public implementation all x ~~ (leq:(x,x)=>boolean) |= concat[heap[x]] => {
+  --   .h(L) ++ .h(R) => .h(merge(L,R)).
+  --   _multicat(Hs) => let{.
+  --     m([]) => [].
+  --     m([.h(T),..Ts]) => merge(T,m(Ts)).
+  --   .} in .h(m(Hs))
+  -- }
 }

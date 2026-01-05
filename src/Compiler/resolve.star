@@ -36,11 +36,14 @@ star.compiler.resolve{
   overloadDefs:(cons[canonDef],dict,cons[canonDef]) => (cons[canonDef],dict).
   overloadDefs([],Dict,Dfx) => (reverse(Dfx),Dict).
   overloadDefs([D,..Defs],Dict,Dfx) => valof{
-    (DD,DDict) = overloadDef(D,Dict);
-    valis overloadDefs(Defs,DDict,[DD,..Dfx])
+    if traceResolve! then
+      showMsg("leq? #(showVar("leq",Dict))");
+
+    DD = overloadDef(D,Dict);
+    valis overloadDefs(Defs,Dict,[DD,..Dfx])
   }
 
-  overloadDef:(canonDef,dict)=>(canonDef,dict).
+  overloadDef:(canonDef,dict)=>canonDef.
   overloadDef(.funDef(Lc,Nm,Eqs,Cx,Tp),Dict) =>
     overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
   overloadDef(.prcDef(Lc,Nm,Rls,Cx,Tp),Dict) =>
@@ -51,18 +54,20 @@ star.compiler.resolve{
     overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadImplDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
-  overloadDef(.typeDef(Lc,Nm,Tp,TpRl),Dict) => (.typeDef(Lc,Nm,Tp,TpRl),Dict).
-  overloadDef(.cnsDef(Lc,Nm,Ix,Tp),Dict) => (.cnsDef(Lc,Nm,Ix,Tp),Dict).
+  overloadDef(.typeDef(Lc,Nm,Tp,TpRl),Dict) => .typeDef(Lc,Nm,Tp,TpRl).
+  overloadDef(.cnsDef(Lc,Nm,Ix,Tp),Dict) => .cnsDef(Lc,Nm,Ix,Tp).
   overloadDef(Def,Dict) default => valof{
     reportError("cannot overload $(Def)",locOf(Def));
-    valis (Def,Dict)
+    valis Def
   }
 
   overloadFunction:(dict,option[locn],string,cons[eqn],cons[constraint],tipe)=>
-    (canonDef,dict).
+    canonDef.
   overloadFunction(Dict,Lc,Nm,Eqns,Cx,Tp) => valof{
-    if traceResolve! then
-      showMsg("overload function $(Nm) = $(Eqns), Cx=$(Cx)");
+    if traceResolve! then{
+      showMsg("overload function $(Nm) = $(Eqns), Cx=$(Cx), Tp=$(Tp)");
+    };
+
     (Extra,CDict) = defineCVars(Lc,Cx,[],Dict);
       
     REqns = Eqns//(Eq)=>resolveEqn(Eq,Extra,CDict);
@@ -73,10 +78,10 @@ star.compiler.resolve{
       CTp = reQuant(Qx,.funType(.tupleType((Cx//typeOf)++AITp),RITp,Etp));
       if traceResolve! then
 	showMsg("overloaded fun $(.funDef(Lc,Nm,REqns,[],CTp))");
-      valis (.funDef(Lc,Nm,REqns,[],CTp),Dict)
+      valis .funDef(Lc,Nm,REqns,[],CTp)
     } else{
       reportError("type of $(Nm) not a function type",Lc);
-      valis (.funDef(Lc,Nm,REqns,[],Tp),Dict)
+      valis .funDef(Lc,Nm,REqns,[],Tp)
     }
   }
 
@@ -86,7 +91,7 @@ star.compiler.resolve{
     }.
 
   overloadProcedure:(dict,option[locn],string,cons[prle],cons[constraint],tipe)=>
-    (canonDef,dict).
+    canonDef.
   overloadProcedure(Dict,Lc,Nm,Rls,Cx,Tp) => valof{
     if traceResolve! then
       showMsg("overload procedure $(Nm) = $(Rls), Cx=$(Cx)");
@@ -101,16 +106,16 @@ star.compiler.resolve{
 	CTp = reQuant(Qx,procType((Cx//typeOf)++AITp,ETp));
 	if traceResolve! then
 	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
-	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
+	valis .prcDef(Lc,Nm,RRls,[],CTp)
       } else{
 	CTp = reQuant(Qx,procType((Cx//typeOf)++[ATp],ETp));
 	if traceResolve! then
 	  showMsg("overloaded proc $(.prcDef(Lc,Nm,RRls,[],CTp))");
-	valis (.prcDef(Lc,Nm,RRls,[],CTp),Dict)
+	valis .prcDef(Lc,Nm,RRls,[],CTp)
       }
     } else{
       reportError("type of $(Nm) not a procedure type",Lc);
-      valis (.prcDef(Lc,Nm,RRls,[],Tp),Dict)
+      valis .prcDef(Lc,Nm,RRls,[],Tp)
     }
   }
 
@@ -120,9 +125,9 @@ star.compiler.resolve{
     }.
  
   overloadVarDef:(dict,option[locn],string,string,canon,cons[constraint],tipe)=>
-    (canonDef,dict).
+    canonDef.
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp) => 
-    (.varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp),Dict).
+    .varDef(Lc,Nm,FullNm,overload(Val,Dict),[],Tp).
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp) => valof{
     if traceResolve! then
       showMsg("overload definition $(Nm) = $(Val), Cx=$(Cx)");
@@ -138,28 +143,36 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("overloaded definition $(ODefn)");
 
-    valis (ODefn,Dict)
+    valis ODefn
   }
 
   overloadImplDef:(dict,option[locn],string,string,canon,cons[constraint],tipe) =>
-    (canonDef,dict).
+    canonDef.
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,_,Tp) => valof{
-    if traceResolve! then
-      showMsg("overload implementation definition $(Nm) = $(Val)");
+    if traceResolve! then{
+      showMsg("overload implementation definition $(Nm) = $(Val)\:$(Tp)");
+      showMsg("leq? #(showVar("leq",Dict))");
+    }
 
     (Qx,Qt) = deQuant(Tp);
     (Cx,ITp) = deConstrain(Qt);
 
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
+    if traceResolve! then{
+      showMsg("leq? #(showVar("leq",CDict))");
+    }
+
+    if traceResolve! then
+      showMsg("Qx = $(Qx), Cx=$(Cx), NtTp=$(ITp)");
 
     RVal = overload(Val,CDict);
 
     if isEmpty(Cvrs) then {
       CTp = reQuant(Qx,ITp);
-      valis (.implDef(Lc,Nm,FullNm,RVal,[],Tp),Dict)
+      valis .implDef(Lc,Nm,FullNm,RVal,[],Tp)
     } else {
       CTp = reQuant(Qx,funcType(Cx//genContractType,ITp));
-      valis (.implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp),Dict)
+      valis .implDef(Lc,Nm,FullNm,.lambda(Lc,lambdaLbl(Lc),.eqn(Lc,Cvrs,.none,RVal),CTp),[],Tp)
     }
   }
 
@@ -623,8 +636,11 @@ star.compiler.resolve{
     
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
-    if Var ?= findVar(Lc,Id,.true,Dict) then{
-      if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
+    if traceResolve! then
+      showMsg("resolve implicit $(Id)\:$(Tp)");
+
+    if Var ?= trace findVar(Lc,Id,.true,Dict) then{
+      if sameType(trace snd(freshen(Tp,Dict)),trace typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),
