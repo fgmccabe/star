@@ -457,7 +457,7 @@ star.compiler.checker{
 
     ConName = localName(conTractName(Cn),.typeMark);
     
-    if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= trace findType(Env,ConName)then{
+    if Con ?= findContract(Env,ConName) && (_,CTp,_,_) ?= findType(Env,ConName)then{
       (_,.contractExists(CnNm,CnTps,CnDps,ConFaceTp)) = freshen(Con,Env);
 
       if traceCanon! then
@@ -475,10 +475,6 @@ star.compiler.checker{
 	
 	Es = declareConstraints(Lc,Cx,declareTypeVars(BV,Outer));
 
-	if traceCanon! then{
-	  showMsg("leq? #(showVar("leq",Es))");
-	};
-	
 	Impl = typeOfExp(B,ConTp,.voidType,Es,Path);
 	ImplNm = implementationName(.conTract(CnNm,CnTps,CnDps));
 	ImplVrNm = qualifiedName(Path,.valMark,ImplNm);
@@ -889,7 +885,8 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,ErTp,Env,Pth) where (Lc,Op,Els) ?= isBrTerm(A) && (_,Nm)?=isName(Op) => valof{
     if traceCanon! then{
-      showMsg("brace record: $(A)");
+      showMsg("brace record: $(A)\:$(Tp)");
+      showMsg("leq? #(showVar("leq",Env))");
     };
     
     FceTp = newTypeVar("_");
@@ -1109,14 +1106,8 @@ star.compiler.checker{
     FETp = newTypeVar("E");
     Fun = typeOfExp(Op,FnTp,ErTp,Env,Path);
 
-    if traceCanon! then
-      showMsg("Round term: $(Op)($(As))\:$(Tp) Op:$(FnTp)");
-
     if sameType(FnTp,.funType(AtTp,Tp,FETp),Env) then{
       Args = typeOfExps(As,Vrs,ErTp,Lc,[],Env,Path);
-
-      if traceCanon! then
-	showMsg("Round term type: $(Op)\:$(FnTp), ErTp=$(ErTp), FETp=$(FETp) ");
 
       if ErTp==.voidType then{
 	if sameType(FETp,.voidType,Env) then
@@ -1334,8 +1325,6 @@ star.compiler.checker{
     valis (.doExp(Lc,.resum(Lc,Tsk,Msg,TTp)),Env,Dcls)
   }
   checkAction(A,Tp,ErTp,Mode,Env,Dcls,Path) where (Lc,Op,Args) ?= isRoundTerm(A) => valof{
-    if traceCanon! then
-      showMsg("Check action $(A)\:$(Tp)");
     isValidLastAct(Lc,Tp,Mode);
 
     Call = checkProcCall(Lc,Op,Args,ErTp,Env,Path);

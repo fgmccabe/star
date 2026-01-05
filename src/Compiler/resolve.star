@@ -639,8 +639,8 @@ star.compiler.resolve{
     if traceResolve! then
       showMsg("resolve implicit $(Id)\:$(Tp)");
 
-    if Var ?= trace findVar(Lc,Id,.true,Dict) then{
-      if sameType(trace snd(freshen(Tp,Dict)),trace typeOf(Var),Dict) then {
+    if Var ?= findVar(Lc,Id,.true,Dict) then{
+      if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {
 	valis (Var,markResolved(St))
       } else{
 	valis (.anon(Lc,Tp),
