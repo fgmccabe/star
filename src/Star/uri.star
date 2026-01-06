@@ -295,12 +295,11 @@ star.uri{
     coerce:(string) => uri throws exception.
     coerce(S) => valof {
       Sx = S::cons[char];
-      try{
-	if (U,[]) ?= parseU(Sx) then
-	  valis U
-	else
-	throw .exception("Cannot parse [#(S)] as a uri")
-      } catch { _ do {} }
+
+      if (U,[]) ?= parseU(Sx) then
+	valis U
+      else
+      throw .exception("Cannot parse [#(S)] as a uri")
     }
     } in {
     _coerce = coerce
