@@ -1374,8 +1374,8 @@ Type coercion is supported by a special `coercion` contract:
 
 [source,star]
 ----
-all s,t ~~ contract coercion[s,t] ::= {
-  _coerce:(s) => option[t]
+all s,t,e ~~ contract coercion[s,t->>e] ::= {
+  _coerce:(s) => t throws e
 }
 ----
 
@@ -1389,7 +1389,7 @@ X :: integer
 is equivalent to the expression: 
 [source,star]
 ----
-(_optval(_coerce(X)) : integer)
+(_coerce(X) : integer)
 ----
 
 which has the effect of declaring that the
@@ -1397,11 +1397,23 @@ expression has type `integer` and the `_coerce` function is an
 overloaded function that references a type-specific implementation --
 based on the source type of `X` and `integer`.
 
-The `:?` form of coercion expression is used in situations where
-the coercion may _fail_. If the coercion fails then the value
-should be `.none`. For example, the coercions of `string`
-values to `integer` is not guaranteed -- it depends on whether
-the string denotes an integer or not:
+NOTE: Note that `::` coercions may throw an exception -- depending on the
+signature of the specific implementation of the coercion. This reflects the
+potential for coercions to fail.
++
+Not all coercions can fail, for example
+[source,star]
+----
+"hello" :: cons[char]
+----
+is guaranteed to succeedfootnote:[Unless, of course, memory is exhausted.] --
+because strings are essentially lists of characters.
+
+The `:?` form of coercion expression can be used to obtain an ``option``al value
+from a potentially failable coercion. If the coercion fails ( throws an
+exception) then the value will be `.none`; otherwise the successful result is
+returned as a `some`. For example, the coercions of `string` values to `integer`
+is not guaranteed -- it depends on whether the string denotes an integer or not:
 [source,star]
 ----
 "fred" :? integer

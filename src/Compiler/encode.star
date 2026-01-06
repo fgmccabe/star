@@ -9,8 +9,8 @@ star.compiler.encode{
   import star.pkg.
   import star.compiler.types.
 
-  public implementation coercion[data,string] => {
-    _coerce(T) => .some((encData(T)::cons[char])::string).
+  public implementation coercion[data,string->>_] => {
+    _coerce(T) => (encData(T)::cons[char])::string.
   }
 
   encData:(data)=>multi[char].
@@ -145,12 +145,12 @@ star.compiler.encode{
   public encodeSig:(tipe)=>data.
   encodeSig(Tp) => .strg(encodeSignature(Tp)).
 
-  public implementation coercion[tipe,data] => {
-    _coerce(T) => .some(encodeSig(T))
+  public implementation coercion[tipe,data->>_] => {
+    _coerce(T) => encodeSig(T)
   }
 
-  public implementation coercion[decl,data] => {
-    _coerce(D) => .some(case D in {
+  public implementation coercion[decl,data->>_] => {
+    _coerce(D) => case D in {
 	| .implDec(_,ConNm,ImplNm,Tp) =>
 	  mkCons("imp",[.strg(ConNm),.strg(ImplNm),encodeSig(Tp)])
 	| .accDec(_,Tp,Fld,Fn,AccTp) =>
@@ -167,7 +167,7 @@ star.compiler.encode{
 	  mkCons("var",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
 	| .funDec(_,Nm,FullNm,Tp) =>
 	  mkCons("fun",[.strg(Nm),.strg(FullNm),encodeSig(Tp)])
-      }).
+      }.
   }
 
   encodeMap:(indexMap)=>data.

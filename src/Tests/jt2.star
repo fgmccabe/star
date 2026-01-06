@@ -10,9 +10,9 @@ test.jt2{
 
   main:(integer){}.
   main(V){
-    timer = ref timer_start(((V::float)**2.0)::integer, "fib");
+    timer = ref timer_start(trunc((V::float)**2.0):?integer, "fib");
     F1 = fib(V);
-    t1 = timer_finish(timer!)::float;
+    t1 = timer_finish(timer!):?float;
     showMsg("Fib of $(V) is $(F1)");
 
     try{
@@ -22,9 +22,9 @@ test.jt2{
       | Cde do showMsg("We got errr: $(Cde)")
     };
 
-    timer2 = ref timer_start(((V::float)**2.0)::integer, "jit fib");
+    timer2 = ref timer_start(trunc((V::float)**2.0):?integer, "jit fib");
     F2 = fib(V);
-    t2 = timer_finish(timer2!)::float;
+    t2 = timer_finish(timer2!):?float;
     showMsg("Fib of $(V) is $(F2)");
     assert F1==F2;
 
@@ -35,6 +35,6 @@ test.jt2{
 
   public _main:(cons[string])=>integer.
   _main([]) => valof{ main(3); valis 0}
-  _main([Count]) => valof{ main(Count::integer); valis 0}
+  _main([Count]) => valof{ main(Count:?integer); valis 0}
 }
     

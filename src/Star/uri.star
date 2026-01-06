@@ -286,13 +286,25 @@ star.uri{
   getUriPath(.absUri(_,Pth,_)) => dispRsrc(Pth)::string.
   getUriPath(.relUri(Pth,_)) => dispRsrc(Pth)::string.
 
-  public implementation coercion[uri,string] => {
-    _coerce(U) => .some(disp(U)).
+  public implementation coercion[uri,string->>void] => {
+    _coerce(U) => disp(U).
   }
 
-  public implementation coercion[string,uri] => {
-    _coerce(S) => parseUri(S).
-  }
+  public implementation coercion[string,uri->>exception] =>
+    let{
+    coerce:(string) => uri throws exception.
+    coerce(S) => valof {
+      Sx = S::cons[char];
+      try{
+	if (U,[]) ?= parseU(Sx) then
+	  valis U
+	else
+	throw .exception("Cannot parse [#(S)] as a uri")
+      } catch { _ do {} }
+    }
+    } in {
+    _coerce = coerce
+    }
 
   public editUriPath:(uri,(cons[string])=>option[cons[string]])=>option[uri].
   editUriPath(.absUri(Scheme,ResNam,Qury),F) where NRes?=editUriResource(ResNam,F) =>

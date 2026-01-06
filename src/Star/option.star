@@ -29,7 +29,7 @@ star.option{
     hash(.none) => hash("none").
   }
 
-  public implementation all e,f ~~ coercion[e,f] |= coercion[option[e],option[f]] => {
+  public implementation all e,f ~~ coercion[e,f->>e] |= coercion[option[e],option[f]->>e] => {
     _coerce(.some(X)) => .some(_coerce(X)).
     _coerce(.none) => .none.
   }

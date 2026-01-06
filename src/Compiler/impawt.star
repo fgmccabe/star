@@ -42,21 +42,28 @@ star.compiler.impawt{
 
   pickupPkgSpec:(string,option[locn]) => option[pkgSpec].
   pickupPkgSpec(Txt,Lc) => valof{
-    if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
-      try{
-	Pkg = ? pickupPkg(Pk);
-	Imports = pickupImports(Imps,Lc);
-	Decls = pickupDeclarations(Ds,Lc);
-	valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
-      } catch {
-	_ do {
-	  reportError("could not decode package spec",Lc);
-	  valis .none
+    try{
+      if (.term(_,[Pk,.term(_,Imps),.term(_,Ds)]),_).=decodeTerm(Txt::cons[char]) then{
+	try{
+	  Pkg = ? pickupPkg(Pk);
+	  Imports = pickupImports(Imps,Lc);
+	  Decls = pickupDeclarations(Ds,Lc);
+	  valis .some(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls})
+	} catch {
+	  _ do {
+	    reportError("could not decode package spec",Lc);
+	    valis .none
+	  }
 	}
+      } else {
+	reportError("could not decode package spec",Lc);
+	valis .none
       }
-    } else {
-      reportError("could not decode package spec",Lc);
-      valis .none
+    } catch {
+      .exception(Msg) do {
+	reportError("could not decode package spec, due to [#(Msg)]",Lc);
+	valis .none
+      }
     }
   }
 
@@ -137,41 +144,41 @@ star.compiler.impawt{
 
   decodeIndexMap(Els) => foldLeft((.term(_,[.symb(Lbl),.intgr(Ix)]),Mp) => Mp[Lbl->Ix],[],Els).
 
-  implementation coercion[pkg,data] => {
-    _coerce(.pkg(P,.defltVersion)) => .some(.term("pkg",[.strg(P),.symb(.tLbl("*",0))])).
-    _coerce(.pkg(P,.vers(V))) => .some(.term("pkg",[.strg(P),.strg(V)])).
+  implementation coercion[pkg,data->>void] => {
+    _coerce(.pkg(P,.defltVersion)) => .term("pkg",[.strg(P),.symb(.tLbl("*",0))]).
+    _coerce(.pkg(P,.vers(V))) => .term("pkg",[.strg(P),.strg(V)]).
   }
 
-  implementation coercion[visibility,data] => {
-    _coerce(.priVate) => .some(.strg("private")).
-    _coerce(.pUblic) => .some(.strg("public")).
-    _coerce(.transItive) => .some(.strg("transitive")).
+  implementation coercion[visibility,data->>void] => {
+    _coerce(.priVate) => .strg("private").
+    _coerce(.pUblic) => .strg("public").
+    _coerce(.transItive) => .strg("transitive").
   }
 
-  implementation coercion[tipe,data] => {
-    _coerce(Tp) => .some(.strg(encodeSignature(Tp))).
+  implementation coercion[tipe,data->>void] => {
+    _coerce(Tp) => .strg(encodeSignature(Tp)).
   }
 
-  implementation coercion[typeRule,data] => {
-    _coerce(Rl) => .some(.strg(encodeTpRlSignature(Rl)))
+  implementation coercion[typeRule,data->>void] => {
+    _coerce(Rl) => .strg(encodeTpRlSignature(Rl))
   }
   
-  implementation coercion[importSpec,data] => {
-    _coerce(.pkgImp(_,Vz,Pk)) => .some(.term("import",[Vz::data,Pk::data]))
+  implementation coercion[importSpec,data->>void] => {
+    _coerce(.pkgImp(_,Vz,Pk)) => .term("import",[Vz::data,Pk::data])
   }
 
-  implementation all e ~~ coercion[e,data] |= coercion[cons[e],data] => {
-    _coerce(L)=>.some(mkTpl(L//(e)=>e::data))
+  implementation all e,x ~~ coercion[e,data->>x] |= coercion[cons[e],data->>x] => {
+    _coerce(L)=>mkTpl(L//(e)=>e::data)
   }
 
-  public implementation coercion[pkgSpec,data] => let{
+  public implementation coercion[pkgSpec,data->>void] => let{
     mkTerm(pkgSpec{pkg=Pkg. imports=Imports. exports=Decls}) =>
       .term("pkgSpec",[Pkg::data,Imports::data,mkTpl(Decls//(D)=>(D::data))]).
   } in {
-    _coerce(S) => .some(mkTerm(S)).
+    _coerce(S) => mkTerm(S).
   }
 
-  public implementation coercion[decl,data] => let{
+  public implementation coercion[decl,data->>void] => let{
     mkTerm(.implDec(_,Nm,FullNm,Tp)) =>
       .term("imp",[.strg(Nm),.strg(FullNm),Tp::data]).
     mkTerm(.accDec(_,Tp,Fld,Acc,AccTp)) =>
@@ -190,14 +197,18 @@ star.compiler.impawt{
     mkTerm(.cnsDec(_,Nm,FlNm,Tp)) =>
       .term("cns",[.strg(Nm),.strg(FlNm),Tp::data]).
   } in {
-    _coerce(D) => .some(mkTerm(D)).
+    _coerce(D) => mkTerm(D).
   }
 
   public importLowered:(pkg,termRepo) => option[cons[cDefn]].
   importLowered(Pkg,R) => valof{
     if Txt ?= packageLowered(R,Pkg) then{
-      if .term(_,Dta) ?= Txt:?data then{
-	valis .some((Dta//(D)=>thawDefn(D)));
+      if .term(_,Dta) .= Txt:?data then{
+	try{
+	  valis .some((Dta//(D)=>thawDefn(D)))
+	} catch {
+	  _ do { valis .none }
+	}
       }
     };
       

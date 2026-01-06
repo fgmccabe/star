@@ -33,6 +33,13 @@ test.ffib{
 
   public _main:(cons[string]) => integer.
   _main([]) => main(30).
-  _main([Count]) => main(Count::integer).
+  _main([Count]) => valof{ try {
+      main(Count::integer);
+      valis 0}
+    catch { _ do {
+	_show("Cannot coerce argument [#(Count)] to integer");
+	valis 1
+      }}
+  }
 }
   

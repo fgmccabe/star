@@ -37,7 +37,7 @@ test.eras{
   }
 
   _main:(cons[string]) => integer.
-  _main([C,.._]) where Cnt?=(C:?integer) => valof{ main(Cnt); valis 0}.
+  _main([C,.._]) where Cnt.=(C:?integer) => valof{ main(Cnt); valis 0}.
   _main(_) => valof { main(100); valis 0}.
 
   main:(integer){}.

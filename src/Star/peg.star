@@ -147,15 +147,18 @@ star.peg{
       real() >>= (N) => return -N) +++
   (natural >>= (M) =>
       ((_tk(`.`) >>= (_) =>
-	    fraction(M::float,0.1) >>= (F) =>
-	      exponent >>= (E) => return F*E) +++ (return M::float))).
+	  fraction(forceFloat(M),0.1) >>= (F) =>
+	    exponent >>= (E) => return F*E) +++ (return forceFloat(M)))).
 
   fraction:(float,float) => parser[cons[char],float].
   fraction(SoFar,Scale) =>
-    (numeral >>= (D) => fraction(SoFar+Scale*(D::float),Scale*0.1)) +++
+    (numeral >>= (D) => fraction(SoFar+Scale*forceFloat(D),Scale*0.1)) +++
     (return SoFar).
 
   exponent:parser[cons[char],float].
   exponent = (_tk(`e`) >>= (_) =>
-		decimal >>= (E) => return 10.0**(E::float)) +++ (return 1.0).
+      decimal >>= (E) => return 10.0**forceFloat(E)) +++ (return 1.0).
+
+  forceFloat:(integer)=>float.
+  forceFloat(Ix) => (try Ix::float catch { _ => 0.0}).
 }

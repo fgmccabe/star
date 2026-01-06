@@ -7,13 +7,19 @@ test.u{
   loop(_,0) => ().
   loop(F,N) where _.=F() => loop(F,N-1).
 
-  tt() => loop(() where _.= "http://foo.bar.com?query"::uri => (),100).
+  tt:()=> () throws exception.
+  tt() => loop(() where _.= "http://foo.bar.com?query":?uri => (),100).
 
   main:(){}.
   main(){
-    tt();
+    try{
+      tt();
 
-    assert "http://foo.bar.com?query"::uri ==
-      .absUri("http",.netRsrc(.server(.none,.host("foo.bar.com")),.relPath([""])),.qry("query"));
+      assert "http://foo.bar.com?query"::uri ==
+	.absUri("http",.netRsrc(.server(.none,.host("foo.bar.com")),.relPath([""])),.qry("query"));
+    } catch { Ex do {
+	_show("We got an exception $(Ex)");
+    }
+    }
   }
 }

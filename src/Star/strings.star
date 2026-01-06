@@ -83,28 +83,28 @@ star.strings{
     reverse(L) => _str_reverse(L).
   }
 
-  public implementation coercion[string,cons[char]] => {
-    _coerce(S) => .some(_explode(S)).
+  public implementation coercion[string,cons[char]->>_] => {
+    _coerce(S) => _explode(S).
   }
 
-  public implementation coercion[cons[char],string] => {
-    _coerce(L) => .some(_implode(L)).
+  public implementation coercion[cons[char],string->>void] => {
+    _coerce(L) => _implode(L).
   }
 
-  public implementation coercion[string,string] => {
-    _coerce(S) => .some(S).
+  public implementation coercion[string,string->>void] => {
+    _coerce(S) => S.
   }
 
-  public implementation coercion[integer,char] => {
-    _coerce(S) => .some(_int2chr(S)).
+  public implementation coercion[integer,char->>void] => {
+    _coerce(S) => _int2chr(S).
   }
 
-  public implementation coercion[char,integer] => {
-    _coerce(S) => .some(_codePoint(S)).
+  public implementation coercion[char,integer->>void] => {
+    _coerce(S) => _codePoint(S).
   }
 
-  public implementation coercion[char,string] => {
-    _coerce(C) => .some(_implode(.cons(C,.nil))).
+  public implementation coercion[char,string->>void] => {
+    _coerce(C) => _implode(.cons(C,.nil)).
   }
   
   public stringQuote:(string)=>string.

@@ -132,8 +132,8 @@ star.compiler.term.repo{
   termInfo:(data,map[string,string])=>map[string,string].
   termInfo(.term(Ky,[.strg(V)]),Is) => Is[Ky->V].
 
-  implementation coercion[data,manifest] => {
-    _coerce(T) => .some(termManifest(T)).
+  implementation coercion[data,manifest->>_] => {
+    _coerce(T) => termManifest(T).
   }
 
   infoTerm:(mInfo)=>data.
@@ -148,14 +148,14 @@ star.compiler.term.repo{
   manTerm(.man(Ps))=>mkLst(ixRight((Pk,Vr,Ms)=>
 	[mkTpl([.strg(Pk),versionTerm(Vr)]),..Ms],[],Ps)).
 
-  implementation coercion[manifest,data] => {
-    _coerce(M)=>.some(manTerm(M)).
+  implementation coercion[manifest,data->>_] => {
+    _coerce(M)=>manTerm(M).
   }
 
   flushManifest(Url,Man) do putResource(Url,(Man::data)::string).
 
   readManifest(Url) where
       Txt ?= getResource(Url) &&
-      J.=Txt::data => .some(J::manifest).
+      J.=Txt:?data => .some(J:?manifest).
   readManifest(_) default => .none.
 }

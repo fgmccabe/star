@@ -1046,10 +1046,10 @@ star.compiler.wff{
   public mkRecordUpdate(Lc,Rc,Fld,Vl) =>
     binary(Lc,"=",mkFieldAcc(Lc,Rc,Fld),Vl).
 
-  public implementation coercion[locn,ast]=>{
+  public implementation coercion[locn,ast->>void]=>{
     _coerce(Lc where .locn(Pkg,Line,Col,Off,Ln).=Lc)=>
-      .some(roundTerm(.some(Lc),.nme(.none,"locn"),[.str(.none,Pkg),
-	    .int(.none,Line), .int(.none,Col), .int(.none,Off), .int(.none,Ln)])).
+      roundTerm(.some(Lc),.nme(.none,"locn"),[.str(.none,Pkg),
+	.int(.none,Line), .int(.none,Col), .int(.none,Off), .int(.none,Ln)]).
   }
 
   public isTrace:(ast) => option[(option[locn],ast,ast)].

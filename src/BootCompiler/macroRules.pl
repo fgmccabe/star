@@ -73,30 +73,115 @@ look_for_signature([St|_],Nm,Lc,Ms,T) :-
 look_for_signature([_|As],Nm,Lc,Ms,Tp) :-
   look_for_signature(As,Nm,Lc,Ms,Tp).
 
-synthesize_main(Lc,Ts,Tp,As,[MainTp,Main|As]) :-
-  synthesize_coercions(Ts,Vs,Cs),
+/*
+   main:(t1,..,tk) => E
+
+  becomes
+
+   _main([A1,..,Ak]) => valof{
+     try{
+       V1 = _coerce(A1):t1;
+       try{
+       ...
+          main(V1,..,Vk);
+          valis 0
+       } catch { _ do {
+           _show("Cant coerce [#(Ak)] into a tk");
+           valis 1
+         }
+       }
+      ...
+    } catch { _ do {
+       _show("Cant coerce [#(Ak)] into a tk");
+       valis 1
+     }
+   }
+  }
+  _main(_) default => valof{
+    _show("Expecting k args");
+    valis 1
+  }
+*/
+
+
+synthesize_main(Lc,Ts,Tp,As,[MainTp,Main,MnDeflt|As]) :-
+  (isFuncType(Tp,_,_,_) ->
+     Inner = macroRules:synth_main_fun;
+     Inner = macroRules:synth_main_prc),
+  synthesize_coercion(Lc,Ts,Vs,Vrs,Vrs,Inner,MnSeq),
+%  dispAst(MnSeq),
   list_pttrn(Lc,Vs,Arg),
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
-  roundTerm(Lc,name(Lc,"main"),Cs,MnCall),
-  (isFuncType(Tp,_,_,_) ->
-   mkValis(Lc,MnCall,MnSeq);
-   mkValis(Lc,integer(Lc,0),Vl),
-   mkSequence(Lc,MnCall,Vl,MnSeq)),
   braceTuple(Lc,[MnSeq],MnAct),
   mkValof(Lc,MnAct,MnReslt),
   eqn(Lc,Lhs,MnReslt,Main),
+
+  mkAnon(Lc,Anon),
+  roundTerm(Lc,name(Lc,"_main"),[Anon],DLhs),
+
+  mkEnum(Lc,"nil",Nil),
+  mkConApply(Lc,name(Lc,"cons"),[string(Lc," arguments"),Nil],M0),
+  length(Ts,Ar),
+  ast2String(Lc,integer(Lc,Ar),ArTxt),
+  mkConApply(Lc,name(Lc,"cons"),[ArTxt,M0],M1),
+  mkConApply(Lc,name(Lc,"cons"),[string(Lc,"Expecting "),M1],M2),
+  unary(Lc,"_str_multicat",M2,Msg),
+  roundTerm(Lc,name(Lc,"_show"),[Msg],Log),
+  mkValis(Lc,integer(Lc,1),Vl),
+  mkSequence(Lc,[Log,Vl],Body),
+  braceTuple(Lc,[Body],VB),
+  mkValof(Lc,VB,GVl),
+  eqn(Lc,DLhs,GVl,MnDeflt),
+%  dispAst(MnDeflt),
   squareTerm(Lc,name(Lc,"cons"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
   binary(Lc,"=>",T3,name(Lc,"integer"),TU),
   mkTypeDecl(Lc,name(Lc,"_main"),TU,MainTp).
 %  dispAst(Main).
   
-synthesize_coercions([],[],[]).
-synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
-  locOfAst(T,Lc),
+/* T -> main(NV1,..,NVk); valis 0
+   or
+   T -> valis main(NV1,..,NVk)
+*/
+synth_main_fun(Lc,Vrs,C) :-
+  roundTerm(Lc,name(Lc,"main"),Vrs,Mn),
+  mkValis(Lc,Mn,C).
+
+synth_main_prc(Lc,Vrs,C) :-
+  roundTerm(Lc,name(Lc,"main"),Vrs,Mn),
+  mkValis(Lc,integer(Lc,0),Vl),
+  mkSequence(Lc,[Mn,Vl],C).
+
+synthesize_coercion(Lc,[],[],[],Vrs,Inner,C) :-
+  call(Inner,Lc,Vrs,C).
+
+  
+/* T -> try {
+     NV = _coerce(V):T; Inner; }
+   catch {
+    _ do {_logmsg("Cannot coerce [#(V)] to T"); valis 1}
+   }
+*/
+synthesize_coercion(Lc,[T|Ts],[V|Vs],[NV|Vx],Vrs,Inner,C) :-
   genIden(Lc,V),
-  coerce(Lc,V,T,C),
-  synthesize_coercions(Ts,Vs,Cs).
+  genIden(Lc,NV),
+  coerce(Lc,V,T,O),
+  mkDefn(Lc,NV,O,S1),
+  synthesize_coercion(Lc,Ts,Vs,Vx,Vrs,Inner,S2),
+  mkSequence(Lc,[S1,S2],Body),
+  mkEnum(Lc,"nil",Nil),
+  ast2String(Lc,T,Tp),
+  mkConApply(Lc,name(Lc,"cons"),[Tp,Nil],M0),
+  mkConApply(Lc,name(Lc,"cons"),[string(Lc,"to "),M0],M1),
+  mkConApply(Lc,name(Lc,"cons"),[V,M1],M2),
+  mkConApply(Lc,name(Lc,"cons"),[string(Lc,"Cannot coerce "),M2],M3),
+  unary(Lc,"_str_multicat",M3,Msg),
+  roundTerm(Lc,name(Lc,"_show"),[Msg],Log),
+  mkValis(Lc,integer(Lc,1),Vl),
+  mkSequence(Lc,[Log,Vl],CB),
+  mkAnon(Lc,Anon),
+  mkProcedure(Lc,Anon,none,CB,Ctch),
+  mkTry(Lc,Body,[Ctch],C).
 
 list_pttrn(Lc,[],Arg) :-!,
   mkEnum(Lc,"nil",Arg).
@@ -261,13 +346,15 @@ makeCondition(A,Lift,Succ,Zed,Rp) :-
 coercionMacro(Term,expression,N) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
-  unary(Lc,"_optval",LT,OLT),
-  typeAnnotation(Lc,OLT,R,N).
+  typeAnnotation(Lc,LT,R,N).
 coercionMacro(Term,expression,N) :-
   isOptCoerce(Term,Lc,L,R),!,
+  % (try _coerce(L):R catch { _ => unreachable })
   unary(Lc,"_coerce",L,LT),
-  sqUnary(Lc,"option",R,OR),
-  typeAnnotation(Lc,LT,OR,N).
+  typeAnnotation(Lc,LT,R,O),
+  isUnreachable(Unreach,Lc),
+  eqn(Lc,name(Lc,"_"),Unreach,Ctch),
+  mkTry(Lc,O,[Ctch],N).
 
 multicatMacro(T,expression,Tx) :-
   isUnary(T,Lc,"*",I),!,
@@ -528,7 +615,6 @@ forLoopMacro(A,action,Ax) :-
   /* Build call to _generate */
   roundTerm(Lc,name(Lc,"_generate"),[C],IT),
   mkDefn(Lc,I,IT,S1),
-
   mkSequence(Lc,[S1,Lbld],Ax).
 
 /*

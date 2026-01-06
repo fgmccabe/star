@@ -13,6 +13,5 @@ test.cnx{
 
   public _main:(cons[string])=>integer.
   _main([]) => main(10).
-  _main([Count]) => main(Count::integer).
-  
+  _main([Count]) => main(try Count::integer catch { _ => valof{ _show("Cannot coerce [#(Count)] to integer"); valis 1}}).
 }

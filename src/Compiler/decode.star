@@ -5,14 +5,14 @@ star.compiler.decode{
   import star.compiler.data.
   import star.compiler.meta.
 
-  public implementation coercion[string,data] => {
+  public implementation coercion[string,data->>exception] => {
     _coerce(S) => valof{
       (T,_) = decodeTerm(S::cons[char]);
-      valis .some(T)
+      valis T
     }
   }
   
-  public decodeTerm:(cons[char])=>(data,cons[char]).
+  public decodeTerm:(cons[char])=>(data,cons[char]) throws exception.
   decodeTerm([Ch,..Ls]) => case Ch in {
     | `x` => valof{
       (Ix,L0) = decodeInt(Ls);
@@ -57,7 +57,7 @@ star.compiler.decode{
     }
   }
 
-  decodeTerms:(cons[char],integer,cons[data]) => (cons[data],cons[char]).
+  decodeTerms:(cons[char],integer,cons[data]) => (cons[data],cons[char]) throws exception.
   decodeTerms(L,0,Args) => (reverse(Args),L).
   decodeTerms(L,Ix,Args) => valof{
     (Arg,L0) = decodeTerm(L);

@@ -91,7 +91,7 @@ star.mbox{
 
   public taskManager:all e ~~ (cons[taskFun[e]]) => e throws mboxException.
   taskManager(Ts) => valof{
-    Q := (Ts//spawnTask)::qc[task[e]];
+    Q := (Ts//spawnTask):?qc[task[e]];
     BlockQ := ([]:cons[(()=>boolean,task[e])]);
     IoQ := ([]:cons[(ioHandle,()=>boolean,task[e])]);
 

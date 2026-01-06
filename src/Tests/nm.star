@@ -36,7 +36,7 @@ test.nm{
   }
   
   optInt:(option[float])=>option[integer].
-  optInt(.some(F)) => .some(F::integer).
+  optInt(.some(F)) => .some(F:?integer).
   optInt(.none) => .none.
 
 }
