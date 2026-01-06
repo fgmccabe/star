@@ -23,6 +23,8 @@ star.compiler.wff{
 
   public isUnreachable(A) => .nme(_,"unreachable").=A.
 
+  public mkUnreachable(Lc) => .nme(Lc,"unreachable").
+
   public dollarName:(ast) => ast.
   dollarName(N) where (Lc,Id) ?= isName(N) => .nme(Lc,"$"++Id).
 

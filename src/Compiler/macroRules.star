@@ -281,13 +281,13 @@ star.compiler.macro.rules{
   makeCondition(Other,Lift,Succ,Zed) =>
     mkConditional(locOf(Other),Other,Succ(Zed),Lift(Zed)).
 
-  -- Convert E::T to _optval(_coerce(E)):T
-  -- Convert E:?T to _coerce(E):option[T]
+  -- Convert E::T to _coerce(E):T
+  -- Convert E:?T to (try _coerce(E):T catch { _ => unreachable})
 
   coercionMacro(A,.expression) where (Lc,L,R) ?= isCoerce(A) =>
-    .active(mkTypeAnnotation(Lc,unary(Lc,"_optval",unary(Lc,"_coerce",L)),R)).
+    .active(mkTypeAnnotation(Lc,unary(Lc,"_coerce",L),R)).
   coercionMacro(A,.expression) where (Lc,L,R) ?= isOptCoerce(A) =>
-    .active(mkTypeAnnotation(Lc,unary(Lc,"_coerce",L),sqUnary(Lc,"option",R))).
+    .active(mkTry(Lc,mkTypeAnnotation(Lc,unary(Lc,"_coerce",L),R), [equation(Lc,mkAnon(Lc),mkUnreachable(Lc))])).
   coercionMacro(_,_) => .inactive.
 
   indexMacro(A,.expression) where (Lc,L,R) ?= isIndexTerm(A) =>
