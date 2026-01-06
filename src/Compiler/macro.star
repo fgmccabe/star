@@ -490,36 +490,38 @@ star.compiler.macro{
   synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFuncType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
     (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
 
-    Action = synthCoercion(Lc,Tps,Vs,NVs,synth_main_fun);
+    Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_fun);
     
-    Lhs = roundTerm(Lc,.nme(Lc,"_main"),[mkConsPtn(Lc,Vs)]);
+    MLhs = nAry(Lc,"_main",[consList(Lc,Vs)]);
 
     Valof = mkValof(Lc,[Action]);
     Main = equation(Lc,MLhs,Valof);
     XX = genName(Lc,"XX");
-    FallBack = equation(Lc,roundTerm(Lc,.nme(Lc,"_main"),[XX]),
+    FallBack = equation(Lc,nAry(Lc,"_main",[XX]),
       mkValof(Lc,[
 	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
-	  mkValis(Lc,.int(Lc,99))]));
+	  mkValis(Lc,.int(Lc,1))]));
     Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
     valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }
-  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isPrcType(Tp) && (_,ElTps)?=isTuple(Lhs) => valof{
-    (Action,As) = synthArgCoercion(Lc,ElTps,[],(Xs)=>roundTerm(Lc,.nme(Lc,"main"),Xs));
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,_) ?= isPrcType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
+    (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
 
+    Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_prc);
+
+    MLhs = nAry(Lc,"_main",[consList(Lc,Vs)]);
+
+    Valof = mkValof(Lc,[Action]);
+    Main = equation(Lc,MLhs,Valof);
     XX = genName(Lc,"XX");
-
-    Test = mkValof(Lc,[mkIfThenElse(Lc,mkMatch(Lc,mkConsPtn(Lc,As),XX),
-	  Action,
-	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)"))),
-	mkValis(Lc,.int(Lc,0))]);
-
-    Main = mkEquation(Lc,.some(.nme(Lc,"_main")),.true,rndTuple(Lc,[XX]),.none,Test);
-    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),
-      mkFuncType(Lc,rndTuple(Lc,
+    FallBack = equation(Lc,nAry(Lc,"_main",[XX]),
+      mkValof(Lc,[
+	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
+	  mkValis(Lc,.int(Lc,1))]));
+    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
 	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
-    valis [unary(Lc,"public",Annot),Main,..Defs].
+    valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
   }
 
   synthVrs(Lc,[],Vs,NVs) => (reverse(Vs),reverse(NVs)).
@@ -538,13 +540,15 @@ star.compiler.macro{
 */
 
   synthCoercion:(option[locn],cons[ast],cons[ast],cons[ast],cons[ast],(option[locn],cons[ast])=>ast)=>ast.
-  synthCoercion(Lc,[],[],[],Vrs,Inner,C) => C(Lc,Vrs).
-  synthCoercion(Lc,[T,..Ts],[V,..Vs],[NV,..NVs],Vrs,Inner) => valof{
+  synthCoercion(Lc,[],[],[],Vrs,C) => C(Lc,Vrs).
+  synthCoercion(Lc,[T,..Ts],[V,..Vs],[NV,..NVs],Vrs,C) => valof{
     S1 = mkDefn(Lc,NV,mkCoercion(Lc,V,T));
-    S2 = synthCoercion(Lc,Ts,Vs,NVs,Vrs,Inner);
-    Log = unary(Lc,"showMsg",.str(Lc,"cannot coerce [\$(#(V::string))] to #(T::string)"));
+    S2 = synthCoercion(Lc,Ts,Vs,NVs,Vrs,C);
+    Log = unary(Lc,"_logmsg",
+      unary(Lc,"_multicat",consList(Lc,[.str(Lc,"cannot coerce \""),V,.str(Lc,"\" to #(T::string)")])));
     EVl = mkValis(Lc,.int(Lc,1));
-    valis mkTry(Lc,mkSequence(Lc,S1,S2),[Log,EVl])
+    valis mkTry(Lc,mkSequence(Lc,S1,S2),[
+	mkProcedure(Lc,.none,.false,mkAnon(Lc),.none,mkSequence(Lc,Log,EVl))])
   }
 
 /* T -> main(NV1,..,NVk); valis 0
@@ -552,43 +556,11 @@ star.compiler.macro{
    T -> valis main(NV1,..,NVk)
 */
 
-  synth_main_fun(Lc,Vrs,C) => mkValis(Lc,roundTerm(Lc,"main",Vrs)).
+  synth_main_fun(Lc,Vrs) => mkValis(Lc,nAry(Lc,"main",Vrs)).
   
-  synth_main_prc(Lc,Vrs,C) => mkSequence(Lc,roundTerm(Lc,"main",Vrs),mkValis(Lc,.int(Lc,0))).
+  synth_main_prc(Lc,Vrs) => mkSequence(Lc,nAry(Lc,"main",Vrs),mkValis(Lc,.int(Lc,0))).
     
-  synthCoercion(_,[Tp,..Ts],Xs)  => valof{
-    Lc = locOf(Tp);
-    X = genName(Lc,"X");
-    A = genName(Lc,"A");    
-    PRhs = binary(Lc,":?",A,Tp);
-    Tst = binary(Lc,"?=",X,PRhs); -- .some(X).=_coerce(A):T
-    (Inner,As) = synthCoercion(Lc,Ts,[X,..Xs]);
-    valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
-  }
-  synthCoercion(Lc,[],Xs) => 
-    (mkValis(Lc,roundTerm(Lc,.nme(Lc,"main"),reverse(Xs))),[]).
-
-  synthArgCoercion:(option[locn],cons[ast],cons[ast],(cons[ast])=>ast)=>(ast,cons[ast]).
-  synthArgCoercion(_,[Tp,..Ts],Xs,G)  => valof{
-    Lc = locOf(Tp);
-    X = genName(Lc,"X");
-    A = genName(Lc,"A");    
-    PRhs = binary(Lc,":?",A,Tp);
-    Tst = binary(Lc,"?=",X,PRhs); -- .some(X).=_coerce(A):T
-    Emsg = unary(Lc,"showMsg",.str(Lc,"cannot coerce \$(#(A::string)) to #(Tp::string)"));
-    (Inner,As) = synthArgCoercion(Lc,Ts,[X,..Xs],G);
-    valis (mkIfThenElse(Lc,Tst,Inner,Emsg),[A,..As])
-  }
-  synthArgCoercion(Lc,[],Xs,G) => (G(Xs),[]).
-
-  mkConsPtn:(option[locn],cons[ast]) => ast.
-  mkConsPtn(Lc,[]) => enum(Lc,"nil").
-  mkConsPtn(Lc,[E,..Es]) => mkCon(Lc,"cons",[E,mkConsPtn(Lc,Es)]).
-
-  synthesizeCoercions:(cons[ast],option[locn])=> (ast,cons[ast]).
-  synthesizeCoercions([],Lc) => (enum(Lc,"nil"),.nil).
-  synthesizeCoercions([T,..Ts],Lc) where Nm .= genName(Lc,"X") &&
-      (RV,RC) .= synthesizeCoercions(Ts,Lc) =>
-    (binary(Lc,"cons",Nm,RV),[binary(Lc,":",unary(Lc,"_optval",unary(Lc,"_coerce",Nm)),T),..RC]).
-
+  consList:(option[locn],cons[ast]) => ast.
+  consList(Lc,[]) => enum(Lc,"nil").
+  consList(Lc,[E,..Es]) => mkCon(Lc,"cons",[E,consList(Lc,Es)]).
 }

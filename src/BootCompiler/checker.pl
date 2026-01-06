@@ -1046,7 +1046,7 @@ checkAction(A,Tp,ErTp,Last,Env,Ev,Dcls,Dcls,Actn,Opts,Path) :-
   isIden(L,_,Nm),!,
   validLastAct(A,Lc,Tp,Last),
   (is_member(varDec(Nm,_,VTp),Dcls) ; newTypeVar("V",VTp)),
-  (getVar(VLc,Nm,Env,_,_) ->
+  (varLoc(Nm,Env,_,VLc) ->
      reportError("May not redefine variable %s, previously at %s",[id(Nm),loc(VLc)],Lc),
      Env=Ev, Actn=doNop(Lc);
    declareVr(Lc,Nm,VTp,none,Env,Ev),

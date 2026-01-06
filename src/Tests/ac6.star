@@ -76,6 +76,6 @@ test.ac6{
 
   public _main:(cons[string])=>integer.
   _main([]) => main(10,"test").
-  _main([Count]) => main(Count::integer,"test").
+  _main([Count]) => main(Count:?integer,"test").
 }
 
