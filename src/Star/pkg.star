@@ -20,8 +20,8 @@ star.pkg{
     .pkg(P1,V1) == .pkg(P2,V2) => P1==P2 && V1==V2.
   }
 
-  public implementation coercion[string,pkg] => {
-    _coerce(Txt) => parsePkgName(Txt)
+  public implementation coercion[string,pkg->>exception] => {
+    _coerce(Txt) => ? parsePkgName(Txt)
   }
 
   public implementation display[version] => {
@@ -44,14 +44,14 @@ star.pkg{
     hash(.pkg(P,V)) => hash(P)*37+hash(V).
   }
 
-  public implementation coercion[string,version] => {
-    _coerce("*") => .some(.defltVersion).
-    _coerce(V) => .some(.vers(V)).
+  public implementation coercion[string,version->>_] => {
+    _coerce("*") => .defltVersion.
+    _coerce(V) => .vers(V).
   }
 
-  public implementation coercion[version,string] => {
-    _coerce(.defltVersion) => .some("*").
-    _coerce(.vers(V)) => .some(V).
+  public implementation coercion[version,string->>_] => {
+    _coerce(.defltVersion) => "*".
+    _coerce(.vers(V)) => V.
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.

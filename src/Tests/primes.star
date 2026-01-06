@@ -64,7 +64,7 @@ test.primes{
   divides(X,Y) => (try Y%X==0 catch {_ => .false}).
 
   _main:(cons[string]) => integer.
-  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
+  _main([C,.._]) where Cnt.=(C:?integer) => main(Cnt).
   _main(_) => main(100).
 
   main:(integer) => integer.

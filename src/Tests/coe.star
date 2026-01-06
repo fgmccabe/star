@@ -13,7 +13,14 @@ test.coe{
     valis 0
   }
 
-  logStrs(.nil) => 0.
+  badCoerce:(string)=>integer.
+  badCoerce(S) => S :? integer.
+
+  logStrs(.nil) => valof{
+    logMsg(_stringOf(badCoerce("10"),0));
+    logMsg(_stringOf(badCoerce("hello"),0));
+    valis 0
+  }
   logStrs(.cons(H,T)) =>
     (_ .= logMsg(H) ??
 	logStrs(T) ||

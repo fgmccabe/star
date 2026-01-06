@@ -131,22 +131,22 @@ star.compiler.data{
 
 
 
-  public implementation coercion[locn,data]=>{
-    _coerce(.locn(Pkg,Line,Col,Off,Ln))=>.some(mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)])).
+  public implementation coercion[locn,data->>_]=>{
+    _coerce(.locn(Pkg,Line,Col,Off,Ln))=>mkTpl([.strg(Pkg),.intgr(Line),.intgr(Col),.intgr(Off),.intgr(Ln)]).
   }
 
-  public implementation coercion[data,locn]=>{
+  public implementation coercion[data,locn->>_]=>{
     _coerce(.term("()5",[.strg(P),.intgr(L),.intgr(C),.intgr(O),.intgr(N)])) =>
-      .some(.locn(P,L,C,O,N)).
+      .locn(P,L,C,O,N).
   }
 
-  public implementation all e ~~ coercion[e,data] |= coercion[option[e],data] => {
-    _coerce(.none) => .some(.symb(.tLbl("none",0))).
-    _coerce(.some(E)) => .some(mkCons("some",[E::data]))
+  public implementation all e,x ~~ coercion[e,data->>x] |= coercion[option[e],data->>x] => {
+    _coerce(.none) => .symb(.tLbl("none",0)).
+    _coerce(.some(E)) => mkCons("some",[E::data])
   }
 
-  public implementation all e ~~ coercion[data,e] |= coercion[data,option[e]] => {
-    _coerce(.symb(.tLbl("none",0))) => .some(.none).
-    _coerce(.term("some",[T])) => .some(.some(T::e))
+  public implementation all e,x ~~ coercion[data,e->>x] |= coercion[data,option[e]->>_] => {
+    _coerce(.symb(.tLbl("none",0))) => .none.
+    _coerce(.term("some",[T])) => .some(T::e)
   }
 }

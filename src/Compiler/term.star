@@ -486,31 +486,31 @@ star.compiler.term{
     disp(A) => dspAct(A,"")
   }
 
-  public implementation coercion[cExp,data] => {.
+  public implementation coercion[cExp,data->>exception] => {.
     _coerce(Tr) => case Tr in {
-      | .cInt(_,Ix) => .some(.intgr(Ix))
-      | .cBig(_,Ix) => .some(.bigi(Ix))
-      | .cChar(_,Cx) => .some(.chr(Cx))
-      | .cFlt(_,Dx) => .some(.flot(Dx))
-      | .cString(_,Sx) => .some(.strg(Sx))
-      | .cVoid(_) => .some(.symb(.tLbl("void",0)))
-      | .cInt(_,Ix) => .some(.intgr(Ix))
-      | .cTerm(_,Nm,Args,_) where NArgs ?= mapArgs(Args,[]) =>
-	.some(.term(Nm,NArgs))
-      | .cClos(_,L,A,F,Tp) where NF ?= _coerce(F) => .some(.clos(.tLbl(L,A),NF,Tp))
-      | _ default => .none
+      | .cInt(_,Ix) => .intgr(Ix)
+      | .cBig(_,Ix) => .bigi(Ix)
+      | .cChar(_,Cx) => .chr(Cx)
+      | .cFlt(_,Dx) => .flot(Dx)
+      | .cString(_,Sx) => .strg(Sx)
+      | .cVoid(_) => .symb(.tLbl("void",0))
+      | .cInt(_,Ix) => .intgr(Ix)
+      | .cTerm(_,Nm,Args,_) where NArgs .= mapArgs(Args,[]) =>
+	.term(Nm,NArgs)
+      | .cClos(_,L,A,F,Tp) where NF .= _coerce(F) => .clos(.tLbl(L,A),NF,Tp)
+      | _ default => throw .exception("Cannot coerce $(Tr) to data")
     }.
 
-    private mapArgs([],So) => .some(reverse(So)).
-    mapArgs([A,..As],So) where NA?=_coerce(A) => mapArgs(As,[NA,..So]).
-    mapArgs(_,_) default => .none.
+    private mapArgs:(cons[cExp],cons[data]) => cons[data] throws exception.
+    mapArgs([],So) => reverse(So).
+    mapArgs([A,..As],So) where NA.=_coerce(A) => mapArgs(As,[NA,..So]).
   .}
 
-  public implementation coercion[locn,cExp] => {
+  public implementation coercion[locn,cExp->>_] => {
     _coerce(Lc) where .locn(Nm,Line,Col,Off,Len).=Lc &&
 	OLc .= .some(Lc) =>
-      .some(mcTpl(OLc,[.cString(OLc,Nm),
-	    .cInt(OLc,Line),.cInt(OLc,Col),.cInt(OLc,Off),.cInt(OLc,Len)]))
+      mcTpl(OLc,[.cString(OLc,Nm),
+	    .cInt(OLc,Line),.cInt(OLc,Col),.cInt(OLc,Off),.cInt(OLc,Len)])
   }
 
   rwTerm:(cExp,(cExp)=>option[cExp])=>cExp.
@@ -1275,7 +1275,7 @@ star.compiler.term{
     | .aAbort(Lc,Msg) => mkCons("abrt",[Lc::data,.strg(Msg)])
   }
 
-  public thawDefn:(data) => cDefn.
+  public thawDefn:(data) => cDefn throws exception.
   thawDefn(D) => case D in {
     | .term("fun",[Lc,.strg(Nm),Sig,.term(_,Vrs),Vl]) =>
       .fnDef(thawLoc(Lc),Nm,decodeSig(Sig),Vrs//thawVr,thwTrm(Vl))
@@ -1292,7 +1292,7 @@ star.compiler.term{
 
   thawVr(.term(_,[.strg(Vn),VSig]))=>.cV(Vn,decodeSig(VSig)).
 
-  thwTrm:(data) => cExp.
+  thwTrm:(data) => cExp throws exception.
   thwTrm(D) => case D in {
     | .term("void",[Lc]) => .cVoid(thawLoc(Lc))
     | .term("anon",[Lc,Sig]) => .cAnon(thawLoc(Lc),decodeSig(Sig))
@@ -1304,7 +1304,7 @@ star.compiler.term{
     | .term("big",[Lc,.strg(Bx)]) => .cBig(thawLoc(Lc),Bx::bigint)
     | .term("str",[Lc,.strg(Sx)]) => .cString(thawLoc(Lc),Sx)
     | .term("term",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
-      .cTerm(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
+      .cTerm(thawLoc(Lc),Nm,thwTerms(Args),decodeSig(Sig))
     | .term("nth",[Lc,E,.intgr(Ix),Sig]) =>
       .cNth(thawLoc(Lc),thwTrm(E),Ix,decodeSig(Sig))
     | .term("setnth",[Lc,E,.intgr(Ix),R]) =>
@@ -1317,13 +1317,13 @@ star.compiler.term{
     | .term("cel",[Lc,E,Sig]) => .cCel(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
     | .term("get",[Lc,E,Sig]) => .cGet(thawLoc(Lc),thwTrm(E),decodeSig(Sig))
     | .term("call",[Lc,.strg(Nm),.term(_,Args),Sig]) =>
-      .cCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig))
+      .cCall(thawLoc(Lc),Nm,thwTerms(Args),decodeSig(Sig))
     | .term("ocll",[Lc,Op,.term(_,Args),Sig]) =>
-      .cOCall(thawLoc(Lc),thwTrm(Op),Args//thwTrm,decodeSig(Sig))
+      .cOCall(thawLoc(Lc),thwTrm(Op),thwTerms(Args),decodeSig(Sig))
     | .term("xcall",[Lc,.strg(Nm),.term(_,Args),Sig,ESig]) =>
-      .cXCall(thawLoc(Lc),Nm,Args//thwTrm,decodeSig(Sig),decodeSig(ESig))
+      .cXCall(thawLoc(Lc),Nm,thwTerms(Args),decodeSig(Sig),decodeSig(ESig))
     | .term("xocll",[Lc,Op,.term(_,Args),Sig,ESig]) =>
-      .cXOCall(thawLoc(Lc),thwTrm(Op),Args//thwTrm,decodeSig(Sig),decodeSig(ESig))
+      .cXOCall(thawLoc(Lc),thwTrm(Op),thwTerms(Args),decodeSig(Sig),decodeSig(ESig))
     | .term("throw",[Lc,Op,Sig]) =>
       .cThrw(thawLoc(Lc),thwTrm(Op),decodeSig(Sig))
     | .term("seq",[Lc,L,R]) =>
@@ -1353,16 +1353,21 @@ star.compiler.term{
     | .term("valof",[Lc,A,T]) => .cValof(thawLoc(Lc),thawAct(A),decodeSig(T))
   }
 
+  thwTerms:(cons[data]) => cons[cExp] throws exception.
+  thwTerms([]) => [].
+  thwTerms([A,..As]) => [thwTrm(A),..thwTerms(As)].
+  
+
   thawLoc(L:data) => L::option[locn].
 
-  thawCases:all e ~~ (data,(data)=>e) => cons[cCase[e]].
+  thawCases:all e ~~ (data,(data)=>e throws exception) => cons[cCase[e]].
   thawCases(.term(_,Args),T) => (Args//(.term(_,[Lc,P,E]))=>
-      (thawLoc(Lc),thwTrm(P),T(E))).
+      (thawLoc(Lc),(try thwTrm(P) catch { _ => unreachable}),(try T(E) catch { _ => unreachable}))).
 
   thawVars(.term(_,Vs)) => (Vs//(.term(_,[.strg(Nm),.strg(Vn),Sig]))=>
       (Nm,.cV(Vn,decodeSig(Sig)))).
 
-  thawAct:(data) => aAction.
+  thawAct:(data) => aAction throws exception.
   thawAct(A) => case A in {
     | .term("nop",[Lc]) => .aNop(thawLoc(Lc))
     | .term("seq",[Lc,L,R]) => .aSeq(thawLoc(Lc),thawAct(L),thawAct(R))

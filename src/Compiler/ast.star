@@ -141,8 +141,8 @@ star.compiler.ast{
   isDisp(A) where _ ?= isStr(A) => .true.
   isDisp(_) default => .false.
 
-  public implementation coercion[ast,string] => {
-    _coerce(A) => .some("$(A)").
+  public implementation coercion[ast,string->>_] => {
+    _coerce(A) => disp(A).
   }
 
   generated:ref map[string,integer].

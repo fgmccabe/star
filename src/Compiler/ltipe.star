@@ -66,16 +66,16 @@ star.compiler.ltipe{
     hash(X) => hsh(X)
   }
 
-  public implementation coercion[tipe,ltipe] => {
-    _coerce(T) => .some(reduceTp(T))
+  public implementation coercion[tipe,ltipe->>void] => {
+    _coerce(T) => reduceTp(T)
   }
 
-  public implementation coercion[ltipe,multi[char]] => {
-    _coerce(LT) => .some(encTp(LT))
+  public implementation coercion[ltipe,multi[char]->>void] => {
+    _coerce(LT) => encTp(LT)
   }
 
-  public implementation coercion[ltipe,string] => {
-    _coerce(LT) => .some((encTp(LT)::cons[char])::string)
+  public implementation coercion[ltipe,string->>void] => {
+    _coerce(LT) => (encTp(LT)::cons[char])::string
   }
 
   encTp:(ltipe)=>multi[char].

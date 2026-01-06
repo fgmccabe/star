@@ -278,13 +278,13 @@ star.redblack{
   }
 
   public implementation all k,v ~~ equality[k],comp[k] |=
-    coercion[cons[keyval[k,v]],rbtree[k,v]] => {
-      _coerce(L) => .some(foldRight((K->V,M)=>insert(M,K,V),.lf,L)).
+    coercion[cons[keyval[k,v]],rbtree[k,v] ->> void] => {
+      _coerce(L) => foldRight((K->V,M)=>insert(M,K,V),.lf,L).
     }.
 
   public implementation all k,v ~~ equality[k],comp[k] |=
-    coercion[rbtree[k,v],cons[keyval[k,v]]] => {
-      _coerce(T) => .some(pairs(T,[]))
+    coercion[rbtree[k,v],cons[keyval[k,v]] ->> void] => {
+      _coerce(T) => pairs(T,[])
     }.
 
   public implementation ixmap[rbtree] => let{.

@@ -9,8 +9,8 @@ test.qv{
   | .lunch
   | .dinner.
 
-  implementation coercion[tipe,string] => {
-    _coerce(T) => .some(case T in {
+  implementation coercion[tipe,string->>_] => {
+    _coerce(T) => (case T in {
 	| .breakfast => "petit dejeuner"
 	| .lunch => "昼食"
 	| .dinner => "dinner"
@@ -39,4 +39,4 @@ test.qv{
     show info(menu);
   }
 }
-    
+

@@ -21,6 +21,6 @@ test.thfib{
 
   public _main:(cons[string])=>integer.
   _main([]) => valof{ main(10); valis 0}.
-  _main([Count]) => valof{ main(Count::integer); valis 0}.
+  _main([Count]) => valof{ main(Count:?integer); valis 0}.
   
 }

@@ -6,8 +6,8 @@ test.ts{
   
   import test.lib.fact.
 
-  implementation all a,b ~~ coercion[a,string],coercion[b,string] |= coercion[(a,b),string] =>{
-    _coerce((X,Y)) => .some("("++X::string++","++Y::string++")")
+  implementation all a,b,x ~~ coercion[a,string->>x],coercion[b,string->>x] |= coercion[(a,b),string->>x] =>{
+    _coerce((X,Y)) => "("++X::string++","++Y::string++")"
   }
 
   testl3 = valof{

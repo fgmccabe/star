@@ -13,13 +13,13 @@ star.compiler.opts{
     _ == _ default => .false
   }
 
-  public implementation coercion[string,optimizationLvl] => {
+  public implementation coercion[string,optimizationLvl->>exception] => {
     _coerce(Lvl) => case Lvl in {
-      | "base" => .some(.base)
-      | "inline" => .some(.inlining)
-      | "0" => .some(.base)
-      | "1" => .some(.base)
-      | _ default => .none
+      | "base" => .base
+      | "inline" => .inlining
+      | "0" => .base
+      | "1" => .base
+      | _ default => throw .exception("invalid optimization level")
     }
   }
 
@@ -272,8 +272,8 @@ star.compiler.opts{
     shortForm = "-O".
     alternatives = ["--optimize"].
     usage = "-O <Lvl> -- optimization level".
-    validator = .some((O)=> _ ?= O:?optimizationLvl).
-    setOption(L,Opts) where Lvl?=L:?optimizationLvl => valof{
+    validator = .some((O)=> _ .= O:?optimizationLvl).
+    setOption(L,Opts) where Lvl.=L:?optimizationLvl => valof{
       optimization := Lvl;
       valis Opts
     }

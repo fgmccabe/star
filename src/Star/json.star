@@ -37,8 +37,8 @@ star.json{
   dispSeq([],_) => .nil.
   dispSeq([e,..l],Sp) => .cons(dispJson(e,Sp),dispSeq(l,Sp)).
 
-  public implementation coercion[json,string] => {
-    _coerce(J) => .some(disp(J)).
+  public implementation coercion[json,string->>void] => {
+    _coerce(J) => disp(J).
   }
 
   public implementation equality[json] => {
@@ -56,8 +56,9 @@ star.json{
     | .jSeq(L1) => .jSeq(L2).=J2 && {?(E1,E2) in zip(L1,L2) *> equalJson(E1,E2)?}
   }
 
-  public implementation coercion[string,json] => {
-    _coerce(T) => parseJson(T).
+  public implementation coercion[string,json->>exception] => {
+    _coerce(T) where (J,_)?=pJ(skpBlnks(T::cons[char])) => J.
+    _coerce(Txt) default => throw .exception("Could not parse json").
   }
 
   public parseJson:(string)=>option[json].
@@ -86,7 +87,7 @@ star.json{
 
   psNum:(cons[char]) => (float,cons[char]).
   psNum(L) where (First,R) .= psNat(L,0) &&
-    (Val,Rest) .= psMoreNum(First::float,R) => (Val,Rest).
+    (Val,Rest) .= psMoreNum(First:?float,R) => (Val,Rest).
 
   psNat:(cons[char],integer) => (integer,cons[char]).
   psNat([Dx,..L],Sf) where isDigit(Dx) => psNat(L,Sf*10+digitVal(Dx)).
@@ -97,7 +98,7 @@ star.json{
   psDec(L) => psNat(L,0).
 
   psFrac:(float,float,cons[char]) => (float,cons[char]).
-  psFrac(Scale,Fr,[D,..L]) where isDigit(D) => psFrac(Scale*0.1,digitVal(D)::float*Scale+Fr,L).
+  psFrac(Scale,Fr,[D,..L]) where isDigit(D) => psFrac(Scale*0.1,digitVal(D):?float*Scale+Fr,L).
   psFrac(_,Fr,L) default => (Fr,L).
 
   psMoreNum:(float,cons[char]) => (float,cons[char]).
@@ -105,7 +106,7 @@ star.json{
   psMoreNum(F,L) default => (F,L).
 
   psExp:(float,cons[char]) => (float,cons[char]).
-  psExp(Mn,[`e`,..L]) where (Exp,R).= psDec(L) => (Mn*(10.0**Exp::float),R).
+  psExp(Mn,[`e`,..L]) where (Exp,R).= psDec(L) => (Mn*(10.0**Exp:?float),R).
 
   psString:(cons[char]) => (string,cons[char]).
   psString(L) where [`\"`,..LL].=skpBlnks(L) => psStrng(LL,[]).

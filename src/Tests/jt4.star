@@ -27,7 +27,7 @@ test.jt4{
   }
 
   _main:(cons[string]) => integer.
-  _main([C,.._]) where Cnt?=(C:?integer) => valof{ main(Cnt); valis 0}.
+  _main([C,.._]) where Cnt.=(C:?integer) => valof{ main(Cnt); valis 0}.
   _main(_) => valof{ main(10); valis 0}.
 }
     

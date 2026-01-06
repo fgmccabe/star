@@ -62,7 +62,7 @@ test.proc{
 
   _main:(cons[string]) => integer.
   _main([]) => main(41).
-  _main([A,.._]) => main(A::integer).
+  _main([A,.._]) => main(A:?integer).
 
   main:(integer)=>integer.
   main(Ix) => valof{

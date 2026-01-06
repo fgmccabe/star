@@ -35,6 +35,6 @@ test.jt6{
   }
 
   _main:(cons[string]) => integer.
-  _main([C,.._]) where Cnt?=(C:?integer) => main(Cnt).
+  _main([C,.._]) where Cnt.=(C:?integer) => main(Cnt).
   _main(_) => main(10).
 }  

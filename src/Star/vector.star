@@ -432,7 +432,7 @@ star.vector{
     disp(.vector(Sz,V)) => "vector[$(Sz)\:#(dv(V))]"
   }
 
-  public implementation all x ~~ coercion[cons[x],vect[x]] => let{.
+  public implementation all x ~~ coercion[cons[x],vect[x]->>void] => let{.
     grab4:(cons[x]) => (vct[x],cons[x]).
     grab4([]) => (.e,[]).
     grab4([X,..Xs]) => grab3(X,Xs).
@@ -476,7 +476,7 @@ star.vector{
     _coerce(L) => valof{
       Dp = bitcnt(size(L)*2);
       (Tr,Xs) = grab(Dp,L);
-      valis .some(.vector(Dp,Tr))
+      valis .vector(Dp,Tr)
     }
   }
 

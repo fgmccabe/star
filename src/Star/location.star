@@ -15,8 +15,8 @@ star.location{
   showLocn(.none) => "unknown".
   showLocn(.some(Lc)) => disp(Lc).
 
-  public implementation coercion[locn,string] => {
-    _coerce(Lc) => disp(Lc):?string
+  public implementation coercion[locn,string->>void] => {
+    _coerce(Lc) => disp(Lc)
   }
     
   public implementation equality[locn] => {

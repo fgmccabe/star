@@ -55,7 +55,7 @@ star.multi{
     append(M,E) => M++.single(E)
   }
 
-  public implementation all e ~~ coercion[multi[e],cons[e]] => let{.
+  public implementation all e ~~ coercion[multi[e],cons[e]->>_] => let{.
     flatten(.null,S) => S.
     flatten(.single(X),S) => [X,..S].
     flatten(.multi(L),S) => multiFlatten(L,S).
@@ -63,7 +63,7 @@ star.multi{
     multiFlatten(.nil,S) => S.
     multiFlatten(.cons(H,T),S) => flatten(H,multiFlatten(T,S)).
   .} in {
-    _coerce(M) => .some(flatten(M,.nil))
+    _coerce(M) => flatten(M,.nil)
   }
 
   public implementation all e ~~ display[e] |= display[multi[e]] => {

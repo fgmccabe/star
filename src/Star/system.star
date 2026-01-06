@@ -23,5 +23,4 @@ star.system{
 
   public exit:(integer){}.
   exit(Code) do _exit(Code).
-
 }

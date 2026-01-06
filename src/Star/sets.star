@@ -67,8 +67,8 @@ star.sets{
     foldLeft(F,A,.set(S)) => ixLeft((K,_,X)=>F(K,X),A,S).
   }
 
-  public implementation all e ~~ coercion[set[e],cons[e]] => {
-    _coerce(.set(M)) => .some(ixRight((K,_,X)=>[K,..X],[],M)).
+  public implementation all e ~~ coercion[set[e],cons[e]->>void] => {
+    _coerce(.set(M)) => ixRight((K,_,X)=>[K,..X],[],M).
   }
 
   public implementation all e ~~ generate[set[e]->>e] => {

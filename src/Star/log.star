@@ -36,15 +36,19 @@ star.log{
     disp(.severe) => "severe".
   }
 
-  public implementation coercion[string,logLevel] => {
-    _coerce("finest") => .some(.finest).
-    _coerce("finer") => .some(.finer).
-    _coerce("fine") => .some(.fine).
-    _coerce("config") => .some(.config).
-    _coerce("info") => .some(.info).
-    _coerce("warning") => .some(.warning).
-    _coerce("severe") => .some(.severe).
-    _coerce(_) => .none.
+  public implementation coercion[string,logLevel->>exception] => {
+    _coerce(Nm) => (
+      case Nm in {
+	| "finest" => .finest
+	| "finer" => .finer
+	| "fine" => .fine
+	| "config" => .config
+	| "info" => .info
+	| "warning" => .warning
+	| "severe" => .severe
+	| _ default => throw .exception("[#(Nm)] not a valid log level")
+      }
+    )
   }
 
   public implementation comp[logLevel] => {.
@@ -75,10 +79,12 @@ star.log{
   .}
 
   public currentLogLevel() => valof{
-    if L ?= _getenv("LOGLEVEL") && Lvl ?= _coerce(L) then
-      valis Lvl
-    else
-    valis .severe
+    try{
+      if L ?= _getenv("LOGLEVEL") then
+	valis _coerce(L)
+      else
+      valis .severe
+    } catch { _ do valis .severe }
   }
 
   public contract all x ~~ loggable[x] ::= {

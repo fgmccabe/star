@@ -143,7 +143,7 @@ star.compiler.gencode{
   compExp:(cExp,option[locn],breakLvls,tailMode,codeCtx,stack) => compReturn.
   compExp(Exp,OLc,Brks,Last,Ctx,Stk) => case Exp in {
     | E where isGround(E) =>
-      genReturn(Last,locOf(E),[.iLdC(Exp::data)],Ctx,pshStack(typeOf(Exp),Stk))
+      genReturn(Last,locOf(E),[.iLdC(Exp:?data)],Ctx,pshStack(typeOf(Exp),Stk))
     | .cVar(Lc,Vr) => compVar(Vr,Lc,Last,Ctx,Stk)
     | .cVoid(Lc) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(.voidType,Stk))
     | .cAnon(Lc,Tp) => genReturn(Last,Lc,[.iLdV],Ctx,pshStack(Tp,Stk))
@@ -842,12 +842,12 @@ star.compiler.gencode{
 
 	valis (chLine(OLc,Lc)++VC++[.iCLbl(.tLbl(Nm,size(Args)),Fail)]++SCde,Ctx2,Stk2)
       }
-      | .cInt(_,Ix) do valis (VC++[.iCInt(Ptn::data,Fail)],Ctx,Stk)
-      | .cChar(_,Cx) do valis (VC++[.iCChar(Ptn::data,Fail)],Ctx,Stk)
-      | .cFlt(_,Dx) do valis (VC++[.iCFlt(Ptn::data,Fail)],Ctx,Stk)
+      | .cInt(_,Ix) do valis (VC++[.iCInt(.intgr(Ix),Fail)],Ctx,Stk)
+      | .cChar(_,Cx) do valis (VC++[.iCChar(.chr(Cx),Fail)],Ctx,Stk)
+      | .cFlt(_,Dx) do valis (VC++[.iCFlt(.flot(Dx),Fail)],Ctx,Stk)
       | _ do {
 	if isGround(Ptn) then
-	  valis (VC++[.iCLit(Ptn::data,Fail)],Ctx,Stk)
+	  valis (VC++[.iCLit(Ptn:?data,Fail)],Ctx,Stk)
 	else {
 	  reportError("uncompilable pattern $(Ptn)",locOf(Ptn));
 	  valis ([.iBreak(Fail)],Ctx,Stk)
@@ -904,11 +904,11 @@ star.compiler.gencode{
       (PC,PCxt,Stk0) = compPtn(P,Lc,Fail,Brks,Ctx,Stk);
       valis ([.iLdSav(Fail)]++PC,PCxt,Stk0)
     }
-    | .cInt(_,Ix) => ([.iCInt(Ptn::data,Fail)],Ctx,Stk)
-    | .cChar(_,Cx) => ([.iCChar(Ptn::data,Fail)],Ctx,Stk)
-    | .cFlt(_,Dx) => ([.iCFlt(Ptn::data,Fail)],Ctx,Stk)
+    | .cInt(_,Ix) => ([.iCInt(Ptn:?data,Fail)],Ctx,Stk)
+    | .cChar(_,Cx) => ([.iCChar(Ptn:?data,Fail)],Ctx,Stk)
+    | .cFlt(_,Dx) => ([.iCFlt(Ptn:?data,Fail)],Ctx,Stk)
     | _ default => ( isGround(Ptn) ??
-      ([.iCLit(Ptn::data,Fail)],Ctx,dropStack(Stk)) || valof{
+      ([.iCLit(Ptn:?data,Fail)],Ctx,dropStack(Stk)) || valof{
 	reportError("uncompilable pattern $(Ptn)",locOf(Ptn));
 	valis ([.iBreak(Fail)],Ctx,dropStack(Stk))
       }

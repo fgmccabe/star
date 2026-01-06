@@ -10,24 +10,29 @@ test.fib{
 
   main:(integer){}.
   main(V){
-    timer = ref timer_start((2.0**(V::float))::integer, "fib");
-    F = fib(V);
-    timer_finish(timer!);
-    showMsg("Fib of $(V) is $(F)");
-
     try{
-      _jit_compile("#(__pkg__)@fib",1);
-    } catch {
-      X do showMsg("$(X)")
-    };
+      timer = ref timer_start((2.0**(V::float))::integer, "fib");
+      F = fib(V);
+      timer_finish(timer!);
+      showMsg("Fib of $(V) is $(F)");
 
-    timer2 = ref timer_start((2.0**(V::float))::integer, "fib");
-    fib(V);
-    timer_finish(timer2!)
+      try{
+	_jit_compile("#(__pkg__)@fib",1);
+      } catch {
+	X do showMsg("$(X)")
+      };
+
+      timer2 = ref timer_start((2.0**(V::float))::integer, "fib");
+      fib(V);
+      timer_finish(timer2!)
+    } catch { _ do {} }
   }
 
   public _main:(cons[string]) => integer.
   _main([]) => valof{ main(30); valis 0}
-  _main([Count]) => valof{ main(Count::integer); valis 0}
+  _main([Count]) => valof{ try {
+      main(Count::integer);
+      valis 0}
+    catch { _ do { _show("Cannot coerce [#(Count)] to integer"); valis 1}}}
 }
   
