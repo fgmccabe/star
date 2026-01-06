@@ -211,6 +211,9 @@ star.compiler.ast{
   isTernary(.app(Lc,.nme(_,Op),.tpl(_,"()",[L,M,R])),Op) => .some((Lc,L,M,R)).
   isTernary(_,_) default => .none.
 
+  public nAry:(option[locn],string,cons[ast])=>ast.
+  nAry(Lc,Nm,Args) => .app(Lc,.nme(Lc,Nm),.tpl(Lc,"()",Args)).
+
   public isTuple:(ast) => option[(option[locn],cons[ast])].
   isTuple(.tpl(Lc,"()",A)) => .some((Lc,A)).
   isTuple(_) => .none.
