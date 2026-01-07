@@ -2,7 +2,7 @@
 // Created by Francis McCabe on 5/18/25.
 //
 
-#include "disass.h"
+#include "disassP.h"
 
 static uint32 bits(uint32 word, uint8 from, uint8 count) {
   return (word >> from) & ((1u << count) - 1u);
@@ -29,11 +29,10 @@ static logical isSME(uint32 word) {
         if (maskedBits(word, 9, 15, op1Mask) == 0 &&
             maskedBits(word, 0, 6, op2Mask) == 0)
           return True;
-
       }
       case 0x1:
       case 0x2:
-      case 0x3:;
+      case 0x3: ;
     }
   }
   return False;
@@ -45,6 +44,35 @@ static logical isSVE(uint32 word) {
 
 static retCode outSVEInstruction(ioPo out, assemCtxPo ctx, uint32 word) {
   return outMsg(out, "SVE instruction");
+}
+
+static logical isDPImm(uint32 word) {
+  if (bits(word, 29, 2) == 0b11) {
+    switch (bits(word, 22, 4)) {
+      case 0b1110:
+      case 0b1111:
+      case 0b0:
+      case 0b1:
+      case 0b10:
+      case 0b11:
+      case 0b0100:
+      case 0b0101:
+      case 0b0110:
+      case 0b0111:
+      case 0b1000:
+      case 0b1001:
+      case 0b1010:
+      case 0b1011:
+      case 0b1100:
+      case 0b1101:
+        return True;
+      default:
+        return False;
+    }
+  } else if (bits(word, 23, 3) == 0x111b) {
+    return True;
+  } else
+    return False;
 }
 
 retCode disassemble(ioPo out, assemCtxPo ctx, uint32 word) {

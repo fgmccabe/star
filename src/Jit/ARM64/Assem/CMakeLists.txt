@@ -26,7 +26,8 @@ set(HEADER_FILES
         Headers/macros.h
         ../Headers/infra.h
         Headers/disass.h
-)
+        Headers/disassP.h
+	)
 
 set(SOURCE_FILES
         assem_arm64.c
