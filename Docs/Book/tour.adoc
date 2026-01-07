@@ -1188,8 +1188,8 @@ involving two types:
 
 [source, star]
 ----
-contract all s,t ~~ coercion[s,t] ::= {
-  _coerce :: (s)=>t
+contract all s,t,e ~~ coercion[s,t->>e] ::= {
+  _coerce :: (s)=>t throws e
 }
 ----
 
@@ -1201,7 +1201,7 @@ and floating point is explicitly given:
 
 [source, star]
 ----
-implementation coercion[integer,float] => { ... }
+implementation coercion[integer,float->>exception] => { ... }
 ----
 
 This statement gives the implementation for coercing integers to

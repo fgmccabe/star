@@ -1324,21 +1324,21 @@ numeric literals without compromising our type by using
 _coercion_; although it is more clumsy:
 [source,star]
 ----
-factorialC:all t ~~
-  arith[t],coercion[integer,t] |= (t)=>t.
+factorialC:all t,e ~~
+  arith[t],coercion[integer,t->>e] |= (t)=>t throws e.
 factorialC(N) where N==0::t => 1::t.
 factorialC(N) => N*factorialC(N-1::t).
 ----
 The expressions ``0::t`` and ``1::t`` are coercions from
 ``integer`` to ``t``.
 
-Of course, coercion is also governed by contract, a fact represented
-in the type signature by the coercion contract constraints on the type
-of ``t``.
+Of course, coercion is also governed by contract, a fact represented in the type
+signature by the coercion contract constraints on the type of ``t`` -- and the
+implicit exception type ``e``.
 
-In any case, using these techniques, it is possible to write numeric
-functions without unnecessarily committing to specific number
-types. That in turn helps to make them more useful.
+In any case, using these techniques, it is possible to write numeric functions
+without unnecessarily committing to specific number types. That in turn helps to
+make them more useful.
 
 === Optional computing
 There are many situations where it is not possible to guarantee that a
