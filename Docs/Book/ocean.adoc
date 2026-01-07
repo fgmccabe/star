@@ -669,11 +669,11 @@ let{
     X+Y => frPlus(X,Y)
     ...  -- more operators needed
   }
-  implementation coercion[string,fraction] => {
+  implementation coercion[string,fraction->>exception] => {
     _coerce(S) => frParse(S)
   }
 
-  implementation coercion[fraction,string] => {
+  implementation coercion[fraction,string->>void] => {
     _coerce(F) => frToString(F)
   }
 }
@@ -709,7 +709,7 @@ the type definition for ``fractionals``:
 
 [source,star]
 ----
-fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |= fracts{
+fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction->>exception], coercion[fraction,string->>void] |= fracts{
   type fraction.
 
   frPlus:(fraction,fraction)=>fraction.
@@ -731,25 +731,23 @@ FX = fracts{
     X+Y => frPlus(X,Y).
     ... --- more operators needed
   }
-  implementation coercion[string,myFraction] => {
+  implementation coercion[string,myFraction->>exception] => {
     _coerce(S) => frParse(S)
   }
-  implementation coercion[myFraction,string] => {
+  implementation coercion[myFraction,string->>void] => {
     _coerce(F) => frToString(F)
   }
   ...
 }
 ----
 
-Notice that we implemented arithmetic for the internal
-``myFraction`` type. We could have equally implemented the contract
-for ``fraction`` type too; the key requirement is to provide
-evidence that arithmetic is implemented for the type.
+Notice that we implemented arithmetic for the internal ``myFraction`` type. We
+could have equally implemented the contract for ``fraction`` type too; the key
+requirement is to provide evidence that arithmetic is implemented for the type.
 
-The ``FX`` record now has everything we want to expose about
-fractional numbers.footnote:[Assuming that we added the missing
-operators that we would actually need.] If we open the structure then
-indeed we can write programs like:
+The ``FX`` record now has everything we want to expose about fractional
+numbers.footnote:[Assuming that we added the missing operators that we would
+actually need.] If we open the structure then indeed we can write programs like:
 
 [source,star]
 ----

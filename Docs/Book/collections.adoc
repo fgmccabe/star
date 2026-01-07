@@ -967,7 +967,9 @@ _both_ the numerator and denominator of the division because
 Star does not have implicit coercion.
 
 Note also our use of a ``try``-``catch`` expression to catch (sic) the case
-where we attempt to take the average of an empty collection.
+where we attempt to take the average of an empty collection; and for the
+somewhat unlikely potential to take the average of sufficiently large `integer`
+values to prevent a reilable coercion to floating point.
 
 The ``foldLeft`` function applies a binary function to a
 collection: starting from the first element and successively `adding
