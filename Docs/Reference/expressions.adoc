@@ -1365,10 +1365,10 @@ typeCoercion --> expression, ["::"], type.
 typeCoercion --> expression, [":?"], type.
 ----
 
-A type coercion expression amounts to a call to convert a value
-of one type to that of another.  For example, coercing a `float`
-value to an `integer` value. In general, type coercions have the potential to
-change the value (for example, by stripping any fractional part of the value).
+A type coercion expression amounts to a call to convert a value of one type to
+that of another.  For example, coercing a `float` value to an `integer`
+value. In general, type coercions have the potential to change the value (for
+example, by stripping any fractional part of the value) and/or fail.
 
 Type coercion is supported by a special `coercion` contract:
 
@@ -1378,6 +1378,9 @@ all s,t,e ~~ contract coercion[s,t->>e] ::= {
   _coerce:(s) => t throws e
 }
 ----
+
+where `s` denotes the source type, `t` the target type and `e` a potential
+exception type.
 
 Specifically, an expression of the form: 
 
@@ -1392,15 +1395,12 @@ is equivalent to the expression:
 (_coerce(X) : integer)
 ----
 
-which has the effect of declaring that the
-expression has type `integer` and the `_coerce` function is an
-overloaded function that references a type-specific implementation --
-based on the source type of `X` and `integer`.
+which has the effect of declaring that the expression has type `integer` and the
+`_coerce` function is an overloaded function that references a type-specific
+implementation -- based on the source type of `X` and `integer`.
 
-NOTE: Note that `::` coercions may throw an exception -- depending on the
-signature of the specific implementation of the coercion. This reflects the
-potential for coercions to fail.
-+
+NOTE: Note that if the `e` type in the implementation is `void` then the type checker verifies that no exception is possible, and uses of `::` do not need to be enclosed in an exception handling context.
+
 Not all coercions can fail, for example
 [source,star]
 ----
@@ -1409,26 +1409,12 @@ Not all coercions can fail, for example
 is guaranteed to succeedfootnote:[Unless, of course, memory is exhausted.] --
 because strings are essentially lists of characters.
 
-The `:?` form of coercion expression can be used to obtain an ``option``al value
-from a potentially failable coercion. If the coercion fails ( throws an
-exception) then the value will be `.none`; otherwise the successful result is
-returned as a `some`. For example, the coercions of `string` values to `integer`
-is not guaranteed -- it depends on whether the string denotes an integer or not:
-[source,star]
-----
-"fred" :? integer
-----
-has value `.none`; as does:
-[source,star]
-----
-"34ed" :? integer
-----
-The latter is `.none` because the coercion from strings to
-integers attempts to make the whole string an integer value.
+The `:?` form of coercion expression can be used when the programmer can 'live
+dangerously. If the coercion fails, then the program will be aborted.
 
-There are many standard coercions available.  However, it is also
-possible for a programmer to define their own type coercion by
-appropriately implementing the `coercion` contract.
+There are many standard coercions available.  However, it is also possible for a
+programmer to define their own type coercion by appropriately implementing the
+`coercion` contract.
 
 [#typeZetaExpression]
 === Type Zeta Expression
