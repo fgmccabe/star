@@ -345,9 +345,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, blockExitDepth, True) == Ok) {
           stackDepth = blockExitDepth;
           pc += blockLen;
-          continue;
-        } else
-          return Error;
+          return Ok;
+        }
+        return Error;
       }
       case Loop: {
         if (!isLastPC(pc, limit))
