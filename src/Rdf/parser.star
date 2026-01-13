@@ -54,6 +54,6 @@ rdf.parser{
     if traceParse! then{
       showMsg(Msg)
       };
-      valis .true
+    valis .true
   }
 }

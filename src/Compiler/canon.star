@@ -296,7 +296,7 @@ star.compiler.canon{
     | .cell(_,I,_) => "ref #(showCanon(I,0,Sp))"
     | .get(_,I,_) => "#(showCanon(I,0,Sp))!"
     | .letExp(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
-      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
+      "#(leftParen(OPr,Pr))let {\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2))} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .letRec(_,Defs,Dcs,Ep) where Sp2.=Sp++"  " && (Lp,OPr,Rp) ?= isInfixOp("in") =>
       "#(leftParen(OPr,Pr))let {.\n#(Sp2)#(showGroup(Defs,Sp2))\n#(Sp)#(showDecs(Dcs,Sp2)).} in #(showCanon(Ep,Rp,Sp2))#(rgtParen(OPr,Pr))"
     | .vlof(_,A,_) where (OPr,Rp) ?= isPrefixOp("valof") =>
@@ -364,14 +364,18 @@ star.compiler.canon{
   showGroup:(cons[canonDef],string) => string.
   showGroup(G,Sp) => interleave(G//(D)=>showDef(D,Sp),".\n"++Sp)*.
 
+  showCx:(cons[constraint]) => string.
+  showCx([]) => "".
+  showCx(Cx) => "$(Cx)|=".
+
   showDef:(canonDef,string)=>string.
   showDef(Df,Sp) => case Df in {
-    | .funDef(_,Nm,Rls,_,Tp) => "Fun: #(Nm)\:$(Tp)\n#(showEqs(Nm,Rls,Sp))"
-    | .prcDef(_,Nm,Rls,_,Tp) => "Prc: #(Nm)\:$(Tp)\n#(showPRls(Nm,Rls,Sp))"
-    | .varDef(_,Nm,LongNm,V,_,Tp) => "Var: #(LongNm)[#(Nm)]\:$(Tp) = #(showCanon(V,0,Sp))"
+    | .funDef(_,Nm,Rls,Cx,Tp) => "Fun: #(Nm)\:#(showCx(Cx))$(Tp)\n#(showEqs(Nm,Rls,Sp))"
+    | .prcDef(_,Nm,Rls,Cx,Tp) => "Prc: #(Nm)\:#(showCx(Cx))$(Tp)\n#(showPRls(Nm,Rls,Sp))"
+    | .varDef(_,Nm,LongNm,V,Cx,Tp) => "Var: #(Nm)[#(LongNm)]\:#(showCx(Cx))$(Tp) = #(showCanon(V,0,Sp))"
     | .typeDef(_,Nm,_,Rl) => "Type: $(Rl)"
     | .cnsDef(_,Nm,Ix,Tp) => "Constructor: #(Nm)[$(Ix)]\:$(Tp)"
-    | .implDef(_,_,Nm,Exp,Cx,Tp) => "Implementation: #(Nm)\:$(Tp) = $(Cx) |= $(Exp)"
+    | .implDef(_,Nm,FullNm,Exp,Cx,Tp) => "Implementation: #(Nm)[#(FullNm)]#(showCx(Cx))\:$(Tp) = $(Exp)"
   }
 
   showEqs:(string,cons[eqn],string) => string.

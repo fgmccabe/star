@@ -463,7 +463,7 @@ ssDef(Dp,conDef(Nm,_ConNm,Rl),
       sq([ss("contract "),id(Nm),ss(" : "),Ts])) :-
   ssType(Rl,true,Dp,Ts).
 ssDef(Dp,implDef(Nm,_ConNm,ImplNm,ImplTp),
-      sq([ss("impl "),id(Nm),ss(" = "),id(ImplNm),ss(":"),Ts])) :-
+      sq([ss("impl "),id(Nm),ss("["),id(ImplNm),ss("]:"),Ts])) :-
   ssType(ImplTp,true,Dp,Ts).
 ssDef(Dp,accDec(Tp,FldNm,FunNm,_),
       sq([ss("acc "),Ts,ss("."),id(FldNm),ss(" = "),id(FunNm)])) :-

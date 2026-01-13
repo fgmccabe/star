@@ -163,7 +163,7 @@ rdf.lexer{
   hexChars(St,Hx) => (St,.some(Hx)).
 
   readNumber:(tokenState) => (tokenState,option[token]).
-  readNumber(St) where (Nx,.some(Mn)) .= readNatural(St,[]) => readMore(Nx,St,Mn::integer).
+  readNumber(St) where (Nx,.some(Mn)) .= readNatural(St,[]) => readMore(Nx,St,Mn:?integer).
 
   readNatural:(tokenState,cons[char]) => (tokenState,option[string]).
   readNatural(St,Sf) where (Nx,.some(Dg)).=nextChr(St) && isDigit(Dg) =>
@@ -171,23 +171,23 @@ rdf.lexer{
   readNatural(St,Sf) => (St,.some(reverse(Sf)::string)).
 
   readInt:(tokenState) => (tokenState,option[integer]).
-  readInt(St) where Nx?=lookingAt(St,[`-`]) && (St1,.some(Nt)).=readNatural(Nx,[]) => (St1,.some(-(Nt::integer))).
-  readInt(St) where (NxSt,.some(N)) .= readNatural(St,[]) => (NxSt,.some(N::integer)).
+  readInt(St) where Nx?=lookingAt(St,[`-`]) && (St1,.some(Nt)).=readNatural(Nx,[]) => (St1,.some(-(Nt:?integer))).
+  readInt(St) where (NxSt,.some(N)) .= readNatural(St,[]) => (NxSt,.some(N:?integer)).
 
   readMore:(tokenState,tokenState,integer) => (tokenState,option[token]).
   readMore(St,St0,Sf) where St1?=lookingAt(St,[`.`]) && Hd?=hedChar(St1) && isDigit(Hd) =>
-    readFraction(St1,St0,Sf::float,0.1).
+    readFraction(St1,St0,Sf:?float,0.1).
   readMore(St,St0,Sf) => (St,.some(.tok(makeLoc(St0,St),.intTok(Sf)))).
 
   readFraction:(tokenState,tokenState,float,float) => (tokenState,option[token]).
   readFraction(St,St0,Sf,Scle) where (St1,.some(Hd)).=nextChr(St) && isDigit(Hd) =>
-    readFraction(St1,St0,Sf+(digitVal(Hd)::float)*Scle,Scle*0.1).
+    readFraction(St1,St0,Sf+(digitVal(Hd):?float)*Scle,Scle*0.1).
   readFraction(St,St0,Sf,_) where St1?=lookingAt(St,[`e`]) => readExponent(St1,St0,Sf).
   readFraction(St,St0,Sf,_) => (St,.some(.tok(makeLoc(St0,St),.fltTok(Sf)))).
 
   readExponent:(tokenState,tokenState,float) => (tokenState,option[token]).
   readExponent(St,St0,Mn) where (St1,.some(Ix)).=readInt(St) =>
-    (St1,.some(.tok(makeLoc(St0,St1),.fltTok(Mn*(10.0**(Ix::float)))))).
+    (St1,.some(.tok(makeLoc(St0,St1),.fltTok(Mn*(10.0**(Ix:?float)))))).
   readExponent(St,St0,Mn) => (St,.some(.tok(makeLoc(St0,St),.fltTok(Mn)))).
 
 

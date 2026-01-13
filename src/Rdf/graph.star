@@ -98,20 +98,18 @@ rdf.graph{
   subjectTriples(G,C) where Sx?=G.subjects[C] => (Sx//(Ix)=> G.triples[Ix]).
   subjectTriples(_,_) default => [].
 
-  public parseN3:(uri,string) => option[graph].
-  parseN3(Cwd,Fn) => valof{
-    if OUri ?= parseUri(Fn) && SrcUri ?= resolveUri(Cwd,OUri) then{
-      if Txt ?= getResource(SrcUri) then{
-	(Toks) = allTokens(startLoc(Fn),Txt::cons[char]);
+  public parseN3:(uri) => option[graph].
+  parseN3(SrcUri) => valof{
+    if Txt ?= getResource(SrcUri) then{
+      (Toks) = allTokens(startLoc(getUriPath(SrcUri)),Txt::cons[char]);
 
-	if Trpls ?= (parseGraph() --> Toks) then{
-	  Graph = foldRight((Tr,Gx)=>addTriple(Gx,Tr),nullGraph,Trpls);
-	  assert validGraph(Graph);
-	  valis .some(Graph)
-	}
+      if Trpls ?= (parseGraph() --> Toks) then{
+	Graph = foldRight((Tr,Gx)=>addTriple(Gx,Tr),nullGraph,Trpls);
+	assert validGraph(Graph);
+	valis .some(Graph)
       }
     }
-    logMsg(.severe,"something went wrong with parsing #(Fn)");
+    logMsg(.severe,"something went wrong with parsing $(SrcUri)");
     valis .none
   }
 }
