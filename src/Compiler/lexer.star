@@ -17,9 +17,6 @@ star.compiler.lexer{
     allToks(Strm,SoFr) default => (Strm,reverse([.endTok(makeLoc(Strm,Strm)),..SoFr])).
   .} in allToks(St,[]).
   
-  public initSt:(locn,cons[char])=>tokenState.
-  initSt(.locn(P,Line,Col,Start,_),Txt) => .tokenState(P,Line,Col,Start,Txt).
-
   public nextToken:(tokenState) => (tokenState,option[token]).
   nextToken(St) => nxTok(skipToNx(St)).
 

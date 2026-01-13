@@ -48,8 +48,6 @@ star.compiler.resolve{
     overloadFunction(Dict,Lc,Nm,Eqs,Cx,Tp).
   overloadDef(.prcDef(Lc,Nm,Rls,Cx,Tp),Dict) =>
     overloadProcedure(Dict,Lc,Nm,Rls,Cx,Tp).
-  overloadDef(.varDef(Lc,Nm,FullNm,.lambda(_,_,Eqn,_),Cx,Tp),Dict) =>
-    overloadFunction(Dict,Lc,FullNm,[Eqn],Cx,Tp).
   overloadDef(.varDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
     overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp).
   overloadDef(.implDef(Lc,Nm,FullNm,Val,Cx,Tp),Dict) =>
@@ -637,7 +635,7 @@ star.compiler.resolve{
   resolveConstraint:(option[locn],constraint,dict,resolveState) => (canon,resolveState).
   resolveConstraint(Lc,.implicit(Id,Tp),Dict,St) => valof{
     if traceResolve! then
-      showMsg("resolve implicit $(Id)\:$(Tp)");
+      showMsg("resolve implicit $(Id)\:$(Tp) @ $(Lc)");
 
     if Var ?= findVar(Lc,Id,.true,Dict) then{
       if sameType(snd(freshen(Tp,Dict)),typeOf(Var),Dict) then {

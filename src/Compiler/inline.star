@@ -41,9 +41,9 @@ star.compiler.inline{
 
   simplifyDefn:(cDefn,map[defnSp,cDefn])=>cDefn.
   simplifyDefn(.fnDef(Lc,Nm,Tp,Args,FnBody),Map) =>
-    .fnDef(Lc,Nm,Tp,Args,trace simplifyExp(trace FnBody,Map[~.varSp(Nm)],10)).
+    .fnDef(Lc,Nm,Tp,Args,simplifyExp(FnBody,Map[~.varSp(Nm)],10)).
   simplifyDefn(.prDef(Lc,Nm,Tp,Args,Act),Map) =>
-    .prDef(Lc,Nm,Tp,Args,trace simplifyAct(trace Act,Map[~.varSp(Nm)],10)).
+    .prDef(Lc,Nm,Tp,Args,simplifyAct(Act,Map[~.varSp(Nm)],10)).
   simplifyDefn(.glDef(Lc,Nm,Tp,GVal),Map) =>
     .glDef(Lc,Nm,Tp,simplifyExp(GVal,Map,4)).
   simplifyDefn(D,_) default => D.
