@@ -1,0 +1,23 @@
+{
+  "content": {
+    "test.comp.op": "optest.star",
+    "test.comp.depends": "deptest.star",
+    "test.comp.eqqchk" : "eqqchk.star",
+    "test.comp.err": "errtest.star",
+    "test.comp.gram": "gramtest.star",
+    "test.comp.lx": "lextest.star",
+    "test.comp.cat": "catalogtest.star",
+    "test.comp.chk" : "chktest.star",
+    "test.comp.macro" : "macrotest.star",
+    "test.comp.pkgchk" : "pkgchk.star",
+    "test.comp.freshen": "freshentest.star",
+    "test.comp.nullrepo" : "nullrepo.star",
+    "test.comp.reschk" : "reschk.star",
+    "test.comp.parsetype" : "tp.star",
+    "test.comp.repo" : "rep.star",
+    "test.comp.trchk" : "trchk.star",
+    "test.comp.unify": "unifytest.star"
+  },
+  "version": "1.0.0",
+  "default": "../catalog"
+}
