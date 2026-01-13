@@ -1,0 +1,566 @@
+star.compiler.macro{
+  import star.
+  import star.sort.
+
+  import star.compiler.ast.
+  import star.compiler.errors.
+  import star.compiler.misc.
+  import star.compiler.location.
+  import star.compiler.meta.
+  import star.compiler.macro.grammar.
+  import star.compiler.macro.infra.
+  import star.compiler.macro.rules.
+  import star.compiler.opts.
+  import star.compiler.wff.
+
+  macroAst:(ast,macroContext,(ast)=>ast) => ast.
+  macroAst(A,Cxt,Examine) => 
+    case applyRules(A,Cxt,.inactive) in {
+    | .active(T) => valof{
+	if macroTracing! then
+	  showMsg("$(A) macro replaced with $(T)");
+	valis macroAst(T,Cxt,Examine)
+      }
+    | .inactive => Examine(A)
+    }.
+
+  public macroPkg:(ast) => ast.
+  macroPkg(A) => 
+    macroAst(A,.package,examinePkg).
+
+  examinePkg(A) where (Lc,O,Els) ?= isBrTerm(A) => 
+    mkLabeledTheta(Lc,O,macroStmts(buildMain(Els))).
+
+  macroStmts:(cons[ast])=>cons[ast].
+  macroStmts(Ss) => reverse(flattenStmts(makeGrammar(Ss)//macroStmt,[])).
+
+  flattenStmts([],So) => So.
+  flattenStmts([A,..As],So) where (_,Els) ?= isBrTuple(A) =>
+    flattenStmts(As,flattenStmts(Els,So)).
+  flattenStmts([A,..As],So) => flattenStmts(As,[A,..So]).
+
+  macroStmt:(ast) => ast.
+  macroStmt(A) => macroAst(A,.statement,examineStmt).
+
+  examineStmt:(ast) => ast.
+  examineStmt(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
+  examineStmt(A) where (Lc,R) ?= isPublic(A) => 
+    mkPublic(Lc,macroStmt(R)).
+  examineStmt(A) where (Lc,R) ?= isPrivate(A) =>
+    mkPrivate(Lc,macroStmt(R)).
+  examineStmt(A) where _ ?= isImport(A) => A.
+  examineStmt(A) where (Lc,L,R) ?= isDefn(A) =>
+    mkDefn(Lc,macroPtn(L),macroTerm(R)).
+  examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
+    mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isProcedure(A) =>
+    mkProcedure(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
+  examineStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
+    mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
+  examineStmt(A) where (Lc,L,Els) ?= isContractStmt(A) => 
+    mkContractStmt(Lc,macroType(L),macroStmts(Els)).
+  examineStmt(A) where (Lc,Q,Cx,Tp,Exp) ?= isImplementationStmt(A) => 
+    mkImplementationStmt(Lc,Q//macroType,Cx//macroConstraint,macroType(Tp),macroTerm(Exp)).
+  examineStmt(A) where (Lc,Q,C,Tp,B) ?= isAlgebraicTypeStmt(A) =>
+    mkAlgebraicTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),macroAlgebraic(B)).
+  examineStmt(A) where (Lc,Q,C,Tp,B) ?= isStructTypeStmt(A) =>
+    mkStructTypeStmt(Lc,Q//macroTypeVar,C//macroConstraint,macroType(Tp),
+    macroStruct(B)).
+  examineStmt(A) where _ ?= isAnnotation(A) => A.
+  examineStmt(A) => valof{
+    reportError("cannot figure out statement\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroAlgebraic(A) => macroAst(A,.constructor,examCons).
+  examCons(A) => examineConstructor(A).
+
+  examineConstructor(A) where (Lc,L,R)?=isBinary(A,"|") =>
+    binary(Lc,"|",macroAlgebraic(L),macroAlgebraic(R)).
+  examineConstructor(A) where (Lc,R)?=isUnary(A,"|") =>
+    unary(Lc,"|",macroAlgebraic(R)).
+  examineConstructor(A) where _ ?= isEnumSymb(A) => A.
+  examineConstructor(A) where (Lc,O,Els) ?= isRoundTerm(A) =>
+    roundTerm(Lc,macroTerm(O),Els//macroType).
+  examineConstructor(A) where (Lc,O,Els) ?= isEnumCon(A) =>
+    mkEnumCon(Lc,macroTerm(O),Els//macroType).
+  examineConstructor(A) where (Lc,Q,I) ?= isQuantified(A) =>
+    reUQuant(Lc,Q//macroType,macroAlgebraic(I)).
+  examineConstructor(A) where (Lc,Q,I) ?= isXQuantified(A) =>
+    reXQuant(Lc,Q//macroType,macroAlgebraic(I)).
+  examineConstructor(A) => valof{
+    reportError("cannot figure out constructor $(A)",locOf(A));
+    valis A
+  }
+
+  macroStruct(A) => macroAst(A,.constructor,examineStruct).
+
+  examineStruct(A) where (Lc,Q,X,Nm,Els) ?= isBraceCon(A) =>
+    mkBraceCon(Lc,Q//macroType,X//macroType,Nm,Els//macroTypeDef).
+  examineStruct(A) => valof{
+    reportError("cannot figure out struct declaration\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroTypeDef:(ast) => ast.
+  macroTypeDef(A) => macroAst(A,.statement,examineTypeStmt).
+
+  examineTypeStmt:(ast) => ast.
+  examineTypeStmt(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
+  examineTypeStmt(A) where (Lc,Q,C,L,R) ?= isTypeFunStmt(A) => 
+    mkTypeFunStmt(Lc,Q//macroType,C//macroType,macroType(L),macroType(R)).
+  examineTypeStmt(A) where (Lc,L,R) ?= isTypeExists(A) => 
+    mkTypeExists(Lc,macroType(L),macroType(R)).
+  examineTypeStmt(A) where _ ?= isAnnotation(A) => A.
+  examineTypeStmt(A) => valof{
+    reportError("cannot figure out declaration\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroAction:(ast) => ast.
+  macroAction(A) => macroAst(A,.actn,examineAction).
+
+  examineAction(A) where (Lc,L,R) ?= isActionSeq(A) => 
+    actionSeq(Lc,macroAction(L),macroAction(R)).
+  examineAction(A) where (Lc,L) ?= isUnary(A,";") => 
+    macroAction(L).
+  examineAction(A) where (Lc,[As]) ?= isBrTuple(A) =>
+    brTuple(Lc,[macroAction(As)]).
+  examineAction(A) where (Lc,[]) ?= isBrTuple(A) => A.
+  examineAction(A) where (Lc,L,R) ?= isLbldAction(A) => 
+    mkLbldAction(Lc,L,R//macroAction).
+  examineAction(A) where _ ?= isBreak(A) => A.
+  examineAction(A) where (Lc,L,R) ?= isTypeDeclaration(A) =>
+    mkTypeDeclaration(Lc,L,macroType(R)).
+  examineAction(A) where (Lc,L,R) ?= isDefn(A) => 
+    mkDefn(Lc,macroPtn(L),macroTerm(R)).
+  examineAction(A) where (Lc,L,R) ?= isMatch(A) => 
+    mkMatch(Lc,macroPtn(L),macroTerm(R)).
+  examineAction(A) where (Lc,L,R) ?= isOptionMatch(A) =>
+    mkOptionMatch(Lc,macroPtn(L),macroTerm(R)).
+  examineAction(A) where (Lc,L,R) ?= isAssignment(A) => 
+    mkAssignment(Lc,macroTerm(L),macroTerm(R)).
+  examineAction(A) where (Lc,T,L,R) ?= isIfThenElse(A) =>
+    mkIfThenElse(Lc,macroCond(T),macroAction(L),macroAction(R)).
+  examineAction(A) where (Lc,T,L) ?= isIfThen(A) => 
+    mkIfThen(Lc,macroCond(T),macroAction(L)).
+  examineAction(A) where (Lc,B,Hs) ?= isTry(A) =>
+    mkTry(Lc,macroAction(B),Hs//macroCaseAction).
+  examineAction(A) where (Lc,B,H) ?= isTryCatch(A) =>
+    mkTryCatch(Lc,macroAction(B),macroTerm(H)).
+  examineAction(A) where (Lc,C,B) ?= isWhileDo(A) =>
+    mkWhileDo(Lc,macroCond(C),macroAction(B)).
+  examineAction(A) where (Lc,El,C,B) ?= isForIn(A) =>
+    mkForIn(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
+  examineAction(A) where (Lc,El,C,B) ?= isForDo(A) => 
+    mkForDo(Lc,macroPtn(El),macroTerm(C),macroAction(B)).
+  examineAction(A) where (Lc,T) ?= isValis(A) => mkValis(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,T) ?= isThrow(A) => mkThrow(Lc,macroTerm(T)).
+  examineAction(A) where (Lc,D,B) ?= isLetDef(A) => 
+    mkLetDef(Lc,macroStmts(D),macroAction(B)).
+  examineAction(A) where (Lc,D,B) ?= isLetRecDef(A) => 
+    mkLetRecDef(Lc,macroStmts(D),macroAction(B)).
+  examineAction(A) where (Lc,G,Cs) ?= isCase(A) => 
+    mkCaseExp(Lc,macroTerm(G),Cs//macroCaseAction).
+  examineAction(A) where (Lc,T,M) ?= isSuspend(A) =>
+    mkSuspend(Lc,macroTerm(T),macroTerm(M)).
+  examineAction(A) where (Lc,T,M) ?= isResume(A) =>
+    mkResume(Lc,macroTerm(T),macroTerm(M)).
+  examineAction(A) where (Lc,T,M) ?= isRetire(A) =>
+    mkRetire(Lc,macroTerm(T),macroTerm(M)).
+  examineAction(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
+    roundTerm(Lc,macroTerm(O),Els//macroTerm).
+  examineAction(A) where isUnreachable(A) => A.
+  examineAction(A) default => valof{
+    reportError("cannot figure out action\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroCaseAction:(ast) => ast.
+  macroCaseAction(A) => macroAst(A,.rule,examineCaseAction).
+
+  examineCaseAction(A) where (Lc,Dflt,L,C,R) ?= isLambda(A) =>
+    mkLambda(Lc,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
+  examineCaseAction(A) where (Lc,.none,Dflt,L,C,R) ?= isProcedure(A) =>
+    mkProcedure(Lc,.none,Dflt,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
+  examineCaseAction(A) => valof{
+    reportError("cannot figure out case $(A)",locOf(A));
+    valis A}
+
+  macroTerm(A) => macroAst(A,.expression,examineTerm).
+
+  examineTerm(A) where _ ?= isName(A) && ~_ ?= isTuple(A) => A.
+  examineTerm(A) where _ ?= isEnumSymb(A) => A.
+  examineTerm(A) where isUnreachable(A) => A.
+  examineTerm(A) where .int(_,_) .= A => A.
+  examineTerm(A) where .big(_,_) .= A => A.
+  examineTerm(A) where .chr(_,_) .= A => A.
+  examineTerm(A) where .num(_,_) .= A => A.
+  examineTerm(A) where .str(_,_) .= A => A.
+  examineTerm(A) where (Lc,L,R) ?= isTypeAnnotation(A) => 
+    mkTypeAnnotation(Lc,macroTerm(L),macroType(R)).
+  examineTerm(A) where (Lc,L,R) ?= isCoerce(A) => 
+    mkCoercion(Lc,macroTerm(L),macroType(R)).
+  examineTerm(A) where (Lc,R) ?= isCellRef(A) =>
+    refCell(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isRef(A) => 
+    mkRef(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isThunk(A) =>
+    mkThunk(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isThunkRef(A) =>
+    mkThunkRef(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isSuppress(A) =>
+    mkSuppress(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,D,B) ?= isLetDef(A) => 
+    mkLetDef(Lc,macroStmts(D),macroTerm(B)).
+  examineTerm(A) where (Lc,D,B) ?= isLetRecDef(A) =>
+    mkLetRecDef(Lc,macroStmts(D),macroTerm(B)).
+  examineTerm(A) where (Lc,D,B) ?= isComprehension(A) =>
+    mkComprehension(Lc,macroTerm(D),macroTerm(B)).
+  examineTerm(A) where (Lc,D,B) ?= isIotaComprehension(A) =>
+    mkIotaComprehension(Lc,macroTerm(D),macroTerm(B)).
+  examineTerm(A) where (Lc,B) ?= isTestComprehension(A) => 
+    mkTestComprehension(Lc,macroCond(B)).
+  examineTerm(A) where (Lc,F,E,Z,B) ?= isTotalizerComprehension(A) =>
+    mkTotalizerComprehension(Lc,macroTerm(F),macroTerm(E),macroTerm(Z),macroTerm(B)).
+  examineTerm(A) where (Lc,Els) ?= isMapLiteral(A) =>
+    mkMapLiteral(Lc,Els//macroTerm).
+  examineTerm(A) where (Lc,Op,[Ix]) ?= isSquareTerm(A) =>
+    squareTerm(Lc,macroTerm(Op),[macroTerm(Ix)]).
+  examineTerm(A) where (Lc,Els) ?= isTuple(A) => 
+    rndTuple(Lc,Els//macroTerm).
+  examineTerm(A) where (Lc,Els) ?= isSqTuple(A) => 
+    sqTuple(Lc,Els//macroTerm).
+  examineTerm(A) where (Lc,Els) ?= isBrTuple(A) => 
+    brTuple(Lc,macroStmts(Els)).
+  examineTerm(A) where (Lc,L,R) ?= isCons(A) => 
+    mkCons(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isComma(A) =>
+    mkComma(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isPair(A) => 
+    mkPair(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isSequence(A) => 
+    mkSequence(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isWhere(A) =>
+    mkWhere(Lc,macroTerm(L),macroCond(R)).
+  examineTerm(A) where (Lc,L,R) ?= isMatch(A) =>
+    mkMatch(Lc,macroPtn(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isSearch(A) =>
+    mkSearch(Lc,macroPtn(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isConjunct(A) =>
+    mkConjunct(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isDisjunct(A) =>
+    mkDisjunct(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,R) ?= isNegation(A) =>
+    negated(Lc,macroTerm(R)).
+  examineTerm(A) where (Lc,T,L,R) ?= isConditional(A) =>
+    mkConditional(Lc,macroCond(T),macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isImplies(A) =>
+    mkImplies(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,D,L,C,R) ?= isLambda(A) => 
+    mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
+  examineTerm(A) where (Lc,Nm,D,L,C,R) ?= isProcedure(A) => 
+    mkProcedure(Lc,Nm,D,macroPtn(L),macroOpt(C,macroCond),macroAction(R)).
+  examineTerm(A) where (Lc,S) ?= isValof(A) =>
+    mkValof(Lc,S//macroAction).
+  examineTerm(A) where (Lc,As) ?= isTask(A) =>
+    mkTaskExp(Lc,macroAction(As)).
+  examineTerm(A) where (Lc,B,Hs) ?= isTry(A) =>
+    mkTry(Lc,macroTerm(B),Hs//macroLambda).
+  examineTerm(A) where (Lc,B,H) ?= isTryCatch(A) =>
+    mkTryCatch(Lc,macroTerm(B),macroTerm(H)).
+  examineTerm(A) where (Lc,T) ?= isThrow(A) =>
+    mkThrow(Lc,macroTerm(T)).
+  examineTerm(A) where (Lc,L,R) ?= isResume(A) =>
+    mkResume(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isSuspend(A) =>
+    mkSuspend(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,R) ?= isRetire(A) =>
+    mkRetire(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,S) ?= isFiberTerm(A) => 
+    mkFiberTerm(Lc,macroAction(S)).
+  examineTerm(A) where (Lc,S) ?= isGenerator(A) =>
+    mkGenerator(Lc,macroAction(S)).
+  examineTerm(A) where (Lc,Lb,S) ?= isLabeledTheta(A) => 
+    mkQBrTerm(Lc,Lb,macroStmts(S)).
+  examineTerm(A) where (Lc,Lb,S) ?= isBrTerm(A) =>
+    mkBrTerm(Lc,Lb,macroStmts(S)).
+  examineTerm(A) where (Lc,R,F,V) ?= isRecordUpdate(A) =>
+    mkRecordUpdate(Lc,macroTerm(R),F,macroTerm(V)).
+  examineTerm(A) where (Lc,O,Els) ?= isEnumCon(A) => 
+    mkEnumCon(Lc,macroTerm(O),Els//macroTerm).
+  examineTerm(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
+    roundTerm(Lc,macroTerm(O),Els//macroTerm).
+  examineTerm(A) where (Lc,L,R) ?= isIndexTerm(A) =>
+    mkIndexTerm(Lc,macroTerm(L),macroTerm(R)).
+  examineTerm(A) where (Lc,L,F,R) ?= isSlice(A) => 
+    ternary(Lc,"_slice",macroTerm(L),macroTerm(F),macroTerm(R)).
+  examineTerm(A) where (Lc,R,F) ?= isFieldAcc(A) =>
+    mkFieldAcc(Lc,macroTerm(R),F).
+  examineTerm(A) where (Lc,R,F) ?= isTupleAcc(A) =>
+    mkTupleAcc(Lc,macroTerm(R),F).
+  examineTerm(A) where (Lc,E,Cs) ?= isCase(A) =>
+    mkCaseExp(Lc,macroTerm(E),Cs//macroLambda).
+  examineTerm(A) default => valof{
+    reportError("cannot figure out expression\n$(A)",locOf(A));
+    valis A
+  }.
+
+  macroCond:(ast) => ast.
+  macroCond(C) => macroTerm(C).
+
+  macroOpt:(option[ast],(ast)=>ast) =>option[ast].
+  macroOpt(.none,_) => .none.
+  macroOpt(.some(A),E) => .some(E(A)).
+
+  macroLambda(A) => macroAst(A,.rule,examineLambda).
+
+  examineLambda(A) where (Lc,D,L,C,R) ?= isLambda(A) =>
+    mkLambda(Lc,D,macroPtn(L),macroOpt(C,macroTerm),macroTerm(R)).
+  examineLambda(A) default => valof{
+    reportError("cannot figure out case rule $(A)",locOf(A));
+    valis A
+  }
+
+  macroPtn(A) => macroAst(A,.pattern,examinePtn).
+
+  examinePtn(A) where _ ?= isName(A) => A.
+  examinePtn(A) where .int(_,_) .= A => A.
+  examinePtn(A) where .big(_,_) .= A => A.
+  examinePtn(A) where .num(_,_) .= A => A.
+  examinePtn(A) where .str(_,_) .= A => A.
+  examinePtn(A) where .chr(_,_) .= A => A.
+  examinePtn(A) where _ ?= isEnumSymb(A) => A.
+  examinePtn(A) where (Lc,L,R) ?= isTypeAnnotation(A) =>
+    mkTypeAnnotation(Lc,macroPtn(L),macroType(R)).
+  examinePtn(A) where (Lc,Lb,S) ?= isBrTerm(A) => 
+    mkBrTerm(Lc,Lb,macroStmts(S)).
+  examinePtn(A) where (Lc,O,Els) ?= isRoundTerm(A) => 
+    roundTerm(Lc,macroTerm(O),Els//macroPtn).
+  examinePtn(A) where (Lc,O,Els) ?= isEnumCon(A) => 
+    mkEnumCon(Lc,macroTerm(O),Els//macroPtn).
+  examinePtn(A) where (Lc,Els) ?= isTuple(A) =>
+    rndTuple(Lc,Els//macroPtn).
+  examinePtn(A) where (Lc,Els) ?= isSqTuple(A) =>
+    sqTuple(Lc,Els//macroPtn).
+  examinePtn(A) where (Lc,L,R) ?= isCons(A) => 
+    mkCons(Lc,macroPtn(L),macroPtn(R)).
+  examinePtn(A) where (Lc,L,R) ?= isComma(A) =>
+    mkComma(Lc,macroPtn(L),macroPtn(R)).
+  examinePtn(A) where (Lc,L,R) ?= isPair(A) =>
+    mkPair(Lc,macroPtn(L),macroPtn(R)).
+  examinePtn(A) where (Lc,Els) ?= isBrTuple(A) => 
+    brTuple(Lc,macroStmts(Els)).
+  examinePtn(A) where (Lc,L,R) ?= isWhere(A) =>
+    mkWhere(Lc,macroPtn(L),macroTerm(R)).
+  examinePtn(A) default => valof{
+    reportError("cannot figure out pattern\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroType(A) => macroAst(A,.typeterm,examineType).
+
+  examineType(A) where _ ?= isName(A) => A.
+  examineType(A) where isVoid(A) => A.
+  examineType(A) where (Lc,Op,Els) ?= isSquareTerm(A) => 
+    squareTerm(Lc,Op,Els//macroType).
+  examineType(A) where _ ?= isTypeFunVar(A) => A.
+  examineType(A) where (Lc,L,R) ?= isDepends(A) =>
+    mkDepends(Lc,L//macroType,R//macroType).
+  examineType(A) where (Lc,L,R) ?= isConstructorType(A) =>
+    mkConstructorType(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R) ?= isFuncType(A) =>
+    mkFuncType(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,L,R,E) ?= isThrwFunctionType(A) =>
+    mkThrowingFunType(Lc,macroType(L),macroType(R),macroType(E)).
+  examineType(A) where (Lc,L,R) ?= isPrcType(A) =>
+    mkPrcType(Lc,macroType(L),fmap(macroType,R)).
+  examineType(A) where (Lc,R) ?= isRef(A) =>
+    mkRef(Lc,macroType(R)).
+  examineType(A) where (Lc,L,R) ?= isTypeLambda(A) =>
+    mkTypeLambda(Lc,macroType(L),macroType(R)).
+  examineType(A) where (Lc,Q,T) ?= isQuantified(A) =>
+    reUQuant(Lc,Q//macroTypeVar,macroType(T)).
+  examineType(A) where (Lc,Q,T) ?= isXQuantified(A) =>
+    reXQuant(Lc,Q//macroTypeVar,macroType(T)).
+  examineType(A) where (Lc,C,T) ?= isConstrained(A) =>
+    reConstrain(C//macroConstraint,macroType(T)).
+  examineType(A) where (Lc,Els) ?= isTuple(A) =>
+    rndTuple(Lc,Els//macroType).
+  examineType(A) where (Lc,Els) ?= isBrTuple(A) =>
+    brTuple(Lc,Els//macroTypeDef).
+  examineType(A) where (Lc,R,F) ?= isFieldAcc(A) =>
+    mkFieldAcc(Lc,macroTerm(R),F).
+  examineType(A) where (Lc,I) ?= isAsync(A) =>
+    mkAsync(Lc,macroType(I)).
+  examineType(A) where (Lc,Y) ?= isGeneratorType(A) =>
+    mkGeneratorType(Lc,macroType(Y)).
+  examineType(A) default => valof{
+    reportError("cannot figure out type expression\n$(A)",locOf(A));
+    valis A
+  }
+
+  macroTypeVar(A) => macroAst(A,.typeterm,examineTypeVar).
+
+  examineTypeVar(A) where _ ?= isName(A) => A.
+  examineTypeVar(A) where (Lc,L,R) ?= isBinary(A,"/") && _ ?= isName(L) && _ ?= isInt(R) => A.
+  examineTypeVar(A) default => valof{
+    reportError("cannot figure out type variable\n$(A)",locOf(A));
+    valis A
+  }
+  
+  macroConstraint(A) => macroAst(A,.constraint,examineConstraint).
+
+  examineConstraint(A) where (Lc,Op,Els) ?= isSquareTerm(A) =>
+    squareTerm(Lc,Op,Els//macroContractArg).
+  examineConstraint(A) where (Lc,L,R) ?= isTypeExists(A) =>
+    mkTypeExists(Lc,macroType(L),macroType(R)).
+  examineConstraint(A) where (Lc,Nm,T) ?= isImplicit(A) =>
+    mkImplicit(Lc,Nm,macroType(T)).
+  examineConstraint(A) where (_,[El]) ?= isTuple(A) =>
+    examineConstraint(El).
+  examineConstraint(A) default => valof{
+    reportError("cannot figure out constraint $(A)",locOf(A));
+    valis A
+  }
+
+  macroContractArg(A) where (Lc,L,R) ?= isDepends(A) =>
+    mkDepends(Lc,L//macroType,R//macroType).
+  macroContractArg(A) => macroType(A).
+
+  visibilityOf:(ast) => (ast,visibility).
+  visibilityOf(A) => visib(A,.deFault).
+
+  visib(A,_) where (_,I) ?= isPrivate(A) => visib(I,.priVate).
+  visib(A,_) where (_,I) ?= isPublic(A) => visib(I,.pUblic).
+  visib(A,Vz) default => (A,Vz).
+
+  buildMain:(cons[ast])=>cons[ast].
+  buildMain(Els) where (Lc,Tp) ?= head(lookForSignature(Els,"main")) &&
+      ~_?=head(lookForDefinition(Els,"_main")) =>
+    synthesizeMain(Lc,Tp,Els).
+  buildMain(Els) default => Els.
+
+  lookForSignature:(cons[ast],string)=>cons[(option[locn],ast)].
+  lookForSignature(Els,Nm) => {(Lc,Tp) | El in Els && (Lc,Nm,Vz,Tp)?=isTypeDecl(El)}.
+
+  lookForDefinition:(cons[ast],string)=>cons[(option[locn],ast)].
+  lookForDefinition(Els,Nm) => {(Lc,El) | El in Els && (Lc,Nm) ?= ruleName(El)}.
+
+  isTypeDecl(A) where (Lc,N,Tp) ?= isTypeDeclaration(A) && (Nm,Vz) .= visibilityOf(N) && (_,Id)?=isName(Nm) =>
+    .some((Lc,Id,Vz,Tp)).
+  isTypeDecl(A) where (Lc,I) ?= isPublic(A) &&
+      (_,N,Tp) ?= isTypeDeclaration(I) &&
+      (_,Id) ?= isName(N) => .some((Lc,Id,.pUblic,Tp)).
+  isTypeDecl(_) default => .none.
+
+  /*
+   main:(t1,..,tk) => E
+
+  becomes
+
+   _main([A1,..,Ak]) => valof{
+     try{
+       V1 = _coerce(A1):t1;
+       try{
+       ...
+          main(V1,..,Vk);
+          valis 0
+       } catch { _ do {
+           _show("Cant coerce [#(Ak)] into a tk");
+           valis 1
+         }
+       }
+      ...
+    } catch { _ do {
+       _show("Cant coerce [#(Ak)] into a tk");
+       valis 1
+     }
+   }
+  }
+  _main(_) default => valof{
+    _show("Expecting k args");
+    valis 1
+  }
+*/
+
+  synthesizeMain:(option[locn],ast,cons[ast])=>cons[ast].
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,Rhs) ?= isFuncType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
+    (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
+
+    Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_fun);
+    
+    MLhs = nAry(Lc,"_main",[consList(Lc,Vs)]);
+
+    Valof = mkValof(Lc,[Action]);
+    Main = equation(Lc,MLhs,Valof);
+    XX = genName(Lc,"XX");
+    FallBack = equation(Lc,nAry(Lc,"_main",[XX]),
+      mkValof(Lc,[
+	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
+	  mkValis(Lc,.int(Lc,1))]));
+    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
+    valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
+  }
+  synthesizeMain(Lc,Tp,Defs) where (_,Lhs,_) ?= isPrcType(Tp) && (_,Tps)?=isTuple(Lhs) => valof{
+    (Vs,NVs) = synthVrs(Lc,Tps,[],[]);
+
+    Action = synthCoercion(Lc,Tps,Vs,NVs,NVs,synth_main_prc);
+
+    MLhs = nAry(Lc,"_main",[consList(Lc,Vs)]);
+
+    Valof = mkValof(Lc,[Action]);
+    Main = equation(Lc,MLhs,Valof);
+    XX = genName(Lc,"XX");
+    FallBack = equation(Lc,nAry(Lc,"_main",[XX]),
+      mkValof(Lc,[
+	  unary(Lc,"_logmsg",.str(Lc,"incorrect args, should be #(Lhs::string)")),
+	  mkValis(Lc,.int(Lc,1))]));
+    Annot = mkTypeDeclaration(Lc,.nme(Lc,"_main"),equation(Lc,rndTuple(Lc,
+	  [squareTerm(Lc,.nme(Lc,"cons"),[.nme(Lc,"string")])]),.nme(Lc,"integer")));
+    valis [unary(Lc,"public",Annot),Main,FallBack,..Defs].
+  }
+
+  synthVrs(Lc,[],Vs,NVs) => (reverse(Vs),reverse(NVs)).
+  synthVrs(Lc,[T,..Ts],Vs,NVs) => valof{
+    X = genName(Lc,"X");
+    A = genName(Lc,"A");
+    valis synthVrs(Lc,Ts,[A,..Vs],[X,..NVs])
+  }
+    
+
+/* T -> try {
+     NV = _coerce(V):T; Inner; }
+   catch {
+    _ do {_logmsg("Cannot coerce [#(V)] to T"); valis 1}
+   }
+*/
+
+  synthCoercion:(option[locn],cons[ast],cons[ast],cons[ast],cons[ast],(option[locn],cons[ast])=>ast)=>ast.
+  synthCoercion(Lc,[],[],[],Vrs,C) => C(Lc,Vrs).
+  synthCoercion(Lc,[T,..Ts],[V,..Vs],[NV,..NVs],Vrs,C) => valof{
+    S1 = mkDefn(Lc,NV,mkCoercion(Lc,V,T));
+    S2 = synthCoercion(Lc,Ts,Vs,NVs,Vrs,C);
+    Log = unary(Lc,"_logmsg",
+      unary(Lc,"_multicat",consList(Lc,[.str(Lc,"cannot coerce \""),V,.str(Lc,"\" to #(T::string)")])));
+    EVl = mkValis(Lc,.int(Lc,1));
+    valis mkTry(Lc,mkSequence(Lc,S1,S2),[
+	mkProcedure(Lc,.none,.false,mkAnon(Lc),.none,mkSequence(Lc,Log,EVl))])
+  }
+
+/* T -> main(NV1,..,NVk); valis 0
+   or
+   T -> valis main(NV1,..,NVk)
+*/
+
+  synth_main_fun(Lc,Vrs) => mkValis(Lc,nAry(Lc,"main",Vrs)).
+  
+  synth_main_prc(Lc,Vrs) => mkSequence(Lc,nAry(Lc,"main",Vrs),mkValis(Lc,.int(Lc,0))).
+    
+  consList:(option[locn],cons[ast]) => ast.
+  consList(Lc,[]) => enum(Lc,"nil").
+  consList(Lc,[E,..Es]) => mkCon(Lc,"cons",[E,consList(Lc,Es)]).
+}
