@@ -1,2 +1,0 @@
-#!/bin/bash
-@INSTALLED_STAR@ @STAR_COMPILER_FLAGS@ -r @INSTALLED_STAR_REPO@ star.compiler $*

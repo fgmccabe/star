@@ -1,9 +1,0 @@
-{
-  "content" : {
-    "star.lex.nfa" : "nfa.star",
-    "star.lex.re" : "re.star",
-    "star.lex.thin" : "thin.star"
-    },
-  "version" : "1.0.0",
-  "default": "../catalog"
-}
