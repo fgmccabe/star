@@ -32,14 +32,17 @@ expressions.
 Variables in patterns are used to bind variables to elements of the
 input being matched against.
 
-A repeated occurrence of a variable in a pattern is equivalent to a
-call to the `==` predicate. For example, the pattern:
+A repeated occurrence of a variable in a pattern, or the use of a variable that
+is already in scope, is equivalent to a call to the `==` predicate. For example,
+the pattern:
+
 [source,star]
 ----
 (X,Y,X)
 ----
 
 is equivalent to the <<guardedPattern>>:
+
 [source,star]
 ----
 (X,Y,X1) where X==X1
@@ -163,9 +166,9 @@ are no indexing operators over positional constructors.
 
 [#enumeratedSymbolPattern]
 === Enumerated Symbol Patterns
+
 (((patterns,enumerated symbol)))
 (((enumerated symbol pattern)))
-
 An enumerated symbol -- as a pattern -- matches the same symbol
 only.
 
