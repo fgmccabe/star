@@ -4,7 +4,7 @@ star.compiler.qname{
   -- Qualified names have a specific path as a prefix.
   public pthSep ::= .pathSep | .typeSep | .valSep | .overSep | .pkgSep | .closSep | .cnsSep | .fldSep | .trctSep.
 
-  public qName ::= .qId(cons[(pthSep,string)],string).
+  public qName ::= .gId(cons[(pthSep,string)],string).
 
   implementation display[pthSep] => {
     disp(.pathSep) => ".".
@@ -22,7 +22,7 @@ star.compiler.qname{
   dispPath(Pth) => (Pth//((Sep,Segment))=>"#(Segment)$(Sep)")*.
 
   public implementation display[qName] => {
-    disp(.qId(Pth,Sfx)) => "#(dispPath(Pth))#(Sfx)".
+    disp(.gId(Pth,Sfx)) => "#(dispPath(Pth))#(Sfx)".
   }
 
   implementation equality[pthSep] => {
@@ -51,7 +51,7 @@ star.compiler.qname{
   }
 
   public implementation equality[qName] => {
-    .qId(P1,N1) == .qId(P2,N2) => N1==N2 && samePath(P1,P2)
+    .gId(P1,N1) == .gId(P2,N2) => N1==N2 && samePath(P1,P2)
   }
 
   samePath([],[]) => .true.
@@ -63,9 +63,11 @@ star.compiler.qname{
   pathHash([(S,F),..P]) => (pathHash(P)*37+hash(S))*37+hash(F).
 
   implementation hashable[qName] => {
-    hash(.qId(P,S)) => pathHash(P)*37+hash(S)
+    hash(.gId(P,S)) => pathHash(P)*37+hash(S)
   }
 
-  public stdQnm:(string) => qName.
-  stdQnm(Nm) => .qId([],Nm).
+  public stdNm:(string) => qName.
+  stdNm(Nm) => .gId([],Nm).
+
+  localName(.gId(_,Nm)) => Nm.
 }
