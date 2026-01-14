@@ -235,7 +235,8 @@ hashPo newVarTable() {
 }
 
 static integer indexHash(void *c) {
-  return (integer) c;
+  varDescPo v = (varDescPo)c;
+  return v->varNo;
 }
 
 static comparison indexComp(void *l, void *r) {
