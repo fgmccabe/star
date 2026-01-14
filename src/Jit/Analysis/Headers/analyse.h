@@ -26,7 +26,7 @@ typedef struct analysis_ {
   setPo safes;
 } AnalysisRecord, *analysisPo;
 
-analysisPo analyseMethod(methodPo mtd, analysisPo results);
+retCode analyseMethod(methodPo mtd, analysisPo results);
 void tearDownAnalysis(analysisPo results);
 
 void tearDownSegs(codeSegPo segs);
