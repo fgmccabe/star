@@ -3,7 +3,7 @@
 This chapter focuses on the organization of programs using functions,
 types and other computational forms. Definitions occur at the
 top-level of a package, but also within functions in
-<<letExpression>>s and <<letAction>>s.
+<<letExpression>>s, <<letAction>>s and <<recordLiteral>>s.
 
 [#package]
 == Package Structure
@@ -70,10 +70,8 @@ is not visible outside the package.]
 main program, then the package can be invoked as though it were an
 executable program.
 
-There are two kinds of main: a function or procedure with
-name `main` that may have zero or more arguments; or a function or
-procedure with name `_main` with one argument that is a `cons` list of
-``string``s.
+There are two kinds of main: a function or procedure with name `main` that may
+have zero or more arguments; or a single argument ``_main`` function.
 
 If defined, the `_main` function must have the type signature:
 
@@ -87,11 +85,12 @@ arguments (not including program name) are passed as `string` values to
 the `_main` function.
 
 The value returned by `_main` counts as the value returned by the program
-overall -- to the operating system.
+overall -- to the operating system. By convention, a return value of zero
+signifies successful execution of the program.
 
-If a package has a definition for `main`, but does not have one for
-`_main`, then the command line arguments are coerced according to the
-explicit type signature for `main`.
+If a package has a definition for `main` -- with an explicit type signature --
+but does not have one for `_main`, then the command line arguments are coerced
+according to the explicit type signature for `main`.
 
 For example, if `main` is defined with the explicit type signature:
 
@@ -110,7 +109,7 @@ displayed on the terminal.
 
 NOTE: In the case that `main` is defined as a procedure, then the program will
 always return 0 to the operating system -- unless the program invokes the
-`_exit` standard function.
+`_exit` function with a different value.
 
 [#thetaEnvironment]
 == Environments and Definitions
@@ -386,6 +385,9 @@ types derived by checking or inference:
   generalized contract constraint. Any contract constraints that arise
   in the text of any equations will have to be resolved at the point
   of the function definition.
+* As with quantification and constraints, type inference will not result in a
+  function that can throw an exception. If a function throws, then it must be
+  explcitly declared to throw.
 * Type inference cannot result in arguments to the function be assigned
   quantified types.footnote:[However, arguments can have type annotations of
   quantified types.]
@@ -489,7 +491,6 @@ fact(X) where X>0 => X*fact(X-1).
 fact(X) default => 1
 ----
 
-
 [#throwingFunctions]
 ==== Functions that throw exceptions
 
@@ -520,6 +521,9 @@ as:
 public exception ::= .exception(string).
 ----
 
+NOTE: The `exception` type is used by many standard functions when reporting
+non-normal outcomes.
+
 === Procedures and Rules
 
 (((procedure)))
@@ -535,10 +539,9 @@ rule --> ruleHead, ["{"], action, ["}"].
 rule --> ruleHead, ["do"], action.
 rule --> ruleHead, guardCondition, ["do"], action.
 rule --> ruleHead, ["default"], ["do"], action.
-
 ----
 
-NOTE: The rules in <<#procedureFig>> are written assuming that the
+NOTE: The rules in <<procedureFig>> are written assuming that the
 procedure's name is not also an operator. If it is, then the head of
 the rule will take the infix form.
 
@@ -576,7 +579,8 @@ Similar constraints are applied to inferring the type of a procedure:
 
 * An inferred procedure type will never be quantified.
 * Type inference will not result in a generalized
-  contract constraint. 
+  contract constraint.
+* Procedures that throw exceptions must be explicitly declared.
 * If a procedure is verified against a type declaration then some
   additional rules will be applied during type checking:
 ** a universally bound type variable may not be constrained further by
@@ -634,11 +638,11 @@ to indicate that `check` throws an `exception`.
 == Contract
 
 (((type,contracts)))
-A contract definition is a statement that defines the functions and
+A ``contract`` definition is a statement that defines the functions and
 action procedures associated with a contract. As can be seen in
 _contractFig_, a contract statement associates a contract name --
 together with a set of type variables -- with a set of
-_TypeAnnotation_s that define the elements of the contract. Within
+__TypeAnnotation__s that define the elements of the contract. Within
 the _Contract_ statement, a _TypeAnnotation_ may varer to the
 type(s) in the contract head.
 
@@ -659,10 +663,10 @@ contractTypeArgs --> typeVariable*.
 For example, the contract that underlies a <<typeCoercion>> expressions is:
 [source,star]
 ----
-contract all s,t ~~ coercion[s,t] ::= { coerce:(s)=>option[t] }
+contract all s,t,x ~~ coercion[s,t->>x] ::= { coerce:(s)=>t throws x }
 ----
 
-TIP: The type quantifier may be omitted from <<contract>> definitions -- _except_
+TIP: Type quantifiers may be omitted from <<contract>> definitions -- _except_
 for the case that a higher-kinded type is being quantified.
 
 TIP: An important usage pattern for contracts is to represent
@@ -729,34 +733,32 @@ contractImplementation --> ["implementation"], contractSpec, ["=>"], expression.
 ----
 
 NOTE: It is not permitted to define an `implementation` of a contract for
-_FunctionType_s.
+function types.
 
-It is permissible, however, to implement contracts for
-tuple types (see <<tupleType>>).
+It is permissible, however, to implement contracts for tuple types (see
+<<tupleType>>).
 
-The body of a contract `implementation` must be an expression
-that gives a definition for each of the elements of the
-`contract` specification.
+The body of a contract `implementation` must be an expression that gives a
+definition for each of the elements of the `contract` specification.
 
 NOTE: A `contract` implementation often takes the form of a regular
 _AnonymousRecord_ or an anonymous _ThetaRecord_.
 
-Usually, the implementation of a `contract` is fairly
-straightforward. The program in <<consSizeProg>>, for example, gives the
-implementation of the standard `sizeable` contract for the
-`cons` type.
+Usually, the implementation of a `contract` is fairly straightforward. The
+program in <<consSizeProg>>, for example, gives the implementation of the
+standard `sizeable` contract for the `cons` type.
 
 [#consSizeProg]
 .Implementation of `sizeable` for `cons` values
 [source,star]
 ----
-implementation all e ~~ sizeable[cons[e]] => {
+implementation all e ~~ sizeable[cons[e]] => {.
   size(nil) => 0
   size(cons(_,T)) => size(T)+1
 
   isEmpty(nil) => .true.
   isEmpty(_) default  => .false
-}
+.}
 ----
 
 [#implContractFunctionalDependency]
@@ -773,15 +775,16 @@ implementation of the `stream` contract over `cons` lists:
 implementation all e ~~ stream[cons[e]->>e] => {
 ----
 
-Note that this `implementation` implies that a `stream`
-over a `cons` list connects the element type of the `cons[t]` type to the elements of the `stream` contract.
+Note that this `implementation` implies that a `stream` over a `cons` list
+connects the element type of the `cons[t]` type to the elements of the `stream`
+contract.
 
 === Recursive Contract Implementations
 
-More complex contract implementations may require the use of auxiliary
-function definitions; and hence may involve the use of `let`
-expressions. This is particularly the case when implementing a
-contract that itself depends on other contracts being implemented.
+More complex contract implementations may require the use of auxiliary function
+definitions; and hence may involve the use of `let` expressions. This is
+particularly the case when implementing a contract that itself depends on other
+contracts being implemented.
 
 For example, this is an implementation of the `comp`
 contract for `cons` values:
@@ -830,7 +833,6 @@ has to do with limitations on type inference in the context of recursive
 programs: within the equations that define a function, any _use_ of the function
 symbol must represent a recursive use.
 
-
 For example, in the equation:
 [source,star]
 ----
@@ -845,8 +847,8 @@ If we had tried to define `<` directly, using, for example:
 ----
 cons(H1,T1)<cons(H2,T2) where H1<H2 => .true.
 ----
-then we would have two occurrences of `<` which really
-represent different functions.
+then we would have two occurrences of `<` which really represent different
+functions: one for the `cons` list and one for the elements of the list.
 
 Normally, outside of the definition of the function, it is permitted
 to allow a given function to be used in different uses -- always
@@ -913,7 +915,7 @@ In addition to the regular functions and types defined in the imported package,
 any contracts, and contract implementations that are defined in the imported
 package are also in scope.
 
-If the <<openStatement>> is prefixed by a `public` keyword then, in addition to
+If the <<importStatement>> is prefixed by a `public` keyword then, in addition to
 importing the definitions, they are also implicitly _re-exported_ by thhis
 package.
 

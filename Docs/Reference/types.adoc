@@ -1,11 +1,11 @@
 = Types
 [#type]
 
-(((type system)))
-Star is a strongly, statically, typed language. That means that all
-values and all variables must have a unique well-defined type that is
-determinable by inspecting the text of the program -- effectively at
-_compile time_.
+(((type system))) Star is a strongly, statically, typed language. That means
+that all values and all variables must have a unique well-defined type that is
+determinable by inspecting the text of the program -- effectively at _compile
+time_.footnote:[The Star runtime also erases all type information: there is no
+runtime representation of types.]
 
 The type system consists of a method for declaring new types, for
 annotating expressions (and by extension programs) with their types and
@@ -15,7 +15,7 @@ This chapter focuses on the type language itself and the semantics of
 types.
 
 [sidebar]
-A Type is a term that denotes a collection of
+A **Type** is a term that denotes a collection of
 values.footnote:[Not a set of values: some collections are not sets.]
 
 Viewed as collections, types have a particular property: all values are members
@@ -48,9 +48,9 @@ type --> encapsulatedType.
 
 [#simpleType]
 For many simple cases, a type is denoted by an identifier. For example, the type
-identifier `string` denotes the set of all strings. More explicitly, a value has
+identifier `string` denotes the collection of all strings. More explicitly, a value has
 type `string` iff footnote:[The term "iff" means "if and only if".] it belongs
-to the set denoted by the symbol `string`.
+to the collection denoted by the symbol `string`.
 
 In addition to simple types, there are also parameterized types that allow the
 characterization of generic types. For example, the `map` type has two
@@ -73,9 +73,9 @@ of the list. The type expression:
 cons[string]
 ----
 
-denotes the type expression associated with lists whose elements are
-all string values. Other examples of `cons` type include lists of
-integers:
+denotes the type expression associated with lists whose elements are all string
+values. Other examples of `cons` type include lists of integers:
+
 [source,star]
 ----
 cons[integer]
@@ -99,7 +99,30 @@ is a type constructor: it takes a type as an argument and
 returns another type as a result.
 ****
 
+=== Standard ``void`` Type
 
+The ``void`` type is uninhabited: there are no values of type `void`. It is most
+often used to signal cases where something is not going to happen: most
+particularly with exceptions.
+
+A type expression of the form:
+
+[source,star]
+----
+(integer)=>string throws void
+----
+
+denotes a function that takes an `integer`, returns a `string` and does not
+`throw` an exception. I.e., it is equivalent to just:
+
+[source,star]
+----
+(integer)=>string
+----
+
+NOTE: The `void` type is not normally used explicitly. However, if a `contract`
+defines a function that may throw exceptions, we can use `void` to indicate, for
+example, implementations that doe not result in exceptions.
 
 [#structuralTypes]
 == Structural Types
@@ -108,8 +131,8 @@ Formally, a structural type term is an instance of a predefined schema of type
 terms. However, informally, structural type terms are terms that mirror
 syntactically the values that they represent.
 
-There are three main forms of structural type: tuple types,
-program types and record types.
+There are several main forms of structural type: tuple types, function and
+procedure types, and record types.
 
 NOTE: Star's structural types are inherently _non-recursive_: only nominal types can
 have definitions that imply a recursive type.
@@ -166,10 +189,10 @@ not return anything.
 
 ==== Singleton Type Tuple
 
-(((tuple,singleton tuple type)))
-In some cases, a singleton tuple must be written with two
-parentheses. This is to disambiguate such terms from simple expression
-parentheses. A type expression of the form:
+(((tuple,singleton tuple type))) A singleton tuple must be written with two
+parentheses. This is to disambiguate such terms from the use of parentheses to
+express expression grouping. A type expression of the form:
+
 [source,star]
 ----
 (integer)
@@ -181,10 +204,9 @@ is equivalent to just the `integer` type; whereas
 ((integer))
 ----
 
-denotes the single element tuple type whose element type is
-`integer`.
+denotes the single element tuple type whose element type is `integer`.
 
-NOTE: The double set of parentheses is not needed, for example, in giving
+NOTE: The double set of parentheses is not needed, for example, when giving
 the type signature of a unary function.
 
 For example, the type
@@ -225,18 +247,20 @@ typeRule --> typeAliasDefinition.
 NOTE: The various annotations in a record type are separated by a dot-space
 terminator.
 
-Record types are used as the basis of other features of the
-type language -- including record constructors and <<contract>>s.
+Record types are used as the basis of other features of the type language --
+including record constructors and <<contract>>s.
 
 Two record types are equivalent if their elements are pair-wise by name
-equivalent. Note that the _order_ of elements is not
-important. For example, given the types:
+equivalent. Note that the _order_ of elements is not important. For example,
+given the types:
+
 [source,star]
 ----
 {a:string. b:integer. }
 ----
 
 and
+
 [source,star]
 ----
 {b:integer. a:t. }
@@ -246,13 +270,12 @@ these types unify -- assuming that `t` is a type variable --
 provided that `t` is unifiable with `string`.
 
 
-
 [#referenceType]
 ==== Reference Type
 
 (((reference type)))
 (((type,var)))
-A re-assignable variable is given a `ref`erence type.
+A re-assignable variable is given a ``ref``erence type.
 
 [#referenceTypeFig]
 .Reference Type
@@ -361,9 +384,9 @@ procedureType --> tupleType, ["{}"].
 procedureType --> tupleType, ["{}"], ["throws"], type.
 ----
 
-For example, a procedure of two arguments -- an `integer` and a
-`float` has a type that
-takes the form:
+For example, a procedure of two arguments -- an `integer` and a `float` has a
+type that takes the form:
+
 [source,star]
 ----
 (integer,float){}
@@ -376,9 +399,9 @@ A throwing procedure type, such as:
 (integer,string){} throws string
 ----
 
-signals that the procedure can throw an exception -- of type `string`
-in this case -- when called. As with function types, it is possible for the exception type to
-be quantified, as in:
+signals that the procedure can throw an exception -- of type `string` in this
+case -- when called. As with function types, it is possible for the exception
+type to be quantified, as in:
 
 [source,star]
 ----
@@ -417,7 +440,6 @@ TIP: Explicit <<constructorType>>s are most used in the context of the
 signatures of _abstract data types_: where a type and its constructors are
 _exported_ from a record.
 
-
 [#constrainedType]
 === Constrained Types
 
@@ -448,8 +470,8 @@ both the `comp` and the `arith` contracts (see
 [#typeConstraint]
 ==== Type Constraint
 
-(((type,constraints)))
-There are three kinds of type constraint: contract constraints, field constraints and binding constraints.
+(((type,constraints))) There are three kinds of type constraint: contract
+constraints, field constraints and implicit binding constraints.
 
 .Type Constraint
 [source,star]
@@ -489,8 +511,9 @@ to `integer`.
 NOTE: In many cases type inference will automatically result in constraints
 being added to type expressions.
 
-It is possible combine different type constraints; for
-example, a type variable could be constrained to implement multiple contracts, and even be combined with a field constraint.
+It is possible combine different type constraints; for example, a type variable
+could be constrained to implement multiple contracts, and even be combined with
+a field constraint.
 
 [#contractConstraint]
 ===== Contract Constraint
@@ -516,29 +539,27 @@ contractConstraint --> identifier ["["], types, ["]"].
 contractConstraint --> identifier ["["], types, ["->>"], types, ["]"].
 ----
 
-It is possible for contract constraints to reference more than
-one type. For example, the standard `coercion` contract (see
-<<coercionContract>>) references two types. A `coercion`
-`contract` constraint will therefore look like:
+It is possible for contract constraints to reference more than one type. For
+example, the standard `coercion` contract (see <<coercionContract>>) references
+three types. A `coercion` `contract` constraint will therefore look like:
+
 [source,star]
 ----
-coercion[T1,T2] |= Tp
+coercion[T1,T2->>X] |= Tp
 ----
 
-where `T1` represents the source type of the coercion and
-`T2` represents the destination type.
+where `T1` represents the source type of the coercion, `T2` represents the
+destination type and `X` represents the type of any exception thrown by the
+coercion.
 
-If the `-{zwsp}>>` clause is used, then the contract being
-referenced must have a _functional dependency_
-(((functional dependency)))
-associated with it.
+If the `-{zwsp}>>` clause is used, then the contract being referenced must have
+a _functional dependency_ (((functional dependency))) associated with it.
 
 NOTE: Conversely, if a contract has a functional dependency, then any
 constraint referring to it must also have a `-{zwsp}>>` clause.
 
-The `-{zwsp}>>` clause identifies which type(s) are dependent on the
-type argument(s) of the <<contract>>. (See
-<<ContractFunctionalDependency>>).
+The `-{zwsp}>>` clause identifies which type(s) are dependent on the type
+argument(s) of the <<contract>>. (See <<ContractFunctionalDependency>>).
 
 [#implicitBindingConstraint]
 ===== Implicit Binding Constraints
@@ -566,8 +587,7 @@ definition of `foo`.
 .Implicit Binding Constraint
 [source,star]
 ----
-implicitConstraint --> typeVariable, ["|="], type.
-implicitConstraint --> ["("], typeVariable, [":"], type, [")"].
+implicitConstraint --> ["("], identifier, [":"], type, [")"].
 ----
 
 So, for example, in the function `clamp` below, there is an
@@ -607,9 +627,9 @@ ensure that the `async` function is invoked in an appropriate context.
 [#fieldConstraint]
 ===== Field Constraint
 
-(((type,field)))
-(((type,constraints!field)))
-A _field constraint_ is a requirement on a variable that if it is bound, it is bound to a record type with an identified attribute.
+(((type,field))) (((type,constraints!field))) A _field constraint_ is a
+requirement on a variable that if it is bound, it is bound to a record type with
+an identified attribute.
 
 [#attributeConstraintFig]
 .Field Constraint
@@ -654,19 +674,27 @@ NOTE: The terms universally quantified and existentially quantified types
 reflect the similar concepts in first order predicate logic. However,
 the domain is different: in logic, universal quantifiers refer to
 terms (values) and apply to formulae that have a truth value; whereas
-in type language, quantifiers apply to type expressions.
+in type language, quantifiers refer to types and apply to type expressions.
 
-The compiler will infer the type of expressions; but does _not_
-infer any quantified type. Functions that are intended to be generic
-must have explicit type annotations associated with them.
+NOTE: The compiler will infer the type of expressions; but does _not_ infer any
+quantified type. Functions that are intended to be generic must have explicit
+type annotations associated with them.
+
+.Quantified Type Expression
+[source,star]
+----
+quantifiedType --> quantification, type.
+
+quantification --> ["all"], boundTypes, ["~~"].
+quantification --> ["exists"], boundTypes, ["~~"].
+----
 
 [#universalType]
 ==== Universally Quantified Types
 
-(((type,universally quantified)))
-(((universally quantified type)))
-A universally quantified type denotes a type that is valid for all
-substitutions of a type variable.
+(((type,universally quantified))) (((universally quantified type))) A
+universally quantified type denotes a type that is valid for all substitutions
+of a type variable.
 
 .Universal Type Expression
 [source,star]
@@ -682,9 +710,9 @@ all x ~~ (x,x)=>boolean
 denotes the generic function type of two arguments that returns a
 `boolean`.
 
-The compiler will infer the type of expressions; but does _not_
-infer any quantified type. Functions that are intended to be generic
-must have explicit type annotations associated with them.
+The compiler will infer the type of expressions; but does _not_ infer any
+quantified type. Functions that are intended to be generic must have explicit
+type annotations associated with them.
 
 [#existentialType]
 ==== Existentially Quantified Types
@@ -694,7 +722,6 @@ must have explicit type annotations associated with them.
 (((exists`exists`)))
 An existential type denotes an _abstract_ type. More formally, it
 denotes a specific -- but unknown -- type.
-
 
 [#existentialTypeFig]
 .Existential Type Expression
@@ -720,23 +747,20 @@ is consistent with the type:
 exists el ~~ { e ~> el. op:(e,e)=>e }
 ----
 
-The fact that within the record the type `el` is identified as
-`integer` does not escape the record itself. Externally, the existence
-of the `el` type is known but not what it
+The fact that within the record the type `el` is identified as `integer` does
+not escape the record itself. Externally, the existence of the `el` type is
+known but not what it
 is.
 
-It is permissible to refer to the type within the record by a dot
-reference.
+It is permissible to refer to the type within the record by a dot reference --
+otherwise known as an <<encapsulatedType>>.
 
 [#encapsulatedType]
 ===== Encapsulated Type
 
-(((encapsulated type)))
-(((type,encapsulated in record)))
-(((existential type)))
-(((heterogenous types)))
-An `encapsulatedType` is a reference to a type that is embedded
-within a record.
+(((encapsulated type))) (((type,encapsulated in record))) (((existential type)))
+(((heterogenous types))) An `encapsulatedType` is a reference to a type that is
+embedded within a record.
 
 [#encapsulatedTypeFig]
 .Encapsulated Type
@@ -765,11 +789,10 @@ sub-record:
 R.f1.f2.t
 ----
 
-The actual type identified with an encapsulated type expression
-is strictly opaque: it is assumed to be different to all other
-types. Which means that effectively _only_ the other fields of
-the record variable `R` contain functions and values that can be
-used in conjunction.
+The actual type identified with an encapsulated type expression is strictly
+opaque: it is assumed to be different to all other types. Which means that
+effectively _only_ the other fields of the record variable `R` contain functions
+and values that can be used in conjunction.
 
 [#boundType]
 ==== Bound Type Variables
@@ -787,12 +810,12 @@ boundTypes --> boundType * [","].
 boundType --> identifier | identifier, ["/"], decimal.
 ----
 
-There are two forms of `boundType`, a simple type variable and a
-second form that includes an arity.
+There are two forms of `boundType`, a simple type variable and a second form
+that includes an arity.
 
-The first form of `boundType` introduces a regular type variable --
-i.e., a variable which may be bound to any type. The second form is
-used to introduce a higher-kinded type variable.
+The first form of `boundType` introduces a regular type variable -- i.e., a
+variable which may be bound to any type. The second form is used to introduce a
+higher-kinded type variable.
 
 For example, the quantification:
 
@@ -800,11 +823,12 @@ For example, the quantification:
 ----
 all c/1 ~~ ...
 ----
-denotes a variable which may only be bound to type constructors that
-take one argument -- for example `cons`.
+
+denotes a quantified variable which may only be bound to type constructors that take one
+argument -- for example `cons`.
 
 WARNING: A regular type variable only unifies with regular types, and a type
-constructor type variable only unifies with type constructors.
+constructor type variable only unifies with type constructors of the same arity.
 
 TIP: Higher kinded type variables are most commonly used in the
 context of ``contractDefinition``s. In particular, there are no values
@@ -816,9 +840,8 @@ For example, given:
 all t ~~ cons[t] ::= .nil | cons(t, cons[t]).
 ----
 
-The type variable `t` may be bound to a type expression such as
-`cons[string]` but not to a higher-kinded type (such as
-`cons` itself).
+The type variable `t` may be bound to a type expression such as `cons[string]`
+but not to a higher-kinded type (such as `cons` itself).
 
 On the other hand, given:
 [source,star]
@@ -837,6 +860,11 @@ directly associated with higher kinded types.
 The _anonymous_ type -- written with a simple `_` -- denotes
 a type variable where every occurrance is unique. The anonymous
 variable is used in situations where we don't care what the type is.
+
+NOTE: If the anonymous type occurs in a quantified type then it will denote a
+new type whenever the quantified type is _refreshed_. The effect would be as
+though there was a different anonymous type for each possible binding of the
+quantifiers.
 
 == Type Definitions
 
@@ -859,8 +887,9 @@ typeDefinition --> typeExistsDefinition.
 NOTE: Structural types do not need to be defined: they are already part of the
 type language.
 
-=== Algebraic Type Definition
 [#algebraicTypeDefinition]
+=== Algebraic Type Definition
+
 An algebraic type definition is a statement that
 defines a type in terms of different constructors for the type. There are two
 kinds of constructors definable within an algebraic type definition: enumerated
@@ -870,8 +899,8 @@ symbols and positional constructor functions:
 .Algebraic Type Definition
 [source,star]
 ----
-algebraicTypeDefinition --> typeTemplate ["::="], constructor, (["|"], constructor)*.
-algebraicTypeDefinition --> quantifier*, algebraicTypeDefinition.
+algebraicTypeDefinition --> typeTemplate, ["::="], constructor, (["|"], constructor)*.
+algebraicTypeDefinition --> quantification, algebraicTypeDefinition.
 
 typeTemplate --> identifier.
 typeTemplate --> identifier, ["["], identifier * [","], ["]"].
@@ -880,16 +909,12 @@ constructor --> ["."], identifier.
 constructor --> ["."], identifier, tupleType.
 ----
 
-An algebraic type definition is a statement that introduces a new
-type; it also defines the possible values associated with the type.
-
 As illustrated in <<algebraicTypeDefFig>>, an algebraic type definition
 introduces the new type and defines one or more constructors -- separated by the
 `|` operator.
 
-A constructor is a specification of a value of a type;
-i.e., constructors _paint a picture_ of the shape of potential
-values of the type.
+A constructor is a specification of a value of a type; i.e., constructors _paint
+a picture_ of the shape of potential values of the type.
 
 There are two kinds of constructor: enumerated symbols and positional 
 constructor constructors.footnote:[The related
@@ -941,14 +966,15 @@ reliably inferred without being explicitly identified.
 
 [#recordTypeDefinition]
 === Record Type Definition
+
 A record type definition is a statement that defines a type associated with a
 named record with named fields:
 
 .Record Type Definition
 [source,star]
 ----
-recordTypeDefinition --> identifier, recordType.
-recordTypeDefinition --> quantifiers, identifier, recordType.
+recordTypeDefinition --> typeTemplate, ["::="], identifier, recordType.
+recordTypeDefinition --> quantification, recordTypeDefinition.
 ----
 
 For example, the type definition:
@@ -981,8 +1007,9 @@ it is permissible to write:
 person[e] ::= person{ name:string. interest: a }
 ----
 
-=== Type Alias Statement
 [#typeAliasDefinition]
+=== Type Alias Statement
+
 A type alias is a statement that introduces a new type name by mapping
 it to an existing type expression.
 
@@ -991,7 +1018,7 @@ it to an existing type expression.
 [source,star]
 ----
 typeAliasDefinition --> typeTemplate, ["~>"], type.
-typeAliasDefinition --> quantifier*, typeTemplate, ["~>"], type.
+typeAliasDefinition --> quantification, typeAliasDefinition.
 ----
 
 Type aliases may be parameterized -- in the sense that the type
@@ -1031,11 +1058,11 @@ For example, the statement:
 all x,y ~~ pair[x,y] ~> (x,y)
 ----
 
-defines the `pair` type -- which has two type arguments -- as an alias of a tuple type.
+defines the `pair` type -- which has two type arguments -- as an alias of a
+tuple type.
 
-Note that any type variables on the right hand side of a
-type alias statement must also have been mentioned on the left
-hand side.
+Note that any type variables on the right hand side of a type alias statement
+must also have been mentioned on the left hand side.
 
 === Type Exists Statement
 [#typeExistsDefinition]
@@ -1048,7 +1075,7 @@ without committing to the nature of the type itself.
 [source,star]
 ----
 typeExistsDefinition --> typeTemplate, ["<~"], ["{}"].
-typeExistsDefinition --> quantifier*, typeExistsDefinition.
+typeExistsDefinition --> quantification, typeExistsDefinition.
 ----
 
 There are several scenarios where it is useful to declare the existence of a
@@ -1580,9 +1607,10 @@ the following steps:
 
 [source,star,subs="quotes"]
 ----
-V_N~t~_.(+)
+_VN~t~_.(+)
 ----
-where `V_N~t~_` is the expression that is on the right hand side of the `implementation` statement.
+
+where `_VN~t~_` is the expression that is on the right hand side of the `implementation` statement.
 
 To type check a whole program, the checker must systematically attempt to
 resolve all the contract constraints discovered. If the checker cannot make
@@ -1596,14 +1624,14 @@ implementation function of `arith` over `integer` has a
 definition that is similar to:
 [source,star]
 ----
-arith#integer() => arith{ X+Y => _int_plus(X,Y) ...  }
+arith!integer() => arith{ X+Y => _int_plus(X,Y) ...  }
 ----
 
 Resolving the expression `X+43` is achieved by replacing the
 abstract function `(+)` with an actual function:
 [source,star]
 ----
-arith#integer().'+'(X,43)
+arith!integer().'+'(X,43)
 ----
 
 There are several special considerations when identifying
@@ -1677,7 +1705,8 @@ I.e., the missing variable is inserted into the call.
 Type checking and resolve a call to a function with an implicit binding
 constraint involves the steps:
 
-* Ensure that, for every implicit binding constraint of the form `(_V_:_T_)` a variable `_V_` of type `_V_~t~` is in scope,
+* Ensure that, for every implicit binding constraint of the form ``(_V_ : _T_)`` a
+  variable `_V_` of type `_V_~t~` is in scope,
 * unify `_V_~t~` with `_T_`, if they do not unify then abort and report a type error
 * replace the call `F(A~1~,..,A~n~)` with `F(_V_,A~1~,..,A~n~)`
 

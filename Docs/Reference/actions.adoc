@@ -426,10 +426,9 @@ equivalent to the double <<whileAction>>:
 [#letAction]
 === Let Action
 
-(((let action)))
-(((action,let)))
-The `let` action allows an action to have local definitions
-embedded within it. It plays the same role as let expressions do (see <<letExpression>>).
+(((let action))) (((action,let))) The `let` action allows an action to have
+local definitions embedded within it. It plays the same role as let expressions
+do (see <<letExpression>>).
 
 [#letActionFig]
 .Let Action
