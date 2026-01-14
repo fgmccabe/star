@@ -455,7 +455,7 @@ logical isLastPC(scopePo scope, int32 pc) {
   return pc + 1 == scope->limit;
 }
 
-analysisPo analyseMethod(methodPo mtd, analysisPo results) {
+retCode analyseMethod(methodPo mtd, analysisPo results) {
   codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
   hashPo vars = newVarTable();
   hashPo index = newVarIndex();
@@ -470,19 +470,5 @@ analysisPo analyseMethod(methodPo mtd, analysisPo results) {
     newArgVar(vars, ax, results);
   }
 
-  if (splitBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null) == Ok) {
-#ifdef TRACEJIT
-    if (traceJit) {
-      checkIndex(logFile, index);
-      showSegmented(logFile, mtd, root);
-      outMsg(logFile,"Safe points: ");
-      showSet(logFile, safes);
-      outMsg(logFile,"\n%_");
-    }
-#endif
-
-    return results;
-  }
-  logMsg(logFile, "Could not segment code for %M", mtd);
-  return Null;
+  return splitBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
 }

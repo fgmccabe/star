@@ -71,7 +71,6 @@ static char *varType(VarKind kind);
 
 static retCode showVar(ioPo out, varDescPo var) {
   return outMsg(out, "%d: %s [%d .. %d]\n", var->varNo, varType(var->kind), var->start, var->end);
-  return Ok;
 }
 
 static retCode showVarIndex(void *n, void *r, void *c) {
@@ -81,6 +80,11 @@ static retCode showVarIndex(void *n, void *r, void *c) {
 
   outMsg(out, "%d -> ", index);
   return showVar(out, var);
+}
+
+retCode showVarTable(ioPo out,hashPo index){
+  outMsg(out, "Var table:\n");
+  return processHashTable(showVarIndex, index, out);
 }
 
 #ifdef TRACEJIT
@@ -93,8 +97,7 @@ static retCode checkVarIndex(void *n, void *r, void *c) {
     return Ok;
   return Error;
 }
-void checkIndex(ioPo out, hashPo index) {
-  processHashTable(showVarIndex, index, out);
+void checkIndex(hashPo index) {
   assert(processHashTable(checkVarIndex,index,Null)==Ok);
 }
 #endif
