@@ -15,7 +15,7 @@ expression --> numericLiteral.
 expression --> stringLiteral.
 expression --> algebraicLiteral.
 expression --> applicativeExpression.
-expression --> recordExpression.
+expression --> recordLiteral.
 expression --> fieldAccess.
 expression --> recordUpdate.
 expression --> caseExpression.
