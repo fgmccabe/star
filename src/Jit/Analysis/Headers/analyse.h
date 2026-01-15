@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 11/4/25.
 //
 
-#ifndef STAR_SSA_H
-#define STAR_SSA_H
+#ifndef STAR_ANALYSE_H
+#define STAR_ANALYSE_H
 
 #include "ooio.h"
 #include "code.h"
@@ -22,7 +22,8 @@ extern logical enableSSA;
 typedef struct analysis_ {
   codeSegPo segments;
   hashPo vars;
-  hashPo index;
+  hashPo firstUseIndex;
+  hashPo lastUseIndex;
   setPo safes;
 } AnalysisRecord, *analysisPo;
 

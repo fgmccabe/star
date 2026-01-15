@@ -8,6 +8,7 @@ if (NOT DEFINED JIT_ARCH)
 endif ()
 
 add_subdirectory(${JIT_ARCH})
+add_subdirectory(SSA)
 add_subdirectory(Tests)
 add_subdirectory(Analysis)
 
@@ -32,5 +33,5 @@ set(HEADER_FILES
 set(JIT_SOURCE_FILES jit.c jitInfra.c regsort.c)
 
 add_library(jit STATIC ${JIT_SOURCE_FILES})
-target_link_libraries(jit ${JIT_ARCH} ssa)
+target_link_libraries(jit ${JIT_ARCH})
 

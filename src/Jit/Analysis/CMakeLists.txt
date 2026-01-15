@@ -16,8 +16,8 @@ set(HEADER_FILES
         Headers/analyseP.h
 )
 
-set(SSA_SOURCE_FILES analyse.c infra.c)
+set(ANALYSIS_SOURCE_FILES analyse.c infra.c)
 
-add_library(ssa STATIC ${SSA_SOURCE_FILES})
+add_library(analysis STATIC ${ANALYSIS_SOURCE_FILES})
 
 

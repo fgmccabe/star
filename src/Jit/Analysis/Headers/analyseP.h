@@ -2,12 +2,17 @@
 // Created by Francis McCabe on 11/4/25.
 //
 
-#ifndef STAR_SSA_P_H
-#define STAR_SSA_P_H
+#ifndef STAR_ANALYSE_P_H
+#define STAR_ANALYSE_P_H
 
 #include "analyse.h"
 #include "code.h"
 #include "engineOptions.h"
+
+typedef struct seg_link_ {
+  codeSegPo seg;
+  segLinkPo next;
+} SegLinkRecord, *segLinkPo;
 
 typedef struct code_seg_ {
   int32 segNo;
@@ -18,11 +23,6 @@ typedef struct code_seg_ {
   codeSegPo fallthrough; // Fall through to
   codeSegPo next;
 } CodeSegment;
-
-typedef struct seg_link_ {
-  codeSegPo seg;
-  segLinkPo next;
-} SegLinkRecord, *segLinkPo;
 
 typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals

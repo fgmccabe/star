@@ -1,27 +1,19 @@
 //
-// Created by Francis McCabe on 11/4/25.
+// Created by Francis McCabe on 1/14/26.
 //
 
-#include "code.h"
+#include "ssa.h"
 #include "analyseP.h"
-#include "opcodes.h"
 #include "codeP.h"
-#include "array.h"
-#include "set.h"
-#include "constants.h"
 
-#ifdef TRACEJIT
-tracingLevel traceSSA = noTracing;
-#endif
-
-logical enableSSA = False;
-
-static codeSegPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
-static codeSegPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
+static ssaInsPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
+static ssaInsPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
 static logical isLastPC(scopePo scope, int32 pc);
 
-retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit,
-                   varDescPo phiVar) {
+static ssaInsPo emitIns();
+
+retCode ssaBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit,
+                 varDescPo phiVar) {
   ScopeBlock scope = {
     .start = start, .limit = limit, .parent = parent, .stack = Null, .phiVar = phiVar
   };
@@ -48,7 +40,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
         continue;
       }
       case XCall: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
 
         labelPo fn = C_LBL(getConstant(code[pc].fst));
@@ -75,7 +67,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
         continue;
       }
       case XOCall: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         int32 arity = code[pc].fst;
         for (int32 ax = 0; ax < arity; ax++)
@@ -101,7 +93,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
         continue;
       }
       case XEscape: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
 
         int32 escNo = code[pc].fst; /* escape number */
@@ -130,7 +122,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       case Block: {
         int32 blockLen = code[pc].alt;
 
-        ret = splitBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, Null);
+        ret = ssaBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, Null);
         pc += blockLen;
         continue;
       }
@@ -138,22 +130,22 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
         int32 blockLen = code[pc].alt;
         varDescPo phi = newPhiVar(analysis, &scope, pc);
 
-        ret = splitBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, phi);
+        ret = ssaBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, phi);
         pc += blockLen;
         continue;
       }
       case Loop: {
-        codeSegPo alt = checkLoop(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkLoop(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         continue;
       }
       case Break: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         continue;
       }
       case Result: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         retireStackVarToPhi(&scope, pc, pc + code[pc].alt + 1);
         retireScopeStack(&scope, pc);
@@ -237,7 +229,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
         newStackVar(analysis, &scope, pc);
         continue;
       case LdSav: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
@@ -273,7 +265,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       case CFlt:
       case CChar:
       case CLbl: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         retireStackVar(&scope, pc);
         continue;
@@ -291,7 +283,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       }
       case If:
       case IfNot: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         retireStackVar(&scope, pc);
         continue;
@@ -301,7 +293,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       case IxCase: {
         int32 mx = code[pc].fst;
         splitAtPC(analysis->segments, pc + 1 + mx);
-        codeSegPo curr = findSeg(analysis->segments, pc);
+        ssaInsPo curr = findSeg(analysis->segments, pc);
         curr->fallthrough = Null;
         retireStackVar(&scope, pc);
 
@@ -310,12 +302,12 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
           insPo caseIns = &code[casePc];
           switch (caseIns->op) {
             case Break: {
-              codeSegPo alt = checkBreak(analysis, &scope, pc, casePc + code[casePc].alt + 1);
+              ssaInsPo alt = checkBreak(analysis, &scope, pc, casePc + code[casePc].alt + 1);
               newOutgoing(analysis->segments, casePc, alt);
               continue;
             }
             case Loop: {
-              codeSegPo alt = checkLoop(analysis, &scope, pc, casePc + code[casePc].alt + 1);
+              ssaInsPo alt = checkLoop(analysis, &scope, pc, casePc + code[casePc].alt + 1);
               newOutgoing(analysis->segments, casePc, alt);
               continue;
             }
@@ -336,7 +328,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       }
       case IDiv:
       case IMod: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         retireStackVar(&scope, pc);
         retireStackVar(&scope, pc);
@@ -378,7 +370,7 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
       }
       case FDiv:
       case FMod: {
-        codeSegPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
+        ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
         splitNextPC(analysis, pc, alt);
         continue;
       }
@@ -423,11 +415,11 @@ retCode splitBlock(analysisPo analysis, scopePo parent, insPo code, int32 start,
   return ret;
 }
 
-codeSegPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
+ssaInsPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
   while (scope != Null) {
     if (tgt == scope->start) {
-      codeSegPo tgtSeg = splitAtPC(analysis->segments, scope->limit);
-      codeSegPo seg = findSeg(analysis->segments, pc);
+      ssaInsPo tgtSeg = splitAtPC(analysis->segments, scope->limit);
+      ssaInsPo seg = findSeg(analysis->segments, pc);
       linkIncoming(tgtSeg, seg);
       return tgtSeg;
     }
@@ -436,11 +428,11 @@ codeSegPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
   return Null;
 }
 
-codeSegPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
+ssaInsPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
   while (scope != Null) {
     if (tgt == scope->start) {
-      codeSegPo tgtSeg = splitAtPC(analysis->segments, tgt);
-      codeSegPo seg = findSeg(analysis->segments, pc);
+      ssaInsPo tgtSeg = splitAtPC(analysis->segments, tgt);
+      ssaInsPo seg = findSeg(analysis->segments, pc);
       linkIncoming(tgtSeg, seg);
       return tgtSeg;
     }
@@ -453,18 +445,11 @@ logical isLastPC(scopePo scope, int32 pc) {
   return pc + 1 == scope->limit;
 }
 
-retCode analyseMethod(methodPo mtd, analysisPo results) {
-  codeSegPo root = newCodeSeg(0, codeSize(mtd),Null);
+retCode ssaMethod(methodPo mtd) {
+  AnalysisRecord analysis;
 
-  results->segments = root;
-  results->vars = newVarTable();
-  results->firstUseIndex = newVarIndex();
-  results->lastUseIndex = newVarIndex();
-  results->safes = newSet();
-
-  for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    newArgVar(results, ax);
+  if (analyseMethod(mtd, &analysis) == Ok) {
+    return ssaBlock(&analysis, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
   }
-
-  return splitBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
+  return Error;
 }
