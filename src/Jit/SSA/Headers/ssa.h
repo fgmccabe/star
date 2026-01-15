@@ -6,10 +6,10 @@
 #define STAR_SSA_H
 
 #include "ooio.h"
-#include "ssaOpcodes.h"
+#include "ssaOps.h"
 #include "analyse.h"
 
-typedef struct ssaIns *ssaInsPo;
+typedef struct ssaIns_ *ssaInsPo;
 
 
 #endif //STAR_SSA_H

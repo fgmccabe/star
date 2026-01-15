@@ -14,14 +14,16 @@ include_directories("./Headers"
 
 set(SSA_HEADER_FILES
         Headers/ssaInstructions.h
-        Headers/ssaOpcodes.h
+        Headers/ssaops.h
         Headers/ssa.h
+        Headers/ssaEmit.h
         ../Analysis/Headers/analyse.h
         ../Analysis/Headers/analyseP.h
 )
 
 set(SSA_SOURCE_FILES
-        ssa.c)
+        ssa.c
+        emitSsa.c)
 
 add_library(ssa STATIC ${SSA_SOURCE_FILES})
 target_link_libraries(ssa analysis ooio)

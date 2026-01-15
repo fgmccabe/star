@@ -33,7 +33,7 @@ instr(Resume, 2, lcl, lcl)
 instr(Retire, 2, lcl, lcl)
 instr(Underflow, 0)
 
-instr(MvV 1,lcl)
+instr(MvV, 1,lcl)
 instr(MvC, 2, lcl, lit)
 instr(Mv, 2, lcl, lcl)
 
@@ -60,9 +60,9 @@ instr(StNth, 3, lcl, i32, lcl)
 instr(If, 2, lVl,lcl)
 instr(IfNot, 2, lVl, lcl)
 
-instr(ICase, 2, lVls, lcl)
-instr(Case, 2, lVls, lcl)
-instr(IxCase, 2, lVls, lcl)
+instr(ICase, 2, lcl, lVls)
+instr(Case, 2, lcl, lVls)
+instr(IxCase, 2, lcl, lVls)
 
 instr(IAdd, 3, lcl, lcl, lcl)
 instr(ISub, 3, lcl, lcl, lcl)
