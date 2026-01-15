@@ -53,7 +53,8 @@ void linkIncoming(codeSegPo tgt, codeSegPo incoming);
 
 hashPo newVarTable();
 hashPo newVarIndex();
-retCode showVarTable(ioPo out,hashPo vars);
+retCode showVarTable(ioPo out, analysisPo analysis);
+retCode showVarIndexTable(ioPo out, analysisPo analysis);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
@@ -62,7 +63,7 @@ varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);
 void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
-varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
+varDescPo newArgVar(analysisPo analysis, int32 varNo);
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);
 
 #ifdef TRACEJIT

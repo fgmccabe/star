@@ -38,7 +38,8 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     if (enableSSA){
       AnalysisRecord analysis;
       if (analyseMethod(mtd, &analysis) == Ok){
-        showVarTable(logFile, analysis.index);
+        showVarTable(logFile, &analysis);
+        showVarIndexTable(logFile, &analysis);
         checkIndex(analysis.index);
         showSegmented(logFile, mtd, analysis.segments);
         outMsg(logFile, "Safe points: ");

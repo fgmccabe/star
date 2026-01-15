@@ -467,7 +467,7 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
   results->safes = safes;
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    newArgVar(vars, ax, results);
+    newArgVar(results, ax);
   }
 
   return splitBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
