@@ -11,12 +11,12 @@
 typedef struct ssa_buffer_ *ssaBufferPo;
 
 retCode emitHalt(ssaBufferPo b, varDescPo v);
-retCode emitAbort(ssaBufferPo b, termPo l, varDescPo v);
+retCode emitAbort(ssaBufferPo b, int32 l, varDescPo v);
 
-retCode emitCall(ssaBufferPo bf, int32 sym, varDescPo vs);
+retCode emitCall(ssaBufferPo bf, int32 lbl, varDescPo rslt, int32 arity, varDescPo vs);
 retCode emitOCall(ssaBufferPo bf, int32 arity, varDescPo d, varDescPo ss);
 retCode emitEscape(ssaBufferPo bf, escapePo es, varDescPo vs);
-retCode emitXCall(ssaBufferPo bf, int32 sym, int32 lvl, varDescPo vs);
+retCode emitXCall(ssaBufferPo bf, int32 lbl, varDescPo rslt, ssaInsPo alt, int32 arity, varDescPo vs);
 retCode emitXOCall(ssaBufferPo bf, int32 arity, int32 lvl, varDescPo d, varDescPo ss);
 retCode emitXEscape(ssaBufferPo bf, escapePo es, int32 lvl, varDescPo vs);
 retCode emitTCall(ssaBufferPo bf, int32 sym, varDescPo vs);

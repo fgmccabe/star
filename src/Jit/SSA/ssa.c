@@ -31,36 +31,47 @@ retCode ssaBlock(analysisPo analysis, ssaBufferPo bf, scopePo parent, insPo code
       continue;
     }
     case Abort: {
-      ret = emitAbort(bf, getConstant(code[pc].fst), popScopeStack(analysis, &scope));
+      ret = emitAbort(bf, ins->fst, popScopeStack(analysis, &scope));
       continue;
     }
     case Call: {
-      labelPo fn = C_LBL(getConstant(code[pc].fst));
+      int32 lbl = ins->fst;
+      labelPo fn = C_LBL(getConstant(lbl));
       int32 arity = lblArity(fn);
+      varDescPo args[arity];
 
-      for (int32 ax = 0; ax < arity; ax++)
-        retireStackVar(&scope, pc);
-      newStackVar(analysis, &scope, pc);
-      addToSet(analysis->safes, pc);
+      for (int32 ax = arity-1; ax >=0 ; ax--)
+        args[0] = popScopeStack(analysis,&scope);
+      
+      varDescPo rslt = findStackVar(analysis,pc);
+      ret = emitCall(bf, lbl, rslt, arity, args);
       continue;
     }
     case XCall: {
       ssaInsPo alt = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
-      splitNextPC(analysis, pc, alt);
-
-      labelPo fn = C_LBL(getConstant(code[pc].fst));
+      int32 lbl = ins->fst;
+      labelPo fn = C_LBL(getConstant(lbl));
       int32 arity = lblArity(fn);
+      varDescPo args[arity];
 
-      for (int32 ax = 0; ax < arity; ax++)
-        retireStackVar(&scope, pc);
-      newStackVar(analysis, &scope, pc);
-      addToSet(analysis->safes, pc);
+      for (int32 ax = arity-1; ax >=0 ; ax--)
+        args[0] = popScopeStack(analysis,&scope);
+      
+      varDescPo rslt = findStackVar(analysis,pc);
+      ret = emitXCall(bf, lbl, alt, rslt, arity, args);
       continue;
     }
 
     case TCall: {
-      splitNextPC(analysis, pc, Null);
-      retireScopeStack(&scope, pc);
+      int32 lbl = ins->fst;
+      labelPo fn = C_LBL(getConstant(lbl));
+      int32 arity = lblArity(fn);
+      varDescPo args[arity];
+
+      for (int32 ax = arity-1; ax >=0 ; ax--)
+        args[0] = popScopeStack(analysis,&scope);
+      
+      ret = emitTCall(bf, lbl, arity, args);
       continue;
     }
     case OCall: {
