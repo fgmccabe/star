@@ -21,9 +21,9 @@ instr(Break, lVl)
 instr(Result, lVl lcl)
 instr(Loop, lVl)
 
-instr(Fiber, lcl)
-instr(Suspend, lcl lcl)
-instr(Resume, lcl lcl)
+instr(Fiber, lcl lcl)
+instr(Suspend, lcl lcl lcl)
+instr(Resume, lcl lcl lcl)
 instr(Retire, lcl lcl)
 instr(Underflow, none)
 
