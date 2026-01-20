@@ -161,9 +161,9 @@ matchScalars(Subber,Conder,Tpls,[V|Vrs],Lc,Deflt,Map,Dp,CaseExp) :-
   formCases(ST,Subber,Conder,matcher:sameScalarTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
   mkCase(Lc,V,Conder,Cases,Deflt,CaseExp).
 
-mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
+mkCond(Lc,Tst,cnd(_,T,Th,El,Tp),El,cnd(Lc,T1,Th,El,Tp)) :-!,
   mergeGl(Tst,some(T),Lc,some(T1)).
-mkCond(Lc,some(Tst),Th,El,cnd(Lc,Tst,Th,El)).
+mkCond(Lc,some(Tst),Th,El,cnd(Lc,Tst,Th,El,Tp)) :- tipeOf(Th,Tp).
 
 mkIfThenElse(Lc,Tst,iftte(_,T,Th,El),El,iftte(Lc,T1,Th,El)) :-!,
   mergeGl(Tst,some(T),Lc,some(T1)).

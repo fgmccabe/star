@@ -189,7 +189,7 @@ ssTrm(cnj(_,L,R),Dp,sq([lp,LL,ss("&&"),RR,rp])) :-!,
 ssTrm(dsj(_,L,R),Dp,sq([lp,LL,ss("||"),RR,rp])) :-!,
   ssTrm(L,Dp,LL),
   ssTrm(R,Dp,RR).
-ssTrm(cnd(_,T,L,R),Dp,sq([lp,TT,ss(" ?? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-!,
+ssTrm(cnd(_,T,L,R,_),Dp,sq([lp,TT,ss(" ?? "),nl(Dp1),LL,ss("||"),nl(Dp1),RR,rp])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),
@@ -298,7 +298,7 @@ ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
 ssActSeq(A,Dp,[AA]) :-
   ssAct(A,Dp,AA).
 
-ssCnd(cnd(_,T,L,R),Dp,sq([TT,ss(" ?? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
+ssCnd(cnd(_,T,L,R,_),Dp,sq([TT,ss(" ?? "),nl(Dp),LL,ss("||"),nl(Dp),RR])) :-!,
   Dp1 is Dp+2,
   ssTrm(T,Dp,TT),
   ssTrm(L,Dp1,LL),
@@ -416,7 +416,7 @@ rewriteTerm(QTest,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
 rewriteTerm(QTest,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
+rewriteTerm(QTest,cnd(Lc,T,L,R,Tp),cnd(Lc,NT,NL,NR,Tp)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -626,7 +626,7 @@ inTerm(cnj(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
 inTerm(dsj(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
-inTerm(cnd(_,T,L,R),Nm) :-!,
+inTerm(cnd(_,T,L,R,_),Nm) :-!,
   inTerm(T,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm).
 inTerm(mtch(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
@@ -723,7 +723,7 @@ tipeOf(unpack(_,_G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
 tipeOf(cnj(_,_,_),type("boolean")).
 tipeOf(dsj(_,_,_),type("boolean")).
-tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
+tipeOf(cnd(_,_,_,_,T),T).
 tipeOf(mtch(_,_,_),type("boolean")).
 tipeOf(ng(_,_),type("boolean")).
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
@@ -872,7 +872,7 @@ validTerm(cnj(Lc,L,R),_,D) :-
 validTerm(dsj(Lc,L,R),_,D) :-
   validTerm(L,Lc,D),
   validTerm(R,Lc,D).
-validTerm(cnd(Lc,T,L,R),_,D) :-
+validTerm(cnd(Lc,T,L,R,_),_,D) :-
   glVars(T,D,D0),
   validTerm(T,Lc,D0),
   validTerm(L,Lc,D0),
@@ -1046,7 +1046,7 @@ glVars(cnj(_,L,R),D,Dx) :-
 glVars(dsj(_,L,R),D,Dx) :-
   glVars(L,D,D0),
   glVars(R,D0,Dx).
-glVars(cnd(_,T,L,R),D,Dx) :-
+glVars(cnd(_,T,L,R,_),D,Dx) :-
   glVars(T,[],D0),
   glVars(L,D0,D1),
   glVars(R,D,D2),

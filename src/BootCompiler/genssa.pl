@@ -79,7 +79,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLine(Opts,Lc,C,[iLbl(Abrt,iBlock([iLbl(Lx,iValof(RsltVr,
 						      [iLbl(Er,iValof(AbrtVr,FC)),
 							iXRet(AbrtVr)])),iRet(RsltVr)]))|CA]),
-  BaseBrks = [("$try",gencode:result,Er,none)],
+  BaseBrks = [("$try",gencode:result,Er,AbrtVr)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2,FC,FC0),
   compExp(Value,Lc,[("$abort",gencode:breakOut,Abrt,none)|BaseBrks],notLast,
 	  Opts,L3,L4,D2,D3,FC0,FC1,Stk0,Stk1),
@@ -115,17 +115,18 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   assemSSA(PFunc,CdTrm).
 
 genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
-  isThrowingType(Tp,_RsTp,_ErTp),!,
+  isThrowingType(Tp,_RsTp,ErTp),!,
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
   genLbl(L0,Lx,L1),
   genLbl(L1,Er,L2),
+  defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D0),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(0,
 				       [iLbl(Lx,iBlock(0,
 						       [iLbl(Er,iValof(1,FC)),
 							iXRet])),iLdV,iRet]))|CA]),
-  BaseBrks = [("$try",gencode:result,Er,none)],
+  BaseBrks = [("$try",gencode:result,Er,AbrtVr)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D,D1,FC,FC0,some(0),Stk0),
   compAction(Act,Lc,[("$abort",gencode:breakOut,Abrt,none)|BaseBrks],
 	     notLast,notLast,Opts,L3,L4,D1,D3,FC0,[iBreak(Lx)],Stk0,_),
@@ -281,7 +282,7 @@ compAction(brk(Lc,Nm),OLc,Brks,_Return,_Next,Opts,Lx,Lx,Dx,Dx,C,Cx,Stk,none) :-!
    reportError("not in scope of break label %s",[ss(Nm)],Lc),
    C0=Cx).
 compAction(aThrow(Lc,E),OLc,Brks,_Return,_Next,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
-  (is_member(("$try",Brker,Ok,Stkx),Brks) ->
+  (is_member(("$try",Brker,Ok,AbrtVr),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1x,Stk,Stka),
    call(Brker,Ok,Stka,Stkx,C1x,Cx);
@@ -408,9 +409,10 @@ consistentStack(_Stk,none) :-!.
 consistentStack(none,_Stk) :-!.
 consistentStack(Stk,Stk).
 
-compAbort(Lc,Msg,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
+compAbort(Lc,Msg,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   locTerm(Lc,LT),
-  compExps([Msg],Lc,Brks,Opts,L,Lx,D,Dx,C,[iAbort(LT)|Cx],Stk,_Stkx).
+  defineTmpVar(Lc,MVr,Tp,Opts,D,D1),
+  compExp(Msg,Lc,Brks,genssa:next(MVr),Opts,L,Lx,D1,Dx,C,[iAbort(LT,MVr)|Cx]).
 
 varGetter(Vr,Lc,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   compIdExp(Vr,Lc,notLast,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
@@ -529,7 +531,7 @@ compCond(ng(Lc,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compCond(ng(Lc,A),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCond(A,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compCond(cnd(Lc,T,A,B,_),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkLvl(Stk,Lvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(El,iBlock(Lvl,CA))|CB]))|Cx]),
   genLbl(L,El,L0),
@@ -538,8 +540,8 @@ compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compCond(A,Lc,Fail,Brks,normal,Opts,L2,L3,D1,D2,C0,[iBreak(Ok)],Stk0,Stka),
   compCond(B,Lc,Fail,Brks,normal,Opts,L3,Lx,D2,Dx,CB,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"conditional").
-compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compCond(cnd(Lc,T,B,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compCond(cnd(Lc,T,A,B,Tp),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compCond(cnd(Lc,T,B,A,Tp),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compCond(mtch(Lc,P,E),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,L3,D,D1,C0,C1,Stk,Stka),
@@ -597,8 +599,8 @@ compExp(xecll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx) :-
 compExp(xecll(Lc,Nm,A,_Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
-  (is_member(("$try",_,Er,_),Brks) ->
-   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iXEscape(Nm,Er,As)|C1],As),
+  (is_member(("$try",_,TryLvl,TryVr),Brks) ->
+   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iXEscape(Nm,TryLvl,Rslt,TryVr,As)|C1],As),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx);
    reportError("not in scope of try",[],Lc),
    D0=Dx,C=Cx,L=Lx).
@@ -609,11 +611,11 @@ compExp(cll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   genDbg(Opts,Lc,C1,[iCall(Nm,Rslt,As)|C2]),
   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx).
 compExp(xcll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  (is_member(("$try",_,Lvl,_),Brks) ->
+  (is_member(("$try",_,TryLvl,TryVr),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
    compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-   genDbg(Opts,Lc,C1,[iXCall(Nm,Lvl,Rslt,As)|C2]),
+   genDbg(Opts,Lc,C1,[iXCall(Nm,Lvl,Rslt,TryVr,As)|C2]),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
@@ -629,7 +631,7 @@ compExp(ocall(Lc,O,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   genDbg(Opts,Lc,C2,[iOCall(Ar,OP,Rslt,As)|C3]),
   call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx).
 compExp(xocall(Lc,O,A,_Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  (is_member(("$try",_,ErLvl,_),Brks) ->
+  (is_member(("$try",_,TryLvl,TryVr),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    length(A,Ar),
    Arity is Ar+1,
@@ -723,33 +725,30 @@ compExp(unpack(Lc,T,Cases,Deflt),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!
   chLine(Opts,OLc,Lc,C,C0),
   stkNxtLvl(Stk,Lvl),
   compUnpack(T,Lc,gencode:wrapExpr(Lvl),gencode:result,Cases,Deflt,gencode:compExp,Brks,Last,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compExp(tryX(Lc,B,E,H),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compTryX(Lc,B,ptrTipe,E,H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
-compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(tryX(Lc,B,E,H),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  compTryX(Lc,B,E,H,OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx).
+compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,Next,Last,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C1),!,
   defineLclVar(Lc,Nm,Tp,Opts,D,D1),
-  compExp(Val,Lc,Brks,notLast,Opts,L,L1,D1,D2,C1,[iSt(Nm)|C2],Stk,Stk1),
-  verify(gencode:bumpStk(Stk,Stk1),"expecting a single bump in stack"),
-  compExp(Exp,Lc,Brks,Last,Opts,L1,Lx,D2,Dx,C2,Cx,Stk,Stkx).
-compExp(error(Lc,Msg),_OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compAbort(Lc,Msg,Brks,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx). % no continuation after an error
-compExp(thrw(Lc,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
-  (is_member(("$try",Brker,Ok,Stkx),Brks) ->
+  compExp(Val,Lc,Brks,genssa:next(Nm),Opts,L,L1,D1,D2,C1,C2),
+  compExp(Exp,Lc,Brks,Next,Opts,L1,Lx,D2,Dx,C2,Cx).
+compExp(error(Lc,Msg),_OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  compAbort(Lc,Msg,Brks,Opts,L,Lx,D,Dx,C,Cx). % no continuation after an error
+compExp(thrw(Lc,E),OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-
+  (is_member(("$try",Brker,TryLvl,TryVr),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
-   compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1x,Stk,Stka),
-   call(Brker,Ok,Stka,Stkx,C1x,Cx);
+   compExp(E,Lc,Brks,ssagen:next(TryVr),Opts,L,Lx,D,Dx,C0,C1x),
+   call(Brker,TryLvl,TryVr,C1x,Cx);
    reportError("not in scope of try",[],Lc)).
-compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  stkNxtLvl(Stk,CLvl),
-  stkLvl(Stk,Lvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(CLvl,[iLbl(Fl,iBlock(Lvl,AC))|BC]))|Cx]),
+compExp(cnd(Lc,Cnd,A,B,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  defineTmpVar(Lc,VlVr,Tp,Opts,D,D0),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(VlVr,[iLbl(Fl,iBlock(AC))|BC]))|C1]),
   genLbl(L,Fl,L0),
   genLbl(L0,Ok,L1),
-  compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1,Stk,Stk0),
-  verify(Stk=Stk0,"conditions should not increase stack"),
-  compExp(A,Lc,Brks,Last,Opts,L2,L3,D1,D2,AC1,[iResult(Ok)],Stk,Stka),
-  compExp(B,Lc,Brks,Last,Opts,L3,Lx,D2,Dx,BC,[iResult(Ok)],Stk,Stkb),
-  mergeStkLvl(Stka,Stkb,Stkx,"conditional expression stack").
+  compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D0,D1,AC,AC1),
+  compExp(A,Lc,Brks,genssa:result(Ok,VlVr),Opts,L2,L3,D1,D2,AC1,[]),
+  compExp(B,Lc,Brks,genssa:result(Ok,VlVr),Opts,L3,L4,D2,D3,BC,[]),
+  call(Next,Lc,VlVr,Brks,Opts,L4,Lx,D3,Dx,C1,Cx).
 compExp(seqD(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compExp(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
@@ -821,17 +820,18 @@ genIntrinsic(Op,Tp,throwing,Lc,_Brks,As,Dx,Dx,Cx,Cx,"") :-
      H]
 */
 
-compTryX(Lc,B,_ResTp,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
+compTryX(Lc,B,idnt(E,ETp),H,OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
-  stkNxtLvl(Stk,RLvl),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(RLvl,[iLbl(Tr,iValof(RLvl,BC))|HC]))|Cz]),
-  compExp(B,Lc,[("$try",gencode:result,Tr,Stk)|Brks],notLast,
-	  Opts,L1,L2,D,D2,BC,[iResult(Ok)],Stk,Stka),
+  tipeOf(B,ResTp),
+  defineTmpVar(Lc,RsVr,ResTp,Opts,D,D0),
+  defineLclVar(Lc,E,ETp,Opts,D0,D1),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(RsVr,[iLbl(Tr,iValof(E,BC))|HC]))|Cz]),
+  compExp(B,Lc,[("$try",genssa:result,Tr,E)|Brks],genssa:result(Ok,RsVr),
+	  Opts,L1,L2,D1,D2,BC,[]),
   genLine(Opts,Lc,HC,H1),
-  defineLclVar(Lc,E,ETp,Opts,D2,D3,H1,[iSt(E)|H2]),
-  compExp(H,Lc,Brks,Last,Opts,L2,Lx,D3,Dx,H2,[iResult(Ok)],Stk,Stkb),
-  reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
+  compExp(H,Lc,Brks,genssa:next(RsVr),Opts,L2,Lx,D2,Dx,H2,[iResult(Ok,RsVr)]),
+  call(Next,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,Cz,Cx).
 
 compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   genLbl(L,Ok,L0),
@@ -847,7 +847,7 @@ compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 isCond(cnj(_,_,_)).
-isCond(cnd(_,_,_,_)).
+isCond(cnd(_,_,_,_,_)).
 isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
@@ -859,6 +859,7 @@ wrapAction(Lvl,C,iBlock(Lvl,C)).
 wrapExpr(Lvl,C,iValof(Lvl,C)).
 
 break(Lbl,iBreak(Lbl)).
+
 result(Lbl,iResult(Lbl)).
 
 compCase(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Last,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx,Stk,Stkx) :-

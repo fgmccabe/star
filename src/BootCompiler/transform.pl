@@ -469,7 +469,7 @@ liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(G,Gl,Q,Qx,Map,Opts,Ex,Exx) :-
   isGoal(G),!,
   liftGoal(G,Gl,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(cond(Lc,T,L,R,Tp),cnd(Lc,LT,LL,LR,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
@@ -753,7 +753,7 @@ liftGl(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftGl(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGl(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftGl(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
-liftGl(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftGl(cond(Lc,T,L,R,Tp),cnd(Lc,LT,LL,LR,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGl(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftGl(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftGl(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).

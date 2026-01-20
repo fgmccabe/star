@@ -531,7 +531,7 @@ compCond(ng(Lc,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
 compCond(ng(Lc,A),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCond(A,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C0,Cx,Stk,Stkx).
-compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compCond(cnd(Lc,T,A,B,_),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkLvl(Stk,Lvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock(Lvl,[iLbl(El,iBlock(Lvl,CA))|CB]))|Cx]),
   genLbl(L,El,L0),
@@ -540,8 +540,8 @@ compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compCond(A,Lc,Fail,Brks,normal,Opts,L2,L3,D1,D2,C0,[iBreak(Ok)],Stk0,Stka),
   compCond(B,Lc,Fail,Brks,normal,Opts,L3,Lx,D2,Dx,CB,[iBreak(Ok)],Stk,Stkb),
   mergeStkLvl(Stka,Stkb,Stkx,"conditional").
-compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
-  compCond(cnd(Lc,T,B,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
+compCond(cnd(Lc,T,A,B,Tp),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+  compCond(cnd(Lc,T,B,A,Tp),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx).
 compCond(mtch(Lc,P,E),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx,Stk,Stk) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,notLast,Opts,L,L3,D,D1,C0,C1,Stk,Stka),
@@ -731,7 +731,7 @@ compExp(thrw(Lc,E),OLc,Brks,_Last,Opts,L,Lx,D,Dx,C,Cx,Stk,none) :-
    compExp(E,Lc,Brks,notLast,Opts,L,Lx,D,Dx,C0,C1x,Stk,Stka),
    call(Brker,Ok,Stka,Stkx,C1x,Cx);
    reportError("not in scope of try",[],Lc)).
-compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(cnd(Lc,Cnd,A,B,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkNxtLvl(Stk,CLvl),
   stkLvl(Stk,Lvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(CLvl,[iLbl(Fl,iBlock(Lvl,AC))|BC]))|Cx]),
@@ -838,7 +838,7 @@ compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-
   reconcileStack(Stka,Stkb,Stkx,Cz,Cx),!.
 
 isCond(cnj(_,_,_)).
-isCond(cnd(_,_,_,_)).
+isCond(cnd(_,_,_,_,_)).
 isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
