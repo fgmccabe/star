@@ -11,7 +11,7 @@
 
 /* Generate the opcodes.h header file */
 
-char *templateFn = "opcodes.plate";
+char *templateFn = "ssa.opcodes.plate";
 char date[MAXLINE] = "";
 
 int getOptions(int argc, char **argv) {
@@ -32,7 +32,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static integer staropHash();
-static void insOp(ioPo out, char *mnem, int op, char *cmt);
+static void insOp(ioPo out, char *mnem, int op);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -73,10 +73,9 @@ int main(int argc, char **argv) {
 
     int Op = 0;
 
-#undef instruction
-#define instruction(M, A1, A2, Dl, Cmt) insOp(O_IO(typeBuff),#M,Op, Cmt); Op++;
+#define instr(M, Fmt) insOp(O_IO(typeBuff), #M, Op); Op++;
 
-#include "instructions.h"
+#include "ssaInstructions.h"
 
     integer tpLen;
     char *typeCode = getTextFromBuffer(typeBuff, &tpLen);
@@ -91,10 +90,10 @@ int main(int argc, char **argv) {
 
     char *sep = "";
 
-#undef instruction
-#define instruction(M, A1, A2, Dl, Cmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
+#undef instr
+#define instr(M, Fmt)  outMsg(O_IO(nameBuff), "%s\n      \"%s\"",sep,#M); sep = ",";
 
-#include "instructions.h"
+#include "ssaInstructions.h"
 
 #undef instruction
 
@@ -110,22 +109,34 @@ int main(int argc, char **argv) {
   }
 }
 
-void insOp(ioPo out, char *mnem, int op, char *cmt) {
-  outMsg(out, "    %s = %d,            // %s\n", mnem, op, cmt);
+void insOp(ioPo out, char *mnem, int op) {
+  outMsg(out, "    %s = %d,\n", mnem, op);
 }
 
-static integer opHash(char *mnem, int op, char *and1, char *and2) {
-  return hash61(((strhash(mnem) * 37 + op) * 39 + strhash(and1)) * 39 + strhash(and2));
+static integer opHash(char *mnem, int op, char *fmt) {
+  return hash61(((strhash(mnem) * 37 + op) * 39 + strhash(fmt)));
 }
 
 integer staropHash() {
   integer hash = 0;
   int Op = 0;
 
-#undef instruction
-#define instruction(M, A1, A2, Dl, Cmt) hash = hash61(hash*39+opHash(#M,Op,#A1,#A2)); Op++;
+#undef instr
+#define sym "s"
+#define lcl "v"
+#define lcls "V"
+#define lit "l"
+#define glb "g"
+#define art "a"
+#define i32 "i"
+#define Es "e"
+#define bLk "k"
+#define lVl "b"
+#define lVls "B"
+#define none ""
+#define instr(M, Fmt) hash = hash61(hash*39+opHash(#M,Op,Fmt)); Op++;
 
-#include "instructions.h"
+#include "ssaInstructions.h"
 
   return hash;
 }

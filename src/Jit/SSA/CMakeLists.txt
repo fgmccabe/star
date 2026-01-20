@@ -13,8 +13,7 @@ include_directories("./Headers"
         "../Analysis/Headers")
 
 set(SSA_HEADER_FILES
-        Headers/ssaInstructions.h
-        Headers/ssaops.h
+        ../../Headers/ssaInstructions.h
         Headers/ssa.h
         Headers/ssaEmit.h
         ../Analysis/Headers/analyse.h

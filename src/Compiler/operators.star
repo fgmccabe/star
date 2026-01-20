@@ -351,7 +351,7 @@ star.compiler.operators{
     | ".+." => .true  /* count of number of bits */
     | "..<" => .true  /* range increasing iterator expression */
     | "..>" => .true  /* range decreasing iterator expression */
-    | "./" => .true  /* dfa expression */
+    | "./" => .true  /* regexp expression */
     | ".<." => .true  /* set membership */
     | ".<<." => .true  /* left shift */
     | ".=" => .true  /* pattern match */
@@ -362,7 +362,7 @@ star.compiler.operators{
     | ".}" => .true  /* recursive braces */
     | ".~." => .true  /* bitwise 1's complement */
     | "/" => .true  /* division */
-    | "/." => .true  /* dfa expression */
+    | "/." => .true  /* regexp expression */
     | "//" => .true  /* map over */
     | "///" => .true  /* indexed map over */
     | "/\\" => .true  /* intersection */

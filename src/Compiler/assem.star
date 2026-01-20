@@ -112,6 +112,8 @@ star.compiler.assem{
 
   public assemLbl ~> string.
 
+  public varNm ~> string.
+
   public assem:(codeSegment) => data.
   assem(Df) => case Df in {
     | .func(Nm,H,Sig,Ags,Lcs,Ins) => valof{
@@ -617,8 +619,10 @@ star.compiler.assem{
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
-  findLocal:(string,map[string,integer])=>option[integer].
-  findLocal(Nm,Lcs) => Lcs[Nm].
+  findLocal:(string,map[string,integer])=>integer.
+  findLocal(Nm,Lcs) => (try ? Lcs[Nm] catch { _ => unreachable}).
+
+  findLocals(Vrs,Lcs) => (Vrs//(V)=>.intgr(findLocal(V,Lcs))).
 
   findLevel:(cons[lblLevel],assemLbl) => option[integer].
   findLevel(Lbs,Lb) => let{.

@@ -295,7 +295,7 @@
   final('.+.',".+.").	 /* count of number of bits */
   final('..<',"..<").	 /* range increasing iterator expression */
   final('..>',"..>").	 /* range decreasing iterator expression */
-  final('./',"./").	 /* dfa expression */
+  final('./',"./").	 /* regexp expression */
   final('.<.',".<.").	 /* set membership */
   final('.<<.',".<<.").	 /* left shift */
   final('.=',".=").	 /* pattern match */
@@ -306,7 +306,7 @@
   final('.}',".}").	 /* recursive braces */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('/',"/").	 /* division */
-  final('/.',"/.").	 /* dfa expression */
+  final('/.',"/.").	 /* regexp expression */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('/\\',"/\\").	 /* intersection */

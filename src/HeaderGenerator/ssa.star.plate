@@ -1,4 +1,4 @@
-star.compiler.assem{
+star.compiler.ssa{
   -- Automatically Generated Assembler -- Do NOT Edit
   import star.
   import star.multi.
@@ -13,13 +13,13 @@ star.compiler.assem{
   import star.compiler.encode.
   import star.compiler.ltipe.
 
-  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[(string,data)],multi[assemOp]) |
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[(string,data)],multi[insOp]) |
     .struct(termLbl,tipe,integer) |
     .tipe(tipe,typeRule,map[termLbl,integer]).
 
-  public assemOp ::=
+  public insOp ::=
 #(OpCodes)
-    | .iLbl(string, assemOp).
+    | .iLbl(string, insOp).
 
   public assemLbl ~> string.
 
@@ -33,8 +33,8 @@ star.compiler.assem{
       (Lt1,tpIx) = findLit(Lt0,funSig);
       LclMap = declareArgs(Ags,declareLocals(Lcs,{}));
       (Code,_,Lts) = assemBlock(Ins,[],0,[],Lt1,LclMap);
-       valis mkCons("func",
-              [.symb(Nm),encPolicy(H),.intgr(tpIx),.intgr(stackHwm(Ins)),
+       valis mkCons("code",
+              [.symb(Nm),encPolicy(H),.intgr(tpIx),
               .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
     	  mkTpl(sortVInfo(varInfos(Ags,LclMap)++varInfos(Lcs,LclMap)))])
     }
@@ -70,7 +70,7 @@ star.compiler.assem{
 
   lblLevel ~> option[assemLbl].
 
-  private assemBlock:(multi[assemOp],multi[data],integer,
+  private assemBlock:(multi[insOp],multi[data],integer,
                       cons[lblLevel],map[data,integer],map[string,integer]) =>
                                         (multi[data],integer,map[data,integer]).
   assemBlock([],Code,Pc,Lbls,Lts,_Lcx) => (Code,Pc,Lts).
@@ -79,7 +79,7 @@ star.compiler.assem{
     valis assemBlock(Ins,SoFar++Code,Pc1,Lbs,Lt0,Lcx)
   }
 
-  private mnem:(assemOp,integer,cons[lblLevel],map[data,integer],map[string,integer]) =>
+  private mnem:(insOp,integer,cons[lblLevel],map[data,integer],map[string,integer]) =>
     (multi[data],integer,map[data,integer]).
   mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs).
 #(Mnem)
@@ -88,30 +88,20 @@ star.compiler.assem{
     valis ([],Pc,Lts)
   }.
 
-  private stackHwm:(multi[assemOp]) => integer.
-  stackHwm(Code) where (_,HWM) .= stkHwm(Code,0,0) => HWM.
-
-  private stkHwm:(multi[assemOp],integer,integer) => (integer,integer).
-  stkHwm([],H,HWM) => (H,HWM).
-  stkHwm([.iLbl(_,I),..Ins],CH,Hwm) => valof{
-    (CH1,H1) = stkHwm([I],CH,Hwm);
-    valis stkHwm(Ins,CH1,H1)
-  }
-#(stackHwm)
-
   findLit:(map[data,integer],data) => (map[data,integer],integer).
   findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
   findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
 
-  findLocal:(string,map[string,integer])=>integer.
-  findLocal(Nm,Lcs) => (try ? Lcs[Nm] catch { _ => unreachable}).
+  findLocal:(string,map[string,integer])=> data.
+  findLocal(Nm,Lcs) => .intgr(try ? Lcs[Nm] catch { _ => unreachable }).
 
-  findLocals(Vrs,Lcs) => (Vrs//(V)=>.intgr(findLocal(V,Lcs))).
+  findLocals:(cons[string],map[string,integer]) => cons[data].
+  findLocals(Vrs,Lcs) => (Vrs//((V)=> findLocal(V,Lcs))).
 
-  findLevel:(cons[lblLevel],assemLbl) => option[integer].
+  findLevel:(cons[lblLevel],assemLbl) => integer.
   findLevel(Lbs,Lb) => let{.
-    findLvl([],_) => .none.
-    findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? .some(Lvl) || findLvl(Ls,Lvl)).
+    findLvl([],_) => unreachable.
+    findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? Lvl || findLvl(Ls,Lvl)).
     findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
   .} in findLvl(Lbs,0).
 
@@ -128,21 +118,21 @@ star.compiler.assem{
     disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
   }
 
-  public implementation display[assemOp] => {
+  public implementation display[insOp] => {
     disp(Op) => showIns(Op,[]).
   }
 
-  showMnem:(multi[assemOp]) => string.
+  showMnem:(multi[insOp]) => string.
   showMnem(Ops) => showBlock(Ops,[0]).
 
-  showBlock:(multi[assemOp],cons[integer]) => string.
+  showBlock:(multi[insOp],cons[integer]) => string.
   showBlock(Ins,Pc) => interleave(showCode(Ins,[0,..Pc]),"\n")*.
 
-  showCode:(multi[assemOp],cons[integer]) => cons[string].
+  showCode:(multi[insOp],cons[integer]) => cons[string].
   showCode([],_) => [].
   showCode([Ins,..Cde],Pc) => ["\#(showPc(Pc))\: \#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
 
-  showIns:(assemOp,cons[integer]) => string.
+  showIns:(insOp,cons[integer]) => string.
   showIns(.iLbl(Lb,I),Pc) => "\#(Lb):  \#(showIns(I,Pc))".
 #(Show)
 
