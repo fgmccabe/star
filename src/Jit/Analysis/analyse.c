@@ -331,14 +331,12 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       }
       case FAdd:
       case FSub:
-      case FMul: {
+      case FMul:
+      case FDiv:
+      case FMod:{
         retireStackVar(&scope, pc);
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case FDiv:
-      case FMod: {
         continue;
       }
       case FAbs: {

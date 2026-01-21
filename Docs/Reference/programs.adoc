@@ -165,7 +165,7 @@ be quantified.
 .Type Annotation
 [source,star]
 ----
-typeAnnotation >> (V:T) --> variable>>B [`:`], type>>T
+typeAnnotation >> (V:T) --> variable>>V [`:`], type>>T
 ----
 
 For example, a generic function `consLength` that takes a

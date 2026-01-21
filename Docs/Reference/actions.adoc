@@ -14,7 +14,6 @@ evaluation of expressions.
 
 (((action types)))
 (((action!types)))
-
 The <<procedureType>> captures the intended shape of an action: an action is
 performed for effect and does not return any value. However, actions _may_
 return a value if they are syntactically part of a <<valofExpression>> -- or
@@ -79,8 +78,7 @@ An action block consists of a sequence of actions, enclosed in braces
 blockAction --> ["{"], action * [";"], ["}"].
 ----
 
-The empty action block -- `{}` -- is equivalent to the
-<<nullAction>>.
+The empty action block -- `{}` -- is equivalent to the <<nullAction>>.
 
 [#callAction]
 === Call Action
@@ -89,6 +87,7 @@ The empty action block -- `{}` -- is equivalent to the
 (((action,call)))
 The call action denotes calling a function; typically
 also expressed in terms of actions. 
+
 [#callActionFig]
 .Call Action
 [source,star]
@@ -175,15 +174,15 @@ throwAction --> ["throw"], expression.
 
 When a `throw` action is performed, its expression is evaluated and that value
 is raised as an exception. The action must be syntactically within either a
-<<tryCatchAction>>, a <<tryCatch>> expression or the enclosing function must have
+<<tryCatchAction>>, a <<tryCatch>> expression or the enclosing function or procedure must have
 been declared as throwing a value of the appropriate type.
 
-NOTE: If evaluating the expression that denotes the exception to raise
-itself raises an exception, that is a fatal error and causes overall
-execution of the program to stop.
+NOTE: If evaluating the expression that denotes the exception to raise itself
+raises an exception, that is a fatal error and causes overall execution of the
+program to stop.
 
-NOTE: There is no search for a handling form: every `throw`
-must be lexically accounted for.
+NOTE: There is no runtime search for a handling form: every `throw` must be lexically
+accounted for.
 
 [#labeledAction]
 === Labeled Action
@@ -502,50 +501,6 @@ the type of `E` is `integer`; which is consistent with the action
 throw 10
 ----
 action.
-
-[#valofExpression]
-=== Valof Expression
-
-A `valof` expression allows an expression's value to be computed as a result of
-one or more actions.
-
-[#valofExpressionFig]
-.Valof Expression
-[source,star]
-----
-expression --> ["valof"], action.
-----
-
-The `valof` expression is applied to an action. The
-effect of this is to perform the action and return its
-value as the value of the `valof` expression.
-
-At least one of the actions executed within the action
-must be a <<valisAction>>. If the action completes with no
-`valis` action being executed, execution of the entire program
-halts.
-
-[#collectExpression]
-=== Collect Expression
-
-A `collect` expression allows a expression's value to be computed as a result of
-one or more actions.
-
-[#collectExpressionFig]
-.Collect Expression
-[source,star]
-----
-expression --> ["collect"], action.
-----
-
-The `collect` expression is applied to an action. The
-effect of this is to perform the action and to return a collection of elements -- one for each time the <<elemisAction>> is performed.
-
-If no `elemis` actions are performed, the result is an empty collection.
-
-The collection is built in terms of the `build` standard contract (see
-<<buildContract>>) -- the same contract as is used for comprehension
-expressions.
 
 
 
