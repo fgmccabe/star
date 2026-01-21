@@ -9,21 +9,6 @@
 #include "code.h"
 #include "engineOptions.h"
 
-typedef struct code_seg_ {
-  int32 segNo;
-  int32 start; // Starting pc
-  int32 end; // ending pc
-  segLinkPo incoming;
-  segLinkPo altLinks; // used when there is more than one outgoing
-  codeSegPo fallthrough; // Fall through to
-  codeSegPo next;
-} CodeSegment;
-
-typedef struct seg_link_ {
-  codeSegPo seg;
-  segLinkPo next;
-} SegLinkRecord, *segLinkPo;
-
 typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
   VarKind kind;
@@ -42,14 +27,7 @@ typedef struct block_scope_ {
   varDescPo phiVar;
 } ScopeBlock;
 
-void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt);
-codeSegPo findSeg(codeSegPo root, int32 pc);
-codeSegPo splitAtPC(codeSegPo root, int32 pc);
-codeSegPo splitNextPC(analysisPo analysis, int32 pc, codeSegPo alt);
-
-codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg);
-
-void linkIncoming(codeSegPo tgt, codeSegPo incoming);
+void initAnalysis();
 
 hashPo newVarTable();
 hashPo newVarIndex();
