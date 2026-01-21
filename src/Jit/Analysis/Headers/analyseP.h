@@ -65,9 +65,7 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo);
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);
 
-#ifdef TRACEJIT
 void checkIndex(hashPo index);
-#endif
 
 void retireStackVar(scopePo scope, int32 pc);
 void retireScopeStack(scopePo scope, int32 pc);
