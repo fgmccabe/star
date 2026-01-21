@@ -1,21 +1,21 @@
-= Collections
-
 [#collection]
+= Collection Types
+
 This chapter defines the standard collection types. Note that many of
 the functions that are implemented over collection types are exposed
 via contract implementations.
 
 == Collection Types
-
+(((type,collection)))
 There are three basic collection types supported: `cons` lists,
 the `map` type and the `set` type.
 
 === The Cons List
-
+(((type,cons type)))(((cons type)))
 The `cons` type is defined as though by the type definition:
 
 [#consType]
-.The `cons` List Type}
+.The `cons` List Type
 [source,star]
 ----
 all e ~~ cons[e] ::= .nil | .cons(e,cons[e]).
@@ -35,6 +35,7 @@ In addition, the `coercion` contract is implemented from
 [#mapType]
 === The Map Type
 
+(((type,map type)))(((map type)))
 The `map` type denotes a set of key/value pairs. Its type is only
 partially exposed:
 
