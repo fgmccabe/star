@@ -40,7 +40,6 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
       if (analyseMethod(mtd, &analysis) == Ok){
         showVarTable(logFile, analysis.index);
         checkIndex(analysis.index);
-        showSegmented(logFile, mtd, analysis.segments);
         outMsg(logFile, "Safe points: ");
         showSet(logFile, analysis.safes);
         outMsg(logFile, "\n%_");

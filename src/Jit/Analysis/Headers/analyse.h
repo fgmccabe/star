@@ -11,8 +11,6 @@
 #include "set.h"
 #include "starOptions.h"
 
-typedef struct code_seg_ *codeSegPo;
-typedef struct seg_link_ *segLinkPo;
 typedef struct var_description_ *varDescPo;
 
 extern tracingLevel traceSSA;
@@ -20,7 +18,6 @@ extern tracingLevel traceSSA;
 extern logical enableSSA;
 
 typedef struct analysis_ {
-  codeSegPo segments;
   hashPo vars;
   hashPo index;
   setPo safes;
@@ -28,9 +25,6 @@ typedef struct analysis_ {
 
 retCode analyseMethod(methodPo mtd, analysisPo results);
 void tearDownAnalysis(analysisPo results);
-
-void tearDownSegs(codeSegPo segs);
-void showSegmented(ioPo out, methodPo mtd, codeSegPo root);
 
 typedef enum {
   argument,
