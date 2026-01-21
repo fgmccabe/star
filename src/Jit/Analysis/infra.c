@@ -87,8 +87,6 @@ retCode showVarTable(ioPo out,hashPo index){
   return processHashTable(showVarIndex, index, out);
 }
 
-#ifdef TRACEJIT
-
 static retCode checkVarIndex(void *n, void *r, void *c) {
   varDescPo var = (varDescPo) r;
   int32 index = (int32) (integer) n;
@@ -100,7 +98,6 @@ static retCode checkVarIndex(void *n, void *r, void *c) {
 void checkIndex(hashPo index) {
   assert(processHashTable(checkVarIndex,index,Null)==Ok);
 }
-#endif
 
 static segLinkPo newLink(codeSegPo seg, segLinkPo rest);
 static retCode showLinks(ioPo out, char *msg, segLinkPo link);
