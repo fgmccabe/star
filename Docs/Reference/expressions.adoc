@@ -28,6 +28,7 @@ expression --> lambdaProcedure.
 expression --> thunkExpression.
 expression --> letExpression.
 expression --> valofExpression.
+expression --> collectExpression.
 expression --> typedExpression.
 expression --> sequenceExpression.
 expression --> rangeExpression.
@@ -1304,6 +1305,53 @@ must reliably signal whether or not a value exists.
 
 NOTE: The `option` type serves as a normal replacement for `null` that one sees
 in languages like Java.
+
+[#valofExpression]
+=== Valof Expression
+
+A `valof` expression allows an expression's value to be computed as a result of
+one or more actions.
+
+[#valofExpressionFig]
+.Valof Expression
+[source,star]
+----
+valofExpression --> ["valof"], action.
+----
+
+The `valof` expression uses an action to determine the value of the
+expression. The effect of this is to perform the action and return its value as
+the value of the `valof` expression.
+
+At least one of the actions executed within the action must be a
+<<valisAction>>. If the action completes with no `valis` action being executed,
+execution of the entire program halts.
+
+[#collectExpression]
+=== Collect Expression
+
+A `collect` expression allows a expression's value to be computed as a result of
+one or more actions.
+
+[#collectExpressionFig]
+.Collect Expression
+[source,star]
+----
+collectExpression --> ["collect"], action.
+----
+
+The `collect` expression performs the action and returns a collection of elements -- one for each time
+the <<elemisAction>> is performed within the action.
+
+If no `elemis` actions are performed, the result is an empty collection.
+
+The collection is built in terms of the `build` standard contract (see
+<<buildContract>>) -- the same contract as is used for comprehension
+expressions.
+
+NOTE: The `collect` expression does not have enough structure to fully determine
+the type of the resulting collection. Therefore, it may be necessary to use a
+<<typeAnnotation>> to constrain the result type.
 
 == Typed Expressions
 

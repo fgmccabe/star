@@ -211,8 +211,8 @@ star.compiler{
   addSpec:(pkgSpec,termRepo) => termRepo.
   addSpec(Spec,R) => addSigToRepo(R,Spec.pkg,(Spec::data)::string).
 
-  processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog) => ().
-  processPkgs(Pks,Repo,Cat) => valof{
+  processPkgs:(cons[(pkg,cons[pkg])],termRepo,catalog){}.
+  processPkgs(Pks,Repo,Cat){
     Repp = ref Repo;
 
     pkgLoop{
@@ -228,11 +228,10 @@ star.compiler{
       }
     };
     flushRepo(Repp!);
-    valis ()
   }
 
-  forceProcessPkgs:(cons[pkg],termRepo,catalog) => ().
-  forceProcessPkgs(Pks,Repo,Cat) => valof{
+  forceProcessPkgs:(cons[pkg],termRepo,catalog){}.
+  forceProcessPkgs(Pks,Repo,Cat){
     Repp := Repo;
     pkgLoop{
       for P in Pks do{
@@ -244,6 +243,5 @@ star.compiler{
       }
     };
     flushRepo(Repp!);
-    valis ()
   }
 }
