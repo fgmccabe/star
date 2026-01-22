@@ -175,8 +175,11 @@ retCode postamble(assemCtxPo ctx);
 
 void adc_(uint1 wide, armReg rd, armReg s1, armReg s2, assemCtxPo ctx);
 #define adc(rd, s1, s2) adc_(1, rd, s1, s2,ctx)
+#define adcw(rd, s1, s2) adc_(0, rd, s1, s2,ctx)
+
 void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 #define adcs(rd, s1, s2) adcs_(1, rd, s1, s2,ctx)
+#define adcsw(rd, s1, s2) adcs_(0, rd, s1, s2,ctx)
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define add(rd, s1, s2) do{ FlexOp s=s2; add_(1, rd, s1, s, ctx); } while(False)
@@ -371,6 +374,7 @@ void ldlar_(uint1 w, armReg Rt, armReg Rn, assemCtxPo ctx);
 
 void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 #define ldp(Rt, Rt2, S2) do{FlexOp s=S2;  ldp_(1, Rt, Rt2, s, ctx); } while(False)
+#define ldpw(Rt, Rt2, S2) ldp_(0, Rt, Rt2, (FlexOp)S2, ctx);
 
 void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 #define ldpsw(Rt, Rt2, S2) do{FlexOp s=S2;  ldpsw_(Rt, Rt2, s, ctx); } while(False)
