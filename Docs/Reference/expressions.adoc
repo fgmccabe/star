@@ -1418,7 +1418,7 @@ that of another.  For example, coercing a `float` value to an `integer`
 value. In general, type coercions have the potential to change the value (for
 example, by stripping any fractional part of the value) and/or fail.
 
-Type coercion is supported by a special `coercion` contract:
+Type coercion is supported by a special `coercion` contract (see <<coercionContract>>):
 
 [source,star]
 ----
@@ -1447,7 +1447,9 @@ which has the effect of declaring that the expression has type `integer` and the
 `_coerce` function is an overloaded function that references a type-specific
 implementation -- based on the source type of `X` and `integer`.
 
-NOTE: Note that if the `e` type in the implementation is `void` then the type checker verifies that no exception is possible, and uses of `::` do not need to be enclosed in an exception handling context.
+NOTE: Note that if the `e` type in the implementation is `void` then the type
+checker verifies that no exception is possible, and uses of `::` do not need to
+be enclosed in an exception handling context.
 
 Not all coercions can fail, for example
 [source,star]
