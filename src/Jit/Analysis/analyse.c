@@ -19,11 +19,10 @@ tracingLevel traceSSA = noTracing;
 logical enableSSA = False;
 
 static logical isLastPC(scopePo scope, int32 pc);
-varDescPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
-varDescPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt);
+scopePo checkScope(scopePo scope, int32 tgt);
 
 retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit,
-                   varDescPo phiVar) {
+                     varDescPo phiVar) {
   ScopeBlock scope = {
     .start = start, .limit = limit, .parent = parent, .stack = Null, .phiVar = phiVar
   };
@@ -133,16 +132,21 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         continue;
       }
       case Loop: {
-        varDescPo loopStack = checkLoop(analysis, &scope, pc, pc + code[pc].alt + 1);
-        while (scope.stack!=Null && scope.stack!=loopStack)
-          retireStackVar(&scope, pc);
-
+        scopePo loopScope = checkScope(&scope, pc + code[pc].alt + 1);
+        scopePo thisScope = &scope;
+        while (thisScope != loopScope && thisScope != Null) {
+          retireScopeStack(thisScope, pc);
+          thisScope = thisScope->parent;
+        }
         continue;
       }
       case Break: {
-        varDescPo breakStack = checkBreak(analysis, &scope, pc, pc + code[pc].alt + 1);
-        while (scope.stack!=Null && scope.stack!=breakStack)
-          retireStackVar(&scope, pc);
+        scopePo breakScope = checkScope(&scope, pc + code[pc].alt + 1)->parent;
+        scopePo thisScope = &scope;
+        while (thisScope != breakScope && thisScope != Null) {
+          retireScopeStack(thisScope, pc);
+          thisScope = thisScope->parent;
+        }
         continue;
       }
       case Result: {
@@ -333,7 +337,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case FSub:
       case FMul:
       case FDiv:
-      case FMod:{
+      case FMod: {
         retireStackVar(&scope, pc);
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
@@ -379,20 +383,10 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
   return ret;
 }
 
-varDescPo checkBreak(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
+scopePo checkScope(scopePo scope, int32 tgt) {
   while (scope != Null) {
     if (tgt == scope->start) {
-      return scope->stack;
-    }
-    scope = scope->parent;
-  }
-  return Null;
-}
-
-varDescPo checkLoop(analysisPo analysis, scopePo scope, int32 pc, int32 tgt) {
-  while (scope != Null) {
-    if (tgt == scope->start) {
-      return scope->stack;
+      return scope;
     }
     scope = scope->parent;
   }
