@@ -1274,10 +1274,13 @@ of one type to another.
 .The Standard `coercion` Contract
 [source,star]
 ----
-public contract all s,d ~~ coercion[s,d] ::= {
-  _coerce:(s)=>option[d]
+public contract all s,d,e ~~ coercion[s,d->>e] ::= {
+  _coerce:(s)=>d throws e
 }.
 ----
+
+The `coercion` contract involves three types: the source type, the result type
+and the type of any exceptions that may be thrown.
 
 === The `_coerce` Function
 
@@ -1288,11 +1291,10 @@ of one type to another.
 .The `_coerce` Function
 [source,star]
 ----
-_coerce : all s,d ~~ coercion[s,d] |= (s) => option[d].
+_coerce : all s,d,e ~~ coercion[s,d] |= (s) => d throws e.
 ----
 
-The `_coerce` function is defined to return an optional values -- because
-coercion is not always guaranteed to work.
+The `_coerce` function may throw an exception -- if the coercion can fail.
 
 [NOTE]
 ****
@@ -1304,3 +1306,18 @@ foo :: type
 amount to calls to the appropriate implementation of the
 `_coerce` function.
 ****
+
+[NOTE]
+****
+If the coercion is always guaranteed to succeed, then the `implementation`
+declaration should mark the dependent type as `void`. For example, it is always possible to generate a `cons` list of `char` values from a `string`:
+[source,star]
+----
+implementation coercion[string,cons[char]->>void] => {
+  _coerce(S) => _explode(S)
+}
+----
+The use of `void` here signals that no exception will be raised in this coercion.
+****
+
+
