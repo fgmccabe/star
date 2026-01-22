@@ -45,12 +45,12 @@ is equivalent to the <<guardedPattern>>:
 
 [source,star]
 ----
-(X,Y,X1) where X==X1
+(X,Y,X1 where X==X1)
 ----
 
 The `==` predicate is defined in the standard `equality` contract (see
-<<equalityContract>>); and therefore, the call and the pattern may not be valid
-if `equality` is not implemented for the type of `X`.
+<<equalityContract>>); and therefore, the pattern may not be valid if `equality`
+is not implemented for the type of `X`.
 
 === Scope of Pattern Variables
 (((variables,scope of)))
@@ -74,7 +74,7 @@ N*fact(N-1)
 The scope extension of a pattern depends on where the pattern occurs. However,
 as a general rule, variables defined in a pattern extend outward and to the
 right of where the pattern variable occurs -- so long as the pattern
-necessitates the extension: i.e., control flow _must_ flow from the pattern
+necessitates the extension: i.e., control _must_ flow from the pattern
 variable throughout the scope extension.
 
 For example, if the variable pattern is part of a constructor pattern, then the

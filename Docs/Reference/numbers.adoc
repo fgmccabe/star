@@ -44,6 +44,8 @@ lose 2 bits of precision in comparison.
 == Implemented Arithmetic Contracts
 (((contract, implemented for `integer` and `float`)))
 
+In addition to the standard contracts for `equality`, 
+
 === Arithmetic for Integers
 
 The `arith` contract is implemented for `integer`
@@ -441,4 +443,247 @@ X**3.0
 ----
 
 denotes the cube of `X`.
+
+== Standard Arithmetic Contracts
+
+(((contracts,standard,arithmetic))) The contracts in this section are expecially
+oriented towards arithmetic operations. We do not generally expect them to be
+implemented for non-numeric types.
+
+[#arithContract]
+=== The `arith` Contract
+
+The `arith` contract encodes the basic -- so-called calculator --
+functions.
+
+[#arithContractProg]
+.The Standard `arith` Contract
+[source,star]
+----
+public contract all x ~~ arith[x] ::= {
+  (+): (x,x)=>x.
+  (-): (x,x)=>x.
+  __minus: (x)=>x.
+  zero: x.
+  (*): (x,x)=>x.
+  (/): (x,x)=>x throws exception.
+  (%): (x,x)=>x throws exception.
+  one:x.
+}.
+----
+
+==== The `+` Function
+
+The `+` function defines the addition of two elements:
+
+[#plusFunctionProg]
+.The `+` Function
+[source,star]
+----
+(+) : all t ~~ arith[t] |= (t,t) => t.
+----
+
+NOTEL The `(+)` function takes two arguments of the same type and
+returns a value of the same type as its arguments.
+
+In fact, it is _this_ specification that ensures that there is no
+implicit coercion between different kinds of numeric value.
+
+==== The `-` Function
+
+The `-` function defines the subtraction of one element from another.
+
+[#minusFunctionProg]
+.The `-` Function
+[source,star]
+----
+(-) : all t ~~ arith[t] |= (t,t) => t.
+----
+
+NOTE: The `(-)` is a binary function. A separate function -- `_uminus` -- is
+used to denote unary negation.
+
+==== The `_uminus` Function
+
+The `_uminus` function defines the unary negation of a number.
+
+[#uminusFunctionProg]
+.The `_uminus` Function
+[source,star]
+----
+_uminus : all t ~~ arith[t] |= (t) => t.
+----
+
+NOTE:  The `_uminus` function is automatically substituted for
+occurrences of unary minus in source programs. There is rarely a need
+to explicitly refer to this function.
+
+==== The `zero` Value
+
+The `zero` value denotes the 0 value of the arithmetic type.
+
+[#zeroProg]
+.The `zero` Value
+[source,star]
+----
+zero : all t ~~ arith[t] |= t. 
+----
+
+NOTE: The `zero` value is particularly useful when defining arithmetic
+functions that should be neutral with respect to the actual type of
+numeric value. Literal decimal numbers have a fixed type --
+`integer`.
+
+==== The `*` Function
+
+The `*` function defines the multiplication of one element by another.
+
+[#timesFunctionProg]
+.The `*` Function
+[source,star]
+----
+(*) : all t ~~ arith[t] |= (t,t) => t.
+----
+
+==== The `/` Function
+
+The `/` function defines the division of one element by another.
+
+[#divideFunctionProg]
+.The `/` Function
+[source,star]
+----
+(/) : all t ~~ arith[t] |= (t,t) => t throws exception.
+----
+
+NOTE: The `/` function (and the `%` function) are defined to throw an
+`exception` if the divisor is zero.
+
+==== The `%` Function
+
+The `%` function defines the modulus of one element with respect
+to another.
+
+[#modFunctionProg]
+.The `%` Function
+[source,star]
+----
+(%) : all t ~~ arith[t] |= (t,t) => t throws exception.
+----
+
+====  The `one` Value
+
+The `one` value denotes the 1 value of the arithmetic type; i.e.,
+the _unit_ of multiplication.
+
+[#oneProg]
+.The `one` Value
+[source,star]
+----
+one : all t ~~ arith[t] |= t. 
+----
+
+NOTE: Like the `zero`, the `one` value is particularly useful when
+defining arithmetic functions that should be neutral with respect to
+the actual type of numeric value.
+
+[#bitArithmeticContract]
+=== The `bits` Contract
+
+The `bits` contract encodes a suite of bitwise arithmetic.
+
+[#bitsContractProg]
+.The Standard `bits` Contract
+[source,star]
+----
+public contract all x ~~ bits[x] ::= {
+  (.|.):(x,x)=>x.
+  (.&.):(x,x)=>x.
+  (.^.):(x,x)=>x.
+  (.~.):(x)=>x.
+}
+----
+
+The various operations focus on a bitstring interpretation of numeric
+values.
+
+The `bits` contract has been implemented for ``integer``s.
+
+==== The `.|.` bitwise or Function
+
+The `.|.` function embodies bitwise union:
+
+[#bitorFunctionProg]
+.The `.|.` Function
+[source,star]
+----
+(.|.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+==== The `.&.` bitwise and Function
+
+The `.&.` function embodies bitwise union:
+
+[#bitandFunctionProg]
+.The `.&.` Function
+[source,star]
+----
+(.&.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+==== The `.^.` bitwise exclusive or Function
+
+The `.^.` function embodies bitwise union:
+
+[#bitxorFunctionProg]
+.The `.^.` Function
+[source,star]
+----
+(.^.) : all x ~~ bits[x] |= (x,x) => x.
+----
+
+==== The `.~.` bitwise negation Function
+
+The `.~.` function embodies unary negation:
+
+[#bitnotFunctionProg]
+.The `.~.` Function
+[source,star]
+----
+(.~.) : all x ~~ bits[x] |= (x) => x.
+----
+
+[#pwrContract]
+=== The `pwr` contract
+
+The `pwr` contract defines a single function: `**` for exponentiation.
+
+[#pwrContractProg]
+.The `pwr` Contract
+[source,star]
+----
+public contract all e ~~ pwr[e] ::= {
+  (**) : (e,e)=>e
+}
+----
+
+There is a single standard implementation of `pwr` for ``float``ing point values.
+
+==== The `**` Function
+
+The `**` function denotes the exponentiation function:
+
+[#exponentFunctionProg]
+.The `**` Function
+[source,star]
+----
+(**) : all x ~~ pwr[x] |= (x,x) => x.
+----
+
+NOTE: The `**` symbol is an infix operator, so a normal use would look like:
+[source,star]
+----
+X**2.3
+----
+
 
