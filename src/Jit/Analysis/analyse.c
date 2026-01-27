@@ -401,7 +401,7 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
   initAnalysis();
 
   hashPo vars = newVarTable();
-  hashPo index = newVarIndex();
+  treePo index = newVarIndex();
   setPo safes = newSet();
 
   results->vars = vars;

@@ -10,110 +10,146 @@
 #include "analyseP.h"
 #include "assert.h"
 #include "codeP.h"
-#include "debugP.h"
 
 static poolPo varPool = Null;
 
-void initAnalysis() {
-  if (varPool == Null) {
+void initAnalysis()
+{
+  if (varPool == Null){
     varPool = newPool(sizeof(VarDescRecord), 1024);
   }
 }
 
-void tearDownAnalysis(AnalysisRecord *results) {
+void tearDownAnalysis(AnalysisRecord* results)
+{
   deleteSet(results->safes);
   eraseHash(results->vars);
-  eraseHash(results->index);
+  eraseTree(results->index);
 }
 
-static char *varType(VarKind kind);
+static char* varType(VarKind kind);
 
-static retCode showVar(ioPo out, varDescPo var) {
+static retCode showVar(ioPo out, varDescPo var)
+{
   return outMsg(out, "%d: %s [%d .. %d]\n", var->varNo, varType(var->kind), var->start, var->end);
 }
 
-static retCode showVarIndex(void *n, void *r, void *c) {
-  ioPo out = (ioPo) c;
-  varDescPo var = (varDescPo) r;
-  int32 index = (int32) (integer) n;
+static retCode showVrIndex(void* n, void* r, void* c)
+{
+  ioPo out = (ioPo)c;
+  varDescPo var = (varDescPo)r;
+  int32 index = (int32)(integer)n;
 
   outMsg(out, "%d -> ", index);
   return showVar(out, var);
 }
 
-retCode showVarTable(ioPo out, hashPo index) {
-  outMsg(out, "Var table:\n");
-  return processHashTable(showVarIndex, index, out);
+static retCode showVr(void* n, void* r, void* c)
+{
+  varDescPo var = (varDescPo)r;
+  ioPo out = (ioPo)c;
+
+  return showVar(out, var);
 }
 
-static retCode checkVarIndex(void *n, void *r, void *c) {
-  varDescPo var = (varDescPo) r;
-  int32 index = (int32) (integer) n;
+retCode showVarIndex(ioPo out, analysisPo analysis)
+{
+  return processTree(showVrIndex, analysis->index, out);
+}
+
+static retCode showVars(ioPo out, analysisPo analysis)
+{
+  return processHashTable(showVr, analysis->vars, (void*)out);
+}
+
+void showAnalysis(ioPo out, analysisPo analysis)
+{
+  outMsg(out, "Analysis:\n");
+  outMsg(out, "  vars:\n");
+  showVars(out, analysis);
+  outMsg(out, "  index:\n");
+  showVarIndex(out, analysis);
+  outMsg(out, "Safe points: ");
+  showSet(out, analysis->safes);
+  outMsg(out, "\n%_");
+}
+
+static retCode checkVarIndex(void* n, void* r, void* c)
+{
+  varDescPo var = (varDescPo)r;
+  int32 index = (int32)(integer)n;
 
   if (var->start == index)
     return Ok;
   return Error;
 }
 
-void checkIndex(hashPo index) {
-  assert(processHashTable(checkVarIndex,index,Null)==Ok);
+static void checkIndex(treePo index)
+{
+  assert(processTree(checkVarIndex,index,Null)==Ok);
 }
 
-static retCode showVars(ioPo out, hashPo vars);
-
-static integer varHash(void *c) {
-  varDescPo var = (varDescPo) c;
+static integer varHash(void* c)
+{
+  varDescPo var = (varDescPo)c;
   return var->varNo;
 }
 
-static comparison varComp(void *l, void *r) {
-  varDescPo v1 = (varDescPo) l;
-  varDescPo v2 = (varDescPo) r;
+static comparison varComp(void* l, void* r)
+{
+  varDescPo v1 = (varDescPo)l;
+  varDescPo v2 = (varDescPo)r;
 
   return intCompare(v1->varNo, v2->varNo);
 }
 
-static retCode freeVarRecord(void *r, void *cl) {
-  freePool(varPool, (varDescPo) r);
+static retCode freeVarRecord(void* r, void* cl)
+{
+  freePool(varPool, (varDescPo)r);
   return Ok;
 }
 
-hashPo newVarTable() {
+hashPo newVarTable()
+{
   return newHash(256, varHash, varComp, freeVarRecord);
 }
 
-static integer indexHash(void *c) {
-  varDescPo v = (varDescPo) c;
-  return v->varNo;
-}
-
-static comparison indexComp(void *l, void *r) {
-  if (l == r)
+static comparison indexComp(void* l, void* r)
+{
+  integer left = (integer)l;
+  integer right = (integer)r;
+  if (left == right)
     return same;
+  else if (left > right)
+    return bigger;
   else
-    return different;
+    return smaller;
 }
 
-hashPo newVarIndex() {
-  return newHash(256, indexHash, indexComp, Null);
+treePo newVarIndex()
+{
+  return newTree(indexComp, Null);
 }
 
-void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
+void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc)
+{
   varDescPo var = findVar(analysis, analysis->vars, varNo);
   assert(var != Null && var->start==-1);
   var->start = pc;
-  hashPut(analysis->index, (void *) (integer) pc, var);
+  treePut(analysis->index, (void*)(integer)pc, var);
 }
 
-void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
+void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc)
+{
   varDescPo var = findVar(analysis, analysis->vars, varNo);
 
   if (var->end < pc)
     var->end = pc;
 }
 
-varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
-  varDescPo var = (varDescPo) allocPool(varPool);
+varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc)
+{
+  varDescPo var = (varDescPo)allocPool(varPool);
 
   assert(kind==argument ? (varNo>=0):True);
 
@@ -126,31 +162,36 @@ varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
   return var;
 }
 
-varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
+varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo)
+{
   VarDescRecord nme = {.varNo = varNo};
   return hashGet(analysis->vars, &nme);
 }
 
-varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis) {
+varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis)
+{
   return newVar(analysis, varNo, argument, 0);
 }
 
-varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
+varDescPo newLocalVar(analysisPo analysis, int32 varNo)
+{
   return newVar(analysis, varNo, local, -1);
 }
 
-varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc) {
-  int stackVarNo = (int32) hashSize(analysis->vars);
+varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc)
+{
+  int stackVarNo = (int32)hashSize(analysis->vars);
 
   varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1);
   var->link = scope->stack;
   scope->stack = var;
-  hashPut(analysis->index, (void *) (integer) pc + 1, var);
+  treePut(analysis->index, (void*)(integer)pc + 1, var);
   return var;
 }
 
-varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc) {
-  int stackVarNo = (int32) hashSize(analysis->vars);
+varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc)
+{
+  int stackVarNo = (int32)hashSize(analysis->vars);
 
   varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1);
   var->link = scope->stack;
@@ -158,9 +199,10 @@ varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc) {
   return var;
 }
 
-static varDescPo findPhi(scopePo scope, int32 tgt) {
-  while (scope != Null) {
-    if (tgt == scope->start) {
+static varDescPo findPhi(scopePo scope, int32 tgt)
+{
+  while (scope != Null){
+    if (tgt == scope->start){
       return scope->phiVar;
     }
     scope = scope->parent;
@@ -168,7 +210,8 @@ static varDescPo findPhi(scopePo scope, int32 tgt) {
   return Null;
 }
 
-void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt) {
+void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt)
+{
   assert(scope!=Null && scope->stack!=Null);
 
   varDescPo var = scope->stack;
@@ -179,7 +222,8 @@ void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt) {
   var->link = phiVar;
 }
 
-void retireStackVar(scopePo scope, int32 pc) {
+void retireStackVar(scopePo scope, int32 pc)
+{
   varDescPo var = scope->stack;
 
   assert(var!=Null);
@@ -189,60 +233,57 @@ void retireStackVar(scopePo scope, int32 pc) {
   var->link = Null;
 }
 
-void retireScopeStack(scopePo scope, int32 pc) {
-  while (scope->stack != Null) {
+void retireScopeStack(scopePo scope, int32 pc)
+{
+  while (scope->stack != Null){
     retireStackVar(scope, pc);
   }
 }
 
-static varDescPo rotateStack(varDescPo stack, varDescPo bottom, int32 depth) {
-  if (depth == 0) {
+static varDescPo rotateStack(varDescPo stack, varDescPo bottom, int32 depth)
+{
+  if (depth == 0){
     bottom->link = stack;
     return bottom;
-  } else {
+  }
+  else{
     stack->link = rotateStack(stack->link, bottom, depth - 1);
     return stack;
   }
 }
 
-void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
+void rotateStackVars(scopePo scope, int32 pc, int32 depth)
+{
   assert(depth<=stackDepth(scope));
 
-  if (depth > 0) {
+  if (depth > 0){
     varDescPo var = scope->stack;
     scope->stack = rotateStack(var->link, var, depth - 1);
   }
 }
 
-char *varType(VarKind kind) {
-  switch (kind) {
-    case argument:
-      return "argument";
-    case local:
-      return "local";
-    case stack:
-      return "stack";
-    case phi:
-      return "phi";
+char* varType(VarKind kind)
+{
+  switch (kind){
+  case argument:
+    return "argument";
+  case local:
+    return "local";
+  case stack:
+    return "stack";
+  case phi:
+    return "phi";
+  default:
+    return "unknown";
   }
 }
 
-static retCode showVr(void *n, void *r, void *c) {
-  varDescPo var = (varDescPo) r;
-  ioPo out = (ioPo) c;
-
-  return showVar(out, var);
-}
-
-retCode showVars(ioPo out, hashPo vars) {
-  return processHashTable(showVr, vars, (void *) out);
-}
-
-int32 stackDepth(scopePo scope) {
+int32 stackDepth(scopePo scope)
+{
   int32 count = 0;
-  while (scope != Null) {
+  while (scope != Null){
     varDescPo top = scope->stack;
-    while (top != Null) {
+    while (top != Null){
       count++;
       top = top->link;
     }

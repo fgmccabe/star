@@ -5,9 +5,7 @@
 #ifndef STAR_SSA_H
 #define STAR_SSA_H
 
-#include "ooio.h"
 #include "code.h"
-#include "hash.h"
 #include "set.h"
 #include "starOptions.h"
 
@@ -17,14 +15,11 @@ extern tracingLevel traceSSA;
 
 extern logical enableSSA;
 
-typedef struct analysis_ {
-  hashPo vars;
-  hashPo index;
-  setPo safes;
-} AnalysisRecord, *analysisPo;
+typedef struct analysis_ *analysisPo;
 
 retCode analyseMethod(methodPo mtd, analysisPo results);
 void tearDownAnalysis(analysisPo results);
+void showAnalysis(ioPo out, analysisPo analysis);
 
 typedef enum {
   argument,
