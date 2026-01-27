@@ -8,6 +8,13 @@
 #include "analyse.h"
 #include "code.h"
 #include "engineOptions.h"
+#include "tree.h"
+
+typedef struct analysis_ {
+  hashPo vars;
+  treePo index;
+  setPo safes;
+} AnalysisRecord;
 
 typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
@@ -30,8 +37,8 @@ typedef struct block_scope_ {
 void initAnalysis();
 
 hashPo newVarTable();
-hashPo newVarIndex();
-retCode showVarTable(ioPo out,hashPo vars);
+treePo newVarIndex();
+retCode showVarIndex(ioPo out, analysisPo analysis);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
@@ -42,8 +49,6 @@ void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);
-
-void checkIndex(hashPo index);
 
 void retireStackVar(scopePo scope, int32 pc);
 void retireScopeStack(scopePo scope, int32 pc);

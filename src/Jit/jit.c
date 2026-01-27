@@ -38,11 +38,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     if (enableSSA){
       AnalysisRecord analysis;
       if (analyseMethod(mtd, &analysis) == Ok){
-        showVarTable(logFile, analysis.index);
-        checkIndex(analysis.index);
-        outMsg(logFile, "Safe points: ");
-        showSet(logFile, analysis.safes);
-        outMsg(logFile, "\n%_");
+        showAnalysis(logFile, &analysis);
       }
       tearDownAnalysis(&analysis);
     }
