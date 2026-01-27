@@ -7,7 +7,6 @@
 
 #include "debug.h"
 
-
 typedef struct _break_point_ {
   char nm[MAX_SYMB_LEN];
   integer arity;
@@ -16,7 +15,7 @@ typedef struct _break_point_ {
 integer addBreakPoints(breakPointPo bp);
 integer clearBreakPoints(breakPointPo bp);
 
-  retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
+retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
 retCode showAllBreakPoints(ioPo outChnnl);
 
 #endif //STAR_BKPOINT_H

@@ -41,6 +41,4 @@ extern logical stackVerify;      // Are we dynamically verifying the stack
 DebugWaitFor insDebug(enginePo p);
 DebugWaitFor enterDebugger(enginePo p, termPo lc);
 
-
-insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc);
 #endif //STAR_DEBUGP_H

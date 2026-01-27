@@ -42,6 +42,8 @@ typedef struct block_scope_ {
   varDescPo phiVar;
 } ScopeBlock;
 
+void initAnalysis();
+
 void newOutgoing(codeSegPo root, int32 pc, codeSegPo alt);
 codeSegPo findSeg(codeSegPo root, int32 pc);
 codeSegPo splitAtPC(codeSegPo root, int32 pc);

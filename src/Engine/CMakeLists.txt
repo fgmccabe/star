@@ -43,6 +43,7 @@ set(HEADER_FILES
         Headers/thr.h Headers/thrP.h
         Headers/verify.h Headers/verifyP.h
         Headers/debugP.h
+        Headers/disass.h
         Headers/consP.h Headers/option.h Headers/optionP.h
         Headers/starP.h Headers/stackP.h
         Headers/stack.h
@@ -73,6 +74,7 @@ set(SOURCE_FILES
         code.c
         cons.c
         decode.c
+        decodeSSA.c
         debug.c
         either.c
         eval.c
@@ -97,6 +99,7 @@ set(SOURCE_FILES
         verify.c
         vect.c
         constants.c
+        disass.c
 )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})

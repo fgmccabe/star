@@ -149,7 +149,7 @@ static void genOps(asmInfoPo info, char *fmt) {
         continue;
       case Sglb:
       case SEs:
-        outMsg(O_IO(info->aux), ", string(V%d)", (info->vNo)++);
+        outMsg(O_IO(info->aux), ", strg(V%d)", (info->vNo)++);
         continue;
       case SbLk: {
         int32 lastLtno = info->ltNo++;
@@ -242,12 +242,17 @@ static void genDisp(asmInfoPo info, char *fmt, int32 arity) {
   while (ix < arity) {
     switch (*fmt++) {
       case Slcl:
-      case Slit:
       case Sglb:
       case SEs:
       case SlVl:
         outMsg(O_IO(info->aux), ",ss(\" \"),ss(V%d)", ix++);
         continue;
+      case Slit: {
+        int32 vNo = ix++;
+        outMsg(O_IO(info->aux), ",ss(\" \"),SS%d", vNo);
+        outMsg(O_IO(info->line), "  ssTrm(V%d,0,SS%d),\n", vNo, vNo);
+        continue;
+      }
       case Slcls: {
         int32 vNo = ix++;
         outMsg(O_IO(info->aux), ",ss(\" \"),VV%d", vNo);

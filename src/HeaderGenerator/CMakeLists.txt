@@ -89,9 +89,7 @@ set(ESCAPES_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/escapes.pl)
 set(INTRINSIC_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/intrinsics.pl)
 set(INTRINSIC_ST_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.star.plate)
 set(INTRINSIC_PL_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.pl.plate)
-set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
 set(SSA_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/ssa.pl)
-set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
 set(SSA_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/ssa.star)
 set(OPERATORS_ADOC ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.adoc)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
@@ -128,19 +126,10 @@ add_custom_target(star.intrinsics DEPENDS intrinsic
 add_custom_target(pl.intrinsics DEPENDS plintrinsic
         COMMAND plintrinsic -t ${INTRINSIC_PL_PLATE} ${INTRINSIC_PL}
 )
-add_custom_target(pl.memnonics DEPENDS plmnem
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
-        COMMENT "Creating boot assembler in ${ASM_PL}"
-)
 
-add_custom_target(pl.ssa DEPENDS plssa
+add_custom_target(pl.ssa DEPENDS plssa ssaOps.h
         COMMAND plssa -t ${CMAKE_CURRENT_SOURCE_DIR}/ssa.pl.plate ${SSA_PL}
         COMMENT "Creating boot assembler in ${SSA_PL}"
-)
-
-add_custom_target(star.memnonics DEPENDS starmnem
-        COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
-        COMMENT "Creating star assembler in ${ASM_ST}"
 )
 
 add_custom_target(star.ssa DEPENDS starssa
@@ -148,7 +137,7 @@ add_custom_target(star.ssa DEPENDS starssa
         COMMENT "Creating star assembler in ${SSA_ST}"
 )
 
-add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics star.ssa
-        pl.operators pl.escapes pl.intrinsics pl.memnonics pl.ssa
+add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.ssa
+        pl.operators pl.escapes pl.intrinsics pl.ssa
         el.operators adoc.operators)
 

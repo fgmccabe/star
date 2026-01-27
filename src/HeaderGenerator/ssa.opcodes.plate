@@ -10,10 +10,10 @@
 typedef enum {
 #(OpCodes)
   sInval,
-  maxOpCode = sInval
+  maxCode = sInval
 } ssaOp;
 
-static char *opNames[] = {#(OpNames)};
+static char *ssaOpNames[] = {#(OpNames)};
 
 #ifndef OPCODE_SIGNATURE
 #define OPCODE_SIGNATURE #(Hash)

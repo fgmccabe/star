@@ -7,7 +7,6 @@
 
 #include "engine.h"
 #include "encoding.h"
-#include "array.h"
 #include "stringBuffer.h"
 #include "streamDecodeP.h"
 
@@ -21,5 +20,5 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer
 
 retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize);
 
-retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool);
+retCode decodeSSAInstructions(ioPo in, int32 *codeCount, ssaInsPo *code, char *errorMsg, long msgSize, termPo constantPool);
 #endif //STAR_ENCODED_H

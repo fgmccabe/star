@@ -10,7 +10,6 @@
 #include "termP.h"
 #include "pkgP.h"
 #include "codeP.h"
-#include "opcodes.h"
 #include "signals.h"
 #include "heapP.h"
 #include "labelsP.h"

@@ -41,9 +41,6 @@
 })
 #endif
 
-#define pop() (*SP++)
-#define top() (*SP)
-#define push(T) STMT_WRAP({*--SP=(termPo)(T);})
 #define varble(aix) (ARGS[aix])
 #define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ \

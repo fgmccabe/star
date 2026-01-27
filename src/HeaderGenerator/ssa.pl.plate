@@ -63,6 +63,9 @@ baseOffset([none|Lbs],Base) :-
   baseOffset(Lbs,Base).
 baseOffset([],0).
 
+findLevel(Lbls,Tgt,Lvl) :-
+  findLevel(Tgt,Lbls,0,Lvl),!.
+
 findLevel(Tgt,[(Tgt,_)|_],Lvl,Lvl) :-!.
 findLevel(Tgt,[none|Ends],L,Lo) :-
       L1 is L+1,
@@ -76,8 +79,13 @@ findLocal(Nm,_,_) :-
       reportFatal("internal: Cannot assemble variable reference %s",[Nm]).
 
 findLocals(Nms,LsMap,Tpl) :-
-  fndLcls(Nms,LsMap,Offs),
+  fndLcls(Nms,LsMap,Offs),!,
   mkTpl(Offs,Tpl).
+
+fndLcls([],_Map,[]).
+fndLcls([Nm|Ns],Map,[Off|Ofs]) :-
+  findLocal(Nm,Map,Off),
+  fndLcls(Ns,Map,Ofs).
 
 declareLocals(Lst, Map, Lcls) :-
   declareLocals(Lst,-1,Map, Lcls).
@@ -102,7 +110,7 @@ createLocals(Entries,Tpl) :-
   mkTpl(Els,Tpl).
 
 sortEntries(Entries,Sorted) :-
-  sort(Entries,assemble:compareEntry,Sorted).
+  sort(Entries,ssa:compareEntry,Sorted).
 
 compareEntry((_,intgr(O1),_),(_,intgr(O2),_)) :- O1<O2.
 
@@ -120,7 +128,7 @@ mkLitTpl(Lits,Tpl) :-
     mkTpl(Els,Tpl).
 
 mkInsTpl(Is,Tpl) :-
-    map(Is,assemble:mkIns,Ins),
+    map(Is,ssa:mkIns,Ins),
     mkTpl(Ins,Tpl).
 
 mkIns(O,intgr(O)) :- number(O),!.
@@ -195,7 +203,7 @@ blockPc(Pc,[0|Pc]).
 
 showPc(Pc,iv(ss("."),Pcs)) :-
   reverse(Pc,RPc),
-  map(RPc,assemble:shPc,Pcs).
+  map(RPc,ssa:shPc,Pcs).
 
 shPc(I,ix(I)).
 

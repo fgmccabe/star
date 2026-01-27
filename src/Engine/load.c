@@ -256,14 +256,14 @@ static char *structPreamble = "n3o3\1struct\1";
 static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
-static char *funcPreamble = "n8o8\1func\1";
+static char *codePreamble = "n7o7\1code\1";
 
 typedef enum {
   hardDef,
   softDef
 } DefinitionMode;
 
-static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
@@ -273,8 +273,8 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
     retCode ret = Ok;
 
     for (int32 ix = 0; ret == Ok && ix < count; ix++) {
-      if (isLookingAt(in, funcPreamble) == Ok)
-        ret = loadFunc(in, h, owner, errorMsg, msgLen);
+      if (isLookingAt(in, codePreamble) == Ok)
+        ret = loadCode(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, structPreamble) == Ok || isLookingAt(in, consPreamble) == Ok)
@@ -349,11 +349,10 @@ static int32 maxDepth(insPo ins, integer count, normalPo constPool) {
   return maxDepth;
 }
 
-retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
+retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
   int32 arity;
   int32 lclCount = 0;
-  int32 stackHeight;
   int32 sigIndex;
   DefinitionMode redefine = hardDef;
 
@@ -361,7 +360,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
 #ifdef TRACEPKG
   if (tracePkg >= detailedTracing)
-    logMsg(logFile, "loading function %s/%d", &prgName, arity);
+    logMsg(logFile, "loading code %s/%d", &prgName, arity);
 #endif
 
   if (ret == Ok)
@@ -369,9 +368,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
   if (ret == Ok)
     ret = decodeI32(in, &sigIndex);
-
-  if (ret == Ok)
-    ret = decodeI32(in, &stackHeight);
 
   if (ret == Ok)
     ret = decodeI32(in, &lclCount);
@@ -387,7 +383,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
     if (ret == Ok) {
       int32 insCount = 0;
       insPo instructions = Null;
-      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool);
+      ret = decodeSSAInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool);
 
       if (ret == Ok) {
         termPo locals = voidEnum;

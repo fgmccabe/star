@@ -18,7 +18,7 @@ static poolPo varPool = Null;
 
 static int32 segNo = 0;
 
-static void initSegs() {
+void initAnalysis() {
   if (segmentPool == Null) {
     segmentPool = newPool(sizeof(CodeSegment), 1024);
     linkPool = newPool(sizeof(SegLinkRecord), 1024);
@@ -27,7 +27,7 @@ static void initSegs() {
 }
 
 codeSegPo newCodeSeg(int32 start, int32 end, codeSegPo nextSeg) {
-  initSegs();
+  initAnalysis();
 
   codeSegPo seg = allocPool(segmentPool);
 

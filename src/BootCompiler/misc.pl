@@ -495,3 +495,4 @@ negateString(S,S1) :-
 similarStrings(S,S1) :-
   isub(S,S1,D,[normalize(true)]),
   D>0.75.
+

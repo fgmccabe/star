@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include "manifestP.h"
-#include "debug.h"
 
 // Use the stream decoder to parse a manifest file and build up a manifest structure
 typedef enum {

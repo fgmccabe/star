@@ -37,7 +37,7 @@
  */
 typedef struct stack_frame_ *framePo;
 typedef struct stack_frame_ {
-  insPo link;                   // The return program counter
+  ssaInsPo link;                // The return program counter
   methodPo prog;                // The return program
   ptrPo args;                   // The arg/local split point
 } StackFrame;
@@ -49,7 +49,7 @@ typedef struct StackStructure {
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High watermark of stack sizes rooted off this stack
-  insPo pc;                     // Current program counter
+  ssaInsPo pc;                  // Current program counter
   ptrPo args;                   // Current argument pointer
   methodPo prog;                // Currently running function
   ptrPo sp;                     // Current stack pointer
@@ -115,7 +115,7 @@ typedef enum {
 } StackTraceLevel;
 
 void
-showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, methodPo prog, insPo pc);
+showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, methodPo prog, ssaInsPo pc);
 void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
 #endif //STAR_STACKP_H

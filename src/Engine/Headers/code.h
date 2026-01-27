@@ -5,10 +5,9 @@
 #include "ooio.h"
 #include "term.h"
 #include "normal.h"
-#include "opcodes.h"
 
 //typedef uint16 insWord;
-typedef struct instruction_ *insPo;
+typedef union ssa_instruction_*ssaInsPo;
 
 typedef struct method_ *methodPo;
 
@@ -23,8 +22,6 @@ labelPo mtdLabel(methodPo mtd);
 logical mtdHasName(methodPo mtd,char *name);
 
 int32 codeSize(methodPo mtd);
-logical validPC(methodPo mtd, insPo pc);
-int32 codeOffset(methodPo mtd, insPo pc);
 
 int32 lclCount(methodPo mtd);
 

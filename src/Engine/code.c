@@ -70,7 +70,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   helper((ptrPo) &mtd->lbl, c);
 
-  return ((termPo) o) + mtdSize(cl, o);
+  return o + mtdSize(cl, o);
 }
 
 void markMethod(methodPo mtd, gcSupportPo G) {
@@ -83,7 +83,7 @@ termPo codeFinalizer(specialClassPo class, termPo o) {
     mtd->instructions = Null;
   }
 
-  return ((termPo) o) + mtdSize(class, o);
+  return o + mtdSize(class, o);
 }
 
 logical mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
@@ -112,12 +112,12 @@ int32 stackDelta(methodPo mtd) {
   return mtd->stackDelta + mtd->lclcnt;
 }
 
-logical validPC(methodPo mtd, insPo pc) {
+logical validPC(methodPo mtd, ssaInsPo pc) {
   return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
-int32 codeOffset(methodPo mtd, insPo pc) {
-  insPo instructions = mtd->instructions;
+int32 codeOffset(methodPo mtd, ssaInsPo pc) {
+  ssaInsPo instructions = mtd->instructions;
   if (pc >= instructions && pc < instructions + mtd->insCount) {
     return (int32) (pc - instructions);
   }
@@ -206,7 +206,55 @@ int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
-methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
+int32 opCount(ssaInsPo pc) {
+  int32 ar = 0;
+
+#undef instr
+#define sym ar++;
+#define lcl ar++;
+#define lcls ar+=operand(pc,ar+1);
+#define lit ar++;
+#define glb ar++;
+#define art ar++;
+#define i32 ar++;
+#define Es ar++;
+#define bLk ar++;
+#define lVl ar++;
+#define lVls ar++;
+#define none
+
+  switch (pc->op) {
+#define instr(Op, Fmt) \
+  case Op:{\
+    Fmt\
+    return ar;\
+  }
+#include "ssaInstructions.h"
+    default:
+      return -1;
+  }
+
+#undef instr
+#undef sym
+#undef lcl
+#undef lcls
+#undef lit
+#undef glb
+#undef art
+#undef i32
+#undef Es
+#undef bLk
+#undef lVl
+#undef lVls
+#undef none
+}
+
+int32 operand(ssaInsPo pc, int32 ix) {
+  return ((int32*)pc)[ix];
+}
+
+
+methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
 
   methodPo mtd = (methodPo) allocPool(mtdPool);
@@ -229,7 +277,7 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, int32 lcls, int32 delta, int32 stackEntry) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, ssaInsPo instructions, int32 lcls, int32 delta, int32 stackEntry) {
   labelPo lbl = declareLbl(name, arity, 0);
 
   methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, delta, lbl);

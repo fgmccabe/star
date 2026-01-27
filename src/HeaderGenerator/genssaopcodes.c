@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
 #include "ssaInstructions.h"
 
-#undef instruction
+#undef instr
 
     integer nmLen;
     char *opNames = getTextFromBuffer(nameBuff, &nmLen);

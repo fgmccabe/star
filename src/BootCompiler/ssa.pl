@@ -75,7 +75,7 @@ mnem([iOCall(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(3), intgr(V0), Of
   findLocal(V1,LsMap,Off1),
   findLocals(V2,LsMap,LL2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iEscape(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(4), string(V0), LL1|Cd],Cdx) :-
+mnem([iEscape(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(4), strg(V0), LL1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocals(V1,LsMap,LL1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
@@ -91,7 +91,7 @@ mnem([iXOCall(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(6), intgr(V0
   findLocal(V2,LsMap,Off2),
   findLocals(V3,LsMap,LL3),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iXEscape(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(7), string(V0), intgr(L1), LL2|Cd],Cdx) :-
+mnem([iXEscape(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(7), strg(V0), intgr(L1), LL2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V1,L1),
   findLocals(V2,LsMap,LL2),
@@ -109,362 +109,381 @@ mnem([iTOCall(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(9), intgr(V0), O
 mnem([iEntry(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(10), intgr(V0)|Cd],Cdx) :-
   Pc1 is Pc+1,
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBlock(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(11), B0|Cd],Cdx) :-
+mnem([iRet(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(11), Off0|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iRtn|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(12)|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iXRet(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(13), Off0|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iBlock(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(14), B0|Cd],Cdx) :-
   Pc1 is Pc+1,
   assemBlock(V0,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B0),
   mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
-mnem([iValof(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(12), Off0, B1|Cd],Cdx) :-
+mnem([iValof(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(15), Off0, B1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
   mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
-mnem([iBreak(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(13), intgr(L0)|Cd],Cdx) :-
+mnem([iBreak(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(16), intgr(L0)|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iResult(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(14), intgr(L0), Off1|Cd],Cdx) :-
+mnem([iResult(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(17), intgr(L0), Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iLoop(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(15), intgr(L0)|Cd],Cdx) :-
+mnem([iLoop(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(18), intgr(L0)|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFiber(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(16), Off0|Cd],Cdx) :-
+mnem([iIf(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(19), intgr(L0), Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iSuspend(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(17), Off0, Off1|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
+  findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iResume(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(18), Off0, Off1|Cd],Cdx) :-
+mnem([iIfNot(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(20), intgr(L0), Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
+  findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(19), Off0, Off1|Cd],Cdx) :-
+mnem([iCLbl(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(21),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLit(Lt0,V0,L0,Lt1),
+  findLevel(Lbls,V1,L1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iCInt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(22),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLit(Lt0,V0,L0,Lt1),
+  findLevel(Lbls,V1,L1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iCChar(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(23),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLit(Lt0,V0,L0,Lt1),
+  findLevel(Lbls,V1,L1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iCFlt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(24),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLit(Lt0,V0,L0,Lt1),
+  findLevel(Lbls,V1,L1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iCLit(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(25),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLit(Lt0,V0,L0,Lt1),
+  findLevel(Lbls,V1,L1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iICase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(26), Off0, B1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
-  findLocal(V1,LsMap,Off1),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(20)|Cd],Cdx) :-
+  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
+mnem([iCase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(27), Off0, B1|Cd],Cdx) :-
   Pc1 is Pc+1,
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iMvV(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(21), Off0|Cd],Cdx) :-
+  findLocal(V0,LsMap,Off0),
+  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
+mnem([iIxCase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(28), Off0, B1|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
+  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
+mnem([iMvV(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(29), Off0|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iMvC(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(22), Off0,intgr(L1)|Cd],Cdx) :-
+mnem([iMvC(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(30), Off0,intgr(L1)|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLit(Lt0,V1,L1,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iMv(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(23), Off0, Off1|Cd],Cdx) :-
+mnem([iMv(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(31), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iMvG(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(24), Off0, string(V1)|Cd],Cdx) :-
+mnem([iMvR(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(32), Off0|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iStG(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(25), string(V0), Off1|Cd],Cdx) :-
+mnem([iMvG(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(33), Off0, strg(V1)|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iStG(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(34), strg(V0), Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iSav(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(26), Off0|Cd],Cdx) :-
+mnem([iSav(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(35), Off0|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iLdSav(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(27), Off0, intgr(L1), Off2|Cd],Cdx) :-
+mnem([iLdSav(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(36), Off0, intgr(L1), Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLevel(Lbls,V1,L1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iTstSav(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(28), Off0, Off1|Cd],Cdx) :-
+mnem([iTstSav(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(37), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iStSav(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(29), Off0, Off1|Cd],Cdx) :-
+mnem([iStSav(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(38), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCell(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(30), Off0|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iGet(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(31), Off0, Off1|Cd],Cdx) :-
+mnem([iCell(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(39), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iAssign(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(32), Off0, Off1|Cd],Cdx) :-
+mnem([iGet(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(40), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCLbl(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(33),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLit(Lt0,V0,L0,Lt1),
-  findLevel(Lbls,V1,L1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCInt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(34),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLit(Lt0,V0,L0,Lt1),
-  findLevel(Lbls,V1,L1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCChar(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(35),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLit(Lt0,V0,L0,Lt1),
-  findLevel(Lbls,V1,L1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCFlt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(36),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLit(Lt0,V0,L0,Lt1),
-  findLevel(Lbls,V1,L1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCLit(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(37),intgr(L0), intgr(L1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLit(Lt0,V0,L0,Lt1),
-  findLevel(Lbls,V1,L1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iNth(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(38), Off0, intgr(V1), Off2|Cd],Cdx) :-
+mnem([iAssign(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(41), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iStNth(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(39), Off0, intgr(V1), Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIf(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(40), intgr(L0), Off1|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIfNot(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(41), intgr(L0), Off1|Cd],Cdx) :-
+mnem([iNth(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(42), Off0, intgr(V1), Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
-  findLevel(Lbls,V0,L0),
-  findLocal(V1,LsMap,Off1),
+  findLocal(V0,LsMap,Off0),
+  findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iICase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(42), Off0, B1|Cd],Cdx) :-
+mnem([iStNth(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(43), Off0, intgr(V1), Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
-  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
-mnem([iCase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(43), Off0, B1|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
-mnem([iIxCase(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(44), Off0, B1|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  assemBlock(V1,none,Lbls,Lt0,Lt1,Pc1,Pc2,LsMap,B1),
-  mnem(Ins,Lbls,Lt1,Ltx,Pc2,Pcx,LsMap,Cd,Cdx).
-mnem([iIAdd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(45), Off0, Off1, Off2|Cd],Cdx) :-
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iIAdd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(44), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iISub(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(46), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iISub(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(45), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIMul(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(47), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iIMul(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(46), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIDiv(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(48), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
+mnem([iIDiv(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(47), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   findLocal(V3,LsMap,Off3),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIMod(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(49), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
+mnem([iIMod(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(48), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   findLocal(V3,LsMap,Off3),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIAbs(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(50), Off0, Off1|Cd],Cdx) :-
+mnem([iIAbs(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(49), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(51), Off0, Off1, Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  findLocal(V1,LsMap,Off1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iILt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(52), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iIEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(50), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iIGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(53), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iILt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(51), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(54), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iIGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(52), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCLt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(55), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iCEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(53), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iCGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(56), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iCLt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(54), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBAnd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(57), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iCGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(55), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBOr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(58), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBAnd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(56), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBXor(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(59), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBOr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(57), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBLsl(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(60), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBXor(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(58), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBLsr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(61), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBLsl(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(59), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBAsr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(62), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBLsr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(60), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBNot(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(63), Off0, Off1|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  findLocal(V1,LsMap,Off1),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFAdd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(64), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBAsr(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(61), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFSub(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(65), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iBNot(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(62), Off0, Off1|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iFAdd(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(63), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFMul(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(66), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iFSub(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(64), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFDiv(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(67), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
+mnem([iFMul(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(65), Off0, Off1, Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iFDiv(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(66), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   findLocal(V3,LsMap,Off3),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFMod(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(68), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
+mnem([iFMod(V0, V1, V2, V3)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(67), intgr(L0), Off1, Off2, Off3|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   findLocal(V3,LsMap,Off3),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFAbs(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(69), Off0, Off1|Cd],Cdx) :-
+mnem([iFAbs(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(68), Off0, Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(70), Off0, Off1, Off2|Cd],Cdx) :-
-  Pc1 is Pc+1,
-  findLocal(V0,LsMap,Off0),
-  findLocal(V1,LsMap,Off1),
-  findLocal(V2,LsMap,Off2),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFLt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(71), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iFEq(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(69), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iFGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(72), Off0, Off1, Off2|Cd],Cdx) :-
+mnem([iFLt(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(70), Off0, Off1, Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iAlloc(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(73), Off0,intgr(L1), LL2|Cd],Cdx) :-
+mnem([iFGe(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(71), Off0, Off1, Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iAlloc(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(72), Off0,intgr(L1), LL2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLit(Lt0,V1,L1,Lt1),
   findLocals(V2,LsMap,LL2),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iClosure(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(74), Off0,intgr(L1), Off2|Cd],Cdx) :-
+mnem([iClosure(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(73), Off0,intgr(L1), Off2|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
   findLit(Lt0,V1,L1,Lt1),
   findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(75),intgr(L0)|Cd],Cdx) :-
+mnem([iFiber(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(74), Off0, Off1|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iSuspend(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(75), Off0, Off1, Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iResume(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(76), Off0, Off1, Off2|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  findLocal(V2,LsMap,Off2),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(77), Off0, Off1|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(78)|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iLine(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(79),intgr(L0)|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iBind(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(76),intgr(L0), Off1|Cd],Cdx) :-
+mnem([iBind(V0, V1)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(80),intgr(L0), Off1|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLit(Lt0,V0,L0,Lt1),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(77),intgr(L0)|Cd],Cdx) :-
+mnem([iDBug(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(81),intgr(L0)|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLit(Lt0,V0,L0,Lt1),
   mnem(Ins,Lbls,Lt1,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
@@ -474,6 +493,9 @@ baseOffset([(_,Base)|_],Base).
 baseOffset([none|Lbs],Base) :-
   baseOffset(Lbs,Base).
 baseOffset([],0).
+
+findLevel(Lbls,Tgt,Lvl) :-
+  findLevel(Tgt,Lbls,0,Lvl),!.
 
 findLevel(Tgt,[(Tgt,_)|_],Lvl,Lvl) :-!.
 findLevel(Tgt,[none|Ends],L,Lo) :-
@@ -488,8 +510,13 @@ findLocal(Nm,_,_) :-
       reportFatal("internal: Cannot assemble variable reference %s",[Nm]).
 
 findLocals(Nms,LsMap,Tpl) :-
-  fndLcls(Nms,LsMap,Offs),
+  fndLcls(Nms,LsMap,Offs),!,
   mkTpl(Offs,Tpl).
+
+fndLcls([],_Map,[]).
+fndLcls([Nm|Ns],Map,[Off|Ofs]) :-
+  findLocal(Nm,Map,Off),
+  fndLcls(Ns,Map,Ofs).
 
 declareLocals(Lst, Map, Lcls) :-
   declareLocals(Lst,-1,Map, Lcls).
@@ -514,7 +541,7 @@ createLocals(Entries,Tpl) :-
   mkTpl(Els,Tpl).
 
 sortEntries(Entries,Sorted) :-
-  sort(Entries,assemble:compareEntry,Sorted).
+  sort(Entries,ssa:compareEntry,Sorted).
 
 compareEntry((_,intgr(O1),_),(_,intgr(O2),_)) :- O1<O2.
 
@@ -532,7 +559,7 @@ mkLitTpl(Lits,Tpl) :-
     mkTpl(Els,Tpl).
 
 mkInsTpl(Is,Tpl) :-
-    map(Is,assemble:mkIns,Ins),
+    map(Is,ssa:mkIns,Ins),
     mkTpl(Ins,Tpl).
 
 mkIns(O,intgr(O)) :- number(O),!.
@@ -592,7 +619,8 @@ showMnems([M|Ins],Pc,[MM|II]) :-
 
 showMnem(iHalt(V0),Pc,sq([PcDx,ss(": "),ss("Halt"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iAbort(V0, V1),Pc,sq([PcDx,ss(": "),ss("Abort"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iAbort(V0, V1),Pc,sq([PcDx,ss(": "),ss("Abort"),ss(" "),SS0,ss(" "),ss(V1)])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
 showMnem(iCall(V0, V1),Pc,sq([PcDx,ss(": "),ss("Call"),ss(" "),SS0,ss(" "),VV1])) :- !,
   ssTrm(V0,0,SS0),
@@ -623,6 +651,12 @@ showMnem(iTOCall(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("TOCall"),ss(" "),ix(V0),ss
   showPc(Pc,PcDx).
 showMnem(iEntry(V0),Pc,sq([PcDx,ss(": "),ss("Entry"),ss(" "),ix(V0)])) :- !,
   showPc(Pc,PcDx).
+showMnem(iRet(V0),Pc,sq([PcDx,ss(": "),ss("Ret"),ss(" "),ss(V0)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iRtn,Pc,sq([PcDx,ss(": "),ss("Rtn")])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iXRet(V0),Pc,sq([PcDx,ss(": "),ss("XRet"),ss(" "),ss(V0)])) :- !,
+  showPc(Pc,PcDx).
 showMnem(iBlock(V0),Pc,sq([PcDx,ss(": "),ss("Block"),ss(" "),sq([nl(Dp),iv(nl(Dp),SS0)])])) :- !,
   blockPc(Pc,SPc),
   pcSpace(SPc,Dp),
@@ -639,58 +673,24 @@ showMnem(iResult(V0, V1),Pc,sq([PcDx,ss(": "),ss("Result"),ss(" "),ss(V0),ss(" "
   showPc(Pc,PcDx).
 showMnem(iLoop(V0),Pc,sq([PcDx,ss(": "),ss("Loop"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iFiber(V0),Pc,sq([PcDx,ss(": "),ss("Fiber"),ss(" "),ss(V0)])) :- !,
+showMnem(iIf(V0, V1),Pc,sq([PcDx,ss(": "),ss("If"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iSuspend(V0, V1),Pc,sq([PcDx,ss(": "),ss("Suspend"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iResume(V0, V1),Pc,sq([PcDx,ss(": "),ss("Resume"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iRetire(V0, V1),Pc,sq([PcDx,ss(": "),ss("Retire"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iMvV(V0),Pc,sq([PcDx,ss(": "),ss("MvV"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iMvC(V0, V1),Pc,sq([PcDx,ss(": "),ss("MvC"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iMv(V0, V1),Pc,sq([PcDx,ss(": "),ss("Mv"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iMvG(V0, V1),Pc,sq([PcDx,ss(": "),ss("MvG"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iStG(V0, V1),Pc,sq([PcDx,ss(": "),ss("StG"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iSav(V0),Pc,sq([PcDx,ss(": "),ss("Sav"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iLdSav(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("LdSav"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iTstSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("TstSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iStSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("StSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iCell(V0),Pc,sq([PcDx,ss(": "),ss("Cell"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iGet(V0, V1),Pc,sq([PcDx,ss(": "),ss("Get"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iAssign(V0, V1),Pc,sq([PcDx,ss(": "),ss("Assign"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iIfNot(V0, V1),Pc,sq([PcDx,ss(": "),ss("IfNot"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iCLbl(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CLbl"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
   ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iCInt(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CInt"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+showMnem(iCInt(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CInt"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iCChar(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CChar"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+showMnem(iCChar(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CChar"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iCFlt(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CFlt"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+showMnem(iCFlt(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CFlt"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
-showMnem(iCLit(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CLit"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iNth(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Nth"),ss(" "),ss(V0),ss(" "),ix(V1),ss(" "),ss(V2)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iStNth(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("StNth"),ss(" "),ss(V0),ss(" "),ix(V1),ss(" "),ss(V2)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iIf(V0, V1),Pc,sq([PcDx,ss(": "),ss("If"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iIfNot(V0, V1),Pc,sq([PcDx,ss(": "),ss("IfNot"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iCLit(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("CLit"),ss(" "),SS0,ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
 showMnem(iICase(V0, V1),Pc,sq([PcDx,ss(": "),ss("ICase"),ss(" "),ss(V0),ss(" "),sq([nl(Dp),iv(nl(Dp),SS1)])])) :- !,
   blockPc(Pc,SPc),
@@ -706,6 +706,37 @@ showMnem(iIxCase(V0, V1),Pc,sq([PcDx,ss(": "),ss("IxCase"),ss(" "),ss(V0),ss(" "
   blockPc(Pc,SPc),
   pcSpace(SPc,Dp),
   showMnems(V1,SPc,SS1),
+  showPc(Pc,PcDx).
+showMnem(iMvV(V0),Pc,sq([PcDx,ss(": "),ss("MvV"),ss(" "),ss(V0)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iMvC(V0, V1),Pc,sq([PcDx,ss(": "),ss("MvC"),ss(" "),ss(V0),ss(" "),SS1])) :- !,
+  ssTrm(V1,0,SS1),
+  showPc(Pc,PcDx).
+showMnem(iMv(V0, V1),Pc,sq([PcDx,ss(": "),ss("Mv"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iMvR(V0),Pc,sq([PcDx,ss(": "),ss("MvR"),ss(" "),ss(V0)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iMvG(V0, V1),Pc,sq([PcDx,ss(": "),ss("MvG"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iStG(V0, V1),Pc,sq([PcDx,ss(": "),ss("StG"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iSav(V0),Pc,sq([PcDx,ss(": "),ss("Sav"),ss(" "),ss(V0)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iLdSav(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("LdSav"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iTstSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("TstSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iStSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("StSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iCell(V0, V1),Pc,sq([PcDx,ss(": "),ss("Cell"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iGet(V0, V1),Pc,sq([PcDx,ss(": "),ss("Get"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iAssign(V0, V1),Pc,sq([PcDx,ss(": "),ss("Assign"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iNth(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Nth"),ss(" "),ss(V0),ss(" "),ix(V1),ss(" "),ss(V2)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iStNth(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("StNth"),ss(" "),ss(V0),ss(" "),ix(V1),ss(" "),ss(V2)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iIAdd(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("IAdd"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
   showPc(Pc,PcDx).
@@ -770,11 +801,24 @@ showMnem(iAlloc(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Alloc"),ss(" "),ss(V0),ss("
 showMnem(iClosure(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Closure"),ss(" "),ss(V0),ss(" "),SS1,ss(" "),ss(V2)])) :- !,
   ssTrm(V1,0,SS1),
   showPc(Pc,PcDx).
-showMnem(iLine(V0),Pc,sq([PcDx,ss(": "),ss("Line"),ss(" "),ss(V0)])) :- !,
+showMnem(iFiber(V0, V1),Pc,sq([PcDx,ss(": "),ss("Fiber"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iBind(V0, V1),Pc,sq([PcDx,ss(": "),ss("Bind"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iSuspend(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Suspend"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iDBug(V0),Pc,sq([PcDx,ss(": "),ss("dBug"),ss(" "),ss(V0)])) :- !,
+showMnem(iResume(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("Resume"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iRetire(V0, V1),Pc,sq([PcDx,ss(": "),ss("Retire"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
+  showPc(Pc,PcDx).
+showMnem(iLine(V0),Pc,sq([PcDx,ss(": "),ss("Line"),ss(" "),SS0])) :- !,
+  ssTrm(V0,0,SS0),
+  showPc(Pc,PcDx).
+showMnem(iBind(V0, V1),Pc,sq([PcDx,ss(": "),ss("Bind"),ss(" "),SS0,ss(" "),ss(V1)])) :- !,
+  ssTrm(V0,0,SS0),
+  showPc(Pc,PcDx).
+showMnem(iDBug(V0),Pc,sq([PcDx,ss(": "),ss("dBug"),ss(" "),SS0])) :- !,
+  ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
 
 
@@ -785,7 +829,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(1160450021360414124).
+ssaHash(1856896583037917357).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 
@@ -793,7 +837,7 @@ blockPc(Pc,[0|Pc]).
 
 showPc(Pc,iv(ss("."),Pcs)) :-
   reverse(Pc,RPc),
-  map(RPc,assemble:shPc,Pcs).
+  map(RPc,ssa:shPc,Pcs).
 
 shPc(I,ix(I)).
 

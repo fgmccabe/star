@@ -33,8 +33,6 @@ parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-s'|More],CWD,Cx,[useSSA|Opts],Files) :-!,
-  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-ti'|More],CWD,Cx,[traceGenCode|Opts],Files) :-!,
@@ -81,3 +79,6 @@ showMsg(none,M,A,_) :-
   reportMsg(M,A).
 showMsg(Lc,M,A,_) :-
   reportMsg(M,A,Lc).
+
+
+

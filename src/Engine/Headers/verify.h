@@ -5,16 +5,8 @@
 #ifndef STAR_VERIFY_H
 #define STAR_VERIFY_H
 
-#include "codeP.h"
-#include <assert.h>
-#include "formioP.h"
-#include "labels.h"
-#include "engineOptions.h"
-
+#include "code.h"
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen);
-
-extern classPo segmentClass;
-
 
 #endif //STAR_VERIFY_H

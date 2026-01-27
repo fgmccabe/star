@@ -24,7 +24,7 @@ int32 run(enginePo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
-  register insPo PC = STK->pc; /* Program counter */
+  register ssaInsPo PC = STK->pc; /* Program counter */
   register ptrPo SP = STK->sp; /* Current 'top' of stack (grows down) */
   register methodPo PROG = STK->prog;
   register ptrPo ARGS = STK->args;
@@ -42,17 +42,34 @@ int32 run(enginePo P) {
 
     switch (PC->op) {
       case Halt:
-        return (int32) integerVal(pop());
+        return (int32) integerVal(varble(operand(PC,1)));
       case Abort: {
-        termPo lc = getConstant(PC->fst);
-        termPo msg = pop();
+        termPo lc = getConstant(operand(PC,1));
+        termPo msg = varble(operand(PC,2));
         saveRegisters();
         abort_star(P, lc, msg);
 
         return Abnormal;
       }
 
-      case Call:
+      case Call: {
+        labelPo nProg = C_LBL(getConstant(operand(PC,1)));
+        methodPo mtd = labelMtd(nProg); // Which program do we want?
+
+        if (mtd == Null) {
+          logMsg(logFile, "label %A not defined", nProg);
+          bail();
+        }
+
+        // Set up the new frame
+        FP++;
+        FP->prog = PROG;
+        FP->link = PC + 1 + opCount(PC);
+        FP->args = ARGS;
+
+        ARGS = SP-operand(PC,3);
+      }
+
       case XCall: {
         labelPo nProg = C_LBL(getConstant(PC->fst));
         methodPo mtd = labelMtd(nProg); // Which program do we want?
