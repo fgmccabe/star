@@ -10,7 +10,6 @@
 
 #include "intervalSetP.h"
 
-
 static poolPo setPool = Null;
 static poolPo intervalPool = Null;
 
@@ -89,7 +88,7 @@ static intervalPo coalesceRight(intervalPo i)
   return i;
 }
 
-static intervalPo addInterval(intervalPo after, int32 from, int32 to)
+static intervalPo addAfter(intervalPo after, int32 from, int32 to)
 {
   intervalPo newInterval = allocPool(intervalPool);
   newInterval->from = from;
@@ -106,7 +105,7 @@ static intervalPo addInterval(intervalPo after, int32 from, int32 to)
   return newInterval;
 }
 
-static intervalPo insertInterval(intervalPo before, int32 from, int32 to)
+static intervalPo insertBefore(intervalPo before, int32 from, int32 to)
 {
   intervalPo newInterval = allocPool(intervalPool);
   newInterval->from = from;
@@ -134,34 +133,87 @@ retCode addToISet(intervalSetPo set, int32 k)
       if (examine->from <= k && k < examine->to){
         return Ok;
       }
-      else if (examine->from == k + 1){
+      else if (examine->from + 1 == k){
+	examine->from = k;
         coalesceLeft(examine);
         return Ok;
       }
-      else if (examine->to + 1 == k){
+      else if (examine->to == k){
+	examine->to = k+1;
         coalesceRight(examine);
         return Ok;
       }
-        if (examine->to > k){
-          insertInterval(examine, k, examine->to);
-          return Ok;
-        }
-        else
-          examine = examine->next;
-      examine = examine->next;
+      else if (examine->from > k){
+	insertBefore(examine, k, k+1);
+	return Ok;
+      }
+      else
+	examine = examine->next;
     }
     while (examine != chain);
 
     assert(examine->to < k);
-    addInterval(examine, k, k+1);
+    addAfter(examine, k, k+1);
     return Ok;
   }
 
-  set->chain = addInterval(Null, k, k+1);
+  set->chain = addAfter(Null, k, k+1);
   return Ok;
 }
 
-retCode removeFromISet(intervalSetPo set, int32 k);
+intervalPo splitInterval(intervalPo iv, int32 from, int32 to){
+  assert(iv!=Null && from<to);
+  if(from==iv->from){
+    if(to==iv->to){
+      intervalPo nxt = iv->next;
+      intervalPo prv = iv->prv;
+      prv->next = nxt;
+      nxt->prev = prv;
+      freePool(intervalPool,iv);
+      return nxt;
+    }
+    else{
+      iv->from=to;
+      return iv;
+    }
+  } else if(to==iv->to){
+    iv->to = from;
+    return iv;
+  } else {
+    intervalPo seg = allocPool(intervalPool);
+    seg->from = iv->from;
+    seg->to = from;
+    iv->from = to;
+    seg->next = iv;
+    seg->prev = iv->prev;
+    iv->prev = seg;
+    return seg;
+  }
+}
+
+retCode removeFromISet(intervalSetPo set, int32 k){
+  assert(set!=Null);
+  intervalPo chain = set->chain;
+  if (chain != Null){
+    intervalPo examine = chain;
+
+    do{
+      if (examine->from <= k && k < examine->to){
+	intervalPo split = splitInterval(examine,k,k+1);
+	if(examine==chain)
+	  set->chain = split;
+        return Ok;
+      }
+      else if (examine->to < k)
+	examine = examine->next;
+      else
+	return Ok;
+    }
+    while (examine != chain);
+    return Ok;
+  }
+  return Ok;
+}
 
 logical inISet(intervalSetPo set, int32 k)
 {
