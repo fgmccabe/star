@@ -19,6 +19,6 @@ typedef struct interval_ {
 
 typedef struct iset_ {
   intervalPo chain;
-} iSetRecord;;
+} SetRecord;
 
 #endif //STAR_INTERVALSETP_H
