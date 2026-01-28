@@ -412,5 +412,56 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
     newArgVar(vars, ax, results);
   }
 
-  return analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
+  retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
+  return ret;
+}
+
+typedef struct {
+  setPo useMap;
+  int32 lastPc;
+} AllocInfo;
+
+static retCode allocVar(void *entry, integer ix, void *cl) {
+  AllocInfo *info = (AllocInfo *) cl;
+  varDescPo var = *(varDescPo *) entry;
+  if (var->kind != argument) {
+  }
+}
+
+retCode varAllocation(analysisPo analysis) {
+  retCode ret = Ok;
+
+  arrayPo starts = varStarts(analysis);
+  arrayPo exits = varExits(analysis);
+
+  setPo allocMap = newSet();
+
+  int32 start = 0;
+  int32 exit = 0;
+  int32 tableSize = arrayCount(starts);
+
+  assert(tableSize==arrayCount(exits));
+
+  while (start < tableSize && exit < tableSize) {
+    varDescPo startingV = *(varDescPo*)nthEntry(starts,start);
+    varDescPo endingV = *(varDescPo*)nthEntry(exits,exit);
+
+    if (startingV->start<endingV->end) {
+      int32 slotNo = findFreeSlot(allocMap);
+      startingV->loc = slotNo;
+      start++;
+    } else if (endingV->end<startingV->start) {
+      assert(inSet(allocMap, endingV->loc));
+      releaseVarSlot(allocMap,endingV->loc);
+      endingV++;
+    } else {
+      int32 slotNo = findFreeSlot(allocMap);
+      startingV->loc = slotNo;
+      start++;
+      assert(inSet(allocMap, endingV->loc));
+      releaseVarSlot(allocMap,endingV->loc);
+      endingV++;
+    }
+  }
+
 }

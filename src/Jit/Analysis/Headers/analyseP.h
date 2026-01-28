@@ -6,6 +6,7 @@
 #define STAR_SSA_P_H
 
 #include "analyse.h"
+#include "array.h"
 #include "code.h"
 #include "engineOptions.h"
 #include "tree.h"
@@ -21,6 +22,7 @@ typedef struct var_description_ {
   VarKind kind;
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
+  int32 loc;  // Which slot in the frame
   varDescPo link;
 } VarDescRecord;
 
@@ -39,6 +41,8 @@ void initAnalysis();
 hashPo newVarTable();
 treePo newVarIndex();
 retCode showVarIndex(ioPo out, analysisPo analysis);
+arrayPo varStarts(analysisPo analysis);
+arrayPo varExits(analysisPo analysis);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);

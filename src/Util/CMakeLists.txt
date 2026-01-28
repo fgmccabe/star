@@ -78,6 +78,7 @@ set(HEADER_FILES
         Headers/match.h
         Headers/quick.h
         Headers/byteBufferP.h
+        Headers/intervalSetP.h
 )
 
 set(SOURCE_FILES
@@ -126,7 +127,9 @@ set(SOURCE_FILES
         ${HEADER_FILES}
         tree.c
         Headers/tree.h
-        Headers/treeP.h)
+        Headers/treeP.h
+        intervalSet.c
+        Headers/intervalSet.h)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
