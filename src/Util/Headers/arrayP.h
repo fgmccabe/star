@@ -7,16 +7,16 @@
 
 #include "array.h"
 
-typedef retCode (*arrayGrow)(arrayPo ar,integer request);
+typedef retCode (*arrayGrow)(arrayPo ar,int32 request);
 typedef void (*arrayRelease)(arrayPo ar);
 
-arrayPo fixedArray(int elSize, integer count, void *data, arrayRelease release);
+arrayPo fixedArray(int32 elSize, int32 count, void *data, arrayRelease release);
 
 typedef struct array_ {
-  int elSize;           // Size of each element
+  int32 elSize;         // Size of each element
   void *data;           // Raw data
-  integer dataLength;   // Size of overall data
-  integer count;        // How many elements in use
+  int32 dataLength;     // Size of overall data
+  int32 count;          // How many elements in use
   arrayGrow grow;       // Used to request an extension
   arrayRelease free;    // Used to free memory
 } ArrayRecord;

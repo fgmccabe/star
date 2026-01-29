@@ -88,9 +88,16 @@
 #define PTH_CHR ':'			/* Path separator character */
 #endif
 
-#ifndef MAX_INT
-#define MAX_INT   ((integer)(((uinteger)-1<<1)>>1)) 	/* largest integer */
-#define MIN_INT   -MAX_INT 	/* smallest integer */
+
+
+#ifndef MAX_INT32
+#define MAX_INT32   ((int32)(((uint32)-1<<1)>>1)) 	/* largest 32 bit integer */
+#define MIN_INT32   -MAX_INT32 	/* smallest integer */
+#endif
+
+#ifndef MAX_INTEGER
+#define MAX_INTEGER   ((integer)(((uinteger)-1<<1)>>1)) 	/* largest integer */
+#define MIN_INTEGER   -MAX_INTEGER 	/* smallest integer */
 #endif
 
 #ifndef INCLUDEPATH

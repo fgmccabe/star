@@ -5,23 +5,23 @@
 #include "ooio.h"
 #include "quick.h"
 
-static integer partition(integer lo, integer hi, compare cmp, swap swp, void *cl);
+static int32 partition(int32 lo, int32 hi, compare cmp, swap swp, void* cl);
 
-retCode quick(integer from, integer to, compare cmp, swap swp, void *cl) {
+retCode quick(int32 from, int32 to, compare cmp, swap swp, void *cl) {
   if (from >= to)
     return Ok;
   else {
-    integer mid = partition(from, to, cmp, swp, cl);
+    int32 mid = partition(from, to, cmp, swp, cl);
 
     tryRet(quick(from, mid - 1, cmp, swp, cl));
     return quick(mid + 1, to, cmp, swp, cl);
   }
 }
 
-integer partition(integer lo, integer hi, compare cmp, swap swp, void *cl) {
-  integer pivot = hi;
-  integer i = lo - 1;
-  for (integer j = lo; j < hi; j++) {
+int32 partition(int32 lo, int32 hi, compare cmp, swap swp, void* cl) {
+  int32 pivot = hi;
+  int32 i = lo - 1;
+  for (int32 j = lo; j < hi; j++) {
     if (cmp(j, pivot, cl) != bigger) {
       i++;
       swp(i, j, cl);

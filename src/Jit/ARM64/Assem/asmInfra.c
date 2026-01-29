@@ -146,7 +146,7 @@ retCode clearLbl(codeLblPo lbl) {
   return Ok;
 }
 
-retCode clrLblProc(void *l, integer ix, void *cl) {
+retCode clrLblProc(void *l, int32 ix, void *cl) {
   assemCtxPo ctx = (assemCtxPo) cl;
   return clearLbl((codeLblPo) l);
 }
@@ -163,7 +163,7 @@ typedef struct {
   codeLblPo lbl;
 } ClInfo;
 
-static retCode updateLblEntry(void *entry, integer ix, void *cl) {
+static retCode updateLblEntry(void *entry, int32 ix, void *cl) {
   AssemLblRefRecord *refEntry = (AssemLblRefRecord *) entry;
   ClInfo *info = (ClInfo *) cl;
   refEntry->updater(info->ctx, info->lbl, refEntry->pc);

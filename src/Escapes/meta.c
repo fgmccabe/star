@@ -20,14 +20,14 @@ void abort_star(enginePo P, termPo lc, termPo msg) {
   char msgStr[MAX_SYMB_LEN];
   strMsg(msgStr,NumberOf(msgStr), "Abort %T at %L", msg, lc);
   verifyProc(P, processHeap(P));
-  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, MAX_INT);
+  stackTrace(P, logFile, P->stk, displayDepth, showPrognames, MAX_INT32);
   syserr(msgStr);
 }
 
 ReturnStatus g__stackTrace(enginePo P) {
   strBufferPo str = newStringBuffer();
 
-  stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, MAX_INT);
+  stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, MAX_INT32);
 
   pshVal(P, allocateFromStrBuffer(processHeap(P), str));
   closeIo(O_IO(str));

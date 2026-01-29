@@ -9,9 +9,9 @@
 #include "retcode.h"
 #include "integer.h"
 
-typedef comparison (*compare)(integer el1,integer el2, void *cl);
-typedef retCode (*swap)(integer el1,integer el2, void *cl);
+typedef comparison (*compare)(int32 el1,int32 el2, void *cl);
+typedef retCode (*swap)(int32 el1,int32 el2, void *cl);
 
-retCode quick(integer from, integer to, compare cmp, swap swp, void *cl);
+retCode quick(int32 from, int32 to, compare cmp, swap swp, void *cl);
 
 #endif //STAR_QUICK_H
