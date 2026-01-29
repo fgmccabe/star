@@ -5,7 +5,6 @@
 #ifndef STAR_REGSORT_H
 #define STAR_REGSORT_H
 
-// #include "jitP.h"
 #include "macros.h"
 
 typedef struct argSpec_

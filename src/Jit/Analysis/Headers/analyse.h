@@ -28,4 +28,9 @@ typedef enum {
   phi
 } VarKind;
 
+typedef enum{
+  inMemory,
+  inRegister
+} VarLocation;
+
 #endif
