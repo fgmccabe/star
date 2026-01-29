@@ -25,7 +25,9 @@ retCode processIntervalSet(intervalSetPo set, elProc proc, void *cl);
 
 retCode showIntervalSet(ioPo out,intervalSetPo set);
 
-retCode firstElement(intervalSetPo set, int32 from, int32 *i);
+retCode findElement(intervalSetPo set, int32 from, int32 *i);
+int32 findSpace(intervalSetPo set, int32 from);
+
 
 logical checkIntervalSet(intervalSetPo set);
 

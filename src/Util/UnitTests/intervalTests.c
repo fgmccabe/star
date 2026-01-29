@@ -166,13 +166,20 @@ static retCode findSome() {
 
   int32 ix;
 
-  tryRet(firstElement(set,0,&ix));
+  tryRet(findElement(set,0,&ix));
   assert(ix==0);
 
-  tryRet(firstElement(set,1,&ix));
+  tryRet(findElement(set,1,&ix));
   assert(ix==2);
 
-  assert(firstElement(set,64,&ix)==Error);
+  assert(findElement(set,64,&ix)==Error);
+
+  assert(findSpace(set,0)==1);
+  assert(findSpace(set,1)==1);
+
+
+  assert(findSpace(set,15)==15);
+  assert(findSpace(set,16)==17);
 
   deleteIntervalSet(set);
   return Ok;
