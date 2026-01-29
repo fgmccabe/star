@@ -11,6 +11,7 @@
 #include "hash.h"
 #include "set.h"
 #include "constants.h"
+#include "intervalSet.h"
 
 #ifdef TRACEJIT
 tracingLevel traceSSA = noTracing;
@@ -22,370 +23,372 @@ static logical isLastPC(scopePo scope, int32 pc);
 scopePo checkScope(scopePo scope, int32 tgt);
 
 retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit,
-                     varDescPo phiVar) {
+                     varDescPo phiVar)
+{
   ScopeBlock scope = {
     .start = start, .limit = limit, .parent = parent, .stack = Null, .phiVar = phiVar
   };
 
   retCode ret = Ok;
-  for (; ret == Ok && pc < limit; pc++) {
+  for (; ret == Ok && pc < limit; pc++){
     insPo ins = &code[pc];
 
-    switch (ins->op) {
-      case Halt:
-      case Abort: {
-        retireScopeStack(&scope, pc);
-        continue;
-      }
-      case Call: {
-        labelPo fn = C_LBL(getConstant(code[pc].fst));
-        int32 arity = lblArity(fn);
+    switch (ins->op){
+    case Halt:
+    case Abort: {
+      retireScopeStack(&scope, pc);
+      continue;
+    }
+    case Call: {
+      labelPo fn = C_LBL(getConstant(code[pc].fst));
+      int32 arity = lblArity(fn);
 
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case XCall: {
-        labelPo fn = C_LBL(getConstant(code[pc].fst));
-        int32 arity = lblArity(fn);
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case XCall: {
+      labelPo fn = C_LBL(getConstant(code[pc].fst));
+      int32 arity = lblArity(fn);
 
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
 
-      case TCall: {
-        retireScopeStack(&scope, pc);
-        continue;
-      }
-      case OCall: {
-        int32 arity = code[pc].fst;
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case XOCall: {
-        int32 arity = code[pc].fst;
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case TOCall: {
-        retireScopeStack(&scope, pc);
-        continue;
-      }
-      case Escape: {
-        int32 escNo = code[pc].fst; /* escape number */
-        escapePo esc = getEscape(escNo);
-        int32 arity = escapeArity(esc);
+    case TCall: {
+      retireScopeStack(&scope, pc);
+      continue;
+    }
+    case OCall: {
+      int32 arity = code[pc].fst;
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case XOCall: {
+      int32 arity = code[pc].fst;
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case TOCall: {
+      retireScopeStack(&scope, pc);
+      continue;
+    }
+    case Escape: {
+      int32 escNo = code[pc].fst; /* escape number */
+      escapePo esc = getEscape(escNo);
+      int32 arity = escapeArity(esc);
 
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case XEscape: {
-        int32 escNo = code[pc].fst; /* escape number */
-        escapePo esc = getEscape(escNo);
-        int32 arity = escapeArity(esc);
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case XEscape: {
+      int32 escNo = code[pc].fst; /* escape number */
+      escapePo esc = getEscape(escNo);
+      int32 arity = escapeArity(esc);
 
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Entry: {
-        int32 count = code[pc].fst;
-        for (int32 lx = 0; lx < count; lx++)
-          newLocalVar(analysis, -(lx + 1));
-        continue;
-      }
-      case Ret:
-      case XRet: {
-        retireScopeStack(&scope, pc);
-        assert(isLastPC(&scope, pc));
-        continue;
-      }
-      case Block: {
-        int32 blockLen = code[pc].alt;
+      for (int32 ax = 0; ax < arity; ax++)
+        retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Entry: {
+      int32 count = code[pc].fst;
+      for (int32 lx = 0; lx < count; lx++)
+        newLocalVar(analysis, -(lx + 1));
+      continue;
+    }
+    case Ret:
+    case XRet: {
+      retireScopeStack(&scope, pc);
+      assert(isLastPC(&scope, pc));
+      continue;
+    }
+    case Block: {
+      int32 blockLen = code[pc].alt;
 
-        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, Null);
-        pc += blockLen;
-        continue;
-      }
-      case Valof: {
-        int32 blockLen = code[pc].alt;
-        varDescPo phi = newPhiVar(analysis, &scope, pc);
+      ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, Null);
+      pc += blockLen;
+      continue;
+    }
+    case Valof: {
+      int32 blockLen = code[pc].alt;
+      varDescPo phi = newPhiVar(analysis, &scope, pc);
 
-        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, phi);
-        pc += blockLen;
-        continue;
+      ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, phi);
+      pc += blockLen;
+      continue;
+    }
+    case Loop: {
+      scopePo loopScope = checkScope(&scope, pc + code[pc].alt + 1);
+      scopePo thisScope = &scope;
+      while (thisScope != loopScope && thisScope != Null){
+        retireScopeStack(thisScope, pc);
+        thisScope = thisScope->parent;
       }
-      case Loop: {
-        scopePo loopScope = checkScope(&scope, pc + code[pc].alt + 1);
-        scopePo thisScope = &scope;
-        while (thisScope != loopScope && thisScope != Null) {
-          retireScopeStack(thisScope, pc);
-          thisScope = thisScope->parent;
-        }
-        continue;
+      continue;
+    }
+    case Break: {
+      scopePo breakScope = checkScope(&scope, pc + code[pc].alt + 1)->parent;
+      scopePo thisScope = &scope;
+      while (thisScope != breakScope && thisScope != Null){
+        retireScopeStack(thisScope, pc);
+        thisScope = thisScope->parent;
       }
-      case Break: {
-        scopePo breakScope = checkScope(&scope, pc + code[pc].alt + 1)->parent;
-        scopePo thisScope = &scope;
-        while (thisScope != breakScope && thisScope != Null) {
-          retireScopeStack(thisScope, pc);
-          thisScope = thisScope->parent;
-        }
-        continue;
-      }
-      case Result: {
-        retireStackVarToPhi(&scope, pc, pc + code[pc].alt + 1);
-        retireScopeStack(&scope, pc);
-        continue;
-      }
-      case Drop:
-        retireStackVar(&scope, pc);
-        continue;
-      case Rot: {
-        int32 depth = code[pc].fst;
+      continue;
+    }
+    case Result: {
+      retireStackVarToPhi(&scope, pc, pc + code[pc].alt + 1);
+      retireScopeStack(&scope, pc);
+      continue;
+    }
+    case Drop:
+      retireStackVar(&scope, pc);
+      continue;
+    case Rot: {
+      int32 depth = code[pc].fst;
 
-        if (depth > 0)
-          rotateStackVars(&scope, pc, depth);
+      if (depth > 0)
+        rotateStackVars(&scope, pc, depth);
 
-        continue;
-      }
-      case Rst: {
-        int32 depth = code[pc].fst;
-        while (stackDepth(&scope) > depth)
-          retireStackVar(&scope, pc);
-        continue;
-      }
-      case Fiber: {
+      continue;
+    }
+    case Rst: {
+      int32 depth = code[pc].fst;
+      while (stackDepth(&scope) > depth)
         retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Resume:
-      case Suspend: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Retire: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        retireScopeStack(&scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Underflow:
-        return Error;
-      case LdV:
-      case LdC:
-        newStackVar(analysis, &scope, pc);
-        continue;
-      case Ld:
-        recordVariableUse(analysis, ins->fst, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      case St:
-        retireStackVar(&scope, pc);
-        recordVariableStart(analysis, ins->fst, local, pc);
-        continue;
-      case Tee:
-        retireStackVar(&scope, pc);
-        recordVariableStart(analysis, code[pc].fst, local, pc + 1);
-        continue;
-      case StV:
-        recordVariableStart(analysis, code[pc].fst, local, pc + 1);
-        continue;
-      case LdG:
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      case StG:
-        retireStackVar(&scope, pc);
-        continue;
-      case TG:
-        continue;
-      case Sav:
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      case TstSav:
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      case LdSav: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case StSav: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        continue;
-      }
-      case TSav: {
-        retireStackVar(&scope, pc);
-        continue;
-      }
-      case Cell: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Get: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case Assign: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        continue;
-      }
-      case CLit:
-      case CInt:
-      case CFlt:
-      case CChar:
-      case CLbl: {
-        retireStackVar(&scope, pc);
-        continue;
-      }
-      case Nth: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case StNth: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case If:
-      case IfNot: {
-        retireStackVar(&scope, pc);
-        continue;
-      }
-      case ICase:
-      case Case:
-      case IxCase: {
-        int32 mx = code[pc].fst;
-        retireStackVar(&scope, pc);
+      continue;
+    }
+    case Fiber: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Resume:
+    case Suspend: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Retire: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      retireScopeStack(&scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Underflow:
+      return Error;
+    case LdV:
+    case LdC:
+      newStackVar(analysis, &scope, pc);
+      continue;
+    case Ld:
+      recordVariableUse(analysis, ins->fst, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    case St:
+      retireStackVar(&scope, pc);
+      recordVariableStart(analysis, ins->fst, local, pc);
+      continue;
+    case Tee:
+      retireStackVar(&scope, pc);
+      recordVariableStart(analysis, code[pc].fst, local, pc + 1);
+      continue;
+    case StV:
+      recordVariableStart(analysis, code[pc].fst, local, pc + 1);
+      continue;
+    case LdG:
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    case StG:
+      retireStackVar(&scope, pc);
+      continue;
+    case TG:
+      continue;
+    case Sav:
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    case TstSav:
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    case LdSav: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case StSav: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      continue;
+    }
+    case TSav: {
+      retireStackVar(&scope, pc);
+      continue;
+    }
+    case Cell: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Get: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case Assign: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      continue;
+    }
+    case CLit:
+    case CInt:
+    case CFlt:
+    case CChar:
+    case CLbl: {
+      retireStackVar(&scope, pc);
+      continue;
+    }
+    case Nth: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case StNth: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case If:
+    case IfNot: {
+      retireStackVar(&scope, pc);
+      continue;
+    }
+    case ICase:
+    case Case:
+    case IxCase: {
+      int32 mx = code[pc].fst;
+      retireStackVar(&scope, pc);
 
-        pc += mx;
-        continue;
-      }
-      case IAdd:
-      case ISub:
-      case IMul: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case IDiv:
-      case IMod: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case IAbs: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-      }
-      case IEq:
-      case ILt:
-      case IGe:
-      case CEq:
-      case CLt:
-      case CGe:
-      case BAnd:
-      case BOr:
-      case BXor:
-      case BLsl:
-      case BLsr:
-      case BAsr: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case BNot: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-      }
-      case FAdd:
-      case FSub:
-      case FMul:
-      case FDiv:
-      case FMod: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case FAbs: {
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-      }
-      case FEq:
-      case FLt:
-      case FGe: {
-        retireStackVar(&scope, pc);
-        retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        continue;
-      }
-      case Alloc: {
-        labelPo fn = C_LBL(getConstant(code[pc].fst));
-        int32 arity = lblArity(fn);
+      pc += mx;
+      continue;
+    }
+    case IAdd:
+    case ISub:
+    case IMul: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case IDiv:
+    case IMod: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case IAbs: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+    }
+    case IEq:
+    case ILt:
+    case IGe:
+    case CEq:
+    case CLt:
+    case CGe:
+    case BAnd:
+    case BOr:
+    case BXor:
+    case BLsl:
+    case BLsr:
+    case BAsr: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case BNot: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+    }
+    case FAdd:
+    case FSub:
+    case FMul:
+    case FDiv:
+    case FMod: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case FAbs: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+    }
+    case FEq:
+    case FLt:
+    case FGe: {
+      retireStackVar(&scope, pc);
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      continue;
+    }
+    case Alloc: {
+      labelPo fn = C_LBL(getConstant(code[pc].fst));
+      int32 arity = lblArity(fn);
 
-        for (int32 ax = 0; ax < arity; ax++)
-          retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Closure: {
+      for (int32 ax = 0; ax < arity; ax++)
         retireStackVar(&scope, pc);
-        newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
-        continue;
-      }
-      case Frame:
-        continue;
-      case Line:
-      case dBug:
-        continue;
-      default:
-        return Error;
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Closure: {
+      retireStackVar(&scope, pc);
+      newStackVar(analysis, &scope, pc);
+      addToSet(analysis->safes, pc);
+      continue;
+    }
+    case Frame:
+      continue;
+    case Line:
+    case dBug:
+      continue;
+    default:
+      return Error;
     }
   }
   return ret;
 }
 
-scopePo checkScope(scopePo scope, int32 tgt) {
-  while (scope != Null) {
-    if (tgt == scope->start) {
+scopePo checkScope(scopePo scope, int32 tgt)
+{
+  while (scope != Null){
+    if (tgt == scope->start){
       return scope;
     }
     scope = scope->parent;
@@ -393,11 +396,15 @@ scopePo checkScope(scopePo scope, int32 tgt) {
   return Null;
 }
 
-logical isLastPC(scopePo scope, int32 pc) {
+logical isLastPC(scopePo scope, int32 pc)
+{
   return pc + 1 == scope->limit;
 }
 
-retCode analyseMethod(methodPo mtd, analysisPo results) {
+static void allocateVarSlots(analysisPo analysis);
+
+retCode analyseMethod(methodPo mtd, analysisPo results)
+{
   initAnalysis();
 
   hashPo vars = newVarTable();
@@ -408,33 +415,41 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
   results->index = index;
   results->safes = safes;
 
-  for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
+  for (int32 ax = 0; ax < mtdArity(mtd); ax++){
     newArgVar(vars, ax, results);
   }
 
   retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
+  allocateVarSlots(results);
   return ret;
 }
 
-typedef struct {
+typedef struct
+{
   setPo useMap;
   int32 lastPc;
 } AllocInfo;
 
-static retCode allocVar(void *entry, integer ix, void *cl) {
-  AllocInfo *info = (AllocInfo *) cl;
-  varDescPo var = *(varDescPo *) entry;
-  if (var->kind != argument) {
-  }
+static int32 findFreeSlot(intervalSetPo usage)
+{
+  int32 slotNo = findSpace(usage, 1);
+  removeFromIntervalSet(usage, slotNo);
+  return slotNo;
 }
 
-retCode varAllocation(analysisPo analysis) {
-  retCode ret = Ok;
+static void releaseVarSlot(intervalSetPo usage, int32 slotNo)
+{
+  assert(slotNo>=1);
+  assert(inIntervalSet(usage,slotNo));
+  removeFromIntervalSet(usage, slotNo);
+}
 
+void allocateVarSlots(analysisPo analysis)
+{
   arrayPo starts = varStarts(analysis);
   arrayPo exits = varExits(analysis);
 
-  setPo allocMap = newSet();
+  intervalSetPo allocMap = newIntervalSet();
 
   int32 start = 0;
   int32 exit = 0;
@@ -442,26 +457,50 @@ retCode varAllocation(analysisPo analysis) {
 
   assert(tableSize==arrayCount(exits));
 
-  while (start < tableSize && exit < tableSize) {
-    varDescPo startingV = *(varDescPo*)nthEntry(starts,start);
-    varDescPo endingV = *(varDescPo*)nthEntry(exits,exit);
+  while (start < tableSize || exit < tableSize){
+    if (start<tableSize){
+      varDescPo startingV = *(varDescPo*)nthEntry(starts, start);
 
-    if (startingV->start<endingV->end) {
-      int32 slotNo = findFreeSlot(allocMap);
-      startingV->loc = slotNo;
-      start++;
-    } else if (endingV->end<startingV->start) {
-      assert(inSet(allocMap, endingV->loc));
-      releaseVarSlot(allocMap,endingV->loc);
-      endingV++;
-    } else {
-      int32 slotNo = findFreeSlot(allocMap);
-      startingV->loc = slotNo;
-      start++;
-      assert(inSet(allocMap, endingV->loc));
-      releaseVarSlot(allocMap,endingV->loc);
-      endingV++;
+      if (exit<tableSize){
+        varDescPo endingV = *(varDescPo*)nthEntry(exits, exit);
+
+        if (startingV->start < endingV->end){
+          int32 slotNo = findFreeSlot(allocMap);
+          startingV->loc = slotNo;
+          start++;
+        }
+        else if (endingV->end < startingV->start){
+          assert(inIntervalSet(allocMap, endingV->loc));
+          releaseVarSlot(allocMap, endingV->loc);
+          exit++;
+        }
+        else{
+          int32 slotNo = findFreeSlot(allocMap);
+          startingV->loc = slotNo;
+          start++;
+          assert(inIntervalSet(allocMap, endingV->loc));
+          releaseVarSlot(allocMap, endingV->loc);
+          exit++;
+        }
+      } else{
+        int32 slotNo = findFreeSlot(allocMap);
+        startingV->loc = slotNo;
+        start++;
+      }
+    } else{
+      assert(exit<tableSize);
+
+      varDescPo endingV = *(varDescPo*)nthEntry(exits, exit);
+
+      assert(inIntervalSet(allocMap, endingV->loc));
+      releaseVarSlot(allocMap, endingV->loc);
+      exit++;
     }
   }
 
+  assert(intervalSetIsEmpty(allocMap));
+  
+  deleteIntervalSet(allocMap);
+  eraseArray(starts,Null,Null);
+  eraseArray(exits,Null,Null);
 }
