@@ -14,7 +14,6 @@ typedef struct interval_ {
   int32 from;
   int32 to;
   intervalPo next;
-  intervalPo prev;
 } IntervalRecord;
 
 typedef struct iset_ {
