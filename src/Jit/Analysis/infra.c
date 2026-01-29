@@ -28,7 +28,7 @@ void tearDownAnalysis(AnalysisRecord *results) {
 static char *varType(VarKind kind);
 
 static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d .. %d]\n", var->varNo, varType(var->kind), var->start, var->end);
+  return outMsg(out, "%d: %s [%d .. %d] @ %d\n", var->varNo, varType(var->kind), var->start, var->end, var->loc);
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -138,6 +138,7 @@ varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
   var->kind = kind;
   var->start = pc;
   var->end = -1;
+  var->loc = MAX_INT32;
 
   hashPut(analysis->vars, var, var);
   return var;
@@ -270,7 +271,7 @@ static retCode popVar(void *n, void *r, void *c) {
   return Ok;
 }
 
-static comparison compVarStart(arrayPo vars, integer ix, integer iy, void *cl) {
+static comparison compVarStart(arrayPo vars, int32 ix, int32 iy, void *cl) {
   varDescPo left = (varDescPo) (*(varDescPo *) nthEntry(vars, ix));
   varDescPo right = (varDescPo) (*(varDescPo *) nthEntry(vars, iy));
 
@@ -282,7 +283,7 @@ static comparison compVarStart(arrayPo vars, integer ix, integer iy, void *cl) {
     return same;
 }
 
-static comparison compLastOcc(arrayPo vars, integer ix, integer iy, void *cl) {
+static comparison compLastOcc(arrayPo vars, int32 ix, int32 iy, void *cl) {
   varDescPo left = (varDescPo) (*(varDescPo *) nthEntry(vars, ix));
   varDescPo right = (varDescPo) (*(varDescPo *) nthEntry(vars, iy));
 
@@ -294,14 +295,14 @@ static comparison compLastOcc(arrayPo vars, integer ix, integer iy, void *cl) {
     return same;
 }
 
-static retCode showVarEntry(void *entry, integer ix, void *cl) {
+static retCode showVarEntry(void *entry, int32 ix, void *cl) {
   ioPo out = (ioPo) cl;
   varDescPo var = *(varDescPo *) entry;
   return showVar(out, var);
 }
 
 arrayPo varStarts(analysisPo analysis) {
-  arrayPo starts = allocArray(sizeof(varDescPo), hashSize(analysis->vars), True);
+  arrayPo starts = allocArray(sizeof(varDescPo), (int32)hashSize(analysis->vars), True);
 
   SortVarInfo info = {.vars = starts};
 
