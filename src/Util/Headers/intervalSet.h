@@ -13,16 +13,20 @@ typedef struct iset_ *intervalSetPo;
 
 typedef retCode (*elProc)(int32 from, int32 to, void *cl);
 
-intervalSetPo newISet();
-void deleteISet(intervalSetPo s);
+intervalSetPo newIntervalSet();
+void deleteIntervalSet(intervalSetPo s);
 
-retCode addToISet(intervalSetPo set, int32 k);
-retCode removeFromISet(intervalSetPo set, int32 k);
-logical inISet(intervalSetPo set, int32 k);
-logical isEmptyISet(intervalSetPo set);
+void addToIntervalSet(intervalSetPo set, int32 k);
+void removeFromIntervalSet(intervalSetPo set, int32 k);
+logical inIntervalSet(intervalSetPo set, int32 k);
+logical intervalSetIsEmpty(intervalSetPo set);
 
-retCode processISet(intervalSetPo set, elProc proc, void *cl);
+retCode processIntervalSet(intervalSetPo set, elProc proc, void *cl);
 
-retCode showISet(ioPo out,intervalSetPo set);
+retCode showIntervalSet(ioPo out,intervalSetPo set);
+
+retCode firstElement(intervalSetPo set, int32 from, int32 *i);
+
+logical checkIntervalSet(intervalSetPo set);
 
 #endif //STAR_INTERVALSET_H

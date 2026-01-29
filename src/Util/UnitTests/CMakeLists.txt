@@ -13,14 +13,15 @@ set(TEST_HEADER_FILES
         Headers/multiTests.h
         Headers/matchTests.h
         Headers/setTests.h
-        Headers/timertests.h)
+        Headers/timertests.h
+        Headers/intervalTests.h)
 
 set(TEST_SOURCE_FILES
         buddyTest.c
         utilTests.c
-		timerTests.c
+        timerTests.c
         ../unitTests.c
-        multiTest.c miscTest.c matchTests.c setTests.c)
+        multiTest.c miscTest.c matchTests.c setTests.c intervalTests.c)
 
 add_executable(utilTest EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 target_link_libraries(utilTest ooio)
