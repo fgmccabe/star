@@ -428,11 +428,11 @@ static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
 
 static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
   if (line[0] == 'L') {
-    integer count = cmdCount(line + 1, MAX_INT);
+    integer count = cmdCount(line + 1, MAX_INTEGER);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars, count);
   } else {
-    integer count = cmdCount(line, MAX_INT);
+    integer count = cmdCount(line, MAX_INTEGER);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments, count);
   }

@@ -71,7 +71,7 @@ static void dumpEsc(escapePo esc, ioPo out, integer escNo) {
     outMsg(out, "%s:%d\n", esc->name, escCount[escNo]);
 }
 
-static comparison cmpCount(integer i, integer j, void *cl) {
+static comparison cmpCount(int32 i, int32 j, void *cl) {
   integer *indices = (integer *) cl;
 
   integer iCount = escCount[indices[i]];
@@ -85,7 +85,7 @@ static comparison cmpCount(integer i, integer j, void *cl) {
     return bigger;
 }
 
-static retCode swapIndex(integer i, integer j, void *cl) {
+static retCode swapIndex(int32 i, int32 j, void *cl) {
   integer *indices = (integer *) cl;
   integer w = indices[i];
   indices[i] = indices[j];
