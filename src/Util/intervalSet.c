@@ -140,7 +140,7 @@ logical inIntervalSet(intervalSetPo set, int32 k) {
   return False;
 }
 
-retCode firstElement(intervalSetPo set, int32 from, int32 *i) {
+retCode findElement(intervalSetPo set, int32 from, int32 *i) {
   assert(set!=Null);
 
   intervalPo chain = set->chain;
@@ -153,6 +153,21 @@ retCode firstElement(intervalSetPo set, int32 from, int32 *i) {
     chain = chain->next;
   }
   return Error;
+}
+
+int32 findSpace(intervalSetPo set, int32 from) {
+  assert(set!=Null);
+
+  intervalPo chain = set->chain;
+
+  while (chain != Null) {
+    if (chain->from <= from) {
+      from = max(from,chain->to);
+      chain = chain->next;
+    } else
+      return from;
+  }
+  return from;
 }
 
 logical intervalSetIsEmpty(intervalSetPo set) {
