@@ -25,10 +25,20 @@ void tearDownAnalysis(AnalysisRecord *results) {
   eraseTree(results->index);
 }
 
-static char *varType(VarKind kind);
+static char *varType(varKind kind);
 
 static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d .. %d] @ %d\n", var->varNo, varType(var->kind), var->start, var->end, var->loc);
+  outMsg(out, "%d: %s [%d .. %d]", var->varNo, varType(var->kind), var->start, var->end);
+  switch (var->where) {
+    case notAllocated:
+      return outMsg(out, " notAllocated\n");
+    case inRegister:
+      return outMsg(out, " inRegister\n");
+    case onStack:
+      return outMsg(out, " L[%d]\n", -var->loc);
+    default:
+      return outMsg(out, " unknown\n");
+  }
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -115,7 +125,7 @@ treePo newVarIndex() {
   return newTree(indexComp, Null);
 }
 
-void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
+void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   varDescPo var = findVar(analysis, analysis->vars, varNo);
   assert(var != Null && var->start==-1);
   var->start = pc;
@@ -129,7 +139,7 @@ void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
     var->end = pc;
 }
 
-varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
+varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   varDescPo var = (varDescPo) allocPool(varPool);
 
   assert(kind==argument ? (varNo>=0):True);
@@ -139,9 +149,31 @@ varDescPo newVar(analysisPo analysis, int32 varNo, VarKind kind, int32 pc) {
   var->start = pc;
   var->end = -1;
   var->loc = MAX_INT32;
+  var->where = notAllocated;
 
   hashPut(analysis->vars, var, var);
   return var;
+}
+
+logical isSafe(analysisPo analysis, varDescPo var) {
+  return !inSetRange(analysis->safes, var->start, var->end);
+}
+
+logical isOnStack(varDescPo var) {
+  return var->where == onStack;
+}
+
+int32 stackLoc(varDescPo var) {
+  return var->loc;
+}
+
+void markVarAsRegister(varDescPo var) {
+  var->where = inRegister;
+}
+
+void markVarAsStack(varDescPo var, int32 slotNo) {
+  var->where = onStack;
+  var->loc = slotNo;
 }
 
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
@@ -232,7 +264,7 @@ void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
   }
 }
 
-char *varType(VarKind kind) {
+char *varType(varKind kind) {
   switch (kind) {
     case argument:
       return "argument";
@@ -295,6 +327,22 @@ static comparison compLastOcc(arrayPo vars, int32 ix, int32 iy, void *cl) {
     return same;
 }
 
+static comparison compVarRange(arrayPo vars, int32 ix, int32 iy, void *cl) {
+  varDescPo left = (varDescPo) (*(varDescPo *) nthEntry(vars, ix));
+  varDescPo right = (varDescPo) (*(varDescPo *) nthEntry(vars, iy));
+
+  if (left->start < right->start)
+    return smaller;
+  else if (left->start > right->start)
+    return bigger;
+  else if (left->end < right->end)
+    return smaller;
+  else if (left->end > right->end)
+    return bigger;
+  else
+    return same;
+}
+
 static retCode showVarEntry(void *entry, int32 ix, void *cl) {
   ioPo out = (ioPo) cl;
   varDescPo var = *(varDescPo *) entry;
@@ -302,7 +350,7 @@ static retCode showVarEntry(void *entry, int32 ix, void *cl) {
 }
 
 arrayPo varStarts(analysisPo analysis) {
-  arrayPo starts = allocArray(sizeof(varDescPo), (int32)hashSize(analysis->vars), True);
+  arrayPo starts = allocArray(sizeof(varDescPo), (int32) hashSize(analysis->vars), True);
 
   SortVarInfo info = {.vars = starts};
 
@@ -327,4 +375,18 @@ arrayPo varExits(analysisPo analysis) {
   outMsg(logFile, "Var exits:\n");
   processArray(exits, showVarEntry, (void *) logFile);
   return exits;
+}
+
+arrayPo varRanges(analysisPo analysis) {
+  arrayPo starts = allocArray(sizeof(varDescPo), (int32) hashSize(analysis->vars), True);
+
+  SortVarInfo info = {.vars = starts};
+
+  processHashTable(popVar, analysis->vars, &info);
+
+  sortArray(starts, compVarRange, );
+
+  outMsg(logFile, "Var starts:\n");
+  processArray(starts, showVarEntry, (void *) logFile);
+  return starts;
 }

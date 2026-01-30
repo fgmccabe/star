@@ -37,7 +37,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
 
     if (enableSSA){
       AnalysisRecord analysis;
-      if (analyseMethod(mtd, &analysis) == Ok){
+      if (analyseMethod(mtd, 3, &analysis) == Ok){
         showAnalysis(logFile, &analysis);
       }
       tearDownAnalysis(&analysis);

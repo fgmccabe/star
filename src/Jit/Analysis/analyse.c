@@ -401,9 +401,9 @@ logical isLastPC(scopePo scope, int32 pc)
   return pc + 1 == scope->limit;
 }
 
-static void allocateVarSlots(analysisPo analysis);
+static void allocateVarSlots(analysisPo analysis, int32 registerBudget);
 
-retCode analyseMethod(methodPo mtd, analysisPo results)
+retCode analyseMethod(methodPo mtd, int32 registerBudget, analysisPo results)
 {
   initAnalysis();
 
@@ -420,7 +420,7 @@ retCode analyseMethod(methodPo mtd, analysisPo results)
   }
 
   retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
-  allocateVarSlots(results);
+  allocateVarSlots(results, registerBudget);
   return ret;
 }
 
@@ -433,7 +433,7 @@ typedef struct
 static int32 findFreeSlot(intervalSetPo usage)
 {
   int32 slotNo = findSpace(usage, 1);
-  removeFromIntervalSet(usage, slotNo);
+  addToIntervalSet(usage, slotNo);
   return slotNo;
 }
 
@@ -444,63 +444,38 @@ static void releaseVarSlot(intervalSetPo usage, int32 slotNo)
   removeFromIntervalSet(usage, slotNo);
 }
 
-void allocateVarSlots(analysisPo analysis)
+static void retireExistingSlots(arrayPo ranges, intervalSetPo allocMap,int32 pc) {
+  for (int32 ix = 0; ix < arrayCount(ranges); ix++) {
+    varDescPo var = *(varDescPo*)nthEntry(ranges, ix);
+    if (var->end<=pc && isOnStack(var))
+      releaseVarSlot(allocMap, stackLoc(var));
+  }
+}
+
+void allocateVarSlots(analysisPo analysis, int32 registerBudget)
 {
-  arrayPo starts = varStarts(analysis);
-  arrayPo exits = varExits(analysis);
+  arrayPo ranges = varRanges(analysis);
 
   intervalSetPo allocMap = newIntervalSet();
 
   int32 start = 0;
-  int32 exit = 0;
-  int32 tableSize = arrayCount(starts);
+  int32 tableSize = arrayCount(ranges);
 
-  assert(tableSize==arrayCount(exits));
+  while (start < tableSize) {
+    varDescPo var = *(varDescPo*)nthEntry(ranges, start);
+    retireExistingSlots(ranges,allocMap,var->start);
 
-  while (start < tableSize || exit < tableSize){
-    if (start<tableSize){
-      varDescPo startingV = *(varDescPo*)nthEntry(starts, start);
-
-      if (exit<tableSize){
-        varDescPo endingV = *(varDescPo*)nthEntry(exits, exit);
-
-        if (startingV->start < endingV->end){
-          int32 slotNo = findFreeSlot(allocMap);
-          startingV->loc = slotNo;
-          start++;
-        }
-        else if (endingV->end < startingV->start){
-          assert(inIntervalSet(allocMap, endingV->loc));
-          releaseVarSlot(allocMap, endingV->loc);
-          exit++;
-        }
-        else{
-          int32 slotNo = findFreeSlot(allocMap);
-          startingV->loc = slotNo;
-          start++;
-          assert(inIntervalSet(allocMap, endingV->loc));
-          releaseVarSlot(allocMap, endingV->loc);
-          exit++;
-        }
-      } else{
-        int32 slotNo = findFreeSlot(allocMap);
-        startingV->loc = slotNo;
-        start++;
-      }
-    } else{
-      assert(exit<tableSize);
-
-      varDescPo endingV = *(varDescPo*)nthEntry(exits, exit);
-
-      assert(inIntervalSet(allocMap, endingV->loc));
-      releaseVarSlot(allocMap, endingV->loc);
-      exit++;
+    if (isSafe(analysis,var) && registerBudget-- >0) {
+      markVarAsRegister(var);
+    } else {
+      int32 slotNo = findFreeSlot(allocMap);
+      markVarAsStack(var, slotNo);
     }
+    start++;
   }
 
   assert(intervalSetIsEmpty(allocMap));
-  
+
   deleteIntervalSet(allocMap);
-  eraseArray(starts,Null,Null);
-  eraseArray(exits,Null,Null);
+  eraseArray(ranges,Null,Null);
 }

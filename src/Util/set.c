@@ -126,6 +126,33 @@ logical inSet(setPo set, int32 k) {
   return (set->data[el] & mask) == mask;
 }
 
+
+logical inSetRange(setPo set, int32 from, int32 to) {
+  assert(from<to);
+
+  int32 max = set->count * 64 + set->min;
+  if (to < set->min || from >= max || set->data == Null)
+    return False;
+
+  int32 fromBase = from - set->min;
+  int32 fromEl = fromBase >> 6;
+
+  int32 toBase = to - set->min;
+  int32 toEl = toBase >> 6;
+
+  while (fromEl <= toEl ) {
+    uinteger upper = (fromEl<toEl ? ~0 : ((1ul << ((uinteger) toBase&63u))-1));
+    uinteger lower = ~((1ul << ((uinteger) fromBase & 63u))-1);
+    uinteger mask = upper & lower;
+    if ((mask & set->data[fromEl])!=0)
+      return True;
+    fromEl ++;
+    fromBase = 0;
+  }
+
+  return False;
+}
+
 setPo duplicateSet(setPo set) {
   setPo newSet = (setPo) allocPool(setPool);
   newSet->data = malloc(sizeof(uinteger) * set->count);

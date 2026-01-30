@@ -17,7 +17,7 @@ extern logical enableSSA;
 
 typedef struct analysis_ *analysisPo;
 
-retCode analyseMethod(methodPo mtd, analysisPo results);
+retCode analyseMethod(methodPo mtd, int32 registerBudget, analysisPo results);
 void tearDownAnalysis(analysisPo results);
 void showAnalysis(ioPo out, analysisPo analysis);
 
@@ -26,11 +26,12 @@ typedef enum {
   local,
   stack,
   phi
-} VarKind;
+} varKind;
 
 typedef enum{
-  inMemory,
-  inRegister
-} VarLocation;
+  onStack,
+  inRegister,
+  notAllocated
+} varLocation;
 
 #endif

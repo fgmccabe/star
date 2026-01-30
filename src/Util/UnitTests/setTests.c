@@ -168,6 +168,20 @@ static retCode sectTest() {
   return Ok;
 }
 
+static retCode rangeTest() {
+  setPo iotaSet = iota(0, 128, 10);
+
+  showSet(logFile, iotaSet);
+
+  check(inSetRange(iotaSet, 2,11),"[2,11) should intersect");
+  check(!inSetRange(iotaSet, 2,4),"[2,4) should not intersect");
+  check(inSetRange(iotaSet, 60,65),"[60,65) should intersect");
+  check(!inSetRange(iotaSet, 61,64),"[61,64) should not intersect");
+
+  deleteSet(iotaSet);
+  return Ok;
+}
+
 retCode setTests() {
   setupTests();
   tryRet(run_test(createAndDestroy));
@@ -178,6 +192,7 @@ retCode setTests() {
   tryRet(run_test(removeABunch));
   tryRet(run_test(unionTest));
   tryRet(run_test(sectTest));
+  tryRet(run_test(rangeTest));
   tearDownTests();
   return Ok;
 }
