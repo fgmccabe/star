@@ -19,10 +19,11 @@ typedef struct analysis_ {
 
 typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
-  VarKind kind;
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
   int32 loc;  // Which slot in the frame
+  varLocation where;
+  varKind kind;
   varDescPo link;
 } VarDescRecord;
 
@@ -43,8 +44,15 @@ treePo newVarIndex();
 retCode showVarIndex(ioPo out, analysisPo analysis);
 arrayPo varStarts(analysisPo analysis);
 arrayPo varExits(analysisPo analysis);
+arrayPo varRanges(analysisPo analysis);
 
-void recordVariableStart(analysisPo analysis, int32 varNo, VarKind kind, int32 pc);
+logical isSafe(analysisPo analysis, varDescPo var);
+logical isOnStack(varDescPo var);
+int32 stackLoc(varDescPo var);
+void markVarAsRegister(varDescPo var);
+void markVarAsStack(varDescPo var, int32 slotNo);
+
+void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
 
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);

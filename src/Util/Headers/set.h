@@ -16,6 +16,7 @@ void deleteSet(setPo s);
 retCode addToSet(setPo set, int32 k);
 retCode removeFromSet(setPo set, int32 k);
 logical inSet(setPo set, int32 k);
+logical inSetRange(setPo set, int32 from, int32 to);
 logical setIsEmpty(setPo set);
 
 setPo duplicateSet(setPo set);
