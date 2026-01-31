@@ -6,9 +6,12 @@
 #define STAR_ARRAY_H
 
 #include "utils.h"
+#include "ooio.h"
 
 typedef struct array_ *arrayPo;
 typedef retCode (*arrayElProc)(void *entry, int32 ix, void *cl);
+typedef retCode (*showElProc)(ioPo out,void *entry, int32 ix, void *cl);
+
 typedef void * (*arrayDataCopy)(void *src, int32 size);
 
 int32 arrayCount(arrayPo ar);
@@ -16,13 +19,14 @@ int32 arrayCount(arrayPo ar);
 arrayPo allocArray(int elSize, int32 initial, logical growable);
 
 arrayPo fixedCopy(arrayPo src, arrayDataCopy copier, void (*release)(arrayPo ar));
-retCode appendEntry(arrayPo ar,void *el);
+retCode appendEntry(arrayPo ar, void *el);
 retCode insertEntry(arrayPo ar, int32 ix, void *el);
 void *newEntry(arrayPo ar);
 void *nthEntry(arrayPo ar, int32 ix);
 retCode dropEntry(arrayPo ar, int32 ix);
 arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl);
 retCode processArray(arrayPo ar, arrayElProc proc, void *cl);
+retCode showArray(ioPo out, arrayPo ar, showElProc proc, void *cl);
 
 typedef comparison (*compareEls)(arrayPo ar, int32 ix, int32 iy, void *cl);
 retCode sortArray(arrayPo ar, compareEls compare, void *cl);

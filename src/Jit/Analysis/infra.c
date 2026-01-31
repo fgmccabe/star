@@ -27,18 +27,15 @@ void tearDownAnalysis(AnalysisRecord *results) {
 
 static char *varType(varKind kind);
 
+static char *stateName[] = {
+  "unAllocated",
+  "beingAllocated",
+  "allocated"
+};
+
 static retCode showVar(ioPo out, varDescPo var) {
-  outMsg(out, "%d: %s [%d .. %d]", var->varNo, varType(var->kind), var->start, var->end);
-  switch (var->where) {
-    case notAllocated:
-      return outMsg(out, " notAllocated\n");
-    case inRegister:
-      return outMsg(out, " inRegister\n");
-    case onStack:
-      return outMsg(out, " L[%d]\n", -var->loc);
-    default:
-      return outMsg(out, " unknown\n");
-  }
+  return outMsg(out, "%d: %s [%d .. %d] %s%d\n", var->varNo, varType(var->kind), var->start,
+                var->end, (var->registerCandidate ? "reg " : ""), var->loc);
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -61,19 +58,8 @@ retCode showVarIndex(ioPo out, analysisPo analysis) {
   return processTree(showVrIndex, analysis->index, out);
 }
 
-static retCode showVars(ioPo out, analysisPo analysis) {
+retCode showVars(ioPo out, analysisPo analysis) {
   return processHashTable(showVr, analysis->vars, (void *) out);
-}
-
-void showAnalysis(ioPo out, analysisPo analysis) {
-  outMsg(out, "Analysis:\n");
-  outMsg(out, "  vars:\n");
-  showVars(out, analysis);
-  outMsg(out, "  index:\n");
-  showVarIndex(out, analysis);
-  outMsg(out, "Safe points: ");
-  showSet(out, analysis->safes);
-  outMsg(out, "\n%_");
 }
 
 static retCode checkVarIndex(void *n, void *r, void *c) {
@@ -87,6 +73,18 @@ static retCode checkVarIndex(void *n, void *r, void *c) {
 
 static void checkIndex(treePo index) {
   assert(processTree(checkVarIndex,index,Null)==Ok);
+}
+
+void showAnalysis(ioPo out, analysisPo analysis) {
+  checkIndex(analysis->index);
+  outMsg(out, "Analysis:\n");
+  outMsg(out, "  vars:\n");
+  showVars(out, analysis);
+  outMsg(out, "  index:\n");
+  showVarIndex(out, analysis);
+  outMsg(out, "Safe points: ");
+  showSet(out, analysis->safes);
+  outMsg(out, "\n%_");
 }
 
 static integer varHash(void *c) {
@@ -139,7 +137,7 @@ void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
     var->end = pc;
 }
 
-varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
+static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
   varDescPo var = (varDescPo) allocPool(varPool);
 
   assert(kind==argument ? (varNo>=0):True);
@@ -148,8 +146,9 @@ varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   var->kind = kind;
   var->start = pc;
   var->end = -1;
-  var->loc = MAX_INT32;
-  var->where = notAllocated;
+  var->loc = (state == allocated ? varNo : MAX_INT32);
+  var->registerCandidate = False;
+  var->state = state;
 
   hashPut(analysis->vars, var, var);
   return var;
@@ -159,8 +158,12 @@ logical isSafe(analysisPo analysis, varDescPo var) {
   return !inSetRange(analysis->safes, var->start, var->end);
 }
 
-logical isOnStack(varDescPo var) {
-  return var->where == onStack;
+varAllocationState varState(varDescPo var) {
+  return var->state;
+}
+
+void setState(varDescPo var, varAllocationState state) {
+  var->state = state;
 }
 
 int32 stackLoc(varDescPo var) {
@@ -168,12 +171,12 @@ int32 stackLoc(varDescPo var) {
 }
 
 void markVarAsRegister(varDescPo var) {
-  var->where = inRegister;
+  var->registerCandidate = True;
 }
 
-void markVarAsStack(varDescPo var, int32 slotNo) {
-  var->where = onStack;
+void setVarSlot(varDescPo var, int32 slotNo) {
   var->loc = slotNo;
+  setState(var, beingAllocated);
 }
 
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
@@ -182,17 +185,17 @@ varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
 }
 
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis) {
-  return newVar(analysis, varNo, argument, 0);
+  return newVar(analysis, varNo, argument, 0, allocated);
 }
 
 varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
-  return newVar(analysis, varNo, local, -1);
+  return newVar(analysis, varNo, local, -1, unAllocated);
 }
 
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc) {
   int stackVarNo = (int32) hashSize(analysis->vars);
 
-  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1);
+  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1, unAllocated);
   var->link = scope->stack;
   scope->stack = var;
   treePut(analysis->index, (void *) (integer) pc + 1, var);
@@ -202,7 +205,7 @@ varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc) {
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc) {
   int stackVarNo = (int32) hashSize(analysis->vars);
 
-  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1);
+  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1, unAllocated);
   var->link = scope->stack;
   scope->stack = var;
   return var;
@@ -384,9 +387,35 @@ arrayPo varRanges(analysisPo analysis) {
 
   processHashTable(popVar, analysis->vars, &info);
 
-  sortArray(starts, compVarRange, );
+  sortArray(starts, compVarRange, Null);
 
   outMsg(logFile, "Var starts:\n");
   processArray(starts, showVarEntry, (void *) logFile);
   return starts;
+}
+
+static retCode showVarInRange(ioPo out, void *entry, int32 ix, void *cl) {
+  varDescPo var = *(varDescPo *) entry;
+  return showVar(out, var);
+}
+
+retCode showRanges(ioPo out, arrayPo vars) {
+  return showArray(out, vars, showVarInRange, Null);
+}
+
+static retCode checkSlot(void *n, void *r, void *cl) {
+  analysisPo analysis = (analysisPo) cl;
+  varDescPo var = *(varDescPo *) r;
+
+  assert(var->state==allocated);
+
+  if (var->loc < analysis->minSlot)
+    analysis->minSlot = var->loc;
+  return Ok;
+}
+
+int32 minSlot(analysisPo analysis) {
+  analysis->minSlot = 0;
+  processHashTable(checkSlot, analysis->vars, &analysis);
+  return analysis->minSlot;
 }
