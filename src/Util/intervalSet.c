@@ -75,8 +75,7 @@ static intervalPo addToInterval(intervalPo iv, int32 k) {
     intervalPo newInterval = allocPool(intervalPool);
     newInterval->from = k;
     newInterval->to = k + 1;
-    newInterval->next = iv;
-    return newInterval;
+    return mergeIntervals(newInterval,iv);
   }
 }
 
@@ -110,6 +109,7 @@ static intervalPo removeFromInterval(intervalPo iv, int32 k) {
   } else if (iv->from <= k && k < iv->to) {
     intervalPo split = allocPool(intervalPool);
     split->from = k + 1;
+    split->to = iv->to;
     split->next = iv->next;
     iv->to = k;
     iv->next = split;
@@ -204,7 +204,7 @@ retCode showIntervalSet(ioPo out, intervalSetPo set) {
   ShowIntervalSetInfo info = {.out = out, .sep = ""};
   outMsg(out, "{");
   retCode ret = processIntervalSet(set, showInterval, &info);
-  outMsg(out, "}");
+  outMsg(out, "}%_");
   return ret;
 }
 

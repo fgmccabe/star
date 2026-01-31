@@ -161,6 +161,21 @@ retCode processArray(arrayPo ar, arrayElProc proc, void *cl) {
   return ret;
 }
 
+retCode showArray(ioPo out, arrayPo ar, showElProc proc, void *cl) {
+  retCode ret = outMsg(out, "[");
+  char *sep = "";
+
+  for (int32 ix=0; ret == Ok && ix < ar->count; ix++) {
+    outMsg(out, "%s", sep);
+    sep = ", ";
+    void *entry = nthEntry(ar, ix);
+    ret = proc(out, entry, ix, cl);
+  }
+
+  outMsg(out, "]");
+  return ret;
+}
+
 typedef struct {
   arrayPo src;
   compareEls compare;
