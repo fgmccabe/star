@@ -35,7 +35,6 @@ typedef struct block_scope_ {
   int32 limit;
   scopePo parent;
   varDescPo stack;
-  varDescPo phiVar;
 } ScopeBlock;
 
 void initAnalysis();
@@ -51,6 +50,8 @@ retCode showRanges(ioPo out,arrayPo vars);
 int32 minSlot(analysisPo analysis);
 
 logical isSafe(analysisPo analysis, varDescPo var);
+void setSafePoint(analysisPo analysis, int32 pc);
+
 int32 stackLoc(varDescPo var);
 void markVarAsRegister(varDescPo var);
 void setVarSlot(varDescPo var, int32 slotNo);
@@ -60,7 +61,6 @@ void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
 
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);
-void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
 varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);

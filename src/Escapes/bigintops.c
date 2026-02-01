@@ -13,14 +13,19 @@
 #include "option.h"
 #include "consP.h"
 
-ReturnStatus g__big_plus(enginePo P) {
-  bignumPo lhs = C_BIGNUM(popVal(P));
-  bignumPo rhs = C_BIGNUM(popVal(P));
+ValueReturn s__big_plus(enginePo P, bignumPo lhs, bignumPo rhs) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longAdd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+}
+
+ReturnStatus g__big_plus(enginePo P) {
+  bignumPo lhs = C_BIGNUM(popVal(P));
+  bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_plus(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 ReturnStatus g__big_minus(enginePo P) {

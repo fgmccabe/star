@@ -5,6 +5,7 @@
 #include "code.h"
 #include "analyse.h"
 #include "analyseP.h"
+#include "debugP.h"
 #include "opcodes.h"
 #include "codeP.h"
 #include "array.h"
@@ -22,10 +23,9 @@ logical enableSSA = False;
 static logical isLastPC(scopePo scope, int32 pc);
 scopePo checkScope(scopePo scope, int32 tgt);
 
-retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit,
-                     varDescPo phiVar) {
+retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 start, int32 pc, int32 limit) {
   ScopeBlock scope = {
-    .start = start, .limit = limit, .parent = parent, .stack = Null, .phiVar = phiVar
+    .start = start, .limit = limit, .parent = parent, .stack = Null
   };
 
   retCode ret = Ok;
@@ -36,6 +36,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case Halt:
       case Abort: {
         retireScopeStack(&scope, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Call: {
@@ -45,7 +46,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case XCall: {
@@ -55,7 +56,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
 
@@ -68,7 +69,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case XOCall: {
@@ -76,7 +77,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case TOCall: {
@@ -91,7 +92,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case XEscape: {
@@ -102,7 +103,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Entry: {
@@ -120,16 +121,16 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case Block: {
         int32 blockLen = code[pc].alt;
 
-        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, Null);
+        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1);
         pc += blockLen;
         continue;
       }
       case Valof: {
         int32 blockLen = code[pc].alt;
-        varDescPo phi = newPhiVar(analysis, &scope, pc);
 
-        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1, phi);
+        ret = analyseBlock(analysis, &scope, code, pc, pc + 1, pc + blockLen + 1);
         pc += blockLen;
+        newPhiVar(analysis, &scope, pc+1);
         continue;
       }
       case Loop: {
@@ -151,7 +152,6 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         continue;
       }
       case Result: {
-        retireStackVarToPhi(&scope, pc, pc + code[pc].alt + 1);
         retireScopeStack(&scope, pc);
         continue;
       }
@@ -163,7 +163,6 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
 
         if (depth > 0)
           rotateStackVars(&scope, pc, depth);
-
         continue;
       }
       case Rst: {
@@ -175,7 +174,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case Fiber: {
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Resume:
@@ -183,14 +182,14 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         retireStackVar(&scope, pc);
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Retire: {
         retireStackVar(&scope, pc);
         retireStackVar(&scope, pc);
         retireScopeStack(&scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Underflow:
@@ -205,7 +204,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         continue;
       case St:
         retireStackVar(&scope, pc);
-        recordVariableStart(analysis, ins->fst, local, pc);
+        recordVariableStart(analysis, ins->fst, local, pc + 1);
         continue;
       case Tee:
         retireStackVar(&scope, pc);
@@ -216,7 +215,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         continue;
       case LdG:
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       case StG:
         retireStackVar(&scope, pc);
@@ -225,14 +224,14 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         continue;
       case Sav:
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       case TstSav:
-        retireStackVar(&scope, pc);
+        retireStackVar(&scope, pc + 1);
         newStackVar(analysis, &scope, pc);
         continue;
       case LdSav: {
-        retireStackVar(&scope, pc);
+        retireStackVar(&scope, pc + 1);
         newStackVar(analysis, &scope, pc);
         continue;
       }
@@ -248,7 +247,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case Cell: {
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Get: {
@@ -261,7 +260,11 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         retireStackVar(&scope, pc);
         continue;
       }
-      case CLit:
+      case CLit: {
+        retireStackVar(&scope, pc);
+        setSafePoint(analysis, pc);
+        continue;
+      }
       case CInt:
       case CFlt:
       case CChar:
@@ -285,8 +288,14 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         retireStackVar(&scope, pc);
         continue;
       }
+      case Case: {
+        int32 mx = code[pc].fst;
+        retireStackVar(&scope, pc);
+        setSafePoint(analysis, pc);
+        pc += mx;
+        continue;
+      }
       case ICase:
-      case Case:
       case IxCase: {
         int32 mx = code[pc].fst;
         retireStackVar(&scope, pc);
@@ -363,19 +372,23 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
         for (int32 ax = 0; ax < arity; ax++)
           retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Closure: {
         retireStackVar(&scope, pc);
         newStackVar(analysis, &scope, pc);
-        addToSet(analysis->safes, pc);
+        setSafePoint(analysis, pc);
         continue;
       }
       case Frame:
         continue;
       case Line:
       case dBug:
+      case Bind:
+        if (lineDebugging) {
+          setSafePoint(analysis, pc);
+        }
         continue;
       default:
         return Error;
@@ -415,7 +428,7 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
     newArgVar(vars, ax, results);
   }
 
-  retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd), Null);
+  retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd));
   allocateVarSlots(results, mtd);
   return ret;
 }
