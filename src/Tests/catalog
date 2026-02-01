@@ -26,6 +26,7 @@
     "test.al": "al.star",
     "test.assign": "assign.star",
     "test.bench" : "bench.star",
+    "test.bg" : "bg.star",
     "test.br": "br.star",
     "test.cons": "constest.star",
     "test.chr": "chr.star",
