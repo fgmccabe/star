@@ -34,7 +34,7 @@ static char *stateName[] = {
 };
 
 static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d .. %d] %s%d\n", var->varNo, varType(var->kind), var->start,
+  return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varType(var->kind), var->start,
                 var->end, (var->registerCandidate ? "reg " : ""), var->loc);
 }
 
@@ -77,9 +77,7 @@ static void checkIndex(treePo index) {
 
 void showAnalysis(ioPo out, analysisPo analysis) {
   checkIndex(analysis->index);
-  outMsg(out, "Analysis:\n");
-  outMsg(out, "  vars:\n");
-  showVars(out, analysis);
+  outMsg(out, "Analysis:\n");\
   outMsg(out, "  index:\n");
   showVarIndex(out, analysis);
   outMsg(out, "Safe points: ");
@@ -125,7 +123,7 @@ treePo newVarIndex() {
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   varDescPo var = findVar(analysis, analysis->vars, varNo);
-  assert(var != Null && var->start==-1);
+  assert(var != Null && (kind==phi || var->start==-1));
   var->start = pc;
   treePut(analysis->index, (void *) (integer) pc, var);
 }
@@ -156,6 +154,10 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
 
 logical isSafe(analysisPo analysis, varDescPo var) {
   return !inSetRange(analysis->safes, var->start, var->end);
+}
+
+void setSafePoint(analysisPo analysis, int32 pc) {
+  addToSet(analysis->safes, pc);
 }
 
 varAllocationState varState(varDescPo var) {
@@ -195,41 +197,21 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc) {
   int stackVarNo = (int32) hashSize(analysis->vars);
 
-  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1, unAllocated);
+  varDescPo var = newVar(analysis, stackVarNo, stack, pc, unAllocated);
   var->link = scope->stack;
   scope->stack = var;
-  treePut(analysis->index, (void *) (integer) pc + 1, var);
+  treePut(analysis->index, (void *) (integer) pc, var);
   return var;
 }
 
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc) {
   int stackVarNo = (int32) hashSize(analysis->vars);
 
-  varDescPo var = newVar(analysis, stackVarNo, stack, pc + 1, unAllocated);
+  varDescPo var = newVar(analysis, stackVarNo, phi, pc, unAllocated);
   var->link = scope->stack;
   scope->stack = var;
+  treePut(analysis->index, (void *) (integer) pc, var);
   return var;
-}
-
-static varDescPo findPhi(scopePo scope, int32 tgt) {
-  while (scope != Null) {
-    if (tgt == scope->start) {
-      return scope->phiVar;
-    }
-    scope = scope->parent;
-  }
-  return Null;
-}
-
-void retireStackVarToPhi(scopePo scope, int32 pc, int32 tgt) {
-  assert(scope!=Null && scope->stack!=Null);
-
-  varDescPo var = scope->stack;
-  scope->stack = var->link;
-  varDescPo phiVar = findPhi(scope, tgt);
-
-  assert(phiVar!=Null);
-  var->link = phiVar;
 }
 
 void retireStackVar(scopePo scope, int32 pc) {
@@ -237,7 +219,7 @@ void retireStackVar(scopePo scope, int32 pc) {
 
   assert(var!=Null);
 
-  var->end = pc + 1;
+  var->end = pc+1;
   scope->stack = var->link;
   var->link = Null;
 }
@@ -361,8 +343,6 @@ arrayPo varStarts(analysisPo analysis) {
 
   sortArray(starts, compVarStart,Null);
 
-  outMsg(logFile, "Var starts:\n");
-  processArray(starts, showVarEntry, (void *) logFile);
   return starts;
 }
 
@@ -375,8 +355,6 @@ arrayPo varExits(analysisPo analysis) {
 
   sortArray(exits, compLastOcc,Null);
 
-  outMsg(logFile, "Var exits:\n");
-  processArray(exits, showVarEntry, (void *) logFile);
   return exits;
 }
 
@@ -389,8 +367,6 @@ arrayPo varRanges(analysisPo analysis) {
 
   sortArray(starts, compVarRange, Null);
 
-  outMsg(logFile, "Var starts:\n");
-  processArray(starts, showVarEntry, (void *) logFile);
   return starts;
 }
 
@@ -405,7 +381,7 @@ retCode showRanges(ioPo out, arrayPo vars) {
 
 static retCode checkSlot(void *n, void *r, void *cl) {
   analysisPo analysis = (analysisPo) cl;
-  varDescPo var = *(varDescPo *) r;
+  varDescPo var = (varDescPo) r;
 
   assert(var->state==allocated);
 
@@ -416,6 +392,6 @@ static retCode checkSlot(void *n, void *r, void *cl) {
 
 int32 minSlot(analysisPo analysis) {
   analysis->minSlot = 0;
-  processHashTable(checkSlot, analysis->vars, &analysis);
+  processHashTable(checkSlot, analysis->vars, analysis);
   return analysis->minSlot;
 }

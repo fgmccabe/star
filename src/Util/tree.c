@@ -112,6 +112,7 @@ static nodePo installNode(treePo tr, nodePo nd, void *name, void *r) {
     nd = (nodePo) allocPool(nodePool);
     nd->nme = name;
     nd->r = r;
+    nd->left = nd->right = Null;
     return nd;
   }
 }

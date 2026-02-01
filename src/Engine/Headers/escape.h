@@ -12,6 +12,15 @@ typedef enum {
   Abnormal
 } ReturnStatus;
 
+typedef struct {
+  ReturnStatus status;
+  termPo value;
+} ValueReturn;
+
+#define normalReturn(R) ((ValueReturn){.status=Normal, .value=(R)})
+#define abnormalReturn(R) ((ValueReturn){.status=Abnormal, .value=(R)})
+
+
 typedef ReturnStatus (*escFun)(enginePo p);
 
 typedef struct escape_record_ *escapePo;
