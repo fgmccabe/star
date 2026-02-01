@@ -2,7 +2,6 @@
 // Created by Francis McCabe on 1/6/18.
 // Arithmetic on big numbers
 
-
 #include <strings.h>
 #include <tpl.h>
 #include <globals.h>
@@ -28,69 +27,98 @@ ReturnStatus g__big_plus(enginePo P) {
   return ret.status;
 }
 
-ReturnStatus g__big_minus(enginePo P) {
-  bignumPo lhs = C_BIGNUM(popVal(P));
-  bignumPo rhs = C_BIGNUM(popVal(P));
+ValueReturn s__big_minus(enginePo P, bignumPo lhs, bignumPo rhs) {
   integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
   integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
+}
+
+ReturnStatus g__big_minus(enginePo P) {
+  bignumPo lhs = C_BIGNUM(popVal(P));
+  bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_minus(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_bitand(enginePo P, bignumPo lhs, bignumPo rhs) {
+  integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
+  uint32 sum[cS];
+  integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
 ReturnStatus g__big_bitand(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_bitand(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_bitor(enginePo P, bignumPo lhs, bignumPo rhs) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
-  integer cC = longBitAnd(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
 ReturnStatus g__big_bitor(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_bitor(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_bitxor(enginePo P, bignumPo lhs, bignumPo rhs) {
   integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 sum[cS];
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
 ReturnStatus g__big_bitxor(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
-  integer cS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
+  ValueReturn ret = s__big_bitxor(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_bitnot(enginePo P, bignumPo lhs) {
+  integer cS = bigCount(lhs) + 1;
   uint32 sum[cS];
-  integer cC = longBitXor(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
 ReturnStatus g__big_bitnot(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
-  integer cS = bigCount(lhs) + 1;
+  ValueReturn ret = s__big_bitnot(P, lhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_times(enginePo P, bignumPo lhs, bignumPo rhs) {
+  integer cS = bigCount(lhs) + bigCount(rhs) + 1;
   uint32 sum[cS];
-  integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, sum));
-  return Normal;
+  integer cC = longMultiply(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
+  return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
 ReturnStatus g__big_times(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
-  integer pS = bigCount(lhs) + bigCount(rhs) + 1;
-  uint32 prod[pS];
-  integer cC = longMultiply(prod, pS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
-  pshVal(P, allocateBignum(processHeap(P), cC, prod));
-  return Normal;
+  ValueReturn ret = s__big_times(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
-ReturnStatus g__big_div(enginePo P) {
-  bignumPo lhs = C_BIGNUM(popVal(P));
-  bignumPo rhs = C_BIGNUM(popVal(P));
-  uint32 qS = bigCount(lhs) + bigCount(rhs) + 1;
+ValueReturn s__big_div(enginePo P, bignumPo lhs, bignumPo rhs) {
+  integer qS = bigCount(lhs) + bigCount(rhs) + 1;
+
   uint32 quot[qS];
   uint32 rem[qS];
 
@@ -107,17 +135,22 @@ ReturnStatus g__big_div(enginePo P) {
     gcAddRoot(h, &Rt);
     termPo Rs = (termPo) allocatePair(h, Qt, Rt);
     gcReleaseRoot(h, root);
-    pshVal(P, Rs);
-    return Normal;
+    return normalReturn(Rs);
   } else {
-    pshVal(P, divZero);
-    return Abnormal;
+    return abnormalReturn(divZero);
   }
 }
 
-ReturnStatus g__big_gcd(enginePo P) {
+ReturnStatus g__big_div(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+
+  ValueReturn ret = s__big_div(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_gcd(enginePo P, bignumPo lhs, bignumPo rhs) {
   integer qS = maximum(bigCount(lhs), bigCount(rhs)) + 1;
   uint32 gcd[qS];
 
@@ -125,117 +158,156 @@ ReturnStatus g__big_gcd(enginePo P) {
 
   integer gC = longGCD(gcd, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   if (gC > 0) {
-    pshVal(P, allocateBignum(processHeap(P), (uint32) gC, gcd));
-    return Normal;
+    return normalReturn(allocateBignum(processHeap(P), (uint32) gC, gcd));
   } else {
-    pshVal(P, divZero);
-    return Abnormal;
+    return abnormalReturn(divZero);
   }
 }
 
-ReturnStatus g__big_format(enginePo P) {
-  bignumPo bg = C_BIGNUM(popVal(P));
+ReturnStatus g__big_gcd(enginePo P) {
+  bignumPo lhs = C_BIGNUM(popVal(P));
+  bignumPo rhs = C_BIGNUM(popVal(P));
+
+  ValueReturn ret = s__big_gcd(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_format(enginePo P, bignumPo bg, termPo fmt) {
   uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
 
   integer fmtLen;
-  const char *fmt = strVal(popVal(P), &fmtLen);
+  const char *format = strVal(fmt, &fmtLen);
 
   integer bufLen = bgCount * 16;
   char buff[bufLen];
 
-  integer resLen = longFormat(bgData, bgCount, fmt, fmtLen, buff, bufLen);
+  integer resLen = longFormat(bgData, bgCount, format, fmtLen, buff, bufLen);
 
   if (resLen >= 0) {
-    pshVal(P, allocateString(processHeap(P), buff, resLen));
-    return Normal;
+    return normalReturn(allocateString(processHeap(P), buff, resLen));
   } else
-    pshVal(P, eINVAL);
-  return Abnormal;
+    return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__big2str(enginePo P) {
+ReturnStatus g__big_format(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_format(P, bg, popVal(P));
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big2str(enginePo P, bignumPo bg) {
   uint32 bgCount = bigCount(bg);
   uint32 *bgData = bigDigits(bg);
 
   integer bufLen = bgCount * 16;
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
-  pshVal(P, allocateString(processHeap(P), buff, actual));
-  return Normal;
+  return normalReturn(allocateString(processHeap(P), buff, actual));
 }
 
-ReturnStatus g__str2big(enginePo P) {
+ReturnStatus g__big2str(enginePo P) {
+  bignumPo bg = C_BIGNUM(popVal(P));
+
+  ValueReturn ret = s__big2str(P, bg);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__str2big(enginePo P, termPo st) {
   integer len;
-  const char *str = strVal(popVal(P), &len);
+  const char *text = strVal(st, &len);
   integer gSize = ((len + 7) / 8) + 1;
   uint32 digits[gSize];
 
-  integer bgSize = longFromText(str, len, digits, gSize);
+  integer bgSize = longFromText(text, len, digits, gSize);
 
   if (bgSize > 0) {
     heapPo h = processHeap(P);
-    pshVal(P, (termPo) allocateBignum(h, bgSize, digits));
-    return Normal;
-  }else{
-    pshVal(P, eINVAL);
-    return Abnormal;
+    return normalReturn(allocateBignum(h, bgSize, digits));
+  } else {
+    return abnormalReturn(eINVAL);
   }
 }
 
+ReturnStatus g__str2big(enginePo P) {
+  ValueReturn ret = s__str2big(P, popVal(P));
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_hash(enginePo P, bignumPo bg) {
+  return normalReturn(makeInteger(bignumHash(bg)));
+}
+
 ReturnStatus g__big_hash(enginePo P) {
-  bignumPo bg = C_BIGNUM(popVal(P));
-  pshVal(P, makeInteger(bignumHash(bg)));
-  return Normal;
+  ValueReturn ret = s__big_hash(P, C_BIGNUM(popVal(P)));
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big_eq(enginePo P, bignumPo lhs, bignumPo rhs) {
+  return normalReturn(longEqual(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs)) ? trueEnum : falseEnum);
 }
 
 ReturnStatus g__big_eq(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_eq(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  pshVal(P, longEqual(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs)) ? trueEnum : falseEnum);
-  return Normal;
+ValueReturn s__big_lt(enginePo P, bignumPo lhs, bignumPo rhs) {
+  switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
+    case smaller:
+      return normalReturn(trueEnum);
+    default:
+      return normalReturn(falseEnum);
+  }
 }
 
 ReturnStatus g__big_lt(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_lt(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
+ValueReturn s__big_ge(enginePo P, bignumPo lhs, bignumPo rhs) {
   switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
     case smaller:
-      pshVal(P, trueEnum);
-      break;
+      return normalReturn(falseEnum);
     default:
-      pshVal(P, falseEnum);
+      return normalReturn(trueEnum);
   }
-  return Normal;
 }
 
 ReturnStatus g__big_ge(enginePo P) {
   bignumPo lhs = C_BIGNUM(popVal(P));
   bignumPo rhs = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big_ge(P, lhs, rhs);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  switch (longCompare(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs))) {
-    case smaller:
-      pshVal(P, falseEnum);
-      break;
-    default:
-      pshVal(P, trueEnum);
-  }
-  return Normal;
+ValueReturn s__int2big(enginePo P, integer ix) {
+  uint64 U = (uint64) ix;
+
+  uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
+  return normalReturn(allocateBignum(processHeap(P), NumberOf(uu), uu));
 }
 
 ReturnStatus g__int2big(enginePo P) {
-  uint64 U = (uint64) integerVal(popVal(P));
-
-  uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
-  pshVal(P, allocateBignum(processHeap(P), NumberOf(uu), uu));
-  return Normal;
+  ValueReturn ret = s__int2big(P, integerVal(popVal(P)));
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
-ReturnStatus g__big2ints(enginePo P) {
-  bignumPo bg = C_BIGNUM(popVal(P));
+ValueReturn s__big2ints(enginePo P, bignumPo bg) {
   uint32 count = bigCount(bg);
   uint32 digits[count];
 
@@ -256,12 +328,17 @@ ReturnStatus g__big2ints(enginePo P) {
 
   gcReleaseRoot(h, root);
 
-  pshVal(P, list);
-  return Normal;
+  return normalReturn(list);
 }
 
-ReturnStatus g__ints2big(enginePo P) {
-  termPo list = popVal(P);
+ReturnStatus g__big2ints(enginePo P) {
+  bignumPo bg = C_BIGNUM(popVal(P));
+  ValueReturn ret = s__big2ints(P, bg);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__ints2big(enginePo P, termPo list) {
   integer count = consLength(list);
   uint32 digits[count];
 
@@ -271,32 +348,38 @@ ReturnStatus g__ints2big(enginePo P) {
     list = consTail(pr);
   }
 
-  pshVal(P, allocateBignum(processHeap(P), count, digits));
-  return Normal;
+  return normalReturn(allocateBignum(processHeap(P), count, digits));
+}
+
+ReturnStatus g__ints2big(enginePo P) {
+  ValueReturn ret = s__ints2big(P, popVal(P));
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__big2int(enginePo P, bignumPo bg) {
+  uint32 count = bigCount(bg);
+  uint32 *digits = bigDigits(bg);
+
+  switch (count) {
+    case 0: {
+      return normalReturn(makeInteger(0));
+    }
+    case 1: {
+      return normalReturn(makeInteger((integer) digits[0]));
+    }
+    case 2: {
+      uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
+      return normalReturn(makeInteger((integer) lge));
+    }
+    default:
+      return abnormalReturn(eRANGE);
+  }
 }
 
 ReturnStatus g__big2int(enginePo P) {
   bignumPo bg = C_BIGNUM(popVal(P));
-  uint32 count = bigCount(bg);
-  uint32 *digits = bigDigits(bg);
-  heapPo h = processHeap(P);
-
-  switch (count) {
-    case 0: {
-      pshVal(P, makeInteger(0));
-      return Normal;
-    }
-    case 1: {
-      pshVal(P, makeInteger((integer) digits[0]));
-      return Normal;
-    }
-    case 2: {
-      uinteger lge = ((uint64) digits[0]) | (((uint64) digits[1]) << 32);
-      pshVal(P, makeInteger((integer) lge));
-      return Normal;
-    }
-    default:
-      pshVal(P, eRANGE);
-      return Abnormal;
-  }
+  ValueReturn ret = s__big2int(P, bg);
+  pshVal(P, ret.value);
+  return ret.status;
 }

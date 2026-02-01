@@ -82,8 +82,6 @@ retCode formattedNegativeMultiTest() {
 retCode checkDivBy10() {
   char *positiveNum = "1234567890";
   multiPo pos = multiFromText(positiveNum, uniStrLen(positiveNum));
-  uint32 data[] = {0x499602D2};
-  multiPo check = allocMulti(data, NumberOf(data));
 
   assert(sameMulti(pos, check));
 
@@ -254,11 +252,11 @@ retCode ePiTest() {
 
   multiPo prod = multiTimes(e, pi);
 
-  multiPo check = multiFromStr("853973422267356706546355086954657449503488853576511496187960113017922"
+  multiPo pisqr = multiFromStr("853973422267356706546355086954657449503488853576511496187960113017922"
                                "861115747838957625075000327286593478162070678673043735453603785848133"
                                "094851462428844661315312664336578255202869537848950160622046");
 
-  assert(sameMulti(prod, check));
+  check(sameMulti(prod, pisqr),"pi^2 != pisqr");
 
   return Ok;
 }

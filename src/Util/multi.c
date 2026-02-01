@@ -656,7 +656,10 @@ retCode longDivide(uint32 *q, integer *qC, uint32 *r, integer *rC, uint32 *n, in
     *rC = longComplement(r, rr, rrC);
     return Ok;
   } else {
-    return longDv(q, qC, r, rC, n, nC, d, dC);
+    retCode ret = longDv(q, qC, r, rC, n, nC, d, dC);
+    *qC = longTrim(q, *qC);
+    *rC = longTrim(r, *rC);
+    return ret;
   }
 }
 
