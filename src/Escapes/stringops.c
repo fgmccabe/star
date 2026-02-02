@@ -15,11 +15,21 @@
 #include "charP.h"
 #include "errorCodes.h"
 
+ValueReturn s__chr_eq(enginePo P, termPo l, termPo r)
+{
+  return normalReturn(charVal(l)==charVal(r)?trueEnum:falseEnum);
+}
+
 ReturnStatus g__chr_eq(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   codePoint rhs = charVal(popVal(P));
   pshVal(P, lhs == rhs ? trueEnum : falseEnum);
   return Normal;
+}
+
+ValueReturn s__chr_lt(enginePo P, termPo l, termPo r)
+{
+  return normalReturn(charVal(l)<charVal(r)?trueEnum:falseEnum);
 }
 
 ReturnStatus g__chr_lt(enginePo P) {
@@ -29,11 +39,21 @@ ReturnStatus g__chr_lt(enginePo P) {
   return Normal;
 }
 
+ValueReturn s__chr_ge(enginePo P, termPo l, termPo r)
+{
+  return normalReturn(charVal(l)>=charVal(r)?trueEnum:falseEnum);
+}
+
 ReturnStatus g__chr_ge(enginePo P) {
   codePoint lhs = charVal(popVal(P));
   codePoint rhs = charVal(popVal(P));
   pshVal(P, lhs >= rhs ? trueEnum : falseEnum);
   return Normal;
+}
+
+ValueReturn s__chr_hash(enginePo P, termPo l)
+{
+  return normalReturn(makeInteger(charVal(l)));
 }
 
 ReturnStatus g__chr_hash(enginePo P) {
@@ -42,74 +62,94 @@ ReturnStatus g__chr_hash(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g__chr_quote(enginePo P) {
+ValueReturn s__chr_quote(enginePo P, termPo c)
+{
   strBufferPo strb = newStringBuffer();
-  qtChar(O_IO(strb), charVal(popVal(P)));
+  qtChar(O_IO(strb), charVal(c));
 
-  pshVal(P, allocateFromStrBuffer(processHeap(P), strb));
+  termPo s = allocateFromStrBuffer(processHeap(P), strb);
 
   closeIo(O_IO(strb));
-  return Normal;
+  return normalReturn(s);
+}
+
+ReturnStatus g__chr_quote(enginePo P) {
+  ValueReturn ret = s__chr_quote(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 // Support formatting of char values
-ReturnStatus g__chr_format(enginePo P) {
-  codePoint cp = charVal(popVal(P));
+ValueReturn s__chr_format(enginePo P,termPo c, termPo f) {
+  codePoint cp = charVal(c);
   integer fLen;
-  const char *fmt = strVal(popVal(P), &fLen);
+  const char *fmt = strVal(f, &fLen);
   strBufferPo strb = newStringBuffer();
   retCode ret;
 
   // Allowed formats are q, c, x, 0, 9
   if (fLen == 1) {
     switch (fmt[0]) {
-      case 'q': {
-        ret = qtChar(O_IO(strb), cp);
-        break;
-      }
-      case 'c': {
-        ret = outChar(O_IO(strb), cp);
-        break;
-      }
-      case 'x': {
-        ret = outMsg(O_IO(strb), "%x", (integer) cp);
-        break;
-      }
-      default: {
-        ret = outMsg(O_IO(strb), "%d", (integer) cp);
-        break;
-      }
+    case 'q': {
+      ret = qtChar(O_IO(strb), cp);
+      break;
+    }
+    case 'c': {
+      ret = outChar(O_IO(strb), cp);
+      break;
+    }
+    case 'x': {
+      ret = outMsg(O_IO(strb), "%x", (integer) cp);
+      break;
+    }
+    default: {
+      ret = outMsg(O_IO(strb), "%d", (integer) cp);
+      break;
+    }
     }
 
     if (ret == Ok) {
-      pshVal(P, allocateFromStrBuffer(processHeap(P), strb));
+      termPo r = allocateFromStrBuffer(processHeap(P), strb);
       closeIo(O_IO(strb));
-      return Normal;
+      return normalReturn(r);
     } else {
       closeIo(O_IO(strb));
-      pshVal(P, eINVAL);
-      return Abnormal;
+      return abnormalReturn(eINVAL);
     }
   } else {
-    pshVal(P, eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   }
 }
 
-ReturnStatus g__str_eq(enginePo P) {
-  stringPo s1 = C_STR(popVal(P));
-  stringPo s2 = C_STR(popVal(P));
+ReturnStatus g__chr_format(enginePo P) {
+  termPo c = popVal(P);
+  termPo f = popVal(P);
+  ValueReturn ret = s__chr_format(P,c,f);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+  
+ValueReturn s__str_eq(enginePo P,termPo l, termPo r) {
+  stringPo s1 = C_STR(l);
+  stringPo s2 = C_STR(r);
 
   logical eq = stringHash(s1) == stringHash(s2) && sameString(s1, s2);
-  pshVal(P, (eq ? trueEnum : falseEnum));
-  return Normal;
+  return normalReturn((eq ? trueEnum : falseEnum));
 }
 
+ReturnStatus g__str_eq(enginePo P) {
+  termPo l = popVal(P);
+  termPo r = popVal(P);
+  ValueReturn ret = s__str_eq(P,l,r);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+  
 // Lexicographic comparison
-ReturnStatus g__str_lt(enginePo P) {
+ValueReturn s__str_lt(enginePo P,termPo l, termPo r) {
   integer llen, rlen;
-  const char *lhs = strVal(popVal(P), &llen);
-  const char *rhs = strVal(popVal(P), &rlen);
+  const char *lhs = strVal(l, &llen);
+  const char *rhs = strVal(r, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -119,26 +159,30 @@ ReturnStatus g__str_lt(enginePo P) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      pshVal(P, trueEnum);
-      return Normal;
+      return normalReturn(trueEnum);
     } else if (chl > ch2) {
-      pshVal(P, falseEnum);
-      return Normal;
+      return normalReturn(falseEnum);
     }
   }
   if (ri < rlen)
     // There is more on the right, so the left counts as being smaller
-    pshVal(P, trueEnum);
+    return normalReturn(trueEnum);
   else
-    pshVal(P, falseEnum);
-
-  return Normal;
+    return normalReturn(falseEnum);
 }
 
-ReturnStatus g__str_ge(enginePo P) {
+ReturnStatus g__str_lt(enginePo P) {
+  termPo l = popVal(P);
+  termPo r = popVal(P);
+  ValueReturn ret = s__str_lt(P,l,r);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+  
+ValueReturn s__str_ge(enginePo P,termPo l, termPo r) {
   integer llen, rlen;
-  const char *lhs = strVal(popVal(P), &llen);
-  const char *rhs = strVal(popVal(P), &rlen);
+  const char *lhs = strVal(l, &llen);
+  const char *rhs = strVal(r, &rlen);
 
   integer li = 0;
   integer ri = 0;
@@ -148,41 +192,45 @@ ReturnStatus g__str_ge(enginePo P) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      pshVal(P, falseEnum);
-      return Normal;
+      return normalReturn(falseEnum);
     } else if (chl > ch2) {
-      pshVal(P, trueEnum);
-      return Normal;
+      return normalReturn(trueEnum);
     }
   }
   if (li <= llen) {
     // There is more on the left, so it counts as being bigger
-    pshVal(P, trueEnum);
-    return Normal;
+    return normalReturn(trueEnum);
   } else {
-    pshVal(P, falseEnum);
-    return Normal;
+    return normalReturn(falseEnum);
   }
 }
 
-ReturnStatus g__str_hash(enginePo P) {
-  termPo a1 = popVal(P);
-  stringPo lhs = C_STR(a1);
+ReturnStatus g__str_ge(enginePo P) {
+  termPo l = popVal(P);
+  termPo r = popVal(P);
+  ValueReturn ret = s__str_ge(P,l,r);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__str_hash(enginePo P,termPo s) {
+  stringPo lhs = C_STR(s);
 
   if (lhs->hash == 0) {
     integer len;
-    const char *str = strVal(a1, &len);
+    const char *str = strVal(s, &len);
     lhs->hash = uniNHash(str, len);
   }
 
-  pshVal(P, makeInteger(lhs->hash));
-  return Normal;
+  return normalReturn(makeInteger(lhs->hash));
 }
 
-ReturnStatus g__str_len(enginePo P) {
-  pshVal(P, makeInteger(strLength(C_STR(popVal(P)))));
-  return Normal;
-}
+ReturnStatus g__str_hash(enginePo P) {
+  termPo r = popVal(P);
+  ValueReturn ret = s__str_hash(P, r);
+  pshVal(P,ret.value);
+  return ret.status;
+}  
 
 static retCode skipBlanks(const char *txt, integer len, integer*pos) {
   while ((*pos)<len && isspace(txt[*pos])) (*pos)++;
