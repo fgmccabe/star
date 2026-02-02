@@ -8,7 +8,7 @@
 #include "heap.h"
 #include "char.h"
 
-termPo allocateCharacter(codePoint cp);
+termPo makeChar(codePoint cp);
 
 void initChars();
 #endif //STAR_CHARP_H

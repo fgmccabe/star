@@ -23,9 +23,15 @@
 // Number of nanos in a second
 #define NANOS 1000000000
 
-ReturnStatus g__exit(enginePo P) {
-  integer ix = integerVal(popVal(P));
+ValueReturn s__exit(enginePo P, termPo c){
+  integer ix = integerVal(c);
   exit((int) ix);
+}  
+
+ReturnStatus g__exit(enginePo P) {
+  ValueReturn ret = s__exit(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static char **argsv = NULL; /* Store the command line list */

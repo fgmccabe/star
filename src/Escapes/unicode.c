@@ -305,14 +305,26 @@ ReturnStatus g__digitCode(enginePo P) {
   }
 }
 
+ValueReturn s__codePoint(enginePo P, termPo c){
+  codePoint ch = (codePoint) charVal(c);
+  return normalReturn(makeInteger(ch));
+}
+
 ReturnStatus g__codePoint(enginePo P) {
-  codePoint ch = charVal(popVal(P));
-  pshVal(P, makeInteger(ch));
-  return Normal;
+  ValueReturn ret = s__codePoint(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+
+ValueReturn s__int2chr(enginePo P, termPo c){
+  codePoint ch = (codePoint) integerVal(c);
+  return normalReturn(makeChar(ch));
 }
 
 ReturnStatus g__int2chr(enginePo P) {
-  codePoint ch = (codePoint) integerVal(popVal(P));
-  pshVal(P, allocateCharacter(ch));
-  return Normal;
+  ValueReturn ret = s__int2chr(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
 }
+

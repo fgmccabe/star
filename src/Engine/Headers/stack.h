@@ -31,7 +31,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
 
 StackState stackState(stackPo tsk);
 
-void newStack(enginePo P, logical execJit, termPo lam);
+stackPo newStack(enginePo P, logical execJit, termPo lam);
 void attachStack(enginePo P, stackPo top, termPo evt);
 void detachStack(enginePo P, stackPo top, termPo event);
 stackPo dropStack(stackPo tsk);
