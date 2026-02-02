@@ -44,40 +44,53 @@ newAsyncTask(nextProc next, asyncAlloc alloc, asyncClose close, asyncCleanup cle
   return async;
 }
 
-ReturnStatus g__close(enginePo P) {
-  retCode ret = closeChannel(C_IO(popVal(P)));
+ValueReturn s__close(enginePo P, termPo i){
+  retCode ret = closeChannel(C_IO(i));
   if (ret == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   }
+}
+
+ReturnStatus g__close(enginePo P) {
+  ValueReturn ret = s__close(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__end_of_file(enginePo P,termPo i){
+  return normalReturn(isFileAtEof(ioChannel(C_IO(i))) == Eof ? trueEnum : falseEnum);
 }
 
 ReturnStatus g__end_of_file(enginePo P) {
-  termPo Rs = (isFileAtEof(ioChannel(C_IO(popVal(P)))) == Eof ? trueEnum : falseEnum);
-  pshVal(P, Rs);
-  return Normal;
+  termPo i = popVal(P);
+  ValueReturn ret = s__end_of_file(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__inchar(enginePo P, termPo i){
+  codePoint cp;
+  retCode ret = inChar(ioChannel(C_IO(i)), &cp);
+  switch (ret) {
+    case Ok: {
+      return normalReturn(makeChar(cp));
+    }
+    case Eof: {
+      return abnormalReturn(eEOF);
+    }
+    default: {
+      return abnormalReturn(eIOERROR);
+    }
+  }
 }
 
 ReturnStatus g__inchar(enginePo P) {
-  codePoint cp;
-  retCode ret = inChar(ioChannel(C_IO(popVal(P))), &cp);
-  switch (ret) {
-    case Ok: {
-      pshVal(P, allocateCharacter(cp));
-      return Normal;
-    }
-    case Eof: {
-      pshVal(P, eEOF);
-      return Abnormal;
-    }
-    default: {
-      pshVal(P, eIOERROR);
-      return Abnormal;
-    }
-  }
+  termPo i = popVal(P);
+  ValueReturn ret = s__inchar(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 void asyncCloser(ioPo io, asyncPo async) {
@@ -98,15 +111,15 @@ static taskState oneChar(ioPo in, asyncPo async) {
 
 static termPo allocChar(heapPo h, asyncPo sync) {
   codePoint cp = (codePoint) (sync->data);
-  return allocateCharacter(cp);
+  return makeChar(cp);
 }
 
 static retCode oneCleanup(asyncPo sync, retCode ret) {
   return Eof;
 }
 
-ReturnStatus g__inchar_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
+ValueReturn s__inchar_async(enginePo P, termPo c){
+  ioChnnlPo chnl = C_IO(c);
   ioPo io = ioChannel(chnl);
   heapPo h = processHeap(P);
   if (isAFile(O_OBJECT(io))) {
@@ -119,29 +132,32 @@ ReturnStatus g__inchar_async(enginePo P) {
       futurePo ft = makeFuture(h, voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
-        pshVal(P, (termPo) ft);
-        return Normal;
+	return normalReturn((termPo)ft);
       } else {
-        pshVal(P, ioErrorCode(ret));
-        return Abnormal;
+	return abnormalReturn(ioErrorCode(ret));
       }
     }
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
     codePoint cp;
     retCode ret = inChar(io, &cp);
     if (ret == Ok)
-      pshVal(P, (termPo) makeResolvedFuture(h, allocateCharacter(cp), isAccepted));
+      return normalReturn((termPo)makeResolvedFuture(h, makeChar(cp), isAccepted));
     else
-      pshVal(P, (termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected));
-    return Normal;
+      return normalReturn((termPo) makeResolvedFuture(h, ioErrorCode(ret), isRejected));
   }
 }
 
-ReturnStatus g__inchars(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  integer limit = integerVal(popVal(P));
+ReturnStatus g__inchar_async(enginePo P) {
+  termPo i = popVal(P);
+  ValueReturn ret = s__inchar_async(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
+}  
+
+ValueReturn s__inchars(enginePo P,termPo i,termPo l) {
+  ioPo io = ioChannel(C_IO(i));
+  integer limit = integerVal(l);
 
   strBufferPo buffer = newStringBuffer();
 
@@ -154,15 +170,22 @@ ReturnStatus g__inchars(enginePo P) {
   }
 
   if (ret == Ok) {
-    pshVal(P, allocateFromStrBuffer(processHeap(P), buffer));
+    termPo text = allocateFromStrBuffer(processHeap(P), buffer);
     closeIo(O_IO(buffer));
-    return Normal;
+    return normalReturn(text);
   } else {
     closeIo(O_IO(buffer));
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   }
 }
+
+ReturnStatus g__inchars(enginePo P) {
+  termPo i = popVal(P);
+  termPo l = popVal(P);
+  ValueReturn ret = s__inchars(P,i,l);
+  pshVal(P,ret.value);
+  return ret.status;
+}  
 
 static taskState nextChars(ioPo in, asyncPo async) {
   if (async->data > 0) {
@@ -192,9 +215,9 @@ static termPo allocStr(heapPo h, asyncPo async) {
   return allocateFromStrBuffer(h, O_BUFFER(async->buffer));
 }
 
-ReturnStatus g__inchars_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
-  integer limit = integerVal(popVal(P));
+ValueReturn s__inchars_async(enginePo P, termPo i, termPo l){
+  ioChnnlPo chnl = C_IO(i);
+  integer limit = integerVal(l);
 
   ioPo io = ioChannel(chnl);
   strBufferPo buffer = newStringBuffer();
@@ -210,12 +233,10 @@ ReturnStatus g__inchars_async(enginePo P) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
-        pshVal(P, (termPo) ft);
-        return Normal;
+	return normalReturn((termPo)ft);
       }
     }
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   } else {
     retCode ret = Ok;
     while (limit-- > 0 && ret == Ok) {
@@ -226,33 +247,44 @@ ReturnStatus g__inchars_async(enginePo P) {
     }
 
     if (ret == Ok) {
-      pshVal(P, allocateFromStrBuffer(processHeap(P), buffer));
+      termPo text = allocateFromStrBuffer(processHeap(P), buffer);
       closeIo(O_IO(buffer));
-      return Normal;
+      return normalReturn(text);
     } else {
       closeIo(O_IO(buffer));
-      pshVal(P, ioErrorCode(ret));
-      return Abnormal;
+      return abnormalReturn(ioErrorCode(ret));
     }
   }
 }
 
-ReturnStatus g__inbyte(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
+ReturnStatus g__inchars_async(enginePo P) {
+  termPo i = popVal(P);
+  termPo l = popVal(P);
+
+  ValueReturn ret = s__inchars_async(P,i,l);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__inbyte(enginePo P, termPo i){
+  ioPo io = ioChannel(C_IO(i));
 
   byte b;
-  retCode ret = inByte(io, &b);
-  switch (ret) {
-    case Ok:
-      pshVal(P, makeInteger(b));
-      return Normal;
-    case Eof:
-      pshVal(P, eEOF);
-      return Abnormal;
-    default:
-      pshVal(P, eIOERROR);
-      return Abnormal;
+  switch (inByte(io, &b)) {
+  case Ok:
+    return normalReturn(makeInteger(b));
+  case Eof:
+    return abnormalReturn(eEOF);
+  default:
+    return abnormalReturn(eIOERROR);
   }
+}
+
+ReturnStatus g__inbyte(enginePo P) {
+  termPo i = popVal(P);
+  ValueReturn ret = s__inbyte(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static termPo allocByte(heapPo h, asyncPo sync) {
@@ -272,9 +304,8 @@ static taskState oneByte(ioPo in, asyncPo async) {
   }
 }
 
-ReturnStatus g__inbyte_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
-  ioPo io = ioChannel(chnl);
+ValueReturn s__inbyte_async(enginePo P, termPo i){
+  ioPo io = ioChannel(C_IO(i));
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
@@ -285,28 +316,30 @@ ReturnStatus g__inbyte_async(enginePo P) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
-        pshVal(P, (termPo) ft);
-        return Normal;
+	return normalReturn((termPo)ft);
       }
     }
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   } else {
     byte b;
     retCode ret = inByte(io, &b);
     switch (ret) {
       case Ok: {
-        pshVal(P, makeInteger(b));
-        return Normal;
+	return normalReturn(makeInteger(b));
       }
       case Eof:
-        pshVal(P, eEOF);
-        return Abnormal;
+	return abnormalReturn(eEOF);
       default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+	return abnormalReturn(eIOERROR);
     }
   }
+}
+
+ReturnStatus g__inbyte_async(enginePo P) {
+  termPo i = popVal(P);
+  ValueReturn ret = s__inbyte_async(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 termPo makeByte(heapPo h, integer ix, void *cl) {
@@ -315,9 +348,9 @@ termPo makeByte(heapPo h, integer ix, void *cl) {
   return makeInteger(ch);
 }
 
-ReturnStatus g__inbytes(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  integer limit = integerVal(popVal(P));
+ValueReturn s__inbytes(enginePo P,termPo i, termPo l) {
+  ioPo io = ioChannel(C_IO(i));
+  integer limit = integerVal(l);
 
   strBufferPo buffer = newStringBuffer();
   byte bf[MAXLINE];
@@ -337,13 +370,19 @@ ReturnStatus g__inbytes(enginePo P) {
     char *text = getTextFromBuffer(buffer, &length);
 
     termPo vect = makeVector(processHeap(P), length, makeByte, (void *) text);
-    pshVal(P, vect);
-    return Normal;
+    return normalReturn(vect);
   } else {
     closeIo(O_IO(buffer));
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   }
+}
+
+ReturnStatus g__inbytes(enginePo P) {
+  termPo i = popVal(P);
+  termPo l = popVal(P);
+  ValueReturn ret = s__inbytes(P, i, l);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static taskState nextBytes(ioPo in, asyncPo async) {
@@ -384,9 +423,9 @@ static retCode bytesCleanup(asyncPo async, retCode ret) {
   }
 }
 
-ReturnStatus g__inbytes_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
-  integer limit = integerVal(popVal(P));
+ValueReturn s__inbytes_async(enginePo P,termPo i, termPo l) {
+  ioChnnlPo chnl = C_IO(i);
+  integer limit = integerVal(l);
 
   ioPo io = ioChannel(chnl);
   byteBufferPo buffer = newByteBuffer();
@@ -402,19 +441,23 @@ ReturnStatus g__inbytes_async(enginePo P) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
-        pshVal(P, (termPo) ft);
-        return Normal;
+	return normalReturn((termPo)ft);
       } else {
-        pshVal(P, ioErrorCode(ret));
-        return Abnormal;
+	return abnormalReturn(ioErrorCode(ret));
       }
     }
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
-    pshVal(P, eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   }
+}
+
+ReturnStatus g__inbytes_async(enginePo P) {
+  termPo i = popVal(P);
+  termPo l = popVal(P);
+  ValueReturn ret = s__inbytes_async(P, i, l);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static retCode grabLine(ioPo io, strBufferPo buffer) {
@@ -436,8 +479,8 @@ static retCode grabLine(ioPo io, strBufferPo buffer) {
   return ret;
 }
 
-ReturnStatus g__inline(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
+ValueReturn s__inline(enginePo P,termPo i) {
+  ioPo io = ioChannel(C_IO(i));
 
   strBufferPo buffer = newStringBuffer();
 
@@ -448,21 +491,26 @@ ReturnStatus g__inline(enginePo P) {
       integer length;
       char *text = getTextFromBuffer(buffer, &length);
 
-      pshVal(P, allocateString(processHeap(P), text, length));
+      termPo line = allocateString(processHeap(P), text, length);
       closeIo(O_IO(buffer));
-      return Normal;
+      return normalReturn(line);
     }
     case Eof: {
       closeIo(O_IO(buffer));
-      pshVal(P, eEOF);
-      return Abnormal;
+      return abnormalReturn(eEOF);
     }
     default: {
       closeIo(O_IO(buffer));
-      pshVal(P, eIOERROR);
-      return Abnormal;
+      return abnormalReturn(eIOERROR);
     }
   }
+}
+
+ReturnStatus g__inline(enginePo P) {
+  termPo i = popVal(P);
+  ValueReturn ret = s__inline(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static taskState lineChar(ioPo in, asyncPo async) {
@@ -496,8 +544,8 @@ static retCode lineCleanup(asyncPo async, retCode ret) {
   }
 }
 
-ReturnStatus g__inline_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
+ValueReturn s__inline_async(enginePo P,termPo i) {
+  ioChnnlPo chnl = C_IO(i);
   ioPo io = ioChannel(chnl);
 
   if (isAFile(O_OBJECT(io))) {
@@ -511,18 +559,23 @@ ReturnStatus g__inline_async(enginePo P) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollInput, io, async);
 
       if ((ret = enqueueRead(f, Null, Null)) == Ok) {
-        pshVal(P, (termPo) ft);
-        return Normal;
+        return normalReturn((termPo) ft);
       }
     }
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   } else {
-    pshVal(P, eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   }
 }
 
+ReturnStatus g__inline_async(enginePo P) {
+  termPo i = popVal(P);
+
+  ValueReturn ret = s__inline_async(P,i);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+  
 static retCode grabText(ioPo in, ioPo out) {
   retCode ret = Ok;
   while (ret == Ok) {
@@ -535,12 +588,12 @@ static retCode grabText(ioPo in, ioPo out) {
   return ret;
 }
 
-ReturnStatus g__get_file(enginePo P) {
+ValueReturn s__get_file(enginePo P,termPo f, termPo e) {
   char fn[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
+  copyChars2Buff(C_STR(f), fn, NumberOf(fn));
 
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+  ioEncoding enc = pickEncoding(integerVal(e));
 
   ioPo io = openInFile(fn, enc);
   if (io != Null) {
@@ -551,17 +604,23 @@ ReturnStatus g__get_file(enginePo P) {
     if (ret == Eof) {
       termPo text = allocateFromStrBuffer(processHeap(P), buffer);
       closeIo(O_IO(buffer));
-      pshVal(P, text);
-      return Normal;
+      return normalReturn(text);
     } else {
       closeIo(O_IO(buffer));
-      pshVal(P, ioErrorCode(ret));
-      return Abnormal;
+      return abnormalReturn(ioErrorCode(ret));
     }
   } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   }
+}
+
+ReturnStatus g__get_file(enginePo P) {
+  termPo p = popVal(P);
+  termPo e = popVal(P);
+  
+  ValueReturn ret = s__get_file(P,p,e);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static taskState fileChar(ioPo in, asyncPo async) {
@@ -584,13 +643,24 @@ static void asyncFileCloser(ioPo io, asyncPo async) {
   freePool(asyncPool, async);
 }
 
-ReturnStatus g__logmsg(enginePo P) {
+ValueReturn s__logmsg(enginePo P,termPo m) {
   integer length;
-  const char *text = strVal(popVal(P), &length);
+  const char *text = strVal(m, &length);
 
   logMsg(logFile, "%S", (char *) text, length);
-  pshVal(P, unitEnum);
-  return Normal;
+  return normalReturn(unitEnum);
+}
+
+ReturnStatus g__logmsg(enginePo P) {
+  termPo m = popVal(P);
+  
+  ValueReturn ret = s__logmsg(P,m);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__display_depth(enginePo P){
+  return normalReturn(makeInteger(displayDepth));
 }
 
 ReturnStatus g__display_depth(enginePo P) {
@@ -598,69 +668,104 @@ ReturnStatus g__display_depth(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g__stdfile(enginePo P) {
-  integer fNo = integerVal(popVal(P));
+ValueReturn s__stdfile(enginePo P, termPo i){
+  integer fNo = integerVal(i);
 
   heapPo h = processHeap(P);
   switch (fNo) {
     case 0:
-      pshVal(P, (termPo) stdInChnl(h));
-      return Normal;
+      return normalReturn((termPo) stdInChnl(h));
     case 1:
-      pshVal(P, (termPo) stdOutChnl(h));
-      return Normal;
+      return normalReturn((termPo) stdOutChnl(h));
     case 2:
     default:
-      pshVal(P, (termPo) stdErrChnl(h));
-      return Normal;
+      return normalReturn((termPo) stdErrChnl(h));
   }
 }
 
-ReturnStatus g__fposition(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  pshVal(P, makeInteger(ioPos(io)));
-  return Normal;
+ReturnStatus g__stdfile(enginePo P) {
+  ValueReturn ret = s__stdfile(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
-ReturnStatus g__fseek(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  integer pos = integerVal(popVal(P));
+ValueReturn s__fposition(enginePo P,termPo f){
+  ioPo io = ioChannel(C_IO(f));
+  return normalReturn(makeInteger(ioPos(io)));
+}
+
+ReturnStatus g__fposition(enginePo P) {
+  ValueReturn ret = s__fposition(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
+}  
+
+ValueReturn s__fseek(enginePo P,termPo i, termPo p) {
+  ioPo io = ioChannel(C_IO(i));
+  integer pos = integerVal(p);
 
   retCode ret = ioSeek(io, pos);
 
   if (ret == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, ioErrorCode(ret));
-    return Abnormal;
+    return abnormalReturn(ioErrorCode(ret));
   }
+}
+
+ReturnStatus g__fseek(enginePo P) {
+  ValueReturn ret = s__fposition(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
+}  
+
+ValueReturn s__fname(enginePo P,termPo i) {
+  ioPo io = ioChannel(C_IO(i));
+
+  return normalReturn(allocateCString(processHeap(P), fileName(io)));
 }
 
 ReturnStatus g__fname(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
+  ValueReturn ret = s__fname(P,popVal(P));
+  pshVal(P,ret.value);
+  return ret.status;
+}  
 
-  pshVal(P, allocateCString(processHeap(P), fileName(io)));
-  return Normal;
+ValueReturn s__setfileencoding(enginePo P,termPo f, termPo e) {
+  ioPo io = ioChannel(C_IO(f));
+  integer enc = integerVal(e);
+  setEncoding(io, (ioEncoding) enc);
+  return normalReturn(unitEnum);
 }
 
 ReturnStatus g__setfileencoding(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  integer enc = integerVal(popVal(P));
-  setEncoding(io, (ioEncoding) enc);
-  pshVal(P, unitEnum);
-  return Normal;
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  
+  ValueReturn ret = s__setfileencoding(P, f, e);
+  pshVal(P,ret.value);
+  return ret.status;
+}  
+
+ValueReturn s__flush(enginePo P, termPo f) {
+  ioPo io = ioChannel(C_IO(f));
+  if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok) {
+    return normalReturn(unitEnum);
+  } else {
+    return abnormalReturn(eIOERROR);
+  }
 }
 
 ReturnStatus g__flush(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  if (isAFile(O_OBJECT(io)) && flushFile(O_FILE(io)) == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
-  } else {
-    pshVal(P, eIOERROR);
-    return Abnormal;
-  }
+  termPo f = popVal(P);
+  ValueReturn ret = s__flush(P, f);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__flushall(enginePo P){
+  flushOut();
+  return normalReturn(unitEnum);
 }
 
 ReturnStatus g__flushall(enginePo P) {
@@ -696,11 +801,10 @@ static retCode populateFiles(termPo t, void *cl) {
   return Ok;
 }
 
-ReturnStatus g__waitIo(enginePo P) {
+ValueReturn s__waitio(enginePo P, termPo list, termPo t){
   // First count the length of the list
-  termPo list = popVal(P);
   integer count = 0;
-  integer timeOut = integerVal(popVal(P));
+  integer timeOut = integerVal(t);
   walkNormal(list, countIoChnnls, (void *) &count);
 
   if (count > 0) {
@@ -714,16 +818,22 @@ ReturnStatus g__waitIo(enginePo P) {
     retCode ret = waitForAsync(files, fd.ix, timeOut);
 
     if (ret == Ok) {
-      pshVal(P, trueEnum);
-      return Normal;
+      return normalReturn(trueEnum);
     } else {
-      pshVal(P, falseEnum);
-      return Normal;
+      return normalReturn(falseEnum);
     }
   } else {
-    pshVal(P, trueEnum);
-    return Normal;
+    return normalReturn(trueEnum);
   }
+}
+
+ReturnStatus g__waitIo(enginePo P) {
+  termPo l = popVal(P);
+  termPo t = popVal(P);
+
+  ValueReturn ret = s__waitio(P, l, t);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 static retCode grabAsync(ioPo io, AsyncStruct *async) {

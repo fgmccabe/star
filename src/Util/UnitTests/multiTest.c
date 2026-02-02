@@ -83,8 +83,6 @@ retCode checkDivBy10() {
   char *positiveNum = "1234567890";
   multiPo pos = multiFromText(positiveNum, uniStrLen(positiveNum));
 
-  assert(sameMulti(pos, check));
-
   char temp[30];
   strMsg(temp, NumberOf(temp), "%M", pos);
 

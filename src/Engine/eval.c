@@ -347,8 +347,9 @@ int32 run(enginePo P) {
         // The top of a stack should be a binary lambda
         termPo fiberLambda = pop();
         saveRegisters();
-        newStack(P, False, fiberLambda);
+        stackPo child = newStack(P, False, fiberLambda);
         restoreRegisters();
+	push(child);
         PC++;
         continue;
       }

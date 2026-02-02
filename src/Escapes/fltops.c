@@ -12,7 +12,7 @@
 #include "stack.h"
 #include "escape.h"
 
-ValueReturn s_flt_eq(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_eq(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(lhs == rhs ? trueEnum : falseEnum);
@@ -21,12 +21,12 @@ ValueReturn s_flt_eq(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_eq(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_eq(P, l, r);
+  ValueReturn ret = s__flt_eq(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_ge(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_ge(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(lhs >= rhs ? trueEnum : falseEnum);
@@ -35,12 +35,12 @@ ValueReturn s_flt_ge(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_ge(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_ge(P, l, r);
+  ValueReturn ret = s__flt_ge(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_lt(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_lt(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(lhs < rhs ? trueEnum : falseEnum);
@@ -49,12 +49,12 @@ ValueReturn s_flt_lt(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_lt(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_eq(P, l, r);
+  ValueReturn ret = s__flt_eq(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_plus(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_plus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(makeFloat(lhs+rhs));
@@ -63,12 +63,12 @@ ValueReturn s_flt_plus(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_plus(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_plus(P, l, r);
+  ValueReturn ret = s__flt_plus(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_minus(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_minus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(makeFloat(lhs-rhs));
@@ -77,12 +77,12 @@ ValueReturn s_flt_minus(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_minus(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_minus(P, l, r);
+  ValueReturn ret = s__flt_minus(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_times(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_times(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
   return normalReturn(makeFloat(lhs*rhs));
@@ -91,12 +91,12 @@ ValueReturn s_flt_times(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_times(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_times(P, l, r);
+  ValueReturn ret = s__flt_times(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_div(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_div(enginePo P, termPo l, termPo r) {
   double numer = floatVal(l);
   double denom = floatVal(r);
 
@@ -110,12 +110,12 @@ ValueReturn s_flt_div(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_div(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_div(P, l, r);
+  ValueReturn ret = s__flt_div(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_mod(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_mod(enginePo P, termPo l, termPo r) {
   double numer = floatVal(l);
   double denom = floatVal(r);
 
@@ -129,12 +129,12 @@ ValueReturn s_flt_mod(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_mod(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_mod(P, l, r);
+  ValueReturn ret = s__flt_mod(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt_pwr(enginePo P, termPo l, termPo r) {
+ValueReturn s__flt_pwr(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
 
@@ -144,18 +144,22 @@ ValueReturn s_flt_pwr(enginePo P, termPo l, termPo r) {
 ReturnStatus g__flt_pwr(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_flt_pwr(P, l, r);
+  ValueReturn ret = s__flt_pwr(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
+ValueReturn s__flt_abs(enginePo P, termPo l) {
+  double lhs = floatVal(l);
+
+  return normalReturn(lhs < 0 ? makeFloat(-lhs) : l);
+}
+
 ReturnStatus g__flt_abs(enginePo P) {
   termPo arg = popVal(P);
-  double Arg = floatVal(arg);
-  termPo Rs = (Arg < 0 ? makeFloat(-Arg) : arg);
-
-  pshVal(P, Rs);
-  return Normal;
+  ValueReturn ret = s__flt_abs(P,arg);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 ValueReturn s_exp(enginePo P, termPo l) {
@@ -182,7 +186,7 @@ ReturnStatus g_exp(enginePo P) {
   return ret.status;
 }
 
-ValueReturn s_ldexp(enginePo P, termPo l, termPo r) {
+ValueReturn s__ldexp(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   integer rhs = integerVal(r);
 
@@ -192,12 +196,12 @@ ValueReturn s_ldexp(enginePo P, termPo l, termPo r) {
 ReturnStatus g__ldexp(enginePo P) {
   termPo l = popVal(P);
   termPo r = popVal(P);
-  ValueReturn ret = s_ldexp(P, l, r);
+  ValueReturn ret = s__ldexp(P, l, r);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_frexp(enginePo P, termPo l) {
+ValueReturn s__frexp(enginePo P, termPo l) {
   double lhs = floatVal(l);
   int exp;
   double frac = frexp(lhs, &exp);
@@ -214,12 +218,12 @@ ValueReturn s_frexp(enginePo P, termPo l) {
 
 ReturnStatus g__frexp(enginePo P) {
   termPo l = popVal(P);
-  ValueReturn ret = s_frexp(P, l);
+  ValueReturn ret = s__frexp(P, l);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_modf(enginePo P, termPo l) {
+ValueReturn s__modf(enginePo P, termPo l) {
   double Arg = floatVal(l);
   double intgrl;
   double frac = modf(Arg, &intgrl);
@@ -237,12 +241,12 @@ ValueReturn s_modf(enginePo P, termPo l) {
 
 ReturnStatus g__modf(enginePo P) {
   termPo l = popVal(P);
-  ValueReturn ret = s_modf(P, l);
+  ValueReturn ret = s__modf(P, l);
   pshVal(P, ret.value);
   return ret.status;
 }
 
-ValueReturn s_flt2int(enginePo P, termPo l) {
+ValueReturn s__flt2int(enginePo P, termPo l) {
   double dx = floatVal(l);
 
   if (floor(dx) == dx) {
@@ -259,7 +263,7 @@ ValueReturn s_flt2int(enginePo P, termPo l) {
 
 ReturnStatus g__flt2int(enginePo P) {
   termPo l = popVal(P);
-  ValueReturn ret = s_flt2int(P, l);
+  ValueReturn ret = s__flt2int(P, l);
   pshVal(P, ret.value);
   return ret.status;
 }

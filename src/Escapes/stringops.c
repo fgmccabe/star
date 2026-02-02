@@ -238,7 +238,7 @@ ReturnStatus g__str_charat(enginePo P) {
     codePoint cp;
     retCode ret = uniCharAt(str, len, ix, &cp);
     if (ret == Ok){
-      pshVal(P, allocateCharacter(cp));
+      pshVal(P, makeChar(cp));
       return Normal;
     }
     else{
@@ -421,7 +421,7 @@ ReturnStatus g__explode(enginePo P) {
     codePoint cp;
     ret = prevPoint(buffer, &pos, &cp);
     if (ret == Ok) {
-      el = allocateCharacter(cp);
+      el = makeChar(cp);
       list = (termPo) allocateCons(h, el, list);
     }
   }
@@ -512,7 +512,7 @@ ReturnStatus g__str_hdtl(enginePo P) {
   heapPo h = processHeap(P);
 
   if (ret == Ok) {
-    termPo chCode = allocateCharacter(ch);
+    termPo chCode = makeChar(ch);
     int mark = gcAddRoot(h, &chCode);
     termPo rest = allocateString(h, &str[offset], len - offset);
     gcAddRoot(h, &rest);
@@ -605,7 +605,7 @@ ReturnStatus g__str_back(enginePo P) {
   retCode ret = prevPoint(str, &offset, &ch);
 
   if (ret == Ok) {
-    termPo chCode = allocateCharacter(ch);
+    termPo chCode = makeChar(ch);
     heapPo h = processHeap(P);
     int mark = gcAddRoot(h, (ptrPo) &chCode);
     termPo rest = allocateString(h, str, offset);

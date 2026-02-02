@@ -40,8 +40,8 @@ void initTime(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g__delay(enginePo P) {
-  double dx = floatVal(popVal(P));
+ValueReturn s__delay(enginePo P,termPo d) {
+  double dx = floatVal(d);
 
   struct timespec tm;
   double seconds;
@@ -56,25 +56,29 @@ ReturnStatus g__delay(enginePo P) {
 //    setProcessRunnable(p);
     switch (errno) {
       case EINTR: {
-        pshVal(P, eINTRUPT);
-        return Abnormal;
+	return abnormalReturn(eINTRUPT);
       }
       case EINVAL:
       case ENOSYS:
       default: {
-        pshVal(P, eINVAL);
-        return Abnormal;
+	return abnormalReturn(eINVAL);
       }
     }
   } else {
 //    setProcessRunnable(p);
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   }
 }
 
-ReturnStatus g__sleep(enginePo P) {
-  double f = floatVal(popVal(P));
+ReturnStatus g__delay(enginePo P) {
+  termPo d = popVal(P);
+  ValueReturn ret = s__delay(P,d);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
+ValueReturn s__sleep(enginePo P,termPo d) {
+  double f = floatVal(d);
 
   struct timeval now;
   double seconds;
@@ -84,8 +88,7 @@ ReturnStatus g__sleep(enginePo P) {
 
   if ((long) seconds < now.tv_sec ||
       ((long) seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
     struct timespec tm;
 
@@ -107,39 +110,58 @@ ReturnStatus g__sleep(enginePo P) {
 //      setProcessRunnable(p);
       switch (errno) {
         case EINTR: {
-          pshVal(P, eINTRUPT);
-          return Abnormal;
+	  return abnormalReturn(eINTRUPT);
         }
         case EINVAL:
         case ENOSYS:
         default: {
-          pshVal(P, eINVAL);
-          return Abnormal;
+	  return abnormalReturn(eINVAL);
         }
       }
     } else {
 //      setProcessRunnable(p);
-      pshVal(P, unitEnum);
-      return Normal;
+      return normalReturn(unitEnum);
     }
   }
 }
 
+ReturnStatus g__sleep(enginePo P) {
+  termPo d = popVal(P);
+  ValueReturn ret = s__sleep(P,d);
+  pshVal(P,ret.value);
+  return ret.status;
+}
+
 /* Return the current time */
+ValueReturn s__now(enginePo P){
+  return normalReturn(makeFloat(get_time()));
+}
+
 ReturnStatus g__now(enginePo P) {
-  pshVal(P, makeFloat(get_time()));
-  return Normal;
+  ValueReturn ret = s__now(P);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 /* Return the time at midnight */
+ValueReturn s__today(enginePo P){
+  return normalReturn(makeFloat(get_date()));
+}
+  
 ReturnStatus g__today(enginePo P) {
-  pshVal(P, makeFloat(get_date()));
-  return Normal;
+  ValueReturn ret = s__today(P);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
+ValueReturn s__ticks(enginePo P){
+  return normalReturn(makeInteger((integer)clock()));
+}
+  
 ReturnStatus g__ticks(enginePo P) {
-  pshVal(P, makeInteger((integer) clock()));
-  return Normal;
+  ValueReturn ret = s__ticks(P);
+  pshVal(P,ret.value);
+  return ret.status;
 }
 
 /*

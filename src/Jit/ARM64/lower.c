@@ -548,7 +548,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(PR), IM(True), RG(lamReg));
         unstash(jit);
-        pushBlank(stack);
+        pushRegister(stack, X0);
         releaseReg(jit, lamReg);
         continue;
       }

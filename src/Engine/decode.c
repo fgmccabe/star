@@ -80,7 +80,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       if (cp == '\\') {
         tryRet(inChar(in, &cp));
       }
-      *tgt = allocateCharacter(cp);
+      *tgt = makeChar(cp);
       return Ok;
     }
     case strTrm: {

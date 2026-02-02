@@ -456,13 +456,13 @@ void glueOnStack(enginePo P, logical execJit, integer size, integer saveArity) {
 
   assert(size >= minStackSize && stackState(stk) != moribund);
 
-  stackPo newStack =
+  stackPo child =
     allocateStack(P, size, underflowProg, execJit, stackState(stk), stk);
-  moveStack2Stack(newStack, stk, execJit, saveArity);
+  moveStack2Stack(child, stk, execJit, saveArity);
   dropFrame(stk);
-  propagateHwm(newStack);
+  propagateHwm(child);
   gcReleaseRoot(h, root);
-  P->stk = newStack;
+  P->stk = child;
 }
 
 void handleStackOverflow(enginePo P, logical execJit, integer delta, int32 arity) {
@@ -475,7 +475,7 @@ stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size) {
   return allocateStack(P, size, underflowProg, execJit, suspended, Null);
 }
 
-void newStack(enginePo P, logical execJit, termPo lam) {
+stackPo newStack(enginePo P, logical execJit, termPo lam) {
   heapPo H = processHeap(P);
   stackPo stk = P->stk;
 
@@ -488,7 +488,7 @@ void newStack(enginePo P, logical execJit, termPo lam) {
   pushStack(child, lam);
   pushStack(child, (termPo) child);
 
-  pushStack(stk, (termPo) child);
+  return child;
 }
 
 void attachStack(enginePo P, stackPo top, termPo evt) {

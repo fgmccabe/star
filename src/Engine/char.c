@@ -27,7 +27,7 @@ void initChars() {
   CharacterClass.clss.clss = specialClass;
 }
 
-termPo allocateCharacter(codePoint cp) {
+termPo makeChar(codePoint cp) {
   return ((termPo) ((integer) ((cp << 2ul) | chrTg)));
 }
 
