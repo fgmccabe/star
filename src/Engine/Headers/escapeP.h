@@ -11,6 +11,7 @@ typedef struct escape_record_ {
   char *name;         /* Name of the escape */
   char *sig;          /* Signature of the escape */
   escFun fun;         /* The function itself */
+  escValue direct;    // Direct entry (called by lowered code)
   int32 arity;        /* How many arguments */
 } EscapeRec;
 

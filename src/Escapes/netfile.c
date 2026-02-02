@@ -14,8 +14,7 @@
 #include <consP.h>
 #include "netfile.h"
 
-ReturnStatus g__listen(enginePo P) {
-  integer port = integerVal(popVal(P));
+ValueReturn s__listen(enginePo P, integer port) {
   char nBuff[MAXFILELEN];
   ioPo listen;
 
@@ -25,17 +24,21 @@ ReturnStatus g__listen(enginePo P) {
   setProcessRunnable(P);
 
   if (listen == NULL) {
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
-    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), listen));
-    return Normal;
+    return normalReturn((termPo) allocateIOChnnl(processHeap(P), listen));
   }
 }
 
-ReturnStatus g__accept(enginePo P) {
-  ioPo listen = ioChannel(C_IO(popVal(P)));
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+ReturnStatus g__listen(enginePo P) {
+  integer port = integerVal(popVal(P));
+
+  ValueReturn ret = s__listen(P, port);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__accept(enginePo P, ioPo listen, ioEncoding enc) {
   heapPo h = processHeap(P);
 
   switchProcessState(P, wait_io);
@@ -48,8 +51,7 @@ ReturnStatus g__accept(enginePo P) {
   setProcessRunnable(P);
 
   if (listen == NULL) {
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
     switch (ret) {
       case Ok: {
@@ -61,8 +63,7 @@ ReturnStatus g__accept(enginePo P) {
         if (peerN == NULL || peerI == NULL) {
           closeIo(inC);
           closeIo(outC);
-          pshVal(P, eNOTFND);
-          return Abnormal;
+          return abnormalReturn(eNOTFND);
         }
 
         termPo inChnl = (termPo) allocateIOChnnl(h, inC);
@@ -89,28 +90,33 @@ ReturnStatus g__accept(enginePo P) {
         setArg(reslt, 4, peerIP);
 
         gcReleaseRoot(h, root);
-        pshVal(P, (termPo) reslt);
-        return Normal;
+        return normalReturn((termPo)reslt);
       }
       default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+        return abnormalReturn(eIOERROR);
     }
   }
 }
 
-ReturnStatus g__connect(enginePo P) {
+ReturnStatus g__accept(enginePo P) {
+  ioPo listen = ioChannel(C_IO(popVal(P)));
+  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+
+  ValueReturn ret = s__accept(P, listen, enc);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__connect(enginePo P, termPo host, int port, ioEncoding enc) {
   integer hLen;
-  const char *host = strVal(popVal(P), &hLen);
-  integer port = integerVal(popVal(P));
+  const char *hostName = strVal(host, &hLen);
 
   heapPo h = processHeap(P);
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
 
   switchProcessState(P, wait_io);
 
   ioPo inC, outC;
-  retCode ret = connectRemote(host, (int) port, enc, True, &inC, &outC);
+  retCode ret = connectRemote(hostName, port, enc, True, &inC, &outC);
 
   setProcessRunnable(P);
 
@@ -125,53 +131,73 @@ ReturnStatus g__connect(enginePo P) {
       normalPo reslt = allocateTpl(h, 2);
 
       gcReleaseRoot(h, root);
-      pshVal(P, (termPo) reslt);
-      return Normal;
+      return normalReturn((termPo)reslt);
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host, hLen);
-      pshVal(P, eCONNECT);
-      return Abnormal;
+      return abnormalReturn(eCONNECT);
   }
+}
+
+ReturnStatus g__connect(enginePo P) {
+  termPo host = popVal(P);
+  int port = (int) integerVal(popVal(P));
+  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+
+  ValueReturn ret = s__connect(P, host, port, enc);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 /* Access host name functions */
 /* return IP addresses of a host */
-ReturnStatus g__hosttoip(enginePo P) {
-  char host[MAXFILELEN];
+ValueReturn s__hosttoip(enginePo P, termPo hostTerm) {
+  char hostName[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(popVal(P)), host, NumberOf(host));
+  copyChars2Buff(C_STR(hostTerm), hostName, NumberOf(hostName));
   heapPo h = processHeap(P);
   termPo ipList = (termPo) nilEnum;
   termPo el = voidEnum;
   int root = gcAddRoot(h, &ipList);
   gcAddRoot(h, &el);
 
-  for (int i = 0; getNthHostIP(host, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
+  for (int i = 0; getNthHostIP(hostName, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
     el = (termPo) allocateCString(h, ip);
     ipList = (termPo) allocateCons(h, el, ipList);
   }
 
   gcReleaseRoot(h, root);
-  pshVal(P, ipList);
-  return Normal;
+  return normalReturn((termPo)ipList);
+}
+
+/* Access host name functions */
+/* return IP addresses of a host */
+ReturnStatus g__hosttoip(enginePo P) {
+  ValueReturn ret = s__hosttoip(P, popVal(P));
+
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 /* Access host name from IP address */
-ReturnStatus g__iptohost(enginePo P) {
+ValueReturn s__iptohost(enginePo P, termPo hostTerm) {
   char ip[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(popVal(P)), ip, NumberOf(ip));
+  copyChars2Buff(C_STR(hostTerm), ip, NumberOf(ip));
   heapPo h = processHeap(P);
   char *host = getHostname(ip);
 
   if (host != NULL) {
     termPo Host = allocateCString(h, host);
-    pshVal(P, Host);
-    return Normal;
+    return normalReturn(Host);
   } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   }
+}
+
+ReturnStatus g__iptohost(enginePo P) {
+  ValueReturn ret = s__iptohost(P, popVal(P));
+  pshVal(P, ret.value);
+  return ret.status;
 }
