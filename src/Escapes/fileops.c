@@ -18,347 +18,414 @@
 #include "fileops.h"
 #include "tpl.h"
 
-ReturnStatus g__cwd(enginePo P) {
+ValueReturn s__cwd(enginePo P)
+{
   char cwBuffer[MAXFILELEN];
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(P));
-  pshVal(P, allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
-  return Normal;
+  return normalReturn(allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
 }
 
-ReturnStatus g__cd(enginePo P) {
+ReturnStatus g__cwd(enginePo P)
+{
+  ValueReturn ret = s__cwd(P);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__cd(enginePo P, termPo dir)
+{
   integer len;
-  const char *cd = strVal(popVal(P), &len);
+  const char* cd = strVal(dir, &len);
 
-  switch (setProcessWd(P, (char *) cd, len)) {
-    case Ok:
-      pshVal(P, unitEnum);
-      return Normal;
+  switch (setProcessWd(P, (char*)cd, len)){
+  case Ok:
+    return normalReturn(unitEnum);
+  default:
+    return abnormalReturn(eNOPERM);
+  }
+}
+
+ReturnStatus g__cd(enginePo P)
+{
+  termPo dir = popVal(P);
+  ValueReturn ret = s__cd(P, dir);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__rm(enginePo P, termPo f)
+{
+  integer fnLen;
+  const char* fn = strVal(f, &fnLen);
+  char buff[MAXFILELEN];
+
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+
+tryAgain:
+  switchProcessState(P, wait_io);
+
+  if (unlink(acFn) != -1){
+    setProcessRunnable(P);
+    return normalReturn(unitEnum);
+  }
+  else{
+    setProcessRunnable(P);
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case EACCES:
+    case EPERM:
+      return abnormalReturn(eNOPERM);
+    case EBUSY:
+      return abnormalReturn(eFAIL);
+    case ENOENT:
     default:
-      pshVal(P, eNOPERM);
-      return Abnormal;
-  }
-}
-
-ReturnStatus g__rm(enginePo P) {
-  integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
-  char buff[MAXFILELEN];
-
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
-
-  tryAgain:
-  switchProcessState(P, wait_io);
-
-  if (unlink(acFn) != -1) {
-    setProcessRunnable(P);
-    pshVal(P, unitEnum);
-    return Normal;
-  } else {
-    setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case EACCES:
-      case EPERM:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EBUSY:
-        pshVal(P, eFAIL);
-        return Abnormal;
-      case ENOENT:
-      default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+      return abnormalReturn(eIOERROR);
     }
   }
 }
 
-static char *const RMDIR = "__rmdir";
+ReturnStatus g__rm(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__rm(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-ReturnStatus g__rmdir(enginePo P) {
+ValueReturn s__rmdir(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (rmdir(acFn) == 0) {
+  if (rmdir(acFn) != -1){
     setProcessRunnable(P);
-    pshVal(P, unitEnum);
-    return Normal;
-  } else {
+    return normalReturn(unitEnum);
+  }
+  else{
     setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case EACCES:
-      case EPERM:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EBUSY:
-        pshVal(P, eFAIL);
-        return Abnormal;
-      case ENOENT:
-      default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case EACCES:
+    case EPERM:
+      return abnormalReturn(eNOPERM);
+    case EBUSY:
+      return abnormalReturn(eFAIL);
+    case ENOENT:
+    default:
+      return abnormalReturn(eIOERROR);
     }
   }
 }
 
-static char *const MKDIR = "__mkdir";
+ReturnStatus g__rmdir(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__rm(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-ReturnStatus g__mkdir(enginePo P) {
+
+ValueReturn s__mkdir(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  mode_t mode = (mode_t) integerVal(popVal(P));
+  mode_t mode = (mode_t)integerVal(popVal(P));
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (mkdir(acFn, mode) != -1) {
+  if (mkdir(acFn, mode) != -1){
     setProcessRunnable(P);
-    pshVal(P, unitEnum);
-    return Normal;
-  } else {
+    return normalReturn(unitEnum);
+  }
+  else{
     setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case EACCES:
-      case EPERM:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EBUSY:
-        pshVal(P, eFAIL);
-        return Abnormal;
-      case ENOENT:
-      default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case EACCES:
+    case EPERM:
+      return abnormalReturn(eNOPERM);
+    case EBUSY:
+      return abnormalReturn(eFAIL);
+    case ENOENT:
+    default:
+      return abnormalReturn(eIOERROR);
     }
   }
 }
 
-static char *const MV = "__mv";
+ReturnStatus g__mkdir(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__mkdir(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-ReturnStatus g__mv(enginePo P) {
+ValueReturn s__mv(enginePo P, termPo f, termPo t)
+{
   integer sLen;
-  const char *fn = strVal(popVal(P), &sLen);
+  const char* fn = strVal(f, &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *srcFn = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
+  char* srcFn = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
   integer dLen;
-  const char *df = strVal(popVal(P), &dLen);
+  const char* df = strVal(t, &dLen);
   char dstBuff[MAXFILELEN];
 
-  char *dstFn = resolveFileName(processWd(P), df, dLen, dstBuff, NumberOf(dstBuff));
+  char* dstFn = resolveFileName(processWd(P), df, dLen, dstBuff, NumberOf(dstBuff));
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (rename(srcFn, dstFn) != -1) {
+  if (rename(srcFn, dstFn) != -1){
     setProcessRunnable(P);
-    pshVal(P, unitEnum);
-    return Normal;
-  } else {
+    return normalReturn(unitEnum);
+  }
+  else{
     setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case EACCES:
-      case EPERM:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EBUSY:
-        pshVal(P, eFAIL);
-        return Abnormal;
-      case ENOENT:
-      default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case EACCES:
+    case EPERM:
+      return abnormalReturn(eNOPERM);
+    case EBUSY:
+      return abnormalReturn(eFAIL);
+    case ENOENT:
+    default:
+      return abnormalReturn(eIOERROR);
     }
   }
 }
 
-ReturnStatus g__ls(enginePo P) {
+ReturnStatus g__mv(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo t = popVal(P);
+  ValueReturn ret = s__mv(P, f, t);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__ls(enginePo P, termPo f)
+{
   integer sLen;
-  const char *fn = strVal(popVal(P), &sLen);
+  const char* fn = strVal(f, &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *dir = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
+  char* dir = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
 
-  DIR *directory;
+  DIR* directory;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if ((directory = opendir(dir)) == NULL) {
+  if ((directory = opendir(dir)) == NULL){
     setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case EACCES:
-      case EMFILE:
-      case ENFILE:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EBUSY:
-        pshVal(P, eFAIL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ENOTDIR:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      default:
-        pshVal(P, eIOERROR);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case EACCES:
+    case EMFILE:
+    case ENFILE:
+      return abnormalReturn(eNOPERM);
+    case EBUSY:
+      return abnormalReturn(eFAIL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case ENAMETOOLONG:
+    case ENOTDIR:
+      return abnormalReturn(eINVAL);
+    default:
+      return abnormalReturn(eIOERROR);
     }
-  } else {
+  }
+  else{
     termPo list = nilEnum;
     termPo name = voidEnum;
     heapPo h = processHeap(P);
     int root = gcAddRoot(h, &list);
     gcAddRoot(h, &name);
 
-    struct dirent *ent;
+    struct dirent* ent;
 
-    while ((ent = readdir(directory)) != NULL) {
+    while ((ent = readdir(directory)) != NULL){
       /* skip special entries "." and ".." */
-      if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
-        name = (termPo) allocateString(h, ent->d_name, uniStrLen(ent->d_name));
-        list = (termPo) allocateCons(h, name, list);
+      if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0){
+        name = (termPo)allocateString(h, ent->d_name, uniStrLen(ent->d_name));
+        list = (termPo)allocateCons(h, name, list);
       }
     }
-    closedir(directory);              /* Close the directory stream */
+    closedir(directory); /* Close the directory stream */
 
     gcReleaseRoot(h, root);
     setProcessRunnable(P);
 
-    pshVal(P, list);
-    return Normal;
+    return normalReturn(list);
   }
 }
 
-ReturnStatus g__file_mode(enginePo P) {
+ReturnStatus g__ls(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__ls(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__file_mode(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1) {
+  if (stat(acFn, &buf) == -1){
     setProcessRunnable(P);
 
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case ENOTDIR:
-        pshVal(P, eNOFILE);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ELOOP:
-      case EFAULT:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case EACCES:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EIO:
-        pshVal(P, eIOERROR);
-        return Abnormal;
-      default:
-        pshVal(P, eNOTFND);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case ENOTDIR:
+      return abnormalReturn(eNOFILE);
+    case ENAMETOOLONG:
+    case ELOOP:
+    case EFAULT:
+      return abnormalReturn(eINVAL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case EACCES:
+      return abnormalReturn(eNOPERM);
+    case EIO:
+      return abnormalReturn(eIOERROR);
+    default:
+      return abnormalReturn(eNOTFND);
     }
-  } else {
+  }
+  else{
     setProcessRunnable(P);
-    pshVal(P, makeInteger(buf.st_mode));
-    return Normal;
+    return normalReturn(makeInteger(buf.st_mode));
   }
 }
 
-ReturnStatus g__file_chmod(enginePo P) {
+ReturnStatus g__file_mode(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_mode(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__file_chmod(enginePo P, termPo f, termPo m)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  mode_t acmode = (mode_t) integerVal(popVal(P));
+  mode_t acmode = (mode_t)integerVal(m);
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (chmod(acFn, acmode) == -1) {
+  if (chmod(acFn, acmode) == -1){
     setProcessRunnable(P);
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;    /* A mega hack */
-      case EACCES:
-      case EPERM:
-      default:
-        pshVal(P, eNOPERM);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain; /* A mega hack */
+    case EACCES:
+    case EPERM:
+    default:
+      return abnormalReturn(eNOPERM);
     }
   }
   setProcessRunnable(P);
-  pshVal(P, unitEnum);
-  return Normal;
+  return normalReturn(unitEnum);
 }
 
-ReturnStatus g__file_present(enginePo P) {
+ReturnStatus g__file_chmod(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo m = popVal(P);
+  ValueReturn ret = s__file_chmod(P, f, m);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+
+ValueReturn s__file_present(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   switchProcessState(P, wait_io);
   termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
   setProcessRunnable(P);
-  pshVal(P, present);
-  return Normal;
+  return normalReturn(present);
 }
 
-ReturnStatus g__isdir(enginePo P) {
+ReturnStatus g__file_present(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_present(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__isdir(enginePo P, termPo d)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(d, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   switchProcessState(P, wait_io);
   termPo present = isDirectory(acFn) == Ok ? trueEnum : falseEnum;
   setProcessRunnable(P);
 
-  pshVal(P, present);
-  return Normal;
+  return normalReturn(present);
+}
+
+ReturnStatus g__isdir(enginePo P)
+{
+  termPo d = popVal(P);
+  ValueReturn ret = s__isdir(P, d);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 /*
  * file_type check out the type of the file
  */
 
-typedef enum {
+typedef enum
+{
   fifoFile = 0,
   directory = 1,
   charfile = 2,
@@ -368,47 +435,42 @@ typedef enum {
   fileSocket = 6
 } FileType;
 
-static char *const FILE_DATE = "__file_date";
-static char *const FILE_MODIFIED = "__file_modified";
+static char* const FILE_DATE = "__file_date";
+static char* const FILE_MODIFIED = "__file_modified";
 
-ReturnStatus g__file_type(enginePo P) {
+ValueReturn s__file_type(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1) {
+  if (stat(acFn, &buf) == -1){
     setProcessRunnable(P);
 
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case ENOTDIR:
-        pshVal(P, eNOFILE);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ELOOP:
-      case EFAULT:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case EACCES:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EIO:
-        pshVal(P, eIOERROR);
-        return Abnormal;
-      default:
-        pshVal(P, eNOTFND);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case ENOTDIR:
+      return abnormalReturn(eNOFILE);
+    case ENAMETOOLONG:
+    case ELOOP:
+    case EFAULT:
+      return abnormalReturn(eINVAL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case EACCES:
+      return abnormalReturn(eNOPERM);
+    case EIO:
+      return abnormalReturn(eIOERROR);
+    default:
+      return abnormalReturn(eNOTFND);
     }
   }
 
@@ -430,102 +492,107 @@ ReturnStatus g__file_type(enginePo P) {
     type = makeInteger(symLink);
   else if (S_ISSOCK(buf.st_mode))
     type = makeInteger(fileSocket);
-  else {
-    pshVal(P, eINVAL);
-    return Abnormal;
+  else{
+    return abnormalReturn(eINVAL);
   }
-  pshVal(P, type);
-  return Normal;
+  return normalReturn(type);
 }
 
-ReturnStatus g__file_size(enginePo P) {
+ReturnStatus g__file_type(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_type(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__file_size(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1) {
+  if (stat(acFn, &buf) == -1){
     setProcessRunnable(P);
 
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case ENOTDIR:
-        pshVal(P, eNOFILE);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ELOOP:
-      case EFAULT:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case EACCES:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EIO:
-        pshVal(P, eIOERROR);
-        return Abnormal;
-      default:
-        pshVal(P, eNOTFND);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case ENOTDIR:
+      return abnormalReturn(eNOFILE);
+    case ENAMETOOLONG:
+    case ELOOP:
+    case EFAULT:
+      return abnormalReturn(eINVAL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case EACCES:
+      return abnormalReturn(eNOPERM);
+    case EIO:
+      return abnormalReturn(eIOERROR);
+    default:
+      return abnormalReturn(eNOTFND);
     }
-  } else {
+  }
+  else{
     termPo details = makeInteger(buf.st_size);
 
     setProcessRunnable(P);
-    pshVal(P, details);
-    return Normal;
+    return normalReturn(details);
   }
 }
 
-ReturnStatus g__file_date(enginePo P) {
+ReturnStatus g__file_size(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_size(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__file_date(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1) {
+  if (stat(acFn, &buf) == -1){
     setProcessRunnable(P);
 
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case ENOTDIR:
-        pshVal(P, eNOFILE);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ELOOP:
-      case EFAULT:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case EACCES:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EIO:
-        pshVal(P, eIOERROR);
-        return Abnormal;
-      default:
-        pshVal(P, eNOTFND);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case ENOTDIR:
+      return abnormalReturn(eNOFILE);
+    case ENAMETOOLONG:
+    case ELOOP:
+    case EFAULT:
+      return abnormalReturn(eINVAL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case EACCES:
+      return abnormalReturn(eNOPERM);
+    case EIO:
+      return abnormalReturn(eIOERROR);
+    default:
+      return abnormalReturn(eNOTFND);
     }
-  } else {
+  }
+  else{
     heapPo h = processHeap(P);
     termPo atime = makeInteger(buf.st_atime);
     int root = gcAddRoot(h, &atime);
@@ -541,147 +608,195 @@ ReturnStatus g__file_date(enginePo P) {
     gcReleaseRoot(h, root);
 
     setProcessRunnable(P);
-    pshVal(P, (termPo) triple);
-    return Normal;
+    return normalReturn((termPo)triple);
   }
 }
 
-ReturnStatus g__file_modified(enginePo P) {
+ReturnStatus g__file_date(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_date(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+
+ValueReturn s__file_modified(enginePo P, termPo f)
+{
   integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+  const char* fn = strVal(f, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
-  tryAgain:
+tryAgain:
   switchProcessState(P, wait_io);
 
-  if (stat(acFn, &buf) == -1) {
+  if (stat(acFn, &buf) == -1){
     setProcessRunnable(P);
 
-    switch (errno) {
-      case EINTR:
-        goto tryAgain;
-      case ENOTDIR:
-        pshVal(P, eNOFILE);
-        return Abnormal;
-      case ENAMETOOLONG:
-      case ELOOP:
-      case EFAULT:
-        pshVal(P, eINVAL);
-        return Abnormal;
-      case ENOENT:
-        pshVal(P, eNOTFND);
-        return Abnormal;
-      case EACCES:
-        pshVal(P, eNOPERM);
-        return Abnormal;
-      case EIO:
-        pshVal(P, eIOERROR);
-        return Abnormal;
-      default:
-        pshVal(P, eNOTFND);
-        return Abnormal;
+    switch (errno){
+    case EINTR:
+      goto tryAgain;
+    case ENOTDIR:
+      return abnormalReturn(eNOFILE);
+    case ENAMETOOLONG:
+    case ELOOP:
+    case EFAULT:
+      return abnormalReturn(eINVAL);
+    case ENOENT:
+      return abnormalReturn(eNOTFND);
+    case EACCES:
+      return abnormalReturn(eNOPERM);
+    case EIO:
+      return abnormalReturn(eIOERROR);
+    default:
+      return abnormalReturn(eNOTFND);
     }
-  } else {
+  }
+  else{
     termPo mtime = makeInteger(buf.st_mtime);
 
     setProcessRunnable(P);
-    pshVal(P, mtime);
-    return Normal;
+    return normalReturn(mtime);
   }
 }
 
-ReturnStatus g__openInFile(enginePo P) {
-  integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+ReturnStatus g__file_modified(enginePo P)
+{
+  termPo f = popVal(P);
+  ValueReturn ret = s__file_modified(P, f);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+ValueReturn s__openInFile(enginePo P, termPo f, termPo e)
+{
+  integer fnLen;
+  const char* fn = strVal(f, &fnLen);
+
+  ioEncoding enc = pickEncoding(integerVal(e));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInFile(acFn, enc);
   heapPo h = processHeap(P);
 
-  if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(h, file));
-    return Normal;
-  } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+  if (file != Null){
+    return normalReturn((termPo)allocateIOChnnl(h, file));
+  }
+  else{
+    return abnormalReturn(eNOTFND);
   }
 }
 
-ReturnStatus g__openOutFile(enginePo P) {
-  integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+ReturnStatus g__openInFile(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  ValueReturn ret = s__openInFile(P, f, e);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+ValueReturn s__openOutFile(enginePo P, termPo f, termPo e)
+{
+  integer fnLen;
+  const char* fn = strVal(f, &fnLen);
+
+  ioEncoding enc = pickEncoding(integerVal(e));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openOutFile(acFn, enc);
 
-  if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
-    return Normal;
-  } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+  if (file != Null){
+    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  }
+  else{
+    return abnormalReturn(eNOTFND);
   }
 }
 
-ReturnStatus g__openAppendFile(enginePo P) {
-  integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+ReturnStatus g__openOutFile(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  ValueReturn ret = s__openOutFile(P, f, e);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e)
+{
+  integer fnLen;
+  const char* fn = strVal(f, &fnLen);
+
+  ioEncoding enc = pickEncoding(integerVal(e));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openAppendFile(acFn, enc);
 
-  if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
-    return Normal;
-  } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+  if (file != Null){
+    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  }
+  else{
+    return abnormalReturn(eNOTFND);
   }
 }
 
-ReturnStatus g__openAppendIOFile(enginePo P) {
-  integer fnLen;
-  const char *fn = strVal(popVal(P), &fnLen);
+ReturnStatus g__openAppendFile(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  ValueReturn ret = s__openAppendFile(P, f, e);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e)
+{
+  integer fnLen;
+  const char* fn = strVal(f, &fnLen);
+
+  ioEncoding enc = pickEncoding(integerVal(e));
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
+  char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInOutAppendFile(acFn, enc);
 
-  if (file != Null) {
-    pshVal(P, (termPo) allocateIOChnnl(processHeap(P), file));
-    return Normal;
-  } else {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+  if (file != Null){
+    return normalReturn((termPo)allocateIOChnnl(processHeap(P), file));
+  }
+  else{
+    return abnormalReturn(eNOTFND);
   }
 }
 
-ioEncoding pickEncoding(integer k) {
-  switch (k) {
-    case 0:
-      return rawEncoding;
-    case 3:
-      return utf8Encoding;
-    default:
-      return unknownEncoding;
+ReturnStatus g__openAppendIOFile(enginePo P)
+{
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  ValueReturn ret = s__openAppendIOFile(P, f, e);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ioEncoding pickEncoding(integer k)
+{
+  switch (k){
+  case 0:
+    return rawEncoding;
+  case 3:
+    return utf8Encoding;
+  default:
+    return unknownEncoding;
   }
 }
