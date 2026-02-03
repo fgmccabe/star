@@ -23,54 +23,82 @@
 #define DATE_UTC 7
 #define DATE_LEN 8
 
-ReturnStatus g__date2time(enginePo P) {
+ValueReturn s__date2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, termPo mi, termPo se, termPo gmt) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(popVal(P)) - 1); // Extract the month
-  now.tm_mday = (int) (integerVal(popVal(P))); // Extract the day of the month
-  now.tm_hour = (int) (integerVal(popVal(P))); // Extract the hour
-  now.tm_min = (int) (integerVal(popVal(P))); // Extract the minute
+  now.tm_year = (int) (integerVal(y) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(mo) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(md)); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(h)); // Extract the hour
+  now.tm_min = (int) (integerVal(mi)); // Extract the minute
 
-  double sec = floatVal(popVal(P));
+  double sec = floatVal(se);
   double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(popVal(P)); // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(gmt); // Offset from GMT
 
   now.tm_isdst = -1;
 
   time_t when = mktime(&now);
 
-  pshVal(P, makeFloat((double) when + fraction));
-  return Normal;
+  return normalReturn(makeFloat((double) when + fraction));
 }
 
-ReturnStatus g__utc2time(enginePo P) {
+ReturnStatus g__date2time(enginePo P) {
+  termPo y = popVal(P);
+  termPo mo = popVal(P);
+  termPo md = popVal(P);
+  termPo hr = popVal(P);
+  termPo min = popVal(P);
+  termPo se = popVal(P);
+  termPo gmt = popVal(P);
+
+  ValueReturn ret = s__date2time(P, y, mo, md, hr, min, se, gmt);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__utc2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, termPo mi, termPo se, termPo gmt) {
   struct tm now;
 
-  now.tm_year = (int) (integerVal(popVal(P)) - 1900); // Extract the year
-  now.tm_mon = (int) (integerVal(popVal(P)) - 1); // Extract the month
-  now.tm_mday = (int) (integerVal(popVal(P))); // Extract the day of the month
-  now.tm_hour = (int) (integerVal(popVal(P))); // Extract the hour
-  now.tm_min = (int) (integerVal(popVal(P))); // Extract the minute
+  now.tm_year = (int) (integerVal(y) - 1900); // Extract the year
+  now.tm_mon = (int) (integerVal(mo) - 1); // Extract the month
+  now.tm_mday = (int) (integerVal(md)); // Extract the day of the month
+  now.tm_hour = (int) (integerVal(h)); // Extract the hour
+  now.tm_min = (int) (integerVal(mi)); // Extract the minute
 
-  double sec = floatVal(popVal(P));
+  double sec = floatVal(se);
   double fraction = modf(sec, &sec); // Extract the seconds
   now.tm_sec = (int) sec;
 
-  now.tm_gmtoff = (int) integerVal(popVal(P)); // Offset from GMT
+  now.tm_gmtoff = (int) integerVal(gmt); // Offset from GMT
 
   now.tm_isdst = -1;
 
   time_t when = timegm(&now);
 
   pshVal(P, makeFloat((double) when + fraction));
-  return Normal;
+
+  return normalReturn(makeFloat((double) when + fraction));
 }
 
-ReturnStatus g__time2date(enginePo P) {
-  double time = floatVal(popVal(P));
+ReturnStatus g__utc2time(enginePo P) {
+  termPo y = popVal(P);
+  termPo mo = popVal(P);
+  termPo md = popVal(P);
+  termPo hr = popVal(P);
+  termPo min = popVal(P);
+  termPo se = popVal(P);
+  termPo gmt = popVal(P);
+
+  ValueReturn ret = s__utc2time(P, y, mo, md, hr, min, se, gmt);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__time2date(enginePo P, termPo t) {
+  double time = floatVal(t);
   time_t when = (time_t) time;
 
   struct tm *now = localtime(&when);
@@ -106,12 +134,18 @@ ReturnStatus g__time2date(enginePo P) {
   setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
-  pshVal(P, (termPo) dte);
-  return Normal;
+  return normalReturn((termPo) dte);
 }
 
-ReturnStatus g__time2utc(enginePo P) {
-  double time = floatVal(popVal(P));
+ReturnStatus g__time2date(enginePo P) {
+  termPo t = popVal(P);
+  ValueReturn ret = s__time2date(P, t);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__time2utc(enginePo P, termPo t) {
+  double time = floatVal(t);
   time_t when = (time_t) time;
 
   struct tm *now = gmtime(&when);
@@ -147,16 +181,22 @@ ReturnStatus g__time2utc(enginePo P) {
   setArg(dte, DATE_UTC, tmOffset);
 
   gcReleaseRoot(h, root);
-  pshVal(P, (termPo) dte);
-  return Normal;
+  return normalReturn((termPo) dte);
+}
+
+ReturnStatus g__time2utc(enginePo P) {
+  termPo t = popVal(P);
+  ValueReturn ret = s__time2utc(P, t);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
-ReturnStatus g__formattime(enginePo P) {
-  time_t when = (time_t) floatVal(popVal(P));
+ValueReturn s__formattime(enginePo P, termPo w, termPo f) {
+  time_t when = (time_t) floatVal(w);
   integer fmtLen;
-  const char *fmt = strVal(popVal(P), &fmtLen);
+  const char *fmt = strVal(f, &fmtLen);
 
   struct tm *now = localtime(&when);
 
@@ -167,13 +207,19 @@ ReturnStatus g__formattime(enginePo P) {
   if (ret == Ok) {
     termPo result = allocateFromStrBuffer(processHeap(P), buff);
     closeIo(O_IO(buff));
-    pshVal(P,result);
-    return Normal;
+    return normalReturn(result);
   } else {
     closeIo(O_IO(buff));
-    pshVal(P,eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   }
+}
+
+ReturnStatus g__formattime(enginePo P) {
+  termPo w = popVal(P);
+  termPo f = popVal(P);
+  ValueReturn ret = s__formattime(P, w, f);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static integer countFmtChrs(const char *fmt, integer *pos, integer len, codePoint f) {
@@ -570,12 +616,12 @@ static retCode parseTime(const char *fmt, integer fmtLen, const char *src, integ
   return ret;
 }
 
-ReturnStatus g__parsetime(enginePo P) {
+ValueReturn s__parsetime(enginePo P, termPo s, termPo f) {
   integer srcLen;
-  const char *src = strVal(popVal(P), &srcLen);
+  const char *src = strVal(s, &srcLen);
 
   integer fmtLen;
-  const char *fmt = strVal(popVal(P), &fmtLen);
+  const char *fmt = strVal(f, &fmtLen);
 
   struct tm time;
 
@@ -583,10 +629,17 @@ ReturnStatus g__parsetime(enginePo P) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    pshVal(P, makeFloat((double)tm));
-    return Normal;
+    return normalReturn(makeFloat((double) tm));
   } else {
-    pshVal(P,eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   }
+}
+
+ReturnStatus g__parsetime(enginePo P) {
+  termPo s = popVal(P);
+  termPo f = popVal(P);
+
+  ValueReturn ret = s__parsetime(P, s, f);
+  pshVal(P, ret.value);
+  return ret.status;
 }

@@ -19,18 +19,17 @@
 #include "stack.h"
 #include "escape.h"
 
-
 // Number of nanos in a second
 #define NANOS 1000000000
 
-ValueReturn s__exit(enginePo P, termPo c){
+ValueReturn s__exit(enginePo P, termPo c) {
   integer ix = integerVal(c);
   exit((int) ix);
-}  
+}
 
 ReturnStatus g__exit(enginePo P) {
-  ValueReturn ret = s__exit(P,popVal(P));
-  pshVal(P,ret.value);
+  ValueReturn ret = s__exit(P, popVal(P));
+  pshVal(P, ret.value);
   return ret.status;
 }
 
@@ -64,7 +63,7 @@ integer countEnviron() {
   return ix;
 }
 
-ReturnStatus g__envir(enginePo P) {
+ValueReturn s__envir(enginePo P) {
   integer cnt = countEnviron();
   termPo list = nilEnum;
 
@@ -92,40 +91,63 @@ ReturnStatus g__envir(enginePo P) {
   }
   gcReleaseRoot(h, root);
   setProcessRunnable(P);
-  pshVal(P, list);
-  return Normal;
+  return normalReturn(list);
 }
 
-ReturnStatus g__getenv(enginePo P) {
+ReturnStatus g__envir(enginePo P) {
+  ValueReturn ret = s__envir(P);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__getenv(enginePo P, termPo k) {
   char key[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(popVal(P)), key, NumberOf(key));
+  copyChars2Buff(C_STR(k), key, NumberOf(key));
 
   char *val = getenv((char *) key);
 
   if (val != NULL) {
     heapPo h = processHeap(P);
-    pshVal(P, (termPo) wrapSome(h, allocateCString(h, val)));
-  }
-  else
-    pshVal(P, noneEnum);
-  return Normal;
+    return normalReturn((termPo) wrapSome(h, allocateCString(h, val)));
+  } else
+    return normalReturn(noneEnum);
 }
 
-ReturnStatus g__setenv(enginePo P) {
+ReturnStatus g__getenv(enginePo P) {
+  termPo k = popVal(P);
+  ValueReturn ret = s__getenv(P, k);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__setenv(enginePo P, termPo k, termPo v) {
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
-  copyChars2Buff(C_STR(popVal(P)), key, NumberOf(key));
-  copyChars2Buff(C_STR(popVal(P)), val, NumberOf(val));
+  copyChars2Buff(C_STR(k), key, NumberOf(key));
+  copyChars2Buff(C_STR(v), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, eFAIL);
-    return Abnormal;
+    return abnormalReturn(eFAIL);
   }
+}
+
+ReturnStatus g__setenv(enginePo P) {
+  termPo k = popVal(P);
+  termPo v = popVal(P);
+
+  ValueReturn ret = s__setenv(P, k, v);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__repo(enginePo P) {
+  char repoBuffer[MAXFILELEN];
+  strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
+  return normalReturn(allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer)));
 }
 
 ReturnStatus g__repo(enginePo P) {
@@ -137,27 +159,22 @@ ReturnStatus g__repo(enginePo P) {
   return Normal;
 }
 
-ReturnStatus g__shell(enginePo P) {
+ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popVal(P)), cmd, NumberOf(cmd));
-
-  termPo args = popVal(P);
-  termPo env = popVal(P);
+  copyChars2Buff(C_STR(c), cmd, NumberOf(cmd));
 
   integer argCnt = consLength(args);
   integer envCnt = consLength(env);
 
   if (access((char *) cmd, F_OK | R_OK | X_OK) != 0) {
     setProcessRunnable(P);
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(P);
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -221,49 +238,51 @@ ReturnStatus g__shell(enginePo P) {
         if (res < 0) {
           switch (errno) {
             case ECHILD:
-              pshVal(P, eNOTFND);
-              return Abnormal;
+              return abnormalReturn(eNOTFND);
             case EFAULT:
-              pshVal(P, eINVAL);
-              return Abnormal;
+              return abnormalReturn(eINVAL);
             case EINTR:
             default:
               continue;
           }
         } else if (WIFEXITED(childStatus)) {
           /* exited normally */
-          pshVal(P, makeInteger(WEXITSTATUS(childStatus)));
-          return Normal;
+          return normalReturn(makeInteger(WEXITSTATUS(childStatus)));
         } else if (WIFSIGNALED(childStatus)) {
-          pshVal(P, eINTRUPT);
-          return Abnormal;
+          return abnormalReturn(eINTRUPT);
         }
       } while (True);
     }
   }
 }
 
-ReturnStatus g__popen(enginePo P) {
+ReturnStatus g__shell(enginePo P) {
+  termPo c = popVal(P);
+  termPo args = popVal(P);
+  termPo env = popVal(P);
+
+  ValueReturn ret = s__shell(P, c, args, env);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__popen(enginePo P, termPo c, termPo args, termPo environment) {
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popVal(P)), cmd, NumberOf(cmd));
+  copyChars2Buff(C_STR(c), cmd, NumberOf(cmd));
 
-  termPo args = popVal(P);
   integer argCnt = consLength(args);
-  termPo environment = popVal(P);
   integer envCnt = consLength(environment);
 
   if (access((char *) cmd, ((unsigned) F_OK) | ((unsigned) R_OK) | ((unsigned) X_OK)) != 0) {
     setProcessRunnable(P);
 
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   } else if (!isExecutableFile(cmd)) {
     setProcessRunnable(P);
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   } else {
     char **argv = (char **) calloc((size_t) (argCnt + 2), sizeof(char *));
     char **envp = (char **) calloc((size_t) (envCnt + 1), sizeof(char *));
@@ -321,8 +340,7 @@ ReturnStatus g__popen(enginePo P) {
         setArg(triple, 2, (termPo) err);
 
         gcReleaseRoot(h, root);
-        pshVal(P, (termPo) triple);
-        return Normal;
+        return normalReturn((termPo)triple);
       }
       default: {
         for (integer ix = 0; ix < argCnt; ix++)
@@ -331,9 +349,18 @@ ReturnStatus g__popen(enginePo P) {
           free(envp[ix]); /* release the strings we allocated */
 
         setProcessRunnable(P);
-        pshVal(P, eIOERROR);
-        return Abnormal;
+        return abnormalReturn(eIOERROR);
       }
     }
   }
+}
+
+ReturnStatus g__popen(enginePo P) {
+  termPo c = popVal(P);
+  termPo args = popVal(P);
+  termPo env = popVal(P);
+
+  ValueReturn ret = s__popen(P, c, args, env);
+  pshVal(P, ret.value);
+  return ret.status;
 }
