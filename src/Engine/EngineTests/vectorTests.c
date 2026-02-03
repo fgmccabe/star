@@ -13,7 +13,7 @@
 static termPo charTerm(heapPo h,integer ix, void*cl){
   char *str = (char*)cl;
   codePoint ch = (codePoint)str[ix];
-  return allocateCharacter(ch);
+  return makeChar(ch);
 }
 
 static termPo vectorFromString(char *str){
