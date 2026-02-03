@@ -18,17 +18,23 @@
 
 static retCode pollOutput(futurePo ft, heapPo h, void *cl, void *cl2);
 
-ReturnStatus g__outchar(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  codePoint cp = charVal(popVal(P));
+ValueReturn s__outchar(enginePo P, termPo i, termPo c) {
+  ioPo io = ioChannel(C_IO(i));
+  codePoint cp = charVal(c);
 
   if (outChar(io, cp) == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, eIOERROR);
-    return Abnormal;
+    return abnormalReturn(eIOERROR);
   }
+}
+
+ReturnStatus g__outchar(enginePo P) {
+  termPo i = popVal(P);
+  termPo c = popVal(P);
+  ValueReturn ret = s__outchar(P, i, c);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static taskState wrChar(ioPo out, asyncPo async) {
@@ -53,39 +59,50 @@ static retCode wrCleanup(asyncPo async, retCode ret) {
   return ret;
 }
 
-ReturnStatus g__outchar_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
+ValueReturn s__outchar_async(enginePo P, termPo o, termPo c) {
+  ioChnnlPo chnl = C_IO(o);
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
     retCode ret = enableASynch(f);
 
-    asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(popVal(P)), Null);
+    asyncPo async = newAsyncTask(wrChar, allocUnit, asyncCloser, wrCleanup, charVal(c), Null);
 
     if (ret == Ok) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
-      pshVal(P, (termPo) ft);
-      return Normal;
+      return normalReturn((termPo) ft);
     }
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   }
-  pshVal(P, eINVAL);
-  return Abnormal;
+  return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__outbyte(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
+ReturnStatus g__outchar_async(enginePo P) {
+  termPo i = popVal(P);
+  termPo c = popVal(P);
+  ValueReturn ret = s__outchar_async(P, i, c);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__outbyte(enginePo P, termPo i, termPo c) {
+  ioPo io = ioChannel(C_IO(i));
   integer cp = integerVal(popVal(P));
 
   if (outByte(io, cp) == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, eIOERROR);
-    return Abnormal;
+    return abnormalReturn(eIOERROR);
   }
+}
+
+ReturnStatus g__outbyte(enginePo P) {
+  termPo i = popVal(P);
+  termPo c = popVal(P);
+  ValueReturn ret = s__outbyte(P, i, c);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
@@ -102,52 +119,63 @@ static taskState wrByte(ioPo out, asyncPo async) {
   }
 }
 
-ReturnStatus g__outbyte_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
+ValueReturn s__outbyte_async(enginePo P, termPo o, termPo b) {
+  ioChnnlPo chnl = C_IO(o);
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
 
     retCode ret = enableASynch(f);
 
-    asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(popVal(P)), Null);
+    asyncPo async = newAsyncTask(wrByte, allocUnit, asyncCloser, wrCleanup, integerVal(b), Null);
 
     if (ret == Ok) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
-      pshVal(P, (termPo) ft);
-      return Normal;
+      return normalReturn((termPo) ft);
     }
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   }
-  pshVal(P, eINVAL);
-  return Abnormal;
+  return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__outbytes(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
-  retCode ret = Ok;
-  termPo a2 = popVal(P);
+ReturnStatus g__outbyte_async(enginePo P) {
+  termPo i = popVal(P);
+  termPo c = popVal(P);
+  ValueReturn ret = s__outbyte_async(P, i, c);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 
-  while (ret == Ok && isCons(a2)) {
-    byte b = (byte) integerVal(consHead(C_NORMAL(a2)));
+ValueReturn s__outbytes(enginePo P, termPo i, termPo list) {
+  ioPo io = ioChannel(C_IO(i));
+
+  retCode ret = Ok;
+
+  while (ret == Ok && isCons(list)) {
+    byte b = (byte) integerVal(consHead(C_NORMAL(list)));
     ret = outByte(io, b);
-    a2 = consTail(C_NORMAL(a2));
+    list = consTail(C_NORMAL(list));
   }
 
   if (ret == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, eIOERROR);
-    return Abnormal;
+    return abnormalReturn(eIOERROR);
   }
 }
 
-ReturnStatus g__outtext(enginePo P) {
-  ioPo io = ioChannel(C_IO(popVal(P)));
+ReturnStatus g__outbytes(enginePo P) {
+  termPo i = popVal(P);
+  termPo list = popVal(P);
+  ValueReturn ret = s__outbytes(P, i, list);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__outtext(enginePo P, termPo i, termPo t) {
+  ioPo io = ioChannel(C_IO(i));
   integer length;
-  const char *text = strVal(popVal(P), &length);
+  const char *text = strVal(t, &length);
   retCode ret = Ok;
 
   integer pos = 0;
@@ -159,12 +187,18 @@ ReturnStatus g__outtext(enginePo P) {
   }
 
   if (ret == Ok) {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   } else {
-    pshVal(P, eIOERROR);
-    return Abnormal;
+    return abnormalReturn(eIOERROR);
   }
+}
+
+ReturnStatus g__outtext(enginePo P) {
+  termPo i = popVal(P);
+  termPo m = popVal(P);
+  ValueReturn ret = s__outtext(P, i, m);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static taskState wrText(ioPo out, asyncPo async) {
@@ -195,12 +229,11 @@ static void textCloser(ioPo io, asyncPo async) {
   asyncCloser(io, async);
 }
 
-ReturnStatus g__outtext_async(enginePo P) {
-  ioChnnlPo chnl = C_IO(popVal(P));
+ValueReturn s__outtext_async(enginePo P, termPo o, termPo a2) {
+  ioChnnlPo chnl = C_IO(o);
   ioPo io = ioChannel(chnl);
   if (isAFile(O_OBJECT(io))) {
     filePo f = O_FILE(io);
-    termPo a2 = popVal(P);
 
     retCode ret = enableASynch(f);
 
@@ -214,47 +247,68 @@ ReturnStatus g__outtext_async(enginePo P) {
 
     if (ret == Ok) {
       futurePo ft = makeFuture(processHeap(P), voidEnum, pollOutput, io, async);
-      pshVal(P, (termPo) ft);
-      return Normal;
+      return normalReturn((termPo) ft);
     }
-    pshVal(P, eNOPERM);
-    return Abnormal;
+    return abnormalReturn(eNOPERM);
   }
-  pshVal(P, eINVAL);
-  return Abnormal;
+  return abnormalReturn(eINVAL);
+}
+
+ReturnStatus g__outtext_async(enginePo P) {
+  termPo i = popVal(P);
+  termPo c = popVal(P);
+  ValueReturn ret = s__outtext_async(P, i, c);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+
+ValueReturn s__show(enginePo P, termPo t) {
+  integer length;
+  const char *text = strVal(t, &length);
+
+  outMsg(logFile, "%S\n%_", text, length);
+
+  return normalReturn(unitEnum);
 }
 
 ReturnStatus g__show(enginePo P) {
-  integer length;
-  const char *text = strVal(popVal(P), &length);
-  outMsg(logFile, "%S\n%_", text, length);
-  pshVal(P, unitEnum);
-  return Normal;
+  termPo m = popVal(P);
+  ValueReturn ret = s__show(P, m);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
-ReturnStatus g__put_file(enginePo P) {
+ValueReturn s__put_file(enginePo P, termPo f, termPo e, termPo l) {
   char fn[MAXFILELEN];
 
-  copyChars2Buff(C_STR(popVal(P)), fn, NumberOf(fn));
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
+  copyChars2Buff(C_STR(f), fn, NumberOf(fn));
+  ioEncoding enc = pickEncoding(integerVal(e));
 
   ioPo io = openOutFile(fn, enc);
   if (io != Null) {
     integer tLen;
-    const char *txt = strVal(popVal(P), &tLen);
+    const char *txt = strVal(l, &tLen);
 
     retCode ret = outText(io, txt, tLen);
     closeIo(O_IO(io));
 
     if (ret == Ok) {
-      pshVal(P, voidEnum);
-      return Normal;
+      return normalReturn(voidEnum);
     }
-    pshVal(P, eIOERROR);
-    return Abnormal;
+    return abnormalReturn(eIOERROR);
   }
-  pshVal(P, eNOPERM);
-  return Abnormal;
+  return abnormalReturn(eNOPERM);
+}
+
+ReturnStatus g__put_file(enginePo P) {
+  termPo f = popVal(P);
+  termPo e = popVal(P);
+  termPo l = popVal(P);
+
+  ValueReturn ret = s__put_file(P, f, e, l);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 static taskState pushAsync(ioPo io, AsyncStruct *async) {
