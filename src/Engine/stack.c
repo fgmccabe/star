@@ -477,7 +477,6 @@ stackPo spinupStack(enginePo P, heapPo H, logical execJit, integer size) {
 
 stackPo newStack(enginePo P, logical execJit, termPo lam) {
   heapPo H = processHeap(P);
-  stackPo stk = P->stk;
 
   int root = gcAddRoot(H, (ptrPo) &lam);
   stackPo child = spinupStack(P, H, execJit, minStackSize);
