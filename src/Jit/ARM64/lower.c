@@ -547,8 +547,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(PR), IM(True), RG(lamReg));
-        unstash(jit);
-        pushRegister(stack, X0);
+        unstash(jit); // Some special handling to make sure we capture the new stack properly
+        armReg reslt = findFreeReg(jit);
+        mov(reslt,RG(X0));
+        pushRegister(stack, reslt);
         releaseReg(jit, lamReg);
         continue;
       }
