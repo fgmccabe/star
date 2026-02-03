@@ -801,7 +801,7 @@ static retCode populateFiles(termPo t, void *cl) {
   return Ok;
 }
 
-ValueReturn s__waitio(enginePo P, termPo list, termPo t){
+ValueReturn s__waitIo(enginePo P, termPo list, termPo t){
   // First count the length of the list
   integer count = 0;
   integer timeOut = integerVal(t);
@@ -831,7 +831,7 @@ ReturnStatus g__waitIo(enginePo P) {
   termPo l = popVal(P);
   termPo t = popVal(P);
 
-  ValueReturn ret = s__waitio(P, l, t);
+  ValueReturn ret = s__waitIo(P, l, t);
   pshVal(P,ret.value);
   return ret.status;
 }

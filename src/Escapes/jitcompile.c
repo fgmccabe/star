@@ -11,8 +11,8 @@
 #include "escape.h"
 
 #ifndef NOJIT
-ReturnStatus g__jit_compile(enginePo P) {
-  stringPo mtdName = C_STR(popVal(P));
+ValueReturn s__jit_compile(enginePo P, termPo m) {
+  stringPo mtdName = C_STR(m);
   integer mLen = strLength(mtdName) + 1;
   char buff[mLen];
 
@@ -21,28 +21,35 @@ ReturnStatus g__jit_compile(enginePo P) {
   labelPo lbl = findLbl(buff, (int32) integerVal(popVal(P)));
 
   if (lbl == Null) {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   }
 
   methodPo mtd = labelMtd(lbl);
   if (mtd == Null) {
-    pshVal(P, eNOTFND);
-    return Abnormal;
+    return abnormalReturn(eNOTFND);
   }
 
   char errMsg[MAXLINE];
   retCode ret = jitMethod(mtd, errMsg, NumberOf(errMsg));
   if (ret != Ok) {
     logMsg(logFile, "%s\n", errMsg);
-    pshVal(P, eINVAL);
-    return Abnormal;
+    return abnormalReturn(eINVAL);
   } else {
-    pshVal(P, unitEnum);
-    return Normal;
+    return normalReturn(unitEnum);
   }
 }
+
+ReturnStatus g__jit_compile(enginePo P) {
+  termPo m = popVal(P);
+  ValueReturn ret = s__jit_compile(P, m);
+  pshVal(P, ret.value);
+  return ret.status;
+}
 #else
+ValueReturn s__jit_compile(enginePo P, termPo m) {
+  returb abnormalReturn(eNOPERM);
+}
+
 ReturnStatus g__jit_compile(enginePo P) {
   popVal(P); // Drop arity & method name
   popVal(P);

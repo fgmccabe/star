@@ -7,13 +7,17 @@
 #include "engineP.h"
 #include "globals.h"
 
-ReturnStatus g__abort(enginePo P) {
-  struct term_record *lc = popVal(P);
-  struct term_record *msg = popVal(P);
+ValueReturn s__abort(enginePo P, termPo lc, termPo msg) {
   abort_star(P, lc, msg);
+  return normalReturn(unitEnum);
+}
 
-  pshVal(P, unitEnum);
-  return Normal;
+ReturnStatus g__abort(enginePo P) {
+  termPo lc = popVal(P);
+  termPo msg = popVal(P);
+  ValueReturn ret = s__abort(P, lc, msg);
+  pshVal(P, ret.value);
+  return ret.status;
 }
 
 void abort_star(enginePo P, termPo lc, termPo msg) {
@@ -24,25 +28,36 @@ void abort_star(enginePo P, termPo lc, termPo msg) {
   syserr(msgStr);
 }
 
-ReturnStatus g__stackTrace(enginePo P) {
+ValueReturn s__stackTrace(enginePo P) {
   strBufferPo str = newStringBuffer();
 
   stackTrace(P, O_IO(str), P->stk, displayDepth, showArguments, MAX_INT32);
 
-  pshVal(P, allocateFromStrBuffer(processHeap(P), str));
+  termPo trace = allocateFromStrBuffer(processHeap(P), str);
   closeIo(O_IO(str));
 
-  return Normal;
+  return normalReturn(trace);
 }
 
-ReturnStatus g__gc(enginePo P){
-  integer amnt = integerVal(popVal(P));
-  retCode ret = gcCollect(processHeap(P),amnt);
-  if(ret==Ok) {
-    pshVal(P,unitEnum);
-    return Normal;
-  } else{
-    pshVal(P,eFAIL);
-    return Abnormal;
+ReturnStatus g__stackTrace(enginePo P) {
+  ValueReturn ret = s__stackTrace(P);
+  pshVal(P, ret.value);
+  return ret.status;
+}
+
+ValueReturn s__gc(enginePo P, termPo a) {
+  integer amnt = integerVal(a);
+  retCode ret = gcCollect(processHeap(P), amnt);
+  if (ret == Ok) {
+    return normalReturn(unitEnum);
+  } else {
+    return abnormalReturn(eFAIL);
   }
+}
+
+ReturnStatus g__gc(enginePo P) {
+  termPo a = popVal(P);
+  ValueReturn ret = s__gc(P, a);
+  pshVal(P, ret.value);
+  return ret.status;
 }
