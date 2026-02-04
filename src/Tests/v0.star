@@ -49,6 +49,8 @@ test.v0{
       show E
     };
 
+    show TT::cons[string];
+
     assert size(TT)==size(AA);
     assert isEmpty(.nil::vect[integer]);
 
