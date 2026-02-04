@@ -480,6 +480,20 @@ star.vector{
     }
   }
 
+  public implementation all x ~~ coercion[vect[x],cons[x]->>void] => let{.
+    co(.e,L) => L.
+    co(.vct1(V),L) => co(V,L).
+    co(.vct2(V1,V2),L) => co(V1,co(V2,L)).
+    co(.vct3(V1,V2,V3),L) => co(V1,co(V2,co(V3,L))).
+    co(.vct4(V1,V2,V3,V4),L) => co(V1,co(V2,co(V3,co(V4,L)))).
+    co(.lf1(E),L) => [E,..L].
+    co(.lf2(E1,E2),L) => [E1,E2,..L].
+    co(.lf3(E1,E2,E3),L) => [E1,E2,E3,..L].
+    co(.lf4(E1,E2,E3,E4),L) => [E1,E2,E3,E4,..L].
+  .} in {
+    _coerce(.vector(_,V)) => co(V,.nil)
+  }
+
   public implementation all x ~~ sizeable[vect[x]] => let{.
     sz(.e) => 0.
     sz(.lf1(_)) => 1.
@@ -496,20 +510,10 @@ star.vector{
     isEmpty(_) => .false.
   }
 
-  public implementation all x ~~ equality[x] |= equality[vect[x]] => let{.
-    eq(.e,.e) => .true.
-    eq(.lf1(L0),.lf1(R0)) => L0==R0.
-    eq(.lf2(L0,L1),.lf2(R0,R1)) => L0==R0 && L1==R1.
-    eq(.lf3(L0,L1,L2),.lf3(R0,R1,R2)) => L0==R0 && L1==R1 && L2==R2.
-    eq(.lf4(L0,L1,L2,L3),.lf4(R0,R1,R2,R3)) => L0==R0 && L1==R1 && L2==R2 && L3==R3.
-    eq(.vct1(L0),.vct1(R0)) => eq(L0,R0).
-    eq(.vct2(L0,L1),.vct2(R0,R1)) => eq(L0,R0) && eq(L1,R1).
-    eq(.vct3(L0,L1,L2),.vct3(R0,R1,R2)) => eq(L0,R0) && eq(L1,R1) && eq(L2,R2).
-    eq(.vct4(L0,L1,L2,L3),.vct4(R0,R1,R2,R3)) =>
-      eq(L0,R0) && eq(L1,R1) && eq(L2,R2) && eq(L3,R3).
-    eq(_,_) default => .false.
-  .} in {
-    .vector(_,L) == .vector(_,R) => eq(L,R).
+  public implementation all x ~~ equality[x] |= equality[vect[x]] => let{
+    eq(V1,V2) => V1::cons[x] == V2::cons[x].
+  } in {
+    L == R => eq(L,R).
   }
 
   public implementation all e ~~ folding[vect[e]->>e] => let{.
