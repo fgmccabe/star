@@ -1,0 +1,9 @@
+{
+  "content": {
+    "test.bench.benchmark": "benchmark.star",
+    "test.bench.bounce": "bounce.star",
+    "test.bench.list": "list.star"
+  },
+  "version": "1.0.0",
+  "default": "../catalog"
+}
