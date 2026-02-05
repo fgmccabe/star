@@ -432,14 +432,11 @@ indistinguishable from random.
 (((random number generation)))
 [source,star]
 ----
-random : (float)=>float
+random : ()=>float
 ----
 
 The `random` function returns a number in the half-open range
-[0,X) where X is the argument of the function.
-
-The argument of the `random` function must be a positive
-number.
+[0,1).
 
 The number generated is the next in a sequence of numbers that is
 typically pseudo-random: i.e., not actually random but statistically

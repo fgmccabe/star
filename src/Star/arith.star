@@ -195,8 +195,8 @@ star.arith{
     _seed(S)
   }
 
-  public random:(float)=>float.
-  random(F) => _random(F).
+  public random:()=>float.
+  random() => _random().
 
   -- public lg2:(integer)=>integer.
   -- lg2(X) => _int_lg2(X).
