@@ -29,6 +29,9 @@ void encodeCas(uint8 w, uint1 L, armReg Rs, uint o0, armReg Rt2, armReg Rn, armR
 void encodeExLdStPr(uint1 w, uint1 L, uint1 L2, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeExLdStRg(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeLdSt(uint8 sz, uint8 opc, uint16 imm, armReg Rn, armReg Rd, assemCtxPo ctx);
+void encodeFpLdStPreX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx);
+void encodeFpLdStPostX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx);
+void encodeFpLdStOffX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx);
 
 void encodeALd3Reg(uint8 sz, uint8 opc, uint1 a, uint1 r, uint1 N, armReg Rs, uint8 opt, armReg Rn, armReg Rt,
                    assemCtxPo ctx);

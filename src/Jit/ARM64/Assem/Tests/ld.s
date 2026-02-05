@@ -82,13 +82,15 @@ _start:	mov X0, #1     // 1 = StdOut
 	;; ldursw	X29, [X3, #-8]
 
 	;; ldtr	X0, [X1, #-8]
-	ldr	X15, [X20, #-16]
-	ldtr	X15, [X20, #-16]
+	;; ldr	X15, [X20, #-16]
+	;; ldtr	X15, [X20, #-16]
 
-	ldxp	X12, x16, [x2]
-	ldxr	X13, [X9]
-	ldxrb	w13, [X9]
-	ldxrh	w13, [X9]
+	;; ldxp	X12, x16, [x2]
+	;; ldxr	X13, [X9]
+	;; ldxrb	w13, [X9]
+	;; ldxrh	w13, [X9]
+
+	str d5, [X23, #45]
 	
 
 helloworld:	.ascii "Hi there\n"
