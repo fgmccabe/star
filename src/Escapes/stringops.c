@@ -258,7 +258,7 @@ ValueReturn s__str2flt(enginePo P, termPo s) {
 
   switch (parseDouble(str, len, &flt)) {
     case Ok:
-      return normalReturn(makeFloat(flt));
+      return normalReturn(makeFloat(processHeap(P),flt));
     default:
     case Error:
       return abnormalReturn(eINVAL);

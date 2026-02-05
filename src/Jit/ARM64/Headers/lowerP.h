@@ -80,7 +80,7 @@ retCode getIntVal(jitCompPo jit, armReg rg);
 retCode mkIntVal(jitCompPo jit, armReg rg);
 retCode getFltVal(jitCompPo jit, armReg rg);
 
-retCode mkFltVal(jitCompPo jit, armReg rg);
+armReg mkFltVal(jitBlockPo block, armReg rg);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 

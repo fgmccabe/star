@@ -349,7 +349,7 @@ int32 run(enginePo P) {
         saveRegisters();
         stackPo child = newStack(P, False, fiberLambda);
         restoreRegisters();
-	push(child);
+        push(child);
         PC++;
         continue;
       }
@@ -839,7 +839,7 @@ int32 run(enginePo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(Lhs + Rhs);
+        termPo Rs = makeFloat(H, Lhs + Rhs);
         push(Rs);
         PC++;
         continue;
@@ -848,7 +848,7 @@ int32 run(enginePo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(Lhs - Rhs);
+        termPo Rs = makeFloat(H, Lhs - Rhs);
         push(Rs);
         PC++;
         continue;
@@ -857,7 +857,7 @@ int32 run(enginePo P) {
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(Lhs * Rhs);
+        termPo Rs = makeFloat(H, Lhs * Rhs);
         push(Rs);
         PC++;
         continue;
@@ -870,7 +870,7 @@ int32 run(enginePo P) {
           breakOut();
           push(divZero);
         } else {
-          termPo Rs = makeFloat(Lhs / Rhs);
+          termPo Rs = makeFloat(H, Lhs / Rhs);
           push(Rs);
           PC++;
           continue;
@@ -884,7 +884,7 @@ int32 run(enginePo P) {
           breakOut();
           push(divZero);
         } else {
-          termPo Rs = makeFloat(fmod(Lhs, Rhs));
+          termPo Rs = makeFloat(H, fmod(Lhs, Rhs));
           push(Rs);
           PC++;
           continue;
@@ -893,7 +893,7 @@ int32 run(enginePo P) {
       case FAbs: {
         double Lhs = floatVal(pop());
 
-        termPo Rs = makeFloat(fabs(Lhs));
+        termPo Rs = makeFloat(H, fabs(Lhs));
         push(Rs);
         PC++;
         continue;

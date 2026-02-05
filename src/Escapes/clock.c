@@ -134,7 +134,7 @@ ReturnStatus g__sleep(enginePo P) {
 
 /* Return the current time */
 ValueReturn s__now(enginePo P){
-  return normalReturn(makeFloat(get_time()));
+  return normalReturn(makeFloat(processHeap(P),get_time()));
 }
 
 ReturnStatus g__now(enginePo P) {
@@ -145,7 +145,7 @@ ReturnStatus g__now(enginePo P) {
 
 /* Return the time at midnight */
 ValueReturn s__today(enginePo P){
-  return normalReturn(makeFloat(get_date()));
+  return normalReturn(makeFloat(processHeap(P),get_date()));
 }
   
 ReturnStatus g__today(enginePo P) {

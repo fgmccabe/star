@@ -6,6 +6,7 @@
 #define STAR_ARITH_H
 
 #include "term.h"
+#include "heap.h"
 #include <assert.h>
 
 // Integer structure
@@ -22,10 +23,12 @@ static inline termPo makeInteger(integer x) {
   return ((termPo) ((x << 2ul) | intTg));
 }
 
+typedef struct float_record_ *floatPo;
+
+floatPo C_FLOAT(termPo t);
+
 // Float structure
-static inline logical isFloat(termPo p) {
-  return pointerTag(p) == fltTg;
-}
+logical isFloat(termPo p);
 
 static inline uinteger float_bits(double d) {
   union {
@@ -45,21 +48,11 @@ static inline double bits_float(uinteger i) {
   return U.dx;
 }
 
-static inline double floatVal(termPo o) {
-  assert (isFloat(o));
+termPo makeFloat(heapPo H, double dx);
 
-  return bits_float(ptrPayload(o));
-}
+double floatVal(termPo flt);
 
-static inline termPo makeFloat(double dx) {
-  uint64 bits = float_bits(dx);
-  uint64 mask = (((uint64)-1)<<2u);
-  return ((termPo) ((bits&mask) | fltTg));
-}
-
-static inline integer floatHash(double dx) {
-  return hash61((integer)float_bits(dx));
-}
+integer floatHash(floatPo f);
 
 #define MIN_NORMAL ((double)0x0010000000000000L)
 

@@ -2,7 +2,6 @@
 // Created by Francis McCabe on 3/1/18.
 //
 
-#include <math.h>
 #include "arithP.h"
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -21,26 +20,6 @@ SpecialClass IntegerClass = {
 
 clssPo integerClass =  (clssPo) &IntegerClass;
 
-static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
-static integer fltHash(specialClassPo cl, termPo o);
-
-SpecialClass FloatClass = {
-  .sizeFun = Null,
-  .copyFun = Null,
-  .scanFun = Null,
-  .finalizer = Null,
-  .compFun = fltCmp,
-  .hashFun = fltHash,
-  .dispFun = fltDisp
-};
-
-clssPo floatClass = (clssPo)&FloatClass;
-
-void initArith() {
-  IntegerClass.clss.clss = specialClass;
-  FloatClass.clss.clss = specialClass;
-}
 
 logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
   integer ix1 = integerVal(t1);
@@ -57,8 +36,48 @@ static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, log
   return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", alt);
 }
 
-static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  return outDouble(out, floatVal(t), 'g', 0, (int) precision, ' ', True, False);
+static long floatSize(specialClassPo cl, termPo o);
+static termPo floatCopy(specialClassPo cl, termPo dst, termPo src);
+static termPo floatScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical floatCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer fltHash(specialClassPo cl, termPo o);
+static retCode floatDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+static termPo floatFinalizer(specialClassPo class, termPo o);
+
+SpecialClass FloatClass = {
+  .sizeFun = floatSize,
+  .copyFun = floatCopy,
+  .scanFun = floatScan,
+  .finalizer = floatFinalizer,
+  .compFun = floatCmp,
+  .hashFun = fltHash,
+  .dispFun = floatDisp
+};
+
+clssPo floatClass = (clssPo) &FloatClass;
+
+long floatSize(specialClassPo cl, termPo o) {
+  return FloatCellCount;
+}
+
+termPo floatCopy(specialClassPo cl, termPo dst, termPo src) {
+  floatPo si = C_FLOAT(src);
+  floatPo di = (floatPo) dst;
+  *di = *si;
+
+  return (termPo) di + FloatCellCount;
+}
+
+termPo floatScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return o + FloatCellCount;
+}
+
+termPo floatFinalizer(specialClassPo class, termPo o) {
+  return o + FloatCellCount;
+}
+
+logical floatCmp(specialClassPo cl, termPo o1, termPo o2) {
+  return o1==o2;
 }
 
 logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
@@ -71,6 +90,40 @@ logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
     return False;
 }
 
+integer floatHash(floatPo f) {
+  return hash61((integer) float_bits(f->dx));
+}
+
 integer fltHash(specialClassPo cl, termPo o) {
-  return floatHash(floatVal(o));
+  return hash61((integer) float_bits(floatVal((o))));
+}
+
+retCode floatDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
+  floatPo flt = C_FLOAT(t);
+
+  return outDouble(out, flt->dx, 'g', 0, (int) precision, ' ', True, False);
+}
+
+floatPo C_FLOAT(termPo t) {
+  assert(hasClass(t, floatClass));
+  return (floatPo) t;
+}
+
+logical isFloat(termPo t) {
+  return hasClass(t, floatClass);
+}
+
+termPo makeFloat(heapPo H, double dx) {
+  floatPo flt = (floatPo) allocateObject(H, floatClass, FloatCellCount);
+  flt->dx = dx;
+  return (termPo)flt;
+}
+
+double floatVal(termPo t) {
+  return C_FLOAT(t)->dx;
+}
+
+void initArith() {
+  IntegerClass.clss.clss = specialClass;
+  FloatClass.clss.clss = specialClass;
 }

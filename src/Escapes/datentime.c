@@ -42,7 +42,7 @@ ValueReturn s__date2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, t
 
   time_t when = mktime(&now);
 
-  return normalReturn(makeFloat((double) when + fraction));
+  return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
 }
 
 ReturnStatus g__date2time(enginePo P) {
@@ -78,9 +78,9 @@ ValueReturn s__utc2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, te
 
   time_t when = timegm(&now);
 
-  pshVal(P, makeFloat((double) when + fraction));
+  pshVal(P, makeFloat(processHeap(P),(double) when + fraction));
 
-  return normalReturn(makeFloat((double) when + fraction));
+  return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
 }
 
 ReturnStatus g__utc2time(enginePo P) {
@@ -127,7 +127,7 @@ ValueReturn s__time2date(enginePo P, termPo t) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = makeFloat(now->tm_sec + fraction);
+  termPo sc = makeFloat(processHeap(P),now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo tmOffset = makeInteger(now->tm_gmtoff);
@@ -174,7 +174,7 @@ ValueReturn s__time2utc(enginePo P, termPo t) {
   termPo min = makeInteger(now->tm_min);
   setArg(dte, DATE_MIN, min);
 
-  termPo sc = makeFloat(now->tm_sec + fraction);
+  termPo sc = makeFloat(processHeap(P),now->tm_sec + fraction);
   setArg(dte, DATE_SEC, sc);
 
   termPo tmOffset = makeInteger(now->tm_gmtoff);
@@ -629,7 +629,7 @@ ValueReturn s__parsetime(enginePo P, termPo s, termPo f) {
 
   if (ret == Ok) {
     time_t tm = mktime(&time);
-    return normalReturn(makeFloat((double) tm));
+    return normalReturn(makeFloat(processHeap(P),(double) tm));
   } else {
     return abnormalReturn(eINVAL);
   }

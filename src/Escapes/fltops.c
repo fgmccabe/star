@@ -57,7 +57,7 @@ ReturnStatus g__flt_lt(enginePo P) {
 ValueReturn s__flt_plus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(lhs+rhs));
+  return normalReturn(makeFloat(processHeap(P),lhs+rhs));
 }
 
 ReturnStatus g__flt_plus(enginePo P) {
@@ -71,7 +71,7 @@ ReturnStatus g__flt_plus(enginePo P) {
 ValueReturn s__flt_minus(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(lhs-rhs));
+  return normalReturn(makeFloat(processHeap(P),lhs-rhs));
 }
 
 ReturnStatus g__flt_minus(enginePo P) {
@@ -85,7 +85,7 @@ ReturnStatus g__flt_minus(enginePo P) {
 ValueReturn s__flt_times(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
-  return normalReturn(makeFloat(lhs*rhs));
+  return normalReturn(makeFloat(processHeap(P),lhs*rhs));
 }
 
 ReturnStatus g__flt_times(enginePo P) {
@@ -103,7 +103,7 @@ ValueReturn s__flt_div(enginePo P, termPo l, termPo r) {
   if (denom == 0.0) {
     return abnormalReturn(divZero);
   } else {
-    return normalReturn(makeFloat(numer/denom));
+    return normalReturn(makeFloat(processHeap(P),numer/denom));
   }
 }
 
@@ -122,7 +122,7 @@ ValueReturn s__flt_mod(enginePo P, termPo l, termPo r) {
   if (denom == 0.0) {
     return abnormalReturn(divZero);
   } else {
-    return normalReturn(makeFloat(fmod(numer,denom)));
+    return normalReturn(makeFloat(processHeap(P),fmod(numer,denom)));
   }
 }
 
@@ -138,7 +138,7 @@ ValueReturn s__flt_pwr(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   double rhs = floatVal(r);
 
-  return normalReturn(makeFloat(pow(lhs,rhs)));
+  return normalReturn(makeFloat(processHeap(P),pow(lhs,rhs)));
 }
 
 ReturnStatus g__flt_pwr(enginePo P) {
@@ -152,7 +152,7 @@ ReturnStatus g__flt_pwr(enginePo P) {
 ValueReturn s__flt_abs(enginePo P, termPo l) {
   double lhs = floatVal(l);
 
-  return normalReturn(lhs < 0 ? makeFloat(-lhs) : l);
+  return normalReturn(lhs < 0 ? makeFloat(processHeap(P),-lhs) : l);
 }
 
 ReturnStatus g__flt_abs(enginePo P) {
@@ -175,7 +175,7 @@ ValueReturn s_exp(enginePo P, termPo l) {
       return abnormalReturn(eINVAL);
     }
   } else {
-    return normalReturn(makeFloat(ans));
+    return normalReturn(makeFloat(processHeap(P),ans));
   }
 }
 
@@ -190,7 +190,7 @@ ValueReturn s__ldexp(enginePo P, termPo l, termPo r) {
   double lhs = floatVal(l);
   integer rhs = integerVal(r);
 
-  return normalReturn(makeFloat(ldexp(lhs,rhs)));
+  return normalReturn(makeFloat(processHeap(P),ldexp(lhs,rhs)));
 }
 
 ReturnStatus g__ldexp(enginePo P) {
@@ -205,7 +205,7 @@ ValueReturn s__frexp(enginePo P, termPo l) {
   double lhs = floatVal(l);
   int exp;
   double frac = frexp(lhs, &exp);
-  termPo man = makeFloat(frac);
+  termPo man = makeFloat(processHeap(P),frac);
 
   heapPo h = processHeap(P);
   int root = gcAddRoot(h, &man);
@@ -228,7 +228,7 @@ ValueReturn s__modf(enginePo P, termPo l) {
   double intgrl;
   double frac = modf(Arg, &intgrl);
 
-  termPo man = makeFloat(frac);
+  termPo man = makeFloat(processHeap(P),frac);
   heapPo h = processHeap(P);
   int root = gcAddRoot(h, &man);
   termPo ex = makeInteger((integer) intgrl);
@@ -274,7 +274,7 @@ ValueReturn s__bits_float(enginePo P, termPo l) {
     double Dx;
   } Arg;
   Arg.Ix = integerVal(l);
-  return normalReturn(makeFloat(Arg.Dx));
+  return normalReturn(makeFloat(processHeap(P),Arg.Dx));
 }
 
 ReturnStatus g__bits_float(enginePo P) {
@@ -344,8 +344,7 @@ ReturnStatus g__flt_format(enginePo P) {
 }
 
 ValueReturn s__flt_hash(enginePo P, termPo l) {
-  double Arg = floatVal(l);
-  return normalReturn(makeInteger(floatHash(Arg)));
+  return normalReturn(makeInteger(floatHash(C_FLOAT(l))));
 }
 
 ReturnStatus g__flt_hash(enginePo P) {
@@ -357,7 +356,7 @@ ReturnStatus g__flt_hash(enginePo P) {
 
 ValueReturn s_cos(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(cos(Arg)));
+  return normalReturn(makeFloat(processHeap(P),cos(Arg)));
 }
 
 ReturnStatus g_cos(enginePo P) {
@@ -369,7 +368,7 @@ ReturnStatus g_cos(enginePo P) {
 
 ValueReturn s_sin(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(sin(Arg)));
+  return normalReturn(makeFloat(processHeap(P),sin(Arg)));
 }
 
 ReturnStatus g_sin(enginePo P) {
@@ -381,7 +380,7 @@ ReturnStatus g_sin(enginePo P) {
 
 ValueReturn s_tan(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(tan(Arg)));
+  return normalReturn(makeFloat(processHeap(P),tan(Arg)));
 }
 
 ReturnStatus g_tan(enginePo P) {
@@ -393,7 +392,7 @@ ReturnStatus g_tan(enginePo P) {
 
 ValueReturn s_acos(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(acos(Arg)));
+  return normalReturn(makeFloat(processHeap(P),acos(Arg)));
 }
 
 ReturnStatus g_acos(enginePo P) {
@@ -405,7 +404,7 @@ ReturnStatus g_acos(enginePo P) {
 
 ValueReturn s_asin(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(asin(Arg)));
+  return normalReturn(makeFloat(processHeap(P),asin(Arg)));
 }
 
 ReturnStatus g_asin(enginePo P) {
@@ -417,7 +416,7 @@ ReturnStatus g_asin(enginePo P) {
 
 ValueReturn s_atan(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(atan(Arg)));
+  return normalReturn(makeFloat(processHeap(P),atan(Arg)));
 }
 
 ReturnStatus g_atan(enginePo P) {
@@ -429,7 +428,7 @@ ReturnStatus g_atan(enginePo P) {
 
 ValueReturn s_floor(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(floor(Arg)));
+  return normalReturn(makeFloat(processHeap(P),floor(Arg)));
 }
 
 ReturnStatus g_floor(enginePo P) {
@@ -441,7 +440,7 @@ ReturnStatus g_floor(enginePo P) {
 
 ValueReturn s_ceil(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(ceil(Arg)));
+  return normalReturn(makeFloat(processHeap(P),ceil(Arg)));
 }
 
 ReturnStatus g_ceil(enginePo P) {
@@ -453,7 +452,7 @@ ReturnStatus g_ceil(enginePo P) {
 
 ValueReturn s_trunc(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(trunc(Arg)));
+  return normalReturn(makeFloat(processHeap(P),trunc(Arg)));
 }
 
 ReturnStatus g_trunc(enginePo P) {
@@ -477,7 +476,7 @@ ReturnStatus g_integral(enginePo P) {
 
 ValueReturn s__ln(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(log(Arg)));
+  return normalReturn(makeFloat(processHeap(P),log(Arg)));
 }
 
 ReturnStatus g__ln(enginePo P) {
@@ -489,7 +488,7 @@ ReturnStatus g__ln(enginePo P) {
 
 ValueReturn s__lg10(enginePo P, termPo l) {
   double Arg = floatVal(l);
-  return normalReturn(makeFloat(log10(Arg)));
+  return normalReturn(makeFloat(processHeap(P),log10(Arg)));
 }
 
 ReturnStatus g__lg10(enginePo P) {
@@ -502,7 +501,7 @@ ReturnStatus g__lg10(enginePo P) {
 ValueReturn s_sqrt(enginePo P, termPo l) {
   double Arg = floatVal(l);
   if (Arg >= 0.0)
-    return normalReturn(makeFloat(sqrt(Arg)));
+    return normalReturn(makeFloat(processHeap(P),sqrt(Arg)));
   else
     return abnormalReturn(eRANGE);
 }
@@ -515,7 +514,7 @@ ReturnStatus g_sqrt(enginePo P) {
 }
 
 ValueReturn s_pi(enginePo P) {
-  return normalReturn(makeFloat(M_PI));
+  return normalReturn(makeFloat(processHeap(P),M_PI));
 }
 
 ReturnStatus g_pi(enginePo P) {

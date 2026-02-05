@@ -52,7 +52,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo tmpBuffer
       double dx;
       if ((res = decFlt(in, &dx)) != Ok)
         return res;
-      *tgt = makeFloat(dx);
+      *tgt = makeFloat(H, dx);
       return Ok;
     }
     case enuTrm: {
