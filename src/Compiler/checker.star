@@ -433,7 +433,21 @@ star.compiler.checker{
       else
       valis ([.varDef(Lc,Nm,FullNm,Val,Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
     }
-    else{
+    else if (_,Lhs,R) ?= isAssignment(Stmt) then{
+      Vt = newTypeVar("V");
+      if sameType(refType(Vt),VarTp,Env) then {
+	Val = typeOfExp(R,Vt,ErTp,Es,Path);
+	FullNm = qualifiedName(Path,.valMark,Nm);
+
+	if traceCanon! then
+	  showMsg("definition $(.varDef(Lc,Nm,FullNm,.cell(Lc,Val,VarTp),Cx,Tp))");
+
+	valis ([.varDef(Lc,Nm,FullNm,.cell(Lc,Val,VarTp),Cx,Tp)],[.varDec(Lc,Nm,FullNm,Tp)])
+      } else{
+	reportError("type of [#(Nm)]:$(Tp) not a ref type",Lc);
+	valis ([],[])
+      }
+    } else{
       reportError("bad definition $(Stmt)",Lc);
       valis ([],[])
     }

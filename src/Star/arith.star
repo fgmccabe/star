@@ -163,6 +163,16 @@ star.arith{
     _format(X,F) => (try _flt_format(X,F) catch {_ => "bad format"}).
   }
 
+  public (+=):all e ~~ arith[e] |= (ref e,e){}.
+  X += D do {
+    X := X! + D
+  }
+
+  public (-=):all e ~~ arith[e] |= (ref e,e){}.
+  X -= D do {
+    X := X! - D
+  }
+
   public contract all e ~~ pwr[e] ::= {
     (**) : (e,e)=>e
   }
@@ -176,6 +186,17 @@ star.arith{
 
   public lg10:(float)=>float.
   lg10(X) => _lg10(X).
+
+  public irand:(integer)=>integer.
+  irand(L) => _irand(L).
+
+  public seed:(integer){}.
+  seed(S){
+    _seed(S)
+  }
+
+  public random:(float)=>float.
+  random(F) => _random(F).
 
   -- public lg2:(integer)=>integer.
   -- lg2(X) => _int_lg2(X).

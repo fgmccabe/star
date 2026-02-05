@@ -410,6 +410,23 @@ lg10 : (float)=>float
 
 The `lg10` function returns the base 10 logarithm of its argument.
 
+=== `irand` -- random integer generation
+
+(((random number generation)))
+[source,star]
+----
+irand : (integer)=>integer
+----
+
+The `irand` function returns an integer in the half-open range
+[0,X) where X is the argument of the function.
+
+The argument of the `irand` function must be a positive integer.
+
+The number generated is the next in a sequence of numbers that is
+typically pseudo-random: i.e., not actually random but statistically
+indistinguishable from random.
+
 === `random` -- random number generation
 
 (((random number generation)))
@@ -427,6 +444,19 @@ number.
 The number generated is the next in a sequence of numbers that is
 typically pseudo-random: i.e., not actually random but statistically
 indistinguishable from random.
+
+=== `seed` -- seed random number generation
+
+(((random number seed)))
+[source,star]
+----
+seed : (ineger){}
+----
+
+The `seed` procedure is used to seed the random number generation. One of the
+primary motivations of `seed` is to ensure a repeatable random number sequence.
+
+The argument of `seed` function must be a positive integer.
 
 === `**` -- exponentiation
 [source,star]
