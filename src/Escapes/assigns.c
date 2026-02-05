@@ -2,8 +2,6 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
-#include <arith.h>
-#include <strings.h>
 #include <globals.h>
 #include "assigns.h"
 #include "cellP.h"

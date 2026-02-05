@@ -16,6 +16,7 @@
 #include "engineP.h"
 #include "errorCodes.h"
 #include "abort.h"
+#include "arithP.h"
 #include "debugP.h"
 #include "formioP.h"
 
@@ -1355,8 +1356,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F1), RG(a2));
         fadd(F0, F0, F1);
         fmov(RG(a1), FP(F0));
-        mkFltVal(jit, a1);
-
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1372,8 +1372,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F1), RG(a2));
         fsub(F0, F0, F1);
         fmov(RG(a1), FP(F0));
-        mkFltVal(jit, a1);
-
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1389,8 +1388,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F1), RG(a2));
         fmul(F0, F0, F1);
         fmov(RG(a1), FP(F0));
-        mkFltVal(jit, a1);
-
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1420,9 +1418,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F1), RG(a2));
         fdiv(F0, F0, F1);
         fmov(RG(a1), FP(F0));
-        mkFltVal(jit, a1);
-
-        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1453,9 +1449,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fdiv(F2, F0, F1);
         fmsub(F2, F2, F1, F0);
         fmov(RG(a1), FP(F2));
-        mkFltVal(jit, a1);
-
-        // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         releaseReg(jit, a2);
         continue;
@@ -1468,8 +1462,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F0), RG(a1));
         fabs(F0, F0);
         fmov(RG(a1), FP(F0));
-        mkFltVal(jit, a1);
-
+        mkFltVal(block, a1);
         pushRegister(stack, a1);
         continue;
       }
@@ -1754,6 +1747,17 @@ armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   releaseReg(jit, l);
   releaseReg(jit, X0);
   return reslt;
+}
+
+armReg mkFltVal(jitBlockPo block, armReg f) {
+  valueStackPo stack = &block->stack;
+  jitCompPo jit = block->jit;
+  assemCtxPo ctx = assemCtx(jit);
+
+  spillStack(stack, jit);
+  armReg flt = allocSmallStruct(block, floatClass, FloatCellCount);
+  str(f, OF(flt, OffsetOf(FloatRecord, dx)));
+  return flt;
 }
 
 void pshFrame(jitBlockPo block, armReg mtdRg) {

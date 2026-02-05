@@ -4,7 +4,7 @@
 #include <config.h>
 
 #include "abort.h"
-#include "cellP.h"
+#include "arithP.h"
 #include "constantsP.h"
 #include "lowerP.h"
 #include "stackP.h"
@@ -28,15 +28,8 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
 
 retCode getFltVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
-  bfc(rg, 0, 2);
-  return Ok;
-}
 
-retCode mkFltVal(jitCompPo jit, armReg rg) {
-  assemCtxPo ctx = assemCtx(jit);
-
-  bfc(rg, 0, 2);
-  orr(rg, rg, IM(fltTg));
+  ldr(rg, OF(rg, OffsetOf(FloatRecord, dx)));
   return Ok;
 }
 

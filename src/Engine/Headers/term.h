@@ -28,8 +28,7 @@ extern clssPo floatClass;
 typedef enum {
   ptrTg = 0,
   intTg = 1,
-  chrTg = 2,
-  fltTg = 3
+  chrTg = 2
 } PtrTag;
 
 static inline PtrTag pointerTag(termPo t) {
@@ -47,8 +46,6 @@ static inline integer ptrPayload(termPo t) {
     case intTg:
     case chrTg:
       return (((integer) t) >> 2l);
-    case fltTg:
-      return (integer) (((uint64) t) & (((uint64) -1) << 2ul));
   }
 }
 
@@ -64,8 +61,6 @@ static inline clssPo classOf(termPo obj) {
       return integerClass;
     case chrTg:
       return charClass;
-    case fltTg:
-      return floatClass;
   }
 }
 

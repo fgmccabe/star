@@ -373,7 +373,7 @@ ValueReturn s__int2flt(enginePo P, termPo l) {
   double dx = (double) ix;
   if ((integer) dx == ix) {
     // Check coercion was safe
-    return normalReturn(makeFloat((double) dx));
+    return normalReturn(makeFloat(processHeap(P),(double) dx));
   }
   return abnormalReturn(eRANGE);
 }
@@ -398,7 +398,7 @@ ReturnStatus g__irand(enginePo P) {
 }
 
 ValueReturn s__random(enginePo P) {
-  return normalReturn(makeFloat(((double) random()) / LARGE_INT32));
+  return normalReturn(makeFloat(processHeap(P),((double) random()) / LARGE_INT32));
 }
 
 ReturnStatus g__random(enginePo P) {
