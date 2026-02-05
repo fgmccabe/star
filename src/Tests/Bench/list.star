@@ -1,10 +1,9 @@
 test.bench.list{
   import star.
   import star.assert.
---  import test.bench.test.
   import test.lib.timer.
 
-  list[e] ::= .null | .elem(e,list[e]).
+  list[e] ::= .null | .elem(e,list[e]). -- cloned from definition of cons.
 
   makeList:(integer) => list[integer].
   makeList(0) => .null.

@@ -50,10 +50,12 @@ star.compiler.operators{
     | "+" => [.postfixOp(699,700), .infixOp(720,720,719)]
     | "++" => [.infixOp(719,720,720)]
     | "+++" => [.infixOp(719,720,720)]
+    | "+=" => [.infixOp(719,720,719)]
     | "," => [.infixOp(999,1000,1000)]
     | ",.." => [.infixOp(999,1000,999)]
     | "-" => [.prefixOp(300,299), .infixOp(720,720,719)]
     | "-->" => [.infixOp(1248,1249,1248)]
+    | "-=" => [.infixOp(719,720,719)]
     | "->" => [.infixOp(889,890,889)]
     | "->>" => [.infixOp(1199,1200,1199)]
     | "." => [.prefixOp(10,9), .infixOp(100,100,99)]
@@ -239,10 +241,12 @@ star.compiler.operators{
   follows("*",`*`) => .some("**").
   follows("*",`>`) => .some("*>").
   follows("+",`+`) => .some("++").
+  follows("+",`=`) => .some("+=").
   follows("++",`+`) => .some("+++").
   follows(",",`.`) => .some(",.").
   follows(",.",`.`) => .some(",..").
   follows("-",`-`) => .some("--").
+  follows("-",`=`) => .some("-=").
   follows("-",`>`) => .some("->").
   follows("--",`>`) => .some("-->").
   follows("->",`>`) => .some("->>").
@@ -338,10 +342,12 @@ star.compiler.operators{
     | "+" => .true  /* one or more repetitions */
     | "++" => .true  /* concatenate */
     | "+++" => .true  /* choice */
+    | "+=" => .true  /* increment */
     | "," => .true  /* tupling operator */
     | ",.." => .true  /* list cons */
     | "-" => .true  /* arithmetic negation */
     | "-->" => .true  /* grammar rule arrow */
+    | "-=" => .true  /* decrement */
     | "->" => .true  /* map entry */
     | "->>" => .true  /* dependent type marker */
     | "." => .true  /* identify enumerator */
@@ -351,7 +357,7 @@ star.compiler.operators{
     | ".+." => .true  /* count of number of bits */
     | "..<" => .true  /* range increasing iterator expression */
     | "..>" => .true  /* range decreasing iterator expression */
-    | "./" => .true  /* dfa expression */
+    | "./" => .true  /* regexp expression */
     | ".<." => .true  /* set membership */
     | ".<<." => .true  /* left shift */
     | ".=" => .true  /* pattern match */
@@ -362,7 +368,7 @@ star.compiler.operators{
     | ".}" => .true  /* recursive braces */
     | ".~." => .true  /* bitwise 1's complement */
     | "/" => .true  /* division */
-    | "/." => .true  /* dfa expression */
+    | "/." => .true  /* regexp expression */
     | "//" => .true  /* map over */
     | "///" => .true  /* indexed map over */
     | "/\\" => .true  /* intersection */

@@ -2,7 +2,8 @@
   "content": {
     "test.bench.benchmark": "benchmark.star",
     "test.bench.bounce": "bounce.star",
-    "test.bench.list": "list.star"
+    "test.bench.list": "list.star",
+    "test.bench.mandelbrot": "mand.star"
   },
   "version": "1.0.0",
   "default": "../catalog"

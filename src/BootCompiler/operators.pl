@@ -33,10 +33,12 @@
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator("+++", [infixOp(719, 720, 720)]).
+  operator("+=", [infixOp(719, 720, 719)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator("-->", [infixOp(1248, 1249, 1248)]).
+  operator("-=", [infixOp(719, 720, 719)]).
   operator("->", [infixOp(889, 890, 889)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
@@ -186,10 +188,12 @@
   follows('*','*','**').
   follows('*','>','*>').
   follows('+','+','++').
+  follows('+','=','+=').
   follows('++','+','+++').
   follows(',','.',',.').
   follows(',.','.',',..').
   follows('-','-','--').
+  follows('-','=','-=').
   follows('-','>','->').
   follows('--','>','-->').
   follows('->','>','->>').
@@ -282,10 +286,12 @@
   final('+',"+").	 /* one or more repetitions */
   final('++',"++").	 /* concatenate */
   final('+++',"+++").	 /* choice */
+  final('+=',"+=").	 /* increment */
   final(',',",").	 /* tupling operator */
   final(',..',",..").	 /* list cons */
   final('-',"-").	 /* arithmetic negation */
   final('-->',"-->").	 /* grammar rule arrow */
+  final('-=',"-=").	 /* decrement */
   final('->',"->").	 /* map entry */
   final('->>',"->>").	 /* dependent type marker */
   final('.',".").	 /* identify enumerator */
@@ -295,7 +301,7 @@
   final('.+.',".+.").	 /* count of number of bits */
   final('..<',"..<").	 /* range increasing iterator expression */
   final('..>',"..>").	 /* range decreasing iterator expression */
-  final('./',"./").	 /* dfa expression */
+  final('./',"./").	 /* regexp expression */
   final('.<.',".<.").	 /* set membership */
   final('.<<.',".<<.").	 /* left shift */
   final('.=',".=").	 /* pattern match */
@@ -306,7 +312,7 @@
   final('.}',".}").	 /* recursive braces */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('/',"/").	 /* division */
-  final('/.',"/.").	 /* dfa expression */
+  final('/.',"/.").	 /* regexp expression */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('/\\',"/\\").	 /* intersection */

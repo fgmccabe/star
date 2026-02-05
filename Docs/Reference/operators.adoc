@@ -18,11 +18,13 @@
 |`+++++++` | 720 | left associative infix | addition
 |`++++++++` | 720 | right associative infix | concatenate
 |`+++++++++` | 720 | right associative infix | choice
+|`++++=+++` | 720 | non-associative infix | increment
 |`+++,+++` | 1000 | right associative infix | tupling operator
 |`+++,..+++` | 1000 | non-associative infix | list cons
 |`+++-+++` | 300 | non-associative prefix | arithmetic negation
 |`+++-+++` | 720 | left associative infix | subtraction
 |`+++--&gt;+++` | 1249 | non-associative infix | grammar rule arrow
+|`+++-=+++` | 720 | non-associative infix | decrement
 |`+++-&gt;+++` | 890 | non-associative infix | map entry
 |`+++-&gt;&gt;+++` | 1200 | non-associative infix | dependent type marker
 |`+++.+++` | 10 | non-associative prefix | identify enumerator
@@ -230,6 +232,7 @@
 |`+++~~+++`
 |`+++ζ+++`
 
+|
 |
 |===
 

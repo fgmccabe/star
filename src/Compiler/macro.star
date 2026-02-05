@@ -52,6 +52,8 @@ star.compiler.macro{
   examineStmt(A) where _ ?= isImport(A) => A.
   examineStmt(A) where (Lc,L,R) ?= isDefn(A) =>
     mkDefn(Lc,macroPtn(L),macroTerm(R)).
+  examineStmt(A) where (Lc,L,R) ?= isAssignment(A) && _ ?= isName(L) =>
+    mkAssignment(Lc,macroPtn(L),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isEquation(A) => 
     mkEquation(Lc,Nm,Deflt,macroPtn(L),macroOpt(C,macroCond),macroTerm(R)).
   examineStmt(A) where (Lc,Nm,Deflt,L,C,R) ?= isProcedure(A) =>
