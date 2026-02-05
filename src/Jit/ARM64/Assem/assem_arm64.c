@@ -1167,6 +1167,23 @@ void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
   }
 }
 
+void strf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"strf %R,%F\n%_",Rt,&Sn));
+  switch (Sn.mode) {
+  case postX:
+    encodeFpLdStPostX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
+    return;
+  case preX:
+    encodeFpLdStPreX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
+    return;
+  case sOff:
+    encodeFpLdStOffX((2 | w), 0x0, Sn.immediate >> (w + 2), Sn.reg, Rt, ctx);
+    return;
+  default:
+    check(False, "unsupported address mode (str)");
+  }
+}
+
 void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"ldtr %R,%R[%d]\n%_",Rt,Rn,imm));
   encodeLdStUnPriv((2 | w), 0, 1, imm, Rn, Rt, ctx);

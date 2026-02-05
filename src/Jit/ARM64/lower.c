@@ -1372,8 +1372,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         fmov(FP(F1), RG(a2));
         fsub(F0, F0, F1);
         fmov(RG(a1), FP(F0));
-        mkFltVal(block, a1);
-        pushRegister(stack, a1);
+        armReg reslt = mkFltVal(block, a1);
+        pushRegister(stack, reslt);
+        releaseReg(jit, a1);
         releaseReg(jit, a2);
         continue;
       }

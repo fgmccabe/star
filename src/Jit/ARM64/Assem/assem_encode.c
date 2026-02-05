@@ -282,6 +282,20 @@ void encodeLdSt(uint8 sz, uint8 opc, uint16 imm, armReg Rn, armReg Rd, assemCtxP
   emitU32(ctx, ins);
 }
 
+void encodeFpLdStPostX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | for_bt(0b1111,26) | two_bt(opc, 22) | twl_bt(imm, 12) | two_bt(0b01,10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeFpLdStPreX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | for_bt(0b1111,26) | two_bt(opc, 22) | twl_bt(imm, 12) | two_bt(0b11,10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeFpLdStOffX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
+  uint32 ins = two_bt(sz, 30) | for_bt(0b1111,26) | two_bt(opc, 22) | twl_bt(imm, 12) | two_bt(0b11,10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  emitU32(ctx, ins);
+}
 void encodeLdStOrd(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(w, 30) | svn_bt(0x11, 23) | one_bt(L, 22) |
                fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
