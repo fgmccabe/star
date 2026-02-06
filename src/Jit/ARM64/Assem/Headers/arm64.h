@@ -632,6 +632,8 @@ void stllrb_(armReg Rt, armReg Rn, assemCtxPo ctx);
 void stllrh_(armReg Rd, armReg Rn, assemCtxPo ctx);
 void stllr_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 
+void mrs_(armReg rd, assemCtxPo ctx);
+
 void labelConst(codeLblPo lbl, assemCtxPo ctx);
 
 #endif
