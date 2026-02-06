@@ -401,6 +401,9 @@ void ldrsw_(armReg Rt, FlexOp S2, assemCtxPo ctx);
 void ldur_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define ldur(Rt, Rn, Imm) ldur_(1,Rt,Rn,Imm,ctx)
 
+void ldrf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx);
+#define fldr(Ft, S2) do{FlexOp s=S2; ldrf_(1, Ft, s, ctx); } while(False)
+
 void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 off, assemCtxPo ctx);
 #define ldtr(Rt, Rn, Off) ldtr_(1,Rt,Rn,Off,ctx)
 

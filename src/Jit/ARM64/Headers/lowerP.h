@@ -78,9 +78,9 @@ retCode bailOut(jitCompPo jit, ExitCode code);
 
 retCode getIntVal(jitCompPo jit, armReg rg);
 retCode mkIntVal(jitCompPo jit, armReg rg);
-retCode getFltVal(jitCompPo jit, armReg rg);
+void getFltVal(jitCompPo jit, armReg rg, fpReg tgt);
 
-armReg mkFltVal(jitBlockPo block, armReg rg);
+armReg mkFltVal(jitBlockPo block, fpReg rg);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 

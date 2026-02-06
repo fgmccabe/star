@@ -26,11 +26,10 @@ retCode mkIntVal(jitCompPo jit, armReg rg) {
   return Ok;
 }
 
-retCode getFltVal(jitCompPo jit, armReg rg) {
+void getFltVal(jitCompPo jit, armReg rg, fpReg tgt) {
   assemCtxPo ctx = assemCtx(jit);
 
-  ldr(rg, OF(rg, OffsetOf(FloatRecord, dx)));
-  return Ok;
+  fldr(tgt, OF(rg, OffsetOf(FloatRecord, dx)));
 }
 
 retCode jitError(jitCompPo jit, char *msg, ...) {
