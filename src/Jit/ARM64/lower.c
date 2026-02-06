@@ -1398,7 +1398,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo skip = newLabel(ctx);
 
-        fsub(F0,F0,F0);
+        fmov(FP(F0),RG(XZR));
         fcmp(F1,F0);
 
         bne(skip);
@@ -1430,7 +1430,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         codeLblPo skip = newLabel(ctx);
 
-        fsub(F0,F0,F0);
+        fmov(FP(F0),RG(XZR));
         fcmp(F1,F0);
         bne(skip);
 
