@@ -11,45 +11,69 @@ static retCode test_fmov() {
 
   fmov(RG(X12), FP(F23));
   fmov(FP(F22), RG(X14));
-  fmov(FP(F22),FP(F14));
+  fmov(FP(F22), FP(F14));
 
-  uint8 tgt[] = {0xec, 0x02, 0x66, 0x9e, // fmov x12,d23
-                 0xd6, 0x01, 0x67, 0x9e, // fmov d22, x14
-                 0xd6, 0x41, 0x60, 0x1e, // fmov d22, d14
+  uint8 tgt[] = {
+    0xec, 0x02, 0x66, 0x9e, // fmov x12,d23
+    0xd6, 0x01, 0x67, 0x9e, // fmov d22, x14
+    0xd6, 0x41, 0x60, 0x1e, // fmov d22, d14
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
-static retCode test_fldstr() {
+static retCode test_ldrfp() {
   assemCtxPo ctx = createCtx();
 
-  fstr(F12, OF(X23,0));
+  fldr(F5, OF(X23,96));
+  fldr(F5, OF(X23,16));
+  fldr(F5, PSX(X23,16));
+  fldr(F5, PRX(X21,16));
 
-  uint8 tgt[] = {0xec, 0x02, 0x66, 0x9e, // fmov x12,d23
-                 0xd6, 0x01, 0x67, 0x9e, // fmov d22, x14
-                 0xd6, 0x41, 0x60, 0x1e, // fmov d22, d14
+  uint8 tgt[] = {
+    0xe5, 0x32, 0x40, 0xfd,
+    0xe5, 0x0a, 0x40, 0xfd,
+    0xe5, 0x06, 0x41, 0xfc,
+    0xa5, 0x0e, 0x41, 0xfc,
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
-static retCode test_fops(){
+static retCode test_strfp() {
+  assemCtxPo ctx = createCtx();
+
+  fstr(F5, OF(X23,96));
+  fstr(F5, OF(X23,16));
+  fstr(F5, PSX(X23,16));
+  fstr(F5, PRX(X21,16));
+
+  uint8 tgt[] = {
+    0xe5, 0x32, 0x0, 0xfd, // str d5,[x23, #96]
+    0xe5, 0x0a, 0x00, 0xfd, // str d5,[X23, #16]
+    0xe5, 0x06, 0x01, 0xfc, // str d5, [x23], #16
+    0xa5, 0x0e, 0x01, 0xfc, // str d5, [x21, #16]!
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_fops() {
   assemCtxPo ctx = createCtx();
 
   fadd(F0, F2, F4);
-  fsub(F4,F2,F12);
-  fmul(F3,F6,F8);
-  fdiv(F5,F8,F17);
+  fsub(F4, F2, F12);
+  fmul(F3, F6, F8);
+  fdiv(F5, F8, F17);
 
-  uint8 tgt[] = { 0x40, 0x28, 0x64, 0x1e, 0x44, 0x38, 0x6c, 0x1e,
-                  0xc3, 0x08, 0x68, 0x1e, 0x05, 0x19, 0x71, 0x1e,
+  uint8 tgt[] = {
+    0x40, 0x28, 0x64, 0x1e, 0x44, 0x38, 0x6c, 0x1e,
+    0xc3, 0x08, 0x68, 0x1e, 0x05, 0x19, 0x71, 0x1e,
   };
   return checkCode(tgt, NumberOf(tgt), ctx);
-
 }
 
 retCode fp_tests() {
   tryRet(run_test(test_fmov));
-  tryRet(run_test(test_fldstr));
+  tryRet(run_test(test_ldrfp));
+  tryRet(run_test(test_strfp));
   tryRet(run_test(test_fops));
 
   return Ok;
