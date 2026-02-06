@@ -47,7 +47,7 @@ ReturnStatus g__jit_compile(enginePo P) {
 }
 #else
 ValueReturn s__jit_compile(enginePo P, termPo m) {
-  returb abnormalReturn(eNOPERM);
+  return abnormalReturn(eNOPERM);
 }
 
 ReturnStatus g__jit_compile(enginePo P) {
