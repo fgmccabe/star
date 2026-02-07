@@ -13,7 +13,7 @@ void initJit() {
   if (contextPool == Null) {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
 
-    reinstallMsgProc('X',showStackSlot);
+    reinstallMsgProc('X', showStackSlot);
   }
 }
 
@@ -43,12 +43,12 @@ mcRegister findFreeReg(jitCompPo jit) {
   return rg;
 }
 
-retCode reserveReg(jitCompPo jit, mcRegister rg) {
+void reserveReg(jitCompPo jit, mcRegister rg) {
   if (isRegInMap(jit->freeRegs, rg)) {
     jit->freeRegs = dropReg(jit->freeRegs, rg);
-    return Ok;
-  } else
-    return Error;
+    return;
+  }
+  check(False, "Could not reserve register");
 }
 
 void releaseReg(jitCompPo jit, mcRegister rg) {
@@ -56,5 +56,5 @@ void releaseReg(jitCompPo jit, mcRegister rg) {
 }
 
 logical haveFreeReg(jitCompPo jit) {
-  return jit->freeRegs!=emptyRegSet();
+  return jit->freeRegs != emptyRegSet();
 }

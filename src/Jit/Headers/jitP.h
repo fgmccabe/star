@@ -33,7 +33,7 @@ jittedCode createCode(assemCtxPo ctx);
 
 void verifyJitCtx(jitCompPo jitCtx, integer amnt, integer space);
 
-retCode reserveReg(jitCompPo jit, mcRegister rg);
+void reserveReg(jitCompPo jit, mcRegister rg);
 mcRegister findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, mcRegister rg);
 logical haveFreeReg(jitCompPo jit);

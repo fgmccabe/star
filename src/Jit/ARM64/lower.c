@@ -1347,46 +1347,48 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       }
       case FAdd: {
         // L R --> L+R
+        armReg reslt = mkFloat(block); // We create it first
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
-
-        fadd(F0, F0, F1);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
         releaseReg(jit, a1);
         releaseReg(jit, a2);
+
+        fadd(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+
+        pushRegister(stack, reslt);
         continue;
       }
       case FSub: {
         // L R --> L-R
+        armReg reslt = mkFloat(block);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
 
         fsub(F0, F0, F1);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
-        releaseReg(jit, a1);
-        releaseReg(jit, a2);
-        releaseReg(jit, a1);
-        releaseReg(jit, a2);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushRegister(stack, reslt);
         continue;
       }
       case FMul: {
         // L R --> L*R
+        armReg reslt = mkFloat(block);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
-
-        fmul(F0, F0, F1);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
         releaseReg(jit, a1);
         releaseReg(jit, a2);
+
+        fmul(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushRegister(stack, reslt);
         continue;
       }
       case FDiv: {
@@ -1394,12 +1396,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
+        getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
 
         codeLblPo skip = newLabel(ctx);
 
-        fmov(FP(F0),RG(XZR));
-        fcmp(F1,F0);
+        fmov(FP(F2), RG(XZR));
+        fcmp(F1, F2);
 
         bne(skip);
 
@@ -1413,12 +1418,10 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
         bind(skip);
-        getFltVal(jit, a1, F0);
+        armReg reslt = mkFloat(block);
         fdiv(F0, F0, F1);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
-        releaseReg(jit, a1);
-        releaseReg(jit, a2);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushRegister(stack, reslt);
         continue;
       }
       case FMod: {
@@ -1426,12 +1429,15 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
+        getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
 
         codeLblPo skip = newLabel(ctx);
 
-        fmov(FP(F0),RG(XZR));
-        fcmp(F1,F0);
+        fmov(FP(F2), RG(XZR));
+        fcmp(F1, F2);
         bne(skip);
 
         codeLblPo lbl = breakLabel(tgtBlock);
@@ -1444,33 +1450,31 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
         bind(skip);
-        getFltVal(jit, a1, F0);
+        armReg reslt = mkFloat(block);
         fdiv(F2, F0, F1);
         fmsub(F2, F2, F1, F0);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
-        releaseReg(jit, a1);
-        releaseReg(jit, a2);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushRegister(stack, reslt);
         continue;
       }
       case FAbs: {
         // L --> abs(L)
+        armReg reslt = mkFloat(block);
         armReg a1 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
+        releaseReg(jit, a1);
 
         fabs(F0, F0);
-        armReg boxed = mkFltVal(block, F0);
-        pushRegister(stack, boxed);
-        releaseReg(jit, a1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushRegister(stack, reslt);
         continue;
       }
       case FEq: {
         // L R --> L==
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
-
-        fmov(FP(F0), RG(a1));
-        fmov(FP(F1), RG(a2));
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
 
         fcmp(F0, F1);
         loadConstant(jit, falseIndex, a1);
@@ -1506,9 +1510,6 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
-
-        fmov(FP(F0), RG(a1));
-        fmov(FP(F1), RG(a2));
 
         fcmp(F0, F1);
 
@@ -1750,15 +1751,12 @@ armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   return reslt;
 }
 
-armReg mkFltVal(jitBlockPo block, fpReg f) {
+armReg mkFloat(jitBlockPo block) {
   valueStackPo stack = &block->stack;
   jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(jit);
 
   spillStack(stack, jit);
-  armReg flt = allocSmallStruct(block, floatClass, FloatCellCount);
-  fstr(f, OF(flt, OffsetOf(FloatRecord, dx)));
-  return flt;
+  return allocSmallStruct(block, floatClass, FloatCellCount);
 }
 
 void pshFrame(jitBlockPo block, armReg mtdRg) {
