@@ -14,10 +14,11 @@ test.bench.mandelbrot{
 	ci = (2.0 * ((y::float) / (sze::float))) - 1.0;
 
 	for x in 0..<sze do {
+	  cr = (2.0 * ((x::float) / (sze::float))) - 1.5;
+
 	  zrzr := 0.0;
 	  zi := 0.0;
 	  zizi := 0.0;
-	  cr = (2.0 * ((x::float) / (sze::float))) - 1.5;
 
 	  escape := 0;
 
