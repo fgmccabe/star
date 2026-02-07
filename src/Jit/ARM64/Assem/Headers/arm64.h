@@ -379,6 +379,9 @@ void ldp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 #define ldpsw(Rt, Rt2, S2) do{FlexOp s=S2;  ldpsw_(Rt, Rt2, s, ctx); } while(False)
 
+void ldpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx);
+#define ldpf(Rt, Rt2, S2) do{FlexOp s=S2; ldpf_(1, Rt, Rt2, s,ctx); } while(False)
+
 void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx);
 #define ldr(Rt, S2) do{FlexOp s=S2;  ldr_(1, Rt, s, ctx); } while(False)
 #define ldrw(Rt, S2) do{FlexOp s=S2;  ldr_(0, Rt, s, ctx); } while(False)
@@ -509,6 +512,9 @@ void smull_(armReg Rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 
 void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx);
 #define stp(Rt, Rt2, S2) do{FlexOp s=S2; stp_(1, Rt, Rt2, s,ctx); } while(False)
+
+void stpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx);
+#define stpf(Rt, Rt2, S2) do{FlexOp s=S2; stpf_(1, Rt, Rt2, s,ctx); } while(False)
 
 void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx);
 #define str(Rt, S2) do{FlexOp s=S2; str_(1, Rt, s,ctx); } while(False)

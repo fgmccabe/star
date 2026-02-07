@@ -94,7 +94,7 @@ void encodeScalarOp(Precision P, uint8 op, fpReg Rm, fpReg Rn, fpReg Rd, assemCt
 
 void encodeFpMovOp(uint1 w, uint8 ftype, uint8 mode, uint8 op, uint8 Rn, uint8 Rd, assemCtxPo ctx) {
   uint32 ins = one_bt(w, 31) | svn_bt(0b0011110, 24) | two_bt(ftype, 22) | one_bt(0b1, 21) |
-    two_bt(mode,19) | fiv_bt(op, 14) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+               two_bt(mode, 19) | fiv_bt(op, 14) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
@@ -144,7 +144,7 @@ static BitMaskLiteral encodeBitMask(uint64 val) {
 
   uint8 count = countBits((integer) ptn) - 1;
 
-  BitMaskLiteral literl = {.N=immsMask >> 6, .imms=(immsMask & 0x3c) | count, .immr = immr};
+  BitMaskLiteral literl = {.N = immsMask >> 6, .imms = (immsMask & 0x3c) | count, .immr = immr};
   return literl;
 }
 
@@ -283,19 +283,23 @@ void encodeLdSt(uint8 sz, uint8 opc, uint16 imm, armReg Rn, armReg Rd, assemCtxP
 }
 
 void encodeFpLdStPostX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | six_bt(0b111100,24) | two_bt(opc, 22) | nin_bt(imm, 12) | two_bt(0b01,10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  uint32 ins = two_bt(sz, 30) | six_bt(0b111100, 24) | two_bt(opc, 22) | nin_bt(imm, 12) | two_bt(0b01, 10) |
+               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
 void encodeFpLdStPreX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | six_bt(0b111100,24) | two_bt(opc, 22) | nin_bt(imm, 12) | two_bt(0b11,10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  uint32 ins = two_bt(sz, 30) | six_bt(0b111100, 24) | two_bt(opc, 22) | nin_bt(imm, 12) | two_bt(0b11, 10) |
+               fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
 
 void encodeFpLdStOffX(uint8 sz, uint8 opc, uint16 imm, armReg Rn, fpReg Rd, assemCtxPo ctx) {
-  uint32 ins = two_bt(sz, 30) | six_bt(0b111101,24) | two_bt(opc, 22) | twl_bt(imm, 10) | fiv_bt(Rn, 5) | fiv_bt(Rd, 0);
+  uint32 ins = two_bt(sz, 30) | six_bt(0b111101, 24) | two_bt(opc, 22) | twl_bt(imm, 10) | fiv_bt(Rn, 5) |
+               fiv_bt(Rd, 0);
   emitU32(ctx, ins);
 }
+
 void encodeLdStOrd(uint8 w, uint1 L, armReg Rs, uint1 o0, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(w, 30) | svn_bt(0x11, 23) | one_bt(L, 22) |
                fiv_bt(Rs, 16) | one_bt(o0, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
@@ -432,6 +436,18 @@ void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg
 
 void encodeLdStPrOffset(uint8 opc, uint8 op, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx) {
   uint32 ins = two_bt(opc, 30) | thr_bt(5, 27) | thr_bt(op, 23) | one_bt(L, 22) |
+               svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeLdStPrFpIx(uint1 w, uint8 l, int8 imm, fpReg Rt2, armReg Rn, fpReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(w, 30) | fiv_bt(0b10110, 25) | thr_bt(l,22) | svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) |
+               fiv_bt(Rt, 0);
+  emitU32(ctx, ins);
+}
+
+void encodeLdStFpPrOffset(uint8 opc, uint1 L, int8 imm, fpReg Rt2, armReg Rn, fpReg Rt, assemCtxPo ctx) {
+  uint32 ins = two_bt(opc, 30) | svn_bt(0b1011010, 23) | one_bt(L, 22) |
                svn_bt(imm, 15) | fiv_bt(Rt2, 10) | fiv_bt(Rn, 5) | fiv_bt(Rt, 0);
   emitU32(ctx, ins);
 }

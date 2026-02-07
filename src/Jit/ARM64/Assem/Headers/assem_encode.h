@@ -65,6 +65,10 @@ void
 encodeLdStPrPostIx(uint1 w, uint1 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeLdStPrPreIx(uint8 opc, uint1 V, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
 void encodeLdStPrOffset(uint8 opc, uint8 op, uint1 L, int8 imm, armReg Rt2, armReg Rn, armReg Rt, assemCtxPo ctx);
+
+void encodeLdStPrFpIx(uint1 w, uint8 l, int8 imm, fpReg Rt2, armReg Rn, fpReg Rt, assemCtxPo ctx);
+void encodeLdStFpPrOffset(uint8 opc, uint1 L, int8 imm, fpReg Rt2, armReg Rn, fpReg Rt, assemCtxPo ctx);
+
 void encode2SrcIxImmPrePost(uint8 sz, uint8 op, uint8 opc, ixMode ix, uint16 imm, armReg Rn, armReg Rt,
                             assemCtxPo ctx);
 
