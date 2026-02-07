@@ -38,8 +38,7 @@ numbers is smaller than that for `integer` values.
 [#floatType]
 === Float Type
 
-Floating point numbers are based on IEEE 754 double values. However, we
-lose 2 bits of precision in comparison.
+Floating point numbers are based on IEEE 754 double values. 
 
 == Implemented Arithmetic Contracts
 (((contract, implemented for `integer` and `float`)))
