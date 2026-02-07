@@ -55,6 +55,40 @@ static retCode test_strfp() {
   return checkCode(tgt, NumberOf(tgt), ctx);
 }
 
+static retCode test_ldpfp() {
+  assemCtxPo ctx = createCtx();
+
+  ldpf(F10, F11, PSX(X3, 8));
+  ldpf(F10, F8, PRX(X5, -8));
+  ldpf(F15, F20, OF(X20, 16));
+  ldpf(F0, F1, PSX(SP,16));
+
+  uint8 tgt[] = {
+    0x6a, 0xac, 0xc0, 0x6c, // ldp D10,D11, [X3], #8
+    0xaa, 0xa0, 0xff, 0x6d, // ldp D10, d8, [X5, #8]!
+    0x8f, 0x52, 0x41, 0x6d, // ldp D15, D20, [X20, #16]
+    0xe0, 0x07, 0xc1, 0x6c, // ldp d0,d1,[sp],#16
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
+static retCode test_stpfp() {
+  assemCtxPo ctx = createCtx();
+
+  stpf(F10, F11, PSX(X3, 8));
+  stpf(F10, F8, PRX(X5, -8));
+  stpf(F0, F0, PRX(SP, -16));
+  stpf(F15, F20, OF(X20, 16));
+
+  uint8 tgt[] = {
+    0x6a, 0xac, 0x80, 0x6c, // stp D10,D11, [X3], #8
+    0xaa, 0xa0, 0xbf, 0x6d, // stp D10, d8, [X5, #8]!
+    0xe0, 0x03, 0xbf, 0x6d, // stp D0, d0, [sp, #-16]
+    0x8f, 0x52, 0x01, 0x6d, // stp D15, D20, [X20, #16]
+  };
+  return checkCode(tgt, NumberOf(tgt), ctx);
+}
+
 static retCode test_fops() {
   assemCtxPo ctx = createCtx();
 
@@ -74,6 +108,9 @@ retCode fp_tests() {
   tryRet(run_test(test_fmov));
   tryRet(run_test(test_ldrfp));
   tryRet(run_test(test_strfp));
+  tryRet(run_test(test_ldpfp));
+  tryRet(run_test(test_stpfp));
+
   tryRet(run_test(test_fops));
 
   return Ok;

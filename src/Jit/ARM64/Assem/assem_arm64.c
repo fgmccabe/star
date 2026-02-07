@@ -557,6 +557,25 @@ void ldpsw_(armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
   }
 }
 
+void ldpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stpf %R, %R, %F\n%_",Rt,Rt2,&Sn));
+  check(Rt!=Rt2, "Cannot load identical pairs");
+  switch (Sn.mode) {
+    case postX: {
+      encodeLdStPrFpIx(w, 0b11, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    }
+    case preX:
+      encodeLdStPrFpIx(w, 0b111, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    case sOff:
+      encodeLdStFpPrOffset(w, 1, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode (ldp)");
+  }
+}
+
 void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"ldr %R, %F\n%_",Rt,&Sn));
   switch (Sn.mode) {
@@ -1107,6 +1126,24 @@ void stp_(uint1 w, armReg Rt, armReg Rt2, FlexOp Sn, assemCtxPo ctx) {
   }
 }
 
+void stpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx) {
+  TRACE(outMsg(logFile,"stpf %R, %R, %F\n%_",Rt,Rt2,&Sn));
+  switch (Sn.mode) {
+    case postX: {
+      encodeLdStPrFpIx(w, 0b010, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    }
+    case preX:
+      encodeLdStPrFpIx(w, 0b110, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    case sOff:
+      encodeLdStFpPrOffset(w, 0, (int8) (Sn.immediate >> (w + 2)), Rt2, Sn.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode (ldp)");
+  }
+}
+
 void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"str %R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
@@ -1170,17 +1207,17 @@ void strh_(armReg Rt, FlexOp Sn, assemCtxPo ctx) {
 void strf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"strf %R,%F\n%_",Rt,&Sn));
   switch (Sn.mode) {
-  case postX:
-    encodeFpLdStPostX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
-    return;
-  case preX:
-    encodeFpLdStPreX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
-    return;
-  case sOff:
-    encodeFpLdStOffX((2 | w), 0x0, Sn.immediate >> (w + 2), Sn.reg, Rt, ctx);
-    return;
-  default:
-    check(False, "unsupported address mode (str)");
+    case postX:
+      encodeFpLdStPostX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
+      return;
+    case preX:
+      encodeFpLdStPreX((2 | w), 0x0, Sn.immediate, Sn.reg, Rt, ctx);
+      return;
+    case sOff:
+      encodeFpLdStOffX((2 | w), 0x0, Sn.immediate >> (w + 2), Sn.reg, Rt, ctx);
+      return;
+    default:
+      check(False, "unsupported address mode (str)");
   }
 }
 
@@ -1200,7 +1237,6 @@ void ldrf_(uint1 w, fpReg Rt, FlexOp Sn, assemCtxPo ctx) {
       check(False, "unsupported address mode (str)");
   }
 }
-
 
 void ldtr_(uint1 w, armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"ldtr %R,%R[%d]\n%_",Rt,Rn,imm));
