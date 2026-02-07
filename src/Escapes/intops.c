@@ -373,7 +373,7 @@ ValueReturn s__int2flt(enginePo P, termPo l) {
   double dx = (double) ix;
   if ((integer) dx == ix) {
     // Check coercion was safe
-    return normalReturn(makeFloat(processHeap(P),(double) dx));
+    return normalReturn(makeFloat(processHeap(P),dx));
   }
   return abnormalReturn(eRANGE);
 }

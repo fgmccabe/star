@@ -1,7 +1,6 @@
 /*
  * Process the command line options
  */
-#include "config.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <jit.h>

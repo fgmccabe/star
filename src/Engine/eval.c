@@ -105,10 +105,8 @@ int32 run(enginePo P) {
         /* Call tos a1 .. an -->   */
         int32 arity = PC->fst;
         termPo cl = pop();
-        if (!isClosure(cl)) {
-          logMsg(logFile, "Calling non-closure %T", cl);
-          bail();
-        }
+        check(isClosure(cl),"calling non-closure");
+
         closurePo obj = C_CLOSURE(cl);
         labelPo lb = closureLabel(obj);
 
@@ -836,15 +834,17 @@ int32 run(enginePo P) {
         continue;
       }
       case FAdd: {
+        checkAlloc(FloatCellCount);
+
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(H, Lhs + Rhs);
-        push(Rs);
+        push(makeFloat(H, Lhs + Rhs));
         PC++;
         continue;
       }
       case FSub: {
+        checkAlloc(FloatCellCount);
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
@@ -854,15 +854,16 @@ int32 run(enginePo P) {
         continue;
       }
       case FMul: {
+        checkAlloc(FloatCellCount);
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
-        termPo Rs = makeFloat(H, Lhs * Rhs);
-        push(Rs);
+        push(makeFloat(H, Lhs * Rhs));
         PC++;
         continue;
       }
       case FDiv: {
+        checkAlloc(FloatCellCount);
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
@@ -870,13 +871,13 @@ int32 run(enginePo P) {
           breakOut();
           push(divZero);
         } else {
-          termPo Rs = makeFloat(H, Lhs / Rhs);
-          push(Rs);
+          push(makeFloat(H, Lhs / Rhs));
           PC++;
           continue;
         }
       }
       case FMod: {
+        checkAlloc(FloatCellCount);
         double Lhs = floatVal(pop());
         double Rhs = floatVal(pop());
 
@@ -891,6 +892,7 @@ int32 run(enginePo P) {
         }
       }
       case FAbs: {
+        checkAlloc(FloatCellCount);
         double Lhs = floatVal(pop());
 
         termPo Rs = makeFloat(H, fabs(Lhs));
@@ -1053,9 +1055,10 @@ int32 run(enginePo P) {
       case Bind: {
         if (lineDebugging) {
           termPo var = getConstant(PC->fst);
+          int32 offset = PC->alt;
           PC++; // We aim to continue at the next instruction
           saveRegisters();
-          bindDebug(P, var, PC->alt);
+          bindDebug(P, var, offset);
           restoreRegisters();
           continue;
         } else {

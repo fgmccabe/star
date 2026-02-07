@@ -8,7 +8,6 @@
 #include <manifest.h>
 
 #include "debugP.h"
-#include "arith.h"
 #include "editline.h"
 #include "escapeP.h"
 
