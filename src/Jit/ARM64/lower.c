@@ -1418,7 +1418,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
         bind(skip);
+        stpf(F0,F1,PRX(SP,-16));
         armReg reslt = mkFloat(block);
+        ldpf(F0,F1,PSX(SP,16));
         fdiv(F0, F0, F1);
         fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
         pushRegister(stack, reslt);
@@ -1450,7 +1452,9 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           return jitError(jit, "cannot find target label for %d", tgtBlock);
 
         bind(skip);
+        stpf(F0,F1,PRX(SP,-16));
         armReg reslt = mkFloat(block);
+        ldpf(F0,F1,PSX(SP,16));
         fdiv(F2, F0, F1);
         fmsub(F2, F2, F1, F0);
         fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
