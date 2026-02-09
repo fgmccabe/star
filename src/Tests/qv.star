@@ -23,10 +23,6 @@ test.qv{
 
   info:(ctx) => cons[(string,string)].
   info(Ctx) => { (Nm, Tp::string) | (Nm -> (Tp,_)) in Ctx.meals }.
---  info(Ctx) => { (Nm, Tp::string) | (Nm -> ((Tp:tipe),_)) in Ctx.meals }.
-  -- info(Ctx) =>
-  --   _iter(Ctx.meals, .nil, (((El:keyval[string,(tipe,integer)]),St) => (.kv(Nm,(Tp,_)).=El ??
-  -- 	.cons((Nm, Tp::string),St) || St))).
 
   menu = ctx{
     meals = ["monday" -> (.breakfast,1),

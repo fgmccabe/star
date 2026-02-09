@@ -71,6 +71,10 @@ test.bench.bounce{
     valis bounces!
   }
 
+  public bounceBenchTest()=>timeOf((){
+      test()
+    }).
+
   main:(integer){}.
   main(Count){
     timer = timer_start(Count, "List tail benchmark");
@@ -82,11 +86,3 @@ test.bench.bounce{
     timer_finish(timer);
   }
 }
-
-  
-      
-
-
-    
-
-    

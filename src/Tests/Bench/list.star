@@ -38,6 +38,13 @@ test.bench.list{
     valis length(Result)
   }
 
+  public listBenchTest:()=>float.
+  listBenchTest() => timeOf((){
+      Count = 40000;
+      for I in 0..<Count do{
+	test()==10
+      }}).
+
   main:(integer){}.
   main(Count){
     timer = timer_start(Count, "List tail benchmark");
