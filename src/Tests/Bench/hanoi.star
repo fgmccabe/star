@@ -53,6 +53,8 @@ test.bench.hanoi{
   verfy(8191,13) => .true.
   verfy(Mvs,Cnt) => Mvs==(1.<<.Cnt)-1.
 
+  public hanoiBenchTest()=>timeOf((){ test(20) }).
+
   main:(integer){}.
   main(Cnt){
     timer = timer_start((1.<<.Cnt)-1, "Towers benchmark");

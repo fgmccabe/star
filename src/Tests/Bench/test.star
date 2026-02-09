@@ -1,7 +1,31 @@
 test.bench.test{
   import star.
   import star.assert.
-  import test.lib.timer.
+
+  import test.bench.bounce.
+  import test.bench.collections.
+  import test.bench.hanoi.
+  import test.bench.list.
+  import test.bench.mandelbrot.
+
+  geomean:(cons[float])=>float throws exception.
+  geomean(Vls) => { (*) <* El <* 1.0 | El in Vls } ** (1.0/(size(Vls)::float)).
+
+  runTests:() => cons[float].
+  runTests() =>
+    [bounceBenchTest(),hanoiBenchTest(),listBenchTest(),mandelBenchTest(),..
+    collectionBenchTest()].
+
+  main:(){}.
+  main(){
+    try{
+      show geomean([1.0,12.0,18.0]);
+      show geomean(runTests());
+    } catch {
+      M do logMsg(.severe, "We got exception $(M)")
+    }
+  }
+}
 
 
   

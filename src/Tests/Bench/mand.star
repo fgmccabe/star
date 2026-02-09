@@ -71,6 +71,10 @@ test.bench.mandelbrot{
   verfy(50, 750) => .true.
   verfy(128, 1) => .true.
   verfy(_,_) => .false.
+
+  public mandelBenchTest()=>timeOf((){
+      test(750)
+    }).
     
   main:(integer){}.
   main(Count){
