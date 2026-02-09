@@ -17,27 +17,26 @@ test.bench.collections{
   empty:all e ~~ (e)=>().
   empty(_) => ().
 
-  testCons:(integer)=>float.
-  testCons(Count)=>timeOf((){
-      idxes : cons[integer];
-      idxes = iota(0, Count);
-
+  testCons:(integer,cons[integer])=>float.
+  testCons(Count,idxes)=>timeOf((){
       cn_list : ref cons[integer];
       cn_list = ref iota(0,Count);
+
+      for i in (cn_list!) do {
+	empty(.some(i))
+      };
 
       for i in idxes do {
 	El = cn_list![i]
       };
+
       for ix in idxes do {
 	cn_list[ix] := ix + 4
       }
     }).
 
-  testIdeal:(integer)=>float.
-  testIdeal(Count)=>timeOf((){
-      idxes : cons[integer];
-      idxes = iota(0, Count);
-      
+  testIdeal:(integer,cons[integer])=>float.
+  testIdeal(Count,idxes)=>timeOf((){
       id_list = ref idealIota(0,Count);
 
       for (i->_) in (id_list!) do {
@@ -54,14 +53,11 @@ test.bench.collections{
       }
     }).
 
-  testSkew:(integer)=>float.
-  testSkew(Count)=>timeOf((){
+  testSkew:(integer,cons[integer])=>float.
+  testSkew(Count,idxes)=>timeOf((){
       sk_list : ref sk[integer];
       sk_list = ref iota(0,Count);
 
-      idxes : cons[integer];
-      idxes = iota(0, Count);
-      
       for i in (sk_list!) do {
 	empty(.some(i))
       };
@@ -75,12 +71,10 @@ test.bench.collections{
       }
     }).
 
-  testRedBlack(Count)=>timeOf((){
+  testRedBlack:(integer,cons[integer])=>float.
+  testRedBlack(Count,idxes)=>timeOf((){
       rb_list = ref rbiota(0,Count);
 
-      idxes : cons[integer];
-      idxes = iota(0, Count);
-      
       for i->_ in (rb_list!) do {
 	empty(.some(i))
       };
@@ -94,10 +88,8 @@ test.bench.collections{
       }
     }).
 
-  testVector(Count)=>timeOf((){
-      idxes : cons[integer];
-      idxes = iota(0, Count);
-      
+  testVector:(integer,cons[integer])=>float.
+  testVector(Count,idxes)=>timeOf((){
       v = ref idxes::vect[integer];
 
       for i in v! do {
@@ -114,20 +106,28 @@ test.bench.collections{
     }).
 
   public collectionBenchTest:()=>cons[float].
-  collectionBenchTest()=>
-    [testCons(10000),
-    testIdeal(10000),
-    testSkew(10000),
-    testRedBlack(10000),
-    testVector(10000)].
+  collectionBenchTest()=> valof{
+    Count = 10000;
+    idxes : cons[integer];
+    idxes = iota(0, Count);
+    
+    valis [testCons(Count,idxes),
+      testIdeal(Count,idxes),
+      testSkew(Count,idxes),
+      testRedBlack(Count,idxes),
+      testVector(Count,idxes)]
+  }
 
   main:(integer){}.
   main(Count){
-    showMsg("cons list time:$(testCons(Count))");
-    showMsg("ideal map time:$(testIdeal(Count))");
-    showMsg("skew list time:$(testSkew(Count))");
-    showMsg("red/black list time:$(testRedBlack(Count))");
-    showMsg("vector time:$(testVector(Count))");
+    idxes : cons[integer];
+    idxes = iota(0, Count);
+    
+    showMsg("cons list time:$(testCons(Count,idxes))");
+    showMsg("ideal map time:$(testIdeal(Count,idxes))");
+    showMsg("skew list time:$(testSkew(Count,idxes))");
+    showMsg("red/black list time:$(testRedBlack(Count,idxes))");
+    showMsg("vector time:$(testVector(Count,idxes))");
   }
 
   public _main:(cons[string])=> integer.

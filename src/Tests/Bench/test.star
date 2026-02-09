@@ -19,7 +19,6 @@ test.bench.test{
   main:(){}.
   main(){
     try{
-      show geomean([1.0,12.0,18.0]);
       show geomean(runTests());
     } catch {
       M do logMsg(.severe, "We got exception $(M)")
