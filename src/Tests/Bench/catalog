@@ -6,6 +6,7 @@
     "test.bench.list": "list.star",
     "test.bench.mandelbrot": "mand.star",
     "test.bench.hanoi": "hanoi.star",
+    "test.bench.sieve": "sieve.star",
     "test.bench.test": "test.star"
   },
   "version": "1.0.0",

@@ -7,13 +7,18 @@ test.bench.test{
   import test.bench.hanoi.
   import test.bench.list.
   import test.bench.mandelbrot.
+  import test.bench.sieve.
 
   geomean:(cons[float])=>float throws exception.
   geomean(Vls) => { (*) <* El <* 1.0 | El in Vls } ** (1.0/(size(Vls)::float)).
 
   runTests:() => cons[float].
   runTests() =>
-    [bounceBenchTest(),hanoiBenchTest(),listBenchTest(),mandelBenchTest(),..
+    [bounceBenchTest(),
+    hanoiBenchTest(),
+    listBenchTest(),
+    mandelBenchTest(),
+    sieveBenchTest(),..
     collectionBenchTest()].
 
   main:(){}.
