@@ -36,7 +36,7 @@ static ioPo debugOutChnnl = Null;
 logical insDebugging = False; // instruction tracing option
 logical lineDebugging = False;
 logical debugDebugging = False;
-logical tracing = False; /* tracing option */
+tracingLevel tracing = generalTracing; /* tracing option */
 integer debuggerPort = 0; // Debug port to establish listener on
 logical showPkgFile = False; // True if we show file names instead of package names
 logical showColors = True; // True if we want to show colored output
@@ -117,11 +117,13 @@ static logical shouldWeStop(enginePo p, OpCode op) {
     outMsg(logFile, "\n%_");
   }
 #endif
+  logical atLine = (op==Line?tracing>=detailedTracing:True);
+
   switch (p->waitFor) {
     case stepInto:
       if (p->traceCount > 0)
         p->traceCount--;
-      return (logical) (p->traceCount == 0);
+      return (logical) (atLine && p->traceCount == 0);
 
     case stepOver:
     case stepOut: {
@@ -130,7 +132,7 @@ static logical shouldWeStop(enginePo p, OpCode op) {
           p->traceCount--;
         if (p->traceCount == 0) {
           p->waterMark = Null;
-          return True;
+          return atLine;
         } else
           return False;
       } else
@@ -140,7 +142,7 @@ static logical shouldWeStop(enginePo p, OpCode op) {
       if (p->waterMark == Null && op == Entry && breakPointSet(mtdLabel(stk->prog))) {
         p->waitFor = stepInto;
         p->tracing = True;
-        return True;
+        return atLine;
       }
       return False;
     }
@@ -200,7 +202,7 @@ static DebugWaitFor cmder(debugOptPo opts, enginePo p, termPo lc) {
     cmdBuffer = newStringBuffer();
 
   if (interactive) {
-    outMsg(debugOutChnnl, "\n[%d]>%s %_", processNo(p), (insDebugging ? "i" : lineDebugging ? "$" : ""));
+    outMsg(debugOutChnnl, "[%d]>%s %_", processNo(p), (insDebugging ? "i" : lineDebugging ? "$" : ""));
     clearStrBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);
@@ -278,6 +280,28 @@ static DebugWaitFor dbgTrace(char *line, enginePo p, termPo lc, void *cl) {
     return stepInto;
   else
     return nextBreak;
+}
+
+static char* tracingLevels[] = {"no tracing","general tracing", "detailed tracing"};
+
+static DebugWaitFor dbgTraceLevel(char *line, enginePo p, termPo lc, void *cl) {
+  switch(line[0]){
+  case '-':
+    if(tracing>noTracing)
+      tracing--;
+    break;
+  case '+':
+    if(tracing<detailedTracing)
+      tracing++;
+    break;
+  default:
+    resetDeflt("n");
+    outMsg(debugOutChnnl,"tracing level at %s\n",tracingLevels[tracing]);
+    return moreDebug;
+  }
+  outMsg(debugOutChnnl,"tracing level set to %s\n",tracingLevels[tracing]);
+  resetDeflt("n");
+  return moreDebug;
 }
 
 static DebugWaitFor dbgCont(char *line, enginePo p, termPo lc, void *cl) {
@@ -667,8 +691,9 @@ static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
       outMsg(out, "call: %#L %#.16A", lc, callee);
 
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
+    outMsg(out,"\n%_");
   } else
-    outMsg(out, "invalid use of showCall");
+    outMsg(out, "invalid use of showCall\n%_");
 }
 
 static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
@@ -683,6 +708,7 @@ static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
   } else {
     outMsg(out, "invalid closure label");
   }
+  outMsg(out,"\n%_");
 }
 
 static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
@@ -697,20 +723,25 @@ static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
   } else
     outMsg(out, "invalid use of showTCall");
+    outMsg(out,"\n%_");
 }
 
 static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
-  if (showColors)
-    outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L%_", lc);
-  else
-    outMsg(out, "line: %#L", lc);
+  if(tracing>=detailedTracing){
+    if (showColors)
+      outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L\n%_", lc);
+    else
+      outMsg(out, "line: %#L\n%_", lc);
+  }
 }
 
 void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
-  if (showColors)
-    outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %T = %#,*T", name, displayDepth, val);
-  else
-    outMsg(out, "return: %T->%#,*T", name, displayDepth, val);
+  if(tracing>=detailedTracing){
+    if (showColors)
+      outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %T = %#,*T\n%_", name, displayDepth, val);
+    else
+      outMsg(out, "return: %T->%#,*T\n%_", name, displayDepth, val);
+  }
 }
 
 void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
@@ -720,29 +751,30 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
     outMsg(out, "entry: %#L %#.16A", lc, lbl);
 
   shArgs(out, displayDepth, stk->args, lblArity(C_LBL(lbl)));
+  outMsg(out,"\n%_");
 }
 
 void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
   else
-    outMsg(out, "return: %#L %T->%#,*T", lc, stk->prog, displayDepth, val);
+    outMsg(out, "return: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
 }
 
 void showXRet(ioPo out, stackPo stk, termPo lc, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %T->%#,*T", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
   else
-    outMsg(out, "throw: %#L %T->%#,*T", lc, stk->prog, displayDepth, val);
+    outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason) {
   methodPo mtd = stk->prog;
 
   if (showColors)
-    outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %#L %T->%#,*T", lc, mtd, displayDepth, reason);
+    outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, mtd, displayDepth, reason);
   else
-    outMsg(out, "abort: %L %T->%#,*T", lc, mtd, displayDepth, reason);
+    outMsg(out, "abort: %L %T->%#,*T\n%_", lc, mtd, displayDepth, reason);
 }
 
 void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl) {
@@ -750,9 +782,9 @@ void showAssign(ioPo out, stackPo stk, termPo lc, termPo vl) {
   termPo cell = topStack(stk);
 
   if (showColors)
-    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T->%#,*T", lc, cell, displayDepth, val);
+    outMsg(out, RED_ESC_ON"assign:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, cell, displayDepth, val);
   else
-    outMsg(out, "assign: %L %#T->%#,*T", lc, cell, displayDepth, val);
+    outMsg(out, "assign: %L %#T->%#,*T\n%_", lc, cell, displayDepth, val);
 }
 
 void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -760,6 +792,7 @@ void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"fiber:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "fiber: %L %#,*T", lc, displayDepth, cont);
+  outMsg(out,"\n%_");
 }
 
 void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -767,6 +800,7 @@ void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "suspend: %L %#,*T", lc, displayDepth, cont);
+  outMsg(out,"\n%_");
 }
 
 void showResume(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -774,6 +808,7 @@ void showResume(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "resume: %L %#,*T", lc, displayDepth, cont);
+  outMsg(out,"\n%_");
 }
 
 void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -781,6 +816,7 @@ void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "retire: %L %#,*T", lc, displayDepth, cont);
+  outMsg(out,"\n%_");
 }
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo trm);
@@ -897,6 +933,7 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       {.c = 'N', .cmd = dbgOver, .usage = "N step over"},
       {.c = 'q', .cmd = dbgQuit, .usage = "q stop execution"},
       {.c = 't', .cmd = dbgTrace, .usage = "t trace mode"},
+      {.c = 'T', .cmd = dbgTraceLevel, .usage = "T tracing level"},
       {.c = 'c', .cmd = dbgCont, .usage = "c continue"},
       {.c = 'u', .cmd = dbgUntilRet, .usage = "u <count> until next <count> returns"},
       {.c = 'r', .cmd = dbgShowRegisters, .usage = "r show registers"},
@@ -915,7 +952,7 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       {.c = 'B', .cmd = dbgShowBreakPoints, .usage = "show all break points"},
       {.c = '&', .cmd = dbgDebug, .usage = "& flip debug debugging"}
     },
-    .count = 20,
+    .count = 22,
     .deflt = Null
   };
 
@@ -934,9 +971,6 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
       while (interactive) {
         if (p->traceCount == 0) {
           p->waitFor = cmder(&opts, p, lc);
-        } else {
-          outStr(debugOutChnnl, "\n");
-          flushIo(debugOutChnnl);
         }
 
         switch (p->waitFor) {
@@ -952,9 +986,6 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
             exit(0);
         }
       }
-    } else {
-      outStr(debugOutChnnl, "\n");
-      flushIo(debugOutChnnl);
     }
   }
   return p->waitFor;

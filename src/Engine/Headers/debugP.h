@@ -28,7 +28,7 @@ typedef struct {
   DebugOption opts[ZEROARRAYSIZE];
 } DebugOptions, *debugOptPo;
 
-extern logical tracing;        /* tracing option */
+extern tracingLevel tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
 extern logical debugDebugging;

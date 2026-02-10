@@ -77,7 +77,7 @@ enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo roo
   } else
     P->waitFor = never;
 
-  P->tracing = tracing;
+  P->tracing = False;
   P->waterMark = Null;
 
   setProcessWd(P, rootWd, uniStrLen(rootWd));
