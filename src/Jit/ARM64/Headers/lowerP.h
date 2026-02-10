@@ -36,7 +36,7 @@
 #define PR (X15)
 
 typedef enum {
-  inRegister,
+  inReg,
   isLocal,
   inStack
 } valueKind;
