@@ -170,9 +170,12 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
     retCode ret;
 
     integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
+    integer atOff = uniLastIndexOf(name, lblLen, (codePoint) '@');
 
-    if (hashOff > 0 && hashOff < lblLen - 1)
-      ret = outMsg(out, "…%S", &name[hashOff + 1], (long) (lblLen - hashOff - 1), arity);
+    integer offset = maximum(hashOff,atOff);
+
+    if (offset > 0 && offset < lblLen - 1)
+      ret = outMsg(out, "…%S", &name[offset + 1], (long) (lblLen - offset - 1), arity);
     else if (lblLen > prec && prec > 0) {
       integer half = prec / 2;
       integer hwp = backCodePoint(name, lblLen, half);

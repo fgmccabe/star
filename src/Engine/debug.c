@@ -730,9 +730,9 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
 void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
   if(tracing>=detailedTracing){
     if (showColors)
-      outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %T = %#,*T\n%_", name, displayDepth, val);
+      outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %#T = %#,*T\n%_", name, displayDepth, val);
     else
-      outMsg(out, "return: %T->%#,*T\n%_", name, displayDepth, val);
+      outMsg(out, "return: %#T->%#,*T\n%_", name, displayDepth, val);
   }
 }
 
@@ -748,14 +748,14 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
 
 void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
   else
     outMsg(out, "return: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
 }
 
 void showXRet(ioPo out, stackPo stk, termPo lc, termPo val) {
   if (showColors)
-    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
   else
     outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
 }
