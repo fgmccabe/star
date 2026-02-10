@@ -3,7 +3,7 @@
 
 (((coroutines)))
 (((execution,coroutines)))
-A coroutine is a suspendable computation. Analogous to function calls,
+A coroutine is a suspendable computation. Analogous to a function call,
 except that a coroutine can be suspended -- allowing another
 computation to continue -- and then later resumed. Not to be confused
 with multi-threading, coroutines do give some of the same
