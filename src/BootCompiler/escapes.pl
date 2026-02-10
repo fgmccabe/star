@@ -53,8 +53,8 @@ escapeType("_big2str",funType(tplType([type("bigint")]),type("string"),voidType)
 escapeType("_big_format",funType(tplType([type("bigint"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_fiber_eq",allType(kVar("r"),allType(kVar("s"),funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s"))]),type("boolean"),voidType)))).
 escapeType("_fiber",allType(kVar("r"),allType(kVar("s"),funType(tplType([funType(tplType([tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),kVar("r")]),kVar("s"),voidType)]),tpExp(tpExp(tpFun("fiber",2),kVar("r")),kVar("s")),voidType)))).
-escapeType("sqrt",funType(tplType([type("float")]),type("float"),type("errorCode"))).
-escapeType("exp",funType(tplType([type("float")]),type("float"),type("errorCode"))).
+escapeType("_sqrt",funType(tplType([type("float")]),type("float"),type("errorCode"))).
+escapeType("_exp",funType(tplType([type("float")]),type("float"),type("errorCode"))).
 escapeType("_ln",funType(tplType([type("float")]),type("float"),voidType)).
 escapeType("_lg10",funType(tplType([type("float")]),type("float"),voidType)).
 escapeType("pi",funType(tplType([]),type("float"),voidType)).
@@ -295,8 +295,8 @@ isEscape("_big2str").
 isEscape("_big_format").
 isEscape("_fiber_eq").
 isEscape("_fiber").
-isEscape("sqrt").
-isEscape("exp").
+isEscape("_sqrt").
+isEscape("_exp").
 isEscape("_ln").
 isEscape("_lg10").
 isEscape("pi").

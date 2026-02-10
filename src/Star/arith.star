@@ -181,6 +181,11 @@ star.arith{
     X**Y => _flt_pwr(X,Y)
   }
 
+  public sqrt:(float)=>float throws exception.
+  sqrt(X) => (try
+    _sqrt(X)
+    catch { _ => throw .exception("imaginary number")}).
+
   public ln:(float)=>float.
   ln(X) => _ln(X).
 
