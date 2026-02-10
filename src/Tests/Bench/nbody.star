@@ -76,10 +76,15 @@ test.bench.nbody{
 
   sun = create(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0).
 
-  bodies:cons[body].
-  bodies = [sun, jupiter, saturn, uranus, neptune].
+  sqr:all e ~~ arith[e] |= (e)=>e.
+  sqr(X) => X*X.
 
+  distance:(body,body)=>float throws exception.
+  distance(b,c) => sqrt(sqr(b.x!-c.x!)+sqr(b.y!-c.y!)+sqr(b.z!-c.z!)).
+
+  setup:()=>cons[body].
   setup() => valof{
+    bodies = [sun, jupiter, saturn, uranus, neptune];
     px := 0.0;
     py := 0.0;
     pz := 0.0;
@@ -94,18 +99,18 @@ test.bench.nbody{
     valis bodies
   }
 
-  advance(dt){
+  advance(system,dt){
     try{
-      for ix in 0..<size(bodies) do{
-	iB = ?bodies[ix];
-	for jx in ix+1..<size(bodies) do{
-	  jB = ?bodies[jx];
+      for ix in 0..<size(system) do{
+	iB = ?system[ix];
+	for jx in ix+1..<size(system) do{
+	  jB = ?system[jx];
 	  
 	  dx = iB.x! - jB.x!;
 	  dy = iB.y! - jB.y!;
 	  dz = iB.z! - jB.z!;
 	  
-	  dSqrd = dx*dx + dy*dy + dz*dz;
+	  dSqrd = sqr(dx) + sqr(dy) + sqr(dz);
 	  dist = sqrt(dSqrd);
 	  mag = dt/(dSqrd*dist);
 
@@ -119,12 +124,59 @@ test.bench.nbody{
 	}
       };
       
-      for b in bodies do{
+      for b in system do{
 	b.x += dt*b.vx!;
 	b.y += dt*b.vy!;
 	b.z += dt*b.vz!;
       }
     } catch { _ do { logMsg(.severe,"Math error") }}
+  }
+
+  energy:(cons[body])=>float.
+  energy(system) => valof{
+    try{
+      e := 0.0;
+      for ix in 0..<size(system) do{
+	b = ?system[ix];
+	e += 0.5*b.mass*(sqr(b.vx!)+sqr(b.vy!)+sqr(b.vz!));
+	
+	for jx in ix+1..<size(system) do{
+	  jb = ?system[jx];
+	  
+	  e -= (b.mass*jb.mass)/distance(b,jb)
+	};
+      };
+      valis e!;
+    } catch{ _ do {
+	logMsg(.severe,"Math error");
+	valis 0.0
+    }
+    }
+  }
+
+  innerLoop(iterations) => valof{
+    system = setup();
+    for ix in 0..<iterations do{
+      advance(system,0.01)
+    };
+
+    valis verfy(energy(system),iterations)
+  }
+
+  verfy(Result,Count) => case Count in {
+    | 250000 => Result==-0.1690859889909308
+    | 1 => Result==-0.16907495402506745
+  }
+
+  public nbodyBenchTest() => timeOf((){ innerLoop(250000) }).
+
+  main:(integer){}.
+  main(Cnt){
+    timer = timer_start(Cnt,"N-Body benchmark");
+
+    assert innerLoop(Cnt);
+
+    timer_finish(timer);
   }
 }
 

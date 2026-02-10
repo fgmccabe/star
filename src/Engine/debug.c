@@ -109,15 +109,7 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
 static logical shouldWeStop(enginePo p, OpCode op) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
-#ifdef TRACE_DBG
-  if (debugDebugging) {
-    outMsg(logFile, "debug: waterMark=0x%x, fp=0x%x, traceCount=%d, tracing=%s, displayDepth=%d, ins: ",
-           p->waterMark, f, p->traceCount, (p->tracing ? "yes" : "no"), displayDepth);
-    disass(logFile, stk, stk->prog, stk->pc);
-    outMsg(logFile, "\n%_");
-  }
-#endif
-  logical atLine = (op==Line?tracing>=detailedTracing:True);
+  logical atLine = ((op==Line||op==Bind)?tracing>=detailedTracing:True);
 
   switch (p->waitFor) {
     case stepInto:
@@ -956,15 +948,16 @@ DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show)
     .deflt = Null
   };
 
+#ifdef TRACE_DBG
+  if (debugDebugging) {
+    logMsg(logFile, "traceCount=%d, waterMark=%x, tracing=%s, op=%d",
+	   p->traceCount, p->waterMark,(p->tracing ? "yes" : "no"),op);
+  }
+#endif
+
   stackPo stk = p->stk;
   logical stopping = shouldWeStop(p, op);
 
-#ifdef TRACE_DBG
-  if (debugDebugging) {
-    logMsg(logFile, "traceCount=%d, waterMark=%x, stopping=%s, tracing=%s", p->traceCount, p->waterMark,
-           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
-  }
-#endif
   if (p->tracing || stopping) {
     show(debugOutChnnl, stk, lc, arg);
     if (stopping) {
