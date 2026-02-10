@@ -446,7 +446,7 @@ indistinguishable from random.
 (((random number seed)))
 [source,star]
 ----
-seed : (ineger){}
+seed : (integer){}
 ----
 
 The `seed` procedure is used to seed the random number generation. One of the
