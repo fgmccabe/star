@@ -162,7 +162,7 @@ ReturnStatus g__flt_abs(enginePo P) {
   return ret.status;
 }
 
-ValueReturn s_exp(enginePo P, termPo l) {
+ValueReturn s__exp(enginePo P, termPo l) {
   double x = floatVal(l);
 
   errno = 0; /* clear errno prior to computation */
@@ -179,9 +179,9 @@ ValueReturn s_exp(enginePo P, termPo l) {
   }
 }
 
-ReturnStatus g_exp(enginePo P) {
+ReturnStatus g__exp(enginePo P) {
   termPo l = popVal(P);
-  ValueReturn ret = s_exp(P, l);
+  ValueReturn ret = s__exp(P, l);
   pshVal(P, ret.value);
   return ret.status;
 }
@@ -498,7 +498,7 @@ ReturnStatus g__lg10(enginePo P) {
   return ret.status;
 }
 
-ValueReturn s_sqrt(enginePo P, termPo l) {
+ValueReturn s__sqrt(enginePo P, termPo l) {
   double Arg = floatVal(l);
   if (Arg >= 0.0)
     return normalReturn(makeFloat(processHeap(P),sqrt(Arg)));
@@ -506,9 +506,9 @@ ValueReturn s_sqrt(enginePo P, termPo l) {
     return abnormalReturn(eRANGE);
 }
 
-ReturnStatus g_sqrt(enginePo P) {
+ReturnStatus g__sqrt(enginePo P) {
   termPo l = popVal(P);
-  ValueReturn ret = s_sqrt(P, l);
+  ValueReturn ret = s__sqrt(P, l);
   pshVal(P, ret.value);
   return ret.status;
 }
