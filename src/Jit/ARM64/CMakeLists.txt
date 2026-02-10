@@ -28,10 +28,12 @@ set(HEADER_FILES
         Headers/macros.h
         ../Headers/infra.h
         ../Analysis/Headers/analyse.h
+        ../Analysis/Headers/analyseP.h
 )
 
 set(SOURCE_FILES
         lower.c
+        lowerA.c
         lowerStack.c
         lowerFrame.c
         lowerFFI.c
