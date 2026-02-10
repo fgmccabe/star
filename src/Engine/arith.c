@@ -33,7 +33,7 @@ integer intHash(specialClassPo cl, termPo o) {
 }
 
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", alt);
+  return outInteger(out, integerVal(t), 10, 0, precision, 0, False, "", False);
 }
 
 static long floatSize(specialClassPo cl, termPo o);
