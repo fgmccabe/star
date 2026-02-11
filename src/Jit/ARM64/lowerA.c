@@ -6,7 +6,7 @@
 
 #include "analyseP.h"
 #include "cellP.h"
-#include "lowerP.h"
+#include "lowerAP.h"
 #include "stackP.h"
 #include "singleP.h"
 #include "globalsP.h"
@@ -23,6 +23,23 @@
 
 /* Lower Star VM code to Arm64 code */
 
+/*
+* X0-X7 = argument registers & scratch registers
+* X0/X1 = return registers
+* X8-X11 = Temporary registers
+* X12 = Constants vector
+* AG = X13 = args pointer
+* STK = X14 = current stack structure pointer
+* X15 = current process structure
+* X16-X17 = intra procedure call scratch registers
+* X18 = platform register
+* X19-X28 = callee saved registers
+* FP = X29 = frame pointer
+* LR = X30 = link register
+* SP = X31 = system stack pointer
+* We only use the SP register when entering C calls.
+*/
+
 static retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, int32 endPc);
 static void pshFrame(jitBlockPo block, armReg mtdRg);
 static void dropArgs(valueStackPo stack, jitCompPo jit, int32 count);
@@ -31,13 +48,13 @@ static retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 co
 static retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
 
 retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLen) {
-  int32 numLcls = stackDelta(mtd) + mtdArity(mtd);
-  LocalEntry locals[numLcls];
-
   AnalysisRecord analysis;
   if (analyseMethod(mtd, &analysis) == Ok) {
     showAnalysis(logFile, &analysis);
   }
+
+  int32 numLcls = stackDelta(mtd) + mtdArity(mtd);
+  LocalEntry locals[numLcls];
 
   ValueStack stack = {
     .locals = locals,
