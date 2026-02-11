@@ -40,12 +40,13 @@
 * We only use the SP register when entering C calls.
 */
 
-static retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, int32 endPc);
-static void pshFrame(jitBlockPo block, armReg mtdRg);
+static retCode jitBlock(blockPo block, analysisPo analysis, insPo code, int32 from, int32 endPc);
+static void pshFrame(blockPo block, armReg mtdRg);
 static void dropArgs(valueStackPo stack, jitCompPo jit, int32 count);
-static armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt);
-static retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count);
-static retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
+static armReg allocSmallStruct(blockPo block, clssPo class, integer amnt);
+static retCode handleBreakTable(blockPo block, insPo code, int32 pc, int32 count);
+static retCode testResult(blockPo block, blockPo tgtBlock);
+static armReg mkFloat(blockPo block);
 
 retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLen) {
   AnalysisRecord analysis;
@@ -97,7 +98,7 @@ retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgL
   return ret;
 }
 
-retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
+retCode jitSpecialInstructionsA(jitCompPo jit, methodPo mtd, int32 depth) {
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit special method %L\n", mtd);
@@ -142,7 +143,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
   return ret;
 }
 
-retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, int32 endPc) {
+retCode jitBlock(blockPo block, analysisPo analysis, insPo code, int32 from, int32 endPc) {
   retCode ret = Ok;
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -211,7 +212,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case XCall: {
         int32 key = code[pc].fst;
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Valof);
         int32 arity = lblArity(C_LBL(getConstant(key)));
 
         spillStack(stack, jit); // Make sure everything is stashed
@@ -267,7 +268,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case XOCall: {
         int32 arity = code[pc].fst;
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Valof);
 
         armReg clos = popValue(stack, jit); // Pick up the closure
         ldr(X17, OF(clos, OffsetOf(ClosureRecord, lbl))); // Pick up the label
@@ -369,7 +370,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case XEscape: {
         int32 escNo = code[pc].fst;
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Valof);
 
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
@@ -510,7 +511,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       }
       case Break: {
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         spillStack(stack, jit);
         setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
         // tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
@@ -519,8 +520,8 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case Result: {
         // return value out of block
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
-        jitBlockPo parent = tgtBlock->parent;
+        blockPo tgtBlock = breakBlock(block, code, tgt, Valof);
+        blockPo parent = tgtBlock->parent;
         int32 tgtHeight = tgtBlock->exitHeight;
 
 #ifdef TRACEJIT
@@ -545,7 +546,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case Loop: {
         // jump back to start of block
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         codeLblPo loop = loopLabel(tgtBlock);
         assert(loop != Null);
         setStackDepth(stack, jit, code[tgtBlock->startPc].fst);
@@ -790,7 +791,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case LdSav: {
         // dereference a sav, break if not set
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         armReg sng = popValue(stack, jit);
 
         ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
@@ -903,7 +904,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case CChar:
       case CFlt: {
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         armReg st = popValue(stack, jit);
 
         integer lit = (integer) getConstant(code[pc].fst);
@@ -931,7 +932,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
         // T,lit --> test for a literal value, break if not
         int32 key = code[pc].fst;
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
 
         armReg vl = popValue(stack, jit);
 
@@ -975,7 +976,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case If: {
         // break if true
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         armReg vl = popValue(stack, jit);
         armReg tr = findFreeReg(jit);
         loadConstant(jit, trueIndex, tr);
@@ -990,7 +991,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       case IfNot: {
         // break if false
         int32 tgt = pc + code[pc].alt + 1;
-        jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+        blockPo tgtBlock = breakBlock(block, code, tgt, Block);
         armReg vl = popValue(stack, jit);
         armReg tr = findFreeReg(jit);
         loadConstant(jit, trueIndex, tr);
@@ -1139,7 +1140,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
         codeLblPo skip = newLabel(ctx);
         cbnz(a2, skip);
 
-        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
+        blockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
@@ -1167,7 +1168,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
         codeLblPo skip = newLabel(ctx);
         cbnz(divisor, skip);
 
-        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
+        blockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         codeLblPo lbl = breakLabel(tgtBlock);
         if (lbl != Null) {
           setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
@@ -1426,7 +1427,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       }
       case FDiv: {
         // L R --> L/R
-        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
+        blockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
@@ -1461,7 +1462,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
       }
       case FMod: {
         // L R --> L%R
-        jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
+        blockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
         armReg a1 = popValue(stack, jit);
         armReg a2 = popValue(stack, jit);
         getFltVal(jit, a1, F0);
@@ -1752,7 +1753,7 @@ retCode jitBlock(jitBlockPo block, analysisPo analysis, insPo code, int32 from, 
   return ret;
 }
 
-armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
+armReg allocSmallStruct(blockPo block, clssPo class, integer amnt) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
 
@@ -1788,7 +1789,7 @@ armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   return reslt;
 }
 
-armReg mkFloat(jitBlockPo block) {
+armReg ¯mkFloat(blockPo block) {
   valueStackPo stack = &block->stack;
   jitCompPo jit = block->jit;
 
@@ -1796,7 +1797,7 @@ armReg mkFloat(jitBlockPo block) {
   return allocSmallStruct(block, floatClass, FloatCellCount);
 }
 
-void pshFrame(jitBlockPo block, armReg mtdRg) {
+void pshFrame(blockPo block, armReg mtdRg) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
@@ -1814,12 +1815,12 @@ void dropArgs(valueStackPo stack, jitCompPo jit, int32 count) {
   pushBlank(stack);
 }
 
-retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count) {
+retCode handleBreakTable(blockPo block, insPo code, int32 pc, int32 count) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   for (int ix = 0; ix < count; ix++, pc++) {
     check(code[pc].op==Break, "Expecting a Break instruction");
-    jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Block);
+    blockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Block);
     setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
     tryRet(propagateStack(jit, &block->stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
     codeLblPo lbl = breakLabel(tgtBlock);
@@ -1828,7 +1829,7 @@ retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count) {
   return Ok;
 }
 
-retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
+retCode testResult(blockPo block, blockPo tgtBlock) {
   jitCompPo jit = block->jit;
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo skip = newLabel(ctx);

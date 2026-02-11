@@ -163,6 +163,8 @@ test.bench.nbody{
     valis verfy(energy(system),iterations)
   }
 
+  /* Looks like we lose some precision because we don't have support for FMA
+     in floating point */
   verfy(Result,Count) => case Count in {
     | 250000 => Result==-0.1690353223172673402 -- -0.1690859889909308
     | 1 => Result==-0.1690743916428782522 -- -0.16907495402506745
