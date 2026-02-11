@@ -99,6 +99,35 @@ represented as a multi-way branching tree; which offer effectively
 constant time performance for accessing and modifying vectors up to a
 significant size.
 
+[#redBlackTree]
+=== Red-Black Trees
+
+(((type,brtree))) The `rbtree` type denotes a tree data structure based on the
+concept of red-black trees. Red black trees are self-balancing trees that
+guarantee a maximum degree of 'unbalanced-ness' in the tree: thus making their
+performance more predictable than regular binary trees.
+
+The `rbtree` type signature shows that they are a form of map type:
+
+.The `red-black` Tree Type
+[source,star]
+----
+all k,v ~~ comp[k], equality[k] |= rbtree[k,v] <~ {}
+----
+
+In order to use ``rbtree``s, it is necessary to import the `redblack` package:
+
+[source,star]
+----
+import star.redblack
+----
+
+The standard contracts `display`, `equality`, `indexed`, `build`, `sequence`,
+`stream`, `ixmap`, `ixfold`, `ixfilter`, `iter`, `_generate` and `sizeable` are
+implemented for the `rbtree` type.
+
+In addition, coercion is supported between `rbtree` values and `cons` lists of `keyval` pairs.
+
 == Implemented Collection Contracts
 
 For the vast majority of cases, the built-in functions that
