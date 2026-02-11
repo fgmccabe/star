@@ -7,6 +7,7 @@ test.bench.test{
   import test.bench.hanoi.
   import test.bench.list.
   import test.bench.mandelbrot.
+  import test.bench.nbody.
   import test.bench.sieve.
 
   geomean:(cons[float])=>float throws exception.
@@ -18,6 +19,7 @@ test.bench.test{
     hanoiBenchTest(),
     listBenchTest(),
     mandelBenchTest(),
+    nbodyBenchTest(),
     sieveBenchTest(),..
     collectionBenchTest()].
 

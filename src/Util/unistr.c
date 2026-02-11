@@ -213,7 +213,7 @@ retCode uniAppend(char *dest, integer *pos, integer len, char *src) {
 }
 
 retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLen) {
-  for (long sx = 0; sx < sLen && *pos < len;)
+  for (long sx = 0; sx < sLen && *pos < len; sx++)
     dest[(*pos)++] = *src++;
   if (*pos < len - 1) {
     dest[*pos] = 0;
