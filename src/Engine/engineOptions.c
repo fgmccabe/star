@@ -64,13 +64,13 @@ static retCode debugOption(char *option, OptionAction action) {
 
       case 'd': /* single step instruction tracing */
         insDebugging = True;
-        tracing = True;
+        tracing = generalTracing;
         interactive = True;
         continue;
 
       case 'D': /*  instruction tracing */
         insDebugging = True;
-        tracing = True;
+        tracing = generalTracing;
         interactive = False;
         continue;
 
@@ -148,14 +148,14 @@ static retCode debugOption(char *option, OptionAction action) {
       case 'G': /* Internal symbolic tracing */
         lineDebugging = True;
         interactive = False;
-        tracing = True;
+        tracing = generalTracing;
         logMsg(logFile, "Symbolic tracing enabled");
         continue;
 
       case 'g': /* Internal symbolic debugging */
         lineDebugging = True;
         interactive = True;
-        tracing = True;
+        tracing = generalTracing;
         continue;
 
       case 'j':

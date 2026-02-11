@@ -17,12 +17,9 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
   char signFmt = (char) (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
                          uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
 
-  if (precision > formSigDigits)
-    return Error;
-
   *pos = 0;
 
-  for (integer ix = formatLen - 1, px = precision - 1; ix >= 0; ix--) {
+  for (integer ix = formatLen - 1, px = minimum(formSigDigits,precision)- 1; ix >= 0; ix--) {
     char formChar = format[ix];
     switch (formChar) {
       case '-':
@@ -78,7 +75,8 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
           attachChar(out, pos, outLen, formChar);
         break;
       case ' ':
-        if (px >= 0) { // more of the raw result to write out
+        if (px >= 0) {
+          // more of the raw result to write out
           attachChar(out, pos, outLen, digits[px]);
           px--;
         } else if (zeroDigits > 0) {
@@ -116,7 +114,8 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
         zeroDigits--;
         break;
       case '0':
-        if (px >= 0) { // more of the raw result to write out
+        if (px >= 0) {
+          // more of the raw result to write out
           attachChar(out, pos, outLen, digits[px]);
           px--;
         } else if (zeroDigits > 0)
@@ -126,14 +125,14 @@ formatDigits(sign sign, const char *digits, integer digitLen, integer precision,
         break;
       case '9':
       case 'X':
-        if (px >= 0) { // more of the raw result to write out
+        if (px >= 0) {
+          // more of the raw result to write out
           attachChar(out, pos, outLen, digits[px]);
           px--;
         }
         break;
       case 'U':
         if (px >= 0) {
-
         }
       case 'e':
       case 'E':

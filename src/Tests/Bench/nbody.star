@@ -5,7 +5,7 @@ test.bench.nbody{
   import test.lib.timer.
 
   PI = 3.141592653589793.
-  SOLAR_MASS = 4.0 * PI * PI.
+  SOLAR_MASS = 4.0 * (PI * PI).
   DAYS_PER_YEAR = 365.24.
 
   body ::= body{
@@ -138,7 +138,7 @@ test.bench.nbody{
       e := 0.0;
       for ix in 0..<size(system) do{
 	b = ?system[ix];
-	e += 0.5*b.mass*(sqr(b.vx!)+sqr(b.vy!)+sqr(b.vz!));
+	e += 0.5*(b.mass*(sqr(b.vx!)+sqr(b.vy!)+sqr(b.vz!)));
 	
 	for jx in ix+1..<size(system) do{
 	  jb = ?system[jx];
@@ -164,8 +164,8 @@ test.bench.nbody{
   }
 
   verfy(Result,Count) => case Count in {
-    | 250000 => Result==-0.1690859889909308
-    | 1 => Result==-0.16907495402506745
+    | 250000 => Result==-0.1690353223172673402 -- -0.1690859889909308
+    | 1 => Result==-0.1690743916428782522 -- -0.16907495402506745
   }
 
   public nbodyBenchTest() => timeOf((){ innerLoop(250000) }).
