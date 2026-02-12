@@ -72,4 +72,5 @@ void retireScopeStack(scopePo scope, int32 pc);
 void rotateStackVars(scopePo scope, int32 pc, int32 depth);
 int32 stackDepth(scopePo scope);
 
+int32 slotCount(analysisPo analysis);
 #endif

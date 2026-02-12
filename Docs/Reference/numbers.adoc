@@ -52,8 +52,7 @@ values (see <<arithContract>>).
 
 === Arithmetic for Floating Points
 
-The `arith` contract is implemented for `float`
-values (see <<arithContract>>).
+The `arith` contract is implemented for `float` values (see <<arithContract>>).
 
 === Display for `integer`
 
