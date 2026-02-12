@@ -74,26 +74,7 @@ void storeVarble(jitCompPo jit, armReg src, int32 varNo);
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt);
-int32 trueStackDepth(valueStackPo stack);
-void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
-retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight);
-localVarPo pushBlank(valueStackPo stack);
-void pushValue(valueStackPo stack, LocalEntry var);
-void pushRegister(valueStackPo stack, armReg rg);
-void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
-void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) ;
-armReg popValue(valueStackPo stack, jitCompPo jit);
-armReg topValue(valueStackPo stack, jitCompPo jit);
-armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth);
-void dropValue(valueStackPo stack, jitCompPo jit);
-void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
-void spillStack(valueStackPo stack, jitCompPo jit);
 void frameOverride(blockPo block, int arity);
-void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry);
-
-localVarPo argSlot(valueStackPo stack, int32 slot);
-localVarPo localSlot(valueStackPo stack, int32 slot);
-localVarPo stackSlot(valueStackPo stack, int32 slot);
 
 void loadStack(jitCompPo jit, armReg tgt, int32 depth);
 void storeStack(jitCompPo jit, armReg src, int32 depth);

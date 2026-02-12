@@ -54,16 +54,8 @@ retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgL
     showAnalysis(logFile, &analysis);
   }
 
-  int32 numLcls = stackDelta(mtd) + mtdArity(mtd);
-  LocalEntry locals[numLcls];
-
-  ValueStack stack = {
-    .locals = locals,
-    .lclCount = numLcls,
-    .argPnt = numLcls - mtdArity(mtd),
-    .stackPnt = numLcls - mtdArity(mtd) - lclCount(mtd),
-    .vTop = 0
-  };
+  int32 numSlots = slotCount(&analysis);
+  LocalVar locals[numSlots];
 
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
@@ -73,7 +65,7 @@ retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgL
 #endif
 
   for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
-    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
+    locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
   }
   for (int32 lx = 1; lx <= lclCount(mtd); lx++) {
     stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = False};
@@ -87,9 +79,6 @@ retCode jitInstructionsA(jitCompPo jit, methodPo mtd, char *errMsg, integer msgL
     .startPc = 0, .endPc = codeSize(mtd),
     .breakLbl = Null, .loopLbl = Null,
     .parent = Null,
-    .entryHeight = 0,
-    .exitHeight = 0,
-    .stack = stack
   };
 
   retCode ret = jitBlock(&block, &analysis, entryPoint(mtd), 0, codeSize(mtd));
