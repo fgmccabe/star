@@ -7,7 +7,6 @@
 
 #include "analyse.h"
 #include "array.h"
-#include "engineOptions.h"
 #include "tree.h"
 
 typedef struct analysis_ {
