@@ -30,17 +30,17 @@ set(HEADER_FILES
         ../Headers/infra.h
         ../Analysis/Headers/analyse.h
         ../Analysis/Headers/analyseP.h
+        Headers/shuffle.h
+        Headers/lowerAP.h
 )
 
 set(SOURCE_FILES
         lower.c
-        lowerA.c
+ #       lowerA.c
         lowerStack.c
         lowerFrame.c
         lowerFFI.c
-        shuffle.c
-        Headers/shuffle.h
-        Headers/lowerAP.h)
+        shuffle.c)
 
 add_library(ARM64 STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(ARM64 assem ssa)

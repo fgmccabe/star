@@ -13,6 +13,7 @@
 #include "arith.h"
 #include "char.h"
 #include "jitP.h"
+#include "analyseP.h"
 
 #define CO (X12)
 #define AG  (X13)
@@ -27,14 +28,22 @@ typedef struct {
   logical stashed; // Is the value in memory?
   logical live;    // Is the value in a register?
   logical inited;
+  varDescPo varDesc;
 } LocalVar, *localVarPo;
+
+typedef struct {
+  analysisPo analysis;
+  jitCompPo jit;
+  localVarPo locals;
+  int32 numLocals;
+} CodeGenState, *codeGenPo;
 
 typedef struct jitBlock_ *blockPo;
 
 typedef struct jitBlock_ {
-  jitCompPo jit;
   int32 startPc;
   int32 endPc;
+  varDescPo phiVar;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   blockPo parent;
