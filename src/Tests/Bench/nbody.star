@@ -160,12 +160,13 @@ test.bench.nbody{
       advance(system,0.01)
     };
 
-    valis verfy(energy(system),iterations)
+    valis verify(energy(system),iterations)
   }
 
   /* Looks like we lose some precision because we don't have support for FMA
-     in floating point */
-  verfy(Result,Count) => case Count in {
+  in floating point */
+  verify:(float,integer)=>boolean.
+  verify(Result,Count) => case Count in {
     | 250000 => Result==-0.1690353223172673402 -- -0.1690859889909308
     | 1 => Result==-0.1690743916428782522 -- -0.16907495402506745
   }
@@ -181,8 +182,3 @@ test.bench.nbody{
     timer_finish(timer);
   }
 }
-
-    
-  
-  
-    
