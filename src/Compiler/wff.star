@@ -878,6 +878,7 @@ star.compiler.wff{
   public mkValof(Lc,I) => unary(Lc,"valof",brTuple(Lc,[reSequence(I)])).
 
   reSequence:(cons[ast]) => ast.
+  reSequence([]) => brTuple(.none,[]).
   reSequence([A]) => A.
   reSequence([A,..As]) =>
     binary(locOf(A),";",A,reSequence(As)).
