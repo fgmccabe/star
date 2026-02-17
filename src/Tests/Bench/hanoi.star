@@ -48,10 +48,11 @@ test.bench.hanoi{
   }
 
   test(count) => 
-    verfy(hanoi(count),count).
+    verify(hanoi(count),count).
 
-  verfy(8191,13) => .true.
-  verfy(Mvs,Cnt) => Mvs==(1.<<.Cnt)-1.
+  verify:(integer,integer)=>boolean.
+  verify(8191,13) => .true.
+  verify(Mvs,Cnt) => Mvs==(1.<<.Cnt)-1.
 
   public hanoiBenchTest()=>timeOf((){ test(20) }).
 
