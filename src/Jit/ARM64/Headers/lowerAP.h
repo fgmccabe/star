@@ -23,8 +23,6 @@
 typedef struct {
   armReg Rg;
   int32 stkOff;
-  int32 fromPc;
-  int32 toPc;
   logical stashed; // Is the value in memory?
   logical live;    // Is the value in a register?
   logical inited;
@@ -32,10 +30,12 @@ typedef struct {
 } LocalVar, *localVarPo;
 
 typedef struct {
+  methodPo mtd;
   analysisPo analysis;
   jitCompPo jit;
   localVarPo locals;
   int32 numLocals;
+  int32 argPt;
 } CodeGenState, *codeGenPo;
 
 typedef struct jitBlock_ *blockPo;

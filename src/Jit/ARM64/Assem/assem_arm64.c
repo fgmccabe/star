@@ -15,6 +15,43 @@
 #define TRACE(Op)
 #endif
 
+char *registerName(armReg Rg) {
+  switch (Rg) {
+    case X0: return "X0";
+    case X1: return "X1";
+    case X2: return "X2";
+    case X3: return "X3";
+    case X4: return "X4";
+    case X5: return "x5";
+    case X6: return "x6";
+    case X7: return "x7";
+    case X8: return "x8";
+    case X9: return "x9";
+    case X10: return "x10";
+    case X11: return "x11";
+    case X12: return "x12";
+    case X13: return "x13";
+    case X14: return "x14";
+    case X15: return "x15";
+    case X16: return "x16";
+    case X17: return "x17";
+    case X18: return "x18";
+    case X19: return "x19";
+    case X20: return "x20";
+    case X21: return "x21";
+    case X22: return "x22";
+    case X23: return "x23";
+    case X24: return "x24";
+    case X25: return "x25";
+    case X26: return "x26";
+    case X27: return "x27";
+    case X28: return "x28";
+    case X29: return "x29";
+    case X30: return "x30";
+    case XZR: return "XZR";
+  }
+}
+
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize) {
   codeLblPo entry = defineLabel(ctx, ctx->pc);
   int32 stkAdjustment = ALIGNVALUE(lclSize, 16);

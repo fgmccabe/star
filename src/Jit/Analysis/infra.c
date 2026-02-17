@@ -35,7 +35,7 @@ static char *stateName[] = {
 
 static retCode showVar(ioPo out, varDescPo var) {
   return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varType(var->kind), var->start,
-                var->end, (var->registerCandidate ? "reg " : ""), var->loc);
+                var->end, (var->registerCandidate ? "reg " : ""), var->slot);
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -78,6 +78,7 @@ static void checkIndex(treePo index) {
 void showAnalysis(ioPo out, analysisPo analysis) {
   checkIndex(analysis->index);
   outMsg(out, "Analysis:\n");\
+  showVars(out, analysis);
   outMsg(out, "  index:\n");
   showVarIndex(out, analysis);
   outMsg(out, "Safe points: ");
@@ -122,17 +123,21 @@ treePo newVarIndex() {
 }
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
-  varDescPo var = findVar(analysis, analysis->vars, varNo);
+  varDescPo var = findVar(analysis, varNo);
   assert(var != Null && (kind==phi || var->start==-1));
   var->start = pc;
   treePut(analysis->index, (void *) (integer) pc, var);
 }
 
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
-  varDescPo var = findVar(analysis, analysis->vars, varNo);
+  varDescPo var = findVar(analysis, varNo);
 
   if (var->end < pc)
     var->end = pc;
+}
+
+varDescPo isVarStart(analysisPo analysis, int32 pc) {
+  return treeGet(analysis->index, (void*)(integer)pc);
 }
 
 static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
@@ -144,7 +149,7 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
   var->kind = kind;
   var->start = pc;
   var->end = -1;
-  var->loc = (state == allocated ? varNo : MAX_INT32);
+  var->slot = (state == allocated ? varNo : MAX_INT32);
   var->registerCandidate = False;
   var->state = state;
 
@@ -169,7 +174,7 @@ void setState(varDescPo var, varAllocationState state) {
 }
 
 int32 stackLoc(varDescPo var) {
-  return var->loc;
+  return var->slot;
 }
 
 void markVarAsRegister(varDescPo var) {
@@ -177,11 +182,11 @@ void markVarAsRegister(varDescPo var) {
 }
 
 void setVarSlot(varDescPo var, int32 slotNo) {
-  var->loc = slotNo;
+  var->slot = slotNo;
   setState(var, beingAllocated);
 }
 
-varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
+varDescPo findVar(analysisPo analysis, int32 varNo) {
   VarDescRecord nme = {.varNo = varNo};
   return hashGet(analysis->vars, &nme);
 }
@@ -385,8 +390,8 @@ static retCode checkSlot(void *n, void *r, void *cl) {
 
   assert(var->state==allocated);
 
-  if (var->loc < analysis->minSlot)
-    analysis->minSlot = var->loc;
+  if (var->slot < analysis->minSlot)
+    analysis->minSlot = var->slot;
   return Ok;
 }
 

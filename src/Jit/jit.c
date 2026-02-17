@@ -35,9 +35,9 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     }
 #endif
 
-    // if (enableSSA){
-    //   jitInstructionsA(jit, mtd, errMsg, msgLen);
-    // }
+    if (enableSSA){
+      jitInstructionsA(jit, mtd, errMsg, msgLen);
+    }
 
     retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
 

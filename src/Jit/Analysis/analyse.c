@@ -200,7 +200,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       newStackVar(analysis, &scope, pc);
       continue;
     case Ld:
-      recordVariableUse(analysis, ins->fst, pc);
+      recordVariableUse(analysis, ins->fst, pc+1);
       newStackVar(analysis, &scope, pc);
       continue;
     case St:

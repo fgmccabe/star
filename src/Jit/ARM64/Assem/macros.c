@@ -15,17 +15,16 @@ registerMap emptyRegSet() {
   return 0;
 }
 
-registerMap allRegisters(){
-    return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8
-  | 1u << X9 | 1u << X10;
+registerMap allRegisters() {
+  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8
+         | 1u << X9 | 1u << X10;
 }
 
 registerMap fixedRegSet(armReg Rg) {
   return 1u << Rg;
 }
 
-registerMap mapUnion(registerMap a, registerMap b)
-{
+registerMap mapUnion(registerMap a, registerMap b) {
   return a | b;
 }
 
@@ -113,15 +112,26 @@ void restoreRegisters(assemCtxPo ctx, registerMap regs) {
   restRegisters(ctx, regs, XZR);
 }
 
-void showReg(armReg rg, void *cl) {
-  outMsg((ioPo) cl, "%R ", rg);
+typedef struct {
+  ioPo out;
+  char *sep;
+} ShowRegInfo;
+
+static void showReg(armReg rg, void *cl) {
+  ShowRegInfo *info = (ShowRegInfo *) cl;
+  outMsg(info->out, "%s%R", info->sep, rg);
+  info->sep = ", ";
 }
 
 void dRegisterMap(registerMap regs) {
+  showRegisterMap(logFile, regs);
+}
+
+void showRegisterMap(ioPo out, registerMap regs) {
   outMsg(logFile, "registers: {");
-  processRegisterMap(regs, showReg, logFile);
-  outMsg(logFile, "}\n");
-  flushOut();
+  ShowRegInfo info = {.out = out, .sep = ""};
+  processRegisterMap(regs, showReg, &info);
+  outMsg(logFile, "}\n%_");
 }
 
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address) {

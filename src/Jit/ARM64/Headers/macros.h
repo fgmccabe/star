@@ -49,6 +49,7 @@ typedef void (*regProc)(armReg rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 void dRegisterMap(registerMap regs);
+void showRegisterMap(ioPo out, registerMap regs);
 
 typedef integer (*runtimeFn)();
 

@@ -46,6 +46,8 @@ typedef enum {
   SP = 31
 } armReg;
 
+char *registerName(armReg);
+
 typedef armReg mcRegister;
 
 typedef enum {
