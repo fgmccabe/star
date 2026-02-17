@@ -21,10 +21,10 @@
 #define PR (X15)
 
 typedef struct {
-  armReg Rg;
+  FlexOp src;
   int32 stkOff;
-  logical stashed; // Is the value in memory?
-  logical live;    // Is the value in a register?
+  logical stashed; // Is the value in the stack frame?
+  logical live;    // Is the variable in use?
   logical inited;
   varDescPo varDesc;
 } LocalVar, *localVarPo;
