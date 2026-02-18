@@ -3,6 +3,7 @@
     "test.bench.benchmark": "benchmark.star",
     "test.bench.bounce": "bounce.star",
     "test.bench.collections": "colltests.star",
+    "test.bench.deltablue": "deltablue.star",
     "test.bench.list": "list.star",
     "test.bench.mandelbrot": "mand.star",
     "test.bench.hanoi": "hanoi.star",
