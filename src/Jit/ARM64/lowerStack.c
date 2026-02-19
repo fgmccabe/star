@@ -321,13 +321,13 @@ void storeStack(jitCompPo jit, armReg src, int32 depth) {
 void loadVarble(jitCompPo jit, armReg tgt, int32 varNo) {
   check(varNo >= jit->minOffset && varNo < jit->maxOffset,
         "Accessing out of bounds variable");
-  loadOffset(jit, tgt, AG, varNo);
+  loadElement(jit, tgt, AG, varNo);
 }
 
 void storeVarble(jitCompPo jit, armReg src, int32 varNo) {
   check(varNo >= jit->minOffset && varNo < jit->maxOffset,
         "Accessing out of bounds variable");
-  storeOffset(jit, src, AG, varNo);
+  storeElement(jit, src, AG, varNo);
 }
 
 void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
@@ -337,10 +337,10 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt) {
   if (isSmall(lit))
     mov(tgt, IM((integer) lit));
   else
-    loadOffset(jit, tgt, CO, key);
+    loadElement(jit, tgt, CO, key);
 }
 
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
+void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
   assemCtxPo ctx = assemCtx(jit);
   int32 offset = ix * pointerSize;
   if (is9bit(offset))
@@ -351,14 +351,14 @@ void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix) {
   }
 }
 
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo) {
+void storeElement(jitCompPo jit, armReg src, armReg base, int32 ix) {
   assemCtxPo ctx = assemCtx(jit);
-  int32 offset = lclNo * pointerSize;
+  int32 offset = ix * pointerSize;
   if (is9bit(offset))
     stur(src, base, offset);
   else {
     armReg tmp = findFreeReg(jit);
-    mov(tmp, IM(lclNo));
+    mov(tmp, IM(ix));
     str(src, EX2(base, tmp, U_XTX, 3));
     releaseReg(jit, tmp);
   }

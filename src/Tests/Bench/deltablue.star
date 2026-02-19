@@ -33,10 +33,20 @@ test.bench.deltablue{
     X == Y => strengthValue(X)==strengthValue(Y)
   }
 
-  contract all c ~~ constraint[c] ::= {
+  contract all c ~~ hasConstraint[c] ::= {
     strength:(c) => strength.
     isInput:(c) => boolean.
     isSatisfied:(c)=>boolean.
   }
+
+  constraint ::= .binary(strength,ref boolean,variable,variable,ref direction)
+  | .unary(strength,ref boolean,variable).
+    
+
+  variable ::= var{
+    value : ref integer.
+    references : ref vect[constraint].
+  }
+
 
 }

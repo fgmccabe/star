@@ -3,6 +3,8 @@
 //
 
 #include <assert.h>
+
+#include "globals.h"
 #include "singleP.h"
 
 static long singleSize(specialClassPo cl, termPo o);
@@ -14,14 +16,14 @@ static retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, 
 static termPo singleFinalizer(specialClassPo class, termPo o);
 
 SpecialClass SingleClass = {
-    .clss = Null,
-    .sizeFun = singleSize,
-    .copyFun = singleCopy,
-    .scanFun = singleScan,
-    .finalizer = singleFinalizer,
-    .compFun = singleCmp,
-    .hashFun = singleHash,
-    .dispFun = singleDisp
+  .clss = Null,
+  .sizeFun = singleSize,
+  .copyFun = singleCopy,
+  .scanFun = singleScan,
+  .finalizer = singleFinalizer,
+  .compFun = singleCmp,
+  .hashFun = singleHash,
+  .dispFun = singleDisp
 };
 
 clssPo singleClass = (clssPo) &SingleClass;
@@ -39,7 +41,7 @@ singlePo C_SINGLE(termPo t) {
 singlePo singleVar(heapPo H) {
   singlePo single = (singlePo) allocateObject(H, singleClass, SingleCellCount);
 
-  single->content = Null;
+  single->content = voidEnum;
   single->clss.clss = singleClass;
 
   return single;
@@ -53,7 +55,7 @@ logical singleCmp(specialClassPo cl, termPo o1, termPo o2) {
   singlePo i1 = C_SINGLE(o1);
   singlePo i2 = C_SINGLE(o2);
 
-  return (logical) (i1==i2);
+  return (logical) (i1 == i2);
 }
 
 static integer singleHash(specialClassPo cl, termPo o) {
@@ -69,8 +71,7 @@ termPo singleCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo singleScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   singlePo single = C_SINGLE(o);
 
-  if (single->content != Null)
-    helper((ptrPo) (&single->content), c);
+  helper((ptrPo) (&single->content), c);
 
   return o + SingleCellCount;
 }
@@ -82,10 +83,7 @@ termPo singleFinalizer(specialClassPo class, termPo o) {
 retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   singlePo single = C_SINGLE(t);
 
-  if (singleVal(single) != Null)
-    return outMsg(out, "<!%,*T!>", depth, single->content);
-  else
-    return outMsg(out, "<!(undef)!>");
+  return outMsg(out, "<!%,*T!>", depth, single->content);
 }
 
 termPo singleVal(singlePo v) {
@@ -93,15 +91,11 @@ termPo singleVal(singlePo v) {
 }
 
 termPo setSingle(singlePo v, termPo e) {
-  assert(e != Null);
-
   termPo prev = v->content;
   v->content = e;
   return prev;
 }
 
 logical singleIsSet(singlePo single) {
-  return (logical) (single->content != Null);
+  return (logical) (single->content != voidEnum);
 }
-
-

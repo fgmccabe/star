@@ -136,7 +136,7 @@ void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
     var->end = pc;
 }
 
-varDescPo isVarStart(analysisPo analysis, int32 pc) {
+varDescPo varStart(analysisPo analysis, int32 pc) {
   return treeGet(analysis->index, (void*)(integer)pc);
 }
 

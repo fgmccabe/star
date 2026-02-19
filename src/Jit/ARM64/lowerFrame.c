@@ -37,9 +37,8 @@ retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt) {
   return jitError(jit, "cannot find target label for %d", tgt);
 }
 
-retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock) {
+retCode breakOut(assemCtxPo ctx, jitBlockPo tgtBlock) {
   codeLblPo lbl = breakLabel(tgtBlock);
-  assemCtxPo ctx = assemCtx(block->jit);
   b(lbl);
   return Ok;
 }

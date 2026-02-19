@@ -8,16 +8,11 @@
 
 registerMap defltAvailRegSet() {
   return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8 | 1u << X9 |
-         1u << X10;
+         1u << X10 | 1u << X11;
 }
 
 registerMap emptyRegSet() {
   return 0;
-}
-
-registerMap allRegisters() {
-  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7 | 1u << X8
-         | 1u << X9 | 1u << X10;
 }
 
 registerMap fixedRegSet(armReg Rg) {

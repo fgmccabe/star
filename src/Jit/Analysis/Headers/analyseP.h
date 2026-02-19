@@ -57,7 +57,7 @@ void setVarSlot(varDescPo var, int32 slotNo);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
-varDescPo isVarStart(analysisPo analysis, int32 pc);
+varDescPo varStart(analysisPo analysis, int32 pc);
 
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);

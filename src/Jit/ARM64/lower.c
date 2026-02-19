@@ -481,7 +481,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
         // tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        return breakOut(block, tgtBlock);
+        return breakOut(ctx, tgtBlock);
       }
       case Result: {
         // return value out of block
@@ -507,7 +507,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
           dumpStack(&tgtBlock->parent->stack);
 #endif
 
-        return breakOut(block, tgtBlock);
+        return breakOut(ctx, tgtBlock);
       }
       case Loop: {
         // jump back to start of block
@@ -748,7 +748,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         armReg sng = allocSmallStruct(block, singleClass, SingleCellCount);
         armReg tmp = findFreeReg(jit);
-        mov(tmp, IM((integer) Null));
+        loadConstant(jit,voidIndex,tmp);
         str(tmp, OF(sng, OffsetOf(SingleRecord, content)));
         releaseReg(jit, tmp);
         pushRegister(stack, sng);
@@ -762,9 +762,12 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
         codeLblPo skip = newLabel(ctx);
-        cbnz(sng, skip);
+        armReg tmp = findFreeReg(jit);
+        loadConstant(jit, voidIndex, tmp);
+        cmp(tmp,RG(sng));
+        bne(skip);
         tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        ret = breakOut(block, tgtBlock);
+        ret = breakOut(ctx, tgtBlock);
         bind(skip);
         pushRegister(stack, sng);
         continue;
@@ -925,7 +928,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Nth: {
         // T --> el, pick up the nth element
         armReg vl = popValue(stack, jit);
-        loadOffset(jit, vl, vl, code[pc].fst + 1);
+        loadElement(jit, vl, vl, code[pc].fst + 1);
         pushRegister(stack, vl);
         continue;
       }
@@ -1806,7 +1809,7 @@ retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
   valueStackPo srcStack = &block->stack;
   propagateStack(jit, srcStack, tgtStack, tgtBlock->exitHeight - 1);
   forcePush(jit, tgtStack, er);
-  retCode ret = breakOut(block, tgtBlock);
+  retCode ret = breakOut(ctx, tgtBlock);
   bind(skip);
   return ret;
 }

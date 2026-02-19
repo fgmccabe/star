@@ -91,14 +91,14 @@ codeLblPo loopLabel(jitBlockPo block);
 
 retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
-retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock);
+retCode breakOut(assemCtxPo ctx, jitBlockPo tgtBlock);
 
 void stash(jitBlockPo block);
 void stashRegisters(jitCompPo jit, int32 stackLevel);
 void unstash(jitCompPo jit);
 
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
+void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix);
+void storeElement(jitCompPo jit, armReg src, armReg base, int32 ix);
 
 void loadVarble(jitCompPo jit, armReg tgt, int32 varNo);
 void storeVarble(jitCompPo jit, armReg src, int32 varNo);
