@@ -37,7 +37,7 @@ typedef struct {
   int32 numLocals;
   int32 argPt;
   int32 top;
-  varDescPo *stack;
+  FlexOp *stack;
 } CodeGenState, *codeGenPo;
 
 typedef struct jitBlock_ *blockPo;
@@ -45,7 +45,7 @@ typedef struct jitBlock_ *blockPo;
 typedef struct jitBlock_ {
   int32 startPc;
   int32 endPc;
-  varDescPo phiVar;
+  localVarPo phiVar;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   blockPo parent;
