@@ -2174,9 +2174,11 @@ void retireExpiredVars(codeGenPo state, int32 pc) {
     if (lcl->live) {
       varDescPo desc = lcl->varDesc;
       if (desc->end <= pc) {
+#ifdef TRACEJIT
         if (traceJit >= detailedTracing) {
           outMsg(logFile, "Retire variable L[%d] at %d\n", desc->varNo, pc);
         }
+#endif
         lcl->live = False;
         if (isRegisterOp(lcl->src) && !registerInUse(state, lcl->src)) {
           releaseReg(state->jit, lcl->src.reg);
@@ -2193,9 +2195,11 @@ static void maybeRetireVar(codeGenPo state, int32 vx, int32 pc) {
     if (lcl->live && lcl->varDesc->varNo == vx) {
       varDescPo desc = lcl->varDesc;
       if (desc->end <= pc) {
+#ifdef TRACEJIT
         if (traceJit >= detailedTracing) {
           outMsg(logFile, "Retire variable L[%d] (%F) at %d\n%_", vx, pc, lcl->src);
         }
+#endif
 
         if (isRegisterOp(lcl->src) && !registerInUse(state, lcl->src)) {
           releaseReg(state->jit, lcl->src.reg);
