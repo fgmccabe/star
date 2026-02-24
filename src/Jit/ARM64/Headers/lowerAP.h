@@ -19,7 +19,7 @@
 #define AG  (X13)
 #define STK (X14)
 #define PR (X15)
-#define RTN (X0)
+#define RTV (X0)
 #define RTS (X1)
 
 typedef struct {
