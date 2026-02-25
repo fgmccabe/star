@@ -1415,7 +1415,6 @@ void tbz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx) {
 }
 
 void tst_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"tst %R,%F\n%_",Rn,&S2));
   ands_(w, XZR, Rn, S2, ctx);
 }
 

@@ -199,3 +199,20 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs) {
       check(False, "unsupported destination mode");
   }
 }
+
+static logical powerOf2(int64 val) {
+  return val > 0 && (val & (val - 1)) == 0;
+}
+
+void immModulo(assemCtxPo ctx, armReg rg, int64 modulo, registerMap freeRegs) {
+  if (powerOf2(modulo)) {
+    int32 cnt = (int32)lg2(modulo);
+    asr(rg,rg,IM(cnt));
+  } else {
+    armReg divisor = nxtAvailReg(freeRegs);
+    armReg quotient = nxtAvailReg(dropReg(freeRegs, divisor));
+    mov(divisor, IM(modulo));
+    udiv(quotient, rg, divisor);
+    msub(rg, divisor, quotient, rg);
+  }
+}
