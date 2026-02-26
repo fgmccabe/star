@@ -27,7 +27,7 @@ typedef struct {
   int32 stkOff;
   logical stashed; // Is the value in the stack frame?
   logical live;    // Is the variable in use?
-  varDescPo varDesc;
+  varDescPo desc;
 } LocalVar, *localVarPo;
 
 typedef struct {

@@ -25,8 +25,6 @@ void tearDownAnalysis(AnalysisRecord *results) {
   eraseTree(results->index);
 }
 
-static char *varType(varKind kind);
-
 static char *stateName[] = {
   "unAllocated",
   "beingAllocated",
@@ -34,7 +32,7 @@ static char *stateName[] = {
 };
 
 static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varType(var->kind), var->start,
+  return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varKindName(var->kind), var->start,
                 var->end, (var->registerCandidate ? "reg " : ""), var->slot);
 }
 
@@ -254,7 +252,7 @@ void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
   }
 }
 
-char *varType(varKind kind) {
+char *varKindName(varKind kind) {
   switch (kind) {
     case argument:
       return "argument";
