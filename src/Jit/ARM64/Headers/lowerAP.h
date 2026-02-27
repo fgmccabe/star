@@ -36,7 +36,6 @@ typedef struct {
   jitCompPo jit;
   localVarPo locals;
   int32 numLocals;
-  int32 argPt;
   int32 top;
   localVarPo *stack;
 } CodeGenState, *codeGenPo;

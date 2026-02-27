@@ -20,7 +20,6 @@ typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
-  int32 slot; // Which slot in the frame
   logical registerCandidate;
   varKind kind;
   varAllocationState state;
@@ -51,9 +50,8 @@ int32 minSlot(analysisPo analysis);
 logical isSafe(analysisPo analysis, varDescPo var);
 void setSafePoint(analysisPo analysis, int32 pc);
 
-int32 stackLoc(varDescPo var);
 void markVarAsRegister(varDescPo var);
-void setVarSlot(varDescPo var, int32 slotNo);
+void markVarAsMemory(varDescPo var);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);

@@ -32,8 +32,8 @@ static char *stateName[] = {
 };
 
 static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varKindName(var->kind), var->start,
-                var->end, (var->registerCandidate ? "reg " : ""), var->slot);
+  return outMsg(out, "%d: %s [%d, %d) %s\n", var->varNo, varKindName(var->kind), var->start,
+                var->end, (var->registerCandidate ? "reg " : "mem"));
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -147,7 +147,6 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
   var->kind = kind;
   var->start = pc;
   var->end = -1;
-  var->slot = (state == allocated ? varNo : MAX_INT32);
   var->registerCandidate = False;
   var->state = state;
 
@@ -171,17 +170,12 @@ void setState(varDescPo var, varAllocationState state) {
   var->state = state;
 }
 
-int32 stackLoc(varDescPo var) {
-  return var->slot;
-}
-
 void markVarAsRegister(varDescPo var) {
   var->registerCandidate = True;
 }
 
-void setVarSlot(varDescPo var, int32 slotNo) {
-  var->slot = slotNo;
-  setState(var, beingAllocated);
+void markVarAsMemory(varDescPo var) {
+  var->registerCandidate = False;
 }
 
 varDescPo findVar(analysisPo analysis, int32 varNo) {
@@ -388,8 +382,6 @@ static retCode checkSlot(void *n, void *r, void *cl) {
 
   assert(var->state==allocated);
 
-  if (var->slot < analysis->minSlot)
-    analysis->minSlot = var->slot;
   return Ok;
 }
 

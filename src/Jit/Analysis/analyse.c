@@ -414,7 +414,7 @@ logical isLastPC(scopePo scope, int32 pc)
   return pc + 1 == scope->limit;
 }
 
-static int32 allocateVarSlots(analysisPo analysis, methodPo mtd);
+static void markVarSlots(analysisPo analysis, methodPo mtd);
 
 retCode analyseMethod(methodPo mtd, analysisPo results)
 {
@@ -433,42 +433,11 @@ retCode analyseMethod(methodPo mtd, analysisPo results)
   }
 
   retCode ret = analyseBlock(results, Null, entryPoint(mtd), 0, 0, codeSize(mtd));
-  allocateVarSlots(results, mtd);
+  markVarSlots(results, mtd);
   return ret;
 }
 
-typedef struct
-{
-  setPo useMap;
-  int32 lastPc;
-} AllocInfo;
-
-static int32 findFreeSlot(intervalSetPo usage)
-{
-  int32 slotNo = findSpace(usage, 1);
-  addToIntervalSet(usage, slotNo);
-  return slotNo;
-}
-
-static void releaseVarSlot(intervalSetPo usage, int32 slotNo)
-{
-  assert(slotNo>=1);
-  assert(inIntervalSet(usage,slotNo));
-  removeFromIntervalSet(usage, slotNo);
-}
-
-static void retireExistingSlots(arrayPo ranges, intervalSetPo allocMap, int32 pc)
-{
-  for (int32 ix = 0; ix < arrayCount(ranges); ix++){
-    varDescPo var = *(varDescPo*)nthEntry(ranges, ix);
-    if (var->end <= pc && varState(var) == beingAllocated){
-      releaseVarSlot(allocMap, -stackLoc(var));
-      setState(var, allocated);
-    }
-  }
-}
-
-int32 allocateVarSlots(analysisPo analysis, methodPo mtd)
+void markVarSlots(analysisPo analysis, methodPo mtd)
 {
   arrayPo ranges = varRanges(analysis);
 
@@ -480,24 +449,17 @@ int32 allocateVarSlots(analysisPo analysis, methodPo mtd)
   while (start < tableSize){
     varDescPo var = *(varDescPo*)nthEntry(ranges, start);
 
-    retireExistingSlots(ranges, allocMap, var->start);
-
     if (isSafe(analysis, var))
       markVarAsRegister(var);
-    if (varState(var) == unAllocated){
-      int32 slotNo = findFreeSlot(allocMap);
-      setVarSlot(var, -slotNo);
-    }
+    else
+      markVarAsMemory(var);
     start++;
   }
-
-  retireExistingSlots(ranges, allocMap, codeSize(mtd));
 
   assert(intervalSetIsEmpty(allocMap));
 
   deleteIntervalSet(allocMap);
   eraseArray(ranges,Null,Null);
-  return minSlot(analysis);
 }
 
 int32 slotCount(analysisPo analysis)
