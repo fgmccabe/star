@@ -159,6 +159,12 @@ retCode jitSpecialInstructionsA(jitCompPo jit, methodPo mtd, int32 depth) {
   };
   populateLocals(&state);
 
+
+
+  for (int32 sx = 1; sx <= depth; sx++) {
+    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx), .inited = True};
+  }
+
   JitBlock block = {
     .startPc = 0, .endPc = codeSize(mtd), .breakLbl = Null, .loopLbl = Null, .parent = Null,
   };

@@ -35,11 +35,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     }
 #endif
 
-    if (enableSSA){
-      return jitInstructionsA(jit, mtd, errMsg, msgLen);
-    }
-
-    retCode ret = jitInstructions(jit, mtd, errMsg, msgLen);
+    retCode ret = (enableSSA?jitInstructionsA(jit, mtd, errMsg, msgLen):jitInstructions(jit, mtd, errMsg, msgLen));
 
     if (ret == Ok){
       assemCtxPo ctx = jit->assemCtx;
@@ -66,7 +62,7 @@ retCode jitSpecial(methodPo mtd, char* errMsg, integer msgLen, int32 depth)
       dRegisterMap(jit->freeRegs);
 #endif
 
-    retCode ret = jitSpecialInstructions(jit, mtd, depth);
+    retCode ret = (enableSSA?jitSpecialInstructionsA(jit, mtd, depth):jitSpecialInstructions(jit, mtd, depth));
 
     if (ret == Ok || ret == Switch){
       assemCtxPo ctx = jit->assemCtx;

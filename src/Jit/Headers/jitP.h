@@ -44,5 +44,6 @@ logical isI32(int64 x);
 retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 retCode jitInstructionsA(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) ;
+retCode jitSpecialInstructionsA(jitCompPo jit, methodPo mtd, int32 depth) ;
 
 #endif //STAR_JITP_H
