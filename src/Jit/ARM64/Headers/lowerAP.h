@@ -74,8 +74,8 @@ retCode breakOutNe(blockPo block, insPo code, int32 tgt);
 retCode breakOut(assemCtxPo ctx, blockPo tgtBlock);
 
 void stash(blockPo block);
-void stashRegisters(jitCompPo jit, int32 stackLevel);
-void unstash(jitCompPo jit);
+void stashEngineState(jitCompPo jit, int32 stackLevel);
+void unstashEngineState(jitCompPo jit);
 
 void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix);
 void storeElement(jitCompPo jit, armReg src, armReg base, int32 ix);

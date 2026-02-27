@@ -384,11 +384,11 @@ retCode stackCheck(jitCompPo jit, methodPo mtd) {
   adr(tmp, okLbl);
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
-  stashRegisters(jit, 0);
+  stashEngineState(jit, 0);
   retCode ret =
     callIntrinsic(ctx, criticalRegs(), (runtimeFn) handleStackOverflow, 4,
                   RG(PR), IM(True), IM(delta), IM(mtdArity(mtd)));
-  unstash(jit);
+  unstashEngineState(jit);
 
   bind(okLbl);
   releaseReg(jit, tmp);
