@@ -49,6 +49,7 @@ typedef void (*regProc)(armReg rg, void *cl);
 void processRegisterMap(registerMap set, regProc proc, void *cl);
 
 void dRegisterMap(registerMap regs);
+void showRegisterMap(ioPo out, registerMap regs);
 
 typedef integer (*runtimeFn)();
 
@@ -59,5 +60,7 @@ void move(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap freeRegs);
 
 retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 arity, ...);
 retCode loadCGlobal(assemCtxPo ctx, armReg reg, void *address);
+
+void immModulo(assemCtxPo ctx, armReg rg, int64 imm, registerMap freeRegs);
 
 #endif //STAR_MACROS_H

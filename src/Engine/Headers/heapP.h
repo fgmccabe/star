@@ -40,6 +40,7 @@ extern long maxHeapSize;         // Maximum permitted size of heap
 extern tracingLevel traceMemory; /* memory tracing */
 extern logical validateMemory;   // Validate heap after every allocation
 extern logical traceAllocs;      // trace allocations
+void showMemoryStats(ioPo out);  // Show memory statistics
 #endif
 
 extern retCode gcCollect(heapPo H, long amount);

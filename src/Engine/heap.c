@@ -16,6 +16,7 @@ heapPo currentHeap = Null;
 
 integer numAllocated = 0;
 integer totalAllocated = 0;
+integer allocationHeaps[64];
 
 void initHeap(long heapSize) {
   if (globalHeap == NULL) {
@@ -30,6 +31,8 @@ void initHeap(long heapSize) {
     if (traceMemory>noTracing) {
       outMsg(logFile, "establish heap of %ld words total\n", initHeapSize);
       outMsg(logFile, "lower half at 0x%x, %ld words\n", heap.start, heap.limit - heap.base);
+      for (int ix=0;ix<NumberOf(allocationHeaps);ix++)
+        allocationHeaps[ix]=0;
     }
 #endif
   }
@@ -76,6 +79,7 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
   if (traceAllocs) {
     numAllocated++;
     totalAllocated += amnt;
+    allocationHeaps[lg2(amnt)]++;
   }
 #endif
   return t;
@@ -116,3 +120,16 @@ void verifyHeap(heapPo H) {
     }
   }
 }
+
+#ifdef TRACEMEM
+void showMemoryStats(ioPo out) {
+  outMsg(out, "%ld total allocations, %ld total words\n", numAllocated, totalAllocated);
+  integer blockSize = 1;
+  for (int ix=0;ix<NumberOf(allocationHeaps);ix++) {
+    if (allocationHeaps[ix] != 0) {
+      outMsg(out,"%d allocations of %ld words\n",allocationHeaps[ix],blockSize);
+    }
+    blockSize<<=1;
+  }
+}
+#endif

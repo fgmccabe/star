@@ -163,7 +163,7 @@ static retCode debugOption(char *option, OptionAction action) {
 #ifdef TRACEJIT
         if (traceJit < detailedTracing)
           traceJit++;
-        logMsg(logFile, "Jit tracing enabled");
+        logMsg(logFile, "Jit tracing %s", traceJit == generalTracing ? "enabled" : "detauled");
         continue;
 #else
         logMsg(logFile, "jit tracing not enabled");

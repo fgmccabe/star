@@ -11,7 +11,7 @@
 #include <memory.h>
 #include <globalsP.h>
 
-long gcCount = 0;                       /* Number of times GC is invoked */
+long gcCount = 0; /* Number of times GC is invoked */
 long gcGrow = 0;
 
 #ifndef MAX_TABLE
@@ -21,7 +21,7 @@ long gcGrow = 0;
 static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
-static retCode extendHeap(heapPo H, integer factor, integer hmin);
+static retCode extendHeap(heapPo H, integer hmin);
 static termPo finalizeTerm(gcSupportPo G, termPo x);
 
 timerPo gcTimer = Null;
@@ -37,15 +37,15 @@ static void swapHeap(gcSupportPo G, heapPo H) {
     case lowerHalf:
       assert(H->outerLimit - H->split >= H->curr - H->start);
       H->start = H->curr = H->split;
-      H->limit = H->outerLimit;  /* shift to the upper half */
-      H->allocMode = upperHalf;    /* It is guaranteed to have enough room */
+      H->limit = H->outerLimit; /* shift to the upper half */
+      H->allocMode = upperHalf; /* It is guaranteed to have enough room */
       break;
-    case upperHalf:      /* Shift to the lower half */
+    case upperHalf: /* Shift to the lower half */
       assert(H->split - H->base >= H->curr - H->start);
       H->limit = H->split;
       H->start = H->curr = H->base;
       H->allocMode = lowerHalf;
-    default:;
+    default: ;
   }
 }
 
@@ -97,7 +97,7 @@ retCode gcCollect(heapPo H, long amount) {
   gcCount++;
   swapHeap(G, H);
 
-  for (int i = 0; i < H->topRoot; i++)    /* mark the external roots */
+  for (int i = 0; i < H->topRoot; i++) /* mark the external roots */
     *H->roots[i] = markPtr(G, H->roots[i]);
 
   markLabels(G);
@@ -128,7 +128,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
   if (H->limit - H->curr <= amount + 100) {
-    if (extendHeap(H, 2, amount) != Ok) {
+    if (extendHeap(H, amount) != Ok) {
       syserr("Unable to grow process heap");
       return Space;
     }
@@ -238,25 +238,26 @@ termPo finalizeTerm(gcSupportPo G, termPo x) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     sClass->finalizer(sClass, x);
     return x + sClass->sizeFun(sClass, x);
-
   } else {
     return x + NormalCellCount(termArity(C_NORMAL(x)));
   }
 }
 
 void dumpGcStats(ioPo out) {
-  logMsg(out, "%ld total allocations, %ld total words", numAllocated, totalAllocated);
   logMsg(out, "%d gc collections, %d heap grows", gcCount, gcGrow);
+#ifdef TRACEMEM
+  showMemoryStats(out);
+#endif
 }
 
-retCode extendHeap(heapPo H, integer factor, integer hmin) {
-  integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
+retCode extendHeap(heapPo H, integer hmin) {
+  integer newSize = (H->outerLimit - H->base) * 2 + hmin;
 
   gcGrow++;
 
 #ifdef TRACEMEM
   if (traceMemory > noTracing)
-    outMsg(logFile, "extending heap by: %ld+%ld to %ld\n%_", factor, hmin, newSize);
+    outMsg(logFile, "extending heap to %ld\n%_", newSize);
 #endif
 
   if (newSize > maxHeapSize)
@@ -280,7 +281,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
     verifyProcesses(H);
 #endif
 
-  for (int i = 0; i < H->topRoot; i++)    /* mark the external roots */
+  for (int i = 0; i < H->topRoot; i++) /* mark the external roots */
     *H->roots[i] = markPtr(G, H->roots[i]);
 
   markLabels(G);

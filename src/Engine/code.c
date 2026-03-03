@@ -229,14 +229,14 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, int32 lcls, int32 delta, int32 stackEntry) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, int32 lcls, int32 stkLimit, int32 depth) {
   labelPo lbl = declareLbl(name, arity, 0);
 
-  methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, delta, lbl);
+  methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stkLimit, lbl);
 
 #ifndef NOJIT
   char errMsg[MAXLINE];
-  retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), stackEntry);
+  retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), depth);
   if (ret != Ok) {
     char msg[MAX_SYMB_LEN];
     strMsg(msg,NumberOf(msg), "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);

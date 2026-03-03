@@ -75,6 +75,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
 #ifdef TRACEJIT
   if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit special method %L\n", mtd);
+    reinstallMsgProc('X', showStackSlot);
   }
 #endif
 
@@ -137,7 +138,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Halt: {
         // Stop execution
         armReg a1 = popValue(stack, jit);
-        return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 1, RG(a1));
+        return callIntrinsic(ctx, criticalRegs(), (runtimeFn) star_exit, 2, RG(PR), RG(a1));
         releaseReg(jit, a1);
       }
       case Abort: {
@@ -328,7 +329,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
-        unstash(jit);
+        unstashEngineState(jit);
         dropArgs(stack, jit, arity);
         // X0 is the return code - which we ignore for normal escapes
         continue;
@@ -344,7 +345,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) escapeFun(esc), 1, RG(PR));
-        unstash(jit);
+        unstashEngineState(jit);
         dropArgs(stack, jit, arity);
         testResult(block, tgtBlock);
         continue;
@@ -548,7 +549,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) newStack, 3, RG(PR), IM(True), RG(lamReg));
-        unstash(jit); // Some special handling to make sure we capture the new stack properly
+        unstashEngineState(jit); // Some special handling to make sure we capture the new stack properly
         armReg reslt = findFreeReg(jit);
         mov(reslt, RG(X0));
         pushRegister(stack, reslt);
@@ -565,7 +566,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachStack, 3, RG(PR), RG(stk), RG(evt));
-        unstash(jit);
+        unstashEngineState(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         bind(rtn);
@@ -584,7 +585,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) attachStack, 3, RG(PR), RG(stk), RG(evt));
-        unstash(jit);
+        unstashEngineState(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         bind(rtn);
@@ -600,7 +601,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         spillStack(stack, jit);
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(stk), RG(evt));
-        unstash(jit);
+        unstashEngineState(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         releaseReg(jit, evt);
@@ -613,7 +614,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         armReg val = popValue(stack, jit);
         stash(block);
         ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) detachDropStack, 3, RG(PR), RG(STK), RG(val));
-        unstash(jit);
+        unstashEngineState(jit);
         ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
         br(X16);
         releaseReg(jit, val);
@@ -906,7 +907,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
         stash(block);
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) sameTerm, 2, RG(vl), OF(CO, key*pointerSize));
-        unstash(jit);
+        unstashEngineState(jit);
         tst(X0, RG(X0));
 
         valueStackPo tgtStack = &tgtBlock->stack;
@@ -925,7 +926,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
       case Nth: {
         // T --> el, pick up the nth element
         armReg vl = popValue(stack, jit);
-        loadOffset(jit, vl, vl, code[pc].fst + 1);
+        loadElement(jit, vl, vl, code[pc].fst + 1);
         pushRegister(stack, vl);
         continue;
       }
@@ -1003,7 +1004,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         callIntrinsic(ctx, criticalRegs(), (runtimeFn) hashTerm, 1, RG(vl));
         mov(ix, RG(X0));
         releaseReg(jit, vl);
-        unstash(jit);
+        unstashEngineState(jit);
         armReg divisor = findFreeReg(jit);
         mov(divisor, IM(tableSize));
         armReg quotient = findFreeReg(jit);
@@ -1660,7 +1661,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
             default:
               return jitError(jit, "invalid instruction following DBug");
           }
-          unstash(jit);
+          unstashEngineState(jit);
           releaseReg(jit, loc);
         }
         continue;
@@ -1681,7 +1682,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
           stash(block);
           ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) lineDebug, 2, RG(PR), RG(loc));
-          unstash(jit);
+          unstashEngineState(jit);
           releaseReg(jit, loc);
         }
         continue;
@@ -1695,7 +1696,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
 
           stash(block);
           ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn) bindDebug, 3, RG(PR), RG(var), IM(code[pc].alt));
-          unstash(jit);
+          unstashEngineState(jit);
           releaseReg(jit, var);
         }
         continue;
@@ -1743,7 +1744,7 @@ armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   stash(block); // Slow path
   ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
   callIntrinsic(ctx, criticalRegs(), (runtimeFn) allocateObject, 3, RG(X0), IM((integer) class), IM(amnt));
-  unstash(jit);
+  unstashEngineState(jit);
   mov(reslt, RG(X0));
   bind(ok);
   mov(c, IM((integer) class));

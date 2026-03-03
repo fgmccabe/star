@@ -36,7 +36,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         lower.c
- #       lowerA.c
+        lowerA.c
         lowerStack.c
         lowerFrame.c
         lowerFFI.c

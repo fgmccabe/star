@@ -280,10 +280,6 @@ star.compiler.checker{
   checkFunction(Nm,Tp,Lc,Stmts,Env,Outer,Path) => valof{
     if traceCanon! then
       showMsg("check function $(Stmts)\:$(Tp)");
-    if traceCanon! then{
-      showMsg("leq? #(showVar("leq",Env))");
-      showMsg("x? $(findType(Env,"x"))");
-    };
 
     (Q,ETp) = evidence(Tp,Env);
 

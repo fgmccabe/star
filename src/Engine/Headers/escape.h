@@ -12,6 +12,7 @@ typedef enum {
   Abnormal
 } ReturnStatus;
 
+// The order of these is important.
 typedef struct {
   ReturnStatus status;
   termPo value;

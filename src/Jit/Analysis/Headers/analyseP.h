@@ -20,7 +20,6 @@ typedef struct var_description_ {
   int32 varNo; // Variable number, first numbers are locals
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
-  int32 loc; // Which slot in the frame
   logical registerCandidate;
   varKind kind;
   varAllocationState state;
@@ -51,20 +50,21 @@ int32 minSlot(analysisPo analysis);
 logical isSafe(analysisPo analysis, varDescPo var);
 void setSafePoint(analysisPo analysis, int32 pc);
 
-int32 stackLoc(varDescPo var);
 void markVarAsRegister(varDescPo var);
-void setVarSlot(varDescPo var, int32 slotNo);
+void markVarAsMemory(varDescPo var);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
+varDescPo varStart(analysisPo analysis, int32 pc);
 
 varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
 varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
-varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo);
+varDescPo findVar(analysisPo analysis, int32 varNo);
 
 retCode showVars(ioPo out, analysisPo analysis);
+retCode showVarDesc(ioPo out, varDescPo var);
 
 void retireStackVar(scopePo scope, int32 pc);
 void retireScopeStack(scopePo scope, int32 pc);

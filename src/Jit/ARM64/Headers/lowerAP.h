@@ -19,23 +19,26 @@
 #define AG  (X13)
 #define STK (X14)
 #define PR (X15)
+#define RTV (X1)
+#define RTS (X0)
 
 typedef struct {
-  armReg Rg;
+  FlexOp src;
   int32 stkOff;
-  int32 fromPc;
-  int32 toPc;
-  logical stashed; // Is the value in memory?
-  logical live;    // Is the value in a register?
-  logical inited;
-  varDescPo varDesc;
+  logical stashed; // Is the value in the stack frame?
+  logical inited;  // Has teh variable ever been written to?
+  logical live;    // Is the variable in use?
+  varDescPo desc;
 } LocalVar, *localVarPo;
 
 typedef struct {
+  methodPo mtd;
   analysisPo analysis;
   jitCompPo jit;
   localVarPo locals;
   int32 numLocals;
+  int32 top;
+  localVarPo *stack;
 } CodeGenState, *codeGenPo;
 
 typedef struct jitBlock_ *blockPo;
@@ -43,7 +46,7 @@ typedef struct jitBlock_ *blockPo;
 typedef struct jitBlock_ {
   int32 startPc;
   int32 endPc;
-  varDescPo phiVar;
+  localVarPo phiVar;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   blockPo parent;
@@ -68,14 +71,14 @@ codeLblPo loopLabel(blockPo block);
 
 retCode breakOutEq(blockPo block, insPo code, int32 tgt);
 retCode breakOutNe(blockPo block, insPo code, int32 tgt);
-retCode breakOut(blockPo block, blockPo tgtBlock);
+retCode breakOut(assemCtxPo ctx, blockPo tgtBlock);
 
 void stash(blockPo block);
-void stashRegisters(jitCompPo jit, int32 stackLevel);
-void unstash(jitCompPo jit);
+void stashEngineState(jitCompPo jit, int32 stackLevel);
+void unstashEngineState(jitCompPo jit);
 
-void loadOffset(jitCompPo jit, armReg tgt, armReg base, int32 ix);
-void storeOffset(jitCompPo jit, armReg src, armReg base, int32 lclNo);
+void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix);
+void storeElement(jitCompPo jit, armReg src, armReg base, int32 ix);
 
 void loadVarble(jitCompPo jit, armReg tgt, int32 varNo);
 void storeVarble(jitCompPo jit, armReg src, int32 varNo);
@@ -84,9 +87,7 @@ void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
 retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt);
 void frameOverride(blockPo block, int arity);
-
-void loadStack(jitCompPo jit, armReg tgt, int32 depth);
-void storeStack(jitCompPo jit, armReg src, int32 depth);
+void frameOOverride(blockPo block, int arity, armReg frReg);
 
 registerMap criticalRegs();
 

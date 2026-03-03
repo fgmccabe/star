@@ -45,13 +45,9 @@ SpecialClass StackClass = {
 
 static labelPo underflowProg;
 static labelPo taskProg;
-static labelPo spawnProg;
 
-static Instruction underflowCode[] = {Underflow};
 
-static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
-
-static Instruction spawnCode[] = {TOCall, 2, 0};
+// static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
 
 clssPo stackClass = (clssPo) &StackClass;
 
@@ -63,10 +59,10 @@ static buddyRegionPo stackRegion;
 
 void initStacks() {
   StackClass.clss.clss = specialClass;
-
+  static Instruction underflowCode[] = {Underflow};
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1, 1);
-  taskProg = specialMethod("newTask", 0, NumberOf(newTaskCode), newTaskCode, 0, 3, 3);
-  spawnProg = specialMethod("spawn", 0, NumberOf(spawnCode), spawnCode, 0, 2, 2);
+  static Instruction newTaskCode[] = {Ld, 0, 0, Ld, 1, 0, Ld, 2, 0, TOCall, 3, 0};
+  taskProg = specialMethod("newTask", 3, NumberOf(newTaskCode), newTaskCode, 0, 3, 0);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -83,7 +79,8 @@ stackPo C_STACK(termPo t) {
   return (stackPo) t;
 }
 
-stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJit, StackState state, stackPo attachment) {
+stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJit, StackState state,
+                      stackPo attachment) {
   heapPo H = processHeap(P);
 
   if (sze > stackRegionSize)
@@ -97,7 +94,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
   stk->stkMem = (ptrPo) allocateBuddy(stackRegion, sze);
 
   if (stk->stkMem == Null) {
-    stackTrace(P,logFile,P->stk,5,showArguments,25);
+    stackTrace(P, logFile, P->stk, 5, showArguments, 25);
     star_exit(P, oomCode);
   }
 

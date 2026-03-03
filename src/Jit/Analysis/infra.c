@@ -25,17 +25,15 @@ void tearDownAnalysis(AnalysisRecord *results) {
   eraseTree(results->index);
 }
 
-static char *varType(varKind kind);
-
 static char *stateName[] = {
   "unAllocated",
   "beingAllocated",
   "allocated"
 };
 
-static retCode showVar(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d, %d) %s%d\n", var->varNo, varType(var->kind), var->start,
-                var->end, (var->registerCandidate ? "reg " : ""), var->loc);
+retCode showVarDesc(ioPo out, varDescPo var) {
+  return outMsg(out, "%d: %s [%d, %d) %s\n", var->varNo, varKindName(var->kind), var->start,
+                var->end, (var->registerCandidate ? "reg " : "mem"));
 }
 
 static retCode showVrIndex(void *n, void *r, void *c) {
@@ -44,14 +42,14 @@ static retCode showVrIndex(void *n, void *r, void *c) {
   int32 index = (int32) (integer) n;
 
   outMsg(out, "%d -> ", index);
-  return showVar(out, var);
+  return showVarDesc(out, var);
 }
 
 static retCode showVr(void *n, void *r, void *c) {
   varDescPo var = (varDescPo) r;
   ioPo out = (ioPo) c;
 
-  return showVar(out, var);
+  return showVarDesc(out, var);
 }
 
 retCode showVarIndex(ioPo out, analysisPo analysis) {
@@ -78,8 +76,7 @@ static void checkIndex(treePo index) {
 void showAnalysis(ioPo out, analysisPo analysis) {
   checkIndex(analysis->index);
   outMsg(out, "Analysis:\n");\
-  outMsg(out, "  index:\n");
-  showVarIndex(out, analysis);
+  showVars(out, analysis);
   outMsg(out, "Safe points: ");
   showSet(out, analysis->safes);
   outMsg(out, "\n%_");
@@ -122,17 +119,21 @@ treePo newVarIndex() {
 }
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
-  varDescPo var = findVar(analysis, analysis->vars, varNo);
+  varDescPo var = findVar(analysis, varNo);
   assert(var != Null && (kind==phi || var->start==-1));
   var->start = pc;
   treePut(analysis->index, (void *) (integer) pc, var);
 }
 
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
-  varDescPo var = findVar(analysis, analysis->vars, varNo);
+  varDescPo var = findVar(analysis, varNo);
 
   if (var->end < pc)
     var->end = pc;
+}
+
+varDescPo varStart(analysisPo analysis, int32 pc) {
+  return treeGet(analysis->index, (void *) (integer) pc);
 }
 
 static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
@@ -144,7 +145,6 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
   var->kind = kind;
   var->start = pc;
   var->end = -1;
-  var->loc = (state == allocated ? varNo : MAX_INT32);
   var->registerCandidate = False;
   var->state = state;
 
@@ -168,20 +168,15 @@ void setState(varDescPo var, varAllocationState state) {
   var->state = state;
 }
 
-int32 stackLoc(varDescPo var) {
-  return var->loc;
-}
-
 void markVarAsRegister(varDescPo var) {
   var->registerCandidate = True;
 }
 
-void setVarSlot(varDescPo var, int32 slotNo) {
-  var->loc = slotNo;
-  setState(var, beingAllocated);
+void markVarAsMemory(varDescPo var) {
+  var->registerCandidate = False;
 }
 
-varDescPo findVar(analysisPo analysis, hashPo vars, int32 varNo) {
+varDescPo findVar(analysisPo analysis, int32 varNo) {
   VarDescRecord nme = {.varNo = varNo};
   return hashGet(analysis->vars, &nme);
 }
@@ -219,7 +214,7 @@ void retireStackVar(scopePo scope, int32 pc) {
 
   assert(var!=Null);
 
-  var->end = pc+1;
+  var->end = pc + 1;
   scope->stack = var->link;
   var->link = Null;
 }
@@ -249,18 +244,18 @@ void rotateStackVars(scopePo scope, int32 pc, int32 depth) {
   }
 }
 
-char *varType(varKind kind) {
+char *varKindName(varKind kind) {
   switch (kind) {
     case argument:
-      return "argument";
+      return "arg";
     case local:
-      return "local";
+      return "lcl";
     case stack:
-      return "stack";
+      return "stk";
     case phi:
       return "phi";
     default:
-      return "unknown";
+      return "???";
   }
 }
 
@@ -331,7 +326,7 @@ static comparison compVarRange(arrayPo vars, int32 ix, int32 iy, void *cl) {
 static retCode showVarEntry(void *entry, int32 ix, void *cl) {
   ioPo out = (ioPo) cl;
   varDescPo var = *(varDescPo *) entry;
-  return showVar(out, var);
+  return showVarDesc(out, var);
 }
 
 arrayPo varStarts(analysisPo analysis) {
@@ -372,7 +367,7 @@ arrayPo varRanges(analysisPo analysis) {
 
 static retCode showVarInRange(ioPo out, void *entry, int32 ix, void *cl) {
   varDescPo var = *(varDescPo *) entry;
-  return showVar(out, var);
+  return showVarDesc(out, var);
 }
 
 retCode showRanges(ioPo out, arrayPo vars) {
@@ -385,8 +380,6 @@ static retCode checkSlot(void *n, void *r, void *cl) {
 
   assert(var->state==allocated);
 
-  if (var->loc < analysis->minSlot)
-    analysis->minSlot = var->loc;
   return Ok;
 }
 

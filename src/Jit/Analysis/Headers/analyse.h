@@ -28,6 +28,8 @@ typedef enum {
   phi
 } varKind;
 
+char *varKindName(varKind kind);
+
 typedef enum{
   onStack,
   inRegister,

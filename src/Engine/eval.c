@@ -10,6 +10,8 @@
 #include "constants.h"
 #include "char.h"
 #include <math.h>
+
+#include "analyse.h"
 #include "errorCodes.h"
 #include "escapeP.h"
 #include "evalP.h"
@@ -80,7 +82,7 @@ int32 run(enginePo P) {
 
           insPo link = PC; // Jit code can override this in the frame
           saveRegisters();
-          ReturnStatus ret = invokeJitMethod(P, mtd);
+          ReturnStatus ret = (enableSSA?invokeJitMethodA(P,mtd):invokeJitMethod(P, mtd));
           restoreRegisters();
           PC = link;
 

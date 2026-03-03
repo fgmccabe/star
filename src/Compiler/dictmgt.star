@@ -198,8 +198,7 @@ star.compiler.dict.mgt{
     declareDecls(Ds,declareDecl(D,Dict)).
 
   declareDecl(Dc,Dict) => case Dc in {
-    | .implDec(Lc,Nm,ImplNm,Tp) => 
-      declareImplementation(Lc,Nm,ImplNm,Tp,Dict)
+    | .implDec(Lc,Nm,ImplNm,Tp) => declareImplementation(Lc,Nm,ImplNm,Tp,Dict)
     | .accDec(Lc,Tp,Fld,AccFn,AccTp) =>
       declareVar(AccFn,AccFn,Lc,AccTp,.none,declareAccessor(Lc,Tp,Fld,AccFn,AccTp,Dict))
     | .updDec(Lc,Tp,Fld,AccFn,AccTp) =>
