@@ -86,7 +86,7 @@ retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
     .locals = locals,
     .lclCount = numLcls,
     .argPnt = numLcls - mtdArity(mtd),
-    .stackPnt = numLcls - mtdArity(mtd) - mtdArity(mtd) - lclCount(mtd),
+    .stackPnt = numLcls - mtdArity(mtd) - lclCount(mtd),
     .vTop = depth
   };
 
