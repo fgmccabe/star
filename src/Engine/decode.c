@@ -390,7 +390,6 @@ static retCode decodeI(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         return Ok;
       }
 
-      case Rot:
       case Rst: {
         (*count)--;
         return decodeI32(in, &ins->fst);

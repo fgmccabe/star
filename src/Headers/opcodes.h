@@ -27,76 +27,75 @@ typedef enum {
     Result = 16,            // return value out of block
     Loop = 17,            // jump back to start of block
     Drop = 18,            // drop top of stack
-    Rot = 19,            // Pull up nth element of stack
-    Rst = 20,            // reset stack height to a fixed height
-    Fiber = 21,            // Create new fiber
-    Suspend = 22,            // suspend fiber
-    Resume = 23,            // resume fiber
-    Retire = 24,            // retire a fiber
-    Underflow = 25,            // underflow from current stack
-    LdV = 26,            // Place a void value on stack
-    LdC = 27,            // load literal from constant pool
-    Ld = 28,            // load stack from local[xx]
-    St = 29,            // store tos to local[xx]
-    StV = 30,            // clear a local to void
-    Tee = 31,            // copy tos to local[xx]
-    LdG = 32,            // load a global variable
-    StG = 33,            // store into a global variable
-    TG = 34,            // copy into a global variable
-    Sav = 35,            // create a single assignment variable
-    LdSav = 36,            // derefence a sav, break if not set
-    TstSav = 37,            // test a sav, return a logical
-    StSav = 38,            // store a value into a single assignment variable
-    TSav = 39,            // update single assignment variable leave value on stack
-    Cell = 40,            // create R/W cell
-    Get = 41,            // access a R/W cell
-    Assign = 42,            // assign to a R/W cell
-    CLbl = 43,            // T,Lbl --> test for a data term, break if not lbl
-    CInt = 44,            // T,lit --> test for a literal integer, break if not
-    CChar = 45,            // T,lit --> test for a literal char, break if not
-    CFlt = 46,            // T,lit --> test for a literal floating point, break if not
-    CLit = 47,            // T,lit --> test for a literal value, break if not
-    Nth = 48,            // T --> el, pick up the nth element
-    StNth = 49,            // T el --> store in nth element
-    If = 50,            // break if true
-    IfNot = 51,            // break if false
-    ICase = 52,            // T --> T, icase <Max>
-    Case = 53,            // T --> T, case <Max>
-    IxCase = 54,            // check and jump on type index
-    IAdd = 55,            // L R --> L+R
-    ISub = 56,            // L R --> L-R
-    IMul = 57,            // L R --> L*R
-    IDiv = 58,            // L R --> L/R
-    IMod = 59,            // L R --> L%R
-    IAbs = 60,            // L --> abs(L)
-    IEq = 61,            // L R --> L==R
-    ILt = 62,            // L R --> L<R
-    IGe = 63,            // L R --> L>=R
-    CEq = 64,            // L R --> L==R
-    CLt = 65,            // L R --> L<R
-    CGe = 66,            // L R --> L>=R
-    BAnd = 67,            // L R --> L&R
-    BOr = 68,            // L R --> L|R
-    BXor = 69,            // L R --> L^R
-    BLsl = 70,            // L R --> L<<R
-    BLsr = 71,            // L R --> L>>R
-    BAsr = 72,            // L R --> L>>>R
-    BNot = 73,            // L --> ~L
-    FAdd = 74,            // L R --> L+R
-    FSub = 75,            // L R --> L-R
-    FMul = 76,            // L R --> L*R
-    FDiv = 77,            // L R --> L/R
-    FMod = 78,            // L R --> L%R
-    FAbs = 79,            // L --> abs(L)
-    FEq = 80,            // L R e --> L==R
-    FLt = 81,            // L R --> L<R
-    FGe = 82,            // L R --> L>=R
-    Alloc = 83,            // new structure, elements from stack
-    Closure = 84,            // allocate a closure
-    Frame = 85,            // frame instruction
-    Line = 86,            // source line indicator
-    Bind = 87,            // bind a variable
-    dBug = 88,            // debugging prefix
+    Rst = 19,            // reset stack height to a fixed height
+    Fiber = 20,            // Create new fiber
+    Suspend = 21,            // suspend fiber
+    Resume = 22,            // resume fiber
+    Retire = 23,            // retire a fiber
+    Underflow = 24,            // underflow from current stack
+    LdV = 25,            // Place a void value on stack
+    LdC = 26,            // load literal from constant pool
+    Ld = 27,            // load stack from local[xx]
+    St = 28,            // store tos to local[xx]
+    StV = 29,            // clear a local to void
+    Tee = 30,            // copy tos to local[xx]
+    LdG = 31,            // load a global variable
+    StG = 32,            // store into a global variable
+    TG = 33,            // copy into a global variable
+    Sav = 34,            // create a single assignment variable
+    LdSav = 35,            // derefence a sav, break if not set
+    TstSav = 36,            // test a sav, return a logical
+    StSav = 37,            // store a value into a single assignment variable
+    TSav = 38,            // update single assignment variable leave value on stack
+    Cell = 39,            // create R/W cell
+    Get = 40,            // access a R/W cell
+    Assign = 41,            // assign to a R/W cell
+    CLbl = 42,            // T,Lbl --> test for a data term, break if not lbl
+    CInt = 43,            // T,lit --> test for a literal integer, break if not
+    CChar = 44,            // T,lit --> test for a literal char, break if not
+    CFlt = 45,            // T,lit --> test for a literal floating point, break if not
+    CLit = 46,            // T,lit --> test for a literal value, break if not
+    Nth = 47,            // T --> el, pick up the nth element
+    StNth = 48,            // T el --> store in nth element
+    If = 49,            // break if true
+    IfNot = 50,            // break if false
+    ICase = 51,            // T --> T, icase <Max>
+    Case = 52,            // T --> T, case <Max>
+    IxCase = 53,            // check and jump on type index
+    IAdd = 54,            // L R --> L+R
+    ISub = 55,            // L R --> L-R
+    IMul = 56,            // L R --> L*R
+    IDiv = 57,            // L R --> L/R
+    IMod = 58,            // L R --> L%R
+    IAbs = 59,            // L --> abs(L)
+    IEq = 60,            // L R --> L==R
+    ILt = 61,            // L R --> L<R
+    IGe = 62,            // L R --> L>=R
+    CEq = 63,            // L R --> L==R
+    CLt = 64,            // L R --> L<R
+    CGe = 65,            // L R --> L>=R
+    BAnd = 66,            // L R --> L&R
+    BOr = 67,            // L R --> L|R
+    BXor = 68,            // L R --> L^R
+    BLsl = 69,            // L R --> L<<R
+    BLsr = 70,            // L R --> L>>R
+    BAsr = 71,            // L R --> L>>>R
+    BNot = 72,            // L --> ~L
+    FAdd = 73,            // L R --> L+R
+    FSub = 74,            // L R --> L-R
+    FMul = 75,            // L R --> L*R
+    FDiv = 76,            // L R --> L/R
+    FMod = 77,            // L R --> L%R
+    FAbs = 78,            // L --> abs(L)
+    FEq = 79,            // L R e --> L==R
+    FLt = 80,            // L R --> L<R
+    FGe = 81,            // L R --> L>=R
+    Alloc = 82,            // new structure, elements from stack
+    Closure = 83,            // allocate a closure
+    Frame = 84,            // frame instruction
+    Line = 85,            // source line indicator
+    Bind = 86,            // bind a variable
+    dBug = 87,            // debugging prefix
 
   illegalOp,
   maxOpCode
@@ -122,7 +121,6 @@ static char *opNames[] = {
       "Result",
       "Loop",
       "Drop",
-      "Rot",
       "Rst",
       "Fiber",
       "Suspend",
@@ -194,7 +192,7 @@ static char *opNames[] = {
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 414122082387643854
+#define OPCODE_SIGNATURE 1472534314864623738
 #endif
 
 typedef enum {

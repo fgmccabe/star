@@ -158,13 +158,6 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, insPo code, int32 star
       case Drop:
         retireStackVar(&scope, pc);
         continue;
-      case Rot: {
-        int32 depth = code[pc].fst;
-
-        if (depth > 0)
-          rotateStackVars(&scope, pc, depth);
-        continue;
-      }
       case Rst: {
         int32 depth = code[pc].fst;
         while (stackDepth(&scope) > depth)

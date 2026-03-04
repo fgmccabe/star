@@ -383,14 +383,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
         pc++;
         continue;
       }
-
-      case Rot: {
-        int32 count = code[pc].fst;
-        if (stackDepth < count)
-          return verifyError(&ctx, ".%d: insufficient stack depth for rotate %d", pc, count);
-        pc++;
-        continue;
-      }
       case Rst: {
         int32 depth = code[pc].fst;
         if (stackDepth < depth)

@@ -326,18 +326,6 @@ int32 run(enginePo P) {
         continue;
       }
 
-      case Rot: {
-        // Pull up nth element of stack
-        int32 cnt = PC->fst;
-        termPo tmp = SP[0];
-
-        for (int32 ix = 0; ix < cnt; ix++) {
-          SP[ix] = SP[ix + 1];
-        }
-        SP[cnt] = tmp;
-        PC++;
-        continue;
-      }
       case Rst: {
         int32 height = PC->fst;
         SP = &varble(-(lclCount(PROG) + height));

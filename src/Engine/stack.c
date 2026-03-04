@@ -46,9 +46,6 @@ SpecialClass StackClass = {
 static labelPo underflowProg;
 static labelPo taskProg;
 
-
-// static Instruction newTaskCode[] = {Rot, 2, 0, Rot, 1, 0, TOCall, 3, 0};
-
 clssPo stackClass = (clssPo) &StackClass;
 
 static integer stackCount = 0;

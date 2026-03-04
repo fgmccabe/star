@@ -85,7 +85,6 @@ star.compiler.peephole{
   peep([.iSt(Off),.iLd(Off),.iRet,.._],_) => [.iRet].
   peep([.iSt(Off),.iLd(Off),.iXRet,.._],_) => [.iXRet].
   peep([.iSt(Off),.iLd(Off),..Ins],Lbls) => peep([.iTee(Off),..Ins],Lbls).
-  peep([.iRot(0),..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iLd(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iLd(_),.iNth(_),.iDrop,..Ins],Lbls) => peep(Ins,Lbls).
   peep([.iNth(_),.iDrop,..Ins],Lbls) => peep([.iDrop,..Ins],Lbls).

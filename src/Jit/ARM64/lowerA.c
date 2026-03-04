@@ -535,19 +535,6 @@ retCode jitBlock(blockPo block, codeGenPo state, insPo code, int32 from, int32 e
         state->top--;
         continue;
       }
-      case Rot: {
-        // Pull up nth element of stack
-        int32 cnt = code[pc].fst;
-        assert(cnt>=0 && cnt<state->top);
-        if (cnt > 0) {
-          localVarPo tmp = state->stack[state->top];
-          for (int32 ix = 0; ix < cnt; ix++) {
-            state->stack[ix] = state->stack[ix + 1];
-          }
-          state->stack[cnt] = tmp;
-        }
-        continue;
-      }
       case Rst: {
         // reset stack height to a fixed height
         state->top = code[pc].fst;
