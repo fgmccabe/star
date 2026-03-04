@@ -263,6 +263,8 @@ int32 run(enginePo P) {
         PC = FP->link;
         FP--;
 
+        assert(SP<=ARGS);
+
         push(retVal); /* push return value */
         continue; /* and carry on regardless */
       }

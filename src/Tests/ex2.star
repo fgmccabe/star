@@ -2,8 +2,8 @@ test.ex2{
   main:(){}.
   main(){
     try{
-      _logmsg(_stringOf(sqrt(10.4),0));
-      _logmsg(_stringOf(sqrt(-1.0),0));
+      _logmsg(_stringOf(_sqrt(10.4),0));
+      _logmsg(_stringOf(_sqrt(-1.0),0));
     } catch {
       ErrCode do { _logmsg("out with a #(dspEr(ErrCode))") }
     }

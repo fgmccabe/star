@@ -61,7 +61,7 @@ void initStacks() {
   StackClass.clss.clss = specialClass;
   static Instruction underflowCode[] = {Underflow};
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1, 1);
-  static Instruction newTaskCode[] = {Ld, 0, 0, Ld, 1, 0, TOCall, 3, 0};
+  static Instruction newTaskCode[] = {Ld, 0, 0, Ld, 1, 0, OCall, 3, 0, Underflow};
   taskProg = specialMethod("newTask", 3, NumberOf(newTaskCode), newTaskCode, 0, 3, 1);
 
   integer regionSize = (1 << lg2(stackRegionSize));
@@ -476,7 +476,9 @@ stackPo newStack(enginePo P, logical execJit, termPo lam) {
   heapPo H = processHeap(P);
 
   int root = gcAddRoot(H, (ptrPo) &lam);
-  stackPo child = spinupStack(P, H, execJit, minStackSize);
+  integer size = minStackSize;
+  assert(size >= minStackSize);
+  stackPo child = allocateStack(P, size, underflowProg, execJit, suspended, Null);
   gcReleaseRoot(H, root);
 
   pushStack(child, lam);
