@@ -59,7 +59,7 @@ void initStacks() {
   static Instruction underflowCode[] = {Underflow};
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1, 1);
   static Instruction newTaskCode[] = {Ld, 0, 0, Ld, 1, 0, OCall, 3, 0, Underflow};
-  taskProg = specialMethod("newTask", 3, NumberOf(newTaskCode), newTaskCode, 0, 3, 1);
+  taskProg = specialMethod("newTask", 2, NumberOf(newTaskCode), newTaskCode, 0, 3, 1);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 

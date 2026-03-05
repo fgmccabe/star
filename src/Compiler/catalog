@@ -29,6 +29,7 @@
     "star.compiler.impawt": "impawt.star",
     "star.compiler.inline": "inline.star",
     "star.compiler.intrinsics": "intrinsics.star",
+    "star.compiler.leb": "leb.star",
     "star.compiler.ltipe": "ltipe.star",
     "star.compiler.macro" : "macro.star",
     "star.compiler.macro.grammar": "grammar.star",

@@ -214,6 +214,7 @@ varStackPo newPhiVar(analysisPo analysis, varStackPo vstack, int32 pc) {
 }
 
 varStackPo retireStackVar(varStackPo vstack, int32 pc) {
+  assert(vstack!=Null);
   varDescPo var = vstack->var;
 
   assert(var!=Null);
