@@ -44,6 +44,7 @@ set(HEADER_FILES
         Headers/verify.h Headers/verifyP.h
         Headers/debugP.h
         Headers/consP.h Headers/option.h Headers/optionP.h
+        ../Headers/ssaOps.h
         Headers/starP.h Headers/stackP.h
         Headers/stack.h
         Headers/char.h Headers/charP.h Headers/bignumP.h Headers/closure.h Headers/closureP.h
@@ -73,6 +74,7 @@ set(SOURCE_FILES
         code.c
         cons.c
         decode.c
+        decodeSSA.c
         debug.c
         either.c
         eval.c

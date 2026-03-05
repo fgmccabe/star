@@ -1,0 +1,152 @@
+star.compiler.ssa{
+  -- Automatically Generated Assembler -- Do NOT Edit
+  import star.
+  import star.multi.
+  import star.sort.
+
+  import star.compiler.errors.
+  import star.compiler.escapes.
+  import star.compiler.location.
+  import star.compiler.data.
+  import star.compiler.meta.
+  import star.compiler.types.
+  import star.compiler.encode.
+  import star.compiler.ltipe.
+
+  public codeSegment ::= .func(termLbl,codePolicy,ltipe,cons[(string,data)],cons[(string,data)],multi[insOp]) |
+    .struct(termLbl,tipe,integer) |
+    .tipe(tipe,typeRule,map[termLbl,integer]).
+
+  public insOp ::=
+#(OpCodes)
+    | .iLbl(string, insOp).
+
+  public assemLbl ~> string.
+
+  public varNm ~> string.
+
+  public assem:(codeSegment) => data.
+  assem(Df) => case Df in {
+    | .func(Nm,H,Sig,Ags,Lcs,Ins) => valof{
+      funSig = .strg(Sig::string);
+      (Lt0,_) = findLit([],.symb(Nm));
+      (Lt1,tpIx) = findLit(Lt0,funSig);
+      LclMap = declareArgs(Ags,declareLocals(Lcs,{}));
+      (Code,_,Lts) = assemBlock(Ins,[],0,[],Lt1,LclMap);
+       valis mkCons("code",
+              [.symb(Nm),encPolicy(H),.intgr(tpIx),
+              .intgr(size(Lcs)),litTbl(Lts),mkTpl(Code::cons[data]),
+    	  mkTpl(sortVInfo(varInfos(Ags,LclMap)++varInfos(Lcs,LclMap)))])
+    }
+    | .struct(Lbl,Tp,Ix) => mkCons("struct",[.symb(Lbl),.strg(encodeSignature(Tp)),.intgr(Ix)])
+    | .tipe(Tp,TpRl,Map) => mkCons("type",[.strg(tpName(Tp)),.strg(encodeTpRlSignature(TpRl)),encodeMap(Map)])
+  }.
+
+  varInfos:(cons[(string,data)],map[string,integer])=>cons[data].
+  varInfos(Lcs,Map) => (try
+    (Lcs//(((V,Spec))=>mkTpl([.strg(V),.intgr(_optval(Map[V])),Spec])))
+    catch { _ => valof{ reportTrap("Invalid map"); valis []}}
+  ).
+
+  sortVInfo:(cons[data])=>cons[data].
+  sortVInfo(Els) => sort(Els,((.term(_,[_,.intgr(I1),_]),.term(_,[_,.intgr(I2),_])) => I1<I2)).
+
+  declareLocals:(cons[(string,data)],map[string,integer]) => map[string,integer].
+  declareLocals(Lcs,Map) => let{.
+    decl([],_,Mp) => Mp.
+    decl([(Vr,_),..Ls],Ix,Mp) => decl(Ls,Ix-1,Mp[Vr -> Ix]).
+  .} in decl(Lcs,-1,Map).             -- First local is -1
+
+  declareArgs:(cons[(string,data)],map[string,integer]) => map[string,integer].
+  declareArgs(Lcs,Map) => let{.
+    decl([],_,Mp) => Mp.
+    decl([(Vr,_),..Ls],Ix,Mp) => decl(Ls,Ix+1,Mp[Vr -> Ix]).
+  .} in decl(Lcs,0,Map).             -- First arg is 0
+
+  encodeMap(Entries) => mkTpl(ixRight((Lbl,Ix,Lst)=>[mkTpl([.symb(Lbl),.intgr(Ix)]),..Lst],[],Entries)).
+
+  encPolicy(.hardDefinition) => mkTpl([]).
+  encPolicy(.softDefinition) => mkTpl([.strg("soft")]).
+
+  lblLevel ~> option[assemLbl].
+
+  private assemBlock:(multi[insOp],multi[data],integer,
+                      cons[lblLevel],map[data,integer],map[string,integer]) =>
+                                        (multi[data],integer,map[data,integer]).
+  assemBlock([],Code,Pc,Lbls,Lts,_Lcx) => (Code,Pc,Lts).
+  assemBlock([I,..Ins],SoFar,Pc,Lbs,Lts,Lcx) => valof{
+    (Code,Pc1,Lt0) = mnem(I,Pc,Lbs,Lts,Lcx);
+    valis assemBlock(Ins,SoFar++Code,Pc1,Lbs,Lt0,Lcx)
+  }
+
+  private mnem:(insOp,integer,cons[lblLevel],map[data,integer],map[string,integer]) =>
+    (multi[data],integer,map[data,integer]).
+  mnem(.iLbl(Lb,I),Pc,Lbls,Lts,Lcs) => mnem(I,Pc,[.some(Lb),..Lbls],Lts,Lcs).
+#(Mnem)
+  mnem(I,Pc,Lbls,Lts,Lcs) => valof{
+    reportTrap("Cannot assemble instruction $(I)");
+    valis ([],Pc,Lts)
+  }.
+
+  findLit:(map[data,integer],data) => (map[data,integer],integer).
+  findLit(Lts,T) where O ?= Lts[T] => (Lts,O).
+  findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
+
+  findLocal:(string,map[string,integer])=> data.
+  findLocal(Nm,Lcs) => .intgr(try ? Lcs[Nm] catch { _ => unreachable }).
+
+  findLocals:(cons[string],map[string,integer]) => cons[data].
+  findLocals(Vrs,Lcs) => (Vrs//((V)=> findLocal(V,Lcs))).
+
+  findLevel:(cons[lblLevel],assemLbl) => integer.
+  findLevel(Lbs,Lb) => let{.
+    findLvl([],_) => unreachable.
+    findLvl([.some(LL),..Ls], Lvl) => (LL==Lb ?? Lvl || findLvl(Ls,Lvl)).
+    findLvl([.none,..Ls],Lvl) => findLvl(Ls,Lvl+1).
+  .} in findLvl(Lbs,0).
+
+  litTbl:(map[data,integer]) => data.
+  litTbl(Lts) => mkTpl(sort(Lts::cons[(data,integer)],((T1,Ix1), (T2,Ix2)) => Ix1<Ix2)//fst).
+
+  showMap:(string,cons[(string,data)])=>string.
+  showMap(_,[]) => "".
+  showMap(Msg,Map) => "\#(Msg)\: \#((Map//((Nm,_))=>Nm++"\n")*)".
+
+  public implementation display[codeSegment] => {
+    disp(.func(Nm,_,Tp,Ags,Lcs,Ins)) => "fun $(Nm)\:$(Tp)\n"++showMap("args",Ags)++showMap("locals",Lcs)++showMnem(Ins).
+    disp(.struct(Lbl,Tp,Ix)) => "struct $(Lbl)\:$(Tp) @ $(Ix)".
+    disp(.tipe(_Tp,TpRl,Map)) => "type $(TpRl), map = $(Map)".
+  }
+
+  public implementation display[insOp] => {
+    disp(Op) => showIns(Op,[]).
+  }
+
+  showMnem:(multi[insOp]) => string.
+  showMnem(Ops) => showBlock(Ops,[0]).
+
+  showBlock:(multi[insOp],cons[integer]) => string.
+  showBlock(Ins,Pc) => interleave(showCode(Ins,[0,..Pc]),"\n")*.
+
+  showCode:(multi[insOp],cons[integer]) => cons[string].
+  showCode([],_) => [].
+  showCode([Ins,..Cde],Pc) => ["\#(showPc(Pc))\: \#(showIns(Ins,Pc))",..showCode(Cde,bumpPc(Pc))].
+
+  showIns:(insOp,cons[integer]) => string.
+  showIns(.iLbl(Lb,I),Pc) => "\#(Lb):  \#(showIns(I,Pc))".
+#(Show)
+
+  showPc:(cons[integer]) => string.
+  showPc(Pcs) => "\#(spaces(size(Pcs)))\#(interleave(Pcs//disp,".")*)".
+
+  spaces:(integer)=>string.
+  spaces(Ln) => let{.
+    sp(0) => [].
+    sp(N) => [` `,..sp(N-1)].
+  .} in _implode(sp(Ln)).
+
+  bumpPc:(cons[integer]) => cons[integer].
+  bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
+
+  public opcodeHash = #(Hash).
+}

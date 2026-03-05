@@ -48,6 +48,25 @@ set(STAR_ASM_SOURCE_FILES starmnem.c )
 add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
 target_link_libraries(starmnem ooio infra)
 
+set(SSA_OPCODES_SOURCE_FILES genssaopcodes.c ../Headers/ssaInstructions.h)
+add_executable(genssaopcodes ${SSA_OPCODES_SOURCE_FILES})
+target_link_libraries(genssaopcodes ooio)
+
+set(SSA_OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/ssaOps.h)
+set(SSA_OPCODES_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/ssa.opcodes.plate)
+
+add_custom_target(ssaOps.h DEPENDS genssaopcodes
+        COMMAND genssaopcodes -t ${SSA_OPCODES_PLATE} ${SSA_OPCODES_H}
+        COMMENT "Opcodes header in ${SSA_OPCODES_H}")
+
+set(PL_SSA_SOURCE_FILES plssa.c ../Headers/ssaOps.h)
+add_executable(plssa ${PL_SSA_SOURCE_FILES})
+target_link_libraries(plssa ooio infra)
+
+set(STAR_SSA_SOURCE_FILES starssa.c ../Headers/ssaOps.h)
+add_executable(starssa ${STAR_SSA_SOURCE_FILES})
+target_link_libraries(starssa ooio infra)
+
 set(PLINTRINSIC_SOURCE_FILES plintrinsic.c
   plsig.c
   starsig.h)
@@ -72,6 +91,8 @@ set(INTRINSIC_ST_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.star.plate)
 set(INTRINSIC_PL_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.pl.plate)
 set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
 set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
+set(SSA_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/ssa.pl)
+set(SSA_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/ssa.star)
 set(OPERATORS_ADOC ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.adoc)
 set(OPERATORS_EL ${CMAKE_CURRENT_SOURCE_DIR}/../Emacs/star-ops.el)
 
@@ -115,6 +136,16 @@ add_custom_target(pl.memnonics DEPENDS plmnem
 add_custom_target(star.memnonics DEPENDS starmnem
         COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
         COMMENT "Creating star assembler in ${ASM_ST}"
+)
+
+add_custom_target(pl.ssa DEPENDS plssa ssaOps.h
+        COMMAND plssa -t ${CMAKE_CURRENT_SOURCE_DIR}/ssa.pl.plate ${SSA_PL}
+        COMMENT "Creating boot assembler in ${SSA_PL}"
+)
+
+add_custom_target(star.ssa DEPENDS starssa
+        COMMAND starssa -t ${CMAKE_CURRENT_SOURCE_DIR}/ssa.star.plate ${SSA_ST}
+        COMMENT "Creating star assembler in ${SSA_ST}"
 )
 
 add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics

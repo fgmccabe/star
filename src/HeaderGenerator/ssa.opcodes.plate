@@ -1,0 +1,35 @@
+/* 
+ * Access the opcodes of the Star machine
+ * (c) 2013, 2018, 2024, 2026 and beyond F.G.McCabe
+ * all rights reserved
+ **/
+
+#ifndef SSA_OPCODES_H_
+#define SSA_OPCODES_H_
+
+typedef enum {
+#(OpCodes)
+  sInval,
+  maxCode = sInval
+} ssaOp;
+
+static char *ssaOpNames[] = {#(OpNames)};
+
+#ifndef OPCODE_SIGNATURE
+#define OPCODE_SIGNATURE #(Hash)
+#endif
+
+typedef enum {
+  Slcl = 'v',
+  Slcls = 'V',
+  Slit = 'l',
+  Sglb = 'g',
+  Sart = 'a',
+  Si32 = 'i',
+  SEs = 'e',
+  SbLk = 'k',
+  SlVl = 'b',
+  Ssym = 's'
+} argSpecType;
+
+#endif // SSA_OPCODES_H
