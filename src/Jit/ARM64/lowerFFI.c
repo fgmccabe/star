@@ -105,8 +105,8 @@ retCode callIntrinsic(assemCtxPo ctx, registerMap saveMap, runtimeFn fn, int32 a
 }
 
 // When we call a C intrinsic, we need to preserve important registers, especially in case of a GC
-void stash(jitBlockPo block) {
-  stashEngineState(block->jit, trueStackDepth(&block->stack));
+void stash(jitCompPo jit, int32 depth) {
+  stashEngineState(jit, depth);
 }
 
 void stashEngineState(jitCompPo jit, int32 stackLevel) {

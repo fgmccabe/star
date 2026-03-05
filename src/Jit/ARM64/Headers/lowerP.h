@@ -93,7 +93,7 @@ retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock);
 
-void stash(jitBlockPo block);
+void stash(jitCompPo jit, int32 depth);
 void stashEngineState(jitCompPo jit, int32 stackLevel);
 void unstashEngineState(jitCompPo jit);
 

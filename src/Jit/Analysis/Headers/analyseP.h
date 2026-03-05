@@ -9,30 +9,40 @@
 #include "array.h"
 #include "tree.h"
 
-typedef struct analysis_ {
+typedef struct analysis_
+{
   hashPo vars;
   treePo index;
   setPo safes;
   int32 minSlot;
 } AnalysisRecord;
 
-typedef struct var_description_ {
+typedef struct var_description_
+{
   int32 varNo; // Variable number, first numbers are locals
   int32 start; // PC where its value is established
   int32 end; // Last location where it is referenced
   logical registerCandidate;
   varKind kind;
   varAllocationState state;
-  varDescPo link;
 } VarDescRecord;
 
-typedef struct block_scope_ *scopePo;
+typedef struct varStack_* varStackPo;
 
-typedef struct block_scope_ {
+typedef struct varStack_
+{
+  varDescPo var;
+  varStackPo link;
+} VarStack;
+
+typedef struct block_scope_* scopePo;
+
+typedef struct block_scope_
+{
   int32 start;
   int32 limit;
   scopePo parent;
-  varDescPo stack;
+  varStackPo stack;
 } ScopeBlock;
 
 void initAnalysis();
@@ -44,7 +54,7 @@ retCode showVarIndex(ioPo out, analysisPo analysis);
 arrayPo varStarts(analysisPo analysis);
 arrayPo varExits(analysisPo analysis);
 arrayPo varRanges(analysisPo analysis);
-retCode showRanges(ioPo out,arrayPo vars);
+retCode showRanges(ioPo out, arrayPo vars);
 int32 minSlot(analysisPo analysis);
 
 logical isSafe(analysisPo analysis, varDescPo var);
@@ -57,8 +67,8 @@ void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 p
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
 varDescPo varStart(analysisPo analysis, int32 pc);
 
-varDescPo newStackVar(analysisPo analysis, scopePo scope, int32 pc);
-varDescPo newPhiVar(analysisPo analysis, scopePo scope, int32 pc);
+varStackPo newStackVar(analysisPo analysis, varStackPo stack, int32 pc);
+varStackPo newPhiVar(analysisPo analysis, varStackPo stack, int32 pc);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
 varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
 varDescPo findVar(analysisPo analysis, int32 varNo);
@@ -66,9 +76,8 @@ varDescPo findVar(analysisPo analysis, int32 varNo);
 retCode showVars(ioPo out, analysisPo analysis);
 retCode showVarDesc(ioPo out, varDescPo var);
 
-void retireStackVar(scopePo scope, int32 pc);
-void retireScopeStack(scopePo scope, int32 pc);
-void rotateStackVars(scopePo scope, int32 pc, int32 depth);
+varStackPo retireStackVar(varStackPo vstack, int32 pc);
+varStackPo retireScopeStack(varStackPo vStack, int32 pc);
 int32 stackDepth(scopePo scope);
 
 int32 slotCount(analysisPo analysis);

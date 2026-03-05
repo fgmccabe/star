@@ -18,6 +18,8 @@ extern logical enableSSA;
 typedef struct analysis_ *analysisPo;
 
 retCode analyseMethod(methodPo mtd, analysisPo results);
+retCode analyseSpecialMethod(methodPo mtd, int32 depth,analysisPo results);
+
 void tearDownAnalysis(analysisPo results);
 void showAnalysis(ioPo out, analysisPo analysis);
 
