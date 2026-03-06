@@ -690,6 +690,7 @@ isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
 isCnd(ng(_,_)).
+isCnd(cnd(_,L,R)) :- isCnd(L);isCnd(R).
 
 tipeOf(voyd,voidType).
 tipeOf(unreach(_,Tp),Tp).

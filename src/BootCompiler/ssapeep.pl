@@ -29,7 +29,7 @@ findUnusedVars([],Ins,[],Ins).
 varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
-vrRead(Vr,iCall(_,As)) :-
+vrRead(Vr,iCall(_,_,As)) :-
     is_member(Vr,As).
 vrRead(Vr,iTCall(_,As)) :-
     is_member(Vr,As).
@@ -39,20 +39,19 @@ vrRead(Vr,iXCall(_,_,_,As)) :-
     is_member(Vr,As).
 vrRead(Vr,iXEscape(_,_,_,As)) :-
     is_member(Vr,As).
-vrRead(Vr,iOCall(_,Vr,_,_)).
 vrRead(Vr,iOCall(_,_,Vr,_)).
 vrRead(Vr,iOCall(_,_,_,As)) :-
     is_member(Vr,As),!.
-vrRead(Vr,iXOCall(_,_,Vr,_,_)).
 vrRead(Vr,iXOCall(_,_,_,Vr,_)).
 vrRead(Vr,iXOCall(_,_,_,_,As)) :-
     is_member(Vr,As),!.
 vrRead(Vr,iTOCall(_,Vr,_)).
 vrRead(Vr,iTOCall(_,_,As)) :-
     is_member(Vr,As),!.
+vrRead(Vr,iHalt(Vr)).
+vrRead(Vr,iAbort(_,Vr)).
 vrRead(Vr,iRet(Vr)).
 vrRead(Vr,iXRet(Vr)).
-vrRead(Vr,iMvR(Vr)).
 
 vrRead(Vr,iBlock(I)) :- varRead(Vr,I).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
@@ -66,8 +65,8 @@ vrRead(Vr,iRetire(Vr,_)).
 vrRead(Vr,iRetire(_,Vr)).
 
 vrRead(Vr,iBind(_,Vr)).
-vrRead(Vr,iMv(_,Vr)).
-vrRead(Vr,iStG(_,Vr)).
+vrRead(Vr,iMV(_,Vr)).
+vrRead(Vr,iSG(_,Vr)).
 
 vrRead(Vr,iLdSav(_,_,Vr)).
 vrRead(Vr,iTstSav(_,Vr)).
@@ -156,29 +155,30 @@ vrRead(Vr,iBNot(_,Vr)).
 
 vrRead(Vr,iAlloc(_,_,As)) :-
   is_member(Vr,As).
-
 vrRead(Vr,iClosure(_,_,Vr)).
+vrRead(Vr,iBump(Vr)).
+vrRead(Vr,iDrop(Vr)).
 
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
+vrWrite(Vr,iXEntry(Vrs)) :-
+  is_member(Vr,Vrs).
+vrWrite(Vr,iEntry(Vrs)) :-
+  is_member(Vr,Vrs).
 vrWrite(Vr,iCall(_,Vr,_)).
 vrWrite(Vr,iEscape(_,Vr,_)).
-vrWrite(Vr,iXCall(_,_,Vr,_,_)).
-vrWrite(Vr,iXCall(_,_,_,Vr,_)).
-vrWrite(Vr,iXEscape(_,_,Vr,_,_)).
-vrWrite(Vr,iXEscape(_,_,_,Vr,_)).
+vrWrite(Vr,iXCall(_,_,Vr,_)).
+vrWrite(Vr,iXEscape(_,_,Vr,_)).
 vrWrite(Vr,iOCall(_,Vr,_,_)).
-vrWrite(Vr,iXOCall(_,_,Vr,_,_,_)).
-vrWrite(Vr,iXOCall(_,_,_,Vr,_,_)).
+vrWrite(Vr,iXOCall(_,_,Vr,_,_)).
+vrWrite(Vr,iValof(Vr,_)).
 vrWrite(Vr,iFiber(Vr,_)).
 vrWrite(Vr,iSuspend(Vr,_,_)).
 vrWrite(Vr,iResume(Vr,_,_)).
 
-vrWrite(Vr,iMv(Vr,_)).
-vrWrite(Vr,iMvC(Vr,_)).
-vrWrite(Vr,iMvV(Vr)).
-
-vrWrite(Vr,iMvG(Vr,_)).
+vrWrite(Vr,iMV(Vr,_)).
+vrWrite(Vr,iMC(Vr,_)).
+vrWrite(Vr,iMG(Vr,_)).
 
 vrWrite(Vr,iSav(Vr)).
 
@@ -191,7 +191,6 @@ vrWrite(Vr,iGet(Vr,_)).
 vrWrite(Vr,iAssign(Vr,_,_)).
 
 vrWrite(Vr,iNth(Vr,_,_)).
-vrWrite(Vr,iStNth(Vr,_,_,_)).
 
 vrWrite(Vr,iIAdd(Vr,_,_)).
 vrWrite(Vr,iISub(Vr,_,_)).

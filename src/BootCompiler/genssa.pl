@@ -88,9 +88,8 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genRet(RsltVr,Opts,Lc,FC1,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,AgMap),
-  length(LsMap,LclCnt),
-  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(LclCnt)|C]),
+  getAgMap(Args,Ags,AgMap),
+  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Ags)|C]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -109,9 +108,8 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genRet(RsltVr,Opts,Lc,FC1,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,AgMap),
-  length(LsMap,LclCnt),
-  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(LclCnt)|C0]),
+  getAgMap(Args,Ags,AgMap),
+  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Ags)|C0]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -190,16 +188,14 @@ extractLMap([(Nm,Spec,l(_))|Dx],[(Nm,Spec)|LsMap]) :-
 extractLMap([_|Dx],LsMap) :-
   extractLMap(Dx,LsMap).
 
-getAgMap(Args,AgMap) :-
-  extractAMap(Args,AgMap),!.
+getAgMap(Args,Map,AgMap) :-
+  extractAMap(Args,Map,AgMap),!.
 
-extractAMap([],[]).
-extractAMap([idnt(Nm,Tp)|As],[(Nm,strg(Sig))|LsMap]) :-
+extractAMap([],[],[]).
+extractAMap([idnt(Nm,Tp)|As],[Nm|Map],[(Nm,strg(Sig))|LsMap]) :-
   toLtipe(Tp,T),
   encLtp(T,Sig),
-  extractAMap(As,LsMap).
-extractAMap([_|Dx],LsMap) :-
-  extractAMap(Dx,LsMap).
+  extractAMap(As,Map,LsMap).
 
 buildArgs([A|R],Ix,Lc,Opts,D,Dx) :-
   buildArg(A,Ix,Lc,Opts,D,D0),
@@ -255,7 +251,7 @@ compIdExp(idnt(Nm,_),Lc,_Brks,_Next,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-
 
 compVar(l(X),_,Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :- !,
   call(Next,Lc,X,Brks,Opts,L,Lx,D,Dx,C,Cx).
-compVar(g(GlbNm),Tp,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iMvG(V,GlbNm)|C],Cx) :-
+compVar(g(GlbNm),Tp,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iMG(V,GlbNm)|C],Cx) :-
   defineTmpVar(Lc,V,Tp,Opts,D,D1),
   call(Next,Lc,V,Brks,Opts,L,Lx,D1,Dx,C,Cx).
 
@@ -391,7 +387,7 @@ compPtn(ann(_),_Vr,_,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx).
 compPtn(intgr(Ix),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCInt(intgr(Ix),Fail,Vr)|Cx],Cx).
 compPtn(Lit,Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail,Vr)|Cx],Cx) :-
   isLiteral(Lit).
-compPtn(idnt(Nm,Tp),Vr,Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,[iMv(Nm,Vr)|C],Cx) :-
+compPtn(idnt(Nm,Tp),Vr,Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,[iMV(Nm,Vr)|C],Cx) :-
   defineLclVar(Lc,Nm,Tp,Opts,D,Dx),
   genBind(Opts,Nm,C,Cx).
 compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(Fail,St,Vr)|C],Cx) :-
@@ -444,15 +440,15 @@ compCond(ng(Lc,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compCond(ng(Lc,A),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compCond(A,Lc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C0,Cx).
-compCond(cnd(Lc,T,A,B,_),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx) :-!,
+compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iBlock([iLbl(El,iBlock(CA))|CB]))|Cx]),
   genLbl(L,El,L0),
   compCond(T,Lc,El,Brks,normal,Opts,L0,L1,D,D1,CA,C0),
   genLbl(L1,Ok,L2),
   compCond(A,Lc,Fail,Brks,normal,Opts,L2,L3,D1,D2,C0,[iBreak(Ok)]),
   compCond(B,Lc,Fail,Brks,normal,Opts,L3,Lx,D2,Dx,CB,[iBreak(Ok)]).
-compCond(cnd(Lc,T,A,B,Tp),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  compCond(cnd(Lc,T,B,A,Tp),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx).
+compCond(cnd(Lc,T,A,B),OLc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  compCond(cnd(Lc,T,B,A),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx).
 compCond(mtch(Lc,P,E),OLc,Fail,Brks,normal,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   compExp(E,Lc,Brks,genssa:next(Vr),Opts,L,L3,D,D1,C0,C1),
@@ -472,10 +468,10 @@ compCond(E,Lc,Fail,Brks,negated,Opts,L,Lx,D,Dx,C,Cx) :-
   compExp(E,Lc,Brks,genssa:next(Vr),Opts,L,Lx,D0,Dx,C,[iIf(Fail)|Cx]).
 
 % compile an expression
-compExp(unreach(Lc,Tp),_Lc,_Brks,_Next,Opts,Lx,Lx,D,Dx,[iMvC(UVar,strg("unreachable")),iAbort(Loc,UVar)|C],C) :-
+compExp(unreach(Lc,Tp),_Lc,_Brks,_Next,Opts,Lx,Lx,D,Dx,[iMC(UVar,strg("unreachable")),iAbort(Loc,UVar)|C],C) :-
   defineTmpVar(Lc,UVar,Tp,Opts,D,Dx),
   locTerm(Lc,Loc),!.
-compExp(Trm,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iMvC(Rslt,Trm)|C],Cx) :-
+compExp(Trm,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iMC(Rslt,Trm)|C],Cx) :-
   isLiteral(Trm),!,
   tipeOf(Trm,Tp),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D1),
@@ -516,14 +512,14 @@ compExp(cll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-  genDbg(Opts,Lc,C1,[iCall(Nm,As),MvR(Rslt)|C2]),
+  genDbg(Opts,Lc,C1,[iCall(Nm,Rslt,As)|C2]),
   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx).
 compExp(xcll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
    compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-   genDbg(Opts,Lc,C1,[iXCall(Nm,TryLvl,As),MvR(Rslt)|C2]),
+   genDbg(Opts,Lc,C1,[iXCall(Nm,TryLvl,Rslt,As)|C2]),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
@@ -536,7 +532,7 @@ compExp(ocall(Lc,O,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,OP,OTp,Opts,D0,D1),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
   compExp(O,Lc,Brks,genssa:next(OP),Opts,L1,L2,D1,D2,C1,C2),
-  genDbg(Opts,Lc,C2,[iOCall(Arity,OP,As),MvR(Rslt)|C3]),
+  genDbg(Opts,Lc,C2,[iOCall(Arity,OP,Rslt,As)|C3]),
   call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx).
 compExp(xocall(Lc,O,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
@@ -548,7 +544,7 @@ compExp(xocall(Lc,O,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
    defineTmpVar(Lc,OP,OTp,Opts,D0,D1),
    compExps(A,Lc,Brks,Opts,L,L1,D1,D2,C0,C1,As),
    compExp(O,Lc,Brks,genssa:next(OP),Opts,L1,L2,D2,D3,C1,C2),
-   genDbg(Opts,Lc,C2,[iXOCall(Arity,OP,TryLvl,As),MvRslt(Rslt)|C3]),
+   genDbg(Opts,Lc,C2,[iXOCall(Arity,OP,TryLvl,Rslt,As)|C3]),
    call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D3,Dx,C3,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
@@ -644,7 +640,8 @@ compExp(thrw(Lc,E),OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-
    chLine(Opts,OLc,Lc,C,C0),
    compExp(E,Lc,Brks,ssagen:valof(TryLvl),Opts,L,Lx,D,Dx,C0,Cx);
    reportError("not in scope of try",[],Lc)).
-compExp(cnd(Lc,Cnd,A,B,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
+compExp(cnd(Lc,Cnd,A,B),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
+  tipeOf(A,Tp),
   defineTmpVar(Lc,VlVr,Tp,Opts,D,D0),
   genLbl(L,Fl,L0),
   genLbl(L0,OkLbl,L1),
@@ -702,14 +699,14 @@ compExp(rtire(Lc,T,M,_Tp),OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-
   compExp(M,Lc,Brks,genssa:next(MVr),Opts,L,L1,D1,D2,C0,C1),
   compExp(T,Lc,Brks,genssa:next(TVr),Opts,L1,Lx,D2,Dx,C1,C2),
   genDbg(Opts,Lc,C2,[iRetire(TVr,MVr)|Cx]).
-compExp(Cond,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(RsltVr,[iLbl(Fl,iBlock(C1)),iMvC(RsltVr,enum(False)),iResult(Ok,RsltVr)]))|Cx],Cx) :-
+compExp(Cond,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(RsltVr,[iLbl(Fl,iBlock(C1)),iMC(RsltVr,enum(False)),iResult(Ok,RsltVr)]))|Cx],Cx) :-
   isCond(Cond),!,
   isTrueSymb(True),
   isFalseSymb(False),
   defineTmpVar(Lc,RsltVr,type("boolean"),Opts,D,D1),
   genLbl(L,Ok,L0),
   genLbl(L0,Fl,L1),
-  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,L2,D1,D2,C1,[iMvC(RsltVr,enum(True)),iResult(Ok,RsltVr)|C2]),
+  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,L2,D1,D2,C1,[iMC(RsltVr,enum(True)),iResult(Ok,RsltVr)|C2]),
   call(Next,RsltVr,Brks,Opts,L2,Lx,D2,Dx,C2,Cx).
 compExp(T,Lc,_Brks,_Last,_Opts,Lx,Lx,Dx,Dx,C,C) :-
   reportError("cannot compile %s",[ltrm(T)],Lc),
@@ -765,7 +762,7 @@ compTryA(Lc,B,idnt(E,ETp),H,OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   compAction(H,Lc,Brks,Opts,L2,Lx,D3,Dx,H2,[iBreak(Ok)]).
 
 isCond(cnj(_,_,_)).
-isCond(cnd(_,_,_,_,_)).
+isCond(cnd(_,_,_,_)).
 isCond(dsj(_,_,_)).
 isCond(ng(_,_)).
 isCond(mtch(_,_,_)).
