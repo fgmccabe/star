@@ -224,7 +224,7 @@ static void genAsm(hashPo vars) {
   AsmInfoRecord info = {.out = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .ltNo = 0};
 
 #undef instr
-#define instr(M, Fmt) genMnem(&info, #M, M, Fmt);
+#define instr(M, Fmt) genMnem(&info, #M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 
@@ -285,7 +285,7 @@ static void genDisp(asmInfoPo info, char *fmt, int32 arity) {
   }
 }
 
-void showIns(asmInfoPo info, char *mnem, int op, char *fmt) {
+void showIns(asmInfoPo info, char *mnem, ssaOp op, char *fmt) {
   clearStrBuffer(info->line);
   clearStrBuffer(info->aux);
 
@@ -320,7 +320,7 @@ static void genShow(hashPo vars) {
   AsmInfoRecord info = {.out = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .pcNo = 0};
 
 #undef instr
-#define instr(M, Fmt) showIns(&info,#M, M, Fmt);
+#define instr(M, Fmt) showIns(&info,#M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 

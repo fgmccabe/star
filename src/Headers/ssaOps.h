@@ -18,9 +18,9 @@ typedef enum {
     sXEscape = 7,
     sTCall = 8,
     sTOCall = 9,
-    sEntry = 10,
-    sRet = 11,
-    sRtn = 12,
+    sXEntry = 10,
+    sEntry = 11,
+    sRet = 12,
     sXRet = 13,
     sBlock = 14,
     sValof = 15,
@@ -106,9 +106,9 @@ static char *ssaOpNames[] = {
       "XEscape",
       "TCall",
       "TOCall",
+      "XEntry",
       "Entry",
       "Ret",
-      "Rtn",
       "XRet",
       "Block",
       "Valof",
@@ -180,7 +180,7 @@ static char *ssaOpNames[] = {
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 1856896583037917357
+#define OPCODE_SIGNATURE 694396771253745882
 #endif
 
 typedef enum {

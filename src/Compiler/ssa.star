@@ -28,9 +28,9 @@ star.compiler.ssa{
     | .iXEscape(string, assemLbl, cons[varNm])
     | .iTCall(termLbl, cons[varNm])
     | .iTOCall(integer, varNm, cons[varNm])
-    | .iEntry(integer)
+    | .iXEntry(cons[varNm])
+    | .iEntry(cons[varNm])
     | .iRet(varNm)
-    | .iRtn
     | .iXRet(varNm)
     | .iBlock(multi[insOp])
     | .iValof(varNm, multi[insOp])
@@ -186,9 +186,9 @@ star.compiler.ssa{
     valis ([.intgr(8),.intgr(L1),mkTpl(findLocals(V1,Lcs))],Pc+3,Lt1);
   }
   mnem(.iTOCall(V0, V1, V2), Pc,Lbls,Lt0,Lcs) => ([.intgr(9),.intgr(V0),findLocal(V1,Lcs),mkTpl(findLocals(V2,Lcs))],Pc+4,Lt0).
-  mnem(.iEntry(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(10),.intgr(V0)],Pc+2,Lt0).
-  mnem(.iRet(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(11),findLocal(V0,Lcs)],Pc+2,Lt0).
-  mnem(.iRtn, Pc,Lbls,Lt0,Lcs) => ([.intgr(12)],Pc+1,Lt0).
+  mnem(.iXEntry(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(10),mkTpl(findLocals(V0,Lcs))],Pc+2,Lt0).
+  mnem(.iEntry(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(11),mkTpl(findLocals(V0,Lcs))],Pc+2,Lt0).
+  mnem(.iRet(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(12),findLocal(V0,Lcs)],Pc+2,Lt0).
   mnem(.iXRet(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(13),findLocal(V0,Lcs)],Pc+2,Lt0).
   mnem(.iBlock(V0), Pc,Lbls,Lt0,Lcs) => valof {
     (A1, _, Lt1) = assemBlock(V0,[],Pc+1,[.none,..Lbls],Lt0,Lcs); 
@@ -368,9 +368,9 @@ star.compiler.ssa{
   showIns(.iXEscape(V0, V1, V2), Pc) => "XEscape #(V0) $(V1) $(V2)".
   showIns(.iTCall(V0, V1), Pc) => "TCall $(V0) $(V1)".
   showIns(.iTOCall(V0, V1, V2), Pc) => "TOCall $(V0) #(V1) $(V2)".
+  showIns(.iXEntry(V0), Pc) => "XEntry $(V0)".
   showIns(.iEntry(V0), Pc) => "Entry $(V0)".
   showIns(.iRet(V0), Pc) => "Ret #(V0)".
-  showIns(.iRtn, Pc) => "Rtn".
   showIns(.iXRet(V0), Pc) => "XRet #(V0)".
   showIns(.iBlock(V0), Pc) => "Block #(showBlock(V0,[0,..Pc]))".
   showIns(.iValof(V0, V1), Pc) => "Valof #(V0) #(showBlock(V1,[0,..Pc]))".
@@ -454,5 +454,5 @@ star.compiler.ssa{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 1856896583037917357.
+  public opcodeHash = 694396771253745882.
 }
