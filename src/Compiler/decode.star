@@ -179,7 +179,7 @@ star.compiler.decode{
     | `C` => valof{
       (A,T0) = decodeType(Ts);
       (R,T1) = decodeType(T0);
-      valis (.conType(A,R),T1)
+      valis (.cnsType(A,R),T1)
     }
   }
 

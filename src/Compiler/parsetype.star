@@ -98,7 +98,7 @@ star.compiler.typeparse{
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isConstructorType(T) => valof{
     A = parseArgType(Lhs,Env);
     R = parseType(Rhs,Env);
-    valis .conType(A,R)
+    valis .cnsType(A,R)
   }
   parseType(T,Env) where (Lc,Lhs,Rhs) ?= isFiberType(T) => valof{
     R = parseType(Lhs,Env);

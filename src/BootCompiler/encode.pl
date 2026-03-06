@@ -159,6 +159,9 @@ encodeLtipe(fnTipe(As,R),['F'|O],Ox) :-
 encodeLtipe(prTipe(As,E),['P'|O],Ox) :-
   encodeLtipe(As,O,O1),
   encodeLtipe(E,O1,Ox).
+encodeLtipe(cnTipe(As,R),['C'|O],Ox) :-
+  encodeLtipe(As,O,O1),
+  encodeLtipe(R,O1,Ox).
 encodeLtipe(tplTipe(As),['('|O],Ox) :-
   rfold(As,encode:encodeLtipe,O,[')'|Ox]).
 

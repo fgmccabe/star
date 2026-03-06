@@ -117,7 +117,7 @@ char *dumpStarSig(char *sig, ioPo out) {
       return sig;
     }
     case conSig: {
-      outStr(out, ".conType(");
+      outStr(out, ".cnsType(");
       sig = dumpStarSig(sig, out);
       outStr(out, ",");
       sig = dumpStarSig(sig, out);

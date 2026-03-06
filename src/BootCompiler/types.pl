@@ -640,6 +640,9 @@ toLtp(type("boolean"),blTipe) :- !.
 toLtp(funType(Args,Res,_),fnTipe(As,R)) :-!,
   toLtipe(Args,As),
   toLtipe(Res,R).
+toLtp(conType(Args,Res),cnTipe(As,R)) :-!,
+  toLtipe(Args,As),
+  toLtipe(Res,R).
 toLtp(prcType(Args,E),prTipe(As,EE)) :-!,
   toLtipe(Args,As),
   toLtipe(E,EE).
@@ -672,6 +675,9 @@ ssTipe(fnTipe(A,R),sq([AA,ss(" => "),RR])) :-
 ssTipe(prTipe(A,E),sq([AA,ss("{}"),ss("throws"),EE])) :-
   ssTipe(A,AA),
   ssTipe(E,EE).
+ssTipe(cnTipe(A,R),sq([AA,ss(" <=> "),RR])) :-
+  ssTipe(A,AA),
+  ssTipe(R,RR).
 
 unitTp(tplType([])).
 

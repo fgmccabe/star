@@ -123,7 +123,7 @@ star.compiler.freshen{
   frshn(.tupleType(Els),Env) => .tupleType(frshnList(Els,Env)).
   frshn(.funType(A,R,E),Env) => .funType(frshnD(A,Env),frshnD(R,Env),frshnD(E,Env)).
   frshn(.prcType(A,E),Env) => .prcType(frshnD(A,Env),frshnD(E,Env)).
-  frshn(.conType(A,R),Env) => .conType(frshnD(A,Env),frshnD(R,Env)).
+  frshn(.cnsType(A,R),Env) => .cnsType(frshnD(A,Env),frshnD(R,Env)).
   frshn(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,frshnD(E,Env))),
       Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
@@ -160,7 +160,7 @@ star.compiler.freshen{
   skol(.tupleType(Els),Env) => .tupleType(skolList(Els,Env)).
   skol(.funType(A,R,E),Env) => .funType(skolD(A,Env),skolD(R,Env),skolD(E,Env)).
   skol(.prcType(A,E),Env) => .prcType(skolD(A,Env),skolD(E,Env)).
-  skol(.conType(A,R),Env) => .conType(skolD(A,Env),skolD(R,Env)).
+  skol(.cnsType(A,R),Env) => .cnsType(skolD(A,Env),skolD(R,Env)).
   skol(.faceType(Els,Tps),Env) =>
     .faceType(Els//(((Nm,E))=>(Nm,skolD(E,Env))),
     Tps//(((Nm,Rl))=>(Nm,freshenRl(Rl,Env)))).
