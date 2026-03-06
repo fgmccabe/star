@@ -106,15 +106,17 @@ mnem([iTOCall(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(9), intgr(V0), O
   findLocal(V1,LsMap,Off1),
   findLocals(V2,LsMap,LL2),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iEntry(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(10), intgr(V0)|Cd],Cdx) :-
+mnem([iXEntry(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(10), LL0|Cd],Cdx) :-
   Pc1 is Pc+1,
+  findLocals(V0,LsMap,LL0),
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iRet(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(11), Off0|Cd],Cdx) :-
+mnem([iEntry(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(11), LL0|Cd],Cdx) :-
+  Pc1 is Pc+1,
+  findLocals(V0,LsMap,LL0),
+  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
+mnem([iRet(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(12), Off0|Cd],Cdx) :-
   Pc1 is Pc+1,
   findLocal(V0,LsMap,Off0),
-  mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
-mnem([iRtn|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(12)|Cd],Cdx) :-
-  Pc1 is Pc+1,
   mnem(Ins,Lbls,Lt0,Ltx,Pc1,Pcx,LsMap,Cd,Cdx).
 mnem([iXRet(V0)|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(13), Off0|Cd],Cdx) :-
   Pc1 is Pc+1,
@@ -649,11 +651,13 @@ showMnem(iTCall(V0, V1),Pc,sq([PcDx,ss(": "),ss("TCall"),ss(" "),SS0,ss(" "),VV1
 showMnem(iTOCall(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("TOCall"),ss(" "),ix(V0),ss(" "),ss(V1),ss(" "),VV2])) :- !,
   showCallArgs(V2,VV2),
   showPc(Pc,PcDx).
-showMnem(iEntry(V0),Pc,sq([PcDx,ss(": "),ss("Entry"),ss(" "),ix(V0)])) :- !,
+showMnem(iXEntry(V0),Pc,sq([PcDx,ss(": "),ss("XEntry"),ss(" "),VV0])) :- !,
+  showCallArgs(V0,VV0),
+  showPc(Pc,PcDx).
+showMnem(iEntry(V0),Pc,sq([PcDx,ss(": "),ss("Entry"),ss(" "),VV0])) :- !,
+  showCallArgs(V0,VV0),
   showPc(Pc,PcDx).
 showMnem(iRet(V0),Pc,sq([PcDx,ss(": "),ss("Ret"),ss(" "),ss(V0)])) :- !,
-  showPc(Pc,PcDx).
-showMnem(iRtn,Pc,sq([PcDx,ss(": "),ss("Rtn")])) :- !,
   showPc(Pc,PcDx).
 showMnem(iXRet(V0),Pc,sq([PcDx,ss(": "),ss("XRet"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
@@ -829,7 +833,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(1856896583037917357).
+ssaHash(694396771253745882).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

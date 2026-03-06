@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 #define lVls "B"
 #define none ""
 
-#define instr(M, Fmt) ssaOpType(O_IO(typeBuff), #M, M, Fmt);
+#define instr(M, Fmt) ssaOpType(O_IO(typeBuff), #M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     strBufferPo showBuff = newStringBuffer();
 
 #undef instr
-#define instr(M, Fmt) showIns(O_IO(showBuff),#M, M, Fmt);
+#define instr(M, Fmt) showIns(O_IO(showBuff),#M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 
@@ -246,7 +246,7 @@ static void genAsm(hashPo vars) {
   AsmInfoRecord info = {.out = O_IO(mnemBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .ltNo = 0};
 
 #undef instr
-#define instr(M, Fmt) genStarMnem(&info, #M, M, Fmt);
+#define instr(M, Fmt) genStarMnem(&info, #M, s##M, Fmt);
 
 #include "ssaInstructions.h"
 
