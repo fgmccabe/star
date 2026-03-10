@@ -11,6 +11,6 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sbc.in
 	)
 
 add_custom_target(sbc)
-add_dependencies(sbc pl.operators pl.escapes pl.intrinsics pl.memnonics)
+add_dependencies(sbc pl.operators pl.escapes pl.intrinsics pl.ssa)
 
 

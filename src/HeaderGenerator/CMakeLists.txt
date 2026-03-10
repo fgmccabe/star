@@ -29,25 +29,6 @@ set(STARESC_SOURCE_FILES
 add_executable(genstaresc ${STARESC_SOURCE_FILES})
 target_link_libraries(genstaresc ooio)
 
-set(OPCODES_SOURCE_FILES opcodes.c ../Headers/instructions.h)
-add_executable(opcodes ${OPCODES_SOURCE_FILES})
-target_link_libraries(opcodes ooio)
-
-set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/opcodes.h)
-set(OPCODES_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/opcodes.plate)
-
-add_custom_target(opcodes.h DEPENDS opcodes
-        COMMAND opcodes -t ${OPCODES_PLATE} ${OPCODES_H}
-        COMMENT "Opcodes header in ${OPCODES_H}")
-
-set(ASM_SOURCE_FILES plmnem.c)
-add_executable(plmnem ${ASM_SOURCE_FILES})
-target_link_libraries(plmnem ooio infra)
-
-set(STAR_ASM_SOURCE_FILES starmnem.c )
-add_executable(starmnem ${STAR_ASM_SOURCE_FILES})
-target_link_libraries(starmnem ooio infra)
-
 set(SSA_OPCODES_SOURCE_FILES genssaopcodes.c ../Headers/ssaInstructions.h)
 add_executable(genssaopcodes ${SSA_OPCODES_SOURCE_FILES})
 target_link_libraries(genssaopcodes ooio)
@@ -89,8 +70,6 @@ set(ESCAPES_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/escapes.pl)
 set(INTRINSIC_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/intrinsics.pl)
 set(INTRINSIC_ST_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.star.plate)
 set(INTRINSIC_PL_PLATE ${CMAKE_CURRENT_SOURCE_DIR}/intrinsics.pl.plate)
-set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
-set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
 set(SSA_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/ssa.pl)
 set(SSA_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/ssa.star)
 set(OPERATORS_ADOC ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.adoc)
@@ -128,15 +107,6 @@ add_custom_target(star.intrinsics DEPENDS intrinsic
 add_custom_target(pl.intrinsics DEPENDS plintrinsic
         COMMAND plintrinsic -t ${INTRINSIC_PL_PLATE} ${INTRINSIC_PL}
 )
-add_custom_target(pl.memnonics DEPENDS plmnem
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate ${ASM_PL}
-        COMMENT "Creating boot assembler in ${ASM_PL}"
-)
-
-add_custom_target(star.memnonics DEPENDS starmnem
-        COMMAND starmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate ${ASM_ST}
-        COMMENT "Creating star assembler in ${ASM_ST}"
-)
 
 add_custom_target(pl.ssa DEPENDS plssa ssaOps.h
         COMMAND plssa -t ${CMAKE_CURRENT_SOURCE_DIR}/ssa.pl.plate ${SSA_PL}
@@ -148,7 +118,8 @@ add_custom_target(star.ssa DEPENDS starssa
         COMMENT "Creating star assembler in ${SSA_ST}"
 )
 
-add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics star.memnonics
-        pl.operators pl.escapes pl.intrinsics pl.memnonics
-        el.operators adoc.operators)
+add_custom_target(generate DEPENDS star.operators star.escapes star.intrinsics
+        pl.operators pl.escapes pl.intrinsics
+        el.operators adoc.operators
+        pl.ssa star.ssa)
 

@@ -601,7 +601,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         pc += insSize;
         continue;
       }
-
       case sSav: {
         int32 insSize = 2;
         int32 tgtVr = operand(1);
@@ -924,7 +923,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         pc += insSize;
         continue;
       }
-
       case sFiber: {
         int32 insSize = 3;
         int32 tgtVr = operand(1);
@@ -939,7 +937,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         pc += insSize;
         continue;
       }
-
       case sResume:
       case sSuspend:
       case sRetire: {
@@ -953,13 +950,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         pc += insSize;
         continue;
       }
-
       case sUnderflow: {
         int32 insSize = 1;
         pc += insSize;
         continue;
       }
-
       case sLine:
       case sdBug: {
         int32 insSize = 2;

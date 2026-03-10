@@ -214,16 +214,12 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stac
         return ret;
       }
       case bLk: {
-        int32 thisPc = *pc;
-        int32 *fwd = newEntry(ar);
-        appendEntry(ar, &thisPc);
+        int32 *fwd = newEntry(ar); // Set up for the skip forward
         (*pc)++;
         (*count)--;
-        retCode ret = decodeBlock(in, ar, pc, count, brk, stackHeight);
-        if (ret == Ok) {
-          *fwd = *pc;
+        retCode ret = decodeBlock(in, ar, pc, fwd, brk, stackHeight);
+        if (ret == Ok)
           continue;
-        }
         return ret;
       }
       case lVl: {

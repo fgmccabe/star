@@ -173,25 +173,6 @@ static retCode debugOption(char *option, OptionAction action) {
         logMsg(logFile, "jit not enabled");
         return Error;
 #endif
-
-      case 'J': {
-#ifndef NOJIT
-#ifdef TRACEJIT
-        extern tracingLevel traceSSA;
-
-        if (traceSSA < detailedTracing)
-          traceSSA++;
-        logMsg(logFile, "SSA tracing enabled");
-        continue;
-#else
-        logMsg(logFile, "SSA tracing not enabled");
-        return Error;
-#endif
-#else
-        logMsg(logFile, "ssa not enabled");
-        return Error;
-#endif
-      }
       case 's':
         collectStats = True;
         atexit(dumpStats);
@@ -363,28 +344,7 @@ static retCode enableJit(char *option, OptionAction action) {
   }
   return Ok;
 #else
-  return Error;
-#endif
-}
-
-static retCode enableSSAOption(char *option, OptionAction action) {
-#ifndef NOJIT
-  switch (action) {
-    case enable: {
-      enableSSA = True;
-      break;
-    }
-    case disable: {
-      enableSSA = False;
-      break;
-    }
-    case toggle: {
-      enableSSA = !enableSSA;
-      break;
-    }
-  }
-  return Ok;
-#else
+  logMsg(logFile, "jit not enabled");
   return Error;
 #endif
 }
@@ -475,7 +435,6 @@ Option options[] = {
   {'v', "version", noArgument, Null, displayVersion, "-v|--version"},
   {'b', "main-pkg", hasArgument, STAR_BOOT, setPkgMain, "-b|--main-pkg <pkg>"},
   {'j', "jit", noArgument, STAR_RUN_MODE, enableJit, "-j|--jit"},
-  {'A', "enable-ssa", noArgument, STAR_ENABLE_SSA, enableSSAOption, "-A|--enable-ssa"},
   {'m', "main", hasArgument, STAR_MAIN, setBootEntry, "-m|--main <entry>"},
   {'L', "logFile", hasArgument, STAR_LOGFILE, setLogFile, "-L|--logFile <path>"},
   {'r', "repository", hasArgument, STAR_REPO, setRepoDir, "-r|--repository <path>"},
