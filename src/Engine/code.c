@@ -112,12 +112,12 @@ int32 stackDelta(methodPo mtd) {
   return mtd->stackDelta + mtd->lclcnt;
 }
 
-logical validPC(methodPo mtd, insPo pc) {
+logical validPC(methodPo mtd, ssaInsPo pc) {
   return (logical) (pc >= mtd->instructions && pc < &mtd->instructions[mtd->insCount]);
 }
 
-int32 codeOffset(methodPo mtd, insPo pc) {
-  insPo instructions = mtd->instructions;
+int32 codeOffset(methodPo mtd, ssaInsPo pc) {
+  ssaInsPo instructions = mtd->instructions;
   if (pc >= instructions && pc < instructions + mtd->insCount) {
     return (int32) (pc - instructions);
   }
@@ -206,7 +206,7 @@ int32 codeSize(methodPo mtd) {
   return mtd->insCount;
 }
 
-methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
+methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
 
   methodPo mtd = (methodPo) allocPool(mtdPool);
@@ -229,7 +229,7 @@ methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount,
   return mtd;
 }
 
-labelPo specialMethod(const char *name, int32 arity, int32 insCx, insPo instructions, int32 lcls, int32 stkLimit, int32 depth) {
+labelPo specialMethod(const char *name, int32 arity, int32 insCx, ssaInsPo instructions, int32 lcls, int32 stkLimit) {
   labelPo lbl = declareLbl(name, arity, 0);
 
   methodPo mtd = defineMtd(globalHeap, insCx, instructions, lcls, stkLimit, lbl);

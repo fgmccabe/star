@@ -6,11 +6,13 @@
 #include <stdlib.h>
 #include "arithP.h"
 #include "signature.h"
-#include "code.h"
+#include "codeP.h"
 #include "escapeP.h"
 #include "ssaOps.h"
-
-typedef ssaOp *ssaInsPo;
+#include "pkgP.h"
+#include "stackP.h"
+#include "verify.h"
+#include "verifyP.h"
 
 // Used to support decoding
 typedef struct break_level_ *breakLevelPo;
@@ -23,16 +25,16 @@ typedef struct break_level_ {
   integer msgSize;
 } BreakLevel;
 
-static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk);
+static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk, int32 *stackHeight);
 static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
-retCode decodeSSAInstructions(ioPo in, int32 *codeCount, ssaInsPo *code, char *errorMsg, long msgSize,
-                              termPo constantPool) {
+static retCode decodeInstructions(ioPo in, int32 *codeCount, ssaInsPo *code, char *errorMsg, long msgSize,
+                                  termPo constantPool, int32 *stackHeight) {
   arrayPo ar = allocArray(sizeof(int32), 256, True);
   BreakLevel brk = {.pc = 0, .parent = Null, .pool = C_NORMAL(constantPool), .errorMsg = errorMsg, .msgSize = msgSize};
   int32 pc = 0;
 
-  tryRet(decodeBlock(in, ar, &pc, codeCount, &brk));
+  tryRet(decodeBlock(in, ar, &pc, codeCount, &brk, stackHeight));
   *code = (ssaInsPo) malloc(sizeof(int32) * (size_t) *codeCount);
   tryRet(copyOutData(ar, (void *) *code, sizeof(int32) * (size_t) *codeCount));
   eraseArray(ar, Null, Null);
@@ -40,15 +42,16 @@ retCode decodeSSAInstructions(ioPo in, int32 *codeCount, ssaInsPo *code, char *e
   return Ok;
 }
 
-static retCode decodeOp(ioPo in, ssaOp *op) {
+static retCode decodeOp(ioPo in, breakLevelPo brk, ssaOp *op) {
   integer val;
   retCode ret = decodeInteger(in, &val);
   if (ret == Ok) {
     if (val >= 0 && val < maxCode) {
-      *op = (ssaOp) val;
+      *op = val;
       return ret;
     }
   }
+  strMsg(brk->errorMsg, brk->msgSize, "invalid opcode: %d", (int32) val);
   return Error;
 }
 
@@ -69,13 +72,14 @@ static retCode decodeConstant(ioPo in, int32 *tgt, breakLevelPo brk) {
     return ret;
 }
 
-static retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk, char *mt);
+static retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk,
+                              char *mt);
 
-static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk) {
+static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk) {
   retCode ret = Ok;
 
   ssaOp op;
-  if ((ret = decodeOp(in, &op)) == Ok) {
+  if ((ret = decodeOp(in, brk, &op)) == Ok) {
     (*pc)++;
     appendEntry(ar, &op);
     (*count)--; // Increment decode counter
@@ -94,7 +98,8 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #define none ""
 #define instr(M, Fmt) \
   case s##M:\
-      ret = decodeOperands(in, ar, pc, count, brk, Fmt);
+      ret = decodeOperands(in, ar, pc, count, stackHeight, brk, Fmt); \
+      break;
 
 #include "ssaInstructions.h"
 
@@ -129,7 +134,8 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLeve
 #define bLk 'k'
 #define lVl 'b'
 
-retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelPo brk, char *fmt) {
+retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk, char *fmt) {
+  int32 basePc = (*pc) - 1;
   while (*fmt != '\0') {
     switch (*fmt++) {
       case sym:
@@ -179,6 +185,8 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
           }
           continue;
         }
+        if (*stackHeight < vrCount)
+          *stackHeight = vrCount;
         return ret;
       }
       case glb: {
@@ -211,7 +219,7 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         appendEntry(ar, &thisPc);
         (*pc)++;
         (*count)--;
-        retCode ret = decodeBlock(in, ar, pc, count, brk);
+        retCode ret = decodeBlock(in, ar, pc, count, brk, stackHeight);
         if (ret == Ok) {
           *fwd = *pc;
           continue;
@@ -222,7 +230,7 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
         int32 lvl;
         retCode ret = decodeI32(in, &lvl);
         if (ret == Ok) {
-          int32 lvlPc = findBreak(brk, *pc, lvl);
+          int32 lvlPc = findBreak(brk, basePc, lvl);
           appendEntry(ar, &lvlPc);
           (*pc)++;
           (*count)--;
@@ -238,7 +246,7 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, breakLevelP
   return Ok;
 }
 
-retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk) {
+retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk, int32 *stackHeight) {
   BreakLevel blkBrk = {
     .pc = (*pc), .parent = brk, .pool = brk->pool, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
   };
@@ -248,7 +256,7 @@ retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk
 
   if (ret == Ok) {
     while (ret == Ok && count > 0) {
-      ret = decodeIns(in, ar, pc, &count, &blkBrk);
+      ret = decodeIns(in, ar, pc, &count, stackHeight, &blkBrk);
     }
 
     *tgt = *pc - blkBrk.pc;
@@ -263,4 +271,96 @@ int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
     return brk->pc - pc - 1;
   } else
     return 0;
+}
+
+retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
+  int32 policyCount;
+  retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
+  for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
+    char nameBuff[MAX_SYMB_LEN];
+    if (decodeString(in, nameBuff, NumberOf(nameBuff)) == Ok) {
+      if (uniIsLit(nameBuff, "soft")) {
+        *redefine = softDef;
+      } else; // ignore unknown policies
+    } else {
+      strMsg(errorMsg, msgSize, "problem in loading policy");
+      return Error;
+    }
+  }
+  return ret;
+}
+
+retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
+  char prgName[MAX_SYMB_LEN];
+  int32 arity;
+  int32 lclCount = 0;
+  int32 sigIndex;
+  DefinitionMode redefine = hardDef;
+
+  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
+
+#ifdef TRACEPKG
+  if (tracePkg >= detailedTracing)
+    logMsg(logFile, "loading function %s/%d", &prgName, arity);
+#endif
+
+  if (ret == Ok)
+    ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
+
+  if (ret == Ok)
+    ret = decodeI32(in, &sigIndex);
+
+  if (ret == Ok)
+    ret = decodeI32(in, &lclCount);
+
+  if (ret == Ok) {
+    termPo pool = voidEnum;
+    int root = gcAddRoot(H, &pool);
+    EncodeSupport support = {errorMsg, msgSize, H};
+    strBufferPo tmpBuffer = newStringBuffer();
+
+    ret = decode(in, &support, H, &pool, tmpBuffer);
+
+    if (ret == Ok) {
+      int32 insCount = 0;
+      ssaInsPo instructions = Null;
+      int32 stackHeight = 0;
+      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool, &stackHeight);
+
+      if (ret == Ok) {
+        termPo locals = voidEnum;
+        gcAddRoot(H, &locals);
+        ret = decode(in, &support, H, &locals, tmpBuffer);
+
+        if (ret == Ok) {
+          labelPo lbl = declareLbl(prgName, arity, -1);
+
+          if (labelMtd(lbl) != Null) {
+            if (redefine != softDef) {
+              strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
+              ret = Error;
+            } // Otherwise don't redefine
+          } else {
+            gcAddRoot(H, (ptrPo) &lbl);
+
+            methodPo mtd = defineMtd(H, insCount, instructions, lclCount,
+                                     stackHeight + lclCount + (int32) FrameCellCount, lbl);
+            if (enableVerify)
+              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+
+#ifndef NOJIT
+            if (ret == Ok && jitOnLoad)
+              ret = jitMethod(mtd, errorMsg, msgSize);
+#endif
+          }
+        }
+      }
+      gcReleaseRoot(H, root);
+    }
+  }
+
+  if (ret == Error)
+    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
+
+  return ret;
 }

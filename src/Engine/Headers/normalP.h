@@ -13,8 +13,12 @@ typedef struct normal_term {
   termPo args[ZEROARRAYSIZE];
 } NormalTerm;
 
-static inline termPo nthElem(normalPo term, integer ix) {
+static inline termPo nthElem(normalPo term, int32 ix) {
   return term->args[ix];
+}
+
+static void inline setNth(normalPo term, int32 ix, termPo arg) {
+  term->args[ix] = arg;
 }
 
 #define NormalCellCount(arity) CellCount(sizeof(NormalTerm)+(arity)*sizeof(termPo))

@@ -18,3 +18,4 @@ extern classPo segmentClass;
 
 
 #endif //STAR_VERIFY_H
+

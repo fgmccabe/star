@@ -25,16 +25,13 @@ static comparison sameProcess(void *, void *);
 
 static integer newProcessNumber();
 
-static Instruction haltCode[] = {Halt};
+static Instruction haltCode[] = {sHalt, 0};
 
 void initEngine() {
   prPool = newPool(sizeof(EngineRecord), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
-  termPo zero = makeInteger(0);
-  int32 zeroIndex = defineConstantLiteral(zero);
-  haltCode[0].fst = zeroIndex;
 
-  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 1, 1);
+  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 1);
 
   runTimer = newTimer("running");
 }

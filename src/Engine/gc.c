@@ -10,6 +10,7 @@
 #include "debug.h"
 #include <memory.h>
 #include <globalsP.h>
+#include "normalP.h"
 
 long gcCount = 0; /* Number of times GC is invoked */
 long gcGrow = 0;

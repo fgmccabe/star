@@ -747,7 +747,7 @@ compExp(seqD(Lc,A,B),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   compExp(A,Lc,Brks,notLast,Opts,L,L1,D,D1,C0,C1,Stk,Stk1),
   resetStack(Stk,Stk1,C1,C2),
   compExp(B,Lc,Brks,Last,Opts,L1,Lx,D1,Dx,C2,Cx,Stk,Stkx).
-compExp(vlof(Lc,A),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
+compExp(vlof(Lc,A,_),OLc,Brks,Last,Opts,L,Lx,D,Dx,C,Cx,Stk,Stkx) :-!,
   stkNxtLvl(Stk,NxtLvl),
   chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(NxtLvl,CA))|Cx]),
   genLbl(L,Ok,L0),

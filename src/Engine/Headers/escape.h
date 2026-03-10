@@ -24,7 +24,7 @@ typedef struct {
 
 typedef ReturnStatus (*escFun)(enginePo p);
 
-typedef ValueReturn (*escValue)(enginePo p);
+typedef ValueReturn (*escValue)(enginePo p,...);
 
 typedef struct escape_record_ *escapePo;
 

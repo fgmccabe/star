@@ -204,7 +204,7 @@ ssTrm(error(Lc,M),Dp,sq([lp,ss("error "),MM,rp,ss("@"),LL])) :-!,
   ssLoc(Lc,LL).
 ssTrm(tsk(_,A),Dp,sq([ss("task "),AA])) :-
   ssTrm(A,Dp,AA).
-ssTrm(vlof(_,A),Dp,sq([ss("valof "),AA])) :-
+ssTrm(vlof(_,A,_),Dp,sq([ss("valof "),AA])) :-
   ssAct(A,Dp,AA).
 ssTrm(tryX(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
   Dp2 is Dp+2,
@@ -425,7 +425,7 @@ rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
   rewriteTerm(QTest,R,NR).
 rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
   rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,vlof(Lc,A),vlof(Lc,AA)) :-
+rewriteTerm(QTest,vlof(Lc,A,Tp),vlof(Lc,AA,Tp)) :-
   rewriteAction(QTest,A,AA).
 rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
   rewriteTerm(QTest,F,FF).
@@ -634,7 +634,7 @@ inTerm(ng(_,R),Nm) :-!,
   inTerm(R,Nm).
 inTerm(ltt(_,_,B,E),Nm) :-!,
   (inTerm(B,Nm);inTerm(E,Nm)).
-inTerm(vlof(_,A),Nm) :-!,
+inTerm(vlof(_,A,_),Nm) :-!,
   inAction(A,Nm).
 inTerm(sav(_,_),_) :-!,false.
 inTerm(savIsSet(_,S),Nm) :-!,
@@ -883,7 +883,7 @@ validTerm(mtch(Lc,L,R),_,D) :-
   validTerm(R,Lc,D0).
 validTerm(ng(Lc,R),_,D) :-
   validTerm(R,Lc,D).
-validTerm(vlof(Lc,A),_,D) :-
+validTerm(vlof(Lc,A,_),_,D) :-
   validAction(A,Lc,D,_).
 validTerm(error(Lc,R),_,D) :-
   validTerm(R,Lc,D).

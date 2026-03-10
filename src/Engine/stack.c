@@ -56,10 +56,10 @@ static buddyRegionPo stackRegion;
 
 void initStacks() {
   StackClass.clss.clss = specialClass;
-  static Instruction underflowCode[] = {Underflow};
-  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1, 1);
-  static Instruction newTaskCode[] = {Ld, 0, 0, Ld, 1, 0, OCall, 3, 0, Underflow};
-  taskProg = specialMethod("newTask", 2, NumberOf(newTaskCode), newTaskCode, 0, 3, 1);
+  static Instruction underflowCode[] = {sUnderflow};
+  underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1);
+  static Instruction newTaskCode[] = {sRSP,0, -1, sOCall, 3, 0, 1,-1, sUnderflow};
+  taskProg = specialMethod("newTask", 2, NumberOf(newTaskCode), newTaskCode, 0, 3);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 
@@ -359,10 +359,10 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
 }
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
-                   StackTraceLevel level, methodPo prog, insPo pc) {
+                   StackTraceLevel level, methodPo prog, ssaInsPo pc) {
   assert(isMethod((termPo) prog));
 
-  termPo loc = (pc - 1)->op == dBug ? getConstant((pc - 1)->fst) : Null;
+  termPo loc = (pc - 2)->op.op == sdBug ? getConstant((pc - 1)->op.ltrl) : Null;
 
   if (loc != Null)
     outMsg(out, "[%d] %L: %T", frameNo, loc, prog);
@@ -418,7 +418,7 @@ void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
   framePo fp = stk->fp;
   methodPo prog = stk->prog;
   ptrPo args = stk->args;
-  insPo pc = stk->pc;
+  ssaInsPo pc = stk->pc;
 
   do {
     while (fp > baseFrame(stk) && maxDepth-- > 0) {
@@ -485,7 +485,7 @@ stackPo newStack(enginePo P, logical execJit, termPo lam) {
   return child;
 }
 
-void attachStack(enginePo P, stackPo top, termPo evt) {
+void attachStack(enginePo P, stackPo top) {
   stackPo stk = P->stk;
   stackPo bottom = top->bottom;
   assert(bottom != Null && isAttachedStack(bottom, top));
@@ -510,13 +510,11 @@ void attachStack(enginePo P, stackPo top, termPo evt) {
   assert(f == top && top->attachment == Null);
   top->attachment = stk;
   top->bottom = Null;
-
-  pushStack(bottom, evt);
   P->stk = bottom;
 }
 
 // Get the stack immediately below the identified parent
-void detachStack(enginePo P, stackPo top, termPo event) {
+void detachStack(enginePo P, stackPo top) {
   stackPo base = P->stk;
 #ifdef TRACESTACK
   if (traceStack > noTracing) {
@@ -549,7 +547,6 @@ void detachStack(enginePo P, stackPo top, termPo event) {
   }
 #endif
   P->stk = parent;
-  pushStack(parent, event);
 }
 
 stackPo dropStack(stackPo tsk) {
@@ -569,7 +566,7 @@ stackPo dropStack(stackPo tsk) {
 }
 
 void detachDropStack(enginePo P, stackPo top, termPo event) {
-  detachStack(P, top, event);
+  detachStack(P, top);
   dropStack(top);
 }
 

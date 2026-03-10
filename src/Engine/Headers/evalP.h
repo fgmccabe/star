@@ -41,9 +41,6 @@
 })
 #endif
 
-#define pop() (*SP++)
-#define top() (*SP)
-#define push(T) STMT_WRAP({*--SP=(termPo)(T);})
 #define varble(aix) (ARGS[aix])
 #define stackRoom(amnt) (SP - (amnt) > ((ptrPo)(FP+1)))
 #define saveRegisters() STMT_WRAP({ \
@@ -84,9 +81,11 @@
   PC += PC->alt + 1;                         \
   })
 
-#define breakBlock() STMT_WRAP({                     \
-  PC += PC->alt + 1;                                 \
-  PC += PC->alt + 1;                                 \
+#define breakBlock(o) STMT_WRAP({                     \
+  PC += operand(o) + 1;                                 \
+  PC += operand(1) + 1;                                 \
 })
+
+#define operand(i) ((PC+(i))->op.ltrl)
 
 #endif //EVALP_H

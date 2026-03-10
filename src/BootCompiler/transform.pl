@@ -481,7 +481,7 @@ liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
-liftExp(valof(Lc,A,_),vlof(Lc,Rslt),Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(valof(Lc,A,Tp),vlof(Lc,Rslt,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftAction(A,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(task(Lc,A,_),tsk(Lc,F),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(A,F,Q,Qx,Map,Opts,Ex,Exx).
@@ -952,7 +952,7 @@ liftFreeThunk(Lc,Nm,LclNm,Tp,ThVr,Exp,Fx,Q,Map,Opts,[ThDf|Ex],Exx) :-
 			   defn(Lc,Vr,nth(Lc,ThVr,Fx,Tp)),
 			   iftte(Lc,mtch(Lc,savGet(Lc,SvVl,Tp),Vr),
 				 vls(Lc,SvVl),
-				 vls(Lc,savSet(Lc,Vr,VExp)))))).
+				 vls(Lc,savSet(Lc,Vr,VExp)))),Tp)).
 
 programAccess(moduleFun(Prog,some(Closure),_Arity,_Tp),Prog,Closure).
 programAccess(localFun(Prog,Closure,_Arity,_,_),Prog,Closure).

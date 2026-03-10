@@ -13,7 +13,6 @@
 :- use_module(transform).
 :- use_module(errors).
 :- use_module(gensig).
-:- use_module(gencode).
 :- use_module(genssa).
 :- use_module(uri).
 :- use_module(catalog).
@@ -98,9 +97,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
     (is_member(showTrCode,Opts) -> dispProg(Rules);true),
     noErrors,
     (\+ is_member(transformOnly,Opts) ->
-     (is_member(genSSA,Opts) ->
-      genSSA(PkgDecls,Rules,Opts,Text);
-      genCode(PkgDecls,Rules,Opts,Text)),
+     genSSA(PkgDecls,Rules,Opts,Text),
      noErrors,
      genPkgSig(Rules,Sig),		% goes into the repo manifest
      addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);

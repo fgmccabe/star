@@ -67,29 +67,24 @@ genDf(_,_,typDef(_,Tp,Rl,IxMap),O,[TpTrm|O]) :-
   assemSSA(tipe(Tp,Rl,IxMap),TpTrm).
 
 genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
-  isThrowingType(Tp,RsTp,ErTp),!,
+  isThrowingType(Tp,_RsTp,ErTp),!,
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
-  genLbl([],Abrt,L0),
-  genLbl(L0,Lx,L1),
+  genLbl([],Abrt,L1),
   genLbl(L1,Er,L2),
-  defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D0),
-  defineTmpVar(Lc,RsltVr,RsTp,Opts,D0,D1),
-
+  defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D1),
   genLine(Opts,Lc,C,
-	  [iLbl(Abrt,iBlock([iLbl(Lx,iValof(RsltVr,
-					    [iLbl(Er,iValof(AbrtVr,FC)),
-					     iXRet(AbrtVr)])),
-			     iRet(RsltVr)]))|CA]),
+	  [iLbl(Abrt,iBlock([iLbl(Er,iValof(AbrtVr,FC)),iXRet(AbrtVr)]))|CA]),
   BaseBrks = [("$try",Er,AbrtVr)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2),
-  compExp(Value,Lc,[("$abort",Abrt,none)|BaseBrks],genssa:valof(Lx),
-	  Opts,L3,L4,D2,D3,FC,FC1),
-  genRet(RsltVr,Opts,Lc,FC1,[]),
+  compExp(Value,Lc,[("$abort",Abrt)|BaseBrks],genssa:return,
+	  Opts,L3,L4,D2,D3,FC,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,Ags,AgMap),
-  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Ags)|C]),
+  getAgMap(Args,_Ags,AgMap),
+  length(LsMap,LcCnt),
+  length(AgMap,Arity),
+  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Arity,LcCnt)|C]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -97,19 +92,16 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
 genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   toLtipe(Tp,LTp),
   encLtp(LTp,Sig),
-  genLbl([],Abrt,L0),
-  genLbl(L0,Lx,L1),
-  tipeOf(Value,RsTp),
-  defineTmpVar(Lc,RsltVr,RsTp,Opts,D,D0),
-  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(Lx,iValof(RsltVr,FC)),iRet(RsltVr)]))|CA]),
-  compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D0,D2),
-  compExp(Value,Lc,[("$abort",Abrt)],genssa:valof(Lx),
-	  Opts,L3,L4,D2,D3,FC,FC1),
-  genRet(RsltVr,Opts,Lc,FC1,[]),
+  genLbl([],Abrt,L1),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(FC))|CA]),
+  compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D,D2),
+  compExp(Value,Lc,[("$abort",Abrt)],genssa:return,Opts,L3,L4,D2,D3,FC,[]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,Ags,AgMap),
-  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Ags)|C0]),
+  getAgMap(Args,_Ags,AgMap),
+  length(LsMap,LcCnt),
+  length(AgMap,Arity),
+  GenFunc = func(Nm,H,Sig,AgMap,LsMap,[iEntry(Arity,LcCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -123,17 +115,18 @@ genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
   genLbl(L0,Lx,L1),
   genLbl(L1,ErLbl,L2),
   defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D1),
-  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(Lx,iBlock([iLbl(ErLbl,iValof(AbrtVr,FC)),
-							iXRet(AbrtVr)])),iRtn]))|CA]),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(ErLbl,iValof(AbrtVr,FC)),
+					iXRet(AbrtVr)]))|CA]),
   BaseBrks = [("$try",ErLbl,AbrtVr)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2),
-  compAction(Act,Lc,[("$abort",Abrt,none)|BaseBrks],
-	     genssa:drop,Opts,L3,L4,D2,D3,FC,[iBreak(Lx)]),
+  compAction(Act,Lc,[("$abort",Abrt)|BaseBrks],
+	     genssa:rtn,Opts,L3,L4,D2,D3,FC,[iBreak(Lx)]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,AgMap),
-  length(LsMap,LclCnt),
-  GenFunc = func(Nm,hard,Sig,AgMap,LsMap,[iEntry(LclCnt)|C0]),
+  getAgMap(Args,_Ags,AgMap),
+  length(LsMap,LcCnt),
+  length(AgMap,Arity),
+  GenFunc = func(Nm,hard,Sig,AgMap,LsMap,[iEntry(Arity,LcCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -143,15 +136,15 @@ genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
   encLtp(LTp,Sig),
   genLbl([],Abrt,L0),
   genLbl(L0,Lx,L1),
-  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(Lx,iBlock(FC)),iRtn]))|CA]),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(FC))|CA]),
   compArgs(Args,Lc,0,Abrt,[],Opts,L1,L3,D,D2),
-  compAction(Act,Lc,[("$abort",Abrt)],
-	     genssa:drop,Opts,L3,L4,D2,D3,FC,[iBreak(Lx)]),
+  compAction(Act,Lc,[("$abort",Abrt)],genssa:rtn,Opts,L3,L4,D2,D3,FC,[iBreak(Lx)]),
   compAbort(Lc,strg("def failed"),[],Opts,L4,_,D3,Dx,CA,[]),
   getLsMap(Dx,LsMap),
-  getAgMap(Args,AgMap),
-  length(LsMap,LclCnt),
-  GenFunc = func(Nm,hard,Sig,AgMap,LsMap,[iEntry(LclCnt)|C0]),
+  getAgMap(Args,_Ags,AgMap),
+  length(LsMap,LcCnt),
+  length(AgMap,Arity),
+  GenFunc = func(Nm,hard,Sig,AgMap,LsMap,[iEntry(Arity,LcCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenFunc);true ),
   peepOptimize(GenFunc,PFunc),
   (is_member(showGenCode,Opts) -> dispSSA(PFunc);true ),
@@ -164,12 +157,12 @@ genGlb(Lc,Nm,Tp,Value,D,Opts,Cd) :-
   genLbl(L0,_Lx,L1),
   defineTmpVar(Lc,RsltVr,Tp,Opts,D,D1),
   genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock(FC))|CA]),
-  compExp(Value,Lc,[],genssa:next(RsltVr),Opts,L1,L2,D,D1,FC,[iStG(Nm,RsltVr),iRet(RsltVr)|FC1]),
+  compExp(Value,Lc,[],genssa:next(RsltVr),Opts,L1,L2,D,D1,FC,[iSG(Nm,RsltVr),iRet(RsltVr)|FC1]),
   compAbort(Lc,strg("def failed"),[],Opts,L2,_L3,D1,Dx,CA,[]),
   genRet(Opts,Lc,FC1,[]),
   getLsMap(Dx,LsMap),
   length(LsMap,LclCnt),
-  GenGlb = func(lbl(Nm,0),hard,Sig,[],LsMap,[iEntry(LclCnt)|C0]),
+  GenGlb = func(lbl(Nm,0),hard,Sig,[],LsMap,[iEntry(0,LclCnt)|C0]),
   (is_member(traceGenCode,Opts) -> dispSSA(GenGlb);true ),
   peepOptimize(GenGlb,PGlb),
   (is_member(showGenCode,Opts) -> dispSSA(PGlb);true ),
@@ -251,9 +244,13 @@ compIdExp(idnt(Nm,_),Lc,_Brks,_Next,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-
 
 compVar(l(X),_,Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :- !,
   call(Next,Lc,X,Brks,Opts,L,Lx,D,Dx,C,Cx).
-compVar(g(GlbNm),Tp,Lc,Brks,Next,Opts,L,Lx,D,Dx,[iMG(V,GlbNm)|C],Cx) :-
-  defineTmpVar(Lc,V,Tp,Opts,D,D1),
-  call(Next,Lc,V,Brks,Opts,L,Lx,D1,Dx,C,Cx).
+compVar(g(GlbNm),Tp,Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   defineTmpVar(Lc,V,Tp,Opts,D,D1),
+   genDbg(Opts,Lc,C,[iLG(GlbNm),iRSP(AbrtLvl,V)|C1]),
+   call(Next,Lc,V,Brks,Opts,L,Lx,D1,Dx,C1,Cx);
+   reportError("not in scope of abort",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 
 /* Compile actions */
 compAction(nop(_),_Lc,_Brks,_Next,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-!.
@@ -481,7 +478,7 @@ compExp(idnt(Nm,Tp),Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compExp(ctpl(St,A),Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   tipeOf(ctpl(St,A),Tp),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
-  compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C,[iAlloc(Rslt,As)|C1],As),
+  compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C,[iAlloc(St,Rslt,As)|C1],As),
   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx).
 compExp(ecll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
   isIntrinsic(Nm,_,Op,Thrw),!,
@@ -492,8 +489,11 @@ compExp(ecll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
 compExp(ecll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
-  compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,[iEscape(Nm,Rslt,As)|C1],As),
-  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx).
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,[iEscape(Nm,As),iRSP(AbrtLvl,Rslt)|C1],As),
+   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx);
+   reportError("not in scope of abort",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(xecll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
   isIntrinsic(Nm,_,Op,Thrw),!,
   chLine(Opts,OLc,Lc,C,C0),
@@ -504,7 +504,7 @@ compExp(xecll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   (is_member(("$try",TryLvl),Brks) ->
-   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iXEscape(Nm,TryLvl,Rslt,As)|C1],As),
+   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iEscape(Nm,As),iRSP(TryLvl,Rslt)|C1],As),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx);
    reportError("not in scope of try",[],Lc),
    D0=Dx,C=Cx,L=Lx).
@@ -512,39 +512,41 @@ compExp(cll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-  genDbg(Opts,Lc,C1,[iCall(Nm,Rslt,As)|C2]),
-  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx).
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSP(AbrtLvl,Rslt)|C2]),
+   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
+   reportError("not in scope of abort",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(xcll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
    compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-   genDbg(Opts,Lc,C1,[iXCall(Nm,TryLvl,Rslt,As)|C2]),
+   genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSP(TryLvl,Rslt)|C2]),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
 compExp(ocall(Lc,O,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  length(A,Ar),
-  Arity is Ar+1,
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   tipeOf(O,OTp),
   defineTmpVar(Lc,OP,OTp,Opts,D0,D1),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
   compExp(O,Lc,Brks,genssa:next(OP),Opts,L1,L2,D1,D2,C1,C2),
-  genDbg(Opts,Lc,C2,[iOCall(Arity,OP,Rslt,As)|C3]),
-  call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx).
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   genDbg(Opts,Lc,C2,[iOCall(OP,As),iRSP(AbrtLvl,Rslt)|C3]),
+   call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx);
+   reportError("not in scope of try",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(xocall(Lc,O,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
-   length(A,Ar),
-   Arity is Ar+1,
    defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
    tipeOf(O,OTp),
    defineTmpVar(Lc,OP,OTp,Opts,D0,D1),
    compExps(A,Lc,Brks,Opts,L,L1,D1,D2,C0,C1,As),
    compExp(O,Lc,Brks,genssa:next(OP),Opts,L1,L2,D2,D3,C1,C2),
-   genDbg(Opts,Lc,C2,[iXOCall(Arity,OP,TryLvl,Rslt,As)|C3]),
+   genDbg(Opts,Lc,C2,[iOCall(OP,As),iRSP(TryLvl,Rslt)|C3]),
    call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D3,Dx,C3,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
@@ -553,7 +555,7 @@ compExp(clos(Lb,Ar,Free,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   defineTmpVar(Lc,FrVr,FreeTp,Opts,D0,D1),
   compExp(Free,OLc,Brks,genssa:next(FrVr),Opts,L,L1,D1,D2,C,C1),
-  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D2,Dx,C1,[iClosure(Rslt,lbl(Lb,Ar),FrVr)|Cx]).
+  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D2,Dx,C1,[iClosure(lbl(Lb,Ar),Rslt,FrVr)|Cx]).
 compExp(nth(Lc,Rc,Off,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
@@ -677,8 +679,11 @@ compExp(susp(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,RsltVr,Tp,Opts,D1,D2),
   compExp(M,Lc,Brks,genssa:next(MVr),Opts,L,L1,D2,D3,C0,C1),
   compExp(T,Lc,Brks,genssa:next(TVr),Opts,L1,L2,D3,D4,C1,C2),
-  genDbg(Opts,Lc,C2,[iSuspend(RsltVr,TVr,MVr)|C3]),
-  call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx).
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   genDbg(Opts,Lc,C2,[iSuspend(TVr,MVr),iRSP(AbrtLvl,RsltVr)|C3]),
+   call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx);
+   reportError("not in scope of abort",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(resme(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   tipeOf(T,TTp),
@@ -688,8 +693,11 @@ compExp(resme(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,RsltVr,Tp,Opts,D1,D2),
   compExp(M,Lc,Brks,genssa:next(MVr),Opts,L,L1,D2,D3,C0,C1),
   compExp(T,Lc,Brks,genssa:next(TVr),Opts,L1,L2,D3,D4,C1,C2),
-  genDbg(Opts,Lc,C2,[iResume(RsltVr,TVr,MVr)|C3]),
-  call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx).
+  (is_member(("$abort",AbrtLvl),Brks) ->
+   genDbg(Opts,Lc,C2,[iResume(TVr,MVr),iRSP(AbrtLvl,RsltVr)|C3]),
+   call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx);
+   reportError("not in scope of abort",[],Lc),
+   D=Dx,C=Cx,L=Lx).
 compExp(rtire(Lc,T,M,_Tp),OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-
   chLine(Opts,OLc,Lc,C,C0),
   tipeOf(T,TTp),
@@ -930,6 +938,17 @@ drop(_,_,_,_,Lx,Lx,Dx,Dx,Cx,Cx).
 
 valof(Lbl,_Lc,R,_Brks,_Opts,Lx,Lx,Dx,Dx,[iResult(Lbl,R)|Cx],Cx).
 
+return(Lc,R,_Brks,Opts,Lx,Lx,Dx,Dx,C,Cx) :-
+  genRet(R,Opts,Lc,C,Cx).
+
 genRet(R,Opts,Lc,C,Cx) :-
   genDbg(Opts,Lc,C,[iRet(R)|Cx]).
+
+rtn(Lc,_R,_Brks,Opts,Lx,Lx,Dx,Dx,C,Cx) :-
+  genRtn(Opts,Lc,C,Cx).
+
+genRtn(Opts,Lc,C,Cx) :-
+  genDbg(Opts,Lc,C,[iRtn|Cx]).
+
+
 

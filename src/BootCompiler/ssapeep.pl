@@ -7,7 +7,7 @@
 
 peepOptimize(func(Nm,H,Sig,AgMap,LsMap,Ins),func(Nm,H,Sig,AgMap,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
-  findUnusedVars(LsMap,PIns,LsMx,Ins0),!,
+  findUnusedVars(LsMap,AgMap,PIns,LsMx,Ins0),!,
   peepCode(Ins0,[],Ins1),  % We need to peep twice, cos dropping vars gives us a chance for more
   adjustEntry(Ins1,LsMx,Insx).
 
@@ -18,35 +18,30 @@ peepCode(Ins,Lbls,Code) :-
   length(Is0,L2),
   (L2<L1*0.9 -> peep(Is0,Lbls,Code) ; Code=Is0).
 
-findUnusedVars([(Vr,_Spec)|Vrs],Ins,AVrs,ACde) :-
+findUnusedVars([(Vr,_Spec)|Vrs],AgMap,Ins,AVrs,ACde) :-
   \+varRead(Vr,Ins),
+  \+is_member((Vr,_),AgMap),
   dropVar(Vr,Ins,I1),!,
-  findUnusedVars(Vrs,I1,AVrs,ACde).
-findUnusedVars([(Vr,Spec)|Vrs],Ins,[(Vr,Spec)|AVrs],ACde) :-
-  findUnusedVars(Vrs,Ins,AVrs,ACde).
-findUnusedVars([],Ins,[],Ins).
+  findUnusedVars(Vrs,AgMap,I1,AVrs,ACde).
+findUnusedVars([(Vr,Spec)|Vrs],AgMap,Ins,[(Vr,Spec)|AVrs],ACde) :-
+  findUnusedVars(Vrs,AgMap,Ins,AVrs,ACde).
+findUnusedVars([],_,Ins,[],Ins).
 
 varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
-vrRead(Vr,iCall(_,_,As)) :-
+vrRead(Vr,iCall(_,As)) :-
     is_member(Vr,As).
 vrRead(Vr,iTCall(_,As)) :-
     is_member(Vr,As).
-vrRead(Vr,iEscape(_,_,As)) :-
+vrRead(Vr,iEscape(_,As)) :-
     is_member(Vr,As).
-vrRead(Vr,iXCall(_,_,_,As)) :-
-    is_member(Vr,As).
-vrRead(Vr,iXEscape(_,_,_,As)) :-
-    is_member(Vr,As).
+vrRead(Vr,iRSP(_,Vr)).
 vrRead(Vr,iOCall(_,_,Vr,_)).
 vrRead(Vr,iOCall(_,_,_,As)) :-
     is_member(Vr,As),!.
-vrRead(Vr,iXOCall(_,_,_,Vr,_)).
-vrRead(Vr,iXOCall(_,_,_,_,As)) :-
-    is_member(Vr,As),!.
-vrRead(Vr,iTOCall(_,Vr,_)).
-vrRead(Vr,iTOCall(_,_,As)) :-
+vrRead(Vr,iTOCall(Vr,_)).
+vrRead(Vr,iTOCall(_,As)) :-
     is_member(Vr,As),!.
 vrRead(Vr,iHalt(Vr)).
 vrRead(Vr,iAbort(_,Vr)).
@@ -57,15 +52,15 @@ vrRead(Vr,iBlock(I)) :- varRead(Vr,I).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iResult(_,Vr)).
 vrRead(Vr,iFiber(_,Vr)).
-vrRead(Vr,iSuspend(_,Vr,_)).
-vrRead(Vr,iSuspend(_,_,Vr)).
-vrRead(Vr,iResume(_,Vr,_)).
-vrRead(Vr,iResume(_,_,Vr)).
+vrRead(Vr,iSuspend(Vr,_)).
+vrRead(Vr,iSuspend(_,Vr)).
+vrRead(Vr,iResume(Vr,_)).
+vrRead(Vr,iResume(_,Vr)).
 vrRead(Vr,iRetire(Vr,_)).
 vrRead(Vr,iRetire(_,Vr)).
 
 vrRead(Vr,iBind(_,Vr)).
-vrRead(Vr,iMV(_,Vr)).
+vrRead(Vr,iMv(_,Vr)).
 vrRead(Vr,iSG(_,Vr)).
 
 vrRead(Vr,iLdSav(_,_,Vr)).
@@ -161,24 +156,12 @@ vrRead(Vr,iDrop(Vr)).
 
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
-vrWrite(Vr,iXEntry(Vrs)) :-
-  is_member(Vr,Vrs).
-vrWrite(Vr,iEntry(Vrs)) :-
-  is_member(Vr,Vrs).
-vrWrite(Vr,iCall(_,Vr,_)).
-vrWrite(Vr,iEscape(_,Vr,_)).
-vrWrite(Vr,iXCall(_,_,Vr,_)).
-vrWrite(Vr,iXEscape(_,_,Vr,_)).
-vrWrite(Vr,iOCall(_,Vr,_,_)).
-vrWrite(Vr,iXOCall(_,_,Vr,_,_)).
+vrWrite(Vr,iRSP(_,Vr)).
 vrWrite(Vr,iValof(Vr,_)).
 vrWrite(Vr,iFiber(Vr,_)).
-vrWrite(Vr,iSuspend(Vr,_,_)).
-vrWrite(Vr,iResume(Vr,_,_)).
 
-vrWrite(Vr,iMV(Vr,_)).
+vrWrite(Vr,iMv(Vr,_)).
 vrWrite(Vr,iMC(Vr,_)).
-vrWrite(Vr,iMG(Vr,_)).
 
 vrWrite(Vr,iSav(Vr)).
 
@@ -247,6 +230,9 @@ dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
 dropVar(Vr,[I|Is],Isx) :-
   vrWrite(Vr,I),!,
   dropVar(Vr,Is,Isx).
+dropVar(Vr,[I|Is],Isx) :-
+  vrRead(Vr,I),!,
+  dropVar(Vr,Is,Isx).
 dropVar(Vr,[I|Is],[I|Isx]) :-
   dropVar(Vr,Is,Isx).
 
@@ -259,7 +245,7 @@ dropUnreachable([iRet(Vr)|_],[iRet(Vr)]) :-!.
 dropUnreachable([iXRet(Vr)|_],[iXRet(Vr)]) :-!.
 
 dropUnreachable([iTCall(Lb,As)|_],[iTCall(Lb,As)]) :-!.
-dropUnreachable([iTOCall(Ar,Lb,As)|_],[iTOCall(Ar,Lb,As)]) :-!.
+dropUnreachable([iTOCall(Lb,As)|_],[iTOCall(Lb,As)]) :-!.
 dropUnreachable([iAbort(Lt,Vr)|_],[iAbort(Lt,Vr)]) :-!.
 dropUnreachable([iHalt(Vr)|_],[iHalt(Vr)]) :-!.
 dropUnreachable([iRetire(Cn,As)|_],[iRetire(Cn,As)]) :-!.
@@ -317,11 +303,12 @@ peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iResult(Lb,Vr)|_],Lbls,[iResult(LLb,Vr)]) :-
   resolveLblRef(Lb,Lbls,LLb).
+peep([iCall(Lb,Args),iRSP(_,Rslt),iRet(Rslt)|_],_Lbls,[iTCall(Lb,Args)]).
+peep([iOCall(Vr,Args),iRSP(_,Rslt),iRet(Rslt)|_],_Lbls,[iTOCall(Vr,Args)]).
 peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
 peep([iRet(L)|_],_Lbls,[iRet(L)]) :-!.
 peep([iXRet(L)|_],_Lbls,[iXRet(L)]) :-!.
-peep([iRtn|_],_Lbls,[iRtn]) :-!.
-peep([iRetire|_],_,[iRetire]) :-!.
+peep([iRetire(V1,V2)|_],_,[iRetire(V1,V2)]) :-!.
 peep([iCase(Vr,Cs)|_],_Lbls,[iCase(Vr,Cs)]).
 peep([iICase(Vr,Cs)|_],_Lbls,[iICase(Vr,Cs)]).
 peep([iIxCase(Vr,Cs)|_],_Lbls,[iIxCase(Vr,Cs)]).
@@ -342,6 +329,7 @@ lblReferenced(Lb,[iIDiv(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iIMod(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iFDiv(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iFMod(Lb,_,_,_)|_]).
+lblReferenced(Lb,[iRSP(Lb,_)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(I)|_]) :-
@@ -349,9 +337,12 @@ lblReferenced(Lb,[iBlock(I)|_]) :-
 lblReferenced(Lb,[iValof(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(_,Lb,_)|_]).
-lblReferenced(Lb,[iXCall(_,Lb,_,_,_)|_]).
-lblReferenced(Lb,[iXOCall(_,Lb,_,_,_,_)|_]).
-lblReferenced(Lb,[iXEscape(_,Lb,_,_,_)|_]).
+lblReferenced(Lb,[iXCall(_,Lb,_,_)|_]).
+lblReferenced(Lb,[iXOCall(Lb,_,_,_)|_]).
+lblReferenced(Lb,[iXEscape(_,Lb,_,_)|_]).
+lblReferenced(Lb,[iCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
+lblReferenced(Lb,[iICase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
+lblReferenced(Lb,[iIxCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 resolveLblRef(Lb,Lbls,LLb) :-
@@ -360,7 +351,7 @@ resolveLblRef(Lb,Lbls,LLb) :-
    resolveLblRef(Lb0,Lbls,LLb) ;
    LLb = Lb).
 
-adjustEntry([iEntry(_)|Ins],LsMx,[iEntry(Cnt)|Ins]) :-!,
+adjustEntry([iEntry(Ar,_)|Ins],LsMx,[iEntry(Ar,Cnt)|Ins]) :-!,
   length(LsMx,Cnt).
 adjustEntry([Op|Ins],LsMx,[Op|Insx]) :-
   adjustEntry(Ins,LsMx,Insx).

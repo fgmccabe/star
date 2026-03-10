@@ -4,17 +4,22 @@
 
 #include <stdlib.h>
 #include <globals.h>
+
+#include "analyseP.h"
 #include "constants.h"
+#include "ssaOps.h"
 #include "debugP.h"
 #include "verifyP.h"
-#include "ltype.h"
 #include "arith.h"
 #include "escapeP.h"
 #include "stackP.h"
 #include "char.h"
+#include "disass.h"
 
 logical enableVerify = True; // True if we verify code as it is loaded
 tracingLevel traceVerify = noTracing; // Set if tracing code verification
+
+#define operand(i) (code[pc+(i)].op.ltrl)
 
 typedef struct {
   logical inited; //  True if cell has real value
@@ -28,12 +33,12 @@ typedef struct verify_context_ {
   methodPo mtd;
   int32 from;
   int32 limit;
-  int32 entryDepth;
-  int32 exitDepth;
+  int32 *maxArgCnt;
+  int32 resltVr;
   logical hasResult;
-  verifyCtxPo propagated; // Where have we propagated to?
   varPo locals;
   int32 lclCount;
+  int32 argPnt;
   verifyCtxPo parent;
   char *errorMsg;
   long msgLen;
@@ -44,9 +49,7 @@ static retCode verifyBlock(int32 from,
                            int32 pc,
                            int32 limit,
                            verifyCtxPo parentCtx,
-                           int32 currDepth,
-                           int32 exitDepth,
-                           logical hasValue);
+                           logical hasValue, int32 rsltVr);
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (traceVerify > noTracing)
@@ -54,37 +57,37 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 
   int32 lclCnt = lclCount(mtd);
   Var locals[lclCnt];
-
-  for (integer ix = 0; ix < lclCnt; ix++) {
-    locals[ix].inited = False;
-    locals[ix].read = False;
-  }
+  int32 argPnt = lclCnt - mtdArity(mtd);
+  int32 maxArgCnt = 0;
 
   VerifyContext mtdCtx = {
     .prefix = "", .errorMsg = errorMsg, .msgLen = msgLen,
     .mtd = mtd, .from = 0, .limit = codeSize(mtd),
     .parent = Null,
-    .entryDepth = 0,
-    .exitDepth = 1,
+    .maxArgCnt = &maxArgCnt,
     .locals = locals,
     .lclCount = lclCnt,
-    .propagated = Null,
+    .argPnt = argPnt,
+    .resltVr = -1,
     .hasResult = True
   };
 
-  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, 0, 1, True);
-}
+  if (argPnt < 0 || argPnt >= lclCnt)
+    return verifyError(&mtdCtx, "invalid argPnt: %d", argPnt);
 
-static void propagateVars(verifyCtxPo ctx, verifyCtxPo tgtCtx) {
-  for (integer ix = 0; ix < ctx->lclCount; ix++) {
-    if (!(ctx->propagated == tgtCtx))
-      tgtCtx->locals[ix].inited |= ctx->locals[ix].inited;
-    tgtCtx->locals[ix].read |= ctx->locals[ix].read;
+  for (int32 ix = 0; ix < lclCnt; ix++) {
+    locals[ix].inited = False;
+    locals[ix].read = False;
   }
-  ctx->propagated = tgtCtx;
+
+  for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
+    locals[ax + argPnt].inited = True;
+  }
+
+  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, True, mtdArity(mtd) - 1);
 }
 
-static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 margin, logical hasValue) {
+static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, logical returningValue) {
   verifyCtxPo tgtCtx = ctx;
 
   while (tgtCtx != Null && tgtCtx->from != tgt) {
@@ -92,7 +95,7 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 margin, lo
   }
 
   if (tgtCtx != Null) {
-    if (hasValue) {
+    if (returningValue) {
       if (!tgtCtx->hasResult)
         return verifyError(tgtCtx, ".%d: exiting non-valof block with value", pc);
     } else {
@@ -102,8 +105,6 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 margin, lo
   } else
     return verifyError(ctx, ".%d: break target not found", pc);
 
-  if (tgtCtx->parent != Null)
-    propagateVars(ctx, tgtCtx->parent);
   return Ok;
 }
 
@@ -111,18 +112,24 @@ static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit - 1;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, int32 currDepth, int32 exitDepth, logical
-                    hasValue) {
-  int32 stackDepth = currDepth;
-  insPo code = parentCtx->mtd->instructions;
+static logical validLocal(verifyCtxPo ctx, int32 vrNo) {
+  return vrNo >= ctx->argPnt - ctx->lclCount && vrNo < ctx->lclCount - ctx->argPnt;
+}
+
+static logical initedLocal(verifyCtxPo ctx, int32 vrNo) {
+  return validLocal(ctx, vrNo) && ctx->locals[ctx->argPnt + vrNo].inited;
+}
+
+static void initLocal(verifyCtxPo ctx, int32 vrNo) {
+  ctx->locals[ctx->argPnt + vrNo].inited = True;
+}
+
+retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical
+                    hasValue, int32 rsltVr) {
+  ssaInsPo code = parentCtx->mtd->instructions;
 
   char prefix[MAXLINE];
   strMsg(prefix, NumberOf(prefix), "%s.%d", parentCtx->prefix, from);
-
-  int32 lclCnt = parentCtx->lclCount;
-  Var locals[lclCnt];
-  for (integer ix = 0; ix < lclCnt; ix++)
-    locals[ix] = parentCtx->locals[ix];
 
   VerifyContext ctx = {
     .prefix = prefix,
@@ -131,707 +138,855 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, in
     .from = from,
     .limit = limit,
     .parent = parentCtx,
-    .entryDepth = currDepth,
-    .exitDepth = exitDepth,
+    .maxArgCnt = parentCtx->maxArgCnt,
     .hasResult = hasValue,
-    .locals = locals,
-    .lclCount = lclCnt,
-    .propagated = Null,
+    .locals = parentCtx->locals,
+    .lclCount = parentCtx->lclCount,
   };
 
   while (pc < limit) {
-    insPo ins = &code[pc];
     if (traceVerify > generalTracing) {
-      disass(logFile, Null, ctx.mtd, ins);
+      disass(logFile, Null, ctx.mtd, &code[pc]);
       outMsg(logFile, "\n%_");
     }
 
-    switch (ins->op) {
-      case Halt: {
-        if (!isLastPC(pc++, limit))
+    switch (code[pc].op.op) {
+      case sHalt: {
+        if (!isLastPC(pc + 1, limit))
           return verifyError(&ctx, ".%d: Halt should be last instruction in block", pc);
 
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        propagateVars(&ctx, parentCtx);
+        if (!initedLocal(&ctx, operand(1)))
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, operand(1));
         return Ok;
       }
-      case Abort: {
-        int32 constant = code[pc].fst;
+      case sAbort: {
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
-        if (!isLastPC(pc++, limit))
+        if (!isLastPC(pc + 2, limit))
           return verifyError(&ctx, ".%d: Abort should be last instruction in block", pc);
         else {
-          if (stackDepth < 1)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          propagateVars(&ctx, parentCtx);
+          int32 srcVr = operand(1);
+          if (!initedLocal(&ctx, srcVr))
+            return verifyError(&ctx, ".%d: var %d not initialized", pc, srcVr);
           return Ok;
         }
       }
-      case Call: {
-        int32 constant = code[pc].fst;
+      case sCall: {
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
-        if (isALabel(lit)) {
-          int32 arity = lblArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-        } else
+        if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after call", pc);
-        pc++;
+
+        int32 arity = lblArity(C_LBL(lit));
+        int32 argCnt = operand(1);
+
+        if (argCnt != arity)
+          return verifyError(&ctx, ".%d: argument count mismatch", pc);
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 4 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
+        }
+
+        if (*ctx.maxArgCnt <= argCnt)
+          *ctx.maxArgCnt = argCnt;
+
+        int32 insSize = argCnt + 3;
+
+        if (isLastPC(pc + insSize, limit))
+          return verifyError(&ctx, ".%d: Call should not be last instruction in block", pc);
+        if (code[pc + insSize].op.op != sRSP)
+          return verifyError(&ctx, ".%d: call expecting a RSP after Call", pc);
+        pc += insSize;
         continue;
       }
-      case XCall: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-
-        termPo lit = getConstant(constant);
-        if (isALabel(lit)) {
-          int32 arity = lblArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-        } else
-          return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after call", pc);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
+      case sRSP: {
+        int32 insWidth = 3;
+        if (checkBreak(&ctx, pc, operand(1), True) != Ok)
           return Error;
-        pc++;
-        continue;
-      }
 
-      case TCall: {
-        int32 constant = code[pc].fst;
+        int32 callRsltVr = operand(1);
+        if (!validLocal(&ctx, callRsltVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, callRsltVr);
+        initLocal(&ctx, callRsltVr);
+        if (isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: RSP should not be last instruction in block", pc);
+        pc += insWidth;
+      }
+      case sTCall: {
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
-        if (isALabel(lit)) {
-          int32 arity = lblArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        } else
+        if (!isALabel(lit))
           return verifyError(&ctx, ".%d: invalid call label: %t", pc, lit);
-        if (!isLastPC(pc++, limit))
+
+        int32 arity = lblArity(C_LBL(lit));
+        int32 argCnt = operand(2);
+        int32 insWidth = arity + 3;
+
+        if (argCnt != arity)
+          return verifyError(&ctx, ".%d: argument count mismatch", pc);
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 3 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
+        }
+
+        if (*ctx.maxArgCnt <= argCnt)
+          *ctx.maxArgCnt = argCnt;
+
+        if (!isLastPC(pc + insWidth, limit))
           return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
 
-        propagateVars(&ctx, parentCtx);
-        return Ok;
-      }
-      case OCall: {
-        int arity = code[pc].fst;
-        if (stackDepth < arity)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= arity - 1;
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after ocall", pc);
-        pc++;
+        pc += insWidth;
         continue;
       }
-      case XOCall: {
-        int arity = code[pc].fst;
-        if (stackDepth < arity)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= arity - 1;
-        if (code[pc + 1].op != Frame)
-          return verifyError(&ctx, ".%d: expecting a frame instruction after xocall", pc);
+      case sOCall: {
+        int32 lamVr = operand(1);
+        int32 arity = operand(1);
+        int32 insWidth = arity + 3;
 
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
-          return Error;
-        pc++;
+        if (!initedLocal(&ctx, lamVr))
+          return verifyError(&ctx, ".%d: lambda var %d not initialized", pc, lamVr);
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 4 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
+        }
+
+        if (*ctx.maxArgCnt < arity)
+          *ctx.maxArgCnt = arity;
+
+        if (isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: OCall should not be last instruction in block", pc);
+        pc += insWidth;
         continue;
       }
-      case TOCall: {
-        int32 arity = code[pc].fst;
-        if (stackDepth < arity)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: TCall should be last instruction in block", pc);
-        propagateVars(&ctx, parentCtx);
+      case sTOCall: {
+        int32 arity = operand(1);
+        int32 lamVr = operand(1);
+        int32 insWidth = arity + 3;
 
-        return Ok;
+        if (!initedLocal(&ctx, lamVr))
+          return verifyError(&ctx, ".%d: lambda var %d not initialized", pc, lamVr);
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 3 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
+        }
+
+        if (*ctx.maxArgCnt < arity)
+          *ctx.maxArgCnt = arity;
+
+        if (!isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: TOCall should be last instruction in block", pc);
+        pc += insWidth;
+        continue;
       }
-      case Escape: {
-        int32 escNo = code[pc].fst;
+      case sEscape: {
+        int32 escNo = operand(1);
         escapePo esc = getEscape(escNo);
 
         if (esc == Null)
           return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
-        else {
-          int32 arity = escapeArity(esc);
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-          if (code[pc + 1].op != Frame)
-            return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
-          pc++;
-          continue;
-        }
-      }
-      case XEscape: {
-        int32 escNo = code[pc].fst;
-        escapePo esc = getEscape(escNo);
+        int32 arity = escapeArity(esc);
+        if (arity != operand(1))
+          return verifyError(&ctx, ".%d: invalid number of arguments: %d", pc, esc);
 
-        if (esc == Null)
-          return verifyError(&ctx, ".%d: invalid escape code: %d", pc, escNo);
-        else {
-          int32 arity = escapeArity(esc);
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-          stackDepth -= arity - 1;
-          if (code[pc + 1].op != Frame)
-            return verifyError(&ctx, ".%d: expecting a frame instruction after escape", pc);
-          if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
-            return Error;
+        int32 insWidth = arity + 3;
 
-          pc++;
-          continue;
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 4 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
         }
-      }
-      case Entry: {
-        int32 depth = code[pc].fst;
-        if (depth != ctx.lclCount)
-          return verifyError(&ctx, ".%d local count %d does not match method local count %d", pc, code[pc].fst,
-                             ctx.lclCount);
-        pc++;
-        stackDepth = 0;
+
+        if (isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: Escape should not be last instruction in block", pc);
+
+        if (code[pc + insWidth].op.op != sRSP)
+          return verifyError(&ctx, ".%d: call expecting a RSP after Escape", pc);
+        pc += insWidth;
         continue;
       }
-      case Ret:
-      case XRet: {
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Ret should be last instruction in block", pc - 1);
-
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack for return: %d", pc - 1, stackDepth);
-        propagateVars(&ctx, parentCtx);
-        return Ok; // No merge of locals here
+      case sEntry: {
+        int32 insWidth = 3;
+        // TODO: Check the arity/localcount
+        pc += insWidth;
+        continue;
       }
-      case Block: {
-        int32 blockExitDepth = code[pc].fst;
-        int32 blockLen = code[pc].alt;
-        pc++;
+      case sRet:
+      case sXRet: {
+        int32 rtnVr = operand(1);
+        int32 insWidth = 2;
 
-        if (stackDepth != blockExitDepth)
-          return verifyError(&ctx, ".%d: block exit depth %d must be same as current depth: %d", pc - 1, blockExitDepth,
-                             stackDepth);
+        if (!initedLocal(&ctx, rtnVr))
+          return verifyError(&ctx, ".%d: return var %d not initialized", pc, rtnVr);
+        if (!isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: Ret/XRet should be last instruction in block", pc);
+        pc += insWidth;
+        continue;
+      }
+      case sRtn: {
+        int32 insWidth = 1;
 
-        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, blockExitDepth, False) == Ok) {
-          stackDepth = blockExitDepth;
-          pc += blockLen;
+        if (!isLastPC(pc + insWidth, limit))
+          return verifyError(&ctx, ".%d: Ret/XRet should be last instruction in block", pc);
+        pc += insWidth;
+        continue;
+      }
+      case sBlock: {
+        int32 blockLen = operand(1);
+
+        if (verifyBlock(pc, pc + 2, pc + blockLen + 2, &ctx, False, MAX_INT32) == Ok) {
+          pc += blockLen + 2;
           continue;
         } else
           return Error;
       }
-      case Valof: {
-        int32 blockExitDepth = code[pc].fst;
-        int32 blockLen = code[pc].alt;
-        pc++;
+      case sValof: {
+        int32 blkRsltVr = operand(1);
+        int32 blockLen = operand(1);
+        if (!validLocal(&ctx, blkRsltVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, blkRsltVr);
 
-        if (stackDepth + 1 != blockExitDepth)
-          return verifyError(&ctx, ".%d: block exit depth %d must be current depth+1: %d", pc - 1, blockExitDepth,
-                             stackDepth);
-
-        if (verifyBlock(pc - 1, pc, pc + blockLen, &ctx, stackDepth, blockExitDepth, True) == Ok) {
-          stackDepth = blockExitDepth;
-          pc += blockLen;
-          return Ok;
-        }
-        return Error;
-      }
-      case Loop: {
-        if (!isLastPC(pc, limit))
-          return verifyError(&ctx, ".%d: Loop should be last instruction in block", pc);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
+        if (verifyBlock(pc, pc + 3, pc + blockLen + 3, &ctx, True, blkRsltVr) == Ok) {
+          pc += blockLen + 3;
+          initLocal(&ctx, blkRsltVr);
+          continue;
+        } else
           return Error;
-        return Ok;
       }
-      case Break: {
-        if (!isLastPC(pc, limit))
+      case sBreak: {
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+        int32 insSize = 2;
+        if (!isLastPC(pc + insSize, limit))
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
-          return Error;
         return Ok;
       }
-      case Result: {
-        if (!isLastPC(pc, limit))
+      case sLoop: {
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+        int32 insSize = 2;
+        if (!isLastPC(pc + insSize, limit))
+          return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
+        return Ok;
+      }
+      case sResult: {
+        int32 insSize = 3;
+        int32 blkRsltVr = operand(1);
+
+        if (checkBreak(&ctx, pc, operand(1), True) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, blkRsltVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, blkRsltVr);
+
+        if (!isLastPC(pc + insSize, limit))
           return verifyError(&ctx, ".%d: Result should be last instruction in block", pc);
 
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: Result should leave at least one value on stack", pc);
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 1, True) != Ok)
-          return Error;
-        return Ok;
+        pc += insSize;
+        continue;
       }
+      case sIf:
+      case sIfNot: {
+        int32 insSize = 3;
+        int32 isRsltVr = operand(1);
 
-      case Drop: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: stack depth %d does not permit a Drop", pc, stackDepth);
-        stackDepth--;
-        pc++;
-        continue;
-      }
-      case Rst: {
-        int32 depth = code[pc].fst;
-        if (stackDepth < depth)
-          return verifyError(&ctx, ".%d: insufficient stack depth for stack reset %d", pc, depth);
-        stackDepth = depth;
-        pc++;
-        continue;
-      }
-      case Fiber: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient stack depth for Fiber", pc);
-        pc++;
-        continue;
-      }
-
-      case Resume:
-      case Suspend: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient stack depth for Resume/Suspend", pc);
-        pc++;
-        stackDepth--;
-        continue;
-      }
-
-      case Retire: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient stack depth for Retire", pc);
-        if (!isLastPC(pc++, limit))
-          return verifyError(&ctx, ".%d: Retire should be last instruction in block", pc);
-
-        propagateVars(&ctx, parentCtx);
-        return Ok;
-      }
-      case Underflow:
-        return verifyError(&ctx, ".%d: special instruction illegal in regular code %", pc);
-      case LdV:
-        stackDepth++;
-        pc++;
-        continue;
-      case LdC: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-        stackDepth++;
-        pc++;
-        continue;
-      }
-      case Ld: {
-        int32 varNo = code[pc].fst;
-        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
-        stackDepth++;
-        pc++;
-        continue;
-      }
-      case St: {
-        int32 varNo = code[pc].fst;
-        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (varNo < 0) {
-          locals[-varNo].inited = True;
-        }
-        pc++;
-        continue;
-      }
-      case Tee: {
-        int32 varNo = code[pc].fst;
-        if (varNo < -ctx.lclCount || varNo >= mtdArity(ctx.mtd))
-          return verifyError(&ctx, ".%d Out of bounds variable number: %d", pc, varNo);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient value on stack: %d", pc, stackDepth);
-        if (varNo < 0) {
-          locals[-varNo].inited = True;
-        }
-        pc++;
-        continue;
-      }
-      case StV: {
-        int32 lclNo = code[pc].fst - 1;
-        if (lclNo < 0 || lclNo >= ctx.lclCount)
-          return verifyError(&ctx, ".%d Out of bounds local number: %d", pc, lclNo);
-        locals[lclNo].inited = True;
-        pc++;
-        continue;
-      }
-      case LdG: {
-        int32 glbNo = code[pc].fst;
-
-        globalPo glb = findGlobalVar(glbNo);
-        if (glb == Null)
-          return verifyError(&ctx, ".%d unknown global variable: %d", pc, glbNo);
-        stackDepth++;
-        pc++;
-        continue;
-      }
-      case StG: {
-        int32 glbNo = code[pc].fst;
-        globalPo glb = findGlobalVar(glbNo);
-        if (glb == Null)
-          return verifyError(&ctx, ".%d unknown global variable: %d", pc, glbNo);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        pc++;
-        continue;
-      }
-      case TG: {
-        int32 glbNo = code[pc].fst;
-        globalPo glb = findGlobalVar(glbNo);
-        if (glb == Null)
-          return verifyError(&ctx, ".%d unknown global variable: %d", pc, glbNo);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case Sav: {
-        stackDepth++;
-        pc++;
-        continue;
-      }
-      case TstSav: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case LdSav: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
           return Error;
 
-        pc++;
-        continue;
-      }
-      case StSav: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth -= 2;
-        pc++;
-        continue;
-      }
-      case TSav: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        pc++;
-        continue;
-      }
-      case Cell: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case Get: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case Assign: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth -= 2;
-        pc++;
-        continue;
-      }
-      case CLit: {
-        int32 key = code[pc].fst;
-        if (!isDefinedConstant(key))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
-          return Error;
-        pc++;
-        continue;
-      }
-      case CInt: {
-        int32 key = code[pc].fst;
-        termPo lit = getConstant(key);
+        if (!initedLocal(&ctx, isRsltVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, isRsltVr);
 
-        if (lit == Null || !isInteger(lit))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
-          return Error;
-        pc++;
+        pc += insSize;
         continue;
       }
-      case CFlt: {
-        int32 key = code[pc].fst;
-        termPo lit = getConstant(key);
+      case sCLbl: {
+        int32 insSize = 4;
+        int32 cmpVr = operand(1);
 
-        if (lit == Null || !isFloat(lit))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
-          return Error;
-        pc++;
-        continue;
-      }
-      case CChar: {
-        int32 key = code[pc].fst;
-        termPo lit = getConstant(key);
-
-        if (lit == Null || !isChar(lit))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, key);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
-          return Error;
-        pc++;
-        continue;
-      }
-      case CLbl: {
-        int32 constant = code[pc].fst;
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
         if (!isALabel(lit))
-          return verifyError(&ctx, ".%d: invalid label: %T", pc, lit);
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
+          return verifyError(&ctx, ".%d: invalid label: %t", pc, lit);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
           return Error;
-        pc++;
+
+        if (!initedLocal(&ctx, cmpVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+
+        pc += insSize;
         continue;
       }
-      case Nth: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        pc++;
-        continue;
-      }
-      case StNth: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth -= 2;
-        pc++;
-        continue;
-      }
-      case If:
-      case IfNot: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient values on stack: %d", pc, stackDepth);
-        stackDepth--;
-        if (checkBreak(&ctx, pc, pc + code[pc].alt + 1, 0, False) != Ok)
+      case sCInt: {
+        int32 insSize = 4;
+        int32 cmpVr = operand(1);
+
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
+        if (lit == Null || !isInteger(lit))
+          return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
           return Error;
-        pc++;
+
+        if (!initedLocal(&ctx, cmpVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+
+        pc += insSize;
         continue;
       }
-      case ICase:
-      case Case:
-      case IxCase: {
-        int32 mx = code[pc].fst;
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        for (int32 ix = 0; ix < mx; ix++) {
-          int32 casePc = pc + 1 + ix;
-          insPo caseIns = &code[casePc];
-          switch (caseIns->op) {
-            case Break:
-            case Loop:
-              if (checkBreak(&ctx, casePc, casePc + code[casePc].alt + 1, 0, False) != Ok)
+      case sCFlt: {
+        int32 insSize = 4;
+        int32 cmpVr = operand(1);
+
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
+        if (lit == Null || !isFloat(lit))
+          return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, cmpVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+
+        pc += insSize;
+        continue;
+      }
+      case sCChar: {
+        int32 insSize = 4;
+        int32 cmpVr = operand(1);
+
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        termPo lit = getConstant(constant);
+        if (lit == Null || !isChar(lit))
+          return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, cmpVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+
+        pc += insSize;
+        continue;
+      }
+      case sCLit: {
+        int32 insSize = 4;
+        int32 cmpVr = operand(1);
+
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, cmpVr))
+          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+
+        pc += insSize;
+        continue;
+      }
+      case sICase:
+      case sCase:
+      case sIxCase: {
+        int32 gvVr = operand(1);
+        int32 caseCount = operand(1);
+        int32 insSize = 3;
+
+        if (!initedLocal(&ctx, gvVr))
+          return verifyError(&ctx, ".%d: case governing var %d not initialized", pc, gvVr);
+
+        pc += insSize;
+
+        for (int32 ix = 0; ix < caseCount; ix++) {
+          switch (code[pc].op.op) {
+            case sBreak:
+            case sLoop:
+              if (checkBreak(&ctx, pc, operand(1), False) != Ok)
                 return Error;
+              pc += 2;
               continue;
             default:
-              return verifyError(&ctx, ".%d: invalid case instruction", casePc);
+              return verifyError(&ctx, ".%d: invalid case instruction", pc);
           }
         }
-        if (!isLastPC(pc + mx + 1, limit))
+        if (!isLastPC(pc, limit))
           return verifyError(&ctx, ".%d: Case should be last instruction in block", pc);
+        continue;
+      }
+      case sMC: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
-        propagateVars(&ctx, parentCtx);
-        return Ok;
-      }
-      case IAdd:
-      case ISub:
-      case IMul: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
+        termPo lit = getConstant(constant);
+        if (lit == Null)
+          return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case IDiv:
-      case IMod: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth--;
-        pc++;
+      case sMv: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case IAbs: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        pc++;
+      case sLG: {
+        int32 insSize = 2;
+        int32 glbNo = operand(1);
+
+        globalPo glb = findGlobalVar(glbNo);
+        if (glb == Null)
+          return verifyError(&ctx, ".%d unknown global variable: %d", pc, glbNo);
+
+        pc += insSize;
         continue;
       }
-      case IEq:
-      case ILt:
-      case IGe: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
+      case sSG: {
+        int32 insSize = 3;
+        int32 glbNo = operand(1);
+        int32 srcVr = operand(1);
+
+        globalPo glb = findGlobalVar(glbNo);
+        if (glb == Null)
+          return verifyError(&ctx, ".%d unknown global variable: %d", pc, glbNo);
+
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        pc += insSize;
         continue;
       }
-      case CEq:
-      case CLt:
-      case CGe:
-      case BAnd:
-      case BOr:
-      case BXor:
-      case BLsl:
-      case BLsr:
-      case BAsr: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
+
+      case sSav: {
+        int32 insSize = 2;
+        int32 tgtVr = operand(1);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case BNot: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        pc++;
+      case sTstSav: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case FAdd:
-      case FSub:
-      case FMul: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
+      case sLdSav: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case FDiv:
-      case FMod: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth--;
-        pc++;
+      case sStSav:
+      case sCell:
+      case sGet: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case FAbs: {
-        if (stackDepth < 1)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        pc++;
+      case sAssign: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!initedLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not inited", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case FEq:
-      case FLt:
-      case FGe: {
-        if (stackDepth < 2)
-          return verifyError(&ctx, ".%d: insufficient args on stack: %d", pc, stackDepth);
-        stackDepth -= 1;
-        pc++;
+      case sNth: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case Alloc: {
-        int32 constant = code[pc].fst;
+      case sStNth: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!initedLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not inited", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sIAdd:
+      case sISub:
+      case sIMul: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sIDiv:
+      case sIMod: {
+        int32 insSize = 5;
+        int32 tgtVr = operand(1);
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sIAbs: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sIEq:
+      case sILt:
+      case sIGe:
+      case sCEq:
+      case sCLt:
+      case sCGe:
+      case sBAnd:
+      case sBOr:
+      case sBXor:
+      case sBLsl:
+      case sBLsr:
+      case sBAsr:
+      case sFEq:
+      case sFLt:
+      case sFGe: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sBNot: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sFAdd:
+      case sFSub:
+      case sFMul: {
+        int32 insSize = 4;
+        int32 tgtVr = operand(1);
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sFDiv:
+      case sFMod: {
+        int32 insSize = 5;
+        int32 tgtVr = operand(1);
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+
+        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+          return Error;
+
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sFAbs: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sAlloc: {
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
         if (!isALabel(lit))
-          return verifyError(&ctx, ".%d: invalid symbol literal: %t", pc, lit);
-        else {
-          int32 arity = lblArity(C_LBL(lit));
-          if (stackDepth < arity)
-            return verifyError(&ctx, ".%d: insufficient stack args for Alloc instruction", pc);
-          else if (code[pc + 1].op != Frame)
-            return verifyError(&ctx, ".%d: expecting Frame instruction after Alloc", pc);
-          else {
-            stackDepth = stackDepth - arity + 1;
-            pc++;
-            continue;
-          }
+          return verifyError(&ctx, ".%d: invalid alloc label: %t", pc, lit);
+
+        int32 arity = lblArity(C_LBL(lit));
+        int32 allocVr = operand(1);
+        int32 argCnt = operand(1);
+
+        if (argCnt != arity)
+          return verifyError(&ctx, ".%d: argument count mismatch", pc);
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = code[pc + 4 + ix].op.ltrl;
+          if (!initedLocal(&ctx, argVr))
+            return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
         }
+
+        if (*ctx.maxArgCnt <= argCnt)
+          *ctx.maxArgCnt = argCnt;
+
+        if (!validLocal(&ctx, allocVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, allocVr);
+
+        initLocal(&ctx, argCnt);
+
+        if (isLastPC(pc + argCnt + 4, limit))
+          return verifyError(&ctx, ".%d: Call should not be last instruction in block", pc);
+        pc += argCnt + 4;
+        continue;
       }
-      case Closure: {
-        int32 constant = code[pc].fst;
+      case sClosure: {
+        int32 insSize = 4;
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         termPo lit = getConstant(constant);
         if (!isALabel(lit))
-          return verifyError(&ctx, ".%d: invalid Closure literal: %t", pc, lit);
-        else {
-          if (stackDepth < 1)
-            return verifyError(&ctx, ".%d: insufficient stack args for Closure instruction", pc);
-          else {
-            pc++;
-            continue;
-          }
-        }
-      }
-      case Frame: {
-        int32 depth = code[pc].fst;
-        if (depth != stackDepth)
-          return verifyError(&ctx, ".%d: stack depth %d does not match Frame instruction %d", pc,
-                             stackDepth, depth);
-        pc++;
+          return verifyError(&ctx, ".%d: invalid alloc label: %t", pc, lit);
+
+        int32 tgtVr = operand(1);
+        int32 freeVr = operand(1);
+
+        if (!initedLocal(&ctx, freeVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, freeVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
         continue;
       }
-      case Line:
-      case dBug: {
-        int32 constant = code[pc].fst;
-        if (!isDefinedConstant(constant))
-          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-        pc++;
+      case sDrop:
+      case sBump: {
+        int32 insSize = 2;
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        pc += insSize;
         continue;
       }
-      case Bind: {
-        int32 constant = code[pc].fst;
+
+      case sFiber: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validLocal(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+
+      case sResume:
+      case sSuspend:
+      case sRetire: {
+        int32 insSize = 3;
+        int32 srcVr1 = operand(1);
+        int32 srcVr2 = operand(1);
+        if (!initedLocal(&ctx, srcVr1))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
+        if (!initedLocal(&ctx, srcVr2))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
+        pc += insSize;
+        continue;
+      }
+
+      case sUnderflow: {
+        int32 insSize = 1;
+        pc += insSize;
+        continue;
+      }
+
+      case sLine:
+      case sdBug: {
+        int32 insSize = 2;
+        int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
-        int32 lcl = -code[pc].alt;
-        if (lcl <= 0 || lcl > lclCount(ctx.mtd))
-          return verifyError(&ctx, ".%d: invalid variable offset: %d", pc, lcl);
-        pc++;
+
+        pc += insSize;
+        continue;
+      }
+      case sBind: {
+        int32 insSize = 3;
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
+        int32 srcVr = operand(1);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        pc += insSize;
         continue;
       }
       default:
-        return verifyError(&ctx, ".%d: illegal instruction", pc);
+        return verifyError(&ctx, ".%d: unknown instruction", pc);
     }
   }
-
-  if (hasValue)
-    return verifyError(&ctx, ".%d: not permitted to fall out of Valof block", pc);
-
-  propagateVars(&ctx, parentCtx);
   return Ok;
 }
 

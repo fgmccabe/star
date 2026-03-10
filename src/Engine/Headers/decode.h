@@ -7,7 +7,6 @@
 
 #include "engine.h"
 #include "encoding.h"
-#include "array.h"
 #include "stringBuffer.h"
 #include "streamDecodeP.h"
 
@@ -17,9 +16,14 @@ typedef struct encoding_support_ {
   heapPo R;         /* Where should the roots go? */
 } EncodeSupport, *encodePo;
 
+typedef enum {
+  hardDef,
+  softDef
+} DefinitionMode;
+
 retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, strBufferPo strBuffer);
 
 retCode decodeTplCount(ioPo in, int32 *count, char *errorMsg, integer msgSize);
 
-retCode decodeInstructions(ioPo in, int32 *insCount, insPo *code, char *errorMsg, long msgSize, termPo constantPool);
+retCode loadCode(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 #endif //STAR_ENCODED_H

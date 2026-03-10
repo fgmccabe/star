@@ -12,8 +12,8 @@
 peepOptimize(func(Nm,H,Sig,AgMap,LsMap,Ins),func(Nm,H,Sig,AgMap,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
   findUnusedVars(LsMap,PIns,LsMx,Ins0),!,
-  peepCode(Ins0,[],Ins1),  % We need to peep twice, cos droping vars gives us a chance for more
-  adjustEntry(Ins1,LsMx,Insx).
+  peepCode(Ins0,[],Insx).  % We need to peep twice, cos droping vars gives us a chance for more
+%  adjustEntry(Ins1,LsMx,Insx).
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,

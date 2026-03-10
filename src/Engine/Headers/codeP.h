@@ -11,11 +11,13 @@
 #include "jit.h"
 #include "labelsP.h"
 #include "termP.h"
+#include "ssaOps.h"
 
 typedef struct instruction_ {
-  OpCode op;
-  int32 fst; // First operand
-  int32 alt; // some may also have a second operand
+  union {
+    ssaOp op;
+    int32 ltrl;
+  } op;
 } Instruction;
 
 typedef struct method_ {
@@ -24,10 +26,10 @@ typedef struct method_ {
   CodeBlock jit;      // Jit'ed code
 #endif
   labelPo lbl;        // The label of this code
-  int32 lclcnt;       // How many locals in the environment
-  int32 stackDelta;   // How much space to allocate for the stack
+  int32 lclcnt;       // How many locals in the method
+  int32 stackDelta;   // Maximum depth of active locals
   int32 insCount;     // How many instructions are there in the code?
-  insPo instructions; // The actual instructions
+  ssaInsPo instructions; // The actual instructions
 } MethodRec;
 
 extern clssPo methodClass;
@@ -36,7 +38,7 @@ extern clssPo methodClass;
 
 static inline logical isMethod(termPo m) { return hasClass(m, methodClass); }
 
-static inline insPo entryPoint(methodPo mtd) {
+static inline ssaInsPo entryPoint(methodPo mtd) {
   assert(isMethod((termPo) mtd));
   return mtd->instructions;
 }
@@ -62,10 +64,10 @@ retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
-methodPo defineMtd(heapPo H, int32 insCount, insPo instructions, int32 lclCount, int32 stackLimit, labelPo lbl);
+methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCount, int32 stackDelta, labelPo lbl);
 
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
-                      insPo instructions, int32 lcls, int32 stkLimit, int32 depth);
+                      ssaInsPo instructions, int32 lcls, int32 stkLimit);
 
 void markMethod(methodPo mtd, gcSupportPo G);
 #endif

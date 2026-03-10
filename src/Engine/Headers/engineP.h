@@ -7,14 +7,9 @@
 
 #include "engine.h"
 #include "stackP.h"
-#include "termP.h"
 #include "pkgP.h"
 #include "codeP.h"
-#include "opcodes.h"
-#include "signals.h"
 #include "heapP.h"
-#include "labelsP.h"
-#include "normalP.h"
 #include "thr.h"
 #include "timers.h"
 

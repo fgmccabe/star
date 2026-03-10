@@ -15,6 +15,7 @@ set(HEADER_FILES
         ../Util/Headers/cmdOptions.h
         Headers/escapeP.h
         ../Util/Headers/integer.h
+        ../Util/Headers/integer.h
         ../Jit/Headers/jit.h
         Headers/args.h
         Headers/bignum.h Headers/bignumP.h
@@ -62,6 +63,7 @@ set(HEADER_FILES
         Headers/constants.h
         Headers/constantsP.h
         Headers/evalP.h
+        Headers/disass.h
 )
 
 set(SOURCE_FILES
@@ -76,6 +78,7 @@ set(SOURCE_FILES
         decode.c
         decodeSSA.c
         debug.c
+        disass.c
         either.c
         eval.c
         engine.c

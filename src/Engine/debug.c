@@ -8,6 +8,7 @@
 #include <manifest.h>
 
 #include "debugP.h"
+#include "disass.h"
 #include "editline.h"
 #include "escapeP.h"
 
@@ -26,7 +27,7 @@ static void showAllLocals(ioPo out, stackPo stk);
 static void showTos(ioPo out, stackPo stk, integer offset);
 
 static retCode showVarble(ioPo out, ptrPo args, int32 varNo);
-static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
+static retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char *buffer, integer bufLen);
 
 static sockPo debuggerListener = Null;
 
@@ -106,10 +107,10 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
 }
 
 // Figuring out if we should stop is surprisingly complicated
-static logical shouldWeStop(enginePo p, OpCode op) {
+static logical shouldWeStop(enginePo p, ssaOp op) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
-  logical atLine = ((op==Line||op==Bind)?tracing>=detailedTracing:True);
+  logical atLine = ((op==sLine||op==sBind)?tracing>=detailedTracing:True);
 
   switch (p->waitFor) {
     case stepInto:
@@ -131,7 +132,7 @@ static logical shouldWeStop(enginePo p, OpCode op) {
         return False;
     }
     case nextBreak: {
-      if (p->waterMark == Null && op == Entry && breakPointSet(mtdLabel(stk->prog))) {
+      if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(stk->prog))) {
         p->waitFor = stepInto;
         p->tracing = True;
         return atLine;
@@ -459,11 +460,11 @@ static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
 static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
-  insPo pc = stk->pc;
+  ssaInsPo pc = stk->pc;
   integer remaining = codeSize(mtd) - (pc - entryPoint(mtd));
 
   integer count = cmdCount(line, remaining);
-  insPo last = entryPoint(mtd) + codeSize(mtd);
+  ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
 
   for (integer ix = 0; ix < count && pc < last; ix++) {
     pc = disass(debugOutChnnl, Null, mtd, pc);
@@ -477,8 +478,8 @@ static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
 }
 
 void showMethodCode(ioPo out, char *msg, methodPo mtd) {
-  insPo pc = entryPoint(mtd);
-  insPo last = entryPoint(mtd) + codeSize(mtd);
+  ssaInsPo pc = entryPoint(mtd);
+  ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
 
   outMsg(out, msg, mtdLabel(mtd));
 
@@ -600,7 +601,7 @@ DebugWaitFor insDebug(enginePo p) {
     .deflt = Null
   };
 
-  logical stopping = shouldWeStop(p, p->stk->pc->op);
+  logical stopping = shouldWeStop(p, p->stk->pc->op.op);
   if (p->tracing || stopping) {
     stackPo stk = p->stk;
     outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
@@ -813,42 +814,38 @@ void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo trm);
 
-static DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show);
+static DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show);
 
 DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
-  insPo pc = stk->pc;
+  ssaInsPo pc = stk->pc;
 
-  switch (pc->op) {
-    case Abort:
+  switch (pc->op.op) {
+    case sAbort:
       return abortDebug(p, lc);
-    case Call:
-      return callDebug(p, Call, lc, getConstant(pc->fst));
-    case XCall:
-      return callDebug(p, XCall, lc, getConstant(pc->fst));
-    case TCall:
-      return tcallDebug(p, lc, getConstant(pc->fst));
-    case OCall:
-      return ocallDebug(p, OCall, lc, topStack(stk));
-    case XOCall:
-      return ocallDebug(p, XOCall, lc, topStack(stk));
-    case TOCall:
+    case sCall:
+      return callDebug(p, sCall, lc, getConstant((pc+1)->op.ltrl));
+    case sTCall:
+      return tcallDebug(p, lc, getConstant((pc+1)->op.ltrl));
+    case sOCall:
+      return ocallDebug(p, sOCall, lc, topStack(stk));
+    case sTOCall:
       return tocallDebug(p, lc, topStack(stk));
-    case Entry:
+    case sEntry:
       return entryDebug(p, lc, mtdLabel(stk->prog));
-    case Ret:
+    case sRet:
       return retDebug(p, lc, topStack(stk));
-    case XRet:
+    case sXRet:
       return xretDebug(p, lc, topStack(stk));
-    case Assign:
+    case sAssign:
       return assignDebug(p, lc);
-    case Fiber:
+    case sFiber:
       return fiberDebug(p, lc, topStack(stk));
-    case Suspend:
+    case sSuspend:
       return suspendDebug(p, lc, topStack(stk));
-    case Resume:
+    case sResume:
       return resumeDebug(p, lc, topStack(stk));
-    case Retire:
+    case sRetire:
       return retireDebug(p, lc, topStack(stk));
     default:
       return stepOver;
@@ -856,69 +853,73 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
 }
 
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
-  return lnDebug(p, Line, lc, Null, showLine);
+  return lnDebug(p, sLine, lc, Null, showLine);
 }
 
 DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset) {
   ptrPo args = p->stk->args;
 
-  return lnDebug(p, Bind, name, args[offset], showBind);
+  return lnDebug(p, sBind, name, args[offset], showBind);
 }
 
 DebugWaitFor abortDebug(enginePo p, termPo lc) {
   stackPo stk = p->stk;
-  return lnDebug(p, Abort, lc, topStack(stk), showAbort);
+  return lnDebug(p, sAbort, lc, topStack(stk), showAbort);
 }
 
-DebugWaitFor callDebug(enginePo p, OpCode op, termPo lc, termPo pr) {
+DebugWaitFor callDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
   return lnDebug(p, op, lc, pr, showCall);
 }
 
 DebugWaitFor tcallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, TCall, lc, pr, showTCall);
+  return lnDebug(p, sTCall, lc, pr, showTCall);
 }
 
-DebugWaitFor ocallDebug(enginePo p, OpCode op, termPo lc, termPo pr) {
+DebugWaitFor ocallDebug(enginePo p, ssaOp op, termPo lc, termPo pr) {
   return lnDebug(p, op, lc, pr, showOCall);
 }
 
 DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
-  return lnDebug(p, TOCall, lc, pr, showOCall);
+  return lnDebug(p, sTOCall, lc, pr, showOCall);
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
-  return lnDebug(p, Entry, lc, (termPo) lbl, showEntry);
+  return lnDebug(p, sEntry, lc, (termPo) lbl, showEntry);
 }
 
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Ret, lc, vl, showRet);
+  return lnDebug(p, sRet, lc, vl, showRet);
 }
 
 DebugWaitFor xretDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, XRet, lc, vl, showXRet);
+  return lnDebug(p, sXRet, lc, vl, showXRet);
+}
+
+DebugWaitFor rtnDebug(enginePo p, termPo lc, termPo vl) {
+  return lnDebug(p, sRtn, lc, vl, showRet);
 }
 
 DebugWaitFor assignDebug(enginePo p, termPo lc) {
-  return lnDebug(p, Assign, lc, Null, showAssign);
+  return lnDebug(p, sAssign, lc, Null, showAssign);
 }
 
 DebugWaitFor fiberDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Fiber, lc, vl, showFiber);
+  return lnDebug(p, sFiber, lc, vl, showFiber);
 }
 
 DebugWaitFor suspendDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Suspend, lc, vl, showSuspend);
+  return lnDebug(p, sSuspend, lc, vl, showSuspend);
 }
 
 DebugWaitFor resumeDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Resume, lc, vl, showResume);
+  return lnDebug(p, sResume, lc, vl, showResume);
 }
 
 DebugWaitFor retireDebug(enginePo p, termPo lc, termPo vl) {
-  return lnDebug(p, Retire, lc, vl, showRetire);
+  return lnDebug(p, sRetire, lc, vl, showRetire);
 }
 
-DebugWaitFor lnDebug(enginePo p, OpCode op, termPo lc, termPo arg, showCmd show) {
+DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) {
   static DebugOptions opts = {
     .opts = {
       {.c = 'n', .cmd = dbgSingle, .usage = "n step into"},
@@ -1062,51 +1063,6 @@ static void showEscCall(ioPo out, int32 escNo) {
   outMsg(out, " %s/%d", esc->name, esc->arity);
 }
 
-insPo disass(ioPo out, stackPo stk, methodPo mtd, insPo pc) {
-  int32 offset = -1;
-  if (mtd != Null) {
-    offset = codeOffset(mtd, pc);
-    labelPo lbl = mtdLabel(mtd);
-    outMsg(out, "%,*T [%d] ", displayDepth, lbl, offset);
-  } else {
-    outMsg(out, "\?\?\? [%lx] ", pc);
-  }
-
-  ptrPo args = (stk != Null) ? stk->args : Null;
-
-  switch (pc->op) {
-#undef instruction
-
-#define show_nOp(Tgt)
-#define show_tOs(Tgt) showTos(out,stk,delta++)
-#define show_art(Tgt) outMsg(out," /%d",(Tgt))
-#define show_i32(Tgt) outMsg(out," #%d",(Tgt))
-#define show_lcl(Tgt) showVarble(out,args,(Tgt))
-#define show_lcs(Tgt) outMsg(out," l[%d]",(Tgt))
-#define show_bLk(Tgt) showPcTgt(out,offset,(Tgt)+1)
-#define show_lVl(Tgt) showBlkLvl(out,offset,(Tgt))
-#define show_sym(Tgt) showConstant(out,mtd,(Tgt))
-#define show_Es(Tgt) showEscCall(out, (Tgt))
-#define show_lit(Tgt) showConstant(out,mtd,(Tgt))
-#define show_glb(Tgt) showGlb(out, findGlobalVar((Tgt)))
-#define show_tPe(Tgt) showSig(out,stk,mtd,(Tgt))
-
-#define instruction(Op, A1, A2, Dl, Cmt)\
-    case Op:{                               \
-      outMsg(out," %s",#Op);                \
-      integer delta=0;                      \
-      show_##A1(pc->fst);                   \
-      show_##A2(pc->alt);                   \
-      return pc+1;                          \
-    }
-
-#include "instructions.h"
-
-    default:
-      return pc + 1;
-  }
-}
-
 void showRegisters(enginePo p, heapPo h) {
   stackPo stk = p->stk;
   methodPo mtd = stk->prog;
@@ -1136,7 +1092,7 @@ void showRegisters(enginePo p, heapPo h) {
 
 static char *anonPrefix = "__";
 
-retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
+retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char *buffer, integer bufLen) {
   // normalPo locals = mtd->locals;
   // int64 numLocals = termArity(locals);
   // integer pcOffset = codeOffset(mtd, pc);

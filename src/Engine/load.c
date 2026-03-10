@@ -256,14 +256,8 @@ static char *structPreamble = "n3o3\1struct\1";
 static char *consPreamble = "n3o3\1cons\1";
 static char *typePreamble = "n3o3\1type\1";
 static char *fieldPreamble = "n2o2\1()2\1";
-static char *funcPreamble = "n8o8\1func\1";
+static char *codePreamble = "n7o7\1code\1";
 
-typedef enum {
-  hardDef,
-  softDef
-} DefinitionMode;
-
-static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 static retCode loadCtor(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
@@ -273,8 +267,8 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
     retCode ret = Ok;
 
     for (int32 ix = 0; ret == Ok && ix < count; ix++) {
-      if (isLookingAt(in, funcPreamble) == Ok)
-        ret = loadFunc(in, h, owner, errorMsg, msgLen);
+      if (isLookingAt(in, codePreamble) == Ok)
+        ret = loadCode(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, typePreamble) == Ok)
         ret = loadType(in, h, owner, errorMsg, msgLen);
       else if (isLookingAt(in, structPreamble) == Ok || isLookingAt(in, consPreamble) == Ok)
@@ -305,126 +299,6 @@ retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen
 // a. The pool constant for the variable name
 // c. The variable number
 // d. The block which defines its range
-
-
-retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
-  int32 policyCount;
-  retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
-  for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
-    char nameBuff[MAX_SYMB_LEN];
-    if (decodeString(in, nameBuff, NumberOf(nameBuff)) == Ok) {
-      if (uniIsLit(nameBuff, "soft")) {
-        *redefine = softDef;
-      } else; // ignore unknown policies
-    } else {
-      strMsg(errorMsg, msgSize, "problem in loading policy");
-      return Error;
-    }
-  }
-  return ret;
-}
-
-static int32 maxDepth(insPo ins, integer count, normalPo constPool) {
-  int32 currDepth = 0;
-  int32 maxDepth = 0;
-
-  for (integer pc = 0; pc < count; pc++, ins++) {
-    switch (ins->op) {
-
-#define instruction(Op, A1, A2, Dl, Cmt) \
-      case Op:{                  \
-        currDepth+=(Dl);        \
-        if(currDepth>maxDepth)  \
-          maxDepth = currDepth; \
-        continue;                \
-      }
-
-#include "instructions.h"
-
-#undef instruction
-
-      default:;
-    }
-  }
-  return maxDepth;
-}
-
-retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
-  char prgName[MAX_SYMB_LEN];
-  int32 arity;
-  int32 lclCount = 0;
-  int32 stackHeight;
-  int32 sigIndex;
-  DefinitionMode redefine = hardDef;
-
-  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity, errorMsg, msgSize);
-
-#ifdef TRACEPKG
-  if (tracePkg >= detailedTracing)
-    logMsg(logFile, "loading function %s/%d", &prgName, arity);
-#endif
-
-  if (ret == Ok)
-    ret = decodePolicies(in, H, &redefine, errorMsg, msgSize);
-
-  if (ret == Ok)
-    ret = decodeI32(in, &sigIndex);
-
-  if (ret == Ok)
-    ret = decodeI32(in, &stackHeight);
-
-  if (ret == Ok)
-    ret = decodeI32(in, &lclCount);
-
-  if (ret == Ok) {
-    termPo pool = voidEnum;
-    int root = gcAddRoot(H, &pool);
-    EncodeSupport support = {errorMsg, msgSize, H};
-    strBufferPo tmpBuffer = newStringBuffer();
-
-    ret = decode(in, &support, H, &pool, tmpBuffer);
-
-    if (ret == Ok) {
-      int32 insCount = 0;
-      insPo instructions = Null;
-      ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool);
-
-      if (ret == Ok) {
-        termPo locals = voidEnum;
-        gcAddRoot(H, &locals);
-        ret = decode(in, &support, H, &locals, tmpBuffer);
-
-        if (ret == Ok) {
-          labelPo lbl = declareLbl(prgName, arity, -1);
-
-          if (labelMtd(lbl) != Null) {
-            if (redefine != softDef) {
-              strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
-              ret = Error;
-            } // Otherwise don't redefine
-          } else {
-            gcAddRoot(H, (ptrPo) &lbl);
-
-            methodPo mtd = defineMtd(H, insCount, instructions, lclCount, stackHeight, lbl);
-            if (enableVerify)
-              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
-
-#ifndef NOJIT
-            if (ret == Ok && jitOnLoad)
-              ret = jitMethod(mtd, errorMsg, msgSize);
-#endif
-          }
-        }
-      }
-      gcReleaseRoot(H, root);
-    }
-  }
-
-  if (ret == Error)
-    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
-
-  return ret;
-}
 
 retCode loadType(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
   char typeName[MAX_SYMB_LEN];

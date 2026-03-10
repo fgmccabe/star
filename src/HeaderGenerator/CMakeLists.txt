@@ -61,11 +61,11 @@ add_custom_target(ssaOps.h DEPENDS genssaopcodes
 
 set(PL_SSA_SOURCE_FILES plssa.c ../Headers/ssaOps.h)
 add_executable(plssa ${PL_SSA_SOURCE_FILES})
-target_link_libraries(plssa ooio infra)
+target_link_libraries(plssa ooio)
 
 set(STAR_SSA_SOURCE_FILES starssa.c ../Headers/ssaOps.h)
 add_executable(starssa ${STAR_SSA_SOURCE_FILES})
-target_link_libraries(starssa ooio infra)
+target_link_libraries(starssa ooio)
 
 set(PLINTRINSIC_SOURCE_FILES plintrinsic.c
   plsig.c

@@ -33,9 +33,6 @@ parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-A'|More],CWD,Cx,[genSSA|Opts],Files) :-!,
-
-  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-ti'|More],CWD,Cx,[traceGenCode|Opts],Files) :-!,

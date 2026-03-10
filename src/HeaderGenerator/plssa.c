@@ -52,7 +52,6 @@ typedef struct {
   strBufferPo aux;
   int32 vNo;
   int32 ltNo;
-  int32 pcNo;
 } AsmInfoRecord, *asmInfoPo;
 
 static void genAsm(hashPo vars);
@@ -155,10 +154,9 @@ static void genOps(asmInfoPo info, char *fmt) {
         int32 lastLtno = info->ltNo++;
         int32 NxtLt = info->ltNo;
         int32 vNo = info->vNo++;
-        int32 pcNo = info->pcNo++;
         outMsg(O_IO(info->aux), ", B%d", vNo);
-        outMsg(O_IO(info->line), "  assemBlock(V%d,none,Lbls,Lt%d,Lt%d,Pc%d,Pc%d,LsMap,B%d),\n",
-          vNo,lastLtno,NxtLt,pcNo,info->pcNo,vNo);
+        outMsg(O_IO(info->line), "  assemBlock(V%d,none,Lbls,Lt%d,Lt%d,LsMap,B%d),\n",
+          vNo,lastLtno,NxtLt,vNo);
         continue;
       }
       case SlVl: {
@@ -172,7 +170,7 @@ static void genOps(asmInfoPo info, char *fmt) {
         int32 vNo = info->vNo++;
         int32 lastLtno = info->ltNo++;
         outMsg(O_IO(info->line), "  findLit(Lt%d,V%d,L%d,Lt%d),\n", lastLtno, vNo, vNo,
-               info->ltNo);
+        info->ltNo);
         outMsg(O_IO(info->aux), ",intgr(L%d)", vNo);
         continue;
       }
@@ -190,7 +188,6 @@ void genMnem(asmInfoPo info, char *mnem, int op, char *fmt) {
   clearStrBuffer(info->line);
   clearStrBuffer(info->aux);
   info->ltNo = 0;
-  info->pcNo = 1;
 
   if (uniStrLen(fmt) > 0) {
     int32 vCnt = 0;
@@ -209,10 +206,9 @@ void genMnem(asmInfoPo info, char *mnem, int op, char *fmt) {
   integer lineLen;
   char *line = getTextFromBuffer(info->line, &lineLen);
 
-  outMsg(info->out, "|Ins],Lbls,Lt0,Ltx,Pc,Pcx,LsMap,[intgr(%d)%S|Cd],Cdx) :-\n", op, aux, auxLen);
-  outMsg(info->out, "  Pc1 is Pc+1,\n");
+  outMsg(info->out, "|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(%d)%S|Cd],Cdx) :-\n", op, aux, auxLen);
   outMsg(info->out, "%S", line, lineLen);
-  outMsg(info->out, "  mnem(Ins,Lbls,Lt%d,Ltx,Pc%d,Pcx,LsMap,Cd,Cdx).\n", info->ltNo,info->pcNo);
+  outMsg(info->out, "  mnem(Ins,Lbls,Lt%d,Ltx,LsMap,Cd,Cdx).\n", info->ltNo);
 }
 
 static void genAsm(hashPo vars) {
@@ -317,7 +313,7 @@ static void genShow(hashPo vars) {
   strBufferPo lineBuff = newStringBuffer();
   strBufferPo auxBuff = newStringBuffer();
 
-  AsmInfoRecord info = {.out = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0, .pcNo = 0};
+  AsmInfoRecord info = {.out = O_IO(showBuff), .line = lineBuff, .aux = auxBuff, .vNo = 0};
 
 #undef instr
 #define instr(M, Fmt) showIns(&info,#M, s##M, Fmt);

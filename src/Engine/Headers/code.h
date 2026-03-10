@@ -4,13 +4,12 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
-#include "normal.h"
-#include "opcodes.h"
+#include "labels.h"
+#include "ssaOps.h"
 
-//typedef uint16 insWord;
-typedef struct instruction_ *insPo;
-
+typedef struct instruction_ *ssaInsPo;
 typedef struct method_ *methodPo;
+
 
 void initCode();
 
@@ -23,8 +22,8 @@ labelPo mtdLabel(methodPo mtd);
 logical mtdHasName(methodPo mtd,char *name);
 
 int32 codeSize(methodPo mtd);
-logical validPC(methodPo mtd, insPo pc);
-int32 codeOffset(methodPo mtd, insPo pc);
+logical validPC(methodPo mtd, ssaInsPo pc);
+int32 codeOffset(methodPo mtd, ssaInsPo pc);
 
 int32 lclCount(methodPo mtd);
 
