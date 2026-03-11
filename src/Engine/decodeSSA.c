@@ -181,7 +181,6 @@ retCode decodeOperands(ioPo in, arrayPo ar, int32 basePc, int32* pc, int32* coun
           if (ret == Ok){
             appendEntry(ar, &vNo);
             (*pc)++;
-            (*count)--;
           }
           else{
             strMsg(brk->errorMsg, brk->msgSize, "invalid variable number");
@@ -260,6 +259,7 @@ retCode decodeBlock(ioPo in, arrayPo ar, int32 basePc, int32* pc, breakLevelPo b
   if (ret == Ok){
     while (ret == Ok && count > 0){
       ret = decodeIns(in, ar, pc, &count, stackHeight, &blkBrk);
+      assert(*pc==arrayCount(ar));
     }
   }
   assert(arrayCount(ar) == *pc);
