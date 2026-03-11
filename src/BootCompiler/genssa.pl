@@ -245,12 +245,9 @@ compIdExp(idnt(Nm,_),Lc,_Brks,_Next,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-
 compVar(l(X),_,Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :- !,
   call(Next,Lc,X,Brks,Opts,L,Lx,D,Dx,C,Cx).
 compVar(g(GlbNm),Tp,Lc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
-  (is_member(("$abort",AbrtLvl),Brks) ->
    defineTmpVar(Lc,V,Tp,Opts,D,D1),
-   genDbg(Opts,Lc,C,[iLG(GlbNm),iRSP(AbrtLvl,V)|C1]),
-   call(Next,Lc,V,Brks,Opts,L,Lx,D1,Dx,C1,Cx);
-   reportError("not in scope of abort",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+   genDbg(Opts,Lc,C,[iLG(GlbNm),iRSP(V)|C1]),
+   call(Next,Lc,V,Brks,Opts,L,Lx,D1,Dx,C1,Cx).
 
 /* Compile actions */
 compAction(nop(_),_Lc,_Brks,_Next,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-!.
@@ -489,11 +486,8 @@ compExp(ecll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
 compExp(ecll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
-  (is_member(("$abort",AbrtLvl),Brks) ->
-   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,[iEscape(Nm,As),iRSP(AbrtLvl,Rslt)|C1],As),
-   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx);
-   reportError("not in scope of abort",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+  compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,[iEscape(Nm,As),iRSP(Rslt)|C1],As),
+  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx).
 compExp(xecll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-
   isIntrinsic(Nm,_,Op,Thrw),!,
   chLine(Opts,OLc,Lc,C,C0),
@@ -504,7 +498,7 @@ compExp(xecll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   (is_member(("$try",TryLvl),Brks) ->
-   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iEscape(Nm,As),iRSP(TryLvl,Rslt)|C1],As),
+   compExps(A,Lc,Brks,Opts,L,L1,D,D1,C0,[iEscape(Nm,As),iRSX(TryLvl,Rslt)|C1],As),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C1,Cx);
    reportError("not in scope of try",[],Lc),
    D0=Dx,C=Cx,L=Lx).
@@ -512,17 +506,14 @@ compExp(cll(Lc,Nm,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-  (is_member(("$abort",AbrtLvl),Brks) ->
-   genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSP(AbrtLvl,Rslt)|C2]),
-   call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
-   reportError("not in scope of abort",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+  genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSP(Rslt)|C2]),
+  call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx).
 compExp(xcll(Lc,Nm,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
    defineTmpVar(Lc,Rslt,Tp,Opts,D,D0),
    compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
-   genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSP(TryLvl,Rslt)|C2]),
+   genDbg(Opts,Lc,C1,[iCall(Nm,As),iRSX(TryLvl,Rslt)|C2]),
    call(Next,Lc,Rslt,Brks,Opts,L1,Lx,D1,Dx,C2,Cx);
    reportError("not in scope of try",[],Lc),
    D=Dx,C=Cx,L=Lx).
@@ -533,11 +524,8 @@ compExp(ocall(Lc,O,A,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,OP,OTp,Opts,D0,D1),
   compExps(A,Lc,Brks,Opts,L,L1,D0,D1,C0,C1,As),
   compExp(O,Lc,Brks,genssa:next(OP),Opts,L1,L2,D1,D2,C1,C2),
-  (is_member(("$abort",AbrtLvl),Brks) ->
-   genDbg(Opts,Lc,C2,[iOCall(OP,As),iRSP(AbrtLvl,Rslt)|C3]),
-   call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx);
-   reportError("not in scope of try",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+  genDbg(Opts,Lc,C2,[iOCall(OP,As),iRSP(Rslt)|C3]),
+  call(Next,Lc,Rslt,Brks,Opts,L2,Lx,D2,Dx,C3,Cx).
 compExp(xocall(Lc,O,A,Tp,_ErTp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
@@ -679,11 +667,8 @@ compExp(susp(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,RsltVr,Tp,Opts,D1,D2),
   compExp(M,Lc,Brks,genssa:next(MVr),Opts,L,L1,D2,D3,C0,C1),
   compExp(T,Lc,Brks,genssa:next(TVr),Opts,L1,L2,D3,D4,C1,C2),
-  (is_member(("$abort",AbrtLvl),Brks) ->
-   genDbg(Opts,Lc,C2,[iSuspend(TVr,MVr),iRSP(AbrtLvl,RsltVr)|C3]),
-   call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx);
-   reportError("not in scope of abort",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+  genDbg(Opts,Lc,C2,[iSuspend(TVr,MVr),iRSP(RsltVr)|C3]),
+  call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx).
 compExp(resme(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
   tipeOf(T,TTp),
@@ -693,11 +678,8 @@ compExp(resme(Lc,T,M,Tp),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   defineTmpVar(Lc,RsltVr,Tp,Opts,D1,D2),
   compExp(M,Lc,Brks,genssa:next(MVr),Opts,L,L1,D2,D3,C0,C1),
   compExp(T,Lc,Brks,genssa:next(TVr),Opts,L1,L2,D3,D4,C1,C2),
-  (is_member(("$abort",AbrtLvl),Brks) ->
-   genDbg(Opts,Lc,C2,[iResume(TVr,MVr),iRSP(AbrtLvl,RsltVr)|C3]),
-   call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx);
-   reportError("not in scope of abort",[],Lc),
-   D=Dx,C=Cx,L=Lx).
+  genDbg(Opts,Lc,C2,[iResume(TVr,MVr),iRSP(RsltVr)|C3]),
+  call(Next,RsltVr,Brks,Opts,L2,Lx,D4,Dx,C3,Cx).
 compExp(rtire(Lc,T,M,_Tp),OLc,Brks,_Next,Opts,L,Lx,D,Dx,C,Cx) :-
   chLine(Opts,OLc,Lc,C,C0),
   tipeOf(T,TTp),

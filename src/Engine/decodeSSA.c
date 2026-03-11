@@ -15,75 +15,79 @@
 #include "verifyP.h"
 
 // Used to support decoding
-typedef struct break_level_ *breakLevelPo;
+typedef struct break_level_* breakLevelPo;
 
 typedef struct break_level_ {
   int32 pc;
   normalPo pool;
   breakLevelPo parent;
-  char *errorMsg;
+  char* errorMsg;
   integer msgSize;
 } BreakLevel;
 
-static retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk, int32 *stackHeight);
+static retCode decodeBlock(ioPo in, arrayPo ar, int32 basePc, int32* pc, breakLevelPo brk, int32* stackHeight);
 static int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl);
 
-static retCode decodeInstructions(ioPo in, int32 *codeCount, ssaInsPo *code, char *errorMsg, long msgSize,
-                                  termPo constantPool, int32 *stackHeight) {
+static retCode decodeInstructions(ioPo in, int32* codeCount, ssaInsPo* code, char* errorMsg, long msgSize,
+                                  termPo constantPool, int32* stackHeight) {
   arrayPo ar = allocArray(sizeof(int32), 256, True);
   BreakLevel brk = {.pc = 0, .parent = Null, .pool = C_NORMAL(constantPool), .errorMsg = errorMsg, .msgSize = msgSize};
   int32 pc = 0;
 
-  tryRet(decodeBlock(in, ar, &pc, codeCount, &brk, stackHeight));
-  *code = (ssaInsPo) malloc(sizeof(int32) * (size_t) *codeCount);
+  tryRet(decodeBlock(in, ar, 0, &pc, &brk, stackHeight));
+  *codeCount = pc;
+  *code = (ssaInsPo)malloc(sizeof(int32) * (size_t)*codeCount);
   tryRet(copyOutData(ar, (void *) *code, sizeof(int32) * (size_t) *codeCount));
   eraseArray(ar, Null, Null);
 
   return Ok;
 }
 
-static retCode decodeOp(ioPo in, breakLevelPo brk, ssaOp *op) {
+static retCode decodeOp(ioPo in, breakLevelPo brk, ssaOp* op) {
   integer val;
   retCode ret = decodeInteger(in, &val);
-  if (ret == Ok) {
-    if (val >= 0 && val < maxCode) {
+  if (ret == Ok){
+    if (val >= 0 && val < maxCode){
       *op = val;
       return ret;
     }
   }
-  strMsg(brk->errorMsg, brk->msgSize, "invalid opcode: %d", (int32) val);
+  strMsg(brk->errorMsg, brk->msgSize, "invalid opcode: %d", (int32)val);
   return Error;
 }
 
-static retCode decodeConstant(ioPo in, int32 *tgt, breakLevelPo brk) {
+static retCode decodeConstant(ioPo in, int32* tgt, breakLevelPo brk) {
   int32 litNo;
   retCode ret = decodeI32(in, &litNo);
-  if (ret == Ok) {
-    if (litNo >= 0 && litNo < termArity(brk->pool)) {
+  if (ret == Ok){
+    if (litNo >= 0 && litNo < termArity(brk->pool)){
       termPo literal = nthArg(brk->pool, litNo);
       *tgt = defineConstantLiteral(literal);
       return Ok;
-    } else {
+    }
+    else{
       strMsg(brk->errorMsg, brk->msgSize, "invalid literal number: %d not in range [0..%d)", litNo,
              termArity(brk->pool));
       return Error;
     }
-  } else
+  }
+  else
     return ret;
 }
 
-static retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk,
-                              char *mt);
+static retCode decodeOperands(ioPo in, arrayPo ar, int32 basePc, int32* pc, int32* count, int32* stackHeight,
+                              breakLevelPo brk, char* mt);
 
-static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk) {
+static retCode decodeIns(ioPo in, arrayPo ar, int32* pc, int32* count, int32* stackHeight, breakLevelPo brk) {
   retCode ret = Ok;
 
   ssaOp op;
-  if ((ret = decodeOp(in, brk, &op)) == Ok) {
+  int32 basePc = *pc;
+  if ((ret = decodeOp(in, brk, &op)) == Ok){
     (*pc)++;
     appendEntry(ar, &op);
     (*count)--; // Increment decode counter
-    switch (op) {
+    switch (op){
 #undef instr
 #define sym "s"
 #define lcl "v"
@@ -98,15 +102,15 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *st
 #define none ""
 #define instr(M, Fmt) \
   case s##M:\
-      ret = decodeOperands(in, ar, pc, count, stackHeight, brk, Fmt); \
+      ret = decodeOperands(in, ar, basePc, pc, count, stackHeight, brk, Fmt); \
       break;
 
 #include "ssaInstructions.h"
 
-      default: {
-        strMsg(brk->errorMsg, brk->msgSize, "invalid instruction");
-        return Error;
-      }
+    default: {
+      strMsg(brk->errorMsg, brk->msgSize, "invalid instruction");
+      return Error;
+    }
     }
   }
   return ret;
@@ -134,151 +138,156 @@ static retCode decodeIns(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *st
 #define bLk 'k'
 #define lVl 'b'
 
-retCode decodeOperands(ioPo in, arrayPo ar, int32 *pc, int32 *count, int32 *stackHeight, breakLevelPo brk, char *fmt) {
-  int32 basePc = (*pc) - 1;
-  while (*fmt != '\0') {
-    switch (*fmt++) {
-      case sym:
-      case lit: {
-        int32 litNo;
-        retCode ret = decodeConstant(in, &litNo, brk);
-        if (ret == Ok) {
-          appendEntry(ar, &litNo);
-          (*pc)++;
-          (*count)--;
-          continue;
-        }
-        return ret;
-      }
-      case lcl:
-      case art:
-      case i32: {
-        int32 vNo;
-        retCode ret = decodeI32(in, &vNo);
-        if (ret == Ok) {
-          appendEntry(ar, &vNo);
-          (*pc)++;
-          (*count)--;
-          continue;
-        }
-        return ret;
-      }
-      case lcls: {
-        int32 vrCount;
-        retCode ret = decodeTplCount(in, &vrCount, brk->errorMsg, brk->msgSize);
-        if (ret == Ok) {
-          appendEntry(ar, &vrCount);
-          (*pc)++;
-          (*count)--;
-
-          for (int32 ix = 0; ix < vrCount; ix++) {
-            int32 vNo;
-            ret = decodeI32(in, &vNo);
-            if (ret == Ok) {
-              appendEntry(ar, &vNo);
-              (*pc)++;
-              (*count)--;
-            } else {
-              strMsg(brk->errorMsg, brk->msgSize, "invalid variable number");
-              return ret;
-            }
-          }
-          continue;
-        }
-        if (*stackHeight < vrCount)
-          *stackHeight = vrCount;
-        return ret;
-      }
-      case glb: {
-        char glbNm[MAX_SYMB_LEN];
-        retCode ret = decodeString(in, glbNm,NumberOf(glbNm));
-        if (ret == Ok) {
-          int32 glbNo = (int32) globalVarNo(glbNm);
-          appendEntry(ar, &glbNo);
-          (*pc)++;
-          (*count)--;
-          continue;
-        }
-        return ret;
-      }
-      case Es: {
-        char escNm[MAX_SYMB_LEN];
-        retCode ret = decodeString(in, escNm,NumberOf(escNm));
-        if (ret == Ok) {
-          int32 escNo = (int32) lookupEscape(escNm);
-          appendEntry(ar, &escNo);
-          (*pc)++;
-          (*count)--;
-          continue;
-        }
-        return ret;
-      }
-      case bLk: {
-        int32 *fwd = newEntry(ar); // Set up for the skip forward
+retCode decodeOperands(ioPo in, arrayPo ar, int32 basePc, int32* pc, int32* count, int32* stackHeight, breakLevelPo brk,
+                       char* fmt) {
+  while (*fmt != '\0'){
+    switch (*fmt++){
+    case sym:
+    case lit: {
+      int32 litNo;
+      retCode ret = decodeConstant(in, &litNo, brk);
+      if (ret == Ok){
+        appendEntry(ar, &litNo);
         (*pc)++;
         (*count)--;
-        retCode ret = decodeBlock(in, ar, pc, fwd, brk, stackHeight);
-        if (ret == Ok)
-          continue;
-        return ret;
+        continue;
       }
-      case lVl: {
-        int32 lvl;
-        retCode ret = decodeI32(in, &lvl);
-        if (ret == Ok) {
-          int32 lvlPc = findBreak(brk, basePc, lvl);
-          appendEntry(ar, &lvlPc);
-          (*pc)++;
-          (*count)--;
-          continue;
+      return ret;
+    }
+    case lcl:
+    case art:
+    case i32: {
+      int32 vNo;
+      retCode ret = decodeI32(in, &vNo);
+      if (ret == Ok){
+        appendEntry(ar, &vNo);
+        (*pc)++;
+        (*count)--;
+        continue;
+      }
+      return ret;
+    }
+    case lcls: {
+      int32 vrCount;
+      retCode ret = decodeTplCount(in, &vrCount, brk->errorMsg, brk->msgSize);
+      if (ret == Ok){
+        appendEntry(ar, &vrCount);
+        (*pc)++;
+        (*count)--;
+
+        for (int32 ix = 0; ix < vrCount; ix++){
+          int32 vNo;
+          ret = decodeI32(in, &vNo);
+          if (ret == Ok){
+            appendEntry(ar, &vNo);
+            (*pc)++;
+            (*count)--;
+          }
+          else{
+            strMsg(brk->errorMsg, brk->msgSize, "invalid variable number");
+            return ret;
+          }
         }
-        return ret;
+        continue;
       }
-      default:
-        strMsg(brk->errorMsg, brk->msgSize, "invalid instruction operand");
-        return Error;
+      if (*stackHeight < vrCount)
+        *stackHeight = vrCount;
+      return ret;
+    }
+    case glb: {
+      char glbNm[MAX_SYMB_LEN];
+      retCode ret = decodeString(in, glbNm,NumberOf(glbNm));
+      if (ret == Ok){
+        int32 glbNo = (int32)globalVarNo(glbNm);
+        appendEntry(ar, &glbNo);
+        (*pc)++;
+        (*count)--;
+        continue;
+      }
+      return ret;
+    }
+    case Es: {
+      char escNm[MAX_SYMB_LEN];
+      retCode ret = decodeString(in, escNm,NumberOf(escNm));
+      if (ret == Ok){
+        int32 escNo = (int32)lookupEscape(escNm);
+        appendEntry(ar, &escNo);
+        (*pc)++;
+        (*count)--;
+        continue;
+      }
+      return ret;
+    }
+    case bLk: {
+      int32* fwd = newEntry(ar); // Set up for the skip forward
+      (*pc)++;
+      (*count)--;
+      retCode ret = decodeBlock(in, ar, basePc, pc, brk, stackHeight);
+      if (ret == Ok){
+        *fwd = (*pc) - basePc;
+        continue;
+      }
+      return ret;
+    }
+    case lVl: {
+      int32 lvl;
+      retCode ret = decodeI32(in, &lvl);
+      if (ret == Ok){
+        int32 lvlPc = findBreak(brk, basePc, lvl);
+        appendEntry(ar, &lvlPc);
+        (*pc)++;
+        (*count)--;
+        continue;
+      }
+      return ret;
+    }
+    default:
+      strMsg(brk->errorMsg, brk->msgSize, "invalid instruction operand");
+      return Error;
     }
   }
   return Ok;
 }
 
-retCode decodeBlock(ioPo in, arrayPo ar, int32 *pc, int32 *tgt, breakLevelPo brk, int32 *stackHeight) {
+retCode decodeBlock(ioPo in, arrayPo ar, int32 basePc, int32* pc, breakLevelPo brk, int32* stackHeight) {
   BreakLevel blkBrk = {
-    .pc = (*pc), .parent = brk, .pool = brk->pool, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
+    .pc = basePc, .parent = brk, .pool = brk->pool, .errorMsg = brk->errorMsg, .msgSize = brk->msgSize
   };
   int32 count;
 
   retCode ret = decodeTplCount(in, &count, brk->errorMsg, brk->msgSize);
 
-  if (ret == Ok) {
-    while (ret == Ok && count > 0) {
+  if (ret == Ok){
+    while (ret == Ok && count > 0){
       ret = decodeIns(in, ar, pc, &count, stackHeight, &blkBrk);
     }
-
-    *tgt = *pc - blkBrk.pc;
   }
+  assert(arrayCount(ar) == *pc);
   return ret;
 }
 
 int32 findBreak(breakLevelPo brk, int32 pc, int32 lvl) {
   for (int l = 1; l < lvl && brk != Null; l++)
     brk = brk->parent;
-  if (brk != Null) {
-    return brk->pc - pc - 1;
-  } else
+  if (brk != Null){
+    return brk->pc - pc;
+  }
+  else
     return 0;
 }
 
-retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorMsg, long msgSize) {
+retCode decodePolicies(ioPo in, heapPo H, DefinitionMode* redefine, char* errorMsg, long msgSize) {
   int32 policyCount;
   retCode ret = decodeTplCount(in, &policyCount, errorMsg, msgSize);
-  for (integer ix = 0; ret == Ok && ix < policyCount; ix++) {
+  for (integer ix = 0; ret == Ok && ix < policyCount; ix++){
     char nameBuff[MAX_SYMB_LEN];
-    if (decodeString(in, nameBuff, NumberOf(nameBuff)) == Ok) {
-      if (uniIsLit(nameBuff, "soft")) {
+    if (decodeString(in, nameBuff, NumberOf(nameBuff)) == Ok){
+      if (uniIsLit(nameBuff, "soft")){
         *redefine = softDef;
-      } else; // ignore unknown policies
-    } else {
+      }
+      else; // ignore unknown policies
+    }
+    else{
       strMsg(errorMsg, msgSize, "problem in loading policy");
       return Error;
     }
@@ -286,7 +295,7 @@ retCode decodePolicies(ioPo in, heapPo H, DefinitionMode *redefine, char *errorM
   return ret;
 }
 
-retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
+retCode loadCode(ioPo in, heapPo H, packagePo owner, char* errorMsg, long msgSize) {
   char prgName[MAX_SYMB_LEN];
   int32 arity;
   int32 lclCount = 0;
@@ -309,7 +318,7 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   if (ret == Ok)
     ret = decodeI32(in, &lclCount);
 
-  if (ret == Ok) {
+  if (ret == Ok){
     termPo pool = voidEnum;
     int root = gcAddRoot(H, &pool);
     EncodeSupport support = {errorMsg, msgSize, H};
@@ -317,30 +326,31 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
     ret = decode(in, &support, H, &pool, tmpBuffer);
 
-    if (ret == Ok) {
+    if (ret == Ok){
       int32 insCount = 0;
       ssaInsPo instructions = Null;
       int32 stackHeight = 0;
       ret = decodeInstructions(in, &insCount, &instructions, errorMsg, msgSize, pool, &stackHeight);
 
-      if (ret == Ok) {
+      if (ret == Ok){
         termPo locals = voidEnum;
         gcAddRoot(H, &locals);
         ret = decode(in, &support, H, &locals, tmpBuffer);
 
-        if (ret == Ok) {
+        if (ret == Ok){
           labelPo lbl = declareLbl(prgName, arity, -1);
 
-          if (labelMtd(lbl) != Null) {
-            if (redefine != softDef) {
+          if (labelMtd(lbl) != Null){
+            if (redefine != softDef){
               strMsg(errorMsg, msgSize, "attempt to redeclare method %A", lbl);
               ret = Error;
             } // Otherwise don't redefine
-          } else {
-            gcAddRoot(H, (ptrPo) &lbl);
+          }
+          else{
+            gcAddRoot(H, (ptrPo)&lbl);
 
             methodPo mtd = defineMtd(H, insCount, instructions, lclCount,
-                                     stackHeight + lclCount + (int32) FrameCellCount, lbl);
+                                     stackHeight + lclCount + (int32)FrameCellCount, lbl);
             if (enableVerify)
               ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 

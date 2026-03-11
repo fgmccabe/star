@@ -36,7 +36,8 @@ vrRead(Vr,iTCall(_,As)) :-
     is_member(Vr,As).
 vrRead(Vr,iEscape(_,As)) :-
     is_member(Vr,As).
-vrRead(Vr,iRSP(_,Vr)).
+vrRead(Vr,iRSP(Vr)).
+vrRead(Vr,iRSX(_,Vr)).
 vrRead(Vr,iOCall(_,_,Vr,_)).
 vrRead(Vr,iOCall(_,_,_,As)) :-
     is_member(Vr,As),!.
@@ -156,7 +157,8 @@ vrRead(Vr,iDrop(Vr)).
 
 vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
-vrWrite(Vr,iRSP(_,Vr)).
+vrWrite(Vr,iRSP(Vr)).
+vrWrite(Vr,iRSX(_,Vr)).
 vrWrite(Vr,iValof(Vr,_)).
 vrWrite(Vr,iFiber(Vr,_)).
 
@@ -303,8 +305,8 @@ peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iResult(Lb,Vr)|_],Lbls,[iResult(LLb,Vr)]) :-
   resolveLblRef(Lb,Lbls,LLb).
-peep([iCall(Lb,Args),iRSP(_,Rslt),iRet(Rslt)|_],_Lbls,[iTCall(Lb,Args)]).
-peep([iOCall(Vr,Args),iRSP(_,Rslt),iRet(Rslt)|_],_Lbls,[iTOCall(Vr,Args)]).
+peep([iCall(Lb,Args),iRSP(Rslt),iRet(Rslt)|_],_Lbls,[iTCall(Lb,Args)]).
+peep([iOCall(Vr,Args),iRSP(Rslt),iRet(Rslt)|_],_Lbls,[iTOCall(Vr,Args)]).
 peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
 peep([iRet(L)|_],_Lbls,[iRet(L)]) :-!.
 peep([iXRet(L)|_],_Lbls,[iXRet(L)]) :-!.
@@ -329,7 +331,7 @@ lblReferenced(Lb,[iIDiv(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iIMod(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iFDiv(Lb,_,_,_)|_]).
 lblReferenced(Lb,[iFMod(Lb,_,_,_)|_]).
-lblReferenced(Lb,[iRSP(Lb,_)|_]).
+lblReferenced(Lb,[iRSX(Lb,_)|_]).
 lblReferenced(Lb,[iLbl(_,I)|_]) :-
   lblReferenced(Lb,[I]).
 lblReferenced(Lb,[iBlock(I)|_]) :-

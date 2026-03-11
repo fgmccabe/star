@@ -15,10 +15,10 @@
 #include <stringBuffer.h>
 #include <assert.h>
 
-static retCode outString(ioPo f, char *str, integer len, long width, integer precision,
+static retCode outString(ioPo f, char* str, integer len, long width, integer precision,
                          codePoint pad, logical leftPad);
 
-static retCode outUniString(ioPo f, char *str, integer len, integer width, integer precision,
+static retCode outUniString(ioPo f, char* str, integer len, integer width, integer precision,
                             codePoint pad, logical leftPad, logical alt);
 
 retCode outInt(ioPo f, integer i) {
@@ -30,40 +30,41 @@ retCode outInt(ioPo f, integer i) {
 
 static inline char hxDgit(int8 h) {
   if (h < 10)
-    return (char) ((unsigned) h | (unsigned) '0');
+    return (char)((unsigned)h | (unsigned)'0');
   else
-    return (char) (h + 'a' - 10);
+    return (char)(h + 'a' - 10);
 }
 
-static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base);
+static integer natural2StrByBase(char* str, uinteger i, integer pos, uint16 base);
 
-integer int2StrByBase(char *str, integer i, integer pos, uint16 base) {
-  if (i < 0) {
+integer int2StrByBase(char* str, integer i, integer pos, uint16 base) {
+  if (i < 0){
     str[pos++] = '-';
 
     return natural2StrByBase(str, -i, pos, base);
-  } else
+  }
+  else
     return natural2StrByBase(str, i, pos, base);
 }
 
-static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base) {
+static integer natural2StrByBase(char* str, uinteger i, integer pos, uint16 base) {
   if (i < base)
-    str[pos++] = hxDgit((int8) i);
-  else {
+    str[pos++] = hxDgit((int8)i);
+  else{
     pos = natural2StrByBase(str, i / base, pos, base);
-    str[pos++] = hxDgit((int8) (i % base));
+    str[pos++] = hxDgit((int8)(i % base));
   }
   return pos;
 }
 
 retCode outInteger(ioPo f, integer i, uint16 base, integer width, integer precision,
-                   codePoint pad, logical left, char *prefix, logical sign) {
+                   codePoint pad, logical left, char* prefix, logical sign) {
   char iBuff[128];
   retCode ret;
 
   if (i >= 0 && sign)
     prefix = "+";
-  else if (i < 0) {
+  else if (i < 0){
     prefix = "-";
     i = -i;
   }
@@ -73,19 +74,20 @@ retCode outInteger(ioPo f, integer i, uint16 base, integer width, integer precis
   ret = outUStr(f, prefix);
 
   if (ret == Ok)
-    ret = outString(f, iBuff, (int) len, width - (int) strlen(prefix), (integer) precision, pad, left);
+    ret = outString(f, iBuff, (int)len, width - (int)strlen(prefix), (integer)precision, pad, left);
 
   return ret;
 }
 
 static retCode outOctal(ioPo f, integer i, integer width, integer precision, codePoint pad,
-                        logical left, char *prefix, logical sign, logical alt) {
+                        logical left, char* prefix, logical sign, logical alt) {
   char iBuff[64];
 
-  if (i < 0) {
+  if (i < 0){
     i = -i;
     prefix = "-";
-  } else if (i >= 0 && sign)
+  }
+  else if (i >= 0 && sign)
     prefix = "+";
 
   integer len = natural2StrByBase(iBuff, i, 0, 8);
@@ -96,13 +98,13 @@ static retCode outOctal(ioPo f, integer i, integer width, integer precision, cod
   retCode ret = outUStr(f, prefix);
 
   if (ret == Ok)
-    ret = outString(f, iBuff, (int) len, width - (int) len, (integer) precision, pad, left);
+    ret = outString(f, iBuff, (int)len, width - (int)len, (integer)precision, pad, left);
 
   return ret;
 }
 
 static retCode outHex(ioPo f, long i, integer width, integer precision, codePoint pad,
-                      logical left, char *prefix, logical sign, logical alt) {
+                      logical left, char* prefix, logical sign, logical alt) {
   char iBuff[64];
 
   integer len = natural2StrByBase(iBuff, i, 0, 16);
@@ -116,7 +118,7 @@ static retCode outHex(ioPo f, long i, integer width, integer precision, codePoin
   retCode ret = outUStr(f, prefix);
 
   if (ret == Ok)
-    ret = outString(f, iBuff, (integer) len, width - (int) len, (integer) precision, pad, left);
+    ret = outString(f, iBuff, (integer)len, width - (int)len, (integer)precision, pad, left);
 
   return ret;
 }
@@ -127,11 +129,11 @@ static const double bit_values[] = {
   1.0E1, 1.0E2, 1.0E4, 1.0E8, 1.0E16, 1.0E32, 1.0E64, 1.0E128, 1.0E256
 };
 
-static int number2Str(double x, int precision, char *dec, long *exp) {
+static int number2Str(double x, int precision, char* dec, long* exp) {
   int exp2;
   long exp10;
   int len = 0;
-  char *digits = dec;
+  char* digits = dec;
 
   /*
    *	We first deal with the special cases of zeroes, infinities and NaNs
@@ -140,25 +142,26 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
   *exp = 0;
 
   if (x == 0.0L)
-    return (int) strlen(strcpy(digits, "0"));
+    return (int)strlen(strcpy(digits, "0"));
   else if (x > DBL_MAX)
-    return (int) strlen(strcpy(digits, "Infinity"));
-  else {
+    return (int)strlen(strcpy(digits, "Infinity"));
+  else{
     frexp(x, &exp2); /* Get the scale of the number */
 
-    exp10 = (long) (exp2 * log10(FLT_RADIX)); /* Convert exponent to base10 exponent  */
+    exp10 = (long)(exp2 * log10(FLT_RADIX)); /* Convert exponent to base10 exponent  */
 
     {
       /* Fast way of scaling number */
-      const double *p = bit_values;
+      const double* p = bit_values;
       long n = exp10;
 
-      if (n < 0) {
+      if (n < 0){
         /* We have a number smaller than 10 */
         for (n = -n; n; p++, n >>= 1)
           if (n & 1)
             x *= *p;
-      } else if (n > 0) {
+      }
+      else if (n > 0){
         double f = 1.0;
 
         for (; n; p++, n >>= 1)
@@ -168,23 +171,23 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
       }
     }
 
-    while (x >= 1.0L) {
+    while (x >= 1.0L){
       x *= 0.1;
       ++exp10;
     }
 
-    while (x < 0.1L) {
+    while (x < 0.1L){
       x *= 10.0;
       --exp10;
     }
 
-    while (precision-- >= 0) {
+    while (precision-- >= 0){
       /* Go to one more than required precision */
       double front;
 
-      x = modf((double) (x * 10.0L), &front); /* extract left-most digit */
+      x = modf((double)(x * 10.0L), &front); /* extract left-most digit */
 
-      *digits++ = hxDgit((int8) front);
+      *digits++ = hxDgit((int8)front);
       len++;
     }
 
@@ -195,10 +198,10 @@ static int number2Str(double x, int precision, char *dec, long *exp) {
   }
 }
 
-static int countSignificants(const char *frmt, integer limit, const char *test) {
+static int countSignificants(const char* frmt, integer limit, const char* test) {
   int cx = 0;
   integer tLen = uniStrLen(test);
-  for (integer ix = 0; ix < limit;) {
+  for (integer ix = 0; ix < limit;){
     codePoint ch = nextCodePoint(frmt, &ix, limit);
     if (uniIndexOf(test, tLen, 0, ch) >= 0)
       cx++;
@@ -206,10 +209,10 @@ static int countSignificants(const char *frmt, integer limit, const char *test) 
   return cx;
 }
 
-retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
+retCode formattedFloat(double dx, char* out, integer* endPos, integer outLen, const char* frmt, integer formatLen) {
   sign sign = positive;
 
-  if (dx < 0) {
+  if (dx < 0){
     sign = negative;
     dx = -dx;
   }
@@ -217,13 +220,13 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
   int64 dotPos = uniIndexOf(frmt, formatLen, 0, '.');
   if (dotPos < 0)
     return Error;
-  else {
+  else{
     int64 ePos = uniIndexOf(frmt, formatLen, 0, 'e');
     if (ePos < 0)
       ePos = uniIndexOf(frmt, formatLen, 0, 'E');
 
-    int beforePeriod = countSignificants(frmt, (integer) dotPos, (char *) "09 ");
-    int afterPeriod = countSignificants(frmt, ePos >= 0 ? (integer) ePos : formatLen, "09 ");
+    int beforePeriod = countSignificants(frmt, (integer)dotPos, (char*)"09 ");
+    int afterPeriod = countSignificants(frmt, ePos >= 0 ? (integer)ePos : formatLen, "09 ");
     int precision = beforePeriod + afterPeriod;
     char digits[MAXFILELEN];
     long exp10;
@@ -232,7 +235,7 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
 
     exp10 -= beforePeriod;
 
-    if (ePos < 0) {
+    if (ePos < 0){
       // no space for an exponent
       if (exp10 > beforePeriod || exp10 + afterPeriod < -len)
         return Error;
@@ -240,32 +243,35 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
         return formatDigits(sign, digits, len, precision + exp10, frmt, formatLen, out, outLen, endPos);
       else
         return formatDigits(sign, digits, len, precision, frmt, formatLen, out, outLen, endPos);
-    } else {
+    }
+    else{
       char mnBf[128], expBf[128];
       integer mnLn, expLn;
 
-      if (formatDigits(sign, digits, len, precision, frmt, (integer) ePos, mnBf, NumberOf(mnBf), &mnLn) == Ok) {
+      if (formatDigits(sign, digits, len, precision, frmt, (integer)ePos, mnBf, NumberOf(mnBf), &mnLn) == Ok){
         expLn = int2StrByBase(expBf, exp10, 0, 10);
 
         *endPos = 0;
         uniAppend(out, endPos, outLen, mnBf);
-        appendCodePoint(out, endPos, outLen, (codePoint) frmt[ePos]);
+        appendCodePoint(out, endPos, outLen, (codePoint)frmt[ePos]);
         return uniNAppend(out, endPos, outLen, expBf, expLn);
-      } else
+      }
+      else
         return Error;
     }
   }
 }
 
-retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
-  if (uniSame(frmt, formatLen, "c", uniStrLen("c"))) {
-    codePoint cp = (codePoint) ix;
+retCode formattedLong(integer ix, char* out, integer* endPos, integer outLen, const char* frmt, integer formatLen) {
+  if (uniSame(frmt, formatLen, "c", uniStrLen("c"))){
+    codePoint cp = (codePoint)ix;
     return appendCodePoint(out, endPos, outLen, cp);
-  } else {
+  }
+  else{
     char digits[256];
-    uint16 base = (uint16) (uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
+    uint16 base = (uint16)(uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
     sign sign = positive;
-    if (ix < 0) {
+    if (ix < 0){
       sign = negative;
       ix = -ix;
     }
@@ -275,20 +281,21 @@ retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, co
   }
 }
 
-retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign) {
+retCode formatDouble(char* out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign) {
   char dec[DBL_DIG * 2]; /* buffer for the decimal mantissae */
-  char *d = dec;
+  char* d = dec;
   char buff[1024]; /* buffer to represent the number string */
-  char *p = buff;
-  char *eP = &buff[NumberOf(buff) - 1]; /* end marker */
+  char* p = buff;
+  char* eP = &buff[NumberOf(buff) - 1]; /* end marker */
 
   long exp, len, sig;
-  char *prefix = "";
+  char* prefix = "";
 
-  if (x < 0) {
+  if (x < 0){
     prefix = "-";
     x = -x;
-  } else if (sign)
+  }
+  else if (sign)
     prefix = "+"; /* Is the number signed? */
 
   len = sig = number2Str(x, DBL_DIG + 1, dec, &exp);
@@ -296,112 +303,122 @@ retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displ
   while (sig > 0 && dec[sig - 1] == '0')
     sig--; /* chop off trailing zeroes */
 
-  if (uniIsLit(dec, "Infinity")) {
+  if (uniIsLit(dec, "Infinity")){
     uniCpy(out, outLen, dec);
     return Ok;
-  } else {
-    if (displayMode == general) {
+  }
+  else{
+    if (displayMode == general){
       if (exp < -3 || (precision == 0 ? exp > DBL_DIG : exp > sig + 1))
         displayMode = scientific;
       else
         displayMode = fractional;
     }
-    switch (displayMode) {
-      case scientific: {
-        *p++ = *d++; /* use scientific format */
-        len--;
-        sig--;
+    switch (displayMode){
+    case scientific: {
+      *p++ = *d++; /* use scientific format */
+      len--;
+      sig--;
+      *p++ = '.';
+      if (precision > 0){
+        while (precision-- > 0)
+          if (len-- > 0)
+            *p++ = *d++;
+          else
+            *p++ = *d; /* trailing zero */
+      }
+      else if (precision == 0 && len >= 0){
+        if (sig > 0){
+          while (sig-- > 0)
+            *p++ = *d++;
+        }
+        else
+          *p++ = '0';
+      }
+      else /* ensure that we have the .0 trailing */
+        *p++ = '0';
+
+      *p++ = 'E'; /* Show exponent sign */
+      if (--exp < 0){
+        *p++ = '-';
+        exp = -exp;
+      }
+      p += natural2StrByBase(p, exp, 0, 10); /* Show exponent value -- adjusted for leading digit*/
+      *p = '\0';
+      break;
+    }
+    case fractional:
+    default:
+      if (exp <= 0){
+        /* Use fixed point format */
+        int prec = precision;
+
+        *p++ = '0';
         *p++ = '.';
-        if (precision > 0) {
-          while (precision-- > 0)
+
+        if (precision == 0)
+          while (p < eP && exp++ < 0)
+            *p++ = '0';
+        else
+          while (precision > 0 && p < eP && exp < 0){
+            *p++ = '0';
+            precision--;
+            exp++;
+          }
+
+        if (prec != 0){
+          while (p < eP && precision > 0){
             if (len-- > 0)
               *p++ = *d++;
             else
-              *p++ = *d; /* trailing zero */
-        } else if (precision == 0 && len >= 0) {
-          if (sig > 0) {
-            while (sig-- > 0)
-              *p++ = *d++;
-          } else
-            *p++ = '0';
-        } else /* ensure that we have the .0 trailing */
-          *p++ = '0';
-
-        *p++ = 'E'; /* Show exponent sign */
-        if (--exp < 0) {
-          *p++ = '-';
-          exp = -exp;
-        }
-        p += natural2StrByBase(p, exp, 0, 10); /* Show exponent value -- adjusted for leading digit*/
-        *p = '\0';
-        break;
-      }
-      case fractional:
-      default:
-        if (exp <= 0) {
-          /* Use fixed point format */
-          int prec = precision;
-
-          *p++ = '0';
-          *p++ = '.';
-
-          if (precision == 0)
-            while (p < eP && exp++ < 0)
               *p++ = '0';
+            precision--;
+          }
+        }
+        else{
+          /* display all available digits */
+          if (sig > 0){
+            while (p < eP && sig-- > 0)
+              *p++ = *d++;
+          }
           else
-            while (precision > 0 && p < eP && exp < 0) {
-              *p++ = '0';
-              precision--;
-              exp++;
-            }
-
-          if (prec != 0) {
-            while (p < eP && precision > 0) {
-              if (len-- > 0)
-                *p++ = *d++;
-              else
-                *p++ = '0';
-              precision--;
-            }
-          } else {
-            /* display all available digits */
-            if (sig > 0) {
-              while (p < eP && sig-- > 0)
-                *p++ = *d++;
-            } else
-              *p++ = '0'; /* 0.0 */
-          }
-          *p = '\0';
-        } else {
-          while (p < eP && exp-- > 0)
-            if (len-- > 0) {
-              *p++ = *d++;
-              sig--;
-            } else
-              *p++ = *d;
-
-          if (p < eP && precision > 0) {
-            *p++ = '.';
-            while (p < eP && precision > 0) {
-              /* copy out the fractional part */
-              if (len-- > 0)
-                *p++ = *d++;
-              else
-                *p++ = '0';
-              precision--;
-            }
-          } else if (p < eP && precision == 0) {
-            *p++ = '.';
-            if (sig > 0) {
-              while (p < eP && sig-- > 0) /* copy out the fractional part */
-                *p++ = *d++;
-            } else {
-              /* ensure that we have the .0 trailing */
-              *p++ = '0';
-            }
-          }
-          *p = '\0';
+            *p++ = '0'; /* 0.0 */
         }
+        *p = '\0';
+      }
+      else{
+        while (p < eP && exp-- > 0)
+          if (len-- > 0){
+            *p++ = *d++;
+            sig--;
+          }
+          else
+            *p++ = *d;
+
+        if (p < eP && precision > 0){
+          *p++ = '.';
+          while (p < eP && precision > 0){
+            /* copy out the fractional part */
+            if (len-- > 0)
+              *p++ = *d++;
+            else
+              *p++ = '0';
+            precision--;
+          }
+        }
+        else if (p < eP && precision == 0){
+          *p++ = '.';
+          if (sig > 0){
+            while (p < eP && sig-- > 0) /* copy out the fractional part */
+              *p++ = *d++;
+          }
+          else{
+            /* ensure that we have the .0 trailing */
+            *p++ = '0';
+          }
+        }
+        *p = '\0';
+      }
     }
 
     uniCpy(out, outLen, prefix);
@@ -416,21 +433,21 @@ retCode outDouble(ioPo out, double x, char mode, int width, int precision, codeP
 
   FloatDisplayMode displayMode;
 
-  switch (mode) {
-    case 'g':
-      displayMode = general;
-      break;
-    case 'e':
-      displayMode = scientific;
-      break;
-    default:
-      displayMode = general;
+  switch (mode){
+  case 'g':
+    displayMode = general;
+    break;
+  case 'e':
+    displayMode = scientific;
+    break;
+  default:
+    displayMode = general;
   }
 
   retCode ret = formatDouble(buffer, NumberOf(buffer), x, displayMode, precision, sign);
 
   if (ret == Ok)
-    return outString(out, buffer, (int) uniStrLen(buffer), width, (int) uniStrLen(buffer), pad, left);
+    return outString(out, buffer, (int)uniStrLen(buffer), width, (int)uniStrLen(buffer), pad, left);
   return ret;
 }
 
@@ -438,11 +455,11 @@ retCode outFloat(ioPo out, double x) {
   return outDouble(out, x, 'g', 0, 0, ' ', True, False);
 }
 
-retCode outUStr(ioPo f, char *str) {
+retCode outUStr(ioPo f, char* str) {
   return outText(f, str, uniStrLen(str));
 }
 
-retCode outString(ioPo f, char *str, integer len, long width, integer precision,
+retCode outString(ioPo f, char* str, integer len, long width, integer precision,
                   codePoint pad, logical leftPad) {
   long gaps;
   retCode ret = Ok;
@@ -452,12 +469,12 @@ retCode outString(ioPo f, char *str, integer len, long width, integer precision,
   if (precision > 0 && precision < len)
     len = precision; /* we only show part of the string */
 
-  if (width > 0) {
+  if (width > 0){
     /* fixed width */
     if (len > width)
-      len = (integer) width; /* never print more than available width */
+      len = (integer)width; /* never print more than available width */
 
-    if (!leftPad) {
+    if (!leftPad){
       /* right justified */
       gaps = width - len;
 
@@ -465,8 +482,9 @@ retCode outString(ioPo f, char *str, integer len, long width, integer precision,
 
       while (ret == Ok && gaps-- > 0)
         ret = outChar(f, pad);
-    } else {
-      gaps = (long) (width - len);
+    }
+    else{
+      gaps = (long)(width - len);
 
       while (ret == Ok && gaps-- > 0)
         ret = outChar(f, pad);
@@ -474,66 +492,67 @@ retCode outString(ioPo f, char *str, integer len, long width, integer precision,
       if (ret == Ok)
         ret = outText(f, str, len);
     }
-  } else
+  }
+  else
     ret = outText(f, str, len);
 
   unlock(O_LOCKED(f));
   return ret;
 }
 
-static retCode quoteChar(ioPo f, codePoint ch, integer *gaps) {
+static retCode quoteChar(ioPo f, codePoint ch, integer* gaps) {
   retCode ret;
-  switch (ch) {
-    case '\a':
-      ret = outStr(f, "\\a");
-      (*gaps)--; // An additional character
-      break;
-    case '\b':
-      ret = outStr(f, "\\b");
-      (*gaps)--;
-      break;
-    case '\x7f':
-      ret = outStr(f, "\\d");
-      (*gaps)--;
-      break;
-    case '\x1b':
-      ret = outStr(f, "\\e");
-      (*gaps)--;
-      break;
-    case '\f':
-      ret = outStr(f, "\\f");
-      (*gaps)--;
-      break;
-    case '\n':
-      ret = outStr(f, "\\n");
-      (*gaps)--;
-      break;
-    case '\r':
-      ret = outStr(f, "\\r");
-      (*gaps)--;
-      break;
-    case '\t':
-      ret = outStr(f, "\\t");
-      (*gaps)--;
-      break;
-    case '\v':
-      ret = outStr(f, "\\v");
-      break;
-    case '\\':
-      ret = outStr(f, "\\\\");
-      (*gaps)--;
-      break;
-    case '\"':
-      ret = outStr(f, "\\\"");
-      (*gaps)--;
-      break;
-    default:
-      ret = outChar(f, ch);
+  switch (ch){
+  case '\a':
+    ret = outStr(f, "\\a");
+    (*gaps)--; // An additional character
+    break;
+  case '\b':
+    ret = outStr(f, "\\b");
+    (*gaps)--;
+    break;
+  case '\x7f':
+    ret = outStr(f, "\\d");
+    (*gaps)--;
+    break;
+  case '\x1b':
+    ret = outStr(f, "\\e");
+    (*gaps)--;
+    break;
+  case '\f':
+    ret = outStr(f, "\\f");
+    (*gaps)--;
+    break;
+  case '\n':
+    ret = outStr(f, "\\n");
+    (*gaps)--;
+    break;
+  case '\r':
+    ret = outStr(f, "\\r");
+    (*gaps)--;
+    break;
+  case '\t':
+    ret = outStr(f, "\\t");
+    (*gaps)--;
+    break;
+  case '\v':
+    ret = outStr(f, "\\v");
+    break;
+  case '\\':
+    ret = outStr(f, "\\\\");
+    (*gaps)--;
+    break;
+  case '\"':
+    ret = outStr(f, "\\\"");
+    (*gaps)--;
+    break;
+  default:
+    ret = outChar(f, ch);
   }
   return ret;
 }
 
-retCode outUniString(ioPo f, char *str, integer len, integer width, integer precision,
+retCode outUniString(ioPo f, char* str, integer len, integer width, integer precision,
                      codePoint pad, logical leftPad, logical alt) {
   integer gaps;
   retCode ret = Ok;
@@ -541,28 +560,30 @@ retCode outUniString(ioPo f, char *str, integer len, integer width, integer prec
   if (precision > 0 && precision < len)
     len = precision; /* we only show part of the string */
 
-  if (width > 0) {
+  if (width > 0){
     /* fixed width */
     if (len > width)
       len = width; /* never print more than available width */
 
-    if (!leftPad) {
+    if (!leftPad){
       /* right justified */
       gaps = width - len;
 
-      if (alt) {
+      if (alt){
         integer px = 0;
 
-        while (ret == Ok && px < len) {
+        while (ret == Ok && px < len){
           codePoint cp = nextCodePoint(str, &px, len);
           ret = quoteChar(f, cp, &gaps);
         }
-      } else
+      }
+      else
         ret = outText(f, str, len);
 
       while (ret == Ok && gaps-- > 0)
         ret = outChar(f, pad);
-    } else {
+    }
+    else{
       gaps = width - len;
 
       while (ret == Ok && gaps-- > 0)
@@ -570,11 +591,13 @@ retCode outUniString(ioPo f, char *str, integer len, integer width, integer prec
       if (ret == Ok)
         ret = outText(f, str, len);
     }
-  } else if (alt) {
+  }
+  else if (alt){
     int ix;
     for (ix = 0; ret == Ok && ix < len; ix++)
-      ret = quoteChar(f, (codePoint) str[ix], &gaps);
-  } else
+      ret = quoteChar(f, (codePoint)str[ix], &gaps);
+  }
+  else
     ret = outText(f, str, len); /* variable width */
 
   return ret;
@@ -591,7 +614,7 @@ static fileMsgProc procs[256];
 static void initMsgProcs(void) {
   static logical inited = False;
 
-  if (!inited) {
+  if (!inited){
     int i;
     for (i = 0; i < 255; i++)
       procs[i] = NULL;
@@ -602,12 +625,12 @@ static void initMsgProcs(void) {
 void installMsgProc(codePoint key, fileMsgProc proc) {
   initMsgProcs();
   assert(key > 0 && key < NumberOf(procs) && procs[key] == Null);
-  procs[(unsigned int) key] = proc;
+  procs[(unsigned int)key] = proc;
 }
 
 void reinstallMsgProc(codePoint key, fileMsgProc proc) {
   assert(key > 0 && key < NumberOf(procs));
-  procs[(unsigned int) key] = proc;
+  procs[(unsigned int)key] = proc;
 }
 
 #define nextDecimal(format, pos, len, args, ix) {\
@@ -627,210 +650,228 @@ void reinstallMsgProc(codePoint key, fileMsgProc proc) {
 
 /* We have our own version of fprintf too */
 
-retCode __voutMsg(ioPo f, char *format, va_list args) {
+retCode __voutMsg(ioPo f, char* format, va_list args) {
   retCode ret = Ok;
   integer fx = 0;
   integer fmtLen = uniStrLen(format);
 
-  while (ret == Ok && fx < fmtLen) {
+  while (ret == Ok && fx < fmtLen){
     codePoint fcp = nextCodePoint(format, &fx, fmtLen);
 
-    if (fcp == '%') {
+    if (fcp == '%'){
       integer width = 0; /* Maximum width of field */
       integer precision = 0; /* Minimum width or precision of field */
       integer depth = LONG_MAX; /* Maximum depth of structure */
       codePoint pad = ' ';
-      char *prefix = "";
+      char* prefix = "";
       logical sign = False;
       logical alternate = False;
       logical leftPad = True;
       logical overridePrecision = False;
       logical longValue = False;
 
-      while (fx < fmtLen) {
+      while (fx < fmtLen){
         fcp = nextCodePoint(format, &fx, fmtLen);
-        switch (fcp) {
-          case '0':
-            pad = '0';
-            continue;
-          case ' ':
-            prefix = " ";
-            continue;
-          case '+':
-            sign = True;
-            continue;
-          case 'l':
-            longValue = True;
-            continue;
-          case '#':
-            alternate = True;
-            continue;
-          case '-':
-            leftPad = False;
-            continue;
-          default:
-            goto getWidth;
+        switch (fcp){
+        case '0':
+          pad = '0';
+          continue;
+        case ' ':
+          prefix = " ";
+          continue;
+        case '+':
+          sign = True;
+          continue;
+        case 'l':
+          longValue = True;
+          continue;
+        case '#':
+          alternate = True;
+          continue;
+        case '-':
+          leftPad = False;
+          continue;
+        default:
+          goto getWidth;
         }
         break;
       }
     getWidth:
-      while (isNdChar(fcp) && fx < fmtLen) {
+      while (isNdChar(fcp) && fx < fmtLen){
         /* extract the width field */
         width = width * 10 + digitValue(fcp);
         fcp = nextCodePoint(format, &fx, fmtLen);
       }
 
-      while (strchr(".,:", (char) fcp) != NULL) {
-        if (fcp == '.') {
+      while (strchr(".,:", (char)fcp) != NULL){
+        if (fcp == '.'){
           /* We have a precision ... */
           overridePrecision = True;
           /* extract the precision field */
           nextDecimal(format, fx, fmtLen, args, precision);
-        } else if (fcp == ',') {
+        }
+        else if (fcp == ','){
           /* extract the depth field */
           nextDecimal(format, fx, fmtLen, args, depth);
-        } else if (fcp == ':') {
+        }
+        else if (fcp == ':'){
           /* extract the width field */
           nextDecimal(format, fx, fmtLen, args, width);
-        } else
+        }
+        else
           break;
       }
 
-      if (procs[fcp & 0xff] != NULL) {
-        void *data = va_arg(args, void*); /* pick up a special value */
-        ret = procs[((unsigned int) fcp) & 0xffu](f, data, depth, precision, alternate);
-      } else
-        switch (fcp) {
-          case '_':
-            ret = (isAFile(O_OBJECT(f)) ? flushFile(O_FILE(f)) : Ok);
-            break;
-          case 'c': {
-            /* Display an integer value as a char */
-            codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
+      if (procs[fcp & 0xff] != NULL){
+        void* data = va_arg(args, void*); /* pick up a special value */
+        ret = procs[((unsigned int)fcp) & 0xffu](f, data, depth, precision, alternate);
+      }
+      else
+        switch (fcp){
+        case '_':
+          ret = (isAFile(O_OBJECT(f)) ? flushFile(O_FILE(f)) : Ok);
+          break;
+        case 'c': {
+          /* Display an integer value as a char */
+          codePoint i = (codePoint)(longValue ? va_arg(args, integer) : va_arg(args, int));
 
-            if (alternate) {
-              integer gaps = 0;
-              ret = quoteChar(f, i, &gaps);
-            } else
-              ret = outChar(f, i);
-            break;
+          if (alternate){
+            integer gaps = 0;
+            ret = quoteChar(f, i, &gaps);
           }
-          case 'd': {
-            /* Display an integer value */
-            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+          else
+            ret = outChar(f, i);
+          break;
+        }
+        case 'd': {
+          /* Display an integer value */
+          integer i = (integer)(longValue ? va_arg(args, integer) : va_arg(args, int));
 
-            ret = outInteger(f, i, 10, (int) width, (int) precision, pad, leftPad, prefix, sign);
-            break;
+          ret = outInteger(f, i, 10, (int)width, (int)precision, pad, leftPad, prefix, sign);
+          break;
+        }
+        case 't': {
+          /* Display some spaces */
+          integer spaceCount = va_arg(args, int);
+
+          while (ret == Ok && spaceCount-- > 0)
+            ret = outChar(f, pad);
+          break;
+        }
+        case 'u': {
+          /* Display a number as unsigned */
+          integer i = va_arg(args, integer);
+          char iBuff[64];
+
+          if (!leftPad)
+            pad = ' '; /* We dont put trailing zeroes */
+
+          long len = natural2StrByBase(iBuff, i, 0, 10);
+
+          ret = outUStr(f, prefix);
+          if (ret == Ok)
+            ret = outString(f, iBuff, (integer)len, width, (integer)precision, pad, leftPad);
+          break;
+        }
+        case 'o': {
+          /* Display an octal value */
+          integer i = (integer)(longValue ? va_arg(args, integer) : va_arg(args, long));
+
+          ret = outOctal(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
+          break;
+        }
+        case 'x': {
+          /* Display a hex value */
+          integer i = (integer)(longValue ? va_arg(args, integer) : va_arg(args, long));
+
+          ret = outHex(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
+          break;
+        }
+        case 'b': {
+          /* Display a binary value */
+          integer i = (integer)(longValue ? va_arg(args, integer) : va_arg(args, long));
+
+          ret = outInteger(f, i, 2, width, precision, pad, leftPad, prefix, sign);
+          break;
+        }
+        case 'g':
+        case 'G':
+        case 'e':
+        case 'E':
+        case 'F':
+        case 'f': {
+          /* Display floating point number */
+          double num = (double)va_arg(args, double);
+
+          if (!overridePrecision) /* default precision for floats */
+            precision = 6;
+          ret = outDouble(f, num, (char)fcp, (int)width, (int)precision, pad, leftPad, sign);
+          break;
+        }
+        case 's': {
+          /* Display a string */
+          char* str = (char*)va_arg(args, char *);
+
+          if (str != NULL){
+            ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
           }
-          case 'u': {
-            /* Display a number as unsigned */
-            integer i = va_arg(args, integer);
-            char iBuff[64];
+          else
+            ret = outStr(f, "(NULL)");
+          break;
+        }
 
-            if (!leftPad)
-              pad = ' '; /* We dont put trailing zeroes */
+        case 'S': {
+          /* Display a lengthed string */
+          char* str = (char*)va_arg(args, char *);
+          long len = (long)va_arg(args, long);
 
-            long len = natural2StrByBase(iBuff, i, 0, 10);
+          if (str != NULL)
+            ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
+          else
+            ret = outStr(f, "(NULL)");
+          break;
+        }
 
+        case 'U': {
+          /* Display a uniCode string */
+          char* str = (char*)va_arg(args, char *);
+
+          if (str != NULL){
             ret = outUStr(f, prefix);
             if (ret == Ok)
-              ret = outString(f, iBuff, (integer) len, width, (integer) precision, pad, leftPad);
-            break;
-          }
-          case 'o': {
-            /* Display an octal value */
-            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-            ret = outOctal(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
-            break;
-          }
-          case 'x': {
-            /* Display a hex value */
-            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-            ret = outHex(f, i, width, precision, pad, leftPad, prefix, sign, alternate);
-            break;
-          }
-          case 'b': {
-            /* Display a binary value */
-            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, long));
-
-            ret = outInteger(f, i, 2, width, precision, pad, leftPad, prefix, sign);
-            break;
-          }
-          case 'g':
-          case 'G':
-          case 'e':
-          case 'E':
-          case 'F':
-          case 'f': {
-            /* Display floating point number */
-            double num = (double) va_arg(args, double);
-
-            if (!overridePrecision) /* default precision for floats */
-              precision = 6;
-            ret = outDouble(f, num, (char) fcp, (int) width, (int) precision, pad, leftPad, sign);
-            break;
-          }
-          case 's': {
-            /* Display a string */
-            char *str = (char *) va_arg(args, char *);
-
-            if (str != NULL) {
               ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
-            } else
-              ret = outStr(f, "(NULL)");
-            break;
           }
-
-          case 'S': {
-            /* Display a lengthed string */
-            char *str = (char *) va_arg(args, char *);
-            long len = (long) va_arg(args, long);
-
-            if (str != NULL)
-              ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
-            else
-              ret = outStr(f, "(NULL)");
-            break;
-          }
-
-          case 'U': {
-            /* Display a uniCode string */
-            char *str = (char *) va_arg(args, char *);
-
-            if (str != NULL) {
-              ret = outUStr(f, prefix);
-              if (ret == Ok)
-                ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
-            } else
-              ret = outStr(f, "(NULL)");
-            break;
-          }
-
-          case 'p': {
-            /* Display some spaces */
-            integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
-
-            ret = outStr(f, prefix);
-            while (ret == Ok && i-- > 0) {
-              ret = outChar(f, ' ');
-            }
-
-            break;
-          }
-
-          default:
-            ret = outChar(f, fcp);
+          else
+            ret = outStr(f, "(NULL)");
+          break;
         }
-    } else
+
+        case 'p': {
+          /* Display some spaces */
+          integer i = (integer)(longValue ? va_arg(args, integer) : va_arg(args, int));
+
+          ret = outStr(f, prefix);
+          while (ret == Ok && i-- > 0){
+            ret = outChar(f, ' ');
+          }
+
+          break;
+        }
+
+        default:
+          ret = outChar(f, fcp);
+        }
+    }
+    else
       ret = outChar(f, fcp);
   }
-  return ret;
+
+  return
+    ret;
 }
 
-retCode outMsg(ioPo f, char *fmt, ...) {
-  if (f != NULL) {
+retCode outMsg(ioPo f, char* fmt, ...) {
+  if (f != NULL){
     retCode ret;
 
     lock(O_LOCKED(f));
@@ -845,14 +886,15 @@ retCode outMsg(ioPo f, char *fmt, ...) {
     unlock(O_LOCKED(f));
 
     return ret;
-  } else
+  }
+  else
     return Error;
 }
 
-retCode logMsg(ioPo out, char *fmt, ...) {
+retCode logMsg(ioPo out, char* fmt, ...) {
   retCode ret = Ok;
 
-  if (out != NULL) {
+  if (out != NULL){
     time_t now;
     va_list ap;
 
@@ -860,8 +902,8 @@ retCode logMsg(ioPo out, char *fmt, ...) {
 
     va_start(ap, fmt);
 
-    if (time(&now) != -1) {
-      struct tm *t = localtime(&now);
+    if (time(&now) != -1){
+      struct tm* t = localtime(&now);
       char stamp[256];
       strftime(stamp, 256, "%a %e/%b/%Y %X", t);
 
@@ -870,7 +912,8 @@ retCode logMsg(ioPo out, char *fmt, ...) {
         ret = __voutMsg(out, fmt, ap);
       if (ret == Ok)
         ret = outMsg(out, "\n");
-    } else {
+    }
+    else{
       ret = __voutMsg(out, fmt, ap);
       if (ret == Ok)
         ret = outMsg(out, "\n");
@@ -885,7 +928,7 @@ retCode logMsg(ioPo out, char *fmt, ...) {
   return ret;
 }
 
-char *strMsg(char *buffer, long len, char *fmt, ...) {
+char* strMsg(char* buffer, long len, char* fmt, ...) {
   strBufferPo f = fixedStringBuffer(buffer, len);
 
   va_list args; /* access the generic arguments */
@@ -900,7 +943,7 @@ char *strMsg(char *buffer, long len, char *fmt, ...) {
   return buffer;
 }
 
-retCode ioErrorMsg(ioPo io, char *fmt, ...) {
+retCode ioErrorMsg(ioPo io, char* fmt, ...) {
   va_list args; /* access the generic arguments */
   va_start(args, fmt); /* start the variable argument sequence */
 
