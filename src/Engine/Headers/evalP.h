@@ -75,15 +75,17 @@
   }\
   })
 
-#define breakOut() STMT_WRAP({               \
-  PC += PC->alt + 1;                         \
-  SP = &varble(-(lclCount(PROG) + PC->fst - 1)); \
-  PC += PC->alt + 1;                         \
-  })
+#define breakBlock(o) STMT_WRAP({                   \
+  PC += operand(o);                                 \
+  assert(PC->op.op==sBlock);                        \
+  PC += operand(1);                                 \
+})
 
-#define breakBlock(o) STMT_WRAP({                     \
-  PC += operand(o) + 1;                                 \
-  PC += operand(1) + 1;                                 \
+#define returnBlock(o,vl) STMT_WRAP({             \
+PC += operand(o);                                 \
+assert(PC->op.op==sValof);                        \
+varble(operand(1)) = vl;                          \
+PC += operand(1);                                 \
 })
 
 #define operand(i) ((PC+(i))->op.ltrl)
