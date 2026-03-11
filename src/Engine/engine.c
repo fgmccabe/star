@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <lblops.h>
-#include "globals.h"
 #include "engineP.h"
 #include "debugP.h"
 
@@ -19,28 +18,28 @@ timerPo runTimer = Null;
 
 hashPo prTble;
 
-static integer processHash(void *);
+static integer processHash(void*);
 
-static comparison sameProcess(void *, void *);
+static comparison sameProcess(void*, void*);
 
 static integer newProcessNumber();
 
-static Instruction haltCode[] = {sHalt, 0};
+static Instruction haltCode[] = {sRSP, -1, sHalt, -1};
 
 void initEngine() {
   prPool = newPool(sizeof(EngineRecord), 32);
   prTble = newHash(16, processHash, sameProcess, Null);
 
-  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 0, 1);
+  haltProg = specialMethod("halt", 0, NumberOf(haltCode), haltCode, 1, 1);
 
   runTimer = newTimer("running");
 }
 
-int32 bootstrap(heapPo h, char *entry, char *rootWd) {
+int32 bootstrap(heapPo h, char* entry, char* rootWd) {
   labelPo umain = declareLbl(entry, 1, -1);
   methodPo mainMtd = labelMtd(umain);
 
-  if (mainMtd != Null) {
+  if (mainMtd != Null){
     termPo cmdLine = commandLine(h);
 #ifndef NOJIT
     enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
@@ -55,23 +54,25 @@ int32 bootstrap(heapPo h, char *entry, char *rootWd) {
 #endif
     pauseTimer(runTimer);
     return ret;
-  } else {
+  }
+  else{
     logMsg(logFile, "cannot find entry point %s\n", entry);
     return Abnormal;
   }
 }
 
-enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo rootArg) {
-  enginePo P = (enginePo) allocPool(prPool);
+enginePo newEngine(heapPo h, int execJit, methodPo mtd, char* rootWd, termPo rootArg) {
+  enginePo P = (enginePo)allocPool(prPool);
 
   P->heap = h;
   P->state = quiescent;
-  if (insDebugging || lineDebugging) {
+  if (insDebugging || lineDebugging){
     if (interactive)
       P->waitFor = stepInto;
     else
       P->waitFor = nextBreak;
-  } else
+  }
+  else
     P->waitFor = never;
 
   P->tracing = False;
@@ -87,21 +88,21 @@ enginePo newEngine(heapPo h, int execJit, methodPo mtd, char *rootWd, termPo roo
   pushStack(stk, rootArg);
   stk->fp = pushFrame(stk, execJit, mtd);
 
-  hashPut(prTble, (void *) P->processNo, P);
+  hashPut(prTble, (void*)P->processNo, P);
   return P;
 }
 
 void ps_kill(enginePo p) {
-  if (p != NULL) {
+  if (p != NULL){
     p->stk = dropStack(p->stk);
 
     pthread_t thread = p->threadID;
 
-    if (thread) {
+    if (thread){
       pthread_cancel(thread); /* cancel the thread */
     }
 
-    hashRemove(prTble, (void *) p->processNo);
+    hashRemove(prTble, (void*)p->processNo);
     freePool(prPool, p);
   }
 }
@@ -132,16 +133,16 @@ integer processNo(enginePo p) {
 
 typedef struct {
   procProc pr;
-  void *cl;
+  void* cl;
 } Helper;
 
-static retCode prEntry(void *n, void *r, void *c) {
-  Helper *h = (Helper *) c;
+static retCode prEntry(void* n, void* r, void* c) {
+  Helper* h = (Helper*)c;
 
-  return h->pr((enginePo) r, h->cl);
+  return h->pr((enginePo)r, h->cl);
 }
 
-retCode processProcesses(procProc p, void *cl) {
+retCode processProcesses(procProc p, void* cl) {
   Helper h = {.pr = p, .cl = cl};
   return processHashTable(prEntry, prTble, &h);
 }
@@ -150,11 +151,11 @@ enginePo getProcessOfThread(void) {
   exit(-1);
 }
 
-char *processWd(enginePo p) {
+char* processWd(enginePo p) {
   return p->wd;
 }
 
-retCode setProcessWd(enginePo p, char *wd, integer len) {
+retCode setProcessWd(enginePo p, char* wd, integer len) {
   return uniTrim(wd, len, "", "/", p->wd, NumberOf(p->wd));
 }
 
@@ -165,11 +166,11 @@ integer newProcessNumber() {
   return nextPrNo;
 }
 
-integer processHash(void *x) {
-  return (integer) (x);
+integer processHash(void* x) {
+  return (integer)(x);
 }
 
-comparison sameProcess(void *a, void *b) {
+comparison sameProcess(void* a, void* b) {
   if (a == b)
     return same;
   else
@@ -181,7 +182,7 @@ retCode markProcess(enginePo P, gcSupportPo G) {
   if (traceMemory > noTracing)
     outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
-  P->stk = C_STACK(markPtr(G, (ptrPo) &P->stk));
+  P->stk = C_STACK(markPtr(G, (ptrPo)&P->stk));
 
   return Ok;
 }
@@ -190,7 +191,7 @@ void markProcesses(enginePo owner, gcSupportPo G) {
   if (owner != Null)
     markProcess(owner, G);
   else
-    processProcesses((procProc) markProcess, G);
+    processProcesses((procProc)markProcess, G);
 }
 
 void verifyProc(enginePo P, heapPo H) {
@@ -201,5 +202,5 @@ void verifyProcesses(heapPo H) {
   if (H->owner != Null)
     verifyProc(H->owner, H);
   else
-    processProcesses((procProc) verifyProc, H);
+    processProcesses((procProc)verifyProc, H);
 }
