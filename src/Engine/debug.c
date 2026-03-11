@@ -195,7 +195,7 @@ static DebugWaitFor cmder(debugOptPo opts, enginePo p, termPo lc) {
     cmdBuffer = newStringBuffer();
 
   if (interactive) {
-    outMsg(debugOutChnnl, "[%d]>%s %_", processNo(p), (insDebugging ? "i" : lineDebugging ? "$" : ""));
+    outMsg(debugOutChnnl, " >%s %_", (insDebugging ? "i" : lineDebugging ? "$" : ""));
     clearStrBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);

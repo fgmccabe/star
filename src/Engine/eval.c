@@ -164,32 +164,35 @@ int32 run(enginePo P) {
 
         switch (arity) {
           case 8:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),varble(operand(6)),
-                                 varble(operand(7)),varble(operand(8)),varble(operand(9)),varble(operand(10)));
+            RSLT = ((escValue8) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
+                                               varble(operand(6)), varble(operand(7)),varble(operand(8)),
+                                               varble(operand(9)), varble(operand(10)));
             break;
           case 7:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),varble(operand(6)),
-                                 varble(operand(7)),varble(operand(8)),varble(operand(9)));
+            RSLT = ((escValue7) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
+                                               varble(operand(6)), varble(operand(7)),varble(operand(8)),
+                                               varble(operand(9)));
             break;
           case 6:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),varble(operand(6)),
-                                 varble(operand(7)),varble(operand(8)));
+            RSLT = ((escValue6) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
+                                               varble(operand(6)), varble(operand(7)),varble(operand(8)));
             break;
           case 5:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),varble(operand(6)),
-                                 varble(operand(7)));
+            RSLT = ((escValue5) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
+                                               varble(operand(6)), varble(operand(7)));
             break;
           case 4:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),varble(operand(6)));
+            RSLT = ((escValue4) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
+                                               varble(operand(6)));
             break;
           case 3:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)),varble(operand(5)));
+            RSLT = ((escValue3) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)));
             break;
           case 2:
-            RSLT = (esc->direct)(P,varble(operand(3)),varble(operand(4)));
+            RSLT = ((escValue2) (esc->direct))(P,varble(operand(3)),varble(operand(4)));
             break;
           case 1:
-            RSLT = (esc->direct)(P,varble(operand(3)));
+            RSLT = ((escValue1) (esc->direct))(P,varble(operand(3)));
             break;
           case 0:
             RSLT = (esc->direct)(P);
@@ -360,6 +363,7 @@ int32 run(enginePo P) {
       }
       case sBlock: {
         PC += 2; // Skip over the size marker and the Block instruction itself.
+        continue;
       }
       case sValof: {
         PC += 3; // Skip over the size marker, the Valof instruction and the index of the phi var
@@ -467,7 +471,7 @@ int32 run(enginePo P) {
         termPo lt = getConstant(operand(1));
         termPo tx = varble(operand(3));
 
-        if (lt != tx) {
+        if (!sameTerm(lt, tx)) {
           breakBlock(2);
           continue;
         } else {

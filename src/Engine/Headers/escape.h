@@ -21,10 +21,17 @@ typedef struct {
 #define normalReturn(R) ((ValueReturn){.status=Normal, .value=(R)})
 #define abnormalReturn(R) ((ValueReturn){.status=Abnormal, .value=(R)})
 
-
 typedef ReturnStatus (*escFun)(enginePo p);
 
-typedef ValueReturn (*escValue)(enginePo p,...);
+typedef ValueReturn (*escValue)(enginePo p);
+typedef ValueReturn (*escValue1)(enginePo p, termPo);
+typedef ValueReturn (*escValue2)(enginePo p, termPo, termPo);
+typedef ValueReturn (*escValue3)(enginePo p, termPo, termPo, termPo);
+typedef ValueReturn (*escValue4)(enginePo p, termPo, termPo, termPo, termPo);
+typedef ValueReturn (*escValue5)(enginePo p, termPo, termPo, termPo, termPo, termPo);
+typedef ValueReturn (*escValue6)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo);
+typedef ValueReturn (*escValue7)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo, termPo);
+typedef ValueReturn (*escValue8)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo, termPo, termPo);
 
 typedef struct escape_record_ *escapePo;
 
