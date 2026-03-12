@@ -38,8 +38,8 @@ vrRead(Vr,iEscape(_,As)) :-
     is_member(Vr,As).
 vrRead(Vr,iRSP(Vr)).
 vrRead(Vr,iRSX(_,Vr)).
-vrRead(Vr,iOCall(_,_,Vr,_)).
-vrRead(Vr,iOCall(_,_,_,As)) :-
+vrRead(Vr,iOCall(Vr,_)).
+vrRead(Vr,iOCall(_,As)) :-
     is_member(Vr,As),!.
 vrRead(Vr,iTOCall(Vr,_)).
 vrRead(Vr,iTOCall(_,As)) :-
@@ -339,9 +339,6 @@ lblReferenced(Lb,[iBlock(I)|_]) :-
 lblReferenced(Lb,[iValof(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(_,Lb,_)|_]).
-lblReferenced(Lb,[iXCall(_,Lb,_,_)|_]).
-lblReferenced(Lb,[iXOCall(Lb,_,_,_)|_]).
-lblReferenced(Lb,[iXEscape(_,Lb,_,_)|_]).
 lblReferenced(Lb,[iCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
 lblReferenced(Lb,[iICase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
 lblReferenced(Lb,[iIxCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
