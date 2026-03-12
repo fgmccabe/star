@@ -81,10 +81,13 @@ validSS(rp) :-!.
 validSS(lb) :-!.
 validSS(rb) :-!.
 validSS([]) :- !,false.
-validSS([_|_]) :- !,false.
+validSS(S) :- S=[_|_],!,
+  reportFatal("Invalid SS stream %s",[S]).
 validSS(X) :-
   call(X,Sq),!,
   validSS(Sq).
+validSS(S) :-
+  reportFatal("Invalid SS stream %s",[S]).
 
 validSS_seq([]).
 validSS_seq([D|L]) :-

@@ -611,10 +611,16 @@ compExp(savSet(Lc,Sv,Val),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
 
 compExp(case(Lc,Gv,Cases,Deflt),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compCase(Gv,Lc,genssa:wrapExpr,genssa:result,Cases,Deflt,genssa:compExp,Brks,Next,Opts,L,Lx,D,Dx,C0,Cx).
+  defineTmpVar(Lc,Vr,tipe("sometype"),Opts,D,D1),
+  compCase(Gv,Lc,genssa:wrapExpr(Vr),genssa:result(Vr),Cases,Deflt,
+	   genssa:compExp,Brks,genssa:next(Vr),Opts,L,L2,D1,D2,C0,C1),
+  call(Next,Lc,Vr,Brks,Opts,L2,Lx,D2,Dx,C1,Cx).
 compExp(unpack(Lc,Gv,Cases,Deflt),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),
-  compUnpack(Gv,Lc,genssa:wrapExpr,genssa:result,Cases,Deflt,genssa:compExp,Brks,Next,Opts,L,Lx,D,Dx,C0,Cx).
+  defineTmpVar(Lc,Vr,tipe("sometype"),Opts,D,D1),
+  compUnpack(Gv,Lc,genssa:wrapExpr(Vr),genssa:result(Vr),Cases,Deflt,genssa:compExp,Brks,
+	     genssa:next(Vr),Opts,L,L2,D1,D2,C0,C1),
+  call(Next,Lc,Vr,Brks,Opts,L2,Lx,D2,Dx,C1,Cx).
 
 compExp(tryX(Lc,B,E,H),OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx) :-!,
   compTryX(Lc,B,E,H,OLc,Brks,Next,Opts,L,Lx,D,Dx,C,Cx).
@@ -760,16 +766,14 @@ isCond(mtch(_,_,_)).
 isTrueSymb("true").
 isFalseSymb("false").
 
-wrapAction(Lvl,C,[iBlock(Lvl,C)]).
-wrapExpr(Vr,C,[iValof(Vr,C)]).
+wrapAction(C,iBlock(C)).
+wrapExpr(Vr,C,iValof(Vr,C)).
 
 break(Lbl,iBreak(Lbl)).
 
-result(Lbl,iResult(Lbl)).
+breakOut(Lbl,iBreak(Lbl)).
 
-breakOut(Ok,[iBreak(Ok)|Cx],Cx).
-
-result(Lbl,[iResult(Lbl)|Cx],Cx).
+result(Vr,Lbl,iResult(Lbl,Vr)).
   
 compCase(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
   genLbl(L,Df,L0),
@@ -777,7 +781,7 @@ compCase(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,OC
   tipeOf(Gv,GvTp),
   defineTmpVar(Lc,GvVr,GvTp,Opts,D,D0),
   genCaseTable(Cases,Mx,Table),
-  call(Wrap,GrVr,[iLbl(Df,iBlock(CC))|DC],OC),
+  call(Wrap,GvVr,[iLbl(Df,iBlock(CC))|DC],OC),
   compExp(Gv,Lc,Brks,genssa:next(GvVr),Opts,L1,L2,D0,D1,CC,C2),
 
   (isIntegerType(GvTp) -> Case = iICase(GvVr,CB) ; Case = iCase(GvVr,CB)),
@@ -863,6 +867,18 @@ compCaseCond([(P,E,Lc)|More],GV,OkBrk,Dflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,
   compCaseCond(More,GV,OkBrk,Dflt,Hndlr,Brks,Next,Opts,L2,Lx,D2,Dx,BC,Cx).
 
 compUnpack(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
+  Gv = idnt(GvNm,_),!,
+  genLbl(L,Df,L0),
+  genLbl(L0,Ok,L1),
+  tipeOf(Gv,GvTp),
+  getTypeIndex(GvTp,D,Index),
+  call(Wrap,[iLbl(Df,iBlock(CC))|DC],OC),
+  genUnpackTable(Cases,Index,Table),
+  maxTableEntry(Table,Mx),
+  call(Break,Ok,OkBrk),
+  compCases(Table,0,Mx,Gv,OkBrk,Df,Hndlr,Brks,Next,Opts,L1,L3,D,D2,CB,[],CC,[iIxCase(GvNm,CB)]),
+  call(Hndlr,Deflt,Lc,Brks,Next,Opts,L3,Lx,D2,Dx,DC,[OkBrk]).
+compUnpack(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
   genLbl(L,Df,L0),
   genLbl(L0,Ok,L1),
   tipeOf(Gv,GvTp),
@@ -871,7 +887,7 @@ compUnpack(Gv,Lc,Wrap,Break,Cases,Deflt,Hndlr,Brks,Next,Opts,L,Lx,D,Dx,[iLbl(Ok,
   genUnpackTable(Cases,Index,Table),
   maxTableEntry(Table,Mx),
   defineTmpVar(Lc,GvVr,GvTp,Opts,D,D0),
-  compExp(Gv,GvVr,Lc,Brks,genssa:next(GvVr),Opts,L1,L2,D0,D1,CG,[iIxCase(GvVr,CB)]),
+  compExp(Gv,Lc,Brks,genssa:next(GvVr),Opts,L1,L2,D0,D1,CG,[iIxCase(GvVr,CB)]),
   call(Break,Ok,OkBrk),
   compCases(Table,0,Mx,GvVr,OkBrk,Df,Hndlr,Brks,Next,Opts,L2,L3,D1,D2,CB,[],CC,CG),
   call(Hndlr,Deflt,Lc,Brks,Next,Opts,L3,Lx,D2,Dx,DC,[OkBrk]).

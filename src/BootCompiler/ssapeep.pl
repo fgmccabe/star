@@ -339,9 +339,9 @@ lblReferenced(Lb,[iBlock(I)|_]) :-
 lblReferenced(Lb,[iValof(_,I)|_]) :-
   lblReferenced(Lb,I).
 lblReferenced(Lb,[iLdSav(_,Lb,_)|_]).
-lblReferenced(Lb,[iCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
-lblReferenced(Lb,[iICase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
-lblReferenced(Lb,[iIxCase(_,Ins)|_]) :- lbelReferenced(Lb,Ins).
+lblReferenced(Lb,[iCase(_,Ins)|_]) :- lblReferenced(Lb,Ins).
+lblReferenced(Lb,[iICase(_,Ins)|_]) :- lblReferenced(Lb,Ins).
+lblReferenced(Lb,[iIxCase(_,Ins)|_]) :- lblReferenced(Lb,Ins).
 lblReferenced(Lb,[_|Ins]) :- lblReferenced(Lb,Ins).
 
 resolveLblRef(Lb,Lbls,LLb) :-

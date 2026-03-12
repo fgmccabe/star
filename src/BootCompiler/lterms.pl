@@ -171,12 +171,12 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
 ssTrm(case(_,G,Cases,Deflt),Dp,
-      sq([ss("case "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
+      sq([ss("case "),GG,ss(" in "),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
 ssTrm(unpack(_,G,Cases,Deflt),Dp,
-      sq([ss("unpack "),GG,ss("in"),CC,ss(" else "),DD])) :-!,
+      sq([ss("unpack "),GG,ss(" in "),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
@@ -720,7 +720,7 @@ tipeOf(rtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
 tipeOf(case(_,_G,_C,_D,T),T).
-tipeOf(unpack(_,_G,_C,_D,T),T).
+tipeOf(unpack(_,_G,_C,_D),voidType).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
 tipeOf(cnj(_,_,_),type("boolean")).
 tipeOf(dsj(_,_,_),type("boolean")).
