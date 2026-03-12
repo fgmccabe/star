@@ -9,7 +9,8 @@ peepOptimize(func(Nm,H,Sig,AgMap,LsMap,Ins),func(Nm,H,Sig,AgMap,LsMx,Insx)) :-
   peepCode(Ins,[],PIns),
   findUnusedVars(LsMap,AgMap,PIns,LsMx,Ins0),!,
   peepCode(Ins0,[],Ins1),  % We need to peep twice, cos dropping vars gives us a chance for more
-  adjustEntry(Ins1,LsMx,Insx).
+  findUnusedVars(LsMap,AgMap,Ins1,LsMx,Ins2),!,
+  adjustEntry(Ins2,LsMx,Insx).
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,
@@ -305,6 +306,11 @@ peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iResult(Lb,Vr)|_],Lbls,[iResult(LLb,Vr)]) :-
   resolveLblRef(Lb,Lbls,LLb).
+%% peep([I,iMv(Tgt,Src)|Ins],Lbls,Inx) :-
+%%   retarget(I,Src,I1,Tgt),!,
+%%   peep([I1/*,iMv(Src,Tgt)*/|Ins],Lbls,Inx).
+peep([iMv(Int,Src),iMv(Tgt,Int)|Ins],Lbls,Inx) :-
+  peep([iMv(Int,Src),iMv(Tgt,Src)|Ins],Lbls,Inx). % The extra var may now be removed
 peep([iCall(Lb,Args),iRSP(Rslt),iRet(Rslt)|_],_Lbls,[iTCall(Lb,Args)]).
 peep([iOCall(Vr,Args),iRSP(Rslt),iRet(Rslt)|_],_Lbls,[iTOCall(Vr,Args)]).
 peep([iLoop(Lb)|_],_Lbls,[iLoop(Lb)]) :-!.
@@ -349,6 +355,10 @@ resolveLblRef(Lb,Lbls,LLb) :-
   (Cde=[iBreak(Lb0)|_] ->
    resolveLblRef(Lb0,Lbls,LLb) ;
    LLb = Lb).
+
+retarget(iMv(T,S),T,iMv(Tgt,S),Tgt).
+retarget(iNth(T,X,S),T,iNth(Tgt,X,S),Tgt).
+
 
 adjustEntry([iEntry(Ar,_)|Ins],LsMx,[iEntry(Ar,Cnt)|Ins]) :-!,
   length(LsMx,Cnt).
