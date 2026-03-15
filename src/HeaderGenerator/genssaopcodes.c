@@ -125,6 +125,7 @@ integer staropHash() {
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define lcm "m"
 #define lit "l"
 #define glb "g"
 #define art "a"

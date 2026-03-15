@@ -24,6 +24,7 @@ ssaInsPo disass(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define lcm "m"
 #define lit "l"
 #define glb "g"
 #define art "a"
@@ -109,7 +110,8 @@ ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt
         continue;
       }
       case 'a': // Arity
-      case 'i': {
+      case 'i':
+      case 'm': {
         // Integer
         int32 ix = pc->op.ltrl;
         pc++;

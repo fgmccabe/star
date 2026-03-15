@@ -19,8 +19,9 @@ int32 arrayCount(arrayPo ar);
 arrayPo allocArray(int elSize, int32 initial, logical growable);
 
 arrayPo fixedCopy(arrayPo src, arrayDataCopy copier, void (*release)(arrayPo ar));
-retCode appendEntry(arrayPo ar, void *el);
+int32 appendEntry(arrayPo ar, void *el);
 retCode insertEntry(arrayPo ar, int32 ix, void *el);
+retCode setEntry(arrayPo ar, int32 ix, void *el);
 void *newEntry(arrayPo ar);
 void *nthEntry(arrayPo ar, int32 ix);
 retCode dropEntry(arrayPo ar, int32 ix);

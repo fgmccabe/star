@@ -9,16 +9,18 @@
 :- use_module(escapes).
 :- use_module(errors).
 
-assemSSA(func(Nm,Pol,Sig,Ags,Lcls,Ins),MTpl) :-
+assemSSA(func(Nm,Pol,Sig,LSpecs,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
-    declareArgs(Ags,[],AgMap,[],VrMap),
-    declareLocals(Lcls,AgMap,Lcs,VrMap,VrDescs),
+    (is_member(iEntry(Ags,Lcs),Ins) ->
+     declareArgs(Ags,LSpecs,[],AgMap,[],AgDescs),
+     declareLocals(Lcs,LSpecs,AgMap,LcMap,AgDescs,VrDescs);
+     reportFatal("no valid iEntry found")),
     createLocals(VrDescs,LcsTpl),
-    assemBlock(Ins,none,[],Ls1,Lts,Lcs,Code),
+    assemBlock(Ins,none,[],Ls1,Lts,LcMap,Code),
     mkLitTpl(Lts,LtTpl),
     encPolicy(Pol,HP),
-    length(Lcls,Lx),
+    length(Lcs,Lx),
     mkCons("code",[Nm,HP,intgr(SgIx),intgr(Lx),LtTpl,Code,LcsTpl],MTpl).
 assemSSA(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -90,7 +92,9 @@ mnem([iRSX(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(8), intgr(L0), Off1|Cd],Cdx) :
   findLevel(Lbls,V0,L0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iEntry(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(9), intgr(V0), intgr(V1)|Cd],Cdx) :-
+mnem([iEntry(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(9), intgr(LL0), intgr(LL1)|Cd],Cdx) :-
+  length(V0,LL0),
+  length(V1,LL1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
 mnem([iRtn|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(10)|Cd],Cdx) :-
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
@@ -187,9 +191,10 @@ mnem([iTstSav(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(34), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iStSav(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(35), Off0, Off1|Cd],Cdx) :-
+mnem([iStSav(V0, V1, V2)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(35), Off0, Off1, Off2|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
+  findLocal(V2,LsMap,Off2),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
 mnem([iCell(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(36), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
@@ -380,8 +385,9 @@ mnem([iResume(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(75), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
   findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iRetire(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(76), Off0|Cd],Cdx) :-
+mnem([iRetire(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(76), Off0, Off1|Cd],Cdx) :-
   findLocal(V0,LsMap,Off0),
+  findLocal(V1,LsMap,Off1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
 mnem([iUnderflow|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(77)|Cd],Cdx) :-
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
@@ -426,24 +432,30 @@ fndLcls([Nm|Ns],Map,[Off|Ofs]) :-
   findLocal(Nm,Map,Off),
   fndLcls(Ns,Map,Ofs).
 
-declareLocals(Lst,Map,Mapx,Lcls,Lclx) :-
-  declareLocals(Lst,-1,Map,Mapx,Lcls,Lclx).
+declareArgs(Lst,Specs,Map,Mapx,Els,Lclx) :-
+  declareArgs(Lst,Specs,0,Map,Mapx,Els,Lclx).
 
-declareLocals([],_,Map,Map,Lcls,Lcls) :-!.
-declareLocals([(Nm,_)|Lcls],Off,Map,Mapx,Lx,Lclx) :-
-  is_member((Nm,_),Map),!,
-  declareLocals(Lcls,Off,Map,Mapx,Lx,Lclx).
-declareLocals([(Nm,Spec)|Lcls],Off,Map,Mapx,Lx,Lclx) :-
-  Off1 is Off-1,
-  declareLocals(Lcls,Off1,[(Nm,Off)|Map],Mapx,[(strg(Nm),intgr(Off),Spec)|Lx],Lclx).
-
-declareArgs(Lst,Map,Mapx,Els,Lclx) :-
-  declareArgs(Lst,0,Map,Mapx,Els,Lclx).
-
-declareArgs([],_,VrMap,VrMap,Lcs,Lcs) :-!.
-declareArgs([(Nm,Spec)|As],Off,AgMap,AgMapx,Lcls,Lclx) :-
+declareArgs([],_,_,VrMap,VrMap,Lcs,Lcs) :-!.
+declareArgs([Nm|As],Specs,Off,AgMap,AgMapx,Lcls,Lclx) :-
+  is_member((Nm,Spec),Specs),!,
   Off1 is Off+1,
-  declareArgs(As,Off1,[(Nm,Off)|AgMap],AgMapx,[(strg(Nm),intgr(Off),Spec)|Lcls],Lclx).
+  declareArgs(As,Specs,Off1,[(Nm,Off)|AgMap],AgMapx,[(strg(Nm),intgr(Off),Spec)|Lcls],Lclx).
+declareArgs([],_,_,VrMap,VrMap,Lcs,Lcs) :-!.
+declareArgs([Nm|As],Specs,Off,AgMap,AgMapx,Lcls,Lclx) :-
+  Off1 is Off+1,
+  declareArgs(As,Specs,Off1,[(Nm,Off)|AgMap],AgMapx,Lcls,Lclx).
+
+declareLocals(Lst,Specs,Map,Mapx,Lcls,Lclx) :-
+  declareLocals(Lst,Specs,-1,Map,Mapx,Lcls,Lclx).
+
+declareLocals([],_,_,Map,Map,Lcls,Lcls) :-!.
+declareLocals([Nm|Lcls],Specs,Off,Map,Mapx,Lx,Lclx) :-
+  is_member((Nm,Spec),Specs),!,
+  Off1 is Off-1,
+  declareLocals(Lcls,Specs,Off1,[(Nm,Off)|Map],Mapx,[(strg(Nm),intgr(Off),Spec)|Lx],Lclx).
+declareLocals([Nm|Lcls],Specs,Off,Map,Mapx,Lx,Lclx) :-
+  Off1 is Off-1,
+  declareLocals(Lcls,Specs,Off1,[(Nm,Off)|Map],Mapx,Lx,Lclx).
 
 createLocals(Entries,Tpl) :-
   sortEntries(Entries,Sorted),
@@ -482,8 +494,7 @@ dispSSA(Prog) :-
   validSS(O),
   displayln(O).
 
-showCode(func(Nm,H,Sig,Ags,Lcls,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),AA,nl(0),LL,iv(nl(0),II)])) :-
-  ssArgs(Ags,AA),
+showCode(func(Nm,H,Sig,Lcls,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),LL,iv(nl(0),II)])) :-
   ssLocals(Lcls,LL),
   ssTrm(Nm,0,NN),
   showMnems(Ins,[0],II),
@@ -553,7 +564,9 @@ showMnem(iRSP(V0),Pc,sq([PcDx,ss(": "),ss("RSP"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iRSX(V0, V1),Pc,sq([PcDx,ss(": "),ss("RSX"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iEntry(V0, V1),Pc,sq([PcDx,ss(": "),ss("Entry"),ss(" "),ix(V0),ss(" "),ix(V1)])) :- !,
+showMnem(iEntry(V0, V1),Pc,sq([PcDx,ss(": "),ss("Entry"),ss(" "),VV0,ss(" "),VV1])) :- !,
+  showCallArgs(V0,VV0),
+  showCallArgs(V1,VV1),
   showPc(Pc,PcDx).
 showMnem(iRtn,Pc,sq([PcDx,ss(": "),ss("Rtn")])) :- !,
   showPc(Pc,PcDx).
@@ -626,7 +639,7 @@ showMnem(iLdSav(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("LdSav"),ss(" "),ss(V0),ss("
   showPc(Pc,PcDx).
 showMnem(iTstSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("TstSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iStSav(V0, V1),Pc,sq([PcDx,ss(": "),ss("StSav"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iStSav(V0, V1, V2),Pc,sq([PcDx,ss(": "),ss("StSav"),ss(" "),ss(V0),ss(" "),ss(V1),ss(" "),ss(V2)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iCell(V0, V1),Pc,sq([PcDx,ss(": "),ss("Cell"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
@@ -711,7 +724,7 @@ showMnem(iSuspend(V0, V1),Pc,sq([PcDx,ss(": "),ss("Suspend"),ss(" "),ss(V0),ss("
   showPc(Pc,PcDx).
 showMnem(iResume(V0, V1),Pc,sq([PcDx,ss(": "),ss("Resume"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iRetire(V0),Pc,sq([PcDx,ss(": "),ss("Retire"),ss(" "),ss(V0)])) :- !,
+showMnem(iRetire(V0, V1),Pc,sq([PcDx,ss(": "),ss("Retire"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
   showPc(Pc,PcDx).
 showMnem(iUnderflow,Pc,sq([PcDx,ss(": "),ss("Underflow")])) :- !,
   showPc(Pc,PcDx).
@@ -725,7 +738,6 @@ showMnem(iDBug(V0),Pc,sq([PcDx,ss(": "),ss("dBug"),ss(" "),SS0])) :- !,
   ssTrm(V0,0,SS0),
   showPc(Pc,PcDx).
 
-
 showCallArgs(Lcs,sq([ss("("),sq(LL),ss(")")])) :-
   shLs(Lcs,ss(""),LL).
 
@@ -733,7 +745,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(876064540087077990).
+ssaHash(672621438903973766).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 

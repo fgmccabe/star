@@ -105,7 +105,7 @@ ssTrm(enum(Nm),_,sq([ss("."),id(Nm)])).
 ssTrm(ann(_),_,ss("_")) :-!.
 ssTrm(intgr(Ix),_,ix(Ix)) :-!.
 ssTrm(bigx(Ix),_,ss(Ix)) :-!.
-ssTrm(float(Dx),_,fx(Dx)) :-!.
+ssTrm(flot(Dx),_,fx(Dx)) :-!.
 ssTrm(chr(Cp),_,sq([ss("`"),cp(Cp),ss("`")])) :-!.
 ssTrm(strg(Str),_,qt(Str,'\"')) :-!.
 ssTrm(thrw(_,E),Dp,sq([ss("throw "),EE])) :-
@@ -150,7 +150,7 @@ ssTrm(setix(_,Rc,Off,Vl),Dp,sq([OO,ss("."),ix(Off),ss(":="),VV])) :-!,
   ssTrm(Vl,Dp,VV).
 ssTrm(cel(_,C),Dp,sq([ss("ref "),CC])) :-!,
   ssTrm(C,Dp,CC).
-ssTrm(get(_,C),Dp,sq([CC,ss("!")])) :-!,
+ssTrm(get(_,C,_),Dp,sq([CC,ss("!")])) :-!,
   ssTrm(C,Dp,CC).
 ssTrm(sav(_,_),_Dp,sq([ss("sav"),lp,rp])) :-!.
 ssTrm(savIsSet(_,S),Dp,sq([SS,ss("?")])) :-!,
@@ -170,12 +170,12 @@ ssTrm(ltt(_,Vr,Bnd,Exp),Dp,sq([ss("let "),VV,ss("="),BB,ss(" in "),EE])) :-!,
   ssTrm(Vr,Dp1,VV),
   ssTrm(Bnd,Dp1,BB),
   ssTrm(Exp,Dp1,EE).
-ssTrm(case(_,G,Cases,Deflt),Dp,
+ssTrm(cse(_,G,Cases,Deflt,_),Dp,
       sq([ss("case "),GG,ss(" in "),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
   ssTrm(Deflt,Dp,DD).
-ssTrm(unpack(_,G,Cases,Deflt),Dp,
+ssTrm(unpack(_,G,Cases,Deflt,_),Dp,
       sq([ss("unpack "),GG,ss(" in "),CC,ss(" else "),DD])) :-!,
   ssTrm(G,Dp,GG),
   ssCases(Cases,Dp,lterms:ssTrm,CC),
@@ -289,7 +289,7 @@ ssAct(aTry(_,B,_E,H),Dp,sq([ss("try "),BB,ss(" catch "),HH])) :-
   Dp2 is Dp+2,
   ssAct(B,Dp2,BB),
   ssAct(H,Dp2,HH).
-ssAct(perf(_,E),Dp,sq([ss("call "),EE])) :-
+ssAct(perf(_,E),Dp,sq([ss("do "),EE])) :-
   ssTrm(E,Dp,EE).
 
 ssActSeq(seq(_,A,B),Dp,[AA|BB]) :-!,
@@ -348,7 +348,7 @@ rewriteTerm(_,intgr(Ix),intgr(Ix)).
 rewriteTerm(_,bigx(Ix),bigx(Ix)).
 rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
 rewriteTerm(_,ann(T),ann(T)).
-rewriteTerm(_,float(Dx),float(Dx)).
+rewriteTerm(_,flot(Dx),flot(Dx)).
 rewriteTerm(_,chr(Cp),chr(Cp)).
 rewriteTerm(_,strg(Sx),strg(Sx)).
 rewriteTerm(_,enum(Nm),enum(Nm)).
@@ -378,7 +378,7 @@ rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
   rewriteTerm(QTest,Op,NOp).
 rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
   rewriteTerm(QTest,T,NT).
-rewriteTerm(QTest,get(Lc,T),get(Lc,NT)) :-
+rewriteTerm(QTest,get(Lc,T,Tp),get(Lc,NT,Tp)) :-
   rewriteTerm(QTest,T,NT).
 rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
   rewriteTerm(QTest,Op,NOp),
@@ -399,11 +399,11 @@ rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
 rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,C,NC).
-rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
-  rewriteTerm(QTest,T,NT),
+rewriteTerm(QTest,cse(Lc,G,C,D,T),cse(Lc,NG,NC,ND,T)) :-
+  rewriteTerm(QTest,G,NG),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
-rewriteTerm(QTest,unpack(Lc,T,C,D),unpack(Lc,NT,NC,ND)) :-
+rewriteTerm(QTest,unpack(Lc,T,C,D,Tp),unpack(Lc,NT,NC,ND,Tp)) :-
   rewriteTerm(QTest,T,NT),
   map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
   rewriteTerm(QTest,D,ND).
@@ -535,7 +535,7 @@ isUnit(ctpl(lbl("()0",0),[])).
 
 isLiteral(intgr(_)).
 isLiteral(bigx(_)).
-isLiteral(float(_)).
+isLiteral(flot(_)).
 isLiteral(chr(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
@@ -550,7 +550,7 @@ termHash(voyd,0).
 termHash(unreach,0).
 termHash(intgr(Ix),Ix).
 termHash(bigx(Bx),Hx) :- bigHash(Bx,Hx).
-termHash(float(Dx),Hx) :- Ix is round(Dx), hashSixtyOne(Ix,Hx).
+termHash(flot(Dx),Hx) :- Ix is round(Dx), hashSixtyOne(Ix,Hx).
 termHash(chr(Cp),Ix) :- charHash(0,Cp,Ix).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
 termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).
@@ -588,7 +588,7 @@ inTerm(nth(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
 inTerm(cel(_,C),Nm) :-
   inTerm(C,Nm).
-inTerm(get(_,C),Nm) :-
+inTerm(get(_,C,_),Nm) :-
   inTerm(C,Nm).
 inTerm(setix(_,Op,_,_),Nm) :-
   inTerm(Op,Nm).
@@ -612,13 +612,13 @@ inTerm(whr(_,T,_),Nm) :-
   inTerm(T,Nm),!.
 inTerm(whr(_,_,C),Nm) :-
   inTerm(C,Nm),!.
-inTerm(case(_,T,_C),Nm) :-
+inTerm(cse(_,T,_C,_),Nm) :-
   inTerm(T,Nm),!.
-inTerm(case(_,_T,C),Nm) :-
+inTerm(cse(_,_T,C,_),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
-inTerm(unpack(_,T,_C),Nm) :-
-  inTerm(T,Nm),!.
-inTerm(unpack(_,_T,C),Nm) :-
+inTerm(unpack(_,T,_C,D,_),Nm) :-
+  (inTerm(T,Nm);inTerm(D,Nm)),!.
+inTerm(unpack(_,_T,C,_,_),Nm) :-
   is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
 inTerm(seqD(_,L,R),Nm) :-!,
   inTerm(L,Nm) ; inTerm(R,Nm).
@@ -698,6 +698,7 @@ tipeOf(ann(Tp),Tp).
 tipeOf(idnt(_,T),T).
 tipeOf(chr(_),type("char")).
 tipeOf(intgr(_),type("integer")).
+tipeOf(bigx(_),type("bigint")).
 tipeOf(strg(_),type("string")).
 tipeOf(flot(_),type("float")).
 tipeOf(thrw(_,_),voidType).
@@ -708,7 +709,7 @@ tipeOf(xocall(_,_,_,T,_),T).
 tipeOf(ecll(_,_,_,T),T).
 tipeOf(xecll(_,_,_,T,_),T).
 tipeOf(nth(_,_,_,T),T).
-tipeOf(cel(_,_,T),T).
+tipeOf(cel(_,V),T) :- tipeOf(V,VT), mkRefTp(VT,T).
 tipeOf(get(_,_,T),T).
 tipeOf(setix(_,_,_,_),voidType).
 tipeOf(enum(_),voidType).
@@ -719,8 +720,8 @@ tipeOf(susp(_,_,_,T),T).
 tipeOf(rtire(_,_,_,T),T).
 tipeOf(whr(_,E,_),T) :-
   tipeOf(E,T).
-tipeOf(case(_,_G,_C,_D,T),T).
-tipeOf(unpack(_,_G,_C,_D),voidType).
+tipeOf(cse(_,_G,_C,_D,T),T).
+tipeOf(unpack(_,_G,_C,_D,T),T).
 tipeOf(seqD(_,_,R),T) :- tipeOf(R,T).
 tipeOf(cnj(_,_,_),type("boolean")).
 tipeOf(dsj(_,_,_),type("boolean")).
@@ -728,6 +729,8 @@ tipeOf(cnd(_,_,L,_),T) :- tipeOf(L,T).
 tipeOf(mtch(_,_,_),type("boolean")).
 tipeOf(ng(_,_),type("boolean")).
 tipeOf(ltt(_,_,_,E),T) :- tipeOf(E,T).
+tipeOf(tryX(_,B,_,_),T) :- tipeOf(B,T).
+tipeOf(thrw(_,_),voidType).
 tipeOf(sav(_,T),T).
 tipeOf(savIsSet(_,_),type("boolean")).
 tipeOf(savGet(_,_,Tp),Tp).
@@ -735,6 +738,9 @@ tipeOf(savSet(_,S,T),Nm) :-!,
   inTerm(S,Nm);inTerm(T,Nm).
 tipeOf(clos(_,_,_,Tp),Tp).
 tipeOf(vlof(_,_,T),T).
+tipeOf(error(_,_),voidType).
+tipeOf(T,_) :-
+  reportFatal("Cannot determine type of %s",[ltrm(T)]).
 
 validLProg(PkgDecls,mdule(_,_,_,_,Defs)) :-
   declareStd(Base),
@@ -796,7 +802,7 @@ validTerm(voyd,_,_).
 validTerm(unreach(_,_),_,_).
 validTerm(intgr(_),_,_).
 validTerm(bigx(_),_,_).
-validTerm(float(_),_,_).
+validTerm(flot(_),_,_).
 validTerm(chr(_),_,_).
 validTerm(strg(_),_,_).
 validTerm(lbl(_,_),_,_).
@@ -828,7 +834,7 @@ validTerm(nth(Lc,Rc,Off,_),_,D) :-
   validTerm(Rc,Lc,D).
 validTerm(cel(Lc,C),_,D) :-
   validTerm(C,Lc,D).
-validTerm(get(Lc,C),_,D) :-
+validTerm(get(Lc,C,_),_,D) :-
   validTerm(C,Lc,D).
 validTerm(setix(Lc,Rc,Off,Vl),_,D) :-
   integer(Off),
@@ -851,11 +857,11 @@ validTerm(ltt(Lc,Vr,Bnd,Exp),_,D) :-
   ptnVars(Vr,D,D1),
   validTerm(Vr,Lc,D1),
   validTerm(Exp,Lc,D1).
-validTerm(case(Lc,G,Cases,Deflt),_,D) :-
+validTerm(cse(Lc,G,Cases,Deflt,_),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
-validTerm(unpack(Lc,G,Cases,Deflt),_,D) :-
+validTerm(unpack(Lc,G,Cases,Deflt,_),_,D) :-
   validTerm(G,Lc,D),
   validCases(Cases,lterms:validTerm,D),
   validTerm(Deflt,Lc,D).
@@ -916,7 +922,7 @@ validPtn(ann(_),_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
 validPtn(bigx(_),_,Dx,Dx).
-validPtn(float(_),_,Dx,Dx).
+validPtn(flot(_),_,Dx,Dx).
 validPtn(chr(_),_,Dx,Dx).
 validPtn(strg(_),_,Dx,Dx).
 validPtn(lbl(_,_),_,Dx,Dx).
@@ -1020,7 +1026,7 @@ ptnVars(ann(_),Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
 ptnVars(bigx(_),Dx,Dx).
-ptnVars(float(_),Dx,Dx).
+ptnVars(flot(_),Dx,Dx).
 ptnVars(chr(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).
 ptnVars(lbl(_,_),Dx,Dx).
@@ -1065,7 +1071,7 @@ simplPtn(ann(_)).
 simplPtn(voyd).
 simplPtn(intgr(_)).
 simplPtn(bigx(_)).
-simplPtn(float(_)).
+simplPtn(flot(_)).
 simplPtn(chr(_)).
 simplPtn(strg(_)).
 simplPtn(lbl(_,_)).

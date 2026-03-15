@@ -339,7 +339,7 @@ liftPtn(enm(Lc,Nm,Tp),Ptn,Q,Qx,Map,Opts,Ex,Ex) :- !,
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
 liftPtn(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftPtn(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(floatLit(_,Dx),flot(Dx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(charLit(_,Sx),chr(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -418,7 +418,7 @@ liftExp(enm(Lc,Nm,Tp),Exp,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Tp,Exp,Map,Opts,Q,Qx).
 liftExp(intLit(_,Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(bigLit(_,Ix),bigx(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(floatLit(_,Dx),float(Dx),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(floatLit(_,Dx),flot(Dx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(charLit(_,Cp),chr(Cp),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(stringLit(_,Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -442,25 +442,26 @@ liftExp(tapply(Lc,Op,tple(_,A),Tp,ErTp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   trExpCallOp(Lc,Op,Tp,throw(ErTp),LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tdot(Lc,R,Ix,Tp),nth(Lc,Rc,Ix,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(R,Rc,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(case(Lc,Bnd,Cses,Tp),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
   liftCases(Cses,Cases,Q0,Qx,Map,Opts,transform:liftExp,Ex0,Exx),
   (idnt(_,_)=Bound ->
-   caseMatcher(Lc,Bound,Cases,Map,Result) ;
-   typeOfCanon(Bnd,Tp),
-   genVar("_C",Tp,V),
-   caseMatcher(Lc,V,Cases,Map,Res),
+   caseMatcher(Lc,Bound,Cases,Tp,Map,Result) ;
+   typeOfCanon(Bnd,BTp),
+   genVar("_C",BTp,V),
+   caseMatcher(Lc,V,Cases,Tp,Map,Res),
    Result = ltt(Lc,V,Bound,Res)).
 liftExp(try(Lc,B,ErTp,H),tryX(Lc,BB,E,HH),Q,Qx,Map,Opts,Ex,Exx) :-
+  typeOfCanon(B,Tp),
   liftExp(B,BB,Q,Q1,Map,Opts,Ex,Ex1),
   genVar("_E",ErTp,E),
   liftCases(H,Cases,Q1,Qx,Map,Opts,transform:liftExp,Ex1,Exx),
-  caseMatcher(Lc,E,Cases,Map,HH).
+  caseMatcher(Lc,E,Cases,Tp,Map,HH).
 liftExp(throw(Lc,E,_),thrw(Lc,EE),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(E,EE,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cell(Lc,In),cel(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(deref(Lc,In),get(Lc,CellV),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(deref(Lc,In,Tp),get(Lc,CellV,Tp),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),

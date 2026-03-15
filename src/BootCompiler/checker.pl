@@ -803,7 +803,7 @@ typeOfExp(Term,Tp,ErTp,Env,Ev,cell(Lc,Exp),Opts,Path) :-
   mkRefTp(RT,RTp),
   verifyType(Lc,ast(Term),RTp,Tp,Env),
   typeOfExp(I,RT,ErTp,Env,Ev,Exp,Opts,Path).
-typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp),Opts,Path) :-
+typeOfExp(Term,Tp,ErTp,Env,Ev,deref(Lc,Exp,Tp),Opts,Path) :-
   isCellRef(Term,Lc,I),
   mkRefTp(Tp,RTp),
   typeOfExp(I,RTp,ErTp,Env,Ev,Exp,Opts,Path).

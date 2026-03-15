@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "quick.h"
+#include "disass.h"
 #include "pkgP.h"
 
 static poolPo pkgPool;
@@ -132,6 +133,21 @@ int32 codeOffset(methodPo mtd, ssaInsPo pc) {
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
   return mtdDisp(f, (termPo) data, precision, depth, alt);
+}
+
+void showMethodCode(ioPo out, char *msg, methodPo mtd) {
+  ssaInsPo pc = entryPoint(mtd);
+  ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
+
+  outMsg(out, msg, mtdLabel(mtd));
+
+  outMsg(out, "%d locals\n", lclCount(mtd));
+
+  while (pc < last) {
+    pc = disass(out, NULL, mtd, pc);
+    outMsg(out, "\n");
+  }
+  flushOut();
 }
 
 int32 lclCount(methodPo mtd) {

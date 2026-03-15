@@ -24,7 +24,7 @@ decodeData(Txt,Val) :-
 
 decodeDta(intgr(Nm)) --> ['x'], decInt(Nm).
 decodeDta(bigx(Ix)) --> ['b'], tdigits(Ix).
-decodeDta(float(Dx)) --> ['d'], decFloat(Dx).
+decodeDta(flot(Dx)) --> ['d'], decFloat(Dx).
 decodeDta(ctpl(Nm,[])) --> ['e'], decodeText(Nm).
 decodeDta(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeDta(strg(Txt)) --> ['s'], decodeText(Txt).
@@ -43,7 +43,7 @@ decodeValue(Txt,Val) :-
 decodeTerm(voyd) --> ['v'].
 decodeTerm(intgr(Nm)) --> ['x'], decInt(Nm).
 decodeTerm(bigx(Ix)) --> ['b'], tdigits(Ix).
-decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
+decodeTerm(flot(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
 decodeTerm(chr(Cp)) --> ['c'], decodeChar(Cp).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).

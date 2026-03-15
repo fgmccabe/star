@@ -477,21 +477,6 @@ static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-void showMethodCode(ioPo out, char *msg, methodPo mtd) {
-  ssaInsPo pc = entryPoint(mtd);
-  ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
-
-  outMsg(out, msg, mtdLabel(mtd));
-
-  outMsg(out, "%d locals\n", lclCount(mtd));
-
-  while (pc < last) {
-    pc = disass(out, NULL, mtd, pc);
-    outMsg(out, "\n");
-  }
-  flushOut();
-}
-
 static DebugWaitFor dbgDebug(char *line, enginePo p, termPo lc, void *cl) {
   debugDebugging = !debugDebugging;
 
@@ -849,6 +834,27 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
       return retireDebug(p, lc, topStack(stk));
     default:
       return stepOver;
+  }
+}
+
+logical isDebuggableOp(ssaOp op) {
+  switch (op) {
+    case sAbort:
+    case sCall:
+    case sTCall:
+    case sOCall:
+    case sTOCall:
+    case sEntry:
+    case sRet:
+    case sXRet:
+    case sAssign:
+    case sFiber:
+    case sSuspend:
+    case sResume:
+    case sRetire:
+      return True;
+    default:
+      return False;
   }
 }
 

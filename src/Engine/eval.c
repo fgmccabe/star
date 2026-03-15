@@ -73,7 +73,7 @@ int32 run(enginePo P) {
 
         PROG = mtd;
 
-        for (int32 ax = 0; ax < arity; ax++) {
+        for (int32 ax = arity-1; ax >=0 ; ax--) {
           *--SP = varble(operand(ax+3));
         }
         ARGS = SP;
@@ -117,7 +117,10 @@ int32 run(enginePo P) {
         labelPo lb = closureLabel(lam);
 
         int32 arity = lblArity(lb);
-        int32 insSize = arity + 3;
+        int32 numArgs = operand(2);
+
+        assert(numArgs+1 == arity);
+        int32 insSize = numArgs + 3;
 
         if (lblArity(lb) != operand(2) + 1) {
           logMsg(logFile, "closure %T does not have correct arity %d", lam, arity);
@@ -136,7 +139,7 @@ int32 run(enginePo P) {
         FP->link = PC + insSize;
         FP->args = ARGS;
 
-        for (int32 ax = 0; ax < arity - 1; ax++) {
+        for (int32 ax = numArgs-1; ax >= 0; ax--) {
           *--SP = varble(operand(ax+3));
         }
         *--SP = closureFree(lam); // Put the free term as the first argument
@@ -237,12 +240,22 @@ int32 run(enginePo P) {
           logMsg(logFile, "no definition for %T", lbl);
           bail();
         }
+        assert(arity==operand(2));
 
         // Overwrite existing arguments and locals
         ptrPo tgt = &varble(argCount(PROG));
 
-        for (int ix = 0; ix < arity; ix++)
-          *--tgt = varble(operand(arity+3-ix)); /* copy the argument vector */
+        // We have to make sure we don't overwrite arguments
+        // So, we have to copy. (In jit code, this does not involve a copy)
+        termPo buffer[arity];
+        for (int32 ax = 0; ax < arity; ax++) {
+          buffer[ax] = varble(operand(ax+3));
+        }
+
+        for (int32 ax = arity-1; ax >= 0; ax--) {
+          *--tgt = buffer[ax];
+        }
+
         PC = entryPoint(mtd);
         PROG = mtd;
         ARGS = SP = tgt;
@@ -257,7 +270,9 @@ int32 run(enginePo P) {
         labelPo lb = closureLabel(lam);
 
         int32 arity = lblArity(lb);
-        int32 insSize = arity + 3;
+        int32 numArgs = operand(2);
+
+        assert(numArgs+1==arity);
 
         if (lblArity(lb) != operand(2) + 1) {
           logMsg(logFile, "closure %T does not have correct arity %d", lam, arity);
@@ -274,8 +289,15 @@ int32 run(enginePo P) {
         // Overwrite existing arguments and locals
         ptrPo tgt = &varble(argCount(PROG));
 
-        for (int32 ax = 0; ax < arity - 1; ax++) {
-          *--tgt = varble(operand(arity+3-ax));
+        // We have to make sure we don't overwrite arguments
+        // So, we have to copy. (In jit code, this does not involve a copy)
+        termPo buffer[numArgs];
+        for (int32 ax = 0; ax < numArgs; ax++) {
+          buffer[ax] = varble(operand(ax+3));
+        }
+
+        for (int32 ax = numArgs-1; ax >= 0; ax--) {
+          *--tgt = buffer[ax];
         }
         *--tgt = closureFree(lam); // Put the free term as the first argument
 
@@ -306,6 +328,7 @@ int32 run(enginePo P) {
         for (int32 lx = 1; lx <= lclCount; lx++) {
           varble(-lx) = voidEnum;
         }
+        SP = &ARGS[-lclCount];
         PC += insSize;
         continue;
       };
@@ -409,31 +432,36 @@ int32 run(enginePo P) {
         }
       }
       case sICase: {
-        int32 mx = operand(2);
+        int32 insSize = 3;
+        // This calculation undoes the effects introduced during decoding.
+        int32 mx = (operand(2) - insSize) / 2;
 
         integer hx = hash61(integerVal(varble(operand(1)))) % mx;
 
-        PC = PC + hx + 3;
+        PC = PC + hx * 2 + 3;
         continue;
       }
       case sCase: {
         /* case instruction */
-        int32 mx = operand(2);
+        int32 insSize = 3;
+        int32 mx = (operand(2) - insSize) / 2;
 
         integer hx = hashTerm(varble(operand(1))) % mx;
 
-        PC = PC + hx + 3;
+        PC = PC + hx * 2 + 3;
         continue;
       }
       case sIxCase: {
         // Branch based on index of constructor term
-        int32 mx = operand(2);
+        int32 insSize = 3;
+        int32 mx = (operand(2) - insSize) / 2;
+
         termPo gov = varble(operand(1));
         assert(isNormalPo(gov));
         labelPo lbl = termLbl(C_NORMAL(gov));
         integer hx = lblIndex(lbl) % mx;
 
-        PC = PC + hx + 3;
+        PC = PC + hx * 2 + insSize;
         continue;
       }
       case sCLbl: {
@@ -443,7 +471,8 @@ int32 run(enginePo P) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
-          if (sameLabel(l, termLbl(cl))) {
+          if (sameLabel(l, termLbl(cl))) {\
+
             PC += insSize;
             continue;
           }
@@ -573,15 +602,16 @@ int32 run(enginePo P) {
       }
       case sStSav: {
         // Store into single
-        int32 insSize = 3;
-        singlePo savVr = C_SINGLE(varble(operand(1)));
+        int32 insSize = 4;
+        singlePo savVr = C_SINGLE(varble(operand(2)));
 
         if (singleIsSet(savVr)) {
           logMsg(logFile, "single %T already set", savVr);
           bail();
         }
 
-        setSingle(savVr, varble(operand(2))); // Update the single variable
+        setSingle(savVr, varble(operand(3))); // Update the single variable
+        varble(operand(1)) = varble(operand(3));
         PC += insSize;
         continue;
       }
@@ -600,7 +630,7 @@ int32 run(enginePo P) {
       }
       case sAssign: {
         int32 insSize = 3;
-        cellPo cell = C_CELL(getCell(C_CELL(varble(operand(1)))));
+        cellPo cell = C_CELL(varble(operand(1)));
         setCell(cell, varble(operand(2)));
         PC += insSize;
         continue;
@@ -656,6 +686,7 @@ int32 run(enginePo P) {
 
         if (Rhs == 0) {
           returnBlock(1, divZero);
+          continue;
         } else {
           varble(operand(2)) = makeInteger(Lhs / Rhs);
         }
@@ -669,6 +700,7 @@ int32 run(enginePo P) {
 
         if (Rhs == 0) {
           returnBlock(1, divZero);
+          continue;
         } else {
           varble(operand(2)) = makeInteger(Lhs % Rhs);
         }
@@ -839,9 +871,8 @@ int32 run(enginePo P) {
         double Rhs = floatVal(varble(operand(4)));
 
         if (Rhs == 0) {
-          breakBlock(1);
-          RSLT.value = divZero;
-          RSLT.status = Abnormal;
+          returnBlock(1,divZero);
+          continue;
         } else {
           varble(operand(2)) = makeFloat(H, Lhs / Rhs);
         }
@@ -856,9 +887,8 @@ int32 run(enginePo P) {
         double Rhs = floatVal(varble(operand(4)));
 
         if (Rhs == 0) {
-          breakBlock(1);
-          RSLT.value = divZero;
-          RSLT.status = Abnormal;
+          returnBlock(1,divZero);
+          continue;
         } else {
           varble(operand(2)) = makeFloat(H, fmod(Lhs, Rhs));
         }
@@ -911,8 +941,8 @@ int32 run(enginePo P) {
         checkAlloc(NormalCellCount(arity));
         normalPo cl = allocateStruct(H, lbl); /* allocate a closure on the heap */
         for (int32 ix = 0; ix < arity; ix++)
-          cl->args[ix] = varble(operand(ix+3)); /* fill in free variables by getting from locals */
-        varble(operand(1)) = (termPo) cl; /* put the structure back on the stack */
+          cl->args[ix] = varble(operand(ix+4)); /* fill in free variables by getting from locals */
+        varble(operand(2)) = (termPo) cl; /* put the structure back on the stack */
         PC += arity + 4;
         continue;
       }
@@ -925,8 +955,6 @@ int32 run(enginePo P) {
           logMsg(logFile, "label %A not defined", lbl);
           bail();
         }
-        int32 arity = lblArity(lbl);
-
         closurePo cl = newClosure(H, lbl, varble(operand(3)));
         varble(operand(2)) = (termPo) cl; /* put the structure back on the stack */
         PC += insSize;
@@ -956,7 +984,7 @@ int32 run(enginePo P) {
         // Suspend identified fiber.
         int32 insSize = 3;
         stackPo stack = C_STACK(varble(operand(1)));
-        termPo event = varble(operand(1));
+        termPo event = varble(operand(2));
 
         if (stackState(stack) != active) {
           logMsg(logFile, "tried to suspend %s fiber %T", stackStateName(stackState(stack)), stack);

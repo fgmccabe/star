@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define lcm "m"
 #define lit "l"
 #define glb "g"
 #define art "a"
@@ -158,6 +159,9 @@ static void genOp(asmInfoPo info, char **fmt) {
       return;
     case Slcls:
       outMsg(O_IO(info->line), "mkTpl(findLocals(V%d,Lcs))", (info->vNo)++);
+      return;
+    case Slcm:
+      outMsg(O_IO(info->line), ".intgr(V%d)", (info->vNo)++);
       return;
     case Slit: {
       int32 lastLtno = info->ltNo++;
@@ -261,6 +265,8 @@ static char *opAndTp(char **f) {
       return "varNm";
     case Slcls:
       return "cons[varNm]";
+    case Slcm:
+      return "integer";
     case Slit:
       return "data";
     case Sglb:
@@ -278,7 +284,7 @@ static char *opAndTp(char **f) {
       return "termLbl";
 
     default:
-      fprintf(stderr, "Unknown instruction type code\n");
+      fprintf(stderr, "Unknown instruction type code: %c\n", *((*f) - 1));
       exit(1);
   }
 }
@@ -306,6 +312,7 @@ static void genDisp(ioPo out, char *fmt, int32 arity) {
         continue;
       case Slcls:
       case Slit:
+      case Slcm:
         outMsg(out, " $(V%d)", ix++);
         continue;
       case Sglb:

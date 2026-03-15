@@ -27,7 +27,7 @@ arrayPo allocArray(int elSize, int32 initial, logical growable) {
   ar->data = malloc(elSize * initial);
   ar->dataLength = elSize * initial;
   ar->count = 0;
-  ar->grow = (growable?resizeArray:Null);
+  ar->grow = (growable ? resizeArray : Null);
   ar->free = freeArrayData;
   return ar;
 }
@@ -49,10 +49,10 @@ arrayPo fixedCopy(arrayPo ar, arrayDataCopy copier, arrayRelease release) {
 
   arrayPo new = (arrayPo) allocPool(arrayPool);
   new->elSize = ar->elSize;
-  if (copier!=Null) {
+  if (copier != Null) {
     new->data = copier(ar->data, ar->count * ar->elSize);
     new->free = release;
-  }else {
+  } else {
     new->data = malloc(ar->count * ar->elSize);
     memcpy(new->data, ar->data, ar->count * ar->elSize);
     new->free = freeArrayData;
@@ -66,17 +66,17 @@ arrayPo fixedCopy(arrayPo ar, arrayDataCopy copier, arrayRelease release) {
 static retCode ensureRoom(arrayPo ar, int32 request) {
   assert(request >= 0);
 
-  if (ar->dataLength < (ar->count+request) * ar->elSize) {
-    if (ar->grow==Null || ar->grow(ar,request)!=Ok)
+  if (ar->dataLength < (ar->count + request) * ar->elSize) {
+    if (ar->grow == Null || ar->grow(ar, request) != Ok)
       return Error;
   }
   return Ok; // We have enough room
 }
 
-retCode resizeArray(arrayPo ar, int32 request){
-  int32 newSize = ar->dataLength+request*ar->elSize;
-  
-  void *newData = realloc(ar->data, (size_t)newSize);
+retCode resizeArray(arrayPo ar, int32 request) {
+  int32 newSize = ar->dataLength + request * ar->elSize;
+
+  void *newData = realloc(ar->data, (size_t) newSize);
   if (newData == Null)
     return Space;
   else {
@@ -86,41 +86,44 @@ retCode resizeArray(arrayPo ar, int32 request){
   }
 }
 
-void freeArrayData(arrayPo ar){
+void freeArrayData(arrayPo ar) {
   free(ar->data);
 }
 
-retCode appendEntry(arrayPo ar, void *el) {
-  if(ensureRoom(ar,1)==Ok){
+int32 appendEntry(arrayPo ar, void *el) {
+  if (ensureRoom(ar, 1) == Ok) {
     assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     void *tgt = ar->data + (ar->count * ar->elSize);
     memcpy(tgt, el, ar->elSize);
-    ar->count++;
-    return Ok;
+    return ar->count++;
   }
-  else
-    return Error;
+  return -1;
 }
 
 retCode insertEntry(arrayPo ar, int32 ix, void *el) {
-  if(ensureRoom(ar,1)==Ok){
+  if (ensureRoom(ar, 1) == Ok) {
     assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     memmove(ar->data + ((ix+1) * ar->elSize), ar->data+(ix*ar->elSize), (ar->count-ix)*ar->elSize);
     memcpy(ar->data+(ix*ar->elSize), el, ar->elSize);
     ar->count++;
     return Ok;
-  }
-  else
+  } else
     return Error;
 }
 
 void *newEntry(arrayPo ar) {
-  if(ensureRoom(ar,1)==Ok){
+  if (ensureRoom(ar, 1) == Ok) {
     assert((ar->count + 1) * ar->elSize <= ar->dataLength);
     ar->count++;
-    return ar->data + ((ar->count-1) * ar->elSize);
+    return ar->data + ((ar->count - 1) * ar->elSize);
   } else
     return Null;
+}
+
+retCode setEntry(arrayPo ar, int32 ix, void *el) {
+  assert(ix >= 0 && ix < ar->count);
+  memcpy(ar->data + (ix * ar->elSize), el, ar->elSize);
+  return Ok;
 }
 
 int32 arrayCount(arrayPo ar) {
@@ -144,7 +147,7 @@ arrayPo eraseArray(arrayPo ar, arrayElProc eraser, void *cl) {
   if (eraser != Null)
     processArray(ar, eraser, cl);
 
-  if (ar->free!=Null)
+  if (ar->free != Null)
     ar->free(ar);
   freePool(arrayPool, ar);
   return Null;
@@ -165,7 +168,7 @@ retCode showArray(ioPo out, arrayPo ar, showElProc proc, void *cl) {
   retCode ret = outMsg(out, "[");
   char *sep = "";
 
-  for (int32 ix=0; ret == Ok && ix < ar->count; ix++) {
+  for (int32 ix = 0; ret == Ok && ix < ar->count; ix++) {
     outMsg(out, "%s", sep);
     sep = ", ";
     void *entry = nthEntry(ar, ix);
@@ -202,8 +205,8 @@ static retCode swapEntry(int32 el1, int32 el2, void *cl) {
 }
 
 retCode sortArray(arrayPo ar, compareEls compare, void *cl) {
-  ArrayCtx ctx = {.src=ar, .compare=compare, .cl=cl};
-  return quick(0, arrayCount(ar)-1, elComp, swapEntry, (void *) &ctx);
+  ArrayCtx ctx = {.src = ar, .compare = compare, .cl = cl};
+  return quick(0, arrayCount(ar) - 1, elComp, swapEntry, (void *) &ctx);
 }
 
 retCode copyOutData(arrayPo ar, void *buffer, int32 buffSize) {

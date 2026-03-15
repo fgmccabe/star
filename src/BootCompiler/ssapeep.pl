@@ -5,12 +5,14 @@
 :- use_module(ssa).
 :- use_module(errors).
 
-peepOptimize(func(Nm,H,Sig,AgMap,LsMap,Ins),func(Nm,H,Sig,AgMap,LsMx,Insx)) :-
+peepOptimize(func(Nm,H,Sig,LsMap,Ins),func(Nm,H,Sig,LsMx,Insx)) :-
+  is_member(iEntry(_,Lcls),Ins),
   peepCode(Ins,[],PIns),
-  findUnusedVars(LsMap,AgMap,PIns,LsMx,Ins0),!,
+  findUnusedVars(Lcls,PIns,IntLcls,Ins0),!,
   peepCode(Ins0,[],Ins1),  % We need to peep twice, cos dropping vars gives us a chance for more
-  findUnusedVars(LsMap,AgMap,Ins1,LsMx,Ins2),!,
-  adjustEntry(Ins2,LsMx,Insx).
+  findUnusedVars(IntLcls,Ins1,FnlLcls,Ins2),!,
+  adjustEntry(Ins2,FnlLcls,Insx),
+  adjustLocalMap(LsMap,FnlLcls,LsMx).
 
 peepCode(Ins,Lbls,Code) :-
   dropUnreachable(Ins,Is),!,
@@ -19,38 +21,40 @@ peepCode(Ins,Lbls,Code) :-
   length(Is0,L2),
   (L2<L1*0.9 -> peep(Is0,Lbls,Code) ; Code=Is0).
 
-findUnusedVars([(Vr,_Spec)|Vrs],AgMap,Ins,AVrs,ACde) :-
+findUnusedVars([Vr|Vrs],Ins,AVrs,ACde) :-
   \+varRead(Vr,Ins),
-  \+is_member((Vr,_),AgMap),
   dropVar(Vr,Ins,I1),!,
-  findUnusedVars(Vrs,AgMap,I1,AVrs,ACde).
-findUnusedVars([(Vr,Spec)|Vrs],AgMap,Ins,[(Vr,Spec)|AVrs],ACde) :-
-  findUnusedVars(Vrs,AgMap,Ins,AVrs,ACde).
-findUnusedVars([],_,Ins,[],Ins).
+  findUnusedVars(Vrs,I1,AVrs,ACde).
+findUnusedVars([Vr|Vrs],Ins,[Vr|AVrs],ACde) :-
+  findUnusedVars(Vrs,Ins,AVrs,ACde).
+findUnusedVars([],Ins,[],Ins).
 
 varRead(Vr,[I|_]) :- vrRead(Vr,I),!.
 varRead(Vr,[_|Ins]) :- varRead(Vr,Ins).
 
+vrRead(Vr,iEntry(As,_)) :-
+  is_member(Vr,As).
 vrRead(Vr,iCall(_,As)) :-
-    is_member(Vr,As).
+  is_member(Vr,As).
 vrRead(Vr,iTCall(_,As)) :-
-    is_member(Vr,As).
+  is_member(Vr,As).
 vrRead(Vr,iEscape(_,As)) :-
-    is_member(Vr,As).
+  is_member(Vr,As).
 vrRead(Vr,iRSP(Vr)).
 vrRead(Vr,iRSX(_,Vr)).
 vrRead(Vr,iOCall(Vr,_)).
 vrRead(Vr,iOCall(_,As)) :-
-    is_member(Vr,As),!.
+  is_member(Vr,As),!.
 vrRead(Vr,iTOCall(Vr,_)).
 vrRead(Vr,iTOCall(_,As)) :-
-    is_member(Vr,As),!.
+  is_member(Vr,As),!.
 vrRead(Vr,iHalt(Vr)).
 vrRead(Vr,iAbort(_,Vr)).
 vrRead(Vr,iRet(Vr)).
 vrRead(Vr,iXRet(Vr)).
 
 vrRead(Vr,iBlock(I)) :- varRead(Vr,I).
+vrRead(Vr,iValof(Vr,_)).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
 vrRead(Vr,iResult(_,Vr)).
 vrRead(Vr,iFiber(_,Vr)).
@@ -67,12 +71,13 @@ vrRead(Vr,iSG(_,Vr)).
 
 vrRead(Vr,iLdSav(_,_,Vr)).
 vrRead(Vr,iTstSav(_,Vr)).
-vrRead(Vr,iStSav(_,Vr)).
+vrRead(Vr,iStSav(_,_,Vr)).
+vrRead(Vr,iStSav(_,Vr,_)).
 
 vrRead(Vr,iCell(_,Vr)).
 vrRead(Vr,iGet(_,Vr)).
-vrRead(Vr,iAssign(_,Vr,_)).
-vrRead(Vr,iAssign(_,_,Vr)).
+vrRead(Vr,iAssign(Vr,_)).
+vrRead(Vr,iAssign(_,Vr)).
 
 vrRead(Vr,iCLbl(_,_,Vr)).
 vrRead(Vr,iCChar(_,_,Vr)).
@@ -113,7 +118,7 @@ vrRead(Vr,iFDiv(_,_,_,Vr)).
 vrRead(Vr,iFDiv(_,_,Vr,_)).
 vrRead(Vr,iFMod(_,_,_,Vr)).
 vrRead(Vr,iFMod(_,_,Vr,_)).
-vrRead(Vr,iFbs(_,Vr)).
+vrRead(Vr,iFAbs(_,Vr)).
 
 vrRead(Vr,iIEq(_,Vr,_)).
 vrRead(Vr,iIEq(_,_,Vr)).
@@ -170,11 +175,10 @@ vrWrite(Vr,iSav(Vr)).
 
 vrWrite(Vr,iLdSav(Vr,_,_)).
 vrWrite(Vr,iTstSav(Vr,_)).
-vrWrite(Vr,iStSav(Vr,_)).
+vrWrite(Vr,iStSav(Vr,_,_)).
 
 vrWrite(Vr,iCell(Vr,_)).
 vrWrite(Vr,iGet(Vr,_)).
-vrWrite(Vr,iAssign(Vr,_,_)).
 
 vrWrite(Vr,iNth(Vr,_,_)).
 
@@ -220,7 +224,8 @@ dropVar(_,[],[]).
 dropVar(Vr,[iBlock(In)|Is],[iBlock(Inx)|Isx]) :-
   dropVar(Vr,In,Inx),
   dropVar(Vr,Is,Isx).
-dropVar(Vr,[iValof(Vr,_)|Is],Isx) :-
+dropVar(Vr,[iValof(Vx,VI)|Is],[iValof(Vx,VnI)|Isx]) :-
+  dropVar(Vr,VI,VnI),
   dropVar(Vr,Is,Isx).
 dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
   dropVar(Vr,[I],IRx),
@@ -232,9 +237,6 @@ dropVar(Vr,[iLbl(Lb,I)|Ins],Inx) :-
    reportFatal("problem in dropVar",[])).
 dropVar(Vr,[I|Is],Isx) :-
   vrWrite(Vr,I),!,
-  dropVar(Vr,Is,Isx).
-dropVar(Vr,[I|Is],Isx) :-
-  vrRead(Vr,I),!,
   dropVar(Vr,Is,Isx).
 dropVar(Vr,[I|Is],[I|Isx]) :-
   dropVar(Vr,Is,Isx).
@@ -359,8 +361,14 @@ resolveLblRef(Lb,Lbls,LLb) :-
 retarget(iMv(T,S),T,iMv(Tgt,S),Tgt).
 retarget(iNth(T,X,S),T,iNth(Tgt,X,S),Tgt).
 
-
-adjustEntry([iEntry(Ar,_)|Ins],LsMx,[iEntry(Ar,Cnt)|Ins]) :-!,
-  length(LsMx,Cnt).
+adjustEntry([iEntry(Ar,Lcs)|Ins],LsMx,[iEntry(Ar,Ls)|Ins]) :-!,
+  adjustLocalMap(Lcs,LsMx,Ls).
 adjustEntry([Op|Ins],LsMx,[Op|Insx]) :-
   adjustEntry(Ins,LsMx,Insx).
+
+adjustLocalMap(LsMap,Fnls,LsMx) :-
+  filter(LsMap,ssapeep:filterLocal(Fnls),LsMx).
+
+filterLocal(Fnls,Nm) :-
+  is_member(Nm,Fnls),!.
+

@@ -9,16 +9,18 @@
 :- use_module(escapes).
 :- use_module(errors).
 
-assemSSA(func(Nm,Pol,Sig,Ags,Lcls,Ins),MTpl) :-
+assemSSA(func(Nm,Pol,Sig,LSpecs,Ins),MTpl) :-
     findLit([],Nm,_,Ls0),
     findLit(Ls0,strg(Sig),SgIx,Ls1),
-    declareArgs(Ags,[],AgMap,[],VrMap),
-    declareLocals(Lcls,AgMap,Lcs,VrMap,VrDescs),
+    (is_member(iEntry(Ags,Lcs),Ins) ->
+     declareArgs(Ags,LSpecs,[],AgMap,[],AgDescs),
+     declareLocals(Lcs,LSpecs,AgMap,LcMap,AgDescs,VrDescs);
+     reportFatal("no valid iEntry found")),
     createLocals(VrDescs,LcsTpl),
-    assemBlock(Ins,none,[],Ls1,Lts,Lcs,Code),
+    assemBlock(Ins,none,[],Ls1,Lts,LcMap,Code),
     mkLitTpl(Lts,LtTpl),
     encPolicy(Pol,HP),
-    length(Lcls,Lx),
+    length(Lcs,Lx),
     mkCons("code",[Nm,HP,intgr(SgIx),intgr(Lx),LtTpl,Code,LcsTpl],MTpl).
 assemSSA(struct(Lbl,Sig,Ix),Tpl) :-
     mkCons("struct",[Lbl,Sig,intgr(Ix)],Tpl).
@@ -88,24 +90,30 @@ fndLcls([Nm|Ns],Map,[Off|Ofs]) :-
   findLocal(Nm,Map,Off),
   fndLcls(Ns,Map,Ofs).
 
-declareLocals(Lst,Map,Mapx,Lcls,Lclx) :-
-  declareLocals(Lst,-1,Map,Mapx,Lcls,Lclx).
+declareArgs(Lst,Specs,Map,Mapx,Els,Lclx) :-
+  declareArgs(Lst,Specs,0,Map,Mapx,Els,Lclx).
 
-declareLocals([],_,Map,Map,Lcls,Lcls) :-!.
-declareLocals([(Nm,_)|Lcls],Off,Map,Mapx,Lx,Lclx) :-
-  is_member((Nm,_),Map),!,
-  declareLocals(Lcls,Off,Map,Mapx,Lx,Lclx).
-declareLocals([(Nm,Spec)|Lcls],Off,Map,Mapx,Lx,Lclx) :-
-  Off1 is Off-1,
-  declareLocals(Lcls,Off1,[(Nm,Off)|Map],Mapx,[(strg(Nm),intgr(Off),Spec)|Lx],Lclx).
-
-declareArgs(Lst,Map,Mapx,Els,Lclx) :-
-  declareArgs(Lst,0,Map,Mapx,Els,Lclx).
-
-declareArgs([],_,VrMap,VrMap,Lcs,Lcs) :-!.
-declareArgs([(Nm,Spec)|As],Off,AgMap,AgMapx,Lcls,Lclx) :-
+declareArgs([],_,_,VrMap,VrMap,Lcs,Lcs) :-!.
+declareArgs([Nm|As],Specs,Off,AgMap,AgMapx,Lcls,Lclx) :-
+  is_member((Nm,Spec),Specs),!,
   Off1 is Off+1,
-  declareArgs(As,Off1,[(Nm,Off)|AgMap],AgMapx,[(strg(Nm),intgr(Off),Spec)|Lcls],Lclx).
+  declareArgs(As,Specs,Off1,[(Nm,Off)|AgMap],AgMapx,[(strg(Nm),intgr(Off),Spec)|Lcls],Lclx).
+declareArgs([],_,_,VrMap,VrMap,Lcs,Lcs) :-!.
+declareArgs([Nm|As],Specs,Off,AgMap,AgMapx,Lcls,Lclx) :-
+  Off1 is Off+1,
+  declareArgs(As,Specs,Off1,[(Nm,Off)|AgMap],AgMapx,Lcls,Lclx).
+
+declareLocals(Lst,Specs,Map,Mapx,Lcls,Lclx) :-
+  declareLocals(Lst,Specs,-1,Map,Mapx,Lcls,Lclx).
+
+declareLocals([],_,_,Map,Map,Lcls,Lcls) :-!.
+declareLocals([Nm|Lcls],Specs,Off,Map,Mapx,Lx,Lclx) :-
+  is_member((Nm,Spec),Specs),!,
+  Off1 is Off-1,
+  declareLocals(Lcls,Specs,Off1,[(Nm,Off)|Map],Mapx,[(strg(Nm),intgr(Off),Spec)|Lx],Lclx).
+declareLocals([Nm|Lcls],Specs,Off,Map,Mapx,Lx,Lclx) :-
+  Off1 is Off-1,
+  declareLocals(Lcls,Specs,Off1,[(Nm,Off)|Map],Mapx,Lx,Lclx).
 
 createLocals(Entries,Tpl) :-
   sortEntries(Entries,Sorted),
@@ -144,8 +152,7 @@ dispSSA(Prog) :-
   validSS(O),
   displayln(O).
 
-showCode(func(Nm,H,Sig,Ags,Lcls,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),AA,nl(0),LL,iv(nl(0),II)])) :-
-  ssArgs(Ags,AA),
+showCode(func(Nm,H,Sig,Lcls,Ins),sq([HH,ss(" "),NN,ss(":"),ss(Sig),nl(0),LL,iv(nl(0),II)])) :-
   ssLocals(Lcls,LL),
   ssTrm(Nm,0,NN),
   showMnems(Ins,[0],II),
@@ -190,7 +197,6 @@ showMnems([M|Ins],Pc,[MM|II]) :-
   showMnems(Ins,Pc1,II).
 
 #(Show)
-
 showCallArgs(Lcs,sq([ss("("),sq(LL),ss(")")])) :-
   shLs(Lcs,ss(""),LL).
 

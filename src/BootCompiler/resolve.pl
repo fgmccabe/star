@@ -197,7 +197,7 @@ overloadTerm(open(Lc,Er,Tp),Dict,Opts,St,Stx,open(Lc,Err,Tp)) :-
   overloadTerm(Er,Dict,Opts,St,Stx,Err).
 overloadTerm(cell(Lc,Inn),Dict,Opts,St,Stx,cell(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,Opts,St,Stx,Inn1).
-overloadTerm(deref(Lc,Inn),Dict,Opts,St,Stx,deref(Lc,Inn1)) :-
+overloadTerm(deref(Lc,Inn,Tp),Dict,Opts,St,Stx,deref(Lc,Inn1,Tp)) :-
   overloadTerm(Inn,Dict,Opts,St,Stx,Inn1).
 overloadTerm(letExp(Lc,Decls,Defs,Bound),Dict,Opts,St,Stx,
 	     letExp(Lc,Decls,RDefs,RBound)) :-

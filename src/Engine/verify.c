@@ -49,7 +49,7 @@ static retCode verifyBlock(int32 from,
                            int32 pc,
                            int32 limit,
                            verifyCtxPo parentCtx,
-                           logical hasValue, int32 rsltVr);
+                           logical hasValue);
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (traceVerify > noTracing)
@@ -84,7 +84,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     locals[ax + argPnt].inited = True;
   }
 
-  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, False, MAX_INT32);
+  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, False);
 }
 
 static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, logical returningValue) {
@@ -124,8 +124,11 @@ static void initLocal(verifyCtxPo ctx, int32 vrNo) {
   ctx->locals[ctx->argPnt + vrNo].inited = True;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical
-                    hasValue, int32 rsltVr) {
+static logical validTarget(verifyCtxPo ctx, int32 vrNo) {
+  return validLocal(ctx, vrNo);
+}
+
+retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical hasValue) {
   ssaInsPo code = parentCtx->mtd->instructions;
 
   char prefix[MAXLINE];
@@ -210,8 +213,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sRSP: {
         int32 insWidth = 2;
         int32 callRsltVr = operand(1);
-        if (!validLocal(&ctx, callRsltVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, callRsltVr);
+        if (!validTarget(&ctx, callRsltVr))
+          return verifyError(&ctx, "%d: result variable %d already assigned", pc, callRsltVr);
         initLocal(&ctx, callRsltVr);
         if (isLastPC(pc + insWidth, limit))
           return verifyError(&ctx, ".%d: RSP should not be last instruction in block", pc);
@@ -220,12 +223,13 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       }
       case sRSX: {
         int32 insWidth = 3;
-        if (checkBreak(&ctx, pc, operand(1), True) != Ok)
+        if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
           return Error;
 
-        int32 callRsltVr = operand(1);
-        if (!validLocal(&ctx, callRsltVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, callRsltVr);
+        int32 callRsltVr = operand(2);
+        if (!validTarget(&ctx, callRsltVr))
+          return verifyError(&ctx, "%d: result variable %d already assigned", pc, callRsltVr);
+
         initLocal(&ctx, callRsltVr);
         if (isLastPC(pc + insWidth, limit))
           return verifyError(&ctx, ".%d: RSX should not be last instruction in block", pc);
@@ -364,7 +368,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sBlock: {
         int32 blockLen = operand(1);
 
-        if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, False, MAX_INT32) == Ok) {
+        if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, False) == Ok) {
           pc += blockLen;
           continue;
         }
@@ -377,7 +381,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!validLocal(&ctx, blkRsltVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, blkRsltVr);
 
-        if (verifyBlock(pc, pc + insSize, pc + blockLen, &ctx, True, blkRsltVr) == Ok) {
+        if (blockLen<=0)
+          return verifyError(&ctx, "%d: valof block length: %d must be > 0", pc, blockLen);
+
+        if (verifyBlock(pc, pc + insSize, pc + blockLen, &ctx, True) == Ok) {
           pc += blockLen;
           initLocal(&ctx, blkRsltVr);
           continue;
@@ -419,20 +426,20 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sIf:
       case sIfNot: {
         int32 insSize = 3;
-        int32 isRsltVr = operand(2);
+        int32 tstVr = operand(2);
 
         if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
           return Error;
 
-        if (!initedLocal(&ctx, isRsltVr))
-          return verifyError(&ctx, ".%d: result var %d not initialized", pc, isRsltVr);
+        if (!initedLocal(&ctx, tstVr))
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, tstVr);
 
         pc += insSize;
         continue;
       }
       case sCLbl: {
         int32 insSize = 4;
-        int32 cmpVr = operand(3);
+        int32 srcVr = operand(3);
 
         int32 constant = operand(1);
         if (!isDefinedConstant(constant))
@@ -445,8 +452,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
           return Error;
 
-        if (!initedLocal(&ctx, cmpVr))
-          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, srcVr);
 
         pc += insSize;
         continue;
@@ -467,7 +474,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return Error;
 
         if (!initedLocal(&ctx, cmpVr))
-          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, cmpVr);
 
         pc += insSize;
         continue;
@@ -488,7 +495,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return Error;
 
         if (!initedLocal(&ctx, cmpVr))
-          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, cmpVr);
 
         pc += insSize;
         continue;
@@ -509,7 +516,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return Error;
 
         if (!initedLocal(&ctx, cmpVr))
-          return verifyError(&ctx, ".%d: result var %d not initialized", pc, cmpVr);
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, cmpVr);
 
         pc += insSize;
         continue;
@@ -526,7 +533,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return Error;
 
         if (!initedLocal(&ctx, cmpVr))
-          return verifyError(&ctx, ".%d: compare var %d not initialized", pc, cmpVr);
+          return verifyError(&ctx, ".%d: var %d not initialized", pc, cmpVr);
 
         pc += insSize;
         continue;
@@ -535,8 +542,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sCase:
       case sIxCase: {
         int32 gvVr = operand(1);
-        int32 caseCount = operand(2);
         int32 insSize = 3;
+        int32 caseCount = (operand(2) - insSize) / 2;
 
         if (!initedLocal(&ctx, gvVr))
           return verifyError(&ctx, ".%d: case governing var %d not initialized", pc, gvVr);
@@ -544,6 +551,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         pc += insSize;
 
         for (int32 ix = 0; ix < caseCount; ix++) {
+          if (traceVerify > generalTracing) {
+            disass(logFile, Null, ctx.mtd, &code[pc]);
+            outMsg(logFile, "\n%_");
+          }
           switch (code[pc].op.op) {
             case sBreak:
             case sLoop:
@@ -570,8 +581,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (lit == Null)
           return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -580,12 +591,12 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sMv: {
         int32 insSize = 3;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(2);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -605,7 +616,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sSG: {
         int32 insSize = 3;
         int32 glbNo = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(2);
 
         globalPo glb = findGlobalVar(glbNo);
         if (glb == Null)
@@ -621,8 +632,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         int32 insSize = 2;
         int32 tgtVr = operand(1);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -631,7 +642,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sTstSav: {
         int32 insSize = 3;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(2);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
@@ -645,31 +656,61 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sLdSav: {
         int32 insSize = 4;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(3);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
         if (!validLocal(&ctx, tgtVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
 
-        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+        if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
           return Error;
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
         continue;
       }
-      case sStSav:
-      case sCell:
-      case sGet: {
-        int32 insSize = 3;
+      case sStSav: {
+        int32 insSize = 4;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(3);
+        int32 vlVr = operand(2);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
+        if (!initedLocal(&ctx, vlVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, vlVr);
+
         if (!validLocal(&ctx, tgtVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sCell: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(2);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
+
+        initLocal(&ctx, tgtVr);
+        pc += insSize;
+        continue;
+      }
+      case sGet: {
+        int32 insSize = 3;
+        int32 tgtVr = operand(1);
+        int32 srcVr = operand(2);
+        if (!initedLocal(&ctx, srcVr))
+          return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
+
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -678,26 +719,24 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sAssign: {
         int32 insSize = 3;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(2);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
         if (!initedLocal(&ctx, tgtVr))
           return verifyError(&ctx, "%d: result variable %d not inited", pc, tgtVr);
-
-        initLocal(&ctx, tgtVr);
         pc += insSize;
         continue;
       }
       case sNth: {
         int32 insSize = 4;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(3);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result var %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -706,7 +745,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       case sStNth: {
         int32 insSize = 4;
         int32 tgtVr = operand(1);
-        int32 srcVr = operand(1);
+        int32 srcVr = operand(3);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
@@ -729,8 +768,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr2))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -743,7 +782,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         int32 srcVr1 = operand(3);
         int32 srcVr2 = operand(4);
 
-        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+        if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
           return Error;
 
         if (!initedLocal(&ctx, srcVr1))
@@ -751,8 +790,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr2))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -765,8 +804,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -796,8 +835,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr2))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -810,8 +849,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);;
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -829,8 +868,8 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr2))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -843,15 +882,16 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         int32 srcVr1 = operand(3);
         int32 srcVr2 = operand(4);
 
-        if (checkBreak(&ctx, pc, operand(1), False) != Ok)
+        if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
           return Error;
 
         if (!initedLocal(&ctx, srcVr1))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr1);
         if (!initedLocal(&ctx, srcVr2))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr2);
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
@@ -864,14 +904,15 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
-          return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
+        if (!validTarget(&ctx, tgtVr))
+          return verifyError(&ctx, "%d: result variable %d already inited", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
         pc += insSize;
         continue;
       }
       case sAlloc: {
+        int32 insSize = 4;
         int32 constant = operand(1);
         if (!isDefinedConstant(constant))
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
@@ -888,7 +929,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return verifyError(&ctx, ".%d: argument count mismatch", pc);
 
         for (int32 ix = 0; ix < arity; ix++) {
-          int32 argVr = code[pc + 3 + ix].op.ltrl;
+          int32 argVr = code[pc + insSize + ix].op.ltrl;
           if (!initedLocal(&ctx, argVr))
             return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
         }
@@ -896,14 +937,14 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (*ctx.maxArgCnt <= argCnt)
           *ctx.maxArgCnt = argCnt;
 
-        if (!validLocal(&ctx, allocVr))
+        if (!validTarget(&ctx, allocVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, allocVr);
 
-        initLocal(&ctx, argCnt);
+        initLocal(&ctx, allocVr);
 
-        if (isLastPC(pc + argCnt + 4, limit))
+        if (isLastPC(pc + argCnt + insSize, limit))
           return verifyError(&ctx, ".%d: Call should not be last instruction in block", pc);
-        pc += argCnt + 4;
+        pc += argCnt + insSize;
         continue;
       }
       case sClosure: {
@@ -922,7 +963,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, freeVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, freeVr);
 
-        if (!validLocal(&ctx, tgtVr))
+        if (!validTarget(&ctx, tgtVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
@@ -946,7 +987,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: source var %d not inited", pc, srcVr);
 
-        if (!validLocal(&ctx, tgtVr))
+        if (!validTarget(&ctx, tgtVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
 
         initLocal(&ctx, tgtVr);
@@ -967,11 +1008,17 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         continue;
       }
       case sUnderflow: {
-        int32 insSize = 1;
+        return verifyError(&ctx, ".%d: Underflow not permitted in user code", pc);
+      }
+      case sLine: {
+        int32 insSize = 2;
+        int32 constant = operand(1);
+        if (!isDefinedConstant(constant))
+          return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
+
         pc += insSize;
         continue;
       }
-      case sLine:
       case sdBug: {
         int32 insSize = 2;
         int32 constant = operand(1);
@@ -979,6 +1026,9 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
         pc += insSize;
+        if (!isDebuggableOp(code[pc].op.op))
+          return verifyError(&ctx, ".%d: not a debuggable instruction: %d ", pc, code[pc].op.op);
+
         continue;
       }
       case sBind: {

@@ -1,4 +1,4 @@
-test.sy{
+test.syntax{
   import star.
   import star.assert.
 

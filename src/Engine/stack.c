@@ -52,8 +52,8 @@ void initStacks() {
   StackClass.clss.clss = specialClass;
   static Instruction underflowCode[] = {sUnderflow};
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1);
-  static Instruction newTaskCode[] = {sRSP, 0, -1, sOCall, 3, 0, 1, -1, sUnderflow};
-  taskProg = specialMethod("newTask", 2, NumberOf(newTaskCode), newTaskCode, 0, 3);
+  static Instruction newTaskCode[] = {sEntry, 2, 1, sRSP, -1, sOCall, 1, 2, 0, -1, sUnderflow};
+  taskProg = specialMethod("newTask", 2, NumberOf(newTaskCode), newTaskCode, 1, 1);
 
   integer regionSize = (1 << lg2(stackRegionSize));
 

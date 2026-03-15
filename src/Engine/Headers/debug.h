@@ -13,9 +13,9 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 extern integer pcCount;     /* How many instructions executed so far? */
 void dumpStats();
 
-void showMethodCode(ioPo out, char *msg, methodPo mtd);
-
 retCode setupDebugChannels();
+
+logical isDebuggableOp(ssaOp op);
 
 DebugWaitFor lineDebug(enginePo p, termPo lc);
 DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset);

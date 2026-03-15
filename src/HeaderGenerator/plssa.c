@@ -19,6 +19,7 @@ char date[MAXLINE] = "";
 #define sym "s"
 #define lcl "v"
 #define lcls "V"
+#define lcm "m"
 #define lit "l"
 #define glb "g"
 #define art "a"
@@ -142,6 +143,12 @@ static void genOps(asmInfoPo info, char *fmt) {
         outMsg(O_IO(info->line), "  findLocals(V%d,LsMap,LL%d),\n", vNo, vNo);
         continue;
       }
+      case Slcm: {
+        int32 vNo = info->vNo++;
+        outMsg(O_IO(info->aux), ", intgr(LL%d)", vNo);
+        outMsg(O_IO(info->line), "  length(V%d,LL%d),\n", vNo, vNo);
+        continue;
+      }
       case Sart:
       case Si32:
         outMsg(O_IO(info->aux), ", intgr(V%d)", (info->vNo)++);
@@ -250,6 +257,12 @@ static void genDisp(asmInfoPo info, char *fmt, int32 arity) {
         continue;
       }
       case Slcls: {
+        int32 vNo = ix++;
+        outMsg(O_IO(info->aux), ",ss(\" \"),VV%d", vNo);
+        outMsg(O_IO(info->line), "  showCallArgs(V%d,VV%d),\n", vNo, vNo);
+        continue;
+      }
+      case Slcm: {
         int32 vNo = ix++;
         outMsg(O_IO(info->aux), ",ss(\" \"),VV%d", vNo);
         outMsg(O_IO(info->line), "  showCallArgs(V%d,VV%d),\n", vNo, vNo);

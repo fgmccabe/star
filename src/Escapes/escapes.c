@@ -13,13 +13,12 @@ static int topEsc = 0;
 
 static integer escCount[256];
 
-static int installEscape(EscapeCode code, char *name, char *sig, escFun fun, escValue direct);
+static int installEscape(EscapeCode code, char *name, char *sig, escValue direct);
 
 #undef escape
 #define escape(Fun, Sig, Cmnt)\
-extern ReturnStatus g_##Fun(enginePo P);\
   extern ValueReturn s_##Fun(enginePo P);\
-  installEscape(Esc##Fun,#Fun,Sig,g_##Fun,(escValue)s_##Fun);
+  installEscape(Esc##Fun,#Fun,Sig,(escValue)s_##Fun);
 
 void installEscapes() {
   topEsc = 0;
@@ -30,13 +29,12 @@ void installEscapes() {
 
 }
 
-int installEscape(EscapeCode code, char *name, char *sig, escFun fun, escValue direct) {
+int installEscape(EscapeCode code, char *name, char *sig, escValue direct) {
   int escIx = topEsc++;
   escapePo esc = &escapes[code];
 
   esc->name = uniDuplicate(name);
   esc->sig = uniDuplicate(sig);
-  esc->fun = fun;
   esc->direct = direct;
   int32 arity;
 
@@ -118,8 +116,3 @@ char *escapeName(escapePo esc) {
 int32 escapeArity(escapePo esc) {
   return esc->arity;
 }
-
-escFun escapeFun(escapePo esc) {
-  return esc->fun;
-}
-

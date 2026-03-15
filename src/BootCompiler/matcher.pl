@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/7,procMatcher/6,caseMatcher/5,actionCaseMatcher/5]).
+:- module(matcher,[functionMatcher/7,procMatcher/6,caseMatcher/6,actionCaseMatcher/5]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -14,7 +14,8 @@ functionMatcher(Lc,Nm,H,Tp,Eqns,Map,fnDef(Lc,Nm,H,Tp,NVrs,Reslt)) :-
   makeTriples(Eqns,0,Tpls),
   getLocalLblName(Nm,LclNm),
   genRaise(Lc,LclNm,Error),
-  matchTriples(Lc,lterms:substTerm,matcher:mkCond,NVrs,Tpls,Error,Map,0,Reslt),!.
+  funResType(Tp,RsTp),
+  matchTriples(Lc,lterms:substTerm,matcher:mkCond,matcher:mkExpCase(RsTp),NVrs,Tpls,Error,Map,0,Reslt),!.
 functionMatcher(Lc,Nm,H,Tp,_Eqns,_,fnDef(Lc,Nm,H,Tp,[],enum("void"))) :-
   reportError("(internal) failed to construct function for %s",[ltrm(Nm)],Lc).
 
@@ -24,7 +25,7 @@ procMatcher(Lc,Nm,Tp,Rles,Map,prDef(Lc,Nm,Tp,NVrs,Reslt)) :-
   makeTriples(Rles,0,Tpls),
   getLocalLblName(Nm,LclNm),
   genRaise(Lc,LclNm,Error),
-  matchTriples(Lc,lterms:substAction,matcher:mkIfThenElse,NVrs,Tpls,Error,Map,0,Reslt),!.
+  matchTriples(Lc,lterms:substAction,matcher:mkIfThenElse,matcher:mkActCase,NVrs,Tpls,Error,Map,0,Reslt),!.
 procMatcher(Lc,Nm,Tp,_Rles,_,prDef(Lc,Nm,Tp,[],doNop(Lc))) :-
   reportError("(internal) failed to construct function for %s",[ltrm(Nm)],Lc).
 
@@ -34,15 +35,15 @@ eqnArgTypes([(_Lc,Args,_Test,_Val)|_],Tps) :-
 getLocalLblName(lbl(Nm,_),LclNm) :-
   getLocalName(Nm,LclNm).
 
-caseMatcher(Lc,Bnd,Cases,Map,Result) :-
+caseMatcher(Lc,Bnd,Cases,Tp,Map,Result) :-
   makeTriples(Cases,0,Tpls),
   genRaise(Lc,"case",Error),
-  matchTriples(Lc,lterms:substTerm,matcher:mkCond,[Bnd],Tpls,Error,Map,0,Result).
+  matchTriples(Lc,lterms:substTerm,matcher:mkCond,matcher:mkExpCase(Tp),[Bnd],Tpls,Error,Map,0,Result).
 
 actionCaseMatcher(Lc,Bnd,Cases,Map,Result) :-
   makeTriples(Cases,0,Tpls),
   genRaise(Lc,"case",Error),
-  matchTriples(Lc,lterms:substAction,matcher:mkIfThenElse,[Bnd],Tpls,Error,Map,0,Result).
+  matchTriples(Lc,lterms:substAction,matcher:mkIfThenElse,matcher:mkActCase,[Bnd],Tpls,Error,Map,0,Result).
 
 genRaise(Lc,Nm,error(Lc,strg(Msg))) :-
   string_concat("no matches in ",Nm,Msg).
@@ -52,36 +53,36 @@ genVrs([Tp|Tps],[(V,Tp)|Vrs]) :-
   genVar("_V",Tp,V),
   genVrs(Tps,Vrs).
 
-matchTriples(_,_,Conder,[],Tps,Deflt,_,_,Reslt) :-
+matchTriples(_,_,Conder,_Caser,[],Tps,Deflt,_,_,Reslt) :-
   conditionalize(Tps,Conder,Deflt,Reslt).
-matchTriples(Lc,Subber,Conder,Vrs,Tpls,Deflt,Map,Dp,Reslt) :-
+matchTriples(Lc,Subber,Conder,Caser,Vrs,Tpls,Deflt,Map,Dp,Reslt) :-
   partitionTriples(Tpls,Segments),
-  matchSegments(Segments,Subber,Conder,Vrs,Lc,Deflt,Map,Dp,Reslt).
+  matchSegments(Segments,Subber,Conder,Caser,Vrs,Lc,Deflt,Map,Dp,Reslt).
 
-matchSegments([],_,_,_,_,Deflt,_,_,Deflt).
-matchSegments([Seg|M],Subber,Conder,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
-  matchSegments(M,Subber,Conder,Vrs,Lc,Deflt,Map,Dp,Partial),
-  matchSegment(Seg,Subber,Conder,Vrs,Lc,Partial,Map,Dp,Reslt).
+matchSegments([],_,_,_,_,_,Deflt,_,_,Deflt).
+matchSegments([Seg|M],Subber,Conder,Caser,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
+  matchSegments(M,Subber,Conder,Caser,Vrs,Lc,Deflt,Map,Dp,Partial),
+  matchSegment(Seg,Subber,Conder,Caser,Vrs,Lc,Partial,Map,Dp,Reslt).
 
-matchSegment(Seg,Subber,Conder,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
+matchSegment(Seg,Subber,Conder,Caser,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
   segmentMode(Seg,Mode),
-  compileMatch(Mode,Subber,Conder,Seg,Vrs,Lc,Deflt,Map,Dp,Reslt).
+  compileMatch(Mode,Subber,Conder,Caser,Seg,Vrs,Lc,Deflt,Map,Dp,Reslt).
 
 segmentMode([Tr|_],Mode) :-
   tripleArgMode(Tr,Mode).
 
-compileMatch(inScalars,_Subber,Conder,Tpls,Vrs,_Lc,Deflt,_Map,Dp,Reslt) :-
+compileMatch(inScalars,_Subber,Conder,_Caser,Tpls,Vrs,_Lc,Deflt,_Map,Dp,Reslt) :-
   tooDeep(Dp),!,
   conditionalize(Vrs,Conder,Tpls,Deflt,Reslt).
-compileMatch(inScalars,Subber,Conder,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
-  matchScalars(Subber,Conder,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt).
-compileMatch(inConstructors,_Subber,Conder,Tpls,Vrs,_Lc,Deflt,_Map,Dp,Reslt) :-
+compileMatch(inScalars,Subber,Conder,Caser,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
+  matchScalars(Subber,Conder,Caser,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt).
+compileMatch(inConstructors,_Subber,Conder,_Csr,Tpls,Vrs,_Lc,Deflt,_Map,Dp,Reslt) :-
   tooDeep(Dp),!,
   conditionalize(Vrs,Conder,Tpls,Deflt,Reslt).
-compileMatch(inConstructors,Subber,Conder,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
-  matchConstructors(Lc,Subber,Conder,Tpls,Vrs,Deflt,Map,Dp,Reslt).
-compileMatch(inVars,Subber,Conder,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
-  matchVars(Lc,Subber,Conder,Vrs,Tpls,Deflt,Map,Dp,Reslt).
+compileMatch(inConstructors,Subber,Conder,Caser,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
+  matchConstructors(Lc,Subber,Conder,Caser,Tpls,Vrs,Deflt,Map,Dp,Reslt).
+compileMatch(inVars,Subber,Conder,Caser,Tpls,Vrs,Lc,Deflt,Map,Dp,Reslt) :-
+  matchVars(Lc,Subber,Conder,Caser,Vrs,Tpls,Deflt,Map,Dp,Reslt).
 
 conditionalize([],_,Deflt,Deflt).
 conditionalize([(_,(Lc,_Bnds,Guard,Test,Val),_)|M],Conder,Deflt,Repl) :-!,
@@ -124,7 +125,7 @@ argMode(ann(_),inVars).
 argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(bigx(_),inScalars).
-argMode(float(_),inScalars).
+argMode(flot(_),inScalars).
 argMode(chr(_),inScalars).
 argMode(strg(_),inScalars).
 argMode(lbl(_,_),inScalars).
@@ -155,11 +156,11 @@ partTriples(L,L,_,[]).
 tripleArgMode(([A|_],_,_),Mode) :-
   argMode(A,Mode),!.
 
-matchScalars(Subber,Conder,Tpls,[V|Vrs],Lc,Deflt,Map,Dp,CaseExp) :-
+matchScalars(Subber,Conder,Caser,Tpls,[V|Vrs],Lc,Deflt,Map,Dp,CaseExp) :-
   sort(Tpls,matcher:compareScalarTriple,ST),
   Dp1 is Dp+1,
-  formCases(ST,Subber,Conder,matcher:sameScalarTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
-  mkCase(Lc,V,Conder,Cases,Deflt,CaseExp).
+  formCases(ST,Subber,Conder,Caser,matcher:sameScalarTriple,Lc,Vrs,Deflt,Map,Dp1,Cses),
+  call(Caser,inScalars,Lc,V,Conder,Cses,Deflt,CaseExp).
 
 mkCond(Lc,Tst,cnd(_,T,Th,El),El,cnd(Lc,T1,Th,El)) :-!,
   mergeGl(Tst,some(T),Lc,some(T1)).
@@ -169,15 +170,15 @@ mkIfThenElse(Lc,Tst,iftte(_,T,Th,El),El,iftte(Lc,T1,Th,El)) :-!,
   mergeGl(Tst,some(T),Lc,some(T1)).
 mkIfThenElse(Lc,some(Tst),Th,El,iftte(Lc,Tst,Th,El)).
 
-mkCase(Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
+mkExpCase(_,_,Lc,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
   call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
-mkCase(Lc,V,_,Cases,Deflt,case(Lc,V,Cases,Deflt)).
+mkExpCase(Tp,inScalars,Lc,V,_,Cases,Deflt,cse(Lc,V,Cases,Deflt,Tp)).
+mkExpCase(Tp,inConstructors,Lc,V,_,Cases,Deflt,unpack(Lc,V,Cases,Deflt,Tp)).
 
-mkIndexed(_Lc,V,Conder,[(enum(Nm),Exp,Lc)],Deflt,_Map,Reslt) :-!,
-  call(Conder,Lc,some(mtch(Lc,ctpl(lbl(Nm,0),[]),V)),Exp,Deflt,Reslt).
-mkIndexed(_Lc,V,Conder,[(Ptn,Exp,Lc)],Deflt,_Map,Reslt) :-!,
-  call(Conder,Lc,some(mtch(Lc,Ptn,V)),Exp,Deflt,Reslt).
-mkIndexed(Lc,V,_,Cases,Deflt,_Map,unpack(Lc,V,Cases,Deflt)).
+mkActCase(inVars,Lc,_,V,Conder,[(Lbl,Exp,Lc)],Deflt,Cnd) :-!,
+  call(Conder,Lc,some(mtch(Lc,Lbl,V)),Exp,Deflt,Cnd).
+mkActCase(inScalars,Lc,V,_,Cases,Deflt,cse(Lc,V,Cases,Deflt)).
+mkActCase(inConstructors,Lc,V,_,Cases,Deflt,unpack(Lc,V,Cases,Deflt)).
 
 showCase((Lbl,Exp,Lc),C,Cx) :-
   appStr("case ",C,C0),
@@ -196,11 +197,11 @@ dispCases(Css) :-
   showCases(Css,Chrs,[]),
   string_chars(Res,Chrs), write(Res).  
 
-matchConstructors(Lc,Subber,Conder,Tpls,[V|Vrs],Deflt,Map,Dp,CaseExp) :-
+matchConstructors(Lc,Subber,Conder,Caser,Tpls,[V|Vrs],Deflt,Map,Dp,CaseExp) :-
   sort(Tpls,matcher:compareConstructorTriple,ST),
   Dp1 is Dp+1,
-  formCases(ST,Subber,Conder,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
-  mkIndexed(Lc,V,Conder,Cases,Deflt,Map,CaseExp).
+  formCases(ST,Subber,Conder,Caser,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Map,Dp1,Cases),
+  call(Caser,inConstructors,Lc,V,Conder,Cases,Deflt,CaseExp).
 
 findIndexMap([([A|_],_,_)|_],Map,Index) :-
   cnsName(A,ANm),
@@ -210,25 +211,25 @@ findIndexMap([([A|_],_,_)|_],Map,Index) :-
 findIndexMap([([ctpl(lbl(Nm,Ar),_)|_],_,_)|_],_,[(lbl(Nm,Ar),0)]) :-
   isTplLbl(Nm,Ar),!.
   
-formCases([],_,_,_,_,[],_,_,_,[]) :- !.
-formCases([],_,_,_,_,_,_,_,_,[]).
-formCases([Tr|Trpls],Subber,Conder,Cmp,Lc,Vrs,Deflt,Map,Dp,[(Lbl,Case,Lc)|Cses]) :-
+formCases([],_,_,_,_,_,[],_,_,_,[]) :- !.
+formCases([],_,_,_,_,_,_,_,_,_,[]).
+formCases([Tr|Trpls],Subber,Conder,Caser,Cmp,Lc,Vrs,Deflt,Map,Dp,[(Lbl,Case,Lc)|Cses]) :-
   pickMoreCases(Tr,Trpls,Tx,Cmp,More),
-  formCase(Tr,Subber,Conder,Lbl,[Tr|Tx],Lc,Vrs,Deflt,Map,Dp,Case),
-  formCases(More,Subber,Conder,Cmp,Lc,Vrs,Deflt,Map,Dp,Cses).
+  formCase(Tr,Subber,Conder,Caser,Lbl,[Tr|Tx],Lc,Vrs,Deflt,Map,Dp,Case),
+  formCases(More,Subber,Conder,Caser,Cmp,Lc,Vrs,Deflt,Map,Dp,Cses).
 
-formCase(([Lbl|_],_,_),Subber,Conder,Lbl,Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
+formCase(([Lbl|_],_,_),Subber,Conder,Caser,Lbl,Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
   isScalar(Lbl),!,
   subTriples(Tpls,STpls),
-  matchTriples(Lc,Subber,Conder,Vrs,STpls,Deflt,Map,Dp,Case).
-formCase(([enum(Lb)|_],_,_),Subber,Conder,enum(Lb),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
+  matchTriples(Lc,Subber,Conder,Caser,Vrs,STpls,Deflt,Map,Dp,Case).
+formCase(([enum(Lb)|_],_,_),Subber,Conder,Caser,enum(Lb),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-
   subTriples(Tpls,STpls),
-  matchTriples(Lc,Subber,Conder,Vrs,STpls,Deflt,Map,Dp,Case).
-formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-!,
+  matchTriples(Lc,Subber,Conder,Caser,Vrs,STpls,Deflt,Map,Dp,Case).
+formCase(([ctpl(Op,Args)|_],_,_),Subber,Conder,Caser,ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Map,Dp,Case) :-!,
   genTplVars(Args,NVrs),
   concat(NVrs,Vrs,NArgs),
   subTriples(Tpls,NTpls),
-  matchTriples(Lc,Subber,Conder,NArgs,NTpls,Deflt,Map,Dp,Case).
+  matchTriples(Lc,Subber,Conder,Caser,NArgs,NTpls,Deflt,Map,Dp,Case).
 
 genTplVars([],[]).
 genTplVars([ann(T)|Vrs],[idnt(NNm,T)|Rest]) :-
@@ -294,7 +295,7 @@ compareScalar(bigx(A),bigx(B)) :-!,
   number_string(Ax,A),
   number_string(Bx,B),
   Ax<Bx.
-compareScalar(float(A),float(B)) :-!,
+compareScalar(flot(A),flot(B)) :-!,
   A<B.
 compareScalar(chr(A),chr(B)) :-!,
   chr_lt(A,B).
@@ -307,9 +308,9 @@ compareScalar(lbl(L,A1),lbl(L,A2)) :-
 
 sameScalarTriple(([A|_],_,_),([A|_],_,_)).
 
-matchVars(Lc,Subber,Conder,[V|Vrs],Triples,Deflt,Map,Dp,Reslt) :-
+matchVars(Lc,Subber,Conder,Caser,[V|Vrs],Triples,Deflt,Map,Dp,Reslt) :-
   applyVar(V,Subber,Triples,NTriples),
-  matchTriples(Lc,Subber,Conder,Vrs,NTriples,Deflt,Map,Dp,Reslt).
+  matchTriples(Lc,Subber,Conder,Caser,Vrs,NTriples,Deflt,Map,Dp,Reslt).
 
 applyVar(_,_,[],[]).
 applyVar(idnt(V,T),Subber,[([idnt(XV,_)|Args],(Lc,Bnd,Guard,Cond,Vl),Ix)|Tpls],

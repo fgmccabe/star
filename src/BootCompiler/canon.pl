@@ -28,7 +28,7 @@ isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_,_)).
 isCanon(anon(_,_)).
 isCanon(abort(_,_)).
-isCanon(deref(_,_)).
+isCanon(deref(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(over(_,_,_)).
 isCanon(overaccess(_,_,_,_)).
@@ -118,8 +118,8 @@ typeOfCanon(tple(_,Els),tplType(Tps)) :-!,
 typeOfCanon(nth(_,_,_,Tp),Tp) :-!.
 typeOfCanon(cell(_,Vl),tpExp(tpFun("ref",1),Tp)) :-
   typeOfCanon(Vl,Tp).
-typeOfCanon(deref(_,Vl),Tp) :-
-  typeOfCanon(Vl,tpExp(tpFun("ref",1),Tp)).
+
+typeOfCanon(deref(_,_,Tp),Tp).
 typeOfCanon(lambda(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(over(_,T,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(overaccess(_,_,_,Tp),Tp) :- !.
@@ -189,7 +189,7 @@ locOfCanon(newSV(Lc,_),Lc) :-!.
 locOfCanon(svGet(Lc,_,_),Lc) :-!.
 locOfCanon(svSet(Lc,_,_),Lc) :-!.
 locOfCanon(cell(Lc,_),Lc) :-!.
-locOfCanon(deref(Lc,_),Lc) :-!.
+locOfCanon(deref(Lc,_,_),Lc) :-!.
 locOfCanon(valof(Lc,_,_),Lc) :-!.
 locOfCanon(over(Lc,_,_),Lc) :-!.
 locOfCanon(doNop(Lc),Lc) :-!.
@@ -269,7 +269,7 @@ ssTerm(case(_,Bound,Cases,_),Dp,
   ssRls("",Cases,Dp,canon:ssTerm,Rs).
 ssTerm(cell(_,Vr),Dp,sq([ss("ref "),V])) :-
   ssTerm(Vr,Dp,V).
-ssTerm(deref(_,Vr),Dp,sq([V,ss("!")])) :-
+ssTerm(deref(_,Vr,_),Dp,sq([V,ss("!")])) :-
   ssTerm(Vr,Dp,V).
 ssTerm(letExp(_,_Decls,Defs,Ex),Dp,
 	    sq([ss("let {"),nl(Dp2),iv(nl(Dp2),DS),nl(Dp),ss("} in "),B])) :-

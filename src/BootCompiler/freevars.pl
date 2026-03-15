@@ -32,7 +32,7 @@ freeVars(update(_,Rc,_,Vl),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,F0), freeVars(Vl,Ex,
 freeVars(tdot(_,Rc,_,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(open(_,E,_),Ex,Q,F,Fv) :- freeVars(E,Ex,Q,F,Fv).
 freeVars(cell(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
-freeVars(deref(_,Cll),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
+freeVars(deref(_,Cll,_),Ex,Q,F,FV) :- freeVars(Cll,Ex,Q,F,FV).
 freeVars(thnkRef(_,L,_),Ex,Q,F,Fv) :- freeVars(L,Ex,Q,F,Fv).
 freeVars(newSV(_,_),_Ex,_Q,Fv,Fv).
 freeVars(svGet(_,L,_),Ex,Q,F,Fv) :- freeVars(L,Ex,Q,F,Fv).
