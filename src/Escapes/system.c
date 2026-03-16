@@ -27,12 +27,6 @@ ValueReturn s__exit(enginePo P, termPo c) {
   exit((int) ix);
 }
 
-ReturnStatus g__exit(enginePo P) {
-  ValueReturn ret = s__exit(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 static char **argsv = NULL; /* Store the command line list */
 static int argcnt = 0;
 
@@ -94,12 +88,6 @@ ValueReturn s__envir(enginePo P) {
   return normalReturn(list);
 }
 
-ReturnStatus g__envir(enginePo P) {
-  ValueReturn ret = s__envir(P);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__getenv(enginePo P, termPo k) {
   char key[MAX_SYMB_LEN];
 
@@ -112,13 +100,6 @@ ValueReturn s__getenv(enginePo P, termPo k) {
     return normalReturn((termPo) wrapSome(h, allocateCString(h, val)));
   } else
     return normalReturn(noneEnum);
-}
-
-ReturnStatus g__getenv(enginePo P) {
-  termPo k = popVal(P);
-  ValueReturn ret = s__getenv(P, k);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__setenv(enginePo P, termPo k, termPo v) {
@@ -135,28 +116,10 @@ ValueReturn s__setenv(enginePo P, termPo k, termPo v) {
   }
 }
 
-ReturnStatus g__setenv(enginePo P) {
-  termPo k = popVal(P);
-  termPo v = popVal(P);
-
-  ValueReturn ret = s__setenv(P, k, v);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__repo(enginePo P) {
   char repoBuffer[MAXFILELEN];
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   return normalReturn(allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer)));
-}
-
-ReturnStatus g__repo(enginePo P) {
-  char repoBuffer[MAXFILELEN];
-  strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
-  termPo repo = (termPo) allocateString(processHeap(P), repoBuffer, uniStrLen(repoBuffer));
-
-  pshVal(P, repo);
-  return Normal;
 }
 
 ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
@@ -256,16 +219,6 @@ ValueReturn s__shell(enginePo P, termPo c, termPo args, termPo env) {
   }
 }
 
-ReturnStatus g__shell(enginePo P) {
-  termPo c = popVal(P);
-  termPo args = popVal(P);
-  termPo env = popVal(P);
-
-  ValueReturn ret = s__shell(P, c, args, env);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__popen(enginePo P, termPo c, termPo args, termPo environment) {
   switchProcessState(P, wait_io);
 
@@ -353,14 +306,4 @@ ValueReturn s__popen(enginePo P, termPo c, termPo args, termPo environment) {
       }
     }
   }
-}
-
-ReturnStatus g__popen(enginePo P) {
-  termPo c = popVal(P);
-  termPo args = popVal(P);
-  termPo env = popVal(P);
-
-  ValueReturn ret = s__popen(P, c, args, env);
-  pshVal(P, ret.value);
-  return ret.status;
 }

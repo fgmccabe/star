@@ -25,13 +25,6 @@ ValueReturn s__cwd(enginePo P)
   return normalReturn(allocateString(processHeap(P), cwBuffer, uniStrLen(cwBuffer)));
 }
 
-ReturnStatus g__cwd(enginePo P)
-{
-  ValueReturn ret = s__cwd(P);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__cd(enginePo P, termPo dir)
 {
   integer len;
@@ -43,14 +36,6 @@ ValueReturn s__cd(enginePo P, termPo dir)
   default:
     return abnormalReturn(eNOPERM);
   }
-}
-
-ReturnStatus g__cd(enginePo P)
-{
-  termPo dir = popVal(P);
-  ValueReturn ret = s__cd(P, dir);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__rm(enginePo P, termPo f)
@@ -85,14 +70,6 @@ tryAgain:
   }
 }
 
-ReturnStatus g__rm(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__rm(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__rmdir(enginePo P, termPo f)
 {
   integer fnLen;
@@ -125,16 +102,7 @@ tryAgain:
   }
 }
 
-ReturnStatus g__rmdir(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__rm(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
-
-ValueReturn s__mkdir(enginePo P, termPo f)
+ValueReturn s__mkdir(enginePo P, termPo f, termPo mde)
 {
   integer fnLen;
   const char* fn = strVal(f, &fnLen);
@@ -142,7 +110,7 @@ ValueReturn s__mkdir(enginePo P, termPo f)
 
   char* acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  mode_t mode = (mode_t)integerVal(popVal(P));
+  mode_t mode = (mode_t)integerVal(mde);
 
 tryAgain:
   switchProcessState(P, wait_io);
@@ -166,14 +134,6 @@ tryAgain:
       return abnormalReturn(eIOERROR);
     }
   }
-}
-
-ReturnStatus g__mkdir(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__mkdir(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__mv(enginePo P, termPo f, termPo t)
@@ -211,15 +171,6 @@ tryAgain:
       return abnormalReturn(eIOERROR);
     }
   }
-}
-
-ReturnStatus g__mv(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo t = popVal(P);
-  ValueReturn ret = s__mv(P, f, t);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__ls(enginePo P, termPo f)
@@ -280,14 +231,6 @@ tryAgain:
   }
 }
 
-ReturnStatus g__ls(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__ls(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__file_mode(enginePo P, termPo f)
 {
   integer fnLen;
@@ -329,14 +272,6 @@ tryAgain:
   }
 }
 
-ReturnStatus g__file_mode(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_mode(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__file_chmod(enginePo P, termPo f, termPo m)
 {
   integer fnLen;
@@ -365,16 +300,6 @@ tryAgain:
   return normalReturn(unitEnum);
 }
 
-ReturnStatus g__file_chmod(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo m = popVal(P);
-  ValueReturn ret = s__file_chmod(P, f, m);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
-
 ValueReturn s__file_present(enginePo P, termPo f)
 {
   integer fnLen;
@@ -387,14 +312,6 @@ ValueReturn s__file_present(enginePo P, termPo f)
   termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
   setProcessRunnable(P);
   return normalReturn(present);
-}
-
-ReturnStatus g__file_present(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_present(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__isdir(enginePo P, termPo d)
@@ -410,14 +327,6 @@ ValueReturn s__isdir(enginePo P, termPo d)
   setProcessRunnable(P);
 
   return normalReturn(present);
-}
-
-ReturnStatus g__isdir(enginePo P)
-{
-  termPo d = popVal(P);
-  ValueReturn ret = s__isdir(P, d);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 /*
@@ -498,14 +407,6 @@ tryAgain:
   return normalReturn(type);
 }
 
-ReturnStatus g__file_type(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_type(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__file_size(enginePo P, termPo f)
 {
   integer fnLen;
@@ -547,14 +448,6 @@ tryAgain:
     setProcessRunnable(P);
     return normalReturn(details);
   }
-}
-
-ReturnStatus g__file_size(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_size(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__file_date(enginePo P, termPo f)
@@ -612,15 +505,6 @@ tryAgain:
   }
 }
 
-ReturnStatus g__file_date(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_date(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
-
 ValueReturn s__file_modified(enginePo P, termPo f)
 {
   integer fnLen;
@@ -664,14 +548,6 @@ tryAgain:
   }
 }
 
-ReturnStatus g__file_modified(enginePo P)
-{
-  termPo f = popVal(P);
-  ValueReturn ret = s__file_modified(P, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__openInFile(enginePo P, termPo f, termPo e)
 {
   integer fnLen;
@@ -691,15 +567,6 @@ ValueReturn s__openInFile(enginePo P, termPo f, termPo e)
   else{
     return abnormalReturn(eNOTFND);
   }
-}
-
-ReturnStatus g__openInFile(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo e = popVal(P);
-  ValueReturn ret = s__openInFile(P, f, e);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__openOutFile(enginePo P, termPo f, termPo e)
@@ -722,15 +589,6 @@ ValueReturn s__openOutFile(enginePo P, termPo f, termPo e)
   }
 }
 
-ReturnStatus g__openOutFile(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo e = popVal(P);
-  ValueReturn ret = s__openOutFile(P, f, e);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e)
 {
   integer fnLen;
@@ -751,15 +609,6 @@ ValueReturn s__openAppendFile(enginePo P, termPo f, termPo e)
   }
 }
 
-ReturnStatus g__openAppendFile(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo e = popVal(P);
-  ValueReturn ret = s__openAppendFile(P, f, e);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e)
 {
   integer fnLen;
@@ -778,15 +627,6 @@ ValueReturn s__openAppendIOFile(enginePo P, termPo f, termPo e)
   else{
     return abnormalReturn(eNOTFND);
   }
-}
-
-ReturnStatus g__openAppendIOFile(enginePo P)
-{
-  termPo f = popVal(P);
-  termPo e = popVal(P);
-  ValueReturn ret = s__openAppendIOFile(P, f, e);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ioEncoding pickEncoding(integer k)

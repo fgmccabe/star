@@ -70,13 +70,6 @@ ValueReturn s__delay(enginePo P,termPo d) {
   }
 }
 
-ReturnStatus g__delay(enginePo P) {
-  termPo d = popVal(P);
-  ValueReturn ret = s__delay(P,d);
-  pshVal(P,ret.value);
-  return ret.status;
-}
-
 ValueReturn s__sleep(enginePo P,termPo d) {
   double f = floatVal(d);
 
@@ -125,43 +118,18 @@ ValueReturn s__sleep(enginePo P,termPo d) {
   }
 }
 
-ReturnStatus g__sleep(enginePo P) {
-  termPo d = popVal(P);
-  ValueReturn ret = s__sleep(P,d);
-  pshVal(P,ret.value);
-  return ret.status;
-}
-
 /* Return the current time */
 ValueReturn s__now(enginePo P){
   return normalReturn(makeFloat(processHeap(P),get_time()));
-}
-
-ReturnStatus g__now(enginePo P) {
-  ValueReturn ret = s__now(P);
-  pshVal(P,ret.value);
-  return ret.status;
 }
 
 /* Return the time at midnight */
 ValueReturn s__today(enginePo P){
   return normalReturn(makeFloat(processHeap(P),get_date()));
 }
-  
-ReturnStatus g__today(enginePo P) {
-  ValueReturn ret = s__today(P);
-  pshVal(P,ret.value);
-  return ret.status;
-}
 
 ValueReturn s__ticks(enginePo P){
   return normalReturn(makeInteger((integer)clock()));
-}
-  
-ReturnStatus g__ticks(enginePo P) {
-  ValueReturn ret = s__ticks(P);
-  pshVal(P,ret.value);
-  return ret.status;
 }
 
 /*

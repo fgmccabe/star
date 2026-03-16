@@ -16,6 +16,7 @@ void dumpStats();
 retCode setupDebugChannels();
 
 logical isDebuggableOp(ssaOp op);
+logical isDebugging();
 
 DebugWaitFor lineDebug(enginePo p, termPo lc);
 DebugWaitFor bindDebug(enginePo p, termPo name, int32 offset);

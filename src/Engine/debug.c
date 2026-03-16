@@ -858,6 +858,10 @@ logical isDebuggableOp(ssaOp op) {
   }
 }
 
+logical isDebugging() {
+  return insDebugging || lineDebugging;
+}
+
 DebugWaitFor lineDebug(enginePo p, termPo lc) {
   return lnDebug(p, sLine, lc, Null, showLine);
 }

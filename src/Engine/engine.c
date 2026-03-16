@@ -111,14 +111,6 @@ heapPo processHeap(enginePo P) {
   return P->heap;
 }
 
-void pshVal(enginePo p, termPo v) {
-  pushStack(p->stk, v);
-}
-
-termPo popVal(enginePo p) {
-  return popStack(p->stk);
-}
-
 void switchProcessState(enginePo p, ProcessState state) {
   p->state = state;
 }

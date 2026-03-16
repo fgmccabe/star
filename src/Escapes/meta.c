@@ -3,6 +3,7 @@
 //
 #include <errorCodes.h>
 #include "arith.h"
+#include "debug.h"
 #include "escapeP.h"
 #include "engineP.h"
 #include "globals.h"
@@ -10,14 +11,6 @@
 ValueReturn s__abort(enginePo P, termPo lc, termPo msg) {
   abort_star(P, lc, msg);
   return normalReturn(unitEnum);
-}
-
-ReturnStatus g__abort(enginePo P) {
-  termPo lc = popVal(P);
-  termPo msg = popVal(P);
-  ValueReturn ret = s__abort(P, lc, msg);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 void abort_star(enginePo P, termPo lc, termPo msg) {
@@ -39,25 +32,16 @@ ValueReturn s__stackTrace(enginePo P) {
   return normalReturn(trace);
 }
 
-ReturnStatus g__stackTrace(enginePo P) {
-  ValueReturn ret = s__stackTrace(P);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__gc(enginePo P, termPo a) {
-  integer amnt = integerVal(a);
-  retCode ret = gcCollect(processHeap(P), amnt);
-  if (ret == Ok) {
-    return normalReturn(unitEnum);
-  } else {
-    return abnormalReturn(eFAIL);
+  if(isDebugging()){
+    integer amnt = integerVal(a);
+    retCode ret = gcCollect(processHeap(P), amnt);
+    if (ret == Ok) {
+      return normalReturn(unitEnum);
+    } else {
+      return abnormalReturn(eFAIL);
+    }
   }
-}
-
-ReturnStatus g__gc(enginePo P) {
-  termPo a = popVal(P);
-  ValueReturn ret = s__gc(P, a);
-  pshVal(P, ret.value);
-  return ret.status;
+  else
+    return abnormalReturn(eNOPERM);
 }

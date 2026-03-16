@@ -29,14 +29,6 @@ ValueReturn s__outchar(enginePo P, termPo i, termPo c) {
   }
 }
 
-ReturnStatus g__outchar(enginePo P) {
-  termPo i = popVal(P);
-  termPo c = popVal(P);
-  ValueReturn ret = s__outchar(P, i, c);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 static taskState wrChar(ioPo out, asyncPo async) {
   codePoint cp = (codePoint) async->data;
   assert(async->state == notStarted);
@@ -78,31 +70,15 @@ ValueReturn s__outchar_async(enginePo P, termPo o, termPo c) {
   return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__outchar_async(enginePo P) {
-  termPo i = popVal(P);
-  termPo c = popVal(P);
-  ValueReturn ret = s__outchar_async(P, i, c);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__outbyte(enginePo P, termPo i, termPo c) {
   ioPo io = ioChannel(C_IO(i));
-  integer cp = integerVal(popVal(P));
+  integer cp = integerVal(c);
 
   if (outByte(io, cp) == Ok) {
     return normalReturn(unitEnum);
   } else {
     return abnormalReturn(eIOERROR);
   }
-}
-
-ReturnStatus g__outbyte(enginePo P) {
-  termPo i = popVal(P);
-  termPo c = popVal(P);
-  ValueReturn ret = s__outbyte(P, i, c);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 static taskState wrByte(ioPo out, asyncPo async) {
@@ -138,14 +114,6 @@ ValueReturn s__outbyte_async(enginePo P, termPo o, termPo b) {
   return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__outbyte_async(enginePo P) {
-  termPo i = popVal(P);
-  termPo c = popVal(P);
-  ValueReturn ret = s__outbyte_async(P, i, c);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__outbytes(enginePo P, termPo i, termPo list) {
   ioPo io = ioChannel(C_IO(i));
 
@@ -162,14 +130,6 @@ ValueReturn s__outbytes(enginePo P, termPo i, termPo list) {
   } else {
     return abnormalReturn(eIOERROR);
   }
-}
-
-ReturnStatus g__outbytes(enginePo P) {
-  termPo i = popVal(P);
-  termPo list = popVal(P);
-  ValueReturn ret = s__outbytes(P, i, list);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__outtext(enginePo P, termPo i, termPo t) {
@@ -191,14 +151,6 @@ ValueReturn s__outtext(enginePo P, termPo i, termPo t) {
   } else {
     return abnormalReturn(eIOERROR);
   }
-}
-
-ReturnStatus g__outtext(enginePo P) {
-  termPo i = popVal(P);
-  termPo m = popVal(P);
-  ValueReturn ret = s__outtext(P, i, m);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 static taskState wrText(ioPo out, asyncPo async) {
@@ -254,15 +206,6 @@ ValueReturn s__outtext_async(enginePo P, termPo o, termPo a2) {
   return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__outtext_async(enginePo P) {
-  termPo i = popVal(P);
-  termPo c = popVal(P);
-  ValueReturn ret = s__outtext_async(P, i, c);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
-
 ValueReturn s__show(enginePo P, termPo t) {
   integer length;
   const char *text = strVal(t, &length);
@@ -270,13 +213,6 @@ ValueReturn s__show(enginePo P, termPo t) {
   outMsg(logFile, "%S\n%_", text, length);
 
   return normalReturn(unitEnum);
-}
-
-ReturnStatus g__show(enginePo P) {
-  termPo m = popVal(P);
-  ValueReturn ret = s__show(P, m);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__put_file(enginePo P, termPo f, termPo e, termPo l) {
@@ -299,16 +235,6 @@ ValueReturn s__put_file(enginePo P, termPo f, termPo e, termPo l) {
     return abnormalReturn(eIOERROR);
   }
   return abnormalReturn(eNOPERM);
-}
-
-ReturnStatus g__put_file(enginePo P) {
-  termPo f = popVal(P);
-  termPo e = popVal(P);
-  termPo l = popVal(P);
-
-  ValueReturn ret = s__put_file(P, f, e, l);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 static taskState pushAsync(ioPo io, AsyncStruct *async) {

@@ -45,20 +45,6 @@ ValueReturn s__date2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, t
   return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
 }
 
-ReturnStatus g__date2time(enginePo P) {
-  termPo y = popVal(P);
-  termPo mo = popVal(P);
-  termPo md = popVal(P);
-  termPo hr = popVal(P);
-  termPo min = popVal(P);
-  termPo se = popVal(P);
-  termPo gmt = popVal(P);
-
-  ValueReturn ret = s__date2time(P, y, mo, md, hr, min, se, gmt);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__utc2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, termPo mi, termPo se, termPo gmt) {
   struct tm now;
 
@@ -78,23 +64,7 @@ ValueReturn s__utc2time(enginePo P, termPo y, termPo mo, termPo md, termPo h, te
 
   time_t when = timegm(&now);
 
-  pshVal(P, makeFloat(processHeap(P),(double) when + fraction));
-
   return normalReturn(makeFloat(processHeap(P),(double) when + fraction));
-}
-
-ReturnStatus g__utc2time(enginePo P) {
-  termPo y = popVal(P);
-  termPo mo = popVal(P);
-  termPo md = popVal(P);
-  termPo hr = popVal(P);
-  termPo min = popVal(P);
-  termPo se = popVal(P);
-  termPo gmt = popVal(P);
-
-  ValueReturn ret = s__utc2time(P, y, mo, md, hr, min, se, gmt);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__time2date(enginePo P, termPo t) {
@@ -137,13 +107,6 @@ ValueReturn s__time2date(enginePo P, termPo t) {
   return normalReturn((termPo) dte);
 }
 
-ReturnStatus g__time2date(enginePo P) {
-  termPo t = popVal(P);
-  ValueReturn ret = s__time2date(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__time2utc(enginePo P, termPo t) {
   double time = floatVal(t);
   time_t when = (time_t) time;
@@ -184,13 +147,6 @@ ValueReturn s__time2utc(enginePo P, termPo t) {
   return normalReturn((termPo) dte);
 }
 
-ReturnStatus g__time2utc(enginePo P) {
-  termPo t = popVal(P);
-  ValueReturn ret = s__time2utc(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 static retCode formatDate(ioPo out, const char *fmt, integer fmtLen, struct tm *time);
 
 ValueReturn s__formattime(enginePo P, termPo w, termPo f) {
@@ -212,14 +168,6 @@ ValueReturn s__formattime(enginePo P, termPo w, termPo f) {
     closeIo(O_IO(buff));
     return abnormalReturn(eINVAL);
   }
-}
-
-ReturnStatus g__formattime(enginePo P) {
-  termPo w = popVal(P);
-  termPo f = popVal(P);
-  ValueReturn ret = s__formattime(P, w, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 static integer countFmtChrs(const char *fmt, integer *pos, integer len, codePoint f) {
@@ -633,13 +581,4 @@ ValueReturn s__parsetime(enginePo P, termPo s, termPo f) {
   } else {
     return abnormalReturn(eINVAL);
   }
-}
-
-ReturnStatus g__parsetime(enginePo P) {
-  termPo s = popVal(P);
-  termPo f = popVal(P);
-
-  ValueReturn ret = s__parsetime(P, s, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }

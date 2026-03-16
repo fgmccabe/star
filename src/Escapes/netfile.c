@@ -30,14 +30,6 @@ ValueReturn s__listen(enginePo P, integer port) {
   }
 }
 
-ReturnStatus g__listen(enginePo P) {
-  integer port = integerVal(popVal(P));
-
-  ValueReturn ret = s__listen(P, port);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__accept(enginePo P, ioPo listen, ioEncoding enc) {
   heapPo h = processHeap(P);
 
@@ -98,15 +90,6 @@ ValueReturn s__accept(enginePo P, ioPo listen, ioEncoding enc) {
   }
 }
 
-ReturnStatus g__accept(enginePo P) {
-  ioPo listen = ioChannel(C_IO(popVal(P)));
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
-
-  ValueReturn ret = s__accept(P, listen, enc);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__connect(enginePo P, termPo host, int port, ioEncoding enc) {
   integer hLen;
   const char *hostName = strVal(host, &hLen);
@@ -139,16 +122,6 @@ ValueReturn s__connect(enginePo P, termPo host, int port, ioEncoding enc) {
   }
 }
 
-ReturnStatus g__connect(enginePo P) {
-  termPo host = popVal(P);
-  int port = (int) integerVal(popVal(P));
-  ioEncoding enc = pickEncoding(integerVal(popVal(P)));
-
-  ValueReturn ret = s__connect(P, host, port, enc);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 /* Access host name functions */
 /* return IP addresses of a host */
 ValueReturn s__hosttoip(enginePo P, termPo hostTerm) {
@@ -171,15 +144,6 @@ ValueReturn s__hosttoip(enginePo P, termPo hostTerm) {
   return normalReturn((termPo)ipList);
 }
 
-/* Access host name functions */
-/* return IP addresses of a host */
-ReturnStatus g__hosttoip(enginePo P) {
-  ValueReturn ret = s__hosttoip(P, popVal(P));
-
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 /* Access host name from IP address */
 ValueReturn s__iptohost(enginePo P, termPo hostTerm) {
   char ip[MAX_SYMB_LEN];
@@ -194,10 +158,4 @@ ValueReturn s__iptohost(enginePo P, termPo hostTerm) {
   } else {
     return abnormalReturn(eNOTFND);
   }
-}
-
-ReturnStatus g__iptohost(enginePo P) {
-  ValueReturn ret = s__iptohost(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
 }

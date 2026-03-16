@@ -55,13 +55,6 @@ ValueReturn s__fork(enginePo P, termPo l) {
   return normalReturn((termPo)thread);
 }
 
-ReturnStatus g__fork(enginePo P) {
-  termPo l = popVal(P);
-  ValueReturn ret = s__fork(P, l);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__kill(enginePo P, termPo t) {
   threadPo th = C_THREAD(t);
 
@@ -75,20 +68,8 @@ ValueReturn s__kill(enginePo P, termPo t) {
   }
 }
 
-ReturnStatus g__kill(enginePo P) {
-  termPo t = popVal(P);
-  ValueReturn ret = s__kill(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__thread(enginePo P) {
   return normalReturn((termPo)P->thread);
-}
-
-ReturnStatus g__thread(enginePo P) {
-  pshVal(P, (termPo) P->thread);
-  return Normal;
 }
 
 ValueReturn s__thread_state(enginePo P, termPo t) {
@@ -105,13 +86,6 @@ ValueReturn s__thread_state(enginePo P, termPo t) {
     st = declareEnum(state_names[tgt->state], tgt->state, globalHeap);
   setProcessRunnable(P);
   return normalReturn(st);
-}
-
-ReturnStatus g__thread_state(enginePo P) {
-  termPo t = popVal(P);
-  ValueReturn ret = s__thread_state(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__waitfor(enginePo P, termPo t) {
@@ -145,11 +119,4 @@ ValueReturn s__waitfor(enginePo P, termPo t) {
   } else {
     return abnormalReturn(eDEAD);
   }
-}
-
-ReturnStatus g__waitfor(enginePo P) {
-  termPo t = popVal(P);
-  ValueReturn ret = s__waitfor(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
 }

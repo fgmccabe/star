@@ -13,14 +13,13 @@
 static void reportTimeout(void *cl);
 static retCode checkTimeOut(futurePo ft, heapPo h, void *cl, void *cl2);
 
-ReturnStatus g__settimeout(enginePo P) {
-  double delta = floatVal(popVal(P));
+ValueReturn s__settimeout(enginePo P, termPo d) {
+  double delta = floatVal(d);
 
   futurePo ft = makeFuture(processHeap(P), voidEnum, checkTimeOut, Null, Null);
 
   setTimer(delta, reportTimeout, (void *) ft);
-  pshVal(P,unitEnum);
-  return Normal;
+  return normalReturn(unitEnum);
 }
 
 void reportTimeout(void *cl) {

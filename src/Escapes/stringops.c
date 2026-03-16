@@ -19,43 +19,16 @@ ValueReturn s__chr_eq(enginePo P, termPo l, termPo r) {
   return normalReturn(charVal(l)==charVal(r)?trueEnum:falseEnum);
 }
 
-ReturnStatus g__chr_eq(enginePo P) {
-  codePoint lhs = charVal(popVal(P));
-  codePoint rhs = charVal(popVal(P));
-  pshVal(P, lhs == rhs ? trueEnum : falseEnum);
-  return Normal;
-}
-
 ValueReturn s__chr_lt(enginePo P, termPo l, termPo r) {
   return normalReturn(charVal(l)<charVal(r)?trueEnum:falseEnum);
-}
-
-ReturnStatus g__chr_lt(enginePo P) {
-  codePoint lhs = charVal(popVal(P));
-  codePoint rhs = charVal(popVal(P));
-  pshVal(P, lhs < rhs ? trueEnum : falseEnum);
-  return Normal;
 }
 
 ValueReturn s__chr_ge(enginePo P, termPo l, termPo r) {
   return normalReturn(charVal(l)>=charVal(r)?trueEnum:falseEnum);
 }
 
-ReturnStatus g__chr_ge(enginePo P) {
-  codePoint lhs = charVal(popVal(P));
-  codePoint rhs = charVal(popVal(P));
-  pshVal(P, lhs >= rhs ? trueEnum : falseEnum);
-  return Normal;
-}
-
 ValueReturn s__chr_hash(enginePo P, termPo l) {
   return normalReturn(makeInteger(charVal(l)));
-}
-
-ReturnStatus g__chr_hash(enginePo P) {
-  codePoint lhs = charVal(popVal(P));
-  pshVal(P, makeInteger(lhs));
-  return Normal;
 }
 
 ValueReturn s__chr_quote(enginePo P, termPo c) {
@@ -66,12 +39,6 @@ ValueReturn s__chr_quote(enginePo P, termPo c) {
 
   closeIo(O_IO(strb));
   return normalReturn(s);
-}
-
-ReturnStatus g__chr_quote(enginePo P) {
-  ValueReturn ret = s__chr_quote(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 // Support formatting of char values
@@ -116,28 +83,12 @@ ValueReturn s__chr_format(enginePo P, termPo c, termPo f) {
   }
 }
 
-ReturnStatus g__chr_format(enginePo P) {
-  termPo c = popVal(P);
-  termPo f = popVal(P);
-  ValueReturn ret = s__chr_format(P, c, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_eq(enginePo P, termPo l, termPo r) {
   stringPo s1 = C_STR(l);
   stringPo s2 = C_STR(r);
 
   logical eq = stringHash(s1) == stringHash(s2) && sameString(s1, s2);
   return normalReturn((eq ? trueEnum : falseEnum));
-}
-
-ReturnStatus g__str_eq(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__str_eq(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 // Lexicographic comparison
@@ -166,14 +117,6 @@ ValueReturn s__str_lt(enginePo P, termPo l, termPo r) {
     return normalReturn(falseEnum);
 }
 
-ReturnStatus g__str_lt(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__str_lt(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_ge(enginePo P, termPo l, termPo r) {
   integer llen, rlen;
   const char *lhs = strVal(l, &llen);
@@ -200,14 +143,6 @@ ValueReturn s__str_ge(enginePo P, termPo l, termPo r) {
   }
 }
 
-ReturnStatus g__str_ge(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__str_ge(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_hash(enginePo P, termPo s) {
   stringPo lhs = C_STR(s);
 
@@ -220,13 +155,6 @@ ValueReturn s__str_hash(enginePo P, termPo s) {
   return normalReturn(makeInteger(lhs->hash));
 }
 
-ReturnStatus g__str_hash(enginePo P) {
-  termPo r = popVal(P);
-  ValueReturn ret = s__str_hash(P, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_len(enginePo P, termPo s) {
   stringPo lhs = C_STR(s);
 
@@ -234,13 +162,6 @@ ValueReturn s__str_len(enginePo P, termPo s) {
   const char *str = strVal(s, &len);
 
   return normalReturn(makeInteger(len));
-}
-
-ReturnStatus g__str_len(enginePo P) {
-  termPo r = popVal(P);
-  ValueReturn ret = s__str_len(P, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 static retCode skipBlanks(const char *txt, integer len, integer *pos) {
@@ -265,13 +186,6 @@ ValueReturn s__str2flt(enginePo P, termPo s) {
   }
 }
 
-ReturnStatus g__str2flt(enginePo P) {
-  termPo r = popVal(P);
-  ValueReturn ret = s__str2flt(P, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str2int(enginePo P, termPo s) {
   integer len;
   const char *str = strVal(s, &len);
@@ -286,13 +200,6 @@ ValueReturn s__str2int(enginePo P, termPo s) {
     default:
       return abnormalReturn(eINVAL);
   }
-}
-
-ReturnStatus g__str2int(enginePo P) {
-  termPo r = popVal(P);
-  ValueReturn ret = s__str2int(P, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_charat(enginePo P, termPo s, termPo i) {
@@ -313,15 +220,6 @@ ValueReturn s__str_charat(enginePo P, termPo s, termPo i) {
   }
 }
 
-ReturnStatus g__str_charat(enginePo P) {
-  termPo s = popVal(P);
-  termPo i = popVal(P);
-
-  ValueReturn ret = s__str_charat(P, s, i);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_gen(enginePo P, termPo s) {
   integer len;
   const char *str = strVal(s, &len);
@@ -330,14 +228,6 @@ ValueReturn s__str_gen(enginePo P, termPo s) {
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
   return normalReturn(allocateString(processHeap(P), rnd, uniStrLen(rnd)));
-}
-
-ReturnStatus g__str_gen(enginePo P) {
-  termPo p = popVal(P);
-
-  ValueReturn ret = s__str_gen(P, p);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__stringOf(enginePo P, termPo t, termPo d) {
@@ -355,15 +245,6 @@ ValueReturn s__stringOf(enginePo P, termPo t, termPo d) {
   return normalReturn(text);
 }
 
-ReturnStatus g__stringOf(enginePo P) {
-  termPo t = popVal(P);
-  termPo d = popVal(P);
-
-  ValueReturn ret = s__stringOf(P, t, d);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_quote(enginePo P, termPo s) {
   strBufferPo strb = newStringBuffer();
   quoteStrg(O_IO(strb), C_STR(s));
@@ -374,14 +255,6 @@ ValueReturn s__str_quote(enginePo P, termPo s) {
   termPo text = allocateString(processHeap(P), buff, oLen);
   closeIo(O_IO(strb));
   return normalReturn(text);
-}
-
-ReturnStatus g__str_quote(enginePo P) {
-  termPo t = popVal(P);
-
-  ValueReturn ret = s__str_quote(P, t);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 typedef enum {
@@ -498,15 +371,6 @@ ValueReturn s__str_format(enginePo P, termPo s, termPo f) {
   return normalReturn(text);
 }
 
-ReturnStatus g__str_format(enginePo P) {
-  termPo s = popVal(P);
-  termPo f = popVal(P);
-
-  ValueReturn ret = s__str_format(P, s, f);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__explode(enginePo P, termPo s) {
   stringPo str = C_STR(s);
   integer len = strLength(str);
@@ -535,14 +399,6 @@ ValueReturn s__explode(enginePo P, termPo s) {
   assert(consLength(list) == countCodePoints(buffer, 0, len));
 
   return normalReturn(list);
-}
-
-ReturnStatus g__explode(enginePo P) {
-  termPo s = popVal(P);
-
-  ValueReturn ret = s__explode(P, s);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 void dS(termPo w) {
@@ -582,14 +438,6 @@ ValueReturn s__implode(enginePo P, termPo list) {
   return normalReturn(result);
 }
 
-ReturnStatus g__implode(enginePo P) {
-  termPo s = popVal(P);
-
-  ValueReturn ret = s__implode(P, s);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_find(enginePo P, termPo s, termPo t, termPo f) {
   integer len;
   const char *str = strVal(s, &len);
@@ -599,16 +447,6 @@ ValueReturn s__str_find(enginePo P, termPo s, termPo t, termPo f) {
 
   integer found = uniSearch(str, len, start, tgt, tlen);
   return normalReturn(makeInteger(found));
-}
-
-ReturnStatus g__str_find(enginePo P) {
-  termPo s = popVal(P);
-  termPo t = popVal(P);
-  termPo f = popVal(P);
-
-  ValueReturn ret = s__str_find(P, s, t, f);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__sub_str(enginePo P, termPo s, termPo f, termPo c) {
@@ -622,16 +460,6 @@ ValueReturn s__sub_str(enginePo P, termPo s, termPo f, termPo c) {
   char buff[count + 1];
   uniMove(buff, count + 1, &str[start], count);
   return normalReturn(allocateString(processHeap(P), buff, count));
-}
-
-ReturnStatus g__sub_str(enginePo P) {
-  termPo s = popVal(P);
-  termPo f = popVal(P);
-  termPo c = popVal(P);
-
-  ValueReturn ret = s__sub_str(P, s, f, c);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_hdtl(enginePo P, termPo s) {
@@ -660,14 +488,6 @@ ValueReturn s__str_hdtl(enginePo P, termPo s) {
   }
 }
 
-ReturnStatus g__str_hdtl(enginePo P) {
-  termPo s = popVal(P);
-
-  ValueReturn ret = s__str_hdtl(P, s);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_cons(enginePo P, termPo c, termPo s) {
   codePoint ch = charVal(c);
   stringPo src = C_STR(s);
@@ -679,15 +499,6 @@ ValueReturn s__str_cons(enginePo P, termPo c, termPo s) {
   return normalReturn(allocateString(processHeap(P), str, offset + len));
 }
 
-ReturnStatus g__str_cons(enginePo P) {
-  termPo c = popVal(P);
-  termPo s = popVal(P);
-
-  ValueReturn ret = s__str_cons(P, c, s);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__code2str(enginePo P, termPo c) {
   codePoint ch = charVal(c);
   integer codeLength = 0;
@@ -695,14 +506,6 @@ ValueReturn s__code2str(enginePo P, termPo c) {
   appendCodePoint(str, &codeLength, NumberOf(str), (codePoint) ch);
 
   return normalReturn(allocateString(processHeap(P), str, codeLength));
-}
-
-ReturnStatus g__code2str(enginePo P) {
-  termPo c = popVal(P);
-
-  ValueReturn ret = s__code2str(P, c);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_apnd(enginePo P, termPo s, termPo c) {
@@ -715,15 +518,6 @@ ValueReturn s__str_apnd(enginePo P, termPo s, termPo c) {
 
   appendCodePoint(str, &offset, len + 16, ch);
   return normalReturn(allocateString(processHeap(P), str, offset));
-}
-
-ReturnStatus g__str_apnd(enginePo P) {
-  termPo s = popVal(P);
-  termPo c = popVal(P);
-
-  ValueReturn ret = s__str_apnd(P, s, c);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
@@ -742,16 +536,6 @@ ValueReturn s__str_set(enginePo P, termPo s, termPo o, termPo c) {
   return normalReturn(allocateCString(processHeap(P), str));
 }
 
-ReturnStatus g__str_set(enginePo P) {
-  termPo s = popVal(P);
-  termPo f = popVal(P);
-  termPo c = popVal(P);
-
-  ValueReturn ret = s__str_set(P, s, f, c);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_drop(enginePo P, termPo s, termPo o) {
   integer len;
   const char *src = strVal(s, &len);
@@ -763,15 +547,6 @@ ValueReturn s__str_drop(enginePo P, termPo s, termPo o) {
   uniNCpy(&str[srcOffset], len + 16 - srcOffset, &src[offset], len - offset);
 
   return normalReturn(allocateCString(processHeap(P), str));
-}
-
-ReturnStatus g__str_drop(enginePo P) {
-  termPo s = popVal(P);
-  termPo o = popVal(P);
-
-  ValueReturn ret = s__str_drop(P, s, o);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_back(enginePo P, termPo s) {
@@ -800,14 +575,6 @@ ValueReturn s__str_back(enginePo P, termPo s) {
   }
 }
 
-ReturnStatus g__str_back(enginePo P) {
-  termPo s = popVal(P);
-
-  ValueReturn ret = s__str_back(P, s);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_split(enginePo P, termPo s, termPo o) {
   integer len;
   const char *str = strVal(s, &len);
@@ -829,15 +596,6 @@ ValueReturn s__str_split(enginePo P, termPo s, termPo o) {
   return normalReturn((termPo)pair);
 }
 
-ReturnStatus g__str_split(enginePo P) {
-  termPo s = popVal(P);
-  termPo o = popVal(P);
-
-  ValueReturn ret = s__str_split(P, s, o);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_concat(enginePo P, termPo f, termPo s) {
   integer llen;
   const char *lhs = strVal(f, &llen);
@@ -850,15 +608,6 @@ ValueReturn s__str_concat(enginePo P, termPo f, termPo s) {
   uniMove(&buff[llen], len - llen, rhs, rlen);
 
   return normalReturn(allocateString(processHeap(P), buff, llen + rlen));
-}
-
-ReturnStatus g__str_concat(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__str_concat(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_splice(enginePo P, termPo l, termPo f, termPo c, termPo r) {
@@ -888,32 +637,12 @@ ValueReturn s__str_splice(enginePo P, termPo l, termPo f, termPo c, termPo r) {
   return normalReturn(allocateString(processHeap(P), buff, len));
 }
 
-ReturnStatus g__str_splice(enginePo P) {
-  termPo l = popVal(P);
-  termPo f = popVal(P);
-  termPo c = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__str_splice(P, l, f, c, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_start(enginePo P, termPo s, termPo p) {
   integer llen;
   const char *lhs = strVal(s, &llen);
   integer rlen;
   const char *rhs = strVal(p, &rlen);
   return normalReturn(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum);
-}
-
-ReturnStatus g__str_start(enginePo P) {
-  termPo l = popVal(P);
-  termPo p = popVal(P);
-
-  ValueReturn ret = s__str_start(P, l, p);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_end(enginePo P, termPo l, termPo r) {
@@ -923,15 +652,6 @@ ValueReturn s__str_end(enginePo P, termPo l, termPo r) {
   const char *rhs = strVal(r, &rlen);
 
   return normalReturn(uniIsSuffix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum);
-}
-
-ReturnStatus g__str_end(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__str_end(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str_multicat(enginePo P, termPo t) {
@@ -952,14 +672,6 @@ ValueReturn s__str_multicat(enginePo P, termPo t) {
   return normalReturn(text);
 }
 
-ReturnStatus g__str_multicat(enginePo P) {
-  termPo l = popVal(P);
-
-  ValueReturn ret = s__str_multicat(P, l);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__str_reverse(enginePo P, termPo s) {
   integer len;
   const char *lhs = strVal(s, &len);
@@ -970,12 +682,4 @@ ValueReturn s__str_reverse(enginePo P, termPo s) {
   uniReverse(buff, len);
 
   return normalReturn(allocateString(processHeap(P), buff, len));
-}
-
-ReturnStatus g__str_reverse(enginePo P) {
-  termPo l = popVal(P);
-
-  ValueReturn ret = s__str_reverse(P, l);
-  pshVal(P, ret.value);
-  return ret.status;
 }

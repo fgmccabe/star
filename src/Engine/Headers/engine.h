@@ -42,8 +42,5 @@ retCode setProcessWd(enginePo p, char *wd, integer len);
 
 termPo commandLine(heapPo h);
 
-void pshVal(enginePo p, termPo v);
-termPo popVal(enginePo p);
-
 extern __thread enginePo currentProcess;
 #endif

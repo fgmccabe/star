@@ -21,14 +21,6 @@ ValueReturn s__big_plus(enginePo P, termPo l, termPo r) {
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
-ReturnStatus g__big_plus(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_plus(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_minus(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
@@ -36,14 +28,6 @@ ValueReturn s__big_minus(enginePo P, termPo l, termPo r) {
   uint32 sum[cS];
   integer cC = longSubtract(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
-}
-
-ReturnStatus g__big_minus(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_minus(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_bitand(enginePo P, termPo l, termPo r) {
@@ -55,14 +39,6 @@ ValueReturn s__big_bitand(enginePo P, termPo l, termPo r) {
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
-ReturnStatus g__big_bitand(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_bitand(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_bitor(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
@@ -70,14 +46,6 @@ ValueReturn s__big_bitor(enginePo P, termPo l, termPo r) {
   uint32 sum[cS];
   integer cC = longBitOr(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
-}
-
-ReturnStatus g__big_bitor(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_bitor(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_bitxor(enginePo P, termPo l, termPo r) {
@@ -89,27 +57,12 @@ ValueReturn s__big_bitxor(enginePo P, termPo l, termPo r) {
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
 }
 
-ReturnStatus g__big_bitxor(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_bitxor(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_bitnot(enginePo P, termPo l) {
   bignumPo lhs = C_BIGNUM(l);
   integer cS = bigCount(lhs) + 1;
   uint32 sum[cS];
   integer cC = longBitNot(sum, cS, bigDigits(lhs), bigCount(lhs));
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
-}
-
-ReturnStatus g__big_bitnot(enginePo P) {
-  termPo l = popVal(P);
-  ValueReturn ret = s__big_bitnot(P, l);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_times(enginePo P, termPo l, termPo r) {
@@ -119,15 +72,6 @@ ValueReturn s__big_times(enginePo P, termPo l, termPo r) {
   uint32 sum[cS];
   integer cC = longMultiply(sum, cS, bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs));
   return normalReturn(allocateBignum(processHeap(P), cC, sum));
-}
-
-ReturnStatus g__big_times(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__big_times(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_div(enginePo P, termPo l, termPo r) {
@@ -157,15 +101,6 @@ ValueReturn s__big_div(enginePo P, termPo l, termPo r) {
   }
 }
 
-ReturnStatus g__big_div(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__big_div(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_gcd(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
@@ -180,15 +115,6 @@ ValueReturn s__big_gcd(enginePo P, termPo l, termPo r) {
   } else {
     return abnormalReturn(divZero);
   }
-}
-
-ReturnStatus g__big_gcd(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-
-  ValueReturn ret = s__big_gcd(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_format(enginePo P, termPo b, termPo fmt) {
@@ -210,13 +136,6 @@ ValueReturn s__big_format(enginePo P, termPo b, termPo fmt) {
     return abnormalReturn(eINVAL);
 }
 
-ReturnStatus g__big_format(enginePo P) {
-  termPo b = popVal(P);
-  ValueReturn ret = s__big_format(P, b, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big2str(enginePo P, termPo b) {
   bignumPo bg = C_BIGNUM(b);
   uint32 bgCount = bigCount(bg);
@@ -226,14 +145,6 @@ ValueReturn s__big2str(enginePo P, termPo b) {
   char buff[bufLen];
   integer actual = textFromlong(buff, bufLen, bgData, bgCount);
   return normalReturn(allocateString(processHeap(P), buff, actual));
-}
-
-ReturnStatus g__big2str(enginePo P) {
-  termPo b = popVal(P);
-
-  ValueReturn ret = s__big2str(P, b);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__str2big(enginePo P, termPo st) {
@@ -252,35 +163,15 @@ ValueReturn s__str2big(enginePo P, termPo st) {
   }
 }
 
-ReturnStatus g__str2big(enginePo P) {
-  ValueReturn ret = s__str2big(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_hash(enginePo P, termPo b) {
   bignumPo bg = C_BIGNUM(b);
   return normalReturn(makeInteger(bignumHash(bg)));
-}
-
-ReturnStatus g__big_hash(enginePo P) {
-  ValueReturn ret = s__big_hash(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_eq(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
   return normalReturn(longEqual(bigDigits(lhs), bigCount(lhs), bigDigits(rhs), bigCount(rhs)) ? trueEnum : falseEnum);
-}
-
-ReturnStatus g__big_eq(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_eq(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big_lt(enginePo P, termPo l, termPo r) {
@@ -294,14 +185,6 @@ ValueReturn s__big_lt(enginePo P, termPo l, termPo r) {
   }
 }
 
-ReturnStatus g__big_lt(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_lt(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__big_ge(enginePo P, termPo l, termPo r) {
   bignumPo lhs = C_BIGNUM(l);
   bignumPo rhs = C_BIGNUM(r);
@@ -313,25 +196,11 @@ ValueReturn s__big_ge(enginePo P, termPo l, termPo r) {
   }
 }
 
-ReturnStatus g__big_ge(enginePo P) {
-  termPo l = popVal(P);
-  termPo r = popVal(P);
-  ValueReturn ret = s__big_ge(P, l, r);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__int2big(enginePo P, integer ix) {
   uint64 U = (uint64) ix;
 
   uint32 uu[] = {U & ONES_MASK, (U >> 32) & ONES_MASK};
   return normalReturn(allocateBignum(processHeap(P), NumberOf(uu), uu));
-}
-
-ReturnStatus g__int2big(enginePo P) {
-  ValueReturn ret = s__int2big(P, integerVal(popVal(P)));
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big2ints(enginePo P, termPo b) {
@@ -359,13 +228,6 @@ ValueReturn s__big2ints(enginePo P, termPo b) {
   return normalReturn(list);
 }
 
-ReturnStatus g__big2ints(enginePo P) {
-  termPo b = popVal(P);
-  ValueReturn ret = s__big2ints(P, b);
-  pshVal(P, ret.value);
-  return ret.status;
-}
-
 ValueReturn s__ints2big(enginePo P, termPo list) {
   integer count = consLength(list);
   uint32 digits[count];
@@ -377,12 +239,6 @@ ValueReturn s__ints2big(enginePo P, termPo list) {
   }
 
   return normalReturn(allocateBignum(processHeap(P), count, digits));
-}
-
-ReturnStatus g__ints2big(enginePo P) {
-  ValueReturn ret = s__ints2big(P, popVal(P));
-  pshVal(P, ret.value);
-  return ret.status;
 }
 
 ValueReturn s__big2int(enginePo P, termPo b) {
@@ -404,11 +260,4 @@ ValueReturn s__big2int(enginePo P, termPo b) {
     default:
       return abnormalReturn(eRANGE);
   }
-}
-
-ReturnStatus g__big2int(enginePo P) {
-  termPo b = popVal(P);
-  ValueReturn ret = s__big2int(P, b);
-  pshVal(P, ret.value);
-  return ret.status;
 }
