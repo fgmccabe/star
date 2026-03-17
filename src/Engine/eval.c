@@ -73,7 +73,7 @@ int32 run(enginePo P) {
 
         PROG = mtd;
 
-        for (int32 ax = arity-1; ax >=0 ; ax--) {
+        for (int32 ax = arity - 1; ax >= 0; ax--) {
           *--SP = varble(operand(ax+3));
         }
         ARGS = SP;
@@ -81,30 +81,20 @@ int32 run(enginePo P) {
 #ifndef NOJIT
         if (hasJit(mtd)) {
 #ifdef TRACEJIT
-        if (traceJit) {
-          logMsg(logFile, "entering jitted code %T", mtd);
-        }
+          if (traceJit) {
+            logMsg(logFile, "entering jitted code %T", mtd);
+          }
 #endif
 
-        insPo link = PC; // Jit code can override this in the frame
-        saveRegisters();
-        ReturnStatus ret = (enableSSA ? invokeJitMethodA(P, mtd) : invokeJitMethod(P, mtd));
-        restoreRegisters();
-        PC = link;
-
-        if (ret == Normal) {
+          ssaInsPo link = PC; // Jit code can override this in the frame
+          saveRegisters();
+          RSLT = invokeJitMethodA(P, mtd);
+          restoreRegisters();
+          PC = link;
           PC++;
-        } else if (PC->op == XCall) {
-          termPo exception = pop();
-          breakOut();
-          push(exception);
-        } else {
-          logMsg(logFile, "invalid return from %L", nProg);
-          bail();
-        }
         } else
 #endif
-        PC = entryPoint(mtd);
+          PC = entryPoint(mtd);
         continue;
       }
 
@@ -139,7 +129,7 @@ int32 run(enginePo P) {
         FP->link = PC + insSize;
         FP->args = ARGS;
 
-        for (int32 ax = numArgs-1; ax >= 0; ax--) {
+        for (int32 ax = numArgs - 1; ax >= 0; ax--) {
           *--SP = varble(operand(ax+3));
         }
         *--SP = closureFree(lam); // Put the free term as the first argument
@@ -252,7 +242,7 @@ int32 run(enginePo P) {
           buffer[ax] = varble(operand(ax+3));
         }
 
-        for (int32 ax = arity-1; ax >= 0; ax--) {
+        for (int32 ax = arity - 1; ax >= 0; ax--) {
           *--tgt = buffer[ax];
         }
 
@@ -296,7 +286,7 @@ int32 run(enginePo P) {
           buffer[ax] = varble(operand(ax+3));
         }
 
-        for (int32 ax = numArgs-1; ax >= 0; ax--) {
+        for (int32 ax = numArgs - 1; ax >= 0; ax--) {
           *--tgt = buffer[ax];
         }
         *--tgt = closureFree(lam); // Put the free term as the first argument
@@ -471,8 +461,7 @@ int32 run(enginePo P) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_NORMAL(t);
-          if (sameLabel(l, termLbl(cl))) {\
-
+          if (sameLabel(l, termLbl(cl))) {
             PC += insSize;
             continue;
           }
@@ -871,7 +860,7 @@ int32 run(enginePo P) {
         double Rhs = floatVal(varble(operand(4)));
 
         if (Rhs == 0) {
-          returnBlock(1,divZero);
+          returnBlock(1, divZero);
           continue;
         } else {
           varble(operand(2)) = makeFloat(H, Lhs / Rhs);
@@ -887,7 +876,7 @@ int32 run(enginePo P) {
         double Rhs = floatVal(varble(operand(4)));
 
         if (Rhs == 0) {
-          returnBlock(1,divZero);
+          returnBlock(1, divZero);
           continue;
         } else {
           varble(operand(2)) = makeFloat(H, fmod(Lhs, Rhs));
@@ -1097,16 +1086,16 @@ int32 run(enginePo P) {
 
 #ifndef NOJIT
 // Directly enter jitted code
-ReturnStatus exec(enginePo P) {
+ValueReturn exec(enginePo P) {
   stackPo STK = P->stk;
   register methodPo PROG = STK->prog;
 
 #ifdef TRACEJIT
-if (traceJit) {
-  logMsg(logFile, "entering jitted code %T", PROG);
-}
+  if (traceJit) {
+    logMsg(logFile, "entering jitted code %T", PROG);
+  }
 #endif
 
-return invokeJitMethod(P, PROG);
+  return invokeJitMethodA(P, PROG);
 }
 #endif

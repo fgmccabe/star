@@ -29,7 +29,7 @@ typedef struct engineRecord_ {
 
 extern void initEngine();
 int32 run(enginePo P);
-ReturnStatus exec(enginePo P);
+ValueReturn exec(enginePo P);
 
 int32 bootstrap(heapPo h, char *entry, char *rootWd);
 

@@ -72,7 +72,7 @@ static FlexOp operandFlex(codeGenPo state, int32 pc, int32 ax);
 static void loadRegister(codeGenPo state, armReg rg, FlexOp src);
 static void dumpState(codeGenPo state);
 static void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexOp args[]);
-static void invokeEscape(codeGenPo state, int32 pc, runtimeFn fn, int32 arity);
+static void invokeEscape(codeGenPo state, int32 pc, escValue fn, int32 arity);
 static int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
 static int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
 static void dropArguments(codeGenPo state, int32 pc);
@@ -291,25 +291,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         dropArguments(state, pc + insSize);
         pc += insSize;
 
-
-
-        loadConstant(jit, key, X16);
-        // pick up the pointer to the method
-        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
-        // Update current frame
         str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-
-        codeLblPo haveMtd = newLabel(ctx);
-        cbnz(X17, haveMtd);
-
-        bailOut(jit, undefinedCode);
-
-        bind(haveMtd);
-        overrideFrame(state, pc, arity);
         str(AG, OF(STK, OffsetOf(StackRecord,args)));
 
-        // Pick up the jit code itself
-        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        // Pick up the old return address
         ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
         br(X16);
         return ret;
@@ -344,16 +329,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
         return ret;
       }
-      case Escape: {
-        int32 escNo = code[pc].fst;
+      case sEscape: {
+        int32 insSize = operand(state, pc, 2) + 3;
+        int32 escNo = operand(state, pc, 1);
         escapePo esc = getEscape(escNo);
         int32 arity = escapeArity(esc);
-        invokeEscape(state, pc, (runtimeFn) escapeFun(esc), arity);
-        pushVar(state, pc, markVarStart(state, pc, RG(RTV)));
+        assert(arity==operand(state, pc, 2));
+        invokeEscape(state, pc, escapeCode(esc), arity);
+        pc+= insSize;
+        dropArguments(state, pc);
         continue;
       }
 
-      case Entry: {
+      case sEntry: {
         // locals definition
         continue;
       }
@@ -1840,7 +1828,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexO
 #endif
 }
 
-void invokeEscape(codeGenPo state, int32 pc, runtimeFn fn, int32 arity) {
+void invokeEscape(codeGenPo state, int32 pc, escValue fn, int32 arity) {
   assemCtxPo ctx = assemCtx(state->jit);
   loadArguments(state, pc, pc + 3, arity);
   registerMap saveMap = criticalRegs();
@@ -2265,7 +2253,7 @@ void brkOutEq(assemCtxPo ctx, blockPo tgtBlock) {
   beq(lbl);
 }
 
-ReturnStatus invokeJitMethodA(enginePo P, methodPo mtd) {
+ValueReturn invokeJitMethodA(enginePo P, methodPo mtd) {
   jittedCode code = jitCode(mtd);
   stackPo stk = P->stk;
   int32 arity = lblArity(mtdLabel(mtd));
@@ -2313,7 +2301,5 @@ ReturnStatus invokeJitMethodA(enginePo P, methodPo mtd) {
     "memory");
 
   P->stk->sp = exitSP;
-  pushStack(P->stk, val);
-
-  return ret;
+  return (ValueReturn){.value = val,.status = ret};
 }

@@ -38,5 +38,6 @@ typedef struct escape_record_ *escapePo;
 escapePo getEscape(uint32 escNo);
 char *escapeName(escapePo esc);
 int32 escapeArity(escapePo esc);
+escValue escapeCode(escapePo esc);
 
 #endif //STAR_ESCAPE_H

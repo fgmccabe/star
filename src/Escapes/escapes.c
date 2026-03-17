@@ -26,7 +26,6 @@ void installEscapes() {
 #include "escapes.h"
 
 #undef escape
-
 }
 
 int installEscape(EscapeCode code, char *name, char *sig, escValue direct) {
@@ -115,4 +114,8 @@ char *escapeName(escapePo esc) {
 
 int32 escapeArity(escapePo esc) {
   return esc->arity;
+}
+
+escValue escapeCode(escapePo esc) {
+  return esc->direct;
 }
