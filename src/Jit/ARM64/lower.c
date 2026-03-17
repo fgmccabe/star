@@ -76,9 +76,9 @@ static void invokeEscape(codeGenPo state, int32 pc, runtimeFn fn, int32 arity);
 static int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
 static int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
 static void dropArguments(codeGenPo state, int32 pc);
-static int32 overrideArguments(codeGenPo state, int32 pc, int32 arity);
+static int32 overrideArguments(codeGenPo state, int32 pc, int32 argPc, int32 arity);
 static int32 overrideOArguments(codeGenPo state, int32 pc, int32 arity, armReg arg1);
-static void overrideFrame(codeGenPo state, int32 pc, int32 arity);
+static int32 overrideFrame(codeGenPo state, int32 pc, int32 argPc, int32 arity);
 static void overrideOFrame(codeGenPo state, int32 pc, int32 arity, armReg arg1);
 static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
 static localVarPo findPhiVariable(codeGenPo state, int32 pc);
@@ -1672,7 +1672,7 @@ void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
   releaseReg(jit, tmp);
 }
 
-void overrideFrame(codeGenPo state, int32 pc, int32 arity) {
+int32 overrideFrame(codeGenPo state, int32 pc, int32 argPc, int32 arity) {
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
     outMsg(logFile, "override frame in: ");
@@ -1680,8 +1680,9 @@ void overrideFrame(codeGenPo state, int32 pc, int32 arity) {
   }
 #endif
 
-  int32 tgtOff = overrideArguments(state, pc, arity);
+  int32 tgtOff = overrideArguments(state, pc, argPc, arity);
   adjustAG(state, pc, tgtOff);
+  return tgtOff;
 }
 
 void overrideOFrame(codeGenPo state, int32 pc, int32 arity, armReg arg1) {
@@ -1928,23 +1929,21 @@ int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 ar
   return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), argBase, arity, arity);
 }
 
-int32 overrideArguments(codeGenPo state, int32 pc, int32 arity) {
+int32 overrideArguments(codeGenPo state, int32 pc, int32 argPc, int32 arity) {
   ArgSpec operands[arity];
   registerMap argRegs = defaultArgRegs();
-
-  assert(state->top >= arity);
 
   int32 tgtOff = argCount(state->jit->mtd);
 
   for (int32 ix = 0; ix < arity; ix++) {
-    localVarPo var = state->stack[ix];
+    FlexOp arg = operandFlex(state, argPc, ix);
     armReg ax = nxtAvailReg(argRegs);
     int32 argSLot = tgtOff - arity + ix;
     if (ax != XZR) {
       argRegs = dropReg(argRegs, ax);
-      operands[ix] = (ArgSpec){.src = var->src, .dst = RG(ax), .mark = True, .group = -1};
+      operands[ix] = (ArgSpec){.src = arg, .dst = RG(ax), .mark = True, .group = -1};
     } else {
-      operands[ix] = (ArgSpec){.src = var->src, .dst = OF(AG, argSLot*pointerSize), .mark = True, .group = -1};
+      operands[ix] = (ArgSpec){.src = arg, .dst = OF(AG, argSLot*pointerSize), .mark = True, .group = -1};
     }
   }
   registerMap tmpMap = fixedRegSet(X16);
