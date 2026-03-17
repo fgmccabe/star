@@ -29,7 +29,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
   if (!hasJit(mtd)){
     jitCompPo jit = jitContext(mtd);
 
-    retCode ret = (enableSSA?jitInstructionsA(jit, mtd, errMsg, msgLen):jitInstructions(jit, mtd, errMsg, msgLen));
+    retCode ret = (enableSSA?jitInstructions(jit, mtd, errMsg, msgLen):jitInstructions(jit, mtd, errMsg, msgLen));
 
     if (ret == Ok){
       assemCtxPo ctx = jit->assemCtx;

@@ -21,8 +21,8 @@ set(HEADER_FILES
         Assem/Headers/arm64P.h
         Assem/Headers/assem.h
         Headers/lower.h
-        Headers/lowerAP.h
         Headers/lowerP.h
+#        Headers/lowerXP.h
         ../../Util/Headers/array.h
         ../../Engine/Headers/escapeP.h
         Assem/Headers/assem_encode.h
@@ -31,18 +31,17 @@ set(HEADER_FILES
         ../Analysis/Headers/analyse.h
         ../Analysis/Headers/analyseP.h
         Headers/shuffle.h
-        Headers/lowerAP.h
 )
 
 set(SOURCE_FILES
+#        lowerX.c
         lower.c
-        lowerA.c
-        lowerStack.c
-        lowerFrame.c
-        lowerFFI.c
+#        lowerStack.c
+#        lowerFrame.c
+#        lowerFFI.c
         shuffle.c)
 
 add_library(ARM64 STATIC ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(ARM64 assem ssa)
+target_link_libraries(ARM64 assem analysis)
 
 

@@ -5,7 +5,7 @@
 #include <config.h>
 
 #include "sort.h"
-#include "lowerP.h"
+#include "lowerXP.h"
 #include "shuffle.h"
 
 static logical usesReg(FlexOp op, mcRegister Rg) {

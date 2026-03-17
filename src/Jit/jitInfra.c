@@ -58,3 +58,7 @@ void releaseReg(jitCompPo jit, mcRegister rg) {
 logical haveFreeReg(jitCompPo jit) {
   return jit->freeRegs != emptyRegSet();
 }
+
+void resetRegMap(jitCompPo jit, registerMap defaultRegs) {
+  jit->freeRegs = defaultRegs;
+}

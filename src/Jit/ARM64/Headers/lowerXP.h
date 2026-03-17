@@ -1,19 +1,20 @@
 //
-// Created by Francis McCabe on 2/10/26.
+// Created by Francis McCabe on 10/11/21.
 //
 
-#ifndef STAR_LOWERAP_H
-#define STAR_LOWERAP_H
+#ifndef STAR_LOWERP_H
+#define STAR_LOWERP_H
 
 #include "abort.h"
+#include "analyseP.h"
 #include "lower.h"
 #include "arm64P.h"
 #include "macros.h"
 #include "term.h"
 #include "arith.h"
 #include "char.h"
+#include "code.h"
 #include "jitP.h"
-#include "analyseP.h"
 
 #define CO (X12)
 #define AG  (X13)
@@ -37,11 +38,9 @@ typedef struct {
   jitCompPo jit;
   localVarPo locals;
   int32 numLocals;
-  int32 top;
-  localVarPo *stack;
 } CodeGenState, *codeGenPo;
 
-typedef struct jitBlock_ *blockPo;
+typedef struct jitBlock_ *jitBlockPo;
 
 typedef struct jitBlock_ {
   int32 startPc;
@@ -49,7 +48,7 @@ typedef struct jitBlock_ {
   localVarPo phiVar;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
-  blockPo parent;
+  jitBlockPo parent;
 } JitBlock;
 
 retCode stackCheck(jitCompPo jit, methodPo mtd);
@@ -62,16 +61,18 @@ retCode getIntVal(jitCompPo jit, armReg rg);
 retCode mkIntVal(jitCompPo jit, armReg rg);
 void getFltVal(jitCompPo jit, armReg rg, fpReg tgt);
 
+armReg mkFloat(jitBlockPo block);
+
 retCode jitError(jitCompPo jit, char *msg, ...);
 
-blockPo breakBlock(blockPo block, insPo code, int32 tgt, OpCode blockType);
-codeLblPo getABreakLbl(blockPo block, int32 pc);
-codeLblPo breakLabel(blockPo block);
-codeLblPo loopLabel(blockPo block);
+jitBlockPo breakBlock(jitBlockPo block, insPo code, int32 tgt, OpCode blockType);
+codeLblPo getABreakLbl(jitBlockPo block, int32 pc);
+codeLblPo breakLabel(jitBlockPo block);
+codeLblPo loopLabel(jitBlockPo block);
 
-retCode breakOutEq(blockPo block, insPo code, int32 tgt);
-retCode breakOutNe(blockPo block, insPo code, int32 tgt);
-retCode breakOut(assemCtxPo ctx, blockPo tgtBlock);
+retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
+retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
+retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock);
 
 void stash(jitCompPo jit, int32 depth);
 void stashEngineState(jitCompPo jit, int32 stackLevel);
@@ -85,9 +86,31 @@ void storeVarble(jitCompPo jit, armReg src, int32 varNo);
 
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
+void dumpStack(valueStackPo stack);
 retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt);
-void frameOverride(blockPo block, int arity);
-void frameOOverride(blockPo block, int arity, armReg frReg);
+int32 trueStackDepth(valueStackPo stack);
+void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth);
+retCode propagateStack(jitCompPo jit, valueStackPo srcStack, valueStackPo tgtStack, int32 tgtHeight);
+localVarPo pushBlank(valueStackPo stack);
+void pushValue(valueStackPo stack, LocalEntry var);
+void pushRegister(valueStackPo stack, armReg rg);
+void pushConstant(jitCompPo jit, valueStackPo stack, int32 key);
+void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) ;
+armReg popValue(valueStackPo stack, jitCompPo jit);
+armReg topValue(valueStackPo stack, jitCompPo jit);
+armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth);
+void dropValue(valueStackPo stack, jitCompPo jit);
+void dropValues(valueStackPo stack, jitCompPo jit, int32 count);
+void spillStack(valueStackPo stack, jitCompPo jit);
+void frameOverride(jitBlockPo block, int arity);
+void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry);
+
+localVarPo argSlot(valueStackPo stack, int32 slot);
+localVarPo localSlot(valueStackPo stack, int32 slot);
+localVarPo stackSlot(valueStackPo stack, int32 slot);
+
+void loadStack(jitCompPo jit, armReg tgt, int32 depth);
+void storeStack(jitCompPo jit, armReg src, int32 depth);
 
 registerMap criticalRegs();
 
@@ -99,5 +122,4 @@ static inline logical isSmall(termPo x) {
   else
     return False;
 }
-
-#endif //STAR_LOWERAP_H
+#endif //STAR_LOWERP_H

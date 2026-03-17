@@ -6,7 +6,7 @@
 #include "abort.h"
 #include "arithP.h"
 #include "constantsP.h"
-#include "lowerP.h"
+#include "lowerXP.h"
 #include "stackP.h"
 #include "jitP.h"
 #include "formioP.h"

@@ -7,7 +7,7 @@
 #include "codeP.h"
 #include "constants.h"
 #include "jitP.h"
-#include "lowerP.h"
+#include "lowerXP.h"
 #include "sort.h"
 #include "stackP.h"
 #include "shuffle.h"
@@ -32,125 +32,9 @@ int32 trueStackDepth(valueStackPo stack) {
   return stack->argPnt - stack->stackPnt + stack->vTop;
 }
 
-armReg popValue(valueStackPo stack, jitCompPo jit) {
-  check(stack->vTop > 0, "Insufficient stack depth for pop stack");
-  localVarPo var = stackSlot(stack, 0);
-  switch (var->kind) {
-    case isLocal: {
-      armReg tmp = findFreeReg(jit);
-      loadVarble(jit, tmp, var->stkOff);
-      stack->vTop--;
-      return tmp;
-    }
-    case inStack: {
-      armReg tmp = findFreeReg(jit);
-      loadVarble(jit, tmp, var->stkOff);
-      stack->vTop--;
-      return tmp;
-    }
-    case inReg: {
-      armReg tmp = var->Rg;
-      stack->vTop--;
-      return tmp;
-    }
-    default: {
-      bailOut(jit, errorCode);
-      return XZR;
-    }
-  }
-}
-
-armReg topValue(valueStackPo stack, jitCompPo jit) {
-  return stackValue(stack, jit, 0);
-}
-
-armReg stackValue(valueStackPo stack, jitCompPo jit, int32 depth) {
-  assemCtxPo ctx = assemCtx(jit);
-  check(stack->vTop > depth, "Insufficient stack depth for pop stack");
-  localVarPo var = stackSlot(stack, depth);
-  switch (var->kind) {
-    case isLocal:
-    case inStack: {
-      armReg tmp = findFreeReg(jit);
-      loadVarble(jit, tmp, var->stkOff);
-      return tmp;
-    }
-    case inReg: {
-      armReg tmp = findFreeReg(jit);
-      armReg rst = var->Rg;
-      mov(tmp, RG(rst));
-      return tmp;
-    }
-    default: {
-      bailOut(jit, errorCode);
-      return XZR;
-    }
-  }
-}
-
 void setLocal(valueStackPo stack, int32 lclNo, LocalEntry entry) {
   assert(lclNo<0);
   *localSlot(stack, -lclNo) = entry;
-}
-
-void pushValue(valueStackPo stack, LocalEntry entry) {
-  stack->vTop++;
-  localVarPo var = stackSlot(stack, 0);
-  *var = entry;
-}
-
-localVarPo pushBlank(valueStackPo stack) {
-  stack->vTop++;
-  localVarPo var = stackSlot(stack, 0);
-  *var =
-    (LocalEntry){.kind = inStack, .stkOff = -trueStackDepth(stack), .inited = True};
-  return var;
-}
-
-void pushRegister(valueStackPo stack, armReg rg) {
-  pushValue(stack,
-            (LocalEntry){
-              .kind = inReg, .Rg = rg, .stkOff =
-              -trueStackDepth(stack) - 1,
-              .inited = True
-            });
-}
-
-void forcePush(jitCompPo jit, valueStackPo stack, armReg rg) {
-  localVarPo tgt = pushBlank(stack);
-  storeVarble(jit, rg, tgt->stkOff);
-  releaseReg(jit, rg);
-}
-
-void pushConstant(jitCompPo jit, valueStackPo stack, int32 key) {
-  if (!haveFreeReg(jit))
-    spillStack(stack, jit);
-  armReg conRg = findFreeReg(jit);
-  loadConstant(jit, key, conRg);
-  forcePush(jit, stack, conRg);
-}
-
-void setStackDepth(valueStackPo stack, jitCompPo jit, int32 depth) {
-  while (stack->vTop > depth)
-    dropValue(stack, jit);
-}
-
-void dropValue(valueStackPo stack, jitCompPo jit) {
-  localVarPo var = stackSlot(stack, 0);
-  switch (var->kind) {
-    case inReg: {
-      releaseReg(jit, var->Rg);
-      break;
-    }
-    default: ;
-  }
-  stack->vTop--;
-}
-
-void dropValues(valueStackPo stack, jitCompPo jit, int32 count) {
-  for (int32 i = 0; i < count; i++) {
-    dropValue(stack, jit);
-  }
 }
 
 int32 setupLocals(localVarPo stack, argSpecPo newArgs, int32 arity, int32 tgtOff) {

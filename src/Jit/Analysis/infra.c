@@ -12,12 +12,10 @@
 #include "codeP.h"
 
 static poolPo varPool = Null;
-static poolPo varStackPool = Null;
 
 void initAnalysis() {
   if (varPool == Null){
     varPool = newPool(sizeof(VarDescRecord), 1024);
-    varStackPool = newPool(sizeof(VarDescRecord), 1024);
   }
 }
 
@@ -183,7 +181,7 @@ varDescPo findVar(analysisPo analysis, int32 varNo) {
   return hashGet(analysis->vars, &nme);
 }
 
-varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis) {
+varDescPo newArgVar(analysisPo analysis, int32 varNo) {
   return newVar(analysis, varNo, argument, 0, allocated);
 }
 
@@ -191,45 +189,16 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
   return newVar(analysis, varNo, local, -1, unAllocated);
 }
 
-varStackPo newStackVar(analysisPo analysis, varStackPo vstack, int32 pc) {
-  int stackVarNo = (int32)hashSize(analysis->vars);
-
-  varDescPo var = newVar(analysis, stackVarNo, stack, pc, unAllocated);
-  varStackPo stk = allocPool(varStackPool);
-  stk->link = vstack;
-  stk->var = var;
+varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc){
+  varDescPo var = newVar(analysis, varNo, phi, pc, unAllocated);
   treePut(analysis->index, (void*)(integer)pc, var);
-  return stk;
+  return var;
 }
 
-varStackPo newPhiVar(analysisPo analysis, varStackPo vstack, int32 pc) {
-  int stackVarNo = (int32)hashSize(analysis->vars);
-
-  varDescPo var = newVar(analysis, stackVarNo, phi, pc, unAllocated);
-  varStackPo stk = allocPool(varStackPool);
-  stk->link = vstack;
-  stk->var = var;
-  treePut(analysis->index, (void*)(integer)pc, var);
-  return stk;
-}
-
-varStackPo retireStackVar(varStackPo vstack, int32 pc) {
-  assert(vstack!=Null);
-  varDescPo var = vstack->var;
-
+void retireVar(analysisPo analysis, int32 varNo, int32 pc) {
+  varDescPo var = findVar(analysis, varNo);
   assert(var!=Null);
-
-  var->end = pc + 1;
-  varStackPo next = vstack->link;
-  freePool(varStackPool, vstack);
-  return next;
-}
-
-varStackPo retireScopeStack(varStackPo vStack, int32 pc) {
-  while (vStack != Null){
-    vStack = retireStackVar(vStack, pc);
-  }
-  return Null;
+  var->end = pc;
 }
 
 char* varKindName(varKind kind) {
@@ -238,26 +207,11 @@ char* varKindName(varKind kind) {
     return "arg";
   case local:
     return "lcl";
-  case stack:
-    return "stk";
   case phi:
     return "phi";
   default:
     return "???";
   }
-}
-
-int32 stackDepth(scopePo scope) {
-  int32 count = 0;
-  while (scope != Null){
-    varStackPo top = scope->stack;
-    while (top != Null){
-      count++;
-      top = top->link;
-    }
-    scope = scope->parent;
-  }
-  return count;
 }
 
 typedef struct {

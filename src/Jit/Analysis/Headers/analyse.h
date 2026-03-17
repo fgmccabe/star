@@ -26,14 +26,12 @@ void showAnalysis(ioPo out, analysisPo analysis);
 typedef enum {
   argument,
   local,
-  stack,
   phi
 } varKind;
 
 char *varKindName(varKind kind);
 
 typedef enum{
-  onStack,
   inRegister,
   notAllocated
 } varLocation;

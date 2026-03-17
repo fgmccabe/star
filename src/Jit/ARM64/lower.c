@@ -3,7 +3,8 @@
 //
 #include <config.h>
 #include <string.h>
-
+#include "engineOptions.h"
+#include "analyseP.h"
 #include "cellP.h"
 #include "lowerP.h"
 #include "stackP.h"
@@ -14,1756 +15,1656 @@
 #include "closureP.h"
 #include "debug.h"
 #include "engineP.h"
-#include "errorCodes.h"
 #include "abort.h"
+#include "arithmetic.h"
 #include "arithP.h"
 #include "debugP.h"
+#include "errorCodes.h"
 #include "formioP.h"
+#include "shuffle.h"
+#include "sort.h"
+#include "disass.h"
 
 /* Lower Star VM code to Arm64 code */
+/*
+* X0-X7 = argument registers & scratch registers
+* X0 = return status
+* X1 = return value
+* X8-X11 = Temporary registers
+* X12 = Constants vector
+* AG = X13 = args pointer
+* STK = X14 = current stack structure pointer
+* X15 = current process structure
+* X16-X17 = intra procedure call scratch registers
+* X18 = platform register
+* X19-X28 = callee saved registers
+* FP = X29 = frame pointer
+* LR = X30 = link register
+* SP = X31 = system stack pointer
+* We only use the SP register when entering C calls.
+*/
 
-static retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc);
-static void pshFrame(jitBlockPo block, armReg mtdRg);
-static void dropArgs(valueStackPo stack, jitCompPo jit, int32 count);
-static armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt);
-static retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count);
-static retCode testResult(jitBlockPo block, jitBlockPo tgtBlock);
+static registerMap defaultArgRegs();
+static registerMap systemArgRegs();
+static int32 maxArgRegister;
 
-retCode jitInstructions(jitCompPo jit, methodPo mtd, char* errMsg, integer msgLen) {
-  int32 numLcls = stackDelta(mtd) + mtdArity(mtd);
-  LocalEntry locals[numLcls];
+static retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int32 endPc);
+static blockPo blockBreak(blockPo block, ssaInsPo code, int32 tgt, ssaOp blockType);
+static void brkOut(assemCtxPo ctx, blockPo tgtBlock);
+static void brkOutNe(assemCtxPo ctx, blockPo tgtBlock);
+static void brkOutEq(assemCtxPo ctx, blockPo tgtBlock);
 
-  ValueStack stack = {
-    .locals = locals,
-    .lclCount = numLcls,
-    .argPnt = numLcls - mtdArity(mtd),
-    .stackPnt = numLcls - mtdArity(mtd) - lclCount(mtd),
-    .vTop = 0
-  };
+static void verifyState(codeGenPo state, int32 pc);
 
+static void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset);
+static armReg allocSmallStruct(codeGenPo state, int32 pc, clssPo class, integer amnt);
+static retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit);
+static void testResult(codeGenPo state, int32 pc, blockPo tgtBlock);
+static armReg mkFloat(codeGenPo state, int32 pc);
+static void populateLocals(codeGenPo state, int32 arity, int32 registerArgs);
+static void populateSpecialStackVars(codeGenPo state, int32 depth);
+static int32 operand(codeGenPo state, int32 pc, int32 ox);
+static void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
+static void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
+static FlexOp constantFlex(codeGenPo state, int32 index);
+static FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo);
+static FlexOp operandFlex(codeGenPo state, int32 pc, int32 ax);
+static void loadRegister(codeGenPo state, armReg rg, FlexOp src);
+static void dumpState(codeGenPo state);
+static void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexOp args[]);
+static void invokeEscape(codeGenPo state, int32 pc, runtimeFn fn, int32 arity);
+static int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
+static int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
+static void dropArguments(codeGenPo state, int32 pc);
+static int32 overrideArguments(codeGenPo state, int32 pc, int32 arity);
+static int32 overrideOArguments(codeGenPo state, int32 pc, int32 arity, armReg arg1);
+static void overrideFrame(codeGenPo state, int32 pc, int32 arity);
+static void overrideOFrame(codeGenPo state, int32 pc, int32 arity, armReg arg1);
+static void adjustAG(codeGenPo state, int32 pc, int32 tgtOff);
+static localVarPo findPhiVariable(codeGenPo state, int32 pc);
+static localVarPo markVarStart(codeGenPo state, int32 pc, FlexOp src);
+static logical liveVar(localVarPo var, int32 pc);
+static FlexOp getLclSrc(codeGenPo state, int32 pc, int32 lclNo);
+static void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var);
+static void stashVar(codeGenPo state, int32 pc, localVarPo var);
+static armReg findARegister(codeGenPo state, int32 pc);
+static retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt);
+
+static void showLiveLocals(ioPo out, codeGenPo state);
+static void retireExpiredVars(codeGenPo state, int32 pc);
+static void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset);
+static int32 stashLiveLocals(codeGenPo state, int32 pc);
+static int32 stashSomeLiveLocals(codeGenPo state, int32 pc, int32 cnt);
+static localVarPo findLocal(codeGenPo state, int32 pc, int32 lx);
+static localVarPo allocateLocal(codeGenPo state, int32 pc);
+static int32 nextStkOff(codeGenPo state, int32 pc);
+
+#define argSpec(s,d) (ArgSpec){.src = s, .dst = d, .mark = True, .group = -1}
+
+retCode jitInstructions(jitCompPo jit, methodPo mtd, char *errMsg, integer msgLen) {
 #ifdef TRACEJIT
-  if (traceJit > noTracing){
+  if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit method %L\n", mtd);
-    reinstallMsgProc('X', showStackSlot);
+    reinstallMsgProc('Z', showLocalVar);
   }
 #endif
 
-  for (int32 ax = 0; ax < mtdArity(mtd); ax++){
-    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
-  }
-  for (int32 lx = 1; lx <= lclCount(mtd); lx++){
-    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = False};
-  }
-  for (int32 i = 0; i < stack.stackPnt; i++){
-    stack.locals[i] = (LocalEntry){.kind = inStack, .stkOff = i - stack.stackPnt, .inited = False};
+  AnalysisRecord analysis;
+  if (analyseMethod(mtd, &analysis) == Ok) {
+    showAnalysis(logFile, &analysis);
   }
 
-  JitBlock block = {
-    .jit = jit,
-    .startPc = 0, .endPc = codeSize(mtd),
-    .breakLbl = Null, .loopLbl = Null,
-    .parent = Null,
-    .entryHeight = 0,
-    .exitHeight = 0,
-    .stack = stack
+  int32 numSlots = slotCount(&analysis);
+  LocalVar locals[numSlots];
+  localVarPo stack[numSlots];
+
+  CodeGenState state = {
+    .mtd = mtd, .analysis = &analysis, .locals = locals, .numLocals = numSlots, .jit = jit,
   };
 
-  return jitBlock(&block, entryPoint(mtd), 0, codeSize(mtd));
+  populateLocals(&state, mtdArity(mtd), mtdArity(mtd));
+
+  JitBlock block = {
+    .startPc = 0, .endPc = codeSize(mtd),
+    .breakLbl = Null, .loopLbl = Null,
+    .parent = Null, .phiVar = Null
+  };
+
+  retCode ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
+
+  tearDownAnalysis(&analysis);
+  return ret;
 }
 
 retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) {
 #ifdef TRACEJIT
-  if (traceJit > noTracing){
+  if (traceJit > noTracing) {
     showMethodCode(logFile, "Jit special method %L\n", mtd);
-    reinstallMsgProc('X', showStackSlot);
+    reinstallMsgProc('Z', showLocalVar);
   }
 #endif
 
-  int32 numLcls = stackDelta(mtd) + mtdArity(mtd);
-  LocalEntry locals[numLcls];
+  AnalysisRecord analysis;
+  if (analyseSpecialMethod(mtd, depth, &analysis) == Ok) {
+    showAnalysis(logFile, &analysis);
+  } else
+    return Error;
 
-  ValueStack stack = {
-    .locals = locals,
-    .lclCount = numLcls,
-    .argPnt = numLcls - mtdArity(mtd),
-    .stackPnt = numLcls - mtdArity(mtd) - lclCount(mtd),
-    .vTop = depth
+  int32 numSlots = slotCount(&analysis);
+  LocalVar locals[numSlots];
+  localVarPo stack[numSlots];
+
+  CodeGenState state = {
+    .mtd = mtd, .analysis = &analysis, .locals = locals, .numLocals = numSlots, .jit = jit
   };
-
-  for (int32 ax = 0; ax < mtdArity(mtd); ax++){
-    stack.locals[stack.argPnt + ax] = (LocalEntry){.kind = isLocal, .stkOff = ax, .inited = True};
-  }
-  for (int32 lx = 1; lx <= lclCount(mtd); lx++){
-    stack.locals[stack.argPnt - lx] = (LocalEntry){.kind = isLocal, .stkOff = -lx, .inited = True};
-  }
-  for (int32 sx = 1; sx <= depth; sx++){
-    stack.locals[stack.stackPnt - sx] = (LocalEntry){.kind = inStack, .stkOff = -(lclCount(mtd) + sx), .inited = True};
-  }
+  populateLocals(&state, mtdArity(mtd), mtdArity(mtd));
+  populateSpecialStackVars(&state, depth);
 
   JitBlock block = {
-    .jit = jit,
     .startPc = 0, .endPc = codeSize(mtd), .breakLbl = Null, .loopLbl = Null, .parent = Null,
-    .exitHeight = 0, .entryHeight = 0,
-    .stack = stack
   };
 
-  return jitBlock(&block, entryPoint(mtd), 0, codeSize(mtd));
+  retCode ret = jitBlock(&block, &state, entryPoint(mtd), 0, codeSize(mtd));
+
+  tearDownAnalysis(&analysis);
+  return ret;
 }
 
-retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
+retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int32 endPc) {
   retCode ret = Ok;
-  jitCompPo jit = block->jit;
+  jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
-  valueStackPo stack = &block->stack;
 
 #ifdef TRACEJIT
-  if (traceJit >= generalTracing){
-    outMsg(logFile, "Jit block %d -> %d, exit height %d\n%_", from, endPc, block->exitHeight);
+  if (traceJit >= generalTracing) {
+    outMsg(logFile, "Jit block %d -> %d\n%_", from, endPc);
   }
 #endif
-  for (int32 pc = from; ret == Ok && pc < endPc; pc++){
+  for (int32 pc = from; ret == Ok && pc < endPc; pc++) {
+    retireExpiredVars(state, pc);
+    verifyState(state, pc);
 #ifdef TRACEJIT
-    if (traceJit >= generalTracing){
+    if (traceJit >= generalTracing) {
       disass(logFile, Null, jit->mtd, &code[pc]);
       outMsg(logFile, "\n%_");
     }
-    if (traceJit >= detailedTracing){
-      dRegisterMap(jit->freeRegs);
-      dumpStack(stack);
+    if (traceJit >= detailedTracing) {
+      dumpState(state);
     }
 #endif
-    check(stack->vTop>=0, "negative stack depth");
+    switch (code[pc].op.op) {
+      case sHalt: {
+        // Stop execution
+        int32 insSize = 2;
+        FlexOp src = localFlex(state, pc, operand(state, pc, 1));
+        invokeIntrinsic(state, pc, (runtimeFn) star_exit, 2, (FlexOp[]){RG(PR), src});
+        pc += insSize;
+        continue;
+      }
+      case sAbort: {
+        // abort with message
+        int32 insSize = 3;
+        armReg loc = findARegister(state, pc);
+        FlexOp val = operandFlex(state, pc, 2);
+        loadConstant(jit, operand(state, pc, 1), loc);
+        invokeIntrinsic(state, pc, (runtimeFn) abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val});
+        releaseReg(jit, loc);
+        pc += insSize;
+        continue;
+      }
+      case sCall: {
+        int32 insSize = operand(state, pc, 2) + 3;
+        int32 key = operand(state, pc, 1);
+        int32 arity = lblArity(C_LBL(getConstant(key)));
+        int32 lclLimit = loadArguments(state, pc, pc + 3, arity);
+        loadConstant(jit, key, X16);
+        // pick up the pointer to the method
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
 
-    switch (code[pc].op){
-    case Halt: {
-      // Stop execution
-      armReg a1 = popValue(stack, jit);
-      return callIntrinsic(ctx, criticalRegs(), (runtimeFn)star_exit, 2, RG(PR), RG(a1));
-      releaseReg(jit, a1);
-    }
-    case Abort: {
-      // abort with message
-      armReg val = popValue(stack, jit);
-      armReg loc = findFreeReg(jit);
-      loadConstant(jit, code[pc].fst, loc);
-      stash(jit, trueStackDepth(stack));
-      ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)abort_star, 3, RG(PR), RG(loc), RG(val));
-      releaseReg(jit, val);
-      releaseReg(jit, loc);
-      return ret;
-    }
-    case Call: {
-      int32 key = code[pc].fst;
-      int32 arity = lblArity(C_LBL(getConstant(key)));
-      spillStack(stack, jit);
-      loadConstant(jit, key, X16);
-      // pick up the pointer to the method
-      ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+        codeLblPo noMtd = newLabel(ctx);
+        cbz(X17, noMtd);
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        codeLblPo runMtd = newLabel(ctx);
+        cbnz(X16, runMtd);
 
-      codeLblPo noMtd = newLabel(ctx);
-      cbz(X17, noMtd);
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      codeLblPo runMtd = newLabel(ctx);
-      cbnz(X16, runMtd);
+        bind(noMtd);
+        bailOut(jit, undefinedCode);
 
-      bind(noMtd);
-      bailOut(jit, undefinedCode);
+        bind(runMtd);
+        pushFrme(state, pc, X17, lclLimit - arity);
+        blr(X16);
+        dropArguments(state, pc + insSize);
+        pc += insSize;
+        continue;
+      }
+      case sOCall: {
+        int32 numArgs = operand(state, pc, 2);
+        int32 insSize = numArgs + 3;
+        int32 arity = numArgs + 1;
+        int32 lclLimit = loadLambdaArguments(state, pc, pc + 3, numArgs);
+        FlexOp lam = operandFlex(state, pc, 1); // Pick up the closure
+        armReg lamReg = X16;
+        loadRegister(state, lamReg, lam);
+        ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
+        ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
+        // pick up the pointer to the method
+        ldr(X17, OF(lamReg, OffsetOf(LblRecord, mtd)));
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
 
-      bind(runMtd);
-      pshFrame(block, X17);
-      blr(X16);
-      dropArgs(stack, jit, arity);
-      continue;
-    }
-    case XCall: {
-      int32 key = code[pc].fst;
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
-      int32 arity = lblArity(C_LBL(getConstant(key)));
+        bailOut(jit, undefinedCode);
 
-      spillStack(stack, jit); // Make sure everything is stashed
+        bind(haveMtd);
+        pushFrme(state, pc, X17, lclLimit - arity);
 
-      // pick up the pointer to the method
-      loadConstant(jit, key, X16);
-      ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        blr(X16);
+        dropArguments(state, pc);
+        pc += insSize;
+        continue;
+      }
+      case sTCall: {
+        int32 insSize = operand(state, pc, 2) + 3;
+        int32 key = operand(state, pc, 1);
+        int32 arity = lblArity(C_LBL(getConstant(key)));
 
-      codeLblPo noMtd = newLabel(ctx);
-      cbz(X17, noMtd);
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      codeLblPo runMtd = newLabel(ctx);
-      cbnz(X16, runMtd);
+        int32 lclLimit = overrideFrame(state, pc, pc + 3, arity);
+        loadConstant(jit, key, X16);
+        // pick up the pointer to the method
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
 
-      bind(noMtd);
-      bailOut(jit, undefinedCode);
+        codeLblPo noMtd = newLabel(ctx);
+        cbz(X17, noMtd);
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        codeLblPo runMtd = newLabel(ctx);
+        cbnz(X16, runMtd);
 
-      bind(runMtd);
-      pshFrame(block, X17);
-      blr(X16);
-      dropArgs(stack, jit, arity);
-      testResult(block, tgtBlock);
-      continue;
-    }
+        bind(noMtd);
+        bailOut(jit, undefinedCode);
 
-    case OCall: {
-      int32 arity = code[pc].fst;
-      armReg clos = popValue(stack, jit); // Pick up the closure
-      ldr(X17, OF(clos, OffsetOf(ClosureRecord, lbl))); // Pick up the label
-      // pick up the pointer to the method
-      ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
-      armReg freeReg = findFreeReg(jit);
-      ldr(freeReg, OF(clos, OffsetOf(ClosureRecord, free))); // Pick up the free term
-      releaseReg(jit, clos);
-      pushRegister(stack, freeReg); // The free term is the first argument
-      spillStack(stack, jit); // Make sure everything is stashed
+        bind(runMtd);
+        pushFrme(state, pc, X17, lclLimit - arity);
+        blr(X16);
+        dropArguments(state, pc + insSize);
+        pc += insSize;
 
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(X17, haveMtd);
 
-      bailOut(jit, undefinedCode);
 
-      bind(haveMtd);
-      pshFrame(block, X17);
+        loadConstant(jit, key, X16);
+        // pick up the pointer to the method
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+        // Update current frame
+        str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
 
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      blr(X16);
-      dropArgs(stack, jit, arity);
-      continue;
-    }
-    case XOCall: {
-      int32 arity = code[pc].fst;
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
 
-      armReg clos = popValue(stack, jit); // Pick up the closure
-      ldr(X17, OF(clos, OffsetOf(ClosureRecord, lbl))); // Pick up the label
-      // pick up the pointer to the method
-      ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
-      armReg freeReg = findFreeReg(jit);
-      ldr(freeReg, OF(clos, OffsetOf(ClosureRecord, free))); // Pick up the free term
-      releaseReg(jit, clos);
-      pushRegister(stack, freeReg); // The free term is the first argument
-      spillStack(stack, jit); // Make sure everything is stashed
+        bailOut(jit, undefinedCode);
 
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(X17, haveMtd);
+        bind(haveMtd);
+        overrideFrame(state, pc, arity);
+        str(AG, OF(STK, OffsetOf(StackRecord,args)));
 
-      bailOut(jit, undefinedCode);
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
+        br(X16);
+        return ret;
+      }
+      case TOCall: {
+        int32 arity = code[pc].fst;
+        armReg temp = findARegister(state, pc);
+        armReg free = findARegister(state, pc);
+        localVarPo lam = popVar(state, pc); // Pick up the closure
+        loadRegister(state, temp, lam->src);
+        ldr(free, OF(temp, OffsetOf(ClosureRecord, free)));
+        pushFlex(state, pc, lam->desc,RG(free));
 
-      bind(haveMtd);
-      pshFrame(block, X17);
+        ldr(X17, OF(temp, OffsetOf(ClosureRecord, lbl))); // Pick up the label
+        // pick up the pointer to the method
+        ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
+        // Update current frame
+        str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
+        ldr(temp, OF(temp, OffsetOf(ClosureRecord, free))); // Pick up the free term
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
 
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      blr(X16);
-      dropArgs(stack, jit, arity);
-      testResult(block, tgtBlock);
-      continue;
-    }
-    case TCall: {
-      // TCall <prog>
-      int32 key = code[pc].fst;
-      int arity = lblArity(C_LBL(getConstant(key)));
+        bailOut(jit, undefinedCode);
 
-      loadConstant(jit, key, X16);
-      // pick up the pointer to the method
-      ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
-      // Update current frame
-      str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
+        bind(haveMtd);
+        overrideOFrame(state, pc, arity, temp);
 
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(X17, haveMtd);
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+        ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
+        br(X16);
 
-      bailOut(jit, undefinedCode);
+        return ret;
+      }
+      case Escape: {
+        int32 escNo = code[pc].fst;
+        escapePo esc = getEscape(escNo);
+        int32 arity = escapeArity(esc);
+        invokeEscape(state, pc, (runtimeFn) escapeFun(esc), arity);
+        pushVar(state, pc, markVarStart(state, pc, RG(RTV)));
+        continue;
+      }
 
-      bind(haveMtd);
-      frameOverride(block, arity);
-      str(AG, OF(STK, OffsetOf(StackRecord,args)));
+      case Entry: {
+        // locals definition
+        continue;
+      }
+      case Ret: {
+        FlexOp vl = popFlex(state, pc);
 
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
-      br(X16);
+        // Pick up the caller program
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+        str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
-      return ret;
-    }
-    case TOCall: {
-      int32 arity = code[pc].fst;
-
-      // Tail Call closure
-      armReg clos = popValue(stack, jit); // Pick up the closure
-      ldr(X17, OF(clos, OffsetOf(ClosureRecord, lbl))); // Pick up the label
-      // pick up the pointer to the method
-      ldr(X17, OF(X17, OffsetOf(LblRecord, mtd)));
-      // Update current frame
-      str(X17, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-
-      armReg freeReg = findFreeReg(jit);
-      ldr(freeReg, OF(clos, OffsetOf(ClosureRecord, free))); // Pick up the free term
-      releaseReg(jit, clos);
-      pushRegister(stack, freeReg); // The free term is the first argument
-
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(X17, haveMtd);
-
-      bailOut(jit, undefinedCode);
-
-      bind(haveMtd);
-      frameOverride(block, arity);
-
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-      ldr(LR, OF(FP, OffsetOf(StackFrame, link)));
-      br(X16);
-
-      return ret;
-    }
-    case Escape: {
-      int32 escNo = code[pc].fst;
-      escapePo esc = getEscape(escNo);
-      int32 arity = escapeArity(esc);
-
-      spillStack(stack, jit);
-
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)escapeFun(esc), 1, RG(PR));
-      unstashEngineState(jit);
-      dropArgs(stack, jit, arity);
-      // X0 is the return code - which we ignore for normal escapes
-      continue;
-    }
-    case XEscape: {
-      int32 escNo = code[pc].fst;
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
-
-      escapePo esc = getEscape(escNo);
-      int32 arity = escapeArity(esc);
-      spillStack(stack, jit);
-
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)escapeFun(esc), 1, RG(PR));
-      unstashEngineState(jit);
-      dropArgs(stack, jit, arity);
-      testResult(block, tgtBlock);
-      continue;
-    }
-    case Entry: {
-      // locals definition
-      int32 lclCnt = code[pc].fst;
-      assert(lclCnt >= 0);
-      stack->vTop = 0;
-
-      str(LR, OF(FP, OffsetOf(StackFrame, link)));
-
-      tryRet(stackCheck(jit, jit->mtd));
-
-      if (lclCnt > 0){
-        armReg ixReg = findFreeReg(jit);
-        loadConstant(jit, voidIndex, ixReg);
-        for (int32 ix = 1; ix <= lclCnt; ix++){
-          localVarPo lcl = localSlot(stack, ix);
-          storeVarble(jit, ixReg, -ix);
-          *lcl = (LocalEntry){.kind = isLocal, .stkOff = -ix, .inited = True};
+        if (mtdArity(jit->mtd) != 1) {
+          int32 delta = mtdArity(jit->mtd) - 1;
+          if (delta < 0)
+            sub(AG, AG, IM(-delta*pointerSize));
+          else
+            add(AG, AG, IM(delta*pointerSize));
         }
-        releaseReg(jit, ixReg);
+        // Only need this for debugging
+        str(AG, OF(STK, OffsetOf(StackRecord,sp)));
+
+        // Adjust args register
+        ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
+        // Pick up return address
+        ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
+        // Drop frame
+        sub(FP, FP, IM(sizeof(StackFrame)));
+        if (!sameFlexOp(RG(RTV), vl))
+          mov(RTV, vl);
+        mov(RTS, IM(Normal));
+        br(X16);
+
+        return ret;
       }
-      continue;
-    }
-    case Ret: {
-      // return
-      armReg vl = popValue(stack, jit);
-      // Put return value at top of args on stack
-      storeVarble(jit, vl, mtdArity(jit->mtd) - 1);
-      releaseReg(jit, vl);
+      case XRet: {
+        // exception return
+        FlexOp vl = popFlex(state, pc);
 
-      // Pick up the caller program
-      ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
-      str(X16, OF(STK, OffsetOf(StackRecord, prog)));
-
-      // Only need this for debugging
-      if (mtdArity(jit->mtd) != 1){
-        int32 delta = mtdArity(jit->mtd) - 1;
-        if (delta < 0)
-          sub(AG, AG, IM(-delta*pointerSize));
-        else
-          add(AG, AG, IM(delta*pointerSize));
-      }
-      str(AG, OF(STK, OffsetOf(StackRecord,sp)));
-
-      // Adjust args register
-      ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
-      // Pick up return address
-      ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
-      // Drop frame
-      sub(FP, FP, IM(sizeof(StackFrame)));
-      mov(X0, IM(Normal));
-      br(X16);
-
-      return ret;
-    }
-    case XRet: {
-      // exception return
-      armReg vl = popValue(stack, jit);
-      // Put exception value at top of args on stack
-      storeVarble(jit, vl, mtdArity(jit->mtd) - 1);
-      releaseReg(jit, vl);
-
-      // Only need this for debugging
-      if (mtdArity(jit->mtd) != 1){
-        int32 delta = mtdArity(jit->mtd) - 1;
-        if (delta < 0)
-          sub(AG, AG, IM(-delta*pointerSize));
-        else
-          add(AG, AG, IM(delta*pointerSize));
-      }
-      stur(AG, STK, OffsetOf(StackRecord,sp));
-
-      // Pick up the caller program
-      ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
-      str(X16, OF(STK, OffsetOf(StackRecord, prog)));
-
-      // Adjust args register
-      ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
-      // Pick up return address
-      ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
-      // Drop frame
-      sub(FP, FP, IM(sizeof(StackFrame)));
-      mov(X0, IM(Abnormal));
-      br(X16);
-
-      return ret;
-    }
-    case Valof:
-    case Block: {
-      // block of instructions
-      int32 blockLen = code[pc].alt;
-      codeLblPo brkLbl = newLabel(ctx);
-
-      spillStack(stack, jit);
-
-      int32 numLcls = stack->lclCount;
-      LocalEntry locals[numLcls];
-
-      memcpy(locals, block->stack.locals, numLcls*sizeof(LocalEntry));
-
-      int32 exitHeight = code[pc].fst;
-
-      JitBlock subBlock = {
-        .jit = jit,
-        .startPc = pc,
-        .endPc = pc + blockLen + 1,
-        .breakLbl = brkLbl,
-        .loopLbl = here(),
-        .entryHeight = stack->vTop,
-        .exitHeight = exitHeight,
-        .parent = block,
-        .stack = {
-          .locals = locals,
-          .lclCount = block->stack.lclCount,
-          .argPnt = block->stack.argPnt,
-          .stackPnt = block->stack.stackPnt,
-          .vTop = block->stack.vTop
+        // Only need this for debugging
+        if (mtdArity(jit->mtd) != 1) {
+          int32 delta = mtdArity(jit->mtd) - 1;
+          if (delta < 0)
+            sub(AG, AG, IM(-delta*pointerSize));
+          else
+            add(AG, AG, IM(delta*pointerSize));
         }
-      };
+        stur(AG, STK, OffsetOf(StackRecord,sp));
 
-      ret = jitBlock(&subBlock, code, pc + 1, pc + blockLen + 1);
-      pc += blockLen; // Skip over the block
-      bind(brkLbl);
-      setStackDepth(stack, jit, exitHeight);
+        // Pick up the caller program
+        ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+        str(X16, OF(STK, OffsetOf(StackRecord, prog)));
 
-      continue;
-    }
-    case Break: {
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      spillStack(stack, jit);
-      setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
-      // tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-      return breakOut(block, tgtBlock);
-    }
-    case Result: {
-      // return value out of block
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Valof);
-      jitBlockPo parent = tgtBlock->parent;
-      int32 tgtHeight = tgtBlock->exitHeight;
+        // Adjust args register
+        ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
+        // Pick up return address
+        ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
+        // Drop frame
+        sub(FP, FP, IM(sizeof(StackFrame)));
+        mov(RTV, vl);
+        mov(RTS, IM(Abnormal));
+        br(X16);
 
-#ifdef TRACEJIT
-      if (traceJit >= detailedTracing)
-        dumpStack(&parent->stack);
-#endif
-
-      // Not already at the right height?
-      armReg val = topValue(stack, jit);
-      setStackDepth(&parent->stack, jit, tgtHeight - 1);
-      forcePush(jit, &parent->stack, val);
-
-      spillStack(stack, jit);
-
-#ifdef TRACEJIT
-      if (traceJit >= detailedTracing)
-        dumpStack(&tgtBlock->parent->stack);
-#endif
-
-      return breakOut(block, tgtBlock);
-    }
-    case Loop: {
-      // jump back to start of block
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      codeLblPo loop = loopLabel(tgtBlock);
-      assert(loop != Null);
-      setStackDepth(stack, jit, code[tgtBlock->startPc].fst);
-      spillStack(stack, jit);
-      b(loop);
-      return ret;
-    }
-    case Drop: {
-      // drop top of stack
-      dropValue(stack, jit);
-      continue;
-    }
-    case Rst: {
-      // reset stack height to a fixed height
-      while (stack->vTop > code[pc].fst)
-        dropValue(stack, jit);
-      continue;
-    }
-    case Fiber: {
-      armReg lamReg = popValue(stack, jit);
-      spillStack(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)newStack, 3, RG(PR), IM(True), RG(lamReg));
-      unstashEngineState(jit); // Some special handling to make sure we capture the new stack properly
-      armReg reslt = findFreeReg(jit);
-      mov(reslt, RG(X0));
-      pushRegister(stack, reslt);
-      releaseReg(jit, lamReg);
-      continue;
-    }
-    case Suspend: {
-      armReg stk = popValue(stack, jit);
-      armReg evt = popValue(stack, jit);
-      armReg tmp = findFreeReg(jit);
-      codeLblPo rtn = newLabel(ctx);
-      adr(tmp, rtn);
-      str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
-      spillStack(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)detachStack, 3, RG(PR), RG(stk), RG(evt));
-      unstashEngineState(jit);
-      ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      br(X16);
-      bind(rtn);
-      releaseReg(jit, tmp);
-      releaseReg(jit, evt);
-      releaseReg(jit, stk);
-      pushBlank(stack);
-      continue;
-    }
-    case Resume: {
-      armReg stk = popValue(stack, jit);
-      armReg evt = popValue(stack, jit);
-      codeLblPo rtn = newLabel(ctx);
-      adr(X16, rtn);
-      str(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      spillStack(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)attachStack, 3, RG(PR), RG(stk), RG(evt));
-      unstashEngineState(jit);
-      ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      br(X16);
-      bind(rtn);
-      releaseReg(jit, stk);
-      releaseReg(jit, evt);
-      pushBlank(stack);
-      continue;
-    }
-    case Retire: {
-      // Similar to suspend, except that we trash the suspending stack
-      armReg stk = popValue(stack, jit);
-      armReg evt = popValue(stack, jit);
-      spillStack(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)detachDropStack, 3, RG(PR), RG(stk), RG(evt));
-      unstashEngineState(jit);
-      ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      br(X16);
-      releaseReg(jit, evt);
-      releaseReg(jit, stk);
-
-      return ret;
-    }
-    case Underflow: {
-      // underflow from current stack
-      armReg val = popValue(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)detachDropStack, 3, RG(PR), RG(STK), RG(val));
-      unstashEngineState(jit);
-      ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
-      br(X16);
-      releaseReg(jit, val);
-      continue;
-    }
-    case LdV: {
-      // Place a void value on stack
-      pushConstant(jit, stack, voidIndex);
-      continue;
-    }
-    case LdC: {
-      // load literal from constant pool
-      pushConstant(jit, stack, code[pc].fst);
-      continue;
-    }
-    case Ld: {
-      // load stack from args[xx]
-      if (!haveFreeReg(jit))
-        spillStack(stack, jit);
-      int32 varNo = code[pc].fst;
-      pushValue(stack, (LocalEntry){.kind = isLocal, .stkOff = varNo, .inited = True});
-
-      continue;
-    }
-    case St: {
-      // copy tos to local[xx]
-      int32 lclNo = code[pc].fst;
-      armReg vl = popValue(stack, jit);
-      storeVarble(jit, vl, lclNo);
-      setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
-      releaseReg(jit, vl);
-      continue;
-    }
-    case StV: {
-      // clear a local to void
-      int32 lclNo = code[pc].fst;
-      armReg vd = findFreeReg(jit);
-      loadConstant(jit, voidIndex, vd);
-      storeVarble(jit, vd, lclNo);
-      setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
-      releaseReg(jit, vd);
-      continue;
-    }
-    case Tee: {
-      // copy tos to local[xx]
-      int32 lclNo = code[pc].fst;
-      armReg vl = popValue(stack, jit);
-      storeVarble(jit, vl, lclNo);
-      setLocal(stack, lclNo, (LocalEntry){.kind = isLocal, .stkOff = lclNo, .inited = True});
-      pushRegister(stack, vl);
-      continue;
-    }
-    case LdG: {
-      // load a global variable
-      spillStack(stack, jit); // We spill because we may have to call the global function
-      armReg glb = findFreeReg(jit);
-      armReg content = findFreeReg(jit);
-      globalPo glbVr = findGlobalVar(code[pc].fst);
-
-      mov(glb, IM((integer) glbVr));
-      // Check if global is set
-      ldr(content, OF(glb, OffsetOf(GlobalRecord, content)));
-      codeLblPo haveContent = newLabel(ctx);
-      cbnz(content, haveContent);
-
-      labelPo glbLbl = declareLbl(globalVarName(glbVr), 0, 0);
-      if (glbLbl == Null)
-        return jitError(jit, "no label definition for global %s", globalVarName(glbVr));
-
-      int32 lblKey = defineConstantLiteral((termPo)glbLbl);
-      loadConstant(jit, lblKey, X16);
-
-      // pick up the pointer to the method
-      ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
-
-      codeLblPo haveMtd = newLabel(ctx);
-      cbnz(X17, haveMtd);
-
-      bailOut(jit, undefinedCode);
-
-      bind(haveMtd);
-      pshFrame(block, X17);
-
-      // Pick up the jit code itself
-      ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
-
-      codeLblPo returnPc = newLabel(ctx);
-      adr(LR, returnPc);
-      br(X16);
-
-      pushBlank(stack); // This one is from the call to load global
-
-      bind(haveContent);
-      storeStack(jit, content, stack->vTop);
-      bind(returnPc);
-      releaseReg(jit, glb);
-      releaseReg(jit, content);
-      continue;
-    }
-    case StG: {
-      // store into a global variable
-      armReg tmp = popValue(stack, jit);
-      armReg glb = findFreeReg(jit);
-
-      globalPo glbVr = findGlobalVar(code[pc].fst);
-
-      mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
-
-      // Assign to the global var's content field
-      str(tmp, OF(glb, OffsetOf(GlobalRecord, content)));
-      releaseReg(jit, tmp);
-      releaseReg(jit, glb);
-      continue;
-    }
-    case TG: {
-      // copy into a global variable
-      armReg glb = findFreeReg(jit);
-      armReg vl = topValue(stack, jit);
-
-      globalPo glbVr = findGlobalVar(code[pc].fst);
-
-      mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
-
-      // Assign to the global var's content field
-      str(vl, OF(glb, OffsetOf(GlobalRecord, content)));
-      releaseReg(jit, vl);
-      releaseReg(jit, glb);
-      continue;
-    }
-    case Sav: {
-      // create a single assignment variable
-      spillStack(stack, jit);
-      armReg sng = allocSmallStruct(block, singleClass, SingleCellCount);
-      armReg tmp = findFreeReg(jit);
-      mov(tmp, IM((integer) Null));
-      str(tmp, OF(sng, OffsetOf(SingleRecord, content)));
-      releaseReg(jit, tmp);
-      pushRegister(stack, sng);
-      continue;
-    }
-    case LdSav: {
-      // dereference a sav, break if not set
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      armReg sng = popValue(stack, jit);
-
-      ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
-      codeLblPo skip = newLabel(ctx);
-      cbnz(sng, skip);
-      tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-      ret = breakOut(block, tgtBlock);
-      bind(skip);
-      pushRegister(stack, sng);
-      continue;
-    }
-    case TstSav: {
-      // test a sav, return a logical
-      armReg sng = popValue(stack, jit);
-      armReg tr = findFreeReg(jit);
-      armReg fl = findFreeReg(jit);
-
-      loadConstant(jit, falseIndex, fl);
-      loadConstant(jit, trueIndex, tr);
-      ldr(sng, OF(sng, OffsetOf(SingleRecord, content)));
-      tst(sng, IM((integer) Null));
-      csel(sng, tr, fl, EQ);
-      pushRegister(stack, sng);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
-      continue;
-    }
-    case StSav: {
-      // store a value into a single assignment
-      armReg sng = popValue(stack, jit);
-      armReg val = popValue(stack, jit);
-
-      codeLblPo ok = newLabel(ctx);
-      armReg cont = findFreeReg(jit);
-      ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
-      cbnz(cont, ok);
-
-      bailOut(jit, singleCode);
-      bind(ok);
-      str(val, OF(sng, OffsetOf(SingleRecord, content)));
-      releaseReg(jit, cont);
-      releaseReg(jit, val);
-      releaseReg(jit, sng);
-      continue;
-    }
-    case TSav: {
-      armReg sng = popValue(stack, jit);
-      armReg val = topValue(stack, jit);
-
-      codeLblPo ok = newLabel(ctx);
-      armReg cont = findFreeReg(jit);
-      ldr(cont, OF(sng, OffsetOf(SingleRecord, content)));
-      cbz(cont, ok);
-
-      bailOut(jit, singleCode);
-      bind(ok);
-      str(val, OF(sng, OffsetOf(SingleRecord, content)));
-      releaseReg(jit, cont);
-      releaseReg(jit, val);
-      releaseReg(jit, sng);
-      continue;
-    }
-    case Cell: {
-      // create R/W cell
-      spillStack(stack, jit);
-      armReg cel = allocSmallStruct(block, cellClass, CellCellCount);
-      armReg tmp = popValue(stack, jit);
-      str(tmp, OF(cel, OffsetOf(CellRecord, content)));
-      releaseReg(jit, tmp);
-      pushRegister(stack, cel);
-      continue;
-    }
-    case Get: {
-      // access a R/W cell
-      armReg cel = popValue(stack, jit);
-      ldr(cel, OF(cel, OffsetOf(CellRecord, content)));
-      pushRegister(stack, cel);
-      continue;
-    }
-    case Assign: {
-      // assign to a R/W cell
-      armReg cel = popValue(stack, jit);
-      armReg vl = popValue(stack, jit);
-      str(vl, OF(cel, OffsetOf(CellRecord, content)));
-      releaseReg(jit, cel);
-      releaseReg(jit, vl);
-      continue;
-    }
-    case CLbl: {
-      // T,Lbl --> test for a data term, break if not lbl
-      int32 key = code[pc].fst;
-      int32 tgt = pc + code[pc].alt + 1;
-      armReg vl = popValue(stack, jit);
-      armReg tmp = findFreeReg(jit);
-
-      ands(tmp, vl, IM(0b11));
-      breakOutNe(block, code, tgt);
-
-      ldr(tmp, OF(vl, OffsetOf(TermRecord,clss))); // pick up the class
-      loadConstant(jit, key, vl);
-      cmp(tmp, RG(vl));
-
-      breakOutNe(block, code, tgt);
-      releaseReg(jit, tmp);
-      releaseReg(jit, vl);
-      continue;
-    }
-
-    case CInt:
-    case CChar:
-    case CFlt: {
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      armReg st = popValue(stack, jit);
-
-      integer lit = (integer)getConstant(code[pc].fst);
-      if (is12bit(lit))
-        cmp(st, IM(lit));
-      else{
-        armReg lt = findFreeReg(jit);
-        loadConstant(jit, code[pc].fst, lt);
-        cmp(st, RG(lt));
-        releaseReg(jit, lt);
+        return ret;
       }
-      releaseReg(jit, st);
+      case Valof: {
+        // vlof block of instructions
+        int32 blockExitDepth = code[pc].fst;
+        int32 blockLen = code[pc].alt;
+        codeLblPo brkLbl = newLabel(ctx);
 
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(stack, jit, tgtBlock->exitHeight);
-        spillStack(stack, jit);
-        tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        bne(lbl);
+        JitBlock subBlock = {
+          .startPc = pc,
+          .endPc = pc + blockLen + 1,
+          .breakLbl = brkLbl,
+          .loopLbl = here(),
+          .parent = block,
+          .phiVar = findPhiVariable(state, pc + blockLen + 1)
+        };
+
+        ret = jitBlock(&subBlock, state, code, pc + 1, pc + blockLen + 1);
+        pc += blockLen; // Skip over the block
+        bind(brkLbl);
+        retireExpiredVars(state, pc);
+        state->top = blockExitDepth;
+        continue;
       }
-      else
-        return jitError(jit, "cannot find target label for %d", tgt);
-      continue;
-    }
-    case CLit: {
-      // T,lit --> test for a literal value, break if not
-      int32 key = code[pc].fst;
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
+      case Block: {
+        // block of instructions
+        int32 blockExitDepth = code[pc].fst;
+        int32 blockLen = code[pc].alt;
+        codeLblPo brkLbl = newLabel(ctx);
 
-      armReg vl = popValue(stack, jit);
+        JitBlock subBlock = {
+          .startPc = pc,
+          .endPc = pc + blockLen + 1,
+          .breakLbl = brkLbl,
+          .loopLbl = here(),
+          .parent = block,
+          .phiVar = Null
+        };
 
-      spillStack(stack, jit);
+        ret = jitBlock(&subBlock, state, code, pc + 1, pc + blockLen + 1);
+        pc += blockLen; // Skip over the block
+        retireExpiredVars(state, pc);
+        bind(brkLbl);
+        state->top = blockExitDepth;
 
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)sameTerm, 2, RG(vl), OF(CO, key*pointerSize));
-      unstashEngineState(jit);
-      tst(X0, RG(X0));
-
-      valueStackPo tgtStack = &tgtBlock->stack;
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(tgtStack, jit, tgtBlock->exitHeight);
-        tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        beq(lbl);
+        continue;
       }
-      else
-        return jitError(jit, "cannot find target label for %d", tgt);
-
-      releaseReg(jit, vl);
-      continue;
-    }
-
-    case Nth: {
-      // T --> el, pick up the nth element
-      armReg vl = popValue(stack, jit);
-      loadElement(jit, vl, vl, code[pc].fst + 1);
-      pushRegister(stack, vl);
-      continue;
-    }
-    case StNth: {
-      // T el --> store in nth element
-      armReg trm = popValue(stack, jit);
-      armReg vl = popValue(stack, jit);
-      str(vl, OF(trm, (code[pc].fst + 1) * pointerSize));
-
-      releaseReg(jit, vl);
-      releaseReg(jit, trm);
-      continue;
-    }
-    case If: {
-      // break if true
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      armReg vl = popValue(stack, jit);
-      armReg tr = findFreeReg(jit);
-      loadConstant(jit, trueIndex, tr);
-      cmp(vl, RG(tr));
-      releaseReg(jit, tr);
-      releaseReg(jit, vl);
-      setStackDepth(stack, jit, tgtBlock->exitHeight);
-      tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-      ret = breakOutEq(block, code, tgt);
-      continue;
-    }
-    case IfNot: {
-      // break if false
-      int32 tgt = pc + code[pc].alt + 1;
-      jitBlockPo tgtBlock = breakBlock(block, code, tgt, Block);
-      armReg vl = popValue(stack, jit);
-      armReg tr = findFreeReg(jit);
-      loadConstant(jit, trueIndex, tr);
-      cmp(vl, RG(tr));
-      releaseReg(jit, tr);
-      releaseReg(jit, vl);
-      setStackDepth(stack, jit, tgtBlock->exitHeight);
-      tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-      ret = breakOutNe(block, code, tgt);
-      continue;
-    }
-    case ICase: {
-      armReg gr = popValue(stack, jit);
-      int32 tableSize = code[pc].fst;
-      spillStack(stack, jit); // We do this to ensure following breaks compile to one instruction
-      getIntVal(jit, gr);
-      and(gr, gr, IM(LARGE_INT61));
-      armReg divisor = findFreeReg(jit);
-      mov(divisor, IM(tableSize));
-      armReg quotient = findFreeReg(jit);
-      udiv(quotient, gr, divisor);
-      msub(gr, divisor, quotient, gr);
-      releaseReg(jit, divisor);
-      armReg tgt = findFreeReg(jit);
-      codeLblPo jmpTbl = newLabel(ctx);
-      adr(tgt, jmpTbl);
-      add(tgt, tgt, LS(gr, 2));
-      br(tgt);
-      releaseReg(jit, tgt);
-      releaseReg(jit, quotient);
-      releaseReg(jit, gr);
-      bind(jmpTbl);
-      tryRet(handleBreakTable(block, code, pc + 1, tableSize));
-      return ret;
-    }
-    case Case: {
-      // T --> T, case <Max>
-      int32 tableSize = code[pc].fst;
-      armReg vl = popValue(stack, jit);
-      armReg ix = findFreeReg(jit);
-      spillStack(stack, jit);
-      stash(jit, trueStackDepth(stack));
-      callIntrinsic(ctx, criticalRegs(), (runtimeFn)hashTerm, 1, RG(vl));
-      mov(ix, RG(X0));
-      releaseReg(jit, vl);
-      unstashEngineState(jit);
-      armReg divisor = findFreeReg(jit);
-      mov(divisor, IM(tableSize));
-      armReg quotient = findFreeReg(jit);
-      udiv(quotient, ix, divisor);
-      msub(ix, divisor, quotient, ix);
-      releaseReg(jit, divisor);
-      armReg tgt = findFreeReg(jit);
-      codeLblPo jmpTbl = newLabel(ctx);
-      adr(tgt, jmpTbl);
-      add(tgt, tgt, LS(ix, 2));
-      br(tgt);
-      releaseReg(jit, tgt);
-      releaseReg(jit, quotient);
-      releaseReg(jit, ix);
-      bind(jmpTbl);
-      tryRet(handleBreakTable(block, code, pc + 1, tableSize));
-      return ret;
-    }
-    case IxCase: {
-      // check and jump on index
-      int32 tableSize = code[pc].fst;
-      armReg tgt = popValue(stack, jit);
-      spillStack(stack, jit);
-      armReg ix = findFreeReg(jit);
-      ldr(ix, OF(tgt, 0)); // Pick up the label
-      ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
-      // Make sure that it is less than max
-      armReg divisor = findFreeReg(jit);
-      mov(divisor, IM(tableSize));
-      armReg quotient = findFreeReg(jit);
-      udiv(quotient, ix, divisor);
-      msub(ix, divisor, quotient, ix);
-
-      codeLblPo jmpTbl = newLabel(ctx);
-      adr(tgt, jmpTbl);
-      add(tgt, tgt, LS(ix, 2));
-      br(tgt);
-      releaseReg(jit, tgt);
-      releaseReg(jit, quotient);
-      releaseReg(jit, ix);
-      releaseReg(jit, divisor);
-      bind(jmpTbl);
-      tryRet(handleBreakTable(block, code, pc + 1, tableSize));
-      return ret;
-    }
-    case IAdd: {
-      // L R --> L+R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      add(a1, a2, RG(a1));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case ISub: {
-      // L R --> L-R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      sub(a1, a1, RG(a2));
-
-      mkIntVal(jit, a1);
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case IMul: {
-      // L R --> L*R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      mul(a1, a2, a1);
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case IDiv: {
-      // L R --> L/R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      codeLblPo skip = newLabel(ctx);
-      cbnz(a2, skip);
-
-      jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-        pushConstant(jit, &tgtBlock->parent->stack, divZeroIndex);
-        //tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        b(lbl);
+      case Break: {
+        int32 tgt = pc + code[pc].alt + 1;
+        blockPo tgtBlock = blockBreak(block, code, tgt, Block);
+        brkOut(ctx, tgtBlock);
+        return Ok;
       }
-      else
-        return jitError(jit, "cannot find target label for %d", tgtBlock);
+      case Result: {
+        // return value out of block
+        int32 tgt = pc + code[pc].alt + 1;
+        blockPo tgtBlock = blockBreak(block, code, tgt, Valof);
+        blockPo parent = tgtBlock->parent;
+        localVarPo phiVar = parent->phiVar;
 
-      bind(skip);
-      sdiv(a1, a1, a2);
-      mkIntVal(jit, a1);
-      // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case IMod: {
-      // L R --> L%R
-      armReg a1 = popValue(stack, jit);
-      armReg divisor = popValue(stack, jit);
-      getIntVal(jit, a1);
-      getIntVal(jit, divisor);
+        FlexOp val = popFlex(state, pc);
+        storeVar(state, pc, val, phiVar);
 
-      codeLblPo skip = newLabel(ctx);
-      cbnz(divisor, skip);
-
-      jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-        pushConstant(jit, &tgtBlock->parent->stack, divZeroIndex);
-        //tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        b(lbl);
+        brkOut(ctx, tgtBlock);
+        return Ok;
       }
-      else
-        return jitError(jit, "cannot find target label for %d", tgtBlock);
-
-      bind(skip);
-
-      armReg quotient = findFreeReg(jit);
-      sdiv(quotient, a1, divisor);
-      msub(a1, divisor, quotient, a1);
-
-      mkIntVal(jit, a1);
-      // setStackDepth(stack, jit, tgtBlock->exitHeight - 1);
-      pushRegister(stack, a1);
-
-      releaseReg(jit, divisor);
-      releaseReg(jit, quotient);
-      continue;
-    }
-    case IAbs: {
-      // L --> abs(L)
-      armReg a1 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-
-      cmp(a1, IM(0));
-      csneg(a1, a1, a1, GE);
-
-      mkIntVal(jit, a1);
-      pushRegister(stack, a1);
-      continue;
-    }
-    case CEq:
-    case IEq: {
-      // L R --> L==R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      armReg fl = findFreeReg(jit);
-      armReg tr = findFreeReg(jit);
-      loadConstant(jit, falseIndex, fl);
-      loadConstant(jit, trueIndex, tr);
-
-      cmp(a1, RG(a2));
-      csel(a1, fl, tr, NE);
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      releaseReg(jit, tr);
-      releaseReg(jit, fl);
-      continue;
-    }
-    case CLt:
-    case ILt: {
-      // L R --> L<R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      armReg fl = findFreeReg(jit);
-      armReg tr = findFreeReg(jit);
-      loadConstant(jit, falseIndex, fl);
-      loadConstant(jit, trueIndex, tr);
-
-      cmp(a1, RG(a2));
-      csel(a1, tr, fl, LT);
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      releaseReg(jit, fl);
-      releaseReg(jit, tr);
-      continue;
-    }
-    case CGe:
-    case IGe: {
-      // L R --> L>=R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      armReg fl = findFreeReg(jit);
-      armReg tr = findFreeReg(jit);
-      loadConstant(jit, falseIndex, fl);
-      loadConstant(jit, trueIndex, tr);
-
-      cmp(a1, RG(a2));
-      csel(a1, tr, fl, GE);
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      releaseReg(jit, fl);
-      releaseReg(jit, tr);
-      continue;
-    }
-
-    case BAnd: {
-      // L R --> L&R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      and(a1, a2, RG(a1));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BOr: {
-      // L R --> L|R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      orr(a1, a2, RG(a1));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BXor: {
-      // L R --> L^R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      eor(a1, a2, RG(a1));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BLsl: {
-      // L R --> L<<R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      lsl(a1, a1, RG(a2));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BLsr: {
-      // L R --> L>>R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      lsr(a1, a1, RG(a2));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BAsr: {
-      // L R --> L>>>R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      getIntVal(jit, a2);
-
-      asr(a1, a1, RG(a2));
-
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case BNot: {
-      // L --> ~L
-      armReg a1 = popValue(stack, jit);
-
-      getIntVal(jit, a1);
-      mvn(a1, a1, LSL, 0);
-      mkIntVal(jit, a1);
-
-      pushRegister(stack, a1);
-      continue;
-    }
-    case FAdd: {
-      // L R --> L+R
-      armReg reslt = mkFloat(block); // We create it first
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-
-      fadd(F0, F0, F1);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FSub: {
-      // L R --> L-R
-      armReg reslt = mkFloat(block);
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-
-      fsub(F0, F0, F1);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FMul: {
-      // L R --> L*R
-      armReg reslt = mkFloat(block);
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-
-      fmul(F0, F0, F1);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FDiv: {
-      // L R --> L/R
-      jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-
-      codeLblPo skip = newLabel(ctx);
-
-      fmov(FP(F2), RG(XZR));
-      fcmp(F1, F2);
-
-      bne(skip);
-
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-        pushConstant(jit, &tgtBlock->parent->stack, divZeroIndex);
-        //tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        b(lbl);
+      case Loop: {
+        // jump back to start of block
+        int32 tgt = pc + code[pc].alt + 1;
+        blockPo tgtBlock = blockBreak(block, code, tgt, Block);
+        codeLblPo loop = loopLabel(tgtBlock);
+        assert(loop != Null);
+        b(loop);
+        return ret;
       }
-      else
-        return jitError(jit, "cannot find target label for %d", tgtBlock);
 
-      bind(skip);
-      stpf(F0, F1, PRX(SP,-16));
-      armReg reslt = mkFloat(block);
-      ldpf(F0, F1, PSX(SP,16));
-      fdiv(F0, F0, F1);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FMod: {
-      // L R --> L%R
-      jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Valof);
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-      releaseReg(jit, a1);
-      releaseReg(jit, a2);
-
-      codeLblPo skip = newLabel(ctx);
-
-      fmov(FP(F2), RG(XZR));
-      fcmp(F1, F2);
-      bne(skip);
-
-      codeLblPo lbl = breakLabel(tgtBlock);
-      if (lbl != Null){
-        setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight - 1);
-        pushConstant(jit, &tgtBlock->parent->stack, divZeroIndex);
-        //tryRet(propagateStack(jit, stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-        b(lbl);
-      }
-      else
-        return jitError(jit, "cannot find target label for %d", tgtBlock);
-
-      bind(skip);
-      stpf(F0, F1, PRX(SP,-16));
-      armReg reslt = mkFloat(block);
-      ldpf(F0, F1, PSX(SP,16));
-      fdiv(F2, F0, F1);
-      fmsub(F2, F2, F1, F0);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FAbs: {
-      // L --> abs(L)
-      armReg reslt = mkFloat(block);
-      armReg a1 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      releaseReg(jit, a1);
-
-      fabs(F0, F0);
-      fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
-      pushRegister(stack, reslt);
-      continue;
-    }
-    case FEq: {
-      // L R --> L==
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      fcmp(F0, F1);
-      loadConstant(jit, falseIndex, a1);
-      loadConstant(jit, trueIndex, a2);
-      csel(a1, a1, a2, NE);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case FLt: {
-      // L R --> L<R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      fcmp(F0, F1);
-
-      loadConstant(jit, falseIndex, a1);
-      loadConstant(jit, trueIndex, a2);
-      csel(a1, a1, a2, GE);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case FGe: {
-      // L R --> L>=R
-      armReg a1 = popValue(stack, jit);
-      armReg a2 = popValue(stack, jit);
-
-      getFltVal(jit, a1, F0);
-      getFltVal(jit, a2, F1);
-
-      fcmp(F0, F1);
-
-      loadConstant(jit, falseIndex, a1);
-      loadConstant(jit, trueIndex, a2);
-      csel(a1, a1, a2, LT);
-
-      pushRegister(stack, a1);
-      releaseReg(jit, a2);
-      continue;
-    }
-    case Alloc: {
-      // new structure, elements from stack
-      int32 key = code[pc].fst;
-      labelPo label = C_LBL(getConstant(key));
-      int32 arity = lblArity(label);
-      spillStack(stack, jit);
-      armReg term = allocSmallStruct(block, (clssPo)label, NormalCellCount(arity));
-
-      for (int32 ix = 0; ix < arity; ix++){
-        armReg tmp = popValue(stack, jit);
-        str(tmp, OF(term, (ix + 1) * pointerSize));
+      case If: {
+        // break if true
+        int32 tgt = pc + code[pc].alt + 1;
+        armReg tmp = findARegister(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        loadConstant(jit, trueIndex, tmp);
+        cmp(tmp, vl);
+        breakOutEq(block, code, tgt);
         releaseReg(jit, tmp);
+        continue;
+      }
+      case IfNot: {
+        // break if false
+        blockPo tgt = blockBreak(block, code, pc + code[pc].alt + 1, Block);
+        armReg tmp = findARegister(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        loadConstant(jit, trueIndex, tmp);
+        cmp(tmp, vl);
+        brkOutNe(ctx, tgt);
+        releaseReg(jit, tmp);
+        continue;
+      }
+      case ICase: {
+        armReg ix = findARegister(state, pc);
+        int32 tableSize = code[pc].fst;
+        localVarPo tgt = popVar(state, pc);
+        assert(tgt->live);
+        loadRegister(state, ix, tgt->src);
+        getIntVal(jit, ix);
+        and(ix, ix, IM(LARGE_INT61));
+
+        immModulo(ctx, ix, tableSize, jit->freeRegs);
+
+        codeLblPo jmpTbl = newLabel(ctx);
+        armReg off = findARegister(state, pc);
+        adr(off, jmpTbl);
+        add(off, off, LS(ix, 2));
+        br(off);
+        releaseReg(jit, off);
+        releaseReg(jit, ix);
+        bind(jmpTbl);
+        return handleBreakTable(state, code, block, pc + 1, tableSize);
+      }
+      case Case: {
+        // T --> T, case <Max>
+        armReg ix = findARegister(state, pc);
+        int32 tableSize = code[pc].fst;
+        localVarPo tgt = popVar(state, pc);
+        assert(tgt->live);
+        invokeIntrinsic(state, pc, (runtimeFn) hashTerm, 1, (FlexOp[]){tgt->src});
+        mov(ix, RG(RTV));
+        and(ix, ix, IM(LARGE_INT61));
+
+        immModulo(ctx, ix, tableSize, jit->freeRegs);
+
+        codeLblPo jmpTbl = newLabel(ctx);
+        armReg off = findARegister(state, pc);
+        adr(off, jmpTbl);
+        add(off, off, LS(ix, 2));
+        br(off);
+        releaseReg(jit, off);
+        releaseReg(jit, ix);
+        bind(jmpTbl);
+        return handleBreakTable(state, code, block, pc + 1, tableSize);
+      }
+      case IxCase: {
+        // check and jump on index
+        armReg ix = findARegister(state, pc);
+        int32 tableSize = code[pc].fst;
+        FlexOp tgt = popFlex(state, pc);
+        loadRegister(state, ix, tgt);
+        ldr(ix, OF(ix, 0)); // Pick up the label
+        ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
+        immModulo(ctx, ix, tableSize, jit->freeRegs);
+        codeLblPo jmpTbl = newLabel(ctx);
+        armReg off = findARegister(state, pc);
+        adr(off, jmpTbl);
+        add(off, off, LS(ix, 2));
+        br(off);
+        releaseReg(jit, off);
+        releaseReg(jit, ix);
+        bind(jmpTbl);
+        return handleBreakTable(state, code, block, pc + 1, tableSize);
+      }
+      case Drop: {
+        state->top--;
+        continue;
       }
 
-      pushRegister(stack, term);
-      continue;
-    }
-    case Closure: {
-      int32 key = code[pc].fst;
-
-      spillStack(stack, jit);
-      armReg term = allocSmallStruct(block, closureClass, ClosureCellCount);
-
-      armReg tmp = findFreeReg(jit);
-      loadConstant(jit, key, tmp);
-      str(tmp, OF(term, OffsetOf(ClosureRecord, lbl)));
-      releaseReg(jit, tmp);
-      tmp = popValue(stack, jit); // pick up the free value
-      str(tmp, OF(term, OffsetOf(ClosureRecord, free)));
-      releaseReg(jit, tmp);
-
-      pushRegister(stack, term);
-      continue;
-    }
-    case Frame: {
-      // frame instruction
-      check(stack->vTop==code[pc].fst, "inconsistent frame height");
-      continue;
-    }
-    case dBug: {
-      // enter the line
-      if (lineDebugging){
-        int32 locKey = code[pc].fst;
-        armReg loc = findFreeReg(jit);
-        loadConstant(jit, locKey, loc);
-        int32 npc = pc + 1;
-        spillStack(stack, jit);
-        stash(jit, trueStackDepth(stack));
-        switch (code[npc].op){
-        case Abort: {
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)abortDebug, 2, RG(PR), RG(loc));
-          break;
-        }
-        case Entry: {
-          armReg lbl = findFreeReg(jit);
-          int32 lblKey = defineConstantLiteral((termPo)mtdLabel(jit->mtd));
-          loadConstant(jit, lblKey, lbl);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)entryDebug, 3, RG(PR), RG(loc), RG(lbl));
-          releaseReg(jit, lbl);
-          break;
-        }
-        case Call:
-        case XCall: {
-          armReg lbl = findFreeReg(jit);
-          loadConstant(jit, code[npc].fst, lbl);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)callDebug, 4, RG(PR), IM(code[npc].op), RG(loc),
-                              RG(lbl));
-          releaseReg(jit, lbl);
-          break;
-        }
-        case TCall: {
-          armReg lbl = findFreeReg(jit);
-          loadConstant(jit, code[npc].fst, lbl);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)tcallDebug, 3, RG(PR), RG(loc), RG(lbl));
-          releaseReg(jit, lbl);
-          break;
-        }
-        case OCall:
-        case XOCall: {
-          armReg lbl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)ocallDebug, 4, RG(PR), IM(code[npc].op), RG(loc),
-                              RG(lbl));
-          releaseReg(jit, lbl);
-          break;
-        }
-        case TOCall: {
-          armReg lbl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)tocallDebug, 4, RG(PR), IM(code[npc].op), RG(loc),
-                              RG(lbl));
-          releaseReg(jit, lbl);
-          break;
-        }
-        case Ret: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)retDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        case XRet: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)xretDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        case Assign: {
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)assignDebug, 2, RG(PR), RG(loc));
-          break;
-        }
-        case Fiber: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)fiberDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        case Suspend: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)suspendDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        case Resume: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)resumeDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        case Retire: {
-          armReg vl = topValue(stack, jit);
-          ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)retireDebug, 3, RG(PR), RG(loc), RG(vl));
-          releaseReg(jit, vl);
-          break;
-        }
-        default:
-          return jitError(jit, "invalid instruction following DBug");
-        }
+      case Fiber: {
+        FlexOp lam = popFlex(state, pc);
+        invokeIntrinsic(state, pc, (runtimeFn) newStack, 3, (FlexOp[]){RG(PR), IM(True), lam});
+        localVarPo nv = markVarStart(state, pc, RG(RTV));
+        pushVar(state, pc, nv);
+        continue;
+      }
+      case Suspend: {
+        armReg tmp = findARegister(state, pc);
+        FlexOp stk = popFlex(state, pc);
+        FlexOp evt = popFlex(state, pc);
+        codeLblPo rtn = newLabel(ctx);
+        adr(tmp, rtn);
+        str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
+        invokeIntrinsic(state, pc, (runtimeFn) detachStack, 3, (FlexOp[]){RG(PR), stk, evt});
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        br(X16);
+        bind(rtn);
+        releaseReg(jit, tmp);
+        pushVar(state, pc, markVarStart(state, pc, RG(RTV)));
+        continue;
+      }
+      case Resume: {
+        FlexOp stk = popFlex(state, pc);
+        FlexOp evt = popFlex(state, pc);
+        codeLblPo rtn = newLabel(ctx);
+        adr(X16, rtn);
+        str(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        invokeIntrinsic(state, pc, (runtimeFn) attachStack, 3, (FlexOp[]){RG(PR), stk, evt});
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        br(X16);
+        bind(rtn);
+        pushVar(state, pc, markVarStart(state, pc, RG(RTV)));
+        continue;
+      }
+      case Retire: {
+        // Similar to suspend, except that we trash the suspending stack
+        FlexOp stk = popFlex(state, pc);
+        FlexOp evt = popFlex(state, pc);
+        invokeIntrinsic(state, pc, (runtimeFn) detachDropStack, 2, (FlexOp[]){stk, evt});
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        br(X16);
+        return ret;
+      }
+      case Underflow: {
+        // underflow from current stack
+        // Special concerns: ignore state and assume that X0 = RTS, X1=RTV
+        FlexOp rtn = popFlex(state, pc);
+        saveRegisters(ctx, fixedRegSet(RTS));
+        stashEngineState(jit, -stashLiveLocals(state, pc));
+        invokeIntrinsic(state, pc, (runtimeFn) detachDropStack, 3, (FlexOp[]){RG(PR), RG(STK), rtn});
         unstashEngineState(jit);
-        releaseReg(jit, loc);
+        restoreRegisters(ctx, fixedRegSet(RTS));
+        ldr(X16, OF(STK, OffsetOf(StackRecord, pc)));
+        br(X16);
+        continue;
       }
-      continue;
-    }
-    case Line: {
-      if (lineDebugging){
-        int32 stackLevel = trueStackDepth(stack);
-
-#ifdef TRACEJIT
-        if (traceJit >= detailedTracing)
-          outMsg(logFile, "True stack depth: %d\n%_", stackLevel);
-#endif
-
-        spillStack(stack, jit);
-        int32 locKey = code[pc].fst;
-        armReg loc = findFreeReg(jit);
-        loadConstant(jit, locKey, loc);
-
-        stash(jit, trueStackDepth(stack));
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)lineDebug, 2, RG(PR), RG(loc));
-        unstashEngineState(jit);
-        releaseReg(jit, loc);
+      case LdV: {
+        // Place a void value on stack
+        localVarPo nv = markVarStart(state, pc, constantFlex(state, voidIndex));
+        pushVar(state, pc, nv);
+        continue;
       }
-      continue;
-    }
-    case Bind: {
-      if (lineDebugging){
-        spillStack(stack, jit);
-        int32 varKey = code[pc].fst;
-        armReg var = findFreeReg(jit);
-        loadConstant(jit, varKey, var);
-
-        stash(jit, trueStackDepth(stack));
-        ret = callIntrinsic(ctx, criticalRegs(), (runtimeFn)bindDebug, 3, RG(PR), RG(var), IM(code[pc].alt));
-        unstashEngineState(jit);
-        releaseReg(jit, var);
+      case LdC: {
+        // load literal from constant pool
+        pushVar(state, pc, markVarStart(state, pc, constantFlex(state, code[pc].fst)));
+        continue;
       }
-      continue;
-    }
+      case Ld: {
+        // load stack from lcl[xx]
+        localVarPo vr = findLocal(state, pc, code[pc].fst);
+        pushVar(state, pc, markVarStart(state, pc, vr->src));
+        continue;
+      }
+      case St: {
+        // copy tos to local[xx]
+        localVarPo lcl = findLocal(state, pc, code[pc].fst);
+        FlexOp vl = popFlex(state, pc);
+        storeVar(state, pc, vl, lcl);
+        continue;
+      }
+      case StV: {
+        // clear a local to void
+        localVarPo lcl = findLocal(state, pc, code[pc].fst);
+        storeVar(state, pc, constantFlex(state, voidIndex), lcl);
+        continue;
+      }
+      case Tee: {
+        // copy tos to local[xx]
+        localVarPo lcl = findLocal(state, pc, code[pc].fst);
+        FlexOp vl = topFlex(state, pc);
+        storeVar(state, pc, vl, lcl);
+        continue;
+      }
+      case LdG: {
+        // load a global variable
+        armReg glb = findFreeReg(jit);
+        armReg content = findFreeReg(jit);
+        globalPo glbVr = findGlobalVar(code[pc].fst);
 
-    default:
-      return jitError(jit, "unknown instruction: %s", opNames[code[pc].op]);
+        mov(glb, IM((integer) glbVr));
+        // Check if global is set
+        ldr(content, OF(glb, OffsetOf(GlobalRecord, content)));
+        codeLblPo haveContent = newLabel(ctx);
+        cbnz(content, haveContent);
+
+        labelPo glbLbl = declareLbl(globalVarName(glbVr), 0, 0);
+        if (glbLbl == Null)
+          return jitError(jit, "no label definition for global %s", globalVarName(glbVr));
+
+        int32 lblKey = defineConstantLiteral((termPo) glbLbl);
+        loadConstant(jit, lblKey, X16);
+
+        // pick up the pointer to the method
+        ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
+
+        codeLblPo haveMtd = newLabel(ctx);
+        cbnz(X17, haveMtd);
+
+        bailOut(jit, undefinedCode);
+
+        bind(haveMtd);
+        int32 argOffset = loadArguments(state, TODO, pc, 0); // No actual arguments!
+
+        pushFrme(state, pc, X17, argOffset);
+
+        // Pick up the jit code itself
+        ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
+
+        codeLblPo returnPc = newLabel(ctx);
+        adr(LR, returnPc);
+        br(X16);
+
+        bind(haveContent);
+        mov(RTV, RG(content));
+
+        bind(returnPc);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(RTV)));
+        releaseReg(jit, glb);
+        releaseReg(jit, content);
+        continue;
+      }
+      case StG: {
+        // store into a global variable
+        FlexOp tmp = popFlex(state, pc);
+        armReg glb = findFreeReg(jit);
+
+        globalPo glbVr = findGlobalVar(code[pc].fst);
+
+        mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
+
+        // Assign to the global var's content field
+        storeFlex(state, pc, tmp, OF(glb, OffsetOf(GlobalRecord, content)));
+        releaseReg(jit, glb);
+        continue;
+      }
+      case TG: {
+        // copy into a global variable
+        armReg glb = findARegister(state, pc);
+        FlexOp vl = topFlex(state, pc);
+
+        globalPo glbVr = findGlobalVar(code[pc].fst);
+
+        mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
+
+        // Assign to the global var's content field
+        storeFlex(state, pc, vl, OF(glb, OffsetOf(GlobalRecord, content)));
+        releaseReg(jit, glb);
+        continue;
+      }
+      case Sav: {
+        // create a single assignment variable
+        armReg cel = allocSmallStruct(state, pc, singleClass, SingleCellCount);
+        armReg tmp = findARegister(state, pc);
+        mov(tmp, IM((integer) Null));
+        storeFlex(state, pc, constantFlex(state, voidIndex), OF(cel, OffsetOf(SingleRecord, content)));
+        releaseReg(jit, tmp);
+        pushVar(state, pc, markVarStart(state, pc, RG(cel)));
+        continue;
+      }
+      case LdSav: {
+        // dereference a sav, break if not set
+        FlexOp sng = popFlex(state, pc);
+        armReg tmp = findARegister(state, pc);
+        loadFlex(state, pc, sng,RG(tmp));
+        ldr(tmp, OF(tmp, OffsetOf(SingleRecord, content)));
+        tst(tmp, RG(XZR));
+        brkOutEq(ctx, blockBreak(block, code, pc + code[pc].alt + 1, Block));
+        pushVar(state, pc, markVarStart(state, pc, RG(tmp)));
+        continue;
+      }
+      case TstSav: {
+        // test a sav, return a logical
+        FlexOp sng = popFlex(state, pc);
+        armReg tmp = findARegister(state, pc);
+        loadFlex(state, pc, sng,RG(tmp));
+        armReg tr = findARegister(state, pc);
+        armReg fl = findARegister(state, pc);
+        loadConstant(jit, falseIndex, fl);
+        loadConstant(jit, trueIndex, tr);
+        ldr(tmp, OF(tmp, OffsetOf(SingleRecord, content)));
+        tst(tmp, RG(XZR));
+        csel(tmp, tr, fl, EQ);
+        pushVar(state, pc, markVarStart(state, pc, RG(tmp)));
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
+        continue;
+      }
+      case StSav: {
+        // store a value into a single assignment
+        FlexOp sng = popFlex(state, pc);
+        armReg tmp = findARegister(state, pc);
+        loadFlex(state, pc, sng,RG(tmp));
+        FlexOp val = popFlex(state, pc);
+        storeFlex(state, pc, val, OF(tmp, OffsetOf(SingleRecord, content)));
+        releaseReg(jit, tmp);
+        continue;
+      }
+      case TSav: {
+        FlexOp sng = topFlex(state, pc);
+        armReg tmp = findARegister(state, pc);
+        loadFlex(state, pc, sng,RG(tmp));
+        FlexOp val = popFlex(state, pc);
+        storeFlex(state, pc, val, OF(tmp, OffsetOf(SingleRecord, content)));
+        releaseReg(jit, tmp);
+        continue;
+      }
+      case Cell: {
+        // create R/W cell
+        armReg cel = allocSmallStruct(state, pc, cellClass, CellCellCount);
+        FlexOp vl = popFlex(state, pc);
+        storeFlex(state, pc, vl,OF(cel, OffsetOf(CellRecord, content)));
+        pushVar(state, pc, markVarStart(state, pc, RG(cel)));
+        continue;
+      }
+      case Get: {
+        // access a R/W cell
+        FlexOp cel = popFlex(state, pc);
+        armReg vl = findARegister(state, pc);
+
+        loadFlex(state, pc, cel,RG(vl));
+        ldr(vl, OF(vl, OffsetOf(CellRecord, content)));
+        pushVar(state, pc, markVarStart(state, pc, RG(vl)));
+        continue;
+      }
+      case Assign: {
+        // assign to a R/W cell
+        FlexOp cel = popFlex(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        armReg tmp = findARegister(state, pc);
+        armReg tmp2 = findARegister(state, pc);
+        loadFlex(state, pc, cel,RG(tmp));
+        loadFlex(state, pc, vl,RG(tmp2));
+
+        str(tmp2, OF(tmp, OffsetOf(CellRecord, content)));
+
+        releaseReg(jit, tmp);
+        releaseReg(jit, tmp2);
+        continue;
+      }
+      case CLbl: {
+        // T,Lbl --> test for a data term, break if not lbl
+        int32 key = code[pc].fst;
+        blockPo tgt = blockBreak(block, code, pc + code[pc].alt + 1, Block);
+        armReg tmp = findARegister(state, pc);
+        armReg tmp2 = findARegister(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        loadRegister(state, tmp, vl);
+        tst(tmp, IM(0b11));
+        brkOutNe(ctx, tgt);
+
+        ldr(tmp, OF(tmp, OffsetOf(TermRecord,clss))); // pick up the class
+        loadConstant(jit, key, tmp2);
+        cmp(tmp2, RG(tmp));
+        brkOutNe(ctx, tgt);
+        releaseReg(jit, tmp);
+        releaseReg(jit, tmp2);
+        continue;
+      }
+
+      case CInt:
+      case CChar: {
+        armReg tmp = findARegister(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        loadRegister(state, tmp, vl);
+
+        integer lit = (integer) getConstant(code[pc].fst);
+        if (is12bit(lit))
+          cmp(tmp, IM(lit));
+        else {
+          armReg litReg = findFreeReg(jit);
+          loadConstant(jit, code[pc].fst, litReg);
+          cmp(tmp, RG(litReg));
+          releaseReg(jit, litReg);
+        }
+        releaseReg(jit, tmp);
+        blockPo tgt = blockBreak(block, code, pc + code[pc].alt + 1, Block);
+        brkOutNe(ctx, tgt);
+        continue;
+      }
+      case CFlt:
+      case CLit: {
+        // T,lit --> test for a literal value, break if not
+        int32 key = code[pc].fst;
+        FlexOp vl = popFlex(state, pc);
+        invokeIntrinsic(state, pc, (runtimeFn) sameTerm, 2, (FlexOp[]){vl, constantFlex(state, key)});
+        tst(RTV, RG(RTV));
+        blockPo tgt = blockBreak(block, code, pc + code[pc].alt + 1, Block);
+        brkOutNe(ctx, tgt);
+        continue;
+      }
+
+      case Nth: {
+        // T --> el, pick up the nth element
+        armReg tmp = findARegister(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        if (!isRegisterOp(vl)) {
+          loadRegister(state, tmp, vl);
+          loadElement(jit, tmp, tmp, code[pc].fst + 1);
+        } else {
+          loadElement(jit, tmp, vl.reg, code[pc].fst + 1);
+        }
+        pushVar(state, pc, markVarStart(state, pc, RG(tmp)));
+        continue;
+      }
+      case StNth: {
+        // T el --> store in nth element
+        armReg tmp = findARegister(state, pc);
+        armReg tmp2 = findARegister(state, pc);
+        FlexOp trm = popFlex(state, pc);
+        FlexOp vl = popFlex(state, pc);
+        loadRegister(state, tmp, trm);
+        loadRegister(state, tmp2, vl);
+        storeElement(jit, tmp2, tmp, (code[pc].fst + 1));
+        releaseReg(jit, tmp);
+        releaseReg(jit, tmp2);
+        continue;
+      }
+      case IAdd: {
+        // L R --> L+R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        add(a1, a2, RG(a1));
+
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case ISub: {
+        // L R --> L-R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        sub(a1, a1, RG(a2));
+
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case IMul: {
+        // L R --> L*R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        mul(a1, a1, a2);
+
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case IDiv: {
+        // L R --> L/R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg divisor = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, divisor, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, divisor);
+
+        codeLblPo skip = newLabel(ctx);
+        cbnz(divisor, skip);
+
+        blockPo tgtBlock = blockBreak(block, code, pc + code[pc].alt + 1, Valof);
+        codeLblPo lbl = breakLabel(tgtBlock);
+        if (lbl != Null && tgtBlock->phiVar != Null) {
+          storeVar(state, pc, constantFlex(state, divZeroIndex), tgtBlock->phiVar);
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", pc);
+
+        bind(skip);
+        sdiv(a1, a1, divisor);
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, divisor);
+        continue;
+      }
+      case IMod: {
+        // L R --> L%R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg divisor = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, divisor, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, divisor);
+
+        codeLblPo skip = newLabel(ctx);
+        cbnz(divisor, skip);
+
+        blockPo tgtBlock = blockBreak(block, code, pc + code[pc].alt + 1, Valof);
+        codeLblPo lbl = breakLabel(tgtBlock);
+        if (lbl != Null && tgtBlock->phiVar != Null) {
+          storeVar(state, pc, constantFlex(state, divZeroIndex), tgtBlock->phiVar);
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", pc);
+
+        bind(skip);
+        armReg quotient = findARegister(state, pc);
+        sdiv(quotient, a1, divisor);
+        msub(a1, divisor, quotient, a1);
+
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, divisor);
+        releaseReg(jit, quotient);
+        continue;
+      }
+      case IAbs: {
+        // L --> abs(L)
+        FlexOp left = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        getIntVal(jit, a1);
+
+        cmp(a1, IM(0));
+        csneg(a1, a1, a1, GE);
+
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        continue;
+      }
+      case CEq:
+      case IEq: {
+        // L R --> L==R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        armReg fl = findARegister(state, pc);
+        armReg tr = findARegister(state, pc);
+        loadConstant(jit, trueIndex, tr);
+        loadConstant(jit, falseIndex, fl);
+
+        cmp(a1, RG(a2));
+        csel(a1, fl, tr, NE);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, a2);
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
+        continue;
+      }
+      case CLt:
+      case ILt: {
+        // L R --> L<R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        armReg fl = findARegister(state, pc);
+        armReg tr = findARegister(state, pc);
+        loadConstant(jit, trueIndex, tr);
+        loadConstant(jit, falseIndex, fl);
+
+        cmp(a1, RG(a2));
+        csel(a1, fl, tr, LT);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, a2);
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
+        continue;
+      }
+      case CGe:
+      case IGe: {
+        // L R --> L>=R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        armReg fl = findARegister(state, pc);
+        armReg tr = findARegister(state, pc);
+        loadConstant(jit, trueIndex, tr);
+        loadConstant(jit, falseIndex, fl);
+
+        cmp(a1, RG(a2));
+        csel(a1, fl, tr, GE);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, a2);
+        releaseReg(jit, tr);
+        releaseReg(jit, fl);
+        continue;
+      }
+
+      case BAnd: {
+        // L R --> L&R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        and(a1, a1, RG(a2));
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BOr: {
+        // L R --> L|R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        orr(a1, a2, RG(a1));
+        mkIntVal(jit, a1);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BXor: {
+        // L R --> L^R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        eor(a1, a2, RG(a1));
+        mkIntVal(jit, a1);
+
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BLsl: {
+        // L R --> L<<R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        lsl(a1, a1, RG(a2));
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BLsr: {
+        // L R --> L>>R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        lsr(a1, a1, RG(a2));
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BAsr: {
+        // L R --> L>>>R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+        getIntVal(jit, a1);
+        getIntVal(jit, a2);
+
+        asr(a1, a1, RG(a2));
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case BNot: {
+        // // L --> ~L
+        FlexOp left = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        getIntVal(jit, a1);
+
+        mvn(a1, a1, LSL, 0);
+        mkIntVal(jit, a1);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        continue;
+      }
+      case FAdd: {
+        // L R --> L+R
+        armReg reslt = mkFloat(state, pc); // We create it first
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        fadd(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        continue;
+      }
+      case FSub: {
+        // L R --> L-R
+        armReg reslt = mkFloat(state, pc); // We create it first
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        fsub(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        continue;
+      }
+      case FMul: {
+        // L R --> L*R
+        armReg reslt = mkFloat(state, pc); // We create it first
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        releaseReg(jit, a1);
+        releaseReg(jit, a2);
+        fmul(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        continue;
+      }
+      case FDiv: {
+        // L R --> L/R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg divisor = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, divisor, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, divisor, F1);
+
+        fmov(FP(F2), RG(XZR));
+        fcmp(F1, F2);
+        codeLblPo skip = newLabel(ctx);
+        bne(skip);
+
+        blockPo tgtBlock = blockBreak(block, code, pc + code[pc].alt + 1, Valof);
+        codeLblPo lbl = breakLabel(tgtBlock);
+        if (lbl != Null && tgtBlock->phiVar != Null) {
+          storeVar(state, pc, constantFlex(state, divZeroIndex), tgtBlock->phiVar);
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", pc);
+
+        bind(skip);
+
+        stpf(F0, F1, PRX(SP,-16));
+        armReg reslt = mkFloat(state, pc);
+        ldpf(F0, F1, PSX(SP,16));
+        fdiv(F0, F0, F1);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        releaseReg(jit, a1);
+        releaseReg(jit, divisor);
+        continue;
+      }
+      case FMod: {
+        // L R --> L%R
+        armReg reslt = mkFloat(state, pc); // Get space for the result
+
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        armReg divisor = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, divisor, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, divisor, F1);
+
+        fmov(FP(F2), RG(XZR));
+        fcmp(F1, F2);
+        codeLblPo skip = newLabel(ctx);
+        bne(skip);
+
+        blockPo tgtBlock = blockBreak(block, code, pc + code[pc].alt + 1, Valof);
+        codeLblPo lbl = breakLabel(tgtBlock);
+        if (lbl != Null && tgtBlock->phiVar != Null) {
+          storeVar(state, pc, constantFlex(state, divZeroIndex), tgtBlock->phiVar);
+          b(lbl);
+        } else
+          return jitError(jit, "cannot find target label for %d", pc);
+
+        bind(skip);
+
+        fdiv(F0, F0, F1);
+        fmsub(F2, F2, F1, F0);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        releaseReg(jit, a1);
+        releaseReg(jit, divisor);
+        continue;
+      }
+      case FAbs: {
+        // L --> abs(L)
+        armReg reslt = mkFloat(state, pc);
+
+        FlexOp left = popFlex(state, pc);
+
+        armReg a1 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+
+        getFltVal(jit, a1, F0);
+
+        fabs(F0, F0);
+        fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
+        pushVar(state, pc, markVarStart(state, pc, RG(reslt)));
+        releaseReg(jit, a1);
+        continue;
+      }
+      case FEq: {
+        // L R --> L==
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        fcmp(F0, F1);
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, NE);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case FLt: {
+        // L R --> L<R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        fcmp(F0, F1);
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, GE);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case FGe: {
+        // L R --> L>=R
+        FlexOp left = popFlex(state, pc);
+        FlexOp right = popFlex(state, pc);
+        armReg a1 = findARegister(state, pc);
+        armReg a2 = findARegister(state, pc);
+        loadRegister(state, a1, left);
+        loadRegister(state, a2, right);
+
+        getFltVal(jit, a1, F0);
+        getFltVal(jit, a2, F1);
+        fcmp(F0, F1);
+        loadConstant(jit, falseIndex, a1);
+        loadConstant(jit, trueIndex, a2);
+        csel(a1, a1, a2, LT);
+        pushVar(state, pc, markVarStart(state, pc, RG(a1)));
+        releaseReg(jit, a2);
+        continue;
+      }
+      case Alloc: {
+        // new structure, elements from stack
+        int32 key = code[pc].fst;
+        labelPo label = C_LBL(getConstant(key));
+        int32 arity = lblArity(label);
+
+        armReg term = allocSmallStruct(state, pc, (clssPo) label, NormalCellCount(arity));
+
+        for (int32 ix = 0; ix < arity; ix++) {
+          FlexOp tmp = popFlex(state, pc);
+          storeFlex(state, pc, tmp,OF(term, (ix + 1) * pointerSize));
+        }
+
+        pushVar(state, pc, markVarStart(state, pc, RG(term)));
+        continue;
+      }
+      case Closure: {
+        int32 key = code[pc].fst;
+
+        armReg term = allocSmallStruct(state, pc, closureClass, ClosureCellCount);
+
+        armReg tmp = findARegister(state, pc);
+        loadConstant(jit, key, tmp);
+
+        str(tmp, OF(term, OffsetOf(ClosureRecord, lbl)));
+        releaseReg(jit, tmp);
+
+        FlexOp freeTerm = popFlex(state, pc);
+        storeFlex(state, pc, freeTerm,OF(term, OffsetOf(ClosureRecord, free)));
+
+        pushVar(state, pc, markVarStart(state, pc, RG(term)));
+        continue;
+      }
+      case Frame: {
+        // // frame instruction
+        check(state->top==code[pc].fst, "inconsistent frame height");
+        continue;
+      }
+      case dBug: {
+        // enter the line debugger
+        if (lineDebugging) {
+          int32 locKey = code[pc].fst;
+          int32 npc = pc + 1;
+          switch (code[npc].op) {
+            case Abort: {
+              invokeIntrinsic(state, pc, (runtimeFn) abortDebug, 2, (FlexOp[]){RG(PR), constantFlex(state, locKey)});
+              break;
+            }
+            case Entry: {
+              int32 lblKey = defineConstantLiteral((termPo) mtdLabel(jit->mtd));
+              invokeIntrinsic(state, pc, (runtimeFn) entryDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), constantFlex(state, lblKey)
+                              });
+              break;
+            }
+            case Call:
+            case XCall: {
+              invokeIntrinsic(state, pc, (runtimeFn) callDebug, 4, (FlexOp[]){
+                                RG(PR), IM(code[npc].op), constantFlex(state, locKey),
+                                constantFlex(state, code[npc].fst)
+                              });
+              break;
+            }
+            case TCall: {
+              invokeIntrinsic(state, pc, (runtimeFn) tcallDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey),
+                                constantFlex(state, code[npc].fst)
+                              });
+              break;
+            }
+            case OCall:
+            case XOCall: {
+              FlexOp lbl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) ocallDebug, 4, (FlexOp[]){
+                                RG(PR), IM(code[npc].op),
+                                constantFlex(state, locKey), lbl
+                              });
+              break;
+            }
+            case TOCall: {
+              FlexOp lbl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) tocallDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), lbl
+                              });
+              break;
+            }
+            case Ret: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) retDebug, 4, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            case XRet: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) xretDebug, 4, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            case Assign: {
+              invokeIntrinsic(state, pc, (runtimeFn) assignDebug, 2, (FlexOp[]){RG(PR), constantFlex(state, locKey)});
+              break;
+            }
+            case Fiber: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) fiberDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            case Suspend: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) suspendDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            case Resume: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) resumeDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            case Retire: {
+              FlexOp vl = topFlex(state, pc);
+              invokeIntrinsic(state, pc, (runtimeFn) retireDebug, 3, (FlexOp[]){
+                                RG(PR), constantFlex(state, locKey), vl
+                              });
+              break;
+            }
+            default:
+              return jitError(jit, "invalid instruction following DBug");
+          }
+        }
+        continue;
+      }
+      case Line: {
+        if (lineDebugging) {
+          int32 locKey = code[pc].fst;
+          invokeIntrinsic(state, pc, (runtimeFn) lineDebug, 2, (FlexOp[]){RG(PR), constantFlex(state, locKey)});
+        }
+        continue;
+      }
+      case Bind: {
+        if (lineDebugging) {
+          int32 varKey = code[pc].fst;
+          FlexOp vl = topFlex(state, pc);
+          invokeIntrinsic(state, pc, (runtimeFn) bindDebug, 3, (FlexOp[]){
+                            RG(PR), constantFlex(state, varKey), vl
+                          });
+        }
+        continue;
+      }
+
+      default:
+        return jitError(jit, "unknown instruction: %s", opNames[code[pc].op]);
     }
   }
 #ifdef TRACEJIT
-  if (traceJit >= generalTracing){
+  if (traceJit >= generalTracing) {
     outMsg(logFile, "Non-breaking exit from block %d -> %d\n", from, endPc);
   }
 #endif
 
-  // We only come here if the block does not have a breaking
-  setStackDepth(stack, jit, block->exitHeight);
-  if (block->parent != Null)
-    tryRet(propagateStack(jit, stack, &block->parent->stack, block->exitHeight));
-
   return ret;
 }
 
-armReg allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
-  jitCompPo jit = block->jit;
-  assemCtxPo ctx = assemCtx(jit);
-
-  codeLblPo ok = newLabel(ctx);
-
-  reserveReg(jit, X0);
-  armReg h = findFreeReg(jit);
-  armReg c = findFreeReg(jit);
-  armReg l = findFreeReg(jit);
-  armReg reslt = findFreeReg(jit);
-  ldr(h, OF(PR, OffsetOf(EngineRecord, heap)));
-  ldr(c, OF(h, OffsetOf(HeapRecord, curr)));
-  ldr(l, OF(h, OffsetOf(HeapRecord, limit)));
-  mov(reslt, RG(c));
-  add(c, c, IM(amnt * pointerSize));
-  str(c, OF(h, OffsetOf(HeapRecord, curr)));
-  cmp(c, RG(l));
-  blt(ok);
-  // Restore h->curr
-  str(reslt, OF(h, OffsetOf(HeapRecord, curr)));
-  stash(jit, trueStackDepth(&block->stack));
-  ldr(X0, OF(PR, OffsetOf(EngineRecord, heap)));
-  callIntrinsic(ctx, criticalRegs(), (runtimeFn)allocateObject, 3, RG(X0), IM((integer) class), IM(amnt));
-  unstashEngineState(jit);
-  mov(reslt, RG(X0));
-  bind(ok);
-  mov(c, IM((integer) class));
-  str(c, OF(reslt, OffsetOf(TermRecord, clss)));
-  releaseReg(jit, h);
-  releaseReg(jit, c);
-  releaseReg(jit, l);
-  releaseReg(jit, X0);
-  return reslt;
+armReg allocSmallStruct(codeGenPo state, int32 pc, clssPo class, integer amnt) {
+  assemCtxPo ctx = assemCtx(state->jit);
+  invokeIntrinsic(state, pc, (runtimeFn) allocateObject, 3, (FlexOp[]){
+                    OF(PR, OffsetOf(EngineRecord, heap)), IM((integer) class), IM(amnt)
+                  });
+  armReg term = findARegister(state, pc);
+  mov(term, RG(X0));
+  return term;
 }
 
-armReg mkFloat(jitBlockPo block) {
-  valueStackPo stack = &block->stack;
-  jitCompPo jit = block->jit;
-
-  spillStack(stack, jit);
-  return allocSmallStruct(block, floatClass, FloatCellCount);
+armReg mkFloat(codeGenPo state, int32 pc) {
+  return allocSmallStruct(state, pc, floatClass, FloatCellCount);
 }
 
-void pshFrame(jitBlockPo block, armReg mtdRg) {
-  jitCompPo jit = block->jit;
+void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
+  jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
   str(AG, OF(FP, OffsetOf(StackFrame, args)));
-  sub(AG, AG, IM(trueStackDepth(&block->stack)*pointerSize));
+  adjustAG(state, pc, argOffset);
   armReg tmp = findFreeReg(jit);
   ldr(tmp, OF(STK, OffsetOf(StackRecord, prog)));
   str(tmp, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
@@ -1771,37 +1672,649 @@ void pshFrame(jitBlockPo block, armReg mtdRg) {
   releaseReg(jit, tmp);
 }
 
-void dropArgs(valueStackPo stack, jitCompPo jit, int32 count) {
-  dropValues(stack, jit, count);
-  pushBlank(stack);
+void overrideFrame(codeGenPo state, int32 pc, int32 arity) {
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    outMsg(logFile, "override frame in: ");
+    dumpState(state);
+  }
+#endif
+
+  int32 tgtOff = overrideArguments(state, pc, arity);
+  adjustAG(state, pc, tgtOff);
 }
 
-retCode handleBreakTable(jitBlockPo block, insPo code, int32 pc, int32 count) {
-  jitCompPo jit = block->jit;
+void overrideOFrame(codeGenPo state, int32 pc, int32 arity, armReg arg1) {
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    outMsg(logFile, "override frame in: ");
+    dumpState(state);
+  }
+#endif
+
+  int32 tgtOff = overrideOArguments(state, pc, arity, arg1);
+  adjustAG(state, pc, tgtOff);
+}
+
+blockPo blockBreak(blockPo block, ssaInsPo code, int32 tgt, ssaOp blockType) {
+  while (block != Null) {
+    if (block->startPc == tgt) {
+      assert(code[block->startPc].op == blockType);
+      return block;
+    }
+    block = block->parent;
+  }
+  return Null;
+}
+
+retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit) {
+  jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
-  for (int ix = 0; ix < count; ix++, pc++){
-    check(code[pc].op==Break, "Expecting a Break instruction");
-    jitBlockPo tgtBlock = breakBlock(block, code, pc + code[pc].alt + 1, Block);
-    setStackDepth(&tgtBlock->parent->stack, jit, tgtBlock->exitHeight);
-    tryRet(propagateStack(jit, &block->stack, &tgtBlock->parent->stack, tgtBlock->exitHeight));
-    codeLblPo lbl = breakLabel(tgtBlock);
+  for (int ix = 0; ix < limit; ix++, pc++) {
+    check(code[pc].op==Break||code[pc].op==Loop, "Expecting a Break instruction");
+    blockPo tgtBlock = blockBreak(block, code, pc + code[pc].alt + 1, Block);
+    codeLblPo lbl = (code[pc].op == Break ? breakLabel(tgtBlock) : loopLabel(tgtBlock));
     b(lbl);
   }
   return Ok;
 }
 
-retCode testResult(jitBlockPo block, jitBlockPo tgtBlock) {
-  jitCompPo jit = block->jit;
+void testResult(codeGenPo state, int32 pc, blockPo tgtBlock) {
+  jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo skip = newLabel(ctx);
-  cmp(X0, IM(Normal));
+  cmp(RTS, IM(Normal));
   beq(skip);
-  armReg er = topValue(&block->stack, jit);
-  valueStackPo tgtStack = &tgtBlock->parent->stack;
-  valueStackPo srcStack = &block->stack;
-  propagateStack(jit, srcStack, tgtStack, tgtBlock->exitHeight - 1);
-  forcePush(jit, tgtStack, er);
-  retCode ret = breakOut(block, tgtBlock);
+
+  blockPo parent = tgtBlock->parent;
+  localVarPo phiVar = parent->phiVar;
+  assert(phiVar!=Null);
+
+  FlexOp er = popFlex(state, pc);
+  storeVar(state, pc, er, phiVar);
+
+  breakOut(ctx, tgtBlock);
   bind(skip);
+}
+
+void populateLocals(codeGenPo state, int32 arity, int32 registerArgs) {
+  for (int32 ix = 0; ix < state->numLocals; ix++)
+    state->locals[ix].live = False;
+
+  registerMap argRegs = defaultArgRegs();
+
+  for (int32 ax = 0; ax < arity; ax++) {
+    varDescPo var = findVar(state->analysis, ax);
+    localVarPo slot = allocateLocal(state, 0);
+    slot->live = True;
+    slot->inited = True;
+    slot->stkOff = ax;
+    slot->desc = var;
+    if (ax < registerArgs) {
+      armReg rg = nxtAvailReg(argRegs);
+      if (var->registerCandidate && rg != XZR) {
+        slot->src = RG(rg);
+        slot->stashed = False;
+        argRegs = dropReg(argRegs, rg);
+        reserveReg(state->jit, rg);
+        continue;
+      }
+    }
+    slot->stashed = True;
+    slot->src = OF(AG, ax*pointerSize);
+  }
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showRegisterMap(logFile, argRegs);
+  }
+#endif
+}
+
+void populateSpecialStackVars(codeGenPo state, int32 depth) {
+  int32 lclOffset = 0;
+  assert(depth<=1);
+
+  for (int32 lx = 0; lx < depth; lx++) {
+    localVarPo var = markVarStart(state, 0, localFlex(state, --lclOffset));
+    var->inited = True;
+    pushVar(state, 0, var);
+  }
+}
+
+void loadRegister(codeGenPo state, armReg rg, FlexOp src) {
+  assemCtxPo ctx = state->jit->assemCtx;
+  if (isRegisterOp(src))
+    mov(rg, src);
+  else
+    ldr(rg, src);
+}
+
+void dumpState(codeGenPo state) {
+  showLiveLocals(logFile, state);
+  dRegisterMap(state->jit->freeRegs);
+  for (int32 ix = 0; ix < state->top; ix++) {
+    outMsg(logFile, "SP[%d] = %Z\n%_", ix, state->stack[ix]);
+  }
+}
+
+static void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
+  move(ctx, dst, src, *freeRegs);
+}
+
+void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexOp args[]) {
+  assemCtxPo ctx = assemCtx(state->jit);
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showLiveLocals(logFile, state);
+  }
+#endif
+  int32 lastSlot = stashLiveLocals(state, pc);
+  voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
+
+  ArgSpec operands[arity];
+
+  registerMap argRegs = systemArgRegs();
+  registerMap saveMap = criticalRegs();
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    armReg ax = nxtAvailReg(argRegs);
+    argRegs = dropReg(argRegs, ax);
+    assert(ax!=XZR);
+    operands[ix] = (ArgSpec){.src = args[ix], .dst = RG(ax), .mark = True, .group = -1};
+  }
+  registerMap tmpMap = fixedRegSet(X16);
+
+  shuffleVars(ctx, operands, arity, &tmpMap, argMove);
+
+  stashEngineState(state->jit, -lastSlot);
+  saveRegisters(ctx, saveMap);
+  mov(X16, IM((integer) fn));
+  blr(X16);
+  restoreRegisters(ctx, saveMap);
+  unstashEngineState(state->jit);
+#ifdef TRACEJIT
+  if (traceJit >= detailedTracing) {
+    showLiveLocals(logFile, state);
+  }
+#endif
+}
+
+void invokeEscape(codeGenPo state, int32 pc, runtimeFn fn, int32 arity) {
+  assemCtxPo ctx = assemCtx(state->jit);
+  loadArguments(state, pc, pc + 3, arity);
+  registerMap saveMap = criticalRegs();
+  saveRegisters(ctx, saveMap);
+  mov(X16, IM((integer) fn));
+  blr(X16);
+  restoreRegisters(ctx, saveMap);
+  dropArguments(state, pc);
+}
+
+int32 stashSomeLiveLocals(codeGenPo state, int32 pc, int32 cnt) {
+  int32 minOffset = 0;
+  for (int32 ix = 0; ix < state->numLocals && cnt > 0; ix++, cnt--) {
+    localVarPo var = &state->locals[ix];
+    if (liveVar(var, pc)) {
+      stashVar(state, pc, var);
+      minOffset = min(minOffset, var->stkOff);
+    }
+  }
+  return minOffset;
+}
+
+int32 stashLiveLocals(codeGenPo state, int32 pc) {
+  return stashSomeLiveLocals(state, pc, MAX_INT32);
+}
+
+logical allLocalsStashed(codeGenPo state, int32 pc) {
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo var = &state->locals[ix];
+    if (liveVar(var, pc) && !var->stashed) {
+      return False;
+    }
+  }
+  return True;
+}
+
+static void voidOutSlot(codeGenPo state, int32 pc, int32 offset, armReg vdCon, logical *loaded) {
+  for (int32 vx = 0; vx < state->numLocals; vx++) {
+    localVarPo var = &state->locals[vx];
+    if (liveVar(var, pc) && var->stashed && var->stkOff == offset)
+      return; // Because C does not have labeled breaks
+  }
+  if (!*loaded) {
+    loadConstant(state->jit, voidIndex, vdCon);
+    *loaded = True;
+  }
+  storeFlex(state, pc, RG(vdCon),OF(AG, offset*pointerSize));
+}
+
+void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset) {
+  armReg vdCon = findARegister(state, pc);
+  logical loaded = False;
+  for (int32 ix = -1; ix > minOffset; ix--) {
+    voidOutSlot(state, pc, ix, vdCon, &loaded);
+  }
+  releaseReg(state->jit, vdCon);
+}
+
+int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pcBase, int32 argBase, int32 arity) {
+  ArgSpec operands[arity];
+
+  int32 minOffset = stashLiveLocals(state, pcBase); // save vars that will be live after the call
+  voidOutFrameLocals(state, pcBase, minOffset); // void out gaps in the locals map
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    FlexOp argSrc = operandFlex(state, pcBase, ix);
+    armReg ax = nxtAvailReg(argRegs);
+    int32 argSLot = minOffset - arity + ix;
+    if (ax != XZR) {
+      argRegs = dropReg(argRegs, ax);
+      operands[ix] = (ArgSpec){.src = argSrc, .dst = RG(ax), .mark = True, .group = -1};
+    } else {
+      operands[ix] = (ArgSpec){.src = argSrc, .dst = OF(AG, argSLot*pointerSize), .mark = True, .group = -1};
+    }
+  }
+  registerMap tmpMap = fixedRegSet(X16);
+  shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap, argMove);
+  return minOffset; // return how must space is needed to preserve current locals.
+}
+
+int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, defaultArgRegs(), argBase, arity, arity);
+}
+
+int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), argBase, arity, arity);
+}
+
+int32 overrideArguments(codeGenPo state, int32 pc, int32 arity) {
+  ArgSpec operands[arity];
+  registerMap argRegs = defaultArgRegs();
+
+  assert(state->top >= arity);
+
+  int32 tgtOff = argCount(state->jit->mtd);
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    localVarPo var = state->stack[ix];
+    armReg ax = nxtAvailReg(argRegs);
+    int32 argSLot = tgtOff - arity + ix;
+    if (ax != XZR) {
+      argRegs = dropReg(argRegs, ax);
+      operands[ix] = (ArgSpec){.src = var->src, .dst = RG(ax), .mark = True, .group = -1};
+    } else {
+      operands[ix] = (ArgSpec){.src = var->src, .dst = OF(AG, argSLot*pointerSize), .mark = True, .group = -1};
+    }
+  }
+  registerMap tmpMap = fixedRegSet(X16);
+  shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap, argMove);
+  return tgtOff - arity;
+}
+
+int32 overrideOArguments(codeGenPo state, int32 pc, int32 arity, armReg arg1) {
+  ArgSpec operands[arity + 1];
+  registerMap argRegs = defaultArgRegs();
+
+  assert(state->top >= arity);
+
+  int32 tgtOff = argCount(state->jit->mtd);
+  operands[0] = (ArgSpec){.src = RG(arg1), .dst = RG(X0), .mark = True, .group = -1};
+
+  for (int32 ix = 0; ix < arity; ix++) {
+    localVarPo var = state->stack[ix];
+    armReg ax = nxtAvailReg(argRegs);
+    int32 argSLot = tgtOff - arity + ix + 1;
+    if (ax != XZR) {
+      argRegs = dropReg(argRegs, ax);
+      operands[ix + 1] = argSpec(var->src, RG(ax));
+    } else {
+      operands[ix + 1] = argSpec(var->src, OF(AG, argSLot*pointerSize));
+    }
+  }
+  registerMap tmpMap = fixedRegSet(X16);
+  shuffleVars(assemCtx(state->jit), operands, arity, &tmpMap, argMove);
+  return tgtOff - arity;
+}
+
+void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {
+  int32 delta = tgtOff * pointerSize;
+  assemCtxPo ctx = assemCtx(state->jit);
+  if (delta > 0) {
+    if (is12bit(delta))
+      add(AG, AG, IM(delta));
+    else {
+      armReg tmp = findARegister(state, pc);
+      mov(tmp, IM(delta));
+      add(AG, AG, RG(tmp));
+      releaseReg(state->jit, tmp);
+    }
+  } else if (delta < 0) {
+    delta = -delta;
+    if (is12bit(delta))
+      sub(AG, AG, IM(delta));
+    else {
+      armReg tmp = findARegister(state, pc);
+      mov(tmp, IM(delta));
+      sub(AG, AG, RG(tmp));
+      releaseReg(state->jit, tmp);
+    }
+  }
+}
+
+void dropArguments(codeGenPo state, int32 pc) {
+  resetRegMap(state->jit, dropReg(dropReg(defltAvailRegSet(),RTV),RTS));
+  assert(allLocalsStashed(state,pc));
+}
+
+localVarPo findPhiVariable(codeGenPo state, int32 pc) {
+  localVarPo var = markVarStart(state, pc, RG(XZR));
+
+  FlexOp src = getLclSrc(state, pc, var->desc->varNo);
+  var->src = src;
+
+  return var;
+}
+
+void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var) {
+  if (!var->inited) {
+    if (var->desc->registerCandidate) {
+      FlexOp rg = RG(findARegister(state, pc));
+      storeFlex(state, pc, val, rg);
+      var->inited = True;
+      var->stashed = False;
+      var->src = rg;
+    } else {
+      var->stkOff = nextStkOff(state, pc);
+      var->src = localFlex(state, var->stkOff);
+      storeFlex(state, pc, val, var->src);
+      var->inited = True;
+      var->stashed = True;
+    }
+  } else {
+    assert(var->desc->kind == phi);
+    storeFlex(state, pc, val, var->src);
+  }
+}
+
+void stashVar(codeGenPo state, int32 pc, localVarPo var) {
+  if (var->inited && !var->stashed) {
+    if (isRegisterOp(var->src)) {
+      var->stkOff = nextStkOff(state, pc);
+      FlexOp lclFlex = localFlex(state, var->stkOff);
+      storeFlex(state, pc, var->src, lclFlex);
+      var->src = lclFlex;
+      var->stashed = True;
+    }
+  }
+}
+
+retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt) {
+  localVarPo var = (localVarPo) data;
+  varDescPo desc = var->desc;
+  return outMsg(out, "%s[%d]%s [%d,%d) @ %F", varKindName(desc->kind), var->desc->varNo,
+                (var->inited ? (var->stashed ? "S" : "s") : "u"),
+                desc->start, desc->end,
+                &var->src);
+}
+
+int32 nextStkOff(codeGenPo state, int32 pc) {
+  int32 lastSlot = 0;
+
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo lcl = &state->locals[ix];
+    if (liveVar(lcl, pc)) {
+      if (lcl->stashed && lcl->stkOff < lastSlot)
+        lastSlot = lcl->stkOff;
+    }
+  }
+
+  return lastSlot - 1;
+}
+
+localVarPo allocateLocal(codeGenPo state, int32 pc) {
+  for (int32 lx = 0; lx < state->numLocals; lx++) {
+    localVarPo l = &state->locals[lx];
+    if (!liveVar(l, pc))
+      return l;
+  }
+  return Null;
+}
+
+static logical liveVar(localVarPo var, int32 pc) {
+  return var->live && var->desc->end > pc;
+}
+
+FlexOp getLclSrc(codeGenPo state, int32 pc, int32 lclNo) {
+  localVarPo lcl = findLocal(state, pc, lclNo);
+  assert(lcl!=Null && liveVar(lcl,pc));
+  return lcl->src;
+}
+
+localVarPo markVarStart(codeGenPo state, int32 pc, FlexOp src) {
+  varDescPo stkVar = varStart(state->analysis, pc);
+  assert(stkVar!=Null);
+  localVarPo lcl = allocateLocal(state, pc);
+  assert(lcl!=Null);
+  lcl->stkOff = MAX_INT32;
+  lcl->live = True;
+  lcl->src = src;
+  lcl->desc = stkVar;
+  lcl->stashed = False;
+  lcl->inited = False;
+  return lcl;
+}
+
+registerMap defaultArgRegs() {
+  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7;
+}
+
+registerMap systemArgRegs() {
+  return 1u << X0 | 1u << X1 | 1u << X2 | 1u << X3 | 1u << X4 | 1u << X5 | 1u << X6 | 1u << X7;
+}
+
+static int32 maxArgRegister = 7;
+
+void showLiveLocals(ioPo out, codeGenPo state) {
+  outMsg(out, "Live locals:\n");
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo lcl = &state->locals[ix];
+    if (lcl->live && lcl->desc->kind != stack) {
+      outMsg(out, "L[%d] = %Z\n", ix, lcl);
+    }
+  }
+}
+
+static localVarPo findLocal(codeGenPo state, int32 pc, int32 lx) {
+  varDescPo varDesc = findVar(state->analysis, lx);
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo lcl = &state->locals[ix];
+    if (lcl->live && lcl->desc == varDesc)
+      return lcl;
+  }
+  localVarPo lcl = allocateLocal(state, pc);
+
+  lcl->live = True;
+  lcl->desc = varDesc;
+  if (varDesc->registerCandidate) {
+    lcl->src = RG(XZR);
+  } else {
+    lcl->stkOff = nextStkOff(state, pc);
+  }
+  lcl->stashed = False;
+  lcl->inited = False;
+  return lcl;
+}
+
+static logical registerInUse(codeGenPo state, FlexOp src) {
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    if (state->locals[ix].live && sameFlexOp(state->locals[ix].src, src)) {
+      return True;
+    }
+  }
+  return False;
+}
+
+void retireExpiredVars(codeGenPo state, int32 pc) {
+  for (int32 ix = 0; ix < state->numLocals; ix++) {
+    localVarPo lcl = &state->locals[ix];
+    if (lcl->live) {
+      varDescPo desc = lcl->desc;
+      if (desc->end <= pc) {
+#ifdef TRACEJIT
+        if (traceJit >= detailedTracing) {
+          outMsg(logFile, "Retire variable %Z at %d\n", lcl, pc);
+        }
+#endif
+        lcl->live = False;
+        if (isRegisterOp(lcl->src) && !registerInUse(state, lcl->src)) {
+          releaseReg(state->jit, lcl->src.reg);
+          lcl->src = RG(XZR);
+        }
+      }
+    }
+  }
+}
+
+int32 operand(codeGenPo state, int32 pc, int32 ox) {
+  return state->code[pc + ox].op.ltrl;
+}
+
+FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo) {
+  localVarPo lcl = findLocal(state, pc, vrNo);
+  return lcl->src;
+}
+
+FlexOp operandFlex(codeGenPo state, int32 pc, int32 ax) {
+  return localFlex(state, pc, operand(state, pc, ax));
+}
+
+static void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
+  if (!sameFlexOp(src, tgt)) {
+    assemCtxPo ctx = assemCtx(state->jit);
+    if (isRegisterOp(tgt)) {
+      loadRegister(state, tgt.reg, src);
+    } else if (isRegisterOp(src)) {
+      str(src.reg, tgt);
+    } else {
+      armReg tmp = findFreeReg(state->jit);
+      loadRegister(state, tmp, src);
+      str(tmp, tgt);
+      releaseReg(state->jit, tmp);
+    }
+  }
+}
+
+void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
+  assemCtxPo ctx = assemCtx(state->jit);
+  if (isRegisterOp(tgt))
+    loadRegister(state, tgt.reg, src);
+  else if (isRegisterOp(src))
+    move(ctx, tgt, src, state->jit->freeRegs);
+  else {
+    armReg tmp = findFreeReg(state->jit);
+    loadRegister(state, tmp, src);
+    move(ctx, tgt,RG(tmp), state->jit->freeRegs);
+    releaseReg(state->jit, tmp);
+  }
+}
+
+FlexOp constantFlex(codeGenPo state, int32 index) {
+  return OF(CO, index*pointerSize);
+}
+
+FlexOp localFlex(codeGenPo state, int32 index) {
+  return OF(AG, index*pointerSize);
+}
+
+armReg findARegister(codeGenPo state, int32 pc) {
+  armReg tmp = findFreeReg(state->jit);
+  if (tmp == XZR) {
+    if (stashSomeLiveLocals(state, pc, 1) < 1) // We just stash one of them...
+      syserr("Not enough free registers");
+
+    tmp = findFreeReg(state->jit);
+    assert(tmp!=XZR);
+  }
+  return tmp;
+}
+
+void verifyState(codeGenPo state, int32 pc) {
+  assert(state->top>=0);
+  registerMap freeRegs = state->jit->freeRegs;
+  for (int32 ix = 0; ix < state->top; ix++) {
+    localVarPo v = state->stack[ix];
+    assert(v->live);
+    assert(v->desc->end >= pc);
+    assert(isRegisterOp(v->src) ? !isRegInMap(freeRegs,v->src.reg):
+      v->stashed ? v->src.immediate==v->stkOff*pointerSize:True);
+  }
+}
+
+void brkOut(assemCtxPo ctx, blockPo tgtBlock) {
+  codeLblPo lbl = breakLabel(tgtBlock);
+  b(lbl);
+}
+
+void brkOutNe(assemCtxPo ctx, blockPo tgtBlock) {
+  codeLblPo lbl = breakLabel(tgtBlock);
+  bne(lbl);
+}
+
+void brkOutEq(assemCtxPo ctx, blockPo tgtBlock) {
+  codeLblPo lbl = breakLabel(tgtBlock);
+  beq(lbl);
+}
+
+ReturnStatus invokeJitMethodA(enginePo P, methodPo mtd) {
+  jittedCode code = jitCode(mtd);
+  stackPo stk = P->stk;
+  int32 arity = lblArity(mtdLabel(mtd));
+  integer argCount = (maxArgRegister - arity) << 2;
+  ptrPo exitSP = stk->sp + arity - 1;
+
+  ReturnStatus ret = Normal;
+  termPo val = voidEnum;
+
+  asm("stp x29,x30, [sp, #-16]!\n"
+    "stp x8,x9, [sp, #-16]!\n"
+    "stp x10,x11, [sp, #-16]!\n"
+    "stp x12,x13, [sp, #-16]!\n"
+    "mov x14, %[stk]\n"
+    "ldr x13, %[ag]\n"
+    "mov x12, %[constants]\n"
+    "mov x15, %[process]\n"
+    "mov x16, %[code]\n"
+    "mov x0, %[argcount]\n"
+    "adr x1, 1f\n"
+    "add x1, x1, x0\n"
+    "br  x1\n"
+    "1: ldr X7, [x13, #56]\n"
+    "ldr x6, [x13, #48]\n"
+    "ldr x5, [x13, #40]\n"
+    "ldr x4, [x13, #32]\n"
+    "ldr x3, [x13, #24]\n"
+    "ldr x2, [x13, #16]\n"
+    "ldr x1, [x13, #8]\n"
+    "ldr x0, [x13, #0]\n"
+    "ldr x29, %[fp]\n"
+    "blr x16\n"
+    "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
+    "str x29, [x14,#64]\n"
+    "ldp x12,x13, [sp], #16\n"
+    "ldp x10,x11, [sp], #16\n"
+    "ldp x8,x9, [sp], #16\n"
+    "ldp x29,x30, [sp], #16\n"
+    "str w0, %[ret]\n"
+    "str x1, %[val]\n"
+    : [ret] "=&m"(ret), [val] "=&m"(val)
+    : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [argcount] "r" (argCount),
+    [constants] "r"(constAnts),[fp] "m"(stk->fp)
+    : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x0", "x11", "x12", "x13", "x14", "x15", "x16",
+    "memory");
+
+  P->stk->sp = exitSP;
+  pushStack(P->stk, val);
+
   return ret;
 }

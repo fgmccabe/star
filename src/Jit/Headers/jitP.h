@@ -27,7 +27,6 @@ assemCtxPo assemCtx(jitCompPo jitCtx);
 
 jitCompPo jitContext(methodPo mtd);
 void clearJitContext(jitCompPo ctx);
-void clearCodeCtxMaps(assemCtxPo ctx);;
 
 jittedCode createCode(assemCtxPo ctx);
 
@@ -37,13 +36,12 @@ void reserveReg(jitCompPo jit, mcRegister rg);
 mcRegister findFreeReg(jitCompPo jit);
 void releaseReg(jitCompPo jit, mcRegister rg);
 logical haveFreeReg(jitCompPo jit);
+void resetRegMap(jitCompPo jit, registerMap defaultRegs);
 
 logical isByte(int64 x);
 logical isI32(int64 x);
 
 retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
-retCode jitInstructionsA(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
 retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) ;
-retCode jitSpecialInstructionsA(jitCompPo jit, methodPo mtd, int32 depth) ;
 
 #endif //STAR_JITP_H

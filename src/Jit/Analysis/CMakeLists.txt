@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(ssa)
+project(analysis)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
@@ -16,8 +16,8 @@ set(HEADER_FILES
         Headers/analyseP.h
 )
 
-set(SSA_SOURCE_FILES analyse.c infra.c)
+set(ANALYSIS_SOURCE_FILES analyse.c infra.c)
 
-add_library(ssa STATIC ${SSA_SOURCE_FILES})
+add_library(analysis STATIC ${ANALYSIS_SOURCE_FILES})
 
 

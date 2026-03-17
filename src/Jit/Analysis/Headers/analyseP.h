@@ -27,14 +27,6 @@ typedef struct var_description_
   varAllocationState state;
 } VarDescRecord;
 
-typedef struct varStack_* varStackPo;
-
-typedef struct varStack_
-{
-  varDescPo var;
-  varStackPo link;
-} VarStack;
-
 typedef struct block_scope_* scopePo;
 
 typedef struct block_scope_
@@ -42,7 +34,6 @@ typedef struct block_scope_
   int32 start;
   int32 limit;
   scopePo parent;
-  varStackPo stack;
 } ScopeBlock;
 
 void initAnalysis();
@@ -67,18 +58,15 @@ void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 p
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
 varDescPo varStart(analysisPo analysis, int32 pc);
 
-varStackPo newStackVar(analysisPo analysis, varStackPo stack, int32 pc);
-varStackPo newPhiVar(analysisPo analysis, varStackPo stack, int32 pc);
+varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc);
 varDescPo newLocalVar(analysisPo analysis, int32 varNo);
-varDescPo newArgVar(hashPo vars, int32 varNo, analysisPo analysis);
+varDescPo newArgVar(analysisPo analysis, int32 varNo);
 varDescPo findVar(analysisPo analysis, int32 varNo);
 
 retCode showVars(ioPo out, analysisPo analysis);
 retCode showVarDesc(ioPo out, varDescPo var);
 
-varStackPo retireStackVar(varStackPo vstack, int32 pc);
-varStackPo retireScopeStack(varStackPo vStack, int32 pc);
-int32 stackDepth(scopePo scope);
+void retireVar(analysisPo analysis, int32 varNo, int32 pc);
 
 int32 slotCount(analysisPo analysis);
 #endif

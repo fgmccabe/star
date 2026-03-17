@@ -5,7 +5,7 @@
 #include <config.h>
 
 #include "cellP.h"
-#include "lowerP.h"
+#include "lowerXP.h"
 #include "stackP.h"
 #include "jitP.h"
 #include "debug.h"
