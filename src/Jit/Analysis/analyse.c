@@ -135,18 +135,30 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, ssaInsPo code, int32 s
         continue;
       }
       case sCase:
-      case sICase:
-      case sIxCase: {
+      case sICase: {
         recordVariableUse(analysis,operand(1), pc);
         int32 caseLimit = operand(2);
         analyseBlock(analysis, &scope, code, pc, pc + 2, pc + caseLimit + 2);
         pc += caseLimit + 2;
         continue;
       }
+      case sIxCase: {
+        recordVariableUse(analysis,operand(1), pc);
+        int32 caseLimit = operand(2);
+        analyseBlock(analysis, &scope, code, pc, pc + 2, pc + caseLimit + 2);
+        setSafePoint(analysis, pc);
+        pc += caseLimit + 2;
+        continue;
+      }
       case sCLit:
-      case sCInt:
-      case sCFlt:
+      case sCFlt: {
+        recordVariableUse(analysis,operand(3), pc);
+        setSafePoint(analysis, pc);
+        pc += 3;
+        continue;
+      }
       case sCChar:
+      case sCInt:
       case sCLbl: {
         recordVariableUse(analysis,operand(3), pc);
         pc += 3;

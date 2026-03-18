@@ -43,6 +43,7 @@ typedef struct {
 typedef struct jitBlock_ *blockPo;
 
 typedef struct jitBlock_ {
+  ssaOp blockType;
   int32 startPc;
   int32 endPc;
   localVarPo phiVar;
@@ -67,6 +68,8 @@ blockPo breakBlock(blockPo block, ssaInsPo code, int32 tgt, ssaOp blockType);
 codeLblPo getABreakLbl(blockPo block, int32 pc);
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
+
+retCode blockResult(blockPo block, codeGenPo state, int32 pc, int32 tgt, FlexOp src);
 
 retCode breakOutEq(blockPo block, ssaInsPo code, int32 tgt);
 retCode breakOutNe(blockPo block, ssaInsPo code, int32 tgt);
