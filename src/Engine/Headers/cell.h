@@ -9,7 +9,7 @@
 
 typedef struct _cell_record_ *cellPo;
 
-extern clssPo cellClass;
+extern int32 cellIndex;
 
 cellPo C_CELL(termPo t);
 

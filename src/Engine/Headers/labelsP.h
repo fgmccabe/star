@@ -14,6 +14,10 @@
  */
 
 
+extern builtinClassPo labelClass;
+extern int32 labelIndex;      // THe index of labels themselves.
+extern int32 specialIndex;
+
 extern integer maxLabels;
 
 typedef struct {
@@ -22,10 +26,11 @@ typedef struct {
 } LabelRecord, *labelRecordPo;
 
 typedef struct program_label_ {
-  ClassRecord clss;           // == labelClass
+  TermHead special;         // == labelClass
   LabelRecord lbl;            // The label itself
-  int32 index;                // Index of label in type
-  integer hash;               // Hash code for the label
+  int32 constructorIndex;     // Index of label in type
+  int32 labelIndex;           // Convenience access to label's index
+  uint64 hash;                // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
   int32 len;                  // How long is the label name
   logical breakPointSet;      // Has a breakpoint been set for this label
@@ -36,6 +41,8 @@ typedef struct program_label_ {
 extern void initLbls();
 void markLabels(gcSupportPo G);
 __attribute__((unused)) void showAllLabels();
+
+int32 standardIndex(builtinClassPo clss);
 
 logical labelDefined(labelPo lbl);
 
@@ -49,7 +56,6 @@ static inline methodPo labelMtd(labelPo lbl) {
   return lbl->mtd;
 }
 
-extern integer lblTableTop;
-extern LblRecord *labelTable;
+int32 indexOfLabel(labelPo lbl);
 
 #endif //STAR_LABELSP_H

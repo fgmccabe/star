@@ -9,7 +9,7 @@
 #include "termP.h"
 
 typedef struct _cell_record_ {
-  ClassRecord clss;             // == cellClass
+  TermHead clss;             // == cellClass
   termPo content;               // Contents
 } CellRecord;
 

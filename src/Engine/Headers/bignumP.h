@@ -11,7 +11,7 @@
 #include "termP.h"
 
 typedef struct bignum_term_ {
-  ClassRecord clss;             // == integerClass
+  TermHead class;             // == bignum class
   uint32 count;
   uint32 data[ZEROARRAYSIZE];
 } BignumRecord;

@@ -5,16 +5,17 @@
 #include "cellP.h"
 #include <assert.h>
 #include "heapP.h"
+#include "labelsP.h"
 
-static long cellSize(specialClassPo cl, termPo o);
-static termPo cellCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical cellCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer hashCell(specialClassPo cl, termPo o);
+static long cellSize(builtinClassPo cl, termPo o);
+static termPo cellCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo cellScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical cellCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer hashCell(builtinClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo cellFinalizer(specialClassPo class, termPo o);
+static termPo cellFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass CellClass = {
+BuiltinTerm CellClass = {
   .sizeFun = cellSize,
   .copyFun = cellCopy,
   .scanFun = cellScan,
@@ -24,13 +25,14 @@ SpecialClass CellClass = {
   .dispFun = cellDisp
 };
 
-clssPo cellClass = (clssPo) &CellClass;
+builtinClassPo cellClass = &CellClass;
+int32 cellIndex;
 
-long cellSize(specialClassPo cl, termPo o) {
+long cellSize(builtinClassPo cl, termPo o) {
   return CellCellCount;
 }
 
-termPo cellCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo cellCopy(builtinClassPo cl, termPo dst, termPo src) {
   cellPo si = C_CELL(src);
   cellPo di = (cellPo) dst;
   *di = *si;
@@ -38,7 +40,7 @@ termPo cellCopy(specialClassPo cl, termPo dst, termPo src) {
   return (termPo) di + CellCellCount;
 }
 
-termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo cellScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
   cellPo cell = C_CELL(o);
 
   if(cell->content!=Null)
@@ -47,15 +49,15 @@ termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + CellCellCount;
 }
 
-termPo cellFinalizer(specialClassPo class, termPo o) {
+termPo cellFinalizer(builtinClassPo class, termPo o) {
   return o + CellCellCount;
 }
 
-logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical cellCmp(builtinClassPo cl, termPo o1, termPo o2) {
   return o1==o2;
 }
 
-integer hashCell(specialClassPo cl, termPo o) {
+integer hashCell(builtinClassPo cl, termPo o) {
   syserr("not permitted to take hash of assignment cell");
   return 0; // unreachable
 }
@@ -76,21 +78,22 @@ retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical a
 }
 
 void initCell() {
-  CellClass.clss.clss = specialClass;
+  CellClass.special.lblIndex = specialIndex;
+  cellIndex = standardIndex(cellClass);
 }
 
 logical isCell(termPo t){
-  return hasClass(t,cellClass);
+  return hasIndex(t,cellIndex);
 }
 
 cellPo C_CELL(termPo t) {
-  assert(hasClass(t, cellClass));
+  assert(isCell(t));
   return (cellPo) t;
 }
 
 cellPo newCell(heapPo H, termPo content) {
   int root = gcAddRoot(H, (ptrPo) (&content));
-  cellPo cell = (cellPo) allocateObject(H, cellClass, CellCellCount);
+  cellPo cell = (cellPo) allocateObject(H, cellIndex, CellCellCount);
   cell->content = content;
   gcReleaseRoot(H, root);
   return cell;

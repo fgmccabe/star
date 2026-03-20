@@ -11,12 +11,13 @@
 // String structure
 typedef struct string_term_ *stringPo;
 
-extern clssPo strClass;
+extern builtinClassPo strClass;
+extern int32 strIndex;
 
 extern stringPo C_STR(termPo t);
 
 static inline logical isString(termPo p) {
-  return hasClass(p, strClass);
+  return hasIndex(p, strIndex);
 }
 
 const char *strVal(termPo o, integer *size);

@@ -11,7 +11,7 @@
 
 
 typedef struct global_rec_ {
-  ClassRecord clss;             // == globalClass
+  TermHead clss;             // == globalClass
   integer varNo;
   integer hash;
   termPo content;               // Contents

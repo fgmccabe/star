@@ -35,7 +35,7 @@ static logical isEVect(termPo t) {
 static logical isVLbl(termPo t, labelPo lbl) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (c->lbl == lbl);
+    return (logical) (termLbl(c) == lbl);
   } else
     return False;
 }

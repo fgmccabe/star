@@ -10,7 +10,7 @@
 
 typedef struct io_record_ *ioChnnlPo;
 
-extern clssPo ioChnnlClass;
+extern int32 iochnlIndex;
 
 extern ioChnnlPo C_IO(termPo t);
 extern logical isIoChannel(termPo t);

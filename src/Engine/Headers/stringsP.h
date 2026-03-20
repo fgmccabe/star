@@ -11,7 +11,7 @@
 #include "strings.h"
 
 typedef struct string_term_ {
-  ClassRecord clss;               // == stringClass
+  TermHead clss;               // == stringClass
   integer length;
   integer hash;
   char txt[ZEROARRAYSIZE];

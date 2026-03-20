@@ -551,7 +551,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp tgt = popFlex(state, pc);
         loadRegister(state, ix, tgt);
         ldr(ix, OF(ix, 0)); // Pick up the label
-        ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
+        ldr(ix, OF(ix, OffsetOf(LblRecord, constructorIndex)));
         immModulo(ctx, ix, tableSize, jit->freeRegs);
         codeLblPo jmpTbl = newLabel(ctx);
         armReg off = findARegister(state, pc);
@@ -840,7 +840,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         tst(tmp, IM(0b11));
         brkOutNe(ctx, tgt);
 
-        ldr(tmp, OF(tmp, OffsetOf(TermRecord,clss))); // pick up the class
+        ldr(tmp, OF(tmp, OffsetOf(TermHead,clss))); // pick up the class
         loadConstant(jit, key, tmp2);
         cmp(tmp2, RG(tmp));
         brkOutNe(ctx, tgt);

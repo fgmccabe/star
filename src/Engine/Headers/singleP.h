@@ -10,11 +10,12 @@
 #include "heapP.h"
 
 typedef struct single_rec_ {
-  ClassRecord clss;             // == singleClass
+  TermHead clss;             // == singleClass
   termPo content;               // Contents
 } SingleRecord;
 
-extern clssPo singleClass;
+extern builtinClassPo singleClass;
+extern int32 singleIndex;
 
 #define SingleCellCount CellCount(sizeof(SingleRecord))
 

@@ -45,7 +45,7 @@ typedef struct stack_frame_ {
 #define FrameCellCount (CellCount(sizeof(StackFrame)))
 
 typedef struct StackStructure {
-  ClassRecord clss;             // == stackClass
+  TermHead clss;              // == stackClass
   integer hash;                 // Hash code of stack (== count of created stacks)
   integer sze;                  // Size of stack
   integer hwm;                  // High watermark of stack sizes rooted off this stack

@@ -449,7 +449,7 @@ int32 run(enginePo P) {
         termPo gov = varble(operand(1));
         assert(isNormalPo(gov));
         labelPo lbl = termLbl(C_NORMAL(gov));
-        integer hx = lblIndex(lbl) % mx;
+        integer hx = constructorIndex(lbl) % mx;
 
         PC = PC + hx * 2 + insSize;
         continue;

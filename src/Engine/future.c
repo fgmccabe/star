@@ -4,17 +4,18 @@
 #include "futureP.h"
 #include "assert.h"
 #include "globals.h"
+#include "labelsP.h"
 
-static long futureSize(specialClassPo cl, termPo o);
-static termPo futureCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo futureScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical futureCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer futureHash(specialClassPo cl, termPo o);
+static long futureSize(builtinClassPo cl, termPo o);
+static termPo futureCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo futureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static logical futureCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer futureHash(builtinClassPo cl, termPo o);
 static retCode futureDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo futureFinalizer(specialClassPo class, termPo o);
+static termPo futureFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass FutureClass = {
-  .clss = Null,
+BuiltinTerm FutureClass = {
+  .special = {0,0},
   .sizeFun = futureSize,
   .copyFun = futureCopy,
   .scanFun = futureScan,
@@ -24,21 +25,23 @@ SpecialClass FutureClass = {
   .dispFun = futureDisp
 };
 
-clssPo futureClass = (clssPo) &FutureClass;
+builtinClassPo futureClass = &FutureClass;
+int32 futureIndex;
 
 void initFuture() {
-  FutureClass.clss.clss = specialClass;
+  FutureClass.special.lblIndex = specialIndex;
+  futureIndex = standardIndex(futureClass);
 }
 
 futurePo C_FUTURE(termPo t) {
-  assert(hasClass(t, futureClass));
-  return (futurePo) t;
+  assert(hasIndex(t, futureIndex));
+  return (futurePo)t;
 }
 
 
-futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
+futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void* cl, void* cl2) {
   int root = gcAddRoot(H, &vl);
-  futurePo pr = (futurePo) allocateObject(H, futureClass, FutureCellCount);
+  futurePo pr = (futurePo)allocateObject(H, futureIndex, FutureCellCount);
   pr->val = vl;
   pr->state = notResolved;
   pr->poller = poll;
@@ -51,7 +54,7 @@ futurePo makeFuture(heapPo H, termPo vl, futurePoll poll, void *cl, void *cl2) {
 
 futurePo makeResolvedFuture(heapPo h, termPo val, futureState state) {
   int root = gcAddRoot(h, &val);
-  futurePo ft = (futurePo) allocateObject(h, futureClass, FutureCellCount);
+  futurePo ft = (futurePo)allocateObject(h, futureIndex, FutureCellCount);
   ft->state = state;
   ft->val = val;
   ft->poller = Null;
@@ -60,51 +63,51 @@ futurePo makeResolvedFuture(heapPo h, termPo val, futureState state) {
   return ft;
 }
 
-long futureSize(specialClassPo cl, termPo o) {
+long futureSize(builtinClassPo cl, termPo o) {
   return FutureCellCount;
 }
 
-termPo futureCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo futureCopy(builtinClassPo cl, termPo dst, termPo src) {
   futurePo si = C_FUTURE(src);
-  futurePo di = (futurePo) (dst);
+  futurePo di = (futurePo)(dst);
   *di = *si;
-  return (termPo) di + FutureCellCount;
+  return (termPo)di + FutureCellCount;
 }
 
-termPo futureScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo futureScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   futurePo ft = C_FUTURE(o);
 
   helper(&ft->val, c);
-  return (termPo) (o + FutureCellCount);
+  return (termPo)(o + FutureCellCount);
 }
 
-termPo futureFinalizer(specialClassPo class, termPo o) {
+termPo futureFinalizer(builtinClassPo class, termPo o) {
   futurePo ft = C_FUTURE(o);
 
   ft->val = voidEnum;
 
-  return (termPo) (o + FutureCellCount);
+  return (termPo)(o + FutureCellCount);
 }
 
-logical futureCmp(specialClassPo cl, termPo o1, termPo o2) {
-  return (logical) (o1 == o2);
+logical futureCmp(builtinClassPo cl, termPo o1, termPo o2) {
+  return (logical)(o1 == o2);
 }
 
-integer futureHash(specialClassPo cl, termPo o) {
+integer futureHash(builtinClassPo cl, termPo o) {
   syserr("not permitted to take hash of future");
   return 0; // unreachable
 }
 
-static char *stateName(futureState st) {
-  switch (st) {
-    case notResolved:
-      return "unset";
-    case isAccepted:
-      return "set";
-    case isRejected:
-      return "rejected";
-    default:
-      return "?";
+static char* stateName(futureState st) {
+  switch (st){
+  case notResolved:
+    return "unset";
+  case isAccepted:
+    return "set";
+  case isRejected:
+    return "rejected";
+  default:
+    return "?";
   }
 }
 
@@ -128,20 +131,22 @@ logical futureIsRejected(futurePo t) {
 }
 
 retCode resolveFuture(futurePo p, termPo vl) {
-  if (p->state == notResolved) {
+  if (p->state == notResolved){
     p->state = isAccepted;
     p->val = vl;
     return Ok;
-  } else
+  }
+  else
     return Error;
 }
 
 retCode rejectFuture(futurePo p, termPo ex) {
-  if (p->state == notResolved) {
+  if (p->state == notResolved){
     p->state = isRejected;
     p->val = ex;
     return Ok;
-  } else
+  }
+  else
     return Error;
 }
 

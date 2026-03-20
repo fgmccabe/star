@@ -21,7 +21,7 @@ typedef struct instruction_ {
 } Instruction;
 
 typedef struct method_ {
-  ClassRecord clss;   // == specialClass
+  TermHead clss;    // == specialClass
 #ifndef NOJIT
   CodeBlock jit;      // Jit'ed code
 #endif
@@ -32,11 +32,11 @@ typedef struct method_ {
   ssaInsPo instructions; // The actual instructions
 } MethodRec;
 
-extern clssPo methodClass;
+extern int32 methodIndex;
 
 #define MtdCellCount CellCount(sizeof(MethodRec))
 
-static inline logical isMethod(termPo m) { return hasClass(m, methodClass); }
+static inline logical isMethod(termPo m) { return hasIndex(m, methodIndex); }
 
 static inline ssaInsPo entryPoint(methodPo mtd) {
   assert(isMethod((termPo) mtd));

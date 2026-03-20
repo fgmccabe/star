@@ -41,7 +41,7 @@ int32 divZeroIndex;
 
 static hashPo globals;
 
-static GlobalRecord *glbVars;
+static GlobalRecord* glbVars;
 static int32 numGlbVars;
 static int32 glbVarTblSize;
 
@@ -49,16 +49,16 @@ static integer globalHash(globalPo glb);
 static comparison globalCmp(globalPo lb1, globalPo lb2);
 static retCode globalDel(globalPo glb, globalPo l);
 
-static long glbSize(specialClassPo cl, termPo o);
-static termPo glbCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical glbCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer glbHash(specialClassPo cl, termPo o);
+static long glbSize(builtinClassPo cl, termPo o);
+static termPo glbCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo glbScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static logical glbCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer glbHash(builtinClassPo cl, termPo o);
 static retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo glbFinalizer(specialClassPo class, termPo o);
+static termPo glbFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass GlobalClass = {
-  .clss = Null,
+BuiltinTerm GlobalClass = {
+  .special = {},
   .sizeFun = glbSize,
   .copyFun = glbCopy,
   .scanFun = glbScan,
@@ -68,13 +68,16 @@ SpecialClass GlobalClass = {
   .dispFun = glbDisp
 };
 
-clssPo globalClass = (clssPo) &GlobalClass;
+builtinClassPo globalClass = &GlobalClass;
+static int32 globalIndex;
 
 void initGlobals() {
-  GlobalClass.clss.clss = specialClass;
-  globals = newHash(1024, (hashFun) globalHash, (compFun) globalCmp, (destFun) globalDel);
+  GlobalClass.special.lblIndex = specialIndex;
+  globalIndex = standardIndex(globalClass);
 
-  glbVars = (globalPo) malloc(sizeof(GlobalRecord) * 1024);
+  globals = newHash(1024, (hashFun)globalHash, (compFun)globalCmp, (destFun)globalDel);
+
+  glbVars = (globalPo)malloc(sizeof(GlobalRecord) * 1024);
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
@@ -96,7 +99,7 @@ void initGlobals() {
   noValue = declareEnum("noValue", 14, globalHeap);
 
   falseEnum = declareEnum("false", 0, globalHeap);
-  falseIndex = defineConstantLiteral(falseEnum);        // Ensure unique reference to false and true enums
+  falseIndex = defineConstantLiteral(falseEnum); // Ensure unique reference to false and true enums
   trueEnum = declareEnum("true", 1, globalHeap);
   trueIndex = defineConstantLiteral(trueEnum);
 
@@ -105,34 +108,34 @@ void initGlobals() {
 
   canceledEnum = declareEnum("canceled", -1, globalHeap);
 
-  unitEnum = (termPo) allocateTpl(globalHeap, 0);
+  unitEnum = (termPo)allocateTpl(globalHeap, 0);
 }
 
 globalPo C_GLOB(termPo t) {
-  assert(hasClass(t, globalClass));
+  assert(hasIndex(t, globalIndex));
 
-  return (globalPo) t;
+  return (globalPo)t;
 }
 
-globalPo globalVar(const char *nm) {
-  GlobalRecord tst = {.name=(char *) nm, .hash=uniHash(nm)};
+globalPo globalVar(const char* nm) {
+  GlobalRecord tst = {.name = (char*)nm, .hash = uniHash(nm)};
   globalPo glb = hashGet(globals, &tst);
 
-  if (glb == Null) {
-    if (numGlbVars >= glbVarTblSize) {
+  if (glb == Null){
+    if (numGlbVars >= glbVarTblSize){
       int32 newTblSize = glbVarTblSize * 2;
-      globalPo newTbl = (globalPo) malloc(sizeof(GlobalRecord) * newTblSize);
+      globalPo newTbl = (globalPo)malloc(sizeof(GlobalRecord) * newTblSize);
       memcpy(newTbl, glbVars, sizeof(GlobalRecord) * numGlbVars);
       free(glbVars);
       glbVars = newTbl;
       glbVarTblSize = newTblSize;
     }
 
-    glb = (globalPo) &glbVars[numGlbVars++];
+    glb = (globalPo)&glbVars[numGlbVars++];
 
     glb->name = uniDuplicate(nm);
     glb->content = Null;
-    glb->clss.clss = globalClass;
+    glb->clss.lblIndex = globalIndex;
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);
@@ -140,7 +143,7 @@ globalPo globalVar(const char *nm) {
   return glb;
 }
 
-long glbSize(specialClassPo cl, termPo o) {
+long glbSize(builtinClassPo cl, termPo o) {
   return GlobalCellCount;
 }
 
@@ -152,14 +155,14 @@ comparison globalCmp(globalPo lb1, globalPo lb2) {
   return uniCmp(lb1->name, lb2->name);
 }
 
-logical glbCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical glbCmp(builtinClassPo cl, termPo o1, termPo o2) {
   globalPo i1 = C_GLOB(o1);
   globalPo i2 = C_GLOB(o2);
 
-  return (logical) (globalCmp(i1, i2) == same);
+  return (logical)(globalCmp(i1, i2) == same);
 }
 
-static integer glbHash(specialClassPo cl, termPo o) {
+static integer glbHash(builtinClassPo cl, termPo o) {
   globalPo glb = C_GLOB(o);
   return globalHash(glb);
 }
@@ -171,27 +174,27 @@ retCode globalDel(globalPo glb, globalPo l) {
   return Ok;
 }
 
-termPo glbCopy(specialClassPo cl, termPo dst, termPo src) {
-  *((globalPo) dst) = *((globalPo) src);
+termPo glbCopy(builtinClassPo cl, termPo dst, termPo src) {
+  *((globalPo)dst) = *((globalPo)src);
   return dst + GlobalCellCount;
 }
 
-termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo glbScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   globalPo glb = C_GLOB(o);
 
   if (glb->content != Null)
-    helper((ptrPo) (&glb->content), c);
+    helper((ptrPo)(&glb->content), c);
 
   return o + GlobalCellCount;
 }
 
-termPo glbFinalizer(specialClassPo class, termPo o) {
+termPo glbFinalizer(builtinClassPo class, termPo o) {
   return o + GlobalCellCount;
 }
 
 static void markGlobal(globalPo glb, gcSupportPo G) {
   if (glb->content != Null)
-    glb->content = markPtr(G, (ptrPo) &glb->content);
+    glb->content = markPtr(G, (ptrPo)&glb->content);
 }
 
 void markGlobals(gcSupportPo G) {
@@ -229,7 +232,7 @@ void markGlobals(gcSupportPo G) {
   noValue = markPtr(G, &noValue);
   hasValue = markPtr(G, &hasValue);
 
-  unitEnum = markPtr(G, (ptrPo) &unitEnum);
+  unitEnum = markPtr(G, (ptrPo)&unitEnum);
 
   hNilEnum = markPtr(G, &hNilEnum);
 
@@ -249,7 +252,7 @@ termPo getGlobal(globalPo v) {
   return v->content;
 }
 
-char *globalVarName(globalPo v) {
+char* globalVarName(globalPo v) {
   return v->name;
 }
 
@@ -257,12 +260,12 @@ globalPo findGlobalVar(int32 varNo) {
   return &glbVars[varNo];
 }
 
-int32 globalVarNo(const char *nm) {
-  return (int32) (globalVar(nm)->varNo);
+int32 globalVarNo(const char* nm) {
+  return (int32)(globalVar(nm)->varNo);
 }
 
 logical glbIsSet(globalPo glb) {
-  return (logical) (glb->content != Null);
+  return (logical)(glb->content != Null);
 }
 
 termPo setGlobalVar(globalPo v, termPo e) {
@@ -274,15 +277,14 @@ termPo setGlobalVar(globalPo v, termPo e) {
 }
 
 termPo ioErrorCode(retCode ret) {
-  switch (ret) {
-    case Ok:
-      return voidEnum;
-    case Error:
-      return eIOERROR;
-    case Eof:
-      return eEOF;
-    default:
-      return eIOERROR;
+  switch (ret){
+  case Ok:
+    return voidEnum;
+  case Error:
+    return eIOERROR;
+  case Eof:
+    return eEOF;
+  default:
+    return eIOERROR;
   }
 }
-

@@ -8,10 +8,11 @@
 #include "config.h"
 #include "ooio.h"
 #include "assert.h"
+#include "labels.h"
 
-typedef struct class_record *clssPo;
+typedef struct builtin_class* builtinClassPo;
 
-typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
+typedef struct term_record **ptrPo, *termPo; /* pointer to a structured value */
 
 integer termHash(termPo t);
 integer hashTerm(termPo t);
@@ -21,9 +22,12 @@ extern termPo trueEnum;
 extern int32 trueIndex;
 extern int32 falseIndex;
 
-extern clssPo integerClass;
-extern clssPo charClass;
-extern clssPo floatClass;
+extern builtinClassPo integerClass;
+extern int32 integerIndex;
+extern builtinClassPo charClass;
+extern int32 charIndex;
+extern builtinClassPo floatClass;
+extern int32 floatIndex;
 
 typedef enum {
   ptrTg = 0,
@@ -32,7 +36,7 @@ typedef enum {
 } PtrTag;
 
 static inline PtrTag pointerTag(termPo t) {
-  return (PtrTag) (((uinteger) t) & 3ul);
+  return (PtrTag)(((uinteger)t) & 3ul);
 }
 
 static inline logical isPointer(termPo t) {
@@ -40,45 +44,33 @@ static inline logical isPointer(termPo t) {
 }
 
 static inline integer ptrPayload(termPo t) {
-  switch (pointerTag(t)) {
-    case ptrTg:
-      return (integer) t;
-    case intTg:
-    case chrTg:
-      return (((integer) t) >> 2l);
+  switch (pointerTag(t)){
+  case ptrTg:
+    return (integer)t;
+  case intTg:
+  case chrTg:
+    return (((integer)t) >> 2l);
   }
 }
 
-typedef struct term_record {
-  clssPo clss;
-} TermRecord;
+logical isALabel(termPo t);
 
-static inline clssPo classOf(termPo obj) {
-  switch (pointerTag(obj)) {
-    case ptrTg:
-      return obj->clss;
-    case intTg:
-      return integerClass;
-    case chrTg:
-      return charClass;
-  }
-}
+builtinClassPo builtinClassOf(termPo t);
 
-static inline logical hasClass(termPo obj, clssPo clss) {
-  return (logical) (obj != Null && classOf(obj) == clss);
-}
-
-static inline termPo checkClass(termPo obj, clssPo clss){
-  assert(hasClass(obj,clss));
+static inline termPo checkIndex(termPo obj, int32 index) {
+  assert(obj->lblIndex==index);
   return obj;
 }
 
+static inline logical hasIndex(termPo t, int32 index) {
+  return t->lblIndex == index;
+}
+
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt);
-retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
-retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt);
+retCode showTerm(ioPo f, void* data, long depth, long precision, logical alt);
+retCode showIdentifier(ioPo f, void* data, long depth, long precision, logical alt);
 
 logical sameTerm(termPo t1, termPo t2);
-comparison compTerm(termPo t1,termPo t2);
+comparison compTerm(termPo t1, termPo t2);
 
 #endif //STAR_TERM_H
-

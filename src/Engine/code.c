@@ -14,16 +14,16 @@ static poolPo pkgPool;
 static poolPo mtdPool;
 static hashPo packages;
 
-static long mtdSize(specialClassPo cl, termPo o);
-static termPo mtdCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical mtdCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer mtdHash(specialClassPo cl, termPo o);
+static long mtdSize(builtinClassPo cl, termPo o);
+static termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical mtdCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer mtdHash(builtinClassPo cl, termPo o);
 static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo codeFinalizer(specialClassPo class, termPo o);
+static termPo codeFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass MethodClass = {
-  .clss = Null,
+BuiltinTerm MethodClass = {
+  .special = {0,0},
   .sizeFun = mtdSize,
   .copyFun = mtdCopy,
   .scanFun = mtdScan,
@@ -33,14 +33,16 @@ SpecialClass MethodClass = {
   .dispFun = mtdDisp
 };
 
-clssPo methodClass = (clssPo) &MethodClass;
+builtinClassPo methodClass = &MethodClass;
+int32 methodIndex;
 
 static retCode delPkg(packagePo pkg, packagePo p);
 static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
 void initCode() {
-  MethodClass.clss.clss = specialClass;
+  MethodClass.special.lblIndex = specialIndex;
+  methodIndex = standardIndex(methodClass);
 
   pkgPool = newPool(sizeof(PackageRec), 16);
   mtdPool = newPool(sizeof(MethodRec), 4096);
@@ -48,15 +50,15 @@ void initCode() {
 }
 
 extern methodPo C_MTD(termPo t) {
-  assert(hasClass(t, methodClass));
+  assert(hasIndex(t, methodIndex));
   return (methodPo) t;
 }
 
-long mtdSize(specialClassPo cl, termPo o) {
+long mtdSize(builtinClassPo cl, termPo o) {
   return MtdCellCount;
 }
 
-termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo mtdCopy(builtinClassPo cl, termPo dst, termPo src) {
   syserr("Should not be scanning code objects");
   methodPo si = C_MTD(src);
   methodPo di = (methodPo) dst;
@@ -65,7 +67,7 @@ termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
   return ((termPo) di) + mtdSize(cl, src);
 }
 
-termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo mtdScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
   syserr("Should not be scanning code objects");
   methodPo mtd = C_MTD(o);
 
@@ -77,7 +79,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 void markMethod(methodPo mtd, gcSupportPo G) {
 }
 
-termPo codeFinalizer(specialClassPo class, termPo o) {
+termPo codeFinalizer(builtinClassPo class, termPo o) {
   methodPo mtd = C_MTD(o);
   if (mtd->instructions != Null) {
     free(mtd->instructions);
@@ -87,11 +89,11 @@ termPo codeFinalizer(specialClassPo class, termPo o) {
   return ((termPo) o) + mtdSize(class, o);
 }
 
-logical mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical mtdCmp(builtinClassPo cl, termPo o1, termPo o2) {
   return (logical) (o1 == o2);
 }
 
-integer mtdHash(specialClassPo cl, termPo o) {
+integer mtdHash(builtinClassPo cl, termPo o) {
   return hash61((integer) o);
 }
 
@@ -227,7 +229,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
 
   methodPo mtd = (methodPo) allocPool(mtdPool);
 
-  mtd->clss.clss = methodClass;
+  mtd->clss.lblIndex = methodIndex;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
 #ifndef NOJIT

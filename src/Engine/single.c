@@ -3,18 +3,20 @@
 //
 
 #include <assert.h>
+
+#include "labelsP.h"
 #include "singleP.h"
 
-static long singleSize(specialClassPo cl, termPo o);
-static termPo singleCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo singleScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical singleCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer singleHash(specialClassPo cl, termPo o);
+static long singleSize(builtinClassPo cl, termPo o);
+static termPo singleCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo singleScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical singleCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer singleHash(builtinClassPo cl, termPo o);
 static retCode singleDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo singleFinalizer(specialClassPo class, termPo o);
+static termPo singleFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass SingleClass = {
-    .clss = Null,
+BuiltinTerm SingleClass = {
+    .special = {},
     .sizeFun = singleSize,
     .copyFun = singleCopy,
     .scanFun = singleScan,
@@ -24,49 +26,49 @@ SpecialClass SingleClass = {
     .dispFun = singleDisp
 };
 
-clssPo singleClass = (clssPo) &SingleClass;
+builtinClassPo singleClass = &SingleClass;
+int32 singleIndex;
 
 void initSingle() {
-  SingleClass.clss.clss = specialClass;
+  SingleClass.special.lblIndex = specialIndex;
+  singleIndex = standardIndex(singleClass);
 }
 
 singlePo C_SINGLE(termPo t) {
-  assert(hasClass(t, singleClass));
+  assert(hasIndex(t, singleIndex));
 
   return (singlePo) t;
 }
 
 singlePo singleVar(heapPo H) {
-  singlePo single = (singlePo) allocateObject(H, singleClass, SingleCellCount);
+  singlePo single = (singlePo) allocateObject(H, singleIndex, SingleCellCount);
 
   single->content = Null;
-  single->clss.clss = singleClass;
-
   return single;
 }
 
-long singleSize(specialClassPo cl, termPo o) {
+long singleSize(builtinClassPo cl, termPo o) {
   return SingleCellCount;
 }
 
-logical singleCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical singleCmp(builtinClassPo cl, termPo o1, termPo o2) {
   singlePo i1 = C_SINGLE(o1);
   singlePo i2 = C_SINGLE(o2);
 
   return (logical) (i1==i2);
 }
 
-static integer singleHash(specialClassPo cl, termPo o) {
+static integer singleHash(builtinClassPo cl, termPo o) {
   syserr("not permitted to take hash of single assignment var");
   return 0;
 }
 
-termPo singleCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo singleCopy(builtinClassPo cl, termPo dst, termPo src) {
   *((singlePo) dst) = *((singlePo) src);
   return dst + SingleCellCount;
 }
 
-termPo singleScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo singleScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
   singlePo single = C_SINGLE(o);
 
   if (single->content != Null)
@@ -75,7 +77,7 @@ termPo singleScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o)
   return o + SingleCellCount;
 }
 
-termPo singleFinalizer(specialClassPo class, termPo o) {
+termPo singleFinalizer(builtinClassPo class, termPo o) {
   return o + SingleCellCount;
 }
 

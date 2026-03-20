@@ -34,24 +34,24 @@ timerPo gcTimer = Null;
 static void swapHeap(gcSupportPo G, heapPo H) {
   assert(H == &heap);
 
-  switch (H->allocMode) {
-    case lowerHalf:
-      assert(H->outerLimit - H->split >= H->curr - H->start);
-      H->start = H->curr = H->split;
-      H->limit = H->outerLimit; /* shift to the upper half */
-      H->allocMode = upperHalf; /* It is guaranteed to have enough room */
-      break;
-    case upperHalf: /* Shift to the lower half */
-      assert(H->split - H->base >= H->curr - H->start);
-      H->limit = H->split;
-      H->start = H->curr = H->base;
-      H->allocMode = lowerHalf;
-    default: ;
+  switch (H->allocMode){
+  case lowerHalf:
+    assert(H->outerLimit - H->split >= H->curr - H->start);
+    H->start = H->curr = H->split;
+    H->limit = H->outerLimit; /* shift to the upper half */
+    H->allocMode = upperHalf; /* It is guaranteed to have enough room */
+    break;
+  case upperHalf: /* Shift to the lower half */
+    assert(H->split - H->base >= H->curr - H->start);
+    H->limit = H->split;
+    H->start = H->curr = H->base;
+    H->allocMode = lowerHalf;
+  default: ;
   }
 }
 
 static logical inSwappedHeap(gcSupportPo G, termPo x) {
-  return (logical) (x >= G->oldBase && x < G->oldLimit);
+  return (logical)(x >= G->oldBase && x < G->oldLimit);
 }
 
 void setupGCSupport(heapPo H, gcSupportPo G) {
@@ -64,7 +64,7 @@ void setupGCSupport(heapPo H, gcSupportPo G) {
 
 retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
-  if (traceMemory > noTracing) {
+  if (traceMemory > noTracing){
     outMsg(logFile, "GC #%d @ %ld\n%_", gcCount, pcCount);
   }
 #endif
@@ -88,7 +88,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
 #ifdef TRACEMEM
-  if (validateMemory) {
+  if (validateMemory){
     verifyHeap(H);
   }
 #endif
@@ -106,20 +106,20 @@ retCode gcCollect(heapPo H, long amount) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory > noTracing) {
+  if (traceMemory > noTracing){
     outMsg(logFile, "%d objects found in mark root phase\n%_", G->oCnt);
   }
 #endif
 
   termPo t = H->start;
-  while (t < H->curr) {
+  while (t < H->curr){
     assert(t >= H->start && t < H->curr);
     t = scanTerm(G, t);
     assert(H->curr <= H->limit);
   }
 
   termPo f = G->oldBase;
-  while (f < G->oldLimit) {
+  while (f < G->oldLimit){
     f = finalizeTerm(G, f);
   }
 
@@ -128,21 +128,21 @@ retCode gcCollect(heapPo H, long amount) {
     verifyProcesses(H);
 #endif
 
-  if (H->limit - H->curr <= amount + 100) {
-    if (extendHeap(H, amount) != Ok) {
+  if (H->limit - H->curr <= amount + 100){
+    if (extendHeap(H, amount) != Ok){
       syserr("Unable to grow process heap");
       return Space;
     }
   }
 
 #ifdef TRACEMEM
-  if (validateMemory) {
+  if (validateMemory){
     verifyHeap(H);
   }
 #endif
 
 #ifdef TRACEMEM
-  if (traceMemory > noTracing) {
+  if (traceMemory > noTracing){
     outMsg(logFile, "%d objects found\n", G->oCnt);
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
@@ -158,22 +158,22 @@ retCode gcCollect(heapPo H, long amount) {
 termPo markPtr(gcSupportPo G, ptrPo p) {
   termPo t = *p;
 
-  if (t != Null && isPointer(t)) {
+  if (t != Null && isPointer(t)){
     if (hasMoved(t))
       return movedTo(t);
-    else if (inSwappedHeap(G, t)) {
-      clssPo clss = classOf(t);
-      if (isSpecialClass(clss)) {
-        specialClassPo special = (specialClassPo) clss;
+    else if (inSwappedHeap(G, t)){
+      if (hasBuiltinType(t)){
+        builtinClassPo special = builtinClassOf(t);
         termPo nn = G->H->curr;
         G->H->curr = special->copyFun(special, nn, t);
         G->oCnt++;
         markMoved(t, nn);
         return nn;
-      } else {
+      }
+      else{
         G->oCnt++;
 
-        labelPo lbl = C_LBL((termPo) clss);
+        labelPo lbl = termLbl(C_NORMAL(t));
         int32 size = NormalCellCount(lblArity(lbl));
         termPo nn = G->H->curr;
         memcpy(nn, t, termSize(C_NORMAL(t)) * sizeof(termPo));
@@ -181,42 +181,44 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
         markMoved(t, nn);
         return nn;
       }
-    } else {
+    }
+    else{
       assert(!inHeap(G->H, t));
       return t;
     }
-  } else
+  }
+  else
     return t;
 }
 
 static logical hasMoved(termPo t) {
-  uint64 ix = (uint64) t->clss;
-  return (logical) ((ix & (uint64) 1) == (uint64) 1);
+  uint64 ix = (uint64)t->space;
+  return (logical)((ix & (uint64)1) == (uint64)1);
 }
 
 static termPo movedTo(termPo t) {
   assert(hasMoved(t));
 
-  uint64 ix = ((uint64) t->clss) & ~(uint64) 1;
-  return (termPo) ix;
+  uint64 ix = (*(uint64*)t) & ~(uint64)1;
+  return (termPo)ix;
 }
 
 static void markMoved(termPo t, termPo where) {
-  uint64 ix = ((uint64) where) | (uint64) 1;
-  t->clss = (clssPo) ix;
+  uint64 ix = ((uint64)where) | (uint64)1;
+  *((uint64*)t) = ix;
 }
 
-static retCode markScanHelper(ptrPo arg, void *c) {
-  *arg = markPtr((gcSupportPo) c, arg);
+static retCode markScanHelper(ptrPo arg, void* c) {
+  *arg = markPtr((gcSupportPo)c, arg);
   return Ok;
 }
 
 termPo scanTerm(gcSupportPo G, termPo x) {
-  clssPo clss = classOf(x);
-  if (isSpecialClass(clss)) {
-    specialClassPo sClass = (specialClassPo) clss;
+  if (hasBuiltinType(x)){
+    builtinClassPo sClass = builtinClassOf(x);
     return sClass->scanFun(sClass, markScanHelper, G, x);
-  } else {
+  }
+  else{
     normalPo nml = C_NORMAL(x);
     integer arity = termArity(nml);
     for (integer ix = 0; ix < arity; ix++)
@@ -226,20 +228,23 @@ termPo scanTerm(gcSupportPo G, termPo x) {
 }
 
 termPo finalizeTerm(gcSupportPo G, termPo x) {
-  if (hasMoved(x)) {
+  if (hasMoved(x)){
     termPo n = movedTo(x);
-    if (isSpecialClass(classOf(n))) {
-      specialClassPo sClass = (specialClassPo) classOf(n);
+    if (hasBuiltinType(x)){
+      builtinClassPo sClass = builtinClassOf(x);
 
       return x + sClass->sizeFun(sClass, n);
-    } else {
+    }
+    else{
       return x + NormalCellCount(termArity(C_NORMAL(n)));
     }
-  } else if (isSpecialClass(classOf(x))) {
-    specialClassPo sClass = (specialClassPo) classOf(x);
+  }
+  else if (hasBuiltinType(x)){
+    builtinClassPo sClass = builtinClassOf(x);
     sClass->finalizer(sClass, x);
     return x + sClass->sizeFun(sClass, x);
-  } else {
+  }
+  else{
     return x + NormalCellCount(termArity(C_NORMAL(x)));
   }
 }
@@ -264,7 +269,7 @@ retCode extendHeap(heapPo H, integer hmin) {
   if (newSize > maxHeapSize)
     return Error;
 
-  termPo newHeap = (termPo) malloc(sizeof(ptrPo) * newSize);
+  termPo newHeap = (termPo)malloc(sizeof(ptrPo) * newSize);
   termPo oldHeap = H->base;
 
   GCSupport GCSRec;
@@ -290,7 +295,7 @@ retCode extendHeap(heapPo H, integer hmin) {
   markProcesses(H->owner, G);
 
 #ifdef TRACEMEM
-  if (traceMemory > noTracing) {
+  if (traceMemory > noTracing){
     outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
   }
 #endif
@@ -306,13 +311,13 @@ retCode extendHeap(heapPo H, integer hmin) {
 
   free(oldHeap);
 
-  if (H->limit - H->curr <= hmin) {
+  if (H->limit - H->curr <= hmin){
     syserr("Unable to grow process heap");
     return Space;
   }
 
 #ifdef TRACEMEM
-  if (traceMemory > noTracing) {
+  if (traceMemory > noTracing){
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }

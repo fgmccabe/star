@@ -24,7 +24,7 @@ logical isNeither(termPo t) {
 logical isEither(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (c->lbl == eitherConstructor);
+    return (logical) (termLbl(c) == eitherConstructor);
   } else
     return False;
 }
@@ -32,7 +32,7 @@ logical isEither(termPo t) {
 logical isOr(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (c->lbl == orConstructor);
+    return (logical) (termLbl(c) == orConstructor);
   } else
     return False;
 }

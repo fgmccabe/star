@@ -9,7 +9,7 @@
 #include "labels.h"
 
 typedef struct normal_term {
-  labelPo lbl;                // Overlays clss - because it is the term's class
+  TermHead head;
   termPo args[ZEROARRAYSIZE];
 } NormalTerm;
 

@@ -11,7 +11,7 @@
 #include "termP.h"
 
 typedef struct float_record_ {
-  ClassRecord clss;        // == floatClass
+  TermHead clss;        // == floatClass
   double dx;               // Double float
 } FloatRecord;
 
