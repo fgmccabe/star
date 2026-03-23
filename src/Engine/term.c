@@ -3,40 +3,32 @@
 // Copyright (c) 2018 and beyond. Francis G. McCabe
 
 #include "termP.h"
-#include "debugP.h"
 #include "engineP.h"
 #include <assert.h>
 #include "consP.h"
 #include "ideal.h"
 #include "vectP.h"
 
-static termPo termFinalizer(specialClassPo class, termPo o);
+static termPo termFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass SpecialClss = {
-  .clss = Null,
-  .sizeFun = Null,
-  .copyFun = Null,
-  .scanFun = Null,
-  .finalizer = termFinalizer,
-  .compFun = Null,
-  .hashFun = Null,
-  .dispFun = Null
-};
 
-clssPo specialClass = (clssPo) &SpecialClss;
+integer displayDepth = 2;
 
-integer displayDepth = 1;
-
-logical isSpecialClass(clssPo p) {
-  return (logical) (p->clss == specialClass);
+logical hasBuiltinType(termPo t) {
+  switch (pointerTag(t)){
+  case ptrTg:
+    return t->lblIndex < 0;
+  default:
+    return True;
+  }
 }
 
 logical isNormalPo(termPo t) {
-  return hasClass((termPo) classOf(t), labelClass);
+  return pointerTag(t) == ptrTg && t->lblIndex >= 0;
 }
 
 labelPo termLbl(normalPo t) {
-  return t->lbl;
+  return indexToLabel(t->head.lblIndex);
 }
 
 int32 termArity(normalPo term) {
@@ -50,7 +42,7 @@ termPo nthArg(normalPo term, int32 ix) {
 }
 
 termPo lastArg(normalPo term) {
-  return term->args[lblArity(term->lbl) - 1];
+  return term->args[lblArity(termLbl(term)) - 1];
 }
 
 void setArg(normalPo term, int64 ix, termPo arg) {
@@ -58,25 +50,29 @@ void setArg(normalPo term, int64 ix, termPo arg) {
   term->args[ix] = arg;
 }
 
-retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
-  return dispTerm(f, (termPo) data, precision, depth, alt);
+logical isALabel(termPo t) {
+  return t->lblIndex == labelIndex;
 }
 
-void initTerm() {
+retCode showTerm(ioPo f, void* data, long depth, long precision, logical alt) {
+  return dispTerm(f, (termPo)data, precision, depth, alt);
 }
+
+void initTerm() {}
 
 static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {
   retCode ret = outChar(out, '(');
-  if (depth > 0) {
-    char *sep = "";
+  if (depth > 0){
+    char* sep = "";
     int32 ar = termArity(nml);
-    for (int32 ix = 0; ix < ar && ret == Ok; ix++) {
+    for (int32 ix = 0; ix < ar && ret == Ok; ix++){
       ret = outStr(out, sep);
       sep = ", ";
       if (ret == Ok)
         ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
     }
-  } else
+  }
+  else
     ret = outStr(out, "...");
   if (ret == Ok)
     ret = outChar(out, ')');
@@ -84,86 +80,105 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
 }
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  clssPo clss = classOf(t);
-  if (isSpecialClass(clss)) {
-    specialClassPo spec = (specialClassPo) clss;
+  if (hasBuiltinType(t)){
+    builtinClassPo spec = builtinClassOf(t);
     return spec->dispFun(out, t, precision, depth, alt);
-  } else if (isNormalPo(t)) {
+  }
+  else if (isNormalPo(t)){
     normalPo nml = C_NORMAL(t);
-    labelPo lbl = nml->lbl;
+    labelPo lbl = termLbl(nml);
 
-    if (isTplLabel(lblName(lbl))) {
+    if (isTplLabel(lblName(lbl))){
       return showArgs(out, nml, precision, depth, alt);
-    } else if (lblArity(lbl) == 0) {
-      return outMsg(out,".%s",lblName(lbl));
-    } else if (isCons(t))
+    }
+    else if (lblArity(lbl) == 0){
+      return outMsg(out, ".%s", lblName(lbl));
+    }
+    else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
     else if (isVector(t))
       return dispVect(out, t, precision, depth, alt);
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
-    else {
-      retCode ret = outMsg(out,".%s",lblName(lbl));
+    else{
+      retCode ret = outMsg(out, ".%s", lblName(lbl));
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;
     }
-  } else
+  }
+  else
     return outMsg(out, "<<? 0x%x ?>>", t);
 }
 
 static retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
 
-retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt) {
+retCode showIdentifier(ioPo f, void* data, long depth, long precision, logical alt) {
   return showId(f, C_LBL((termPo) data), depth, depth, alt);
 }
 
 retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  const char *name = lblName(lbl);
+  const char* name = lblName(lbl);
   integer lblLen = uniStrLen(name);
-  if (alt) {
+  if (alt){
     retCode ret;
 
-    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
+    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint)'#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
       ret = outMsg(out, "…%S", &name[hashOff + 1], lblLen - hashOff - 1);
-    else if (lblLen > prec) {
+    else if (lblLen > prec){
       integer half = prec / 2;
       integer hwp = backCodePoint(name, lblLen, half);
       ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp);
-    } else
+    }
+    else
       ret = outMsg(out, "%S", name, lblLen);
 
     return ret;
-  } else
+  }
+  else
     return outMsg(out, "%S", name);
 }
 
 logical sameTerm(termPo t1, termPo t2) {
-  clssPo c1 = classOf(t1);
-  clssPo c2 = classOf(t2);
+  if (t1 == t2)
+    return True;
 
-  if (c1 != c2)
-    return False;
-  else if (isSpecialClass(c1)) {
-    return ((specialClassPo) c1)->compFun((specialClassPo) c1, t1, t2);
-  } else {
-    normalPo n1 = C_NORMAL(t1);
-    normalPo n2 = C_NORMAL(t2);
-    labelPo lbl = n1->lbl;
-    int32 arity = lblArity(lbl);
-    if (arity == 0)
-      return True;
-    else {
-      for (int32 ix = 0; ix < arity - 1; ix++) {
-        if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
-          return False;
-      }
-      return sameTerm(lastArg(n1), lastArg(n2));
+  if (hasBuiltinType(t1)){
+    builtinClassPo c1 = builtinClassOf(t1);
+
+    if (hasBuiltinType(t2)){
+      builtinClassPo c2 = builtinClassOf(t2);
+      if (c1 != c2)
+        return False;
+      return c1->compFun(c1, t1, t2);
     }
+    return False;
+  }
+
+  if (hasBuiltinType(t2))
+    return False;
+
+  if (t1->lblIndex!=t2->lblIndex)
+    return False;
+
+  normalPo n1 = C_NORMAL(t1);
+  normalPo n2 = C_NORMAL(t2);
+
+  labelPo lbl = termLbl(n1);
+  int32 arity = lblArity(lbl);
+  if (arity == 0)
+    return True;
+  else{
+    for (int32 ix = 0; ix < arity - 1; ix++){
+      if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
+        return False;
+    }
+    return sameTerm(lastArg(n1), lastArg(n2));
   }
 }
+
 
 comparison compTerm(termPo t1, termPo t2) {
   if (sameTerm(t1, t2))
@@ -173,14 +188,14 @@ comparison compTerm(termPo t1, termPo t2) {
 }
 
 integer termHash(termPo t) {
-  clssPo c = classOf(t);
-
-  if (isSpecialClass(c))
-    return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
-  else {
+  if (hasBuiltinType(t)){
+    builtinClassPo c = builtinClassOf(t);
+    return c->hashFun(c, t);
+  }
+  else{
     normalPo n1 = C_NORMAL(t);
-    labelPo lbl = n1->lbl;
-    integer hash = termHash((termPo) lbl);
+    labelPo lbl = termLbl(n1);
+    integer hash = (integer)labelHash(lbl);
     for (int32 ix = 0; ix < lblArity(lbl); ix++)
       hash = hash * 37 + termHash(nthArg(n1, ix));
 
@@ -188,8 +203,8 @@ integer termHash(termPo t) {
   }
 }
 
-termPo termFinalizer(specialClassPo class, termPo o) {
-  labelPo lbl = C_LBL((termPo) classOf(o));
+termPo termFinalizer(builtinClassPo class, termPo o) {
+  labelPo lbl = termLbl(C_NORMAL(o));
 
   return o + NormalCellCount(lblArity(lbl));
 }
@@ -197,21 +212,21 @@ termPo termFinalizer(specialClassPo class, termPo o) {
 // Special hash function used in case instruction. Only look at the label of the term
 
 integer hashTerm(termPo t) {
-  clssPo c = classOf(t);
-
-  if (isSpecialClass(c))
-    return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
+  if (hasBuiltinType(t)){
+    builtinClassPo c = builtinClassOf(t);
+    return c->hashFun(c, t);
+  }
   else
-    return labelHash(C_NORMAL(t)->lbl);
+    return (integer)labelHash(termLbl(C_NORMAL(t)));
 }
 
 integer termSize(normalPo t) {
-  return NormalCellCount(lblArity(t->lbl));
+  return NormalCellCount(lblArity(termLbl(t)));
 }
 
 normalPo allocateTpl(heapPo H, int32 arity) {
   labelPo lbl = tplLbl(arity);
-  int root = gcAddRoot(H, (ptrPo) &lbl);
+  int root = gcAddRoot(H, (ptrPo)&lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
   return tpl;
@@ -227,17 +242,18 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
   return tpl;
 }
 
-retCode walkNormal(termPo t, normalProc proc, void *cl) {
-  if (isNormalPo(t)) {
+retCode walkNormal(termPo t, normalProc proc, void* cl) {
+  if (isNormalPo(t)){
     normalPo nml = C_NORMAL(t);
-    labelPo lbl = nml->lbl;
+    labelPo lbl = termLbl(nml);
     int32 arity = lblArity(lbl);
 
     retCode ret = Ok;
-    for (int32 ix = 0; ix < arity && ret == Ok; ix++) {
+    for (int32 ix = 0; ix < arity && ret == Ok; ix++){
       ret = walkNormal(nthArg(nml, ix), proc, cl);
     }
     return ret;
-  } else
+  }
+  else
     return proc(t, cl);
 }

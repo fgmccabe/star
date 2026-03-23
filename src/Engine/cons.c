@@ -32,7 +32,7 @@ normalPo allocateCons(heapPo H, termPo lhs, termPo rhs) {
 logical isCons(termPo t) {
   if (isNormalPo(t)) {
     normalPo c = C_NORMAL(t);
-    return (logical) (c->lbl == consCons);
+    return (logical) (termLbl(c) == consCons);
   } else
     return False;
 }

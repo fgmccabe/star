@@ -17,7 +17,7 @@ typedef enum{
 } futureState;
 
 typedef struct future_record {
-  ClassRecord clss;                  // == futureClass
+  TermHead clss;                  // == futureClass
   termPo val;
   futureState state;
   futurePoll poller;

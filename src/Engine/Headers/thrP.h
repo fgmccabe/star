@@ -11,7 +11,7 @@
 #include "termP.h"
 
 typedef struct _thread_record_ {
-  ClassRecord clss;      /* == threadClass */
+  TermHead clss;      /* == threadClass */
   enginePo process;
 } ThreadRec;
 

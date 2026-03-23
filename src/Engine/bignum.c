@@ -5,16 +5,17 @@
 
 #include "bignumP.h"
 #include "assert.h"
+#include "labelsP.h"
 
-static long bigSize(specialClassPo cl, termPo o);
-static termPo bigCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo bigScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical bigCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer bigHash(specialClassPo cl, termPo o);
+static long bigSize(builtinClassPo cl, termPo o);
+static termPo bigCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo bigScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical bigCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer bigHash(builtinClassPo cl, termPo o);
 static retCode bigDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo bigFinalizer(specialClassPo class, termPo o);
+static termPo bigFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass BignumClass = {
+BuiltinTerm BignumClass = {
   .sizeFun = bigSize,
   .copyFun = bigCopy,
   .scanFun = bigScan,
@@ -24,14 +25,15 @@ SpecialClass BignumClass = {
   .dispFun = bigDisp
 };
 
-clssPo bignumClass = (clssPo) &BignumClass;
+int32 bignumIndex;
 
 void initBignum() {
-  BignumClass.clss.clss = specialClass;
+  BignumClass.special.lblIndex = specialIndex;
+  bignumIndex = standardIndex(&BignumClass);
 }
 
 logical isBignum(termPo t) {
-  return (logical) hasClass(t, bignumClass);
+  return (logical) hasIndex(t, bignumIndex);
 }
 
 bignumPo C_BIGNUM(termPo t) {
@@ -48,9 +50,7 @@ uint32 *bigDigits(bignumPo b) {
 }
 
 termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
-  bignumPo big = (bignumPo) allocateObject(H, bignumClass, BignumCellCount(count));
-
-  big->clss.clss = bignumClass;
+  bignumPo big = (bignumPo) allocateObject(H, bignumIndex, BignumCellCount(count));
   big->count = count;
 
   wordMove(big->data, count, data, count);
@@ -58,11 +58,11 @@ termPo allocateBignum(heapPo H, uint32 count, uint32 data[]) {
   return (termPo) big;
 }
 
-long bigSize(specialClassPo cl, termPo o) {
+long bigSize(builtinClassPo cl, termPo o) {
   return BignumCellCount(C_BIGNUM(o)->count);
 }
 
-termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo bigCopy(builtinClassPo cl, termPo dst, termPo src) {
   bignumPo si = C_BIGNUM(src);
   bignumPo di = (bignumPo) dst;
   *di = *si;
@@ -73,25 +73,25 @@ termPo bigCopy(specialClassPo cl, termPo dst, termPo src) {
   return ((termPo) di) + BignumCellCount(si->count);
 }
 
-termPo bigScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo bigScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
   bignumPo big = C_BIGNUM(o);
 
   return o + BignumCellCount(big->count);
 }
 
-termPo bigFinalizer(specialClassPo class, termPo o) {
+termPo bigFinalizer(builtinClassPo class, termPo o) {
   bignumPo big = C_BIGNUM(o);
 
   return o + BignumCellCount(big->count);
 }
 
-logical bigCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical bigCmp(builtinClassPo cl, termPo o1, termPo o2) {
   bignumPo b1 = C_BIGNUM(o1);
   bignumPo b2 = C_BIGNUM(o2);
   return sameWords(b1->data, b1->count, b2->data, b2->count);
 }
 
-static integer bigHash(specialClassPo cl, termPo o) {
+static integer bigHash(builtinClassPo cl, termPo o) {
   bignumPo b = C_BIGNUM(o);
   return (integer)longHash(b->data, b->count);
 }

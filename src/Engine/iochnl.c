@@ -4,17 +4,18 @@
 
 #include "iochnnlP.h"
 #include "assert.h"
+#include "labelsP.h"
 
-static long ioSize(specialClassPo cl, termPo o);
-static termPo ioCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical ioCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer ioHash(specialClassPo cl, termPo o);
+static long ioSize(builtinClassPo cl, termPo o);
+static termPo ioCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo ioScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static logical ioCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer ioHash(builtinClassPo cl, termPo o);
 static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo ioFinalizer(specialClassPo class, termPo o);
+static termPo ioFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass IOChnnlClass = {
-  .clss = Null,
+BuiltinTerm IOChnnlClass = {
+  .special = {0,0},
   .sizeFun = ioSize,
   .copyFun = ioCopy,
   .scanFun = ioScan,
@@ -24,34 +25,36 @@ SpecialClass IOChnnlClass = {
   .dispFun = ioDisp
 };
 
-clssPo ioChnnlClass = (clssPo) &IOChnnlClass;
+builtinClassPo ioChnnlClass = &IOChnnlClass;
+int32 iochnlIndex;
 
 void initIoChnnl() {
-  IOChnnlClass.clss.clss = specialClass;
+  IOChnnlClass.special.lblIndex = specialIndex;
+  iochnlIndex = standardIndex(ioChnnlClass);
 }
 
 ioChnnlPo allocateIOChnnl(heapPo H, ioPo io) {
-  ioChnnlPo t = (ioChnnlPo) allocateObject(H, ioChnnlClass, IOChnnlCellCount);
+  ioChnnlPo t = (ioChnnlPo) allocateObject(H, iochnlIndex, IOChnnlCellCount);
   t->io = io;
   return t;
 }
 
-long ioSize(specialClassPo cl, termPo o) {
+long ioSize(builtinClassPo cl, termPo o) {
   return IOChnnlCellCount;
 }
 
-termPo ioCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo ioCopy(builtinClassPo cl, termPo dst, termPo src) {
   ioChnnlPo si = C_IO(src);
   ioChnnlPo di = (ioChnnlPo) (dst);
   *di = *si;
   return (termPo) di + IOChnnlCellCount;
 }
 
-termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo ioScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + IOChnnlCellCount);
 }
 
-termPo ioFinalizer(specialClassPo class, termPo o) {
+termPo ioFinalizer(builtinClassPo class, termPo o) {
   ioChnnlPo chnl = C_IO(o);
 
   // close the channel
@@ -61,14 +64,14 @@ termPo ioFinalizer(specialClassPo class, termPo o) {
   return (termPo) (o + IOChnnlCellCount);
 }
 
-logical ioCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical ioCmp(builtinClassPo cl, termPo o1, termPo o2) {
   ioChnnlPo i1 = C_IO(o1);
   ioChnnlPo i2 = C_IO(o2);
 
   return (logical) (i1->io == i2->io);
 }
 
-integer ioHash(specialClassPo cl, termPo o) {
+integer ioHash(builtinClassPo cl, termPo o) {
   ioChnnlPo io = C_IO(o);
   return hash61((integer) io->io);
 }
@@ -79,7 +82,7 @@ static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logi
 }
 
 ioChnnlPo C_IO(termPo t) {
-  assert(hasClass(t, ioChnnlClass));
+  assert(hasIndex(t, iochnlIndex));
   return (ioChnnlPo) t;
 }
 
@@ -97,7 +100,7 @@ retCode closeChannel(ioChnnlPo chnnl) {
 }
 
 logical isIoChannel(termPo t) {
-  return hasClass(t, ioChnnlClass);
+  return hasIndex(t, iochnlIndex);
 }
 
 static ioChnnlPo inChnl = Null;

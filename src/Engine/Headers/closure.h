@@ -10,15 +10,16 @@
 
 typedef struct closure_record_ *closurePo;
 
-extern clssPo closureClass;
+extern builtinClassPo closureClass;
+extern int32 closureIndex;
 
 static inline closurePo C_CLOSURE(termPo t) {
-  assert(hasClass(t, closureClass));
+  assert(checkIndex(t, closureIndex));
   return (closurePo) t;
 }
 
 static inline logical isClosure(termPo t) {
-  return hasClass(t, closureClass);
+  return hasIndex(t, closureIndex);
 }
 
 extern labelPo closureLabel(closurePo cl);

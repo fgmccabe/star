@@ -7,6 +7,8 @@
 long initHeapSize = 4 * 1024 * 1024;   /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
+#define FIVEAS 0x5a5a5a50;
+
 tracingLevel traceMemory = noTracing;      /* memory tracing */
 logical traceAllocs = False;      // trace allocations
 logical validateMemory = False;   // Validate heap after every allocation
@@ -63,7 +65,7 @@ retCode reserveSpace(heapPo H, integer amnt) {
     return Error;
 }
 
-termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
+termPo allocateObject(heapPo h, int32 index, integer amnt) {
   if ((((ptrPo) h->curr) + amnt) >= ((ptrPo) (h->limit))) {
     if (gcCollect(h, amnt) != Ok) {
       char msg[MAX_SYMB_LEN];
@@ -75,7 +77,8 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
 
   termPo t = h->curr;
   h->curr = h->curr + amnt;
-  t->clss = clss;
+  t->lblIndex = index;
+  t->space = FIVEAS;
 #ifdef TRACEMEM
   if (traceAllocs) {
     numAllocated++;
@@ -87,7 +90,7 @@ termPo allocateObject(heapPo h, clssPo clss, integer amnt) {
 }
 
 normalPo allocateStruct(heapPo H, labelPo lbl) {
-  return (normalPo) allocateObject(H, (clssPo) lbl, NormalCellCount(lblArity(lbl)));
+  return (normalPo) allocateObject(H, indexOfLabel(lbl), NormalCellCount(lblArity(lbl)));
 }
 
 retCode enoughRoom(heapPo H, labelPo lbl) {
@@ -107,13 +110,12 @@ static retCode verifyScanHelper(ptrPo arg, void *c) {
 
 void verifyHeap(heapPo H) {
   for (termPo t = H->start; t < H->curr;) {
-    clssPo clss = classOf(t);
-    if (isSpecialClass(clss)) {
-      specialClassPo sClass = (specialClassPo) clss;
+    if (hasBuiltinType(t)) {
+      builtinClassPo sClass = builtinClassOf(t);
       t = sClass->scanFun(sClass, verifyScanHelper, H, t);
     } else {
       normalPo trm = C_NORMAL(t);
-      labelPo lbl = C_LBL((termPo) clss);
+      labelPo lbl = termLbl(trm);
       for (int32 ix = 0; ix < lblArity(lbl); ix++) {
         validPtr(H, trm->args[ix]);
       }

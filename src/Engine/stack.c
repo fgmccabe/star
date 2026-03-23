@@ -18,16 +18,16 @@ integer minStackSize = 256; /* Smallest stack size */
 integer defaultStackSize = 1024 * 1024; // Initial default stack size when running
 integer stackRegionSize = (1 << 26); /* 64M cells is default stack region */
 
-static long stkSize(specialClassPo cl, termPo o);
-static termPo stkCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo stkScan(specialClassPo cl, specialHelperFun helper, void* c, termPo o);
-static logical stkCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer stkHash(specialClassPo cl, termPo o);
+static long stkSize(builtinClassPo cl, termPo o);
+static termPo stkCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static logical stkCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer stkHash(builtinClassPo cl, termPo o);
 static retCode stkDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo stkFinalizer(specialClassPo class, termPo o);
+static termPo stkFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass StackClass = {
-  .clss = Null,
+BuiltinTerm StackClass = {
+  .special = {},
   .sizeFun = stkSize,
   .copyFun = stkCopy,
   .scanFun = stkScan,
@@ -40,7 +40,8 @@ SpecialClass StackClass = {
 static labelPo underflowProg;
 static labelPo taskProg;
 
-clssPo stackClass = (clssPo)&StackClass;
+builtinClassPo stackClass = &StackClass;
+int32 stackIndex;
 
 static integer stackCount = 0;
 #ifdef TRACESTACK
@@ -49,7 +50,9 @@ static integer stackReleases = 0;
 static buddyRegionPo stackRegion;
 
 void initStacks() {
-  StackClass.clss.clss = specialClass;
+  StackClass.special.lblIndex = specialIndex;
+  stackIndex = standardIndex(stackClass);
+
   static Instruction underflowCode[] = {sUnderflow};
   underflowProg = specialMethod("underflow", 0, NumberOf(underflowCode), underflowCode, 0, 1);
   static Instruction newTaskCode[] = {sEntry, 2, 1, sRSP, -1, sOCall, 1, 2, 0, -1, sUnderflow};
@@ -81,7 +84,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
 
   int root = gcAddRoot(H, (ptrPo)&attachment);
 
-  stackPo stk = (stackPo)allocateObject(H, stackClass, StackCellCount);
+  stackPo stk = (stackPo)allocateObject(H, stackIndex, StackCellCount);
   stk->stkMem = (ptrPo)allocateBuddy(stackRegion, sze);
 
   if (stk->stkMem == Null){
@@ -182,7 +185,7 @@ framePo pushFrame(stackPo stk, logical execJit, methodPo mtd) {
   return f;
 }
 
-long stkSize(specialClassPo cl, termPo o) { return StackCellCount; }
+long stkSize(builtinClassPo cl, termPo o) { return StackCellCount; }
 
 void stackSanityCheck(stackPo stk) {
   switch (stk->state){
@@ -205,7 +208,7 @@ void stackSanityCheck(stackPo stk) {
 
 void verifyStack(stackPo stk, heapPo H) {
   while (stk != Null){
-    assert(classOf((termPo) stk) == stackClass);
+    assert(hasIndex((termPo) stk,stackIndex));
 
     if (stk->stkMem != Null){
       stackSanityCheck(stk);
@@ -234,7 +237,7 @@ void verifyStack(stackPo stk, heapPo H) {
   }
 }
 
-termPo stkCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo stkCopy(builtinClassPo cl, termPo dst, termPo src) {
   stackPo ss = C_STACK(src);
   stackPo ds = (stackPo)dst; // Dest not yet a valid stack structure
   *ds = *ss; // Copy the structural part
@@ -242,9 +245,9 @@ termPo stkCopy(specialClassPo cl, termPo dst, termPo src) {
   return ((termPo)ds) + StackCellCount;
 }
 
-logical stkCmp(specialClassPo cl, termPo o1, termPo o2) { return o1 == o2; }
+logical stkCmp(builtinClassPo cl, termPo o1, termPo o2) { return o1 == o2; }
 
-integer stkHash(specialClassPo cl, termPo o) {
+integer stkHash(builtinClassPo cl, termPo o) {
   return hash61(C_STACK(o)->hash);
 }
 
@@ -285,7 +288,7 @@ void moveStack2Stack(stackPo totsk, stackPo fromtsk, logical execJit, integer co
   totsk->pc = fromtsk->pc;
 }
 
-termPo stkScan(specialClassPo cl, specialHelperFun helper, void* c, termPo o) {
+termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   stackPo stk = C_STACK(o);
 
   assert(stk != Null);
@@ -324,7 +327,7 @@ termPo stkScan(specialClassPo cl, specialHelperFun helper, void* c, termPo o) {
   return o + StackCellCount;
 }
 
-termPo stkFinalizer(specialClassPo class, termPo o) {
+termPo stkFinalizer(builtinClassPo class, termPo o) {
   stackPo tsk = C_STACK(o);
   if (tsk->stkMem != Null){
     tsk->state = moribund;
@@ -543,7 +546,7 @@ void detachStack(enginePo P, stackPo top) {
 #ifdef TRACESTACK
   if (traceStack > noTracing){
     outMsg(logFile, "now at %T\n", parent);
-    assert(hasClass((termPo) parent, stackClass));
+    assert(hasIndex((termPo) parent, stackIndex));
   }
 #endif
   P->stk = parent;

@@ -13,10 +13,10 @@
 
 typedef struct StackStructure *stackPo;
 
-extern clssPo stackClass;
+extern int32 stackIndex;
 
 static inline logical isStack(termPo p) {
-  return hasClass(p, stackClass);
+  return hasIndex(p, stackIndex);
 }
 
 typedef enum {

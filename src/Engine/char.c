@@ -5,13 +5,14 @@
 #include "charP.h"
 #include "assert.h"
 #include "heapP.h"
+#include "labelsP.h"
 
 static retCode chrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static integer chrHash(specialClassPo cl, termPo o);
-static logical chrCmp(specialClassPo cl, termPo t1, termPo t2);
+static integer chrHash(builtinClassPo cl, termPo o);
+static logical chrCmp(builtinClassPo cl, termPo t1, termPo t2);
 
-SpecialClass CharacterClass = {
-  .clss = Null,
+BuiltinTerm CharacterClass = {
+  .special = {0,0},
   .sizeFun = Null,
   .copyFun = Null,
   .scanFun = Null,
@@ -21,24 +22,26 @@ SpecialClass CharacterClass = {
   .dispFun = chrDisp
 };
 
-clssPo charClass = (clssPo) &CharacterClass;
+builtinClassPo charClass = &CharacterClass;
+int32 charIndex;
 
 void initChars() {
-  CharacterClass.clss.clss = specialClass;
+  CharacterClass.special.lblIndex = specialIndex;
+  charIndex = standardIndex(charClass);
 }
 
 termPo makeChar(codePoint cp) {
   return ((termPo) ((integer) ((cp << 2ul) | chrTg)));
 }
 
-logical chrCmp(specialClassPo cl, termPo t1, termPo t2) {
+logical chrCmp(builtinClassPo cl, termPo t1, termPo t2) {
   codePoint ix1 = charVal(t1);
   codePoint ix2 = charVal(t2);
 
   return (logical) (ix1 == ix2);
 }
 
-integer chrHash(specialClassPo cl, termPo o) {
+integer chrHash(builtinClassPo cl, termPo o) {
   return hash61(ptrPayload(o));
 }
 

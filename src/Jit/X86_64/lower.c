@@ -869,7 +869,7 @@ retCode jitBlock(jitBlockPo block, insPo code, int32 from, int32 endPc) {
         ands(tmp, vl, IM(0b11));
         breakOutNe(block, code, tgt);
 
-        ldr(tmp, OF(vl, OffsetOf(TermRecord,clss))); // pick up the class
+        ldr(tmp, OF(vl, OffsetOf(TermHead,clss))); // pick up the class
         loadConstant(jit, key, vl);
         cmp(tmp, RG(vl));
 
@@ -1755,7 +1755,7 @@ mcRegister allocSmallStruct(jitBlockPo block, clssPo class, integer amnt) {
   mov(reslt, RG(X0));
   bind(ok);
   mov(c, IM((integer) class));
-  str(c, OF(reslt, OffsetOf(TermRecord, clss)));
+  str(c, OF(reslt, OffsetOf(TermHead, clss)));
   releaseReg(jit, h);
   releaseReg(jit, c);
   releaseReg(jit, l);

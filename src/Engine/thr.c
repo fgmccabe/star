@@ -4,18 +4,20 @@
 
 
 #include <assert.h>
+
+#include "labelsP.h"
 #include "thrP.h"
 
-static long thrSize(specialClassPo cl, termPo o);
-static termPo thrCopy(specialClassPo cl, termPo dst, termPo src);
-static termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static logical thrCmp(specialClassPo cl, termPo o1, termPo o2);
-static integer thrHash(specialClassPo cl, termPo o);
+static long thrSize(builtinClassPo cl, termPo o);
+static termPo thrCopy(builtinClassPo cl, termPo dst, termPo src);
+static termPo thrScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
+static logical thrCmp(builtinClassPo cl, termPo o1, termPo o2);
+static integer thrHash(builtinClassPo cl, termPo o);
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
-static termPo thrFinalizer(specialClassPo class, termPo o);
+static termPo thrFinalizer(builtinClassPo class, termPo o);
 
-SpecialClass ThredClass = {
-  .clss = Null,
+BuiltinTerm ThredClass = {
+  .special = {},
   .sizeFun = thrSize,
   .copyFun = thrCopy,
   .scanFun = thrScan,
@@ -25,51 +27,53 @@ SpecialClass ThredClass = {
   .dispFun = thrDisp
 };
 
-clssPo threadClass = (clssPo) &ThredClass;
+builtinClassPo threadClass = &ThredClass;
+int32 threadIndex;
 
-pthread_key_t processKey;              /* Special key for thread specific */
+pthread_key_t processKey; /* Special key for thread specific */
 integer live_processes = 0;
 
 void initThr() {
-  ThredClass.clss.clss = specialClass;
-  pthread_key_create(&processKey, NULL);  /* create the processKey */
+  ThredClass.special.lblIndex = specialIndex;
+  threadIndex = standardIndex(threadClass);
+  pthread_key_create(&processKey, NULL); /* create the processKey */
 }
 
 threadPo C_THREAD(termPo t) {
-  assert(hasClass(t, threadClass));
-  return (threadPo) t;
+  assert(hasIndex(t, threadIndex));
+  return (threadPo)t;
 }
 
-long thrSize(specialClassPo cl, termPo o) {
+long thrSize(builtinClassPo cl, termPo o) {
   return ThreadCellCount;
 }
 
-termPo thrCopy(specialClassPo cl, termPo dst, termPo src) {
+termPo thrCopy(builtinClassPo cl, termPo dst, termPo src) {
   threadPo si = C_THREAD(src);
-  threadPo di = (threadPo) dst;
+  threadPo di = (threadPo)dst;
   *di = *si;
 
-  return (termPo) di + ThreadCellCount;
+  return (termPo)di + ThreadCellCount;
 }
 
-termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo thrScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   return o + ThreadCellCount;
 }
 
-termPo thrFinalizer(specialClassPo class, termPo o) {
+termPo thrFinalizer(builtinClassPo class, termPo o) {
   return o + ThreadCellCount;
 }
 
-logical thrCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical thrCmp(builtinClassPo cl, termPo o1, termPo o2) {
   threadPo l1 = C_THREAD(o1);
   threadPo l2 = C_THREAD(o2);
 
-  return (logical) (l1 == l2);
+  return (logical)(l1 == l2);
 }
 
-integer thrHash(specialClassPo cl, termPo o) {
+integer thrHash(builtinClassPo cl, termPo o) {
   threadPo t = C_THREAD(o);
-  return hash61((integer) t->process);
+  return hash61((integer)t->process);
 }
 
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -81,9 +85,7 @@ enginePo getThreadProcess(threadPo t) {
 }
 
 threadPo allocateThread(heapPo H, enginePo pr) {
-  threadPo thr = (threadPo) allocateObject(H, threadClass, ThreadCellCount);
-
-  thr->clss.clss = threadClass;
+  threadPo thr = (threadPo)allocateObject(H, threadIndex, ThreadCellCount);
   thr->process = pr;
 
   return thr;

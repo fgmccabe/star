@@ -7,39 +7,42 @@
 
 #include "config.h"
 #include "ooio.h"
-#include "term.h"
 
-typedef struct program_label_ *labelPo;
-extern clssPo labelClass;
+typedef struct program_label_* labelPo;
 
-labelPo findLbl(const char *name, int32 arity);
-integer labelHash(labelPo lbl);
+typedef struct term_record {
+  int32 lblIndex;
+  int32 space;
+} TermHead;
 
-labelPo declareLbl(const char *name, int32 arity, int32 index);
+labelPo findLbl(const char* name, int32 arity);
+uint64 labelHash(labelPo lbl);
+
+labelPo declareLbl(const char* name, int32 arity, int32 constructorIndex);
 labelPo tplLbl(int32 arity);
-logical isTplLabel(const char *nm) ;
-logical isALabel(termPo t);
+logical isTplLabel(const char* nm);
 
-const char * lblName(labelPo lbl);
-int32 lblIndex(labelPo lbl);
+const char* lblName(labelPo lbl);
+int32 constructorIndex(labelPo lbl);
+labelPo indexToLabel(int32 index);
 
 logical sameLabel(labelPo l1, labelPo l2);
 
 logical breakPointSet(labelPo lbl);
-logical setBreakPoint(labelPo lbl,logical set);
+logical setBreakPoint(labelPo lbl, logical set);
 
-integer setLabelBreakPoint(char *srch, integer slen, integer arity);
-integer clearLabelBreakPoint(char *srch, integer slen, integer arity);
+integer setLabelBreakPoint(char* srch, integer slen, integer arity);
+integer clearLabelBreakPoint(char* srch, integer slen, integer arity);
 retCode showLabelBreakPoints(ioPo out);
 
-typedef retCode (*labelProc)(labelPo lbl, void *cl);
-retCode iterateLabels(labelProc proc,void *cl);
+typedef retCode (*labelProc)(labelPo lbl, void* cl);
+retCode iterateLabels(labelProc proc, void* cl);
 
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
-retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
+retCode showLabel(ioPo f, void* data, long depth, long precision, logical alt);
 
 #ifndef NDEBUG
-#define C_LBL(c) ((labelPo)(checkClass((c),labelClass)))
+#define C_LBL(c) ((labelPo)(checkIndex((c),labelIndex)))
 #else
 #define C_LBL(t) ((labelPo) (t))
 #endif
