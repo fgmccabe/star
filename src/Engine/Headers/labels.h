@@ -42,7 +42,7 @@ retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt)
 retCode showLabel(ioPo f, void* data, long depth, long precision, logical alt);
 
 #ifndef NDEBUG
-#define C_LBL(c) ((labelPo)(checkIndex((c),labelIndex)))
+#define C_LBL(c) ((labelPo)(checkLblIndex((c),labelIndex)))
 #else
 #define C_LBL(t) ((labelPo) (t))
 #endif

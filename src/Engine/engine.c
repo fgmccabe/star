@@ -50,7 +50,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
     enginePo p = newEngine(h, False, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
-    int32 ret = run(p);
+    ValueReturn ret = run(p);
 #endif
     pauseTimer(runTimer);
     return 0;

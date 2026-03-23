@@ -318,6 +318,7 @@ void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define cmn(Rn, S2) do {FlexOp s=S2;  cmn_(1, Rn, s, ctx); } while(False)
 void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define cmp(Rn, S2) do {FlexOp s=S2;  cmp_(1, Rn, s, ctx); } while(False)
+#define cmpw(Rn, S2) do {FlexOp s=S2;  cmp_(0, Rn, s, ctx); } while(False)
 
 void cneg_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
 #define cneg(Rd, Rn, Cond) cneg_(1, Rd, Cond, Rn, ctx)
@@ -552,7 +553,8 @@ void sxtb(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 
 void sxth(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 
-void sxtw(armReg Rd, armReg Rn, assemCtxPo ctx);
+#define sxtw(Rd, Rn) sxtw_(Rd,Rn,ctx)
+void sxtw_(armReg Rd, armReg Rn, assemCtxPo ctx);
 
 void tbnz_(uint1 w, armReg Rt, uint8 pos, codeLblPo lbl, assemCtxPo ctx);
 #define tbnz(Rt, b, lbl) tbnz_(1,Rt,b,lbl,ctx)

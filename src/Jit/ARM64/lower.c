@@ -50,7 +50,7 @@ static retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 fro
 static void verifyState(codeGenPo state, int32 pc);
 
 static void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset);
-static armReg allocSmallStruct(codeGenPo state, int32 pc, clssPo class, integer amnt);
+static armReg allocSmallStruct(codeGenPo state, int32 pc, int32 index, integer amnt);
 static retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit);
 static armReg mkFloat(codeGenPo state, int32 pc);
 static void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs);
@@ -541,7 +541,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
         ldr(ix, OF(ix, 0)); // Pick up the label
-        ldr(ix, OF(ix, OffsetOf(LblRecord, index)));
+        ldr(ix, OF(ix, OffsetOf(LblRecord, labelIndex)));
         immModulo(ctx, ix, tableSize, jit->freeRegs);
 
         codeLblPo jmpTbl = newLabel(ctx);
@@ -565,9 +565,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         tst(tmp, IM(0b11));
         bne(breakLabel(tgt));
 
-        ldr(tmp, OF(tmp, OffsetOf(TermRecord,clss))); // pick up the class
-        loadConstant(jit, key, tmp2);
-        cmp(tmp2, RG(tmp));
+        ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
+        labelPo lit = C_LBL(getConstant(key));
+        mov(tmp2, IM(lit->labelIndex));
+        cmpw(tmp2, RG(tmp));
         bne(breakLabel(tgt));
         releaseReg(jit, tmp);
         releaseReg(jit, tmp2);
@@ -687,7 +688,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sSav: {
         // create a single assignment variable
         int32 insSize = 2;
-        armReg cel = allocSmallStruct(state, pc, singleClass, SingleCellCount);
+        armReg cel = allocSmallStruct(state, pc, singleIndex, SingleCellCount);
         armReg tmp = findARegister(state, pc);
         mov(tmp, IM((integer) Null));
         storeFlex(state, pc, constantFlex(voidIndex), OF(cel, OffsetOf(SingleRecord, content)));
@@ -747,7 +748,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sCell: {
         // create R/W cell
         int32 insSize = 2;
-        armReg cel = allocSmallStruct(state, pc, cellClass, CellCellCount);
+        armReg cel = allocSmallStruct(state, pc, cellIndex, CellCellCount);
         FlexOp vl = localFlex(state, pc, opand(2));
         storeFlex(state, pc, vl,OF(cel, OffsetOf(CellRecord, content)));
         FlexOp tgt = localFlex(state, pc, opand(1));
@@ -1511,7 +1512,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         labelPo label = C_LBL(getConstant(key));
         int32 arity = lblArity(label);
 
-        armReg term = allocSmallStruct(state, pc, (clssPo) label, NormalCellCount(arity));
+        armReg term = allocSmallStruct(state, pc, label->labelIndex, NormalCellCount(arity));
 
         for (int32 ix = 0; ix < arity; ix++) {
           FlexOp tmp = localFlex(state, pc, opand(ix+4));
@@ -1526,7 +1527,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = 4;
         int32 key = opand(1);
 
-        armReg term = allocSmallStruct(state, pc, closureClass, ClosureCellCount);
+        armReg term = allocSmallStruct(state, pc, closureIndex, ClosureCellCount);
 
         armReg tmp = findARegister(state, pc);
         loadConstant(jit, key, tmp);
@@ -1730,6 +1731,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
               return jitError(jit, "invalid instruction following DBug");
           }
         }
+        pc += insSize;
         continue;
       }
 
@@ -1741,10 +1743,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
   return ret;
 }
 
-armReg allocSmallStruct(codeGenPo state, int32 pc, clssPo class, integer amnt) {
+armReg allocSmallStruct(codeGenPo state, int32 pc, int32 index, integer amnt) {
   assemCtxPo ctx = assemCtx(state->jit);
   invokeIntrinsic(state, pc, (runtimeFn) allocateObject, 3, (FlexOp[]){
-                    OF(PR, OffsetOf(EngineRecord, heap)), IM((integer) class), IM(amnt)
+                    OF(PR, OffsetOf(EngineRecord, heap)), IM(index), IM(amnt)
                   });
   armReg term = findARegister(state, pc);
   mov(term, RG(X0));
@@ -1752,7 +1754,7 @@ armReg allocSmallStruct(codeGenPo state, int32 pc, clssPo class, integer amnt) {
 }
 
 armReg mkFloat(codeGenPo state, int32 pc) {
-  return allocSmallStruct(state, pc, floatClass, FloatCellCount);
+  return allocSmallStruct(state, pc, floatIndex, FloatCellCount);
 }
 
 void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {

@@ -432,7 +432,7 @@ void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
 }
 
 void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"cmp %R,%F\n%_",Rn,&S2));
+  TRACE(outMsg(logFile,"cmp%s %R,%F\n%_",(w?"":"w"),Rn,&S2));
   switch (S2.mode) {
     case reg:
       encode3Reg7Imm(w, 1, 1, 0xb, 0, 0, S2.reg, 0, Rn, 0x1f, ctx);
@@ -1379,7 +1379,7 @@ void sxth(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx) {
   sbfm_(w, Rd, Rn, 0, 15, ctx);
 }
 
-void sxtw(armReg Rd, armReg Rn, assemCtxPo ctx) {
+void sxtw_(armReg Rd, armReg Rn, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"sxtw %R,%R\n%_",Rd,Rn));
   sbfm_(1, Rd, Rn, 0, 31, ctx);
 }

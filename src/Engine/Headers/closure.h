@@ -14,7 +14,7 @@ extern builtinClassPo closureClass;
 extern int32 closureIndex;
 
 static inline closurePo C_CLOSURE(termPo t) {
-  assert(checkIndex(t, closureIndex));
+  assert(checkLblIndex(t, closureIndex));
   return (closurePo) t;
 }
 

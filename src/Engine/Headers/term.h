@@ -57,7 +57,7 @@ logical isALabel(termPo t);
 
 builtinClassPo builtinClassOf(termPo t);
 
-static inline termPo checkIndex(termPo obj, int32 index) {
+static inline termPo checkLblIndex(termPo obj, int32 index) {
   assert(obj->lblIndex==index);
   return obj;
 }
