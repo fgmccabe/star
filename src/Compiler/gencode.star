@@ -4,7 +4,6 @@ star.compiler.gencode{
   import star.pkg.
   import star.sort.
 
-  import star.compiler.assem.
   import star.compiler.term.
   import star.compiler.encode.
   import star.compiler.errors.
@@ -15,6 +14,7 @@ star.compiler.gencode{
   import star.compiler.opts.
   import star.compiler.peephole.
   import star.compiler.ltipe.
+  import star.compiler.ssa.
   import star.compiler.types.
 
   import star.compiler.location.

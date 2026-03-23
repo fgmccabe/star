@@ -9,6 +9,8 @@
 #include "jitP.h"
 #include <stdlib.h>
 #include <assert.h>
+
+#include "arm64P.h"
 #include "assem.h"
 
 #include "formioP.h"

@@ -9,7 +9,6 @@ star.compiler{
   import star.repo.
 
   import star.compiler.ast.
-  import star.compiler.assem.
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
@@ -28,6 +27,7 @@ star.compiler{
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.package.merge.
+  import star.compiler.ssa.
   import star.compiler.term.repo.
   import star.compiler.types.
   import star.compiler.normalize.

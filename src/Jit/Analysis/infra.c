@@ -25,6 +25,18 @@ void tearDownAnalysis(AnalysisRecord* results) {
   eraseTree(results->index);
 }
 
+void setupAnalysis(analysisPo analysis) {
+  initAnalysis();
+
+  hashPo vars = newVarTable();
+  treePo index = newVarIndex();
+  setPo safes = newSet();
+
+  analysis->vars = vars;
+  analysis->index = index;
+  analysis->safes = safes;
+}
+
 static char* stateName[] = {
   "unAllocated",
   "beingAllocated",
@@ -33,7 +45,7 @@ static char* stateName[] = {
 
 retCode showVarDesc(ioPo out, varDescPo var) {
   return outMsg(out, "%d: %s [%d, %d) %s\n", var->varNo, varKindName(var->kind), var->start,
-                var->end, (var->registerCandidate ? "reg " : "mem"));
+                var->end, (var->registerCandidate ? "reg candidate" : "memory"));
 }
 
 static retCode showVrIndex(void* n, void* r, void* c) {
@@ -119,10 +131,11 @@ treePo newVarIndex() {
 }
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
-  varDescPo var = findVar(analysis, varNo);
-  assert(var != Null && (kind==phi || var->start==-1));
-  var->start = pc;
-  treePut(analysis->index, (void*)(integer)pc, var);
+  varDescPo desc = findVar(analysis, varNo);
+  assert(desc != Null && (kind==phi || desc->start==-1));
+  desc->start = pc;
+  desc->kind = kind;
+  treePut(analysis->index, (void*)(integer)pc, desc);
 }
 
 void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
@@ -323,10 +336,4 @@ static retCode checkSlot(void* n, void* r, void* cl) {
   assert(var->state==allocated);
 
   return Ok;
-}
-
-int32 minSlot(analysisPo analysis) {
-  analysis->minSlot = 0;
-  processHashTable(checkSlot, analysis->vars, analysis);
-  return analysis->minSlot;
 }

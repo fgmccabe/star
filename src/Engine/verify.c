@@ -125,7 +125,7 @@ static void initLocal(verifyCtxPo ctx, int32 vrNo) {
 }
 
 static logical validTarget(verifyCtxPo ctx, int32 vrNo) {
-  return validLocal(ctx, vrNo);
+  return validLocal(ctx, vrNo) && !initedLocal(ctx, vrNo);
 }
 
 retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical hasValue) {
@@ -381,7 +381,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         if (!validLocal(&ctx, blkRsltVr))
           return verifyError(&ctx, "%d: result variable %d not valid", pc, blkRsltVr);
 
-        if (blockLen<=0)
+        if (blockLen <= 0)
           return verifyError(&ctx, "%d: valof block length: %d must be > 0", pc, blockLen);
 
         if (verifyBlock(pc, pc + insSize, pc + blockLen, &ctx, True) == Ok) {
@@ -1008,7 +1008,10 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         continue;
       }
       case sUnderflow: {
-        return verifyError(&ctx, ".%d: Underflow not permitted in user code", pc);
+        if (!isLastPC(pc + 1, limit))
+          return verifyError(&ctx, ".%d: Underflow should be last instruction in block", pc);
+        pc++;
+        continue;
       }
       case sLine: {
         int32 insSize = 2;

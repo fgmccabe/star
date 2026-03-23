@@ -27,7 +27,7 @@ star.compiler.ssa{
     | .iTOCall(varNm, cons[varNm])
     | .iRSP(varNm)
     | .iRSX(assemLbl, varNm)
-    | .iEntry(integer, integer)
+    | .iEntry(cons[varNm], cons[varNm])
     | .iRtn
     | .iRet(varNm)
     | .iXRet(varNm)
@@ -181,7 +181,7 @@ star.compiler.ssa{
   mnem(.iTOCall(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(6),findLocal(V0,Lcs),mkTpl(findLocals(V1,Lcs))],Pc+3,Lt0).
   mnem(.iRSP(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(7),findLocal(V0,Lcs)],Pc+2,Lt0).
   mnem(.iRSX(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(8),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
-  mnem(.iEntry(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(9),.intgr(V0),.intgr(V1)],Pc+3,Lt0).
+  mnem(.iEntry(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(9),.intgr(size(V0)),.intgr(size(V1))],Pc+3,Lt0).
   mnem(.iRtn, Pc,Lbls,Lt0,Lcs) => ([.intgr(10)],Pc+1,Lt0).
   mnem(.iRet(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(11),findLocal(V0,Lcs)],Pc+2,Lt0).
   mnem(.iXRet(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(12),findLocal(V0,Lcs)],Pc+2,Lt0).

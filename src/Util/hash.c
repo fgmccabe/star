@@ -312,24 +312,8 @@ logical verifyHash(hashPo htbl) {
 }
 
 integer hashSize(hashPo htbl) {
-  integer count = 0;
-
-  pthread_mutex_lock(&htbl->mutex);
-
-  {
-    register integer size = htbl->size;
-
-    for (int i = 0; i < size; i++) {
-      if (htbl->table[i] != NULL)
-        count++;
-    }
-  }
-
-  pthread_mutex_unlock(&htbl->mutex);
-
-  return count;
+  return htbl->entries;
 }
-
 
 /* compute the hash value of a char * .. */
 /* This function is used as a default if none is supplied when the 

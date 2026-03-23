@@ -26,8 +26,8 @@ typedef struct {
   FlexOp src;
   int32 stkOff;
   logical stashed; // Is the value in the stack frame?
-  logical inited;  // Has teh variable ever been written to?
-  logical live;    // Is the variable in use?
+  logical inited; // Has the variable ever been written to?
+  logical live; // Is the variable in use?
   varDescPo desc;
 } LocalVar, *localVarPo;
 
@@ -43,6 +43,7 @@ typedef struct {
 typedef struct jitBlock_ *blockPo;
 
 typedef struct jitBlock_ {
+  ssaOp blockType;
   int32 startPc;
   int32 endPc;
   localVarPo phiVar;
@@ -51,11 +52,11 @@ typedef struct jitBlock_ {
   blockPo parent;
 } JitBlock;
 
-retCode stackCheck(jitCompPo jit, methodPo mtd);
+void stackCheck(codeGenPo state, int32 pc, methodPo mtd);
 
 #define pointerSize ((int32)sizeof(integer))
 
-retCode bailOut(jitCompPo jit, ExitCode code);
+void bailOut(codeGenPo state, int32 pc, ExitCode code);
 
 retCode getIntVal(jitCompPo jit, armReg rg);
 retCode mkIntVal(jitCompPo jit, armReg rg);
@@ -63,14 +64,40 @@ void getFltVal(jitCompPo jit, armReg rg, fpReg tgt);
 
 retCode jitError(jitCompPo jit, char *msg, ...);
 
-blockPo breakBlock(blockPo block, ssaInsPo code, int32 tgt, ssaOp blockType);
-codeLblPo getABreakLbl(blockPo block, int32 pc);
+registerMap defaultArgRegs();
+registerMap systemArgRegs();
+registerMap lambdaArgRegs();
+int32 maxArgRegister;
+armReg findARegister(codeGenPo state, int32 pc);
+void loadRegister(codeGenPo state, armReg rg, FlexOp src);
+
+void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexOp args[]);
+
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
 
-retCode breakOutEq(blockPo block, ssaInsPo code, int32 tgt);
-retCode breakOutNe(blockPo block, ssaInsPo code, int32 tgt);
-retCode breakOut(assemCtxPo ctx, blockPo tgtBlock);
+blockPo targetBlock(blockPo block, int32 tgt, ssaOp blockType);
+
+void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
+void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
+FlexOp constantFlex(int32 index);
+FlexOp varFlex(int32 index);
+void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
+
+logical liveVar(localVarPo var, int32 pc);
+int32 stashLiveLocals(codeGenPo state, int32 pc);
+int32 stashSomeLiveLocals(codeGenPo state, int32 pc, int32 cnt);
+localVarPo localSource(codeGenPo state, int32 pc, int32 lx);
+localVarPo localTarget(codeGenPo state, int32 pc, int32 lx);
+logical allLocalsStashed(codeGenPo state, int32 pc);
+void showLiveLocals(ioPo out, codeGenPo state);
+retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt);
+
+void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset);
+
+localVarPo findSpareLocal(codeGenPo state, int32 pc);
+int32 nextStkOff(codeGenPo state, int32 pc);
+FlexOp getLclSrc(codeGenPo state, int32 pc, int32 lclNo);
 
 void stash(jitCompPo jit, int32 depth);
 void stashEngineState(jitCompPo jit, int32 stackLevel);

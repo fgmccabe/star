@@ -14,6 +14,7 @@ void initJit() {
     contextPool = newPool(sizeof(JitCompilerContext), 8);
 
     reinstallMsgProc('X', showStackSlot);
+    installMsgProc('V', showLocalVar);
   }
 }
 

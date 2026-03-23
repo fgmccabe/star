@@ -24,7 +24,7 @@ static comparison sameProcess(void*, void*);
 
 static integer newProcessNumber();
 
-static Instruction haltCode[] = {sRSP, -1, sHalt, -1};
+static Instruction haltCode[] = {sEntry, 0, 1, sRSP, -1, sHalt, -1};
 
 void initEngine() {
   prPool = newPool(sizeof(EngineRecord), 32);
@@ -45,7 +45,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
     enginePo p = newEngine(h, jitOnLoad, mainMtd, rootWd, cmdLine);
 
     resumeTimer(runTimer);
-    int32 ret = (jitOnLoad ? exec(p) : run(p));
+    ValueReturn ret = (jitOnLoad ? exec(p) : run(p));
 #else
     enginePo p = newEngine(h, False, mainMtd, rootWd, cmdLine);
 
@@ -53,7 +53,7 @@ int32 bootstrap(heapPo h, char* entry, char* rootWd) {
     int32 ret = run(p);
 #endif
     pauseTimer(runTimer);
-    return ret;
+    return 0;
   }
   else{
     logMsg(logFile, "cannot find entry point %s\n", entry);

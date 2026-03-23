@@ -19,6 +19,7 @@ extern termPo eFAIL;
 extern termPo eIOERROR;
 extern termPo eCONNECT;
 extern termPo eDEAD;
+extern termPo eSPACE;
 extern termPo divZero;
 extern termPo noValue;
 extern termPo hasValue;

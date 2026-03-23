@@ -7,7 +7,6 @@
 
 #include <config.h>
 #include "jit.h"
-#include "array.h"
 #include "macros.h"
 #include "code.h"
 #include "infra.h"
@@ -41,7 +40,8 @@ void resetRegMap(jitCompPo jit, registerMap defaultRegs);
 logical isByte(int64 x);
 logical isI32(int64 x);
 
-retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, char *errMsg, integer msgLen);
-retCode jitSpecialInstructions(jitCompPo jit, methodPo mtd, int32 depth) ;
+registerMap defaultArgRegs();
+
+retCode jitInstructions(jitCompPo jitCtx, methodPo mtd, registerMap argRegisters, char *errMsg, integer msgLen);
 
 #endif //STAR_JITP_H

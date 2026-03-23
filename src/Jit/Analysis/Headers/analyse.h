@@ -13,9 +13,8 @@ typedef struct var_description_ *varDescPo;
 
 extern tracingLevel traceSSA;
 
-extern logical enableSSA;
-
 typedef struct analysis_ *analysisPo;
+void setupAnalysis(analysisPo analysis);
 
 retCode analyseMethod(methodPo mtd, analysisPo results);
 retCode analyseSpecialMethod(methodPo mtd, int32 depth,analysisPo results);

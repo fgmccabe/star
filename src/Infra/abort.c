@@ -20,6 +20,7 @@ static char *exitCodes[] = {
   "something wrong with assignment",
   "something wrong with a special method",
   "tried an invalid operation",
+  "unhandled exception",
   "execution aborted"
 };
 

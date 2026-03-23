@@ -3,7 +3,7 @@ star.compiler.peephole{
   import star.pkg.
   import star.multi.
 
-  import star.compiler.assem.
+  import star.compiler.ssa.
   import star.compiler.errors.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -12,7 +12,7 @@ star.compiler.peephole{
   import star.compiler.data.
 
   public peepOptimize:(codeSegment)=>codeSegment.
-  peepOptimize(.func(Lbl,Pol,Tp,Ags,LcMap,Ins)) => valof{
+  peepOptimize(.func(Lbl,Pol,Tp,LcMap,Ins)) => valof{
     Ins0 = peepCode(Ins,[]);
     (LcMp1,Ins1) = findUnusedVars(LcMap,Ins0);
     valis .func(Lbl,Pol,Tp,Ags,LcMp1,adjustEntry(peepCode(Ins1,[]),size(LcMp1)))

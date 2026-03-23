@@ -128,7 +128,7 @@ logical inSet(setPo set, int32 k) {
 
 
 logical inSetRange(setPo set, int32 from, int32 to) {
-  assert(from<to);
+  assert(from<=to);
 
   int32 max = set->count * 64 + set->min;
   if (to < set->min || from >= max || set->data == Null)

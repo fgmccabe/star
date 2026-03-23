@@ -28,7 +28,7 @@ typedef struct engineRecord_ {
 } EngineRecord;
 
 extern void initEngine();
-int32 run(enginePo P);
+ValueReturn run(enginePo P);
 ValueReturn exec(enginePo P);
 
 int32 bootstrap(heapPo h, char *entry, char *rootWd);

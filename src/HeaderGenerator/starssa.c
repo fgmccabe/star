@@ -161,7 +161,7 @@ static void genOp(asmInfoPo info, char **fmt) {
       outMsg(O_IO(info->line), "mkTpl(findLocals(V%d,Lcs))", (info->vNo)++);
       return;
     case Slcm:
-      outMsg(O_IO(info->line), ".intgr(V%d)", (info->vNo)++);
+      outMsg(O_IO(info->line), ".intgr(size(V%d))", (info->vNo)++);
       return;
     case Slit: {
       int32 lastLtno = info->ltNo++;
@@ -266,7 +266,7 @@ static char *opAndTp(char **f) {
     case Slcls:
       return "cons[varNm]";
     case Slcm:
-      return "integer";
+      return "cons[varNm]";
     case Slit:
       return "data";
     case Sglb:

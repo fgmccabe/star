@@ -170,7 +170,7 @@ framePo pushFrame(stackPo stk, logical execJit, methodPo mtd) {
   f->args = stk->args;
   f->link = stk->pc;
 #ifndef NOJIT
-  stk->pc = (execJit ? (insPo)jitCode(mtd) : entryPoint(mtd));
+  stk->pc = (execJit ? (ssaInsPo)jitCode(mtd) : entryPoint(mtd));
 #else
   stk->pc = entryPoint(mtd);
 #endif
@@ -565,7 +565,7 @@ stackPo dropStack(stackPo tsk) {
   return previous;
 }
 
-void detachDropStack(enginePo P, stackPo top, termPo event) {
+void detachDropStack(enginePo P, stackPo top) {
   detachStack(P, top);
   dropStack(top);
 }

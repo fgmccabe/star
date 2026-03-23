@@ -14,7 +14,6 @@ typedef struct analysis_
   hashPo vars;
   treePo index;
   setPo safes;
-  int32 minSlot;
 } AnalysisRecord;
 
 typedef struct var_description_
@@ -46,7 +45,6 @@ arrayPo varStarts(analysisPo analysis);
 arrayPo varExits(analysisPo analysis);
 arrayPo varRanges(analysisPo analysis);
 retCode showRanges(ioPo out, arrayPo vars);
-int32 minSlot(analysisPo analysis);
 
 logical isSafe(analysisPo analysis, varDescPo var);
 void setSafePoint(analysisPo analysis, int32 pc);

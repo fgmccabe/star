@@ -22,7 +22,6 @@ set(HEADER_FILES
         Assem/Headers/assem.h
         Headers/lower.h
         Headers/lowerP.h
-#        Headers/lowerXP.h
         ../../Util/Headers/array.h
         ../../Engine/Headers/escapeP.h
         Assem/Headers/assem_encode.h
@@ -34,12 +33,9 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-#        lowerX.c
         lower.c
-#        lowerStack.c
-#        lowerFrame.c
-#        lowerFFI.c
-        shuffle.c)
+        shuffle.c
+        lowerInfra.c)
 
 add_library(ARM64 STATIC ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(ARM64 assem analysis)

@@ -72,7 +72,7 @@ retCode stackCheck(jitCompPo jit, methodPo mtd);
 
 #define pointerSize ((int32)sizeof(integer))
 
-retCode bailOut(jitCompPo jit, ExitCode code);
+retCode bailOut(codeGenPo state, int32 pc, ExitCode code);
 
 retCode getIntVal(jitCompPo jit, mcRegister rg);
 retCode mkIntVal(jitCompPo jit, mcRegister rg);
@@ -88,7 +88,7 @@ codeLblPo loopLabel(jitBlockPo block);
 
 retCode breakOutEq(jitBlockPo block, insPo code, int32 tgt);
 retCode breakOutNe(jitBlockPo block, insPo code, int32 tgt);
-retCode breakOut(jitBlockPo block, jitBlockPo tgtBlock);
+retCode breakOut(jitCompPo jit, jitBlockPo block, jitBlockPo tgtBlock);
 
 void stash(jitBlockPo block);
 void stashRegisters(jitCompPo jit, int32 stackLevel);

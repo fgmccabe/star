@@ -22,7 +22,7 @@ logical collectStats = False;
 /*
  * Execute program on a given engine structure
  */
-int32 run(enginePo P) {
+ValueReturn run(enginePo P) {
   heapPo H = P->heap;
   stackPo STK = P->stk;
   framePo FP = STK->fp;
@@ -45,16 +45,14 @@ int32 run(enginePo P) {
 
     switch (PC->op.op) {
       case sHalt:
-        return (int32) integerVal(varble(operand(1)));
+        return (ValueReturn){.value = varble(operand(1)), .status=Normal};
       case sAbort: {
         termPo lc = getConstant(operand(1));
         termPo msg = varble(operand(2));
         saveRegisters();
         abort_star(P, lc, msg);
-
-        return Abnormal;
+        return (ValueReturn){.value = msg, .status=Abnormal};
       }
-
       case sCall: {
         labelPo nProg = C_LBL(getConstant(operand(1)));
         methodPo mtd = labelMtd(nProg); // Which program do we want?
@@ -88,7 +86,7 @@ int32 run(enginePo P) {
 
           ssaInsPo link = PC; // Jit code can override this in the frame
           saveRegisters();
-          RSLT = invokeJitMethodA(P, mtd);
+          RSLT = invokeJitMethod(P, mtd);
           restoreRegisters();
           PC = link;
           PC++;
@@ -1096,6 +1094,6 @@ ValueReturn exec(enginePo P) {
   }
 #endif
 
-  return invokeJitMethodA(P, PROG);
+  return invokeJitMethod(P, PROG);
 }
 #endif

@@ -29,7 +29,7 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
   if (!hasJit(mtd)){
     jitCompPo jit = jitContext(mtd);
 
-    retCode ret = (enableSSA?jitInstructions(jit, mtd, errMsg, msgLen):jitInstructions(jit, mtd, errMsg, msgLen));
+    retCode ret = jitInstructions(jit, mtd, defaultArgRegs(), errMsg, msgLen);
 
     if (ret == Ok){
       assemCtxPo ctx = jit->assemCtx;
@@ -46,24 +46,20 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
   return Ok;
 }
 
-retCode jitSpecial(methodPo mtd, char* errMsg, integer msgLen, int32 depth)
+retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen)
 {
   if (!hasJit(mtd)){
     jitCompPo jit = jitContext(mtd);
 
-#ifdef TRACEJIT
-    if (traceJit)
-      dRegisterMap(jit->freeRegs);
-#endif
+    retCode ret = jitInstructions(jit, mtd, emptyRegSet(), errMsg, msgLen);
 
-    retCode ret = (enableSSA?jitSpecialInstructionsA(jit, mtd, depth):jitSpecialInstructions(jit, mtd, depth));
-
-    if (ret == Ok || ret == Switch){
+    if (ret == Ok){
       assemCtxPo ctx = jit->assemCtx;
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
     }
     else
-      strMsg(errMsg, msgLen, "error: %S in generating jit code", jit->errMsg, uniStrLen(jit->errMsg));
+      strMsg(errMsg, msgLen, "error: %S in generating jit code for %L", jit->errMsg, uniStrLen(jit->errMsg),
+             mtdLabel(mtd));
 
     clearJitContext(jit);
 
@@ -71,3 +67,4 @@ retCode jitSpecial(methodPo mtd, char* errMsg, integer msgLen, int32 depth)
   }
   return Ok;
 }
+

@@ -18,6 +18,7 @@ typedef enum {
   assignmentCode, // something wrong with assignment
   specialMethodCode, // something wrong with a special method
   invalidOperationCode, // tried an invalid operation
+  unhandledExceptionCode, // threw exception out of normal return
   abortCode, // abort operation
 } ExitCode;
 

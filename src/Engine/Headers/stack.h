@@ -35,7 +35,7 @@ stackPo newStack(enginePo P, logical execJit, termPo lam);
 void attachStack(enginePo P, stackPo top);
 void detachStack(enginePo P, stackPo top);
 stackPo dropStack(stackPo tsk);
-void detachDropStack(enginePo P, stackPo top, termPo event);
+void detachDropStack(enginePo P, stackPo top);
 
 framePo currFrame(stackPo stk);
 framePo previousFrame(stackPo stk, framePo fp);

@@ -3,9 +3,9 @@ star.compiler.intrinsics{
   import star.
 
   import star.compiler.types.
-  import star.compiler.assem.
+  import star.compiler.ssa.
 
-  public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean)].
+  public intrinsic:(string) => option[(tipe,(assemLbl)=>insOp,boolean)].
   intrinsic(Es) => case Es in {
     | "_int_plus" => .some((.funType(.tupleType([.nomnal("integer"),.nomnal("integer")]),.nomnal("integer"),.voidType),(_)=>.iIAdd, .true))  -- add two integers
     | "_int_minus" => .some((.funType(.tupleType([.nomnal("integer"),.nomnal("integer")]),.nomnal("integer"),.voidType),(_)=>.iISub, .true))  -- subtract two integers

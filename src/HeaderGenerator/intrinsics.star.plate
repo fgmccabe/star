@@ -3,9 +3,9 @@ star.compiler.intrinsics{
   import star.
 
   import star.compiler.types.
-  import star.compiler.assem.
+  import star.compiler.ssa.
 
-  public intrinsic:(string) => option[(tipe,(assemLbl)=>assemOp,boolean)].
+  public intrinsic:(string) => option[(tipe,(assemLbl)=>insOp,boolean)].
   intrinsic(Es) => case Es in {
 #(Intrinsics)
     | _ default => .none

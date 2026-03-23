@@ -24,6 +24,7 @@ termPo eIOERROR;
 termPo eCONNECT;
 termPo eFAIL;
 termPo eDEAD;
+termPo eSPACE;
 termPo divZero;
 termPo noValue;
 termPo hasValue;

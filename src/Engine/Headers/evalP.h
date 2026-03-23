@@ -19,7 +19,7 @@
     saveRegisters();                   \
     retCode ret = gcCollect(H, Count); \
     if (ret != Ok)                     \
-      return Abnormal;                 \
+      return ((ValueReturn){.value=voidEnum,.status=Abnormal});                 \
     if (traceStack > noTracing){       \
       verifyStack(P->stk, H);          \
       verifyHeap(H);                   \
@@ -62,7 +62,7 @@
 #define bail() STMT_WRAP({\
   saveRegisters();\
   stackTrace(P, logFile, STK,displayDepth,showLocalVars,100);\
-  return Abnormal;\
+  return ((ValueReturn){.value=eFAIL,.status=Abnormal});\
   })
 
 #define stackGrow(Amnt, SaveArity) STMT_WRAP({\

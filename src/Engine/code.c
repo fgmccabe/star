@@ -252,7 +252,7 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx, ssaInsPo instr
 
 #ifndef NOJIT
   char errMsg[MAXLINE];
-  retCode ret = jitSpecial(mtd, errMsg, NumberOf(errMsg), depth);
+  retCode ret = jitSpecialMethod(mtd, errMsg, NumberOf(errMsg));
   if (ret != Ok) {
     char msg[MAX_SYMB_LEN];
     strMsg(msg,NumberOf(msg), "could not generate jit code for special method %L,\nbecause %s", lbl, errMsg);

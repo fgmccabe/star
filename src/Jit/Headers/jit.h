@@ -21,9 +21,9 @@ typedef struct jit_compiler_ *jitCompPo;
 void initJit();
 
 retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen);
-retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen, int32 depth);
+retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen);
 
-ValueReturn invokeJitMethodA(enginePo P, methodPo mtd);
+ValueReturn invokeJitMethod(enginePo P, methodPo mtd);
 
 #ifdef TRACEJIT
 extern tracingLevel traceAssem; // Set if tracing assembler

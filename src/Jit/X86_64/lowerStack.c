@@ -316,7 +316,7 @@ void storeOffset(jitCompPo jit, mcRegister src, mcRegister base, int32 lclNo) {
   }
 }
 
-retCode stackCheck(jitCompPo jit, methodPo mtd) {
+void stackCheck(jitCompPo jit, methodPo mtd) {
   assemCtxPo ctx = assemCtx(jit);
   codeLblPo okLbl = newLabel(ctx);
   int32 delta = (stackDelta(mtd) + (int32) FrameCellCount) * pointerSize;
