@@ -192,6 +192,14 @@ codeLblPo newLabel(assemCtxPo ctx) {
   return lbl;
 }
 
+codeLblPo remoteLabel(assemCtxPo ctx, integer fn) {
+  codeLblPo lbl = (codeLblPo) allocPool(lblPool);
+  lbl->refs = Null;
+  lbl->pc = fn;
+
+  return lbl;
+}
+
 codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl) {
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx = ctx, .lbl = lbl};

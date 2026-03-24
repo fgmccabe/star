@@ -1494,7 +1494,7 @@ void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
     case reg: {
       switch (s.mode) {
         case fp: {
-          encodeFpMovOp(1, p, 0, 0b11000, s.fp, d.reg, ctx);
+          encodeFpMovOp(1, p, 0, 0b11000, s.fpReg, d.reg, ctx);
           return;
         }
         case imm:
@@ -1505,16 +1505,16 @@ void fmov_(Precision p, FlexOp d, FlexOp s, assemCtxPo ctx) {
     case fp: {
       switch (s.mode) {
         case reg: {
-          encodeFpMovOp(1, p, 0, 0b11100, s.reg, d.fp, ctx);
+          encodeFpMovOp(1, p, 0, 0b11100, s.reg, d.fpReg, ctx);
           return;
         }
         case fp: {
-          encodeFpMovOp(0, p, 0, 1, s.fp, d.fp, ctx);
+          encodeFpMovOp(0, p, 0, 1, s.fpReg, d.fpReg, ctx);
           return;
         }
         case imm: {
           uint32 ins = ayt_bt(0b0011110, 24) | two_bt(p, 22) | one_bt(0b1, 21) |
-                       ayt_bt(s.immediate, 13) | one_bt(1, 12) | fiv_bt(d.fp, 0);
+                       ayt_bt(s.immediate, 13) | one_bt(1, 12) | fiv_bt(d.fpReg, 0);
           emitU32(ctx, ins);
           return;
         }

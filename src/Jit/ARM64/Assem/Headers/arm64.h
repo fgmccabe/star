@@ -146,7 +146,7 @@ typedef struct {
   int64 immediate;
   armReg reg;
   armReg rgm;
-  fpReg fp;
+  fpReg fpReg;
   armShift shift;
   armExtent ext;
   codeLblPo lbl;
@@ -159,6 +159,7 @@ logical isRegisterOp(FlexOp a);
 #define PLATFORM_PC_DELTA (0)
 
 #define RG(Rg) ((FlexOp){.mode=reg, .reg=(Rg)})
+#define FP(Rg) ((FlexOp){.mode=fp, .fpReg=(Rg)})
 #define IM(Vl) ((FlexOp){.mode=imm, .immediate=(Vl)})
 #define LS(Rg, Amnt) ((FlexOp){.mode=shft, .shift=LSL, .reg=Rg, .immediate=(Amnt)})
 #define RS(Rg, Amnt) ((FlexOp){.mode=shft, .shift=LSR, .reg=Rg, .immediate=(Amnt)})
@@ -170,7 +171,6 @@ logical isRegisterOp(FlexOp a);
 #define PRX(Rg, Amnt) ((FlexOp){.mode=preX,  .reg=Rg, .immediate=(Amnt)})
 #define OF(Rg, Amnt) ((FlexOp){.mode=sOff,  .reg=Rg, .immediate=(Amnt)})
 #define PC(Lbl) ((FlexOp){.mode=pcRel, .lbl=(Lbl)})
-#define FP(Rg) ((FlexOp){.mode=fp, .fp=(Rg)})
 
 codeLblPo preamble(assemCtxPo ctx, int32 lclSize);
 retCode postamble(assemCtxPo ctx);
@@ -190,6 +190,7 @@ void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define adds(rd, s1, s2) do{ FlexOp s=s2; adds_(1, rd, s1, s, ctx); } while(False)
+#define addsw(rd, s1, s2) do{ FlexOp s=s2; adds_(0, rd, s1, s, ctx); } while(False)
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 #define adr(Rd, lbl) do{ adr_(Rd, lbl, ctx); } while(False)
@@ -198,12 +199,15 @@ void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define and(rd, s1, s2) do{ FlexOp s=s2; and_(1, rd, s1, s, ctx); } while(False)
+#define andw(rd, s1, s2) do{ FlexOp s=s2; and_(0, rd, s1, s, ctx); } while(False)
 
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define ands(rd, s1, s2) do{ FlexOp s=s2; ands_(1, rd, s1, s, ctx); } while(False)
+#define andsw(rd, s1, s2) do{ FlexOp s=s2; ands_(0, rd, s1, s, ctx); } while(False)
 
 void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define asr(rd, s1, s2) do{ FlexOp s=s2; asr_(1, rd, s1, s, ctx); } while(False)
+#define asrw(rd, s1, s2) do{ FlexOp s=s2; asr_(0, rd, s1, s, ctx); } while(False)
 
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
 #define beq(lbl) do{ b_cond_(EQ, lbl, ctx); } while(False)
@@ -297,33 +301,41 @@ void casl_(uint1 w, armReg Rs, armReg Rt, armReg Rn, assemCtxPo ctx);
 
 void cbnz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 #define cbnz(Rt, Lbl) cbnz_(1, Rt, Lbl, ctx)
+#define cbnz_w(Rt, Lbl) cbnz_(0, Rt, Lbl, ctx)
 void cbz_(uint1 w, armReg Rt, codeLblPo lbl, assemCtxPo ctx);
 #define cbz(Rt, Lbl) cbz_(1, Rt, Lbl, ctx)
+#define cbz_w(Rt, Lbl) cbz_(0, Rt, Lbl, ctx)
 
 void ccmn_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
 void ccmp_(uint1 w, armReg Rn, armCond cnd, uint8 nzcv, FlexOp S2, assemCtxPo ctx);
 
 void cinc_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
 #define cinc(Rd, Rn, Cond) cinc_(1, Rd, Cond, Rn, ctx)
+#define cinc_w(Rd, Rn, Cond) cinc_(0, Rd, Cond, Rn, ctx)
 
 void cinv_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
 #define cinv(Rd, Rn, Cond) cinv_(1, Rd, Cond, Rn, ctx)
+#define cinv_w(Rd, Rn, Cond) cinv_(0, Rd, Cond, Rn, ctx)
 
 void cls_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 #define cls(Rd, Rn) cls_(1,Rd, Rn, ctx)
+#define cls_w(Rd, Rn) cls_(0,Rd, Rn, ctx)
 void clz_(uint1 w, armReg Rd, armReg Rn, assemCtxPo ctx);
 #define clz(Rd, Rn) clz_(1,Rd, Rn, ctx)
+#define clz_w(Rd, Rn) clz_(0,Rd, Rn, ctx)
 
 void cmn_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define cmn(Rn, S2) do {FlexOp s=S2;  cmn_(1, Rn, s, ctx); } while(False)
 void cmp_(uint1 w, armReg Rn, FlexOp S2, assemCtxPo ctx);
 #define cmp(Rn, S2) do {FlexOp s=S2;  cmp_(1, Rn, s, ctx); } while(False)
-#define cmpw(Rn, S2) do {FlexOp s=S2;  cmp_(0, Rn, s, ctx); } while(False)
+#define cmp_w(Rn, S2) do {FlexOp s=S2;  cmp_(0, Rn, s, ctx); } while(False)
 
 void cneg_(uint1 w, armReg Rd, armCond cond, armReg Rn, assemCtxPo ctx);
 #define cneg(Rd, Rn, Cond) cneg_(1, Rd, Cond, Rn, ctx)
+#define cneg_w(Rd, Rn, Cond) cneg_(0, Rd, Cond, Rn, ctx)
 void csel_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armCond cond, assemCtxPo ctx);
 #define csel(Rd, Rn, Rm, cond) csel_(1,Rd,Rn,Rm,cond,ctx);
+#define csel_w(Rd, Rn, Rm, cond) csel_(0,Rd,Rn,Rm,cond,ctx);
 void cset_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx);
 #define cset(Rd, Cnd) cset_(1,Rd,Cnd,ctx);
 void csetm_(uint1 w, armReg Rd, armCond cond, assemCtxPo ctx);
