@@ -1,0 +1,90 @@
+=  The Star Virtual Machine
+
+In this appendix, we introduce the virtual machine used to define the execution
+model of Star.
+
+== Individual Instructions
+
+
+=== Halt V0
+=== Abort Lt, V0
+=== Call prg, V*
+=== OCall Vlm, V*
+=== Escape escape, V*
+=== TCall prg, V*
+=== TOCall Vlm, V*
+=== RSP Vx
+=== RSX level, Vx
+=== Entry Ar, Lcnt
+=== Rtn
+=== Ret V0
+=== XRet V0
+=== Block Ix
+=== Valof Vx, Ix
+=== Break level
+=== Result level, V0
+=== Loop level
+=== If level, V0
+=== IfNot level, V0
+=== ICase V0, Ix
+=== Case V0, Ix
+=== IxCase V0, Ix
+=== CLbl lbl, level, V0
+=== CInt literal, level, V0
+=== CChar literal, level, V0
+=== CFlt literal, level, V0
+=== CLit literal, level, V0
+=== MC Vx, literal
+=== Mv Vx, V0
+=== LG global
+=== SG global, V0
+=== Sav Vx
+=== LdSav Vx, level, V0
+=== TstSav Vx, V0
+=== StSav Vx, V0, V1
+=== Cell Vx, V0
+=== Get Vx, V0
+=== Assign V0, V1
+=== Nth Vx, i32, V0
+=== StNth V0, i32, V0
+=== IAdd Vx, V0, V1
+=== ISub Vx, V0, V1
+=== IMul Vx, V0, V1
+=== IDiv level, Vx, V0, V1
+=== IMod level, Vx, V0, V1
+=== IAbs Vx, V0
+=== IEq Vx, V0, V1
+=== ILt Vx, V0, V1
+=== IGe Vx, V0, V1
+=== CEq Vx, V0, V1
+=== CLt Vx, V0, V1
+=== CGe Vx, V0, V1
+=== BAnd Vx, V0, V1
+=== BOr Vx, V0, V1
+=== BXor Vx, V0, V1
+=== BLsl Vx, V0, V1
+=== BLsr Vx, V0, V1
+=== BAsr Vx, V0, V1
+=== BNot Vx, V0
+=== FAdd Vx, V0, V1
+=== FSub Vx, V0, V1
+=== FMul Vx, V0, V1
+=== FDiv level, Vx, V0, V1
+=== FMod level, Vx, V0, V1
+=== FAbs Vx, V0
+=== FEq Vx, V0, V1
+=== FLt Vx, V0, V1
+=== FGe Vx, V0, V1
+=== Alloc label, V0 V*
+=== Closure prg, V0, V1
+=== Bump V0
+=== Drop V0
+=== Fiber V0, V1
+=== Suspend V0, V1
+=== Resume V0, V1
+=== Retire V0, V1
+=== Underflow
+=== Line literal
+=== Bind literal, V0
+=== dBug literal
+
