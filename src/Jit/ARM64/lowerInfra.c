@@ -116,7 +116,7 @@ int32 stashLiveLocals(codeGenPo state, int32 pc) {
 logical allLocalsStashed(codeGenPo state, int32 pc) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo var = &state->locals[ix];
-    if (liveVar(var, pc) && !var->stashed) {
+    if (liveVar(var, pc) && var->inited && !var->stashed) {
       return False;
     }
   }

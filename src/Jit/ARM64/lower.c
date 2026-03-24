@@ -326,7 +326,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
         localVarPo tgt = localTarget(state, pc, opand(2));
         storeVar(state, pc,RG(RTV), tgt);
-        if (!registerInUse(state, RG(RTS))) { // Special case for the RTS/RTV registers
+        if (!registerInUse(state, RG(RTS))) {
+          // Special case for the RTS/RTV registers
           releaseReg(jit,RTS);
           releaseReg(jit,RTV);
         }
@@ -398,41 +399,43 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sBlock: {
         // block of instructions
         int32 blockLen = opand(1);
+        int32 nextPc = pc + blockLen;
         codeLblPo brkLbl = newLabel(ctx);
 
         JitBlock subBlock = {
           .blockType = sBlock,
           .startPc = pc,
-          .endPc = pc + blockLen + 2,
+          .endPc = nextPc,
           .breakLbl = brkLbl,
           .loopLbl = here(),
           .parent = block,
           .phiVar = Null
         };
 
-        ret = jitBlock(&subBlock, state, code, pc + 2, pc + blockLen + 2);
-        pc += blockLen + 2; // Skip over the block
+        ret = jitBlock(&subBlock, state, code, pc + 2, nextPc);
+        pc = nextPc; // Skip over the block
         retireExpiredVars(state, pc);
         bind(brkLbl);
         continue;
       }
       case sValof: {
         // vlof block of instructions
-        int32 blockLen = opand(1);
+        int32 blockLen = opand(2);
+        int32 nextPc = pc + blockLen;
         codeLblPo brkLbl = newLabel(ctx);
 
         JitBlock subBlock = {
           .blockType = sValof,
           .startPc = pc,
-          .endPc = pc + blockLen + 2,
+          .endPc = nextPc,
           .breakLbl = brkLbl,
           .loopLbl = here(),
           .parent = block,
-          .phiVar = findPhiVariable(state, pc + blockLen + 1, opand(1))
+          .phiVar = findPhiVariable(state, pc, opand(1))
         };
 
-        ret = jitBlock(&subBlock, state, code, pc + 2, pc + blockLen + 2);
-        pc += blockLen + 2; // Skip over the block
+        ret = jitBlock(&subBlock, state, code, pc + 3, nextPc);
+        pc = nextPc; // Skip over the block
         retireExpiredVars(state, pc);
         bind(brkLbl);
         continue;
@@ -556,6 +559,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       }
       case sCLbl: {
         // T,Lbl --> test for a data term, break if not lbl
+        int32 insSize = 4;
         int32 key = opand(1);
         blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
         armReg tmp = findARegister(state, pc);
@@ -572,10 +576,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         bne(breakLabel(tgt));
         releaseReg(jit, tmp);
         releaseReg(jit, tmp2);
+        pc+= insSize;
         continue;
       }
       case sCInt:
       case sCChar: {
+        int32 insSize = 4;
         armReg tmp = findARegister(state, pc);
         FlexOp vl = localFlex(state, pc, opand(3));
         loadRegister(state, tmp, vl);
@@ -593,25 +599,28 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         releaseReg(jit, tmp);
         blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
         bne(breakLabel(tgt));
+        pc+=insSize;
         continue;
       }
       case sCFlt:
       case sCLit: {
         // T,lit --> test for a literal value, break if not
+        int32 insSize = 4;
         int32 key = opand(1);
         FlexOp vl = localFlex(state, pc, opand(3));
         invokeIntrinsic(state, pc, (runtimeFn) sameTerm, 2, (FlexOp[]){vl, constantFlex(key)});
-        tst(RTV, RG(RTV));
+        cmp(RTV, IM(True));
         blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
         bne(breakLabel(tgt));
+        pc+=insSize;
         continue;
       }
       case sMC: {
         // Place a literal from constant pool
         int32 insSize = 3;
         int32 key = opand(2);
-        localVarPo nv = localSource(state, pc,opand(1));
-        storeFlex(state, pc, constantFlex(key), nv->src);
+        localVarPo dst = localTarget(state, pc,opand(1));
+        storeVar(state, pc, constantFlex(key), dst);
         pc += insSize;
         continue;
       }
@@ -619,8 +628,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         // Copy variables
         int32 insSize = 3;
         localVarPo src = localSource(state, pc,opand(2));
-        localVarPo dst = localSource(state, pc,opand(1));
-        storeFlex(state, pc, src->src, dst->src);
+        localVarPo dst = localTarget(state, pc,opand(1));
+        storeVar(state, pc, src->src, dst);
         pc += insSize;
         continue;
       }

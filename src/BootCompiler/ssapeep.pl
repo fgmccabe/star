@@ -40,7 +40,7 @@ vrRead(Vr,iTCall(_,As)) :-
   is_member(Vr,As).
 vrRead(Vr,iEscape(_,As)) :-
   is_member(Vr,As).
-vrRead(Vr,iRSP(Vr)).
+% vrRead(Vr,iRSP(Vr)).
 vrRead(Vr,iRSX(_,Vr)).
 vrRead(Vr,iOCall(Vr,_)).
 vrRead(Vr,iOCall(_,As)) :-
