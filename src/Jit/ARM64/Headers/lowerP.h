@@ -19,8 +19,8 @@
 #define AG  (X13)
 #define STK (X14)
 #define PR (X15)
-#define RTV (X1)
-#define RTS (X0)
+#define RTV (X10)
+#define RTS (X11)
 
 typedef struct {
   FlexOp src;
@@ -52,7 +52,7 @@ typedef struct jitBlock_ {
   blockPo parent;
 } JitBlock;
 
-void stackCheck(codeGenPo state, int32 pc, methodPo mtd);
+void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt);
 
 #define pointerSize ((int32)sizeof(integer))
 
@@ -71,7 +71,7 @@ int32 maxArgRegister;
 armReg findARegister(codeGenPo state, int32 pc);
 void loadRegister(codeGenPo state, armReg rg, FlexOp src);
 
-void invokeIntrinsic(codeGenPo state, int32 pc, runtimeFn fn, int32 arity, FlexOp args[]);
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[]);
 
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
@@ -86,7 +86,8 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
 
 logical liveVar(localVarPo var, int32 pc);
 int32 stashLiveLocals(codeGenPo state, int32 pc);
-int32 stashSomeLiveLocals(codeGenPo state, int32 pc, int32 cnt);
+registerMap registerLocals(codeGenPo state, int32 pc);
+void restoreStashedLocals(codeGenPo state, int32 pc);
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx);
 localVarPo localTarget(codeGenPo state, int32 pc, int32 lx);
 logical allLocalsStashed(codeGenPo state, int32 pc);

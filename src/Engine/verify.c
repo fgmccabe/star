@@ -205,8 +205,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
         if (isLastPC(pc + insSize, limit))
           return verifyError(&ctx, ".%d: Call should not be last instruction in block", pc);
-        if (code[pc + insSize].op.op != sRSP && code[pc + insSize].op.op != sRSX)
-          return verifyError(&ctx, ".%d: call expecting a RSP after Call", pc);
         pc += insSize;
         continue;
       }
@@ -286,8 +284,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
         if (isLastPC(pc + insSize, limit))
           return verifyError(&ctx, ".%d: OCall should not be last instruction in block", pc);
-        if (code[pc + insSize].op.op != sRSP && code[pc + insSize].op.op != sRSX)
-          return verifyError(&ctx, ".%d: call expecting a RSP after Call", pc);
         pc += insSize;
         continue;
       }
@@ -333,9 +329,6 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
         if (isLastPC(pc + insWidth, limit))
           return verifyError(&ctx, ".%d: Escape should not be last instruction in block", pc);
-
-        if (code[pc + insWidth].op.op != sRSP && code[pc + insWidth].op.op != sRSX)
-          return verifyError(&ctx, ".%d: call expecting a RSP after Escape", pc);
         pc += insWidth;
         continue;
       }
