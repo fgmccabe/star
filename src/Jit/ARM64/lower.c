@@ -278,7 +278,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 arity = escapeArity(esc);
       assert(arity==opand(2));
 
-      int32 tgtOff = loadArguments(state, pc, pc + 2, arity);
+      int32 tgtOff = loadArguments(state, pc, pc + 3, arity);
       adjustAG(state, pc, tgtOff);
       registerMap saveMap = criticalRegs();
       saveRegisters(ctx, saveMap);
@@ -396,6 +396,36 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       pc += insSize;
       continue;
     }
+    case sRtn: {
+      int32 insSize = 1;
+
+      // Pick up the caller program
+      ldr(X16, OF(FP, OffsetOf(StackFrame, prog)));
+      str(X16, OF(STK, OffsetOf(StackRecord, prog)));
+
+      if (mtdArity(jit->mtd) != 1){
+        int32 delta = mtdArity(jit->mtd) - 1;
+        if (delta < 0)
+          sub(AG, AG, IM(-delta*pointerSize));
+        else
+          add(AG, AG, IM(delta*pointerSize));
+      }
+      // Only need this for debugging
+      stur(AG, STK, OffsetOf(StackRecord,sp));
+
+      // Adjust args register
+      ldr(AG, OF(FP, OffsetOf(StackFrame, args)));
+      // Pick up return address
+      ldr(X16, OF(FP, OffsetOf(StackFrame, link)));
+      // Drop frame
+      sub(FP, FP, IM(sizeof(StackFrame)));
+      loadRegister(state, RTV, constantFlex(voidIndex));
+      mov(RTS, IM(Normal));
+      br(X16);
+      pc += insSize;
+      continue;
+
+    }
     case sBlock: {
       // block of instructions
       int32 blockLen = opand(1);
@@ -453,7 +483,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 insSize = 3;
       blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
       blockPo parent = tgtBlock->parent;
-      localVarPo phiVar = parent->phiVar;
+      localVarPo phiVar = tgtBlock->phiVar;
       FlexOp val = sourceOperandFlex(state, pc, 2); // result variable
       storeVar(state, pc, val, phiVar);
       b(breakLabel(tgtBlock));
@@ -1804,7 +1834,7 @@ void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
     slot->stkOff = ax;
     slot->desc = desc;
     armReg rg = nxtAvailReg(registerArgs);
-    if (desc->registerCandidate && rg != XZR){
+    if (rg != XZR){
       slot->src = RG(rg);
       slot->stashed = False;
       registerArgs = dropReg(registerArgs, rg);
