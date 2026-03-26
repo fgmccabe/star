@@ -133,7 +133,7 @@ void showLiveLocals(ioPo out, codeGenPo state) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo lcl = &state->locals[ix];
     if (lcl->live) {
-      outMsg(out, "L[%d] = %V\n", ix, lcl);
+      outMsg(out, "L[%d] = %V\n%_", ix, lcl);
     }
   }
 }
@@ -420,7 +420,7 @@ retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical a
   localVarPo var = (localVarPo) data;
   varDescPo desc = var->desc;
   return outMsg(out, "%s[%d]%s [%d,%d) @ %F", varKindName(desc->kind), var->desc->varNo,
-                (var->inited ? (var->stashed ? "S" : "s") : "u"),
+                (var->inited ? (var->stashed ? "S" : "") : "u"),
                 desc->start, desc->end,
                 &var->src);
 }
