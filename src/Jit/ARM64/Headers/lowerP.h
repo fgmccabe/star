@@ -71,7 +71,7 @@ int32 maxArgRegister;
 armReg findARegister(codeGenPo state, int32 pc);
 void loadRegister(codeGenPo state, armReg rg, FlexOp src);
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[]);
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt, FlexOp results[]);
 
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
@@ -85,7 +85,7 @@ FlexOp varFlex(int32 index);
 void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
 
 logical liveVar(localVarPo var, int32 pc);
-int32 stashLiveLocals(codeGenPo state, int32 pc);
+int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership);
 registerMap registerLocals(codeGenPo state, int32 pc);
 void restoreStashedLocals(codeGenPo state, int32 pc);
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx);
@@ -101,7 +101,7 @@ int32 nextStkOff(codeGenPo state, int32 pc);
 FlexOp getLclSrc(codeGenPo state, int32 pc, int32 lclNo);
 
 void stash(jitCompPo jit, int32 depth);
-void stashEngineState(jitCompPo jit, int32 stackLevel);
+void stashEngineState(jitCompPo jit, int32 stackLevel, registerMap freeRegs);
 void unstashEngineState(jitCompPo jit);
 
 void loadElement(jitCompPo jit, armReg tgt, armReg base, int32 ix);
@@ -117,6 +117,8 @@ void frameOverride(blockPo block, int arity);
 void frameOOverride(blockPo block, int arity, armReg frReg);
 
 registerMap criticalRegs();
+
+#define argSpec(s,d) (ArgSpec){.src = s, .dst = d, .mark = True, .group = -1}
 
 static inline logical isSmall(termPo x) {
   if (isInteger(x))

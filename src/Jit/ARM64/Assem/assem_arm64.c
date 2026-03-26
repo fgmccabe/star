@@ -898,11 +898,11 @@ void mneg_(uint1 w, armReg Rd, armReg Rm, armReg Rn, assemCtxPo ctx) {
   encode4Reg(w, 0, 0xd8, Rm, 1, XZR, Rn, Rd, ctx);
 }
 
-void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
+void mov_(uint1 w, armReg Rd, FlexOp S1, assemCtxPo ctx) {
   TRACE(outMsg(logFile,"mov %R, %F\n%_",Rd,&S1));
   switch (S1.mode) {
     case reg:
-      encodeDPRegImm(1, 0, 0x22, 0, 0, S1.reg, Rd, ctx);
+      encodeDPRegImm(w, 0, 0x22, 0, 0, S1.reg, Rd, ctx);
       return;
     case imm: {
       uint8 sh;
@@ -925,17 +925,17 @@ void mov_(armReg Rd, FlexOp S1, assemCtxPo ctx) {
         uint16 chunk3 = (S1.immediate >> 16) & 0xffff;
         uint16 chunk4 = S1.immediate & 0xffff;
 
-        encodeImm1Reg(1, 2, 0x25, 0, chunk4, Rd, ctx);
+        encodeImm1Reg(w, 2, 0x25, 0, chunk4, Rd, ctx);
         if (chunk3 != 0)
-          encodeImm1Reg(1, 3, 0x25, 1, chunk3, Rd, ctx);
+          encodeImm1Reg(w, 3, 0x25, 1, chunk3, Rd, ctx);
         if (chunk2 != 0)
-          encodeImm1Reg(1, 3, 0x25, 2, chunk2, Rd, ctx);
+          encodeImm1Reg(w, 3, 0x25, 2, chunk2, Rd, ctx);
         if (chunk1 != 0)
-          encodeImm1Reg(1, 3, 0x25, 3, chunk1, Rd, ctx);
+          encodeImm1Reg(w, 3, 0x25, 3, chunk1, Rd, ctx);
         return;
       }
 
-      encodeImm1Reg(1, 2, 0x25, sh, (int16) imm16, Rd, ctx);
+      encodeImm1Reg(w, 2, 0x25, sh, (int16) imm16, Rd, ctx);
       return;
     }
     default:

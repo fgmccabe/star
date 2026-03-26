@@ -17,7 +17,7 @@
 #include "shuffle.h"
 #include "sort.h"
 
-static void stashVar(codeGenPo state, int32 pc, localVarPo var);
+static void stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership);
 static void unstashVar(codeGenPo state, int32 pc, localVarPo var);
 
 blockPo targetBlock(blockPo block, int32 tgt, ssaOp blockType) {
@@ -94,12 +94,12 @@ logical liveVar(localVarPo var, int32 pc) {
   return var->live;
 }
 
-int32 stashLiveLocals(codeGenPo state, int32 pc) {
+int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
   int32 minOffset = 0;
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo var = &state->locals[ix];
     if (liveVar(var, pc)) {
-      stashVar(state, pc, var);
+      stashVar(state, pc, var, moveOwnership);
       minOffset = min(minOffset, var->stkOff);
     }
   }
@@ -157,11 +157,11 @@ void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt) {
     if (isRegisterOp(tgt)) {
       loadRegister(state, tgt.reg, src);
     } else if (isRegisterOp(src)) {
-      str(src.reg, tgt);
+      move(ctx, tgt, src, state->jit->freeRegs);
     } else {
       armReg tmp = findFreeReg(state->jit);
       loadRegister(state, tmp, src);
-      str(tmp, tgt);
+      move(ctx, tgt,RG(tmp), state->jit->freeRegs);
       releaseReg(state->jit, tmp);
     }
   }
@@ -202,14 +202,15 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
   move(ctx, dst, src, *freeRegs);
 }
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[]) {
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt,
+                     FlexOp results[]) {
   assemCtxPo ctx = assemCtx(state->jit);
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
     showLiveLocals(logFile, state);
   }
 #endif
-  int32 lastSlot = stashLiveLocals(state, pc);
+  int32 lastSlot = stashLiveLocals(state, pc, False);
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
 
   ArgSpec operands[arity];
@@ -229,15 +230,23 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int3
 
   shuffleVars(ctx, operands, arity, &tmpMap, argMove);
 
-  stashEngineState(state->jit, -lastSlot);
+  stashEngineState(state->jit, -lastSlot, argRegs);
   saveRegisters(ctx, saveMap);
   mov(X16, IM((integer) fn));
   blr(X16);
   restoreRegisters(ctx, saveMap);
   unstashEngineState(state->jit);
-  mov(RTS, RG(X0));
-  mov(RTV, RG(X1));
-  restoreRegisters(ctx, saveMap);
+
+  assert(rsCnt >=0 && rsCnt<=2);
+
+  argRegs = systemArgRegs();
+  for (int32 ix = 0; ix < rsCnt; ix++) {
+    armReg ax = nxtAvailReg(argRegs);
+    argRegs = dropReg(argRegs, ax);
+    assert(ax!=XZR);
+    operands[ix] = argSpec(RG(ax),results[ax]);
+  }
+  shuffleVars(ctx, operands, arity, &tmpMap, argMove);
   restoreStashedLocals(state, nextPc);
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
@@ -346,11 +355,8 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   adr(tmp, okLbl);
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
-  stashEngineState(jit, 0);
   invokeIntrinsic(state, pc, pc + 1, (runtimeFn) handleStackOverflow,
-                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(mtdArity(mtd))});
-  unstashEngineState(jit);
-
+                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(mtdArity(mtd))}, 0, (FlexOp[]){});
   bind(okLbl);
   releaseReg(jit, tmp);
 }
@@ -361,14 +367,13 @@ retCode showStackSlot(ioPo out, void *data, long depth, long precision, logical 
   return outMsg(out, "%s[%d]%s", (var->stkOff < 0 ? "L" : "A"), var->stkOff, (var->inited ? "*" : ""));
 }
 
-void stashEngineState(jitCompPo jit, int32 stackLevel) {
+void stashEngineState(jitCompPo jit, int32 stackLevel, registerMap freeRegs) {
   assert(stackLevel>=0);
   assemCtxPo ctx = assemCtx(jit);
   str(AG, OF(STK, OffsetOf(StackRecord, args)));
-  armReg currSP = findFreeReg(jit);
+  armReg currSP = nxtAvailReg(freeRegs);
   sub(currSP, AG, IM(stackLevel*pointerSize));
   str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
-  releaseReg(jit, currSP);
   str(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
@@ -379,13 +384,15 @@ void unstashEngineState(jitCompPo jit) {
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
-void stashVar(codeGenPo state, int32 pc, localVarPo var) {
+void stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
   if (var->inited && !var->stashed) {
     if (isRegisterOp(var->src)) {
-      var->stkOff = nextStkOff(state, pc);
+      var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
       FlexOp lclFlex = varFlex(var->stkOff);
       storeFlex(state, pc, var->src, lclFlex);
       releaseReg(state->jit, var->src.reg);
+      if (moveOwnership)
+        var->src = lclFlex;
       var->stashed = True;
     }
   }
@@ -431,7 +438,7 @@ int32 nextStkOff(codeGenPo state, int32 pc) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo lcl = &state->locals[ix];
     if (liveVar(lcl, pc)) {
-      if ((lcl->stashed || !isRegisterOp(lcl->src)) && lcl->stkOff < lastSlot)
+      if ((lcl->stashed || !isRegisterOp(lcl->src)) && lcl->inited && lcl->stkOff < lastSlot)
         lastSlot = lcl->stkOff;
     }
   }

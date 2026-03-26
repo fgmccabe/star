@@ -455,8 +455,9 @@ void lsr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
 void madd_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx);
 #define madd(Rd, Rm, Rn, Ra) madd_(1,Rd,Rm,Rn,Ra,ctx)
 
-void mov_(armReg d, FlexOp s1, assemCtxPo ctx);
-#define mov(Rd, S)  do{FlexOp s=S; mov_(Rd,s,ctx); } while(False)
+void mov_(uint1 w, armReg d, FlexOp s1, assemCtxPo ctx);
+#define mov(Rd, S)  do{FlexOp s=S; mov_(1, Rd,s,ctx); } while(False)
+#define mov_w(Rd, S)  do{FlexOp s=S; mov_(0, Rd,s,ctx); } while(False)
 
 void msub_(uint1 w, armReg Rd, armReg Rn, armReg Rm, armReg Ra, assemCtxPo ctx);
 #define msub(Rd, Rm, Rn, Ra) msub_(1,Rd,Rm,Rn,Ra,ctx)
