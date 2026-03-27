@@ -75,6 +75,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int3
 
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
+void breakOut(codeGenPo state, int32 nextPc, blockPo tgt);
 
 blockPo targetBlock(blockPo block, int32 tgt, ssaOp blockType);
 

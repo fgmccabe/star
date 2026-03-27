@@ -39,6 +39,13 @@ codeLblPo loopLabel(blockPo block) {
   return block->loopLbl;
 }
 
+void breakOut(codeGenPo state, int32 nextPc, blockPo tgt) {
+  if (tgt->endPc!=nextPc){
+    assemCtxPo ctx = assemCtx(state->jit);
+    b(breakLabel(tgt));
+  }
+}
+
 retCode getIntVal(jitCompPo jit, armReg rg) {
   assemCtxPo ctx = assemCtx(jit);
   asr(rg, rg, IM(2));
@@ -246,7 +253,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int3
     assert(ax!=XZR);
     operands[ix] = argSpec(RG(ax),results[ax]);
   }
-  shuffleVars(ctx, operands, arity, &tmpMap, argMove);
+  shuffleVars(ctx, operands, rsCnt, &tmpMap, argMove);
   restoreStashedLocals(state, nextPc);
 #ifdef TRACEJIT
   if (traceJit >= detailedTracing) {
