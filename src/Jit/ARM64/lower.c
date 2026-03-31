@@ -571,7 +571,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
         ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
         labelPo lit = C_LBL(getConstant(key));
-        mov(tmp2, IM(lit->labelIndex));
+        mov_w(tmp2, IM(lit->labelIndex));
         cmp_w(tmp2, RG(tmp));
         bne(breakLabel(tgt));
         releaseReg(jit, tmp);
@@ -671,8 +671,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         // Pick up the jit code itself
         ldr(X16, OF(X17, OffsetOf(MethodRec, jit.code)));
 
-        adr(LR, haveContent);
-        br(X16);
+        blr(X16);
 
         bind(haveContent);
         releaseReg(jit, glb);
@@ -803,7 +802,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp trm = localFlex(state, pc, opand(3));
         armReg tmp = findARegister(state, pc);
         loadFlex(state, pc, trm,RG(tmp));
-        loadElement(jit, tmp, tmp, opand(2));
+        loadElement(jit, tmp, tmp, opand(2)+1);
         localVarPo dst = localTarget(state, pc, opand(1));
         storeVar(state, pc,RG(tmp), dst);
         releaseReg(jit, tmp);
@@ -819,7 +818,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp vl = localFlex(state, pc, opand(3));
         loadRegister(state, tmp, trm);
         loadRegister(state, tmp2, vl);
-        storeElement(jit, tmp2, tmp, opand(2));
+        storeElement(jit, tmp2, tmp, opand(2)+1);
         releaseReg(jit, tmp);
         releaseReg(jit, tmp2);
         pc += insSize;
