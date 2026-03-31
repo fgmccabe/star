@@ -44,7 +44,7 @@ static char* stateName[] = {
 };
 
 retCode showVarDesc(ioPo out, varDescPo var) {
-  return outMsg(out, "%d: %s [%d, %d) %s\n", var->varNo, varKindName(var->kind), var->start,
+  return outMsg(out, "%d: %s [%d, %d] %s\n", var->varNo, varKindName(var->kind), var->start,
                 var->end, (var->registerCandidate ? "reg candidate" : "memory"));
 }
 

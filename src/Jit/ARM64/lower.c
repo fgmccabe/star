@@ -245,12 +245,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           outMsg(logFile, "override frame in: ");
           dumpState(state);
         }
-        int32 tgtOff = overrideArguments(state, lambdaArgRegs(), pc, argPc, arity);
+        armReg lamReg = X16;
+        FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
+        loadRegister(state, lamReg, lam);
+        int32 tgtOff = overrideArguments(state, lambdaArgRegs(), pc, argPc, numArgs);
         adjustAG(state, pc, tgtOff);
 
-        FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
-        armReg lamReg = X16;
-        loadRegister(state, lamReg, lam);
         ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
         ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
@@ -324,7 +324,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = 3;
         codeLblPo rsltOk = newLabel(ctx);
         cbz(RTS, rsltOk);
-        blockPo tgtBlock = targetBlock(block, opand(1), sValof);
+        blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
         assert(tgtBlock!=Null);
 
         storeVar(state, pc,RG(RTV), tgtBlock->phiVar);
@@ -491,15 +491,17 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         continue;
       }
       case sICase: {
+        int32 insSize = 3;
         armReg ix = findARegister(state, pc);
-        int32 tableSize = opand(2);
+        int32 skip = opand(2);
         localVarPo govVr = operandVar(state, pc, 1);
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
         getIntVal(jit, ix);
         and(ix, ix, IM(LARGE_INT61));
 
-        immModulo(ctx, ix, tableSize, jit->freeRegs);
+        int32 mx = (skip - insSize) / 2;
+        immModulo(ctx, ix, mx, jit->freeRegs);
 
         codeLblPo jmpTbl = newLabel(ctx);
         armReg off = findARegister(state, pc);
@@ -509,16 +511,18 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         releaseReg(jit, off);
         releaseReg(jit, ix);
         bind(jmpTbl);
-        return handleBreakTable(state, code, block, pc + 3, tableSize);
+        return handleBreakTable(state, code, block, pc + 3, pc + skip);
       }
       case sCase: {
         // T --> T, case <Max>
-        int32 tableSize = opand(2);
+        int32 skip = opand(2);
+        int32 insSize = 3;
         localVarPo govVr = operandVar(state, pc, 1);
         assert(govVr->live);
         armReg ix = findARegister(state, pc);
         invokeIntrinsic(state, pc, pc, (runtimeFn) hashTerm, 1, (FlexOp[]){govVr->src}, 1, (FlexOp[]){RG(ix)});
-        immModulo(ctx, ix, tableSize, jit->freeRegs);
+        int32 mx = (skip - insSize) / 2;
+        immModulo(ctx, ix, mx, jit->freeRegs);
         codeLblPo jmpTbl = newLabel(ctx);
         armReg off = findARegister(state, pc);
         adr(off, jmpTbl);
@@ -527,18 +531,21 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         releaseReg(jit, off);
         releaseReg(jit, ix);
         bind(jmpTbl);
-        return handleBreakTable(state, code, block, pc + 3, tableSize);
+        return handleBreakTable(state, code, block, pc + 3, pc + skip);
       }
       case sIxCase: {
         // check and jump on index
+        int32 insSize = 3;
         armReg ix = findARegister(state, pc);
-        int32 tableSize = opand(2);
+        int32 skip = opand(2);
         localVarPo govVr = operandVar(state, pc, 1);
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
         ldr(ix, OF(ix, 0)); // Pick up the label
         ldr(ix, OF(ix, OffsetOf(LblRecord, labelIndex)));
-        immModulo(ctx, ix, tableSize, jit->freeRegs);
+
+        int32 mx = (skip - insSize) / 2;
+        immModulo(ctx, ix, mx, jit->freeRegs);
 
         codeLblPo jmpTbl = newLabel(ctx);
         armReg off = findARegister(state, pc);
@@ -548,7 +555,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         releaseReg(jit, off);
         releaseReg(jit, ix);
         bind(jmpTbl);
-        return handleBreakTable(state, code, block, pc + 3, tableSize);
+        return handleBreakTable(state, code, block, pc + 3, pc + skip);
       }
       case sCLbl: {
         // T,Lbl --> test for a data term, break if not lbl
@@ -557,7 +564,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         blockPo tgt = targetBlock(block, pc + opand(2), sBlock);
         armReg tmp = findARegister(state, pc);
         armReg tmp2 = findARegister(state, pc);
-        FlexOp vl = localFlex(state, pc, opand(2));
+        FlexOp vl = localFlex(state, pc, opand(3));
         loadRegister(state, tmp, vl);
         tst(tmp, IM(0b11));
         bne(breakLabel(tgt));
@@ -677,7 +684,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = 3;
         globalPo glbVr = findGlobalVar(opand(1));
         armReg glb = findFreeReg(jit);
-        mov(glb, IM((integer) glbVr)); // Global var structures are not subject to GC
+        mov(glb, IM((integer) glbVr)); // Global var names are not subject to GC
 
         // store into a global variable
         localVarPo src = localSource(state, pc, opand(2));
@@ -749,7 +756,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       }
       case sCell: {
         // create R/W cell
-        int32 insSize = 2;
+        int32 insSize = 3;
         armReg cel = allocSmallStruct(state, pc, pc + insSize, cellIndex,CellCellCount);
         FlexOp vl = localFlex(state, pc, opand(2));
         storeFlex(state, pc, vl,OF(cel, OffsetOf(CellRecord, content)));
@@ -1249,8 +1256,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
 
         storeVar(state, pc, RG(reslt), dst);
-        releaseReg(jit, a2);
-        releaseReg(jit, a1);
         releaseReg(jit, reslt);
         pc += insSize;
         continue;
@@ -1276,8 +1281,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
 
         storeVar(state, pc, RG(reslt), dst);
-        releaseReg(jit, a2);
-        releaseReg(jit, a1);
         releaseReg(jit, reslt);
         pc += insSize;
         continue;
@@ -1303,8 +1306,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         fstr(F0, OF(reslt, OffsetOf(FloatRecord, dx)));
 
         storeVar(state, pc, RG(reslt), dst);
-        releaseReg(jit, a2);
-        releaseReg(jit, a1);
         releaseReg(jit, reslt);
         pc += insSize;
         continue;
@@ -1412,9 +1413,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         storeVar(state, pc, RG(reslt), dst);
         releaseReg(jit, a1);
         pc += insSize;
-
-        releaseReg(jit, a1);
-        pc += insSize;
         continue;
       }
       case sFEq: {
@@ -1509,10 +1507,10 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       }
       case sAlloc: {
         // new structure, elements from stack
-        int32 insSize = 4;
         int32 key = opand(1);
         labelPo label = C_LBL(getConstant(key));
         int32 arity = lblArity(label);
+        int32 insSize = arity + 4;
 
         armReg term = allocSmallStruct(state, pc, pc + insSize, label->labelIndex,NormalCellCount(arity));
 
@@ -1522,6 +1520,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         }
 
         storeVar(state, pc,RG(term), localTarget(state, pc,opand(2)));
+        releaseReg(jit,term);
         pc += insSize;
         continue;
       }
@@ -1787,11 +1786,12 @@ void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
 retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit) {
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
-  for (int ix = 0; ix < limit; ix++, pc++) {
+  while (pc < limit) {
     check(code[pc].op.op==sBreak||code[pc].op.op==sLoop, "Expecting a Break instruction");
     blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
     codeLblPo lbl = (code[pc].op.op == sBreak ? breakLabel(tgtBlock) : loopLabel(tgtBlock));
     b(lbl);
+    pc += 2;
   }
   return Ok;
 }
@@ -1844,7 +1844,6 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pcBase, in
     int32 argSlot = minOffset - arity + ix;
     if (ax != XZR) {
       argRegs = dropReg(argRegs, ax);
-      reserveReg(state->jit, ax);
       operands[ix] = argSpec(argSrc, RG(ax));
     } else {
       operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
@@ -1878,7 +1877,6 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 arity, int32 argBase)
     int32 argSlot = minOffset - arity + ix;
     if (ax != XZR) {
       argRegs = dropReg(argRegs, ax);
-      reserveReg(state->jit, ax);
       operands[ix + 1] = argSpec(argSrc, RG(ax));
     } else {
       operands[ix + 1] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
@@ -2009,7 +2007,7 @@ void retireExpiredVars(codeGenPo state, int32 pc) {
     localVarPo lcl = &state->locals[ix];
     if (lcl->live) {
       varDescPo desc = lcl->desc;
-      if (desc->end <= pc) {
+      if (desc->end < pc) {
 #ifdef TRACEJIT
         if (traceJit >= detailedTracing) {
           outMsg(logFile, "Retire variable %V at %d\n", lcl, pc);

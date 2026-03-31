@@ -6,12 +6,17 @@
 #include "codeP.h"
 #include <assert.h>
 #include <stdlib.h>
+
+#include "analyse.h"
+#include "analyseP.h"
 #include "quick.h"
 #include "disass.h"
 #include "pkgP.h"
+#include "tree.h"
 
 static poolPo pkgPool;
 static poolPo mtdPool;
+static poolPo indexPool;
 static hashPo packages;
 
 static long mtdSize(builtinClassPo cl, termPo o);
@@ -40,12 +45,49 @@ static retCode delPkg(packagePo pkg, packagePo p);
 static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
+
+typedef struct code_index_ {
+  ssaInsPo lowerBound;
+  ssaInsPo upperBound;
+  methodPo mtd;
+} CodeIndexRecord, *codeIndexPo;
+
+static treePo codeIndex;
+
+static comparison indexCode(void* l, void* r) {
+  codeIndexPo lx = (codeIndexPo) l;
+  codeIndexPo rx= (codeIndexPo) r;
+
+  if (lx->upperBound < rx->lowerBound)
+    return smaller;
+  else if (lx->lowerBound > rx->upperBound)
+    return bigger;
+  else if (lx->lowerBound >= rx->lowerBound && lx->upperBound <= rx->upperBound)
+    return same;
+  else
+    return different;
+}
+
+void recordMethodCode(treePo index, methodPo mtd) {
+  codeIndexPo indexEntry = (codeIndexPo) allocPool(indexPool);
+
+  indexEntry->lowerBound = entryPoint(mtd);
+  indexEntry->upperBound = entryPoint(mtd)+codeSize(mtd);
+  indexEntry->mtd = mtd;
+
+  treePut(codeIndex,indexEntry,indexEntry);
+}
+
 void initCode() {
   MethodClass.special.lblIndex = specialIndex;
   methodIndex = standardIndex(methodClass);
 
   pkgPool = newPool(sizeof(PackageRec), 16);
   mtdPool = newPool(sizeof(MethodRec), 4096);
+  indexPool = newPool(sizeof(CodeIndexRecord), 4096);
+
+  codeIndex = newTree(indexCode, Null);
+
   packages = newHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
 }
 

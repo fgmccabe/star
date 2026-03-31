@@ -27,4 +27,6 @@ void *treeGet(treePo tree,void *name); // search for an entry
 retCode treeRemove(treePo tree,void *name); // remove an entry from the hash tabl
 integer treeSize(treePo tree);
 
+treePo rebalanceTree(treePo tree);
+
 #endif //STAR_TREE_H

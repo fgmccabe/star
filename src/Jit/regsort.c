@@ -160,22 +160,22 @@ int32 sortSpecs(ArgSpec defs[], int32 arity)
   argSpecPo stackData[arity];
   Stack stack = {.top = 0, .stack = stackData, .size = arity};
 
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing){
-    showDefs(defs, arity);
-  }
-#endif
+// #ifdef TRACEJIT
+//   if (traceJit >= detailedTracing){
+//     showDefs(defs, arity);
+//   }
+// #endif
 
   argSpecPo def;
   while ((def = nextDef(defs, arity)) != Null){
     analyseDef(def, defs, arity, &stack, &groups);
   }
 
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing){
-    showGroups(defs, groups, arity);
-  }
-#endif
+// #ifdef TRACEJIT
+//   if (traceJit >= detailedTracing){
+//     showGroups(defs, groups, arity);
+//   }
+// #endif
 
   assert(stack.top==0);
   return groups;

@@ -17,7 +17,7 @@
 #include "shuffle.h"
 #include "sort.h"
 
-static void stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership);
+static int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership);
 static void unstashVar(codeGenPo state, int32 pc, localVarPo var);
 
 blockPo targetBlock(blockPo block, int32 tgt, ssaOp blockType) {
@@ -40,7 +40,7 @@ codeLblPo loopLabel(blockPo block) {
 }
 
 void breakOut(codeGenPo state, int32 nextPc, blockPo tgt) {
-  if (tgt->endPc!=nextPc){
+  if (tgt->endPc != nextPc) {
     assemCtxPo ctx = assemCtx(state->jit);
     b(breakLabel(tgt));
   }
@@ -106,8 +106,7 @@ int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo var = &state->locals[ix];
     if (liveVar(var, pc)) {
-      stashVar(state, pc, var, moveOwnership);
-      minOffset = min(minOffset, var->stkOff);
+      minOffset = min(minOffset, stashVar(state, pc, var, moveOwnership));
     }
   }
   return minOffset;
@@ -212,11 +211,7 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
 void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt,
                      FlexOp results[]) {
   assemCtxPo ctx = assemCtx(state->jit);
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
-    showLiveLocals(logFile, state);
-  }
-#endif
+
   int32 lastSlot = stashLiveLocals(state, pc, False);
   voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
 
@@ -251,15 +246,10 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int3
     armReg ax = nxtAvailReg(argRegs);
     argRegs = dropReg(argRegs, ax);
     assert(ax!=XZR);
-    operands[ix] = argSpec(RG(ax),results[ax]);
+    operands[ix] = argSpec(RG(ax), results[ax]);
   }
   shuffleVars(ctx, operands, rsCnt, &tmpMap, argMove);
   restoreStashedLocals(state, nextPc);
-#ifdef TRACEJIT
-  if (traceJit >= detailedTracing) {
-    showLiveLocals(logFile, state);
-  }
-#endif
 }
 
 retCode jitError(jitCompPo jit, char *msg, ...) {
@@ -391,18 +381,24 @@ void unstashEngineState(jitCompPo jit) {
   ldr(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
-void stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
-  if (var->inited && !var->stashed) {
-    if (isRegisterOp(var->src)) {
-      var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
-      FlexOp lclFlex = varFlex(var->stkOff);
-      storeFlex(state, pc, var->src, lclFlex);
-      releaseReg(state->jit, var->src.reg);
-      if (moveOwnership)
-        var->src = lclFlex;
-      var->stashed = True;
+int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
+  if (var->inited ) {
+    if (!var->stashed) {
+      if (isRegisterOp(var->src)) {
+        var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
+        FlexOp lclFlex = varFlex(var->stkOff);
+        storeFlex(state, pc, var->src, lclFlex);
+        if (moveOwnership) {
+          var->src = lclFlex;
+          releaseReg(state->jit, var->src.reg);
+        }
+        var->stashed = True;
+        return var->stkOff;
+      }
     }
+    return var->stkOff;
   }
+  return 0;
 }
 
 void unstashVar(codeGenPo state, int32 pc, localVarPo var) {
@@ -422,7 +418,6 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
     localVarPo var = &state->locals[ix];
     if (liveVar(var, pc) && var->inited && var->stashed) {
       if (isRegisterOp(var->src)) {
-        reserveReg(state->jit, var->src.reg);
         ldr(var->src.reg, varFlex(var->stkOff));
         var->stashed = False;
       }
@@ -433,7 +428,7 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
 retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt) {
   localVarPo var = (localVarPo) data;
   varDescPo desc = var->desc;
-  return outMsg(out, "%s[%d]%s [%d,%d) @ %F", varKindName(desc->kind), var->desc->varNo,
+  return outMsg(out, "%s[%d]%s [%d,%d] @ %F", varKindName(desc->kind), var->desc->varNo,
                 (var->inited ? (var->stashed ? "S" : "") : "u"),
                 desc->start, desc->end,
                 &var->src);

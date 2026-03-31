@@ -597,14 +597,19 @@ compExp(rtire(Lc,T,M,_Tp),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   bindExpToVar(T,Lc,Brks,Opts,TVr,L,L1,D,D1,C0,C1),
   bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
   genDbg(Opts,Lc,C2,[iRetire(TVr,MVr)|Cx]).
-compExp(Cond,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,iValof(RsVr,[iLbl(Fl,iBlock(C1)),iMC(RsltVr,enum(False)),iResult(Ok,RsltVr)]))|Cx],Cx) :-
+compExp(Cond,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,
+	[iLbl(Ok,iValof(RsVr,
+			[iLbl(Fl,iBlock(C1)),iMC(FlVr,enum(False)),
+			 iResult(Ok,FlVr)]))|Cx],Cx) :-
   isCond(Cond),!,
   isTrueSymb(True),
   isFalseSymb(False),
-  defineTmpVar(Lc,RsltVr,type("boolean"),Opts,D,D1),
+  defineTmpVar(Lc,OkVr,type("boolean"),Opts,D,D1),
+  defineTmpVar(Lc,FlVr,type("boolean"),Opts,D1,D2),
   genLbl(L,Ok,L0),
   genLbl(L0,Fl,L1),
-  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,Lx,D1,Dx,C1,[iMC(RsltVr,enum(True)),iResult(Ok,RsltVr)|Cx]).
+  compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,Lx,D2,Dx,C1,
+	   [iMC(OkVr,enum(True)),iResult(Ok,OkVr)|Cx]).
 compExp(T,Lc,_,_Brks,_Opts,Lx,Lx,Dx,Dx,C,C) :-
   reportError("cannot compile %s",[ltrm(T)],Lc),
   abort.

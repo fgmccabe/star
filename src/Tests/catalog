@@ -89,6 +89,7 @@
     "test.fib": "fib.star",
     "test.fil": "fil.star",
     "test.fl": "fl.star",
+    "test.flt": "flt.star",
     "test.fm": "fm.star",
     "test.fma": "fma.star",
     "test.fmt": "fmt.star",

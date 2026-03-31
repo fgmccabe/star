@@ -165,12 +165,13 @@ transformMdlDef(cnsDef(Lc,_Nm,enm(_,FullNm,Tp)),_Pkg,Map,_,D,Dx) :-
   transformConsDef(Lc,FullNm,Tp,Map,D,Dx).
 transformMdlDef(conDef(_,_,_),_Pkg,_,_,Dxx,Dxx).
 
-transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[GlbDef|Dx],Dxx) :-
+transformGlobal(Lc,ExtNm,Val,Tp,Map,Opts,[UGlb|Dx],Dxx) :-
   checkOpt(Opts,traceNormalize,showMsg(Lc,"transform global %s",
 				       [canDef(varDef(Lc,ExtNm,ExtNm,[],Tp,Val))])),
   liftExp(Val,Vl,[],_Q,Map,Opts,Dx,Dxx),
   GlbDef = glbDef(Lc,ExtNm,Tp,Vl),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"transformed global %s",[ldef(GlbDef)])).
+  uniqify(GlbDef,UGlb),
+  checkOpt(Opts,traceNormalize,showMsg(Lc,"transformed global %s",[ldef(UGlb)])).
 
 extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
@@ -184,7 +185,7 @@ transformConsDef(Lc,Nm,Tp,Map,[lblDef(Lc,lbl(Nm,Ar),Tp,Ix)|Dx],Dx) :-
   progTypeArity(Tp,Ar),
   is_member((lbl(Nm,_),Ix),IxMap).
 
-transformProcedure(Lc,Nm,LclName,Tp,Extra,Rls,Map,Opts,[Prc|Ex],Exx) :-
+transformProcedure(Lc,Nm,LclName,Tp,Extra,Rls,Map,Opts,[UPrc|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispProcedure(LclName,Tp,Rls);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
@@ -192,9 +193,10 @@ transformProcedure(Lc,Nm,LclName,Tp,Extra,Rls,Map,Opts,[Prc|Ex],Exx) :-
   transformRules(Map,Extra,Opts,Rls,Rules,[],Ex,Ex0),
   closureProc(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
   procMatcher(Lc,lbl(LclName,Ar),ATp,Rules,Map,Prc),!,
-  (is_member(traceNormalize,Opts) -> dispRuleSet(Prc);true).
+  uniqify(Prc,UPrc),
+  checkOpt(Opts,traceNormalize,meta:showMsg(Lc,"after uniqify: %s",[ldef(UPrc)])).
 
-transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
+transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[UFun|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispFunction(LclName,Tp,Eqns);true),
   progTypeArity(Tp,Arity),
   extraArity(Arity,Extra,Ar),
@@ -203,9 +205,10 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
   functionMatcher(Lc,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!,
-  (is_member(traceNormalize,Opts) -> dispRuleSet(Fun);true).
+  uniqify(Fun,UFun),
+  checkOpt(Opts,traceNormalize,meta:showMsg(Lc,"after uniqify: %s",[ldef(UFun)])).
 
-closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
+closureEntry(Map,Lc,Name,Tp,Extra,Map,_Opts,[ClEntry|Exx],Exx) :-
   lookupVar(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure),!,
   extendFunType(Tp,Extra,ATp),
@@ -220,8 +223,7 @@ closureEntry(Map,Lc,Name,Tp,Extra,Map,Opts,[ClEntry|Exx],Exx) :-
    genVar("ϕ",tplType([]),FrVr),
    Ar1 is Ar+1,
    ClEntry = fnDef(Lc,lbl(Closure,Ar1),hard,ATp,[FrVr|Args],Call);
-   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,Call)),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"closure rule %s",[ldef(ClEntry)])).
+   ClEntry = fnDef(Lc,lbl(Closure,Ar),hard,ATp,Args,Call)).
 closureEntry(_,_,_Name,_Tp,_,_,_,L,L).
 %  reportMsg("no closure for %s:%s",[ss(Name),tpe(Tp)]).
 
@@ -428,17 +430,12 @@ liftExp(open(_,E,_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(apply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  typeOfCanon(Op,OTp),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"implement call to %s:%s",[can(Op),tpe(OTp)])),
   trExpCallOp(Lc,Op,Tp,nothrow,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(capply(Lc,Op,tple(_,A),Tp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"implement call to %s:%s",[can(Op),tpe(Tp)])),
   trExpCallOp(Lc,Op,Tp,nothrow,LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tapply(Lc,Op,tple(_,A),Tp,ErTp),Call,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  typeOfCanon(Op,OTp),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"implement call to %s:%s",[can(Op),tpe(OTp)])),
   trExpCallOp(Lc,Op,Tp,throw(ErTp),LA,Call,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(tdot(Lc,R,Ix,Tp),nth(Lc,Rc,Ix,Tp),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(R,Rc,Q,Qx,Map,Opts,Ex,Exx).
@@ -475,10 +472,8 @@ liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(letExp(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"tx %s",[can(letExp(Lc,Decls,Defs,Bnd))])),
   liftLetExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(letRec(Lc,Decls,Defs,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"tx %s",[can(letRec(Lc,Decls,Defs,Bnd))])),
   liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Lbl,[],Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
@@ -533,7 +528,6 @@ liftAction(doWhile(Lc,G,B),whle(Lc,GG,BB),Q,Q,Map,Opts,Ex,Exx) :-!,
   liftGoal(G,GG,Q,Q0,Map,Opts,Ex,Ex0),
   liftAction(B,BB,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"transform %s",[cnact(doLet(Lc,Decls,Defs,B))])),
   genVar("_ThAL",Tp,ThVr),
   letActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
   tipeOf(FreeTerm,Tp),
@@ -542,7 +536,6 @@ liftAction(doLet(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   mkFreeActionLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp).
 %  (is_member(traceNormalize,Opts) -> dispAct(Exp);true).
 liftAction(doLetRec(Lc,Decls,Defs,B),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"transform %s",[cnact(doLetRec(Lc,Decls,Defs,B))])),
   genVar("_ThRA",Tp,ThVr),
   letRecActionMap(Lc,Decls,Defs,B,ThVr,Q,Map,Opts,ThMap,FreeTerm),
   tipeOf(FreeTerm,Tp),
@@ -583,7 +576,6 @@ liftLet(Lc,Decls,Defs,Bnd,Cll,Exp,Q,Q,Map,Opts,Ex,Exx) :-
   transformLetDefs(ThMap,RMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,QL,_Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"free term %s",[ltrm(BExpr)])),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"tx'ed %s",[ltrm(Exp)])).
 
 liftLetRecExp(Lc,Decls,Defs,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
@@ -593,11 +585,9 @@ liftLetRec(Lc,Decls,Defs,Cll,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   genVar("_ThV",Tp,ThVr),
   letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,ThMap,FreeTerm,_CellVars),
   tipeOf(FreeTerm,Tp),
-  checkOpt(Opts,traceNormalize,meta:showMsg(Lc,"free term: %s",[ltrm(FreeTerm)])),
   transformLetDefs(ThMap,ThMap,[ThVr],Opts,Defs,[],Fx,Ex,Ex1),
   call(Cll,Bnd,BExpr,Q,Qx,ThMap,Opts,Ex1,Exx),
   mkFreeLet(Lc,ThVr,FreeTerm,Fx,BExpr,Exp),
-  checkOpt(Opts,traceNormalize,showMsg(Lc,"free term %s",[ltrm(BExpr)])),
   checkOpt(Opts,traceNormalize,showMsg(Lc,"tx'ed %s",[ltrm(Exp)])).
 
 mkFreeLet(Lc,Vr,Fr,Ups,Exp,AExp) :-
@@ -730,9 +720,6 @@ liftLambda(lambda(Lc,LamLbl,Cx,Eqn,Tp),clos(LamLbl,Ar,FreeTerm,Tp),Q,Map,Opts,[L
   progTypeArity(Tp,Arity),
   (is_member(traceNormalize,Opts) -> dispCanon(lambda(Lc,LamLbl,Cx,Eqn,Tp));true),
   lambdaMap(lambda(Lc,LamLbl,Cx,Eqn,Tp),ThVr,Q,Map,Opts,FreeTerm,LMap),
-  (is_member(traceNormalize,Opts) ->
-   reportMsg("Free term %s",[ltrm(FreeTerm)]),
-   dispMap("Lambda map: ",1,LMap);true),
   extraArity(Arity,[ThVr],Ar),
   extendFunType(Tp,[ThVr],ATp),
   transformLambdaRule(Eqn,lbl(LamLbl,Ar),LMap,[ThVr],ATp,Opts,LamFun,Ex,Exx),
@@ -777,7 +764,6 @@ liftEls([(_,P)|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
 
 letRecMap(Lc,Decls,Defs,Bnd,ThVr,Q,Map,Opts,[lyr(Vx,Tx,ConsMap,ThVr)|Map],FreeTerm,CellVars) :-
   findFreeVars(letRec(Lc,Decls,Defs,Bnd),Map,Q,ThFree),
-  (is_member(traceNormalize,Opts) -> reportMsg("Free vars %s",[ltrm(ThFree)]);true),
   makeConstructorMap(Decls,consMap{},ConsMap),
   collectThunkVars(Defs,ThVr,0,FIx,varMap{},V0,CellVars),
   collectLabelVars(ThFree,ThVr,FIx,_,V0,V1),

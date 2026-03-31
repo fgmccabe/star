@@ -2,6 +2,8 @@
 // Created by Francis McCabe on 12/11/25.
 //
 
+#include <assert.h>
+
 #include "treeP.h"
 #include "pool.h"
 
@@ -220,4 +222,38 @@ integer treeSize(treePo tr) {
   integer size = nodeSize(tr, tr->tree);
   pthread_mutex_unlock(&tr->mutex);
   return size;
+}
+
+static integer countEls(nodePo node, nodePo *els, integer pos) {
+  if (node != Null) {
+    integer leftCount = countEls(node->left, els, pos);
+    els[leftCount++] = node;
+    return countEls(node->right, els, leftCount);
+  }
+  return pos;
+}
+
+static nodePo rebuild(integer amnt, nodePo *els, integer *pos, integer limit) {
+  if (amnt == 0)
+    return Null;
+  else if (*pos < limit) {
+    nodePo left = rebuild(amnt / 2, els, pos, limit);
+    nodePo nd = els[(*pos)++];
+    nodePo right = rebuild(amnt / 2, els, pos, limit);
+    nd->left = left;
+    nd->right = right;
+    return nd;
+  }
+  return Null;
+}
+
+treePo rebalanceTree(treePo tree) {
+  integer size = treeSize(tree);
+  nodePo els[size];
+  integer counted = countEls(tree->tree, els, 0);
+  assert(counted==size);
+  integer pos = 0;
+  tree->tree = rebuild(size, els, &pos, counted);
+  assert(treeSize(tree)==size);
+  return tree;
 }

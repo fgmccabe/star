@@ -126,7 +126,6 @@ logical inSet(setPo set, int32 k) {
   return (set->data[el] & mask) == mask;
 }
 
-
 logical inSetRange(setPo set, int32 from, int32 to) {
   assert(from<=to);
 

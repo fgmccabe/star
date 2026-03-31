@@ -1,8 +1,7 @@
 :- module(lterms,[ssTransformed/2,
 		  ssRuleSet/3,dispRuleSet/1,dispProg/1,dispEquations/1,dispRules/1,
 		  substTerm/3,substGoal/3,substAction/3,
-		  substTerms/3,rewriteTerm/3,
-		  rewriteAction/3,
+		  substTerms/3,
 		  genTplStruct/2,isLiteral/1,isCnd/1,mkTpl/2,isTpl/1,
 		  isTplLbl/2,mkCons/3,
 		  isUnit/1,
@@ -10,8 +9,9 @@
 		  ssTrm/3,dispTerm/1,showTerm/4,locTerm/2,dispAct/1,ssConsMap/2,
 		  idInTerm/2, 
 		  mergeGl/4,
-		  validLProg/2,isSimplePtn/1,
-		 tipeOf/2]).
+		  validLProg/2,
+		  uniqify/2,
+		  tipeOf/2]).
 
 :- use_module(display).
 :- use_module(misc).
@@ -324,194 +324,235 @@ ssTrmGuard(some(C),Dp,sq([ss("where "),CC])) :-
 dispTerm(T) :-
   display:display(lterms:ssTrm(T,0)).
 
+makeSubstDict(Vrs,D) :-
+  rfold(Vrs,lterms:decVr,qq{},D).
+
+extendSubstDict(Vrs,D,Dx) :-
+  rfold(Vrs,lterms:decVr,D,Dx).
+
+decVr((Nm,SNm),Q,QQ):-
+  makeKey(Nm,Key),
+  put_dict(Key,Q,SNm,QQ).
+
 substTerm(Q,In,Out) :-
-  rewriteTerm(lterms:applyQ(Q),In,Out),!.
+  makeSubstDict(Q,QD),
+  rewriteTerm(lterms:applyQ(QD),lterms:extendQ,In,Out),
+  !.
 
 substGoal(_,none,none) :-!.
 substGoal(Q,some(In),some(Out)) :-
   substTerm(Q,In,Out).
 
 substAction(Q,In,Out) :-
-  rewriteAction(lterms:applyQ(Q),In,Out),!.
+  makeSubstDict(Q,QD),
+  rewriteAction(lterms:applyQ(QD),lterms:extendQ,In,Out),!.
 
-applyQ(Q,idnt(Nm,_),Trm) :- is_member((Nm,Trm),Q),!.
+applyQ(QD,Nm,Trm) :-
+  makeKey(Nm,Key),
+  get_dict(Key,QD,Trm),!.
+
+extendQ(AQ,ltt,Vr,lterms:checkV(Vr,AQ)).
+extendQ(AQ,gl,_,AQ).
+extendQ(AQ,ptn,_,AQ).
+extendQ(AQ,seq,_,AQ).
 
 substTerms(Q,Els,NEls):-
-  map(Els,lterms:substTerm(Q),NEls).
+  makeSubstDict(Q,QD),
+  map(Els,lterms:rewriteTerm(lterms:applyQ(QD),lterms:extendQ),NEls).
 
-rewriteTerm(QTst,T,T1) :-
-  call(QTst,T,T1),!.
-rewriteTerm(_,idnt(Nm,Tp),idnt(Nm,Tp)).
-rewriteTerm(_,voyd,voyd).
-rewriteTerm(_,unreach(Lc,Tp),unreach(Lc,Tp)).
-rewriteTerm(_,intgr(Ix),intgr(Ix)).
-rewriteTerm(_,bigx(Ix),bigx(Ix)).
-rewriteTerm(_,idnt(Nm,T),idnt(Nm,T)).
-rewriteTerm(_,ann(T),ann(T)).
-rewriteTerm(_,flot(Dx),flot(Dx)).
-rewriteTerm(_,chr(Cp),chr(Cp)).
-rewriteTerm(_,strg(Sx),strg(Sx)).
-rewriteTerm(_,enum(Nm),enum(Nm)).
-rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
-rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
-  rewriteTerm(lterms:checkV(V,QTest),Val,Val1),
-  rewriteTerm(lterms:checkV(V,QTest),Exp,Exp1).
-rewriteTerm(QTest,thrw(Lc,E),thrw(Lc,EE)) :-!,
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xecll(Lc,Call,Args,Tp,ErTp),xecll(Lc,Call,NArgs,Tp,ErTp)) :-
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xcll(Lc,Op,Args,Tp,ErTp),xcll(Lc,NOp,NArgs,Tp,ErTp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,xocall(Lc,Op,Args,Tp,ErTp),xocall(Lc,NOp,NArgs,Tp,ErTp)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
-  rewriteTerm(QTest,Op,NOp).
-rewriteTerm(QTest,cel(Lc,T),cel(Lc,NT)) :-
-  rewriteTerm(QTest,T,NT).
-rewriteTerm(QTest,get(Lc,T,Tp),get(Lc,NT,Tp)) :-
-  rewriteTerm(QTest,T,NT).
-rewriteTerm(QTest,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerm(QTest,Vl,NVl).
-rewriteTerm(_QTest,sav(Lc,Tp),sav(Lc,Tp)) :-!.
-rewriteTerm(QTest,savIsSet(Lc,S),savIsSet(Lc,SS)) :-!,
-  rewriteTerm(QTest,S,SS).
-rewriteTerm(QTest,savGet(Lc,L,Tp),savGet(Lc,LL,Tp)) :-
-  rewriteTerm(QTest,L,LL).
-rewriteTerm(QTest,savSet(Lc,Lam,Vl),savSet(Lc,LLam,VV)) :-
-  rewriteTerm(QTest,Lam,LLam),
-  rewriteTerm(QTest,Vl,VV).
-rewriteTerm(QTest,clos(Nm,Ar,Free,Tp),clos(Nm,Ar,NFree,Tp)) :-
-  rewriteTerm(QTest,Free,NFree).
-rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
-  rewriteTerm(QTest,Op,NOp),
-  rewriteTerms(QTest,Args,NArgs).
-rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
-  rewriteTerm(QTest,T,NT),
-  rewriteTerm(QTest,C,NC).
-rewriteTerm(QTest,cse(Lc,G,C,D,T),cse(Lc,NG,NC,ND,T)) :-
-  rewriteTerm(QTest,G,NG),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
-  rewriteTerm(QTest,D,ND).
-rewriteTerm(QTest,unpack(Lc,T,C,D,Tp),unpack(Lc,NT,NC,ND,Tp)) :-
-  rewriteTerm(QTest,T,NT),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteTerm),NC),
-  rewriteTerm(QTest,D,ND).
-rewriteTerm(QTest,seqD(Lc,L,R),seqD(Lc,NL,NR)) :-
-  rewriteTerm(QTest,L,NL),
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
-  rewriteTerm(QTest,L,NL),
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
-  rewriteTerm(QTest,L,NL),
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
-  rewriteTerm(QTest,T,NT),
-  rewriteTerm(QTest,L,NL),
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
-  rewriteTerm(QTest,L,NL),
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
-  rewriteTerm(QTest,R,NR).
-rewriteTerm(QTest,vlof(Lc,A,Tp),vlof(Lc,AA,Tp)) :-
-  rewriteAction(QTest,A,AA).
-rewriteTerm(QTest,tsk(Lc,F),tsk(Lc,FF)) :-
-  rewriteTerm(QTest,F,FF).
-rewriteTerm(QTest,resme(Lc,T,E,Tp),resme(Lc,TT,EE,Tp)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,susp(Lc,T,E,Tp),susp(Lc,TT,EE,Tp)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,rtire(Lc,T,E,Tp),rtire(Lc,TT,EE,Tp)) :-
-  rewriteTerm(QTest,T,TT),
-  rewriteTerm(QTest,E,EE).
-rewriteTerm(QTest,error(Lc,M),error(Lc,MM)) :-!,
-  rewriteTerm(QTest,M,MM).
-rewriteTerm(QTest,tryX(Lc,B,E,H),tryX(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(QTest,E,EE),
-  rewriteTerm(QTest,B,BB),
-  rewriteTerm(QTest,H,HH).
+rewriteTerm(AQ,_,idnt(Nm,_),Trm) :-
+  call(AQ,Nm,Trm),!.
+rewriteTerm(_,_,idnt(Nm,Tp),idnt(Nm,Tp)).
+rewriteTerm(_,_,voyd,voyd).
+rewriteTerm(_,_,unreach(Lc,Tp),unreach(Lc,Tp)).
+rewriteTerm(_,_,intgr(Ix),intgr(Ix)).
+rewriteTerm(_,_,bigx(Ix),bigx(Ix)).
+rewriteTerm(_,_,ann(T),ann(T)).
+rewriteTerm(_,_,flot(Dx),flot(Dx)).
+rewriteTerm(_,_,chr(Cp),chr(Cp)).
+rewriteTerm(_,_,strg(Sx),strg(Sx)).
+rewriteTerm(_,_,enum(Nm),enum(Nm)).
+rewriteTerm(_,_,lbl(Nm,Ar),lbl(Nm,Ar)).
+rewriteTerm(AQ,EX,ltt(Lc,V,Val,Exp),ltt(Lc,NV,Val1,Exp1)) :-
+  call(EX,AQ,ltt,V,NQ),
+  rewriteTerm(NQ,EX,V,NV),
+  rewriteTerm(NQ,EX,Val,Val1),
+  rewriteTerm(NQ,EX,Exp,Exp1).
+rewriteTerm(AQ,EX,thrw(Lc,E),thrw(Lc,EE)) :-!,
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,ecll(Lc,Call,Args,Tp),ecll(Lc,Call,NArgs,Tp)) :-
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,xecll(Lc,Call,Args,Tp,ErTp),xecll(Lc,Call,NArgs,Tp,ErTp)) :-
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,cll(Lc,Op,Args,Tp),cll(Lc,NOp,NArgs,Tp)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,xcll(Lc,Op,Args,Tp,ErTp),xcll(Lc,NOp,NArgs,Tp,ErTp)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,ocall(Lc,Op,Args,Tp),ocall(Lc,NOp,NArgs,Tp)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,xocall(Lc,Op,Args,Tp,ErTp),xocall(Lc,NOp,NArgs,Tp,ErTp)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,nth(Lc,Op,Off,Tp),nth(Lc,NOp,Off,Tp)) :-
+  rewriteTerm(AQ,EX,Op,NOp).
+rewriteTerm(AQ,EX,cel(Lc,T),cel(Lc,NT)) :-
+  rewriteTerm(AQ,EX,T,NT).
+rewriteTerm(AQ,EX,get(Lc,T,Tp),get(Lc,NT,Tp)) :-
+  rewriteTerm(AQ,EX,T,NT).
+rewriteTerm(AQ,EX,setix(Lc,Op,Off,Vl),setix(Lc,NOp,Off,NVl)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerm(AQ,EX,Vl,NVl).
+rewriteTerm(_AQ,_EX,sav(Lc,Tp),sav(Lc,Tp)) :-!.
+rewriteTerm(AQ,EX,savIsSet(Lc,S),savIsSet(Lc,SS)) :-!,
+  rewriteTerm(AQ,EX,S,SS).
+rewriteTerm(AQ,EX,savGet(Lc,L,Tp),savGet(Lc,LL,Tp)) :-
+  rewriteTerm(AQ,EX,L,LL).
+rewriteTerm(AQ,EX,savSet(Lc,Lam,Vl),savSet(Lc,LLam,VV)) :-
+  rewriteTerm(AQ,EX,Lam,LLam),
+  rewriteTerm(AQ,EX,Vl,VV).
+rewriteTerm(AQ,EX,clos(Nm,Ar,Free,Tp),clos(Nm,Ar,NFree,Tp)) :-
+  rewriteTerm(AQ,EX,Free,NFree).
+rewriteTerm(AQ,EX,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
+  rewriteTerm(AQ,EX,Op,NOp),
+  rewriteTerms(AQ,EX,Args,NArgs).
+rewriteTerm(AQ,EX,whr(Lc,T,C),whr(Lc,NT,NC)) :-
+  rewriteGoal(AQ,EX,T,NT,NQ),
+  rewriteTerm(NQ,EX,C,NC).
+rewriteTerm(AQ,EX,cse(Lc,G,C,D,T),cse(Lc,NG,NC,ND,T)) :-
+  rewriteTerm(AQ,EX,G,NG),
+  map(C,lterms:rewriteCase(AQ,EX,lterms:rewriteTerm),NC),
+  rewriteTerm(AQ,EX,D,ND).
+rewriteTerm(AQ,EX,unpack(Lc,T,C,D,Tp),unpack(Lc,NT,NC,ND,Tp)) :-
+  rewriteTerm(AQ,EX,T,NT),
+  map(C,lterms:rewriteCase(AQ,EX,lterms:rewriteTerm),NC),
+  rewriteTerm(AQ,EX,D,ND).
+rewriteTerm(AQ,EX,seqD(Lc,L,R),seqD(Lc,NL,NR)) :-
+  rewriteTerm(AQ,EX,L,NL),
+  rewriteTerm(AQ,EX,R,NR).
+rewriteTerm(AQ,EX,G,Gx) :-
+  isCnd(G),!,
+  rewriteGoal(AQ,EX,G,Gx,_).
+rewriteTerm(AQ,EX,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
+  rewriteGoal(AQ,EX,T,NT,NQ),
+  rewriteTerm(NQ,EX,L,NL),
+  rewriteTerm(NQ,EX,R,NR).
+rewriteTerm(AQ,EX,ng(Lc,R),ng(Lc,NR)) :-
+  rewriteTerm(AQ,EX,R,NR).
+rewriteTerm(AQ,EX,vlof(Lc,A,Tp),vlof(Lc,AA,Tp)) :-
+  rewriteAction(AQ,EX,A,AA).
+rewriteTerm(AQ,EX,tsk(Lc,F),tsk(Lc,FF)) :-
+  rewriteTerm(AQ,EX,F,FF).
+rewriteTerm(AQ,EX,resme(Lc,T,E,Tp),resme(Lc,TT,EE,Tp)) :-
+  rewriteTerm(AQ,EX,T,TT),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,susp(Lc,T,E,Tp),susp(Lc,TT,EE,Tp)) :-
+  rewriteTerm(AQ,EX,T,TT),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,rtire(Lc,T,E,Tp),rtire(Lc,TT,EE,Tp)) :-
+  rewriteTerm(AQ,EX,T,TT),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteTerm(AQ,EX,error(Lc,M),error(Lc,MM)) :-!,
+  rewriteTerm(AQ,EX,M,MM).
+rewriteTerm(AQ,EX,tryX(Lc,B,E,H),tryX(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(AQ,EX,E,EE),
+  rewriteTerm(AQ,EX,B,BB),
+  rewriteTerm(AQ,EX,H,HH).
 
-rewriteTerms(QTest,Els,NEls):-
-  map(Els,lterms:rewriteTerm(QTest),NEls).
+rewriteTerms(AQ,EX,Els,NEls):-
+  map(Els,lterms:rewriteTerm(AQ,EX),NEls).
 
-rewriteGoal(_,none,none).
-rewriteGoal(QTest,some(T),some(NT)) :-
-  rewriteTerm(QTest,T,NT).
-
-rewriteVN(QTest,(T,E),(T,NE)) :-
-  rewriteTerm(QTest,E,NE).
-
-rewriteAction(_QTest,nop(Lc),nop(Lc)) :- !.
-rewriteAction(QTest,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
-  rewriteAction(QTest,L,LL),
-  rewriteAction(QTest,R,RR).
-rewriteAction(QTest,lbld(Lc,Lb,A),lbld(Lc,Lb,AA)) :- !,
-  rewriteAction(QTest,A,AA).
-rewriteAction(_,brk(Lc,Lb),brk(Lc,Lb)) :-!.
-rewriteAction(QTest,vls(Lc,E),vls(Lc,EE)) :- !,
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,aThrow(Lc,E),aThrow(Lc,EE)) :- !,
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,perf(Lc,E),perf(Lc,EE)) :- !,
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,mtch(Lc,P,E),mtch(Lc,PP,EE)) :- !,
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,defn(Lc,P,E),defn(Lc,PP,EE)) :- !,
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,E,EE).
-rewriteAction(QTest,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,D,ND),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
-rewriteAction(QTest,unpack(Lc,G,C,D),unpack(Lc,GG,CC,ND)) :-
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,D,ND),
-  map(C,lterms:rewriteCase(QTest,lterms:rewriteAction),CC).
-rewriteAction(QTest,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,L,LL),
-  rewriteAction(QTest,R,RR).
-rewriteAction(QTest,whle(Lc,G,L),whle(Lc,GG,LL)) :-!,
-  rewriteTerm(QTest,G,GG),
-  rewriteAction(QTest,L,LL).
-rewriteAction(QTest,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
-  rewriteTerm(QTest,P,PP),
-  rewriteTerm(QTest,S,SS),
-  rewriteAction(QTest,B,BB).
-rewriteAction(QTest,ltt(Lc,V,E,B),ltt(Lc,V,EE,BB)) :-!,
-  rewriteTerm(lterms:checkV(V,QTest),E,EE),
-  rewriteAction(lterms:checkV(V,QTest),B,BB).
-rewriteAction(QTest,error(Lc,M),error(Lc,MM)) :-!,
-  rewriteTerm(QTest,M,MM).
-rewriteAction(QTest,aTry(Lc,B,E,H),aTry(Lc,BB,EE,HH)) :-!,
-  rewriteTerm(QTest,E,EE),
-  rewriteAction(QTest,B,BB),
-  rewriteAction(QTest,H,HH).
+rewriteGoal(AQ,EX,Gl,RGl,NQ) :-
+  call(EX,AQ,gl,Gl,NQ),
+  rewriteGl(NQ,EX,Gl,RGl).
   
-rewriteCase(QTest,BCall,(T,E,Lbl),(NT,NE,Lbl)) :-
-  rewriteTerm(QTest,T,NT),
-  call(BCall,QTest,E,NE).
+
+newVar((Nm,Tp),(Nm,idnt(NNm,Tp))) :-
+  genstr(Nm,NNm).
+
+idVar(idnt(Nm,Tp),(Nm,idnt(Nm,Tp))).
+
+rewriteGl(AQ,EX,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
+  rewriteGl(AQ,EX,L,NL),
+  rewriteGl(AQ,EX,R,NR).
+rewriteGl(AQ,EX,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
+  rewriteGl(AQ,EX,L,NL),
+  rewriteGl(AQ,EX,R,NR).
+rewriteGl(AQ,EX,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
+  rewriteGl(AQ,EX,T,NT),
+  rewriteGl(AQ,EX,L,NL),
+  rewriteGl(AQ,EX,R,NR).
+rewriteGl(AQ,EX,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
+  rewriteTerm(AQ,EX,L,NL),
+  rewriteTerm(AQ,EX,R,NR).
+rewriteGl(AQ,EX,ng(Lc,R),ng(Lc,NR)) :-
+  rewriteGl(AQ,EX,R,NR).
+rewriteGl(AQ,EX,T,NT) :-
+  rewriteTerm(AQ,EX,T,NT).
+
+rewriteAction(_,_,nop(Lc),nop(Lc)) :- !.
+rewriteAction(AQ,EX,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
+  call(EX,AQ,seq,L,NQ),
+  rewriteAction(NQ,EX,L,LL),
+  rewriteAction(NQ,EX,R,RR).
+rewriteAction(AQ,EX,lbld(Lc,Lb,A),lbld(Lc,Lb,AA)) :- !,
+  rewriteAction(AQ,EX,A,AA).
+rewriteAction(_,_,brk(Lc,Lb),brk(Lc,Lb)) :-!.
+rewriteAction(AQ,EX,vls(Lc,E),vls(Lc,EE)) :- !,
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,aThrow(Lc,E),aThrow(Lc,EE)) :- !,
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,perf(Lc,E),perf(Lc,EE)) :- !,
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,mtch(Lc,P,E),mtch(Lc,PP,EE)) :- !,
+  rewriteTerm(AQ,EX,P,PP),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,defn(Lc,P,E),defn(Lc,PP,EE)) :- !,
+  rewriteTerm(AQ,EX,P,PP),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,asgn(Lc,P,E),asgn(Lc,PP,EE)) :- !,
+  rewriteTerm(AQ,EX,P,PP),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,setix(Lc,P,Ix,E),setix(Lc,PP,Ix,EE)) :- !,
+  rewriteTerm(AQ,EX,P,PP),
+  rewriteTerm(AQ,EX,E,EE).
+rewriteAction(AQ,EX,case(Lc,G,C,D),case(Lc,GG,CC,ND)) :-
+  rewriteTerm(AQ,EX,G,GG),
+  rewriteAction(AQ,EX,D,ND),
+  map(C,lterms:rewriteCase(AQ,EX,lterms:rewriteAction),CC).
+rewriteAction(AQ,EX,unpack(Lc,G,C,D),unpack(Lc,GG,CC,ND)) :-
+  rewriteTerm(AQ,EX,G,GG),
+  rewriteAction(AQ,EX,D,ND),
+  map(C,lterms:rewriteCase(AQ,EX,lterms:rewriteAction),CC).
+rewriteAction(AQ,EX,iftte(Lc,G,L,R),iftte(Lc,GG,LL,RR)) :-!,
+  rewriteGoal(AQ,EX,G,GG,NQ),
+  rewriteAction(NQ,EX,L,LL),
+  rewriteAction(AQ,EX,R,RR).
+rewriteAction(AQ,EX,whle(Lc,G,B),whle(Lc,GG,BB)) :-!,
+  rewriteGoal(AQ,EX,G,GG,Q1),
+  rewriteAction(Q1,EX,B,BB).
+rewriteAction(AQ,EX,ffor(Lc,P,S,B),ffor(Lc,PP,SS,BB)) :-!,
+  rewriteTerm(AQ,EX,P,PP),
+  rewriteTerm(AQ,EX,S,SS),
+  rewriteAction(AQ,EX,B,BB).
+rewriteAction(AQ,EX,ltt(Lc,V,E,B),ltt(Lc,VV,EE,BB)) :-!,
+  call(EX,AQ,ltt,V,NQ),
+  rewriteTerm(NQ,EX,V,VV),
+  rewriteTerm(NQ,EX,E,EE),
+  rewriteAction(NQ,EX,B,BB).
+rewriteAction(AQ,EX,error(Lc,M),error(Lc,MM)) :-!,
+  rewriteTerm(AQ,EX,M,MM).
+rewriteAction(AQ,EX,aTry(Lc,B,E,H),aTry(Lc,BB,EE,HH)) :-!,
+  rewriteTerm(AQ,EX,E,EE),
+  rewriteAction(AQ,EX,B,BB),
+  rewriteAction(AQ,EX,H,HH).
+  
+rewriteCase(AQ,EX,BCall,(P,E,Lbl),(NP,NE,Lbl)) :-
+  call(EX,AQ,ptn,P,NQ),
+  rewriteTerm(NQ,EX,P,NP),
+  call(BCall,NQ,EX,E,NE).
 
 checkV(Vr,Other,T,T1) :-
   T\=Vr,
@@ -689,7 +730,7 @@ inAction(aTry(_,B,E,H),Nm) :-!,
 isCnd(cnj(_,_,_)).
 isCnd(dsj(_,_,_)).
 isCnd(mtch(_,_,_)).
-isCnd(ng(_,_)).
+isCnd(ng(_,R)) :- isCnd(R).
 isCnd(cnd(_,L,R)) :- isCnd(L);isCnd(R).
 
 tipeOf(voyd,voidType).
@@ -773,29 +814,29 @@ declareStd(Base) :-
 declareNms(Defs,Dct,Dx) :-
   rfold(Defs,lterms:declareDef,Dct,Dx).
 
-declareDef(funDec(_,Nm,_Tp),Dct,Dx) :-!,
-  add_mem(Nm,Dct,Dx).
-declareDef(varDec(_,Nm,_Tp),Dct,Dx) :-!,
-  add_mem(Nm,Dct,Dx).
+declareDef(funDec(_,Nm,Tp),Dct,Dx) :-!,
+  add_mem((Nm,Tp),Dct,Dx).
+declareDef(varDec(_,Nm,Tp),Dct,Dx) :-!,
+  add_mem((Nm,Tp),Dct,Dx).
 declareDef(typeDec(_,_,_,_),Dx,Dx).
-declareDef(cnsDec(_,Nm,_),D,Dx) :-
-  add_mem(Nm,D,Dx).
 declareDef(contractDec(_,_,_),Dx,Dx).
-declareDef(accDec(_,_,Nm,_),Dct,Dx) :-
-  add_mem(Nm,Dct,Dx).
-declareDef(updDec(_,_,Nm,_),Dct,Dx) :-
-  add_mem(Nm,Dct,Dx).
-declareDef(impDec(_,Nm,_),Dct,Dx) :-
-  add_mem(Nm,Dct,Dx).
+declareDef(accDec(_,_,Nm,Tp),Dct,Dx) :-
+  add_mem((Nm,Tp),Dct,Dx).
+declareDef(updDec(_,_,Nm,Tp),Dct,Dx) :-
+  add_mem((Nm,Tp),Dct,Dx).
+declareDef(impDec(_,Nm,Tp),Dct,Dx) :-
+  add_mem((Nm,Tp),Dct,Dx).
+declareDef(cnsDec(_,Nm,Tp),Dct,Dx) :-
+  add_mem((Nm,Tp),Dct,Dx).
        
 declareArgs(Args,Dct,Dx) :-
   rfold(Args,lterms:declareArg,Dct,Dx).
 
-declareArg(idnt(Nm,_),D,Dx) :-
-  add_mem(Nm,D,Dx).
+declareArg(idnt(Nm,Tp),D,Dx) :-
+  add_mem((Nm,Tp),D,Dx).
 
 validTerm(idnt(Nm,_),Lc,D) :-
-  (is_member(Nm,D) -> true ; 
+  (is_member((Nm,_),D) -> true ;
    reportError("(validate) Variable %s not in scope",[id(Nm)],Lc)).
 validTerm(ann(_),_,_).
 validTerm(voyd,_,_).
@@ -916,8 +957,8 @@ validTerms([A|Args],Lc,D) :-
 
 validVr(Id,D,[Id|D]).
 
-validPtn(idnt(Nm,_),_,D,Dx) :-
-  add_mem(Nm,D,Dx).
+validPtn(idnt(Nm,Tp),_,D,Dx) :-
+  add_mem((Nm,Tp),D,Dx).
 validPtn(ann(_),_,Dx,Dx).
 validPtn(voyd,_,Dx,Dx).
 validPtn(intgr(_),_,Dx,Dx).
@@ -1020,8 +1061,8 @@ validAction(aTry(Lc,B,E,H),_,D,D) :-
 validAction(T,Lc,D,D) :-
   reportError("(internal) Invalid action %s",[lact(T)],Lc).
 
-ptnVars(idnt(Nm,_),D,Dx) :-
-  add_mem(Nm,D,Dx).
+ptnVars(idnt(Nm,Tp),D,Dx) :-
+  add_mem((Nm,Tp),D,Dx).
 ptnVars(ann(_),Dx,Dx).
 ptnVars(voyd,Dx,Dx).
 ptnVars(intgr(_),Dx,Dx).
@@ -1031,13 +1072,13 @@ ptnVars(chr(_),Dx,Dx).
 ptnVars(strg(_),Dx,Dx).
 ptnVars(lbl(_,_),Dx,Dx).
 ptnVars(cll(_,_,Args,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
+  ptnVarsList(Args,D,Dx).
 ptnVars(ocall(_,_,Args,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
+  ptnVarsList(Args,D,Dx).
 ptnVars(ecll(_,_,Args,_),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
+  ptnVarsList(Args,D,Dx).
 ptnVars(ctpl(_,Args),D,Dx) :-
-  rfold(Args,lterms:ptnVars,D,Dx).
+  ptnVarsList(Args,D,Dx).
 ptnVars(enum(_),Dx,Dx).
 ptnVars(nth(_,Rc,_,_),D,Dx) :-
   ptnVars(Rc,D,Dx).
@@ -1046,6 +1087,9 @@ ptnVars(savGet(_,Sv,_),D,Dx) :-
 ptnVars(whr(_,Ptn,Cond),D,Dx) :-
   ptnVars(Ptn,D,D0),
   glVars(Cond,D0,Dx).
+
+ptnVarsList(Args,D,Dx) :-
+  rfold(Args,lterms:ptnVars,D,Dx).
 
 glVars(cnj(_,L,R),D,Dx) :-
   glVars(L,D,D0),
@@ -1063,20 +1107,41 @@ glVars(mtch(_,L,_),D,Dx) :-
   ptnVars(L,D,Dx).
 glVars(_,Dx,Dx).
 
-% Check for a 'simple' pattern (that is easy to compile)
-isSimplePtn(P) :- simplPtn(P),!.
+uniQ(QD,Nm,Trm) :-
+  makeKey(Nm,Key),
+  get_dict(Key,QD,Trm),!.
 
-simplPtn(idnt(_,_)).
-simplPtn(ann(_)).
-simplPtn(voyd).
-simplPtn(intgr(_)).
-simplPtn(bigx(_)).
-simplPtn(flot(_)).
-simplPtn(chr(_)).
-simplPtn(strg(_)).
-simplPtn(lbl(_,_)).
-simplPtn(ctpl(_,Args)) :- foreach(Args,lterms:simplTn),!.
-simplPtn(enum(_)).
+extendU(lterms:uniQ(Q),ltt,idnt(Nm,Tp),lterms:uniQ(QQ)) :-
+  newVar((Nm,Tp),NV),
+  decVr(NV,Q,QQ).
+extendU(lterms:uniQ(Q),gl,Gl,lterms:uniQ(QQ)) :-
+  glVars(Gl,[],GVrs),
+  map(GVrs,lterms:newVar,GV),
+  extendSubstDict(GV,Q,QQ).
+extendU(lterms:uniQ(Q),ptn,Gl,lterms:uniQ(QQ)) :-
+  ptnVars(Gl,[],GVrs),
+  map(GVrs,lterms:newVar,GV),
+  extendSubstDict(GV,Q,QQ).
+extendU(lterms:uniQ(Q),seq,A,lterms:uniQ(QQ)) :-
+  extractActVrs(A,Vrs),
+  map(Vrs,lterms:newVar,GV),
+  extendSubstDict(GV,Q,QQ).
 
+extractActVrs(defn(_,P,_),Vrs) :-!,
+  ptnVars(P,[],Vrs).
+extractActVrs(mtch(_,P,_),Vrs) :- !,
+  ptnVars(P,[],Vrs).
+extractActVrs(_,[]).
 
-
+uniqify(fnDef(Lc,Nm,H,Tp,Args,Value),fnDef(Lc,Nm,H,Tp,Args,UValue)) :-
+  map(Args,lterms:idVar,Vrs),
+  makeSubstDict(Vrs,QD),
+  rewriteTerm(lterms:uniQ(QD),lterms:extendU,Value,UValue),!.
+uniqify(prDef(Lc,Nm,H,Tp,Args,Act),prDef(Lc,Nm,H,Tp,Args,UAct)) :-
+  map(Args,lterms:idVar,Vrs),
+  makeSubstDict(Vrs,QD),
+  rewriteAction(lterms:uniQ(QD),lterms:extendU,Act,UAct),!.
+uniqify(glbDef(Lc,Nm,Tp,Value),glbDef(Lc,Nm,Tp,UValue)) :-
+  makeSubstDict([],QD),
+  rewriteTerm(lterms:uniQ(QD),lterms:extendU,Value,UValue),!.
+uniqify(D,D).
