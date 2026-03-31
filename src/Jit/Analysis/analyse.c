@@ -152,7 +152,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, ssaInsPo code, int32 s
       case sCase:
       case sICase: {
         int32 caseLimit = operand(2);
-        int32 nextPc = pc + caseLimit + 3;
+        int32 nextPc = pc + caseLimit;
         recordVariableUse(analysis,operand(1), pc);
         analyseBlock(analysis, &scope, code, pc, pc + 3, nextPc);
         pc = nextPc;

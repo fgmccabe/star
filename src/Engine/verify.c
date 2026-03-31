@@ -29,7 +29,6 @@ typedef struct {
 typedef struct verify_context_ *verifyCtxPo;
 
 typedef struct verify_context_ {
-  char *prefix;
   methodPo mtd;
   int32 from;
   int32 limit;
@@ -61,7 +60,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   int32 maxArgCnt = 0;
 
   VerifyContext mtdCtx = {
-    .prefix = "", .errorMsg = errorMsg, .msgLen = msgLen,
+    .errorMsg = errorMsg, .msgLen = msgLen,
     .mtd = mtd, .from = 0, .limit = codeSize(mtd),
     .parent = Null,
     .maxArgCnt = &maxArgCnt,
@@ -131,11 +130,7 @@ static logical validTarget(verifyCtxPo ctx, int32 vrNo) {
 retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical hasValue) {
   ssaInsPo code = parentCtx->mtd->instructions;
 
-  char prefix[MAXLINE];
-  strMsg(prefix, NumberOf(prefix), "%s.%d", parentCtx->prefix, from);
-
   VerifyContext ctx = {
-    .prefix = prefix,
     .errorMsg = parentCtx->errorMsg, .msgLen = parentCtx->msgLen,
     .mtd = parentCtx->mtd,
     .from = from,
@@ -1061,6 +1056,6 @@ retCode verifyError(verifyCtxPo ctx, char *msg, ...) {
 
   closeIo(O_IO(f));
 
-  strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "%s%s"RED_ESC_OFF, ctx->prefix, buff);
+  strMsg(ctx->errorMsg, ctx->msgLen, RED_ESC_ON "%s"RED_ESC_OFF, buff);
   return Error;
 }
