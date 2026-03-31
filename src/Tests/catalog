@@ -214,6 +214,7 @@
     "test.tsort": "tsort.star",
     "test.u": "u.star",
     "test.u2": "u2.star",
+    "test.u3": "u3.star",
     "test.v0": "v0.star",
     "test.vis": "vis.star",
     "test.wh": "wh.star",

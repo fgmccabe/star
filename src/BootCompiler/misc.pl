@@ -275,7 +275,8 @@ pathSuffix(String,Marker,Tail) :-
 pathSuffix(String,_,String).
 
 genstr(Prefix,S) :-
-  gensym(Prefix,A),
+  atom_concat(Prefix,"%",Base),
+  gensym(Base,A),
   atom_string(A,S).
 
 chr_lt(CP1,CP2) :-
