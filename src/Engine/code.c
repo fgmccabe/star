@@ -28,7 +28,7 @@ static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, log
 static termPo codeFinalizer(builtinClassPo class, termPo o);
 
 BuiltinTerm MethodClass = {
-  .special = {0,0},
+  .special = {0, 0},
   .sizeFun = mtdSize,
   .copyFun = mtdCopy,
   .scanFun = mtdScan,
@@ -45,6 +45,7 @@ static retCode delPkg(packagePo pkg, packagePo p);
 static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
+static treePo codeIndex;
 
 typedef struct code_index_ {
   ssaInsPo lowerBound;
@@ -52,11 +53,9 @@ typedef struct code_index_ {
   methodPo mtd;
 } CodeIndexRecord, *codeIndexPo;
 
-static treePo codeIndex;
-
-static comparison indexCode(void* l, void* r) {
+static comparison indexCode(void *l, void *r) {
   codeIndexPo lx = (codeIndexPo) l;
-  codeIndexPo rx= (codeIndexPo) r;
+  codeIndexPo rx = (codeIndexPo) r;
 
   if (lx->upperBound < rx->lowerBound)
     return smaller;
@@ -68,14 +67,22 @@ static comparison indexCode(void* l, void* r) {
     return different;
 }
 
-void recordMethodCode(treePo index, methodPo mtd) {
+void recordMethodCode(methodPo mtd) {
   codeIndexPo indexEntry = (codeIndexPo) allocPool(indexPool);
 
   indexEntry->lowerBound = entryPoint(mtd);
-  indexEntry->upperBound = entryPoint(mtd)+codeSize(mtd);
+  indexEntry->upperBound = entryPoint(mtd) + codeSize(mtd);
   indexEntry->mtd = mtd;
 
-  treePut(codeIndex,indexEntry,indexEntry);
+  treePut(codeIndex, indexEntry, indexEntry);
+}
+
+methodPo locateMethod(ssaInsPo pc) {
+  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc};
+  codeIndexPo entry = treeGet(codeIndex, &test);
+  if (entry != Null)
+    return entry->mtd;
+  return Null;
 }
 
 void initCode() {
@@ -148,8 +155,8 @@ labelPo mtdLabel(methodPo mtd) {
   return mtd->lbl;
 }
 
-logical mtdHasName(methodPo mtd,char *name) {
-  return uniIsLit(lblName(mtdLabel(mtd)),name);
+logical mtdHasName(methodPo mtd, char *name) {
+  return uniIsLit(lblName(mtdLabel(mtd)), name);
 }
 
 int32 stackDelta(methodPo mtd) {

@@ -625,8 +625,10 @@ void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
     case sOff: {
       if (Sn.immediate >= 0)
         encodeLdSt((2 | w), 0xe5, Sn.immediate >> (2 + w), Sn.reg, Rt, ctx);
-      else
-        encodeLdStUnPriv((2 | w), 0, 1, (int16) Sn.immediate, Sn.reg, Rt, ctx);
+      else {
+        check(nin_bt(-Sn.immediate,0)==-Sn.immediate, "invalid immediate");
+        encodeLdStRegUnscaled((2 | w), 0, 1, (int16) Sn.immediate, Sn.reg, Rt, ctx);
+      }
       return;
     }
     case pcRel:

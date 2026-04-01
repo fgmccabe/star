@@ -304,6 +304,8 @@ peep([iCChar(Tgt,Lb,Vr)|In],Lbls,[iCChar(Tgt,LLb,Vr)|Inx]) :-
 peep([iCFlt(Tgt,Lb,Vr)|In],Lbls,[iCFlt(Tgt,LLb,Vr)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
+peep([iMv(V1,V2),iResult(Lb,V1)|In],Lbls,[iMv(V1,V2),iResult(Lb,V2)|Inx]) :-
+  peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 peep([iResult(Lb,Vr)|_],Lbls,[iResult(LLb,Vr)]) :-

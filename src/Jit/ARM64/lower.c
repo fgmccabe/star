@@ -50,7 +50,7 @@ static retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 fro
 static void verifyState(codeGenPo state, int32 pc);
 
 static void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset);
-static armReg allocSmallStruct(codeGenPo state, int32 pc, int32 nextPc, int32 index, integer amnt);
+static armReg allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt);
 static retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit);
 static armReg mkFloat(codeGenPo state, int32 pc);
 static void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs);
@@ -59,8 +59,8 @@ static FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo);
 static FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax);
 static localVarPo operandVar(codeGenPo state, int32 pc, int32 ax);
 static void dumpState(codeGenPo state);
-static int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
-static int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity);
+static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
+static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc);
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 argPc, int32 arity);
@@ -154,7 +154,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = opand(2) + 3;
         int32 key = opand(1);
         int32 arity = lblArity(C_LBL(getConstant(key)));
-        int32 lclLimit = loadArguments(state, pc, pc + 3, arity);
+        int32 lclLimit = loadArguments(state, pc+insSize, pc + 3, arity);
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
@@ -180,11 +180,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 numArgs = opand(2);
         int32 insSize = numArgs + 3;
         int32 arity = numArgs + 1;
-        int32 lclLimit = loadLambdaArguments(state, pc, pc + 3, numArgs);
         FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
         armReg lamReg = X16;
         loadRegister(state, lamReg, lam);
         ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
+        int32 lclLimit = loadLambdaArguments(state, pc+insSize, pc + 3, numArgs);
         ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(lamReg, OffsetOf(LblRecord, mtd)));
@@ -305,7 +305,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sRSP: {
         int32 insSize = 2;
         codeLblPo rsltOk = newLabel(ctx);
-        cbz(RTS, rsltOk);
+        cbz_w(RTS, rsltOk);
 
         bailOut(state, pc, unhandledExceptionCode);
 
@@ -323,7 +323,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sRSX: {
         int32 insSize = 3;
         codeLblPo rsltOk = newLabel(ctx);
-        cbz(RTS, rsltOk);
+        cbz_w(RTS, rsltOk);
         blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
         assert(tgtBlock!=Null);
 
@@ -572,7 +572,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         ldrw(tmp, OF(tmp, OffsetOf(TermHead,lblIndex))); // pick up the class
         labelPo lit = C_LBL(getConstant(key));
         mov_w(tmp2, IM(lit->labelIndex));
-        cmp_w(tmp2, RG(tmp));
+        cmp_w(tmp, RG(tmp));
         bne(breakLabel(tgt));
         releaseReg(jit, tmp);
         releaseReg(jit, tmp2);
@@ -1511,7 +1511,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 arity = lblArity(label);
         int32 insSize = arity + 4;
 
-        armReg term = allocSmallStruct(state, pc, pc + insSize, label->labelIndex,NormalCellCount(arity));
+        armReg term = allocSmallStruct(state, pc, pc, label->labelIndex,NormalCellCount(arity));
 
         for (int32 ix = 0; ix < arity; ix++) {
           FlexOp tmp = localFlex(state, pc, opand(ix+4));
@@ -1527,7 +1527,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = 4;
         int32 key = opand(1);
 
-        armReg term = allocSmallStruct(state, pc, pc + insSize, closureIndex,ClosureCellCount);
+        armReg term = allocSmallStruct(state, pc, pc, closureIndex,ClosureCellCount);
 
         armReg tmp = findARegister(state, pc);
         loadConstant(jit, key, tmp);
@@ -1757,9 +1757,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
   return ret;
 }
 
-armReg allocSmallStruct(codeGenPo state, int32 pc, int32 nextPc, int32 index, integer amnt) {
+armReg allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt) {
   armReg term = findARegister(state, pc);
-  invokeIntrinsic(state, pc, nextPc, (runtimeFn) allocateObject, 3, (FlexOp[]){
+  invokeIntrinsic(state, pc, livePc, (runtimeFn) allocateObject, 3, (FlexOp[]){
                     OF(PR, OffsetOf(EngineRecord, heap)), IM(index), IM(amnt)
                   }, 1, (FlexOp[]){RG(term)});
   return term;
@@ -1775,11 +1775,9 @@ void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
   str(AG, OF(FP, OffsetOf(StackFrame, args)));
   adjustAG(state, pc, argOffset);
-  armReg tmp = findFreeReg(jit);
-  ldr(tmp, OF(STK, OffsetOf(StackRecord, prog)));
-  str(tmp, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
   str(mtdRg, OF(STK, OffsetOf(StackRecord, prog))); // Set new current program
-  releaseReg(jit, tmp);
+  ldr(mtdRg, OF(STK, OffsetOf(StackRecord, prog)));
+  str(mtdRg, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
 }
 
 retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit) {
@@ -1831,14 +1829,14 @@ void dumpState(codeGenPo state) {
   dRegisterMap(state->jit->freeRegs);
 }
 
-int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pcBase, int32 argBase, int32 arity) {
+int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, int32 argBase, int32 arity) {
   ArgSpec operands[arity];
 
-  int32 minOffset = stashLiveLocals(state, argBase, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, pcBase, minOffset); // void out gaps in the locals map
+  int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
+  voidOutFrameLocals(state, livePc, minOffset); // void out gaps in the locals map
 
   for (int32 ix = 0; ix < arity; ix++) {
-    FlexOp argSrc = sourceOperandFlex(state, pcBase, ix);
+    FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
     armReg ax = nxtAvailReg(argRegs);
     int32 argSlot = minOffset - arity + ix;
     if (ax != XZR) {
@@ -1853,12 +1851,12 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pcBase, in
   return minOffset; // return how must space is needed to preserve current locals.
 }
 
-int32 loadArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity) {
-  return loadArgsToRegisters(state, defaultArgRegs(), argBase, arity, arity);
+int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, defaultArgRegs(), livePc, argBase, arity);
 }
 
-int32 loadLambdaArguments(codeGenPo state, int32 pcBase, int32 argBase, int32 arity) {
-  return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), argBase, arity, arity);
+int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), livePc, argBase, arity);
 }
 
 int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 arity, int32 argBase) {

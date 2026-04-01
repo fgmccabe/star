@@ -71,7 +71,7 @@ int32 maxArgRegister;
 armReg findARegister(codeGenPo state, int32 pc);
 void loadRegister(codeGenPo state, armReg rg, FlexOp src);
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt, FlexOp results[]);
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt, FlexOp results[]);
 
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);

@@ -98,7 +98,7 @@ void loadRegister(codeGenPo state, armReg rg, FlexOp src) {
 }
 
 logical liveVar(localVarPo var, int32 pc) {
-  return var->live;
+  return var->live && var->desc->end>=pc;
 }
 
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
@@ -208,7 +208,7 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
   move(ctx, dst, src, *freeRegs);
 }
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt,
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt,
                      FlexOp results[]) {
   assemCtxPo ctx = assemCtx(state->jit);
 
@@ -249,7 +249,7 @@ void invokeIntrinsic(codeGenPo state, int32 pc, int32 nextPc, runtimeFn fn, int3
     operands[ix] = argSpec(RG(ax), results[ax]);
   }
   shuffleVars(ctx, operands, rsCnt, &tmpMap, argMove);
-  restoreStashedLocals(state, nextPc);
+  restoreStashedLocals(state, livePc);
 }
 
 retCode jitError(jitCompPo jit, char *msg, ...) {

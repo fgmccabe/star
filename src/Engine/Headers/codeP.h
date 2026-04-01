@@ -69,6 +69,9 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
 labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       ssaInsPo instructions, int32 lcls, int32 stkLimit);
 
+void recordMethodCode(methodPo mtd);
+methodPo locateMethod(ssaInsPo pc);
+
 void markMethod(methodPo mtd, gcSupportPo G);
 
 void showMethodCode(ioPo out, char *msg, methodPo mtd);
