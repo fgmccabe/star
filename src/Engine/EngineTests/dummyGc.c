@@ -3,6 +3,7 @@
 //
 
 #include "heapP.h"
+#include "stack.h"
 
 retCode gcCollect(heapPo H, long amount) {
   syserr("no gc in tests");
@@ -18,6 +19,12 @@ retCode jitMethod(methodPo mtd, char *errMsg, integer msgLen) {
   return Error;
 }
 
-retCode jitSpecial(methodPo mtd, char *errMsg, integer msgLen) {
+retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen) {
   return Error;
 }
+
+
+ssaInsPo showIns(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
+  return Null;
+}
+

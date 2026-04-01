@@ -10,7 +10,7 @@
 
 static ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt);
 
-ssaInsPo disass(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
+ssaInsPo showIns(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
   if (mtd != Null) {
     int32 offset = codeOffset(mtd, pc);
     labelPo lbl = mtdLabel(mtd);

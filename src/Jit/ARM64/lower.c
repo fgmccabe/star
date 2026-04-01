@@ -121,7 +121,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     retireExpiredVars(state, pc);
 #ifdef TRACEJIT
     if (traceJit >= generalTracing) {
-      disass(logFile, Null, jit->mtd, &code[pc]);
+      showIns(logFile, Null, jit->mtd, &code[pc]);
       outMsg(logFile, "\n%_");
     }
     if (traceJit >= detailedTracing) {

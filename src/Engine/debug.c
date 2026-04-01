@@ -467,7 +467,7 @@ static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   ssaInsPo last = entryPoint(mtd) + codeSize(mtd);
 
   for (integer ix = 0; ix < count && pc < last; ix++) {
-    pc = disass(debugOutChnnl, Null, mtd, pc);
+    pc = showIns(debugOutChnnl, Null, mtd, pc);
     outStr(debugOutChnnl, "\n");
   }
 
@@ -591,7 +591,7 @@ DebugWaitFor insDebug(enginePo p) {
     stackPo stk = p->stk;
     outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
 
-    disass(debugOutChnnl, stk, stk->prog, stk->pc);
+    showIns(debugOutChnnl, stk, stk->prog, stk->pc);
 
     if (stopping) {
       while (interactive) {

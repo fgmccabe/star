@@ -145,7 +145,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
   while (pc < limit) {
     if (traceVerify > generalTracing) {
-      disass(logFile, Null, ctx.mtd, &code[pc]);
+      showIns(logFile, Null, ctx.mtd, &code[pc]);
       outMsg(logFile, "\n%_");
     }
 
@@ -540,7 +540,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
         for (int32 ix = 0; ix < caseCount; ix++) {
           if (traceVerify > generalTracing) {
-            disass(logFile, Null, ctx.mtd, &code[pc]);
+            showIns(logFile, Null, ctx.mtd, &code[pc]);
             outMsg(logFile, "\n%_");
           }
           switch (code[pc].op.op) {

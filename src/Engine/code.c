@@ -195,7 +195,7 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd) {
   outMsg(out, "%d locals\n", lclCount(mtd));
 
   while (pc < last) {
-    pc = disass(out, NULL, mtd, pc);
+    pc = showIns(out, NULL, mtd, pc);
     outMsg(out, "\n");
   }
   flushOut();
