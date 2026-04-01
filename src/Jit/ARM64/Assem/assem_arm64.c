@@ -614,7 +614,7 @@ void ldpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx) {
 }
 
 void ldr_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx) {
-  TRACE(outMsg(logFile,"ldr%s %R, %F\n%_",(w?"":"W"),Rt,&Sn));
+  TRACE(outMsg(logFile,"ldr%s %R, %F\n%_",(w?"":"w"),Rt,&Sn));
   switch (Sn.mode) {
     case postX:
       encodeLdStRegX((2 | w), 0, 1, (int16) (Sn.immediate), 1, Sn.reg, Rt, ctx);

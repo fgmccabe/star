@@ -541,9 +541,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         localVarPo govVr = operandVar(state, pc, 1);
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
-        ldr(ix, OF(ix, 0)); // Pick up the label
-        ldr(ix, OF(ix, OffsetOf(LblRecord, labelIndex)));
-
+        ldrw(ix, OF(ix, OffsetOf(TermHead,lblIndex))); // pick up the label
         int32 mx = (skip - insSize) / 2;
         immModulo(ctx, ix, mx, jit->freeRegs);
 
