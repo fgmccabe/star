@@ -59,9 +59,9 @@ static comparison indexCode(void *l, void *r) {
   codeIndexPo lx = (codeIndexPo) l;
   codeIndexPo rx = (codeIndexPo) r;
 
-  if (lx->upperBound < rx->lowerBound)
+  if (lx->upperBound <= rx->lowerBound)
     return smaller;
-  else if (lx->lowerBound > rx->upperBound)
+  else if (rx->upperBound <= lx->lowerBound)
     return bigger;
   else if (lx->lowerBound >= rx->lowerBound && lx->upperBound <= rx->upperBound)
     return same;
@@ -90,7 +90,7 @@ void recordMethodJitCode(methodPo mtd) {
 }
 
 methodPo locateMethod(uinteger pc) {
-  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc};
+  CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc+1};
   codeIndexPo entry = treeGet(codeIndex, &test);
   if (entry != Null)
     return entry->mtd;

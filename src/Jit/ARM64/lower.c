@@ -84,7 +84,11 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
 
   retCode ret;
   if ((ret = analyseMethod(mtd, &analysis)) == Ok) {
+#ifdef TRACEJIT
+    if (traceJit > noTracing) {
     showAnalysis(logFile, &analysis);
+    }
+#endif
     int32 numSlots = slotCount(&analysis);
     LocalVar locals[numSlots];
 
@@ -241,10 +245,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 numArgs = opand(2);
         int32 arity = numArgs + 1;
         int32 argPc = pc + 3;
+#ifdef TRACEJIT
         if (traceJit >= detailedTracing) {
           outMsg(logFile, "override frame in: ");
           dumpState(state);
         }
+#endif
         armReg lamReg = X16;
         FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
         loadRegister(state, lamReg, lam);
@@ -2056,7 +2062,7 @@ ValueReturn invokeJitMethod(enginePo P, methodPo mtd) {
   int64 argCount = (numArgRegisters - arity) << 2;
   ptrPo exitSP = stk->sp + arity - 1;
 
-  ReturnStatus ret = Normal;
+  int32 ret = Normal;
   termPo val = voidEnum;
 
   asm("stp x29,x30, [sp, #-16]!\n"
@@ -2083,18 +2089,16 @@ ValueReturn invokeJitMethod(enginePo P, methodPo mtd) {
     "ldr x0, [x13, #0]\n"
     "ldr x29, %[fp]\n"
     "blr x16\n"
-    "mov x0,x10\n"
-    "mov x1,x11\n"
     "str X13, [x14,#40]\n" // we will need to change these if stack structure changes
     "str x29, [x14,#64]\n"
     "ldp x17,x19, [sp], #16\n"
     "ldp x12,x13, [sp], #16\n"
+    "mov %w[ret], w11\n"
+    "mov %[val], x10\n"
     "ldp x10,x11, [sp], #16\n"
     "ldp x8,x9, [sp], #16\n"
     "ldp x29,x30, [sp], #16\n"
-    "str x1, %[ret]\n"
-    "str x0, %[val]\n"
-    : [ret] "=&m"(ret), [val] "=&m"(val)
+    : [ret] "=r"(ret), [val] "=r" (val)
     : [process]"r"(P), [stk] "r"(stk), [code] "r"(code), [ag] "m"(stk->args), [argcount] "r" (argCount),
     [constants] "r"(constAnts),[fp] "m"(stk->fp)
     : "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10","x11", "x12", "x13", "x14", "x15", "x16",

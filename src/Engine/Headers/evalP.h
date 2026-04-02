@@ -34,7 +34,7 @@
     saveRegisters();                   \
     retCode ret = gcCollect(H, Count); \
     if (ret != Ok)                     \
-      return Abnormal;                 \
+      return ((ValueReturn){.value=voidEnum,.status=Abnormal});                 \
     restoreRegisters();                \
     check(reserveSpace(H,Count)==Ok,"could not reserve space");\
   }                                    \

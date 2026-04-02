@@ -58,6 +58,7 @@ ValueReturn run(enginePo P) {
         methodPo mtd = labelMtd(nProg); // Which program do we want?
         int32 arity = mtdArity(mtd);
         int32 insSize = arity + 3;
+        ssaInsPo nextPc = PC+insSize;
 
         if (mtd == Null) {
           logMsg(logFile, "label %A not defined", nProg);
@@ -66,7 +67,7 @@ ValueReturn run(enginePo P) {
 
         FP++;
         FP->prog = PROG;
-        FP->link = PC + insSize;
+        FP->link = nextPc;
         FP->args = ARGS;
 
         PROG = mtd;
@@ -84,12 +85,10 @@ ValueReturn run(enginePo P) {
           }
 #endif
 
-          ssaInsPo link = PC; // Jit code can override this in the frame
           saveRegisters();
           RSLT = invokeJitMethod(P, mtd);
           restoreRegisters();
-          PC = link;
-          PC++;
+          PC = nextPc;
         } else
 #endif
           PC = entryPoint(mtd);
