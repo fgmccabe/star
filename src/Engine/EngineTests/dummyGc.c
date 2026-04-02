@@ -24,7 +24,7 @@ retCode jitSpecialMethod(methodPo mtd, char* errMsg, integer msgLen) {
 }
 
 
-ssaInsPo showIns(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
+ssaInsPo showIns(ioPo out, stackPo stk, ssaInsPo pc) {
   return Null;
 }
 

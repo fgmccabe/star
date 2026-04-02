@@ -10,6 +10,5 @@
 #include "vector.h"
 
 extern tracingLevel traceVerify;
-extern logical enableVerify;      // Do we verify code that is loaded into engine
 
 #endif //STAR_VERIFYP_H

@@ -350,11 +350,18 @@ retCode loadCode(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
 
             methodPo mtd = defineMtd(H, insCount, instructions, lclCount,
                                      stackHeight + lclCount + (int32) FrameCellCount, lbl);
-            if (enableVerify)
-              ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
+            if (enableVerify) {
+              char errMsg[MAXLINE];
+              if (verifyMethod(mtd, errMsg, NumberOf(errMsg)) != Ok) {
+                logMsg(logFile, "problem in loading %L: %s", lbl, errMsg);
+                syserr("error in creating method");
+              };
+            }
+
+            recordMethodCode(mtd);
 
 #ifndef NOJIT
-            if (ret == Ok && jitOnLoad)
+            if (jitOnLoad)
               ret = jitMethod(mtd, errorMsg, msgSize);
 #endif
           }

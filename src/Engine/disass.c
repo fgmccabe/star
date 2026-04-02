@@ -10,10 +10,11 @@
 
 static ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt);
 
-ssaInsPo showIns(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
-  if (mtd != Null) {
-    int32 offset = codeOffset(mtd, pc);
-    labelPo lbl = mtdLabel(mtd);
+ssaInsPo showIns(ioPo out, stackPo stk, ssaInsPo pc) {
+  methodPo prog = locateMethod((uinteger)pc);
+  if (prog != Null) {
+    int32 offset = codeOffset(prog, pc);
+    labelPo lbl = mtdLabel(prog);
     outMsg(out, "%,*T [%d] ", displayDepth, lbl, offset);
   } else {
     outMsg(out, "\?\?\? [%lx] ", pc);
@@ -38,7 +39,7 @@ ssaInsPo showIns(ioPo out, stackPo stk, methodPo mtd, ssaInsPo pc) {
 #define instr(Op, fmt) \
 case s##Op:{\
   outMsg(out, #Op);\
-  return showOperands(out,mtd,args,pc+1,fmt);\
+  return showOperands(out,prog,args,pc+1,fmt);\
 }
 #include "ssaInstructions.h"
     default:

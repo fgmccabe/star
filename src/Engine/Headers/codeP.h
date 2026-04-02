@@ -70,7 +70,8 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       ssaInsPo instructions, int32 lcls, int32 stkLimit);
 
 void recordMethodCode(methodPo mtd);
-methodPo locateMethod(ssaInsPo pc);
+void recordMethodJitCode(methodPo mtd);
+methodPo locateMethod(uinteger pc);
 
 void markMethod(methodPo mtd, gcSupportPo G);
 

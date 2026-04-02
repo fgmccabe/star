@@ -11,11 +11,10 @@
 #include "labels.h"
 #include "engineOptions.h"
 
+extern logical enableVerify; // Do we verify code that is loaded into engine
 
-retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen);
+retCode verifyMethod(methodPo mtd, char *errorMsg, long msgLen);
 
 extern classPo segmentClass;
 
-
 #endif //STAR_VERIFY_H
-

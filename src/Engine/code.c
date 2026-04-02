@@ -7,12 +7,14 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "abort.h"
 #include "analyse.h"
 #include "analyseP.h"
 #include "quick.h"
 #include "disass.h"
 #include "pkgP.h"
 #include "tree.h"
+#include "verify.h"
 
 static poolPo pkgPool;
 static poolPo mtdPool;
@@ -48,8 +50,8 @@ static comparison compPk(packagePo p1, packagePo p2);
 static treePo codeIndex;
 
 typedef struct code_index_ {
-  ssaInsPo lowerBound;
-  ssaInsPo upperBound;
+  uinteger lowerBound;
+  uinteger upperBound;
   methodPo mtd;
 } CodeIndexRecord, *codeIndexPo;
 
@@ -67,17 +69,27 @@ static comparison indexCode(void *l, void *r) {
     return different;
 }
 
-void recordMethodCode(methodPo mtd) {
+static void recordCode(methodPo mtd, uinteger lower, uinteger upper) {
   codeIndexPo indexEntry = (codeIndexPo) allocPool(indexPool);
 
-  indexEntry->lowerBound = entryPoint(mtd);
-  indexEntry->upperBound = entryPoint(mtd) + codeSize(mtd);
+  indexEntry->lowerBound = lower;
+  indexEntry->upperBound = upper;
   indexEntry->mtd = mtd;
+
+  assert(indexEntry->lowerBound <= indexEntry->upperBound);
 
   treePut(codeIndex, indexEntry, indexEntry);
 }
 
-methodPo locateMethod(ssaInsPo pc) {
+void recordMethodCode(methodPo mtd) {
+  recordCode(mtd,(uinteger)(entryPoint(mtd)),(uinteger)(entryPoint(mtd) + codeSize(mtd)));
+}
+
+void recordMethodJitCode(methodPo mtd) {
+  recordCode(mtd,(uinteger)mtd->jit.code,(uinteger)mtd->jit.code+mtd->jit.codeSize);
+}
+
+methodPo locateMethod(uinteger pc) {
   CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc};
   codeIndexPo entry = treeGet(codeIndex, &test);
   if (entry != Null)
@@ -195,7 +207,7 @@ void showMethodCode(ioPo out, char *msg, methodPo mtd) {
   outMsg(out, "%d locals\n", lclCount(mtd));
 
   while (pc < last) {
-    pc = showIns(out, NULL, mtd, pc);
+    pc = showIns(out, NULL, pc);
     outMsg(out, "\n");
   }
   flushOut();

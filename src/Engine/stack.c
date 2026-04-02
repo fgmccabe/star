@@ -361,17 +361,19 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
                    StackTraceLevel level, methodPo prog, ssaInsPo pc) {
-  assert(isMethod((termPo) prog));
+  methodPo callProg = locateMethod((uinteger)pc);
+
+  assert(callProg == Null || callProg == prog);
 
   termPo loc = (pc - 2)->op.op == sdBug ? getConstant((pc - 1)->op.ltrl) : Null;
 
   if (loc != Null)
-    outMsg(out, "[%d] %L: %T", frameNo, loc, prog);
+    outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);
   else
-    outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, prog,
-           codeOffset(prog, pc));
+    outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, callProg,
+           codeOffset(callProg, pc));
 
-  int32 count = argCount(prog);
+  int32 count = argCount(callProg);
 
   switch (level){
   default:
@@ -401,7 +403,7 @@ void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
       sep = ", ";
     }
     outMsg(out, ")\n");
-    count = lclCount(prog);
+    count = lclCount(callProg);
 
     for (int32 vx = 1; vx <= count; vx++){
       ptrPo var = stackVarble(args, -vx);

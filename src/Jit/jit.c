@@ -34,6 +34,8 @@ retCode jitMethod(methodPo mtd, char* errMsg, integer msgLen)
     if (ret == Ok){
       assemCtxPo ctx = jit->assemCtx;
       ret = setJitCode(mtd, createCode(ctx), currentPc(ctx));
+      if (ret==Ok)
+        recordMethodJitCode(mtd);
     }
     else
       strMsg(errMsg, msgLen, "error: %S in generating jit code for %L", jit->errMsg, uniStrLen(jit->errMsg),
