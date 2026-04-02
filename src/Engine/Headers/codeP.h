@@ -60,6 +60,7 @@ static inline jittedCode jitCode(methodPo mtd) {
 }
 
 retCode setJitCode(methodPo mtd, jittedCode code, uint32 codeSize);
+void recordMethodJitCode(methodPo mtd);
 #endif
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
@@ -70,7 +71,6 @@ labelPo specialMethod(const char *name, int32 arity, int32 insCx,
                       ssaInsPo instructions, int32 lcls, int32 stkLimit);
 
 void recordMethodCode(methodPo mtd);
-void recordMethodJitCode(methodPo mtd);
 methodPo locateMethod(uinteger pc);
 
 void markMethod(methodPo mtd, gcSupportPo G);

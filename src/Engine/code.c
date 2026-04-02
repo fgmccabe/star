@@ -85,9 +85,11 @@ void recordMethodCode(methodPo mtd) {
   recordCode(mtd,(uinteger)(entryPoint(mtd)),(uinteger)(entryPoint(mtd) + codeSize(mtd)));
 }
 
+#ifndef NOJIT
 void recordMethodJitCode(methodPo mtd) {
   recordCode(mtd,(uinteger)mtd->jit.code,(uinteger)mtd->jit.code+mtd->jit.codeSize);
 }
+#endif
 
 methodPo locateMethod(uinteger pc) {
   CodeIndexRecord test = {.lowerBound = pc, .upperBound = pc+1};
