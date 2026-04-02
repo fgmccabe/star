@@ -205,6 +205,7 @@ transformFunction(Lc,Nm,LclName,H,Tp,Extra,Eqns,Map,Opts,[UFun|Ex],Exx) :-
   (is_member(traceNormalize,Opts) -> dispEquations(Rules);true),
   closureEntry(Map,Lc,Nm,Tp,Extra,Map,Opts,Ex0,Exx),
   functionMatcher(Lc,lbl(LclName,Ar),H,ATp,Rules,Map,Fun),!,
+  checkOpt(Opts,traceNormalize,meta:showMsg(Lc,"before uniqify: %s",[ldef(Fun)])),
   uniqify(Fun,UFun),
   checkOpt(Opts,traceNormalize,meta:showMsg(Lc,"after uniqify: %s",[ldef(UFun)])).
 

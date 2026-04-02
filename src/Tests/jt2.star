@@ -34,7 +34,7 @@ test.jt2{
   }
 
   public _main:(cons[string])=>integer.
-  _main([]) => valof{ main(3); valis 0}
+  _main([]) => valof{ main(35); valis 0}
   _main([Count]) => valof{ main(Count:?integer); valis 0}
 }
     

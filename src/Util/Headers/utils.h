@@ -29,6 +29,12 @@
 #define STMT_WRAP(S) do S while(False)
 #endif
 
+#ifndef STR_OF
+#define STR_OF(X) STR_HELPER(X)
+#define STR_HELPER(X) #X
+#endif
+
+
 static integer inline absolute(integer a) {
   if (a < 0)
     return -a;

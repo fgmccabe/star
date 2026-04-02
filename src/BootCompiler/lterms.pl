@@ -464,11 +464,35 @@ rewriteTerm(AQ,EX,tryX(Lc,B,E,H),tryX(Lc,BB,EE,HH)) :-!,
 rewriteTerms(AQ,EX,Els,NEls):-
   map(Els,lterms:rewriteTerm(AQ,EX),NEls).
 
+rewritePtn(AQ,_,idnt(Nm,_),Trm) :-
+  call(AQ,Nm,Trm),!.
+rewritePtn(_,_,idnt(Nm,Tp),idnt(Nm,Tp)).
+rewritePtn(_,_,voyd,voyd).
+rewritePtn(_,_,unreach(Lc,Tp),unreach(Lc,Tp)).
+rewritePtn(_,_,intgr(Ix),intgr(Ix)).
+rewritePtn(_,_,bigx(Ix),bigx(Ix)).
+rewritePtn(_,_,ann(T),ann(T)).
+rewritePtn(_,_,flot(Dx),flot(Dx)).
+rewritePtn(_,_,chr(Cp),chr(Cp)).
+rewritePtn(_,_,strg(Sx),strg(Sx)).
+rewritePtn(_,_,enum(Nm),enum(Nm)).
+rewritePtn(_,_,lbl(Nm,Ar),lbl(Nm,Ar)).
+rewritePtn(AQ,EX,savGet(Lc,L,Tp),savGet(Lc,LL,Tp)) :-
+  rewritePtn(AQ,EX,L,LL).
+rewritePtn(AQ,EX,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
+  rewritePtn(AQ,EX,Op,NOp),
+  rewritePtns(AQ,EX,Args,NArgs).
+rewritePtn(AQ,EX,whr(Lc,T,C),whr(Lc,NT,NC)) :-
+  rewritePtn(AQ,EX,T,NT), % variables already extracted
+  rewriteGl(AQ,EX,C,NC).
+
+rewritePtns(AQ,EX,Els,NEls):-
+  map(Els,lterms:rewritePtn(AQ,EX),NEls).
+
 rewriteGoal(AQ,EX,Gl,RGl,NQ) :-
   call(EX,AQ,gl,Gl,NQ),
   rewriteGl(NQ,EX,Gl,RGl).
   
-
 newVar((Nm,Tp),(Nm,idnt(NNm,Tp))) :-
   genstr(Nm,NNm).
 
@@ -485,7 +509,7 @@ rewriteGl(AQ,EX,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
   rewriteGl(AQ,EX,L,NL),
   rewriteGl(AQ,EX,R,NR).
 rewriteGl(AQ,EX,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
-  rewriteTerm(AQ,EX,L,NL),
+  rewritePtn(AQ,EX,L,NL),
   rewriteTerm(AQ,EX,R,NR).
 rewriteGl(AQ,EX,ng(Lc,R),ng(Lc,NR)) :-
   rewriteGl(AQ,EX,R,NR).
