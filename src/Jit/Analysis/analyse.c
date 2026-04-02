@@ -126,7 +126,7 @@ retCode analyseBlock(analysisPo analysis, scopePo parent, ssaInsPo code, int32 s
       case sValof: {
         int32 skipLen = operand(2);
         int32 nextPc = pc + skipLen;
-        recordVariableStart(analysis,operand(1), phi, nextPc);
+        recordVariableStart(analysis,operand(1), phi, pc);
         ret = analyseBlock(analysis, &scope, code, pc, pc + 3, nextPc);
         pc = nextPc;
         continue;
