@@ -25,6 +25,7 @@ logical isTplLabel(const char* nm);
 const char* lblName(labelPo lbl);
 int32 constructorIndex(labelPo lbl);
 labelPo indexToLabel(int32 index);
+int32 indexToIndex(int32 lblIndex) ;
 
 logical sameLabel(labelPo l1, labelPo l2);
 

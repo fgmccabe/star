@@ -25,6 +25,7 @@
 #include "sort.h"
 #include "disass.h"
 #include "normalP.h"
+#include "labels.h"
 
 /* Lower Star VM code to Arm64 code */
 /*
@@ -86,7 +87,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
   if ((ret = analyseMethod(mtd, &analysis)) == Ok) {
 #ifdef TRACEJIT
     if (traceJit > noTracing) {
-    showAnalysis(logFile, &analysis);
+      showAnalysis(logFile, &analysis);
     }
 #endif
     int32 numSlots = slotCount(&analysis);
@@ -146,8 +147,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         // abort with message
         int32 insSize = 3;
         armReg loc = findARegister(state, pc);
-        adr(loc,here());
-        str(loc,OF(STK,OffsetOf(StackRecord,pc)));
+        adr(loc, here());
+        str(loc, OF(STK,OffsetOf(StackRecord,pc)));
         FlexOp val = sourceOperandFlex(state, pc, 2);
         loadConstant(jit, opand(1), loc);
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val}, 0,
@@ -160,7 +161,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = opand(2) + 3;
         int32 key = opand(1);
         int32 arity = lblArity(C_LBL(getConstant(key)));
-        int32 lclLimit = loadArguments(state, pc+insSize, pc + 3, arity);
+        int32 lclLimit = loadArguments(state, pc + insSize, pc + 3, arity);
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
@@ -190,7 +191,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         armReg lamReg = X16;
         loadRegister(state, lamReg, lam);
         ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
-        int32 lclLimit = loadLambdaArguments(state, pc+insSize, pc + 3, numArgs);
+        int32 lclLimit = loadLambdaArguments(state, pc + insSize, pc + 3, numArgs);
         ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(lamReg, OffsetOf(LblRecord, mtd)));
@@ -549,7 +550,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         localVarPo govVr = operandVar(state, pc, 1);
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
-        ldrw(ix, OF(ix, OffsetOf(TermHead,lblIndex))); // pick up the label
+        ldrw(ix, OF(ix, OffsetOf(TermHead,lblIndex))); // pick up the label index
+        invokeIntrinsic(state, pc, pc, (runtimeFn) indexToIndex, 1, (FlexOp[]){RG(ix)}, 1, (FlexOp[]){RG(ix)});
         int32 mx = (skip - insSize) / 2;
         immModulo(ctx, ix, mx, jit->freeRegs);
 
@@ -808,7 +810,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp trm = localFlex(state, pc, opand(3));
         armReg tmp = findARegister(state, pc);
         loadFlex(state, pc, trm,RG(tmp));
-        loadElement(jit, tmp, tmp, opand(2)+1);
+        loadElement(jit, tmp, tmp, opand(2) + 1);
         localVarPo dst = localTarget(state, pc, opand(1));
         storeVar(state, pc,RG(tmp), dst);
         releaseReg(jit, tmp);
@@ -824,7 +826,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp vl = localFlex(state, pc, opand(3));
         loadRegister(state, tmp, trm);
         loadRegister(state, tmp2, vl);
-        storeElement(jit, tmp2, tmp, opand(2)+1);
+        storeElement(jit, tmp2, tmp, opand(2) + 1);
         releaseReg(jit, tmp);
         releaseReg(jit, tmp2);
         pc += insSize;
@@ -1525,7 +1527,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         }
 
         storeVar(state, pc,RG(term), localTarget(state, pc,opand(2)));
-        releaseReg(jit,term);
+        releaseReg(jit, term);
         pc += insSize;
         continue;
       }

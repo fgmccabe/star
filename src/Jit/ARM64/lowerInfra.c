@@ -98,7 +98,7 @@ void loadRegister(codeGenPo state, armReg rg, FlexOp src) {
 }
 
 logical liveVar(localVarPo var, int32 pc) {
-  return var->live && var->desc->end>=pc;
+  return var->live && var->desc->end >= pc;
 }
 
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
@@ -369,8 +369,11 @@ void stashEngineState(jitCompPo jit, int32 stackLevel, registerMap freeRegs) {
   assemCtxPo ctx = assemCtx(jit);
   str(AG, OF(STK, OffsetOf(StackRecord, args)));
   armReg currSP = nxtAvailReg(freeRegs);
-  sub(currSP, AG, IM(stackLevel*pointerSize));
-  str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
+  if (stackLevel != 0) {
+    sub(currSP, AG, IM(stackLevel*pointerSize));
+    str(currSP, OF(STK, OffsetOf(StackRecord, sp)));
+  } else
+    str(AG, OF(STK, OffsetOf(StackRecord, sp)));
   str(FP, OF(STK, OffsetOf(StackRecord, fp)));
 }
 
@@ -382,7 +385,7 @@ void unstashEngineState(jitCompPo jit) {
 }
 
 int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership) {
-  if (var->inited ) {
+  if (var->inited) {
     if (!var->stashed) {
       if (isRegisterOp(var->src)) {
         var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
