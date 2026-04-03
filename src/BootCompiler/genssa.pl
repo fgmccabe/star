@@ -769,8 +769,7 @@ genConsTable([(P,E,Lc)|Cases],Index,Tbl,Table) :-
   genConsTable(Cases,Index,Tbl1,Table).
 
 maxTableEntry(Tbl,Mx) :-
-  mxEntry(Tbl,0,M),!,
-  Mx is M+1.
+  mxEntry(Tbl,0,Mx).
 
 mxEntry([],M,M).
 mxEntry([(Ix,_)|Tbl],M,Mx) :-
