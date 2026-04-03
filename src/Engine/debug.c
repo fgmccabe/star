@@ -340,7 +340,7 @@ static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) 
 
 static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
-  showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showLocalVars, stk->prog, stk->pc);
+  showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showLocalVars, stk->pc);
 
   resetDeflt("n");
   return moreDebug;
@@ -550,7 +550,7 @@ static DebugWaitFor dbgDropFrame(char *line, enginePo p, termPo lc, void *cl) {
   stk->pc = entryPoint(stk->prog);
 
   outMsg(debugOutChnnl, "Dropped %d frames\n%_", frameNo);
-  showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showPrognames, stk->prog, stk->pc);
+  showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showPrognames, stk->pc);
 
   resetDeflt("n");
   return moreDebug;

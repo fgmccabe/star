@@ -115,7 +115,7 @@ typedef enum {
 } StackTraceLevel;
 
 void
-showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, methodPo prog, ssaInsPo pc);
+showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo, StackTraceLevel tracing, ssaInsPo pc);
 void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth, StackTraceLevel tracing, integer maxDepth);
 
 #endif //STAR_STACKP_H

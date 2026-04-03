@@ -146,6 +146,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         // abort with message
         int32 insSize = 3;
         armReg loc = findARegister(state, pc);
+        adr(loc,here());
+        str(loc,OF(STK,OffsetOf(StackRecord,pc)));
         FlexOp val = sourceOperandFlex(state, pc, 2);
         loadConstant(jit, opand(1), loc);
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val}, 0,

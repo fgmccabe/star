@@ -113,7 +113,7 @@ stackPo allocateStack(enginePo P, integer sze, labelPo underFlow, logical execJi
   stk->pc = entryPoint(stk->prog);
 #endif
   stk->args = stk->sp;
-  for (int32 lx=0;lx<lclCount(stk->prog);lx++){
+  for (int32 lx = 0; lx < lclCount(stk->prog); lx++){
     *--stk->sp = voidEnum;
   }
   gcReleaseRoot(H, root);
@@ -360,57 +360,60 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
 }
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,
-                   StackTraceLevel level, methodPo prog, ssaInsPo pc) {
+                   StackTraceLevel level, ssaInsPo pc) {
   methodPo callProg = locateMethod((uinteger)pc);
 
-  assert(callProg == Null || callProg == prog);
+  if (callProg != Null){
+    termPo loc = (pc - 2)->op.op == sdBug ? getConstant((pc - 1)->op.ltrl) : Null;
 
-  termPo loc = (pc - 2)->op.op == sdBug ? getConstant((pc - 1)->op.ltrl) : Null;
+    if (loc != Null)
+      outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);
+    else
+      outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, callProg,
+             codeOffset(callProg, pc));
 
-  if (loc != Null)
-    outMsg(out, "[%d] %L: %T", frameNo, loc, callProg);
-  else
-    outMsg(out, "[%d] (unknown loc): %T[%d]", frameNo, callProg,
-           codeOffset(callProg, pc));
+    int32 count = argCount(callProg);
 
-  int32 count = argCount(callProg);
-
-  switch (level){
-  default:
-  case showPrognames: {
-    outMsg(out, "\n");
-    break;
-  }
-  case showArguments: {
-    if (depth > 0){
+    switch (level){
+    default:
+    case showPrognames: {
+      outMsg(out, "\n");
+      break;
+    }
+    case showArguments: {
+      if (depth > 0){
+        outMsg(out, "(");
+        char* sep = "";
+        for (integer ix = 0; ix < count; ix++){
+          outMsg(out, "%s%,*T", sep, depth - 1, *stackVarble(args, ix));
+          sep = ", ";
+        }
+        outMsg(out, ")\n");
+      }
+      else
+        outMsg(out, "\n");
+      break;
+    }
+    case showLocalVars: {
       outMsg(out, "(");
       char* sep = "";
-      for (integer ix = 0; ix < count; ix++){
+      for (int32 ix = 0; ix < count; ix++){
         outMsg(out, "%s%,*T", sep, depth - 1, *stackVarble(args, ix));
         sep = ", ";
       }
       outMsg(out, ")\n");
-    }
-    else
-      outMsg(out, "\n");
-    break;
-  }
-  case showLocalVars: {
-    outMsg(out, "(");
-    char* sep = "";
-    for (int32 ix = 0; ix < count; ix++){
-      outMsg(out, "%s%,*T", sep, depth - 1, *stackVarble(args, ix));
-      sep = ", ";
-    }
-    outMsg(out, ")\n");
-    count = lclCount(callProg);
+      count = lclCount(callProg);
 
-    for (int32 vx = 1; vx <= count; vx++){
-      ptrPo var = stackVarble(args, -vx);
-      if (*var != Null && *var != voidEnum)
-        outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
+      for (int32 vx = 1; vx <= count; vx++){
+        ptrPo var = stackVarble(args, -vx);
+        if (*var != Null && *var != voidEnum)
+          outMsg(out, "  L[%d] = %,*T\n", vx, depth - 1, *var);
+      }
+    }
     }
   }
+  else{
+    outMsg(out, "[%d] 0x%x in \?\?()\n", frameNo, pc);
   }
 }
 
@@ -420,14 +423,12 @@ void stackTrace(enginePo p, ioPo out, stackPo stk, integer depth,
 
   integer frameNo = 0;
   framePo fp = stk->fp;
-  methodPo prog = stk->prog;
   ptrPo args = stk->args;
   ssaInsPo pc = stk->pc;
 
   do{
     while (fp > baseFrame(stk) && maxDepth-- > 0){
-      showStackCall(out, depth, args, frameNo++, level, prog, pc);
-      prog = fp->prog;
+      showStackCall(out, depth, args, frameNo++, level, pc);
       args = fp->args;
       pc = fp->link;
 
