@@ -552,7 +552,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         loadRegister(state, ix, govVr->src);
         ldrw(ix, OF(ix, OffsetOf(TermHead,lblIndex))); // pick up the label index
         armReg labels = findARegister(state, pc);
-        mov(labels,IM((uinteger)labelConstructorIndex));
+        mov(labels, IM((uinteger)labelConstructorIndex));
         ldrw(ix, EX2(labels, ix, U_XTX, 2));
         int32 mx = (skip - insSize) / 2;
         immModulo(ctx, ix, mx, jit->freeRegs);
@@ -914,8 +914,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         getIntVal(jit, divisor);
 
         codeLblPo skip = newLabel(ctx);
-        tst(divisor, RG(XZR));
-        bne(skip);
+        cbnz(divisor, skip);
+
         blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
         blockPo parent = tgtBlock->parent;
         localVarPo phiVar = parent->phiVar;
@@ -926,7 +926,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
         armReg dividend = findARegister(state, pc);
         loadRegister(state, dividend, left);
-
+        getIntVal(jit, dividend);
         sdiv(dividend, dividend, divisor);
         mkIntVal(jit, dividend);
         localVarPo dst = localTarget(state, pc, opand(2));
@@ -947,8 +947,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         getIntVal(jit, divisor);
 
         codeLblPo skip = newLabel(ctx);
-        tst(divisor, RG(XZR));
-        bne(skip);
+        cbnz(divisor, skip);
         blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
         blockPo parent = tgtBlock->parent;
         localVarPo phiVar = parent->phiVar;
@@ -961,15 +960,13 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         loadRegister(state, dividend, left);
         armReg quotient = findARegister(state, pc);
 
-        sdiv(dividend, dividend, divisor);
-        msub(dividend, divisor, quotient, dividend);
+        getIntVal(jit, dividend);
+        sdiv(quotient, dividend, divisor);
+        msub(dividend, quotient, divisor, dividend);
 
         mkIntVal(jit, dividend);
         localVarPo dst = localTarget(state, pc, opand(2));
         storeVar(state, pc, RG(dividend), dst);
-        releaseReg(jit, dividend);
-        releaseReg(jit, divisor);
-        pc += insSize;
 
         releaseReg(jit, dividend);
         releaseReg(jit, divisor);
@@ -1047,7 +1044,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         loadConstant(jit, falseIndex, fl);
 
         cmp(a1, RG(a2));
-        csel(a1, fl, tr, LT);
+        csel(a1, tr, fl, LT);
 
         storeVar(state, pc, RG(a1), dst);
         releaseReg(jit, a2);
@@ -1078,7 +1075,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         loadConstant(jit, falseIndex, fl);
 
         cmp(a1, RG(a2));
-        csel(a1, fl, tr, GE);
+        csel(a1, tr, fl, GE);
 
         storeVar(state, pc, RG(a1), dst);
         releaseReg(jit, a2);
@@ -1474,7 +1471,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
         fcmp(F0, F1);
-        csel(a1, fl, tr, GE);
+        csel(a1, tr, fl, LT);
 
         storeVar(state, pc, RG(a1), dst);
         releaseReg(jit, a2);
@@ -1504,7 +1501,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         getFltVal(jit, a1, F0);
         getFltVal(jit, a2, F1);
         fcmp(F0, F1);
-        csel(a1, fl, tr, LT);
+        csel(a1, tr, fl, GE);
 
         storeVar(state, pc, RG(a1), dst);
         releaseReg(jit, a2);
