@@ -25,6 +25,12 @@ typedef struct {
   int32 arity;
 } LabelRecord, *labelRecordPo;
 
+typedef struct {
+  int32 constructorIndex;
+} LabelConstructorIndex, *labelConstructorIndexPo;
+
+extern labelConstructorIndexPo labelConstructorIndex;
+
 typedef struct program_label_ {
   TermHead special;         // == labelClass
   LabelRecord lbl;            // The label itself

@@ -60,8 +60,8 @@ static FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo);
 static FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax);
 static localVarPo operandVar(codeGenPo state, int32 pc, int32 ax);
 static void dumpState(codeGenPo state);
-static int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
-static int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity);
+static int32 loadArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity);
+static int32 loadLambdaArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity);
 static int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 arity, int32 argBase);
 static void dropArguments(codeGenPo state, int32 pc);
 static int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 argPc, int32 arity);
@@ -161,7 +161,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         int32 insSize = opand(2) + 3;
         int32 key = opand(1);
         int32 arity = lblArity(C_LBL(getConstant(key)));
-        int32 lclLimit = loadArguments(state, pc + insSize, pc + 3, arity);
+        int32 lclLimit = loadArguments(state, pc, pc + insSize, pc + 3, arity);
         loadConstant(jit, key, X16);
         // pick up the pointer to the method
         ldr(X17, OF(X16, OffsetOf(LblRecord, mtd)));
@@ -190,8 +190,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
         armReg lamReg = X16;
         loadRegister(state, lamReg, lam);
+        int32 lclLimit = loadLambdaArguments(state, pc, pc + insSize, pc + 3, numArgs);
         ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
-        int32 lclLimit = loadLambdaArguments(state, pc + insSize, pc + 3, numArgs);
         ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
         // pick up the pointer to the method
         ldr(X17, OF(lamReg, OffsetOf(LblRecord, mtd)));
@@ -551,7 +551,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         assert(govVr->live);
         loadRegister(state, ix, govVr->src);
         ldrw(ix, OF(ix, OffsetOf(TermHead,lblIndex))); // pick up the label index
-        invokeIntrinsic(state, pc, pc, (runtimeFn) indexToIndex, 1, (FlexOp[]){RG(ix)}, 1, (FlexOp[]){RG(ix)});
+        armReg labels = findARegister(state, pc);
+        mov(labels,IM((uinteger)labelConstructorIndex));
+        ldrw(ix, EX2(labels, ix, U_XTX, 2));
         int32 mx = (skip - insSize) / 2;
         immModulo(ctx, ix, mx, jit->freeRegs);
 
@@ -847,9 +849,9 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         getIntVal(jit, a2);
 
         add(a1, a1, RG(a2));
-
         mkIntVal(jit, a1);
         storeVar(state, pc, RG(a1), dst);
+
         releaseReg(jit, a2);
         releaseReg(jit, a1);
         pc += insSize;
@@ -1837,11 +1839,11 @@ void dumpState(codeGenPo state) {
   dRegisterMap(state->jit->freeRegs);
 }
 
-int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, int32 argBase, int32 arity) {
+int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pc, int32 livePc, int32 argBase, int32 arity) {
   ArgSpec operands[arity];
 
   int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, livePc, minOffset); // void out gaps in the locals map
+  voidOutFrameLocals(state, pc, minOffset); // void out gaps in the locals map
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
@@ -1859,12 +1861,12 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 livePc, in
   return minOffset; // return how must space is needed to preserve current locals.
 }
 
-int32 loadArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
-  return loadArgsToRegisters(state, defaultArgRegs(), livePc, argBase, arity);
+int32 loadArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, defaultArgRegs(), pc, livePc, argBase, arity);
 }
 
-int32 loadLambdaArguments(codeGenPo state, int32 livePc, int32 argBase, int32 arity) {
-  return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), livePc, argBase, arity);
+int32 loadLambdaArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity) {
+  return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), pc, livePc, argBase, arity);
 }
 
 int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 arity, int32 argBase) {

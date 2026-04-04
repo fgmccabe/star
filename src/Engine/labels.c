@@ -53,6 +53,7 @@ static builtinClassPo stdLabels[MAX_STD_INDEX];
 
 static LblRecord *labelTable;
 static int32 lblTableTop; // First 16 indices reserved
+labelConstructorIndexPo labelConstructorIndex;
 
 static integer LabelHash(labelRecordPo lbl) {
   return hash61(lbl->arity * 37 + uniHash(lbl->name));
@@ -79,6 +80,7 @@ void initLbls() {
   labelHashTable = newHash(1024, (hashFun) LabelHash, (compFun) LabelCmp, (destFun) Null);
 
   labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
+  labelConstructorIndex = (labelConstructorIndexPo) malloc(sizeof(labelConstructorIndex) * maxLabels);
   lblTableTop = 0;
 }
 
@@ -90,6 +92,7 @@ labelPo declareLbl(const char *name, int32 arity, int32 constructorIndex) {
     if (lblTableTop >= maxLabels)
       syserr("label table exhausted");
 
+    labelConstructorIndex[lblTableTop].constructorIndex = constructorIndex;
     lbl = &labelTable[lblTableTop++];
     lbl->lbl.arity = (&Lbl)->arity;
     lbl->lbl.name = uniDuplicate((&Lbl)->name);
@@ -109,8 +112,10 @@ labelPo declareLbl(const char *name, int32 arity, int32 constructorIndex) {
 
   check(arity >= 0, "invalid label arity");
 
-  if (constructorIndex != -1 && lbl->constructorIndex == -1)
+  if (constructorIndex != -1 && lbl->constructorIndex == -1) {
     lbl->constructorIndex = constructorIndex;
+    labelConstructorIndex[lbl->labelIndex].constructorIndex = constructorIndex;
+  }
 
   return lbl;
 }
@@ -246,12 +251,11 @@ int32 constructorIndex(labelPo lbl) {
 labelPo indexToLabel(int32 index) {
   if (index >= 0 && index < lblTableTop)
     return &labelTable[index];
-  else
-    return Null;
+  return Null;
 }
 
 int32 indexToIndex(int32 lblIndex) {
-  return labelTable[lblIndex].constructorIndex;
+  return labelConstructorIndex[lblIndex].constructorIndex;
 }
 
 static builtinClassPo indexToSpecialClass(int32 index) {
