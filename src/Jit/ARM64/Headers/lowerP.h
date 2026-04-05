@@ -71,7 +71,7 @@ int32 maxArgRegister;
 armReg findARegister(codeGenPo state, int32 pc);
 void loadRegister(codeGenPo state, armReg rg, FlexOp src);
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt, FlexOp results[]);
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], logical moveOwnership, int32 rsCnt, FlexOp results[]);
 
 codeLblPo breakLabel(blockPo block);
 codeLblPo loopLabel(blockPo block);
@@ -95,7 +95,7 @@ logical allLocalsStashed(codeGenPo state, int32 pc);
 void showLiveLocals(ioPo out, codeGenPo state);
 retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt);
 
-void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset);
+void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset, armReg vdReg);
 
 localVarPo findSpareLocal(codeGenPo state, int32 pc);
 int32 nextStkOff(codeGenPo state, int32 pc);

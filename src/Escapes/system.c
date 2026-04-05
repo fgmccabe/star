@@ -79,7 +79,7 @@ ValueReturn s__envir(enginePo P) {
     if (pt != NULL) {
       ky = (termPo) allocateString(h, envPair, pt - envPair);
       vl = (termPo) allocateString(h, pt + 1, uniStrLen(pt + 1));
-      pair = (termPo) allocatePair(h, ky, vl);
+      pair = (termPo) allocateTplPair(h, ky, vl);
       list = (termPo) allocateCons(h, pair, list);
     }
   }

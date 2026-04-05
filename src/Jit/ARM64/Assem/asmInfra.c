@@ -19,6 +19,12 @@
 tracingLevel traceAssem = noTracing;
 #endif
 
+#ifdef TRACEJIT
+#define TRACE(Op) { if(traceAssem>noTracing) Op; }
+#else
+#define TRACE(Op)
+#endif
+
 static poolPo lblPool = Null;
 static poolPo asmPool = Null;
 
@@ -201,6 +207,8 @@ codeLblPo remoteLabel(assemCtxPo ctx, integer fn) {
 }
 
 codeLblPo setLabel_(assemCtxPo ctx, codeLblPo lbl) {
+  TRACE(outMsg(logFile,"bind 0x%x: 0x%x\n%_",ctx->pc,lbl));
+
   lbl->pc = ctx->pc;
   ClInfo info = {.ctx = ctx, .lbl = lbl};
   if (lbl->refs != Null) {

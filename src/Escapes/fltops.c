@@ -117,7 +117,7 @@ ValueReturn s__frexp(enginePo P, termPo l) {
   int root = gcAddRoot(h, &man);
   termPo ex = makeInteger((integer) exp);
   gcAddRoot(h, &ex);
-  termPo Rs = (termPo) allocatePair(h, man, ex);
+  termPo Rs = (termPo) allocateTplPair(h, man, ex);
   gcReleaseRoot(h, root);
   return normalReturn(Rs);
 }
@@ -132,7 +132,7 @@ ValueReturn s__modf(enginePo P, termPo l) {
   int root = gcAddRoot(h, &man);
   termPo ex = makeInteger((integer) intgrl);
   gcAddRoot(h, &ex);
-  termPo Rs = (termPo) allocatePair(h, man, ex);
+  termPo Rs = (termPo) allocateTplPair(h, man, ex);
   gcReleaseRoot(h, root);
 
   return normalReturn(Rs);

@@ -2,7 +2,6 @@
 #define _HEAP_H_
 
 #include "config.h"
-#include "engineOptions.h"
 #include "ooio.h"
 #include "term.h"
 #include "labels.h"
@@ -10,21 +9,23 @@
 
 typedef struct heap_ *heapPo;
 
-extern void initHeap(long heapSize);
+void initHeap(long heapSize);
 
 extern heapPo globalHeap;
 
 extern integer numAllocated;
 extern integer totalAllocated;
 
-extern termPo allocateObject(heapPo H, int32 index, integer amnt);
+termPo allocateObject(heapPo H, int32 index, integer amnt);
+normalPo allocateUnary(heapPo h, int32 index, termPo arg);
+normalPo allocateBinary(heapPo h, int32 index, termPo left, termPo right);
 
-extern normalPo allocateStruct(heapPo H, labelPo lbl);
-extern retCode enoughRoom(heapPo H,labelPo lbl);
-extern retCode reserveSpace(heapPo H, integer amnt);
+normalPo allocateStruct(heapPo H, labelPo lbl);
+retCode enoughRoom(heapPo H, labelPo lbl);
+retCode reserveSpace(heapPo H, integer amnt);
 
-extern int gcAddRoot(heapPo H, ptrPo addr);
-extern void gcReleaseRoot(heapPo H, int mark);
+int gcAddRoot(heapPo H, ptrPo addr);
+void gcReleaseRoot(heapPo H, int mark);
 
 #define PTRSZE (sizeof(void*))
 

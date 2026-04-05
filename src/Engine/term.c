@@ -220,7 +220,7 @@ normalPo allocateTpl(heapPo H, int32 arity) {
   return tpl;
 }
 
-normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
+normalPo allocateTplPair(heapPo H, termPo lhs, termPo rhs) {
   int root = gcAddRoot(H, &lhs);
   gcAddRoot(H, &rhs);
   normalPo tpl = allocateTpl(H, 2);

@@ -4,14 +4,14 @@
 #include <threds.h>
 #include "normalP.h"
 
-long initHeapSize = 4 * 1024 * 1024;   /* How much memory to give the heap */
+long initHeapSize = 4 * 1024 * 1024; /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
 #define FIVEAS 0x5a5a5a50;
 
-tracingLevel traceMemory = noTracing;      /* memory tracing */
-logical traceAllocs = False;      // trace allocations
-logical validateMemory = False;   // Validate heap after every allocation
+tracingLevel traceMemory = noTracing; /* memory tracing */
+logical traceAllocs = False; // trace allocations
+logical validateMemory = False; // Validate heap after every allocation
 
 HeapRecord heap;
 heapPo globalHeap = Null;
@@ -24,18 +24,18 @@ integer allocationHeaps[64];
 void initHeap(long heapSize) {
   if (globalHeap == NULL) {
     heap.curr = heap.old = heap.base = heap.start =
-      (termPo) malloc(sizeof(ptrPo) * heapSize); /* Allocate heap */
-    heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
+                                       (termPo) malloc(sizeof(ptrPo) * heapSize); /* Allocate heap */
+    heap.outerLimit = heap.base + heapSize; /* The actual outer limit */
     heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
     globalHeap = currentHeap = &heap;
 
 #ifdef TRACEMEM
-    if (traceMemory>noTracing) {
+    if (traceMemory > noTracing) {
       outMsg(logFile, "establish heap of %ld words total\n", initHeapSize);
       outMsg(logFile, "lower half at 0x%x, %ld words\n", heap.start, heap.limit - heap.base);
-      for (int ix=0;ix<NumberOf(allocationHeaps);ix++)
-        allocationHeaps[ix]=0;
+      for (int ix = 0; ix < NumberOf(allocationHeaps); ix++)
+        allocationHeaps[ix] = 0;
     }
 #endif
   }
@@ -89,6 +89,45 @@ termPo allocateObject(heapPo h, int32 index, integer amnt) {
   return t;
 }
 
+normalPo allocateUnary(heapPo h, int32 index, termPo arg) {
+  int root = gcAddRoot(h, (&arg));
+  normalPo trm = C_NORMAL(allocateObject(h,index,NormalCellCount(1)));
+  trm->args[0] = arg;
+  gcReleaseRoot(h, root);
+  return trm;
+}
+
+normalPo allocateBinary(heapPo h, int32 index, termPo left, termPo right) {
+  integer amnt = NormalCellCount(2);
+  if ((((ptrPo) h->curr) + amnt) >= ((ptrPo) (h->limit))) {
+    int root = gcAddRoot(h, (&left));
+    gcAddRoot(h, (&right));
+    if (gcCollect(h, amnt) != Ok) {
+      char msg[MAX_SYMB_LEN];
+      strMsg(msg,NumberOf(msg), "Could not allocate %d cells on heap", amnt);
+      syserr(msg);
+      return Null;
+    }
+    gcReleaseRoot(h, root);
+  }
+
+  termPo t = h->curr;
+  h->curr = h->curr + amnt;
+  t->lblIndex = index;
+  t->space = FIVEAS;
+#ifdef TRACEMEM
+  if (traceAllocs) {
+    numAllocated++;
+    totalAllocated += amnt;
+    allocationHeaps[lg2(amnt)]++;
+  }
+#endif
+  normalPo trm = C_NORMAL(t);
+  trm->args[0] = left;
+  trm->args[1] = right;
+  return trm;
+}
+
 normalPo allocateStruct(heapPo H, labelPo lbl) {
   return (normalPo) allocateObject(H, indexOfLabel(lbl), NormalCellCount(lblArity(lbl)));
 }
@@ -128,11 +167,11 @@ void verifyHeap(heapPo H) {
 void showMemoryStats(ioPo out) {
   outMsg(out, "%ld total allocations, %ld total words\n", numAllocated, totalAllocated);
   integer blockSize = 1;
-  for (int ix=0;ix<NumberOf(allocationHeaps);ix++) {
+  for (int ix = 0; ix < NumberOf(allocationHeaps); ix++) {
     if (allocationHeaps[ix] != 0) {
-      outMsg(out,"%d allocations of %ld words\n",allocationHeaps[ix],blockSize);
+      outMsg(out, "%d allocations of %ld words\n", allocationHeaps[ix], blockSize);
     }
-    blockSize<<=1;
+    blockSize <<= 1;
   }
 }
 #endif

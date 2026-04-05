@@ -98,7 +98,7 @@ void loadRegister(codeGenPo state, armReg rg, FlexOp src) {
 }
 
 logical liveVar(localVarPo var, int32 pc) {
-  return var->live && var->desc->end >= pc;
+  return var->live && var->desc->end > pc;
 }
 
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership) {
@@ -139,7 +139,7 @@ void showLiveLocals(ioPo out, codeGenPo state) {
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo lcl = &state->locals[ix];
     if (lcl->live) {
-      outMsg(out, "L[%d] = %V\n%_", ix, lcl);
+      outMsg(out, "%V\n%_", lcl);
     }
   }
 }
@@ -195,25 +195,23 @@ FlexOp varFlex(int32 index) {
   return OF(AG, index*pointerSize);
 }
 
-void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset) {
-  armReg vdCon = findARegister(state, pc);
+void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset, armReg vdRg) {
   logical loaded = False;
   for (int32 ix = -1; ix > minOffset; ix--) {
-    voidOutSlot(state, pc, ix, vdCon, &loaded);
+    voidOutSlot(state, pc, ix, vdRg, &loaded);
   }
-  releaseReg(state->jit, vdCon);
 }
 
 void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
   move(ctx, dst, src, *freeRegs);
 }
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], int32 rsCnt,
-                     FlexOp results[]) {
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], logical moveOwnership,
+                     int32 rsCnt, FlexOp results[]) {
   assemCtxPo ctx = assemCtx(state->jit);
 
-  int32 lastSlot = stashLiveLocals(state, pc, False);
-  voidOutFrameLocals(state, pc, lastSlot); // void out gaps in the locals map
+  int32 lastSlot = stashLiveLocals(state, pc, moveOwnership);
+  voidOutFrameLocals(state, pc, lastSlot, X16); // void out gaps in the locals map
 
   ArgSpec operands[arity];
 
@@ -353,7 +351,7 @@ void stackCheck(codeGenPo state, int32 pc, int32 argCnt, int32 lclCnt) {
   str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
 
   invokeIntrinsic(state, pc, pc + 1, (runtimeFn) handleStackOverflow,
-                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(mtdArity(mtd))}, 0, (FlexOp[]){});
+                  4, (FlexOp[]){RG(PR), IM(True), IM(delta), IM(mtdArity(mtd))}, False, 0, (FlexOp[]){});
   bind(okLbl);
   releaseReg(jit, tmp);
 }
@@ -431,7 +429,7 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
 retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt) {
   localVarPo var = (localVarPo) data;
   varDescPo desc = var->desc;
-  return outMsg(out, "%s[%d]%s [%d,%d] @ %F", varKindName(desc->kind), var->desc->varNo,
+  return outMsg(out, "%s[%d]%s [%d,%d) @ %F", varKindName(desc->kind), var->desc->varNo,
                 (var->inited ? (var->stashed ? "S" : "") : "u"),
                 desc->start, desc->end,
                 &var->src);

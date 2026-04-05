@@ -93,7 +93,7 @@ ValueReturn s__big_div(enginePo P, termPo l, termPo r) {
 
     termPo Rt = allocateBignum(h, rC, rem);
     gcAddRoot(h, &Rt);
-    termPo Rs = (termPo) allocatePair(h, Qt, Rt);
+    termPo Rs = (termPo) allocateTplPair(h, Qt, Rt);
     gcReleaseRoot(h, root);
     return normalReturn(Rs);
   } else {
