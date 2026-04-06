@@ -320,10 +320,12 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         continue;
       }
       case sEntry: {
+        int32 nextPc = pc + 3;
         str(LR, OF(FP, OffsetOf(StackFrame, link)));
+        stashLiveLocals(state,nextPc,False);
         stackCheck(state, pc, opand(1), opand(2));
         // locals definition
-        pc += 3;
+        pc = nextPc;
         continue;
       }
       case sRSP: {
@@ -436,6 +438,28 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         bind(brkLbl);
         continue;
       }
+      case sLoop: {
+        // block of instructions
+        int32 blockLen = opand(1);
+        int32 nextPc = pc + blockLen;
+        codeLblPo brkLbl = newLabel(ctx);
+
+        JitBlock subBlock = {
+          .blockType = sLoop,
+          .startPc = pc,
+          .endPc = nextPc,
+          .breakLbl = brkLbl,
+          .loopLbl = here(),
+          .parent = block,
+          .phiVar = Null
+        };
+
+        ret = jitBlock(&subBlock, state, code, pc + 2, nextPc);
+        pc = nextPc; // Skip over the block
+        retireExpiredVars(state, pc);
+        bind(brkLbl);
+        continue;
+      }
       case sValof: {
         // vlof block of instructions
         int32 blockLen = opand(2);
@@ -477,11 +501,11 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         pc += insSize;
         continue;
       }
-      case sLoop: {
+      case sCont: {
         // jump back to start of block
         int32 insSize = 2;
         int32 tgt = pc + opand(1);
-        blockPo tgtBlock = targetBlock(block, tgt, sBlock);
+        blockPo tgtBlock = targetBlock(block, tgt, sLoop);
         codeLblPo loop = loopLabel(tgtBlock);
         assert(loop != Null);
         b(loop);
@@ -781,13 +805,18 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sCell: {
         // create R/W cell
         int32 insSize = 3;
-        armReg cel = allocSmallStruct(state, pc, pc + insSize, cellIndex,CellCellCount);
-        FlexOp vl = localFlex(state, pc, opand(2));
-        storeFlex(state, pc, vl,OF(cel, OffsetOf(CellRecord, content)));
+        int32 nextPc = pc + insSize;
+
+        armReg cell = findARegister(state, pc);
+
+        invokeIntrinsic(state, pc, nextPc, (runtimeFn) newCell, 2, (FlexOp[]){
+                          OF(PR, OffsetOf(EngineRecord, heap)), localFlex(state, pc, opand(2))
+                        }, False, 1, (FlexOp[]){RG(cell)});
+
         localVarPo tgt = localTarget(state, pc, opand(1));
-        storeVar(state, pc,RG(cel), tgt);
-        releaseReg(jit, cel);
-        pc += insSize;
+        storeVar(state, pc,RG(cell), tgt);
+        releaseReg(jit, cell);
+        pc = nextPc;
         continue;
       }
       case sGet: {
@@ -1596,7 +1625,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         adr(tmp, rtn);
         str(tmp, OF(STK, OffsetOf(StackRecord, pc)));
         loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-        mov(RTV, IM(0));
+        mov(RTS, IM(0));
         stp(RTV, RTS, PRX(SP,-16));
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) detachStack, 2, (FlexOp[]){
                           RG(PR), localFlex(state, pc,opand(1))
@@ -1615,7 +1644,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         adr(X16, rtn);
         str(X16, OF(STK, OffsetOf(StackRecord, pc)));
         loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-        mov(RTV, IM(0));
+        mov(RTS, IM(0));
         stp(RTV, RTS, PRX(SP,-16));
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) attachStack, 2, (FlexOp[]){
                           RG(PR), localFlex(state, pc,opand(1))
@@ -1631,7 +1660,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         // Similar to suspend, except that we trash the suspending stack
         int32 insSize = 3;
         loadRegister(state, RTV, localFlex(state, pc,opand(2)));
-        mov(RTV, IM(0));
+        mov(RTS, IM(0));
         stp(RTV, RTS, PRX(SP,-16));
         invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) detachDropStack, 2,
                         (FlexOp[]){RG(PR), localFlex(state, pc,opand(1))}, True, 0, (FlexOp[]){});

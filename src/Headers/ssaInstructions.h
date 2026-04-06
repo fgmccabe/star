@@ -18,10 +18,11 @@ instr(Ret, lcl)
 instr(XRet, lcl)
 
 instr(Block, bLk)
+instr(Loop, bLk)
 instr(Valof, lcl bLk)
 instr(Break, lVl)
 instr(Result, lVl lcl)
-instr(Loop, lVl)
+instr(Cont, lVl)
 
 instr(If, lVl lcl)
 instr(IfNot, lVl lcl)

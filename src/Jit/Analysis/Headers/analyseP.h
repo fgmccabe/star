@@ -32,6 +32,7 @@ typedef struct block_scope_
 {
   int32 start;
   int32 limit;
+  ssaOp kind;
   scopePo parent;
 } ScopeBlock;
 
@@ -53,7 +54,7 @@ void markVarAsRegister(varDescPo var);
 void markVarAsMemory(varDescPo var);
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
-void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc);
+void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc);
 varDescPo varStart(analysisPo analysis, int32 pc);
 
 varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc);

@@ -138,8 +138,20 @@ void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 p
   treePut(analysis->index, (void*)(integer)pc, desc);
 }
 
-void recordVariableUse(analysisPo analysis, int32 varNo, int32 pc) {
+void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
+
+  while (block!=Null) {
+    if (block->start >= var->start) { // extend scope of variable through the end of loops
+      if (block->kind==sLoop) {
+        if (var->end<block->limit)
+          var->end = block->limit;
+      }
+      block = block->parent;
+      continue;
+    }
+    break;
+  }
 
   if (var->end < pc)
     var->end = pc;

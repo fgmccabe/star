@@ -206,11 +206,12 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs) {
   move(ctx, dst, src, *freeRegs);
 }
 
-void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[], logical moveOwnership,
+void invokeIntrinsic(codeGenPo state, int32 pc, int32 livePc, runtimeFn fn, int32 arity, FlexOp args[],
+                     logical moveOwnership,
                      int32 rsCnt, FlexOp results[]) {
   assemCtxPo ctx = assemCtx(state->jit);
 
-  int32 lastSlot = stashLiveLocals(state, pc, moveOwnership);
+  int32 lastSlot = stashLiveLocals(state, livePc, moveOwnership);
   voidOutFrameLocals(state, pc, lastSlot, X16); // void out gaps in the locals map
 
   ArgSpec operands[arity];
@@ -389,7 +390,7 @@ int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership)
         var->stkOff = (var->desc->kind == argument ? var->desc->varNo : nextStkOff(state, pc));
         FlexOp lclFlex = varFlex(var->stkOff);
         storeFlex(state, pc, var->src, lclFlex);
-        if (moveOwnership) {
+        if (moveOwnership || !var->desc->registerCandidate) {
           var->src = lclFlex;
           releaseReg(state->jit, var->src.reg);
         }
@@ -429,10 +430,13 @@ void restoreStashedLocals(codeGenPo state, int32 pc) {
 retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt) {
   localVarPo var = (localVarPo) data;
   varDescPo desc = var->desc;
-  return outMsg(out, "%s[%d]%s [%d,%d) @ %F", varKindName(desc->kind), var->desc->varNo,
-                (var->inited ? (var->stashed ? "S" : "") : "u"),
-                desc->start, desc->end,
-                &var->src);
+  outMsg(out, "%s[%d]%s [%d,%d)", varKindName(desc->kind), var->desc->varNo,
+         (var->inited ? (var->stashed ? "S" : "") : "u"),
+         desc->start, desc->end);
+  if (var->inited) {
+    outMsg(out, " @ %F",&var->src);
+  }
+  return Ok;
 }
 
 int32 nextStkOff(codeGenPo state, int32 pc) {

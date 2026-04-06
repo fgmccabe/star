@@ -5,6 +5,7 @@
 #ifndef STAR_CELL_H
 #define STAR_CELL_H
 
+#include "heap.h"
 #include "term.h"
 
 typedef struct _cell_record_ *cellPo;

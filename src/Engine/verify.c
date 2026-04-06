@@ -362,6 +362,15 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
         }
         return Error;
       }
+      case sLoop: {
+        int32 blockLen = operand(1);
+
+        if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, False) == Ok) {
+          pc += blockLen;
+          continue;
+        }
+        return Error;
+      }
       case sValof: {
         int32 blkRsltVr = operand(1);
         int32 blockLen = operand(2);
@@ -387,7 +396,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
           return verifyError(&ctx, ".%d: Break should be last instruction in block", pc);
         return Ok;
       }
-      case sLoop: {
+      case sCont: {
         if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
           return Error;
         int32 insSize = 2;

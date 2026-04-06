@@ -285,11 +285,11 @@ compAction(unpack(Lc,T,Cases,Deflt),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compUnpack(T,Lc,genssa:wrapAction,Cases,Deflt,genssa:compActX,Brks,Opts,L,Lx,D,Dx,C0,Cx).
 compAction(whle(Lc,G,B),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock([iLbl(Lp,iBlock(LC))]))|Cx]),!,
+  chLine(Opts,OLc,Lc,C,[iLbl(Done,iBlock([iLbl(Lp,iLoop(LC))]))|Cx]),!,
   genLbl(L,Lp,L1),
   genLbl(L1,Done,L2),
   compCond(G,Lc,Done,Brks,normal,Opts,L2,L3,D,D1,LC,LC1),
-  compAction(B,Lc,Brks,Opts,L3,Lx,D1,Dx,LC1,[iLoop(Lp)]).
+  compAction(B,Lc,Brks,Opts,L3,Lx,D1,Dx,LC1,[iCont(Lp)]).
 compAction(ltt(Lc,idnt(Nm,Tp),Val,Act),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C1),
   defineLclVar(Lc,Nm,Tp,Opts,D,D1),

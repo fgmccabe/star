@@ -216,14 +216,18 @@ void verifyStack(stackPo stk, heapPo H) {
       ptrPo spLimit = stackLimit(stk);
       framePo fp = stk->fp;
       framePo fpLimit = baseFrame(stk);
-      methodPo prog = stk->prog;
+      methodPo prog = locateMethod((uinteger)stk->pc);
       ptrPo args = stk->args;
 
       do{
-        check(isMethod((termPo) prog), "expecting a code pointer");
-        check(args >= sp, "frame arg pointer invalid");
-        sp = args + argCount(prog);
-        prog = fp->prog;
+        if (prog!=Null) {
+          check(isMethod((termPo) prog), "expecting a code pointer");
+          check(args >= sp, "frame arg pointer invalid");
+          sp = args + argCount(prog);
+        } else {
+          sp = args;
+        }
+        prog = locateMethod((uinteger)fp->link);
         args = fp->args;
         fp--;
       }

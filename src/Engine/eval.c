@@ -45,20 +45,20 @@ ValueReturn run(enginePo P) {
 
     switch (PC->op.op) {
       case sHalt:
-        return (ValueReturn){.value = varble(operand(1)), .status=Normal};
+        return (ValueReturn){.value = varble(operand(1)), .status = Normal};
       case sAbort: {
         termPo lc = getConstant(operand(1));
         termPo msg = varble(operand(2));
         saveRegisters();
         abort_star(P, lc, msg);
-        return (ValueReturn){.value = msg, .status=Abnormal};
+        return (ValueReturn){.value = msg, .status = Abnormal};
       }
       case sCall: {
         labelPo nProg = C_LBL(getConstant(operand(1)));
         methodPo mtd = labelMtd(nProg); // Which program do we want?
         int32 arity = mtdArity(mtd);
         int32 insSize = arity + 3;
-        ssaInsPo nextPc = PC+insSize;
+        ssaInsPo nextPc = PC + insSize;
 
         if (mtd == Null) {
           logMsg(logFile, "label %A not defined", nProg);
@@ -371,7 +371,8 @@ ValueReturn run(enginePo P) {
 
         continue; /* and carry on regardless */
       }
-      case sBlock: {
+      case sBlock:
+      case sLoop: {
         PC += 2; // Skip over the size marker and the Block instruction itself.
         continue;
       }
@@ -389,7 +390,7 @@ ValueReturn run(enginePo P) {
         returnBlock(1, reslt);
         continue; /* and carry after reset block */
       }
-      case sLoop: {
+      case sCont: {
         PC += operand(1);
         PC += 2; // Move to start of actual instructions
         continue;
