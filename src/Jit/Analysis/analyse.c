@@ -138,7 +138,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
         ScopeBlock block = {
           .start = pc, .limit = limit, .parent = scope, .kind = sValof
         };
-        recordVariableStart(analysis,operand(1), phi, pc);
+        recordVariableStart(analysis,operand(1), valof, pc);
         ret = analyseBlock(analysis, &block, code, pc + 3, nextPc);
         pc = nextPc;
         continue;

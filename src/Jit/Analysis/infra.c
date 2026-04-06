@@ -132,7 +132,7 @@ treePo newVarIndex() {
 
 void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   varDescPo desc = findVar(analysis, varNo);
-  assert(desc != Null && (kind==phi || desc->start==-1));
+  assert(desc != Null && (kind==valof || desc->start==-1));
   desc->start = pc;
   desc->kind = kind;
   treePut(analysis->index, (void*)(integer)pc, desc);
@@ -215,7 +215,7 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
 }
 
 varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc){
-  varDescPo var = newVar(analysis, varNo, phi, pc, unAllocated);
+  varDescPo var = newVar(analysis, varNo, valof, pc, unAllocated);
   treePut(analysis->index, (void*)(integer)pc, var);
   return var;
 }
@@ -232,7 +232,7 @@ char* varKindName(varKind kind) {
     return "arg";
   case local:
     return "lcl";
-  case phi:
+  case valof:
     return "phi";
   default:
     return "???";

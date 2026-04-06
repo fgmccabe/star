@@ -25,7 +25,7 @@ void showAnalysis(ioPo out, analysisPo analysis);
 typedef enum {
   argument,
   local,
-  phi
+  valof
 } varKind;
 
 char *varKindName(varKind kind);

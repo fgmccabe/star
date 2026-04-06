@@ -9,6 +9,6 @@
 #include "ooio.h"
 #include "stack.h"
 
-ssaInsPo showIns(ioPo out, stackPo stk, ssaInsPo pc);
+ssaInsPo showIns(ioPo out, methodPo mtd, stackPo stk, ssaInsPo pc);
 
 #endif //STAR_DISASS_H

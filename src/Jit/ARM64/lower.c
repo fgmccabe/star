@@ -128,7 +128,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     retireExpiredVars(state, pc);
 #ifdef TRACEJIT
     if (traceJit >= generalTracing) {
-      showIns(logFile, Null, &code[pc]);
+      showIns(logFile, state->mtd, Null, &code[pc]);
       outMsg(logFile, "\n%_");
     }
     if (traceJit >= detailedTracing) {
@@ -2034,7 +2034,7 @@ void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var) {
       var->stashed = True;
     }
   } else {
-    assert(var->desc->kind == phi);
+    assert(var->desc->kind == valof);
     storeFlex(state, pc, val, var->src);
   }
 }
