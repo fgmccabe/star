@@ -24,446 +24,452 @@ scopePo checkScope(scopePo scope, int32 tgt);
 retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc, int32 limit) {
   retCode ret = Ok;
 
-  while (ret == Ok && pc < limit) {
-    switch (code[pc].op.op) {
-      case sHalt: {
-        int32 nextPc = pc + 2;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sAbort: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sCall:
-      case sEscape: {
-        int32 arity = operand(2);
-        int32 nextPc = pc + arity + 3;
+  while (ret == Ok && pc < limit){
+    switch (code[pc].op.op){
+    case sHalt: {
+      int32 nextPc = pc + 2;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sAbort: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sCall:
+    case sEscape: {
+      int32 arity = operand(2);
+      int32 nextPc = pc + arity + 3;
 
-        for (int32 ax = 0; ax < arity; ax++)
-          recordVariableUse(analysis, scope, operand(3+ax), nextPc);
+      for (int32 ax = 0; ax < arity; ax++)
+        recordVariableUse(analysis, scope, operand(3+ax), nextPc);
 
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sOCall: {
-        int32 arity = operand(2);
-        int32 nextPc = pc + arity + 3;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        for (int32 ax = 0; ax < arity; ax++)
-          recordVariableUse(analysis, scope, operand(3+ax), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sOCall: {
+      int32 arity = operand(2);
+      int32 nextPc = pc + arity + 3;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      for (int32 ax = 0; ax < arity; ax++)
+        recordVariableUse(analysis, scope, operand(3+ax), nextPc);
 
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sTCall: {
-        int32 arity = operand(2);
-        int32 nextPc = pc + arity + 3;
-        for (int32 ax = 0; ax < arity; ax++)
-          recordVariableUse(analysis, scope, operand(3+ax), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sTOCall: {
-        int32 arity = operand(2);
-        int32 nextPc = pc + arity + 3;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        for (int32 ax = 0; ax < arity; ax++)
-          recordVariableUse(analysis, scope, operand(3+ax), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sRSP: {
-        int32 nextPc = pc + 2;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sRSX: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(2), local, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sEntry: {
-        int32 arity = operand(1);
-        for (int32 ax = 0; ax < arity; ax++)
-          newArgVar(analysis, ax);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sTCall: {
+      int32 arity = operand(2);
+      int32 nextPc = pc + arity + 3;
+      for (int32 ax = 0; ax < arity; ax++)
+        recordVariableUse(analysis, scope, operand(3+ax), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sTOCall: {
+      int32 arity = operand(2);
+      int32 nextPc = pc + arity + 3;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      for (int32 ax = 0; ax < arity; ax++)
+        recordVariableUse(analysis, scope, operand(3+ax), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sRSP: {
+      int32 nextPc = pc + 2;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sRSX: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(2), local, nextPc);
+      scopePo valofScope = checkScope(scope, pc + operand(1));
+      recordVPhiVariable(analysis, valofScope, pc);
+      pc = nextPc;
+      continue;
+    }
+    case sEntry: {
+      int32 arity = operand(1);
+      for (int32 ax = 0; ax < arity; ax++)
+        newArgVar(analysis, ax);
 
-        int32 count = operand(2);
-        for (int32 lx = 0; lx < count; lx++)
-          newLocalVar(analysis, -(lx + 1));
-        pc += 3;
-        continue;
-      }
-      case sRet:
-      case sXRet: {
-        int32 nextPc = pc + 2;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sRtn: {
-        pc++;
-        continue;
-      }
-      case sBlock: {
-        int32 skipLen = operand(1);
+      int32 count = operand(2);
+      for (int32 lx = 0; lx < count; lx++)
+        newLocalVar(analysis, -(lx + 1));
+      pc += 3;
+      continue;
+    }
+    case sRet:
+    case sXRet: {
+      int32 nextPc = pc + 2;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sRtn: {
+      pc++;
+      continue;
+    }
+    case sBlock: {
+      int32 skipLen = operand(1);
 
-        ScopeBlock block = {
-          .start = pc, .limit = limit, .parent = scope, .kind = sBlock
-        };
-        ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
-        pc += skipLen;
-        continue;
-      }
-      case sLoop: {
-        int32 skipLen = operand(1);
+      ScopeBlock block = {
+        .start = pc, .limit = limit, .parent = scope, .kind = sBlock, .phiVar = Null
+      };
+      ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
+      pc += skipLen;
+      continue;
+    }
+    case sLoop: {
+      int32 skipLen = operand(1);
 
-        ScopeBlock block = {
-          .start = pc, .limit = limit, .parent = scope, .kind = sLoop
-        };
-        ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
-        pc += skipLen;
-        continue;
-      }
-      case sValof: {
-        int32 skipLen = operand(2);
-        int32 nextPc = pc + skipLen;
-        ScopeBlock block = {
-          .start = pc, .limit = limit, .parent = scope, .kind = sValof
-        };
-        recordVariableStart(analysis,operand(1), valof, pc);
-        ret = analyseBlock(analysis, &block, code, pc + 3, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sBreak:
-      case sCont: {
-        pc += 2;
-        continue;
-      }
-      case sResult: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sIf:
-      case sIfNot: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sCase:
-      case sICase: {
-        int32 caseLimit = operand(2);
-        int32 nextPc = pc + caseLimit;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        analyseBlock(analysis, scope, code, pc + 3, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sIxCase: {
-        int32 caseLimit = operand(2);
-        int32 nextPc = pc + caseLimit + 3;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        analyseBlock(analysis, scope, code, pc + 3, nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sCLit:
-      case sCFlt: {
-        int32 nextPc = pc + 4;
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sCChar:
-      case sCInt:
-      case sCLbl: {
-        int32 nextPc = pc + 4;
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sMC: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sMv: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sLG: {
-        int32 nextPc = pc + 2;
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sSG: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sSav: {
-        int32 nextPc = pc + 2;
-        setSafePoint(analysis, nextPc - 1);
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sLdSav: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc += 4;
-        continue;
-      }
-      case sTstSav: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc += 3;
-        continue;
-      }
-      case sStSav: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc += 4;
-        continue;
-      }
-      case sCell: {
-        int32 nextPc = pc + 3;
-        setSafePoint(analysis, nextPc - 1);
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sGet: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc += 3;
-        continue;
-      }
-      case sAssign: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc += 3;
-        continue;
-      }
-      case sNth: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc += 4;
-        continue;
-      }
-      case sStNth: {
-        int32 nextPc = pc + 4;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sIAdd:
-      case sISub:
-      case sIMul: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc += 4;
-        continue;
-      }
-      case sIDiv:
-      case sIMod: {
-        int32 nextPc = pc + 5;
-        recordVariableStart(analysis,operand(2), local, nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        recordVariableUse(analysis, scope, operand(4), nextPc);
-        pc += 5;
-        continue;
-      }
-      case sIAbs: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc += 3;
-        continue;
-      }
-      case sIEq:
-      case sILt:
-      case sIGe:
-      case sCEq:
-      case sCLt:
-      case sCGe: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc += 4;
-        continue;
-      }
-      case sBAnd:
-      case sBOr:
-      case sBXor:
-      case sBLsl:
-      case sBLsr:
-      case sBAsr: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sBNot: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sFAdd:
-      case sFSub:
-      case sFMul: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sFDiv:
-      case sFMod: {
-        int32 nextPc = pc + 5;
-        recordVariableStart(analysis,operand(2), local, nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        recordVariableUse(analysis, scope, operand(4), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sFAbs: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sFEq:
-      case sFLt:
-      case sFGe: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        pc = nextPc;
-        continue;
-      }
-      case sAlloc: {
-        int32 arity = operand(3);
-        int32 nextPc = pc + arity + 4;
-        recordVariableStart(analysis,operand(2), local, nextPc);
+      ScopeBlock block = {
+        .start = pc, .limit = limit, .parent = scope, .kind = sLoop, .phiVar = Null
+      };
+      ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
+      pc += skipLen;
+      continue;
+    }
+    case sValof: {
+      int32 skipLen = operand(2);
+      int32 nextPc = pc + skipLen;
+      ScopeBlock block = {
+        .start = pc, .limit = limit, .parent = scope, .kind = sValof,
+        .phiVar = recordVariableStart(analysis,operand(1), valof, pc)
+      };
 
-        for (int32 ax = 0; ax < arity; ax++)
-          recordVariableUse(analysis, scope, operand(ax+4), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
+      ret = analyseBlock(analysis, &block, code, pc + 3, nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sBreak:
+    case sCont: {
+      pc += 2;
+      continue;
+    }
+    case sResult: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc);
+      pc = nextPc;
+      continue;
+    }
+    case sIf:
+    case sIfNot: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sCase:
+    case sICase: {
+      int32 caseLimit = operand(2);
+      int32 nextPc = pc + caseLimit;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      analyseBlock(analysis, scope, code, pc + 3, nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sIxCase: {
+      int32 caseLimit = operand(2);
+      int32 nextPc = pc + caseLimit + 3;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      analyseBlock(analysis, scope, code, pc + 3, nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sCLit:
+    case sCFlt: {
+      int32 nextPc = pc + 4;
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sCChar:
+    case sCInt:
+    case sCLbl: {
+      int32 nextPc = pc + 4;
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sMC: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sMv: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sLG: {
+      int32 nextPc = pc + 2;
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sSG: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sSav: {
+      int32 nextPc = pc + 2;
+      setSafePoint(analysis, nextPc - 1);
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sLdSav: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc += 4;
+      continue;
+    }
+    case sTstSav: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc += 3;
+      continue;
+    }
+    case sStSav: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc += 4;
+      continue;
+    }
+    case sCell: {
+      int32 nextPc = pc + 3;
+      setSafePoint(analysis, nextPc - 1);
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sGet: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc += 3;
+      continue;
+    }
+    case sAssign: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc += 3;
+      continue;
+    }
+    case sNth: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc += 4;
+      continue;
+    }
+    case sStNth: {
+      int32 nextPc = pc + 4;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sIAdd:
+    case sISub:
+    case sIMul: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc += 4;
+      continue;
+    }
+    case sIDiv:
+    case sIMod: {
+      int32 nextPc = pc + 5;
+      recordVariableStart(analysis,operand(2), local, nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      recordVariableUse(analysis, scope, operand(4), nextPc);
+      recordVPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc);
+      pc += 5;
+      continue;
+    }
+    case sIAbs: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc += 3;
+      continue;
+    }
+    case sIEq:
+    case sILt:
+    case sIGe:
+    case sCEq:
+    case sCLt:
+    case sCGe: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc += 4;
+      continue;
+    }
+    case sBAnd:
+    case sBOr:
+    case sBXor:
+    case sBLsl:
+    case sBLsr:
+    case sBAsr: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sBNot: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sFAdd:
+    case sFSub:
+    case sFMul: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sFDiv:
+    case sFMod: {
+      int32 nextPc = pc + 5;
+      recordVariableStart(analysis,operand(2), local, nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      recordVariableUse(analysis, scope, operand(4), nextPc);
+      recordVPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sFAbs: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sFEq:
+    case sFLt:
+    case sFGe: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sAlloc: {
+      int32 arity = operand(3);
+      int32 nextPc = pc + arity + 4;
+      recordVariableStart(analysis,operand(2), local, nextPc);
+
+      for (int32 ax = 0; ax < arity; ax++)
+        recordVariableUse(analysis, scope, operand(ax+4), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sClosure: {
+      int32 nextPc = pc + 4;
+      recordVariableStart(analysis,operand(2), local, nextPc);
+      recordVariableUse(analysis, scope, operand(3), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sDrop:
+    case sBump: {
+      int32 nextPc = pc + 2;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      pc = nextPc;
+      continue;
+    }
+    case sFiber: {
+      int32 nextPc = pc + 3;
+      recordVariableStart(analysis,operand(1), local, nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sResume:
+    case sSuspend:
+    case sRetire: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(1), nextPc);
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      setSafePoint(analysis, nextPc - 1);
+      pc = nextPc;
+      continue;
+    }
+    case sUnderflow: {
+      pc++;
+      continue;
+    }
+    case sLine: {
+      if (lineDebugging){
+        setSafePoint(analysis, pc - 1);
       }
-      case sClosure: {
-        int32 nextPc = pc + 4;
-        recordVariableStart(analysis,operand(2), local, nextPc);
-        recordVariableUse(analysis, scope, operand(3), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
+      pc += 2;
+      continue;
+    }
+    case sBind: {
+      int32 nextPc = pc + 3;
+      recordVariableUse(analysis, scope, operand(2), nextPc);
+      if (lineDebugging){
+        setSafePoint(analysis, pc);
       }
-      case sDrop:
-      case sBump: {
-        int32 nextPc = pc + 2;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        pc = nextPc;
-        continue;
+      pc = nextPc;
+      continue;
+    }
+    case sdBug: {
+      if (lineDebugging){
+        setSafePoint(analysis, pc);
       }
-      case sFiber: {
-        int32 nextPc = pc + 3;
-        recordVariableStart(analysis,operand(1), local, nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sResume:
-      case sSuspend:
-      case sRetire: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(1), nextPc);
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        setSafePoint(analysis, nextPc - 1);
-        pc = nextPc;
-        continue;
-      }
-      case sUnderflow: {
-        pc++;
-        continue;
-      }
-      case sLine: {
-        if (lineDebugging) {
-          setSafePoint(analysis, pc - 1);
-        }
-        pc += 2;
-        continue;
-      }
-      case sBind: {
-        int32 nextPc = pc + 3;
-        recordVariableUse(analysis, scope, operand(2), nextPc);
-        if (lineDebugging) {
-          setSafePoint(analysis, pc);
-        }
-        pc = nextPc;
-        continue;
-      }
-      case sdBug: {
-        if (lineDebugging) {
-          setSafePoint(analysis, pc);
-        }
-        pc += 2;
-        continue;
-      }
-      default:
-        return Error;
+      pc += 2;
+      continue;
+    }
+    default:
+      return Error;
     }
   }
   return ret;
 }
 
 scopePo checkScope(scopePo scope, int32 tgt) {
-  while (scope != Null) {
-    if (tgt == scope->start) {
+  while (scope != Null){
+    if (tgt == scope->start){
       return scope;
     }
     scope = scope->parent;
@@ -477,7 +483,7 @@ retCode analyseMethod(methodPo mtd, analysisPo results) {
   setupAnalysis(results);
   int32 endPc = codeSize(mtd);
   ScopeBlock block = {
-    .start = 0, .limit = endPc, .parent = Null, .kind = sBlock
+    .start = 0, .limit = endPc, .parent = Null, .kind = sBlock, .phiVar = Null
   };
   retCode ret = analyseBlock(results, &block, entryPoint(mtd), 0, endPc);
   markVarSlots(results);
@@ -492,8 +498,8 @@ void markVarSlots(analysisPo analysis) {
   int32 start = 0;
   int32 tableSize = arrayCount(ranges);
 
-  while (start < tableSize) {
-    varDescPo var = *(varDescPo *) nthEntry(ranges, start);
+  while (start < tableSize){
+    varDescPo var = *(varDescPo*)nthEntry(ranges, start);
     if (var->end < 0) // Variable never read
       var->end = var->start;
 
@@ -511,5 +517,5 @@ void markVarSlots(analysisPo analysis) {
 }
 
 int32 slotCount(analysisPo analysis) {
-  return (int32) hashSize(analysis->vars);
+  return (int32)hashSize(analysis->vars);
 }

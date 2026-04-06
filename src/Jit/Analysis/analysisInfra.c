@@ -130,21 +130,22 @@ treePo newVarIndex() {
   return newTree(indexComp, Null);
 }
 
-void recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
+varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
   varDescPo desc = findVar(analysis, varNo);
   assert(desc != Null && (kind==valof || desc->start==-1));
   desc->start = pc;
   desc->kind = kind;
   treePut(analysis->index, (void*)(integer)pc, desc);
+  return desc;
 }
 
 void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
 
-  while (block!=Null) {
-    if (block->start >= var->start) { // extend scope of variable through the end of loops
-      if (block->kind==sLoop) {
-        if (var->end<block->limit)
+  while (block != Null){
+    if (block->start >= var->start){ // extend scope of variable through the end of loops
+      if (block->kind == sLoop){
+        if (var->end < block->limit)
           var->end = block->limit;
       }
       block = block->parent;
@@ -155,6 +156,13 @@ void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc
 
   if (var->end < pc)
     var->end = pc;
+}
+
+void recordVPhiVariable(analysisPo analysis, scopePo block, int32 pc) {
+  assert(block->kind==sValof);
+  varDescPo phiVar = block->phiVar;
+  if (phiVar->end < pc)
+    phiVar->end = pc;
 }
 
 varDescPo varStart(analysisPo analysis, int32 pc) {
@@ -214,7 +222,7 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
   return newVar(analysis, varNo, local, -1, unAllocated);
 }
 
-varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc){
+varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc) {
   varDescPo var = newVar(analysis, varNo, valof, pc, unAllocated);
   treePut(analysis->index, (void*)(integer)pc, var);
   return var;

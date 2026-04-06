@@ -16,7 +16,7 @@ set(HEADER_FILES
         Headers/analyseP.h
 )
 
-set(ANALYSIS_SOURCE_FILES analyse.c infra.c)
+set(ANALYSIS_SOURCE_FILES analyse.c analysisInfra.c)
 
 add_library(analysis STATIC ${ANALYSIS_SOURCE_FILES})
 
