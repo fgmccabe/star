@@ -435,7 +435,7 @@ retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical a
          (var->inited ? (var->stashed ? "S" : "") : "u"),
          desc->start, desc->end);
   if (var->inited) {
-    outMsg(out, " @ %F",&var->src);
+    outMsg(out, " @ %F", &var->src);
   }
   return Ok;
 }

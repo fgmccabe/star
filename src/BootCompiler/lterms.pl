@@ -605,8 +605,7 @@ isLiteral(chr(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
 isLiteral(lbl(_,_)).
-isLiteral(ctpl(Lbl,Args)) :-
-  isLiteral(Lbl),
+isLiteral(ctpl(_,Args)) :-
   check_implies(misc:is_member(A,Args),lterms:isLiteral(A)),!.
 isLiteral(clos(_,_,F,_)) :-
   isLiteral(F).

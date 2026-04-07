@@ -110,7 +110,8 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
 static logical shouldWeStop(enginePo p, ssaOp op) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
-  logical atLine = ((op==sLine||op==sBind)?tracing>=detailedTracing:True);
+  logical atLine = ((op == sLine || op == sBind) ? tracing >= detailedTracing : True);
+  methodPo prog = locateMethod((uinteger) stk->pc);
 
   switch (p->waitFor) {
     case stepInto:
@@ -132,7 +133,7 @@ static logical shouldWeStop(enginePo p, ssaOp op) {
         return False;
     }
     case nextBreak: {
-      if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(stk->prog))) {
+      if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(prog))) {
         p->waitFor = stepInto;
         p->tracing = True;
         return atLine;
@@ -275,24 +276,24 @@ static DebugWaitFor dbgTrace(char *line, enginePo p, termPo lc, void *cl) {
     return nextBreak;
 }
 
-static char* tracingLevels[] = {"no tracing","general tracing", "detailed tracing"};
+static char *tracingLevels[] = {"no tracing", "general tracing", "detailed tracing"};
 
 static DebugWaitFor dbgTraceLevel(char *line, enginePo p, termPo lc, void *cl) {
-  switch(line[0]){
-  case '-':
-    if(tracing>noTracing)
-      tracing--;
-    break;
-  case '+':
-    if(tracing<detailedTracing)
-      tracing++;
-    break;
-  default:
-    resetDeflt("n");
-    outMsg(debugOutChnnl,"tracing level at %s\n",tracingLevels[tracing]);
-    return moreDebug;
+  switch (line[0]) {
+    case '-':
+      if (tracing > noTracing)
+        tracing--;
+      break;
+    case '+':
+      if (tracing < detailedTracing)
+        tracing++;
+      break;
+    default:
+      resetDeflt("n");
+      outMsg(debugOutChnnl, "tracing level at %s\n", tracingLevels[tracing]);
+      return moreDebug;
   }
-  outMsg(debugOutChnnl,"tracing level set to %s\n",tracingLevels[tracing]);
+  outMsg(debugOutChnnl, "tracing level set to %s\n", tracingLevels[tracing]);
   resetDeflt("n");
   return moreDebug;
 }
@@ -324,9 +325,8 @@ static DebugWaitFor dbgShowRegisters(char *line, enginePo p, termPo lc, void *cl
 
 static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
-
-  outMsg(debugOutChnnl, "MTD=%A\n", mtdLabel(stk->prog));
-  outMsg(debugOutChnnl, "PROG=%lx\n", stk->prog);
+  methodPo prog = locateMethod((uinteger)stk->pc);
+  outMsg(debugOutChnnl, "MTD=%A\n", mtdLabel(prog));
   outMsg(debugOutChnnl, "PC=%lx\n", stk->pc);
   outMsg(debugOutChnnl, "SP=%lx\n", stk->sp);
   outMsg(debugOutChnnl, "FP=%lx\n", stk->fp);
@@ -349,7 +349,7 @@ static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
 static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
   integer argNo = cmdCount(line, 0);
   stackPo stk = p->stk;
-  methodPo mtd = stk->prog;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
 
   if (argNo >= 0 && argNo < argCount(mtd))
     showVarble(debugOutChnnl, stk->args, argNo);
@@ -363,7 +363,7 @@ static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
 static DebugWaitFor dbgShowLocal(char *line, enginePo p, termPo lc, void *cl) {
   int32 lclNo = (int32) cmdCount(line, 0);
   stackPo stk = p->stk;
-  methodPo mtd = stk->prog;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
 
   if (lclNo == 0)
     showAllLocals(debugOutChnnl, stk);
@@ -422,7 +422,8 @@ static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
 
 static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
-  ptrPo limit = stackVarble(stk->args, -lclCount(stk->prog));
+  methodPo mtd = locateMethod((uinteger)stk->pc);
+  ptrPo limit = stackVarble(stk->args, -lclCount(mtd));
   ptrPo sp = stk->sp;
 
   if (line[0] == '\n') {
@@ -459,8 +460,8 @@ static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
 
 static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   stackPo stk = p->stk;
-  methodPo mtd = stk->prog;
   ssaInsPo pc = stk->pc;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
   integer remaining = codeSize(mtd) - (pc - entryPoint(mtd));
 
   integer count = cmdCount(line, remaining);
@@ -591,7 +592,7 @@ DebugWaitFor insDebug(enginePo p) {
     stackPo stk = p->stk;
     outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
 
-    showIns(debugOutChnnl, locateMethod((uinteger)stk->pc), stk, stk->pc);
+    showIns(debugOutChnnl, locateMethod((uinteger) stk->pc), stk, stk->pc);
 
     if (stopping) {
       while (interactive) {
@@ -669,7 +670,7 @@ static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
       outMsg(out, "call: %#L %#.16A", lc, callee);
 
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
-    outMsg(out,"\n%_");
+    outMsg(out, "\n%_");
   } else
     outMsg(out, "invalid use of showCall\n%_");
 }
@@ -686,7 +687,7 @@ static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
   } else {
     outMsg(out, "invalid closure label");
   }
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
@@ -701,11 +702,11 @@ static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
   } else
     outMsg(out, "invalid use of showTCall");
-    outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
-  if(tracing>=detailedTracing){
+  if (tracing >= detailedTracing) {
     if (showColors)
       outMsg(out, GREEN_ESC_ON"line:"GREEN_ESC_OFF" %#L\n%_", lc);
     else
@@ -714,7 +715,7 @@ static void showLine(ioPo out, stackPo stk, termPo lc, termPo ignore) {
 }
 
 void showBind(ioPo out, stackPo stk, termPo name, const termPo val) {
-  if(tracing>=detailedTracing){
+  if (tracing >= detailedTracing) {
     if (showColors)
       outMsg(out, BLUE_ESC_ON"bind:"BLUE_ESC_OFF" %#T = %#,*T\n%_", name, displayDepth, val);
     else
@@ -729,25 +730,27 @@ void showEntry(ioPo out, stackPo stk, termPo lc, termPo lbl) {
     outMsg(out, "entry: %#L %#.16A", lc, lbl);
 
   shArgs(out, displayDepth, stk->args, lblArity(C_LBL(lbl)));
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 void showRet(ioPo out, stackPo stk, termPo lc, termPo val) {
+  methodPo mtd = locateMethod((uinteger)stk->pc);
   if (showColors)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
   else
-    outMsg(out, "return: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, "return: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
 }
 
 void showXRet(ioPo out, stackPo stk, termPo lc, termPo val) {
+  methodPo mtd = locateMethod((uinteger)stk->pc);
   if (showColors)
-    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, RED_ESC_ON"throw:"RED_ESC_OFF" %#L %#T->%#,*T\n%_", lc, mtd, displayDepth, val);
   else
-    outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, stk->prog, displayDepth, val);
+    outMsg(out, "throw: %#L %T->%#,*T\n%_", lc, mtd, displayDepth, val);
 }
 
 static void showAbort(ioPo out, stackPo stk, termPo lc, termPo reason) {
-  methodPo mtd = stk->prog;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
 
   if (showColors)
     outMsg(out, RED_ESC_ON"abort:"RED_ESC_OFF" %#L %T->%#,*T\n%_", lc, mtd, displayDepth, reason);
@@ -770,7 +773,7 @@ void showFiber(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"fiber:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "fiber: %L %#,*T", lc, displayDepth, cont);
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -778,7 +781,7 @@ void showSuspend(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"suspend:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "suspend: %L %#,*T", lc, displayDepth, cont);
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 void showResume(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -786,7 +789,7 @@ void showResume(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"resume:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "resume: %L %#,*T", lc, displayDepth, cont);
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
@@ -794,7 +797,7 @@ void showRetire(ioPo out, stackPo stk, termPo lc, termPo cont) {
     outMsg(out, CYAN_ESC_ON"retire:"CYAN_ESC_OFF "%L %#,*T", lc, displayDepth, cont);
   else
     outMsg(out, "retire: %L %#,*T", lc, displayDepth, cont);
-  outMsg(out,"\n%_");
+  outMsg(out, "\n%_");
 }
 
 typedef void (*showCmd)(ioPo out, stackPo stk, termPo lc, termPo trm);
@@ -804,20 +807,21 @@ static DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd
 DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   stackPo stk = p->stk;
   ssaInsPo pc = stk->pc;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
 
   switch (pc->op.op) {
     case sAbort:
       return abortDebug(p, lc);
     case sCall:
-      return callDebug(p, sCall, lc, getConstant((pc+1)->op.ltrl));
+      return callDebug(p, sCall, lc, getConstant((pc + 1)->op.ltrl));
     case sTCall:
-      return tcallDebug(p, lc, getConstant((pc+1)->op.ltrl));
+      return tcallDebug(p, lc, getConstant((pc + 1)->op.ltrl));
     case sOCall:
       return ocallDebug(p, sOCall, lc, topStack(stk));
     case sTOCall:
       return tocallDebug(p, lc, topStack(stk));
     case sEntry:
-      return entryDebug(p, lc, mtdLabel(stk->prog));
+      return entryDebug(p, lc, mtdLabel(mtd));
     case sRet:
       return retDebug(p, lc, topStack(stk));
     case sXRet:
@@ -962,7 +966,7 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) 
 #ifdef TRACE_DBG
   if (debugDebugging) {
     logMsg(logFile, "traceCount=%d, waterMark=%x, tracing=%s, op=%d",
-	   p->traceCount, p->waterMark,(p->tracing ? "yes" : "no"),op);
+           p->traceCount, p->waterMark, (p->tracing ? "yes" : "no"), op);
   }
 #endif
 
@@ -1010,7 +1014,7 @@ retCode showVarble(ioPo out, ptrPo args, int32 varNo) {
 }
 
 void showAllLocals(ioPo out, stackPo stk) {
-  methodPo mtd = stk->prog;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
   for (int32 vx = 1; vx <= lclCount(mtd); vx++) {
     char vName[MAX_SYMB_LEN];
     if (localVName(mtd, stk->pc, vx, vName, NumberOf(vName)) == Ok) {
@@ -1075,7 +1079,7 @@ static void showEscCall(ioPo out, int32 escNo) {
 
 void showRegisters(enginePo p, heapPo h) {
   stackPo stk = p->stk;
-  methodPo mtd = stk->prog;
+  methodPo mtd = locateMethod((uinteger)stk->pc);
   ptrPo limit = stackVarble(stk->args, -lclCount(mtd));
   ptrPo sp = stk->sp;
   ptrPo args = stk->args;

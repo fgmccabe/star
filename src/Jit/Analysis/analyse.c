@@ -46,7 +46,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       for (int32 ax = 0; ax < arity; ax++)
         recordVariableUse(analysis, scope, operand(3+ax), nextPc);
 
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -57,7 +57,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       for (int32 ax = 0; ax < arity; ax++)
         recordVariableUse(analysis, scope, operand(3+ax), nextPc);
 
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -179,7 +179,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + caseLimit + 3;
       recordVariableUse(analysis, scope, operand(1), nextPc);
       analyseBlock(analysis, scope, code, pc + 3, nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -187,7 +187,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     case sCFlt: {
       int32 nextPc = pc + 4;
       recordVariableUse(analysis, scope, operand(3), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -214,7 +214,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     }
     case sLG: {
       int32 nextPc = pc + 2;
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -226,7 +226,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     }
     case sSav: {
       int32 nextPc = pc + 2;
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       recordVariableStart(analysis,operand(1), local, nextPc);
       pc = nextPc;
       continue;
@@ -255,7 +255,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     }
     case sCell: {
       int32 nextPc = pc + 3;
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       recordVariableStart(analysis,operand(1), local, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
       pc = nextPc;
@@ -356,7 +356,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableStart(analysis,operand(1), local, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
       recordVariableUse(analysis, scope, operand(3), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -367,7 +367,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableUse(analysis, scope, operand(3), nextPc);
       recordVariableUse(analysis, scope, operand(4), nextPc);
       recordVPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -375,7 +375,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 3;
       recordVariableStart(analysis,operand(1), local, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -396,7 +396,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
 
       for (int32 ax = 0; ax < arity; ax++)
         recordVariableUse(analysis, scope, operand(ax+4), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -404,7 +404,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 4;
       recordVariableStart(analysis,operand(2), local, nextPc);
       recordVariableUse(analysis, scope, operand(3), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -419,7 +419,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 3;
       recordVariableStart(analysis,operand(1), local, nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -429,7 +429,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 3;
       recordVariableUse(analysis, scope, operand(1), nextPc);
       recordVariableUse(analysis, scope, operand(2), nextPc);
-      setSafePoint(analysis, nextPc - 1);
+      setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
     }
@@ -439,7 +439,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     }
     case sLine: {
       if (lineDebugging){
-        setSafePoint(analysis, pc - 1);
+        setSafePoint(analysis, pc);
       }
       pc += 2;
       continue;
