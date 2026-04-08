@@ -25,6 +25,7 @@
 #include "sort.h"
 #include "disass.h"
 #include "labels.h"
+#include "normalP.h"
 
 /* Lower Star VM code to Arm64 code */
 /*
@@ -745,15 +746,15 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       case sSG: {
         int32 insSize = 3;
         globalPo glbVr = findGlobalVar(opand(1));
-        armReg glb = findFreeReg(jit);
-        mov(glb, IM((integer) glbVr)); // Global var names are not subject to GC
+        armReg glbReg = findFreeReg(jit);
+        mov(glbReg, IM((integer) glbVr)); // Global var names are not subject to GC
 
         // store into a global variable
         localVarPo src = localSource(state, pc, opand(2));
 
         // Assign to the global var's content field
-        storeFlex(state, pc, src->src, OF(glb, OffsetOf(GlobalRecord, content)));
-        releaseReg(jit, glb);
+        storeFlex(state, pc, src->src, OF(glbReg, OffsetOf(GlobalRecord, content)));
+        releaseReg(jit, glbReg);
         pc += insSize;
         continue;
       }
@@ -1578,7 +1579,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
           allocBinary(state, pc, nextPc, label->labelIndex, localSource(state, pc, opand(4)),
                              localSource(state, pc, opand(5)));
         else {
-          allocSmallStruct(state, pc, pc, label->labelIndex, arity);
+          allocSmallStruct(state, pc, pc, label->labelIndex, NormalCellCount(arity));
           for (int32 ix = 0; ix < arity; ix++) {
             FlexOp tmp = localFlex(state, pc, opand(ix+4));
             storeFlex(state, pc, tmp,OF(RTV, (ix + 1) * pointerSize));
