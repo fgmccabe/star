@@ -1665,7 +1665,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         loadRegister(state, RTV, localFlex(state, pc,opand(2)));
         mov(RTS, IM(0));
         stp(RTV, RTS, PRX(SP,-16));
-        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn) detachDropStack, 2,
+        invokeIntrinsic(state, pc, pc, (runtimeFn) detachDropStack, 2,
                         (FlexOp[]){RG(PR), localFlex(state, pc,opand(1))}, True, 0, (FlexOp[]){});
         ldp(RTV, RTS, PSX(SP,16));
 
@@ -1822,7 +1822,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 }
 
 void allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt) {
-  invokeIntrinsic(state, pc, livePc, (runtimeFn) allocateObject, 3, (FlexOp[]){
+  invokeIntrinsic(state, pc, pc, (runtimeFn) allocateObject, 3, (FlexOp[]){
                     OF(PR, OffsetOf(EngineRecord, heap)), IM(index), IM(amnt)
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }

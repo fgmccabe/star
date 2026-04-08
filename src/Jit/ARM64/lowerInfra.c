@@ -394,8 +394,8 @@ int32 stashVar(codeGenPo state, int32 pc, localVarPo var, logical moveOwnership)
         FlexOp lclFlex = varFlex(var->stkOff);
         storeFlex(state, pc, var->src, lclFlex);
         if (moveOwnership || !var->desc->registerCandidate){
-          var->src = lclFlex;
           releaseReg(state->jit, var->src.reg);
+          var->src = lclFlex;
         }
         var->stashed = True;
         return var->stkOff;
