@@ -96,7 +96,7 @@ logical allLocalsStashed(codeGenPo state, int32 pc);
 void showLiveLocals(ioPo out, codeGenPo state);
 retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt);
 
-void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset, armReg vdReg);
+void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset);
 
 localVarPo findSpareLocal(codeGenPo state, int32 pc);
 int32 nextStkOff(codeGenPo state, int32 pc);
