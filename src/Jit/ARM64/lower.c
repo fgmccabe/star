@@ -530,12 +530,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // break if true
       int32 insSize = 3;
       blockPo tgt = targetBlock(block, pc + opand(1), sBlock);
-      armReg tmp = findARegister(state, pc);
+      armReg trueReg = findARegister(state, pc);
       FlexOp vl = sourceOperandFlex(state, pc, 2);
-      loadConstant(jit, trueIndex, tmp);
-      cmp(tmp, vl);
+      loadConstant(jit, trueIndex, trueReg);
+      if (isRegisterOp(vl)){
+        cmp(trueReg, vl);
+      } else{
+        armReg tmp2 = findARegister(state, pc);
+        loadRegister(state,tmp2,vl);
+        cmp(trueReg,RG(tmp2));
+        releaseReg(jit, tmp2);
+      }
       beq(breakLabel(tgt));
-      releaseReg(jit, tmp);
+      releaseReg(jit, trueReg);
       pc += insSize;
       continue;
     }
@@ -543,12 +550,19 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // break if false
       int32 insSize = 3;
       blockPo tgt = targetBlock(block, pc + opand(1), sBlock);
-      armReg tmp = findARegister(state, pc);
+      armReg trueReg = findARegister(state, pc);
       FlexOp vl = sourceOperandFlex(state, pc, 2);
-      loadConstant(jit, trueIndex, tmp);
-      cmp(tmp, vl);
+      loadConstant(jit, trueIndex, trueReg);
+      if (isRegisterOp(vl)){
+        cmp(trueReg, vl);
+      } else{
+        armReg tmp2 = findARegister(state, pc);
+        loadRegister(state,tmp2,vl);
+        cmp(trueReg,RG(tmp2));
+        releaseReg(jit, tmp2);
+      }
       bne(breakLabel(tgt));
-      releaseReg(jit, tmp);
+      releaseReg(jit, trueReg);
       pc += insSize;
       continue;
     }
