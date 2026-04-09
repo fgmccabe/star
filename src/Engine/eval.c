@@ -558,7 +558,7 @@ ValueReturn run(enginePo P) {
         int32 insSize = 2;
         // Create a new single assignment variable
         checkAlloc(SingleCellCount);
-        singlePo sav = singleVar(H);
+        singlePo sav = newSingleVar(H);
         varble(operand(1)) = (termPo) sav;
         PC += insSize;
         continue;

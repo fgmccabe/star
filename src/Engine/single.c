@@ -40,7 +40,7 @@ singlePo C_SINGLE(termPo t) {
   return (singlePo) t;
 }
 
-singlePo singleVar(heapPo H) {
+singlePo newSingleVar(heapPo H) {
   singlePo single = (singlePo) allocateObject(H, singleIndex, SingleCellCount);
 
   single->content = Null;

@@ -76,7 +76,7 @@ static logical registerInUse(codeGenPo state, FlexOp src);
 
 #define opand(ox) operand(state, pc, (ox))
 
-retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, char* errMsg, integer msgLen) {
+retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, char* errMsg, integer msgLen){
 #ifdef TRACEJIT
   if (traceJit > noTracing){
     showMethodCode(logFile, "Jit method %L\n", mtd);
@@ -96,7 +96,8 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
     LocalVar locals[numSlots];
 
     CodeGenState state = {
-      .mtd = mtd, .code = entryPoint(mtd), .analysis = &analysis, .locals = locals, .numLocals = numSlots, .jit = jit,
+      .mtd = mtd, .code = entryPoint(mtd), .analysis = &analysis, .locals = locals, .numLocals = numSlots,
+      .jit = jit,
     };
 
     populateLocals(&state, mtdArity(mtd), argRegisters);
@@ -114,7 +115,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
   return ret;
 }
 
-retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int32 endPc) {
+retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int32 endPc){
   retCode ret = Ok;
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
@@ -154,8 +155,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       str(loc, OF(STK,OffsetOf(StackRecord,pc)));
       FlexOp val = sourceOperandFlex(state, pc, 2);
       loadConstant(jit, opand(1), loc);
-      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val}, False,
-                      0, (FlexOp[]){});
+      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)abort_star, 3, (FlexOp[]){RG(PR), RG(loc), val},
+                      False, 0, (FlexOp[]){});
       releaseReg(jit, loc);
       pc += insSize;
       continue;
@@ -581,7 +582,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       localVarPo govVr = operandVar(state, pc, 1);
       assert(govVr->live);
       armReg ix = findARegister(state, pc);
-      invokeIntrinsic(state, pc, pc, (runtimeFn)hashTerm, 1, (FlexOp[]){govVr->src}, True, 1, (FlexOp[]){RG(ix)});
+      invokeIntrinsic(state, pc, pc, (runtimeFn)hashTerm, 1, (FlexOp[]){govVr->src}, True, 1,
+                      (FlexOp[]){RG(ix)});
       int32 mx = (skip - insSize) / 2;
       immModulo(ctx, ix, mx, jit->freeRegs);
       codeLblPo jmpTbl = newLabel(ctx);
@@ -763,14 +765,18 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sSav: {
       // create a single assignment variable
       int32 insSize = 2;
-      allocSmallStruct(state, pc, pc + insSize, singleIndex,SingleCellCount);
-      armReg tmp = findARegister(state, pc);
-      mov(tmp, IM((integer) Null));
-      storeFlex(state, pc, RG(tmp), OF(RTV, OffsetOf(SingleRecord, content)));
-      releaseReg(jit, tmp);
+      int32 nextPc = pc + insSize;
+
+      armReg savReg = findARegister(state, pc);
+
+      invokeIntrinsic(state, pc, nextPc, (runtimeFn)newSingleVar, 1, (FlexOp[]){
+                        OF(PR, OffsetOf(EngineRecord, heap))
+                      }, False, 1, (FlexOp[]){RG(savReg)});
+
       localVarPo tgt = localTarget(state, pc, opand(1));
-      storeVar(state, pc,RG(tmp), tgt);
-      pc += insSize;
+      storeVar(state, pc,RG(savReg), tgt);
+      releaseReg(jit, savReg);
+      pc = nextPc;
       continue;
     }
     case sLdSav: {
@@ -784,6 +790,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       localVarPo tgt = localTarget(state, pc, opand(1));
       storeVar(state, pc,RG(tmp), tgt);
+      releaseReg(jit, tmp);
       pc += insSize;
       continue;
     }
@@ -811,13 +818,22 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // store a value into a single assignment
       int32 insSize = 4;
       FlexOp sng = localFlex(state, pc, opand(2));
-      armReg tmp = findARegister(state, pc);
-      loadFlex(state, pc, sng,RG(tmp));
+      armReg sngReg = findARegister(state, pc);
+      loadFlex(state, pc, sng,RG(sngReg));
       localVarPo val = localSource(state, pc, opand(3));
-      storeFlex(state, pc, val->src, OF(tmp, OffsetOf(SingleRecord, content)));
-      localVarPo tgt = localTarget(state, pc, opand(1));
-      storeVar(state, pc, val->src, tgt);
-      releaseReg(jit, tmp);
+      if (isRegisterOp(val->src)){
+        storeFlex(state, pc, val->src,OF(sngReg, OffsetOf(SingleRecord, content)));
+        storeVar(state, pc, val->src, localTarget(state, pc, opand(1)));
+      }
+      else{
+        armReg vlReg = findARegister(state, pc);
+        loadRegister(state, vlReg, val->src);
+        storeFlex(state, pc, RG(vlReg), OF(sngReg, OffsetOf(SingleRecord, content)));
+        localVarPo tgt = localTarget(state, pc, opand(1));
+        storeVar(state, pc, RG(vlReg), tgt);
+        releaseReg(jit, vlReg);
+      }
+      releaseReg(jit, sngReg);
       pc += insSize;
       continue;
     }
@@ -1620,7 +1636,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
     case sFiber: {
       int32 insSize = 3;
       FlexOp lam = localFlex(state, pc, opand(2));
-      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)newStack, 3, (FlexOp[]){RG(PR), IM(True), lam}, True,
+      invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)newStack, 3, (FlexOp[]){RG(PR), IM(True), lam},
+                      True,
                       1, (FlexOp[]){RG(RTV)});
       storeVar(state, pc,RG(RTV), localTarget(state, pc,opand(1)));
       pc += insSize;
@@ -1696,7 +1713,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 insSize = 2;
       if (lineDebugging){
         int32 locKey = opand(1);
-        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2, (FlexOp[]){RG(PR), constantFlex(locKey)},
+        invokeIntrinsic(state, pc, pc + insSize, (runtimeFn)lineDebug, 2,
+                        (FlexOp[]){RG(PR), constantFlex(locKey)},
                         False,
                         0, (FlexOp[]){});
       }
@@ -1826,29 +1844,29 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
   return ret;
 }
 
-void allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt) {
+void allocSmallStruct(codeGenPo state, int32 pc, int32 livePc, int32 index, integer amnt){
   invokeIntrinsic(state, pc, pc, (runtimeFn)allocateObject, 3, (FlexOp[]){
                     OF(PR, OffsetOf(EngineRecord, heap)), IM(index), IM(amnt)
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
-void allocUnary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo arg) {
+void allocUnary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo arg){
   invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateUnary, 3, (FlexOp[]){
                     OF(PR, OffsetOf(EngineRecord, heap)), IM(index), arg->src,
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
-void allocBinary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo left, localVarPo right) {
+void allocBinary(codeGenPo state, int32 pc, int32 livePc, int32 index, localVarPo left, localVarPo right){
   invokeIntrinsic(state, pc, livePc, (runtimeFn)allocateBinary, 4, (FlexOp[]){
                     OF(PR, OffsetOf(EngineRecord, heap)), IM(index), left->src, right->src
                   }, True, 1, (FlexOp[]){RG(RTV)});
 }
 
-void mkFloat(codeGenPo state, int32 pc) {
+void mkFloat(codeGenPo state, int32 pc){
   allocSmallStruct(state, pc, pc, floatIndex,FloatCellCount);
 }
 
-void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
+void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset){
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   add(FP, FP, IM(sizeof(StackFrame))); // Bump the current frame
@@ -1858,7 +1876,7 @@ void pushFrme(codeGenPo state, int32 pc, armReg mtdRg, int32 argOffset) {
   str(mtdRg, OF(FP, OffsetOf(StackFrame, prog))); // We know what program we are executing
 }
 
-retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit) {
+retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc, int32 limit){
   jitCompPo jit = state->jit;
   assemCtxPo ctx = assemCtx(jit);
   while (pc < limit){
@@ -1871,7 +1889,7 @@ retCode handleBreakTable(codeGenPo state, ssaInsPo code, blockPo block, int32 pc
   return Ok;
 }
 
-void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
+void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs){
   for (int32 ix = 0; ix < state->numLocals; ix++){
     state->locals[ix].live = False;
     state->locals[ix].desc = Null;
@@ -1903,12 +1921,12 @@ void populateLocals(codeGenPo state, int32 arity, registerMap registerArgs) {
 #endif
 }
 
-void dumpState(codeGenPo state) {
+void dumpState(codeGenPo state){
   showLiveLocals(logFile, state);
   dRegisterMap(state->jit->freeRegs);
 }
 
-int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pc, int32 livePc, int32 argBase, int32 arity) {
+int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pc, int32 livePc, int32 argBase, int32 arity){
   ArgSpec operands[arity];
 
   int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
@@ -1931,15 +1949,15 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pc, int32 
   return minOffset; // return how must space is needed to preserve current locals.
 }
 
-int32 loadArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity) {
+int32 loadArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity){
   return loadArgsToRegisters(state, defaultArgRegs(), pc, livePc, argBase, arity);
 }
 
-int32 loadLambdaArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity) {
+int32 loadLambdaArguments(codeGenPo state, int32 pc, int32 livePc, int32 argBase, int32 arity){
   return loadArgsToRegisters(state, dropReg(defaultArgRegs(), X0), pc, livePc, argBase, arity);
 }
 
-int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase) {
+int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, int32 argBase){
   ArgSpec operands[arity + 1];
 
   operands[0] = argSpec(RG(PR), RG(X0));
@@ -1966,7 +1984,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   return minOffset; // return how must space is needed to preserve current locals.
 }
 
-int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 argPc, int32 arity) {
+int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 argPc, int32 arity){
   ArgSpec operands[arity];
 
   int32 tgtOff = argCount(state->jit->mtd);
@@ -1988,7 +2006,7 @@ int32 overrideArguments(codeGenPo state, registerMap argRegs, int32 pc, int32 ar
   return tgtOff - arity;
 }
 
-void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {
+void adjustAG(codeGenPo state, int32 pc, int32 tgtOff){
   int32 delta = tgtOff * pointerSize;
   assemCtxPo ctx = assemCtx(state->jit);
   if (delta > 0){
@@ -2014,17 +2032,17 @@ void adjustAG(codeGenPo state, int32 pc, int32 tgtOff) {
   }
 }
 
-void dropArguments(codeGenPo state, int32 pc) {
+void dropArguments(codeGenPo state, int32 pc){
   retireExpiredVars(state, pc);
   resetRegMap(state->jit, defltAvailRegSet());
   assert(allLocalsStashed(state,pc));
 }
 
-localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo) {
+localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo){
   return localTarget(state, pc, vrNo);
 }
 
-void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var) {
+void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var){
   if (!var->inited){
     if (var->desc->registerCandidate && haveFreeReg(state->jit)){
       FlexOp rg = RG(findARegister(state, pc));
@@ -2047,7 +2065,7 @@ void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var) {
   }
 }
 
-localVarPo localSource(codeGenPo state, int32 pc, int32 lx) {
+localVarPo localSource(codeGenPo state, int32 pc, int32 lx){
   varDescPo varDesc = findVar(state->analysis, lx);
   for (int32 ix = 0; ix < state->numLocals; ix++){
     localVarPo lcl = &state->locals[ix];
@@ -2057,7 +2075,7 @@ localVarPo localSource(codeGenPo state, int32 pc, int32 lx) {
   return Null;
 }
 
-localVarPo localTarget(codeGenPo state, int32 pc, int32 lx) {
+localVarPo localTarget(codeGenPo state, int32 pc, int32 lx){
   varDescPo desc = findVar(state->analysis, lx);
   for (int32 ix = 0; ix < state->numLocals; ix++){
     localVarPo lcl = &state->locals[ix];
@@ -2076,7 +2094,7 @@ localVarPo localTarget(codeGenPo state, int32 pc, int32 lx) {
   return slot;
 }
 
-logical registerInUse(codeGenPo state, FlexOp src) {
+logical registerInUse(codeGenPo state, FlexOp src){
   for (int32 ix = 0; ix < state->numLocals; ix++){
     if (state->locals[ix].live && sameFlexOp(state->locals[ix].src, src)){
       return True;
@@ -2085,7 +2103,7 @@ logical registerInUse(codeGenPo state, FlexOp src) {
   return False;
 }
 
-void retireExpiredVars(codeGenPo state, int32 pc) {
+void retireExpiredVars(codeGenPo state, int32 pc){
   for (int32 ix = 0; ix < state->numLocals; ix++){
     localVarPo lcl = &state->locals[ix];
     if (lcl->live){
@@ -2106,24 +2124,24 @@ void retireExpiredVars(codeGenPo state, int32 pc) {
   }
 }
 
-int32 operand(codeGenPo state, int32 pc, int32 ox) {
+int32 operand(codeGenPo state, int32 pc, int32 ox){
   return state->code[pc + ox].op.ltrl;
 }
 
-FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo) {
+FlexOp localFlex(codeGenPo state, int32 pc, int32 vrNo){
   localVarPo lcl = localSource(state, pc, vrNo);
   return lcl->src;
 }
 
-FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax) {
+FlexOp sourceOperandFlex(codeGenPo state, int32 pc, int32 ax){
   return localFlex(state, pc, opand(ax));
 }
 
-localVarPo operandVar(codeGenPo state, int32 pc, int32 ax) {
+localVarPo operandVar(codeGenPo state, int32 pc, int32 ax){
   return localSource(state, pc, opand(ax));
 }
 
-void verifyState(codeGenPo state, int32 pc) {
+void verifyState(codeGenPo state, int32 pc){
   registerMap freeRegs = state->jit->freeRegs;
   for (int32 ix = 0; ix < state->numLocals; ix++){
     localVarPo v = &state->locals[ix];
@@ -2136,7 +2154,7 @@ void verifyState(codeGenPo state, int32 pc) {
   }
 }
 
-ValueReturn invokeJitMethod(enginePo P, methodPo mtd) {
+ValueReturn invokeJitMethod(enginePo P, methodPo mtd){
   jittedCode code = jitCode(mtd);
   stackPo stk = P->stk;
   int32 arity = lblArity(mtdLabel(mtd));
