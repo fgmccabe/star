@@ -354,7 +354,7 @@ compPtn(voyd,_Vr,_Lc,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx).
 compPtn(ann(_),_Vr,_,_Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx).
 compPtn(intgr(Ix),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCInt(intgr(Ix),Fail,Vr)|Cx],Cx).
 compPtn(flot(Dx),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCFlt(flot(Dx),Fail,Vr)|Cx],Cx).
-compPtn(chr(Cx),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCChar(chr(Cx),Fail,Vr)|Cx],Cx).
+compPtn(chr(Ch),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCChar(chr(Ch),Fail,Vr)|Cx],Cx).
 compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail,Vr)|C],Cx) :-
   compPtnArgs(Args,Vr,Lc,0,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx).
 compPtn(Lit,Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail,Vr)|Cx],Cx) :-

@@ -400,7 +400,8 @@ isThrowsType(constrained(Tp,_),RsTp,ErTp) :- !,
 isThrowsType(funType(_,RsTp,ErTp),RsTp,ErTp) :- \+deRef(ErTp,voidType),!.
 isThrowsType(prcType(_,ErTp),voidType,ErTp) :- \+deRef(ErTp,voidType),!.
 
-isIntegerType(Tp) :- deRef(Tp,type("integer")).
+isIntegerType(Tp) :- deRef(Tp,type("integer")),!.
+isIntegerType(Tp) :- deRef(Tp,type("char")).
 
 isRefTp(T,A) :- deRef(T,tpExp(O,A)), deRef(O,tpFun("ref",1)).
 
