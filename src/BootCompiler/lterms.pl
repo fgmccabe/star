@@ -11,6 +11,7 @@
 		  mergeGl/4,
 		  validLProg/2,
 		  uniqify/2,
+		  condVars/2,
 		  tipeOf/2]).
 
 :- use_module(display).
@@ -1113,6 +1114,9 @@ ptnVars(whr(_,Ptn,Cond),D,Dx) :-
 
 ptnVarsList(Args,D,Dx) :-
   rfold(Args,lterms:ptnVars,D,Dx).
+
+condVars(Cnd,Vrx) :-
+  glVars(Cnd,[],Vrx).
 
 glVars(cnj(_,L,R),D,Dx) :-
   glVars(L,D,D0),
