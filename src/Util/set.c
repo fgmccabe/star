@@ -133,6 +133,8 @@ logical inSetRange(setPo set, int32 from, int32 to) {
   if (to < set->min || from >= max || set->data == Null)
     return False;
 
+  assert(to >= set->min);
+
   int32 fromBase = from - set->min;
   int32 fromEl = fromBase >> 6;
 

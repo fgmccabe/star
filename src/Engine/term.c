@@ -9,16 +9,14 @@
 #include "ideal.h"
 #include "vectP.h"
 
-static termPo termFinalizer(builtinClassPo class, termPo o);
-
 integer displayDepth = 2;
 
 logical hasBuiltinType(termPo t) {
   switch (pointerTag(t)) {
-    case ptrTg:
-      return t->lblIndex < 0;
-    default:
-      return True;
+  case ptrTg:
+    return t->lblIndex < 0;
+  default:
+    return True;
   }
 }
 
@@ -53,8 +51,8 @@ logical isALabel(termPo t) {
   return t->lblIndex == labelIndex;
 }
 
-retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
-  return dispTerm(f, (termPo) data, precision, depth, alt);
+retCode showTerm(ioPo f, void* data, long depth, long precision, logical alt) {
+  return dispTerm(f, (termPo)data, precision, depth, alt);
 }
 
 void initTerm() {
@@ -63,7 +61,7 @@ void initTerm() {
 static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {
   retCode ret = outChar(out, '(');
   if (depth > 0) {
-    char *sep = "";
+    char* sep = "";
     int32 ar = termArity(nml);
     for (int32 ix = 0; ix < ar && ret == Ok; ix++) {
       ret = outStr(out, sep);
@@ -71,7 +69,8 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
       if (ret == Ok)
         ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
     }
-  } else
+  }
+  else
     ret = outStr(out, "...");
   if (ret == Ok)
     ret = outChar(out, ')');
@@ -82,43 +81,47 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   if (hasBuiltinType(t)) {
     builtinClassPo spec = builtinClassOf(t);
     return spec->dispFun(out, t, precision, depth, alt);
-  } else if (isNormalPo(t)) {
+  }
+  else if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = termLbl(nml);
 
     if (isTplLabel(lblName(lbl))) {
       return showArgs(out, nml, precision, depth, alt);
-    } else if (lblArity(lbl) == 0) {
-      return outMsg(out, ".%s", lblName(lbl));
-    } else if (isCons(t))
+    }
+    else if (lblArity(lbl) == 0) {
+      return outMsg(out, ".%s", (alt ? lblSuffix(lbl, '#') : lblName(lbl)));
+    }
+    else if (isCons(t))
       return dispCons(out, t, precision, depth, alt);
     else if (isVector(t))
       return dispVect(out, t, precision, depth, alt);
     else if (isIdealTree(t))
       return dispIdeal(out, t, precision, depth, alt);
     else {
-      retCode ret = outMsg(out, ".%s", lblName(lbl));
+      retCode ret = outMsg(out, ".%s", (alt ? lblSuffix(lbl, '#') : lblName(lbl)));
       if (ret == Ok)
         ret = showArgs(out, nml, precision, depth, alt);
       return ret;
     }
-  } else
+  }
+  else
     return outMsg(out, "<<? 0x%x ?>>", t);
 }
 
 static retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
 
-retCode showIdentifier(ioPo f, void *data, long depth, long precision, logical alt) {
+retCode showIdentifier(ioPo f, void* data, long depth, long precision, logical alt) {
   return showId(f, C_LBL((termPo) data), depth, depth, alt);
 }
 
 retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  const char *name = lblName(lbl);
+  const char* name = lblName(lbl);
   integer lblLen = uniStrLen(name);
   if (alt) {
     retCode ret;
 
-    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
+    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint)'#');
 
     if (hashOff > 0 && hashOff < lblLen - 1)
       ret = outMsg(out, "…%S", &name[hashOff + 1], lblLen - hashOff - 1);
@@ -126,11 +129,13 @@ retCode showId(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) 
       integer half = prec / 2;
       integer hwp = backCodePoint(name, lblLen, half);
       ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp);
-    } else
+    }
+    else
       ret = outMsg(out, "%S", name, lblLen);
 
     return ret;
-  } else
+  }
+  else
     return outMsg(out, "%S", name);
 }
 
@@ -181,10 +186,11 @@ integer termHash(termPo t) {
   if (hasBuiltinType(t)) {
     builtinClassPo c = builtinClassOf(t);
     return c->hashFun(c, t);
-  } else {
+  }
+  else {
     normalPo n1 = C_NORMAL(t);
     labelPo lbl = termLbl(n1);
-    integer hash = (integer) labelHash(lbl);
+    integer hash = (integer)labelHash(lbl);
     for (int32 ix = 0; ix < lblArity(lbl); ix++)
       hash = hash * 37 + termHash(nthArg(n1, ix));
 
@@ -204,8 +210,9 @@ integer hashTerm(termPo t) {
   if (hasBuiltinType(t)) {
     builtinClassPo c = builtinClassOf(t);
     return c->hashFun(c, t);
-  } else
-    return (integer) labelHash(termLbl(C_NORMAL(t)));
+  }
+  else
+    return (integer)labelHash(termLbl(C_NORMAL(t)));
 }
 
 integer termSize(normalPo t) {
@@ -214,7 +221,7 @@ integer termSize(normalPo t) {
 
 normalPo allocateTpl(heapPo H, int32 arity) {
   labelPo lbl = tplLbl(arity);
-  int root = gcAddRoot(H, (ptrPo) &lbl);
+  int root = gcAddRoot(H, (ptrPo)&lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
   return tpl;
@@ -230,7 +237,7 @@ normalPo allocateTplPair(heapPo H, termPo lhs, termPo rhs) {
   return tpl;
 }
 
-retCode walkNormal(termPo t, normalProc proc, void *cl) {
+retCode walkNormal(termPo t, normalProc proc, void* cl) {
   if (isNormalPo(t)) {
     normalPo nml = C_NORMAL(t);
     labelPo lbl = termLbl(nml);
@@ -241,6 +248,7 @@ retCode walkNormal(termPo t, normalProc proc, void *cl) {
       ret = walkNormal(nthArg(nml, ix), proc, cl);
     }
     return ret;
-  } else
+  }
+  else
     return proc(t, cl);
 }

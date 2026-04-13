@@ -138,6 +138,10 @@ ssaInsPo showOperands(ioPo out, methodPo mtd, ptrPo args, ssaInsPo pc, char *fmt
         int32 offset = codeOffset(mtd, basePc);
 
         pc++;
+        ssaInsPo tgtPc = basePc+skip;
+        if (tgtPc->op.op==sValof) {
+          showVarble(out, args, (tgtPc+1)->op.ltrl);
+        }
         outMsg(out, " ↑%d", offset + skip);
         continue;
       }

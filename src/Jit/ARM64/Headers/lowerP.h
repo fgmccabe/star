@@ -37,10 +37,11 @@ typedef struct {
   jitCompPo jit;
   ssaInsPo code;
   localVarPo locals;
+  logical* voided;
   int32 numLocals;
 } CodeGenState, *codeGenPo;
 
-typedef struct jitBlock_ *blockPo;
+typedef struct jitBlock_* blockPo;
 
 typedef struct jitBlock_ {
   ssaOp blockType;
@@ -62,7 +63,7 @@ retCode getIntVal(jitCompPo jit, armReg rg);
 retCode mkIntVal(jitCompPo jit, armReg rg);
 void getFltVal(jitCompPo jit, armReg rg, fpReg tgt);
 
-retCode jitError(jitCompPo jit, char *msg, ...);
+retCode jitError(jitCompPo jit, char* msg, ...);
 
 registerMap defaultArgRegs();
 registerMap systemArgRegs();
@@ -84,7 +85,7 @@ void storeFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
 void loadFlex(codeGenPo state, int32 pc, FlexOp src, FlexOp tgt);
 FlexOp constantFlex(int32 index);
 FlexOp varFlex(int32 index);
-void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap *freeRegs);
+void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs);
 
 logical liveVar(localVarPo var, int32 pc);
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership);
@@ -93,8 +94,9 @@ void restoreStashedLocals(codeGenPo state, int32 pc);
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx);
 localVarPo localTarget(codeGenPo state, int32 pc, int32 lx);
 logical allLocalsStashed(codeGenPo state, int32 pc);
-void showLiveLocals(ioPo out, codeGenPo state);
-retCode showLocalVar(ioPo out, void *data, long depth, long precision, logical alt);
+
+void dumpState(codeGenPo state, int32 pc);
+retCode showLocalVar(ioPo out, void* data, long depth, long precision, logical alt);
 
 void voidOutFrameLocals(codeGenPo state, int32 pc, int32 minOffset);
 
@@ -114,7 +116,7 @@ void storeVarble(jitCompPo jit, armReg src, int32 varNo);
 
 void loadConstant(jitCompPo jit, int32 key, armReg tgt);
 
-retCode showStackSlot(ioPo f, void *data, long depth, long precision, logical alt);
+retCode showStackSlot(ioPo f, void* data, long depth, long precision, logical alt);
 void frameOverride(blockPo block, int arity);
 void frameOOverride(blockPo block, int arity, armReg frReg);
 
@@ -126,9 +128,13 @@ static inline logical isSmall(termPo x) {
   if (isInteger(x))
     return is16bit(integerVal(x));
   else if (isChar(x))
-    return is16bit((integer) charVal(x));
+    return is16bit((integer)charVal(x));
   else
     return False;
 }
+
+void breakPt();
+
+void installBkCall(codeGenPo state, int32 pc);
 
 #endif //STAR_LOWERP_H

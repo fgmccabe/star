@@ -23,6 +23,7 @@ labelPo tplLbl(int32 arity);
 logical isTplLabel(const char* nm);
 
 const char* lblName(labelPo lbl);
+const char* lblSuffix(labelPo lbl, codePoint mark);
 int32 constructorIndex(labelPo lbl);
 labelPo indexToLabel(int32 index);
 int32 indexToIndex(int32 lblIndex) ;

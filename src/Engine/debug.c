@@ -87,7 +87,7 @@ static integer cmdCount(const char *cmdLine, integer deflt) {
 }
 
 __attribute__((unused)) void dC(termPo w) {
-  outMsg(logFile, "%,*T\n", displayDepth, w);
+  outMsg(logFile, "%#,*T\n", displayDepth, w);
   flushOut();
 }
 

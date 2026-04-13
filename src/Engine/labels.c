@@ -27,7 +27,7 @@ builtinClassPo specialClass = &Special;
 
 static long lblSize(builtinClassPo cl, termPo o);
 static termPo lblCopy(builtinClassPo cl, termPo dst, termPo src);
-static termPo lblScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo lblScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o);
 static logical lblCmp(builtinClassPo cl, termPo o1, termPo o2);
 static integer lblHash(builtinClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
@@ -51,7 +51,7 @@ static int stdIndex = 0;
 
 static builtinClassPo stdLabels[MAX_STD_INDEX];
 
-static LblRecord *labelTable;
+static LblRecord* labelTable;
 static int32 lblTableTop; // First 16 indices reserved
 labelConstructorIndexPo labelConstructorIndex;
 
@@ -77,14 +77,14 @@ void initLbls() {
   LabelClass.special.lblIndex = specialIndex;
   labelIndex = standardIndex(labelClass);
 
-  labelHashTable = newHash(1024, (hashFun) LabelHash, (compFun) LabelCmp, (destFun) Null);
+  labelHashTable = newHash(1024, (hashFun)LabelHash, (compFun)LabelCmp, (destFun)Null);
 
-  labelTable = (LblRecord *) malloc(sizeof(LblRecord) * maxLabels);
-  labelConstructorIndex = (labelConstructorIndexPo) malloc(sizeof(labelConstructorIndex) * maxLabels);
+  labelTable = (LblRecord*)malloc(sizeof(LblRecord) * maxLabels);
+  labelConstructorIndex = (labelConstructorIndexPo)malloc(sizeof(labelConstructorIndex) * maxLabels);
   lblTableTop = 0;
 }
 
-labelPo declareLbl(const char *name, int32 arity, int32 constructorIndex) {
+labelPo declareLbl(const char* name, int32 arity, int32 constructorIndex) {
   LabelRecord Lbl = {.name = name, .arity = arity};
   labelPo lbl = hashGet(labelHashTable, &Lbl);
 
@@ -96,7 +96,7 @@ labelPo declareLbl(const char *name, int32 arity, int32 constructorIndex) {
     lbl = &labelTable[lblTableTop++];
     lbl->lbl.arity = (&Lbl)->arity;
     lbl->lbl.name = uniDuplicate((&Lbl)->name);
-    lbl->len = (int32) uniStrLen((&Lbl)->name);
+    lbl->len = (int32)uniStrLen((&Lbl)->name);
     lbl->constructorIndex = constructorIndex;
     lbl->labelIndex = lblTableTop - 1;
     lbl->mtd = Null;
@@ -120,9 +120,9 @@ labelPo declareLbl(const char *name, int32 arity, int32 constructorIndex) {
   return lbl;
 }
 
-labelPo findLbl(const char *name, int32 arity) {
+labelPo findLbl(const char* name, int32 arity) {
   LabelRecord lbl = {.name = name, .arity = arity};
-  return (labelPo) hashGet(labelHashTable, &lbl);
+  return (labelPo)hashGet(labelHashTable, &lbl);
 }
 
 int32 standardIndex(builtinClassPo clss) {
@@ -131,12 +131,12 @@ int32 standardIndex(builtinClassPo clss) {
   return -stdIndex;
 }
 
-termPo declareEnum(const char *name, int32 index, heapPo H) {
+termPo declareEnum(const char* name, int32 index, heapPo H) {
   labelPo lbl = declareLbl(name, 0, index);
-  int root = gcAddRoot(H, (ptrPo) &lbl);
+  int root = gcAddRoot(H, (ptrPo)&lbl);
   normalPo tpl = allocateStruct(H, lbl);
   gcReleaseRoot(H, root);
-  return (termPo) tpl;
+  return (termPo)tpl;
 }
 
 uint64 labelHash(labelPo lbl) {
@@ -148,16 +148,16 @@ int32 indexOfLabel(labelPo lbl) {
 }
 
 logical lblCmp(builtinClassPo cl, termPo o1, termPo o2) {
-  return (logical) (o1 == o2);
+  return (logical)(o1 == o2);
 }
 
 static integer lblHash(builtinClassPo cl, termPo o) {
   labelPo lbl = C_LBL(o);
-  return (integer) labelHash(lbl);
+  return (integer)labelHash(lbl);
 }
 
 logical sameLabel(labelPo l1, labelPo l2) {
-  return (logical) (l1 == l2);
+  return (logical)(l1 == l2);
 }
 
 void markLabels(gcSupportPo G) {
@@ -174,16 +174,16 @@ long lblSize(builtinClassPo cl, termPo o) {
 
 termPo lblCopy(builtinClassPo cl, termPo dst, termPo src) {
   syserr("Should not be scanning labels");
-  *((labelPo) dst) = *((labelPo) src);
+  *((labelPo)dst) = *((labelPo)src);
   return dst + LabelCellCount;
 }
 
-termPo lblScan(builtinClassPo cl, specialHelperFun helper, void *c, termPo o) {
+termPo lblScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   syserr("Should not be scanning labels");
   labelPo lbl = C_LBL(o);
 
   if (lbl->mtd != Null)
-    helper((ptrPo) (&lbl->mtd), c);
+    helper((ptrPo)(&lbl->mtd), c);
 
   return o + LabelCellCount;
 }
@@ -198,34 +198,36 @@ retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   return showLbl(out, lbl, 0, depth, alt);
 }
 
-retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt) {
+retCode showLabel(ioPo f, void* data, long depth, long precision, logical alt) {
   return showLbl(f, C_LBL((termPo) data), depth, depth, alt);
 }
 
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
-  const char *name = lbl->lbl.name;
+  const char* name = lbl->lbl.name;
   integer arity = lbl->lbl.arity;
 
   integer lblLen = uniStrLen(name);
   if (alt) {
     retCode ret;
 
-    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint) '#');
-    integer atOff = uniLastIndexOf(name, lblLen, (codePoint) '@');
+    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint)'#');
+    integer atOff = uniLastIndexOf(name, lblLen, (codePoint)'@');
 
     integer offset = maximum(hashOff, atOff);
 
     if (offset > 0 && offset < lblLen - 1)
-      ret = outMsg(out, "…%S", &name[offset + 1], (long) (lblLen - offset - 1), arity);
+      ret = outMsg(out, "…%S", &name[offset + 1], (long)(lblLen - offset - 1), arity);
     else if (lblLen > prec && prec > 0) {
       integer half = prec / 2;
       integer hwp = backCodePoint(name, lblLen, half);
       ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp, arity);
-    } else
+    }
+    else
       ret = outMsg(out, "%S", name, lblLen, arity);
 
     return ret;
-  } else
+  }
+  else
     return outMsg(out, "%Q/%d", name, arity);
 }
 
@@ -240,8 +242,16 @@ logical labelDefined(labelPo lbl) {
   return lbl->mtd != Null;
 }
 
-const char *lblName(labelPo lbl) {
+const char* lblName(labelPo lbl) {
   return lbl->lbl.name;
+}
+
+const char* lblSuffix(labelPo lbl, codePoint mark) {
+  integer markPoint = uniLastIndexOf(lbl->lbl.name, uniStrLen(lbl->lbl.name), mark);
+  if (markPoint > 0)
+    return &lbl->lbl.name[markPoint] + 1;
+  else
+    return lbl->lbl.name;
 }
 
 int32 constructorIndex(labelPo lbl) {
@@ -265,14 +275,14 @@ static builtinClassPo indexToSpecialClass(int32 index) {
 
 builtinClassPo builtinClassOf(termPo t) {
   switch (pointerTag(t)) {
-    case ptrTg:
-      return indexToSpecialClass(t->lblIndex);
-    case intTg:
-      return indexToSpecialClass(integerIndex);
-    case chrTg:
-      return indexToSpecialClass(charIndex);
-    default:
-      return Null;
+  case ptrTg:
+    return indexToSpecialClass(t->lblIndex);
+  case intTg:
+    return indexToSpecialClass(integerIndex);
+  case chrTg:
+    return indexToSpecialClass(charIndex);
+  default:
+    return Null;
   }
 }
 
@@ -283,7 +293,7 @@ labelPo tplLbl(int32 arity) {
   return declareLbl(txt, arity, 0);
 }
 
-logical isTplLabel(const char *nm) {
+logical isTplLabel(const char* nm) {
   if (uniIsLitPrefix(nm, "()")) {
     integer ln = uniStrLen(nm);
     integer pos = uniStrLen("()");
@@ -293,11 +303,11 @@ logical isTplLabel(const char *nm) {
         return False;
     }
     return True;
-  } else
-    return False;
+  }
+  return False;
 }
 
-retCode iterateLabels(labelProc proc, void *cl) {
+retCode iterateLabels(labelProc proc, void* cl) {
   for (integer ix = 0; ix < lblTableTop; ix++)
     tryRet(proc(&labelTable[ix], cl));
   return Ok;
@@ -314,16 +324,16 @@ logical setBreakPoint(labelPo lbl, logical set) {
 }
 
 typedef struct {
-  char *search;
+  char* search;
   integer len;
   integer arity;
   logical set;
   integer count;
 } SearchInfo;
 
-static retCode checkLabel(labelPo lbl, void *cl) {
-  SearchInfo *info = (SearchInfo *) cl;
-  if (globMatch((char *) lbl->lbl.name, lbl->len, info->search, info->len)) {
+static retCode checkLabel(labelPo lbl, void* cl) {
+  SearchInfo* info = (SearchInfo*)cl;
+  if (globMatch((char*)lbl->lbl.name, lbl->len, info->search, info->len)) {
     if (info->arity < 0 || info->arity == lbl->lbl.arity) {
       if (setBreakPoint(lbl, info->set) != info->set)
         info->count++;
@@ -332,21 +342,21 @@ static retCode checkLabel(labelPo lbl, void *cl) {
   return Ok;
 }
 
-integer setLabelBreakPoint(char *srch, integer slen, integer arity) {
+integer setLabelBreakPoint(char* srch, integer slen, integer arity) {
   SearchInfo info = {.search = srch, .len = slen, .arity = arity, .set = True, .count = 0};
   iterateLabels(checkLabel, &info);
   return info.count;
 }
 
-integer clearLabelBreakPoint(char *srch, integer slen, integer arity) {
+integer clearLabelBreakPoint(char* srch, integer slen, integer arity) {
   SearchInfo info = {.search = srch, .len = slen, .arity = arity, .set = False, .count = 0};
   iterateLabels(checkLabel, &info);
   return info.count;
 }
 
-static retCode showBkPt(labelPo lbl, void *cl) {
+static retCode showBkPt(labelPo lbl, void* cl) {
   if (lbl->breakPointSet)
-    return outMsg((ioPo) cl, "bk: %A\n%_", lbl);
+    return outMsg((ioPo)cl, "bk: %A\n%_", lbl);
   return Ok;
 }
 
