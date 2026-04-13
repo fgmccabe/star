@@ -151,8 +151,8 @@ escapeType("_today",funType(tplType([]),type("float"),voidType)).
 escapeType("_ticks",funType(tplType([]),type("integer"),voidType)).
 escapeType("_time2date",funType(tplType([type("float")]),tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),voidType)).
 escapeType("_time2utc",funType(tplType([type("float")]),tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),voidType)).
-escapeType("_date2time",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),type("float"),voidType)).
-escapeType("_utc2time",funType(tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")]),type("float"),voidType)).
+escapeType("_date2time",funType(tplType([tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")])]),type("float"),voidType)).
+escapeType("_utc2time",funType(tplType([tplType([type("integer"),type("integer"),type("integer"),type("integer"),type("integer"),type("float"),type("integer")])]),type("float"),voidType)).
 escapeType("_formattime",funType(tplType([type("float"),type("string")]),type("string"),type("errorCode"))).
 escapeType("_parsetime",funType(tplType([type("string"),type("string")]),type("float"),type("errorCode"))).
 escapeType("_uniCodeCategory",funType(tplType([type("char")]),type("integer"),voidType)).

@@ -153,16 +153,6 @@ ValueReturn run(enginePo P) {
         assert(H->topRoot == 0);
 
         switch (arity) {
-          case 8:
-            RSLT = ((escValue8) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
-                                               varble(operand(6)), varble(operand(7)),varble(operand(8)),
-                                               varble(operand(9)), varble(operand(10)));
-            break;
-          case 7:
-            RSLT = ((escValue7) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
-                                               varble(operand(6)), varble(operand(7)),varble(operand(8)),
-                                               varble(operand(9)));
-            break;
           case 6:
             RSLT = ((escValue6) (esc->direct))(P,varble(operand(3)),varble(operand(4)),varble(operand(5)),
                                                varble(operand(6)), varble(operand(7)),varble(operand(8)));

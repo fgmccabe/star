@@ -30,8 +30,6 @@ typedef ValueReturn (*escValue3)(enginePo p, termPo, termPo, termPo);
 typedef ValueReturn (*escValue4)(enginePo p, termPo, termPo, termPo, termPo);
 typedef ValueReturn (*escValue5)(enginePo p, termPo, termPo, termPo, termPo, termPo);
 typedef ValueReturn (*escValue6)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo);
-typedef ValueReturn (*escValue7)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo, termPo);
-typedef ValueReturn (*escValue8)(enginePo p, termPo, termPo, termPo, termPo, termPo, termPo, termPo, termPo);
 
 typedef struct escape_record_ *escapePo;
 

@@ -14,7 +14,7 @@ test.dte{
   main(){
     showMsg("$(time2Date(now()))");
 
-    D = _date2time(2025,5,21,20,28,45.2,-25200);
+    D = _date2time((2025,5,21,20,28,45.2,-25200));
     T = _time2date(D);
 
     showMsg("D = $(D), T = $(T)");
