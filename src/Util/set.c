@@ -117,8 +117,8 @@ logical setIsEmpty(setPo set) {
 }
 
 logical inSet(setPo set, int32 k) {
-  int32 max = set->count * 64 + set->min;
-  if (k < set->min || k >= max || set->data == Null)
+  int32 setMax = set->count * 64 + set->min;
+  if (k < set->min || k >= setMax || set->data == Null)
     return False;
   int32 base = k - set->min;
   int32 el = base >> 6;
@@ -129,11 +129,13 @@ logical inSet(setPo set, int32 k) {
 logical inSetRange(setPo set, int32 from, int32 to) {
   assert(from<=to);
 
-  int32 max = set->count * 64 + set->min;
-  if (to < set->min || from >= max || set->data == Null)
+  int32 setMax = set->count * 64 + set->min;
+  if (to < set->min || from >= setMax || set->data == Null)
     return False;
 
   assert(to >= set->min);
+
+  from = max(from,set->min);
 
   int32 fromBase = from - set->min;
   int32 fromEl = fromBase >> 6;

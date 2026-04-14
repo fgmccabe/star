@@ -97,7 +97,7 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
 
     CodeGenState state = {
       .mtd = mtd, .code = entryPoint(mtd), .analysis = &analysis, .locals = locals, .numLocals = numSlots,
-       .jit = jit, .voided = voided
+      .jit = jit, .voided = voided
     };
 
     populateLocals(&state, mtdArity(mtd), argRegisters);
@@ -207,7 +207,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       FlexOp lam = sourceOperandFlex(state, pc, 1); // Pick up the closure
       armReg lamReg = X17;
       loadRegister(state, lamReg, lam);
-      int32 lclLimit = loadLambdaArguments(state, pc, pc, pc + 3, numArgs) - 1;
+      int32 lclLimit = loadLambdaArguments(state, pc, pc, pc + 3, numArgs);
       ldr(X0, OF(lamReg, OffsetOf(ClosureRecord, free)));
       ldr(lamReg, OF(lamReg, OffsetOf(ClosureRecord, lbl))); // Pick up the label
       // pick up the pointer to the method
@@ -332,6 +332,8 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
       stashLiveLocals(state, nextPc, False);
       stackCheck(state, pc, opand(1), opand(2));
+      if (mtdHasName(state->mtd, "test.dte@main"))
+        installBkCall(state, pc);
       pc = nextPc;
       continue;
     }
@@ -1940,12 +1942,12 @@ int32 loadArgsToRegisters(codeGenPo state, registerMap argRegs, int32 pc, int32 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
     armReg ax = nxtAvailReg(argRegs);
-    int32 argSlot = minOffset - arity + ix;
     if (ax != XZR) {
       argRegs = dropReg(argRegs, ax);
       operands[ix] = argSpec(argSrc, RG(ax));
     }
     else {
+      int32 argSlot = minOffset - arity + ix;
       operands[ix] = argSpec(argSrc, OF(AG,argSlot*pointerSize));
     }
   }

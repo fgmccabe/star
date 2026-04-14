@@ -163,7 +163,7 @@ integer mtdHash(builtinClassPo cl, termPo o) {
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
   labelPo mtdLbl = mtd->lbl;
-  return outMsg(out, "%%%s/%d", (alt?lblSuffix(mtdLbl,'@'):lblName(mtdLbl)),mtdLbl->lbl.arity);
+  return outMsg(out, "%%%s/%d", lblName(mtdLbl),mtdLbl->lbl.arity);
 }
 
 labelPo mtdLabel(methodPo mtd) {
