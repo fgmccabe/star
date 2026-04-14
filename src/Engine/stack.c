@@ -360,7 +360,7 @@ retCode stkDisp(ioPo out, termPo t, integer precision, integer depth,
 
   return outMsg(out, "(.stack %d:[%s] %T.)", stk->hash,
                 stackStateName(stk->state),
-                stackState(stk) == moribund ? voidEnum : (termPo)stk->prog);
+                stackState(stk) == moribund ? voidEnum : (termPo)locateMethod((uinteger)stk->pc));
 }
 
 void showStackCall(ioPo out, integer depth, ptrPo args, integer frameNo,

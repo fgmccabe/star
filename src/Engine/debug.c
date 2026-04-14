@@ -27,7 +27,7 @@ static void showAllLocals(ioPo out, stackPo stk);
 static void showTos(ioPo out, stackPo stk, integer offset);
 
 static retCode showVarble(ioPo out, ptrPo args, int32 varNo);
-static retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char *buffer, integer bufLen);
+static retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char* buffer, integer bufLen);
 
 static sockPo debuggerListener = Null;
 
@@ -51,7 +51,8 @@ static void sig_suspend(int sig) {
     reset_stdin(); /* Reset the standard input channel */
     raise(SIGSTOP); /* Actually suspend */
     setup_stdin(); /* Put it back */
-  } else
+  }
+  else
     raise(SIGSTOP); /* Actually suspend */
 }
 
@@ -69,7 +70,8 @@ retCode setupDebugChannels() {
       }
       return ret;
     }
-  } else if (debugInChnnl == Null) {
+  }
+  else if (debugInChnnl == Null) {
     debugInChnnl = Stdin();
     debugOutChnnl = Stdout();
     return Ok;
@@ -77,8 +79,8 @@ retCode setupDebugChannels() {
   return Error;
 }
 
-static integer cmdCount(const char *cmdLine, integer deflt) {
-  while (isSpaceChar((codePoint) *cmdLine))
+static integer cmdCount(const char* cmdLine, integer deflt) {
+  while (isSpaceChar((codePoint)*cmdLine))
     cmdLine++;
   if (uniStrLen(cmdLine) == 0)
     return deflt;
@@ -99,10 +101,11 @@ static retCode showSig(ioPo out, stackPo stk, methodPo mtd, int32 conIx) {
   termPo frameLit = getConstant(conIx);
   if (isString(frameLit)) {
     integer sigLen;
-    const char *sig = strVal(frameLit, &sigLen);
+    const char* sig = strVal(frameLit, &sigLen);
 
     return outMsg(out, " %,*Y", sigLen, sig);
-  } else
+  }
+  else
     return outMsg(out, " %,*T", displayDepth, frameLit);
 }
 
@@ -111,61 +114,64 @@ static logical shouldWeStop(enginePo p, ssaOp op) {
   stackPo stk = p->stk;
   framePo f = currFrame(stk);
   logical atLine = ((op == sLine || op == sBind) ? tracing >= detailedTracing : True);
-  methodPo prog = locateMethod((uinteger) stk->pc);
+  methodPo prog = locateMethod((uinteger)stk->pc);
 
   switch (p->waitFor) {
-    case stepInto:
+  case stepInto:
+    if (p->traceCount > 0)
+      p->traceCount--;
+    return (logical)(atLine && p->traceCount == 0);
+
+  case stepOver:
+  case stepOut: {
+    if (p->waterMark == f) {
       if (p->traceCount > 0)
         p->traceCount--;
-      return (logical) (atLine && p->traceCount == 0);
-
-    case stepOver:
-    case stepOut: {
-      if (p->waterMark == f) {
-        if (p->traceCount > 0)
-          p->traceCount--;
-        if (p->traceCount == 0) {
-          p->waterMark = Null;
-          return atLine;
-        } else
-          return False;
-      } else
-        return False;
-    }
-    case nextBreak: {
-      if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(prog))) {
-        p->waitFor = stepInto;
-        p->tracing = True;
+      if (p->traceCount == 0) {
+        p->waterMark = Null;
         return atLine;
       }
-      return False;
+      else
+        return False;
     }
-    default:
+    else
       return False;
+  }
+  case nextBreak: {
+    if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(prog))) {
+      p->waitFor = stepInto;
+      p->tracing = True;
+      return atLine;
+    }
+    return False;
+  }
+  default:
+    return False;
   }
 }
 
-static char *defltLine(char *src, integer srcLen, integer *actLen) {
+static char* defltLine(char* src, integer srcLen, integer* actLen) {
   static char defltLn[MAXLINE] = {'n'};
 
   if (!uniIsTrivial(src, srcLen)) {
     uniTrim(src, srcLen, " \n", " \n", defltLn, NumberOf(defltLn));
     *actLen = uniStrLen(defltLn);
     return src;
-  } else {
+  }
+  else {
     *actLen = uniNStrLen(defltLn, NumberOf(defltLn));
     return defltLn;
   }
 }
 
-static void resetDeflt(char *cmd) {
+static void resetDeflt(char* cmd) {
   integer junk;
   defltLine(cmd, uniStrLen(cmd), &junk);
 }
 
-static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
+static retCode cmdComplete(strBufferPo b, void* cl, integer cx) {
   integer bLen;
-  char *content = getTextFromBuffer(b, &bLen);
+  char* content = getTextFromBuffer(b, &bLen);
 
   if (bLen == 0)
     return Eof;
@@ -173,7 +179,7 @@ static retCode cmdComplete(strBufferPo b, void *cl, integer cx) {
     integer pos = 0;
     codePoint first = nextCodePoint(content, &pos, bLen);
 
-    debugOptPo opts = (debugOptPo) cl;
+    debugOptPo opts = (debugOptPo)cl;
     for (int ix = 0; ix < opts->count; ix++) {
       if (opts->opts[ix].c == first) {
         if (opts->opts[ix].complete != Null)
@@ -199,51 +205,51 @@ static DebugWaitFor cmder(debugOptPo opts, enginePo p, termPo lc) {
     outMsg(debugOutChnnl, " >%s %_", (insDebugging ? "i" : lineDebugging ? "$" : ""));
     clearStrBuffer(cmdBuffer);
 
-    setEditLineCompletionCallback(cmdComplete, (void *) opts);
+    setEditLineCompletionCallback(cmdComplete, (void*)opts);
     retCode res = (debuggerListener == Null ? consoleInput(cmdBuffer) : inLine(debugInChnnl, cmdBuffer, "\n"));
     clearEditLineCompletionCallback();
 
     switch (res) {
-      case Eof:
-        return quitDbg;
-      case Ok: {
-        integer cmdLen = 0;
-        char *cmdLine = getTextFromBuffer(cmdBuffer, &cmdLen);
+    case Eof:
+      return quitDbg;
+    case Ok: {
+      integer cmdLen = 0;
+      char* cmdLine = getTextFromBuffer(cmdBuffer, &cmdLen);
 
-        cmdLine = defltLine(cmdLine, cmdLen, &cmdLen);
+      cmdLine = defltLine(cmdLine, cmdLen, &cmdLen);
 
-        integer nxt = 0;
-        codePoint cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
+      integer nxt = 0;
+      codePoint cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
 
-        if (isNdChar((codePoint) cmd)) {
-          cmd = 'n';
-          nxt = 0;
-        }
-
-        for (int ix = 0; ix < opts->count; ix++) {
-          if (opts->opts[ix].c == cmd)
-            return opts->opts[ix].cmd(&cmdLine[nxt], p, lc, opts->opts[ix].cl);
-        }
-        outMsg(debugOutChnnl, "invalid debugger command: %s\n", cmdLine);
+      if (isNdChar((codePoint)cmd)) {
+        cmd = 'n';
+        nxt = 0;
       }
-      default:
-        for (int ix = 0; ix < opts->count; ix++)
-          outMsg(debugOutChnnl, "%s\n", opts->opts[ix].usage);
-        flushIo(debugOutChnnl);
-        return moreDebug;
+
+      for (int ix = 0; ix < opts->count; ix++) {
+        if (opts->opts[ix].c == cmd)
+          return opts->opts[ix].cmd(&cmdLine[nxt], p, lc, opts->opts[ix].cl);
+      }
+      outMsg(debugOutChnnl, "invalid debugger command: %s\n", cmdLine);
+    }
+    default:
+      for (int ix = 0; ix < opts->count; ix++)
+        outMsg(debugOutChnnl, "%s\n", opts->opts[ix].usage);
+      flushIo(debugOutChnnl);
+      return moreDebug;
     }
   }
   return moreDebug;
 }
 
-static DebugWaitFor dbgSingle(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSingle(char* line, enginePo p, termPo lc, void* cl) {
   p->traceCount = cmdCount(line, 0);
   p->waterMark = Null;
-  p->tracing = (logical) (p->traceCount == 0);
+  p->tracing = (logical)(p->traceCount == 0);
   return stepInto;
 }
 
-static DebugWaitFor dbgOver(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgOver(char* line, enginePo p, termPo lc, void* cl) {
   p->traceCount = cmdCount(line, 0);
   p->waterMark = p->stk->fp;
   p->tracing = False;
@@ -252,7 +258,7 @@ static DebugWaitFor dbgOver(char *line, enginePo p, termPo lc, void *cl) {
   return stepOver;
 }
 
-static DebugWaitFor dbgUntilRet(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgUntilRet(char* line, enginePo p, termPo lc, void* cl) {
   p->traceCount = cmdCount(line, 0);
   p->tracing = False;
   resetDeflt("n");
@@ -261,11 +267,11 @@ static DebugWaitFor dbgUntilRet(char *line, enginePo p, termPo lc, void *cl) {
   return stepOut;
 }
 
-static DebugWaitFor dbgQuit(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgQuit(char* line, enginePo p, termPo lc, void* cl) {
   return quitDbg;
 }
 
-static DebugWaitFor dbgTrace(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgTrace(char* line, enginePo p, termPo lc, void* cl) {
   p->tracing = True;
   p->traceCount = cmdCount(line, 0);
 
@@ -276,36 +282,36 @@ static DebugWaitFor dbgTrace(char *line, enginePo p, termPo lc, void *cl) {
     return nextBreak;
 }
 
-static char *tracingLevels[] = {"no tracing", "general tracing", "detailed tracing"};
+static char* tracingLevels[] = {"no tracing", "general tracing", "detailed tracing"};
 
-static DebugWaitFor dbgTraceLevel(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgTraceLevel(char* line, enginePo p, termPo lc, void* cl) {
   switch (line[0]) {
-    case '-':
-      if (tracing > noTracing)
-        tracing--;
-      break;
-    case '+':
-      if (tracing < detailedTracing)
-        tracing++;
-      break;
-    default:
-      resetDeflt("n");
-      outMsg(debugOutChnnl, "tracing level at %s\n", tracingLevels[tracing]);
-      return moreDebug;
+  case '-':
+    if (tracing > noTracing)
+      tracing--;
+    break;
+  case '+':
+    if (tracing < detailedTracing)
+      tracing++;
+    break;
+  default:
+    resetDeflt("n");
+    outMsg(debugOutChnnl, "tracing level at %s\n", tracingLevels[tracing]);
+    return moreDebug;
   }
   outMsg(debugOutChnnl, "tracing level set to %s\n", tracingLevels[tracing]);
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgCont(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgCont(char* line, enginePo p, termPo lc, void* cl) {
   p->tracing = False;
 
   resetDeflt("n");
   return nextBreak;
 }
 
-static DebugWaitFor dbgSetDepth(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSetDepth(char* line, enginePo p, termPo lc, void* cl) {
   integer depth = cmdCount(line, -1);
   if (depth >= 0)
     displayDepth = cmdCount(line, 0);
@@ -316,14 +322,14 @@ static DebugWaitFor dbgSetDepth(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowRegisters(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowRegisters(char* line, enginePo p, termPo lc, void* cl) {
   showRegisters(p, p->heap);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgMcRegisters(char* line, enginePo p, termPo lc, void* cl) {
   stackPo stk = p->stk;
   methodPo prog = locateMethod((uinteger)stk->pc);
   outMsg(debugOutChnnl, "MTD=%A\n", mtdLabel(prog));
@@ -338,7 +344,7 @@ static DebugWaitFor dbgMcRegisters(char *line, enginePo p, termPo lc, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowCall(char* line, enginePo p, termPo lc, void* cl) {
   stackPo stk = p->stk;
   showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showLocalVars, stk->pc);
 
@@ -346,7 +352,7 @@ static DebugWaitFor dbgShowCall(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowArg(char* line, enginePo p, termPo lc, void* cl) {
   integer argNo = cmdCount(line, 0);
   stackPo stk = p->stk;
   methodPo mtd = locateMethod((uinteger)stk->pc);
@@ -360,8 +366,8 @@ static DebugWaitFor dbgShowArg(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowLocal(char *line, enginePo p, termPo lc, void *cl) {
-  int32 lclNo = (int32) cmdCount(line, 0);
+static DebugWaitFor dbgShowLocal(char* line, enginePo p, termPo lc, void* cl) {
+  int32 lclNo = (int32)cmdCount(line, 0);
   stackPo stk = p->stk;
   methodPo mtd = locateMethod((uinteger)stk->pc);
 
@@ -376,7 +382,7 @@ static DebugWaitFor dbgShowLocal(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowGlobal(char* line, enginePo p, termPo lc, void* cl) {
   char buff[MAX_SYMB_LEN];
   integer pos = 0;
   integer ix = 0;
@@ -389,19 +395,20 @@ static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
   while (ix < llen) {
     codePoint cp = nextCodePoint(line, &ix, llen);
     switch (st) {
-      case initSte:
-        if (!isSpaceChar(cp)) {
-          st = inVar;
-          appendCodePoint(buff, &pos, NumberOf(buff), cp);
-        }
+    case initSte:
+      if (!isSpaceChar(cp)) {
+        st = inVar;
+        appendCodePoint(buff, &pos, NumberOf(buff), cp);
+      }
+      continue;
+    case inVar:
+    default:
+      if (!isSpaceChar(cp)) {
+        appendCodePoint(buff, &pos, NumberOf(buff), cp);
         continue;
-      case inVar:
-      default:
-        if (!isSpaceChar(cp)) {
-          appendCodePoint(buff, &pos, NumberOf(buff), cp);
-          continue;
-        } else
-          break;
+      }
+      else
+        break;
     }
   }
   if (uniStrLen(buff) > 0) {
@@ -420,7 +427,7 @@ static DebugWaitFor dbgShowGlobal(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowStack(char* line, enginePo p, termPo lc, void* cl) {
   stackPo stk = p->stk;
   methodPo mtd = locateMethod((uinteger)stk->pc);
   ptrPo limit = stackVarble(stk->args, -lclCount(mtd));
@@ -430,7 +437,8 @@ static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
     for (integer vx = 0; sp < limit; vx++, sp++) {
       outMsg(debugOutChnnl, "SP[%d]=%,*T\n", vx, displayDepth, *sp);
     }
-  } else {
+  }
+  else {
     integer count = cmdCount(line, 1);
     limit -= count;
 
@@ -443,12 +451,13 @@ static DebugWaitFor dbgShowStack(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgStackTrace(char* line, enginePo p, termPo lc, void* cl) {
   if (line[0] == 'L') {
     integer count = cmdCount(line + 1, MAX_INTEGER);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showLocalVars, count);
-  } else {
+  }
+  else {
     integer count = cmdCount(line, MAX_INTEGER);
 
     stackTrace(p, debugOutChnnl, p->stk, displayDepth, showArguments, count);
@@ -458,7 +467,7 @@ static DebugWaitFor dbgStackTrace(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgShowCode(char* line, enginePo p, termPo lc, void* cl) {
   stackPo stk = p->stk;
   ssaInsPo pc = stk->pc;
   methodPo mtd = locateMethod((uinteger)stk->pc);
@@ -478,7 +487,7 @@ static DebugWaitFor dbgShowCode(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgDebug(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgDebug(char* line, enginePo p, termPo lc, void* cl) {
   debugDebugging = !debugDebugging;
 
   logMsg(Stderr(), "debug debugging %s\n", (debugDebugging ? "enabled" : "disabled"));
@@ -486,49 +495,51 @@ static DebugWaitFor dbgDebug(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgInsDebug(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgInsDebug(char* line, enginePo p, termPo lc, void* cl) {
   lineDebugging = False;
   insDebugging = True;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgSymbolDebug(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgSymbolDebug(char* line, enginePo p, termPo lc, void* cl) {
   lineDebugging = True;
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgVerifyProcess(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgVerifyProcess(char* line, enginePo p, termPo lc, void* cl) {
   resetDeflt("n");
   verifyProc(p, processHeap(p));
   return moreDebug;
 }
 
-static DebugWaitFor dbgAddBreakPoint(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgAddBreakPoint(char* line, enginePo p, termPo lc, void* cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
     integer count = addBreakPoints(&bp);
     outMsg(debugOutChnnl, "%d break points set\n%_", count);
-  } else
+  }
+  else
     outMsg(debugOutChnnl, "could not set spy points on %s\n%_", line);
   return moreDebug;
 }
 
-DebugWaitFor dbgClearBreakPoint(char *line, enginePo p, termPo lc, void *cl) {
+DebugWaitFor dbgClearBreakPoint(char* line, enginePo p, termPo lc, void* cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok) {
     integer count = clearBreakPoints(&bp);
     outMsg(debugOutChnnl, "%d break points cleared\n%_", count);
-  } else
+  }
+  else
     outMsg(debugOutChnnl, "could not clear spy points on %s\n%_", line);
   return moreDebug;
 }
 
-DebugWaitFor dbgShowBreakPoints(char *line, enginePo p, termPo lc, void *cl) {
+DebugWaitFor dbgShowBreakPoints(char* line, enginePo p, termPo lc, void* cl) {
   retCode ret = showAllBreakPoints(debugOutChnnl);
 
   if (ret != Ok)
@@ -536,7 +547,7 @@ DebugWaitFor dbgShowBreakPoints(char *line, enginePo p, termPo lc, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgDropFrame(char *line, enginePo p, termPo lc, void *cl) {
+static DebugWaitFor dbgDropFrame(char* line, enginePo p, termPo lc, void* cl) {
   integer count = cmdCount(line, 0);
   stackPo stk = p->stk;
 
@@ -548,7 +559,9 @@ static DebugWaitFor dbgDropFrame(char *line, enginePo p, termPo lc, void *cl) {
     frameNo++;
   }
 
-  stk->pc = entryPoint(stk->prog);
+  methodPo tgtProg = locateMethod((uinteger)stk->pc);
+  if (tgtProg != Null)
+    stk->pc = entryPoint(tgtProg);
 
   outMsg(debugOutChnnl, "Dropped %d frames\n%_", frameNo);
   showStackCall(debugOutChnnl, displayDepth, stk->args, 0, showPrognames, stk->pc);
@@ -592,7 +605,7 @@ DebugWaitFor insDebug(enginePo p) {
     stackPo stk = p->stk;
     outMsg(debugOutChnnl, "[(%d)%ld]: ", stackNo(stk), pcCount);
 
-    showIns(debugOutChnnl, locateMethod((uinteger) stk->pc), stk, stk->pc);
+    showIns(debugOutChnnl, locateMethod((uinteger)stk->pc), stk, stk->pc);
 
     if (stopping) {
       while (interactive) {
@@ -606,19 +619,20 @@ DebugWaitFor insDebug(enginePo p) {
         stackSanityCheck(p->stk);
 
         switch (p->waitFor) {
-          case moreDebug:
-            continue;
-          case stepInto:
-          case stepOver:
-          case stepOut:
-          case nextBreak:
-          case never:
-            return p->waitFor;
-          case quitDbg:
-            exit(0);
+        case moreDebug:
+          continue;
+        case stepInto:
+        case stepOver:
+        case stepOut:
+        case nextBreak:
+        case never:
+          return p->waitFor;
+        case quitDbg:
+          exit(0);
         }
       }
-    } else {
+    }
+    else {
       outStr(debugOutChnnl, "\n");
       flushIo(debugOutChnnl);
     }
@@ -626,8 +640,8 @@ DebugWaitFor insDebug(enginePo p) {
   return p->waitFor;
 }
 
-retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
-  termPo ln = (termPo) data;
+retCode showLoc(ioPo f, void* data, long depth, long precision, logical alt) {
+  termPo ln = (termPo)data;
 
   if (ln != Null) {
     if (isNormalPo(ln)) {
@@ -644,14 +658,16 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
                         nthArg(line, 4));
       }
       return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
-    } else
+    }
+    else
       return outMsg(f, "%,*T", displayDepth, ln);
-  } else
+  }
+  else
     return outStr(f, "?unknown loc?");
 }
 
 static retCode shArgs(ioPo out, integer depth, ptrPo sp, integer arity) {
-  char *sep = "";
+  char* sep = "";
   tryRet(outStr(out, "("));
   for (integer ix = 0; ix < arity; ix++) {
     tryRet(outMsg(out, "%s%#,*T", sep, depth, sp[ix]));
@@ -671,7 +687,8 @@ static void showCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
 
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
     outMsg(out, "\n%_");
-  } else
+  }
+  else
     outMsg(out, "invalid use of showCall\n%_");
 }
 
@@ -684,7 +701,8 @@ static void showOCall(ioPo out, stackPo stk, termPo lc, termPo closure) {
   if (isClosure(closure)) {
     labelPo pr = closureLabel(C_CLOSURE(closure));
     shArgs(out, displayDepth, stk->sp, lblArity(pr));
-  } else {
+  }
+  else {
     outMsg(out, "invalid closure label");
   }
   outMsg(out, "\n%_");
@@ -700,7 +718,8 @@ static void showTCall(ioPo out, stackPo stk, termPo lc, termPo pr) {
       outMsg(out, "tcall: %#L %#.16A", lc, callee);
 
     shArgs(out, displayDepth, stk->sp, lblArity(callee));
-  } else
+  }
+  else
     outMsg(out, "invalid use of showTCall");
   outMsg(out, "\n%_");
 }
@@ -810,55 +829,55 @@ DebugWaitFor enterDebugger(enginePo p, termPo lc) {
   methodPo mtd = locateMethod((uinteger)stk->pc);
 
   switch (pc->op.op) {
-    case sAbort:
-      return abortDebug(p, lc);
-    case sCall:
-      return callDebug(p, sCall, lc, getConstant((pc + 1)->op.ltrl));
-    case sTCall:
-      return tcallDebug(p, lc, getConstant((pc + 1)->op.ltrl));
-    case sOCall:
-      return ocallDebug(p, sOCall, lc, topStack(stk));
-    case sTOCall:
-      return tocallDebug(p, lc, topStack(stk));
-    case sEntry:
-      return entryDebug(p, lc, mtdLabel(mtd));
-    case sRet:
-      return retDebug(p, lc, topStack(stk));
-    case sXRet:
-      return xretDebug(p, lc, topStack(stk));
-    case sAssign:
-      return assignDebug(p, lc);
-    case sFiber:
-      return fiberDebug(p, lc, topStack(stk));
-    case sSuspend:
-      return suspendDebug(p, lc, topStack(stk));
-    case sResume:
-      return resumeDebug(p, lc, topStack(stk));
-    case sRetire:
-      return retireDebug(p, lc, topStack(stk));
-    default:
-      return stepOver;
+  case sAbort:
+    return abortDebug(p, lc);
+  case sCall:
+    return callDebug(p, sCall, lc, getConstant((pc + 1)->op.ltrl));
+  case sTCall:
+    return tcallDebug(p, lc, getConstant((pc + 1)->op.ltrl));
+  case sOCall:
+    return ocallDebug(p, sOCall, lc, topStack(stk));
+  case sTOCall:
+    return tocallDebug(p, lc, topStack(stk));
+  case sEntry:
+    return entryDebug(p, lc, mtdLabel(mtd));
+  case sRet:
+    return retDebug(p, lc, topStack(stk));
+  case sXRet:
+    return xretDebug(p, lc, topStack(stk));
+  case sAssign:
+    return assignDebug(p, lc);
+  case sFiber:
+    return fiberDebug(p, lc, topStack(stk));
+  case sSuspend:
+    return suspendDebug(p, lc, topStack(stk));
+  case sResume:
+    return resumeDebug(p, lc, topStack(stk));
+  case sRetire:
+    return retireDebug(p, lc, topStack(stk));
+  default:
+    return stepOver;
   }
 }
 
 logical isDebuggableOp(ssaOp op) {
   switch (op) {
-    case sAbort:
-    case sCall:
-    case sTCall:
-    case sOCall:
-    case sTOCall:
-    case sEntry:
-    case sRet:
-    case sXRet:
-    case sAssign:
-    case sFiber:
-    case sSuspend:
-    case sResume:
-    case sRetire:
-      return True;
-    default:
-      return False;
+  case sAbort:
+  case sCall:
+  case sTCall:
+  case sOCall:
+  case sTOCall:
+  case sEntry:
+  case sRet:
+  case sXRet:
+  case sAssign:
+  case sFiber:
+  case sSuspend:
+  case sResume:
+  case sRetire:
+    return True;
+  default:
+    return False;
   }
 }
 
@@ -898,7 +917,7 @@ DebugWaitFor tocallDebug(enginePo p, termPo lc, termPo pr) {
 }
 
 DebugWaitFor entryDebug(enginePo p, termPo lc, labelPo lbl) {
-  return lnDebug(p, sEntry, lc, (termPo) lbl, showEntry);
+  return lnDebug(p, sEntry, lc, (termPo)lbl, showEntry);
 }
 
 DebugWaitFor retDebug(enginePo p, termPo lc, termPo vl) {
@@ -946,7 +965,7 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) 
       {.c = 'r', .cmd = dbgShowRegisters, .usage = "r show registers"},
       {.c = 'R', .cmd = dbgMcRegisters, .usage = "R show mc registers"},
       {.c = 'C', .cmd = dbgShowCall, .usage = "C show current call"},
-      {.c = 's', .cmd = dbgShowStack, .usage = "s show stack", .cl = (void *) False},
+      {.c = 's', .cmd = dbgShowStack, .usage = "s show stack", .cl = (void*)False},
       {.c = 'S', .cmd = dbgStackTrace, .usage = "S show entire stack"},
       {.c = 'D', .cmd = dbgDropFrame, .usage = "D <count> drop stack frame(s)"},
       {.c = 'g', .cmd = dbgShowGlobal, .usage = "g <var> show global var"},
@@ -982,16 +1001,16 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) 
         }
 
         switch (p->waitFor) {
-          case moreDebug:
-            continue;
-          case stepInto:
-          case stepOver:
-          case stepOut:
-          case nextBreak:
-          case never:
-            return p->waitFor;
-          case quitDbg:
-            exit(0);
+        case moreDebug:
+          continue;
+        case stepInto:
+        case stepOver:
+        case stepOut:
+        case nextBreak:
+        case never:
+          return p->waitFor;
+        case quitDbg:
+          exit(0);
         }
       }
     }
@@ -1000,16 +1019,17 @@ DebugWaitFor lnDebug(enginePo p, ssaOp op, termPo lc, termPo arg, showCmd show) 
 }
 
 void stackSummary(ioPo out, stackPo stk) {
-  integer freeCount = stk->sp - ((ptrPo) (stk->fp + 1));
+  integer freeCount = stk->sp - ((ptrPo)(stk->fp + 1));
   integer used = stk->sze - freeCount;
-  outMsg(out, "used: %l, free:%5.2g%%", used, ((double) freeCount) / (double) stk->sze);
+  outMsg(out, "used: %l, free:%5.2g%%", used, ((double)freeCount) / (double)stk->sze);
 }
 
 retCode showVarble(ioPo out, ptrPo args, int32 varNo) {
-  char *kind = (varNo >= 0 ? "A" : "L");
+  char* kind = (varNo >= 0 ? "A" : "L");
   if (args != Null) {
     return outMsg(out, " %s[%d] = %,*T", kind, varNo, displayDepth, *stackVarble(args, varNo));
-  } else
+  }
+  else
     return outMsg(out, " %s[%d]", kind, varNo);
 }
 
@@ -1023,7 +1043,8 @@ void showAllLocals(ioPo out, stackPo stk) {
         outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
-    } else {
+    }
+    else {
       ptrPo var = stackVarble(stk->args, -vx);
       if (*var != Null)
         outMsg(out, "  L[%d] = %#,*T\n", vx, displayDepth, *var);
@@ -1044,7 +1065,8 @@ retCode showGlb(ioPo out, globalPo glb) {
       return outMsg(out, " %s=%,*T", globalVarName(glb), displayDepth, getGlobal(glb));
     else
       return outMsg(out, " %s (undef)", globalVarName(glb));
-  } else
+  }
+  else
     return outMsg(out, " unknown global");
 }
 
@@ -1054,7 +1076,8 @@ void showTos(ioPo out, stackPo stk, integer offset) {
       outMsg(out, " tos = %#,*T", displayDepth, peekStack(stk, 0));
     else
       outMsg(out, " tos[%d] = %#,*T", offset, displayDepth, peekStack(stk, offset));
-  } else
+  }
+  else
     outMsg(out, " tos");
 }
 
@@ -1104,9 +1127,9 @@ void showRegisters(enginePo p, heapPo h) {
   outMsg(debugOutChnnl, "\n%_");
 }
 
-static char *anonPrefix = "__";
+static char* anonPrefix = "__";
 
-retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char *buffer, integer bufLen) {
+retCode localVName(methodPo mtd, ssaInsPo pc, integer vNo, char* buffer, integer bufLen) {
   // normalPo locals = mtd->locals;
   // int64 numLocals = termArity(locals);
   // integer pcOffset = codeOffset(mtd, pc);
