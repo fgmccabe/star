@@ -331,6 +331,9 @@ makeSubstDict(Vrs,D) :-
 extendSubstDict(Vrs,D,Dx) :-
   rfold(Vrs,lterms:decVr,D,Dx).
 
+makeGoalDict(Vrs,D) :-
+  rfold(Vrs,lterms:decGlVr,qq{},D).
+
 decVr((Nm,SNm),Q,QQ):-
   makeKey(Nm,Key),
   put_dict(Key,Q,SNm,QQ).
@@ -502,9 +505,18 @@ idVar(idnt(Nm,Tp),(Nm,idnt(Nm,Tp))).
 rewriteGl(AQ,EX,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
   rewriteGl(AQ,EX,L,NL),
   rewriteGl(AQ,EX,R,NR).
-rewriteGl(AQ,EX,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
-  rewriteGl(AQ,EX,L,NL),
-  rewriteGl(AQ,EX,R,NR).
+/* disjunctions -- with shared variables -- are rewritten
+   PVrs .= (L' ?? LVrs || R' ?? RVrs)
+   where L' and R' are the rewritten arms that have no shared variables.
+   This is to ensure that variables can only be assigned to once
+*/
+rewriteGl(AQ,EX,dsj(Lc,L,R),Dis) :-
+  condVars(dsj(Lc,L,R),DVrs),
+  (DVrs==[] ->
+   rewriteGl(AQ,EX,L,NL),
+   rewriteGl(AQ,EX,R,NR),
+   Dis = dsj(Lc,NL,NR);
+   rewriteDisjunction(Lc,AQ,EX,DVrs,L,R,Dis)).
 rewriteGl(AQ,EX,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
   rewriteGl(AQ,EX,T,NT),
   rewriteGl(AQ,EX,L,NL),
@@ -516,6 +528,37 @@ rewriteGl(AQ,EX,ng(Lc,R),ng(Lc,NR)) :-
   rewriteGl(AQ,EX,R,NR).
 rewriteGl(AQ,EX,T,NT) :-
   rewriteTerm(AQ,EX,T,NT).
+
+rewriteDisjunction(Lc,AQ,EX,DVrs,L,R,Dis) :-
+  makeVarTuple(DVrs,VTpl),
+  pullOutDis(EX,L,L0,VTpl,LTpl),
+  pullOutDis(EX,R,R0,VTpl,RTpl),
+  rewriteGl(AQ,EX,L0,Lx),
+  rewriteGl(AQ,EX,R0,Rx),
+  rewriteTerm(AQ,EX,VTpl,MTpl),
+  isUnit(Unit),
+  Dis = mtch(Lc,MTpl,
+	     cnd(Lc,Lx,LTpl,
+		 cnd(Lc,Rx,RTpl,Unit))).
+  % Dis = tryX(Lc,mtch(Lc,VTpl,
+  % 		     cnd(Lc,Lx,LTpl,
+  % 			 cnd(Lc,Rx,RTpl,
+  % 			     thrw(Lc,idnt("false",type("boolean")))))),
+  % 	     voyd,idnt("false",type("boolean"))),
+%  reportMsg("(disjunction rewritten to %s",[ltrm(Dis)]).
+
+makeVarTuple(Vrs,Tpl) :-
+  map(Vrs,lterms:makeIdent,Args),
+  mkTpl(Args,Tpl).
+
+makeIdent((Nm,Tp),idnt(Nm,Tp)).
+
+pullOutDis(EX,Gl,Glx,Ptn,Rslt) :-
+  condVars(Gl,GVrs),
+  map(GVrs,lterms:newVar,GV),
+  makeSubstDict(GV,GD),
+  rewriteGl(lterms:uniQ(GD),EX,Gl,Glx),
+  rewriteTerm(lterms:uniQ(GD),EX,Ptn,Rslt).
 
 rewriteAction(_,_,nop(Lc),nop(Lc)) :- !.
 rewriteAction(AQ,EX,seq(Lc,L,R),seq(Lc,LL,RR)) :-!,
@@ -1123,7 +1166,8 @@ glVars(cnj(_,L,R),D,Dx) :-
   glVars(R,D0,Dx).
 glVars(dsj(_,L,R),D,Dx) :-
   glVars(L,D,D0),
-  glVars(R,D0,Dx).
+  glVars(R,D,D1),
+  intersect(D0,D1,Dx).
 glVars(cnd(_,T,L,R),D,Dx) :-
   glVars(T,[],D0),
   glVars(L,D0,D1),
@@ -1142,7 +1186,7 @@ extendU(lterms:uniQ(Q),ltt,idnt(Nm,Tp),lterms:uniQ(QQ)) :-
   newVar((Nm,Tp),NV),
   decVr(NV,Q,QQ).
 extendU(lterms:uniQ(Q),gl,Gl,lterms:uniQ(QQ)) :-
-  glVars(Gl,[],GVrs),
+  condVars(Gl,GVrs),
   map(GVrs,lterms:newVar,GV),
   extendSubstDict(GV,Q,QQ).
 extendU(lterms:uniQ(Q),ptn,Gl,lterms:uniQ(QQ)) :-
@@ -1164,7 +1208,7 @@ uniqify(fnDef(Lc,Nm,H,Tp,Args,Value),fnDef(Lc,Nm,H,Tp,Args,UValue)) :-
   map(Args,lterms:idVar,Vrs),
   makeSubstDict(Vrs,QD),
   rewriteTerm(lterms:uniQ(QD),lterms:extendU,Value,UValue),!.
-uniqify(prDef(Lc,Nm,H,Tp,Args,Act),prDef(Lc,Nm,H,Tp,Args,UAct)) :-
+uniqify(prDef(Lc,Nm,Tp,Args,Act),prDef(Lc,Nm,Tp,Args,UAct)) :-
   map(Args,lterms:idVar,Vrs),
   makeSubstDict(Vrs,QD),
   rewriteAction(lterms:uniQ(QD),lterms:extendU,Act,UAct),!.

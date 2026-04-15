@@ -332,7 +332,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
       stashLiveLocals(state, nextPc, False);
       stackCheck(state, pc, opand(1), opand(2));
-      if (mtdHasName(state->mtd, "test.dte@main"))
+      if (mtdHasName(state->mtd, "test.fm@main"))
         installBkCall(state, pc);
       pc = nextPc;
       continue;
@@ -1007,8 +1007,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       cbnz(divisor, skip);
 
       blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
-      blockPo parent = tgtBlock->parent;
-      localVarPo phiVar = parent->phiVar;
+      localVarPo phiVar = tgtBlock->phiVar;
 
       storeVar(state, pc, constantFlex(divZeroIndex), phiVar);
       b(breakLabel(tgtBlock));
@@ -1039,8 +1038,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo skip = newLabel(ctx);
       cbnz(divisor, skip);
       blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
-      blockPo parent = tgtBlock->parent;
-      localVarPo phiVar = parent->phiVar;
+      localVarPo phiVar = tgtBlock->phiVar;
 
       storeVar(state, pc, constantFlex(divZeroIndex), phiVar);
       b(breakLabel(tgtBlock));
@@ -1427,8 +1425,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       bne(skip);
 
       blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
-      blockPo parent = tgtBlock->parent;
-      localVarPo phiVar = parent->phiVar;
+      localVarPo phiVar = tgtBlock->phiVar;
 
       storeVar(state, pc, constantFlex(divZeroIndex), phiVar);
       b(breakLabel(tgtBlock));
@@ -1466,8 +1463,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       bne(skip);
 
       blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
-      blockPo parent = tgtBlock->parent;
-      localVarPo phiVar = parent->phiVar;
+      localVarPo phiVar = tgtBlock->phiVar;
 
       storeVar(state, pc, constantFlex(divZeroIndex), phiVar);
       b(breakLabel(tgtBlock));
@@ -1971,7 +1967,6 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   registerMap argRegs = dropReg(defaultArgRegs(), X0);
 
   int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, livePc, minOffset); // void out gaps in the locals map
 
   for (int32 ix = 0; ix < arity; ix++) {
     FlexOp argSrc = sourceOperandFlex(state, argBase, ix);
@@ -1987,6 +1982,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   }
   registerMap tmpMap = fixedRegSet(X16);
   shuffleVars(assemCtx(state->jit), operands, arity + 1, &tmpMap, argMove);
+  voidOutFrameLocals(state, livePc, minOffset); // void out gaps in the locals map
 
   return minOffset; // return how must space is needed to preserve current locals.
 }

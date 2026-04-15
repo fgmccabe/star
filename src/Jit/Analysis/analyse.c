@@ -141,6 +141,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
         .start = pc, .limit = limit, .parent = scope, .kind = sValof,
         .phiVar = recordVariableStart(analysis,operand(1), valof, pc)
       };
+      block.phiVar->end = nextPc; // At least live in the whole valof scope
 
       ret = analyseBlock(analysis, &block, code, pc + 3, nextPc);
       pc = nextPc;
