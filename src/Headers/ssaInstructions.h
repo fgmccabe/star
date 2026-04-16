@@ -19,9 +19,9 @@ instr(XRet, lcl)
 
 instr(Block, bLk)
 instr(Loop, bLk)
-instr(Valof, lcl bLk)
+instr(Valof, lcls bLk)
 instr(Break, lVl)
-instr(Result, lVl lcl)
+instr(Result, lVl lcls)
 instr(Cont, lVl)
 
 instr(If, lVl lcl)

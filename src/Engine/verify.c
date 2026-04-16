@@ -16,28 +16,25 @@
 #include "char.h"
 #include "disass.h"
 
-logical enableVerify = True; // True if we verify code as it is loaded
+logical enableVerify = True;          // True if we verify code as it is loaded
 tracingLevel traceVerify = noTracing; // Set if tracing code verification
 
 #define operand(i) (code[pc+(i)].op.ltrl)
 
-typedef struct
-{
+typedef struct {
   logical inited; //  True if cell has real value
-  logical read; //  Has this cell been read?
+  logical read;   //  Has this cell been read?
   int32 pc;
 } Var, *varPo;
 
 typedef struct verify_context_* verifyCtxPo;
 
-typedef struct verify_context_
-{
+typedef struct verify_context_ {
   methodPo mtd;
   int32 from;
   int32 limit;
   int32* maxArgCnt;
-  int32 resltVr;
-  logical hasResult;
+  int32 resltCnt;
   varPo locals;
   int32 lclCount;
   int32 argPnt;
@@ -50,10 +47,10 @@ static retCode verifyError(verifyCtxPo ctx, char* msg, ...);
 static retCode verifyBlock(int32 from,
                            int32 pc,
                            int32 limit,
-                           verifyCtxPo parentCtx,
-                           logical hasValue);
+                           verifyCtxPo verifyCtx,
+                           int32 resltCnt);
 
-retCode verifyMethod(methodPo mtd, char* errorMsg, long msgLen){
+retCode verifyMethod(methodPo mtd, char* errorMsg, long msgLen) {
   if (traceVerify > noTracing)
     showMethodCode(logFile, "Verify %A\n", mtd);
 
@@ -70,43 +67,37 @@ retCode verifyMethod(methodPo mtd, char* errorMsg, long msgLen){
     .locals = locals,
     .lclCount = lclCnt,
     .argPnt = argPnt,
-    .resltVr = -1,
-    .hasResult = True
+    .resltCnt = 0
   };
 
   if (argPnt < 0 || argPnt > lclCnt)
     return verifyError(&mtdCtx, "invalid argPnt: %d", argPnt);
 
-  for (int32 ix = 0; ix < lclCnt; ix++){
+  for (int32 ix = 0; ix < lclCnt; ix++) {
     locals[ix].inited = False;
     locals[ix].read = False;
     locals[ix].pc = -1;
   }
 
-  for (int32 ax = 0; ax < mtdArity(mtd); ax++){
+  for (int32 ax = 0; ax < mtdArity(mtd); ax++) {
     locals[ax + argPnt].inited = True;
     locals[ax + argPnt].pc = 0;
   }
 
-  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, False);
+  return verifyBlock(0, 0, codeSize(mtd), &mtdCtx, 0);
 }
 
-static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, logical returningValue){
+static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, int32 returnCount) {
   verifyCtxPo tgtCtx = ctx;
 
-  while (tgtCtx != Null && tgtCtx->from != tgt){
+  while (tgtCtx != Null && tgtCtx->from != tgt) {
     tgtCtx = tgtCtx->parent;
   }
 
-  if (tgtCtx != Null){
-    if (returningValue){
-      if (!tgtCtx->hasResult)
-        return verifyError(tgtCtx, ".%d: exiting non-valof block with value", pc);
-    }
-    else{
-      if (tgtCtx->hasResult)
-        return verifyError(tgtCtx, ".%d: exiting valof block without value", pc);
-    }
+  if (tgtCtx != Null) {
+    if (returnCount != tgtCtx->resltCnt)
+      return verifyError(tgtCtx, ".%d: exiting block incorrect number of returns (%d actual  vs %d expected)", pc,
+                         returnCount, tgtCtx->resltCnt);
   }
   else
     return verifyError(ctx, ".%d: break target not found", pc);
@@ -114,54 +105,54 @@ static retCode checkBreak(verifyCtxPo ctx, int32 pc, int32 tgt, logical returnin
   return Ok;
 }
 
-static logical isLastPC(int32 pc, int32 limit){
+static logical isLastPC(int32 pc, int32 limit) {
   return pc >= limit;
 }
 
-static logical validLocal(verifyCtxPo ctx, int32 vrNo){
+static logical validLocal(verifyCtxPo ctx, int32 vrNo) {
   return vrNo + ctx->argPnt >= 0 && vrNo < ctx->lclCount - ctx->argPnt;
 }
 
-static logical initedLocal(verifyCtxPo ctx, int32 vrNo){
+static logical initedLocal(verifyCtxPo ctx, int32 vrNo) {
   return validLocal(ctx, vrNo) && ctx->locals[ctx->argPnt + vrNo].inited;
 }
 
-static void initLocal(verifyCtxPo ctx, int32 pc, int32 vrNo){
+static void initLocal(verifyCtxPo ctx, int32 pc, int32 vrNo) {
   ctx->locals[ctx->argPnt + vrNo].inited = True;
   ctx->locals[ctx->argPnt + vrNo].pc = pc;
 }
 
-static logical validTarget(verifyCtxPo ctx, int32 vrNo){
+static logical validTarget(verifyCtxPo ctx, int32 vrNo) {
   return validLocal(ctx, vrNo) && !initedLocal(ctx, vrNo);
 }
 
-static int32 localInitedPC(verifyCtxPo ctx, int32 vrNo){
+static int32 localInitedPC(verifyCtxPo ctx, int32 vrNo) {
   return ctx->locals[ctx->argPnt + vrNo].pc;
 }
 
-retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, logical hasValue){
-  ssaInsPo code = parentCtx->mtd->instructions;
+retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, int32 resltCnt) {
+  ssaInsPo code = verifyCtx->mtd->instructions;
 
   VerifyContext ctx = {
-    .errorMsg = parentCtx->errorMsg, .msgLen = parentCtx->msgLen,
-    .mtd = parentCtx->mtd,
+    .errorMsg = verifyCtx->errorMsg, .msgLen = verifyCtx->msgLen,
+    .mtd = verifyCtx->mtd,
     .from = from,
     .limit = limit,
-    .parent = parentCtx,
-    .argPnt = parentCtx->argPnt,
-    .maxArgCnt = parentCtx->maxArgCnt,
-    .hasResult = hasValue,
-    .locals = parentCtx->locals,
-    .lclCount = parentCtx->lclCount,
+    .parent = verifyCtx,
+    .argPnt = verifyCtx->argPnt,
+    .maxArgCnt = verifyCtx->maxArgCnt,
+    .resltCnt = resltCnt,
+    .locals = verifyCtx->locals,
+    .lclCount = verifyCtx->lclCount,
   };
 
-  while (pc < limit){
-    if (traceVerify > generalTracing){
+  while (pc < limit) {
+    if (traceVerify > generalTracing) {
       showIns(logFile, ctx.mtd, Null, &code[pc]);
       outMsg(logFile, "\n%_");
     }
 
-    switch (code[pc].op.op){
+    switch (code[pc].op.op) {
     case sHalt: {
       if (!isLastPC(pc + 2, limit))
         return verifyError(&ctx, ".%d: Halt should be last instruction in block", pc);
@@ -177,7 +168,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
       if (!isLastPC(pc + 3, limit))
         return verifyError(&ctx, ".%d: Abort should be last instruction in block", pc);
-      else{
+      else {
         int32 srcVr = operand(2);
         if (!initedLocal(&ctx, srcVr))
           return verifyError(&ctx, ".%d: var %d not initialized", pc, srcVr);
@@ -199,7 +190,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (argCnt != arity)
         return verifyError(&ctx, ".%d: argument count mismatch", pc);
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + 3 + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -231,7 +222,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
     case sRSX: {
       int32 insWidth = 3;
       int32 nextPc = pc + insWidth;
-      if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 1) != Ok)
         return Error;
 
       int32 callRsltVr = operand(2);
@@ -261,7 +252,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (argCnt != arity)
         return verifyError(&ctx, ".%d: argument count mismatch", pc);
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + 3 + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -284,7 +275,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (!initedLocal(&ctx, lamVr))
         return verifyError(&ctx, ".%d: lambda var %d not initialized", pc, lamVr);
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + 3 + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -306,7 +297,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (!initedLocal(&ctx, lamVr))
         return verifyError(&ctx, ".%d: lambda var %d not initialized", pc, lamVr);
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + 3 + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -332,7 +323,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
       int32 insWidth = arity + 3;
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + 3 + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -372,7 +363,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
     case sBlock: {
       int32 blockLen = operand(1);
 
-      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, False) == Ok){
+      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
         pc += blockLen;
         continue;
       }
@@ -381,32 +372,39 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
     case sLoop: {
       int32 blockLen = operand(1);
 
-      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, False) == Ok){
+      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
         pc += blockLen;
         continue;
       }
       return Error;
     }
     case sValof: {
-      int32 blkRsltVr = operand(1);
-      int32 blockLen = operand(2);
-      int32 insSize = 3;
-      if (!validLocal(&ctx, blkRsltVr))
-        return verifyError(&ctx, "%d: result variable %d not valid", pc, blkRsltVr);
+      int32 arity = operand(1);
+      int32 blockLen = operand(arity+2);
+      int32 nextPc = pc + blockLen;
+
+      for (int32 ix = 0; ix < arity; ix++) {
+        int32 argVr = operand(ix+2);
+        if (!validLocal(&ctx, argVr))
+          return verifyError(&ctx, ".%d: result variable[%d] %d not valid", pc, ix, argVr);
+      }
 
       if (blockLen <= 0)
         return verifyError(&ctx, "%d: valof block length: %d must be > 0", pc, blockLen);
 
-      if (verifyBlock(pc, pc + insSize, pc + blockLen, &ctx, True) == Ok){
-        pc += blockLen;
-        initLocal(&ctx, pc, blkRsltVr);
+      if (verifyBlock(pc, pc + arity + 3, nextPc, &ctx, arity) == Ok) {
+        for (int32 ix = 0; ix < arity; ix++) {
+          int32 argVr = operand(ix+2);
+          initLocal(&ctx, pc, argVr);
+        }
+
+        pc = nextPc;
         continue;
       }
-      else
-        return Error;
+      return Error;
     }
     case sBreak: {
-      if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
         return Error;
       int32 insSize = 2;
       if (!isLastPC(pc + insSize, limit))
@@ -414,7 +412,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       return Ok;
     }
     case sCont: {
-      if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
         return Error;
       int32 insSize = 2;
       if (!isLastPC(pc + insSize, limit))
@@ -422,14 +420,17 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       return Ok;
     }
     case sResult: {
-      int32 insSize = 3;
-      int32 blkRsltVr = operand(2);
+      int32 arity = operand(2);
+      int32 insSize = arity + 3;
 
-      if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), arity) != Ok)
         return Error;
 
-      if (!initedLocal(&ctx, blkRsltVr))
-        return verifyError(&ctx, ".%d: result var %d not initialized", pc, blkRsltVr);
+      for (int32 ix = 0; ix < arity; ix++) {
+        int32 argVr = code[pc + 3 + ix].op.ltrl;
+        if (!initedLocal(&ctx, argVr))
+          return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
+      }
 
       if (!isLastPC(pc + insSize, limit))
         return verifyError(&ctx, ".%d: Result should be last instruction in block", pc);
@@ -442,7 +443,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       int32 insSize = 3;
       int32 tstVr = operand(2);
 
-      if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, tstVr))
@@ -463,7 +464,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (!isALabel(lit))
         return verifyError(&ctx, ".%d: invalid label: %t", pc, lit);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, srcVr))
@@ -484,7 +485,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (lit == Null || !isInteger(lit))
         return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, cmpVr))
@@ -505,7 +506,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (lit == Null || !isFloat(lit))
         return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, cmpVr))
@@ -526,7 +527,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (lit == Null || !isChar(lit))
         return verifyError(&ctx, ".%d: invalid constant: %t", pc, lit);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, cmpVr))
@@ -543,7 +544,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (!isDefinedConstant(constant))
         return verifyError(&ctx, ".%d: invalid constant number: %d ", pc, constant);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, cmpVr))
@@ -564,15 +565,15 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
 
       pc += insSize;
 
-      for (int32 ix = 0; ix < caseCount; ix++){
-        if (traceVerify > generalTracing){
+      for (int32 ix = 0; ix < caseCount; ix++) {
+        if (traceVerify > generalTracing) {
           showIns(logFile, ctx.mtd, Null, &code[pc]);
           outMsg(logFile, "\n%_");
         }
-        switch (code[pc].op.op){
+        switch (code[pc].op.op) {
         case sBreak:
         case sLoop:
-          if (checkBreak(&ctx, pc, pc + operand(1), False) != Ok)
+          if (checkBreak(&ctx, pc, pc + operand(1), 0) != Ok)
             return Error;
           pc += 2;
           continue;
@@ -682,7 +683,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (!validLocal(&ctx, tgtVr))
         return verifyError(&ctx, "%d: result variable %d not valid", pc, tgtVr);
 
-      if (checkBreak(&ctx, pc, pc + operand(2), False) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(2), 0) != Ok)
         return Error;
 
       initLocal(&ctx, pc, tgtVr);
@@ -808,7 +809,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       int32 srcVr1 = operand(3);
       int32 srcVr2 = operand(4);
 
-      if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 1) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, srcVr1))
@@ -913,7 +914,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       int32 srcVr1 = operand(3);
       int32 srcVr2 = operand(4);
 
-      if (checkBreak(&ctx, pc, pc + operand(1), True) != Ok)
+      if (checkBreak(&ctx, pc, pc + operand(1), 1) != Ok)
         return Error;
 
       if (!initedLocal(&ctx, srcVr1))
@@ -961,7 +962,7 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
       if (argCnt != arity)
         return verifyError(&ctx, ".%d: argument count mismatch", pc);
 
-      for (int32 ix = 0; ix < arity; ix++){
+      for (int32 ix = 0; ix < arity; ix++) {
         int32 argVr = code[pc + insSize + ix].op.ltrl;
         if (!initedLocal(&ctx, argVr))
           return verifyError(&ctx, ".%d: argument %d (local %d) not initialized", pc, ix, argVr);
@@ -1089,11 +1090,11 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo parentCtx, lo
   return Ok;
 }
 
-retCode verifyError(verifyCtxPo ctx, char* msg, ...){
+retCode verifyError(verifyCtxPo ctx, char* msg, ...) {
   char buff[MAXLINE];
   strBufferPo f = fixedStringBuffer(buff, NumberOf(buff));
 
-  va_list args; /* access the generic arguments */
+  va_list args;        /* access the generic arguments */
   va_start(args, msg); /* start the variable argument sequence */
 
   __voutMsg(O_IO(f), msg, args); /* Display into the string buffer */

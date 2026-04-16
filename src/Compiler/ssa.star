@@ -33,9 +33,9 @@ star.compiler.ssa{
     | .iXRet(varNm)
     | .iBlock(multi[insOp])
     | .iLoop(multi[insOp])
-    | .iValof(varNm, multi[insOp])
+    | .iValof(cons[varNm], multi[insOp])
     | .iBreak(assemLbl)
-    | .iResult(assemLbl, varNm)
+    | .iResult(assemLbl, cons[varNm])
     | .iCont(assemLbl)
     | .iIf(assemLbl, varNm)
     | .iIfNot(assemLbl, varNm)
@@ -196,10 +196,10 @@ star.compiler.ssa{
   }
   mnem(.iValof(V0, V1), Pc,Lbls,Lt0,Lcs) => valof {
     (A1, _, Lt1) = assemBlock(V1,[],Pc+1,[.none,..Lbls],Lt0,Lcs); 
-    valis ([.intgr(15),findLocal(V0,Lcs),mkTpl(A1::cons[data])],Pc+3,Lt1);
+    valis ([.intgr(15),mkTpl(findLocals(V0,Lcs)),mkTpl(A1::cons[data])],Pc+3,Lt1);
   }
   mnem(.iBreak(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(16),.intgr(findLevel(Lbls,V0))],Pc+2,Lt0).
-  mnem(.iResult(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(17),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
+  mnem(.iResult(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(17),.intgr(findLevel(Lbls,V0)),mkTpl(findLocals(V1,Lcs))],Pc+3,Lt0).
   mnem(.iCont(V0), Pc,Lbls,Lt0,Lcs) => ([.intgr(18),.intgr(findLevel(Lbls,V0))],Pc+2,Lt0).
   mnem(.iIf(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(19),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
   mnem(.iIfNot(V0, V1), Pc,Lbls,Lt0,Lcs) => ([.intgr(20),.intgr(findLevel(Lbls,V0)),findLocal(V1,Lcs)],Pc+3,Lt0).
@@ -373,9 +373,9 @@ star.compiler.ssa{
   showIns(.iXRet(V0), Pc) => "XRet #(V0)".
   showIns(.iBlock(V0), Pc) => "Block #(showBlock(V0,[0,..Pc]))".
   showIns(.iLoop(V0), Pc) => "Loop #(showBlock(V0,[0,..Pc]))".
-  showIns(.iValof(V0, V1), Pc) => "Valof #(V0) #(showBlock(V1,[0,..Pc]))".
+  showIns(.iValof(V0, V1), Pc) => "Valof $(V0) #(showBlock(V1,[0,..Pc]))".
   showIns(.iBreak(V0), Pc) => "Break $(V0)".
-  showIns(.iResult(V0, V1), Pc) => "Result $(V0) #(V1)".
+  showIns(.iResult(V0, V1), Pc) => "Result $(V0) $(V1)".
   showIns(.iCont(V0), Pc) => "Cont $(V0)".
   showIns(.iIf(V0, V1), Pc) => "If $(V0) #(V1)".
   showIns(.iIfNot(V0, V1), Pc) => "IfNot $(V0) #(V1)".
@@ -454,5 +454,5 @@ star.compiler.ssa{
   bumpPc:(cons[integer]) => cons[integer].
   bumpPc([Pc,..Rest]) => [Pc+1,..Rest].
 
-  public opcodeHash = 179207942688319332.
+  public opcodeHash = 1553592643262590116.
 }

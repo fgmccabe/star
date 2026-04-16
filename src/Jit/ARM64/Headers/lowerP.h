@@ -26,8 +26,8 @@ typedef struct {
   FlexOp src;
   int32 stkOff;
   logical stashed; // Is the value in the stack frame?
-  logical inited; // Has the variable ever been written to?
-  logical live; // Is the variable in use?
+  logical inited;  // Has the variable ever been written to?
+  logical live;    // Is the variable in use?
   varDescPo desc;
 } LocalVar, *localVarPo;
 
@@ -47,7 +47,8 @@ typedef struct jitBlock_ {
   ssaOp blockType;
   int32 startPc;
   int32 endPc;
-  localVarPo phiVar;
+  int32 phiCnt;
+  localVarPo *phiVars;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   blockPo parent;

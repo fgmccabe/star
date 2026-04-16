@@ -130,10 +130,11 @@ treePo newVarIndex() {
   return newTree(indexComp, Null);
 }
 
-varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc) {
+varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc, int32 end) {
   varDescPo desc = findVar(analysis, varNo);
   assert(desc != Null && (kind==valof || desc->start==-1));
   desc->start = pc;
+  desc->end = end;
   desc->kind = kind;
   treePut(analysis->index, (void*)(integer)pc, desc);
   return desc;
@@ -158,9 +159,10 @@ void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc
     var->end = pc;
 }
 
-void recordVPhiVariable(analysisPo analysis, scopePo block, int32 pc) {
+void recordPhiVariable(analysisPo analysis, scopePo block, int32 pc, int32 phiNo) {
   assert(block->kind==sValof);
-  varDescPo phiVar = block->phiVar;
+  assert(block->phiCnt==1);
+  varDescPo phiVar = block->phiVars[phiNo];
   if (phiVar->end < pc)
     phiVar->end = pc;
 }

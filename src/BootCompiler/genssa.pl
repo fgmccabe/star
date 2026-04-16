@@ -74,7 +74,7 @@ genFun(Lc,Nm,H,Tp,Args,Value,D,Opts,CdTrm) :-
   genLbl(L1,Er,L2),
   defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D1),
   genLine(Opts,Lc,C,
-	  [iLbl(Abrt,iBlock([iLbl(Er,iValof(AbrtVr,FC)),iXRet(AbrtVr)]))|CA]),
+	  [iLbl(Abrt,iBlock([iLbl(Er,iValof([AbrtVr],FC)),iXRet(AbrtVr)]))|CA]),
   BaseBrks = [("$try",Er)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2),
   bindExpToVar(Value,Lc,[("$abort",Abrt)|BaseBrks],Opts,RsVr,
@@ -110,7 +110,7 @@ genPrc(Lc,Nm,Tp,Args,Act,D,Opts,CdTrm) :-
   genLbl([],Abrt,L1),
   genLbl(L1,ErLbl,L2),
   defineTmpVar(Lc,AbrtVr,ErTp,Opts,D,D1),
-  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(ErLbl,iValof(AbrtVr,FC)),
+  genLine(Opts,Lc,C0,[iLbl(Abrt,iBlock([iLbl(ErLbl,iValof([AbrtVr],FC)),
 					iXRet(AbrtVr)]))|CA]),
   BaseBrks = [("$try",ErLbl)],
   compArgs(Args,Lc,0,Abrt,BaseBrks,Opts,L2,L3,D1,D2),
@@ -253,7 +253,7 @@ compAction(brk(Lc,Nm),OLc,Brks,Opts,Lx,Lx,Dx,Dx,C,Cx) :-!,
 compAction(aThrow(Lc,E),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   (is_member(("$try",AbrtLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
-   bindExpToVar(E,Lc,Brks,Opts,EVr,L,Lx,D,Dx,C0,[iResult(AbrtLvl,EVr)|Cx]);
+   bindExpToVar(E,Lc,Brks,Opts,EVr,L,Lx,D,Dx,C0,[iResult(AbrtLvl,[EVr])|Cx]);
    reportError("not in scope of try",[],Lc)).
 compAction(perf(Lc,Cll),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :- !,
   chLine(Opts,OLc,Lc,C,C0),!,
@@ -308,7 +308,7 @@ compAction(aTry(Lc,B,E,H),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compAction(vls(Lc,E),OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   (is_member(("$valof",Ok),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
-   bindExpToVar(E,Lc,Brks,Opts,EVr,L,Lx,D,Dx,C0,[iResult(Ok,EVr)|Cx]);
+   bindExpToVar(E,Lc,Brks,Opts,EVr,L,Lx,D,Dx,C0,[iResult(Ok,[EVr])|Cx]);
    reportError("not in scope of valof",[],Lc),
    D=Dx,C=Cx,L=Lx).
 compAction(error(Lc,Msg),_OLc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
@@ -457,7 +457,7 @@ compVar(g(GlbNm),Tp,Lc,_Brks,Opts,X,Lx,Lx,D,Dx,C,Cx) :-
    genDbg(Opts,Lc,C,[iLG(GlbNm),iRSP(X)|Cx]).
 
 compExpX(Ok,Exp,Lc,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
-  bindExpToVar(Exp,Lc,Brks,Opts,XVar,L,Lx,D,Dx,C,[iResult(Ok,XVar)|Cx]).
+  bindExpToVar(Exp,Lc,Brks,Opts,XVar,L,Lx,D,Dx,C,[iResult(Ok,[XVar])|Cx]).
 
 compExp(unreach(Lc,Tp),_Lc,_,_Brks,Opts,Lx,Lx,D,Dx,[iMC(UVar,strg("unreachable")),iAbort(Loc,UVar)|C],C) :-
   defineTmpVar(Lc,UVar,Tp,Opts,D,Dx),
@@ -550,11 +550,11 @@ compExp(unpack(Lc,Gv,Cases,Deflt,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compExp(tryX(Lc,B,idnt(E,ETp),H),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(RsVr,[iLbl(Tr,iValof(E,BC))|HC]))|Cx]),
-  bindExpToVar(B,Lc,[("$try",Tr)|Brks],Opts,BdVr,L1,L2,D,D0,BC,[iResult(Ok,BdVr)]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof([RsVr],[iLbl(Tr,iValof([E],BC))|HC]))|Cx]),
+  bindExpToVar(B,Lc,[("$try",Tr)|Brks],Opts,BdVr,L1,L2,D,D0,BC,[iResult(Ok,[BdVr])]),
   defineLclVar(Lc,E,ETp,Opts,D0,D1),
   genLine(Opts,Lc,HC,H1),
-  bindExpToVar(H,Lc,Brks,Opts,HVr,L2,Lx,D1,Dx,H1,[iResult(Ok,HVr)]).
+  bindExpToVar(H,Lc,Brks,Opts,HVr,L2,Lx,D1,Dx,H1,[iResult(Ok,[HVr])]).
 compExp(ltt(Lc,idnt(Nm,Tp),Val,Exp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C1),
   defineLclVar(Lc,Nm,Tp,Opts,D,D1),
@@ -565,22 +565,22 @@ compExp(error(Lc,Msg),_OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
 compExp(thrw(Lc,E),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   (is_member(("$try",TryLvl),Brks) ->
    chLine(Opts,OLc,Lc,C,C0),
-   bindExpToVar(E,Lc,Brks,Opts,ErVr,L,Lx,D,Dx,C0,[iResult(TryLvl,ErVr)|Cx]);
+   bindExpToVar(E,Lc,Brks,Opts,ErVr,L,Lx,D,Dx,C0,[iResult(TryLvl,[ErVr])|Cx]);
    reportError("not in scope of try",[],Lc),
    D=Dx,L=Lx,C=Cx).
 compExp(cnd(Lc,Cnd,A,B),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   genLbl(L,Fl,L0),
   genLbl(L0,OkLbl,L1),
-  chLine(Opts,OLc,Lc,C,[iLbl(OkLbl,iValof(RsVr,[iLbl(Fl,iBlock(AC))|BC]))|Cx]),
+  chLine(Opts,OLc,Lc,C,[iLbl(OkLbl,iValof([RsVr],[iLbl(Fl,iBlock(AC))|BC]))|Cx]),
   compCond(Cnd,Lc,Fl,Brks,normal,Opts,L1,L2,D,D1,AC,AC1),
-  bindExpToVar(A,Lc,Brks,Opts,AVr,L2,L3,D1,D2,AC1,[iResult(OkLbl,AVr)]),
-  bindExpToVar(B,Lc,Brks,Opts,BVr,L3,Lx,D2,Dx,BC,[iResult(OkLbl,BVr)]).
+  bindExpToVar(A,Lc,Brks,Opts,AVr,L2,L3,D1,D2,AC1,[iResult(OkLbl,[AVr])]),
+  bindExpToVar(B,Lc,Brks,Opts,BVr,L3,Lx,D2,Dx,BC,[iResult(OkLbl,[BVr])]).
 compExp(seqD(Lc,A,B),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   bindExpToVar(A,Lc,Brks,Opts,_AVr,L,L1,D,D1,C0,C1),
   compExp(B,Lc,RsVr,Brks,Opts,L1,Lx,D1,Dx,C1,Cx).
 compExp(vlof(Lc,A,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
-  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof(RsVr,CA))|Cx]),
+  chLine(Opts,OLc,Lc,C,[iLbl(Ok,iValof([RsVr],CA))|Cx]),
   genLbl(L,Ok,L0),
   compAction(A,Lc,[("$valof",Ok)|Brks],Opts,L0,Lx,D,Dx,CA,[]).
 compExp(tsk(Lc,F,_Tp),OLc,RsVr,Brks,Opts,L,Lx,D,Dx,C,Cx) :-!,
@@ -602,9 +602,9 @@ compExp(rtire(Lc,T,M,_Tp),OLc,_,Brks,Opts,L,Lx,D,Dx,C,Cx) :-
   bindExpToVar(M,Lc,Brks,Opts,MVr,L1,Lx,D1,Dx,C1,C2),
   genDbg(Opts,Lc,C2,[iRetire(TVr,MVr)|Cx]).
 compExp(Cond,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,
-	[iLbl(Ok,iValof(RsVr,
+	[iLbl(Ok,iValof([RsVr],
 			[iLbl(Fl,iBlock(C1)),iMC(FlVr,enum(False)),
-			 iResult(Ok,FlVr)]))|Cx],Cx) :-
+			 iResult(Ok,[FlVr])]))|Cx],Cx) :-
   isCond(Cond),!,
   isTrueSymb(True),
   isFalseSymb(False),
@@ -613,7 +613,7 @@ compExp(Cond,Lc,RsVr,Brks,Opts,L,Lx,D,Dx,
   genLbl(L,Ok,L0),
   genLbl(L0,Fl,L1),
   compCond(Cond,Lc,Fl,Brks,normal,Opts,L1,Lx,D2,Dx,C1,
-	   [iMC(OkVr,enum(True)),iResult(Ok,OkVr)|Cx]).
+	   [iMC(OkVr,enum(True)),iResult(Ok,[OkVr])|Cx]).
 compExp(T,Lc,_,_Brks,_Opts,Lx,Lx,Dx,Dx,C,C) :-
   reportError("cannot compile %s",[ltrm(T)],Lc),
   abort.
@@ -640,7 +640,7 @@ genIntrinsic(Op,_,_,throwing,Lc,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx) :-
      ]
      H]
 */
-compTryA(Lc,B,idnt(E,ETp),H,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock([iLbl(Tr,iValof(E,BC))|HC]))|Cx],Cx) :-
+compTryA(Lc,B,idnt(E,ETp),H,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,iBlock([iLbl(Tr,iValof([E],BC))|HC]))|Cx],Cx) :-
   genLbl(L,Ok,L0),
   genLbl(L0,Tr,L1),
   compAction(B,Lc,[("$try",Tr)|Brks],Opts,L1,L2,D,D0,BC,[iBreak(Ok)]),
@@ -658,13 +658,13 @@ isTrueSymb("true").
 isFalseSymb("false").
 
 wrapAction(C,iBlock(C)).
-wrapExpr(Vr,C,iValof(Vr,C)).
+wrapExpr(Vr,C,iValof([Vr],C)).
 
 break(Lbl,iBreak(Lbl)).
 
 breakOut(Lbl,iBreak(Lbl)).
 
-result(Vr,Lbl,iResult(Lbl,Vr)).
+result(Vr,Lbl,iResult(Lbl,[Vr])).
 
 compCase(Gv,Lc,Wrap,Cases,Deflt,Hndlr,Brks,Opts,L,Lx,D,Dx,[iLbl(Ok,OC)|Cx],Cx) :-
   genLbl(L,Df,L0),
@@ -799,13 +799,6 @@ insertInTable(P,Ix,[(Ix,E)|Tbl],[(Ix,EE)|Tbl]) :-
 % comp exp continuations
 next(R,_Lc,R,_Brks,_Opts,Lx,Lx,Dx,Dx,Cx,Cx).
 next(Nx,_Lc,R,_Brks,_Opts,Lx,Lx,Dx,Dx,[iMv(Nx,R)|Cx],Cx).
-
-drop(_,_,_,_,Lx,Lx,Dx,Dx,Cx,Cx).
-
-valof(Lbl,_Lc,R,_Brks,_Opts,Lx,Lx,Dx,Dx,[iResult(Lbl,R)|Cx],Cx).
-
-return(Lc,R,_Brks,Opts,Lx,Lx,Dx,Dx,C,Cx) :-
-  genRet(R,Opts,Lc,C,Cx).
 
 genRet(R,Opts,Lc,C,Cx) :-
   genDbg(Opts,Lc,C,[iRet(R)|Cx]).

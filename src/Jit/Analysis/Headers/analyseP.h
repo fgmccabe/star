@@ -33,8 +33,9 @@ typedef struct block_scope_
   int32 start;
   int32 limit;
   ssaOp kind;
-  varDescPo phiVar;
   scopePo parent;
+  int32 phiCnt;
+  varDescPo *phiVars;
 } ScopeBlock;
 
 void initAnalysis();
@@ -54,9 +55,9 @@ void setSafePoint(analysisPo analysis, int32 pc);
 void markVarAsRegister(varDescPo var);
 void markVarAsMemory(varDescPo var);
 
-varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc);
+varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, int32 pc, int32 end);
 void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc);
-void recordVPhiVariable(analysisPo analysis, scopePo block, int32 pc);
+void recordPhiVariable(analysisPo analysis, scopePo block, int32 pc, int32 phiNo);
 varDescPo varStart(analysisPo analysis, int32 pc);
 
 varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc);

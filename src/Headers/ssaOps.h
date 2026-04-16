@@ -180,7 +180,7 @@ static char *ssaOpNames[] = {
       "dBug"};
 
 #ifndef OPCODE_SIGNATURE
-#define OPCODE_SIGNATURE 179207942688319332
+#define OPCODE_SIGNATURE 1553592643262590116
 #endif
 
 typedef enum {

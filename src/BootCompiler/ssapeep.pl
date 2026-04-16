@@ -55,9 +55,9 @@ vrRead(Vr,iXRet(Vr)).
 
 vrRead(Vr,iBlock(I)) :- varRead(Vr,I).
 vrRead(Vr,iLoop(I)) :- varRead(Vr,I).
-vrRead(Vr,iValof(Vr,_)).
+vrRead(Vr,iValof(Vrs,_)) :- is_member(Vr,Vrs).
 vrRead(Vr,iValof(_,I)) :- varRead(Vr,I).
-vrRead(Vr,iResult(_,Vr)).
+vrRead(Vr,iResult(_,Vrs)) :- is_member(Vr,Vrs).
 vrRead(Vr,iFiber(_,Vr)).
 vrRead(Vr,iSuspend(Vr,_)).
 vrRead(Vr,iSuspend(_,Vr)).
@@ -166,7 +166,7 @@ vrRead(Vr,iLbl(_,I)) :- vrRead(Vr,I).
 
 vrWrite(Vr,iRSP(Vr)).
 vrWrite(Vr,iRSX(_,Vr)).
-vrWrite(Vr,iValof(Vr,_)).
+vrWrite(Vr,iValof(Vrs,_)) :- is_member(Vr,Vrs).
 vrWrite(Vr,iFiber(Vr,_)).
 
 vrWrite(Vr,iMv(Vr,_)).
@@ -247,7 +247,7 @@ dropVar(Vr,[I|Is],[I|Isx]) :-
 dropUnreachable([],[]) :-!.
 dropUnreachable([iBreak(Lvl)|_],[iBreak(Lvl)]) :-!.
 dropUnreachable([iCont(Lvl)|_],[iCont(Lvl)]) :-!.
-dropUnreachable([iResult(Lbl,Vr)|_],[iResult(Lbl,Vr)]) :-!.
+dropUnreachable([iResult(Lbl,Vrs)|_],[iResult(Lbl,Vrs)]) :-!.
 dropUnreachable([iRtn|_],[iRtn]) :-!.
 dropUnreachable([iRet(Vr)|_],[iRet(Vr)]) :-!.
 dropUnreachable([iXRet(Vr)|_],[iXRet(Vr)]) :-!.
@@ -280,11 +280,11 @@ peep([iLbl(Lb,iLoop(IB))|Is],Lbls, Ins) :-!,
    Ins=[iLbl(Lb,iLoop(IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
-peep([iLbl(Lb,iValof(Vr,IB))|Is],Lbls, Ins) :-!,
+peep([iLbl(Lb,iValof(Vrs,IB))|Is],Lbls, Ins) :-!,
   peepCode(IB,[(Lb,Is)|Lbls],IB0),
   peep(Is,Lbls,Is0),
   (lblReferenced(Lb,IB0) ->
-   Ins=[iLbl(Lb,iValof(Vr,IB0))|Is0];
+   Ins=[iLbl(Lb,iValof(Vrs,IB0))|Is0];
    concat(IB0,Is0,Is1),
    peepCode(Is1,Lbls,Ins)).
 peep([iBlock(IB)|Is],Lbls, [iBlock(IBs)|Ins]) :-!,
@@ -293,7 +293,7 @@ peep([iBlock(IB)|Is],Lbls, [iBlock(IBs)|Ins]) :-!,
 peep([iLoop(IB)|Is],Lbls, [iLoop(IBs)|Ins]) :-!,
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
-peep([iValof(Vr,IB)|Is],Lbls, [iValof(Vr,IBs)|Ins]) :-!,
+peep([iValof(Vrs,IB)|Is],Lbls, [iValof(Vrs,IBs)|Ins]) :-!,
   peepCode(IB,Lbls,IBs),
   peep(Is,Lbls, Ins).
 peep([iIf(Lb,Vr)|In],Lbls,[iIf(LLb,Vr)|Inx]) :-
@@ -317,11 +317,11 @@ peep([iCChar(Tgt,Lb,Vr)|In],Lbls,[iCChar(Tgt,LLb,Vr)|Inx]) :-
 peep([iCFlt(Tgt,Lb,Vr)|In],Lbls,[iCFlt(Tgt,LLb,Vr)|Inx]) :-
   resolveLblRef(Lb,Lbls,LLb),
   peep(In,Lbls,Inx).
-peep([iMv(V1,V2),iResult(Lb,V1)|In],Lbls,[iMv(V1,V2),iResult(Lb,V2)|Inx]) :-
+peep([iMv(V1,V2),iResult(Lb,[V1])|In],Lbls,[iMv(V1,V2),iResult(Lb,[V2])|Inx]) :-
   peep(In,Lbls,Inx).
 peep([iBreak(Lb)|_],Lbls,[iBreak(LLb)]) :-
   resolveLblRef(Lb,Lbls,LLb).
-peep([iResult(Lb,Vr)|_],Lbls,[iResult(LLb,Vr)]) :-
+peep([iResult(Lb,Vrs)|_],Lbls,[iResult(LLb,Vrs)]) :-
   resolveLblRef(Lb,Lbls,LLb).
 %% peep([I,iMv(Tgt,Src)|Ins],Lbls,Inx) :-
 %%   retarget(I,Src,I1,Tgt),!,

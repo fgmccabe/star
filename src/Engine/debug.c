@@ -138,7 +138,7 @@ static logical shouldWeStop(enginePo p, ssaOp op) {
       return False;
   }
   case nextBreak: {
-    if (p->waterMark == Null && op == sEntry && breakPointSet(mtdLabel(prog))) {
+    if (p->waterMark == Null && op == sEntry && prog!=Null && breakPointSet(mtdLabel(prog))) {
       p->waitFor = stepInto;
       p->tracing = True;
       return atLine;

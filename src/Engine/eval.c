@@ -370,7 +370,8 @@ ValueReturn run(enginePo P) {
       continue;
     }
     case sValof: {
-      PC += 3; // Skip over the size marker, the Valof instruction and the index of the phi var
+      int32 arity = operand(1);
+      PC += arity + 3; // Skip over the arity & size markers
       continue;
     }
     case sBreak: {
@@ -378,10 +379,15 @@ ValueReturn run(enginePo P) {
       continue;
     }
     case sResult: {
-      /* return a value from a block */
-      termPo reslt = varble(operand(2));
-      returnBlock(1, reslt);
-      continue; /* and carry after reset block */
+      /* return a vector of values from a block */
+      ssaInsPo tgtPc = PC+operand(1);
+      int32 resCnt = operand(2);
+      for (int32 ix=0;ix<resCnt;ix++) {
+        varble(tgtOp(tgtPc,ix+2)) = varble(operand(ix+3));
+      }
+      PC = tgtPc;
+      PC += operand(resCnt+2);
+      continue;
     }
     case sCont: {
       PC += operand(1);

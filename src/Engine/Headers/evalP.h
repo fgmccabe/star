@@ -84,10 +84,12 @@
 #define returnBlock(o,vl) STMT_WRAP({             \
 PC += operand(o);                                 \
 assert(PC->op.op==sValof);                        \
-varble(operand(1)) = vl;                          \
-PC += operand(2);                                 \
+assert(operand(1)==1);                            \
+varble(operand(2)) = vl;                          \
+PC += operand(1)+1;                               \
 })
 
 #define operand(i) ((PC+(i))->op.ltrl)
+#define tgtOp(PC,i) ((PC+(i))->op.ltrl)
 
 #endif //EVALP_H

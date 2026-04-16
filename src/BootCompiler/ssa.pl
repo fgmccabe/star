@@ -110,16 +110,16 @@ mnem([iBlock(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(13), B0|Cd],Cdx) :-
 mnem([iLoop(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(14), B0|Cd],Cdx) :-
   assemBlock(V0,none,Lbls,Lt0,Lt1,LsMap,B0),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
-mnem([iValof(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(15), Off0, B1|Cd],Cdx) :-
-  findLocal(V0,LsMap,Off0),
+mnem([iValof(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(15), LL0, B1|Cd],Cdx) :-
+  findLocals(V0,LsMap,LL0),
   assemBlock(V1,none,Lbls,Lt0,Lt1,LsMap,B1),
   mnem(Ins,Lbls,Lt1,Ltx,LsMap,Cd,Cdx).
 mnem([iBreak(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(16), intgr(L0)|Cd],Cdx) :-
   findLevel(Lbls,V0,L0),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
-mnem([iResult(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(17), intgr(L0), Off1|Cd],Cdx) :-
+mnem([iResult(V0, V1)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(17), intgr(L0), LL1|Cd],Cdx) :-
   findLevel(Lbls,V0,L0),
-  findLocal(V1,LsMap,Off1),
+  findLocals(V1,LsMap,LL1),
   mnem(Ins,Lbls,Lt0,Ltx,LsMap,Cd,Cdx).
 mnem([iCont(V0)|Ins],Lbls,Lt0,Ltx,LsMap,[intgr(18), intgr(L0)|Cd],Cdx) :-
   findLevel(Lbls,V0,L0),
@@ -587,14 +587,16 @@ showMnem(iLoop(V0),Pc,sq([PcDx,ss(": "),ss("Loop"),ss(" "),sq([nl(Dp),iv(nl(Dp),
   pcSpace(SPc,Dp),
   showMnems(V0,SPc,SS0),
   showPc(Pc,PcDx).
-showMnem(iValof(V0, V1),Pc,sq([PcDx,ss(": "),ss("Valof"),ss(" "),ss(V0),ss(" "),sq([nl(Dp),iv(nl(Dp),SS1)])])) :- !,
+showMnem(iValof(V0, V1),Pc,sq([PcDx,ss(": "),ss("Valof"),ss(" "),VV0,ss(" "),sq([nl(Dp),iv(nl(Dp),SS1)])])) :- !,
+  showCallArgs(V0,VV0),
   blockPc(Pc,SPc),
   pcSpace(SPc,Dp),
   showMnems(V1,SPc,SS1),
   showPc(Pc,PcDx).
 showMnem(iBreak(V0),Pc,sq([PcDx,ss(": "),ss("Break"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
-showMnem(iResult(V0, V1),Pc,sq([PcDx,ss(": "),ss("Result"),ss(" "),ss(V0),ss(" "),ss(V1)])) :- !,
+showMnem(iResult(V0, V1),Pc,sq([PcDx,ss(": "),ss("Result"),ss(" "),ss(V0),ss(" "),VV1])) :- !,
+  showCallArgs(V1,VV1),
   showPc(Pc,PcDx).
 showMnem(iCont(V0),Pc,sq([PcDx,ss(": "),ss("Cont"),ss(" "),ss(V0)])) :- !,
   showPc(Pc,PcDx).
@@ -753,7 +755,7 @@ shLs([],_,[]) :-!.
 shLs([L|Ls],Sep,[Sep,ss(L)|LLs]) :-
   shLs(Ls,ss(", "),LLs).
 
-ssaHash(179207942688319332).
+ssaHash(1553592643262590116).
 
 bumpPc([Pc|Rest],[Pc1|Rest]) :- Pc1 is Pc+1.
 
