@@ -160,7 +160,7 @@ void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc
 }
 
 void recordPhiVariable(analysisPo analysis, scopePo block, int32 pc, int32 phiNo) {
-  assert(block->kind==sValof);
+  assert(block->kind==sBlock);
   assert(block->phiCnt==1);
   varDescPo phiVar = block->phiVars[phiNo];
   if (phiVar->end < pc)

@@ -358,7 +358,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       int32 insSize = 3;
       codeLblPo rsltOk = newLabel(ctx);
       cbz_w(RTS, rsltOk);
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
       assert(tgtBlock!=Null && tgtBlock->phiCnt==1);
 
       storeVar(state, pc,RG(RTV), tgtBlock->phiVars[0]);
@@ -424,29 +424,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       pc += insSize;
       continue;
     }
-    case sBlock: {
-      // block of instructions
-      int32 blockLen = opand(1);
-      int32 nextPc = pc + blockLen;
-      codeLblPo brkLbl = newLabel(ctx);
-
-      JitBlock subBlock = {
-        .blockType = sBlock,
-        .startPc = pc,
-        .endPc = nextPc,
-        .breakLbl = brkLbl,
-        .loopLbl = here(),
-        .parent = block,
-        .phiCnt = 0,
-        .phiVars = Null
-      };
-
-      ret = jitBlock(&subBlock, state, code, pc + 2, nextPc);
-      pc = nextPc; // Skip over the block
-      retireExpiredVars(state, pc);
-      bind(brkLbl);
-      continue;
-    }
     case sLoop: {
       // block of instructions
       int32 blockLen = opand(1);
@@ -470,7 +447,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       bind(brkLbl);
       continue;
     }
-    case sValof: {
+    case sBlock: {
       // vlof block of instructions
       int32 arity = opand(1);
       int32 blockLen = opand(arity+2);
@@ -482,7 +459,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
         phiVars[ax] = findPhiVariable(state, pc,opand(ax+2));
 
       JitBlock subBlock = {
-        .blockType = sValof,
+        .blockType = sBlock,
         .startPc = pc,
         .endPc = nextPc,
         .breakLbl = brkLbl,
@@ -509,7 +486,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       // return value out of block
       int32 arity = opand(2);
       int32 insSize = arity + 3;
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
 
       assert(tgtBlock->phiCnt==arity);
 
@@ -1021,7 +998,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo skip = newLabel(ctx);
       cbnz(divisor, skip);
 
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
       assert(tgtBlock->phiCnt==1);
       localVarPo phiVar = tgtBlock->phiVars[0];
 
@@ -1053,7 +1030,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       codeLblPo skip = newLabel(ctx);
       cbnz(divisor, skip);
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
       assert(tgtBlock->phiCnt==1);
       localVarPo phiVar = tgtBlock->phiVars[0];
 
@@ -1441,7 +1418,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo skip = newLabel(ctx);
       bne(skip);
 
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
       assert(tgtBlock->phiCnt==1);
       localVarPo phiVar = tgtBlock->phiVars[0];
 
@@ -1480,7 +1457,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       codeLblPo skip = newLabel(ctx);
       bne(skip);
 
-      blockPo tgtBlock = targetBlock(block, pc + opand(1), sValof);
+      blockPo tgtBlock = targetBlock(block, pc + opand(1), sBlock);
       assert(tgtBlock->phiCnt==1);
       localVarPo phiVar = tgtBlock->phiVars[0];
 

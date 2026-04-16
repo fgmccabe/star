@@ -81,12 +81,12 @@
   PC += operand(1);                                 \
 })
 
-#define returnBlock(o,vl) STMT_WRAP({             \
-PC += operand(o);                                 \
-assert(PC->op.op==sValof);                        \
-assert(operand(1)==1);                            \
-varble(operand(2)) = vl;                          \
-PC += operand(1)+1;                               \
+#define returnBlock(o,vl) STMT_WRAP({               \
+PC += operand(o);                                   \
+assert(PC->op.op==sBlock);                          \
+assert(operand(1)==1);                              \
+varble(operand(2)) = vl;                            \
+PC += operand(1)+1;                                 \
 })
 
 #define operand(i) ((PC+(i))->op.ltrl)

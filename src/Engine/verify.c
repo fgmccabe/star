@@ -359,26 +359,16 @@ retCode verifyBlock(int32 from, int32 pc, int32 limit, verifyCtxPo verifyCtx, in
         return verifyError(&ctx, ".%d: Ret/XRet should be last instruction in block", pc);
       pc += insWidth;
       continue;
+    }case sLoop: {
+      int32 blockLen = operand(1);
+
+      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
+        pc += blockLen;
+        continue;
+      }
+      return Error;
     }
     case sBlock: {
-      int32 blockLen = operand(1);
-
-      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
-        pc += blockLen;
-        continue;
-      }
-      return Error;
-    }
-    case sLoop: {
-      int32 blockLen = operand(1);
-
-      if (verifyBlock(pc, pc + 2, pc + blockLen, &ctx, 0) == Ok) {
-        pc += blockLen;
-        continue;
-      }
-      return Error;
-    }
-    case sValof: {
       int32 arity = operand(1);
       int32 blockLen = operand(arity+2);
       int32 nextPc = pc + blockLen;

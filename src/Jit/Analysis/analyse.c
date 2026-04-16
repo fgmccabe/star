@@ -113,18 +113,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     case sRtn: {
       pc++;
       continue;
-    }
-    case sBlock: {
-      int32 skipLen = operand(1);
-
-      ScopeBlock block = {
-        .start = pc, .limit = limit, .parent = scope, .kind = sBlock, .phiCnt = 0, .phiVars = Null
-      };
-      ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
-      pc += skipLen;
-      continue;
-    }
-    case sLoop: {
+    }case sLoop: {
       int32 skipLen = operand(1);
 
       ScopeBlock block = {
@@ -134,7 +123,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       pc += skipLen;
       continue;
     }
-    case sValof: {
+    case sBlock: {
       int32 arity = operand(1);
       int32 blockLen = operand(arity+2);
       int32 nextPc = pc + blockLen;
@@ -143,7 +132,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
         phiVars[px] = recordVariableStart(analysis, operand(px+2), valof, pc, nextPc);
       }
       ScopeBlock block = {
-        .start = pc, .limit = nextPc, .parent = scope, .kind = sValof, .phiCnt = arity, .phiVars = phiVars
+        .start = pc, .limit = nextPc, .parent = scope, .kind = sBlock, .phiCnt = arity, .phiVars = phiVars
       };
 
       ret = analyseBlock(analysis, &block, code, pc + arity + 3, nextPc);

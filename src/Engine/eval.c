@@ -364,12 +364,7 @@ ValueReturn run(enginePo P) {
 
       continue; /* and carry on regardless */
     }
-    case sBlock:
-    case sLoop: {
-      PC += 2; // Skip over the size marker and the Block instruction itself.
-      continue;
-    }
-    case sValof: {
+    case sBlock: {
       int32 arity = operand(1);
       PC += arity + 3; // Skip over the arity & size markers
       continue;
