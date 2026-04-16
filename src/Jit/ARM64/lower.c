@@ -331,8 +331,6 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
       str(LR, OF(FP, OffsetOf(StackFrame, link)));
       stashLiveLocals(state, nextPc, False);
       stackCheck(state, pc, opand(1), opand(2));
-      if (mtdHasName(state->mtd, "test.fm@main"))
-        installBkCall(state, pc);
       pc = nextPc;
       continue;
     }
