@@ -212,22 +212,13 @@ void verifyStack(stackPo stk, heapPo H) {
 
     if (stk->stkMem != Null){
       stackSanityCheck(stk);
-      ptrPo sp = stk->sp;
       ptrPo spLimit = stackLimit(stk);
       framePo fp = stk->fp;
       framePo fpLimit = baseFrame(stk);
-      methodPo prog = locateMethod((uinteger)stk->pc);
       ptrPo args = stk->args;
 
       do{
-        if (prog!=Null) {
-          check(isMethod((termPo) prog), "expecting a code pointer");
-          check(args >= sp, "frame arg pointer invalid");
-          sp = args + argCount(prog);
-        } else {
-          sp = args;
-        }
-        prog = locateMethod((uinteger)fp->link);
+        check(args<=fp->args,"frame args out of step");
         args = fp->args;
         fp--;
       }
@@ -298,6 +289,7 @@ termPo stkScan(builtinClassPo cl, specialHelperFun helper, void* c, termPo o) {
   assert(stk != Null);
 
   if (stk->stkMem != Null){
+    assert(isMethod((termPo) stk->prog));
     helper((ptrPo)&stk->prog, c);
     assert(isMethod((termPo) stk->prog));
 

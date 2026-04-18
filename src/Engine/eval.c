@@ -364,20 +364,26 @@ ValueReturn run(enginePo P) {
 
       continue; /* and carry on regardless */
     }
+    case sLoop: {
+      PC += 2;
+      continue;
+    }
     case sBlock: {
       int32 arity = operand(1);
       PC += arity + 3; // Skip over the arity & size markers
       continue;
     }
     case sBreak: {
-      breakBlock(1);
+      PC += operand(1);
+      assert(PC->op.op==sBlock);
+      PC += operand(2);
       continue;
     }
     case sResult: {
       /* return a vector of values from a block */
-      ssaInsPo tgtPc = PC+operand(1);
+      ssaInsPo tgtPc = PC + operand(1);
       int32 resCnt = operand(2);
-      for (int32 ix=0;ix<resCnt;ix++) {
+      for (int32 ix = 0; ix < resCnt; ix++) {
         varble(tgtOp(tgtPc,ix+2)) = varble(operand(ix+3));
       }
       PC = tgtPc;

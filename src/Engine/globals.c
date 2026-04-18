@@ -137,6 +137,7 @@ globalPo globalVar(const char* nm) {
     glb->name = uniDuplicate(nm);
     glb->content = Null;
     glb->clss.lblIndex = globalIndex;
+    glb->clss.space = FIVEAS;
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);

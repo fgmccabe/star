@@ -101,6 +101,7 @@ labelPo declareLbl(const char* name, int32 arity, int32 constructorIndex) {
     lbl->labelIndex = lblTableTop - 1;
     lbl->mtd = Null;
     lbl->special.lblIndex = labelIndex;
+    lbl->special.space = FIVEAS;
     lbl->hash = LabelHash(&Lbl);
     lbl->breakPointSet = False;
     hashPut(labelHashTable, &lbl->lbl, lbl);

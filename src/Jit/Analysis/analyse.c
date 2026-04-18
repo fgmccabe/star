@@ -88,18 +88,20 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 nextPc = pc + 3;
       recordVariableStart(analysis, operand(2), local, nextPc, nextPc);
       scopePo valofScope = checkScope(scope, pc + operand(1));
-      recordPhiVariable(analysis, valofScope, pc, 0);
+      markPhiVariable(analysis, valofScope, 0);
       pc = nextPc;
       continue;
     }
     case sEntry: {
       int32 arity = operand(1);
-      for (int32 ax = 0; ax < arity; ax++)
+      for (int32 ax = 0; ax < arity; ax++) {
         newArgVar(analysis, ax);
+      }
 
       int32 count = operand(2);
-      for (int32 lx = 0; lx < count; lx++)
+      for (int32 lx = 0; lx < count; lx++) {
         newLocalVar(analysis, -(lx + 1));
+      }
       pc += 3;
       continue;
     }
@@ -113,14 +115,18 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
     case sRtn: {
       pc++;
       continue;
-    }case sLoop: {
+    }
+    case sLoop: {
       int32 skipLen = operand(1);
+      int32 nextPc = pc + skipLen;
 
       ScopeBlock block = {
-        .start = pc, .limit = limit, .parent = scope, .kind = sLoop, .phiCnt = 0
+        .start = pc, .end = limit, .parent = scope, .kind = sLoop, .phiCnt = 0
       };
-      ret = analyseBlock(analysis, &block, code, pc + 2, pc + skipLen);
-      pc += skipLen;
+      ret = analyseBlock(analysis, &block, code, pc + 2, nextPc);
+      markLoopVariables(analysis, &block);
+      pc = nextPc;
+
       continue;
     }
     case sBlock: {
@@ -128,14 +134,19 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       int32 blockLen = operand(arity+2);
       int32 nextPc = pc + blockLen;
       varDescPo phiVars[arity];
-      for (int32 px = 0; px < arity; px++) {
-        phiVars[px] = recordVariableStart(analysis, operand(px+2), valof, pc, nextPc);
-      }
       ScopeBlock block = {
-        .start = pc, .limit = nextPc, .parent = scope, .kind = sBlock, .phiCnt = arity, .phiVars = phiVars
+        .start = pc, .end = nextPc, .parent = scope, .kind = sBlock, .phiCnt = arity, .phiVars = phiVars
       };
 
+      for (int32 px = 0; px < arity; px++) {
+        phiVars[px] = newPhiVar(analysis, operand(px+2), &block);
+      }
+
       ret = analyseBlock(analysis, &block, code, pc + arity + 3, nextPc);
+
+      for (int32 px = 0; px < arity; px++) {
+        recordVariableStart(analysis, phiVars[px]->varNo, valof, pc, nextPc);
+      }
       pc = nextPc;
       continue;
     }
@@ -153,7 +164,6 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
 
       for (int32 ax = 0; ax < arity; ax++) {
         recordVariableUse(analysis, scope, operand(ax+3), nextPc);
-        recordPhiVariable(analysis, tgtScope, pc, ax);
       }
       pc = nextPc;
       continue;
@@ -305,7 +315,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableStart(analysis, operand(2), local, nextPc, nextPc);
       recordVariableUse(analysis, scope, operand(3), nextPc);
       recordVariableUse(analysis, scope, operand(4), nextPc);
-      recordPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc, 0);
+      markPhiVariable(analysis, checkScope(scope, pc + operand(1)), 0);
       pc += 5;
       continue;
     }
@@ -366,7 +376,7 @@ retCode analyseBlock(analysisPo analysis, scopePo scope, ssaInsPo code, int32 pc
       recordVariableStart(analysis, operand(2), local, nextPc, nextPc);
       recordVariableUse(analysis, scope, operand(3), nextPc);
       recordVariableUse(analysis, scope, operand(4), nextPc);
-      recordPhiVariable(analysis, checkScope(scope, pc + operand(1)), pc, 0);
+      markPhiVariable(analysis, checkScope(scope, pc + operand(1)), 0);
       setSafePoint(analysis, nextPc);
       pc = nextPc;
       continue;
@@ -479,14 +489,20 @@ scopePo checkScope(scopePo scope, int32 tgt) {
 
 static void markVarSlots(analysisPo analysis);
 
-retCode analyseMethod(methodPo mtd, analysisPo results) {
-  setupAnalysis(results);
+retCode analyseMethod(methodPo mtd, analysisPo analysis) {
+  setupAnalysis(analysis);
   int32 endPc = codeSize(mtd);
   ScopeBlock block = {
-    .start = 0, .limit = endPc, .parent = Null, .kind = sBlock, .phiCnt = 0, .phiVars = Null
+    .start = 0, .end = endPc, .parent = Null, .kind = sBlock, .phiCnt = 0, .phiVars = Null
   };
-  retCode ret = analyseBlock(results, &block, entryPoint(mtd), 0, endPc);
-  markVarSlots(results);
+  retCode ret = analyseBlock(analysis, &block, entryPoint(mtd), 0, endPc);
+  markVarSlots(analysis);
+
+#ifdef TRACEJIT
+  if (traceJit > noTracing) {
+    showAnalysis(logFile, analysis);
+  }
+#endif
   return ret;
 }
 

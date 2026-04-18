@@ -15,6 +15,10 @@ typedef struct term_record {
   int32 space;
 } TermHead;
 
+#ifndef FIVEAS
+#define FIVEAS 0x5a5a5a50;
+#endif
+
 labelPo findLbl(const char* name, int32 arity);
 uint64 labelHash(labelPo lbl);
 

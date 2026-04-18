@@ -357,13 +357,15 @@ compPtn(flot(Dx),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCFlt(flot(Dx),Fail,Vr)|Cx],
 compPtn(chr(Ch),Vr,_,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCChar(chr(Ch),Fail,Vr)|Cx],Cx).
 compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail,Vr)|C],Cx) :-
   compPtnArgs(Args,Vr,Lc,0,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx).
-compPtn(Lit,Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail,Vr)|Cx],Cx) :-
-  isLiteral(Lit).
 compPtn(idnt(Nm,Tp),Vr,Lc,_Fail,_Brks,Opts,Lx,Lx,D,Dx,[iMv(Nm,Vr)|C],Cx) :-
   defineLclVar(Lc,Nm,Tp,Opts,D,Dx),
   genBind(Opts,Nm,C,Cx).
+
+compPtn(enum(Lbl),Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLbl(lbl(Lbl,0),Fail,Vr)|Cx],Cx) :-!.
 compPtn(ctpl(St,Args),Vr,Lc,Fail,Brks,Opts,L,Lx,D,Dx,[iCLbl(St,Fail,Vr)|C],Cx) :-
   compPtnArgs(Args,Vr,Lc,0,Fail,Brks,Opts,L,Lx,D,Dx,C,Cx).
+compPtn(Lit,Vr,_Lc,Fail,_Brks,_Opts,Lx,Lx,Dx,Dx,[iCLit(Lit,Fail,Vr)|Cx],Cx) :-
+  isLiteral(Lit).
 compPtn(savGet(Lc,V,STp),Vr,_,Fail,Brks,Opts,L,Lx,D,Dx,[iLdSav(SVr,Fail,Vr)|C],Cx) :-
   defineTmpVar(Lc,SVr,STp,Opts,D,D0),
   compPtn(V,SVr,Lc,Fail,Brks,Opts,L,Lx,D0,Dx,C,Cx).

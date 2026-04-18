@@ -14,7 +14,7 @@
 static poolPo varPool = Null;
 
 void initAnalysis() {
-  if (varPool == Null){
+  if (varPool == Null) {
     varPool = newPool(sizeof(VarDescRecord), 1024);
   }
 }
@@ -22,39 +22,21 @@ void initAnalysis() {
 void tearDownAnalysis(AnalysisRecord* results) {
   deleteSet(results->safes);
   eraseHash(results->vars);
-  eraseTree(results->index);
 }
 
 void setupAnalysis(analysisPo analysis) {
   initAnalysis();
 
   hashPo vars = newVarTable();
-  treePo index = newVarIndex();
   setPo safes = newSet();
 
   analysis->vars = vars;
-  analysis->index = index;
   analysis->safes = safes;
 }
-
-static char* stateName[] = {
-  "unAllocated",
-  "beingAllocated",
-  "allocated"
-};
 
 retCode showVarDesc(ioPo out, varDescPo var) {
   return outMsg(out, "%d: %s [%d, %d) %s\n", var->varNo, varKindName(var->kind), var->start,
                 var->end, (var->registerCandidate ? "reg candidate" : "memory"));
-}
-
-static retCode showVrIndex(void* n, void* r, void* c) {
-  ioPo out = (ioPo)c;
-  varDescPo var = (varDescPo)r;
-  int32 index = (int32)(integer)n;
-
-  outMsg(out, "%d -> ", index);
-  return showVarDesc(out, var);
 }
 
 static retCode showVr(void* n, void* r, void* c) {
@@ -64,29 +46,11 @@ static retCode showVr(void* n, void* r, void* c) {
   return showVarDesc(out, var);
 }
 
-retCode showVarIndex(ioPo out, analysisPo analysis) {
-  return processTree(showVrIndex, analysis->index, out);
-}
-
 retCode showVars(ioPo out, analysisPo analysis) {
   return processHashTable(showVr, analysis->vars, (void*)out);
 }
 
-static retCode checkVarIndex(void* n, void* r, void* c) {
-  varDescPo var = (varDescPo)r;
-  int32 index = (int32)(integer)n;
-
-  if (var->start == index)
-    return Ok;
-  return Error;
-}
-
-static void checkIndex(treePo index) {
-  assert(processTree(checkVarIndex,index,Null)==Ok);
-}
-
 void showAnalysis(ioPo out, analysisPo analysis) {
-  checkIndex(analysis->index);
   outMsg(out, "Analysis:\n");\
   showVars(out, analysis);
   outMsg(out, "Safe points: ");
@@ -136,18 +100,17 @@ varDescPo recordVariableStart(analysisPo analysis, int32 varNo, varKind kind, in
   desc->start = pc;
   desc->end = end;
   desc->kind = kind;
-  treePut(analysis->index, (void*)(integer)pc, desc);
   return desc;
 }
 
 void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc) {
   varDescPo var = findVar(analysis, varNo);
 
-  while (block != Null){
-    if (block->start >= var->start){ // extend scope of variable through the end of loops
-      if (block->kind == sLoop){
-        if (var->end < block->limit)
-          var->end = block->limit;
+  while (block != Null) {
+    if (block->start >= var->start) { // extend scope of variable through the end of loops
+      if (block->kind == sLoop) {
+        if (var->end < block->end)
+          var->end = block->end;
       }
       block = block->parent;
       continue;
@@ -159,16 +122,9 @@ void recordVariableUse(analysisPo analysis, scopePo block, int32 varNo, int32 pc
     var->end = pc;
 }
 
-void recordPhiVariable(analysisPo analysis, scopePo block, int32 pc, int32 phiNo) {
+void markPhiVariable(analysisPo analysis, scopePo block, int32 phiNo) {
   assert(block->kind==sBlock);
-  assert(block->phiCnt==1);
-  varDescPo phiVar = block->phiVars[phiNo];
-  if (phiVar->end < pc)
-    phiVar->end = pc;
-}
-
-varDescPo varStart(analysisPo analysis, int32 pc) {
-  return treeGet(analysis->index, (void*)(integer)pc);
+  assert(block->phiCnt>phiNo);
 }
 
 static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc, varAllocationState state) {
@@ -182,6 +138,7 @@ static varDescPo newVar(analysisPo analysis, int32 varNo, varKind kind, int32 pc
   var->end = -1;
   var->registerCandidate = False;
   var->state = state;
+  var->block = Null;
 
   hashPut(analysis->vars, var, var);
   return var;
@@ -224,10 +181,25 @@ varDescPo newLocalVar(analysisPo analysis, int32 varNo) {
   return newVar(analysis, varNo, local, -1, unAllocated);
 }
 
-varDescPo newPhiVar(analysisPo analysis, int32 varNo, int32 pc) {
-  varDescPo var = newVar(analysis, varNo, valof, pc, unAllocated);
-  treePut(analysis->index, (void*)(integer)pc, var);
+varDescPo newPhiVar(analysisPo analysis, int32 varNo, scopePo block) {
+  varDescPo var = newVar(analysis, varNo, valof, block->start, unAllocated);
+  var->block = block;
+  var->end = block->end;
   return var;
+}
+
+static retCode markLoopVar(void* n, void* r, void* c) {
+  varDescPo var = (varDescPo)r;
+  scopePo scope = (scopePo)c;
+  if (var->start < scope->start && var->end >= scope->start) { // in scope in the block
+    if (var->end < scope->end)
+      var->end = scope->end;
+  }
+  return Ok;
+}
+
+void markLoopVariables(analysisPo analysis, scopePo block) {
+  processHashTable(markLoopVar, analysis->vars, block);
 }
 
 void retireVar(analysisPo analysis, int32 varNo, int32 pc) {
@@ -237,7 +209,7 @@ void retireVar(analysisPo analysis, int32 varNo, int32 pc) {
 }
 
 char* varKindName(varKind kind) {
-  switch (kind){
+  switch (kind) {
   case argument:
     return "arg";
   case local:

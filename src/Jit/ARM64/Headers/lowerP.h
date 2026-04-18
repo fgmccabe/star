@@ -27,7 +27,7 @@ typedef struct {
   int32 stkOff;
   logical stashed; // Is the value in the stack frame?
   logical inited;  // Has the variable ever been written to?
-  logical live;    // Is the variable in use?
+  logical inUse;   // Is the variable in use?
   varDescPo desc;
 } LocalVar, *localVarPo;
 
@@ -48,7 +48,7 @@ typedef struct jitBlock_ {
   int32 startPc;
   int32 endPc;
   int32 phiCnt;
-  localVarPo *phiVars;
+  localVarPo* phiVars;
   codeLblPo breakLbl;
   codeLblPo loopLbl;
   blockPo parent;
@@ -90,6 +90,7 @@ void argMove(assemCtxPo ctx, FlexOp dst, FlexOp src, registerMap* freeRegs);
 
 logical liveVar(localVarPo var, int32 pc);
 int32 stashLiveLocals(codeGenPo state, int32 pc, logical moveOwnership);
+int32 activeLocals(codeGenPo state, int32 pc);
 registerMap registerLocals(codeGenPo state, int32 pc);
 void restoreStashedLocals(codeGenPo state, int32 pc);
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx);

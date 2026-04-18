@@ -43,6 +43,7 @@ void verifyProc(enginePo P, heapPo H);
 void verifyProcesses(heapPo H);
 retCode markProcess(enginePo P, gcSupportPo G);
 void markProcesses(enginePo owner, gcSupportPo G);
+void verifyEngine(enginePo p);
 
 void abort_star(enginePo P, termPo lc, termPo msg);
 

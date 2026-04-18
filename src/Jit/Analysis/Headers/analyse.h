@@ -16,7 +16,7 @@ extern tracingLevel traceSSA;
 typedef struct analysis_ *analysisPo;
 void setupAnalysis(analysisPo analysis);
 
-retCode analyseMethod(methodPo mtd, analysisPo results);
+retCode analyseMethod(methodPo mtd, analysisPo analysis);
 retCode analyseSpecialMethod(methodPo mtd, int32 depth,analysisPo results);
 
 void tearDownAnalysis(analysisPo results);

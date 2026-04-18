@@ -184,33 +184,33 @@ void adcs_(uint1 wide, armReg rd, armReg Rn, armReg Rm, assemCtxPo ctx);
 #define adcsw(rd, s1, s2) adcs_(0, rd, s1, s2,ctx)
 
 void add_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-#define add(rd, s1, s2) do{ FlexOp s=s2; add_(1, rd, s1, s, ctx); } while(False)
-#define addw(rd, s1, s2) do{ FlexOp s=s2; add_(0, rd, s1, s, ctx); } while(False)
+#define add(rd, s1, s2) add_(1, rd, s1, s2, ctx)
+#define addw(rd, s1, s2) add_(0, rd, s1, s2, ctx)
 
 void adds_x(uint1 w, armReg Rd, armReg Rn, armReg Rm, armExtent ex, uint8 shift, assemCtxPo ctx);
 void adds_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-#define adds(rd, s1, s2) do{ FlexOp s=s2; adds_(1, rd, s1, s, ctx); } while(False)
-#define addsw(rd, s1, s2) do{ FlexOp s=s2; adds_(0, rd, s1, s, ctx); } while(False)
+#define adds(rd, s1, s2) adds_(1, rd, s1, s2, ctx)
+#define addsw(rd, s1, s2) adds_(0, rd, s1, s2, ctx)
 
 void adr_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
-#define adr(Rd, lbl) do{ adr_(Rd, lbl, ctx); } while(False)
+#define adr(Rd, lbl) adr_(Rd, lbl, ctx)
 
 void adrp_(armReg Rd, codeLblPo lbl, assemCtxPo ctx);
 
 void and_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-#define and(rd, s1, s2) do{ FlexOp s=s2; and_(1, rd, s1, s, ctx); } while(False)
-#define andw(rd, s1, s2) do{ FlexOp s=s2; and_(0, rd, s1, s, ctx); } while(False)
+#define and(rd, s1, s2) and_(1, rd, s1, s2, ctx)
+#define andw(rd, s1, s2) and_(0, rd, s1, s2, ctx)
 
 void ands_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-#define ands(rd, s1, s2) do{ FlexOp s=s2; ands_(1, rd, s1, s, ctx); } while(False)
-#define andsw(rd, s1, s2) do{ FlexOp s=s2; ands_(0, rd, s1, s, ctx); } while(False)
+#define ands(rd, s1, s2) ands_(1, rd, s1, s2, ctx)
+#define andsw(rd, s1, s2) ands_(0, rd, s1, s2, ctx)
 
 void asr_(uint1 w, armReg Rd, armReg Rn, FlexOp S2, assemCtxPo ctx);
-#define asr(rd, s1, s2) do{ FlexOp s=s2; asr_(1, rd, s1, s, ctx); } while(False)
-#define asrw(rd, s1, s2) do{ FlexOp s=s2; asr_(0, rd, s1, s, ctx); } while(False)
+#define asr(rd, s1, s2) asr_(1, rd, s1, s2, ctx)
+#define asrw(rd, s1, s2) asr_(0, rd, s1, s2, ctx)
 
 void b_cond_(armCond cond, codeLblPo lbl, assemCtxPo ctx);
-#define beq(lbl) do{ b_cond_(EQ, lbl, ctx); } while(False)
+#define beq(lbl) b_cond_(EQ, lbl, ctx)
 #define bne(lbl) do{ b_cond_(NE, lbl, ctx); } while(False)
 #define bcs(lbl) do{ b_cond_(CS, lbl, ctx); } while(False)
 #define bcc(lbl) do{ b_cond_(CC, lbl, ctx); } while(False)
@@ -533,7 +533,7 @@ void stpf_(uint1 w, fpReg Rt, fpReg Rt2, FlexOp Sn, assemCtxPo ctx);
 #define stpf(Rt, Rt2, S2) do{FlexOp s=S2; stpf_(1, Rt, Rt2, s,ctx); } while(False)
 
 void str_(uint1 w, armReg Rt, FlexOp Sn, assemCtxPo ctx);
-#define str(Rt, S2) do{FlexOp s=S2; str_(1, Rt, s,ctx); } while(False)
+#define str(Rt, S2) str_(1, Rt, S2,ctx)
 
 void strb_(armReg Rt, FlexOp Sn, assemCtxPo ctx);
 #define strb(Rt, S2) do{FlexOp s=S2; strb_( Rt, s,ctx); } while(False)
@@ -557,7 +557,7 @@ void sturh_(armReg Rt, armReg Rn, int16 imm, assemCtxPo ctx);
 #define sturh(Rt, Rn, Off) sturh_(Rt,Rn,Off,ctx)
 
 void sub_(uint1 w, armReg Rd, armReg Rn, FlexOp s2, assemCtxPo ctx);
-#define sub(Rd, Rn, S) do{FlexOp s=S; sub_(1,Rd,Rn,s,ctx); } while(False)
+#define sub(Rd, Rn, S) sub_(1,Rd,Rn,S,ctx)
 
 void subs_(uint1 w, armReg Rd, armReg Rn, FlexOp s2, assemCtxPo ctx);
 #define subs(Rd, Rn, S) do{FlexOp s=S; subs_(1,Rd,Rn,s,ctx); } while(False)

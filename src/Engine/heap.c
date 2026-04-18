@@ -7,8 +7,6 @@
 long initHeapSize = 4 * 1024 * 1024; /* How much memory to give the heap */
 long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 
-#define FIVEAS 0x5a5a5a50;
-
 tracingLevel traceMemory = noTracing; /* memory tracing */
 logical traceAllocs = False; // trace allocations
 logical validateMemory = False; // Validate heap after every allocation

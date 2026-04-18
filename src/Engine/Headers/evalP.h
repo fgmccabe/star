@@ -78,7 +78,7 @@
 #define breakBlock(o) STMT_WRAP({                   \
   PC += operand(o);                                 \
   assert(PC->op.op==sBlock);                        \
-  PC += operand(1);                                 \
+  PC += operand(2);                                 \
 })
 
 #define returnBlock(o,vl) STMT_WRAP({               \

@@ -196,3 +196,7 @@ void verifyProcesses(heapPo H) {
   else
     processProcesses((procProc)verifyProc, H);
 }
+
+void verifyEngine(enginePo p) {
+  verifyStack(p->stk, p->heap);
+}

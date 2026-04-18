@@ -294,6 +294,7 @@ methodPo defineMtd(heapPo H, int32 insCount, ssaInsPo instructions, int32 lclCou
   methodPo mtd = (methodPo) allocPool(mtdPool);
 
   mtd->clss.lblIndex = methodIndex;
+  mtd->clss.space = FIVEAS;
   mtd->insCount = insCount;
   mtd->instructions = instructions;
 #ifndef NOJIT

@@ -55,8 +55,7 @@ retCode showTerm(ioPo f, void* data, long depth, long precision, logical alt) {
   return dispTerm(f, (termPo)data, precision, depth, alt);
 }
 
-void initTerm() {
-}
+void initTerm() {}
 
 static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth, logical alt) {
   retCode ret = outChar(out, '(');
@@ -78,7 +77,10 @@ static retCode showArgs(ioPo out, normalPo nml, integer precision, integer depth
 }
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  if (hasBuiltinType(t)) {
+  if (t == Null) {
+    return outMsg(out, "(null)");
+  }
+  else if (hasBuiltinType(t)) {
     builtinClassPo spec = builtinClassOf(t);
     return spec->dispFun(out, t, precision, depth, alt);
   }
