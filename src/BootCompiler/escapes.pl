@@ -241,6 +241,7 @@ escapeType("_waitfor",funType(tplType([type("star.thread*thread")]),tplType([]),
 escapeType("_shell",funType(tplType([type("string"),tpExp(tpFun("cons",1),type("string")),tpExp(tpFun("cons",1),tplType([type("string"),type("string")]))]),type("integer"),type("errorCode"))).
 escapeType("_stackTrace",funType(tplType([]),type("string"),voidType)).
 escapeType("_gc",funType(tplType([type("integer")]),tplType([]),type("errorCode"))).
+escapeType("_break",prcType(tplType([type("string")]),voidType)).
 escapeType("_jit_compile",funType(tplType([type("string"),type("integer")]),tplType([]),type("errorCode"))).
 
 
@@ -483,5 +484,6 @@ isEscape("_waitfor").
 isEscape("_shell").
 isEscape("_stackTrace").
 isEscape("_gc").
+isEscape("_break").
 isEscape("_jit_compile").
 

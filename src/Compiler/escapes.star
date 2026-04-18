@@ -245,6 +245,7 @@ star.compiler.escapes{
     | "_shell" => .some(.funType(.tupleType([.nomnal("string"),.tpExp(.tpFun("cons",1),.nomnal("string")),.tpExp(.tpFun("cons",1),.tupleType([.nomnal("string"),.nomnal("string")]))]),.nomnal("integer"),.nomnal("errorCode")))
     | "_stackTrace" => .some(.funType(.tupleType([]),.nomnal("string"),.voidType))
     | "_gc" => .some(.funType(.tupleType([.nomnal("integer")]),.tupleType([]),.nomnal("errorCode")))
+    | "_break" => .some(.prcType(.tupleType([.nomnal("string")]),.voidType))
     | "_jit_compile" => .some(.funType(.tupleType([.nomnal("string"),.nomnal("integer")]),.tupleType([]),.nomnal("errorCode")))
     | _ default => .none
   }
@@ -490,6 +491,7 @@ star.compiler.escapes{
     | "_shell" => .some(3)
     | "_stackTrace" => .some(0)
     | "_gc" => .some(1)
+    | "_break" => .some(1)
     | "_jit_compile" => .some(2)
     | _ default => .none
   }

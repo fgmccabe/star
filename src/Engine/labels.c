@@ -206,30 +206,7 @@ retCode showLabel(ioPo f, void* data, long depth, long precision, logical alt) {
 retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt) {
   const char* name = lbl->lbl.name;
   integer arity = lbl->lbl.arity;
-
-  integer lblLen = uniStrLen(name);
-  if (alt) {
-    retCode ret;
-
-    integer hashOff = uniLastIndexOf(name, lblLen, (codePoint)'#');
-    integer atOff = uniLastIndexOf(name, lblLen, (codePoint)'@');
-
-    integer offset = maximum(hashOff, atOff);
-
-    if (offset > 0 && offset < lblLen - 1)
-      ret = outMsg(out, "…%S", &name[offset + 1], (long)(lblLen - offset - 1), arity);
-    else if (lblLen > prec && prec > 0) {
-      integer half = prec / 2;
-      integer hwp = backCodePoint(name, lblLen, half);
-      ret = outMsg(out, "%S…%S", name, half, &name[hwp], lblLen - hwp, arity);
-    }
-    else
-      ret = outMsg(out, "%S", name, lblLen, arity);
-
-    return ret;
-  }
-  else
-    return outMsg(out, "%Q/%d", name, arity);
+  return outMsg(out, "%Q/%d", name, arity);
 }
 
 __attribute__((unused)) void showAllLabels() {

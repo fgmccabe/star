@@ -33,15 +33,21 @@ ValueReturn s__stackTrace(enginePo P) {
 }
 
 ValueReturn s__gc(enginePo P, termPo a) {
-  if(isDebugging()){
+  if (isDebugging()) {
     integer amnt = integerVal(a);
     retCode ret = gcCollect(processHeap(P), amnt);
     if (ret == Ok) {
       return normalReturn(unitEnum);
-    } else {
+    }
+    else {
       return abnormalReturn(eFAIL);
     }
   }
   else
     return abnormalReturn(eNOPERM);
+}
+
+ValueReturn s__break(enginePo P, termPo a) {
+  outMsg(logFile, " User break: %T\n%_", a);
+  return normalReturn(unitEnum);
 }

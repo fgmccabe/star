@@ -525,7 +525,7 @@ FlexOp getLclSrc(codeGenPo state, int32 pc, int32 lclNo) {
 
 void breakPt() {}
 
-void installBkCall(codeGenPo state, int32 pc) {
+void installBkPt(codeGenPo state, int32 pc) {
   armReg rg = findARegister(state, pc);
   assemCtxPo ctx = assemCtx(state->jit);
   mov(rg, IM((uinteger)breakPt));

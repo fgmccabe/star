@@ -137,6 +137,6 @@ static inline logical isSmall(termPo x) {
 
 void breakPt();
 
-void installBkCall(codeGenPo state, int32 pc);
+void installBkPt(codeGenPo state, int32 pc);
 
 #endif //STAR_LOWERP_H

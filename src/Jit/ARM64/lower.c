@@ -2178,7 +2178,7 @@ void verifyState(codeGenPo state, int32 pc) {
   registerMap freeRegs = state->jit->freeRegs;
   for (int32 ix = 0; ix < state->numLocals; ix++) {
     localVarPo v = &state->locals[ix];
-    if (v->inUse) {
+    if (v->inUse && v->inited) {
       assert(v->desc->end >= pc);
       assert(isRegisterOp(v->src) ? !isRegInMap(freeRegs,v->src.reg):
         v->stashed ? v->src.immediate==v->stkOff*pointerSize:True);
