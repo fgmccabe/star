@@ -87,7 +87,6 @@ retCode jitInstructions(jitCompPo jit, methodPo mtd, registerMap argRegisters, c
 
   retCode ret;
   if ((ret = analyseMethod(mtd, &analysis)) == Ok) {
-
     int32 numSlots = slotCount(&analysis);
     LocalVar locals[numSlots];
     logical voided[numSlots];
@@ -731,7 +730,7 @@ retCode jitBlock(blockPo block, codeGenPo state, ssaInsPo code, int32 from, int3
 
       bind(haveMtd);
 
-      int32 localLimit = activeLocals(state,nextPc);
+      int32 localLimit = activeLocals(state, nextPc);
       int32 minOffset = stashLiveLocals(state, nextPc, True); // save vars that will be live after the call
       voidOutFrameLocals(state, nextPc, minOffset);           // void out gaps in the locals map
       assert(localLimit == minOffset);
@@ -1989,7 +1988,7 @@ int32 loadEscapeArguments(codeGenPo state, int32 pc, int32 livePc, int32 arity, 
   shuffleVars(assemCtx(state->jit), operands, arity + 1, &tmpMap, argMove);
 
   int32 minOffset = stashLiveLocals(state, livePc, True); // save vars that will be live after the call
-  voidOutFrameLocals(state, livePc, minOffset); // void out gaps in the locals map
+  voidOutFrameLocals(state, livePc, minOffset);           // void out gaps in the locals map
 
   assert(minOffset == currVarLimit);
 
@@ -2051,7 +2050,12 @@ void dropArguments(codeGenPo state, int32 pc) {
 }
 
 localVarPo findPhiVariable(codeGenPo state, int32 pc, int32 vrNo) {
-  return localTarget(state, pc, vrNo);
+  localVarPo var = localTarget(state, pc, vrNo);
+  if (!var->desc->registerCandidate) {
+    storeVar(state,pc, RG(XZR),var);
+    state->voided[-var->stkOff] = True;
+  }
+  return var;
 }
 
 void storeVar(codeGenPo state, int32 pc, FlexOp val, localVarPo var) {
@@ -2096,7 +2100,6 @@ FlexOp varSrc(codeGenPo state, int32 pc, localVarPo var) {
   }
   return var->src;
 }
-
 
 localVarPo localSource(codeGenPo state, int32 pc, int32 lx) {
   varDescPo varDesc = findVar(state->analysis, lx);
