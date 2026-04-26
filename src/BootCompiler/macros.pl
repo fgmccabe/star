@@ -69,6 +69,11 @@ examineStmt(S,Rp) :-
   macroOpt(G,macros:macroTerm,GG),
   macroAction(B,BB),
   mkProcedure(Lc,PP,GG,BB,Rp).
+examineStmt(S,Sx) :-
+  isAssignment(S,Lc,L,R),!,
+  macroTerm(L,Lx),
+  macroTerm(R,Rx),
+  assignment(Lc,Lx,Rx,Sx).
 examineStmt(S,Rp) :-
   isTypeFunStmt(S,Lc,Q,C,L,R),!,
   macroType(L,Lx),
